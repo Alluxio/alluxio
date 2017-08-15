@@ -31,11 +31,14 @@ public class RunOperation {
   private static final String BASE_DIRECTORY = "/RunOperationDir";
 
   enum Operation {
-    CreateEmptyFile;
+    CreateEmptyFile,
+    CreateAndDeleteEmptyFile;
   }
 
   @Parameter(names = {"-op", "-operation"},
-      description = "the operation to perform. Options are [CreateEmptyFile]", required = true)
+      description = "the operation to perform. Options are [CreateEmptyFile, "
+          + "CreateAndDeleteEmptyFile]",
+      required = true)
   private Operation mOperation;
   @Parameter(names = {"-n", "-num"},
       description = "the number of times to perform the operation (total for all threads)")
@@ -114,10 +117,14 @@ public class RunOperation {
     }
 
     private void applyOperation() throws IOException, AlluxioException {
+      AlluxioURI uri = new AlluxioURI(String.format("%s/%s", BASE_DIRECTORY, UUID.randomUUID()));
       switch (mOperation) {
         case CreateEmptyFile:
-          String name = String.format("%s/%s", BASE_DIRECTORY, UUID.randomUUID());
-          mFileSystem.createFile(new AlluxioURI(name)).close();
+          mFileSystem.createFile(uri).close();
+          break;
+        case CreateAndDeleteEmptyFile:
+          mFileSystem.createFile(uri).close();
+          mFileSystem.delete(uri);
           break;
         default:
           throw new IllegalStateException("Unknown operation: " + mOperation);
