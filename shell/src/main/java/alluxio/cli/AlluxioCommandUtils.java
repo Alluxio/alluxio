@@ -24,7 +24,7 @@ import com.google.common.base.Throwables;
 import alluxio.util.CommonUtils;
 
 /**
- * Class for convenience methods used by {@link AlluxioShell}.
+ * Class for convenience methods used by instances of {@link Command}.
  */
 @ThreadSafe
 public final class AlluxioCommandUtils {
