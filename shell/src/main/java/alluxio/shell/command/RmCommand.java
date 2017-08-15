@@ -39,6 +39,14 @@ public final class RmCommand extends WithWildCardPathCommand {
           .desc("delete files and subdirectories recursively")
           .build();
 
+  protected static final String REMOVE_UNCHECKED_OPTION_CHAR = "U";
+  protected static final Option REMOVE_UNCHECKED_OPTION =
+      Option.builder(REMOVE_UNCHECKED_OPTION_CHAR)
+            .required(false)
+            .hasArg(false)
+            .desc("remove directories without checking UFS contents are in sync")
+            .build();
+
   /**
    * @param fs the filesystem of Alluxio
    */
