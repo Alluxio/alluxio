@@ -20,6 +20,7 @@ import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.exception.status.UnavailableException;
+import alluxio.master.MasterClientConfig;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 import alluxio.util.io.PathUtils;
@@ -97,7 +98,8 @@ public final class AlluxioFrameworkIntegrationTest {
     try {
       startAlluxioFramework(env);
       LOG.info("Launched Alluxio cluster, waiting for worker to register with master");
-      try (final BlockMasterClient client = BlockMasterClient.Factory.create()) {
+      try (final BlockMasterClient client =
+          BlockMasterClient.Factory.create(MasterClientConfig.defaults())) {
         CommonUtils.waitFor("Alluxio worker to register with master",
             new Function<Void, Boolean>() {
               @Override

@@ -25,11 +25,11 @@ import alluxio.client.file.options.ListStatusOptions;
 import alluxio.client.file.options.LoadMetadataOptions;
 import alluxio.client.file.options.MountOptions;
 import alluxio.client.file.options.SetAttributeOptions;
-import alluxio.master.MasterInquireClient;
+import alluxio.master.MasterClientConfig;
 import alluxio.thrift.AlluxioService;
 import alluxio.thrift.FileSystemMasterClientService;
-import alluxio.thrift.GetNewBlockIdForFileTOptions;
 import alluxio.thrift.GetMountTableTResponse;
+import alluxio.thrift.GetNewBlockIdForFileTOptions;
 import alluxio.thrift.LoadMetadataTOptions;
 import alluxio.thrift.RenameTOptions;
 import alluxio.thrift.ScheduleAsyncPersistenceTOptions;
@@ -46,7 +46,6 @@ import java.util.List;
 import java.util.Map;
 
 import javax.annotation.concurrent.ThreadSafe;
-import javax.security.auth.Subject;
 
 /**
  * A wrapper for the thrift client to interact with the file system master, used by alluxio clients.
@@ -62,12 +61,10 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
   /**
    * Creates a new {@link RetryHandlingFileSystemMasterClient} instance.
    *
-   * @param subject the subject
-   * @param masterInquireClient a client for determining the master address
+   * @param conf master client configuration
    */
-  public RetryHandlingFileSystemMasterClient(Subject subject,
-      MasterInquireClient masterInquireClient) {
-    super(subject, masterInquireClient);
+  public RetryHandlingFileSystemMasterClient(MasterClientConfig conf) {
+    super(conf);
   }
 
   @Override

@@ -24,6 +24,7 @@ import alluxio.exception.InvalidWorkerStateException;
 import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatThread;
+import alluxio.master.MasterClientConfig;
 import alluxio.metrics.MetricsSystem;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.thrift.BlockWorkerClientService;
@@ -121,8 +122,8 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
    * @param ufsManager ufs manager
    */
   DefaultBlockWorker(UfsManager ufsManager) {
-    this(new BlockMasterClientPool(), new FileSystemMasterClient(), new Sessions(),
-        new TieredBlockStore(), ufsManager);
+    this(new BlockMasterClientPool(), new FileSystemMasterClient(MasterClientConfig.defaults()),
+        new Sessions(), new TieredBlockStore(), ufsManager);
   }
 
   /**

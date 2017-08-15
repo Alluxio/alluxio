@@ -14,7 +14,7 @@ package alluxio.client.lineage;
 import alluxio.AbstractMasterClient;
 import alluxio.Constants;
 import alluxio.job.CommandLineJob;
-import alluxio.master.MasterInquireClient;
+import alluxio.master.MasterClientConfig;
 import alluxio.thrift.AlluxioService;
 import alluxio.thrift.CreateLineageTOptions;
 import alluxio.thrift.DeleteLineageTOptions;
@@ -46,9 +46,11 @@ public final class LineageMasterClient extends AbstractMasterClient {
 
   /**
    * Creates a new lineage master client.
+   *
+   * @param conf master client configuration
    */
-  public LineageMasterClient() {
-    super(null, MasterInquireClient.Factory.create());
+  public LineageMasterClient(MasterClientConfig conf) {
+    super(conf);
   }
 
   @Override

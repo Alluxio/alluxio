@@ -13,6 +13,7 @@ package alluxio.worker.block;
 
 import alluxio.Configuration;
 import alluxio.PropertyKey;
+import alluxio.master.MasterClientConfig;
 import alluxio.resource.ResourcePool;
 
 import com.google.common.io.Closer;
@@ -52,7 +53,7 @@ public final class BlockMasterClientPool extends ResourcePool<BlockMasterClient>
 
   @Override
   protected BlockMasterClient createNewResource() {
-    BlockMasterClient client = new BlockMasterClient();
+    BlockMasterClient client = new BlockMasterClient(MasterClientConfig.defaults());
     mClientList.add(client);
     return client;
   }

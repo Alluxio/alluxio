@@ -11,7 +11,7 @@
 
 package alluxio.client.block;
 
-import alluxio.master.MasterInquireClient;
+import alluxio.master.MasterClientConfig;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -21,8 +21,6 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
-import javax.security.auth.Subject;
-
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(BlockMasterClient.Factory.class)
 public class BlockMasterClientPoolTest {
@@ -31,7 +29,7 @@ public class BlockMasterClientPoolTest {
     BlockMasterClient expectedClient = Mockito.mock(BlockMasterClient.class);
     PowerMockito.mockStatic(BlockMasterClient.Factory.class);
     Mockito.when(BlockMasterClient.Factory
-        .create(Mockito.any(Subject.class), Mockito.any(MasterInquireClient.class)))
+        .create(Mockito.any(MasterClientConfig.class)))
         .thenReturn(expectedClient);
     BlockMasterClient client;
     try (BlockMasterClientPool pool = new BlockMasterClientPool(null, null)) {

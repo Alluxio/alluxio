@@ -18,6 +18,7 @@ import alluxio.exception.ExceptionMessage;
 import alluxio.exception.PreconditionMessage;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.UnavailableException;
+import alluxio.master.MasterClientConfig;
 import alluxio.thrift.PartitionInfo;
 import alluxio.util.io.BufferUtils;
 
@@ -64,7 +65,7 @@ class BaseKeyValueStoreWriter implements KeyValueStoreWriter {
    */
   BaseKeyValueStoreWriter(AlluxioURI uri) throws IOException {
     LOG.info("Create KeyValueStoreWriter for {}", uri);
-    mMasterClient = new KeyValueMasterClient();
+    mMasterClient = new KeyValueMasterClient(MasterClientConfig.defaults());
 
     mStoreUri = Preconditions.checkNotNull(uri);
     mMasterClient.createStore(mStoreUri);

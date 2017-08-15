@@ -13,7 +13,7 @@ package alluxio.worker.block;
 
 import alluxio.AbstractMasterClient;
 import alluxio.Constants;
-import alluxio.master.MasterInquireClient;
+import alluxio.master.MasterClientConfig;
 import alluxio.thrift.AlluxioService;
 import alluxio.thrift.BlockHeartbeatTOptions;
 import alluxio.thrift.BlockMasterWorkerService;
@@ -44,9 +44,11 @@ public final class BlockMasterClient extends AbstractMasterClient {
 
   /**
    * Creates a new instance of {@link BlockMasterClient} for the worker.
+   *
+   * @param conf master client configuration
    */
-  public BlockMasterClient() {
-    super(null, MasterInquireClient.Factory.create());
+  public BlockMasterClient(MasterClientConfig conf) {
+    super(conf);
   }
 
   @Override

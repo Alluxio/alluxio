@@ -13,7 +13,7 @@ package alluxio.worker.file;
 
 import alluxio.AbstractMasterClient;
 import alluxio.Constants;
-import alluxio.master.MasterInquireClient;
+import alluxio.master.MasterClientConfig;
 import alluxio.thrift.AlluxioService;
 import alluxio.thrift.AlluxioTException;
 import alluxio.thrift.FileSystemCommand;
@@ -46,18 +46,11 @@ public final class FileSystemMasterClient extends AbstractMasterClient {
 
   /**
    * Creates a instance of {@link FileSystemMasterClient}.
-   */
-  public FileSystemMasterClient() {
-    super(null, MasterInquireClient.Factory.create());
-  }
-
-  /**
-   * Creates a instance of {@link FileSystemMasterClient}.
    *
-   * @param masterInquireClient a client for determining the master address
+   * @param conf master client configuration
    */
-  public FileSystemMasterClient(MasterInquireClient masterInquireClient) {
-    super(null, masterInquireClient);
+  public FileSystemMasterClient(MasterClientConfig conf) {
+    super(conf);
   }
 
   @Override

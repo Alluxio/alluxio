@@ -13,6 +13,7 @@ package alluxio.client.lineage;
 
 import alluxio.Configuration;
 import alluxio.PropertyKey;
+import alluxio.master.MasterClientConfig;
 import alluxio.resource.ResourcePool;
 
 import java.net.InetSocketAddress;
@@ -38,6 +39,6 @@ final class LineageMasterClientPool extends ResourcePool<LineageMasterClient> {
 
   @Override
   protected LineageMasterClient createNewResource() {
-    return new LineageMasterClient();
+    return new LineageMasterClient(MasterClientConfig.defaults());
   }
 }

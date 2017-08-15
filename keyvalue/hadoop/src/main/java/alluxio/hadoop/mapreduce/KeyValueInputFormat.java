@@ -15,6 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.annotation.PublicApi;
 import alluxio.client.keyvalue.KeyValueMasterClient;
 import alluxio.client.keyvalue.KeyValueSystem;
+import alluxio.master.MasterClientConfig;
 import alluxio.thrift.PartitionInfo;
 
 import org.apache.hadoop.fs.Path;
@@ -42,7 +43,8 @@ import javax.annotation.concurrent.ThreadSafe;
 @PublicApi
 @ThreadSafe
 public final class KeyValueInputFormat extends InputFormat<BytesWritable, BytesWritable> {
-  private final KeyValueMasterClient mKeyValueMasterClient = new KeyValueMasterClient();
+  private final KeyValueMasterClient mKeyValueMasterClient =
+      new KeyValueMasterClient(MasterClientConfig.defaults());
 
   /**
    * Constructs a new {@link KeyValueInputFormat}.

@@ -13,6 +13,7 @@ package alluxio.client.file;
 
 import alluxio.Configuration;
 import alluxio.PropertyKey;
+import alluxio.master.MasterClientConfig;
 import alluxio.master.MasterInquireClient;
 import alluxio.resource.ResourcePool;
 
@@ -74,8 +75,8 @@ public final class FileSystemMasterClientPool extends ResourcePool<FileSystemMas
 
   @Override
   protected FileSystemMasterClient createNewResource() {
-    FileSystemMasterClient client =
-        FileSystemMasterClient.Factory.create(mSubject, mMasterInquireClient);
+    FileSystemMasterClient client = FileSystemMasterClient.Factory.create(MasterClientConfig
+        .defaults().withSubject(mSubject).withMasterInquireClient(mMasterInquireClient));
     mClientList.add(client);
     return client;
   }

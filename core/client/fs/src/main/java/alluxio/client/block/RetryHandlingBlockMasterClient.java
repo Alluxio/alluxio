@@ -13,7 +13,7 @@ package alluxio.client.block;
 
 import alluxio.AbstractMasterClient;
 import alluxio.Constants;
-import alluxio.master.MasterInquireClient;
+import alluxio.master.MasterClientConfig;
 import alluxio.thrift.AlluxioService;
 import alluxio.thrift.BlockMasterClientService;
 import alluxio.thrift.GetBlockInfoTOptions;
@@ -31,7 +31,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.annotation.concurrent.ThreadSafe;
-import javax.security.auth.Subject;
 
 /**
  * A wrapper for the thrift client to interact with the block master, used by alluxio clients.
@@ -47,11 +46,10 @@ public final class RetryHandlingBlockMasterClient extends AbstractMasterClient
   /**
    * Creates a new block master client.
    *
-   * @param subject the parent subject, set to null if not present
-   * @param masterInquireClient a client for determining the master address
+   * @param conf master client configuration
    */
-  public RetryHandlingBlockMasterClient(Subject subject, MasterInquireClient masterInquireClient) {
-    super(subject, masterInquireClient);
+  public RetryHandlingBlockMasterClient(MasterClientConfig conf) {
+    super(conf);
   }
 
   @Override

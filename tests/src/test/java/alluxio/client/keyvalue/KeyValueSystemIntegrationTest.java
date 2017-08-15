@@ -21,6 +21,7 @@ import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
+import alluxio.master.MasterClientConfig;
 import alluxio.util.io.BufferUtils;
 import alluxio.util.io.PathUtils;
 
@@ -331,7 +332,7 @@ public final class KeyValueSystemIntegrationTest extends BaseIntegrationTest {
   }
 
   private int getPartitionNumber(AlluxioURI storeUri) throws Exception {
-    try (KeyValueMasterClient client = new KeyValueMasterClient()) {
+    try (KeyValueMasterClient client = new KeyValueMasterClient(MasterClientConfig.defaults())) {
       return client.getPartitionInfo(storeUri).size();
     }
   }

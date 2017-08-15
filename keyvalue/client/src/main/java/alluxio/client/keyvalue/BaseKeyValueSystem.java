@@ -20,6 +20,7 @@ import alluxio.exception.PreconditionMessage;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.NotFoundException;
 import alluxio.exception.status.UnavailableException;
+import alluxio.master.MasterClientConfig;
 
 import com.google.common.base.Preconditions;
 
@@ -35,7 +36,8 @@ import javax.annotation.concurrent.ThreadSafe;
 @PublicApi
 @ThreadSafe
 public final class BaseKeyValueSystem implements KeyValueSystem {
-  private final KeyValueMasterClient mMasterClient = new KeyValueMasterClient();
+  private final KeyValueMasterClient mMasterClient =
+      new KeyValueMasterClient(MasterClientConfig.defaults());
 
   /**
    * Constructs a new {@link BaseKeyValueSystem}.

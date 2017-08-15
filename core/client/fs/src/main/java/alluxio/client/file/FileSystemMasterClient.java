@@ -26,14 +26,12 @@ import alluxio.client.file.options.MountOptions;
 import alluxio.client.file.options.SetAttributeOptions;
 import alluxio.exception.status.AlreadyExistsException;
 import alluxio.exception.status.NotFoundException;
+import alluxio.master.MasterClientConfig;
 import alluxio.wire.MountPointInfo;
-import alluxio.master.MasterInquireClient;
 
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
-
-import javax.security.auth.Subject;
 
 /**
  * A client to use for interacting with a file system master.
@@ -50,22 +48,11 @@ public interface FileSystemMasterClient extends Client {
     /**
      * Factory method for {@link FileSystemMasterClient}.
      *
+     * @param conf master client configuration
      * @return a new {@link FileSystemMasterClient} instance
      */
-    public static FileSystemMasterClient create() {
-      return create(null, MasterInquireClient.Factory.create());
-    }
-
-    /**
-     * Factory method for {@link FileSystemMasterClient}.
-     *
-     * @param subject the parent subject
-     * @param masterInquireClient a client for determining the master address
-     * @return a new {@link FileSystemMasterClient} instance
-     */
-    public static FileSystemMasterClient create(Subject subject,
-        MasterInquireClient masterInquireClient) {
-      return new RetryHandlingFileSystemMasterClient(subject, masterInquireClient);
+    public static FileSystemMasterClient create(MasterClientConfig conf) {
+      return new RetryHandlingFileSystemMasterClient(conf);
     }
   }
 

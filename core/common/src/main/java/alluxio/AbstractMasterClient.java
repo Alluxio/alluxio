@@ -12,12 +12,12 @@
 package alluxio;
 
 import alluxio.exception.status.UnavailableException;
+import alluxio.master.MasterClientConfig;
 import alluxio.master.MasterInquireClient;
 
 import java.net.InetSocketAddress;
 
 import javax.annotation.concurrent.ThreadSafe;
-import javax.security.auth.Subject;
 
 /**
  * The base class for master clients.
@@ -30,12 +30,11 @@ public abstract class AbstractMasterClient extends AbstractClient {
   /**
    * Creates a new master client base.
    *
-   * @param subject the parent subject
-   * @param masterInquireClient the client to use for determining the master rpc address
+   * @param conf master client configuration
    */
-  public AbstractMasterClient(Subject subject, MasterInquireClient masterInquireClient) {
-    super(subject, null);
-    mMasterInquireClient = masterInquireClient;
+  public AbstractMasterClient(MasterClientConfig conf) {
+    super(conf.getSubject(), null);
+    mMasterInquireClient = conf.getMasterInquireClient();
   }
 
   @Override

@@ -13,6 +13,7 @@ package alluxio.client.block;
 
 import alluxio.Configuration;
 import alluxio.PropertyKey;
+import alluxio.master.MasterClientConfig;
 import alluxio.master.MasterInquireClient;
 import alluxio.resource.ResourcePool;
 
@@ -61,7 +62,8 @@ public final class BlockMasterClientPool extends ResourcePool<BlockMasterClient>
 
   @Override
   protected BlockMasterClient createNewResource() {
-    BlockMasterClient client = BlockMasterClient.Factory.create(mSubject, mMasterInquireClient);
+    BlockMasterClient client = BlockMasterClient.Factory.create(MasterClientConfig.defaults()
+        .withSubject(mSubject).withMasterInquireClient(mMasterInquireClient));
     mClientList.add(client);
     return client;
   }

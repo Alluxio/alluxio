@@ -13,7 +13,7 @@ package alluxio.client;
 
 import alluxio.AbstractMasterClient;
 import alluxio.Constants;
-import alluxio.master.MasterInquireClient;
+import alluxio.master.MasterClientConfig;
 import alluxio.thrift.AlluxioService;
 import alluxio.thrift.GetMasterInfoTOptions;
 import alluxio.thrift.MetaMasterClientService;
@@ -27,7 +27,6 @@ import java.util.HashSet;
 import java.util.Set;
 
 import javax.annotation.concurrent.ThreadSafe;
-import javax.security.auth.Subject;
 
 /**
  * A wrapper for the thrift client to interact with the meta master.
@@ -43,10 +42,10 @@ public final class RetryHandlingMetaMasterClient extends AbstractMasterClient
   /**
    * Creates a new meta master client.
    *
-   * @param subject the parent subject, set to null if not present
+   * @param conf master client configuration
    */
-  public RetryHandlingMetaMasterClient(Subject subject) {
-    super(subject, MasterInquireClient.Factory.create());
+  public RetryHandlingMetaMasterClient(MasterClientConfig conf) {
+    super(conf);
   }
 
   @Override

@@ -31,6 +31,7 @@ import alluxio.client.lineage.LineageMasterClient;
 import alluxio.client.lineage.options.DeleteLineageOptions;
 import alluxio.job.CommandLineJob;
 import alluxio.job.JobConf;
+import alluxio.master.MasterClientConfig;
 import alluxio.master.file.meta.PersistenceState;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
@@ -214,10 +215,10 @@ public class LineageMasterIntegrationTest extends BaseIntegrationTest {
   }
 
   private LineageMasterClient getLineageMasterClient() {
-    return new LineageMasterClient();
+    return new LineageMasterClient(MasterClientConfig.defaults());
   }
 
   private FileSystemMasterClient getFileSystemMasterClient() {
-    return FileSystemMasterClient.Factory.create();
+    return FileSystemMasterClient.Factory.create(MasterClientConfig.defaults());
   }
 }

@@ -12,7 +12,7 @@
 package alluxio.client.block;
 
 import alluxio.Client;
-import alluxio.master.MasterInquireClient;
+import alluxio.master.MasterClientConfig;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.WorkerInfo;
 
@@ -20,7 +20,6 @@ import java.io.IOException;
 import java.util.List;
 
 import javax.annotation.concurrent.ThreadSafe;
-import javax.security.auth.Subject;
 
 /**
  * A client to use for interacting with a block master.
@@ -38,22 +37,11 @@ public interface BlockMasterClient extends Client {
     /**
      * Factory method for {@link BlockMasterClient}.
      *
+     * @param conf master client configuration
      * @return a new {@link BlockMasterClient} instance
      */
-    public static BlockMasterClient create() {
-      return create(null, MasterInquireClient.Factory.create());
-    }
-
-    /**
-     * Factory method for {@link BlockMasterClient}.
-     *
-     * @param subject the parent subject
-     * @param masterInquireClient a client for determining the master address
-     * @return a new {@link BlockMasterClient} instance
-     */
-    public static BlockMasterClient create(Subject subject,
-        MasterInquireClient masterInquireClient) {
-      return new RetryHandlingBlockMasterClient(subject, masterInquireClient);
+    public static BlockMasterClient create(MasterClientConfig conf) {
+      return new RetryHandlingBlockMasterClient(conf);
     }
   }
 
