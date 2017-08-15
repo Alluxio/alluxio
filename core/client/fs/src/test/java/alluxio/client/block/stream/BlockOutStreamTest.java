@@ -27,16 +27,14 @@ public class BlockOutStreamTest {
   public void packetWriteException() throws Exception {
     PacketWriter writer = new FailingTestPacketWriter(ByteBuffer.allocate(PACKET_SIZE));
     BlockOutStream bos = new BlockOutStream(writer, PACKET_SIZE);
-    boolean exceptionCaught = false;
     try {
       bos.write(new byte[PACKET_SIZE]);
+      Assert.fail("Expected write to throw an exception.");
     } catch (IOException e) {
       // Exception expected, continue.
-      exceptionCaught = true;
     }
     // After an exception, we should still be able to cancel the stream.
-    // Test succeeds if we do not throw an exception in cancel and an exception was thrown in write.
+    // Test succeeds if we do not throw an exception in cancel.
     bos.cancel();
-    Assert.assertTrue(exceptionCaught);
   }
 }
