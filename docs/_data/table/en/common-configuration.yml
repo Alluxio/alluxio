@@ -2,6 +2,8 @@ alluxio.conf.dir:
   The directory containing files used to configure Alluxio.
 alluxio.debug:
   Set to true to enable debug mode which has additional logging and info in the Web UI.
+alluxio.extensions.dir:
+  The directory where Alluxio extensions are stored.
 alluxio.fuse.cached.paths.max:
   N/A
 alluxio.fuse.debug.enabled:
