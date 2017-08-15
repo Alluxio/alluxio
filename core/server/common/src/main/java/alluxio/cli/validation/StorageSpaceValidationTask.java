@@ -54,7 +54,7 @@ public final class StorageSpaceValidationTask implements ValidationTask {
       PropertyKey tierDirCapacityConf =
           PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_QUOTA.format(level);
       String rawDirQuota = Configuration.get(tierDirCapacityConf);
-      if (rawDirQuota.length() <= 0) {
+      if (rawDirQuota.isEmpty()) {
         System.err.format("Tier %d: Quota cannot be empty.%n", level);
         return false;
       }
@@ -78,17 +78,17 @@ public final class StorageSpaceValidationTask implements ValidationTask {
 
         for (Map.Entry<String, MountedStorage> storageEntry : storageMap.entrySet()) {
           MountedStorage storage = storageEntry.getValue();
-          long capacity = storage.getCapacitySize();
-          long used = storage.getWorkspaceSize();
-          long available = storage.getAvailableSize();
-          if (capacity > used + available) {
+          long quota = storage.getDesiredQuotaSizeBytes();
+          long used = storage.getUsedTieredStorageSizeBytes();
+          long available = storage.getAvailableSizeBytes();
+          if (quota > used + available) {
             System.err.format(
                 "Tier %d: Not enough space on %s. %n"
-                    + "Required capacity: %s%n"
-                    + "Used in working directory: %s%n"
+                    + "Desired quota: %s%n"
+                    + "Used in tiered storage: %s%n"
                     + "Available: %s%n",
                 level, storageEntry.getKey(),
-                FormatUtils.getSizeFromBytes(capacity),
+                FormatUtils.getSizeFromBytes(quota),
                 FormatUtils.getSizeFromBytes(used),
                 FormatUtils.getSizeFromBytes(available));
             success = false;
@@ -119,6 +119,7 @@ public final class StorageSpaceValidationTask implements ValidationTask {
 
     long directorySize = FileUtils.sizeOfDirectory(file);
 
+    // gets mounted FileStore that backs the directory of the given path
     FileStore store = Files.getFileStore(Paths.get(path));
 
     MountedStorage storage = storageMap.get(store.name());
@@ -127,39 +128,39 @@ public final class StorageSpaceValidationTask implements ValidationTask {
       storageMap.put(store.name(), storage);
     }
 
-    storage.addCapacitySize(quota);
-    storage.addWorkspaceSize(directorySize);
+    storage.addDesiredQuotaSizeBytes(quota);
+    storage.addUsedTieredStorageSizeBytes(directorySize);
     return true;
   }
 
   private final class MountedStorage {
-    private long mCapacitySize;
-    private long mWorkspaceSize;
+    private long mDesiredQuotaSizeBytes;
+    private long mUsedTieredStorageSizeBytes;
     private FileStore mFileStore;
 
     public MountedStorage(FileStore store) {
-      mCapacitySize = 0L;
-      mWorkspaceSize = 0L;
+      mDesiredQuotaSizeBytes = 0L;
+      mUsedTieredStorageSizeBytes = 0L;
       mFileStore = store;
     }
 
-    public long getCapacitySize() {
-      return mCapacitySize;
+    public long getDesiredQuotaSizeBytes() {
+      return mDesiredQuotaSizeBytes;
     }
 
-    public void addCapacitySize(long capacitySize) {
-      mCapacitySize += capacitySize;
+    public void addDesiredQuotaSizeBytes(long desiredQuotaSizeBytes) {
+      mDesiredQuotaSizeBytes += desiredQuotaSizeBytes;
     }
 
-    public long getWorkspaceSize() {
-      return mWorkspaceSize;
+    public long getUsedTieredStorageSizeBytes() {
+      return mUsedTieredStorageSizeBytes;
     }
 
-    public void addWorkspaceSize(long workspaceSize) {
-      mWorkspaceSize += workspaceSize;
+    public void addUsedTieredStorageSizeBytes(long usedTieredStorageSizeBytes) {
+      mUsedTieredStorageSizeBytes += usedTieredStorageSizeBytes;
     }
 
-    public long getAvailableSize() throws IOException {
+    public long getAvailableSizeBytes() throws IOException {
       return mFileStore.getUsableSpace();
     }
   }
