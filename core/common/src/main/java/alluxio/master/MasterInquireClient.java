@@ -20,11 +20,13 @@ import java.net.InetSocketAddress;
 import java.util.List;
 
 import javax.annotation.Nullable;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Client for determining the primary master.
  */
-public interface MasterInquireClient {
+@ThreadSafe
+public interface MasterInquireClient extends AutoCloseable {
   /**
    * @return the rpc address of the primary master, or null if none can be determined
    */
@@ -40,6 +42,12 @@ public interface MasterInquireClient {
    * Factory for getting a master inquire client.
    */
   class Factory {
+    /**
+     * Creates an instance of {@link MasterInquireClient} based on the current configuration. The
+     * returned instance may be shared, so it should not be closed by callers of this method.
+     *
+     * @return a master inquire client
+     */
     public static MasterInquireClient create() {
       if (Configuration.getBoolean(PropertyKey.ZOOKEEPER_ENABLED)) {
         return ZkMasterInquireClient.getClient(Configuration.get(PropertyKey.ZOOKEEPER_ADDRESS),

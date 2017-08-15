@@ -44,6 +44,12 @@ public final class ZkMasterInquireClient implements MasterInquireClient {
   /** Map from key spliced by the address for Zookeeper and path of leader to created client. */
   private static HashMap<String, ZkMasterInquireClient> sCreatedClients = new HashMap<>();
 
+  private final String mZookeeperAddress;
+  private final String mElectionPath;
+  private final String mLeaderPath;
+  private final CuratorFramework mClient;
+  private final int mMaxTry;
+
   /**
    * Gets the client.
    *
@@ -62,12 +68,6 @@ public final class ZkMasterInquireClient implements MasterInquireClient {
     }
     return sCreatedClients.get(key);
   }
-
-  private final String mZookeeperAddress;
-  private final String mElectionPath;
-  private final String mLeaderPath;
-  private final CuratorFramework mClient;
-  private final int mMaxTry;
 
   /**
    * Constructor for {@link ZkMasterInquireClient}.
@@ -175,5 +175,10 @@ public final class ZkMasterInquireClient implements MasterInquireClient {
     }
 
     return null;
+  }
+
+  @Override
+  public void close() {
+    mClient.close();
   }
 }

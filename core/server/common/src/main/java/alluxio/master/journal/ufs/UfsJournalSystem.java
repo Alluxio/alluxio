@@ -15,7 +15,6 @@ import alluxio.master.journal.AbstractJournalSystem;
 import alluxio.master.journal.JournalEntryStateMachine;
 import alluxio.util.URIUtils;
 
-import com.google.common.base.Preconditions;
 import com.google.common.io.Closer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,7 +34,6 @@ public class UfsJournalSystem extends AbstractJournalSystem {
 
   private final URI mBase;
   private final long mQuietTimeMs;
-  private boolean mRunning;
   private ConcurrentHashMap<String, UfsJournal> mJournals;
 
   /**
@@ -49,7 +47,6 @@ public class UfsJournalSystem extends AbstractJournalSystem {
   public UfsJournalSystem(URI base, long quietTimeMs) {
     mBase = base;
     mQuietTimeMs = quietTimeMs;
-    mRunning = false;
     mJournals = new ConcurrentHashMap<>();
   }
 
@@ -85,16 +82,13 @@ public class UfsJournalSystem extends AbstractJournalSystem {
 
   @Override
   public void startInternal() throws IOException {
-    Preconditions.checkState(!mRunning, "Journal is already running");
     for (UfsJournal journal : mJournals.values()) {
       journal.start();
     }
-    mRunning = true;
   }
 
   @Override
   public void stopInternal() {
-    Preconditions.checkState(mRunning, "Journal is not running");
     Closer closer = Closer.create();
     for (UfsJournal journal : mJournals.values()) {
       closer.register(journal);
@@ -104,7 +98,6 @@ public class UfsJournalSystem extends AbstractJournalSystem {
     } catch (IOException e) {
       throw new RuntimeException("Failed to stop journal system", e);
     }
-    mRunning = false;
   }
 
   @Override

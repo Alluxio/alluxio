@@ -25,7 +25,7 @@ public final class JournalEntryAssociation {
    * @return the name of the master responsible for the given journal entry
    * @throws InvalidJournalEntryException if the journal entry is unrecognized
    */
-  public static String getMasterForEntry(JournalEntry entry) throws  InvalidJournalEntryException {
+  public static String getMasterForEntry(JournalEntry entry) throws InvalidJournalEntryException {
     if (entry.hasAddMountPoint()
         || entry.hasAsyncPersistRequest()
         || entry.hasCompleteFile()

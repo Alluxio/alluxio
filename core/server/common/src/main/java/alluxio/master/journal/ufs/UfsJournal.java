@@ -75,12 +75,18 @@ public class UfsJournal implements Journal {
 
   /** The location where this journal is stored. */
   private final URI mLocation;
+  /** The state machine managed by this journal. */
   private final JournalEntryStateMachine mMaster;
   /** The UFS where the journal is being written to. */
   private final UnderFileSystem mUfs;
+  /** The amount of time to wait to pass without seeing a new journal entry when gaining primacy. */
   private final long mQuietPeriodMs;
+  /** The current log writer. Null when in secondary mode. */
   private UfsJournalLogWriter mWriter;
-
+  /**
+   * Thread for tailing the journal, taking snapshots, and applying updates to the state machine.
+   * Null when in primary mode.
+   */
   private UfsJournalCheckpointThread mTailerThread;
 
   /**
@@ -321,6 +327,10 @@ public class UfsJournal implements Journal {
     if (mWriter != null) {
       mWriter.close();
       mWriter = null;
+    }
+    if (mTailerThread != null) {
+      mTailerThread.awaitTermination(false);
+      mTailerThread = null;
     }
   }
 }

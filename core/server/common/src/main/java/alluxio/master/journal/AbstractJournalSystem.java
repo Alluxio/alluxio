@@ -24,12 +24,14 @@ public abstract class AbstractJournalSystem implements JournalSystem {
 
   @Override
   public void start() throws InterruptedException, IOException {
+    Preconditions.checkState(!isRunning(), "Journal is already running");
     startInternal();
     mRunning = true;
   }
 
   @Override
   public void stop() throws InterruptedException, IOException {
+    Preconditions.checkState(isRunning(), "Journal is not running");
     mRunning = false;
     stopInternal();
   }
