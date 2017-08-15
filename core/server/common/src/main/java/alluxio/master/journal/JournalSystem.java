@@ -13,6 +13,7 @@ package alluxio.master.journal;
 
 import alluxio.Configuration;
 import alluxio.PropertyKey;
+import alluxio.master.journal.noop.NoopJournalSystem;
 import alluxio.master.journal.ufs.UfsJournalSystem;
 import alluxio.proto.journal.Journal.JournalEntry;
 
@@ -176,7 +177,16 @@ public interface JournalSystem {
      * @return a journal system
      */
     public JournalSystem build() {
-      return new UfsJournalSystem(mLocation, mQuietTimeMs);
+      JournalType journalType =
+          Configuration.getEnum(PropertyKey.MASTER_JOURNAL_TYPE, JournalType.class);
+      switch (journalType) {
+        case NOOP:
+          return new NoopJournalSystem();
+        case UFS:
+          return new UfsJournalSystem(mLocation, mQuietTimeMs);
+        default:
+          throw new IllegalStateException("Unrecognized journal type: " + journalType);
+      }
     }
   }
 }
