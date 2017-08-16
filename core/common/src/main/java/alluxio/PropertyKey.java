@@ -32,7 +32,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * Configuration property keys. This class provides a set of pre-defined property keys.
  */
 @ThreadSafe
-public class PropertyKey implements Comparable<PropertyKey> {
+public final class PropertyKey implements Comparable<PropertyKey> {
   // The following two maps must be the first to initialize within this file.
   /** A map from default property key's string name to the key. */
   private static final Map<String, PropertyKey> DEFAULT_KEYS_MAP = new HashMap<>();
