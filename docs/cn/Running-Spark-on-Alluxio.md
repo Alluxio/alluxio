@@ -29,6 +29,8 @@ Alluxio直接兼容Spark 1.1或更新版本而无需修改.
 
 {% include Running-Spark-on-Alluxio/earlier-spark-version-bash.md %}
 
+高级用户可以选择通过源代码编译客户端jar包，参考说明[here](Building-Alluxio-Master-Branch.html#compute-framework-support)，并在这篇说明剩余部分将生成的jar包应用在配置项`{{site.ALLUXIO_CLIENT_JAR_PATH_BUILD}}`中。
+
 ### 针对HDFS的额外设置
 
 * 如果Alluxio运行Hadoop 1.x集群之上，创建一个新文件`spark/conf/core-site.xml`包含以下内容：
