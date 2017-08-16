@@ -205,7 +205,7 @@ function main {
 
   case ${COMMAND} in
   "extension")
-    CLASS="alluxio.cli.Extension"
+    CLASS="alluxio.cli.ExtensionShell"
     CLASSPATH=${ALLUXIO_CLIENT_CLASSPATH}
     runJavaClass "$@"
   ;;
