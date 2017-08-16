@@ -13,6 +13,8 @@ package alluxio.extension.command;
 
 import alluxio.Configuration;
 import alluxio.PropertyKey;
+import alluxio.cli.validation.Utils;
+import alluxio.extension.ExtensionUtils;
 import alluxio.util.ShellUtils;
 
 import org.apache.commons.cli.CommandLine;
@@ -45,7 +47,7 @@ public final class InstallCommand extends AbstractExtensionCommand {
 
   @Override
   public String getUsage() {
-    return "install <Jar URI>";
+    return "install <URI>";
   }
 
   @Override
@@ -56,17 +58,17 @@ public final class InstallCommand extends AbstractExtensionCommand {
   @Override
   public int run(CommandLine cl) {
     try {
-      String arg = cl.getArgs()[0];
+      String uri = cl.getArgs()[0];
       String extensionDir = Configuration.get(PropertyKey.EXTENSION_DIR);
-      LOG.info("Copying extension from {} into {}", arg, extensionDir);
-      FileUtils.copyFileToDirectory(new File(arg), new File(extensionDir));
-
-      System.out.println("Copying extension URI...");
-      String alluxioBin =
-          String.format("%s/bin/alluxio", Configuration.get(PropertyKey.HOME));
-      String output =
-          ShellUtils.execCommand(alluxioBin, "copyDir", Configuration.get(PropertyKey.EXTENSION_DIR));
-      LOG.info("Copy succeeded: " + output);
+      for (String host : ExtensionUtils.getServerHostnames()) {
+        LOG.info("Copying extension from {} into {}:{}", uri, host, extensionDir);
+        String sshOpts = "-o StrictHostKeyChecking=no -o ConnectTimeout=5";
+        String rsyncCmd =
+            String.format("rsync -e \"ssh %s\" -az %s %s:%s", sshOpts, uri, host, extensionDir);
+        LOG.info("Executing: {}", rsyncCmd);
+        String output = ShellUtils.execCommand("bash", "-c", rsyncCmd);
+        LOG.info("Succeeded w/ output: {}", output);
+      }
     } catch (IOException e) {
       LOG.error("Error installing extension.", e);
       System.out.println("Failed to install extension.");
