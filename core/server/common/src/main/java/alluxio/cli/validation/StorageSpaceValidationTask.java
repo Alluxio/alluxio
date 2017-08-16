@@ -81,14 +81,21 @@ public final class StorageSpaceValidationTask implements ValidationTask {
           long quota = storage.getDesiredQuotaSizeBytes();
           long used = storage.getUsedTieredStorageSizeBytes();
           long available = storage.getAvailableSizeBytes();
+          StringBuilder builder = new StringBuilder();
+          for (Map.Entry<String, Long> directoryQuota : storage.getDirectoryQuotas().entrySet()) {
+            builder.append(String.format("- Quota for %s: %s%n", directoryQuota.getKey(),
+                FormatUtils.getSizeFromBytes(directoryQuota.getValue())));
+          }
           if (quota > used + available) {
             System.err.format(
                 "Tier %d: Not enough space on %s. %n"
-                    + "Desired quota: %s%n"
+                    + "Total desired quota: %s%n"
+                    + "%s"
                     + "Used in tiered storage: %s%n"
                     + "Available: %s (Additional %s free space required)%n",
                 level, storageEntry.getKey(),
                 FormatUtils.getSizeFromBytes(quota),
+                builder.toString(),
                 FormatUtils.getSizeFromBytes(used),
                 FormatUtils.getSizeFromBytes(available),
                 FormatUtils.getSizeFromBytes(quota - used - available));
@@ -129,8 +136,7 @@ public final class StorageSpaceValidationTask implements ValidationTask {
       storageMap.put(store.name(), storage);
     }
 
-    storage.addDesiredQuotaSizeBytes(quota);
-    storage.addUsedTieredStorageSizeBytes(directorySize);
+    storage.addDirectoryInfo(path, quota, directorySize);
     return true;
   }
 
@@ -138,31 +144,35 @@ public final class StorageSpaceValidationTask implements ValidationTask {
     private long mDesiredQuotaSizeBytes;
     private long mUsedTieredStorageSizeBytes;
     private FileStore mFileStore;
+    private Map<String, Long> mDirectoryQuotas;
 
     public MountedStorage(FileStore store) {
       mDesiredQuotaSizeBytes = 0L;
       mUsedTieredStorageSizeBytes = 0L;
       mFileStore = store;
+      mDirectoryQuotas = new HashMap<>();
     }
 
     public long getDesiredQuotaSizeBytes() {
       return mDesiredQuotaSizeBytes;
     }
 
-    public void addDesiredQuotaSizeBytes(long desiredQuotaSizeBytes) {
-      mDesiredQuotaSizeBytes += desiredQuotaSizeBytes;
-    }
-
     public long getUsedTieredStorageSizeBytes() {
       return mUsedTieredStorageSizeBytes;
     }
 
-    public void addUsedTieredStorageSizeBytes(long usedTieredStorageSizeBytes) {
-      mUsedTieredStorageSizeBytes += usedTieredStorageSizeBytes;
-    }
-
     public long getAvailableSizeBytes() throws IOException {
       return mFileStore.getUsableSpace();
+    }
+
+    public Map<String, Long> getDirectoryQuotas() {
+      return mDirectoryQuotas;
+    }
+
+    public void addDirectoryInfo(String path, long quota, long directorySize) {
+      mDirectoryQuotas.put(path, quota);
+      mUsedTieredStorageSizeBytes += directorySize;
+      mDesiredQuotaSizeBytes += quota;
     }
   }
 }
