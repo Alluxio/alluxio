@@ -144,7 +144,7 @@ public final class StorageSpaceValidationTask implements ValidationTask {
     private long mDesiredQuotaSizeBytes;
     private long mUsedTieredStorageSizeBytes;
     private FileStore mFileStore;
-    private Map<String, Long> mDirectoryQuotas;
+    private final Map<String, Long> mDirectoryQuotas;
 
     public MountedStorage(FileStore store) {
       mDesiredQuotaSizeBytes = 0L;
