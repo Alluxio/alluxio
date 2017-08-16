@@ -68,7 +68,7 @@ public final class LsCommand extends AbstractExtensionCommand {
       LOG.info("Executing: {}", lsCmd);
       String output = ShellUtils.execCommand("bash", "-c", lsCmd);
       System.out.println("| Extension URI |");
-      System.out.println(output);
+      System.out.print(output);
     } catch (IOException e) {
       LOG.error("Error installing extension.", e);
       System.out.println("Failed to install extension.");
