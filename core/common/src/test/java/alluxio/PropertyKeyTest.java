@@ -207,4 +207,11 @@ public final class PropertyKeyTest {
   public void isDeprecatedExceptionThrown() throws Exception {
     assertFalse(PropertyKey.isDeprecated("foo"));
   }
+
+  @Test
+  public void compare() throws Exception {
+    assertTrue(PropertyKey.CONF_DIR.compareTo(PropertyKey.DEBUG) < 0);
+    assertTrue(PropertyKey.DEBUG.compareTo(PropertyKey.CONF_DIR) > 0);
+    assertTrue(PropertyKey.DEBUG.compareTo(PropertyKey.DEBUG) == 0);
+  }
 }

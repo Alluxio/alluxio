@@ -15,6 +15,7 @@ import alluxio.exception.ExceptionMessage;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
+import com.google.common.base.Strings;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
@@ -31,13 +32,12 @@ import javax.annotation.concurrent.ThreadSafe;
  * Configuration property keys. This class provides a set of pre-defined property keys.
  */
 @ThreadSafe
-public class PropertyKey {
+public class PropertyKey implements Comparable<PropertyKey> {
   // The following two maps must be the first to initialize within this file.
   /** A map from default property key's string name to the key. */
   private static final Map<String, PropertyKey> DEFAULT_KEYS_MAP = new HashMap<>();
-  /** A map from default property key's string name to the key. */
-  private static final Map<PropertyKey, Object> DEFAULT_VALUES = new HashMap<>();
-
+  /** A map from default property key's alias to the key. */
+  private static final Map<String, PropertyKey> DEFAULT_ALIAS_MAP = new HashMap<>();
   /**
    * Builder to create {@link PropertyKey} instances.
    */
@@ -2255,7 +2255,7 @@ public class PropertyKey {
      * @return corresponding property
      */
     public PropertyKey format(Object... params) {
-      return new PropertyKey(String.format(mFormat, params), "");
+      return new PropertyKey(String.format(mFormat, params));
     }
   }
 
@@ -2266,6 +2266,10 @@ public class PropertyKey {
   public static boolean isValid(String input) {
     // Check if input matches any default keys
     if (DEFAULT_KEYS_MAP.containsKey(input)) {
+      return true;
+    }
+    // Check if the input matches any alias
+    if (DEFAULT_ALIAS_MAP.containsKey(input)) {
       return true;
     }
     // Check if input matches any parameterized keys
@@ -2291,11 +2295,16 @@ public class PropertyKey {
     if (key != null) {
       return key;
     }
+    // Try to match input with alias
+    key = DEFAULT_ALIAS_MAP.get(input);
+    if (key != null) {
+      return key;
+    }
     // Try different templates and see if any template matches
     for (Template template : Template.values()) {
       Matcher matcher = template.mPattern.matcher(input);
       if (matcher.matches()) {
-        return new PropertyKey(input, "");
+        return new PropertyKey(input);
       }
     }
     throw new IllegalArgumentException(
@@ -2315,13 +2324,30 @@ public class PropertyKey {
   /** Property Key description. */
   private final String mDescription;
 
+  /** Property Key default value. */
+  private final Object mDefaultValue;
+
+  /** Property Key alias. */
+  private final String[] mAliases;
+
   /**
    * @param name String of this property
    * @param description String description of this property key
+   * @param defaultValue default value
+   * @param aliases alias of this property key
    */
-  PropertyKey(String name, String description) {
+  private PropertyKey(String name, String description, Object defaultValue, String[] aliases) {
     mName = Preconditions.checkNotNull(name, "name");
-    mDescription = description != null ? description : "N/A";
+    mDescription = Strings.isNullOrEmpty(description) ? "N/A" : description;
+    mDefaultValue = defaultValue;
+    mAliases = aliases;
+  }
+
+  /**
+   * @param name String of this property
+   */
+  private PropertyKey(String name) {
+    this(name, null, null, null);
   }
 
   /**
@@ -2334,13 +2360,12 @@ public class PropertyKey {
    * @param description String description of this property key
    */
   static PropertyKey create(String name, Object defaultValue, String[] aliases,
-                            String description) {
-    PropertyKey key = new PropertyKey(name, description);
+      String description) {
+    PropertyKey key = new PropertyKey(name, description, defaultValue, aliases);
     DEFAULT_KEYS_MAP.put(name, key);
-    DEFAULT_VALUES.put(key, defaultValue);
     if (aliases != null) {
       for (String alias : aliases) {
-        DEFAULT_KEYS_MAP.put(alias, key);
+        DEFAULT_ALIAS_MAP.put(alias, key);
       }
     }
     return key;
@@ -2368,6 +2393,11 @@ public class PropertyKey {
     return mName;
   }
 
+  @Override
+  public int compareTo(PropertyKey o) {
+    return mName.compareTo(o.mName);
+  }
+
   /**
    * @return length of this property key
    */
@@ -2384,11 +2414,10 @@ public class PropertyKey {
   }
 
   /**
-   * @return the default value of a property key or null if no default value set
+   * @return the alias of a property
    */
-  public String getDefaultValue() {
-    Object value = DEFAULT_VALUES.get(this);
-    return value != null ? value.toString() : null;
+  public String[] getAliases() {
+    return mAliases;
   }
 
   /**
@@ -2399,12 +2428,19 @@ public class PropertyKey {
   }
 
   /**
+   * @return the default value of a property key or null if no default value set
+   */
+  public String getDefaultValue() {
+    return mDefaultValue != null ? mDefaultValue.toString() : null;
+  }
+
+  /**
    * @param name the name of a property key
    * @return if this property key is deprecated
    */
   public static boolean isDeprecated(String name) {
     try {
-      PropertyKey key = new PropertyKey(name, "");
+      PropertyKey key = new PropertyKey(name);
       Class c = key.getClass();
       Field field = c.getDeclaredField(name);
       Annotation[] annotations = field.getDeclaredAnnotations();
