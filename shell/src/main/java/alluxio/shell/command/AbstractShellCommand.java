@@ -14,13 +14,6 @@ package alluxio.shell.command;
 import alluxio.cli.AbstractCommand;
 import alluxio.client.file.FileSystem;
 
-import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.CommandLineParser;
-import org.apache.commons.cli.DefaultParser;
-import org.apache.commons.cli.Option;
-import org.apache.commons.cli.Options;
-import org.apache.commons.cli.ParseException;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**

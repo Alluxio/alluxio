@@ -11,7 +11,6 @@
 
 package alluxio.extension.command;
 
-
 import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.extension.ExtensionUtils;
@@ -33,6 +32,9 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class UninstallCommand extends AbstractExtensionCommand {
   private static final Logger LOG = LoggerFactory.getLogger(UninstallCommand.class);
 
+  /**
+   * Constructs a new instance of {@link UninstallCommand}.
+   */
   public UninstallCommand() {}
 
   @Override

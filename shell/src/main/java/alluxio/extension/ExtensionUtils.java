@@ -33,8 +33,8 @@ public final class ExtensionUtils {
   private ExtensionUtils() {} // prevent instantiation
 
   private static final String MASTERS = "masters";
-  private static final String WORKERS = "workers"; 
-  
+  private static final String WORKERS = "workers";
+
   /**
    * Gets all supported {@link ExtensionCommand} classes instances and load them into a map.
    *

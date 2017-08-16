@@ -11,7 +11,6 @@
 
 package alluxio.extension.command;
 
-
 import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.extension.ExtensionUtils;
@@ -33,6 +32,9 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class LsCommand extends AbstractExtensionCommand {
   private static final Logger LOG = LoggerFactory.getLogger(LsCommand.class);
 
+  /**
+   * Constructs a new instance of {@link LsCommand}.
+   */
   public LsCommand() {}
 
   @Override

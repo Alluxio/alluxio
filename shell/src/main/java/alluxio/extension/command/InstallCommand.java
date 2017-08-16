@@ -13,16 +13,13 @@ package alluxio.extension.command;
 
 import alluxio.Configuration;
 import alluxio.PropertyKey;
-import alluxio.cli.validation.Utils;
 import alluxio.extension.ExtensionUtils;
 import alluxio.util.ShellUtils;
 
 import org.apache.commons.cli.CommandLine;
-import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
 import java.io.IOException;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -34,6 +31,9 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class InstallCommand extends AbstractExtensionCommand {
   private static final Logger LOG = LoggerFactory.getLogger(InstallCommand.class);
 
+  /**
+   * Construct a new instance of {@link InstallCommand}.
+   */
   public InstallCommand() {}
 
   @Override

@@ -93,12 +93,12 @@ public final class AlluxioShell extends AbstractShell {
     }
     return super.run(argv);
   }
-  
+
   @Override
   protected String getShellName() {
     return "fs";
   }
-  
+
   @Override
   protected Map<String, ShellCommand> loadCommands() {
     return AlluxioShellUtils.loadCommands(mFileSystem);

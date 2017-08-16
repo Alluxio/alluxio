@@ -21,6 +21,11 @@ import java.util.Map;
  */
 public final class ExtensionShell extends AbstractShell {
   /**
+   * Construct a new instance of {@link ExtensionShell}.
+   */
+  ExtensionShell() {}
+
+  /**
    * Manage Alluxio extensions.
    *
    * @param args [] Array of arguments given by the user's input from the terminal

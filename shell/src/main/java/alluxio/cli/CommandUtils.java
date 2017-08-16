@@ -11,17 +11,16 @@
 
 package alluxio.cli;
 
+import alluxio.util.CommonUtils;
+
+import com.google.common.base.Throwables;
+import org.reflections.Reflections;
+
 import java.lang.reflect.Modifier;
 import java.util.HashMap;
 import java.util.Map;
 
 import javax.annotation.concurrent.ThreadSafe;
-
-import org.reflections.Reflections;
-
-import com.google.common.base.Throwables;
-
-import alluxio.util.CommonUtils;
 
 /**
  * Class for convenience methods used by instances of {@link Command}.
@@ -34,6 +33,7 @@ public final class CommandUtils {
   /**
    * Gets all supported {@link Command} classes instances in the same package as the given class.
    *
+   * @param <T> type of command
    * @param command class to load
    * @param classArgs type of args to instantiate the class
    * @param objectArgs args to instantiate the class

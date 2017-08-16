@@ -11,13 +11,13 @@
 
 package alluxio.cli;
 
-import javax.annotation.concurrent.ThreadSafe;
-
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
+
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * The base class for all the {@link Command} classes.

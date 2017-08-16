@@ -21,7 +21,7 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public abstract class AbstractExtensionCommand extends AbstractCommand implements ExtensionCommand {
 
-  protected final String EXTENSION_JAR = ".jar";
+  protected static final String EXTENSION_JAR = ".jar";
 
   protected AbstractExtensionCommand() {}
 }
