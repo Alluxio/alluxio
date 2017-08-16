@@ -19,18 +19,13 @@ import alluxio.shell.command.ShellCommand;
 import alluxio.util.ConfigurationUtils;
 
 import com.google.common.collect.ImmutableMap;
-import org.apache.commons.cli.CommandLine;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.Closeable;
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.Map;
-import java.util.SortedSet;
-import java.util.TreeSet;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -38,7 +33,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * Class for handling command line inputs.
  */
 @NotThreadSafe
-public final class AlluxioShell implements Closeable {
+public final class AlluxioShell extends AbstractShell {
   private static final Logger LOG = LoggerFactory.getLogger(AlluxioShell.class);
 
   private static final Map<String, String[]> CMD_ALIAS = ImmutableMap.<String, String[]>builder()
@@ -70,7 +65,6 @@ public final class AlluxioShell implements Closeable {
     System.exit(ret);
   }
 
-  private final Map<String, ShellCommand> mCommands;
   private final FileSystem mFileSystem;
 
   /**
@@ -78,11 +72,36 @@ public final class AlluxioShell implements Closeable {
    */
   public AlluxioShell() {
     mFileSystem = FileSystem.Factory.get();
-    mCommands = AlluxioShellUtils.loadCommands(mFileSystem);
   }
 
   @Override
-  public void close() throws IOException {
+  public int run(String... argv) {
+    if (argv.length > 0) {
+      String cmd = argv[0];
+      String[] replacementCmd = getReplacementCmd(cmd);
+      if (replacementCmd != null) {
+        // Handle command alias, and print out WARNING message for deprecated cmd.
+        String deprecatedMsg = "WARNING: " + cmd + " is deprecated. Please use "
+            + StringUtils.join(replacementCmd, " ") + " instead.";
+        System.out.println(deprecatedMsg);
+        LOG.warn(deprecatedMsg);
+
+        String[] replacementArgv = (String[]) ArrayUtils.addAll(replacementCmd,
+            ArrayUtils.subarray(argv, 1, argv.length));
+        return super.run(replacementArgv);
+      }
+    }
+    return super.run(argv);
+  }
+  
+  @Override
+  protected String getShellName() {
+    return "fs";
+  }
+  
+  @Override
+  protected Map<String, ShellCommand> loadCommands() {
+    return AlluxioShellUtils.loadCommands(mFileSystem);
   }
 
   /**
@@ -96,68 +115,6 @@ public final class AlluxioShell implements Closeable {
       return CMD_ALIAS.get(cmd);
     } else {
       return null;
-    }
-  }
-
-  /**
-   * Prints usage for all shell commands.
-   */
-  private void printUsage() {
-    System.out.println("Usage: alluxio fs [generic options]");
-    SortedSet<String> sortedCmds = new TreeSet<>(mCommands.keySet());
-    for (String cmd : sortedCmds) {
-      System.out.format("%-60s%n", "       [" + mCommands.get(cmd).getUsage() + "]");
-    }
-  }
-
-  /**
-   * Handles the specified shell command request, displaying usage if the command format is invalid.
-   *
-   * @param argv [] Array of arguments given by the user's input from the terminal
-   * @return 0 if command is successful, -1 if an error occurred
-   */
-  public int run(String... argv) {
-    if (argv.length == 0) {
-      printUsage();
-      return -1;
-    }
-
-    // Sanity check on the number of arguments
-    String cmd = argv[0];
-    ShellCommand command = mCommands.get(cmd);
-
-    if (command == null) { // Unknown command (we didn't find the cmd in our dict)
-      String[] replacementCmd = getReplacementCmd(cmd);
-      if (replacementCmd == null) {
-        System.out.println(cmd + " is an unknown command.\n");
-        printUsage();
-        return -1;
-      }
-      // Handle command alias, and print out WARNING message for deprecated cmd.
-      String deprecatedMsg = "WARNING: " + cmd + " is deprecated. Please use "
-                             + StringUtils.join(replacementCmd, " ") + " instead.";
-      System.out.println(deprecatedMsg);
-      LOG.warn(deprecatedMsg);
-
-      String[] replacementArgv = (String[]) ArrayUtils.addAll(replacementCmd,
-          ArrayUtils.subarray(argv, 1, argv.length));
-      return run(replacementArgv);
-    }
-
-    String[] args = Arrays.copyOfRange(argv, 1, argv.length);
-    CommandLine cmdline = command.parseAndValidateArgs(args);
-    if (cmdline == null) {
-      System.out.println("Usage: " + command.getUsage());
-      return -1;
-    }
-
-    // Handle the command
-    try {
-      return command.run(cmdline);
-    } catch (Exception e) {
-      System.out.println(e.getMessage());
-      LOG.error("Error running " + StringUtils.join(argv, " "), e);
-      return -1;
     }
   }
 }

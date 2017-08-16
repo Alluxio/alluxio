@@ -27,9 +27,9 @@ import alluxio.util.CommonUtils;
  * Class for convenience methods used by instances of {@link Command}.
  */
 @ThreadSafe
-public final class AlluxioCommandUtils {
+public final class CommandUtils {
 
-  private AlluxioCommandUtils() {} // prevent instantiation
+  private CommandUtils() {} // prevent instantiation
 
   /**
    * Gets all supported {@link Command} classes instances in the same package as the given class.

@@ -15,7 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
-import alluxio.cli.AlluxioCommandUtils;
+import alluxio.cli.CommandUtils;
 import alluxio.cli.AlluxioShell;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
@@ -219,7 +219,7 @@ public final class AlluxioShellUtils {
    * @return a mapping from command name to command instance
    */
   public static Map<String, ShellCommand> loadCommands(FileSystem fileSystem) {
-    return AlluxioCommandUtils.loadCommands(ShellCommand.class, new Class[] {FileSystem.class},
+    return CommandUtils.loadCommands(ShellCommand.class, new Class[] {FileSystem.class},
         new Object[] {fileSystem});
   }
 
