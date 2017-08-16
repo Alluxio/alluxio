@@ -451,8 +451,8 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
           "The block with ID {} is already stored in the target worker, canceling the cache "
               + "request.", getCurrentBlockId());
     } else {
-      LOG.warn("The block with ID {} could not be cached into Alluxio storage.",
-          getCurrentBlockId());
+      LOG.warn("The block with ID {} could not be cached into Alluxio storage: {}",
+          getCurrentBlockId(), e.toString());
     }
     closeOrCancelCacheStream();
   }
