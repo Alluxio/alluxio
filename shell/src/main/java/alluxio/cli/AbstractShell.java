@@ -11,7 +11,6 @@
 
 package alluxio.cli;
 
-import com.google.common.base.Preconditions;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -33,14 +32,12 @@ import javax.annotation.concurrent.NotThreadSafe;
 public abstract class AbstractShell implements Closeable {
   private static final Logger LOG = LoggerFactory.getLogger(AbstractShell.class);
 
-  protected final Map<String, ? extends Command> mCommands;
+  private Map<String, ? extends Command> mCommands;
 
   /**
    * Creates a new instance of {@link AbstractShell}.
    */
   public AbstractShell() {
-    mCommands = loadCommands();
-    Preconditions.checkNotNull(mCommands);
   }
 
   /**
@@ -57,7 +54,7 @@ public abstract class AbstractShell implements Closeable {
 
     // Sanity check on the number of arguments
     String cmd = argv[0];
-    Command command = mCommands.get(cmd);
+    Command command = getCommands().get(cmd);
 
     if (command == null) { // Unknown command (we didn't find the cmd in our dict)
       System.out.println(cmd + " is an unknown command.\n");
@@ -87,6 +84,17 @@ public abstract class AbstractShell implements Closeable {
   }
 
   /**
+   * Load commands if not already initialized.
+   * @return set of commands supported in shell
+   */
+  protected Map<String, ? extends Command> getCommands() {
+    if (mCommands == null) {
+      mCommands = loadCommands();
+    }
+    return mCommands;
+  }
+
+  /**
    * @return name of the shell
    */
   protected abstract String getShellName();
@@ -101,9 +109,9 @@ public abstract class AbstractShell implements Closeable {
    */
   protected void printUsage() {
     System.out.println("Usage: alluxio " + getShellName() + " [generic options]");
-    SortedSet<String> sortedCmds = new TreeSet<>(mCommands.keySet());
+    SortedSet<String> sortedCmds = new TreeSet<>(getCommands().keySet());
     for (String cmd : sortedCmds) {
-      System.out.format("%-60s%n", "       [" + mCommands.get(cmd).getUsage() + "]");
+      System.out.format("%-60s%n", "       [" + getCommands().get(cmd).getUsage() + "]");
     }
   }
 }
