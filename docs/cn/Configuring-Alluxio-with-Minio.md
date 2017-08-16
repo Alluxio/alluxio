@@ -16,16 +16,13 @@ Alluxio本地提供了s3a:// scheme(建议使用以获取更好的性能)。您�
 
 首先，本地要有Alluxio二进制包。你可以自己[编译Alluxio](Building-Alluxio-Master-Branch.html)，或者[下载二进制包](Running-Alluxio-Locally.html)
 
-然后，如果你还没有配置文件，可通过`bootstrapConf`命令创建。
-例如，如果你是在本机运行Alluxio，那么`<ALLUXIO_MASTER_HOSTNAME>`应该设置为`localhost`。
-
-{% include Configuring-Alluxio-with-Minio/bootstrapConf.md %}
-
-除了上述方式，也可以通过template文件创建配置文件，并且手动设置相应参数。
-
-{% include Common-Commands/copy-alluxio-env.md %}
-
 ## 配置Minio
+
+您需要修改`conf/alluxio-site.properties`配置Alluxio，以使用Minio作为其底层存储系统。如果该配置文件不存在，请从模板创建该配置文件。
+
+```bash
+$ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
+```
 
 Minio是为云应用程序和DevOps构建的对象存储服务器。 Minio提供了AWS S3的开源替代方案。
 
