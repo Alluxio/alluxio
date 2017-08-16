@@ -58,20 +58,21 @@ public final class InstallCommand extends AbstractExtensionCommand {
     try {
       String arg = cl.getArgs()[0];
       String extensionDir = Configuration.get(PropertyKey.EXTENSION_DIR);
-      System.out.println("Copying extension from " + arg + " into " + extensionDir);
+      LOG.info("Copying extension from {} into {}", arg, extensionDir);
       FileUtils.copyFileToDirectory(new File(arg), new File(extensionDir));
 
-      System.out.println("Copying to servers...");
-      String copyCommand =
-          String.format("%s/bin/alluxio copyDir", Configuration.get(PropertyKey.HOME));
+      System.out.println("Copying extension URI...");
+      String alluxioBin =
+          String.format("%s/bin/alluxio", Configuration.get(PropertyKey.HOME));
       String output =
-          ShellUtils.execCommand(copyCommand, Configuration.get(PropertyKey.EXTENSION_DIR));
-      System.out.println("Succeeded: " + output);
+          ShellUtils.execCommand(alluxioBin, "copyDir", Configuration.get(PropertyKey.EXTENSION_DIR));
+      LOG.info("Copy succeeded: " + output);
     } catch (IOException e) {
       LOG.error("Error installing extension.", e);
+      System.out.println("Failed to install extension.");
       return -1;
     }
-    System.out.println("ExtensionShell installed successfully.");
+    System.out.println("Extension installed successfully.");
     return 0;
   }
 
