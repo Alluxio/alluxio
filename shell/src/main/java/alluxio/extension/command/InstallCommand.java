@@ -61,10 +61,8 @@ public final class InstallCommand extends AbstractExtensionCommand {
       String uri = cl.getArgs()[0];
       String extensionDir = Configuration.get(PropertyKey.EXTENSION_DIR);
       for (String host : ExtensionUtils.getServerHostnames()) {
-        LOG.info("Copying extension from {} into {}:{}", uri, host, extensionDir);
-        String sshOpts = "-o StrictHostKeyChecking=no -o ConnectTimeout=5";
-        String rsyncCmd =
-            String.format("rsync -e \"ssh %s\" -az %s %s:%s", sshOpts, uri, host, extensionDir);
+        String rsyncCmd = String.format("rsync -e \"ssh %s\" -az %s %s:%s", ExtensionUtils.SSH_OPTS,
+            uri, host, extensionDir);
         LOG.info("Executing: {}", rsyncCmd);
         String output = ShellUtils.execCommand("bash", "-c", rsyncCmd);
         LOG.info("Succeeded w/ output: {}", output);

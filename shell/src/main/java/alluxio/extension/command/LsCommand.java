@@ -12,9 +12,17 @@
 package alluxio.extension.command;
 
 
+import alluxio.Configuration;
+import alluxio.PropertyKey;
+import alluxio.extension.ExtensionUtils;
+import alluxio.util.ShellUtils;
+
 import org.apache.commons.cli.CommandLine;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.util.List;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -48,6 +56,24 @@ public final class LsCommand extends AbstractExtensionCommand {
 
   @Override
   public int run(CommandLine cl) {
+    try {
+      String extensionDir = Configuration.get(PropertyKey.EXTENSION_DIR);
+      List<String> masters = ExtensionUtils.getMasterHostnames();
+      if (masters == null) {
+        System.out.println("Unable to find a master in conf/masters");
+        return -1;
+      }
+      String host = masters.get(0);
+      String lsCmd = String.format("ssh %s %s ls %s", ExtensionUtils.SSH_OPTS, host, extensionDir);
+      LOG.info("Executing: {}", lsCmd);
+      String output = ShellUtils.execCommand("bash", "-c", lsCmd);
+      System.out.println("| Extension URI |");
+      System.out.println(output);
+    } catch (IOException e) {
+      LOG.error("Error installing extension.", e);
+      System.out.println("Failed to install extension.");
+      return -1;
+    }
     return 0;
   }
 

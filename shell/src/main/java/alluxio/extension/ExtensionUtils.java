@@ -16,8 +16,6 @@ import alluxio.cli.CommandUtils;
 import alluxio.cli.validation.Utils;
 import alluxio.extension.command.ExtensionCommand;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -30,6 +28,7 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class ExtensionUtils {
+  public static final String SSH_OPTS = "-o StrictHostKeyChecking=no -o ConnectTimeout=5";
 
   private ExtensionUtils() {} // prevent instantiation
 
@@ -45,10 +44,20 @@ public final class ExtensionUtils {
     return CommandUtils.loadCommands(ExtensionCommand.class, null, null);
   }
 
+  /**
+   * Get list of masters in conf directory.
+   *
+   * @return master hostnames
+   */
   public static List<String> getMasterHostnames() {
     return Utils.readNodeList(MASTERS);
   }
-  
+
+  /**
+   * Get list of masters/workers in conf directory.
+   *
+   * @return server hostnames
+   */
   public static Set<String> getServerHostnames() {
     List<String> masters = getMasterHostnames();
     List<String> workers = getWorkerHostnames();
@@ -58,7 +67,12 @@ public final class ExtensionUtils {
     hostnames.addAll(workers);
     return hostnames;
   }
-  
+
+  /**
+   * Get list of workers in conf directory.
+   *
+   * @return workers hostnames
+   */
   public static List<String> getWorkerHostnames() {
     return Utils.readNodeList(WORKERS);
   }
