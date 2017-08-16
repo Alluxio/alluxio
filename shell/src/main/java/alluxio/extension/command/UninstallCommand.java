@@ -12,9 +12,17 @@
 package alluxio.extension.command;
 
 
+import alluxio.Configuration;
+import alluxio.PropertyKey;
+import alluxio.extension.ExtensionUtils;
+import alluxio.util.ShellUtils;
+import alluxio.util.io.PathUtils;
+
 import org.apache.commons.cli.CommandLine;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -48,6 +56,22 @@ public final class UninstallCommand extends AbstractExtensionCommand {
 
   @Override
   public int run(CommandLine cl) {
+    try {
+      String uri = cl.getArgs()[0];
+      String extensionDir = Configuration.get(PropertyKey.EXTENSION_DIR);
+      for (String host : ExtensionUtils.getServerHostnames()) {
+        String rmCmd = String.format("ssh %s %s rm %s", ExtensionUtils.SSH_OPTS, host,
+            PathUtils.concatPath(extensionDir, uri));
+        LOG.info("Executing: {}", rmCmd);
+        String output = ShellUtils.execCommand("bash", "-c", rmCmd);
+        LOG.info("Succeeded w/ output: {}", output);
+      }
+    } catch (IOException e) {
+      LOG.error("Error uninstalling extension.", e);
+      System.out.println("Failed to uninstall extension.");
+      return -1;
+    }
+    System.out.println("Extension uninstalled successfully.");
     return 0;
   }
 
