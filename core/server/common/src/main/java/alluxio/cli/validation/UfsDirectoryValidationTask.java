@@ -36,7 +36,6 @@ public final class UfsDirectoryValidationTask implements ValidationTask {
 
   @Override
   public boolean validate() {
-
     try {
       UfsStatus[] listStatus = mUfs.listStatus(mPath);
       if (listStatus == null) {
@@ -46,7 +45,8 @@ public final class UfsDirectoryValidationTask implements ValidationTask {
 
       return true;
     } catch (IOException e) {
-      System.err.format("Unable to access under file system path %s.%n", mPath);
+      System.err.format("Unable to access under file system path %s: %s.%n", mPath,
+          e.getMessage());
       return false;
     }
   }
