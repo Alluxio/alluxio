@@ -89,8 +89,6 @@ public final class FileSystemMasterClientServiceHandler implements
     FileSystemMasterClientService.Iface {
   private static final Logger LOG =
       LoggerFactory.getLogger(FileSystemMasterClientServiceHandler.class);
-  private static final Logger AUDIT_LOG =
-      LoggerFactory.getLogger(FileSystemMasterClientServiceHandler.class);
   private final FileSystemMaster mFileSystemMaster;
 
   /**

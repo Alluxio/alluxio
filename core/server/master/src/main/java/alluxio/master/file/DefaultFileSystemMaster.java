@@ -91,7 +91,6 @@ import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.security.authorization.Mode;
 import alluxio.thrift.CommandType;
-import alluxio.thrift.CreateFileTResponse;
 import alluxio.thrift.FileSystemCommand;
 import alluxio.thrift.FileSystemCommandOptions;
 import alluxio.thrift.FileSystemMasterClientService;

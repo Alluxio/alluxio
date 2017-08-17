@@ -14,7 +14,6 @@ package alluxio;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.InternalException;
-import alluxio.master.audit.UserAccessAuditLog;
 import alluxio.thrift.AlluxioTException;
 
 import org.slf4j.Logger;
