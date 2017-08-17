@@ -56,7 +56,7 @@ public final class RamDiskMountPrivilegeValidationTask implements ValidationTask
     }
 
     if (path.split(",").length > 1) {
-      System.out.println("Multiple storage path for memory tier found. Skip validation.");
+      System.out.println("Multiple storage paths for memory tier found. Skip validation.");
       return true;
     }
 
