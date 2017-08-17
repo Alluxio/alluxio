@@ -177,8 +177,9 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey SITE_CONF_DIR =
       new Builder(Name.SITE_CONF_DIR)
-          .setDefaultValue("${user.home}/.alluxio/,/etc/alluxio/")
-          .setDescription("Default search path for configuration files to read")
+          .setDefaultValue(
+              String.format("${%s}/,${user.home}/.alluxio/,/etc/alluxio/", Name.CONF_DIR))
+          .setDescription("Comma-separated search path for configuration files to read")
           .build();
   public static final PropertyKey TEST_MODE =
       new Builder(Name.TEST_MODE)
