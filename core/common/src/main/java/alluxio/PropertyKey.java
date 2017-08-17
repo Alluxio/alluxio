@@ -179,7 +179,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Name.SITE_CONF_DIR)
           .setDefaultValue(
               String.format("${%s}/,${user.home}/.alluxio/,/etc/alluxio/", Name.CONF_DIR))
-          .setDescription("Comma-separated search path for configuration files to read")
+          .setDescription(
+              String.format("Comma-separated search path for %s", Constants.SITE_PROPERTIES))
           .build();
   public static final PropertyKey TEST_MODE =
       new Builder(Name.TEST_MODE)
