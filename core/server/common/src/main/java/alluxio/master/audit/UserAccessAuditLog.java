@@ -15,7 +15,9 @@ public class UserAccessAuditLog {
     mEnabled = true;
     mAuditLogEntries = new ConcurrentLinkedQueue<>();
   }
+
   public boolean isEnabled() { return mEnabled; }
+
   public void log(RpcUtils.RpcContext context) {
     mAuditLogEntries.offer(context);
     RpcUtils.RpcContext head = mAuditLogEntries.poll();
