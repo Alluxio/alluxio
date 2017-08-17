@@ -41,15 +41,17 @@ import java.util.List;
  */
 @RunWith(Parameterized.class)
 public class ConfigurationDocGeneratorTest {
-  private static final String TYPE_CSV = "CSV";
-  private static final String TYPE_YML = "YML";
+  enum TYPE {
+    CSV,
+    YML,
+  }
   /**
    * Rule to create a new temporary folder during each test.
    */
   @Rule
   public TemporaryFolder mFolder = new TemporaryFolder();
   @Parameterized.Parameter
-  public String mFileType;
+  public TYPE mFileType;
   @Parameterized.Parameter(1)
   public Pair<PropertyKey, String> mTestConf;
   private String mLocation;
@@ -57,29 +59,29 @@ public class ConfigurationDocGeneratorTest {
   @Parameters
   public static Collection<Object[]> data() {
     return Arrays.asList(new Object[][]{
-        {TYPE_CSV, new Pair<>(PropertyKey.USER_LOCAL_READER_PACKET_SIZE_BYTES,
+        {TYPE.CSV, new Pair<>(PropertyKey.USER_LOCAL_READER_PACKET_SIZE_BYTES,
             "user-configuration.csv")},
-        {TYPE_CSV, new Pair<>(PropertyKey.MASTER_CONNECTION_TIMEOUT_MS,
+        {TYPE.CSV, new Pair<>(PropertyKey.MASTER_CONNECTION_TIMEOUT_MS,
             "master-configuration.csv")},
-        {TYPE_CSV, new Pair<>(PropertyKey.WORKER_DATA_FOLDER,
+        {TYPE.CSV, new Pair<>(PropertyKey.WORKER_DATA_FOLDER,
             "worker-configuration.csv")},
-        {TYPE_CSV, new Pair<>(PropertyKey.SECURITY_AUTHENTICATION_TYPE,
+        {TYPE.CSV, new Pair<>(PropertyKey.SECURITY_AUTHENTICATION_TYPE,
             "security-configuration.csv")},
-        {TYPE_CSV, new Pair<>(PropertyKey.KEY_VALUE_PARTITION_SIZE_BYTES_MAX,
+        {TYPE.CSV, new Pair<>(PropertyKey.KEY_VALUE_PARTITION_SIZE_BYTES_MAX,
             "key-value-configuration.csv")},
-        {TYPE_CSV, new Pair<>(PropertyKey.INTEGRATION_WORKER_RESOURCE_MEM,
+        {TYPE.CSV, new Pair<>(PropertyKey.INTEGRATION_WORKER_RESOURCE_MEM,
             "common-configuration.csv")},
-        {TYPE_YML, new Pair<>(PropertyKey.USER_LOCAL_READER_PACKET_SIZE_BYTES,
+        {TYPE.YML, new Pair<>(PropertyKey.USER_LOCAL_READER_PACKET_SIZE_BYTES,
             "user-configuration.yml")},
-        {TYPE_YML, new Pair<>(PropertyKey.MASTER_CONNECTION_TIMEOUT_MS,
+        {TYPE.YML, new Pair<>(PropertyKey.MASTER_CONNECTION_TIMEOUT_MS,
             "master-configuration.yml")},
-        {TYPE_YML, new Pair<>(PropertyKey.WORKER_DATA_FOLDER,
+        {TYPE.YML, new Pair<>(PropertyKey.WORKER_DATA_FOLDER,
             "worker-configuration.yml")},
-        {TYPE_YML, new Pair<>(PropertyKey.SECURITY_AUTHENTICATION_TYPE,
+        {TYPE.YML, new Pair<>(PropertyKey.SECURITY_AUTHENTICATION_TYPE,
             "security-configuration.yml")},
-        {TYPE_YML, new Pair<>(PropertyKey.KEY_VALUE_PARTITION_SIZE_BYTES_MAX,
+        {TYPE.YML, new Pair<>(PropertyKey.KEY_VALUE_PARTITION_SIZE_BYTES_MAX,
             "key-value-configuration.yml")},
-        {TYPE_YML, new Pair<>(PropertyKey.INTEGRATION_WORKER_RESOURCE_MEM,
+        {TYPE.YML, new Pair<>(PropertyKey.INTEGRATION_WORKER_RESOURCE_MEM,
             "common-configuration.yml")}
     });
   }
@@ -92,15 +94,15 @@ public class ConfigurationDocGeneratorTest {
     mLocation = mFolder.newFolder().toString();
   }
 
-  private void checkFileContents(String source, List<String> target, String fType)
+  private void checkFileContents(String source, List<String> target, TYPE fType)
       throws Exception {
-    Assert.assertTrue(fType.equals(TYPE_CSV) || fType.equals(TYPE_YML));
+    Assert.assertTrue(fType.equals(TYPE.CSV) || fType.equals(TYPE.YML));
     //assert file contents
-    if (fType == TYPE_CSV) {
+    if (fType == TYPE.CSV) {
       assertEquals(2, target.size());
       assertEquals(ConfigurationDocGenerator.CSV_FILE_HEADER, target.get(0));
       assertEquals(source, target.get(1));
-    } else if (fType == TYPE_YML) {
+    } else if (fType == TYPE.YML) {
       assertEquals(2, target.size());
       assertEquals(source, target.get(0) + "\n" + target.get(1));
     }
@@ -108,7 +110,7 @@ public class ConfigurationDocGeneratorTest {
 
   @Test
   public void checkCSVFile() throws Exception {
-    if (mFileType != TYPE_CSV) {
+    if (mFileType != TYPE.CSV) {
       return;
     }
     Collection<PropertyKey> defaultKeys = new ArrayList<>();
@@ -128,7 +130,7 @@ public class ConfigurationDocGeneratorTest {
 
   @Test
   public void checkYMLFile() throws Exception {
-    if (mFileType != TYPE_YML) {
+    if (mFileType != TYPE.YML) {
       return;
     }
     Collection<PropertyKey> defaultKeys = new ArrayList<>();

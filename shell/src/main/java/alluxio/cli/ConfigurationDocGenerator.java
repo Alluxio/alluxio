@@ -31,11 +31,13 @@ import java.util.Map;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * A utility to generate property keys to csv files.
+ * CSV_FILE_DIR utility to generate property keys to csv files.
  */
 @ThreadSafe
 public final class ConfigurationDocGenerator {
   private static final Logger LOG = LoggerFactory.getLogger(ConfigurationDocGenerator.class);
+  private static final String CSV_FILE_DIR = "docs/_data/table/";
+  private static final String YML_FILE_DIR = "docs/_data/table/en/";
   static final String CSV_FILE_HEADER = "propertyName,defaultValue";
 
   private ConfigurationDocGenerator() {} // prevent instantiation
@@ -193,10 +195,10 @@ public final class ConfigurationDocGenerator {
     Collection<? extends PropertyKey> defaultKeys = PropertyKey.defaultKeys();
     String homeDir = Configuration.get(PropertyKey.HOME);
     // generate CSV files
-    String filePath = PathUtils.concatPath(homeDir, "docs/_data/table/");
+    String filePath = PathUtils.concatPath(homeDir, CSV_FILE_DIR);
     writeCSVFile(defaultKeys, filePath);
     // generate YML files
-    filePath = PathUtils.concatPath(filePath, "en/");
+    filePath = PathUtils.concatPath(filePath, YML_FILE_DIR);
     writeYMLFile(defaultKeys, filePath);
   }
 }

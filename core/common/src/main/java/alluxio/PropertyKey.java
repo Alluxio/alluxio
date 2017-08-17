@@ -2264,12 +2264,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
    * @return whether the input is a valid property name
    */
   public static boolean isValid(String input) {
-    // Check if input matches any default keys
-    if (DEFAULT_KEYS_MAP.containsKey(input)) {
-      return true;
-    }
-    // Check if the input matches any alias
-    if (DEFAULT_ALIAS_MAP.containsKey(input)) {
+    // Check if input matches any default keys or aliases
+    if (DEFAULT_KEYS_MAP.containsKey(input) || DEFAULT_ALIAS_MAP.containsKey(input)) {
       return true;
     }
     // Check if input matches any parameterized keys
@@ -2338,6 +2334,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
    */
   private PropertyKey(String name, String description, Object defaultValue, String[] aliases) {
     mName = Preconditions.checkNotNull(name, "name");
+    // TODO(binfan): null check after we add description for each property key
     mDescription = Strings.isNullOrEmpty(description) ? "N/A" : description;
     mDefaultValue = defaultValue;
     mAliases = aliases;
