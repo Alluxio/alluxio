@@ -1,8 +1,8 @@
 propertyName,defaultValue
 alluxio.worker.allocator.class,alluxio.worker.block.allocator.MaxFreeAllocator
 alluxio.worker.bind.host,0.0.0.0
-alluxio.worker.block.heartbeat.interval.ms,1sec
-alluxio.worker.block.heartbeat.timeout.ms,5min
+alluxio.worker.block.heartbeat.interval,1sec
+alluxio.worker.block.heartbeat.timeout,5min
 alluxio.worker.block.master.client.pool.size,11
 alluxio.worker.block.threads.max,2048
 alluxio.worker.block.threads.min,256
@@ -21,7 +21,7 @@ alluxio.worker.file.buffer.size,1MB
 alluxio.worker.file.persist.pool.size,64
 alluxio.worker.file.persist.rate.limit,2GB
 alluxio.worker.file.persist.rate.limit.enabled,false
-alluxio.worker.filesystem.heartbeat.interval.ms,1sec
+alluxio.worker.filesystem.heartbeat.interval,1sec
 alluxio.worker.hostname,
 alluxio.worker.keytab.file,
 alluxio.worker.memory.size,1GB
@@ -45,7 +45,7 @@ alluxio.worker.network.netty.worker.threads,0
 alluxio.worker.network.netty.writer.buffer.size.packets,16
 alluxio.worker.port,29998
 alluxio.worker.principal,
-alluxio.worker.session.timeout.ms,1min
+alluxio.worker.session.timeout,1min
 alluxio.worker.tieredstore.block.lock.readers,1000
 alluxio.worker.tieredstore.block.locks,1000
 alluxio.worker.tieredstore.free.space.ratio,0.0
@@ -69,9 +69,9 @@ alluxio.worker.tieredstore.level2.watermark.high.ratio,1.0
 alluxio.worker.tieredstore.level2.watermark.low.ratio,0.7
 alluxio.worker.tieredstore.levels,1
 alluxio.worker.tieredstore.reserver.enabled,false
-alluxio.worker.tieredstore.reserver.interval.ms,1sec
+alluxio.worker.tieredstore.reserver.interval,1sec
 alluxio.worker.tieredstore.retry,3
-alluxio.worker.ufs.block.open.timeout.ms,5min
+alluxio.worker.ufs.block.open.timeout,5min
 alluxio.worker.web.bind.host,0.0.0.0
 alluxio.worker.web.hostname,
 alluxio.worker.web.port,30000

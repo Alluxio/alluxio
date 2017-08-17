@@ -11,6 +11,7 @@
 
 package alluxio.cli;
 
+import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.util.io.PathUtils;
 
@@ -18,27 +19,28 @@ import com.google.common.io.Closer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.concurrent.ThreadSafe;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.Map;
 import java.util.List;
-import java.util.Comparator;
+import java.util.Map;
+
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * A utility to generate property keys to csv files.
+ * CSV_FILE_DIR utility to generate property keys to csv files.
  */
 @ThreadSafe
 public final class ConfigurationDocGenerator {
-  public static final String CSV_FILE_HEADER = "propertyName,defaultValue";
   private static final Logger LOG = LoggerFactory.getLogger(ConfigurationDocGenerator.class);
+  private static final String CSV_FILE_DIR = "docs/_data/table/";
+  private static final String YML_FILE_DIR = "docs/_data/table/en/";
+  public static final String CSV_FILE_HEADER = "propertyName,defaultValue";
 
-  private ConfigurationDocGenerator() {
-  } // prevent instantiation
+  private ConfigurationDocGenerator() {} // prevent instantiation
 
   /**
    * Writes property key to csv files.
@@ -46,7 +48,7 @@ public final class ConfigurationDocGenerator {
    * @param defaultKeys Collection which is from PropertyKey DEFAULT_KEYS_MAP.values()
    * @param filePath    path for csv files
    */
-  public static void writeCSVFile(Collection<? extends PropertyKey> defaultKeys, String filePath)
+  static void writeCSVFile(Collection<? extends PropertyKey> defaultKeys, String filePath)
       throws IOException {
     if (defaultKeys.size() == 0) {
       return;
@@ -61,21 +63,20 @@ public final class ConfigurationDocGenerator {
     try {
       // HashMap for FileWriter per each category
       Map<String, FileWriter> fileWriterMap = new HashMap<>();
-      for (int i = 0; i < fileNames.length; i++) {
-        fileWriter = new FileWriter(PathUtils.concatPath(filePath, fileNames[i]));
+      for (String fileName : fileNames) {
+        fileWriter = new FileWriter(PathUtils.concatPath(filePath, fileName));
         // Write the CSV file header and line separator after the header
         fileWriter.append(CSV_FILE_HEADER + "\n");
         //put fileWriter
-        String key = fileNames[i].substring(0, fileNames[i].indexOf("configuration") - 1);
+        String key = fileName.substring(0, fileName.indexOf("configuration") - 1);
         fileWriterMap.put(key, fileWriter);
         //register file writer
         closer.register(fileWriter);
       }
 
       // Sort defaultKeys
-      Comparator<PropertyKey> pC = new PropertyKeyComparator();
       List<PropertyKey> dfkeys = new ArrayList<>(defaultKeys);
-      Collections.sort(dfkeys, pC);
+      Collections.sort(dfkeys);
 
       for (PropertyKey iteratorPK : dfkeys) {
         String pKey = iteratorPK.toString();
@@ -122,7 +123,7 @@ public final class ConfigurationDocGenerator {
    * @param defaultKeys Collection which is from PropertyKey DEFAULT_KEYS_MAP.values()
    * @param filePath path for csv files
    */
-  public static void writeYMLFile(Collection<? extends PropertyKey> defaultKeys, String filePath)
+  static void writeYMLFile(Collection<? extends PropertyKey> defaultKeys, String filePath)
       throws IOException {
     if (defaultKeys.size() == 0) {
       return;
@@ -137,19 +138,18 @@ public final class ConfigurationDocGenerator {
     try {
       // HashMap for FileWriter per each category
       Map<String, FileWriter> fileWriterMap = new HashMap<>();
-      for (int i = 0; i < fileNames.length; i++) {
-        fileWriter = new FileWriter(PathUtils.concatPath(filePath, fileNames[i]));
+      for (String fileName : fileNames) {
+        fileWriter = new FileWriter(PathUtils.concatPath(filePath, fileName));
         //put fileWriter
-        String key = fileNames[i].substring(0, fileNames[i].indexOf("configuration") - 1);
+        String key = fileName.substring(0, fileName.indexOf("configuration") - 1);
         fileWriterMap.put(key, fileWriter);
         //register file writer
         closer.register(fileWriter);
       }
 
       // Sort defaultKeys
-      Comparator<PropertyKey> pC = new PropertyKeyComparator();
       List<PropertyKey> dfkeys = new ArrayList<>(defaultKeys);
-      Collections.sort(dfkeys, pC);
+      Collections.sort(dfkeys);
 
       for (PropertyKey iteratorPK : dfkeys) {
         String pKey = iteratorPK.toString();
@@ -187,40 +187,18 @@ public final class ConfigurationDocGenerator {
   }
 
   /**
-   * Function for main entry.
+   * Main entry for this util class.
    *
    * @param args arguments for command line
    */
   public static void main(String[] args) throws IOException {
     Collection<? extends PropertyKey> defaultKeys = PropertyKey.defaultKeys();
-    String userDir = System.getProperty("user.dir");
-    String location = userDir.substring(0, userDir.indexOf("alluxio") + 7);
-    String filePath = PathUtils.concatPath(location, "/docs/_data/table/");
+    String homeDir = Configuration.get(PropertyKey.HOME);
     // generate CSV files
+    String filePath = PathUtils.concatPath(homeDir, CSV_FILE_DIR);
     writeCSVFile(defaultKeys, filePath);
     // generate YML files
-    filePath = PathUtils.concatPath(filePath, "/en/");
+    filePath = PathUtils.concatPath(filePath, YML_FILE_DIR);
     writeYMLFile(defaultKeys, filePath);
-  }
-
-  /**
-   * PropertyKey Comparator inner class.
-   */
-  private static final class PropertyKeyComparator implements Comparator<PropertyKey> {
-    private PropertyKeyComparator() {
-    } // prevent instantiation
-
-    /**
-     * Compare two PropertyKeys.
-     *
-     * @param pk1 PropertyKey object
-     * @param pk2 PropertyKey object
-     */
-    @Override
-    public int compare(PropertyKey pk1, PropertyKey pk2) {
-      String pk1Name = pk1.toString();
-      String pk2Name = pk2.toString();
-      return pk1Name.compareTo(pk2Name);
-    }
   }
 }
