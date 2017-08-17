@@ -185,10 +185,6 @@ public interface FileSystemMaster extends Master {
       throws AccessControlException, InvalidPathException, FileAlreadyExistsException,
       BlockInfoException, IOException, FileDoesNotExistException;
 
-  long createFile(AlluxioURI path, CreateFileOptions options, UserAccessAuditLog.AuditLogEntry entry)
-      throws AccessControlException, InvalidPathException, FileAlreadyExistsException,
-      BlockInfoException, IOException, FileDoesNotExistException;
-
   /**
    * Reinitializes the blocks of an existing open file.
    *

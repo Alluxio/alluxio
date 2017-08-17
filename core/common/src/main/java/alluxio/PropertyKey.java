@@ -566,6 +566,11 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue(String.format("${%s}/journal", Name.WORK_DIR))
           .setDescription("The path to store master journal logs.")
           .build();
+  public static final PropertyKey MASTER_AUDIT_ENABLED =
+      new Builder(Name.MASTER_AUDIT_ENABLED)
+          .setDefaultValue(false)
+          .setDescription("Set to true to enable master audit.")
+          .build();
   /**
    * @deprecated since 1.5.0 and will be removed in 2.0.
    */
@@ -1938,6 +1943,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.journal.gc.threshold";
     public static final String MASTER_JOURNAL_TEMPORARY_FILE_GC_THRESHOLD_MS =
         "alluxio.master.journal.temporary.file.gc.threshold";
+    public static final String MASTER_AUDIT_ENABLED =
+        "alluxio.master.audit.enabled";
 
     //
     // Worker related properties

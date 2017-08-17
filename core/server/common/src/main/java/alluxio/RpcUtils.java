@@ -72,36 +72,6 @@ public final class RpcUtils {
     }
   }
 
-  public static <T> T call(RpcThrowsIOExceptionWithAuditContext<T> context, Logger logger, Logger auditLogger) throws AlluxioTException {
-    UserAccessAuditLog.AuditLogEntry entry = context.getAuditLogEntry();
-    try {
-      T ret = context.call();
-      entry.setAuthorized(true);
-      return ret;
-    } catch (alluxio.exception.AccessControlException e) {
-      entry.setAuthorized(false);
-      throw AlluxioStatusException.fromAlluxioException(e).toThrift();
-    } catch (AlluxioException e) {
-      logger.warn("{}, Error={}", context, e.getMessage());
-      logger.debug("{}", context, e);
-      throw AlluxioStatusException.fromAlluxioException(e).toThrift();
-    } catch (IOException e) {
-      logger.warn("{}, Error={}", context, e.getMessage());
-      logger.debug("{}", context, e);
-      throw AlluxioStatusException.fromIOException(e).toThrift();
-    } catch (RuntimeException e) {
-      logger.error("{}", context, e);
-      throw new InternalException(e).toThrift();
-    } finally {
-      UserAccessAuditLog.AuditLogEntry head = UserAccessAuditLog.getNextLogEntry();
-      if (head != null) {
-        auditLogger.info("allowed={}\tuser={}\tip={}\tcmd={}\tsrc={}\tdst={}\tperm={}:{}:{}",
-            head.isAuthorized(), head.getUser(), head.getIp(), head.getCommand(), head.getSrcPath(), head.getDstPath(),
-            head.getSrcPathOwner(), head.getSrcPathGroup(), head.getSrcPathMode());
-      }
-    }
-  }
-
   /**
    * Calls the given {@link RpcCallable} and handles any exceptions thrown. The callable should
    * implement a toString with the following format: "CallName: arg1=value1, arg2=value2,...".
@@ -218,28 +188,6 @@ public final class RpcUtils {
       callable.exceptionCaught(e);
     }
     return null;
-  }
-
-  public static abstract class RpcThrowsIOExceptionWithAuditContext <T> implements RpcCallableThrowsIOException<T> {
-    private UserAccessAuditLog.AuditLogEntry mAuditLogEntry;
-
-    public RpcThrowsIOExceptionWithAuditContext(String cmd, String src, String dst) {
-      mAuditLogEntry = new UserAccessAuditLog.AuditLogEntry(cmd, src, dst);
-    }
-    public UserAccessAuditLog.AuditLogEntry getAuditLogEntry() { return mAuditLogEntry; }
-    public abstract T call() throws AlluxioException, IOException;
-  }
-
-  public static <T> T callAndLog(RpcThrowsIOExceptionWithAuditContext<T> context, Logger logger, Logger auditLogger) throws AlluxioTException {
-    logger.debug("Enter: {}", context);
-    try {
-      T ret = call(context, logger, auditLogger);
-      logger.debug("Exit (OK): {}", context);
-      return ret;
-    } catch (AlluxioTException e) {
-      logger.debug("Exit (Error): {}, Error={}", context, e.getMessage());
-      throw e;
-    }
   }
 
   private RpcUtils() {} // prevent instantiation

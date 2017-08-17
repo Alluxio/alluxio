@@ -1027,24 +1027,6 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     }
   }
 
-  @Override
-  public long createFile(AlluxioURI path, CreateFileOptions options, UserAccessAuditLog.AuditLogEntry entry)
-      throws AccessControlException, InvalidPathException, FileAlreadyExistsException,
-      BlockInfoException, IOException, FileDoesNotExistException {
-    Metrics.CREATE_FILES_OPS.inc();
-    Inode srcInode = null;
-    try (JournalContext journalContext = createJournalContext();
-         LockedInodePath inodePath = mInodeTree.lockInodePath(path, InodeTree.LockMode.WRITE)) {
-      mPermissionChecker.checkParentPermission(Mode.Bits.WRITE, inodePath);
-      mMountTable.checkUnderWritableMountPoint(path);
-      createFileAndJournal(inodePath, options, journalContext);
-      srcInode = inodePath.getInode();
-      return inodePath.getInode().getId();
-    } finally {
-      appendAuditLogEntry(entry, srcInode);
-    }
-  }
-
   /**
    * Creates a file (not a directory) for a given path.
    * <p>

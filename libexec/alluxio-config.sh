@@ -90,6 +90,7 @@ ALLUXIO_SERVER_CLASSPATH="${ALLUXIO_CONF_DIR}/:${ALLUXIO_CLASSPATH}:${ALLUXIO_AS
 ####################################################################################################
 function getConf {
   "${JAVA}" -cp ${ALLUXIO_CLIENT_CLASSPATH} ${ALLUXIO_JAVA_OPTS} -Dalluxio.logger.type=Console \
+      -Dalluxio.master.audit.logger.type=Null \
       alluxio.cli.GetConf "$1"
 }
 
@@ -97,6 +98,8 @@ if [[ -z "${ALLUXIO_LOGS_DIR}" ]]; then
   ALLUXIO_LOGS_DIR=$(getConf "alluxio.logs.dir")
   ALLUXIO_JAVA_OPTS+=" -Dalluxio.logs.dir=${ALLUXIO_LOGS_DIR}"
 fi
+
+master_audit_enabled=$(getConf "alluxio.master.audit.enabled")
 ####################################################################################################
 ## End reading site-properties
 ####################################################################################################
@@ -104,6 +107,11 @@ fi
 # Master specific parameters based on ALLUXIO_JAVA_OPTS.
 ALLUXIO_MASTER_JAVA_OPTS+=${ALLUXIO_JAVA_OPTS}
 ALLUXIO_MASTER_JAVA_OPTS+=" -Dalluxio.logger.type=${ALLUXIO_MASTER_LOGGER:-MASTER_LOGGER}"
+if [[ "${master_audit_enabled}" == "true" ]]; then
+    ALLUXIO_MASTER_JAVA_OPTS+=" -Dalluxio.master.audit.logger.type=${ALLUXIO_MASTER_AUDIT_LOGGER:-MASTER_AUDIT_LOGGER}"
+else
+    ALLUXIO_MASTER_JAVA_OPTS+=" -Dalluxio.master.audit.logger.type=Null"
+fi
 
 # Secondary master specific parameters based on ALLUXIO_JAVA_OPTS.
 ALLUXIO_SECONDARY_MASTER_JAVA_OPTS+=${ALLUXIO_JAVA_OPTS}
@@ -120,3 +128,4 @@ ALLUXIO_WORKER_JAVA_OPTS+=" -Dalluxio.logger.type=${ALLUXIO_WORKER_LOGGER:-WORKE
 # Client specific parameters based on ALLUXIO_JAVA_OPTS.
 ALLUXIO_USER_JAVA_OPTS+=${ALLUXIO_JAVA_OPTS}
 ALLUXIO_USER_JAVA_OPTS+=" -Dalluxio.logger.type=USER_LOGGER"
+ALLUXIO_USER_JAVA_OPTS+=" -Dalluxio.master.audit.logger.type=Null"
