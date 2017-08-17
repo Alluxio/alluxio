@@ -29,6 +29,8 @@ priority: 2
 export HIVE_AUX_JARS_PATH={{site.ALLUXIO_CLIENT_JAR_PATH}}:${HIVE_AUX_JARS_PATH}
 ```
 
+或者，高级用户可以选择通过源代码编译客户端jar包，参考说明[here](Building-Alluxio-Master-Branch.html#compute-framework-support),在这篇说明下面的部分在配置项`{{site.ALLUXIO_CLIENT_JAR_PATH_BUILD}}`应用生成的jar包。
+
 ## 在Alluxio上创建Hive表
 
 有不同的方法可以将Hive与Alluxio整合，以将Alluxio作为[内部表或外部表](https://cwiki.apache.org/confluence/display/Hive/LanguageManual+DDL#LanguageManualDDL-ManagedandExternalTables)，新创建的表或已存在的表的存储器。Alluxio也可以作为Hive的默认文件系统。在接下来的部分我们会介绍对于这些情况如何在Alluxio上使用Hive。本文档中Hive运行在Hadoop MapReduce上。
