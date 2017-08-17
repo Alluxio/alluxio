@@ -38,7 +38,7 @@ public final class ConfigurationDocGenerator {
   private static final Logger LOG = LoggerFactory.getLogger(ConfigurationDocGenerator.class);
   private static final String CSV_FILE_DIR = "docs/_data/table/";
   private static final String YML_FILE_DIR = "docs/_data/table/en/";
-  static final String CSV_FILE_HEADER = "propertyName,defaultValue";
+  public static final String CSV_FILE_HEADER = "propertyName,defaultValue";
 
   private ConfigurationDocGenerator() {} // prevent instantiation
 
