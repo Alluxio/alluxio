@@ -52,13 +52,13 @@ alluxio.logs.dir:
   The path to store log files.
 alluxio.metrics.conf.file:
   The file path of the metrics system configuration file. By default it is `metrics.properties` in the `conf` directory.
-alluxio.network.host.resolution.timeout.ms:
+alluxio.network.host.resolution.timeout:
   During startup of the Master and Worker processes Alluxio needs to ensure that they are listening on externally resolvable and reachable host names. To do this, Alluxio will automatically attempt to select an appropriate host name if one was not explicitly specified. This represents the maximum amount of time spent waiting to determine if a candidate host name is resolvable over the network.
-alluxio.network.netty.heartbeat.timeout.ms:
+alluxio.network.netty.heartbeat.timeout:
   The amount of time the server will wait before closing a netty connection if there has not been any incoming traffic. The client will periodically heartbeat when there is no activity on a connection. This value should be the same on the clients and server.
 alluxio.network.thrift.frame.size.bytes.max:
   (Experimental) The largest allowable frame size used for Thrift RPC communication.
-alluxio.proxy.stream.cache.timeout.ms:
+alluxio.proxy.stream.cache.timeout:
   N/A
 alluxio.proxy.web.bind.host:
   N/A
@@ -100,11 +100,11 @@ alluxio.underfs.object.store.service.threads:
   The number of threads in executor pool for parallel object store UFS operations.
 alluxio.underfs.oss.connection.max:
   N/A
-alluxio.underfs.oss.connection.timeout.ms:
+alluxio.underfs.oss.connection.timeout:
   N/A
 alluxio.underfs.oss.connection.ttl:
   N/A
-alluxio.underfs.oss.socket.timeout.ms:
+alluxio.underfs.oss.socket.timeout:
   N/A
 alluxio.underfs.s3.admin.threads.max:
   The maximum number of threads to use for metadata operations when communicating with S3. These operations may be fairly concurrent and frequent but should not take much time to process.
@@ -128,7 +128,7 @@ alluxio.underfs.s3.threads.max:
   The maximum number of threads to use for communicating with S3 and the maximum number of concurrent connections to S3. Includes both threads for data upload and metadata operations. This number should be at least as large as the max admin threads plus max upload threads.
 alluxio.underfs.s3.upload.threads.max:
   The maximum number of threads to use for uploading data to S3 for multipart uploads. These operations can be fairly expensive, so multiple threads are encouraged. However, this also splits the bandwidth between threads, meaning the overall latency for completing an upload will be higher for more threads.
-alluxio.underfs.s3a.consistency.timeout.ms:
+alluxio.underfs.s3a.consistency.timeout:
   The duration to wait for metadata consistency from the under storage. This is only used by internal Alluxio operations which should be successful, but may appear unsuccessful due to eventual consistency.
 alluxio.underfs.s3a.directory.suffix:
   Directories are represented in S3 as zero-byte objects named with the specified suffix.
@@ -136,7 +136,7 @@ alluxio.underfs.s3a.inherit_acl:
   Optionally disable this to disable inheriting bucket ACLs on objects.
 alluxio.underfs.s3a.list.objects.v1:
   Whether to use version 1 of GET Bucket (List Objects) API.
-alluxio.underfs.s3a.request.timeout.ms:
+alluxio.underfs.s3a.request.timeout:
   The timeout for a single request to S3. Infinity if set to 0. Setting this property to a non-zero value can improve performance by avoiding the long tail of requests to S3. For very slow connections to S3, consider increasing this value or setting it to 0.
 alluxio.underfs.s3a.secure.http.enabled:
   Whether or not to use HTTPS protocol when communicating with s3.
@@ -144,7 +144,7 @@ alluxio.underfs.s3a.server.side.encryption.enabled:
   Whether or not to encrypt data stored in s3.
 alluxio.underfs.s3a.signer.algorithm:
   The signature algorithm which should be used to sign requests to the s3 service. This is optional, and if not set, the client will automatically determine it. For interacting with an s3 endpoint which only supports v2 signatures, set this to "S3SignerType".
-alluxio.underfs.s3a.socket.timeout.ms:
+alluxio.underfs.s3a.socket.timeout:
   Length of the socket timeout when communicating with s3.
 alluxio.version:
   N/A
