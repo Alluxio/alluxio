@@ -176,6 +176,7 @@
     <module>integration</module>
     <module>assembly</module>
     <module>minicluster</module>
+    <module>logserver</module>
   </modules>
 
   <dependencyManagement>

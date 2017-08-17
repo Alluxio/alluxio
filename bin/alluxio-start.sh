@@ -137,6 +137,17 @@ stop() {
   ${BIN}/alluxio-stop.sh $1
 }
 
+start_logservers() {
+    echo "Starting logserver @ $(hostname -f)."
+    (nohup "${JAVA}" -cp ${CLASSPATH} \
+     ${ALLUXIO_LOGSERVER_JAVA_OPTS} -Dalluxio.logger.type=MASTER_LOGGER \
+     alluxio.logserver.AlluxioLogServer 47120 "${alluxio_log_server_base_log_dir}" > ${ALLUXIO_LOGS_DIR}/logserver.out 2>&1) &
+
+    (nohup "${JAVA}" -cp ${CLASSPATH} \
+     ${ALLUXIO_LOGSERVER_JAVA_OPTS} -Dalluxio.logger.type=WORKER_LOGGER \
+     alluxio.logserver.AlluxioLogServer 47121 "${alluxio_log_server_base_log_dir}" > ${ALLUXIO_LOGS_DIR}/logserver.out 2>&1) &
+}
+
 start_master() {
   if [[ "$1" == "-f" ]]; then
     ${LAUNCHER} ${BIN}/alluxio format
@@ -299,6 +310,7 @@ main() {
         stop all
         sleep 1
       fi
+      start_logservers
       start_masters "${FORMAT}"
       sleep 2
       start_workers "${MOPT}"
@@ -309,6 +321,7 @@ main() {
         stop local
         sleep 1
       fi
+      start_logservers
       start_master "${FORMAT}"
       ALLUXIO_MASTER_SECONDARY=true
       start_master

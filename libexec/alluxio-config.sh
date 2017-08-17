@@ -100,6 +100,9 @@ if [[ -z "${ALLUXIO_LOGS_DIR}" ]]; then
 fi
 
 alluxio_log_server_enabled=$(getConf "alluxio.logs.server.enabled")
+if [[ "${alluxio_log_server_enabled}" == "true" ]]; then
+    alluxio_log_server_base_log_dir=$(getConf "alluxio.logs.server.baselogdir")
+fi
 ####################################################################################################
 ## End reading site-properties
 ####################################################################################################
@@ -131,6 +134,11 @@ if [[ ${alluxio_log_server_enabled} == "true" ]]; then
 else
     ALLUXIO_WORKER_JAVA_OPTS+=" -Dalluxio.remote.logger.type=Null"
 fi
+
+# Log server specific parameters that will be passed to alluxio log server
+ALLUXIO_LOGSERVER_JAVA_OPTS+=${ALLUXIO_JAVA_OPTS}
+ALLUXIO_LOGSERVER_JAVA_OPTS+=" -Dalluxio.logger.type=Null"
+ALLUXIO_LOGSERVER_JAVA_OPTS+=" -Dalluxio.remote.logger.type=Null"
 
 # Client specific parameters based on ALLUXIO_JAVA_OPTS.
 ALLUXIO_USER_JAVA_OPTS+=${ALLUXIO_JAVA_OPTS}

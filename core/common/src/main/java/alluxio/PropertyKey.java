@@ -148,6 +148,11 @@ public class PropertyKey {
       .setDefaultValue(false)
       .setDescription("Set to true to enable writing logs to a server")
       .build();
+  public static final PropertyKey LOGS_SERVER_BASE_LOG_DIR =
+      new Builder(Name.LOGS_SERVER_BASE_LOG_DIR)
+          .setDefaultValue(String.format("${%s}/logs", Name.WORK_DIR))
+          .setDescription("Default location for remote log files.")
+          .build();
   public static final PropertyKey METRICS_CONF_FILE =
       new Builder(Name.METRICS_CONF_FILE)
           .setDefaultValue(String.format("${%s}/metrics.properties", Name.CONF_DIR))
@@ -1773,6 +1778,7 @@ public class PropertyKey {
     public static final String LOGGER_TYPE = "alluxio.logger.type";
     public static final String LOGS_DIR = "alluxio.logs.dir";
     public static final String LOGS_SERVER_ENABLED = "alluxio.logs.server.enabled";
+    public static final String LOGS_SERVER_BASE_LOG_DIR = "alluxio.logs.server.baselogdir";
     public static final String METRICS_CONF_FILE = "alluxio.metrics.conf.file";
     public static final String NETWORK_HOST_RESOLUTION_TIMEOUT_MS =
         "alluxio.network.host.resolution.timeout";
