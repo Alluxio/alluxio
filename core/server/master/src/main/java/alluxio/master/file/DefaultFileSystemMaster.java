@@ -1020,20 +1020,18 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       throws AccessControlException, InvalidPathException, FileAlreadyExistsException,
       BlockInfoException, IOException, FileDoesNotExistException {
     Metrics.CREATE_FILES_OPS.inc();
-    RpcUtils.RpcContext rpcContext = RpcUtils.createRpcContext().setAllowed(false);
-    Inode srcInode = null;
+    RpcUtils.RpcContext rpcContext = RpcUtils.createRpcContext().setAllowed(true);
     try (JournalContext journalContext = createJournalContext();
         LockedInodePath inodePath = mInodeTree.lockInodePath(path, InodeTree.LockMode.WRITE)) {
+      checkAndAppendAuditLog(rpcContext);
       mPermissionChecker.checkParentPermission(Mode.Bits.WRITE, inodePath);
       mMountTable.checkUnderWritableMountPoint(path);
       createFileAndJournal(inodePath, options, journalContext);
-      rpcContext.setAllowed(true);
-      srcInode = inodePath.getInode();
+      checkAndCommitAuditLog("createfile", path.toString(), null, inodePath.getInode(), rpcContext);
       return inodePath.getInode().getId();
-    } finally {
-      if (mAuditLog.isEnabled()) {
-        doAuditLog("createfile", path.toString(), null, srcInode, rpcContext);
-      }
+    } catch (AccessControlException e) {
+      checkAndCommitAuditLog("createfile", path.toString(), null, null, rpcContext.setAllowed(false));
+      throw e;
     }
   }
 
@@ -2993,15 +2991,20 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     return mBlockMaster.getWorkerInfoList();
   }
 
-  private void doAuditLog(String command, String src, String dst, Inode inode, RpcUtils.RpcContext context) throws AccessControlException {
-    if (!mAuditLog.isEnabled()) { return; } // Maybe do not need this.
+  private void checkAndAppendAuditLog(RpcUtils.RpcContext context) {
+    if (!mAuditLog.isEnabled()) { return; }
+    mAuditLog.append(context);
+  }
+
+  private void checkAndCommitAuditLog(String command, String src, String dst, Inode inode, RpcUtils.RpcContext context) throws AccessControlException {
+    if (!mAuditLog.isEnabled()) { return; }
     context.setCommand(command).setUser(AuthenticatedClientUser.getClientUser())
         .setIp(FileSystemMasterClientServiceProcessor.getClientIpThreadLocal()).setSrcPath(src).setDstPath(dst);
     if (inode != null) {
       context.setSrcPathOwner(inode.getOwner()).setSrcPathGroup(inode.getGroup())
           .setSrcPathMode(inode.getMode());
     }
-    mAuditLog.log(context);
+    mAuditLog.commit(context);
   }
 
   /**

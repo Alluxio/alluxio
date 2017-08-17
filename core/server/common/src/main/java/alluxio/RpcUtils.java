@@ -203,6 +203,7 @@ public final class RpcUtils {
     String mSrcPathGroup;
     Short mSrcPathMode;
     boolean mAllowed;
+    boolean mCommitted;
 
     public RpcContext setCommand(String command) { mCommand = command; return this; }
     public RpcContext setSrcPath(String srcPath) { mSrcPath = srcPath; return this; }
@@ -213,6 +214,7 @@ public final class RpcUtils {
     public RpcContext setSrcPathGroup(String group) { mSrcPathGroup = group; return this; }
     public RpcContext setSrcPathMode(short mode) { mSrcPathMode = mode; return this; }
     public RpcContext setAllowed(boolean allowed) { mAllowed = allowed; return this; }
+    public RpcContext setCommitted(boolean committed) { mCommitted = committed; return this; }
 
     public String getCommand() { return mCommand; }
     public String getSrcPath() { return mSrcPath; }
@@ -223,6 +225,7 @@ public final class RpcUtils {
     public String getSrcPathGroup() { return mSrcPathGroup; }
     public short getSrcPathMode() { return mSrcPathMode; }
     public boolean isAllowed() { return mAllowed; }
+    public boolean isCommitted() { return mCommitted; }
 
     private RpcContext() {}
   }
