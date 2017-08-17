@@ -119,6 +119,10 @@ public final class RpcUtils {
     }
   }
 
+  public static RpcContext createRpcContext() {
+    return new RpcContext();
+  }
+
   /**
    * An interface representing a callable which can only throw Alluxio exceptions.
    *
@@ -187,6 +191,40 @@ public final class RpcUtils {
       callable.exceptionCaught(e);
     }
     return null;
+  }
+
+  public static class RpcContext {
+    String mCommand;
+    String mSrcPath;
+    String mDstPath;
+    String mUser;
+    String mIp;
+    String mSrcPathOwner;
+    String mSrcPathGroup;
+    Short mSrcPathMode;
+    boolean mAllowed;
+
+    public RpcContext setCommand(String command) { mCommand = command; return this; }
+    public RpcContext setSrcPath(String srcPath) { mSrcPath = srcPath; return this; }
+    public RpcContext setDstPath(String dstPath) { mDstPath = dstPath; return this; }
+    public RpcContext setUser(String user) { mUser = user; return this; }
+    public RpcContext setIp(String ip) { mIp = ip; return this; }
+    public RpcContext setSrcPathOwner(String owner) { mSrcPathOwner = owner; return this; }
+    public RpcContext setSrcPathGroup(String group) { mSrcPathGroup = group; return this; }
+    public RpcContext setSrcPathMode(short mode) { mSrcPathMode = mode; return this; }
+    public RpcContext setAllowed(boolean allowed) { mAllowed = allowed; return this; }
+
+    public String getCommand() { return mCommand; }
+    public String getSrcPath() { return mSrcPath; }
+    public String getDstPath() { return mDstPath; }
+    public String getUser() { return mUser; }
+    public String getIp() { return mIp; }
+    public String getSrcPathOwner() { return mSrcPathOwner; }
+    public String getSrcPathGroup() { return mSrcPathGroup; }
+    public short getSrcPathMode() { return mSrcPathMode; }
+    public boolean isAllowed() { return mAllowed; }
+
+    private RpcContext() {}
   }
 
   private RpcUtils() {} // prevent instantiation

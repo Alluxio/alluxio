@@ -1,48 +1,33 @@
 package alluxio.master.audit;
 
+import alluxio.RpcUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class UserAccessAuditLog {
-  private static ConcurrentLinkedQueue<AuditLogEntry> sAuditLogEntries = new ConcurrentLinkedQueue<AuditLogEntry>();
+  private static final Logger LOG = LoggerFactory.getLogger(UserAccessAuditLog.class);
+  private boolean mEnabled;
+  private ConcurrentLinkedQueue<RpcUtils.RpcContext> mAuditLogEntries;
 
-  public static void append(AuditLogEntry entry) {
-    sAuditLogEntries.offer(entry);
+  public UserAccessAuditLog() {
+    mEnabled = true;
+    mAuditLogEntries = new ConcurrentLinkedQueue<>();
   }
-
-  public static AuditLogEntry getNextLogEntry() {
-    return sAuditLogEntries.poll();
-  }
-
-  public static class AuditLogEntry {
-    final String mCommand;
-    final String mSrcPath;
-    final String mDstPath;
-    String mUser;
-    String mIp;
-    String mSrcPathOwner;
-    String mSrcPathGroup;
-    Short mSrcPathMode;
-    boolean mAuthorized;
-
-    public AuditLogEntry(String cmd, String src, String dst) {
-      mCommand = cmd;
-      mSrcPath = src;
-      mDstPath = dst;
+  public boolean isEnabled() { return mEnabled; }
+  public void log(RpcUtils.RpcContext context) {
+    mAuditLogEntries.offer(context);
+    RpcUtils.RpcContext head = mAuditLogEntries.poll();
+    if (mEnabled && head != null) {
+      if (context.isAllowed()) {
+        LOG.info("allowed={}\tuser={}\tip={}\tcmd={}\tsrc={}\tdst={}\tperm={}:{}:{}",
+            head.isAllowed(), head.getUser(), head.getIp(), head.getCommand(), head.getSrcPath(), head.getDstPath(),
+            head.getSrcPathOwner(), head.getSrcPathGroup(), head.getSrcPathMode());
+      } else {
+        LOG.info("allowed={}\tuser={}\tip={}\tcmd={}\tsrc={}\tdst={}\tperm=null",
+            head.isAllowed(), head.getUser(), head.getIp(), head.getCommand(), head.getSrcPath(), head.getDstPath());
+      }
     }
-    public String getCommand() { return mCommand; }
-    public String getSrcPath() { return mSrcPath; }
-    public String getSrcPathOwner() { return mSrcPathOwner; }
-    public String getSrcPathGroup() { return mSrcPathGroup; }
-    public Short getSrcPathMode() { return mSrcPathMode; }
-    public String getDstPath() { return mDstPath; }
-    public String getUser() { return mUser; }
-    public String getIp() { return mIp; }
-    public boolean isAuthorized() { return mAuthorized; }
-    public void setSrcPathOwner(String owner) { mSrcPathOwner = owner; }
-    public void setSrcPathGroup(String group) { mSrcPathGroup = group; }
-    public void setSrcPathMode(short mode) { mSrcPathMode = mode; }
-    public void setUser(String user) { mUser = user; }
-    public void setIp(String ip) { mIp = ip; }
-    public void setAuthorized(boolean authorized) { mAuthorized = authorized; }
   }
 }

@@ -15,6 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
+import alluxio.RpcUtils;
 import alluxio.Server;
 import alluxio.clock.SystemClock;
 import alluxio.collections.Pair;
@@ -302,6 +303,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
   private Future<?> mLostFilesDetectionService;
 
   private Future<List<AlluxioURI>> mStartupConsistencyCheck;
+
+  private UserAccessAuditLog mAuditLog = new UserAccessAuditLog();
 
   /**
    * Creates a new instance of {@link DefaultFileSystemMaster}.
@@ -1017,12 +1020,20 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       throws AccessControlException, InvalidPathException, FileAlreadyExistsException,
       BlockInfoException, IOException, FileDoesNotExistException {
     Metrics.CREATE_FILES_OPS.inc();
+    RpcUtils.RpcContext rpcContext = RpcUtils.createRpcContext().setAllowed(false);
+    Inode srcInode = null;
     try (JournalContext journalContext = createJournalContext();
         LockedInodePath inodePath = mInodeTree.lockInodePath(path, InodeTree.LockMode.WRITE)) {
       mPermissionChecker.checkParentPermission(Mode.Bits.WRITE, inodePath);
       mMountTable.checkUnderWritableMountPoint(path);
       createFileAndJournal(inodePath, options, journalContext);
+      rpcContext.setAllowed(true);
+      srcInode = inodePath.getInode();
       return inodePath.getInode().getId();
+    } finally {
+      if (mAuditLog.isEnabled()) {
+        doAuditLog("createfile", path.toString(), null, srcInode, rpcContext);
+      }
     }
   }
 
@@ -2982,15 +2993,15 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     return mBlockMaster.getWorkerInfoList();
   }
 
-  private void appendAuditLogEntry(UserAccessAuditLog.AuditLogEntry entry, Inode inode) throws AccessControlException {
-    entry.setUser(AuthenticatedClientUser.getClientUser());
-    entry.setIp(FileSystemMasterClientServiceProcessor.getClientIpThreadLocal());
+  private void doAuditLog(String command, String src, String dst, Inode inode, RpcUtils.RpcContext context) throws AccessControlException {
+    if (!mAuditLog.isEnabled()) { return; } // Maybe do not need this.
+    context.setCommand(command).setUser(AuthenticatedClientUser.getClientUser())
+        .setIp(FileSystemMasterClientServiceProcessor.getClientIpThreadLocal()).setSrcPath(src).setDstPath(dst);
     if (inode != null) {
-      entry.setSrcPathOwner(inode.getOwner());
-      entry.setSrcPathGroup(inode.getGroup());
-      entry.setSrcPathMode(inode.getMode());
+      context.setSrcPathOwner(inode.getOwner()).setSrcPathGroup(inode.getGroup())
+          .setSrcPathMode(inode.getMode());
     }
-    UserAccessAuditLog.append(entry);
+    mAuditLog.log(context);
   }
 
   /**
