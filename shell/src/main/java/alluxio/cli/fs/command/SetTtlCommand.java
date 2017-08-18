@@ -14,6 +14,7 @@ package alluxio.cli.fs.command;
 import alluxio.AlluxioURI;
 import alluxio.client.file.FileSystem;
 import alluxio.exception.AlluxioException;
+import alluxio.exception.status.InvalidArgumentException;
 import alluxio.util.CommonUtils;
 import alluxio.wire.TtlAction;
 
@@ -63,7 +64,7 @@ public final class SetTtlCommand extends AbstractFileSystemCommand {
   }
 
   @Override
-  public CommandLine parseAndValidateArgs(String... args) {
+  public CommandLine parseAndValidateArgs(String... args) throws InvalidArgumentException {
 
     CommandLine cmd = super.parseAndValidateArgs(args);
     try {

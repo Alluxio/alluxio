@@ -11,6 +11,8 @@
 
 package alluxio.cli;
 
+import alluxio.exception.status.InvalidArgumentException;
+
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -63,8 +65,10 @@ public abstract class AbstractShell implements Closeable {
     }
 
     String[] args = Arrays.copyOfRange(argv, 1, argv.length);
-    CommandLine cmdline = command.parseAndValidateArgs(args);
-    if (cmdline == null) {
+    CommandLine cmdline = null;
+    try {
+      command.parseAndValidateArgs(args);
+    } catch (InvalidArgumentException e) {
       System.out.println("Usage: " + command.getUsage());
       return -1;
     }

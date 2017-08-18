@@ -12,9 +12,11 @@
 package alluxio.cli;
 
 import alluxio.exception.AlluxioException;
+import alluxio.exception.status.InvalidArgumentException;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
 
 import java.io.IOException;
 
@@ -41,7 +43,7 @@ public interface Command {
    * @param args the arguments for the command, excluding the command name
    * @return the parsed command line object. If the arguments are invalid, return null
    */
-  CommandLine parseAndValidateArgs(String... args);
+  CommandLine parseAndValidateArgs(String... args) throws InvalidArgumentException;
 
   /**
    * Runs the command.

@@ -11,6 +11,8 @@
 
 package alluxio.cli;
 
+import alluxio.exception.status.InvalidArgumentException;
+
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
@@ -55,7 +57,7 @@ public abstract class AbstractCommand implements Command {
   }
 
   @Override
-  public CommandLine parseAndValidateArgs(String... args) {
+  public CommandLine parseAndValidateArgs(String... args) throws InvalidArgumentException {
     Options opts = getOptions();
     CommandLineParser parser = new DefaultParser();
     CommandLine cmd;
@@ -63,12 +65,13 @@ public abstract class AbstractCommand implements Command {
     try {
       cmd = parser.parse(opts, args);
     } catch (ParseException e) {
-      System.err.println(String.format("%s: %s", getCommandName(), e.getMessage()));
-      return null;
+      throw new InvalidArgumentException(
+          String.format("Failed to parse args for %s", getCommandName()), e);
     }
 
     if (!validateArgs(cmd.getArgs())) {
-      return null;
+      throw new InvalidArgumentException(
+          String.format("Invalid args for command %s", getCommandName()));
     }
     return cmd;
   }
