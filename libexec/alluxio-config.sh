@@ -90,6 +90,7 @@ ALLUXIO_SERVER_CLASSPATH="${ALLUXIO_CONF_DIR}/:${ALLUXIO_CLASSPATH}:${ALLUXIO_AS
 ####################################################################################################
 function getConf {
   "${JAVA}" -cp ${ALLUXIO_CLIENT_CLASSPATH} ${ALLUXIO_JAVA_OPTS} -Dalluxio.logger.type=Null \
+      -Dalluxio.remote.logger.type=Null \
       alluxio.cli.GetConf "$1"
 }
 
