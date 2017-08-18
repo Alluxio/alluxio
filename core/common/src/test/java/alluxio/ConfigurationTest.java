@@ -58,6 +58,12 @@ public class ConfigurationTest {
   }
 
   @Test
+  public void alias() {
+    Configuration.merge(ImmutableMap.of("alluxio.master.worker.timeout.ms", "100"));
+    assertEquals(100, Configuration.getMs(PropertyKey.MASTER_WORKER_TIMEOUT_MS));
+  }
+
+  @Test
   public void getInt() {
     Configuration.set(PropertyKey.WEB_THREADS, "1");
     assertEquals(1, Configuration.getInt(PropertyKey.WEB_THREADS));
