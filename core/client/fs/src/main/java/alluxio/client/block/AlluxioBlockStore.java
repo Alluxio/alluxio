@@ -14,6 +14,7 @@ package alluxio.client.block;
 import alluxio.client.block.policy.BlockLocationPolicy;
 import alluxio.client.block.policy.options.GetWorkerOptions;
 import alluxio.client.block.stream.BlockInStream;
+import alluxio.client.block.stream.BlockInStream.BlockInStreamSource;
 import alluxio.client.block.stream.BlockOutStream;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.options.InStreamOptions;
@@ -133,6 +134,7 @@ public final class AlluxioBlockStore {
       blockInfo = masterClientResource.get().getBlockInfo(blockId);
     }
 
+    BlockInStreamSource source = BlockInStreamSource.UFS;
     if (blockInfo.getLocations().isEmpty() && openUfsBlockOptions == null) {
       throw new NotFoundException("Block " + blockId + " is unavailable in both Alluxio and UFS.");
     }
@@ -157,6 +159,7 @@ public final class AlluxioBlockStore {
       WorkerNetAddress workerNetAddress = location.getWorkerAddress();
       if (workerNetAddress.getHost().equals(mLocalHostName)) {
         address = workerNetAddress;
+        source = BlockInStreamSource.LOCAL;
         break;
       }
     }
@@ -165,9 +168,10 @@ public final class AlluxioBlockStore {
       // only randomize among locations in the highest tier, or have the master randomize the order.
       List<BlockLocation> locations = blockInfo.getLocations();
       address = locations.get(mRandom.nextInt(locations.size())).getWorkerAddress();
+      source = BlockInStreamSource.REMOTE;
     }
-    return BlockInStream
-        .create(mContext, blockId, blockInfo.getLength(), address, openUfsBlockOptions, options);
+    return BlockInStream.create(mContext, blockId, blockInfo.getLength(), address, source,
+        openUfsBlockOptions, options);
   }
 
   /**

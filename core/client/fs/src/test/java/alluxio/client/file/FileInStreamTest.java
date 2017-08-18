@@ -15,6 +15,7 @@ import alluxio.client.ReadType;
 import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.block.stream.BlockInStream;
+import alluxio.client.block.stream.BlockInStream.BlockInStreamSource;
 import alluxio.client.block.stream.BlockOutStream;
 import alluxio.client.block.stream.TestBlockInStream;
 import alluxio.client.block.stream.TestBlockOutStream;
@@ -103,7 +104,7 @@ public class FileInStreamTest {
               long i = (Long) invocation.getArguments()[0];
               byte[] input = BufferUtils
                   .getIncreasingByteArray((int) (i * BLOCK_LENGTH), (int) getBlockLength((int) i));
-              return new TestBlockInStream(input, i, input.length, false);
+              return new TestBlockInStream(input, i, input.length, false, BlockInStreamSource.UFS);
             }
           });
       Mockito.when(mBlockStore.getOutStream(Mockito.eq((long) i), Mockito.anyLong(),
@@ -307,6 +308,58 @@ public class FileInStreamTest {
   }
 
   /**
+   * Tests seeking with incomplete block caching enabled. When the block is already in local worker,
+   * no caching should happen.
+   */
+  @Test
+  public void noCachingPartiallyReadWithLocalBlock()  throws IOException {
+    // override all the instreams to have the source to be local
+    for (int i = 0; i < NUM_STREAMS; i++) {
+      Mockito
+          .when(mBlockStore.getInStream(Mockito.eq((long) i),
+              Mockito.any(Protocol.OpenUfsBlockOptions.class), Mockito.any(InStreamOptions.class)))
+          .thenAnswer(new Answer<BlockInStream>() {
+            @Override
+            public BlockInStream answer(InvocationOnMock invocation) throws Throwable {
+              long i = (Long) invocation.getArguments()[0];
+              byte[] input = BufferUtils.getIncreasingByteArray((int) (i * BLOCK_LENGTH),
+                  (int) getBlockLength((int) i));
+              return new TestBlockInStream(input, i, input.length, false,
+                  BlockInStreamSource.LOCAL);
+            }
+          });
+    }
+
+    mTestStream = new FileInStream(mStatus,
+        InStreamOptions.defaults().setReadType(ReadType.CACHE_PROMOTE)
+            .setCachePartiallyReadBlock(true), mContext);
+    int seekAmount = (int) (BLOCK_LENGTH / 4 + BLOCK_LENGTH);
+
+    // Seek forward.
+    mTestStream.seek(seekAmount);
+
+    // Block 1 is not written though it is seeked.
+    Assert.assertEquals(0, mCacheStreams.get(1).getWrittenData().length);
+    // Block 0 is not written.
+    Assert.assertEquals(0, mCacheStreams.get(0).getWrittenData().length);
+
+    // Seek backward.
+    mTestStream.seek(0);
+
+    // No block is written
+    Assert.assertEquals(0, mCacheStreams.get(0).getWrittenData().length);
+    Assert.assertEquals(0, mCacheStreams.get(1).getWrittenData().length);
+
+    // Seek forward again
+    mTestStream.seek(BLOCK_LENGTH * 2);
+    mTestStream.close();
+
+    // No block is written
+    Assert.assertEquals(0, mCacheStreams.get(0).getWrittenData().length);
+    Assert.assertEquals(0, mCacheStreams.get(1).getWrittenData().length);
+  }
+
+  /**
    * Tests seeking with incomplete block caching enabled. It seeks forward for more than a block.
    */
   @Test
@@ -394,16 +447,29 @@ public class FileInStreamTest {
 
     // Seek forward.
     mTestStream.seek(seekAmount);
+
+    // Block 1 is partially cached though it is not fully read.
+    Assert.assertArrayEquals(
+        BufferUtils.getIncreasingByteArray((int) BLOCK_LENGTH, (int) BLOCK_LENGTH / 4),
+        mCacheStreams.get(1).getWrittenData());
+    // Block 0 is not cached.
+    Assert.assertEquals(0, mCacheStreams.get(0).getWrittenData().length);
+
     // Seek backward.
     mTestStream.seek(0);
-    mTestStream.close();
 
-    // Block 1 is cached though it is not fully read.
+    // Block 1 is fully cached though it is not fully read.
     Assert.assertArrayEquals(
         BufferUtils.getIncreasingByteArray((int) BLOCK_LENGTH, (int) BLOCK_LENGTH),
         mCacheStreams.get(1).getWrittenData());
     // Block 0 is not cached.
     Assert.assertEquals(0, mCacheStreams.get(0).getWrittenData().length);
+    mTestStream.close();
+
+    // Block 0 is fully cached.
+    Assert.assertArrayEquals(
+        BufferUtils.getIncreasingByteArray(0, (int) BLOCK_LENGTH),
+        mCacheStreams.get(0).getWrittenData());
   }
 
   /**
