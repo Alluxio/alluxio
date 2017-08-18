@@ -18,6 +18,8 @@ import alluxio.Server;
 import alluxio.clock.Clock;
 import alluxio.exception.InvalidJournalEntryException;
 import alluxio.exception.PreconditionMessage;
+import alluxio.master.audit.AsyncUserAccessAuditLogWriter;
+import alluxio.master.audit.AuditContext;
 import alluxio.master.journal.AsyncJournalWriter;
 import alluxio.master.journal.Journal;
 import alluxio.master.journal.JournalCheckpointThread;
@@ -74,6 +76,8 @@ public abstract class AbstractMaster implements Master {
   private JournalWriter mJournalWriter;
   /** The {@link AsyncJournalWriter} for async journal writes. */
   private AsyncJournalWriter mAsyncJournalWriter;
+
+  protected AsyncUserAccessAuditLogWriter mAsyncAuditLogWriter;
 
   /** The clock to use for determining the time. */
   protected final Clock mClock;
@@ -145,6 +149,7 @@ public abstract class AbstractMaster implements Master {
         }
       }
       mAsyncJournalWriter = new AsyncJournalWriter(mJournalWriter);
+      mAsyncAuditLogWriter = new AsyncUserAccessAuditLogWriter();
     } else {
       LOG.info("{}: Starting secondary master.", getName());
 
@@ -313,4 +318,99 @@ public abstract class AbstractMaster implements Master {
       }
     }
   }
+
+  @NotThreadSafe
+  public final class MasterAuditContext implements AuditContext {
+    private final AsyncUserAccessAuditLogWriter mAsyncAuditLogWriter;
+    private boolean mCommitted;
+    String mCommand;
+    String mSrcPath;
+    String mDstPath;
+    String mUser;
+    String mIp;
+    String mSrcPathOwner;
+    String mSrcPathGroup;
+    short mSrcPathMode;
+    private boolean mAllowed;
+
+    public MasterAuditContext setCommand(String command) {
+      mCommand = command;
+      return this;
+    }
+
+    public MasterAuditContext setSrcPath(String srcPath) {
+      mSrcPath = srcPath;
+      return this;
+    }
+
+    public MasterAuditContext setDstPath(String dstPath) {
+      mDstPath = dstPath;
+      return this;
+    }
+
+    public MasterAuditContext setUser(String user) {
+      mUser = user;
+      return this;
+    }
+
+    public MasterAuditContext setIp(String ip) {
+      mIp = ip;
+      return this;
+    }
+
+    public MasterAuditContext setSrcPathOwner(String owner) {
+      mSrcPathOwner = owner;
+      return this;
+    }
+
+    public MasterAuditContext setSrcPathGroup(String group) {
+      mSrcPathGroup = group;
+      return this;
+    }
+
+    public MasterAuditContext setSrcPathMode(short mode) {
+      mSrcPathMode = mode;
+      return this;
+    }
+
+    private MasterAuditContext(AsyncUserAccessAuditLogWriter asyncAuditLogWriter) {
+      mAsyncAuditLogWriter = asyncAuditLogWriter;
+    }
+
+    @Override
+    public void append() {
+      if (mAsyncAuditLogWriter != null) {
+        mAsyncAuditLogWriter.append(this);
+      }
+    }
+
+    @Override
+    public MasterAuditContext setAllowed(boolean allowed) { mAllowed = allowed; return this; }
+
+    @Override
+    public void setCommitted(boolean committed) { mCommitted = committed; }
+
+    @Override
+    public boolean isCommitted() { return mCommitted; }
+
+    @Override
+    public void close() {
+      if (mAsyncAuditLogWriter != null) {
+        mAsyncAuditLogWriter.commit(this);
+      }
+    }
+
+    @Override
+    public String toString() {
+      if (mAllowed) {
+        return String.format("allowed=true\tuser=%s\tip=%s\tcmd=%s\tsrc=%s\tdst=%s\tperm=%s:%s:%d",
+            mUser, mIp, mCommand, mSrcPath, mDstPath, mSrcPathOwner, mSrcPathGroup, mSrcPathMode);
+      } else {
+        return String.format("allowed=false\tuser=%s\tip=%s\tcmd=%s\tsrc=%s\tdst=%s\tperm=null",
+            mUser, mIp, mCommand, mSrcPath, mDstPath);
+      }
+    }
+  }
+
+  protected AuditContext createAuditContext() { return new MasterAuditContext(mAsyncAuditLogWriter); }
 }
