@@ -24,6 +24,7 @@ public class UserAccessAuditLog {
       mAuditLogEntries.put(context);
     } catch (InterruptedException e) {
       // TODO
+      e.printStackTrace();
     }
     return true;
   }
@@ -34,24 +35,25 @@ public class UserAccessAuditLog {
       context.notify();
     }
 
-    RpcUtils.RpcContext headContext;
-    try {
-      headContext = mAuditLogEntries.take();
-      synchronized (headContext) {
-        while (!headContext.isCommitted()) {
+    RpcUtils.RpcContext headContext = mAuditLogEntries.poll();
+    if (headContext == null) { return; }
+    synchronized (headContext) {
+      while (!headContext.isCommitted()) {
+        try {
           headContext.wait();
-        }
-        if (headContext.isAllowed()) {
-          LOG.info("allowed={}\tuser={}\tip={}\tcmd={}\tsrc={}\tdst={}\tperm={}:{}:{}",
-              headContext.isAllowed(), headContext.getUser(), headContext.getIp(), headContext.getCommand(), headContext.getSrcPath(), headContext.getDstPath(),
-              headContext.getSrcPathOwner(), headContext.getSrcPathGroup(), headContext.getSrcPathMode());
-        } else {
-          LOG.info("allowed={}\tuser={}\tip={}\tcmd={}\tsrc={}\tdst={}\tperm=null",
-              headContext.isAllowed(), headContext.getUser(), headContext.getIp(), headContext.getCommand(), headContext.getSrcPath(), headContext.getDstPath());
+        } catch (InterruptedException e) {
+          // TODO
+          return;
         }
       }
-    } catch (InterruptedException e) {
-      // TODO
+    }
+    if (headContext.isAllowed()) {
+      LOG.info("allowed={}\tuser={}\tip={}\tcmd={}\tsrc={}\tdst={}\tperm={}:{}:{}",
+          headContext.isAllowed(), headContext.getUser(), headContext.getIp(), headContext.getCommand(), headContext.getSrcPath(), headContext.getDstPath(),
+          headContext.getSrcPathOwner(), headContext.getSrcPathGroup(), headContext.getSrcPathMode());
+    } else {
+      LOG.info("allowed={}\tuser={}\tip={}\tcmd={}\tsrc={}\tdst={}\tperm=null",
+          headContext.isAllowed(), headContext.getUser(), headContext.getIp(), headContext.getCommand(), headContext.getSrcPath(), headContext.getDstPath());
     }
   }
 }

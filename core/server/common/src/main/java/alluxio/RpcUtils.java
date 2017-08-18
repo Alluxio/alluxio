@@ -201,7 +201,7 @@ public final class RpcUtils {
     String mIp;
     String mSrcPathOwner;
     String mSrcPathGroup;
-    Short mSrcPathMode;
+    short mSrcPathMode;
     boolean mAllowed;
     boolean mCommitted;
 
