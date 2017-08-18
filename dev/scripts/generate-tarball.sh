@@ -54,7 +54,7 @@ function prepare_repo {
   if [[ "${delete_unrevisioned}" == true ]]; then
     git clean -qfdx
   else
-    git clean -qfdX
+    echo "keep unrevisioned file."
   fi
   rm -rf .git .gitignore
 }
