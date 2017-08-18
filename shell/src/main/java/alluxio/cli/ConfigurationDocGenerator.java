@@ -198,7 +198,7 @@ public final class ConfigurationDocGenerator {
     String filePath = PathUtils.concatPath(homeDir, CSV_FILE_DIR);
     writeCSVFile(defaultKeys, filePath);
     // generate YML files
-    filePath = PathUtils.concatPath(filePath, YML_FILE_DIR);
+    filePath = PathUtils.concatPath(homeDir, YML_FILE_DIR);
     writeYMLFile(defaultKeys, filePath);
   }
 }
