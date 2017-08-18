@@ -17,6 +17,7 @@ import alluxio.cli.validation.PortAvailabilityValidationTask;
 import alluxio.cli.validation.RamDiskMountPrivilegeValidationTask;
 import alluxio.cli.validation.SshValidationTask;
 import alluxio.cli.validation.UfsDirectoryValidationTask;
+import alluxio.cli.validation.UserLimitValidationTask;
 import alluxio.cli.validation.Utils;
 import alluxio.cli.validation.ValidationTask;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
@@ -92,6 +93,15 @@ public final class ValidateEnv {
   private static final ValidationTask WORKER_RAMDISK_MOUNT_PRIVILEGE_VALIDATION_TASK = registerTask(
       "worker.ramdisk.mount.privilege", new RamDiskMountPrivilegeValidationTask());
 
+  // User limit validations
+  private static final ValidationTask ULIMIT_NUMBER_OF_OPEN_FILES_VALIDATION_TASK = registerTask(
+      "ulimit.nofile",
+      UserLimitValidationTask.createNumberOfOpenFilesLimitValidationTask());
+
+  private static final ValidationTask ULIMIT_NUMBER_OF_USER_PROCS_VALIDATION_TASK = registerTask(
+      "ulimit.nproc",
+      UserLimitValidationTask.createNumberOfUserProcessesLimitValidationTask());
+
   private static final Map<String, Collection<ValidationTask>> TARGET_TASKS =
       initializeTargetTasks();
 
@@ -103,7 +113,9 @@ public final class ValidateEnv {
         PROXY_WEB_VALIDATION_TASK,
         MASTERS_SSH_VALIDATION_TASK,
         WORKERS_SSH_VALIDATION_TASK,
-        UFS_ROOT_VALIDATION_TASK
+        UFS_ROOT_VALIDATION_TASK,
+        ULIMIT_NUMBER_OF_OPEN_FILES_VALIDATION_TASK,
+        ULIMIT_NUMBER_OF_USER_PROCS_VALIDATION_TASK
     ));
     targetMap.put("worker", Arrays.asList(
         WORKER_DATA_VALIDATION_TASK,
@@ -113,7 +125,9 @@ public final class ValidateEnv {
         PROXY_WEB_VALIDATION_TASK,
         MASTERS_SSH_VALIDATION_TASK,
         WORKERS_SSH_VALIDATION_TASK,
-        UFS_ROOT_VALIDATION_TASK
+        UFS_ROOT_VALIDATION_TASK,
+        ULIMIT_NUMBER_OF_OPEN_FILES_VALIDATION_TASK,
+        ULIMIT_NUMBER_OF_USER_PROCS_VALIDATION_TASK
     ));
     targetMap.put("local", TASKS.keySet());
     return targetMap;
