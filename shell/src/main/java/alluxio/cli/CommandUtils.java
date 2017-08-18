@@ -31,7 +31,7 @@ public final class CommandUtils {
   private CommandUtils() {} // prevent instantiation
 
   /**
-   * Gets all supported {@link Command} classes instances in the same package as the given class.
+   * Gets all subclasses of the given {@link Command} class in the same package.
    *
    * @param <T> type of command
    * @param command class to load

@@ -83,8 +83,7 @@ public final class AlluxioShell extends AbstractShell {
         // Handle command alias, and print out WARNING message for deprecated cmd.
         String deprecatedMsg = "WARNING: " + cmd + " is deprecated. Please use "
             + StringUtils.join(replacementCmd, " ") + " instead.";
-        System.out.println(deprecatedMsg);
-        LOG.warn(deprecatedMsg);
+        System.err.println(deprecatedMsg);
 
         String[] replacementArgv = (String[]) ArrayUtils.addAll(replacementCmd,
             ArrayUtils.subarray(argv, 1, argv.length));

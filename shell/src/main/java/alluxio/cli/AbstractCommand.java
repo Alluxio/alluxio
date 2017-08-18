@@ -36,8 +36,8 @@ public abstract class AbstractCommand implements Command {
   protected boolean validateArgs(String... args) {
     boolean valid = args.length == getNumOfArgs();
     if (!valid) {
-      System.out.println(getCommandName() + " takes " + getNumOfArgs() + " arguments, " + " not "
-          + args.length + "\n");
+      System.err.println(String.format("%s takes %d arguments, not %d", getCommandName(),
+          getNumOfArgs(), args.length));
     }
     return valid;
   }

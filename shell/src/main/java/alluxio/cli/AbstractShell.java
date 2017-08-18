@@ -57,7 +57,7 @@ public abstract class AbstractShell implements Closeable {
     Command command = getCommands().get(cmd);
 
     if (command == null) { // Unknown command (we didn't find the cmd in our dict)
-      System.out.println(cmd + " is an unknown command.\n");
+      System.out.println(String.format("%s is an unknown command.", cmd));
       printUsage();
       return -1;
     }
@@ -85,6 +85,7 @@ public abstract class AbstractShell implements Closeable {
 
   /**
    * Load commands if not already initialized.
+   *
    * @return set of commands supported in shell
    */
   protected Map<String, ? extends Command> getCommands() {
@@ -111,7 +112,7 @@ public abstract class AbstractShell implements Closeable {
     System.out.println("Usage: alluxio " + getShellName() + " [generic options]");
     SortedSet<String> sortedCmds = new TreeSet<>(getCommands().keySet());
     for (String cmd : sortedCmds) {
-      System.out.format("%-60s%n", "       [" + getCommands().get(cmd).getUsage() + "]");
+      System.out.format("%-60s%n", "\t [" + getCommands().get(cmd).getUsage() + "]");
     }
   }
 }
