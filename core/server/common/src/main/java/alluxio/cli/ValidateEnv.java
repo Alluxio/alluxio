@@ -14,6 +14,7 @@ package alluxio.cli;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.cli.validation.PortAvailabilityValidationTask;
+import alluxio.cli.validation.RamDiskMountPrivilegeValidationTask;
 import alluxio.cli.validation.SshValidationTask;
 import alluxio.cli.validation.UfsDirectoryValidationTask;
 import alluxio.cli.validation.Utils;
@@ -87,6 +88,10 @@ public final class ValidateEnv {
       "ufs.root.accessible",
       new UfsDirectoryValidationTask());
 
+  // RAM disk validations
+  private static final ValidationTask WORKER_RAMDISK_MOUNT_PRIVILEGE_VALIDATION_TASK = registerTask(
+      "worker.ramdisk.mount.privilege", new RamDiskMountPrivilegeValidationTask());
+
   private static final Map<String, Collection<ValidationTask>> TARGET_TASKS =
       initializeTargetTasks();
 
@@ -102,6 +107,7 @@ public final class ValidateEnv {
     ));
     targetMap.put("worker", Arrays.asList(
         WORKER_DATA_VALIDATION_TASK,
+        WORKER_RAMDISK_MOUNT_PRIVILEGE_VALIDATION_TASK,
         WORKER_RPC_VALIDATION_TASK,
         WORKER_WEB_VALIDATION_TASK,
         PROXY_WEB_VALIDATION_TASK,
@@ -163,7 +169,7 @@ public final class ValidateEnv {
   }
 
   // runs validation tasks in local environment
-  private static boolean validateLocal(String target, String name) {
+  private static boolean validateLocal(String target, String name) throws InterruptedException {
     int validationCount = 0;
     int failureCount = 0;
     Collection<ValidationTask> tasks = TARGET_TASKS.get(target);
