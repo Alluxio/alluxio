@@ -37,7 +37,7 @@ export ALLUXIO_MASTER_JAVA_OPTS="$ALLUXIO_JAVA_OPTS -agentlib:jdwp=transport=dt_
 export ALLUXIO_USER_DEBUG_JAVA_OPTS="-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=6609"
 ```
 
-Specially, if you want to debug shell command, you can add the `-debug` flag to start a debug server with the jvm debug parameters `ALLUXIO_USER_DEBUG_JAVA_OPTS`. Such as `alluxio fs -debug ls /`.
+Specially, if you want to debug shell command, you can add the `-jvmdebug` flag to start a debug server with the jvm debug parameters `ALLUXIO_USER_DEBUG_JAVA_OPTS`. Such as `alluxio -jvmdebug fs ls /`.
 
 `suspend = y/n` will decide whether the JVM process wait until the debugger connects. If you want to debug with the shell command, set the `suspend = y`. Otherwise, you can set `suspend = n` so that avoid unnecessary waiting time. 
 

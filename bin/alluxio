@@ -11,7 +11,11 @@
 #
 
 function printUsage {
-  echo "Usage: alluxio COMMAND [GENERIC_COMMAND_OPTIONS] [COMMAND_ARGS]"
+  echo "Usage: alluxio [-jvmdebug] COMMAND [GENERIC_COMMAND_OPTIONS] [COMMAND_ARGS]"
+  echo
+  echo "Flag description:"
+  echo -e "  -jvmdebug     \t If this flag specified, the env variable ALLUXIO_USER_DEBUG_JAVA_OPTS will be added to jvm flags."
+  echo -e "                \t ALLUXIO_USER_DEBUG_JAVA_OPTS can be '-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=6609'"
   echo
   echo "COMMAND is one of:"
   echo -e "  format [-s]   \t Format Alluxio master and all workers (if -s specified, only format if underfs is local and doesn't already exist)"
@@ -161,10 +165,16 @@ function copyDir {
 
 function runJavaClass {
   CLASS_ARGS=()
+  if [[ ${IS_DEBUG_MODE} == true ]]; then
+    if [[ $ALLUXIO_USER_DEBUG_JAVA_OPTS ]];then
+      ALLUXIO_USER_JAVA_OPTS+=" ${ALLUXIO_USER_DEBUG_JAVA_OPTS}"
+    else
+      echo "env variable ALLUXIO_USER_DEBUG_JAVA_OPTS is not define."
+      exit 3
+    fi
+  fi
   for arg in "$@"; do
       case "${arg}" in
-          -debug)
-              ALLUXIO_USER_JAVA_OPTS+=" ${ALLUXIO_USER_DEBUG_JAVA_OPTS}" ;;
           -D*)
               ALLUXIO_SHELL_JAVA_OPTS+=" ${arg}" ;;
           *)
@@ -185,6 +195,12 @@ function main {
   if [[ $# == 0 ]]; then
     printUsage
     exit 1
+  fi
+
+  IS_DEBUG_MODE=false
+  if [[ "$1" == "-jvmdebug" ]]; then
+    IS_DEBUG_MODE=true
+    shift
   fi
 
   COMMAND=$1
