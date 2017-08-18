@@ -385,7 +385,10 @@ public abstract class AbstractMaster implements Master {
     }
 
     @Override
-    public MasterAuditContext setAllowed(boolean allowed) { mAllowed = allowed; return this; }
+    public MasterAuditContext setAllowed(boolean allowed) {
+      mAllowed = allowed;
+      return this;
+    }
 
     @Override
     public void setCommitted(boolean committed) { mCommitted = committed; }
