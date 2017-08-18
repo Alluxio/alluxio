@@ -52,6 +52,11 @@ ensure_dirs() {
     echo "ALLUXIO_LOGS_DIR: ${ALLUXIO_LOGS_DIR}"
     mkdir -p ${ALLUXIO_LOGS_DIR}
   fi
+  if [[ ! -d "${ALLUXIO_LOG_SERVER_BASE_LOG_DIR}" ]]; then
+    echo "ALLUXIO_LOG_SERVER_BASE_LOG_DIR: ${ALLUXIO_LOG_SERVER_BASE_LOG_DIR}"
+    mkdir -p ${ALLUXIO_LOG_SERVER_BASE_LOG_DIR}/master_logs
+    mkdir -p ${ALLUXIO_LOG_SERVER_BASE_LOG_DIR}/worker_logs
+  fi
 }
 
 get_env() {
@@ -141,11 +146,11 @@ start_logservers() {
     echo "Starting logserver @ $(hostname -f)."
     (nohup "${JAVA}" -cp ${CLASSPATH} \
      ${ALLUXIO_LOGSERVER_JAVA_OPTS} -Dalluxio.logger.type=MASTER_LOGGER \
-     alluxio.logserver.AlluxioLogServer 47120 "${alluxio_log_server_base_log_dir}" > ${ALLUXIO_LOGS_DIR}/logserver.out 2>&1) &
+     alluxio.logserver.AlluxioLogServer 47120 "${ALLUXIO_LOG_SERVER_BASE_LOG_DIR}" > ${ALLUXIO_LOGS_DIR}/logserver.out 2>&1) &
 
     (nohup "${JAVA}" -cp ${CLASSPATH} \
      ${ALLUXIO_LOGSERVER_JAVA_OPTS} -Dalluxio.logger.type=WORKER_LOGGER \
-     alluxio.logserver.AlluxioLogServer 47121 "${alluxio_log_server_base_log_dir}" > ${ALLUXIO_LOGS_DIR}/logserver.out 2>&1) &
+     alluxio.logserver.AlluxioLogServer 47121 "${ALLUXIO_LOG_SERVER_BASE_LOG_DIR}" > ${ALLUXIO_LOGS_DIR}/logserver.out 2>&1) &
 }
 
 start_master() {

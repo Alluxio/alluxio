@@ -101,7 +101,7 @@ fi
 
 alluxio_log_server_enabled=$(getConf "alluxio.logs.server.enabled")
 if [[ "${alluxio_log_server_enabled}" == "true" ]]; then
-    alluxio_log_server_base_log_dir=$(getConf "alluxio.logs.server.baselogdir")
+    ALLUXIO_LOG_SERVER_BASE_LOG_DIR=$(getConf "alluxio.logs.server.baselogdir")
 fi
 ####################################################################################################
 ## End reading site-properties
