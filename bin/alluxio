@@ -206,8 +206,8 @@ function main {
 
   case ${COMMAND} in
   "extensions")
-    CLASS="alluxio.cli.ExtensionShell"
-    CLASSPATH=${ALLUXIO_CLIENT_CLASSPATH}
+    CLASS="alluxio.cli.extensions.ExtensionsShell"
+    CLASSPATH=${ALLUXIO_SERVER_CLASSPATH}
     runJavaClass "$@"
   ;;
   "format")
@@ -254,7 +254,7 @@ function main {
     runJavaClass "$@"
   ;;
   "fs")
-    CLASS="alluxio.cli.AlluxioShell"
+    CLASS="alluxio.cli.fs.FileSystemShell"
     CLASSPATH=${ALLUXIO_CLIENT_CLASSPATH}
     runJavaClass "$@"
   ;;
