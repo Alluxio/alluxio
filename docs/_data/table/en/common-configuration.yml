@@ -67,7 +67,7 @@ alluxio.proxy.web.hostname:
 alluxio.proxy.web.port:
   N/A
 alluxio.site.conf.dir:
-  Default search path for configuration files to read
+  Comma-separated search path for alluxio-site.properties
 alluxio.test.mode:
   Flag used only during tests to allow special behavior.
 alluxio.underfs.address:
