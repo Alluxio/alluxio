@@ -19,5 +19,5 @@ public interface ValidationTask {
    * Runs the validation task.
    * @return whether the validation succeeds
    */
-  boolean validate();
+  boolean validate() throws InterruptedException;
 }

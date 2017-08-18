@@ -2423,6 +2423,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   }
 
   /**
+   * @return the name of the property
+   */
+  public String getName() {
+    return mName;
+  }
+
+  /**
    * @return the alias of a property
    */
   public String[] getAliases() {

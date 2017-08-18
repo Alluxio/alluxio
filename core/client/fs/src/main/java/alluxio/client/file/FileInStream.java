@@ -431,8 +431,8 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
    */
   private long getBlockId(long pos) {
     int index = (int) (pos / mBlockSize);
-    Preconditions
-        .checkState(index < mStatus.getBlockIds().size(), PreconditionMessage.ERR_BLOCK_INDEX);
+    Preconditions.checkState(index < mStatus.getBlockIds().size(),
+        PreconditionMessage.ERR_BLOCK_INDEX.toString(), index, pos, mStatus.getBlockIds().size());
     return mStatus.getBlockIds().get(index);
   }
 
