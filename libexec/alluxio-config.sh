@@ -89,7 +89,7 @@ ALLUXIO_SERVER_CLASSPATH="${ALLUXIO_CONF_DIR}/:${ALLUXIO_CLASSPATH}:${ALLUXIO_AS
 ## Start reading site-properties to set certain variables.
 ####################################################################################################
 function getConf {
-  "${JAVA}" -cp ${ALLUXIO_CLIENT_CLASSPATH} ${ALLUXIO_JAVA_OPTS} -Dalluxio.logger.type=Console \
+  "${JAVA}" -cp ${ALLUXIO_CLIENT_CLASSPATH} ${ALLUXIO_JAVA_OPTS} -Dalluxio.logger.type=Null \
       alluxio.cli.GetConf "$1"
 }
 
