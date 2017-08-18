@@ -431,8 +431,8 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
    */
   private long getBlockId(long pos) {
     int index = (int) (pos / mBlockSize);
-    Preconditions
-        .checkState(index < mStatus.getBlockIds().size(), PreconditionMessage.ERR_BLOCK_INDEX);
+    Preconditions.checkState(index < mStatus.getBlockIds().size(),
+        PreconditionMessage.ERR_BLOCK_INDEX.toString(), index, pos, mStatus.getBlockIds().size());
     return mStatus.getBlockIds().get(index);
   }
 
@@ -451,8 +451,8 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
           "The block with ID {} is already stored in the target worker, canceling the cache "
               + "request.", getCurrentBlockId());
     } else {
-      LOG.warn("The block with ID {} could not be cached into Alluxio storage.",
-          getCurrentBlockId());
+      LOG.warn("The block with ID {} could not be cached into Alluxio storage: {}",
+          getCurrentBlockId(), e.toString());
     }
     closeOrCancelCacheStream();
   }

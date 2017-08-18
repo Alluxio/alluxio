@@ -9,15 +9,24 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.cli.validation;
+package alluxio.client.block.stream;
+
+import io.netty.buffer.ByteBuf;
+
+import java.io.IOException;
+import java.nio.ByteBuffer;
 
 /**
- * Interface for a validation task run by validateEnv command.
+ * A packet writer implementation which always throws an exception on writes.
  */
-public interface ValidationTask {
-  /**
-   * Runs the validation task.
-   * @return whether the validation succeeds
-   */
-  boolean validate();
+public class FailingTestPacketWriter extends TestPacketWriter {
+  public FailingTestPacketWriter(ByteBuffer buffer) {
+    super(buffer);
+  }
+
+  @Override
+  public void writePacket(ByteBuf packet) throws IOException {
+    packet.release();
+    throw new IOException();
+  }
 }
