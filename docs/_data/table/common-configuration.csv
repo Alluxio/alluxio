@@ -33,7 +33,7 @@ alluxio.proxy.stream.cache.timeout,1hour
 alluxio.proxy.web.bind.host,0.0.0.0
 alluxio.proxy.web.hostname,
 alluxio.proxy.web.port,39999
-alluxio.site.conf.dir,${user.home}/.alluxio/,/etc/alluxio/
+alluxio.site.conf.dir,${alluxio.conf.dir}/,${user.home}/.alluxio/,/etc/alluxio/
 alluxio.test.mode,false
 alluxio.underfs.address,${alluxio.work.dir}/underFSStorage
 alluxio.underfs.allow.set.owner.failure,false
