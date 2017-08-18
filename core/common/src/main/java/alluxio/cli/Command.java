@@ -16,7 +16,6 @@ import alluxio.exception.status.InvalidArgumentException;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Options;
-import org.apache.commons.cli.ParseException;
 
 import java.io.IOException;
 
