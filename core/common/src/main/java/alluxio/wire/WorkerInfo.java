@@ -15,6 +15,7 @@ import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 
 import java.io.Serializable;
+import java.util.Comparator;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -188,6 +189,16 @@ public final class WorkerInfo implements Serializable {
         && mLastContactSec == that.mLastContactSec && mState.equals(that.mState)
         && mCapacityBytes == that.mCapacityBytes && mUsedBytes == that.mUsedBytes
         && mStartTimeMs == that.mStartTimeMs;
+  }
+
+  /**
+   * Uses the last contact seconds of WorkerInfo o.getLastContactSec() to determine order (newest on top).
+   */
+  public static class LastContactSecComparator implements Comparator<WorkerInfo> {
+    @Override
+    public int compare(WorkerInfo o1, WorkerInfo o2) {
+      return o1.getLastContactSec() - o2.getLastContactSec();
+    }
   }
 
   @Override
