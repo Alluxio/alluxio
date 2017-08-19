@@ -15,7 +15,7 @@ public final class AsyncUserAccessAuditLogWriter {
   private static final int QUEUE_SIZE = 10000;
   private static final int BLOCKING_TIMEOUT_US = 10;
   private static final Logger LOG = LoggerFactory.getLogger(AsyncUserAccessAuditLogWriter.class);
-  private boolean mEnabled;
+  private final boolean mEnabled;
   private volatile boolean mStopped;
   private ArrayBlockingQueue<AuditContext> mAuditLogEntries;
 

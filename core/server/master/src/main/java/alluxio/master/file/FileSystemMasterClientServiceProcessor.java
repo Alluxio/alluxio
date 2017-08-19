@@ -32,7 +32,7 @@ public class FileSystemMasterClientServiceProcessor extends FileSystemMasterClie
     mClientIpThreadLocal = new ThreadLocal<>();
   }
 
-  public static String getClientIpThreadLocal() { return mClientIpThreadLocal.get(); }
+  public static String getClientIp() { return mClientIpThreadLocal.get(); }
 
   @Override
   public boolean process(TProtocol in, TProtocol out) throws TException {

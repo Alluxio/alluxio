@@ -167,11 +167,11 @@ public abstract class AbstractMaster implements Master {
   public void stop() throws IOException {
     if (mIsPrimary) {
       LOG.info("{}: Stopping primary master.", getName());
+      // Stop this primary master.
       if (mAsyncAuditLogWriter != null) {
         mAsyncAuditLogWriter.stop();
         mAsyncAuditLogWriter = null;
       }
-      // Stop this primary master.
       if (mJournalWriter != null) {
         mJournalWriter.close();
         mJournalWriter = null;
