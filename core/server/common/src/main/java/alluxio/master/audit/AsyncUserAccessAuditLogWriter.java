@@ -8,7 +8,7 @@ import javax.annotation.concurrent.ThreadSafe;
 
 @ThreadSafe
 public final class AsyncUserAccessAuditLogWriter {
-  private static final int QUEUE_SIZE = 100;
+  private static final int QUEUE_SIZE = 10000;
   private static final Logger LOG = LoggerFactory.getLogger(AsyncUserAccessAuditLogWriter.class);
   private boolean mEnabled;
   private ArrayBlockingQueue<AuditContext> mAuditLogEntries;
