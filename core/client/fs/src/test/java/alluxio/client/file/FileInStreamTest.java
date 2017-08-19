@@ -32,14 +32,14 @@ import alluxio.wire.WorkerNetAddress;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
+import org.powermock.modules.junit4.rule.PowerMockRule;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -50,10 +50,10 @@ import java.util.List;
 /**
  * Tests for the {@link FileInStream} class.
  */
-@RunWith(PowerMockRunner.class)
 @PrepareForTest({FileSystemContext.class, AlluxioBlockStore.class})
 public class FileInStreamTest {
-
+  @Rule
+  public PowerMockRule mPowerMockRule = new PowerMockRule();
   private static final long BLOCK_LENGTH = 100L;
   private static final long FILE_LENGTH = 350L;
   private static final long NUM_STREAMS = ((FILE_LENGTH - 1) / BLOCK_LENGTH) + 1;
@@ -66,6 +66,10 @@ public class FileInStreamTest {
   private List<TestBlockOutStream> mCacheStreams;
 
   private FileInStream mTestStream;
+
+  public FileInStreamTest() {
+
+  }
 
   private long getBlockLength(int streamId) {
     return streamId == NUM_STREAMS - 1 ? 50 : BLOCK_LENGTH;
@@ -104,7 +108,8 @@ public class FileInStreamTest {
               long i = (Long) invocation.getArguments()[0];
               byte[] input = BufferUtils
                   .getIncreasingByteArray((int) (i * BLOCK_LENGTH), (int) getBlockLength((int) i));
-              return new TestBlockInStream(input, i, input.length, false, BlockInStreamSource.UFS);
+              return new TestBlockInStream(input, i, input.length, false,
+                  BlockInStreamSource.UFS);
             }
           });
       Mockito.when(mBlockStore.getOutStream(Mockito.eq((long) i), Mockito.anyLong(),
