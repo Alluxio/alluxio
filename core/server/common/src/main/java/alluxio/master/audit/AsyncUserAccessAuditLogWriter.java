@@ -4,8 +4,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.ArrayBlockingQueue;
+import javax.annotation.concurrent.ThreadSafe;
 
-public class AsyncUserAccessAuditLogWriter {
+@ThreadSafe
+public final class AsyncUserAccessAuditLogWriter {
   private static final int QUEUE_SIZE = 100;
   private static final Logger LOG = LoggerFactory.getLogger(AsyncUserAccessAuditLogWriter.class);
   private boolean mEnabled;
