@@ -150,6 +150,7 @@ public abstract class AbstractMaster implements Master {
       }
       mAsyncJournalWriter = new AsyncJournalWriter(mJournalWriter);
       mAsyncAuditLogWriter = new AsyncUserAccessAuditLogWriter();
+      mAsyncAuditLogWriter.start();
     } else {
       LOG.info("{}: Starting secondary master.", getName());
 
@@ -166,6 +167,10 @@ public abstract class AbstractMaster implements Master {
   public void stop() throws IOException {
     if (mIsPrimary) {
       LOG.info("{}: Stopping primary master.", getName());
+      if (mAsyncAuditLogWriter != null) {
+        mAsyncAuditLogWriter.stop();
+        mAsyncAuditLogWriter = null;
+      }
       // Stop this primary master.
       if (mJournalWriter != null) {
         mJournalWriter.close();

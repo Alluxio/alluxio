@@ -7,21 +7,36 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.TimeUnit;
 import javax.annotation.concurrent.ThreadSafe;
 
 @ThreadSafe
 public final class AsyncUserAccessAuditLogWriter {
   private static final int QUEUE_SIZE = 10000;
+  private static final int BLOCKING_TIMEOUT_US = 10;
   private static final Logger LOG = LoggerFactory.getLogger(AsyncUserAccessAuditLogWriter.class);
   private boolean mEnabled;
+  private volatile boolean mStopped;
   private ArrayBlockingQueue<AuditContext> mAuditLogEntries;
 
   public AsyncUserAccessAuditLogWriter() {
     mEnabled = Boolean.parseBoolean(Configuration.get(PropertyKey.MASTER_AUDIT_LOGGING_ENABLED));
-    mAuditLogEntries = new ArrayBlockingQueue<>(QUEUE_SIZE);
+    if (mEnabled) {
+      mAuditLogEntries = new ArrayBlockingQueue<>(QUEUE_SIZE);
+    }
+    mStopped = true;
   }
 
   public boolean isEnabled() { return mEnabled; }
+
+  public void start() {
+    if (mEnabled && mStopped) {
+      mStopped = false;
+      new Thread(new AuditLoggingWorker()).start();
+    }
+  }
+
+  public void stop() { mStopped = true; }
 
   public boolean append(AuditContext context) {
     try {
@@ -40,19 +55,29 @@ public final class AsyncUserAccessAuditLogWriter {
       context.setCommitted(true);
       context.notify();
     }
+  }
 
-    AuditContext headContext = mAuditLogEntries.poll();
-    if (headContext == null) { return; }
-    synchronized (headContext) {
-      while (!headContext.isCommitted()) {
+  private class AuditLoggingWorker implements Runnable {
+    @Override
+    public void run() {
+      while (!mStopped) {
         try {
-          headContext.wait();
+          AuditContext headContext = mAuditLogEntries.poll(BLOCKING_TIMEOUT_US, TimeUnit.MICROSECONDS);
+          if (headContext == null) {
+            continue;
+          }
+          synchronized (headContext) {
+            while (!headContext.isCommitted()) {
+              headContext.wait();
+            }
+          }
+          if (headContext.isCommitted()) {
+            LOG.info(headContext.toString());
+          }
         } catch (InterruptedException e) {
-          // TODO
-          return;
+          Thread.currentThread().interrupt();
         }
       }
     }
-    LOG.info(headContext.toString());
   }
 }
