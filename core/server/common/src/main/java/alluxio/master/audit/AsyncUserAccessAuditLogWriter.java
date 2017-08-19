@@ -50,13 +50,6 @@ public final class AsyncUserAccessAuditLogWriter {
     return true;
   }
 
-  public void commit(AuditContext context) {
-    synchronized (context) {
-      context.setCommitted(true);
-      context.notify();
-    }
-  }
-
   private class AuditLoggingWorker implements Runnable {
     @Override
     public void run() {
@@ -66,16 +59,10 @@ public final class AsyncUserAccessAuditLogWriter {
           if (headContext == null) {
             continue;
           }
-          synchronized (headContext) {
-            while (!headContext.isCommitted()) {
-              headContext.wait();
-            }
-          }
-          if (headContext.isCommitted()) {
-            LOG.info(headContext.toString());
-          }
+          LOG.info(headContext.toString());
         } catch (InterruptedException e) {
           Thread.currentThread().interrupt();
+          break;
         }
       }
     }

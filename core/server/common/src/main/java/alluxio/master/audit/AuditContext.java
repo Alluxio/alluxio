@@ -7,10 +7,6 @@ public interface AuditContext extends Closeable {
 
   AuditContext setAllowed(boolean allowed);
 
-  void setCommitted(boolean committed);
-
-  boolean isCommitted();
-
   @Override
   void close();
 }
