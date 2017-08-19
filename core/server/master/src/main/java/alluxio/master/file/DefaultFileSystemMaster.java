@@ -677,7 +677,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       throws FileDoesNotExistException, InvalidPathException, AccessControlException {
     Metrics.GET_FILE_INFO_OPS.inc();
     try (JournalContext journalContext = createJournalContext();
-         AuditContext auditContext = createAuditContext().setAllowed(true);
+         AuditContext auditContext = createAuditContext();
          LockedInodePath inodePath = mInodeTree.lockInodePath(path, InodeTree.LockMode.READ)) {
       checkAndAppendAuditLog("getFileInfo", path.toString(), null, auditContext);
       try {
@@ -747,7 +747,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       throws AccessControlException, FileDoesNotExistException, InvalidPathException {
     Metrics.GET_FILE_INFO_OPS.inc();
     try (JournalContext journalContext = createJournalContext();
-         AuditContext auditContext = createAuditContext().setAllowed(true);
+         AuditContext auditContext = createAuditContext();
         LockedInodePath inodePath = mInodeTree.lockInodePath(path, InodeTree.LockMode.READ)) {
       checkAndAppendAuditLog("listStatus", path.toString(), null, auditContext);
       try {
@@ -847,7 +847,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
   public List<AlluxioURI> checkConsistency(AlluxioURI path, CheckConsistencyOptions options)
       throws AccessControlException, FileDoesNotExistException, InvalidPathException, IOException {
     List<AlluxioURI> inconsistentUris = new ArrayList<>();
-    try (AuditContext auditContext = createAuditContext().setAllowed(true);
+    try (AuditContext auditContext = createAuditContext();
          LockedInodePath parent = mInodeTree.lockInodePath(path, InodeTree.LockMode.READ)) {
       checkAndAppendAuditLog("checkConsistency", path.toString(), null, auditContext);
       try {
@@ -917,7 +917,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       InvalidFileSizeException, FileAlreadyCompletedException, AccessControlException {
     Metrics.COMPLETE_FILE_OPS.inc();
     try (JournalContext journalContext = createJournalContext();
-         AuditContext auditContext = createAuditContext().setAllowed(true);
+         AuditContext auditContext = createAuditContext();
         LockedInodePath inodePath = mInodeTree.lockFullInodePath(path, InodeTree.LockMode.WRITE)) {
       checkAndAppendAuditLog("completeFile", path.toString(), null, auditContext);
       try {
@@ -1049,7 +1049,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       BlockInfoException, IOException, FileDoesNotExistException {
     Metrics.CREATE_FILES_OPS.inc();
     try (JournalContext journalContext = createJournalContext();
-         AuditContext auditContext = createAuditContext().setAllowed(true);
+         AuditContext auditContext = createAuditContext();
         LockedInodePath inodePath = mInodeTree.lockInodePath(path, InodeTree.LockMode.WRITE)) {
       checkAndAppendAuditLog("createFile", path.toString(), null, auditContext);
       try {
@@ -1156,7 +1156,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
   public long getNewBlockIdForFile(AlluxioURI path)
       throws FileDoesNotExistException, InvalidPathException, AccessControlException {
     Metrics.GET_NEW_BLOCK_OPS.inc();
-    try (AuditContext auditContext = createAuditContext().setAllowed(true);
+    try (AuditContext auditContext = createAuditContext();
          LockedInodePath inodePath = mInodeTree.lockFullInodePath(path, InodeTree.LockMode.WRITE)) {
       checkAndAppendAuditLog("getNewBlockIdForFile", path.toString(), null, auditContext);
       try {
@@ -1219,7 +1219,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     List<Inode<?>> deletedInodes;
     Metrics.DELETE_PATHS_OPS.inc();
     try (JournalContext journalContext = createJournalContext();
-         AuditContext auditContext = createAuditContext().setAllowed(true);
+         AuditContext auditContext = createAuditContext();
          LockedInodePath inodePath = mInodeTree.lockFullInodePath(path, InodeTree.LockMode.WRITE)) {
       checkAndAppendAuditLog("delete", path.toString(), null, auditContext);
       try {
@@ -1756,7 +1756,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     Metrics.CREATE_DIRECTORIES_OPS.inc();
 
     try (JournalContext journalContext = createJournalContext();
-         AuditContext auditContext = createAuditContext().setAllowed(true);
+         AuditContext auditContext = createAuditContext();
         LockedInodePath inodePath = mInodeTree.lockInodePath(path, InodeTree.LockMode.WRITE)) {
       checkAndAppendAuditLog("mkdir", path.toString(), null, auditContext);
       try {
@@ -1842,7 +1842,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     // destination should not exist, we will only obtain a READ lock on the destination parent. The
     // modify operations on the parent inodes are thread safe so WRITE locks are not required.
     try (JournalContext journalContext = createJournalContext();
-         AuditContext auditContext = createAuditContext().setAllowed(true);
+         AuditContext auditContext = createAuditContext();
         InodePathPair inodePathPair = mInodeTree
             .lockInodePathPair(srcPath, InodeTree.LockMode.WRITE, dstPath,
                 InodeTree.LockMode.READ)) {
@@ -2165,7 +2165,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       UnexpectedAlluxioException {
     Metrics.FREE_FILE_OPS.inc();
     try (JournalContext journalContext = createJournalContext();
-         AuditContext auditContext = createAuditContext().setAllowed(true);
+         AuditContext auditContext = createAuditContext();
         LockedInodePath inodePath = mInodeTree.lockFullInodePath(path, InodeTree.LockMode.WRITE)) {
       checkAndAppendAuditLog("free", path.toString(), null, auditContext);
       checkAndUpdateAuditLog(inodePath.getInode(), auditContext);
@@ -2315,7 +2315,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       throws BlockInfoException, FileDoesNotExistException, InvalidPathException,
       InvalidFileSizeException, FileAlreadyCompletedException, IOException, AccessControlException {
     try (JournalContext journalContext = createJournalContext();
-         AuditContext auditContext = createAuditContext().setAllowed(true);
+         AuditContext auditContext = createAuditContext();
         LockedInodePath inodePath = mInodeTree.lockInodePath(path, InodeTree.LockMode.WRITE)) {
       checkAndAppendAuditLog("loadMetadata", path.toString(), null, auditContext);
       checkAndUpdateAuditLog(inodePath.getInode(), auditContext);
@@ -2536,7 +2536,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       IOException, AccessControlException {
     Metrics.MOUNT_OPS.inc();
     try (JournalContext journalContext = createJournalContext();
-         AuditContext auditContext = createAuditContext().setAllowed(true);
+         AuditContext auditContext = createAuditContext();
         LockedInodePath inodePath = mInodeTree
             .lockInodePath(alluxioPath, InodeTree.LockMode.WRITE)) {
       checkAndAppendAuditLog("mount", alluxioPath.toString(), null, auditContext);
@@ -2680,7 +2680,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     List<Inode<?>> deletedInodes;
     // Unmount should lock the parent to remove the child inode.
     try (JournalContext journalContext = createJournalContext();
-         AuditContext auditContext = createAuditContext().setAllowed(true);
+         AuditContext auditContext = createAuditContext();
         LockedInodePath inodePath = mInodeTree
             .lockFullInodePath(alluxioPath, InodeTree.LockMode.WRITE_PARENT)) {
       checkAndAppendAuditLog("unmount", alluxioPath.toString(), null, auditContext);
@@ -2791,7 +2791,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       }
     }
     try (JournalContext journalContext = createJournalContext();
-         AuditContext auditContext = createAuditContext().setAllowed(true);
+         AuditContext auditContext = createAuditContext();
         LockedInodePath inodePath = mInodeTree.lockFullInodePath(path, InodeTree.LockMode.WRITE)) {
       checkAndAppendAuditLog("setAttribute", path.toString(), null, auditContext);
       checkAndUpdateAuditLog(inodePath.getInode(), auditContext);

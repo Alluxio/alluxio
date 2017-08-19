@@ -375,6 +375,7 @@ public abstract class AbstractMaster implements Master {
 
     private MasterAuditContext(AsyncUserAccessAuditLogWriter asyncAuditLogWriter) {
       mAsyncAuditLogWriter = asyncAuditLogWriter;
+      mAllowed = true;
     }
 
     @Override
