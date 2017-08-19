@@ -323,14 +323,14 @@ public abstract class AbstractMaster implements Master {
   public final class MasterAuditContext implements AuditContext {
     private final AsyncUserAccessAuditLogWriter mAsyncAuditLogWriter;
     private boolean mCommitted;
-    String mCommand;
-    String mSrcPath;
-    String mDstPath;
-    String mUser;
-    String mIp;
-    String mSrcPathOwner;
-    String mSrcPathGroup;
-    short mSrcPathMode;
+    private String mCommand;
+    private String mSrcPath;
+    private String mDstPath;
+    private String mUser;
+    private String mIp;
+    private String mSrcPathOwner;
+    private String mSrcPathGroup;
+    private short mSrcPathMode;
     private boolean mAllowed;
 
     public MasterAuditContext setCommand(String command) {

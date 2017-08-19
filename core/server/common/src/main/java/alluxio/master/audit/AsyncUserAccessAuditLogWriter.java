@@ -22,8 +22,10 @@ public class AsyncUserAccessAuditLogWriter {
     try {
       mAuditLogEntries.put(context);
     } catch (InterruptedException e) {
-      // TODO
-      e.printStackTrace();
+      // Reset the interrupted flag and return because some other thread has
+      // told us not to wait any more.
+      Thread.currentThread().interrupt();
+      return false;
     }
     return true;
   }
