@@ -517,6 +517,11 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   /**
    * Master related properties.
    */
+  public static final PropertyKey MASTER_AUDIT_LOGGING_ENABLED =
+      new Builder(Name.MASTER_AUDIT_LOGGING_ENABLED)
+          .setDefaultValue(false)
+          .setDescription("Set to true to enable file system master audit.")
+          .build();
   public static final PropertyKey MASTER_BIND_HOST =
       new Builder(Name.MASTER_BIND_HOST)
           .setDefaultValue("0.0.0.0")
@@ -567,11 +572,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Name.MASTER_JOURNAL_FOLDER)
           .setDefaultValue(String.format("${%s}/journal", Name.WORK_DIR))
           .setDescription("The path to store master journal logs.")
-          .build();
-  public static final PropertyKey MASTER_AUDIT_ENABLED =
-      new Builder(Name.MASTER_AUDIT_ENABLED)
-          .setDefaultValue(false)
-          .setDescription("Set to true to enable master audit.")
           .build();
   /**
    * @deprecated since 1.5.0 and will be removed in 2.0.
@@ -1881,6 +1881,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     //
     // Master related properties
     //
+    public static final String MASTER_AUDIT_LOGGING_ENABLED =
+        "alluxio.master.audit.enabled";
     public static final String MASTER_BIND_HOST = "alluxio.master.bind.host";
     public static final String MASTER_CONNECTION_TIMEOUT_MS =
         "alluxio.master.connection.timeout";
@@ -1945,8 +1947,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.journal.gc.threshold";
     public static final String MASTER_JOURNAL_TEMPORARY_FILE_GC_THRESHOLD_MS =
         "alluxio.master.journal.temporary.file.gc.threshold";
-    public static final String MASTER_AUDIT_ENABLED =
-        "alluxio.master.audit.enabled";
 
     //
     // Worker related properties
