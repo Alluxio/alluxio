@@ -17,6 +17,9 @@ import org.codehaus.jackson.map.ObjectMapper;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Random;
 
 public class WorkerInfoTest {
@@ -35,6 +38,23 @@ public class WorkerInfoTest {
     WorkerInfo workerInfo = createRandom();
     WorkerInfo other = ThriftUtils.fromThrift(ThriftUtils.toThrift(workerInfo));
     checkEquality(workerInfo, other);
+  }
+
+  @Test
+  public void checkLastContactSecComparator() {
+    int[] lastContactSecList = {55, 10, 2, 40, 100, 6};
+    int[] sortedLastContactSecList = {2, 6, 10, 40, 55, 100};
+    List<WorkerInfo> workers = new ArrayList<WorkerInfo>();
+    for (int lastContactSec : lastContactSecList) {
+      WorkerInfo worker = createRandom();
+      worker.setLastContactSec(lastContactSec);
+      workers.add(worker);
+    }
+    Collections.sort(workers, new WorkerInfo.LastContactSecComparator());
+    int index = 0;
+    for (WorkerInfo worker : workers) {
+      Assert.assertEquals(sortedLastContactSecList[index++], worker.getLastContactSec());
+    }
   }
 
   public void checkEquality(WorkerInfo a, WorkerInfo b) {

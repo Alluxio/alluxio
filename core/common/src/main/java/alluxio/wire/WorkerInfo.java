@@ -192,13 +192,19 @@ public final class WorkerInfo implements Serializable {
   }
 
   /**
-   * Uses the last contact seconds of WorkerInfo o.getLastContactSec() to determine order (newest on top).
+   * Uses the last contact seconds of WorkerInfo o.getLastContactSec() to determine order
+   * (newest on top).
    */
-  public static class LastContactSecComparator implements Comparator<WorkerInfo> {
+  public static final class LastContactSecComparator implements Comparator<WorkerInfo> {
     @Override
     public int compare(WorkerInfo o1, WorkerInfo o2) {
       return o1.getLastContactSec() - o2.getLastContactSec();
     }
+
+    /**
+     * LastContactSecComparator constructor.
+     */
+    public LastContactSecComparator() {} // prevent instantiation
   }
 
   @Override
@@ -214,5 +220,4 @@ public final class WorkerInfo implements Serializable {
         .add("capacityBytes", mCapacityBytes).add("usedBytes", mUsedBytes)
         .add("startTimeMs", mStartTimeMs).toString();
   }
-
 }
