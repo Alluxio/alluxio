@@ -99,7 +99,7 @@ if [[ -z "${ALLUXIO_LOGS_DIR}" ]]; then
   ALLUXIO_JAVA_OPTS+=" -Dalluxio.logs.dir=${ALLUXIO_LOGS_DIR}"
 fi
 
-master_audit_enabled=$(getConf "alluxio.master.audit.enabled")
+master_audit_enabled=$(getConf "alluxio.master.audit.logging.enabled")
 ####################################################################################################
 ## End reading site-properties
 ####################################################################################################

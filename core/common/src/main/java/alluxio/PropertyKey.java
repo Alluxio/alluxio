@@ -1882,7 +1882,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     // Master related properties
     //
     public static final String MASTER_AUDIT_LOGGING_ENABLED =
-        "alluxio.master.audit.enabled";
+        "alluxio.master.audit.logging.enabled";
     public static final String MASTER_BIND_HOST = "alluxio.master.bind.host";
     public static final String MASTER_CONNECTION_TIMEOUT_MS =
         "alluxio.master.connection.timeout";
