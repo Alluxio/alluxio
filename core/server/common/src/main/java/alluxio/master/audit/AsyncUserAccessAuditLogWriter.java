@@ -1,5 +1,8 @@
 package alluxio.master.audit;
 
+import alluxio.Configuration;
+import alluxio.PropertyKey;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -14,7 +17,7 @@ public final class AsyncUserAccessAuditLogWriter {
   private ArrayBlockingQueue<AuditContext> mAuditLogEntries;
 
   public AsyncUserAccessAuditLogWriter() {
-    mEnabled = true;
+    mEnabled = Boolean.parseBoolean(Configuration.get(PropertyKey.MASTER_AUDIT_LOGGING_ENABLED));
     mAuditLogEntries = new ArrayBlockingQueue<>(QUEUE_SIZE);
   }
 
