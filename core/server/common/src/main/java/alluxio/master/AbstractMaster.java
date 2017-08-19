@@ -322,6 +322,7 @@ public abstract class AbstractMaster implements Master {
   @NotThreadSafe
   public final class MasterAuditContext implements AuditContext {
     private final AsyncUserAccessAuditLogWriter mAsyncAuditLogWriter;
+    private boolean mAllowed;
     private boolean mCommitted;
     private String mCommand;
     private String mSrcPath;
@@ -331,7 +332,15 @@ public abstract class AbstractMaster implements Master {
     private String mSrcPathOwner;
     private String mSrcPathGroup;
     private short mSrcPathMode;
-    private boolean mAllowed;
+
+    @Override
+    public MasterAuditContext setAllowed(boolean allowed) {
+      mAllowed = allowed;
+      return this;
+    }
+
+    @Override
+    public void setCommitted(boolean committed) { mCommitted = committed; }
 
     public MasterAuditContext setCommand(String command) {
       mCommand = command;
@@ -384,15 +393,6 @@ public abstract class AbstractMaster implements Master {
         mAsyncAuditLogWriter.append(this);
       }
     }
-
-    @Override
-    public MasterAuditContext setAllowed(boolean allowed) {
-      mAllowed = allowed;
-      return this;
-    }
-
-    @Override
-    public void setCommitted(boolean committed) { mCommitted = committed; }
 
     @Override
     public boolean isCommitted() { return mCommitted; }
