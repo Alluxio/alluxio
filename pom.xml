@@ -167,16 +167,16 @@
   </properties>
 
   <modules>
-    <module>underfs</module>
-    <module>core</module>
-    <module>keyvalue</module>
-    <module>shell</module>
-    <module>examples</module>
-    <module>tests</module>
-    <module>integration</module>
     <module>assembly</module>
-    <module>minicluster</module>
+    <module>core</module>
+    <module>examples</module>
+    <module>integration</module>
+    <module>keyvalue</module>
     <module>logserver</module>
+    <module>minicluster</module>
+    <module>shell</module>
+    <module>tests</module>
+    <module>underfs</module>
   </modules>
 
   <dependencyManagement>
