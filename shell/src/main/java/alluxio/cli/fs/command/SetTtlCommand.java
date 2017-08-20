@@ -85,7 +85,7 @@ public final class SetTtlCommand extends AbstractFileSystemCommand {
     long ttlMs = Long.parseLong(CommonUtils.stripLeadingAndTrailingQuotes(args[1]));
     Preconditions.checkArgument(ttlMs >= 0, "TTL value must be >= 0");
     AlluxioURI path = new AlluxioURI(args[0]);
-    CommandUtils.setTtl(mFileSystem, path, ttlMs, mAction);
+    FileSystemCommandUtils.setTtl(mFileSystem, path, ttlMs, mAction);
     System.out.println("TTL of path '" + path + "' was successfully set to " + ttlMs
         + " milliseconds, with expiry action set to " + mAction);
     return 0;

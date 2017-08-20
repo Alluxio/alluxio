@@ -26,9 +26,9 @@ import javax.annotation.concurrent.ThreadSafe;
  * Common util methods for executing commands.
  */
 @ThreadSafe
-public final class CommandUtils {
+public final class FileSystemCommandUtils {
 
-  private CommandUtils() {} // prevent instantiation
+  private FileSystemCommandUtils() {} // prevent instantiation
 
   /**
    * Sets a new TTL value or unsets an existing TTL value for file at path.

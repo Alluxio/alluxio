@@ -42,7 +42,7 @@ public final class UnpinCommand extends WithWildCardPathCommand {
 
   @Override
   protected void runCommand(AlluxioURI path, CommandLine cl) throws AlluxioException, IOException {
-    CommandUtils.setPinned(mFileSystem, path, false);
+    FileSystemCommandUtils.setPinned(mFileSystem, path, false);
     System.out.println("File '" + path + "' was successfully unpinned.");
   }
 
