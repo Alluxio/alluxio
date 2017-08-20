@@ -50,12 +50,13 @@ $ cd alluxio-{{site.ALLUXIO_RELEASED_VERSION}}
 
 在开始使用Alluxio之前，我们需要配置它。大部分使用默认设置即可。
 
-从模板文件创建`conf/alluxio-env.sh`配置文件。也可以通过如下命令创建配置文件：
+在`${ALLUXIO_HOME}/conf`目录下，根据模板文件创建`conf/alluxio-env.sh`配置文件。
 
 ```bash
-$ ./bin/alluxio bootstrapConf localhost
+$ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 ```
 
+在`conf/alluxio-site.properties`文件中将 `alluxio.master.hostname`更新为你打算运行Alluxio Master的机器主机名。
 ### [奖励] AWS相关配置
 
 如果你有一个包含access key id和secret accsee key的AWS账户，你可以添加你的Alluxio配置以备接下来与Amazon S3的交互。如下命令可以添加你的AWS访问信息到`conf/alluxio-site.properties`文件。
