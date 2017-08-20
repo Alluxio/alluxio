@@ -40,6 +40,7 @@ public abstract class AbstractShell implements Closeable {
    * Creates a new instance of {@link AbstractShell}.
    */
   public AbstractShell() {
+    mCommands = loadCommands();
   }
 
   /**
@@ -56,7 +57,7 @@ public abstract class AbstractShell implements Closeable {
 
     // Sanity check on the number of arguments
     String cmd = argv[0];
-    Command command = getCommands().get(cmd);
+    Command command = mCommands.get(cmd);
 
     if (command == null) { // Unknown command (we didn't find the cmd in our dict)
       System.out.println(String.format("%s is an unknown command.", cmd));
@@ -65,9 +66,9 @@ public abstract class AbstractShell implements Closeable {
     }
 
     String[] args = Arrays.copyOfRange(argv, 1, argv.length);
-    CommandLine cmdline = null;
+    CommandLine cmdline;
     try {
-      command.parseAndValidateArgs(args);
+      cmdline = command.parseAndValidateArgs(args);
     } catch (InvalidArgumentException e) {
       System.out.println("Usage: " + command.getUsage());
       return -1;
@@ -88,18 +89,6 @@ public abstract class AbstractShell implements Closeable {
   }
 
   /**
-   * Load commands if not already initialized.
-   *
-   * @return set of commands supported in shell
-   */
-  protected Map<String, ? extends Command> getCommands() {
-    if (mCommands == null) {
-      mCommands = loadCommands();
-    }
-    return mCommands;
-  }
-
-  /**
    * @return name of the shell
    */
   protected abstract String getShellName();
@@ -114,9 +103,9 @@ public abstract class AbstractShell implements Closeable {
    */
   protected void printUsage() {
     System.out.println("Usage: alluxio " + getShellName() + " [generic options]");
-    SortedSet<String> sortedCmds = new TreeSet<>(getCommands().keySet());
+    SortedSet<String> sortedCmds = new TreeSet<>(mCommands.keySet());
     for (String cmd : sortedCmds) {
-      System.out.format("%-60s%n", "\t [" + getCommands().get(cmd).getUsage() + "]");
+      System.out.format("%-60s%n", "\t [" + mCommands.get(cmd).getUsage() + "]");
     }
   }
 }

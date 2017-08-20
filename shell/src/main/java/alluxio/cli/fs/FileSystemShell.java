@@ -65,13 +65,10 @@ public final class FileSystemShell extends AbstractShell {
     System.exit(ret);
   }
 
-  private final FileSystem mFileSystem;
-
   /**
    * Creates a new instance of {@link FileSystemShell}.
    */
   public FileSystemShell() {
-    mFileSystem = FileSystem.Factory.get();
   }
 
   @Override
@@ -100,7 +97,7 @@ public final class FileSystemShell extends AbstractShell {
 
   @Override
   protected Map<String, Command> loadCommands() {
-    return FileSystemShellUtils.loadCommands(mFileSystem);
+    return FileSystemShellUtils.loadCommands(FileSystem.Factory.get());
   }
 
   /**
