@@ -38,6 +38,12 @@ public final class AsyncUserAccessAuditLogWriter {
 
   public void stop() { mStopped = true; }
 
+  /**
+   * Appends an audit context
+   *
+   * @param context the audit context to append
+   * @return true if append operation succeeds, false otherwise
+   */
   public boolean append(AuditContext context) {
     try {
       mAuditLogEntries.put(context);
@@ -50,6 +56,9 @@ public final class AsyncUserAccessAuditLogWriter {
     return true;
   }
 
+  /**
+   * Consumer thread of the queue to perform actual logging of audit info
+   */
   private class AuditLoggingWorker implements Runnable {
     @Override
     public void run() {
