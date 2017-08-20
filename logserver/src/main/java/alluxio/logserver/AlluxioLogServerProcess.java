@@ -1,3 +1,14 @@
+/*
+ * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
+ * (the "License"). You may not use this work except in compliance with the License, which is
+ * available at www.apache.org/licenses/LICENSE-2.0
+ *
+ * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+ * either express or implied, as more fully set forth in the License.
+ *
+ * See the NOTICE file distributed with this work for information regarding copyright ownership.
+ */
+
 package alluxio.logserver;
 
 import org.apache.log4j.Hierarchy;
@@ -15,6 +26,13 @@ import java.net.*;
 import java.util.HashMap;
 import java.util.Properties;
 
+/**
+ * A centralized log server for Alluxio
+ *
+ * Alluxio masters and workers generate logs and store the logs in local storage. {@link AlluxioLogServerProcess}
+ * allows masters and workers to "push" their logs to a centralized log server where another copy of the logs will
+ * be stored.
+ */
 public class AlluxioLogServerProcess implements LogServerProcess {
   private ServerSocket mServerSocket;
   private int mPort;

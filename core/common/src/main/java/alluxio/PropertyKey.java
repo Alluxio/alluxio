@@ -145,9 +145,9 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey LOGS_SERVER_ENABLED =
       new Builder(Name.LOGS_SERVER_ENABLED)
-      .setDefaultValue(false)
-      .setDescription("Set to true to enable writing logs to a server")
-      .build();
+          .setDefaultValue(false)
+          .setDescription("Set to true to enable writing logs to a server")
+          .build();
   public static final PropertyKey LOGS_SERVER_BASE_LOG_DIR =
       new Builder(Name.LOGS_SERVER_BASE_LOG_DIR)
           .setDefaultValue(String.format("${%s}/logs", Name.WORK_DIR))
