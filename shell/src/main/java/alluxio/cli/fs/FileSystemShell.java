@@ -19,8 +19,6 @@ import alluxio.client.file.FileSystem;
 import alluxio.util.ConfigurationUtils;
 
 import com.google.common.collect.ImmutableMap;
-import org.apache.commons.lang.ArrayUtils;
-import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
