@@ -69,25 +69,7 @@ public final class FileSystemShell extends AbstractShell {
    * Creates a new instance of {@link FileSystemShell}.
    */
   public FileSystemShell() {
-  }
-
-  @Override
-  public int run(String... argv) {
-    if (argv.length > 0) {
-      String cmd = argv[0];
-      String[] replacementCmd = getReplacementCmd(cmd);
-      if (replacementCmd != null) {
-        // Handle command alias, and print out WARNING message for deprecated cmd.
-        String deprecatedMsg = "WARNING: " + cmd + " is deprecated. Please use "
-            + StringUtils.join(replacementCmd, " ") + " instead.";
-        System.err.println(deprecatedMsg);
-
-        String[] replacementArgv = (String[]) ArrayUtils.addAll(replacementCmd,
-            ArrayUtils.subarray(argv, 1, argv.length));
-        return super.run(replacementArgv);
-      }
-    }
-    return super.run(argv);
+    super(CMD_ALIAS);
   }
 
   @Override
@@ -98,19 +80,5 @@ public final class FileSystemShell extends AbstractShell {
   @Override
   protected Map<String, Command> loadCommands() {
     return FileSystemShellUtils.loadCommands(FileSystem.Factory.get());
-  }
-
-  /**
-   * Gets the replacement command for alias.
-   *
-   * @param cmd the name of the command
-   * @return replacement command if cmd is an alias
-   */
-  private String[] getReplacementCmd(String cmd) {
-    if (CMD_ALIAS.containsKey(cmd)) {
-      return CMD_ALIAS.get(cmd);
-    } else {
-      return null;
-    }
   }
 }

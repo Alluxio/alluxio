@@ -14,6 +14,7 @@ package alluxio.cli;
 import alluxio.exception.status.InvalidArgumentException;
 
 import org.apache.commons.cli.CommandLine;
+import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,13 +35,15 @@ import javax.annotation.concurrent.NotThreadSafe;
 public abstract class AbstractShell implements Closeable {
   private static final Logger LOG = LoggerFactory.getLogger(AbstractShell.class);
 
+  private Map<String, String[]> mCommandAlias;
   private Map<String, ? extends Command> mCommands;
 
   /**
    * Creates a new instance of {@link AbstractShell}.
    */
-  public AbstractShell() {
+  public AbstractShell(Map<String, String[]> commandAlias) {
     mCommands = loadCommands();
+    mCommandAlias = commandAlias;
   }
 
   /**
@@ -59,10 +62,23 @@ public abstract class AbstractShell implements Closeable {
     String cmd = argv[0];
     Command command = mCommands.get(cmd);
 
-    if (command == null) { // Unknown command (we didn't find the cmd in our dict)
-      System.out.println(String.format("%s is an unknown command.", cmd));
-      printUsage();
-      return -1;
+    if (command == null) {
+      String[] replacementCmd = getReplacementCmd(cmd);
+      if (replacementCmd == null) {
+        // Unknown command (we didn't find the cmd in our dict)
+        System.err.println(String.format("%s is an unknown command.", cmd));
+        printUsage();
+        return -1;
+      } else {
+        // Handle command alias, and print out WARNING message for deprecated cmd.
+        String deprecatedMsg = "WARNING: " + cmd + " is deprecated. Please use "
+            + StringUtils.join(replacementCmd, " ") + " instead.";
+        System.err.println(deprecatedMsg);
+
+        String[] replacementArgv =
+            (String[]) ArrayUtils.addAll(replacementCmd, ArrayUtils.subarray(argv, 1, argv.length));
+        return run(replacementArgv);
+      }
     }
 
     String[] args = Arrays.copyOfRange(argv, 1, argv.length);
@@ -86,6 +102,19 @@ public abstract class AbstractShell implements Closeable {
 
   @Override
   public void close() throws IOException {
+  }
+
+  /**
+   * Gets the replacement command for alias.
+   *
+   * @param cmd the name of the command
+   * @return replacement command if cmd is an alias
+   */
+  private String[] getReplacementCmd(String cmd) {
+    if (mCommandAlias == null || !mCommandAlias.containsKey(cmd)) {
+      return null;
+    }
+    return mCommandAlias.get(cmd);
   }
 
   /**

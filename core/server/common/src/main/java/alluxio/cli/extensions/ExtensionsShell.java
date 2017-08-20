@@ -23,7 +23,9 @@ public final class ExtensionsShell extends AbstractShell {
   /**
    * Construct a new instance of {@link ExtensionsShell}.
    */
-  ExtensionsShell() {}
+  ExtensionsShell() {
+    super(null);
+  }
 
   /**
    * Manage Alluxio extensions.
