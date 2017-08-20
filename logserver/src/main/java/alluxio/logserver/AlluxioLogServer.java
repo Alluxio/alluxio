@@ -13,8 +13,10 @@ package alluxio.logserver;
 
 import alluxio.ProcessUtils;
 
+import java.io.IOException;
+
 public final class AlluxioLogServer {
-  public static void main(String[] args) throws Exception {
+  public static void main(String[] args) {
     AlluxioLogServerProcess process = new AlluxioLogServerProcess(args[0], args[1]);
     ProcessUtils.run(process);
   }

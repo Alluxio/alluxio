@@ -48,12 +48,16 @@ public class AlluxioLogServerProcess implements LogServerProcess {
   private HashMap<InetAddress, Hierarchy> mInetAddressHashMap;
   private boolean mStopped;
 
-  public AlluxioLogServerProcess(String portStr, String baseLogDir) throws NumberFormatException, IOException {
-    mPort = Integer.parseInt(portStr);
-    mBaseLogDir = baseLogDir;
-    mServerSocket = new ServerSocket(mPort);
-    mInetAddressHashMap = new HashMap<>();
-    mStopped = false;
+  public AlluxioLogServerProcess(String portStr, String baseLogDir) {
+    try {
+      mPort = Integer.parseInt(portStr);
+      mBaseLogDir = baseLogDir;
+      mServerSocket = new ServerSocket(mPort);
+      mInetAddressHashMap = new HashMap<>();
+      mStopped = false;
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
   }
   /**
    * Starts the Alluxio process. This call blocks until the process is stopped via
@@ -65,11 +69,17 @@ public class AlluxioLogServerProcess implements LogServerProcess {
     while (!mStopped) {
       Socket client = mServerSocket.accept();
       InetAddress inetAddress = client.getInetAddress();
+      // Currently loggerRepository is always null because we are not using the map.
       LoggerRepository loggerRepository = mInetAddressHashMap.get(inetAddress);
       if (loggerRepository == null) {
         loggerRepository = configureHierarchy(inetAddress);
       }
-      new Thread(new AlluxioLog4jSocketNode(client, loggerRepository)).start();
+      try {
+        new Thread(new AlluxioLog4jSocketNode(client, loggerRepository)).start();
+      } catch (IOException e) {
+        // Could not create a thread to serve a client, ignore this client.
+        continue;
+      }
     }
   }
 
@@ -116,6 +126,7 @@ public class AlluxioLogServerProcess implements LogServerProcess {
       logFilePath += ("/worker_logs/" + key + ".worker.log");
     } else {
       // Should not reach here
+      throw new RuntimeException("Unknown logger type");
     }
     properties.setProperty("log4j.appender." + loggerType + ".File", logFilePath);
     new PropertyConfigurator().doConfigure(properties, clientHierarchy);

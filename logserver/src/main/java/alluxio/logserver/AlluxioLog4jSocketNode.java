@@ -34,25 +34,17 @@ public class AlluxioLog4jSocketNode implements Runnable {
   private LoggerRepository mHierarchy;
   private ObjectInputStream mObjectInputStream;
 
-  public AlluxioLog4jSocketNode(Socket socket, LoggerRepository hierarchy) {
+  public AlluxioLog4jSocketNode(Socket socket, LoggerRepository hierarchy) throws IOException {
     mSocket = socket;
     mHierarchy = hierarchy;
-    try {
-      mObjectInputStream = new ObjectInputStream(
-          new BufferedInputStream(mSocket.getInputStream())
-      );
-    } catch (InterruptedIOException e) {
-      Thread.currentThread().interrupt();
-    } catch (IOException e) {
-      e.printStackTrace();
-    } catch (RuntimeException e) {
-      e.printStackTrace();
-    }
+    mObjectInputStream = new ObjectInputStream(
+        new BufferedInputStream(mSocket.getInputStream()));
   }
+
   @Override
   public void run() {
     LoggingEvent event;
-    Logger remoteLogger;
+    Logger remoteLogger = null;
     try {
       if (mObjectInputStream != null) {
         while (true) {
@@ -63,26 +55,26 @@ public class AlluxioLog4jSocketNode implements Runnable {
           }
         }
       }
-    } catch (EOFException e) {
-      e.printStackTrace();
-    } catch (SocketException e) {
-      e.printStackTrace();
-    } catch (IOException e) {
-      e.printStackTrace();
     } catch (Exception e) {
-      e.printStackTrace();
+      if (remoteLogger != null) {
+        remoteLogger.error("Closing connection...");
+      }
     } finally {
       if (mObjectInputStream != null) {
         try {
           mObjectInputStream.close();
         } catch (Exception e) {
-
+          if (remoteLogger != null) {
+            remoteLogger.error("Closing inputstream...");
+          }
         }
         if (mSocket != null) {
           try {
             mSocket.close();
           } catch (IOException e) {
-
+            if (remoteLogger != null) {
+              remoteLogger.error("Closing socket...");
+            }
           }
         }
       }
