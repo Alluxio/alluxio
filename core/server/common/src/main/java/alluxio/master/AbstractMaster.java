@@ -400,13 +400,8 @@ public abstract class AbstractMaster implements Master {
 
     @Override
     public String toString() {
-      if (mAllowed) {
-        return String.format("allowed=true\tuser=%s\tip=%s\tcmd=%s\tsrc=%s\tdst=%s\tperm=%s:%s:%d",
-            mUser, mIp, mCommand, mSrcPath, mDstPath, mSrcPathOwner, mSrcPathGroup, mSrcPathMode);
-      } else {
-        return String.format("allowed=false\tuser=%s\tip=%s\tcmd=%s\tsrc=%s\tdst=%s\tperm=null",
-            mUser, mIp, mCommand, mSrcPath, mDstPath);
-      }
+      return String.format("allowed=%b\tuser=%s\tip=%s\tcmd=%s\tsrc=%s\tdst=%s\tperm=%s:%s:%d",
+          mAllowed, mUser, mIp, mCommand, mSrcPath, mDstPath, mSrcPathOwner, mSrcPathGroup, mSrcPathMode);
     }
   }
 

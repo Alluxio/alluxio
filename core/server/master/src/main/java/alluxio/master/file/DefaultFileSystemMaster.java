@@ -682,7 +682,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       try {
         mPermissionChecker.checkPermission(Mode.Bits.READ, inodePath);
       } catch (AccessControlException e) {
-        appendAuditLogContext("getFileInfo", path, null, null,
+        appendAuditLogContext("getFileInfo", path, null, inodePath.getInode(),
             auditContext.setAllowed(false));
         throw e;
       }
