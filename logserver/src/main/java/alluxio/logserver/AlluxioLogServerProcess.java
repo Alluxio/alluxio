@@ -11,15 +11,19 @@
 
 package alluxio.logserver;
 
+import alluxio.util.CommonUtils;
+import alluxio.util.WaitForOptions;
+
 import org.apache.log4j.Hierarchy;
 import org.apache.log4j.Level;
 import org.apache.log4j.PropertyConfigurator;
 import org.apache.log4j.spi.LoggerRepository;
 import org.apache.log4j.spi.RootLogger;
 
+import com.google.common.base.Function;
+
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.lang.NumberFormatException;
 import java.net.*;
@@ -78,6 +82,12 @@ public class AlluxioLogServerProcess implements LogServerProcess {
    */
   @Override
   public void waitForReady() {
+    CommonUtils.waitFor(this + " to start", new Function<Void, Boolean>() {
+      @Override
+      public Boolean apply(Void input) {
+        return mServerSocket != null;
+      }
+    }, WaitForOptions.defaults().setTimeoutMs(10000));
   }
 
   private LoggerRepository configureHierarchy(InetAddress inetAddress) throws IOException, URISyntaxException {
