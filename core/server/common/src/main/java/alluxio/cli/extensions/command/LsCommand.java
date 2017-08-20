@@ -68,7 +68,7 @@ public final class LsCommand extends AbstractCommand {
       }
       String host = masters.get(0);
       String lsCmd =
-          String.format("ssh %s %s ls %s", ExtensionsShellUtils.SSH_OPTS, host, extensionDir);
+          String.format("ssh %s %s ls %s", ShellUtils.COMMON_SSH_OPTS, host, extensionDir);
       LOG.info("Executing: {}", lsCmd);
       String output = ShellUtils.execCommand("bash", "-c", lsCmd);
       System.out.println("| Extension URI |");

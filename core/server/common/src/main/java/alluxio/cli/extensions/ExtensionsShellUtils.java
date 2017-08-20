@@ -27,7 +27,6 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class ExtensionsShellUtils {
-  public static final String SSH_OPTS = "-o StrictHostKeyChecking=no -o ConnectTimeout=5";
 
   private ExtensionsShellUtils() {} // prevent instantiation
 
