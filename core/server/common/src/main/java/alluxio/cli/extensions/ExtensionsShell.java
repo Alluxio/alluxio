@@ -37,7 +37,7 @@ public final class ExtensionsShell extends AbstractShell {
 
   @Override
   protected String getShellName() {
-    return "extension";
+    return "extensions";
   }
 
   @Override
