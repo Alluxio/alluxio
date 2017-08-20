@@ -22,6 +22,8 @@ import alluxio.cli.validation.Utils;
 import alluxio.cli.validation.ValidationTask;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 
+import org.apache.commons.lang3.ArrayUtils;
+
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
@@ -77,11 +79,11 @@ public final class ValidateEnv {
       new PortAvailabilityValidationTask(ServiceType.PROXY_WEB, ALLUXIO_PROXY_CLASS));
 
   // ssh validations
-  private static final ValidationTask MASTERS_SSH_VALIDATION_TASK = registerTask(
-      "masters.ssh.reachable",
+  private static final ValidationTask SSH_TO_MASTERS_VALIDATION_TASK = registerTask(
+      "ssh.masters.reachable",
       new SshValidationTask("masters"));
-  private static final ValidationTask WORKERS_SSH_VALIDATION_TASK = registerTask(
-      "workers.ssh.reachable",
+  private static final ValidationTask SSH_TO_WORKERS_VALIDATION_TASK = registerTask(
+      "ssh.workers.reachable",
       new SshValidationTask("workers"));
 
   // UFS validations
@@ -107,28 +109,28 @@ public final class ValidateEnv {
 
   private static Map<String, Collection<ValidationTask>> initializeTargetTasks() {
     Map<String, Collection<ValidationTask>> targetMap = new TreeMap<>();
-    targetMap.put("master", Arrays.asList(
+    ValidationTask[] commonTasks = {
+        PROXY_WEB_VALIDATION_TASK,
+        SSH_TO_MASTERS_VALIDATION_TASK,
+        SSH_TO_WORKERS_VALIDATION_TASK,
+        UFS_ROOT_VALIDATION_TASK,
+        ULIMIT_NUMBER_OF_OPEN_FILES_VALIDATION_TASK,
+        ULIMIT_NUMBER_OF_USER_PROCS_VALIDATION_TASK
+    };
+    ValidationTask[] masterTasks = {
         MASTER_RPC_VALIDATION_TASK,
-        MASTER_WEB_VALIDATION_TASK,
-        PROXY_WEB_VALIDATION_TASK,
-        MASTERS_SSH_VALIDATION_TASK,
-        WORKERS_SSH_VALIDATION_TASK,
-        UFS_ROOT_VALIDATION_TASK,
-        ULIMIT_NUMBER_OF_OPEN_FILES_VALIDATION_TASK,
-        ULIMIT_NUMBER_OF_USER_PROCS_VALIDATION_TASK
-    ));
-    targetMap.put("worker", Arrays.asList(
+        MASTER_WEB_VALIDATION_TASK
+    };
+    ValidationTask[] workerTasks = {
         WORKER_DATA_VALIDATION_TASK,
-        WORKER_RAMDISK_MOUNT_PRIVILEGE_VALIDATION_TASK,
         WORKER_RPC_VALIDATION_TASK,
-        WORKER_WEB_VALIDATION_TASK,
-        PROXY_WEB_VALIDATION_TASK,
-        MASTERS_SSH_VALIDATION_TASK,
-        WORKERS_SSH_VALIDATION_TASK,
-        UFS_ROOT_VALIDATION_TASK,
-        ULIMIT_NUMBER_OF_OPEN_FILES_VALIDATION_TASK,
-        ULIMIT_NUMBER_OF_USER_PROCS_VALIDATION_TASK
-    ));
+        WORKER_WEB_VALIDATION_TASK
+    };
+
+    targetMap.put("master", Arrays.asList(
+        ArrayUtils.addAll(commonTasks, masterTasks)));
+    targetMap.put("worker", Arrays.asList(
+        ArrayUtils.addAll(commonTasks, workerTasks)));
     targetMap.put("local", TASKS.keySet());
     return targetMap;
   }

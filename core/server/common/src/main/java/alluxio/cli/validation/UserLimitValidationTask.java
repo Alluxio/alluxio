@@ -22,7 +22,7 @@ public final class UserLimitValidationTask implements ValidationTask {
   private static final int NUMBER_OF_OPEN_FILES_MIN = 4096;
   private static final int NUMBER_OF_OPEN_FILES_MAX = 800000;
   private static final int NUMBER_OF_USER_PROCESSES_MIN = 1024;
-  private final String[] mCommand;
+  private final String mCommand;
   private final String mName;
   private final Integer mLowerBound;
   private final Integer mUpperBound;
@@ -30,7 +30,7 @@ public final class UserLimitValidationTask implements ValidationTask {
   private UserLimitValidationTask(String name, String command,
                                   Integer lowerBound, Integer upperBound) {
     mName = name;
-    mCommand = new String[] {"bash", "-c", command};
+    mCommand = command;
     mLowerBound = lowerBound;
     mUpperBound = upperBound;
   }
@@ -39,7 +39,7 @@ public final class UserLimitValidationTask implements ValidationTask {
   public boolean validate() {
     try {
       // checks if the current user is root
-      Process process = Runtime.getRuntime().exec(mCommand);
+      Process process = Runtime.getRuntime().exec(new String[] {"bash", "-c", mCommand});
       try (BufferedReader processOutputReader = new BufferedReader(
           new InputStreamReader(process.getInputStream()))) {
         String line = processOutputReader.readLine();
