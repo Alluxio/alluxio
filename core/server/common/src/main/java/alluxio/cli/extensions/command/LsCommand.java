@@ -66,9 +66,7 @@ public final class LsCommand extends AbstractCommand {
         System.out.println("Unable to find a master in conf/masters");
         return -1;
       }
-      String host = masters.get(0);
-      String lsCmd =
-          String.format("ssh %s %s ls %s", ShellUtils.COMMON_SSH_OPTS, host, extensionDir);
+      String lsCmd = String.format("ls %s", extensionDir);
       LOG.info("Executing: {}", lsCmd);
       String output = ShellUtils.execCommand("bash", "-c", lsCmd);
       System.out.println("| Extension URI |");
