@@ -74,7 +74,8 @@ public final class AbstractCommandTest {
     TestCommand cmd = new TestCommand();
 
     mExpectedException.expect(InvalidArgumentException.class);
-    mExpectedException.expectMessage(INVALID_NUM_ARGS.getMessage(cmd.getCommandName(), cmd.getNumOfArgs(), 2));
+    mExpectedException
+        .expectMessage(INVALID_NUM_ARGS.getMessage(cmd.getCommandName(), cmd.getNumOfArgs(), 2));
 
     cmd.parseAndValidateArgs("arg1", "arg2");
     Assert.fail("parseAndValidateArgs should fail");
