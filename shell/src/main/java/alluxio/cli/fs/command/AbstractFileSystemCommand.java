@@ -17,7 +17,7 @@ import alluxio.client.file.FileSystem;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * The base class for all the {@link Command} classes. It provides a default argument
+ * The base class for all the FileSystem {@link Command} classes. It provides a default argument
  * validation method and a place to hold the {@link FileSystem} client.
  */
 @ThreadSafe

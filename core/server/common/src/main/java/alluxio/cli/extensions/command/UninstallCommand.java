@@ -24,6 +24,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.LinkedList;
+import java.util.List;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -50,7 +52,7 @@ public final class UninstallCommand extends AbstractCommand {
 
   @Override
   public String getUsage() {
-    return "uninstall <URI>";
+    return "uninstall <JAR>";
   }
 
   @Override
@@ -62,9 +64,10 @@ public final class UninstallCommand extends AbstractCommand {
   public int run(CommandLine cl) {
     String uri = cl.getArgs()[0];
     String extensionsDir = Configuration.get(PropertyKey.EXTENSIONS_DIR);
-    boolean failed = false;
+    List<String> failedHosts = new LinkedList<>();
     for (String host : ExtensionsShellUtils.getServerHostnames()) {
       try {
+        LOG.info("Attempting to uninstall extension on host {}", host);
         String rmCmd = String.format("ssh %s %s rm %s", ShellUtils.COMMON_SSH_OPTS, host,
             PathUtils.concatPath(extensionsDir, uri));
         LOG.debug("Executing: {}", rmCmd);
@@ -72,11 +75,14 @@ public final class UninstallCommand extends AbstractCommand {
         LOG.debug("Succeeded w/ output: {}", output);
       } catch (IOException e) {
         LOG.error("Error uninstalling extension on host {}.", host, e);
-        failed = true;
+        failedHosts.add(host);
       }
     }
-    if (failed) {
-      System.err.println("Failed to uninstall extension.");
+    if (failedHosts.size() != 0) {
+      System.err.println("Failed to uninstall extension on hosts:");
+      for (String failedHost : failedHosts) {
+        System.err.println(failedHost);
+      }
       return -1;
     }
     System.out.println("Extension uninstalled successfully.");
