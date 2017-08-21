@@ -3246,13 +3246,6 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     }
 
     @Override
-    public void append() {
-      if (mAsyncAuditLogWriter != null) {
-        mAsyncAuditLogWriter.append(this);
-      }
-    }
-
-    @Override
     public void close() {
       if (!mAsyncAuditLogWriter.isEnabled()) { return; }
       if (mAsyncAuditLogWriter != null) {
