@@ -271,7 +271,7 @@ public final class FileInStreamTest {
     // First block should not be cached since we skipped over it
     Assert.assertEquals(0, mCacheStreams.get(0).getWrittenData().length);
 
-    // second block is cached
+    // second block is cached if the block is not local
     byte[] expected = mBlockSource == BlockInStreamSource.LOCAL ? new byte[0]
         : BufferUtils.getIncreasingByteArray((int) BLOCK_LENGTH, (int) BLOCK_LENGTH);
     Assert.assertArrayEquals(expected, mCacheStreams.get(1).getWrittenData());

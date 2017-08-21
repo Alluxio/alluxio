@@ -265,7 +265,7 @@ public class RemoteReadIntegrationTest extends BaseIntegrationTest {
       WorkerNetAddress workerAddr = info.getLocations().get(0).getWorkerAddress();
       BlockInStream is =
           BlockInStream.create(FileSystemContext.INSTANCE, info.getBlockId(), info.getLength(),
-              workerAddr, BlockInStreamSource.LOCAL, null, InStreamOptions.defaults());
+              workerAddr, BlockInStreamSource.REMOTE, null, InStreamOptions.defaults());
       byte[] ret = new byte[k];
       int value = is.read();
       int cnt = 0;

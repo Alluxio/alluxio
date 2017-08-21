@@ -162,15 +162,16 @@ public final class AlluxioBlockStore {
           break;
         }
       }
+      if (address == null) {
+        // No local worker/block, choose a random location. In the future we could change this to
+        // only randomize among locations in the highest tier, or have the master randomize the
+        // order.
+        List<BlockLocation> locations = blockInfo.getLocations();
+        address = locations.get(mRandom.nextInt(locations.size())).getWorkerAddress();
+        source = BlockInStreamSource.REMOTE;
+      }
     }
 
-    if (address == null) {
-      // No local worker/block, choose a random location. In the future we could change this to
-      // only randomize among locations in the highest tier, or have the master randomize the order.
-      List<BlockLocation> locations = blockInfo.getLocations();
-      address = locations.get(mRandom.nextInt(locations.size())).getWorkerAddress();
-      source = BlockInStreamSource.REMOTE;
-    }
     return BlockInStream.create(mContext, blockId, blockInfo.getLength(), address, source,
         openUfsBlockOptions, options);
   }

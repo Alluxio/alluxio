@@ -595,7 +595,9 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
     // Precompute this because mPos will be updated several times in this function.
     final boolean isInCurrentBlock = pos / mBlockSize == mPos / mBlockSize;
 
-    if (!(mPos == 0 && mCurrentBlockInStream == null && !isInCurrentBlock)) {
+    // No need to cache if the stream hasn't read anything and the seek position is not within the
+    // block
+    if (mPos != 0 || mCurrentBlockInStream != null || isInCurrentBlock) {
       // Make sure that mCurrentBlockInStream and mCurrentCacheStream is updated.
       // mPos is not updated here.
       updateStreams();
