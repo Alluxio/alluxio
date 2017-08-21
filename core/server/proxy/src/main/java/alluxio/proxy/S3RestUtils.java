@@ -99,9 +99,14 @@ public final class S3RestUtils {
    * Error code names used in {@link ErrorCode}.
    */
   public static class ErrorCodeName {
-    public static String BUCKET_ALREADY_EXISTS = "BucketAlreadyExists";
-    public static String INTERNAL_ERROR = "InternalError";
-    public static String INVALID_BUCKET_NAME = "InvalidBucketName";
+    public static final String BUCKET_ALREADY_EXISTS = "BucketAlreadyExists";
+    public static final String INTERNAL_ERROR = "InternalError";
+    public static final String INVALID_BUCKET_NAME = "InvalidBucketName";
+
+    /**
+     * Default constructor.
+     */
+    public ErrorCodeName() {}
   }
 
   /**
@@ -112,22 +117,22 @@ public final class S3RestUtils {
     //
     // Official error codes.
     //
-    public static ErrorCode BUCKET_ALREADY_EXISTS = new ErrorCode(
+    public static final ErrorCode BUCKET_ALREADY_EXISTS = new ErrorCode(
         ErrorCodeName.BUCKET_ALREADY_EXISTS,
         "The requested bucket name already exists",
         Response.Status.CONFLICT);
-    public static ErrorCode INVALID_BUCKET_NAME = new ErrorCode(
+    public static final ErrorCode INVALID_BUCKET_NAME = new ErrorCode(
         ErrorCodeName.INVALID_BUCKET_NAME,
         "The specified bucket name is invalid",
         Response.Status.BAD_REQUEST);
-    public static ErrorCode INTERNAL_ERROR = new ErrorCode(ErrorCodeName.INTERNAL_ERROR,
+    public static final ErrorCode INTERNAL_ERROR = new ErrorCode(ErrorCodeName.INTERNAL_ERROR,
         "We encountered an internal error. Please try again.",
         Response.Status.INTERNAL_SERVER_ERROR);
 
     //
     // Customized error codes.
     //
-    public static ErrorCode INVALID_NESTED_BUCKET_NAME = new ErrorCode(
+    public static final ErrorCode INVALID_NESTED_BUCKET_NAME = new ErrorCode(
         ErrorCodeName.BUCKET_ALREADY_EXISTS,
         "The specified bucket is not a directory directly under a mount point",
         Response.Status.BAD_REQUEST);
@@ -136,6 +141,13 @@ public final class S3RestUtils {
     private final String mDescription;
     private final Response.Status mStatus;
 
+    /**
+     * Constructs a new {@link ErrorCode}.
+     *
+     * @param code the error code
+     * @param description the description
+     * @param status the response status
+     */
     public ErrorCode(String code, String description, Response.Status status) {
       mCode = code;
       mDescription = description;
@@ -214,7 +226,7 @@ public final class S3RestUtils {
    * Error response defined in http://docs.aws.amazon.com/AmazonS3/latest/API/ErrorResponses.html.
    * It will be encoded into an XML string to be returned as an error response for the REST call.
    */
-  @XmlRootElement(name="Error")
+  @XmlRootElement(name = "Error")
   public static class Error {
     private final String mCode;
     private final String mMessage;
@@ -249,7 +261,7 @@ public final class S3RestUtils {
     /**
      * @return the error code
      */
-    @XmlElement(name="Code")
+    @XmlElement(name = "Code")
     public String getCode() {
       return mCode;
     }
@@ -257,7 +269,7 @@ public final class S3RestUtils {
     /**
      * @return the error message
      */
-    @XmlElement(name="Message")
+    @XmlElement(name = "Message")
     public String getMessage() {
       return mMessage;
     }
@@ -265,7 +277,7 @@ public final class S3RestUtils {
     /**
      * @return the request ID
      */
-    @XmlElement(name="RequestId")
+    @XmlElement(name = "RequestId")
     public String getRequestId() {
       return mRequestId;
     }
@@ -273,7 +285,7 @@ public final class S3RestUtils {
     /**
      * @return the resource name
      */
-    @XmlElement(name="Resource")
+    @XmlElement(name = "Resource")
     public String getResource() {
       return mResource;
     }
