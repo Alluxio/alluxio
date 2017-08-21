@@ -38,7 +38,6 @@ public final class UserLimitValidationTask implements ValidationTask {
   @Override
   public boolean validate() {
     try {
-      // checks if the current user is root
       Process process = Runtime.getRuntime().exec(new String[] {"bash", "-c", mCommand});
       try (BufferedReader processOutputReader = new BufferedReader(
           new InputStreamReader(process.getInputStream()))) {
@@ -84,7 +83,7 @@ public final class UserLimitValidationTask implements ValidationTask {
    * is within reasonable range.
    * @return the validation task for this check
    */
-  public static ValidationTask createNumberOfOpenFilesLimitValidationTask() {
+  public static ValidationTask createOpenFilesLimitValidationTask() {
     return new UserLimitValidationTask("number of open files", "ulimit -n",
         NUMBER_OF_OPEN_FILES_MIN, NUMBER_OF_OPEN_FILES_MAX);
   }
@@ -94,7 +93,7 @@ public final class UserLimitValidationTask implements ValidationTask {
    * is within reasonable range.
    * @return the validation task for this check
    */
-  public static ValidationTask createNumberOfUserProcessesLimitValidationTask() {
+  public static ValidationTask createUserProcessesLimitValidationTask() {
     return new UserLimitValidationTask("number of user processes", "ulimit -u",
         NUMBER_OF_USER_PROCESSES_MIN, null);
   }
