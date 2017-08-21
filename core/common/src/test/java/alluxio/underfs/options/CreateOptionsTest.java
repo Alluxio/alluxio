@@ -40,7 +40,7 @@ public final class CreateOptionsTest {
     CreateOptions options = CreateOptions.defaults();
 
     assertFalse(options.getCreateParent());
-    assertTrue(options.isEnsureAtomic());
+    assertFalse(options.isEnsureAtomic());
     assertEquals("", options.getOwner());
     assertEquals("", options.getGroup());
     assertEquals(Mode.defaults().applyFileUMask(), options.getMode());
@@ -61,7 +61,7 @@ public final class CreateOptionsTest {
     CreateOptions options = CreateOptions.defaults();
 
     assertFalse(options.getCreateParent());
-    assertTrue(options.isEnsureAtomic());
+    assertFalse(options.isEnsureAtomic());
     assertEquals("", options.getOwner());
     assertEquals("", options.getGroup());
     assertEquals(Mode.defaults().applyFileUMask(), options.getMode());
