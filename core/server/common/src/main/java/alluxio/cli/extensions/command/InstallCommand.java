@@ -59,19 +59,23 @@ public final class InstallCommand extends AbstractCommand {
 
   @Override
   public int run(CommandLine cl) {
-    try {
-      String uri = cl.getArgs()[0];
-      String extensionDir = Configuration.get(PropertyKey.EXTENSION_DIR);
-      for (String host : ExtensionsShellUtils.getServerHostnames()) {
+    String uri = cl.getArgs()[0];
+    String extensionDir = Configuration.get(PropertyKey.EXTENSION_DIR);
+    boolean failed = false;
+    for (String host : ExtensionsShellUtils.getServerHostnames()) {
+      try {
         String rsyncCmd = String.format("rsync -e \"ssh %s\" -az %s %s:%s",
             ShellUtils.COMMON_SSH_OPTS, uri, host, extensionDir);
-        LOG.info("Executing: {}", rsyncCmd);
+        LOG.debug("Executing: {}", rsyncCmd);
         String output = ShellUtils.execCommand("bash", "-c", rsyncCmd);
-        LOG.info("Succeeded w/ output: {}", output);
+        LOG.debug("Succeeded w/ output: {}", output);
+      } catch (IOException e) {
+        LOG.error("Error installing extension on host {}", host, e);
+        failed = true;
       }
-    } catch (IOException e) {
-      LOG.error("Error installing extension.", e);
-      System.out.println("Failed to install extension.");
+    }
+    if (failed) {
+      System.err.println("Failed to install extension on at least one host.");
       return -1;
     }
     System.out.println("Extension installed successfully.");

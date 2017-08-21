@@ -60,19 +60,23 @@ public final class UninstallCommand extends AbstractCommand {
 
   @Override
   public int run(CommandLine cl) {
-    try {
-      String uri = cl.getArgs()[0];
-      String extensionDir = Configuration.get(PropertyKey.EXTENSION_DIR);
-      for (String host : ExtensionsShellUtils.getServerHostnames()) {
+    String uri = cl.getArgs()[0];
+    String extensionDir = Configuration.get(PropertyKey.EXTENSION_DIR);
+    boolean failed = false;
+    for (String host : ExtensionsShellUtils.getServerHostnames()) {
+      try {
         String rmCmd = String.format("ssh %s %s rm %s", ShellUtils.COMMON_SSH_OPTS, host,
             PathUtils.concatPath(extensionDir, uri));
-        LOG.info("Executing: {}", rmCmd);
+        LOG.debug("Executing: {}", rmCmd);
         String output = ShellUtils.execCommand("bash", "-c", rmCmd);
-        LOG.info("Succeeded w/ output: {}", output);
+        LOG.debug("Succeeded w/ output: {}", output);
+      } catch (IOException e) {
+        LOG.error("Error uninstalling extension on host {}.", host, e);
+        failed = true;
       }
-    } catch (IOException e) {
-      LOG.error("Error uninstalling extension.", e);
-      System.out.println("Failed to uninstall extension.");
+    }
+    if (failed) {
+      System.err.println("Failed to uninstall extension.");
       return -1;
     }
     System.out.println("Extension uninstalled successfully.");
