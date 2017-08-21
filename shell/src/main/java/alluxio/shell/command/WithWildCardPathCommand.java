@@ -71,7 +71,7 @@ public abstract class WithWildCardPathCommand extends AbstractShellCommand {
         try {
           runCommand(path, cl);
         } catch (AlluxioException | IOException e) {
-          errorMessages.add(e.getMessage());
+          errorMessages.add(e.getMessage() != null ? e.getMessage() : e.toString());
         }
       }
 

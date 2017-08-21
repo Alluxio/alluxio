@@ -143,6 +143,9 @@ public class FileSystemMasterClientService {
      */
     public MountTResponse mount(String alluxioPath, String ufsPath, MountTOptions options) throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException;
 
+    /**
+     * Returns a map from each Alluxio path to information of corresponding mount point
+     */
     public GetMountTableTResponse getMountTable() throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException;
 
     /**

@@ -25,10 +25,11 @@ import alluxio.client.file.options.ListStatusOptions;
 import alluxio.client.file.options.LoadMetadataOptions;
 import alluxio.client.file.options.MountOptions;
 import alluxio.client.file.options.SetAttributeOptions;
+import alluxio.master.MasterClientConfig;
 import alluxio.thrift.AlluxioService;
 import alluxio.thrift.FileSystemMasterClientService;
-import alluxio.thrift.GetNewBlockIdForFileTOptions;
 import alluxio.thrift.GetMountTableTResponse;
+import alluxio.thrift.GetNewBlockIdForFileTOptions;
 import alluxio.thrift.LoadMetadataTOptions;
 import alluxio.thrift.RenameTOptions;
 import alluxio.thrift.ScheduleAsyncPersistenceTOptions;
@@ -39,14 +40,12 @@ import alluxio.wire.ThriftUtils;
 import org.apache.thrift.TException;
 
 import java.io.IOException;
-import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import javax.annotation.concurrent.ThreadSafe;
-import javax.security.auth.Subject;
 
 /**
  * A wrapper for the thrift client to interact with the file system master, used by alluxio clients.
@@ -62,16 +61,10 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
   /**
    * Creates a new {@link RetryHandlingFileSystemMasterClient} instance.
    *
-   * @param subject the subject
-   * @param masterAddress the master address
+   * @param conf master client configuration
    */
-  protected static RetryHandlingFileSystemMasterClient create(Subject subject,
-      InetSocketAddress masterAddress) {
-    return new RetryHandlingFileSystemMasterClient(subject, masterAddress);
-  }
-
-  private RetryHandlingFileSystemMasterClient(Subject subject, InetSocketAddress masterAddress) {
-    super(subject, masterAddress);
+  public RetryHandlingFileSystemMasterClient(MasterClientConfig conf) {
+    super(conf);
   }
 
   @Override

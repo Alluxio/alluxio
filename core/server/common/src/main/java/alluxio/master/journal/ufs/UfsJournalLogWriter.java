@@ -15,8 +15,6 @@ import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.RuntimeConstants;
 import alluxio.exception.ExceptionMessage;
-import alluxio.master.journal.JournalWriter;
-import alluxio.master.journal.options.JournalWriterOptions;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.CreateOptions;
@@ -35,17 +33,16 @@ import java.net.URI;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * Implementation of {@link JournalWriter} that writes journal edit log entries by the primary
- * master. It marks the current log complete (so that it is visible to the secondary masters) when
- * the current log is large enough.
+ * Class for writing journal edit log entries from the primary master. It marks the current log
+ * complete (so that it is visible to the secondary masters) when the current log is large enough.
  *
  * When a new journal writer is created, it also marks the current log complete if there is one.
  *
- * A journal garbage collector thread is created when the writer is created, and is stopped when
- * the writer is closed.
+ * A journal garbage collector thread is created when the writer is created, and is stopped when the
+ * writer is closed.
  */
 @ThreadSafe
-final class UfsJournalLogWriter implements JournalWriter {
+final class UfsJournalLogWriter {
   private static final Logger LOG = LoggerFactory.getLogger(UfsJournalLogWriter.class);
 
   private final UfsJournal mJournal;
@@ -137,12 +134,12 @@ final class UfsJournalLogWriter implements JournalWriter {
    * Creates a new instance of {@link UfsJournalLogWriter}.
    *
    * @param journal the handle to the journal
-   * @param options the options to create the journal log writer
+   * @param nextSequenceNumber the sequence number to begin writing at
    */
-  UfsJournalLogWriter(UfsJournal journal, JournalWriterOptions options) throws IOException {
+  UfsJournalLogWriter(UfsJournal journal, long nextSequenceNumber) throws IOException {
     mJournal = Preconditions.checkNotNull(journal);
     mUfs = mJournal.getUfs();
-    mNextSequenceNumber = options.getNextSequenceNumber();
+    mNextSequenceNumber = nextSequenceNumber;
     mMaxLogSize = Configuration.getBytes(PropertyKey.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX);
 
     mRotateLogForNextWrite = true;
@@ -153,7 +150,6 @@ final class UfsJournalLogWriter implements JournalWriter {
     mGarbageCollector = new UfsJournalGarbageCollector(mJournal);
   }
 
-  @Override
   public synchronized void write(JournalEntry entry) throws IOException {
     if (mClosed) {
       throw new IOException(ExceptionMessage.JOURNAL_WRITE_AFTER_CLOSE.getMessage());
@@ -196,7 +192,6 @@ final class UfsJournalLogWriter implements JournalWriter {
     mRotateLogForNextWrite = false;
   }
 
-  @Override
   public synchronized void flush() throws IOException {
     if (mClosed || mJournalOutputStream == null || mJournalOutputStream.bytesWritten() == 0) {
       // There is nothing to flush.
@@ -224,7 +219,6 @@ final class UfsJournalLogWriter implements JournalWriter {
     }
   }
 
-  @Override
   public synchronized void close() throws IOException {
     Closer closer = Closer.create();
     if (mJournalOutputStream != null) {
@@ -233,10 +227,5 @@ final class UfsJournalLogWriter implements JournalWriter {
     closer.register(mGarbageCollector);
     closer.close();
     mClosed = true;
-  }
-
-  @Override
-  public synchronized void cancel() throws IOException {
-    throw new UnsupportedOperationException("UfsJournalLogWriter#cancel is not supported.");
   }
 }

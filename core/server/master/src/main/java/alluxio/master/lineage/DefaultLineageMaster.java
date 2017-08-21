@@ -33,7 +33,7 @@ import alluxio.job.Job;
 import alluxio.master.AbstractMaster;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.options.CreateFileOptions;
-import alluxio.master.journal.JournalFactory;
+import alluxio.master.journal.JournalSystem;
 import alluxio.master.lineage.checkpoint.CheckpointPlan;
 import alluxio.master.lineage.checkpoint.CheckpointSchedulingExecutor;
 import alluxio.master.lineage.meta.Lineage;
@@ -81,31 +81,30 @@ public final class DefaultLineageMaster extends AbstractMaster implements Lineag
 
   private final FileSystemMaster mFileSystemMaster;
   private LineageStore mLineageStore;
-  private final LineageIdGenerator mLineageIdGenerator;
+  private LineageIdGenerator mLineageIdGenerator;
 
   /**
-   * Creates a new instance of {@link DefaultLineageMaster}.
+   * Creates a new instance of {@link LineageMaster}.
    *
    * @param fileSystemMaster the file system master handle
-   * @param journalFactory the factory for the journal to use for tracking master operations
+   * @param journalSystem the journal system to use for tracking master operations
    */
-  DefaultLineageMaster(FileSystemMaster fileSystemMaster, JournalFactory journalFactory) {
-    this(fileSystemMaster, journalFactory, ExecutorServiceFactories
+  DefaultLineageMaster(FileSystemMaster fileSystemMaster, JournalSystem journalSystem) {
+    this(fileSystemMaster, journalSystem, ExecutorServiceFactories
         .fixedThreadPoolExecutorServiceFactory(Constants.LINEAGE_MASTER_NAME, 2));
   }
 
   /**
-   * Creates a new instance of {@link DefaultLineageMaster}.
+   * Creates a new instance of {@link LineageMaster}.
    *
    * @param fileSystemMaster the file system master handle
-   * @param journalFactory the factory for the journal to use for tracking master operations
+   * @param journalSystem the journal system to use for tracking master operations
    * @param executorServiceFactory a factory for creating the executor service to use for running
    *        maintenance threads
    */
-  DefaultLineageMaster(FileSystemMaster fileSystemMaster, JournalFactory journalFactory,
-      ExecutorServiceFactory executorServiceFactory) {
-    super(journalFactory.create(Constants.LINEAGE_MASTER_NAME), new SystemClock(),
-        executorServiceFactory);
+  DefaultLineageMaster(FileSystemMaster fileSystemMaster, JournalSystem journalSystem,
+                       ExecutorServiceFactory executorServiceFactory) {
+    super(journalSystem, new SystemClock(), executorServiceFactory);
     mLineageIdGenerator = new LineageIdGenerator();
     mLineageStore = new LineageStore(mLineageIdGenerator);
     mFileSystemMaster = fileSystemMaster;
@@ -143,6 +142,12 @@ public final class DefaultLineageMaster extends AbstractMaster implements Lineag
     } else {
       throw new IOException(ExceptionMessage.UNEXPECTED_JOURNAL_ENTRY.getMessage(entry));
     }
+  }
+
+  @Override
+  public void resetState() {
+    mLineageIdGenerator = new LineageIdGenerator();
+    mLineageStore = new LineageStore(mLineageIdGenerator);
   }
 
   @Override

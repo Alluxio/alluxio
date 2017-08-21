@@ -22,8 +22,8 @@ import alluxio.job.JobConf;
 import alluxio.master.MasterRegistry;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.options.CompleteFileOptions;
-import alluxio.master.journal.Journal;
-import alluxio.master.journal.JournalFactory;
+import alluxio.master.journal.JournalSystem;
+import alluxio.master.journal.noop.NoopJournalSystem;
 import alluxio.util.IdUtils;
 import alluxio.util.ThreadFactoryUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
@@ -40,7 +40,6 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.mockito.Mockito;
 
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -67,13 +66,12 @@ public final class LineageMasterTest {
   @Before
   public void before() throws Exception {
     mRegistry = new MasterRegistry();
-    JournalFactory factory =
-        new Journal.Factory(new URI(mTestFolder.newFolder().getAbsolutePath()));
+    JournalSystem journalSystem = new NoopJournalSystem();
     mFileSystemMaster = Mockito.mock(FileSystemMaster.class);
     mRegistry.add(FileSystemMaster.class, mFileSystemMaster);
     ThreadFactory threadPool = ThreadFactoryUtils.build("LineageMasterTest-%d", true);
     mExecutorService = Executors.newFixedThreadPool(2, threadPool);
-    mLineageMaster = new DefaultLineageMaster(mFileSystemMaster, factory,
+    mLineageMaster = new DefaultLineageMaster(mFileSystemMaster, journalSystem,
         ExecutorServiceFactories.constantExecutorServiceFactory(mExecutorService));
     mRegistry.add(LineageMaster.class, mLineageMaster);
     mJob = new CommandLineJob("test", new JobConf("output"));

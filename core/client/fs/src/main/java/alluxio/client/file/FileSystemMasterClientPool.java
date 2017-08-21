@@ -13,12 +13,13 @@ package alluxio.client.file;
 
 import alluxio.Configuration;
 import alluxio.PropertyKey;
+import alluxio.master.MasterClientConfig;
+import alluxio.master.MasterInquireClient;
 import alluxio.resource.ResourcePool;
 
 import com.google.common.io.Closer;
 
 import java.io.IOException;
-import java.net.InetSocketAddress;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
@@ -30,7 +31,7 @@ import javax.security.auth.Subject;
  */
 @ThreadSafe
 public final class FileSystemMasterClientPool extends ResourcePool<FileSystemMasterClient> {
-  private final InetSocketAddress mMasterAddress;
+  private final MasterInquireClient mMasterInquireClient;
   private final Queue<FileSystemMasterClient> mClientList;
   private final Subject mSubject;
 
@@ -38,11 +39,11 @@ public final class FileSystemMasterClientPool extends ResourcePool<FileSystemMas
    * Creates a new file system master client pool.
    *
    * @param subject the parent subject
-   * @param masterAddress the master address
+   * @param masterInquireClient a client for determining the master address
    */
-  public FileSystemMasterClientPool(Subject subject, InetSocketAddress masterAddress) {
+  public FileSystemMasterClientPool(Subject subject, MasterInquireClient masterInquireClient) {
     super(Configuration.getInt(PropertyKey.USER_FILE_MASTER_CLIENT_THREADS));
-    mMasterAddress = masterAddress;
+    mMasterInquireClient = masterInquireClient;
     mClientList = new ConcurrentLinkedQueue<>();
     mSubject = subject;
   }
@@ -51,13 +52,13 @@ public final class FileSystemMasterClientPool extends ResourcePool<FileSystemMas
    * Creates a new file system master client pool.
    *
    * @param subject the parent subject
-   * @param masterAddress the master address
+   * @param masterInquireClient a client for determining the master address
    * @param clientThreads the number of client threads to use
    */
-  public FileSystemMasterClientPool(Subject subject, InetSocketAddress masterAddress,
+  public FileSystemMasterClientPool(Subject subject, MasterInquireClient masterInquireClient,
       int clientThreads) {
     super(clientThreads);
-    mMasterAddress = masterAddress;
+    mMasterInquireClient = masterInquireClient;
     mClientList = new ConcurrentLinkedQueue<>();
     mSubject = subject;
   }
@@ -74,7 +75,8 @@ public final class FileSystemMasterClientPool extends ResourcePool<FileSystemMas
 
   @Override
   protected FileSystemMasterClient createNewResource() {
-    FileSystemMasterClient client = FileSystemMasterClient.Factory.create(mSubject, mMasterAddress);
+    FileSystemMasterClient client = FileSystemMasterClient.Factory.create(MasterClientConfig
+        .defaults().withSubject(mSubject).withMasterInquireClient(mMasterInquireClient));
     mClientList.add(client);
     return client;
   }

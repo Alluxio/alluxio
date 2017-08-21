@@ -26,8 +26,8 @@ import alluxio.RuntimeConstants;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.block.BlockMasterFactory;
 import alluxio.master.file.DefaultFileSystemMaster;
-import alluxio.master.journal.Journal;
-import alluxio.master.journal.JournalFactory;
+import alluxio.master.journal.JournalSystem;
+import alluxio.master.journal.JournalTestUtils;
 import alluxio.metrics.MetricsSystem;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
@@ -51,7 +51,6 @@ import org.mockito.Matchers;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.net.URI;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -113,9 +112,8 @@ public final class AlluxioMasterRestServiceHandlerTest {
     mMasterProcess = mock(MasterProcess.class);
     ServletContext context = mock(ServletContext.class);
     mRegistry = new MasterRegistry();
-    JournalFactory factory =
-        new Journal.Factory(new URI(mTestFolder.newFolder().getAbsolutePath()));
-    mBlockMaster = new BlockMasterFactory().create(mRegistry, factory);
+    JournalSystem journalSystem = JournalTestUtils.createJournalSystem(mTestFolder);
+    mBlockMaster = new BlockMasterFactory().create(mRegistry, journalSystem);
     mRegistry.start(true);
     when(mMasterProcess.getMaster(BlockMaster.class)).thenReturn(mBlockMaster);
     when(context.getAttribute(MasterWebServer.ALLUXIO_MASTER_SERVLET_RESOURCE_KEY)).thenReturn(
