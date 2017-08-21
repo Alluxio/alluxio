@@ -297,7 +297,7 @@ public class RemoteReadIntegrationTest extends BaseIntegrationTest {
       WorkerNetAddress workerAddr = info.getLocations().get(0).getWorkerAddress();
       BlockInStream is =
           BlockInStream.create(FileSystemContext.INSTANCE, info.getBlockId(), info.getLength(),
-              workerAddr, BlockInStreamSource.LOCAL, null, InStreamOptions.defaults());
+              workerAddr, BlockInStreamSource.REMOTE, null, InStreamOptions.defaults());
       byte[] ret = new byte[k];
       int start = 0;
       while (start < k) {
@@ -326,7 +326,7 @@ public class RemoteReadIntegrationTest extends BaseIntegrationTest {
       WorkerNetAddress workerAddr = info.getLocations().get(0).getWorkerAddress();
       BlockInStream is =
           BlockInStream.create(FileSystemContext.INSTANCE, info.getBlockId(), info.getLength(),
-              workerAddr, BlockInStreamSource.LOCAL, null, InStreamOptions.defaults());
+              workerAddr, BlockInStreamSource.REMOTE, null, InStreamOptions.defaults());
       byte[] ret = new byte[k / 2];
       int start = 0;
       while (start < k / 2) {
@@ -569,7 +569,7 @@ public class RemoteReadIntegrationTest extends BaseIntegrationTest {
       WorkerNetAddress workerAddr = info.getLocations().get(0).getWorkerAddress();
       BlockInStream is =
           BlockInStream.create(FileSystemContext.INSTANCE, info.getBlockId(), info.getLength(),
-              workerAddr, BlockInStreamSource.LOCAL, null, InStreamOptions.defaults());
+              workerAddr, BlockInStreamSource.REMOTE, null, InStreamOptions.defaults());
       Assert.assertEquals(0, is.read());
       mFileSystem.delete(uri);
       HeartbeatScheduler.execute(HeartbeatContext.WORKER_BLOCK_SYNC);
@@ -586,7 +586,7 @@ public class RemoteReadIntegrationTest extends BaseIntegrationTest {
       BlockInStream is2 = null;
       try {
         is2 = BlockInStream.create(FileSystemContext.INSTANCE, info.getBlockId(), info.getLength(),
-            workerAddr, BlockInStreamSource.LOCAL, null, InStreamOptions.defaults());
+            workerAddr, BlockInStreamSource.REMOTE, null, InStreamOptions.defaults());
       } catch (NotFoundException e) {
         // Expected since the file has been deleted.
       } finally {

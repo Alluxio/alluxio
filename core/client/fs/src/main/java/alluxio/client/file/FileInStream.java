@@ -604,7 +604,11 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
 
       // Cache till pos if seeking forward within the current block. Otherwise cache the whole
       // block.
-      cacheCurrentBlockToPos(pos > mPos ? pos : Long.MAX_VALUE);
+      if (pos > mPos) {
+        cacheCurrentBlockToPos(pos);
+      } else {
+        cacheCurrentBlockToEnd();
+      }
 
       // Early return if we are at pos already. This happens if we seek forward with caching
       // enabled for this block.
