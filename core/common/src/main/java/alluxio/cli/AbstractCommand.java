@@ -37,7 +37,7 @@ public abstract class AbstractCommand implements Command {
    */
   protected boolean validateArgs(String... args) {
     return true;
- }
+  }
 
   /**
    * Gets the expected number of arguments of the command.
