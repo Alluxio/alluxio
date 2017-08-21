@@ -326,6 +326,7 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
         ret.add(worker.generateClientWorkerInfo());
       }
     }
+    Collections.sort(ret, new WorkerInfo.LastContactSecComparator());
     return ret;
   }
 
