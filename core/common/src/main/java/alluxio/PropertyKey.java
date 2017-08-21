@@ -143,16 +143,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue(String.format("${%s}/logs", Name.WORK_DIR))
           .setDescription("The path to store log files.")
           .build();
-  public static final PropertyKey LOGS_SERVER_ENABLED =
-      new Builder(Name.LOGS_SERVER_ENABLED)
-          .setDefaultValue(false)
-          .setDescription("Set to true to enable writing logs to a server")
-          .build();
-  public static final PropertyKey LOGS_SERVER_BASE_LOG_DIR =
-      new Builder(Name.LOGS_SERVER_BASE_LOG_DIR)
-          .setDefaultValue(String.format("${%s}/logs", Name.WORK_DIR))
-          .setDescription("Default location for remote log files.")
-          .build();
   public static final PropertyKey METRICS_CONF_FILE =
       new Builder(Name.METRICS_CONF_FILE)
           .setDefaultValue(String.format("${%s}/metrics.properties", Name.CONF_DIR))
@@ -184,6 +174,11 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue("16MB")
           .setDescription("(Experimental) The largest allowable frame size used for Thrift "
               + "RPC communication.")
+          .build();
+  public static final PropertyKey REMOTE_LOGGING_ENABLED =
+      new Builder(Name.REMOTE_LOGGING_ENABLED)
+          .setDefaultValue(false)
+          .setDescription("Set to true to enable writing logs to a server")
           .build();
   public static final PropertyKey SITE_CONF_DIR =
       new Builder(Name.SITE_CONF_DIR)
@@ -1199,6 +1194,15 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
 
   //
+  // Log server related properties
+  //
+  public static final PropertyKey LOG_SERVER_BASE_LOGS_DIR =
+      new Builder(Name.LOG_SERVER_BASE_LOGS_DIR)
+          .setDefaultValue(String.format("${%s}/logs", Name.WORK_DIR))
+          .setDescription("Default location for remote log files.")
+          .build();
+
+  //
   // User related properties
   //
   public static final PropertyKey USER_BLOCK_MASTER_CLIENT_THREADS =
@@ -1779,8 +1783,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.keyvalue.partition.size.bytes.max";
     public static final String LOGGER_TYPE = "alluxio.logger.type";
     public static final String LOGS_DIR = "alluxio.logs.dir";
-    public static final String LOGS_SERVER_ENABLED = "alluxio.logs.server.enabled";
-    public static final String LOGS_SERVER_BASE_LOG_DIR = "alluxio.logs.server.baselogdir";
     public static final String METRICS_CONF_FILE = "alluxio.metrics.conf.file";
     public static final String NETWORK_HOST_RESOLUTION_TIMEOUT_MS =
         "alluxio.network.host.resolution.timeout";
@@ -1788,6 +1790,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.network.netty.heartbeat.timeout";
     public static final String NETWORK_THRIFT_FRAME_SIZE_BYTES_MAX =
         "alluxio.network.thrift.frame.size.bytes.max";
+    public static final String REMOTE_LOGGING_ENABLED = "alluxio.remotelogging.enabled";
     public static final String SITE_CONF_DIR = "alluxio.site.conf.dir";
     public static final String TEST_MODE = "alluxio.test.mode";
     public static final String VERSION = "alluxio.version";
@@ -2057,6 +2060,11 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String PROXY_WEB_BIND_HOST = "alluxio.proxy.web.bind.host";
     public static final String PROXY_WEB_HOSTNAME = "alluxio.proxy.web.hostname";
     public static final String PROXY_WEB_PORT = "alluxio.proxy.web.port";
+
+    //
+    // Log server related properties
+    //
+    public static final String LOG_SERVER_BASE_LOGS_DIR = "alluxio.logserver.baselogsdir";
 
     //
     // User related properties

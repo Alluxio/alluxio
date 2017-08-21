@@ -19,13 +19,14 @@ import org.apache.log4j.Level;
 import org.apache.log4j.PropertyConfigurator;
 import org.apache.log4j.spi.LoggerRepository;
 import org.apache.log4j.spi.RootLogger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Function;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.lang.NumberFormatException;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -42,6 +43,7 @@ import java.util.Properties;
  * be stored.
  */
 public class AlluxioLogServerProcess implements LogServerProcess {
+  private final static Logger LOG = LoggerFactory.getLogger(AlluxioLogServer.class);
   private ServerSocket mServerSocket;
   private int mPort;
   private String mBaseLogDir;
@@ -66,6 +68,7 @@ public class AlluxioLogServerProcess implements LogServerProcess {
    */
   @Override
   public void start() throws Exception {
+    LOG.info("Log server started.");
     while (!mStopped) {
       Socket client = mServerSocket.accept();
       InetAddress inetAddress = client.getInetAddress();
@@ -76,8 +79,10 @@ public class AlluxioLogServerProcess implements LogServerProcess {
       }
       try {
         new Thread(new AlluxioLog4jSocketNode(client, loggerRepository)).start();
+        LOG.info("Client: {} connected.", inetAddress.toString());
       } catch (IOException e) {
         // Could not create a thread to serve a client, ignore this client.
+        LOG.warn("Failed to connect with client: {}.", inetAddress.toString());
         continue;
       }
     }
@@ -89,6 +94,7 @@ public class AlluxioLogServerProcess implements LogServerProcess {
   @Override
   public void stop() throws Exception {
     mStopped = true;
+    LOG.info("Log server stopped.");
   }
 
   /**
