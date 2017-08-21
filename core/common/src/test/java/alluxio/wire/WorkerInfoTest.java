@@ -57,7 +57,7 @@ public class WorkerInfoTest {
     Assert.assertEquals(a, b);
   }
 
-  public static int compareLostWorkersWithTimes(int time1, int time2) {
+  private static int compareLostWorkersWithTimes(int time1, int time2) {
     WorkerInfo.LastContactSecComparator comparator = new WorkerInfo.LastContactSecComparator();
     WorkerInfo worker1 = createRandom();
     WorkerInfo worker2 = createRandom();
