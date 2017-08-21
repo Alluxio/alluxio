@@ -6,7 +6,7 @@ import alluxio.PropertyKey;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -17,12 +17,12 @@ public final class AsyncUserAccessAuditLogWriter {
   private static final Logger LOG = LoggerFactory.getLogger(AsyncUserAccessAuditLogWriter.class);
   private final boolean mEnabled;
   private volatile boolean mStopped;
-  private ArrayBlockingQueue<AuditContext> mAuditLogEntries;
+  private LinkedBlockingQueue<AuditContext> mAuditLogEntries;
 
   public AsyncUserAccessAuditLogWriter() {
     mEnabled = Boolean.parseBoolean(Configuration.get(PropertyKey.MASTER_AUDIT_LOGGING_ENABLED));
     if (mEnabled) {
-      mAuditLogEntries = new ArrayBlockingQueue<>(QUEUE_SIZE);
+      mAuditLogEntries = new LinkedBlockingQueue<>(QUEUE_SIZE);
     }
     mStopped = true;
   }
