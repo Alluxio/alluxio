@@ -3299,12 +3299,10 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
 
     @Override
     public void close() {
-      if (!mAsyncAuditLogWriter.isEnabled()) {
+      if (mAsyncAuditLogWriter == null) {
         return;
       }
-      if (mAsyncAuditLogWriter != null) {
-        mAsyncAuditLogWriter.append(this);
-      }
+      mAsyncAuditLogWriter.append(this);
     }
 
     @Override
@@ -3332,10 +3330,12 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
   private MasterAuditContext createAuditContext(String command, AlluxioURI srcPath,
       AlluxioURI dstPath, Inode srcInode) throws AccessControlException {
     MasterAuditContext auditContext = new MasterAuditContext(mAsyncAuditLogWriter);
-    auditContext.setUser(AuthenticatedClientUser.getClientUser())
-        .setIp(FileSystemMasterClientServiceProcessor.getClientIp())
-        .setCommand(command).setSrcPath(srcPath).setDstPath(dstPath)
-        .setSrcInode(srcInode).setAllowed(true);
+    if (mAsyncAuditLogWriter != null) {
+      auditContext.setUser(AuthenticatedClientUser.getClientUser())
+          .setIp(FileSystemMasterClientServiceProcessor.getClientIp())
+          .setCommand(command).setSrcPath(srcPath).setDstPath(dstPath)
+          .setSrcInode(srcInode).setAllowed(true);
+    }
     return auditContext;
   }
 }

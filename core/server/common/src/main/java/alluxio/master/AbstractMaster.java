@@ -148,8 +148,10 @@ public abstract class AbstractMaster implements Master {
         }
       }
       mAsyncJournalWriter = new AsyncJournalWriter(mJournalWriter);
-      mAsyncAuditLogWriter = new AsyncUserAccessAuditLogWriter();
-      mAsyncAuditLogWriter.start();
+      if (Configuration.getBoolean(PropertyKey.MASTER_AUDIT_LOGGING_ENABLED)) {
+        mAsyncAuditLogWriter = new AsyncUserAccessAuditLogWriter();
+        mAsyncAuditLogWriter.start();
+      }
     } else {
       LOG.info("{}: Starting secondary master.", getName());
 

@@ -28,7 +28,6 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class AsyncUserAccessAuditLogWriter {
   private static final int QUEUE_SIZE = 10000;
   private static final Logger LOG = LoggerFactory.getLogger(AsyncUserAccessAuditLogWriter.class);
-  private final boolean mEnabled;
   private volatile boolean mStopped;
   private LinkedBlockingQueue<AuditContext> mAuditLogEntries;
 
@@ -36,27 +35,15 @@ public final class AsyncUserAccessAuditLogWriter {
    * Constructs an {@link AsyncUserAccessAuditLogWriter} instance.
    */
   public AsyncUserAccessAuditLogWriter() {
-    mEnabled = Boolean.parseBoolean(Configuration.get(PropertyKey.MASTER_AUDIT_LOGGING_ENABLED));
-    if (mEnabled) {
-      mAuditLogEntries = new LinkedBlockingQueue<>(QUEUE_SIZE);
-    }
+    mAuditLogEntries = new LinkedBlockingQueue<>(QUEUE_SIZE);
     mStopped = true;
-  }
-
-  /**
-   * Checks whether user access audit logging is enabled or not.
-   *
-   * @return true if user access audit is enabled, false otherwise
-   */
-  public boolean isEnabled() {
-    return mEnabled;
   }
 
   /**
    * Starts {@link AsyncUserAccessAuditLogWriter}.
    */
   public void start() {
-    if (mEnabled && mStopped) {
+    if (mStopped) {
       mStopped = false;
       new Thread(new AuditLoggingWorker()).start();
     }
