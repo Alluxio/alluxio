@@ -33,7 +33,7 @@ public final class CommandUtils {
   /**
    * Get instances of all subclasses of {@link Command} in the given package.
    *
-   * @param pkgName package name to look in
+   * @param pkgName package prefix to look in
    * @param classArgs type of args to instantiate the class
    * @param objectArgs args to instantiate the class
    * @return a mapping from command name to command instance
@@ -41,9 +41,9 @@ public final class CommandUtils {
   public static Map<String, Command> loadCommands(String pkgName, Class[] classArgs,
       Object[] objectArgs) {
     Map<String, Command> commandsMap = new HashMap<>();
-    Reflections reflections = new Reflections(pkgName);
-    for (Class<? extends Command> cls : reflections.getSubTypesOf(AbstractCommand.class)) {
-      if (!Modifier.isAbstract(cls.getModifiers())) {
+    Reflections reflections = new Reflections(Command.class.getPackage().getName());
+    for (Class<? extends Command> cls : reflections.getSubTypesOf(Command.class)) {
+      if (cls.getPackage().getName().startsWith(pkgName) && !Modifier.isAbstract(cls.getModifiers())) {
         // Only instantiate a concrete class
         Command cmd;
         try {

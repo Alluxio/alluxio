@@ -31,7 +31,7 @@ public abstract class AbstractCommand implements Command {
   protected AbstractCommand() {}
 
   /**
-   * Checks if the arguments are valid given that the number of args is correct.
+   * Checks if the arguments are valid.
    *
    * @param args the arguments for the command, excluding the command name and options
    * @return whether the args are valid
