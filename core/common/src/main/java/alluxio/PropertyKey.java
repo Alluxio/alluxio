@@ -117,8 +117,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("Set to true to enable debug mode which has additional logging and "
               + "info in the Web UI.")
           .build();
-  public static final PropertyKey EXTENSION_DIR =
-      new Builder(Name.EXTENSION_DIR)
+  public static final PropertyKey EXTENSIONS_DIR =
+      new Builder(Name.EXTENSIONS_DIR)
           .setDefaultValue(String.format("${%s}/extensions", Name.HOME))
           .setDescription("The directory containing Alluxio extensions.").build();
   public static final PropertyKey HOME =
@@ -1743,7 +1743,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final class Name {
     public static final String CONF_DIR = "alluxio.conf.dir";
     public static final String DEBUG = "alluxio.debug";
-    public static final String EXTENSION_DIR = "alluxio.extensions.dir";
+    public static final String EXTENSIONS_DIR = "alluxio.extensions.dir";
     public static final String HOME = "alluxio.home";
     public static final String INTEGRATION_MASTER_RESOURCE_CPU =
         "alluxio.integration.master.resource.cpu";

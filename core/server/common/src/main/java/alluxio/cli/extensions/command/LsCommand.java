@@ -60,13 +60,13 @@ public final class LsCommand extends AbstractCommand {
   @Override
   public int run(CommandLine cl) {
     try {
-      String extensionDir = Configuration.get(PropertyKey.EXTENSION_DIR);
+      String extensionsDir = Configuration.get(PropertyKey.EXTENSIONS_DIR);
       List<String> masters = ExtensionsShellUtils.getMasterHostnames();
       if (masters == null) {
         System.out.println("Unable to find a master in conf/masters");
         return -1;
       }
-      String lsCmd = String.format("ls %s", extensionDir);
+      String lsCmd = String.format("ls %s", extensionsDir);
       LOG.info("Executing: {}", lsCmd);
       String output = ShellUtils.execCommand("bash", "-c", lsCmd);
       System.out.println("| Extension URI |");

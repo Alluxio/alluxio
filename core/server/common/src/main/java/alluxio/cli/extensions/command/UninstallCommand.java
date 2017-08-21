@@ -61,12 +61,12 @@ public final class UninstallCommand extends AbstractCommand {
   @Override
   public int run(CommandLine cl) {
     String uri = cl.getArgs()[0];
-    String extensionDir = Configuration.get(PropertyKey.EXTENSION_DIR);
+    String extensionsDir = Configuration.get(PropertyKey.EXTENSIONS_DIR);
     boolean failed = false;
     for (String host : ExtensionsShellUtils.getServerHostnames()) {
       try {
         String rmCmd = String.format("ssh %s %s rm %s", ShellUtils.COMMON_SSH_OPTS, host,
-            PathUtils.concatPath(extensionDir, uri));
+            PathUtils.concatPath(extensionsDir, uri));
         LOG.debug("Executing: {}", rmCmd);
         String output = ShellUtils.execCommand("bash", "-c", rmCmd);
         LOG.debug("Succeeded w/ output: {}", output);

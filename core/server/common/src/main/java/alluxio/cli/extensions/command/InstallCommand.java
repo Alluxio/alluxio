@@ -60,12 +60,12 @@ public final class InstallCommand extends AbstractCommand {
   @Override
   public int run(CommandLine cl) {
     String uri = cl.getArgs()[0];
-    String extensionDir = Configuration.get(PropertyKey.EXTENSION_DIR);
+    String extensionsDir = Configuration.get(PropertyKey.EXTENSIONS_DIR);
     boolean failed = false;
     for (String host : ExtensionsShellUtils.getServerHostnames()) {
       try {
         String rsyncCmd = String.format("rsync -e \"ssh %s\" -az %s %s:%s",
-            ShellUtils.COMMON_SSH_OPTS, uri, host, extensionDir);
+            ShellUtils.COMMON_SSH_OPTS, uri, host, extensionsDir);
         LOG.debug("Executing: {}", rsyncCmd);
         String output = ShellUtils.execCommand("bash", "-c", rsyncCmd);
         LOG.debug("Succeeded w/ output: {}", output);
