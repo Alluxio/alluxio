@@ -30,19 +30,14 @@ public abstract class AbstractCommand implements Command {
   protected AbstractCommand() {}
 
   /**
-   * Checks if the arguments are valid.
+   * Checks if the arguments are valid given that the number of args is correct.
    *
    * @param args the arguments for the command, excluding the command name and options
    * @return whether the args are valid
    */
   protected boolean validateArgs(String... args) {
-    boolean valid = args.length == getNumOfArgs();
-    if (!valid) {
-      System.err.println(String.format("%s takes %d arguments, not %d", getCommandName(),
-          getNumOfArgs(), args.length));
-    }
-    return valid;
-  }
+    return true;
+ }
 
   /**
    * Gets the expected number of arguments of the command.
@@ -67,6 +62,11 @@ public abstract class AbstractCommand implements Command {
     } catch (ParseException e) {
       throw new InvalidArgumentException(
           String.format("Failed to parse args for %s", getCommandName()), e);
+    }
+
+    if (args.length != getNumOfArgs()) {
+      throw new InvalidArgumentException(String.format("%s takes %d arguments, not %d",
+          getCommandName(), getNumOfArgs(), args.length));
     }
 
     if (!validateArgs(cmd.getArgs())) {
