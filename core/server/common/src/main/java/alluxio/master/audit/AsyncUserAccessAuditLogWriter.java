@@ -1,3 +1,14 @@
+/*
+ * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
+ * (the "License"). You may not use this work except in compliance with the License, which is
+ * available at www.apache.org/licenses/LICENSE-2.0
+ *
+ * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+ * either express or implied, as more fully set forth in the License.
+ *
+ * See the NOTICE file distributed with this work for information regarding copyright ownership.
+ */
+
 package alluxio.master.audit;
 
 import alluxio.Configuration;
@@ -10,6 +21,9 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import javax.annotation.concurrent.ThreadSafe;
 
+/**
+ * {@link AsyncUserAccessAuditLogWriter} writes user access audit log entries asynchronously.
+ */
 @ThreadSafe
 public final class AsyncUserAccessAuditLogWriter {
   private static final int QUEUE_SIZE = 10000;
@@ -19,6 +33,9 @@ public final class AsyncUserAccessAuditLogWriter {
   private volatile boolean mStopped;
   private LinkedBlockingQueue<AuditContext> mAuditLogEntries;
 
+  /**
+   * Constructs an {@link AsyncUserAccessAuditLogWriter} instance.
+   */
   public AsyncUserAccessAuditLogWriter() {
     mEnabled = Boolean.parseBoolean(Configuration.get(PropertyKey.MASTER_AUDIT_LOGGING_ENABLED));
     if (mEnabled) {
@@ -27,8 +44,18 @@ public final class AsyncUserAccessAuditLogWriter {
     mStopped = true;
   }
 
-  public boolean isEnabled() { return mEnabled; }
+  /**
+   * Checks whether user access audit logging is enabled or not.
+   *
+   * @return true if user access audit is enabled, false otherwise
+   */
+  public boolean isEnabled() {
+    return mEnabled;
+  }
 
+  /**
+   * Starts {@link AsyncUserAccessAuditLogWriter}.
+   */
   public void start() {
     if (mEnabled && mStopped) {
       mStopped = false;
@@ -36,10 +63,15 @@ public final class AsyncUserAccessAuditLogWriter {
     }
   }
 
-  public void stop() { mStopped = true; }
+  /**
+   * Stops {@link AsyncUserAccessAuditLogWriter}.
+   */
+  public void stop() {
+    mStopped = true;
+  }
 
   /**
-   * Appends an audit context
+   * Appends an audit context.
    *
    * @param context the audit context to append
    * @return true if append operation succeeds, false otherwise
@@ -57,14 +89,17 @@ public final class AsyncUserAccessAuditLogWriter {
   }
 
   /**
-   * Consumer thread of the queue to perform actual logging of audit info
+   * Consumer thread of the queue to perform actual logging of audit info.
    */
   private class AuditLoggingWorker implements Runnable {
+    public AuditLoggingWorker() {}
+
     @Override
     public void run() {
       while (!mStopped) {
         try {
-          AuditContext headContext = mAuditLogEntries.poll(BLOCKING_TIMEOUT_US, TimeUnit.MICROSECONDS);
+          AuditContext headContext = mAuditLogEntries.poll(BLOCKING_TIMEOUT_US,
+              TimeUnit.MICROSECONDS);
           if (headContext == null) {
             continue;
           }

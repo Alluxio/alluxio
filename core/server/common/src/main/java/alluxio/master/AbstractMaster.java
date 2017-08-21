@@ -19,7 +19,6 @@ import alluxio.clock.Clock;
 import alluxio.exception.InvalidJournalEntryException;
 import alluxio.exception.PreconditionMessage;
 import alluxio.master.audit.AsyncUserAccessAuditLogWriter;
-import alluxio.master.audit.AuditContext;
 import alluxio.master.journal.AsyncJournalWriter;
 import alluxio.master.journal.Journal;
 import alluxio.master.journal.JournalCheckpointThread;

@@ -1,6 +1,18 @@
+/*
+ * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
+ * (the "License"). You may not use this work except in compliance with the License, which is
+ * available at www.apache.org/licenses/LICENSE-2.0
+ *
+ * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+ * either express or implied, as more fully set forth in the License.
+ *
+ * See the NOTICE file distributed with this work for information regarding copyright ownership.
+ */
+
 package alluxio.master.file;
 
 import alluxio.thrift.FileSystemMasterClientService;
+
 import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TProtocol;
 import org.apache.thrift.transport.TSaslServerTransport;
@@ -24,15 +36,27 @@ import org.apache.thrift.transport.TTransport;
  * override its {@link org.apache.thrift.ProcessFunction#process} method. In this method, we store
  * the client IP as a thread-local variable for future use by {@link DefaultFileSystemMaster}.
  */
-public class FileSystemMasterClientServiceProcessor extends FileSystemMasterClientService.Processor {
-  private static ThreadLocal<String> mClientIpThreadLocal;
+public class FileSystemMasterClientServiceProcessor
+    extends FileSystemMasterClientService.Processor {
+  private static ThreadLocal<String> sClientIpThreadLocal = new ThreadLocal<>();
 
+  /**
+   * Constructs a {@link FileSystemMasterClientServiceProcessor} instance.
+   *
+   * @param handler user-specified handler to process RPC
+   */
   public FileSystemMasterClientServiceProcessor(FileSystemMasterClientService.Iface handler) {
     super(handler);
-    mClientIpThreadLocal = new ThreadLocal<>();
   }
 
-  public static String getClientIp() { return mClientIpThreadLocal.get(); }
+  /**
+   * Retrieves the client IP of current thread.
+   *
+   * @return the IP of the client of current thread
+   */
+  public static String getClientIp() {
+    return sClientIpThreadLocal.get();
+  }
 
   @Override
   public boolean process(TProtocol in, TProtocol out) throws TException {
@@ -42,9 +66,9 @@ public class FileSystemMasterClientServiceProcessor extends FileSystemMasterClie
     }
     if (transport instanceof TSocket) {
       String ip = ((TSocket) transport).getSocket().getInetAddress().toString();
-      mClientIpThreadLocal.set(ip);
+      sClientIpThreadLocal.set(ip);
     } else {
-      mClientIpThreadLocal.set(null);
+      sClientIpThreadLocal.set(null);
     }
     return super.process(in, out);
   }
