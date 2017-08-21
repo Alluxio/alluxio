@@ -43,7 +43,8 @@ public final class CommandUtils {
     Map<String, Command> commandsMap = new HashMap<>();
     Reflections reflections = new Reflections(Command.class.getPackage().getName());
     for (Class<? extends Command> cls : reflections.getSubTypesOf(Command.class)) {
-      if (cls.getPackage().getName().startsWith(pkgName) && !Modifier.isAbstract(cls.getModifiers())) {
+      if (cls.getPackage().getName().startsWith(pkgName)
+          && !Modifier.isAbstract(cls.getModifiers())) {
         // Only instantiate a concrete class
         Command cmd;
         try {
