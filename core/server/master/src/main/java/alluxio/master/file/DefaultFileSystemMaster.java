@@ -304,6 +304,11 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
   private Future<List<AlluxioURI>> mStartupConsistencyCheck;
 
   /**
+   * Log writer for user access audit log.
+   */
+  private AsyncUserAccessAuditLogWriter mAsyncAuditLogWriter;
+
+  /**
    * Creates a new instance of {@link DefaultFileSystemMaster}.
    *
    * @param blockMaster a block master handle
@@ -490,6 +495,10 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       } catch (InvalidPathException e) {
         throw new IOException("Failed to mount the default UFS " + rootUfsUri, e);
       }
+      if (Configuration.getBoolean(PropertyKey.MASTER_AUDIT_LOGGING_ENABLED)) {
+        mAsyncAuditLogWriter = new AsyncUserAccessAuditLogWriter();
+        mAsyncAuditLogWriter.start();
+      }
     }
     // Call super.start after mInodeTree is initialized because mInodeTree is needed to write
     // a journal entry during super.start. Call super.start before calling
@@ -514,6 +523,15 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         });
       }
     }
+  }
+
+  @Override
+  public void stop() throws IOException {
+    if (mAsyncAuditLogWriter != null) {
+      mAsyncAuditLogWriter.stop();
+      mAsyncAuditLogWriter = null;
+    }
+    super.stop();
   }
 
   /**

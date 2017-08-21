@@ -18,7 +18,6 @@ import alluxio.Server;
 import alluxio.clock.Clock;
 import alluxio.exception.InvalidJournalEntryException;
 import alluxio.exception.PreconditionMessage;
-import alluxio.master.audit.AsyncUserAccessAuditLogWriter;
 import alluxio.master.journal.AsyncJournalWriter;
 import alluxio.master.journal.Journal;
 import alluxio.master.journal.JournalCheckpointThread;
@@ -75,8 +74,6 @@ public abstract class AbstractMaster implements Master {
   private JournalWriter mJournalWriter;
   /** The {@link AsyncJournalWriter} for async journal writes. */
   private AsyncJournalWriter mAsyncJournalWriter;
-
-  protected AsyncUserAccessAuditLogWriter mAsyncAuditLogWriter;
 
   /** The clock to use for determining the time. */
   protected final Clock mClock;
@@ -148,10 +145,6 @@ public abstract class AbstractMaster implements Master {
         }
       }
       mAsyncJournalWriter = new AsyncJournalWriter(mJournalWriter);
-      if (Configuration.getBoolean(PropertyKey.MASTER_AUDIT_LOGGING_ENABLED)) {
-        mAsyncAuditLogWriter = new AsyncUserAccessAuditLogWriter();
-        mAsyncAuditLogWriter.start();
-      }
     } else {
       LOG.info("{}: Starting secondary master.", getName());
 
@@ -169,10 +162,6 @@ public abstract class AbstractMaster implements Master {
     if (mIsPrimary) {
       LOG.info("{}: Stopping primary master.", getName());
       // Stop this primary master.
-      if (mAsyncAuditLogWriter != null) {
-        mAsyncAuditLogWriter.stop();
-        mAsyncAuditLogWriter = null;
-      }
       if (mJournalWriter != null) {
         mJournalWriter.close();
         mJournalWriter = null;
