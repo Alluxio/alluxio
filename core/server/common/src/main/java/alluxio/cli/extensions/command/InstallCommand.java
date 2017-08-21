@@ -23,6 +23,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.LinkedList;
+import java.util.List;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -34,7 +36,7 @@ public final class InstallCommand extends AbstractCommand {
   private static final Logger LOG = LoggerFactory.getLogger(InstallCommand.class);
 
   /**
-   * Construct a new instance of {@link InstallCommand}.
+   * Constructs a new instance of {@link InstallCommand}.
    */
   public InstallCommand() {}
 
@@ -61,9 +63,10 @@ public final class InstallCommand extends AbstractCommand {
   public int run(CommandLine cl) {
     String uri = cl.getArgs()[0];
     String extensionsDir = Configuration.get(PropertyKey.EXTENSIONS_DIR);
-    boolean failed = false;
+    List<String> failedHosts = new LinkedList<>();
     for (String host : ExtensionsShellUtils.getServerHostnames()) {
       try {
+        LOG.info("Attempting to install extension on host {}", host);
         String rsyncCmd = String.format("rsync -e \"ssh %s\" -az %s %s:%s",
             ShellUtils.COMMON_SSH_OPTS, uri, host, extensionsDir);
         LOG.debug("Executing: {}", rsyncCmd);
@@ -71,11 +74,14 @@ public final class InstallCommand extends AbstractCommand {
         LOG.debug("Succeeded w/ output: {}", output);
       } catch (IOException e) {
         LOG.error("Error installing extension on host {}", host, e);
-        failed = true;
+        failedHosts.add(host);
       }
     }
-    if (failed) {
-      System.err.println("Failed to install extension on at least one host.");
+    if (failedHosts.size() != 0) {
+      System.err.println("Failed to install extension on hosts:");
+      for (String failedHost : failedHosts) {
+        System.err.println(failedHost);
+      }
       return -1;
     }
     System.out.println("Extension installed successfully.");
