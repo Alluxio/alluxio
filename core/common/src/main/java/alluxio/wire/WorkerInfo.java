@@ -192,8 +192,7 @@ public final class WorkerInfo implements Serializable {
   }
 
   /**
-   * Uses the last contact seconds of to determine order from most recently contacted to least
-   * recently contacted.
+   * Determine order from most recently contacted to least recently contacted.
    */
   public static final class LastContactSecComparator implements Comparator<WorkerInfo> {
     @Override

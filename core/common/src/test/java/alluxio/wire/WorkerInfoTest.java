@@ -39,16 +39,11 @@ public class WorkerInfoTest {
 
   @Test
   public void lastContactSecComparator() {
-    int[] lastContactSecList = {55, 10, 2, 40, 100, 6};
-    int[] comparisonResults = {45, 8, -38, -60, 94};
-    WorkerInfo.LastContactSecComparator comparator = new WorkerInfo.LastContactSecComparator();
-    WorkerInfo worker1 = createRandom();
-    WorkerInfo worker2 = createRandom();
-    for (int i = 0; i < comparisonResults.length; i++) {
-      worker1.setLastContactSec(lastContactSecList[i]);
-      worker2.setLastContactSec(lastContactSecList[i + 1]);
-      Assert.assertEquals(comparisonResults[i++], comparator.compare(worker1, worker2));
-    }
+    Assert.assertTrue(compareLostWorkersWithTimes(0, 1) < 0);
+    Assert.assertTrue(compareLostWorkersWithTimes(1, 0) > 0);
+    Assert.assertTrue(compareLostWorkersWithTimes(1, 1) == 0);
+    Assert.assertTrue(compareLostWorkersWithTimes(-1, 1) < 0);
+    Assert.assertTrue(compareLostWorkersWithTimes(1, -1) > 0);
   }
 
   public void checkEquality(WorkerInfo a, WorkerInfo b) {
@@ -60,6 +55,15 @@ public class WorkerInfoTest {
     Assert.assertEquals(a.getUsedBytes(), b.getUsedBytes());
     Assert.assertEquals(a.getStartTimeMs(), b.getStartTimeMs());
     Assert.assertEquals(a, b);
+  }
+
+  public static int compareLostWorkersWithTimes(int time1, int time2) {
+    WorkerInfo.LastContactSecComparator comparator = new WorkerInfo.LastContactSecComparator();
+    WorkerInfo worker1 = createRandom();
+    WorkerInfo worker2 = createRandom();
+    worker1.setLastContactSec(time1);
+    worker2.setLastContactSec(time2);
+    return comparator.compare(worker1, worker2);
   }
 
   public static WorkerInfo createRandom() {
