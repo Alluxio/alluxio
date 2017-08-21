@@ -15,6 +15,8 @@ import alluxio.AlluxioURI;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.options.CreateDirectoryOptions;
 import alluxio.exception.AlluxioException;
+import alluxio.exception.ExceptionMessage;
+import alluxio.exception.status.InvalidArgumentException;
 
 import org.apache.commons.cli.CommandLine;
 
@@ -72,11 +74,10 @@ public final class MkdirCommand extends AbstractFileSystemCommand {
   }
 
   @Override
-  public boolean validateArgs(String... args) {
-    boolean valid = args.length >= getNumOfArgs();
-    if (!valid) {
-      System.out.println(getCommandName() + " takes " + getNumOfArgs() + " argument at least\n");
+  public void validateArgs(String... args) throws InvalidArgumentException {
+    if (args.length < getNumOfArgs()) {
+      throw new InvalidArgumentException(ExceptionMessage.INVALID_ARGS_NUM_INSUFFICIENT
+          .getMessage(getCommandName(), getNumOfArgs(), args.length));
     }
-    return valid;
   }
 }

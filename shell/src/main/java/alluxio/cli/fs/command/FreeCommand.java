@@ -15,6 +15,8 @@ import alluxio.AlluxioURI;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.options.FreeOptions;
 import alluxio.exception.AlluxioException;
+import alluxio.exception.ExceptionMessage;
+import alluxio.exception.status.InvalidArgumentException;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
@@ -76,7 +78,10 @@ public final class FreeCommand extends WithWildCardPathCommand {
   }
 
   @Override
-  public boolean validateArgs(String... args) {
-    return args.length >= 1;
+  public void validateArgs(String... args) throws InvalidArgumentException {
+    if (args.length < 1) {
+      throw new InvalidArgumentException(ExceptionMessage.INVALID_ARGS_NUM_INSUFFICIENT
+          .getMessage(getCommandName(), 1, args.length));
+    }
   }
 }

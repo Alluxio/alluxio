@@ -16,6 +16,8 @@ import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.cli.AbstractCommand;
 import alluxio.cli.extensions.ExtensionsShellUtils;
+import alluxio.exception.ExceptionMessage;
+import alluxio.exception.status.InvalidArgumentException;
 import alluxio.util.ShellUtils;
 import alluxio.util.io.PathUtils;
 
@@ -90,7 +92,12 @@ public final class UninstallCommand extends AbstractCommand {
   }
 
   @Override
-  public boolean validateArgs(String... args) {
-    return args.length == getNumOfArgs() && args[0].endsWith(Constants.EXTENSION_JAR);
+  protected void validateArgs(String... args) throws InvalidArgumentException {
+    super.validateArgs(args);
+
+    if (!args[0].endsWith(Constants.EXTENSION_JAR)) {
+      throw new InvalidArgumentException(
+          ExceptionMessage.INVALID_EXTENSION_NOT_JAR.getMessage(args[0]));
+    }
   }
 }

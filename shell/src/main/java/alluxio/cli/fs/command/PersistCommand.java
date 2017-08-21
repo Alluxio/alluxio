@@ -16,6 +16,8 @@ import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemUtils;
 import alluxio.client.file.URIStatus;
 import alluxio.exception.AlluxioException;
+import alluxio.exception.ExceptionMessage;
+import alluxio.exception.status.InvalidArgumentException;
 
 import com.google.common.base.Joiner;
 import org.apache.commons.cli.CommandLine;
@@ -50,12 +52,11 @@ public final class PersistCommand extends AbstractFileSystemCommand {
   }
 
   @Override
-  public boolean validateArgs(String... args) {
-    boolean valid = args.length >= getNumOfArgs();
-    if (!valid) {
-      System.out.println(getCommandName() + " takes " + getNumOfArgs() + " argument at least\n");
+  public void validateArgs(String... args) throws InvalidArgumentException {
+    if (args.length < getNumOfArgs()) {
+      throw new InvalidArgumentException(ExceptionMessage.INVALID_ARGS_NUM_INSUFFICIENT
+          .getMessage(getCommandName(), getNumOfArgs(), args.length));
     }
-    return valid;
   }
 
   @Override

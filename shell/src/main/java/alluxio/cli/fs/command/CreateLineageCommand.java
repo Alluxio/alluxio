@@ -18,6 +18,8 @@ import alluxio.client.file.FileSystem;
 import alluxio.client.lineage.AlluxioLineage;
 import alluxio.client.lineage.LineageContext;
 import alluxio.exception.AlluxioException;
+import alluxio.exception.ExceptionMessage;
+import alluxio.exception.status.InvalidArgumentException;
 import alluxio.job.CommandLineJob;
 import alluxio.job.JobConf;
 
@@ -53,13 +55,11 @@ public final class CreateLineageCommand extends AbstractFileSystemCommand {
   }
 
   @Override
-  public boolean validateArgs(String... args) {
-    boolean valid = args.length >= getNumOfArgs();
-    if (!valid) {
-      System.out.println(getCommandName() + " takes at least" + getNumOfArgs() + " arguments, "
-              + " not " + args.length + "\n");
+  public void validateArgs(String... args) throws InvalidArgumentException {
+    if (args.length < getNumOfArgs()) {
+      throw new InvalidArgumentException(ExceptionMessage.INVALID_ARGS_NUM_INSUFFICIENT
+          .getMessage(getCommandName(), getNumOfArgs(), args.length));
     }
-    return valid;
   }
 
   @Override
