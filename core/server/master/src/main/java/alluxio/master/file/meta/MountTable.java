@@ -188,11 +188,16 @@ public final class MountTable implements JournalEntryIterable {
   }
 
   /**
-   * Clears all the mount points.
+   * Clears all the mount points except the root.
    */
   public void clear() {
+    LOG.info("Clearing mount table (except the root).");
     try (LockResource r = new LockResource(mWriteLock)) {
+      MountInfo mountInfo = mMountTable.get(ROOT);
       mMountTable.clear();
+      if (mountInfo != null) {
+        mMountTable.put(ROOT, mountInfo);
+      }
     }
   }
 

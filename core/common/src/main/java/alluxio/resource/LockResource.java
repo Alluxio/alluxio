@@ -11,7 +11,6 @@
 
 package alluxio.resource;
 
-import java.io.Closeable;
 import java.util.concurrent.locks.Lock;
 
 /**
@@ -23,7 +22,7 @@ import java.util.concurrent.locks.Lock;
  *   }
  * </pre>
  */
-public class LockResource implements Closeable {
+public class LockResource implements AutoCloseable {
   private final Lock mLock;
 
   /**

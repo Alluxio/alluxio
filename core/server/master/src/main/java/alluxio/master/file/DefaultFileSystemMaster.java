@@ -128,7 +128,6 @@ import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterators;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.thrift.TProcessor;
@@ -456,15 +455,21 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     Map<String, String> rootUfsConf =
         Configuration.getNestedProperties(PropertyKey.MASTER_MOUNT_TABLE_ROOT_OPTION);
     mMountTable.clear();
-    try {
-      long rootUfsMountId = IdUtils.ROOT_MOUNT_ID;
-      mMountTable.add(new AlluxioURI(MountTable.ROOT), new AlluxioURI(rootUfsUri), rootUfsMountId,
-          MountOptions.defaults()
-              .setShared(UnderFileSystemUtils.isObjectStorage(rootUfsUri) && Configuration
-                  .getBoolean(PropertyKey.UNDERFS_OBJECT_STORE_MOUNT_SHARED_PUBLICLY))
-              .setProperties(rootUfsConf));
-    } catch (FileAlreadyExistsException | InvalidPathException e) {
-      throw new IllegalStateException(e);
+    // Initialize the root mount if it doesn't exist yet.
+    if (!mMountTable.isMountPoint(new AlluxioURI(MountTable.ROOT))) {
+      try {
+        // The root mount is a part of the file system master's initial state. The mounting is not
+        // journaled, so the root will be re-mounted based on configuration whenever the master
+        // starts.
+        long rootUfsMountId = IdUtils.ROOT_MOUNT_ID;
+        mMountTable.add(new AlluxioURI(MountTable.ROOT), new AlluxioURI(rootUfsUri), rootUfsMountId,
+            MountOptions.defaults()
+                .setShared(UnderFileSystemUtils.isObjectStorage(rootUfsUri) && Configuration
+                    .getBoolean(PropertyKey.UNDERFS_OBJECT_STORE_MOUNT_SHARED_PUBLICLY))
+                .setProperties(rootUfsConf));
+      } catch (FileAlreadyExistsException | InvalidPathException e) {
+        throw new IllegalStateException(e);
+      }
     }
   }
 
