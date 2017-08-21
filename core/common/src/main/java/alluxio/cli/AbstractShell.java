@@ -75,7 +75,7 @@ public abstract class AbstractShell implements Closeable {
         // Handle command alias, and print out WARNING message for deprecated cmd.
         String deprecatedMsg = "WARNING: " + cmd + " is deprecated. Please use "
             + StringUtils.join(replacementCmd, " ") + " instead.";
-        System.err.println(deprecatedMsg);
+        System.out.println(deprecatedMsg);
 
         String[] replacementArgv =
             (String[]) ArrayUtils.addAll(replacementCmd, ArrayUtils.subarray(argv, 1, argv.length));
