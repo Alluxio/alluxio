@@ -27,7 +27,6 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public final class AsyncUserAccessAuditLogWriter {
   private static final int QUEUE_SIZE = 10000;
-  private static final int BLOCKING_TIMEOUT_US = 10;
   private static final Logger LOG = LoggerFactory.getLogger(AsyncUserAccessAuditLogWriter.class);
   private final boolean mEnabled;
   private volatile boolean mStopped;
@@ -98,11 +97,7 @@ public final class AsyncUserAccessAuditLogWriter {
     public void run() {
       while (!mStopped) {
         try {
-          AuditContext headContext = mAuditLogEntries.poll(BLOCKING_TIMEOUT_US,
-              TimeUnit.MICROSECONDS);
-          if (headContext == null) {
-            continue;
-          }
+          AuditContext headContext = mAuditLogEntries.take();
           LOG.info(headContext.toString());
         } catch (InterruptedException e) {
           Thread.currentThread().interrupt();
