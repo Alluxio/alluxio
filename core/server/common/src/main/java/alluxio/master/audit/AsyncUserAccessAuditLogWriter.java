@@ -11,14 +11,10 @@
 
 package alluxio.master.audit;
 
-import alluxio.Configuration;
-import alluxio.PropertyKey;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.TimeUnit;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -30,6 +26,7 @@ public final class AsyncUserAccessAuditLogWriter {
   private static final Logger LOG = LoggerFactory.getLogger(AsyncUserAccessAuditLogWriter.class);
   private volatile boolean mStopped;
   private LinkedBlockingQueue<AuditContext> mAuditLogEntries;
+  private Thread mLoggingWorkerThread;
 
   /**
    * Constructs an {@link AsyncUserAccessAuditLogWriter} instance.
@@ -45,7 +42,8 @@ public final class AsyncUserAccessAuditLogWriter {
   public void start() {
     if (mStopped) {
       mStopped = false;
-      new Thread(new AuditLoggingWorker()).start();
+      mLoggingWorkerThread = new Thread(new AuditLoggingWorker());
+      mLoggingWorkerThread.start();
     }
   }
 
@@ -53,7 +51,14 @@ public final class AsyncUserAccessAuditLogWriter {
    * Stops {@link AsyncUserAccessAuditLogWriter}.
    */
   public void stop() {
-    mStopped = true;
+    mLoggingWorkerThread.interrupt();
+    try {
+      mLoggingWorkerThread.join();
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+    } finally {
+      mStopped = true;
+    }
   }
 
   /**
