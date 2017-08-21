@@ -9,10 +9,15 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio;
+package alluxio.master;
 
+import alluxio.Configuration;
+import alluxio.Constants;
+import alluxio.PropertyKey;
+import alluxio.exception.status.UnavailableException;
 import alluxio.util.CommonUtils;
 import alluxio.util.io.PathUtils;
+import alluxio.util.network.NetworkAddressUtils;
 
 import org.apache.curator.CuratorZookeeperClient;
 import org.apache.curator.framework.CuratorFramework;
@@ -23,6 +28,7 @@ import org.apache.zookeeper.data.Stat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -33,11 +39,17 @@ import javax.annotation.concurrent.ThreadSafe;
  * Utility to get leader from zookeeper.
  */
 @ThreadSafe
-public final class MasterInquireClient {
-  private static final Logger LOG = LoggerFactory.getLogger(MasterInquireClient.class);
+public final class ZkMasterInquireClient implements MasterInquireClient {
+  private static final Logger LOG = LoggerFactory.getLogger(ZkMasterInquireClient.class);
 
   /** Map from key spliced by the address for Zookeeper and path of leader to created client. */
-  private static HashMap<String, MasterInquireClient> sCreatedClients = new HashMap<>();
+  private static HashMap<String, ZkMasterInquireClient> sCreatedClients = new HashMap<>();
+
+  private final String mZookeeperAddress;
+  private final String mElectionPath;
+  private final String mLeaderPath;
+  private final CuratorFramework mClient;
+  private final int mMaxTry;
 
   /**
    * Gets the client.
@@ -48,29 +60,24 @@ public final class MasterInquireClient {
    *
    * @return the client
    */
-  public static synchronized MasterInquireClient getClient(String zookeeperAddress,
+  public static synchronized ZkMasterInquireClient getClient(String zookeeperAddress,
       String electionPath, String leaderPath) {
     String key = zookeeperAddress + leaderPath;
     if (!sCreatedClients.containsKey(key)) {
-      sCreatedClients.put(key, new MasterInquireClient(zookeeperAddress, electionPath, leaderPath));
+      sCreatedClients.put(key,
+          new ZkMasterInquireClient(zookeeperAddress, electionPath, leaderPath));
     }
     return sCreatedClients.get(key);
   }
 
-  private final String mZookeeperAddress;
-  private final String mElectionPath;
-  private final String mLeaderPath;
-  private final CuratorFramework mClient;
-  private final int mMaxTry;
-
   /**
-   * Constructor for {@link MasterInquireClient}.
+   * Constructor for {@link ZkMasterInquireClient}.
    *
    * @param zookeeperAddress the address for Zookeeper
    * @param electionPath the path of the master election
    * @param leaderPath the path of the leader
    */
-  private MasterInquireClient(String zookeeperAddress, String electionPath, String leaderPath) {
+  private ZkMasterInquireClient(String zookeeperAddress, String electionPath, String leaderPath) {
     mZookeeperAddress = zookeeperAddress;
     mElectionPath = electionPath;
     mLeaderPath = leaderPath;
@@ -84,10 +91,8 @@ public final class MasterInquireClient {
     mMaxTry = Configuration.getInt(PropertyKey.ZOOKEEPER_LEADER_INQUIRY_RETRY_COUNT);
   }
 
-  /**
-   * @return the address of the current leader master
-   */
-  public synchronized String getLeaderAddress() {
+  @Override
+  public synchronized InetSocketAddress getPrimaryRpcAddress() throws UnavailableException {
     long startTime = System.currentTimeMillis();
     int tried = 0;
     try {
@@ -109,7 +114,7 @@ public final class MasterInquireClient {
           LOG.debug("Master addresses: {}", masters);
           if (masters.size() >= 1) {
             if (masters.size() == 1) {
-              return masters.get(0);
+              return NetworkAddressUtils.parseInetSocketAddress(masters.get(0));
             }
 
             long maxTime = 0;
@@ -122,7 +127,7 @@ public final class MasterInquireClient {
               }
             }
             LOG.debug("The leader master: {}", leader);
-            return leader;
+            return NetworkAddressUtils.parseInetSocketAddress(leader);
           }
         } else {
           LOG.info("{} does not exist ({})", mLeaderPath, ++tried);
@@ -135,27 +140,25 @@ public final class MasterInquireClient {
       LOG.error("Error getting the leader master address from zookeeper. Zookeeper address: {}",
           mZookeeperAddress, e);
     } finally {
-      LOG.debug("Finished getLeaderAddress() in {}ms", System.currentTimeMillis() - startTime);
+      LOG.debug("Finished getPrimaryRpcAddress() in {}ms", System.currentTimeMillis() - startTime);
     }
 
-    return null;
+    throw new UnavailableException("Failed to determine primary master rpc address");
   }
 
-  /**
-   * @return the list of all the master addresses
-   */
-  public synchronized List<String> getMasterAddresses() {
+  @Override
+  public synchronized List<InetSocketAddress> getMasterRpcAddresses() throws UnavailableException {
     int tried = 0;
     try {
       while (tried < mMaxTry) {
         if (mClient.checkExists().forPath(mElectionPath) != null) {
           List<String> children = mClient.getChildren().forPath(mElectionPath);
-          List<String> ret = new ArrayList<>();
+          List<InetSocketAddress> ret = new ArrayList<>();
           for (String child : children) {
             byte[] data = mClient.getData().forPath(PathUtils.concatPath(mElectionPath, child));
             if (data != null) {
               // The data of the child znode is the corresponding master address for now
-              ret.add(new String(data, "utf-8"));
+              ret.add(NetworkAddressUtils.parseInetSocketAddress(new String(data, "utf-8")));
             }
           }
           LOG.info("All masters: {}", ret);
@@ -169,6 +172,11 @@ public final class MasterInquireClient {
           mZookeeperAddress, e);
     }
 
-    return null;
+    throw new UnavailableException("Failed to query zookeeper for master RPC addresses");
+  }
+
+  @Override
+  public void close() {
+    mClient.close();
   }
 }

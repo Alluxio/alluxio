@@ -20,6 +20,7 @@ import alluxio.BaseIntegrationTest;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.exception.ExceptionMessage;
+import alluxio.exception.status.PermissionDeniedException;
 import alluxio.master.MasterRegistry;
 import alluxio.master.MasterTestUtils;
 import alluxio.master.file.FileSystemMaster;
@@ -97,16 +98,15 @@ public final class ClusterInitializationIntegrationTest extends BaseIntegrationT
   @LocalAlluxioClusterResource.Config(
       confParams = {PropertyKey.Name.SECURITY_LOGIN_USERNAME, SUPER_USER})
   public void recoverClusterFail() throws Exception {
-    mThrown.expect(RuntimeException.class);
-    mThrown.expectMessage(ExceptionMessage.PERMISSION_DENIED
-        .getMessage("Unauthorized user on root"));
-
     FileSystem fs = mLocalAlluxioClusterResource.get().getClient();
     fs.createFile(new AlluxioURI("/testFile")).close();
     mLocalAlluxioClusterResource.get().stopFS();
 
     LoginUserTestUtils.resetLoginUser(USER);
 
+    mThrown.expect(PermissionDeniedException.class);
+    mThrown.expectMessage(ExceptionMessage.PERMISSION_DENIED
+        .getMessage("Unauthorized user on root"));
     // user jack cannot recover master from journal, in which the root is owned by alluxio.
     MasterTestUtils.createLeaderFileSystemMasterFromJournal();
   }

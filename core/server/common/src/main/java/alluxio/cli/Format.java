@@ -15,7 +15,9 @@ import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.RuntimeConstants;
 import alluxio.ServiceUtils;
-import alluxio.master.journal.Journal;
+import alluxio.master.NoopMaster;
+import alluxio.master.journal.JournalSystem;
+import alluxio.master.journal.JournalUtils;
 import alluxio.util.io.FileUtils;
 import alluxio.util.io.PathUtils;
 
@@ -24,7 +26,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -106,17 +107,14 @@ public final class Format {
   public static void format(Mode mode) throws IOException {
     switch (mode) {
       case MASTER:
-        String masterJournal = Configuration.get(PropertyKey.MASTER_JOURNAL_FOLDER);
-        LOG.info("Formatting master journal: {}", masterJournal);
-        Journal.Factory factory;
-        try {
-          factory = new Journal.Factory(new URI(masterJournal));
-        } catch (URISyntaxException e) {
-          throw new IOException(e.getMessage());
-        }
+        URI journalLocation = JournalUtils.getJournalLocation();
+        LOG.info("Formatting master journal: {}", journalLocation);
+        JournalSystem journalSystem =
+            new JournalSystem.Builder().setLocation(journalLocation).build();
         for (String masterServiceName : ServiceUtils.getMasterServiceNames()) {
-          factory.create(masterServiceName).format();
+          journalSystem.createJournal(new NoopMaster(masterServiceName));
         }
+        journalSystem.format();
         break;
       case WORKER:
         String workerDataFolder = Configuration.get(PropertyKey.WORKER_DATA_FOLDER);

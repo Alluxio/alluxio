@@ -71,7 +71,7 @@ public abstract class WithWildCardPathCommand extends AbstractFileSystemCommand 
         try {
           runCommand(path, cl);
         } catch (AlluxioException | IOException e) {
-          errorMessages.add(e.getMessage());
+          errorMessages.add(e.getMessage() != null ? e.getMessage() : e.toString());
         }
       }
 

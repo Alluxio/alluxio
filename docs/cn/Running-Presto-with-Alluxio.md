@@ -6,7 +6,7 @@ group: Frameworks
 priority: 2
 ---
 
-该文档介绍如何运行[Presto](https://prestodb.io/)，让Presto能够查询Alluxio上的Hive表。
+该文档介绍如何运行[Presto](https://prestodb.io/)，让Presto能够查询存储在Alluxio上的Hive表。
 
 # 前期准备
 
@@ -19,14 +19,14 @@ Alluxio客户端需要和Presto的具体配置文件一起编译。在顶层目�
 mvn clean package -Ppresto -DskipTests
 ```
 
-接着[下载Presto](https://repo1.maven.org/maven2/com/facebook/presto/presto-server/)(此文档使用0.170版本)。并且已经配置好
-[Hive On Alluxio](http://www.alluxio.org/docs/master/cn/Running-Hive-with-Alluxio.html)
+接着[下载Presto](https://repo1.maven.org/maven2/com/facebook/presto/presto-server/)(此文档使用0.170版本)。并且请使用
+[Hive On Alluxio](http://www.alluxio.org/docs/master/cn/Running-Hive-with-Alluxio.html)完成Hive初始化。
 
 # 配置
 
-Presto 通过连接Hive metastore来获取数据库和表的信息，同时通过表的元数据信息来获取表数据所在的hdfs位置信息。
-所以需要先配置[Presto on Hdfs](https://prestodb.io/docs/current/installation/deployment.html),为了访问hdfs，
-需要将hadoop的core-site.xml、hdfs-site.xml加入到Presto每个节点的设置文件`/<PATH_TO_PRESTO>/etc/catalog/hive.properties`中的`hive.config.resources`的值.
+Presto 从Hive metastore中获取数据库和表元数据的信息，同时通过表的元数据信息条目来获取表数据所在的hdfs位置信息。
+所以需要先配置[Presto on HDFS](https://prestodb.io/docs/current/installation/deployment.html),为了访问HDFS，
+需要将Hadoop的core-site.xml、hdfs-site.xml加入到Presto每个节点的设置文件`/<PATH_TO_PRESTO>/etc/catalog/hive.properties`中的`hive.config.resources`的值.
 
 #### 配置`core-site.xml`
 
@@ -84,7 +84,7 @@ alluxio.zookeeper.address=[zookeeper_hostname]:2181
 -Xbootclasspath/p:<path-to-alluxio-site-properties>
 ```
 
-此外，我们建议提高`alluxio.user.network.netty.timeout.ms`的值（比如10分钟），来防止读异地大文件时的超时问题。
+此外，我们建议提高`alluxio.user.network.netty.timeout.ms`的值（比如10分钟），来防止读远程worker中的大文件时的超时问题。
 
 #### 提高`hive.max-split-size`值
 
@@ -97,6 +97,8 @@ Presto的Hive集成里使用了配置[`hive.max-split-size`](https://teradata.gi
 
 - 你必须将Alluxio客户端jar包 `{{site.ALLUXIO_CLIENT_JAR_PATH}}`放置在所有Presto节点的`$PRESTO_HOME/plugin/hive-hadoop2/`
 目录中（针对不同hadoop版本，放到相应的文件夹下），并且重启所有coordinator和worker。
+
+另外，高级用户可以选择从源代码编译这个客户端jar。根据[这里](Building-Alluxio-Master-Branch.html#compute-framework-support)的指导，并在这份指导的其余部分使用`{{site.ALLUXIO_CLIENT_JAR_PATH_BUILD}}`里生成的jar。
 
 # Presto命令行示例
 

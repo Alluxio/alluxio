@@ -24,14 +24,13 @@ import alluxio.exception.InvalidWorkerStateException;
 import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatThread;
+import alluxio.master.MasterClientConfig;
 import alluxio.metrics.MetricsSystem;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.thrift.BlockWorkerClientService;
 import alluxio.underfs.UfsManager;
 import alluxio.util.CommonUtils;
 import alluxio.util.ThreadFactoryUtils;
-import alluxio.util.network.NetworkAddressUtils;
-import alluxio.util.network.NetworkAddressUtils.ServiceType;
 import alluxio.wire.FileInfo;
 import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.AbstractWorker;
@@ -123,8 +122,7 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
    * @param ufsManager ufs manager
    */
   DefaultBlockWorker(UfsManager ufsManager) {
-    this(new BlockMasterClientPool(NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC)),
-        new FileSystemMasterClient(NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC)),
+    this(new BlockMasterClientPool(), new FileSystemMasterClient(MasterClientConfig.defaults()),
         new Sessions(), new TieredBlockStore(), ufsManager);
   }
 

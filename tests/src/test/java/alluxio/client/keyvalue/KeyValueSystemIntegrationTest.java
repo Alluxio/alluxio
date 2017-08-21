@@ -12,16 +12,16 @@
 package alluxio.client.keyvalue;
 
 import alluxio.AlluxioURI;
+import alluxio.BaseIntegrationTest;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.PropertyKey;
-import alluxio.BaseIntegrationTest;
 import alluxio.client.file.FileSystem;
-import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
+import alluxio.master.MasterClientConfig;
 import alluxio.util.io.BufferUtils;
 import alluxio.util.io.PathUtils;
 
@@ -332,8 +332,7 @@ public final class KeyValueSystemIntegrationTest extends BaseIntegrationTest {
   }
 
   private int getPartitionNumber(AlluxioURI storeUri) throws Exception {
-    try (KeyValueMasterClient client = new KeyValueMasterClient(
-        FileSystemContext.INSTANCE.getMasterAddress())) {
+    try (KeyValueMasterClient client = new KeyValueMasterClient(MasterClientConfig.defaults())) {
       return client.getPartitionInfo(storeUri).size();
     }
   }

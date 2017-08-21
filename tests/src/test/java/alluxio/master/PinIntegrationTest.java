@@ -12,8 +12,8 @@
 package alluxio.master;
 
 import alluxio.AlluxioURI;
-import alluxio.LocalAlluxioClusterResource;
 import alluxio.BaseIntegrationTest;
+import alluxio.LocalAlluxioClusterResource;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
@@ -31,7 +31,6 @@ import org.junit.Rule;
 import org.junit.Test;
 
 import java.io.IOException;
-import java.net.InetSocketAddress;
 import java.util.HashSet;
 
 /**
@@ -49,9 +48,7 @@ public final class PinIntegrationTest extends BaseIntegrationTest {
   @Before
   public final void before() throws Exception {
     mFileSystem = mLocalAlluxioClusterResource.get().getClient();
-    mFSMasterClient = new FileSystemMasterClient(
-        new InetSocketAddress(mLocalAlluxioClusterResource.get().getHostname(),
-            mLocalAlluxioClusterResource.get().getMasterRpcPort()));
+    mFSMasterClient = new FileSystemMasterClient(MasterClientConfig.defaults());
     mSetPinned = SetAttributeOptions.defaults().setPinned(true);
     mUnsetPinned = SetAttributeOptions.defaults().setPinned(false);
   }

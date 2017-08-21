@@ -14,7 +14,7 @@ package alluxio.master.block;
 import alluxio.Constants;
 import alluxio.master.MasterFactory;
 import alluxio.master.MasterRegistry;
-import alluxio.master.journal.JournalFactory;
+import alluxio.master.journal.JournalSystem;
 
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
@@ -45,7 +45,7 @@ public final class BlockMasterFactory implements MasterFactory {
   }
 
   @Override
-  public BlockMaster create(MasterRegistry registry, JournalFactory journalFactory) {
+  public BlockMaster create(MasterRegistry registry, JournalSystem journalFactory) {
     Preconditions.checkArgument(journalFactory != null, "journal");
     LOG.info("Creating {} ", BlockMaster.class.getName());
     BlockMaster master = new DefaultBlockMaster(journalFactory);

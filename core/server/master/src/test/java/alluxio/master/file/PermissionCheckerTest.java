@@ -29,9 +29,9 @@ import alluxio.master.file.meta.InodeTree;
 import alluxio.master.file.meta.LockedInodePath;
 import alluxio.master.file.meta.MountTable;
 import alluxio.master.file.options.CreateFileOptions;
-import alluxio.master.journal.Journal;
-import alluxio.master.journal.JournalFactory;
+import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.NoopJournalContext;
+import alluxio.master.journal.noop.NoopJournalSystem;
 import alluxio.security.GroupMappingServiceTestUtils;
 import alluxio.security.authentication.AuthType;
 import alluxio.security.authentication.AuthenticatedClientUser;
@@ -52,7 +52,6 @@ import org.junit.rules.TemporaryFolder;
 import org.mockito.Mockito;
 
 import java.io.IOException;
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -172,10 +171,8 @@ public final class PermissionCheckerTest {
 
     // setup an InodeTree
     sRegistry = new MasterRegistry();
-    JournalFactory factory =
-        new Journal.Factory(new URI(sTestFolder.newFolder().getAbsolutePath()));
-
-    BlockMaster blockMaster = new BlockMasterFactory().create(sRegistry, factory);
+    JournalSystem journalSystem = new NoopJournalSystem();
+    BlockMaster blockMaster = new BlockMasterFactory().create(sRegistry, journalSystem);
     InodeDirectoryIdGenerator directoryIdGenerator = new InodeDirectoryIdGenerator(blockMaster);
     UfsManager ufsManager = Mockito.mock(UfsManager.class);
     MountTable mountTable = new MountTable(ufsManager);

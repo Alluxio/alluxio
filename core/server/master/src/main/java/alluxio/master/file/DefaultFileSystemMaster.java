@@ -33,6 +33,7 @@ import alluxio.exception.PreconditionMessage;
 import alluxio.exception.UnexpectedAlluxioException;
 import alluxio.exception.status.FailedPreconditionException;
 import alluxio.exception.status.NotFoundException;
+import alluxio.exception.status.PermissionDeniedException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatThread;
@@ -70,7 +71,7 @@ import alluxio.master.file.options.MountOptions;
 import alluxio.master.file.options.RenameOptions;
 import alluxio.master.file.options.SetAttributeOptions;
 import alluxio.master.journal.JournalContext;
-import alluxio.master.journal.JournalFactory;
+import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.NoopJournalContext;
 import alluxio.metrics.MetricsSystem;
 import alluxio.proto.journal.File.AddMountPointEntry;
@@ -305,10 +306,10 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    * Creates a new instance of {@link DefaultFileSystemMaster}.
    *
    * @param blockMaster a block master handle
-   * @param journalFactory the factory for the journal to use for tracking master operations
+   * @param journalSystem the journal system to use for tracking master operations
    */
-  DefaultFileSystemMaster(BlockMaster blockMaster, JournalFactory journalFactory) {
-    this(blockMaster, journalFactory, ExecutorServiceFactories
+  DefaultFileSystemMaster(BlockMaster blockMaster, JournalSystem journalSystem) {
+    this(blockMaster, journalSystem, ExecutorServiceFactories
         .fixedThreadPoolExecutorServiceFactory(Constants.FILE_SYSTEM_MASTER_NAME, 3));
   }
 
@@ -316,14 +317,13 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    * Creates a new instance of {@link DefaultFileSystemMaster}.
    *
    * @param blockMaster a block master handle
-   * @param journalFactory the factory for the journal to use for tracking master operations
+   * @param journalSystem the journal system to use for tracking master operations
    * @param executorServiceFactory a factory for creating the executor service to use for running
    *        maintenance threads
    */
-  DefaultFileSystemMaster(BlockMaster blockMaster, JournalFactory journalFactory,
+  DefaultFileSystemMaster(BlockMaster blockMaster, JournalSystem journalSystem,
       ExecutorServiceFactory executorServiceFactory) {
-    super(journalFactory.create(Constants.FILE_SYSTEM_MASTER_NAME), new SystemClock(),
-        executorServiceFactory);
+    super(journalSystem, new SystemClock(), executorServiceFactory);
 
     mBlockMaster = blockMaster;
     mDirectoryIdGenerator = new InodeDirectoryIdGenerator(mBlockMaster);
@@ -338,6 +338,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     mPermissionChecker = new PermissionChecker(mInodeTree);
     mUfsAbsentPathCache = UfsAbsentPathCache.Factory.create(mMountTable);
 
+    resetState();
     Metrics.registerGauges(this, mUfsManager);
   }
 
@@ -365,11 +366,6 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
 
   @Override
   public void processJournalEntry(JournalEntry entry) throws IOException {
-    if (entry.getSequenceNumber() == 0) {
-      // The mount table is the only structure to clear. The inode tree is reset when it
-      // processes the ROOT journal entry.
-      mMountTable.clear();
-    }
     if (entry.hasInodeFile()) {
       mInodeTree.addInodeFileFromJournal(entry.getInodeFile());
       // Add the file to TTL buckets, the insert automatically rejects files w/ Constants.NO_TTL
@@ -454,6 +450,31 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
   }
 
   @Override
+  public void resetState() {
+    mInodeTree.reset();
+    String rootUfsUri = Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
+    Map<String, String> rootUfsConf =
+        Configuration.getNestedProperties(PropertyKey.MASTER_MOUNT_TABLE_ROOT_OPTION);
+    mMountTable.clear();
+    // Initialize the root mount if it doesn't exist yet.
+    if (!mMountTable.isMountPoint(new AlluxioURI(MountTable.ROOT))) {
+      try {
+        // The root mount is a part of the file system master's initial state. The mounting is not
+        // journaled, so the root will be re-mounted based on configuration whenever the master
+        // starts.
+        long rootUfsMountId = IdUtils.ROOT_MOUNT_ID;
+        mMountTable.add(new AlluxioURI(MountTable.ROOT), new AlluxioURI(rootUfsUri), rootUfsMountId,
+            MountOptions.defaults()
+                .setShared(UnderFileSystemUtils.isObjectStorage(rootUfsUri) && Configuration
+                    .getBoolean(PropertyKey.UNDERFS_OBJECT_STORE_MOUNT_SHARED_PUBLICLY))
+                .setProperties(rootUfsConf));
+      } catch (FileAlreadyExistsException | InvalidPathException e) {
+        throw new IllegalStateException(e);
+      }
+    }
+  }
+
+  @Override
   public Iterator<JournalEntry> getJournalEntryIterator() {
     return Iterators.concat(mInodeTree.getJournalEntryIterator(),
         CommonUtils.singleElementIterator(mDirectoryIdGenerator.toJournalEntry()),
@@ -465,35 +486,31 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
 
   @Override
   public void start(Boolean isPrimary) throws IOException {
-    if (isPrimary) {
-      // Only initialize root when isPrimary because when initializing root, BlockMaster needs to
-      // write journal entry, if it is not primary, BlockMaster won't have a writable journal.
-      // If it is secondary, it should be able to load the inode tree from primary's checkpoint.
-      mInodeTree.initializeRoot(SecurityUtils.getOwnerFromLoginModule(),
-          SecurityUtils.getGroupFromLoginModule(), Mode.createFullAccess().applyDirectoryUMask());
-      String rootUfsUri = Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
-      Map<String, String> rootUfsConf =
-          Configuration.getNestedProperties(PropertyKey.MASTER_MOUNT_TABLE_ROOT_OPTION);
-      long rootUfsMountId = IdUtils.ROOT_MOUNT_ID;
-      try {
-        // NOTE, we currently treat root inode specially and add it to inode tree manually.
-        mMountTable.add(new AlluxioURI(MountTable.ROOT), new AlluxioURI(rootUfsUri),
-            rootUfsMountId, MountOptions.defaults().setShared(
-                UnderFileSystemUtils.isObjectStorage(rootUfsUri) && Configuration
-                    .getBoolean(PropertyKey.UNDERFS_OBJECT_STORE_MOUNT_SHARED_PUBLICLY))
-                .setProperties(rootUfsConf));
-      } catch (FileAlreadyExistsException e) {
-        // This can happen when a primary becomes a standby and then becomes a primary.
-        LOG.info("Root has already been mounted.");
-      } catch (InvalidPathException e) {
-        throw new IOException("Failed to mount the default UFS " + rootUfsUri, e);
-      }
-    }
-    // Call super.start after mInodeTree is initialized because mInodeTree is needed to write
-    // a journal entry during super.start. Call super.start before calling
-    // getExecutorService() because the super.start initializes the executor service.
     super.start(isPrimary);
     if (isPrimary) {
+      LOG.info("Starting fs master as primary");
+
+      InodeDirectory root = mInodeTree.getRoot();
+      if (root == null) {
+        try (JournalContext context = createJournalContext()) {
+          mInodeTree.initializeRoot(SecurityUtils.getOwnerFromLoginModule(),
+              SecurityUtils.getGroupFromLoginModule(),
+              Mode.createFullAccess().applyDirectoryUMask());
+          context.append(mInodeTree.getRoot().toJournalEntry());
+        }
+      } else {
+        // For backwards-compatibility:
+        // Empty root owner indicates that previously the master had no security. In this case, the
+        // master is allowed to be started with security turned on.
+        String serverOwner = SecurityUtils.getOwnerFromLoginModule();
+        if (SecurityUtils.isSecurityEnabled() && !root.getOwner().isEmpty()
+            && !root.getOwner().equals(serverOwner)) {
+          // user is not the previous owner
+          throw new PermissionDeniedException(
+              ExceptionMessage.PERMISSION_DENIED.getMessage("Unauthorized user on root"));
+        }
+      }
+
       mTtlCheckerService = getExecutorService().submit(
           new HeartbeatThread(HeartbeatContext.MASTER_TTL_CHECK,
               new InodeTtlChecker(this, mInodeTree, mTtlBuckets),

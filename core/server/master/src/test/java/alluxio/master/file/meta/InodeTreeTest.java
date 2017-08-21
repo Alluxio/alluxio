@@ -27,9 +27,10 @@ import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
 import alluxio.master.file.options.CreatePathOptions;
 import alluxio.master.file.options.DeleteOptions;
-import alluxio.master.journal.Journal;
-import alluxio.master.journal.JournalFactory;
+import alluxio.master.journal.JournalContext;
+import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.NoopJournalContext;
+import alluxio.master.journal.noop.NoopJournalSystem;
 import alluxio.security.authorization.Mode;
 import alluxio.underfs.UfsManager;
 import alluxio.util.CommonUtils;
@@ -48,7 +49,6 @@ import org.junit.rules.TemporaryFolder;
 import org.mockito.Mockito;
 
 import java.io.IOException;
-import java.net.URI;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
@@ -94,10 +94,8 @@ public final class InodeTreeTest {
   @Before
   public void before() throws Exception {
     mRegistry = new MasterRegistry();
-    JournalFactory factory =
-        new Journal.Factory(new URI(mTestFolder.newFolder().getAbsolutePath()));
-
-    BlockMaster blockMaster = new BlockMasterFactory().create(mRegistry, factory);
+    JournalSystem journalSystem = new NoopJournalSystem();
+    BlockMaster blockMaster = new BlockMasterFactory().create(mRegistry, journalSystem);
     InodeDirectoryIdGenerator directoryIdGenerator = new InodeDirectoryIdGenerator(blockMaster);
     UfsManager ufsManager = Mockito.mock(UfsManager.class);
     MountTable mountTable = new MountTable(ufsManager);
@@ -142,8 +140,8 @@ public final class InodeTreeTest {
   }
 
   /**
-   * Tests the {@link InodeTree#createPath(LockedInodePath, CreatePathOptions)} method for creating
-   * directories.
+   * Tests the {@link InodeTree#createPath(LockedInodePath, CreatePathOptions, JournalContext)}
+   * method for creating directories.
    */
   @Test
   public void createDirectory() throws Exception {
@@ -209,8 +207,8 @@ public final class InodeTreeTest {
   }
 
   /**
-   * Tests the {@link InodeTree#createPath(LockedInodePath, CreatePathOptions)} method for creating
-   * a file.
+   * Tests the {@link InodeTree#createPath(LockedInodePath, CreatePathOptions, JournalContext)}
+   * method for creating a file.
    */
   @Test
   public void createFile() throws Exception {
@@ -226,7 +224,8 @@ public final class InodeTreeTest {
   }
 
   /**
-   * Tests the {@link InodeTree#createPath(LockedInodePath, CreatePathOptions)} method.
+   * Tests the {@link InodeTree#createPath(LockedInodePath, CreatePathOptions, JournalContext)}
+   * method.
    */
   @Test
   public void createPathTest() throws Exception {

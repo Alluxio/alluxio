@@ -14,35 +14,34 @@ package alluxio.master.block;
 import static org.junit.Assert.fail;
 
 import alluxio.AlluxioURI;
+import alluxio.LocalAlluxioClusterResource;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.client.file.URIStatus;
 import alluxio.exception.BlockInfoException;
 import alluxio.master.LocalAlluxioCluster;
-import alluxio.master.MasterRegistry;
-import alluxio.master.MasterTestUtils;
+import alluxio.master.MasterProcess;
 import alluxio.wire.WorkerNetAddress;
 
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
-
-import java.util.concurrent.ExecutorService;
 
 /**
  * Integration tests for block master functionality.
  */
-public class BlockMasterIntegrationTest {
+public class BlockMasterJournalIntegrationTest {
 
-  private ExecutorService mExecutorsForClient;
+  @Rule
+  public LocalAlluxioClusterResource mClusterResource =
+      new LocalAlluxioClusterResource.Builder().build();
   private LocalAlluxioCluster mCluster;
 
   @Before
-  public void before() throws Exception {
-    mCluster = new LocalAlluxioCluster();
-    mCluster.initConfiguration();
-    mCluster.start();
+  public void before() {
+    mCluster = mClusterResource.get();
   }
 
   @Test
@@ -55,10 +54,10 @@ public class BlockMasterIntegrationTest {
     URIStatus status = fs.getStatus(file);
     Long blockId = status.getBlockIds().get(0);
     Assert.assertNotNull(blockMaster.getBlockInfo(blockId));
-    mCluster.stopFS();
-    MasterRegistry registry = MasterTestUtils.createLeaderFileSystemMasterFromJournal();
-    Assert.assertNotNull(registry.get(BlockMaster.class).getBlockInfo(blockId));
-    registry.stop();
+    mCluster.stopMasters();
+    mCluster.startMasters();
+    MasterProcess masterProcess = mCluster.getLocalAlluxioMaster().getMasterProcess();
+    Assert.assertNotNull(masterProcess.getMaster(BlockMaster.class).getBlockInfo(blockId));
   }
 
   @Test
@@ -79,14 +78,14 @@ public class BlockMasterIntegrationTest {
     } catch (BlockInfoException e) {
       // expected
     }
-    mCluster.stopFS();
-    MasterRegistry registry = MasterTestUtils.createLeaderFileSystemMasterFromJournal();
+    mCluster.stopMasters();
+    mCluster.startMasters();
+    MasterProcess masterProcess = mCluster.getLocalAlluxioMaster().getMasterProcess();
     try {
-      registry.get(BlockMaster.class).getBlockInfo(blockId);
+      masterProcess.getMaster(BlockMaster.class).getBlockInfo(blockId);
       fail("Expected the block to be deleted after restart");
     } catch (BlockInfoException e) {
       // expected
     }
-    registry.stop();
   }
 }

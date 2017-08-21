@@ -13,28 +13,26 @@ package alluxio.master.journal;
 
 import alluxio.proto.journal.Journal.JournalEntry;
 
-import java.io.Closeable;
 import java.io.IOException;
 
 /**
- * This class manages all the writes to the journal.
+ * Interface for a state machine which operates on {@link JournalEntry}s.
  */
-public interface JournalWriter extends Closeable {
+public interface JournalEntryStateMachine extends JournalEntryIterable {
   /**
-   * Writes an entry. {@link #flush} should be called afterwards if we want to make sure the entry
-   * is persisted.
+   * @return the name of this journal entry state machine
+   */
+  String getName();
+
+  /**
+   * Applies a journal entry to the state machine.
    *
-   * @param entry the journal entry to write
+   * @param entry the entry to process to update the state of the state machine
    */
-  void write(JournalEntry entry) throws IOException;
+  void processJournalEntry(JournalEntry entry) throws IOException;
 
   /**
-   * Flushes all the entries written to the underlying storage.
+   * Resets the journaled internal state of the state machine.
    */
-  void flush() throws IOException;
-
-  /**
-   * Cancels the current journal writer.
-   */
-  void cancel() throws IOException;
+  void resetState();
 }
