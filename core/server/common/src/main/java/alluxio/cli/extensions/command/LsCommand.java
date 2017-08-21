@@ -27,7 +27,7 @@ import java.util.List;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * Install a new extension.
+ * Lists all installed extensions.
  */
 @ThreadSafe
 public final class LsCommand extends AbstractCommand {
