@@ -54,7 +54,7 @@ public final class InstallCommand extends AbstractCommand {
 
   @Override
   public String getDescription() {
-    return "Installs an extension.";
+    return "Installs an extension into hosts configured in conf/masters and conf/workers.";
   }
 
   @Override

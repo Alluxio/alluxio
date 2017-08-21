@@ -55,7 +55,7 @@ public final class UninstallCommand extends AbstractCommand {
 
   @Override
   public String getDescription() {
-    return "Uninstalls an extension.";
+    return "Uninstalls an extension from hosts configured in conf/masters and conf/workers.";
   }
 
   @Override
