@@ -57,13 +57,9 @@ public final class ExtensionsShellUtils {
    * @return server hostnames
    */
   public static Set<String> getServerHostnames() {
-    List<String> masters = getMasterHostnames();
-    List<String> workers = getWorkerHostnames();
-
-    Set<String> hostnames = new HashSet<>(masters.size() + workers.size());
-    hostnames.addAll(masters);
-    hostnames.addAll(workers);
-    return hostnames;
+    List<String> servers = getMasterHostnames();
+    servers.addAll(getWorkerHostnames());
+    return new HashSet<>(servers);
   }
 
   /**
