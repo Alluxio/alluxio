@@ -11,6 +11,7 @@
 
 package alluxio.cli;
 
+import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.InvalidArgumentException;
 
 import org.apache.commons.cli.CommandLine;
@@ -65,13 +66,13 @@ public abstract class AbstractCommand implements Command {
     }
 
     if (cmd.getArgs().length != getNumOfArgs()) {
-      throw new InvalidArgumentException(String.format("%s takes %d arguments, not %d",
-          getCommandName(), getNumOfArgs(), cmd.getArgs().length));
+      throw new InvalidArgumentException(ExceptionMessage.INVALID_NUM_ARGS
+          .getMessage(getCommandName(), getNumOfArgs(), cmd.getArgs().length));
     }
 
     if (!validateArgs(cmd.getArgs())) {
       throw new InvalidArgumentException(
-          String.format("Invalid args for command %s", getCommandName()));
+          ExceptionMessage.INVALID_ARGS.getMessage(getCommandName()));
     }
     return cmd;
   }

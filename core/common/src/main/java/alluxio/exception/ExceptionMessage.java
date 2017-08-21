@@ -161,6 +161,8 @@ public enum ExceptionMessage {
           + "the client state due to a timeout."),
 
   // shell
+  INVALID_NUM_ARGS("{0} takes {1} arguments, not {3}"),
+  INVALID_ARGS("Invalid args for command {0}"),
   DESTINATION_CANNOT_BE_FILE(
       "The destination cannot be an existing file when the source is a directory or a list of "
           + "files."),
