@@ -64,9 +64,9 @@ public abstract class AbstractCommand implements Command {
           String.format("Failed to parse args for %s", getCommandName()), e);
     }
 
-    if (args.length != getNumOfArgs()) {
+    if (cmd.getArgs().length != getNumOfArgs()) {
       throw new InvalidArgumentException(String.format("%s takes %d arguments, not %d",
-          getCommandName(), getNumOfArgs(), args.length));
+          getCommandName(), getNumOfArgs(), cmd.getArgs().length));
     }
 
     if (!validateArgs(cmd.getArgs())) {
