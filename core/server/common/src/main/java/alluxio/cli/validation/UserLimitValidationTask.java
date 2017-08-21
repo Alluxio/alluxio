@@ -19,9 +19,9 @@ import java.io.InputStreamReader;
  * Task for validating system limit for current user.
  */
 public final class UserLimitValidationTask implements ValidationTask {
-  private static final int NUMBER_OF_OPEN_FILES_MIN = 4096;
+  private static final int NUMBER_OF_OPEN_FILES_MIN = 16384;
   private static final int NUMBER_OF_OPEN_FILES_MAX = 800000;
-  private static final int NUMBER_OF_USER_PROCESSES_MIN = 1024;
+  private static final int NUMBER_OF_USER_PROCESSES_MIN = 16384;
   private final String mCommand;
   private final String mName;
   private final Integer mLowerBound;
