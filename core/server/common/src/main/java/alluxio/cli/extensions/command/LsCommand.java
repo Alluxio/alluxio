@@ -12,16 +12,17 @@
 package alluxio.cli.extensions.command;
 
 import alluxio.Configuration;
+import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.cli.AbstractCommand;
 import alluxio.cli.extensions.ExtensionsShellUtils;
-import alluxio.util.ShellUtils;
 
 import org.apache.commons.cli.CommandLine;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
+import java.io.File;
+import java.io.FileFilter;
 import java.util.List;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -54,27 +55,24 @@ public final class LsCommand extends AbstractCommand {
 
   @Override
   public String getDescription() {
-    return "Lists all installed extensions.";
+    return "Lists JAR names for all installed extensions.";
   }
 
   @Override
   public int run(CommandLine cl) {
-    try {
-      String extensionsDir = Configuration.get(PropertyKey.EXTENSIONS_DIR);
-      List<String> masters = ExtensionsShellUtils.getMasterHostnames();
-      if (masters == null) {
-        System.out.println("Unable to find a master in conf/masters");
-        return -1;
-      }
-      String lsCmd = String.format("ls %s", extensionsDir);
-      LOG.info("Executing: {}", lsCmd);
-      String output = ShellUtils.execCommand("bash", "-c", lsCmd);
-      System.out.println("| Extension URI |");
-      System.out.print(output);
-    } catch (IOException e) {
-      LOG.error("Error installing extension.", e);
-      System.out.println("Failed to install extension.");
+    String extensionsDir = Configuration.get(PropertyKey.EXTENSIONS_DIR);
+    List<String> masters = ExtensionsShellUtils.getMasterHostnames();
+    if (masters == null) {
+      System.out.println("Unable to find a master in conf/masters");
       return -1;
+    }
+    File[] extensions = new File(extensionsDir).listFiles(new FileFilter() {
+      public boolean accept(File file) {
+        return file.getPath().toLowerCase().endsWith(Constants.EXTENSION_JAR);
+      }
+    });
+    for (File extension : extensions) {
+      System.out.println(extension.getName());
     }
     return 0;
   }

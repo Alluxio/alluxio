@@ -62,9 +62,7 @@ public class ServiceSocketBindIntegrationTest extends BaseIntegrationTest {
    */
   private void connectServices() throws IOException, ConnectionFailedException {
     // connect Master RPC service
-    mBlockMasterClient = BlockMasterClient.Factory.create(
-        new InetSocketAddress(mLocalAlluxioCluster.getHostname(),
-            mLocalAlluxioCluster.getMasterRpcPort()));
+    mBlockMasterClient = BlockMasterClient.Factory.create(MasterClientConfig.defaults());
     mBlockMasterClient.connect();
 
     // connect Worker RPC service
@@ -159,7 +157,8 @@ public class ServiceSocketBindIntegrationTest extends BaseIntegrationTest {
     // Connect to Master RPC service on loopback, while Master is listening on local hostname.
     InetSocketAddress masterRpcAddr = new InetSocketAddress("127.0.0.1",
         mLocalAlluxioCluster.getLocalAlluxioMaster().getRpcLocalPort());
-    mBlockMasterClient = BlockMasterClient.Factory.create(masterRpcAddr);
+    mBlockMasterClient = BlockMasterClient.Factory.create(MasterClientConfig.defaults()
+        .withMasterInquireClient(new SingleMasterInquireClient(masterRpcAddr)));
     try {
       mBlockMasterClient.connect();
       Assert.fail("Client should not have successfully connected to master RPC service.");

@@ -29,6 +29,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.management.ManagementFactory;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -334,7 +335,12 @@ public final class Configuration {
   public static <T extends Enum<T>> T getEnum(PropertyKey key, Class<T> enumType) {
     String rawValue = get(key);
 
-    return Enum.valueOf(enumType, rawValue);
+    try {
+      return Enum.valueOf(enumType, rawValue);
+    } catch (IllegalArgumentException e) {
+      throw new RuntimeException(ExceptionMessage.UNKNOWN_ENUM.getMessage(rawValue,
+          Arrays.toString(enumType.getEnumConstants())));
+    }
   }
 
   /**

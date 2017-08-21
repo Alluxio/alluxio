@@ -89,6 +89,7 @@ public abstract class AbstractShell implements Closeable {
       cmdline = command.parseAndValidateArgs(args);
     } catch (InvalidArgumentException e) {
       System.out.println("Usage: " + command.getUsage());
+      LOG.error("Invalid arguments for command {}:", command.getCommandName(), e);
       return -1;
     }
 
@@ -125,6 +126,8 @@ public abstract class AbstractShell implements Closeable {
   protected abstract String getShellName();
 
   /**
+   * Map structure: Command name => {@link Command} instance.
+   *
    * @return a set of commands which can be executed under this shell
    */
   protected abstract Map<String, ? extends Command> loadCommands();

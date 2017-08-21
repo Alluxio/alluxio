@@ -34,7 +34,8 @@ public final class ExtensionsShellUtils {
   private static final String WORKERS = "workers";
 
   /**
-   * Gets all supported {@link ExtensionCommand} classes instances and load them into a map.
+   * Gets all {@link Command} instances in the same package as {@link ExtensionsShell} and loads
+   * them into a map.
    *
    * @return a mapping from command name to command instance
    */
@@ -43,7 +44,7 @@ public final class ExtensionsShellUtils {
   }
 
   /**
-   * Get list of masters in conf directory.
+   * Gets list of masters in conf directory.
    *
    * @return master hostnames
    */

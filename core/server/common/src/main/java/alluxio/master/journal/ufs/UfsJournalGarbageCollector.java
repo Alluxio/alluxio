@@ -74,7 +74,7 @@ final class UfsJournalGarbageCollector implements Closeable {
   }
 
   /**
-   * Snapshots the journal and deletes files that are not necessary.
+   * Deletes unneeded snapshots.
    */
   void gc() {
     UfsJournalSnapshot snapshot;

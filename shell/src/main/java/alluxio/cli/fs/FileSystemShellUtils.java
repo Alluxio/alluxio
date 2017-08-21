@@ -212,8 +212,8 @@ public final class FileSystemShellUtils {
   }
 
   /**
-   * Gets all supported {@link Command} classes instances and load them into a map.
-   * Provides a way to gain these commands information by their CommandName.
+   * Gets all {@link Command} instances in the same package as {@link FileSystemShell} and load them
+   * into a map. Provides a way to gain these commands information by their CommandName.
    *
    * @param fileSystem the {@link FileSystem} instance to construct the command
    * @return a mapping from command name to command instance

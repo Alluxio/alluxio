@@ -16,6 +16,8 @@ import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.cli.AbstractCommand;
 import alluxio.cli.extensions.ExtensionsShellUtils;
+import alluxio.exception.ExceptionMessage;
+import alluxio.exception.status.InvalidArgumentException;
 import alluxio.util.ShellUtils;
 import alluxio.util.io.PathUtils;
 
@@ -24,6 +26,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.LinkedList;
+import java.util.List;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -50,7 +54,7 @@ public final class UninstallCommand extends AbstractCommand {
 
   @Override
   public String getUsage() {
-    return "uninstall <URI>";
+    return "uninstall <JAR>";
   }
 
   @Override
@@ -62,9 +66,10 @@ public final class UninstallCommand extends AbstractCommand {
   public int run(CommandLine cl) {
     String uri = cl.getArgs()[0];
     String extensionsDir = Configuration.get(PropertyKey.EXTENSIONS_DIR);
-    boolean failed = false;
+    List<String> failedHosts = new LinkedList<>();
     for (String host : ExtensionsShellUtils.getServerHostnames()) {
       try {
+        LOG.info("Attempting to uninstall extension on host {}", host);
         String rmCmd = String.format("ssh %s %s rm %s", ShellUtils.COMMON_SSH_OPTS, host,
             PathUtils.concatPath(extensionsDir, uri));
         LOG.debug("Executing: {}", rmCmd);
@@ -72,11 +77,14 @@ public final class UninstallCommand extends AbstractCommand {
         LOG.debug("Succeeded w/ output: {}", output);
       } catch (IOException e) {
         LOG.error("Error uninstalling extension on host {}.", host, e);
-        failed = true;
+        failedHosts.add(host);
       }
     }
-    if (failed) {
-      System.err.println("Failed to uninstall extension.");
+    if (failedHosts.size() != 0) {
+      System.err.println("Failed to uninstall extension on hosts:");
+      for (String failedHost : failedHosts) {
+        System.err.println(failedHost);
+      }
       return -1;
     }
     System.out.println("Extension uninstalled successfully.");
@@ -84,7 +92,12 @@ public final class UninstallCommand extends AbstractCommand {
   }
 
   @Override
-  public boolean validateArgs(String... args) {
-    return args.length == getNumOfArgs() && args[0].endsWith(Constants.EXTENSION_JAR);
+  protected void validateArgs(String... args) throws InvalidArgumentException {
+    super.validateArgs(args);
+
+    if (!args[0].endsWith(Constants.EXTENSION_JAR)) {
+      throw new InvalidArgumentException(
+          ExceptionMessage.INVALID_EXTENSION_NOT_JAR.getMessage(args[0]));
+    }
   }
 }

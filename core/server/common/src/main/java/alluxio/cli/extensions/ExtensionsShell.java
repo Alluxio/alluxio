@@ -30,7 +30,7 @@ public final class ExtensionsShell extends AbstractShell {
   /**
    * Manage Alluxio extensions.
    *
-   * @param args [] Array of arguments given by the user's input from the terminal
+   * @param args [] array of arguments given by the user's input from the terminal
    */
   public static void main(String[] args) {
     ExtensionsShell extensionShell = new ExtensionsShell();

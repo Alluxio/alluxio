@@ -12,11 +12,11 @@
 package alluxio.master.journal.ufs;
 
 import alluxio.AlluxioURI;
+import alluxio.BaseIntegrationTest;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.PropertyKey;
-import alluxio.BaseIntegrationTest;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
@@ -28,11 +28,10 @@ import alluxio.client.file.options.SetAttributeOptions;
 import alluxio.master.LocalAlluxioCluster;
 import alluxio.master.MasterRegistry;
 import alluxio.master.MasterTestUtils;
+import alluxio.master.NoopMaster;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.options.GetStatusOptions;
 import alluxio.master.file.options.ListStatusOptions;
-import alluxio.master.journal.JournalWriter;
-import alluxio.master.journal.options.JournalWriterOptions;
 import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.security.authorization.Mode;
 import alluxio.security.group.GroupMappingService;
@@ -129,19 +128,19 @@ public class UfsJournalIntegrationTest extends BaseIntegrationTest {
     String journalFolder = mLocalAlluxioCluster.getLocalAlluxioMaster().getJournalFolder();
     mLocalAlluxioCluster.stop();
     UfsJournal journal = new UfsJournal(
-        new URI(PathUtils.concatPath(journalFolder, Constants.FILE_SYSTEM_MASTER_NAME)));
+        new URI(PathUtils.concatPath(journalFolder, Constants.FILE_SYSTEM_MASTER_NAME)),
+        new NoopMaster(), 0);
+    journal.start();
+    journal.gainPrimacy();
 
     UfsStatus[] paths = UnderFileSystem.Factory.create(journalFolder)
         .listStatus(journal.getLogDir().toString());
     int expectedSize = paths == null ? 0 : paths.length;
 
-    try (JournalWriter writer =
-        journal.getWriter(JournalWriterOptions.defaults().setPrimary(true))) {
-      // Flush multiple times, without writing to the log.
-      writer.flush();
-      writer.flush();
-      writer.flush();
-    }
+    journal.flush();
+    journal.flush();
+    journal.flush();
+    journal.close();
     paths = UnderFileSystem.Factory.create(journalFolder)
         .listStatus(journal.getLogDir().toString());
     int actualSize = paths == null ? 0 : paths.length;
@@ -193,7 +192,7 @@ public class UfsJournalIntegrationTest extends BaseIntegrationTest {
     String journalFolder = PathUtils
         .concatPath(mLocalAlluxioCluster.getLocalAlluxioMaster().getJournalFolder(),
             Constants.FILE_SYSTEM_MASTER_NAME);
-    UfsJournal journal = new UfsJournal(new URI(journalFolder));
+    UfsJournal journal = new UfsJournal(new URI(journalFolder), new NoopMaster(), 0);
     URI completedLocation = journal.getLogDir();
     Assert.assertTrue(UnderFileSystem.Factory.create(completedLocation)
         .listStatus(completedLocation.toString()).length > 1);
@@ -615,7 +614,8 @@ public class UfsJournalIntegrationTest extends BaseIntegrationTest {
   private void deleteFsMasterJournalLogs() throws Exception {
     String journalFolder = mLocalAlluxioCluster.getLocalAlluxioMaster().getJournalFolder();
     UfsJournal journal = new UfsJournal(
-        new URI(PathUtils.concatPath(journalFolder, Constants.FILE_SYSTEM_MASTER_NAME)));
+        new URI(PathUtils.concatPath(journalFolder, Constants.FILE_SYSTEM_MASTER_NAME)),
+        new NoopMaster(), 0);
     if (UfsJournalSnapshot.getCurrentLog(journal) != null) {
       UnderFileSystem.Factory.create(journalFolder)
           .deleteFile(UfsJournalSnapshot.getCurrentLog(journal).getLocation().toString());

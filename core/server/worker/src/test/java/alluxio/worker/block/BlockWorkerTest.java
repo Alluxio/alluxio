@@ -48,7 +48,6 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.io.IOException;
-import java.net.InetSocketAddress;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Random;
@@ -95,8 +94,7 @@ public class BlockWorkerTest {
   public void before() throws IOException {
     mRandom = new Random();
     mBlockMasterClient = PowerMockito.mock(BlockMasterClient.class);
-    mBlockMasterClientPool =
-        Mockito.spy(new BlockMasterClientPool(new InetSocketAddress("localhost", 12345)));
+    mBlockMasterClientPool = Mockito.spy(new BlockMasterClientPool());
     Mockito.when(mBlockMasterClientPool.createNewResource()).thenReturn(mBlockMasterClient);
     mBlockStore = PowerMockito.mock(BlockStore.class);
     mFileSystemMasterClient = PowerMockito.mock(FileSystemMasterClient.class);

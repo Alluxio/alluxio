@@ -11,7 +11,7 @@
 
 package alluxio.cli;
 
-import static alluxio.exception.ExceptionMessage.INVALID_ARGS;
+import static alluxio.exception.ExceptionMessage.INVALID_ARGS_NUM;
 
 import alluxio.exception.status.InvalidArgumentException;
 
@@ -74,8 +74,7 @@ public final class AbstractCommandTest {
     TestCommand cmd = new TestCommand();
 
     mExpectedException.expect(InvalidArgumentException.class);
-    mExpectedException.expectMessage(INVALID_ARGS.getMessage(cmd.getCommandName()));
+    mExpectedException.expectMessage(INVALID_ARGS_NUM.getMessage(cmd.getCommandName(), 1, 2));
     cmd.parseAndValidateArgs("arg1", "arg2");
-    Assert.fail("parseAndValidateArgs should fail");
   }
 }

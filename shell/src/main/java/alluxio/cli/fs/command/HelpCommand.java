@@ -15,6 +15,8 @@ import alluxio.cli.Command;
 import alluxio.client.file.FileSystem;
 import alluxio.exception.AlluxioException;
 import alluxio.cli.fs.FileSystemShellUtils;
+import alluxio.exception.ExceptionMessage;
+import alluxio.exception.status.InvalidArgumentException;
 
 import jline.TerminalFactory;
 import org.apache.commons.cli.CommandLine;
@@ -103,14 +105,11 @@ public final class HelpCommand extends AbstractFileSystemCommand {
   }
 
   @Override
-  public boolean validateArgs(String... args) {
-    boolean valid = args.length <= getNumOfArgs();
-    if (!valid) {
-      System.out.println(
-          getCommandName() + " takes at most " + getNumOfArgs() + " arguments, " + " not "
-              + args.length + "\n");
+  public void validateArgs(String... args) throws InvalidArgumentException {
+    if (args.length < getNumOfArgs()) {
+      throw new InvalidArgumentException(ExceptionMessage.INVALID_ARGS_NUM_INSUFFICIENT
+          .getMessage(getCommandName(), getNumOfArgs(), args.length));
     }
-    return valid;
   }
 
   @Override
