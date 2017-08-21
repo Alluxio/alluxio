@@ -72,7 +72,7 @@ public final class LsCommand extends AbstractCommand {
       }
     });
     for (File extension : extensions) {
-      System.out.print(extension.getName());
+      System.out.println(extension.getName());
     }
     return 0;
   }
