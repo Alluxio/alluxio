@@ -33,6 +33,7 @@ import java.net.Socket;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Properties;
 
 /**
@@ -47,7 +48,7 @@ public class AlluxioLogServerProcess implements LogServerProcess {
   private ServerSocket mServerSocket;
   private int mPort;
   private String mBaseLogDir;
-  private HashMap<InetAddress, Hierarchy> mInetAddressHashMap;
+  private Map<InetAddress, Hierarchy> mInetAddressHashMap;
   private boolean mStopped;
 
   public AlluxioLogServerProcess(String portStr, String baseLogDir) {
