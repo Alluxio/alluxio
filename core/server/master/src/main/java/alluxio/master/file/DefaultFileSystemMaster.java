@@ -3338,6 +3338,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
 
   /**
    * Creates a {@link MasterAuditContext} instance.
+   *
    * @param command
    * @param srcPath
    * @param dstPath
