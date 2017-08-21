@@ -78,9 +78,4 @@ public final class LsCommand extends AbstractCommand {
     }
     return 0;
   }
-
-  @Override
-  public boolean validateArgs(String... args) {
-    return args.length == 0;
-  }
 }

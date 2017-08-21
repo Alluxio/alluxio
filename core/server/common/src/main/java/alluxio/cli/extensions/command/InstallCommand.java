@@ -84,6 +84,6 @@ public final class InstallCommand extends AbstractCommand {
 
   @Override
   public boolean validateArgs(String... args) {
-    return args.length == 1 && args[0].endsWith(Constants.EXTENSION_JAR);
+    return args[0].endsWith(Constants.EXTENSION_JAR);
   }
 }
