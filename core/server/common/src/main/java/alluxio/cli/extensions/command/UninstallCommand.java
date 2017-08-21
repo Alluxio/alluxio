@@ -85,6 +85,6 @@ public final class UninstallCommand extends AbstractCommand {
 
   @Override
   public boolean validateArgs(String... args) {
-    return args[0].endsWith(Constants.EXTENSION_JAR);
+    return args.length == getNumOfArgs() && args[0].endsWith(Constants.EXTENSION_JAR);
   }
 }

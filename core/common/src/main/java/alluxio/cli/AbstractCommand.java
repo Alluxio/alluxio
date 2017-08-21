@@ -37,7 +37,7 @@ public abstract class AbstractCommand implements Command {
    * @return whether the args are valid
    */
   protected boolean validateArgs(String... args) {
-    return true;
+    return args.length == getNumOfArgs();
   }
 
   /**
@@ -63,11 +63,6 @@ public abstract class AbstractCommand implements Command {
     } catch (ParseException e) {
       throw new InvalidArgumentException(
           String.format("Failed to parse args for %s", getCommandName()), e);
-    }
-
-    if (cmd.getArgs().length != getNumOfArgs()) {
-      throw new InvalidArgumentException(ExceptionMessage.INVALID_NUM_ARGS
-          .getMessage(getCommandName(), getNumOfArgs(), cmd.getArgs().length));
     }
 
     if (!validateArgs(cmd.getArgs())) {
