@@ -25,7 +25,14 @@ public final class AsyncUserAccessAuditLogWriter {
   private static final int QUEUE_SIZE = 10000;
   private static final Logger LOG = LoggerFactory.getLogger(AsyncUserAccessAuditLogWriter.class);
   private volatile boolean mStopped;
+  /**
+   * A thread-safe linked-list-based queue with an optional capacity limit.
+   */
   private LinkedBlockingQueue<AuditContext> mAuditLogEntries;
+
+  /**
+   * Background thread that performs actual log writing.
+   */
   private Thread mLoggingWorkerThread;
 
   /**
