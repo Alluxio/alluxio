@@ -11,10 +11,19 @@
 
 package alluxio.underfs;
 
+import alluxio.Configuration;
+import alluxio.Constants;
+import alluxio.PropertyKey;
+import alluxio.extensions.ExtensionsClassLoader;
+
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
+import java.io.FileFilter;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -130,8 +139,48 @@ public final class UnderFileSystemFactoryRegistry {
       }
     }
 
+    // Scan extensions directory on the fly
+    eligibleFactories.addAll(findAllExtensions(path));
+
     if (eligibleFactories.isEmpty()) {
       LOG.warn("No Under File System Factory implementation supports the path {}", path);
+    }
+    return eligibleFactories;
+  }
+
+  /**
+   * Finds all eligible {@link UnderFileSystemFactory} extensions from the extensions directory.
+   *
+   * @param path URI for which to construct an {@link UnderFileSystem} instance
+   * @return list of extension factories which support the given path
+   */
+  private static List<UnderFileSystemFactory> findAllExtensions(String path) {
+    Preconditions.checkArgument(path != null, "path may not be null");
+
+    List<UnderFileSystemFactory> eligibleFactories = new ArrayList<>();
+    String extensionDir = Configuration.get(PropertyKey.EXTENSIONS_DIR);
+    File[] extensions = new File(extensionDir).listFiles(new FileFilter() {
+      public boolean accept(File file) {
+        return file.getPath().toLowerCase().endsWith(Constants.EXTENSION_JAR);
+      }
+    });
+    for (File extension : extensions) {
+      try {
+        URL[] extensionUrls = new URL[] {extension.toURI().toURL()};
+        ClassLoader extensionsClassLoader =
+            new ExtensionsClassLoader(extensionUrls, ClassLoader.getSystemClassLoader());
+        ServiceLoader<UnderFileSystemFactory> extensionFactories =
+            ServiceLoader.load(UnderFileSystemFactory.class, extensionsClassLoader);
+        for (UnderFileSystemFactory factory : extensionFactories) {
+          if (factory.supportsPath(path)) {
+            LOG.debug("Discovered an Under File System Factory implementation in extensions {} - {}",
+                factory.getClass(), factory.toString());
+            eligibleFactories.add(factory);
+          }
+        }
+      } catch (MalformedURLException e) {
+        LOG.debug("Plugin URL is malformed: {}", e.getMessage());
+      }
     }
     return eligibleFactories;
   }
