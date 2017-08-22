@@ -40,7 +40,8 @@ import org.slf4j.LoggerFactory;
  */
 public class FileSystemMasterClientServiceProcessor
     extends FileSystemMasterClientService.Processor {
-  private static Logger LOG = LoggerFactory.getLogger(FileSystemMasterClientServiceProcessor.class);
+  private static final Logger LOG =
+      LoggerFactory.getLogger(FileSystemMasterClientServiceProcessor.class);
   private static ThreadLocal<String> sClientIpThreadLocal = new ThreadLocal<>();
 
   /**
