@@ -11,17 +11,14 @@
 
 package alluxio.underfs;
 
-import alluxio.Configuration;
-import alluxio.Constants;
-import alluxio.PropertyKey;
 import alluxio.extensions.ExtensionsClassLoader;
+import alluxio.util.ExtensionUtils;
 
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.io.FileFilter;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -158,13 +155,7 @@ public final class UnderFileSystemFactoryRegistry {
     Preconditions.checkArgument(path != null, "path may not be null");
 
     List<UnderFileSystemFactory> eligibleFactories = new ArrayList<>();
-    String extensionDir = Configuration.get(PropertyKey.EXTENSIONS_DIR);
-    File[] extensions = new File(extensionDir).listFiles(new FileFilter() {
-      public boolean accept(File file) {
-        return file.getPath().toLowerCase().endsWith(Constants.EXTENSION_JAR);
-      }
-    });
-    for (File extension : extensions) {
+    for (File extension : ExtensionUtils.listExtensions()) {
       try {
         URL[] extensionUrls = new URL[] {extension.toURI().toURL()};
         ClassLoader extensionsClassLoader =
