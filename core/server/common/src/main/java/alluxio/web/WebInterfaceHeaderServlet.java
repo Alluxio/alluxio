@@ -47,15 +47,8 @@ public final class WebInterfaceHeaderServlet extends HttpServlet {
   @Override
   protected void doGet(HttpServletRequest request, HttpServletResponse response)
       throws ServletException, IOException {
+    String masterHostName = NetworkAddressUtils.getConnectHost(ServiceType.MASTER_RPC);
     int masterWebPort = Configuration.getInt(PropertyKey.MASTER_WEB_PORT);
-    String masterHostName;
-    if (!Configuration.getBoolean(PropertyKey.ZOOKEEPER_ENABLED)) {
-      masterHostName = NetworkAddressUtils.getConnectHost(ServiceType.MASTER_RPC);
-    } else {
-      masterHostName = NetworkAddressUtils
-          .getLeaderAddressFromZK(Configuration.get(PropertyKey.ZOOKEEPER_LEADER_PATH))
-          .getHostName();
-    }
     request.setAttribute("masterHost", masterHostName);
     request.setAttribute("masterPort", masterWebPort);
     getServletContext().getRequestDispatcher("/header.jsp").include(request, response);

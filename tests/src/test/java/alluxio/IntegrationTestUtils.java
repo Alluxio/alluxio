@@ -15,6 +15,7 @@ import alluxio.client.file.FileSystemMasterClient;
 import alluxio.client.file.options.GetStatusOptions;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatScheduler;
+import alluxio.master.MasterClientConfig;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 import alluxio.worker.block.BlockHeartbeatReporter;
@@ -53,8 +54,8 @@ public final class IntegrationTestUtils {
    */
   public static void waitForPersist(final LocalAlluxioClusterResource localAlluxioClusterResource,
       final AlluxioURI uri, int timeoutMs) {
-    try (FileSystemMasterClient client = FileSystemMasterClient.Factory
-        .create(localAlluxioClusterResource.get().getLocalAlluxioMaster().getAddress())) {
+    try (FileSystemMasterClient client =
+        FileSystemMasterClient.Factory.create(MasterClientConfig.defaults())) {
       CommonUtils.waitFor(uri + " to be persisted", new Function<Void, Boolean>() {
         @Override
         public Boolean apply(Void input) {

@@ -13,6 +13,7 @@ package alluxio.worker.file;
 
 import alluxio.AbstractMasterClient;
 import alluxio.Constants;
+import alluxio.master.MasterClientConfig;
 import alluxio.thrift.AlluxioService;
 import alluxio.thrift.AlluxioTException;
 import alluxio.thrift.FileSystemCommand;
@@ -28,7 +29,6 @@ import alluxio.wire.ThriftUtils;
 import org.apache.thrift.TException;
 
 import java.io.IOException;
-import java.net.InetSocketAddress;
 import java.util.List;
 import java.util.Set;
 
@@ -47,10 +47,10 @@ public final class FileSystemMasterClient extends AbstractMasterClient {
   /**
    * Creates a instance of {@link FileSystemMasterClient}.
    *
-   * @param masterAddress the master address
+   * @param conf master client configuration
    */
-  public FileSystemMasterClient(InetSocketAddress masterAddress) {
-    super(null, masterAddress);
+  public FileSystemMasterClient(MasterClientConfig conf) {
+    super(conf);
   }
 
   @Override

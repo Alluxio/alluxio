@@ -9,18 +9,24 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio;
+package alluxio.network;
 
-import java.net.InetSocketAddress;
-import java.util.List;
+import java.io.IOException;
+import java.net.ServerSocket;
 
 /**
- * Interface for a master client in the Alluxio system.
+ * Utility methods for working with ports.
  */
-public interface MasterClient extends Client {
+public class PortUtils {
 
   /**
-   * @return the list containing all master addresses
+   * @return a port that is currently free. Note that this port is not reserved and may be taken at
+   *         any time
    */
-  List<InetSocketAddress> getMasterAddresses();
+  public static int getFreePort() throws IOException {
+    try (ServerSocket s = new ServerSocket(0)) {
+      s.setReuseAddress(true);
+      return s.getLocalPort();
+    }
+  }
 }

@@ -17,12 +17,11 @@ import alluxio.PropertyKey;
 import alluxio.Server;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatThread;
+import alluxio.master.MasterClientConfig;
 import alluxio.thrift.FileSystemWorkerClientService;
 import alluxio.underfs.UfsManager;
 import alluxio.util.CommonUtils;
 import alluxio.util.ThreadFactoryUtils;
-import alluxio.util.network.NetworkAddressUtils;
-import alluxio.util.network.NetworkAddressUtils.ServiceType;
 import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.AbstractWorker;
 import alluxio.worker.block.BlockWorker;
@@ -82,8 +81,7 @@ public final class DefaultFileSystemWorker extends AbstractWorker implements Fil
         mUfsManager);
 
     // Setup AbstractMasterClient
-    mFileSystemMasterWorkerClient = new FileSystemMasterClient(
-        NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC));
+    mFileSystemMasterWorkerClient = new FileSystemMasterClient(MasterClientConfig.defaults());
 
     mServiceHandler = new FileSystemWorkerClientServiceHandler();
   }

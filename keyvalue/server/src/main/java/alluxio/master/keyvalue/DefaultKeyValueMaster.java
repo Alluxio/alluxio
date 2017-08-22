@@ -26,7 +26,7 @@ import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.DeleteOptions;
 import alluxio.master.file.options.RenameOptions;
-import alluxio.master.journal.Journal;
+import alluxio.master.journal.JournalSystem;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.proto.journal.KeyValue;
 import alluxio.thrift.KeyValueMasterClientService;
@@ -74,10 +74,10 @@ public class DefaultKeyValueMaster extends AbstractMaster implements KeyValueMas
 
   /**
    * @param fileSystemMaster the file system master handle
-   * @param journal a {@link Journal} to write journal entries to
+   * @param journalSystem the journal system to use for tracking master operations
    */
-  DefaultKeyValueMaster(FileSystemMaster fileSystemMaster, Journal journal) {
-    super(journal, new SystemClock(), ExecutorServiceFactories
+  DefaultKeyValueMaster(FileSystemMaster fileSystemMaster, JournalSystem journalSystem) {
+    super(journalSystem, new SystemClock(), ExecutorServiceFactories
         .fixedThreadPoolExecutorServiceFactory(Constants.KEY_VALUE_MASTER_NAME, 2));
     mFileSystemMaster = fileSystemMaster;
     mCompleteStoreToPartitions = new HashMap<>();
@@ -103,8 +103,7 @@ public class DefaultKeyValueMaster extends AbstractMaster implements KeyValueMas
   }
 
   @Override
-  public synchronized void processJournalEntry(alluxio.proto.journal.Journal.JournalEntry entry)
-      throws IOException {
+  public synchronized void processJournalEntry(JournalEntry entry) throws IOException {
     try {
       if (entry.hasCreateStore()) {
         createStoreFromEntry(entry.getCreateStore());
@@ -124,6 +123,12 @@ public class DefaultKeyValueMaster extends AbstractMaster implements KeyValueMas
     } catch (AlluxioException e) {
       throw new RuntimeException(e);
     }
+  }
+
+  @Override
+  public void resetState() {
+    mCompleteStoreToPartitions.clear();
+    mIncompleteStoreToPartitions.clear();
   }
 
   @Override
