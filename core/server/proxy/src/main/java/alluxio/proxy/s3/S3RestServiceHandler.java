@@ -85,7 +85,10 @@ public final class S3RestServiceHandler {
       @Override
       public Void call() throws S3Exception {
         String bucketPath =  AlluxioURI.SEPARATOR + bucket;
-        checkBucketIsUnderMountPoint(bucketPath);
+        if (bucketPath.contains(BUCKET_SEPARATOR)) {
+          bucketPath = bucketPath.replace(BUCKET_SEPARATOR, AlluxioURI.SEPARATOR);
+          checkNestedBucketIsUnderMountPoint(bucketPath);
+        }
 
         // Create the bucket.
         CreateDirectoryOptions options = CreateDirectoryOptions.defaults();
@@ -114,16 +117,12 @@ public final class S3RestServiceHandler {
       @Override
       public Void call() throws S3Exception {
         String bucketPath =  AlluxioURI.SEPARATOR + bucket;
-        checkBucketIsUnderMountPoint(bucketPath);
-
-        try {
-          URIStatus status = mFileSystem.getStatus(new AlluxioURI(bucketPath));
-          if (!status.isFolder()) {
-            throw new InvalidPathException("Bucket name is not a valid Alluxio directory.");
-          }
-        } catch (Exception e) {
-          throw toBucketS3Exception(e, bucketPath);
+        if (bucketPath.contains(BUCKET_SEPARATOR)) {
+          bucketPath = bucketPath.replace(BUCKET_SEPARATOR, AlluxioURI.SEPARATOR);
+          checkNestedBucketIsUnderMountPoint(bucketPath);
         }
+
+        checkBucketIsAlluxioDirectory(bucketPath);
 
         // Delete the bucket.
         DeleteOptions options = DeleteOptions.defaults();
@@ -157,18 +156,26 @@ public final class S3RestServiceHandler {
     }
   }
 
-  private void checkBucketIsUnderMountPoint(String bucketPath) throws S3Exception {
-    if (bucketPath.contains(BUCKET_SEPARATOR)) {
-      bucketPath = bucketPath.replace(BUCKET_SEPARATOR, AlluxioURI.SEPARATOR);
-      // Assure that the bucket is directly under a mount point.
-      AlluxioURI parent = new AlluxioURI(bucketPath).getParent();
-      try {
-        if (!mFileSystem.getMountTable().containsKey(parent.getPath())) {
-          throw new S3Exception(bucketPath, S3ErrorCode.INVALID_NESTED_BUCKET_NAME);
-        }
-      } catch (Exception e) {
-        throw toBucketS3Exception(e, bucketPath);
+  private void checkNestedBucketIsUnderMountPoint(String bucketPath) throws S3Exception {
+    // Assure that the bucket is directly under a mount point.
+    AlluxioURI parent = new AlluxioURI(bucketPath).getParent();
+    try {
+      if (!mFileSystem.getMountTable().containsKey(parent.getPath())) {
+        throw new S3Exception(bucketPath, S3ErrorCode.INVALID_NESTED_BUCKET_NAME);
       }
+    } catch (Exception e) {
+      throw toBucketS3Exception(e, bucketPath);
+    }
+  }
+
+  private void checkBucketIsAlluxioDirectory(String bucketPath) throws S3Exception {
+    try {
+      URIStatus status = mFileSystem.getStatus(new AlluxioURI(bucketPath));
+      if (!status.isFolder()) {
+        throw new InvalidPathException("Bucket name is not a valid Alluxio directory.");
+      }
+    } catch (Exception e) {
+      throw toBucketS3Exception(e, bucketPath);
     }
   }
 }
