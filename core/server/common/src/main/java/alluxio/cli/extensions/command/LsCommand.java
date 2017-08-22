@@ -15,7 +15,6 @@ import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.cli.AbstractCommand;
-import alluxio.cli.extensions.ExtensionsShellUtils;
 
 import org.apache.commons.cli.CommandLine;
 import org.slf4j.Logger;
@@ -23,7 +22,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.FileFilter;
-import java.util.List;
 
 import javax.annotation.concurrent.ThreadSafe;
 
