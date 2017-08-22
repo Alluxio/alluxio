@@ -27,6 +27,8 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public final class ExtensionUtils {
 
+  private static final File[] EMPTY_EXTENSIONS_LIST = new File[0];
+
   /**
    * List extension jars from the configured extensions directory.
    *
@@ -39,6 +41,10 @@ public final class ExtensionUtils {
         return file.getPath().toLowerCase().endsWith(Constants.EXTENSION_JAR);
       }
     });
+    if (extensions == null) {
+      // Directory does not exist
+      return EMPTY_EXTENSIONS_LIST;
+    }
     return extensions;
   }
 
