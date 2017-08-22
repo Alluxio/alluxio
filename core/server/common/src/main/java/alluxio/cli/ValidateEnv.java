@@ -18,6 +18,7 @@ import alluxio.cli.validation.RamDiskMountPrivilegeValidationTask;
 import alluxio.cli.validation.StorageSpaceValidationTask;
 import alluxio.cli.validation.SshValidationTask;
 import alluxio.cli.validation.UfsDirectoryValidationTask;
+import alluxio.cli.validation.UserLimitValidationTask;
 import alluxio.cli.validation.Utils;
 import alluxio.cli.validation.ValidationTask;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
@@ -95,6 +96,15 @@ public final class ValidateEnv {
   private static final ValidationTask WORKER_RAMDISK_MOUNT_PRIVILEGE_VALIDATION_TASK = registerTask(
       "worker.ramdisk.mount.privilege", new RamDiskMountPrivilegeValidationTask());
 
+  // User limit validations
+  private static final ValidationTask ULIMIT_OPEN_FILES_VALIDATION_TASK = registerTask(
+      "ulimit.nofile",
+      UserLimitValidationTask.createOpenFilesLimitValidationTask());
+
+  private static final ValidationTask ULIMIT_USER_PROCS_VALIDATION_TASK = registerTask(
+      "ulimit.nproc",
+      UserLimitValidationTask.createUserProcessesLimitValidationTask());
+
   // space validations
   private static final ValidationTask WORKER_STORAGE_SPACE_VALIDATION_TASK = registerTask(
       "worker.storage.space",
@@ -109,7 +119,9 @@ public final class ValidateEnv {
         PROXY_WEB_VALIDATION_TASK,
         SSH_TO_MASTERS_VALIDATION_TASK,
         SSH_TO_WORKERS_VALIDATION_TASK,
-        UFS_ROOT_VALIDATION_TASK
+        UFS_ROOT_VALIDATION_TASK,
+        ULIMIT_OPEN_FILES_VALIDATION_TASK,
+        ULIMIT_USER_PROCS_VALIDATION_TASK
     };
     ValidationTask[] masterTasks = {
         MASTER_RPC_VALIDATION_TASK,
