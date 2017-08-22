@@ -26,7 +26,4 @@ public interface AuditContext extends Closeable {
    * @return {@link AuditContext} instance itself
    */
   AuditContext setAllowed(boolean allowed);
-
-  @Override
-  void close();
 }
