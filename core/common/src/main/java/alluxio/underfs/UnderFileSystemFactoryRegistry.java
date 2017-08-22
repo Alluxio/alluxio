@@ -157,7 +157,6 @@ public final class UnderFileSystemFactoryRegistry {
     }
 
     if (eligibleFactories.isEmpty()) {
-      scanExtensions();
       LOG.warn("No Under File System Factory implementation supports the path {}", path);
     }
     return eligibleFactories;
