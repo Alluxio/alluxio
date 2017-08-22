@@ -14,6 +14,7 @@ package alluxio.client.block;
 import alluxio.client.block.policy.BlockLocationPolicy;
 import alluxio.client.block.policy.options.GetWorkerOptions;
 import alluxio.client.block.stream.BlockInStream;
+import alluxio.client.block.stream.BlockInStream.BlockInStreamSource;
 import alluxio.client.block.stream.BlockOutStream;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.options.InStreamOptions;
@@ -133,41 +134,46 @@ public final class AlluxioBlockStore {
       blockInfo = masterClientResource.get().getBlockInfo(blockId);
     }
 
+    BlockInStreamSource source = BlockInStreamSource.UFS;
     if (blockInfo.getLocations().isEmpty() && openUfsBlockOptions == null) {
       throw new NotFoundException("Block " + blockId + " is unavailable in both Alluxio and UFS.");
     }
     WorkerNetAddress address = null;
     if (blockInfo.getLocations().isEmpty()) {
-      BlockLocationPolicy blockLocationPolicy = Preconditions
-          .checkNotNull(options.getUfsReadLocationPolicy(),
+      BlockLocationPolicy blockLocationPolicy =
+          Preconditions.checkNotNull(options.getUfsReadLocationPolicy(),
               PreconditionMessage.UFS_READ_LOCATION_POLICY_UNSPECIFIED);
-      address = blockLocationPolicy.getWorker(
-          GetWorkerOptions.defaults().setBlockWorkerInfos(getWorkerInfoList()).setBlockId(blockId)
-              .setBlockSize(blockInfo.getLength()));
-    }
-
-    // TODO(calvin): Get location via a policy.
-    // Although blockInfo.locations are sorted by tier, we prefer reading from the local worker.
-    // But when there is no local worker or there are no local blocks, we prefer the first
-    // location in blockInfo.locations that is nearest to memory tier.
-    // Assuming if there is no local worker, there are no local blocks in blockInfo.locations.
-    // TODO(cc): Check mContext.hasLocalWorker before finding for a local block when the TODO
-    // for hasLocalWorker is fixed.
-    for (BlockLocation location : blockInfo.getLocations()) {
-      WorkerNetAddress workerNetAddress = location.getWorkerAddress();
-      if (workerNetAddress.getHost().equals(mLocalHostName)) {
-        address = workerNetAddress;
-        break;
+      address = blockLocationPolicy
+          .getWorker(GetWorkerOptions.defaults().setBlockWorkerInfos(getWorkerInfoList())
+              .setBlockId(blockId).setBlockSize(blockInfo.getLength()));
+    } else {
+      // TODO(calvin): Get location via a policy.
+      // Although blockInfo.locations are sorted by tier, we prefer reading from the local worker.
+      // But when there is no local worker or there are no local blocks, we prefer the first
+      // location in blockInfo.locations that is nearest to memory tier.
+      // Assuming if there is no local worker, there are no local blocks in blockInfo.locations.
+      // TODO(cc): Check mContext.hasLocalWorker before finding for a local block when the TODO
+      // for hasLocalWorker is fixed.
+      for (BlockLocation location : blockInfo.getLocations()) {
+        WorkerNetAddress workerNetAddress = location.getWorkerAddress();
+        if (workerNetAddress.getHost().equals(mLocalHostName)) {
+          address = workerNetAddress;
+          source = BlockInStreamSource.LOCAL;
+          break;
+        }
+      }
+      if (address == null) {
+        // No local worker/block, choose a random location. In the future we could change this to
+        // only randomize among locations in the highest tier, or have the master randomize the
+        // order.
+        List<BlockLocation> locations = blockInfo.getLocations();
+        address = locations.get(mRandom.nextInt(locations.size())).getWorkerAddress();
+        source = BlockInStreamSource.REMOTE;
       }
     }
-    if (address == null) {
-      // No local worker/block, choose a random location. In the future we could change this to
-      // only randomize among locations in the highest tier, or have the master randomize the order.
-      List<BlockLocation> locations = blockInfo.getLocations();
-      address = locations.get(mRandom.nextInt(locations.size())).getWorkerAddress();
-    }
-    return BlockInStream
-        .create(mContext, blockId, blockInfo.getLength(), address, openUfsBlockOptions, options);
+
+    return BlockInStream.create(mContext, blockId, blockInfo.getLength(), address, source,
+        openUfsBlockOptions, options);
   }
 
   /**

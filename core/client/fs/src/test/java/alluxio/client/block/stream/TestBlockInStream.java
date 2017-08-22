@@ -11,14 +11,13 @@
 
 package alluxio.client.block.stream;
 
-import alluxio.wire.WorkerNetAddress;
-
 /**
  * A {@link BlockInStream} which reads from the given byte array.
  */
 public class TestBlockInStream extends BlockInStream {
-  public TestBlockInStream(byte[] mData, long id, long length, boolean shortCircuit) {
-    super(new Factory(mData, shortCircuit), new WorkerNetAddress().setHost("local"), id, length);
+  public TestBlockInStream(byte[] mData, long id, long length, boolean shortCircuit,
+      BlockInStreamSource source) {
+    super(new Factory(mData, shortCircuit), source, id, length);
   }
 
   /**
