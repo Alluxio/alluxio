@@ -93,16 +93,12 @@ public abstract class LockedInodePath implements AutoCloseable {
    */
   public synchronized  InodeDirectory getParentInodeDirectory()
       throws InvalidPathException, FileDoesNotExistException {
-    if (mPathComponents.length < 2 || mInodes.size() < (mPathComponents.length - 1)) {
-      // The path is only the root, or the list of inodes is not long enough to contain the parent
+    InodeDirectory inodeDirectory = peekParentInodeDirectory();
+    if (inodeDirectory == null) {
       throw new FileDoesNotExistException(
           ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(mUri.getParent()));
     }
-    Inode<?> inode = mInodes.get(mPathComponents.length - 2);
-    if (!inode.isDirectory()) {
-      throw new InvalidPathException(ExceptionMessage.PATH_MUST_HAVE_VALID_PARENT.getMessage(mUri));
-    }
-    return (InodeDirectory) inode;
+    return inodeDirectory;
   }
 
   /**
@@ -114,6 +110,7 @@ public abstract class LockedInodePath implements AutoCloseable {
   public synchronized InodeDirectory peekParentInodeDirectory()
       throws InvalidPathException {
     if (mPathComponents.length < 2 || mInodes.size() < (mPathComponents.length - 1)) {
+      // The path is only the root, or the list of inodes is not long enough to contain the parent
       return null;
     }
     Inode<?> inode = mInodes.get(mPathComponents.length - 2);

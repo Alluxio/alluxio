@@ -215,6 +215,21 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    * {@link JournalContext} resources should be always created before any {@link LockedInodePath}
    * resources to avoid holding an inode path lock while waiting for journal IO.
    *
+   * User access audit logging in the FileSystemMaster
+   *
+   * User accesses to file system metadata should be audited. The intent to write audit log and the
+   * actual writing of the audit log is decoupled so that operations are not holding metadata locks
+   * waiting on the audit log IO. In particular {@link AsyncUserAccessAuditLogWriter} uses a
+   * separate thread to perform actual audit log IO. In order for audit log entries to preserve
+   * the order of file system operations, the intention of auditing should be submitted to
+   * {@link AsyncUserAccessAuditLogWriter} while holding locks on the inode path. That said, the
+   * {@link AuditContext} resources should always live within the scope of {@link LockedInodePath},
+   * i.e. created after {@link LockedInodePath}. Otherwise, the order of audit log entries may not
+   * reflect the actual order of the user accesses.
+   * Resources are released in the opposite order they are acquired, the
+   * {@link AuditContext#close()} method is called before {@link LockedInodePath#close()}, thus
+   * guaranteeing the order.
+   *
    * Method Conventions in the FileSystemMaster
    *
    * All of the flow of the FileSystemMaster follow a convention. There are essentially 4 main
@@ -3371,10 +3386,6 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
 
   /**
    * Creates a {@link MasterAuditContext} instance.
-   * A recommended way of using {@link MasterAuditContext} is to use it within a
-   * try-with-resources block. Note that in the try-with-resources block, the scope
-   * of {@link AuditContext} should be enclosed by the scope of {@link LockedInodePath}.
-   * Otherwise audit log entries of accesses to the same file may be our-of-order.
    *
    * @param command the command to be logged by this {@link AuditContext}
    * @param srcPath the source path of this command
