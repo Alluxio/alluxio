@@ -136,7 +136,8 @@ public final class UnderFileSystemFactoryRegistry {
     Preconditions.checkArgument(path != null, "path may not be null");
 
     List<UnderFileSystemFactory> eligibleFactories = new ArrayList<>();
-    final String foundFactoryFormat = "Under File System Factory implementation {} is eligible for path {}";
+    final String foundFactoryFormat =
+        "Under File System Factory implementation {} is eligible for path {}";
     for (UnderFileSystemFactory factory : FACTORIES) {
       if (factory.supportsPath(path)) {
         LOG.debug(foundFactoryFormat, factory.getClass(), path);
