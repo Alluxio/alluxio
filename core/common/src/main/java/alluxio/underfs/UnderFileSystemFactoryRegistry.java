@@ -23,8 +23,10 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.ServiceLoader;
+import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -75,6 +77,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 public final class UnderFileSystemFactoryRegistry {
   private static final Logger LOG = LoggerFactory.getLogger(UnderFileSystemFactoryRegistry.class);
 
+  private static final Set<String> EXTENSION_FACTORIES = new HashSet<>();
   private static final List<UnderFileSystemFactory> FACTORIES = new CopyOnWriteArrayList<>();
 
   private static boolean sInit = false;
@@ -113,8 +116,7 @@ public final class UnderFileSystemFactoryRegistry {
         return factory;
       }
     }
-    // Scan extensions directory on the fly
-    for (UnderFileSystemFactory factory : findExtensions()) {
+    for (UnderFileSystemFactory factory : scanExtensions()) {
       if (factory.supportsPath(path)) {
         LOG.debug(selectedFactoryFormat, factory.getClass(), path);
         return factory;
@@ -144,38 +146,47 @@ public final class UnderFileSystemFactoryRegistry {
         eligibleFactories.add(factory);
       }
     }
-    // Scan extensions directory on the fly
-    for (UnderFileSystemFactory factory : findExtensions()) {
-      if (factory.supportsPath(path)) {
-        LOG.debug(foundFactoryFormat, factory.getClass(), path);
-        eligibleFactories.add(factory);
+    if (eligibleFactories.isEmpty()) {
+      for (UnderFileSystemFactory factory : scanExtensions()) {
+        // Found factory in scanned extensions directory
+        if (factory.supportsPath(path)) {
+          LOG.debug(foundFactoryFormat, factory.getClass(), path);
+          eligibleFactories.add(factory);
+        }
       }
     }
 
     if (eligibleFactories.isEmpty()) {
+      scanExtensions();
       LOG.warn("No Under File System Factory implementation supports the path {}", path);
     }
     return eligibleFactories;
   }
 
   /**
-   * Finds all {@link UnderFileSystemFactory} extensions from the extensions directory.
+   * Finds all {@link UnderFileSystemFactory} extensions from the extensions directory and caches.
    *
-   * @return list of extension factories
+   * @return list of newly found extension factories
    */
-  private static List<UnderFileSystemFactory> findExtensions() {
+  private static List<UnderFileSystemFactory> scanExtensions() {
     List<UnderFileSystemFactory> extensionFactories = new ArrayList<>();
     for (File extension : ExtensionUtils.listExtensions()) {
       try {
-        URL[] extensionUrls = new URL[] {extension.toURI().toURL()};
-        ClassLoader extensionsClassLoader =
-            new ExtensionsClassLoader(extensionUrls, ClassLoader.getSystemClassLoader());
-        ServiceLoader<UnderFileSystemFactory> extensionServiceLoader =
-            ServiceLoader.load(UnderFileSystemFactory.class, extensionsClassLoader);
-        for (UnderFileSystemFactory factory : extensionServiceLoader) {
-          LOG.debug("Discovered an Under File System Factory implementation in extension {} - {}",
-              factory.getClass(), factory.toString());
-          extensionFactories.add(factory);
+        URL extensionURL = extension.toURI().toURL();
+        String extensionKey = extensionURL.toString();
+        if (!EXTENSION_FACTORIES.contains(extensionKey)) {
+          ClassLoader extensionsClassLoader =
+              new ExtensionsClassLoader(new URL[]{extensionURL}, ClassLoader.getSystemClassLoader());
+          ServiceLoader<UnderFileSystemFactory> extensionServiceLoader =
+              ServiceLoader.load(UnderFileSystemFactory.class, extensionsClassLoader);
+          for (UnderFileSystemFactory factory : extensionServiceLoader) {
+            LOG.debug("Discovered an Under File System Factory implementation in extension {} - {}",
+                factory.getClass(), factory.toString());
+            // Cache
+            register(factory);
+            extensionFactories.add(factory);
+            EXTENSION_FACTORIES.add(extensionKey);
+          }
         }
       } catch (MalformedURLException e) {
         LOG.warn("Extension URL is malformed: {}", e.getMessage());
@@ -198,6 +209,8 @@ public final class UnderFileSystemFactoryRegistry {
           factory.toString());
       FACTORIES.add(factory);
     }
+
+    scanExtensions();
 
     sInit = true;
   }
@@ -238,6 +251,7 @@ public final class UnderFileSystemFactoryRegistry {
       // Reset state
       sInit = false;
       FACTORIES.clear();
+      EXTENSION_FACTORIES.clear();
     }
 
     // Reinitialise
