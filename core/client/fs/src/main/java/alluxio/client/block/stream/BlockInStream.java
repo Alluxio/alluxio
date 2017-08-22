@@ -15,7 +15,6 @@ import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.Seekable;
 import alluxio.client.BoundedStream;
-import alluxio.client.Locatable;
 import alluxio.client.PositionedReadable;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.options.InStreamOptions;
@@ -23,7 +22,6 @@ import alluxio.exception.PreconditionMessage;
 import alluxio.exception.status.NotFoundException;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.proto.dataserver.Protocol;
-import alluxio.util.CommonUtils;
 import alluxio.util.io.BufferUtils;
 import alluxio.util.network.NettyUtils;
 import alluxio.wire.WorkerNetAddress;
@@ -41,7 +39,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public class BlockInStream extends InputStream implements BoundedStream, Seekable,
-    PositionedReadable, Locatable {
+    PositionedReadable {
   /** the source tracking where the block is from. */
   public enum BlockInStreamSource {
     LOCAL, REMOTE, UFS
@@ -54,7 +52,6 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
 
   private final byte[] mSingleByte = new byte[1];
   private final BlockInStreamSource mInStreamSource;
-  private final WorkerNetAddress mAddress;
 
   /** Current position of the stream, relative to the start of the block. */
   private long mPos = 0;
@@ -119,7 +116,7 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
       throws IOException {
     long packetSize = Configuration.getBytes(PropertyKey.USER_LOCAL_READER_PACKET_SIZE_BYTES);
     return new BlockInStream(
-        new LocalFilePacketReader.Factory(context, address, blockId, packetSize, options), address,
+        new LocalFilePacketReader.Factory(context, address, blockId, packetSize, options),
         BlockInStreamSource.LOCAL, blockId, length);
   }
 
@@ -141,25 +138,22 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
         Configuration.getBytes(PropertyKey.USER_NETWORK_NETTY_READER_PACKET_SIZE_BYTES);
     PacketReader.Factory factory = new NettyPacketReader.Factory(context, address,
         readRequestPartial.toBuilder().setPacketSize(packetSize).buildPartial(), options);
-    return new BlockInStream(factory, address, blockSource, readRequestPartial.getBlockId(),
-        blockSize);
+    return new BlockInStream(factory, blockSource, readRequestPartial.getBlockId(), blockSize);
   }
 
   /**
    * Creates an instance of {@link BlockInStream}.
    *
    * @param packetReaderFactory the packet reader factory
-   * @param address the worker network address
    * @param blockSource the source location of the block
    * @param id the ID (either block ID or UFS file ID)
    * @param length the length
    */
-  protected BlockInStream(PacketReader.Factory packetReaderFactory, WorkerNetAddress address,
-      BlockInStreamSource blockSource, long id, long length) {
+  protected BlockInStream(PacketReader.Factory packetReaderFactory, BlockInStreamSource blockSource,
+      long id, long length) {
     mPacketReaderFactory = packetReaderFactory;
     mId = id;
     mLength = length;
-    mAddress = address;
     mInStreamSource = blockSource;
   }
 
@@ -330,16 +324,6 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
    */
   private void checkIfClosed() {
     Preconditions.checkState(!mClosed, PreconditionMessage.ERR_CLOSED_BLOCK_IN_STREAM);
-  }
-
-  @Override
-  public WorkerNetAddress location() {
-    return mAddress;
-  }
-
-  @Override
-  public boolean isLocal() {
-    return CommonUtils.isLocalHost(mAddress);
   }
 
   /**
