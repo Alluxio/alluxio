@@ -14,6 +14,8 @@ package alluxio.master.audit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.Preconditions;
+
 import java.util.concurrent.LinkedBlockingQueue;
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -50,6 +52,7 @@ public final class AsyncUserAccessAuditLogWriter {
   public void start() {
     synchronized (this) {
       if (mStopped) {
+        Preconditions.checkState(mLoggingWorkerThread == null);
         mStopped = false;
         mLoggingWorkerThread = new Thread(new AuditLoggingWorker());
         mLoggingWorkerThread.start();
@@ -70,6 +73,7 @@ public final class AsyncUserAccessAuditLogWriter {
           Thread.currentThread().interrupt();
         } finally {
           mStopped = true;
+          mLoggingWorkerThread = null;
         }
       }
     }
