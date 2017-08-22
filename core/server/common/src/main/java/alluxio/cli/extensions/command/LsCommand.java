@@ -61,11 +61,6 @@ public final class LsCommand extends AbstractCommand {
   @Override
   public int run(CommandLine cl) {
     String extensionsDir = Configuration.get(PropertyKey.EXTENSIONS_DIR);
-    List<String> masters = ExtensionsShellUtils.getMasterHostnames();
-    if (masters == null) {
-      System.out.println("Unable to find a master in conf/masters");
-      return -1;
-    }
     File[] extensions = new File(extensionsDir).listFiles(new FileFilter() {
       public boolean accept(File file) {
         return file.getPath().toLowerCase().endsWith(Constants.EXTENSION_JAR);
