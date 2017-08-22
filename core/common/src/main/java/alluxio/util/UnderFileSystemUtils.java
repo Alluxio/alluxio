@@ -12,11 +12,9 @@
 package alluxio.util;
 
 import alluxio.AlluxioURI;
-import alluxio.Constants;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.DeleteOptions;
 
-import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 
 import java.io.IOException;
