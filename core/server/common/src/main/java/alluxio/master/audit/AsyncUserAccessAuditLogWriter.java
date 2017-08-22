@@ -48,10 +48,12 @@ public final class AsyncUserAccessAuditLogWriter {
    * Starts {@link AsyncUserAccessAuditLogWriter}.
    */
   public void start() {
-    if (mStopped) {
-      mStopped = false;
-      mLoggingWorkerThread = new Thread(new AuditLoggingWorker());
-      mLoggingWorkerThread.start();
+    synchronized (this) {
+      if (mStopped) {
+        mStopped = false;
+        mLoggingWorkerThread = new Thread(new AuditLoggingWorker());
+        mLoggingWorkerThread.start();
+      }
     }
   }
 
@@ -59,14 +61,16 @@ public final class AsyncUserAccessAuditLogWriter {
    * Stops {@link AsyncUserAccessAuditLogWriter}.
    */
   public void stop() {
-    if (!mStopped) {
-      mLoggingWorkerThread.interrupt();
-      try {
-        mLoggingWorkerThread.join();
-      } catch (InterruptedException e) {
-        Thread.currentThread().interrupt();
-      } finally {
-        mStopped = true;
+    synchronized (this) {
+      if (!mStopped) {
+        mLoggingWorkerThread.interrupt();
+        try {
+          mLoggingWorkerThread.join();
+        } catch (InterruptedException e) {
+          Thread.currentThread().interrupt();
+        } finally {
+          mStopped = true;
+        }
       }
     }
   }
