@@ -17,14 +17,11 @@ import alluxio.PropertyKey;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.options.CreateDirectoryOptions;
-import alluxio.exception.AlluxioException;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.InvalidPathException;
 import alluxio.web.ProxyWebServer;
 
 import com.qmino.miredot.annotations.ReturnType;
-
-import java.io.IOException;
 
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.servlet.ServletContext;
@@ -90,8 +87,8 @@ public final class S3RestServiceHandler {
             if (!mFileSystem.getMountTable().containsKey(parent.getPath())) {
               throw new S3Exception(bucketPath, S3ErrorCode.INVALID_NESTED_BUCKET_NAME);
             }
-          } catch (IOException | AlluxioException e) {
-            throw toInternalError(e, bucketPath);
+          } catch (Exception e) {
+            throw toBucketS3Exception(e, bucketPath);
           }
         }
 
@@ -101,19 +98,23 @@ public final class S3RestServiceHandler {
             WriteType.class));
         try {
           mFileSystem.createDirectory(new AlluxioURI(bucketPath), options);
-        } catch (InvalidPathException e) {
-          throw new S3Exception(bucketPath, S3ErrorCode.INVALID_BUCKET_NAME);
-        } catch (FileAlreadyExistsException e) {
-          throw new S3Exception(bucketPath, S3ErrorCode.BUCKET_ALREADY_EXISTS);
-        } catch (IOException | AlluxioException e) {
-          throw toInternalError(e, bucketPath);
+        } catch (Exception e) {
+          throw toBucketS3Exception(e, bucketPath);
         }
         return null;
       }
     });
   }
 
-  private S3Exception toInternalError(Exception e, String resource) {
-    return new S3Exception(e, resource, S3ErrorCode.INTERNAL_ERROR);
+  private S3Exception toBucketS3Exception(Exception exception, String resource) {
+    try {
+      throw exception;
+    } catch (InvalidPathException e) {
+      return new S3Exception(resource, S3ErrorCode.INVALID_BUCKET_NAME);
+    } catch (FileAlreadyExistsException e) {
+      return new S3Exception(resource, S3ErrorCode.BUCKET_ALREADY_EXISTS);
+    } catch (Exception e) {
+      return new S3Exception(e, resource, S3ErrorCode.INTERNAL_ERROR);
+    }
   }
 }
