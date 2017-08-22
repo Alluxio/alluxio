@@ -165,13 +165,13 @@ public final class UnderFileSystemFactoryRegistry {
         for (UnderFileSystemFactory factory : extensionFactories) {
           if (factory.supportsPath(path)) {
             LOG.debug(
-                "Discovered an Under File System Factory implementation in extensions {} - {}",
+                "Discovered an Under File System Factory implementation in extension {} - {}",
                 factory.getClass(), factory.toString());
             eligibleFactories.add(factory);
           }
         }
       } catch (MalformedURLException e) {
-        LOG.debug("Extension URL is malformed: {}", e.getMessage());
+        LOG.warn("Extension URL is malformed: {}", e.getMessage());
       }
     }
     return eligibleFactories;

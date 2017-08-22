@@ -17,7 +17,6 @@ import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Utility functions for testing with {@link UnderFileSystem}.
- *
  */
 @ThreadSafe
 public final class UnderFileSystemTestUtils {
