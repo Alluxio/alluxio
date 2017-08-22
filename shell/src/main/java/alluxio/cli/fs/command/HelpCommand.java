@@ -15,7 +15,6 @@ import alluxio.cli.Command;
 import alluxio.client.file.FileSystem;
 import alluxio.exception.AlluxioException;
 import alluxio.cli.fs.FileSystemShellUtils;
-import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.InvalidArgumentException;
 
 import jline.TerminalFactory;
@@ -106,10 +105,6 @@ public final class HelpCommand extends AbstractFileSystemCommand {
 
   @Override
   public void validateArgs(String... args) throws InvalidArgumentException {
-    if (args.length < getNumOfArgs()) {
-      throw new InvalidArgumentException(ExceptionMessage.INVALID_ARGS_NUM_INSUFFICIENT
-          .getMessage(getCommandName(), getNumOfArgs(), args.length));
-    }
   }
 
   @Override

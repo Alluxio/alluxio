@@ -135,7 +135,7 @@ public final class MountCommand extends AbstractFileSystemCommand {
 
   @Override
   public void validateArgs(String... args) throws InvalidArgumentException {
-    if (args.length != 2 && args.length == 0) {
+    if (args.length != 2 && args.length != 0) {
       throw new InvalidArgumentException(
           ExceptionMessage.INVALID_ARGS_GENERIC.getMessage(getCommandName()));
     }
