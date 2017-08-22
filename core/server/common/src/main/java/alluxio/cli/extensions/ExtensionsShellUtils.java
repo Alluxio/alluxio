@@ -53,7 +53,7 @@ public final class ExtensionsShellUtils {
   }
 
   /**
-   * Get list of masters/workers in conf directory.
+   * Gets list of masters/workers in conf directory.
    *
    * @return server hostnames
    */
@@ -64,7 +64,7 @@ public final class ExtensionsShellUtils {
   }
 
   /**
-   * Get list of workers in conf directory.
+   * Gets list of workers in conf directory.
    *
    * @return workers hostnames
    */

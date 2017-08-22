@@ -42,7 +42,7 @@ public final class FileSystemShell extends AbstractShell {
   /**
    * Main method, starts a new FileSystemShell.
    *
-   * @param argv [] array of arguments given by the user's input from the terminal
+   * @param argv array of arguments given by the user's input from the terminal
    */
   public static void main(String[] argv) throws IOException {
     int ret;
