@@ -28,8 +28,6 @@ import javax.ws.rs.core.Response;
 public final class S3RestUtils {
   private static final Logger LOG = LoggerFactory.getLogger(S3RestUtils.class);
 
-  public static final String DELETE_IN_ALLUXIO_ONLY = "ALLUXIO_ONLY";
-
   /**
    * Calls the given {@link S3RestUtils.RestCallable} and handles any exceptions thrown.
    *

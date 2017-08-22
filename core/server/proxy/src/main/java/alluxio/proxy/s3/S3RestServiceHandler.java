@@ -13,6 +13,7 @@ package alluxio.proxy.s3;
 
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
+import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileSystem;
@@ -73,7 +74,7 @@ public final class S3RestServiceHandler {
 
   /**
    * @summary creates a bucket
-   * @param bucket the Alluxio path
+   * @param bucket the bucket name
    * @return the response object
    */
   @PUT
@@ -84,18 +85,7 @@ public final class S3RestServiceHandler {
       @Override
       public Void call() throws S3Exception {
         String bucketPath =  AlluxioURI.SEPARATOR + bucket;
-        if (bucketPath.contains(BUCKET_SEPARATOR)) {
-          bucketPath = bucketPath.replace(BUCKET_SEPARATOR, AlluxioURI.SEPARATOR);
-          // Assure that the bucket is directly under a mount point.
-          AlluxioURI parent = new AlluxioURI(bucketPath).getParent();
-          try {
-            if (!mFileSystem.getMountTable().containsKey(parent.getPath())) {
-              throw new S3Exception(bucketPath, S3ErrorCode.INVALID_NESTED_BUCKET_NAME);
-            }
-          } catch (Exception e) {
-            throw toBucketS3Exception(e, bucketPath);
-          }
-        }
+        checkBucketIsUnderMountPoint(bucketPath);
 
         // Create the bucket.
         CreateDirectoryOptions options = CreateDirectoryOptions.defaults();
@@ -113,7 +103,7 @@ public final class S3RestServiceHandler {
 
   /**
    * @summary deletes a bucket
-   * @param bucket the Alluxio path
+   * @param bucket the bucket name
    * @return the response object
    */
   @DELETE
@@ -124,18 +114,7 @@ public final class S3RestServiceHandler {
       @Override
       public Void call() throws S3Exception {
         String bucketPath =  AlluxioURI.SEPARATOR + bucket;
-        if (bucketPath.contains(BUCKET_SEPARATOR)) {
-          bucketPath = bucketPath.replace(BUCKET_SEPARATOR, AlluxioURI.SEPARATOR);
-          // Assure that the bucket is directly under a mount point.
-          AlluxioURI parent = new AlluxioURI(bucketPath).getParent();
-          try {
-            if (!mFileSystem.getMountTable().containsKey(parent.getPath())) {
-              throw new S3Exception(bucketPath, S3ErrorCode.INVALID_NESTED_BUCKET_NAME);
-            }
-          } catch (Exception e) {
-            throw toBucketS3Exception(e, bucketPath);
-          }
-        }
+        checkBucketIsUnderMountPoint(bucketPath);
 
         try {
           URIStatus status = mFileSystem.getStatus(new AlluxioURI(bucketPath));
@@ -149,7 +128,7 @@ public final class S3RestServiceHandler {
         // Delete the bucket.
         DeleteOptions options = DeleteOptions.defaults();
         options.setAlluxioOnly(Configuration.get(PropertyKey.PROXY_S3_DELETE_TYPE)
-            .equals(S3RestUtils.DELETE_IN_ALLUXIO_ONLY));
+            .equals(Constants.DELETE_IN_ALLUXIO_ONLY));
         try {
           mFileSystem.delete(new AlluxioURI(bucketPath), options);
         } catch (Exception e) {
@@ -175,6 +154,21 @@ public final class S3RestServiceHandler {
       return new S3Exception(resource, S3ErrorCode.INVALID_BUCKET_NAME);
     } catch (Exception e) {
       return new S3Exception(e, resource, S3ErrorCode.INTERNAL_ERROR);
+    }
+  }
+
+  private void checkBucketIsUnderMountPoint(String bucketPath) throws S3Exception {
+    if (bucketPath.contains(BUCKET_SEPARATOR)) {
+      bucketPath = bucketPath.replace(BUCKET_SEPARATOR, AlluxioURI.SEPARATOR);
+      // Assure that the bucket is directly under a mount point.
+      AlluxioURI parent = new AlluxioURI(bucketPath).getParent();
+      try {
+        if (!mFileSystem.getMountTable().containsKey(parent.getPath())) {
+          throw new S3Exception(bucketPath, S3ErrorCode.INVALID_NESTED_BUCKET_NAME);
+        }
+      } catch (Exception e) {
+        throw toBucketS3Exception(e, bucketPath);
+      }
     }
   }
 }
