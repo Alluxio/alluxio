@@ -174,8 +174,8 @@ public final class UnderFileSystemFactoryRegistry {
         URL extensionURL = extension.toURI().toURL();
         String extensionKey = extensionURL.toString();
         if (!EXTENSION_FACTORIES.contains(extensionKey)) {
-          ClassLoader extensionsClassLoader =
-              new ExtensionsClassLoader(new URL[]{extensionURL}, ClassLoader.getSystemClassLoader());
+          ClassLoader extensionsClassLoader = new ExtensionsClassLoader(new URL[] {extensionURL},
+              ClassLoader.getSystemClassLoader());
           ServiceLoader<UnderFileSystemFactory> extensionServiceLoader =
               ServiceLoader.load(UnderFileSystemFactory.class, extensionsClassLoader);
           for (UnderFileSystemFactory factory : extensionServiceLoader) {
