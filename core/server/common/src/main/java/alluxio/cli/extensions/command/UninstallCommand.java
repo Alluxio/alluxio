@@ -99,7 +99,6 @@ public final class UninstallCommand extends AbstractCommand {
       throw new InvalidArgumentException(
           ExceptionMessage.INVALID_ARGS_NULL.getMessage(getCommandName()));
     }
-
     if (!args[0].endsWith(Constants.EXTENSION_JAR)) {
       throw new InvalidArgumentException(
           ExceptionMessage.INVALID_EXTENSION_NOT_JAR.getMessage(args[0]));
