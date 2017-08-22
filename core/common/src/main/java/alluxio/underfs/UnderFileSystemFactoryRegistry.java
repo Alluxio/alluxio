@@ -180,7 +180,7 @@ public final class UnderFileSystemFactoryRegistry {
           }
         }
       } catch (MalformedURLException e) {
-        LOG.debug("Plugin URL is malformed: {}", e.getMessage());
+        LOG.debug("Extension URL is malformed: {}", e.getMessage());
       }
     }
     return eligibleFactories;
