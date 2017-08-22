@@ -108,17 +108,18 @@ public final class UnderFileSystemFactoryRegistry {
   public static UnderFileSystemFactory find(String path) {
     Preconditions.checkArgument(path != null, "path may not be null");
 
-    final String selectedFactoryFormat =
-        "Selected Under File System Factory implementation {} for path {}";
     for (UnderFileSystemFactory factory : FACTORIES) {
       if (factory.supportsPath(path)) {
-        LOG.debug(selectedFactoryFormat, factory.getClass(), path);
+        LOG.debug("Selected Under File System Factory implementation {} for path {}",
+            factory.getClass(), path);
         return factory;
       }
     }
     for (UnderFileSystemFactory factory : scanExtensions()) {
       if (factory.supportsPath(path)) {
-        LOG.debug(selectedFactoryFormat, factory.getClass(), path);
+        LOG.debug(
+            "Selected Under File System Factory implementation {} for path {} from scanned extensions",
+            factory.getClass(), path);
         return factory;
       }
     }
@@ -138,11 +139,10 @@ public final class UnderFileSystemFactoryRegistry {
     Preconditions.checkArgument(path != null, "path may not be null");
 
     List<UnderFileSystemFactory> eligibleFactories = new ArrayList<>();
-    final String foundFactoryFormat =
-        "Under File System Factory implementation {} is eligible for path {}";
     for (UnderFileSystemFactory factory : FACTORIES) {
       if (factory.supportsPath(path)) {
-        LOG.debug(foundFactoryFormat, factory.getClass(), path);
+        LOG.debug("Under File System Factory implementation {} is eligible for path {}",
+            factory.getClass(), path);
         eligibleFactories.add(factory);
       }
     }
@@ -150,7 +150,9 @@ public final class UnderFileSystemFactoryRegistry {
       for (UnderFileSystemFactory factory : scanExtensions()) {
         // Found factory in scanned extensions directory
         if (factory.supportsPath(path)) {
-          LOG.debug(foundFactoryFormat, factory.getClass(), path);
+          LOG.debug(
+              "Under File System Factory implementation {} is eligible for path {} from scanned extensions",
+              factory.getClass(), path);
           eligibleFactories.add(factory);
         }
       }
