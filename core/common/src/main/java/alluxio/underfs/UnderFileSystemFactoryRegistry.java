@@ -117,10 +117,8 @@ public final class UnderFileSystemFactoryRegistry {
     }
     for (UnderFileSystemFactory factory : scanExtensions()) {
       if (factory.supportsPath(path)) {
-        LOG.debug(
-            "Selected Under File System Factory implementation {} for path {} " +
-                "(from scanned extensions)",
-            factory.getClass(), path);
+        LOG.debug("Selected Under File System Factory implementation {} for path {} "
+            + "(from scanned extensions)", factory.getClass(), path);
         return factory;
       }
     }
@@ -151,10 +149,8 @@ public final class UnderFileSystemFactoryRegistry {
       for (UnderFileSystemFactory factory : scanExtensions()) {
         // Found factory in scanned extensions directory
         if (factory.supportsPath(path)) {
-          LOG.debug(
-              "Under File System Factory implementation {} is eligible for path {} " +
-                  "(from scanned extensions)",
-              factory.getClass(), path);
+          LOG.debug("Under File System Factory implementation {} is eligible for path {} "
+              + "(from scanned extensions)", factory.getClass(), path);
           eligibleFactories.add(factory);
         }
       }
