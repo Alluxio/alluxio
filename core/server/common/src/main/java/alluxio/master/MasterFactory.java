@@ -11,7 +11,7 @@
 
 package alluxio.master;
 
-import alluxio.master.journal.JournalFactory;
+import alluxio.master.journal.JournalSystem;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -34,8 +34,8 @@ public interface MasterFactory {
    * Factory method to create a new master instance.
    *
    * @param registry the master registry
-   * @param factory a factory for creating the journal
+   * @param journalSystem a journal system for persisting master state
    * @return a new {@link Master} instance
    */
-  Master create(MasterRegistry registry, JournalFactory factory);
+  Master create(MasterRegistry registry, JournalSystem journalSystem);
 }

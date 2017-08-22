@@ -11,14 +11,12 @@
 
 package alluxio.master.journal.ufs;
 
+import alluxio.BaseIntegrationTest;
 import alluxio.Configuration;
 import alluxio.ConfigurationTestUtils;
 import alluxio.PropertyKey;
-import alluxio.BaseIntegrationTest;
 import alluxio.master.MockMaster;
-import alluxio.master.journal.JournalCheckpointThread;
-import alluxio.master.journal.JournalWriter;
-import alluxio.master.journal.options.JournalWriterOptions;
+import alluxio.master.NoopMaster;
 import alluxio.proto.journal.Journal;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.CommonUtils;
@@ -26,6 +24,7 @@ import alluxio.util.URIUtils;
 import alluxio.util.WaitForOptions;
 
 import com.google.common.base.Function;
+import com.google.common.collect.Iterators;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -39,9 +38,9 @@ import java.net.URI;
 import java.util.Iterator;
 
 /**
- * Unit tests for {@link alluxio.master.journal.JournalCheckpointThread}.
+ * Unit tests for {@link alluxio.master.journal.ufs.UfsJournalCheckpointThread}.
  */
-public final class JournalCheckpointThreadTest extends BaseIntegrationTest {
+public final class UfsJournalCheckpointThreadTest extends BaseIntegrationTest {
   @Rule
   public TemporaryFolder mFolder = new TemporaryFolder();
 
@@ -53,7 +52,7 @@ public final class JournalCheckpointThreadTest extends BaseIntegrationTest {
     URI location = URIUtils
         .appendPathOrDie(new URI(mFolder.newFolder().getAbsolutePath()), "FileSystemMaster");
     mUfs = Mockito.spy(UnderFileSystem.Factory.create(location));
-    mJournal = new UfsJournal(location, mUfs);
+    mJournal = new UfsJournal(location, new NoopMaster(), mUfs, 0);
   }
 
   @After
@@ -70,7 +69,8 @@ public final class JournalCheckpointThreadTest extends BaseIntegrationTest {
     buildCompletedLog(0, 10);
     buildIncompleteLog(10, 15);
     MockMaster mockMaster = new MockMaster();
-    JournalCheckpointThread checkpointThread = new JournalCheckpointThread(mockMaster, mJournal);
+    UfsJournalCheckpointThread checkpointThread =
+        new UfsJournalCheckpointThread(mockMaster, mJournal);
     checkpointThread.start();
     CommonUtils.waitFor("checkpoint", new Function<Void, Boolean>() {
       @Override
@@ -91,7 +91,7 @@ public final class JournalCheckpointThreadTest extends BaseIntegrationTest {
     UfsJournalSnapshot snapshot = UfsJournalSnapshot.getSnapshot(mJournal);
     Assert.assertEquals(1, snapshot.getCheckpoints().size());
     Assert.assertEquals(10, snapshot.getCheckpoints().get(0).getEnd());
-    checkpointThread.awaitTermination();
+    checkpointThread.awaitTermination(true);
   }
 
   /**
@@ -103,19 +103,15 @@ public final class JournalCheckpointThreadTest extends BaseIntegrationTest {
     buildCompletedLog(0, 10);
     buildIncompleteLog(10, 15);
     MockMaster mockMaster = new MockMaster();
-    JournalCheckpointThread checkpointThread = new JournalCheckpointThread(mockMaster, mJournal);
+    UfsJournalCheckpointThread checkpointThread =
+        new UfsJournalCheckpointThread(mockMaster, mJournal);
     checkpointThread.start();
-    checkpointThread.awaitTermination();
+    checkpointThread.awaitTermination(true);
 
     // Make sure all the journal entries have been processed. Note that it is not necessary that
     // the they are checkpointed.
     Iterator<Journal.JournalEntry> it = mockMaster.getJournalEntryIterator();
-    int sz = 0;
-    while (it.hasNext()) {
-      it.next();
-      sz++;
-    }
-    Assert.assertEquals(10, sz);
+    Assert.assertEquals(10, Iterators.size(it));
   }
 
   /**
@@ -123,9 +119,8 @@ public final class JournalCheckpointThreadTest extends BaseIntegrationTest {
    */
   private void buildCompletedLog(long start, long end) throws Exception {
     Mockito.when(mUfs.supportsFlush()).thenReturn(true);
-    JournalWriter writer = mJournal.getWriter(
-        JournalWriterOptions.defaults().setPrimary(true).setNextSequenceNumber(start));
-    for (long i = start; i < end; ++i) {
+    UfsJournalLogWriter writer = new UfsJournalLogWriter(mJournal, start);
+    for (long i = start; i < end; i++) {
       writer.write(newEntry(i));
     }
     writer.close();

@@ -29,6 +29,7 @@ import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 import alluxio.exception.PreconditionMessage;
+import alluxio.exception.status.UnavailableException;
 import alluxio.security.User;
 import alluxio.security.authorization.Mode;
 import alluxio.util.CommonUtils;
@@ -510,7 +511,13 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
    *         system context.
    */
   private boolean checkMasterAddress() {
-    InetSocketAddress masterAddress = FileSystemContext.INSTANCE.getMasterAddress();
+    InetSocketAddress masterAddress = null;
+    try {
+      masterAddress = FileSystemContext.INSTANCE.getMasterAddress();
+    } catch (UnavailableException e) {
+      LOG.warn("Failed to determine master RPC address: {}", e.toString());
+      return false;
+    }
     boolean sameHost = masterAddress.getHostString().equals(mUri.getHost());
     boolean samePort = masterAddress.getPort() == mUri.getPort();
     if (sameHost && samePort) {

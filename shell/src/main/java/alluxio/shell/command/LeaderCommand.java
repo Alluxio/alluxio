@@ -14,9 +14,12 @@ package alluxio.shell.command;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.FileSystemMasterClient;
+import alluxio.exception.status.UnavailableException;
 import alluxio.resource.CloseableResource;
 
 import org.apache.commons.cli.CommandLine;
+
+import java.net.InetSocketAddress;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -47,10 +50,10 @@ public final class LeaderCommand extends AbstractShellCommand {
   public int run(CommandLine cl) {
     try (CloseableResource<FileSystemMasterClient> client =
         FileSystemContext.INSTANCE.acquireMasterClientResource()) {
-      String hostName = client.get().getAddress().getHostName();
-      if (hostName != null) {
-        System.out.println(hostName);
-      } else {
+      try {
+        InetSocketAddress address = client.get().getAddress();
+        System.out.println(address.getHostName());
+      } catch (UnavailableException e) {
         System.out.println("Failed to get the leader master.");
       }
     }

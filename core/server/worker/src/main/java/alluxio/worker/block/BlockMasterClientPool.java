@@ -13,12 +13,12 @@ package alluxio.worker.block;
 
 import alluxio.Configuration;
 import alluxio.PropertyKey;
+import alluxio.master.MasterClientConfig;
 import alluxio.resource.ResourcePool;
 
 import com.google.common.io.Closer;
 
 import java.io.IOException;
-import java.net.InetSocketAddress;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
@@ -31,17 +31,13 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class BlockMasterClientPool extends ResourcePool<BlockMasterClient> {
-  private final InetSocketAddress mMasterAddress;
   private final Queue<BlockMasterClient> mClientList;
 
   /**
    * Creates a new block master client pool.
-   *
-   * @param masterAddress the master address
    */
-  public BlockMasterClientPool(InetSocketAddress masterAddress) {
+  public BlockMasterClientPool() {
     super(Configuration.getInt(PropertyKey.WORKER_BLOCK_MASTER_CLIENT_POOL_SIZE));
-    mMasterAddress = masterAddress;
     mClientList = new ConcurrentLinkedQueue<>();
   }
 
@@ -57,7 +53,7 @@ public final class BlockMasterClientPool extends ResourcePool<BlockMasterClient>
 
   @Override
   protected BlockMasterClient createNewResource() {
-    BlockMasterClient client = new BlockMasterClient(mMasterAddress);
+    BlockMasterClient client = new BlockMasterClient(MasterClientConfig.defaults());
     mClientList.add(client);
     return client;
   }

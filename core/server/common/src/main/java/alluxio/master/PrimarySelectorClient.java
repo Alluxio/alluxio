@@ -9,9 +9,11 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio;
+package alluxio.master;
 
-import com.google.common.base.Preconditions;
+import alluxio.AlluxioURI;
+import alluxio.Constants;
+
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.framework.recipes.leader.LeaderSelector;
@@ -24,6 +26,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.Closeable;
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -35,35 +38,32 @@ import javax.annotation.concurrent.NotThreadSafe;
  * Masters use this client to elect a leader.
  */
 @NotThreadSafe
-public final class LeaderSelectorClient implements Closeable, LeaderSelectorListener {
-  private static final Logger LOG = LoggerFactory.getLogger(LeaderSelectorClient.class);
+public final class PrimarySelectorClient
+    implements Closeable, LeaderSelectorListener, PrimarySelector {
+  private static final Logger LOG = LoggerFactory.getLogger(PrimarySelectorClient.class);
 
   /** The election path in Zookeeper. */
   private final String mElectionPath;
   /** The path of the leader in Zookeeper. */
   private final String mLeaderFolder;
-  /** The LeaderSelector used to elect. */
+  /** The PrimarySelector used to elect. */
   private final LeaderSelector mLeaderSelector;
   /** The name of this master in Zookeeper. */
-  private final String mName;
+  private String mName;
   /** The address to Zookeeper. */
   private final String mZookeeperAddress;
 
   /** Whether this master is the leader master now. */
   private AtomicBoolean mIsLeader = new AtomicBoolean(false);
-  /** The thread of the current master. */
-  private volatile Thread mCurrentMasterThread = null;
 
   /**
-   * Constructs a new {@link LeaderSelectorClient}.
+   * Constructs a new {@link PrimarySelectorClient}.
    *
    * @param zookeeperAddress the address to Zookeeper
    * @param electionPath the election path
    * @param leaderPath the path of the leader
-   * @param name the name
    */
-  public LeaderSelectorClient(String zookeeperAddress, String electionPath, String leaderPath,
-      String name) {
+  public PrimarySelectorClient(String zookeeperAddress, String electionPath, String leaderPath) {
     mZookeeperAddress = zookeeperAddress;
     mElectionPath = electionPath;
     if (leaderPath.endsWith(AlluxioURI.SEPARATOR)) {
@@ -71,12 +71,10 @@ public final class LeaderSelectorClient implements Closeable, LeaderSelectorList
     } else {
       mLeaderFolder = leaderPath + AlluxioURI.SEPARATOR;
     }
-    mName = name;
 
     // Create a leader selector using the given path for management.
     // All participants in a given leader selection must use the same path.
     mLeaderSelector = new LeaderSelector(getNewCuratorClient(), mElectionPath, this);
-    mLeaderSelector.setId(name);
 
     // For most cases you will want your instance to requeue when it relinquishes leadership.
     mLeaderSelector.autoRequeue();
@@ -84,10 +82,6 @@ public final class LeaderSelectorClient implements Closeable, LeaderSelectorList
 
   @Override
   public void close() throws IOException {
-    if (mCurrentMasterThread != null) {
-      mCurrentMasterThread.interrupt();
-    }
-
     try {
       mLeaderSelector.close();
     } catch (IllegalStateException e) {
@@ -96,6 +90,11 @@ public final class LeaderSelectorClient implements Closeable, LeaderSelectorList
         throw e;
       }
     }
+  }
+
+  @Override
+  public void stop() throws IOException {
+    close();
   }
 
   /**
@@ -125,21 +124,18 @@ public final class LeaderSelectorClient implements Closeable, LeaderSelectorList
   /**
    * @return true if the client is the leader, false otherwise
    */
-  public boolean isLeader() {
+  public boolean isPrimary() {
     return mIsLeader.get();
   }
 
   /**
-   * @param currentMasterThread the thread to use as the master thread
+   * Starts the leader selection. If the leader selector client loses connection to Zookeeper or
+   * gets closed, the calling thread will be interrupted.
    */
-  public void setCurrentMasterThread(Thread currentMasterThread) {
-    mCurrentMasterThread = Preconditions.checkNotNull(currentMasterThread, "currentMasterThread");
-  }
-
-  /**
-   * Starts the leader selection.
-   */
-  public void start() throws IOException {
+  @Override
+  public void start(InetSocketAddress address) throws IOException {
+    mName = address.getHostName() + ":" + address.getPort();
+    mLeaderSelector.setId(mName);
     mLeaderSelector.start();
   }
 
@@ -147,11 +143,7 @@ public final class LeaderSelectorClient implements Closeable, LeaderSelectorList
   public void stateChanged(CuratorFramework client, ConnectionState newState) {
     mIsLeader.set(false);
 
-    if ((newState == ConnectionState.LOST) || (newState == ConnectionState.SUSPENDED)) {
-      if (mCurrentMasterThread != null) {
-        mCurrentMasterThread.interrupt();
-      }
-    } else {
+    if ((newState != ConnectionState.LOST) && (newState != ConnectionState.SUSPENDED)) {
       try {
         LOG.info("The current leader is {}", mLeaderSelector.getLeader().getId());
       } catch (Exception e) {
@@ -179,7 +171,6 @@ public final class LeaderSelectorClient implements Closeable, LeaderSelectorList
       Thread.currentThread().interrupt();
     } finally {
       mIsLeader.set(false);
-      mCurrentMasterThread = null;
       LOG.warn("{} relinquishing leadership.", mName);
       LOG.info("The current leader is {}", mLeaderSelector.getLeader().getId());
       LOG.info("All participants: {}", mLeaderSelector.getParticipants());

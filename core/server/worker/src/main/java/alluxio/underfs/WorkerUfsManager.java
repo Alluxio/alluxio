@@ -14,6 +14,7 @@ package alluxio.underfs;
 import alluxio.AlluxioURI;
 import alluxio.exception.status.NotFoundException;
 import alluxio.exception.status.UnavailableException;
+import alluxio.master.MasterClientConfig;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.worker.file.FileSystemMasterClient;
 
@@ -38,8 +39,7 @@ public final class WorkerUfsManager extends AbstractUfsManager {
    * Constructs an instance of {@link WorkerUfsManager}.
    */
   public WorkerUfsManager() {
-    mMasterClient = mCloser.register(new FileSystemMasterClient(
-        NetworkAddressUtils.getConnectAddress(NetworkAddressUtils.ServiceType.MASTER_RPC)));
+    mMasterClient = mCloser.register(new FileSystemMasterClient(MasterClientConfig.defaults()));
   }
 
   /**

@@ -14,7 +14,9 @@ package alluxio.master.file;
 import alluxio.AlluxioTestDirectory;
 import alluxio.AlluxioURI;
 import alluxio.AuthenticatedUserRule;
+import alluxio.Configuration;
 import alluxio.ConfigurationRule;
+import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
 import alluxio.LoginUserRule;
 import alluxio.PropertyKey;
@@ -39,8 +41,8 @@ import alluxio.master.file.options.GetStatusOptions;
 import alluxio.master.file.options.ListStatusOptions;
 import alluxio.master.file.options.RenameOptions;
 import alluxio.master.file.options.SetAttributeOptions;
-import alluxio.master.journal.Journal;
-import alluxio.master.journal.JournalFactory;
+import alluxio.master.journal.JournalSystem;
+import alluxio.master.journal.noop.NoopJournalSystem;
 import alluxio.security.GroupMappingServiceTestUtils;
 import alluxio.security.authorization.Mode;
 import alluxio.security.group.GroupMappingService;
@@ -65,7 +67,6 @@ import org.mockito.Mockito;
 
 import java.io.Closeable;
 import java.io.IOException;
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -179,12 +180,12 @@ public final class PermissionCheckTest {
 
   @Before
   public void before() throws Exception {
+    Configuration.set(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS, mTestFolder.newFolder());
     GroupMappingServiceTestUtils.resetCache();
     mRegistry = new MasterRegistry();
-    JournalFactory factory =
-        new Journal.Factory(new URI(mTestFolder.newFolder().getAbsolutePath()));
-    mBlockMaster = new BlockMasterFactory().create(mRegistry, factory);
-    mFileSystemMaster = new FileSystemMasterFactory().create(mRegistry, factory);
+    JournalSystem journalSystem = new NoopJournalSystem();
+    mBlockMaster = new BlockMasterFactory().create(mRegistry, journalSystem);
+    mFileSystemMaster = new FileSystemMasterFactory().create(mRegistry, journalSystem);
     mRegistry.start(true);
 
     createDirAndFileForTest();
@@ -197,6 +198,7 @@ public final class PermissionCheckTest {
   public void after() throws Exception {
     mRegistry.stop();
     GroupMappingServiceTestUtils.resetCache();
+    ConfigurationTestUtils.resetConfiguration();
   }
 
   /**

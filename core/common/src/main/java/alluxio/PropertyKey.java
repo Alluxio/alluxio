@@ -573,6 +573,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue(String.format("${%s}/journal", Name.WORK_DIR))
           .setDescription("The path to store master journal logs.")
           .build();
+  public static final PropertyKey MASTER_JOURNAL_TYPE =
+      new Builder(Name.MASTER_JOURNAL_TYPE)
+          .setDefaultValue("UFS")
+          .setDescription("The type of journal to use. Valid options are UFS (store journal in "
+              + "UFS) and NOOP (do not use a journal).")
+          .build();
   /**
    * @deprecated since 1.5.0 and will be removed in 2.0.
    */
@@ -1905,6 +1911,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String MASTER_JOURNAL_FLUSH_TIMEOUT_MS =
         "alluxio.master.journal.flush.timeout";
     public static final String MASTER_JOURNAL_FOLDER = "alluxio.master.journal.folder";
+    public static final String MASTER_JOURNAL_TYPE = "alluxio.master.journal.type";
     public static final String MASTER_JOURNAL_FORMATTER_CLASS =
         "alluxio.master.journal.formatter.class";
     public static final String MASTER_JOURNAL_LOG_SIZE_BYTES_MAX =
