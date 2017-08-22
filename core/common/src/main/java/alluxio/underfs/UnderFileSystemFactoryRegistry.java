@@ -77,7 +77,8 @@ import javax.annotation.concurrent.NotThreadSafe;
 public final class UnderFileSystemFactoryRegistry {
   private static final Logger LOG = LoggerFactory.getLogger(UnderFileSystemFactoryRegistry.class);
 
-  private static final Set<String> EXTENSION_FACTORIES = new HashSet<>();
+  // Key: JAR name
+  private static final Set<String> LOADED_EXTENSION_KEYS = new HashSet<>();
   private static final List<UnderFileSystemFactory> FACTORIES = new CopyOnWriteArrayList<>();
 
   private static boolean sInit = false;
@@ -173,7 +174,7 @@ public final class UnderFileSystemFactoryRegistry {
       try {
         URL extensionURL = extension.toURI().toURL();
         String extensionKey = extensionURL.toString();
-        if (!EXTENSION_FACTORIES.contains(extensionKey)) {
+        if (!LOADED_EXTENSION_KEYS.contains(extensionKey)) {
           ClassLoader extensionsClassLoader = new ExtensionsClassLoader(new URL[] {extensionURL},
               ClassLoader.getSystemClassLoader());
           ServiceLoader<UnderFileSystemFactory> extensionServiceLoader =
@@ -184,7 +185,7 @@ public final class UnderFileSystemFactoryRegistry {
             // Cache
             register(factory);
             extensionFactories.add(factory);
-            EXTENSION_FACTORIES.add(extensionKey);
+            LOADED_EXTENSION_KEYS.add(extensionKey);
           }
         }
       } catch (MalformedURLException e) {
@@ -250,7 +251,7 @@ public final class UnderFileSystemFactoryRegistry {
       // Reset state
       sInit = false;
       FACTORIES.clear();
-      EXTENSION_FACTORIES.clear();
+      LOADED_EXTENSION_KEYS.clear();
     }
 
     // Reinitialise
