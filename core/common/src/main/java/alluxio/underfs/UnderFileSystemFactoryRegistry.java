@@ -11,14 +11,22 @@
 
 package alluxio.underfs;
 
+import alluxio.extensions.ExtensionsClassLoader;
+import alluxio.util.ExtensionUtils;
+
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.ServiceLoader;
+import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -69,6 +77,8 @@ import javax.annotation.concurrent.NotThreadSafe;
 public final class UnderFileSystemFactoryRegistry {
   private static final Logger LOG = LoggerFactory.getLogger(UnderFileSystemFactoryRegistry.class);
 
+  // Key: absolute path to jar file
+  private static final Set<String> LOADED_EXTENSION_JARS = new HashSet<>();
   private static final List<UnderFileSystemFactory> FACTORIES = new CopyOnWriteArrayList<>();
 
   private static boolean sInit = false;
@@ -99,6 +109,8 @@ public final class UnderFileSystemFactoryRegistry {
   public static UnderFileSystemFactory find(String path) {
     Preconditions.checkArgument(path != null, "path may not be null");
 
+    scanExtensions();
+
     for (UnderFileSystemFactory factory : FACTORIES) {
       if (factory.supportsPath(path)) {
         LOG.debug("Selected Under File System Factory implementation {} for path {}",
@@ -121,6 +133,8 @@ public final class UnderFileSystemFactoryRegistry {
   public static List<UnderFileSystemFactory> findAll(String path) {
     Preconditions.checkArgument(path != null, "path may not be null");
 
+    scanExtensions();
+
     List<UnderFileSystemFactory> eligibleFactories = new ArrayList<>();
     for (UnderFileSystemFactory factory : FACTORIES) {
       if (factory.supportsPath(path)) {
@@ -134,6 +148,33 @@ public final class UnderFileSystemFactoryRegistry {
       LOG.warn("No Under File System Factory implementation supports the path {}", path);
     }
     return eligibleFactories;
+  }
+
+  /**
+   * Finds all {@link UnderFileSystemFactory} extensions from the extensions directory and caches.
+   */
+  private static void scanExtensions() {
+    for (File extension : ExtensionUtils.listExtensions()) {
+      try {
+        URL extensionURL = extension.toURI().toURL();
+        String jarPath = extensionURL.toString();
+        if (!LOADED_EXTENSION_JARS.contains(jarPath)) {
+          ClassLoader extensionsClassLoader = new ExtensionsClassLoader(new URL[] {extensionURL},
+              ClassLoader.getSystemClassLoader());
+          ServiceLoader<UnderFileSystemFactory> extensionServiceLoader =
+              ServiceLoader.load(UnderFileSystemFactory.class, extensionsClassLoader);
+          for (UnderFileSystemFactory factory : extensionServiceLoader) {
+            LOG.debug("Discovered an Under File System Factory implementation {} - {} in "
+                + "extension jar {}", factory.getClass(), factory.toString(), jarPath);
+            // Cache
+            register(factory);
+            LOADED_EXTENSION_JARS.add(jarPath);
+          }
+        }
+      } catch (MalformedURLException e) {
+        LOG.warn("Extension URL is malformed: {}", e.getMessage());
+      }
+    }
   }
 
   private static synchronized void init() {
@@ -150,6 +191,8 @@ public final class UnderFileSystemFactoryRegistry {
           factory.toString());
       FACTORIES.add(factory);
     }
+
+    scanExtensions();
 
     sInit = true;
   }
@@ -190,6 +233,7 @@ public final class UnderFileSystemFactoryRegistry {
       // Reset state
       sInit = false;
       FACTORIES.clear();
+      LOADED_EXTENSION_JARS.clear();
     }
 
     // Reinitialise

@@ -321,6 +321,11 @@ public interface UnderFileSystem extends Closeable {
   boolean isFile(String path) throws IOException;
 
   /**
+   * @return true if under storage is an object store, false otherwise
+   */
+  boolean isObjectStorage();
+
+  /**
    * Returns an array of statuses of the files and directories in the directory denoted by this
    * abstract pathname.
    *

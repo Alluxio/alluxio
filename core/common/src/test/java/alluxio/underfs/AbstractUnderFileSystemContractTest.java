@@ -477,7 +477,7 @@ public abstract class AbstractUnderFileSystemContractTest {
   @Test
   public void objectCommonPrefixesIsDirectory() throws IOException {
     // Only run test for an object store
-    Assume.assumeTrue(UnderFileSystemUtils.isObjectStorage(mUfs));
+    Assume.assumeTrue(mUfs.isObjectStorage());
 
     ObjectUnderFileSystem ufs = (ObjectUnderFileSystem) mUfs;
     ObjectStorePreConfig config = prepareObjectStore(ufs);
@@ -494,7 +494,7 @@ public abstract class AbstractUnderFileSystemContractTest {
   @Test
   public void objectCommonPrefixesListStatusNonRecursive() throws IOException {
     // Only run test for an object store
-    Assume.assumeTrue(UnderFileSystemUtils.isObjectStorage(mUfs));
+    Assume.assumeTrue(mUfs.isObjectStorage());
 
     ObjectUnderFileSystem ufs = (ObjectUnderFileSystem) mUfs;
     ObjectStorePreConfig config = prepareObjectStore(ufs);
@@ -530,7 +530,7 @@ public abstract class AbstractUnderFileSystemContractTest {
   @Test
   public void objectCommonPrefixesListStatusRecursive() throws IOException {
     // Only run test for an object store
-    Assume.assumeTrue(UnderFileSystemUtils.isObjectStorage(mUfs));
+    Assume.assumeTrue(mUfs.isObjectStorage());
 
     ObjectUnderFileSystem ufs = (ObjectUnderFileSystem) mUfs;
     ObjectStorePreConfig config = prepareObjectStore(ufs);
