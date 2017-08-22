@@ -18,6 +18,8 @@ import org.apache.thrift.protocol.TProtocol;
 import org.apache.thrift.transport.TSaslServerTransport;
 import org.apache.thrift.transport.TSocket;
 import org.apache.thrift.transport.TTransport;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Alluxio customized Thrift processor to handle RPC and track client IP.
@@ -38,6 +40,7 @@ import org.apache.thrift.transport.TTransport;
  */
 public class FileSystemMasterClientServiceProcessor
     extends FileSystemMasterClientService.Processor {
+  private static Logger LOG = LoggerFactory.getLogger(FileSystemMasterClientServiceProcessor.class);
   private static ThreadLocal<String> sClientIpThreadLocal = new ThreadLocal<>();
 
   /**
@@ -68,6 +71,7 @@ public class FileSystemMasterClientServiceProcessor
       String ip = ((TSocket) transport).getSocket().getInetAddress().toString();
       sClientIpThreadLocal.set(ip);
     } else {
+      LOG.warn("Failed to obtain client IP: underlying transport is not TSocket");
       sClientIpThreadLocal.set(null);
     }
     return super.process(in, out);
