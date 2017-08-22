@@ -12,7 +12,6 @@
 package alluxio.underfs.options;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertFalse;
 
 import alluxio.CommonTestUtils;
@@ -40,7 +39,7 @@ public final class CreateOptionsTest {
     CreateOptions options = CreateOptions.defaults();
 
     assertFalse(options.getCreateParent());
-    assertTrue(options.isEnsureAtomic());
+    assertFalse(options.isEnsureAtomic());
     assertEquals("", options.getOwner());
     assertEquals("", options.getGroup());
     assertEquals(Mode.defaults().applyFileUMask(), options.getMode());
@@ -61,7 +60,7 @@ public final class CreateOptionsTest {
     CreateOptions options = CreateOptions.defaults();
 
     assertFalse(options.getCreateParent());
-    assertTrue(options.isEnsureAtomic());
+    assertFalse(options.isEnsureAtomic());
     assertEquals("", options.getOwner());
     assertEquals("", options.getGroup());
     assertEquals(Mode.defaults().applyFileUMask(), options.getMode());
