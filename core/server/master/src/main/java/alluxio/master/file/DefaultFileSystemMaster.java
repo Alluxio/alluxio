@@ -1116,7 +1116,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       }
       mMountTable.checkUnderWritableMountPoint(path);
       createFileAndJournal(inodePath, options, journalContext);
-      auditContext.setSrcInode(inodePath.getParentInodeDirectory());
+      auditContext.setSrcInode(inodePath.getInode());
       return inodePath.getInode().getId();
     }
   }
@@ -1831,7 +1831,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       }
       mMountTable.checkUnderWritableMountPoint(path);
       createDirectoryAndJournal(inodePath, options, journalContext);
-      auditContext.setSrcInode(inodePath.getParentInodeDirectory());
+      auditContext.setSrcInode(inodePath.getInode());
       return inodePath.getInode().getId();
     }
   }
