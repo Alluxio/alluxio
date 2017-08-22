@@ -59,13 +59,15 @@ public final class AsyncUserAccessAuditLogWriter {
    * Stops {@link AsyncUserAccessAuditLogWriter}.
    */
   public void stop() {
-    mLoggingWorkerThread.interrupt();
-    try {
-      mLoggingWorkerThread.join();
-    } catch (InterruptedException e) {
-      Thread.currentThread().interrupt();
-    } finally {
-      mStopped = true;
+    if (!mStopped) {
+      mLoggingWorkerThread.interrupt();
+      try {
+        mLoggingWorkerThread.join();
+      } catch (InterruptedException e) {
+        Thread.currentThread().interrupt();
+      } finally {
+        mStopped = true;
+      }
     }
   }
 
