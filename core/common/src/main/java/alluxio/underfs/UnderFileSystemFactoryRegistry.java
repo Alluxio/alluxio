@@ -152,11 +152,8 @@ public final class UnderFileSystemFactoryRegistry {
 
   /**
    * Finds all {@link UnderFileSystemFactory} extensions from the extensions directory and caches.
-   *
-   * @return list of newly found extension factories
    */
-  private static List<UnderFileSystemFactory> scanExtensions() {
-    List<UnderFileSystemFactory> extensionFactories = new ArrayList<>();
+  private static void scanExtensions() {
     for (File extension : ExtensionUtils.listExtensions()) {
       try {
         URL extensionURL = extension.toURI().toURL();
@@ -171,7 +168,6 @@ public final class UnderFileSystemFactoryRegistry {
                 + "extension jar {}", factory.getClass(), factory.toString(), jarPath);
             // Cache
             register(factory);
-            extensionFactories.add(factory);
             LOADED_EXTENSION_JARS.add(jarPath);
           }
         }
@@ -179,7 +175,6 @@ public final class UnderFileSystemFactoryRegistry {
         LOG.warn("Extension URL is malformed: {}", e.getMessage());
       }
     }
-    return extensionFactories;
   }
 
   private static synchronized void init() {
