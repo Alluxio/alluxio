@@ -1,0 +1,77 @@
+/*
+ * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
+ * (the "License"). You may not use this work except in compliance with the License, which is
+ * available at www.apache.org/licenses/LICENSE-2.0
+ *
+ * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+ * either express or implied, as more fully set forth in the License.
+ *
+ * See the NOTICE file distributed with this work for information regarding copyright ownership.
+ */
+
+package alluxio.cli;
+
+import com.google.common.collect.ImmutableMap;
+import org.apache.commons.cli.CommandLine;
+import org.junit.Assert;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.ExpectedException;
+import org.mockito.Mockito;
+
+import java.util.Map;
+
+/**
+ * Unit tests for {@link AbstractShell}.
+ */
+public final class AbstractShellTest {
+
+  private static final String SHELL_NAME = "TestShell";
+
+  @Rule
+  public ExpectedException mExpectedException = ExpectedException.none();
+
+  private final class TestShell extends AbstractShell {
+
+    public TestShell() {
+      super(ImmutableMap.<String, String[]>builder().put("cmdAlias", new String[] {"cmd", "-O"})
+          .build());
+    }
+
+    @Override
+    protected String getShellName() {
+      return SHELL_NAME;
+    }
+
+    @Override
+    protected Map<String, Command> loadCommands() {
+      final Command cmd = Mockito.mock(Command.class);
+      try {
+        Mockito.when(cmd.run(Mockito.any(CommandLine.class))).thenReturn(0);
+        Mockito.when(cmd.parseAndValidateArgs(Mockito.any(String[].class)))
+            .thenReturn(Mockito.mock(CommandLine.class));
+      } catch (Exception e) {
+        throw new RuntimeException(e);
+      }
+      return ImmutableMap.<String, Command>builder().put("cmd", cmd).build();
+    }
+  }
+
+  @Test
+  public void commandExists() throws Exception {
+    TestShell shell = new TestShell();
+    Assert.assertEquals(0, shell.run("cmd"));
+  }
+
+  @Test
+  public void commandAliasExists() throws Exception {
+    TestShell shell = new TestShell();
+    Assert.assertEquals(0, shell.run("cmdAlias"));
+  }
+
+  @Test
+  public void commandDoesNotExist() throws Exception {
+    TestShell shell = new TestShell();
+    Assert.assertTrue(shell.run("cmdNotExist") < 0);
+  }
+}

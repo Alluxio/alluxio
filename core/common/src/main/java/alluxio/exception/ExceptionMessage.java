@@ -160,7 +160,16 @@ public enum ExceptionMessage {
       "Worker fileId {0,number,#} is invalid. The worker may have crashed or cleaned up "
           + "the client state due to a timeout."),
 
-  // shell
+  // cli
+  INVALID_ARGS_GENERIC("Invalid args for command {0}"),
+  INVALID_ARGS_NULL("Null args for command {0}"),
+  INVALID_ARGS_NUM("Command {0} takes {1} arguments, not {2}"),
+  INVALID_ARGS_NUM_INSUFFICIENT("Command {0} requires at least {1} arguments ({2} provided)"),
+
+  // extension shell
+  INVALID_EXTENSION_NOT_JAR("File {0} does not have the extension JAR"),
+
+  // fs shell
   DESTINATION_CANNOT_BE_FILE(
       "The destination cannot be an existing file when the source is a directory or a list of "
           + "files."),
