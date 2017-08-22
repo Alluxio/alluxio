@@ -180,8 +180,8 @@ public final class UnderFileSystemFactoryRegistry {
           ServiceLoader<UnderFileSystemFactory> extensionServiceLoader =
               ServiceLoader.load(UnderFileSystemFactory.class, extensionsClassLoader);
           for (UnderFileSystemFactory factory : extensionServiceLoader) {
-            LOG.debug("Discovered an Under File System Factory implementation in extension {} - {}",
-                factory.getClass(), factory.toString());
+            LOG.debug("Discovered an Under File System Factory implementation {} - {} in "
+                + "extension jar {}", factory.getClass(), factory.toString(), jarPath);
             // Cache
             register(factory);
             extensionFactories.add(factory);
