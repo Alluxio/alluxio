@@ -1088,6 +1088,11 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     try (JournalContext journalContext = createJournalContext();
         LockedInodePath inodePath = mInodeTree.lockInodePath(path, InodeTree.LockMode.WRITE);
         MasterAuditContext auditContext = createAuditContext("createFile", path, null, null)) {
+      if (options.isRecursive()) {
+        auditContext.setSrcInode(inodePath.getLastExistingInode());
+      } else {
+        auditContext.setSrcInode(inodePath.peekParentInodeDirectory());
+      }
       try {
         mPermissionChecker.checkParentPermission(Mode.Bits.WRITE, inodePath);
       } catch (AccessControlException e) {
@@ -1795,10 +1800,14 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       FileDoesNotExistException {
     LOG.debug("createDirectory {} ", path);
     Metrics.CREATE_DIRECTORIES_OPS.inc();
-
     try (JournalContext journalContext = createJournalContext();
         LockedInodePath inodePath = mInodeTree.lockInodePath(path, InodeTree.LockMode.WRITE);
         MasterAuditContext auditContext = createAuditContext("mkdir", path, null, null)) {
+      if (options.isRecursive()) {
+        auditContext.setSrcInode(inodePath.getLastExistingInode());
+      } else {
+        auditContext.setSrcInode(inodePath.peekParentInodeDirectory());
+      }
       try {
         mPermissionChecker.checkParentPermission(Mode.Bits.WRITE, inodePath);
       } catch (AccessControlException e) {
@@ -1888,6 +1897,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         MasterAuditContext auditContext = createAuditContext("rename", srcPath, dstPath, null)) {
       LockedInodePath srcInodePath = inodePathPair.getFirst();
       LockedInodePath dstInodePath = inodePathPair.getSecond();
+      auditContext.setSrcInode(srcInodePath.peekParentInodeDirectory());
       try {
         mPermissionChecker.checkParentPermission(Mode.Bits.WRITE, srcInodePath);
         mPermissionChecker.checkParentPermission(Mode.Bits.WRITE, dstInodePath);
@@ -2355,6 +2365,11 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     try (JournalContext journalContext = createJournalContext();
         LockedInodePath inodePath = mInodeTree.lockInodePath(path, InodeTree.LockMode.WRITE);
         MasterAuditContext auditContext = createAuditContext("loadMetadata", path, null, null)) {
+      if (options.isCreateAncestors()) {
+        auditContext.setSrcInode(inodePath.getLastExistingInode());
+      } else {
+        auditContext.setSrcInode(inodePath.peekParentInodeDirectory());
+      }
       try {
         mPermissionChecker.checkParentPermission(Mode.Bits.WRITE, inodePath);
       } catch (AccessControlException e) {
@@ -2575,7 +2590,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     try (JournalContext journalContext = createJournalContext();
         LockedInodePath inodePath = mInodeTree
             .lockInodePath(alluxioPath, InodeTree.LockMode.WRITE);
-        MasterAuditContext auditContext = createAuditContext("mount", alluxioPath, null, null)) {
+        MasterAuditContext auditContext = createAuditContext("mount", alluxioPath, null,
+            inodePath.getParentInodeDirectory())) {
       try {
         mPermissionChecker.checkParentPermission(Mode.Bits.WRITE, inodePath);
       } catch (AccessControlException e) {
@@ -2584,7 +2600,6 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       }
       mMountTable.checkUnderWritableMountPoint(alluxioPath);
       mountAndJournal(inodePath, ufsPath, options, journalContext);
-      auditContext.setSrcInode(inodePath.getParentInodeDirectory());
       Metrics.PATHS_MOUNTED.inc();
     }
   }
