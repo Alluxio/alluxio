@@ -84,7 +84,7 @@ public final class AsyncUserAccessAuditLogWriter {
   }
 
   /**
-   * Appends an audit context.
+   * Appends an {@link AuditContext}.
    *
    * @param context the audit context to append
    * @return true if append operation succeeds, false otherwise
