@@ -26,7 +26,7 @@ public class S3ErrorCode {
     public static final String BUCKET_NOT_EMPTY = "BucketNotEmpty";
     public static final String INTERNAL_ERROR = "InternalError";
     public static final String INVALID_BUCKET_NAME = "InvalidBucketName";
-    public static final String NO_SUCH_BUCKET = "BucketNotExists";
+    public static final String NO_SUCH_BUCKET = "NoSuchBucket";
 
     private Name() {
     } // prevents instantiation
