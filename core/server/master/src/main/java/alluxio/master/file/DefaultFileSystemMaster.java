@@ -1888,7 +1888,6 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         MasterAuditContext auditContext = createAuditContext("rename", srcPath, dstPath, null)) {
       LockedInodePath srcInodePath = inodePathPair.getFirst();
       LockedInodePath dstInodePath = inodePathPair.getSecond();
-      auditContext.setSrcInode(srcInodePath.getInode());
       try {
         mPermissionChecker.checkParentPermission(Mode.Bits.WRITE, srcInodePath);
         mPermissionChecker.checkParentPermission(Mode.Bits.WRITE, dstInodePath);
@@ -1899,6 +1898,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       mMountTable.checkUnderWritableMountPoint(srcPath);
       mMountTable.checkUnderWritableMountPoint(dstPath);
       renameAndJournal(srcInodePath, dstInodePath, options, journalContext);
+      auditContext.setSrcInode(srcInodePath.getInode());
       LOG.debug("Renamed {} to {}", srcPath, dstPath);
     }
   }
