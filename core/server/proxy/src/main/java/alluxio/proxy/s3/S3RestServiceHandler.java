@@ -16,8 +16,12 @@ import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileSystem;
+import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.CreateDirectoryOptions;
+import alluxio.client.file.options.DeleteOptions;
+import alluxio.exception.DirectoryNotEmptyException;
 import alluxio.exception.FileAlreadyExistsException;
+import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 import alluxio.web.ProxyWebServer;
 
@@ -26,6 +30,7 @@ import com.qmino.miredot.annotations.ReturnType;
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.servlet.ServletContext;
 import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -106,13 +111,68 @@ public final class S3RestServiceHandler {
     });
   }
 
+  /**
+   * @summary deletes a bucket
+   * @param bucket the Alluxio path
+   * @return the response object
+   */
+  @DELETE
+  @Path(BUCKET_PARAM)
+  @ReturnType("java.lang.Void")
+  public Response deleteBucket(@PathParam("bucket") final String bucket) {
+    return S3RestUtils.call(bucket, new S3RestUtils.RestCallable<Void>() {
+      @Override
+      public Void call() throws S3Exception {
+        String bucketPath =  AlluxioURI.SEPARATOR + bucket;
+        if (bucketPath.contains(BUCKET_SEPARATOR)) {
+          bucketPath = bucketPath.replace(BUCKET_SEPARATOR, AlluxioURI.SEPARATOR);
+          // Assure that the bucket is directly under a mount point.
+          AlluxioURI parent = new AlluxioURI(bucketPath).getParent();
+          try {
+            if (!mFileSystem.getMountTable().containsKey(parent.getPath())) {
+              throw new S3Exception(bucketPath, S3ErrorCode.INVALID_NESTED_BUCKET_NAME);
+            }
+          } catch (Exception e) {
+            throw toBucketS3Exception(e, bucketPath);
+          }
+        }
+
+        try {
+          URIStatus status = mFileSystem.getStatus(new AlluxioURI(bucketPath));
+          if (!status.isFolder()) {
+            throw new InvalidPathException("Bucket name is not a valid Alluxio directory.");
+          }
+        } catch (Exception e) {
+          throw toBucketS3Exception(e, bucketPath);
+        }
+
+        // Delete the bucket.
+        DeleteOptions options = DeleteOptions.defaults();
+        options.setAlluxioOnly(Configuration.get(PropertyKey.PROXY_S3_DELETE_TYPE)
+            .equals(S3RestUtils.DELETE_IN_ALLUXIO_ONLY));
+        try {
+          mFileSystem.delete(new AlluxioURI(bucketPath), options);
+        } catch (Exception e) {
+          throw toBucketS3Exception(e, bucketPath);
+        }
+        return null;
+      }
+    });
+  }
+
   private S3Exception toBucketS3Exception(Exception exception, String resource) {
     try {
       throw exception;
-    } catch (InvalidPathException e) {
-      return new S3Exception(resource, S3ErrorCode.INVALID_BUCKET_NAME);
+    } catch (S3Exception e) {
+      return e;
+    } catch (DirectoryNotEmptyException e) {
+      return new S3Exception(resource, S3ErrorCode.BUCKET_NOT_EMPTY);
     } catch (FileAlreadyExistsException e) {
       return new S3Exception(resource, S3ErrorCode.BUCKET_ALREADY_EXISTS);
+    } catch (FileDoesNotExistException e) {
+      return new S3Exception(resource, S3ErrorCode.NO_SUCH_BUCKET);
+    } catch (InvalidPathException e) {
+      return new S3Exception(resource, S3ErrorCode.INVALID_BUCKET_NAME);
     } catch (Exception e) {
       return new S3Exception(e, resource, S3ErrorCode.INTERNAL_ERROR);
     }
