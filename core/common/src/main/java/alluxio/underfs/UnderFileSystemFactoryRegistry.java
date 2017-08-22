@@ -109,17 +109,12 @@ public final class UnderFileSystemFactoryRegistry {
   public static UnderFileSystemFactory find(String path) {
     Preconditions.checkArgument(path != null, "path may not be null");
 
+    scanExtensions();
+
     for (UnderFileSystemFactory factory : FACTORIES) {
       if (factory.supportsPath(path)) {
         LOG.debug("Selected Under File System Factory implementation {} for path {}",
             factory.getClass(), path);
-        return factory;
-      }
-    }
-    for (UnderFileSystemFactory factory : scanExtensions()) {
-      if (factory.supportsPath(path)) {
-        LOG.debug("Selected Under File System Factory implementation {} for path {} "
-            + "(from scanned extensions)", factory.getClass(), path);
         return factory;
       }
     }
@@ -138,22 +133,14 @@ public final class UnderFileSystemFactoryRegistry {
   public static List<UnderFileSystemFactory> findAll(String path) {
     Preconditions.checkArgument(path != null, "path may not be null");
 
+    scanExtensions();
+
     List<UnderFileSystemFactory> eligibleFactories = new ArrayList<>();
     for (UnderFileSystemFactory factory : FACTORIES) {
       if (factory.supportsPath(path)) {
         LOG.debug("Under File System Factory implementation {} is eligible for path {}",
             factory.getClass(), path);
         eligibleFactories.add(factory);
-      }
-    }
-    if (eligibleFactories.isEmpty()) {
-      for (UnderFileSystemFactory factory : scanExtensions()) {
-        // Found factory in scanned extensions directory
-        if (factory.supportsPath(path)) {
-          LOG.debug("Under File System Factory implementation {} is eligible for path {} "
-              + "(from scanned extensions)", factory.getClass(), path);
-          eligibleFactories.add(factory);
-        }
       }
     }
 
