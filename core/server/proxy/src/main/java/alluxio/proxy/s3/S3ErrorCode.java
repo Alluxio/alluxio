@@ -23,8 +23,10 @@ public class S3ErrorCode {
    */
   public static final class Name {
     public static final String BUCKET_ALREADY_EXISTS = "BucketAlreadyExists";
+    public static final String BUCKET_NOT_EMPTY = "BucketNotEmpty";
     public static final String INTERNAL_ERROR = "InternalError";
     public static final String INVALID_BUCKET_NAME = "InvalidBucketName";
+    public static final String NO_SUCH_BUCKET = "NoSuchBucket";
 
     private Name() {
     } // prevents instantiation
@@ -37,6 +39,10 @@ public class S3ErrorCode {
       Name.BUCKET_ALREADY_EXISTS,
       "The requested bucket name already exists",
       Response.Status.CONFLICT);
+  public static final S3ErrorCode BUCKET_NOT_EMPTY = new S3ErrorCode(
+      Name.BUCKET_NOT_EMPTY,
+      "The bucket you tried to delete is not empty",
+      Response.Status.CONFLICT);
   public static final S3ErrorCode INVALID_BUCKET_NAME = new S3ErrorCode(
       Name.INVALID_BUCKET_NAME,
       "The specified bucket name is invalid",
@@ -45,6 +51,10 @@ public class S3ErrorCode {
       Name.INTERNAL_ERROR,
       "We encountered an internal error. Please try again.",
       Response.Status.INTERNAL_SERVER_ERROR);
+  public static final S3ErrorCode NO_SUCH_BUCKET = new S3ErrorCode(
+      Name.NO_SUCH_BUCKET,
+      "The specified bucket does not exist",
+      Response.Status.NOT_FOUND);
 
   //
   // Customized error codes.

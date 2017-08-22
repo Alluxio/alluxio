@@ -1181,6 +1181,15 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "`CACHE_THROUGH` (try to cache, write to UnderFS synchronously), "
               + "`THROUGH` (no cache, write to UnderFS synchronously).")
           .build();
+  public static final PropertyKey PROXY_S3_DELETE_TYPE =
+      new Builder(Name.PROXY_S3_DELETE_TYPE)
+          .setDefaultValue(Constants.DELETE_IN_ALLUXIO_AND_UFS)
+          .setDescription(String.format(
+              "Delete type when deleting buckets and objects through S3 API. Valid options are "
+                  + "`%s` (delete both in Alluxio and UFS), "
+                  + "`%s` (delete only the buckets or objects in Alluxio namespace).",
+              Constants.DELETE_IN_ALLUXIO_AND_UFS, Constants.DELETE_IN_ALLUXIO_ONLY))
+          .build();
   public static final PropertyKey PROXY_STREAM_CACHE_TIMEOUT_MS =
       new Builder(Name.PROXY_STREAM_CACHE_TIMEOUT_MS)
           .setAlias(new String[]{"alluxio.proxy.stream.cache.timeout.ms"})
@@ -2050,6 +2059,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     // Proxy related properties
     //
     public static final String PROXY_S3_WRITE_TYPE = "alluxio.proxy.s3.writetype";
+    public static final String PROXY_S3_DELETE_TYPE = "alluxio.proxy.s3.deletetype";
     public static final String PROXY_STREAM_CACHE_TIMEOUT_MS =
         "alluxio.proxy.stream.cache.timeout";
     public static final String PROXY_WEB_BIND_HOST = "alluxio.proxy.web.bind.host";
