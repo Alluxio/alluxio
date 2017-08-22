@@ -2,8 +2,10 @@
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
  * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
- * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIN
+ *
+ * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
  * either express or implied, as more fully set forth in the License.
+ *
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
@@ -46,12 +48,11 @@ public final class S3RestServiceHandler {
   public static final String SERVICE_PREFIX = "s3";
 
   /**
-   * Bucket must be a directory directly under the root directory or a mount point.
-   * If bucket is a nested directory under a mount point, it must be in the format like
-   * mount:point:bucketname where : is used as path separator instead of /.
+   * Bucket must be a directory directly under a mount point. If it is under a non-root mount point,
+   * the bucket separator must be used as the separator in the bucket name, for example,
+   * mount:point:bucket represents Alluxio directory /mount/point/bucket.
    */
   public static final String BUCKET_SEPARATOR = ":";
-  public static final String PATH_SEPARATOR = "/";
 
   // Bucket is the first component in the URL path.
   public static final String BUCKET_PARAM = "{bucket}/";
@@ -79,38 +80,40 @@ public final class S3RestServiceHandler {
   public Response createBucket(@PathParam("bucket") final String bucket) {
     return S3RestUtils.call(bucket, new S3RestUtils.RestCallable<Void>() {
       @Override
-      public Void call() throws S3RestUtils.S3Exception {
-        String bucketName = PATH_SEPARATOR + bucket;
-        if (bucketName.contains(BUCKET_SEPARATOR)) {
-          bucketName = bucketName.replace(BUCKET_SEPARATOR, PATH_SEPARATOR);
+      public Void call() throws S3Exception {
+        String bucketPath =  AlluxioURI.SEPARATOR + bucket;
+        if (bucketPath.contains(BUCKET_SEPARATOR)) {
+          bucketPath = bucketPath.replace(BUCKET_SEPARATOR, AlluxioURI.SEPARATOR);
           // Assure that the bucket is directly under a mount point.
-          AlluxioURI parent = new AlluxioURI(bucketName).getParent();
+          AlluxioURI parent = new AlluxioURI(bucketPath).getParent();
           try {
             if (!mFileSystem.getMountTable().containsKey(parent.getPath())) {
-              throw new S3RestUtils.S3Exception(bucketName,
-                  S3RestUtils.ErrorCode.INVALID_NESTED_BUCKET_NAME);
+              throw new S3Exception(bucketPath, S3ErrorCode.INVALID_NESTED_BUCKET_NAME);
             }
           } catch (IOException | AlluxioException e) {
-            throw new S3RestUtils.S3Exception(e, bucketName, S3RestUtils.ErrorCode.INTERNAL_ERROR);
+            throw toInternalError(e, bucketPath);
           }
         }
 
         // Create the bucket.
         CreateDirectoryOptions options = CreateDirectoryOptions.defaults();
         options.setWriteType(Configuration.getEnum(PropertyKey.PROXY_S3_WRITE_TYPE,
-              WriteType.class));
+            WriteType.class));
         try {
-          mFileSystem.createDirectory(new AlluxioURI(bucketName), options);
+          mFileSystem.createDirectory(new AlluxioURI(bucketPath), options);
         } catch (InvalidPathException e) {
-          throw new S3RestUtils.S3Exception(bucketName, S3RestUtils.ErrorCode.INVALID_BUCKET_NAME);
+          throw new S3Exception(bucketPath, S3ErrorCode.INVALID_BUCKET_NAME);
         } catch (FileAlreadyExistsException e) {
-          throw new S3RestUtils.S3Exception(bucketName,
-              S3RestUtils.ErrorCode.BUCKET_ALREADY_EXISTS);
+          throw new S3Exception(bucketPath, S3ErrorCode.BUCKET_ALREADY_EXISTS);
         } catch (IOException | AlluxioException e) {
-          throw new S3RestUtils.S3Exception(e, bucketName, S3RestUtils.ErrorCode.INTERNAL_ERROR);
+          throw toInternalError(e, bucketPath);
         }
         return null;
       }
     });
+  }
+
+  private S3Exception toInternalError(Exception e, String resource) {
+    return new S3Exception(e, resource, S3ErrorCode.INTERNAL_ERROR);
   }
 }

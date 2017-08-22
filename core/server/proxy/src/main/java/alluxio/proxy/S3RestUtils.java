@@ -40,12 +40,13 @@ public final class S3RestUtils {
    */
   public static <T> Response call(String resource, S3RestUtils.RestCallable<T> callable) {
     try {
+      // TODO(cc): reconsider how to enable authentication
       if (SecurityUtils.isSecurityEnabled() && AuthenticatedClientUser.get() == null) {
         AuthenticatedClientUser.set(LoginUser.get().getName());
       }
     } catch (IOException e) {
       LOG.warn("Failed to set AuthenticatedClientUser in REST service handler: {}", e.getMessage());
-      return createErrorResponse(new S3Exception(e, resource, ErrorCode.INTERNAL_ERROR));
+      return createErrorResponse(new S3Exception(e, resource, S3ErrorCode.INTERNAL_ERROR));
     }
 
     try {
@@ -74,7 +75,6 @@ public final class S3RestUtils {
    * Creates a response using the given object.
    *
    * @param object the object to respond with
-   * @param resource the resource name (bucket or object key)
    * @return the response
    */
   private static Response createResponse(Object object) {
@@ -93,130 +93,6 @@ public final class S3RestUtils {
   private static Response createErrorResponse(S3Exception e) {
     Error errorResponse = new Error(e.getResource(), e.getErrorCode());
     return Response.status(e.getErrorCode().getStatus()).entity(errorResponse).build();
-  }
-
-  /**
-   * Error code names used in {@link ErrorCode}.
-   */
-  public static final class ErrorCodeName {
-    public static final String BUCKET_ALREADY_EXISTS = "BucketAlreadyExists";
-    public static final String INTERNAL_ERROR = "InternalError";
-    public static final String INVALID_BUCKET_NAME = "InvalidBucketName";
-
-    private ErrorCodeName() {} // prevents instantiation
-  }
-
-  /**
-   * Error codes defined in http://docs.aws.amazon.com/AmazonS3/latest/API/ErrorResponses.html,
-   * some are customized.
-   */
-  public static class ErrorCode {
-    //
-    // Official error codes.
-    //
-    public static final ErrorCode BUCKET_ALREADY_EXISTS = new ErrorCode(
-        ErrorCodeName.BUCKET_ALREADY_EXISTS,
-        "The requested bucket name already exists",
-        Response.Status.CONFLICT);
-    public static final ErrorCode INVALID_BUCKET_NAME = new ErrorCode(
-        ErrorCodeName.INVALID_BUCKET_NAME,
-        "The specified bucket name is invalid",
-        Response.Status.BAD_REQUEST);
-    public static final ErrorCode INTERNAL_ERROR = new ErrorCode(ErrorCodeName.INTERNAL_ERROR,
-        "We encountered an internal error. Please try again.",
-        Response.Status.INTERNAL_SERVER_ERROR);
-
-    //
-    // Customized error codes.
-    //
-    public static final ErrorCode INVALID_NESTED_BUCKET_NAME = new ErrorCode(
-        ErrorCodeName.BUCKET_ALREADY_EXISTS,
-        "The specified bucket is not a directory directly under a mount point",
-        Response.Status.BAD_REQUEST);
-
-    private final String mCode;
-    private final String mDescription;
-    private final Response.Status mStatus;
-
-    /**
-     * Constructs a new {@link ErrorCode}.
-     *
-     * @param code the error code defined in {@link ErrorCodeName}
-     * @param description the error description
-     * @param status the HTTP status code for the error
-     */
-    public ErrorCode(String code, String description, Response.Status status) {
-      mCode = code;
-      mDescription = description;
-      mStatus = status;
-    }
-
-    /**
-     * @return the error code
-     */
-    public String getCode() {
-      return mCode;
-    }
-
-    /**
-     * @return the description
-     */
-    public String getDescription() {
-      return mDescription;
-    }
-
-    /**
-     * @return the HTTP status
-     */
-    public Response.Status getStatus() {
-      return mStatus;
-    }
-  }
-
-  /**
-   * An exception thrown during processing S3 REST requests.
-   */
-  public static class S3Exception extends Exception {
-    private final String mResource;
-    private final ErrorCode mErrorCode;
-
-    /**
-     * Constructs a new {@link S3Exception}.
-     *
-     * @param resource the resource name (bucket or object key)
-     * @param errorCode the error code
-     */
-    public S3Exception(String resource, ErrorCode errorCode) {
-      mResource = resource;
-      mErrorCode = errorCode;
-    }
-
-    /**
-     * Derives a new {@link S3Exception} from an existing exception.
-     *
-     * @param exception the existing exception
-     * @param resource the resource name (bucket or object key)
-     * @param errorCode the error code
-     */
-    public S3Exception(Exception exception, String resource, ErrorCode errorCode) {
-      mResource = resource;
-      mErrorCode = new ErrorCode(errorCode.getCode(), exception.getMessage(),
-          errorCode.getStatus());
-    }
-
-    /**
-     * @return the error code
-     */
-    public ErrorCode getErrorCode() {
-      return mErrorCode;
-    }
-
-    /**
-     * @return the resource name
-     */
-    public String getResource() {
-      return mResource;
-    }
   }
 
   /**
@@ -248,7 +124,7 @@ public final class S3RestUtils {
      * @param resource the resource (bucket or object key) where the error happens
      * @param code the error code
      */
-    public Error(String resource, ErrorCode code) {
+    public Error(String resource, S3ErrorCode code) {
       mCode = code.getCode();
       mMessage = code.getDescription();
       mRequestId = "";
