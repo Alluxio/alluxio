@@ -105,10 +105,18 @@ public final class UnderFileSystemFactoryRegistry {
   public static UnderFileSystemFactory find(String path) {
     Preconditions.checkArgument(path != null, "path may not be null");
 
+    final String selectedFactoryFormat =
+        "Selected Under File System Factory implementation {} for path {}";
     for (UnderFileSystemFactory factory : FACTORIES) {
       if (factory.supportsPath(path)) {
-        LOG.debug("Selected Under File System Factory implementation {} for path {}",
-            factory.getClass(), path);
+        LOG.debug(selectedFactoryFormat, factory.getClass(), path);
+        return factory;
+      }
+    }
+    // Scan extensions directory on the fly
+    for (UnderFileSystemFactory factory : findExtensions()) {
+      if (factory.supportsPath(path)) {
+        LOG.debug(selectedFactoryFormat, factory.getClass(), path);
         return factory;
       }
     }
@@ -128,16 +136,20 @@ public final class UnderFileSystemFactoryRegistry {
     Preconditions.checkArgument(path != null, "path may not be null");
 
     List<UnderFileSystemFactory> eligibleFactories = new ArrayList<>();
+    final String foundFactoryFormat = "Under File System Factory implementation {} is eligible for path {}";
     for (UnderFileSystemFactory factory : FACTORIES) {
       if (factory.supportsPath(path)) {
-        LOG.debug("Under File System Factory implementation {} is eligible for path {}",
-            factory.getClass(), path);
+        LOG.debug(foundFactoryFormat, factory.getClass(), path);
         eligibleFactories.add(factory);
       }
     }
-
     // Scan extensions directory on the fly
-    eligibleFactories.addAll(findAllExtensions(path));
+    for (UnderFileSystemFactory factory : findExtensions()) {
+      if (factory.supportsPath(path)) {
+        LOG.debug(foundFactoryFormat, factory.getClass(), path);
+        eligibleFactories.add(factory);
+      }
+    }
 
     if (eligibleFactories.isEmpty()) {
       LOG.warn("No Under File System Factory implementation supports the path {}", path);
@@ -146,35 +158,29 @@ public final class UnderFileSystemFactoryRegistry {
   }
 
   /**
-   * Finds all eligible {@link UnderFileSystemFactory} extensions from the extensions directory.
+   * Finds all {@link UnderFileSystemFactory} extensions from the extensions directory.
    *
-   * @param path URI for which to construct an {@link UnderFileSystem} instance
-   * @return list of extension factories which support the given path
+   * @return list of extension factories
    */
-  private static List<UnderFileSystemFactory> findAllExtensions(String path) {
-    Preconditions.checkArgument(path != null, "path may not be null");
-
-    List<UnderFileSystemFactory> eligibleFactories = new ArrayList<>();
+  private static List<UnderFileSystemFactory> findExtensions() {
+    List<UnderFileSystemFactory> extensionFactories = new ArrayList<>();
     for (File extension : ExtensionUtils.listExtensions()) {
       try {
         URL[] extensionUrls = new URL[] {extension.toURI().toURL()};
         ClassLoader extensionsClassLoader =
             new ExtensionsClassLoader(extensionUrls, ClassLoader.getSystemClassLoader());
-        ServiceLoader<UnderFileSystemFactory> extensionFactories =
+        ServiceLoader<UnderFileSystemFactory> extensionServiceLoader =
             ServiceLoader.load(UnderFileSystemFactory.class, extensionsClassLoader);
-        for (UnderFileSystemFactory factory : extensionFactories) {
-          if (factory.supportsPath(path)) {
-            LOG.debug(
-                "Discovered an Under File System Factory implementation in extension {} - {}",
-                factory.getClass(), factory.toString());
-            eligibleFactories.add(factory);
-          }
+        for (UnderFileSystemFactory factory : extensionServiceLoader) {
+          LOG.debug("Discovered an Under File System Factory implementation in extension {} - {}",
+              factory.getClass(), factory.toString());
+          extensionFactories.add(factory);
         }
       } catch (MalformedURLException e) {
         LOG.warn("Extension URL is malformed: {}", e.getMessage());
       }
     }
-    return eligibleFactories;
+    return extensionFactories;
   }
 
   private static synchronized void init() {
