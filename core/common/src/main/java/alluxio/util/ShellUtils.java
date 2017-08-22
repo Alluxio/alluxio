@@ -35,6 +35,13 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class ShellUtils {
   private static final Logger LOG = LoggerFactory.getLogger(ShellUtils.class);
 
+  /**
+   * Common shell OPTS to prevent stalling.
+   * a. Disable StrictHostKeyChecking to prevent interactive prompt
+   * b. Set timeout for establishing connection with host
+   */
+  public static final String COMMON_SSH_OPTS = "-o StrictHostKeyChecking=no -o ConnectTimeout=5";
+
   /** a Unix command to set permission. */
   public static final String SET_PERMISSION_COMMAND = "chmod";
 
