@@ -42,7 +42,7 @@ if [[ -z "$YARN_HOME" ]]; then
 fi
 YARN_HOME=${YARN_HOME:-${HADOOP_HOME}}
 
-SCRIPT_DIR="$(cd "$(dirname "$0")"; pwd)"
+SCRIPT_DIR="$(cd "$(dirname "$(readlink "$0")")"; pwd)"
 ALLUXIO_HOME="$(cd "${SCRIPT_DIR}/../../.."; pwd)"
 
 source "${SCRIPT_DIR}/common.sh"
