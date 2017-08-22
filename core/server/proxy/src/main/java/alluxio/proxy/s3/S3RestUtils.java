@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.proxy;
+package alluxio.proxy.s3;
 
 import alluxio.security.LoginUser;
 import alluxio.security.authentication.AuthenticatedClientUser;
