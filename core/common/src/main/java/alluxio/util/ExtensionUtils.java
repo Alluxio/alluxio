@@ -22,7 +22,6 @@ import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Utility functions for working with extensions.
- *
  */
 @ThreadSafe
 public final class ExtensionUtils {
