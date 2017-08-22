@@ -10,7 +10,7 @@
 # See the NOTICE file distributed with this work for information regarding copyright ownership.
 #
 
-SCRIPT_DIR="$(cd "$(dirname "$(readlink "$0")")"; pwd)"
+SCRIPT_DIR="$(cd "$(dirname "$(readlink "$0" || echo "$0")")"; pwd)"
 
 get_env () {
   DEFAULT_LIBEXEC_DIR="${SCRIPT_DIR}"/../../../libexec
