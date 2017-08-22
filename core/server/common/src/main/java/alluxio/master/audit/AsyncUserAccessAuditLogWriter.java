@@ -21,10 +21,13 @@ import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * {@link AsyncUserAccessAuditLogWriter} writes user access audit log entries asynchronously.
+ *
+ * TODO(yanqin) investigate other lock-free queues, e.g. Lmax disruptor used by Lmax and log4j 2
  */
 @ThreadSafe
 public final class AsyncUserAccessAuditLogWriter {
   private static final int QUEUE_SIZE = 10000;
+  private static final String AUDIT_LOG_THREAD_NAME = "AsyncUserAccessAuditLogger";
   private static final Logger LOG =
       LoggerFactory.getLogger(AsyncUserAccessAuditLogWriter.class);
   private static final Logger AUDIT_LOG =
@@ -51,34 +54,31 @@ public final class AsyncUserAccessAuditLogWriter {
   /**
    * Starts {@link AsyncUserAccessAuditLogWriter}.
    */
-  public void start() {
-    synchronized (this) {
-      if (mStopped) {
-        Preconditions.checkState(mLoggingWorkerThread == null);
-        mStopped = false;
-        mLoggingWorkerThread = new Thread(new AuditLoggingWorker());
-        mLoggingWorkerThread.start();
-        LOG.info("AsyncUserAccessAuditLogWriter thread started.");
-      }
+  public synchronized void start() {
+    if (mStopped) {
+      Preconditions.checkState(mLoggingWorkerThread == null);
+      mStopped = false;
+      mLoggingWorkerThread = new Thread(new AuditLoggingWorker());
+      mLoggingWorkerThread.setName(AUDIT_LOG_THREAD_NAME);
+      mLoggingWorkerThread.start();
+      LOG.info("AsyncUserAccessAuditLogWriter thread started.");
     }
   }
 
   /**
    * Stops {@link AsyncUserAccessAuditLogWriter}.
    */
-  public void stop() {
-    synchronized (this) {
-      if (!mStopped) {
-        mLoggingWorkerThread.interrupt();
-        try {
-          mLoggingWorkerThread.join();
-        } catch (InterruptedException e) {
-          Thread.currentThread().interrupt();
-        } finally {
-          mStopped = true;
-          mLoggingWorkerThread = null;
-          LOG.info("AsyncUserAccessAuditLogWriter thread stopped.");
-        }
+  public synchronized void stop() {
+    if (!mStopped) {
+      mLoggingWorkerThread.interrupt();
+      try {
+        mLoggingWorkerThread.join();
+      } catch (InterruptedException e) {
+        Thread.currentThread().interrupt();
+      } finally {
+        mStopped = true;
+        mLoggingWorkerThread = null;
+        LOG.info("AsyncUserAccessAuditLogWriter thread stopped.");
       }
     }
   }

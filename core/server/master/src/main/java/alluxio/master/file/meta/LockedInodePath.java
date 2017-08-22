@@ -128,7 +128,7 @@ public abstract class LockedInodePath implements AutoCloseable {
    *
    * @return the last existing inode in mInodes
    */
-  public synchronized  Inode getLastExistingInode() {
+  public synchronized Inode getLastExistingInode() {
     Inode<?> inode = mInodes.get(mInodes.size() - 1);
     return inode;
   }
