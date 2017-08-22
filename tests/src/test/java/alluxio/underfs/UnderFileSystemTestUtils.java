@@ -11,7 +11,6 @@
 
 package alluxio.underfs;
 
-import alluxio.AlluxioURI;
 import alluxio.Constants;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -22,30 +21,6 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class UnderFileSystemTestUtils {
-  /**
-   * @param ufs the {@link UnderFileSystem} implementation to check
-   * @return true if the implementation is a Google cloud store implementation
-   */
-  public static boolean isGcs(UnderFileSystem ufs) {
-    return "gcs".equals(ufs.getUnderFSType());
-  }
-
-  /**
-   * @param ufs the {@link UnderFileSystem} implementation to check
-   * @return true if the implementation is a local file system implementation
-   */
-  public static boolean isLocal(UnderFileSystem ufs) {
-    return "local".equals(ufs.getUnderFSType());
-  }
-
-  /**
-   * @param ufs the {@link UnderFileSystem} implementation to check
-   * @return true if the implementation is a Hadoop distributed file system implementation
-   */
-  public static boolean isHdfs(UnderFileSystem ufs) {
-    return "hdfs".equals(ufs.getUnderFSType());
-  }
-
   /**
    * Returns whether the given ufs address indicates a object storage ufs.
    *
@@ -58,46 +33,6 @@ public final class UnderFileSystemTestUtils {
         || ufsAddress.startsWith(Constants.HEADER_GCS)
         || ufsAddress.startsWith(Constants.HEADER_SWIFT)
         || ufsAddress.startsWith(Constants.HEADER_OSS);
-  }
-
-  /**
-   * @param ufs the {@link UnderFileSystem} implementation to check
-   * @return true if the implementation is an object storage implementation
-   */
-  public static boolean isObjectStorage(UnderFileSystem ufs) {
-    return ufs.isObjectStorage();
-  }
-
-  /**
-   * @param ufs the {@link UnderFileSystem} implementation to check
-   * @return true if the implementation is an Object storage service implementation
-   */
-  public static boolean isOss(UnderFileSystem ufs) {
-    return "oss".equals(ufs.getUnderFSType());
-  }
-
-  /**
-   * @param ufs the {@link UnderFileSystem} implementation to check
-   * @return true if the implementation is an S3 implementation
-   */
-  public static boolean isS3(UnderFileSystem ufs) {
-    return "s3".equals(ufs.getUnderFSType()) || "s3a".equals(ufs.getUnderFSType());
-  }
-
-  /**
-   * @param ufs the {@link UnderFileSystem} implementation to check
-   * @return true if the implementation is a Swift storage implementation
-   */
-  public static boolean isSwift(UnderFileSystem ufs) {
-    return "swift".equals(ufs.getUnderFSType());
-  }
-
-  /**
-   * @param uri the UFS path
-   * @return the bucket or container name of the object storage
-   */
-  public static String getBucketName(AlluxioURI uri) {
-    return uri.getAuthority();
   }
 
   private UnderFileSystemTestUtils() {} // prevent instantiation

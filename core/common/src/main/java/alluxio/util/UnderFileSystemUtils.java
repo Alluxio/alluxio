@@ -111,14 +111,6 @@ public final class UnderFileSystemUtils {
 
   /**
    * @param ufs the {@link UnderFileSystem} implementation to check
-   * @return true if the implementation is an object storage implementation
-   */
-  public static boolean isObjectStorage(UnderFileSystem ufs) {
-    return isGcs(ufs) || isOss(ufs) || isS3(ufs) || isSwift(ufs);
-  }
-
-  /**
-   * @param ufs the {@link UnderFileSystem} implementation to check
    * @return true if the implementation is an Object storage service implementation
    */
   public static boolean isOss(UnderFileSystem ufs) {
