@@ -18,7 +18,9 @@ import java.net.URL;
 import java.net.URLClassLoader;
 
 /**
- * An isolated {@link ClassLoader} for loading extensions to core Alluxio.
+ * An isolated {@link ClassLoader} for loading extensions to core Alluxio. This class loader first
+ * scans the provided URLs to define a class and in case the class is not found it will fallback to
+ * the provided default class loader.
  */
 public class ExtensionsClassLoader extends URLClassLoader {
   private static final Logger LOG = LoggerFactory.getLogger(ExtensionsClassLoader.class);
