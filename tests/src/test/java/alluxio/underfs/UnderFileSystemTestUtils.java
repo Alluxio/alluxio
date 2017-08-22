@@ -9,82 +9,19 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.util;
+package alluxio.underfs;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
-import alluxio.underfs.UnderFileSystem;
-import alluxio.underfs.options.DeleteOptions;
-
-import com.google.common.base.Preconditions;
-import com.google.common.base.Throwables;
-
-import java.io.IOException;
-import java.io.OutputStream;
 
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * Utility functions for working with {@link alluxio.underfs.UnderFileSystem}.
+ * Utility functions for testing with {@link UnderFileSystem}.
  *
  */
 @ThreadSafe
-public final class UnderFileSystemUtils {
-
-  /**
-   * Deletes the directory at the given path if it exists.
-   *
-   * @param ufs instance of {@link UnderFileSystem}
-   * @param path path to the directory
-   */
-  public static void deleteDirIfExists(UnderFileSystem ufs, String path) throws IOException {
-    if (ufs.isDirectory(path)
-        && !ufs.deleteDirectory(path, DeleteOptions.defaults().setRecursive(true))) {
-      throw new IOException("Folder " + path + " already exists but can not be deleted.");
-    }
-  }
-
-  /**
-   * Attempts to create the directory if it does not already exist.
-   *
-   * @param ufs instance of {@link UnderFileSystem}
-   * @param path path to the directory
-   */
-  public static void mkdirIfNotExists(UnderFileSystem ufs, String path) throws IOException {
-    if (!ufs.isDirectory(path)) {
-      if (!ufs.mkdirs(path)) {
-        throw new IOException("Failed to make folder: " + path);
-      }
-    }
-  }
-
-  /**
-   * Creates an empty file.
-   *
-   * @param ufs instance of {@link UnderFileSystem}
-   * @param path path to the file
-   */
-  public static void touch(UnderFileSystem ufs, String path) throws IOException {
-    OutputStream os = ufs.create(path);
-    os.close();
-  }
-
-  /**
-   * Deletes the specified path from the specified under file system if it is a file and exists.
-   *
-   * @param ufs instance of {@link UnderFileSystem}
-   * @param path the path to delete
-   */
-  public static void deleteFileIfExists(UnderFileSystem ufs, String path) {
-    try {
-      if (ufs.isFile(path)) {
-        ufs.deleteFile(path);
-      }
-    } catch (IOException e) {
-      throw Throwables.propagate(e);
-    }
-  }
-
+public final class UnderFileSystemTestUtils {
   /**
    * @param ufs the {@link UnderFileSystem} implementation to check
    * @return true if the implementation is a Google cloud store implementation
@@ -110,11 +47,25 @@ public final class UnderFileSystemUtils {
   }
 
   /**
+   * Returns whether the given ufs address indicates a object storage ufs.
+   *
+   * @param ufsAddress the ufs address
+   * @return true if the under file system is a object storage; false otherwise
+   */
+  public static boolean isObjectStorage(String ufsAddress) {
+    return ufsAddress.startsWith(Constants.HEADER_S3)
+        || ufsAddress.startsWith(Constants.HEADER_S3A)
+        || ufsAddress.startsWith(Constants.HEADER_GCS)
+        || ufsAddress.startsWith(Constants.HEADER_SWIFT)
+        || ufsAddress.startsWith(Constants.HEADER_OSS);
+  }
+
+  /**
    * @param ufs the {@link UnderFileSystem} implementation to check
    * @return true if the implementation is an object storage implementation
    */
   public static boolean isObjectStorage(UnderFileSystem ufs) {
-    return isGcs(ufs) || isOss(ufs) || isS3(ufs) || isSwift(ufs);
+    return ufs.isObjectStorage();
   }
 
   /**
@@ -149,5 +100,5 @@ public final class UnderFileSystemUtils {
     return uri.getAuthority();
   }
 
-  private UnderFileSystemUtils() {} // prevent instantiation
+  private UnderFileSystemTestUtils() {} // prevent instantiation
 }

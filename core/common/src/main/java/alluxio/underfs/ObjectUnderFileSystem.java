@@ -456,6 +456,11 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
   }
 
   @Override
+  public boolean isObjectStorage() {
+    return true;
+  }
+
+  @Override
   public UfsStatus[] listStatus(String path) throws IOException {
     return listInternal(path, ListOptions.defaults());
   }
