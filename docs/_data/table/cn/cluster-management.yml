@@ -1,5 +1,5 @@
 alluxio.integration.master.resource.cpu:
-  运行Tachon master所需要的cpu核数。
+  运行Alluxio master所需要的cpu核数。
 alluxio.integration.master.resource.mem:
   运行Alluxio master所需要的内存大小。
 alluxio.integration.mesos.executor.dependency.path:
@@ -25,6 +25,6 @@ alluxio.integration.mesos.worker.name:
 alluxio.integration.yarn.max.workers.per.host:
   单个主机上能启动的Alluxio worker的最大数目。
 alluxio.integration.worker.resource.cpu:
-  运行Tachon worker所需要的cpu核数。
+  运行Alluxio worker所需要的cpu核数。
 alluxio.integration.worker.resource.mem:
   运行Alluxio worker所需要的内存大小，该部分内存不包含为层次化存储配置的内容。
