@@ -77,8 +77,8 @@ import javax.annotation.concurrent.NotThreadSafe;
 public final class UnderFileSystemFactoryRegistry {
   private static final Logger LOG = LoggerFactory.getLogger(UnderFileSystemFactoryRegistry.class);
 
-  // Key: JAR name
-  private static final Set<String> LOADED_EXTENSION_KEYS = new HashSet<>();
+  // Key: absolute path to jar file
+  private static final Set<String> LOADED_EXTENSION_JARS = new HashSet<>();
   private static final List<UnderFileSystemFactory> FACTORIES = new CopyOnWriteArrayList<>();
 
   private static boolean sInit = false;
@@ -173,8 +173,8 @@ public final class UnderFileSystemFactoryRegistry {
     for (File extension : ExtensionUtils.listExtensions()) {
       try {
         URL extensionURL = extension.toURI().toURL();
-        String extensionKey = extensionURL.toString();
-        if (!LOADED_EXTENSION_KEYS.contains(extensionKey)) {
+        String jarPath = extensionURL.toString();
+        if (!LOADED_EXTENSION_JARS.contains(jarPath)) {
           ClassLoader extensionsClassLoader = new ExtensionsClassLoader(new URL[] {extensionURL},
               ClassLoader.getSystemClassLoader());
           ServiceLoader<UnderFileSystemFactory> extensionServiceLoader =
@@ -185,7 +185,7 @@ public final class UnderFileSystemFactoryRegistry {
             // Cache
             register(factory);
             extensionFactories.add(factory);
-            LOADED_EXTENSION_KEYS.add(extensionKey);
+            LOADED_EXTENSION_JARS.add(jarPath);
           }
         }
       } catch (MalformedURLException e) {
@@ -251,7 +251,7 @@ public final class UnderFileSystemFactoryRegistry {
       // Reset state
       sInit = false;
       FACTORIES.clear();
-      LOADED_EXTENSION_KEYS.clear();
+      LOADED_EXTENSION_JARS.clear();
     }
 
     // Reinitialise
