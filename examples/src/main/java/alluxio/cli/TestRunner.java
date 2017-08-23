@@ -44,8 +44,8 @@ public final class TestRunner {
           WriteType.ASYNC_THROUGH);
 
   @Parameter(names = "--directory",
-      description = "The directory to test.")
-  private String mDirectory = "/";
+      description = "Alluxio path for the tests working directory.")
+  private String mDirectory = AlluxioURI.SEPARATOR;
 
   @Parameter(names = {"-h", "--help"}, description = "Prints usage information", help = true)
   private boolean mHelp;
@@ -79,7 +79,7 @@ public final class TestRunner {
   private TestRunner() {} // prevent instantiation
 
   /** Directory for the test generated files. */
-  public static final String DEFAULT_TEST_PATH = "/default_tests_files";
+  public static final String TEST_DIRECTORY_NAME = "default_tests_files";
 
   /**
    * Console program that validates the configuration.
@@ -105,8 +105,7 @@ public final class TestRunner {
    * @return the number of failed tests
    */
   private int runTests() throws Exception {
-    // Working directory for tests
-    mDirectory = PathUtils.concatPath(mDirectory, DEFAULT_TEST_PATH);
+    mDirectory = PathUtils.concatPath(mDirectory, TEST_DIRECTORY_NAME);
 
     AlluxioURI testDir = new AlluxioURI(mDirectory);
     FileSystem fs = FileSystem.Factory.get();
