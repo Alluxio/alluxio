@@ -18,6 +18,7 @@ import alluxio.client.file.FileSystem;
 import alluxio.client.file.options.DeleteOptions;
 import alluxio.examples.BasicNonByteBufferOperations;
 import alluxio.examples.BasicOperations;
+import alluxio.util.io.PathUtils;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
@@ -44,6 +45,10 @@ public final class TestRunner {
 
   @Parameter(names = {"-h", "--help"}, description = "Prints usage information", help = true)
   private boolean mHelp;
+
+  @Parameter(names = "--directory",
+      description = "The directory to test (can be a non-root mount point). Default: /" )
+  private String mDirectory;
 
   @Parameter(names = "--operation", description = "The operation to test, either BASIC or "
       + "BASIC_NON_BYTE_BUFFER. By default both operations are tested.")
@@ -90,7 +95,7 @@ public final class TestRunner {
       return;
     }
 
-    AlluxioURI testDir = new AlluxioURI(TEST_PATH);
+    AlluxioURI testDir = new AlluxioURI(runner.getTestPath());
 
     FileSystem fs = FileSystem.Factory.get();
     if (fs.exists(testDir)) {
@@ -137,9 +142,9 @@ public final class TestRunner {
    * @param writeType write type
    * @return 0 on success, 1 on failure
    */
-  private static int runTest(OperationType opType, ReadType readType, WriteType writeType) {
+  private int runTest(OperationType opType, ReadType readType, WriteType writeType) {
     AlluxioURI filePath =
-        new AlluxioURI(String.format("%s/%s_%s_%s", TEST_PATH, opType, readType, writeType));
+        new AlluxioURI(String.format("%s/%s_%s_%s", getTestPath(), opType, readType, writeType));
 
     boolean result = true;
     switch (opType) {
@@ -154,5 +159,15 @@ public final class TestRunner {
         System.out.println("Unrecognized operation type " + opType);
     }
     return result ? 0 : 1;
+  }
+
+  /**
+   * @return working directory for the test suite
+   */
+  private String getTestPath() {
+    if (mDirectory == null) {
+      return TEST_PATH;
+    }
+    return PathUtils.concatPath(mDirectory, TEST_PATH);
   }
 }
