@@ -41,4 +41,6 @@ protoGen:
 version:
   Print Alluxio version.
 validateConf:
-  Validate Alluxio conf.
+  Validate Alluxio configuration.
+validateEnv:
+  Validate environment for Alluxio.

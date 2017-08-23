@@ -29,4 +29,6 @@ protoGen:
 version:
   打印Alluxio版本信息。
 validateConf:
-  使Alluxio配置生效。
+  验证Alluxio配置。
+validateEnv:
+  验证Alluxio运行环境。
