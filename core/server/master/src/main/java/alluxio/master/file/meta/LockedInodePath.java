@@ -91,43 +91,42 @@ public abstract class LockedInodePath implements AutoCloseable {
    * @throws InvalidPathException if the parent inode is not a directory
    * @throws FileDoesNotExistException if the parent of the target does not exist
    */
-  public synchronized  InodeDirectory getParentInodeDirectory()
+  public synchronized InodeDirectory getParentInodeDirectory()
       throws InvalidPathException, FileDoesNotExistException {
-    InodeDirectory inodeDirectory = (InodeDirectory) peekInode(false);
-    if (inodeDirectory == null) {
+    Inode inode = getParentInode();
+    if (inode == null) {
       throw new FileDoesNotExistException(
           ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(mUri.getParent()));
     }
-    return inodeDirectory;
+    if (!inode.isDirectory()) {
+      throw new InvalidPathException(
+          ExceptionMessage.PATH_MUST_HAVE_VALID_PARENT.getMessage(mUri));
+    }
+    return (InodeDirectory) inode;
+  }
+
+  /**
+   * Checks and returns the parent inode of the target inode.
+   *
+   * @return the parent of the target inode, or null if the parent does not exist
+   */
+  public synchronized Inode getParentInode() {
+    if (mPathComponents.length < 2 || mInodes.size() < (mPathComponents.length - 1)) {
+      // The path is only the root, or the list of inodes is not long enough to contain the parent
+      return null;
+    }
+    return mInodes.get(mPathComponents.length - 2);
   }
 
   /**
    * Peeks an inode on the inode path. The choice of which inode depends on whether the request
    * comes from a command with recursive flag or not.
    *
-   * @param isRecursive true if this peekInode is invoked by a command with recursive flag
-   * @return the last existing inode on the inode path if isRecursive is true, the second
-   *         last inode on the inode path if isRecursive is false
+   * @return the last existing inode on the inode path
    * @throws InvalidPathException if the parent exists but is not a directory
    */
-  public synchronized Inode peekInode(boolean isRecursive)
-      throws InvalidPathException {
-    Inode<?> inode;
-    if (!isRecursive) {
-      if (mPathComponents.length < 2 || mInodes.size() < (mPathComponents.length - 1)) {
-        // The path is only the root, or the list of inodes is not long enough to contain the parent
-        return null;
-      }
-      inode = mInodes.get(mPathComponents.length - 2);
-      if (!inode.isDirectory()) {
-        throw new InvalidPathException(
-            ExceptionMessage.PATH_MUST_HAVE_VALID_PARENT.getMessage(mUri));
-      }
-      return inode;
-    } else {
-      inode = mInodes.get(mInodes.size() - 1);
-      return inode;
-    }
+  public synchronized Inode peekInode() {
+    return mInodes.get(mInodes.size() - 1);
   }
 
   /**
