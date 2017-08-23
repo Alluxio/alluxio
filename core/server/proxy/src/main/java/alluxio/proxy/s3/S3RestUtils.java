@@ -81,7 +81,7 @@ public final class S3RestUtils {
     if (object == null || object instanceof Void) {
       return Response.ok().build();
     }
-    // Need to explicitly encode the string as JSON because Jackson will not do it automatically.
+    // Need to explicitly encode the string as XML because Jackson will not do it automatically.
     XmlMapper mapper = new XmlMapper();
     try {
       return Response.ok(mapper.writeValueAsString(object)).build();
