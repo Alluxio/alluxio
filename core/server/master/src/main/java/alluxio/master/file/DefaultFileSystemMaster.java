@@ -3397,10 +3397,15 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     @Override
     public String toString() {
       if (mSrcInode != null) {
+        short mode = mSrcInode.getMode();
         return String.format("allowed=%b\tuser=%s\tip=%s\tcmd=%s\tsrc=%s\tdst=%s\t"
-                + "perm=%s:%s:%d\tsuccess=%b",
+                + "perm=%s:%s:%s%s%s\tsuccess=%b",
             mAllowed, mUser, mIp, mCommand, mSrcPath, mDstPath, mSrcInode.getOwner(),
-            mSrcInode.getGroup(), mSrcInode.getMode(), mSuccess);
+            mSrcInode.getGroup(),
+            Mode.extractOwnerBits(mode).toString(),
+            Mode.extractGroupBits(mode).toString(),
+            Mode.extractOtherBits(mode).toString(),
+            mSuccess);
       } else {
         return String.format("allowed=%b\tuser=%s\tip=%s\tcmd=%s\tsrc=%s\tdst=%s\t"
                 + "perm=null\tsuccess=%b",
