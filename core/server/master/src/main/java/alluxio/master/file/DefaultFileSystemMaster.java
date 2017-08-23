@@ -2374,7 +2374,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         // After completing the inode, the lock on the last inode which stands for the created file
         // should be downgraded to a read lock, so that it won't block the reads operations from
         // other thread. More importantly, it's possible the subsequent read operations within the
-        // same thread may the read parent nodes along the path,and multiple similar threads may
+        // same thread may the read parent nodes along the path, and multiple similar threads may
         // lock each other. For example, getFileStatus will discover the metadata of UFS files and
         // it creates an inode per discovered. Concurrent getFileStatus of the same directory will
         // lead to such contention.

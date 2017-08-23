@@ -358,8 +358,6 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
    * @throws InvalidPathException if the parent is not as expected
    */
   public void lockReadAndCheckParent(Inode parent) throws InvalidPathException {
-    System.out.println(Thread.currentThread().getName() + " wants to lock inode " + mName + " "
-        + mId + " and check parent " + parent.getName() + " " + parent.getId());
     lockRead();
     if (mDeleted) {
       unlockRead();
