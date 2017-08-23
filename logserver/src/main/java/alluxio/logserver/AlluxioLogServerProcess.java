@@ -39,18 +39,24 @@ import java.util.Properties;
 /**
  * A centralized log server for Alluxio
  *
- * Alluxio masters and workers generate logs and store the logs in local storage. {@link AlluxioLogServerProcess}
- * allows masters and workers to "push" their logs to a centralized log server where another copy of the logs will
- * be stored.
+ * Alluxio masters and workers generate logs and store the logs in local storage.
+ * {@link AlluxioLogServerProcess} allows masters and workers to "push" their logs to a
+ * centralized log server where another copy of the logs will be stored.
  */
 public class AlluxioLogServerProcess implements LogServerProcess {
-  private final static Logger LOG = LoggerFactory.getLogger(AlluxioLogServer.class);
+  private static final Logger LOG = LoggerFactory.getLogger(AlluxioLogServer.class);
   private ServerSocket mServerSocket;
   private int mPort;
   private String mBaseLogDir;
   private Map<InetAddress, Hierarchy> mInetAddressHashMap;
   private boolean mStopped;
 
+  /**
+   * Construct an {@link AlluxioLogServerProcess} instance.
+   *
+   * @param portStr Java String representation of port number
+   * @param baseLogDir base directory to store the logs pushed from remote Alluxio servers
+   */
   public AlluxioLogServerProcess(String portStr, String baseLogDir) {
     try {
       mPort = Integer.parseInt(portStr);
@@ -111,7 +117,8 @@ public class AlluxioLogServerProcess implements LogServerProcess {
     }, WaitForOptions.defaults().setTimeoutMs(10000));
   }
 
-  private LoggerRepository configureHierarchy(InetAddress inetAddress) throws IOException, URISyntaxException {
+  private LoggerRepository configureHierarchy(InetAddress inetAddress)
+      throws IOException, URISyntaxException {
     Hierarchy clientHierarchy;
     String inetAddressStr = inetAddress.toString();
     int i = inetAddressStr.indexOf("/");
@@ -123,7 +130,9 @@ public class AlluxioLogServerProcess implements LogServerProcess {
     }
     Properties properties = new Properties();
     File configFile = new File(new URI(System.getProperty("log4j.configuration")));
-    properties.load(new FileInputStream(configFile));
+    try (FileInputStream inputStream = new FileInputStream(configFile)) {
+      properties.load(inputStream);
+    }
     clientHierarchy = new Hierarchy(new RootLogger(Level.INFO));
     String logFilePath = mBaseLogDir;
     String loggerType = System.getProperty("alluxio.logger.type");

@@ -16,12 +16,9 @@ import org.apache.log4j.spi.LoggerRepository;
 import org.apache.log4j.spi.LoggingEvent;
 
 import java.io.BufferedInputStream;
-import java.io.EOFException;
 import java.io.IOException;
-import java.io.InterruptedIOException;
 import java.io.ObjectInputStream;
 import java.net.Socket;
-import java.net.SocketException;
 
 /**
  * Reads {@link org.apache.log4j.spi.LoggingEvent} objects from remote logging
@@ -34,6 +31,17 @@ public class AlluxioLog4jSocketNode implements Runnable {
   private LoggerRepository mHierarchy;
   private ObjectInputStream mObjectInputStream;
 
+  /**
+   * Constructor of {@link AlluxioLog4jSocketNode}.
+   *
+   * @param socket client socket from which to read {@link org.apache.log4j.spi.LoggingEvent}
+   * @param hierarchy named hierarchy of the logger, used to retrieve the logger
+   * @throws IOException if {@link Socket#getInputStream()} encounters an I/O error when creating
+   *                     the {@link java.io.InputStream}, the socket is closed, the socket is not
+   *                     connected, the socket input has been shutdown with using
+   *                     {@link Socket#shutdownInput()}, or an I/O error occurs while reading the
+   *                     stream header in the constructor of {@link ObjectInputStream}
+   */
   public AlluxioLog4jSocketNode(Socket socket, LoggerRepository hierarchy) throws IOException {
     mSocket = socket;
     mHierarchy = hierarchy;

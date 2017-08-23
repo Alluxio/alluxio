@@ -13,10 +13,8 @@ package alluxio.logserver;
 
 import alluxio.Process;
 
-import javax.annotation.concurrent.ThreadSafe;
-
 /**
- * Alluxio log server class should implement this interface
+ * Alluxio log server class should implement this interface.
  */
 public interface LogServerProcess extends Process {
 }

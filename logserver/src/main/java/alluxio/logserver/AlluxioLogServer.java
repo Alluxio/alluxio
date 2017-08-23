@@ -13,13 +13,23 @@ package alluxio.logserver;
 
 import alluxio.ProcessUtils;
 
-import java.io.IOException;
-
+/**
+ * Alluxio log server receiving logs pushed from Alluxio servers.
+ */
 public final class AlluxioLogServer {
+  /**
+   * Main entry point of {@link AlluxioLogServer}.
+   *
+   * @param args command line arguments that will be parsed to initialize {@link AlluxioLogServer}
+   */
   public static void main(String[] args) {
     AlluxioLogServerProcess process = new AlluxioLogServerProcess(args[0], args[1]);
     ProcessUtils.run(process);
   }
 
+  /**
+   * Private constructor to prevent user from instantiating any
+   * {@link AlluxioLogServer} instance.
+   */
   private AlluxioLogServer() {} // prevent instantiation
 }
