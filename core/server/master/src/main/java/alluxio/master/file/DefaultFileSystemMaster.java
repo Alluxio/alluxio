@@ -1110,9 +1110,9 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         MasterAuditContext auditContext =
              createAuditContext("createFile", path, null, null)) {
       if (options.isRecursive()) {
-        auditContext.setSrcInode(inodePath.peekInode());
+        auditContext.setSrcInode(inodePath.getLastExistingInode());
       } else {
-        auditContext.setSrcInode(inodePath.getParentInode());
+        auditContext.setSrcInode(inodePath.getParentInodeOrNull());
       }
       try {
         mPermissionChecker.checkParentPermission(Mode.Bits.WRITE, inodePath);
@@ -1830,9 +1830,9 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         MasterAuditContext auditContext =
              createAuditContext("mkdir", path, null, null)) {
       if (options.isRecursive()) {
-        auditContext.setSrcInode(inodePath.peekInode());
+        auditContext.setSrcInode(inodePath.getLastExistingInode());
       } else {
-        auditContext.setSrcInode(inodePath.getParentInode());
+        auditContext.setSrcInode(inodePath.getParentInodeOrNull());
       }
       try {
         mPermissionChecker.checkParentPermission(Mode.Bits.WRITE, inodePath);
@@ -1923,7 +1923,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         MasterAuditContext auditContext = createAuditContext("rename", srcPath, dstPath, null)) {
       LockedInodePath srcInodePath = inodePathPair.getFirst();
       LockedInodePath dstInodePath = inodePathPair.getSecond();
-      auditContext.setSrcInode(srcInodePath.getParentInode());
+      auditContext.setSrcInode(srcInodePath.getParentInodeOrNull());
       try {
         mPermissionChecker.checkParentPermission(Mode.Bits.WRITE, srcInodePath);
         mPermissionChecker.checkParentPermission(Mode.Bits.WRITE, dstInodePath);
@@ -2393,9 +2393,9 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         LockedInodePath inodePath = mInodeTree.lockInodePath(path, InodeTree.LockMode.WRITE);
         MasterAuditContext auditContext = createAuditContext("loadMetadata", path, null, null)) {
       if (options.isCreateAncestors()) {
-        auditContext.setSrcInode(inodePath.peekInode());
+        auditContext.setSrcInode(inodePath.getLastExistingInode());
       } else {
-        auditContext.setSrcInode(inodePath.getParentInode());
+        auditContext.setSrcInode(inodePath.getParentInodeOrNull());
       }
       try {
         mPermissionChecker.checkParentPermission(Mode.Bits.WRITE, inodePath);
