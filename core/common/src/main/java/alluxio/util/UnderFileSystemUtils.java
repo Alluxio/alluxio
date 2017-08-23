@@ -12,11 +12,9 @@
 package alluxio.util;
 
 import alluxio.AlluxioURI;
-import alluxio.Constants;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.DeleteOptions;
 
-import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 
 import java.io.IOException;
@@ -110,28 +108,6 @@ public final class UnderFileSystemUtils {
   }
 
   /**
-   * Returns whether the given ufs address indicates a object storage ufs.
-   * @param ufsAddress the ufs address
-   * @return true if the under file system is a object storage; false otherwise
-   */
-  public static boolean isObjectStorage(String ufsAddress) {
-    return ufsAddress.startsWith(Constants.HEADER_S3)
-        || ufsAddress.startsWith(Constants.HEADER_S3N)
-        || ufsAddress.startsWith(Constants.HEADER_S3A)
-        || ufsAddress.startsWith(Constants.HEADER_GCS)
-        || ufsAddress.startsWith(Constants.HEADER_SWIFT)
-        || ufsAddress.startsWith(Constants.HEADER_OSS);
-  }
-
-  /**
-   * @param ufs the {@link UnderFileSystem} implementation to check
-   * @return true if the implementation is an object storage implementation
-   */
-  public static boolean isObjectStorage(UnderFileSystem ufs) {
-    return isGcs(ufs) || isOss(ufs) || isS3(ufs) || isSwift(ufs);
-  }
-
-  /**
    * @param ufs the {@link UnderFileSystem} implementation to check
    * @return true if the implementation is an Object storage service implementation
    */
@@ -160,7 +136,6 @@ public final class UnderFileSystemUtils {
    * @return the bucket or container name of the object storage
    */
   public static String getBucketName(AlluxioURI uri) {
-    Preconditions.checkState(isObjectStorage(uri.toString()));
     return uri.getAuthority();
   }
 
