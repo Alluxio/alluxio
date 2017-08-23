@@ -19,6 +19,8 @@ import alluxio.wire.FileInfo;
 import alluxio.wire.TtlAction;
 
 import com.google.common.base.Objects;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
@@ -32,6 +34,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public abstract class Inode<T> implements JournalEntryRepresentable {
+  private static final Logger LOG = LoggerFactory.getLogger(Inode.class);
   protected long mCreationTimeMs;
   private boolean mDeleted;
   protected final boolean mDirectory;
@@ -355,6 +358,8 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
    * @throws InvalidPathException if the parent is not as expected
    */
   public void lockReadAndCheckParent(Inode parent) throws InvalidPathException {
+    System.out.println(Thread.currentThread().getName() + " wants to lock inode " + mName + " "
+        + mId + " and check parent " + parent.getName() + " " + parent.getId());
     lockRead();
     if (mDeleted) {
       unlockRead();
