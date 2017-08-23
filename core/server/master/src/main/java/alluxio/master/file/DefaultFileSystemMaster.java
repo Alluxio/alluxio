@@ -91,6 +91,7 @@ import alluxio.proto.journal.File.SetAttributeEntry;
 import alluxio.proto.journal.File.StringPairEntry;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.security.authentication.AuthenticatedClientUser;
+import alluxio.security.authentication.AuthType;
 import alluxio.security.authorization.Mode;
 import alluxio.thrift.CommandType;
 import alluxio.thrift.FileSystemCommand;
@@ -3294,7 +3295,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     private String mCommand;
     private AlluxioURI mSrcPath;
     private AlluxioURI mDstPath;
-    private String mUser;
+    private String mUgi;
+    private AuthType mAuthType;
     private String mIp;
     private Inode mSrcInode;
 
@@ -3344,13 +3346,24 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     }
 
     /**
-     * Sets mUser field.
+     * Sets mUgi field.
      *
-     * @param user the client user name of the authenticated client user of this thread
+     * @param ugi the client user name of the authenticated client user of this thread
      * @return this {@link AuditContext} instance
      */
-    public MasterAuditContext setUser(String user) {
-      mUser = user;
+    public MasterAuditContext setUgi(String ugi) {
+      mUgi = ugi;
+      return this;
+    }
+
+    /**
+     * Sets mAuthType field.
+     *
+     * @param authType the authentication type
+     * @return this {@link AuditContext} instance
+     */
+    public MasterAuditContext setAuthType(AuthType authType) {
+      mAuthType = authType;
       return this;
     }
 
@@ -3398,18 +3411,18 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     public String toString() {
       if (mSrcInode != null) {
         short mode = mSrcInode.getMode();
-        return String.format("allowed=%b\tuser=%s\tip=%s\tcmd=%s\tsrc=%s\tdst=%s\t"
+        return String.format("allowed=%b\tugi=%s (AUTH=%s)\tip=%s\tcmd=%s\tsrc=%s\tdst=%s\t"
                 + "perm=%s:%s:%s%s%s\tsuccess=%b",
-            mAllowed, mUser, mIp, mCommand, mSrcPath, mDstPath, mSrcInode.getOwner(),
+            mAllowed, mUgi, mAuthType, mIp, mCommand, mSrcPath, mDstPath, mSrcInode.getOwner(),
             mSrcInode.getGroup(),
             Mode.extractOwnerBits(mode).toString(),
             Mode.extractGroupBits(mode).toString(),
             Mode.extractOtherBits(mode).toString(),
             mSuccess);
       } else {
-        return String.format("allowed=%b\tuser=%s\tip=%s\tcmd=%s\tsrc=%s\tdst=%s\t"
+        return String.format("allowed=%b\tugi=%s (AUTH=%s)\tip=%s\tcmd=%s\tsrc=%s\tdst=%s\t"
                 + "perm=null\tsuccess=%b",
-            mAllowed, mUser, mIp, mCommand, mSrcPath, mDstPath, mSuccess);
+            mAllowed, mUgi, mAuthType, mIp, mCommand, mSrcPath, mDstPath, mSuccess);
       }
     }
   }
@@ -3429,7 +3442,11 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       AlluxioURI dstPath, Inode srcInode) throws AccessControlException {
     MasterAuditContext auditContext = new MasterAuditContext(mAsyncAuditLogWriter);
     if (mAsyncAuditLogWriter != null) {
-      auditContext.setUser(AuthenticatedClientUser.getClientUser())
+      String ugi = AuthenticatedClientUser.getClientUser();
+      AuthType authType =
+          Configuration.getEnum(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.class);
+      auditContext.setUgi(ugi)
+          .setAuthType(authType)
           .setIp(FileSystemMasterClientServiceProcessor.getClientIp())
           .setCommand(command).setSrcPath(srcPath).setDstPath(dstPath)
           .setSrcInode(srcInode).setAllowed(true);
