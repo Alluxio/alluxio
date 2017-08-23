@@ -72,7 +72,7 @@ public class ListBucketResult {
     Collections.sort(objectsList, new Comparator<URIStatus>() {
       @Override
       public int compare(URIStatus o1, URIStatus o2) {
-        return o1.getName().compareTo(o2.getName());
+        return o1.getPath().compareTo(o2.getPath());
       }
     });
     DateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
