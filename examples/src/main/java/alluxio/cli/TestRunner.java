@@ -43,12 +43,12 @@ public final class TestRunner {
       .asList(WriteType.MUST_CACHE, WriteType.CACHE_THROUGH, WriteType.THROUGH,
           WriteType.ASYNC_THROUGH);
 
+  @Parameter(names = "--directory",
+      description = "The directory to test.")
+  private String mDirectory = "/";
+
   @Parameter(names = {"-h", "--help"}, description = "Prints usage information", help = true)
   private boolean mHelp;
-
-  @Parameter(names = "--directory",
-      description = "The directory to test (can be a non-root mount point). Default: /" )
-  private String mDirectory;
 
   @Parameter(names = "--operation", description = "The operation to test, either BASIC or "
       + "BASIC_NON_BYTE_BUFFER. By default both operations are tested.")
@@ -79,7 +79,7 @@ public final class TestRunner {
   private TestRunner() {} // prevent instantiation
 
   /** Directory for the test generated files. */
-  public static final String TEST_PATH = "/default_tests_files";
+  public static final String DEFAULT_TEST_PATH = "/default_tests_files";
 
   /**
    * Console program that validates the configuration.
@@ -95,12 +95,6 @@ public final class TestRunner {
       return;
     }
 
-    AlluxioURI testDir = new AlluxioURI(runner.getTestPath());
-
-    FileSystem fs = FileSystem.Factory.get();
-    if (fs.exists(testDir)) {
-      fs.delete(testDir, DeleteOptions.defaults().setRecursive(true).setUnchecked(true));
-    }
     int ret = runner.runTests();
     System.exit(ret);
   }
@@ -110,7 +104,16 @@ public final class TestRunner {
    *
    * @return the number of failed tests
    */
-  private int runTests() {
+  private int runTests() throws Exception {
+    // Working directory for tests
+    mDirectory = PathUtils.concatPath(mDirectory, DEFAULT_TEST_PATH);
+
+    AlluxioURI testDir = new AlluxioURI(mDirectory);
+    FileSystem fs = FileSystem.Factory.get();
+    if (fs.exists(testDir)) {
+      fs.delete(testDir, DeleteOptions.defaults().setRecursive(true).setUnchecked(true));
+    }
+
     int failed = 0;
 
     List<ReadType> readTypes =
@@ -144,7 +147,7 @@ public final class TestRunner {
    */
   private int runTest(OperationType opType, ReadType readType, WriteType writeType) {
     AlluxioURI filePath =
-        new AlluxioURI(String.format("%s/%s_%s_%s", getTestPath(), opType, readType, writeType));
+        new AlluxioURI(String.format("%s/%s_%s_%s", mDirectory, opType, readType, writeType));
 
     boolean result = true;
     switch (opType) {
@@ -159,15 +162,5 @@ public final class TestRunner {
         System.out.println("Unrecognized operation type " + opType);
     }
     return result ? 0 : 1;
-  }
-
-  /**
-   * @return working directory for the test suite
-   */
-  private String getTestPath() {
-    if (mDirectory == null) {
-      return TEST_PATH;
-    }
-    return PathUtils.concatPath(mDirectory, TEST_PATH);
   }
 }
