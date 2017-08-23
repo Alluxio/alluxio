@@ -3442,7 +3442,15 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       AlluxioURI dstPath, Inode srcInode) throws AccessControlException {
     MasterAuditContext auditContext = new MasterAuditContext(mAsyncAuditLogWriter);
     if (mAsyncAuditLogWriter != null) {
-      String ugi = AuthenticatedClientUser.getClientUser();
+      String user = AuthenticatedClientUser.getClientUser();
+      String ugi;
+      try {
+        String primaryGroup = CommonUtils.getPrimaryGroupName(user);
+        ugi = user + "," + primaryGroup;
+      } catch (IOException e) {
+        LOG.warn("Failed to get primary group for user {}.", user);
+        ugi = user;
+      }
       AuthType authType =
           Configuration.getEnum(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.class);
       auditContext.setUgi(ugi)
