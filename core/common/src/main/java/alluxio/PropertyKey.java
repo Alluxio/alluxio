@@ -526,6 +526,11 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue(false)
           .setDescription("Set to true to enable file system master audit.")
           .build();
+  public static final PropertyKey MASTER_AUDIT_LOGGING_QUEUE_CAPACITY =
+      new Builder(Name.MASTER_AUDIT_LOGGING_QUEUE_CAPACITY)
+          .setDefaultValue(10000)
+          .setDescription("Capacity of the queue used by audit logging.")
+          .build();
   public static final PropertyKey MASTER_BIND_HOST =
       new Builder(Name.MASTER_BIND_HOST)
           .setDefaultValue("0.0.0.0")
@@ -1894,6 +1899,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     //
     public static final String MASTER_AUDIT_LOGGING_ENABLED =
         "alluxio.master.audit.logging.enabled";
+    public static final String MASTER_AUDIT_LOGGING_QUEUE_CAPACITY =
+        "alluxio.master.audit.logging.queue.capacity";
     public static final String MASTER_BIND_HOST = "alluxio.master.bind.host";
     public static final String MASTER_CONNECTION_TIMEOUT_MS =
         "alluxio.master.connection.timeout";

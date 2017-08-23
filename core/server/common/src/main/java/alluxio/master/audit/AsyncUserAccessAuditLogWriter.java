@@ -11,6 +11,9 @@
 
 package alluxio.master.audit;
 
+import alluxio.Configuration;
+import alluxio.PropertyKey;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,7 +29,6 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class AsyncUserAccessAuditLogWriter {
-  private static final int QUEUE_SIZE = 10000;
   private static final String AUDIT_LOG_THREAD_NAME = "AsyncUserAccessAuditLogger";
   private static final Logger LOG =
       LoggerFactory.getLogger(AsyncUserAccessAuditLogWriter.class);
@@ -47,7 +49,9 @@ public final class AsyncUserAccessAuditLogWriter {
    * Constructs an {@link AsyncUserAccessAuditLogWriter} instance.
    */
   public AsyncUserAccessAuditLogWriter() {
-    mAuditLogEntries = new LinkedBlockingQueue<>(QUEUE_SIZE);
+    int queueCapacity = Configuration.getInt(PropertyKey.MASTER_AUDIT_LOGGING_QUEUE_CAPACITY);
+    mAuditLogEntries = new LinkedBlockingQueue<>(queueCapacity);
+    LOG.info("Audit logging queue capacity is {}.", queueCapacity);
     mStopped = true;
   }
 
