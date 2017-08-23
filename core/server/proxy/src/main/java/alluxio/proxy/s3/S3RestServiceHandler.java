@@ -59,6 +59,8 @@ public final class S3RestServiceHandler {
 
   // Bucket is the first component in the URL path.
   public static final String BUCKET_PARAM = "{bucket}/";
+  // Object is after bucket in the URL path.
+  public static final String OBJECT_PARAM = "{bucket}/{object:.*}";
 
   private final FileSystem mFileSystem;
 
@@ -138,6 +140,43 @@ public final class S3RestServiceHandler {
     });
   }
 
+  /**
+   * @summary deletes a object
+   * @param bucket the bucket name
+   * @param object the object name
+   * @return the response object
+   */
+  @DELETE
+  @Path(OBJECT_PARAM)
+  @ReturnType("java.lang.Void")
+  public Response deleteObject(@PathParam("bucket") final String bucket,
+                               @PathParam("object") final String object) {
+    return S3RestUtils.call(bucket, new S3RestUtils.RestCallable<Void>() {
+      @Override
+      public Void call() throws S3Exception {
+        String bucketPath =  AlluxioURI.SEPARATOR + bucket;
+        if (bucketPath.contains(BUCKET_SEPARATOR)) {
+          bucketPath = bucketPath.replace(BUCKET_SEPARATOR, AlluxioURI.SEPARATOR);
+          checkNestedBucketIsUnderMountPoint(bucketPath);
+        }
+
+        String objectPath = bucketPath + AlluxioURI.SEPARATOR + object;
+        checkObjectIsAlluxioFile(objectPath);
+
+        // Delete the object.
+        DeleteOptions options = DeleteOptions.defaults();
+        options.setAlluxioOnly(Configuration.get(PropertyKey.PROXY_S3_DELETE_TYPE)
+            .equals(Constants.DELETE_IN_ALLUXIO_ONLY));
+        try {
+          mFileSystem.delete(new AlluxioURI(objectPath), options);
+        } catch (Exception e) {
+          throw toBucketS3Exception(e, objectPath);
+        }
+        return null;
+      }
+    });
+  }
+
   private S3Exception toBucketS3Exception(Exception exception, String resource) {
     try {
       throw exception;
@@ -151,6 +190,20 @@ public final class S3RestServiceHandler {
       return new S3Exception(resource, S3ErrorCode.NO_SUCH_BUCKET);
     } catch (InvalidPathException e) {
       return new S3Exception(resource, S3ErrorCode.INVALID_BUCKET_NAME);
+    } catch (Exception e) {
+      return new S3Exception(e, resource, S3ErrorCode.INTERNAL_ERROR);
+    }
+  }
+
+  private S3Exception toObjectS3Exception(Exception exception, String resource) {
+    try {
+      throw exception;
+    } catch (S3Exception e) {
+      return e;
+    } catch (DirectoryNotEmptyException e) {
+      return new S3Exception(resource, S3ErrorCode.PRECONDITION_FAILED);
+    } catch (FileDoesNotExistException e) {
+      return new S3Exception(resource, S3ErrorCode.NO_SUCH_KEY);
     } catch (Exception e) {
       return new S3Exception(e, resource, S3ErrorCode.INTERNAL_ERROR);
     }
@@ -176,6 +229,19 @@ public final class S3RestServiceHandler {
       }
     } catch (Exception e) {
       throw toBucketS3Exception(e, bucketPath);
+    }
+  }
+
+  private void checkObjectIsAlluxioFile(String objectPath) throws S3Exception {
+    try {
+      AlluxioURI uri = new AlluxioURI(objectPath);
+      URIStatus status = mFileSystem.getStatus(uri);
+      if (status.isFolder() && !mFileSystem.listStatus(uri).isEmpty()) {
+        throw new InvalidPathException(
+            "Object name is invalid: not a file nor an empty directory in Alluxio.");
+      }
+    } catch (Exception e) {
+      throw toObjectS3Exception(e, objectPath);
     }
   }
 }
