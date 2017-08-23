@@ -608,6 +608,9 @@ public class InodeTree implements JournalEntryIterable {
           // Journal the new inode.
           journalContext.append(dir.toJournalEntry());
           mInodes.add(dir);
+
+          // After creation and journaling, downgrade to a read lock.
+          lockList.downgradeLast();
         }
       }
 
