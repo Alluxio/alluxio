@@ -60,7 +60,7 @@ public final class S3RestServiceHandler {
   // Bucket is the first component in the URL path.
   public static final String BUCKET_PARAM = "{bucket}/";
   // Object is after bucket in the URL path.
-  public static final String OBJECT_PARAM = "{bucket}/{object:.*}";
+  public static final String OBJECT_PARAM = "{bucket}/{object:.+}";
 
   private final FileSystem mFileSystem;
 
