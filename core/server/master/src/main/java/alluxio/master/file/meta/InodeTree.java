@@ -608,9 +608,6 @@ public class InodeTree implements JournalEntryIterable {
           // Journal the new inode.
           journalContext.append(dir.toJournalEntry());
           mInodes.add(dir);
-
-          // After creation and journaling, downgrade to a read lock.
-          lockList.downgradeLast();
         }
       }
 
@@ -695,11 +692,6 @@ public class InodeTree implements JournalEntryIterable {
 
         // Update state while holding the write lock.
         mInodes.add(lastInode);
-
-        if (extensibleInodePath.getLockMode() == LockMode.READ) {
-          // After creating the inode, downgrade to a read lock
-          lockList.downgradeLast();
-        }
 
         createdInodes.add(lastInode);
         extensibleInodePath.getInodes().add(lastInode);
