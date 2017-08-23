@@ -729,24 +729,23 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     Metrics.GET_FILE_INFO_OPS.inc();
     try (JournalContext journalContext = createJournalContext();
          LockedInodePath inodePath = mInodeTree.lockInodePath(path, InodeTree.LockMode.READ);
-         MasterAuditContext auditContext = createAuditContext("getFileInfo", path, null, null)) {
+         MasterAuditContext auditContext = createAuditContext("getFileInfo", path, null,
+             inodePath.getInodeOrNull())) {
       try {
         mPermissionChecker.checkPermission(Mode.Bits.READ, inodePath);
       } catch (AccessControlException e) {
         auditContext.setAllowed(false);
         throw e;
       }
-      if (inodePath.fullPathExists()) {
-        // The file already exists, so metadata does not need to be loaded.
-        FileInfo fileInfo = getFileInfoInternal(inodePath);
-        auditContext.setSrcInode(inodePath.getInode()).setSuccess(true);
-        return fileInfo;
-      }
-      checkLoadMetadataOptions(options.getLoadMetadataType(), inodePath.getUri());
+      // If the file already exists, then metadata does not need to be loaded,
+      // otherwise load metadata.
+      if (!inodePath.fullPathExists()) {
+        checkLoadMetadataOptions(options.getLoadMetadataType(), inodePath.getUri());
 
-      loadMetadataIfNotExistAndJournal(inodePath,
-          LoadMetadataOptions.defaults().setCreateAncestors(true), journalContext);
-      ensureFullPathAndUpdateCache(inodePath);
+        loadMetadataIfNotExistAndJournal(inodePath,
+            LoadMetadataOptions.defaults().setCreateAncestors(true), journalContext);
+        ensureFullPathAndUpdateCache(inodePath);
+      }
       FileInfo fileInfo = getFileInfoInternal(inodePath);
       auditContext.setSrcInode(inodePath.getInode()).setSuccess(true);
       return fileInfo;
@@ -800,7 +799,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     Metrics.GET_FILE_INFO_OPS.inc();
     try (JournalContext journalContext = createJournalContext();
         LockedInodePath inodePath = mInodeTree.lockInodePath(path, InodeTree.LockMode.READ);
-        MasterAuditContext auditContext = createAuditContext("listStatus", path, null, null)) {
+        MasterAuditContext auditContext = createAuditContext("listStatus", path, null,
+            inodePath.getInodeOrNull())) {
       try {
         mPermissionChecker.checkPermission(Mode.Bits.READ, inodePath);
       } catch (AccessControlException e) {
@@ -906,7 +906,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     List<AlluxioURI> inconsistentUris = new ArrayList<>();
     try (LockedInodePath parent = mInodeTree.lockInodePath(path, InodeTree.LockMode.READ);
          MasterAuditContext auditContext = createAuditContext("checkConsistency", path, null,
-             parent.getInode())) {
+             parent.getInodeOrNull())) {
       try {
         mPermissionChecker.checkPermission(Mode.Bits.READ, parent);
       } catch (AccessControlException e) {
@@ -976,7 +976,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     try (JournalContext journalContext = createJournalContext();
          LockedInodePath inodePath = mInodeTree.lockFullInodePath(path, InodeTree.LockMode.WRITE);
          MasterAuditContext auditContext = createAuditContext("completeFile", path, null,
-             inodePath.getInode())) {
+             inodePath.getInodeOrNull())) {
       try {
         mPermissionChecker.checkPermission(Mode.Bits.WRITE, inodePath);
       } catch (AccessControlException e) {
@@ -1108,11 +1108,10 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     try (JournalContext journalContext = createJournalContext();
         LockedInodePath inodePath = mInodeTree.lockInodePath(path, InodeTree.LockMode.WRITE);
         MasterAuditContext auditContext =
-             createAuditContext("createFile", path, null, null)) {
+             createAuditContext("createFile", path, null,
+                 inodePath.getParentInodeOrNull())) {
       if (options.isRecursive()) {
         auditContext.setSrcInode(inodePath.getLastExistingInode());
-      } else {
-        auditContext.setSrcInode(inodePath.getParentInodeOrNull());
       }
       try {
         mPermissionChecker.checkParentPermission(Mode.Bits.WRITE, inodePath);
@@ -1220,7 +1219,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     Metrics.GET_NEW_BLOCK_OPS.inc();
     try (LockedInodePath inodePath = mInodeTree.lockFullInodePath(path, InodeTree.LockMode.WRITE);
         MasterAuditContext auditContext = createAuditContext("getNewBlockIdForFile", path, null,
-            inodePath.getInode())) {
+            inodePath.getInodeOrNull())) {
       try {
         mPermissionChecker.checkPermission(Mode.Bits.WRITE, inodePath);
       } catch (AccessControlException e) {
@@ -1284,7 +1283,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     try (JournalContext journalContext = createJournalContext();
          LockedInodePath inodePath = mInodeTree.lockFullInodePath(path, InodeTree.LockMode.WRITE);
          MasterAuditContext auditContext = createAuditContext("delete", path, null,
-             inodePath.getInode())) {
+             inodePath.getInodeOrNull())) {
       try {
         mPermissionChecker.checkParentPermission(Mode.Bits.WRITE, inodePath);
       } catch (AccessControlException e) {
@@ -1566,7 +1565,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     Metrics.GET_FILE_BLOCK_INFO_OPS.inc();
     try (LockedInodePath inodePath = mInodeTree.lockFullInodePath(path, InodeTree.LockMode.READ);
         MasterAuditContext auditContext = createAuditContext("getFileBlockInfoList", path, null,
-            inodePath.getInode())) {
+            inodePath.getInodeOrNull())) {
       try {
         mPermissionChecker.checkPermission(Mode.Bits.READ, inodePath);
       } catch (AccessControlException e) {
@@ -1828,11 +1827,10 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     try (JournalContext journalContext = createJournalContext();
         LockedInodePath inodePath = mInodeTree.lockInodePath(path, InodeTree.LockMode.WRITE);
         MasterAuditContext auditContext =
-             createAuditContext("mkdir", path, null, null)) {
+             createAuditContext("mkdir", path, null,
+                 inodePath.getParentInodeOrNull())) {
       if (options.isRecursive()) {
         auditContext.setSrcInode(inodePath.getLastExistingInode());
-      } else {
-        auditContext.setSrcInode(inodePath.getParentInodeOrNull());
       }
       try {
         mPermissionChecker.checkParentPermission(Mode.Bits.WRITE, inodePath);
@@ -2242,7 +2240,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     try (JournalContext journalContext = createJournalContext();
         LockedInodePath inodePath = mInodeTree.lockFullInodePath(path, InodeTree.LockMode.WRITE);
         MasterAuditContext auditContext = createAuditContext("free", path, null,
-            inodePath.getInode())) {
+            inodePath.getInodeOrNull())) {
       try {
         mPermissionChecker.checkPermission(Mode.Bits.READ, inodePath);
       } catch (AccessControlException e) {
@@ -2391,11 +2389,10 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       InvalidFileSizeException, FileAlreadyCompletedException, IOException, AccessControlException {
     try (JournalContext journalContext = createJournalContext();
         LockedInodePath inodePath = mInodeTree.lockInodePath(path, InodeTree.LockMode.WRITE);
-        MasterAuditContext auditContext = createAuditContext("loadMetadata", path, null, null)) {
+        MasterAuditContext auditContext = createAuditContext("loadMetadata", path, null,
+            inodePath.getParentInodeOrNull())) {
       if (options.isCreateAncestors()) {
         auditContext.setSrcInode(inodePath.getLastExistingInode());
-      } else {
-        auditContext.setSrcInode(inodePath.getParentInodeOrNull());
       }
       try {
         mPermissionChecker.checkParentPermission(Mode.Bits.WRITE, inodePath);
@@ -2618,7 +2615,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         LockedInodePath inodePath = mInodeTree
             .lockInodePath(alluxioPath, InodeTree.LockMode.WRITE);
         MasterAuditContext auditContext = createAuditContext("mount", alluxioPath, null,
-            inodePath.getParentInodeDirectory())) {
+            inodePath.getParentInodeOrNull())) {
       try {
         mPermissionChecker.checkParentPermission(Mode.Bits.WRITE, inodePath);
       } catch (AccessControlException e) {
@@ -2762,7 +2759,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         LockedInodePath inodePath = mInodeTree
             .lockFullInodePath(alluxioPath, InodeTree.LockMode.WRITE_PARENT);
         MasterAuditContext auditContext = createAuditContext("unmount", alluxioPath, null,
-            inodePath.getInode())) {
+            inodePath.getInodeOrNull())) {
       try {
         mPermissionChecker.checkParentPermission(Mode.Bits.WRITE, inodePath);
       } catch (AccessControlException e) {
@@ -2868,12 +2865,13 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
             path.toString(), options.getOwner(), options.getGroup(), e.toString()), e);
       }
     }
-    String commandName = rootRequired ? "chown" :
-        (options.getGroup() != null) ? "chgrp" : "chmod";
+    String commandName = options.getOwner() != null ? "chown" :
+        (options.getGroup() != null) ? "chgrp" :
+        (options.getMode() != null) ? "chmod" : "setAttribute";
     try (JournalContext journalContext = createJournalContext();
         LockedInodePath inodePath = mInodeTree.lockFullInodePath(path, InodeTree.LockMode.WRITE);
         MasterAuditContext auditContext = createAuditContext(commandName, path, null,
-            inodePath.getInode())) {
+            inodePath.getInodeOrNull())) {
       try {
         mPermissionChecker.checkSetAttributePermission(inodePath, rootRequired, ownerRequired);
       } catch (AccessControlException e) {

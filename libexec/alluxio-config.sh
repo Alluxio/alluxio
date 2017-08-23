@@ -96,8 +96,6 @@ if [[ -z "${ALLUXIO_LOGS_DIR}" ]]; then
   ALLUXIO_LOGS_DIR=$(getConf "alluxio.logs.dir")
   ALLUXIO_JAVA_OPTS+=" -Dalluxio.logs.dir=${ALLUXIO_LOGS_DIR}"
 fi
-
-master_audit_enabled=$(getConf "alluxio.master.audit.logging.enabled")
 ####################################################################################################
 ## End reading site-properties
 ####################################################################################################
@@ -105,7 +103,7 @@ master_audit_enabled=$(getConf "alluxio.master.audit.logging.enabled")
 # Master specific parameters based on ALLUXIO_JAVA_OPTS.
 ALLUXIO_MASTER_JAVA_OPTS+=${ALLUXIO_JAVA_OPTS}
 ALLUXIO_MASTER_JAVA_OPTS+=" -Dalluxio.logger.type=${ALLUXIO_MASTER_LOGGER:-MASTER_LOGGER}"
-if [[ "${master_audit_enabled}" == "true" ]]; then
+if [[ "$(getConf "alluxio.master.audit.logging.enabled")" == "true" ]]; then
     ALLUXIO_MASTER_JAVA_OPTS+=" -Dalluxio.master.audit.logger.type=${ALLUXIO_MASTER_AUDIT_LOGGER:-MASTER_AUDIT_LOGGER}"
 fi
 
