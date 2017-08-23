@@ -738,7 +738,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       if (inodePath.fullPathExists()) {
         // The file already exists, so metadata does not need to be loaded.
         FileInfo fileInfo = getFileInfoInternal(inodePath);
-        auditContext.setSrcInode(inodePath.getInode()).setStatus(true);
+        auditContext.setSrcInode(inodePath.getInode()).setSuccess(true);
         return fileInfo;
       }
       checkLoadMetadataOptions(options.getLoadMetadataType(), inodePath.getUri());
@@ -747,7 +747,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
           LoadMetadataOptions.defaults().setCreateAncestors(true), journalContext);
       ensureFullPathAndUpdateCache(inodePath);
       FileInfo fileInfo = getFileInfoInternal(inodePath);
-      auditContext.setSrcInode(inodePath.getInode()).setStatus(true);
+      auditContext.setSrcInode(inodePath.getInode()).setSuccess(true);
       return fileInfo;
     }
   }
@@ -849,7 +849,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       } else {
         ret.add(getFileInfoInternal(inodePath));
       }
-      auditContext.setStatus(true);
+      auditContext.setSuccess(true);
       Metrics.FILE_INFOS_GOT.inc();
       return ret;
     }
@@ -923,7 +923,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
           }
         }
       }
-      auditContext.setStatus(true);
+      auditContext.setSuccess(true);
     }
     return inconsistentUris;
   }
@@ -984,7 +984,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       }
       // Even readonly mount points should be able to complete a file, for UFS reads in CACHE mode.
       completeFileAndJournal(inodePath, options, journalContext);
-      auditContext.setStatus(true);
+      auditContext.setSuccess(true);
     }
   }
 
@@ -1117,7 +1117,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       }
       mMountTable.checkUnderWritableMountPoint(path);
       createFileAndJournal(inodePath, options, journalContext);
-      auditContext.setSrcInode(inodePath.getInode()).setStatus(true);
+      auditContext.setSrcInode(inodePath.getInode()).setSuccess(true);
       return inodePath.getInode().getId();
     }
   }
@@ -1224,7 +1224,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       }
       Metrics.NEW_BLOCKS_GOT.inc();
       long blockId = inodePath.getInodeFile().getNewBlockId();
-      auditContext.setStatus(true);
+      auditContext.setSuccess(true);
       return blockId;
     }
   }
@@ -1288,7 +1288,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       }
       mMountTable.checkUnderWritableMountPoint(path);
       deletedInodes = deleteAndJournal(inodePath, options, journalContext);
-      auditContext.setStatus(true);
+      auditContext.setSuccess(true);
     }
     deleteInodeBlocks(deletedInodes);
   }
@@ -1570,7 +1570,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       }
       List<FileBlockInfo> ret = getFileBlockInfoListInternal(inodePath);
       Metrics.FILE_BLOCK_INFOS_GOT.inc();
-      auditContext.setStatus(true);
+      auditContext.setSuccess(true);
       return ret;
     }
   }
@@ -1833,7 +1833,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       }
       mMountTable.checkUnderWritableMountPoint(path);
       createDirectoryAndJournal(inodePath, options, journalContext);
-      auditContext.setSrcInode(inodePath.getInode()).setStatus(true);
+      auditContext.setSrcInode(inodePath.getInode()).setSuccess(true);
       return inodePath.getInode().getId();
     }
   }
@@ -1925,7 +1925,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       mMountTable.checkUnderWritableMountPoint(srcPath);
       mMountTable.checkUnderWritableMountPoint(dstPath);
       renameAndJournal(srcInodePath, dstInodePath, options, journalContext);
-      auditContext.setSrcInode(srcInodePath.getInode()).setStatus(true);
+      auditContext.setSrcInode(srcInodePath.getInode()).setSuccess(true);
       LOG.debug("Renamed {} to {}", srcPath, dstPath);
     }
   }
@@ -2241,7 +2241,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         throw e;
       }
       freeAndJournal(inodePath, options, journalContext);
-      auditContext.setStatus(true);
+      auditContext.setSuccess(true);
     }
   }
 
@@ -2391,7 +2391,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         throw e;
       }
       loadMetadataAndJournal(inodePath, options, journalContext);
-      auditContext.setSrcInode(inodePath.getInode()).setStatus(true);
+      auditContext.setSrcInode(inodePath.getInode()).setSuccess(true);
       return inodePath.getInode().getId();
     }
   }
@@ -2614,7 +2614,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       }
       mMountTable.checkUnderWritableMountPoint(alluxioPath);
       mountAndJournal(inodePath, ufsPath, options, journalContext);
-      auditContext.setStatus(true);
+      auditContext.setSuccess(true);
       Metrics.PATHS_MOUNTED.inc();
     }
   }
@@ -2757,7 +2757,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         throw e;
       }
       deletedInodes = unmountAndJournal(inodePath, journalContext);
-      auditContext.setStatus(true);
+      auditContext.setSuccess(true);
       Metrics.PATHS_UNMOUNTED.inc();
     }
     deleteInodeBlocks(deletedInodes);
@@ -2868,7 +2868,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         throw e;
       }
       setAttributeAndJournal(inodePath, rootRequired, ownerRequired, options, journalContext);
-      auditContext.setStatus(true);
+      auditContext.setSuccess(true);
     }
   }
 
@@ -3293,7 +3293,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     }
 
     @Override
-    public MasterAuditContext setStatus(boolean success) {
+    public MasterAuditContext setSuccess(boolean success) {
       mSuccess = success;
       return this;
     }

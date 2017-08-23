@@ -34,7 +34,7 @@ public interface AuditContext extends Closeable {
    * @param success true if the operation is successful, false otherwise
    * @return {@link AuditContext} instance itself
    */
-  AuditContext setStatus(boolean success);
+  AuditContext setSuccess(boolean success);
 
   @Override
   void close();
