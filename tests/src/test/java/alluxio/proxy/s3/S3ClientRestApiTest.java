@@ -222,15 +222,15 @@ public final class S3ClientRestApiTest extends RestApiTest {
     AlluxioURI fileUri2 = new AlluxioURI(uri.getPath() + "/file2");
     mFileSystemMaster.createFile(fileUri2, CreateFileOptions.defaults());
 
-    List<URIStatus> listStatusResult = new ArrayList<>();
+    List<URIStatus> objectsList = new ArrayList<>();
 
-    listStatusResult.add(
+    objectsList.add(
         new URIStatus(mFileSystemMaster.getFileInfo(fileUri1, GetStatusOptions.defaults())));
-    listStatusResult.add(
+    objectsList.add(
         new URIStatus(mFileSystemMaster.getFileInfo(fileUri2, GetStatusOptions.defaults())));
 
     ListBucketResult expected =
-        new ListBucketResult(AlluxioURI.SEPARATOR + bucket, listStatusResult);
+        new ListBucketResult(AlluxioURI.SEPARATOR + bucket, objectsList);
     new TestCase(mHostname, mPort, S3_SERVICE_PREFIX + AlluxioURI.SEPARATOR + bucket, NO_PARAMS,
         HttpMethod.GET, expected,
         TestCaseOptions.defaults().setContentType(TestCaseOptions.XML_CONTENT_TYPE)).run();

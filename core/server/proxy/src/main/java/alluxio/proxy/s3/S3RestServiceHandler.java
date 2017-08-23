@@ -20,6 +20,7 @@ import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.CreateDirectoryOptions;
 import alluxio.client.file.options.DeleteOptions;
+import alluxio.exception.AlluxioException;
 import alluxio.exception.DirectoryNotEmptyException;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
@@ -28,7 +29,11 @@ import alluxio.web.ProxyWebServer;
 
 import com.qmino.miredot.annotations.ReturnType;
 
+import java.io.IOException;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Queue;
 
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.servlet.ServletContext;
@@ -163,13 +168,13 @@ public final class S3RestServiceHandler {
 
         checkBucketIsAlluxioDirectory(bucketPath);
 
-        List<URIStatus> listStatusResult;
+        List<URIStatus> objects;
         try {
-          listStatusResult = mFileSystem.listStatus(new AlluxioURI(bucketPath));
+          objects = listObjects(new AlluxioURI(bucketPath));
         } catch (Exception e) {
           throw toBucketS3Exception(e, bucketPath);
         }
-        ListBucketResult response = new ListBucketResult(bucketPath, listStatusResult);
+        ListBucketResult response = new ListBucketResult(bucketPath, objects);
         return response;
       }
     });
@@ -214,5 +219,28 @@ public final class S3RestServiceHandler {
     } catch (Exception e) {
       throw toBucketS3Exception(e, bucketPath);
     }
+  }
+
+  private List<URIStatus> listObjects(AlluxioURI uri) throws IOException, AlluxioException {
+    List<URIStatus> objects = new ArrayList<>();
+    Queue<URIStatus> traverseQueue = new ArrayDeque<>();
+    List<URIStatus> children = mFileSystem.listStatus(uri);
+    traverseQueue.addAll(children);
+    while (!traverseQueue.isEmpty()) {
+      URIStatus cur = traverseQueue.remove();
+      if (!cur.isFolder()) {
+        // Alluxio file is an object.
+        objects.add(cur);
+      } else {
+        List<URIStatus> curChildren = mFileSystem.listStatus(new AlluxioURI(cur.getPath()));
+        if (curChildren.isEmpty()) {
+          // An empty Alluxio directory is considered as a valid object.
+          objects.add(cur);
+        } else {
+          traverseQueue.addAll(curChildren);
+        }
+      }
+    }
+    return objects;
   }
 }

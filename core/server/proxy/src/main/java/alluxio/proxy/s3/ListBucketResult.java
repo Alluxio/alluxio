@@ -21,6 +21,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
@@ -60,14 +61,15 @@ public class ListBucketResult {
    * Creates an {@link ListBucketResult}.
    *
    * @param bucketName the bucket name
-   * @param listStatusResult a list of {@link URIStatus}, the result of Alluxio listStatus
+   * @param objectsList a list of {@link URIStatus}, representing the objects
    */
-  public ListBucketResult(String bucketName, List<URIStatus> listStatusResult) {
+  public ListBucketResult(String bucketName, List<URIStatus> objectsList) {
     mName = bucketName;
-    mKeyCount = listStatusResult.size();
-    mMaxKeys = listStatusResult.size();
+    mKeyCount = objectsList.size();
+    mMaxKeys = objectsList.size();
     mContents = new ArrayList<>();
-    listStatusResult.sort(new Comparator<URIStatus>() {
+
+    Collections.sort(objectsList, new Comparator<URIStatus>() {
       @Override
       public int compare(URIStatus o1, URIStatus o2) {
         return o1.getName().compareTo(o2.getName());
@@ -75,10 +77,10 @@ public class ListBucketResult {
     });
     DateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
     // TODO(chaomin): support setting max-keys in the request param.
-    for (URIStatus status : listStatusResult) {
+    for (URIStatus status : objectsList) {
       // TODO(chaomin): set ETag once there's a way to get MD5 hash of an Alluxio file.
       mContents.add(new Content(
-          status.getName(),
+          status.getPath().substring(mName.length() + 1),
           format.format(new Date(status.getLastModificationTimeMs())),
           "",
           String.valueOf(status.getLength()),
