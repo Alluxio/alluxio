@@ -217,20 +217,38 @@ public final class S3ClientRestApiTest extends RestApiTest {
     // Verify the directory is created for the new bucket.
     Assert.assertTrue(mFileSystemMaster.listStatus(uri, ListStatusOptions.defaults()).isEmpty());
 
-    AlluxioURI fileUri1 = new AlluxioURI(uri.getPath() + "/file1");
-    mFileSystemMaster.createFile(fileUri1, CreateFileOptions.defaults());
-    AlluxioURI fileUri2 = new AlluxioURI(uri.getPath() + "/file2");
-    mFileSystemMaster.createFile(fileUri2, CreateFileOptions.defaults());
+    // Prepare a bucket with direct child objects and objects within sub directories:
+    // - /file1
+    // - /file2
+    // - /dir1/subdir1/file3
+    // - /dir2/
+    AlluxioURI file1 = new AlluxioURI(uri.getPath() + "/file1");
+    mFileSystemMaster.createFile(file1, CreateFileOptions.defaults());
+    AlluxioURI file2 = new AlluxioURI(uri.getPath() + "/file2");
+    mFileSystemMaster.createFile(file2, CreateFileOptions.defaults());
+    AlluxioURI dir1 = new AlluxioURI(uri.getPath() + "/dir1");
+    mFileSystemMaster.createDirectory(dir1, CreateDirectoryOptions.defaults());
+    AlluxioURI dir2 = new AlluxioURI(uri.getPath() + "/dir2");
+    mFileSystemMaster.createDirectory(dir2, CreateDirectoryOptions.defaults());
+    AlluxioURI subdir1 = new AlluxioURI(uri.getPath() + "/dir1/subdir1");
+    mFileSystemMaster.createDirectory(subdir1, CreateDirectoryOptions.defaults());
+    AlluxioURI file3 = new AlluxioURI(subdir1.getPath() + "/file3");
+    mFileSystemMaster.createFile(file3, CreateFileOptions.defaults());
 
+    // Expected result.
     List<URIStatus> objectsList = new ArrayList<>();
-
     objectsList.add(
-        new URIStatus(mFileSystemMaster.getFileInfo(fileUri1, GetStatusOptions.defaults())));
+        new URIStatus(mFileSystemMaster.getFileInfo(file1, GetStatusOptions.defaults())));
     objectsList.add(
-        new URIStatus(mFileSystemMaster.getFileInfo(fileUri2, GetStatusOptions.defaults())));
-
+        new URIStatus(mFileSystemMaster.getFileInfo(file2, GetStatusOptions.defaults())));
+    objectsList.add(
+        new URIStatus(mFileSystemMaster.getFileInfo(file3, GetStatusOptions.defaults())));
+    objectsList.add(
+        new URIStatus(mFileSystemMaster.getFileInfo(dir2, GetStatusOptions.defaults())));
     ListBucketResult expected =
         new ListBucketResult(AlluxioURI.SEPARATOR + bucket, objectsList);
+
+    // Verify
     new TestCase(mHostname, mPort, S3_SERVICE_PREFIX + AlluxioURI.SEPARATOR + bucket, NO_PARAMS,
         HttpMethod.GET, expected,
         TestCaseOptions.defaults().setContentType(TestCaseOptions.XML_CONTENT_TYPE)).run();
