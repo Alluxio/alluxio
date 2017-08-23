@@ -93,7 +93,7 @@ public abstract class LockedInodePath implements AutoCloseable {
    */
   public synchronized  InodeDirectory getParentInodeDirectory()
       throws InvalidPathException, FileDoesNotExistException {
-    InodeDirectory inodeDirectory = peekParentInodeDirectory();
+    InodeDirectory inodeDirectory = (InodeDirectory) peekInode(false);
     if (inodeDirectory == null) {
       throw new FileDoesNotExistException(
           ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(mUri.getParent()));
@@ -102,32 +102,32 @@ public abstract class LockedInodePath implements AutoCloseable {
   }
 
   /**
-   * Peeks the parent inode of the target inode of this {@link LockedInodePath}.
+   * Peeks an inode on the inode path. The choice of which inode depends on whether the request
+   * comes from a command with recursive flag or not.
    *
-   * @return the parent inode of target inode, null if parent does not exist
-   * @throws InvalidPathException if the target inode's parent is not a directory
+   * @param isRecursive true if this peekInode is invoked by a command with recursive flag
+   * @return the last existing inode on the inode path if isRecursive is true, the second
+   *         last inode on the inode path if isRecursive is false
+   * @throws InvalidPathException if the parent exists but is not a directory
    */
-  public synchronized InodeDirectory peekParentInodeDirectory()
+  public synchronized Inode peekInode(boolean isRecursive)
       throws InvalidPathException {
-    if (mPathComponents.length < 2 || mInodes.size() < (mPathComponents.length - 1)) {
-      // The path is only the root, or the list of inodes is not long enough to contain the parent
-      return null;
+    Inode<?> inode;
+    if (!isRecursive) {
+      if (mPathComponents.length < 2 || mInodes.size() < (mPathComponents.length - 1)) {
+        // The path is only the root, or the list of inodes is not long enough to contain the parent
+        return null;
+      }
+      inode = mInodes.get(mPathComponents.length - 2);
+      if (!inode.isDirectory()) {
+        throw new InvalidPathException(
+            ExceptionMessage.PATH_MUST_HAVE_VALID_PARENT.getMessage(mUri));
+      }
+      return inode;
+    } else {
+      inode = mInodes.get(mInodes.size() - 1);
+      return inode;
     }
-    Inode<?> inode = mInodes.get(mPathComponents.length - 2);
-    if (!inode.isDirectory()) {
-      throw new InvalidPathException(ExceptionMessage.PATH_MUST_HAVE_VALID_PARENT.getMessage(mUri));
-    }
-    return (InodeDirectory) inode;
-  }
-
-  /**
-   * Gets the last existing inode in mInodes.
-   *
-   * @return the last existing inode in mInodes
-   */
-  public synchronized Inode getLastExistingInode() {
-    Inode<?> inode = mInodes.get(mInodes.size() - 1);
-    return inode;
   }
 
   /**
