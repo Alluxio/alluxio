@@ -161,7 +161,7 @@ public final class S3RestServiceHandler {
         }
 
         String objectPath = bucketPath + AlluxioURI.SEPARATOR + object;
-        checkObjectIsAlluxioFile(objectPath);
+        checkObjectInAlluxio(objectPath);
 
         // Delete the object.
         DeleteOptions options = DeleteOptions.defaults();
@@ -233,7 +233,13 @@ public final class S3RestServiceHandler {
     }
   }
 
-  private void checkObjectIsAlluxioFile(String objectPath) throws S3Exception {
+  /**
+   * Checks the given object is either a file or an empty directory in Alluxio.
+   *
+   * @param objectPath the object path in Alluxio
+   * @throws S3Exception if the object is not a valid in Alluxio
+   */
+  private void checkObjectInAlluxio(String objectPath) throws S3Exception {
     try {
       AlluxioURI uri = new AlluxioURI(objectPath);
       URIStatus status = mFileSystem.getStatus(uri);
