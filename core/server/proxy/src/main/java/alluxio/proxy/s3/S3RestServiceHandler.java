@@ -81,11 +81,11 @@ public final class S3RestServiceHandler {
    */
   @PUT
   @Path(BUCKET_PARAM)
-  @ReturnType("java.lang.Void")
+  @ReturnType("Response.Status")
   public Response createBucket(@PathParam("bucket") final String bucket) {
-    return S3RestUtils.call(bucket, new S3RestUtils.RestCallable<Void>() {
+    return S3RestUtils.call(bucket, new S3RestUtils.RestCallable<Response.Status>() {
       @Override
-      public Void call() throws S3Exception {
+      public Response.Status call() throws S3Exception {
         String bucketPath =  AlluxioURI.SEPARATOR + bucket;
         if (bucketPath.contains(BUCKET_SEPARATOR)) {
           bucketPath = bucketPath.replace(BUCKET_SEPARATOR, AlluxioURI.SEPARATOR);
@@ -101,7 +101,7 @@ public final class S3RestServiceHandler {
         } catch (Exception e) {
           throw toBucketS3Exception(e, bucketPath);
         }
-        return null;
+        return Response.Status.OK;
       }
     });
   }
@@ -113,11 +113,11 @@ public final class S3RestServiceHandler {
    */
   @DELETE
   @Path(BUCKET_PARAM)
-  @ReturnType("java.lang.Void")
+  @ReturnType("Response.Status")
   public Response deleteBucket(@PathParam("bucket") final String bucket) {
-    return S3RestUtils.call(bucket, new S3RestUtils.RestCallable<Void>() {
+    return S3RestUtils.call(bucket, new S3RestUtils.RestCallable<Response.Status>() {
       @Override
-      public Void call() throws S3Exception {
+      public Response.Status call() throws S3Exception {
         String bucketPath =  AlluxioURI.SEPARATOR + bucket;
         if (bucketPath.contains(BUCKET_SEPARATOR)) {
           bucketPath = bucketPath.replace(BUCKET_SEPARATOR, AlluxioURI.SEPARATOR);
@@ -135,7 +135,7 @@ public final class S3RestServiceHandler {
         } catch (Exception e) {
           throw toBucketS3Exception(e, bucketPath);
         }
-        return null;
+        return Response.Status.OK;
       }
     });
   }
@@ -148,12 +148,12 @@ public final class S3RestServiceHandler {
    */
   @DELETE
   @Path(OBJECT_PARAM)
-  @ReturnType("java.lang.Void")
+  @ReturnType("Response.Status")
   public Response deleteObject(@PathParam("bucket") final String bucket,
                                @PathParam("object") final String object) {
-    return S3RestUtils.call(bucket, new S3RestUtils.RestCallable<Void>() {
+    return S3RestUtils.call(bucket, new S3RestUtils.RestCallable<Response.Status>() {
       @Override
-      public Void call() throws S3Exception {
+      public Response.Status call() throws S3Exception {
         String bucketPath =  AlluxioURI.SEPARATOR + bucket;
         if (bucketPath.contains(BUCKET_SEPARATOR)) {
           bucketPath = bucketPath.replace(BUCKET_SEPARATOR, AlluxioURI.SEPARATOR);
@@ -170,9 +170,10 @@ public final class S3RestServiceHandler {
         try {
           mFileSystem.delete(new AlluxioURI(objectPath), options);
         } catch (Exception e) {
-          throw toBucketS3Exception(e, objectPath);
+          throw toObjectS3Exception(e, objectPath);
         }
-        return null;
+        // Note: the normal response for S3 delete key is 204 NO_CONTENT, not 200 OK
+        return Response.Status.NO_CONTENT;
       }
     });
   }

@@ -149,7 +149,8 @@ public final class TestCase {
     }
 
     connection.connect();
-    if (connection.getResponseCode() != Response.Status.OK.getStatusCode()) {
+    if (Response.Status.Family.familyOf(connection.getResponseCode())
+        != Response.Status.Family.SUCCESSFUL) {
       InputStream errorStream = connection.getErrorStream();
       if (errorStream != null) {
         Assert.fail("Request failed: " + IOUtils.toString(errorStream));
