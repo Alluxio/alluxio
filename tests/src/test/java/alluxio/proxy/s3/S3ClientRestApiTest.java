@@ -12,10 +12,12 @@
 package alluxio.proxy.s3;
 
 import alluxio.AlluxioURI;
+import alluxio.client.file.URIStatus;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
+import alluxio.master.file.options.GetStatusOptions;
 import alluxio.master.file.options.ListStatusOptions;
 import alluxio.master.file.options.MountOptions;
 import alluxio.rest.RestApiTest;
@@ -28,7 +30,9 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.ws.rs.HttpMethod;
@@ -199,6 +203,68 @@ public final class S3ClientRestApiTest extends RestApiTest {
       new TestCase(mHostname, mPort, S3_SERVICE_PREFIX + AlluxioURI.SEPARATOR + bucketName,
           NO_PARAMS, HttpMethod.DELETE, null, TestCaseOptions.defaults()).run();
       Assert.fail("delete a non-empty bucket should fail");
+    } catch (AssertionError e) {
+      // expected
+    }
+  }
+
+  @Test
+  public void getBucket() throws Exception {
+    final String bucket = "bucket-to-get";
+    AlluxioURI uri = new AlluxioURI(AlluxioURI.SEPARATOR + bucket + AlluxioURI.SEPARATOR);
+    new TestCase(mHostname, mPort, S3_SERVICE_PREFIX + AlluxioURI.SEPARATOR + bucket, NO_PARAMS,
+        HttpMethod.PUT, null, TestCaseOptions.defaults()).run();
+    // Verify the directory is created for the new bucket.
+    Assert.assertTrue(mFileSystemMaster.listStatus(uri, ListStatusOptions.defaults()).isEmpty());
+
+    AlluxioURI fileUri1 = new AlluxioURI(uri.getPath() + "/file1");
+    mFileSystemMaster.createFile(fileUri1, CreateFileOptions.defaults());
+    AlluxioURI fileUri2 = new AlluxioURI(uri.getPath() + "/file2");
+    mFileSystemMaster.createFile(fileUri2, CreateFileOptions.defaults());
+
+    List<URIStatus> listStatusResult = new ArrayList<>();
+
+    listStatusResult.add(
+        new URIStatus(mFileSystemMaster.getFileInfo(fileUri1, GetStatusOptions.defaults())));
+    listStatusResult.add(
+        new URIStatus(mFileSystemMaster.getFileInfo(fileUri2, GetStatusOptions.defaults())));
+
+    ListBucketResult expected =
+        new ListBucketResult(AlluxioURI.SEPARATOR + bucket, listStatusResult);
+    new TestCase(mHostname, mPort, S3_SERVICE_PREFIX + AlluxioURI.SEPARATOR + bucket, NO_PARAMS,
+        HttpMethod.GET, expected,
+        TestCaseOptions.defaults().setContentType(TestCaseOptions.XML_CONTENT_TYPE)).run();
+  }
+
+  @Test
+  public void listEmptyBucket() throws Exception {
+    final String bucket = "empty-bucket-to-list";
+    AlluxioURI uri = new AlluxioURI(AlluxioURI.SEPARATOR + bucket + AlluxioURI.SEPARATOR);
+    new TestCase(mHostname, mPort, S3_SERVICE_PREFIX + AlluxioURI.SEPARATOR + bucket, NO_PARAMS,
+        HttpMethod.PUT, null, TestCaseOptions.defaults()).run();
+    // Verify the directory is created for the new bucket.
+    Assert.assertTrue(mFileSystemMaster.listStatus(uri, ListStatusOptions.defaults()).isEmpty());
+
+    List<URIStatus> listStatusResult = new ArrayList<>();
+    ListBucketResult expected =
+        new ListBucketResult(AlluxioURI.SEPARATOR + bucket, listStatusResult);
+
+    new TestCase(mHostname, mPort, S3_SERVICE_PREFIX + AlluxioURI.SEPARATOR + bucket, NO_PARAMS,
+        HttpMethod.GET, expected,
+        TestCaseOptions.defaults().setContentType(TestCaseOptions.XML_CONTENT_TYPE))
+        .run();
+  }
+
+  @Test
+  public void getNonExistingBucket() throws Exception {
+    final String bucketName = "non-existing-bucket";
+
+    try {
+      // Delete a non-existing bucket should fail.
+      new TestCase(mHostname, mPort, S3_SERVICE_PREFIX + AlluxioURI.SEPARATOR + bucketName,
+          NO_PARAMS, HttpMethod.GET, null,
+          TestCaseOptions.defaults().setContentType(TestCaseOptions.XML_CONTENT_TYPE)).run();
+      Assert.fail("get a non-existing bucket should fail");
     } catch (AssertionError e) {
       // expected
     }

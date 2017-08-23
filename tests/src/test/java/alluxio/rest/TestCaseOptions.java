@@ -23,9 +23,13 @@ import javax.annotation.concurrent.NotThreadSafe;
 // TODO(jiri): consolidate input stream and body fields
 @NotThreadSafe
 public final class TestCaseOptions {
+  public static final String JSON_CONTENT_TYPE = "application/json";
+  public static final String XML_CONTENT_TYPE = "application/xml";
+
   private Object mBody;
   private InputStream mInputStream;
   private boolean mPrettyPrint;
+  private String mContentType;
 
   /**
    * @return the default {@link TestCaseOptions}
@@ -38,6 +42,7 @@ public final class TestCaseOptions {
     mBody = null;
     mInputStream = null;
     mPrettyPrint = false;
+    mContentType = JSON_CONTENT_TYPE;
   }
 
   /**
@@ -59,6 +64,13 @@ public final class TestCaseOptions {
    */
   public boolean isPrettyPrint() {
     return mPrettyPrint;
+  }
+
+  /**
+   * @return the content type
+   */
+  public String getContentType() {
+    return mContentType;
   }
 
   /**
@@ -88,6 +100,15 @@ public final class TestCaseOptions {
     return this;
   }
 
+  /**
+   * @param contentType the content type to set
+   * @return the updated options object
+   */
+  public TestCaseOptions setContentType(String contentType) {
+    mContentType = contentType;
+    return this;
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) {
@@ -99,12 +120,13 @@ public final class TestCaseOptions {
     TestCaseOptions that = (TestCaseOptions) o;
     return Objects.equal(mBody, that.mBody)
         && Objects.equal(mInputStream, that.mInputStream)
-        && mPrettyPrint == that.mPrettyPrint;
+        && mPrettyPrint == that.mPrettyPrint
+        && mContentType == that.mContentType;
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mBody, mInputStream, mPrettyPrint);
+    return Objects.hashCode(mBody, mInputStream, mPrettyPrint, mContentType);
   }
 
   @Override
@@ -113,6 +135,7 @@ public final class TestCaseOptions {
         .add("body", mBody)
         .add("input stream", mInputStream)
         .add("pretty print", mPrettyPrint)
+        .add("content type", mContentType)
         .toString();
   }
 }

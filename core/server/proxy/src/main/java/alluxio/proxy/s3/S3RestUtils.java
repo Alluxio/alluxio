@@ -15,6 +15,8 @@ import alluxio.security.LoginUser;
 import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.util.SecurityUtils;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -76,10 +78,16 @@ public final class S3RestUtils {
    * @return the response
    */
   private static Response createResponse(Object object) {
-    if (object instanceof Void) {
+    if (object == null || object instanceof Void) {
       return Response.ok().build();
     }
-    return Response.ok(object).build();
+    // Need to explicitly encode the string as JSON because Jackson will not do it automatically.
+    XmlMapper mapper = new XmlMapper();
+    try {
+      return Response.ok(mapper.writeValueAsString(object)).build();
+    } catch (JsonProcessingException e) {
+      return createErrorResponse(new S3Exception(e.getMessage(), S3ErrorCode.INTERNAL_ERROR));
+    }
   }
 
   /**

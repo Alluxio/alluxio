@@ -28,10 +28,13 @@ import alluxio.web.ProxyWebServer;
 
 import com.qmino.miredot.annotations.ReturnType;
 
+import java.util.List;
+
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.servlet.ServletContext;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
+import javax.ws.rs.GET;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -134,6 +137,40 @@ public final class S3RestServiceHandler {
           throw toBucketS3Exception(e, bucketPath);
         }
         return null;
+      }
+    });
+  }
+
+  /**
+   * @summary gets a bucket and lists all the objects in it
+   * @param bucket the bucket name
+   * @return the response object
+   */
+  @GET
+  @Path(BUCKET_PARAM)
+  @ReturnType("ListBucketResult")
+  // TODO(chaomin): consider supporting request params like max-keys, prefix, delimiter and
+  // continuation-token.
+  public Response getBucket(@PathParam("bucket") final String bucket) {
+    return S3RestUtils.call(bucket, new S3RestUtils.RestCallable<ListBucketResult>() {
+      @Override
+      public ListBucketResult call() throws S3Exception {
+        String bucketPath = AlluxioURI.SEPARATOR + bucket;
+        if (bucketPath.contains(BUCKET_SEPARATOR)) {
+          bucketPath = bucketPath.replace(BUCKET_SEPARATOR, AlluxioURI.SEPARATOR);
+          checkNestedBucketIsUnderMountPoint(bucketPath);
+        }
+
+        checkBucketIsAlluxioDirectory(bucketPath);
+
+        List<URIStatus> listStatusResult;
+        try {
+          listStatusResult = mFileSystem.listStatus(new AlluxioURI(bucketPath));
+        } catch (Exception e) {
+          throw toBucketS3Exception(e, bucketPath);
+        }
+        ListBucketResult response = new ListBucketResult(bucketPath, listStatusResult);
+        return response;
       }
     });
   }
