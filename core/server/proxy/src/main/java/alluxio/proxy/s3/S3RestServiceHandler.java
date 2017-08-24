@@ -141,38 +141,6 @@ public final class S3RestServiceHandler {
   }
 
   /**
-   * @summary deletes a object
-   * @param bucket the bucket name
-   * @param object the object name
-   * @return the response object
-   */
-  @DELETE
-  @Path(OBJECT_PARAM)
-  @ReturnType("Response.Status")
-  public Response deleteObject(@PathParam("bucket") final String bucket,
-                               @PathParam("object") final String object) {
-    return S3RestUtils.call(bucket, new S3RestUtils.RestCallable<Response.Status>() {
-      @Override
-      public Response.Status call() throws S3Exception {
-        String bucketPath = parseBucketPath(AlluxioURI.SEPARATOR + bucket);
-
-        // Delete the object.
-        String objectPath = bucketPath + AlluxioURI.SEPARATOR + object;
-        DeleteOptions options = DeleteOptions.defaults();
-        options.setAlluxioOnly(Configuration.get(PropertyKey.PROXY_S3_DELETE_TYPE)
-            .equals(Constants.DELETE_IN_ALLUXIO_ONLY));
-        try {
-          mFileSystem.delete(new AlluxioURI(objectPath), options);
-        } catch (Exception e) {
-          throw toObjectS3Exception(e, objectPath);
-        }
-        // Note: the normal response for S3 delete key is 204 NO_CONTENT, not 200 OK
-        return Response.Status.NO_CONTENT;
-      }
-    });
-  }
-
-  /**
    * @summary gets a bucket and lists all the objects in it
    * @param bucket the bucket name
    * @return the response object
@@ -202,6 +170,38 @@ public final class S3RestServiceHandler {
         }
         ListBucketResult response = new ListBucketResult(bucketPath, objects);
         return response;
+      }
+    });
+  }
+
+  /**
+   * @summary deletes a object
+   * @param bucket the bucket name
+   * @param object the object name
+   * @return the response object
+   */
+  @DELETE
+  @Path(OBJECT_PARAM)
+  @ReturnType("Response.Status")
+  public Response deleteObject(@PathParam("bucket") final String bucket,
+                               @PathParam("object") final String object) {
+    return S3RestUtils.call(bucket, new S3RestUtils.RestCallable<Response.Status>() {
+      @Override
+      public Response.Status call() throws S3Exception {
+        String bucketPath = parseBucketPath(AlluxioURI.SEPARATOR + bucket);
+
+        // Delete the object.
+        String objectPath = bucketPath + AlluxioURI.SEPARATOR + object;
+        DeleteOptions options = DeleteOptions.defaults();
+        options.setAlluxioOnly(Configuration.get(PropertyKey.PROXY_S3_DELETE_TYPE)
+            .equals(Constants.DELETE_IN_ALLUXIO_ONLY));
+        try {
+          mFileSystem.delete(new AlluxioURI(objectPath), options);
+        } catch (Exception e) {
+          throw toObjectS3Exception(e, objectPath);
+        }
+        // Note: the normal response for S3 delete key is 204 NO_CONTENT, not 200 OK
+        return Response.Status.NO_CONTENT;
       }
     });
   }
