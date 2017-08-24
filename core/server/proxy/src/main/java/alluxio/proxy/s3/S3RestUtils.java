@@ -21,8 +21,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 
 import javax.ws.rs.core.Response;
 
@@ -32,10 +30,9 @@ import javax.ws.rs.core.Response;
 public final class S3RestUtils {
   private static final Logger LOG = LoggerFactory.getLogger(S3RestUtils.class);
 
-  public static final DateFormat S3_DATE_FORMAT =
-      new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
   public static final String S3_STANDARD_STORAGE_CLASS = "STANDARD";
   public static final String S3_EMPTY_ETAG = "";
+  public static final String S3_DATE_FORMAT_REGEXP = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'";
 
   /**
    * Calls the given {@link S3RestUtils.RestCallable} and handles any exceptions thrown.

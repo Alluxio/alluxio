@@ -18,6 +18,8 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -34,6 +36,7 @@ import java.util.List;
 @JsonPropertyOrder(
     { "Name", "Prefix", "KeyCount", "MaxKeys", "IsTruncated", "Contents" })
 public class ListBucketResult {
+
   // Name of the bucket.
   private String mName = "";
   // Keys that begin with the indicated prefix.
@@ -73,12 +76,13 @@ public class ListBucketResult {
         return o1.getPath().compareTo(o2.getPath());
       }
     });
+    final DateFormat s3DateFormat = new SimpleDateFormat(S3RestUtils.S3_DATE_FORMAT_REGEXP);
     // TODO(chaomin): support setting max-keys in the request param.
     for (URIStatus status : objectsList) {
       // TODO(chaomin): set ETag once there's a way to get MD5 hash of an Alluxio file.
       mContents.add(new Content(
           status.getPath().substring(mName.length() + 1),
-          S3RestUtils.S3_DATE_FORMAT.format(new Date(status.getLastModificationTimeMs())),
+          s3DateFormat.format(new Date(status.getLastModificationTimeMs())),
           S3RestUtils.S3_EMPTY_ETAG,
           String.valueOf(status.getLength()),
           S3RestUtils.S3_STANDARD_STORAGE_CLASS));
@@ -210,7 +214,7 @@ public class ListBucketResult {
       mLastModified = "";
       mETag = "";
       mSize = "";
-      mStorageClass = "STANDARD";
+      mStorageClass = S3RestUtils.S3_STANDARD_STORAGE_CLASS;
     }
 
     /**
