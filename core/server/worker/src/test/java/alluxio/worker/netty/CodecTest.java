@@ -181,7 +181,7 @@ public final class CodecTest {
       public Object apply(Void v) {
         return channel.readOutbound();
       }
-    }, WaitForOptions.defaults().setTimeout(Constants.MINUTE_MS));
+    }, WaitForOptions.defaults().setTimeoutMs(Constants.MINUTE_MS));
   }
 
   /**
@@ -195,6 +195,6 @@ public final class CodecTest {
       public Object apply(Void v) {
         return channel.readInbound();
       }
-    }, WaitForOptions.defaults().setTimeout(Constants.MINUTE_MS));
+    }, WaitForOptions.defaults().setTimeoutMs(Constants.MINUTE_MS));
   }
 }

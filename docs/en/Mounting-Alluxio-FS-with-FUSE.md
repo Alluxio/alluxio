@@ -1,9 +1,9 @@
 ---
 layout: global
-title: Mounting Alluxio with FUSE (Beta)
-nickname: Alluxio-FUSE
+title: (Experimental) Mounting Alluxio with FUSE
+nickname: (Experimental) Alluxio-FUSE
 group: Features
-priority: 4
+priority: 99
 ---
 
 * Table of Contents

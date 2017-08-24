@@ -16,6 +16,7 @@ import alluxio.underfs.UfsStatus;
 import com.google.common.base.Objects;
 
 import javax.annotation.concurrent.NotThreadSafe;
+import javax.annotation.Nullable;
 
 /**
  * Method options for loading metadata.
@@ -42,6 +43,7 @@ public final class LoadMetadataOptions {
   /**
    * @return null if unknown, else the status of UFS path for which loading metadata
    */
+  @Nullable
   public UfsStatus getUfsStatus() {
     return mUfsStatus;
   }

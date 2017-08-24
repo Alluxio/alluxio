@@ -35,9 +35,11 @@ import alluxio.exception.DirectoryNotEmptyException;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
+import alluxio.wire.MountPointInfo;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Basic file system interface supporting metadata operations and data operations. Developers
@@ -265,6 +267,12 @@ public interface FileSystem {
    */
   void mount(AlluxioURI alluxioPath, AlluxioURI ufsPath, MountOptions options)
       throws IOException, AlluxioException;
+
+  /**
+   * Lists all mount points and their corresponding under storage addresses.
+   * @return a map from String to {@link MountPointInfo}
+   */
+  Map<String, MountPointInfo> getMountTable() throws IOException, AlluxioException;
 
   /**
    * Convenience method for {@link #openFile(AlluxioURI, OpenFileOptions)} with default options.

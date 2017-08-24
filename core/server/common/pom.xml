@@ -15,7 +15,7 @@
   <parent>
     <artifactId>alluxio-core-server</artifactId>
     <groupId>org.alluxio</groupId>
-    <version>1.5.1-SNAPSHOT</version>
+    <version>1.6.0-SNAPSHOT</version>
   </parent>
   <artifactId>alluxio-core-server-common</artifactId>
   <packaging>jar</packaging>
@@ -92,6 +92,13 @@
     <dependency>
       <groupId>org.eclipse.jetty</groupId>
       <artifactId>jetty-webapp</artifactId>
+    </dependency>
+
+    <!-- Test dependencies -->
+    <dependency>
+      <groupId>org.glassfish.jersey.core</groupId>
+      <artifactId>jersey-server</artifactId>
+      <scope>test</scope>
     </dependency>
 
     <!-- Internal dependencies -->

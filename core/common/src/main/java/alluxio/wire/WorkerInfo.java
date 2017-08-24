@@ -15,6 +15,7 @@ import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 
 import java.io.Serializable;
+import java.util.Comparator;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -116,7 +117,7 @@ public final class WorkerInfo implements Serializable {
    * @return the worker information
    */
   public WorkerInfo setAddress(WorkerNetAddress address) {
-    Preconditions.checkNotNull(address);
+    Preconditions.checkNotNull(address, "address");
     mAddress = address;
     return this;
   }
@@ -135,7 +136,7 @@ public final class WorkerInfo implements Serializable {
    * @return the worker information
    */
   public WorkerInfo setState(String state) {
-    Preconditions.checkNotNull(state);
+    Preconditions.checkNotNull(state, "state");
     mState = state;
     return this;
   }
@@ -190,6 +191,21 @@ public final class WorkerInfo implements Serializable {
         && mStartTimeMs == that.mStartTimeMs;
   }
 
+  /**
+   * Determine order from most recently contacted to least recently contacted.
+   */
+  public static final class LastContactSecComparator implements Comparator<WorkerInfo> {
+    @Override
+    public int compare(WorkerInfo o1, WorkerInfo o2) {
+      return o1.getLastContactSec() - o2.getLastContactSec();
+    }
+
+    /**
+     * LastContactSecComparator constructor.
+     */
+    public LastContactSecComparator() {}
+  }
+
   @Override
   public int hashCode() {
     return Objects.hashCode(mId, mAddress, mLastContactSec, mState, mCapacityBytes, mUsedBytes,
@@ -203,5 +219,4 @@ public final class WorkerInfo implements Serializable {
         .add("capacityBytes", mCapacityBytes).add("usedBytes", mUsedBytes)
         .add("startTimeMs", mStartTimeMs).toString();
   }
-
 }

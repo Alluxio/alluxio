@@ -11,12 +11,11 @@
 
 package alluxio.master.journal.ufs;
 
+import alluxio.BaseIntegrationTest;
 import alluxio.Configuration;
 import alluxio.ConfigurationTestUtils;
 import alluxio.PropertyKey;
-import alluxio.BaseIntegrationTest;
-import alluxio.master.journal.JournalWriter;
-import alluxio.master.journal.options.JournalWriterOptions;
+import alluxio.master.NoopMaster;
 import alluxio.proto.journal.Journal;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.URIUtils;
@@ -46,7 +45,7 @@ public final class UfsJournalLogWriterTest extends BaseIntegrationTest {
     URI location = URIUtils
         .appendPathOrDie(new URI(mFolder.newFolder().getAbsolutePath()), "FileSystemMaster");
     mUfs = Mockito.spy(UnderFileSystem.Factory.create(location));
-    mJournal = new UfsJournal(location, mUfs);
+    mJournal = new UfsJournal(location, new NoopMaster(), mUfs, 0);
   }
 
   @After
@@ -64,9 +63,7 @@ public final class UfsJournalLogWriterTest extends BaseIntegrationTest {
     mJournal.getUfs().create(
         UfsJournalFile.encodeLogFileLocation(mJournal, startSN, UfsJournal.UNKNOWN_SEQUENCE_NUMBER)
             .toString()).close();
-    mJournal
-        .getWriter(JournalWriterOptions.defaults().setPrimary(true).setNextSequenceNumber(endSN))
-        .close();
+    new UfsJournalLogWriter(mJournal, 0x20).close();
     UfsJournalSnapshot snapshot = UfsJournalSnapshot.getSnapshot(mJournal);
 
     String expectedLog =
@@ -89,9 +86,7 @@ public final class UfsJournalLogWriterTest extends BaseIntegrationTest {
             .toString()).close();
     mJournal.getUfs()
         .create(UfsJournalFile.encodeLogFileLocation(mJournal, startSN, endSN).toString()).close();
-    mJournal
-        .getWriter(JournalWriterOptions.defaults().setPrimary(true).setNextSequenceNumber(endSN))
-        .close();
+    new UfsJournalLogWriter(mJournal, startSN).close();
     UfsJournalSnapshot snapshot = UfsJournalSnapshot.getSnapshot(mJournal);
 
     String expectedLog =
@@ -109,8 +104,8 @@ public final class UfsJournalLogWriterTest extends BaseIntegrationTest {
   public void writeJournalEntryUfsHasFlush() throws Exception {
     Mockito.when(mUfs.supportsFlush()).thenReturn(true);
     long nextSN = 0x20;
-    JournalWriter writer = mJournal
-        .getWriter(JournalWriterOptions.defaults().setPrimary(true).setNextSequenceNumber(nextSN));
+    UfsJournalLogWriter writer = new UfsJournalLogWriter(mJournal, nextSN);
+
     for (int i = 0; i < 10; i++) {
       writer.write(newEntry(nextSN));
       nextSN++;
@@ -135,8 +130,7 @@ public final class UfsJournalLogWriterTest extends BaseIntegrationTest {
   public void writeJournalEntryUfsNoFlush() throws Exception {
     Mockito.when(mUfs.supportsFlush()).thenReturn(false);
     long nextSN = 0x20;
-    JournalWriter writer = mJournal
-        .getWriter(JournalWriterOptions.defaults().setPrimary(true).setNextSequenceNumber(nextSN));
+    UfsJournalLogWriter writer = new UfsJournalLogWriter(mJournal, nextSN);
     for (int i = 0; i < 10; i++) {
       writer.write(newEntry(nextSN));
       nextSN++;
@@ -167,8 +161,7 @@ public final class UfsJournalLogWriterTest extends BaseIntegrationTest {
     Configuration.set(PropertyKey.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX, "1");
 
     long nextSN = 0x20;
-    JournalWriter writer = mJournal
-        .getWriter(JournalWriterOptions.defaults().setPrimary(true).setNextSequenceNumber(nextSN));
+    UfsJournalLogWriter writer = new UfsJournalLogWriter(mJournal, nextSN);
     for (int i = 0; i < 10; i++) {
       writer.write(newEntry(nextSN));
       nextSN++;

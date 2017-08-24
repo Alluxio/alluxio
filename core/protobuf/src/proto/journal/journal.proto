@@ -15,7 +15,7 @@ import "journal/lineage.proto";
 // 2.6.0 and adding this depedency would conflict with the version of protobuf used by Hadoop 2.x
 // and Spark. We use protobuf version 2.5.0 instead, which is compatible with Hadoop and Spark.
 //
-// next available id: 29
+// next available id: 30
 message JournalEntry {
   optional int64 sequence_number = 1;
   optional AddMountPointEntry add_mount_point = 2;
@@ -26,6 +26,7 @@ message JournalEntry {
   optional CompletePartitionEntry complete_partition = 21;
   optional CompleteStoreEntry complete_store = 22;
   optional CreateStoreEntry create_store = 23;
+  optional DeleteBlockEntry delete_block = 29;
   optional DeleteFileEntry delete_file = 6;
   optional DeleteLineageEntry delete_lineage = 7;
   optional DeleteMountPointEntry delete_mount_point = 8;

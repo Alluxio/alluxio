@@ -17,12 +17,11 @@ import alluxio.PropertyKey;
 import alluxio.Server;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatThread;
+import alluxio.master.MasterClientConfig;
 import alluxio.thrift.FileSystemWorkerClientService;
 import alluxio.underfs.UfsManager;
 import alluxio.util.CommonUtils;
 import alluxio.util.ThreadFactoryUtils;
-import alluxio.util.network.NetworkAddressUtils;
-import alluxio.util.network.NetworkAddressUtils.ServiceType;
 import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.AbstractWorker;
 import alluxio.worker.block.BlockWorker;
@@ -77,13 +76,12 @@ public final class DefaultFileSystemWorker extends AbstractWorker implements Fil
         ThreadFactoryUtils.build("file-system-worker-heartbeat-%d", true)));
     mWorkerId = blockWorker.getWorkerId();
     mUfsManager = ufsManager;
-    mFileDataManager = new FileDataManager(Preconditions.checkNotNull(blockWorker),
+    mFileDataManager = new FileDataManager(Preconditions.checkNotNull(blockWorker, "blockWorker"),
         RateLimiter.create(Configuration.getBytes(PropertyKey.WORKER_FILE_PERSIST_RATE_LIMIT)),
         mUfsManager);
 
     // Setup AbstractMasterClient
-    mFileSystemMasterWorkerClient = new FileSystemMasterClient(
-        NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC));
+    mFileSystemMasterWorkerClient = new FileSystemMasterClient(MasterClientConfig.defaults());
 
     mServiceHandler = new FileSystemWorkerClientServiceHandler();
   }
@@ -112,7 +110,7 @@ public final class DefaultFileSystemWorker extends AbstractWorker implements Fil
         new HeartbeatThread(HeartbeatContext.WORKER_FILESYSTEM_MASTER_SYNC,
             new FileWorkerMasterSyncExecutor(mFileDataManager, mFileSystemMasterWorkerClient,
                 mWorkerId),
-            Configuration.getInt(PropertyKey.WORKER_FILESYSTEM_HEARTBEAT_INTERVAL_MS)));
+            (int) Configuration.getMs(PropertyKey.WORKER_FILESYSTEM_HEARTBEAT_INTERVAL_MS)));
   }
 
   @Override

@@ -55,7 +55,7 @@ public class AsyncUfsAbsentPathCacheTest {
 
     mMountId = IdUtils.getRandomNonNegativeLong();
     MountOptions options = MountOptions.defaults();
-    mUfsManager.addMount(mMountId, mLocalUfsPath,
+    mUfsManager.addMount(mMountId, new AlluxioURI(mLocalUfsPath),
         UnderFileSystemConfiguration.defaults().setReadOnly(options.isReadOnly())
             .setShared(options.isShared())
             .setUserSpecifiedConf(Collections.<String, String>emptyMap()));
@@ -160,7 +160,7 @@ public class AsyncUfsAbsentPathCacheTest {
     // Re-mount the same ufs
     long newMountId = IdUtils.getRandomNonNegativeLong();
     MountOptions options = MountOptions.defaults();
-    mUfsManager.addMount(newMountId, mLocalUfsPath,
+    mUfsManager.addMount(newMountId, new AlluxioURI(mLocalUfsPath),
         UnderFileSystemConfiguration.defaults().setReadOnly(options.isReadOnly())
             .setShared(options.isShared())
             .setUserSpecifiedConf(Collections.<String, String>emptyMap()));
@@ -210,7 +210,7 @@ public class AsyncUfsAbsentPathCacheTest {
             }
             return true;
           }
-        }, WaitForOptions.defaults().setTimeout(10000));
+        }, WaitForOptions.defaults().setTimeoutMs(10000));
   }
 
   private void removeAbsent(AlluxioURI path) throws Exception {
@@ -227,7 +227,7 @@ public class AsyncUfsAbsentPathCacheTest {
             }
             return true;
           }
-        }, WaitForOptions.defaults().setTimeout(10000));
+        }, WaitForOptions.defaults().setTimeoutMs(10000));
   }
 
   /**

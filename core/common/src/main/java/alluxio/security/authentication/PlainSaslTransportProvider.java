@@ -48,7 +48,8 @@ public final class PlainSaslTransportProvider implements TransportProvider {
    * Constructor for transport provider with {@link AuthType#SIMPLE} or {@link AuthType#CUSTOM}.
    */
   public PlainSaslTransportProvider() {
-    mSocketTimeoutMs = Configuration.getInt(PropertyKey.SECURITY_AUTHENTICATION_SOCKET_TIMEOUT_MS);
+    mSocketTimeoutMs =
+        (int) Configuration.getMs(PropertyKey.SECURITY_AUTHENTICATION_SOCKET_TIMEOUT_MS);
   }
 
   @Override

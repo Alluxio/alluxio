@@ -63,10 +63,10 @@ public final class TieredBlockStoreTestUtils {
   public static void setupConfWithMultiTier(String baseDir, int[] tierOrdinal, String[] tierAlias,
       String[][] tierPath, long[][] tierCapacity, String workerDataFolder) throws Exception {
     // make sure dimensions are legal
-    Preconditions.checkNotNull(tierOrdinal);
-    Preconditions.checkNotNull(tierAlias);
-    Preconditions.checkNotNull(tierPath);
-    Preconditions.checkNotNull(tierCapacity);
+    Preconditions.checkNotNull(tierOrdinal, "tierOrdinal");
+    Preconditions.checkNotNull(tierAlias, "tierAlias");
+    Preconditions.checkNotNull(tierPath, "tierPath");
+    Preconditions.checkNotNull(tierCapacity, "tierCapacity");
 
     Preconditions.checkArgument(tierOrdinal.length > 0, "length of tierLevel should be > 0");
     Preconditions.checkArgument(tierOrdinal.length == tierAlias.length,
@@ -126,8 +126,8 @@ public final class TieredBlockStoreTestUtils {
    */
   private static void setupConfTier(int ordinal, String tierAlias, String[] tierPath,
       long[] tierCapacity) {
-    Preconditions.checkNotNull(tierPath);
-    Preconditions.checkNotNull(tierCapacity);
+    Preconditions.checkNotNull(tierPath, "tierPath");
+    Preconditions.checkNotNull(tierCapacity, "tierCapacity");
     Preconditions.checkArgument(tierPath.length == tierCapacity.length,
         "tierPath and tierCapacity should have the same length");
 

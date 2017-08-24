@@ -24,6 +24,8 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.net.InetAddress;
 
+import javax.annotation.Nullable;
+
 /**
  * Base mapper class for IO operations.
  * <p>
@@ -82,6 +84,7 @@ public abstract class AbstractIOMapper<T> extends Configured implements
    * @param name file name
    * @return the stream
    */
+  @Nullable
   public Closeable getIOStream(String name) throws IOException {
     return null;
   }

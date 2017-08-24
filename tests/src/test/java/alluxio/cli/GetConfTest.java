@@ -15,35 +15,22 @@ import static org.junit.Assert.assertEquals;
 
 import alluxio.Configuration;
 import alluxio.PropertyKey;
+import alluxio.SystemOutRule;
 
-import org.junit.After;
-import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 
 import java.io.ByteArrayOutputStream;
-import java.io.PrintStream;
 
 /**
  * Tests for {@link GetConf}.
  */
 // TODO(binfan): create a SystemOutRule for unit test
 public final class GetConfTest {
-  private ByteArrayOutputStream mOutputStream = null;
-  private PrintStream mNewOutput = null;
-  private PrintStream mOldOutput = null;
+  private ByteArrayOutputStream mOutputStream = new ByteArrayOutputStream();
 
-  @Before
-  public final void before() throws Exception {
-    mOutputStream = new ByteArrayOutputStream();
-    mNewOutput = new PrintStream(mOutputStream);
-    mOldOutput = System.out;
-    System.setOut(mNewOutput);
-  }
-
-  @After
-  public final void after() throws Exception {
-    System.setOut(mOldOutput);
-  }
+  @Rule
+  public SystemOutRule mOutputStreamRule = new SystemOutRule(mOutputStream);
 
   @Test
   public void getConf() throws Exception {

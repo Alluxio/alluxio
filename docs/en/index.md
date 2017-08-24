@@ -37,7 +37,7 @@ programs, can run on top of Alluxio without any code change. The project is open
 [Apache License 2.0](https://github.com/alluxio/alluxio/blob/master/LICENSE) and is deployed at
 many companies. It is one of the fastest growing open source projects. With three
 years of open source history, Alluxio has attracted more than
-[500 contributors](https://github.com/alluxio/alluxio/graphs/contributors) from over 100
+[600 contributors](https://github.com/alluxio/alluxio/graphs/contributors) from over 150
 institutions, including [Alibaba](http://www.alibaba.com), [Alluxio](http://www.alluxio.com/),
 [Baidu](https://www.baidu.com), [CMU](https://www.cmu.edu/), [Google](https://www.google.com),
 [IBM](https://www.ibm.com), [Intel](http://www.intel.com/), [NJU](http://www.nju.edu.cn/english/),
@@ -68,7 +68,7 @@ memory-mapped I/O. We recommend using this API to get the best performance from 
 Alternatively, Alluxio provides a Hadoop compatible FileSystem interface, allowing Hadoop MapReduce
 and Spark to use Alluxio in place of HDFS.
 
-* **Pluggable Under Storage** To provide fault-tolerance, Alluxio checkpoints in-memory data to the
+* **Pluggable Under Storage** To provide fault-tolerance, Alluxio checkpoints data to the
 underlying storage system. It has a generic interface to make plugging different underlayer storage
 systems easy. We currently support Microsoft Azure Blob Store, Amazon S3, Google Cloud Storage, 
 OpenStack Swift, GlusterFS, HDFS, MaprFS, Ceph, NFS, Alibaba OSS, Minio, and single-node local file

@@ -26,10 +26,10 @@ public final class ConfigurationRuleTest {
     Statement statement = new Statement() {
       @Override
       public void evaluate() throws Throwable {
-        Assert.assertEquals("testValue", Configuration.get(PropertyKey.MASTER_ADDRESS));
+        Assert.assertEquals("testValue", Configuration.get(PropertyKey.MASTER_HOSTNAME));
       }
     };
-    new ConfigurationRule(ImmutableMap.of(PropertyKey.MASTER_ADDRESS, "testValue"))
+    new ConfigurationRule(ImmutableMap.of(PropertyKey.MASTER_HOSTNAME, "testValue"))
         .apply(statement, null).evaluate();
   }
 

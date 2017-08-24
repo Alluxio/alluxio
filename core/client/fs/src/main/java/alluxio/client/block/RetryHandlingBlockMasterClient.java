@@ -13,6 +13,7 @@ package alluxio.client.block;
 
 import alluxio.AbstractMasterClient;
 import alluxio.Constants;
+import alluxio.master.MasterClientConfig;
 import alluxio.thrift.AlluxioService;
 import alluxio.thrift.BlockMasterClientService;
 import alluxio.thrift.GetBlockInfoTOptions;
@@ -26,12 +27,10 @@ import alluxio.wire.WorkerInfo;
 import org.apache.thrift.TException;
 
 import java.io.IOException;
-import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.List;
 
 import javax.annotation.concurrent.ThreadSafe;
-import javax.security.auth.Subject;
 
 /**
  * A wrapper for the thrift client to interact with the block master, used by alluxio clients.
@@ -47,16 +46,10 @@ public final class RetryHandlingBlockMasterClient extends AbstractMasterClient
   /**
    * Creates a new block master client.
    *
-   * @param subject the parent subject, set to null if not present
-   * @param masterAddress the master address
+   * @param conf master client configuration
    */
-  protected static RetryHandlingBlockMasterClient create(Subject subject,
-      InetSocketAddress masterAddress) {
-    return new RetryHandlingBlockMasterClient(subject, masterAddress);
-  }
-
-  private RetryHandlingBlockMasterClient(Subject subject, InetSocketAddress masterAddress) {
-    super(subject, masterAddress);
+  public RetryHandlingBlockMasterClient(MasterClientConfig conf) {
+    super(conf);
   }
 
   @Override

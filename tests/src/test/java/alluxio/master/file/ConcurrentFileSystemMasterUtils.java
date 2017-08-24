@@ -16,7 +16,6 @@ import alluxio.client.WriteType;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.CreateFileOptions;
-import alluxio.collections.ConcurrentHashSet;
 import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.util.CommonUtils;
 
@@ -91,16 +90,16 @@ public class ConcurrentFileSystemMasterUtils {
    * @param operation the operation to run concurrently
    * @param paths the paths to run the operation on
    * @param limitMs the maximum allowable run time, in ms
-   * @return
+   * @return all exceptions encountered
    */
-  public static int unaryOperation(final FileSystem fileSystem,
+  public static List<Throwable> unaryOperation(final FileSystem fileSystem,
       final UnaryOperation operation, final AlluxioURI[] paths, final long limitMs)
       throws Exception {
     final int numFiles = paths.length;
     final CyclicBarrier barrier = new CyclicBarrier(numFiles);
     List<Thread> threads = new ArrayList<>(numFiles);
     // If there are exceptions, we will store them here.
-    final ConcurrentHashSet<Throwable> errors = new ConcurrentHashSet<>();
+    final List<Throwable> errors = Collections.synchronizedList(new ArrayList<Throwable>());
     Thread.UncaughtExceptionHandler exceptionHandler = new Thread.UncaughtExceptionHandler() {
       public void uncaughtException(Thread th, Throwable ex) {
         errors.add(ex);
@@ -149,6 +148,6 @@ public class ConcurrentFileSystemMasterUtils {
     long durationMs = CommonUtils.getCurrentMs() - startMs;
     Assert.assertTrue("Execution duration " + durationMs + " took longer than expected " + limitMs,
         durationMs < limitMs);
-    return errors.size();
+    return errors;
   }
 }

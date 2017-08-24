@@ -53,7 +53,7 @@ The user can also specify the tier that the data can be written to via
 Reading data with the ReadType.CACHE or ReadType.CACHE_PROMOTE will also result in the data being
 written into Alluxio. In this case, the data is always written to the top tier.
 
-Finally, data in written into ALluxio via the load command. In this case also, the data is always
+Finally, data in written into Alluxio via the load command. In this case also, the data is always
 written to the top tier.
 
 ### Reading Data
@@ -142,7 +142,7 @@ size does not affect eviction latency.
 Space reserver makes tiered storage try to reserve certain portion of space on each storage layer
 before all space on that layer is consumed. This will improve the performance of bursty writes,
 and may also provide marginal performance gain for continuous writes that may otherwise be slower
-becasue eviction is continually running to free up space for the write. See the
+because eviction is continually running to free up space for the write. See the
 [configuration section](#enabling-and-configuring-tiered-storage) for how to enable and configure
 the space reserver.
 

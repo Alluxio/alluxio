@@ -71,7 +71,7 @@ public final class NettyPacketWriter implements PacketWriter {
   private static final int MAX_PACKETS_IN_FLIGHT =
       Configuration.getInt(PropertyKey.USER_NETWORK_NETTY_WRITER_BUFFER_SIZE_PACKETS);
   private static final long WRITE_TIMEOUT_MS =
-      Configuration.getLong(PropertyKey.USER_NETWORK_NETTY_TIMEOUT_MS);
+      Configuration.getMs(PropertyKey.USER_NETWORK_NETTY_TIMEOUT_MS);
 
   private final FileSystemContext mContext;
   private final Channel mChannel;
@@ -247,7 +247,7 @@ public final class NettyPacketWriter implements PacketWriter {
             throw new UnavailableException(mPacketWriteException);
           }
           if (!mDoneOrFailed
-              .await(Configuration.getLong(PropertyKey.USER_NETWORK_NETTY_WRITER_CLOSE_TIMEOUT_MS),
+              .await(Configuration.getMs(PropertyKey.USER_NETWORK_NETTY_WRITER_CLOSE_TIMEOUT_MS),
                   TimeUnit.MILLISECONDS)) {
             closeFuture = mChannel.eventLoop().submit(new Runnable() {
               @Override

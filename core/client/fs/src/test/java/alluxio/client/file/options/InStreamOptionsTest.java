@@ -44,7 +44,7 @@ public class InStreamOptionsTest {
    * Tests getting and setting fields.
    */
   @Test
-  public void fields() {
+  public void fields() throws Exception {
     ReadType readType = ReadType.NO_CACHE;
     FileWriteLocationPolicy policy = new RoundRobinPolicy();
     BlockLocationPolicy blockLocationPolicy = new DeterministicHashPolicy();

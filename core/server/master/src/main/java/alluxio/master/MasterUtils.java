@@ -11,17 +11,10 @@
 
 package alluxio.master;
 
-import alluxio.AlluxioURI;
-import alluxio.Configuration;
-import alluxio.PropertyKey;
 import alluxio.ServiceUtils;
-import alluxio.master.journal.Journal;
-import alluxio.master.journal.JournalFactory;
+import alluxio.master.journal.JournalSystem;
 import alluxio.util.CommonUtils;
 
-import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
@@ -34,41 +27,12 @@ final class MasterUtils {
   private MasterUtils() {}  // prevent instantiation
 
   /**
-   * Checks whether the journal has been formatted.
-   */
-  public static void checkJournalFormatted() throws IOException {
-    Journal.Factory factory = new Journal.Factory(getJournalLocation());
-    for (String name : ServiceUtils.getMasterServiceNames()) {
-      Journal journal = factory.create(name);
-      if (!journal.isFormatted()) {
-        throw new RuntimeException(
-            String.format("Journal %s has not been formatted!", journal.getLocation()));
-      }
-    }
-  }
-
-  /**
-   * @return the journal location
-   */
-  public static URI getJournalLocation() {
-    String journalDirectory = Configuration.get(PropertyKey.MASTER_JOURNAL_FOLDER);
-    if (!journalDirectory.endsWith(AlluxioURI.SEPARATOR)) {
-      journalDirectory += AlluxioURI.SEPARATOR;
-    }
-    try {
-      return new URI(journalDirectory);
-    } catch (URISyntaxException e) {
-      throw new RuntimeException(e);
-    }
-  }
-
-  /**
    * Creates all the masters and registers them to the master registry.
    *
-   * @param journalFactory the factory to use for creating journals
+   * @param journalSystem the journal system to use for creating journals
    * @param registry the master registry
    */
-  public static void createMasters(final JournalFactory journalFactory,
+  public static void createMasters(final JournalSystem journalSystem,
       final MasterRegistry registry) {
     List<Callable<Void>> callables = new ArrayList<>();
     for (final MasterFactory factory : ServiceUtils.getMasterServiceLoader()) {
@@ -76,7 +40,7 @@ final class MasterUtils {
         @Override
         public Void call() throws Exception {
           if (factory.isEnabled()) {
-            factory.create(registry, journalFactory);
+            factory.create(registry, journalSystem);
           }
           return null;
         }

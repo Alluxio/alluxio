@@ -61,9 +61,6 @@ public class LocalUnderFileSystemTest {
   public void create() throws IOException {
     String filepath = PathUtils.concatPath(mLocalUfsRoot, getUniqueFileName());
     OutputStream os = mLocalUfs.create(filepath);
-
-    Assert.assertFalse(mLocalUfs.isFile(filepath));
-
     os.close();
 
     Assert.assertTrue(mLocalUfs.isFile(filepath));

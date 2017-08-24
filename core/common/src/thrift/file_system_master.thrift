@@ -103,7 +103,7 @@ struct FileInfo {
   11: bool cacheable
   12: bool persisted
   13: list<i64> blockIds
-  15: i32 inMemoryPercentage
+  15: i32 inMemoryPercentage // deprecated (replaced by inAlluxioPercentage)
   16: i64 lastModificationTimeMs
   17: i64 ttl
   18: string owner
@@ -114,6 +114,7 @@ struct FileInfo {
   23: list<FileBlockInfo> fileBlockInfos
   24: common.TTtlAction ttlAction
   25: i64 mountId
+  26: i32 inAlluxioPercentage
 }
 
 struct MountTOptions {
@@ -122,6 +123,20 @@ struct MountTOptions {
   3: optional bool shared
 }
 struct MountTResponse {}
+
+struct GetMountTableTResponse {
+  1: map<string, MountPointInfo> mountTable
+}
+
+struct MountPointInfo {
+  1: string ufsUri
+  2: string ufsType
+  3: i64 ufsCapacityBytes = -1
+  4: i64 ufsUsedBytes = -1
+  5: bool readOnly
+  6: map<string, string> properties
+  7: bool shared
+}
 
 struct FileSystemCommand {
   1: common.CommandType commandType
@@ -269,6 +284,12 @@ service FileSystemMasterClientService extends common.AlluxioService {
     /** the path of the under file system */ 2: string ufsPath,
     /** the options for creating the mount point */ 3: MountTOptions options,
     )
+    throws (1: exception.AlluxioTException e)
+
+  /**
+  * Returns a map from each Alluxio path to information of corresponding mount point
+  */
+  GetMountTableTResponse getMountTable()
     throws (1: exception.AlluxioTException e)
 
   /**

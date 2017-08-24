@@ -14,7 +14,6 @@ package alluxio.cli;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
 
-import com.google.common.base.Preconditions;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
@@ -124,7 +123,6 @@ public final class GetConf {
       printHelp("Unable to parse input args: " + e.getMessage());
       return 1;
     }
-    Preconditions.checkNotNull(cmd, "Unable to parse input args");
     args = cmd.getArgs();
     switch (args.length) {
       case 0:

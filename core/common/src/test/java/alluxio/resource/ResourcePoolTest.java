@@ -22,7 +22,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 /**
  * Unit test for {@code ResourcePool} class.
  */
-public class ResourcePoolTest {
+public final class ResourcePoolTest {
 
   /**
    * The exception expected to be thrown.

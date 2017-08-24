@@ -18,11 +18,11 @@ import alluxio.client.block.BlockMasterClientPool;
 import alluxio.client.netty.NettyClient;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.UnavailableException;
+import alluxio.master.MasterInquireClient;
 import alluxio.metrics.MetricsSystem;
 import alluxio.network.connection.NettyChannelPool;
 import alluxio.resource.CloseableResource;
 import alluxio.util.network.NetworkAddressUtils;
-import alluxio.util.network.NetworkAddressUtils.ServiceType;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
 
@@ -71,9 +71,9 @@ public final class FileSystemContext implements Closeable {
   private final ConcurrentHashMapV8<SocketAddress, NettyChannelPool>
       mNettyChannelPools = new ConcurrentHashMapV8<>();
 
-  /** The shared master address associated with the {@link FileSystemContext}. */
+  /** The shared master inquire client associated with the {@link FileSystemContext}. */
   @GuardedBy("this")
-  private InetSocketAddress mMasterAddress;
+  private MasterInquireClient mMasterInquireClient;
 
   /**
    * Indicates whether the {@link #mLocalWorker} field has been lazily initialized yet.
@@ -123,10 +123,11 @@ public final class FileSystemContext implements Closeable {
   /**
    * Initializes the context. Only called in the factory methods and reset.
    */
-  private void init() {
-    mMasterAddress = NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC);
-    mFileSystemMasterClientPool = new FileSystemMasterClientPool(mParentSubject, mMasterAddress);
-    mBlockMasterClientPool = new BlockMasterClientPool(mParentSubject, mMasterAddress);
+  private synchronized void init() {
+    mMasterInquireClient = MasterInquireClient.Factory.create();
+    mFileSystemMasterClientPool =
+        new FileSystemMasterClientPool(mParentSubject, mMasterInquireClient);
+    mBlockMasterClientPool = new BlockMasterClientPool(mParentSubject, mMasterInquireClient);
   }
 
   /**
@@ -147,7 +148,7 @@ public final class FileSystemContext implements Closeable {
     mNettyChannelPools.clear();
 
     synchronized (this) {
-      mMasterAddress = null;
+      mMasterInquireClient = null;
       mLocalWorkerInitialized = false;
       mLocalWorker = null;
     }
@@ -171,9 +172,10 @@ public final class FileSystemContext implements Closeable {
 
   /**
    * @return the master address
+   * @throws UnavailableException if the master address cannot be determined
    */
-  public synchronized InetSocketAddress getMasterAddress() {
-    return mMasterAddress;
+  public synchronized InetSocketAddress getMasterAddress() throws UnavailableException {
+    return mMasterInquireClient.getPrimaryRpcAddress();
   }
 
   /**

@@ -165,25 +165,41 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
   /**
    * Permissions in object UFS.
    */
-  protected class ObjectPermissions {
+  public class ObjectPermissions {
     final String mOwner;
     final String mGroup;
     final short mMode;
 
+    /**
+     * Creates a new ObjectPermissions.
+     *
+     * @param owner the owner of the object
+     * @param group the group of the object
+     * @param mode the representation of the permission bits
+     */
     public ObjectPermissions(String owner, String group, short mode) {
       mOwner = owner;
       mGroup = group;
       mMode = mode;
     }
 
+    /**
+     * @return the name of the owner
+     */
     public String getOwner() {
       return mOwner;
     }
 
+    /**
+     * @return the name of the group
+     */
     public String getGroup() {
       return mGroup;
     }
 
+    /**
+     * @return the short representation of the permission bits
+     */
     public short getMode() {
       return mMode;
     }
@@ -247,7 +263,13 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
       }
     }
     deleteBuffer.add(stripPrefixIfPresent(convertToFolderName(path)));
-    return deleteBuffer.getResult().size() == deleteBuffer.mEntriesAdded;
+    int filesDeleted = deleteBuffer.getResult().size();
+    if (filesDeleted != deleteBuffer.mEntriesAdded) {
+      LOG.warn("Failed to delete directory, successfully deleted {} files out of {}.",
+          filesDeleted, deleteBuffer.mEntriesAdded);
+      return false;
+    }
+    return true;
   }
 
   /**
@@ -305,8 +327,13 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
           result.addAll(list.get());
         } catch (InterruptedException e) {
           // If operation was interrupted do not add to successfully deleted list
+          LOG.warn("Interrupted while waiting for the result of batch delete. UFS and Alluxio "
+              + "state may be inconsistent. Error: {}", e.getMessage());
+          Thread.currentThread().interrupt();
         } catch (ExecutionException e) {
           // If operation failed to execute do not add to successfully deleted list
+          LOG.warn("A batch delete failed. UFS and Alluxio state may be inconsistent. Error: {}",
+              e.getMessage());
         }
       }
       return result;
@@ -429,6 +456,11 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
   }
 
   @Override
+  public boolean isObjectStorage() {
+    return true;
+  }
+
+  @Override
   public UfsStatus[] listStatus(String path) throws IOException {
     return listInternal(path, ListOptions.defaults());
   }
@@ -473,7 +505,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
 
   @Override
   public InputStream open(String path, OpenOptions options) throws IOException {
-    return new ObjectUnderFileInputStream(this, stripPrefixIfPresent(path), options);
+    return openObject(stripPrefixIfPresent(path), options);
   }
 
   @Override

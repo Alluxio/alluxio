@@ -31,7 +31,7 @@ public final class WaitForOptions {
    * @return the default instance of {@link WaitForOptions}
    */
   public static WaitForOptions defaults() {
-    return new WaitForOptions().setInterval(DEFAULT_INTERVAL).setTimeout(NEVER);
+    return new WaitForOptions().setInterval(DEFAULT_INTERVAL).setTimeoutMs(NEVER);
   }
 
   /**
@@ -44,7 +44,7 @@ public final class WaitForOptions {
   /**
    * @return the timeout
    */
-  public int getTimeout() {
+  public int getTimeoutMs() {
     return mTimeoutMs;
   }
 
@@ -61,7 +61,7 @@ public final class WaitForOptions {
    * @param timeoutMs the timeout to use (in milliseconds)
    * @return the updated options object
    */
-  public WaitForOptions setTimeout(int timeoutMs) {
+  public WaitForOptions setTimeoutMs(int timeoutMs) {
     mTimeoutMs = timeoutMs;
     return this;
   }

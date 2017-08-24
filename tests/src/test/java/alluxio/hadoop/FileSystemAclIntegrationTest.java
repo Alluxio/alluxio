@@ -251,7 +251,7 @@ public final class FileSystemAclIntegrationTest extends BaseIntegrationTest {
     Assert.assertNotEquals(defaultGroup, nonexistentGroup);
 
     mThrown.expect(IOException.class);
-    mThrown.expectMessage("Could not setOwner for UFS file");
+    mThrown.expectMessage("Could not update owner");
     sTFS.setOwner(fileC, nonexistentOwner, nonexistentGroup);
   }
 
@@ -562,7 +562,7 @@ public final class FileSystemAclIntegrationTest extends BaseIntegrationTest {
 
   @Test
   public void objectStoreSetOwner() throws Exception {
-    Assume.assumeTrue(UnderFileSystemUtils.isObjectStorage(sUfs));
+    Assume.assumeTrue(sUfs.isObjectStorage());
 
     Path fileA = new Path("/objectfileA");
     final String newOwner = "new-user1";

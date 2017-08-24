@@ -24,9 +24,12 @@ import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.util.io.BufferUtils;
 import alluxio.util.network.NettyUtils;
+import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.base.Preconditions;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -40,6 +43,8 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public class BlockInStream extends InputStream implements BoundedStream, Seekable,
     PositionedReadable {
+  private static final Logger LOG = LoggerFactory.getLogger(BlockInStream.class);
+
   /** the source tracking where the block is from. */
   public enum BlockInStreamSource {
     LOCAL, REMOTE, UFS
@@ -85,10 +90,12 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
         && !NettyUtils.isDomainSocketSupported(address)
         && blockSource == BlockInStreamSource.LOCAL) {
       try {
+        LOG.info("Creating short circuit input stream for block {} @ {}", blockId, address);
         return createLocalBlockInStream(context, address, blockId, blockSize, options);
       } catch (NotFoundException e) {
         // Failed to do short circuit read because the block is not available in Alluxio.
         // We will try to read from UFS via netty. So this exception is ignored.
+        LOG.warn("Failed to create short circuit input stream for block {} @ {}", blockId, address);
       }
     }
     Protocol.ReadRequest.Builder builder = Protocol.ReadRequest.newBuilder().setBlockId(blockId)
@@ -97,6 +104,8 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
       builder.setOpenUfsBlockOptions(openUfsBlockOptions);
     }
 
+    LOG.info("Creating netty input stream for block {} @ {} from client {}", blockId, address,
+        NetworkAddressUtils.getClientHostName());
     return createNettyBlockInStream(context, address, blockSource, builder.buildPartial(),
         blockSize, options);
   }
@@ -155,6 +164,11 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
     mId = id;
     mLength = length;
     mInStreamSource = blockSource;
+  }
+
+  @Override
+  public long getPos() {
+    return mPos;
   }
 
   @Override

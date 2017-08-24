@@ -20,15 +20,14 @@ import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import alluxio.Configuration;
-import alluxio.ConfigurationTestUtils;
+import alluxio.ConfigurationRule;
 import alluxio.PropertyKey;
 import alluxio.RuntimeConstants;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.block.BlockMasterFactory;
 import alluxio.master.file.DefaultFileSystemMaster;
-import alluxio.master.journal.Journal;
-import alluxio.master.journal.JournalFactory;
+import alluxio.master.journal.JournalSystem;
+import alluxio.master.journal.JournalTestUtils;
 import alluxio.metrics.MetricsSystem;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
@@ -52,7 +51,6 @@ import org.mockito.Matchers;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.net.URI;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -91,8 +89,16 @@ public final class AlluxioMasterRestServiceHandlerTest {
   private BlockMaster mBlockMaster;
   private MasterRegistry mRegistry;
   private AlluxioMasterRestServiceHandler mHandler;
+
   @Rule
   public TemporaryFolder mTestFolder = new TemporaryFolder();
+
+  @Rule
+  public ConfigurationRule mConfigurationRule = new ConfigurationRule(new HashMap() {
+    {
+      put(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS, TEST_PATH);
+    }
+  });
 
   @BeforeClass
   public static void beforeClass() throws Exception {
@@ -106,9 +112,8 @@ public final class AlluxioMasterRestServiceHandlerTest {
     mMasterProcess = mock(MasterProcess.class);
     ServletContext context = mock(ServletContext.class);
     mRegistry = new MasterRegistry();
-    JournalFactory factory =
-        new Journal.Factory(new URI(mTestFolder.newFolder().getAbsolutePath()));
-    mBlockMaster = new BlockMasterFactory().create(mRegistry, factory);
+    JournalSystem journalSystem = JournalTestUtils.createJournalSystem(mTestFolder);
+    mBlockMaster = new BlockMasterFactory().create(mRegistry, journalSystem);
     mRegistry.start(true);
     when(mMasterProcess.getMaster(BlockMaster.class)).thenReturn(mBlockMaster);
     when(context.getAttribute(MasterWebServer.ALLUXIO_MASTER_SERVLET_RESOURCE_KEY)).thenReturn(
@@ -127,7 +132,6 @@ public final class AlluxioMasterRestServiceHandlerTest {
   }
 
   private void registerFileSystemMock() throws IOException {
-    Configuration.set(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS, TEST_PATH);
     UnderFileSystemFactory underFileSystemFactoryMock = mock(UnderFileSystemFactory.class);
     when(underFileSystemFactoryMock.supportsPath(anyString())).thenReturn(Boolean.FALSE);
     when(underFileSystemFactoryMock.supportsPath(TEST_PATH)).thenReturn(Boolean.TRUE);
@@ -146,7 +150,6 @@ public final class AlluxioMasterRestServiceHandlerTest {
   @After
   public void after() throws Exception {
     mRegistry.stop();
-    ConfigurationTestUtils.resetConfiguration();
   }
 
   @Test

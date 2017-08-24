@@ -57,7 +57,7 @@ Alluxio master 主页如下所示:
 
 ### 浏览内存中文件页面
 
-浏览所有内存中文件，点击导航栏"In-Memory Files"选项卡。
+浏览所有内存中文件，点击导航栏"In-Alluxio Files"选项卡。
 
 ![inMemFiles]({{site.data.img.screenshot_inMemoryFiles}})
 

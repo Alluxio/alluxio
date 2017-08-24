@@ -26,7 +26,7 @@ import java.io.OutputStream;
 @NotThreadSafe
 public class HdfsUnderFileOutputStream extends OutputStream {
   /** Underlying output stream. */
-  final FSDataOutputStream mOut;
+  private final FSDataOutputStream mOut;
 
   /**
    * Basic constructor.
