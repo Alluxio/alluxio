@@ -65,10 +65,10 @@ public class AlluxioLogServerProcess implements LogServerProcess {
   private ExecutorService mThreadPool;
   private volatile boolean mStopped;
 
-  private long mStopTimeoutInMillis = 60000;
-  private long mRequestTimeoutInMillis = 20000;
-  private int mBackoffSlotInMillis = 100;
-  private Random mRandom = new Random(System.currentTimeMillis());
+  private final long mStopTimeoutInMillis = 60000;
+  private final long mRequestTimeoutInMillis = 20000;
+  private final int mBackoffSlotInMillis = 100;
+  private final Random mRandom = new Random(System.currentTimeMillis());
 
   /**
    * Construct an {@link AlluxioLogServerProcess} instance.
@@ -91,7 +91,7 @@ public class AlluxioLogServerProcess implements LogServerProcess {
         new SynchronousQueue<>();
     mThreadPool =
         new ThreadPoolExecutor(mMinNumberOfThreads, mMaxNumberOfThreads,
-            60, TimeUnit.SECONDS, synchronousQueue);
+            mStopTimeoutInMillis, TimeUnit.MILLISECONDS, synchronousQueue);
     startLogServerThreads();
   }
 
@@ -123,16 +123,18 @@ public class AlluxioLogServerProcess implements LogServerProcess {
     mMastersLogThread.start();
     mWorkersLogThread.start();
     while (!Thread.interrupted()) {
-      CommonUtils.sleepMs(LOG, 1000);
+      CommonUtils.sleepMs(LOG, 5000);
     }
   }
 
   private void stopLogServerThreads() {
-    mMastersLogReceiver.close();
-    mWorkersLogReceiver.close();
     try {
+      mMastersLogReceiver.close();
       mMastersLogThread.join();
+
+      mWorkersLogReceiver.close();
       mWorkersLogThread.join();
+
       mMastersLogThread = null;
       mWorkersLogThread = null;
     } catch (InterruptedException e) {
