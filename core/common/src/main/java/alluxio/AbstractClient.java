@@ -164,7 +164,6 @@ public abstract class AbstractClient implements Client {
       return;
     }
     disconnect();
-    mAddress = getAddress();
     Preconditions.checkState(!mClosed, "Client is closed, will not try to connect.");
 
     RetryPolicy retryPolicy =
@@ -173,6 +172,7 @@ public abstract class AbstractClient implements Client {
       if (mClosed) {
         throw new FailedPreconditionException("Failed to connect: client has been closed");
       }
+      mAddress = getAddress();
       LOG.info("Alluxio client (version {}) is trying to connect with {} @ {}",
           RuntimeConstants.VERSION, getServiceName(), mAddress);
 
