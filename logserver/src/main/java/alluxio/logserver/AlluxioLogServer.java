@@ -11,6 +11,7 @@
 
 package alluxio.logserver;
 
+import alluxio.Process;
 import alluxio.ProcessUtils;
 
 /**
@@ -23,8 +24,23 @@ public final class AlluxioLogServer {
    * @param args command line arguments that will be parsed to initialize {@link AlluxioLogServer}
    */
   public static void main(String[] args) {
-    AlluxioLogServerProcess process = new AlluxioLogServerProcess(args[0]);
+    final AlluxioLogServerProcess process = new AlluxioLogServerProcess(args[0]);
+    addShutdownHook(process);
     ProcessUtils.run(process);
+  }
+
+  private static void addShutdownHook(final Process process) {
+    Runtime.getRuntime().addShutdownHook(new Thread() {
+      @Override
+      public void run() {
+        try {
+          process.stop();
+        } catch (Exception e) {
+          System.exit(0);
+        }
+      }
+    }
+    );
   }
 
   /**

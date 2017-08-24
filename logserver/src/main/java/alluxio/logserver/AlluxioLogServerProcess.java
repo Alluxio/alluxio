@@ -32,6 +32,8 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ExecutorService;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -52,6 +54,8 @@ public class AlluxioLogServerProcess implements LogServerProcess {
   private Thread mWorkersLogThread;
   private LogReceiver mMastersLogReceiver;
   private LogReceiver mWorkersLogReceiver;
+  private int mMaxNumberOfThreads;
+  private ExecutorService mThreadPool;
   private volatile boolean mStopped;
 
   /**
@@ -60,28 +64,24 @@ public class AlluxioLogServerProcess implements LogServerProcess {
    * @param baseLogsDir base directory to store the logs pushed from remote Alluxio servers
    */
   public AlluxioLogServerProcess(String baseLogsDir) {
+    // TODO(yanqin) make it configurable.
     mRemoteMastersLoggingPort = 47120;
     mRemoteWorkersLoggingPort = 47121;
+    mMaxNumberOfThreads = 100;
     mBaseLogsDir = baseLogsDir;
     mStopped = true;
   }
 
   @Override
   public void start() throws Exception {
+    mThreadPool = Executors.newFixedThreadPool(mMaxNumberOfThreads);
     startLogServerThreads();
-    LOG.info("Log server started");
-    try {
-      mMastersLogThread.join();
-      mWorkersLogThread.join();
-    } catch (InterruptedException e) {
-      Thread.currentThread().interrupt();
-    }
   }
 
   @Override
   public void stop() throws Exception {
     mStopped = true;
-    LOG.info("Log server stopped.");
+    stopLogServerThreads();
   }
 
   @Override
@@ -98,7 +98,6 @@ public class AlluxioLogServerProcess implements LogServerProcess {
    * Create and start logging server threads.
    */
   private void startLogServerThreads() {
-    // TODO(yanqin) make it configurable.
     mMastersLogReceiver = new LogReceiver(mRemoteMastersLoggingPort, "MASTER_LOGGER");
     mWorkersLogReceiver = new LogReceiver(mRemoteWorkersLoggingPort, "WORKER_LOGGER");
     mMastersLogThread = new Thread(mMastersLogReceiver);
@@ -106,6 +105,22 @@ public class AlluxioLogServerProcess implements LogServerProcess {
     mStopped = false;
     mMastersLogThread.start();
     mWorkersLogThread.start();
+    while (!Thread.interrupted()) {
+      CommonUtils.sleepMs(LOG, 1000);
+    }
+  }
+
+  private void stopLogServerThreads() {
+    mMastersLogReceiver.close();
+    mWorkersLogReceiver.close();
+    try {
+      mMastersLogThread.join();
+      mWorkersLogThread.join();
+      mMastersLogThread = null;
+      mWorkersLogThread = null;
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+    }
   }
 
   /**
@@ -173,6 +188,16 @@ public class AlluxioLogServerProcess implements LogServerProcess {
       mPort = port;
       mLoggerType = loggerType;
       mInetAddressHashMap = new HashMap<>();
+    }
+
+    public void close() {
+      if (mServerSocket != null) {
+        try {
+          mServerSocket.close();
+        } catch (IOException e) {
+          return;
+        }
+      }
     }
 
     @Override

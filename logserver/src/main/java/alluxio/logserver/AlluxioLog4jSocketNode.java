@@ -52,38 +52,33 @@ public class AlluxioLog4jSocketNode implements Runnable {
   @Override
   public void run() {
     LoggingEvent event;
-    Logger remoteLogger = null;
+    Logger remoteLogger;
+    if (mObjectInputStream == null) {
+      return;
+    }
     try {
-      if (mObjectInputStream != null) {
-        while (true) {
-          event = (LoggingEvent) mObjectInputStream.readObject();
-          remoteLogger = mHierarchy.getLogger(event.getLoggerName());
-          if (event.getLevel().isGreaterOrEqual(remoteLogger.getEffectiveLevel())) {
-            remoteLogger.callAppenders(event);
-          }
+      while (true) {
+        event = (LoggingEvent) mObjectInputStream.readObject();
+        remoteLogger = mHierarchy.getLogger(event.getLoggerName());
+        if (event.getLevel().isGreaterOrEqual(remoteLogger.getEffectiveLevel())) {
+          remoteLogger.callAppenders(event);
         }
       }
     } catch (Exception e) {
-      if (remoteLogger != null) {
-        remoteLogger.error("Closing connection...");
-      }
+      // TODO(yanqin) attempt to recover.
     } finally {
       if (mObjectInputStream != null) {
         try {
           mObjectInputStream.close();
         } catch (Exception e) {
-          if (remoteLogger != null) {
-            remoteLogger.error("Closing inputstream...");
-          }
+          // Ignore the exception caused by faulty client.
         }
-        if (mSocket != null) {
-          try {
-            mSocket.close();
-          } catch (IOException e) {
-            if (remoteLogger != null) {
-              remoteLogger.error("Closing socket...");
-            }
-          }
+      }
+      if (mSocket != null) {
+        try {
+          mSocket.close();
+        } catch (Exception e) {
+          // Ignore the exception caused by closing socket.
         }
       }
     }
