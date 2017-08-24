@@ -52,7 +52,7 @@ The built JAR must include all dependencies of the extension project. In additio
 Extension JARs are picked up from the extensions directory configured using the property `alluxio.extensions.dir`. A command line utlity can be used to distribute an exension JAR to hosts running Alluxio processes. In environments where the CLI is not applicable, simply placing the JAR in the extensions directory will suffice. For example, when running in containers, a custom image can be built with extension binaries in the desired location.
 
 ### Command Line Utility
-A CLI utility is provided to aid manage extensions.
+A CLI utility is provided to aid extension manangement.
 ```
 ./bin/alluxio extensions
 Usage: alluxio extensions [generic options]
