@@ -17,6 +17,7 @@ perform basic tasks with the data in Alluxio. During this guide, you will:
 * Perform basic tasks via Alluxio Shell
 * **[Bonus]** Mount a public Amazon S3 bucket in Alluxio
 * Shutdown Alluxio
+* Diagnose Alluxio startup issue
 
 **[Bonus]** If you have an
 [AWS account with an access key id and secret access key](http://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSGettingStartedGuide/AWSCredentials.html),
@@ -342,6 +343,33 @@ the following command:
 ```bash
 $ ./bin/alluxio-stop.sh local
 ```
+
+## Diagnose Alluxio startup issue
+
+If you have problems starting Alluxio in your local environment, try the following command:
+
+```bash
+$ ./bin/alluxio validateEnv local
+```
+
+This will validate your environment with your Alluxio configuration and report any potential
+problems that might prevent you from starting Alluxio services. If you configured Alluxio to run in
+a cluster and you want to validate environment on all nodes, you can run the following command
+instead:
+
+```bash
+$ ./bin/alluxio validateEnv local
+```
+
+You can also run the command run specific validation task. For example,
+
+```bash
+$ ./bin/alluxio validateEnv local ulimit
+```
+
+Will only run validation tasks that checks your local system resource limits.
+
+You can check out [this page](Developer-Tips.html) for detailed usage information regarding this command.
 
 ## Conclusion
 
