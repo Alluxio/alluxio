@@ -59,6 +59,8 @@ public final class S3RestServiceHandler {
 
   // Bucket is the first component in the URL path.
   public static final String BUCKET_PARAM = "{bucket}/";
+  // Object is after bucket in the URL path.
+  public static final String OBJECT_PARAM = "{bucket}/{object:.+}";
 
   private final FileSystem mFileSystem;
 
@@ -79,16 +81,12 @@ public final class S3RestServiceHandler {
    */
   @PUT
   @Path(BUCKET_PARAM)
-  @ReturnType("java.lang.Void")
+  @ReturnType("Response.Status")
   public Response createBucket(@PathParam("bucket") final String bucket) {
-    return S3RestUtils.call(bucket, new S3RestUtils.RestCallable<Void>() {
+    return S3RestUtils.call(bucket, new S3RestUtils.RestCallable<Response.Status>() {
       @Override
-      public Void call() throws S3Exception {
-        String bucketPath =  AlluxioURI.SEPARATOR + bucket;
-        if (bucketPath.contains(BUCKET_SEPARATOR)) {
-          bucketPath = bucketPath.replace(BUCKET_SEPARATOR, AlluxioURI.SEPARATOR);
-          checkNestedBucketIsUnderMountPoint(bucketPath);
-        }
+      public Response.Status call() throws S3Exception {
+        String bucketPath = parseBucketPath(AlluxioURI.SEPARATOR + bucket);
 
         // Create the bucket.
         CreateDirectoryOptions options = CreateDirectoryOptions.defaults();
@@ -99,7 +97,7 @@ public final class S3RestServiceHandler {
         } catch (Exception e) {
           throw toBucketS3Exception(e, bucketPath);
         }
-        return null;
+        return Response.Status.OK;
       }
     });
   }
@@ -111,16 +109,12 @@ public final class S3RestServiceHandler {
    */
   @DELETE
   @Path(BUCKET_PARAM)
-  @ReturnType("java.lang.Void")
+  @ReturnType("Response.Status")
   public Response deleteBucket(@PathParam("bucket") final String bucket) {
-    return S3RestUtils.call(bucket, new S3RestUtils.RestCallable<Void>() {
+    return S3RestUtils.call(bucket, new S3RestUtils.RestCallable<Response.Status>() {
       @Override
-      public Void call() throws S3Exception {
-        String bucketPath =  AlluxioURI.SEPARATOR + bucket;
-        if (bucketPath.contains(BUCKET_SEPARATOR)) {
-          bucketPath = bucketPath.replace(BUCKET_SEPARATOR, AlluxioURI.SEPARATOR);
-          checkNestedBucketIsUnderMountPoint(bucketPath);
-        }
+      public Response.Status call() throws S3Exception {
+        String bucketPath = parseBucketPath(AlluxioURI.SEPARATOR + bucket);
 
         checkBucketIsAlluxioDirectory(bucketPath);
 
@@ -133,7 +127,39 @@ public final class S3RestServiceHandler {
         } catch (Exception e) {
           throw toBucketS3Exception(e, bucketPath);
         }
-        return null;
+        return Response.Status.OK;
+      }
+    });
+  }
+
+  /**
+   * @summary deletes a object
+   * @param bucket the bucket name
+   * @param object the object name
+   * @return the response object
+   */
+  @DELETE
+  @Path(OBJECT_PARAM)
+  @ReturnType("Response.Status")
+  public Response deleteObject(@PathParam("bucket") final String bucket,
+                               @PathParam("object") final String object) {
+    return S3RestUtils.call(bucket, new S3RestUtils.RestCallable<Response.Status>() {
+      @Override
+      public Response.Status call() throws S3Exception {
+        String bucketPath = parseBucketPath(AlluxioURI.SEPARATOR + bucket);
+
+        // Delete the object.
+        String objectPath = bucketPath + AlluxioURI.SEPARATOR + object;
+        DeleteOptions options = DeleteOptions.defaults();
+        options.setAlluxioOnly(Configuration.get(PropertyKey.PROXY_S3_DELETE_TYPE)
+            .equals(Constants.DELETE_IN_ALLUXIO_ONLY));
+        try {
+          mFileSystem.delete(new AlluxioURI(objectPath), options);
+        } catch (Exception e) {
+          throw toObjectS3Exception(e, objectPath);
+        }
+        // Note: the normal response for S3 delete key is 204 NO_CONTENT, not 200 OK
+        return Response.Status.NO_CONTENT;
       }
     });
   }
@@ -154,6 +180,29 @@ public final class S3RestServiceHandler {
     } catch (Exception e) {
       return new S3Exception(e, resource, S3ErrorCode.INTERNAL_ERROR);
     }
+  }
+
+  private S3Exception toObjectS3Exception(Exception exception, String resource) {
+    try {
+      throw exception;
+    } catch (S3Exception e) {
+      return e;
+    } catch (DirectoryNotEmptyException e) {
+      return new S3Exception(resource, S3ErrorCode.PRECONDITION_FAILED);
+    } catch (FileDoesNotExistException e) {
+      return new S3Exception(resource, S3ErrorCode.NO_SUCH_KEY);
+    } catch (Exception e) {
+      return new S3Exception(e, resource, S3ErrorCode.INTERNAL_ERROR);
+    }
+  }
+
+  private String parseBucketPath(String bucketPath) throws S3Exception {
+    if (!bucketPath.contains(BUCKET_SEPARATOR)) {
+      return bucketPath;
+    }
+    String normalizedPath = bucketPath.replace(BUCKET_SEPARATOR, AlluxioURI.SEPARATOR);
+    checkNestedBucketIsUnderMountPoint(normalizedPath);
+    return normalizedPath;
   }
 
   private void checkNestedBucketIsUnderMountPoint(String bucketPath) throws S3Exception {
