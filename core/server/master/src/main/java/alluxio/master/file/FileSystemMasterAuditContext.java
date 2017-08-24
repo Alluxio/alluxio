@@ -24,7 +24,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * An audit context for file system master.
  */
 @NotThreadSafe
-public final class MasterAuditContext implements AuditContext {
+public final class FileSystemMasterAuditContext implements AuditContext {
   private final AsyncUserAccessAuditLogWriter mAsyncAuditLogWriter;
   private boolean mAllowed;
   private boolean mSucceeded;
@@ -37,13 +37,13 @@ public final class MasterAuditContext implements AuditContext {
   private Inode mSrcInode;
 
   @Override
-  public MasterAuditContext setAllowed(boolean allowed) {
+  public FileSystemMasterAuditContext setAllowed(boolean allowed) {
     mAllowed = allowed;
     return this;
   }
 
   @Override
-  public MasterAuditContext setSucceeded(boolean succeeded) {
+  public FileSystemMasterAuditContext setSucceeded(boolean succeeded) {
     mSucceeded = succeeded;
     return this;
   }
@@ -54,7 +54,7 @@ public final class MasterAuditContext implements AuditContext {
    * @param command the command associated with this {@link alluxio.master.Master}
    * @return this {@link AuditContext} instance
    */
-  public MasterAuditContext setCommand(String command) {
+  public FileSystemMasterAuditContext setCommand(String command) {
     mCommand = command;
     return this;
   }
@@ -65,7 +65,7 @@ public final class MasterAuditContext implements AuditContext {
    * @param srcPath the source path of the command
    * @return this {@link AuditContext} instance
    */
-  public MasterAuditContext setSrcPath(AlluxioURI srcPath) {
+  public FileSystemMasterAuditContext setSrcPath(AlluxioURI srcPath) {
     mSrcPath = srcPath;
     return this;
   }
@@ -76,7 +76,7 @@ public final class MasterAuditContext implements AuditContext {
    * @param dstPath the destination path of the command
    * @return this {@link AuditContext} instance
    */
-  public MasterAuditContext setDstPath(AlluxioURI dstPath) {
+  public FileSystemMasterAuditContext setDstPath(AlluxioURI dstPath) {
     mDstPath = dstPath;
     return this;
   }
@@ -87,7 +87,7 @@ public final class MasterAuditContext implements AuditContext {
    * @param ugi the client user name of the authenticated client user of this thread
    * @return this {@link AuditContext} instance
    */
-  public MasterAuditContext setUgi(String ugi) {
+  public FileSystemMasterAuditContext setUgi(String ugi) {
     mUgi = ugi;
     return this;
   }
@@ -98,7 +98,7 @@ public final class MasterAuditContext implements AuditContext {
    * @param authType the authentication type
    * @return this {@link AuditContext} instance
    */
-  public MasterAuditContext setAuthType(AuthType authType) {
+  public FileSystemMasterAuditContext setAuthType(AuthType authType) {
     mAuthType = authType;
     return this;
   }
@@ -109,7 +109,7 @@ public final class MasterAuditContext implements AuditContext {
    * @param ip the IP of the client
    * @return this {@link AuditContext} instance
    */
-  public MasterAuditContext setIp(String ip) {
+  public FileSystemMasterAuditContext setIp(String ip) {
     mIp = ip;
     return this;
   }
@@ -120,17 +120,17 @@ public final class MasterAuditContext implements AuditContext {
    * @param srcInode the source inode of this operation
    * @return this {@link AuditContext} instance
    */
-  public MasterAuditContext setSrcInode(Inode srcInode) {
+  public FileSystemMasterAuditContext setSrcInode(Inode srcInode) {
     mSrcInode = srcInode;
     return this;
   }
 
   /**
-   * Constructor of {@link MasterAuditContext}.
+   * Constructor of {@link FileSystemMasterAuditContext}.
    *
    * @param asyncAuditLogWriter
    */
-  protected MasterAuditContext(AsyncUserAccessAuditLogWriter asyncAuditLogWriter) {
+  protected FileSystemMasterAuditContext(AsyncUserAccessAuditLogWriter asyncAuditLogWriter) {
     mAsyncAuditLogWriter = asyncAuditLogWriter;
     mAllowed = true;
   }
