@@ -86,7 +86,7 @@ public final class S3RestServiceHandler {
     return S3RestUtils.call(bucket, new S3RestUtils.RestCallable<Response.Status>() {
       @Override
       public Response.Status call() throws S3Exception {
-        String bucketPath = maybeUpdateAndCheckBucketPath(AlluxioURI.SEPARATOR + bucket);
+        String bucketPath = parseBucketPath(AlluxioURI.SEPARATOR + bucket);
 
         // Create the bucket.
         CreateDirectoryOptions options = CreateDirectoryOptions.defaults();
@@ -114,7 +114,7 @@ public final class S3RestServiceHandler {
     return S3RestUtils.call(bucket, new S3RestUtils.RestCallable<Response.Status>() {
       @Override
       public Response.Status call() throws S3Exception {
-        String bucketPath = maybeUpdateAndCheckBucketPath(AlluxioURI.SEPARATOR + bucket);
+        String bucketPath = parseBucketPath(AlluxioURI.SEPARATOR + bucket);
 
         checkBucketIsAlluxioDirectory(bucketPath);
 
@@ -146,7 +146,7 @@ public final class S3RestServiceHandler {
     return S3RestUtils.call(bucket, new S3RestUtils.RestCallable<Response.Status>() {
       @Override
       public Response.Status call() throws S3Exception {
-        String bucketPath = maybeUpdateAndCheckBucketPath(AlluxioURI.SEPARATOR + bucket);
+        String bucketPath = parseBucketPath(AlluxioURI.SEPARATOR + bucket);
 
         // Delete the object.
         String objectPath = bucketPath + AlluxioURI.SEPARATOR + object;
@@ -196,7 +196,7 @@ public final class S3RestServiceHandler {
     }
   }
 
-  private String maybeUpdateAndCheckBucketPath(String bucketPath) throws S3Exception {
+  private String parseBucketPath(String bucketPath) throws S3Exception {
     if (!bucketPath.contains(BUCKET_SEPARATOR)) {
       return bucketPath;
     }
