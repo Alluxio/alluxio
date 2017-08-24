@@ -64,7 +64,7 @@ public final class S3ClientRestApiTest extends RestApiTest {
   @Test
   public void putBucket() throws Exception {
     final String bucket = "bucket";
-    AlluxioURI uri = new AlluxioURI(AlluxioURI.SEPARATOR + bucket + AlluxioURI.SEPARATOR);
+    AlluxioURI uri = new AlluxioURI(AlluxioURI.SEPARATOR + bucket);
     new TestCase(mHostname, mPort, S3_SERVICE_PREFIX + AlluxioURI.SEPARATOR + bucket, NO_PARAMS,
         HttpMethod.PUT, null, TestCaseOptions.defaults()).run();
     // Verify the directory is created for the new bucket.
@@ -154,7 +154,7 @@ public final class S3ClientRestApiTest extends RestApiTest {
   @Test
   public void deleteBucket() throws Exception {
     final String bucket = "bucket-to-delete";
-    AlluxioURI uri = new AlluxioURI(AlluxioURI.SEPARATOR + bucket + AlluxioURI.SEPARATOR);
+    AlluxioURI uri = new AlluxioURI(AlluxioURI.SEPARATOR + bucket);
     new TestCase(mHostname, mPort, S3_SERVICE_PREFIX + AlluxioURI.SEPARATOR + bucket, NO_PARAMS,
         HttpMethod.PUT, null, TestCaseOptions.defaults()).run();
     // Verify the directory is created for the new bucket.
@@ -188,7 +188,7 @@ public final class S3ClientRestApiTest extends RestApiTest {
   public void deleteNonEmptyBucket() throws Exception {
     final String bucketName = "non-empty-bucket";
 
-    AlluxioURI uri = new AlluxioURI(AlluxioURI.SEPARATOR + bucketName + AlluxioURI.SEPARATOR);
+    AlluxioURI uri = new AlluxioURI(AlluxioURI.SEPARATOR + bucketName);
     new TestCase(mHostname, mPort, S3_SERVICE_PREFIX + AlluxioURI.SEPARATOR + bucketName, NO_PARAMS,
         HttpMethod.PUT, null, TestCaseOptions.defaults()).run();
 
@@ -283,6 +283,99 @@ public final class S3ClientRestApiTest extends RestApiTest {
           NO_PARAMS, HttpMethod.GET, null,
           TestCaseOptions.defaults().setContentType(TestCaseOptions.XML_CONTENT_TYPE)).run();
       Assert.fail("get a non-existing bucket should fail");
+    } catch (AssertionError e) {
+      // expected
+    }
+  }
+
+  @Test
+  public void deleteObject() throws Exception {
+    final String bucketName = "bucket-with-object-to-delete";
+
+    AlluxioURI bucketUri = new AlluxioURI(AlluxioURI.SEPARATOR + bucketName);
+    new TestCase(mHostname, mPort, S3_SERVICE_PREFIX + AlluxioURI.SEPARATOR + bucketName, NO_PARAMS,
+        HttpMethod.PUT, null, TestCaseOptions.defaults()).run();
+
+    final String objectName = "file";
+    AlluxioURI fileUri = new AlluxioURI(bucketUri.getPath() + AlluxioURI.SEPARATOR + objectName);
+    mFileSystemMaster.createFile(fileUri, CreateFileOptions.defaults());
+
+    // Verify the directory is created for the new bucket, and file is created under it.
+    Assert.assertFalse(
+        mFileSystemMaster.listStatus(bucketUri, ListStatusOptions.defaults()).isEmpty());
+
+    new TestCase(mHostname, mPort,
+        S3_SERVICE_PREFIX + AlluxioURI.SEPARATOR + bucketName + AlluxioURI.SEPARATOR + objectName,
+        NO_PARAMS, HttpMethod.DELETE, null, TestCaseOptions.defaults()).run();
+
+    // Verify the object is deleted.
+    Assert.assertTrue(
+        mFileSystemMaster.listStatus(bucketUri, ListStatusOptions.defaults()).isEmpty());
+  }
+
+  @Test
+  public void deleteObjectAsAlluxioEmptyDir() throws Exception {
+    final String bucketName = "bucket-with-empty-dir-to-delete";
+
+    AlluxioURI bucketUri = new AlluxioURI(AlluxioURI.SEPARATOR + bucketName);
+    new TestCase(mHostname, mPort, S3_SERVICE_PREFIX + AlluxioURI.SEPARATOR + bucketName, NO_PARAMS,
+        HttpMethod.PUT, null, TestCaseOptions.defaults()).run();
+
+    String objectName = "empty-dir/";
+    AlluxioURI dirUri = new AlluxioURI(bucketUri.getPath() + AlluxioURI.SEPARATOR + objectName);
+    mFileSystemMaster.createDirectory(dirUri, CreateDirectoryOptions.defaults());
+
+    // Verify the directory is created for the new bucket, and empty-dir is created under it.
+    Assert.assertFalse(
+        mFileSystemMaster.listStatus(bucketUri, ListStatusOptions.defaults()).isEmpty());
+
+    new TestCase(mHostname, mPort,
+        S3_SERVICE_PREFIX + AlluxioURI.SEPARATOR + bucketName + AlluxioURI.SEPARATOR + objectName,
+        NO_PARAMS, HttpMethod.DELETE, null, TestCaseOptions.defaults()).run();
+
+    // Verify the empty-dir as a valid object is deleted.
+    Assert.assertTrue(
+        mFileSystemMaster.listStatus(bucketUri, ListStatusOptions.defaults()).isEmpty());
+  }
+
+  @Test
+  public void deleteObjectAsAlluxioNonEmptyDir() throws Exception {
+    final String bucketName = "bucket-with-non-empty-dir-to-delete";
+
+    AlluxioURI bucketUri = new AlluxioURI(AlluxioURI.SEPARATOR + bucketName);
+    new TestCase(mHostname, mPort, S3_SERVICE_PREFIX + AlluxioURI.SEPARATOR + bucketName, NO_PARAMS,
+        HttpMethod.PUT, null, TestCaseOptions.defaults()).run();
+
+    String objectName = "non-empty-dir/";
+    AlluxioURI dirUri = new AlluxioURI(bucketUri.getPath() + AlluxioURI.SEPARATOR + objectName);
+    mFileSystemMaster.createDirectory(dirUri, CreateDirectoryOptions.defaults());
+
+    mFileSystemMaster.createFile(
+        new AlluxioURI(dirUri.getPath() + "/file"), CreateFileOptions.defaults());
+
+    Assert.assertFalse(
+        mFileSystemMaster.listStatus(dirUri, ListStatusOptions.defaults()).isEmpty());
+
+    try {
+      new TestCase(mHostname, mPort,
+          S3_SERVICE_PREFIX + AlluxioURI.SEPARATOR + bucketName + AlluxioURI.SEPARATOR + objectName,
+          NO_PARAMS, HttpMethod.DELETE, null, TestCaseOptions.defaults()).run();
+    } catch (AssertionError e) {
+      // expected
+    }
+  }
+
+  @Test
+  public void deleteNonExistingObject() throws Exception {
+    final String bucketName = "bucket-with-nothing";
+    new TestCase(mHostname, mPort, S3_SERVICE_PREFIX + AlluxioURI.SEPARATOR + bucketName, NO_PARAMS,
+        HttpMethod.PUT, null, TestCaseOptions.defaults()).run();
+
+    String objectName = "non-existing-object";
+    try {
+      new TestCase(mHostname, mPort,
+          S3_SERVICE_PREFIX + AlluxioURI.SEPARATOR + bucketName + AlluxioURI.SEPARATOR + objectName,
+          NO_PARAMS, HttpMethod.DELETE, null, TestCaseOptions.defaults()).run();
     } catch (AssertionError e) {
       // expected
     }

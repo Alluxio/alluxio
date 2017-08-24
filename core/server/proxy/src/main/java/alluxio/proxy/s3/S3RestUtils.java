@@ -85,9 +85,25 @@ public final class S3RestUtils {
    * @return the response
    */
   private static Response createResponse(Object object) {
-    if (object == null || object instanceof Void) {
+    if (object == null) {
       return Response.ok().build();
     }
+
+    if (object instanceof Response.Status) {
+      Response.Status s = (Response.Status) object;
+      switch (s) {
+        case OK:
+          return Response.ok().build();
+        case ACCEPTED:
+          return Response.accepted().build();
+        case NO_CONTENT:
+          return Response.noContent().build();
+        default:
+          return createErrorResponse(
+              new S3Exception("Response status is invalid", S3ErrorCode.INTERNAL_ERROR));
+      }
+    }
+
     // Need to explicitly encode the string as XML because Jackson will not do it automatically.
     XmlMapper mapper = new XmlMapper();
     try {
