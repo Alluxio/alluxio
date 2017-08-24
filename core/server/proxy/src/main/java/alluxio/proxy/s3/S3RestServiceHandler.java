@@ -86,11 +86,7 @@ public final class S3RestServiceHandler {
     return S3RestUtils.call(bucket, new S3RestUtils.RestCallable<Response.Status>() {
       @Override
       public Response.Status call() throws S3Exception {
-        String bucketPath =  AlluxioURI.SEPARATOR + bucket;
-        if (bucketPath.contains(BUCKET_SEPARATOR)) {
-          bucketPath = bucketPath.replace(BUCKET_SEPARATOR, AlluxioURI.SEPARATOR);
-          checkNestedBucketIsUnderMountPoint(bucketPath);
-        }
+        String bucketPath = maybeUpdateAndCheckBucketPath(AlluxioURI.SEPARATOR + bucket);
 
         // Create the bucket.
         CreateDirectoryOptions options = CreateDirectoryOptions.defaults();
@@ -118,11 +114,7 @@ public final class S3RestServiceHandler {
     return S3RestUtils.call(bucket, new S3RestUtils.RestCallable<Response.Status>() {
       @Override
       public Response.Status call() throws S3Exception {
-        String bucketPath =  AlluxioURI.SEPARATOR + bucket;
-        if (bucketPath.contains(BUCKET_SEPARATOR)) {
-          bucketPath = bucketPath.replace(BUCKET_SEPARATOR, AlluxioURI.SEPARATOR);
-          checkNestedBucketIsUnderMountPoint(bucketPath);
-        }
+        String bucketPath = maybeUpdateAndCheckBucketPath(AlluxioURI.SEPARATOR + bucket);
 
         checkBucketIsAlluxioDirectory(bucketPath);
 
@@ -154,16 +146,10 @@ public final class S3RestServiceHandler {
     return S3RestUtils.call(bucket, new S3RestUtils.RestCallable<Response.Status>() {
       @Override
       public Response.Status call() throws S3Exception {
-        String bucketPath =  AlluxioURI.SEPARATOR + bucket;
-        if (bucketPath.contains(BUCKET_SEPARATOR)) {
-          bucketPath = bucketPath.replace(BUCKET_SEPARATOR, AlluxioURI.SEPARATOR);
-          checkNestedBucketIsUnderMountPoint(bucketPath);
-        }
-
-        String objectPath = bucketPath + AlluxioURI.SEPARATOR + object;
-        checkObjectInAlluxio(objectPath);
+        String bucketPath = maybeUpdateAndCheckBucketPath(AlluxioURI.SEPARATOR + bucket);
 
         // Delete the object.
+        String objectPath = bucketPath + AlluxioURI.SEPARATOR + object;
         DeleteOptions options = DeleteOptions.defaults();
         options.setAlluxioOnly(Configuration.get(PropertyKey.PROXY_S3_DELETE_TYPE)
             .equals(Constants.DELETE_IN_ALLUXIO_ONLY));
@@ -210,6 +196,15 @@ public final class S3RestServiceHandler {
     }
   }
 
+  private String maybeUpdateAndCheckBucketPath(String bucketPath) throws S3Exception {
+    if (!bucketPath.contains(BUCKET_SEPARATOR)) {
+      return bucketPath;
+    }
+    String normalizedPath = bucketPath.replace(BUCKET_SEPARATOR, AlluxioURI.SEPARATOR);
+    checkNestedBucketIsUnderMountPoint(normalizedPath);
+    return normalizedPath;
+  }
+
   private void checkNestedBucketIsUnderMountPoint(String bucketPath) throws S3Exception {
     // Assure that the bucket is directly under a mount point.
     AlluxioURI parent = new AlluxioURI(bucketPath).getParent();
@@ -230,25 +225,6 @@ public final class S3RestServiceHandler {
       }
     } catch (Exception e) {
       throw toBucketS3Exception(e, bucketPath);
-    }
-  }
-
-  /**
-   * Checks the given object is either a file or an empty directory in Alluxio.
-   *
-   * @param objectPath the object path in Alluxio
-   * @throws S3Exception if the object is not a valid in Alluxio
-   */
-  private void checkObjectInAlluxio(String objectPath) throws S3Exception {
-    try {
-      AlluxioURI uri = new AlluxioURI(objectPath);
-      URIStatus status = mFileSystem.getStatus(uri);
-      if (status.isFolder() && !mFileSystem.listStatus(uri).isEmpty()) {
-        throw new InvalidPathException(
-            "Object name is invalid: not a file nor an empty directory in Alluxio.");
-      }
-    } catch (Exception e) {
-      throw toObjectS3Exception(e, objectPath);
     }
   }
 }
