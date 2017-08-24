@@ -13,11 +13,11 @@ quick start guide, we will install Alluxio on your local machine, mount example 
 perform basic tasks with the data in Alluxio. During this guide, you will:
 
 * Download and configure Alluxio
+* Validating Alluxio environment
 * Start Alluxio locally
 * Perform basic tasks via Alluxio Shell
 * **[Bonus]** Mount a public Amazon S3 bucket in Alluxio
 * Shutdown Alluxio
-* Diagnose Alluxio startup issue
 
 **[Bonus]** If you have an
 [AWS account with an access key id and secret access key](http://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSGettingStartedGuide/AWSCredentials.html),
