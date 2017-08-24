@@ -11,6 +11,8 @@
 
 package alluxio.logserver;
 
+import alluxio.Configuration;
+import alluxio.PropertyKey;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 
@@ -58,8 +60,8 @@ public class AlluxioLogServerProcess implements LogServerProcess {
   private Thread mWorkersLogThread;
   private LogReceiver mMastersLogReceiver;
   private LogReceiver mWorkersLogReceiver;
-  private int mMinNumberOfThreads;
-  private int mMaxNumberOfThreads;
+  private final int mMinNumberOfThreads;
+  private final int mMaxNumberOfThreads;
   private ExecutorService mThreadPool;
   private volatile boolean mStopped;
 
@@ -75,10 +77,10 @@ public class AlluxioLogServerProcess implements LogServerProcess {
    */
   public AlluxioLogServerProcess(String baseLogsDir) {
     // TODO(yanqin) make it configurable.
-    mRemoteMastersLoggingPort = 47120;
-    mRemoteWorkersLoggingPort = 47121;
-    mMinNumberOfThreads = 8;
-    mMaxNumberOfThreads = 100;
+    mRemoteMastersLoggingPort = Configuration.getInt(PropertyKey.LOG_SERVER_MASTERS_LOGGING_PORT);
+    mRemoteWorkersLoggingPort = Configuration.getInt(PropertyKey.LOG_SERVER_WORKERS_LOGGING_PORT);
+    mMinNumberOfThreads = Configuration.getInt(PropertyKey.MASTER_WORKER_THREADS_MIN) + 2;
+    mMaxNumberOfThreads = Configuration.getInt(PropertyKey.MASTER_WORKER_THREADS_MAX) + 2;
     mBaseLogsDir = baseLogsDir;
     mStopped = true;
   }

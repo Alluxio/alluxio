@@ -2101,8 +2101,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     // Log server related properties
     //
     public static final String LOG_SERVER_BASE_LOGS_DIR = "alluxio.logserver.baselogsdir";
-    public static final String LOG_SERVER_MASTERS_LOGGING_PORT = "alluxio.logserver.masters.logging.port";
-    public static final String LOG_SERVER_WORKERS_LOGGING_PORT = "alluxio.logserver.workers.logging.port";
+    public static final String LOG_SERVER_MASTERS_LOGGING_PORT =
+        "alluxio.logserver.masters.logging.port";
+    public static final String LOG_SERVER_WORKERS_LOGGING_PORT =
+        "alluxio.logserver.workers.logging.port";
 
     //
     // User related properties
