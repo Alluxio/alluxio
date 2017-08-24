@@ -31,6 +31,9 @@ Projects must depend on `org.alluxio:alluxio-core-common` and implement the inte
 
 The implemented service must be advertised by including a text file `src/main/resources/META_INF/services/alluxio.underfs.UnderFileSystemFactory` containing the class name (including package information) of the defining factory implementation.
 
+### Integration Tests
+To validate the under storage implementation the class `alluxio.underfs.AbstractUnderFileSystemContractTest` should be extended. This test suite checks that the contract between core Alluxio and an under storage connector is satisfied.
+
 ### Building the Extension JAR
 The built JAR must include all dependencies of the extension project. In addition to avoid collisions the dependency `alluxio-core-common` must be specified with `provided` scope. For example, the maven definition would look like:
 ```
@@ -73,3 +76,17 @@ mvn dependency:get -DremoteRepositories=http://repo1.maven.org/maven2/ -DgroupId
 
 ## Validation
 
+Once the extension JAR has been distributed, you should be able to mount your under storage using the Alluxio CLI as follows:
+```
+./bin/alluxio fs mount /my-storage <my-scheme>://<path>/ -D<my-access-key>=<value>
+```
+
+To run sanity tests:
+```
+./bin/alluxio runTests --directory /my-storage
+```
+
+More rigorous integration tests should also be run from the under storage extension project repository:
+```
+mvn test -DtestPath=<my-scheme>://<path> -D<my-access-key>=<value>
+```
