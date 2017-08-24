@@ -392,7 +392,7 @@ public class PropertyKey {
   public static final PropertyKey WORKER_TIERED_STORE_LEVEL0_RESERVED_RATIO =
       create(Template.WORKER_TIERED_STORE_LEVEL_RESERVED_RATIO, null, 0);
   public static final PropertyKey WORKER_TIERED_STORE_LEVEL0_HIGH_WATERMARK_RATIO =
-      create(Template.WORKER_TIERED_STORE_LEVEL_HIGH_WATERMARK_RATIO, 1.0, 0);
+      create(Template.WORKER_TIERED_STORE_LEVEL_HIGH_WATERMARK_RATIO, 0.95, 0);
   public static final PropertyKey WORKER_TIERED_STORE_LEVEL0_LOW_WATERMARK_RATIO =
       create(Template.WORKER_TIERED_STORE_LEVEL_LOW_WATERMARK_RATIO, 0.7, 0);
   public static final PropertyKey WORKER_TIERED_STORE_LEVEL1_ALIAS =
@@ -410,7 +410,7 @@ public class PropertyKey {
   public static final PropertyKey WORKER_TIERED_STORE_LEVEL1_RESERVED_RATIO =
       create(Template.WORKER_TIERED_STORE_LEVEL_RESERVED_RATIO, null, 1);
   public static final PropertyKey WORKER_TIERED_STORE_LEVEL1_HIGH_WATERMARK_RATIO =
-      create(Template.WORKER_TIERED_STORE_LEVEL_HIGH_WATERMARK_RATIO, 1.0, 1);
+      create(Template.WORKER_TIERED_STORE_LEVEL_HIGH_WATERMARK_RATIO, 0.95, 1);
   public static final PropertyKey WORKER_TIERED_STORE_LEVEL1_LOW_WATERMARK_RATIO =
       create(Template.WORKER_TIERED_STORE_LEVEL_LOW_WATERMARK_RATIO, 0.7, 1);
   public static final PropertyKey WORKER_TIERED_STORE_LEVEL2_ALIAS =
@@ -428,7 +428,7 @@ public class PropertyKey {
   public static final PropertyKey WORKER_TIERED_STORE_LEVEL2_RESERVED_RATIO =
       create(Template.WORKER_TIERED_STORE_LEVEL_RESERVED_RATIO, null, 2);
   public static final PropertyKey WORKER_TIERED_STORE_LEVEL2_HIGH_WATERMARK_RATIO =
-      create(Template.WORKER_TIERED_STORE_LEVEL_HIGH_WATERMARK_RATIO, 1.0, 2);
+      create(Template.WORKER_TIERED_STORE_LEVEL_HIGH_WATERMARK_RATIO, 0.95, 2);
   public static final PropertyKey WORKER_TIERED_STORE_LEVEL2_LOW_WATERMARK_RATIO =
       create(Template.WORKER_TIERED_STORE_LEVEL_LOW_WATERMARK_RATIO, 0.7, 2);
   public static final PropertyKey WORKER_TIERED_STORE_LEVELS =
