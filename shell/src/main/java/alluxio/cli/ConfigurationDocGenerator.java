@@ -153,10 +153,10 @@ public final class ConfigurationDocGenerator {
 
       for (PropertyKey iteratorPK : dfkeys) {
         String pKey = iteratorPK.toString();
-        String description = iteratorPK.getDescription();
+        String description = iteratorPK.getDescription().replace("'", "''");
 
         // Write property key and default value to yml files
-        String keyValueStr = pKey + ":\n  " + description + "\n";
+        String keyValueStr = pKey + ":\n  '" + description + "'\n";
         if (pKey.startsWith("alluxio.user.")) {
           fileWriter = fileWriterMap.get("user");
         } else if (pKey.startsWith("alluxio.master.")) {
