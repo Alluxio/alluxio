@@ -108,7 +108,6 @@ import alluxio.underfs.options.FileLocationOptions;
 import alluxio.util.CommonUtils;
 import alluxio.util.IdUtils;
 import alluxio.util.SecurityUtils;
-import alluxio.util.UnderFileSystemUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.util.executor.ExecutorServiceFactory;
 import alluxio.util.io.PathUtils;
@@ -465,7 +464,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         long rootUfsMountId = IdUtils.ROOT_MOUNT_ID;
         mMountTable.add(new AlluxioURI(MountTable.ROOT), new AlluxioURI(rootUfsUri), rootUfsMountId,
             MountOptions.defaults()
-                .setShared(UnderFileSystemUtils.isObjectStorage(rootUfsUri) && Configuration
+                .setShared(mUfsManager.getRoot().getUfs().isObjectStorage() && Configuration
                     .getBoolean(PropertyKey.UNDERFS_OBJECT_STORE_MOUNT_SHARED_PUBLICLY))
                 .setProperties(rootUfsConf));
       } catch (FileAlreadyExistsException | InvalidPathException e) {
@@ -2918,11 +2917,11 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       } else {
         MountTable.Resolution resolution = mMountTable.resolve(inodePath.getUri());
         String ufsUri = resolution.getUri().toString();
-        if (UnderFileSystemUtils.isObjectStorage(ufsUri)) {
+        UnderFileSystem ufs = resolution.getUfs();
+        if (ufs.isObjectStorage()) {
           LOG.warn("setOwner/setMode is not supported to object storage UFS via Alluxio. " + "UFS: "
               + ufsUri + ". This has no effect on the underlying object.");
         } else {
-          UnderFileSystem ufs = resolution.getUfs();
           if (ownerGroupChanged) {
             try {
               String owner = options.getOwner() != null ? options.getOwner() : inode.getOwner();
