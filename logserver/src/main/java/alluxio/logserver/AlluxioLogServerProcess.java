@@ -32,11 +32,15 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.concurrent.Executors;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.RejectedExecutionException;
+import java.util.concurrent.SynchronousQueue;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Random;
 
 /**
  * A centralized log server for Alluxio
@@ -54,9 +58,15 @@ public class AlluxioLogServerProcess implements LogServerProcess {
   private Thread mWorkersLogThread;
   private LogReceiver mMastersLogReceiver;
   private LogReceiver mWorkersLogReceiver;
+  private int mMinNumberOfThreads;
   private int mMaxNumberOfThreads;
   private ExecutorService mThreadPool;
   private volatile boolean mStopped;
+
+  private long mStopTimeoutInMillis = 60000;
+  private long mRequestTimeoutInMillis = 20000;
+  private int mBackoffSlotInMillis = 100;
+  private Random mRandom = new Random(System.currentTimeMillis());
 
   /**
    * Construct an {@link AlluxioLogServerProcess} instance.
@@ -67,6 +77,7 @@ public class AlluxioLogServerProcess implements LogServerProcess {
     // TODO(yanqin) make it configurable.
     mRemoteMastersLoggingPort = 47120;
     mRemoteWorkersLoggingPort = 47121;
+    mMinNumberOfThreads = 8;
     mMaxNumberOfThreads = 100;
     mBaseLogsDir = baseLogsDir;
     mStopped = true;
@@ -74,7 +85,11 @@ public class AlluxioLogServerProcess implements LogServerProcess {
 
   @Override
   public void start() throws Exception {
-    mThreadPool = Executors.newFixedThreadPool(mMaxNumberOfThreads);
+    SynchronousQueue<Runnable> synchronousQueue =
+        new SynchronousQueue<>();
+    mThreadPool =
+        new ThreadPoolExecutor(mMinNumberOfThreads, mMaxNumberOfThreads,
+            60, TimeUnit.SECONDS, synchronousQueue);
     startLogServerThreads();
   }
 
@@ -208,6 +223,7 @@ public class AlluxioLogServerProcess implements LogServerProcess {
         LOG.error("Failed to bind to port {}.", mPort);
         return;
       }
+      int failureCount = 0;
       while (!mStopped) {
         try {
           Socket client = mServerSocket.accept();
@@ -223,16 +239,67 @@ public class AlluxioLogServerProcess implements LogServerProcess {
               continue;
             }
           }
-          try {
-            new Thread(new AlluxioLog4jSocketNode(client, loggerRepository)).start();
-            LOG.info("Client: {} connected.", inetAddress.toString());
-          } catch (IOException e) {
-            // Could not create a thread to serve a client, ignore this client.
-            LOG.warn("Failed to connect with client: {}.", inetAddress.toString());
-            continue;
+          AlluxioLog4jSocketNode clientSocketNode =
+              new AlluxioLog4jSocketNode(client, loggerRepository);
+          int retryCount = 0;
+          long remainTimeInMillis = mRequestTimeoutInMillis;
+          while (true) {
+            try {
+              mThreadPool.execute(clientSocketNode);
+              break;
+            } catch (Throwable t) {
+              if (t instanceof RejectedExecutionException) {
+                retryCount++;
+                try {
+                  if (remainTimeInMillis > 0) {
+                    long sleepTimeInMillis = ((long) (mRandom.nextDouble()
+                        * (1L << Math.min(retryCount, 20)))) * mBackoffSlotInMillis;
+                    sleepTimeInMillis = Math.min(sleepTimeInMillis, remainTimeInMillis);
+                    TimeUnit.MILLISECONDS.sleep(sleepTimeInMillis);
+                    remainTimeInMillis -= sleepTimeInMillis;
+                  } else {
+                    client.close();
+                    LOG.warn("Connection has been rejected by ExecutorService "
+                        + retryCount + " times till timedout, reason: " + t);
+                    break;
+                  }
+                } catch (InterruptedException e) {
+                  LOG.warn("Interrupted while waiting to place client on executor queue.");
+                  Thread.currentThread().interrupt();
+                  break;
+                }
+              } else if (t instanceof  Error) {
+                LOG.error("ExecutorService threw error: " + t, t);
+                throw (Error) t;
+              } else {
+                LOG.warn("ExecutorService threw error: " + t, t);
+                break;
+              }
+              // Could not create a thread to serve a client, ignore this client.
+              LOG.warn("Failed to connect with client: {}.", inetAddress.toString());
+              continue;
+            }
           }
         } catch (IOException e) {
+          if (!mStopped) {
+            ++failureCount;
+            LOG.warn("Socket transport error occurred during accepting message.", e);
+          }
           break;
+        }
+      }
+
+      mThreadPool.shutdown();
+      long timeoutMS = mStopTimeoutInMillis;
+      long now = System.currentTimeMillis();
+      while (timeoutMS >= 0) {
+        try {
+          mThreadPool.awaitTermination(timeoutMS, TimeUnit.MILLISECONDS);
+          break;
+        } catch (InterruptedException e) {
+          long newnow = System.currentTimeMillis();
+          timeoutMS -= (newnow - now);
+          now = newnow;
         }
       }
     }
