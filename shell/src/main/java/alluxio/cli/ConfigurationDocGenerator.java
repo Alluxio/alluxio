@@ -153,6 +153,9 @@ public final class ConfigurationDocGenerator {
 
       for (PropertyKey iteratorPK : dfkeys) {
         String pKey = iteratorPK.toString();
+
+        // Puts descriptions in single quotes to avoid having to escaping reserved characters.
+        // Still needs to escape single quotes with double single quotes.
         String description = iteratorPK.getDescription().replace("'", "''");
 
         // Write property key and default value to yml files
