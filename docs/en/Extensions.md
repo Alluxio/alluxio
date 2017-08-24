@@ -20,11 +20,30 @@ Implementors are required to include dependencies of the extension in the built 
 
 ## Creating an Under Storage Extension
 
+Building a new under storage connector involves:
+- Implementing the required under storage interface and declaring the service implementation
+- Bundling up the implementation and depencies in an uber JAR
+
+A reference implementation can be found in the [alluxio-extensions](https://github.com/Alluxio/alluxio-extensions/tree/master/underfs/s3n) repository.
+
 ### Implementing the Under Storage Interface
+Projects must depend on `org.alluxio:alluxio-core-common` and implement the interface `alluxio.underfs.UnderFileSystemFactory`. The factory is the entry point for instantiating an under storage connector. The interface `alluxio.underfs.UnderFileSystem` determines the contract between core Alluxio and any under storage providers. Implementors can choose to extend `alluxio.underfs.BaseUnderFileSystem` or `alluxio.underfs.ObjectUnderFileSystem` based on the type of storage.
+
+The implemented service must be advertised by including a text file `src/main/resources/META_INF/services/alluxio.underfs.UnderFileSystemFactory` containing the class name (including package information) of the defining factory implementation.
 
 ### Building the Extension JAR
-
-### Testing the Extension
+The built JAR must include all dependencies of the extension project. In addition to avoid collisions the dependency `alluxio-core-common` must be specified with `provided` scope. For example, the maven definition would look like:
+```
+<dependencies>
+    <!-- Core Alluxio dependencies -->
+    <dependency>
+      <groupId>org.alluxio</groupId>
+      <artifactId>alluxio-core-common</artifactId>
+      <scope>provided</scope>
+    </dependency>
+    ...
+</dependencies>
+```
 
 ## Installing the Extension
 Extension JARs are picked up from the extensions directory configured using the property `alluxio.extensions.dir`. A command line utlity can be used to distribute an exension JAR to hosts running Alluxio processes. In environments where the CLI is not applicable, simply placing the JAR in the extensions directory will suffice. For example, when running in containers, a custom image can be built with extension binaries in the desired location.
@@ -32,3 +51,6 @@ Extension JARs are picked up from the extensions directory configured using the 
 ### Command Line Utility
 
 ### Installing from a Maven Coordinate
+
+## Validation
+
