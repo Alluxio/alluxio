@@ -27,6 +27,7 @@ import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 import alluxio.web.ProxyWebServer;
 
+import com.google.common.base.Preconditions;
 import com.qmino.miredot.annotations.ReturnType;
 
 import java.io.IOException;
@@ -44,6 +45,7 @@ import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -94,6 +96,7 @@ public final class S3RestServiceHandler {
     return S3RestUtils.call(bucket, new S3RestUtils.RestCallable<Response.Status>() {
       @Override
       public Response.Status call() throws S3Exception {
+        Preconditions.checkNotNull(bucket, "required 'bucket' parameter is missing");
         String bucketPath = parseBucketPath(AlluxioURI.SEPARATOR + bucket);
 
         // Create the bucket.
@@ -122,6 +125,7 @@ public final class S3RestServiceHandler {
     return S3RestUtils.call(bucket, new S3RestUtils.RestCallable<Response.Status>() {
       @Override
       public Response.Status call() throws S3Exception {
+        Preconditions.checkNotNull(bucket, "required 'bucket' parameter is missing");
         String bucketPath = parseBucketPath(AlluxioURI.SEPARATOR + bucket);
 
         checkBucketIsAlluxioDirectory(bucketPath);
@@ -143,17 +147,23 @@ public final class S3RestServiceHandler {
   /**
    * @summary gets a bucket and lists all the objects in it
    * @param bucket the bucket name
+   * @param continuationToken the optional continuation token param
+   * @param maxKeys the optional max keys param
+   * @param prefix the optional prefix param
    * @return the response object
    */
   @GET
   @Path(BUCKET_PARAM)
   @ReturnType("ListBucketResult")
-  // TODO(chaomin): consider supporting request params like max-keys, prefix, delimiter and
-  // continuation-token.
-  public Response getBucket(@PathParam("bucket") final String bucket) {
+  // TODO(chaomin): consider supporting more request params like prefix and delimiter.
+  public Response getBucket(@PathParam("bucket") final String bucket,
+      @QueryParam("continuation-token") final String continuationToken,
+      @QueryParam("max-keys") final String maxKeys,
+      @QueryParam("prefix") final String prefix) {
     return S3RestUtils.call(bucket, new S3RestUtils.RestCallable<ListBucketResult>() {
       @Override
       public ListBucketResult call() throws S3Exception {
+        Preconditions.checkNotNull(bucket, "required 'bucket' parameter is missing");
         String bucketPath = AlluxioURI.SEPARATOR + bucket;
         if (bucketPath.contains(BUCKET_SEPARATOR)) {
           bucketPath = bucketPath.replace(BUCKET_SEPARATOR, AlluxioURI.SEPARATOR);
@@ -163,13 +173,17 @@ public final class S3RestServiceHandler {
         checkBucketIsAlluxioDirectory(bucketPath);
 
         List<URIStatus> objects;
+        ListBucketOptions listBucketOptions = ListBucketOptions.defaults()
+            .setContinuationToken(continuationToken)
+            .setMaxKeys(maxKeys)
+            .setPrefix(prefix);
         try {
-          objects = listObjects(new AlluxioURI(bucketPath));
+          objects = listObjects(new AlluxioURI(bucketPath), listBucketOptions);
+          ListBucketResult response = new ListBucketResult(bucketPath, objects, listBucketOptions);
+          return response;
         } catch (Exception e) {
           throw toBucketS3Exception(e, bucketPath);
         }
-        ListBucketResult response = new ListBucketResult(bucketPath, objects);
-        return response;
       }
     });
   }
@@ -184,10 +198,12 @@ public final class S3RestServiceHandler {
   @Path(OBJECT_PARAM)
   @ReturnType("Response.Status")
   public Response deleteObject(@PathParam("bucket") final String bucket,
-                               @PathParam("object") final String object) {
+      @PathParam("object") final String object) {
     return S3RestUtils.call(bucket, new S3RestUtils.RestCallable<Response.Status>() {
       @Override
       public Response.Status call() throws S3Exception {
+        Preconditions.checkNotNull(bucket, "required 'bucket' parameter is missing");
+        Preconditions.checkNotNull(object, "required 'object' parameter is missing");
         String bucketPath = parseBucketPath(AlluxioURI.SEPARATOR + bucket);
 
         // Delete the object.
@@ -270,10 +286,20 @@ public final class S3RestServiceHandler {
     }
   }
 
-  private List<URIStatus> listObjects(AlluxioURI uri) throws IOException, AlluxioException {
+  private List<URIStatus> listObjects(AlluxioURI uri, ListBucketOptions listBucketOptions)
+      throws IOException, AlluxioException {
     List<URIStatus> objects = new ArrayList<>();
     Queue<URIStatus> traverseQueue = new ArrayDeque<>();
-    List<URIStatus> children = mFileSystem.listStatus(uri);
+
+    List<URIStatus> children;
+    String prefix = listBucketOptions.getPrefix();
+    if (prefix != null && prefix.contains(AlluxioURI.SEPARATOR)) {
+      AlluxioURI prefixDirUri = new AlluxioURI(
+          uri.getPath() + prefix.substring(0, prefix.lastIndexOf(AlluxioURI.SEPARATOR)));
+      children = mFileSystem.listStatus(prefixDirUri);
+    } else {
+      children = mFileSystem.listStatus(uri);
+    }
     traverseQueue.addAll(children);
     while (!traverseQueue.isEmpty()) {
       URIStatus cur = traverseQueue.remove();

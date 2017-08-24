@@ -245,11 +245,83 @@ public final class S3ClientRestApiTest extends RestApiTest {
         new URIStatus(mFileSystemMaster.getFileInfo(file3, GetStatusOptions.defaults())));
     objectsList.add(
         new URIStatus(mFileSystemMaster.getFileInfo(dir2, GetStatusOptions.defaults())));
-    ListBucketResult expected =
-        new ListBucketResult(AlluxioURI.SEPARATOR + bucket, objectsList);
+    ListBucketResult expected = new ListBucketResult(
+        AlluxioURI.SEPARATOR + bucket, objectsList, ListBucketOptions.defaults());
 
     // Verify
     new TestCase(mHostname, mPort, S3_SERVICE_PREFIX + AlluxioURI.SEPARATOR + bucket, NO_PARAMS,
+        HttpMethod.GET, expected,
+        TestCaseOptions.defaults().setContentType(TestCaseOptions.XML_CONTENT_TYPE)).run();
+  }
+
+  @Test
+  public void getBucketWithMaxKeys() throws Exception {
+    final String bucket = "bucket-to-get-with-max-keys";
+    AlluxioURI uri = new AlluxioURI(AlluxioURI.SEPARATOR + bucket + AlluxioURI.SEPARATOR);
+    new TestCase(mHostname, mPort, S3_SERVICE_PREFIX + AlluxioURI.SEPARATOR + bucket, NO_PARAMS,
+        HttpMethod.PUT, null, TestCaseOptions.defaults()).run();
+    // Verify the directory is created for the new bucket.
+    Assert.assertTrue(mFileSystemMaster.listStatus(uri, ListStatusOptions.defaults()).isEmpty());
+
+    // Prepare a bucket with two objects:
+    // - /file1
+    // - /file2
+    AlluxioURI file1 = new AlluxioURI(uri.getPath() + "/file1");
+    mFileSystemMaster.createFile(file1, CreateFileOptions.defaults());
+    AlluxioURI file2 = new AlluxioURI(uri.getPath() + "/file2");
+    mFileSystemMaster.createFile(file2, CreateFileOptions.defaults());
+
+    // Expected result, with max-keys = 1.
+    List<URIStatus> objectsList = new ArrayList<>();
+    objectsList.add(
+        new URIStatus(mFileSystemMaster.getFileInfo(file1, GetStatusOptions.defaults())));
+    objectsList.add(
+        new URIStatus(mFileSystemMaster.getFileInfo(file2, GetStatusOptions.defaults())));
+    ListBucketResult expected = new ListBucketResult(
+        AlluxioURI.SEPARATOR + bucket, objectsList, ListBucketOptions.defaults().setMaxKeys("1"));
+
+    // Verify
+    HashMap<String, String> maxKeysParam = new HashMap<>();
+    maxKeysParam.put("max-keys", "1");
+    new TestCase(mHostname, mPort, S3_SERVICE_PREFIX + AlluxioURI.SEPARATOR + bucket, maxKeysParam,
+        HttpMethod.GET, expected,
+        TestCaseOptions.defaults().setContentType(TestCaseOptions.XML_CONTENT_TYPE)).run();
+  }
+
+  @Test
+  public void getBucketWithMaxKeysAndContinuationToken() throws Exception {
+    final String bucket = "bucket-to-get-with-max-keys-and-token";
+    AlluxioURI uri = new AlluxioURI(AlluxioURI.SEPARATOR + bucket + AlluxioURI.SEPARATOR);
+    new TestCase(mHostname, mPort, S3_SERVICE_PREFIX + AlluxioURI.SEPARATOR + bucket, NO_PARAMS,
+        HttpMethod.PUT, null, TestCaseOptions.defaults()).run();
+    // Verify the directory is created for the new bucket.
+    Assert.assertTrue(mFileSystemMaster.listStatus(uri, ListStatusOptions.defaults()).isEmpty());
+
+    // Prepare a bucket with two objects:
+    // - /file1
+    // - /file2
+    AlluxioURI file1 = new AlluxioURI(uri.getPath() + "/file1");
+    mFileSystemMaster.createFile(file1, CreateFileOptions.defaults());
+    AlluxioURI file2 = new AlluxioURI(uri.getPath() + "/file2");
+    mFileSystemMaster.createFile(file2, CreateFileOptions.defaults());
+
+    // Expected result, with max-keys = 1.
+    List<URIStatus> objectsList = new ArrayList<>();
+    objectsList.add(
+        new URIStatus(mFileSystemMaster.getFileInfo(file1, GetStatusOptions.defaults())));
+    objectsList.add(
+        new URIStatus(mFileSystemMaster.getFileInfo(file2, GetStatusOptions.defaults())));
+    String maxKeys = "1";
+    String continuationToken = file1.getPath();
+    ListBucketResult expected = new ListBucketResult(
+        AlluxioURI.SEPARATOR + bucket, objectsList,
+        ListBucketOptions.defaults().setMaxKeys("1").setContinuationToken(continuationToken));
+
+    // Verify
+    HashMap<String, String> maxKeysParam = new HashMap<>();
+    maxKeysParam.put("max-keys", maxKeys);
+    maxKeysParam.put("continuation-token", continuationToken);
+    new TestCase(mHostname, mPort, S3_SERVICE_PREFIX + AlluxioURI.SEPARATOR + bucket, maxKeysParam,
         HttpMethod.GET, expected,
         TestCaseOptions.defaults().setContentType(TestCaseOptions.XML_CONTENT_TYPE)).run();
   }
@@ -264,8 +336,8 @@ public final class S3ClientRestApiTest extends RestApiTest {
     Assert.assertTrue(mFileSystemMaster.listStatus(uri, ListStatusOptions.defaults()).isEmpty());
 
     List<URIStatus> listStatusResult = new ArrayList<>();
-    ListBucketResult expected =
-        new ListBucketResult(AlluxioURI.SEPARATOR + bucket, listStatusResult);
+    ListBucketResult expected = new ListBucketResult(
+        AlluxioURI.SEPARATOR + bucket, listStatusResult, ListBucketOptions.defaults());
 
     new TestCase(mHostname, mPort, S3_SERVICE_PREFIX + AlluxioURI.SEPARATOR + bucket, NO_PARAMS,
         HttpMethod.GET, expected,

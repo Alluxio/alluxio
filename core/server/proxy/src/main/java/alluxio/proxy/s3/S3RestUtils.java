@@ -33,6 +33,7 @@ public final class S3RestUtils {
   public static final String S3_STANDARD_STORAGE_CLASS = "STANDARD";
   public static final String S3_EMPTY_ETAG = "";
   public static final String S3_DATE_FORMAT_REGEXP = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'";
+  public static final int S3_DEFAULT_MAX_KEYS = 1000;
 
   /**
    * Calls the given {@link S3RestUtils.RestCallable} and handles any exceptions thrown.
