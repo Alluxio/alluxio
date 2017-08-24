@@ -48,7 +48,7 @@ validateEnv:
   <code>master</code>  run master validation tasks on local<br>
   <code>worker</code>  run worker validation tasks on local<br>
   <code>all</code>     run corresponding validation tasks on all master nodes and worker nodes<br>
-  <code>masters</code> run master validation tasks on all master nodes<br<br>
+  <code>masters</code> run master validation tasks on all master nodes<br>
   <code>workers</code> run worker validation tasks on all worker nodes<br>
   <code>NAME</code> can be any task full name or prefix.<br>
   When <code>NAME</code> is given, only tasks with name starts with the prefix will run.
