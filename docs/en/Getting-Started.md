@@ -110,7 +110,7 @@ can run the following command instead:
 $ ./bin/alluxio validateEnv all
 ```
 
-You can also run the command run specific validation task. For example,
+You can also make the command run only specific validation task. For example,
 
 ```bash
 $ ./bin/alluxio validateEnv local ulimit
