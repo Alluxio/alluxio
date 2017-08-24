@@ -53,9 +53,9 @@ import java.util.Random;
  */
 public class AlluxioLogServerProcess implements LogServerProcess {
   private static final Logger LOG = LoggerFactory.getLogger(AlluxioLogServer.class);
-  private static final long mStopTimeoutInMillis = 60000;
-  private static final long mRequestTimeoutInMillis = 20000;
-  private static final int mBackoffSlotInMillis = 100;
+  private static final long STOP_TIMEOUT_IN_MS = 60000;
+  private static final long REQUEST_TIMEOUT_IN_MS = 20000;
+  private static final int BACKOFF_SLOT_IN_MS = 100;
 
   private final int mRemoteMastersLoggingPort;
   private final int mRemoteWorkersLoggingPort;
@@ -92,7 +92,7 @@ public class AlluxioLogServerProcess implements LogServerProcess {
         new SynchronousQueue<>();
     mThreadPool =
         new ThreadPoolExecutor(mMinNumberOfThreads, mMaxNumberOfThreads,
-            mStopTimeoutInMillis, TimeUnit.MILLISECONDS, synchronousQueue);
+            STOP_TIMEOUT_IN_MS, TimeUnit.MILLISECONDS, synchronousQueue);
     startLogServerThreads();
   }
 
@@ -143,7 +143,7 @@ public class AlluxioLogServerProcess implements LogServerProcess {
     }
 
     mThreadPool.shutdown();
-    long timeoutMS = mStopTimeoutInMillis;
+    long timeoutMS = STOP_TIMEOUT_IN_MS;
     long now = System.currentTimeMillis();
     while (timeoutMS >= 0) {
       try {
@@ -261,7 +261,7 @@ public class AlluxioLogServerProcess implements LogServerProcess {
           AlluxioLog4jSocketNode clientSocketNode =
               new AlluxioLog4jSocketNode(client, loggerRepository);
           int retryCount = 0;
-          long remainTimeInMillis = mRequestTimeoutInMillis;
+          long remainTimeInMillis = REQUEST_TIMEOUT_IN_MS;
           while (true) {
             try {
               mThreadPool.execute(clientSocketNode);
@@ -272,7 +272,7 @@ public class AlluxioLogServerProcess implements LogServerProcess {
                 try {
                   if (remainTimeInMillis > 0) {
                     long sleepTimeInMillis = ((long) (mRandom.nextDouble()
-                        * (1L << Math.min(retryCount, 20)))) * mBackoffSlotInMillis;
+                        * (1L << Math.min(retryCount, 20)))) * BACKOFF_SLOT_IN_MS;
                     sleepTimeInMillis = Math.min(sleepTimeInMillis, remainTimeInMillis);
                     TimeUnit.MILLISECONDS.sleep(sleepTimeInMillis);
                     remainTimeInMillis -= sleepTimeInMillis;
