@@ -3416,18 +3416,17 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     public String toString() {
       if (mSrcInode != null) {
         short mode = mSrcInode.getMode();
-        return String.format("allowed=%b\tugi=%s (AUTH=%s)\tip=%s\tcmd=%s\tsrc=%s\tdst=%s\t"
-                + "perm=%s:%s:%s%s%s\tsuccess=%b",
-            mAllowed, mUgi, mAuthType, mIp, mCommand, mSrcPath, mDstPath, mSrcInode.getOwner(),
-            mSrcInode.getGroup(),
-            Mode.extractOwnerBits(mode).toString(),
-            Mode.extractGroupBits(mode).toString(),
-            Mode.extractOtherBits(mode).toString(),
-            mSucceeded);
+        return String.format(
+            "succeeded=%b\tallowed=%b\tugi=%s (AUTH=%s)\tip=%s\tcmd=%s\tsrc=%s\tdst=%s\t"
+                + "perm=%s:%s:%s%s%s",
+            mSucceeded, mAllowed, mUgi, mAuthType, mIp, mCommand, mSrcPath, mDstPath,
+            mSrcInode.getOwner(), mSrcInode.getGroup(),
+            Mode.extractOwnerBits(mode), Mode.extractGroupBits(mode), Mode.extractOtherBits(mode));
       } else {
-        return String.format("allowed=%b\tugi=%s (AUTH=%s)\tip=%s\tcmd=%s\tsrc=%s\tdst=%s\t"
-                + "perm=null\tsuccess=%b",
-            mAllowed, mUgi, mAuthType, mIp, mCommand, mSrcPath, mDstPath, mSucceeded);
+        return String.format(
+            "succeeded=%b\tallowed=%b\tugi=%s (AUTH=%s)\tip=%s\tcmd=%s\tsrc=%s\tdst=%s\t"
+                + "perm=null",
+            mSucceeded, mAllowed, mUgi, mAuthType, mIp, mCommand, mSrcPath, mDstPath);
       }
     }
   }
@@ -3444,7 +3443,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    *         the thread-local user is null. Normally this should not happen.
    */
   private MasterAuditContext createAuditContext(String command, AlluxioURI srcPath,
-      AlluxioURI dstPath, Inode srcInode) throws AccessControlException {
+      @Nullable  AlluxioURI dstPath, @Nullable  Inode srcInode) throws AccessControlException {
     MasterAuditContext auditContext = new MasterAuditContext(mAsyncAuditLogWriter);
     if (mAsyncAuditLogWriter != null) {
       String user = AuthenticatedClientUser.getClientUser();
