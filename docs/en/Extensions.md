@@ -49,8 +49,27 @@ The built JAR must include all dependencies of the extension project. In additio
 Extension JARs are picked up from the extensions directory configured using the property `alluxio.extensions.dir`. A command line utlity can be used to distribute an exension JAR to hosts running Alluxio processes. In environments where the CLI is not applicable, simply placing the JAR in the extensions directory will suffice. For example, when running in containers, a custom image can be built with extension binaries in the desired location.
 
 ### Command Line Utility
+A CLI utility is provided to aid manage extensions.
+```
+./bin/alluxio extensions
+Usage: alluxio extensions [generic options]
+	 [install <URI>]
+	 [ls]
+	 [uninstall <JAR>]
+```
+
+When installing an extension the provided JAR is copied to hosts listed in `conf/masters` and `conf/workers` using `rsync` and `ssh`. In environments where the tools is not applicable, other more suitable tools can be used to place the JAR at the location specified in the property `alluxio.extensions.dir`.
+
+To list the installed extensions on any given host running the Alluxio processes, use `./bin/alluxio ls`. The utility lists installed extensions using by scanning the local extensions directory.
+
+The `uninstall` command works similar to `install` using hosts specified in `conf/masters` and `conf/workers`.
 
 ### Installing from a Maven Coordinate
+To install an extension from maven, it can be downloaded and install as follows:
+```
+mvn dependency:get -DremoteRepositories=http://repo1.maven.org/maven2/ -DgroupId=<my-extension-group> -DartifactId=<my-extension-artifact> -Dversion=<version> -Dtransitive=false -Ddest=<my-extension>.jar
+./bin/alluxio extension install <my-extension.jar>
+```
 
 ## Validation
 
