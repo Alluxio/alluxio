@@ -50,7 +50,6 @@ import alluxio.master.file.meta.InodeFile;
 import alluxio.master.file.meta.InodeLockList;
 import alluxio.master.file.meta.InodePathPair;
 import alluxio.master.file.meta.InodeTree;
-import alluxio.master.file.meta.InodeTree.LockMode;
 import alluxio.master.file.meta.LockedInodePath;
 import alluxio.master.file.meta.MountTable;
 import alluxio.master.file.meta.PersistenceState;
@@ -2370,7 +2369,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       createFileAndJournal(inodePath, createFileOptions, journalContext);
       CompleteFileOptions completeOptions = CompleteFileOptions.defaults().setUfsLength(ufsLength);
       completeFileAndJournal(inodePath, completeOptions, journalContext);
-      if (inodePath.getLockMode() == LockMode.READ) {
+      if (inodePath.getLockMode() == InodeTree.LockMode.READ) {
         // After completing the inode, the lock on the last inode which stands for the created file
         // should be downgraded to a read lock, so that it won't block the reads operations from
         // other thread. More importantly, it's possible the subsequent read operations within the

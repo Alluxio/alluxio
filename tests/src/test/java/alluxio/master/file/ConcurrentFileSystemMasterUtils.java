@@ -101,6 +101,7 @@ public class ConcurrentFileSystemMasterUtils {
     // If there are exceptions, we will store them here.
     final List<Throwable> errors = Collections.synchronizedList(new ArrayList<Throwable>());
     Thread.UncaughtExceptionHandler exceptionHandler = new Thread.UncaughtExceptionHandler() {
+      @Override
       public void uncaughtException(Thread th, Throwable ex) {
         errors.add(ex);
       }
@@ -121,7 +122,10 @@ public class ConcurrentFileSystemMasterUtils {
                 fileSystem.delete(paths[iteration]);
                 break;
               case GET_FILE_INFO:
-                fileSystem.getStatus(paths[iteration]);
+                URIStatus status = fileSystem.getStatus(paths[iteration]);
+                if (!status.isFolder()) {
+                  Assert.assertNotEquals(0, status.getBlockIds().size());
+                }
                 break;
               case LIST_STATUS:
                 fileSystem.listStatus(paths[iteration]);
