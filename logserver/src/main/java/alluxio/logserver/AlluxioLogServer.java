@@ -23,7 +23,7 @@ public final class AlluxioLogServer {
    * @param args command line arguments that will be parsed to initialize {@link AlluxioLogServer}
    */
   public static void main(String[] args) {
-    AlluxioLogServerProcess process = new AlluxioLogServerProcess(args[0], args[1]);
+    AlluxioLogServerProcess process = new AlluxioLogServerProcess(args[0]);
     ProcessUtils.run(process);
   }
 

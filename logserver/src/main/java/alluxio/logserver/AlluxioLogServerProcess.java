@@ -45,79 +45,83 @@ import java.util.Properties;
  */
 public class AlluxioLogServerProcess implements LogServerProcess {
   private static final Logger LOG = LoggerFactory.getLogger(AlluxioLogServer.class);
-  private ServerSocket mServerSocket;
-  private int mPort;
-  private String mBaseLogDir;
-  private Map<InetAddress, Hierarchy> mInetAddressHashMap;
-  private boolean mStopped;
+  private final int mRemoteMastersLoggingPort;
+  private final int mRemoteWorkersLoggingPort;
+  private String mBaseLogsDir;
+  private Thread mMastersLogThread;
+  private Thread mWorkersLogThread;
+  private LogReceiver mMastersLogReceiver;
+  private LogReceiver mWorkersLogReceiver;
+  private volatile boolean mStopped;
 
   /**
    * Construct an {@link AlluxioLogServerProcess} instance.
    *
-   * @param portStr Java String representation of port number
-   * @param baseLogDir base directory to store the logs pushed from remote Alluxio servers
+   * @param baseLogsDir base directory to store the logs pushed from remote Alluxio servers
    */
-  public AlluxioLogServerProcess(String portStr, String baseLogDir) {
-    try {
-      mPort = Integer.parseInt(portStr);
-      mBaseLogDir = baseLogDir;
-      mServerSocket = new ServerSocket(mPort);
-      mInetAddressHashMap = new HashMap<>();
-      mStopped = false;
-    } catch (Exception e) {
-      throw new RuntimeException(e);
-    }
+  public AlluxioLogServerProcess(String baseLogsDir) {
+    mRemoteMastersLoggingPort = 47120;
+    mRemoteWorkersLoggingPort = 47121;
+    mBaseLogsDir = baseLogsDir;
+    mStopped = true;
   }
-  /**
-   * Starts the Alluxio process. This call blocks until the process is stopped via
-   * {@link #stop()}. The {@link #waitForReady()} method can be used to make sure that the
-   * process is ready to serve requests.
-   */
+
   @Override
   public void start() throws Exception {
-    LOG.info("Log server started.");
-    while (!mStopped) {
-      Socket client = mServerSocket.accept();
-      InetAddress inetAddress = client.getInetAddress();
-      // Currently loggerRepository is always null because we are not using the map.
-      LoggerRepository loggerRepository = mInetAddressHashMap.get(inetAddress);
-      if (loggerRepository == null) {
-        loggerRepository = configureHierarchy(inetAddress);
-      }
-      try {
-        new Thread(new AlluxioLog4jSocketNode(client, loggerRepository)).start();
-        LOG.info("Client: {} connected.", inetAddress.toString());
-      } catch (IOException e) {
-        // Could not create a thread to serve a client, ignore this client.
-        LOG.warn("Failed to connect with client: {}.", inetAddress.toString());
-        continue;
-      }
+    startLogServerThreads();
+    LOG.info("Log server started");
+    try {
+      mMastersLogThread.join();
+      mWorkersLogThread.join();
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
     }
   }
 
-  /**
-   * Stops the Alluxio process, blocking until the action is completed.
-   */
   @Override
   public void stop() throws Exception {
     mStopped = true;
     LOG.info("Log server stopped.");
   }
 
-  /**
-   * Waits until the process is ready to serve requests.
-   */
   @Override
   public void waitForReady() {
     CommonUtils.waitFor(this + " to start", new Function<Void, Boolean>() {
       @Override
       public Boolean apply(Void input) {
-        return mServerSocket != null;
+        return mStopped == false;
       }
     }, WaitForOptions.defaults().setTimeoutMs(10000));
   }
 
-  private LoggerRepository configureHierarchy(InetAddress inetAddress)
+  /**
+   * Create and start logging server threads.
+   */
+  private void startLogServerThreads() {
+    // TODO(yanqin) make it configurable.
+    mMastersLogReceiver = new LogReceiver(mRemoteMastersLoggingPort, "MASTER_LOGGER");
+    mWorkersLogReceiver = new LogReceiver(mRemoteWorkersLoggingPort, "WORKER_LOGGER");
+    mMastersLogThread = new Thread(mMastersLogReceiver);
+    mWorkersLogThread = new Thread(mWorkersLogReceiver);
+    mStopped = false;
+    mMastersLogThread.start();
+    mWorkersLogThread.start();
+  }
+
+  /**
+   * Configure a {@link Hierarchy} instance used to retrive logger by name and maintain the logger
+   * hierarchy. An instance of this class will be passed to a {@link AlluxioLog4jSocketNode} so
+   * that the {@link AlluxioLog4jSocketNode} instance can retrieve the logger to log incoming
+   * {@link org.apache.log4j.spi.LoggingEvent}s.
+   *
+   * @param inetAddress inet address of the client
+   * @param loggerType type of the appender to use for this client, e.g. MASTER_LOGGER, etc
+   * @return A {@link Hierarchy} instance to pass to {@link AlluxioLog4jSocketNode}
+   * @throws IOException if fails to create an {@link FileInputStream} to read log4j.properties
+   * @throws URISyntaxException if fails to derive a valid URI from the value of property named
+   *         "log4j.configuration"
+   */
+  private LoggerRepository configureHierarchy(InetAddress inetAddress, String loggerType)
       throws IOException, URISyntaxException {
     Hierarchy clientHierarchy;
     String inetAddressStr = inetAddress.toString();
@@ -134,18 +138,78 @@ public class AlluxioLogServerProcess implements LogServerProcess {
       properties.load(inputStream);
     }
     clientHierarchy = new Hierarchy(new RootLogger(Level.INFO));
-    String logFilePath = mBaseLogDir;
-    String loggerType = System.getProperty("alluxio.logger.type");
+    String logFilePath = mBaseLogsDir;
     if (loggerType.contains("MASTER")) {
       logFilePath += ("/master_logs/" + key + ".master.log");
     } else if (loggerType.contains("WORKER")) {
       logFilePath += ("/worker_logs/" + key + ".worker.log");
     } else {
       // Should not reach here
-      throw new RuntimeException("Unknown logger type");
+      throw new IllegalStateException("Unknown logger type");
     }
+    properties.setProperty("log4j.rootLogger", "INFO," + loggerType);
     properties.setProperty("log4j.appender." + loggerType + ".File", logFilePath);
     new PropertyConfigurator().doConfigure(properties, clientHierarchy);
     return clientHierarchy;
+  }
+
+  /**
+   * Runnable object that serves logging clients, i.e. Alluxio servers in this case.
+   */
+  private class LogReceiver implements Runnable {
+    private ServerSocket mServerSocket;
+    private final int mPort;
+    private final String mLoggerType;
+    private Map<InetAddress, LoggerRepository> mInetAddressHashMap;
+
+    /**
+     * Construct {@link LogReceiver} instance.
+     *
+     * @param port port number to bind
+     * @param loggerType string representation of the type of the appender,
+     *                   e.g. MASTER_LOGGER, WORKER_LOGGER, etc
+     */
+    public LogReceiver(int port, String loggerType) {
+      mPort = port;
+      mLoggerType = loggerType;
+      mInetAddressHashMap = new HashMap<>();
+    }
+
+    @Override
+    public void run() {
+      try {
+        mServerSocket = new ServerSocket(mPort);
+      } catch (IOException e) {
+        LOG.error("Failed to bind to port {}.", mPort);
+        return;
+      }
+      while (!mStopped) {
+        try {
+          Socket client = mServerSocket.accept();
+          InetAddress inetAddress = client.getInetAddress();
+          // Currently loggerRepository is always null because we are not using the map.
+          LoggerRepository loggerRepository = mInetAddressHashMap.get(inetAddress);
+          if (loggerRepository == null) {
+            try {
+              loggerRepository = configureHierarchy(inetAddress, mLoggerType);
+              mInetAddressHashMap.put(inetAddress, loggerRepository);
+            } catch (URISyntaxException e) {
+              LOG.warn("URI syntax error.");
+              continue;
+            }
+          }
+          try {
+            new Thread(new AlluxioLog4jSocketNode(client, loggerRepository)).start();
+            LOG.info("Client: {} connected.", inetAddress.toString());
+          } catch (IOException e) {
+            // Could not create a thread to serve a client, ignore this client.
+            LOG.warn("Failed to connect with client: {}.", inetAddress.toString());
+            continue;
+          }
+        } catch (IOException e) {
+          break;
+        }
+      }
+    }
   }
 }

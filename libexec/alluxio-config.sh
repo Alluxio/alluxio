@@ -137,7 +137,6 @@ fi
 
 # Log server specific parameters that will be passed to alluxio log server
 ALLUXIO_LOGSERVER_JAVA_OPTS+=${ALLUXIO_JAVA_OPTS}
-ALLUXIO_LOGSERVER_JAVA_OPTS+=" -Dalluxio.logger.type=Null"
 ALLUXIO_LOGSERVER_JAVA_OPTS+=" -Dalluxio.remotelogger.type=Null"
 ALLUXIO_LOGSERVER_JAVA_OPTS+=" -Dalluxio.logserver.logger.type=LOGSERVER_LOGGER"
 
