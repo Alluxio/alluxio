@@ -147,7 +147,7 @@ public final class PrimarySelectorClient
       try {
         String leaderId = mLeaderSelector.getLeader().getId();
         if (!leaderId.isEmpty()) {
-          LOG.info("The current leader is {}", mLeaderSelector.getLeader().getId());
+          LOG.info("The current leader is {}", leaderId);
         }
       } catch (Exception e) {
         LOG.error(e.getMessage(), e);
