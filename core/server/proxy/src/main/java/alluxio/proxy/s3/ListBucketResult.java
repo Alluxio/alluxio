@@ -104,6 +104,7 @@ public class ListBucketResult {
         continue;
       }
       // TODO(chaomin): set ETag once there's a way to get MD5 hash of an Alluxio file.
+      // TODO(chaomin): construct the response with CommonPrefixes when delimiter support is added.
       mContents.add(new Content(
           status.getPath().substring(mName.length() + 1),
           s3DateFormat.format(new Date(status.getLastModificationTimeMs())),
