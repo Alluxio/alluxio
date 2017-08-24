@@ -53,9 +53,13 @@ import java.util.Random;
  */
 public class AlluxioLogServerProcess implements LogServerProcess {
   private static final Logger LOG = LoggerFactory.getLogger(AlluxioLogServer.class);
+  private static final long mStopTimeoutInMillis = 60000;
+  private static final long mRequestTimeoutInMillis = 20000;
+  private static final int mBackoffSlotInMillis = 100;
+
   private final int mRemoteMastersLoggingPort;
   private final int mRemoteWorkersLoggingPort;
-  private String mBaseLogsDir;
+  private final String mBaseLogsDir;
   private Thread mMastersLogThread;
   private Thread mWorkersLogThread;
   private LogReceiver mMastersLogReceiver;
@@ -65,9 +69,6 @@ public class AlluxioLogServerProcess implements LogServerProcess {
   private ExecutorService mThreadPool;
   private volatile boolean mStopped;
 
-  private final long mStopTimeoutInMillis = 60000;
-  private final long mRequestTimeoutInMillis = 20000;
-  private final int mBackoffSlotInMillis = 100;
   private final Random mRandom = new Random(System.currentTimeMillis());
 
   /**
@@ -97,7 +98,6 @@ public class AlluxioLogServerProcess implements LogServerProcess {
 
   @Override
   public void stop() throws Exception {
-    mStopped = true;
     stopLogServerThreads();
   }
 
@@ -128,6 +128,7 @@ public class AlluxioLogServerProcess implements LogServerProcess {
   }
 
   private void stopLogServerThreads() {
+    mStopped = true;
     try {
       mMastersLogReceiver.close();
       mMastersLogThread.join();
@@ -139,6 +140,20 @@ public class AlluxioLogServerProcess implements LogServerProcess {
       mWorkersLogThread = null;
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
+    }
+
+    mThreadPool.shutdown();
+    long timeoutMS = mStopTimeoutInMillis;
+    long now = System.currentTimeMillis();
+    while (timeoutMS >= 0) {
+      try {
+        mThreadPool.awaitTermination(timeoutMS, TimeUnit.MILLISECONDS);
+        break;
+      } catch (InterruptedException e) {
+        long newnow = System.currentTimeMillis();
+        timeoutMS -= (newnow - now);
+        now = newnow;
+      }
     }
   }
 
@@ -167,7 +182,7 @@ public class AlluxioLogServerProcess implements LogServerProcess {
       key = inetAddressStr.substring(0, i);
     }
     Properties properties = new Properties();
-    File configFile = new File(new URI(System.getProperty("log4j.configuration")));
+    final File configFile = new File(new URI(System.getProperty("log4j.configuration")));
     try (FileInputStream inputStream = new FileInputStream(configFile)) {
       properties.load(inputStream);
     }
@@ -272,7 +287,7 @@ public class AlluxioLogServerProcess implements LogServerProcess {
                   Thread.currentThread().interrupt();
                   break;
                 }
-              } else if (t instanceof  Error) {
+              } else if (t instanceof Error) {
                 LOG.error("ExecutorService threw error: " + t, t);
                 throw (Error) t;
               } else {
@@ -290,20 +305,6 @@ public class AlluxioLogServerProcess implements LogServerProcess {
             LOG.warn("Socket transport error occurred during accepting message.", e);
           }
           break;
-        }
-      }
-
-      mThreadPool.shutdown();
-      long timeoutMS = mStopTimeoutInMillis;
-      long now = System.currentTimeMillis();
-      while (timeoutMS >= 0) {
-        try {
-          mThreadPool.awaitTermination(timeoutMS, TimeUnit.MILLISECONDS);
-          break;
-        } catch (InterruptedException e) {
-          long newnow = System.currentTimeMillis();
-          timeoutMS -= (newnow - now);
-          now = newnow;
         }
       }
     }
