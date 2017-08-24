@@ -145,7 +145,10 @@ public final class PrimarySelectorClient
 
     if ((newState != ConnectionState.LOST) && (newState != ConnectionState.SUSPENDED)) {
       try {
-        LOG.info("The current leader is {}", mLeaderSelector.getLeader().getId());
+        String leaderId = mLeaderSelector.getLeader().getId();
+        if (!leaderId.isEmpty()) {
+          LOG.info("The current leader is {}", mLeaderSelector.getLeader().getId());
+        }
       } catch (Exception e) {
         LOG.error(e.getMessage(), e);
       }
