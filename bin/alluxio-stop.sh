@@ -100,6 +100,9 @@ case "${WHAT}" in
   workers)
     stop_workers
     ;;
+  logserver)
+    stop_logserver
+    ;;
   -h)
     echo -e "${USAGE}"
     exit 0
