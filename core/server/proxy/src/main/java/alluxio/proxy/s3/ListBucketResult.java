@@ -11,6 +11,7 @@
 
 package alluxio.proxy.s3;
 
+import alluxio.AlluxioURI;
 import alluxio.client.file.URIStatus;
 import alluxio.wire.FileInfo;
 
@@ -70,8 +71,8 @@ public class ListBucketResult {
    * @param objectsList a list of {@link URIStatus}, representing the objects
    * @param options the list bucket options
    */
-  public ListBucketResult(String bucketName, List<URIStatus> objectsList, ListBucketOptions options)
-      throws S3Exception {
+  public ListBucketResult(
+      String bucketName, List<URIStatus> objectsList, ListBucketOptions options) {
     mName = bucketName;
     mKeyCount = 0;
     if (options.getMaxKeys() != null) {
@@ -84,10 +85,11 @@ public class ListBucketResult {
 
     int startIndex = 0;
     if (options.getContinuationToken() != null) {
-      URIStatus tokenStatus = new URIStatus(new FileInfo().setPath(options.getContinuationToken()));
+      URIStatus tokenStatus = new URIStatus(new FileInfo().setPath(
+          mName + AlluxioURI.SEPARATOR + mContinuationToken));
       startIndex = Collections.binarySearch(objectsList, tokenStatus, new URIStatusComparator());
-      if (startIndex == -1) {
-        throw new S3Exception("No such continuation token", S3ErrorCode.NO_SUCH_KEY);
+      if (startIndex < 0) {
+        startIndex = 0;
       }
     }
 
