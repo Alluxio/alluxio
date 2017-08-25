@@ -22,7 +22,7 @@
 }
 .navbar-inner {
     /*padding-top: 2px;*/
-    height: 50px;
+    height: 85px;
 }
 .navbar-inner .nav {
     margin-top: 5px;
@@ -37,6 +37,7 @@
     margin-left: 10px;
 }
 body #content {
+    margin-top: 50px;
     line-height: 1.6;
     /* Inspired by Github's wiki style */
 }
