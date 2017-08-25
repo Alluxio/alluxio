@@ -75,7 +75,7 @@ public class ListBucketResult {
     mName = bucketName;
     mKeyCount = 0;
     if (options.getMaxKeys() != null) {
-      mMaxKeys = Integer.valueOf(options.getMaxKeys());
+      mMaxKeys = Integer.parseInt(options.getMaxKeys());
     }
     mContents = new ArrayList<>();
     mContinuationToken = options.getContinuationToken();
