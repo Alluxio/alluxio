@@ -63,6 +63,7 @@ public final class LocalFilePacketWriter implements PacketWriter {
   private long mPosReserved;
 
   private boolean mClosed = false;
+
   /**
    * Creates an instance of {@link LocalFilePacketWriter}. This requires the block to be locked
    * beforehand.
@@ -70,12 +71,12 @@ public final class LocalFilePacketWriter implements PacketWriter {
    * @param context the file system context
    * @param address the worker network address
    * @param blockId the block ID
-   * @param packetSize the packet size
    * @param options the output stream options
    * @return the {@link LocalFilePacketWriter} created
    */
   public static LocalFilePacketWriter create(FileSystemContext context, WorkerNetAddress address,
-      long blockId, long packetSize, OutStreamOptions options) throws IOException {
+      long blockId, OutStreamOptions options) throws IOException {
+    long packetSize = Configuration.getBytes(PropertyKey.USER_LOCAL_WRITER_PACKET_SIZE_BYTES);
     return new LocalFilePacketWriter(context, address, blockId, packetSize, options);
   }
 
