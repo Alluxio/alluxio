@@ -52,7 +52,7 @@ ensure_dirs() {
     echo "ALLUXIO_LOGS_DIR: ${ALLUXIO_LOGS_DIR}"
     mkdir -p ${ALLUXIO_LOGS_DIR}
   fi
-  if [[ ! -d "${ALLUXIO_LOG_SERVER_BASE_LOGS_DIR}" ]]; then
+  if [[ "${alluxio_remote_logging_enabled}" == "true" && ! -d "${ALLUXIO_LOG_SERVER_BASE_LOGS_DIR}" ]]; then
     echo "ALLUXIO_LOG_SERVER_BASE_LOGS_DIR: ${ALLUXIO_LOG_SERVER_BASE_LOGS_DIR}"
     mkdir -p ${ALLUXIO_LOG_SERVER_BASE_LOGS_DIR}/master_logs
     mkdir -p ${ALLUXIO_LOG_SERVER_BASE_LOGS_DIR}/worker_logs
