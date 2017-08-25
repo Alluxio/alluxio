@@ -99,7 +99,7 @@ public class AlluxioLogServerProcess implements LogServerProcess {
   }
 
   /**
-   * Create and start logging server threads.
+   * Create and start logging server and client thread pool.
    */
   private void startServing() {
     SynchronousQueue<Runnable> synchronousQueue =
@@ -170,6 +170,10 @@ public class AlluxioLogServerProcess implements LogServerProcess {
     }
   }
 
+  /**
+   * Called from another thread (actually in the shutdown hook of {@link AlluxioLogServer}
+   * to stop the main thread of {@link AlluxioLogServerProcess}.
+   */
   private void stopServing() {
     mStopped = true;
     if (mServerSocket != null) {

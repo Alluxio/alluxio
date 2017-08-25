@@ -29,6 +29,11 @@ public final class AlluxioLogServer {
     ProcessUtils.run(process);
   }
 
+  /**
+   * Add a shutdown hook that will be invoked when a signal is sent to this process.
+   *
+   * @param process the data structure representing the process to terminate
+   */
   private static void addShutdownHook(final Process process) {
     Runtime.getRuntime().addShutdownHook(new Thread() {
       @Override
