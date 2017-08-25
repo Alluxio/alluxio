@@ -65,7 +65,7 @@ public final class InodeFile extends Inode<InodeFile> {
   @Override
   public FileInfo generateClientFileInfo(String path) {
     FileInfo ret = new FileInfo();
-    // note: in-memory percentage is NOT calculated here, because it needs blocks info stored in
+    // note: in-Alluxio percentage is NOT calculated here, because it needs blocks info stored in
     // block master
     ret.setFileId(getId());
     ret.setName(getName());

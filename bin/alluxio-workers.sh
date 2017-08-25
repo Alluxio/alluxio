@@ -15,7 +15,7 @@ LAUNCHER=
 if [[ "$-" == *x* ]]; then
   LAUNCHER="bash -x"
 fi
-BIN=$(cd "$( dirname "$0" )"; pwd)
+BIN=$(cd "$( dirname "$( readlink "$0" || echo "$0" )" )"; pwd)
 
 USAGE="Usage: alluxio-workers.sh command..."
 
@@ -30,9 +30,8 @@ ALLUXIO_LIBEXEC_DIR=${ALLUXIO_LIBEXEC_DIR:-${DEFAULT_LIBEXEC_DIR}}
 . ${ALLUXIO_LIBEXEC_DIR}/alluxio-config.sh
 
 HOSTLIST=$(cat ${ALLUXIO_CONF_DIR}/workers | sed  "s/#.*$//;/^$/d")
-ALLUXIO_LOG_DIR="${BIN}/../logs"
-mkdir -p "${ALLUXIO_LOG_DIR}"
-ALLUXIO_TASK_LOG="${ALLUXIO_LOG_DIR}/task.log"
+mkdir -p "${ALLUXIO_LOGS_DIR}"
+ALLUXIO_TASK_LOG="${ALLUXIO_LOGS_DIR}/task.log"
 
 echo "Executing the following command on all worker nodes and logging to ${ALLUXIO_TASK_LOG}: $@" | tee -a ${ALLUXIO_TASK_LOG}
 

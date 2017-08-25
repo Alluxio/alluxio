@@ -93,7 +93,7 @@ public final class LocalFilePacketReader implements PacketReader {
    */
   public static class Factory implements PacketReader.Factory {
     private static final long READ_TIMEOUT_MS =
-        Configuration.getLong(PropertyKey.USER_NETWORK_NETTY_TIMEOUT_MS);
+        Configuration.getMs(PropertyKey.USER_NETWORK_NETTY_TIMEOUT_MS);
 
     private final FileSystemContext mContext;
     private final WorkerNetAddress mAddress;

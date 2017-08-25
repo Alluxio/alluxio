@@ -141,7 +141,7 @@ public class MasterFaultToleranceIntegrationTest extends BaseIntegrationTest {
           return false;
         }
       }
-    }, WaitForOptions.defaults().setTimeout(timeoutMs));
+    }, WaitForOptions.defaults().setTimeoutMs(timeoutMs));
   }
 
   @Test

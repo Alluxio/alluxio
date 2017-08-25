@@ -41,6 +41,8 @@ message OpenUfsBlockOptions {
   optional int64 mountId = 5;
   // If set, do not try to cache the block locally when reading the data from the UFS.
   optional bool no_cache = 6;
+  // The client does not need to set this. This is set by the worker.
+  optional string user = 7;
 }
 
 // The write request.

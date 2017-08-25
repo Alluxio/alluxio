@@ -15,7 +15,14 @@ The prerequisite for this part is that you have [Java](Java-Setup.html). And the
 Alluxio cluster should also be set up in accordance to these guides for either
 [Local Mode](Running-Alluxio-Locally.html) or [Cluster Mode](Running-Alluxio-on-a-Cluster.html).
 
-Please [Download Presto](https://repo1.maven.org/maven2/com/facebook/presto/presto-server/)(this doc uses presto-0.170). Also, please complete Hive setup using 
+Alluxio client will need to be compiled with the Presto specific profile. Build the entire project
+from the top level `alluxio` directory with the following command:
+
+```bash
+mvn clean package -Ppresto -DskipTests
+```
+
+Please [Download Presto](https://repo1.maven.org/maven2/com/facebook/presto/presto-server/)(This doc uses presto-0.170). Also, please complete Hive setup using
 [Hive On Alluxio](http://www.alluxio.org/docs/master/en/Running-Hive-with-Alluxio.html)
 
 # Configuration
@@ -41,14 +48,31 @@ You need to add the following configuration items to the `core-site.xml` configu
   <description>The Alluxio AbstractFileSystem (Hadoop 2.x)</description>
 </property>
 ```
-If your Alluxio is HA, another configuration need to added:
-```xml
-<property>
-  <name>fs.alluxio-ft.impl</name>
-  <value>alluxio.hadoop.FaultTolerantFileSystem</value>
-  <description>The Alluxio FileSystem (Hadoop 1.x and 2.x) with fault tolerant support</description>
-</property>
+
+To use fault tolerant mode, set the Alluxio cluster properties appropriately in an
+`alluxio-site.properties` file which is on the classpath.
+
+```properties
+alluxio.zookeeper.enabled=true
+alluxio.zookeeper.address=[zookeeper_hostname]:2181
 ```
+
+Alternatively you can add the properties to the Hadoop `core-site.xml` configuration which is then
+propagated to Alluxio.
+
+```xml
+<configuration>
+  <property>
+    <name>alluxio.zookeeper.enabled</name>
+    <value>true</value>
+  </property>
+  <property>
+    <name>alluxio.zookeeper.address</name>
+    <value>[zookeeper_hostname]:2181</value>
+  </property>
+</configuration>
+```
+
 #### Configure additional Alluxio properties
 
 Similar to above, add additional Alluxio properties to `core-site.xml` of Hadoop configuration in Hadoop directory on each node.
@@ -78,7 +102,7 @@ Presto's Hive integration uses the config [`hive.max-split-size`](https://terada
 # Distribute the Alluxio Client Jar
 
 Distribute the Alluxio client jar to all worker nodes in Presto:
-- You must put Alluxio client jar `{{site.ALLUXIO_CLIENT_JAR_PATH_PRESTO}}` into Presto cluster's worker directory
+- You must put Alluxio client jar `{{site.ALLUXIO_CLIENT_JAR_PATH}}` into Presto cluster's worker directory
 `$PRESTO_HOME/plugin/hive-hadoop2/`
 (For different versions of Hadoop, put the appropriate folder), And restart the process of coordinator and worker.
 

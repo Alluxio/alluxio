@@ -32,7 +32,7 @@ public class CommandBuilder {
    *        this would be "echo"
    */
   public CommandBuilder(String base) {
-    mBase = Preconditions.checkNotNull(base);
+    mBase = Preconditions.checkNotNull(base, "base");
   }
 
   /**

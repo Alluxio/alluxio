@@ -12,17 +12,20 @@
 package alluxio.worker.block;
 
 import alluxio.AlluxioTestDirectory;
+import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.ConfigurationRule;
 import alluxio.PropertyKey;
 import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.underfs.UfsManager;
+import alluxio.underfs.UfsManager.UfsInfo;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.io.BufferUtils;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.meta.UnderFileSystemBlockMeta;
 
+import com.google.common.base.Suppliers;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.PooledByteBufAllocator;
 import org.junit.Assert;
@@ -33,6 +36,7 @@ import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
 import org.mockito.Mockito;
 
+import java.io.File;
 import java.nio.ByteBuffer;
 import java.util.HashMap;
 
@@ -71,16 +75,17 @@ public final class UnderFileSystemBlockReaderTest {
 
   @Before
   public void before() throws Exception {
-    Configuration.set(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS, mFolder.getRoot().getAbsolutePath());
-
-    String testFilePath = mFolder.newFile().getAbsolutePath();
+    String ufsFolder = Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
+    String testFilePath = File.createTempFile("temp", null, new File(ufsFolder)).getAbsolutePath();
     byte[] buffer = BufferUtils.getIncreasingByteArray((int) TEST_BLOCK_SIZE * 2);
     BufferUtils.writeBufferToFile(testFilePath, buffer);
 
     mAlluxioBlockStore = new TieredBlockStore();
     mUfsManager = Mockito.mock(UfsManager.class);
-    Mockito.when(mUfsManager.get(Mockito.anyLong()))
-        .thenReturn(UnderFileSystem.Factory.create(testFilePath));
+    UfsInfo ufsInfo = new UfsInfo(
+        Suppliers.ofInstance(UnderFileSystem.Factory.create(testFilePath)),
+        new AlluxioURI(testFilePath));
+    Mockito.when(mUfsManager.get(Mockito.anyLong())).thenReturn(ufsInfo);
 
     mOpenUfsBlockOptions = Protocol.OpenUfsBlockOptions.newBuilder().setMaxUfsReadConcurrency(10)
         .setBlockSize(TEST_BLOCK_SIZE).setOffsetInFile(TEST_BLOCK_SIZE).setUfsPath(testFilePath)

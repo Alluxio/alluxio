@@ -12,14 +12,12 @@
 package alluxio.hadoop;
 
 import alluxio.AlluxioURI;
-import alluxio.CommonTestUtils;
 import alluxio.ConfigurationRule;
 import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.FileSystemMasterClient;
 import alluxio.client.file.URIStatus;
-import alluxio.client.lineage.LineageContext;
 import alluxio.exception.status.UnavailableException;
 import alluxio.wire.FileInfo;
 
@@ -105,18 +103,14 @@ public class AbstractFileSystemTest {
    */
   @Test
   public void hadoopShouldLoadFaultTolerantFileSystemWhenConfigured() throws Exception {
-    org.apache.hadoop.conf.Configuration conf = new org.apache.hadoop.conf.Configuration();
-    if (HadoopClientTestUtils.isHadoop1x()) {
-      conf.set("fs." + Constants.SCHEME_FT + ".impl", FaultTolerantFileSystem.class.getName());
-    }
-
     URI uri = URI.create(Constants.HEADER_FT + "localhost:19998/tmp/path.txt");
 
     try (Closeable c = new ConfigurationRule(ImmutableMap.of(
         PropertyKey.MASTER_HOSTNAME, uri.getHost(),
         PropertyKey.MASTER_RPC_PORT, Integer.toString(uri.getPort()),
-        PropertyKey.ZOOKEEPER_ENABLED, "true")).toResource()) {
-      final org.apache.hadoop.fs.FileSystem fs = org.apache.hadoop.fs.FileSystem.get(uri, conf);
+            PropertyKey.ZOOKEEPER_ENABLED, "true")).toResource()) {
+      final org.apache.hadoop.fs.FileSystem fs =
+          org.apache.hadoop.fs.FileSystem.get(uri, getConf());
       Assert.assertTrue(fs instanceof FaultTolerantFileSystem);
     }
   }
@@ -126,15 +120,26 @@ public class AbstractFileSystemTest {
    */
   @Test
   public void loadFaultTolerantSystemWhenUsingNoAuthority() throws Exception {
-    org.apache.hadoop.conf.Configuration conf = new org.apache.hadoop.conf.Configuration();
-    if (HadoopClientTestUtils.isHadoop1x()) {
-      conf.set("fs." + Constants.SCHEME_FT + ".impl", FaultTolerantFileSystem.class.getName());
-    }
-
     URI uri = URI.create(Constants.HEADER_FT + "/tmp/path.txt");
-    try (Closeable c = new ConfigurationRule(PropertyKey.ZOOKEEPER_ENABLED, "true")
-        .toResource()) {
-      final org.apache.hadoop.fs.FileSystem fs = org.apache.hadoop.fs.FileSystem.get(uri, conf);
+    try (Closeable c = new ConfigurationRule(PropertyKey.ZOOKEEPER_ENABLED, "true").toResource()) {
+      final org.apache.hadoop.fs.FileSystem fs =
+          org.apache.hadoop.fs.FileSystem.get(uri, getConf());
+      Assert.assertTrue(fs instanceof FaultTolerantFileSystem);
+    }
+  }
+
+  /**
+   * Tests that using an alluxio-ft:/// URI is still possible after using an alluxio://host:port/
+   * URI.
+   */
+  @Test
+  public void loadRegularThenFaultTolerant() throws Exception {
+    try (Closeable c = new ConfigurationRule(ImmutableMap.of(
+        PropertyKey.ZOOKEEPER_ENABLED, "true",
+        PropertyKey.ZOOKEEPER_ADDRESS, "host:2")).toResource()) {
+      org.apache.hadoop.fs.FileSystem.get(URI.create(Constants.HEADER + "host:1/"), getConf());
+      org.apache.hadoop.fs.FileSystem fs =
+          org.apache.hadoop.fs.FileSystem.get(URI.create(Constants.HEADER_FT + "/"), getConf());
       Assert.assertTrue(fs instanceof FaultTolerantFileSystem);
     }
   }
@@ -158,8 +163,8 @@ public class AbstractFileSystemTest {
   }
 
   /**
-   * Tests that initializing the {@link AbstractFileSystem} will reinitialize contexts to pick up
-   * changes to the master address.
+   * Tests that initializing the {@link AbstractFileSystem} will reinitialize the file system
+   * context.
    */
   @Test
   public void resetContext() throws Exception {
@@ -168,10 +173,7 @@ public class AbstractFileSystemTest {
     org.apache.hadoop.fs.FileSystem fileSystem =
         org.apache.hadoop.fs.FileSystem.get(uri, getConf());
 
-    // Make sure all contexts are using the new address
-    InetSocketAddress newAddress = new InetSocketAddress("otherhost", 410);
-    Assert.assertEquals(newAddress, CommonTestUtils.getInternalState(LineageContext.INSTANCE,
-        "mLineageMasterClientPool", "mMasterAddress"));
+    Mockito.verify(mMockFileSystemContext).reset();
   }
 
   /**
@@ -322,6 +324,7 @@ public class AbstractFileSystemTest {
     org.apache.hadoop.conf.Configuration conf = new org.apache.hadoop.conf.Configuration();
     if (HadoopClientTestUtils.isHadoop1x()) {
       conf.set("fs." + Constants.SCHEME + ".impl", FileSystem.class.getName());
+      conf.set("fs." + Constants.SCHEME_FT + ".impl", FaultTolerantFileSystem.class.getName());
     }
     return conf;
   }

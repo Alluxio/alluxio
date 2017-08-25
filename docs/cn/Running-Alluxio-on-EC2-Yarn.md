@@ -107,7 +107,7 @@ Hadoop Web UI的默认端口为**50070**。
 
 定制Alluxio master和worker的特定属性(例如，每个worker建立分层存储)，参考
 [配置设置](Configuration-Settings.html)获取更多信息。为了确保你的配置可以被ApplicationMaster和
-Alluxio master/worker读取,将`~/.alluxio`下的`alluxio-site.properties`放在每一台EC2机器上。
+Alluxio master/worker读取,将其设置在`alluxio-site.properties`中。
 
 ## 启动Alluxio
 

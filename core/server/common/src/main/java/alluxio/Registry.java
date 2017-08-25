@@ -88,7 +88,7 @@ public class Registry<T extends Server<U>, U> {
               return mRegistry.get(clazz) != null;
             }
           }
-        }, WaitForOptions.defaults().setTimeout(timeoutMs));
+        }, WaitForOptions.defaults().setTimeoutMs(timeoutMs));
     T server = mRegistry.get(clazz);
     if (!(clazz.isInstance(server))) {
       throw new RuntimeException("Server is not an instance of " + clazz.getName());

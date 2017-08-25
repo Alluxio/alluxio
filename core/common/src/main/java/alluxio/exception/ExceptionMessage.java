@@ -63,8 +63,6 @@ public enum ExceptionMessage {
   FAILED_SKIP("Failed to skip {0}"),
   INSTREAM_CANNOT_SKIP("The underlying BlockInStream could not skip {0}"),
   READ_CLOSED_STREAM("Cannot read from a closed stream"),
-  SEEK_NEGATIVE("Seek position is negative: {0,number,#}"),
-  SEEK_PAST_EOF("Seek position is past EOF: {0,number,#}, fileSize: {1,number,#}"),
 
   // netty
   BLOCK_WRITE_ERROR(
@@ -162,7 +160,16 @@ public enum ExceptionMessage {
       "Worker fileId {0,number,#} is invalid. The worker may have crashed or cleaned up "
           + "the client state due to a timeout."),
 
-  // shell
+  // cli
+  INVALID_ARGS_GENERIC("Invalid args for command {0}"),
+  INVALID_ARGS_NULL("Null args for command {0}"),
+  INVALID_ARGS_NUM("Command {0} takes {1} arguments, not {2}"),
+  INVALID_ARGS_NUM_INSUFFICIENT("Command {0} requires at least {1} arguments ({2} provided)"),
+
+  // extension shell
+  INVALID_EXTENSION_NOT_JAR("File {0} does not have the extension JAR"),
+
+  // fs shell
   DESTINATION_CANNOT_BE_FILE(
       "The destination cannot be an existing file when the source is a directory or a list of "
           + "files."),
@@ -191,6 +198,7 @@ public enum ExceptionMessage {
   KEY_NOT_LONG("Configuration cannot evaluate key {0} as long"),
   KEY_NOT_MS("Configuration cannot evaluate key {0} as milliseconds"),
   UNDEFINED_CONFIGURATION_KEY("No value set for configuration key {0}"),
+  UNKNOWN_ENUM("Unrecognized configuration value <{0}>. Acceptable values: {1}"),
   UNKNOWN_PROPERTY("Unknown property for {0} {1}"),
 
   // security

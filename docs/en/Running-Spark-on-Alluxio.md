@@ -18,10 +18,17 @@ data to any number of those systems.
 
 Alluxio works together with Spark 1.1 or later out-of-the-box.
 
+## Prerequisites
+
 ### General Setup
 
 * Alluxio cluster has been set up in accordance to these guides for either
 [Local Mode](Running-Alluxio-Locally.html) or [Cluster Mode](Running-Alluxio-on-a-Cluster.html).
+
+* Alluxio client will need to be compiled with the Spark specific profile. Build the entire project
+from the top level `alluxio` directory with the following command:
+
+{% include Running-Spark-on-Alluxio/spark-profile-build.md %}
 
 * Add the following line to `spark/conf/spark-defaults.conf`.
 
@@ -87,7 +94,7 @@ should be an output file `LICENSE2` which doubles each line in the file `LICENSE
 `LICENSE` file now appears in the Alluxio file system space.
 
 > NOTE: Block caching on partial reads is enabled by default, but if you have turned off the option,
-> it is possible that the `LICENSE` file is not in Alluxio storage (Not In-Memory). This is
+> it is possible that the `LICENSE` file is not in Alluxio storage. This is
 > because Alluxio only stores fully read blocks, and if the file is too small, the Spark job will
 > have each executor read a partial block. To avoid this behavior, you can specify the partition
 > count in Spark. For this example, we would set it to 1 as there is only 1 block.
@@ -173,9 +180,9 @@ spark.sql.hive.metastore.sharedPrefixes=com.mysql.jdbc,org.postgresql,com.micros
 
 If the recommended solution described above is infeasible, this is a workaround which can also solve this issue.
 
-Specifying the Hadoop configuration `fs.alluxio.impl` may also help in resolving this error. `fs.alluxio.impl` should
-be set to `alluxio.hadoop.FileSystem` and if you are using Alluxio in fault tolerant mode, `fs.alluxio-ft.impl` should
-be set to `alluxio.hadoop.FaultTolerantFileSystem`. There are a few alternatives to set these parameters.
+Specifying the Hadoop configuration `fs.alluxio.impl` may also help in resolving this error.
+`fs.alluxio.impl` should be set to `alluxio.hadoop.FileSystem`. There are a few ways to set these
+parameters.
 
 #### Update `hadoopConfiguration` in SparkContext
 
@@ -183,7 +190,6 @@ You can update the Hadoop configuration in the SparkContext by:
 
 ```scala
 sc.hadoopConfiguration.set("fs.alluxio.impl", "alluxio.hadoop.FileSystem")
-sc.hadoopConfiguration.set("fs.alluxio-ft.impl", "alluxio.hadoop.FaultTolerantFileSystem")
 ```
 
 This should be done early in your `spark-shell` session, before any Alluxio operations.
@@ -193,17 +199,37 @@ This should be done early in your `spark-shell` session, before any Alluxio oper
 You can also add the properties to Hadoop's configuration files, and point Spark to the Hadoop configuration files.
 The following should be added to Hadoop's `core-site.xml`.
 
+You can point Spark to the Hadoop configuration files by setting `HADOOP_CONF_DIR` in `spark-env.sh`.
+
 ```xml
 <configuration>
   <property>
     <name>fs.alluxio.impl</name>
     <value>alluxio.hadoop.FileSystem</value>
   </property>
-  <property>
-    <name>fs.alluxio-ft.impl</name>
-    <value>alluxio.hadoop.FaultTolerantFileSystem</value>
-  </property>
 </configuration>
 ```
 
-You can point Spark to the Hadoop configuration files by setting `HADOOP_CONF_DIR` in `spark-env.sh`.
+To use fault tolerant mode, set the Alluxio cluster properties appropriately in an
+`alluxio-site.properties` file which is on the classpath.
+
+```properties
+alluxio.zookeeper.enabled=true
+alluxio.zookeeper.address=[zookeeper_hostname]:2181
+```
+
+Alternatively you can add the properties to the Hadoop `core-site.xml` configuration which is then
+propagated to Alluxio.
+
+```xml
+<configuration>
+  <property>
+    <name>alluxio.zookeeper.enabled</name>
+    <value>true</value>
+  </property>
+  <property>
+    <name>alluxio.zookeeper.address</name>
+    <value>[zookeeper_hostname]:2181</value>
+  </property>
+</configuration>
+```

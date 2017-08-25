@@ -145,7 +145,7 @@ public final class FileOutStreamIntegrationTest extends AbstractFileOutStreamInt
     try (FileOutStream os =
         mFileSystem.createFile(filePath, CreateFileOptions.defaults().setWriteType(mWriteType))) {
       os.write((byte) 0);
-      Thread.sleep(Configuration.getInt(PropertyKey.USER_HEARTBEAT_INTERVAL_MS) * 2);
+      Thread.sleep((int) Configuration.getMs(PropertyKey.USER_HEARTBEAT_INTERVAL_MS) * 2);
       os.write((byte) 1);
     }
     if (mWriteType.getAlluxioStorageType().isStore()) {
@@ -193,7 +193,7 @@ public final class FileOutStreamIntegrationTest extends AbstractFileOutStreamInt
       os.write(BufferUtils.getIncreasingByteArray(0, BLOCK_SIZE_BYTES * 3 + 1));
       os.cancel();
     }
-    long gracePeriod = Configuration.getLong(PropertyKey.MASTER_HEARTBEAT_INTERVAL_MS) * 2;
+    long gracePeriod = Configuration.getMs(PropertyKey.MASTER_HEARTBEAT_INTERVAL_MS) * 2;
     CommonUtils.sleepMs(gracePeriod);
     List<WorkerInfo> workers =
         mLocalAlluxioClusterResource.get().getLocalAlluxioMaster().getMasterProcess()

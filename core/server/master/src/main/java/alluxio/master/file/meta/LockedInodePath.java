@@ -68,8 +68,19 @@ public abstract class LockedInodePath implements AutoCloseable {
    * @throws FileDoesNotExistException if the target inode does not exist
    */
   public synchronized Inode<?> getInode() throws FileDoesNotExistException {
-    if (!fullPathExists()) {
+    Inode<?> inode = getInodeOrNull();
+    if (inode == null) {
       throw new FileDoesNotExistException(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(mUri));
+    }
+    return inode;
+  }
+
+  /**
+   * @return the target inode, or null if it does not exist
+   */
+  public synchronized Inode<?> getInodeOrNull() {
+    if (!fullPathExists()) {
+      return null;
     }
     return mInodes.get(mInodes.size() - 1);
   }
@@ -91,18 +102,36 @@ public abstract class LockedInodePath implements AutoCloseable {
    * @throws InvalidPathException if the parent inode is not a directory
    * @throws FileDoesNotExistException if the parent of the target does not exist
    */
-  public synchronized  InodeDirectory getParentInodeDirectory()
+  public synchronized InodeDirectory getParentInodeDirectory()
       throws InvalidPathException, FileDoesNotExistException {
-    if (mPathComponents.length < 2 || mInodes.size() < (mPathComponents.length - 1)) {
-      // The path is only the root, or the list of inodes is not long enough to contain the parent
+    Inode inode = getParentInodeOrNull();
+    if (inode == null) {
       throw new FileDoesNotExistException(
           ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(mUri.getParent()));
     }
-    Inode<?> inode = mInodes.get(mPathComponents.length - 2);
     if (!inode.isDirectory()) {
-      throw new InvalidPathException(ExceptionMessage.PATH_MUST_HAVE_VALID_PARENT.getMessage(mUri));
+      throw new InvalidPathException(
+          ExceptionMessage.PATH_MUST_HAVE_VALID_PARENT.getMessage(mUri));
     }
     return (InodeDirectory) inode;
+  }
+
+  /**
+   * @return the parent of the target inode, or null if the parent does not exist
+   */
+  public synchronized Inode getParentInodeOrNull() {
+    if (mPathComponents.length < 2 || mInodes.size() < (mPathComponents.length - 1)) {
+      // The path is only the root, or the list of inodes is not long enough to contain the parent
+      return null;
+    }
+    return mInodes.get(mPathComponents.length - 2);
+  }
+
+  /**
+   * @return the last existing inode on the inode path
+   */
+  public synchronized Inode getLastExistingInode() {
+    return mInodes.get(mInodes.size() - 1);
   }
 
   /**

@@ -160,7 +160,7 @@ public final class MultiMasterLocalAlluxioCluster extends AbstractLocalAlluxioCl
       public Boolean apply(Void input) {
         return getLeaderIndex() != -1;
       }
-    }, WaitForOptions.defaults().setTimeout(timeoutMs));
+    }, WaitForOptions.defaults().setTimeoutMs(timeoutMs));
   }
 
   @Override

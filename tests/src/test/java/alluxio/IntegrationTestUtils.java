@@ -15,6 +15,7 @@ import alluxio.client.file.FileSystemMasterClient;
 import alluxio.client.file.options.GetStatusOptions;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatScheduler;
+import alluxio.master.MasterClientConfig;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 import alluxio.worker.block.BlockHeartbeatReporter;
@@ -53,8 +54,8 @@ public final class IntegrationTestUtils {
    */
   public static void waitForPersist(final LocalAlluxioClusterResource localAlluxioClusterResource,
       final AlluxioURI uri, int timeoutMs) {
-    try (FileSystemMasterClient client = FileSystemMasterClient.Factory
-        .create(localAlluxioClusterResource.get().getLocalAlluxioMaster().getAddress())) {
+    try (FileSystemMasterClient client =
+        FileSystemMasterClient.Factory.create(MasterClientConfig.defaults())) {
       CommonUtils.waitFor(uri + " to be persisted", new Function<Void, Boolean>() {
         @Override
         public Boolean apply(Void input) {
@@ -64,7 +65,7 @@ public final class IntegrationTestUtils {
             throw Throwables.propagate(e);
           }
         }
-      }, WaitForOptions.defaults().setTimeout(timeoutMs));
+      }, WaitForOptions.defaults().setTimeoutMs(timeoutMs));
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
@@ -92,7 +93,7 @@ public final class IntegrationTestUtils {
           List<Long> blocksToRemove = Whitebox.getInternalState(reporter, "mRemovedBlocks");
           return blocksToRemove.containsAll(Arrays.asList(blockIds));
         }
-      }, WaitForOptions.defaults().setTimeout(100 * Constants.SECOND_MS));
+      }, WaitForOptions.defaults().setTimeoutMs(100 * Constants.SECOND_MS));
 
       // Execute 2nd heartbeat from worker.
       HeartbeatScheduler.execute(HeartbeatContext.WORKER_BLOCK_SYNC);

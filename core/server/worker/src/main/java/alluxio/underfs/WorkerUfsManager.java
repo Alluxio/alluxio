@@ -11,9 +11,10 @@
 
 package alluxio.underfs;
 
+import alluxio.AlluxioURI;
 import alluxio.exception.status.NotFoundException;
 import alluxio.exception.status.UnavailableException;
-import alluxio.thrift.UfsInfo;
+import alluxio.master.MasterClientConfig;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.worker.file.FileSystemMasterClient;
 
@@ -38,8 +39,7 @@ public final class WorkerUfsManager extends AbstractUfsManager {
    * Constructs an instance of {@link WorkerUfsManager}.
    */
   public WorkerUfsManager() {
-    mMasterClient = mCloser.register(new FileSystemMasterClient(
-        NetworkAddressUtils.getConnectAddress(NetworkAddressUtils.ServiceType.MASTER_RPC)));
+    mMasterClient = mCloser.register(new FileSystemMasterClient(MasterClientConfig.defaults()));
   }
 
   /**
@@ -49,14 +49,14 @@ public final class WorkerUfsManager extends AbstractUfsManager {
    * ufs info.
    */
   @Override
-  public UnderFileSystem get(long mountId) throws NotFoundException, UnavailableException {
+  public UfsInfo get(long mountId) throws NotFoundException, UnavailableException {
     try {
       return super.get(mountId);
     } catch (NotFoundException e) {
       // Not cached locally, let's query master
     }
 
-    UfsInfo info;
+    alluxio.thrift.UfsInfo info;
     try {
       info = mMasterClient.getUfsInfo(mountId);
     } catch (IOException e) {
@@ -64,18 +64,19 @@ public final class WorkerUfsManager extends AbstractUfsManager {
           String.format("Failed to get UFS info for mount point with id %d", mountId), e);
     }
     Preconditions.checkState((info.isSetUri() && info.isSetProperties()), "unknown mountId");
-    UnderFileSystem ufs = super.addMount(mountId, info.getUri(),
+    super.addMount(mountId, new AlluxioURI(info.getUri()),
         UnderFileSystemConfiguration.defaults().setReadOnly(info.getProperties().isReadOnly())
             .setShared(info.getProperties().isShared())
             .setUserSpecifiedConf(info.getProperties().getProperties()));
+    UfsInfo ufsInfo = super.get(mountId);
     try {
-      ufs.connectFromWorker(
+      ufsInfo.getUfs().connectFromWorker(
           NetworkAddressUtils.getConnectHost(NetworkAddressUtils.ServiceType.WORKER_RPC));
     } catch (IOException e) {
       removeMount(mountId);
       throw new UnavailableException(
           String.format("Failed to connect to UFS %s with id %d", info.getUri(), mountId), e);
     }
-    return ufs;
+    return ufsInfo;
   }
 }

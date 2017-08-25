@@ -20,7 +20,6 @@ import alluxio.web.ProxyWebServer;
 import com.google.common.io.ByteStreams;
 import com.qmino.miredot.annotations.ReturnType;
 
-import java.io.Closeable;
 import java.io.InputStream;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -74,12 +73,12 @@ public final class StreamsRestServiceHandler {
     return RestUtils.call(new RestUtils.RestCallable<Void>() {
       @Override
       public Void call() throws Exception {
-        Closeable stream = mStreamCache.invalidate(id);
-        if (stream != null) {
-          stream.close();
-          return null;
+        // When a stream is invalidated from the cache, the removal listener of the cache will
+        // automatically close the stream.
+        if (mStreamCache.invalidate(id) == null) {
+          throw new IllegalArgumentException("stream does not exist");
         }
-        throw new IllegalArgumentException("stream does not exist");
+        return null;
       }
     });
   }

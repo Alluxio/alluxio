@@ -54,9 +54,9 @@ public abstract class AbstractClient implements Client {
       Pattern.compile("Frame size \\((\\d+)\\) larger than max length");
 
   private static final int BASE_SLEEP_MS =
-      Configuration.getInt(PropertyKey.USER_RPC_RETRY_BASE_SLEEP_MS);
+      (int) Configuration.getMs(PropertyKey.USER_RPC_RETRY_BASE_SLEEP_MS);
   private static final int MAX_SLEEP_MS =
-      Configuration.getInt(PropertyKey.USER_RPC_RETRY_MAX_SLEEP_MS);
+      (int) Configuration.getMs(PropertyKey.USER_RPC_RETRY_MAX_SLEEP_MS);
 
   /** The number of times to retry a particular RPC. */
   protected static final int RPC_MAX_NUM_RETRY =
@@ -72,7 +72,7 @@ public abstract class AbstractClient implements Client {
    * Is true if this client was closed by the user. No further actions are possible after the client
    * is closed.
    */
-  protected boolean mClosed = false;
+  protected volatile boolean mClosed = false;
 
   /**
    * Stores the service version; used for detecting incompatible client-server pairs.
@@ -91,7 +91,7 @@ public abstract class AbstractClient implements Client {
    * @param address the address
    */
   public AbstractClient(Subject subject, InetSocketAddress address) {
-    mAddress = Preconditions.checkNotNull(address, "address");
+    mAddress = address;
     mServiceVersion = Constants.UNKNOWN_SERVICE_VERSION;
     mTransportProvider = TransportProvider.Factory.create();
     mParentSubject = subject;
@@ -164,12 +164,15 @@ public abstract class AbstractClient implements Client {
       return;
     }
     disconnect();
+    mAddress = getAddress();
     Preconditions.checkState(!mClosed, "Client is closed, will not try to connect.");
 
     RetryPolicy retryPolicy =
         new ExponentialBackoffRetry(BASE_SLEEP_MS, MAX_SLEEP_MS, RPC_MAX_NUM_RETRY);
-    while (!mClosed) {
-      mAddress = getAddress();
+    while (true) {
+      if (mClosed) {
+        throw new FailedPreconditionException("Failed to connect: client has been closed");
+      }
       LOG.info("Alluxio client (version {}) is trying to connect with {} @ {}",
           RuntimeConstants.VERSION, getServiceName(), mAddress);
 
@@ -247,18 +250,8 @@ public abstract class AbstractClient implements Client {
     mClosed = true;
   }
 
-  /**
-   * Closes the connection, then queries and sets current remote address.
-   */
-  public synchronized void resetConnection() {
-    disconnect();
-    mAddress = getAddress();
-  }
-
-  /**
-   * @return the {@link InetSocketAddress} of the remote
-   */
-  public synchronized InetSocketAddress getAddress() {
+  @Override
+  public synchronized InetSocketAddress getAddress() throws UnavailableException {
     return mAddress;
   }
 

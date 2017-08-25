@@ -144,10 +144,11 @@ ZooKeeper for the current leader master.
 
 #### HDFS API
 
-When communicating with Alluxio in HA mode using the HDFS API, use `alluxio-ft://` for the scheme
-instead of `alluxio://`. Any host provided in the URL is ignored; `alluxio.zookeeper.address` is used
-instead for finding the Alluxio leader master.
+When communicating with Alluxio in HA mode using the HDFS API, ensure the client side zookeeper
+configuration is properly set. Use `alluxio://` for the scheme but the host and port may be omitted.
+Any host provided in the URL is ignored; `alluxio.zookeeper.address` is used instead for finding the
+Alluxio leader master.
 
 ```
-hadoop fs -ls alluxio-ft:///directory
+hadoop fs -ls alluxio:///directory
 ```

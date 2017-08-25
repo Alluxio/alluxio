@@ -42,6 +42,9 @@ import org.junit.Test;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Integration tests for writing to various storage tiers.
+ */
 public class SpecificTierWriteIntegrationTest extends BaseIntegrationTest {
   private static final int CAPACITY_BYTES = Constants.KB;
   private static final int FILE_SIZE = CAPACITY_BYTES;
@@ -133,7 +136,7 @@ public class SpecificTierWriteIntegrationTest extends BaseIntegrationTest {
         }
         return mBlockMaster.getUsedBytes() == 0;
       }
-    }, WaitForOptions.defaults().setTimeout(10 * Constants.SECOND_MS));
+    }, WaitForOptions.defaults().setTimeoutMs(10 * Constants.SECOND_MS));
   }
 
   @Test

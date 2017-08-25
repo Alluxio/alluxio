@@ -32,10 +32,11 @@ import alluxio.master.block.meta.MasterBlockInfo;
 import alluxio.master.block.meta.MasterBlockLocation;
 import alluxio.master.block.meta.MasterWorkerInfo;
 import alluxio.master.journal.JournalContext;
-import alluxio.master.journal.JournalFactory;
+import alluxio.master.journal.JournalSystem;
 import alluxio.metrics.MetricsSystem;
 import alluxio.proto.journal.Block.BlockContainerIdGeneratorEntry;
 import alluxio.proto.journal.Block.BlockInfoEntry;
+import alluxio.proto.journal.Block.DeleteBlockEntry;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.thrift.BlockMasterClientService;
 import alluxio.thrift.BlockMasterWorkerService;
@@ -166,24 +167,24 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
   /**
    * Creates a new instance of {@link DefaultBlockMaster}.
    *
-   * @param journalFactory the factory for the journal to use for tracking master operations
+   * @param journalSystem the journal system to use for tracking master operations
    */
-  DefaultBlockMaster(JournalFactory journalFactory) {
-    this(journalFactory, new SystemClock(), ExecutorServiceFactories
+  DefaultBlockMaster(JournalSystem journalSystem) {
+    this(journalSystem, new SystemClock(), ExecutorServiceFactories
         .fixedThreadPoolExecutorServiceFactory(Constants.BLOCK_MASTER_NAME, 2));
   }
 
   /**
    * Creates a new instance of {@link DefaultBlockMaster}.
    *
-   * @param journalFactory the factory for the journal to use for tracking master operations
+   * @param journalSystem the journal system to use for tracking master operations
    * @param clock the clock to use for determining the time
    * @param executorServiceFactory a factory for creating the executor service to use for running
    *        maintenance threads
    */
-  DefaultBlockMaster(JournalFactory journalFactory, Clock clock,
+  DefaultBlockMaster(JournalSystem journalSystem, Clock clock,
       ExecutorServiceFactory executorServiceFactory) {
-    super(journalFactory.create(Constants.BLOCK_MASTER_NAME), clock, executorServiceFactory);
+    super(journalSystem, clock, executorServiceFactory);
     Metrics.registerGauges(this);
   }
 
@@ -204,14 +205,12 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
 
   @Override
   public void processJournalEntry(JournalEntry entry) throws IOException {
-    if (entry.getSequenceNumber() == 0) {
-      // This is the first journal entry, clear the master state.
-      mBlocks.clear();
-    }
     // TODO(gene): A better way to process entries besides a huge switch?
     if (entry.hasBlockContainerIdGenerator()) {
       mJournaledNextContainerId = (entry.getBlockContainerIdGenerator()).getNextContainerId();
       mBlockContainerIdGenerator.setNextContainerId((mJournaledNextContainerId));
+    } else if (entry.hasDeleteBlock()) {
+      mBlocks.remove(entry.getDeleteBlock().getBlockId());
     } else if (entry.hasBlockInfo()) {
       BlockInfoEntry blockInfoEntry = entry.getBlockInfo();
       if (mBlocks.containsKey(blockInfoEntry.getBlockId())) {
@@ -225,6 +224,13 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
     } else {
       throw new IOException(ExceptionMessage.UNEXPECTED_JOURNAL_ENTRY.getMessage(entry));
     }
+  }
+
+  @Override
+  public void resetState() {
+    mBlocks.clear();
+    mJournaledNextContainerId = 0;
+    mBlockContainerIdGenerator.setNextContainerId(0);
   }
 
   @Override
@@ -265,7 +271,7 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
     if (isLeader) {
       mLostWorkerDetectionService = getExecutorService().submit(new HeartbeatThread(
           HeartbeatContext.MASTER_LOST_WORKER_DETECTION, new LostWorkerDetectionHeartbeatExecutor(),
-          Configuration.getInt(PropertyKey.MASTER_HEARTBEAT_INTERVAL_MS)));
+          (int) Configuration.getMs(PropertyKey.MASTER_HEARTBEAT_INTERVAL_MS)));
     }
   }
 
@@ -320,41 +326,50 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
         ret.add(worker.generateClientWorkerInfo());
       }
     }
+    Collections.sort(ret, new WorkerInfo.LastContactSecComparator());
     return ret;
   }
 
   @Override
   public void removeBlocks(List<Long> blockIds, boolean delete) {
-    for (long blockId : blockIds) {
-      MasterBlockInfo block = mBlocks.get(blockId);
-      if (block == null) {
-        continue;
-      }
-      HashSet<Long> workerIds = new HashSet<>();
-      synchronized (block) {
-        // Technically, 'block' should be confirmed to still be in the data structure. A
-        // concurrent removeBlock call can remove it. However, we are intentionally ignoring this
-        // race, since deleting the same block again is a noop.
-        workerIds.addAll(block.getWorkers());
-        // Two cases here:
-        // 1) For delete: delete the block metadata.
-        // 2) For free: keep the block metadata. mLostBlocks will be changed in
-        // processWorkerRemovedBlocks
-        if (delete) {
-          // Make sure blockId is removed from mLostBlocks when the block metadata is deleted.
-          // Otherwise blockId in mLostBlock can be dangling index if the metadata is gone.
-          mLostBlocks.remove(blockId);
-          mBlocks.remove(blockId);
+    try (JournalContext journalContext = createJournalContext()) {
+      for (long blockId : blockIds) {
+        MasterBlockInfo block = mBlocks.get(blockId);
+        if (block == null) {
+          continue;
         }
-      }
+        HashSet<Long> workerIds = new HashSet<>();
 
-      // Outside of locking the block. This does not have to be synchronized with the block
-      // metadata, since it is essentially an asynchronous signal to the worker to remove the block.
-      for (long workerId : workerIds) {
-        MasterWorkerInfo worker = mWorkers.getFirstByField(ID_INDEX, workerId);
-        if (worker != null) {
-          synchronized (worker) {
-            worker.updateToRemovedBlock(true, blockId);
+        synchronized (block) {
+          // Technically, 'block' should be confirmed to still be in the data structure. A
+          // concurrent removeBlock call can remove it. However, we are intentionally ignoring this
+          // race, since deleting the same block again is a noop.
+          workerIds.addAll(block.getWorkers());
+          // Two cases here:
+          // 1) For delete: delete the block metadata.
+          // 2) For free: keep the block metadata. mLostBlocks will be changed in
+          // processWorkerRemovedBlocks
+          if (delete) {
+            // Make sure blockId is removed from mLostBlocks when the block metadata is deleted.
+            // Otherwise blockId in mLostBlock can be dangling index if the metadata is gone.
+            mLostBlocks.remove(blockId);
+            if (mBlocks.remove(blockId) != null) {
+              JournalEntry entry = JournalEntry.newBuilder()
+                  .setDeleteBlock(DeleteBlockEntry.newBuilder().setBlockId(blockId)).build();
+              appendJournalEntry(entry, journalContext);
+            }
+          }
+        }
+
+        // Outside of locking the block. This does not have to be synchronized with the block
+        // metadata, since it is essentially an asynchronous signal to the worker to remove the
+        // block.
+        for (long workerId : workerIds) {
+          MasterWorkerInfo worker = mWorkers.getFirstByField(ID_INDEX, workerId);
+          if (worker != null) {
+            synchronized (worker) {
+              worker.updateToRemovedBlock(true, blockId);
+            }
           }
         }
       }
@@ -755,7 +770,7 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
 
     @Override
     public void heartbeat() {
-      int masterWorkerTimeoutMs = Configuration.getInt(PropertyKey.MASTER_WORKER_TIMEOUT_MS);
+      int masterWorkerTimeoutMs = (int) Configuration.getMs(PropertyKey.MASTER_WORKER_TIMEOUT_MS);
       for (MasterWorkerInfo worker : mWorkers) {
         synchronized (worker) {
           final long lastUpdate = mClock.millis() - worker.getLastUpdatedTimeMs();

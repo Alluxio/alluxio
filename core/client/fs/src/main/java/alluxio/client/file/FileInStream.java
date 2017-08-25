@@ -162,6 +162,11 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
   }
 
   @Override
+  public long getPos() {
+    return mPos;
+  }
+
+  @Override
   public int read() throws IOException {
     return readInternal();
   }
@@ -177,7 +182,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
   }
 
   private int readInternal() throws IOException {
-    if (remaining() <= 0) {
+    if (remainingInternal() <= 0) {
       return -1;
     }
     updateStreams();
@@ -206,14 +211,14 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
         PreconditionMessage.ERR_BUFFER_STATE.toString(), b.length, off, len);
     if (len == 0) {
       return 0;
-    } else if (remaining() <= 0) {
+    } else if (remainingInternal() <= 0) {
       return -1;
     }
 
     int currentOffset = off;
     int bytesLeftToRead = len;
 
-    while (bytesLeftToRead > 0 && remaining() > 0) {
+    while (bytesLeftToRead > 0 && remainingInternal() > 0) {
       updateStreams();
       Preconditions.checkNotNull(mCurrentBlockInStream, PreconditionMessage.ERR_UNEXPECTED_EOF);
       int bytesToRead = (int) Math.min(bytesLeftToRead, mCurrentBlockInStream.remaining());
@@ -278,7 +283,8 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
       long blockId = getBlockId(pos);
       long blockPos = pos % mBlockSize;
       try (BlockInStream bin = getBlockInStream(blockId)) {
-        int bytesRead = bin.positionedRead(blockPos, b, off, len);
+        int bytesRead =
+            bin.positionedRead(blockPos, b, off, (int) Math.min(mBlockSize - blockPos, len));
         Preconditions.checkState(bytesRead > 0, "No data is read before EOF");
         pos += bytesRead;
         off += bytesRead;
@@ -290,7 +296,9 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
 
   @Override
   public long remaining() {
-    return mFileLength - mPos;
+    // WARNING: do not call remaining() directly within this file, use remainingInternal() instead
+    // so that remaining() can be overridden by subclasses.
+    return remainingInternal();
   }
 
   @Override
@@ -322,7 +330,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
       return 0;
     }
 
-    long toSkip = Math.min(n, remaining());
+    long toSkip = Math.min(n, remainingInternal());
     seek(mPos + toSkip);
     return toSkip;
   }
@@ -416,7 +424,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
    * @return the current block id based on mPos, -1 if at the end of the file
    */
   private long getCurrentBlockId() {
-    if (remaining() <= 0) {
+    if (remainingInternal() <= 0) {
       return -1;
     }
     return getBlockId(mPos);
@@ -428,8 +436,8 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
    */
   private long getBlockId(long pos) {
     int index = (int) (pos / mBlockSize);
-    Preconditions
-        .checkState(index < mStatus.getBlockIds().size(), PreconditionMessage.ERR_BLOCK_INDEX);
+    Preconditions.checkState(index < mStatus.getBlockIds().size(),
+        PreconditionMessage.ERR_BLOCK_INDEX.toString(), index, pos, mStatus.getBlockIds().size());
     return mStatus.getBlockIds().get(index);
   }
 
@@ -579,8 +587,12 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
     if (mCurrentBlockInStream != null) {
       mCurrentBlockInStream.seek(mPos % mBlockSize);
     } else {
-      Preconditions.checkState(remaining() == 0);
+      Preconditions.checkState(remainingInternal() == 0);
     }
+  }
+
+  private long remainingInternal() {
+    return mFileLength - mPos;
   }
 
   /**
@@ -630,7 +642,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
       if (mCurrentBlockInStream != null) {
         mCurrentBlockInStream.seek(mPos % mBlockSize);
       } else {
-        Preconditions.checkState(remaining() == 0);
+        Preconditions.checkState(remainingInternal() == 0);
       }
     } else {
       mPos = pos / mBlockSize * mBlockSize;

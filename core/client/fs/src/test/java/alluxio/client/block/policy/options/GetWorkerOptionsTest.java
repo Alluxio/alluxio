@@ -11,13 +11,14 @@
 
 package alluxio.client.block.policy.options;
 
+import static org.junit.Assert.assertEquals;
+
 import alluxio.CommonTestUtils;
 import alluxio.Constants;
 import alluxio.client.block.BlockWorkerInfo;
 
 import alluxio.wire.WorkerNetAddress;
 
-import org.junit.Assert;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -39,9 +40,9 @@ public final class GetWorkerOptionsTest {
   @Test
   public void defaults() throws IOException {
     GetWorkerOptions options = GetWorkerOptions.defaults();
-    Assert.assertEquals(null, options.getBlockWorkerInfos());
-    Assert.assertEquals(0, options.getBlockId());
-    Assert.assertEquals(0, options.getBlockSize());
+    assertEquals(null, options.getBlockWorkerInfos());
+    assertEquals(0, options.getBlockId());
+    assertEquals(0, options.getBlockSize());
   }
 
   /**
@@ -58,7 +59,7 @@ public final class GetWorkerOptionsTest {
                     .setWebPort(PORT), 2 * (long) Constants.GB, 0));
     GetWorkerOptions options = GetWorkerOptions.defaults();
     options.setBlockWorkerInfos(mWorkerInfos);
-    Assert.assertEquals(mWorkerInfos, options.getBlockWorkerInfos());
+    assertEquals(mWorkerInfos, options.getBlockWorkerInfos());
   }
 
   /**
@@ -72,8 +73,8 @@ public final class GetWorkerOptionsTest {
     GetWorkerOptions options = GetWorkerOptions.defaults();
     options.setBlockId(blockId);
     options.setBlockSize(blockSize);
-    Assert.assertEquals(blockId, options.getBlockId());
-    Assert.assertEquals(blockSize, options.getBlockSize());
+    assertEquals(blockId, options.getBlockId());
+    assertEquals(blockSize, options.getBlockSize());
   }
 
   @Test

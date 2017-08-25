@@ -35,7 +35,7 @@ $ cp conf/alluxio-env.sh.template conf/alluxio-env.sh
 Alluxio可以通过HDFS接口支持Azure blob store。你可以在[这里](http://hadoop.apache.org/docs/r2.7.1/hadoop-azure/index.html)找到更多关于在Azure blob store上运行hadoop的信息。
 从[这里](https://mvnrepository.com/artifact/com.microsoft.azure/azure-storage)下载azure storage的java库(版本2.2.0)并根据你的Hadoop版本从[这里](https://mvnrepository.com/artifact/org.apache.hadoop/hadoop-azure)下载hadoop azure库。请确定使用了 `azure-storage-2.2.0.jar`而不是任何更高版本的，因为这些版本会与hadoop-azure库冲突。
 
-你需要将上面提到的库加入到ALLUXIO_CLASSPATH。你可以通过在`conf/alluxio-env.sh`中添加以下代码来完成：
+你需要将上面提到的库加入到`ALLUXIO_CLASSPATH`。你可以通过在`conf/alluxio-env.sh`中添加以下代码来完成：
 ```
 export ALLUXIO_CLASSPATH=PATH_TO_HADOOP_AZURE_JAR/hadoop-azure-2.7.3.jar:PATH_TO_AZURE_STORAGE_JAR/azure-storage-2.2.0.jar
 ```
@@ -51,7 +51,7 @@ alluxio.underfs.hdfs.prefixes=hdfs://,glusterfs:///,maprfs:///,wasb://
 ```
 <configuration>
 <property>
-  <name>fs.AbstractFileSystem.wasb.Impl</name>
+  <name>fs.AbstractFileSystem.wasb.impl</name>
   <value>org.apache.hadoop.fs.azure.Wasb</value>
 </property>
 <property>
