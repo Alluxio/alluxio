@@ -52,10 +52,10 @@ ensure_dirs() {
     echo "ALLUXIO_LOGS_DIR: ${ALLUXIO_LOGS_DIR}"
     mkdir -p ${ALLUXIO_LOGS_DIR}
   fi
-  if [[ "${alluxio_remote_logging_enabled}" == "true" && ! -d "${ALLUXIO_LOG_SERVER_BASE_LOGS_DIR}" ]]; then
-    echo "ALLUXIO_LOG_SERVER_BASE_LOGS_DIR: ${ALLUXIO_LOG_SERVER_BASE_LOGS_DIR}"
-    mkdir -p ${ALLUXIO_LOG_SERVER_BASE_LOGS_DIR}/master_logs
-    mkdir -p ${ALLUXIO_LOG_SERVER_BASE_LOGS_DIR}/worker_logs
+  if [[ "${alluxio_remote_logging_enabled}" == "true" && ! -d "${ALLUXIO_LOGSERVER_BASE_LOGS_DIR}" ]]; then
+    echo "ALLUXIO_LOGSERVER_BASE_LOGS_DIR: ${ALLUXIO_LOGSERVER_BASE_LOGS_DIR}"
+    mkdir -p ${ALLUXIO_LOGSERVER_BASE_LOGS_DIR}/master_logs
+    mkdir -p ${ALLUXIO_LOGSERVER_BASE_LOGS_DIR}/worker_logs
   fi
 }
 
@@ -146,7 +146,7 @@ start_logserver() {
     echo "Starting logserver @ $(hostname -f)."
     (nohup "${JAVA}" -cp ${CLASSPATH} \
      ${ALLUXIO_LOGSERVER_JAVA_OPTS} \
-     alluxio.logserver.AlluxioLogServer "${ALLUXIO_LOG_SERVER_BASE_LOGS_DIR}" > ${ALLUXIO_LOGS_DIR}/logserver.out 2>&1) &
+     alluxio.logserver.AlluxioLogServer "${ALLUXIO_LOGSERVER_BASE_LOGS_DIR}" > ${ALLUXIO_LOGS_DIR}/logserver.out 2>&1) &
 }
 
 start_master() {

@@ -1217,12 +1217,16 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   // Log server related properties
   //
   public static final PropertyKey LOG_SERVER_BASE_LOGS_DIR =
-      new Builder(Name.LOG_SERVER_BASE_LOGS_DIR)
+      new Builder(Name.LOGSERVER_BASE_LOGS_DIR)
           .setDefaultValue(String.format("${%s}/logs", Name.WORK_DIR))
           .setDescription("Default location for remote log files.")
           .build();
+  public static final PropertyKey LOGSERVER_HOSTNAME =
+      new Builder(Name.LOGSERVER_HOSTNAME)
+          .setDescription("The hostname of Alluxio logserver.")
+          .build();
   public static final PropertyKey LOG_SERVER_PORT =
-      new Builder(Name.LOG_SERVER_PORT)
+      new Builder(Name.LOGSERVER_PORT)
           .setDefaultValue(45600)
           .setDescription("Default port number to receive logs from alluxio servers.")
           .build();
@@ -2095,9 +2099,9 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     //
     // Log server related properties
     //
-    public static final String LOG_SERVER_BASE_LOGS_DIR = "alluxio.logserver.baselogsdir";
-    public static final String LOG_SERVER_PORT =
-        "alluxio.logserver.port";
+    public static final String LOGSERVER_BASE_LOGS_DIR = "alluxio.logserver.baselogsdir";
+    public static final String LOGSERVER_HOSTNAME = "alluxio.logserver.hostname";
+    public static final String LOGSERVER_PORT = "alluxio.logserver.port";
 
     //
     // User related properties

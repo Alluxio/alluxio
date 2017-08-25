@@ -99,8 +99,9 @@ fi
 
 alluxio_remote_logging_enabled=$(getConf "alluxio.remotelogging.enabled")
 if [[ "${alluxio_remote_logging_enabled}" == "true" ]]; then
-    ALLUXIO_LOG_SERVER_BASE_LOGS_DIR=$(getConf "alluxio.logserver.baselogsdir")
-    ALLUXIO_LOG_SERVER_PORT=$(getConf "alluxio.logserver.port")
+    ALLUXIO_LOGSERVER_BASE_LOGS_DIR=$(getConf "alluxio.logserver.baselogsdir")
+    ALLUXIO_LOGSERVER_HOSTNAME=$(getConf "alluxio.logserver.hostname")
+    ALLUXIO_LOGSERVER_PORT=$(getConf "alluxio.logserver.port")
 fi
 ####################################################################################################
 ## End reading site-properties
@@ -110,7 +111,8 @@ fi
 ALLUXIO_MASTER_JAVA_OPTS+=${ALLUXIO_JAVA_OPTS}
 ALLUXIO_MASTER_JAVA_OPTS+=" -Dalluxio.logger.type=${ALLUXIO_MASTER_LOGGER:-MASTER_LOGGER}"
 if [[ ${alluxio_remote_logging_enabled} == "true" ]]; then
-    ALLUXIO_MASTER_JAVA_OPTS+=" -Dalluxio.remotelogger.type=REMOTE_MASTER_LOGGER -Dalluxio.logserver.port=${ALLUXIO_LOG_SERVER_PORT}"
+    ALLUXIO_MASTER_JAVA_OPTS+=" -Dalluxio.remotelogger.type=REMOTE_MASTER_LOGGER \
+        -Dalluxio.logserver.hostname=${ALLUXIO_LOGSERVER_HOSTNAME} -Dalluxio.logserver.port=${ALLUXIO_LOGSERVER_PORT}"
 fi
 if [[ "$(getConf "alluxio.master.audit.logging.enabled")" == "true" ]]; then
     ALLUXIO_MASTER_JAVA_OPTS+=" -Dalluxio.master.audit.logger.type=${ALLUXIO_MASTER_AUDIT_LOGGER:-MASTER_AUDIT_LOGGER}"
@@ -128,7 +130,8 @@ ALLUXIO_PROXY_JAVA_OPTS+=" -Dalluxio.logger.type=${ALLUXIO_PROXY_LOGGER:-PROXY_L
 ALLUXIO_WORKER_JAVA_OPTS+=${ALLUXIO_JAVA_OPTS}
 ALLUXIO_WORKER_JAVA_OPTS+=" -Dalluxio.logger.type=${ALLUXIO_WORKER_LOGGER:-WORKER_LOGGER}"
 if [[ ${alluxio_remote_logging_enabled} == "true" ]]; then
-    ALLUXIO_WORKER_JAVA_OPTS+=" -Dalluxio.remotelogger.type=REMOTE_WORKER_LOGGER -Dalluxio.logserver.port=${ALLUXIO_LOG_SERVER_PORT}"
+    ALLUXIO_WORKER_JAVA_OPTS+=" -Dalluxio.remotelogger.type=REMOTE_WORKER_LOGGER \
+        -Dalluxio.logserver.hostname=${ALLUXIO_LOGSERVER_HOSTNAME} -Dalluxio.logserver.port=${ALLUXIO_LOGSERVER_PORT}"
 fi
 
 # Log server specific parameters that will be passed to alluxio log server
