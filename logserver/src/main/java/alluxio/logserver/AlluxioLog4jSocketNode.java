@@ -32,7 +32,6 @@ public class AlluxioLog4jSocketNode implements Runnable {
   private AlluxioLogServerProcess mLogServerProcess;
   private Socket mSocket;
   private LoggerRepository mHierarchy;
-  private ObjectInputStream mObjectInputStream;
 
   /**
    * Constructor of {@link AlluxioLog4jSocketNode}.
@@ -49,20 +48,16 @@ public class AlluxioLog4jSocketNode implements Runnable {
       throws IOException {
     mLogServerProcess = process;
     mSocket = socket;
-    mObjectInputStream = new ObjectInputStream(
-        new BufferedInputStream(mSocket.getInputStream()));
   }
 
   @Override
   public void run() {
     LoggingEvent event;
     Logger remoteLogger;
-    if (mObjectInputStream == null) {
-      return;
-    }
-    try {
+    try (ObjectInputStream objectInputStream = new ObjectInputStream(
+        new BufferedInputStream(mSocket.getInputStream()))) {
       while (true) {
-        event = (LoggingEvent) mObjectInputStream.readObject();
+        event = (LoggingEvent) objectInputStream.readObject();
         if (mHierarchy == null) {
           mHierarchy = mLogServerProcess.configureHierarchy(
               mSocket.getInetAddress(),
@@ -80,13 +75,6 @@ public class AlluxioLog4jSocketNode implements Runnable {
     } catch (Exception e) {
       // TODO(yanqin) attempt to recover.
     } finally {
-      if (mObjectInputStream != null) {
-        try {
-          mObjectInputStream.close();
-        } catch (Exception e) {
-          // Ignore the exception caused by faulty client.
-        }
-      }
       if (mSocket != null) {
         try {
           mSocket.close();
