@@ -11,6 +11,8 @@
 
 package alluxio.logserver;
 
+import alluxio.AlluxioRemoteLogFilter;
+
 import org.apache.log4j.Logger;
 import org.apache.log4j.spi.LoggerRepository;
 import org.apache.log4j.spi.LoggingEvent;
@@ -27,6 +29,7 @@ import java.net.Socket;
  * a thread serving the logging requests of the client.
  */
 public class AlluxioLog4jSocketNode implements Runnable {
+  private AlluxioLogServerProcess mLogServerProcess;
   private Socket mSocket;
   private LoggerRepository mHierarchy;
   private ObjectInputStream mObjectInputStream;
@@ -34,17 +37,18 @@ public class AlluxioLog4jSocketNode implements Runnable {
   /**
    * Constructor of {@link AlluxioLog4jSocketNode}.
    *
+   * @param process main log server process
    * @param socket client socket from which to read {@link org.apache.log4j.spi.LoggingEvent}
-   * @param hierarchy named hierarchy of the logger, used to retrieve the logger
    * @throws IOException if {@link Socket#getInputStream()} encounters an I/O error when creating
    *                     the {@link java.io.InputStream}, the socket is closed, the socket is not
    *                     connected, the socket input has been shutdown with using
    *                     {@link Socket#shutdownInput()}, or an I/O error occurs while reading the
    *                     stream header in the constructor of {@link ObjectInputStream}
    */
-  public AlluxioLog4jSocketNode(Socket socket, LoggerRepository hierarchy) throws IOException {
+  public AlluxioLog4jSocketNode(AlluxioLogServerProcess process, Socket socket)
+      throws IOException {
+    mLogServerProcess = process;
     mSocket = socket;
-    mHierarchy = hierarchy;
     mObjectInputStream = new ObjectInputStream(
         new BufferedInputStream(mSocket.getInputStream()));
   }
@@ -59,6 +63,15 @@ public class AlluxioLog4jSocketNode implements Runnable {
     try {
       while (true) {
         event = (LoggingEvent) mObjectInputStream.readObject();
+        if (mHierarchy == null) {
+          mHierarchy = mLogServerProcess.configureHierarchy(
+              mSocket.getInetAddress(),
+              event.getMDC(AlluxioRemoteLogFilter.REMOTE_LOG_MDC_APPENDER_NAME_KEY).toString());
+          if (mHierarchy == null) {
+            // TODO(yanqin) better handling
+            continue;
+          }
+        }
         remoteLogger = mHierarchy.getLogger(event.getLoggerName());
         if (event.getLevel().isGreaterOrEqual(remoteLogger.getEffectiveLevel())) {
           remoteLogger.callAppenders(event);

@@ -5,6 +5,7 @@ import org.apache.log4j.spi.Filter;
 import org.apache.log4j.spi.LoggingEvent;
 
 public class AlluxioRemoteLogFilter extends Filter {
+  public static final String REMOTE_LOG_MDC_APPENDER_NAME_KEY = "appender";
   public static final String APPENDER_NAME_OPTION = "AppenderName";
 
   String mAppenderName;
@@ -29,7 +30,7 @@ public class AlluxioRemoteLogFilter extends Filter {
 
   @Override
   public int decide(LoggingEvent event) {
-    MDC.put("appender", mAppenderName);
+    MDC.put(REMOTE_LOG_MDC_APPENDER_NAME_KEY, mAppenderName);
     return ACCEPT;
   }
 }

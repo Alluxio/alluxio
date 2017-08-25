@@ -39,8 +39,6 @@ import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.ThreadPoolExecutor;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Properties;
 import java.util.Random;
 
@@ -57,13 +55,9 @@ public class AlluxioLogServerProcess implements LogServerProcess {
   private static final long REQUEST_TIMEOUT_IN_MS = 20000;
   private static final int BACKOFF_SLOT_IN_MS = 100;
 
-  private final int mRemoteMastersLoggingPort;
-  private final int mRemoteWorkersLoggingPort;
   private final String mBaseLogsDir;
-  private Thread mMastersLogThread;
-  private Thread mWorkersLogThread;
-  private LogReceiver mMastersLogReceiver;
-  private LogReceiver mWorkersLogReceiver;
+  private int mPort;
+  private ServerSocket mServerSocket;
   private final int mMinNumberOfThreads;
   private final int mMaxNumberOfThreads;
   private ExecutorService mThreadPool;
@@ -77,9 +71,7 @@ public class AlluxioLogServerProcess implements LogServerProcess {
    * @param baseLogsDir base directory to store the logs pushed from remote Alluxio servers
    */
   public AlluxioLogServerProcess(String baseLogsDir) {
-    // TODO(yanqin) make it configurable.
-    mRemoteMastersLoggingPort = Configuration.getInt(PropertyKey.LOG_SERVER_MASTERS_LOGGING_PORT);
-    mRemoteWorkersLoggingPort = Configuration.getInt(PropertyKey.LOG_SERVER_WORKERS_LOGGING_PORT);
+    mPort = Configuration.getInt(PropertyKey.LOG_SERVER_PORT);
     mMinNumberOfThreads = Configuration.getInt(PropertyKey.MASTER_WORKER_THREADS_MIN) + 2;
     mMaxNumberOfThreads = Configuration.getInt(PropertyKey.MASTER_WORKER_THREADS_MAX) + 2;
     mBaseLogsDir = baseLogsDir;
@@ -88,17 +80,12 @@ public class AlluxioLogServerProcess implements LogServerProcess {
 
   @Override
   public void start() throws Exception {
-    SynchronousQueue<Runnable> synchronousQueue =
-        new SynchronousQueue<>();
-    mThreadPool =
-        new ThreadPoolExecutor(mMinNumberOfThreads, mMaxNumberOfThreads,
-            STOP_TIMEOUT_IN_MS, TimeUnit.MILLISECONDS, synchronousQueue);
-    startLogServerThreads();
+    startServing();
   }
 
   @Override
   public void stop() throws Exception {
-    stopLogServerThreads();
+    stopServing();
   }
 
   @Override
@@ -114,32 +101,83 @@ public class AlluxioLogServerProcess implements LogServerProcess {
   /**
    * Create and start logging server threads.
    */
-  private void startLogServerThreads() {
-    mMastersLogReceiver = new LogReceiver(mRemoteMastersLoggingPort, "MASTER_LOGGER");
-    mWorkersLogReceiver = new LogReceiver(mRemoteWorkersLoggingPort, "WORKER_LOGGER");
-    mMastersLogThread = new Thread(mMastersLogReceiver);
-    mWorkersLogThread = new Thread(mWorkersLogReceiver);
+  private void startServing() {
+    SynchronousQueue<Runnable> synchronousQueue =
+        new SynchronousQueue<>();
+    mThreadPool =
+        new ThreadPoolExecutor(mMinNumberOfThreads, mMaxNumberOfThreads,
+            STOP_TIMEOUT_IN_MS, TimeUnit.MILLISECONDS, synchronousQueue);
+    try {
+      mServerSocket = new ServerSocket(mPort);
+    } catch (IOException e) {
+      LOG.error("Failed to bind to port {}.", mPort);
+      return;
+    }
+    int failureCount = 0;
     mStopped = false;
-    mMastersLogThread.start();
-    mWorkersLogThread.start();
-    while (!Thread.interrupted()) {
-      CommonUtils.sleepMs(LOG, 5000);
+    while (!mStopped) {
+      try {
+        Socket client = mServerSocket.accept();
+        InetAddress inetAddress = client.getInetAddress();
+        AlluxioLog4jSocketNode clientSocketNode =
+            new AlluxioLog4jSocketNode(this, client);
+        int retryCount = 0;
+        long remainTimeInMillis = REQUEST_TIMEOUT_IN_MS;
+        while (true) {
+          try {
+            mThreadPool.execute(clientSocketNode);
+            break;
+          } catch (Throwable t) {
+            if (t instanceof RejectedExecutionException) {
+              retryCount++;
+              try {
+                if (remainTimeInMillis > 0) {
+                  long sleepTimeInMillis = ((long) (mRandom.nextDouble()
+                      * (1L << Math.min(retryCount, 20)))) * BACKOFF_SLOT_IN_MS;
+                  sleepTimeInMillis = Math.min(sleepTimeInMillis, remainTimeInMillis);
+                  TimeUnit.MILLISECONDS.sleep(sleepTimeInMillis);
+                  remainTimeInMillis -= sleepTimeInMillis;
+                } else {
+                  client.close();
+                  LOG.warn("Connection has been rejected by ExecutorService "
+                      + retryCount + " times till timedout, reason: " + t);
+                  break;
+                }
+              } catch (InterruptedException e) {
+                LOG.warn("Interrupted while waiting to place client on executor queue.");
+                Thread.currentThread().interrupt();
+                break;
+              }
+            } else if (t instanceof Error) {
+              LOG.error("ExecutorService threw error: " + t, t);
+              throw (Error) t;
+            } else {
+              LOG.warn("ExecutorService threw error: " + t, t);
+              break;
+            }
+            // Could not create a thread to serve a client, ignore this client.
+            LOG.warn("Failed to connect with client: {}.", inetAddress.toString());
+            continue;
+          }
+        }
+      } catch (IOException e) {
+        if (!mStopped) {
+          ++failureCount;
+          LOG.warn("Socket transport error occurred during accepting message.", e);
+        }
+        break;
+      }
     }
   }
 
-  private void stopLogServerThreads() {
+  private void stopServing() {
     mStopped = true;
-    try {
-      mMastersLogReceiver.close();
-      mMastersLogThread.join();
-
-      mWorkersLogReceiver.close();
-      mWorkersLogThread.join();
-
-      mMastersLogThread = null;
-      mWorkersLogThread = null;
-    } catch (InterruptedException e) {
-      Thread.currentThread().interrupt();
+    if (mServerSocket != null) {
+      try {
+        mServerSocket.close();
+      } catch (IOException e) {
+        LOG.warn("Exception in closing server socket.", e);
+      }
     }
 
     mThreadPool.shutdown();
@@ -164,13 +202,13 @@ public class AlluxioLogServerProcess implements LogServerProcess {
    * {@link org.apache.log4j.spi.LoggingEvent}s.
    *
    * @param inetAddress inet address of the client
-   * @param loggerType type of the appender to use for this client, e.g. MASTER_LOGGER, etc
+   * @param logAppenderName name of the appender to use for this client
    * @return A {@link Hierarchy} instance to pass to {@link AlluxioLog4jSocketNode}
    * @throws IOException if fails to create an {@link FileInputStream} to read log4j.properties
    * @throws URISyntaxException if fails to derive a valid URI from the value of property named
    *         "log4j.configuration"
    */
-  private LoggerRepository configureHierarchy(InetAddress inetAddress, String loggerType)
+  protected LoggerRepository configureHierarchy(InetAddress inetAddress, String logAppenderName)
       throws IOException, URISyntaxException {
     Hierarchy clientHierarchy;
     String inetAddressStr = inetAddress.toString();
@@ -188,125 +226,17 @@ public class AlluxioLogServerProcess implements LogServerProcess {
     }
     clientHierarchy = new Hierarchy(new RootLogger(Level.INFO));
     String logFilePath = mBaseLogsDir;
-    if (loggerType.contains("MASTER")) {
+    if (logAppenderName.contains("MASTER")) {
       logFilePath += ("/master_logs/" + key + ".master.log");
-    } else if (loggerType.contains("WORKER")) {
+    } else if (logAppenderName.contains("WORKER")) {
       logFilePath += ("/worker_logs/" + key + ".worker.log");
     } else {
       // Should not reach here
       throw new IllegalStateException("Unknown logger type");
     }
-    properties.setProperty("log4j.rootLogger", "INFO," + loggerType);
-    properties.setProperty("log4j.appender." + loggerType + ".File", logFilePath);
+    properties.setProperty("log4j.rootLogger", "INFO," + logAppenderName);
+    properties.setProperty("log4j.appender." + logAppenderName + ".File", logFilePath);
     new PropertyConfigurator().doConfigure(properties, clientHierarchy);
     return clientHierarchy;
-  }
-
-  /**
-   * Runnable object that serves logging clients, i.e. Alluxio servers in this case.
-   */
-  private class LogReceiver implements Runnable {
-    private ServerSocket mServerSocket;
-    private final int mPort;
-    private final String mLoggerType;
-    private Map<InetAddress, LoggerRepository> mInetAddressHashMap;
-
-    /**
-     * Construct {@link LogReceiver} instance.
-     *
-     * @param port port number to bind
-     * @param loggerType string representation of the type of the appender,
-     *                   e.g. MASTER_LOGGER, WORKER_LOGGER, etc
-     */
-    public LogReceiver(int port, String loggerType) {
-      mPort = port;
-      mLoggerType = loggerType;
-      mInetAddressHashMap = new HashMap<>();
-    }
-
-    public void close() {
-      if (mServerSocket != null) {
-        try {
-          mServerSocket.close();
-        } catch (IOException e) {
-          return;
-        }
-      }
-    }
-
-    @Override
-    public void run() {
-      try {
-        mServerSocket = new ServerSocket(mPort);
-      } catch (IOException e) {
-        LOG.error("Failed to bind to port {}.", mPort);
-        return;
-      }
-      int failureCount = 0;
-      while (!mStopped) {
-        try {
-          Socket client = mServerSocket.accept();
-          InetAddress inetAddress = client.getInetAddress();
-          // Currently loggerRepository is always null because we are not using the map.
-          LoggerRepository loggerRepository = mInetAddressHashMap.get(inetAddress);
-          if (loggerRepository == null) {
-            try {
-              loggerRepository = configureHierarchy(inetAddress, mLoggerType);
-              mInetAddressHashMap.put(inetAddress, loggerRepository);
-            } catch (URISyntaxException e) {
-              LOG.warn("URI syntax error.");
-              continue;
-            }
-          }
-          AlluxioLog4jSocketNode clientSocketNode =
-              new AlluxioLog4jSocketNode(client, loggerRepository);
-          int retryCount = 0;
-          long remainTimeInMillis = REQUEST_TIMEOUT_IN_MS;
-          while (true) {
-            try {
-              mThreadPool.execute(clientSocketNode);
-              break;
-            } catch (Throwable t) {
-              if (t instanceof RejectedExecutionException) {
-                retryCount++;
-                try {
-                  if (remainTimeInMillis > 0) {
-                    long sleepTimeInMillis = ((long) (mRandom.nextDouble()
-                        * (1L << Math.min(retryCount, 20)))) * BACKOFF_SLOT_IN_MS;
-                    sleepTimeInMillis = Math.min(sleepTimeInMillis, remainTimeInMillis);
-                    TimeUnit.MILLISECONDS.sleep(sleepTimeInMillis);
-                    remainTimeInMillis -= sleepTimeInMillis;
-                  } else {
-                    client.close();
-                    LOG.warn("Connection has been rejected by ExecutorService "
-                        + retryCount + " times till timedout, reason: " + t);
-                    break;
-                  }
-                } catch (InterruptedException e) {
-                  LOG.warn("Interrupted while waiting to place client on executor queue.");
-                  Thread.currentThread().interrupt();
-                  break;
-                }
-              } else if (t instanceof Error) {
-                LOG.error("ExecutorService threw error: " + t, t);
-                throw (Error) t;
-              } else {
-                LOG.warn("ExecutorService threw error: " + t, t);
-                break;
-              }
-              // Could not create a thread to serve a client, ignore this client.
-              LOG.warn("Failed to connect with client: {}.", inetAddress.toString());
-              continue;
-            }
-          }
-        } catch (IOException e) {
-          if (!mStopped) {
-            ++failureCount;
-            LOG.warn("Socket transport error occurred during accepting message.", e);
-          }
-          break;
-        }
-      }
-    }
   }
 }
