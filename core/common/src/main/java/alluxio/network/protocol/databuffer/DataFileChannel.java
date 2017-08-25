@@ -61,7 +61,7 @@ public final class DataFileChannel implements DataBuffer {
 
   @Override
   public int readableBytes() {
-    return (int) mLength;
+    throw new UnsupportedOperationException("DataFileChannel#readableBytes is not implemented.");
   }
 
   @Override
