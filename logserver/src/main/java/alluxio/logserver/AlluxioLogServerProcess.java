@@ -213,13 +213,19 @@ public class AlluxioLogServerProcess implements LogServerProcess {
    *         "log4j.configuration"
    */
   protected LoggerRepository configureHierarchy(InetAddress inetAddress, String logAppenderName)
-      throws IOException, URISyntaxException {
+      throws IOException {
     Hierarchy clientHierarchy;
     String inetAddressStr = inetAddress.getHostAddress();
     Properties properties = new Properties();
-    final File configFile = new File(new URI(System.getProperty("log4j.configuration")));
-    try (FileInputStream inputStream = new FileInputStream(configFile)) {
-      properties.load(inputStream);
+    try {
+      final File configFile = new File(new URI(System.getProperty("log4j.configuration")));
+      try (FileInputStream inputStream = new FileInputStream(configFile)) {
+        properties.load(inputStream);
+      }
+    } catch (URISyntaxException e) {
+      // Alluxio log server cannot derive a valid path to log4j.properties. Since this
+      // properties file is global, we should throw an exception.
+      throw new RuntimeException(e);
     }
     clientHierarchy = new Hierarchy(new RootLogger(Level.INFO));
     String logFilePath = mBaseLogsDir;

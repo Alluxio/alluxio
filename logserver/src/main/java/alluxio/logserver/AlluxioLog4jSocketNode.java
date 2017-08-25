@@ -29,6 +29,9 @@ import java.net.Socket;
  * a thread serving the logging requests of the client.
  */
 public class AlluxioLog4jSocketNode implements Runnable {
+  /**
+   * A reference variable of the {@link AlluxioLogServerProcess} instance.
+   */
   private AlluxioLogServerProcess mLogServerProcess;
   private Socket mSocket;
   private LoggerRepository mHierarchy;
@@ -72,8 +75,9 @@ public class AlluxioLog4jSocketNode implements Runnable {
           remoteLogger.callAppenders(event);
         }
       }
-    } catch (Exception e) {
-      // TODO(yanqin) attempt to recover.
+    } catch (IOException | ClassNotFoundException e) {
+      // Something went wrong, cannot recover.
+      throw new RuntimeException(e);
     } finally {
       if (mSocket != null) {
         try {
