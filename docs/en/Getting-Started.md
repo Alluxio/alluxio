@@ -116,7 +116,7 @@ You can also make the command run only specific validation task. For example,
 $ ./bin/alluxio validateEnv local ulimit
 ```
 
-Will only run validation tasks that checks your local system resource limits.
+Will only run validation tasks that check your local system resource limits.
 
 You can check out [this page](Developer-Tips.html) for detailed usage information regarding this command.
 
