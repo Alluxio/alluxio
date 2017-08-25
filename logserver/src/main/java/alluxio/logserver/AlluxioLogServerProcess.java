@@ -215,14 +215,7 @@ public class AlluxioLogServerProcess implements LogServerProcess {
   protected LoggerRepository configureHierarchy(InetAddress inetAddress, String logAppenderName)
       throws IOException, URISyntaxException {
     Hierarchy clientHierarchy;
-    String inetAddressStr = inetAddress.toString();
-    int i = inetAddressStr.indexOf("/");
-    String key;
-    if (i == 0) {
-      key = inetAddressStr.substring(1, inetAddressStr.length());
-    } else {
-      key = inetAddressStr.substring(0, i);
-    }
+    String inetAddressStr = inetAddress.getHostAddress();
     Properties properties = new Properties();
     final File configFile = new File(new URI(System.getProperty("log4j.configuration")));
     try (FileInputStream inputStream = new FileInputStream(configFile)) {
@@ -231,9 +224,9 @@ public class AlluxioLogServerProcess implements LogServerProcess {
     clientHierarchy = new Hierarchy(new RootLogger(Level.INFO));
     String logFilePath = mBaseLogsDir;
     if (logAppenderName.contains("MASTER")) {
-      logFilePath += ("/master_logs/" + key + ".master.log");
+      logFilePath += ("/master_logs/" + inetAddressStr + ".master.log");
     } else if (logAppenderName.contains("WORKER")) {
-      logFilePath += ("/worker_logs/" + key + ".worker.log");
+      logFilePath += ("/worker_logs/" + inetAddressStr + ".worker.log");
     } else {
       // Should not reach here
       throw new IllegalStateException("Unknown logger type");
