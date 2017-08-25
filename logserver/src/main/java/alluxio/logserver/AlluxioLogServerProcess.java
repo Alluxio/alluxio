@@ -227,7 +227,8 @@ public class AlluxioLogServerProcess implements LogServerProcess {
       // properties file is global, we should throw an exception.
       throw new RuntimeException(e);
     }
-    clientHierarchy = new Hierarchy(new RootLogger(Level.INFO));
+    Level level = Level.INFO;
+    clientHierarchy = new Hierarchy(new RootLogger(level));
     String logFilePath = mBaseLogsDir;
     if (logAppenderName.contains("MASTER")) {
       logFilePath += ("/master_logs/" + inetAddressStr + ".master.log");
@@ -237,7 +238,7 @@ public class AlluxioLogServerProcess implements LogServerProcess {
       // Should not reach here
       throw new IllegalStateException("Unknown logger type");
     }
-    properties.setProperty("log4j.rootLogger", "INFO," + logAppenderName);
+    properties.setProperty("log4j.rootLogger", level.toString() + "," + logAppenderName);
     properties.setProperty("log4j.appender." + logAppenderName + ".File", logFilePath);
     new PropertyConfigurator().doConfigure(properties, clientHierarchy);
     return clientHierarchy;
