@@ -43,7 +43,7 @@ public class UnderFileSystemFileOutStream extends BlockOutStream {
   }
 
   /**
-   * Constructs a new {@link BlockOutStream} with only one {@link PacketWriter}.
+   * Constructs a new {@link UnderFileSystemFileOutStream} with only one {@link PacketWriter}.
    *
    * @param packetWriter the packet writer
    */

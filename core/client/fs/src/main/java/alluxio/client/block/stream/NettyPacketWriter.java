@@ -117,7 +117,7 @@ public final class NettyPacketWriter implements PacketWriter {
    * @param options the options of the output stream
    * @return an instance of {@link NettyPacketWriter}
    */
-  public static NettyPacketWriter create(FileSystemContext context, final WorkerNetAddress address,
+  public static NettyPacketWriter create(FileSystemContext context, WorkerNetAddress address,
       long id, long length, Protocol.RequestType type, OutStreamOptions options)
       throws IOException {
     long packetSize =

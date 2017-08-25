@@ -178,7 +178,7 @@ public class BlockOutStream extends OutputStream implements BoundedStream, Cance
     try {
       updateCurrentPacket(true);
     } catch (Throwable t) {
-      mCloser.rethrow(t);
+      throw mCloser.rethrow(t);
     } finally {
       mClosed = true;
       mCloser.close();
