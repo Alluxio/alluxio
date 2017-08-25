@@ -74,6 +74,7 @@ public class ListBucketResult {
   public ListBucketResult(
       String bucketName, List<URIStatus> objectsList, ListBucketOptions options) {
     mName = bucketName;
+    mPrefix = options.getPrefix();
     mKeyCount = 0;
     if (options.getMaxKeys() != null) {
       mMaxKeys = Integer.parseInt(options.getMaxKeys());
@@ -103,6 +104,9 @@ public class ListBucketResult {
         return;
       }
       if (mContinuationToken != null && objectKey.compareTo(mContinuationToken) < 0) {
+        continue;
+      }
+      if (mPrefix != null && !objectKey.startsWith(mPrefix)) {
         continue;
       }
       // TODO(chaomin): set ETag once there's a way to get MD5 hash of an Alluxio file.

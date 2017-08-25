@@ -248,9 +248,24 @@ public final class S3ClientRestApiTest extends RestApiTest {
     ListBucketResult expected = new ListBucketResult(
         AlluxioURI.SEPARATOR + bucket, objectsList, ListBucketOptions.defaults());
 
-    // Verify
+    // Verify op with no param
     new TestCase(mHostname, mPort, S3_SERVICE_PREFIX + AlluxioURI.SEPARATOR + bucket, NO_PARAMS,
         HttpMethod.GET, expected,
+        TestCaseOptions.defaults().setContentType(TestCaseOptions.XML_CONTENT_TYPE)).run();
+
+    // Verify op with prefix
+    final String prefix = "dir";
+    Map<String, String> prefixParam = new HashMap<>();
+    prefixParam.put("prefix", prefix);
+    List<URIStatus> filteredObjectsList = new ArrayList<>();
+    filteredObjectsList.add(
+        new URIStatus(mFileSystemMaster.getFileInfo(file3, GetStatusOptions.defaults())));
+    filteredObjectsList.add(
+        new URIStatus(mFileSystemMaster.getFileInfo(dir2, GetStatusOptions.defaults())));
+    expected = new ListBucketResult(AlluxioURI.SEPARATOR + bucket, filteredObjectsList,
+        ListBucketOptions.defaults().setPrefix(prefix));
+    new TestCase(mHostname, mPort, S3_SERVICE_PREFIX + AlluxioURI.SEPARATOR + bucket,
+        prefixParam, HttpMethod.GET, expected,
         TestCaseOptions.defaults().setContentType(TestCaseOptions.XML_CONTENT_TYPE)).run();
   }
 

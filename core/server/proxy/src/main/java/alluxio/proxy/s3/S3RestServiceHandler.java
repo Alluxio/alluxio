@@ -287,15 +287,15 @@ public final class S3RestServiceHandler {
   }
 
   private List<URIStatus> listObjects(AlluxioURI uri, ListBucketOptions listBucketOptions)
-      throws IOException, AlluxioException {
+      throws FileDoesNotExistException, IOException, AlluxioException {
     List<URIStatus> objects = new ArrayList<>();
     Queue<URIStatus> traverseQueue = new ArrayDeque<>();
 
     List<URIStatus> children;
     String prefix = listBucketOptions.getPrefix();
     if (prefix != null && prefix.contains(AlluxioURI.SEPARATOR)) {
-      AlluxioURI prefixDirUri = new AlluxioURI(
-          uri.getPath() + prefix.substring(0, prefix.lastIndexOf(AlluxioURI.SEPARATOR)));
+      AlluxioURI prefixDirUri = new AlluxioURI(uri.getPath() + AlluxioURI.SEPARATOR
+          + prefix.substring(0, prefix.lastIndexOf(AlluxioURI.SEPARATOR)));
       children = mFileSystem.listStatus(prefixDirUri);
     } else {
       children = mFileSystem.listStatus(uri);
