@@ -1087,17 +1087,11 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey WORKER_TIERED_STORE_LEVEL0_RESERVED_RATIO =
       new Builder(Template.WORKER_TIERED_STORE_LEVEL_RESERVED_RATIO, 0).build();
   public static final PropertyKey WORKER_TIERED_STORE_LEVEL0_HIGH_WATERMARK_RATIO =
-<<<<<<< HEAD
-      create(Template.WORKER_TIERED_STORE_LEVEL_HIGH_WATERMARK_RATIO, 0.95, 0);
-||||||| merged common ancestors
-      create(Template.WORKER_TIERED_STORE_LEVEL_HIGH_WATERMARK_RATIO, 1.0, 0);
-=======
       new Builder(Template.WORKER_TIERED_STORE_LEVEL_HIGH_WATERMARK_RATIO, 0)
-          .setDefaultValue(1.0)
+          .setDefaultValue(0.95)
           .setDescription("The high watermark of the space in the top storage layer (a value "
               + "between 0 and 1).")
           .build();
->>>>>>> upstream/master
   public static final PropertyKey WORKER_TIERED_STORE_LEVEL0_LOW_WATERMARK_RATIO =
       new Builder(Template.WORKER_TIERED_STORE_LEVEL_LOW_WATERMARK_RATIO, 0)
           .setDefaultValue(0.7)
@@ -1119,15 +1113,9 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey WORKER_TIERED_STORE_LEVEL1_RESERVED_RATIO =
       new Builder(Template.WORKER_TIERED_STORE_LEVEL_RESERVED_RATIO, 1).build();
   public static final PropertyKey WORKER_TIERED_STORE_LEVEL1_HIGH_WATERMARK_RATIO =
-<<<<<<< HEAD
-      create(Template.WORKER_TIERED_STORE_LEVEL_HIGH_WATERMARK_RATIO, 0.95, 1);
-||||||| merged common ancestors
-      create(Template.WORKER_TIERED_STORE_LEVEL_HIGH_WATERMARK_RATIO, 1.0, 1);
-=======
       new Builder(Template.WORKER_TIERED_STORE_LEVEL_HIGH_WATERMARK_RATIO, 1)
-          .setDefaultValue(1.0)
+          .setDefaultValue(0.95)
           .build();
->>>>>>> upstream/master
   public static final PropertyKey WORKER_TIERED_STORE_LEVEL1_LOW_WATERMARK_RATIO =
       new Builder(Template.WORKER_TIERED_STORE_LEVEL_LOW_WATERMARK_RATIO, 1)
           .setDefaultValue(0.7)
@@ -1147,15 +1135,9 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey WORKER_TIERED_STORE_LEVEL2_RESERVED_RATIO =
       new Builder(Template.WORKER_TIERED_STORE_LEVEL_RESERVED_RATIO, 2).build();
   public static final PropertyKey WORKER_TIERED_STORE_LEVEL2_HIGH_WATERMARK_RATIO =
-<<<<<<< HEAD
-      create(Template.WORKER_TIERED_STORE_LEVEL_HIGH_WATERMARK_RATIO, 0.95, 2);
-||||||| merged common ancestors
-      create(Template.WORKER_TIERED_STORE_LEVEL_HIGH_WATERMARK_RATIO, 1.0, 2);
-=======
       new Builder(Template.WORKER_TIERED_STORE_LEVEL_HIGH_WATERMARK_RATIO, 2)
-          .setDefaultValue(1.0)
+          .setDefaultValue(0.95)
           .build();
->>>>>>> upstream/master
   public static final PropertyKey WORKER_TIERED_STORE_LEVEL2_LOW_WATERMARK_RATIO =
       new Builder(Template.WORKER_TIERED_STORE_LEVEL_LOW_WATERMARK_RATIO, 2)
           .setDefaultValue(0.7)

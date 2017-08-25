@@ -52,14 +52,8 @@ alluxio.worker.tieredstore.free.space.ratio,0.0
 alluxio.worker.tieredstore.level0.alias,MEM
 alluxio.worker.tieredstore.level0.dirs.path,/mnt/ramdisk
 alluxio.worker.tieredstore.level0.dirs.quota,${alluxio.worker.memory.size}
-<<<<<<< HEAD
-alluxio.worker.tieredstore.level0.watermark.high.ratio,0.95
-||||||| merged common ancestors
-alluxio.worker.tieredstore.level0.watermark.high.ratio,1.0
-=======
 alluxio.worker.tieredstore.level0.reserved.ratio,
-alluxio.worker.tieredstore.level0.watermark.high.ratio,1.0
->>>>>>> upstream/master
+alluxio.worker.tieredstore.level0.watermark.high.ratio,0.95
 alluxio.worker.tieredstore.level0.watermark.low.ratio,0.7
 alluxio.worker.tieredstore.level1.alias,
 alluxio.worker.tieredstore.level1.dirs.path,

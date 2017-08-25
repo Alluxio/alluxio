@@ -168,36 +168,16 @@ public final class AlluxioBlockStore {
         // only randomize among locations in the highest tier, or have the master randomize the
         // order.
         List<BlockLocation> locations = blockInfo.getLocations();
+        if (locations.isEmpty()) {
+          throw new UnavailableException(ExceptionMessage.NO_WORKER_AVAILABLE.getMessage());
+        }
         address = locations.get(mRandom.nextInt(locations.size())).getWorkerAddress();
         source = BlockInStreamSource.REMOTE;
       }
     }
-<<<<<<< HEAD
 
     return BlockInStream.create(mContext, blockId, blockInfo.getLength(), address, source,
         openUfsBlockOptions, options);
-||||||| merged common ancestors
-    if (address == null) {
-      // No local worker/block, choose a random location. In the future we could change this to
-      // only randomize among locations in the highest tier, or have the master randomize the order.
-      List<BlockLocation> locations = blockInfo.getLocations();
-      address = locations.get(mRandom.nextInt(locations.size())).getWorkerAddress();
-    }
-    return BlockInStream
-        .create(mContext, blockId, blockInfo.getLength(), address, openUfsBlockOptions, options);
-=======
-    if (address == null) {
-      // No local worker/block, choose a random location. In the future we could change this to
-      // only randomize among locations in the highest tier, or have the master randomize the order.
-      List<BlockLocation> locations = blockInfo.getLocations();
-      if (locations.isEmpty()) {
-        throw new UnavailableException(ExceptionMessage.NO_WORKER_AVAILABLE.getMessage());
-      }
-      address = locations.get(mRandom.nextInt(locations.size())).getWorkerAddress();
-    }
-    return BlockInStream
-        .create(mContext, blockId, blockInfo.getLength(), address, openUfsBlockOptions, options);
->>>>>>> upstream/master
   }
 
   /**

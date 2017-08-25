@@ -42,20 +42,13 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public class BlockInStream extends InputStream implements BoundedStream, Seekable,
-<<<<<<< HEAD
     PositionedReadable {
+  private static final Logger LOG = LoggerFactory.getLogger(BlockInStream.class);
   /** the source tracking where the block is from. */
   public enum BlockInStreamSource {
     LOCAL, REMOTE, UFS
   }
 
-||||||| merged common ancestors
-    PositionedReadable, Locatable {
-=======
-    PositionedReadable, Locatable {
-  private static final Logger LOG = LoggerFactory.getLogger(BlockInStream.class);
-
->>>>>>> upstream/master
   /** The id of the block or UFS file to which this instream provides access. */
   private final long mId;
   /** The size in bytes of the block. */
@@ -110,16 +103,10 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
       builder.setOpenUfsBlockOptions(openUfsBlockOptions);
     }
 
-<<<<<<< HEAD
-    return createNettyBlockInStream(context, address, blockSource, builder.buildPartial(),
-        blockSize, options);
-||||||| merged common ancestors
-    return createNettyBlockInStream(context, address, builder.buildPartial(), blockSize, options);
-=======
     LOG.info("Creating netty input stream for block {} @ {} from client {}", blockId, address,
         NetworkAddressUtils.getClientHostName());
-    return createNettyBlockInStream(context, address, builder.buildPartial(), blockSize, options);
->>>>>>> upstream/master
+    return createNettyBlockInStream(context, address, blockSource, builder.buildPartial(),
+        blockSize, options);
   }
 
   /**
