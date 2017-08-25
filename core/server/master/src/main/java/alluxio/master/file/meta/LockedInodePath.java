@@ -159,4 +159,12 @@ public abstract class LockedInodePath implements AutoCloseable {
   public synchronized void close() {
     mLockList.close();
   }
+
+  /**
+   * Downgrades the last inode that was locked, if the inode was previously WRITE locked. If the
+   * inode was previously READ locked, no additional locking will occur.
+   */
+  public synchronized void downgradeLast() {
+    mLockList.downgradeLast();
+  }
 }
