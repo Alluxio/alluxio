@@ -24,7 +24,6 @@
 
   <modules>
     <module>gcs</module>
-    <module>glusterfs</module>
     <module>hdfs</module>
     <module>local</module>
     <module>oss</module>
