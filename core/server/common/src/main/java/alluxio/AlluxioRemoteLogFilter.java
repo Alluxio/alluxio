@@ -37,20 +37,38 @@ public class AlluxioRemoteLogFilter extends Filter {
    */
   String mAppenderName;
 
-  public String[] getAppenderStrings() {
+  /**
+   * @return option strings as an array
+   */
+  public String[] getOptionStrings() {
     return new String[] {APPENDER_NAME_OPTION};
   }
 
+  /**
+   * Set option value use key=value format. The log4j.properties file uses this to set options.
+   * See the log4j.properties for more details.
+   *
+   * @param key key (name) of the option
+   * @param value value of the option
+   */
   public void setOption(String key, String value) {
     if (key.equalsIgnoreCase("AppenderName")) {
       mAppenderName = value;
     }
   }
 
+  /**
+   * Set the name of the log appender.
+   *
+   * @param appenderName name of the log appender
+   */
   public void setAppenderName(String appenderName) {
     mAppenderName = appenderName;
   }
 
+  /**
+   * @return the name of the log appender
+   */
   public String getAppenderName() {
     return mAppenderName;
   }
