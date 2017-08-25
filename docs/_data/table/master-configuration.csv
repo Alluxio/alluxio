@@ -16,6 +16,7 @@ alluxio.master.journal.log.size.bytes.max,10MB
 alluxio.master.journal.tailer.shutdown.quiet.wait.time,5sec
 alluxio.master.journal.tailer.sleep.time,1sec
 alluxio.master.journal.temporary.file.gc.threshold,30min
+alluxio.master.journal.type,UFS
 alluxio.master.journal.ufs.option,
 alluxio.master.keytab.file,
 alluxio.master.lineage.checkpoint.class,alluxio.master.lineage.checkpoint.CheckpointLatestPlanner
