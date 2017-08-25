@@ -834,11 +834,12 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       try (InodeLockList children = mInodeTree.lockDescendants(parent, InodeTree.LockMode.READ)) {
         if (!checkConsistencyInternal(parent.getInode(), parent.getUri())) {
           inconsistentUris.add(parent.getUri());
-        }
-        for (Inode child : children.getInodes()) {
-          AlluxioURI currentPath = mInodeTree.getPath(child);
-          if (!checkConsistencyInternal(child, currentPath)) {
-            inconsistentUris.add(currentPath);
+        } else {
+          for (Inode child : children.getInodes()) {
+            AlluxioURI currentPath = mInodeTree.getPath(child);
+            if (!checkConsistencyInternal(child, currentPath)) {
+              inconsistentUris.add(currentPath);
+            }
           }
         }
       }
