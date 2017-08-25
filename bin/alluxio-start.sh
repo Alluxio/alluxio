@@ -311,7 +311,9 @@ main() {
         stop all
         sleep 1
       fi
-      start_logserver
+      if [[ "${alluxio_remote_logging_enabled}" == "true" ]]; then
+          start_logserver
+      fi
       start_masters "${FORMAT}"
       sleep 2
       start_workers "${MOPT}"
@@ -322,7 +324,9 @@ main() {
         stop local
         sleep 1
       fi
-      start_logserver
+      if [[ "${alluxio_remote_logging_enabled}" == "true" ]]; then
+          start_logserver
+      fi
       start_master "${FORMAT}"
       ALLUXIO_MASTER_SECONDARY=true
       start_master
@@ -357,6 +361,9 @@ main() {
       ;;
     workers)
       start_workers "${MOPT}"
+      ;;
+    logserver)
+      start_logserver
       ;;
     *)
     echo "Error: Invalid ACTION: ${ACTION}" >&2
