@@ -98,7 +98,11 @@ public final class LocalFilePacketWriter implements PacketWriter {
       return new LocalFilePacketWriter(blockId, packetSize, options, channel,
           writer, createRequest, nettyRPCContext, closer);
     } catch (Exception e) {
-      closer.close();
+      try {
+        closer.close();
+      } catch (Exception e1) {
+        e.addSuppressed(e1);
+      }
       throw e;
     }
   }
