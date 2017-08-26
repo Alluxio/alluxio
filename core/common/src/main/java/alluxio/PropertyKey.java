@@ -1820,7 +1820,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.network.netty.heartbeat.timeout";
     public static final String NETWORK_THRIFT_FRAME_SIZE_BYTES_MAX =
         "alluxio.network.thrift.frame.size.bytes.max";
-    public static final String REMOTE_LOGGING_ENABLED = "alluxio.remotelogging.enabled";
+    public static final String REMOTE_LOGGING_ENABLED = "alluxio.remote.logging.enabled";
     public static final String SITE_CONF_DIR = "alluxio.site.conf.dir";
     public static final String TEST_MODE = "alluxio.test.mode";
     public static final String VERSION = "alluxio.version";
