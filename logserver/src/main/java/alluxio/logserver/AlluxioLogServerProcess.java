@@ -13,6 +13,8 @@ package alluxio.logserver;
 
 import alluxio.Configuration;
 import alluxio.PropertyKey;
+import alluxio.retry.ExponentialBackoffRetry;
+import alluxio.retry.RetryPolicy;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 
@@ -52,8 +54,9 @@ import java.util.Random;
 public class AlluxioLogServerProcess implements LogServerProcess {
   private static final Logger LOG = LoggerFactory.getLogger(AlluxioLogServer.class);
   private static final long STOP_TIMEOUT_IN_MS = 60000;
-  private static final long REQUEST_TIMEOUT_IN_MS = 20000;
-  private static final int BACKOFF_SLOT_IN_MS = 100;
+  private static final int BASE_SLEEP_TIME_IN_MS = 50;
+  private static final int MAX_SLEEP_TIME_IN_MS = 30000;
+  private static final int MAX_NUM_RETRY = 20;
 
   private final String mBaseLogsDir;
   private int mPort;
@@ -113,7 +116,6 @@ public class AlluxioLogServerProcess implements LogServerProcess {
       LOG.error("Failed to bind to port {}.", mPort);
       return;
     }
-    int failureCount = 0;
     mStopped = false;
     while (!mStopped) {
       try {
@@ -121,48 +123,32 @@ public class AlluxioLogServerProcess implements LogServerProcess {
         InetAddress inetAddress = client.getInetAddress();
         AlluxioLog4jSocketNode clientSocketNode =
             new AlluxioLog4jSocketNode(this, client);
-        int retryCount = 0;
-        long remainTimeInMillis = REQUEST_TIMEOUT_IN_MS;
+        RetryPolicy retryPolicy = new ExponentialBackoffRetry(
+            BASE_SLEEP_TIME_IN_MS, MAX_SLEEP_TIME_IN_MS, MAX_NUM_RETRY);
         while (true) {
           try {
             mThreadPool.execute(clientSocketNode);
             break;
           } catch (Throwable t) {
             if (t instanceof RejectedExecutionException) {
-              retryCount++;
-              try {
-                if (remainTimeInMillis > 0) {
-                  long sleepTimeInMillis = ((long) (mRandom.nextDouble()
-                      * (1L << Math.min(retryCount, 20)))) * BACKOFF_SLOT_IN_MS;
-                  sleepTimeInMillis = Math.min(sleepTimeInMillis, remainTimeInMillis);
-                  TimeUnit.MILLISECONDS.sleep(sleepTimeInMillis);
-                  remainTimeInMillis -= sleepTimeInMillis;
-                } else {
-                  client.close();
-                  LOG.warn("Connection has been rejected by ExecutorService "
-                      + retryCount + " times till timedout, reason: " + t);
-                  break;
-                }
-              } catch (InterruptedException e) {
-                LOG.warn("Interrupted while waiting to place client on executor queue.");
-                Thread.currentThread().interrupt();
+              if (!retryPolicy.attemptRetry()) {
+                LOG.warn("Connection with {} has been rejected by ExecutorService {} times"
+                    + "till timedout, reason: {}",
+                    inetAddress.getHostAddress(), retryPolicy.getRetryCount(), t);
+                client.close();
                 break;
               }
             } else if (t instanceof Error) {
-              LOG.error("ExecutorService threw error: " + t, t);
+              LOG.error("ExecutorService threw error: ", t);
               throw (Error) t;
             } else {
-              LOG.warn("ExecutorService threw error: " + t, t);
+              LOG.warn("ExecutorService threw error: ", t);
               break;
             }
-            // Could not create a thread to serve a client, ignore this client.
-            LOG.warn("Failed to connect with client: {}.", inetAddress.toString());
-            continue;
           }
         }
       } catch (IOException e) {
         if (!mStopped) {
-          ++failureCount;
           LOG.warn("Socket transport error occurred during accepting message.", e);
         }
         break;
