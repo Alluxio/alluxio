@@ -229,17 +229,16 @@ public class AlluxioLogServerProcess implements LogServerProcess {
     }
     Level level = Level.INFO;
     clientHierarchy = new Hierarchy(new RootLogger(level));
-    String logFilePath = mBaseLogsDir;
-    if (logAppenderName.contains("MASTER")) {
-      logFilePath += ("/master_logs/" + inetAddressStr + ".master.log");
-    } else if (logAppenderName.contains("WORKER")) {
-      logFilePath += ("/worker_logs/" + inetAddressStr + ".worker.log");
-    } else {
-      // Should not reach here
-      throw new IllegalStateException("Unknown logger type");
+    // Startup script should guarantee that mBaseLogsDir already exists.
+    String logDirectoryPath = mBaseLogsDir + "/" + logAppenderName.toLowerCase();
+    File logDirectory = new File(logDirectoryPath);
+    LOG.info(logDirectoryPath);
+    if (!logDirectory.exists()) {
+      logDirectory.mkdir();
     }
-    properties.setProperty("log4j.rootLogger", level.toString() + "," + logAppenderName);
-    properties.setProperty("log4j.appender." + logAppenderName + ".File", logFilePath);
+    String logFilePath = logDirectoryPath + "/" + inetAddressStr + ".log";
+    properties.setProperty("log4j.rootLogger", level.toString() + ",LOGSERVER_CLIENT_LOGGER");
+    properties.setProperty("log4j.appender.LOGSERVER_CLIENT_LOGGER.File", logFilePath);
     new PropertyConfigurator().doConfigure(properties, clientHierarchy);
     return clientHierarchy;
   }
