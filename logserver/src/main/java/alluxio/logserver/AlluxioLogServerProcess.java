@@ -42,7 +42,6 @@ import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.Properties;
-import java.util.Random;
 
 /**
  * A centralized log server for Alluxio
@@ -65,8 +64,6 @@ public class AlluxioLogServerProcess implements LogServerProcess {
   private final int mMaxNumberOfThreads;
   private ExecutorService mThreadPool;
   private volatile boolean mStopped;
-
-  private final Random mRandom = new Random(System.currentTimeMillis());
 
   /**
    * Construct an {@link AlluxioLogServerProcess} instance.
