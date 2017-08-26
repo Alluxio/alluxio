@@ -135,6 +135,7 @@ public final class NettyPacketWriter implements PacketWriter {
    * @param id the block or UFS file Id
    * @param length the length of the block or file to write, set to Long.MAX_VALUE if unknown
    * @param packetSize the packet size
+   * @param type type of the write request
    * @param options details of the write request which are constant for all requests
    * @param channel netty channel
    */

@@ -18,6 +18,7 @@ import alluxio.client.file.options.OutStreamOptions;
 import alluxio.client.netty.NettyRPC;
 import alluxio.client.netty.NettyRPCContext;
 import alluxio.proto.dataserver.Protocol;
+import alluxio.util.CommonUtils;
 import alluxio.util.proto.ProtoMessage;
 import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.block.io.LocalFileBlockWriter;
@@ -98,12 +99,7 @@ public final class LocalFilePacketWriter implements PacketWriter {
       return new LocalFilePacketWriter(blockId, packetSize, options, channel,
           writer, createRequest, nettyRPCContext, closer);
     } catch (Exception e) {
-      try {
-        closer.close();
-      } catch (Exception e1) {
-        e.addSuppressed(e1);
-      }
-      throw e;
+      throw CommonUtils.closeAndRethrow(closer, e);
     }
   }
 
