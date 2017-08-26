@@ -32,8 +32,8 @@ public class AlluxioLog4jSocketNode implements Runnable {
   /**
    * A reference variable of the {@link AlluxioLogServerProcess} instance.
    */
-  private AlluxioLogServerProcess mLogServerProcess;
-  private Socket mSocket;
+  private final AlluxioLogServerProcess mLogServerProcess;
+  private final Socket mSocket;
   private LoggerRepository mHierarchy;
 
   /**

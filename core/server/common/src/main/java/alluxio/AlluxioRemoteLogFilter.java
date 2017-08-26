@@ -23,19 +23,14 @@ import org.apache.log4j.spi.LoggingEvent;
  * class is similar to that of {@link org.apache.log4j.varia.StringMatchFilter}.
  */
 public class AlluxioRemoteLogFilter extends Filter {
-  /**
-   * Name (Key) of the MDC info.
-   */
+  /** Name (Key) of the MDC info. */
   public static final String REMOTE_LOG_MDC_APPENDER_NAME_KEY = "appender";
-  /**
-   * Option name to configure this {@link AlluxioRemoteLogFilter} in log4j.properties.
-   */
+
+  /** Option name to configure this {@link AlluxioRemoteLogFilter} in log4j.properties. */
   public static final String APPENDER_NAME_OPTION = "AppenderName";
 
-  /**
-   * Name of the log appender.
-   */
-  String mAppenderName;
+  /** Name of the log appender. */
+  private String mAppenderName;
 
   /**
    * @return option strings as an array
@@ -78,4 +73,7 @@ public class AlluxioRemoteLogFilter extends Filter {
     MDC.put(REMOTE_LOG_MDC_APPENDER_NAME_KEY, mAppenderName);
     return ACCEPT;
   }
+
+  /** Optional constructor. Log4j does not require the presence of a constructor for filters. */
+  public AlluxioRemoteLogFilter() {}
 }
