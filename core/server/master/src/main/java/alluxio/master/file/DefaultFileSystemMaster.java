@@ -498,10 +498,12 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
           new HeartbeatThread(HeartbeatContext.MASTER_TTL_CHECK,
               new InodeTtlChecker(this, mInodeTree, mTtlBuckets),
               Configuration.getInt(PropertyKey.MASTER_TTL_CHECKER_INTERVAL_MS)));
-      mLostFilesDetectionService = getExecutorService().submit(
-          new HeartbeatThread(HeartbeatContext.MASTER_LOST_FILES_DETECTION,
-              new LostFileDetector(this, mInodeTree),
-              Configuration.getInt(PropertyKey.MASTER_HEARTBEAT_INTERVAL_MS)));
+      if (Configuration.getBoolean(PropertyKey.MASTER_LOST_FILE_DETECTOR_ENABLED)) {
+        mLostFilesDetectionService = getExecutorService().submit(
+            new HeartbeatThread(HeartbeatContext.MASTER_LOST_FILES_DETECTION,
+                new LostFileDetector(this, mInodeTree),
+                Configuration.getInt(PropertyKey.MASTER_HEARTBEAT_INTERVAL_MS)));
+      }
       if (Configuration.getBoolean(PropertyKey.MASTER_STARTUP_CONSISTENCY_CHECK_ENABLED)) {
         mStartupConsistencyCheck = getExecutorService().submit(new Callable<List<AlluxioURI>>() {
           @Override

@@ -248,6 +248,8 @@ public class PropertyKey {
   public static final PropertyKey MASTER_LINEAGE_RECOMPUTE_LOG_PATH =
       create(Name.MASTER_LINEAGE_RECOMPUTE_LOG_PATH,
           String.format("${%s}/recompute.log", Name.LOGS_DIR));
+  public static final PropertyKey MASTER_LOST_FILE_DETECTOR_ENABLED =
+      create(Name.MASTER_LOST_FILE_DETECTOR_ENABLED, true);
   public static final PropertyKey MASTER_PRINCIPAL = create(Name.MASTER_PRINCIPAL, null);
   /**
    * @deprecated since version 1.4 and will be removed in version 2.0,
@@ -854,6 +856,8 @@ public class PropertyKey {
         "alluxio.master.lineage.recompute.interval.ms";
     public static final String MASTER_LINEAGE_RECOMPUTE_LOG_PATH =
         "alluxio.master.lineage.recompute.log.path";
+    public static final String MASTER_LOST_FILE_DETECTOR_ENABLED =
+        "alluxio.master.lost.file.detector.enabled";
     public static final String MASTER_PRINCIPAL = "alluxio.master.principal";
     public static final String MASTER_RETRY = "alluxio.master.retry";
     public static final String MASTER_RPC_PORT = "alluxio.master.port";
