@@ -67,7 +67,8 @@ final class PipelineHandler extends ChannelInitializer<Channel> {
         new BlockReadHandler(NettyExecutors.BLOCK_READER_EXECUTOR,
             mWorkerProcess.getWorker(BlockWorker.class), mFileTransferType));
     pipeline.addLast("blockWriteHandler", new BlockWriteHandler(
-        NettyExecutors.BLOCK_WRITER_EXECUTOR, mWorkerProcess.getWorker(BlockWorker.class)));
+        NettyExecutors.BLOCK_WRITER_EXECUTOR, mWorkerProcess.getWorker(BlockWorker.class),
+        mWorkerProcess.getUfsManager()));
     pipeline.addLast("shortCircuitBlockReadHandler",
         new ShortCircuitBlockReadHandler(NettyExecutors.RPC_EXECUTOR,
             mWorkerProcess.getWorker(BlockWorker.class)));

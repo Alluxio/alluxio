@@ -155,8 +155,9 @@ public final class BlockReadHandler extends AbstractReadHandler<BlockReadRequest
           try {
             BlockReader reader =
                 mWorker.readBlockRemote(request.getSessionId(), request.getId(), lockId);
+            String metricName = "BytesReadAlluxio";
             context.setBlockReader(reader);
-            context.setCounter(MetricsSystem.workerCounter("BytesReadAlluxio"));
+            context.setCounter(MetricsSystem.workerCounter(metricName));
             mWorker.accessBlock(request.getSessionId(), request.getId());
             ((FileChannel) reader.getChannel()).position(request.getStart());
             return;
