@@ -249,7 +249,7 @@ public class PropertyKey {
       create(Name.MASTER_LINEAGE_RECOMPUTE_LOG_PATH,
           String.format("${%s}/recompute.log", Name.LOGS_DIR));
   public static final PropertyKey MASTER_LOST_FILE_DETECTOR_ENABLED =
-      create(Name.MASTER_LOST_FILE_DETECTOR_ENABLED, true);
+      create(Name.MASTER_LOST_FILE_DETECTOR_ENABLED, false);
   public static final PropertyKey MASTER_PRINCIPAL = create(Name.MASTER_PRINCIPAL, null);
   /**
    * @deprecated since version 1.4 and will be removed in version 2.0,
