@@ -118,8 +118,8 @@ Zookeeper和共享文件系统都正常运行时，需要在每个主机上配�
 
 #### HDFS API
 
-如果使用HDFS API与高可用性模式的Alluxio通信，使用`alluxio-ft://`模式来代替`alluxio://`。在URL中的所有主机名都将被忽略，相应地，`alluxio.zookeeper.address`配置会被读取，从而寻找Alluxio leader master。
+如果使用HDFS API与高可用性模式的Alluxio通信，确保客户端的zookeeper配置正确。使用｀alluxio://｀模式但主机名和端口可以省略。在URL中的所有主机名都将被忽略，相应地，`alluxio.zookeeper.address`配置会被读取，从而寻找Alluxio leader master。
 
 ```bash
-hadoop fs -ls alluxio-ft:///directory
+hadoop fs -ls alluxio:///directory
 ```

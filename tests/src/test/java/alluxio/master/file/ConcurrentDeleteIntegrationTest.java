@@ -17,20 +17,19 @@ import alluxio.Constants;
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.PropertyKey;
 import alluxio.BaseIntegrationTest;
+import alluxio.UnderFileSystemFactoryRegistryRule;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.CreateDirectoryOptions;
 import alluxio.client.file.options.CreateFileOptions;
-import alluxio.underfs.UnderFileSystemFactoryRegistry;
 import alluxio.underfs.sleepfs.SleepingUnderFileSystemFactory;
 import alluxio.underfs.sleepfs.SleepingUnderFileSystemOptions;
 
 import com.google.common.io.Files;
-import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.BeforeClass;
+import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -63,8 +62,6 @@ public class ConcurrentDeleteIntegrationTest extends BaseIntegrationTest {
   private static CreateDirectoryOptions sCreatePersistedDirOptions =
       CreateDirectoryOptions.defaults().setWriteType(WriteType.THROUGH);
 
-  private static SleepingUnderFileSystemFactory sSleepingUfsFactory;
-
   private FileSystem mFileSystem;
 
   private String mLocalUfsPath = Files.createTempDir().getAbsolutePath();
@@ -78,19 +75,10 @@ public class ConcurrentDeleteIntegrationTest extends BaseIntegrationTest {
           "sleep://" + mLocalUfsPath).setProperty(PropertyKey
           .USER_FILE_MASTER_CLIENT_THREADS, CONCURRENCY_FACTOR).build();
 
-  // Must be done in beforeClass so execution is before rules
-  @BeforeClass
-  public static void beforeClass() throws Exception {
-    SleepingUnderFileSystemOptions options = new SleepingUnderFileSystemOptions();
-    sSleepingUfsFactory = new SleepingUnderFileSystemFactory(options);
-    options.setDeleteFileMs(SLEEP_MS).setDeleteDirectoryMs(SLEEP_MS);
-    UnderFileSystemFactoryRegistry.register(sSleepingUfsFactory);
-  }
-
-  @AfterClass
-  public static void afterClass() throws Exception {
-    UnderFileSystemFactoryRegistry.unregister(sSleepingUfsFactory);
-  }
+  @ClassRule
+  public static UnderFileSystemFactoryRegistryRule sUnderfilesystemfactoryregistry =
+      new UnderFileSystemFactoryRegistryRule(new SleepingUnderFileSystemFactory(
+          new SleepingUnderFileSystemOptions().setMkdirsMs(SLEEP_MS).setIsDirectoryMs(SLEEP_MS)));
 
   @Before
   public void before() {
@@ -110,11 +98,13 @@ public class ConcurrentDeleteIntegrationTest extends BaseIntegrationTest {
       mFileSystem.createFile(paths[i], sCreatePersistedFileOptions).close();
     }
 
-    int errors = ConcurrentFileSystemMasterUtils
+    List<Throwable> errors = ConcurrentFileSystemMasterUtils
         .unaryOperation(mFileSystem, ConcurrentFileSystemMasterUtils.UnaryOperation.DELETE, paths,
             LIMIT_MS);
+    if (!errors.isEmpty()) {
+      Assert.fail("Encountered " + errors.size() + " errors, the first one is " + errors.get(0));
+    }
 
-    Assert.assertEquals("More than 0 errors: " + errors, 0, errors);
     List<URIStatus> files = mFileSystem.listStatus(new AlluxioURI("/"));
     Assert.assertEquals(0, files.size());
   }
@@ -133,11 +123,13 @@ public class ConcurrentDeleteIntegrationTest extends BaseIntegrationTest {
       paths[i] = dir.join("/file" + i);
       mFileSystem.createFile(paths[i], sCreatePersistedFileOptions).close();
     }
-    int errors = ConcurrentFileSystemMasterUtils
+    List<Throwable> errors = ConcurrentFileSystemMasterUtils
         .unaryOperation(mFileSystem, ConcurrentFileSystemMasterUtils.UnaryOperation.DELETE, paths,
             LIMIT_MS);
+    if (!errors.isEmpty()) {
+      Assert.fail("Encountered " + errors.size() + " errors, the first one is " + errors.get(0));
+    }
 
-    Assert.assertEquals("More than 0 errors: " + errors, 0, errors);
     List<URIStatus> files = mFileSystem.listStatus(dir);
     Assert.assertEquals(0, files.size());
   }
@@ -166,11 +158,12 @@ public class ConcurrentDeleteIntegrationTest extends BaseIntegrationTest {
       }
       mFileSystem.createFile(paths[i], sCreatePersistedFileOptions).close();
     }
-    int errors = ConcurrentFileSystemMasterUtils
+    List<Throwable> errors = ConcurrentFileSystemMasterUtils
         .unaryOperation(mFileSystem, ConcurrentFileSystemMasterUtils.UnaryOperation.DELETE, paths,
             LIMIT_MS);
-
-    Assert.assertEquals("More than 0 errors: " + errors, 0, errors);
+    if (!errors.isEmpty()) {
+      Assert.fail("Encountered " + errors.size() + " errors, the first one is " + errors.get(0));
+    }
     List<URIStatus> files = mFileSystem.listStatus(dir1);
     // Should only contain a single directory
     Assert.assertEquals(1, files.size());
@@ -196,12 +189,12 @@ public class ConcurrentDeleteIntegrationTest extends BaseIntegrationTest {
     // Create the single file
     mFileSystem.createFile(paths[0], sCreatePersistedFileOptions).close();
 
-    int errors = ConcurrentFileSystemMasterUtils
+    List<Throwable> errors = ConcurrentFileSystemMasterUtils
         .unaryOperation(mFileSystem, ConcurrentFileSystemMasterUtils.UnaryOperation.DELETE, paths,
             LIMIT_MS);
 
     // We should get an error for all but 1 delete
-    Assert.assertEquals(numThreads - 1, errors);
+    Assert.assertEquals(numThreads - 1, errors.size());
 
     List<URIStatus> files = mFileSystem.listStatus(new AlluxioURI("/"));
     Assert.assertEquals(0, files.size());
@@ -220,12 +213,12 @@ public class ConcurrentDeleteIntegrationTest extends BaseIntegrationTest {
     // Create the single directory
     mFileSystem.createDirectory(paths[0], sCreatePersistedDirOptions);
 
-    int errors = ConcurrentFileSystemMasterUtils
+    List<Throwable> errors = ConcurrentFileSystemMasterUtils
         .unaryOperation(mFileSystem, ConcurrentFileSystemMasterUtils.UnaryOperation.DELETE, paths,
             LIMIT_MS);
 
     // We should get an error for all but 1 delete
-    Assert.assertEquals(numThreads - 1, errors);
+    Assert.assertEquals(numThreads - 1, errors.size());
     List<URIStatus> dirs = mFileSystem.listStatus(new AlluxioURI("/"));
     Assert.assertEquals(0, dirs.size());
   }

@@ -42,7 +42,7 @@ if [[ -z "$YARN_HOME" ]]; then
 fi
 YARN_HOME=${YARN_HOME:-${HADOOP_HOME}}
 
-SCRIPT_DIR="$(cd "$(dirname "$0")"; pwd)"
+SCRIPT_DIR="$(cd "$(dirname "$(readlink "$0" || echo "$0")")"; pwd)"
 ALLUXIO_HOME="$(cd "${SCRIPT_DIR}/../../.."; pwd)"
 
 source "${SCRIPT_DIR}/common.sh"
@@ -75,7 +75,7 @@ echo "Starting YARN client to launch Alluxio on YARN"
 # Add Alluxio java options to the yarn options so that alluxio.yarn.Client can be configured via
 # alluxio java options
 ALLUXIO_JAVA_OPTS="${ALLUXIO_JAVA_OPTS} -Dalluxio.logger.type=Console"
-export YARN_OPTS="${YARN_OPTS:-${ALLUXIO_JAVA_OPTS}}"
+export YARN_OPTS="${YARN_OPTS} ${ALLUXIO_JAVA_OPTS}"
 
 ${YARN_HOME}/bin/yarn jar ${JAR_LOCAL} alluxio.yarn.Client \
     -num_workers ${NUM_WORKERS} \

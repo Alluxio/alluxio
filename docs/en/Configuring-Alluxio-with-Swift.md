@@ -18,18 +18,15 @@ First, the Alluxio binaries must be on your machine. You can either
 [compile Alluxio](Building-Alluxio-Master-Branch.html), or
 [download the binaries locally](Running-Alluxio-Locally.html).
 
-Then, if you haven't already done so, create your configuration file with `bootstrapConf` command.
-For example, if you are running Alluxio on your local machine, `ALLUXIO_MASTER_HOSTNAME` should be
-set to `localhost`
-
-{% include Configuring-Alluxio-with-Swift/bootstrapConf.md %}
-
-Alternatively, you can also create the configuration file from the template and set the contents
-manually.
-
-{% include Common-Commands/copy-alluxio-env.md %}
-
 ## Configuring Alluxio
+
+You need to configure Alluxio to use under storage systems by modifying
+`conf/alluxio-site.properties`. If it does not exist, create the configuration file from the
+template.
+
+```bash
+$ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
+```
 
 You need to configure Alluxio to use Swift as its under storage system by modifying
 `conf/alluxio-site.properties`. Modify `conf/alluxio-site.properties` to include:
@@ -58,8 +55,8 @@ value of `<swift-use-public>`  to `false`.
 
 ## Options for Swift Object Storage
 
-Using the Swift module makes [Ceph Object Storage](https://ceph.com/ceph-storage/object-storage/) and [IBM SoftLayer](http://www.softlayer.com/object-storage) Object Storage as under storage options for Alluxio. To use Ceph, the [Rados Gateway](http://docs.ceph.com/docs/master/radosgw/) module must be deployed. 
- 
+Using the Swift module makes [Ceph Object Storage](https://ceph.com/ceph-storage/object-storage/) and [IBM SoftLayer](http://www.softlayer.com/object-storage) Object Storage as under storage options for Alluxio. To use Ceph, the [Rados Gateway](http://docs.ceph.com/docs/master/radosgw/) module must be deployed.
+
 ## Running Alluxio Locally with Swift
 
 After everything is configured, you can start up Alluxio locally to see that everything works.

@@ -11,7 +11,7 @@
 
 package alluxio.security.authentication;
 
-import alluxio.Configuration;
+import alluxio.ConfigurationRule;
 import alluxio.ConfigurationTestUtils;
 import alluxio.PropertyKey;
 
@@ -40,16 +40,18 @@ public final class PlainSaslServerCallbackHandlerTest {
   @Rule
   public ExpectedException mThrown = ExpectedException.none();
 
+  @Rule
+  public ConfigurationRule mConfigurationRule =
+      new ConfigurationRule(PropertyKey.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER_CLASS,
+          NameMatchAuthenticationProvider.class.getName());
+
   /**
    * Sets up the configuration and callback handler before running a test.
    */
   @Before
   public void before() throws Exception {
-    Configuration.set(PropertyKey.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER_CLASS,
-        NameMatchAuthenticationProvider.class.getName());
     mPlainServerCBHandler = new PlainSaslServerCallbackHandler(
-        AuthenticationProvider.Factory.create(AuthType.CUSTOM),
-        new Runnable() {
+        AuthenticationProvider.Factory.create(AuthType.CUSTOM), new Runnable() {
           @Override
           public void run() {}
         });
@@ -73,8 +75,8 @@ public final class PlainSaslServerCallbackHandlerTest {
     PasswordCallback pcb = new PasswordCallback(" password: ", false);
     pcb.setPassword("password".toCharArray());
 
-    Callback[] callbacks = new Callback[]{ncb, pcb,
-        new AuthorizeCallback(authenticateId, authenticateId)};
+    Callback[] callbacks =
+        new Callback[] {ncb, pcb, new AuthorizeCallback(authenticateId, authenticateId)};
     mPlainServerCBHandler.handle(callbacks);
   }
 
@@ -93,8 +95,8 @@ public final class PlainSaslServerCallbackHandlerTest {
     PasswordCallback pcb = new PasswordCallback(" password: ", false);
     pcb.setPassword("password".toCharArray());
 
-    Callback[] callbacks = new Callback[]{ncb, pcb,
-        new AuthorizeCallback(authenticateId, authenticateId)};
+    Callback[] callbacks =
+        new Callback[] {ncb, pcb, new AuthorizeCallback(authenticateId, authenticateId)};
     mPlainServerCBHandler.handle(callbacks);
   }
 
@@ -113,14 +115,14 @@ public final class PlainSaslServerCallbackHandlerTest {
     PasswordCallback pcb = new PasswordCallback(" password: ", false);
     pcb.setPassword("not-password".toCharArray());
 
-    Callback[] callbacks = new Callback[]{ncb, pcb,
-        new AuthorizeCallback(authenticateId, authenticateId)};
+    Callback[] callbacks =
+        new Callback[] {ncb, pcb, new AuthorizeCallback(authenticateId, authenticateId)};
     mPlainServerCBHandler.handle(callbacks);
   }
 
   /**
-   * An {@link AuthenticationProvider} that only allows users starting with alluxio, password
-   * should be "password".
+   * An {@link AuthenticationProvider} that only allows users starting with alluxio, password should
+   * be "password".
    */
   public static class NameMatchAuthenticationProvider implements AuthenticationProvider {
     @Override

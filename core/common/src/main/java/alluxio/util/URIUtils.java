@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -71,6 +72,7 @@ public final class URIUtils {
    * @param queryMap the map of query key/value pairs
    * @return the generated query string, null if the input map is null or empty
    */
+  @Nullable
   public static String generateQueryString(Map<String, String> queryMap) {
     if (queryMap == null || queryMap.isEmpty()) {
       return null;

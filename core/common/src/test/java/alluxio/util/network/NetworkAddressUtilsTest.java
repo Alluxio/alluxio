@@ -133,6 +133,7 @@ public class NetworkAddressUtilsTest {
     InetSocketAddress workerAddress;
 
     // all default
+    ConfigurationTestUtils.resetConfiguration();
     workerAddress = NetworkAddressUtils.getBindAddress(service);
     Assert.assertEquals(
         new InetSocketAddress(NetworkAddressUtils.WILDCARD_ADDRESS, service.getDefaultPort()),

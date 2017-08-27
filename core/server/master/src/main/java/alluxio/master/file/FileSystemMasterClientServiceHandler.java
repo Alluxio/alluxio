@@ -44,6 +44,7 @@ import alluxio.thrift.FileInfo;
 import alluxio.thrift.FileSystemMasterClientService;
 import alluxio.thrift.FreeTOptions;
 import alluxio.thrift.FreeTResponse;
+import alluxio.thrift.GetMountTableTResponse;
 import alluxio.thrift.GetNewBlockIdForFileTOptions;
 import alluxio.thrift.GetNewBlockIdForFileTResponse;
 import alluxio.thrift.GetServiceVersionTOptions;
@@ -66,6 +67,8 @@ import alluxio.thrift.UnmountTOptions;
 import alluxio.thrift.UnmountTResponse;
 import alluxio.wire.ThriftUtils;
 
+import alluxio.wire.MountPointInfo;
+
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -73,6 +76,8 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -295,6 +300,29 @@ public final class FileSystemMasterClientServiceHandler implements
       public String toString() {
         return String.format("Mount: alluxioPath=%s, ufsPath=%s, options=%s", alluxioPath, ufsPath,
             options);
+      }
+    });
+  }
+
+  @Override
+  public GetMountTableTResponse getMountTable() throws AlluxioTException {
+    return RpcUtils.callAndLog(LOG, new RpcCallableThrowsIOException<GetMountTableTResponse>() {
+      @Override
+      public GetMountTableTResponse call() throws AlluxioException, IOException {
+        Map<String, MountPointInfo> mountTableWire = mFileSystemMaster.getMountTable();
+        Map<String, alluxio.thrift.MountPointInfo> mountTableThrift = new HashMap<>();
+        for (Map.Entry<String, MountPointInfo> entry :
+                mountTableWire.entrySet()) {
+          MountPointInfo mMountPointInfo = entry.getValue();
+          alluxio.thrift.MountPointInfo mountPointThrift = ThriftUtils.toThrift(mMountPointInfo);
+          mountTableThrift.put(entry.getKey(), mountPointThrift);
+        }
+        return new GetMountTableTResponse(mountTableThrift);
+      }
+
+      @Override
+      public String toString() {
+        return String.format("GetMountTable: ");
       }
     });
   }

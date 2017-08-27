@@ -12,14 +12,12 @@
 package alluxio.hadoop;
 
 import alluxio.AlluxioURI;
-import alluxio.CommonTestUtils;
 import alluxio.ConfigurationRule;
 import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.FileSystemMasterClient;
 import alluxio.client.file.URIStatus;
-import alluxio.client.lineage.LineageContext;
 import alluxio.exception.status.UnavailableException;
 import alluxio.wire.FileInfo;
 
@@ -165,8 +163,8 @@ public class AbstractFileSystemTest {
   }
 
   /**
-   * Tests that initializing the {@link AbstractFileSystem} will reinitialize contexts to pick up
-   * changes to the master address.
+   * Tests that initializing the {@link AbstractFileSystem} will reinitialize the file system
+   * context.
    */
   @Test
   public void resetContext() throws Exception {
@@ -175,10 +173,7 @@ public class AbstractFileSystemTest {
     org.apache.hadoop.fs.FileSystem fileSystem =
         org.apache.hadoop.fs.FileSystem.get(uri, getConf());
 
-    // Make sure all contexts are using the new address
-    InetSocketAddress newAddress = new InetSocketAddress("otherhost", 410);
-    Assert.assertEquals(newAddress, CommonTestUtils.getInternalState(LineageContext.INSTANCE,
-        "mLineageMasterClientPool", "mMasterAddress"));
+    Mockito.verify(mMockFileSystemContext).reset();
   }
 
   /**

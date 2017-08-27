@@ -54,6 +54,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Stack;
 
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -232,6 +233,7 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
   }
 
   @Override
+  @Nullable
   public List<String> getFileLocations(String path, FileLocationOptions options)
       throws IOException {
     // If the user has hinted the underlying storage nodes are not co-located with Alluxio
@@ -298,6 +300,7 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
   }
 
   @Override
+  @Nullable
   public UfsStatus[] listStatus(String path) throws IOException {
     FileStatus[] files = listStatusInternal(path);
     if (files == null) {
@@ -504,6 +507,7 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
    * @param path the pathname to list
    * @return {@code null} if the path is not a directory
    */
+  @Nullable
   private FileStatus[] listStatusInternal(String path) throws IOException {
     FileStatus[] files;
     try {

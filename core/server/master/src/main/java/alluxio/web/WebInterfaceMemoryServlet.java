@@ -73,7 +73,7 @@ public final class WebInterfaceMemoryServlet extends HttpServlet {
 
     FileSystemMaster fileSystemMaster = mMasterProcess.getMaster(FileSystemMaster.class);
 
-    List<AlluxioURI> inMemoryFiles = fileSystemMaster.getInMemoryFiles();
+    List<AlluxioURI> inMemoryFiles = fileSystemMaster.getInAlluxioFiles();
     Collections.sort(inMemoryFiles);
 
     List<UIFileInfo> fileInfos = new ArrayList<>(inMemoryFiles.size());

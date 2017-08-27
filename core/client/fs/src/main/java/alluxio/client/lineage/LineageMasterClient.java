@@ -14,6 +14,7 @@ package alluxio.client.lineage;
 import alluxio.AbstractMasterClient;
 import alluxio.Constants;
 import alluxio.job.CommandLineJob;
+import alluxio.master.MasterClientConfig;
 import alluxio.thrift.AlluxioService;
 import alluxio.thrift.CreateLineageTOptions;
 import alluxio.thrift.DeleteLineageTOptions;
@@ -28,7 +29,6 @@ import alluxio.wire.TtlAction;
 import org.apache.thrift.TException;
 
 import java.io.IOException;
-import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -47,10 +47,10 @@ public final class LineageMasterClient extends AbstractMasterClient {
   /**
    * Creates a new lineage master client.
    *
-   * @param masterAddress the master address
+   * @param conf master client configuration
    */
-  public LineageMasterClient(InetSocketAddress masterAddress) {
-    super(null, masterAddress);
+  public LineageMasterClient(MasterClientConfig conf) {
+    super(conf);
   }
 
   @Override

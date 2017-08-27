@@ -11,20 +11,20 @@ priority: 1
 
 # Requirement
 
-The prerequisite for this part is that you have [Java](Java-Setup.html) (JDK 7 or above).
+The prerequisite for this part is that you have [Java](Java-Setup.html) (JDK 7 or above) installed.
 
 Download the binary distribution of Alluxio {{site.ALLUXIO_RELEASED_VERSION}}:
 
 {% include Running-Alluxio-Locally/download-Alluxio-binary.md %}
 
-To run in standalone mode, make sure that:
+To run in standalone mode, do the following:
 
 * Set `alluxio.master.hostname` in `conf/alluxio-site.properties` to `localhost` (i.e., `alluxio.master.hostname=localhost`).
 
 * Set `alluxio.underfs.address` in `conf/alluxio-site.properties` to a tmp directory in the local
 filesystem (e.g., `alluxio.underfs.address=/tmp`).
 
-* Remote login service is turned on so that `ssh localhost` can succeed. To avoid the need to
+* Turn on remote login service so that `ssh localhost` can succeed. To avoid the need to
 repeatedly input the password, you can add the public ssh key for the host into
 `~/.ssh/authorized_keys`. See [this tutorial](http://www.linuxproblem.org/art_9.html) for more details.
 
@@ -69,7 +69,7 @@ You can stop Alluxio any time by running:
 
 ## Why is sudo privilege needed to start Alluxio on Linux?
 
-By default, Alluxio filesystem uses [RAMFS](https://www.kernel.org/doc/Documentation/filesystems/ramfs-rootfs-initramfs.txt) as its in-memory data storage. It turns out on MacOS, it is fine for Alluxio to mount a RAMFS without being a super user. However, on Linux, it requires sudo privileges to perform "mount" (and the followed "umount", "mkdir" and "chmod" operations). 
+By default, Alluxio filesystem uses [RAMFS](https://www.kernel.org/doc/Documentation/filesystems/ramfs-rootfs-initramfs.txt) as its in-memory data storage. On MacOS, it is fine for Alluxio to mount a RAMFS without being a super user. However, on Linux, it requires sudo privileges to perform "mount" (and the followed "umount", "mkdir" and "chmod" operations). 
 
 ## Can I still try Alluxio on Linux without sudo privileges?
 

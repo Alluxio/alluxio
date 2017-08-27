@@ -32,7 +32,7 @@ import alluxio.master.block.meta.MasterBlockInfo;
 import alluxio.master.block.meta.MasterBlockLocation;
 import alluxio.master.block.meta.MasterWorkerInfo;
 import alluxio.master.journal.JournalContext;
-import alluxio.master.journal.JournalFactory;
+import alluxio.master.journal.JournalSystem;
 import alluxio.metrics.MetricsSystem;
 import alluxio.proto.journal.Block.BlockContainerIdGeneratorEntry;
 import alluxio.proto.journal.Block.BlockInfoEntry;
@@ -167,24 +167,24 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
   /**
    * Creates a new instance of {@link DefaultBlockMaster}.
    *
-   * @param journalFactory the factory for the journal to use for tracking master operations
+   * @param journalSystem the journal system to use for tracking master operations
    */
-  DefaultBlockMaster(JournalFactory journalFactory) {
-    this(journalFactory, new SystemClock(), ExecutorServiceFactories
+  DefaultBlockMaster(JournalSystem journalSystem) {
+    this(journalSystem, new SystemClock(), ExecutorServiceFactories
         .fixedThreadPoolExecutorServiceFactory(Constants.BLOCK_MASTER_NAME, 2));
   }
 
   /**
    * Creates a new instance of {@link DefaultBlockMaster}.
    *
-   * @param journalFactory the factory for the journal to use for tracking master operations
+   * @param journalSystem the journal system to use for tracking master operations
    * @param clock the clock to use for determining the time
    * @param executorServiceFactory a factory for creating the executor service to use for running
    *        maintenance threads
    */
-  DefaultBlockMaster(JournalFactory journalFactory, Clock clock,
+  DefaultBlockMaster(JournalSystem journalSystem, Clock clock,
       ExecutorServiceFactory executorServiceFactory) {
-    super(journalFactory.create(Constants.BLOCK_MASTER_NAME), clock, executorServiceFactory);
+    super(journalSystem, clock, executorServiceFactory);
     Metrics.registerGauges(this);
   }
 
@@ -205,10 +205,6 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
 
   @Override
   public void processJournalEntry(JournalEntry entry) throws IOException {
-    if (entry.getSequenceNumber() == 0) {
-      // This is the first journal entry, clear the master state.
-      mBlocks.clear();
-    }
     // TODO(gene): A better way to process entries besides a huge switch?
     if (entry.hasBlockContainerIdGenerator()) {
       mJournaledNextContainerId = (entry.getBlockContainerIdGenerator()).getNextContainerId();
@@ -228,6 +224,13 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
     } else {
       throw new IOException(ExceptionMessage.UNEXPECTED_JOURNAL_ENTRY.getMessage(entry));
     }
+  }
+
+  @Override
+  public void resetState() {
+    mBlocks.clear();
+    mJournaledNextContainerId = 0;
+    mBlockContainerIdGenerator.setNextContainerId(0);
   }
 
   @Override
@@ -323,6 +326,7 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
         ret.add(worker.generateClientWorkerInfo());
       }
     }
+    Collections.sort(ret, new WorkerInfo.LastContactSecComparator());
     return ret;
   }
 
