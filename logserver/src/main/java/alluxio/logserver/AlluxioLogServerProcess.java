@@ -15,7 +15,6 @@ import alluxio.Configuration;
 import alluxio.Process;
 import alluxio.PropertyKey;
 import alluxio.retry.ExponentialBackoffRetry;
-import alluxio.retry.RetryPolicy;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 
@@ -110,25 +109,18 @@ public class AlluxioLogServerProcess implements Process {
       }
       InetAddress inetAddress = client.getInetAddress();
       AlluxioLog4jSocketNode clientSocketNode = new AlluxioLog4jSocketNode(this, client);
-      RetryPolicy retryPolicy = new ExponentialBackoffRetry(
-          BASE_SLEEP_TIME_MS, MAX_SLEEP_TIME_MS, MAX_NUM_RETRY);
       while (true) {
         try {
           mThreadPool.execute(clientSocketNode);
           break;
         } catch (RejectedExecutionException e) {
-          if (!retryPolicy.attemptRetry()) {
-            LOG.warn("Connection with {} has been rejected by ExecutorService {} times"
-                    + "till timedout, reason: {}",
-                inetAddress.getHostAddress(), retryPolicy.getRetryCount(), e);
-            // Alluxio log clients (master, secondary master, proxy and workers establish
-            // long-living connections with the log server. Therefore, if the log server cannot
-            // find a thread to service a log client, it is very likely due to low number of
-            // worker threads. If retry fails, then it makes sense just to let system throw
-            // an exception. The system admin should increase the thread pool size.
-            throw new RuntimeException(
-                "Increase the number of worker threads in the thread pool", e);
-          }
+          // Alluxio log clients (master, secondary master, proxy and workers establish
+          // long-living connections with the log server. Therefore, if the log server cannot
+          // find a thread to service a log client, it is very likely due to low number of
+          // worker threads. If retry fails, then it makes sense just to let system throw
+          // an exception. The system admin should increase the thread pool size.
+          throw new RuntimeException(
+              "Increase the number of worker threads in the thread pool", e);
         } catch (Error | Exception e) {
           LOG.error("ExecutorService threw error: ", e);
           throw e;
@@ -157,23 +149,16 @@ public class AlluxioLogServerProcess implements Process {
     }
 
     mThreadPool.shutdown();
-    long timeoutMS = THREAD_KEEP_ALIVE_TIME_MS;
-    long now = System.currentTimeMillis();
-    while (timeoutMS >= 0) {
-      try {
-        boolean ret = mThreadPool.awaitTermination(timeoutMS, TimeUnit.MILLISECONDS);
-        if (ret) {
-          LOG.info("All worker threads have terminated.");
-        } else {
-          LOG.warn("Log server has timeout waiting for worker threads to terminate.");
-        }
-        break;
-      } catch (InterruptedException e) {
-        Thread.currentThread().interrupt();
-        long newnow = System.currentTimeMillis();
-        timeoutMS -= (newnow - now);
-        now = newnow;
+    try {
+      boolean ret = mThreadPool.awaitTermination(THREAD_KEEP_ALIVE_TIME_MS, TimeUnit.MILLISECONDS);
+      if (ret) {
+        LOG.info("All worker threads have terminated.");
+      } else {
+        LOG.warn("Log server has timedout waiting for worker threads to terminate.");
       }
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      throw new RuntimeException(e);
     }
   }
 
