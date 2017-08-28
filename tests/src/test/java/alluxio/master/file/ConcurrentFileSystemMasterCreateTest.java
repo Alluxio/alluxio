@@ -14,6 +14,8 @@ package alluxio.master.file;
 import alluxio.AlluxioURI;
 import alluxio.AuthenticatedUserRule;
 import alluxio.BaseIntegrationTest;
+import alluxio.Configuration;
+import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.PropertyKey;
@@ -29,6 +31,7 @@ import alluxio.underfs.sleepfs.SleepingUnderFileSystemOptions;
 import alluxio.wire.LoadMetadataType;
 
 import com.google.common.io.Files;
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.ClassRule;
@@ -73,11 +76,18 @@ public class ConcurrentFileSystemMasterCreateTest extends BaseIntegrationTest {
   @ClassRule
   public static UnderFileSystemFactoryRegistryRule sUnderfilesystemfactoryregistry =
       new UnderFileSystemFactoryRegistryRule(new SleepingUnderFileSystemFactory(
-          new SleepingUnderFileSystemOptions().setMkdirsMs(SLEEP_MS).setIsDirectoryMs(SLEEP_MS)));
+          new SleepingUnderFileSystemOptions().setMkdirsMs(SLEEP_MS).setIsDirectoryMs(SLEEP_MS)
+              .setGetFileStatusMs(SLEEP_MS).setIsFileMs(SLEEP_MS)));
 
   @Before
   public void before() {
     mFileSystem = FileSystem.Factory.get();
+    Configuration.set(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, "2b");
+  }
+
+  @After
+  public void after() {
+    ConfigurationTestUtils.resetConfiguration();
   }
 
   /**
@@ -274,7 +284,7 @@ public class ConcurrentFileSystemMasterCreateTest extends BaseIntegrationTest {
     for (int i = 0; i < uniquePaths; i++) {
       if (createFiles) {
         FileWriter fileWriter = new FileWriter(mLocalUfsPath + "/existing/path/last_" + i);
-        fileWriter.write("test");
+        fileWriter.write("testtesttesttest");
         fileWriter.close();
       } else {
         new File(mLocalUfsPath + "/existing/path/last_" + i).mkdirs();
