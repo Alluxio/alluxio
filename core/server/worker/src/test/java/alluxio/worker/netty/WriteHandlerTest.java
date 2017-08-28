@@ -96,7 +96,15 @@ public abstract class WriteHandlerTest {
   }
 
   @Test
-  public void writeInvalidOffset() throws Exception {
+  public void writeInvalidOffsetFirstRequest() throws Exception {
+    // The write request contains an invalid offset
+    mChannel.writeInbound(newWriteRequest(1, newDataBuffer(PACKET_SIZE)));
+    Object writeResponse = waitForResponse(mChannel);
+    checkWriteResponse(PStatus.INVALID_ARGUMENT, writeResponse);
+  }
+
+  @Test
+  public void writeInvalidOffsetLaterRequest() throws Exception {
     mChannel.writeInbound(newWriteRequest(0, newDataBuffer(PACKET_SIZE)));
     // The write request contains an invalid offset
     mChannel.writeInbound(newWriteRequest(PACKET_SIZE + 1, newDataBuffer(PACKET_SIZE)));
