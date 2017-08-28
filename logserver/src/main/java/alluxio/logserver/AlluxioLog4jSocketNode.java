@@ -67,7 +67,13 @@ public class AlluxioLog4jSocketNode implements Runnable {
     try (ObjectInputStream objectInputStream = new ObjectInputStream(
         new BufferedInputStream(mSocket.getInputStream()))) {
       while (!Thread.currentThread().isInterrupted()) {
-        event = (LoggingEvent) objectInputStream.readObject();
+        try {
+          event = (LoggingEvent) objectInputStream.readObject();
+        } catch (ClassNotFoundException e1) {
+          throw new RuntimeException("Class of serialized object cannot be found.", e1);
+        } catch (IOException e1) {
+          throw new RuntimeException("Cannot read object from stream due to I/O error.", e1);
+        }
         if (hierarchy == null) {
           hierarchy = configureHierarchy(
               event.getMDC(AlluxioRemoteLogFilter.REMOTE_LOG_MDC_APPENDER_NAME_KEY).toString());
@@ -77,10 +83,9 @@ public class AlluxioLog4jSocketNode implements Runnable {
           remoteLogger.callAppenders(event);
         }
       }
-    } catch (IOException | ClassNotFoundException e) {
+    } catch (IOException e) {
       // Something went wrong, cannot recover.
-      LOG.error("Cannot read logging event from client due to I/O error.");
-      throw new RuntimeException(e);
+      throw new RuntimeException("Cannot open ObjectInputStream due to I/O error.", e);
     } finally {
       try {
         mSocket.close();
