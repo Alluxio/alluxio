@@ -16,6 +16,7 @@ import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.client.WriteType;
+import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
@@ -30,16 +31,17 @@ import alluxio.web.ProxyWebServer;
 
 import com.google.common.io.BaseEncoding;
 import com.qmino.miredot.annotations.ReturnType;
-
 import org.apache.commons.codec.binary.Hex;
 
 import java.io.InputStream;
 import java.security.MessageDigest;
+import java.util.Date;
 
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.servlet.ServletContext;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
+import javax.ws.rs.GET;
 import javax.ws.rs.HeaderParam;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
@@ -70,6 +72,8 @@ public final class S3RestServiceHandler {
   public static final String BUCKET_PARAM = "{bucket}/";
   // Object is after bucket in the URL path.
   public static final String OBJECT_PARAM = "{bucket}/{object:.+}";
+
+  private static final int BUFFER_SIZE = 4096; // 4KB
 
   private final FileSystem mFileSystem;
 
@@ -169,7 +173,7 @@ public final class S3RestServiceHandler {
           FileOutStream os = mFileSystem.createFile(objectURI, options);
           MessageDigest md5 = MessageDigest.getInstance("MD5");
 
-          byte[] buf = new byte[4096];
+          byte[] buf = new byte[BUFFER_SIZE];
           while (true) {
             int len = is.read(buf);
             if (len == -1) {
@@ -190,6 +194,36 @@ public final class S3RestServiceHandler {
 
           String entityTag = Hex.encodeHexString(digest);
           return Response.ok().tag(entityTag).build();
+        } catch (Exception e) {
+          throw toObjectS3Exception(e, bucketPath);
+        }
+      }
+    });
+  }
+
+  /**
+   * @summary downloads an object
+   * @param bucket the bucket name
+   * @param object the object name
+   * @return the response object
+   */
+  @GET
+  @Path(OBJECT_PARAM)
+  @ReturnType("java.io.InputStream")
+  @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_OCTET_STREAM})
+  public Response getObject(@PathParam("bucket") final String bucket,
+                            @PathParam("object") final String object) {
+    return S3RestUtils.call(bucket, new S3RestUtils.RestCallable<Response>() {
+      @Override
+      public Response call() throws S3Exception {
+        String bucketPath = parseBucketPath(AlluxioURI.SEPARATOR + bucket);
+        checkBucketIsAlluxioDirectory(bucketPath);
+        AlluxioURI objectURI = new AlluxioURI(bucketPath + AlluxioURI.SEPARATOR + object);
+
+        try {
+          URIStatus status = mFileSystem.getStatus(objectURI);
+          FileInStream is = mFileSystem.openFile(objectURI);
+          return Response.ok(is).lastModified(new Date(status.getLastModificationTimeMs())).build();
         } catch (Exception e) {
           throw toObjectS3Exception(e, bucketPath);
         }

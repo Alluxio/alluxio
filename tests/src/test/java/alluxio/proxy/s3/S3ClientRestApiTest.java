@@ -12,6 +12,7 @@
 package alluxio.proxy.s3;
 
 import alluxio.AlluxioURI;
+import alluxio.Constants;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
 import alluxio.exception.FileDoesNotExistException;
@@ -23,6 +24,7 @@ import alluxio.master.file.options.MountOptions;
 import alluxio.rest.RestApiTest;
 import alluxio.rest.TestCase;
 import alluxio.rest.TestCaseOptions;
+import alluxio.util.CommonUtils;
 import alluxio.wire.FileInfo;
 
 import com.google.common.io.BaseEncoding;
@@ -211,14 +213,12 @@ public final class S3ClientRestApiTest extends RestApiTest {
     Assert.fail("delete a non-empty bucket should fail");
   }
 
-  @Test
-  public void putObject() throws Exception {
+  private void putObjectTest(byte[] object) throws Exception {
     final String bucket = "bucket";
     createBucketRestCall(bucket);
 
     final String objectKey = bucket + AlluxioURI.SEPARATOR + "object.txt";
-    String objectContent = "hello world";
-    createObjectRestCall(objectKey, objectContent.getBytes(), null);
+    createObjectRestCall(objectKey, object, null);
 
     // Verify the object is created for the new bucket.
     AlluxioURI bucketURI = new AlluxioURI(AlluxioURI.SEPARATOR + bucket);
@@ -230,9 +230,19 @@ public final class S3ClientRestApiTest extends RestApiTest {
 
     // Verify the object's content.
     FileInStream is = mFileSystem.openFile(objectURI);
-    String writtenObjectContent = IOUtils.toString(is);
+    byte[] writtenObjectContent = IOUtils.toString(is).getBytes();
     is.close();
-    Assert.assertEquals(objectContent, writtenObjectContent);
+    Assert.assertArrayEquals(object, writtenObjectContent);
+  }
+
+  @Test
+  public void putSmallObject() throws Exception {
+    putObjectTest("Hello World!".getBytes());
+  }
+
+  @Test
+  public void putLargeObject() throws Exception {
+    putObjectTest(CommonUtils.randomAlphaNumString(Constants.MB).getBytes());
   }
 
   @Test
@@ -256,15 +266,45 @@ public final class S3ClientRestApiTest extends RestApiTest {
     createBucketRestCall(bucket);
 
     final String objectKey = bucket + AlluxioURI.SEPARATOR + "object.txt";
-    String message = "hello world";
+    String objectContent = "hello world";
     try {
-      String wrongMD5 = BaseEncoding.base64().encode(message.getBytes());
-      createObjectRestCall(objectKey, message.getBytes(), wrongMD5);
+      String wrongMD5 = BaseEncoding.base64().encode(objectContent.getBytes());
+      createObjectRestCall(objectKey, objectContent.getBytes(), wrongMD5);
     } catch (AssertionError e) {
       // expected
       return;
     }
     Assert.fail("create object with wrong Content-MD5 should fail");
+  }
+
+  private void getObjectTest(byte[] expectedObject) throws Exception {
+    final String bucket = "bucket";
+    createBucketRestCall(bucket);
+    final String objectKey = bucket + AlluxioURI.SEPARATOR + "object.txt";
+    createObjectRestCall(objectKey, expectedObject, null);
+    Assert.assertArrayEquals(expectedObject, getObjectRestCall(objectKey).getBytes());
+  }
+
+  @Test
+  public void getSmallObject() throws Exception {
+    getObjectTest("Hello World!".getBytes());
+  }
+
+  @Test
+  public void getLargeObject() throws Exception {
+    getObjectTest(CommonUtils.randomAlphaNumString(Constants.MB).getBytes());
+  }
+
+  @Test
+  public void getNonExistentObject() throws Exception {
+    final String objectKey = "bucket/non-existent-object";
+    try {
+      getObjectRestCall(objectKey);
+    } catch (AssertionError e) {
+      // expected
+      return;
+    }
+    Assert.fail("get non-existent object should fail");
   }
 
   @Test
@@ -377,6 +417,12 @@ public final class S3ClientRestApiTest extends RestApiTest {
     options.setInputStream(new ByteArrayInputStream(objectContent));
     new TestCase(mHostname, mPort, uri, NO_PARAMS, HttpMethod.PUT, null, options)
         .run();
+  }
+
+  private String getObjectRestCall(String objectKey) throws Exception {
+    String uri = S3_SERVICE_PREFIX + AlluxioURI.SEPARATOR + objectKey;
+    return new TestCase(mHostname, mPort, uri, NO_PARAMS, HttpMethod.GET, null,
+        TestCaseOptions.defaults()).call();
   }
 
   private void deleteObjectRestCall(String objectKey) throws Exception {
