@@ -52,7 +52,7 @@ public final class ProcessUtils {
    *
    * @param process the data structure representing the process to terminate
    */
-  public static void addShutdownHook(final Process process) {
+  public static void stopProcessOnShutdown(final Process process) {
     Runtime.getRuntime().addShutdownHook(new Thread() {
       @Override
       public void run() {

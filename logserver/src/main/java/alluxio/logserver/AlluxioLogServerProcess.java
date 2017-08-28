@@ -140,7 +140,13 @@ public class AlluxioLogServerProcess implements Process {
             LOG.warn("Connection with {} has been rejected by ExecutorService {} times"
                     + "till timedout, reason: {}",
                 inetAddress.getHostAddress(), retryPolicy.getRetryCount(), e);
-            break;
+            // Alluxio log clients (master, secondary master, proxy and workers establish
+            // long-living connections with the log server. Therefore, if the log server cannot
+            // find a thread to service a log client, it is very likely due to low number of
+            // worker threads. If retry fails, then it makes sense just to let system throw
+            // an exception. The system admin should increase the thread pool size.
+            throw new RuntimeException(
+                "Increase the number of worker threads in the thread pool", e);
           }
         } catch (Error | Exception e) {
           LOG.error("ExecutorService threw error: ", e);
@@ -203,15 +209,17 @@ public class AlluxioLogServerProcess implements Process {
     Hierarchy clientHierarchy;
     String inetAddressStr = inetAddress.getHostAddress();
     Properties properties = new Properties();
+    File configFile;
     try {
-      final File configFile = new File(new URI(System.getProperty("log4j.configuration")));
-      FileInputStream inputStream = new FileInputStream(configFile);
-      properties.load(inputStream);
+      configFile = new File(new URI(System.getProperty("log4j.configuration")));
     } catch (URISyntaxException e) {
       // Alluxio log server cannot derive a valid path to log4j.properties. Since this
       // properties file is global, we should throw an exception.
       LOG.error("Cannot derive a valid URI to log4j.properties file.");
       throw new RuntimeException(e);
+    }
+    try (FileInputStream inputStream = new FileInputStream(configFile)) {
+      properties.load(inputStream);
     }
     Level level = Level.INFO;
     clientHierarchy = new Hierarchy(new RootLogger(level));

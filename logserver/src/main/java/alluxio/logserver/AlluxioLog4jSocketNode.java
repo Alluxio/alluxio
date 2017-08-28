@@ -30,7 +30,7 @@ import java.net.Socket;
  * a thread serving the logging requests of the client.
  */
 public class AlluxioLog4jSocketNode implements Runnable {
-  private static org.slf4j.Logger LOG =
+  private static final org.slf4j.Logger LOG =
       org.slf4j.LoggerFactory.getLogger(AlluxioLog4jSocketNode.class);
   private final AlluxioLogServerProcess mLogServerProcess;
   private final Socket mSocket;
@@ -72,6 +72,7 @@ public class AlluxioLog4jSocketNode implements Runnable {
       }
     } catch (IOException | ClassNotFoundException e) {
       // Something went wrong, cannot recover.
+      LOG.error("Cannot read logging event from client due to I/O error.");
       throw new RuntimeException(e);
     } finally {
       try {
