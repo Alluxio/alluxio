@@ -20,7 +20,7 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class BlockWriteRequest extends WriteRequest {
-  /** This ID can either be block ID or temp UFS file ID. */
+  /** Which tier this block writes to. */
   private final int mTier;
 
   /**
