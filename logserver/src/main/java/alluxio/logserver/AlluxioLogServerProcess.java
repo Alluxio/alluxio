@@ -95,19 +95,25 @@ public class AlluxioLogServerProcess implements Process {
         new ThreadPoolExecutor(mMinNumberOfThreads, mMaxNumberOfThreads,
             STOP_TIMEOUT_MS, TimeUnit.MILLISECONDS, synchronousQueue);
     mStopped = false;
+    try {
+      mServerSocket = new ServerSocket(mPort);
+    } catch (IOException e) {
+      throw new RuntimeException("Failed to bind to port {}.", e);
+    }
     while (!mStopped) {
-      if (mServerSocket == null) {
-        try {
-          mServerSocket = new ServerSocket(mPort);
-        } catch (IOException e) {
-          throw new RuntimeException("Failed to bind to port {}.", e);
-        }
-      }
       Socket client;
       try {
         client = mServerSocket.accept();
       } catch (IOException e) {
-        mServerSocket = null;
+        try {
+          ServerSocket tmpServerSocket = new ServerSocket(mPort);
+          // If the code reaches here, it indicates mServerSocket has been closed.
+          // Therefore, by assigning the reference, we have successfully re-binded
+          // mServerSocket.
+          mServerSocket = tmpServerSocket;
+        } catch (IOException e1) {
+          // The original mServerSocket is not closed, therefore just ignore the exception
+        }
         continue;
       }
       InetAddress inetAddress = client.getInetAddress();
