@@ -118,35 +118,32 @@ public class AlluxioLogServerProcess implements LogServerProcess {
     }
     mStopped = false;
     while (!mStopped) {
+      Socket client;
       try {
-        Socket client = mServerSocket.accept();
-        InetAddress inetAddress = client.getInetAddress();
-        AlluxioLog4jSocketNode clientSocketNode =
-            new AlluxioLog4jSocketNode(this, client);
-        RetryPolicy retryPolicy = new ExponentialBackoffRetry(
-            BASE_SLEEP_TIME_MS, MAX_SLEEP_TIME_MS, MAX_NUM_RETRY);
-        while (true) {
-          try {
-            mThreadPool.execute(clientSocketNode);
-            break;
-          } catch (RejectedExecutionException e) {
-            if (!retryPolicy.attemptRetry()) {
-              LOG.warn("Connection with {} has been rejected by ExecutorService {} times"
-                      + "till timedout, reason: {}",
-                  inetAddress.getHostAddress(), retryPolicy.getRetryCount(), e);
-              client.close();
-              break;
-            }
-          } catch (Error | Exception e) {
-            LOG.error("ExecutorService threw error: ", e);
-            throw e;
-          }
-        }
+        client = mServerSocket.accept();
       } catch (IOException e) {
-        if (!mStopped) {
-          LOG.warn("Socket transport error occurred during accepting message.", e);
+        LOG.warn("I/O error occured while waiting for connection.");
+        throw new RuntimeException(e);
+      }
+      InetAddress inetAddress = client.getInetAddress();
+      AlluxioLog4jSocketNode clientSocketNode = new AlluxioLog4jSocketNode(this, client);
+      RetryPolicy retryPolicy = new ExponentialBackoffRetry(
+          BASE_SLEEP_TIME_MS, MAX_SLEEP_TIME_MS, MAX_NUM_RETRY);
+      while (true) {
+        try {
+          mThreadPool.execute(clientSocketNode);
+          break;
+        } catch (RejectedExecutionException e) {
+          if (!retryPolicy.attemptRetry()) {
+            LOG.warn("Connection with {} has been rejected by ExecutorService {} times"
+                    + "till timedout, reason: {}",
+                inetAddress.getHostAddress(), retryPolicy.getRetryCount(), e);
+            break;
+          }
+        } catch (Error | Exception e) {
+          LOG.error("ExecutorService threw error: ", e);
+          throw e;
         }
-        break;
       }
     }
   }
@@ -172,9 +169,15 @@ public class AlluxioLogServerProcess implements LogServerProcess {
     long now = System.currentTimeMillis();
     while (timeoutMS >= 0) {
       try {
-        mThreadPool.awaitTermination(timeoutMS, TimeUnit.MILLISECONDS);
+        boolean ret = mThreadPool.awaitTermination(timeoutMS, TimeUnit.MILLISECONDS);
+        if (ret) {
+          LOG.info("All worker threads have terminated.");
+        } else {
+          LOG.warn("Log server has timeout waiting for worker threads to terminate.");
+        }
         break;
       } catch (InterruptedException e) {
+        Thread.currentThread().interrupt();
         long newnow = System.currentTimeMillis();
         timeoutMS -= (newnow - now);
         now = newnow;
@@ -200,12 +203,12 @@ public class AlluxioLogServerProcess implements LogServerProcess {
     Properties properties = new Properties();
     try {
       final File configFile = new File(new URI(System.getProperty("log4j.configuration")));
-      try (FileInputStream inputStream = new FileInputStream(configFile)) {
-        properties.load(inputStream);
-      }
+      FileInputStream inputStream = new FileInputStream(configFile);
+      properties.load(inputStream);
     } catch (URISyntaxException e) {
       // Alluxio log server cannot derive a valid path to log4j.properties. Since this
       // properties file is global, we should throw an exception.
+      LOG.error("Cannot derive a valid URI to log4j.properties file.");
       throw new RuntimeException(e);
     }
     Level level = Level.INFO;

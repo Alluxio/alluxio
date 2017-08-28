@@ -43,14 +43,8 @@ public class AlluxioLog4jSocketNode implements Runnable {
    *
    * @param process main log server process
    * @param socket client socket from which to read {@link org.apache.log4j.spi.LoggingEvent}
-   * @throws IOException if {@link Socket#getInputStream()} encounters an I/O error when creating
-   *                     the {@link java.io.InputStream}, the socket is closed, the socket is not
-   *                     connected, the socket input has been shutdown with using
-   *                     {@link Socket#shutdownInput()}, or an I/O error occurs while reading the
-   *                     stream header in the constructor of {@link ObjectInputStream}
    */
-  public AlluxioLog4jSocketNode(AlluxioLogServerProcess process, Socket socket)
-      throws IOException {
+  public AlluxioLog4jSocketNode(AlluxioLogServerProcess process, Socket socket) {
     mLogServerProcess = Preconditions.checkNotNull(process,
         "The log server process could not be null.");
     mSocket = Preconditions.checkNotNull(socket, "Client socket could not be null");
