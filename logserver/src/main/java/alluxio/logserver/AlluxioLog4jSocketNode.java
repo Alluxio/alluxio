@@ -121,7 +121,12 @@ public class AlluxioLog4jSocketNode implements Runnable {
     try (FileInputStream inputStream = new FileInputStream(configFile)) {
       properties.load(inputStream);
     }
-    Level level = Level.INFO;
+    // Assign Level.DEBUG to level so that log server prints whatever log messages received from
+    // log clients. If the log server receives a LoggingEvent, it assumes that the remote
+    // log client has the intention of writing this LoggingEvent to logs. It does not make
+    // much sense for the log client to send the message over the network and wants the
+    // messsage to be discarded by the log server.
+    Level level = Level.DEBUG;
     Hierarchy clientHierarchy = new Hierarchy(new RootLogger(level));
     // Startup script should guarantee that mBaseLogsDir already exists.
     String logDirectoryPath =

@@ -44,7 +44,7 @@ public final class ProcessUtils {
   }
 
   /**
-   * Add a shutdown hook that will be invoked when a signal is sent to this process.
+   * Adds a shutdown hook that will be invoked when a signal is sent to this process.
    *
    * The process may be utilizing some resources, and this shutdown hook will be invoked by
    * JVM when a SIGTERM is sent to the process by "kill" command. The shutdown hook calls
