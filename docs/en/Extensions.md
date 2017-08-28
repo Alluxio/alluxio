@@ -70,7 +70,7 @@ The built JAR must include all dependencies of the extension project. In additio
 collisions the dependency `alluxio-core-common` must be specified with `provided` scope. For
 example, the maven definition would look like:
 
-```
+```xml
 <dependencies>
     <!-- Core Alluxio dependencies -->
     <dependency>
@@ -94,7 +94,7 @@ can be built with extension binaries in the desired location.
 
 A CLI utility is provided to aid extension manangement.
 
-```
+```bash
 ./bin/alluxio extensions
 Usage: alluxio extensions [generic options]
 	 [install <URI>]
