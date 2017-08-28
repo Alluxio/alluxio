@@ -48,7 +48,7 @@ public class AlluxioLogServerProcess implements Process {
    * */
   public static final String LOGSERVER_CLIENT_LOGGER_APPENDER_NAME = "LOGSERVER_CLIENT_LOGGER";
   private static final Logger LOG = LoggerFactory.getLogger(AlluxioLogServerProcess.class);
-  private static final long STOP_TIMEOUT_MS = 60000;
+  private static final long THREAD_KEEP_ALIVE_TIME_MS = 60000;
   private static final int BASE_SLEEP_TIME_MS = 50;
   private static final int MAX_SLEEP_TIME_MS = 30000;
   private static final int MAX_NUM_RETRY = 20;
@@ -87,7 +87,7 @@ public class AlluxioLogServerProcess implements Process {
     SynchronousQueue<Runnable> synchronousQueue = new SynchronousQueue<>();
     mThreadPool =
         new ThreadPoolExecutor(mMinNumberOfThreads, mMaxNumberOfThreads,
-            STOP_TIMEOUT_MS, TimeUnit.MILLISECONDS, synchronousQueue);
+            THREAD_KEEP_ALIVE_TIME_MS, TimeUnit.MILLISECONDS, synchronousQueue);
     mStopped = false;
     try {
       mServerSocket = new ServerSocket(mPort);
@@ -159,7 +159,7 @@ public class AlluxioLogServerProcess implements Process {
     }
 
     mThreadPool.shutdown();
-    long timeoutMS = STOP_TIMEOUT_MS;
+    long timeoutMS = THREAD_KEEP_ALIVE_TIME_MS;
     long now = System.currentTimeMillis();
     while (timeoutMS >= 0) {
       try {
