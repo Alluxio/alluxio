@@ -2,6 +2,7 @@
 layout: global
 group: Features
 title: Under Storage Extensions
+priority: 7
 ---
 
 * Table of Contents
@@ -13,9 +14,9 @@ without the need to restart any running processes. Adding new under storage conn
 does not require compilation of core Alluxio modules and can be used to enable Alluxio to work with
 your choice of storage system. On this page, we provide instructions for managing extensions.
 
-## Installing the Extension Extension
+## Installing the Extension
 
-JARs are picked up from the extensions directory configured using the property
+Extension JARs are picked up from the extensions directory configured using the property
 `alluxio.extensions.dir`. A command line utlity can be used to distribute an exension JAR to hosts
 running Alluxio processes. In environments where the CLI is not applicable, simply placing the JAR
 in the extensions directory will suffice. For example, when running in containers, a custom image
