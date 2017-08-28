@@ -99,7 +99,7 @@ fi
 
 alluxio_remote_logging_enabled=$(getConf "alluxio.remote.logging.enabled")
 if [[ "${alluxio_remote_logging_enabled}" == "true" ]]; then
-    ALLUXIO_LOGSERVER_BASE_LOGS_DIR=$(getConf "alluxio.logserver.baselogsdir")
+    ALLUXIO_LOGSERVER_BASE_LOGS_DIR=$(getConf "alluxio.logserver.logs.dir")
     ALLUXIO_LOGSERVER_HOSTNAME=$(getConf "alluxio.logserver.hostname")
     ALLUXIO_LOGSERVER_PORT=$(getConf "alluxio.logserver.port")
     ALLUXIO_JAVA_OPTS+=" -Dalluxio.logserver.hostname=${ALLUXIO_LOGSERVER_HOSTNAME} -Dalluxio.logserver.port=${ALLUXIO_LOGSERVER_PORT}"
