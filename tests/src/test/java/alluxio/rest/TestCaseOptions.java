@@ -117,7 +117,7 @@ public final class TestCaseOptions {
     return Objects.equal(mBody, that.mBody)
         && Objects.equal(mInputStream, that.mInputStream)
         && mPrettyPrint == that.mPrettyPrint
-        && mMD5.equals(that.mMD5);
+        && Objects.equal(mMD5, that.mMD5);
   }
 
   @Override
