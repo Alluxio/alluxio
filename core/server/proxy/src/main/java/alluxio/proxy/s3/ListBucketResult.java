@@ -96,7 +96,9 @@ public class ListBucketResult {
           mName + AlluxioURI.SEPARATOR + mContinuationToken));
       startIndex = Collections.binarySearch(objectsList, tokenStatus, new URIStatusComparator());
       if (startIndex < 0) {
-        startIndex = 0;
+        // If continuation token does not exist in the object list, find the first element which is
+        // greater than the token.
+        startIndex = (-1) * startIndex - 1;
       }
     }
 

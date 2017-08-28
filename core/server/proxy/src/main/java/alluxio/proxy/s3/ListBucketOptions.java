@@ -33,7 +33,7 @@ public final class ListBucketOptions {
   /**
    * Constructs a new {@link ListBucketOptions}.
    */
-  public ListBucketOptions() {}
+  private ListBucketOptions() {}
 
   /**
    * @return the continuation token
