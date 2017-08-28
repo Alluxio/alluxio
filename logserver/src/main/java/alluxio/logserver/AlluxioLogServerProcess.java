@@ -152,8 +152,10 @@ public class AlluxioLogServerProcess implements LogServerProcess {
   }
 
   /**
-   * Called from another thread (actually in the shutdown hook of {@link AlluxioLogServer}
-   * to stop the main thread of {@link AlluxioLogServerProcess}.
+   * Stop the main thread of {@link AlluxioLogServerProcess}.
+   *
+   * Close the server socket, shutdown the thread pool, stop accepting new requests,
+   * and blocks until all worker threads terminate.
    */
   private void stopServing() {
     mStopped = true;
@@ -211,7 +213,6 @@ public class AlluxioLogServerProcess implements LogServerProcess {
     // Startup script should guarantee that mBaseLogsDir already exists.
     String logDirectoryPath = mBaseLogsDir + "/" + logAppenderName.toLowerCase();
     File logDirectory = new File(logDirectoryPath);
-    LOG.info(logDirectoryPath);
     if (!logDirectory.exists()) {
       logDirectory.mkdir();
     }

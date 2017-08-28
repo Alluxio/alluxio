@@ -30,11 +30,16 @@ import java.net.Socket;
  * a thread serving the logging requests of the client.
  */
 public class AlluxioLog4jSocketNode implements Runnable {
+  private static org.slf4j.Logger LOG =
+      org.slf4j.LoggerFactory.getLogger(AlluxioLog4jSocketNode.class);
   private final AlluxioLogServerProcess mLogServerProcess;
   private final Socket mSocket;
 
   /**
    * Constructor of {@link AlluxioLog4jSocketNode}.
+   *
+   * Callers construct AlluxioLog4jSocketNode instances, passing the ownership of the socket
+   * parameter. From now on, the AlluxioLog4jSocketNode is responsible for closing the socket.
    *
    * @param process main log server process
    * @param socket client socket from which to read {@link org.apache.log4j.spi.LoggingEvent}
@@ -58,16 +63,13 @@ public class AlluxioLog4jSocketNode implements Runnable {
     Logger remoteLogger;
     try (ObjectInputStream objectInputStream = new ObjectInputStream(
         new BufferedInputStream(mSocket.getInputStream()))) {
-      while (true) {
+      // Check for interrupt status of current thread and preserve it.
+      while (!Thread.currentThread().isInterrupted()) {
         event = (LoggingEvent) objectInputStream.readObject();
         if (hierarchy == null) {
           hierarchy = mLogServerProcess.configureHierarchy(
               mSocket.getInetAddress(),
               event.getMDC(AlluxioRemoteLogFilter.REMOTE_LOG_MDC_APPENDER_NAME_KEY).toString());
-          if (hierarchy == null) {
-            // TODO(yanqin) better handling
-            continue;
-          }
         }
         remoteLogger = hierarchy.getLogger(event.getLoggerName());
         if (event.getLevel().isGreaterOrEqual(remoteLogger.getEffectiveLevel())) {
