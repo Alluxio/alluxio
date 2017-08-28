@@ -94,18 +94,21 @@ public class AlluxioLogServerProcess implements Process {
     mThreadPool =
         new ThreadPoolExecutor(mMinNumberOfThreads, mMaxNumberOfThreads,
             STOP_TIMEOUT_MS, TimeUnit.MILLISECONDS, synchronousQueue);
-    try {
-      mServerSocket = new ServerSocket(mPort);
-    } catch (IOException e) {
-      throw new RuntimeException("Failed to bind to port {}.", e);
-    }
     mStopped = false;
     while (!mStopped) {
+      if (mServerSocket == null) {
+        try {
+          mServerSocket = new ServerSocket(mPort);
+        } catch (IOException e) {
+          throw new RuntimeException("Failed to bind to port {}.", e);
+        }
+      }
       Socket client;
       try {
         client = mServerSocket.accept();
       } catch (IOException e) {
-        throw new RuntimeException("I/O error occured while waiting for connection.", e);
+        mServerSocket = null;
+        continue;
       }
       InetAddress inetAddress = client.getInetAddress();
       AlluxioLog4jSocketNode clientSocketNode = new AlluxioLog4jSocketNode(this, client);
