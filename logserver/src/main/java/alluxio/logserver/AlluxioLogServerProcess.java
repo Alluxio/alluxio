@@ -12,6 +12,7 @@
 package alluxio.logserver;
 
 import alluxio.Configuration;
+import alluxio.Process;
 import alluxio.PropertyKey;
 import alluxio.retry.ExponentialBackoffRetry;
 import alluxio.retry.RetryPolicy;
@@ -50,7 +51,7 @@ import java.util.Properties;
  * {@link AlluxioLogServerProcess} allows masters and workers to "push" their logs to a
  * centralized log server where another copy of the logs will be stored.
  */
-public class AlluxioLogServerProcess implements LogServerProcess {
+public class AlluxioLogServerProcess implements Process {
   private static final Logger LOG = LoggerFactory.getLogger(AlluxioLogServer.class);
   private static final long STOP_TIMEOUT_MS = 60000;
   private static final int BASE_SLEEP_TIME_MS = 50;
