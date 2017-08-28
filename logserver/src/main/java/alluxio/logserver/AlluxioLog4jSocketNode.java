@@ -12,6 +12,7 @@
 package alluxio.logserver;
 
 import alluxio.AlluxioRemoteLogFilter;
+import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Preconditions;
 import org.apache.log4j.Hierarchy;
@@ -90,7 +91,8 @@ public class AlluxioLog4jSocketNode implements Runnable {
       try {
         mSocket.close();
       } catch (Exception e) {
-        // Ignore the exception caused by closing socket.
+        // Log the exception caused by closing socket.
+        LOG.warn("Failed to close client socket.");
       }
     }
   }
@@ -114,8 +116,7 @@ public class AlluxioLog4jSocketNode implements Runnable {
     } catch (URISyntaxException e) {
       // Alluxio log server cannot derive a valid path to log4j.properties. Since this
       // properties file is global, we should throw an exception.
-      LOG.error("Cannot derive a valid URI to log4j.properties file.");
-      throw new RuntimeException(e);
+      throw new RuntimeException("Cannot derive a valid URI to log4j.properties file.", e);
     }
     try (FileInputStream inputStream = new FileInputStream(configFile)) {
       properties.load(inputStream);
@@ -123,12 +124,13 @@ public class AlluxioLog4jSocketNode implements Runnable {
     Level level = Level.INFO;
     Hierarchy clientHierarchy = new Hierarchy(new RootLogger(level));
     // Startup script should guarantee that mBaseLogsDir already exists.
-    String logDirectoryPath = mLogServerProcess.getBaseLogsDir() + "/" + logAppenderName.toLowerCase();
+    String logDirectoryPath =
+        PathUtils.concatPath(mLogServerProcess.getBaseLogsDir(), logAppenderName.toLowerCase());
     File logDirectory = new File(logDirectoryPath);
     if (!logDirectory.exists()) {
       logDirectory.mkdir();
     }
-    String logFilePath = logDirectoryPath + "/" + inetAddressStr + ".log";
+    String logFilePath = PathUtils.concatPath(logDirectoryPath, inetAddressStr + ".log");
     properties.setProperty("log4j.rootLogger",
         level.toString() + "," + AlluxioLogServerProcess.LOGSERVER_CLIENT_LOGGER_APPENDER_NAME);
     properties.setProperty(
