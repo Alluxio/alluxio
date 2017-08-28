@@ -11,19 +11,19 @@
 
 package alluxio.proxy.s3;
 
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlRootElement;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 /**
  * Error response defined in http://docs.aws.amazon.com/AmazonS3/latest/API/ErrorResponses.html.
  * It will be encoded into an XML string to be returned as an error response for the REST call.
  */
-@XmlRootElement(name = "Error")
+@JacksonXmlRootElement(localName = "Error")
 public class S3Error {
-  private final String mCode;
-  private final String mMessage;
-  private final String mRequestId;
-  private final String mResource;
+  private String mCode;
+  private String mMessage;
+  private String mRequestId;
+  private String mResource;
 
   /**
    * Creates an {@link S3Error}.
@@ -53,7 +53,7 @@ public class S3Error {
   /**
    * @return the error code
    */
-  @XmlElement(name = "Code")
+  @JacksonXmlProperty(localName = "Code")
   public String getCode() {
     return mCode;
   }
@@ -61,7 +61,7 @@ public class S3Error {
   /**
    * @return the error message
    */
-  @XmlElement(name = "Message")
+  @JacksonXmlProperty(localName = "Message")
   public String getMessage() {
     return mMessage;
   }
@@ -69,7 +69,7 @@ public class S3Error {
   /**
    * @return the request ID
    */
-  @XmlElement(name = "RequestId")
+  @JacksonXmlProperty(localName = "RequestId")
   public String getRequestId() {
     return mRequestId;
   }
@@ -77,9 +77,41 @@ public class S3Error {
   /**
    * @return the resource name
    */
-  @XmlElement(name = "Resource")
+  @JacksonXmlProperty(localName = "Resource")
   public String getResource() {
     return mResource;
+  }
+
+  /**
+   * @param code the error code to set
+   */
+  @JacksonXmlProperty(localName = "Code")
+  public void setCode(String code) {
+    mCode = code;
+  }
+
+  /**
+   * @param message the error message to set
+   */
+  @JacksonXmlProperty(localName = "Message")
+  public void setMessage(String message) {
+    mMessage = message;
+  }
+
+  /**
+   * @param requestId the request ID to set
+   */
+  @JacksonXmlProperty(localName = "RequestId")
+  public void setRequestId(String requestId) {
+    mRequestId = requestId;
+  }
+
+  /**
+   * @param resource the resource name to set
+   */
+  @JacksonXmlProperty(localName = "Resource")
+  public void setResource(String resource) {
+    mResource = resource;
   }
 }
 

@@ -15,6 +15,8 @@ import alluxio.security.LoginUser;
 import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.util.SecurityUtils;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -99,7 +101,14 @@ public final class S3RestUtils {
       }
     }
 
-    return Response.ok(object).build();
+    // Need to explicitly encode the string as XML because Jackson will not do it automatically.
+    XmlMapper mapper = new XmlMapper();
+    try {
+      return Response.ok(mapper.writeValueAsString(object)).build();
+    } catch (JsonProcessingException e) {
+      return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+          .entity("Failed to encode XML: " + e.getMessage()).build();
+    }
   }
 
   /**
@@ -110,7 +119,15 @@ public final class S3RestUtils {
    */
   private static Response createErrorResponse(S3Exception e) {
     S3Error errorResponse = new S3Error(e.getResource(), e.getErrorCode());
-    return Response.status(e.getErrorCode().getStatus()).entity(errorResponse).build();
+    // Need to explicitly encode the string as XML because Jackson will not do it automatically.
+    XmlMapper mapper = new XmlMapper();
+    try {
+      return Response.status(e.getErrorCode().getStatus())
+          .entity(mapper.writeValueAsString(errorResponse)).build();
+    } catch (JsonProcessingException e2) {
+      return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+          .entity("Failed to encode XML: " + e2.getMessage()).build();
+    }
   }
 
   private S3RestUtils() {} // prevent instantiation

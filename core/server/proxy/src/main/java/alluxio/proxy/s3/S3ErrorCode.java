@@ -60,7 +60,7 @@ public class S3ErrorCode {
       Response.Status.INTERNAL_SERVER_ERROR);
   public static final S3ErrorCode NO_SUCH_BUCKET = new S3ErrorCode(
       Name.NO_SUCH_BUCKET,
-      "The specified bucket does not exist",
+      "The specified bucket or prefix does not exist",
       Response.Status.NOT_FOUND);
   public static final S3ErrorCode NO_SUCH_KEY = new S3ErrorCode(
       Name.NO_SUCH_KEY,

@@ -12,9 +12,11 @@
 package alluxio.rest;
 
 import alluxio.Constants;
+import alluxio.exception.status.InvalidArgumentException;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.google.common.io.ByteStreams;
 import org.apache.commons.io.IOUtils;
 import org.junit.Assert;
@@ -142,7 +144,7 @@ public final class TestCase {
     }
     if (mOptions.getBody() != null) {
       connection.setDoOutput(true);
-      connection.setRequestProperty("Content-Type", "application/json");
+      connection.setRequestProperty("Content-Type", mOptions.getContentType());
       ObjectMapper mapper = new ObjectMapper();
       // make sure that serialization of empty objects does not fail
       mapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
@@ -176,11 +178,22 @@ public final class TestCase {
   public void run() throws Exception {
     String expected = "";
     if (mExpectedResult != null) {
-      ObjectMapper mapper = new ObjectMapper();
-      if (mOptions.isPrettyPrint()) {
-        expected = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(mExpectedResult);
+      if (mOptions.getContentType().equals(TestCaseOptions.JSON_CONTENT_TYPE)) {
+        ObjectMapper mapper = new ObjectMapper();
+        if (mOptions.isPrettyPrint()) {
+          expected = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(mExpectedResult);
+        } else {
+          expected = mapper.writeValueAsString(mExpectedResult);
+        }
+      } else if (mOptions.getContentType().equals(TestCaseOptions.XML_CONTENT_TYPE)) {
+        XmlMapper mapper = new XmlMapper();
+        if (mOptions.isPrettyPrint()) {
+          expected = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(mExpectedResult);
+        } else {
+          expected = mapper.writeValueAsString(mExpectedResult);
+        }
       } else {
-        expected = mapper.writeValueAsString(mExpectedResult);
+        throw new InvalidArgumentException("Invalid content type in TestCaseOptions!");
       }
     }
     String result = call();

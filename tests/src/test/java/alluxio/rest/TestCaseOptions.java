@@ -23,9 +23,13 @@ import javax.annotation.concurrent.NotThreadSafe;
 // TODO(jiri): consolidate input stream and body fields
 @NotThreadSafe
 public final class TestCaseOptions {
+  public static final String JSON_CONTENT_TYPE = "application/json";
+  public static final String XML_CONTENT_TYPE = "application/xml";
+
   private Object mBody;
   private InputStream mInputStream;
   private boolean mPrettyPrint;
+  private String mContentType;
   private String mMD5;
 
   /**
@@ -39,6 +43,7 @@ public final class TestCaseOptions {
     mBody = null;
     mInputStream = null;
     mPrettyPrint = false;
+    mContentType = JSON_CONTENT_TYPE;
     mMD5 = null;
   }
 
@@ -61,6 +66,13 @@ public final class TestCaseOptions {
    */
   public boolean isPrettyPrint() {
     return mPrettyPrint;
+  }
+
+  /**
+   * @return the content type
+   */
+  public String getContentType() {
+    return mContentType;
   }
 
   /**
@@ -98,7 +110,17 @@ public final class TestCaseOptions {
   }
 
   /**
+   * @param contentType the content type to set
+   * @return the updated options object
+   */
+  public TestCaseOptions setContentType(String contentType) {
+    mContentType = contentType;
+    return this;
+  }
+
+  /**
    * @param md5 the Base64 encoded MD5 digest of the request body
+   * @return the updated options object
    */
   public TestCaseOptions setMD5(String md5) {
     mMD5 = md5;
@@ -117,12 +139,13 @@ public final class TestCaseOptions {
     return Objects.equal(mBody, that.mBody)
         && Objects.equal(mInputStream, that.mInputStream)
         && mPrettyPrint == that.mPrettyPrint
+        && Objects.equal(mContentType, that.mContentType)
         && Objects.equal(mMD5, that.mMD5);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mBody, mInputStream, mPrettyPrint, mMD5);
+    return Objects.hashCode(mBody, mInputStream, mPrettyPrint, mContentType, mMD5);
   }
 
   @Override
@@ -131,6 +154,7 @@ public final class TestCaseOptions {
         .add("body", mBody)
         .add("input stream", mInputStream)
         .add("pretty print", mPrettyPrint)
+        .add("content type", mContentType)
         .add("MD5", mMD5)
         .toString();
   }
