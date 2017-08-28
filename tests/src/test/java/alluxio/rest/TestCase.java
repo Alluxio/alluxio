@@ -132,6 +132,9 @@ public final class TestCase {
   public String call() throws Exception {
     HttpURLConnection connection = (HttpURLConnection) createURL().openConnection();
     connection.setRequestMethod(mMethod);
+    if (mOptions.getMD5() != null) {
+      connection.setRequestProperty("Content-MD5", mOptions.getMD5());
+    }
     if (mOptions.getInputStream() != null) {
       connection.setDoOutput(true);
       connection.setRequestProperty("Content-Type", "application/octet-stream");
