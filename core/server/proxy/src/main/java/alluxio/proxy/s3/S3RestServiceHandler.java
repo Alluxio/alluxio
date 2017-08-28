@@ -139,7 +139,7 @@ public final class S3RestServiceHandler {
         } catch (Exception e) {
           throw toBucketS3Exception(e, bucketPath);
         }
-        return Response.Status.OK;
+        return Response.Status.NO_CONTENT;
       }
     });
   }
