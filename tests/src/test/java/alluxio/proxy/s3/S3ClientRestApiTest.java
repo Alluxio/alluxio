@@ -374,6 +374,42 @@ public final class S3ClientRestApiTest extends RestApiTest {
   }
 
   @Test
+  public void getBucketWithNonExistingContinuationToken() throws Exception {
+    final String bucket = "bucket-to-get-with-non-existing-token";
+    AlluxioURI uri = new AlluxioURI(AlluxioURI.SEPARATOR + bucket + AlluxioURI.SEPARATOR);
+    new TestCase(mHostname, mPort, S3_SERVICE_PREFIX + AlluxioURI.SEPARATOR + bucket, NO_PARAMS,
+        HttpMethod.PUT, null, TestCaseOptions.defaults()).run();
+    // Verify the directory is created for the new bucket.
+    Assert.assertTrue(mFileSystemMaster.listStatus(uri, ListStatusOptions.defaults()).isEmpty());
+
+    // Prepare a bucket with two objects:
+    // - /file1
+    // - /file2
+    AlluxioURI file1 = new AlluxioURI(uri.getPath() + "/file1");
+    mFileSystemMaster.createFile(file1, CreateFileOptions.defaults());
+    AlluxioURI file2 = new AlluxioURI(uri.getPath() + "/file2");
+    mFileSystemMaster.createFile(file2, CreateFileOptions.defaults());
+
+    // Expected result, with max-keys = 1.
+    List<URIStatus> objectsList = new ArrayList<>();
+    objectsList.add(
+        new URIStatus(mFileSystemMaster.getFileInfo(file1, GetStatusOptions.defaults())));
+    objectsList.add(
+        new URIStatus(mFileSystemMaster.getFileInfo(file2, GetStatusOptions.defaults())));
+    String continuationToken = file1.getPath() + "random-tail";
+    ListBucketResult expected = new ListBucketResult(
+        AlluxioURI.SEPARATOR + bucket, objectsList,
+        ListBucketOptions.defaults().setContinuationToken(continuationToken));
+
+    // Verify
+    HashMap<String, String> maxKeysParam = new HashMap<>();
+    maxKeysParam.put("continuation-token", continuationToken);
+    new TestCase(mHostname, mPort, S3_SERVICE_PREFIX + AlluxioURI.SEPARATOR + bucket, maxKeysParam,
+        HttpMethod.GET, expected,
+        TestCaseOptions.defaults().setContentType(TestCaseOptions.XML_CONTENT_TYPE)).run();
+  }
+
+  @Test
   public void listEmptyBucket() throws Exception {
     final String bucket = "empty-bucket-to-list";
     AlluxioURI uri = new AlluxioURI(AlluxioURI.SEPARATOR + bucket + AlluxioURI.SEPARATOR);

@@ -264,18 +264,20 @@ public class ListBucketResult {
    */
   @JsonPropertyOrder({ "Key", "LastModified", "ETag", "Size", "StorageClass" })
   public class Content {
-    // The object's key.
+    /* The object's key. */
     private String mKey;
-    // Date and time the object was last modified.
+    /* Date and time the object was last modified. */
     private String mLastModified;
-    // The entity tag is an MD5 hash of the object.
+    /* The entity tag is an MD5 hash of the object. */
     // TODO(chaomin): for now this is always empty because file content's MD5 hash is not yet
     // part of Alluxio metadata
     private String mETag;
-    // Size in bytes of the object.
+    /* Size in bytes of the object. */
     private String mSize;
-    // Storage class (STANDARD | STANDARD_IA | REDUCED_REDUNDANCY | GLACIER). Alluxio only supports
-    // STANDARD for now.
+    /**
+     * Storage class (STANDARD | STANDARD_IA | REDUCED_REDUNDANCY | GLACIER). Alluxio only supports
+     * STANDARD for now.
+     */
     private String mStorageClass;
 
     /**
