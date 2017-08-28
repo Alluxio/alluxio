@@ -55,8 +55,8 @@ public class AlluxioLog4jSocketNode implements Runnable {
    */
   public AlluxioLog4jSocketNode(AlluxioLogServerProcess process, Socket socket) {
     mLogServerProcess = Preconditions.checkNotNull(process,
-        "The log server process could not be null.");
-    mSocket = Preconditions.checkNotNull(socket, "Client socket could not be null");
+        "The log server process cannot be null.");
+    mSocket = Preconditions.checkNotNull(socket, "Client socket cannot be null");
   }
 
   @Override
