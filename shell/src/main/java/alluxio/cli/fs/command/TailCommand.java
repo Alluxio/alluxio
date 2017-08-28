@@ -20,6 +20,7 @@ import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.OpenFileOptions;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
+import alluxio.util.FormatUtils;
 
 import com.google.common.base.Preconditions;
 import org.apache.commons.cli.CommandLine;
@@ -51,10 +52,9 @@ public final class TailCommand extends WithWildCardPathCommand {
   @Override
   protected void runCommand(AlluxioURI path, CommandLine cl) throws AlluxioException, IOException {
     URIStatus status = mFileSystem.getStatus(path);
-
     int numOfBytes = Constants.KB;
     if (cl.hasOption('c')) {
-      numOfBytes = Integer.parseInt(cl.getOptionValue('c'));
+      numOfBytes = (int) FormatUtils.parseSpaceSize(cl.getOptionValue('c'));
       Preconditions.checkArgument(numOfBytes > 0, "specified bytes must be > 0");
     }
 
