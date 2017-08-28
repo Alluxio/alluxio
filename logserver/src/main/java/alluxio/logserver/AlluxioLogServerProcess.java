@@ -52,7 +52,7 @@ import java.util.Properties;
  * centralized log server where another copy of the logs will be stored.
  */
 public class AlluxioLogServerProcess implements Process {
-  private static final String LOGSERVER_CLIENT_LOGGER_APPENDER_NAME = "LOGSERVER_CLIENT_LOGGER";
+  public static final String LOGSERVER_CLIENT_LOGGER_APPENDER_NAME = "LOGSERVER_CLIENT_LOGGER";
   private static final Logger LOG = LoggerFactory.getLogger(AlluxioLogServerProcess.class);
   private static final long STOP_TIMEOUT_MS = 60000;
   private static final int BASE_SLEEP_TIME_MS = 50;
@@ -101,6 +101,13 @@ public class AlluxioLogServerProcess implements Process {
         return mStopped == false;
       }
     }, WaitForOptions.defaults().setTimeoutMs(10000));
+  }
+
+  /**
+   * @return the string representation of the path to base logs directory
+   */
+  public final String getBaseLogsDir() {
+    return mBaseLogsDir;
   }
 
   /**
@@ -191,50 +198,5 @@ public class AlluxioLogServerProcess implements Process {
         now = newnow;
       }
     }
-  }
-
-  /**
-   * Configure a {@link Hierarchy} instance used to retrive logger by name and maintain the logger
-   * hierarchy. An instance of this class will be passed to a {@link AlluxioLog4jSocketNode} so
-   * that the {@link AlluxioLog4jSocketNode} instance can retrieve the logger to log incoming
-   * {@link org.apache.log4j.spi.LoggingEvent}s.
-   *
-   * @param inetAddress inet address of the client
-   * @param logAppenderName name of the appender to use for this client
-   * @return a {@link Hierarchy} instance to pass to {@link AlluxioLog4jSocketNode}
-   * @throws IOException if fails to create an {@link FileInputStream} to read log4j.properties
-   */
-  protected LoggerRepository configureHierarchy(InetAddress inetAddress, String logAppenderName)
-      throws IOException {
-    Hierarchy clientHierarchy;
-    String inetAddressStr = inetAddress.getHostAddress();
-    Properties properties = new Properties();
-    File configFile;
-    try {
-      configFile = new File(new URI(System.getProperty("log4j.configuration")));
-    } catch (URISyntaxException e) {
-      // Alluxio log server cannot derive a valid path to log4j.properties. Since this
-      // properties file is global, we should throw an exception.
-      LOG.error("Cannot derive a valid URI to log4j.properties file.");
-      throw new RuntimeException(e);
-    }
-    try (FileInputStream inputStream = new FileInputStream(configFile)) {
-      properties.load(inputStream);
-    }
-    Level level = Level.INFO;
-    clientHierarchy = new Hierarchy(new RootLogger(level));
-    // Startup script should guarantee that mBaseLogsDir already exists.
-    String logDirectoryPath = mBaseLogsDir + "/" + logAppenderName.toLowerCase();
-    File logDirectory = new File(logDirectoryPath);
-    if (!logDirectory.exists()) {
-      logDirectory.mkdir();
-    }
-    String logFilePath = logDirectoryPath + "/" + inetAddressStr + ".log";
-    properties.setProperty("log4j.rootLogger",
-        level.toString() + "," + LOGSERVER_CLIENT_LOGGER_APPENDER_NAME);
-    properties.setProperty("log4j.appender." + LOGSERVER_CLIENT_LOGGER_APPENDER_NAME + ".File",
-        logFilePath);
-    new PropertyConfigurator().doConfigure(properties, clientHierarchy);
-    return clientHierarchy;
   }
 }

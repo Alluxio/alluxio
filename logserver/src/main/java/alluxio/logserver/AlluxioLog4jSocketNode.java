@@ -14,14 +14,23 @@ package alluxio.logserver;
 import alluxio.AlluxioRemoteLogFilter;
 
 import com.google.common.base.Preconditions;
+import org.apache.log4j.Hierarchy;
+import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
+import org.apache.log4j.PropertyConfigurator;
 import org.apache.log4j.spi.LoggerRepository;
 import org.apache.log4j.spi.LoggingEvent;
+import org.apache.log4j.spi.RootLogger;
 
 import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.net.Socket;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.Properties;
 
 /**
  * Reads {@link org.apache.log4j.spi.LoggingEvent} objects from remote logging
@@ -61,8 +70,7 @@ public class AlluxioLog4jSocketNode implements Runnable {
       while (!Thread.currentThread().isInterrupted()) {
         event = (LoggingEvent) objectInputStream.readObject();
         if (hierarchy == null) {
-          hierarchy = mLogServerProcess.configureHierarchy(
-              mSocket.getInetAddress(),
+          hierarchy = configureHierarchy(
               event.getMDC(AlluxioRemoteLogFilter.REMOTE_LOG_MDC_APPENDER_NAME_KEY).toString());
         }
         remoteLogger = hierarchy.getLogger(event.getLoggerName());
@@ -81,5 +89,50 @@ public class AlluxioLog4jSocketNode implements Runnable {
         // Ignore the exception caused by closing socket.
       }
     }
+  }
+
+  /**
+   * Configure a {@link Hierarchy} instance used to retrive logger by name and maintain the logger
+   * hierarchy. {@link AlluxioLog4jSocketNode} instance can retrieve the logger to log incoming
+   * {@link org.apache.log4j.spi.LoggingEvent}s.
+   *
+   * @param logAppenderName name of the appender to use for this client
+   * @return a {@link Hierarchy} instance to retrieve logger
+   * @throws IOException if fails to create an {@link FileInputStream} to read log4j.properties
+   */
+  private LoggerRepository configureHierarchy(String logAppenderName)
+      throws IOException {
+    Hierarchy clientHierarchy;
+    String inetAddressStr = mSocket.getInetAddress().getHostAddress();
+    Properties properties = new Properties();
+    File configFile;
+    try {
+      configFile = new File(new URI(System.getProperty("log4j.configuration")));
+    } catch (URISyntaxException e) {
+      // Alluxio log server cannot derive a valid path to log4j.properties. Since this
+      // properties file is global, we should throw an exception.
+      LOG.error("Cannot derive a valid URI to log4j.properties file.");
+      throw new RuntimeException(e);
+    }
+    try (FileInputStream inputStream = new FileInputStream(configFile)) {
+      properties.load(inputStream);
+    }
+    Level level = Level.INFO;
+    clientHierarchy = new Hierarchy(new RootLogger(level));
+    // Startup script should guarantee that mBaseLogsDir already exists.
+    String logDirectoryPath = mLogServerProcess.getBaseLogsDir() + "/" + logAppenderName.toLowerCase();
+    File logDirectory = new File(logDirectoryPath);
+    if (!logDirectory.exists()) {
+      logDirectory.mkdir();
+    }
+    String logFilePath = logDirectoryPath + "/" + inetAddressStr + ".log";
+    properties.setProperty("log4j.rootLogger",
+        level.toString() + "," + AlluxioLogServerProcess.LOGSERVER_CLIENT_LOGGER_APPENDER_NAME);
+    properties.setProperty(
+        "log4j.appender."
+            + AlluxioLogServerProcess.LOGSERVER_CLIENT_LOGGER_APPENDER_NAME + ".File",
+        logFilePath);
+    new PropertyConfigurator().doConfigure(properties, clientHierarchy);
+    return clientHierarchy;
   }
 }
