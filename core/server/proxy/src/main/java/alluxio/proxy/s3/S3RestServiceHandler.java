@@ -30,10 +30,11 @@ import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 import alluxio.web.ProxyWebServer;
 
-import org.apache.commons.codec.binary.Hex;
+import com.google.common.io.ByteStreams;
 import com.google.common.base.Preconditions;
 import com.google.common.io.BaseEncoding;
 import com.qmino.miredot.annotations.ReturnType;
+import org.apache.commons.codec.binary.Hex;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -82,8 +83,6 @@ public final class S3RestServiceHandler {
   public static final String BUCKET_PARAM = "{bucket}/";
   /* Object is after bucket in the URL path */
   public static final String OBJECT_PARAM = "{bucket}/{object:.+}";
-
-  private static final int BUFFER_SIZE_BYTES = 4 * Constants.KB;
 
   private final FileSystem mFileSystem;
 
@@ -230,17 +229,14 @@ public final class S3RestServiceHandler {
           MessageDigest md5 = MessageDigest.getInstance("MD5");
           DigestOutputStream digestOutputStream = new DigestOutputStream(os, md5);
 
-          byte[] buf = new byte[BUFFER_SIZE_BYTES];
           try {
-            while (true) {
-              int len = is.read(buf);
-              if (len == -1) {
-                break;
-              }
-              digestOutputStream.write(buf, 0, len);
-            }
+            ByteStreams.copy(is, digestOutputStream);
           } finally {
-            digestOutputStream.close();
+            try {
+              digestOutputStream.flush();
+            } finally {
+              digestOutputStream.close();
+            }
           }
 
           byte[] digest = md5.digest();
