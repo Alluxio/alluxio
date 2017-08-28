@@ -26,6 +26,7 @@ public final class TestCaseOptions {
   private Object mBody;
   private InputStream mInputStream;
   private boolean mPrettyPrint;
+  private String mMD5;
 
   /**
    * @return the default {@link TestCaseOptions}
@@ -38,6 +39,7 @@ public final class TestCaseOptions {
     mBody = null;
     mInputStream = null;
     mPrettyPrint = false;
+    mMD5 = null;
   }
 
   /**
@@ -59,6 +61,13 @@ public final class TestCaseOptions {
    */
   public boolean isPrettyPrint() {
     return mPrettyPrint;
+  }
+
+  /**
+   * @return the Base64 encoded MD5 digest of the request body
+   */
+  public String getMD5() {
+    return mMD5;
   }
 
   /**
@@ -88,6 +97,14 @@ public final class TestCaseOptions {
     return this;
   }
 
+  /**
+   * @param md5 the Base64 encoded MD5 digest of the request body
+   */
+  public TestCaseOptions setMD5(String md5) {
+    mMD5 = md5;
+    return this;
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) {
@@ -99,12 +116,13 @@ public final class TestCaseOptions {
     TestCaseOptions that = (TestCaseOptions) o;
     return Objects.equal(mBody, that.mBody)
         && Objects.equal(mInputStream, that.mInputStream)
-        && mPrettyPrint == that.mPrettyPrint;
+        && mPrettyPrint == that.mPrettyPrint
+        && Objects.equal(mMD5, that.mMD5);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mBody, mInputStream, mPrettyPrint);
+    return Objects.hashCode(mBody, mInputStream, mPrettyPrint, mMD5);
   }
 
   @Override
@@ -113,6 +131,7 @@ public final class TestCaseOptions {
         .add("body", mBody)
         .add("input stream", mInputStream)
         .add("pretty print", mPrettyPrint)
+        .add("MD5", mMD5)
         .toString();
   }
 }

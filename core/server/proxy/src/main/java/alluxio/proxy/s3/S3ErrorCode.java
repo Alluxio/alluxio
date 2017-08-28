@@ -22,6 +22,7 @@ public class S3ErrorCode {
    * Error code names used in {@link S3ErrorCode}.
    */
   public static final class Name {
+    public static final String BAD_DIGEST = "BadDigest";
     public static final String BUCKET_ALREADY_EXISTS = "BucketAlreadyExists";
     public static final String BUCKET_NOT_EMPTY = "BucketNotEmpty";
     public static final String INTERNAL_ERROR = "InternalError";
@@ -37,6 +38,10 @@ public class S3ErrorCode {
   //
   // Official error codes.
   //
+  public static final S3ErrorCode BAD_DIGEST = new S3ErrorCode(
+      Name.BAD_DIGEST,
+      "The Content-MD5 you specified did not match what we received.",
+      Response.Status.BAD_REQUEST);
   public static final S3ErrorCode BUCKET_ALREADY_EXISTS = new S3ErrorCode(
       Name.BUCKET_ALREADY_EXISTS,
       "The requested bucket name already exists",

@@ -127,11 +127,14 @@ public final class TestCase {
   }
 
   /**
-   * Runs the test case and returns the output.
+   * Runs the test case and returns the {@link HttpURLConnection}.
    */
-  public String call() throws Exception {
+  public HttpURLConnection execute() throws Exception {
     HttpURLConnection connection = (HttpURLConnection) createURL().openConnection();
     connection.setRequestMethod(mMethod);
+    if (mOptions.getMD5() != null) {
+      connection.setRequestProperty("Content-MD5", mOptions.getMD5());
+    }
     if (mOptions.getInputStream() != null) {
       connection.setDoOutput(true);
       connection.setRequestProperty("Content-Type", "application/octet-stream");
@@ -157,7 +160,14 @@ public final class TestCase {
       }
       Assert.fail("Request failed with status code " + connection.getResponseCode());
     }
-    return getResponse(connection);
+    return connection;
+  }
+
+  /**
+   * Runs the test case and returns the output.
+   */
+  public String call() throws Exception {
+    return getResponse(execute());
   }
 
   /**

@@ -80,6 +80,10 @@ public final class S3RestUtils {
       return Response.ok().build();
     }
 
+    if (object instanceof Response) {
+      return (Response) object;
+    }
+
     if (object instanceof Response.Status) {
       Response.Status s = (Response.Status) object;
       switch (s) {

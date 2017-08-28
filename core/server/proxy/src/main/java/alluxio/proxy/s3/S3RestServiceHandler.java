@@ -16,9 +16,12 @@ import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.client.WriteType;
+import alluxio.client.file.FileInStream;
+import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.CreateDirectoryOptions;
+import alluxio.client.file.options.CreateFileOptions;
 import alluxio.client.file.options.DeleteOptions;
 import alluxio.exception.DirectoryNotEmptyException;
 import alluxio.exception.FileAlreadyExistsException;
@@ -26,12 +29,21 @@ import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 import alluxio.web.ProxyWebServer;
 
+import com.google.common.io.BaseEncoding;
 import com.qmino.miredot.annotations.ReturnType;
+import org.apache.commons.codec.binary.Hex;
+
+import java.io.InputStream;
+import java.security.MessageDigest;
+import java.util.Date;
 
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.servlet.ServletContext;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
+import javax.ws.rs.GET;
+import javax.ws.rs.HEAD;
+import javax.ws.rs.HeaderParam;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -62,6 +74,8 @@ public final class S3RestServiceHandler {
   // Object is after bucket in the URL path.
   public static final String OBJECT_PARAM = "{bucket}/{object:.+}";
 
+  private static final int BUFFER_SIZE = 4096; // 4KB
+
   private final FileSystem mFileSystem;
 
   /**
@@ -75,13 +89,13 @@ public final class S3RestServiceHandler {
   }
 
   /**
-   * @summary creates a bucket
    * @param bucket the bucket name
    * @return the response object
+   * @summary creates a bucket
    */
   @PUT
   @Path(BUCKET_PARAM)
-  @ReturnType("Response.Status")
+  @ReturnType("java.lang.Void")
   public Response createBucket(@PathParam("bucket") final String bucket) {
     return S3RestUtils.call(bucket, new S3RestUtils.RestCallable<Response.Status>() {
       @Override
@@ -89,9 +103,8 @@ public final class S3RestServiceHandler {
         String bucketPath = parseBucketPath(AlluxioURI.SEPARATOR + bucket);
 
         // Create the bucket.
-        CreateDirectoryOptions options = CreateDirectoryOptions.defaults();
-        options.setWriteType(Configuration.getEnum(PropertyKey.PROXY_S3_WRITE_TYPE,
-            WriteType.class));
+        CreateDirectoryOptions options = CreateDirectoryOptions.defaults()
+            .setWriteType(getS3WriteType());
         try {
           mFileSystem.createDirectory(new AlluxioURI(bucketPath), options);
         } catch (Exception e) {
@@ -103,13 +116,13 @@ public final class S3RestServiceHandler {
   }
 
   /**
-   * @summary deletes a bucket
    * @param bucket the bucket name
    * @return the response object
+   * @summary deletes a bucket
    */
   @DELETE
   @Path(BUCKET_PARAM)
-  @ReturnType("Response.Status")
+  @ReturnType("java.lang.Void")
   public Response deleteBucket(@PathParam("bucket") final String bucket) {
     return S3RestUtils.call(bucket, new S3RestUtils.RestCallable<Response.Status>() {
       @Override
@@ -127,20 +140,137 @@ public final class S3RestServiceHandler {
         } catch (Exception e) {
           throw toBucketS3Exception(e, bucketPath);
         }
-        return Response.Status.OK;
+        return Response.Status.NO_CONTENT;
       }
     });
   }
 
   /**
-   * @summary deletes a object
+   * @summary creates an object without using multipart upload
+   * @param contentMD5 the Base64 encoded 128-bit MD5 digest of the object
+   * @param bucket the bucket name
+   * @param object the object name
+   * @param is the request body
+   * @return the response object
+   */
+  @PUT
+  @Path(OBJECT_PARAM)
+  @ReturnType("java.lang.Void")
+  @Consumes(MediaType.APPLICATION_OCTET_STREAM)
+  public Response createObject(@HeaderParam("Content-MD5") final String contentMD5,
+                               @PathParam("bucket") final String bucket,
+                               @PathParam("object") final String object,
+                               final InputStream is) {
+    return S3RestUtils.call(bucket, new S3RestUtils.RestCallable<Response>() {
+      @Override
+      public Response call() throws S3Exception {
+        String bucketPath = parseBucketPath(AlluxioURI.SEPARATOR + bucket);
+        checkBucketIsAlluxioDirectory(bucketPath);
+        AlluxioURI objectURI = new AlluxioURI(bucketPath + AlluxioURI.SEPARATOR + object);
+
+        try {
+          CreateFileOptions options = CreateFileOptions.defaults().setRecursive(true)
+              .setWriteType(getS3WriteType());
+          FileOutStream os = mFileSystem.createFile(objectURI, options);
+          MessageDigest md5 = MessageDigest.getInstance("MD5");
+
+          byte[] buf = new byte[BUFFER_SIZE];
+          while (true) {
+            int len = is.read(buf);
+            if (len == -1) {
+              break;
+            }
+            md5.update(buf, 0, len);
+            os.write(buf, 0, len);
+          }
+          os.close();
+
+          byte[] digest = md5.digest();
+          String base64Digest = BaseEncoding.base64().encode(digest);
+          if (!contentMD5.equals(base64Digest)) {
+            // The object may be corrupted, delete the written object and return an error.
+            mFileSystem.delete(objectURI);
+            throw new S3Exception(objectURI.getPath(), S3ErrorCode.BAD_DIGEST);
+          }
+
+          String entityTag = Hex.encodeHexString(digest);
+          return Response.ok().tag(entityTag).build();
+        } catch (Exception e) {
+          throw toObjectS3Exception(e, bucketPath);
+        }
+      }
+    });
+  }
+
+  /**
+   * @summary retrieves an object's metadata
    * @param bucket the bucket name
    * @param object the object name
    * @return the response object
    */
+  @HEAD
+  @Path(OBJECT_PARAM)
+  @ReturnType("java.lang.Void")
+  public Response getObjectMetadata(@PathParam("bucket") final String bucket,
+                            @PathParam("object") final String object) {
+    return S3RestUtils.call(bucket, new S3RestUtils.RestCallable<Response>() {
+      @Override
+      public Response call() throws S3Exception {
+        String bucketPath = parseBucketPath(AlluxioURI.SEPARATOR + bucket);
+        checkBucketIsAlluxioDirectory(bucketPath);
+        AlluxioURI objectURI = new AlluxioURI(bucketPath + AlluxioURI.SEPARATOR + object);
+
+        try {
+          URIStatus status = mFileSystem.getStatus(objectURI);
+          // TODO(cc): Consider how to respond with the object's ETag.
+          return Response.ok().lastModified(new Date(status.getLastModificationTimeMs())).build();
+        } catch (Exception e) {
+          throw toObjectS3Exception(e, bucketPath);
+        }
+      }
+    });
+  }
+
+  /**
+   * @summary downloads an object
+   * @param bucket the bucket name
+   * @param object the object name
+   * @return the response object
+   */
+  @GET
+  @Path(OBJECT_PARAM)
+  @ReturnType("java.io.InputStream")
+  @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_OCTET_STREAM})
+  public Response getObject(@PathParam("bucket") final String bucket,
+                            @PathParam("object") final String object) {
+    return S3RestUtils.call(bucket, new S3RestUtils.RestCallable<Response>() {
+      @Override
+      public Response call() throws S3Exception {
+        String bucketPath = parseBucketPath(AlluxioURI.SEPARATOR + bucket);
+        checkBucketIsAlluxioDirectory(bucketPath);
+        AlluxioURI objectURI = new AlluxioURI(bucketPath + AlluxioURI.SEPARATOR + object);
+
+        try {
+          URIStatus status = mFileSystem.getStatus(objectURI);
+          FileInStream is = mFileSystem.openFile(objectURI);
+          // TODO(cc): Consider how to respond with the object's ETag.
+          return Response.ok(is).lastModified(new Date(status.getLastModificationTimeMs())).build();
+        } catch (Exception e) {
+          throw toObjectS3Exception(e, bucketPath);
+        }
+      }
+    });
+  }
+
+  /**
+   * @param bucket the bucket name
+   * @param object the object name
+   * @return the response object
+   * @summary deletes an object
+   */
   @DELETE
   @Path(OBJECT_PARAM)
-  @ReturnType("Response.Status")
+  @ReturnType("java.lang.Void")
   public Response deleteObject(@PathParam("bucket") final String bucket,
                                @PathParam("object") final String object) {
     return S3RestUtils.call(bucket, new S3RestUtils.RestCallable<Response.Status>() {
@@ -226,5 +356,9 @@ public final class S3RestServiceHandler {
     } catch (Exception e) {
       throw toBucketS3Exception(e, bucketPath);
     }
+  }
+
+  private WriteType getS3WriteType() {
+    return Configuration.getEnum(PropertyKey.PROXY_S3_WRITE_TYPE, WriteType.class);
   }
 }
