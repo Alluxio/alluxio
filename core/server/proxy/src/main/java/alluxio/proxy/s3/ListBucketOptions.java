@@ -23,6 +23,7 @@ public final class ListBucketOptions {
 
   /**
    * Creates a default {@link ListBucketOptions}.
+   *
    * @return the created {@link ListBucketOptions}
    */
   public static ListBucketOptions defaults() {

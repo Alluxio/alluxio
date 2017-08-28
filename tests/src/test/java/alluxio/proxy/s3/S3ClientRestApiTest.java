@@ -126,10 +126,11 @@ public final class S3ClientRestApiTest extends RestApiTest {
       // Create a new bucket under a non-existing mount point should fail.
       new TestCase(mHostname, mPort, S3_SERVICE_PREFIX + AlluxioURI.SEPARATOR + s3Path, NO_PARAMS,
           HttpMethod.PUT, null, TestCaseOptions.defaults()).run();
-      Assert.fail();
     } catch (AssertionError e) {
       // expected
+      return;
     }
+    Assert.fail("create bucket under non-existing mount point should fail");
   }
 
   @Test
@@ -145,10 +146,11 @@ public final class S3ClientRestApiTest extends RestApiTest {
       // Create a new bucket under a non-mount-point directory should fail.
       new TestCase(mHostname, mPort, S3_SERVICE_PREFIX + AlluxioURI.SEPARATOR + s3Path, NO_PARAMS,
           HttpMethod.PUT, null, TestCaseOptions.defaults()).run();
-      Assert.fail();
     } catch (AssertionError e) {
       // expected
+      return;
     }
+    Assert.fail("create bucket under non-mount-point directory should fail");
   }
 
   @Test
@@ -178,10 +180,11 @@ public final class S3ClientRestApiTest extends RestApiTest {
       // Delete a non-existing bucket should fail.
       new TestCase(mHostname, mPort, S3_SERVICE_PREFIX + AlluxioURI.SEPARATOR + bucketName,
           NO_PARAMS, HttpMethod.DELETE, null, TestCaseOptions.defaults()).run();
-      Assert.fail("delete a non-existing bucket should fail");
     } catch (AssertionError e) {
       // expected
+      return;
     }
+    Assert.fail("delete a non-existing bucket should fail");
   }
 
   @Test
@@ -202,10 +205,11 @@ public final class S3ClientRestApiTest extends RestApiTest {
       // Delete a non-empty bucket should fail.
       new TestCase(mHostname, mPort, S3_SERVICE_PREFIX + AlluxioURI.SEPARATOR + bucketName,
           NO_PARAMS, HttpMethod.DELETE, null, TestCaseOptions.defaults()).run();
-      Assert.fail("delete a non-empty bucket should fail");
     } catch (AssertionError e) {
       // expected
+      return;
     }
+    Assert.fail("delete a non-empty bucket should fail");
   }
 
   @Test
@@ -252,6 +256,34 @@ public final class S3ClientRestApiTest extends RestApiTest {
     new TestCase(mHostname, mPort, S3_SERVICE_PREFIX + AlluxioURI.SEPARATOR + bucket, NO_PARAMS,
         HttpMethod.GET, expected,
         TestCaseOptions.defaults().setContentType(TestCaseOptions.XML_CONTENT_TYPE)).run();
+  }
+
+  @Test
+  public void getBucketWithPrefix() throws Exception {
+    final String bucket = "bucket-to-get-with-prefix";
+    AlluxioURI uri = new AlluxioURI(AlluxioURI.SEPARATOR + bucket + AlluxioURI.SEPARATOR);
+    new TestCase(mHostname, mPort, S3_SERVICE_PREFIX + AlluxioURI.SEPARATOR + bucket, NO_PARAMS,
+        HttpMethod.PUT, null, TestCaseOptions.defaults()).run();
+    // Verify the directory is created for the new bucket.
+    Assert.assertTrue(mFileSystemMaster.listStatus(uri, ListStatusOptions.defaults()).isEmpty());
+
+    // Prepare a bucket with direct child objects and objects within sub directories:
+    // - /file1
+    // - /file2
+    // - /dir1/subdir1/file3
+    // - /dir2/
+    AlluxioURI file1 = new AlluxioURI(uri.getPath() + "/file1");
+    mFileSystemMaster.createFile(file1, CreateFileOptions.defaults());
+    AlluxioURI file2 = new AlluxioURI(uri.getPath() + "/file2");
+    mFileSystemMaster.createFile(file2, CreateFileOptions.defaults());
+    AlluxioURI dir1 = new AlluxioURI(uri.getPath() + "/dir1");
+    mFileSystemMaster.createDirectory(dir1, CreateDirectoryOptions.defaults());
+    AlluxioURI dir2 = new AlluxioURI(uri.getPath() + "/dir2");
+    mFileSystemMaster.createDirectory(dir2, CreateDirectoryOptions.defaults());
+    AlluxioURI subdir1 = new AlluxioURI(uri.getPath() + "/dir1/subdir1");
+    mFileSystemMaster.createDirectory(subdir1, CreateDirectoryOptions.defaults());
+    AlluxioURI file3 = new AlluxioURI(subdir1.getPath() + "/file3");
+    mFileSystemMaster.createFile(file3, CreateFileOptions.defaults());
 
     // Verify op with prefix
     final String prefix = "dir";
@@ -262,8 +294,8 @@ public final class S3ClientRestApiTest extends RestApiTest {
         new URIStatus(mFileSystemMaster.getFileInfo(file3, GetStatusOptions.defaults())));
     filteredObjectsList.add(
         new URIStatus(mFileSystemMaster.getFileInfo(dir2, GetStatusOptions.defaults())));
-    expected = new ListBucketResult(AlluxioURI.SEPARATOR + bucket, filteredObjectsList,
-        ListBucketOptions.defaults().setPrefix(prefix));
+    ListBucketResult expected = new ListBucketResult(AlluxioURI.SEPARATOR + bucket,
+        filteredObjectsList, ListBucketOptions.defaults().setPrefix(prefix));
     new TestCase(mHostname, mPort, S3_SERVICE_PREFIX + AlluxioURI.SEPARATOR + bucket,
         prefixParam, HttpMethod.GET, expected,
         TestCaseOptions.defaults().setContentType(TestCaseOptions.XML_CONTENT_TYPE)).run();
@@ -369,10 +401,11 @@ public final class S3ClientRestApiTest extends RestApiTest {
       new TestCase(mHostname, mPort, S3_SERVICE_PREFIX + AlluxioURI.SEPARATOR + bucketName,
           NO_PARAMS, HttpMethod.GET, null,
           TestCaseOptions.defaults().setContentType(TestCaseOptions.XML_CONTENT_TYPE)).run();
-      Assert.fail("get a non-existing bucket should fail");
     } catch (AssertionError e) {
       // expected
+      return;
     }
+    Assert.fail("get a non-existing bucket should fail");
   }
 
   @Test
@@ -449,7 +482,9 @@ public final class S3ClientRestApiTest extends RestApiTest {
           NO_PARAMS, HttpMethod.DELETE, null, TestCaseOptions.defaults()).run();
     } catch (AssertionError e) {
       // expected
+      return;
     }
+    Assert.fail("delete non-empty directory as an object should fail");
   }
 
   @Test
@@ -465,6 +500,8 @@ public final class S3ClientRestApiTest extends RestApiTest {
           NO_PARAMS, HttpMethod.DELETE, null, TestCaseOptions.defaults()).run();
     } catch (AssertionError e) {
       // expected
+      return;
     }
+    Assert.fail("delete non-existing object should fail");
   }
 }

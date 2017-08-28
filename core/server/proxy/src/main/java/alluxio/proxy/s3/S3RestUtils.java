@@ -30,11 +30,6 @@ import javax.ws.rs.core.Response;
 public final class S3RestUtils {
   private static final Logger LOG = LoggerFactory.getLogger(S3RestUtils.class);
 
-  public static final String S3_STANDARD_STORAGE_CLASS = "STANDARD";
-  public static final String S3_EMPTY_ETAG = "";
-  public static final String S3_DATE_FORMAT_REGEXP = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'";
-  public static final int S3_DEFAULT_MAX_KEYS = 1000;
-
   /**
    * Calls the given {@link S3RestUtils.RestCallable} and handles any exceptions thrown.
    *
@@ -107,7 +102,8 @@ public final class S3RestUtils {
     try {
       return Response.ok(mapper.writeValueAsString(object)).build();
     } catch (JsonProcessingException e) {
-      return createErrorResponse(new S3Exception(e.getMessage(), S3ErrorCode.INTERNAL_ERROR));
+      return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+          .entity("Failed to encode XML: " + e.getMessage()).build();
     }
   }
 
@@ -119,7 +115,15 @@ public final class S3RestUtils {
    */
   private static Response createErrorResponse(S3Exception e) {
     S3Error errorResponse = new S3Error(e.getResource(), e.getErrorCode());
-    return Response.status(e.getErrorCode().getStatus()).entity(errorResponse).build();
+    // Need to explicitly encode the string as XML because Jackson will not do it automatically.
+    XmlMapper mapper = new XmlMapper();
+    try {
+      return Response.status(e.getErrorCode().getStatus())
+          .entity(mapper.writeValueAsString(errorResponse)).build();
+    } catch (JsonProcessingException e2) {
+      return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+          .entity("Failed to encode XML: " + e2.getMessage()).build();
+    }
   }
 
   private S3RestUtils() {} // prevent instantiation

@@ -30,7 +30,7 @@ import java.util.List;
 
 /**
  * Get bucket result defined in http://docs.aws.amazon.com/AmazonS3/latest/API/v2-RESTBucketGET.html
- * It will be encoded into an XML string to be returned as an error response for the REST call.
+ * It will be encoded into an XML string to be returned as a response for the REST call.
  *
  * TODO(chaomin): consider add more required fields in S3 BucketGet API.
  */
@@ -39,24 +39,30 @@ import java.util.List;
     "KeyCount", "MaxKeys", "IsTruncated", "Contents" })
 public class ListBucketResult {
 
-  // Name of the bucket.
+  /* Name of the bucket. */
   private String mName = "";
-  // Keys that begin with the indicated prefix.
+  /* Keys that begin with the indicated prefix. */
   private String mPrefix = null;
-  // ContinuationToken is included in the response if it was sent with the request.
+  /* ContinuationToken is included in the response if it was sent with the request. */
   private String mContinuationToken = null;
-  // Returns the number of keys included in the response. The value is always less than or equal
-  // to the mMaxKeys value.
+  /**
+   * Returns the number of keys included in the response. The value is always less than or equal
+   * to the mMaxKeys value.
+   */
   private int mKeyCount = 0;
-  // The maximum number of keys returned in the response body.
-  private int mMaxKeys = S3RestUtils.S3_DEFAULT_MAX_KEYS;
-  // Specifies whether or not all of the results were returned. If the number of
-  // results exceeds that specified by MaxKeys, all of the results might not be returned.
+  /* The maximum number of keys returned in the response body. */
+  private int mMaxKeys = S3Constants.S3_DEFAULT_MAX_KEYS;
+  /**
+   * Specifies whether or not all of the results were returned. If the number of
+   * results exceeds that specified by MaxKeys, all of the results might not be returned.
+   */
   private boolean mIsTruncated = false;
-  // If only partial results are returned (i.e. mIsTruncated = true), this value is set as the
-  // next continuation token. The continuation token is the full Alluxio path of the object.
+  /**
+   * If only partial results are returned (i.e. mIsTruncated = true), this value is set as the
+   * next continuation token. The continuation token is the full Alluxio path of the object.
+   */
   private String mNextContinuationToken = null;
-  // A list of objects with metadata.
+  /* A list of objects with metadata. */
   private List<Content> mContents = new ArrayList<>();
 
   /**
@@ -94,7 +100,7 @@ public class ListBucketResult {
       }
     }
 
-    final DateFormat s3DateFormat = new SimpleDateFormat(S3RestUtils.S3_DATE_FORMAT_REGEXP);
+    final DateFormat s3DateFormat = new SimpleDateFormat(S3Constants.S3_DATE_FORMAT_REGEXP);
     for (int i = startIndex; i < objectsList.size(); i++) {
       URIStatus status = objectsList.get(i);
       String objectKey = status.getPath().substring(mName.length() + 1);
@@ -114,9 +120,9 @@ public class ListBucketResult {
       mContents.add(new Content(
           status.getPath().substring(mName.length() + 1),
           s3DateFormat.format(new Date(status.getLastModificationTimeMs())),
-          S3RestUtils.S3_EMPTY_ETAG,
+          S3Constants.S3_EMPTY_ETAG,
           String.valueOf(status.getLength()),
-          S3RestUtils.S3_STANDARD_STORAGE_CLASS));
+          S3Constants.S3_STANDARD_STORAGE_CLASS));
       mKeyCount++;
     }
   }
@@ -278,7 +284,7 @@ public class ListBucketResult {
       mLastModified = "";
       mETag = "";
       mSize = "";
-      mStorageClass = S3RestUtils.S3_STANDARD_STORAGE_CLASS;
+      mStorageClass = S3Constants.S3_STANDARD_STORAGE_CLASS;
     }
 
     /**
