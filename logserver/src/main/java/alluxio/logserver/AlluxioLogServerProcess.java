@@ -53,7 +53,7 @@ import java.util.Properties;
  */
 public class AlluxioLogServerProcess implements Process {
   private static final String LOGSERVER_CLIENT_LOGGER_APPENDER_NAME = "LOGSERVER_CLIENT_LOGGER";
-  private static final Logger LOG = LoggerFactory.getLogger(AlluxioLogServer.class);
+  private static final Logger LOG = LoggerFactory.getLogger(AlluxioLogServerProcess.class);
   private static final long STOP_TIMEOUT_MS = 60000;
   private static final int BASE_SLEEP_TIME_MS = 50;
   private static final int MAX_SLEEP_TIME_MS = 30000;
