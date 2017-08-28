@@ -19,30 +19,20 @@ import alluxio.retry.RetryPolicy;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 
-import org.apache.log4j.Hierarchy;
-import org.apache.log4j.Level;
-import org.apache.log4j.PropertyConfigurator;
-import org.apache.log4j.spi.LoggerRepository;
-import org.apache.log4j.spi.RootLogger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Function;
 
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.ThreadPoolExecutor;
-import java.util.Properties;
 
 /**
  * A centralized log server for Alluxio
@@ -52,6 +42,10 @@ import java.util.Properties;
  * centralized log server where another copy of the logs will be stored.
  */
 public class AlluxioLogServerProcess implements Process {
+  /**
+   * Name of the appender used by log server to perform actual logging of messages received from
+   * remote Alluxio servers. It has to match the value in log4j.properties.
+   * */
   public static final String LOGSERVER_CLIENT_LOGGER_APPENDER_NAME = "LOGSERVER_CLIENT_LOGGER";
   private static final Logger LOG = LoggerFactory.getLogger(AlluxioLogServerProcess.class);
   private static final long STOP_TIMEOUT_MS = 60000;

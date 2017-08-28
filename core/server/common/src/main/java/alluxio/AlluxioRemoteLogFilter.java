@@ -59,6 +59,12 @@ public class AlluxioRemoteLogFilter extends Filter {
   /**
    * Set the name of the log appender.
    *
+   * Log4j parses log4j.properties, extracting the Java class that corresponds to the filter.
+   * In this case, the Java class is {@link AlluxioRemoteLogFilter}.
+   * Log4j also extracts option information as a key-value pair, e.g.
+   * "AppenderName" : "MASTER_LOG". Then log4j invokes the {@link #setAppenderName(String)}
+   * method to set the value of {@link #mAppenderName}.
+   *
    * @param appenderName name of the log appender
    */
   public void setAppenderName(String appenderName) {
