@@ -1225,10 +1225,22 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Name.LOGSERVER_HOSTNAME)
           .setDescription("The hostname of Alluxio logserver.")
           .build();
-  public static final PropertyKey LOG_SERVER_PORT =
+  public static final PropertyKey LOGSERVER_PORT =
       new Builder(Name.LOGSERVER_PORT)
           .setDefaultValue(45600)
           .setDescription("Default port number to receive logs from alluxio servers.")
+          .build();
+  public static final PropertyKey LOGSERVER_THREADS_MAX =
+      new Builder(Name.LOGSERVER_THREADS_MAX)
+          .setDefaultValue(2048)
+          .setDescription("The maximum number of threads used by logserver to service"
+              +" logging requests.")
+          .build();
+  public static final PropertyKey LOGSERVER_THREADS_MIN =
+      new Builder(Name.LOGSERVER_THREADS_MIN)
+          .setDefaultValue(512)
+          .setDescription("The minimum number of threads used by logserver to service"
+              + " logging requests.")
           .build();
 
   //
@@ -2102,6 +2114,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String LOGSERVER_LOGS_DIR = "alluxio.logserver.logs.dir";
     public static final String LOGSERVER_HOSTNAME = "alluxio.logserver.hostname";
     public static final String LOGSERVER_PORT = "alluxio.logserver.port";
+    public static final String LOGSERVER_THREADS_MAX = "alluxio.logserver.threads.max";
+    public static final String LOGSERVER_THREADS_MIN = "alluxio.logserver.threads.min";
 
     //
     // User related properties

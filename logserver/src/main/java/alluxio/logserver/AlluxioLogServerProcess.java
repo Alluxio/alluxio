@@ -67,12 +67,10 @@ public class AlluxioLogServerProcess implements Process {
    * @param baseLogsDir base directory to store the logs pushed from remote Alluxio servers
    */
   public AlluxioLogServerProcess(String baseLogsDir) {
-    mPort = Configuration.getInt(PropertyKey.LOG_SERVER_PORT);
-    // The log server serves the logging requests from Alluxio workers, Alluxio master, Alluxio
-    // secondary master, and Alluxio proxy. Therefore the number of threads required by
-    // log server is #workers + 1 (master) + 1 (secondary master) + 1 (proxy).
-    mMinNumberOfThreads = Configuration.getInt(PropertyKey.MASTER_WORKER_THREADS_MIN) + 3;
-    mMaxNumberOfThreads = Configuration.getInt(PropertyKey.MASTER_WORKER_THREADS_MAX) + 3;
+    mPort = Configuration.getInt(PropertyKey.LOGSERVER_PORT);
+    // The log server serves the logging requests from Alluxio servers.
+    mMinNumberOfThreads = Configuration.getInt(PropertyKey.LOGSERVER_THREADS_MIN);
+    mMaxNumberOfThreads = Configuration.getInt(PropertyKey.LOGSERVER_THREADS_MAX);
     mBaseLogsDir = baseLogsDir;
     mStopped = true;
   }
