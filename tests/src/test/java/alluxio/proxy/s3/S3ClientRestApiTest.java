@@ -323,7 +323,10 @@ public final class S3ClientRestApiTest extends RestApiTest {
     HttpURLConnection connection = getObjectMetadataRestCall(objectKey);
     URIStatus status = mFileSystem.getStatus(
         new AlluxioURI(AlluxioURI.SEPARATOR + objectKey));
-    Assert.assertEquals(status.getLastModificationTimeMs(), connection.getLastModified());
+    // remove the milliseconds from the last modification time because the accuracy of HTTP dates
+    // is up to seconds.
+    long lastModified = status.getLastModificationTimeMs() / 1000 * 1000;
+    Assert.assertEquals(lastModified, connection.getLastModified());
   }
 
   @Test
