@@ -37,6 +37,8 @@ alluxio.master.lineage.recompute.interval.ms:
   every 10 minutes.
 alluxio.master.lineage.recompute.log.path:
   The path to the log that the recompute executor redirects the job's stdout into.
+alluxio.master.lost.file.detector.enabled:
+  Whether to enable lost file detector. Disabled by default.
 alluxio.master.port:
   The port that Alluxio master node runs on.
 alluxio.master.retry:
