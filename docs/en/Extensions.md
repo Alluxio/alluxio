@@ -40,7 +40,7 @@ more suitable tools can be used to place the JAR at the location specified in th
 `alluxio.extensions.dir` on Alluxio servers.
 
 To list the installed extensions on any given host running the Alluxio processes, use `bin/alluxio
-extensios ls`. The utility lists installed extensions by scanning the local extensions directory.
+extensions ls`. The utility lists installed extensions by scanning the local extensions directory.
 
 The `bin/alluxio extensions uninstall` command works similar to `install` using hosts specified in
 `conf/masters` and `conf/workers`.
@@ -50,8 +50,8 @@ The `bin/alluxio extensions uninstall` command works similar to `install` using 
 To install an extension from maven, it can be downloaded and installed as follows:
 
 ```bash
-mvn dependency:get -DremoteRepositories=http://repo1.maven.org/maven2/ -DgroupId=<my-extension-group>
-\ -DartifactId=<my-extension-artifact> -Dversion=<version> -Dtransitive=false -Ddest=<my-extension>.jar
+mvn dependency:get -DremoteRepositories=http://repo1.maven.org/maven2/ -DgroupId=<my-extension-group> \
+-DartifactId=<my-extension-artifact> -Dversion=<version> -Dtransitive=false -Ddest=<my-extension>.jar
 
 bin/alluxio extensions install <my-extension.jar>
 ```
@@ -64,8 +64,10 @@ the Alluxio CLI as follows:
 ```bash
 bin/alluxio fs mount /my-storage <my-scheme>://<path>/ -D<my-access-key>=<value>
 ```
+where, `<my-access-key>=<value.` can be replaced with any required configuration for the under storage.
 
-To run sanity tests:
+To run sanity tests execute:
+
 ```bash
 bin/alluxio runTests --directory /my-storage
 ```
