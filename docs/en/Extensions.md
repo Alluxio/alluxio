@@ -2,7 +2,6 @@
 layout: global
 group: Features
 title: Under Storage Extensions
-priority: 7
 ---
 
 * Table of Contents
