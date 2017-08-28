@@ -105,7 +105,6 @@ public final class TestCaseOptions {
     return this;
   }
 
-
   @Override
   public boolean equals(Object o) {
     if (this == o) {
