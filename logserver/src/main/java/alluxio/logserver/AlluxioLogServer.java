@@ -32,9 +32,5 @@ public final class AlluxioLogServer {
     ProcessUtils.run(process);
   }
 
-  /**
-   * Private constructor to prevent user from instantiating any
-   * {@link AlluxioLogServer} instance.
-   */
   private AlluxioLogServer() {} // prevent instantiation
 }

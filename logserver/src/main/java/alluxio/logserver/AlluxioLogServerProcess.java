@@ -188,10 +188,8 @@ public class AlluxioLogServerProcess implements LogServerProcess {
    *
    * @param inetAddress inet address of the client
    * @param logAppenderName name of the appender to use for this client
-   * @return A {@link Hierarchy} instance to pass to {@link AlluxioLog4jSocketNode}
+   * @return a {@link Hierarchy} instance to pass to {@link AlluxioLog4jSocketNode}
    * @throws IOException if fails to create an {@link FileInputStream} to read log4j.properties
-   * @throws URISyntaxException if fails to derive a valid URI from the value of property named
-   *         "log4j.configuration"
    */
   protected LoggerRepository configureHierarchy(InetAddress inetAddress, String logAppenderName)
       throws IOException {

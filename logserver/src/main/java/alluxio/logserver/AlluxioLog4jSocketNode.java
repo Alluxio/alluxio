@@ -13,6 +13,7 @@ package alluxio.logserver;
 
 import alluxio.AlluxioRemoteLogFilter;
 
+import com.google.common.base.Preconditions;
 import org.apache.log4j.Logger;
 import org.apache.log4j.spi.LoggerRepository;
 import org.apache.log4j.spi.LoggingEvent;
@@ -25,16 +26,12 @@ import java.net.Socket;
 /**
  * Reads {@link org.apache.log4j.spi.LoggingEvent} objects from remote logging
  * clients and writes the objects to designated log files. For each logging client,
- * logging server creates a {@link org.apache.log4j.spi.LoggingEvent} object and starts
+ * logging server creates a {@link AlluxioLog4jSocketNode} object and starts
  * a thread serving the logging requests of the client.
  */
 public class AlluxioLog4jSocketNode implements Runnable {
-  /**
-   * A reference variable of the {@link AlluxioLogServerProcess} instance.
-   */
   private final AlluxioLogServerProcess mLogServerProcess;
   private final Socket mSocket;
-  private LoggerRepository mHierarchy;
 
   /**
    * Constructor of {@link AlluxioLog4jSocketNode}.
@@ -49,28 +46,30 @@ public class AlluxioLog4jSocketNode implements Runnable {
    */
   public AlluxioLog4jSocketNode(AlluxioLogServerProcess process, Socket socket)
       throws IOException {
-    mLogServerProcess = process;
-    mSocket = socket;
+    mLogServerProcess = Preconditions.checkNotNull(process,
+        "The log server process could not be null.");
+    mSocket = Preconditions.checkNotNull(socket, "Client socket could not be null");
   }
 
   @Override
   public void run() {
+    LoggerRepository hierarchy = null;
     LoggingEvent event;
     Logger remoteLogger;
     try (ObjectInputStream objectInputStream = new ObjectInputStream(
         new BufferedInputStream(mSocket.getInputStream()))) {
       while (true) {
         event = (LoggingEvent) objectInputStream.readObject();
-        if (mHierarchy == null) {
-          mHierarchy = mLogServerProcess.configureHierarchy(
+        if (hierarchy == null) {
+          hierarchy = mLogServerProcess.configureHierarchy(
               mSocket.getInetAddress(),
               event.getMDC(AlluxioRemoteLogFilter.REMOTE_LOG_MDC_APPENDER_NAME_KEY).toString());
-          if (mHierarchy == null) {
+          if (hierarchy == null) {
             // TODO(yanqin) better handling
             continue;
           }
         }
-        remoteLogger = mHierarchy.getLogger(event.getLoggerName());
+        remoteLogger = hierarchy.getLogger(event.getLoggerName());
         if (event.getLevel().isGreaterOrEqual(remoteLogger.getEffectiveLevel())) {
           remoteLogger.callAppenders(event);
         }
@@ -79,12 +78,10 @@ public class AlluxioLog4jSocketNode implements Runnable {
       // Something went wrong, cannot recover.
       throw new RuntimeException(e);
     } finally {
-      if (mSocket != null) {
-        try {
-          mSocket.close();
-        } catch (Exception e) {
-          // Ignore the exception caused by closing socket.
-        }
+      try {
+        mSocket.close();
+      } catch (Exception e) {
+        // Ignore the exception caused by closing socket.
       }
     }
   }
