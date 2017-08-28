@@ -25,11 +25,13 @@ import alluxio.worker.block.meta.TempBlockMeta;
 import java.io.IOException;
 import java.util.Set;
 
+import javax.annotation.Nullable;
+
 /**
  * A blob store interface to represent the local storage managing and serving all the blocks in the
  * local storage.
  */
-interface BlockStore extends SessionCleanable {
+public interface BlockStore extends SessionCleanable {
 
   /**
    * Locks an existing block and guards subsequent reads on this block.
@@ -129,6 +131,7 @@ interface BlockStore extends SessionCleanable {
    * @param blockId the id of the block
    * @return metadata of the block or null if the temp block does not exist
    */
+  @Nullable
   TempBlockMeta getTempBlockMeta(long sessionId, long blockId);
 
   /**
