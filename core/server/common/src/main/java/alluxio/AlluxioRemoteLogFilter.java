@@ -26,13 +26,17 @@ public class AlluxioRemoteLogFilter extends Filter {
   /** Name (Key) of the MDC info. */
   public static final String REMOTE_LOG_MDC_APPENDER_NAME_KEY = "appender";
 
-  /** Option name to configure this {@link AlluxioRemoteLogFilter} in log4j.properties. */
+  /**
+   * @deprecated Option name to configure this {@link AlluxioRemoteLogFilter}
+   * in log4j.properties.
+   */
   public static final String APPENDER_NAME_OPTION = "AppenderName";
 
   /** Name of the log appender. */
   private String mAppenderName;
 
   /**
+   * @deprecated
    * @return option strings as an array
    */
   public String[] getOptionStrings() {
@@ -40,8 +44,8 @@ public class AlluxioRemoteLogFilter extends Filter {
   }
 
   /**
-   * Set option value use key=value format. The log4j.properties file uses this to set options.
-   * See the log4j.properties for more details.
+   * @deprecated Set option value use key=value format. The log4j.properties file uses this
+   * to set options. See the log4j.properties for more details.
    *
    * @param key key (name) of the option
    * @param value value of the option
