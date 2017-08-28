@@ -223,6 +223,7 @@ public final class S3RestServiceHandler {
         try {
           URIStatus status = mFileSystem.getStatus(objectURI);
           FileInStream is = mFileSystem.openFile(objectURI);
+          // TODO(cc): Consider how to respond with the object's ETag.
           return Response.ok(is).lastModified(new Date(status.getLastModificationTimeMs())).build();
         } catch (Exception e) {
           throw toObjectS3Exception(e, bucketPath);
