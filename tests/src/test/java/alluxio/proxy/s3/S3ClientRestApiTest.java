@@ -128,10 +128,11 @@ public final class S3ClientRestApiTest extends RestApiTest {
     try {
       // Create a new bucket under a non-existing mount point should fail.
       createBucketRestCall(s3Path);
-      Assert.fail();
     } catch (AssertionError e) {
       // expected
+      return;
     }
+    Assert.fail("create bucket under non-existing mount point should fail");
   }
 
   @Test
@@ -146,10 +147,11 @@ public final class S3ClientRestApiTest extends RestApiTest {
     try {
       // Create a new bucket under a non-mount-point directory should fail.
       createBucketRestCall(s3Path);
-      Assert.fail();
     } catch (AssertionError e) {
       // expected
+      return;
     }
+    Assert.fail("create bucket under non-mount-point directory should fail");
   }
 
   @Test
@@ -165,10 +167,11 @@ public final class S3ClientRestApiTest extends RestApiTest {
 
     try {
       mFileSystemMaster.getFileInfo(uri, GET_STATUS_OPTIONS);
-      Assert.fail("bucket should have been removed");
     } catch (FileDoesNotExistException e) {
       // expected
+      return;
     }
+    Assert.fail("bucket should have been removed");
   }
 
   @Test
@@ -178,10 +181,11 @@ public final class S3ClientRestApiTest extends RestApiTest {
     try {
       // Delete a non-existing bucket should fail.
       deleteBucketRestCall(bucketName);
-      Assert.fail("delete a non-existing bucket should fail");
     } catch (AssertionError e) {
       // expected
+      return;
     }
+    Assert.fail("delete a non-existing bucket should fail");
   }
 
   @Test
@@ -200,10 +204,11 @@ public final class S3ClientRestApiTest extends RestApiTest {
     try {
       // Delete a non-empty bucket should fail.
       deleteBucketRestCall(bucketName);
-      Assert.fail("delete a non-empty bucket should fail");
     } catch (AssertionError e) {
       // expected
+      return;
     }
+    Assert.fail("delete a non-empty bucket should fail");
   }
 
   @Test
@@ -238,10 +243,11 @@ public final class S3ClientRestApiTest extends RestApiTest {
     String message = "hello world";
     try {
       createObjectRestCall(objectKey, message.getBytes(), null);
-      Assert.fail("create object under non-existent bucket should fail");
     } catch (AssertionError e) {
       // expected
+      return;
     }
+    Assert.fail("create object under non-existent bucket should fail");
   }
 
   @Test
@@ -254,10 +260,11 @@ public final class S3ClientRestApiTest extends RestApiTest {
     try {
       String wrongMD5 = BaseEncoding.base64().encode(message.getBytes());
       createObjectRestCall(objectKey, message.getBytes(), wrongMD5);
-      Assert.fail("create object with wrong Content-MD5 should fail");
     } catch (AssertionError e) {
       // expected
+      return;
     }
+    Assert.fail("create object with wrong Content-MD5 should fail");
   }
 
   @Test
@@ -325,7 +332,9 @@ public final class S3ClientRestApiTest extends RestApiTest {
       deleteObjectRestCall(bucketName + AlluxioURI.SEPARATOR + objectName);
     } catch (AssertionError e) {
       // expected
+      return;
     }
+    Assert.fail("delete non-empty directory as an object should fail");
   }
 
   @Test
@@ -338,7 +347,9 @@ public final class S3ClientRestApiTest extends RestApiTest {
       deleteObjectRestCall(bucketName + AlluxioURI.SEPARATOR + objectName);
     } catch (AssertionError e) {
       // expected
+      return;
     }
+    Assert.fail("delete non-existing object should fail");
   }
 
   private void createBucketRestCall(String bucketName) throws Exception {
