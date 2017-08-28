@@ -15,6 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
+import alluxio.client.file.URIStatus;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.options.CreateDirectoryOptions;
@@ -36,12 +37,14 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 import java.io.ByteArrayInputStream;
+import java.net.HttpURLConnection;
 import java.security.MessageDigest;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import javax.ws.rs.HttpMethod;
+import javax.ws.rs.core.Response;
 
 /**
  * Test cases for {@link S3RestServiceHandler}.
@@ -165,7 +168,8 @@ public final class S3ClientRestApiTest extends RestApiTest {
     AlluxioURI uri = new AlluxioURI(AlluxioURI.SEPARATOR + bucket);
     Assert.assertTrue(mFileSystemMaster.listStatus(uri, ListStatusOptions.defaults()).isEmpty());
 
-    deleteBucketRestCall(bucket);
+    HttpURLConnection connection = deleteBucketRestCall(bucket);
+    Assert.assertEquals(Response.Status.NO_CONTENT.getStatusCode(), connection.getResponseCode());
 
     try {
       mFileSystemMaster.getFileInfo(uri, GET_STATUS_OPTIONS);
@@ -308,6 +312,33 @@ public final class S3ClientRestApiTest extends RestApiTest {
   }
 
   @Test
+  public void getObjectMetadata() throws Exception {
+    final String bucket = "bucket";
+    createBucketRestCall(bucket);
+
+    final String objectKey = bucket + AlluxioURI.SEPARATOR + "object.txt";
+    final byte[] objectContent = CommonUtils.randomAlphaNumString(10).getBytes();
+    createObjectRestCall(objectKey, objectContent, null);
+
+    HttpURLConnection connection = getObjectMetadataRestCall(objectKey);
+    URIStatus status = mFileSystem.getStatus(
+        new AlluxioURI(AlluxioURI.SEPARATOR + objectKey));
+    Assert.assertEquals(status.getLastModificationTimeMs(), connection.getLastModified());
+  }
+
+  @Test
+  public void getNonExistentObjectMetadata() throws Exception {
+    final String objectKey = "bucket/non-existent-object";
+    try {
+      getObjectMetadataRestCall(objectKey);
+    } catch (AssertionError e) {
+      // expected
+      return;
+    }
+    Assert.fail("get metadata of non-existent object should fail");
+  }
+
+  @Test
   public void deleteObject() throws Exception {
     final String bucketName = "bucket-with-object-to-delete";
     createBucketRestCall(bucketName);
@@ -398,10 +429,10 @@ public final class S3ClientRestApiTest extends RestApiTest {
         TestCaseOptions.defaults()).run();
   }
 
-  private void deleteBucketRestCall(String bucketName) throws Exception {
+  private HttpURLConnection deleteBucketRestCall(String bucketName) throws Exception {
     String uri = S3_SERVICE_PREFIX + AlluxioURI.SEPARATOR + bucketName;
-    new TestCase(mHostname, mPort, uri, NO_PARAMS, HttpMethod.DELETE, null,
-        TestCaseOptions.defaults()).run();
+    return new TestCase(mHostname, mPort, uri, NO_PARAMS, HttpMethod.DELETE, null,
+        TestCaseOptions.defaults()).execute();
   }
 
   private void createObjectRestCall(String objectKey, byte[] objectContent, String md5)
@@ -417,6 +448,12 @@ public final class S3ClientRestApiTest extends RestApiTest {
     options.setInputStream(new ByteArrayInputStream(objectContent));
     new TestCase(mHostname, mPort, uri, NO_PARAMS, HttpMethod.PUT, null, options)
         .run();
+  }
+
+  private HttpURLConnection getObjectMetadataRestCall(String objectKey) throws Exception {
+    String uri = S3_SERVICE_PREFIX + AlluxioURI.SEPARATOR + objectKey;
+    return new TestCase(mHostname, mPort, uri, NO_PARAMS, HttpMethod.HEAD, null,
+        TestCaseOptions.defaults()).execute();
   }
 
   private String getObjectRestCall(String objectKey) throws Exception {

@@ -42,6 +42,7 @@ import javax.servlet.ServletContext;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
+import javax.ws.rs.HEAD;
 import javax.ws.rs.HeaderParam;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
@@ -194,6 +195,35 @@ public final class S3RestServiceHandler {
 
           String entityTag = Hex.encodeHexString(digest);
           return Response.ok().tag(entityTag).build();
+        } catch (Exception e) {
+          throw toObjectS3Exception(e, bucketPath);
+        }
+      }
+    });
+  }
+
+  /**
+   * @summary retrieves an object's metadata
+   * @param bucket the bucket name
+   * @param object the object name
+   * @return the response object
+   */
+  @HEAD
+  @Path(OBJECT_PARAM)
+  @ReturnType("java.lang.Void")
+  public Response getObjectMetadata(@PathParam("bucket") final String bucket,
+                            @PathParam("object") final String object) {
+    return S3RestUtils.call(bucket, new S3RestUtils.RestCallable<Response>() {
+      @Override
+      public Response call() throws S3Exception {
+        String bucketPath = parseBucketPath(AlluxioURI.SEPARATOR + bucket);
+        checkBucketIsAlluxioDirectory(bucketPath);
+        AlluxioURI objectURI = new AlluxioURI(bucketPath + AlluxioURI.SEPARATOR + object);
+
+        try {
+          URIStatus status = mFileSystem.getStatus(objectURI);
+          // TODO(cc): Consider how to respond with the object's ETag.
+          return Response.ok().lastModified(new Date(status.getLastModificationTimeMs())).build();
         } catch (Exception e) {
           throw toObjectS3Exception(e, bucketPath);
         }
