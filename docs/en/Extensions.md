@@ -34,9 +34,9 @@ Usage: alluxio extensions [generic options]
 ```
 
 When installing an extension, the provided JAR is copied to hosts listed in `conf/masters` and
-`conf/workers` using `rsync` and `ssh`. In environments where the tools is not applicable, other
+`conf/workers` using `rsync` and `ssh`. In environments where the tool is not applicable, other
 more suitable tools can be used to place the JAR at the location specified in the property
-`alluxio.extensions.dir`.
+`alluxio.extensions.dir` on Alluxio servers.
 
 To list the installed extensions on any given host running the Alluxio processes, use `bin/alluxio
 extensios ls`. The utility lists installed extensions by scanning the local extensions directory.
