@@ -15,6 +15,8 @@ import org.apache.log4j.MDC;
 import org.apache.log4j.spi.Filter;
 import org.apache.log4j.spi.LoggingEvent;
 
+import java.lang.Deprecated;
+
 /**
  * Thin filter to add MDC information to {@link LoggingEvent}. Remote log server can read
  * {@link org.apache.log4j.spi.LoggingEvent} off {@link java.net.Socket} and retrieve the
@@ -30,26 +32,29 @@ public class AlluxioRemoteLogFilter extends Filter {
    * @deprecated Option name to configure this {@link AlluxioRemoteLogFilter}
    * in log4j.properties.
    */
+  @Deprecated
   public static final String APPENDER_NAME_OPTION = "AppenderName";
 
   /** Name of the log appender. */
   private String mAppenderName;
 
   /**
-   * @deprecated
+   * @deprecated Gets the option strings.
    * @return option strings as an array
    */
+  @Deprecated
   public String[] getOptionStrings() {
     return new String[] {APPENDER_NAME_OPTION};
   }
 
   /**
-   * @deprecated Set option value use key=value format. The log4j.properties file uses this
+   * @deprecated Sets option value use key=value format. The log4j.properties file uses this
    * to set options. See the log4j.properties for more details.
    *
    * @param key key (name) of the option
    * @param value value of the option
    */
+  @Deprecated
   public void setOption(String key, String value) {
     if (key.equalsIgnoreCase(APPENDER_NAME_OPTION)) {
       mAppenderName = value;
@@ -57,7 +62,7 @@ public class AlluxioRemoteLogFilter extends Filter {
   }
 
   /**
-   * Set the name of the log appender.
+   * Sets the name of the log appender.
    *
    * Log4j parses log4j.properties, extracting the Java class that corresponds to the filter.
    * In this case, the Java class is {@link AlluxioRemoteLogFilter}.

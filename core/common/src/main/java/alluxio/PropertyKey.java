@@ -1234,7 +1234,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Name.LOGSERVER_THREADS_MAX)
           .setDefaultValue(2048)
           .setDescription("The maximum number of threads used by logserver to service"
-              +" logging requests.")
+              + " logging requests.")
           .build();
   public static final PropertyKey LOGSERVER_THREADS_MIN =
       new Builder(Name.LOGSERVER_THREADS_MIN)

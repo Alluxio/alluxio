@@ -14,7 +14,6 @@ package alluxio.logserver;
 import alluxio.Configuration;
 import alluxio.Process;
 import alluxio.PropertyKey;
-import alluxio.retry.ExponentialBackoffRetry;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 
