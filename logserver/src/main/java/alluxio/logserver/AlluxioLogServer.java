@@ -11,13 +11,16 @@
 
 package alluxio.logserver;
 
-import alluxio.Process;
 import alluxio.ProcessUtils;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Alluxio log server receiving logs pushed from Alluxio servers.
  */
 public final class AlluxioLogServer {
+  private static Logger LOG = LoggerFactory.getLogger(AlluxioLogServer.class);
   /**
    * Main entry point of {@link AlluxioLogServer}.
    *
@@ -25,27 +28,8 @@ public final class AlluxioLogServer {
    */
   public static void main(String[] args) {
     final AlluxioLogServerProcess process = new AlluxioLogServerProcess(args[0]);
-    addShutdownHook(process);
+    ProcessUtils.addShutdownHook(process);
     ProcessUtils.run(process);
-  }
-
-  /**
-   * Add a shutdown hook that will be invoked when a signal is sent to this process.
-   *
-   * @param process the data structure representing the process to terminate
-   */
-  private static void addShutdownHook(final Process process) {
-    Runtime.getRuntime().addShutdownHook(new Thread() {
-      @Override
-      public void run() {
-        try {
-          process.stop();
-        } catch (Exception e) {
-          System.exit(0);
-        }
-      }
-    }
-    );
   }
 
   /**

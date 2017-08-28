@@ -52,9 +52,9 @@ import java.util.Properties;
  */
 public class AlluxioLogServerProcess implements LogServerProcess {
   private static final Logger LOG = LoggerFactory.getLogger(AlluxioLogServer.class);
-  private static final long STOP_TIMEOUT_IN_MS = 60000;
-  private static final int BASE_SLEEP_TIME_IN_MS = 50;
-  private static final int MAX_SLEEP_TIME_IN_MS = 30000;
+  private static final long STOP_TIMEOUT_MS = 60000;
+  private static final int BASE_SLEEP_TIME_MS = 50;
+  private static final int MAX_SLEEP_TIME_MS = 30000;
   private static final int MAX_NUM_RETRY = 20;
 
   private final String mBaseLogsDir;
@@ -72,8 +72,11 @@ public class AlluxioLogServerProcess implements LogServerProcess {
    */
   public AlluxioLogServerProcess(String baseLogsDir) {
     mPort = Configuration.getInt(PropertyKey.LOG_SERVER_PORT);
-    mMinNumberOfThreads = Configuration.getInt(PropertyKey.MASTER_WORKER_THREADS_MIN) + 2;
-    mMaxNumberOfThreads = Configuration.getInt(PropertyKey.MASTER_WORKER_THREADS_MAX) + 2;
+    // The log server serves the logging requests from Alluxio workers, Alluxio master, Alluxio
+    // secondary master, and Alluxio proxy. Therefore the number of threads required by
+    // log server is #workers + 1 (master) + 1 (secondary master) + 1 (proxy).
+    mMinNumberOfThreads = Configuration.getInt(PropertyKey.MASTER_WORKER_THREADS_MIN) + 3;
+    mMaxNumberOfThreads = Configuration.getInt(PropertyKey.MASTER_WORKER_THREADS_MAX) + 3;
     mBaseLogsDir = baseLogsDir;
     mStopped = true;
   }
@@ -106,12 +109,12 @@ public class AlluxioLogServerProcess implements LogServerProcess {
         new SynchronousQueue<>();
     mThreadPool =
         new ThreadPoolExecutor(mMinNumberOfThreads, mMaxNumberOfThreads,
-            STOP_TIMEOUT_IN_MS, TimeUnit.MILLISECONDS, synchronousQueue);
+            STOP_TIMEOUT_MS, TimeUnit.MILLISECONDS, synchronousQueue);
     try {
       mServerSocket = new ServerSocket(mPort);
     } catch (IOException e) {
       LOG.error("Failed to bind to port {}.", mPort);
-      return;
+      throw new RuntimeException(e);
     }
     mStopped = false;
     while (!mStopped) {
@@ -121,27 +124,22 @@ public class AlluxioLogServerProcess implements LogServerProcess {
         AlluxioLog4jSocketNode clientSocketNode =
             new AlluxioLog4jSocketNode(this, client);
         RetryPolicy retryPolicy = new ExponentialBackoffRetry(
-            BASE_SLEEP_TIME_IN_MS, MAX_SLEEP_TIME_IN_MS, MAX_NUM_RETRY);
+            BASE_SLEEP_TIME_MS, MAX_SLEEP_TIME_MS, MAX_NUM_RETRY);
         while (true) {
           try {
             mThreadPool.execute(clientSocketNode);
             break;
-          } catch (Throwable t) {
-            if (t instanceof RejectedExecutionException) {
-              if (!retryPolicy.attemptRetry()) {
-                LOG.warn("Connection with {} has been rejected by ExecutorService {} times"
-                    + "till timedout, reason: {}",
-                    inetAddress.getHostAddress(), retryPolicy.getRetryCount(), t);
-                client.close();
-                break;
-              }
-            } else if (t instanceof Error) {
-              LOG.error("ExecutorService threw error: ", t);
-              throw (Error) t;
-            } else {
-              LOG.warn("ExecutorService threw error: ", t);
+          } catch (RejectedExecutionException e) {
+            if (!retryPolicy.attemptRetry()) {
+              LOG.warn("Connection with {} has been rejected by ExecutorService {} times"
+                      + "till timedout, reason: {}",
+                  inetAddress.getHostAddress(), retryPolicy.getRetryCount(), e);
+              client.close();
               break;
             }
+          } catch (Error | Exception e) {
+            LOG.error("ExecutorService threw error: ", e);
+            throw e;
           }
         }
       } catch (IOException e) {
@@ -168,7 +166,7 @@ public class AlluxioLogServerProcess implements LogServerProcess {
     }
 
     mThreadPool.shutdown();
-    long timeoutMS = STOP_TIMEOUT_IN_MS;
+    long timeoutMS = STOP_TIMEOUT_MS;
     long now = System.currentTimeMillis();
     while (timeoutMS >= 0) {
       try {
