@@ -284,6 +284,19 @@ public final class S3ClientRestApiTest extends RestApiTest {
   }
 
   @Test
+  public void putObjectWithNoMD5() throws Exception {
+    final String bucket = "bucket";
+    createBucketRestCall(bucket);
+
+    final String objectKey = bucket + AlluxioURI.SEPARATOR + "object.txt";
+    String objectContent = "no md5 set";
+    String uri = S3_SERVICE_PREFIX + AlluxioURI.SEPARATOR + objectKey;
+    TestCaseOptions options = TestCaseOptions.defaults();
+    options.setInputStream(new ByteArrayInputStream(objectContent.getBytes()));
+    new TestCase(mHostname, mPort, uri, NO_PARAMS, HttpMethod.PUT, null, options).run();
+  }
+
+  @Test
   public void getBucket() throws Exception {
     final String bucket = "bucket-to-get";
     createBucketRestCall(bucket);
@@ -561,6 +574,8 @@ public final class S3ClientRestApiTest extends RestApiTest {
     // is up to seconds.
     long lastModified = status.getLastModificationTimeMs() / 1000 * 1000;
     Assert.assertEquals(lastModified, connection.getLastModified());
+    Assert.assertEquals(String.valueOf(status.getLength()),
+        connection.getHeaderField(S3Constants.S3_CONTENT_LENGTH_HEADER));
   }
 
   @Test
