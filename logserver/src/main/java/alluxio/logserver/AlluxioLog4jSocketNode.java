@@ -66,7 +66,6 @@ public class AlluxioLog4jSocketNode implements Runnable {
     Logger remoteLogger;
     try (ObjectInputStream objectInputStream = new ObjectInputStream(
         new BufferedInputStream(mSocket.getInputStream()))) {
-      // Check for interrupt status of current thread and preserve it.
       while (!Thread.currentThread().isInterrupted()) {
         event = (LoggingEvent) objectInputStream.readObject();
         if (hierarchy == null) {
@@ -102,7 +101,6 @@ public class AlluxioLog4jSocketNode implements Runnable {
    */
   private LoggerRepository configureHierarchy(String logAppenderName)
       throws IOException {
-    Hierarchy clientHierarchy;
     String inetAddressStr = mSocket.getInetAddress().getHostAddress();
     Properties properties = new Properties();
     File configFile;
@@ -118,7 +116,7 @@ public class AlluxioLog4jSocketNode implements Runnable {
       properties.load(inputStream);
     }
     Level level = Level.INFO;
-    clientHierarchy = new Hierarchy(new RootLogger(level));
+    Hierarchy clientHierarchy = new Hierarchy(new RootLogger(level));
     // Startup script should guarantee that mBaseLogsDir already exists.
     String logDirectoryPath = mLogServerProcess.getBaseLogsDir() + "/" + logAppenderName.toLowerCase();
     File logDirectory = new File(logDirectoryPath);

@@ -182,7 +182,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey REMOTE_LOGGING_ENABLED =
       new Builder(Name.REMOTE_LOGGING_ENABLED)
           .setDefaultValue(false)
-          .setDescription("Set to true to enable writing logs to a server")
+          .setDescription("Set to true to enable writing logs to a server.")
           .build();
   public static final PropertyKey SITE_CONF_DIR =
       new Builder(Name.SITE_CONF_DIR)

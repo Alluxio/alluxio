@@ -83,47 +83,21 @@ public class AlluxioLogServerProcess implements Process {
     mStopped = true;
   }
 
-  @Override
-  public void start() throws Exception {
-    startServing();
-  }
-
-  @Override
-  public void stop() throws Exception {
-    stopServing();
-  }
-
-  @Override
-  public void waitForReady() {
-    CommonUtils.waitFor(this + " to start", new Function<Void, Boolean>() {
-      @Override
-      public Boolean apply(Void input) {
-        return mStopped == false;
-      }
-    }, WaitForOptions.defaults().setTimeoutMs(10000));
-  }
-
   /**
-   * @return the string representation of the path to base logs directory
-   */
-  public final String getBaseLogsDir() {
-    return mBaseLogsDir;
-  }
-
-  /**
+   * {@inheritDoc}
+   *
    * Create and start logging server and client thread pool.
    */
-  private void startServing() {
-    SynchronousQueue<Runnable> synchronousQueue =
-        new SynchronousQueue<>();
+  @Override
+  public void start() throws Exception {
+    SynchronousQueue<Runnable> synchronousQueue = new SynchronousQueue<>();
     mThreadPool =
         new ThreadPoolExecutor(mMinNumberOfThreads, mMaxNumberOfThreads,
             STOP_TIMEOUT_MS, TimeUnit.MILLISECONDS, synchronousQueue);
     try {
       mServerSocket = new ServerSocket(mPort);
     } catch (IOException e) {
-      LOG.error("Failed to bind to port {}.", mPort);
-      throw new RuntimeException(e);
+      throw new RuntimeException("Failed to bind to port {}.", e);
     }
     mStopped = false;
     while (!mStopped) {
@@ -131,8 +105,7 @@ public class AlluxioLogServerProcess implements Process {
       try {
         client = mServerSocket.accept();
       } catch (IOException e) {
-        LOG.warn("I/O error occured while waiting for connection.");
-        throw new RuntimeException(e);
+        throw new RuntimeException("I/O error occured while waiting for connection.", e);
       }
       InetAddress inetAddress = client.getInetAddress();
       AlluxioLog4jSocketNode clientSocketNode = new AlluxioLog4jSocketNode(this, client);
@@ -164,12 +137,15 @@ public class AlluxioLogServerProcess implements Process {
   }
 
   /**
+   * {@inheritDoc}
+   *
    * Stop the main thread of {@link AlluxioLogServerProcess}.
    *
    * Close the server socket, shutdown the thread pool, stop accepting new requests,
    * and blocks until all worker threads terminate.
    */
-  private void stopServing() {
+  @Override
+  public void stop() throws Exception {
     mStopped = true;
     if (mServerSocket != null) {
       try {
@@ -198,5 +174,22 @@ public class AlluxioLogServerProcess implements Process {
         now = newnow;
       }
     }
+  }
+
+  @Override
+  public void waitForReady() {
+    CommonUtils.waitFor(this + " to start", new Function<Void, Boolean>() {
+      @Override
+      public Boolean apply(Void input) {
+        return mStopped == false;
+      }
+    }, WaitForOptions.defaults().setTimeoutMs(10000));
+  }
+
+  /**
+   * @return the string representation of the path to base logs directory
+   */
+  public final String getBaseLogsDir() {
+    return mBaseLogsDir;
   }
 }

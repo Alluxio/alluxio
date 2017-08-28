@@ -73,7 +73,4 @@ public class AlluxioRemoteLogFilter extends Filter {
     MDC.put(REMOTE_LOG_MDC_APPENDER_NAME_KEY, mAppenderName);
     return ACCEPT;
   }
-
-  /** Optional constructor. Log4j does not require the presence of a constructor for filters. */
-  public AlluxioRemoteLogFilter() {}
 }
