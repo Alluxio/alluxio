@@ -120,14 +120,13 @@ abstract class AbstractWriteHandler<T extends WriteRequestContext<?>>
     RPCProtoMessage msg = (RPCProtoMessage) object;
     Protocol.WriteRequest writeRequest = msg.getMessage().asWriteRequest();
 
-
     try (LockResource lr = new LockResource(mLock)) {
       boolean isContextNull = mContext == null;
       if (isContextNull) {
         // When mContext is null, create a new one as catching exceptions and replying errors
-        // leverage data structures in context, regardless of the request is valid or not.
-        // TODO(binfan): remove this dependency on initialized context to reply errors before
-        // a legit write request is recieved.
+        // leverages data structures in context, regardless of the request is valid or not.
+        // TODO(binfan): remove the dependency on an instantiated request context which is required
+        // to reply errors to client side.
         mContext = createRequestContext(writeRequest);
       }
       // Only initialize (open the writers) if this is the first packet in the block/file.
