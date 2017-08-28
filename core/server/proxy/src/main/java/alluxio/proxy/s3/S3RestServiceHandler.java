@@ -90,7 +90,7 @@ public final class S3RestServiceHandler {
    */
   @PUT
   @Path(BUCKET_PARAM)
-  @ReturnType("javax.ws.rs.core.Response.Status")
+  @ReturnType("Void")
   public Response createBucket(@PathParam("bucket") final String bucket) {
     return S3RestUtils.call(bucket, new S3RestUtils.RestCallable<Response.Status>() {
       @Override
@@ -117,7 +117,7 @@ public final class S3RestServiceHandler {
    */
   @DELETE
   @Path(BUCKET_PARAM)
-  @ReturnType("javax.ws.rs.core.Response.Status")
+  @ReturnType("Void")
   public Response deleteBucket(@PathParam("bucket") final String bucket) {
     return S3RestUtils.call(bucket, new S3RestUtils.RestCallable<Response.Status>() {
       @Override
@@ -150,7 +150,7 @@ public final class S3RestServiceHandler {
    */
   @PUT
   @Path(OBJECT_PARAM)
-  @ReturnType("javax.ws.rs.core.Response")
+  @ReturnType("Void")
   @Consumes(MediaType.APPLICATION_OCTET_STREAM)
   public Response createObject(@HeaderParam("Content-MD5") final String contentMD5,
                                @PathParam("bucket") final String bucket,
@@ -205,7 +205,7 @@ public final class S3RestServiceHandler {
    */
   @DELETE
   @Path(OBJECT_PARAM)
-  @ReturnType("javax.ws.rs.core.Response.Status")
+  @ReturnType("Void")
   public Response deleteObject(@PathParam("bucket") final String bucket,
                                @PathParam("object") final String object) {
     return S3RestUtils.call(bucket, new S3RestUtils.RestCallable<Response.Status>() {
