@@ -47,7 +47,7 @@ public class AlluxioRemoteLogFilter extends Filter {
    * @param value value of the option
    */
   public void setOption(String key, String value) {
-    if (key.equalsIgnoreCase("AppenderName")) {
+    if (key.equalsIgnoreCase(APPENDER_NAME_OPTION)) {
       mAppenderName = value;
     }
   }
