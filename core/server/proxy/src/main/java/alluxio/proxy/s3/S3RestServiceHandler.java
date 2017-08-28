@@ -37,6 +37,7 @@ import com.qmino.miredot.annotations.ReturnType;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.security.DigestOutputStream;
 import java.security.MessageDigest;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -82,7 +83,7 @@ public final class S3RestServiceHandler {
   /* Object is after bucket in the URL path */
   public static final String OBJECT_PARAM = "{bucket}/{object:.+}";
 
-  private static final int BUFFER_SIZE = 4 * Constants.KB; // 4KB
+  private static final int BUFFER_SIZE_BYTES = 4 * Constants.KB;
 
   private final FileSystem mFileSystem;
 
@@ -197,7 +198,7 @@ public final class S3RestServiceHandler {
 
   /**
    * @summary creates an object without using multipart upload
-   * @param contentMD5 the Base64 encoded 128-bit MD5 digest of the object
+   * @param contentMD5 the optional Base64 encoded 128-bit MD5 digest of the object
    * @param bucket the bucket name
    * @param object the object name
    * @param is the request body
@@ -208,12 +209,15 @@ public final class S3RestServiceHandler {
   @ReturnType("java.lang.Void")
   @Consumes(MediaType.APPLICATION_OCTET_STREAM)
   public Response createObject(@HeaderParam("Content-MD5") final String contentMD5,
-       @PathParam("bucket") final String bucket,
-       @PathParam("object") final String object,
-       final InputStream is) {
+      @PathParam("bucket") final String bucket,
+      @PathParam("object") final String object,
+      final InputStream is) {
     return S3RestUtils.call(bucket, new S3RestUtils.RestCallable<Response>() {
       @Override
       public Response call() throws S3Exception {
+        Preconditions.checkNotNull(bucket, "required 'bucket' parameter is missing");
+        Preconditions.checkNotNull(object, "required 'object' parameter is missing");
+
         String bucketPath = parseBucketPath(AlluxioURI.SEPARATOR + bucket);
         checkBucketIsAlluxioDirectory(bucketPath);
         String objectPath = bucketPath + AlluxioURI.SEPARATOR + object;
@@ -224,23 +228,30 @@ public final class S3RestServiceHandler {
               .setWriteType(getS3WriteType());
           FileOutStream os = mFileSystem.createFile(objectURI, options);
           MessageDigest md5 = MessageDigest.getInstance("MD5");
+          DigestOutputStream digestOutputStream = new DigestOutputStream(os, md5);
 
-          byte[] buf = new byte[BUFFER_SIZE];
-          while (true) {
-            int len = is.read(buf);
-            if (len == -1) {
-              break;
+          byte[] buf = new byte[BUFFER_SIZE_BYTES];
+          try {
+            while (true) {
+              int len = is.read(buf);
+              if (len == -1) {
+                break;
+              }
+              digestOutputStream.write(buf, 0, len);
             }
-            md5.update(buf, 0, len);
-            os.write(buf, 0, len);
+          } finally {
+            digestOutputStream.close();
           }
-          os.close();
 
           byte[] digest = md5.digest();
           String base64Digest = BaseEncoding.base64().encode(digest);
-          if (!contentMD5.equals(base64Digest)) {
+          if (contentMD5 != null && !contentMD5.equals(base64Digest)) {
             // The object may be corrupted, delete the written object and return an error.
-            mFileSystem.delete(objectURI);
+            try {
+              mFileSystem.delete(objectURI);
+            } catch (Exception e2) {
+              // intend to continue and return BAD_DIGEST S3Exception.
+            }
             throw new S3Exception(objectURI.getPath(), S3ErrorCode.BAD_DIGEST);
           }
 
@@ -263,10 +274,13 @@ public final class S3RestServiceHandler {
   @Path(OBJECT_PARAM)
   @ReturnType("java.lang.Void")
   public Response getObjectMetadata(@PathParam("bucket") final String bucket,
-       @PathParam("object") final String object) {
+      @PathParam("object") final String object) {
     return S3RestUtils.call(bucket, new S3RestUtils.RestCallable<Response>() {
       @Override
       public Response call() throws S3Exception {
+        Preconditions.checkNotNull(bucket, "required 'bucket' parameter is missing");
+        Preconditions.checkNotNull(object, "required 'object' parameter is missing");
+
         String bucketPath = parseBucketPath(AlluxioURI.SEPARATOR + bucket);
         checkBucketIsAlluxioDirectory(bucketPath);
         String objectPath = bucketPath + AlluxioURI.SEPARATOR + object;
@@ -275,7 +289,10 @@ public final class S3RestServiceHandler {
         try {
           URIStatus status = mFileSystem.getStatus(objectURI);
           // TODO(cc): Consider how to respond with the object's ETag.
-          return Response.ok().lastModified(new Date(status.getLastModificationTimeMs())).build();
+          return Response.ok()
+              .lastModified(new Date(status.getLastModificationTimeMs()))
+              .header(S3Constants.S3_CONTENT_LENGTH_HEADER, status.getLength())
+              .build();
         } catch (Exception e) {
           throw toObjectS3Exception(e, objectPath);
         }
@@ -294,10 +311,13 @@ public final class S3RestServiceHandler {
   @ReturnType("java.io.InputStream")
   @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_OCTET_STREAM})
   public Response getObject(@PathParam("bucket") final String bucket,
-                            @PathParam("object") final String object) {
+      @PathParam("object") final String object) {
     return S3RestUtils.call(bucket, new S3RestUtils.RestCallable<Response>() {
       @Override
       public Response call() throws S3Exception {
+        Preconditions.checkNotNull(bucket, "required 'bucket' parameter is missing");
+        Preconditions.checkNotNull(object, "required 'object' parameter is missing");
+
         String bucketPath = parseBucketPath(AlluxioURI.SEPARATOR + bucket);
         checkBucketIsAlluxioDirectory(bucketPath);
         String objectPath = bucketPath + AlluxioURI.SEPARATOR + object;
@@ -307,7 +327,10 @@ public final class S3RestServiceHandler {
           URIStatus status = mFileSystem.getStatus(objectURI);
           FileInStream is = mFileSystem.openFile(objectURI);
           // TODO(cc): Consider how to respond with the object's ETag.
-          return Response.ok(is).lastModified(new Date(status.getLastModificationTimeMs())).build();
+          return Response.ok(is)
+              .lastModified(new Date(status.getLastModificationTimeMs()))
+              .header(S3Constants.S3_CONTENT_LENGTH_HEADER, status.getLength())
+              .build();
         } catch (Exception e) {
           throw toObjectS3Exception(e, objectPath);
         }
@@ -331,8 +354,8 @@ public final class S3RestServiceHandler {
       public Response.Status call() throws S3Exception {
         Preconditions.checkNotNull(bucket, "required 'bucket' parameter is missing");
         Preconditions.checkNotNull(object, "required 'object' parameter is missing");
-        String bucketPath = parseBucketPath(AlluxioURI.SEPARATOR + bucket);
 
+        String bucketPath = parseBucketPath(AlluxioURI.SEPARATOR + bucket);
         // Delete the object.
         String objectPath = bucketPath + AlluxioURI.SEPARATOR + object;
         DeleteOptions options = DeleteOptions.defaults();
