@@ -31,7 +31,7 @@ alluxio.master.lineage.recompute.interval.ms:
 alluxio.master.lineage.recompute.log.path:
   执行重新计算任务时将日志的标准输出重定向到该配置项指定的路径。
 alluxio.master.lost.file.detector.enabled:
-  是否开启丢失文件探测服务，默认关闭
+  是否开启丢失文件探测服务，默认关闭。
 alluxio.master.port:
   Alluxio master的运行端口。
 alluxio.master.retry:
