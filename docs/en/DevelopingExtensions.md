@@ -48,8 +48,8 @@ instructions for developing and testing an under storage module.
 
 ### Building the Extension
 
-The built JAR must include all dependencies of the extension project. In addition to avoid
-collisions the dependency `alluxio-core-common` must be specified with `provided` scope. For
+The built JAR must include all transitive dependencies of the extension project. In addition to
+avoid collisions the dependency `alluxio-core-common` must be specified with `provided` scope. For
 example, the maven definition would look like:
 
 ```xml

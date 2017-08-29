@@ -51,7 +51,7 @@ To install an extension from maven, it can be downloaded and installed as follow
 
 ```bash
 mvn dependency:get -DremoteRepositories=http://repo1.maven.org/maven2/ -DgroupId=<my-extension-group> \
--DartifactId=<my-extension-artifact> -Dversion=<version> -Dtransitive=false -Ddest=<my-extension>.jar
+ -DartifactId=<my-extension-artifact> -Dversion=<version> -Dtransitive=false -Ddest=<my-extension>.jar
 
 bin/alluxio extensions install <my-extension.jar>
 ```
