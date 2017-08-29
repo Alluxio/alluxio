@@ -22,6 +22,7 @@ import org.apache.log4j.PropertyConfigurator;
 import org.apache.log4j.spi.LoggerRepository;
 import org.apache.log4j.spi.LoggingEvent;
 import org.apache.log4j.spi.RootLogger;
+import org.slf4j.LoggerFactory;
 
 import java.io.BufferedInputStream;
 import java.io.File;
@@ -41,7 +42,7 @@ import java.util.Properties;
  */
 public class AlluxioLog4jSocketNode implements Runnable {
   private static final org.slf4j.Logger LOG =
-      org.slf4j.LoggerFactory.getLogger(AlluxioLog4jSocketNode.class);
+      LoggerFactory.getLogger(AlluxioLog4jSocketNode.class);
   private final String mBaseLogsDir;
   private final Socket mSocket;
 
