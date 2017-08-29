@@ -50,7 +50,7 @@ public final class ProxyWebServer extends WebServer {
     super(serviceName, address);
 
     // REST configuration
-    ResourceConfig config = new ResourceConfig().packages("alluxio.proxy");
+    ResourceConfig config = new ResourceConfig().packages("alluxio.proxy", "alluxio.proxy.s3");
     ServletContainer servlet = new ServletContainer(config) {
       private static final long serialVersionUID = 7756010860672831556L;
 
