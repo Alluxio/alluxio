@@ -77,6 +77,9 @@ public class WriteRequestContext<T extends WriteRequest> {
 
   private Counter mCounter;
 
+  /** This is set when EOF or CANCEL is received. This is only for sanity check. */
+  private volatile boolean mDone;
+
   /**
    * @param request the write request
    */
@@ -84,6 +87,7 @@ public class WriteRequestContext<T extends WriteRequest> {
     mRequest = request;
     mPosToQueue = 0;
     mPosToWrite = 0;
+    mDone = false;
   }
 
   /**
@@ -143,6 +147,13 @@ public class WriteRequestContext<T extends WriteRequest> {
   }
 
   /**
+   * @return true when the EOF or CANCEL is received, false otherwise
+   */
+  public boolean isDoneUnsafe() {
+    return mDone;
+  }
+
+  /**
    * @param packetWriterActive whether the packet writer is active
    */
   @GuardedBy("AbstractWriteHandler#mLock")
@@ -172,6 +183,13 @@ public class WriteRequestContext<T extends WriteRequest> {
   @GuardedBy("AbstractWriteHandler#mLock")
   public void setPosToWrite(long posToWrite) {
     mPosToWrite = posToWrite;
+  }
+
+  /**
+   * @param done whether the EOF or CANCEL is received.
+   */
+  public void setDoneUnsafe(boolean done) {
+    mDone = done;
   }
 
   /**

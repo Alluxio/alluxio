@@ -20,11 +20,21 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class BlockWriteRequest extends WriteRequest {
+  /** Which tier this block writes to. */
+  private final int mTier;
 
   /**
    * @param request block request in proto
    */
   BlockWriteRequest(Protocol.WriteRequest request) {
     super(request);
+    mTier = request.getTier();
+  }
+
+  /**
+   * @return the tier this block is writing to
+   */
+  public int getTier() {
+    return mTier;
   }
 }

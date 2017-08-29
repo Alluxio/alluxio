@@ -51,6 +51,7 @@ public final class BlockWriteHandler extends AbstractWriteHandler<BlockWriteRequ
   /** An object storing the mapping of tier aliases to ordinals. */
   private final StorageTierAssoc mStorageTierAssoc = new WorkerStorageTierAssoc();
   private final UfsManager mUfsManager;
+
   /**
    * Creates an instance of {@link BlockWriteHandler}.
    *
@@ -90,13 +91,16 @@ public final class BlockWriteHandler extends AbstractWriteHandler<BlockWriteRequ
   }
 
   @Override
-  protected BlockWriteRequestContext createRequestContext(Protocol.WriteRequest msg)
-      throws Exception {
+  protected BlockWriteRequestContext createRequestContext(Protocol.WriteRequest msg) {
     BlockWriteRequestContext context = new BlockWriteRequestContext(msg, FILE_BUFFER_SIZE);
-    WriteRequest request = context.getRequest();
-    mWorker.createBlockRemote(request.getSessionId(), request.getId(),
-        mStorageTierAssoc.getAlias(msg.getTier()), FILE_BUFFER_SIZE);
     return context;
+  }
+
+  @Override
+  protected void initRequestContext(BlockWriteRequestContext context) throws Exception {
+    BlockWriteRequest request = context.getRequest();
+    mWorker.createBlockRemote(request.getSessionId(), request.getId(),
+        mStorageTierAssoc.getAlias(request.getTier()), FILE_BUFFER_SIZE);
   }
 
   /**
