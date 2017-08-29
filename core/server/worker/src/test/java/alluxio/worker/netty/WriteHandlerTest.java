@@ -118,6 +118,13 @@ public abstract class WriteHandlerTest {
     p.fireChannelUnregistered();
   }
 
+  @Test
+  public void UnregisteredChannelFiredAfterRequest() throws Exception {
+    mChannel.writeInbound(newEofRequest(0));
+    ChannelPipeline p = mChannel.pipeline();
+    p.fireChannelUnregistered();
+  }
+
   /**
    * Checks the given write response is expected and matches the given error code.
    *

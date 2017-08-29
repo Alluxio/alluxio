@@ -121,8 +121,8 @@ abstract class AbstractWriteHandler<T extends WriteRequestContext<?>>
     Protocol.WriteRequest writeRequest = msg.getMessage().asWriteRequest();
 
     try (LockResource lr = new LockResource(mLock)) {
-      boolean isContextNull = mContext == null;
-      if (isContextNull) {
+      boolean isPreviousContextNull = mContext == null;
+      if (isPreviousContextNull) {
         // When mContext is null, create a new one as catching exceptions and replying errors
         // leverages data structures in context, regardless of the request is valid or not.
         // TODO(binfan): remove the dependency on an instantiated request context which is required
@@ -135,7 +135,7 @@ abstract class AbstractWriteHandler<T extends WriteRequestContext<?>>
         // context is not active (done / cancel / abort). Otherwise, notify the client an illegal
         // state. Note that, we reset the context before validation msg as validation may require to
         // update error in context.
-        Preconditions.checkState(isContextNull || !mContext.isPacketWriterActive());
+        Preconditions.checkState(isPreviousContextNull || mContext.isDoneUnsafe());
         initRequestContext(mContext);
       }
 
@@ -357,6 +357,7 @@ abstract class AbstractWriteHandler<T extends WriteRequestContext<?>>
      */
     private void replySuccess() {
       NettyUtils.enableAutoRead(mChannel);
+      mContext.setDoneUnsafe(true);
       mChannel.writeAndFlush(RPCProtoMessage.createOkResponse(null))
           .addListeners(ChannelFutureListener.CLOSE_ON_FAILURE);
     }
@@ -366,6 +367,7 @@ abstract class AbstractWriteHandler<T extends WriteRequestContext<?>>
      */
     private void replyCancel() {
       NettyUtils.enableAutoRead(mChannel);
+      mContext.setDoneUnsafe(true);
       mChannel.writeAndFlush(RPCProtoMessage.createCancelResponse())
           .addListeners(ChannelFutureListener.CLOSE_ON_FAILURE);
     }
@@ -403,9 +405,9 @@ abstract class AbstractWriteHandler<T extends WriteRequestContext<?>>
    */
   private void pushAbortPacket(Channel channel, Error error) {
     try (LockResource lr = new LockResource(mLock)) {
-      if (mContext == null || mContext.getError() != null) {
-        // Note, network errors may be bubbling up through channelUnregistered to reach here before
-        // mContext is initialized.
+      if (mContext == null || mContext.getError() != null || mContext.isDoneUnsafe()) {
+        // Note, we may reach here via channelUnregistered due to network errors bubbling up before
+        // mContext is initialized, or channel garbage collection after the request is finished.
         return;
       }
       mContext.setError(error);
