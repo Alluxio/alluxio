@@ -656,7 +656,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
       Preconditions.checkState(mCurrentCacheStream == null || mCurrentCacheStream.remaining() == 0);
       closeOrCancelCacheStream();
     } else if (isInCurrentBlock) {
-      // the current block is not cached, and the seek is within the block
+      // no need to partial cache the current block, and the seek is within the block
       // directly seeks to position if we are not yet there.
       mPos = pos;
       // updateStreams is necessary when pos = mFileLength.
