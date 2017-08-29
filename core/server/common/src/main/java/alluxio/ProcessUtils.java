@@ -59,7 +59,7 @@ public final class ProcessUtils {
         try {
           process.stop();
         } catch (Exception e) {
-          LOG.error("Failed to shutdown process.");
+          LOG.error("Failed to shutdown process.", e);
           System.exit(0);
         }
       }

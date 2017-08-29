@@ -47,9 +47,6 @@ public class AlluxioLogServerProcess implements Process {
   public static final String LOGSERVER_CLIENT_LOGGER_APPENDER_NAME = "LOGSERVER_CLIENT_LOGGER";
   private static final Logger LOG = LoggerFactory.getLogger(AlluxioLogServerProcess.class);
   private static final long THREAD_KEEP_ALIVE_TIME_MS = 60000;
-  private static final int BASE_SLEEP_TIME_MS = 50;
-  private static final int MAX_SLEEP_TIME_MS = 30000;
-  private static final int MAX_NUM_RETRY = 20;
 
   private final String mBaseLogsDir;
   private int mPort;
@@ -107,7 +104,7 @@ public class AlluxioLogServerProcess implements Process {
         continue;
       }
       InetAddress inetAddress = client.getInetAddress();
-      AlluxioLog4jSocketNode clientSocketNode = new AlluxioLog4jSocketNode(this, client);
+      AlluxioLog4jSocketNode clientSocketNode = new AlluxioLog4jSocketNode(mBaseLogsDir, client);
       while (true) {
         try {
           mThreadPool.execute(clientSocketNode);
@@ -169,12 +166,5 @@ public class AlluxioLogServerProcess implements Process {
         return mStopped == false;
       }
     }, WaitForOptions.defaults().setTimeoutMs(10000));
-  }
-
-  /**
-   * @return the string representation of the path to base logs directory
-   */
-  public final String getBaseLogsDir() {
-    return mBaseLogsDir;
   }
 }

@@ -42,7 +42,7 @@ import java.util.Properties;
 public class AlluxioLog4jSocketNode implements Runnable {
   private static final org.slf4j.Logger LOG =
       org.slf4j.LoggerFactory.getLogger(AlluxioLog4jSocketNode.class);
-  private final AlluxioLogServerProcess mLogServerProcess;
+  private final String mBaseLogsDir;
   private final Socket mSocket;
 
   /**
@@ -51,12 +51,12 @@ public class AlluxioLog4jSocketNode implements Runnable {
    * Callers construct AlluxioLog4jSocketNode instances, passing the ownership of the socket
    * parameter. From now on, the AlluxioLog4jSocketNode is responsible for closing the socket.
    *
-   * @param process main log server process
+   * @param baseLogsDir base directory for logs
    * @param socket client socket from which to read {@link org.apache.log4j.spi.LoggingEvent}
    */
-  public AlluxioLog4jSocketNode(AlluxioLogServerProcess process, Socket socket) {
-    mLogServerProcess = Preconditions.checkNotNull(process,
-        "The log server process cannot be null.");
+  public AlluxioLog4jSocketNode(String baseLogsDir, Socket socket) {
+    mBaseLogsDir = Preconditions.checkNotNull(baseLogsDir,
+        "Base logs directory cannot be null.");
     mSocket = Preconditions.checkNotNull(socket, "Client socket cannot be null");
   }
 
@@ -70,10 +70,10 @@ public class AlluxioLog4jSocketNode implements Runnable {
       while (!Thread.currentThread().isInterrupted()) {
         try {
           event = (LoggingEvent) objectInputStream.readObject();
-        } catch (ClassNotFoundException e1) {
-          throw new RuntimeException("Class of serialized object cannot be found.", e1);
-        } catch (IOException e1) {
-          throw new RuntimeException("Cannot read object from stream due to I/O error.", e1);
+        } catch (ClassNotFoundException e) {
+          throw new RuntimeException("Class of serialized object cannot be found.", e);
+        } catch (IOException e) {
+          throw new RuntimeException("Cannot read object from stream due to I/O error.", e);
         }
         if (hierarchy == null) {
           hierarchy = configureHierarchy(
@@ -86,7 +86,7 @@ public class AlluxioLog4jSocketNode implements Runnable {
       }
     } catch (IOException e) {
       // Something went wrong, cannot recover.
-      throw new RuntimeException("Cannot open ObjectInputStream due to I/O error.", e);
+      throw new RuntimeException(e);
     } finally {
       try {
         mSocket.close();
@@ -102,11 +102,11 @@ public class AlluxioLog4jSocketNode implements Runnable {
    * hierarchy. {@link AlluxioLog4jSocketNode} instance can retrieve the logger to log incoming
    * {@link org.apache.log4j.spi.LoggingEvent}s.
    *
-   * @param logAppenderName name of the appender to use for this client
+   * @param processType type of the process sending this {@link LoggingEvent}
    * @return a {@link Hierarchy} instance to retrieve logger
    * @throws IOException if fails to create an {@link FileInputStream} to read log4j.properties
    */
-  private LoggerRepository configureHierarchy(String logAppenderName)
+  private LoggerRepository configureHierarchy(String processType)
       throws IOException {
     String inetAddressStr = mSocket.getInetAddress().getHostAddress();
     Properties properties = new Properties();
@@ -130,7 +130,7 @@ public class AlluxioLog4jSocketNode implements Runnable {
     Hierarchy clientHierarchy = new Hierarchy(new RootLogger(level));
     // Startup script should guarantee that mBaseLogsDir already exists.
     String logDirectoryPath =
-        PathUtils.concatPath(mLogServerProcess.getBaseLogsDir(), logAppenderName.toLowerCase());
+        PathUtils.concatPath(mBaseLogsDir, processType.toLowerCase());
     File logDirectory = new File(logDirectoryPath);
     if (!logDirectory.exists()) {
       logDirectory.mkdir();
