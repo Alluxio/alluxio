@@ -1203,12 +1203,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey PROXY_S3_DELETE_TYPE =
       new Builder(Name.PROXY_S3_DELETE_TYPE)
-          .setDefaultValue(Constants.DELETE_IN_ALLUXIO_AND_UFS)
+          .setDefaultValue(Constants.S3_DELETE_IN_ALLUXIO_AND_UFS)
           .setDescription(String.format(
               "Delete type when deleting buckets and objects through S3 API. Valid options are "
                   + "`%s` (delete both in Alluxio and UFS), "
                   + "`%s` (delete only the buckets or objects in Alluxio namespace).",
-              Constants.DELETE_IN_ALLUXIO_AND_UFS, Constants.DELETE_IN_ALLUXIO_ONLY))
+              Constants.S3_DELETE_IN_ALLUXIO_AND_UFS, Constants.S3_DELETE_IN_ALLUXIO_ONLY))
           .build();
   public static final PropertyKey PROXY_STREAM_CACHE_TIMEOUT_MS =
       new Builder(Name.PROXY_STREAM_CACHE_TIMEOUT_MS)

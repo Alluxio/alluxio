@@ -27,6 +27,7 @@ public class S3Error {
 
   /**
    * Creates an {@link S3Error}.
+   *
    * This is needed for {@link S3Error} to be encoded into XML, see <a>https://stackoverflow.com/
    * questions/26014184/jersey-returns-500-when-trying-to-return-an-xml-response</a> for details.
    */

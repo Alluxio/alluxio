@@ -151,8 +151,8 @@ public final class Constants {
   public static final int LAST_TIER = -1;
 
   // S3 northbound API constants
-  public static final String DELETE_IN_ALLUXIO_ONLY = "ALLUXIO_ONLY";
-  public static final String DELETE_IN_ALLUXIO_AND_UFS = "ALLUXIO_AND_UFS";
+  public static final String S3_DELETE_IN_ALLUXIO_ONLY = "ALLUXIO_ONLY";
+  public static final String S3_DELETE_IN_ALLUXIO_AND_UFS = "ALLUXIO_AND_UFS";
 
   private Constants() {} // prevent instantiation
 }

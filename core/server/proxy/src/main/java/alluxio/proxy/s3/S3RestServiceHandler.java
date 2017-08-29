@@ -144,7 +144,7 @@ public final class S3RestServiceHandler {
         // Delete the bucket.
         DeleteOptions options = DeleteOptions.defaults();
         options.setAlluxioOnly(Configuration.get(PropertyKey.PROXY_S3_DELETE_TYPE)
-            .equals(Constants.DELETE_IN_ALLUXIO_ONLY));
+            .equals(Constants.S3_DELETE_IN_ALLUXIO_ONLY));
         try {
           mFileSystem.delete(new AlluxioURI(bucketPath), options);
         } catch (Exception e) {
@@ -232,11 +232,7 @@ public final class S3RestServiceHandler {
           try {
             ByteStreams.copy(is, digestOutputStream);
           } finally {
-            try {
-              digestOutputStream.flush();
-            } finally {
-              digestOutputStream.close();
-            }
+            digestOutputStream.close();
           }
 
           byte[] digest = md5.digest();
@@ -356,7 +352,7 @@ public final class S3RestServiceHandler {
         String objectPath = bucketPath + AlluxioURI.SEPARATOR + object;
         DeleteOptions options = DeleteOptions.defaults();
         options.setAlluxioOnly(Configuration.get(PropertyKey.PROXY_S3_DELETE_TYPE)
-            .equals(Constants.DELETE_IN_ALLUXIO_ONLY));
+            .equals(Constants.S3_DELETE_IN_ALLUXIO_ONLY));
         try {
           mFileSystem.delete(new AlluxioURI(objectPath), options);
         } catch (Exception e) {
