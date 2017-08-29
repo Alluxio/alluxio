@@ -43,6 +43,9 @@ import java.util.Properties;
 public class AlluxioLog4jSocketNode implements Runnable {
   private static final org.slf4j.Logger LOG =
       LoggerFactory.getLogger(AlluxioLog4jSocketNode.class);
+  private static final String ROOT_LOGGER_PROPERTY_KEY = "log4j.rootLogger";
+  private static final String ROOT_LOGGER_APPENDER_FILE_PROPERTY_KEY =
+      "log4j.appender." + AlluxioLogServerProcess.LOGSERVER_CLIENT_LOGGER_APPENDER_NAME + ".File";
   private final String mBaseLogsDir;
   private final Socket mSocket;
 
@@ -137,12 +140,9 @@ public class AlluxioLog4jSocketNode implements Runnable {
       logDirectory.mkdir();
     }
     String logFilePath = PathUtils.concatPath(logDirectoryPath, inetAddressStr + ".log");
-    properties.setProperty("log4j.rootLogger",
+    properties.setProperty(ROOT_LOGGER_PROPERTY_KEY,
         level.toString() + "," + AlluxioLogServerProcess.LOGSERVER_CLIENT_LOGGER_APPENDER_NAME);
-    properties.setProperty(
-        "log4j.appender."
-            + AlluxioLogServerProcess.LOGSERVER_CLIENT_LOGGER_APPENDER_NAME + ".File",
-        logFilePath);
+    properties.setProperty(ROOT_LOGGER_APPENDER_FILE_PROPERTY_KEY, logFilePath);
     new PropertyConfigurator().doConfigure(properties, clientHierarchy);
     return clientHierarchy;
   }
