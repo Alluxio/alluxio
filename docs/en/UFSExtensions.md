@@ -13,8 +13,14 @@ extensions](DevelopingUFSExtensions.html) for an extension development guide.
 Alluxio can be extended with the addition of under storage modules at runtime. Under storage
 extensions (built as JARs) can be included at a specific location to be picked up by core Alluxio
 without the need to restart any running processes. Adding new under storage connectors to Alluxio
-can be used to enable Alluxio to work with your choice of storage system. On this page, we provide
-instructions for managing extensions.
+can be used to enable Alluxio to work with your choice of storage system.
+
+# List of Extensions
+
+Following is a list of under storage extension projects:
+
+- [S3N](https://github.com/Alluxio/alluxio-extensions/tree/master/underfs/s3n)
+- [GlusterFS](https://github.com/Alluxio/alluxio-extensions/tree/master/underfs/glusterfs) 
 
 # Managing Extensions
 
