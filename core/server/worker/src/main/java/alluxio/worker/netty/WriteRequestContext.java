@@ -186,7 +186,7 @@ public class WriteRequestContext<T extends WriteRequest> {
   }
 
   /**
-   * @param done whether the EOF or CANCEL is received.
+   * @param done whether the EOF or CANCEL is received
    */
   public void setDoneUnsafe(boolean done) {
     mDone = done;
