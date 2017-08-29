@@ -88,9 +88,10 @@ Server: Jetty(9.2.z-SNAPSHOT)
 .................. Content of the test file ...................
 ```
 
-Listing the bucket again
+### Listing a bucket with one object
 
 ```bash
+# curl -i -X GET http://localhost:39999/api/v1/s3/testbucket
 HTTP/1.1 200 OK
 Date: Tue, 29 Aug 2017 22:38:48 GMT
 Content-Type: application/xml
@@ -100,6 +101,7 @@ Server: Jetty(9.2.z-SNAPSHOT)
 <ListBucketResult xmlns=""><Name>/testbucket</Name><Prefix/><ContinuationToken/><NextContinuationToken/><KeyCount>1</KeyCount><MaxKeys>1000</MaxKeys><IsTruncated>false</IsTruncated><Contents><Key>testobject</Key><LastModified>2017-08-29T15:36:03.613Z</LastModified><ETag></ETag><Size>26847</Size><StorageClass>STANDARD</StorageClass></Contents></ListBucketResult>
 ```
 
+### Listing a bucket with multiple objects
 You can upload more files and use the `max-keys` and `continuation-token` as the GET bucket request param. For example:
 
 ```bash
