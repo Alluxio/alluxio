@@ -80,9 +80,7 @@ public class AlluxioLog4jSocketNode implements Runnable {
               event.getMDC(AlluxioRemoteLogFilter.REMOTE_LOG_MDC_PROCESS_TYPE_KEY).toString());
         }
         remoteLogger = hierarchy.getLogger(event.getLoggerName());
-        if (event.getLevel().isGreaterOrEqual(remoteLogger.getEffectiveLevel())) {
-          remoteLogger.callAppenders(event);
-        }
+        remoteLogger.callAppenders(event);
       }
     } catch (IOException e) {
       // Something went wrong, cannot recover.
@@ -121,12 +119,15 @@ public class AlluxioLog4jSocketNode implements Runnable {
     try (FileInputStream inputStream = new FileInputStream(configFile)) {
       properties.load(inputStream);
     }
-    // Assign Level.DEBUG to level so that log server prints whatever log messages received from
+    // Assign Level.TRACE to level so that log server prints whatever log messages received from
     // log clients. If the log server receives a LoggingEvent, it assumes that the remote
     // log client has the intention of writing this LoggingEvent to logs. It does not make
     // much sense for the log client to send the message over the network and wants the
     // messsage to be discarded by the log server.
-    Level level = Level.DEBUG;
+    // With this assumption, since TRACE is the lowest logging level, we do not have to compare
+    // the level of the event and the level of the logger when the log server receives
+    // LoggingEvents.
+    Level level = Level.TRACE;
     Hierarchy clientHierarchy = new Hierarchy(new RootLogger(level));
     // Startup script should guarantee that mBaseLogsDir already exists.
     String logDirectoryPath =

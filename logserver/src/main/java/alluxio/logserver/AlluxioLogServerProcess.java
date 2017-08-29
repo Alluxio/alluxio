@@ -141,7 +141,7 @@ public class AlluxioLogServerProcess implements Process {
     if (ret) {
       LOG.info("All worker threads have terminated.");
     } else {
-      LOG.warn("Log server has timedout waiting for worker threads to terminate.");
+      LOG.warn("Log server has timed out waiting for worker threads to terminate.");
     }
   }
 
