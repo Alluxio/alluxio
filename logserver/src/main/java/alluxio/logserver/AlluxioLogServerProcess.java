@@ -23,7 +23,6 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Function;
 
 import java.io.IOException;
-import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.concurrent.ExecutorService;
@@ -98,24 +97,22 @@ public class AlluxioLogServerProcess implements Process {
           continue;
         }
       }
-      InetAddress inetAddress = client.getInetAddress();
+      String clientAddress = client.getInetAddress().getHostAddress();
       AlluxioLog4jSocketNode clientSocketNode = new AlluxioLog4jSocketNode(mBaseLogsDir, client);
-      while (true) {
-        try {
-          mThreadPool.execute(clientSocketNode);
-          break;
-        } catch (RejectedExecutionException e) {
-          // Alluxio log clients (master, secondary master, proxy and workers establish
-          // long-living connections with the log server. Therefore, if the log server cannot
-          // find a thread to service a log client, it is very likely due to low number of
-          // worker threads. If retry fails, then it makes sense just to let system throw
-          // an exception. The system admin should increase the thread pool size.
-          throw new RuntimeException(
-              "Increase the number of worker threads in the thread pool", e);
-        } catch (Error | Exception e) {
-          LOG.error("ExecutorService threw error: ", e);
-          throw e;
-        }
+      try {
+        mThreadPool.execute(clientSocketNode);
+      } catch (RejectedExecutionException e) {
+        // Alluxio log clients (master, secondary master, proxy and workers establish
+        // long-living connections with the log server. Therefore, if the log server cannot
+        // find a thread to service a log client, it is very likely due to low number of
+        // worker threads. If retry fails, then it makes sense just to let system throw
+        // an exception. The system admin should increase the thread pool size.
+        String errorMessage = String.format(
+            "Log server cannot find a worker thread to service log requests from %s. Increase"
+                + " the number of worker threads in the thread pool by configuring"
+                + " alluxio.logserver.threads.max in alluxio-site.properties. Current value"
+                + " is %d.", clientAddress, mMaxNumberOfThreads);
+        throw new RuntimeException(errorMessage, e);
       }
     }
   }
