@@ -741,7 +741,6 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       // otherwise load metadata.
       if (!inodePath.fullPathExists()) {
         checkLoadMetadataOptions(options.getLoadMetadataType(), inodePath.getUri());
-
         loadMetadataIfNotExistAndJournal(inodePath,
             LoadMetadataOptions.defaults().setCreateAncestors(true), journalContext);
         ensureFullPathAndUpdateCache(inodePath);
