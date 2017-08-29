@@ -26,17 +26,17 @@ import java.lang.Deprecated;
  */
 public class AlluxioRemoteLogFilter extends Filter {
   /** Name (Key) of the MDC info. */
-  public static final String REMOTE_LOG_MDC_APPENDER_NAME_KEY = "appender";
+  public static final String REMOTE_LOG_MDC_PROCESS_TYPE_KEY = "ProcessType";
 
   /**
    * @deprecated Option name to configure this {@link AlluxioRemoteLogFilter}
    * in log4j.properties.
    */
   @Deprecated
-  public static final String APPENDER_NAME_OPTION = "AppenderName";
+  public static final String PROCESS_TYPE_OPTION = "ProcessType";
 
-  /** Name of the log appender. */
-  private String mAppenderName;
+  /** Type of the process generating this log message. */
+  private String mProcessType;
 
   /**
    * @deprecated Gets the option strings.
@@ -44,7 +44,7 @@ public class AlluxioRemoteLogFilter extends Filter {
    */
   @Deprecated
   public String[] getOptionStrings() {
-    return new String[] {APPENDER_NAME_OPTION};
+    return new String[] {PROCESS_TYPE_OPTION};
   }
 
   /**
@@ -56,36 +56,43 @@ public class AlluxioRemoteLogFilter extends Filter {
    */
   @Deprecated
   public void setOption(String key, String value) {
-    if (key.equalsIgnoreCase(APPENDER_NAME_OPTION)) {
-      mAppenderName = value;
+    if (key.equalsIgnoreCase(PROCESS_TYPE_OPTION)) {
+      mProcessType = value;
     }
   }
 
   /**
-   * Sets the name of the log appender.
+   * Sets {@code mProcessType} to be the type of the process generating this log message.
    *
    * Log4j parses log4j.properties, extracting the Java class that corresponds to the filter.
    * In this case, the Java class is {@link AlluxioRemoteLogFilter}.
    * Log4j also extracts option information as a key-value pair, e.g.
-   * "AppenderName" : "MASTER_LOG". Then log4j invokes the {@link #setAppenderName(String)}
-   * method to set the value of {@link #mAppenderName}.
+   * "ProcessType" : "MASTER". Then log4j invokes the {@link #setProcessType(String)}
+   * method to set the value of {@link #mProcessType}.
    *
-   * @param appenderName name of the log appender
+   * @param processType name of the log appender
    */
-  public void setAppenderName(String appenderName) {
-    mAppenderName = appenderName;
+  public void setProcessType(String processType) {
+    mProcessType = processType;
   }
 
   /**
+   * Retrieves the string representation of process type.
+   *
+   * This method can potentially be called by log4j reflectively. Even if currently log4j
+   * does not call it, it is possible to be called in the future. Therefore, to be
+   * consistent with {@link org.apache.log4j.varia.StringMatchFilter}, we should prevent
+   * this method from been removed.
+   *
    * @return the name of the log appender
    */
-  public String getAppenderName() {
-    return mAppenderName;
+  public String getProcessType() {
+    return mProcessType;
   }
 
   @Override
   public int decide(LoggingEvent event) {
-    MDC.put(REMOTE_LOG_MDC_APPENDER_NAME_KEY, mAppenderName);
+    MDC.put(REMOTE_LOG_MDC_PROCESS_TYPE_KEY, mProcessType);
     return ACCEPT;
   }
 }

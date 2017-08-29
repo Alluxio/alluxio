@@ -77,7 +77,7 @@ public class AlluxioLog4jSocketNode implements Runnable {
         }
         if (hierarchy == null) {
           hierarchy = configureHierarchy(
-              event.getMDC(AlluxioRemoteLogFilter.REMOTE_LOG_MDC_APPENDER_NAME_KEY).toString());
+              event.getMDC(AlluxioRemoteLogFilter.REMOTE_LOG_MDC_PROCESS_TYPE_KEY).toString());
         }
         remoteLogger = hierarchy.getLogger(event.getLoggerName());
         if (event.getLevel().isGreaterOrEqual(remoteLogger.getEffectiveLevel())) {
