@@ -90,8 +90,8 @@ import alluxio.proto.journal.File.RenameEntry;
 import alluxio.proto.journal.File.SetAttributeEntry;
 import alluxio.proto.journal.File.StringPairEntry;
 import alluxio.proto.journal.Journal.JournalEntry;
-import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.security.authentication.AuthType;
+import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.security.authorization.Mode;
 import alluxio.thrift.CommandType;
 import alluxio.thrift.FileSystemCommand;
@@ -1393,7 +1393,10 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         delInodes.add(descendantPair);
       }
       // Prepare to delete persisted inodes
-      UfsDeleter ufsDeleter = new SafeUfsDeleter(mMountTable, delInodes, deleteOptions);
+      UfsDeleter ufsDeleter = NoopUfsDeleter.INSTANCE;
+      if (!replayed) {
+        ufsDeleter = new SafeUfsDeleter(mMountTable, delInodes, deleteOptions);
+      }
       // Inodes to delete from tree after attempting to delete from UFS
       List<Inode> inodesToDelete = new LinkedList<>();
       // Inodes that are not safe for recursive deletes
