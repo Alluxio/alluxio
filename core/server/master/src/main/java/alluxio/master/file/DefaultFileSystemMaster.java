@@ -1393,7 +1393,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         delInodes.add(descendantPair);
       }
       // Prepare to delete persisted inodes
-      UfsDeleter ufsDeleter = new UfsDeleter(delInodes, deleteOptions);
+      UfsDeleter ufsDeleter = new UfsDeleter(delInodes, deleteOptions, replayed);
       // Inodes to delete from tree after attempting to delete from UFS
       List<Inode> inodesToDelete = new LinkedList<>();
       // Inodes that are not safe for recursive deletes
@@ -1477,12 +1477,13 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
      *
      * @param inodes sub-tree being deleted (any node should appear before descendants)
      * @param deleteOptions delete options
+     * @param replayed whether the operation is a result of replaying the journal
      */
-    public UfsDeleter(List<Pair<AlluxioURI, Inode>> inodes, DeleteOptions deleteOptions)
-        throws IOException, FileDoesNotExistException, InvalidPathException {
+    public UfsDeleter(List<Pair<AlluxioURI, Inode>> inodes, DeleteOptions deleteOptions,
+        boolean replayed) throws IOException, FileDoesNotExistException, InvalidPathException {
       // Root of sub-tree occurs before any of its descendants
       mRootPath = inodes.get(0).getFirst();
-      if (!deleteOptions.isUnchecked() && !deleteOptions.isAlluxioOnly()) {
+      if (!replayed && !deleteOptions.isUnchecked() && !deleteOptions.isAlluxioOnly()) {
         mUfsSyncChecker = new UfsSyncChecker(mMountTable);
         for (Pair<AlluxioURI, Inode> inodePair : inodes) {
           AlluxioURI alluxioUri = inodePair.getFirst();
