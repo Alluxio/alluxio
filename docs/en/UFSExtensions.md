@@ -16,15 +16,13 @@ without the need to restart any running processes. Adding new under storage conn
 can be used to enable Alluxio to work with your choice of storage system. On this page, we provide
 instructions for managing extensions.
 
-# Installing an Extension
+# Managing Extensions
 
 Extension JARs are picked up from the extensions directory configured using the property
-`alluxio.extensions.dir` (default: `${alluxio-home}/extensions`.
-
-The install extensions command line utlity distributes an exension JAR across an Alluxio cluster. In
-environments where the CLI is not applicable (see limitations below), place the JAR in the
-extensions directory. For example, when running in containers, build a custom image with extension
-binaries in the appropriate location.
+`alluxio.extensions.dir` (default: `${alluxio-home}/extensions`. The extensions command line utlity
+manages distribution of extension JARs across an Alluxio cluster. In environments where the CLI is
+not applicable (see limitations below), place the JAR in the extensions directory. For example, when
+running in containers, build a custom image with extension binaries in the appropriate location.
 
 ## Command Line Utility
 
@@ -52,9 +50,9 @@ command. The utility lists any installed extensions by scanning the local extens
 
 ### Uninstall
 
-The `uninstall` command works in similar manner to `install` using hosts specified in `conf/masters`
-and `conf/workers`. Remove the extensions manually from Alluxio servers in case other hosts are not
-reachable from the host executing the command.
+The `uninstall` command works in a similar manner to `install` using hosts specified in
+`conf/masters` and `conf/workers`. Remove the extensions manually from Alluxio servers in case some
+hosts are not reachable from the host executing the command.
 
 ### Installing from a Maven Coordinate
 
