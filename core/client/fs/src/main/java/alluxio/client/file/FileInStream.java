@@ -627,13 +627,27 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
     // Precompute this because mPos will be updated several times in this function.
     final boolean isInCurrentBlock = pos / mBlockSize == mPos / mBlockSize;
 
+    boolean readFromLocalWorker = mCurrentBlockInStream != null
+        && mCurrentBlockInStream.Source() == BlockInStreamSource.LOCAL;
+    if (isInCurrentBlock && readFromLocalWorker) {
+      // no need to partial cache the current block, and the seek is within the block
+      // so directly seeks to position.
+      mPos = pos;
+      // updateStreams is necessary when pos = mFileLength.
+      updateStreams();
+      if (mCurrentBlockInStream != null) {
+        mCurrentBlockInStream.seek(mPos % mBlockSize);
+      } else {
+        Preconditions.checkState(remaining() == 0);
+      }
+      return;
+    }
+
     // cache the current block if neither of these conditions hold:
     // (1) this is the first seek before any read, and the seek is outside the first block
     // (2) the in stream reads from the local worker
     boolean firstSeekOutsideFirstBlock =
         mPos == 0 && mCurrentBlockInStream == null && !isInCurrentBlock;
-    boolean readFromLocalWorker = mCurrentBlockInStream != null
-        && mCurrentBlockInStream.Source() == BlockInStreamSource.LOCAL;
     if (!firstSeekOutsideFirstBlock && !readFromLocalWorker) {
       // Make sure that mCurrentBlockInStream and mCurrentCacheStream is updated.
       // mPos is not updated here.
@@ -655,21 +669,10 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
       // The early return above guarantees that we won't close an incomplete cache stream.
       Preconditions.checkState(mCurrentCacheStream == null || mCurrentCacheStream.remaining() == 0);
       closeOrCancelCacheStream();
-    } else if (isInCurrentBlock) {
-      // no need to partial cache the current block, and the seek is within the block
-      // directly seeks to position if we are not yet there.
-      mPos = pos;
-      // updateStreams is necessary when pos = mFileLength.
-      updateStreams();
-      if (mCurrentBlockInStream != null) {
-        mCurrentBlockInStream.seek(mPos % mBlockSize);
-      } else {
-        Preconditions.checkState(remaining() == 0);
-      }
-      return;
     }
 
-    // the seeks outside the current block, seek to the beginning of that block first
+    // lastly handle the target block
+    // the seek is outside the current block, seek to the beginning of that block first
     mPos = pos / mBlockSize * mBlockSize;
     updateStreams();
     if (mCurrentBlockInStream != null
