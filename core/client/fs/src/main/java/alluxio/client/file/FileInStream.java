@@ -503,9 +503,8 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
     }
     Preconditions.checkNotNull(mCurrentBlockInStream, "mCurrentBlockInStream");
 
-    // do not create cache stream when the block is in local worker or from UFS
-    if (!mShouldCache || mCurrentBlockInStream.Source() == BlockInStreamSource.LOCAL
-        || mCurrentBlockInStream.Source() == BlockInStreamSource.UFS) {
+    // do not create cache stream when the block is not in remote worker
+    if (!mShouldCache || mCurrentBlockInStream.Source() != BlockInStreamSource.REMOTE) {
       return;
     }
 
@@ -641,7 +640,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
       updateStreams();
       if (mCurrentBlockInStream != null
           && mCurrentBlockInStream.Source() != BlockInStreamSource.LOCAL) {
-        //
+        // read till the position for partial caching when not reading from local worker
         readCurrentBlockToPos(pos);
       } else if (mCurrentBlockInStream != null) {
         seekInternal(pos);
