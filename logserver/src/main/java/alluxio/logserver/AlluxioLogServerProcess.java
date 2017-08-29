@@ -57,7 +57,7 @@ public class AlluxioLogServerProcess implements Process {
   private volatile boolean mStopped;
 
   /**
-   * Construct an {@link AlluxioLogServerProcess} instance.
+   * Constructs an {@link AlluxioLogServerProcess} instance.
    *
    * @param baseLogsDir base directory to store the logs pushed from remote Alluxio servers
    */
@@ -73,7 +73,7 @@ public class AlluxioLogServerProcess implements Process {
   /**
    * {@inheritDoc}
    *
-   * Create and start logging server and client thread pool.
+   * Creates and starts logging server and client thread pool.
    */
   @Override
   public void start() throws Exception {
@@ -92,16 +92,11 @@ public class AlluxioLogServerProcess implements Process {
       try {
         client = mServerSocket.accept();
       } catch (IOException e) {
-        try {
-          ServerSocket tmpServerSocket = new ServerSocket(mPort);
-          // If the code reaches here, it indicates mServerSocket has been closed.
-          // Therefore, by assigning the reference, we have successfully re-binded
-          // mServerSocket.
-          mServerSocket = tmpServerSocket;
-        } catch (IOException e1) {
-          // The original mServerSocket is not closed, therefore just ignore the exception
+        if (mServerSocket.isClosed()) {
+          break;
+        } else {
+          continue;
         }
-        continue;
       }
       InetAddress inetAddress = client.getInetAddress();
       AlluxioLog4jSocketNode clientSocketNode = new AlluxioLog4jSocketNode(mBaseLogsDir, client);
@@ -128,7 +123,7 @@ public class AlluxioLogServerProcess implements Process {
   /**
    * {@inheritDoc}
    *
-   * Stop the main thread of {@link AlluxioLogServerProcess}.
+   * Stops the main thread of {@link AlluxioLogServerProcess}.
    *
    * Close the server socket, shutdown the thread pool, stop accepting new requests,
    * and blocks until all worker threads terminate.
@@ -145,16 +140,11 @@ public class AlluxioLogServerProcess implements Process {
     }
 
     mThreadPool.shutdown();
-    try {
-      boolean ret = mThreadPool.awaitTermination(THREAD_KEEP_ALIVE_TIME_MS, TimeUnit.MILLISECONDS);
-      if (ret) {
-        LOG.info("All worker threads have terminated.");
-      } else {
-        LOG.warn("Log server has timedout waiting for worker threads to terminate.");
-      }
-    } catch (InterruptedException e) {
-      Thread.currentThread().interrupt();
-      throw new RuntimeException(e);
+    boolean ret = mThreadPool.awaitTermination(THREAD_KEEP_ALIVE_TIME_MS, TimeUnit.MILLISECONDS);
+    if (ret) {
+      LOG.info("All worker threads have terminated.");
+    } else {
+      LOG.warn("Log server has timedout waiting for worker threads to terminate.");
     }
   }
 
