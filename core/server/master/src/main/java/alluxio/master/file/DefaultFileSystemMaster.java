@@ -1393,7 +1393,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         delInodes.add(descendantPair);
       }
       // Prepare to delete persisted inodes
-      UfsDeleter ufsDeleter = new UfsDeleter(delInodes, deleteOptions, replayed);
+      UfsDeleter ufsDeleter = new SafeUfsDeleter(mMountTable, delInodes, deleteOptions);
       // Inodes to delete from tree after attempting to delete from UFS
       List<Inode> inodesToDelete = new LinkedList<>();
       // Inodes that are not safe for recursive deletes
@@ -1463,99 +1463,6 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       }
     }
     mBlockMaster.removeBlocks(deletedBlockIds, true /* delete */);
-  }
-
-  /**
-   * Helper class for deleting persisted entries from the UFS.
-   */
-  protected class UfsDeleter {
-    private final AlluxioURI mRootPath;
-    private UfsSyncChecker mUfsSyncChecker;
-
-    /**
-     * Creates a new instance of {@link UfsDeleter}.
-     *
-     * @param inodes sub-tree being deleted (any node should appear before descendants)
-     * @param deleteOptions delete options
-     * @param replayed whether the operation is a result of replaying the journal
-     */
-    public UfsDeleter(List<Pair<AlluxioURI, Inode>> inodes, DeleteOptions deleteOptions,
-        boolean replayed) throws IOException, FileDoesNotExistException, InvalidPathException {
-      // Root of sub-tree occurs before any of its descendants
-      mRootPath = inodes.get(0).getFirst();
-      if (!replayed && !deleteOptions.isUnchecked() && !deleteOptions.isAlluxioOnly()) {
-        mUfsSyncChecker = new UfsSyncChecker(mMountTable);
-        for (Pair<AlluxioURI, Inode> inodePair : inodes) {
-          AlluxioURI alluxioUri = inodePair.getFirst();
-          Inode inode = inodePair.getSecond();
-          // Mount points are not deleted recursively as we need to preserve the directory itself
-          if (inode.isPersisted() && inode.isDirectory() && !mMountTable.isMountPoint(alluxioUri)) {
-            mUfsSyncChecker.checkDirectory((InodeDirectory) inode, alluxioUri);
-          }
-        }
-      }
-    }
-
-    /**
-     * Deletes a path if not covered by a recursive delete.
-     *
-     * @param alluxioUri Alluxio path to delete
-     * @param inode to delete
-     * @return true, if succeeded; false. if failed to delete
-     */
-    public boolean delete(AlluxioURI alluxioUri, Inode inode)
-        throws IOException, InvalidPathException {
-      boolean failedToDelete = false;
-      MountTable.Resolution resolution = mMountTable.resolve(alluxioUri);
-      String ufsUri = resolution.getUri().toString();
-      UnderFileSystem ufs = resolution.getUfs();
-      AlluxioURI parentUri = alluxioUri.getParent();
-      if (!isRecursiveDeleteSafe(parentUri)) {
-        // Parent will not recursively delete, so delete this inode individually
-        if (inode.isFile()) {
-          if (!ufs.deleteFile(ufsUri)) {
-            failedToDelete = ufs.isFile(ufsUri);
-            if (!failedToDelete) {
-              LOG.warn("The file to delete does not exist in ufs: {}", ufsUri);
-            }
-          }
-        } else {
-          if (isRecursiveDeleteSafe(alluxioUri)) {
-            if (!ufs.deleteDirectory(ufsUri,
-                alluxio.underfs.options.DeleteOptions.defaults().setRecursive(true))) {
-              // TODO(adit): handle partial failures of recursive deletes
-              failedToDelete = ufs.isDirectory(ufsUri);
-              if (!failedToDelete) {
-                LOG.warn("The directory to delete does not exist in ufs: {}", ufsUri);
-              }
-            }
-          } else {
-            failedToDelete = true;
-            LOG.warn("The directory cannot be deleted from the ufs as it is not in sync: {}",
-                ufsUri);
-          }
-        }
-      }
-      return !failedToDelete;
-    }
-
-    /**
-     * Check if recursively deleting from the UFS is "safe".
-     *
-     * @param alluxioUri Alluxio path to delete
-     * @return true, if path can be deleted recursively from UFS; false, otherwise
-     */
-    private boolean isRecursiveDeleteSafe(@Nullable AlluxioURI alluxioUri) {
-      if (alluxioUri == null || !alluxioUri.toString().startsWith(mRootPath.toString())) {
-        // Path is not part of sub-tree being deleted
-        return false;
-      }
-      if (mUfsSyncChecker == null) {
-        // Delete is unchecked
-        return true;
-      }
-      return mUfsSyncChecker.isDirectoryInSync(alluxioUri);
-    }
   }
 
   @Override
