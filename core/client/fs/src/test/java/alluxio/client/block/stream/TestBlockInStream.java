@@ -20,6 +20,7 @@ import java.io.IOException;
 public class TestBlockInStream extends BlockInStream {
   /** A field tracks how much bytes read. */
   private int mBytesRead;
+  private boolean mClosed;
 
   public TestBlockInStream(byte[] mData, long id, long length, boolean shortCircuit,
       BlockInStreamSource source) {
@@ -43,6 +44,12 @@ public class TestBlockInStream extends BlockInStream {
 
   public boolean isClosed() {
     return mClosed;
+  }
+
+  @Override
+  public void close() throws IOException {
+    mClosed = true;
+    super.close();
   }
 
   /**
