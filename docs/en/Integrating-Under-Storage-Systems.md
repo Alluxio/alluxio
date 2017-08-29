@@ -9,4 +9,4 @@ Alluxio exposes an [UnderFileSystem](https://github.com/Alluxio/alluxio/blob/mas
 * An implementation of the UnderFileSystem interface, allowing Alluxio to communicate with the under storage.
 * A corresponding implementation of the [UnderFileSystemFactory](https://github.com/Alluxio/alluxio/blob/master/core/common/src/main/java/alluxio/underfs/UnderFileSystemFactory.java) interface which allows Alluxio to match path URIs to the UnderFileSystem implementation.
 * A META-INF/services file to register the new integration
-The [HDFS Submodule](https://github.com/alluxio/alluxio/tree/master/underfs/hdfs) and [S3 Submodule](https://github.com/alluxio/alluxio/tree/master/underfs/s3) are two good examples of how to enable a storage system to serve as Alluxio's underlying storage.
+The [HDFS Submodule](https://github.com/alluxio/alluxio/tree/master/underfs/hdfs) and [S3A Submodule](https://github.com/alluxio/alluxio/tree/master/underfs/s3a) are two good examples of how to enable a storage system to serve as Alluxio's underlying storage.
