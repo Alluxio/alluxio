@@ -62,12 +62,11 @@ public class AlluxioLog4jSocketNode implements Runnable {
 
   @Override
   public void run() {
-    LoggerRepository hierarchy = null;
-    LoggingEvent event;
-    Logger remoteLogger;
     try (ObjectInputStream objectInputStream = new ObjectInputStream(
         new BufferedInputStream(mSocket.getInputStream()))) {
+      LoggerRepository hierarchy = null;
       while (!Thread.currentThread().isInterrupted()) {
+        LoggingEvent event;
         try {
           event = (LoggingEvent) objectInputStream.readObject();
         } catch (ClassNotFoundException e) {
@@ -79,7 +78,7 @@ public class AlluxioLog4jSocketNode implements Runnable {
           hierarchy = configureHierarchy(
               event.getMDC(AlluxioRemoteLogFilter.REMOTE_LOG_MDC_PROCESS_TYPE_KEY).toString());
         }
-        remoteLogger = hierarchy.getLogger(event.getLoggerName());
+        Logger remoteLogger = hierarchy.getLogger(event.getLoggerName());
         remoteLogger.callAppenders(event);
       }
     } catch (IOException e) {
