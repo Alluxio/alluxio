@@ -10,9 +10,7 @@ priority: 0
 {:toc}
 
 This guide describes the instructions to configure [Amazon S3](https://aws.amazon.com/s3/) as Alluxio's
-under storage system. Alluxio natively provides two different client implementations for accessing
-s3, aws-sdk-java-s3 through the s3a:// scheme (recommended for better performance) and jets3t
-through the s3n:// scheme.
+under storage system. Alluxio recognizes the s3a:// scheme and uses the aws-sdk to access s3.
 
 ## Initial Setup
 
@@ -28,7 +26,7 @@ the bucket, or using an existing one. For the purposes of this guide, the S3 buc
 ## Mounting S3
 
 Alluxio unifies access to different storage systems through the [unified namespace](Unified-and-Transparent-Namespace.html)
-feature. An S3 location can be either mounted at the root of the Alluxio namespace or at a nested directory. 
+feature. An S3 location can be either mounted at the root of the Alluxio namespace or at a nested directory.
 
 ### Root Mount
 
@@ -45,25 +43,14 @@ You need to configure Alluxio to use S3 as its under storage system by modifying
 bucket and directory as the under storage system. You specify it by modifying
 `conf/alluxio-site.properties` to include:
 
-{% include Configuring-Alluxio-with-S3/underfs-address-s3n.md %}
-
-or
-
 {% include Configuring-Alluxio-with-S3/underfs-address-s3a.md %}
 
 Next, you need to specify the AWS credentials for S3 access.
 
-If you are using s3n, in `conf/alluxio-site.properties`, add:
+You can specify credentials in 4 ways, from highest to lowest priority:
 
-{% include Configuring-Alluxio-with-S3/aws.md %}
-
-Here, `<AWS_ACCESS_KEY_ID>` and `<AWS_SECRET_ACCESS_KEY>` should be replaced with your actual
-[AWS keys](https://aws.amazon.com/developers/access-keys), or other environment variables that
-contain your credentials.
-
-If you are using s3a, you can specify credentials in 4 ways, from highest to lowest priority:
-
-* Environment Variables `AWS_ACCESS_KEY_ID` or `AWS_ACCESS_KEY` (either is acceptable) and `AWS_SECRET_ACCESS_KEY` or `AWS_SECRET_KEY` (either is acceptable)
+* Environment Variables `AWS_ACCESS_KEY_ID` or `AWS_ACCESS_KEY` (either is acceptable) and
+`AWS_SECRET_ACCESS_KEY` or `AWS_SECRET_KEY` (either is acceptable)
 * System Properties `aws.accessKeyId` and `aws.secretKey`
 * Profile file containing credentials at `~/.aws/credentials`
 * AWS Instance profile credentials, if you are using an EC2 instance
@@ -75,41 +62,34 @@ Alternatively, these configuration settings can be set in the `conf/alluxio-env.
 details about setting configuration parameters can be found in
 [Configuration Settings](Configuration-Settings.html#environment-variables).
 
+After these changes, Alluxio should be configured to work with S3 as its under storage system, and
+you can try [Running Alluxio Locally with S3](#running-alluxio-locally-with-s3).
+
 ### Nested Mount
 An S3 location can be mounted at a nested directory in the Alluxio namespace to have unified access
 to multiple under storage systems. Alluxio's [Command Line Interface](Command-Line-Interface.html) can be used for this purpose.
 
-```bash 
+```bash
 $ ./bin/alluxio fs mount --option aws.accessKeyId=<AWS_ACCESS_KEY_ID> --option aws.secretKey=<AWS_SECRET_KEY_ID>\
   /mnt/s3 s3a://<S3_BUCKET>/<S3_DIRECTORY>
 ```
 
 ### Enabling Server Side Encryption
 
-If you are using s3a, you may encrypt your data stored in S3. The encryption is only valid for data
-at rest in s3 and will be transferred in decrypted form when read by clients.
+You may encrypt your data stored in S3. The encryption is only valid for data at rest in s3 and will
+be transferred in decrypted form when read by clients.
 
 Enable this feature by configuring `conf/alluxio-site.properties`:
 
 {% include Configuring-Alluxio-with-S3/server-side-encryption-conf.md %}
 
-### Disable DNS-Buckets
+### DNS-Buckets
 
-The underlying S3 library JetS3t can incorporate bucket names that are DNS-compatible into the host
-name of its requests. You can optionally configure this behavior in the `ALLUXIO_JAVA_OPTS` section
-of the `conf/alluxio-site.properties` file by adding:
+By default, a request directed at the bucket named "mybucket" will be sent to the host name
+"mybucket.s3.amazonaws.com". You can enable DNS-Buckets to use path style data access, for example:
+"http://s3.amazonaws.com/mybucket" by setting the following configuration:
 
 {% include Configuring-Alluxio-with-S3/jets3t.md %}
-
-With `<DISABLE_DNS>` replaced with `false` (the default), a request directed at the bucket named
-"mybucket" will be sent to the host name "mybucket.s3.amazonaws.com". With `<DISABLE_DNS>` replaced
-with `true`, JetS3t will specify bucket names in the request path of the HTTP message rather than
-the Host header, for example: "http://s3.amazonaws.com/mybucket". Without this parameter set, the
-system will default to `false`. See http://www.jets3t.org/toolkit/configuration.html for further
-details.
-
-After these changes, Alluxio should be configured to work with S3 as its under storage system, and
-you can try [Running Alluxio Locally with S3](#running-alluxio-locally-with-s3).
 
 ### Accessing S3 through a proxy
 
