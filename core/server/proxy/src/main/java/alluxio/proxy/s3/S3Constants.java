@@ -9,32 +9,20 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.worker.netty;
-
-import alluxio.proto.dataserver.Protocol;
+package alluxio.proxy.s3;
 
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * The block write request internal representation.
+ * Constants for S3 northbound API.
  */
 @ThreadSafe
-public final class BlockWriteRequest extends WriteRequest {
-  /** Which tier this block writes to. */
-  private final int mTier;
+public final class S3Constants {
+  public static final String S3_CONTENT_LENGTH_HEADER = "Content-Length";
+  public static final String S3_DATE_FORMAT_REGEXP = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'";
+  public static final int S3_DEFAULT_MAX_KEYS = 1000;
+  public static final String S3_EMPTY_ETAG = "";
+  public static final String S3_STANDARD_STORAGE_CLASS = "STANDARD";
 
-  /**
-   * @param request block request in proto
-   */
-  BlockWriteRequest(Protocol.WriteRequest request) {
-    super(request);
-    mTier = request.getTier();
-  }
-
-  /**
-   * @return the tier this block is writing to
-   */
-  public int getTier() {
-    return mTier;
-  }
+  private S3Constants() {} // prevent instantiation
 }
