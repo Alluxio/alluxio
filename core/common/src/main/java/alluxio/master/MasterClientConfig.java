@@ -24,7 +24,7 @@ public class MasterClientConfig {
    * @return a master client configuration with default values
    */
   public static MasterClientConfig defaults() {
-    return new MasterClientConfig();
+    return new MasterClientConfig().withMasterInquireClient(MasterInquireClient.Factory.create());
   }
 
   /**
