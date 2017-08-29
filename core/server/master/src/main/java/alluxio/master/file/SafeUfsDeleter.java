@@ -65,13 +65,7 @@ public final class SafeUfsDeleter implements UfsDeleter {
     }
   }
 
-  /**
-   * Deletes a path if not covered by a recursive delete.
-   *
-   * @param alluxioUri Alluxio path to delete
-   * @param inode to delete
-   * @return true, if succeeded; false. if failed to delete
-   */
+  @Override
   public boolean delete(AlluxioURI alluxioUri, Inode inode)
       throws IOException, InvalidPathException {
     boolean failedToDelete = false;
