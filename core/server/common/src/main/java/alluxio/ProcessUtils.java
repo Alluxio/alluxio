@@ -43,5 +43,28 @@ public final class ProcessUtils {
     }
   }
 
+  /**
+   * Adds a shutdown hook that will be invoked when a signal is sent to this process.
+   *
+   * The process may be utilizing some resources, and this shutdown hook will be invoked by
+   * JVM when a SIGTERM is sent to the process by "kill" command. The shutdown hook calls
+   * {@link Process#stop()} method to cleanly release the resources and exit.
+   *
+   * @param process the data structure representing the process to terminate
+   */
+  public static void stopProcessOnShutdown(final Process process) {
+    Runtime.getRuntime().addShutdownHook(new Thread() {
+      @Override
+      public void run() {
+        try {
+          process.stop();
+        } catch (Exception e) {
+          LOG.error("Failed to shutdown process.", e);
+          System.exit(0);
+        }
+      }
+    });
+  }
+
   private ProcessUtils() {} // prevent instantiation
 }

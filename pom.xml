@@ -167,15 +167,16 @@
   </properties>
 
   <modules>
-    <module>underfs</module>
-    <module>core</module>
-    <module>keyvalue</module>
-    <module>shell</module>
-    <module>examples</module>
-    <module>tests</module>
-    <module>integration</module>
     <module>assembly</module>
+    <module>core</module>
+    <module>examples</module>
+    <module>integration</module>
+    <module>keyvalue</module>
+    <module>logserver</module>
     <module>minicluster</module>
+    <module>shell</module>
+    <module>tests</module>
+    <module>underfs</module>
   </modules>
 
   <dependencyManagement>
@@ -337,7 +338,7 @@
       <dependency>
         <groupId>log4j</groupId>
         <artifactId>log4j</artifactId>
-        <version>1.2.16</version>
+        <version>${log4j.version}</version>
       </dependency>
       <dependency>
         <groupId>net.java.dev.jets3t</groupId>

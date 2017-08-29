@@ -179,6 +179,11 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("(Experimental) The largest allowable frame size used for Thrift "
               + "RPC communication.")
           .build();
+  public static final PropertyKey REMOTE_LOGGING_ENABLED =
+      new Builder(Name.REMOTE_LOGGING_ENABLED)
+          .setDefaultValue(false)
+          .setDescription("Set to true to enable writing logs to a server.")
+          .build();
   public static final PropertyKey SITE_CONF_DIR =
       new Builder(Name.SITE_CONF_DIR)
           .setDefaultValue(
@@ -1227,6 +1232,36 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
 
   //
+  // Log server related properties
+  //
+  public static final PropertyKey LOGSERVER_LOGS_DIR =
+      new Builder(Name.LOGSERVER_LOGS_DIR)
+          .setDefaultValue(String.format("${%s}/logs", Name.WORK_DIR))
+          .setDescription("Default location for remote log files.")
+          .build();
+  public static final PropertyKey LOGSERVER_HOSTNAME =
+      new Builder(Name.LOGSERVER_HOSTNAME)
+          .setDescription("The hostname of Alluxio logserver.")
+          .build();
+  public static final PropertyKey LOGSERVER_PORT =
+      new Builder(Name.LOGSERVER_PORT)
+          .setDefaultValue(45600)
+          .setDescription("Default port number to receive logs from alluxio servers.")
+          .build();
+  public static final PropertyKey LOGSERVER_THREADS_MAX =
+      new Builder(Name.LOGSERVER_THREADS_MAX)
+          .setDefaultValue(2048)
+          .setDescription("The maximum number of threads used by logserver to service"
+              + " logging requests.")
+          .build();
+  public static final PropertyKey LOGSERVER_THREADS_MIN =
+      new Builder(Name.LOGSERVER_THREADS_MIN)
+          .setDefaultValue(512)
+          .setDescription("The minimum number of threads used by logserver to service"
+              + " logging requests.")
+          .build();
+
+  //
   // User related properties
   //
   public static final PropertyKey USER_BLOCK_MASTER_CLIENT_THREADS =
@@ -1815,6 +1850,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.network.netty.heartbeat.timeout";
     public static final String NETWORK_THRIFT_FRAME_SIZE_BYTES_MAX =
         "alluxio.network.thrift.frame.size.bytes.max";
+    public static final String REMOTE_LOGGING_ENABLED = "alluxio.remote.logging.enabled";
     public static final String SITE_CONF_DIR = "alluxio.site.conf.dir";
     public static final String TEST_MODE = "alluxio.test.mode";
     public static final String VERSION = "alluxio.version";
@@ -2091,6 +2127,15 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String PROXY_WEB_BIND_HOST = "alluxio.proxy.web.bind.host";
     public static final String PROXY_WEB_HOSTNAME = "alluxio.proxy.web.hostname";
     public static final String PROXY_WEB_PORT = "alluxio.proxy.web.port";
+
+    //
+    // Log server related properties
+    //
+    public static final String LOGSERVER_LOGS_DIR = "alluxio.logserver.logs.dir";
+    public static final String LOGSERVER_HOSTNAME = "alluxio.logserver.hostname";
+    public static final String LOGSERVER_PORT = "alluxio.logserver.port";
+    public static final String LOGSERVER_THREADS_MAX = "alluxio.logserver.threads.max";
+    public static final String LOGSERVER_THREADS_MIN = "alluxio.logserver.threads.min";
 
     //
     // User related properties
