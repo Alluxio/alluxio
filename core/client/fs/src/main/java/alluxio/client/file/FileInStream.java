@@ -93,12 +93,15 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
   // The following 3 fields must be kept in sync. They are only updated in updateStreams together.
   /** Current block in stream backing this stream. */
   protected BlockInStream mCurrentBlockInStream;
-  /** Current block out stream writing the data into Alluxio. */
+  /**
+   * Current block out stream writing the data into the local worker. This is only used when the in
+   * stream reads from a remote worker.
+   */
   protected BlockOutStream mCurrentCacheStream;
   /** The blockId used in the block streams. */
   private long mStreamBlockId;
 
-  /** The read buffer in file seek. This is used in {@link #cacheCurrentBlockToEnd()}. */
+  /** The read buffer in file seek. This is used in {@link #readCurrentBlockToEnd()}. */
   private byte[] mSeekBuffer;
 
   /**
@@ -152,7 +155,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
     }
     updateStreams();
     if (shouldCachePartiallyReadBlock()) {
-      cacheCurrentBlockToEnd();
+      readCurrentBlockToEnd();
     }
     if (mCurrentBlockInStream != null) {
       mCurrentBlockInStream.close();
@@ -360,8 +363,8 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
   }
 
   /**
-   * Checks whether block instream and cache outstream should be updated.
-   * This function is only called by {@link #updateStreams()}.
+   * Checks whether block instream and cache outstream should be updated. This function is only
+   * called by {@link #updateStreams()}.
    *
    * @param currentBlockId cached result of {@link #getCurrentBlockId()}
    * @return true if the block stream should be updated
@@ -372,9 +375,9 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
     }
     if (mCurrentCacheStream != null
         && mCurrentBlockInStream.remaining() != mCurrentCacheStream.remaining()) {
-      throw new IllegalStateException(String.format(
-          "BlockInStream and CacheStream is out of sync %d %d.", mCurrentBlockInStream.remaining(),
-          mCurrentCacheStream.remaining()));
+      throw new IllegalStateException(
+          String.format("BlockInStream and CacheStream is out of sync %d %d.",
+              mCurrentBlockInStream.remaining(), mCurrentCacheStream.remaining()));
     }
     return mCurrentBlockInStream.remaining() == 0;
   }
@@ -477,8 +480,11 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
 
   /**
    * Updates {@link #mCurrentCacheStream}. When {@code mShouldCache} is true, {@code FileInStream}
-   * will create an {@code BlockOutStream} to cache the data read only if the file is read from a
-   * remote worker or UFS and we have an available local worker.
+   * will create an {@code BlockOutStream} to cache the data read only if the block is read from a
+   * remote worker and we have an available local worker. Note that when the block is in UFS but not
+   * in Alluxio, the cache stream is not needed in the client because the worker caches directly the
+   * block when it reads from UFS. And if the block is already in local worker, then the block
+   * should not be cached again.
    *
    * The following preconditions are checked inside:
    * <ol>
@@ -503,8 +509,8 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
     }
     Preconditions.checkNotNull(mCurrentBlockInStream, "mCurrentBlockInStream");
 
-    // do not create cache stream when the block is in local worker
-    if (!mShouldCache || mCurrentBlockInStream.Source() == BlockInStreamSource.LOCAL) {
+    // do not create cache stream when the block is not in remote worker
+    if (!(mShouldCache && mCurrentBlockInStream.Source() == BlockInStreamSource.REMOTE)) {
       return;
     }
 
@@ -584,30 +590,75 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
   }
 
   /**
-   * Seeks to a file position. Blocks are cached even if they are not fully read. This is only
-   * called by {@link FileInStream#seek}.
+   * Seeks to a file position with partial caching if needed. Blocks are cached even if they are not
+   * fully read. This is only called by {@link FileInStream#seek}.
+   *
+   * The seek could involve at most two blocks: the current block and the target block. And it's
+   * possible that the current block and the target block are the same block when the seek is within
+   * the same block.
+   *
+   * The behavior for the current block:
+   * <ol>
+   * <li>If the current block is already available in the local worker, then the caching of the
+   * current block is not needed. And if the seek position is within the current block, directly
+   * move the position to the seek position. Otherwise the position is moved outside the current
+   * block.</li>
+   * <li>If the current block is not available locally, then the partial caching is needed. And data
+   * needs to read from the current position till the seek position, when the position is within the
+   * current block, otherwise reads the rest of the current block.</li>
+   * <li>However, a caveat is that if this is the first seek before any data is read from the file
+   * and this seeks is outside the first block, then the first block should not be cached.</li>
+   * </ol>
+   *
+   * The behavior on the target block:
+   * <ol>
+   * <li>If the target block is already available in the local worker, then the caching on the
+   * target block is not needed. Directly move the position to the seek position.</li>
+   * <li>Otherwise data from the beginning of the block till the seek position needs to be read and
+   * cached.</li>
+   * </ol>
+   *
    * Invariant: if the current block is to be cached, [0, mPos) should have been cached already.
    *
    * @param pos The position to seek to. It is guaranteed to be valid (pos >= 0 && pos != mPos &&
-   *            pos <= mFileLength).
+   *        pos <= mFileLength).
    */
   private void seekInternalWithCachingPartiallyReadBlock(long pos) throws IOException {
     // Precompute this because mPos will be updated several times in this function.
     final boolean isInCurrentBlock = pos / mBlockSize == mPos / mBlockSize;
 
-    // No need to cache if the stream hasn't read anything and the seek position is not within the
-    // block
-    if (mPos != 0 || mCurrentBlockInStream != null || isInCurrentBlock) {
+    boolean readFromLocalWorker = mCurrentBlockInStream != null
+        && mCurrentBlockInStream.Source() == BlockInStreamSource.LOCAL;
+    if (isInCurrentBlock && readFromLocalWorker) {
+      // no need to partial cache the current block, and the seek is within the block
+      // so directly seeks to position.
+      mPos = pos;
+      // updateStreams is necessary when pos = mFileLength.
+      updateStreams();
+      if (mCurrentBlockInStream != null) {
+        mCurrentBlockInStream.seek(mPos % mBlockSize);
+      } else {
+        Preconditions.checkState(remaining() == 0);
+      }
+      return;
+    }
+
+    // cache the current block if neither of these conditions hold:
+    // (1) this is the first seek before any read, and the seek is outside the first block
+    // (2) the in stream reads from the local worker
+    boolean firstSeekOutsideFirstBlock =
+        mPos == 0 && mCurrentBlockInStream == null && !isInCurrentBlock;
+    if (!firstSeekOutsideFirstBlock && !readFromLocalWorker) {
       // Make sure that mCurrentBlockInStream and mCurrentCacheStream is updated.
       // mPos is not updated here.
       updateStreams();
 
       // Cache till pos if seeking forward within the current block. Otherwise cache the whole
       // block.
-      if (pos > mPos) {
-        cacheCurrentBlockToPos(pos);
+      if (isInCurrentBlock && pos > mPos) {
+        readCurrentBlockToPos(pos);
       } else {
-        cacheCurrentBlockToEnd();
+        readCurrentBlockToEnd();
       }
 
       // Early return if we are at pos already. This happens if we seek forward with caching
@@ -620,39 +671,30 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
       closeOrCancelCacheStream();
     }
 
-    // If seeks within the current block, directly seeks to pos if we are not yet there.
-    // If seeks outside the current block, seek to the beginning of that block first, then
-    // cache the prefix (pos % mBlockSize) of that block.
-    if (isInCurrentBlock) {
-      mPos = pos;
-      // updateStreams is necessary when pos = mFileLength.
-      updateStreams();
-      if (mCurrentBlockInStream != null) {
-        mCurrentBlockInStream.seek(mPos % mBlockSize);
-      } else {
-        Preconditions.checkState(remaining() == 0);
-      }
+    // lastly handle the target block
+    // the seek is outside the current block, seek to the beginning of that block first
+    mPos = pos / mBlockSize * mBlockSize;
+    updateStreams();
+    if (mCurrentBlockInStream != null
+        && mCurrentBlockInStream.Source() != BlockInStreamSource.LOCAL) {
+      // cache till the seek position of the block unless it's already available in local worker
+      readCurrentBlockToPos(pos);
+    } else if (mCurrentBlockInStream != null) {
+      // otherwise directly seek to the position
+      seekInternal(pos);
     } else {
-      mPos = pos / mBlockSize * mBlockSize;
-      updateStreams();
-      if (mCurrentCacheStream != null) {
-        cacheCurrentBlockToPos(pos);
-      } else if (mCurrentBlockInStream != null) {
-        seekInternal(pos);
-      } else {
-        Preconditions.checkState(remaining() == 0);
-      }
+      Preconditions.checkState(remaining() == 0);
     }
   }
 
   /**
-   * Reads and caches till the file offset (mPos) equals pos or the end of the current block
-   * (whichever is met first) if pos > mPos. Otherwise no-op.
+   * Reads till the file offset (mPos) equals pos or the end of the current block (whichever is met
+   * first) if pos > mPos. Otherwise no-op. Writes to cache stream if the stream is not null.
    *
    * @param pos file offset
    */
-  private void cacheCurrentBlockToPos(long pos) throws IOException {
-    if (mCurrentBlockInStream == null || mCurrentCacheStream == null) {
+  private void readCurrentBlockToPos(long pos) throws IOException {
+    if (mCurrentBlockInStream == null) {
       return;
     }
     long len = Math.min(pos - mPos, mCurrentBlockInStream.remaining());
@@ -669,9 +711,9 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
   }
 
   /**
-   * Reads and caches the remaining of the current block.
+   * Reads the remaining of the current block. Writes to cache stream if the stream is not null.
    */
-  private void cacheCurrentBlockToEnd() throws IOException {
-    cacheCurrentBlockToPos(Long.MAX_VALUE);
+  private void readCurrentBlockToEnd() throws IOException {
+    readCurrentBlockToPos(Long.MAX_VALUE);
   }
 }
