@@ -102,8 +102,8 @@ alluxio.underfs.dummy.DummyUnderFileSystemFactory
 
 ## Build
 
-Include all transitive dependencies of the extension project in the built JAR. Either `maven-shade-
-plugin` or `maven-assembly` can be used.
+Include all transitive dependencies of the extension project in the built JAR using either
+`maven-shade-plugin` or `maven-assembly`.
 
 In addition, to avoid collisions specify scope for the dependency `alluxio-core-common` as
 `provided`. The maven definition would look like:
@@ -122,12 +122,14 @@ In addition, to avoid collisions specify scope for the dependency `alluxio-core-
 
 ## Test
 
-Extend `AbstractUnderFileSystemContractTest` to test the `UnderFileSystem` implements the contract
-between Alluxio and an under storage module correctly. Look at the reference implemenation for
-including parameters such as the working directory for the test.
+Extend `AbstractUnderFileSystemContractTest` to test that the defined `UnderFileSystem` adheres to
+the contract between Alluxio and an under storage module. Look at the reference implemenation to
+include parameters such as the working directory for the test.
 
-```java
-public final class DummyUnderFileSystemContractTest extends AbstractUnderFileSystemContractTest {
-    ...
-}
-```
+```java public final class DummyUnderFileSystemContractTest extends
+AbstractUnderFileSystemContractTest {     ... } `` pointing to your module`
+
+Congratulations!. You have developed a new under storage extension to Alluxio. Let the community
+know by editing the list of extensions section on the [documentation page](UFSExtensions.html) by
+submitting a pull request to the Alluxio
+[repository](https://github.com/Alluxio/alluxio/tree/master/docs/en/UFSExtensions.md).
