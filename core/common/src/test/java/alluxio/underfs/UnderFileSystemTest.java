@@ -63,7 +63,7 @@ public final class UnderFileSystemTest {
         "No UnderFileSystemFactory should exist for S3 paths as it requires a separate module",
         factory);
 
-    factory = UnderFileSystemFactoryRegistry.find("s3n://localhost/test/path");
+    factory = UnderFileSystemFactoryRegistry.find("s3a://localhost/test/path");
     Assert.assertNull(
         "No UnderFileSystemFactory should exist for S3 paths as it requires a separate module",
         factory);
