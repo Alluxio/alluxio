@@ -217,7 +217,8 @@ function main {
           # if ufs is local filesystem and already exists
           exit 0
         else
-          if [ ! -z ${ALLUXIO_UNDERFS_ADDRESS} ] && [[ ${ALLUXIO_UNDERFS_ADDRESS} != /* ]] && [[ ${ALLUXIO_UNDERFS_ADDRESS} != file://* ]]; then
+          # if ufs is not set it will default to local filesystem
+          if [[ ! -z ${ALLUXIO_UNDERFS_ADDRESS} ]] && [[ ${ALLUXIO_UNDERFS_ADDRESS} != /* ]] && [[ ${ALLUXIO_UNDERFS_ADDRESS} != file://* ]]; then
             # if ufs is not local filesystem, don't format
             exit 0
           fi
