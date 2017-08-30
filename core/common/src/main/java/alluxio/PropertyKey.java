@@ -273,23 +273,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "https://console.cloud.google.com/storage/settings . Please use the "
               + "\"Owners\" one.")
           .build();
-  public static final PropertyKey UNDERFS_GLUSTERFS_IMPL =
-      new Builder(Name.UNDERFS_GLUSTERFS_IMPL)
-          .setDefaultValue("org.apache.hadoop.fs.glusterfs.GlusterFileSystem")
-          .setDescription("Glusterfs hook with hadoop.")
-          .build();
-  public static final PropertyKey UNDERFS_GLUSTERFS_MOUNTS =
-      new Builder(Name.UNDERFS_GLUSTERFS_MOUNTS)
-          .build();
-  public static final PropertyKey UNDERFS_GLUSTERFS_MR_DIR =
-      new Builder(Name.UNDERFS_GLUSTERFS_MR_DIR)
-          .setDefaultValue("glusterfs:///mapred/system")
-          .setDescription("Optionally, specify subdirectory under GlusterFS for intermediary "
-              + "MapReduce data.")
-          .build();
-  public static final PropertyKey UNDERFS_GLUSTERFS_VOLUMES =
-      new Builder(Name.UNDERFS_GLUSTERFS_VOLUMES)
-          .build();
   public static final PropertyKey UNDERFS_HDFS_CONFIGURATION =
       new Builder(Name.UNDERFS_HDFS_CONFIGURATION)
           .setDefaultValue(String.format(
@@ -1093,7 +1076,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Template.WORKER_TIERED_STORE_LEVEL_RESERVED_RATIO, 0).build();
   public static final PropertyKey WORKER_TIERED_STORE_LEVEL0_HIGH_WATERMARK_RATIO =
       new Builder(Template.WORKER_TIERED_STORE_LEVEL_HIGH_WATERMARK_RATIO, 0)
-          .setDefaultValue(1.0)
+          .setDefaultValue(0.95)
           .setDescription("The high watermark of the space in the top storage layer (a value "
               + "between 0 and 1).")
           .build();
@@ -1119,7 +1102,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Template.WORKER_TIERED_STORE_LEVEL_RESERVED_RATIO, 1).build();
   public static final PropertyKey WORKER_TIERED_STORE_LEVEL1_HIGH_WATERMARK_RATIO =
       new Builder(Template.WORKER_TIERED_STORE_LEVEL_HIGH_WATERMARK_RATIO, 1)
-          .setDefaultValue(1.0)
+          .setDefaultValue(0.95)
           .build();
   public static final PropertyKey WORKER_TIERED_STORE_LEVEL1_LOW_WATERMARK_RATIO =
       new Builder(Template.WORKER_TIERED_STORE_LEVEL_LOW_WATERMARK_RATIO, 1)
@@ -1141,7 +1124,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Template.WORKER_TIERED_STORE_LEVEL_RESERVED_RATIO, 2).build();
   public static final PropertyKey WORKER_TIERED_STORE_LEVEL2_HIGH_WATERMARK_RATIO =
       new Builder(Template.WORKER_TIERED_STORE_LEVEL_HIGH_WATERMARK_RATIO, 2)
-          .setDefaultValue(1.0)
+          .setDefaultValue(0.95)
           .build();
   public static final PropertyKey WORKER_TIERED_STORE_LEVEL2_LOW_WATERMARK_RATIO =
       new Builder(Template.WORKER_TIERED_STORE_LEVEL_LOW_WATERMARK_RATIO, 2)
@@ -1873,11 +1856,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String UNDERFS_LISTING_LENGTH = "alluxio.underfs.listing.length";
     public static final String UNDERFS_GCS_OWNER_ID_TO_USERNAME_MAPPING =
         "alluxio.underfs.gcs.owner.id.to.username.mapping";
-    public static final String UNDERFS_GLUSTERFS_IMPL = "alluxio.underfs.glusterfs.impl";
-    public static final String UNDERFS_GLUSTERFS_MOUNTS = "alluxio.underfs.glusterfs.mounts";
-    public static final String UNDERFS_GLUSTERFS_MR_DIR =
-        "alluxio.underfs.glusterfs.mapred.system.dir";
-    public static final String UNDERFS_GLUSTERFS_VOLUMES = "alluxio.underfs.glusterfs.volumes";
     public static final String UNDERFS_HDFS_CONFIGURATION = "alluxio.underfs.hdfs.configuration";
     public static final String UNDERFS_HDFS_IMPL = "alluxio.underfs.hdfs.impl";
     public static final String UNDERFS_HDFS_PREFIXES = "alluxio.underfs.hdfs.prefixes";

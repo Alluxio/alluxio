@@ -9,23 +9,22 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.client;
+package alluxio.master.file;
 
-import alluxio.wire.WorkerNetAddress;
+import alluxio.AlluxioURI;
+import alluxio.master.file.meta.Inode;
 
-import java.net.InetSocketAddress;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * Something that can be located by an {@link InetSocketAddress}.
+ * A noop version of the {@link UfsDeleter}.
  */
-public interface Locatable {
-  /**
-   * @return the network location
-   */
-  WorkerNetAddress location();
+@ThreadSafe
+public final class NoopUfsDeleter implements UfsDeleter {
+  public static final NoopUfsDeleter INSTANCE = new NoopUfsDeleter();
 
-  /**
-   * @return true if it is local
-   */
-  boolean isLocal();
+  @Override
+  public boolean delete(AlluxioURI alluxioUri, Inode inode) {
+    return true;
+  }
 }
