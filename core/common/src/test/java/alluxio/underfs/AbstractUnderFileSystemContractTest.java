@@ -14,7 +14,6 @@ package alluxio.underfs;
 import alluxio.Configuration;
 import alluxio.ConfigurationRule;
 import alluxio.PropertyKey;
-import alluxio.Seekable;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.options.DeleteOptions;
 import alluxio.underfs.options.ListOptions;
