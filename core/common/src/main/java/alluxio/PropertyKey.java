@@ -483,8 +483,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey OSS_SECRET_KEY = new Builder(Name.OSS_SECRET_KEY).build();
   public static final PropertyKey S3A_ACCESS_KEY = new Builder(Name.S3A_ACCESS_KEY).build();
   public static final PropertyKey S3A_SECRET_KEY = new Builder(Name.S3A_SECRET_KEY).build();
-  public static final PropertyKey S3N_ACCESS_KEY = new Builder(Name.S3N_ACCESS_KEY).build();
-  public static final PropertyKey S3N_SECRET_KEY = new Builder(Name.S3N_SECRET_KEY).build();
   public static final PropertyKey SWIFT_API_KEY = new Builder(Name.SWIFT_API_KEY).build();
   public static final PropertyKey SWIFT_AUTH_METHOD_KEY =
       new Builder(Name.SWIFT_AUTH_METHOD_KEY).build();
@@ -1936,8 +1934,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String OSS_SECRET_KEY = "fs.oss.accessKeySecret";
     public static final String S3A_ACCESS_KEY = "aws.accessKeyId";
     public static final String S3A_SECRET_KEY = "aws.secretKey";
-    public static final String S3N_ACCESS_KEY = "fs.s3n.awsAccessKeyId";
-    public static final String S3N_SECRET_KEY = "fs.s3n.awsSecretAccessKey";
     public static final String SWIFT_API_KEY = "fs.swift.apikey";
     public static final String SWIFT_AUTH_METHOD_KEY = "fs.swift.auth.method";
     public static final String SWIFT_AUTH_URL_KEY = "fs.swift.auth.url";
