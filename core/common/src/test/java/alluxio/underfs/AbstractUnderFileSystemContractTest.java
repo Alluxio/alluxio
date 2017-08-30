@@ -187,42 +187,6 @@ public abstract class AbstractUnderFileSystemContractTest {
   }
 
   @Test
-  public void createOpenSeek() throws IOException {
-    String testFile = PathUtils.concatPath(mUnderfsAddress, "createOpenSeek");
-    OutputStream outputStream = mUfs.create(testFile);
-    int numBytes = 10;
-    for (int i = 0; i < numBytes; ++i) {
-      outputStream.write(i);
-    }
-    outputStream.close();
-    InputStream inputStream = mUfs.open(testFile);
-    for (int i = 0; i < numBytes; ++i) {
-      ((Seekable) inputStream).seek(i);
-      int readValue = inputStream.read();
-      Assert.assertEquals(i, readValue);
-    }
-    inputStream.close();
-  }
-
-  @Test
-  public void createOpenSeekReverse() throws IOException {
-    String testFile = PathUtils.concatPath(mUnderfsAddress, "createOpenSeekReverse");
-    OutputStream outputStream = mUfs.create(testFile);
-    int numBytes = 10;
-    for (int i = 0; i < numBytes; ++i) {
-      outputStream.write(i);
-    }
-    outputStream.close();
-    InputStream inputStream = mUfs.open(testFile);
-    for (int i = numBytes - 1; i >= 0; --i) {
-      ((Seekable) inputStream).seek(i);
-      int readValue = inputStream.read();
-      Assert.assertEquals(i, readValue);
-    }
-    inputStream.close();
-  }
-
-  @Test
   public void deleteFile() throws IOException {
     String testFile = PathUtils.concatPath(mUnderfsAddress, "deleteFile");
     createEmptyFile(testFile);
