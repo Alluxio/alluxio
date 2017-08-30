@@ -52,6 +52,8 @@ Apache Flink可以通过通用文件系统包装类（可用于Hadoop文件系�
 
 {% include Running-Flink-on-Alluxio/hadoop-classpath.md %}
 
+另外，高级用户可以选择用源文件编译产生客户端Jar包。遵循以下步骤：[here](Building-Alluxio-Master-Branch.html#compute-framework-support)然后使用生成在 `{{site.ALLUXIO_CLIENT_JAR_PATH_BUILD}}`的Jar包完成余下的引导。
+
 ### 将Alluxio额外属性转化为Flink属性
 
 除此以外，如果`conf/alluxio-site.properties`配置文件中有任何指定的属性，请在`{FLINK_HOME}/conf/flink-conf.yaml`文件中将这些属性转化为`env.java.opts`，从而方便Flink使用Alluxio的配置。
