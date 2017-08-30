@@ -30,6 +30,10 @@ The following table describes the support status for current Amazon S3 functiona
 {% endfor %}
 </table>
 
+# Language support
+Alluxio S3 client supports various programming languages, such as C++, Java, Python, Golang, Ruby and etc.
+In this documentation, we use curl Rest calls and python S3 client as usage examples.
+
 # Example Usage
 
 ## Rest API
