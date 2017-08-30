@@ -48,7 +48,7 @@ public final class RmCommand extends WithWildCardPathCommand {
           .desc("remove directories without checking UFS contents are in sync")
           .build();
 
-  protected static final Option REMOVE_ALLUXIO_ONLY =
+  private static final Option REMOVE_ALLUXIO_ONLY =
       Option.builder("alluxioOnly")
           .required(false)
           .hasArg(false)
