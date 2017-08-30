@@ -15,7 +15,7 @@ is generated as part of Alluxio build and accessible through
 
 There are performance implications of using the HTTP proxy. In particular, using the proxy requires
 an extra hop. For optimal performance, it is recommended to run the proxy server and an Alluxio
-worker on each compute node.
+worker on each compute node. It is also recommended to put all the proxy servers behind a load balancer.
 
 # Features support
 The following table describes the support status for current Amazon S3 functional features:
@@ -32,11 +32,11 @@ The following table describes the support status for current Amazon S3 functiona
 
 # Language support
 Alluxio S3 client supports various programming languages, such as C++, Java, Python, Golang, Ruby and etc.
-In this documentation, we use curl Rest calls and python S3 client as usage examples.
+In this documentation, we use curl REST calls and python S3 client as usage examples.
 
 # Example Usage
 
-## Rest API
+## REST API
 For example, you can run the following RESTFul API calls to an Alluxio cluster running on localhost.
 The Alluxio proxy is listening at port 39999 by default.
 
