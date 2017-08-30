@@ -43,7 +43,9 @@ You need to configure Alluxio to use S3 as its under storage system by modifying
 bucket and directory as the under storage system. You specify it by modifying
 `conf/alluxio-site.properties` to include:
 
-{% include Configuring-Alluxio-with-S3/underfs-address-s3a.md %}
+```
+alluxio.underfs.address=s3a://S3_BUCKET/S3_DIRECTORY
+```
 
 Next, you need to specify the AWS credentials for S3 access.
 
@@ -81,7 +83,9 @@ be transferred in decrypted form when read by clients.
 
 Enable this feature by configuring `conf/alluxio-site.properties`:
 
-{% include Configuring-Alluxio-with-S3/server-side-encryption-conf.md %}
+```
+alluxio.underfs.s3a.server.side.encryption.enabled=true
+```
 
 ### DNS-Buckets
 
@@ -89,13 +93,19 @@ By default, a request directed at the bucket named "mybucket" will be sent to th
 "mybucket.s3.amazonaws.com". You can enable DNS-Buckets to use path style data access, for example:
 "http://s3.amazonaws.com/mybucket" by setting the following configuration:
 
-{% include Configuring-Alluxio-with-S3/jets3t.md %}
+```
+alluxio.underfs.s3.disable.dns.buckets=true
+```
 
 ### Accessing S3 through a proxy
 
 To communicate with S3 through a proxy, modify `conf/alluxio-site.properties` to include:
 
-{% include Configuring-Alluxio-with-S3/proxy.md %}
+```properties
+alluxio.underfs.s3.proxy.host=<PROXY_HOST>
+alluxio.underfs.s3.proxy.port=<PROXY_PORT>
+alluxio.underfs.s3.proxy.https.only=<USE_HTTPS?>
+```
 
 Here, `<PROXY_HOST>` and `<PROXY_PORT>` should be replaced the host and port for your proxy, and
 `<USE_HTTPS?>` should be set to either `true` or `false`, depending on whether https should be
@@ -109,7 +119,20 @@ the `alluxio-core-client-hdfs` module to use the
 [Hadoop file system interface](https://wiki.apache.org/hadoop/HCFS). For example, if you
 are using [maven](https://maven.apache.org/), you can add the dependency to your application with:
 
-{% include Configuring-Alluxio-with-S3/dependency.md %}
+```xml
+<!-- Alluxio file system interface -->
+<dependency>
+  <groupId>org.alluxio</groupId>
+  <artifactId>alluxio-core-client-fs</artifactId>
+  <version>{{site.ALLUXIO_RELEASED_VERSION}}</version>
+</dependency>
+<!-- HDFS file system interface -->
+<dependency>
+  <groupId>org.alluxio</groupId>
+  <artifactId>alluxio-core-client-hdfs</artifactId>
+  <version>{{site.ALLUXIO_RELEASED_VERSION}}</version>
+</dependency>
+```
 
 Alternatively, you may copy `conf/alluxio-site.properties` (having the properties setting
 credentials) to the classpath of your application runtime (e.g., `$SPARK_CLASSPATH` for Spark), or
@@ -120,7 +143,12 @@ append the path to this site properties file to the classpath.
 To use an S3 service provider other than "s3.amazonaws.com", modify `conf/alluxio-site.properties`
 to include:
 
-{% include Configuring-Alluxio-with-S3/non-amazon.md %}
+```
+alluxio.underfs.s3.endpoint=<S3_ENDPOINT>
+alluxio.underfs.s3.proxy.https.only=<USE_HTTPS>
+alluxio.underfs.s3.endpoint.http.port=<HTTP_PORT>
+alluxio.underfs.s3.endpoint.https.port=<HTTPS_PORT>
+```
 
 For these parameters, replace `<S3_ENDPOINT>` with the host name of your S3 service. Only use this
 parameter if you are using a provider other than `s3.amazonaws.com`.
@@ -141,23 +169,32 @@ the v2 signatures by setting the `alluxio.underfs.s3a.signer.algorithm` to `S3Si
 
 After everything is configured, you can start up Alluxio locally to see that everything works.
 
-{% include Common-Commands/start-alluxio.md %}
+```bash
+$ ./bin/alluxio format
+$ ./bin/alluxio-start.sh local
+```
 
 This should start an Alluxio master and an Alluxio worker. You can see the master UI at
 [http://localhost:19999](http://localhost:19999).
 
 Next, you can run a simple example program:
 
-{% include Common-Commands/runTests.md %}
+```bash
+$ ./bin/alluxio runTests
+```
 
 After this succeeds, you can visit your S3 directory `S3_BUCKET/S3_DIRECTORY` to verify the files
 and directories created by Alluxio exist. For this test, you should see files named like:
 
-{% include Configuring-Alluxio-with-S3/s3-file.md %}
+```
+S3_BUCKET/S3_DIRECTORY/alluxio/data/default_tests_files/Basic_CACHE_THROUGH
+```
 
 To stop Alluxio, you can run:
 
-{% include Common-Commands/stop-alluxio.md %}
+```bash
+$ ./bin/alluxio-stop.sh local
+```
 
 ## S3 Access Control
 
