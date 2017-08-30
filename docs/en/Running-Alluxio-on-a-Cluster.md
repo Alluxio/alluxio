@@ -25,7 +25,7 @@ $ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 ```
 
 Update `alluxio.master.hostname` in `conf/alluxio-site.properties` to the hostname of the machine
-you plan to run Alluxio Master on. Add the IP address or hostname of all the worker nodes to the
+you plan to run Alluxio Master on. Add the IP addresses or hostnames of all the worker nodes to the
 `conf/workers` file. You cannot use local file system as Alluxio's under storage system if there
 are multiple nodes in the cluster. Instead you need to set up a shared storage to which all Alluxio servers
 have access. The shared storage can be network file system (NFS), HDFS, S3, and so on. For example,
