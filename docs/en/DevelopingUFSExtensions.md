@@ -25,8 +25,8 @@ to new under storage systems. Alluxio servers use Java
 [ServiceLoader](https://docs.oracle.com/javase/7/docs/api/java/util/ServiceLoader.html) to discover
 implementations of the under storage API. Specifically providers include implementations of the
 `alluxio.underfs.UnderFileSystemFactory` interface. The implementation is advertised by including a
-text file `src/main/resources/META_INF/services/alluxio.underfs.UnderFileSystemFactory` with a
-single line pointing to the class implementing the said interface.
+text file in `META_INF/services` with a single line pointing to the class implementing the said
+interface.
 
 ## Dependency Management
 
@@ -39,23 +39,74 @@ classpath, the ServiceLoader in Alluxio uses a custom (per-extension)
 
 Building a new under storage connector involves: 
 
-- Implementing the required under storage interface and declaring the service implementation
-- Bundling up the implementation and dependencies in an uber JAR
+- Implementing the required under storage interface
+- Declaring the service implementation
+- Bundling up the implementation and transitive dependencies in an uber JAR
 
 A reference implementation can be found in the [alluxio-extensions](https://github.com/Alluxio
-/alluxio-extensions/tree/master/underfs/s3n) repository.
+/alluxio-extensions/tree/master/underfs/template) repository. In the rest of this section we
+describe the steps involved in writing a new under storage extension. The sample project, called
+`DummyUnderFileSystem`, uses maven as the build and dependency management tool, and forwards all
+operations to a local filesystem.
 
 ## Implement the Under Storage Interface
 
 Refer to [integrating under storage systems](Integrating-Under-Storage-Systems.html) for
-instructions for developing and testing an under storage module.
+additional instructions for developing and testing an under storage module.
+
+Step 1: Implement the interface `UnderFileSystem`
+
+The `UnderFileSystem` interface is defined in the module `org.alluxio:alluxio-core-common`. Choose
+to extend either `BaseUnderFileSystem` or `ObjectUnderFileSystem` to implement the `UnderFileSystem`
+interface. `ObjectUnderFileSystem` is suitable for connecting to object storage and abstracts away
+mapping file system operations to an object store.
+
+```java
+public class DummyUnderFileSystem extends BaseUnderFileSystem {
+	// Implement filesystem operations
+	...
+}
+```
+
+or,
+
+```java
+public class DummyUnderFileSystem extends ObjectUnderFileSystem {
+	// Implement object store operations 
+	...
+}
+```
+
+Step 2: Implement the interface `UnderFileSystemFactory`
+
+The under storage factory determines when an interface of the implemented `UnderFileSystem` is
+instantiated.
+
+```java
+public class DummyUnderFileSystemFactory implements UnderFileSystemFactory {
+	...
+	public boolean supportsPath(String path) {
+		// Choose which schemes to support, e.g., dummy://
+	}
+}
+```
+
+## Declare the Service
+
+Create a file at `src/main/resources/META_INF/services/alluxio.underfs.UnderFileSystemFactory`
+advertising the implemented `UnderFileSystemFactory` to the ServiceLoader.
+
+```
+alluxio.underfs.dummy.DummyUnderFileSystemFactory
+```
 
 ## Build
 
-Include all transitive dependencies of the extension project in the built JAR. In addition, to
-avoid collisions specify scope for the dependency `alluxio-core-common` as `provided`. 
+Include all transitive dependencies of the extension project in the built JAR. Either `maven-shade-
+plugin` or `maven-assembly` can be used.
 
-For example, the maven definition would look like:
+In addition, to avoid collisions specify scope for the dependency `alluxio-core-common` as
+`provided`. The maven definition would look like:
 
 ```xml
 <dependencies>
@@ -67,4 +118,16 @@ For example, the maven definition would look like:
     </dependency>
     ...
 </dependencies>
+```
+
+## Test
+
+Extend `AbstractUnderFileSystemContractTest` to test the `UnderFileSystem` implements the contract
+between Alluxio and an under storage module correctly. Look at the reference implemenation for
+including parameters such as the working directory for the test.
+
+```java
+public final class DummyUnderFileSystemContractTest extends AbstractUnderFileSystemContractTest {
+    ...
+}
 ```
