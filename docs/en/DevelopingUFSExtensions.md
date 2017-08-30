@@ -123,11 +123,14 @@ In addition, to avoid collisions specify scope for the dependency `alluxio-core-
 ## Test
 
 Extend `AbstractUnderFileSystemContractTest` to test that the defined `UnderFileSystem` adheres to
-the contract between Alluxio and an under storage module. Look at the reference implemenation to
+the contract between Alluxio and an under storage module. Look at the reference implementation to
 include parameters such as the working directory for the test.
 
-```java public final class DummyUnderFileSystemContractTest extends
-AbstractUnderFileSystemContractTest {     ... } `` pointing to your module`
+```java 
+public final class DummyUnderFileSystemContractTest extends AbstractUnderFileSystemContractTest {
+    ...
+} 
+```
 
 Congratulations!. You have developed a new under storage extension to Alluxio. Let the community
 know by editing the list of extensions section on the [documentation page](UFSExtensions.html) by
