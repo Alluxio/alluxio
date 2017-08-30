@@ -10,7 +10,7 @@ priority: 0
 {:toc}
 
 This guide describes the instructions to configure [Amazon S3](https://aws.amazon.com/s3/) as Alluxio's
-under storage system. Alluxio recognizes the s3a:// scheme and uses the aws-sdk to access s3.
+under storage system. Alluxio recognizes the s3a:// scheme and uses the aws-sdk to access S3.
 
 ## Initial Setup
 
@@ -78,7 +78,7 @@ $ ./bin/alluxio fs mount --option aws.accessKeyId=<AWS_ACCESS_KEY_ID> --option a
 
 ### Enabling Server Side Encryption
 
-You may encrypt your data stored in S3. The encryption is only valid for data at rest in s3 and will
+You may encrypt your data stored in S3. The encryption is only valid for data at rest in S3 and will
 be transferred in decrypted form when read by clients.
 
 Enable this feature by configuring `conf/alluxio-site.properties`:
