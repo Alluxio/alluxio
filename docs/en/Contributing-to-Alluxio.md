@@ -84,11 +84,6 @@ use HDFS 2.4.0 as the under filesystem for the HDFS module tests.
 -   To run tests against specific under filesystems, execute the maven command from the desired
 submodule directory. For example, to run tests for HDFS you would run ``mvn test`` from ``alluxio/underfs/hdfs``.
 
--   For a GlusterFS environment, GlusterFS unit tests can be run from ``alluxio/underfs/glusterfs`` with:
-`mvn -PglusterfsTest -Dhadoop.version=2.3.0 -Dalluxio.underfs.glusterfs.mounts=/vol
--Dalluxio.underfs.glusterfs.volumes=testvol test` (use GlusterFS as under filesystem,
-where `/vol` is a valid GlusterFS mount point)
-
 -   Run a single unit test: `mvn -Dtest=AlluxioFSTest#createFileTest -DfailIfNoTests=false test`
 
 -   To quickly test the working of some APIs in an interactive manner, you may

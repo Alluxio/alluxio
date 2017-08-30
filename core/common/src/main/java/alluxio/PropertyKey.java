@@ -273,23 +273,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "https://console.cloud.google.com/storage/settings . Please use the "
               + "\"Owners\" one.")
           .build();
-  public static final PropertyKey UNDERFS_GLUSTERFS_IMPL =
-      new Builder(Name.UNDERFS_GLUSTERFS_IMPL)
-          .setDefaultValue("org.apache.hadoop.fs.glusterfs.GlusterFileSystem")
-          .setDescription("Glusterfs hook with hadoop.")
-          .build();
-  public static final PropertyKey UNDERFS_GLUSTERFS_MOUNTS =
-      new Builder(Name.UNDERFS_GLUSTERFS_MOUNTS)
-          .build();
-  public static final PropertyKey UNDERFS_GLUSTERFS_MR_DIR =
-      new Builder(Name.UNDERFS_GLUSTERFS_MR_DIR)
-          .setDefaultValue("glusterfs:///mapred/system")
-          .setDescription("Optionally, specify subdirectory under GlusterFS for intermediary "
-              + "MapReduce data.")
-          .build();
-  public static final PropertyKey UNDERFS_GLUSTERFS_VOLUMES =
-      new Builder(Name.UNDERFS_GLUSTERFS_VOLUMES)
-          .build();
   public static final PropertyKey UNDERFS_HDFS_CONFIGURATION =
       new Builder(Name.UNDERFS_HDFS_CONFIGURATION)
           .setDefaultValue(String.format(
@@ -1873,11 +1856,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String UNDERFS_LISTING_LENGTH = "alluxio.underfs.listing.length";
     public static final String UNDERFS_GCS_OWNER_ID_TO_USERNAME_MAPPING =
         "alluxio.underfs.gcs.owner.id.to.username.mapping";
-    public static final String UNDERFS_GLUSTERFS_IMPL = "alluxio.underfs.glusterfs.impl";
-    public static final String UNDERFS_GLUSTERFS_MOUNTS = "alluxio.underfs.glusterfs.mounts";
-    public static final String UNDERFS_GLUSTERFS_MR_DIR =
-        "alluxio.underfs.glusterfs.mapred.system.dir";
-    public static final String UNDERFS_GLUSTERFS_VOLUMES = "alluxio.underfs.glusterfs.volumes";
     public static final String UNDERFS_HDFS_CONFIGURATION = "alluxio.underfs.hdfs.configuration";
     public static final String UNDERFS_HDFS_IMPL = "alluxio.underfs.hdfs.impl";
     public static final String UNDERFS_HDFS_PREFIXES = "alluxio.underfs.hdfs.prefixes";
