@@ -69,7 +69,7 @@ Maven构建环境将自动获取依赖，编译源码，运行单元测试，并
 $ mvn install -P<HADOOP_PROFILE> -DskipTests
 ```
 
-对于不同的Hadoop发行版，可用的Hadoop配置文件包括`hadoop-1`, `hadoop-2.2`, `hadoop-2.3` ... `hadoop-2.8`。通过查看[this section](#distro-support)，你可以进一步设置特定的Hadoop发行版来编译。
+对于不同的Hadoop发行版，可用的Hadoop配置文件包括`hadoop-1`, `hadoop-2.2`, `hadoop-2.3` ... `hadoop-2.8`。通过查看[这节](#发行版支持)，你可以进一步设置特定的Hadoop发行版来编译。
 
 
 
