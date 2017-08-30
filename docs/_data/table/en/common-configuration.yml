@@ -180,10 +180,6 @@ fs.oss.accessKeySecret:
   'N/A'
 fs.oss.endpoint:
   'N/A'
-fs.s3n.awsAccessKeyId:
-  'N/A'
-fs.s3n.awsSecretAccessKey:
-  'N/A'
 fs.swift.apikey:
   'N/A'
 fs.swift.auth.method:
