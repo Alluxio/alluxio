@@ -217,13 +217,10 @@ function main {
           # if ufs is local filesystem and already exists
           exit 0
         else
-          declare -a schemes=(hdfs s3a swift oss gcs)
-          for scheme in ${schemes[@]}; do
-            if [[ ${ALLUXIO_UNDERFS_ADDRESS} == ${scheme}://* ]]; then
-              # if ufs is not local filesystem, don't format
-              exit 0
-            fi
-          done
+          if [ ! -z ${ALLUXIO_UNDERFS_ADDRESS} ] && [[ ${ALLUXIO_UNDERFS_ADDRESS} != /* ]] && [[ ${ALLUXIO_UNDERFS_ADDRESS} != file://* ]]; then
+            # if ufs is not local filesystem, don't format
+            exit 0
+          fi
 
           shift # remove -s param
         fi
