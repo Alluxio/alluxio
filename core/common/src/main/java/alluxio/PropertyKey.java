@@ -694,8 +694,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       .setDescription("Kerberos principal for Alluxio master.")
       .build();
   /**
-   * @deprecated since version 1.4 and will be removed in version 2.0,
-   * use USER_RPC_RETRY_MAX_NUM_RETRY instead.
+   * @deprecated since version 1.4 and will be removed in version 2.0.
    */
   @Deprecated
   public static final PropertyKey MASTER_RETRY =
@@ -958,7 +957,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue("1GB")
           .setDescription("Memory capacity of each worker node.")
           .build();
-  @Deprecated
   public static final PropertyKey WORKER_NETWORK_NETTY_BACKLOG =
       new Builder(Name.WORKER_NETWORK_NETTY_BACKLOG)
           .setDescription("Netty socket option for SO_BACKLOG: the number of connections queued.")
@@ -968,19 +966,16 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue(1)
           .setDescription("How many threads to use for accepting new requests.")
           .build();
-  @Deprecated
   public static final PropertyKey WORKER_NETWORK_NETTY_BUFFER_RECEIVE =
       new Builder(Name.WORKER_NETWORK_NETTY_BUFFER_RECEIVE)
           .setDescription("Netty socket option for SO_RCVBUF: the proposed buffer size that will "
               + "be used for receives")
           .build();
-  @Deprecated
   public static final PropertyKey WORKER_NETWORK_NETTY_BUFFER_SEND =
       new Builder(Name.WORKER_NETWORK_NETTY_BUFFER_SEND)
           .setDescription("Netty socket option for SO_SNDBUF: the proposed buffer size that will "
               + "be used for sends")
           .build();
-  @Deprecated
   public static final PropertyKey WORKER_NETWORK_NETTY_CHANNEL =
       new Builder(Name.WORKER_NETWORK_NETTY_CHANNEL)
           .setDescription("Netty channel type: NIO or EPOLL")
@@ -1624,6 +1619,9 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "Alluxio worker. Each read request will fetch at least this many bytes, "
               + "unless the read reaches the end of the file.")
           .build();
+  /**
+   * @deprecated It will be removed in 2.0.0.
+   */
   @Deprecated
   public static final PropertyKey USER_UFS_DELEGATION_WRITE_BUFFER_SIZE_BYTES =
       new Builder(Name.USER_UFS_DELEGATION_WRITE_BUFFER_SIZE_BYTES)
@@ -1846,7 +1844,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey INTEGRATION_MESOS_USER =
       new Builder(Name.INTEGRATION_MESOS_USER)
-          .setDefaultValue("The Mesos user for the Alluxio Mesos Framework")
+          .setDescription("The Mesos user for the Alluxio Mesos Framework")
           .build();
   public static final PropertyKey INTEGRATION_WORKER_RESOURCE_CPU =
       new Builder(Name.INTEGRATION_WORKER_RESOURCE_CPU)
