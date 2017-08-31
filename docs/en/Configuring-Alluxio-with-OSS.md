@@ -97,7 +97,7 @@ $ bin/alluxio runTests
 
 After this succeeds, you can visit your OSS directory OSS_BUCKET/OSS_DIRECTORY to verify the files
 and directories created by Alluxio exist. For this test, you should see files named like
-`BUCKET/DIRECTORY/default_tests_files/BasicFile_CACHE_PROMOTE_MUST_CACHE`.
+`OSS_BUCKET/OSS_DIRECTORY/default_tests_files/BasicFile_CACHE_PROMOTE_MUST_CACHE`.
 
 To stop Alluxio, you can run:
 
