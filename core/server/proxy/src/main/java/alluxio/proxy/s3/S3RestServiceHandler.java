@@ -487,18 +487,18 @@ public final class S3RestServiceHandler {
 
   private void abortMultipartUpload(String bucket, String object, long uploadId)
       throws S3Exception {
-      String bucketPath = parseBucketPath(AlluxioURI.SEPARATOR + bucket);
-      checkBucketIsAlluxioDirectory(bucketPath);
-      String objectPath = bucketPath + AlluxioURI.SEPARATOR + object;
-      AlluxioURI multipartTemporaryDir =
-          new AlluxioURI(S3RestUtils.getMultipartTemporaryDirForObject(bucket, object));
-      checkUploadId(multipartTemporaryDir, uploadId);
+    String bucketPath = parseBucketPath(AlluxioURI.SEPARATOR + bucket);
+    checkBucketIsAlluxioDirectory(bucketPath);
+    String objectPath = bucketPath + AlluxioURI.SEPARATOR + object;
+    AlluxioURI multipartTemporaryDir =
+        new AlluxioURI(S3RestUtils.getMultipartTemporaryDirForObject(bucket, object));
+    checkUploadId(multipartTemporaryDir, uploadId);
 
-      try {
-        mFileSystem.delete(multipartTemporaryDir, DeleteOptions.defaults().setRecursive(true));
-      } catch (Exception e) {
-        throw toObjectS3Exception(e, objectPath);
-      }
+    try {
+      mFileSystem.delete(multipartTemporaryDir, DeleteOptions.defaults().setRecursive(true));
+    } catch (Exception e) {
+      throw toObjectS3Exception(e, objectPath);
+    }
   }
 
   private void deleteObject(String bucket, String object) throws S3Exception {
