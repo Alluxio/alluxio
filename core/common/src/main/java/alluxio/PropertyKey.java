@@ -1266,7 +1266,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Name.PROXY_STREAM_CACHE_TIMEOUT_MS)
           .setAlias(new String[]{"alluxio.proxy.stream.cache.timeout.ms"})
           .setDefaultValue("1hour")
-          .setDescription("Timeout of Alluxio proxy stream cache.")
+          .setDescription("The timeout for the input and output streams cache eviction in the "
+              + "proxy..")
           .build();
   public static final PropertyKey PROXY_WEB_BIND_HOST =
       new Builder(Name.PROXY_WEB_BIND_HOST)
@@ -1682,37 +1683,36 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   //
   // FUSE integration related properties
   //
-  /** Maximum number of Alluxio paths to cache for fuse conversion. */
   public static final PropertyKey FUSE_CACHED_PATHS_MAX =
       new Builder(Name.FUSE_CACHED_PATHS_MAX)
           .setDefaultValue(500)
+          .setDescription("Maximum number of Alluxio paths to cache for FUSE conversion")
           .build();
-  /** Have the fuse process log every FS request. */
   public static final PropertyKey FUSE_DEBUG_ENABLED =
       new Builder(Name.FUSE_DEBUG_ENABLED)
           .setDefaultValue(false)
+          .setDescription("Run FUSE in debug mode, and have the fuse process log every FS request.")
           .build();
-
-  /** FUSE file system name. */
   public static final PropertyKey FUSE_FS_NAME =
       new Builder(Name.FUSE_FS_NAME)
           .setDefaultValue("alluxio-fuse")
+          .setDescription("The FUSE file system name")
           .build();
   public static final PropertyKey FUSE_FS_ROOT =
       new Builder(Name.FUSE_FS_ROOT)
           .setDefaultValue("/")
+          .setDescription("The Alluxio path mounted to the FUSE file system root")
           .build();
-  /**
-   * Passed to fuse-mount, maximum granularity of write operations:
-   * Capped by the kernel to 128KB max (as of Linux 3.16.0),.
-   */
   public static final PropertyKey FUSE_MAXWRITE_BYTES =
       new Builder(Name.FUSE_MAXWRITE_BYTES)
           .setDefaultValue(131072)
+          .setDescription("Maximum granularity of write operations, capped by the kernel to 128KB "
+              + "max (as of Linux 3.16.0)")
           .build();
   public static final PropertyKey FUSE_MOUNT_DEFAULT =
       new Builder(Name.FUSE_MOUNT_DEFAULT)
           .setDefaultValue("/mnt/alluxio")
+          .setDescription("Mount path in the local file system for the FUSE ")
           .build();
 
   //
