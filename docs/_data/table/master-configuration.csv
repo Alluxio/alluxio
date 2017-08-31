@@ -1,4 +1,6 @@
 propertyName,defaultValue
+alluxio.master.audit.logging.enabled,false
+alluxio.master.audit.logging.queue.capacity,10000
 alluxio.master.bind.host,0.0.0.0
 alluxio.master.connection.timeout,0ms
 alluxio.master.file.async.persist.handler,alluxio.master.file.async.DefaultAsyncPersistHandler
