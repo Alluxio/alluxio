@@ -351,12 +351,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "For example, s3.cn-north-1.amazonaws.com.cn is an entry point for the Amazon "
               + "S3 service in beijing region.")
           .build();
-  public static final PropertyKey UNDERFS_S3_ENDPOINT_HTTP_PORT =
-      new Builder(Name.UNDERFS_S3_ENDPOINT_HTTP_PORT)
-          .build();
-  public static final PropertyKey UNDERFS_S3_ENDPOINT_HTTPS_PORT =
-      new Builder(Name.UNDERFS_S3_ENDPOINT_HTTPS_PORT)
-          .build();
   public static final PropertyKey UNDERFS_S3_OWNER_ID_TO_USERNAME_MAPPING =
       new Builder(Name.UNDERFS_S3_OWNER_ID_TO_USERNAME_MAPPING)
           .setDefaultValue("")
@@ -466,8 +460,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey OSS_SECRET_KEY = new Builder(Name.OSS_SECRET_KEY).build();
   public static final PropertyKey S3A_ACCESS_KEY = new Builder(Name.S3A_ACCESS_KEY).build();
   public static final PropertyKey S3A_SECRET_KEY = new Builder(Name.S3A_SECRET_KEY).build();
-  public static final PropertyKey S3N_ACCESS_KEY = new Builder(Name.S3N_ACCESS_KEY).build();
-  public static final PropertyKey S3N_SECRET_KEY = new Builder(Name.S3N_SECRET_KEY).build();
   public static final PropertyKey SWIFT_API_KEY = new Builder(Name.SWIFT_API_KEY).build();
   public static final PropertyKey SWIFT_AUTH_METHOD_KEY =
       new Builder(Name.SWIFT_AUTH_METHOD_KEY).build();
@@ -1891,10 +1883,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String UNDERFS_S3_DISABLE_DNS_BUCKETS =
         "alluxio.underfs.s3.disable.dns.buckets";
     public static final String UNDERFS_S3_ENDPOINT = "alluxio.underfs.s3.endpoint";
-    public static final String UNDERFS_S3_ENDPOINT_HTTPS_PORT =
-        "alluxio.underfs.s3.endpoint.https.port";
-    public static final String UNDERFS_S3_ENDPOINT_HTTP_PORT =
-        "alluxio.underfs.s3.endpoint.http.port";
     public static final String UNDERFS_S3_OWNER_ID_TO_USERNAME_MAPPING =
         "alluxio.underfs.s3.owner.id.to.username.mapping";
     public static final String UNDERFS_S3_PROXY_HOST = "alluxio.underfs.s3.proxy.host";
@@ -1914,8 +1902,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String OSS_SECRET_KEY = "fs.oss.accessKeySecret";
     public static final String S3A_ACCESS_KEY = "aws.accessKeyId";
     public static final String S3A_SECRET_KEY = "aws.secretKey";
-    public static final String S3N_ACCESS_KEY = "fs.s3n.awsAccessKeyId";
-    public static final String S3N_SECRET_KEY = "fs.s3n.awsSecretAccessKey";
     public static final String SWIFT_API_KEY = "fs.swift.apikey";
     public static final String SWIFT_AUTH_METHOD_KEY = "fs.swift.auth.method";
     public static final String SWIFT_AUTH_URL_KEY = "fs.swift.auth.url";
