@@ -48,8 +48,9 @@ the directory usually ends with `etc/hadoop`.)
 ### Generate and Distribute the Alluxio Client Jar
 
 In order to communicate with Alluxio, we need to provide Flink programs with the Alluxio Core Client
-jar.
-Generate the Flink compatible client jar by building the entire project from the top level `alluxio`
+jar. If you are using Alluxio binary, then compilation is unnecessary and the jar is available at
+`{{site.ALLUXIO_CLIENT_JAR_PATH}}`. If you want to build from Alluxio source code, then you need to
+generate the Flink compatible client jar by building the entire project from the top level `alluxio`
 directory:
 
 {% include Running-Flink-on-Alluxio/flink-profile-build.md %}
@@ -67,7 +68,7 @@ available on all cluster nodes as well). For example like this:
 
 {% include Running-Flink-on-Alluxio/hadoop-classpath.md %}
 
-Alternatively, advanced users can choose to compile this client jar from the source code. Follow the instructs [here](Building-Alluxio-Master-Branch.html#compute-framework-support) and use the generated jar at `{{site.ALLUXIO_CLIENT_JAR_PATH_BUILD}}` for the rest of this guide.
+Alternatively, advanced users can choose to compile this client jar from the source code. Follow the instructs [here](Building-Alluxio-Master-Branch.html#compute-framework-support) and use the generated jar at `{{site.ALLUXIO_CLIENT_JAR_PATH}}` for the rest of this guide.
 
 ### Translate additional Alluxio site properties to Flink
 
