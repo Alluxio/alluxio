@@ -74,9 +74,12 @@ Alternatively, advanced users can choose to compile this client jar from the sou
 
 ### Translate additional Alluxio site properties to Flink
 
-In addition, if there are any properties specified in `conf/alluxio-site.properties`,
+In addition, if there are any client-related properties specified in `conf/alluxio-site.properties`,
 translate those to `env.java.opts` in `{FLINK_HOME}/conf/flink-conf.yaml` for Flink to pick up
-Alluxio configuration.
+Alluxio configuration. For example, if you want to configure Alluxio client to use CACHE\_THROUGH as
+the write type, you should add the following to `{FLINK_HOME}/conf/flink-conf.yaml`.
+
+{% include Running-Flink-on-Alluxio/alluxio-client-properties.md %}
 
 ## Using Alluxio with Flink
 
