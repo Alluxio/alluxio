@@ -137,7 +137,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription(String.format(
               "Maximum allowable size of a single key-value partition "
                   + "in a store. This value should be no larger than the block size "
-                  + "(%s)", Name.USER_BLOCK_SIZE_BYTES_DEFAULT))
+                  + "(%s).", Name.USER_BLOCK_SIZE_BYTES_DEFAULT))
           .build();
   public static final PropertyKey LOGGER_TYPE =
       new Builder(Name.LOGGER_TYPE)
@@ -191,7 +191,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue(
               String.format("${%s}/,${user.home}/.alluxio/,/etc/alluxio/", Name.CONF_DIR))
           .setDescription(
-              String.format("Comma-separated search path for %s", Constants.SITE_PROPERTIES))
+              String.format("Comma-separated search path for %s.", Constants.SITE_PROPERTIES))
           .build();
   public static final PropertyKey TEST_MODE =
       new Builder(Name.TEST_MODE)
@@ -437,25 +437,25 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey UNDERFS_S3A_SECURE_HTTP_ENABLED =
       new Builder(Name.UNDERFS_S3A_SECURE_HTTP_ENABLED)
           .setDefaultValue(false)
-          .setDescription("Whether or not to use HTTPS protocol when communicating with s3.")
+          .setDescription("Whether or not to use HTTPS protocol when communicating with S3.")
           .build();
   public static final PropertyKey UNDERFS_S3A_SERVER_SIDE_ENCRYPTION_ENABLED =
       new Builder(Name.UNDERFS_S3A_SERVER_SIDE_ENCRYPTION_ENABLED)
           .setDefaultValue(false)
-          .setDescription("Whether or not to encrypt data stored in s3.")
+          .setDescription("Whether or not to encrypt data stored in S3.")
           .build();
   public static final PropertyKey UNDERFS_S3A_SIGNER_ALGORITHM =
       new Builder(Name.UNDERFS_S3A_SIGNER_ALGORITHM)
           .setDescription("The signature algorithm which should be used to sign requests to "
               + "the s3 service. This is optional, and if not set, the client will "
-              + "automatically determine it. For interacting with an s3 endpoint which only "
+              + "automatically determine it. For interacting with an S3 endpoint which only "
               + "supports v2 signatures, set this to \"S3SignerType\".")
           .build();
   public static final PropertyKey UNDERFS_S3A_SOCKET_TIMEOUT_MS =
       new Builder(Name.UNDERFS_S3A_SOCKET_TIMEOUT_MS)
           .setAlias(new String[]{"alluxio.underfs.s3a.socket.timeout.ms"})
           .setDefaultValue("50sec")
-          .setDescription("Length of the socket timeout when communicating with s3.")
+          .setDescription("Length of the socket timeout when communicating with S3.")
           .build();
 
   //
@@ -504,7 +504,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   // Journal ufs related properties
   public static final PropertyKey MASTER_JOURNAL_UFS_OPTION =
       new Builder(Template.MASTER_JOURNAL_UFS_OPTION)
-          .setDescription("The configuration to use for the journal operations").build();
+          .setDescription("The configuration to use for the journal operations.").build();
 
   //
   // Mount table related properties
@@ -516,22 +516,22 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey MASTER_MOUNT_TABLE_ROOT_OPTION =
       new Builder(Template.MASTER_MOUNT_TABLE_OPTION, "root")
-          .setDescription("Configuration for the UFS of Alluxio root mount point")
+          .setDescription("Configuration for the UFS of Alluxio root mount point.")
           .build();
   public static final PropertyKey MASTER_MOUNT_TABLE_ROOT_READONLY =
       new Builder(Template.MASTER_MOUNT_TABLE_READONLY, "root")
           .setDefaultValue(false)
-          .setDescription("Whether Alluxio root mount point is readonly")
+          .setDescription("Whether Alluxio root mount point is readonly.")
           .build();
   public static final PropertyKey MASTER_MOUNT_TABLE_ROOT_SHARED =
       new Builder(Template.MASTER_MOUNT_TABLE_SHARED, "root")
           .setDefaultValue(true)
-          .setDescription("Whether Alluxio root mount point is shared")
+          .setDescription("Whether Alluxio root mount point is shared.")
           .build();
   public static final PropertyKey MASTER_MOUNT_TABLE_ROOT_UFS =
       new Builder(Template.MASTER_MOUNT_TABLE_UFS, "root")
           .setDefaultValue(String.format("${%s}", Name.UNDERFS_ADDRESS))
-          .setDescription("The UFS mounted to Alluxio root mount point")
+          .setDescription("The UFS mounted to Alluxio root mount point.")
           .build();
 
   /**
@@ -551,7 +551,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Name.MASTER_BIND_HOST)
           .setDefaultValue("0.0.0.0")
           .setDescription("The hostname that Alluxio master binds to. See <a "
-              + "href=\"#configure-multihomed-networks\">multi-homed networks</a>")
+              + "href=\"#configure-multihomed-networks\">multi-homed networks</a>.")
           .build();
   public static final PropertyKey MASTER_CONNECTION_TIMEOUT_MS =
       new Builder(Name.MASTER_CONNECTION_TIMEOUT_MS)
@@ -575,7 +575,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Name.MASTER_HEARTBEAT_INTERVAL_MS)
           .setAlias(new String[]{"alluxio.master.heartbeat.interval.ms"})
           .setDefaultValue("1sec")
-          .setDescription("The interval between Alluxio master's heartbeats")
+          .setDescription("The interval between Alluxio masters' heartbeats.")
           .build();
   public static final PropertyKey MASTER_HOSTNAME = new Builder(Name.MASTER_HOSTNAME)
       .setDescription("The hostname of Alluxio master.")
@@ -617,7 +617,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Name.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX)
           .setDefaultValue("10MB")
           .setDescription("If a log file is bigger than this value, it will rotate to next "
-              + "file")
+              + "file.")
           .build();
   public static final PropertyKey MASTER_JOURNAL_TAILER_SHUTDOWN_QUIET_WAIT_TIME_MS =
       new Builder(Name.MASTER_JOURNAL_TAILER_SHUTDOWN_QUIET_WAIT_TIME_MS)
@@ -673,8 +673,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Name.MASTER_LINEAGE_CHECKPOINT_INTERVAL_MS)
           .setAlias(new String[]{"alluxio.master.lineage.checkpoint.interval.ms"})
           .setDefaultValue("5min")
-          .setDescription("The interval between Alluxio's checkpoint "
-              + "scheduling.")
+          .setDescription("The interval between Alluxio's checkpoint scheduling.")
           .build();
   public static final PropertyKey MASTER_LINEAGE_RECOMPUTE_INTERVAL_MS =
       new Builder(Name.MASTER_LINEAGE_RECOMPUTE_INTERVAL_MS)
@@ -682,7 +681,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue("5min")
           .setDescription("The interval between Alluxio's recompute "
               + "execution. The executor scans the all the lost files tracked by lineage, and "
-              + "re-executes the corresponding jobs. every 10 minutes.")
+              + "re-executes the corresponding jobs.")
           .build();
   public static final PropertyKey MASTER_LINEAGE_RECOMPUTE_LOG_PATH =
       new Builder(Name.MASTER_LINEAGE_RECOMPUTE_LOG_PATH)
@@ -720,22 +719,22 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey MASTER_TIERED_STORE_GLOBAL_LEVEL0_ALIAS =
       new Builder(Name.MASTER_TIERED_STORE_GLOBAL_LEVEL0_ALIAS)
           .setDefaultValue("MEM")
-          .setDescription("The name of the highest storage tier in the entire system")
+          .setDescription("The name of the highest storage tier in the entire system.")
           .build();
   public static final PropertyKey MASTER_TIERED_STORE_GLOBAL_LEVEL1_ALIAS =
       new Builder(Name.MASTER_TIERED_STORE_GLOBAL_LEVEL1_ALIAS)
           .setDefaultValue("SSD")
-          .setDescription("The name of the second highest storage tier in the entire system")
+          .setDescription("The name of the second highest storage tier in the entire system.")
           .build();
   public static final PropertyKey MASTER_TIERED_STORE_GLOBAL_LEVEL2_ALIAS =
       new Builder(Name.MASTER_TIERED_STORE_GLOBAL_LEVEL2_ALIAS)
           .setDefaultValue("HDD")
-          .setDescription("The name of the third highest storage tier in the entire system")
+          .setDescription("The name of the third highest storage tier in the entire system.")
           .build();
   public static final PropertyKey MASTER_TIERED_STORE_GLOBAL_LEVELS =
       new Builder(Name.MASTER_TIERED_STORE_GLOBAL_LEVELS)
           .setDefaultValue(3)
-          .setDescription("The total number of storage tiers in the system")
+          .setDescription("The total number of storage tiers in the system.")
           .build();
   public static final PropertyKey MASTER_TTL_CHECKER_INTERVAL_MS =
       new Builder(Name.MASTER_TTL_CHECKER_INTERVAL_MS)
@@ -765,7 +764,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Name.MASTER_WEB_BIND_HOST)
           .setDefaultValue("0.0.0.0")
           .setDescription("The hostname Alluxio master web UI binds to. See <a "
-              + "href=\"#configure-multihomed-networks\">multi-homed networks</a>")
+              + "href=\"#configure-multihomed-networks\">multi-homed networks</a>.")
           .build();
   public static final PropertyKey MASTER_WEB_HOSTNAME =
       new Builder(Name.MASTER_WEB_HOSTNAME)
@@ -820,19 +819,19 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Name.WORKER_BIND_HOST)
           .setDefaultValue("0.0.0.0")
           .setDescription("The hostname Alluxio's worker node binds to. See <a "
-              + "href=\"#configure-multihomed-networks\">multi-homed networks</a>")
+              + "href=\"#configure-multihomed-networks\">multi-homed networks</a>.")
           .build();
   public static final PropertyKey WORKER_BLOCK_HEARTBEAT_INTERVAL_MS =
       new Builder(Name.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS)
           .setAlias(new String[]{"alluxio.worker.block.heartbeat.interval.ms"})
           .setDefaultValue("1sec")
-          .setDescription("The interval between block worker's heartbeats")
+          .setDescription("The interval between block workers' heartbeats.")
           .build();
   public static final PropertyKey WORKER_BLOCK_HEARTBEAT_TIMEOUT_MS =
       new Builder(Name.WORKER_BLOCK_HEARTBEAT_TIMEOUT_MS)
           .setAlias(new String[]{"alluxio.worker.block.heartbeat.timeout.ms"})
           .setDefaultValue("5min")
-          .setDescription("The timeout value of block worker's heartbeat")
+          .setDescription("The timeout value of block workers' heartbeats.")
           .build();
   public static final PropertyKey WORKER_BLOCK_THREADS_MAX =
       new Builder(Name.WORKER_BLOCK_THREADS_MAX)
@@ -855,7 +854,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Name.WORKER_DATA_BIND_HOST)
           .setDefaultValue("0.0.0.0")
           .setDescription("The hostname that the Alluxio worker's data server runs on. See <a "
-              + "href=\"#configure-multihomed-networks\">multi-homed networks</a>")
+              + "href=\"#configure-multihomed-networks\">multi-homed networks</a>.")
           .build();
   public static final PropertyKey WORKER_DATA_FOLDER =
       new Builder(Name.WORKER_DATA_FOLDER)
@@ -1023,13 +1022,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Name.WORKER_NETWORK_NETTY_WRITER_BUFFER_SIZE_PACKETS)
           .setDefaultValue(16)
           .setDescription("The maximum number of parallel data packets when a client writes to a "
-              + "worker")
+              + "worker.")
           .build();
   public static final PropertyKey WORKER_NETWORK_NETTY_READER_BUFFER_SIZE_PACKETS =
       new Builder(Name.WORKER_NETWORK_NETTY_READER_BUFFER_SIZE_PACKETS)
           .setDefaultValue(16)
           .setDescription("The maximum number of parallel data packets when a client reads from a "
-              + "worker")
+              + "worker.")
           .build();
   public static final PropertyKey WORKER_NETWORK_NETTY_BLOCK_READER_THREADS_MAX =
       new Builder(Name.WORKER_NETWORK_NETTY_BLOCK_READER_THREADS_MAX)
@@ -1103,7 +1102,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Template.WORKER_TIERED_STORE_LEVEL_DIRS_PATH, 0)
           .setDefaultValue("/mnt/ramdisk")
           .setDescription("The path of storage directory for the top storage tier. Note "
-              + "for MacOS the value should be `/Volumes/`")
+              + "for MacOS the value should be `/Volumes/`.")
           .build();
   public static final PropertyKey WORKER_TIERED_STORE_LEVEL0_DIRS_QUOTA =
       new Builder(Template.WORKER_TIERED_STORE_LEVEL_DIRS_QUOTA, 0)
@@ -1223,7 +1222,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Name.WORKER_WEB_BIND_HOST)
           .setDefaultValue("0.0.0.0")
           .setDescription("The hostname Alluxio worker's web server binds to. See <a "
-              + "href=\"#configure-multihomed-networks\">multi-homed networks</a>")
+              + "href=\"#configure-multihomed-networks\">multi-homed networks</a>.")
           .build();
   public static final PropertyKey WORKER_WEB_HOSTNAME =
       new Builder(Name.WORKER_WEB_HOSTNAME)
