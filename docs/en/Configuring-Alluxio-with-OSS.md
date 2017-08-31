@@ -23,9 +23,9 @@ or [download the precompiled binaries directly](http://alluxio.org/documentation
 Also, in preparation for using OSS with alluxio, create a bucket or use an existing bucket. You
 should also note that the directory you want to use in that bucket, either by creating a new
 directory in the bucket, or using an existing one. For the purposes of this guide, the OSS bucket
-name is called `BUCKET`, and the directory in that bucket is called `DIRECTORY`. Also, for
+name is called `OSS_BUCKET`, and the directory in that bucket is called `OSS_DIRECTORY`. Also, for
 using the OSS Service, you should provide an OSS endpoint to specify which range your bucket is
-on. The endpoint here is called `ENDPOINT`, and to learn more about the endpoints for special
+on. The endpoint here is called `OSS_ENDPOINT`, and to learn more about the endpoints for special
 range you can see [here](https://intl.aliyun.com/help/en/doc-detail/31834.htm). For more
 information about OSS Bucket, Please see [here](https://intl.aliyun.com/help/doc-detail/31885.htm)
 
@@ -42,7 +42,7 @@ specify an existing OSS bucket and directory as the under storage system by modi
 `conf/alluxio-site.properties` to include:
 
 ```
-alluxio.underfs.address=oss://BUCKET/DIRECTORY/
+alluxio.underfs.address=oss://OSS_BUCKET/OSS_DIRECTORY/
 ```
 
 Next you need to specify the Aliyun credentials for OSS access. In `conf/alluxio-site.properties`,
@@ -74,7 +74,7 @@ For example, the following command mounts a directory inside an OSS bucket into 
 $ ./bin/alluxio fs mount --option fs.oss.accessKeyId=<OSS_ACCESS_KEY_ID> \
   --option fs.oss.accessKeySecret=<OSS_ACCESS_KEY_SECRET> \
   --option fs.oss.endpoint=<OSS_ENDPOINT> \
-  /oss oss://BUCKET/DIRECTORY/
+  /oss oss://OSS_BUCKET/OSS_DIRECTORY/
 ```
 
 ## Running Alluxio Locally with OSS
