@@ -77,7 +77,7 @@ $ docker run -d --net=host \
              -e ALLUXIO_UNDERFS_ADDRESS=/underStorage \
              alluxio master
 ```
-
+Details:
 - `-v $PWD/underStorage:/underStorage`: Share the underStorage folder with the Docker container.
 - `-e ALLUXIO_UNDERFS_ADDRESS=/underStorage`: Tell the worker to use /underStorage as the under file storage.
 
@@ -86,6 +86,7 @@ $ docker run -d --net=host \
 ```bash
 $ # This gets the public ip of the current EC2 instance
 $ export INSTANCE_PUBLIC_IP=$(curl http://169.254.169.254/latest/meta-data/public-ipv4)
+$ # Launch an Alluxio worker container and save the container ID for later
 $ ALLUXIO_WORKER_CONTAINER_ID=$(docker run -d --net=host \
              -v /mnt/ramdisk:/opt/ramdisk \
              -v $PWD/underStorage:/underStorage \
@@ -95,7 +96,7 @@ $ ALLUXIO_WORKER_CONTAINER_ID=$(docker run -d --net=host \
              -e ALLUXIO_UNDERFS_ADDRESS=/underStorage \
              alluxio worker)
 ```
-
+Details:
 - `-v /mnt/ramdisk:/opt/ramdisk`: Share the host machine's ramdisk with the Docker container.
 - `-v $PWD/underStorage:/underStorage`: Share the underStorage folder with the Docker container.
 - `-e ALLUXIO_MASTER_HOSTNAME=${INSTANCE_PUBLIC_IP}`: Tell the worker how to contact the master.
@@ -177,7 +178,7 @@ write throughput.
 
 ## Domain Socket
 
-From the host machine
+From the host machine, create a directory for the shared domain socket.
 ```bash
 $ mkdir /tmp/domain
 $ chmod a+w /tmp/domain
