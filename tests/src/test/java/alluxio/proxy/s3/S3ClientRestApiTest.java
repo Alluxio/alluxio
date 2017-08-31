@@ -29,6 +29,7 @@ import alluxio.rest.TestCaseOptions;
 import alluxio.util.CommonUtils;
 import alluxio.wire.FileInfo;
 
+import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.google.common.io.BaseEncoding;
 import org.apache.commons.io.IOUtils;
 import org.junit.Assert;
@@ -675,6 +676,26 @@ public final class S3ClientRestApiTest extends RestApiTest {
     Assert.fail("delete non-existing object should fail");
   }
 
+  @Test
+  public void initiateMultipartUpload() throws Exception {
+    final String bucketName = "bucket";
+    createBucketRestCall(bucketName);
+
+    final String objectName = "object";
+    String objectKey = bucketName + AlluxioURI.SEPARATOR + objectName;
+    String result = initiateMultipartUploadRestCall(objectKey);
+
+    String multipartTempDir = S3RestUtils.getMultipartTemporaryDirForObject(objectKey);
+    URIStatus status = mFileSystem.getStatus(new AlluxioURI(multipartTempDir));
+    long tempDirId = status.getFileId();
+    InitiateMultipartUploadResult expected =
+        new InitiateMultipartUploadResult(bucketName, objectName, Long.toString(tempDirId));
+    XmlMapper xmlMapper = new XmlMapper();
+    String expectedResult = xmlMapper.writeValueAsString(expected);
+
+    Assert.assertEquals(expectedResult, result);
+  }
+
   private void createBucketRestCall(String bucketName) throws Exception {
     String uri = S3_SERVICE_PREFIX + AlluxioURI.SEPARATOR + bucketName;
     new TestCase(mHostname, mPort, uri, NO_PARAMS, HttpMethod.PUT, null,
@@ -700,6 +721,14 @@ public final class S3ClientRestApiTest extends RestApiTest {
     options.setInputStream(new ByteArrayInputStream(objectContent));
     new TestCase(mHostname, mPort, uri, NO_PARAMS, HttpMethod.PUT, null, options)
         .run();
+  }
+
+  private String initiateMultipartUploadRestCall(String objectKey) throws Exception {
+    String uri = S3_SERVICE_PREFIX + AlluxioURI.SEPARATOR + objectKey;
+    Map<String, String> params = new HashMap<>();
+    params.put(S3RestServiceHandler.INITIATE_MULTIPART_UPLOAD_QUERY_PARAM, "");
+    return new TestCase(mHostname, mPort, uri, params, HttpMethod.POST, null,
+        TestCaseOptions.defaults()).call();
   }
 
   private HttpURLConnection getObjectMetadataRestCall(String objectKey) throws Exception {

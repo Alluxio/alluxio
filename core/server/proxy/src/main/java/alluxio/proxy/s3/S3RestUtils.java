@@ -11,6 +11,9 @@
 
 package alluxio.proxy.s3;
 
+import alluxio.AlluxioURI;
+import alluxio.Configuration;
+import alluxio.PropertyKey;
 import alluxio.security.LoginUser;
 import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.util.SecurityUtils;
@@ -128,6 +131,16 @@ public final class S3RestUtils {
       return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
           .entity("Failed to encode XML: " + e2.getMessage()).build();
     }
+  }
+
+  /**
+   * @param objectKey object key (not starting with /)
+   * @return the temporary directory used to hold parts of the object during multipart uploads
+   */
+  public static String getMultipartTemporaryDirForObject(String objectKey) {
+    String multipartTemporaryDirSuffix =
+        Configuration.get(PropertyKey.PROXY_S3_MULTIPART_TEMPORARY_DIR_SUFFIX);
+    return AlluxioURI.SEPARATOR + objectKey + multipartTemporaryDirSuffix;
   }
 
   private S3RestUtils() {} // prevent instantiation
