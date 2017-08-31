@@ -61,6 +61,8 @@ public class ConfigurationDocGeneratorTest {
   @Parameters
   public static Collection<Object[]> data() {
     return Arrays.asList(new Object[][]{
+        {TYPE.CSV, new Pair<>(PropertyKey.HOME,
+            "common-configuration.csv")},
         {TYPE.CSV, new Pair<>(PropertyKey.USER_LOCAL_READER_PACKET_SIZE_BYTES,
             "user-configuration.csv")},
         {TYPE.CSV, new Pair<>(PropertyKey.MASTER_CONNECTION_TIMEOUT_MS,
@@ -72,7 +74,9 @@ public class ConfigurationDocGeneratorTest {
         {TYPE.CSV, new Pair<>(PropertyKey.KEY_VALUE_PARTITION_SIZE_BYTES_MAX,
             "key-value-configuration.csv")},
         {TYPE.CSV, new Pair<>(PropertyKey.INTEGRATION_WORKER_RESOURCE_MEM,
-            "common-configuration.csv")},
+            "cluster-management-configuration.csv")},
+        {TYPE.YML, new Pair<>(PropertyKey.HOME,
+            "common-configuration.yml")},
         {TYPE.YML, new Pair<>(PropertyKey.USER_LOCAL_READER_PACKET_SIZE_BYTES,
             "user-configuration.yml")},
         {TYPE.YML, new Pair<>(PropertyKey.MASTER_CONNECTION_TIMEOUT_MS,
@@ -84,7 +88,7 @@ public class ConfigurationDocGeneratorTest {
         {TYPE.YML, new Pair<>(PropertyKey.KEY_VALUE_PARTITION_SIZE_BYTES_MAX,
             "key-value-configuration.yml")},
         {TYPE.YML, new Pair<>(PropertyKey.INTEGRATION_WORKER_RESOURCE_MEM,
-            "common-configuration.yml")}
+            "cluster-management-configuration.yml")}
     });
   }
 
