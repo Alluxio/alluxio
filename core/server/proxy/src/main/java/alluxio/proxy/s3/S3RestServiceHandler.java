@@ -294,6 +294,8 @@ public final class S3RestServiceHandler {
   public Response initiateOrCompleteMultipartUpload(@PathParam("bucket") final String bucket,
       @PathParam("object") final String object, @QueryParam("uploads") final String uploads,
       @QueryParam("uploadId") final Long uploadId) {
+    Preconditions.checkArgument(uploads != null || uploadId != null,
+        "parameter 'uploads' or 'uploadId' should exist");
     if (uploads != null) {
       return initiateMultipartUpload(bucket, object);
     } else {
