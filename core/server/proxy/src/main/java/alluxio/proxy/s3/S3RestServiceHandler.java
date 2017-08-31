@@ -42,6 +42,8 @@ import java.security.DigestOutputStream;
 import java.security.MessageDigest;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.Queue;
@@ -235,15 +237,7 @@ public final class S3RestServiceHandler {
           // This object is part of a multipart upload, should be uploaded into the temporary
           // directory first.
           String tmpDir = S3RestUtils.getMultipartTemporaryDirForObject(bucket, object);
-          long tmpDirFileId = -1;
-          try {
-            tmpDirFileId = mFileSystem.getStatus(new AlluxioURI(tmpDir)).getFileId();
-          } catch (Exception e) {
-            throw toObjectS3Exception(e, tmpDir);
-          }
-          if (uploadId != tmpDirFileId) {
-            throw new S3Exception(objectPath, S3ErrorCode.NO_SUCH_UPLOAD);
-          }
+          checkUploadId(new AlluxioURI(tmpDir), uploadId);
           objectPath = tmpDir + AlluxioURI.SEPARATOR + Integer.toString(partNumber);
         }
         AlluxioURI objectURI = new AlluxioURI(objectPath);
@@ -283,25 +277,34 @@ public final class S3RestServiceHandler {
   }
 
   /**
-   * @summary initiates a multipart upload
+   * @summary initiates or completes a multipart upload based on query parameters
    * @param bucket the bucket name
    * @param object the object name
    * @param uploads the query parameter specifying that this request is to initiate a multipart
    *                upload instead of uploading an object through HTTP multipart forms
+   * @param uploadId the ID of the multipart upload to be completed
    * @return the response object
    */
   @POST
   @Path(OBJECT_PARAM)
-  @ReturnType("alluxio.proxy.s3.InitiateMultipartUploadResult")
-  public Response initiateMultipartUpload(@PathParam("bucket") final String bucket,
-      @PathParam("object") final String object, @QueryParam("uploads") final String uploads) {
+  @ReturnType("alluxio.proxy.s3.InitiateMultipartUploadResult,"
+      + "alluxio.proxy.s3.CompleteMultipartUploadResult")
+  // TODO(cc): investigate on how to specify multiple return types, and how to decouple the REST
+  // endpoints where the only difference is the query parameter.
+  public Response initiateOrCompleteMultipartUpload(@PathParam("bucket") final String bucket,
+      @PathParam("object") final String object, @QueryParam("uploads") final String uploads,
+      @QueryParam("uploadId") final Long uploadId) {
+    if (uploads != null) {
+      return initiateMultipartUpload(bucket, object);
+    } else {
+      return completeMultipartUpload(bucket, object, uploadId);
+    }
+  }
+
+  private Response initiateMultipartUpload(final String bucket, final String object) {
     return S3RestUtils.call(bucket, new S3RestUtils.RestCallable<InitiateMultipartUploadResult>() {
       @Override
       public InitiateMultipartUploadResult call() throws S3Exception {
-        Preconditions.checkNotNull(bucket, "required 'bucket' parameter is missing");
-        Preconditions.checkNotNull(object, "required 'object' parameter is missing");
-        Preconditions.checkNotNull(uploads, "required 'uploads' parameter is missing");
-
         String bucketPath = parseBucketPath(AlluxioURI.SEPARATOR + bucket);
         checkBucketIsAlluxioDirectory(bucketPath);
         String objectPath = bucketPath + AlluxioURI.SEPARATOR + object;
@@ -312,6 +315,65 @@ public final class S3RestServiceHandler {
           mFileSystem.createDirectory(multipartTemporaryDir);
           long uploadId = mFileSystem.getStatus(multipartTemporaryDir).getFileId();
           return new InitiateMultipartUploadResult(bucket, object, Long.toString(uploadId));
+        } catch (Exception e) {
+          throw toObjectS3Exception(e, objectPath);
+        }
+      }
+    });
+  }
+
+  // TODO(cc): support the options in the XML request body defined in
+  // http://docs.aws.amazon.com/AmazonS3/latest/API/mpUploadComplete.html, currently, the parts
+  // under the temporary multipart upload directory are combined into the final object.
+  private Response completeMultipartUpload(final String bucket, final String object,
+      final long uploadId) {
+    return S3RestUtils.call(bucket, new S3RestUtils.RestCallable<CompleteMultipartUploadResult>() {
+      @Override
+      public CompleteMultipartUploadResult call() throws S3Exception {
+        String bucketPath = parseBucketPath(AlluxioURI.SEPARATOR + bucket);
+        checkBucketIsAlluxioDirectory(bucketPath);
+        String objectPath = bucketPath + AlluxioURI.SEPARATOR + object;
+        AlluxioURI multipartTemporaryDir =
+            new AlluxioURI(S3RestUtils.getMultipartTemporaryDirForObject(bucket, object));
+        checkUploadId(multipartTemporaryDir, uploadId);
+
+        try {
+          List<URIStatus> parts = mFileSystem.listStatus(multipartTemporaryDir);
+          Collections.sort(parts, new Comparator<URIStatus>() {
+            @Override
+            public int compare(URIStatus o1, URIStatus o2) {
+              long part1 = Long.parseLong(o1.getName());
+              long part2 = Long.parseLong(o2.getName());
+              if (part1 == part2) {
+                return 0;
+              }
+              if (part1 < part2) {
+                return -1;
+              }
+              return 1;
+            }
+          });
+
+          CreateFileOptions options = CreateFileOptions.defaults().setRecursive(true)
+              .setWriteType(getS3WriteType());
+          FileOutStream os = mFileSystem.createFile(new AlluxioURI(objectPath), options);
+          MessageDigest md5 = MessageDigest.getInstance("MD5");
+          DigestOutputStream digestOutputStream = new DigestOutputStream(os, md5);
+
+          try {
+            for (URIStatus part : parts) {
+              try (FileInStream is = mFileSystem.openFile(new AlluxioURI(part.getPath()))) {
+                ByteStreams.copy(is, digestOutputStream);
+              }
+            }
+          } finally {
+            digestOutputStream.close();
+          }
+
+          mFileSystem.delete(multipartTemporaryDir, DeleteOptions.defaults().setRecursive(true));
+
+          String entityTag = Hex.encodeHexString(md5.digest());
+          return new CompleteMultipartUploadResult(objectPath, bucket, object, entityTag);
         } catch (Exception e) {
           throw toObjectS3Exception(e, objectPath);
         }
@@ -403,7 +465,7 @@ public final class S3RestServiceHandler {
   @DELETE
   @Path(OBJECT_PARAM)
   @ReturnType("java.lang.Void")
-  public Response deleteObject(@PathParam("bucket") final String bucket,
+  public Response deleteObjectOrAbortMultipartUpload(@PathParam("bucket") final String bucket,
       @PathParam("object") final String object, @QueryParam("uploadId") final Long uploadId) {
     return S3RestUtils.call(bucket, new S3RestUtils.RestCallable<Response.Status>() {
       @Override
@@ -412,27 +474,45 @@ public final class S3RestServiceHandler {
         Preconditions.checkNotNull(object, "required 'object' parameter is missing");
 
         if (uploadId != null) {
-          // Abort an incomplete multipart upload.
           abortMultipartUpload(bucket, object, uploadId);
-          // Note: the normal response for S3 abort multipart upload is 204 NO_CONTENT, not 200 OK
-          return Response.Status.NO_CONTENT;
+        } else {
+          deleteObject(bucket, object);
         }
 
-        String bucketPath = parseBucketPath(AlluxioURI.SEPARATOR + bucket);
-        // Delete the object.
-        String objectPath = bucketPath + AlluxioURI.SEPARATOR + object;
-        DeleteOptions options = DeleteOptions.defaults();
-        options.setAlluxioOnly(Configuration.get(PropertyKey.PROXY_S3_DELETE_TYPE)
-            .equals(Constants.S3_DELETE_IN_ALLUXIO_ONLY));
-        try {
-          mFileSystem.delete(new AlluxioURI(objectPath), options);
-        } catch (Exception e) {
-          throw toObjectS3Exception(e, objectPath);
-        }
         // Note: the normal response for S3 delete key is 204 NO_CONTENT, not 200 OK
         return Response.Status.NO_CONTENT;
       }
     });
+  }
+
+  private void abortMultipartUpload(String bucket, String object, long uploadId)
+      throws S3Exception {
+      String bucketPath = parseBucketPath(AlluxioURI.SEPARATOR + bucket);
+      checkBucketIsAlluxioDirectory(bucketPath);
+      String objectPath = bucketPath + AlluxioURI.SEPARATOR + object;
+      AlluxioURI multipartTemporaryDir =
+          new AlluxioURI(S3RestUtils.getMultipartTemporaryDirForObject(bucket, object));
+      checkUploadId(multipartTemporaryDir, uploadId);
+
+      try {
+        mFileSystem.delete(multipartTemporaryDir, DeleteOptions.defaults().setRecursive(true));
+      } catch (Exception e) {
+        throw toObjectS3Exception(e, objectPath);
+      }
+  }
+
+  private void deleteObject(String bucket, String object) throws S3Exception {
+    String bucketPath = parseBucketPath(AlluxioURI.SEPARATOR + bucket);
+    // Delete the object.
+    String objectPath = bucketPath + AlluxioURI.SEPARATOR + object;
+    DeleteOptions options = DeleteOptions.defaults();
+    options.setAlluxioOnly(Configuration.get(PropertyKey.PROXY_S3_DELETE_TYPE)
+        .equals(Constants.S3_DELETE_IN_ALLUXIO_ONLY));
+    try {
+      mFileSystem.delete(new AlluxioURI(objectPath), options);
+    } catch (Exception e) {
+      throw toObjectS3Exception(e, objectPath);
+    }
   }
 
   private S3Exception toBucketS3Exception(Exception exception, String resource) {
@@ -499,6 +579,20 @@ public final class S3RestServiceHandler {
     }
   }
 
+  private void checkUploadId(AlluxioURI multipartTemporaryDir, long uploadId) throws S3Exception {
+    try {
+      if (!mFileSystem.exists(multipartTemporaryDir)) {
+        throw new S3Exception(multipartTemporaryDir.getPath(), S3ErrorCode.NO_SUCH_UPLOAD);
+      }
+      long tmpDirId = mFileSystem.getStatus(multipartTemporaryDir).getFileId();
+      if (uploadId != tmpDirId) {
+        throw new S3Exception(multipartTemporaryDir.getPath(), S3ErrorCode.NO_SUCH_UPLOAD);
+      }
+    } catch (Exception e) {
+      throw toObjectS3Exception(e, multipartTemporaryDir.getPath());
+    }
+  }
+
   private List<URIStatus> listObjects(AlluxioURI uri, ListBucketOptions listBucketOptions)
       throws FileDoesNotExistException, IOException, AlluxioException {
     List<URIStatus> objects = new ArrayList<>();
@@ -534,27 +628,5 @@ public final class S3RestServiceHandler {
 
   private WriteType getS3WriteType() {
     return Configuration.getEnum(PropertyKey.PROXY_S3_WRITE_TYPE, WriteType.class);
-  }
-
-  private void abortMultipartUpload(String bucket, String object, long uploadId)
-      throws S3Exception {
-      String bucketPath = parseBucketPath(AlluxioURI.SEPARATOR + bucket);
-      checkBucketIsAlluxioDirectory(bucketPath);
-      String objectPath = bucketPath + AlluxioURI.SEPARATOR + object;
-      AlluxioURI multipartTemporaryDir =
-          new AlluxioURI(S3RestUtils.getMultipartTemporaryDirForObject(bucket, object));
-
-      try {
-        if (!mFileSystem.exists(multipartTemporaryDir)) {
-          throw new S3Exception(multipartTemporaryDir.getPath(), S3ErrorCode.NO_SUCH_UPLOAD);
-        }
-        long tmpDirId = mFileSystem.getStatus(multipartTemporaryDir).getFileId();
-        if (uploadId != tmpDirId) {
-          throw new S3Exception(multipartTemporaryDir.getPath(), S3ErrorCode.NO_SUCH_UPLOAD);
-        }
-        mFileSystem.delete(multipartTemporaryDir, DeleteOptions.defaults().setRecursive(true));
-      } catch (Exception e) {
-        throw toObjectS3Exception(e, objectPath);
-      }
   }
 }

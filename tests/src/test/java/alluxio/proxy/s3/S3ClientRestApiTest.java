@@ -31,6 +31,7 @@ import alluxio.wire.FileInfo;
 
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.google.common.io.BaseEncoding;
+import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.io.IOUtils;
 import org.junit.Assert;
 import org.junit.Before;
@@ -38,10 +39,10 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
-import java.util.ArrayList;
 import java.io.ByteArrayInputStream;
 import java.net.HttpURLConnection;
 import java.security.MessageDigest;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -220,9 +221,8 @@ public final class S3ClientRestApiTest extends RestApiTest {
     Assert.fail("delete a non-empty bucket should fail");
   }
 
-  private void putObjectTest(String bucket, String objectKey, byte[] object, Long uploadId,
+  private void createObject(String objectKey, byte[] object, Long uploadId,
       Integer partNumber) throws Exception {
-    final String fullObjectKey = bucket + AlluxioURI.SEPARATOR + objectKey;
     Map<String, String> params = new HashMap<>();
     if (uploadId != null) {
       params.put("uploadId", uploadId.toString());
@@ -230,7 +230,13 @@ public final class S3ClientRestApiTest extends RestApiTest {
     if (partNumber != null) {
       params.put("partNumber", partNumber.toString());
     }
-    createObjectRestCall(fullObjectKey, object, null, params);
+    createObjectRestCall(objectKey, object, null, params);
+  }
+
+  private void putObjectTest(String bucket, String objectKey, byte[] object, Long uploadId,
+      Integer partNumber) throws Exception {
+    final String fullObjectKey = bucket + AlluxioURI.SEPARATOR + objectKey;
+    createObject(fullObjectKey, object, uploadId, partNumber);
 
     // Verify the object is created for the new bucket.
     AlluxioURI bucketURI = new AlluxioURI(AlluxioURI.SEPARATOR + bucket);
@@ -788,7 +794,8 @@ public final class S3ClientRestApiTest extends RestApiTest {
     Assert.assertTrue(mFileSystem.getStatus(tmpDir).isFolder());
 
     final long uploadId = Long.parseLong(multipartUploadResult.getUploadId());
-    abortMultipartUploadRestCall(objectKey, uploadId);
+    HttpURLConnection connection = abortMultipartUploadRestCall(objectKey, uploadId);
+    Assert.assertEquals(Response.Status.NO_CONTENT.getStatusCode(), connection.getResponseCode());
     Assert.assertFalse(mFileSystem.exists(tmpDir));
   }
 
@@ -817,6 +824,58 @@ public final class S3ClientRestApiTest extends RestApiTest {
       return;
     }
     Assert.fail("Abort multipart upload with non-existing upload ID should fail");
+  }
+
+  @Test
+  public void completeMultipartUpload() throws Exception {
+    // Two temporary parts in the multipart upload, each part contains a random string,
+    // after completion, the object should contain the combination of the two strings.
+
+    final String bucketName = "bucket";
+    createBucketRestCall(bucketName);
+
+    final String objectName = "object";
+    String objectKey = bucketName + AlluxioURI.SEPARATOR + objectName;
+
+    // Initiate the multipart upload.
+    String result = initiateMultipartUploadRestCall(objectKey);
+    XmlMapper xmlMapper = new XmlMapper();
+    InitiateMultipartUploadResult multipartUploadResult =
+        xmlMapper.readValue(result, InitiateMultipartUploadResult.class);
+    final long uploadId = Long.parseLong(multipartUploadResult.getUploadId());
+
+    // Upload parts.
+    String object1 = CommonUtils.randomAlphaNumString(Constants.MB);
+    String object2 = CommonUtils.randomAlphaNumString(Constants.MB);
+    createObject(objectKey, object1.getBytes(), uploadId, 1);
+    createObject(objectKey, object2.getBytes(), uploadId, 2);
+
+    // Verify that the two parts are uploaded to the temporary directory.
+    AlluxioURI tmpDir = new AlluxioURI(
+        S3RestUtils.getMultipartTemporaryDirForObject(bucketName, objectName));
+    Assert.assertEquals(2, mFileSystem.listStatus(tmpDir).size());
+
+    // Complete the multipart upload.
+    result = completeMultipartUploadRestCall(objectKey, uploadId);
+
+    // Verify that the response is expected.
+    String expectedCombinedObject = object1 + object2;
+    MessageDigest md5 = MessageDigest.getInstance("MD5");
+    byte[] digest = md5.digest(expectedCombinedObject.getBytes());
+    String etag = Hex.encodeHexString(digest);
+    String objectPath = AlluxioURI.SEPARATOR + objectKey;
+    CompleteMultipartUploadResult completeMultipartUploadResult =
+        new CompleteMultipartUploadResult(objectPath, bucketName, objectName, etag);
+    Assert.assertEquals(xmlMapper.writeValueAsString(completeMultipartUploadResult), result);
+
+    // Verify that the temporary directory is deleted.
+    Assert.assertFalse(mFileSystem.exists(tmpDir));
+
+    // Verify that the completed object is expected.
+    try (FileInStream is = mFileSystem.openFile(new AlluxioURI(objectPath))) {
+      String combinedObject = IOUtils.toString(is);
+      Assert.assertEquals(expectedCombinedObject, combinedObject);
+    }
   }
 
   private void createBucketRestCall(String bucketName) throws Exception {
@@ -854,12 +913,21 @@ public final class S3ClientRestApiTest extends RestApiTest {
         TestCaseOptions.defaults()).call();
   }
 
-  private String abortMultipartUploadRestCall(String objectKey, long uploadId) throws Exception {
+  private String completeMultipartUploadRestCall(String objectKey, long uploadId) throws Exception {
+    String uri = S3_SERVICE_PREFIX + AlluxioURI.SEPARATOR + objectKey;
+    Map<String, String> params = new HashMap<>();
+    params.put("uploadId", Long.toString(uploadId));
+    return new TestCase(mHostname, mPort, uri, params, HttpMethod.POST, null,
+        TestCaseOptions.defaults()).call();
+  }
+
+  private HttpURLConnection abortMultipartUploadRestCall(String objectKey, long uploadId)
+      throws Exception {
     String uri = S3_SERVICE_PREFIX + AlluxioURI.SEPARATOR + objectKey;
     Map<String, String> params = new HashMap<>();
     params.put("uploadId", Long.toString(uploadId));
     return new TestCase(mHostname, mPort, uri, params, HttpMethod.DELETE, null,
-        TestCaseOptions.defaults()).call();
+        TestCaseOptions.defaults()).execute();
   }
 
   private HttpURLConnection getObjectMetadataRestCall(String objectKey) throws Exception {
