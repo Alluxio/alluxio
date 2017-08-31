@@ -864,7 +864,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey WORKER_DATA_HOSTNAME =
       new Builder(Name.WORKER_DATA_HOSTNAME)
-          .setDescription("The hostname of Alluxio data service").build();
+          .setDescription("The hostname of Alluxio worker data service").build();
   public static final PropertyKey WORKER_DATA_PORT =
       new Builder(Name.WORKER_DATA_PORT)
           .setDefaultValue(29999)
