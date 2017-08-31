@@ -84,7 +84,6 @@ public final class S3RestServiceHandler {
   public static final String BUCKET_PARAM = "{bucket}/";
   /* Object is after bucket in the URL path */
   public static final String OBJECT_PARAM = "{bucket}/{object:.+}";
-  public static final String INITIATE_MULTIPART_UPLOAD_QUERY_PARAM = "uploads";
 
   private final FileSystem mFileSystem;
 
@@ -167,7 +166,7 @@ public final class S3RestServiceHandler {
    */
   @GET
   @Path(BUCKET_PARAM)
-  @ReturnType("ListBucketResult")
+  @ReturnType("alluxio.proxy.s3.ListBucketResult")
   // TODO(chaomin): consider supporting more request params like prefix and delimiter.
   public Response getBucket(@PathParam("bucket") final String bucket,
       @QueryParam("continuation-token") final String continuationToken,
@@ -212,16 +211,40 @@ public final class S3RestServiceHandler {
   public Response createObject(@HeaderParam("Content-MD5") final String contentMD5,
       @PathParam("bucket") final String bucket,
       @PathParam("object") final String object,
+      @QueryParam("partNumber") final Integer partNumber,
+      @QueryParam("uploadId") final Long uploadId,
       final InputStream is) {
     return S3RestUtils.call(bucket, new S3RestUtils.RestCallable<Response>() {
       @Override
       public Response call() throws S3Exception {
         Preconditions.checkNotNull(bucket, "required 'bucket' parameter is missing");
         Preconditions.checkNotNull(object, "required 'object' parameter is missing");
+        Preconditions.checkArgument((partNumber == null && uploadId == null)
+            || (partNumber != null && uploadId != null),
+            "'partNumber' and 'uploadId' parameter should appear together or be "
+            + "missing together.");
 
         String bucketPath = parseBucketPath(AlluxioURI.SEPARATOR + bucket);
         checkBucketIsAlluxioDirectory(bucketPath);
+
         String objectPath = bucketPath + AlluxioURI.SEPARATOR + object;
+        if (partNumber != null) {
+          System.out.println(partNumber);
+          System.out.println(uploadId);
+          // This object is part of a multipart upload, should be uploaded into the temporary
+          // directory first.
+          String tmpDir = S3RestUtils.getMultipartTemporaryDirForObject(bucket, object);
+          long tmpDirFileId = -1;
+          try {
+            tmpDirFileId = mFileSystem.getStatus(new AlluxioURI(tmpDir)).getFileId();
+          } catch (Exception e) {
+            throw toObjectS3Exception(e, tmpDir);
+          }
+          if (uploadId != tmpDirFileId) {
+            throw new S3Exception(objectPath, S3ErrorCode.NO_SUCH_UPLOAD);
+          }
+          objectPath = tmpDir + AlluxioURI.SEPARATOR + Integer.toString(partNumber);
+        }
         AlluxioURI objectURI = new AlluxioURI(objectPath);
 
         try {
@@ -268,10 +291,10 @@ public final class S3RestServiceHandler {
    */
   @POST
   @Path(OBJECT_PARAM)
-  @ReturnType("InitiateMultipartUploadResult")
+  @ReturnType("alluxio.proxy.s3.InitiateMultipartUploadResult")
   public Response initiateMultipartUpload(@PathParam("bucket") final String bucket,
       @PathParam("object") final String object,
-      @QueryParam(INITIATE_MULTIPART_UPLOAD_QUERY_PARAM) final String uploads) {
+      @QueryParam("uploads") final String uploads) {
     return S3RestUtils.call(bucket, new S3RestUtils.RestCallable<InitiateMultipartUploadResult>() {
       @Override
       public InitiateMultipartUploadResult call() throws S3Exception {
@@ -281,16 +304,16 @@ public final class S3RestServiceHandler {
 
         String bucketPath = parseBucketPath(AlluxioURI.SEPARATOR + bucket);
         checkBucketIsAlluxioDirectory(bucketPath);
-        String objectKey = bucket + AlluxioURI.SEPARATOR + object;
+        String objectPath = bucketPath + AlluxioURI.SEPARATOR + object;
         AlluxioURI multipartTemporaryDir =
-            new AlluxioURI(S3RestUtils.getMultipartTemporaryDirForObject(objectKey));
+            new AlluxioURI(S3RestUtils.getMultipartTemporaryDirForObject(bucket, object));
 
         try {
           mFileSystem.createDirectory(multipartTemporaryDir);
           long uploadId = mFileSystem.getStatus(multipartTemporaryDir).getFileId();
           return new InitiateMultipartUploadResult(bucket, object, Long.toString(uploadId));
         } catch (Exception e) {
-          throw toObjectS3Exception(e, objectKey);
+          throw toObjectS3Exception(e, objectPath);
         }
       }
     });
