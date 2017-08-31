@@ -1430,7 +1430,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey USER_FILE_PASSIVE_CACHE_ENABLED =
       new Builder(Name.USER_FILE_PASSIVE_CACHE_ENABLED)
           .setDefaultValue(true)
-          .setDescription("Whether to cache file when reading.")
+          .setDescription("Whether to cache files when reading.")
           .build();
   public static final PropertyKey USER_FILE_READ_TYPE_DEFAULT =
       new Builder(Name.USER_FILE_READ_TYPE_DEFAULT)
@@ -1492,7 +1492,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Name.USER_HEARTBEAT_INTERVAL_MS)
           .setAlias(new String[]{"alluxio.user.heartbeat.interval.ms"})
           .setDefaultValue("1sec")
-          .setDescription("The interval between Alluxio worker's heartbeats")
+          .setDescription("The interval between Alluxio workers' heartbeats.")
           .build();
   public static final PropertyKey USER_HOSTNAME = new Builder(Name.USER_HOSTNAME)
       .setDescription("The hostname to use for the client.")
@@ -1511,13 +1511,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey USER_LOCAL_READER_PACKET_SIZE_BYTES =
       new Builder(Name.USER_LOCAL_READER_PACKET_SIZE_BYTES)
           .setDefaultValue("8MB")
-          .setDescription("When a client reading from a local worker, the maximum data packet "
-              + "size.")
+          .setDescription("When a client reads from a local worker, the maximum data packet size.")
           .build();
   public static final PropertyKey USER_LOCAL_WRITER_PACKET_SIZE_BYTES =
       new Builder(Name.USER_LOCAL_WRITER_PACKET_SIZE_BYTES)
           .setDefaultValue("64KB")
-          .setDescription("When a client writing to a local worker, the maximum data packet size.")
+          .setDescription("When a client writes to a local worker, the maximum data packet size.")
           .build();
   public static final PropertyKey USER_NETWORK_NETTY_CHANNEL =
       new Builder(Name.USER_NETWORK_NETTY_CHANNEL)
@@ -1558,32 +1557,30 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey USER_NETWORK_NETTY_WRITER_PACKET_SIZE_BYTES =
       new Builder(Name.USER_NETWORK_NETTY_WRITER_PACKET_SIZE_BYTES)
           .setDefaultValue("64KB")
-          .setDescription("When a client writing to a worker through network, the maximum packet "
-              + "size.")
+          .setDescription("When a client writes to a remote worker, the maximum packet size.")
           .build();
   public static final PropertyKey USER_NETWORK_NETTY_WRITER_BUFFER_SIZE_PACKETS =
       new Builder(Name.USER_NETWORK_NETTY_WRITER_BUFFER_SIZE_PACKETS)
           .setDefaultValue(16)
-          .setDescription("When a client writing to a worker through network, the buffer size in "
-              + "terms of packets.")
+          .setDescription("When a client writes to a remote worker, the maximum number of packets "
+              + "to buffer by the client.")
           .build();
   public static final PropertyKey USER_NETWORK_NETTY_WRITER_CLOSE_TIMEOUT_MS =
       new Builder(Name.USER_NETWORK_NETTY_WRITER_CLOSE_TIMEOUT_MS)
           .setAlias(new String[]{"alluxio.user.network.netty.writer.close.timeout.ms"})
-          .setDefaultValue(300000)
+          .setDefaultValue("5min")
           .setDescription("The timeout to close a netty writer client.")
           .build();
   public static final PropertyKey USER_NETWORK_NETTY_READER_BUFFER_SIZE_PACKETS =
       new Builder(Name.USER_NETWORK_NETTY_READER_BUFFER_SIZE_PACKETS)
           .setDefaultValue(16)
-          .setDescription("When a client reading from a worker through network, the buffer size in "
-              + "terms of packets.")
+          .setDescription("When a client reads from a remote worker, the maximum number of packets "
+              + "to buffer by the client.")
           .build();
   public static final PropertyKey USER_NETWORK_NETTY_READER_PACKET_SIZE_BYTES =
       new Builder(Name.USER_NETWORK_NETTY_READER_PACKET_SIZE_BYTES)
           .setDefaultValue("64KB")
-          .setDescription("When a client reading from a worker through network, the maximum packet "
-              + "size.")
+          .setDescription("When a client reads from a remote worker, the maximum packet size.")
           .build();
   public static final PropertyKey USER_RPC_RETRY_BASE_SLEEP_MS =
       new Builder(Name.USER_RPC_RETRY_BASE_SLEEP_MS)
@@ -1704,7 +1701,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey FUSE_MAXWRITE_BYTES =
       new Builder(Name.FUSE_MAXWRITE_BYTES)
-          .setDefaultValue(131072)
+          .setDefaultValue("128KB")
           .setDescription("Maximum granularity of write operations, capped by the kernel to 128KB "
               + "max (as of Linux 3.16.0).")
           .build();
