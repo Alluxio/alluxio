@@ -12,7 +12,6 @@
 package alluxio.worker.netty;
 
 import alluxio.Configuration;
-import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.network.ChannelType;
 import alluxio.util.network.NettyUtils;
@@ -48,10 +47,10 @@ public final class NettyDataServer implements DataServer {
   private final ServerBootstrap mBootstrap;
   private final ChannelFuture mChannelFuture;
   private final SocketAddress mSocketAddress;
-  private final long mQuietPeriodMs = Constants.SECOND_MS * Configuration
-      .getLong(PropertyKey.WORKER_NETWORK_NETTY_SHUTDOWN_QUIET_PERIOD);
-  private final long mTimeoutMs = Constants.SECOND_MS * Configuration
-      .getLong(PropertyKey.WORKER_NETWORK_NETTY_SHUTDOWN_TIMEOUT);
+  private final long mQuietPeriodMs =
+      Configuration.getMs(PropertyKey.WORKER_NETWORK_NETTY_SHUTDOWN_QUIET_PERIOD);
+  private final long mTimeoutMs =
+      Configuration.getMs(PropertyKey.WORKER_NETWORK_NETTY_SHUTDOWN_TIMEOUT);
 
   /**
    * Creates a new instance of {@link NettyDataServer}.
