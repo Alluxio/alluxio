@@ -58,7 +58,8 @@ public final class ConfigurationDocGenerator {
     Closer closer = Closer.create();
     String[] fileNames = {"user-configuration.csv", "master-configuration.csv",
         "worker-configuration.csv", "security-configuration.csv",
-        "key-value-configuration.csv", "common-configuration.csv"};
+        "key-value-configuration.csv", "common-configuration.csv",
+        "cluster-management-configuration.csv"};
 
     try {
       // HashMap for FileWriter per each category
@@ -99,6 +100,8 @@ public final class ConfigurationDocGenerator {
           fileWriter = fileWriterMap.get("security");
         } else if (pKey.startsWith("alluxio.keyvalue.")) {
           fileWriter = fileWriterMap.get("key-value");
+        } else if (pKey.startsWith("alluxio.integration")) {
+          fileWriter = fileWriterMap.get("cluster-management");
         } else {
           fileWriter = fileWriterMap.get("common");
         }
@@ -133,7 +136,9 @@ public final class ConfigurationDocGenerator {
     Closer closer = Closer.create();
     String[] fileNames = {"user-configuration.yml", "master-configuration.yml",
         "worker-configuration.yml", "security-configuration.yml",
-        "key-value-configuration.yml", "common-configuration.yml"};
+        "key-value-configuration.yml", "common-configuration.yml",
+        "cluster-management-configuration.yml"
+    };
 
     try {
       // HashMap for FileWriter per each category
@@ -170,6 +175,8 @@ public final class ConfigurationDocGenerator {
           fileWriter = fileWriterMap.get("security");
         } else if (pKey.startsWith("alluxio.keyvalue.")) {
           fileWriter = fileWriterMap.get("key-value");
+        } else if (pKey.startsWith("alluxio.integration.")) {
+          fileWriter = fileWriterMap.get("cluster-management");
         } else {
           fileWriter = fileWriterMap.get("common");
         }
