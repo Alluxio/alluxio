@@ -45,7 +45,7 @@ You need to add the following three properties to `hbase-site.xml` in your HBase
 </property>
 <property>
   <name>hbase.rootdir</name>
-  <value>alluxio://master_hostname>:port/hbase</value>
+  <value>alluxio://master_hostname:port/hbase</value>
 </property>
 ```
 
@@ -64,7 +64,7 @@ on all cluster nodes). For example:
 export HBASE_CLASSPATH={{site.ALLUXIO_CLIENT_JAR_PATH}}:${HBASE_CLASSPATH}
 ```
 
-Alternatively, advanced users can choose to compile this client jar from the source code. Follow the instructs
+Alternatively, advanced users can choose to compile this client jar from the source code. Follow the instructions
 [here](Building-Alluxio-Master-Branch.html#compute-framework-support) and use the generated jar at
 `{{site.ALLUXIO_CLIENT_JAR_PATH_BUILD}}` for the rest of this guide.
 
