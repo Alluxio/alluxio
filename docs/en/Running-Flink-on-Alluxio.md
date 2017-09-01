@@ -48,8 +48,7 @@ the directory usually ends with `etc/hadoop`.)
 ### Distribute the Alluxio Client Jar
 
 In order to communicate with Alluxio, we need to provide Flink programs with the Alluxio Core Client
-jar. If you are using Alluxio binary, then compilation is unnecessary and the jar is available at
-`{{site.ALLUXIO_CLIENT_JAR_PATH}}`.
+jar. If you are using Alluxio binary, then the jar is available at `{{site.ALLUXIO_CLIENT_JAR_PATH}}`.
 
 We need to make the Alluxio `jar` file available to Flink, because it contains the configured
 `alluxio.hadoop.FileSystem` class.
