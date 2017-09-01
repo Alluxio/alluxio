@@ -52,8 +52,7 @@ public final class RmCommand extends WithWildCardPathCommand {
       Option.builder("alluxioOnly")
           .required(false)
           .hasArg(false)
-          .desc("remove data and metadata from Alluxio space,"
-              + " but the data in under storage is not deleted")
+          .desc("remove data and metadata from Alluxio space only,")
           .build();
 
   /**
@@ -98,15 +97,12 @@ public final class RmCommand extends WithWildCardPathCommand {
       options.setUnchecked(true);
     }
     boolean isAlluxioOnly = cl.hasOption(REMOVE_ALLUXIO_ONLY.getOpt());
-    if (isAlluxioOnly) {
-      options.setAlluxioOnly(true);
-    }
+    options.setAlluxioOnly(isAlluxioOnly);
     mFileSystem.delete(path, options);
     if (!isAlluxioOnly) {
       System.out.println(path + " has been removed");
     } else {
-      System.out.println(path + " has been removed from Alluxio space,"
-          + " but still exists in the under storage.");
+      System.out.println(path + " has been removed from Alluxio space,");
     }
   }
 
@@ -119,8 +115,7 @@ public final class RmCommand extends WithWildCardPathCommand {
   public String getDescription() {
     return "Removes the specified file. Specify -R to remove file or directory recursively."
         + " Specify -U to remove directories without checking UFS contents are in sync."
-        + " Specify -alluxioOnly to remove data and metadata from Alluxio space,"
-        + " but the data in under storage is not deleted.";
+        + " Specify -alluxioOnly to remove data and metadata from alluxio space only.;
   }
 
   @Override
