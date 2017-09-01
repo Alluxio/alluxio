@@ -1379,7 +1379,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       throw new InvalidPathException(ExceptionMessage.DELETE_ROOT_DIRECTORY.getMessage());
     }
 
-    List<Pair<AlluxioURI, Inode>> delInodes = new LinkedList<>();
+    List<Pair<AlluxioURI, Inode>> delInodes = new ArrayList<>();
     List<Inode<?>> deletedInodes = new ArrayList<>();
 
     Pair<AlluxioURI, Inode> inodePair = new Pair<AlluxioURI, Inode>(inodePath.getUri(), inode);
@@ -3220,7 +3220,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    *         the thread-local user is null. Normally this should not happen.
    */
   private FileSystemMasterAuditContext createAuditContext(String command, AlluxioURI srcPath,
-      @Nullable  AlluxioURI dstPath, @Nullable  Inode srcInode) throws AccessControlException {
+      @Nullable AlluxioURI dstPath, @Nullable Inode srcInode) throws AccessControlException {
     FileSystemMasterAuditContext auditContext =
         new FileSystemMasterAuditContext(mAsyncAuditLogWriter);
     if (mAsyncAuditLogWriter != null) {
