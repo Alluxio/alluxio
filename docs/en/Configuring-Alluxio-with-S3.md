@@ -104,12 +104,9 @@ To communicate with S3 through a proxy, modify `conf/alluxio-site.properties` to
 ```properties
 alluxio.underfs.s3.proxy.host=<PROXY_HOST>
 alluxio.underfs.s3.proxy.port=<PROXY_PORT>
-alluxio.underfs.s3.proxy.https.only=<USE_HTTPS?>
 ```
 
-Here, `<PROXY_HOST>` and `<PROXY_PORT>` should be replaced the host and port for your proxy, and
-`<USE_HTTPS?>` should be set to either `true` or `false`, depending on whether https should be
-used to communicate with the proxy.
+Here, `<PROXY_HOST>` and `<PROXY_PORT>` should be replaced the host and port for your proxy.
 
 ## Configuring Application Dependency
 
@@ -145,20 +142,10 @@ to include:
 
 ```
 alluxio.underfs.s3.endpoint=<S3_ENDPOINT>
-alluxio.underfs.s3.proxy.https.only=<USE_HTTPS>
-alluxio.underfs.s3.endpoint.http.port=<HTTP_PORT>
-alluxio.underfs.s3.endpoint.https.port=<HTTPS_PORT>
 ```
 
-For these parameters, replace `<S3_ENDPOINT>` with the host name of your S3 service. Only use this
-parameter if you are using a provider other than `s3.amazonaws.com`.
-
-Replace `<USE_HTTPS>` with `true` or `false`. If `true` (using HTTPS), also replace `<HTTPS_PORT>`,
-with the HTTPS port for the provider and remove the `alluxio.underfs.s3.endpoint.http.port`
-parameter. If you replace `<USE_HTTPS>` with `false` (using HTTP) also replace `<HTTP_PORT>` with
-the HTTP port for the provider, and remove the `alluxio.underfs.s3.endpoint.https.port` parameter.
-If the HTTP or HTTPS port values are left unset, `<HTTP_PORT>` defaults to port 80, and
-`<HTTPS_PORT>` defaults to port 443.
+For these parameters, replace `<S3_ENDPOINT>` with the hostname and port of your S3 service, e.g.,
+`http://localhost:9000`. Only use this parameter if you are using a provider other than `s3.amazonaws.com`.
 
 ### Using v2 S3 Signatures
 
