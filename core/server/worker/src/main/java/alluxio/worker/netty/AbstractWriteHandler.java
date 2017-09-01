@@ -122,8 +122,12 @@ abstract class AbstractWriteHandler<T extends WriteRequestContext<?>>
 
     try (LockResource lr = new LockResource(mLock)) {
       boolean isPreviousContextNull = mContext == null;
-      if (isPreviousContextNull) {
-        // When mContext is null, create a new one as catching exceptions and replying errors
+      if (isPreviousContextNull || mContext.isDoneUnsafe()) {
+        // When the previous request completes or failed, we reset the context to null. However,
+        // it is possible that setting context to null happens after the response sent and new
+        // request arrives here. As a result, we conclude the previous request completes by either
+        // the context is null, or the done flag is true. And in this case, create a new one as
+        // catching exceptions and replying errors
         // leverages data structures in context, regardless of the request is valid or not.
         // TODO(binfan): remove the dependency on an instantiated request context which is required
         // to reply errors to client side.
