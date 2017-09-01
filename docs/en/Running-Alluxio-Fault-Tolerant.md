@@ -152,3 +152,24 @@ Alluxio leader master.
 ```
 hadoop fs -ls alluxio:///directory
 ```
+
+### Automatic Fail Over
+
+To test automatic fail over, ssh into current Alluxio master leader, and find process ID of
+the AlluxioMaster process with:
+
+{% include Running-Alluxio-Fault-Tolerant/jps.md %}
+
+Then kill the leader with:
+
+{% include Running-Alluxio-Fault-Tolerant/kill-leader.md %}
+
+Then you can run the zookeeper client shell, and see the leader with the command:
+
+{% include Running-Alluxio-Fault-Tolerant/see-leader.md %}
+
+The output of the command should show the new leader. You may need to wait for a moment for the
+new leader to be elected.
+
+Visit Alluxio web UI at `http://{NEW_LEADER_MASTER_IP}:{NEW_LEADER_MASTER_WEB_PORT}`. Click `Browse` in
+the navigation bar, and you should see all files are still there.
