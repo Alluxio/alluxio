@@ -20,12 +20,9 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.Date;
 import java.util.List;
 
 /**
@@ -102,7 +99,6 @@ public class ListBucketResult {
       }
     }
 
-    final DateFormat s3DateFormat = new SimpleDateFormat(S3Constants.S3_DATE_FORMAT_REGEXP);
     for (int i = startIndex; i < objectsList.size(); i++) {
       URIStatus status = objectsList.get(i);
       String objectKey = status.getPath().substring(mName.length() + 1);
@@ -121,7 +117,7 @@ public class ListBucketResult {
       // TODO(chaomin): construct the response with CommonPrefixes when delimiter support is added.
       mContents.add(new Content(
           status.getPath().substring(mName.length() + 1),
-          s3DateFormat.format(new Date(status.getLastModificationTimeMs())),
+          S3RestUtils.toS3Date(status.getLastModificationTimeMs()),
           S3Constants.S3_EMPTY_ETAG,
           String.valueOf(status.getLength()),
           S3Constants.S3_STANDARD_STORAGE_CLASS));

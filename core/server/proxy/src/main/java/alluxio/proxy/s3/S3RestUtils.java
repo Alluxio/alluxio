@@ -24,6 +24,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 import javax.ws.rs.core.Response;
 
@@ -134,15 +137,23 @@ public final class S3RestUtils {
   }
 
   /**
-   * @param bucket the bucket name
-   * @param object the object name
+   * @param bucketPath the bucket path like "/bucket", "/mount/point/bucket"
+   * @param objectKey the object key like "img/2017/9/1/s3.jpg"
    * @return the temporary directory used to hold parts of the object during multipart uploads
    */
-  public static String getMultipartTemporaryDirForObject(String bucket, String object) {
+  public static String getMultipartTemporaryDirForObject(String bucketPath, String objectKey) {
     String multipartTemporaryDirSuffix =
         Configuration.get(PropertyKey.PROXY_S3_MULTIPART_TEMPORARY_DIR_SUFFIX);
-    return AlluxioURI.SEPARATOR + bucket + AlluxioURI.SEPARATOR + object
-        + multipartTemporaryDirSuffix;
+    return bucketPath + AlluxioURI.SEPARATOR + objectKey + multipartTemporaryDirSuffix;
+  }
+
+  /**
+   * @param epoch the milliseconds from the epoch
+   * @return the string representation of the epoch in the S3 date format
+   */
+  public static String toS3Date(long epoch) {
+    final DateFormat s3DateFormat = new SimpleDateFormat(S3Constants.S3_DATE_FORMAT_REGEXP);
+    return s3DateFormat.format(new Date(epoch));
   }
 
   private S3RestUtils() {} // prevent instantiation

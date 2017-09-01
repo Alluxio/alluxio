@@ -57,6 +57,7 @@ public final class S3ClientRestApiTest extends RestApiTest {
   private static final alluxio.master.file.options.GetStatusOptions GET_STATUS_OPTIONS =
       alluxio.master.file.options.GetStatusOptions.defaults();
   private static final Map<String, String> NO_PARAMS = new HashMap<>();
+  private static final XmlMapper XML_MAPPER = new XmlMapper();
 
   private static final String S3_SERVICE_PREFIX = "s3";
   private static final String BUCKET_SEPARATOR = ":";
@@ -242,7 +243,7 @@ public final class S3ClientRestApiTest extends RestApiTest {
     AlluxioURI bucketURI = new AlluxioURI(AlluxioURI.SEPARATOR + bucket);
     AlluxioURI objectURI = new AlluxioURI(AlluxioURI.SEPARATOR + fullObjectKey);
     if (uploadId != null) {
-      String tmpDir = S3RestUtils.getMultipartTemporaryDirForObject(bucket, objectKey);
+      String tmpDir = S3RestUtils.getMultipartTemporaryDirForObject(bucketURI.getPath(), objectKey);
       bucketURI = new AlluxioURI(tmpDir);
       objectURI = new AlluxioURI(tmpDir + AlluxioURI.SEPARATOR + partNumber.toString());
     }
@@ -710,13 +711,13 @@ public final class S3ClientRestApiTest extends RestApiTest {
     String objectKey = bucketName + AlluxioURI.SEPARATOR + objectName;
     String result = initiateMultipartUploadRestCall(objectKey);
 
-    String multipartTempDir = S3RestUtils.getMultipartTemporaryDirForObject(bucketName, objectName);
+    String multipartTempDir = S3RestUtils.getMultipartTemporaryDirForObject(
+        AlluxioURI.SEPARATOR + bucketName, objectName);
     URIStatus status = mFileSystem.getStatus(new AlluxioURI(multipartTempDir));
     long tempDirId = status.getFileId();
     InitiateMultipartUploadResult expected =
         new InitiateMultipartUploadResult(bucketName, objectName, Long.toString(tempDirId));
-    XmlMapper xmlMapper = new XmlMapper();
-    String expectedResult = xmlMapper.writeValueAsString(expected);
+    String expectedResult = XML_MAPPER.writeValueAsString(expected);
 
     Assert.assertEquals(expectedResult, result);
   }
@@ -729,9 +730,8 @@ public final class S3ClientRestApiTest extends RestApiTest {
     final String objectName = "object";
     String objectKey = bucketName + AlluxioURI.SEPARATOR + objectName;
     String result = initiateMultipartUploadRestCall(objectKey);
-    XmlMapper xmlMapper = new XmlMapper();
     InitiateMultipartUploadResult multipartUploadResult =
-        xmlMapper.readValue(result, InitiateMultipartUploadResult.class);
+        XML_MAPPER.readValue(result, InitiateMultipartUploadResult.class);
 
     final long uploadId = Long.parseLong(multipartUploadResult.getUploadId());
     final byte[] object = CommonUtils.randomAlphaNumString(Constants.MB).getBytes();
@@ -746,9 +746,8 @@ public final class S3ClientRestApiTest extends RestApiTest {
     final String objectName = "object";
     String objectKey = bucketName + AlluxioURI.SEPARATOR + objectName;
     String result = initiateMultipartUploadRestCall(objectKey);
-    XmlMapper xmlMapper = new XmlMapper();
     InitiateMultipartUploadResult multipartUploadResult =
-        xmlMapper.readValue(result, InitiateMultipartUploadResult.class);
+        XML_MAPPER.readValue(result, InitiateMultipartUploadResult.class);
 
     final long uploadId = Long.parseLong(multipartUploadResult.getUploadId());
     final byte[] object = CommonUtils.randomAlphaNumString(Constants.MB).getBytes();
@@ -778,6 +777,55 @@ public final class S3ClientRestApiTest extends RestApiTest {
   }
 
   @Test
+  public void listParts() throws Exception {
+    final String bucket = "bucket";
+    final String bucketPath = AlluxioURI.SEPARATOR + bucket;
+    createBucketRestCall(bucket);
+
+    final String object = "object";
+    final String objectKey = bucket + AlluxioURI.SEPARATOR + object;
+
+    // Initiate multipart upload to get upload ID.
+    String result = initiateMultipartUploadRestCall(objectKey);
+    InitiateMultipartUploadResult multipartUploadResult =
+        XML_MAPPER.readValue(result, InitiateMultipartUploadResult.class);
+    final long uploadId = Long.parseLong(multipartUploadResult.getUploadId());
+
+    // No parts are uploaded yet.
+    result = listPartsRestCall(objectKey, uploadId);
+    ListPartsResult listPartsResult = XML_MAPPER.readValue(result, ListPartsResult.class);
+    Assert.assertEquals(bucketPath, listPartsResult.getBucket());
+    Assert.assertEquals(object, listPartsResult.getKey());
+    Assert.assertEquals(Long.toString(uploadId), listPartsResult.getUploadId());
+    Assert.assertEquals(0, listPartsResult.getParts().size());
+
+    // Upload 2 parts.
+    String object1 = CommonUtils.randomAlphaNumString(Constants.MB);
+    String object2 = CommonUtils.randomAlphaNumString(Constants.MB);
+    createObject(objectKey, object1.getBytes(), uploadId, 1);
+    createObject(objectKey, object2.getBytes(), uploadId, 2);
+
+    result = listPartsRestCall(objectKey, uploadId);
+    listPartsResult = XML_MAPPER.readValue(result, ListPartsResult.class);
+    Assert.assertEquals(bucketPath, listPartsResult.getBucket());
+    Assert.assertEquals(object, listPartsResult.getKey());
+    Assert.assertEquals(Long.toString(uploadId), listPartsResult.getUploadId());
+
+    String tmpDir = S3RestUtils.getMultipartTemporaryDirForObject(bucketPath, object);
+    List<ListPartsResult.Part> parts = listPartsResult.getParts();
+    Assert.assertEquals(2, parts.size());
+    for (int partNumber = 1; partNumber <= parts.size(); partNumber++) {
+      ListPartsResult.Part part = parts.get(partNumber - 1);
+      Assert.assertEquals(partNumber, part.getPartNumber());
+      URIStatus status = mFileSystem.getStatus(
+          new AlluxioURI(tmpDir + AlluxioURI.SEPARATOR + Integer.toString(partNumber)));
+      Assert.assertEquals(S3RestUtils.toS3Date(status.getLastModificationTimeMs()),
+          part.getLastModified());
+      Assert.assertEquals(status.getLength(), part.getSize());
+    }
+  }
+
+  @Test
   public void abortMultipartUpload() throws Exception {
     final String bucketName = "bucket";
     createBucketRestCall(bucketName);
@@ -785,11 +833,10 @@ public final class S3ClientRestApiTest extends RestApiTest {
     final String objectName = "object";
     String objectKey = bucketName + AlluxioURI.SEPARATOR + objectName;
     String result = initiateMultipartUploadRestCall(objectKey);
-    XmlMapper xmlMapper = new XmlMapper();
     InitiateMultipartUploadResult multipartUploadResult =
-        xmlMapper.readValue(result, InitiateMultipartUploadResult.class);
-    AlluxioURI tmpDir = new AlluxioURI(
-        S3RestUtils.getMultipartTemporaryDirForObject(bucketName, objectName));
+        XML_MAPPER.readValue(result, InitiateMultipartUploadResult.class);
+    AlluxioURI tmpDir = new AlluxioURI(S3RestUtils.getMultipartTemporaryDirForObject(
+        AlluxioURI.SEPARATOR + bucketName, objectName));
     Assert.assertTrue(mFileSystem.exists(tmpDir));
     Assert.assertTrue(mFileSystem.getStatus(tmpDir).isFolder());
 
@@ -807,11 +854,10 @@ public final class S3ClientRestApiTest extends RestApiTest {
     final String objectName = "object";
     String objectKey = bucketName + AlluxioURI.SEPARATOR + objectName;
     String result = initiateMultipartUploadRestCall(objectKey);
-    XmlMapper xmlMapper = new XmlMapper();
     InitiateMultipartUploadResult multipartUploadResult =
-        xmlMapper.readValue(result, InitiateMultipartUploadResult.class);
-    AlluxioURI tmpDir = new AlluxioURI(
-        S3RestUtils.getMultipartTemporaryDirForObject(bucketName, objectName));
+        XML_MAPPER.readValue(result, InitiateMultipartUploadResult.class);
+    AlluxioURI tmpDir = new AlluxioURI(S3RestUtils.getMultipartTemporaryDirForObject(
+        AlluxioURI.SEPARATOR + bucketName, objectName));
     Assert.assertTrue(mFileSystem.exists(tmpDir));
     Assert.assertTrue(mFileSystem.getStatus(tmpDir).isFolder());
 
@@ -839,9 +885,8 @@ public final class S3ClientRestApiTest extends RestApiTest {
 
     // Initiate the multipart upload.
     String result = initiateMultipartUploadRestCall(objectKey);
-    XmlMapper xmlMapper = new XmlMapper();
     InitiateMultipartUploadResult multipartUploadResult =
-        xmlMapper.readValue(result, InitiateMultipartUploadResult.class);
+        XML_MAPPER.readValue(result, InitiateMultipartUploadResult.class);
     final long uploadId = Long.parseLong(multipartUploadResult.getUploadId());
 
     // Upload parts.
@@ -851,8 +896,8 @@ public final class S3ClientRestApiTest extends RestApiTest {
     createObject(objectKey, object2.getBytes(), uploadId, 2);
 
     // Verify that the two parts are uploaded to the temporary directory.
-    AlluxioURI tmpDir = new AlluxioURI(
-        S3RestUtils.getMultipartTemporaryDirForObject(bucketName, objectName));
+    AlluxioURI tmpDir = new AlluxioURI(S3RestUtils.getMultipartTemporaryDirForObject(
+        AlluxioURI.SEPARATOR + bucketName, objectName));
     Assert.assertEquals(2, mFileSystem.listStatus(tmpDir).size());
 
     // Complete the multipart upload.
@@ -866,7 +911,7 @@ public final class S3ClientRestApiTest extends RestApiTest {
     String objectPath = AlluxioURI.SEPARATOR + objectKey;
     CompleteMultipartUploadResult completeMultipartUploadResult =
         new CompleteMultipartUploadResult(objectPath, bucketName, objectName, etag);
-    Assert.assertEquals(xmlMapper.writeValueAsString(completeMultipartUploadResult), result);
+    Assert.assertEquals(XML_MAPPER.writeValueAsString(completeMultipartUploadResult), result);
 
     // Verify that the temporary directory is deleted.
     Assert.assertFalse(mFileSystem.exists(tmpDir));
@@ -928,6 +973,15 @@ public final class S3ClientRestApiTest extends RestApiTest {
     params.put("uploadId", Long.toString(uploadId));
     return new TestCase(mHostname, mPort, uri, params, HttpMethod.DELETE, null,
         TestCaseOptions.defaults()).execute();
+  }
+
+  private String listPartsRestCall(String objectKey, long uploadId)
+      throws Exception {
+    String uri = S3_SERVICE_PREFIX + AlluxioURI.SEPARATOR + objectKey;
+    Map<String, String> params = new HashMap<>();
+    params.put("uploadId", Long.toString(uploadId));
+    return new TestCase(mHostname, mPort, uri, params, HttpMethod.GET, null,
+        TestCaseOptions.defaults()).call();
   }
 
   private HttpURLConnection getObjectMetadataRestCall(String objectKey) throws Exception {
