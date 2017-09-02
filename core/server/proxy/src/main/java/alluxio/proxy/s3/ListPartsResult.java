@@ -30,20 +30,22 @@ import java.util.List;
 @JacksonXmlRootElement(localName = "ListPartsResult")
 @JsonPropertyOrder({ "Bucket", "Key", "UploadId", "StorageClass", "IsTruncated", "Part" })
 public class ListPartsResult {
-  // Name of the bucket.
+  /* Name of the bucket. */
   private String mBucket;
-  // Object key.
+  /* Object key. */
   private String mKey;
-  // ID of the multipart upload to be listed.
+  /* ID of the multipart upload to be listed. */
   private String mUploadId;
-  // Storage class, only STANDARD is supported in Alluxio now.
+  /* Storage class, only STANDARD is supported in Alluxio now. */
   private String mStorageClass;
-  // Indicates whether the returned list of parts is truncated.
-  // A true value indicates that the list was truncated.
-  // A list can be truncated if the number of parts exceeds the limit returned in the MaxParts
-  // element.
+  /**
+   * Indicates whether the returned list of parts is truncated.
+   * A true value indicates that the list was truncated.
+   * A list can be truncated if the number of parts exceeds the limit returned in the MaxParts
+   * element.
+   */
   private boolean mIsTruncated;
-  // Parts of the multipart upload.
+  /* Parts of the multipart upload. */
   List<Part> mParts;
 
   /**
@@ -123,7 +125,7 @@ public class ListPartsResult {
   }
 
   /**
-   * @return whether (true) or not (false) all of the results were returned
+   * @return false if all results are returned, otherwise true
    */
   @JacksonXmlProperty(localName = "IsTruncated")
   public boolean isTruncated() {

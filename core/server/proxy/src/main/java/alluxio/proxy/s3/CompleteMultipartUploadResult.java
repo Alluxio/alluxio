@@ -23,13 +23,13 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 @JacksonXmlRootElement(localName = "CompleteMultipartUploadResult")
 @JsonPropertyOrder({ "Location", "Bucket", "Key", "ETag" })
 public class CompleteMultipartUploadResult {
-  // The URI that identifies the newly created object.
+  /* The URI that identifies the newly created object. */
   private String mLocation;
-  // Name of the bucket.
+  /* Name of the bucket. */
   private String mBucket;
-  // Object key.
+  /* Object key. */
   private String mKey;
-  // Entity tag of the object.
+  /* Entity tag of the object. */
   private String mETag;
 
   /**

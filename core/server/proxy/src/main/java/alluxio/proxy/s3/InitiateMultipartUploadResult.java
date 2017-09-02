@@ -23,11 +23,11 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 @JacksonXmlRootElement(localName = "InitiateMultipartUploadResult")
 @JsonPropertyOrder({ "Bucket", "Key", "UploadId" })
 public class InitiateMultipartUploadResult {
-  // Name of the bucket to which the multipart upload was initiated.
+  /* Name of the bucket to which the multipart upload was initiated. */
   private String mBucket;
-  // Object key for which the multipart upload was initiated.
+  /* Object key for which the multipart upload was initiated. */
   private String mKey;
-  // ID for the initiated multipart upload.
+  /* ID for the initiated multipart upload. */
   private String mUploadId;
 
   /**

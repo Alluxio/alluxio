@@ -174,7 +174,7 @@ public class ListBucketResult {
   }
 
   /**
-   * @return whether (true) or not (false) all of the results were returned
+   * @return false if all results are returned, otherwise true
    */
   @JacksonXmlProperty(localName = "IsTruncated")
   public boolean isTruncated() {
