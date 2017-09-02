@@ -79,7 +79,7 @@ After this succeeds, you can visit your Swift container to verify the files and 
 by Alluxio exist. For this test, you should see files named like:
 
 ```bash
-swift://<container>/<folder>/default_tests_files/Basic_CACHE_THROUGH
+<container>/<folder>/default_tests_files/Basic_CACHE_THROUGH
 ```
 
 To stop Alluxio, you can run:
@@ -91,7 +91,7 @@ $ ./bin/alluxio-stop.sh local
 ## Running functional tests
 
 ```bash
-mvn test -DtestSwiftContainerKey=swift://<container>
+$ mvn test -DtestSwiftContainerKey=swift://<container>
 ```
 
 ## Swift Access Control
