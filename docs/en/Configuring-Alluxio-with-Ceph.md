@@ -91,12 +91,12 @@ by Alluxio exist.
 
 If using the S3A connector, you should see files named like:
 ```
-<S3_BUCKET>/<S3_DIRECTORY>/default_tests_files/Basic_CACHE_THROUGH
+<bucket>/<folder>/default_tests_files/Basic_CACHE_THROUGH
 ```
 
 If using the Swift connector, you should see files named like:
 ```
-<SWIFT_CONTAINER>/<SWIFT_FOLDER>/default_tests_files/Basic_CACHE_THROUGH
+<container>/<folder>/default_tests_files/Basic_CACHE_THROUGH
 ```
 
 To stop Alluxio, you can run:

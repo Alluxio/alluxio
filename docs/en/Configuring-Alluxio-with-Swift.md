@@ -31,7 +31,7 @@ $ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 Modify `conf/alluxio-site.properties` to include:
 
 ```properties
-alluxio.underfs.address=swift://<swift-container>
+alluxio.underfs.address=swift://<container>/<folder>
 fs.swift.user=<swift-user>
 fs.swift.tenant=<swift-tenant>
 fs.swift.password=<swift-user-password>
@@ -40,9 +40,8 @@ fs.swift.use.public.url=<swift-use-public>
 fs.swift.auth.method=<swift-auth-model>
 ```
 
-Replace `<swift-container>` with an existing Swift container. Possible values of `<swift-use-public>`
-are `true`, `false`. Possible values of `<swift-auth-model>` are `keystonev3`, `keystone`, `tempauth`,
-`swiftauth`. 
+Replace `<container>/<folder>` with an existing Swift container location. Possible values of `<swift-use-public>`
+are `true`, `false`. Possible values of `<swift-auth-model>` are `keystonev3`, `keystone`, `tempauth`, `swiftauth`. 
 
 When using either keystone authentication, the following parameter can optionally be set:
 
@@ -62,25 +61,32 @@ Using the Swift module makes [Ceph Object Storage](https://ceph.com/ceph-storage
 
 After configuration, you can start an Alluxio cluster:
 
-{% include Common-Commands/start-alluxio.md %}
+```bash
+$ ./bin/alluxio format
+$ ./bin/alluxio-start.sh local
+```
 
 This should start an Alluxio master and an Alluxio worker. You can see the master UI at
 [http://localhost:19999](http://localhost:19999).
 
 Next, you can run a simple example program:
 
-{% include Common-Commands/runTests.md %}
+```bash
+$ ./bin/alluxio runTests
+```
 
 After this succeeds, you can visit your Swift container to verify the files and directories created
 by Alluxio exist. For this test, you should see files named like:
 
 ```bash
-swift://<SWIFT CONTAINER>/alluxio/data/default_tests_files/Basic_CACHE_THROUGH
+swift://<container>/<folder>/default_tests_files/Basic_CACHE_THROUGH
 ```
 
 To stop Alluxio, you can run:
 
-{% include Common-Commands/stop-alluxio.md %}
+```bash
+$ ./bin/alluxio-stop.sh local
+```
 
 ## Running functional tests
 
