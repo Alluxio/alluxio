@@ -13,7 +13,7 @@ extensions](DevelopingUFSExtensions.html) for an extension development guide.
 Alluxio can be extended with the addition of under storage modules at runtime. Under storage
 extensions (built as JARs) can be included at a specific location to be picked up by core Alluxio
 without the need to restart any running processes. Adding new under storage connectors to Alluxio
-can be used to enable Alluxio to work with your choice of storage system.
+can be used to enable Alluxio to work with new storage systems which may not have existing support.
 
 # List of Extensions
 
@@ -77,7 +77,7 @@ Once the extension JAR has been distributed, you should be able to mount your un
 the Alluxio CLI as follows:
 
 ```bash
-bin/alluxio fs mount /my-storage <scheme>://<path>/ -D<key>=<value>
+bin/alluxio fs mount /my-storage <scheme>://<path>/ --option <key>=<value>
 ```
 where, `<key>=<value>` can be replaced with any required configuration for the under storage.
 

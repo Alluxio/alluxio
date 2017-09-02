@@ -13,8 +13,8 @@ extensions](UFSExtensions.html) for a guide to using existing extensions.
 Under storage extensions are built as JARs and included at a specific extensions location to be
 picked up by core Alluxio. This page describes the mechanics of how extensions in Alluxio work, and
 provides detailed instructions for developing an under storage extension. Extensions provide a
-framework to enable more under storages to work with Alluxio and makes it convenient for developers to
-contribute packages.
+framework to enable more under storages to work with Alluxio and makes it convenient to develop
+modules not already supported by Alluxio.
 
 # How it Works
 
