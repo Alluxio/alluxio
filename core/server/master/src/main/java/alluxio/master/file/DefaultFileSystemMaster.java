@@ -143,7 +143,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -1379,7 +1379,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       throw new InvalidPathException(ExceptionMessage.DELETE_ROOT_DIRECTORY.getMessage());
     }
 
-    List<Pair<AlluxioURI, Inode>> delInodes = new LinkedList<>();
+    List<Pair<AlluxioURI, Inode>> delInodes = new ArrayList<>();
     List<Inode<?>> deletedInodes = new ArrayList<>();
 
     Pair<AlluxioURI, Inode> inodePair = new Pair<AlluxioURI, Inode>(inodePath.getUri(), inode);
@@ -1398,11 +1398,11 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         ufsDeleter = new SafeUfsDeleter(mMountTable, delInodes, deleteOptions);
       }
       // Inodes to delete from tree after attempting to delete from UFS
-      List<Inode> inodesToDelete = new LinkedList<>();
+      List<Inode> inodesToDelete = new ArrayList<>();
       // Inodes that are not safe for recursive deletes
       Set<Long> unsafeInodes = new HashSet<>();
       // Alluxio URIs which could not be deleted
-      List<String> failedUris = new LinkedList<>();
+      List<String> failedUris = new ArrayList<>();
 
       TempInodePathForDescendant tempInodePath = new TempInodePathForDescendant(inodePath);
       // We go through each inode, removing it from its parent set and from mDelInodes. If it's a

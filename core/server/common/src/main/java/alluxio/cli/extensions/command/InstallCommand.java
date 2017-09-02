@@ -25,7 +25,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -65,7 +65,7 @@ public final class InstallCommand extends AbstractCommand {
   public int run(CommandLine cl) {
     String uri = cl.getArgs()[0];
     String extensionsDir = Configuration.get(PropertyKey.EXTENSIONS_DIR);
-    List<String> failedHosts = new LinkedList<>();
+    List<String> failedHosts = new ArrayList<>();
     for (String host : ExtensionsShellUtils.getServerHostnames()) {
       try {
         LOG.info("Attempting to install extension on host {}", host);
