@@ -51,8 +51,7 @@ operations to a local filesystem.
 
 ## Implement the Under Storage Interface
 
-Refer to [integrating under storage systems](Integrating-Under-Storage-Systems.html) for
-additional instructions for developing and testing an under storage module.
+The [HDFS Submodule](https://github.com/alluxio/alluxio/tree/master/underfs/hdfs) and [S3A Submodule](https://github.com/alluxio/alluxio/tree/master/underfs/s3a) are two good examples of how to enable a storage system to serve as Alluxio's underlying storage.
 
 Step 1: Implement the interface `UnderFileSystem`
 
