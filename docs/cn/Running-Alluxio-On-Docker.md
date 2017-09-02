@@ -134,7 +134,7 @@ bin/alluxio runTests
 $ docker build -t alluxio --build-arg ALLUXIO_TARBALL=alluxio-snapshot.tar.gz .
 ```
 
-Remote tarball:
+远程压缩包:
 ```bash
 $ docker build -t alluxio --build-arg ALLUXIO_TARBALL=http://downloads.alluxio.org/downloads/files/{{site.ALLUXIO_RELEASED_VERSION}}/alluxio-{{site.ALLUXIO_RELEASED_VERSION}}-bin.tar.gz .
 ```
@@ -176,12 +176,6 @@ $ chmod a+w /tmp/domain
 $ touch /tmp/domain/d
 $ chmod a+w /tmp/domain/d
 ```
-
-When starting workers and clients, run their docker containers with `-v /tmp/domain:/opt/domain`
-to share the domain socket directory. Also set the site property
-`alluxio.worker.data.server.domain.socket.address` in the worker by passing
-`-e ALLUXIO_WORKER_DATA_SERVER_DOMAIN_SOCKET_ADDRESS=/opt/domain/d`
-when launching the container.
 
 当通过worker和客户端的docker容器启动它们时，通过`-v /tmp/domain:/opt/domain`共享域套接字文件夹。同时在启动容器时，通过添加`-e ALLUXIO_WORKER_DATA_SERVER_DOMAIN_SOCKET_ADDRESS=/opt/domain/d`
 在worker设置属性值`alluxio.worker.data.server.domain.socket.address`。
