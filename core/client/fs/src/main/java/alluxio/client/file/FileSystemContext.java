@@ -241,7 +241,7 @@ public final class FileSystemContext implements Closeable {
       bs.remoteAddress(address);
       NettyChannelPool pool = new NettyChannelPool(bs,
           Configuration.getInt(PropertyKey.USER_NETWORK_NETTY_CHANNEL_POOL_SIZE_MAX),
-          Configuration.getLong(PropertyKey.USER_NETWORK_NETTY_CHANNEL_POOL_GC_THRESHOLD_MS));
+          Configuration.getMs(PropertyKey.USER_NETWORK_NETTY_CHANNEL_POOL_GC_THRESHOLD_MS));
       if (mNettyChannelPools.putIfAbsent(address, pool) != null) {
         // This can happen if this function is called concurrently.
         pool.close();
