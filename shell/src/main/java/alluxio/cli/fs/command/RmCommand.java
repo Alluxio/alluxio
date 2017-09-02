@@ -52,7 +52,7 @@ public final class RmCommand extends WithWildCardPathCommand {
       Option.builder("alluxioOnly")
           .required(false)
           .hasArg(false)
-          .desc("remove data and metadata from Alluxio space only,")
+          .desc("remove data and metadata from Alluxio space only")
           .build();
 
   /**
@@ -102,7 +102,7 @@ public final class RmCommand extends WithWildCardPathCommand {
     if (!isAlluxioOnly) {
       System.out.println(path + " has been removed");
     } else {
-      System.out.println(path + " has been removed from Alluxio space,");
+      System.out.println(path + " has been removed from Alluxio space");
     }
   }
 
@@ -115,7 +115,7 @@ public final class RmCommand extends WithWildCardPathCommand {
   public String getDescription() {
     return "Removes the specified file. Specify -R to remove file or directory recursively."
         + " Specify -U to remove directories without checking UFS contents are in sync."
-        + " Specify -alluxioOnly to remove data and metadata from alluxio space only.;
+        + " Specify -alluxioOnly to remove data and metadata from alluxio space only.";
   }
 
   @Override
