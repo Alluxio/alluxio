@@ -44,16 +44,18 @@ to use v2 S3 signatures. To use GET Bucket (List Objects) Version 1 specify
 ### Option 2: Swift Interface
 Modify `conf/alluxio-site.properties` to include:
 
-{% include Configuring-Alluxio-with-Swift/underfs-address.md %}
-
-Where `<swift-container>` is an existing Swift container.
-
-The following configuration should be provided in the `conf/alluxio-site.properties`
-
-{% include Configuring-Alluxio-with-Swift/several-configurations.md %}
-
-Possible values of `<swift-use-public>` are `true`, `false`. Specify `<swift-auth-model>` as
-`swiftauth` if using native Ceph RGW authentication and `<swift-auth-url>` as `http://<rgw-hostname>:8090/auth/1.0`.
+```properties
+alluxio.underfs.address=swift://<swift-container>
+fs.swift.user=<swift-user>
+fs.swift.tenant=<swift-tenant>
+fs.swift.password=<swift-user-password>
+fs.swift.auth.url=<swift-auth-url>
+fs.swift.use.public.url=<swift-use-public>
+fs.swift.auth.method=<swift-auth-model>
+```
+Replace `<swift-container>` is an existing Swift container. Possible values of `<swift-use-public>` are `true`,
+`false`. Specify `<swift-auth-model>` as `swiftauth` if using native Ceph RGW authentication and `<swift-auth-url>`
+as `http://<rgw-hostname>:<rgw-port>/auth/1.0`.
 
 Alternatively, these configuration settings can be set in the `conf/alluxio-env.sh` file. More
 details about setting configuration parameters can be found in
@@ -63,27 +65,38 @@ details about setting configuration parameters can be found in
 
 After everything is configured, you can start up Alluxio locally to see that everything works.
 
-{% include Common-Commands/start-alluxio.md %}
+```bash
+$ ./bin/alluxio format
+$ ./bin/alluxio-start.sh local
+```
 
 This should start an Alluxio master and an Alluxio worker. You can see the master UI at
 [http://localhost:19999](http://localhost:19999).
 
 Next, you can run a simple example program:
 
-{% include Common-Commands/runTests.md %}
+```bash
+$ ./bin/alluxio runTests
+```
 
 After this succeeds, you can visit your bucket/container to verify the files and directories created
 by Alluxio exist.
 
 If using the S3A connector, you should see files named like:
-{% include Configuring-Alluxio-with-S3/s3-file.md %}
+```
+<S3_BUCKET>/<S3_DIRECTORY>/alluxio/data/default_tests_files/Basic_CACHE_THROUGH
+```
 
 If using the Swift connector, you should see files named like:
-{% include Configuring-Alluxio-with-Swift/swift-files.md %}
+```
+<SWIFT CONTAINER>/alluxio/data/default_tests_files/Basic_CACHE_THROUGH
+```
 
 To stop Alluxio, you can run:
 
-{% include Common-Commands/stop-alluxio.md %}
+```bash
+$ ./bin/alluxio-stop.sh local
+```
 
 ## Access Control
 
