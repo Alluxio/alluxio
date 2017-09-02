@@ -35,7 +35,14 @@ $ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 
 Modify `conf/alluxio-site.properties` to include:
 
-{% include Configuring-Alluxio-with-Ceph/underfs-s3a.md %}
+```properties
+alluxio.underfs.address=s3a://<bucket>/<folder>
+aws.accessKeyId=<access-key>
+aws.secretKey=<secret-key>
+alluxio.underfs.s3.endpoint=http://<rgw-hostname>:<rgw-port>
+alluxio.underfs.s3.disable.dns.buckets=true
+alluxio.underfs.s3a.inherit_acl=<inherit-acl>
+```
 
 If using a Ceph release such as hammer (or older) specify `alluxio.underfs.s3a.signer.algorithm=S3SignerType`
 to use v2 S3 signatures. To use GET Bucket (List Objects) Version 1 specify
@@ -45,7 +52,7 @@ to use v2 S3 signatures. To use GET Bucket (List Objects) Version 1 specify
 Modify `conf/alluxio-site.properties` to include:
 
 ```properties
-alluxio.underfs.address=swift://<swift-container>
+alluxio.underfs.address=swift://<container>/<folder>
 fs.swift.user=<swift-user>
 fs.swift.tenant=<swift-tenant>
 fs.swift.password=<swift-user-password>
@@ -53,8 +60,8 @@ fs.swift.auth.url=<swift-auth-url>
 fs.swift.use.public.url=<swift-use-public>
 fs.swift.auth.method=<swift-auth-model>
 ```
-Replace `<swift-container>` is an existing Swift container. Possible values of `<swift-use-public>` are `true`,
-`false`. Specify `<swift-auth-model>` as `swiftauth` if using native Ceph RGW authentication and `<swift-auth-url>`
+Replace `<container>/<folder>` with an existing Swift container location. Possible values of `<swift-use-public>` are
+`true`, `false`. Specify `<swift-auth-model>` as `swiftauth` if using native Ceph RGW authentication and `<swift-auth-url>`
 as `http://<rgw-hostname>:<rgw-port>/auth/1.0`.
 
 Alternatively, these configuration settings can be set in the `conf/alluxio-env.sh` file. More
@@ -84,12 +91,12 @@ by Alluxio exist.
 
 If using the S3A connector, you should see files named like:
 ```
-<S3_BUCKET>/<S3_DIRECTORY>/alluxio/data/default_tests_files/Basic_CACHE_THROUGH
+<S3_BUCKET>/<S3_DIRECTORY>/default_tests_files/Basic_CACHE_THROUGH
 ```
 
 If using the Swift connector, you should see files named like:
 ```
-<SWIFT CONTAINER>/alluxio/data/default_tests_files/Basic_CACHE_THROUGH
+<SWIFT_CONTAINER>/<SWIFT_FOLDER>/default_tests_files/Basic_CACHE_THROUGH
 ```
 
 To stop Alluxio, you can run:
