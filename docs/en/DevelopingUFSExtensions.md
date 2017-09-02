@@ -11,9 +11,9 @@ This page is intended for developers of under storage extensions. Please look at
 extensions](UFSExtensions.html) for a guide to using existing extensions.
 
 Under storage extensions are built as JARs and included at a specific extensions location to be
-picked up by core Alluxio. This page describes the internals of how extensions in Alluxio work, and
+picked up by core Alluxio. This page describes the mechanics of how extensions in Alluxio work, and
 provides detailed instructions for developing an under storage extension. Extensions provide a
-framework to enable more under storages to work with Alluxio and makes it easy for developers to
+framework to enable more under storages to work with Alluxio and makes it convenient for developers to
 contribute packages.
 
 # How it Works
@@ -21,19 +21,18 @@ contribute packages.
 ## Service Discovery
 
 Extension JARs are loaded dynamically at runtime by Alluxio servers, which enables Alluxio to talk
-to new under storage systems. Alluxio servers use Java
+to new under storage systems without requiring a restart. Alluxio servers use Java
 [ServiceLoader](https://docs.oracle.com/javase/7/docs/api/java/util/ServiceLoader.html) to discover
-implementations of the under storage API. Specifically providers include implementations of the
+implementations of the under storage API. Providers include implementations of the
 `alluxio.underfs.UnderFileSystemFactory` interface. The implementation is advertised by including a
 text file in `META_INF/services` with a single line pointing to the class implementing the said
 interface.
 
 ## Dependency Management
 
-Implementors are required to include transitive dependencies of the extension in the built JAR. To
-avoid dependency conflicts from including dependencies of an extension project on the server
-classpath, the ServiceLoader in Alluxio uses a custom (per-extension)
-[ClassLoader](https://docs.oracle.com/javase/7/docs/api/java/lang/ClassLoader.html) for isolation.
+Implementors are required to include transitive dependencies in their extension JARs. Alluxio performs
+isolated classloading for each extension JARs to avoid dependency conflicts between Alluxio servers and
+extensions.
 
 # Implementing an Under Storage Extension
 
@@ -78,12 +77,19 @@ public class DummyUnderFileSystem extends ObjectUnderFileSystem {
 
 Step 2: Implement the interface `UnderFileSystemFactory`
 
-The under storage factory determines when an interface of the implemented `UnderFileSystem` is
-instantiated.
+The under storage factory determines defines which paths the `UnderFileSystem` implementation
+supports, and how to create the `UnderFileSystem` implementation.
 
 ```java
 public class DummyUnderFileSystemFactory implements UnderFileSystemFactory {
 	...
+
+        @Override
+        public UnderFileSystem create(String path, UnderFileSystemConfiguration conf) {
+                // Create the under storage instance
+        }
+
+        @Override
 	public boolean supportsPath(String path) {
 		// Choose which schemes to support, e.g., dummy://
 	}
