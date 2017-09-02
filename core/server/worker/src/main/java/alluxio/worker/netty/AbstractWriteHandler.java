@@ -61,6 +61,9 @@ import javax.annotation.concurrent.NotThreadSafe;
  *    an exception. When one of these 3 happens, a special packet is pushed to the buffer.
  * 2. The packet writer thread keeps polling packets from the buffer and processes them.
  *    NOTE: it is guaranteed that there is only one packet writer thread active at a given time.
+ * 3. Once a complete or cancel response is sent, there is no guarantee if the context instance
+ *    is represents the next arriving packet. Therefore, no further modification after response
+ *    is sent.
  *
  * @param <T> type of write request
  */
@@ -121,17 +124,16 @@ abstract class AbstractWriteHandler<T extends WriteRequestContext<?>>
     Protocol.WriteRequest writeRequest = msg.getMessage().asWriteRequest();
 
     try (LockResource lr = new LockResource(mLock)) {
-      boolean isPreviousContextNull = mContext == null;
-      if (isPreviousContextNull || mContext.isDoneUnsafe()) {
-        // When the previous request completes or failed, we reset the context to null. However,
-        // it is possible that setting context to null happens after the response sent and new
-        // request arrives here. As a result, we conclude the previous request completes by either
-        // the context is null, or the done flag is true. And in this case, create a new one as
+      boolean isNewContextCreated = false;
+      if (mContext == null || mContext.isDoneUnsafe()) {
+        // We create a new context if the previous request completes (done flat is true) or the
+        // context is still null (an empty channel so far). And in this case, we create a new one as
         // catching exceptions and replying errors
         // leverages data structures in context, regardless of the request is valid or not.
         // TODO(binfan): remove the dependency on an instantiated request context which is required
         // to reply errors to client side.
         mContext = createRequestContext(writeRequest);
+        isNewContextCreated = true;
       }
       // Only initialize (open the writers) if this is the first packet in the block/file.
       if (writeRequest.getOffset() == 0) {
@@ -139,7 +141,7 @@ abstract class AbstractWriteHandler<T extends WriteRequestContext<?>>
         // context is not active (done / cancel / abort). Otherwise, notify the client an illegal
         // state. Note that, we reset the context before validation msg as validation may require to
         // update error in context.
-        Preconditions.checkState(isPreviousContextNull || mContext.isDoneUnsafe());
+        Preconditions.checkState(isNewContextCreated);
         initRequestContext(mContext);
       }
 
@@ -300,8 +302,6 @@ abstract class AbstractWriteHandler<T extends WriteRequestContext<?>>
           replyError();
         } catch (Exception e) {
           LOG.warn("Failed to cleanup states with error {}.", e.getMessage());
-        } finally {
-          reset();
         }
       } else if (cancel || eof) {
         try {
@@ -316,8 +316,6 @@ abstract class AbstractWriteHandler<T extends WriteRequestContext<?>>
           Throwables.propagateIfPossible(e);
           pushAbortPacket(mChannel,
               new Error(AlluxioStatusException.fromCheckedException(e), true));
-        } finally {
-          reset();
         }
       }
     }
@@ -389,15 +387,6 @@ abstract class AbstractWriteHandler<T extends WriteRequestContext<?>>
         mChannel.writeAndFlush(RPCProtoMessage.createResponse(error.getCause()))
             .addListener(ChannelFutureListener.CLOSE);
       }
-    }
-  }
-
-  /**
-   * Resets all the states.
-   */
-  private void reset() {
-    try (LockResource lr = new LockResource(mLock)) {
-      mContext = null;
     }
   }
 
