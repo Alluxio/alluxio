@@ -28,26 +28,27 @@ template.
 $ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 ```
 
-You need to configure Alluxio to use Swift as its under storage system by modifying
-`conf/alluxio-site.properties`. Modify `conf/alluxio-site.properties` to include:
+Modify `conf/alluxio-site.properties` to include:
 
-{% include Configuring-Alluxio-with-Swift/underfs-address.md %}
+```properties
+alluxio.underfs.address=swift://<swift-container>
+fs.swift.user=<swift-user>
+fs.swift.tenant=<swift-tenant>
+fs.swift.password=<swift-user-password>
+fs.swift.auth.url=<swift-auth-url>
+fs.swift.use.public.url=<swift-use-public>
+fs.swift.auth.method=<swift-auth-model>
+```
 
-Where `<swift-container>` is an existing Swift container.
+Replace `<swift-container>` with an existing Swift container. Possible values of `<swift-use-public>`
+are `true`, `false`. Possible values of `<swift-auth-model>` are `keystonev3`, `keystone`, `tempauth`,
+`swiftauth`. 
 
-The following configuration should be provided in the `conf/alluxio-site.properties`
+When using either keystone authentication, the following parameter can optionally be set:
 
-{% include Configuring-Alluxio-with-Swift/several-configurations.md %}
-
-Possible values of `<swift-use-public>` are `true`, `false`. Possible values of `<swift-auth-model>`
-are `keystonev3`, `keystone`, `tempauth`, `swiftauth`. When using either keystone authentication, the following
-parameter can optionally be set
-
-{% include Configuring-Alluxio-with-Swift/keystone-region-configuration.md %}
-
-Alternatively, these configuration settings can be set in the `conf/alluxio-env.sh` file. More
-details about setting configuration parameters can be found in
-[Configuration Settings](Configuration-Settings.html#environment-variables).
+```properties
+fs.swift.region=<swift-preferred-region>
+```
 
 On the successful authentication, Keystone will return two access URLs: public and private. If
 Alluxio is used inside company network and Swift is located on the same network it is adviced to set
@@ -59,7 +60,7 @@ Using the Swift module makes [Ceph Object Storage](https://ceph.com/ceph-storage
 
 ## Running Alluxio Locally with Swift
 
-After everything is configured, you can start up Alluxio locally to see that everything works.
+After configuration, you can start an Alluxio cluster:
 
 {% include Common-Commands/start-alluxio.md %}
 
@@ -73,7 +74,9 @@ Next, you can run a simple example program:
 After this succeeds, you can visit your Swift container to verify the files and directories created
 by Alluxio exist. For this test, you should see files named like:
 
-{% include Configuring-Alluxio-with-Swift/swift-files.md %}
+```bash
+$ ./bin/alluxio runTests
+```
 
 To stop Alluxio, you can run:
 
@@ -81,14 +84,9 @@ To stop Alluxio, you can run:
 
 ## Running functional tests
 
-Configure your Swift account credentials under `swiftTest` in `tests/pom.xml`, where `authMethodKey` should be
-`keystone` or `tempauth` or `swiftauth`. To run functional tests execute
-
-{% include Configuring-Alluxio-with-Swift/functional-tests.md %}
-
-In case of failures, logs located under `tests/target/logs`. You may also activate heap dump via
-
-{% include Configuring-Alluxio-with-Swift/heap-dump.md %}
+```bash
+mvn test -DtestSwiftContainerKey=swift://<container>
+```
 
 ## Swift Access Control
 
