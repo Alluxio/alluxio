@@ -61,9 +61,9 @@ import javax.annotation.concurrent.NotThreadSafe;
  *    an exception. When one of these 3 happens, a special packet is pushed to the buffer.
  * 2. The packet writer thread keeps polling packets from the buffer and processes them.
  *    NOTE: it is guaranteed that there is only one packet writer thread active at a given time.
- * 3. Once a complete or cancel response is sent, there is no guarantee if the context instance
- *    is represents the next arriving packet. Therefore, no further modification after response
- *    is sent.
+ * 3. Once a complete or cancel response is sent, there is no guarantee that the context instance
+ *    still represents the acked packet or a new packet. Therefore, we should make no further
+ *    modification on a context after the response is sent.
  *
  * @param <T> type of write request
  */
@@ -126,7 +126,7 @@ abstract class AbstractWriteHandler<T extends WriteRequestContext<?>>
     try (LockResource lr = new LockResource(mLock)) {
       boolean isNewContextCreated = false;
       if (mContext == null || mContext.isDoneUnsafe()) {
-        // We create a new context if the previous request completes (done flat is true) or the
+        // We create a new context if the previous request completes (done flag is true) or the
         // context is still null (an empty channel so far). And in this case, we create a new one as
         // catching exceptions and replying errors
         // leverages data structures in context, regardless of the request is valid or not.
