@@ -75,7 +75,7 @@ After this succeeds, you can visit your Swift container to verify the files and 
 by Alluxio exist. For this test, you should see files named like:
 
 ```bash
-$ ./bin/alluxio runTests
+swift://<SWIFT CONTAINER>/alluxio/data/default_tests_files/Basic_CACHE_THROUGH
 ```
 
 To stop Alluxio, you can run:
