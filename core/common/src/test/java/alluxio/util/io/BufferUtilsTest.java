@@ -16,7 +16,7 @@ import org.junit.Test;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -132,7 +132,7 @@ public final class BufferUtilsTest {
       }
     }
 
-    LinkedList<TestCase> testCases = new LinkedList<>();
+    ArrayList<TestCase> testCases = new ArrayList<>();
     testCases.add(new TestCase((byte) 0x00, 0x00));
     testCases.add(new TestCase((byte) 0x12, 0x12));
     testCases.add(new TestCase((byte) 0x34, 0x1234));
@@ -163,7 +163,7 @@ public final class BufferUtilsTest {
       }
     }
 
-    LinkedList<TestCase> testCases = new LinkedList<>();
+    ArrayList<TestCase> testCases = new ArrayList<>();
     testCases.add(new TestCase(new byte[] {}, 0, 0));
     testCases.add(new TestCase(new byte[] {}, 0, 3));
     testCases.add(new TestCase(new byte[] {0}, 1, 0));
@@ -199,7 +199,7 @@ public final class BufferUtilsTest {
       }
     }
 
-    LinkedList<TestCase> testCases = new LinkedList<>();
+    ArrayList<TestCase> testCases = new ArrayList<>();
     testCases.add(new TestCase(false, null, 0, 0));
     testCases.add(new TestCase(true, new byte[] {}, 0, 0));
     testCases.add(new TestCase(false, new byte[] {1}, 0, 0));
@@ -240,7 +240,7 @@ public final class BufferUtilsTest {
       }
     }
 
-    LinkedList<TestCase> testCases = new LinkedList<>();
+    ArrayList<TestCase> testCases = new ArrayList<>();
     testCases.add(new TestCase(ByteBuffer.wrap(new byte[] {}), 0, 0));
     testCases.add(new TestCase(ByteBuffer.wrap(new byte[] {}), 0, 3));
     testCases.add(new TestCase(ByteBuffer.wrap(new byte[] {0}), 1, 0));
@@ -276,7 +276,7 @@ public final class BufferUtilsTest {
       }
     }
 
-    LinkedList<TestCase> testCases = new LinkedList<>();
+    ArrayList<TestCase> testCases = new ArrayList<>();
     testCases.add(new TestCase(false, null, 0, 0));
     testCases.add(new TestCase(true, ByteBuffer.wrap(new byte[] {}), 0, 0));
     testCases.add(new TestCase(false, ByteBuffer.wrap(new byte[] {1}), 0, 0));

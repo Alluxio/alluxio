@@ -86,7 +86,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
@@ -363,7 +363,7 @@ public final class FileSystemMasterTest {
     mFileSystemMaster.delete(new AlluxioURI(MOUNT_URI).join(DIR_TOP_LEVEL),
         DeleteOptions.defaults().setRecursive(true).setAlluxioOnly(false).setUnchecked(false));
     // Check all that could be deleted.
-    List<AlluxioURI> except = new LinkedList<>();
+    List<AlluxioURI> except = new ArrayList<>();
     except.add(new AlluxioURI(MOUNT_URI).join(DIR_TOP_LEVEL));
     checkPersistedDirectoriesDeleted(1, ufsMount, except);
   }
@@ -403,7 +403,7 @@ public final class FileSystemMasterTest {
     mFileSystemMaster.delete(new AlluxioURI(MOUNT_URI).join(DIR_TOP_LEVEL),
         DeleteOptions.defaults().setRecursive(true).setAlluxioOnly(false).setUnchecked(false));
     // Check all that could be deleted.
-    List<AlluxioURI> except = new LinkedList<>();
+    List<AlluxioURI> except = new ArrayList<>();
     except.add(new AlluxioURI(MOUNT_URI).join(DIR_TOP_LEVEL));
     except.add(new AlluxioURI(MOUNT_URI).join(DIR_TOP_LEVEL).join(DIR_PREFIX + 0));
     checkPersistedDirectoriesDeleted(3, ufsMount, except);

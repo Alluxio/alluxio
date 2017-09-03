@@ -36,7 +36,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
@@ -293,7 +292,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
     public DeleteBuffer() {
       mBatches = new ArrayList<>();
       mBatchesResult = new ArrayList<>();
-      mCurrentBatchBuffer = new LinkedList<>();
+      mCurrentBatchBuffer = new ArrayList<>();
       mEntriesAdded = 0;
     }
 
@@ -321,7 +320,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
      */
     public List<String> getResult() throws IOException {
       submitBatch();
-      LinkedList<String> result = new LinkedList<>();
+      List<String> result = new ArrayList<>();
       for (Future<List<String>> list : mBatchesResult) {
         try {
           result.addAll(list.get());
@@ -345,7 +344,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
     private void submitBatch() throws IOException {
       if (mCurrentBatchBuffer.size() != 0) {
         int batchNumber = mBatches.size();
-        mBatches.add(new LinkedList<>(mCurrentBatchBuffer));
+        mBatches.add(new ArrayList<>(mCurrentBatchBuffer));
         mCurrentBatchBuffer.clear();
         mBatchesResult.add(batchNumber,
             mExecutorService.submit(new DeleteThread(mBatches.get(batchNumber))));
@@ -619,7 +618,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
    * @return list of successfully deleted keys
    */
   protected List<String> deleteObjects(List<String> keys) throws IOException {
-    List<String> result = new LinkedList<>();
+    List<String> result = new ArrayList<>();
     for (String key : keys) {
       boolean status = deleteObject(key);
       // If key is a directory, it is possible that it was not created through Alluxio and no

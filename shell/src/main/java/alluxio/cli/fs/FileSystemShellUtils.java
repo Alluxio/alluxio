@@ -28,7 +28,7 @@ import com.google.common.collect.Lists;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
@@ -125,7 +125,7 @@ public final class FileSystemShellUtils {
    */
   private static List<AlluxioURI> getAlluxioURIs(FileSystem alluxioClient, AlluxioURI inputURI,
       AlluxioURI parentDir) throws IOException {
-    List<AlluxioURI> res = new LinkedList<>();
+    List<AlluxioURI> res = new ArrayList<>();
     List<URIStatus> statuses;
     try {
       statuses = alluxioClient.listStatus(parentDir);
@@ -162,7 +162,7 @@ public final class FileSystemShellUtils {
   public static List<File> getFiles(String inputPath) {
     File file = new File(inputPath);
     if (!inputPath.contains("*")) {
-      List<File> res = new LinkedList<>();
+      List<File> res = new ArrayList<>();
       if (file.exists()) {
         res.add(file);
       }
@@ -184,7 +184,7 @@ public final class FileSystemShellUtils {
    * @return a list of files that matches the input path in the parent directory
    */
   private static List<File> getFiles(String inputPath, String parent) {
-    List<File> res = new LinkedList<>();
+    List<File> res = new ArrayList<>();
     File pFile = new File(parent);
     if (!pFile.exists() || !pFile.isDirectory()) {
       return res;

@@ -36,7 +36,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -90,7 +90,7 @@ public class FileOutStream extends AbstractOutStream {
     mOptions = options;
     mContext = context;
     mBlockStore = AlluxioBlockStore.create(mContext);
-    mPreviousBlockOutStreams = new LinkedList<>();
+    mPreviousBlockOutStreams = new ArrayList<>();
     mClosed = false;
     mCanceled = false;
     mShouldCacheCurrentBlock = mAlluxioStorageType.isStore();
