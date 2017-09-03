@@ -97,6 +97,12 @@ The difference is that Hive will manage the lifecycle of internal tables.
 When you drop an internal table, Hive deletes both the table metadata and the data file from
 Alluxio.
 
+Now you can query the created table. For example:
+
+```
+hive> select * from u_user;
+```
+
 ### Use Alluxio for Existing Tables Stored in HDFS
 
 When Hive is already serving and managing the tables stored in HDFS,
