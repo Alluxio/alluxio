@@ -1288,7 +1288,9 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         auditContext.setAllowed(false);
         throw e;
       }
-      mMountTable.checkUnderWritableMountPoint(path);
+      if (!options.isAlluxioOnly()) {
+        mMountTable.checkUnderWritableMountPoint(path);
+      }
       deletedInodes = deleteAndJournal(inodePath, options, journalContext);
       auditContext.setSucceeded(true);
     }

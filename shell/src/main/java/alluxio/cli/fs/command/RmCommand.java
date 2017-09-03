@@ -43,10 +43,17 @@ public final class RmCommand extends WithWildCardPathCommand {
   private static final String REMOVE_UNCHECKED_OPTION_CHAR = "U";
   private static final Option REMOVE_UNCHECKED_OPTION =
       Option.builder(REMOVE_UNCHECKED_OPTION_CHAR)
-            .required(false)
-            .hasArg(false)
-            .desc("remove directories without checking UFS contents are in sync")
-            .build();
+          .required(false)
+          .hasArg(false)
+          .desc("remove directories without checking UFS contents are in sync")
+          .build();
+
+  private static final Option REMOVE_ALLUXIO_ONLY =
+      Option.builder("alluxioOnly")
+          .required(false)
+          .hasArg(false)
+          .desc("remove data and metadata from Alluxio space only")
+          .build();
 
   /**
    * @param fs the filesystem of Alluxio
@@ -67,7 +74,10 @@ public final class RmCommand extends WithWildCardPathCommand {
 
   @Override
   public Options getOptions() {
-    return new Options().addOption(RECURSIVE_OPTION).addOption(REMOVE_UNCHECKED_OPTION);
+    return new Options()
+        .addOption(RECURSIVE_OPTION)
+        .addOption(REMOVE_UNCHECKED_OPTION)
+        .addOption(REMOVE_ALLUXIO_ONLY);
   }
 
   @Override
@@ -86,18 +96,26 @@ public final class RmCommand extends WithWildCardPathCommand {
     if (cl.hasOption(REMOVE_UNCHECKED_OPTION_CHAR)) {
       options.setUnchecked(true);
     }
+    boolean isAlluxioOnly = cl.hasOption(REMOVE_ALLUXIO_ONLY.getOpt());
+    options.setAlluxioOnly(isAlluxioOnly);
     mFileSystem.delete(path, options);
-    System.out.println(path + " has been removed");
+    if (!isAlluxioOnly) {
+      System.out.println(path + " has been removed");
+    } else {
+      System.out.println(path + " has been removed from Alluxio space");
+    }
   }
 
   @Override
   public String getUsage() {
-    return "rm [-R] <path>";
+    return "rm [-R] [-U] [-alluxioOnly] <path>";
   }
 
   @Override
   public String getDescription() {
-    return "Removes the specified file. Specify -R to remove file or directory recursively.";
+    return "Removes the specified file. Specify -R to remove file or directory recursively."
+        + " Specify -U to remove directories without checking UFS contents are in sync."
+        + " Specify -alluxioOnly to remove data and metadata from alluxio space only.";
   }
 
   @Override
