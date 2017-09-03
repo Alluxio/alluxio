@@ -80,11 +80,11 @@ Worker配置项指定worker节点的信息，例如地址和端口号。
 
 <table class="table table-striped">
 <tr><th>属性名</th><th>默认值</th><th>描述</th></tr>
-{% for item in site.data.table.cluster-management %}
+{% for item in site.data.table.cluster-management-configuration %}
   <tr>
     <td>{{ item.propertyName }}</td>
     <td>{{ item.defaultValue }}</td>
-    <td>{{ site.data.table.cn.cluster-management[item.propertyName] }}</td>
+    <td>{{ site.data.table.cn.cluster-management-configuration[item.propertyName] }}</td>
   </tr>
 {% endfor %}
 </table>
