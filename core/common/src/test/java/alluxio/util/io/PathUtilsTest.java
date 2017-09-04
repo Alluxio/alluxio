@@ -20,7 +20,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
-import java.util.LinkedList;
+import java.util.ArrayList;
 
 /**
  * Tests for the {@link PathUtils} class.
@@ -316,7 +316,7 @@ public final class PathUtilsTest {
     PathUtils.validatePath("/foo/../bar/");
 
     // check invalid paths
-    LinkedList<String> invalidPaths = new LinkedList<>();
+    ArrayList<String> invalidPaths = new ArrayList<>();
     invalidPaths.add(null);
     invalidPaths.add("");
     invalidPaths.add(" /");

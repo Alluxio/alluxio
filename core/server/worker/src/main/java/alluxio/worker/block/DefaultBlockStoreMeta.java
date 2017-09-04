@@ -20,7 +20,7 @@ import com.google.common.base.Preconditions;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -83,7 +83,7 @@ public final class DefaultBlockStoreMeta implements BlockStoreMeta {
     for (Pair<String, String> tierPath : mCapacityBytesOnDirs.keySet()) {
       String tier = tierPath.getFirst();
       if (pathsOnTiers.get(tier) == null) {
-        pathsOnTiers.put(tier, new LinkedList<String>());
+        pathsOnTiers.put(tier, new ArrayList<String>());
       }
       pathsOnTiers.get(tier).add(tierPath.getSecond());
     }

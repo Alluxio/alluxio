@@ -11,17 +11,17 @@ priority: 1
 
 ## Alluxio的应用场景
 
-由于Alluxio的设计以内存为中心，并且是数据访问的中心，所以Alluxio在大数据生态圈里占有独特地位，它居于大数据存储（如：Amazon S3，Apache HDFS和OpenStack 
-Swift等和大数据计算框架（如Spark，Hadoop Mapreduce）之间。对于用户应用和计算框架，无论其是否运行在相同的计算引擎之上，Alluxio都可以作为底层来支持数据的
+Alluxio在大数据生态圈里占有独特地位，它居于大数据存储（如：Amazon S3，Apache HDFS和OpenStack 
+Swift等和大数据计算框架（如Spark，Hadoop Mapreduce）之间，并且以内存为中心的设计作为数据访问的中心。对于用户应用和计算框架，无论其是否运行在相同的计算引擎之上，Alluxio都可以作为底层来支持数据的
 访问、快速存储，以及多任务的数据共享和本地化。因此，Alluxio可以为那些大数据应用提供一个数量级的加速，同时它还提供了通用的数据访问接口。对于底层存储系统，
-Alluxio连接了大数据应用和传统存储系统之间的间隔，并且重新定义了一组面向数据使用的工作负载程序。因Alluxio对应用屏蔽了底层存储系统的整合细节，所以任何底层
+Alluxio连接了大数据应用和传统存储系统之间的间隔，并且扩展了一组面向数据使用的工作负载程序。因Alluxio对应用屏蔽了底层存储系统的整合细节，所以任何底层
 存储系统都可以支撑运行在Alluxio之上的应用和框架。此外Alluxio可以挂载多种底层存储系统，所以它可以作为统一层为任意数量的不同数据源提供服务。
 
 ![Stack]({{site.data.img.stack}})
 
 ## Alluxio的组件
 
-Alluxio的设计使用了单Master和多Worker的架构。从高层的概念理解，Alluxio可以被分为三个部分，[Master](#Master)，[Worker](#Worker)和[Client](#Client)。
+Alluxio的设计使用了单个主Master和多Worker的架构。从高层的概念理解，Alluxio可以被分为三个部分，[Master](#Master)，[Worker](#Worker)和[Client](#Client)。
 Master和Worker一起组成了Alluxio的服务端，它们是系统管理员维护和管理的组件。Client通常是应用程序，如Spark或MapReduce作业，或者Alluxio的命令行用户。
 Alluxio用户一般只与Alluxio的Client组件进行交互。
 
