@@ -11,7 +11,7 @@ priority: 1
 
 Alluxio安全性目前有两个特性，该文档介绍它们的概念以及用法。
 
-1. [安全认证](#authentication)：在启用安全认证的情况下，Alluxio文件系统能够识别确认访问用户的身份，这是访问权限以及加密等其他安全特性的基础。
+1. [安全认证](#authentication)：在启用安全认证的情况下，Alluxio文件系统能够识别确认访问用户的身份，这是访问权限等其他安全特性的基础。
 2. [访问权限控制](#authorization)：在启用访问权限控制的情况下，Alluxio文件系统能够控制用户的访问，Alluxio使用POSIX标准的授权模型赋予用户相应访问权限。
 
 默认情况下，Alluxio会以SIMPLE安全模式启动并要求一个简单的认证。
@@ -41,8 +41,8 @@ Authorization Service)确认执行任务的用户的身份。
 
 ### NOSASL
 
-禁用安全认证，Alluxio文件系统行为和之前一致。
-SASL (Simple Authentication and Security Layer)是一个定义客户端和服务端应用之间安全认证的框架，该框架被Alluxio使用以实现安全认证，因此NOSASL表示禁用。
+禁用安全认证。
+SASL (Simple Authentication and Security Layer)是一个定义客户端和服务端应用之间安全认证的框架，该框架被Alluxio使用以实现安全认证，因此NOSASL表示禁用并且Alluxio文件系统行为和之前一致。
 
 ### SIMPLE
 
