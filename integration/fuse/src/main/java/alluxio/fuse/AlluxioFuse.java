@@ -141,7 +141,7 @@ public final class AlluxioFuse {
       // check if the user has specified his own max_write, otherwise get it
       // from conf
       if (noUserMaxWrite) {
-        final long maxWrite = Configuration.getLong(PropertyKey.FUSE_MAXWRITE_BYTES);
+        final long maxWrite = Configuration.getBytes(PropertyKey.FUSE_MAXWRITE_BYTES);
         fuseOpts.add(String.format("-omax_write=%d", maxWrite));
       }
 

@@ -113,6 +113,36 @@ public abstract class WriteHandlerTest {
   }
 
   @Test
+  public void writeTwoRequests() throws Exception {
+    // Send first request
+    mChannel.writeInbound(newWriteRequest(0, newDataBuffer(PACKET_SIZE)));
+    mChannel.writeInbound(newEofRequest(PACKET_SIZE));
+    // Wait the first packet to finish
+    Object writeResponse = waitForResponse(mChannel);
+    checkWriteResponse(PStatus.OK, writeResponse);
+    // Send second request
+    mChannel.writeInbound(newWriteRequest(0, newDataBuffer(PACKET_SIZE + 1)));
+    mChannel.writeInbound(newEofRequest(PACKET_SIZE + 1));
+    writeResponse = waitForResponse(mChannel);
+    checkWriteResponse(PStatus.OK, writeResponse);
+  }
+
+  @Test
+  public void writeCancelAndRequests() throws Exception {
+    // Send first request
+    mChannel.writeInbound(newWriteRequest(0, newDataBuffer(PACKET_SIZE)));
+    mChannel.writeInbound(newCancelRequest(PACKET_SIZE));
+    // Wait the first packet to finish
+    Object writeResponse = waitForResponse(mChannel);
+    checkWriteResponse(PStatus.CANCELED, writeResponse);
+    // Send second request
+    mChannel.writeInbound(newWriteRequest(0, newDataBuffer(PACKET_SIZE + 1)));
+    mChannel.writeInbound(newEofRequest(PACKET_SIZE + 1));
+    writeResponse = waitForResponse(mChannel);
+    checkWriteResponse(PStatus.OK, writeResponse);
+  }
+
+  @Test
   public void UnregisteredChannelFired() throws Exception {
     ChannelPipeline p = mChannel.pipeline();
     p.fireChannelUnregistered();
