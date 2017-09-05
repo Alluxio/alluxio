@@ -373,12 +373,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Name.UNDERFS_S3_PROXY_HOST)
           .setDescription("Optionally, specify a proxy host for communicating with S3.")
           .build();
-  public static final PropertyKey UNDERFS_S3_PROXY_HTTPS_ONLY =
-      new Builder(Name.UNDERFS_S3_PROXY_HTTPS_ONLY)
-          .setDefaultValue(true)
-          .setDescription("If using a proxy to communicate with S3, determine whether to talk "
-              + "to the proxy using https.")
-          .build();
   public static final PropertyKey UNDERFS_S3_PROXY_PORT =
       new Builder(Name.UNDERFS_S3_PROXY_PORT)
           .setDescription("Optionally, specify a proxy port for communicating with S3.")
@@ -1964,7 +1958,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String UNDERFS_S3_OWNER_ID_TO_USERNAME_MAPPING =
         "alluxio.underfs.s3.owner.id.to.username.mapping";
     public static final String UNDERFS_S3_PROXY_HOST = "alluxio.underfs.s3.proxy.host";
-    public static final String UNDERFS_S3_PROXY_HTTPS_ONLY = "alluxio.underfs.s3.proxy.https.only";
     public static final String UNDERFS_S3_PROXY_PORT = "alluxio.underfs.s3.proxy.port";
     public static final String UNDERFS_S3_THREADS_MAX = "alluxio.underfs.s3.threads.max";
     public static final String UNDERFS_S3_UPLOAD_THREADS_MAX =
