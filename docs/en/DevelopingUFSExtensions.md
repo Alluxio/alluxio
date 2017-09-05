@@ -137,7 +137,7 @@ public final class DummyUnderFileSystemContractTest extends AbstractUnderFileSys
 } 
 ```
 
-Congratulations!. You have developed a new under storage extension to Alluxio. Let the community
+Congratulations! You have developed a new under storage extension to Alluxio. Let the community
 know by submitting a pull request to the Alluxio
 [repository](https://github.com/Alluxio/alluxio/tree/master/docs/en/UFSExtensions.md) to edit the
 list of extensions section on the [documentation page](UFSExtensions.html).
