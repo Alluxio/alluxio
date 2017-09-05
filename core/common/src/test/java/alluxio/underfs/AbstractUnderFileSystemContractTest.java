@@ -93,7 +93,7 @@ public abstract class AbstractUnderFileSystemContractTest {
   @Test
   public void createAtomic() throws IOException {
     String testFile = PathUtils.concatPath(mUnderfsAddress, "createAtomic");
-    OutputStream stream = mUfs.create(testFile);
+    OutputStream stream = mUfs.create(testFile, CreateOptions.defaults().setEnsureAtomic(true));
     stream.write(TEST_BYTES);
     Assert.assertFalse(mUfs.isFile(testFile));
     stream.close();
