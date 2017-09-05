@@ -25,7 +25,7 @@ Following is a list of under storage extension projects:
 # Managing Extensions
 
 Extension JARs are picked up from the extensions directory configured using the property
-`alluxio.extensions.dir` (default: `${alluxio-home}/extensions`). The extensions command line utlity
+`alluxio.extensions.dir` (default: `${alluxio-home}/extensions`). The extensions command line utility
 manages distribution of extension JARs across an Alluxio cluster. In environments where the CLI is
 not applicable (see limitations below), place the JAR in the extensions directory. For example, when
 running in containers, build a custom image with extension binaries in the appropriate location.
