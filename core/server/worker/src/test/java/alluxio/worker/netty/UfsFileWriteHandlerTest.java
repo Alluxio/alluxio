@@ -50,7 +50,8 @@ public final class UfsFileWriteHandlerTest extends WriteHandlerTest {
     UfsInfo ufsInfo = new UfsInfo(Suppliers.ofInstance(mockUfs), AlluxioURI.EMPTY_URI);
     Mockito.when(ufsManager.get(TEST_MOUNT_ID)).thenReturn(ufsInfo);
     Mockito.when(mockUfs.create(Mockito.anyString(), Mockito.any(CreateOptions.class)))
-        .thenReturn(mOutputStream);
+        .thenReturn(mOutputStream)
+        .thenReturn(new FileOutputStream(mFile, true));
     mChannel = new EmbeddedChannel(
         new UfsFileWriteHandler(NettyExecutors.FILE_WRITER_EXECUTOR, ufsManager));
   }
@@ -60,9 +61,6 @@ public final class UfsFileWriteHandlerTest extends WriteHandlerTest {
     mOutputStream.close();
   }
 
-  /**
-   * Tests write failure.
-   */
   @Test
   public void writeFailure() throws Exception {
     mChannel.writeInbound(newWriteRequest(0, newDataBuffer(PACKET_SIZE)));

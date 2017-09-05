@@ -48,7 +48,8 @@ public final class BlockWriteHandlerTest extends WriteHandlerTest {
     Mockito.doNothing().when(mBlockWorker).commitBlock(Mockito.anyLong(), Mockito.anyLong());
     mBlockWriter = new LocalFileBlockWriter(mFile.getPath());
     Mockito.when(mBlockWorker.getTempBlockWriterRemote(Mockito.anyLong(), Mockito.anyLong()))
-        .thenReturn(mBlockWriter);
+        .thenReturn(mBlockWriter)
+        .thenReturn(new LocalFileBlockWriter(mTestFolder.newFile().getPath()));
     mChannel = new EmbeddedChannel(
         new BlockWriteHandler(NettyExecutors.BLOCK_WRITER_EXECUTOR, mBlockWorker));
   }
