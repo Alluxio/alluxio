@@ -82,11 +82,17 @@ This section shows how to use Alluxio as input and output sources for your Spark
 First, we will copy some local data to the Alluxio file system. Put the file `LICENSE` into Alluxio,
 assuming you are in the Alluxio project directory:
 
-{% include Running-Spark-on-Alluxio/license-local.md %}
+```bash
+$ bin/alluxio fs copyFromLocal LICENSE /LICENSE
+```
 
 Run the following commands from `spark-shell`, assuming Alluxio Master is running on `localhost`:
 
-{% include Running-Spark-on-Alluxio/alluxio-local-in-out-scala.md %}
+```scala
+> val s = sc.textFile("alluxio://localhost:19998/LICENSE")
+> val double = s.map(line => line + line)
+> double.saveAsTextFile("alluxio://localhost:19998/LICENSE2")
+```
 
 Open your browser and check [http://localhost:19999/browse](http://localhost:19999/browse). There
 should be an output file `LICENSE2` which doubles each line in the file `LICENSE`.
@@ -109,7 +115,11 @@ $ hadoop fs -put -f /alluxio/LICENSE hdfs://localhost:9000/alluxio/LICENSE
 Note that Alluxio has no notion of the file. You can verify this by going to the web UI. Run the
 following commands from `spark-shell`, assuming Alluxio Master is running on `localhost`:
 
-{% include Running-Spark-on-Alluxio/alluxio-hdfs-in-out-scala.md %}
+```scala
+> val s = sc.textFile("alluxio://localhost:19998/LICENSE")
+> val double = s.map(line => line + line)
+> double.saveAsTextFile("alluxio://localhost:19998/LICENSE2")
+```
 
 Open your browser and check [http://localhost:19999/browse](http://localhost:19999/browse). There
 should be an output file `LICENSE2` which doubles each line in the file `LICENSE`. Also, the
