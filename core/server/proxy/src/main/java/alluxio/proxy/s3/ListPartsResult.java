@@ -163,13 +163,13 @@ public class ListPartsResult {
    */
   @JsonPropertyOrder({ "PartNumber", "LastModified", "ETag", "Size" })
   public static class Part {
-    // Part number.
+    /* Part number. */
     private int mPartNumber;
-    // Last modification time of the part.
+    /* Last modification time of the part. */
     private String mLastModified;
-    // Entity tag of the part.
+    /* Entity tag of the part. */
     private String mETag;
-    // Size of the part in bytes.
+    /* Size of the part in bytes. */
     private long mSize;
 
     /**
@@ -190,7 +190,7 @@ public class ListPartsResult {
     public Part() {
       mPartNumber = 0;
       mLastModified = "";
-      mETag = "\"\"";
+      mETag = S3RestUtils.quoteETag("");
       mSize = 0;
     }
 
@@ -239,7 +239,7 @@ public class ListPartsResult {
      */
     @JacksonXmlProperty(localName = "ETag")
     public void setETag(String etag) {
-      mETag = "\"" + etag + "\"";
+      mETag = S3RestUtils.quoteETag(etag);
     }
 
     /**

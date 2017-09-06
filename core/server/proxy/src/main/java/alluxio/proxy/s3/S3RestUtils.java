@@ -156,5 +156,16 @@ public final class S3RestUtils {
     return s3DateFormat.format(new Date(epoch));
   }
 
+  /**
+   * @param etag the entity tag to be used in the ETag field in the HTTP header
+   * @return the etag surrounded by quotes, if etag is already surrounded by quotes, return itself
+   */
+  public static String quoteETag(String etag) {
+    if (etag.startsWith("\"") && etag.endsWith("\"")) {
+      return etag;
+    }
+    return "\"" + etag + "\"";
+  }
+
   private S3RestUtils() {} // prevent instantiation
 }

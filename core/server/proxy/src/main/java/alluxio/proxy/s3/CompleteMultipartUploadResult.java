@@ -54,7 +54,7 @@ public class CompleteMultipartUploadResult {
     mLocation = location;
     mBucket = bucket;
     mKey = key;
-    mETag = "\"" + etag + "\"";
+    mETag = S3RestUtils.quoteETag(etag);
   }
 
   /**
@@ -117,7 +117,7 @@ public class CompleteMultipartUploadResult {
    * @param etag the entity tag to be set, should not be surrounded by quotes
    */
   @JacksonXmlProperty(localName = "ETag")
-  public void setUploadId(String etag) {
-    mETag = "\"" + etag + "\"";
+  public void setETag(String etag) {
+    mETag = S3RestUtils.quoteETag(etag);
   }
 }

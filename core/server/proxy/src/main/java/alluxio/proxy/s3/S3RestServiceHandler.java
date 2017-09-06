@@ -315,6 +315,7 @@ public final class S3RestServiceHandler {
 
         try {
           mFileSystem.createDirectory(multipartTemporaryDir);
+          // Use the file ID of multipartTemporaryDir as the upload ID.
           long uploadId = mFileSystem.getStatus(multipartTemporaryDir).getFileId();
           return new InitiateMultipartUploadResult(bucket, object, Long.toString(uploadId));
         } catch (Exception e) {
@@ -646,7 +647,8 @@ public final class S3RestServiceHandler {
       if (!cur.isFolder()) {
         // Alluxio file is an object.
         objects.add(cur);
-      } else {
+      } else if (!cur.getName().endsWith(Constants.S3_MULTIPART_TEMPORARY_DIR_SUFFIX)) {
+        // The directory is not a temporary directory of multipart upload, list recursively.
         List<URIStatus> curChildren = mFileSystem.listStatus(new AlluxioURI(cur.getPath()));
         if (curChildren.isEmpty()) {
           // An empty Alluxio directory is considered as a valid object.
