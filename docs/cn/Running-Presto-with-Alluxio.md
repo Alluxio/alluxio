@@ -20,7 +20,7 @@ mvn clean package -Ppresto -DskipTests
 ```
 
 接着[下载Presto](https://repo1.maven.org/maven2/com/facebook/presto/presto-server/)(此文档使用0.170版本)。并且请使用
-[Hive On Alluxio](http://www.alluxio.org/docs/master/cn/Running-Hive-with-Alluxio.html)完成Hive初始化。
+[Hive On Alluxio](Running-Hive-with-Alluxio.html)完成Hive初始化。
 
 # 配置
 
@@ -125,7 +125,9 @@ OVERWRITE INTO TABLE u_user;
 
 ![HiveTableInAlluxio]({{site.data.img.screenshot_presto_table_in_alluxio}})
 
-在presto client执行如下查询：
+你可以通过[说明](Running-Hive-with-Alluxio.html#create-new-tables-from-files-in-alluxio)创建已存在在Alluxio中的表。
+
+之后，在presto client执行如下查询：
 
 ```
 /home/path/presto/presto-cli-0.170-executable.jar --server masterIp:prestoPort --execute "use default;select * from u_user limit 10;" --user username --debug
