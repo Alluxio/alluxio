@@ -28,8 +28,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -180,12 +182,15 @@ public final class BlockMasterSync implements HeartbeatExecutor {
       // Master requests blocks to be removed from Alluxio managed space.
       case Free:
         synchronized (mRemovingBlockIdToFinished) {
+          List<Long> blocks = new ArrayList<>();
           for (long block : cmd.getData()) {
             if (!mRemovingBlockIdToFinished.containsKey(block)) {
+              blocks.add(block);
               mRemovingBlockIdToFinished.put(block, false);
-              mBlockRemovalService.execute(new BlockRemover(mBlockWorker,
-                  mRemovingBlockIdToFinished, Sessions.MASTER_COMMAND_SESSION_ID, block));
             }
+          }
+          if (!blocks.isEmpty()) {
+            mBlockRemovalService.execute(new BlockRemover(blocks));
           }
           Iterator<Map.Entry<Long, Boolean>> it = mRemovingBlockIdToFinished.entrySet().iterator();
           while (it.hasNext()) {
@@ -214,55 +219,38 @@ public final class BlockMasterSync implements HeartbeatExecutor {
   }
 
   /**
-   * Thread to remove block from master.
+   * Thread to remove blocks that have been freed by the master.
    */
   @NotThreadSafe
   private class BlockRemover implements Runnable {
-    private final BlockWorker mBlockWorker;
-    private final long mSessionId;
-    private final long mBlockId;
-    private final Map<Long, Boolean> mRemovingBlockIdToFinished;
+    private final List<Long> mBlocks;
 
     /**
-     * Creates a new instance of {@link BlockRemover}.
-     *
-     * @param blockWorker block worker for data manager
-     * @param removingBlockIdToFinished map from block ID to whether it has been removed
-     * @param sessionId the session id
-     * @param blockId the block id
+     * @param blocks the blocks to remove
      */
-    public BlockRemover(BlockWorker blockWorker, Map<Long, Boolean> removingBlockIdToFinished,
-        long sessionId, long blockId) {
-      mBlockWorker = blockWorker;
-      mRemovingBlockIdToFinished = removingBlockIdToFinished;
-      mSessionId = sessionId;
-      mBlockId = blockId;
+    public BlockRemover(List<Long> blocks) {
+      mBlocks = blocks;
     }
 
     @Override
     public void run() {
-      boolean success = false;
-      try {
-        mBlockWorker.removeBlock(mSessionId, mBlockId);
-        success = true;
-        synchronized (mRemovingBlockIdToFinished) {
-          mRemovingBlockIdToFinished.put(mBlockId, true);
-        }
-        LOG.info("Block {} removed at session {}", mBlockId, mSessionId);
-      } catch (IOException e) {
-        LOG.warn("Failed master free block cmd for: {}.", mBlockId, e);
-      } catch (InvalidWorkerStateException e) {
-        LOG.warn("Failed master free block cmd for: {} due to block uncommitted.", mBlockId, e);
-      } catch (BlockDoesNotExistException e) {
-        LOG.warn("Failed master free block cmd for: {} due to block not found.", mBlockId, e);
-      } finally {
-        if (!success) {
+      for (long block : mBlocks) {
+        try {
+          mBlockWorker.removeBlock(Sessions.MASTER_COMMAND_SESSION_ID, block);
           synchronized (mRemovingBlockIdToFinished) {
-            // The remove operation fails, so remove the block from the map in order to make it
-            // possible for another BlockRemover to remove it later.
-            mRemovingBlockIdToFinished.remove(mBlockId);
+            mRemovingBlockIdToFinished.put(block, true);
           }
+          continue;
+        } catch (IOException e) {
+          LOG.warn("Failed master free block cmd for: {}.", block, e);
+        } catch (InvalidWorkerStateException e) {
+          LOG.warn("Failed master free block cmd for: {} due to block uncommitted.", block, e);
+        } catch (BlockDoesNotExistException e) {
+          LOG.warn("Failed master free block cmd for: {} due to block not found.", block, e);
         }
+        // The remove operation fails, so remove the block from the map in order to make it
+        // possible for another BlockRemover to remove it later.
+        mRemovingBlockIdToFinished.remove(block);
       }
     }
   }
