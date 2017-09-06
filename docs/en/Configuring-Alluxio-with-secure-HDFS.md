@@ -153,11 +153,11 @@ Next, you can run a simple example program:
 $ bin/alluxio runTests
 ```
 
-For this test to succeed, you need to make sure that the login user of Alluxio cli, i.e. `bin/alluxio` has
-read/write access to the HDFS directory mounted to Alluxio. If not specified in `./conf/alluxio-site.properties`,
-the login user is the current user of the host OS. Otherwise, the login user is specified with
-`alluxio.security.login.username` in `./conf/alluxio-site.properties`. The HDFS directory is specified with
-`alluxio.underfs.address`.
+For this test to succeed, you need to make sure that the login user of Alluxio cli has
+read/write access to the HDFS directory mounted to Alluxio. By default,
+the login user is the current user of the host OS. To change the default configuration, set the value of
+`alluxio.security.login.username` in `./conf/alluxio-site.properties` to the desired username.
+The HDFS directory is specified with `alluxio.underfs.address`.
 
 After this succeeds, you can visit HDFS web UI at [http://localhost:50070](http://localhost:50070)
 to verify the files and directories created by Alluxio exist. For this test, you should see
