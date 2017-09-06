@@ -877,11 +877,33 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     }
     // TODO(calvin): Evaluate which other metadata fields should be validated.
     if (inode.isDirectory()) {
-      return ufs.isDirectory(ufsPath);
+      if (!ufs.isDirectory(ufsPath)) {
+        return false;
+      } else {
+        UfsFileStatus fileStatus = ufs.getFileStatus(ufsPath);
+        if (fileStatus.getMode() == inode.getMode()
+            && fileStatus.getGroup().equals(inode.getGroup())
+            && fileStatus.getOwner().equals(inode.getOwner())) {
+          return true;
+        } else {
+          return false;
+        }
+      }
     } else {
       InodeFile file = (InodeFile) inode;
-      return ufs.isFile(ufsPath)
-          && ufs.getFileStatus(ufsPath).getContentLength() == file.getLength();
+      if (ufs.isFile(ufsPath)) {
+        UfsFileStatus ufsFileStatus = ufs.getFileStatus(ufsPath);
+        if (ufsFileStatus.getContentLength() != file.getLength()
+            || ufsFileStatus.getMode() != file.getMode()
+            || !ufsFileStatus.getGroup().equals(file.getGroup())
+            || !ufsFileStatus.getOwner().equals(file.getOwner())) {
+          return false;
+        } else {
+          return true;
+        }
+      } else {
+        return false;
+      }
     }
   }
 
