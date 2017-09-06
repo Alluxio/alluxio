@@ -1255,6 +1255,11 @@ public final class PropertyKey implements Comparable<PropertyKey> {
                   + "`%s` (delete only the buckets or objects in Alluxio namespace).",
               Constants.S3_DELETE_IN_ALLUXIO_AND_UFS, Constants.S3_DELETE_IN_ALLUXIO_ONLY))
           .build();
+  public static final PropertyKey PROXY_S3_MULTIPART_TEMPORARY_DIR_SUFFIX =
+      new Builder(Name.PROXY_S3_MULTIPART_TEMPORARY_DIR_SUFFIX)
+          .setDefaultValue(Constants.S3_MULTIPART_TEMPORARY_DIR_SUFFIX)
+          .setDescription("Suffix for the directory which holds parts during a multipart upload.")
+          .build();
   public static final PropertyKey PROXY_STREAM_CACHE_TIMEOUT_MS =
       new Builder(Name.PROXY_STREAM_CACHE_TIMEOUT_MS)
           .setAlias(new String[]{"alluxio.proxy.stream.cache.timeout.ms"})
@@ -2155,6 +2160,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     //
     public static final String PROXY_S3_WRITE_TYPE = "alluxio.proxy.s3.writetype";
     public static final String PROXY_S3_DELETE_TYPE = "alluxio.proxy.s3.deletetype";
+    public static final String PROXY_S3_MULTIPART_TEMPORARY_DIR_SUFFIX =
+        "alluxio.proxy.s3.multipart.temporary.dir.suffix";
     public static final String PROXY_STREAM_CACHE_TIMEOUT_MS =
         "alluxio.proxy.stream.cache.timeout";
     public static final String PROXY_WEB_BIND_HOST = "alluxio.proxy.web.bind.host";
