@@ -11,6 +11,8 @@
 
 package alluxio.worker.block;
 
+import static org.junit.Assert.assertFalse;
+
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -46,33 +48,33 @@ public final class BlockStoreLocationTest {
     BlockStoreLocation dirInHDD = new BlockStoreLocation("HDD", 2);
 
     Assert.assertTrue(anyTier.belongsTo(anyTier));
-    Assert.assertFalse(anyTier.belongsTo(anyDirInTierMEM));
-    Assert.assertFalse(anyTier.belongsTo(anyDirInTierHDD));
-    Assert.assertFalse(anyTier.belongsTo(dirInMEM));
-    Assert.assertFalse(anyTier.belongsTo(dirInHDD));
+    assertFalse(anyTier.belongsTo(anyDirInTierMEM));
+    assertFalse(anyTier.belongsTo(anyDirInTierHDD));
+    assertFalse(anyTier.belongsTo(dirInMEM));
+    assertFalse(anyTier.belongsTo(dirInHDD));
 
     Assert.assertTrue(anyDirInTierMEM.belongsTo(anyTier));
     Assert.assertTrue(anyDirInTierMEM.belongsTo(anyDirInTierMEM));
-    Assert.assertFalse(anyDirInTierMEM.belongsTo(anyDirInTierHDD));
-    Assert.assertFalse(anyDirInTierMEM.belongsTo(dirInMEM));
-    Assert.assertFalse(anyDirInTierMEM.belongsTo(dirInHDD));
+    assertFalse(anyDirInTierMEM.belongsTo(anyDirInTierHDD));
+    assertFalse(anyDirInTierMEM.belongsTo(dirInMEM));
+    assertFalse(anyDirInTierMEM.belongsTo(dirInHDD));
 
     Assert.assertTrue(anyDirInTierHDD.belongsTo(anyTier));
-    Assert.assertFalse(anyDirInTierHDD.belongsTo(anyDirInTierMEM));
+    assertFalse(anyDirInTierHDD.belongsTo(anyDirInTierMEM));
     Assert.assertTrue(anyDirInTierHDD.belongsTo(anyDirInTierHDD));
-    Assert.assertFalse(anyDirInTierHDD.belongsTo(dirInMEM));
-    Assert.assertFalse(anyDirInTierHDD.belongsTo(dirInHDD));
+    assertFalse(anyDirInTierHDD.belongsTo(dirInMEM));
+    assertFalse(anyDirInTierHDD.belongsTo(dirInHDD));
 
     Assert.assertTrue(dirInMEM.belongsTo(anyTier));
     Assert.assertTrue(dirInMEM.belongsTo(anyDirInTierMEM));
-    Assert.assertFalse(dirInMEM.belongsTo(anyDirInTierHDD));
+    assertFalse(dirInMEM.belongsTo(anyDirInTierHDD));
     Assert.assertTrue(dirInMEM.belongsTo(dirInMEM));
-    Assert.assertFalse(dirInMEM.belongsTo(dirInHDD));
+    assertFalse(dirInMEM.belongsTo(dirInHDD));
 
     Assert.assertTrue(dirInHDD.belongsTo(anyTier));
-    Assert.assertFalse(dirInHDD.belongsTo(anyDirInTierMEM));
+    assertFalse(dirInHDD.belongsTo(anyDirInTierMEM));
     Assert.assertTrue(dirInHDD.belongsTo(anyDirInTierHDD));
-    Assert.assertFalse(dirInHDD.belongsTo(dirInMEM));
+    assertFalse(dirInHDD.belongsTo(dirInMEM));
     Assert.assertTrue(dirInHDD.belongsTo(dirInHDD));
   }
 
