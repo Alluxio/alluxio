@@ -126,8 +126,9 @@ details about setting configuration parameters can be found in
 Before this step, please make sure your HDFS cluster is running and the directory mounted to
 Alluxio exists.
 
-Please `kinit` on the Alluxio nodes with the corresponding master/worker principal and keytab file
-to provide a Kerberos ticket cache. A known limitation is that the Kerberos TGT may expire after
+Please `kinit` on the Alluxio nodes with the corresponding principal and keytab file
+to provide a Kerberos ticket cache. As in the previous example, you should `kinit` with principal `hdfs` and
+`<YOUR_HDFS_KEYTAB_FILE_PATH>`. A known limitation is that the Kerberos TGT may expire after
 the max renewal lifetime. You can work around this by renewing the TGT periodically. Otherwise you
 may see the following error when starting Alluxio service:
 
@@ -151,6 +152,12 @@ Next, you can run a simple example program:
 ```bash
 $ bin/alluxio runTests
 ```
+
+For this test to succeed, you need to make sure that the login user of Alluxio cli, i.e. `bin/alluxio` has
+read/write access to the HDFS directory mounted to Alluxio. If not specified in `./conf/alluxio-site.properties`,
+the login user is the current user of the host OS. Otherwise, the login user is specified with
+`alluxio.security.login.username` in `./conf/alluxio-site.properties`. The HDFS directory is specified with
+`alluxio.underfs.address`.
 
 After this succeeds, you can visit HDFS web UI at [http://localhost:50070](http://localhost:50070)
 to verify the files and directories created by Alluxio exist. For this test, you should see
