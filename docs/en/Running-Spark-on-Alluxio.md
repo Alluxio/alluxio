@@ -28,11 +28,16 @@ Alluxio works together with Spark 1.1 or later out-of-the-box.
 * Alluxio client will need to be compiled with the Spark specific profile. Build the entire project
 from the top level `alluxio` directory with the following command:
 
-{% include Running-Spark-on-Alluxio/spark-profile-build.md %}
+```bash
+$ mvn clean package -Pspark -DskipTests
+```
 
 * Add the following line to `spark/conf/spark-defaults.conf`.
 
-{% include Running-Spark-on-Alluxio/earlier-spark-version-bash.md %}
+```bash
+spark.driver.extraClassPath {{site.ALLUXIO_CLIENT_JAR_PATH}}
+spark.executor.extraClassPath {{site.ALLUXIO_CLIENT_JAR_PATH}}
+```
 
 * Advanced users can choose to compile this client jar from the source code, follow the instructs [here](Building-Alluxio-Master-Branch.html#compute-framework-support) and use the generated jar at 
 `{{site.ALLUXIO_CLIENT_JAR_PATH_BUILD}}` for the rest of this guide.
@@ -42,16 +47,31 @@ from the top level `alluxio` directory with the following command:
 * If Alluxio is run on top of a Hadoop 1.x cluster, create a new file `spark/conf/core-site.xml`
 with the following content:
 
-{% include Running-Spark-on-Alluxio/Hadoop-1.x-configuration.md %}
+```xml
+<configuration>
+  <property>
+    <name>fs.alluxio.impl</name>
+    <value>alluxio.hadoop.FileSystem</value>
+  </property>
+</configuration>
+```
 
 * If you are running alluxio in fault tolerant mode with zookeeper and the Hadoop cluster is a 1.x,
 add the following additionally entry to the previously created `spark/conf/core-site.xml`:
 
-{% include Running-Spark-on-Alluxio/fault-tolerant-mode-with-zookeeper-xml.md %}
+```xml
+<property>
+  <name>fs.alluxio-ft.impl</name>
+  <value>alluxio.hadoop.FaultTolerantFileSystem</value>
+</property>
+```
 
 and the following line to `spark/conf/spark-defaults.conf`:
 
-{% include Running-Spark-on-Alluxio/fault-tolerant-mode-with-zookeeper-bash.md %}
+```bash
+spark.driver.extraJavaOptions -Dalluxio.zookeeper.address=zookeeperHost1:2181,zookeeperHost2:2181 -Dalluxio.zookeeper.enabled=true
+spark.executor.extraJavaOptions -Dalluxio.zookeeper.address=zookeeperHost1:2181,zookeeperHost2:2181 -Dalluxio.zookeeper.enabled=true
+```
 
 ## Use Alluxio as Input and Output
 
@@ -82,7 +102,9 @@ server.
 Assuming the namenode is running on `localhost` and you are using the default mount directory
 `/alluxio`:
 
-{% include Running-Spark-on-Alluxio/license-hdfs.md %}
+```bash
+$ hadoop fs -put -f /alluxio/LICENSE hdfs://localhost:9000/alluxio/LICENSE
+```
 
 Note that Alluxio has no notion of the file. You can verify this by going to the web UI. Run the
 following commands from `spark-shell`, assuming Alluxio Master is running on `localhost`:
@@ -99,13 +121,21 @@ should be an output file `LICENSE2` which doubles each line in the file `LICENSE
 > have each executor read a partial block. To avoid this behavior, you can specify the partition
 > count in Spark. For this example, we would set it to 1 as there is only 1 block.
 
-{% include Running-Spark-on-Alluxio/alluxio-one-partition.md %}
+```scala
+> val s = sc.textFile("alluxio://localhost:19998/LICENSE", 1)
+> val double = s.map(line => line + line)
+> double.saveAsTextFile("alluxio://localhost:19998/LICENSE2")
+```
 
 ### Using Fault Tolerant Mode
 
 When running Alluxio with fault tolerant mode, you can point to any Alluxio master:
 
-{% include Running-Spark-on-Alluxio/any-Alluxio-master.md %}
+```scala
+> val s = sc.textFile("alluxio-ft://stanbyHost:19998/LICENSE")
+> val double = s.map(line => line + line)
+> double.saveAsTextFile("alluxio-ft://activeHost:19998/LICENSE2")
+```
 
 ## Data Locality
 
@@ -123,16 +153,22 @@ There is a workaround when launching Spark to achieve data locality. Users can e
 hostnames by using the following script offered in Spark. Start Spark Worker in each slave node with
 slave-hostname:
 
-{% include Running-Spark-on-Alluxio/slave-hostname.md %}
+```bash
+$ $SPARK_HOME/sbin/start-slave.sh -h <slave-hostname> <spark master uri>
+```
 
 For example:
 
-{% include Running-Spark-on-Alluxio/slave-hostname-example.md %}
+```bash
+$ $SPARK_HOME/sbin/start-slave.sh -h simple30 spark://simple27:7077
+```
 
 You can also set the `SPARK_LOCAL_HOSTNAME` in `$SPARK_HOME/conf/spark-env.sh` to achieve this. For
 example:
 
-{% include Running-Spark-on-Alluxio/spark-local-hostname-example.md %}
+```properties
+SPARK_LOCAL_HOSTNAME=simple30
+```
 
 In either way, the Spark Worker addresses become hostnames and Locality Level becomes NODE_LOCAL as shown
 in Spark WebUI below.
