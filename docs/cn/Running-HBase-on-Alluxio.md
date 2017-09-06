@@ -25,7 +25,7 @@ Apache HBase可以通过通用文件系统包装类（可用于Hadoop文件系�
 
 需要添加以下3个属性到HBase安装的`conf`目录下的`hbase-site.xml`文件中(确保这些属性在所有HBase集群节点中都被配置好)：
 
-提示：无需在Alluxio中创建/hbase目录，HBase将会创建。
+> 无需在Alluxio中创建/hbase目录，HBase将会创建。
 
 ```xml
 <property>
@@ -38,7 +38,7 @@ Apache HBase可以通过通用文件系统包装类（可用于Hadoop文件系�
 </property>
 <property>
   <name>hbase.rootdir</name>
-  <value>alluxio://<hostname>:<port>/hbase</value>
+  <value>alluxio://master_hostname:port/hbase</value>
 </property>
 ```
 
@@ -65,8 +65,8 @@ export HBASE_CLASSPATH={{site.ALLUXIO_CLIENT_JAR_PATH}}:${HBASE_CLASSPATH}
 
 ```xml
 <property>
-<name>alluxio.user.file.writetype.default</name>
-<value>CACHE_THROUGH</value>
+ <name>alluxio.user.file.writetype.default</name>
+ <value>CACHE_THROUGH</value>
 </property>
 ```
 
