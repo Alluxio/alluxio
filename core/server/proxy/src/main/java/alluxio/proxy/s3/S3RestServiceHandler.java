@@ -519,6 +519,7 @@ public final class S3RestServiceHandler {
     });
   }
 
+  // TODO(cc): Support automatic abortion after a timeout.
   private void abortMultipartUpload(String bucket, String object, long uploadId)
       throws S3Exception {
     String bucketPath = parseBucketPath(AlluxioURI.SEPARATOR + bucket);
