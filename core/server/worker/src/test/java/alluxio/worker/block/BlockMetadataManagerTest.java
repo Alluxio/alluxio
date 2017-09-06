@@ -11,6 +11,8 @@
 
 package alluxio.worker.block;
 
+import static org.junit.Assert.assertFalse;
+
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.WorkerOutOfSpaceException;
@@ -168,33 +170,33 @@ public final class BlockMetadataManagerTest {
         new TempBlockMeta(TEST_SESSION_ID, TEST_TEMP_BLOCK_ID, TEST_BLOCK_SIZE, dir);
 
     // Empty storage
-    Assert.assertFalse(mMetaManager.hasTempBlockMeta(TEST_TEMP_BLOCK_ID));
-    Assert.assertFalse(mMetaManager.hasBlockMeta(TEST_TEMP_BLOCK_ID));
+    assertFalse(mMetaManager.hasTempBlockMeta(TEST_TEMP_BLOCK_ID));
+    assertFalse(mMetaManager.hasBlockMeta(TEST_TEMP_BLOCK_ID));
     // Add temp block
     mMetaManager.addTempBlockMeta(tempBlockMeta);
     Assert.assertTrue(mMetaManager.hasTempBlockMeta(TEST_TEMP_BLOCK_ID));
-    Assert.assertFalse(mMetaManager.hasBlockMeta(TEST_TEMP_BLOCK_ID));
+    assertFalse(mMetaManager.hasBlockMeta(TEST_TEMP_BLOCK_ID));
     // Get temp block
     Assert.assertEquals(tempBlockMeta, mMetaManager.getTempBlockMeta(TEST_TEMP_BLOCK_ID));
     // Abort temp block
     mMetaManager.abortTempBlockMeta(tempBlockMeta);
-    Assert.assertFalse(mMetaManager.hasTempBlockMeta(TEST_TEMP_BLOCK_ID));
-    Assert.assertFalse(mMetaManager.hasBlockMeta(TEST_TEMP_BLOCK_ID));
+    assertFalse(mMetaManager.hasTempBlockMeta(TEST_TEMP_BLOCK_ID));
+    assertFalse(mMetaManager.hasBlockMeta(TEST_TEMP_BLOCK_ID));
     // Add temp block with previous block id
     mMetaManager.addTempBlockMeta(tempBlockMeta);
     Assert.assertTrue(mMetaManager.hasTempBlockMeta(TEST_TEMP_BLOCK_ID));
-    Assert.assertFalse(mMetaManager.hasBlockMeta(TEST_TEMP_BLOCK_ID));
+    assertFalse(mMetaManager.hasBlockMeta(TEST_TEMP_BLOCK_ID));
     // Commit temp block
     mMetaManager.commitTempBlockMeta(tempBlockMeta);
-    Assert.assertFalse(mMetaManager.hasTempBlockMeta(TEST_TEMP_BLOCK_ID));
+    assertFalse(mMetaManager.hasTempBlockMeta(TEST_TEMP_BLOCK_ID));
     Assert.assertTrue(mMetaManager.hasBlockMeta(TEST_TEMP_BLOCK_ID));
     // Get block
     BlockMeta blockMeta = mMetaManager.getBlockMeta(TEST_TEMP_BLOCK_ID);
     Assert.assertEquals(TEST_TEMP_BLOCK_ID, blockMeta.getBlockId());
     // Remove block
     mMetaManager.removeBlockMeta(blockMeta);
-    Assert.assertFalse(mMetaManager.hasTempBlockMeta(TEST_TEMP_BLOCK_ID));
-    Assert.assertFalse(mMetaManager.hasBlockMeta(TEST_TEMP_BLOCK_ID));
+    assertFalse(mMetaManager.hasTempBlockMeta(TEST_TEMP_BLOCK_ID));
+    assertFalse(mMetaManager.hasBlockMeta(TEST_TEMP_BLOCK_ID));
   }
 
   /**
@@ -392,8 +394,8 @@ public final class BlockMetadataManagerTest {
 
     // Clean up sessionId1, expect tempBlock1 and tempBlock2 to be removed.
     mMetaManager.cleanupSessionTempBlocks(sessionId1, toRemoveBlockIds);
-    Assert.assertFalse(dir.hasTempBlockMeta(tempBlockId1));
-    Assert.assertFalse(dir.hasTempBlockMeta(tempBlockId2));
+    assertFalse(dir.hasTempBlockMeta(tempBlockId1));
+    assertFalse(dir.hasTempBlockMeta(tempBlockId2));
     Assert.assertTrue(dir.hasTempBlockMeta(tempBlockId3));
     Assert.assertTrue(dir.hasBlockMeta(TEST_BLOCK_ID));
 
@@ -407,8 +409,8 @@ public final class BlockMetadataManagerTest {
 
     // Clean up sessionId1 again, expect nothing to happen
     mMetaManager.cleanupSessionTempBlocks(sessionId1, toRemoveBlockIds);
-    Assert.assertFalse(dir.hasTempBlockMeta(tempBlockId1));
-    Assert.assertFalse(dir.hasTempBlockMeta(tempBlockId2));
+    assertFalse(dir.hasTempBlockMeta(tempBlockId1));
+    assertFalse(dir.hasTempBlockMeta(tempBlockId2));
     Assert.assertTrue(dir.hasTempBlockMeta(tempBlockId3));
     Assert.assertTrue(dir.hasBlockMeta(TEST_BLOCK_ID));
 
@@ -423,9 +425,9 @@ public final class BlockMetadataManagerTest {
 
     // Clean up sessionId2, expect tempBlock3 to be removed
     mMetaManager.cleanupSessionTempBlocks(sessionId2, toRemoveBlockIds);
-    Assert.assertFalse(dir.hasTempBlockMeta(tempBlockId1));
-    Assert.assertFalse(dir.hasTempBlockMeta(tempBlockId2));
-    Assert.assertFalse(dir.hasTempBlockMeta(tempBlockId3));
+    assertFalse(dir.hasTempBlockMeta(tempBlockId1));
+    assertFalse(dir.hasTempBlockMeta(tempBlockId2));
+    assertFalse(dir.hasTempBlockMeta(tempBlockId3));
     Assert.assertTrue(dir.hasBlockMeta(TEST_BLOCK_ID));
   }
 
