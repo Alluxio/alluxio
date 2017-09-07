@@ -314,9 +314,10 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
 
   /**
    * @return if the partially-read block should be cached to the local worker
+   * @throws IOException
    */
-  private boolean shouldCachePartiallyReadBlock() {
-    return mShouldCache && mCachePartiallyReadBlock;
+  private boolean shouldCachePartiallyReadBlock() throws IOException {
+    return mShouldCache && mCachePartiallyReadBlock && mContext.getLocalWorker() != null;
   }
 
   @Override

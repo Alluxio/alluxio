@@ -309,6 +309,27 @@ public final class FileInStreamTest {
     validatePartialCaching(2, (int) BLOCK_LENGTH);
   }
 
+  @Test
+  public void testSeekWithNoLocalWorker()  throws IOException{
+    // Overrides the get local worker call
+    PowerMockito.when(mContext.getLocalWorker()).thenReturn(null);
+    mTestStream = new FileInStream(mStatus,
+        InStreamOptions.defaults().setCachePartiallyReadBlock(true)
+            .setReadType(ReadType.CACHE_PROMOTE).setSeekBufferSizeBytes(7), mContext);
+    int readAmount = (int) (BLOCK_LENGTH / 2);
+    byte[] buffer = new byte[readAmount];
+    // read and seek several times
+    mTestStream.read(buffer);
+    Assert.assertEquals(readAmount, mInStreams.get(0).getBytesRead());
+    mTestStream.seek(BLOCK_LENGTH+1);
+    mTestStream.seek(0);
+
+    // check the read amount only
+    Assert.assertEquals(readAmount, mInStreams.get(0).getBytesRead());
+    // nothing is written to cache stream
+    Assert.assertEquals(0, mCacheStreams.get(0).getWrittenData().length);
+  }
+
   /**
    * Tests seeking with incomplete block caching enabled. It seeks backward within 1 block.
    */
