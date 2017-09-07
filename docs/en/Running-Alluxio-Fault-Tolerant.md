@@ -156,7 +156,7 @@ hadoop fs -ls alluxio:///directory
 ### Automatic Fail Over
 
 To test automatic fail over, ssh into current Alluxio master leader, and find process ID of
-the AlluxioMaster process with:
+the `AlluxioMaster` process with:
 
 ```bash
 $ jps | grep AlluxioMaster
