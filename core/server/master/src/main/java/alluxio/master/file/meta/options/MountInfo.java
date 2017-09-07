@@ -40,8 +40,8 @@ public final class MountInfo {
    * @param options the mount options
    */
   public MountInfo(AlluxioURI alluxioUri, AlluxioURI ufsUri, long mountId, MountOptions options) {
-    mAlluxioUri = Preconditions.checkNotNull(alluxioUri);
-    mUfsUri = Preconditions.checkNotNull(ufsUri);
+    mAlluxioUri = Preconditions.checkNotNull(alluxioUri, "alluxioUri");
+    mUfsUri = Preconditions.checkNotNull(ufsUri, "ufsUri");
     mMountId = mountId;
     mOptions = options;
   }
