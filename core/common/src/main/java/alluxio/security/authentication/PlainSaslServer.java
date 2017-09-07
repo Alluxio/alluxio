@@ -26,6 +26,7 @@ import javax.security.sasl.Sasl;
 import javax.security.sasl.SaslException;
 import javax.security.sasl.SaslServer;
 import javax.security.sasl.SaslServerFactory;
+import javax.annotation.Nullable;
 
 /**
  * This class provides PLAIN SASL authentication.
@@ -58,6 +59,7 @@ public final class PlainSaslServer implements SaslServer {
   }
 
   @Override
+  @Nullable
   public byte[] evaluateResponse(byte[] response) throws SaslException {
     Preconditions.checkState(!mCompleted, "PLAIN authentication has completed");
     Preconditions.checkArgument(response != null, "Received null response");
@@ -132,6 +134,7 @@ public final class PlainSaslServer implements SaslServer {
   }
 
   @Override
+  @Nullable
   public Object getNegotiatedProperty(String propName) {
     checkNotComplete();
     return Sasl.QOP.equals(propName) ? "auth" : null;
