@@ -507,4 +507,20 @@ public class ConfigurationTest {
       assertEquals("TEST_LOGGER", Configuration.get(PropertyKey.LOGGER_TYPE));
     }
   }
+
+  @Test
+  public void discardIgnoredSitePropertiesTest() throws Exception {
+    Properties siteProps = new Properties();
+    siteProps.setProperty(PropertyKey.MASTER_HOSTNAME.toString(), "host-1");
+    siteProps.setProperty(PropertyKey.LOGS_DIR.toString(), "/tmp/logs1");
+    Map<String, String> sysProps = new HashMap<>();
+    sysProps.put(PropertyKey.LOGS_DIR.toString(), "/tmp/logs2");
+    try (Closeable p = new SystemPropertyRule(sysProps).toResource()) {
+      Configuration.discardIgnoredSiteProperties(siteProps);
+      Configuration.merge(siteProps);
+      Configuration.merge(sysProps);
+      assertEquals("host-1", Configuration.get(PropertyKey.MASTER_HOSTNAME));
+      assertEquals("/tmp/logs2", Configuration.get(PropertyKey.LOGS_DIR));
+    }
+  }
 }
