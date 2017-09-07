@@ -164,6 +164,10 @@ public final class ConfigurationDocGenerator {
         String description = iteratorPK.getDescription().replace("'", "''");
 
         // Write property key and default value to yml files
+        if (iteratorPK.isIgnoredSiteProperty()) {
+          description = "(Alluxio ignores the value you specify for this property "
+              + "in alluxio-site.properties. Use system or JVM properties.) " + description;
+        }
         String keyValueStr = pKey + ":\n  '" + description + "'\n";
         if (pKey.startsWith("alluxio.user.")) {
           fileWriter = fileWriterMap.get("user");
