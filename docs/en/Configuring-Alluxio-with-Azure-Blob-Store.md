@@ -82,10 +82,10 @@ Next, you can run a simple example program:
 $ ./bin/alluxio runTests
 ```
 
-After this succeeds, you can visit your container AZURE_CONTAINER to verify the files and directories created by Alluxio exist. For this test, you should see files named like:
+After this succeeds, you can visit your container `AZURE_CONTAINER` to verify the files and directories created by Alluxio exist. For this test, you should see files named like:
 
 ```
-AZURE_DIRECTORY/default_tests_files/BasicFile_CACHE_PROMOTE_MUST_CACHE
+AZURE_DIRECTORY/default_tests_files/BASIC_CACHE_PROMOTE_CACHE_THROUGH
 ```
 
 To stop Alluxio, you can run:

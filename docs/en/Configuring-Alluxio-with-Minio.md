@@ -47,13 +47,14 @@ bucket and directory as the under storage system.
 
 All the fields to be modified in `conf/alluxio-site.properties` file are listed here:
 
-{% include Configuring-Alluxio-with-Minio/minio.md %}
+```properties
+alluxio.underfs.address=s3a://<MINIO_BUCKET>/<MINIO_DIRECTORY>
+alluxio.underfs.s3.endpoint=http://<MINIO_ENDPOINT>/
+alluxio.underfs.s3.disable.dns.buckets=true
+alluxio.underfs.s3a.inherit_acl=false
+aws.accessKeyId=<MINIO_ACCESS_KEY_ID>
+aws.secretKey=<MINIO_SECRET_KEY_ID>
+```
 
-For these parameters, replace `<MINIO_ENDPOINT>`and `<MINIO_PORT>` with the URL and port of your Minio service.
-
-Replace `<USE_HTTPS>` with `true` or `false`. If `true` (using HTTPS), also replace `<MINIO_HTTPS_PORT>`,
-with the HTTPS port for the provider and remove the `alluxio.underfs.s3.endpoint.http.port`
-parameter. If you replace `<USE_HTTPS>` with `false` (using HTTP) also replace `<MINIO_HTTP_PORT>` with
-the HTTP port for the provider, and remove the `alluxio.underfs.s3.endpoint.https.port` parameter.
-If the HTTP or HTTPS port values are left unset, `<HTTP_PORT>` defaults to port 80, and
-`<HTTPS_PORT>` defaults to port 443.
+For these parameters, replace `<MINIO_ENDPOINT>` with the hostname and port of your Minio service, e.g.,
+`http://localhost:9000`. If the port value is left unset, it defaults to port 80 for `http` and 443 for `https`.

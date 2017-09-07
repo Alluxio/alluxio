@@ -39,7 +39,17 @@ Minio是为云应用程序和DevOps构建的对象存储服务器。 Minio提供
 
 在`conf/alluxio-site.properties`文件中要修改的所有字段如下所示：
 
-{% include Configuring-Alluxio-with-Minio/minio.md %}
+```properties
+alluxio.underfs.address=s3a://<MINIO_BUCKET>/<MINIO_DIRECTORY>
+alluxio.underfs.s3.endpoint=http://<MINIO_ENDPOINT>/
+alluxio.underfs.s3.disable.dns.buckets=true
+alluxio.underfs.s3a.inherit_acl=false
+alluxio.underfs.s3.proxy.https.only=<USE_HTTPS>
+alluxio.underfs.s3.endpoint.http.port=<MINIO_HTTP_PORT>
+alluxio.underfs.s3.endpoint.https.port=<MINIO_HTTPS_PORT>
+aws.accessKeyId=<MINIO_ACCESS_KEY_ID>
+aws.secretKey=<MINIO_SECRET_KEY_ID>
+```
 
 对于这些参数，用您的Minio服务的URL和端口替换`<MINIO_ENDPOINT>`和`<MINIO_PORT>`。
 

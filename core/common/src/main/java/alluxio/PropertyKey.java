@@ -373,12 +373,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Name.UNDERFS_S3_PROXY_HOST)
           .setDescription("Optionally, specify a proxy host for communicating with S3.")
           .build();
-  public static final PropertyKey UNDERFS_S3_PROXY_HTTPS_ONLY =
-      new Builder(Name.UNDERFS_S3_PROXY_HTTPS_ONLY)
-          .setDefaultValue(true)
-          .setDescription("If using a proxy to communicate with S3, determine whether to talk "
-              + "to the proxy using https.")
-          .build();
   public static final PropertyKey UNDERFS_S3_PROXY_PORT =
       new Builder(Name.UNDERFS_S3_PROXY_PORT)
           .setDescription("Optionally, specify a proxy port for communicating with S3.")
@@ -1261,6 +1255,11 @@ public final class PropertyKey implements Comparable<PropertyKey> {
                   + "`%s` (delete only the buckets or objects in Alluxio namespace).",
               Constants.S3_DELETE_IN_ALLUXIO_AND_UFS, Constants.S3_DELETE_IN_ALLUXIO_ONLY))
           .build();
+  public static final PropertyKey PROXY_S3_MULTIPART_TEMPORARY_DIR_SUFFIX =
+      new Builder(Name.PROXY_S3_MULTIPART_TEMPORARY_DIR_SUFFIX)
+          .setDefaultValue(Constants.S3_MULTIPART_TEMPORARY_DIR_SUFFIX)
+          .setDescription("Suffix for the directory which holds parts during a multipart upload.")
+          .build();
   public static final PropertyKey PROXY_STREAM_CACHE_TIMEOUT_MS =
       new Builder(Name.PROXY_STREAM_CACHE_TIMEOUT_MS)
           .setAlias(new String[]{"alluxio.proxy.stream.cache.timeout.ms"})
@@ -1964,7 +1963,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String UNDERFS_S3_OWNER_ID_TO_USERNAME_MAPPING =
         "alluxio.underfs.s3.owner.id.to.username.mapping";
     public static final String UNDERFS_S3_PROXY_HOST = "alluxio.underfs.s3.proxy.host";
-    public static final String UNDERFS_S3_PROXY_HTTPS_ONLY = "alluxio.underfs.s3.proxy.https.only";
     public static final String UNDERFS_S3_PROXY_PORT = "alluxio.underfs.s3.proxy.port";
     public static final String UNDERFS_S3_THREADS_MAX = "alluxio.underfs.s3.threads.max";
     public static final String UNDERFS_S3_UPLOAD_THREADS_MAX =
@@ -2162,6 +2160,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     //
     public static final String PROXY_S3_WRITE_TYPE = "alluxio.proxy.s3.writetype";
     public static final String PROXY_S3_DELETE_TYPE = "alluxio.proxy.s3.deletetype";
+    public static final String PROXY_S3_MULTIPART_TEMPORARY_DIR_SUFFIX =
+        "alluxio.proxy.s3.multipart.temporary.dir.suffix";
     public static final String PROXY_STREAM_CACHE_TIMEOUT_MS =
         "alluxio.proxy.stream.cache.timeout";
     public static final String PROXY_WEB_BIND_HOST = "alluxio.proxy.web.bind.host";
