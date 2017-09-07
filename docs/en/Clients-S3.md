@@ -152,13 +152,98 @@ Server: Jetty(9.2.z-SNAPSHOT)
 # curl -i -X DELETE http://localhost:39999/api/v1/s3/testbucket/testobject
 ```
 
+### Initiate a multipart upload
+
+```bash
+# curl -i -X POST http://localhost:39999/api/v1/s3/testbucket/testobject?uploads
+HTTP/1.1 200 OK
+Date: Tue, 29 Aug 2017 22:43:22 GMT
+Content-Length: 197
+Server: Jetty(9.2.z-SNAPSHOT)
+
+<?xml version="1.0" encoding="UTF-8"?>
+<InitiateMultipartUploadResult xmlns="">
+  <Bucket>testbucket</Bucket>
+  <Key>testobject</Key>
+  <UploadId>2</UploadId>
+</InitiateMultipartUploadResult>
+```
+
+### Upload part
+
+```bash
+# curl -i -X PUT http://localhost:39999/api/v1/s3/testbucket/testobject?partNumber=1&uploadId=2
+HTTP/1.1 200 OK
+Date: Tue, 29 Aug 2017 22:43:22 GMT
+ETag: "b54357faf0632cce46e942fa68356b38"
+Server: Jetty(9.2.z-SNAPSHOT)
+```
+
+### List parts
+
+```bash
+# curl -i -X GET http://localhost:39999/api/v1/s3/testbucket/testobject?uploadId=2
+HTTP/1.1 200 OK
+Date: Tue, 29 Aug 2017 22:43:22 GMT
+Content-Length: 985
+Server: Jetty(9.2.z-SNAPSHOT)
+
+<?xml version="1.0" encoding="UTF-8"?>
+<ListPartsResult xmlns="">
+  <Bucket>testbucket</Bucket>
+  <Key>testobject</Key>
+  <UploadId>2</UploadId>
+  <StorageClass>STANDARD</StorageClass>
+  <IsTruncated>false</IsTruncated>
+  <Part>
+    <PartNumber>1</PartNumber>
+    <LastModified>2017-08-29T20:48:34.000Z</LastModified>
+    <ETag>"b54357faf0632cce46e942fa68356b38"</ETag>
+    <Size>10485760</Size>
+  </Part>
+</ListPartsResult>
+```
+
+### Complete a multipart upload
+
+```bash
+# curl -i -X POST http://localhost:39999/api/v1/s3/testbucket/testobject?uploadId=2 -d '
+<CompleteMultipartUpload>
+  <Part>
+    <PartNumber>1</PartNumber>
+    <ETag>"b54357faf0632cce46e942fa68356b38"</ETag>
+  </Part>
+</CompleteMultipartUpload>'
+
+HTTP/1.1 200 OK
+Date: Tue, 29 Aug 2017 22:43:22 GMT
+Server: Jetty(9.2.z-SNAPSHOT)
+
+<?xml version="1.0" encoding="UTF-8"?>
+<CompleteMultipartUploadResult xmlns="">
+  <Location>/testbucket/testobjectLocation>
+  <Bucket>testbucket</Bucket>
+  <Key>testobject</Key>
+  <ETag>"b54357faf0632cce46e942fa68356b38"</ETag>
+</CompleteMultipartUploadResult>
+```
+
+### Abort a multipart upload
+
+```bash
+# curl -i -X DELETE http://localhost:39999/api/v1/s3/testbucket/testobject?uploadId=2
+HTTP/1.1 204 OK
+Date: Tue, 29 Aug 2017 22:43:22 GMT
+Content-Length: 0
+Server: Jetty(9.2.z-SNAPSHOT)
+```
+
 ### Delete an empty bucket
 
 ```bash
 # curl -i -X DELETE http://localhost:39999/api/v1/s3/testbucket
 HTTP/1.1 204 No Content
 Date: Tue, 29 Aug 2017 22:45:19 GMT
-Server: Jetty(9.2.z-SNAPSHOT)
 ```
 
 ## Python S3 Client
@@ -236,8 +321,46 @@ bucket.delete_key(smallObjectKey)
 bucket.delete_key(largeObjectKey)
 ```
 
+### Initiate a multipart upload
+
+```python
+mp = b.initiate_multipart_upload(largeObjectFile)
+```
+
+### Upload parts
+
+```python
+import math, os
+
+from filechunkio import FileChunkIO
+
+# Use a chunk size of 1MB (feel free to change this)
+sourceSize = os.stat(largeObjectFile).st_size
+chunkSize = 1048576
+chunkCount = int(math.ceil(sourceSize / float(chunkSize)))
+
+for i in range(chunk_count):
+    offset = chunk_size * i
+    bytes = min(chunk_size, source_size - offset)
+    with FileChunkIO(source_path, 'r', offset=offset, bytes=bytes) as fp:
+        mp.upload_part_from_file(fp, part_num=i + 1)
+```
+
+### Complete the multipart upload
+
+```python
+mp.complete_upload()
+```
+
+### Abort the multipart upload
+
+```python
+mp.cancel_upload()
+```
+
 ### Delete the bucket
 
 ```python
 conn.delete_bucket(bucketName)
 ```
+

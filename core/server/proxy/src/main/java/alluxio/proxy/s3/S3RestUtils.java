@@ -11,6 +11,9 @@
 
 package alluxio.proxy.s3;
 
+import alluxio.AlluxioURI;
+import alluxio.Configuration;
+import alluxio.PropertyKey;
 import alluxio.security.LoginUser;
 import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.util.SecurityUtils;
@@ -21,6 +24,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 import javax.ws.rs.core.Response;
 
@@ -128,6 +134,37 @@ public final class S3RestUtils {
       return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
           .entity("Failed to encode XML: " + e2.getMessage()).build();
     }
+  }
+
+  /**
+   * @param bucketPath the bucket path like "/bucket", "/mount/point/bucket"
+   * @param objectKey the object key like "img/2017/9/1/s3.jpg"
+   * @return the temporary directory used to hold parts of the object during multipart uploads
+   */
+  public static String getMultipartTemporaryDirForObject(String bucketPath, String objectKey) {
+    String multipartTemporaryDirSuffix =
+        Configuration.get(PropertyKey.PROXY_S3_MULTIPART_TEMPORARY_DIR_SUFFIX);
+    return bucketPath + AlluxioURI.SEPARATOR + objectKey + multipartTemporaryDirSuffix;
+  }
+
+  /**
+   * @param epoch the milliseconds from the epoch
+   * @return the string representation of the epoch in the S3 date format
+   */
+  public static String toS3Date(long epoch) {
+    final DateFormat s3DateFormat = new SimpleDateFormat(S3Constants.S3_DATE_FORMAT_REGEXP);
+    return s3DateFormat.format(new Date(epoch));
+  }
+
+  /**
+   * @param etag the entity tag to be used in the ETag field in the HTTP header
+   * @return the etag surrounded by quotes, if etag is already surrounded by quotes, return itself
+   */
+  public static String quoteETag(String etag) {
+    if (etag.startsWith("\"") && etag.endsWith("\"")) {
+      return etag;
+    }
+    return "\"" + etag + "\"";
   }
 
   private S3RestUtils() {} // prevent instantiation

@@ -29,6 +29,7 @@ public class S3ErrorCode {
     public static final String INVALID_BUCKET_NAME = "InvalidBucketName";
     public static final String NO_SUCH_BUCKET = "NoSuchBucket";
     public static final String NO_SUCH_KEY = "NoSuchKey";
+    public static final String NO_SUCH_UPLOAD = "NoSuchUpload";
     public static final String PRECONDITION_FAILED = "PreconditionFailed";
 
     private Name() {
@@ -65,6 +66,12 @@ public class S3ErrorCode {
   public static final S3ErrorCode NO_SUCH_KEY = new S3ErrorCode(
       Name.NO_SUCH_KEY,
       "The specified key does not exist",
+      Response.Status.NOT_FOUND);
+  public static final S3ErrorCode NO_SUCH_UPLOAD = new S3ErrorCode(
+      Name.NO_SUCH_UPLOAD,
+      "The specified multipart upload does not exist. "
+      + "The upload ID might be invalid, or the multipart upload might have been aborted "
+      + "or completed.",
       Response.Status.NOT_FOUND);
   public static final S3ErrorCode PRECONDITION_FAILED = new S3ErrorCode(
       Name.PRECONDITION_FAILED,

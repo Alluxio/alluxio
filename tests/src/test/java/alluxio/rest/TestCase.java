@@ -102,7 +102,11 @@ public final class TestCase {
   public URL createURL() throws Exception {
     StringBuilder sb = new StringBuilder();
     for (Map.Entry<String, String> parameter : mParameters.entrySet()) {
-      sb.append(parameter.getKey() + "=" + parameter.getValue() + "&");
+      if (parameter.getValue() == null || parameter.getValue().isEmpty()) {
+        sb.append(parameter.getKey());
+      } else {
+        sb.append(parameter.getKey() + "=" + parameter.getValue() + "&");
+      }
     }
     return new URL(
         "http://" + mHostname + ":" + mPort + Constants.REST_API_PREFIX + "/" + mEndpoint
