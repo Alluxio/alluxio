@@ -82,10 +82,9 @@ final class FaultTolerantAlluxioMasterProcess extends AlluxioMasterProcess {
         // We are in primary mode. Nothing to do until we become the secondary.
         mLeaderSelector.waitForState(State.SECONDARY);
         LOG.info("Transitioning from primary to secondary");
-        mServingThread.interrupt();
+        stopServing();
         mServingThread.join();
         mServingThread = null;
-        stopServing();
         stopMasters();
         mJournalSystem.setMode(Mode.SECONDARY);
         LOG.info("Primary stopped");
