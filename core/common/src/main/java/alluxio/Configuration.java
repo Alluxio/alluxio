@@ -32,6 +32,7 @@ import java.lang.management.ManagementFactory;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -104,7 +105,8 @@ public final class Configuration {
           ConfigurationUtils.searchPropertiesFile(Constants.SITE_PROPERTIES, confPathList);
       // Update site properties and system properties in order
       if (siteProps != null) {
-        mergeSiteProperties(siteProps);
+        discardIgnoredSiteProperties(siteProps);
+        merge(siteProps);
         merge(systemProps);
       }
     }
@@ -174,23 +176,24 @@ public final class Configuration {
   }
 
   /**
-   * Merges the current configuration properties with site properties. Some site properties, e.g.
-   * alluxio.logs.dir, alluxio.conf.dir, alluxio.site.conf.dir are ignored.
+   * Iterates a set of site properties and discards those that user should not use.
    *
-   * @param siteProperties The {@link Properties} to be merged
+   * @param siteProperties the set of site properties to check
      */
-  public static void mergeSiteProperties(Map<?, ?> siteProperties) {
+  public static void discardIgnoredSiteProperties(Map<?, ?> siteProperties) {
     if (siteProperties != null) {
-      for (Map.Entry<?, ?> entry : siteProperties.entrySet()) {
+      Iterator<? extends Map.Entry<?, ?>> iter = siteProperties.entrySet().iterator();
+      while (iter.hasNext()) {
+        Map.Entry<?, ?> entry  = iter.next();
         String key = entry.getKey().toString();
-        String value = entry.getValue().toString();
         if (PropertyKey.isValid(key)) {
           PropertyKey propertyKey = PropertyKey.fromString(key);
-          if (!propertyKey.isIgnoredSiteProperty()) {
-            PROPERTIES.put(propertyKey.getName(), value);
-          } else {
-            LOG.info("{} should not be set using site property, its value here will be ignored. "
-                + "Use system property or JVM property or environmental variable instead.", key);
+          if (propertyKey.isIgnoredSiteProperty()) {
+            iter.remove();
+            LOG.warn("Site property '{}' is deprecated. Its value '{}' will be ignored. "
+                + "Use corresponding system properties, JVM properties and environment variables "
+                + "instead. Otherwise, Alluxio will use default value '{}'",
+                key, entry.getValue(), propertyKey.getDefaultValue());
           }
         }
       }
