@@ -168,10 +168,10 @@ Then kill the leader with:
 $ kill -9 <leader pid found via the above command>
 ```
 
-Then you can run the zookeeper client shell, and see the leader with the command:
+Then you can see the leader with the following command:
 
 ```bash
-$ ls /leader
+$ ./bin/alluxio fs leader
 ```
 
 The output of the command should show the new leader. You may need to wait for a moment for the
