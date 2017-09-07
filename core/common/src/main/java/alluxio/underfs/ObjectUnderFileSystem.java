@@ -287,7 +287,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
     private int mEntriesAdded;
 
     /**
-     * Construct a new {@link DeleteBuffer} instance.
+     * Constructs a new {@link DeleteBuffer} instance.
      */
     public DeleteBuffer() {
       mBatches = new ArrayList<>();
