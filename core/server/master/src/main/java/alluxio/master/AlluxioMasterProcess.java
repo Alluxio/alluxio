@@ -47,6 +47,7 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.Map;
 
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -169,6 +170,7 @@ public class AlluxioMasterProcess implements MasterProcess {
   }
 
   @Override
+  @Nullable
   public InetSocketAddress getWebAddress() {
     if (mWebServer != null) {
       return new InetSocketAddress(mWebServer.getBindHost(), mWebServer.getLocalPort());
