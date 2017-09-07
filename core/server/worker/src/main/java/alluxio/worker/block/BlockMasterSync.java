@@ -240,6 +240,7 @@ public final class BlockMasterSync implements HeartbeatExecutor {
           synchronized (mRemovingBlockIdToFinished) {
             mRemovingBlockIdToFinished.put(block, true);
           }
+          LOG.debug("Removed block {} due to request from master", block);
           continue;
         } catch (IOException e) {
           LOG.warn("Failed master free block cmd for: {}.", block, e);
@@ -250,7 +251,9 @@ public final class BlockMasterSync implements HeartbeatExecutor {
         }
         // The remove operation fails, so remove the block from the map in order to make it
         // possible for another BlockRemover to remove it later.
-        mRemovingBlockIdToFinished.remove(block);
+        synchronized (mRemovingBlockIdToFinished) {
+          mRemovingBlockIdToFinished.remove(block);
+        }
       }
     }
   }
