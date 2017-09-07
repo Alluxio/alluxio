@@ -192,7 +192,7 @@ public class FileInStream extends InputStream
       return -1;
     }
 
-    mPos ++;
+    mPos++;
     if (mCurrentCacheStream != null) {
       try {
         mCurrentCacheStream.write(data);
@@ -612,8 +612,9 @@ public class FileInStream extends InputStream
    *
    * The behavior on the target block:
    * <ol>
-   * <li>If the target block is already available in the local worker, then the caching on the
-   * target block is not needed. Directly move the position to the seek position.</li>
+   * <li>If the target block is already available in the local worker or it's from remote worker but
+   * no local worker available, then the caching on the target block is not needed. Directly move
+   * the position to the seek position.</li>
    * <li>Otherwise data from the beginning of the block till the seek position needs to be read and
    * cached.</li>
    * </ol>
