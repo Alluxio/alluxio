@@ -46,6 +46,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     private Object mDefaultValue;
     private String mDescription;
     private final String mName;
+    private boolean mIgnoredSiteProperty;
 
     /**
      * @param name name of this property to build
@@ -90,10 +91,20 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     }
 
     /**
+     * @param ignoredSiteProperty true if this property should be ignored when appearing
+     *                            in alluxio-site.properties
+     * @return the updated builder instance
+     */
+    public Builder setIgnoredSiteProperty(boolean ignoredSiteProperty) {
+      mIgnoredSiteProperty = ignoredSiteProperty;
+      return this;
+    }
+
+    /**
      * @return the created property key instance
      */
     public PropertyKey build() {
-      return PropertyKey.create(mName, mDefaultValue, mAlias, mDescription);
+      return PropertyKey.create(mName, mDefaultValue, mAlias, mDescription, mIgnoredSiteProperty);
     }
 
     @Override
@@ -110,6 +121,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Name.CONF_DIR)
           .setDefaultValue(String.format("${%s}/conf", Name.HOME))
           .setDescription("The directory containing files used to configure Alluxio.")
+          .setIgnoredSiteProperty(true)
           .build();
   public static final PropertyKey DEBUG =
       new Builder(Name.DEBUG)
@@ -148,6 +160,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Name.LOGS_DIR)
           .setDefaultValue(String.format("${%s}/logs", Name.WORK_DIR))
           .setDescription("The path to store log files.")
+          .setIgnoredSiteProperty(true)
           .build();
   public static final PropertyKey METRICS_CONF_FILE =
       new Builder(Name.METRICS_CONF_FILE)
@@ -192,6 +205,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               String.format("${%s}/,${user.home}/.alluxio/,/etc/alluxio/", Name.CONF_DIR))
           .setDescription(
               String.format("Comma-separated search path for %s.", Constants.SITE_PROPERTIES))
+          .setIgnoredSiteProperty(true)
           .build();
   public static final PropertyKey TEST_MODE =
       new Builder(Name.TEST_MODE)
@@ -2451,25 +2465,30 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   /** Property Key alias. */
   private final String[] mAliases;
 
+  /** Whether to ignore as a site property. */
+  private final boolean mIgnoredSiteProperty;
+
   /**
    * @param name String of this property
    * @param description String description of this property key
    * @param defaultValue default value
    * @param aliases alias of this property key
    */
-  private PropertyKey(String name, String description, Object defaultValue, String[] aliases) {
+  private PropertyKey(String name, String description, Object defaultValue, String[] aliases,
+      boolean ignoredSiteProperty) {
     mName = Preconditions.checkNotNull(name, "name");
     // TODO(binfan): null check after we add description for each property key
     mDescription = Strings.isNullOrEmpty(description) ? "N/A" : description;
     mDefaultValue = defaultValue;
     mAliases = aliases;
+    mIgnoredSiteProperty = ignoredSiteProperty;
   }
 
   /**
    * @param name String of this property
    */
   private PropertyKey(String name) {
-    this(name, null, null, null);
+    this(name, null, null, null, false);
   }
 
   /**
@@ -2482,8 +2501,9 @@ public final class PropertyKey implements Comparable<PropertyKey> {
    * @param description String description of this property key
    */
   static PropertyKey create(String name, Object defaultValue, String[] aliases,
-      String description) {
-    PropertyKey key = new PropertyKey(name, description, defaultValue, aliases);
+      String description, boolean ignoredSiteProperty) {
+    PropertyKey key =
+            new PropertyKey(name, description, defaultValue, aliases, ignoredSiteProperty);
     DEFAULT_KEYS_MAP.put(name, key);
     if (aliases != null) {
       for (String alias : aliases) {
@@ -2561,6 +2581,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
    */
   public String getDefaultValue() {
     return mDefaultValue != null ? mDefaultValue.toString() : null;
+  }
+
+  /**
+   * @return true if this property should be ignored as a site property
+   */
+  public boolean isIgnoredSiteProperty() {
+    return mIgnoredSiteProperty;
   }
 
   /**

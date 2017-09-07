@@ -104,7 +104,7 @@ public final class Configuration {
           ConfigurationUtils.searchPropertiesFile(Constants.SITE_PROPERTIES, confPathList);
       // Update site properties and system properties in order
       if (siteProps != null) {
-        merge(siteProps);
+        mergeSiteProperties(siteProps);
         merge(systemProps);
       }
     }
@@ -171,6 +171,30 @@ public final class Configuration {
       }
     }
     checkUserFileBufferBytes();
+  }
+
+  /**
+   * Merges the current configuration properties with site properties. Some site properties, e.g.
+   * alluxio.logs.dir, alluxio.conf.dir, alluxio.site.conf.dir are ignored.
+   *
+   * @param siteProperties The {@link Properties} to be merged
+     */
+  public static void mergeSiteProperties(Map<?, ?> siteProperties) {
+    if (siteProperties != null) {
+      for (Map.Entry<?, ?> entry : siteProperties.entrySet()) {
+        String key = entry.getKey().toString();
+        String value = entry.getValue().toString();
+        if (PropertyKey.isValid(key)) {
+          PropertyKey propertyKey = PropertyKey.fromString(key);
+          if (!propertyKey.isIgnoredSiteProperty()) {
+            PROPERTIES.put(propertyKey.getName(), value);
+          } else {
+            LOG.info("{} should not be set using site property, its value here will be ignored. "
+                + "Use system property or JVM property or environmental variable instead.", key);
+          }
+        }
+      }
+    }
   }
 
   // Public accessor methods
