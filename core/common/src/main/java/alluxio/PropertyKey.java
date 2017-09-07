@@ -2478,6 +2478,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
    * @param description String description of this property key
    * @param defaultValue default value
    * @param aliases alias of this property key
+   * @param ignoredSiteProperty true if Alluxio ignores user-specified value for this property
+   *                            in site properties file
    */
   private PropertyKey(String name, String description, Object defaultValue, String[] aliases,
       boolean ignoredSiteProperty) {
@@ -2504,6 +2506,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
    * @param defaultValue Default value of this property in compile time if not null
    * @param aliases String list of aliases of this property
    * @param description String description of this property key
+   * @param ignoredSiteProperty true if Alluxio ignores user-specified value for this property
+   *                            in the site properties file
    */
   static PropertyKey create(String name, Object defaultValue, String[] aliases,
       String description, boolean ignoredSiteProperty) {
