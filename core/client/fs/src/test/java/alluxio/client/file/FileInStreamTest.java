@@ -324,11 +324,19 @@ public final class FileInStreamTest {
     // read and seek several times
     mTestStream.read(buffer);
     Assert.assertEquals(readAmount, mInStreams.get(0).getBytesRead());
-    mTestStream.seek(BLOCK_LENGTH + 1);
+    mTestStream.seek(BLOCK_LENGTH + BLOCK_LENGTH / 2);
     mTestStream.seek(0);
 
-    // check the read amount only
-    Assert.assertEquals(readAmount, mInStreams.get(0).getBytesRead());
+    if (mBlockSource == BlockInStreamSource.UFS) {
+      // reads the entire block to partial cache on the remote worker
+      Assert.assertEquals(BLOCK_LENGTH, mInStreams.get(0).getBytesRead());
+      Assert.assertEquals(BLOCK_LENGTH, mInStreams.get(1).getBytesRead());
+    } else {
+      // only reads the read amount
+      Assert.assertEquals(readAmount, mInStreams.get(0).getBytesRead());
+      Assert.assertEquals(0, mInStreams.get(1).getBytesRead());
+    }
+
     // nothing is written to cache stream
     Assert.assertEquals(0, mCacheStreams.get(0).getWrittenData().length);
   }
