@@ -439,16 +439,8 @@ public class FileInStream extends InputStream
    */
   private long getBlockId(long pos) {
     int index = (int) (pos / mBlockSize);
-<<<<<<< HEAD
     Preconditions.checkState(index < mStatus.getBlockIds().size(),
         PreconditionMessage.ERR_BLOCK_INDEX.toString(), index, pos, mStatus.getBlockIds().size());
-||||||| merged common ancestors
-    Preconditions
-        .checkState(index < mStatus.getBlockIds().size(), PreconditionMessage.ERR_BLOCK_INDEX);
-=======
-    Preconditions.checkState(index < mStatus.getBlockIds().size(),
-        PreconditionMessage.ERR_BLOCK_INDEX);
->>>>>>> upstream/branch-1.5
     return mStatus.getBlockIds().get(index);
   }
 
