@@ -314,9 +314,8 @@ public class FileInStream extends InputStream
 
   /**
    * @return if the partially-read block should be cached to the local worker
-   * @throws IOException
    */
-  private boolean shouldCachePartiallyReadBlock() throws IOException {
+  private boolean shouldCachePartiallyReadBlock() {
     return mShouldCache && mCachePartiallyReadBlock;
   }
 
