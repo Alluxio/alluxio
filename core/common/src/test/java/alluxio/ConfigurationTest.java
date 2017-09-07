@@ -513,12 +513,14 @@ public class ConfigurationTest {
     Properties siteProps = new Properties();
     siteProps.setProperty(PropertyKey.MASTER_HOSTNAME.toString(), "host-1");
     siteProps.setProperty(PropertyKey.LOGS_DIR.toString(), "/tmp/logs1");
+    File propsFile = mFolder.newFile(Constants.SITE_PROPERTIES);
+    siteProps.store(new FileOutputStream(propsFile), "tmp site properties file");
     Map<String, String> sysProps = new HashMap<>();
     sysProps.put(PropertyKey.LOGS_DIR.toString(), "/tmp/logs2");
+    sysProps.put(PropertyKey.SITE_CONF_DIR.toString(), mFolder.getRoot().getAbsolutePath());
+    sysProps.put(PropertyKey.TEST_MODE.toString(), "false");
     try (Closeable p = new SystemPropertyRule(sysProps).toResource()) {
-      Configuration.discardIgnoredSiteProperties(siteProps);
-      Configuration.merge(siteProps);
-      Configuration.merge(sysProps);
+      Configuration.init();
       assertEquals("host-1", Configuration.get(PropertyKey.MASTER_HOSTNAME));
       assertEquals("/tmp/logs2", Configuration.get(PropertyKey.LOGS_DIR));
     }
