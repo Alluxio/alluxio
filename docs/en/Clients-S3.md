@@ -3,7 +3,7 @@ layout: global
 title: S3 Client
 nickname: S3 Client
 group: Clients
-priority: 3
+priority: 6
 ---
 
 Alluxio supports a RESTFul API that is compatible with the basic operations of the Amazon 

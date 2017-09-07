@@ -3,7 +3,7 @@ layout: global
 title: Go Client
 nickname: Go Client
 group: Clients
-priority: 3
+priority: 4
 ---
 
 Alluxio has a [Go Client](https://github.com/Alluxio/alluxio-go) for interacting with Alluxio through its
