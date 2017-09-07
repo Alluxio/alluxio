@@ -52,7 +52,7 @@ ensure_dirs() {
     echo "ALLUXIO_LOGS_DIR: ${ALLUXIO_LOGS_DIR}"
     mkdir -p ${ALLUXIO_LOGS_DIR}
   fi
-  if [[ "${alluxio_remote_logging_enabled}" == "true" && ! -d "${ALLUXIO_LOGSERVER_LOGS_DIR}" ]]; then
+  if [[ "${ALLUXIO_REMOTE_LOGGING_ENABLED}" == "true" && ! -d "${ALLUXIO_LOGSERVER_LOGS_DIR}" ]]; then
     echo "ALLUXIO_LOGSERVER_LOGS_DIR: ${ALLUXIO_LOGSERVER_LOGS_DIR}"
     mkdir -p ${ALLUXIO_LOGSERVER_LOGS_DIR}
   fi
@@ -313,7 +313,7 @@ main() {
         stop all
         sleep 1
       fi
-      if [[ "${alluxio_remote_logging_enabled}" == "true" ]]; then
+      if [[ "${ALLUXIO_REMOTE_LOGGING_ENABLED}" == "true" ]]; then
           start_logserver
       fi
       start_masters "${FORMAT}"
@@ -326,7 +326,7 @@ main() {
         stop local
         sleep 1
       fi
-      if [[ "${alluxio_remote_logging_enabled}" == "true" ]]; then
+      if [[ "${ALLUXIO_REMOTE_LOGGING_ENABLED}" == "true" ]]; then
           start_logserver
       fi
       start_master "${FORMAT}"

@@ -198,6 +198,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Name.REMOTE_LOGGING_ENABLED)
           .setDefaultValue(false)
           .setDescription("Set to true to enable writing logs to a server.")
+          .setIgnoredSiteProperty(true)
           .build();
   public static final PropertyKey SITE_CONF_DIR =
       new Builder(Name.SITE_CONF_DIR)
@@ -549,6 +550,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Name.MASTER_AUDIT_LOGGING_ENABLED)
           .setDefaultValue(false)
           .setDescription("Set to true to enable file system master audit.")
+          .setIgnoredSiteProperty(true)
           .build();
   public static final PropertyKey MASTER_AUDIT_LOGGING_QUEUE_CAPACITY =
       new Builder(Name.MASTER_AUDIT_LOGGING_QUEUE_CAPACITY)
@@ -1304,15 +1306,18 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Name.LOGSERVER_LOGS_DIR)
           .setDefaultValue(String.format("${%s}/logs", Name.WORK_DIR))
           .setDescription("Default location for remote log files.")
+          .setIgnoredSiteProperty(true)
           .build();
   public static final PropertyKey LOGSERVER_HOSTNAME =
       new Builder(Name.LOGSERVER_HOSTNAME)
           .setDescription("The hostname of Alluxio logserver.")
+          .setIgnoredSiteProperty(true)
           .build();
   public static final PropertyKey LOGSERVER_PORT =
       new Builder(Name.LOGSERVER_PORT)
           .setDefaultValue(45600)
           .setDescription("Default port number to receive logs from alluxio servers.")
+          .setIgnoredSiteProperty(true)
           .build();
   public static final PropertyKey LOGSERVER_THREADS_MAX =
       new Builder(Name.LOGSERVER_THREADS_MAX)

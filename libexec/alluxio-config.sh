@@ -82,52 +82,45 @@ ALLUXIO_JAVA_OPTS+=" -Djava.net.preferIPv4Stack=true"
 ALLUXIO_CLIENT_CLASSPATH="${ALLUXIO_CONF_DIR}/:${ALLUXIO_CLASSPATH}:${ALLUXIO_ASSEMBLY_CLIENT_JAR}"
 ALLUXIO_SERVER_CLASSPATH="${ALLUXIO_CONF_DIR}/:${ALLUXIO_CLASSPATH}:${ALLUXIO_ASSEMBLY_SERVER_JAR}"
 
-####################################################################################################
-## Start reading site-properties to set certain variables.
-####################################################################################################
-function getConf {
-  "${JAVA}" -cp ${ALLUXIO_CLIENT_CLASSPATH} ${ALLUXIO_JAVA_OPTS} alluxio.cli.GetConf "$1"
-}
-
-alluxio_remote_logging_enabled=$(getConf "alluxio.remote.logging.enabled")
-if [[ "${alluxio_remote_logging_enabled}" == "true" ]]; then
-    ALLUXIO_LOGSERVER_LOGS_DIR=$(getConf "alluxio.logserver.logs.dir")
-    ALLUXIO_LOGSERVER_HOSTNAME=$(getConf "alluxio.logserver.hostname")
-    ALLUXIO_LOGSERVER_PORT=$(getConf "alluxio.logserver.port")
-    ALLUXIO_JAVA_OPTS+=" -Dalluxio.logserver.hostname=${ALLUXIO_LOGSERVER_HOSTNAME} -Dalluxio.logserver.port=${ALLUXIO_LOGSERVER_PORT}"
+if [[ ${ALLUXIO_REMOTE_LOGGING_ENABLED} == "true" ]]; then
+    ALLUXIO_LOGSERVER_LOGS_DIR="${ALLUXIO_LOGSERVER_LOGS_DIR:-${ALLUXIO_HOME}/logs}"
+    if [[ -n "${ALLUXIO_LOGSERVER_HOSTNAME}" ]]; then
+        ALLUXIO_JAVA_OPTS+=" -Dalluxio.logserver.hostname=${ALLUXIO_LOGSERVER_HOSTNAME}"
+    fi
+    if [[ -n "${ALLUXIO_LOGSERVER_PORT}" ]]; then
+        ALLUXIO_JAVA_OPTS+=" -Dalluxio.logserver.port=${ALLUXIO_LOGSERVER_PORT}"
+    fi
 fi
-####################################################################################################
-## End reading site-properties
-####################################################################################################
 
 # Master specific parameters based on ALLUXIO_JAVA_OPTS.
 ALLUXIO_MASTER_JAVA_OPTS+=${ALLUXIO_JAVA_OPTS}
 ALLUXIO_MASTER_JAVA_OPTS+=" -Dalluxio.logger.type=${ALLUXIO_MASTER_LOGGER:-MASTER_LOGGER}"
-if [[ ${alluxio_remote_logging_enabled} == "true" ]]; then
+if [[ "${ALLUXIO_REMOTE_LOGGING_ENABLED}" == "true" ]]; then
     ALLUXIO_MASTER_JAVA_OPTS+=" -Dalluxio.remote.logger.type=REMOTE_MASTER_LOGGER"
 fi
-if [[ "$(getConf "alluxio.master.audit.logging.enabled")" == "true" ]]; then
+if [[ "${ALLUXIO_MASTER_AUDIT_LOGGING_ENABLED}" == "true" ]]; then
+    ALLUXIO_MASTER_JAVA_OPTS+=" -Dalluxio.master.audit.logging.enabled=true"
     ALLUXIO_MASTER_JAVA_OPTS+=" -Dalluxio.master.audit.logger.type=${ALLUXIO_MASTER_AUDIT_LOGGER:-MASTER_AUDIT_LOGGER}"
 fi
 
 # Secondary master specific parameters based on ALLUXIO_JAVA_OPTS.
 ALLUXIO_SECONDARY_MASTER_JAVA_OPTS+=${ALLUXIO_JAVA_OPTS}
 ALLUXIO_SECONDARY_MASTER_JAVA_OPTS+=" -Dalluxio.logger.type=${ALLUXIO_SECONDARY_MASTER_LOGGER:-SECONDARY_MASTER_LOGGER}"
-if [[ ${alluxio_remote_logging_enabled} == "true" ]]; then
+if [[ "${ALLUXIO_REMOTE_LOGGING_ENABLED}" == "true" ]]; then
     ALLUXIO_SECONDARY_MASTER_JAVA_OPTS+=" -Dalluxio.remote.logger.type=REMOTE_SECONDARY_MASTER_LOGGER"
 fi
 
 # Proxy specific parameters that will be shared to all workers based on ALLUXIO_JAVA_OPTS.
 ALLUXIO_PROXY_JAVA_OPTS+=${ALLUXIO_JAVA_OPTS}
 ALLUXIO_PROXY_JAVA_OPTS+=" -Dalluxio.logger.type=${ALLUXIO_PROXY_LOGGER:-PROXY_LOGGER}"
-if [[ ${alluxio_remote_logging_enabled} == "true" ]]; then
+if [[ "${ALLUXIO_REMOTE_LOGGING_ENABLED}" == "true" ]]; then
     ALLUXIO_PROXY_JAVA_OPTS+=" -Dalluxio.remote.logger.type=REMOTE_PROXY_LOGGER"
 fi
 
 # Worker specific parameters that will be shared to all workers based on ALLUXIO_JAVA_OPTS.
 ALLUXIO_WORKER_JAVA_OPTS+=${ALLUXIO_JAVA_OPTS}
 ALLUXIO_WORKER_JAVA_OPTS+=" -Dalluxio.logger.type=${ALLUXIO_WORKER_LOGGER:-WORKER_LOGGER}"
-if [[ ${alluxio_remote_logging_enabled} == "true" ]]; then
+if [[ "${ALLUXIO_REMOTE_LOGGING_ENABLED}" == "true" ]]; then
     ALLUXIO_WORKER_JAVA_OPTS+=" -Dalluxio.remote.logger.type=REMOTE_WORKER_LOGGER"
 fi
 
