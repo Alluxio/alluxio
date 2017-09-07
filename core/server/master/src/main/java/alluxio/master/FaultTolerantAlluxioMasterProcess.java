@@ -92,7 +92,6 @@ final class FaultTolerantAlluxioMasterProcess extends AlluxioMasterProcess {
         startMasters(false);
         LOG.info("Secondary started");
       }
-      CommonUtils.sleepMs(LOG, 100);
     }
   }
 
