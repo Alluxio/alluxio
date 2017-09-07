@@ -30,8 +30,11 @@ import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
+import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -53,8 +56,15 @@ public final class PrimarySelectorClient
   /** The address to Zookeeper. */
   private final String mZookeeperAddress;
 
-  /** Whether this master is the leader master now. */
-  private AtomicBoolean mIsLeader = new AtomicBoolean(false);
+  private final Lock mStateLock = new ReentrantLock();
+  private final Condition mStateCondition = mStateLock.newCondition();
+  /**
+   * Whether this master is the primary master now. Whenever this changes, {@link #mStateCondition}
+   * must be signalled. To enforce this, all modification should go through
+   * {@link #setState(State)}.
+   */
+  @GuardedBy("mStateLock")
+  private State mState = State.SECONDARY;
 
   /**
    * Constructs a new {@link PrimarySelectorClient}.
@@ -121,11 +131,16 @@ public final class PrimarySelectorClient
     }
   }
 
-  /**
-   * @return true if the client is the leader, false otherwise
-   */
-  public boolean isPrimary() {
-    return mIsLeader.get();
+  @Override
+  public void waitForState(State state) throws InterruptedException {
+    mStateLock.lock();
+    try {
+      while (mState != state) {
+        mStateCondition.await();
+      }
+    } finally {
+      mStateLock.unlock();
+    }
   }
 
   /**
@@ -141,7 +156,7 @@ public final class PrimarySelectorClient
 
   @Override
   public void stateChanged(CuratorFramework client, ConnectionState newState) {
-    mIsLeader.set(false);
+    setState(State.SECONDARY);
 
     if ((newState != ConnectionState.LOST) && (newState != ConnectionState.SUSPENDED)) {
       try {
@@ -157,7 +172,7 @@ public final class PrimarySelectorClient
 
   @Override
   public void takeLeadership(CuratorFramework client) throws Exception {
-    mIsLeader.set(true);
+    setState(State.PRIMARY);
     if (client.checkExists().forPath(mLeaderFolder + mName) != null) {
       LOG.info("Deleting zk path: {}{}", mLeaderFolder, mName);
       client.delete().forPath(mLeaderFolder + mName);
@@ -173,7 +188,7 @@ public final class PrimarySelectorClient
       LOG.error(mName + " was interrupted.", e);
       Thread.currentThread().interrupt();
     } finally {
-      mIsLeader.set(false);
+      setState(State.SECONDARY);
       LOG.warn("{} relinquishing leadership.", mName);
       LOG.info("The current leader is {}", mLeaderSelector.getLeader().getId());
       LOG.info("All participants: {}", mLeaderSelector.getParticipants());
@@ -200,5 +215,15 @@ public final class PrimarySelectorClient
         new ExponentialBackoffRetry(Constants.SECOND_MS, 3));
     client.start();
     return client;
+  }
+
+  private void setState(State state) {
+    mStateLock.lock();
+    try {
+      mState = state;
+      mStateCondition.signalAll();
+    } finally {
+      mStateLock.unlock();
+    }
   }
 }
