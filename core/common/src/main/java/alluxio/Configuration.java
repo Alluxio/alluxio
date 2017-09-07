@@ -180,21 +180,19 @@ public final class Configuration {
    *
    * @param siteProperties the set of site properties to check
    */
-  public static void discardIgnoredSiteProperties(Map<?, ?> siteProperties) {
-    if (siteProperties != null) {
-      Iterator<? extends Map.Entry<?, ?>> iter = siteProperties.entrySet().iterator();
-      while (iter.hasNext()) {
-        Map.Entry<?, ?> entry  = iter.next();
-        String key = entry.getKey().toString();
-        if (PropertyKey.isValid(key)) {
-          PropertyKey propertyKey = PropertyKey.fromString(key);
-          if (propertyKey.isIgnoredSiteProperty()) {
-            iter.remove();
-            LOG.warn("{} is not accepted in alluxio-site.properties, "
-                + "and must be specified as a JVM property. "
-                + "If no JVM property is present, Alluxio will use default value '{}'.",
-                key, propertyKey.getDefaultValue());
-          }
+  private static void discardIgnoredSiteProperties(Map<?, ?> siteProperties) {
+    Iterator<? extends Map.Entry<?, ?>> iter = siteProperties.entrySet().iterator();
+    while (iter.hasNext()) {
+      Map.Entry<?, ?> entry  = iter.next();
+      String key = entry.getKey().toString();
+      if (PropertyKey.isValid(key)) {
+        PropertyKey propertyKey = PropertyKey.fromString(key);
+        if (propertyKey.isIgnoredSiteProperty()) {
+          iter.remove();
+          LOG.warn("{} is not accepted in alluxio-site.properties, "
+              + "and must be specified as a JVM property. "
+              + "If no JVM property is present, Alluxio will use default value '{}'.",
+              key, propertyKey.getDefaultValue());
         }
       }
     }
