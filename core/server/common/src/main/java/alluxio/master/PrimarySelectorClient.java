@@ -29,7 +29,6 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -181,14 +180,18 @@ public final class PrimarySelectorClient
     client.create().creatingParentsIfNeeded().forPath(mLeaderFolder + mName);
     LOG.info("{} is now the leader.", mName);
     try {
-      while (true) {
-        Thread.sleep(TimeUnit.SECONDS.toMillis(5));
+      mStateLock.lock();
+      try {
+        while (mState == State.PRIMARY) {
+          mStateCondition.await();
+        }
+      } finally {
+        mStateLock.unlock();
       }
     } catch (InterruptedException e) {
       LOG.error(mName + " was interrupted.", e);
       Thread.currentThread().interrupt();
     } finally {
-      setState(State.SECONDARY);
       LOG.warn("{} relinquishing leadership.", mName);
       LOG.info("The current leader is {}", mLeaderSelector.getLeader().getId());
       LOG.info("All participants: {}", mLeaderSelector.getParticipants());
