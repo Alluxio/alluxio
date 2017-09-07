@@ -179,7 +179,7 @@ public final class Configuration {
    * Iterates a set of site properties and discards those that user should not use.
    *
    * @param siteProperties the set of site properties to check
-     */
+   */
   public static void discardIgnoredSiteProperties(Map<?, ?> siteProperties) {
     if (siteProperties != null) {
       Iterator<? extends Map.Entry<?, ?>> iter = siteProperties.entrySet().iterator();
@@ -190,10 +190,10 @@ public final class Configuration {
           PropertyKey propertyKey = PropertyKey.fromString(key);
           if (propertyKey.isIgnoredSiteProperty()) {
             iter.remove();
-            LOG.warn("Site property '{}' is deprecated. Its value '{}' will be ignored. "
-                + "Use corresponding system properties, JVM properties and environment variables "
-                + "instead. Otherwise, Alluxio will use default value '{}'",
-                key, entry.getValue(), propertyKey.getDefaultValue());
+            LOG.warn("{} is not accepted in alluxio-site.properties, "
+                + "and must be specified as a JVM property. "
+                + "If no JVM property is present, Alluxio will use default value '{}'.",
+                key, propertyKey.getDefaultValue());
           }
         }
       }
