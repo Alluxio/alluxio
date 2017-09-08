@@ -23,6 +23,16 @@ import java.net.InetSocketAddress;
 public interface PrimarySelector {
 
   /**
+   * The state for the primary selector.
+   */
+  enum State {
+    /** The current process is primary. */
+    PRIMARY,
+    /** The current process is secondary. */
+    SECONDARY;
+  }
+
+  /**
    * Factory for creating primary selectors.
    */
   final class Factory {
@@ -40,8 +50,7 @@ public interface PrimarySelector {
   }
 
   /**
-   * Starts the primary selector. The primary selector must be started before {@link #isPrimary()}
-   * may be queried.
+   * Starts the primary selector.
    *
    * @param localAddress the address of the local master
    */
@@ -53,7 +62,9 @@ public interface PrimarySelector {
   void stop() throws IOException;
 
   /**
-   * @return whether the local master is the primary
+   * Blocks until the primary selector enters the specified state.
+   *
+   * @param state the state to wait for
    */
-  boolean isPrimary();
+  void waitForState(State state) throws InterruptedException;
 }
