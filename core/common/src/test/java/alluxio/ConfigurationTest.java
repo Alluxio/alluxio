@@ -12,6 +12,7 @@
 package alluxio;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
@@ -509,20 +510,19 @@ public class ConfigurationTest {
   }
 
   @Test
-  public void discardIgnoredSitePropertiesTest() throws Exception {
+  public void discardIgnoredSiteProperties() throws Exception {
     Properties siteProps = new Properties();
     siteProps.setProperty(PropertyKey.MASTER_HOSTNAME.toString(), "host-1");
     siteProps.setProperty(PropertyKey.LOGS_DIR.toString(), "/tmp/logs1");
     File propsFile = mFolder.newFile(Constants.SITE_PROPERTIES);
     siteProps.store(new FileOutputStream(propsFile), "tmp site properties file");
     Map<String, String> sysProps = new HashMap<>();
-    sysProps.put(PropertyKey.LOGS_DIR.toString(), "/tmp/logs2");
     sysProps.put(PropertyKey.SITE_CONF_DIR.toString(), mFolder.getRoot().getAbsolutePath());
     sysProps.put(PropertyKey.TEST_MODE.toString(), "false");
     try (Closeable p = new SystemPropertyRule(sysProps).toResource()) {
       Configuration.init();
       assertEquals("host-1", Configuration.get(PropertyKey.MASTER_HOSTNAME));
-      assertEquals("/tmp/logs2", Configuration.get(PropertyKey.LOGS_DIR));
+      assertNotEquals("/tmp/logs1", Configuration.get(PropertyKey.LOGS_DIR));
     }
   }
 }

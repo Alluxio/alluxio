@@ -1,5 +1,5 @@
 alluxio.master.audit.logging.enabled:
-  'Note: This property must be specified as a JVM property; it is not accepted in alluxio-site.properties. Set to true to enable file system master audit.'
+  'Set to true to enable file system master audit. Note: This property must be specified as a JVM property; it is not accepted in alluxio-site.properties.'
 alluxio.master.audit.logging.queue.capacity:
   'Capacity of the queue used by audit logging.'
 alluxio.master.bind.host:

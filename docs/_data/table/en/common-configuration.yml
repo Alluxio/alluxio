@@ -1,5 +1,5 @@
 alluxio.conf.dir:
-  'Note: This property must be specified as a JVM property; it is not accepted in alluxio-site.properties. The directory containing files used to configure Alluxio.'
+  'The directory containing files used to configure Alluxio. Note: This property must be specified as a JVM property; it is not accepted in alluxio-site.properties.'
 alluxio.debug:
   'Set to true to enable debug mode which has additional logging and info in the Web UI.'
 alluxio.extensions.dir:
@@ -21,13 +21,13 @@ alluxio.home:
 alluxio.logger.type:
   'The type of logger.'
 alluxio.logs.dir:
-  'Note: This property must be specified as a JVM property; it is not accepted in alluxio-site.properties. The path to store log files.'
+  'The path to store log files. Note: This property must be specified as a JVM property; it is not accepted in alluxio-site.properties.'
 alluxio.logserver.hostname:
-  'Note: This property must be specified as a JVM property; it is not accepted in alluxio-site.properties. The hostname of Alluxio logserver.'
+  'The hostname of Alluxio logserver. Note: This property must be specified as a JVM property; it is not accepted in alluxio-site.properties.'
 alluxio.logserver.logs.dir:
-  'Note: This property must be specified as a JVM property; it is not accepted in alluxio-site.properties. Default location for remote log files.'
+  'Default location for remote log files. Note: This property must be specified as a JVM property; it is not accepted in alluxio-site.properties.'
 alluxio.logserver.port:
-  'Note: This property must be specified as a JVM property; it is not accepted in alluxio-site.properties. Default port number to receive logs from alluxio servers.'
+  'Default port number to receive logs from alluxio servers. Note: This property must be specified as a JVM property; it is not accepted in alluxio-site.properties.'
 alluxio.logserver.threads.max:
   'The maximum number of threads used by logserver to service logging requests.'
 alluxio.logserver.threads.min:
@@ -55,9 +55,9 @@ alluxio.proxy.web.hostname:
 alluxio.proxy.web.port:
   'The port Alluxio proxy''s web UI runs on.'
 alluxio.remote.logging.enabled:
-  'Note: This property must be specified as a JVM property; it is not accepted in alluxio-site.properties. Set to true to enable writing logs to a server.'
+  'Set to true to enable writing logs to a server. Note: This property must be specified as a JVM property; it is not accepted in alluxio-site.properties.'
 alluxio.site.conf.dir:
-  'Note: This property must be specified as a JVM property; it is not accepted in alluxio-site.properties. Comma-separated search path for alluxio-site.properties.'
+  'Comma-separated search path for alluxio-site.properties. Note: This property must be specified as a JVM property; it is not accepted in alluxio-site.properties.'
 alluxio.test.mode:
   'Flag used only during tests to allow special behavior.'
 alluxio.underfs.address:

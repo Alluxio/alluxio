@@ -165,8 +165,8 @@ public final class ConfigurationDocGenerator {
 
         // Write property key and default value to yml files
         if (iteratorPK.isIgnoredSiteProperty()) {
-          description = "Note: This property must be specified as a JVM property; "
-              + "it is not accepted in alluxio-site.properties. " + description;
+          description += " Note: This property must be specified as a JVM property; "
+              + "it is not accepted in alluxio-site.properties.";
         }
         String keyValueStr = pKey + ":\n  '" + description + "'\n";
         if (pKey.startsWith("alluxio.user.")) {
