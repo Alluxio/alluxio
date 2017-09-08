@@ -194,12 +194,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("(Experimental) The largest allowable frame size used for Thrift "
               + "RPC communication.")
           .build();
-  public static final PropertyKey REMOTE_LOGGING_ENABLED =
-      new Builder(Name.REMOTE_LOGGING_ENABLED)
-          .setDefaultValue(false)
-          .setDescription("Set to true to enable writing logs to a server.")
-          .setIgnoredSiteProperty(true)
-          .build();
   public static final PropertyKey SITE_CONF_DIR =
       new Builder(Name.SITE_CONF_DIR)
           .setDefaultValue(
@@ -1921,7 +1915,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.network.netty.heartbeat.timeout";
     public static final String NETWORK_THRIFT_FRAME_SIZE_BYTES_MAX =
         "alluxio.network.thrift.frame.size.bytes.max";
-    public static final String REMOTE_LOGGING_ENABLED = "alluxio.remote.logging.enabled";
     public static final String SITE_CONF_DIR = "alluxio.site.conf.dir";
     public static final String TEST_MODE = "alluxio.test.mode";
     public static final String VERSION = "alluxio.version";
