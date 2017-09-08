@@ -36,7 +36,7 @@ public final class LineageStoreView {
    * @param lineageStore the underlying lineage store to construct the view for
    */
   public LineageStoreView(LineageStore lineageStore) {
-    mLineageStore = Preconditions.checkNotNull(lineageStore);
+    mLineageStore = Preconditions.checkNotNull(lineageStore, "lineageStore");
   }
 
   /**
