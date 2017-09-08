@@ -14,7 +14,7 @@ operations in Alluxio.
 
 # Alluxio Proxy dependency
 
-The Python client talks to Alluxio through the REST API provided by the Alluxio proxy.
+The Python client interacts with Alluxio through the REST API provided by the Alluxio proxy.
 
 The proxy is a standalone server that can be started using
 `${ALLUXIO_HOME}/bin/alluxio-start.sh proxy` and stopped using `${ALLUXIO_HOME}/bin/alluxio-stop.sh
@@ -30,6 +30,10 @@ $ pip install alluxio
 ```
 
 # Example Usage
+
+The following program includes examples of how to create directory, download, upload, check existence for,
+and list status for files in Alluxio.
+
 
 ```python
 #!/usr/bin/env python
@@ -61,56 +65,61 @@ def pretty_json(obj):
     return json.dumps(obj, indent=2)
 
 
-py_test_root_dir = '/py-test-dir'
-py_test_nested_dir = '/py-test-dir/nested'
-py_test = py_test_nested_dir + '/py-test'
-py_test_renamed = py_test_root_dir + '/py-test-renamed'
-
-client = alluxio.Client('localhost', 39999)
-
-info("creating directory %s" % py_test_nested_dir)
-opt = option.CreateDirectory(recursive=True)
-client.create_directory(py_test_nested_dir, opt)
-info("done")
-
-info("writing to %s" % py_test)
-with client.open(py_test, 'w') as f:
-    f.write('Alluxio works with Python!\n')
-    with open(sys.argv[0]) as this_file:
-        f.write(this_file)
-info("done")
-
-info("getting status of %s" % py_test)
-stat = client.get_status(py_test)
-print pretty_json(stat.json())
-info("done")
-
-info("renaming %s to %s" % (py_test, py_test_renamed))
-client.rename(py_test, py_test_renamed)
-info("done")
-
-info("getting status of %s" % py_test_renamed)
-stat = client.get_status(py_test_renamed)
-print pretty_json(stat.json())
-info("done")
-
-info("reading %s" % py_test_renamed)
-with client.open(py_test_renamed, 'r') as f:
-    print f.read()
-info("done")
-
-info("listing status of paths under /")
-root_stats = client.list_status('/')
-for stat in root_stats:
+def main():
+    py_test_root_dir = '/py-test-dir'
+    py_test_nested_dir = '/py-test-dir/nested'
+    py_test = py_test_nested_dir + '/py-test'
+    py_test_renamed = py_test_root_dir + '/py-test-renamed'
+    
+    client = alluxio.Client('localhost', 39999)
+    
+    info("creating directory %s" % py_test_nested_dir)
+    opt = option.CreateDirectory(recursive=True)
+    client.create_directory(py_test_nested_dir, opt)
+    info("done")
+    
+    info("writing to %s" % py_test)
+    with client.open(py_test, 'w') as f:
+        f.write('Alluxio works with Python!\n')
+        with open(sys.argv[0]) as this_file:
+            f.write(this_file)
+    info("done")
+    
+    info("getting status of %s" % py_test)
+    stat = client.get_status(py_test)
     print pretty_json(stat.json())
-info("done")
+    info("done")
+    
+    info("renaming %s to %s" % (py_test, py_test_renamed))
+    client.rename(py_test, py_test_renamed)
+    info("done")
+    
+    info("getting status of %s" % py_test_renamed)
+    stat = client.get_status(py_test_renamed)
+    print pretty_json(stat.json())
+    info("done")
+    
+    info("reading %s" % py_test_renamed)
+    with client.open(py_test_renamed, 'r') as f:
+        print f.read()
+    info("done")
+    
+    info("listing status of paths under /")
+    root_stats = client.list_status('/')
+    for stat in root_stats:
+        print pretty_json(stat.json())
+    info("done")
+    
+    info("deleting %s" % py_test_root_dir)
+    opt = option.Delete(recursive=True)
+    client.delete(py_test_root_dir, opt)
+    info("done")
+    
+    info("asserting that %s is deleted" % py_test_root_dir)
+    assert not client.exists(py_test_root_dir)
+    info("done")
 
-info("deleting %s" % py_test_root_dir)
-opt = option.Delete(recursive=True)
-client.delete(py_test_root_dir, opt)
-info("done")
 
-info("asserting that %s is deleted" % py_test_root_dir)
-assert not client.exists(py_test_root_dir)
-info("done")
+if __name__ == '__main__':
+    main()
 ```
