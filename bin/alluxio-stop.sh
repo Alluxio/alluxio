@@ -71,7 +71,6 @@ case "${WHAT}" in
     stop_proxies
     stop_workers
     stop_masters
-    stop_logserver
     ;;
   local)
     stop_proxy
@@ -80,7 +79,6 @@ case "${WHAT}" in
     stop_master
     ALLUXIO_MASTER_SECONDARY=false
     stop_master
-    stop_logserver
     ;;
   master)
     stop_master

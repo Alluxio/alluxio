@@ -46,6 +46,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     private Object mDefaultValue;
     private String mDescription;
     private final String mName;
+    private boolean mIgnoredSiteProperty;
 
     /**
      * @param name name of this property to build
@@ -90,10 +91,20 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     }
 
     /**
+     * @param ignoredSiteProperty true if this property should be ignored when appearing
+     *                            in alluxio-site.properties
+     * @return the updated builder instance
+     */
+    public Builder setIgnoredSiteProperty(boolean ignoredSiteProperty) {
+      mIgnoredSiteProperty = ignoredSiteProperty;
+      return this;
+    }
+
+    /**
      * @return the created property key instance
      */
     public PropertyKey build() {
-      return PropertyKey.create(mName, mDefaultValue, mAlias, mDescription);
+      return PropertyKey.create(mName, mDefaultValue, mAlias, mDescription, mIgnoredSiteProperty);
     }
 
     @Override
@@ -110,6 +121,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Name.CONF_DIR)
           .setDefaultValue(String.format("${%s}/conf", Name.HOME))
           .setDescription("The directory containing files used to configure Alluxio.")
+          .setIgnoredSiteProperty(true)
           .build();
   public static final PropertyKey DEBUG =
       new Builder(Name.DEBUG)
@@ -148,6 +160,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Name.LOGS_DIR)
           .setDefaultValue(String.format("${%s}/logs", Name.WORK_DIR))
           .setDescription("The path to store log files.")
+          .setIgnoredSiteProperty(true)
           .build();
   public static final PropertyKey METRICS_CONF_FILE =
       new Builder(Name.METRICS_CONF_FILE)
@@ -181,17 +194,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("(Experimental) The largest allowable frame size used for Thrift "
               + "RPC communication.")
           .build();
-  public static final PropertyKey REMOTE_LOGGING_ENABLED =
-      new Builder(Name.REMOTE_LOGGING_ENABLED)
-          .setDefaultValue(false)
-          .setDescription("Set to true to enable writing logs to a server.")
-          .build();
   public static final PropertyKey SITE_CONF_DIR =
       new Builder(Name.SITE_CONF_DIR)
           .setDefaultValue(
               String.format("${%s}/,${user.home}/.alluxio/,/etc/alluxio/", Name.CONF_DIR))
           .setDescription(
               String.format("Comma-separated search path for %s.", Constants.SITE_PROPERTIES))
+          .setIgnoredSiteProperty(true)
           .build();
   public static final PropertyKey TEST_MODE =
       new Builder(Name.TEST_MODE)
@@ -535,6 +544,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Name.MASTER_AUDIT_LOGGING_ENABLED)
           .setDefaultValue(false)
           .setDescription("Set to true to enable file system master audit.")
+          .setIgnoredSiteProperty(true)
           .build();
   public static final PropertyKey MASTER_AUDIT_LOGGING_QUEUE_CAPACITY =
       new Builder(Name.MASTER_AUDIT_LOGGING_QUEUE_CAPACITY)
@@ -1290,15 +1300,18 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Name.LOGSERVER_LOGS_DIR)
           .setDefaultValue(String.format("${%s}/logs", Name.WORK_DIR))
           .setDescription("Default location for remote log files.")
+          .setIgnoredSiteProperty(true)
           .build();
   public static final PropertyKey LOGSERVER_HOSTNAME =
       new Builder(Name.LOGSERVER_HOSTNAME)
           .setDescription("The hostname of Alluxio logserver.")
+          .setIgnoredSiteProperty(true)
           .build();
   public static final PropertyKey LOGSERVER_PORT =
       new Builder(Name.LOGSERVER_PORT)
           .setDefaultValue(45600)
           .setDescription("Default port number to receive logs from alluxio servers.")
+          .setIgnoredSiteProperty(true)
           .build();
   public static final PropertyKey LOGSERVER_THREADS_MAX =
       new Builder(Name.LOGSERVER_THREADS_MAX)
@@ -1902,7 +1915,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.network.netty.heartbeat.timeout";
     public static final String NETWORK_THRIFT_FRAME_SIZE_BYTES_MAX =
         "alluxio.network.thrift.frame.size.bytes.max";
-    public static final String REMOTE_LOGGING_ENABLED = "alluxio.remote.logging.enabled";
     public static final String SITE_CONF_DIR = "alluxio.site.conf.dir";
     public static final String TEST_MODE = "alluxio.test.mode";
     public static final String VERSION = "alluxio.version";
@@ -2451,25 +2463,32 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   /** Property Key alias. */
   private final String[] mAliases;
 
+  /** Whether to ignore as a site property. */
+  private final boolean mIgnoredSiteProperty;
+
   /**
    * @param name String of this property
    * @param description String description of this property key
    * @param defaultValue default value
    * @param aliases alias of this property key
+   * @param ignoredSiteProperty true if Alluxio ignores user-specified value for this property
+   *                            in site properties file
    */
-  private PropertyKey(String name, String description, Object defaultValue, String[] aliases) {
+  private PropertyKey(String name, String description, Object defaultValue, String[] aliases,
+      boolean ignoredSiteProperty) {
     mName = Preconditions.checkNotNull(name, "name");
     // TODO(binfan): null check after we add description for each property key
     mDescription = Strings.isNullOrEmpty(description) ? "N/A" : description;
     mDefaultValue = defaultValue;
     mAliases = aliases;
+    mIgnoredSiteProperty = ignoredSiteProperty;
   }
 
   /**
    * @param name String of this property
    */
   private PropertyKey(String name) {
-    this(name, null, null, null);
+    this(name, null, null, null, false);
   }
 
   /**
@@ -2480,10 +2499,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
    * @param defaultValue Default value of this property in compile time if not null
    * @param aliases String list of aliases of this property
    * @param description String description of this property key
+   * @param ignoredSiteProperty true if Alluxio ignores user-specified value for this property
+   *                            in the site properties file
    */
   static PropertyKey create(String name, Object defaultValue, String[] aliases,
-      String description) {
-    PropertyKey key = new PropertyKey(name, description, defaultValue, aliases);
+      String description, boolean ignoredSiteProperty) {
+    PropertyKey key =
+            new PropertyKey(name, description, defaultValue, aliases, ignoredSiteProperty);
     DEFAULT_KEYS_MAP.put(name, key);
     if (aliases != null) {
       for (String alias : aliases) {
@@ -2561,6 +2583,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
    */
   public String getDefaultValue() {
     return mDefaultValue != null ? mDefaultValue.toString() : null;
+  }
+
+  /**
+   * @return true if this property should be ignored as a site property
+   */
+  public boolean isIgnoredSiteProperty() {
+    return mIgnoredSiteProperty;
   }
 
   /**

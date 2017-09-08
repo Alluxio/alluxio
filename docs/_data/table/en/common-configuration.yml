@@ -1,5 +1,5 @@
 alluxio.conf.dir:
-  'The directory containing files used to configure Alluxio.'
+  'The directory containing files used to configure Alluxio. Note: This property must be specified as a JVM property; it is not accepted in alluxio-site.properties.'
 alluxio.debug:
   'Set to true to enable debug mode which has additional logging and info in the Web UI.'
 alluxio.extensions.dir:
@@ -21,13 +21,13 @@ alluxio.home:
 alluxio.logger.type:
   'The type of logger.'
 alluxio.logs.dir:
-  'The path to store log files.'
+  'The path to store log files. Note: This property must be specified as a JVM property; it is not accepted in alluxio-site.properties.'
 alluxio.logserver.hostname:
-  'The hostname of Alluxio logserver.'
+  'The hostname of Alluxio logserver. Note: This property must be specified as a JVM property; it is not accepted in alluxio-site.properties.'
 alluxio.logserver.logs.dir:
-  'Default location for remote log files.'
+  'Default location for remote log files. Note: This property must be specified as a JVM property; it is not accepted in alluxio-site.properties.'
 alluxio.logserver.port:
-  'Default port number to receive logs from alluxio servers.'
+  'Default port number to receive logs from alluxio servers. Note: This property must be specified as a JVM property; it is not accepted in alluxio-site.properties.'
 alluxio.logserver.threads.max:
   'The maximum number of threads used by logserver to service logging requests.'
 alluxio.logserver.threads.min:
@@ -42,6 +42,8 @@ alluxio.network.thrift.frame.size.bytes.max:
   '(Experimental) The largest allowable frame size used for Thrift RPC communication.'
 alluxio.proxy.s3.deletetype:
   'Delete type when deleting buckets and objects through S3 API. Valid options are `ALLUXIO_AND_UFS` (delete both in Alluxio and UFS), `ALLUXIO_ONLY` (delete only the buckets or objects in Alluxio namespace).'
+alluxio.proxy.s3.multipart.temporary.dir.suffix:
+  'Suffix for the directory which holds parts during a multipart upload.'
 alluxio.proxy.s3.writetype:
   'Write type when creating buckets and objects through S3 API. Valid options are `MUST_CACHE` (write will only go to Alluxio and must be stored in Alluxio), `CACHE_THROUGH` (try to cache, write to UnderFS synchronously), `THROUGH` (no cache, write to UnderFS synchronously).'
 alluxio.proxy.stream.cache.timeout:
@@ -52,10 +54,8 @@ alluxio.proxy.web.hostname:
   'The hostname Alluxio proxy''s web UI binds to.'
 alluxio.proxy.web.port:
   'The port Alluxio proxy''s web UI runs on.'
-alluxio.remote.logging.enabled:
-  'Set to true to enable writing logs to a server.'
 alluxio.site.conf.dir:
-  'Comma-separated search path for alluxio-site.properties.'
+  'Comma-separated search path for alluxio-site.properties. Note: This property must be specified as a JVM property; it is not accepted in alluxio-site.properties.'
 alluxio.test.mode:
   'Flag used only during tests to allow special behavior.'
 alluxio.underfs.address:
@@ -96,8 +96,6 @@ alluxio.underfs.s3.owner.id.to.username.mapping:
   'Optionally, specify a preset s3 canonical id to Alluxio username static mapping, in the format "id1=user1;id2=user2". The AWS S3 canonical ID can be found at the console address https://console.aws.amazon.com/iam/home?#security_credential . Please expand the "Account Identifiers" tab and refer to "Canonical User ID".'
 alluxio.underfs.s3.proxy.host:
   'Optionally, specify a proxy host for communicating with S3.'
-alluxio.underfs.s3.proxy.https.only:
-  'If using a proxy to communicate with S3, determine whether to talk to the proxy using https.'
 alluxio.underfs.s3.proxy.port:
   'Optionally, specify a proxy port for communicating with S3.'
 alluxio.underfs.s3.threads.max:
