@@ -30,6 +30,8 @@ alluxio.master.lineage.recompute.interval.ms:
   Alluxio执行重新计算任务的时间间隔（单位：毫秒），executor根据lineage扫描到所有丢失的文件，然后重新执行对应的计算任务。
 alluxio.master.lineage.recompute.log.path:
   执行重新计算任务时将日志的标准输出重定向到该配置项指定的路径。
+alluxio.master.lost.file.detector.enabled:
+  是否开启丢失文件探测服务，默认关闭。
 alluxio.master.port:
   Alluxio master的运行端口。
 alluxio.master.retry:
