@@ -54,8 +54,8 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @PublicApi
 @NotThreadSafe
-public class FileInStream extends InputStream implements BoundedStream, Seekable,
-    PositionedReadable {
+public class FileInStream extends InputStream
+    implements BoundedStream, Seekable, PositionedReadable {
   private static final Logger LOG = LoggerFactory.getLogger(FileInStream.class);
 
   private static final boolean PASSIVE_CACHE_ENABLED =
@@ -354,8 +354,8 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
   }
 
   /**
-   * If we are not in the last block or if the last block is equal to the normal block size,
-   * return the normal block size. Otherwise return the block size of the last block.
+   * If we are not in the last block or if the last block is equal to the normal block size, return
+   * the normal block size. Otherwise return the block size of the last block.
    *
    * @param pos the position to get the block size for
    * @return the size of the block that covers pos
@@ -445,8 +445,8 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
   }
 
   /**
-   * Handles IO exceptions thrown in response to the worker cache request. Cache stream is closed
-   * or cancelled after logging some messages about the exceptions.
+   * Handles IO exceptions thrown in response to the worker cache request. Cache stream is closed or
+   * cancelled after logging some messages about the exceptions.
    *
    * @param e the exception to handle
    */
@@ -455,9 +455,8 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
       // This can happen if there are two readers trying to cache the same block. The first one
       // created the block (either as temp block or committed block). The second sees this
       // exception.
-      LOG.info(
-          "The block with ID {} is already stored in the target worker, canceling the cache "
-              + "request.", getCurrentBlockId());
+      LOG.info("The block with ID {} is already stored in the target worker, canceling the cache "
+          + "request.", getCurrentBlockId());
     } else {
       LOG.warn("The block with ID {} could not be cached into Alluxio storage: {}",
           getCurrentBlockId(), e.toString());
@@ -467,11 +466,9 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
 
   /**
    * Only updates {@link #mCurrentCacheStream}, {@link #mCurrentBlockInStream} and
-   * {@link #mStreamBlockId} to be in sync with the current block (i.e.
-   * {@link #getCurrentBlockId()}).
-   * If this method is called multiple times, the subsequent invokes become no-op.
-   * Call this function every read and seek unless you are sure about the block streams are
-   * up-to-date.
+   * {@link #mStreamBlockId} to be in sync with the current block (i.e. {@link #getCurrentBlockId()}
+   * ). If this method is called multiple times, the subsequent invokes become no-op. Call this
+   * function every read and seek unless you are sure about the block streams are up-to-date.
    */
   private void updateStreams() throws IOException {
     long currentBlockId = getCurrentBlockId();
@@ -584,7 +581,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
    * by {@link FileInStream#seek}.
    *
    * @param pos The position to seek to. It is guaranteed to be valid (pos >= 0 && pos != mPos &&
-   *            pos <= mFileLength)
+   *        pos <= mFileLength)
    */
   private void seekInternal(long pos) throws IOException {
     closeOrCancelCacheStream();
@@ -620,12 +617,15 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
    * current block, otherwise reads the rest of the current block.</li>
    * <li>However, a caveat is that if this is the first seek before any data is read from the file
    * and this seeks is outside the first block, then the first block should not be cached.</li>
+   * <li>Lastly, if the current block is from remote worker and there is no local worker then the
+   * caching is not needed</li>
    * </ol>
    *
    * The behavior on the target block:
    * <ol>
-   * <li>If the target block is already available in the local worker, then the caching on the
-   * target block is not needed. Directly move the position to the seek position.</li>
+   * <li>If the target block is already available in the local worker or it's from remote worker but
+   * no local worker available, then the caching on the target block is not needed. Directly move
+   * the position to the seek position.</li>
    * <li>Otherwise data from the beginning of the block till the seek position needs to be read and
    * cached.</li>
    * </ol>
@@ -639,9 +639,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
     // Precompute this because mPos will be updated several times in this function.
     final boolean isInCurrentBlock = pos / mBlockSize == mPos / mBlockSize;
 
-    boolean readFromLocalWorker = mCurrentBlockInStream != null
-        && mCurrentBlockInStream.Source() == BlockInStreamSource.LOCAL;
-    if (isInCurrentBlock && readFromLocalWorker) {
+    if (isInCurrentBlock && isReadFromLocalWorker()) {
       // no need to partial cache the current block, and the seek is within the block
       // so directly seeks to position.
       mPos = pos;
@@ -658,9 +656,11 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
     // cache the current block if neither of these conditions hold:
     // (1) this is the first seek before any read, and the seek is outside the first block
     // (2) the in stream reads from the local worker
+    // (3) the in stream reads from a remote worker but there is no local worker
     boolean firstSeekOutsideFirstBlock =
         mPos == 0 && mCurrentBlockInStream == null && !isInCurrentBlock;
-    if (!firstSeekOutsideFirstBlock && !readFromLocalWorker) {
+    if (!firstSeekOutsideFirstBlock && !isReadFromLocalWorker()
+        && !isRemoteReadButNoLocalWorker()) {
       // Make sure that mCurrentBlockInStream and mCurrentCacheStream is updated.
       // mPos is not updated here.
       updateStreams();
@@ -687,9 +687,10 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
     // the seek is outside the current block, seek to the beginning of that block first
     mPos = pos / mBlockSize * mBlockSize;
     updateStreams();
-    if (mCurrentBlockInStream != null
-        && mCurrentBlockInStream.Source() != BlockInStreamSource.LOCAL) {
-      // cache till the seek position of the block unless it's already available in local worker
+    if (!isReadFromLocalWorker() && !isRemoteReadButNoLocalWorker()) {
+      // cache till the seek position of the block unless
+      // (1) the in stream reads from the local worker
+      // (2) the in stream reads from a remote worker but there is no local worker
       readCurrentBlockToPos(pos);
     } else if (mCurrentBlockInStream != null) {
       // otherwise directly seek to the position
@@ -697,6 +698,17 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
     } else {
       Preconditions.checkState(remaining() == 0);
     }
+  }
+
+  private boolean isReadFromLocalWorker() {
+    return mCurrentBlockInStream != null
+        && mCurrentBlockInStream.Source() == BlockInStreamSource.LOCAL;
+  }
+
+  private boolean isRemoteReadButNoLocalWorker() throws IOException {
+    return mCurrentBlockInStream != null
+        && mCurrentBlockInStream.Source() == BlockInStreamSource.REMOTE
+        && mContext.getLocalWorker() == null;
   }
 
   /**
