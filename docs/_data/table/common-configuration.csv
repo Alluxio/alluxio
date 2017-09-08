@@ -21,12 +21,12 @@ alluxio.network.host.resolution.timeout,5sec
 alluxio.network.netty.heartbeat.timeout,30sec
 alluxio.network.thrift.frame.size.bytes.max,16MB
 alluxio.proxy.s3.deletetype,ALLUXIO_AND_UFS
+alluxio.proxy.s3.multipart.temporary.dir.suffix,_s3_multipart_tmp
 alluxio.proxy.s3.writetype,CACHE_THROUGH
 alluxio.proxy.stream.cache.timeout,1hour
 alluxio.proxy.web.bind.host,0.0.0.0
 alluxio.proxy.web.hostname,
 alluxio.proxy.web.port,39999
-alluxio.remote.logging.enabled,false
 alluxio.site.conf.dir,${alluxio.conf.dir}/,${user.home}/.alluxio/,/etc/alluxio/
 alluxio.test.mode,false
 alluxio.underfs.address,${alluxio.work.dir}/underFSStorage
@@ -48,7 +48,6 @@ alluxio.underfs.s3.disable.dns.buckets,false
 alluxio.underfs.s3.endpoint,
 alluxio.underfs.s3.owner.id.to.username.mapping,
 alluxio.underfs.s3.proxy.host,
-alluxio.underfs.s3.proxy.https.only,true
 alluxio.underfs.s3.proxy.port,
 alluxio.underfs.s3.threads.max,40
 alluxio.underfs.s3.upload.threads.max,20
