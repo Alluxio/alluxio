@@ -54,8 +54,6 @@ alluxio.proxy.web.hostname:
   'The hostname Alluxio proxy''s web UI binds to.'
 alluxio.proxy.web.port:
   'The port Alluxio proxy''s web UI runs on.'
-alluxio.remote.logging.enabled:
-  'Set to true to enable writing logs to a server. Note: This property must be specified as a JVM property; it is not accepted in alluxio-site.properties.'
 alluxio.site.conf.dir:
   'Comma-separated search path for alluxio-site.properties. Note: This property must be specified as a JVM property; it is not accepted in alluxio-site.properties.'
 alluxio.test.mode:
