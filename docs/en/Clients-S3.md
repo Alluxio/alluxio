@@ -152,14 +152,6 @@ Server: Jetty(9.2.z-SNAPSHOT)
 # curl -i -X DELETE http://localhost:39999/api/v1/s3/testbucket/testobject
 ```
 
-### Delete an empty bucket
-
-```bash
-# curl -i -X DELETE http://localhost:39999/api/v1/s3/testbucket
-HTTP/1.1 204 No Content
-Date: Tue, 29 Aug 2017 22:45:19 GMT
-```
-
 ### Initiate a multipart upload
 
 ```bash
@@ -246,6 +238,14 @@ Content-Length: 0
 Server: Jetty(9.2.z-SNAPSHOT)
 ```
 
+### Delete an empty bucket
+
+```bash
+# curl -i -X DELETE http://localhost:39999/api/v1/s3/testbucket
+HTTP/1.1 204 No Content
+Date: Tue, 29 Aug 2017 22:45:19 GMT
+```
+
 ## Python S3 Client
 
 ### Create a connection:
@@ -321,19 +321,13 @@ bucket.delete_key(smallObjectKey)
 bucket.delete_key(largeObjectKey)
 ```
 
-### Delete the bucket
-
-```python
-conn.delete_bucket(bucketName)
-```
-
 ### Initiate a multipart upload
 
 ```python
 mp = b.initiate_multipart_upload(largeObjectFile)
 ```
 
-### Send the file parts
+### Upload parts
 
 ```python
 import math, os
@@ -363,3 +357,10 @@ mp.complete_upload()
 ```python
 mp.cancel_upload()
 ```
+
+### Delete the bucket
+
+```python
+conn.delete_bucket(bucketName)
+```
+

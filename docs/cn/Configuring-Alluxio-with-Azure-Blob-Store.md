@@ -17,22 +17,18 @@ priority： 0
 为了在多台机器上运行一个Alluxio集群，你必须在每台机器上部署Alluxio的二进制文件。
 你可以[从Alluxio源码编译二进制文件](Building-Alluxio-Master-Branch.html)，或者[直接下载已经编译好的Alluxio二进制文件](Running-Alluxio-Locally.html)。
 
-接着，如果还没有配置，用`bootstrapConf`命令创建你的配置文件。
-例如，如果你是在你的本地机器运行Alluxio,`ALLUXIO_MASTER_HOSTNAME`应该被设置为`localhost`。
-
-```
-$ ./bin/alluxio bootstrapConf <ALLUXIO_MASTER_HOSTNAME>
-```
-
-或者你可以从模板创建文件并手动设置内容。
-
-```
-$ cp conf/alluxio-env.sh.template conf/alluxio-env.sh
-```
 而且，为了在Alluxio上使用Azure Blob Store，在你的Azure storage帐户上创建一个新的container或者使用一个已有的container。你应该注意你在这个container里准备使用的目录,你可以在这个容器里面创建一个目录，或者使用一个已有的目录。鉴于这篇文章的目的，我们将Azure storage帐户名取名为`AZURE_ACCOUNT`，将帐户里的容器取名为`AZURE_CONTAINER`并将该container里面的目录称为`AZURE_DIRECTORY`。更多关于Azure storage帐户的信息，请看[这里](https://docs.microsoft.com/en-us/azure/storage/storage-create-storage-account)。
 
+
 ## 配置Alluxio
-Alluxio可以通过HDFS接口支持Azure blob store。你可以在[这里](http://hadoop.apache.org/docs/r2.7.1/hadoop-azure/index.html)找到更多关于在Azure blob store上运行hadoop的信息。
+
+你需要通过修改`conf/alluxio-site.properties`配置Alluxio使用底层存储系统。如果这个文件不存在，重命名template文件。
+
+```bash
+$ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
+```
+
+Alluxio可以通过HDFS接口支持Azure Blob store。你可以在[这里](http://hadoop.apache.org/docs/r2.7.1/hadoop-azure/index.html)找到更多关于在Azure blob store上运行hadoop的信息。
 从[这里](https://mvnrepository.com/artifact/com.microsoft.azure/azure-storage)下载azure storage的java库(版本2.2.0)并根据你的Hadoop版本从[这里](https://mvnrepository.com/artifact/org.apache.hadoop/hadoop-azure)下载hadoop azure库。请确定使用了 `azure-storage-2.2.0.jar`而不是任何更高版本的，因为这些版本会与hadoop-azure库冲突。
 
 你需要将上面提到的库加入到`ALLUXIO_CLASSPATH`。你可以通过在`conf/alluxio-env.sh`中添加以下代码来完成：

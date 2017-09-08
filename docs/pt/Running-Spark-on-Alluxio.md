@@ -26,26 +26,46 @@ O Alluxio funciona com o `Spark 1.1` ou superiores `out-of-the-box`.
 * Alluxio `client` irá precisar ser compilado com o perfil específico do `Spark`. Construa o
 projeto inteiro a partir do diretório raiz do Alluxio com o comando:
 
-{% include Running-Spark-on-Alluxio/spark-profile-build.md %}
+```bash
+$ mvn clean package -Pspark -DskipTests
+```
 
 * Adicione a linha seguinte para `spark/conf/spark-defaults.conf`:
 
-{% include Running-Spark-on-Alluxio/earlier-spark-version-bash.md %}
+```bash
+spark.driver.extraClassPath {{site.ALLUXIO_CLIENT_JAR_PATH}}
+spark.executor.extraClassPath {{site.ALLUXIO_CLIENT_JAR_PATH}}
+```
 
 * Se o Alluxio está rodando com o `Hadoop 1.x cluster`, crie um novo arquivo
 `spark/conf/core-site.xml` com o conteúdo seguinte:
 
-{% include Running-Spark-on-Alluxio/Hadoop-1.x-configuration.md %}
+```xml
+<configuration>
+  <property>
+    <name>fs.alluxio.impl</name>
+    <value>alluxio.hadoop.FileSystem</value>
+  </property>
+</configuration>
+```
 
 * Se você está rodando o Alluxio no modo de tolerância a falha com o `zookeper` e o
 `Hadoop 1.x cluster`, adicione as entradas a seguinte no arquivo, criado anteriormente,
 `spark/conf/core-site.xml`:
 
-{% include Running-Spark-on-Alluxio/fault-tolerant-mode-with-zookeeper-xml.md %}
+```xml
+<property>
+  <name>fs.alluxio-ft.impl</name>
+  <value>alluxio.hadoop.FaultTolerantFileSystem</value>
+</property>
+```
 
 E as linhas seguintes em `spark/conf/spark-defaults.conf`:
 
-{% include Running-Spark-on-Alluxio/fault-tolerant-mode-with-zookeeper-bash.md %}
+```bash
+spark.driver.extraJavaOptions -Dalluxio.zookeeper.address=zookeeperHost1:2181,zookeeperHost2:2181 -Dalluxio.zookeeper.enabled=true
+spark.executor.extraJavaOptions -Dalluxio.zookeeper.address=zookeeperHost1:2181,zookeeperHost2:2181 -Dalluxio.zookeeper.enabled=true
+```
 
 ## Utilize o Alluxio como Entrada e Saída
 
@@ -53,12 +73,18 @@ Esta seção demonstra como usar o Alluxio como entrada e a saída para aplicaç
 
 Coloque o arquivo `LICENSE` dentro do `HDFS`, assumindo a que o `namenode` está rodando no `localhost`:
 
-{% include Running-Spark-on-Alluxio/license-hdfs.md %}
+```bash
+$ hadoop fs -put -f /alluxio/LICENSE hdfs://localhost:9000/alluxio/LICENSE
+```
 
 Execute os comandos seguintes pelo `spark-shell`, assumindo a que o Alluxio `Master` está rodando
 no `localhost`:
 
-{% include Running-Spark-on-Alluxio/alluxio-hdfs-in-out-scala.md %}
+```scala
+> val s = sc.textFile("alluxio://localhost:19998/LICENSE")
+> val double = s.map(line => line + line)
+> double.saveAsTextFile("alluxio://localhost:19998/LICENSE2")
+```
 
 Abra o seu navegador e acesse [http://localhost:19999](http://localhost:19999). Deve haver um arquivo
 de saída `LICENSE2` que duplica cada linha do arquivo `LICENSE`.
@@ -66,7 +92,11 @@ de saída `LICENSE2` que duplica cada linha do arquivo `LICENSE`.
 Quando o Alluxio estiver rodando no modo de tolerância a falha, você pode apontar para qualquer
 Alluxio `master`:
 
-{% include Running-Spark-on-Alluxio/any-Alluxio-master.md %}
+```scala
+> val s = sc.textFile("alluxio-ft://stanbyHost:19998/LICENSE")
+> val double = s.map(line => line + line)
+> double.saveAsTextFile("alluxio-ft://activeHost:19998/LICENSE2")
+```
 
 ## Data Locality
 
@@ -85,16 +115,22 @@ contorno quando rodar o `Spark` para alcançar a localização de dados. Usuári
 explicitamente o nome do servidor através do `script` fornecido no `Spark`. Inicie um `Spark Worker`
 em cada `slave node` com o `slave-hostname`:
 
-{% include Running-Spark-on-Alluxio/slave-hostname.md %}
+```bash
+$ $SPARK_HOME/sbin/start-slave.sh -h <slave-hostname> <spark master uri>
+```
 
 Por exemplo:
 
-{% include Running-Spark-on-Alluxio/slave-hostname-example.md %}
+```bash
+$ $SPARK_HOME/sbin/start-slave.sh -h simple30 spark://simple27:7077
+```
 
 Você também pode definir o `SPARK_LOCAL_HOSTNAME` em `$SPARK_HOME/conf/spark-env.sh` para obter sucesso
 nisto. Por exemplo:
 
-{% include Running-Spark-on-Alluxio/spark-local-hostname-example.md %}
+```properties
+SPARK_LOCAL_HOSTNAME=simple30
+```
 
 De qualquer forma, os endereços do `Spark Worker` serão o `hostname` e o `Locality Level` será
 `NODE_LOCAL`, como demonstrado no `Spark WebUI` abaixo:
