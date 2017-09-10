@@ -877,6 +877,10 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     }
     // TODO(calvin): Evaluate which other metadata fields should be validated.
     if (inode.isDirectory()) {
+      //ignore root
+      if (inode.getParentId() == -1) {
+        return true;
+      }
       if (!ufs.isDirectory(ufsPath)) {
         return false;
       } else {
