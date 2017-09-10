@@ -72,7 +72,7 @@ public abstract class AbstractClient implements Client {
    * Is true if this client was closed by the user. No further actions are possible after the client
    * is closed.
    */
-  protected boolean mClosed = false;
+  protected volatile boolean mClosed = false;
 
   /**
    * Stores the service version; used for detecting incompatible client-server pairs.
@@ -91,7 +91,7 @@ public abstract class AbstractClient implements Client {
    * @param address the address
    */
   public AbstractClient(Subject subject, InetSocketAddress address) {
-    mAddress = Preconditions.checkNotNull(address, "address");
+    mAddress = address;
     mServiceVersion = Constants.UNKNOWN_SERVICE_VERSION;
     mTransportProvider = TransportProvider.Factory.create();
     mParentSubject = subject;
@@ -168,7 +168,11 @@ public abstract class AbstractClient implements Client {
 
     RetryPolicy retryPolicy =
         new ExponentialBackoffRetry(BASE_SLEEP_MS, MAX_SLEEP_MS, RPC_MAX_NUM_RETRY);
-    while (!mClosed) {
+    while (true) {
+      if (mClosed) {
+        throw new FailedPreconditionException("Failed to connect: client has been closed");
+      }
+      // Re-query the address in each loop iteration in case it has changed (e.g. master failover).
       mAddress = getAddress();
       LOG.info("Alluxio client (version {}) is trying to connect with {} @ {}",
           RuntimeConstants.VERSION, getServiceName(), mAddress);
@@ -247,18 +251,8 @@ public abstract class AbstractClient implements Client {
     mClosed = true;
   }
 
-  /**
-   * Closes the connection, then queries and sets current remote address.
-   */
-  public synchronized void resetConnection() {
-    disconnect();
-    mAddress = getAddress();
-  }
-
-  /**
-   * @return the {@link InetSocketAddress} of the remote
-   */
-  public synchronized InetSocketAddress getAddress() {
+  @Override
+  public synchronized InetSocketAddress getAddress() throws UnavailableException {
     return mAddress;
   }
 

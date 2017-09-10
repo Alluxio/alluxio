@@ -14,12 +14,15 @@ function printUsage {
   echo "Usage: alluxio COMMAND [GENERIC_COMMAND_OPTIONS] [COMMAND_ARGS]"
   echo
   echo "COMMAND is one of:"
+  echo -e "  extensions    \t Manage extensions to core Alluxio"
   echo -e "  format [-s]   \t Format Alluxio master and all workers (if -s specified, only format if underfs is local and doesn't already exist)"
+  echo -e "  formatMaster  \t Format Alluxio master"
   echo -e "  formatWorker  \t Format Alluxio worker storage"
   echo -e "  bootstrapConf \t Generate a config file if one doesn't exist"
   echo -e "  fs            \t Command line tool for interacting with the Alluxio filesystem."
   echo -e "  getConf [key] \t Look up a configuration key, or print all configuration."
   echo -e "  loadufs       \t Load existing files in underlayer filesystem into Alluxio."
+  echo -e "  logLevel      \t Set or get log level of Alluxio servers."
   echo -e "  runClass      \t Run the main method of an Alluxio class."
   echo -e "  runTest       \t Run an end-to-end test on an Alluxio cluster."
   echo -e "  runKVTest     \t Run a test of key-value store operations."
@@ -33,10 +36,12 @@ function printUsage {
   echo -e "  killAll <WORD>\t Kill processes containing the WORD."
   echo -e "  copyDir <PATH>\t Copy the PATH to all worker nodes."
   echo -e "  clearCache    \t Clear OS buffer cache of the machine."
+  echo -e "  confDocGen    \t Generate configuration docs."
   echo -e "  thriftGen     \t Generate all thrift code."
   echo -e "  protoGen      \t Generate all protocol buffer code."
   echo -e "  version       \t Print Alluxio version and exit."
   echo -e "  validateConf  \t Validate Alluxio conf and exit."
+  echo -e "  validateEnv   \t Validate Alluxio environment."
   echo
   echo "GENERIC_COMMAND_OPTIONS supports:"
   echo -e "  -D<property=value>\t Use a value for a given Alluxio property"
@@ -177,7 +182,7 @@ function main {
   if [[ $- == *x* ]]; then
     LAUNCHER="bash -x"
   fi
-  BIN=$(cd "$( dirname "$0" )"; pwd)
+  BIN=$(cd "$( dirname "$( readlink "$0" || echo "$0" )" )"; pwd)
 
   if [[ $# == 0 ]]; then
     printUsage
@@ -201,6 +206,11 @@ function main {
   PARAMETER=""
 
   case ${COMMAND} in
+  "extensions")
+    CLASS="alluxio.cli.extensions.ExtensionsShell"
+    CLASSPATH=${ALLUXIO_SERVER_CLASSPATH}
+    runJavaClass "$@"
+  ;;
   "format")
     if [[ $# -eq 1 ]]; then
       if [[ $1 == "-s" ]]; then
@@ -208,13 +218,11 @@ function main {
           # if ufs is local filesystem and already exists
           exit 0
         else
-          declare -a schemes=(hdfs s3 s3a s3n glusterfs swift oss gcs)
-          for scheme in ${schemes[@]}; do
-            if [[ ${ALLUXIO_UNDERFS_ADDRESS} == ${scheme}://* ]]; then
-              # if ufs is not local filesystem, don't format
-              exit 0
-            fi
-          done
+          # if ufs is not set it will default to local filesystem
+          if [[ ! -z ${ALLUXIO_UNDERFS_ADDRESS} ]] && [[ ${ALLUXIO_UNDERFS_ADDRESS} != /* ]] && [[ ${ALLUXIO_UNDERFS_ADDRESS} != file://* ]]; then
+            # if ufs is not local filesystem, don't format
+            exit 0
+          fi
 
           shift # remove -s param
         fi
@@ -241,10 +249,19 @@ function main {
     CLASS="alluxio.cli.Format"
     CLASSPATH=${ALLUXIO_SERVER_CLASSPATH}
     PARAMETER="worker"
+    ALLUXIO_SHELL_JAVA_OPTS+=" -Dalluxio.logger.type=Console"
+    runJavaClass "$@"
+  ;;
+  "formatMaster")
+    echo "Formatting Alluxio Master @ $(hostname -f)"
+    CLASS="alluxio.cli.Format"
+    CLASSPATH=${ALLUXIO_SERVER_CLASSPATH}
+    PARAMETER="master"
+    ALLUXIO_SHELL_JAVA_OPTS+=" -Dalluxio.logger.type=Console"
     runJavaClass "$@"
   ;;
   "fs")
-    CLASS="alluxio.cli.AlluxioShell"
+    CLASS="alluxio.cli.fs.FileSystemShell"
     CLASSPATH=${ALLUXIO_CLIENT_CLASSPATH}
     runJavaClass "$@"
   ;;
@@ -257,6 +274,11 @@ function main {
     echo "The \"alluxio loadufs <AlluxioURI> <UfsURI>\" command is deprecated since version 1.1." >&2
     echo "Use the \"alluxio fs mount <AlluxioURI> <UfsURI>\" command followed by the \"alluxio fs ls -R <AlluxioURI>\" command instead." >&2
     exit 1
+  ;;
+  "logLevel")
+    CLASS="alluxio.cli.LogLevel"
+    CLASSPATH=${ALLUXIO_CLIENT_CLASSPATH}
+    runJavaClass "$@"
   ;;
   "runClass")
     CLASS=$1
@@ -319,6 +341,12 @@ function main {
   "copyDir")
     copyDir "$@"
   ;;
+  "confDocGen")
+    CLASS="alluxio.cli.ConfigurationDocGenerator"
+    CLASSPATH=${ALLUXIO_CLIENT_CLASSPATH}
+    ALLUXIO_SHELL_JAVA_OPTS+=" -Dalluxio.logger.type=Console"
+    runJavaClass "$@"
+  ;;
   "thriftGen")
     declare -a thriftSrcPaths=($(find "${BIN}/.." -name "*.thrift" -print0 | xargs -0 -n1 dirname | sort | uniq))
     for thriftSrcPath in ${thriftSrcPaths[@]}; do
@@ -345,6 +373,12 @@ function main {
   "validateConf")
     CLASS="alluxio.cli.ValidateConf"
     CLASSPATH=${ALLUXIO_CLIENT_CLASSPATH}
+    ALLUXIO_SHELL_JAVA_OPTS+=" -Dalluxio.logger.type=Console"
+    runJavaClass "$@"
+  ;;
+  "validateEnv")
+    CLASS="alluxio.cli.ValidateEnv"
+    CLASSPATH=${ALLUXIO_SERVER_CLASSPATH}
     ALLUXIO_SHELL_JAVA_OPTS+=" -Dalluxio.logger.type=Console"
     runJavaClass "$@"
   ;;

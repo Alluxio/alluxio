@@ -26,7 +26,8 @@ import org.junit.Test;
 public final class PropertyKeyTest {
 
   private PropertyKey mTestProperty = PropertyKey.create("alluxio.test.property", false,
-       new String[] {"alluxio.test.property.alias1", "alluxio.test.property.alias2"});
+       new String[] {"alluxio.test.property.alias1", "alluxio.test.property.alias2"}, "test",
+       false);
 
   /**
    * Tests parsing string to PropertyKey by {@link PropertyKey#fromString}.
@@ -201,11 +202,17 @@ public final class PropertyKeyTest {
   @Test
   public void isDeprecated() throws Exception {
     assertFalse(PropertyKey.isDeprecated("VERSION"));
-    assertTrue(PropertyKey.isDeprecated("MASTER_ADDRESS"));
   }
 
   @Test
   public void isDeprecatedExceptionThrown() throws Exception {
     assertFalse(PropertyKey.isDeprecated("foo"));
+  }
+
+  @Test
+  public void compare() throws Exception {
+    assertTrue(PropertyKey.CONF_DIR.compareTo(PropertyKey.DEBUG) < 0);
+    assertTrue(PropertyKey.DEBUG.compareTo(PropertyKey.CONF_DIR) > 0);
+    assertTrue(PropertyKey.DEBUG.compareTo(PropertyKey.DEBUG) == 0);
   }
 }

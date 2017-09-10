@@ -90,14 +90,15 @@ public final class MountTable implements JournalEntryIterable {
         if (mEntry != null) {
           return true;
         }
-        while (it.hasNext()) {
+        if (it.hasNext()) {
           mEntry = it.next();
-          // Do not journal the root mount point.
-          if (!mEntry.getKey().equals(ROOT)) {
-            return true;
-          } else {
+          // Skip the root mount point, which is considered a part of initial state, not journaled
+          // state.
+          if (mEntry.getKey().equals(ROOT)) {
             mEntry = null;
+            return hasNext();
           }
+          return true;
         }
         return false;
       }
@@ -187,7 +188,7 @@ public final class MountTable implements JournalEntryIterable {
   }
 
   /**
-   * Clears all the mount point except the root.
+   * Clears all the mount points except the root.
    */
   public void clear() {
     LOG.info("Clearing mount table (except the root).");

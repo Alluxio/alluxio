@@ -27,7 +27,7 @@ public final class OSSUnderFileSystemContractTest extends AbstractUnderFileSyste
 
   @BeforeClass
   public static void beforeClass() throws Exception {
-    Preconditions.checkNotNull(OSS_BUCKET);
+    Preconditions.checkNotNull(OSS_BUCKET, "OSS_BUCKET");
     Preconditions.checkState(new OSSUnderFileSystemFactory().supportsPath(OSS_BUCKET),
         "%s is not a valid OSS path", OSS_BUCKET);
   }

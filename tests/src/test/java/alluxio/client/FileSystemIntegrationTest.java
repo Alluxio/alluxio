@@ -94,7 +94,7 @@ public final class FileSystemIntegrationTest extends BaseIntegrationTest {
     for (int k = 0; k < 5; k++) {
       AlluxioURI fileURI = new AlluxioURI(uniqPath + k);
       FileSystemTestUtils.createByteFile(mFileSystem, fileURI.getPath(), k, mWriteBoth);
-      Assert.assertTrue(mFileSystem.getStatus(fileURI).getInMemoryPercentage() == 100);
+      Assert.assertTrue(mFileSystem.getStatus(fileURI).getInAlluxioPercentage() == 100);
       Assert.assertNotNull(mFileSystem.getStatus(fileURI));
     }
 
@@ -143,7 +143,7 @@ public final class FileSystemIntegrationTest extends BaseIntegrationTest {
     int writeBytes = USER_QUOTA_UNIT_BYTES * 2;
     AlluxioURI uri = new AlluxioURI(uniqPath);
     FileSystemTestUtils.createByteFile(mFileSystem, uri.getPath(), writeBytes, mWriteBoth);
-    Assert.assertTrue(mFileSystem.getStatus(uri).getInMemoryPercentage() == 100);
+    Assert.assertTrue(mFileSystem.getStatus(uri).getInAlluxioPercentage() == 100);
 
     Assert.assertTrue(mFileSystem.getStatus(uri).getPath().equals(uniqPath));
   }

@@ -11,14 +11,52 @@
 
 package alluxio.client.block.stream;
 
-import alluxio.wire.WorkerNetAddress;
+import java.io.IOException;
 
 /**
- * A {@link BlockInStream} which reads from the given byte array.
+ * A {@link BlockInStream} which reads from the given byte array. The stream is able to track how
+ * much bytes that have been read from the extended BlockInStream.
  */
 public class TestBlockInStream extends BlockInStream {
-  public TestBlockInStream(byte[] mData, long id, long length, boolean shortCircuit) {
-    super(new Factory(mData, shortCircuit), new WorkerNetAddress().setHost("local"), id, length);
+  /** A field tracks how much bytes read. */
+  private int mBytesRead;
+  private boolean mClosed;
+
+  public TestBlockInStream(byte[] mData, long id, long length, boolean shortCircuit,
+      BlockInStreamSource source) {
+    super(new Factory(mData, shortCircuit), source, id, length);
+    mBytesRead = 0;
+  }
+
+  @Override
+  public int read(byte[] b, int off, int len) throws IOException {
+    int bytesRead = super.read(b, off, len);
+    mBytesRead += bytesRead;
+    return bytesRead;
+  }
+
+  @Override
+  public int positionedRead(long pos, byte[] b, int off, int len) throws IOException {
+    int bytesRead = super.positionedRead(pos, b, off, len);
+    mBytesRead += bytesRead;
+    return bytesRead;
+  }
+
+  public boolean isClosed() {
+    return mClosed;
+  }
+
+  @Override
+  public void close() throws IOException {
+    mClosed = true;
+    super.close();
+  }
+
+  /**
+   * @return how many bytes been read
+   */
+  public int getBytesRead() {
+    return mBytesRead;
   }
 
   /**

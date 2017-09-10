@@ -98,6 +98,14 @@ public abstract class AbstractLocalAlluxioCluster {
   protected abstract void startMasters() throws Exception;
 
   /**
+   * Restarts the master(s).
+   */
+  public void restartMasters() throws Exception {
+    stopMasters();
+    startMasters();
+  }
+
+  /**
    * Configures and starts the proxy.
    */
   private void startProxy() throws Exception {
@@ -182,6 +190,10 @@ public abstract class AbstractLocalAlluxioCluster {
         FileUtils.createDir(dirPath);
       }
     }
+
+    // Sets the journal folder
+    Configuration.set(PropertyKey.MASTER_JOURNAL_FOLDER,
+        AlluxioTestDirectory.createTemporaryDirectory("journal").getAbsolutePath());
 
     // Formats the journal
     Format.format(Format.Mode.MASTER);
@@ -293,7 +305,6 @@ public abstract class AbstractLocalAlluxioCluster {
     Configuration.set(PropertyKey.WORKER_RPC_PORT, 0);
     Configuration.set(PropertyKey.WORKER_DATA_PORT, 0);
     Configuration.set(PropertyKey.WORKER_WEB_PORT, 0);
-    Configuration.set(PropertyKey.WORKER_DATA_FOLDER, "/datastore");
     Configuration.set(PropertyKey.WORKER_MEMORY_SIZE, DEFAULT_WORKER_MEMORY_BYTES);
     Configuration.set(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS, 15);
     Configuration.set(PropertyKey.WORKER_BLOCK_THREADS_MIN, 1);

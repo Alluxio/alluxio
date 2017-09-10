@@ -12,7 +12,7 @@
 package alluxio.client.file;
 
 import alluxio.AlluxioURI;
-import alluxio.MasterClient;
+import alluxio.Client;
 import alluxio.client.file.options.CheckConsistencyOptions;
 import alluxio.client.file.options.CompleteFileOptions;
 import alluxio.client.file.options.CreateDirectoryOptions;
@@ -26,19 +26,17 @@ import alluxio.client.file.options.MountOptions;
 import alluxio.client.file.options.SetAttributeOptions;
 import alluxio.exception.status.AlreadyExistsException;
 import alluxio.exception.status.NotFoundException;
+import alluxio.master.MasterClientConfig;
 import alluxio.wire.MountPointInfo;
 
 import java.io.IOException;
-import java.net.InetSocketAddress;
 import java.util.List;
 import java.util.Map;
-
-import javax.security.auth.Subject;
 
 /**
  * A client to use for interacting with a file system master.
  */
-public interface FileSystemMasterClient extends MasterClient {
+public interface FileSystemMasterClient extends Client {
 
   /**
    * Factory for {@link FileSystemMasterClient}.
@@ -50,22 +48,11 @@ public interface FileSystemMasterClient extends MasterClient {
     /**
      * Factory method for {@link FileSystemMasterClient}.
      *
-     * @param masterAddress the master address
+     * @param conf master client configuration
      * @return a new {@link FileSystemMasterClient} instance
      */
-    public static FileSystemMasterClient create(InetSocketAddress masterAddress) {
-      return create(null, masterAddress);
-    }
-
-    /**
-     * Factory method for {@link FileSystemMasterClient}.
-     *
-     * @param subject the parent subject
-     * @param masterAddress the master address
-     * @return a new {@link FileSystemMasterClient} instance
-     */
-    public static FileSystemMasterClient create(Subject subject, InetSocketAddress masterAddress) {
-      return RetryHandlingFileSystemMasterClient.create(subject, masterAddress);
+    public static FileSystemMasterClient create(MasterClientConfig conf) {
+      return new RetryHandlingFileSystemMasterClient(conf);
     }
   }
 

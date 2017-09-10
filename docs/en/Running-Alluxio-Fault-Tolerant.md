@@ -9,11 +9,11 @@ priority: 3
 * Table of Contents
 {:toc}
 
-High availability in Alluxio is based upon a multi-master approach where multiple master processes
-are running. One of these processes is elected the leader and is used by all workers and clients as the
-primary point of contact. The other masters act as standbys using the shared journal to ensure that
-they maintain the same file system metadata as a new leader and can rapidly take over in the event
-of the leader failing.
+High availability in Alluxio is based upon a multi-master approach, where multiple master processes
+are running in the system. One of these processes is elected the leader and is used by all workers 
+and clients as the primary point of contact. The other masters act as standby, and use the shared 
+journal to ensure that they maintain the same file system metadata as the leader, and can rapidly 
+take over in the event of the leader failing.
 
 If the leader fails, a new leader is automatically selected from the available standby masters and
 Alluxio proceeds as usual. Note that while the switchover to a standby master happens clients may
@@ -144,10 +144,38 @@ ZooKeeper for the current leader master.
 
 #### HDFS API
 
-When communicating with Alluxio in HA mode using the HDFS API, use `alluxio-ft://` for the scheme
-instead of `alluxio://`. Any host provided in the URL is ignored; `alluxio.zookeeper.address` is used
-instead for finding the Alluxio leader master.
+When communicating with Alluxio in HA mode using the HDFS API, ensure the client side zookeeper
+configuration is properly set. Use `alluxio://` for the scheme but the host and port may be omitted.
+Any host provided in the URL is ignored; `alluxio.zookeeper.address` is used instead for finding the
+Alluxio leader master.
 
 ```
-hadoop fs -ls alluxio-ft:///directory
+hadoop fs -ls alluxio:///directory
 ```
+
+### Automatic Fail Over
+
+To test automatic fail over, ssh into current Alluxio master leader, and find process ID of
+the `AlluxioMaster` process with:
+
+```bash
+$ jps | grep AlluxioMaster
+```
+
+Then kill the leader with:
+
+```bash
+$ kill -9 <leader pid found via the above command>
+```
+
+Then you can see the leader with the following command:
+
+```bash
+$ ./bin/alluxio fs leader
+```
+
+The output of the command should show the new leader. You may need to wait for a moment for the
+new leader to be elected.
+
+Visit Alluxio web UI at `http://{NEW_LEADER_MASTER_IP}:{NEW_LEADER_MASTER_WEB_PORT}`. Click `Browse` in
+the navigation bar, and you should see all files are still there.

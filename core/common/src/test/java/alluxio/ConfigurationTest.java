@@ -12,6 +12,7 @@
 package alluxio;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
@@ -55,6 +56,12 @@ public class ConfigurationTest {
       String loggerType = Configuration.get(PropertyKey.LOGGER_TYPE);
       assertEquals("Console", loggerType);
     }
+  }
+
+  @Test
+  public void alias() {
+    Configuration.merge(ImmutableMap.of("alluxio.master.worker.timeout.ms", "100"));
+    assertEquals(100, Configuration.getMs(PropertyKey.MASTER_WORKER_TIMEOUT_MS));
   }
 
   @Test
@@ -400,9 +407,9 @@ public class ConfigurationTest {
     Configuration.merge(ImmutableMap.of(
         PropertyKey.MASTER_HOSTNAME, "value1",
         PropertyKey.MASTER_RPC_PORT, "value2",
-        PropertyKey.MASTER_ADDRESS, "${alluxio.master.hostname}:${alluxio.master.port}"));
-    String substitution = Configuration.get(PropertyKey.MASTER_ADDRESS);
-    assertEquals("value1:value2", substitution);
+        PropertyKey.MASTER_JOURNAL_FOLDER, "${alluxio.master.hostname}-${alluxio.master.port}"));
+    String substitution = Configuration.get(PropertyKey.MASTER_JOURNAL_FOLDER);
+    assertEquals("value1-value2", substitution);
   }
 
   @Test
@@ -470,7 +477,7 @@ public class ConfigurationTest {
   public void sitePropertiesNotLoadedInTest() throws Exception {
     Properties props = new Properties();
     props.setProperty(PropertyKey.LOGGER_TYPE.toString(), "TEST_LOGGER");
-    File propsFile = mFolder.newFile(Configuration.SITE_PROPERTIES);
+    File propsFile = mFolder.newFile(Constants.SITE_PROPERTIES);
     props.store(new FileOutputStream(propsFile), "ignored header");
     // Avoid interference from system properties. Reset SITE_CONF_DIR to include the temp
     // site-properties file
@@ -488,7 +495,7 @@ public class ConfigurationTest {
   public void sitePropertiesLoadedNotInTest() throws Exception {
     Properties props = new Properties();
     props.setProperty(PropertyKey.LOGGER_TYPE.toString(), "TEST_LOGGER");
-    File propsFile = mFolder.newFile(Configuration.SITE_PROPERTIES);
+    File propsFile = mFolder.newFile(Constants.SITE_PROPERTIES);
     props.store(new FileOutputStream(propsFile), "ignored header");
     // Avoid interference from system properties. Reset SITE_CONF_DIR to include the temp
     // site-properties file
@@ -499,6 +506,23 @@ public class ConfigurationTest {
     try (Closeable p = new SystemPropertyRule(sysProps).toResource()) {
       Configuration.init();
       assertEquals("TEST_LOGGER", Configuration.get(PropertyKey.LOGGER_TYPE));
+    }
+  }
+
+  @Test
+  public void discardIgnoredSiteProperties() throws Exception {
+    Properties siteProps = new Properties();
+    siteProps.setProperty(PropertyKey.MASTER_HOSTNAME.toString(), "host-1");
+    siteProps.setProperty(PropertyKey.LOGS_DIR.toString(), "/tmp/logs1");
+    File propsFile = mFolder.newFile(Constants.SITE_PROPERTIES);
+    siteProps.store(new FileOutputStream(propsFile), "tmp site properties file");
+    Map<String, String> sysProps = new HashMap<>();
+    sysProps.put(PropertyKey.SITE_CONF_DIR.toString(), mFolder.getRoot().getAbsolutePath());
+    sysProps.put(PropertyKey.TEST_MODE.toString(), "false");
+    try (Closeable p = new SystemPropertyRule(sysProps).toResource()) {
+      Configuration.init();
+      assertEquals("host-1", Configuration.get(PropertyKey.MASTER_HOSTNAME));
+      assertNotEquals("/tmp/logs1", Configuration.get(PropertyKey.LOGS_DIR));
     }
   }
 }

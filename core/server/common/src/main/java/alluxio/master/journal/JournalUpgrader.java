@@ -17,6 +17,8 @@ import alluxio.PropertyKey;
 import alluxio.RuntimeConstants;
 import alluxio.ServiceUtils;
 import alluxio.master.MasterFactory;
+import alluxio.master.NoopMaster;
+import alluxio.master.journal.ufs.UfsJournal;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.MkdirsOptions;
 import alluxio.util.URIUtils;
@@ -71,7 +73,7 @@ public final class JournalUpgrader {
   private static final class Upgrader {
     private final String mMaster;
     private final alluxio.master.journalv0.MutableJournal mJournalV0;
-    private final Journal mJournalV1;
+    private final UfsJournal mJournalV1;
 
     private final UnderFileSystem mUfs;
 
@@ -85,8 +87,9 @@ public final class JournalUpgrader {
       mMaster = master;
       mJournalV0 = (new alluxio.master.journalv0.MutableJournal.Factory(
           getJournalLocation(sJournalDirectoryV0))).create(master);
-      mJournalV1 = (new Journal.Factory(
-          getJournalLocation(Configuration.get(PropertyKey.MASTER_JOURNAL_FOLDER)))).create(master);
+      mJournalV1 =
+          new UfsJournal(getJournalLocation(Configuration.get(PropertyKey.MASTER_JOURNAL_FOLDER)),
+              new NoopMaster(master), 0);
 
       mUfs = UnderFileSystem.Factory.create(sJournalDirectoryV0);
 

@@ -13,6 +13,7 @@ package alluxio.client;
 
 import alluxio.AbstractMasterClient;
 import alluxio.Constants;
+import alluxio.master.MasterClientConfig;
 import alluxio.thrift.AlluxioService;
 import alluxio.thrift.GetMasterInfoTOptions;
 import alluxio.thrift.MetaMasterClientService;
@@ -22,12 +23,10 @@ import alluxio.wire.MasterInfo.MasterInfoField;
 import org.apache.thrift.TException;
 
 import java.io.IOException;
-import java.net.InetSocketAddress;
 import java.util.HashSet;
 import java.util.Set;
 
 import javax.annotation.concurrent.ThreadSafe;
-import javax.security.auth.Subject;
 
 /**
  * A wrapper for the thrift client to interact with the meta master.
@@ -41,13 +40,12 @@ public final class RetryHandlingMetaMasterClient extends AbstractMasterClient
   private MetaMasterClientService.Client mClient;
 
   /**
-   * Creates a new block master client.
+   * Creates a new meta master client.
    *
-   * @param subject the parent subject, set to null if not present
-   * @param masterAddress the master address
+   * @param conf master client configuration
    */
-  public RetryHandlingMetaMasterClient(Subject subject, InetSocketAddress masterAddress) {
-    super(subject, masterAddress);
+  public RetryHandlingMetaMasterClient(MasterClientConfig conf) {
+    super(conf);
   }
 
   @Override

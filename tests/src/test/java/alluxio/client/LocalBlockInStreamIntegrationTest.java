@@ -115,7 +115,7 @@ public final class LocalBlockInStreamIntegrationTest extends BaseIntegrationTest
         Assert.assertEquals(cnt, k);
         Assert.assertTrue(BufferUtils.equalIncreasingByteArray(k, ret));
         is.close();
-        Assert.assertTrue(sFileSystem.getStatus(uri).getInMemoryPercentage() == 100);
+        Assert.assertTrue(sFileSystem.getStatus(uri).getInAlluxioPercentage() == 100);
       }
     }
   }
@@ -140,7 +140,7 @@ public final class LocalBlockInStreamIntegrationTest extends BaseIntegrationTest
         Assert.assertEquals(k, is.read(ret));
         Assert.assertTrue(BufferUtils.equalIncreasingByteArray(k, ret));
         is.close();
-        Assert.assertTrue(sFileSystem.getStatus(uri).getInMemoryPercentage() == 100);
+        Assert.assertTrue(sFileSystem.getStatus(uri).getInAlluxioPercentage() == 100);
       }
     }
   }
@@ -165,7 +165,7 @@ public final class LocalBlockInStreamIntegrationTest extends BaseIntegrationTest
         Assert.assertEquals(k, is.read(ret, 0, k));
         Assert.assertTrue(BufferUtils.equalIncreasingByteArray(k, ret));
         is.close();
-        Assert.assertTrue(sFileSystem.getStatus(uri).getInMemoryPercentage() == 100);
+        Assert.assertTrue(sFileSystem.getStatus(uri).getInAlluxioPercentage() == 100);
       }
     }
   }
@@ -253,7 +253,7 @@ public final class LocalBlockInStreamIntegrationTest extends BaseIntegrationTest
         Assert.assertEquals(t, is.skip(t));
         Assert.assertEquals(2 * t + 1, is.read());
         is.close();
-        Assert.assertTrue(sFileSystem.getStatus(uri).getInMemoryPercentage() == 100);
+        Assert.assertTrue(sFileSystem.getStatus(uri).getInAlluxioPercentage() == 100);
       }
     }
   }

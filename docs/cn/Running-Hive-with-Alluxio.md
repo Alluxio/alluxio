@@ -29,6 +29,8 @@ priority: 2
 export HIVE_AUX_JARS_PATH={{site.ALLUXIO_CLIENT_JAR_PATH}}:${HIVE_AUX_JARS_PATH}
 ```
 
+或者，高级用户可以选择通过源代码编译客户端jar包，参考说明[here](Building-Alluxio-Master-Branch.html#compute-framework-support),在这篇说明下面的部分在配置项`{{site.ALLUXIO_CLIENT_JAR_PATH_BUILD}}`应用生成的jar包。
+
 ## 在Alluxio上创建Hive表
 
 有不同的方法可以将Hive与Alluxio整合，以将Alluxio作为[内部表或外部表](https://cwiki.apache.org/confluence/display/Hive/LanguageManual+DDL#LanguageManualDDL-ManagedandExternalTables)，新创建的表或已存在的表的存储器。Alluxio也可以作为Hive的默认文件系统。在接下来的部分我们会介绍对于这些情况如何在Alluxio上使用Hive。本文档中Hive运行在Hadoop MapReduce上。
@@ -78,6 +80,12 @@ LOCATION 'alluxio://master_hostname:port/ml-100k';
 
 区别是Hive会管理内部表的生命周期。
 当你删除内部表，Hive会从Alluxio中将表的元数据以及数据文件都删掉。
+
+现在你可以查询创建的表
+
+```
+hive> select * from u_user;
+```
 
 ### 在ALluxio中使用已经存储在HDFS中的表
 
@@ -152,13 +160,26 @@ Apache Hive也可以使用Alluxio，只需通过一个一般的文件系统接�
 </property>
 ```
 
-若要启用容错模式，将Alluxio模式设置为`alluxio-ft`：
+若要启用容错模式，请在类路径中的`alluxio-site.properties`文件中适当地设置Alluxio群集属性（请参见下面的示例）。
+
+```properties
+alluxio.zookeeper.enabled=true
+alluxio.zookeeper.address=[zookeeper_hostname]:2181
+```
+
+或者，您可以将属性添加到Hive`hive-site.xml`配置中，然后将其传播到Alluxio。
 
 ```xml
-<property>
-   <name>fs.defaultFS</name>
-   <value>alluxio-ft:///</value>
-</property>
+<configuration>
+  <property>
+    <name>alluxio.zookeeper.enabled</name>
+    <value>true</value>
+  </property>
+  <property>
+    <name>alluxio.zookeeper.address</name>
+    <value>[zookeeper_hostname]:2181</value>
+  </property>
+</configuration>
 ```
 
 ### 添加额外Alluxio配置到Hive中

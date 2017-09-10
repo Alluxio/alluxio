@@ -146,18 +146,6 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
     hdfsConf.set("fs.hdfs.impl.disable.cache",
         System.getProperty("fs.hdfs.impl.disable.cache", "true"));
 
-    // NOTE, adding S3 credentials in system properties to HDFS conf for backward compatibility.
-    // TODO(binfan): remove this as it can be set in mount options through --option
-    String accessKeyConf = PropertyKey.S3N_ACCESS_KEY.toString();
-    if (System.getProperty(accessKeyConf) != null
-        && !conf.containsKey(PropertyKey.S3N_ACCESS_KEY)) {
-      hdfsConf.set(accessKeyConf, System.getProperty(accessKeyConf));
-    }
-    String secretKeyConf = PropertyKey.S3N_SECRET_KEY.toString();
-    if (System.getProperty(secretKeyConf) != null
-        && !conf.containsKey(PropertyKey.S3N_SECRET_KEY)) {
-      hdfsConf.set(secretKeyConf, System.getProperty(secretKeyConf));
-    }
     // Set all parameters passed through --option
     for (Map.Entry<String, String> entry : conf.getUserSpecifiedConf().entrySet()) {
       hdfsConf.set(entry.getKey(), entry.getValue());

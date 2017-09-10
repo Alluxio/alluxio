@@ -33,6 +33,8 @@ First of all, set `HIVE_AUX_JARS_PATH` either in shell or `conf/hive-env.sh`:
 export HIVE_AUX_JARS_PATH={{site.ALLUXIO_CLIENT_JAR_PATH}}:${HIVE_AUX_JARS_PATH}
 ```
 
+Alternatively, advanced users can choose to compile this client jar from the source code. Follow the instructs [here](Building-Alluxio-Master-Branch.html#compute-framework-support) and use the generated jar at `{{site.ALLUXIO_CLIENT_JAR_PATH_BUILD}}` for the rest of this guide.
+
 ## Create Hive Tables on Alluxio
 
 There are different ways to integrate Hive with Alluxio, as storage for
@@ -94,6 +96,12 @@ LOCATION 'alluxio://master_hostname:port/ml-100k';
 The difference is that Hive will manage the lifecycle of internal tables.
 When you drop an internal table, Hive deletes both the table metadata and the data file from
 Alluxio.
+
+Now you can query the created table. For example:
+
+```
+hive> select * from u_user;
+```
 
 ### Use Alluxio for Existing Tables Stored in HDFS
 
@@ -182,13 +190,28 @@ Add the following property to `hive-site.xml` in your Hive installation `conf` d
 </property>
 ```
 
-To use fault tolerant mode, set Alluxio scheme to be `alluxio-ft`:
+To use fault tolerant mode, set the Alluxio cluster properties appropriately (see example below) in
+an `alluxio-site.properties` file which is on the classpath.
+
+```properties
+alluxio.zookeeper.enabled=true
+alluxio.zookeeper.address=[zookeeper_hostname]:2181
+```
+
+Alternatively you can add the properties to the Hive `hive-site.xml` configuration which is then
+propagated to Alluxio.
 
 ```xml
-<property>
-   <name>fs.defaultFS</name>
-   <value>alluxio-ft:///</value>
-</property>
+<configuration>
+  <property>
+    <name>alluxio.zookeeper.enabled</name>
+    <value>true</value>
+  </property>
+  <property>
+    <name>alluxio.zookeeper.address</name>
+    <value>[zookeeper_hostname]:2181</value>
+  </property>
+</configuration>
 ```
 
 

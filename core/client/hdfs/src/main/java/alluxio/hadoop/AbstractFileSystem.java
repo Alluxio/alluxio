@@ -29,6 +29,7 @@ import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 import alluxio.exception.PreconditionMessage;
+import alluxio.exception.status.UnavailableException;
 import alluxio.security.User;
 import alluxio.security.authorization.Mode;
 import alluxio.util.CommonUtils;
@@ -275,7 +276,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
       if (end >= start && offset <= start + len) {
         ArrayList<String> names = new ArrayList<>();
         ArrayList<String> hosts = new ArrayList<>();
-        // add the existing in-memory block locations
+        // add the existing in-Alluxio block locations
         for (alluxio.wire.BlockLocation location : fileBlockInfo.getBlockInfo().getLocations()) {
           HostAndPort address = HostAndPort.fromParts(location.getWorkerAddress().getHost(),
               location.getWorkerAddress().getDataPort());
@@ -416,7 +417,6 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
   public void initialize(URI uri, org.apache.hadoop.conf.Configuration conf) throws IOException {
     super.initialize(uri, conf);
     LOG.debug("initialize({}, {}). Connecting to Alluxio", uri, conf);
-    HadoopUtils.addS3Credentials(conf);
     HadoopUtils.addSwiftCredentials(conf);
     setConf(conf);
 
@@ -510,7 +510,13 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
    *         system context.
    */
   private boolean checkMasterAddress() {
-    InetSocketAddress masterAddress = FileSystemContext.INSTANCE.getMasterAddress();
+    InetSocketAddress masterAddress = null;
+    try {
+      masterAddress = FileSystemContext.INSTANCE.getMasterAddress();
+    } catch (UnavailableException e) {
+      LOG.warn("Failed to determine master RPC address: {}", e.toString());
+      return false;
+    }
     boolean sameHost = masterAddress.getHostString().equals(mUri.getHost());
     boolean samePort = masterAddress.getPort() == mUri.getPort();
     if (sameHost && samePort) {
@@ -540,12 +546,16 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
   }
 
   /**
+   * @deprecated in 1.6.0, directly infer the value from {@link PropertyKey#ZOOKEEPER_ENABLED}
+   * configuration value.
+   *
    * Determines if zookeeper should be used for the {@link org.apache.hadoop.fs.FileSystem}. This
    * method should only be used for
    * {@link #initialize(java.net.URI, org.apache.hadoop.conf.Configuration)}.
    *
    * @return true if zookeeper should be used
    */
+  @Deprecated
   protected abstract boolean isZookeeperMode();
 
   @Override

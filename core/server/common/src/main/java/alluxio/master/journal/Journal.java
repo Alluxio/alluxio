@@ -11,75 +11,31 @@
 
 package alluxio.master.journal;
 
-import alluxio.master.journal.options.JournalReaderOptions;
-import alluxio.master.journal.options.JournalWriterOptions;
-import alluxio.master.journal.ufs.UfsJournal;
-import alluxio.util.URIUtils;
+import alluxio.proto.journal.Journal.JournalEntry;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.net.URI;
 
-import javax.annotation.concurrent.ThreadSafe;
-
 /**
- * A journal interface.
+ * A journal for persisting journal entries.
  */
-public interface Journal {
-
-  /**
-   * A {@link Journal} factory.
-   */
-  @ThreadSafe
-  final class Factory implements JournalFactory {
-    private final URI mBase;
-
-    /**
-     * Creates a journal factory with the specified base location. When journals are
-     * created, their names are appended to the base location.
-     *
-     * @param base the base location for journals created by this factory
-     */
-    public Factory(URI base) {
-      mBase = base;
-    }
-
-    @Override
-    public Journal create(String name) {
-      return new UfsJournal(URIUtils.appendPathOrDie(mBase, name));
-    }
-  }
-
+public interface Journal extends Closeable {
   /**
    * @return the journal location
    */
   URI getLocation();
 
   /**
-   * @param options the options to create the reader
-   * @return the {@link JournalReader} for this journal
-   */
-  JournalReader getReader(JournalReaderOptions options);
-
-  /**
-   * @param options the options to create the writer
-   * @return the {@link JournalWriter} for this journal
-   */
-  JournalWriter getWriter(JournalWriterOptions options) throws IOException;
-
-  /**
-   * Gets the log sequence number of the last journal entry written to checkpoint + 1.
+   * Writes an entry. {@link #flush} should be called afterwards if we want to make sure the entry
+   * is persisted.
    *
-   * @return the next sequence number to checkpoint
+   * @param entry the journal entry to write
    */
-  long getNextSequenceNumberToCheckpoint() throws IOException;
+  void write(JournalEntry entry) throws IOException;
 
   /**
-   * @return whether the journal has been formatted
+   * Flushes all the entries written to the underlying storage.
    */
-  boolean isFormatted() throws IOException;
-
-  /**
-   * Formats the journal.
-   */
-  void format() throws IOException;
+  void flush() throws IOException;
 }

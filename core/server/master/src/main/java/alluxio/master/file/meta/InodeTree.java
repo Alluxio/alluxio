@@ -54,6 +54,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -153,12 +154,10 @@ public class InodeTree implements JournalEntryIterable {
    */
   public void initializeRoot(String owner, String group, Mode mode) {
     if (mRoot == null) {
-      mRoot = InodeDirectory
-          .create(mDirectoryIdGenerator.getNewDirectoryId(), NO_PARENT, ROOT_INODE_NAME,
-              CreateDirectoryOptions.defaults().setOwner(owner).setGroup(group).setMode(mode));
-      mRoot.setPersistenceState(PersistenceState.PERSISTED);
-      mInodes.add(mRoot);
-      mCachedInode = mRoot;
+      InodeDirectory root = InodeDirectory.create(mDirectoryIdGenerator.getNewDirectoryId(),
+          NO_PARENT, ROOT_INODE_NAME,
+          CreateDirectoryOptions.defaults().setOwner(owner).setGroup(group).setMode(mode));
+      setRoot(root);
     }
   }
 
@@ -497,6 +496,13 @@ public class InodeTree implements JournalEntryIterable {
       LOG.error(errorMessage);
       throw new FileAlreadyExistsException(errorMessage);
     }
+    if (inodePath.fullPathExists()) {
+      if (!(options instanceof CreateDirectoryOptions)
+          || !((CreateDirectoryOptions) options).isAllowExists()) {
+        throw new FileAlreadyExistsException(path);
+      }
+    }
+
     if (options instanceof CreateFileOptions) {
       CreateFileOptions fileOptions = (CreateFileOptions) options;
       if (fileOptions.getBlockSizeBytes() < 1) {
@@ -546,6 +552,7 @@ public class InodeTree implements JournalEntryIterable {
     if (options.isPersisted()) {
       // Synchronously persist directories. These inodes are already READ locked.
       for (Inode inode : traversalResult.getNonPersisted()) {
+        // This cast is safe because we've already verified that the file inode doesn't exist.
         syncPersistDirectory((InodeDirectory) inode, journalContext);
       }
     }
@@ -689,11 +696,6 @@ public class InodeTree implements JournalEntryIterable {
 
         // Update state while holding the write lock.
         mInodes.add(lastInode);
-
-        if (extensibleInodePath.getLockMode() == LockMode.READ) {
-          // After creating the inode, downgrade to a read lock
-          lockList.downgradeLast();
-        }
 
         createdInodes.add(lastInode);
         extensibleInodePath.getInodes().add(lastInode);
@@ -881,7 +883,9 @@ public class InodeTree implements JournalEntryIterable {
     // Write tree via breadth-first traversal, so that during deserialization, it may be more
     // efficient than depth-first during deserialization due to parent directory's locality.
     final Queue<Inode<?>> inodes = new LinkedList<>();
-    inodes.add(mRoot);
+    if (mRoot != null) {
+      inodes.add(mRoot);
+    }
     return new Iterator<Journal.JournalEntry>() {
       @Override
       public boolean hasNext() {
@@ -929,29 +933,33 @@ public class InodeTree implements JournalEntryIterable {
     InodeDirectory directory = InodeDirectory.fromJournalEntry(entry);
     if (directory.getName().equals(ROOT_INODE_NAME)) {
       // This is the root inode. Clear all the state, and set the root.
-      // For backwards-compatibility:
-      // Empty owner in journal entry indicates that previous journal has no security. In this
-      // case, the journal is allowed to be applied to the new inode with security turned on.
-      if (SecurityUtils.isSecurityEnabled() && mRoot != null && !directory.getOwner().isEmpty()
-          && !mRoot.getOwner().equals(directory.getOwner())) {
-        // user is not the owner of journal root entry
-        throw new AccessControlException(
-            ExceptionMessage.PERMISSION_DENIED.getMessage("Unauthorized user on root"));
-      }
-      mInodes.clear();
-      mPinnedInodeFileIds.clear();
-      mRoot = directory;
+      reset();
+      setRoot(directory);
       // If journal entry has no security enabled, change the replayed inode permission to be 0777
       // for backwards-compatibility.
-      if (SecurityUtils.isSecurityEnabled() && mRoot != null && mRoot.getOwner().isEmpty() && mRoot
-          .getGroup().isEmpty()) {
+      if (SecurityUtils.isSecurityEnabled() && mRoot.getOwner().isEmpty()
+          && mRoot.getGroup().isEmpty()) {
         mRoot.setMode(Constants.DEFAULT_FILE_SYSTEM_MODE);
       }
-      mCachedInode = mRoot;
-      mInodes.add(mRoot);
     } else {
       addInodeFromJournalInternal(directory);
     }
+  }
+
+  /**
+   * Resets the inode tree.
+   */
+  public void reset() {
+    mRoot = null;
+    mInodes.clear();
+    mPinnedInodeFileIds.clear();
+  }
+
+  private void setRoot(InodeDirectory directory) {
+    mRoot = directory;
+    mRoot.setPersistenceState(PersistenceState.PERSISTED);
+    mCachedInode = mRoot;
+    mInodes.add(mRoot);
   }
 
   /**

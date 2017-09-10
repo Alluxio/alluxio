@@ -20,8 +20,8 @@ import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatScheduler;
 import alluxio.heartbeat.ManuallyScheduleHeartbeat;
 import alluxio.master.MasterRegistry;
-import alluxio.master.journal.Journal;
-import alluxio.master.journal.JournalFactory;
+import alluxio.master.journal.JournalSystem;
+import alluxio.master.journal.noop.NoopJournalSystem;
 import alluxio.thrift.Command;
 import alluxio.thrift.CommandType;
 import alluxio.util.ThreadFactoryUtils;
@@ -42,7 +42,6 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
 
-import java.net.URI;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -84,12 +83,11 @@ public class BlockMasterTest {
   @Before
   public void before() throws Exception {
     mRegistry = new MasterRegistry();
-    JournalFactory factory =
-        new Journal.Factory(new URI(mTestFolder.newFolder().getAbsolutePath()));
+    JournalSystem journalSystem = new NoopJournalSystem();
     mClock = new ManualClock();
     mExecutorService =
         Executors.newFixedThreadPool(2, ThreadFactoryUtils.build("TestBlockMaster-%d", true));
-    mBlockMaster = new DefaultBlockMaster(factory, mClock,
+    mBlockMaster = new DefaultBlockMaster(journalSystem, mClock,
         ExecutorServiceFactories.constantExecutorServiceFactory(mExecutorService));
     mRegistry.add(BlockMaster.class, mBlockMaster);
     mRegistry.start(true);
