@@ -133,6 +133,18 @@ public final class EmbeddedChannels {
       }
 
       @Override
+      public ChannelPipeline addFirst(ChannelHandler... handlers) {
+        mDefaultChannelPipeline.addFirst(handlers);
+        return this;
+      }
+
+      @Override
+      public ChannelPipeline addFirst(EventExecutorGroup group, ChannelHandler... handlers) {
+        mDefaultChannelPipeline.addFirst(group, handlers);
+        return this;
+      }
+
+      @Override
       public ChannelPipeline addLast(String name, ChannelHandler handler) {
         return addLast(null, name, handler);
       }
@@ -143,6 +155,25 @@ public final class EmbeddedChannels {
         ChannelHandler last = mDefaultChannelPipeline.removeLast();
         Preconditions.checkState(last instanceof LastInboundHandler);
         mDefaultChannelPipeline.addLast(group, name, handler).addLast(last);
+        return this;
+      }
+
+      @Override
+      public ChannelPipeline addLast(ChannelHandler... handlers) {
+        return addLast(null, handlers);
+      }
+
+      @Override
+      public ChannelPipeline addLast(EventExecutorGroup executor, ChannelHandler... handlers) {
+        if (handlers == null) {
+          throw new NullPointerException("handlers");
+        }
+        for (ChannelHandler h: handlers) {
+          if (h == null) {
+            break;
+          }
+          addLast(executor, StringUtil.simpleClassName(h.getClass()) + "#0", h);
+        }
         return this;
       }
 
@@ -167,37 +198,6 @@ public final class EmbeddedChannels {
       public ChannelPipeline addAfter(EventExecutorGroup group, String baseName, String name,
           ChannelHandler handler) {
         mDefaultChannelPipeline.addAfter(group, baseName, name, handler);
-        return this;
-      }
-
-      @Override
-      public ChannelPipeline addFirst(ChannelHandler... handlers) {
-        mDefaultChannelPipeline.addFirst(handlers);
-        return this;
-      }
-
-      @Override
-      public ChannelPipeline addFirst(EventExecutorGroup group, ChannelHandler... handlers) {
-        mDefaultChannelPipeline.addFirst(group, handlers);
-        return this;
-      }
-
-      @Override
-      public ChannelPipeline addLast(ChannelHandler... handlers) {
-        return addLast(null, handlers);
-      }
-
-      @Override
-      public ChannelPipeline addLast(EventExecutorGroup executor, ChannelHandler... handlers) {
-        if (handlers == null) {
-          throw new NullPointerException("handlers");
-        }
-        for (ChannelHandler h: handlers) {
-          if (h == null) {
-            break;
-          }
-          addLast(executor, StringUtil.simpleClassName(h.getClass()) + "#0", h);
-        }
         return this;
       }
 
@@ -358,6 +358,11 @@ public final class EmbeddedChannels {
       }
 
       @Override
+      public ChannelFuture bind(SocketAddress localAddress, ChannelPromise promise) {
+        return mDefaultChannelPipeline.bind(localAddress, promise);
+      }
+
+      @Override
       public ChannelFuture connect(SocketAddress remoteAddress) {
         return mDefaultChannelPipeline.connect(remoteAddress);
       }
@@ -365,26 +370,6 @@ public final class EmbeddedChannels {
       @Override
       public ChannelFuture connect(SocketAddress remoteAddress, SocketAddress localAddress) {
         return mDefaultChannelPipeline.connect(remoteAddress, localAddress);
-      }
-
-      @Override
-      public ChannelFuture disconnect() {
-        return mDefaultChannelPipeline.disconnect();
-      }
-
-      @Override
-      public ChannelFuture close() {
-        return mDefaultChannelPipeline.close();
-      }
-
-      @Override
-      public ChannelFuture deregister() {
-        return mDefaultChannelPipeline.deregister();
-      }
-
-      @Override
-      public ChannelFuture bind(SocketAddress localAddress, ChannelPromise promise) {
-        return mDefaultChannelPipeline.bind(localAddress, promise);
       }
 
       @Override
@@ -399,13 +384,28 @@ public final class EmbeddedChannels {
       }
 
       @Override
+      public ChannelFuture disconnect() {
+        return mDefaultChannelPipeline.disconnect();
+      }
+
+      @Override
       public ChannelFuture disconnect(ChannelPromise promise) {
         return mDefaultChannelPipeline.disconnect(promise);
       }
 
       @Override
+      public ChannelFuture close() {
+        return mDefaultChannelPipeline.close();
+      }
+
+      @Override
       public ChannelFuture close(ChannelPromise promise) {
         return mDefaultChannelPipeline.close(promise);
+      }
+
+      @Override
+      public ChannelFuture deregister() {
+        return mDefaultChannelPipeline.deregister();
       }
 
       @Override
