@@ -254,6 +254,7 @@
         <groupId>com.jamesmurty.utils</groupId>
         <artifactId>java-xmlbuilder</artifactId>
         <version>0.4</version>
+        <optional>true</optional>
       </dependency>
       <dependency>
         <groupId>commons-cli</groupId>
