@@ -4,11 +4,12 @@ kramdown:
   hard_wrap: false
   syntax_highlighter: rouge
 
-# These allow the documentation to be updated with new releases of Alluxio.
-ALLUXIO_RELEASED_VERSION: 1.5.0
-# For example, "master" for the master branch, or the full version (1.1.1, 1.5.0, etc) for releases and release candidates.
+# The Alluxio version to use in the docs, e.g. for the Alluxio distribution tarball name.
+ALLUXIO_RELEASED_VERSION: 1.6.0-RC1
+# This should always be the same as ALLUXIO_RELEASED_VERSION, and must be set here to be consistent with old versions.
 ALLUXIO_MASTER_VERSION_SHORT: 1.6.0-RC1
-# This must track the major version of the release (1.5 for 1.5.x), or be "master".
+# This must track the major version of the release (1.5 for 1.5.x), or be "master". For release candidates, use just the major version, e.g. "1.5"
+# We use this to determine where to look for javadoc and restdoc.
 ALLUXIO_MAJOR_VERSION: 1.6
 # We must inline the version string (e.g., "1.4.0-SNAPSHOT") rather than using the macro of Alluxio version.
 # Otherwise the macro name remains in the output.
