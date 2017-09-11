@@ -104,6 +104,10 @@ public final class EmbeddedChannels {
       }
     }
 
+    // TODO(binfan): rewrite this class after we support to use mockito 2 for tests. The only
+    // purpose of creating the following class is to extend method "addLast" from
+    // io.netty.channel.DefaultChannelPipeline which happens to be a final and package-private
+    // class.
     /**
      * The channel pipeline that ensures a {@link LastInboundHandler} instance is always in the
      * end. This is a wrapper of the given pipeline instance with modified {@link #addLast} which
