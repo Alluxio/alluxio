@@ -61,6 +61,7 @@ import java.util.NoSuchElementException;
 import java.util.Queue;
 import java.util.Set;
 
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -164,6 +165,7 @@ public class InodeTree implements JournalEntryIterable {
   /**
    * @return username of root of inode tree, null if the inode tree is not initialized
    */
+  @Nullable
   public String getRootUserName() {
     if (mRoot == null) {
       return null;
