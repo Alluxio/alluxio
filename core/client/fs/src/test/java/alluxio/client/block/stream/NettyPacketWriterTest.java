@@ -177,7 +177,6 @@ public final class NettyPacketWriterTest {
         NettyPacketWriter.create(mContext, mAddress, BLOCK_ID, length,
             Protocol.RequestType.ALLUXIO_BLOCK,
             OutStreamOptions.defaults().setWriteTier(TIER));
-    mChannel.finishChannelCreation();
     return writer;
   }
 
