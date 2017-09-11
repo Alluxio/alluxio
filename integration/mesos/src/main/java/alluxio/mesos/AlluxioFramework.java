@@ -61,9 +61,11 @@ public class AlluxioFramework {
     if (Configuration.containsKey(PropertyKey.INTEGRATION_MESOS_ROLE)) {
       frameworkInfo.setRole(Configuration.get(PropertyKey.INTEGRATION_MESOS_ROLE));
     }
-    // Setting the user to an empty string will prompt Mesos to set it to the current user.
     if (Configuration.containsKey(PropertyKey.INTEGRATION_MESOS_USER)) {
       frameworkInfo.setUser(Configuration.get(PropertyKey.INTEGRATION_MESOS_USER));
+    } else {
+      // Setting the user to an empty string will prompt Mesos to set it to the current user.
+      frameworkInfo.setUser("");
     }
 
     if (Configuration.containsKey(PropertyKey.INTEGRATION_MESOS_PRINCIPAL)) {
