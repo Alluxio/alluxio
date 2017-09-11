@@ -110,37 +110,37 @@ public final class EmbeddedChannels {
      * ensures the invariance.
      */
     public class EmbeddedChannelPipeline implements ChannelPipeline {
-      private final ChannelPipeline mDefaultChannelPipeline;
+      private final ChannelPipeline mPipeline;
 
       /**
        * @param pipeline the underlying pipeline
        */
       public EmbeddedChannelPipeline(ChannelPipeline pipeline) {
-        mDefaultChannelPipeline = pipeline;
+        mPipeline = pipeline;
       }
 
       @Override
       public ChannelPipeline addFirst(String name, ChannelHandler handler) {
-        mDefaultChannelPipeline.addFirst(name, handler);
+        mPipeline.addFirst(name, handler);
         return this;
       }
 
       @Override
       public ChannelPipeline addFirst(EventExecutorGroup group, String name,
           ChannelHandler handler) {
-        mDefaultChannelPipeline.addFirst(group, name, handler);
+        mPipeline.addFirst(group, name, handler);
         return this;
       }
 
       @Override
       public ChannelPipeline addFirst(ChannelHandler... handlers) {
-        mDefaultChannelPipeline.addFirst(handlers);
+        mPipeline.addFirst(handlers);
         return this;
       }
 
       @Override
       public ChannelPipeline addFirst(EventExecutorGroup group, ChannelHandler... handlers) {
-        mDefaultChannelPipeline.addFirst(group, handlers);
+        mPipeline.addFirst(group, handlers);
         return this;
       }
 
@@ -152,9 +152,9 @@ public final class EmbeddedChannels {
       @Override
       public ChannelPipeline addLast(EventExecutorGroup group, String name,
           ChannelHandler handler) {
-        ChannelHandler last = mDefaultChannelPipeline.removeLast();
+        ChannelHandler last = mPipeline.removeLast();
         Preconditions.checkState(last instanceof LastInboundHandler);
-        mDefaultChannelPipeline.addLast(group, name, handler).addLast(last);
+        mPipeline.addLast(group, name, handler).addLast(last);
         return this;
       }
 
@@ -178,276 +178,276 @@ public final class EmbeddedChannels {
       }
 
       public ChannelPipeline addBefore(String baseName, String name, ChannelHandler handler) {
-        mDefaultChannelPipeline.addBefore(baseName, name, handler);
+        mPipeline.addBefore(baseName, name, handler);
         return this;
       }
 
       @Override
       public ChannelPipeline addBefore(EventExecutorGroup group, String baseName, String name,
           ChannelHandler handler) {
-        mDefaultChannelPipeline.addBefore(group, baseName, name, handler);
+        mPipeline.addBefore(group, baseName, name, handler);
         return this;
       }
 
       public ChannelPipeline addAfter(String baseName, String name, ChannelHandler handler) {
-        mDefaultChannelPipeline.addAfter(baseName, name, handler);
+        mPipeline.addAfter(baseName, name, handler);
         return this;
       }
 
       @Override
       public ChannelPipeline addAfter(EventExecutorGroup group, String baseName, String name,
           ChannelHandler handler) {
-        mDefaultChannelPipeline.addAfter(group, baseName, name, handler);
+        mPipeline.addAfter(group, baseName, name, handler);
         return this;
       }
 
       public ChannelPipeline remove(ChannelHandler handler) {
-        mDefaultChannelPipeline.remove(handler);
+        mPipeline.remove(handler);
         return this;
       }
 
       public ChannelHandler remove(String name) {
-        return mDefaultChannelPipeline.remove(name);
+        return mPipeline.remove(name);
       }
 
       public <T extends ChannelHandler> T remove(Class<T> handlerType) {
-        return mDefaultChannelPipeline.remove(handlerType);
+        return mPipeline.remove(handlerType);
       }
 
       @Override
       public ChannelHandler removeFirst() {
-        return mDefaultChannelPipeline.removeFirst();
+        return mPipeline.removeFirst();
       }
 
       @Override
       public ChannelHandler removeLast() {
-        return mDefaultChannelPipeline.removeLast();
+        return mPipeline.removeLast();
       }
 
       public ChannelPipeline replace(ChannelHandler oldHandler, String newName,
           ChannelHandler newHandler) {
-        mDefaultChannelPipeline.replace(oldHandler, newName, newHandler);
+        mPipeline.replace(oldHandler, newName, newHandler);
         return this;
       }
 
       public ChannelHandler replace(String oldName, String newName, ChannelHandler newHandler) {
-        return mDefaultChannelPipeline.replace(oldName, newName, newHandler);
+        return mPipeline.replace(oldName, newName, newHandler);
       }
 
       public <T extends ChannelHandler> T replace(Class<T> oldHandlerType, String newName,
           ChannelHandler newHandler) {
-        return mDefaultChannelPipeline.replace(oldHandlerType, newName, newHandler);
+        return mPipeline.replace(oldHandlerType, newName, newHandler);
       }
 
       @Override
       public ChannelHandler first() {
-        return mDefaultChannelPipeline.first();
+        return mPipeline.first();
       }
 
       @Override
       public ChannelHandlerContext firstContext() {
-        return mDefaultChannelPipeline.firstContext();
+        return mPipeline.firstContext();
       }
 
       @Override
       public ChannelHandler last() {
-        return mDefaultChannelPipeline.last();
+        return mPipeline.last();
       }
 
       @Override
       public ChannelHandlerContext lastContext() {
-        return mDefaultChannelPipeline.lastContext();
+        return mPipeline.lastContext();
       }
 
       @Override
       public ChannelHandler get(String name) {
-        return mDefaultChannelPipeline.get(name);
+        return mPipeline.get(name);
       }
 
       @Override
       public <T extends ChannelHandler> T get(Class<T> handlerType) {
-        return mDefaultChannelPipeline.get(handlerType);
+        return mPipeline.get(handlerType);
       }
 
       @Override
       public ChannelHandlerContext context(ChannelHandler handler) {
-        return mDefaultChannelPipeline.context(handler);
+        return mPipeline.context(handler);
       }
 
       @Override
       public ChannelHandlerContext context(String name) {
-        return mDefaultChannelPipeline.context(name);
+        return mPipeline.context(name);
       }
 
       @Override
       public ChannelHandlerContext context(Class<? extends ChannelHandler> handlerType) {
-        return mDefaultChannelPipeline.context(handlerType);
+        return mPipeline.context(handlerType);
       }
 
       @Override
       public Channel channel() {
-        return mDefaultChannelPipeline.channel();
+        return mPipeline.channel();
       }
 
       @Override
       public List<String> names() {
-        return mDefaultChannelPipeline.names();
+        return mPipeline.names();
       }
 
       public Map<String, ChannelHandler> toMap() {
-        return mDefaultChannelPipeline.toMap();
+        return mPipeline.toMap();
       }
 
       @Override
       public ChannelPipeline fireChannelRegistered() {
-        mDefaultChannelPipeline.fireChannelRegistered();
+        mPipeline.fireChannelRegistered();
         return this;
       }
 
       @Override
       public ChannelPipeline fireChannelUnregistered() {
-        mDefaultChannelPipeline.fireChannelUnregistered();
+        mPipeline.fireChannelUnregistered();
         return this;
       }
 
       @Override
       public ChannelPipeline fireChannelActive() {
-        mDefaultChannelPipeline.fireChannelActive();
+        mPipeline.fireChannelActive();
         return this;
       }
 
       @Override
       public ChannelPipeline fireChannelInactive() {
-        mDefaultChannelPipeline.fireChannelInactive();
+        mPipeline.fireChannelInactive();
         return this;
       }
 
       @Override
       public ChannelPipeline fireExceptionCaught(Throwable cause) {
-        mDefaultChannelPipeline.fireExceptionCaught(cause);
+        mPipeline.fireExceptionCaught(cause);
         return this;
       }
 
       @Override
       public ChannelPipeline fireUserEventTriggered(Object event) {
-        mDefaultChannelPipeline.fireUserEventTriggered(event);
+        mPipeline.fireUserEventTriggered(event);
         return this;
       }
 
       @Override
       public ChannelPipeline fireChannelRead(Object msg) {
-        mDefaultChannelPipeline.fireChannelRead(msg);
+        mPipeline.fireChannelRead(msg);
         return this;
       }
 
       @Override
       public ChannelPipeline fireChannelReadComplete() {
-        mDefaultChannelPipeline.fireChannelReadComplete();
+        mPipeline.fireChannelReadComplete();
         return this;
       }
 
       @Override
       public ChannelPipeline fireChannelWritabilityChanged() {
-        mDefaultChannelPipeline.fireChannelWritabilityChanged();
+        mPipeline.fireChannelWritabilityChanged();
         return this;
       }
 
       @Override
       public ChannelFuture bind(SocketAddress localAddress) {
-        return mDefaultChannelPipeline.bind(localAddress);
+        return mPipeline.bind(localAddress);
       }
 
       @Override
       public ChannelFuture bind(SocketAddress localAddress, ChannelPromise promise) {
-        return mDefaultChannelPipeline.bind(localAddress, promise);
+        return mPipeline.bind(localAddress, promise);
       }
 
       @Override
       public ChannelFuture connect(SocketAddress remoteAddress) {
-        return mDefaultChannelPipeline.connect(remoteAddress);
+        return mPipeline.connect(remoteAddress);
       }
 
       @Override
       public ChannelFuture connect(SocketAddress remoteAddress, SocketAddress localAddress) {
-        return mDefaultChannelPipeline.connect(remoteAddress, localAddress);
+        return mPipeline.connect(remoteAddress, localAddress);
       }
 
       @Override
       public ChannelFuture connect(SocketAddress remoteAddress, ChannelPromise promise) {
-        return mDefaultChannelPipeline.connect(remoteAddress, promise);
+        return mPipeline.connect(remoteAddress, promise);
       }
 
       @Override
       public ChannelFuture connect(SocketAddress remoteAddress, SocketAddress localAddress,
           ChannelPromise promise) {
-        return mDefaultChannelPipeline.connect(remoteAddress, localAddress, promise);
+        return mPipeline.connect(remoteAddress, localAddress, promise);
       }
 
       @Override
       public ChannelFuture disconnect() {
-        return mDefaultChannelPipeline.disconnect();
+        return mPipeline.disconnect();
       }
 
       @Override
       public ChannelFuture disconnect(ChannelPromise promise) {
-        return mDefaultChannelPipeline.disconnect(promise);
+        return mPipeline.disconnect(promise);
       }
 
       @Override
       public ChannelFuture close() {
-        return mDefaultChannelPipeline.close();
+        return mPipeline.close();
       }
 
       @Override
       public ChannelFuture close(ChannelPromise promise) {
-        return mDefaultChannelPipeline.close(promise);
+        return mPipeline.close(promise);
       }
 
       @Override
       public ChannelFuture deregister() {
-        return mDefaultChannelPipeline.deregister();
+        return mPipeline.deregister();
       }
 
       @Override
       public ChannelFuture deregister(ChannelPromise promise) {
-        return mDefaultChannelPipeline.deregister(promise);
+        return mPipeline.deregister(promise);
       }
 
       @Override
       public ChannelPipeline read() {
-        mDefaultChannelPipeline.read();
+        mPipeline.read();
         return this;
       }
 
       @Override
       public ChannelFuture write(Object msg) {
-        return mDefaultChannelPipeline.write(msg);
+        return mPipeline.write(msg);
       }
 
       @Override
       public ChannelFuture write(Object msg, ChannelPromise promise) {
-        return mDefaultChannelPipeline.write(msg, promise);
+        return mPipeline.write(msg, promise);
       }
 
       @Override
       public ChannelPipeline flush() {
-        mDefaultChannelPipeline.flush();
+        mPipeline.flush();
         return this;
       }
 
       @Override
       public ChannelFuture writeAndFlush(Object msg, ChannelPromise promise) {
-        return mDefaultChannelPipeline.writeAndFlush(msg, promise);
+        return mPipeline.writeAndFlush(msg, promise);
       }
 
       @Override
       public ChannelFuture writeAndFlush(Object msg) {
-        return mDefaultChannelPipeline.writeAndFlush(msg);
+        return mPipeline.writeAndFlush(msg);
       }
 
       @Override
       public Iterator<Map.Entry<String, ChannelHandler>> iterator() {
-        return mDefaultChannelPipeline.iterator();
+        return mPipeline.iterator();
       }
     }
   }
