@@ -1,7 +1,7 @@
 /*
- * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the "License"). You may not use this work except in compliance with the License, which is
- * available at www.apache.org/licenses/LICENSE-2.0
+ * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0 (the
+ * "License"). You may not use this work except in compliance with the License, which is available
+ * at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
  * either express or implied, as more fully set forth in the License.
@@ -176,6 +176,9 @@ public final class AlluxioBlockStore {
       }
     }
 
+    LOG.debug("Create block instream for " + blockId + " of length " + blockInfo.getLength()
+        + " at address " + address + ", using source:" + source + " openUfsBlockOptions:"
+        + openUfsBlockOptions + " options:" + options);
     return BlockInStream.create(mContext, blockId, blockInfo.getLength(), address, source,
         openUfsBlockOptions, options);
   }
@@ -189,8 +192,8 @@ public final class AlluxioBlockStore {
    * @param address the address of the worker to write the block to, fails if the worker cannot
    *        serve the request
    * @param options the output stream options
-   * @return an {@link BlockOutStream} which can be used to write data to the block in a
-   *         streaming fashion
+   * @return an {@link BlockOutStream} which can be used to write data to the block in a streaming
+   *         fashion
    */
   public BlockOutStream getOutStream(long blockId, long blockSize, WorkerNetAddress address,
       OutStreamOptions options) throws IOException {
@@ -202,9 +205,11 @@ public final class AlluxioBlockStore {
     }
     // No specified location to write to.
     if (address == null) {
-      throw new ResourceExhaustedException(ExceptionMessage.NO_SPACE_FOR_BLOCK_ON_WORKER.getMessage(
-          FormatUtils.getSizeFromBytes(blockSize)));
+      throw new ResourceExhaustedException(ExceptionMessage.NO_SPACE_FOR_BLOCK_ON_WORKER
+          .getMessage(FormatUtils.getSizeFromBytes(blockSize)));
     }
+    LOG.debug("Create block outstream for " + blockId + " of block size " + blockSize
+        + " at address " + address + ", using options:" + options);
     return BlockOutStream.create(mContext, blockId, blockSize, address, options);
   }
 
@@ -216,8 +221,8 @@ public final class AlluxioBlockStore {
    * @param blockSize the standard block size to write, or -1 if the block already exists (and this
    *        stream is just storing the block in Alluxio again)
    * @param options the output stream option
-   * @return a {@link BlockOutStream} which can be used to write data to the block in a
-   *         streaming fashion
+   * @return a {@link BlockOutStream} which can be used to write data to the block in a streaming
+   *         fashion
    */
   public BlockOutStream getOutStream(long blockId, long blockSize, OutStreamOptions options)
       throws IOException {
