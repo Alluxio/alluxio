@@ -44,7 +44,7 @@ public final class LocalFileBlockWriter implements BlockWriter {
    * @param path file path of the block
    */
   public LocalFileBlockWriter(String path) throws IOException {
-    mFilePath = Preconditions.checkNotNull(path);
+    mFilePath = Preconditions.checkNotNull(path, "path");
     mLocalFile = mCloser.register(new RandomAccessFile(mFilePath, "rw"));
     mLocalFileChannel = mCloser.register(mLocalFile.getChannel());
   }
