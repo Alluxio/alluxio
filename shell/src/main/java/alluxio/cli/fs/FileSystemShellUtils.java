@@ -20,6 +20,8 @@ import alluxio.cli.CommandUtils;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.exception.AlluxioException;
+import alluxio.exception.ExceptionMessage;
+import alluxio.util.FormatUtils;
 import alluxio.util.io.PathUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
@@ -221,6 +223,20 @@ public final class FileSystemShellUtils {
   public static Map<String, Command> loadCommands(FileSystem fileSystem) {
     return CommandUtils.loadCommands(FileSystemShell.class.getPackage().getName(),
         new Class[] {FileSystem.class}, new Object[] {fileSystem});
+  }
+
+  /**
+   * Converts the input time into millisecond unit.
+   *
+   * @param time the time to be converted into milliseconds
+   * @return the time in millisecond unit
+   */
+  public static long getMs(String time) {
+    try {
+      return FormatUtils.parseTimeSize(time);
+    } catch (Exception e) {
+      throw new RuntimeException(ExceptionMessage.INVALID_TIME.getMessage(time));
+    }
   }
 
   /**
