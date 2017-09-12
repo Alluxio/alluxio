@@ -54,8 +54,8 @@ public final class RecomputeExecutor implements HeartbeatExecutor {
    * @param fileSystemMaster the file system master
    */
   public RecomputeExecutor(RecomputePlanner planner, FileSystemMaster fileSystemMaster) {
-    mPlanner = Preconditions.checkNotNull(planner);
-    mFileSystemMaster = Preconditions.checkNotNull(fileSystemMaster);
+    mPlanner = Preconditions.checkNotNull(planner, "planner");
+    mFileSystemMaster = Preconditions.checkNotNull(fileSystemMaster, "fileSystemMaster");
   }
 
   @Override

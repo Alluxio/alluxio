@@ -29,7 +29,7 @@ public abstract class AbstractWorker implements Worker {
    * @param executorService executor service to use internally
    */
   protected AbstractWorker(ExecutorService executorService)  {
-    mExecutorService = Preconditions.checkNotNull(executorService);
+    mExecutorService = Preconditions.checkNotNull(executorService, "executorService");
   }
 
   /**

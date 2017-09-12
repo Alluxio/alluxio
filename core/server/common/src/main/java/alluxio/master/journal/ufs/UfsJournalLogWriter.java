@@ -137,7 +137,7 @@ final class UfsJournalLogWriter {
    * @param nextSequenceNumber the sequence number to begin writing at
    */
   UfsJournalLogWriter(UfsJournal journal, long nextSequenceNumber) throws IOException {
-    mJournal = Preconditions.checkNotNull(journal);
+    mJournal = Preconditions.checkNotNull(journal, "journal");
     mUfs = mJournal.getUfs();
     mNextSequenceNumber = nextSequenceNumber;
     mMaxLogSize = Configuration.getBytes(PropertyKey.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX);

@@ -23,6 +23,7 @@ import com.google.common.collect.Lists;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -78,6 +79,7 @@ public abstract class LockedInodePath implements AutoCloseable {
   /**
    * @return the target inode, or null if it does not exist
    */
+  @Nullable
   public synchronized Inode<?> getInodeOrNull() {
     if (!fullPathExists()) {
       return null;
@@ -119,6 +121,7 @@ public abstract class LockedInodePath implements AutoCloseable {
   /**
    * @return the parent of the target inode, or null if the parent does not exist
    */
+  @Nullable
   public synchronized Inode getParentInodeOrNull() {
     if (mPathComponents.length < 2 || mInodes.size() < (mPathComponents.length - 1)) {
       // The path is only the root, or the list of inodes is not long enough to contain the parent
