@@ -35,6 +35,7 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Properties;
 
 /**
  * Integration test for
@@ -43,7 +44,7 @@ import java.util.List;
 public class CheckConsistencyIntegrationTest extends BaseIntegrationTest {
   private static final AlluxioURI DIRECTORY = new AlluxioURI("/dir");
   private static final AlluxioURI FILE = new AlluxioURI("/dir/file");
-  private static final String TEST_USER = "test";
+  private static final String TEST_USER = System.getProperties().getProperty("user.name");
 
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
