@@ -11,6 +11,8 @@
 
 package alluxio.worker.block.meta;
 
+import static org.junit.Assert.assertTrue;
+
 import alluxio.exception.BlockAlreadyExistsException;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.ExceptionMessage;
@@ -128,7 +130,7 @@ public final class StorageDirTest {
     Assert.assertEquals(TEST_DIR_CAPACITY, mDir.getCapacityBytes());
     Assert.assertEquals(availableBytes, mDir.getAvailableBytes());
     for (int blockId = 0; blockId < nBlock; blockId++) {
-      Assert.assertTrue(mDir.hasBlockMeta(blockId));
+      assertTrue(mDir.hasBlockMeta(blockId));
     }
   }
 
@@ -141,7 +143,7 @@ public final class StorageDirTest {
   private void assertMetadataEmpty(StorageDir dir, long capacity) {
     Assert.assertEquals(capacity, dir.getCapacityBytes());
     Assert.assertEquals(capacity, dir.getAvailableBytes());
-    Assert.assertTrue(dir.getBlockIds().isEmpty());
+    assertTrue(dir.getBlockIds().isEmpty());
   }
 
   /**
@@ -182,7 +184,7 @@ public final class StorageDirTest {
 
     File newDir = new File(testDir, "dir");
     boolean created = newDir.mkdir();
-    Assert.assertTrue(created);
+    assertTrue(created);
 
     mDir = newStorageDir(testDir);
     assertStorageDirEmpty(testDir, mDir, TEST_DIR_CAPACITY);
@@ -432,7 +434,7 @@ public final class StorageDirTest {
     Assert.assertEquals(TEST_DIR_CAPACITY, mDir.getAvailableBytes());
 
     mDir.addBlockMeta(mBlockMeta);
-    Assert.assertTrue(mDir.hasBlockMeta(TEST_BLOCK_ID));
+    assertTrue(mDir.hasBlockMeta(TEST_BLOCK_ID));
     Assert.assertEquals(mBlockMeta, mDir.getBlockMeta(TEST_BLOCK_ID));
     Assert.assertEquals(TEST_DIR_CAPACITY - TEST_BLOCK_SIZE, mDir.getAvailableBytes());
 
@@ -451,7 +453,7 @@ public final class StorageDirTest {
     Assert.assertEquals(TEST_DIR_CAPACITY, mDir.getAvailableBytes());
 
     mDir.addTempBlockMeta(mTempBlockMeta);
-    Assert.assertTrue(mDir.hasTempBlockMeta(TEST_TEMP_BLOCK_ID));
+    assertTrue(mDir.hasTempBlockMeta(TEST_TEMP_BLOCK_ID));
     Assert.assertEquals(mTempBlockMeta, mDir.getTempBlockMeta(TEST_TEMP_BLOCK_ID));
     Assert.assertEquals(TEST_DIR_CAPACITY - TEST_TEMP_BLOCK_SIZE, mDir.getAvailableBytes());
 
@@ -484,7 +486,7 @@ public final class StorageDirTest {
       mDir.resizeTempBlockMeta(mTempBlockMeta, newSize);
       Assert.fail("Should throw an Exception when newSize is smaller than oldSize");
     } catch (Exception e) {
-      Assert.assertTrue(e instanceof InvalidWorkerStateException);
+      assertTrue(e instanceof InvalidWorkerStateException);
       Assert.assertThat(e.getMessage(),
           CoreMatchers.equalTo("Shrinking block, not supported!"));
       Assert.assertEquals(TEST_TEMP_BLOCK_SIZE, mTempBlockMeta.getBlockSize());
@@ -540,17 +542,17 @@ public final class StorageDirTest {
     }
     Assert.assertEquals(Sets.newHashSet(tempBlockMeta1, tempBlockMeta2),
         new HashSet<>(actual));
-    Assert.assertTrue(mDir.hasTempBlockMeta(tempBlockId1));
-    Assert.assertTrue(mDir.hasTempBlockMeta(tempBlockId2));
+    assertTrue(mDir.hasTempBlockMeta(tempBlockId1));
+    assertTrue(mDir.hasTempBlockMeta(tempBlockId2));
 
     // Two temp blocks created by TEST_SESSION_ID are expected to be removed
     mDir.cleanupSessionTempBlocks(TEST_SESSION_ID, actualBlockIds);
     Assert.assertFalse(mDir.hasTempBlockMeta(tempBlockId1));
     Assert.assertFalse(mDir.hasTempBlockMeta(tempBlockId2));
     // Temp block created by otherSessionId is expected to stay
-    Assert.assertTrue(mDir.hasTempBlockMeta(tempBlockId3));
+    assertTrue(mDir.hasTempBlockMeta(tempBlockId3));
     // Block created by TEST_SESSION_ID is expected to stay
-    Assert.assertTrue(mDir.hasBlockMeta(TEST_BLOCK_ID));
+    assertTrue(mDir.hasBlockMeta(TEST_BLOCK_ID));
   }
 
   /**
