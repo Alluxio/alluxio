@@ -53,7 +53,7 @@ public final class BlockMasterWorkerServiceHandler implements BlockMasterWorkerS
    * @param blockMaster the {@link BlockMaster} the handler uses internally
    */
   BlockMasterWorkerServiceHandler(BlockMaster blockMaster) {
-    Preconditions.checkNotNull(blockMaster);
+    Preconditions.checkNotNull(blockMaster, "blockMaster");
     mBlockMaster = blockMaster;
   }
 
