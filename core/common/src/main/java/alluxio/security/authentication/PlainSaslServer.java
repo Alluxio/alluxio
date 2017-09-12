@@ -15,6 +15,7 @@ import com.google.common.base.Preconditions;
 
 import java.util.Map;
 
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.annotation.concurrent.ThreadSafe;
 import javax.security.auth.callback.Callback;
@@ -58,6 +59,7 @@ public final class PlainSaslServer implements SaslServer {
   }
 
   @Override
+  @Nullable
   public byte[] evaluateResponse(byte[] response) throws SaslException {
     Preconditions.checkState(!mCompleted, "PLAIN authentication has completed");
     Preconditions.checkArgument(response != null, "Received null response");
@@ -132,6 +134,7 @@ public final class PlainSaslServer implements SaslServer {
   }
 
   @Override
+  @Nullable
   public Object getNegotiatedProperty(String propName) {
     checkNotComplete();
     return Sasl.QOP.equals(propName) ? "auth" : null;
