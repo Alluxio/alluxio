@@ -270,15 +270,15 @@ public abstract class AbstractLocalAlluxioCluster {
     Configuration.set(PropertyKey.MASTER_HOSTNAME, mHostname);
     Configuration.set(PropertyKey.MASTER_RPC_PORT, 0);
     Configuration.set(PropertyKey.MASTER_WEB_PORT, 0);
-    Configuration.set(PropertyKey.MASTER_TTL_CHECKER_INTERVAL_MS, 1000);
+    Configuration.set(PropertyKey.MASTER_TTL_CHECKER_INTERVAL_MS, "1sec");
     Configuration.set(PropertyKey.MASTER_WORKER_THREADS_MIN, 1);
     Configuration.set(PropertyKey.MASTER_WORKER_THREADS_MAX, 100);
     Configuration.set(PropertyKey.MASTER_STARTUP_CONSISTENCY_CHECK_ENABLED, false);
     Configuration.set(PropertyKey.MASTER_JOURNAL_FLUSH_TIMEOUT_MS, "1sec");
 
     // Shutdown journal tailer quickly. Graceful shutdown is unnecessarily slow.
-    Configuration.set(PropertyKey.MASTER_JOURNAL_TAILER_SHUTDOWN_QUIET_WAIT_TIME_MS, 50);
-    Configuration.set(PropertyKey.MASTER_JOURNAL_TAILER_SLEEP_TIME_MS, 10);
+    Configuration.set(PropertyKey.MASTER_JOURNAL_TAILER_SHUTDOWN_QUIET_WAIT_TIME_MS, "50ms");
+    Configuration.set(PropertyKey.MASTER_JOURNAL_TAILER_SLEEP_TIME_MS, "10ms");
 
     Configuration.set(PropertyKey.MASTER_BIND_HOST, mHostname);
     Configuration.set(PropertyKey.MASTER_WEB_BIND_HOST, mHostname);
@@ -289,7 +289,7 @@ public abstract class AbstractLocalAlluxioCluster {
 
     // Since tests are always running on a single host keep the resolution timeout low as otherwise
     // people running with strange network configurations will see very slow tests
-    Configuration.set(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS, 250);
+    Configuration.set(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS, "250ms");
 
     Configuration.set(PropertyKey.PROXY_WEB_PORT, 0);
 
@@ -306,14 +306,14 @@ public abstract class AbstractLocalAlluxioCluster {
     Configuration.set(PropertyKey.WORKER_DATA_PORT, 0);
     Configuration.set(PropertyKey.WORKER_WEB_PORT, 0);
     Configuration.set(PropertyKey.WORKER_MEMORY_SIZE, DEFAULT_WORKER_MEMORY_BYTES);
-    Configuration.set(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS, 15);
+    Configuration.set(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS, "15ms");
     Configuration.set(PropertyKey.WORKER_BLOCK_THREADS_MIN, 1);
     Configuration.set(PropertyKey.WORKER_BLOCK_THREADS_MAX, 2048);
     Configuration.set(PropertyKey.WORKER_NETWORK_NETTY_WORKER_THREADS, 2);
 
     // Shutdown data server quickly. Graceful shutdown is unnecessarily slow.
-    Configuration.set(PropertyKey.WORKER_NETWORK_NETTY_SHUTDOWN_QUIET_PERIOD, 0);
-    Configuration.set(PropertyKey.WORKER_NETWORK_NETTY_SHUTDOWN_TIMEOUT, 0);
+    Configuration.set(PropertyKey.WORKER_NETWORK_NETTY_SHUTDOWN_QUIET_PERIOD, "0ms");
+    Configuration.set(PropertyKey.WORKER_NETWORK_NETTY_SHUTDOWN_TIMEOUT, "0ms");
 
     Configuration.set(PropertyKey.WORKER_BIND_HOST, mHostname);
     Configuration.set(PropertyKey.WORKER_DATA_BIND_HOST, mHostname);
