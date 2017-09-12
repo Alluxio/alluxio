@@ -13,6 +13,7 @@ package alluxio.underfs;
 
 import com.google.common.base.Objects;
 
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -73,6 +74,7 @@ public abstract class UfsStatus {
    * @param children array of listing statuses
    * @return array of file or directory names, or null if the input is null
    */
+  @Nullable
   public static String[] convertToNames(UfsStatus[] children) {
     if (children == null) {
       return null;
