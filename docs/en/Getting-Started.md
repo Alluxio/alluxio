@@ -76,6 +76,10 @@ $ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 Update `alluxio.master.hostname` in `conf/alluxio-site.properties` to the hostname of the machine
 you plan to run Alluxio Master on.
 
+```bash
+$ echo "localhost" >> conf/alluxio-site.properties
+```
+
 ### [Bonus] Configuration for AWS
 
 If you have an Amazon AWS account with your access key id and secret key, you can update your
@@ -94,7 +98,7 @@ rest of this guide.
 
 ## Validating Alluxio environment
 
-Before starting Alluxio, you might want to make sure that your system environment is ready for running 
+Before starting Alluxio, you might want to make sure that your system environment is ready for running
 Alluxio services. You can run the following command to validate your local environment with your
 Alluxio configuration:
 
@@ -428,4 +432,3 @@ Different frameworks and applications work with Alluxio.
 * [Presto with Alluxio](Running-Presto-with-Alluxio.html)
 * [Apache Hive with Alluxio](Running-Hive-with-Alluxio.html)
 * [Apache Zeppelin with Alluxio](Accessing-Alluxio-from-Zeppelin.html)
-
