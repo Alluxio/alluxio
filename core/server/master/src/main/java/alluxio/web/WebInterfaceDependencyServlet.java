@@ -40,7 +40,7 @@ public final class WebInterfaceDependencyServlet extends HttpServlet {
    * @param masterProcess Alluxio master process
    */
   public WebInterfaceDependencyServlet(MasterProcess masterProcess) {
-    mMasterProcess = Preconditions.checkNotNull(masterProcess);
+    mMasterProcess = Preconditions.checkNotNull(masterProcess, "masterProcess");
   }
 
   @Override
