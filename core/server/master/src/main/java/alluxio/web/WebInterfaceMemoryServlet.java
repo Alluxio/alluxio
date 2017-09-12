@@ -50,7 +50,7 @@ public final class WebInterfaceMemoryServlet extends HttpServlet {
    * @param masterProcess Alluxio master process
    */
   public WebInterfaceMemoryServlet(MasterProcess masterProcess) {
-    mMasterProcess = Preconditions.checkNotNull(masterProcess);
+    mMasterProcess = Preconditions.checkNotNull(masterProcess, "masterProcess");
   }
 
   /**
