@@ -50,8 +50,8 @@ public abstract class BaseUnderFileSystem implements UnderFileSystem {
    * @param ufsConf UFS configuration
    */
   protected BaseUnderFileSystem(AlluxioURI uri, UnderFileSystemConfiguration ufsConf) {
-    mUri = Preconditions.checkNotNull(uri);
-    mUfsConf = Preconditions.checkNotNull(ufsConf);
+    mUri = Preconditions.checkNotNull(uri, "uri");
+    mUfsConf = Preconditions.checkNotNull(ufsConf, "ufsConf");
   }
 
   @Override
