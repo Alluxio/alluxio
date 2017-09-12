@@ -77,7 +77,7 @@ Update `alluxio.master.hostname` in `conf/alluxio-site.properties` to the hostna
 you plan to run Alluxio Master on.
 
 ```bash
-$ echo "localhost" >> conf/alluxio-site.properties
+$ echo "alluxio.master.hostname=localhost" >> conf/alluxio-site.properties
 ```
 
 ### [Bonus] Configuration for AWS
