@@ -11,6 +11,8 @@
 
 package alluxio.worker.block.meta;
 
+import static org.junit.Assert.assertFalse;
+
 import alluxio.exception.BlockAlreadyExistsException;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.ExceptionMessage;
@@ -428,7 +430,7 @@ public final class StorageDirTest {
    */
   @Test
   public void blockMeta() throws Exception {
-    Assert.assertFalse(mDir.hasBlockMeta(TEST_BLOCK_ID));
+    assertFalse(mDir.hasBlockMeta(TEST_BLOCK_ID));
     Assert.assertEquals(TEST_DIR_CAPACITY, mDir.getAvailableBytes());
 
     mDir.addBlockMeta(mBlockMeta);
@@ -437,7 +439,7 @@ public final class StorageDirTest {
     Assert.assertEquals(TEST_DIR_CAPACITY - TEST_BLOCK_SIZE, mDir.getAvailableBytes());
 
     mDir.removeBlockMeta(mBlockMeta);
-    Assert.assertFalse(mDir.hasBlockMeta(TEST_BLOCK_ID));
+    assertFalse(mDir.hasBlockMeta(TEST_BLOCK_ID));
     Assert.assertEquals(TEST_DIR_CAPACITY, mDir.getAvailableBytes());
   }
 
@@ -447,7 +449,7 @@ public final class StorageDirTest {
    */
   @Test
   public void tempBlockMeta() throws Exception {
-    Assert.assertFalse(mDir.hasTempBlockMeta(TEST_TEMP_BLOCK_ID));
+    assertFalse(mDir.hasTempBlockMeta(TEST_TEMP_BLOCK_ID));
     Assert.assertEquals(TEST_DIR_CAPACITY, mDir.getAvailableBytes());
 
     mDir.addTempBlockMeta(mTempBlockMeta);
@@ -456,7 +458,7 @@ public final class StorageDirTest {
     Assert.assertEquals(TEST_DIR_CAPACITY - TEST_TEMP_BLOCK_SIZE, mDir.getAvailableBytes());
 
     mDir.removeTempBlockMeta(mTempBlockMeta);
-    Assert.assertFalse(mDir.hasTempBlockMeta(TEST_TEMP_BLOCK_ID));
+    assertFalse(mDir.hasTempBlockMeta(TEST_TEMP_BLOCK_ID));
     Assert.assertEquals(TEST_DIR_CAPACITY, mDir.getAvailableBytes());
   }
 
@@ -545,8 +547,8 @@ public final class StorageDirTest {
 
     // Two temp blocks created by TEST_SESSION_ID are expected to be removed
     mDir.cleanupSessionTempBlocks(TEST_SESSION_ID, actualBlockIds);
-    Assert.assertFalse(mDir.hasTempBlockMeta(tempBlockId1));
-    Assert.assertFalse(mDir.hasTempBlockMeta(tempBlockId2));
+    assertFalse(mDir.hasTempBlockMeta(tempBlockId1));
+    assertFalse(mDir.hasTempBlockMeta(tempBlockId2));
     // Temp block created by otherSessionId is expected to stay
     Assert.assertTrue(mDir.hasTempBlockMeta(tempBlockId3));
     // Block created by TEST_SESSION_ID is expected to stay
