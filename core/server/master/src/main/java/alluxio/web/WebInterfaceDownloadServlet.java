@@ -53,7 +53,7 @@ public final class WebInterfaceDownloadServlet extends HttpServlet {
    * @param fsMaster file system master
    */
   public WebInterfaceDownloadServlet(FileSystemMaster fsMaster) {
-    mFsMaster = Preconditions.checkNotNull(fsMaster);
+    mFsMaster = Preconditions.checkNotNull(fsMaster, "fsMaster");
   }
 
   /**
