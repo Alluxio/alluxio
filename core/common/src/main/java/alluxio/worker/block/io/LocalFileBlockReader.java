@@ -41,7 +41,7 @@ public final class LocalFileBlockReader implements BlockReader {
    * @param path file path of the block
    */
   public LocalFileBlockReader(String path) throws IOException {
-    mFilePath = Preconditions.checkNotNull(path);
+    mFilePath = Preconditions.checkNotNull(path, "path");
     mLocalFile = mCloser.register(new RandomAccessFile(mFilePath, "r"));
     mFileSize = mLocalFile.length();
     mLocalFileChannel = mCloser.register(mLocalFile.getChannel());

@@ -12,10 +12,10 @@
 package alluxio.client;
 
 import alluxio.AlluxioURI;
+import alluxio.BaseIntegrationTest;
 import alluxio.Constants;
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.PropertyKey;
-import alluxio.BaseIntegrationTest;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
@@ -399,6 +399,22 @@ public final class FileInStreamIntegrationTest extends BaseIntegrationTest {
       byte[] buf = new byte[8 * Constants.MB];
       while (in.read(buf) != -1) {
       }
+    }
+  }
+
+  @Test
+  @LocalAlluxioClusterResource.Config(
+      confParams = {PropertyKey.Name.USER_FILE_CACHE_PARTIALLY_READ_BLOCK, "false"})
+  public void positionedReadWithoutPartialCaching() throws Exception {
+    for (CreateFileOptions op : getOptionSet()) {
+      String filename = mTestPath + "/file_" + MIN_LEN + "_" + op.hashCode();
+      AlluxioURI uri = new AlluxioURI(filename);
+
+      FileInStream is = mFileSystem.openFile(uri, FileSystemTestUtils.toOpenFileOptions(op));
+      byte[] ret = new byte[DELTA - 1];
+      Assert.assertEquals(DELTA - 1, is.positionedRead(MIN_LEN - DELTA + 1, ret, 0, DELTA));
+      Assert.assertTrue(BufferUtils.equalIncreasingByteArray(MIN_LEN - DELTA + 1, DELTA - 1, ret));
+      is.close();
     }
   }
 }

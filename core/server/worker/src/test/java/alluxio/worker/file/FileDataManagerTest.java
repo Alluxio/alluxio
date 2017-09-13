@@ -12,6 +12,7 @@
 package alluxio.worker.file;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
@@ -110,7 +111,7 @@ public final class FileDataManagerTest {
         Mockito.any(WritableByteChannel.class));
 
     // verify the file is not needed for another persistence
-    Assert.assertFalse(mManager.needPersistence(fileId));
+    assertFalse(mManager.needPersistence(fileId));
   }
 
   /**
