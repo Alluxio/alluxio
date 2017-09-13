@@ -132,7 +132,6 @@ public final class UnderFileSystemFactoryRegistry {
    * @param path path
    * @return list of factories that support the given path which may be an empty list
    */
-  @Nullable
   public static List<UnderFileSystemFactory> findAll(String path) {
     Preconditions.checkArgument(path != null, "path may not be null");
 
