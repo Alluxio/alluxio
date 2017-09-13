@@ -44,16 +44,9 @@ alluxio.underfs.address=s3a://<MINIO_BUCKET>/<MINIO_DIRECTORY>
 alluxio.underfs.s3.endpoint=http://<MINIO_ENDPOINT>/
 alluxio.underfs.s3.disable.dns.buckets=true
 alluxio.underfs.s3a.inherit_acl=false
-alluxio.underfs.s3.proxy.https.only=<USE_HTTPS>
-alluxio.underfs.s3.endpoint.http.port=<MINIO_HTTP_PORT>
-alluxio.underfs.s3.endpoint.https.port=<MINIO_HTTPS_PORT>
 aws.accessKeyId=<MINIO_ACCESS_KEY_ID>
 aws.secretKey=<MINIO_SECRET_KEY_ID>
 ```
 
-对于这些参数，用您的Minio服务的URL和端口替换`<MINIO_ENDPOINT>`和`<MINIO_PORT>`。
-
-用`true`或`false`替换`<USE_HTTPS>`。
-如果使用`true`(使用HTTPS)，还需要用提供者的HTTPS端口替换`<MINIO_HTTPS_PORT>`，并且删除`alluxio.underfs.s3.endpoint.http.port`参数。
-如果您使用`false`来替换`<USE_HTTPS>`(使用HTTP)，同样需要用提供者的HTTPS端口替换`<MINIO_HTTP_PORT>`，并且删除`alluxio.underfs.s3.endpoint.https.port`参数。
-如果HTTP或HTTPS端口值未设置，`<HTTP_PORT>`默认端口为80，`<HTTPS_PORT>`默认端口为443。
+对于这些参数，用您的Minio服务的主机名和端口替换`<MINIO_ENDPOINT>`，例如`http://localhost:9000`。
+如果端口值未设置，对于`http`默认端口为80，对于`https`默认端口为443。
