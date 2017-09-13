@@ -147,6 +147,9 @@ public final class AlluxioBlockStore {
       address = blockLocationPolicy
           .getWorker(GetWorkerOptions.defaults().setBlockWorkerInfos(getWorkerInfoList())
               .setBlockId(blockId).setBlockSize(blockInfo.getLength()));
+      if (address == null) {
+        throw new UnavailableException(ExceptionMessage.NO_WORKER_AVAILABLE.getMessage());
+      }
     } else {
       // TODO(calvin): Get location via a policy.
       // Although blockInfo.locations are sorted by tier, we prefer reading from the local worker.
