@@ -417,8 +417,4 @@ public final class FileInStreamIntegrationTest extends BaseIntegrationTest {
       is.close();
     }
   }
-
-  public void noAvailableWorker() throws Exception {
-
-  }
 }
