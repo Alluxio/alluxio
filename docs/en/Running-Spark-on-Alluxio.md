@@ -62,7 +62,7 @@ add the following line to `${SPARK_HOME}/conf/spark-defaults.conf`:
 spark.driver.extraJavaOptions -Dalluxio.zookeeper.address=zookeeperHost1:2181,zookeeperHost2:2181 -Dalluxio.zookeeper.enabled=true
 spark.executor.extraJavaOptions -Dalluxio.zookeeper.address=zookeeperHost1:2181,zookeeperHost2:2181 -Dalluxio.zookeeper.enabled=true
 ```
-Alternatively you can add the properties to the Hadoop to the previously created `${SPARK_HOME}/conf/core-site.xml`:
+Alternatively you can add the properties to the previously created Hadoop configuration file `${SPARK_HOME}/conf/core-site.xml`:
 
 ```xml
 <configuration>
