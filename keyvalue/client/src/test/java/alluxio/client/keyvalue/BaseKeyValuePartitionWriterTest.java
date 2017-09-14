@@ -11,6 +11,10 @@
 
 package alluxio.client.keyvalue;
 
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertEquals;
+
 import alluxio.Configuration;
 import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
@@ -77,13 +81,13 @@ public final class BaseKeyValuePartitionWriterTest {
   @Test
   public void closeAfterCancel() throws Exception {
     mWriter.cancel();
-    Assert.assertTrue(mOutStream.isClosed());
-    Assert.assertTrue(mOutStream.isCanceled());
+    assertTrue(mOutStream.isClosed());
+    assertTrue(mOutStream.isCanceled());
 
     // Expect close to be a no-op
     mWriter.close();
-    Assert.assertTrue(mOutStream.isClosed());
-    Assert.assertTrue(mOutStream.isCanceled());
+    assertTrue(mOutStream.isClosed());
+    assertTrue(mOutStream.isCanceled());
   }
 
   /**
@@ -95,13 +99,13 @@ public final class BaseKeyValuePartitionWriterTest {
   public void closeAfterClose() throws Exception {
     // Expect the underline stream to be closed
     mWriter.close();
-    Assert.assertTrue(mOutStream.isClosed());
-    Assert.assertFalse(mOutStream.isCanceled());
+    assertTrue(mOutStream.isClosed());
+    assertFalse(mOutStream.isCanceled());
 
     // Expect close to be a no-op
     mWriter.close();
-    Assert.assertTrue(mOutStream.isClosed());
-    Assert.assertFalse(mOutStream.isCanceled());
+    assertTrue(mOutStream.isClosed());
+    assertFalse(mOutStream.isCanceled());
   }
 
   /**
@@ -130,9 +134,9 @@ public final class BaseKeyValuePartitionWriterTest {
     long size = mWriter.byteCount() + KEY1.length + VALUE1.length + 2 * Constants.BYTES_IN_INTEGER;
     Configuration.set(PropertyKey.KEY_VALUE_PARTITION_SIZE_BYTES_MAX, String.valueOf(size));
     mWriter = new BaseKeyValuePartitionWriter(mOutStream);
-    Assert.assertTrue(mWriter.canPut(KEY1, VALUE1));
+    assertTrue(mWriter.canPut(KEY1, VALUE1));
     mWriter.put(KEY1, VALUE1);
-    Assert.assertFalse(mWriter.canPut(KEY1, VALUE1));
+    assertFalse(mWriter.canPut(KEY1, VALUE1));
     ConfigurationTestUtils.resetConfiguration();
   }
 
@@ -141,11 +145,11 @@ public final class BaseKeyValuePartitionWriterTest {
    */
   @Test
   public void keyCount() throws Exception {
-    Assert.assertEquals(0, mWriter.keyCount());
+    assertEquals(0, mWriter.keyCount());
     mWriter.put(KEY1, VALUE1);
-    Assert.assertEquals(1, mWriter.keyCount());
+    assertEquals(1, mWriter.keyCount());
     mWriter.put(KEY2, VALUE2);
-    Assert.assertEquals(2, mWriter.keyCount());
+    assertEquals(2, mWriter.keyCount());
   }
 
   /**
@@ -154,6 +158,6 @@ public final class BaseKeyValuePartitionWriterTest {
   @Test
   public void byteCount() throws Exception {
     mWriter.put(KEY1, VALUE1);
-    Assert.assertTrue(mWriter.byteCount() > 0);
+    assertTrue(mWriter.byteCount() > 0);
   }
 }
