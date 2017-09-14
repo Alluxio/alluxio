@@ -11,6 +11,10 @@
 
 package alluxio.underfs.local;
 
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertEquals;
+
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.DeleteOptions;
 import alluxio.underfs.options.MkdirsOptions;
@@ -50,11 +54,11 @@ public class LocalUnderFileSystemTest {
     String filepath = PathUtils.concatPath(mLocalUfsRoot, getUniqueFileName());
     mLocalUfs.create(filepath).close();
 
-    Assert.assertTrue(mLocalUfs.isFile(filepath));
+    assertTrue(mLocalUfs.isFile(filepath));
 
     mLocalUfs.deleteFile(filepath);
 
-    Assert.assertFalse(mLocalUfs.isFile(filepath));
+    assertFalse(mLocalUfs.isFile(filepath));
   }
 
   @Test
@@ -63,10 +67,10 @@ public class LocalUnderFileSystemTest {
     OutputStream os = mLocalUfs.create(filepath);
     os.close();
 
-    Assert.assertTrue(mLocalUfs.isFile(filepath));
+    assertTrue(mLocalUfs.isFile(filepath));
 
     File file = new File(filepath);
-    Assert.assertTrue(file.exists());
+    assertTrue(file.exists());
   }
 
   @Test
@@ -75,10 +79,10 @@ public class LocalUnderFileSystemTest {
     mLocalUfs.create(filepath).close();
     mLocalUfs.deleteFile(filepath);
 
-    Assert.assertFalse(mLocalUfs.isFile(filepath));
+    assertFalse(mLocalUfs.isFile(filepath));
 
     File file = new File(filepath);
-    Assert.assertFalse(file.exists());
+    assertFalse(file.exists());
   }
 
   @Test
@@ -89,10 +93,10 @@ public class LocalUnderFileSystemTest {
     mLocalUfs.create(filepath).close();
     mLocalUfs.deleteDirectory(dirpath, DeleteOptions.defaults().setRecursive(true));
 
-    Assert.assertFalse(mLocalUfs.isDirectory(dirpath));
+    assertFalse(mLocalUfs.isDirectory(dirpath));
 
     File file = new File(filepath);
-    Assert.assertFalse(file.exists());
+    assertFalse(file.exists());
   }
 
   @Test
@@ -103,10 +107,10 @@ public class LocalUnderFileSystemTest {
     mLocalUfs.create(filepath).close();
     mLocalUfs.deleteDirectory(dirpath, DeleteOptions.defaults().setRecursive(false));
 
-    Assert.assertTrue(mLocalUfs.isDirectory(dirpath));
+    assertTrue(mLocalUfs.isDirectory(dirpath));
 
     File file = new File(filepath);
-    Assert.assertTrue(file.exists());
+    assertTrue(file.exists());
   }
 
   @Test
@@ -115,10 +119,10 @@ public class LocalUnderFileSystemTest {
     String dirpath = PathUtils.concatPath(parentPath, getUniqueFileName());
     mLocalUfs.mkdirs(dirpath);
 
-    Assert.assertTrue(mLocalUfs.isDirectory(dirpath));
+    assertTrue(mLocalUfs.isDirectory(dirpath));
 
     File file = new File(dirpath);
-    Assert.assertTrue(file.exists());
+    assertTrue(file.exists());
   }
 
   @Test
@@ -127,10 +131,10 @@ public class LocalUnderFileSystemTest {
     String dirpath = PathUtils.concatPath(parentPath, getUniqueFileName());
     mLocalUfs.mkdirs(dirpath, MkdirsOptions.defaults().setCreateParent(false));
 
-    Assert.assertFalse(mLocalUfs.isDirectory(dirpath));
+    assertFalse(mLocalUfs.isDirectory(dirpath));
 
     File file = new File(dirpath);
-    Assert.assertFalse(file.exists());
+    assertFalse(file.exists());
   }
 
   @Test
@@ -160,19 +164,19 @@ public class LocalUnderFileSystemTest {
     os.close();
 
     List<String> fileLocations = mLocalUfs.getFileLocations(filepath);
-    Assert.assertEquals(1, fileLocations.size());
-    Assert.assertEquals(NetworkAddressUtils.getLocalHostName(), fileLocations.get(0));
+    assertEquals(1, fileLocations.size());
+    assertEquals(NetworkAddressUtils.getLocalHostName(), fileLocations.get(0));
   }
 
   @Test
   public void isFile() throws IOException {
     String dirpath = PathUtils.concatPath(mLocalUfsRoot, getUniqueFileName());
     mLocalUfs.mkdirs(dirpath);
-    Assert.assertFalse(mLocalUfs.isFile(dirpath));
+    assertFalse(mLocalUfs.isFile(dirpath));
 
     String filepath = PathUtils.concatPath(mLocalUfsRoot, getUniqueFileName());
     mLocalUfs.create(filepath).close();
-    Assert.assertTrue(mLocalUfs.isFile(filepath));
+    assertTrue(mLocalUfs.isFile(filepath));
   }
 
   @Test
