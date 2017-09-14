@@ -14,6 +14,8 @@ package alluxio.client.keyvalue;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertNull;
 
 import alluxio.Configuration;
 import alluxio.ConfigurationTestUtils;
@@ -119,10 +121,10 @@ public final class BaseKeyValuePartitionWriterTest {
     byte[] fileData = mOutStream.toByteArray();
     ByteBufferKeyValuePartitionReader reader =
         new ByteBufferKeyValuePartitionReader(ByteBuffer.wrap(fileData));
-    Assert.assertArrayEquals(VALUE1, reader.get(KEY1));
-    Assert.assertArrayEquals(VALUE2, reader.get(KEY2));
+    assertArrayEquals(VALUE1, reader.get(KEY1));
+    assertArrayEquals(VALUE2, reader.get(KEY2));
 
-    Assert.assertNull(reader.get("NoSuchKey".getBytes()));
+    assertNull(reader.get("NoSuchKey".getBytes()));
     reader.close();
   }
 
