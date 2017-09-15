@@ -2,7 +2,7 @@
 layout: global
 title: Remote Logging
 group: Features
-priority: 99
+priority: 5
 ---
 
 * Table of Contents
