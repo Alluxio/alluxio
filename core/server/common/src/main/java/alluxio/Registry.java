@@ -48,7 +48,7 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public class Registry<T extends Server<U>, U> {
-  private static final int DEFAULT_GET_TIMEOUT_MS = 5000;
+  private static final int DEFAULT_GET_TIMEOUT_MS = 60 * Constants.SECOND_MS;
 
   private final Map<Class<? extends Server>, T> mRegistry = new HashMap<>();
   private final Lock mLock = new ReentrantLock();
