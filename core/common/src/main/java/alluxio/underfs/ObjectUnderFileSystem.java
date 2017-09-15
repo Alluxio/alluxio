@@ -154,7 +154,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
     String[] getCommonPrefixes();
 
     /**
-     * Get next chunk of object listings.
+     * Gets next chunk of object listings.
      *
      * @return null if listing did not find anything or is done, otherwise return new
      * {@link ObjectListingChunk} for the next chunk
