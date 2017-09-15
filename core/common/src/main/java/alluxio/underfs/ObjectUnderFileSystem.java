@@ -140,7 +140,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
    */
   public interface ObjectListingChunk {
     /**
-     * Objects in a pseudo-directory which may be a file or a directory.
+     * Returns objects in a pseudo-directory which may be a file or a directory.
      *
      * @return a list of object statuses
      */
