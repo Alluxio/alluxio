@@ -50,7 +50,9 @@ ALLUXIO_LOGSERVER_LOGS_DIR=/tmp/alluxio_remote_logs
 ```
 
 ## Restart Alluxio And Log Server
-After making the modification to configuration, you need to restart Alluxio and the log server.
+After making the modification to configuration, you need to restart the log server first. Then you can
+start Alluxio. This ensures that the logs that Alluxio generates during start-up phase will also go to
+the log server.
 
 ### Start Log Server
 ```bash
