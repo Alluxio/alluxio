@@ -536,6 +536,21 @@ public final class CommonUtils {
   }
 
   /**
+   * Unwraps a {@link alluxio.proto.dataserver.Protocol.Response} associated with a channel.
+   *
+   * @param response the response
+   * @param channel the channel that receives this response
+   */
+  public static void unwrapResponseFrom(Protocol.Response response, Channel channel)
+      throws AlluxioStatusException {
+    Status status = Status.fromProto(response.getStatus());
+    if (status != Status.OK) {
+      throw AlluxioStatusException.from(status, String
+          .format("Channel to %s: %s", channel.remoteAddress(), response.getMessage()));
+    }
+  }
+
+  /**
    * @param address the Alluxio worker network address
    * @return true if the worker is local
    */
