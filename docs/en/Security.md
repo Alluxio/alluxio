@@ -137,6 +137,51 @@ The owner, group, and permissions can be changed by two ways:
 The owner can only be changed by super user.
 The group and permission can only be changed by super user and file owner.
 
+## Auditing
+Alluxio supports audit logging of user access to your data. With audit logging, system administrators can
+keep track of each user's access to data in Alluxio.
+
+The format of Alluxio audit log file (`master_audit.log`) is very similar to HDFS's audit log file, as shown in
+the table below.
+
+<table class="table table-striped">
+<tr><th>key</th><th>value</th></tr>
+<tr>
+  <td>succeeded</td>
+  <td>True if the command has succeeded. To succeed, it must also have been allowed. </td>
+</tr>
+<tr>
+  <td>allowed</td>
+  <td>True if the command has been allowed. Note that a command can still fail even if it has been allowed. </td>
+</tr>
+<tr>
+  <td>ugi</td>
+  <td>User, primary group, authentication type. </td>
+</tr>
+<tr>
+  <td>ip</td>
+  <td>Client ip address. </td>
+</tr>
+<tr>
+  <td>cmd</td>
+  <td>Command issued by the user. </td>
+</tr>
+<tr>
+  <td>src</td>
+  <td>Path of the source file or directory. </td>
+</tr>
+<tr>
+  <td>dst</td>
+  <td>Path of the destination file or directory. If not applicable, the value is null. </td>
+</tr>
+<tr>
+  <td>perm</td>
+  <td>User:group:mask or null if not applicable. </td>
+</tr>
+</table>
+
+Please refer to [Audit Logging](Audit-Logging.html) for instructions in configuring user access audit.
+
 ## Encryption
 
 Service level encryption is not supported yet, user could encrypt sensitive data at application
