@@ -13,7 +13,11 @@ Alluxio supports audit logging of user access to your data. With audit logging, 
 keep track of each user's access to data in Alluxio.
 
 ## Enable Audit Logging
-To enable Alluxio audit logging, you need to set the JVM property. In `./conf/alluxio-env.sh`, add the following two lines:
+To enable Alluxio audit logging, you need to set the JVM property `alluxio.master.audit.logging.enabled` to true. Besides,
+you also need to configure the proper log4j appender type for the audit log. Alluxio already provides a default log
+appender called `MASTER_AUDIT_LOGGER`. This is sufficient for most users. Advanced users can use their own appender and set
+the environment variable `${ALLUXIO_MASTER_AUDIT_LOGGER}` to the name of their custom appender.
+In `./conf/alluxio-env.sh`, add the following two lines:
 
 ```bash
 ALLUXIO_MASTER_JAVA_OPTS+=" -Dalluxio.master.audit.logging.enabled=true"
@@ -54,7 +58,7 @@ the table below.
 </tr>
 <tr>
   <td>dst</td>
-  <td>Path of the destination file or directory. If not application, the value is null. </td>
+  <td>Path of the destination file or directory. If not applicable, the value is null. </td>
 </tr>
 <tr>
   <td>perm</td>
