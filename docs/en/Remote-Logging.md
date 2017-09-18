@@ -15,7 +15,6 @@ log files, e.g. master.log, worker.log, etc. on all Alluxio servers will be read
 a designated and configurable directory on the log server.
 
 ## Configure Alluxio
-Suppose the hostname of the log server is AlluxioLogServer, and the port is 45010.
 Refer to [Running Alluxio on a cluster](Running-Alluxio-on-a-Cluster.html) for instructions in deploying
 Alluxio in a cluster.
 
@@ -24,11 +23,12 @@ few environment variables or modify the JVM properties directly.
 
 This section describes these two different approaches step by step. There is no requirement on where
 the log server must run, as long as the other Alluxio servers have access to it. In our example, we
-run the log server on the same machine as the primary master. If you want to run the log server on
+run the log server on the same machine as a master. If you want to run the log server on
 another machine, you need to copy the Alluxio directory to the desired machine (with `rsync`
 for example) and start the log server there.
 
 ### Enable Remote Logging with Environment Variables
+Suppose the hostname of the log server is `AlluxioLogServer`, and the port is `45010`.
 In ./conf/alluxio-env.sh, add the following lines:
 
 ```bash
