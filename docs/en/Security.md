@@ -138,11 +138,10 @@ The owner can only be changed by super user.
 The group and permission can only be changed by super user and file owner.
 
 ## Auditing
-Alluxio supports audit logging of user access to your data. With audit logging, system administrators can
-keep track of each user's access to data in Alluxio.
+Alluxio supports audit logging of user access to data. With audit logging, system administrators can
+keep track of each user's activities accessing files in Alluxio.
 
-The format of Alluxio audit log file (`master_audit.log`) is very similar to HDFS's audit log file, as shown in
-the table below.
+The format of Alluxio audit log file (`master_audit.log`) is shown in the table below.
 
 <table class="table table-striped">
 <tr><th>key</th><th>value</th></tr>
@@ -180,7 +179,9 @@ the table below.
 </tr>
 </table>
 
-Please refer to [Audit Logging](Audit-Logging.html) for instructions in configuring user access audit.
+It is similar to the format of HDFS audit log [wiki](https://wiki.apache.org/hadoop/HowToConfigure).
+
+To enable Alluxio audit logging, you need to set the JVM property `alluxio.master.audit.logging.enabled` to true.
 
 ## Encryption
 
