@@ -18,14 +18,12 @@ a designated and configurable directory on the log server.
 Refer to [Running Alluxio on a cluster](Running-Alluxio-on-a-Cluster.html) for instructions in deploying
 Alluxio in a cluster.
 
-By default, remote logging is not enabled. To enable Alluxio remote logging, you can either set a
-few environment variables or modify the JVM properties directly.
+By default, remote logging is not enabled. To enable Alluxio remote logging, you can set a
+three environment variables: `ALLUXIO_LOGSERVER_HOSTNAME`, `ALLUXIO_LOGSERVER_PORT` and `ALLUXIO_LOGSERVER_LOGS_DIR`.
 
-This section describes these two different approaches step by step. There is no requirement on where
+There is no requirement on where
 the log server must run, as long as the other Alluxio servers have access to it. In our example, we
-run the log server on the same machine as a master. If you want to run the log server on
-another machine, you need to copy the Alluxio directory to the desired machine (with `rsync`
-for example) and start the log server there.
+run the log server on the same machine as a master.
 
 ### Enable Remote Logging with Environment Variables
 Suppose the hostname of the log server is `AlluxioLogServer`, and the port is `45010`.
@@ -37,29 +35,19 @@ ALLUXIO_LOGSERVER_PORT=45010
 ALLUXIO_LOGSERVER_LOGS_DIR=/tmp/alluxio_remote_logs
 ```
 
-### Enable Remote Logging with JVM Properties
-In ./conf/alluxio-env.sh, add the following lines:
-
-```bash
-ALLUXIO_JAVA_OPTS=" -Dalluxio.logserver.hostname=AlluxioLogServer -Dalluxio.logserver.port=45010"
-ALLUXIO_MASTER_JAVA_OPTS=" -Dalluxio.remote.logger.type=REMOTE_MASTER_LOGGER"
-ALLUXIO_SECONDARY_MASTER_JAVA_OPTS=" -Dalluxio.remote.logger.type=REMOTE_SECONDARY_MASTER_LOGGER"
-ALLUXIO_WORKER_JAVA_OPTS=" -Dalluxio.remote.logger.type=REMOTE_WORKER_LOGGER"
-ALLUXIO_PROXY_JAVA_OPTS=" -Dalluxio.remote.logger.type=REMOTE_PROXY_LOGGER"
-ALLUXIO_LOGSERVER_LOGS_DIR=/tmp/alluxio_remote_logs
-```
-
 ## Restart Alluxio And Log Server
 After making the modification to configuration, you need to restart the log server first. Then you can
 start Alluxio. This ensures that the logs that Alluxio generates during start-up phase will also go to
 the log server.
 
 ### Start Log Server
+On the log server, execute the following command.
 ```bash
 $ ./bin/alluxio-start.sh logserver
 ```
 
 ### Start Alluxio
+On Alluxio master, execute the following command.
 ```bash
 $ ./bin/alluxio-start.sh all
 ```
@@ -83,4 +71,3 @@ $ ls -l master/
 You can see that the log files are put into different folders according to their type. Master logs are put
 in the folder `master`, worker logs are put in folder `worker`, etc. Within each folder, log files from
 different workers are distinguished by the IP/hostname of the machine on which the server has been running.
-
