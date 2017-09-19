@@ -41,9 +41,8 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class LsCommand extends WithWildCardPathCommand {
-  public static final String IN_ALLUXIO_STATE_FOLDER = "";
+  public static final String IN_ALLUXIO_STATE_DIR = "DIR";
   public static final String IN_ALLUXIO_STATE_FILE_FORMAT = "%d%%";
-
 
   private static final Option FORCE_OPTION =
       Option.builder("f")
@@ -92,18 +91,18 @@ public final class LsCommand extends WithWildCardPathCommand {
    * @param size size of the file in bytes
    * @param createTimeMs the epoch time in ms when the path is created
    * @param inAlluxioPercentage whether the file is in Alluxio
+   * @param persistenceState the persistence state of the file
    * @param path path of the file or folder
    * @return the formatted string according to acl and isFolder
    */
   public static String formatLsString(boolean hSize, boolean acl, boolean isFolder, String
       permission,
       String userName, String groupName, long size, long createTimeMs, int inAlluxioPercentage,
-      String persistenceState,
-      String path) {
+      String persistenceState, String path) {
     String inAlluxioState;
     String sizeStr;
     if (isFolder) {
-      inAlluxioState = IN_ALLUXIO_STATE_FOLDER;
+      inAlluxioState = IN_ALLUXIO_STATE_DIR;
       sizeStr = String.valueOf(size);
     } else {
       inAlluxioState = String.format(IN_ALLUXIO_STATE_FILE_FORMAT, inAlluxioPercentage);
@@ -226,12 +225,10 @@ public final class LsCommand extends WithWildCardPathCommand {
 
   @Override
   public String getDescription() {
-    return "Displays information for all files and directories directly under the specified path."
-        + " Specify -d to list directories as plain files."
-        + " Specify -f to force loading files in the directory."
-        + " Specify -p to list all the pinned files."
-        + " Specify -R to display files and directories recursively."
-        + " Specify -h to print human-readable format sizes.";
+    return "Displays information for all files and directories directly under the specified path, "
+        + "including permission, owner, group, size (bytes for files or the number of children "
+        + "for directories, persistence state, creation time, the percentage of content already "
+        + "in Alluxio and the path in order.";
   }
 
   @Override
