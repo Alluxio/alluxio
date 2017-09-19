@@ -41,9 +41,9 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class LsCommand extends WithWildCardPathCommand {
-  public static final String STATE_FOLDER = "Directory";
-  public static final String STATE_FILE_IN_ALLUXIO = "In Alluxio";
-  public static final String STATE_FILE_NOT_IN_ALLUXIO = "Not In Alluxio";
+  public static final String IN_ALLUXIO_STATE_FOLDER = "";
+  public static final String IN_ALLUXIO_STATE_FILE_FORMAT = "%d%%";
+
 
   private static final Option FORCE_OPTION =
       Option.builder("f")
@@ -91,31 +91,32 @@ public final class LsCommand extends WithWildCardPathCommand {
    * @param groupName group name
    * @param size size of the file in bytes
    * @param createTimeMs the epoch time in ms when the path is created
-   * @param inAlluxio whether the file is in Alluxio
+   * @param inAlluxioPercentage whether the file is in Alluxio
    * @param path path of the file or folder
    * @return the formatted string according to acl and isFolder
    */
   public static String formatLsString(boolean hSize, boolean acl, boolean isFolder, String
       permission,
-      String userName, String groupName, long size, long createTimeMs, boolean inAlluxio,
+      String userName, String groupName, long size, long createTimeMs, int inAlluxioPercentage,
+      String persistenceState,
       String path) {
     String inAlluxioState;
     String sizeStr;
     if (isFolder) {
-      inAlluxioState = STATE_FOLDER;
+      inAlluxioState = IN_ALLUXIO_STATE_FOLDER;
       sizeStr = String.valueOf(size);
     } else {
-      inAlluxioState = inAlluxio ? STATE_FILE_IN_ALLUXIO : STATE_FILE_NOT_IN_ALLUXIO;
+      inAlluxioState = String.format(IN_ALLUXIO_STATE_FILE_FORMAT, inAlluxioPercentage);
       sizeStr = hSize ? FormatUtils.getSizeFromBytes(size) : String.valueOf(size);
     }
 
     if (acl) {
       return String.format(Constants.LS_FORMAT, permission, userName, groupName,
-          sizeStr, CommonUtils.convertMsToDate(createTimeMs),
+          sizeStr, persistenceState, CommonUtils.convertMsToDate(createTimeMs),
           inAlluxioState, path);
     } else {
       return String.format(Constants.LS_FORMAT_NO_ACL, sizeStr,
-          CommonUtils.convertMsToDate(createTimeMs), inAlluxioState, path);
+          persistenceState, CommonUtils.convertMsToDate(createTimeMs), inAlluxioState, path);
     }
   }
 
@@ -123,7 +124,7 @@ public final class LsCommand extends WithWildCardPathCommand {
     System.out.print(formatLsString(hSize, SecurityUtils.isSecurityEnabled(),
         status.isFolder(), FormatUtils.formatMode((short) status.getMode(), status.isFolder()),
         status.getOwner(), status.getGroup(), status.getLength(), status.getCreationTimeMs(),
-        100 == status.getInAlluxioPercentage(), status.getPath()));
+        status.getInAlluxioPercentage(), status.getPersistenceState(), status.getPath()));
   }
 
   /**
