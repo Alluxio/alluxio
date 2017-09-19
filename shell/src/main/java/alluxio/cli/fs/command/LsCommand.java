@@ -100,12 +100,15 @@ public final class LsCommand extends WithWildCardPathCommand {
       String userName, String groupName, long size, long createTimeMs, boolean inAlluxio,
       String path) {
     String inAlluxioState;
+    String sizeStr;
     if (isFolder) {
       inAlluxioState = STATE_FOLDER;
+      sizeStr = String.valueOf(size);
     } else {
       inAlluxioState = inAlluxio ? STATE_FILE_IN_ALLUXIO : STATE_FILE_NOT_IN_ALLUXIO;
+      sizeStr = hSize ? FormatUtils.getSizeFromBytes(size) : String.valueOf(size);
     }
-    String sizeStr = hSize ? FormatUtils.getSizeFromBytes(size) : String.valueOf(size);
+
     if (acl) {
       return String.format(Constants.LS_FORMAT, permission, userName, groupName,
           sizeStr, CommonUtils.convertMsToDate(createTimeMs),
