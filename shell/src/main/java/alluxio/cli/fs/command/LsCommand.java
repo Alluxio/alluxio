@@ -42,8 +42,8 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public final class LsCommand extends WithWildCardPathCommand {
   public static final String STATE_FOLDER = "Directory";
-  public static final String STATE_FILE_IN_MEMORY = "In Memory";
-  public static final String STATE_FILE_NOT_IN_MEMORY = "Not In Memory";
+  public static final String STATE_FILE_IN_ALLUXIO = "In Alluxio";
+  public static final String STATE_FILE_NOT_IN_ALLUXIO = "Not In Alluxio";
 
   private static final Option FORCE_OPTION =
       Option.builder("f")
@@ -91,28 +91,28 @@ public final class LsCommand extends WithWildCardPathCommand {
    * @param groupName group name
    * @param size size of the file in bytes
    * @param createTimeMs the epoch time in ms when the path is created
-   * @param inMemory whether the file is in memory
+   * @param inAlluxio whether the file is in Alluxio
    * @param path path of the file or folder
    * @return the formatted string according to acl and isFolder
    */
   public static String formatLsString(boolean hSize, boolean acl, boolean isFolder, String
       permission,
-      String userName, String groupName, long size, long createTimeMs, boolean inMemory,
+      String userName, String groupName, long size, long createTimeMs, boolean inAlluxio,
       String path) {
-    String memoryState;
+    String inAlluxioState;
     if (isFolder) {
-      memoryState = STATE_FOLDER;
+      inAlluxioState = STATE_FOLDER;
     } else {
-      memoryState = inMemory ? STATE_FILE_IN_MEMORY : STATE_FILE_NOT_IN_MEMORY;
+      inAlluxioState = inAlluxio ? STATE_FILE_IN_ALLUXIO : STATE_FILE_NOT_IN_ALLUXIO;
     }
     String sizeStr = hSize ? FormatUtils.getSizeFromBytes(size) : String.valueOf(size);
     if (acl) {
       return String.format(Constants.LS_FORMAT, permission, userName, groupName,
           sizeStr, CommonUtils.convertMsToDate(createTimeMs),
-          memoryState, path);
+          inAlluxioState, path);
     } else {
       return String.format(Constants.LS_FORMAT_NO_ACL, sizeStr,
-          CommonUtils.convertMsToDate(createTimeMs), memoryState, path);
+          CommonUtils.convertMsToDate(createTimeMs), inAlluxioState, path);
     }
   }
 
