@@ -71,7 +71,7 @@ public final class NettyRPC {
       }
     }
     if (message.isResponse()) {
-      CommonUtils.unwrapResponse(message.asResponse());
+      CommonUtils.unwrapResponseFrom(message.asResponse(), context.getChannel());
     }
     return message;
   }

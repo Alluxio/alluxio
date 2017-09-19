@@ -265,7 +265,7 @@ public final class NettyPacketReader implements PacketReader {
         // Canceled is considered a valid status and handled in the reader. We avoid creating a
         // CanceledException as an optimization.
         if (message.asResponse().getStatus() != PStatus.CANCELED) {
-          CommonUtils.unwrapResponse(response.getMessage().asResponse());
+          CommonUtils.unwrapResponseFrom(response.getMessage().asResponse(), ctx.channel());
         }
 
         DataBuffer dataBuffer = response.getPayloadDataBuffer();
