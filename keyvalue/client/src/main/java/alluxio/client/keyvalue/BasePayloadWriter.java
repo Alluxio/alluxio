@@ -40,7 +40,8 @@ final class BasePayloadWriter implements Closeable, Flushable, PayloadWriter {
    * @param out the stream to output payload
    */
   BasePayloadWriter(AbstractOutStream out) {
-    mOutStream = Preconditions.checkNotNull(out, "Cannot create a BasePayloadWriter from a null AbstractOutStream");
+    mOutStream = Preconditions.checkNotNull(out,
+            "Cannot create a BasePayloadWriter from a null AbstractOutStream");
   }
 
   @Override
