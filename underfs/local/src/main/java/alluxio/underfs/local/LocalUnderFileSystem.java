@@ -271,6 +271,7 @@ public class LocalUnderFileSystem extends BaseUnderFileSystem
         } catch (IOException e) {
           LOG.warn("Failed to update the ufs dir ownership, default values will be used: {}",
               e.getMessage());
+          throw e;
         }
         return true;
       }
@@ -297,6 +298,7 @@ public class LocalUnderFileSystem extends BaseUnderFileSystem
         } catch (IOException e) {
           LOG.warn("Failed to update the ufs dir ownership, default values will be used: {}",
               e.getMessage());
+          throw e;
         }
       } else {
         return false;

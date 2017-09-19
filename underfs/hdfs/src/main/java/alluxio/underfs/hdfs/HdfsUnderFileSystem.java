@@ -386,6 +386,7 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
             setOwner(dirToMake.toString(), options.getOwner(), options.getGroup());
           } catch (IOException e) {
             LOG.warn("Failed to update the ufs dir ownership, default values will be used. " + e);
+            throw e;
           }
         }
         return true;
