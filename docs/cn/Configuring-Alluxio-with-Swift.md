@@ -12,7 +12,7 @@ priority: 1
 该指南介绍如何配置Alluxio从而使其底层存储系统支持[Swift API](http://docs.openstack.org/developer/swift/)。
 
 ## 初始安装步骤
-
+  
 首先，本地要有Alluxio二进制包。你可以自己[编译Alluxio](Building-Alluxio-Master-Branch.html)，或者[下载二进制包](Running-Alluxio-Locally.html)
 
 ## 配置Alluxio
