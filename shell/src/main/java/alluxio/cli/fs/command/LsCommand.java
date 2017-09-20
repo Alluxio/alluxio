@@ -12,7 +12,6 @@
 package alluxio.cli.fs.command;
 
 import alluxio.AlluxioURI;
-import alluxio.Constants;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.ListStatusOptions;
@@ -43,6 +42,19 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class LsCommand extends WithWildCardPathCommand {
   public static final String IN_ALLUXIO_STATE_DIR = "DIR";
   public static final String IN_ALLUXIO_STATE_FILE_FORMAT = "%d%%";
+  public static final String LS_FORMAT_PERMISSION = "%-11s";
+  public static final String LS_FORMAT_FILE_SIZE = "%15s";
+  public static final String LS_FORMAT_CREATE_TIME = "%24s";
+  public static final String LS_FORMAT_ALLUXIO_STATE = "%5s";
+  public static final String LS_FORMAT_PERSISTENCE_STATE = "%16s";
+  public static final String LS_FORMAT_USER_NAME = "%-15s";
+  public static final String LS_FORMAT_GROUP_NAME = "%-15s";
+  public static final String LS_FORMAT_FILE_PATH = "%-5s";
+  public static final String LS_FORMAT_NO_ACL = LS_FORMAT_FILE_SIZE + LS_FORMAT_PERSISTENCE_STATE
+      + LS_FORMAT_CREATE_TIME + LS_FORMAT_ALLUXIO_STATE + " " + LS_FORMAT_FILE_PATH + "%n";
+  public static final String LS_FORMAT = LS_FORMAT_PERMISSION + LS_FORMAT_USER_NAME
+      + LS_FORMAT_GROUP_NAME + LS_FORMAT_FILE_SIZE + LS_FORMAT_PERSISTENCE_STATE
+      + LS_FORMAT_CREATE_TIME + LS_FORMAT_ALLUXIO_STATE + " " + LS_FORMAT_FILE_PATH + "%n";
 
   private static final Option FORCE_OPTION =
       Option.builder("f")
@@ -110,11 +122,11 @@ public final class LsCommand extends WithWildCardPathCommand {
     }
 
     if (acl) {
-      return String.format(Constants.LS_FORMAT, permission, userName, groupName,
+      return String.format(LS_FORMAT, permission, userName, groupName,
           sizeStr, persistenceState, CommonUtils.convertMsToDate(createTimeMs),
           inAlluxioState, path);
     } else {
-      return String.format(Constants.LS_FORMAT_NO_ACL, sizeStr,
+      return String.format(LS_FORMAT_NO_ACL, sizeStr,
           persistenceState, CommonUtils.convertMsToDate(createTimeMs), inAlluxioState, path);
     }
   }

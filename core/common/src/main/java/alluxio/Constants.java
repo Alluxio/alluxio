@@ -41,20 +41,6 @@ public final class Constants {
 
   public static final String EXTENSION_JAR = ".jar";
 
-  public static final String LS_FORMAT_PERMISSION = "%-11s";
-  public static final String LS_FORMAT_FILE_SIZE = "%15s";
-  public static final String LS_FORMAT_CREATE_TIME = "%24s";
-  public static final String LS_FORMAT_ALLUXIO_STATE = "%5s";
-  public static final String LS_FORMAT_PERSISTENCE_STATE = "%16s";
-  public static final String LS_FORMAT_USER_NAME = "%-15s";
-  public static final String LS_FORMAT_GROUP_NAME = "%-15s";
-  public static final String LS_FORMAT_FILE_PATH = "%-5s";
-  public static final String LS_FORMAT = LS_FORMAT_PERMISSION + LS_FORMAT_USER_NAME
-      + LS_FORMAT_GROUP_NAME + LS_FORMAT_FILE_SIZE + LS_FORMAT_PERSISTENCE_STATE
-      + LS_FORMAT_CREATE_TIME + LS_FORMAT_ALLUXIO_STATE + " " + LS_FORMAT_FILE_PATH + "%n";
-  public static final String LS_FORMAT_NO_ACL = LS_FORMAT_FILE_SIZE + LS_FORMAT_PERSISTENCE_STATE
-      + LS_FORMAT_CREATE_TIME + LS_FORMAT_ALLUXIO_STATE + " " + LS_FORMAT_FILE_PATH + "%n";
-
   public static final String MESOS_RESOURCE_CPUS = "cpus";
   public static final String MESOS_RESOURCE_MEM = "mem";
   public static final String MESOS_RESOURCE_DISK = "disk";

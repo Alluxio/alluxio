@@ -12,7 +12,6 @@
 package alluxio.cli.fs.command;
 
 import alluxio.AlluxioURI;
-import alluxio.Constants;
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.PropertyKey;
 import alluxio.client.WriteType;
@@ -53,7 +52,7 @@ public final class LsCommandIntegrationTest extends AbstractAlluxioShellTest {
       String persistenceState)
       throws IOException, AlluxioException {
     return String
-        .format(Constants.LS_FORMAT, FormatUtils.formatMode((short) permission, isDir),
+        .format(LsCommand.LS_FORMAT, FormatUtils.formatMode((short) permission, isDir),
             testUser, testGroup, String.valueOf(size), persistenceState,
             CommonUtils.convertMsToDate(createTime), inAlluxioState, path);
   }
@@ -82,7 +81,7 @@ public final class LsCommandIntegrationTest extends AbstractAlluxioShellTest {
     } else {
       sizeStr = hSize ? FormatUtils.getSizeFromBytes(size) : String.valueOf(size);
     }
-    return String.format(Constants.LS_FORMAT_NO_ACL, sizeStr, persistenceState,
+    return String.format(LsCommand.LS_FORMAT_NO_ACL, sizeStr, persistenceState,
         CommonUtils.convertMsToDate(createTime), inAlluxioState, path);
   }
 
