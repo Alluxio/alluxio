@@ -81,7 +81,7 @@ $ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 Make sure that this file is distributed to `${ALLUXIO_HOME}/conf` on every Alluxio node (masters
 and workers) before starting the cluster.
 
-> Note that, `${ALLUXIO_HOME}/conf/alluxio-site.properties` are loaded only by Alluxio server
+> Note that, `${ALLUXIO_HOME}/conf/alluxio-site.properties` are only loaded by Alluxio server
 > processes. Applications interacting with Alluxio service through Alluxio client will not load
 > these site property files, unless `${ALLUXIO_HOME}/conf` is on the application classpath.
 
