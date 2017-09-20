@@ -44,22 +44,22 @@ public class Daemon extends Thread {
   }
 
   /** Construct a daemon thread.
-   * @param mRunnable given a Runnable object
+   * @param runnable given a Runnable object
    */
-  public Daemon(Runnable mRunnable) {
-    super(mRunnable);
-    mRunnable = mRunnable;
+  public Daemon(Runnable runnable) {
+    super(runnable);
+    mRunnable = runnable;
     setName(((Object) mRunnable).toString());
   }
 
   /** Construct a daemon thread to be part of a specified thread group.
    * @param group thread group
-   * @param mRunnable an Runnable object
+   * @param runnable an Runnable object
    */
-  public Daemon(ThreadGroup group, Runnable mRunnable) {
-    super(group, mRunnable);
-    mRunnable = mRunnable;
-    setName(((Object) mRunnable).toString());
+  public Daemon(ThreadGroup group, Runnable runnable) {
+    super(group, runnable);
+    mRunnable = runnable;
+    setName(((Object) runnable).toString());
   }
 
   /**
