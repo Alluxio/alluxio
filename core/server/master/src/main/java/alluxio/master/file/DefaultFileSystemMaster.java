@@ -98,6 +98,7 @@ import alluxio.thrift.PersistCommandOptions;
 import alluxio.thrift.PersistFile;
 import alluxio.thrift.UfsInfo;
 import alluxio.underfs.MasterUfsManager;
+import alluxio.underfs.UfsDirectoryStatus;
 import alluxio.underfs.UfsFileStatus;
 import alluxio.underfs.UfsManager;
 import alluxio.underfs.UfsStatus;
@@ -143,6 +144,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.Stack;
@@ -877,30 +879,27 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     }
     // TODO(calvin): Evaluate which other metadata fields should be validated.
     if (inode.isDirectory()) {
+      //ignore root
+      if (inode.getParentId() == -1) {
+        return true;
+      }
       if (!ufs.isDirectory(ufsPath)) {
         return false;
       } else {
-        UfsFileStatus fileStatus = ufs.getFileStatus(ufsPath);
-        if (fileStatus.getMode() == inode.getMode()
-            && fileStatus.getGroup().equals(inode.getGroup())
-            && fileStatus.getOwner().equals(inode.getOwner())) {
-          return true;
-        } else {
-          return false;
-        }
+        //UfsFileStatus fileStatus = ufs.getFileStatus(ufsPath);
+        UfsDirectoryStatus ufsDirectoryStatus = ufs.getDirectoryStatus(ufsPath);
+        return ufsDirectoryStatus.getMode() == inode.getMode()
+            && Objects.equals(ufsDirectoryStatus.getGroup(), inode.getGroup())
+            && Objects.equals(ufsDirectoryStatus.getOwner(), inode.getOwner());
       }
     } else {
       InodeFile file = (InodeFile) inode;
       if (ufs.isFile(ufsPath)) {
         UfsFileStatus ufsFileStatus = ufs.getFileStatus(ufsPath);
-        if (ufsFileStatus.getContentLength() != file.getLength()
-            || ufsFileStatus.getMode() != file.getMode()
-            || !ufsFileStatus.getGroup().equals(file.getGroup())
-            || !ufsFileStatus.getOwner().equals(file.getOwner())) {
-          return false;
-        } else {
-          return true;
-        }
+        return ufsFileStatus.getContentLength() == file.getLength()
+            && ufsFileStatus.getMode() == file.getMode()
+            && Objects.equals(ufsFileStatus.getGroup(), inode.getGroup())
+            && Objects.equals(ufsFileStatus.getOwner(), inode.getOwner());
       } else {
         return false;
       }
