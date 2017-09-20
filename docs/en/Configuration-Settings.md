@@ -93,6 +93,14 @@ variables, including:
 <table class="table table-striped">
 <tr><th>Environment Variable</th><th>Description</th></tr>
 <tr>
+  <td><code class="highlighter-rouge">ALLUXIO_CONF_DIR</code></td>
+  <td>path to Alluxio configuration directory.</td>
+</tr>
+<tr>
+  <td><code class="highlighter-rouge">ALLUXIO_LOGS_DIR</code></td>
+  <td>path to Alluxio logs directory.</td>
+</tr>
+<tr>
   <td><code class="highlighter-rouge">ALLUXIO_MASTER_HOSTNAME</code></td>
   <td>hostname of Alluxio master, defaults to localhost.</td>
 </tr>
@@ -128,6 +136,18 @@ variables, including:
 <tr>
   <td><code class="highlighter-rouge">ALLUXIO_CLASSPATH</code></td>
   <td>additional classpath entries for Alluxio processes. This is empty by default.</td>
+</tr>
+<tr>
+  <td><code class="highlighter-rouge">ALLUXIO_LOGSERVER_HOSTNAME</code></td>
+  <td>host name of the log server. This is empty by default.</td>
+</tr>
+<tr>
+  <td><code class="highlighter-rouge">ALLUXIO_LOGSERVER_PORT</code></td>
+  <td>port number of the log server. This is 45600 by default.</td>
+</tr>
+<tr>
+  <td><code class="highlighter-rouge">ALLUXIO_LOGSERVER_LOGS_DIR</code></td>
+  <td>path to the local directory where Alluxio log server stores logs received from Alluxio servers.</td>
 </tr>
 </table>
 
