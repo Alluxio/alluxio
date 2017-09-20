@@ -60,7 +60,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 
@@ -308,13 +308,13 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
   protected List<String> deleteObjects(List<String> keys) throws IOException {
     Preconditions.checkArgument(keys != null && keys.size() <= getListingChunkLengthMax());
     try {
-      List<DeleteObjectsRequest.KeyVersion> keysToDelete = new LinkedList<>();
+      List<DeleteObjectsRequest.KeyVersion> keysToDelete = new ArrayList<>();
       for (String key : keys) {
         keysToDelete.add(new DeleteObjectsRequest.KeyVersion(key));
       }
       DeleteObjectsResult deletedObjectsResult =
           mClient.deleteObjects(new DeleteObjectsRequest(mBucketName).withKeys(keysToDelete));
-      List<String> deletedObjects = new LinkedList<>();
+      List<String> deletedObjects = new ArrayList<>();
       for (DeleteObjectsResult.DeletedObject deletedObject : deletedObjectsResult
           .getDeletedObjects()) {
         deletedObjects.add(deletedObject.getKey());

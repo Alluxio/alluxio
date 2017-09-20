@@ -57,7 +57,7 @@ public final class JobConfInfo implements Serializable {
    * @return the lineage command-line job configuration
    */
   public JobConfInfo setOutputFile(String outputFile) {
-    Preconditions.checkNotNull(outputFile);
+    Preconditions.checkNotNull(outputFile, "outputFile");
     mOutputFile = outputFile;
     return this;
   }

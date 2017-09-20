@@ -71,8 +71,8 @@ public final class UIFileInfo {
      */
     public LocalFileInfo(String name, String absolutePath, long size, long creationTimeMs,
         long lastModificationTimeMs, boolean isDirectory) {
-      mName = Preconditions.checkNotNull(name);
-      mAbsolutePath = Preconditions.checkNotNull(absolutePath);
+      mName = Preconditions.checkNotNull(name, "name");
+      mAbsolutePath = Preconditions.checkNotNull(absolutePath, "absolutePath");
       mSize = size;
       mCreationTimeMs = creationTimeMs;
       mLastModificationTimeMs = lastModificationTimeMs;

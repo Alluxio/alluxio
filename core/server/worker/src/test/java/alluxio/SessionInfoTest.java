@@ -11,7 +11,10 @@
 
 package alluxio;
 
-import org.junit.Assert;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.fail;
+
 import org.junit.Test;
 
 /**
@@ -30,7 +33,7 @@ public final class SessionInfoTest {
   public void constructor() {
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       SessionInfo tSessionInfo = new SessionInfo(k, SESSION_TIMEOUT_MS);
-      Assert.assertEquals(k, tSessionInfo.getSessionId());
+      assertEquals(k, tSessionInfo.getSessionId());
     }
   }
 
@@ -42,8 +45,8 @@ public final class SessionInfoTest {
   public void constructorWithException() {
     for (int k = 0; k >= -1000; k -= DELTA) {
       SessionInfo tSessionInfo = new SessionInfo(k, SESSION_TIMEOUT_MS);
-      Assert.assertEquals(k, tSessionInfo.getSessionId());
-      Assert.fail("SessionId " + k + " should be invalid.");
+      assertEquals(k, tSessionInfo.getSessionId());
+      fail("SessionId " + k + " should be invalid.");
     }
   }
 
@@ -54,7 +57,7 @@ public final class SessionInfoTest {
   public void getSessionId() {
     for (int k = MIN_LEN; k < MAX_LEN; k += 66) {
       SessionInfo tSessionInfo = new SessionInfo(k, SESSION_TIMEOUT_MS);
-      Assert.assertEquals(k, tSessionInfo.getSessionId());
+      assertEquals(k, tSessionInfo.getSessionId());
     }
   }
 
@@ -64,6 +67,6 @@ public final class SessionInfoTest {
   @Test
   public void timeout() {
     SessionInfo tSessionInfo = new SessionInfo(1, SESSION_TIMEOUT_MS);
-    Assert.assertFalse(tSessionInfo.timeout());
+    assertFalse(tSessionInfo.timeout());
   }
 }

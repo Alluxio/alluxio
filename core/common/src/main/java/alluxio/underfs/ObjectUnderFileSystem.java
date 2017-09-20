@@ -36,7 +36,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
@@ -44,6 +43,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -159,6 +159,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
      * @return null if listing did not find anything or is done, otherwise return new
      * {@link ObjectListingChunk} for the next chunk
      */
+    @Nullable
     ObjectListingChunk getNextChunk() throws IOException;
   }
 
@@ -293,7 +294,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
     public DeleteBuffer() {
       mBatches = new ArrayList<>();
       mBatchesResult = new ArrayList<>();
-      mCurrentBatchBuffer = new LinkedList<>();
+      mCurrentBatchBuffer = new ArrayList<>();
       mEntriesAdded = 0;
     }
 
@@ -321,7 +322,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
      */
     public List<String> getResult() throws IOException {
       submitBatch();
-      LinkedList<String> result = new LinkedList<>();
+      List<String> result = new ArrayList<>();
       for (Future<List<String>> list : mBatchesResult) {
         try {
           result.addAll(list.get());
@@ -345,7 +346,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
     private void submitBatch() throws IOException {
       if (mCurrentBatchBuffer.size() != 0) {
         int batchNumber = mBatches.size();
-        mBatches.add(new LinkedList<>(mCurrentBatchBuffer));
+        mBatches.add(new ArrayList<>(mCurrentBatchBuffer));
         mCurrentBatchBuffer.clear();
         mBatchesResult.add(batchNumber,
             mExecutorService.submit(new DeleteThread(mBatches.get(batchNumber))));
@@ -404,6 +405,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
 
   // Not supported
   @Override
+  @Nullable
   public List<String> getFileLocations(String path) throws IOException {
     LOG.debug("getFileLocations is not supported when using default ObjectUnderFileSystem.");
     return null;
@@ -411,6 +413,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
 
   // Not supported
   @Override
+  @Nullable
   public List<String> getFileLocations(String path, FileLocationOptions options)
       throws IOException {
     LOG.debug("getFileLocations is not supported when using default ObjectUnderFileSystem.");
@@ -619,7 +622,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
    * @return list of successfully deleted keys
    */
   protected List<String> deleteObjects(List<String> keys) throws IOException {
-    List<String> result = new LinkedList<>();
+    List<String> result = new ArrayList<>();
     for (String key : keys) {
       boolean status = deleteObject(key);
       // If key is a directory, it is possible that it was not created through Alluxio and no
@@ -664,6 +667,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
    * @param key ufs key to get metadata for
    * @return {@link ObjectStatus} if key exists and successful, otherwise null
    */
+  @Nullable
   protected abstract ObjectStatus getObjectStatus(String key);
 
   /**
@@ -672,6 +676,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
    * @param path ufs path including scheme and bucket
    * @return the parent path, or null if the parent does not exist
    */
+  @Nullable
   protected String getParentPath(String path) {
     // Root does not have a parent.
     if (isRoot(path)) {
@@ -723,6 +728,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
    * @param recursive whether to request immediate children only, or all descendants
    * @return chunked object listing, or null if key is not found
    */
+  @Nullable
   protected abstract ObjectListingChunk getObjectListingChunk(String key, boolean recursive)
       throws IOException;
 
@@ -733,6 +739,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
    * @param recursive whether to request immediate children only, or all descendants
    * @return chunked object listing, or null if the path does not exist as a pseudo-directory
    */
+  @Nullable
   protected ObjectListingChunk getObjectListingChunkForPath(String path, boolean recursive)
       throws IOException {
     // Check if anything begins with <folder_path>/
@@ -765,6 +772,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
    * @param options for listing
    * @return an array of the file and folder names in this directory
    */
+  @Nullable
   protected UfsStatus[] listInternal(String path, ListOptions options) throws IOException {
     ObjectListingChunk chunk = getObjectListingChunkForPath(path, options.isRecursive());
     if (chunk == null) {

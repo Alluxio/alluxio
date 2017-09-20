@@ -29,6 +29,7 @@ import java.util.ServiceLoader;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -106,6 +107,7 @@ public final class UnderFileSystemFactoryRegistry {
    * @param path path
    * @return factory if available, null otherwise
    */
+  @Nullable
   public static UnderFileSystemFactory find(String path) {
     Preconditions.checkArgument(path != null, "path may not be null");
 

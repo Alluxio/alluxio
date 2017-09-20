@@ -345,7 +345,7 @@ public final class Configuration {
         "Illegal separator for Alluxio properties as list");
     String rawValue = get(key);
 
-    return Lists.newLinkedList(Splitter.on(delimiter).trimResults().omitEmptyStrings()
+    return Lists.newArrayList(Splitter.on(delimiter).trimResults().omitEmptyStrings()
         .split(rawValue));
   }
 

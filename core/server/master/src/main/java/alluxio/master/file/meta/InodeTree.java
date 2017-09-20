@@ -54,12 +54,14 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Queue;
 import java.util.Set;
 
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -163,6 +165,7 @@ public class InodeTree implements JournalEntryIterable {
   /**
    * @return username of root of inode tree, null if the inode tree is not initialized
    */
+  @Nullable
   public String getRootUserName() {
     if (mRoot == null) {
       return null;
