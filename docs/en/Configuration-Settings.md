@@ -71,14 +71,14 @@ $ bin/hadoop jar libexec/share/hadoop/mapreduce/hadoop-mapreduce-examples-2.7.3.
 ## Use Site-Property Files (Recommended)
 
 Alluxio admins can create and customize the property file `alluxio-site.properties` to
-configuration an Alluxio cluster. If this file does not exist, it can be created from the
+configure an Alluxio cluster. If this file does not exist, it can be created from the
 template file under `${ALLUXIO_HOME}/conf`:
 
 ```bash
 $ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 ```
 
-Make sure that this file is distributed to `${ALLUXIO_HOME}/conf` on every Alluxio nodes (masters
+Make sure that this file is distributed to `${ALLUXIO_HOME}/conf` on every Alluxio node (masters
 and workers) before starting the cluster.
 
 > Note that, `${ALLUXIO_HOME}/conf/alluxio-site.properties` are only loaded by Alluxio server
