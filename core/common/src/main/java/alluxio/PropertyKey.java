@@ -41,6 +41,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   /**
    * Builder to create {@link PropertyKey} instances.
    */
+
   public static final class Builder {
     private String[] mAlias;
     private Object mDefaultValue;
@@ -1745,11 +1746,17 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   //JVM related properties
   //
   public static final PropertyKey JVM_MONITOR_WARN_THRESHOLD_TIME =
-      create(Name.JVM_MONITOR_WARN_THRESHOLD_TIME, 10000);
+      new Builder(Name.JVM_MONITOR_WARN_THRESHOLD_TIME)
+          .setDefaultValue(10000)
+          .build();
   public static final PropertyKey JVM_MONITOR_INFO_THRESHOLD_TIME =
-      create(Name.JVM_MONITOR_INFO_THRESHOLD_TIME, 1000);
+      new Builder(Name.JVM_MONITOR_INFO_THRESHOLD_TIME)
+          .setDefaultValue(1000)
+          .build();
   public static final PropertyKey JVM_MONITOR_SLEEP_INTERVAL_MS =
-      create(Name.JVM_MONITOR_SLEEP_INTERVAL_MS, 500);
+      new Builder(Name.JVM_MONITOR_SLEEP_INTERVAL_MS)
+          .setDefaultValue(500)
+          .build();
 
   /**
    * A nested class to hold named string constants for their corresponding properties.
@@ -2212,6 +2219,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String JVM_MONITOR_WARN_THRESHOLD_TIME = "jvm.monitor.warn.threshold.time";
     public static final String JVM_MONITOR_INFO_THRESHOLD_TIME = "jvm.monitor.info.threshold.time";
     public static final String JVM_MONITOR_SLEEP_INTERVAL_MS = "jvm.monitor.sleep.interval.ms";
+
     private Name() {} // prevent instantiation
   }
 

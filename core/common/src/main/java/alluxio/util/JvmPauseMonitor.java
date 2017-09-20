@@ -72,7 +72,6 @@ public class JvmPauseMonitor {
   public void start() {
     Preconditions.checkState(mMonitorThread == null,
         "Already started");
-    LOG.info("jvm Monitor progress start!");
     mMonitorThread = new Daemon(new Monitor());
     mMonitorThread.start();
   }
@@ -182,8 +181,6 @@ public class JvmPauseMonitor {
           ++mNumGcInfoThresholdExceeded;
           LOG.info(formatMessage(
               extraSleepTime, gcTimesAfterSleep, gcTimesBeforeSleep));
-        } else {
-          LOG.info("jvm is no problem!");
         }
         mTotalGcExtraSleepTime += extraSleepTime;
         gcTimesBeforeSleep = gcTimesAfterSleep;
