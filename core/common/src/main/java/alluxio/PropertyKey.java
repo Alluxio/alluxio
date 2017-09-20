@@ -1741,6 +1741,16 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue(1)
           .build();
 
+  //
+  //JVM related properties
+  //
+  public static final PropertyKey JVM_MONITOR_WARN_THRESHOLD_TIME =
+      create(Name.JVM_MONITOR_WARN_THRESHOLD_TIME, 10000);
+  public static final PropertyKey JVM_MONITOR_INFO_THRESHOLD_TIME =
+      create(Name.JVM_MONITOR_INFO_THRESHOLD_TIME, 1000);
+  public static final PropertyKey JVM_MONITOR_SLEEP_INTERVAL_MS =
+      create(Name.JVM_MONITOR_SLEEP_INTERVAL_MS, 500);
+
   /**
    * A nested class to hold named string constants for their corresponding properties.
    * Used for setting configuration in integration tests.
@@ -2196,6 +2206,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.security.group.mapping.class";
     public static final String SECURITY_LOGIN_USERNAME = "alluxio.security.login.username";
 
+    //
+    //JVM related properties
+    //
+    public static final String JVM_MONITOR_WARN_THRESHOLD_TIME = "jvm.monitor.warn.threshold.time";
+    public static final String JVM_MONITOR_INFO_THRESHOLD_TIME = "jvm.monitor.info.threshold.time";
+    public static final String JVM_MONITOR_SLEEP_INTERVAL_MS = "jvm.monitor.sleep.interval.ms";
     private Name() {} // prevent instantiation
   }
 
