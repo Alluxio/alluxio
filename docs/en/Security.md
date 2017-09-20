@@ -183,7 +183,7 @@ The format of Alluxio audit log entry is shown in the table below.
 
 It is similar to the format of HDFS audit log [wiki](https://wiki.apache.org/hadoop/HowToConfigure).
 
-To enable Alluxio audit logging, you need to set the JVM property `alluxio.master.audit.logging.enabled` to true, see [Configuration settings](Configuration-Setting.html).
+To enable Alluxio audit logging, you need to set the JVM property `alluxio.master.audit.logging.enabled` to true, see [Configuration settings](Configuration-Settings.html).
 
 ## Encryption
 
