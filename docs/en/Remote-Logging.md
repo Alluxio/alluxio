@@ -18,7 +18,7 @@ a designated and configurable directory on the log server.
 Refer to [Running Alluxio on a cluster](Running-Alluxio-on-a-Cluster.html) for instructions in deploying
 Alluxio in a cluster.
 
-By default, remote logging is not enabled. To enable Alluxio remote logging, you can set a
+By default, remote logging is not enabled. To enable Alluxio remote logging, you can set
 three environment variables: `ALLUXIO_LOGSERVER_HOSTNAME`, `ALLUXIO_LOGSERVER_PORT` and `ALLUXIO_LOGSERVER_LOGS_DIR`.
 
 There is no requirement on where
