@@ -14,6 +14,8 @@ package alluxio.master.file;
 import alluxio.AlluxioURI;
 import alluxio.AuthenticatedUserRule;
 import alluxio.BaseIntegrationTest;
+import alluxio.BaseIntegrationTest;
+import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.PropertyKey;
@@ -41,6 +43,7 @@ import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.util.CommonUtils;
 import alluxio.util.IdUtils;
 import alluxio.wire.FileInfo;
+import alluxio.wire.LoadMetadataType;
 import alluxio.wire.TtlAction;
 
 import org.junit.Assert;
@@ -52,6 +55,9 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.Timeout;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -64,6 +70,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import javax.annotation.Nullable;
 import javax.annotation.Nullable;
 
 /**
@@ -309,6 +316,30 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
     Assert.assertFalse(fileInfo.isFolder());
     Assert.assertEquals("", fileInfo.getOwner());
     Assert.assertEquals(0644, (short) fileInfo.getMode());
+  }
+
+  @Test
+  public void deleteUnsyncedDirectory() throws Exception {
+    mFsMaster.createDirectory(new AlluxioURI("/testFolder"),
+        CreateDirectoryOptions.defaults().setPersisted(true));
+    mFsMaster.createDirectory(new AlluxioURI("/testFolder/child"),
+        CreateDirectoryOptions.defaults().setPersisted(true));
+    String ufs = Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
+    Files.createDirectory(Paths.get(ufs, "testFolder", "ufsOnlyDir"));
+    try {
+      mFsMaster.delete(new AlluxioURI("/testFolder"),
+          DeleteOptions.defaults().setUnchecked(false).setRecursive(true));
+      Assert.fail("Expected deleting an out of sync directory to fail");
+    } catch (IOException e) {
+      // Expected
+    }
+    // Make sure the root folder still exists in Alluxio space.
+    mFsMaster.listStatus(new AlluxioURI("/testFolder"),
+        ListStatusOptions.defaults().setLoadMetadataType(LoadMetadataType.Never));
+    // The child was in sync, so it should be deleted both from Alluxio and the UFS.
+    mThrown.expect(FileDoesNotExistException.class);
+    mFsMaster.listStatus(new AlluxioURI("/testFolder/child"),
+        ListStatusOptions.defaults().setLoadMetadataType(LoadMetadataType.Always));
   }
 
   @Test

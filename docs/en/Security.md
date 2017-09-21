@@ -9,13 +9,15 @@ priority: 1
 * Table of Contents
 {:toc}
 
-Secure Alluxio has two features currently. This document describes the concepts and usage of them.
+Secure Alluxio has three features currently. This document describes the concepts and usage of them.
 
 1. [Authentication](#authentication): If enabled, Alluxio file system can recognize and verify
 the user accessing it. It is the basis for other security features such as authorization.
 2. [Authorization](#authorization): If enabled, Alluxio file system can control the user's access.
 POSIX permission model is used in Alluxio to assign permissions and
 control access rights.
+3. [Auditing](#auditing): If enabled, Alluxio file system can maintain an audit log for users' accesses
+to file metadata.
 
 By default Alluxio runs in SIMPLE secure mode in which a simple authentication is required.
 SIMPLE indicates that server trusts whoever the client claims to be.
@@ -138,10 +140,10 @@ The owner can only be changed by super user.
 The group and permission can only be changed by super user and file owner.
 
 ## Auditing
-Alluxio supports audit logging of user access to data. With audit logging, system administrators can
-keep track of each user's activities accessing files in Alluxio.
+Alluxio supports audit logging to allow system administrators to track users' access to file metadata.
 
-The format of Alluxio audit log file (`master_audit.log`) is shown in the table below.
+The audit log file (`master_audit.log`) contains multiple audit log entries, each of which corresponds to an access to file metadata.
+The format of Alluxio audit log entry is shown in the table below.
 
 <table class="table table-striped">
 <tr><th>key</th><th>value</th></tr>
@@ -155,11 +157,11 @@ The format of Alluxio audit log file (`master_audit.log`) is shown in the table 
 </tr>
 <tr>
   <td>ugi</td>
-  <td>User, primary group, authentication type. </td>
+  <td>User group information, including username, primary group, and authentication type. </td>
 </tr>
 <tr>
   <td>ip</td>
-  <td>Client ip address. </td>
+  <td>Client IP address. </td>
 </tr>
 <tr>
   <td>cmd</td>
@@ -181,7 +183,7 @@ The format of Alluxio audit log file (`master_audit.log`) is shown in the table 
 
 It is similar to the format of HDFS audit log [wiki](https://wiki.apache.org/hadoop/HowToConfigure).
 
-To enable Alluxio audit logging, you need to set the JVM property `alluxio.master.audit.logging.enabled` to true.
+To enable Alluxio audit logging, you need to set the JVM property `alluxio.master.audit.logging.enabled` to true, see [Configuration settings](Configuration-Settings.html).
 
 ## Encryption
 
