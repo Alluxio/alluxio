@@ -13,10 +13,10 @@ package alluxio.master.file;
 
 import alluxio.AlluxioURI;
 import alluxio.AuthenticatedUserRule;
+import alluxio.BaseIntegrationTest;
 import alluxio.Constants;
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.PropertyKey;
-import alluxio.BaseIntegrationTest;
 import alluxio.exception.DirectoryNotEmptyException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileAlreadyCompletedException;
@@ -52,7 +52,6 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.Timeout;
 
-import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -64,6 +63,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+
+import javax.annotation.Nullable;
 
 /**
  * Test behavior of {@link FileSystemMaster}.
@@ -397,6 +398,22 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
   public void deleteEmptyDirectory() throws Exception {
     mFsMaster.createDirectory(new AlluxioURI("/testFolder"), CreateDirectoryOptions.defaults());
     Assert.assertEquals(1, mFsMaster.getFileId(new AlluxioURI("/testFolder")));
+    mFsMaster.delete(new AlluxioURI("/testFolder"), DeleteOptions.defaults()
+        .setRecursive(true));
+    Assert.assertEquals(IdUtils.INVALID_FILE_ID,
+        mFsMaster.getFileId(new AlluxioURI("/testFolder")));
+  }
+
+  @Test
+  public void deleteDirectoryWithPersistedAndNotPersistedSubfolders() throws Exception {
+    mFsMaster.createDirectory(new AlluxioURI("/testFolder"),
+        CreateDirectoryOptions.defaults().setPersisted(true));
+    mFsMaster.createDirectory(new AlluxioURI("/testFolder/persisted"),
+        CreateDirectoryOptions.defaults().setPersisted(true));
+    mFsMaster.createDirectory(new AlluxioURI("/testFolder/inAlluxio1"),
+        CreateDirectoryOptions.defaults().setPersisted(false));
+    mFsMaster.createDirectory(new AlluxioURI("/testFolder/inAlluxio1/inAlluxio2"),
+        CreateDirectoryOptions.defaults().setPersisted(false));
     mFsMaster.delete(new AlluxioURI("/testFolder"), DeleteOptions.defaults()
         .setRecursive(true));
     Assert.assertEquals(IdUtils.INVALID_FILE_ID,

@@ -1414,7 +1414,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         tempInodePath.setDescendant(delInode, alluxioUriToDel);
 
         boolean failedToDelete = unsafeInodes.contains(delInode.getId());
-        if (!failedToDelete && !replayed && inode.isPersisted()) {
+        if (!failedToDelete && !replayed && delInode.isPersisted()) {
           try {
             // If this is a mount point, we have deleted all the children and can unmount it
             // TODO(calvin): Add tests (ALLUXIO-1831)
