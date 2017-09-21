@@ -318,12 +318,15 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
 
   @Test
   public void deleteUnsyncedDirectory() throws Exception {
-    mFsMaster.createDirectory(new AlluxioURI("/testFolder"), CreateDirectoryOptions.defaults().setPersisted(true));
-    mFsMaster.createDirectory(new AlluxioURI("/testFolder/child"), CreateDirectoryOptions.defaults().setPersisted(true));
+    mFsMaster.createDirectory(new AlluxioURI("/testFolder"),
+        CreateDirectoryOptions.defaults().setPersisted(true));
+    mFsMaster.createDirectory(new AlluxioURI("/testFolder/child"),
+        CreateDirectoryOptions.defaults().setPersisted(true));
     String ufs = Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
     Files.createDirectory(Paths.get(ufs, "testFolder", "ufsOnlyDir"));
     try {
-      mFsMaster.delete(new AlluxioURI("/testFolder"), DeleteOptions.defaults().setUnchecked(false).setRecursive(true));
+      mFsMaster.delete(new AlluxioURI("/testFolder"),
+          DeleteOptions.defaults().setUnchecked(false).setRecursive(true));
       Assert.fail("Expected deleting an out of sync directory to fail");
     } catch (IOException e) {
       // Expected
