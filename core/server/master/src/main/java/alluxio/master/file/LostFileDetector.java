@@ -51,7 +51,7 @@ final class LostFileDetector implements HeartbeatExecutor {
           inode.setPersistenceState(PersistenceState.LOST);
         }
       } catch (FileDoesNotExistException e) {
-        LOG.warn("Exception trying to get inode from inode tree", e);
+        LOG.debug("Exception trying to get inode from inode tree", e);
       }
     }
   }
