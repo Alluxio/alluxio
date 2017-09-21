@@ -434,6 +434,22 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
   }
 
   @Test
+  public void deleteDirectoryWithPersistedAndNotPersistedSubfolders() throws Exception {
+    mFsMaster.createDirectory(new AlluxioURI("/testFolder"),
+        CreateDirectoryOptions.defaults().setPersisted(true));
+    mFsMaster.createDirectory(new AlluxioURI("/testFolder/persisted"),
+        CreateDirectoryOptions.defaults().setPersisted(true));
+    mFsMaster.createDirectory(new AlluxioURI("/testFolder/inAlluxio1"),
+        CreateDirectoryOptions.defaults().setPersisted(false));
+    mFsMaster.createDirectory(new AlluxioURI("/testFolder/inAlluxio1/inAlluxio2"),
+        CreateDirectoryOptions.defaults().setPersisted(false));
+    mFsMaster.delete(new AlluxioURI("/testFolder"), DeleteOptions.defaults()
+        .setRecursive(true));
+    Assert.assertEquals(IdUtils.INVALID_FILE_ID,
+        mFsMaster.getFileId(new AlluxioURI("/testFolder")));
+  }
+
+  @Test
   public void deleteFile() throws Exception {
     long fileId = mFsMaster.createFile(new AlluxioURI("/testFile"), CreateFileOptions.defaults());
     Assert.assertEquals(fileId, mFsMaster.getFileId(new AlluxioURI("/testFile")));
