@@ -15,7 +15,7 @@ loadufs:
   The paths with a prefix in <code>ExcludePathPrefixes</code> will not be loaded.
 logLevel:
   Dynamically changes the log level of a class on the running Alluxio server.
-  Try alluxio journalCrashTest -help to see the meanings of each argument in detail
+  Try alluxio logLevel -help to see the meanings of each argument in details.
 runTest:
   Run an end-to-end test on a Alluxio cluster. <code>Example</code> should be "Basic" or
   "BasicNonByteBuffer". <code>ReadType</code> should be "CACHE_PROMOTE", "CACHE",
