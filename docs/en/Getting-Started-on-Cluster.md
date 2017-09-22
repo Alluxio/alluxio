@@ -135,7 +135,8 @@ You can check out [this page](Developer-Tips.html) for detailed usage informatio
 
 The [local Getting-Started guide](Getting-Started.html) shows the steps of how to start Alluxio with default local file system.
 In a distributed cluster, Alluxio requires a distributed storage system as Under File System.
-In this doc, we use AWS S3 as an example here. If you want to use an existing distributed HDFS as UFS, the setup is similar.
+In this doc, we use AWS S3 as an example here. If you want to use an existing distributed HDFS as UFS,
+please refer to this [doc](Configuring-Alluxio-with-HDFS.html).
 
 Also, in preparation for using S3 with Alluxio, create a bucket (or use an existing bucket). You
 should also note the directory you want to use in that bucket, either by creating a new directory in
