@@ -16,7 +16,7 @@ During this guide, you will:
 
 * Download and configure Alluxio in a Linux cluster
 * Configuration for AWS
-* Validating Alluxio environment
+* Validate Alluxio environment
 * Set up a distributed storage as UFS
 * Start Alluxio on multiple nodes
 * Perform basic tasks via Alluxio Shell
@@ -26,10 +26,10 @@ During this guide, you will:
 
 **[Required]** In this documentation, we will use AWS S3 as the example distributed storage as Alluxio under file system.
 Please make sure you have an [AWS account with an access key id and secret access key](http://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSGettingStartedGuide/AWSCredentials.html),
-you will be able to use S3 in this guide. If you don't have a S3 account, you can also use an existing HDFS cluster as the under
-file system. The "Set up a distributed storage as UFS" section will be slightly different.
+so you will be able to use S3 in this guide. If you don't have an S3 account, you can also use an existing HDFS cluster as the under
+file system. The [Set up a distributed storage as UFS](#setting-up-a-distributed-storage-as-ufs) section will be slightly different.
 
-**Note**  This guide is meant for you to quickly start interacting with an Alluxio system, in a distributed environment.
+**Note**  This guide is meant for you to quickly start interacting with an Alluxio system in a distributed environment.
 If you are interested in running a larger scale example which highlights the performance benefits of Alluxio,
 try out the instructions in either of these two whitepapers: [Accelerating on-demand data analytics with
 Alluxio](https://alluxio.com/resources/accelerating-on-demand-data-analytics-with-alluxio),
@@ -57,7 +57,7 @@ Second, `scp` the release tarball to all the Linux nodes. Note that, feel free t
 to distribute the tarball and automate the following process on multiple machines. In this example,
 manually commands are shown and most of them should be executed on all the nodes.
 
-Next, you can unpack the download with the following commands on all the nodes. Your filename may be different
+Next, you can unpack the download with the following commands on all the nodes. Your file name may be different
 depending on which pre-built binaries you have downloaded.
 
 ```bash
@@ -124,7 +124,7 @@ Will only run validation tasks that check your system resource limits, on all th
 
 You can check out [this page](Developer-Tips.html) for detailed usage information regarding this command.
 
-## Set up a distributed storage as UFS
+## Setting up a distributed storage as UFS
 
 The [local Getting-Started guide](Getting-Started.html) shows the steps of how to start Alluxio with default local file system.
 In a distributed cluster, Alluxio requires a distributed storage system as Under File System.
