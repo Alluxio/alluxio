@@ -188,7 +188,7 @@ public final class UnderFileSystemBlockReader implements BlockReader {
             (int) (mInStreamPos - mBlockWriter.getPosition()));
         mBlockWriter.append(buffer.duplicate());
       } catch (Exception e) {
-        LOG.warn("Failed to cache data read from UFS in Alluxio: {}", e.getMessage());
+        LOG.warn("Failed to cache data read from UFS on read(): {}", e.getMessage());
         cancelBlockWriter();
       }
     }
@@ -229,10 +229,12 @@ public final class UnderFileSystemBlockReader implements BlockReader {
       try {
         bufCopy.writerIndex(buf.writerIndex());
         while (bufCopy.readableBytes() > 0) {
+          mLocalBlockStore.requestSpace(mBlockMeta.getSessionId(), mBlockMeta.getBlockId(),
+              mInStreamPos - mBlockWriter.getPosition());
           mBlockWriter.transferFrom(bufCopy);
         }
       } catch (Exception e) {
-        LOG.warn("Failed to cache data read from UFS in Alluxio: {}", e.getMessage());
+        LOG.warn("Failed to cache data read from UFS on transferTo(): {}", e.getMessage());
         cancelBlockWriter();
       }
     }
