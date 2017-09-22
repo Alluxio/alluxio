@@ -43,7 +43,7 @@ For the following quick start guide, you will need:
 * [Java 7 or newer](Java-Setup.html)
 * AWS account and keys
 
-### Setup SSH (Linux)
+### Set up SSH (Linux)
 
 Please make sure on all the nodes, ssh is enabled.
 
@@ -53,7 +53,7 @@ downloading and starting Alluxio on multiple nodes, for demo purpose only. The m
 can be much simplified and automated using `CopyDir` or `Ansible` scripts. Please refer to this [doc](Running-Alluxio-on-a-Cluster.html]
 and [Running-Alluxio-on-EC2](Running-Alluxio-on-EC2.html] for the alternatives.
 
-## Downloading Alluxio
+## Download Alluxio
 
 First, [download the Alluxio release](http://www.alluxio.org/download) locally. You can
 download the latest {{site.ALLUXIO_RELEASED_VERSION}} release pre-built for various versions of
@@ -75,7 +75,7 @@ $ cd alluxio-{{site.ALLUXIO_RELEASED_VERSION}}
 This will create a directory `alluxio-{{site.ALLUXIO_RELEASED_VERSION}}` with all of the Alluxio
 source files and Java binaries.
 
-## Configuring Alluxio
+## Configure Alluxio
 
 Before we start Alluxio, we have to configure it. Please ensure all the subsequent commands are run on all the Linux nodes.
 
@@ -94,7 +94,7 @@ you plan to run Alluxio Master on. Let's name it Alluxio Master node, and assume
 $ echo "alluxio.master.hostname=ALLUXIO_MASTER_HOSTNAME" >> conf/alluxio-site.properties
 ```
 
-### Configuration for AWS
+### Configure for AWS
 
 Please ensure all the subsequent commands are run on all the Linux nodes.
 
@@ -112,7 +112,7 @@ You will have to replace **AWS_ACCESS_KEY_ID** with your AWS access key id, and
 **AWS_SECRET_ACCESS_KEY** with your AWS secret access key. Now, Alluxio is fully configured for the
 rest of this guide.
 
-## Validating Alluxio environment
+## Validate Alluxio environment
 
 Before starting Alluxio, you might want to make sure that your system environment is ready for running
 Alluxio services. You can run the following command to validate environment on all nodes:
@@ -131,7 +131,7 @@ Will only run validation tasks that check your system resource limits, on all th
 
 You can check out [this page](Developer-Tips.html) for detailed usage information regarding this command.
 
-## Setting up a distributed storage as UFS
+## Set up a distributed storage as UFS
 
 The [local Getting-Started guide](Getting-Started.html) shows the steps of how to start Alluxio with default local file system.
 In a distributed cluster, Alluxio requires a distributed storage system as Under File System.
@@ -157,7 +157,7 @@ all the Alluxio nodes. This ensures those nodes have the access to this S3 bucke
 
 If you want to enable more advanced feature for S3 UFS, please refer to this [documentation](Configuring-Alluxio-with-S3.html).
 
-## Starting Alluxio
+## Start Alluxio
 
 Next, we will format Alluxio in preparation for starting Alluxio. The following command will format
 the Alluxio journal and the worker storage directory in preparation for the master and worker to
@@ -191,7 +191,7 @@ In a few seconds, Alluxio workers will register with the Alluxio master.
 You can visit [http://ALLUXIO_WORKER1_HOSTNAME:30000](http://ALLUXIO_WORKER1_HOSTNAME:30000)
 to see the status of the Alluxio worker.
 
-## Using the Alluxio Shell
+## Use the Alluxio Shell
 
 Now that Alluxio is running, we can examine the Alluxio file system with the
 [Alluxio shell](Command-Line-Interface.html). The Alluxio shell enables many command-line operations
@@ -262,20 +262,20 @@ If we browse the Alluxio file system in the [master's web UI](http://ALLUXIO_MAS
 see the LICENSE file as well as other useful information. Here, the **Persistence State** column
 shows the file as **PERSISTED**.
 
-## [Bonus] Running a Hadoop MapReduce job on Alluxio cluster
+## [Bonus] Run a Hadoop MapReduce job on Alluxio cluster
 Please refer to this [doc](Running-Hadoop-MapReduce-on-Alluxio.md) for how to install Hadoop MapReduce on this cluster,
 and run a Hadoop MapReduce job on the installed Alluxio cluster.
 
 Please make sure all the environment and configuration are set up on all the nodes.
 
-## [Bonus] Running a Spark job on Alluxio cluster
+## [Bonus] Run a Spark job on Alluxio cluster
 
 Please refer to this [doc](Running-Spark-on-Alluxio.md) for how to install Apache Spark on this cluster,
 and run a sample Spark job on the installed Alluxio cluster.
 
 Please make sure all the environment and configuration are set up on all the nodes.
 
-## Stopping Alluxio
+## Shutdown Alluxio
 
 Once you are done with interacting with your Alluxio cluster installation, you can stop Alluxio with
 the following command:
