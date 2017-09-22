@@ -81,7 +81,7 @@ $ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 
 Update `alluxio.master.hostname` in `conf/alluxio-site.properties` to the hostname of the machine
 you plan to run Alluxio Master on. Let's name it Alluxio Master node, and assume its hostname is
-ALLUXIO_MASTER_HOSTNAME.
+**ALLUXIO_MASTER_HOSTNAME**.
 
 ```bash
 $ echo "alluxio.master.hostname=ALLUXIO_MASTER_HOSTNAME" >> conf/alluxio-site.properties
