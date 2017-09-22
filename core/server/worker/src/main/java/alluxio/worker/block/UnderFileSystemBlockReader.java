@@ -188,7 +188,7 @@ public final class UnderFileSystemBlockReader implements BlockReader {
             (int) (mInStreamPos - mBlockWriter.getPosition()));
         mBlockWriter.append(buffer.duplicate());
       } catch (Exception e) {
-        LOG.warn("Failed to cache data read from UFS on read(): {}", e.getMessage());
+        LOG.warn("Failed to cache data read from UFS (on read()): {}", e.getMessage());
         cancelBlockWriter();
       }
     }
@@ -234,7 +234,7 @@ public final class UnderFileSystemBlockReader implements BlockReader {
           mBlockWriter.transferFrom(bufCopy);
         }
       } catch (Exception e) {
-        LOG.warn("Failed to cache data read from UFS on transferTo(): {}", e.getMessage());
+        LOG.warn("Failed to cache data read from UFS (on transferTo()): {}", e.getMessage());
         cancelBlockWriter();
       }
     }
