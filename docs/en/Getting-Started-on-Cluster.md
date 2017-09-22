@@ -15,7 +15,7 @@ AWS S3 bucket as UFS (Under File System), and perform basic tasks with the data 
 During this guide, you will:
 
 * Download and configure Alluxio in a Linux cluster
-* Configuration for AWS
+* Configure for AWS
 * Validate Alluxio environment
 * Set up a distributed storage as UFS
 * Start Alluxio on multiple nodes
@@ -25,7 +25,7 @@ During this guide, you will:
 * Shutdown Alluxio
 
 **[Required]** In this documentation, we will use AWS S3 as the example distributed storage as Alluxio under file system.
-Please make sure you have an [AWS account with an access key id and secret access key](http://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSGettingStartedGuide/AWSCredentials.html),
+Please make sure you have an [AWS account with an access key id and secret access key](http://docs.aws.amazon.com/general/latest/gr/aws-sec-cred-types.html#access-keys-and-secret-access-keys),
 so you will be able to use S3 in this guide. If you don't have an S3 account, you can also use an existing HDFS cluster as the under
 file system. The [Set up a distributed storage as UFS](#setting-up-a-distributed-storage-as-ufs) section will be slightly different.
 
@@ -47,6 +47,12 @@ For the following quick start guide, you will need:
 
 Please make sure on all the nodes, ssh is enabled.
 
+Optionally, setting up password-less ssh
+will make distributed copy and configuration easier. In this doc, we use the example of manual
+downloading and starting Alluxio on multiple nodes, for demo purpose only. The manual process here
+can be much simplified and automated using `CopyDir` or `Ansible` scripts. Please refer to this [doc](Running-Alluxio-on-a-Cluster.html]
+and [Running-Alluxio-on-EC2](Running-Alluxio-on-EC2.html] for the alternatives.
+
 ## Downloading Alluxio
 
 First, [download the Alluxio release](http://www.alluxio.org/download) locally. You can
@@ -54,8 +60,9 @@ download the latest {{site.ALLUXIO_RELEASED_VERSION}} release pre-built for vari
 Hadoop from the [Alluxio download page](http://www.alluxio.org/download).
 
 Second, `scp` the release tarball to all the Linux nodes. Note that, feel free to use scriptable way (such as Ansible)
-to distribute the tarball and automate the following process on multiple machines. In this example,
-manually commands are shown and most of them should be executed on all the nodes.
+to distribute the tarball and automate the following process on multiple machines. In this documentation,
+manually commands are shown and most of them should be executed on all the nodes, to help user better understand
+how Alluxio master and Alluxio workers start individually and how they work together.
 
 Next, you can unpack the download with the following commands on all the nodes. Your file name may be different
 depending on which pre-built binaries you have downloaded.
@@ -137,7 +144,7 @@ the bucket, or using an existing one. For the purposes of this guide, the S3 buc
 
 You need to configure Alluxio to use S3 as its under storage system by modifying
 `conf/alluxio-site.properties`. The first modification is to specify an **existing** S3
-bucket and directory as the under storage system. You specify it by modifying
+bucket and directory as the under storage system. On all the nodes, you specify it by modifying
 `conf/alluxio-site.properties` to include:
 
 ```
@@ -215,7 +222,7 @@ Alluxio with the command:
 
 ```bash
 $ ./bin/alluxio fs ls /
-26.22KB   06-20-2016 11:30:04:415  In Memory      /LICENSE
+drwxr-xr-x   ubuntu    ubuntu    26.22KB   09-22-2017 09:30:08:781  In Memory      /LICENSE
 ```
 
 The output shows the file that exists in Alluxio, as well as some other useful information, like the
