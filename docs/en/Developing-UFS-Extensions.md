@@ -36,7 +36,7 @@ extensions.
 
 # Implementing an Under Storage Extension
 
-Building a new under storage connector involves: 
+Building a new under storage connector involves:
 
 - Implementing the required under storage interface
 - Declaring the service implementation
@@ -70,7 +70,7 @@ or,
 
 ```java
 public class DummyUnderFileSystem extends ObjectUnderFileSystem {
-	// Implement object store operations 
+	// Implement object store operations
 	...
 }
 ```
@@ -131,13 +131,13 @@ Extend `AbstractUnderFileSystemContractTest` to test that the defined `UnderFile
 the contract between Alluxio and an under storage module. Look at the reference implementation to
 include parameters such as the working directory for the test.
 
-```java 
+```java
 public final class DummyUnderFileSystemContractTest extends AbstractUnderFileSystemContractTest {
     ...
-} 
+}
 ```
 
 Congratulations! You have developed a new under storage extension to Alluxio. Let the community
 know by submitting a pull request to the Alluxio
-[repository](https://github.com/Alluxio/alluxio/tree/master/docs/en/UFSExtensions.md) to edit the
+[repository](https://github.com/Alluxio/alluxio/tree/master/docs/en/Using-UFS-Extensions.md) to edit the
 list of extensions section on the [documentation page](UFSExtensions.html).

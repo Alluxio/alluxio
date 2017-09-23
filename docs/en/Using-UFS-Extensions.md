@@ -8,7 +8,7 @@ title: Under Storage Extensions
 {:toc}
 
 This page is intended for users of under storage extensions. Please look at [developing
-extensions](DevelopingUFSExtensions.html) for an extension development guide.
+extensions](Developing-UFS-Extensions.html) for an extension development guide.
 
 Alluxio can be extended with the addition of under storage modules at runtime. Under storage
 extensions (built as JARs) can be included at a specific location to be picked up by core Alluxio
@@ -20,7 +20,7 @@ can be used to enable Alluxio to work with new storage systems which may not hav
 Following is a list of under storage extension projects:
 
 - [S3N](https://github.com/Alluxio/alluxio-extensions/tree/master/underfs/s3n)
-- [GlusterFS](https://github.com/Alluxio/alluxio-extensions/tree/master/underfs/glusterfs) 
+- [GlusterFS](https://github.com/Alluxio/alluxio-extensions/tree/master/underfs/glusterfs)
 
 # Managing Extensions
 
