@@ -1400,13 +1400,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         ufsDeleter = new SafeUfsDeleter(mMountTable, delInodes, deleteOptions);
       }
       // Inodes to delete from tree after attempting to delete from UFS
-<<<<<<< HEAD
-      List<Inode> inodesToDelete = new ArrayList<>();
-||||||| merged common ancestors
-      List<Inode> inodesToDelete = new LinkedList<>();
-=======
-      List<Pair<AlluxioURI, Inode>> inodesToDelete = new LinkedList<>();
->>>>>>> upstream/branch-1.6
+      List<Pair<AlluxioURI, Inode>> inodesToDelete = new ArrayList<>();
       // Inodes that are not safe for recursive deletes
       Set<Long> unsafeInodes = new HashSet<>();
       // Alluxio URIs which could not be deleted

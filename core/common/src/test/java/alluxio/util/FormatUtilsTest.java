@@ -177,22 +177,10 @@ public final class FormatUtilsTest {
       }
     }
 
-<<<<<<< HEAD
     List<TestCase> testCases = new ArrayList<>();
-    testCases.add(new TestCase("4.00B", 1L << 2));
-    testCases.add(new TestCase("8.00B", 1L << 3));
-    testCases.add(new TestCase("4096.00B", 1L << 12));
-||||||| merged common ancestors
-    List<TestCase> testCases = new LinkedList<>();
-    testCases.add(new TestCase("4.00B", 1L << 2));
-    testCases.add(new TestCase("8.00B", 1L << 3));
-    testCases.add(new TestCase("4096.00B", 1L << 12));
-=======
-    List<TestCase> testCases = new LinkedList<>();
     testCases.add(new TestCase("4B", 1L << 2));
     testCases.add(new TestCase("8B", 1L << 3));
     testCases.add(new TestCase("4096B", 1L << 12));
->>>>>>> upstream/branch-1.6
     testCases.add(new TestCase("8.00KB", 1L << 13));
     testCases.add(new TestCase("4096.00KB", 1L << 22));
     testCases.add(new TestCase("8.00MB", 1L << 23));
