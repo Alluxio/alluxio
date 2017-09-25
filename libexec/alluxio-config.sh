@@ -27,7 +27,7 @@ this="${config_bin}/${script}"
 
 # This will set the default installation for a tarball installation while os distributors can
 # set system installation locations.
-VERSION=1.6.0-SNAPSHOT
+VERSION=1.6.0
 ALLUXIO_HOME=$(dirname $(dirname "${this}"))
 ALLUXIO_ASSEMBLY_CLIENT_JAR="${ALLUXIO_HOME}/assembly/client/target/alluxio-assembly-client-${VERSION}-jar-with-dependencies.jar"
 ALLUXIO_ASSEMBLY_SERVER_JAR="${ALLUXIO_HOME}/assembly/server/target/alluxio-assembly-server-${VERSION}-jar-with-dependencies.jar"
@@ -93,6 +93,7 @@ ALLUXIO_SERVER_CLASSPATH="${ALLUXIO_CONF_DIR}/:${ALLUXIO_CLASSPATH}:${ALLUXIO_AS
 # Master specific parameters based on ALLUXIO_JAVA_OPTS.
 ALLUXIO_MASTER_JAVA_OPTS+=${ALLUXIO_JAVA_OPTS}
 ALLUXIO_MASTER_JAVA_OPTS+=" -Dalluxio.logger.type=${ALLUXIO_MASTER_LOGGER:-MASTER_LOGGER}"
+ALLUXIO_MASTER_JAVA_OPTS+=" -Dalluxio.master.audit.logger.type=${ALLUXIO_MASTER_AUDIT_LOGGER:-MASTER_AUDIT_LOGGER}"
 if [[ -n "${ALLUXIO_LOGSERVER_HOSTNAME}" && -n "${ALLUXIO_LOGSERVER_PORT}" ]]; then
     ALLUXIO_MASTER_JAVA_OPTS+=" -Dalluxio.remote.logger.type=REMOTE_MASTER_LOGGER"
 fi

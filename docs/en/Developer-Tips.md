@@ -60,5 +60,5 @@ the syntax of each command.
 In addition, these commands have different prerequisites. The prerequisite for the `format`,
 `formatWorker`, `journalCrashTest`, `readJournal`, `version`, `validateConf` and `validateEnv` commands is that you
 have already built Alluxio (see [Build Alluxio Master Branch](Building-Alluxio-Master-Branch.html)
-about how to build Alluxio manually). Further, the prerequisite for the `fs`, `loadufs`, `runTest`
+about how to build Alluxio manually). Further, the prerequisite for the `fs`, `loadufs`, `logLevel`, `runTest`
 and `runTests` commands is that you have a running Alluxio system.

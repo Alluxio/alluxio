@@ -4,6 +4,7 @@ kramdown:
   hard_wrap: false
   syntax_highlighter: rouge
 
+<<<<<<< HEAD
 # For release candidates and release branches, this should match the pom.xml Alluxio version, e.g. "1.5.0" or "1.5.0-RC1"
 # For master branch, this should be the latest released version, e.g. "1.5.0"
 ALLUXIO_RELEASED_VERSION: 1.5.0
@@ -12,14 +13,29 @@ ALLUXIO_MASTER_VERSION_SHORT: master
 # For release candidates and release branches, this should be the major Alluxio version, e.g. both 1.5.0 and 1.5.0-RC1 should use "1.5"
 # For master branch, this should be "master"
 ALLUXIO_MAJOR_VERSION: master
+||||||| merged common ancestors
+# These allow the documentation to be updated with new releases of Alluxio.
+ALLUXIO_RELEASED_VERSION: 1.5.0
+# For example, "master" for the master branch, or the full version (1.1.1, 1.5.0, etc) for releases and release candidates.
+ALLUXIO_MASTER_VERSION_SHORT: master
+# This must track the major version of the release (1.5 for 1.5.x), or be "master".
+ALLUXIO_MAJOR_VERSION: master
+=======
+# These allow the documentation to be updated with new releases of Alluxio.
+ALLUXIO_RELEASED_VERSION: 1.6.0
+# For example, "master" for the master branch, or the full version (1.1.1, 1.5.0, etc) for releases and release candidates.
+ALLUXIO_MASTER_VERSION_SHORT: 1.6.0
+# This must track the major version of the release (1.5 for 1.5.x), or be "master".
+ALLUXIO_MAJOR_VERSION: 1.6
+>>>>>>> upstream/branch-1.6
 # We must inline the version string (e.g., "1.4.0-SNAPSHOT") rather than using the macro of Alluxio version.
 # Otherwise the macro name remains in the output.
-ALLUXIO_CLIENT_JAR_PATH: /<PATH_TO_ALLUXIO>/client/default/alluxio-1.6.0-SNAPSHOT-default-client.jar
-ALLUXIO_CLIENT_JAR_PATH_BUILD: /<PATH_TO_ALLUXIO>/core/client/runtime/target/alluxio-core-client-runtime-1.6.0-SNAPSHOT-jar-with-dependencies.jar
-ALLUXIO_CLIENT_JAR_PATH_FLINK: /<PATH_TO_ALLUXIO>/client/flink/alluxio-1.6.0-SNAPSHOT-flink-client.jar
-ALLUXIO_CLIENT_JAR_PATH_HADOOP: /<PATH_TO_ALLUXIO>/client/hadoop/alluxio-1.6.0-SNAPSHOT-hadoop-client.jar
-ALLUXIO_CLIENT_JAR_PATH_PRESTO: /<PATH_TO_ALLUXIO>/client/presto/alluxio-1.6.0-SNAPSHOT-presto-client.jar
-ALLUXIO_CLIENT_JAR_PATH_SPARK: /<PATH_TO_ALLUXIO>/client/spark/alluxio-1.6.0-SNAPSHOT-spark-client.jar
+ALLUXIO_CLIENT_JAR_PATH: /<PATH_TO_ALLUXIO>/client/default/alluxio-1.6.0-default-client.jar
+ALLUXIO_CLIENT_JAR_PATH_BUILD: /<PATH_TO_ALLUXIO>/core/client/runtime/target/alluxio-core-client-runtime-1.6.0-jar-with-dependencies.jar
+ALLUXIO_CLIENT_JAR_PATH_FLINK: /<PATH_TO_ALLUXIO>/client/flink/alluxio-1.6.0-flink-client.jar
+ALLUXIO_CLIENT_JAR_PATH_HADOOP: /<PATH_TO_ALLUXIO>/client/hadoop/alluxio-1.6.0-hadoop-client.jar
+ALLUXIO_CLIENT_JAR_PATH_PRESTO: /<PATH_TO_ALLUXIO>/client/presto/alluxio-1.6.0-presto-client.jar
+ALLUXIO_CLIENT_JAR_PATH_SPARK: /<PATH_TO_ALLUXIO>/client/spark/alluxio-1.6.0-spark-client.jar
 
 # These attach the pages of different languages with different 'lang' attributes
 defaults:
