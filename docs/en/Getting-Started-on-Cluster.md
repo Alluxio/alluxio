@@ -10,7 +10,7 @@ priority: 2
 
 The [Quick Start Guide](Getting-Started.html) shows how to install Alluxio locally on a single machine.
 In this advanced quick start guide, we will install Alluxio on a 3-node Linux cluster, configure a
-AWS S3 bucket as UFS (Under File System), and perform basic tasks with the data in Alluxio.
+AWS S3 bucket as UFS (under file system), and perform basic tasks with the data in Alluxio.
 
 During this guide, you will:
 
@@ -24,10 +24,10 @@ During this guide, you will:
 * **[Bonus]** Run sample Apache Spark job in Alluxio cluster
 * Shutdown Alluxio
 
-**[Required]** In this documentation, we will use AWS S3 as the example distributed storage as Alluxio under file system.
-Please make sure you have an [AWS account with an access key id and secret access key](http://docs.aws.amazon.com/general/latest/gr/aws-sec-cred-types.html#access-keys-and-secret-access-keys),
+**[Required]** In this documentation, we will use AWS S3 as the example Alluxio under file system.
+Please make sure you have an [AWS account with an access key id and secret access key](https://docs.aws.amazon.com/general/latest/gr/aws-sec-cred-types.html#access-keys-and-secret-access-keys),
 so you will be able to use S3 in this guide. If you don't have an S3 account, you can also use an existing HDFS cluster as the under
-file system. The [Set up a distributed storage as UFS](#setting-up-a-distributed-storage-as-ufs) section will be slightly different.
+file system. The [Set up a distributed storage as UFS](#setupufs) section will be slightly different.
 
 **Note**  This guide is meant for you to quickly start interacting with an Alluxio system in a distributed environment.
 If you are interested in running a larger scale example which highlights the performance benefits of Alluxio,
@@ -39,7 +39,7 @@ Alluxio](https://alluxio.com/resources/accelerating-on-demand-data-analytics-wit
 
 For the following quick start guide, you will need:
 
-* 3-nodes Linux cluster
+* 3-node Linux cluster
 * [Java 7 or newer](Java-Setup.html)
 * AWS account and keys
 
@@ -50,19 +50,19 @@ Please make sure on all the nodes, ssh is enabled.
 Optionally, setting up password-less ssh
 will make distributed copy and configuration easier. In this doc, we use the example of manual
 downloading and starting Alluxio on multiple nodes, for demo purpose only. The manual process here
-can be much simplified and automated using `CopyDir` or `Ansible` scripts. Please refer to this [doc](Running-Alluxio-on-a-Cluster.html]
+can be much simplified and automated using `CopyDir` or Ansible scripts. Please refer to this [doc](Running-Alluxio-on-a-Cluster.html]
 and [Running-Alluxio-on-EC2](Running-Alluxio-on-EC2.html] for the alternatives.
 
 ## Download Alluxio
 
-First, [download the Alluxio release](http://www.alluxio.org/download) locally. You can
+First, [download the Alluxio release](https://www.alluxio.org/download) locally. You can
 download the latest {{site.ALLUXIO_RELEASED_VERSION}} release pre-built for various versions of
-Hadoop from the [Alluxio download page](http://www.alluxio.org/download).
+Hadoop from the [Alluxio download page](https://www.alluxio.org/download).
 
-Second, `scp` the release tarball to all the Linux nodes. Note that, feel free to use scriptable way (such as Ansible)
+Second, `scp` the release tarball to all the Linux nodes. Feel free to use scriptable way (such as Ansible)
 to distribute the tarball and automate the following process on multiple machines. In this documentation,
-manually commands are shown and most of them should be executed on all the nodes, to help user better understand
-how Alluxio master and Alluxio workers start individually and how they work together.
+manual commands are shown and most of them should be executed on all the nodes. The raw commands are described
+to help user understand how Alluxio components are started individually.
 
 Next, you can unpack the download with the following commands on all the nodes. Your file name may be different
 depending on which pre-built binaries you have downloaded.
@@ -115,32 +115,32 @@ rest of this guide.
 ## Validate Alluxio environment
 
 Before starting Alluxio, you might want to make sure that your system environment is ready for running
-Alluxio services. You can run the following command to validate environment on all nodes:
+Alluxio services. You can run the following command to validate environment on each node:
 
 ```bash
-$ ./bin/alluxio validateEnv all
+$ ./bin/alluxio validateEnv
 ```
 
-You can also make the command run only specific validation task. For example,
+You can also make the command run only specific validation tasks. For example,
 
 ```bash
-$ ./bin/alluxio validateEnv all ulimit
+$ ./bin/alluxio validateEnv ulimit
 ```
 
-Will only run validation tasks that check your system resource limits, on all the nodes.
+Will only run validation tasks that check your system resource limits, on the specific node.
 
 You can check out [this page](Developer-Tips.html) for detailed usage information regarding this command.
 
-## Set up a distributed storage as UFS
+## <a name="setupufs"></a> Set up a distributed storage as UFS
 
 The [local Getting-Started guide](Getting-Started.html) shows the steps of how to start Alluxio with default local file system.
-In a distributed cluster, Alluxio requires a distributed storage system as Under File System.
+In a distributed cluster, Alluxio requires a distributed storage system as under file system.
 In this doc, we use AWS S3 as an example here. If you want to use an existing distributed HDFS as UFS,
 please refer to this [doc](Configuring-Alluxio-with-HDFS.html).
 
-Also, in preparation for using S3 with Alluxio, create a bucket (or use an existing bucket). You
-should also note the directory you want to use in that bucket, either by creating a new directory in
-the bucket, or using an existing one. For the purposes of this guide, the S3 bucket name is called
+In preparation for using S3 with Alluxio, create a bucket (or use an existing bucket). Choose a directory in the S3 bucket
+to use as the under storage, creating it if it doesn't already exist.
+For the purposes of this guide, the S3 bucket name is called
 `S3_BUCKET`, and the directory in that bucket is called `S3_DIRECTORY`.
 
 You need to configure Alluxio to use S3 as its under storage system by modifying
@@ -155,15 +155,14 @@ alluxio.underfs.address=s3a://S3_BUCKET/S3_DIRECTORY
 Note that in the previous `Configuration for AWS` section, the required AWS credential is already setup on
 all the Alluxio nodes. This ensures those nodes have the access to this S3 bucket.
 
-If you want to enable more advanced feature for S3 UFS, please refer to this [documentation](Configuring-Alluxio-with-S3.html).
+If you want to enable more advanced features for S3 UFS, please refer to this [documentation](Configuring-Alluxio-with-S3.html).
 
 ## Start Alluxio
 
 Next, we will format Alluxio in preparation for starting Alluxio. The following command will format
-the Alluxio journal and the worker storage directory in preparation for the master and worker to
-start.
+the Alluxio journal and the worker storage directory.
 
-Please make sure this command is run on all the nodes.
+Please make sure this command is run on the master node.
 
 ```bash
 $ ./bin/alluxio format
@@ -171,14 +170,14 @@ $ ./bin/alluxio format
 
 Now, we can start Alluxio! In this doc, we will start one Alluxio Master and two Alluxio Workers.
 
-On one of the node (naming it Master Node), run the following command to start Alluxio Master:
+On one of the nodes (naming it Master Node), run the following command to start Alluxio Master:
 
 ```bash
 $ ./bin/alluxio-start.sh master
 ```
 
 Congratulations! Alluxio master is now up and running! You can visit
-[http://ALLUXIO_MASTER_HOSTNAME:19999](http://ALLUXIO_MASTER_HOSTNAME:19999) to see the status of the Alluxio master.
+http://ALLUXIO_MASTER_HOSTNAME:19999 to see the status of the Alluxio master.
 
 On the other two nodes (naming them Worker1 and Worker2, respectively), run the following command to start
  Alluxio worker:
@@ -188,14 +187,13 @@ $ ./bin/alluxio-start.sh worker
 ```
 
 In a few seconds, Alluxio workers will register with the Alluxio master.
-You can visit [http://ALLUXIO_WORKER1_HOSTNAME:30000](http://ALLUXIO_WORKER1_HOSTNAME:30000)
-to see the status of the Alluxio worker.
+You can visit http://ALLUXIO_WORKER1_HOSTNAME:30000 to see the status of the Alluxio worker.
 
 ## Use the Alluxio Shell
 
 Now that Alluxio is running, we can examine the Alluxio file system with the
 [Alluxio shell](Command-Line-Interface.html). The Alluxio shell enables many command-line operations
-for interacting with Alluxio. You can ssh to the Alluxio Master node, and invoke the Alluxio shell with
+to interact with Alluxio. You can ssh to the Alluxio Master node and invoke the Alluxio shell with
 the following command:
 
 ```bash
@@ -227,9 +225,9 @@ drwxr-xr-x   ubuntu    ubuntu    26.22KB   09-22-2017 09:30:08:781  In Memory   
 ```
 
 The output shows the file that exists in Alluxio, as well as some other useful information, like the
-size of the file, the date it was created, and the in-Alluxio status of the file.
+size of the file, the date it was created, and how much of the file is cached in Alluxio.
 
-You can also view the contents of the file through the Alluxio shell. The `cat` command will print
+You can view the contents of the file through the Alluxio shell. The `cat` command will print
 the contents of the file.
 
 ```bash
@@ -242,13 +240,11 @@ $ ./bin/alluxio fs cat /LICENSE
 ...
 ```
 
-With this UFS configuration, Alluxio uses the specified S3 bucket as its UnderFileSystem (UFS).
+With this UFS configuration, Alluxio uses the specified S3 bucket as its under file system (UFS).
 We can check whether this file exists in the S3 bucket.
 
 However, the directory doesn't exist on S3! By default, Alluxio will write data only into
-Alluxio space, not to the UFS.
-
-However, we can tell Alluxio to persist the file from Alluxio space to the UFS. The shell command
+Alluxio space, not to the UFS. However, we can tell Alluxio to persist the file from Alluxio space to the UFS. The shell command
 `persist` will do just that.
 
 ```bash
@@ -258,7 +254,7 @@ persisted file /LICENSE with size 26847
 
 Now, if we examine S3 bucket again, the file should appear.
 
-If we browse the Alluxio file system in the [master's web UI](http://ALLUXIO_MASTER_HOSTNAME:19999/browse) we can
+If we browse the Alluxio file system in the master's web UI at port 19999 we can
 see the LICENSE file as well as other useful information. Here, the **Persistence State** column
 shows the file as **PERSISTED**.
 
@@ -280,8 +276,16 @@ Please make sure all the environment and configuration are set up on all the nod
 Once you are done with interacting with your Alluxio cluster installation, you can stop Alluxio with
 the following command:
 
+On master node:
+
 ```bash
-$ ./bin/alluxio-stop.sh all
+$ ./bin/alluxio-stop.sh master
+```
+
+On worker nodes:
+
+```bash
+# ./bin/alluxio-stop.sh worker
 ```
 
 ## Tips
