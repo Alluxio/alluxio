@@ -105,6 +105,8 @@ public final class Constants {
   public static final String KEY_VALUE_MASTER_CLIENT_SERVICE_NAME = "KeyValueMasterClient";
   public static final String KEY_VALUE_WORKER_CLIENT_SERVICE_NAME = "KeyValueWorkerClient";
 
+  public static final int DEFAULT_REGISTRY_GET_TIMEOUT_MS = 60 * SECOND_MS;
+
   public static final String REST_API_PREFIX = "/api/v1";
 
   public static final String MASTER_COLUMN_FILE_PREFIX = "COL_";
