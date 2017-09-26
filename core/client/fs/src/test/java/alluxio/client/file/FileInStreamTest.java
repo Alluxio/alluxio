@@ -309,6 +309,35 @@ public final class FileInStreamTest {
     validatePartialCaching(2, (int) BLOCK_LENGTH / 2, (int) BLOCK_LENGTH);
   }
 
+  /**
+   * Tests reading and seeking with no local worker. Nothing should be cached.
+   */
+  @Test
+  public void testSeekWithNoLocalWorker() throws IOException {
+    // Overrides the get local worker call
+    PowerMockito.when(mContext.getLocalWorker()).thenReturn(null);
+    mTestStream =
+        new FileInStream(mStatus, InStreamOptions.defaults().setCachePartiallyReadBlock(true)
+            .setReadType(ReadType.CACHE_PROMOTE).setSeekBufferSizeBytes(7), mContext);
+    int readAmount = (int) (BLOCK_LENGTH / 2);
+    byte[] buffer = new byte[readAmount];
+    // read and seek several times
+    mTestStream.read(buffer);
+    Assert.assertEquals(readAmount, mInStreams.get(0).getBytesRead());
+    mTestStream.seek(BLOCK_LENGTH + BLOCK_LENGTH / 2);
+    mTestStream.seek(0);
+
+    if (mBlockSource == BlockInStreamSource.UFS) {
+      // reads the entire block to partial cache on the remote worker
+      Assert.assertEquals(BLOCK_LENGTH, mInStreams.get(0).getBytesRead());
+      Assert.assertEquals(BLOCK_LENGTH, mInStreams.get(1).getBytesRead());
+    } else {
+      // only reads the read amount
+      Assert.assertEquals(readAmount, mInStreams.get(0).getBytesRead());
+      Assert.assertEquals(0, mInStreams.get(1).getBytesRead());
+    }
+  }
+
   @Test
   public void seekAndClose() throws IOException {
     mTestStream = new FileInStream(mStatus, InStreamOptions.defaults()
