@@ -201,6 +201,9 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
     }
     if (mEOF) {
       closePacketReader();
+      Preconditions.checkState(mPos >= mLength,
+          "Block %s is expected to be %s bytes, but only %s bytes are available", mId, mLength,
+          mPos);
       return -1;
     }
     int toRead = Math.min(len, mCurrentPacket.readableBytes());

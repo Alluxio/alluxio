@@ -601,6 +601,32 @@ public final class FileInStreamTest {
     }
   }
 
+
+  /**
+   * Tests that when the underlying blocks are inconsistent with the metadata in terms of block
+   * length, an exception is thrown rather than client hanging indefinitely. This case may happen if
+   * the file in Alluxio and UFS is out of sync.
+   */
+  @Test
+  public void blockInStreamOutOfSync() throws Exception {
+    Mockito
+        .when(mBlockStore.getInStream(Mockito.anyLong(),
+            Mockito.any(Protocol.OpenUfsBlockOptions.class), Mockito.any(InStreamOptions.class)))
+        .thenAnswer(new Answer<BlockInStream>() {
+          @Override
+          public BlockInStream answer(InvocationOnMock invocation) throws Throwable {
+            return new TestBlockInStream(new byte[1], 0, BLOCK_LENGTH, false, mBlockSource);
+          }
+        });
+    byte[] buffer = new byte[(int) BLOCK_LENGTH];
+    try {
+      mTestStream.read(buffer, 0, (int) BLOCK_LENGTH);
+      Assert.fail("BlockInStream is inconsistent, an Exception is expected");
+    } catch(IllegalStateException e) {
+      // expect an exception to throw
+    }
+  }
+
   /**
    * Tests that reading dataRead bytes into a buffer will properly write those bytes to the cache
    * streams and that the correct bytes are read from the {@link FileInStream}.
