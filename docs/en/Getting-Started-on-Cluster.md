@@ -55,9 +55,9 @@ and [Running-Alluxio-on-EC2](Running-Alluxio-on-EC2.html] for the alternatives.
 
 ## Download Alluxio
 
-First, [download the Alluxio release](https://www.alluxio.org/download) locally. You can
+First, [download the Alluxio release](http://www.alluxio.org/download) locally. You can
 download the latest {{site.ALLUXIO_RELEASED_VERSION}} release pre-built for various versions of
-Hadoop from the [Alluxio download page](https://www.alluxio.org/download).
+Hadoop from the [Alluxio download page](http://www.alluxio.org/download).
 
 Second, `scp` the release tarball to all the Linux nodes. Feel free to use scriptable way (such as Ansible)
 to distribute the tarball and automate the following process on multiple machines. In this documentation,
@@ -160,9 +160,7 @@ If you want to enable more advanced features for S3 UFS, please refer to this [d
 ## Start Alluxio
 
 Next, we will format Alluxio in preparation for starting Alluxio. The following command will format
-the Alluxio journal and the worker storage directory.
-
-Please make sure this command is run on the master node.
+the Alluxio journal on the master node.
 
 ```bash
 $ ./bin/alluxio format
