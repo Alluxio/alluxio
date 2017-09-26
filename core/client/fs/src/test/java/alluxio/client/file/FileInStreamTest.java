@@ -601,7 +601,6 @@ public final class FileInStreamTest {
     }
   }
 
-
   /**
    * Tests that when the underlying blocks are inconsistent with the metadata in terms of block
    * length, an exception is thrown rather than client hanging indefinitely. This case may happen if
@@ -622,7 +621,7 @@ public final class FileInStreamTest {
     try {
       mTestStream.read(buffer, 0, (int) BLOCK_LENGTH);
       Assert.fail("BlockInStream is inconsistent, an Exception is expected");
-    } catch(IllegalStateException e) {
+    } catch (IllegalStateException e) {
       // expect an exception to throw
     }
   }

@@ -202,7 +202,8 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
     if (mEOF) {
       closePacketReader();
       Preconditions.checkState(mPos >= mLength,
-          "Block %s is expected to be %s bytes, but only %s bytes are available", mId, mLength,
+          "Block %s is expected to be %s bytes, but only %s bytes are available. Please ensure the"
+              + "the file metadata is consistent between Alluxio and UFS.", mId, mLength,
           mPos);
       return -1;
     }
