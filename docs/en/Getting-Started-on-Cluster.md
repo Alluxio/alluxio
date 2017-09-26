@@ -239,11 +239,10 @@ $ ./bin/alluxio fs cat /LICENSE
 ```
 
 With this UFS configuration, Alluxio uses the specified S3 bucket as its under file system (UFS).
-We can check whether this file exists in the S3 bucket.
 
-However, the directory doesn't exist on S3! By default, Alluxio will write data only into
-Alluxio space, not to the UFS. However, we can tell Alluxio to persist the file from Alluxio space to the UFS. The shell command
-`persist` will do just that.
+We can check whether this file exists in the S3 bucket. However, the directory doesn't exist on S3!
+By default, Alluxio will write data only into Alluxio space, not to the UFS. However, we can tell
+Alluxio to persist the file from Alluxio space to the UFS. The shell command `persist` will do just that.
 
 ```bash
 $ ./bin/alluxio fs persist /LICENSE
