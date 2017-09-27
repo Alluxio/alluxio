@@ -197,7 +197,6 @@ public abstract class AbstractClient implements Client {
               getServiceName(), mAddress, e.getMessage(), RuntimeConstants.ALLUXIO_DEBUG_DOCS_URL);
           throw new UnimplementedException(message, e);
         }
-        throw e;
       } catch (TTransportException e) {
         LOG.warn("Failed to connect ({}) with {} @ {}: {}", retryPolicy.getRetryCount(),
             getServiceName(), mAddress, e.getMessage());
