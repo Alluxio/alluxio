@@ -37,7 +37,7 @@ import java.util.concurrent.TimeUnit;
  * paused processing, which may cause other problems. If such a pause is
  * detected, the thread logs a message.
  */
-public class JvmPauseMonitor {
+public final class JvmPauseMonitor {
   private static final Log LOG = LogFactory.getLog(
       JvmPauseMonitor.class);
 
@@ -58,16 +58,16 @@ public class JvmPauseMonitor {
   private volatile boolean mShouldRun = true;
 
   /**
-   * Construct JvmPauseMonitor.
+   * Constructs JvmPauseMonitor.
    */
   public JvmPauseMonitor() {
     mGcSleepINtervalMs = Configuration.getLong(PropertyKey.JVM_MONITOR_SLEEP_INTERVAL_MS);
-    mWarnThresholdMs = Configuration.getLong(PropertyKey.JVM_MONITOR_WARN_THRESHOLD_TIME);
-    mInfoThresholdMs = Configuration.getLong(PropertyKey.JVM_MONITOR_INFO_THRESHOLD_TIME);
+    mWarnThresholdMs = Configuration.getLong(PropertyKey.JVM_MONITOR_WARN_THRESHOLD_MS);
+    mInfoThresholdMs = Configuration.getLong(PropertyKey.JVM_MONITOR_INFO_THRESHOLD_MS);
   }
 
   /**
-   *start jvm monitor.
+   * Starts jvm monitor.
    */
   public void start() {
     Preconditions.checkState(mMonitorThread == null,
@@ -77,7 +77,7 @@ public class JvmPauseMonitor {
   }
 
   /**
-   *stop jvm monitor.
+   * Stops jvm monitor.
    */
   public void stop() {
     mShouldRun = false;
@@ -90,14 +90,34 @@ public class JvmPauseMonitor {
   }
 
   /**
-   * @return boolean if started
+   * @return boolean if started,false otherwise
    */
   public boolean isStarted() {
     return mMonitorThread != null;
   }
 
-  private String formatMessage(long extraSleepTime,
-                               Map<String, GcTimes> gcTimesAfterSleep,
+  /**
+   * @return mNumGcWarnThresholdExceeded
+   */
+  public long getNumGcWarnThreadholdExceeded() {
+    return mNumGcWarnThresholdExceeded;
+  }
+
+  /**
+   * @return mNumGcInfoThresholdExceeded
+   */
+  public long getNumGcInfoThresholdExceeded() {
+    return mNumGcInfoThresholdExceeded;
+  }
+
+  /**
+   * @return mTotalGcExtraSleepTime
+   */
+  public long getTotalGcExtraSleepTime() {
+    return mTotalGcExtraSleepTime;
+  }
+
+  private String formatMessage(long extraSleepTime, Map<String, GcTimes> gcTimesAfterSleep,
                                Map<String, GcTimes> gcTimesBeforeSleep) {
 
     Set<String> gcBeanNames = Sets.intersection(

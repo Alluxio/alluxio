@@ -41,7 +41,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   /**
    * Builder to create {@link PropertyKey} instances.
    */
-
   public static final class Builder {
     private String[] mAlias;
     private Object mDefaultValue;
@@ -1743,14 +1742,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
 
   //
-  //JVM related properties
+  // JVM related properties
   //
-  public static final PropertyKey JVM_MONITOR_WARN_THRESHOLD_TIME =
-      new Builder(Name.JVM_MONITOR_WARN_THRESHOLD_TIME)
+  public static final PropertyKey JVM_MONITOR_WARN_THRESHOLD_MS =
+      new Builder(Name.JVM_MONITOR_WARN_THRESHOLD_MS)
           .setDefaultValue(10000)
           .build();
-  public static final PropertyKey JVM_MONITOR_INFO_THRESHOLD_TIME =
-      new Builder(Name.JVM_MONITOR_INFO_THRESHOLD_TIME)
+  public static final PropertyKey JVM_MONITOR_INFO_THRESHOLD_MS =
+      new Builder(Name.JVM_MONITOR_INFO_THRESHOLD_MS)
           .setDefaultValue(1000)
           .build();
   public static final PropertyKey JVM_MONITOR_SLEEP_INTERVAL_MS =
@@ -2214,10 +2213,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String SECURITY_LOGIN_USERNAME = "alluxio.security.login.username";
 
     //
-    //JVM related properties
+    // JVM related properties
     //
-    public static final String JVM_MONITOR_WARN_THRESHOLD_TIME = "jvm.monitor.warn.threshold.time";
-    public static final String JVM_MONITOR_INFO_THRESHOLD_TIME = "jvm.monitor.info.threshold.time";
+    public static final String JVM_MONITOR_WARN_THRESHOLD_MS = "jvm.monitor.warn.threshold.ms";
+    public static final String JVM_MONITOR_INFO_THRESHOLD_MS = "jvm.monitor.info.threshold.ms";
     public static final String JVM_MONITOR_SLEEP_INTERVAL_MS = "jvm.monitor.sleep.interval.ms";
 
     private Name() {} // prevent instantiation

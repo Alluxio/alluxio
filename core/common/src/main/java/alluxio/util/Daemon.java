@@ -14,7 +14,7 @@ package alluxio.util;
 import java.util.concurrent.ThreadFactory;
 
 /**
- *A thread that has called {@link Thread#setDaemon(boolean) } with true.
+ * A thread that has called {@link Thread#setDaemon(boolean) } with true.
  */
 public class Daemon extends Thread {
 
@@ -37,13 +37,15 @@ public class Daemon extends Thread {
   Runnable mRunnable = null;
 
   /**
-   * Construct a daemon thread.
+   * Constructs a daemon thread.
    */
   public Daemon() {
     super();
   }
 
-  /** Construct a daemon thread.
+  /**
+   * Constructs a daemon thread.
+   *
    * @param runnable given a Runnable object
    */
   public Daemon(Runnable runnable) {
@@ -52,7 +54,9 @@ public class Daemon extends Thread {
     setName(((Object) mRunnable).toString());
   }
 
-  /** Construct a daemon thread to be part of a specified thread group.
+  /**
+   * Constructs a daemon thread to be part of a specified thread group.
+   *
    * @param group thread group
    * @param runnable an Runnable object
    */
