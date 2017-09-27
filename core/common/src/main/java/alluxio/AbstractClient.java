@@ -207,10 +207,10 @@ public abstract class AbstractClient implements Client {
               + "is not able to connect to servers with SIMPLE security mode.";
           throw new UnavailableException(message, e);
         }
-        // TODO(peis): Consider closing the connection here as well.
-        if (!retryPolicy.attemptRetry()) {
-          break;
-        }
+      }
+      // TODO(peis): Consider closing the connection here as well.
+      if (!retryPolicy.attemptRetry()) {
+        break;
       }
     }
     // Reaching here indicates that we did not successfully connect.
