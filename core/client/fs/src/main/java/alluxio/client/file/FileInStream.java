@@ -156,7 +156,7 @@ public class FileInStream extends InputStream
     updateStreams();
     if (shouldCachePartiallyReadBlock()) {
       // cache only when the read is not from local worker and there is a local worker to cache
-      if (!isReadFromLocalWorker() && !isRemoteReadButNoLocalWorker()) {
+      if (canCacheToLocalWorker()) {
         readCurrentBlockToEnd();
       }
     }
@@ -666,8 +666,7 @@ public class FileInStream extends InputStream
     // (3) the in stream reads from a remote worker but there is no local worker
     boolean firstSeekOutsideFirstBlock =
         mPos == 0 && mCurrentBlockInStream == null && !isInCurrentBlock;
-    if (!firstSeekOutsideFirstBlock && !isReadFromLocalWorker()
-        && !isRemoteReadButNoLocalWorker()) {
+    if (!firstSeekOutsideFirstBlock && canCacheToLocalWorker()) {
       // Make sure that mCurrentBlockInStream and mCurrentCacheStream is updated.
       // mPos is not updated here.
       updateStreams();
@@ -694,7 +693,7 @@ public class FileInStream extends InputStream
     // the seek is outside the current block, seek to the beginning of that block first
     mPos = pos / mBlockSize * mBlockSize;
     updateStreams();
-    if (!isReadFromLocalWorker() && !isRemoteReadButNoLocalWorker()) {
+    if (canCacheToLocalWorker()) {
       // cache till the seek position of the block unless
       // (1) the in stream reads from the local worker
       // (2) the in stream reads from a remote worker but there is no local worker
@@ -705,6 +704,14 @@ public class FileInStream extends InputStream
     } else {
       Preconditions.checkState(remaining() == 0);
     }
+  }
+
+  /**
+   * The client can cache to the local worker if the data is not already in local worker, neither
+   * read from remote but no local worker available.
+   */
+  private boolean canCacheToLocalWorker() throws IOException {
+    return !isReadFromLocalWorker() && !isRemoteReadButNoLocalWorker();
   }
 
   private boolean isReadFromLocalWorker() {
