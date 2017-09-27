@@ -98,7 +98,9 @@ public class GCSUnderFileSystem extends ObjectUnderFileSystem {
     // TODO(chaomin): maybe add proxy support for GCS.
     GoogleStorageService googleStorageService = new GoogleStorageService(googleCredentials);
 
-    // getAccountOwner() can return null
+    // getAccountOwner() can return null even when the account is authentication.
+    // TODO(chaomin): investigate the root cause why Google cloud service is returning
+    // null StorageOwner.
     StorageOwner storageOwner = googleStorageService.getAccountOwner();
     String accountOwnerId = "unknown";
     String accountOwner = "unknown";
