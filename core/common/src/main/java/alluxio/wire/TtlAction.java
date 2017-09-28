@@ -11,12 +11,17 @@
 
 package alluxio.wire;
 
+import alluxio.annotation.PublicApi;
 import alluxio.thrift.TTtlAction;
+
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Represents the file action to take when its TTL expires.
  *
  */
+@PublicApi
+@ThreadSafe
 public enum TtlAction {
 
   /**

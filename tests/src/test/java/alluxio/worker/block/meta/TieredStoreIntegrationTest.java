@@ -14,11 +14,12 @@ package alluxio.worker.block.meta;
 import alluxio.AlluxioURI;
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.PropertyKey;
-import alluxio.client.FileSystemTestUtils;
+import alluxio.BaseIntegrationTest;
 import alluxio.client.ReadType;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
+import alluxio.client.file.FileSystemTestUtils;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.OpenFileOptions;
 import alluxio.client.file.options.SetAttributeOptions;
@@ -34,13 +35,12 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
-import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
 /**
  * Integration tests for {@link alluxio.worker.block.meta.StorageTier}.
  */
-public class TieredStoreIntegrationTest {
+public class TieredStoreIntegrationTest extends BaseIntegrationTest {
   private static final int MEM_CAPACITY_BYTES = 1000;
 
   private FileSystem mFileSystem;
@@ -84,7 +84,7 @@ public class TieredStoreIntegrationTest {
 
     HeartbeatScheduler.execute(HeartbeatContext.WORKER_BLOCK_SYNC);
 
-    Assert.assertEquals(100, mFileSystem.getStatus(file).getInMemoryPercentage());
+    Assert.assertEquals(100, mFileSystem.getStatus(file).getInAlluxioPercentage());
     // Open the file
     OpenFileOptions options = OpenFileOptions.defaults().setReadType(ReadType.CACHE);
     FileInStream in = mFileSystem.openFile(file, options);
@@ -112,7 +112,7 @@ public class TieredStoreIntegrationTest {
     FileSystemTestUtils.createByteFile(mFileSystem, newFile, WriteType.MUST_CACHE,
         MEM_CAPACITY_BYTES);
     HeartbeatScheduler.execute(HeartbeatContext.WORKER_BLOCK_SYNC);
-    Assert.assertEquals(100, mFileSystem.getStatus(newFile).getInMemoryPercentage());
+    Assert.assertEquals(100, mFileSystem.getStatus(newFile).getInAlluxioPercentage());
   }
 
   /**
@@ -133,7 +133,7 @@ public class TieredStoreIntegrationTest {
     Assert.assertTrue(mFileSystem.getStatus(file).isPinned());
     // Try to create a file that cannot be stored unless the previous file is evicted, expect an
     // exception since worker cannot serve the request
-    mThrown.expect(IOException.class);
+    mThrown.expect(Exception.class);
     FileSystemTestUtils.createByteFile(mFileSystem, "/test2", WriteType.MUST_CACHE,
         MEM_CAPACITY_BYTES);
   }
@@ -169,8 +169,8 @@ public class TieredStoreIntegrationTest {
     HeartbeatScheduler.execute(HeartbeatContext.WORKER_BLOCK_SYNC);
 
     // File 2 should be in memory and File 1 should be evicted
-    Assert.assertEquals(0, mFileSystem.getStatus(file1).getInMemoryPercentage());
-    Assert.assertEquals(100, mFileSystem.getStatus(file2).getInMemoryPercentage());
+    Assert.assertEquals(0, mFileSystem.getStatus(file1).getInAlluxioPercentage());
+    Assert.assertEquals(100, mFileSystem.getStatus(file2).getInAlluxioPercentage());
   }
 
   /**
@@ -198,21 +198,21 @@ public class TieredStoreIntegrationTest {
 
     // We know some file will not be in memory, but not which one since we do not want to make
     // any assumptions on the eviction policy
-    if (file1Info.getInMemoryPercentage() < 100) {
+    if (file1Info.getInAlluxioPercentage() < 100) {
       toPromote = uri1;
       toPromoteLen = (int) file1Info.getLength();
-      Assert.assertEquals(100, file2Info.getInMemoryPercentage());
-      Assert.assertEquals(100, file3Info.getInMemoryPercentage());
+      Assert.assertEquals(100, file2Info.getInAlluxioPercentage());
+      Assert.assertEquals(100, file3Info.getInAlluxioPercentage());
     } else if (file2Info.getInMemoryPercentage() < 100) {
       toPromote = uri2;
       toPromoteLen = (int) file2Info.getLength();
-      Assert.assertEquals(100, file1Info.getInMemoryPercentage());
-      Assert.assertEquals(100, file3Info.getInMemoryPercentage());
+      Assert.assertEquals(100, file1Info.getInAlluxioPercentage());
+      Assert.assertEquals(100, file3Info.getInAlluxioPercentage());
     } else {
       toPromote = uri3;
       toPromoteLen = (int) file3Info.getLength();
-      Assert.assertEquals(100, file1Info.getInMemoryPercentage());
-      Assert.assertEquals(100, file2Info.getInMemoryPercentage());
+      Assert.assertEquals(100, file1Info.getInAlluxioPercentage());
+      Assert.assertEquals(100, file2Info.getInAlluxioPercentage());
     }
 
     FileInStream is =
@@ -226,6 +226,6 @@ public class TieredStoreIntegrationTest {
     HeartbeatScheduler.await(HeartbeatContext.WORKER_BLOCK_SYNC, 10, TimeUnit.SECONDS);
 
     Assert.assertEquals(toPromoteLen, len);
-    Assert.assertEquals(100, mFileSystem.getStatus(toPromote).getInMemoryPercentage());
+    Assert.assertEquals(100, mFileSystem.getStatus(toPromote).getInAlluxioPercentage());
   }
 }

@@ -19,7 +19,6 @@ import alluxio.exception.InvalidWorkerStateException;
 import alluxio.resource.ResourcePool;
 
 import com.google.common.base.Objects;
-import com.google.common.base.Throwables;
 import com.google.common.collect.Sets;
 import io.netty.util.internal.chmv8.ConcurrentHashMapV8;
 import org.slf4j.Logger;
@@ -104,6 +103,12 @@ public final class BlockLockManager {
     if (blockLockType == BlockLockType.READ) {
       lock = blockLock.readLock();
     } else {
+      // Make sure the session isn't already holding the block lock.
+      if (sessionHoldsLock(sessionId, blockId)) {
+        throw new IllegalStateException(String
+            .format("Session %s attempted to take a write lock on block %s, but the session already"
+                + " holds a lock on the block", sessionId, blockId));
+      }
       lock = blockLock.writeLock();
     }
     lock.lock();
@@ -122,7 +127,28 @@ public final class BlockLockManager {
     } catch (RuntimeException e) {
       // If an unexpected exception occurs, we should release the lock to be conservative.
       unlock(lock, blockId);
-      throw Throwables.propagate(e);
+      throw e;
+    }
+  }
+
+  /**
+   * @param sessionId the session id to check
+   * @param blockId the block id to check
+   * @return whether the specified session holds a lock on the specified block
+   */
+  private boolean sessionHoldsLock(long sessionId, long blockId) {
+    synchronized (mSharedMapsLock) {
+      Set<Long> sessionLocks = mSessionIdToLockIdsMap.get(sessionId);
+      if (sessionLocks == null) {
+        return false;
+      }
+      for (Long lockId : sessionLocks) {
+        LockRecord lockRecord = mLockIdToRecordMap.get(lockId);
+        if (lockRecord.getBlockId() == blockId) {
+          return true;
+        }
+      }
+      return false;
     }
   }
 

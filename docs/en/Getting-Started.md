@@ -13,6 +13,7 @@ quick start guide, we will install Alluxio on your local machine, mount example 
 perform basic tasks with the data in Alluxio. During this guide, you will:
 
 * Download and configure Alluxio
+* Validating Alluxio environment
 * Start Alluxio locally
 * Perform basic tasks via Alluxio Shell
 * **[Bonus]** Mount a public Amazon S3 bucket in Alluxio
@@ -29,8 +30,7 @@ difficult to incorporate in a local environment. If you are interested in runnin
 example which highlights the performance benefits of Alluxio, try out the instructions in either of
 these two whitepapers: [Accelerating on-demand data analytics with
 Alluxio](https://alluxio.com/resources/accelerating-on-demand-data-analytics-with-alluxio),
-[Accelerating data analytics on ceph object storage with Alluxio](https://www.alluxio.com/resources
-/accelerating-data-analytics-on-ceph-object-storage-with-alluxio).
+[Accelerating data analytics on ceph object storage with Alluxio](https://www.alluxio.com/blog/accelerating-data-analytics-on-ceph-object-storage-with-alluxio).
 
 ## Prerequisites
 
@@ -66,11 +66,18 @@ source files and Java binaries.
 
 Before we start Alluxio, we have to configure it. We will be using most of the default settings.
 
-Create the `conf/alluxio-env.sh` configuration file from the template. You can create the config
-file with the following command:
+In the `${ALLUXIO_HOME}/conf` directory, create the `conf/alluxio-site.properties` configuration
+file from the template.
 
 ```bash
-$ ./bin/alluxio bootstrapConf localhost
+$ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
+```
+
+Update `alluxio.master.hostname` in `conf/alluxio-site.properties` to the hostname of the machine
+you plan to run Alluxio Master on.
+
+```bash
+$ echo "alluxio.master.hostname=localhost" >> conf/alluxio-site.properties
 ```
 
 ### [Bonus] Configuration for AWS
@@ -88,6 +95,34 @@ $ echo "aws.secretKey=AWS_SECRET_ACCESS_KEY" >> conf/alluxio-site.properties
 You will have to replace **AWS_ACCESS_KEY_ID** with your AWS access key id, and
 **AWS_SECRET_ACCESS_KEY** with your AWS secret access key. Now, Alluxio is fully configured for the
 rest of this guide.
+
+## Validating Alluxio environment
+
+Before starting Alluxio, you might want to make sure that your system environment is ready for running
+Alluxio services. You can run the following command to validate your local environment with your
+Alluxio configuration:
+
+```bash
+$ ./bin/alluxio validateEnv local
+```
+
+This will report potential problems that might prevent you from starting Alluxio services locally. If
+you configured Alluxio to run in a cluster and you want to validate environment on all nodes, you
+can run the following command instead:
+
+```bash
+$ ./bin/alluxio validateEnv all
+```
+
+You can also make the command run only specific validation task. For example,
+
+```bash
+$ ./bin/alluxio validateEnv local ulimit
+```
+
+Will only run validation tasks that check your local system resource limits.
+
+You can check out [this page](Developer-Tips.html) for detailed usage information regarding this command.
 
 ## Starting Alluxio
 
@@ -145,7 +180,7 @@ $ ./bin/alluxio fs ls /
 ```
 
 The output shows the file that exists in Alluxio, as well as some other useful information, like the
-size of the file, the date it was created, and the in-memory status of the file.
+size of the file, the date it was created, and the in-Alluxio status of the file.
 
 You can also view the contents of the file through the Alluxio shell. The `cat` command will print
 the contents of the file.
@@ -338,7 +373,7 @@ Once you are done with interacting with your local Alluxio installation, you can
 the following command:
 
 ```bash
-$ ./bin/alluxio-stop.sh all
+$ ./bin/alluxio-stop.sh local
 ```
 
 ## Conclusion
@@ -357,25 +392,31 @@ resources are below.
 Alluxio can be deployed in many different environments.
 
 * [Alluxio on Local Machine](Running-Alluxio-Locally.html)
-* [Alluxio on Virtual Box](Running-Alluxio-on-Virtual-Box.html)
 * [Alluxio Standalone on a Cluster](Running-Alluxio-on-a-Cluster.html)
+* [Alluxio on Virtual Box](Running-Alluxio-on-Virtual-Box.html)
+* [Alluxio on Docker](Running-Alluxio-On-Docker.html)
 * [Alluxio Standalone with Fault Tolerance](Running-Alluxio-Fault-Tolerant.html)
 * [Alluxio on EC2](Running-Alluxio-on-EC2.html)
 * [Alluxio on GCE](Running-Alluxio-on-GCE.html)
-* [Alluxio with Mesos on EC2](Running-Alluxio-on-EC2-Mesos.html)
+* [Alluxio with Mesos on EC2](Running-Alluxio-on-Mesos.html)
 * [Alluxio with Fault Tolerance on EC2](Running-Alluxio-Fault-Tolerant-on-EC2.html)
 * [Alluxio with YARN on EC2](Running-Alluxio-on-EC2-Yarn.html)
+* [Alluxio YARN Integration](Running-Alluxio-Yarn-Integration.html)
+* [Alluxio Standalone with YARN](Running-Alluxio-Yarn-Standalone.html)
 
 ### Under Storage Systems
 
 There are many Under storage systems that can be accessed through Alluxio.
 
-* [Alluxio with GCS](Configuring-Alluxio-with-GCS.html)
+* [Alluxio with Azure Blob Store](Configuring-Alluxio-with-Azure-Blob-Store.html)
 * [Alluxio with S3](Configuring-Alluxio-with-S3.html)
+* [Alluxio with GCS](Configuring-Alluxio-with-GCS.html)
+* [Alluxio with Minio](Configuring-Alluxio-with-Minio.html)
+* [Alluxio with Ceph](Configuring-Alluxio-with-Ceph.html)
 * [Alluxio with Swift](Configuring-Alluxio-with-Swift.html)
 * [Alluxio with GlusterFS](Configuring-Alluxio-with-GlusterFS.html)
-* [Alluxio with HDFS](Configuring-Alluxio-with-HDFS.html)
 * [Alluxio with MapR-FS](Configuring-Alluxio-with-MapR-FS.html)
+* [Alluxio with HDFS](Configuring-Alluxio-with-HDFS.html)
 * [Alluxio with Secure HDFS](Configuring-Alluxio-with-secure-HDFS.html)
 * [Alluxio with OSS](Configuring-Alluxio-with-OSS.html)
 * [Alluxio with NFS](Configuring-Alluxio-with-NFS.html)
@@ -386,6 +427,8 @@ Different frameworks and applications work with Alluxio.
 
 * [Apache Spark with Alluxio](Running-Spark-on-Alluxio.html)
 * [Apache Hadoop MapReduce with Alluxio](Running-Hadoop-MapReduce-on-Alluxio.html)
-* [Apache Flink with Alluxio](Running-Flink-on-Alluxio.html)
-* [Apache Zeppelin with Alluxio](Accessing-Alluxio-from-Zeppelin.html)
 * [Apache HBase with Alluxio](Running-HBase-on-Alluxio.html)
+* [Apache Flink with Alluxio](Running-Flink-on-Alluxio.html)
+* [Presto with Alluxio](Running-Presto-with-Alluxio.html)
+* [Apache Hive with Alluxio](Running-Hive-with-Alluxio.html)
+* [Apache Zeppelin with Alluxio](Accessing-Alluxio-from-Zeppelin.html)

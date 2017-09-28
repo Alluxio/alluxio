@@ -16,8 +16,10 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import javax.annotation.Nullable;
+
+import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
@@ -90,7 +92,7 @@ public final class HeartbeatThreadTest {
    */
   @Test
   public void concurrentHeartbeatThread() throws Exception {
-    List<FutureTask<Void>> tasks = new LinkedList<>();
+    List<FutureTask<Void>> tasks = new ArrayList<>();
 
     // Start the threads.
     for (int i = 0; i < NUMBER_OF_THREADS; i++) {
@@ -112,15 +114,24 @@ public final class HeartbeatThreadTest {
   private class DummyHeartbeatTestCallable implements Callable<Void>  {
     private final String mThreadName;
 
+    /**
+     * Creates a new {@link DummyHeartbeatTestCallable}.
+     */
     public DummyHeartbeatTestCallable() {
       mThreadName = THREAD_NAME;
     }
 
+    /**
+     * Creates a new {@link DummyHeartbeatTestCallable}.
+     *
+     * @param id the thread id
+     */
     public DummyHeartbeatTestCallable(int id) {
       mThreadName = THREAD_NAME + "-" + id;
     }
 
     @Override
+    @Nullable
     public Void call() throws Exception {
       try (ManuallyScheduleHeartbeat.Resource r =
           new ManuallyScheduleHeartbeat.Resource(Arrays.asList(mThreadName))) {

@@ -27,9 +27,9 @@ There are a few things that new contributors can do to familiarize themselves wi
 5.  [Build Alluxio Master Branch](Building-Alluxio-Master-Branch.html)
 6.  Fork the repository, add unit tests or javadoc for one or two files, and submit a pull request. You are also welcome to address
 issues in our [JIRA](https://alluxio.atlassian.net/browse/ALLUXIO).
-Here is a list of
-[tasks](https://alluxio.atlassian.net/issues/?jql=project%20%3D%20ALLUXIO%20AND%20labels%20%3D%20NewContributor%20AND%20status%20%3D%20OPEN)
-for New Contributors. Please limit 2 tasks per New Contributor.
+Here is a list of unassigned
+[New Contributor Tasks](https://alluxio.atlassian.net/issues/?jql=project%20%3D%20ALLUXIO%20AND%20status%20%3D%20Open%20AND%20labels%20%3D%20NewContributor%20AND%20assignee%20in%20(EMPTY)). 
+Please limit 2 tasks per New Contributor.
 Afterwards, try some Beginner/Intermediate tasks, or ask in the
 [User Mailing List](https://groups.google.com/forum/?fromgroups#!forum/alluxio-users).
 For a tutorial, see the GitHub guides on
@@ -83,11 +83,6 @@ use HDFS 2.4.0 as the under filesystem for the HDFS module tests.
 
 -   To run tests against specific under filesystems, execute the maven command from the desired
 submodule directory. For example, to run tests for HDFS you would run ``mvn test`` from ``alluxio/underfs/hdfs``.
-
--   For a GlusterFS environment, GlusterFS unit tests can be run from ``alluxio/underfs/glusterfs`` with:
-`mvn -PglusterfsTest -Dhadoop.version=2.3.0 -Dalluxio.underfs.glusterfs.mounts=/vol
--Dalluxio.underfs.glusterfs.volumes=testvol test` (use GlusterFS as under filesystem,
-where `/vol` is a valid GlusterFS mount point)
 
 -   Run a single unit test: `mvn -Dtest=AlluxioFSTest#createFileTest -DfailIfNoTests=false test`
 

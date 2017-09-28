@@ -11,8 +11,6 @@
 
 package alluxio.exception;
 
-import alluxio.PropertyKey;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -26,7 +24,7 @@ public enum PreconditionMessage {
   COMMAND_LINE_LINEAGE_ONLY("Only command line jobs are supported by createLineage"),
   EMPTY_FILE_INFO_LIST_FOR_PERMISSION_CHECK(
       "The passed-in file info list can not be empty when checking permission"),
-  ERR_BLOCK_INDEX("Current block index exceeds max index"),
+  ERR_BLOCK_INDEX("Current block index %s of position %s exceeds max index %s"),
   ERR_BLOCK_REMAINING("The current block still has space left, no need to get new block"),
   ERR_BUFFER_STATE("Buffer length: %s, offset: %s, len: %s"),
   ERR_CLOSED_BLOCK_IN_STREAM("Cannot do operations on a closed BlockInStream"),
@@ -55,8 +53,13 @@ public enum PreconditionMessage {
   FILE_WRITE_LOCATION_POLICY_UNSPECIFIED("The location policy is not specified"),
   UFS_READ_LOCATION_POLICY_UNSPECIFIED("The UFS read location policy is not specified"),
   GCS_BUCKET_MUST_BE_SET("The %s system property must be set to use the GCSUnderStorageCluster"),
+  INCONSISTENT_ZK_CONFIGURATION(
+      "Inconsistent Zookeeper configuration; %s should be set if and only if %s is true"),
   INODE_TREE_UNINITIALIZED_IS_ROOT_ID("Cannot call isRootId() before initializeRoot()"),
-  INVALID_USER_FILE_BUFFER_BYTES("Invalid \"" + PropertyKey.USER_FILE_BUFFER_BYTES + "\": %d"),
+  INVALID_PROPERTY("Invalid property: %s"),
+  INVALID_USER_FILE_BUFFER_BYTES("Invalid value of %s: %d"),
+  NOT_ENOUGH_BYTES_READ(
+      "Not enough bytes have been read [bytesRead: %d, bytesToRead: %d] from the UFS file: %s."),
   PERMISSION_GROUP_IS_NULL("Group cannot be null when constructing Permission"),
   PERMISSION_MODE_IS_NULL("Mode cannot be null when constructing Permission"),
   PERMISSION_OWNER_IS_NULL("Owner cannot be null when constructing Permission"),
@@ -69,8 +72,6 @@ public enum PreconditionMessage {
   URI_HOST_NULL("URI hostname must not be null"),
   URI_PORT_NULL("URI port must not be null"),
   URI_KEY_VALUE_STORE_NULL("URI of key-value store must not be null"),
-  NOT_ENOUGH_BYTES_READ(
-      "Not enough bytes have been read [bytesRead: %d, bytesToRead: %d] from the UFS file: %s."),
 
   // SEMICOLON! minimize merge conflicts by putting it on its own line
   ;

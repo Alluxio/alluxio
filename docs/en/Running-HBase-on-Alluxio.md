@@ -10,12 +10,12 @@ priority: 2
 {:toc}
 
 This guide describes how to run [Apache HBase](http://hbase.apache.org/), so
-that you can easily store HBase tables into Alluxio at various storage level.
+that you can easily store HBase tables into Alluxio at various storage levels.
 
 ## Prerequisites
 
 The prerequisite for this part is that you have
-[Java](Java-Setup.html). Alluxio cluster should also be
+[Java](Java-Setup.html). Your Alluxio cluster should also be
 set up in accordance to these guides for either [Local Mode](Running-Alluxio-Locally.html) or
 [Cluster Mode](Running-Alluxio-on-a-Cluster.html).
 
@@ -32,7 +32,7 @@ Therefore, the configuration of Alluxio is done mostly in HBase configuration fi
 You need to add the following three properties to `hbase-site.xml` in your HBase installation `conf` directory
 (make sure these properties are configured in all HBase cluster nodes):
 
-Tips:You do not need to create the /hbase directory in Alluxio, HBase will do this for you.
+> You do not need to create the `/hbase` directory in Alluxio, HBase will do this for you.
 
 ```xml
 <property>
@@ -45,7 +45,7 @@ Tips:You do not need to create the /hbase directory in Alluxio, HBase will do th
 </property>
 <property>
   <name>hbase.rootdir</name>
-  <value>alluxio://<hostname>:<port>/hbase</value>
+  <value>alluxio://master_hostname:port/hbase</value>
 </property>
 ```
 
@@ -56,14 +56,17 @@ We need to make the Alluxio client `jar` file available to HBase, because it con
 
 There are two ways to achieve that:
 
-- Put the `alluxio-core-client-{{site.ALLUXIO_RELEASED_VERSION}}-jar-with-dependencies.jar` file into the
-  `lib` directory of HBase.
+- Put the `{{site.ALLUXIO_CLIENT_JAR_PATH}}` file into the `lib` directory of HBase.
 - Specify the location of the jar file in the `$HBASE_CLASSPATH` environment variable (make sure it's available
 on all cluster nodes). For example:
 
 ```bash
 export HBASE_CLASSPATH={{site.ALLUXIO_CLIENT_JAR_PATH}}:${HBASE_CLASSPATH}
 ```
+
+Alternatively, advanced users can choose to compile this client jar from the source code. Follow the instructions
+[here](Building-Alluxio-Master-Branch.html#compute-framework-support) and use the generated jar at
+`{{site.ALLUXIO_CLIENT_JAR_PATH_BUILD}}` for the rest of this guide.
 
 ### Add additional Alluxio site properties to HBase
 
@@ -72,8 +75,8 @@ change `alluxio.user.file.writetype.default` from default `MUST_CACHE` to `CACHE
 
 ```xml
 <property>
-<name>alluxio.user.file.writetype.default</name>
-<value>CACHE_THROUGH</value>
+  <name>alluxio.user.file.writetype.default</name>
+  <value>CACHE_THROUGH</value>
 </property>
 ```
 

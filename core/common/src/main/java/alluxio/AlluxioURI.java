@@ -20,6 +20,7 @@ import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Map;
 
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -130,6 +131,7 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
    *
    * @return the authority, null if it does not have one
    */
+  @Nullable
   public String getAuthority() {
     return mUri.getAuthority();
   }
@@ -187,6 +189,7 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
    * @param n identifies the number of path components to get
    * @return the first n path components, null if the path has less than n components
    */
+  @Nullable
   public String getLeadingPath(int n) {
     String path = mUri.getPath();
     if (n == 0 && path.indexOf(AlluxioURI.SEPARATOR) == 0) { // the special case
@@ -217,6 +220,7 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
    *
    * @return the host, null if it does not have one
    */
+  @Nullable
   public String getHost() {
     return mUri.getHost();
   }
@@ -237,6 +241,7 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
    *
    * @return the parent of this {@link AlluxioURI} or null if at root
    */
+  @Nullable
   public AlluxioURI getParent() {
     String path = mUri.getPath();
     int lastSlash = path.lastIndexOf('/');
@@ -287,6 +292,7 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
    *
    * @return the scheme, null if there is no scheme
    */
+  @Nullable
   public String getScheme() {
     return mUri.getScheme();
   }

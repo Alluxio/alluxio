@@ -12,6 +12,7 @@
 package alluxio.worker.file;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
@@ -22,9 +23,9 @@ import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.InvalidWorkerStateException;
+import alluxio.underfs.UfsManager;
+import alluxio.underfs.UfsManager.UfsInfo;
 import alluxio.underfs.UnderFileSystem;
-import alluxio.underfs.UnderFileSystemFactory;
-import alluxio.underfs.UnderFileSystemRegistry;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.util.io.BufferUtils;
 import alluxio.util.io.PathUtils;
@@ -33,6 +34,7 @@ import alluxio.worker.block.BlockWorker;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.meta.BlockMeta;
 
+import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.MockRateLimiter;
@@ -58,11 +60,10 @@ import java.util.List;
  * Tests {@link FileDataManager}.
  */
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({BlockWorker.class, BufferUtils.class, BlockMeta.class, FileSystem.class,
-    FileSystem.Factory.class})
+@PrepareForTest({BlockWorker.class, BufferUtils.class, BlockMeta.class, FileSystem.class})
 public final class FileDataManagerTest {
   private UnderFileSystem mUfs;
-  private UnderFileSystemFactory mUfsFactory;
+  private UfsManager mUfsManager;
   private BlockWorker mBlockWorker;
   private MockRateLimiter mMockRateLimiter;
   private FileDataManager mManager;
@@ -71,29 +72,24 @@ public final class FileDataManagerTest {
   @Before
   public void before() throws Exception {
     mUfs = Mockito.mock(UnderFileSystem.class);
+    mUfsManager = Mockito.mock(UfsManager.class);
     mBlockWorker = Mockito.mock(BlockWorker.class);
     mMockRateLimiter =
         new MockRateLimiter(Configuration.getBytes(PropertyKey.WORKER_FILE_PERSIST_RATE_LIMIT));
-    mManager = new FileDataManager(mBlockWorker, mMockRateLimiter.getGuavaRateLimiter());
+    mManager =
+        new FileDataManager(mBlockWorker, mMockRateLimiter.getGuavaRateLimiter(), mUfsManager);
 
     mMockFileSystem = PowerMockito.mock(FileSystem.class);
+    UfsInfo ufsInfo = new UfsInfo(Suppliers.ofInstance(mUfs), AlluxioURI.EMPTY_URI);
     PowerMockito.mockStatic(FileSystem.Factory.class);
     Mockito.when(FileSystem.Factory.get()).thenReturn(mMockFileSystem);
     Mockito.when(mUfs.isDirectory(Mockito.anyString())).thenReturn(true);
-
-    mUfsFactory = Mockito.mock(UnderFileSystemFactory.class);
-    Mockito.when(mUfsFactory.supportsPath(Mockito.anyString())).thenReturn(true);
-    Mockito.when(mUfsFactory.create(Mockito.anyString(), Mockito.anyObject()))
-      .thenReturn(mUfs);
-    UnderFileSystemRegistry.register(mUfsFactory);
+    Mockito.when(mUfsManager.get(Mockito.anyLong())).thenReturn(ufsInfo);
   }
 
   @After
   public void after() throws IOException {
     ConfigurationTestUtils.resetConfiguration();
-    if (mUfsFactory != null) {
-      UnderFileSystemRegistry.unregister(mUfsFactory);
-    }
   }
 
   /**
@@ -115,7 +111,7 @@ public final class FileDataManagerTest {
         Mockito.any(WritableByteChannel.class));
 
     // verify the file is not needed for another persistence
-    Assert.assertFalse(mManager.needPersistence(fileId));
+    assertFalse(mManager.needPersistence(fileId));
   }
 
   /**
@@ -137,7 +133,8 @@ public final class FileDataManagerTest {
     Configuration.set(PropertyKey.WORKER_FILE_PERSIST_RATE_LIMIT, "100");
     mMockRateLimiter =
         new MockRateLimiter(Configuration.getBytes(PropertyKey.WORKER_FILE_PERSIST_RATE_LIMIT));
-    mManager = new FileDataManager(mBlockWorker, mMockRateLimiter.getGuavaRateLimiter());
+    mManager =
+        new FileDataManager(mBlockWorker, mMockRateLimiter.getGuavaRateLimiter(), mUfsManager);
 
     long fileId = 1;
     List<Long> blockIds = Lists.newArrayList(1L, 2L, 3L);
@@ -157,7 +154,7 @@ public final class FileDataManagerTest {
           .thenReturn(mockedBlockMeta);
     }
 
-    String ufsRoot = Configuration.get(PropertyKey.UNDERFS_ADDRESS);
+    String ufsRoot = Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
     Mockito.when(mUfs.isDirectory(ufsRoot)).thenReturn(true);
 
     OutputStream outputStream = Mockito.mock(OutputStream.class);
@@ -242,7 +239,7 @@ public final class FileDataManagerTest {
           .readBlockRemote(Sessions.CHECKPOINT_SESSION_ID, blockId, blockId);
     }
 
-    String ufsRoot = Configuration.get(PropertyKey.UNDERFS_ADDRESS);
+    String ufsRoot = Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
     Mockito.when(mUfs.isDirectory(ufsRoot)).thenReturn(true);
     OutputStream outputStream = Mockito.mock(OutputStream.class);
 
@@ -281,7 +278,7 @@ public final class FileDataManagerTest {
           .thenReturn(reader);
     }
 
-    String ufsRoot = Configuration.get(PropertyKey.UNDERFS_ADDRESS);
+    String ufsRoot = Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
     Mockito.when(mUfs.isDirectory(ufsRoot)).thenReturn(true);
     OutputStream outputStream = Mockito.mock(OutputStream.class);
 

@@ -18,6 +18,7 @@ import alluxio.client.file.FileSystem;
 import alluxio.client.file.options.DeleteOptions;
 import alluxio.examples.BasicNonByteBufferOperations;
 import alluxio.examples.BasicOperations;
+import alluxio.util.io.PathUtils;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
@@ -41,6 +42,10 @@ public final class TestRunner {
   private static final List<WriteType> WRITE_TYPES = Arrays
       .asList(WriteType.MUST_CACHE, WriteType.CACHE_THROUGH, WriteType.THROUGH,
           WriteType.ASYNC_THROUGH);
+
+  @Parameter(names = "--directory",
+      description = "Alluxio path for the tests working directory.")
+  private String mDirectory = AlluxioURI.SEPARATOR;
 
   @Parameter(names = {"-h", "--help"}, description = "Prints usage information", help = true)
   private boolean mHelp;
@@ -74,13 +79,12 @@ public final class TestRunner {
   private TestRunner() {} // prevent instantiation
 
   /** Directory for the test generated files. */
-  public static final String TEST_PATH = "/default_tests_files";
+  public static final String TEST_DIRECTORY_NAME = "default_tests_files";
 
   /**
    * Console program that validates the configuration.
    *
    * @param args there are no arguments needed
-   * @throws Exception if error occurs during tests
    */
   public static void main(String[] args) throws Exception {
     TestRunner runner = new TestRunner();
@@ -91,12 +95,6 @@ public final class TestRunner {
       return;
     }
 
-    AlluxioURI testDir = new AlluxioURI(TEST_PATH);
-
-    FileSystem fs = FileSystem.Factory.get();
-    if (fs.exists(testDir)) {
-      fs.delete(testDir, DeleteOptions.defaults().setRecursive(true));
-    }
     int ret = runner.runTests();
     System.exit(ret);
   }
@@ -106,7 +104,15 @@ public final class TestRunner {
    *
    * @return the number of failed tests
    */
-  private int runTests() {
+  private int runTests() throws Exception {
+    mDirectory = PathUtils.concatPath(mDirectory, TEST_DIRECTORY_NAME);
+
+    AlluxioURI testDir = new AlluxioURI(mDirectory);
+    FileSystem fs = FileSystem.Factory.get();
+    if (fs.exists(testDir)) {
+      fs.delete(testDir, DeleteOptions.defaults().setRecursive(true).setUnchecked(true));
+    }
+
     int failed = 0;
 
     List<ReadType> readTypes =
@@ -138,9 +144,9 @@ public final class TestRunner {
    * @param writeType write type
    * @return 0 on success, 1 on failure
    */
-  private static int runTest(OperationType opType, ReadType readType, WriteType writeType) {
+  private int runTest(OperationType opType, ReadType readType, WriteType writeType) {
     AlluxioURI filePath =
-        new AlluxioURI(String.format("%s/%s_%s_%s", TEST_PATH, opType, readType, writeType));
+        new AlluxioURI(String.format("%s/%s_%s_%s", mDirectory, opType, readType, writeType));
 
     boolean result = true;
     switch (opType) {

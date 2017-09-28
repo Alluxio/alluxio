@@ -11,12 +11,16 @@ priority: 0
 体验Alluxio最简单的方式是单机本地安装。在这个快速上手指南里，我们会引导你在本地机器上安装Alluxio，挂载样本数据，对Alluxio中的数据执行一些基本操作。具体来说，包括:
 
 * 下载和配置Alluxio
+* 验证Alluxio运行环境
 * 本地启动Alluxio
 * 通过Alluxio Shell进行基本的文件操作
 * **[奖励]** 挂载一个公开的Amazon S3 bucket到Alluxio上
 * 关闭Alluxio
 
 **[奖励]** 如果你有一个[包含access key id和secret accsee key的AWS账户](http://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSGettingStartedGuide/AWSCredentials.html)，你可以完成额外的任务。需要你AWS账户信息的章节都有**[奖励]**的标签。
+
+**注意** 本指南旨在让你快速开始与Alluxio系统进行交互。Alluxio在大数据工作负载的分布式环境中表现最好。这些特性都难以适用于本地环境。如果你有兴趣运行一个更大规模的、能够突出Alluxio性能优势的例子，可以选择这两个白皮书中的任一个，尝试其中的指南：[Accelerating
+on-demand data analytics with Alluxio](https://alluxio.com/resources/accelerating-on-demand-data-analytics-with-alluxio)、[Accelerating data analytics on ceph object storage with Alluxio](https://www.alluxio.com/blog/accelerating-data-analytics-on-ceph-object-storage-with-alluxio)。
 
 ## 前期准备
 
@@ -47,12 +51,13 @@ $ cd alluxio-{{site.ALLUXIO_RELEASED_VERSION}}
 
 在开始使用Alluxio之前，我们需要配置它。大部分使用默认设置即可。
 
-从模板文件创建`conf/alluxio-env.sh`配置文件。也可以通过如下命令创建配置文件：
+在`${ALLUXIO_HOME}/conf`目录下，根据模板文件创建`conf/alluxio-env.sh`配置文件。
 
 ```bash
-$ ./bin/alluxio bootstrapConf localhost
+$ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 ```
 
+在`conf/alluxio-site.properties`文件中将 `alluxio.master.hostname`更新为你打算运行Alluxio Master的机器主机名。
 ### [奖励] AWS相关配置
 
 如果你有一个包含access key id和secret accsee key的AWS账户，你可以添加你的Alluxio配置以备接下来与Amazon S3的交互。如下命令可以添加你的AWS访问信息到`conf/alluxio-site.properties`文件。
@@ -63,6 +68,30 @@ $ echo "aws.secretKey=AWS_SECRET_ACCESS_KEY" >> conf/alluxio-site.properties
 ```
 
 你必须将**AWS_ACCESS_KEY_ID**替换成你的AWS access key id，将**AWS_SECRET_ACCESS_KEY**替换成你的AWS secret access key。现在，Alluxio完全配置好了。
+
+## 验证Alluxio运行环境
+
+在启动Alluxio前，我们要保证当前系统环境下Alluxio可以正常运行。我们可以通过运行如下命令来验证Alluxio的本地运行环境:
+
+```bash
+$ ./bin/alluxio validateEnv local
+```
+
+该命令将汇报在本地环境运行Alluxio可能出现的问题。如果你配置Alluxio运行在集群中，并且你想要验证所有节点的运行环境，你可以运行如下命令:
+
+```bash
+$ ./bin/alluxio validateEnv all
+```
+
+我们也可以使用该命令运行某些特定验证项目。例如，
+
+```bash
+$ ./bin/alluxio validateEnv local ulimit
+```
+
+将只运行验证本地系统资源限制方面的项目。
+
+你可以在[这里](Developer-Tips.html)查看更多关于本命令的信息。
 
 ## 启动Alluxio
 
@@ -109,7 +138,7 @@ Copied LICENSE to /LICENSE
 $ ./bin/alluxio fs ls /
 26.22KB   06-20-2016 11:30:04:415  In Memory      /LICENSE
 ```
-输出显示`LICENSE`文件在Alluxio中，也包含一些其他的有用信息，比如文件的大小，创建的日期，文件的in-memory状态。
+输出显示`LICENSE`文件在Alluxio中，也包含一些其他的有用信息，比如文件的大小，创建的日期，文件的in-Alluxio状态。
 
 你也可以通过Alluxio shell来查看文件的内容。`cat`命令可以打印文件的内容。
 
@@ -273,7 +302,7 @@ sys	0m0.240s
 你完成了本地安装和使用Alluxio，你可以使用如下命令关闭Alluxio：
 
 ```bash
-$ ./bin/alluxio-stop.sh all
+$ ./bin/alluxio-stop.sh local
 ```
 
 ## 结论
@@ -287,25 +316,31 @@ $ ./bin/alluxio-stop.sh all
 Alluxio可以部署在很多不同的环境下。
 
 * [本地运行Alluxio](Running-Alluxio-Locally.html)
-* [在Virtual Box上运行Alluxio](Running-Alluxio-on-Virtual-Box.html)
 * [在集群上独立运行Alluxio](Running-Alluxio-on-a-Cluster.html)
+* [Alluxio on Virtual Box](Running-Alluxio-on-Virtual-Box.html)
+* [Alluxio on Docker](Running-Alluxio-On-Docker.html)
 * [Alluxio独立模式实现容错](Running-Alluxio-Fault-Tolerant.html)
 * [在EC2上运行Alluxio](Running-Alluxio-on-EC2.html)
 * [在GCE上运行Alluxio](Running-Alluxio-on-GCE.html)
-* [在EC2上使用Mesos运行Alluxio](Running-Alluxio-on-EC2-Mesos.html)
+* [在EC2上使用Mesos运行Alluxio](Running-Alluxio-on-Mesos.html)
 * [在EC2上运行带容错机制的Alluxio](Running-Alluxio-Fault-Tolerant-on-EC2.html)
 * [在EC2上使用YARN运行Alluxio](Running-Alluxio-on-EC2-Yarn.html)
+* [Alluxio YARN Integration](Running-Alluxio-Yarn-Integration.html)
+* [Alluxio Standalone with YARN](Running-Alluxio-Yarn-Standalone.html)
 
 ### 底层存储系统
 
 有很多可以通过Alluxio访问的底层存储系统。
 
-* [Alluxio使用GCS](Configuring-Alluxio-with-GCS.html)
+* [Alluxio with Azure Blob Store](Configuring-Alluxio-with-Azure-Blob-Store.html)
 * [Alluxio使用S3](Configuring-Alluxio-with-S3.html)
+* [Alluxio with GCS](Configuring-Alluxio-with-GCS.html)
+* [Alluxio with Minio](Configuring-Alluxio-with-Minio.html)
+* [Alluxio with Ceph](Configuring-Alluxio-with-Ceph.html)
 * [Alluxio使用Swift](Configuring-Alluxio-with-Swift.html)
 * [Alluxio使用GlusterFS](Configuring-Alluxio-with-GlusterFS.html)
-* [Alluxio使用HDFS](Configuring-Alluxio-with-HDFS.html)
 * [Alluxio使用MapR-FS](Configuring-Alluxio-with-MapR-FS.html)
+* [Alluxio使用HDFS](Configuring-Alluxio-with-HDFS.html)
 * [Alluxio使用Secure HDFS](Configuring-Alluxio-with-secure-HDFS.html)
 * [Alluxio使用OSS](Configuring-Alluxio-with-OSS.html)
 * [Alluxio使用NFS](Configuring-Alluxio-with-NFS.html)
@@ -316,6 +351,8 @@ Alluxio可以部署在很多不同的环境下。
 
 * [Apache Spark使用Alluxio](Running-Spark-on-Alluxio.html)
 * [Apache Hadoop MapReduce使用Alluxio](Running-Hadoop-MapReduce-on-Alluxio.html)
-* [Apache Flink使用Alluxio](Running-Flink-on-Alluxio.html)
-* [Apache Zeppelin使用Alluxio](Accessing-Alluxio-from-Zeppelin.html)
 * [Apache HBase使用Alluxio](Running-HBase-on-Alluxio.html)
+* [Apache Flink使用Alluxio](Running-Flink-on-Alluxio.html)
+* [Presto with Alluxio](Running-Presto-with-Alluxio.html)
+* [Apache Hive with Alluxio](Running-Hive-with-Alluxio.html)
+* [Apache Zeppelin使用Alluxio](Accessing-Alluxio-from-Zeppelin.html)

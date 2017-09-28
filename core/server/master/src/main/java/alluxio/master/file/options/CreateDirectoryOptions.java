@@ -20,8 +20,6 @@ import alluxio.wire.TtlAction;
 
 import com.google.common.base.Objects;
 
-import java.io.IOException;
-
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -45,9 +43,8 @@ public final class CreateDirectoryOptions extends CreatePathOptions<CreateDirect
    * transport.
    *
    * @param options the {@link CreateDirectoryTOptions} to use
-   * @throws IOException if it failed to retrieve users or groups from thrift transport
    */
-  public CreateDirectoryOptions(CreateDirectoryTOptions options) throws IOException {
+  public CreateDirectoryOptions(CreateDirectoryTOptions options) {
     super();
     mAllowExists = options.isAllowExists();
     mPersisted = options.isPersisted();

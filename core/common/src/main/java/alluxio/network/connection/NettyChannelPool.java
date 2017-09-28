@@ -12,10 +12,12 @@
 package alluxio.network.connection;
 
 import alluxio.Configuration;
+import alluxio.exception.status.CanceledException;
+import alluxio.exception.status.UnavailableException;
 import alluxio.resource.DynamicResourcePool;
+import alluxio.util.CommonUtils;
 import alluxio.util.ThreadFactoryUtils;
 
-import com.google.common.base.Throwables;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
@@ -67,30 +69,24 @@ public final class NettyChannelPool extends DynamicResourcePool<Channel> {
   @Override
   protected void closeResource(Channel channel) {
     LOG.info("Channel closed");
-    channel.close();
+    CommonUtils.closeChannel(channel);
   }
 
   @Override
   protected void closeResourceSync(Channel channel) {
     LOG.info("Channel closed synchronously.");
-    channel.close().syncUninterruptibly();
+    CommonUtils.closeChannelSync(channel);
   }
 
   /**
    * Creates a netty channel instance.
    *
    * @return the channel created
-   * @throws IOException if it fails to create a channel
    */
   @Override
   protected Channel createNewResource() throws IOException {
     Bootstrap bs;
-    try {
-      bs = mBootstrap.clone();
-    } catch (Exception e) {
-      // No exception should happen here.
-      throw Throwables.propagate(e);
-    }
+    bs = mBootstrap.clone();
     try {
       ChannelFuture channelFuture = bs.connect().sync();
       if (channelFuture.isSuccess()) {
@@ -99,10 +95,11 @@ public final class NettyChannelPool extends DynamicResourcePool<Channel> {
       } else {
         LOG.error("Failed to create netty channel with netty bootstrap {} and error {}.",
             mBootstrap, channelFuture.cause().getMessage());
-        throw new IOException(channelFuture.cause());
+        throw new UnavailableException(channelFuture.cause());
       }
     } catch (InterruptedException e) {
-      throw new RuntimeException(e);
+      Thread.currentThread().interrupt();
+      throw new CanceledException(e);
     }
   }
 
@@ -120,7 +117,7 @@ public final class NettyChannelPool extends DynamicResourcePool<Channel> {
       // compatible with <= 1.2.0 server.
       return false;
     }
-    return channel.isActive();
+    return channel.isOpen() && channel.isActive();
   }
 
   @Override

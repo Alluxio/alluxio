@@ -74,7 +74,7 @@ public final class MasterWorkerInfo {
    * @param address the worker address to use
    */
   public MasterWorkerInfo(long id, WorkerNetAddress address) {
-    mWorkerAddress = Preconditions.checkNotNull(address);
+    mWorkerAddress = Preconditions.checkNotNull(address, "address");
     mId = id;
     mStartTimeMs = System.currentTimeMillis();
     mLastUpdatedTimeMs = System.currentTimeMillis();

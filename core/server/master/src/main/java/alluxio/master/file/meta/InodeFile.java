@@ -65,7 +65,7 @@ public final class InodeFile extends Inode<InodeFile> {
   @Override
   public FileInfo generateClientFileInfo(String path) {
     FileInfo ret = new FileInfo();
-    // note: in-memory percentage is NOT calculated here, because it needs blocks info stored in
+    // note: in-Alluxio percentage is NOT calculated here, because it needs blocks info stored in
     // block master
     ret.setFileId(getId());
     ret.setName(getName());
@@ -178,7 +178,7 @@ public final class InodeFile extends Inode<InodeFile> {
    * @return the updated object
    */
   public InodeFile setBlockIds(List<Long> blockIds) {
-    mBlocks = new ArrayList<>(Preconditions.checkNotNull(blockIds));
+    mBlocks = new ArrayList<>(Preconditions.checkNotNull(blockIds, "blockIds"));
     return getThis();
   }
 
@@ -226,7 +226,8 @@ public final class InodeFile extends Inode<InodeFile> {
       throw new FileAlreadyCompletedException("File " + getName() + " has already been completed.");
     }
     if (length < 0 && length != Constants.UNKNOWN_SIZE) {
-      throw new InvalidFileSizeException("File " + getName() + " cannot have negative length.");
+      throw new InvalidFileSizeException(
+          "File " + getName() + " cannot have negative length: " + length);
     }
     mCompleted = true;
     mLength = length;

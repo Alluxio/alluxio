@@ -11,14 +11,19 @@
 
 package alluxio.util.io;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
 import alluxio.AlluxioURI;
 
-import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
 
+import javax.annotation.Nullable;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileWriter;
@@ -59,19 +64,19 @@ public class FileUtilsTest {
   public void changeLocalFilePermission() throws IOException {
     File tempFile = mTestFolder.newFile("perm.txt");
     FileUtils.changeLocalFilePermission(tempFile.getAbsolutePath(), "---------");
-    Assert.assertFalse(tempFile.canRead() || tempFile.canWrite() || tempFile.canExecute());
+    assertFalse(tempFile.canRead() || tempFile.canWrite() || tempFile.canExecute());
     FileUtils.changeLocalFilePermission(tempFile.getAbsolutePath(), "rwxrwxrwx");
-    Assert.assertTrue(tempFile.canRead() && tempFile.canWrite() && tempFile.canExecute());
+    assertTrue(tempFile.canRead() && tempFile.canWrite() && tempFile.canExecute());
     // File deletion should fail, because we don't have write permissions
     FileUtils.changeLocalFilePermission(tempFile.getAbsolutePath(), "r--r--r--");
-    Assert.assertTrue(tempFile.canRead());
-    Assert.assertFalse(tempFile.canWrite());
-    Assert.assertFalse(tempFile.canExecute());
+    assertTrue(tempFile.canRead());
+    assertFalse(tempFile.canWrite());
+    assertFalse(tempFile.canExecute());
     // expect a file permission error when we open it for writing
     mException.expect(IOException.class);
     @SuppressWarnings({"unused", "resource"})
     FileWriter fw = new FileWriter(tempFile);
-    Assert.fail("opening a read-only file for writing should have failed");
+    fail("opening a read-only file for writing should have failed");
   }
 
   /**
@@ -84,7 +89,7 @@ public class FileUtilsTest {
     File ghostFile = new File(mTestFolder.getRoot(), "ghost.txt");
     mException.expect(IOException.class);
     FileUtils.changeLocalFilePermission(ghostFile.getAbsolutePath(), "rwxrwxrwx");
-    Assert.fail("changing permissions of a non-existent file should have failed");
+    fail("changing permissions of a non-existent file should have failed");
   }
 
   /**
@@ -95,9 +100,9 @@ public class FileUtilsTest {
     File tempFile = mTestFolder.newFile("perm.txt");
     // Change permission on directories
     FileUtils.changeLocalFilePermission(mTestFolder.getRoot().getAbsolutePath(), "r--r--r--");
-    Assert.assertFalse(tempFile.delete());
+    assertFalse(tempFile.delete());
     FileUtils.changeLocalFilePermission(mTestFolder.getRoot().getAbsolutePath(), "rwxr--r--");
-    Assert.assertTrue(tempFile.delete());
+    assertTrue(tempFile.delete());
   }
 
   /**
@@ -109,8 +114,8 @@ public class FileUtilsTest {
     File toFile = mTestFolder.newFile("to.txt");
     // Move a file and verify
     FileUtils.move(fromFile.getAbsolutePath(), toFile.getAbsolutePath());
-    Assert.assertFalse(fromFile.exists());
-    Assert.assertTrue(toFile.exists());
+    assertFalse(fromFile.exists());
+    assertTrue(toFile.exists());
   }
 
   /**
@@ -124,7 +129,7 @@ public class FileUtilsTest {
     File toFile = mTestFolder.newFile("to.txt");
     mException.expect(IOException.class);
     FileUtils.move(ghostFile.getAbsolutePath(), toFile.getAbsolutePath());
-    Assert.fail("moving a non-existent file should have failed");
+    fail("moving a non-existent file should have failed");
   }
 
   /**
@@ -137,8 +142,8 @@ public class FileUtilsTest {
     // Delete a file and a directory
     FileUtils.delete(tempFile.getAbsolutePath());
     FileUtils.delete(tempFolder.getAbsolutePath());
-    Assert.assertFalse(tempFile.exists());
-    Assert.assertFalse(tempFolder.exists());
+    assertFalse(tempFile.exists());
+    assertFalse(tempFolder.exists());
   }
 
   /**
@@ -158,12 +163,12 @@ public class FileUtilsTest {
     // Delete all of these.
     FileUtils.deletePathRecursively(tmpDir.getAbsolutePath());
 
-    Assert.assertFalse(tmpDir.exists());
-    Assert.assertFalse(tmpDir1.exists());
-    Assert.assertFalse(tmpDir2.exists());
-    Assert.assertFalse(tmpFile1.exists());
-    Assert.assertFalse(tmpFile2.exists());
-    Assert.assertFalse(tmpFile3.exists());
+    assertFalse(tmpDir.exists());
+    assertFalse(tmpDir1.exists());
+    assertFalse(tmpDir2.exists());
+    assertFalse(tmpFile1.exists());
+    assertFalse(tmpFile2.exists());
+    assertFalse(tmpFile3.exists());
   }
 
   /**
@@ -176,7 +181,7 @@ public class FileUtilsTest {
     File ghostFile = new File(mTestFolder.getRoot(), "ghost.txt");
     mException.expect(IOException.class);
     FileUtils.delete(ghostFile.getAbsolutePath());
-    Assert.fail("deleting a non-existent file should have failed");
+    fail("deleting a non-existent file should have failed");
   }
 
   /**
@@ -201,7 +206,7 @@ public class FileUtilsTest {
             InputStreamReader(process.getInputStream()));
         String line = stdInput.readLine();
         // we are just concerned about the first and the last permission bits
-        Assert.assertTrue(line.matches("^d[rwx-]{8}t.*$"));
+        assertTrue(line.matches("^d[rwx-]{8}t.*$"));
       } catch (InterruptedException e) {
         e.printStackTrace();
       }
@@ -216,7 +221,7 @@ public class FileUtilsTest {
     String absolutePath = PathUtils.concatPath(mTestFolder.getRoot(), "tmp", "bar");
     File tempFile = new File(absolutePath);
     FileUtils.createBlockPath(tempFile.getAbsolutePath());
-    Assert.assertTrue(FileUtils.exists(tempFile.getParent()));
+    assertTrue(FileUtils.exists(tempFile.getParent()));
   }
 
   /**
@@ -226,8 +231,8 @@ public class FileUtilsTest {
   public void createFile() throws IOException {
     File tempFile = new File(mTestFolder.getRoot(), "tmp");
     FileUtils.createFile(tempFile.getAbsolutePath());
-    Assert.assertTrue(FileUtils.exists(tempFile.getAbsolutePath()));
-    Assert.assertTrue(tempFile.delete());
+    assertTrue(FileUtils.exists(tempFile.getAbsolutePath()));
+    assertTrue(tempFile.delete());
   }
 
   /**
@@ -237,8 +242,8 @@ public class FileUtilsTest {
   public void createDir() throws IOException {
     File tempDir = new File(mTestFolder.getRoot(), "tmp");
     FileUtils.createDir(tempDir.getAbsolutePath());
-    Assert.assertTrue(FileUtils.exists(tempDir.getAbsolutePath()));
-    Assert.assertTrue(tempDir.delete());
+    assertTrue(FileUtils.exists(tempDir.getAbsolutePath()));
+    assertTrue(tempDir.delete());
   }
 
   /**
@@ -261,9 +266,9 @@ public class FileUtilsTest {
     File tmpFile444 = mTestFolder.newFile("dir/0444");
     tmpFile444.setReadOnly();
 
-    Assert.assertEquals((short) 0777, FileUtils.getLocalFileMode(tmpFile777.getPath()));
-    Assert.assertEquals((short) 0755, FileUtils.getLocalFileMode(tmpFile755.getPath()));
-    Assert.assertEquals((short) 0444, FileUtils.getLocalFileMode(tmpFile444.getPath()));
+    assertEquals((short) 0777, FileUtils.getLocalFileMode(tmpFile777.getPath()));
+    assertEquals((short) 0755, FileUtils.getLocalFileMode(tmpFile755.getPath()));
+    assertEquals((short) 0444, FileUtils.getLocalFileMode(tmpFile444.getPath()));
 
     // Delete all of these.
     FileUtils.deletePathRecursively(tmpDir.getAbsolutePath());
@@ -279,14 +284,14 @@ public class FileUtilsTest {
 
     // When storage dir doesn't exist
     FileUtils.createBlockPath(blockFile.getAbsolutePath());
-    Assert.assertTrue(FileUtils.exists(storageDir.getAbsolutePath()));
-    Assert.assertEquals(
+    assertTrue(FileUtils.exists(storageDir.getAbsolutePath()));
+    assertEquals(
         PosixFilePermissions.fromString("rwxrwxrwx"),
         Files.getPosixFilePermissions(Paths.get(storageDir.getAbsolutePath())));
 
     // When storage dir exists
     FileUtils.createBlockPath(blockFile.getAbsolutePath());
-    Assert.assertTrue(FileUtils.exists(storageDir.getAbsolutePath()));
+    assertTrue(FileUtils.exists(storageDir.getAbsolutePath()));
   }
 
   /**
@@ -308,6 +313,7 @@ public class FileUtilsTest {
       }
 
       @Override
+      @Nullable
       public Void call() throws Exception {
         mBarrier.await(); // Await until all threads submitted
         FileUtils.createBlockPath(mPath);
@@ -329,7 +335,7 @@ public class FileUtilsTest {
         for (Future<Void> f : futures) {
           f.get();
         }
-        Assert.assertTrue(FileUtils.exists(storageDir.getAbsolutePath()));
+        assertTrue(FileUtils.exists(storageDir.getAbsolutePath()));
       } finally {
         executor.shutdown();
       }

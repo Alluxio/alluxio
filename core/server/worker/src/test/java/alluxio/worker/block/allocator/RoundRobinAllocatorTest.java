@@ -20,7 +20,7 @@ import org.junit.Test;
 /**
  * Unit tests for {@link RoundRobinAllocator}.
  */
-public class RoundRobinAllocatorTest extends AllocatorTestBase {
+public final class RoundRobinAllocatorTest extends AllocatorTestBase {
 
   /**
    * Tests that blocks are allocated in a round robin fashion.

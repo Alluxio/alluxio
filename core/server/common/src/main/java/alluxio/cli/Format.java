@@ -12,21 +12,25 @@
 package alluxio.cli;
 
 import alluxio.Configuration;
-import alluxio.Constants;
 import alluxio.PropertyKey;
-import alluxio.PropertyKeyFormat;
 import alluxio.RuntimeConstants;
-import alluxio.ServerUtils;
-import alluxio.underfs.UnderFileStatus;
-import alluxio.underfs.UnderFileSystem;
-import alluxio.underfs.options.DeleteOptions;
-import alluxio.util.UnderFileSystemUtils;
+import alluxio.ServiceUtils;
+import alluxio.master.NoopMaster;
+import alluxio.master.journal.JournalSystem;
+import alluxio.master.journal.JournalUtils;
+import alluxio.util.io.FileUtils;
 import alluxio.util.io.PathUtils;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.net.URI;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.attribute.PosixFilePermission;
+import java.util.Set;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -36,33 +40,35 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public final class Format {
   private static final Logger LOG = LoggerFactory.getLogger(Format.class);
-
   private static final String USAGE = String.format("java -cp %s %s <MASTER/WORKER>",
       RuntimeConstants.ALLUXIO_JAR, Format.class.getCanonicalName());
 
-  private static boolean formatFolder(String name, String folder) throws IOException {
-    UnderFileSystem ufs = UnderFileSystem.Factory.get(folder);
-    LOG.info("Formatting {}:{}", name, folder);
-    if (ufs.isDirectory(folder)) {
-      for (UnderFileStatus p : ufs.listStatus(folder)) {
-        String childPath = PathUtils.concatPath(folder, p.getName());
-        boolean failedToDelete;
-        if (p.isDirectory()) {
-          failedToDelete = !ufs.deleteDirectory(childPath,
-              DeleteOptions.defaults().setRecursive(true));
-        } else {
-          failedToDelete = !ufs.deleteFile(childPath);
-        }
-        if (failedToDelete) {
-          LOG.info("Failed to delete {}", childPath);
-          return false;
-        }
-      }
-    } else if (!ufs.mkdirs(folder)) {
-      LOG.info("Failed to create {}:{}", name, folder);
-      return false;
+  /**
+   * The format mode.
+   */
+  public enum Mode {
+    MASTER,
+    WORKER,
+  }
+
+  /**
+   * Formats the worker data folder.
+   *
+   * @param folder folder path
+   */
+  private static void formatWorkerDataFolder(String folder) throws IOException {
+    Path path = Paths.get(folder);
+    if (Files.exists(path)) {
+      FileUtils.deletePathRecursively(folder);
     }
-    return true;
+    Files.createDirectory(path);
+    // For short-circuit read/write to work, others needs to be able to access this directory.
+    // This may not be granted when umask bit of others is set to 7 in the system.
+    Set<PosixFilePermission> perm = Files.getPosixFilePermissions(path);
+    if (!perm.contains(PosixFilePermission.OTHERS_EXECUTE)) {
+      perm.add(PosixFilePermission.OTHERS_EXECUTE);
+      Files.setPosixFilePermissions(path, perm);
+    }
   }
 
   /**
@@ -75,12 +81,21 @@ public final class Format {
       LOG.info(USAGE);
       System.exit(-1);
     }
+    Mode mode = null;
     try {
-      format(args[0]);
+      mode = Mode.valueOf(args[0].toUpperCase());
+    } catch (IllegalArgumentException e) {
+      LOG.error("Unrecognized format mode: {}", args[0]);
+      LOG.error("Usage: {}", USAGE);
+      System.exit(-1);
+    }
+    try {
+      format(mode);
     } catch (Exception e) {
       LOG.error("Failed to format", e);
       System.exit(-1);
     }
+    LOG.info("Formatting complete");
     System.exit(0);
   }
 
@@ -88,52 +103,39 @@ public final class Format {
    * Formats the Alluxio file system.
    *
    * @param mode either {@code MASTER} or {@code WORKER}
-   * @throws IOException if a non-Alluxio related exception occurs
    */
-  public static void format(String mode) throws IOException {
-    if ("MASTER".equalsIgnoreCase(mode)) {
-      String masterJournal =
-          Configuration.get(PropertyKey.MASTER_JOURNAL_FOLDER);
-      if (!formatFolder("JOURNAL_FOLDER", masterJournal)) {
-        throw new RuntimeException("Failed to format root journal folder");
-      }
-
-      for (String masterServiceName : ServerUtils.getMasterServiceNames()) {
-        String folderName = masterServiceName + "_JOURNAL_FOLDER";
-        if (!formatFolder(folderName,
-            PathUtils.concatPath(masterJournal, masterServiceName))) {
-          throw new RuntimeException(String.format("Failed to format %s", folderName));
+  public static void format(Mode mode) throws IOException {
+    switch (mode) {
+      case MASTER:
+        URI journalLocation = JournalUtils.getJournalLocation();
+        LOG.info("Formatting master journal: {}", journalLocation);
+        JournalSystem journalSystem =
+            new JournalSystem.Builder().setLocation(journalLocation).build();
+        for (String masterServiceName : ServiceUtils.getMasterServiceNames()) {
+          journalSystem.createJournal(new NoopMaster(masterServiceName));
         }
-      }
-
-      // A journal folder is thought to be formatted only when a file with the specific name is
-      // present under the folder.
-      UnderFileSystemUtils.touch(PathUtils
-          .concatPath(masterJournal, Constants.FORMAT_FILE_PREFIX + System.currentTimeMillis()));
-    } else if ("WORKER".equalsIgnoreCase(mode)) {
-      String workerDataFolder = Configuration.get(PropertyKey.WORKER_DATA_FOLDER);
-      int storageLevels = Configuration.getInt(PropertyKey.WORKER_TIERED_STORE_LEVELS);
-      for (int level = 0; level < storageLevels; level++) {
-        PropertyKey tierLevelDirPath =
-            PropertyKeyFormat.WORKER_TIERED_STORE_LEVEL_DIRS_PATH_FORMAT.format(level);
-        String[] dirPaths = Configuration.get(tierLevelDirPath).split(",");
-        String name = "TIER_" + level + "_DIR_PATH";
-        for (String dirPath : dirPaths) {
-          String dirWorkerDataFolder = PathUtils.concatPath(dirPath.trim(), workerDataFolder);
-          UnderFileSystem ufs = UnderFileSystem.Factory.get(dirWorkerDataFolder);
-          if (ufs.isDirectory(dirWorkerDataFolder)) {
-            if (!formatFolder(name, dirWorkerDataFolder)) {
-              throw new RuntimeException(String.format("Failed to format worker data folder %s",
-                  dirWorkerDataFolder));
-            }
+        journalSystem.format();
+        break;
+      case WORKER:
+        String workerDataFolder = Configuration.get(PropertyKey.WORKER_DATA_FOLDER);
+        LOG.info("Formatting worker data folder: {}", workerDataFolder);
+        int storageLevels = Configuration.getInt(PropertyKey.WORKER_TIERED_STORE_LEVELS);
+        for (int level = 0; level < storageLevels; level++) {
+          PropertyKey tierLevelDirPath =
+              PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_PATH.format(level);
+          String[] dirPaths = Configuration.get(tierLevelDirPath).split(",");
+          String name = "Data path for tier " + level;
+          for (String dirPath : dirPaths) {
+            String dirWorkerDataFolder = PathUtils.getWorkerDataDirectory(dirPath);
+            LOG.info("Formatting {}:{}", name, dirWorkerDataFolder);
+            formatWorkerDataFolder(dirWorkerDataFolder);
           }
         }
-      }
-    } else {
-      LOG.info(USAGE);
-      throw new RuntimeException(String.format("Unrecognized format mode: %s", mode));
+        break;
+      default:
+        throw new RuntimeException(String.format("Unrecognized format mode: %s", mode));
     }
   }
 
-  private Format() {}  // prevent instantiation
+  private Format() {} // prevent instantiation
 }

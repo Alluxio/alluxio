@@ -11,6 +11,7 @@
 
 package alluxio.collections;
 
+import alluxio.BaseIntegrationTest;
 import alluxio.util.CommonUtils;
 
 import org.junit.After;
@@ -35,7 +36,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 /**
  * Test concurrent behavior of {@link IndexedSet}.
  */
-public class IndexedSetConcurrencyTest {
+public class IndexedSetConcurrencyTest extends BaseIntegrationTest {
   /** The maximum value for the size value for the test object. */
   private static final int MAX_SIZE = 30;
   /** The duration for each test. */
@@ -88,6 +89,9 @@ public class IndexedSetConcurrencyTest {
     }
   }
 
+  /**
+   * A class for testing add behaviour of {@link IndexedSet} concurrently.
+   */
   private class ConcurrentAdd extends ConcurrentTask {
     public ConcurrentAdd(CyclicBarrier barrier) {
       super(barrier);
@@ -99,6 +103,10 @@ public class IndexedSetConcurrencyTest {
     }
   }
 
+  /**
+   * A class for testing add behaviour of {@link IndexedSet} concurrently and checking if
+   * the result is valid.
+   */
   private class ConcurrentAddWithCheck extends ConcurrentTask {
     public ConcurrentAddWithCheck(CyclicBarrier barrier) {
       super(barrier);
@@ -122,6 +130,9 @@ public class IndexedSetConcurrencyTest {
     }
   }
 
+  /**
+   * A class for testing remove behaviour of {@link IndexedSet} concurrently.
+   */
   private class ConcurrentRemove extends ConcurrentTask {
     public ConcurrentRemove(CyclicBarrier barrier) {
       super(barrier);
@@ -138,6 +149,9 @@ public class IndexedSetConcurrencyTest {
     }
   }
 
+  /**
+   * Removes concurrent tasks by field.
+   */
   private class ConcurrentRemoveByField extends ConcurrentTask {
     public ConcurrentRemoveByField(CyclicBarrier barrier) {
       super(barrier);
@@ -150,6 +164,9 @@ public class IndexedSetConcurrencyTest {
     }
   }
 
+  /**
+   * Removes concurrent tasks by iterator.
+   */
   private class ConcurrentRemoveByIterator extends ConcurrentTask {
     public ConcurrentRemoveByIterator(CyclicBarrier barrier) {
       super(barrier);
@@ -168,6 +185,9 @@ public class IndexedSetConcurrencyTest {
     }
   }
 
+  /**
+   * Clears out concurrent tasks.
+   */
   private class ConcurrentClear extends ConcurrentTask {
     public ConcurrentClear(CyclicBarrier barrier) {
       super(barrier);
@@ -378,7 +398,7 @@ public class IndexedSetConcurrencyTest {
   }
 
   @Test
-  public void concurrentAddTest() throws Exception {
+  public void concurrentAdd() throws Exception {
     List<Future<?>> futures = new ArrayList<>();
 
     // Add random number of each task type.
@@ -403,7 +423,7 @@ public class IndexedSetConcurrencyTest {
    * index.
    */
   @Test
-  public void nonUniqueConcurrentUpdateTest() throws Exception {
+  public void nonUniqueConcurrentUpdate() throws Exception {
     mIndexedSet = new IndexedSet<>(mSizeIndex, mIdIndex);
     List<Future<?>> futures = new ArrayList<>();
     int[] tasksNumbers = new int[5];

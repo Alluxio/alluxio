@@ -11,13 +11,18 @@
 
 package alluxio.worker.block;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertFalse;
+
 import org.junit.Assert;
 import org.junit.Test;
 
 /**
  * Unit tests for {@link BlockStoreLocation}.
  */
-public class BlockStoreLocationTest {
+public final class BlockStoreLocationTest {
 
   /**
    * Tests that a new location can be created with the constructor.
@@ -28,8 +33,8 @@ public class BlockStoreLocationTest {
     int dirIndex = 3;
     BlockStoreLocation loc = new BlockStoreLocation(tierAlias, dirIndex);
     Assert.assertNotNull(loc);
-    Assert.assertEquals(tierAlias, loc.tierAlias());
-    Assert.assertEquals(dirIndex, loc.dir());
+    assertEquals(tierAlias, loc.tierAlias());
+    assertEquals(dirIndex, loc.dir());
   }
 
   /**
@@ -45,35 +50,35 @@ public class BlockStoreLocationTest {
     BlockStoreLocation dirInMEM = new BlockStoreLocation("MEM", 1);
     BlockStoreLocation dirInHDD = new BlockStoreLocation("HDD", 2);
 
-    Assert.assertTrue(anyTier.belongsTo(anyTier));
-    Assert.assertFalse(anyTier.belongsTo(anyDirInTierMEM));
-    Assert.assertFalse(anyTier.belongsTo(anyDirInTierHDD));
-    Assert.assertFalse(anyTier.belongsTo(dirInMEM));
-    Assert.assertFalse(anyTier.belongsTo(dirInHDD));
+    assertTrue(anyTier.belongsTo(anyTier));
+    assertFalse(anyTier.belongsTo(anyDirInTierMEM));
+    assertFalse(anyTier.belongsTo(anyDirInTierHDD));
+    assertFalse(anyTier.belongsTo(dirInMEM));
+    assertFalse(anyTier.belongsTo(dirInHDD));
 
-    Assert.assertTrue(anyDirInTierMEM.belongsTo(anyTier));
-    Assert.assertTrue(anyDirInTierMEM.belongsTo(anyDirInTierMEM));
-    Assert.assertFalse(anyDirInTierMEM.belongsTo(anyDirInTierHDD));
-    Assert.assertFalse(anyDirInTierMEM.belongsTo(dirInMEM));
-    Assert.assertFalse(anyDirInTierMEM.belongsTo(dirInHDD));
+    assertTrue(anyDirInTierMEM.belongsTo(anyTier));
+    assertTrue(anyDirInTierMEM.belongsTo(anyDirInTierMEM));
+    assertFalse(anyDirInTierMEM.belongsTo(anyDirInTierHDD));
+    assertFalse(anyDirInTierMEM.belongsTo(dirInMEM));
+    assertFalse(anyDirInTierMEM.belongsTo(dirInHDD));
 
-    Assert.assertTrue(anyDirInTierHDD.belongsTo(anyTier));
-    Assert.assertFalse(anyDirInTierHDD.belongsTo(anyDirInTierMEM));
-    Assert.assertTrue(anyDirInTierHDD.belongsTo(anyDirInTierHDD));
-    Assert.assertFalse(anyDirInTierHDD.belongsTo(dirInMEM));
-    Assert.assertFalse(anyDirInTierHDD.belongsTo(dirInHDD));
+    assertTrue(anyDirInTierHDD.belongsTo(anyTier));
+    assertFalse(anyDirInTierHDD.belongsTo(anyDirInTierMEM));
+    assertTrue(anyDirInTierHDD.belongsTo(anyDirInTierHDD));
+    assertFalse(anyDirInTierHDD.belongsTo(dirInMEM));
+    assertFalse(anyDirInTierHDD.belongsTo(dirInHDD));
 
-    Assert.assertTrue(dirInMEM.belongsTo(anyTier));
-    Assert.assertTrue(dirInMEM.belongsTo(anyDirInTierMEM));
-    Assert.assertFalse(dirInMEM.belongsTo(anyDirInTierHDD));
-    Assert.assertTrue(dirInMEM.belongsTo(dirInMEM));
-    Assert.assertFalse(dirInMEM.belongsTo(dirInHDD));
+    assertTrue(dirInMEM.belongsTo(anyTier));
+    assertTrue(dirInMEM.belongsTo(anyDirInTierMEM));
+    assertFalse(dirInMEM.belongsTo(anyDirInTierHDD));
+    assertTrue(dirInMEM.belongsTo(dirInMEM));
+    assertFalse(dirInMEM.belongsTo(dirInHDD));
 
-    Assert.assertTrue(dirInHDD.belongsTo(anyTier));
-    Assert.assertFalse(dirInHDD.belongsTo(anyDirInTierMEM));
-    Assert.assertTrue(dirInHDD.belongsTo(anyDirInTierHDD));
-    Assert.assertFalse(dirInHDD.belongsTo(dirInMEM));
-    Assert.assertTrue(dirInHDD.belongsTo(dirInHDD));
+    assertTrue(dirInHDD.belongsTo(anyTier));
+    assertFalse(dirInHDD.belongsTo(anyDirInTierMEM));
+    assertTrue(dirInHDD.belongsTo(anyDirInTierHDD));
+    assertFalse(dirInHDD.belongsTo(dirInMEM));
+    assertTrue(dirInHDD.belongsTo(dirInHDD));
   }
 
   /**
@@ -89,36 +94,36 @@ public class BlockStoreLocationTest {
     BlockStoreLocation dirInMEM = new BlockStoreLocation("MEM", 1);
     BlockStoreLocation dirInHDD = new BlockStoreLocation("HDD", 2);
 
-    Assert.assertEquals(anyTier, BlockStoreLocation.anyTier()); // Equals
-    Assert.assertNotEquals(anyDirInTierMEM, BlockStoreLocation.anyTier());
-    Assert.assertNotEquals(anyDirInTierHDD, BlockStoreLocation.anyTier());
-    Assert.assertNotEquals(dirInMEM, BlockStoreLocation.anyTier());
-    Assert.assertNotEquals(dirInHDD, BlockStoreLocation.anyTier());
+    assertEquals(anyTier, BlockStoreLocation.anyTier()); // Equals
+    assertNotEquals(anyDirInTierMEM, BlockStoreLocation.anyTier());
+    assertNotEquals(anyDirInTierHDD, BlockStoreLocation.anyTier());
+    assertNotEquals(dirInMEM, BlockStoreLocation.anyTier());
+    assertNotEquals(dirInHDD, BlockStoreLocation.anyTier());
 
-    Assert.assertNotEquals(anyTier, BlockStoreLocation.anyDirInTier("MEM"));
-    Assert.assertEquals(anyDirInTierMEM, BlockStoreLocation.anyDirInTier("MEM")); // Equals
-    Assert.assertNotEquals(anyDirInTierHDD, BlockStoreLocation.anyDirInTier("MEM"));
-    Assert.assertNotEquals(dirInMEM, BlockStoreLocation.anyDirInTier("MEM"));
-    Assert.assertNotEquals(dirInHDD, BlockStoreLocation.anyDirInTier("MEM"));
+    assertNotEquals(anyTier, BlockStoreLocation.anyDirInTier("MEM"));
+    assertEquals(anyDirInTierMEM, BlockStoreLocation.anyDirInTier("MEM")); // Equals
+    assertNotEquals(anyDirInTierHDD, BlockStoreLocation.anyDirInTier("MEM"));
+    assertNotEquals(dirInMEM, BlockStoreLocation.anyDirInTier("MEM"));
+    assertNotEquals(dirInHDD, BlockStoreLocation.anyDirInTier("MEM"));
 
-    Assert.assertNotEquals(anyTier, BlockStoreLocation.anyDirInTier("HDD"));
-    Assert.assertNotEquals(anyDirInTierMEM, BlockStoreLocation.anyDirInTier("HDD"));
-    Assert.assertEquals(anyDirInTierHDD, BlockStoreLocation.anyDirInTier("HDD")); // Equals
-    Assert.assertNotEquals(dirInMEM, BlockStoreLocation.anyDirInTier("HDD"));
-    Assert.assertNotEquals(dirInHDD, BlockStoreLocation.anyDirInTier("HDD"));
+    assertNotEquals(anyTier, BlockStoreLocation.anyDirInTier("HDD"));
+    assertNotEquals(anyDirInTierMEM, BlockStoreLocation.anyDirInTier("HDD"));
+    assertEquals(anyDirInTierHDD, BlockStoreLocation.anyDirInTier("HDD")); // Equals
+    assertNotEquals(dirInMEM, BlockStoreLocation.anyDirInTier("HDD"));
+    assertNotEquals(dirInHDD, BlockStoreLocation.anyDirInTier("HDD"));
 
     BlockStoreLocation loc1 = new BlockStoreLocation("MEM", 1);
-    Assert.assertNotEquals(anyTier, loc1);
-    Assert.assertNotEquals(anyDirInTierMEM, loc1);
-    Assert.assertNotEquals(anyDirInTierHDD, loc1);
-    Assert.assertEquals(dirInMEM, loc1); // Equals
-    Assert.assertNotEquals(dirInHDD, loc1);
+    assertNotEquals(anyTier, loc1);
+    assertNotEquals(anyDirInTierMEM, loc1);
+    assertNotEquals(anyDirInTierHDD, loc1);
+    assertEquals(dirInMEM, loc1); // Equals
+    assertNotEquals(dirInHDD, loc1);
 
     BlockStoreLocation loc2 = new BlockStoreLocation("HDD", 2);
-    Assert.assertNotEquals(anyTier, loc2);
-    Assert.assertNotEquals(anyDirInTierMEM, loc2);
-    Assert.assertNotEquals(anyDirInTierHDD, loc2);
-    Assert.assertNotEquals(dirInMEM, loc2);
-    Assert.assertEquals(dirInHDD, loc2); // Equals
+    assertNotEquals(anyTier, loc2);
+    assertNotEquals(anyDirInTierMEM, loc2);
+    assertNotEquals(anyDirInTierHDD, loc2);
+    assertNotEquals(dirInMEM, loc2);
+    assertEquals(dirInHDD, loc2); // Equals
   }
 }

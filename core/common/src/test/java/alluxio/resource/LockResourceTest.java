@@ -11,7 +11,10 @@
 
 package alluxio.resource;
 
-import org.junit.Assert;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
 import org.junit.Test;
 
 import java.util.concurrent.locks.Lock;
@@ -21,7 +24,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 /**
  * Unit tests for {@link LockResource}.
  */
-public class LockResourceTest {
+public final class LockResourceTest {
 
   /**
    * Tests {@link LockResource} with {@link ReentrantLock}.
@@ -31,7 +34,7 @@ public class LockResourceTest {
     Lock lock = new ReentrantLock();
     try (LockResource r1 = new LockResource(lock)) {
       try (LockResource r2 = new LockResource(lock)) {
-        Assert.assertTrue(lock.tryLock());
+        assertTrue(lock.tryLock());
         lock.unlock();
       }
     }
@@ -46,24 +49,24 @@ public class LockResourceTest {
 
     try (LockResource r1 = new LockResource(lock.readLock())) {
       try (LockResource r2 = new LockResource(lock.readLock())) {
-        Assert.assertEquals(lock.getReadHoldCount(), 2);
-        Assert.assertTrue(lock.readLock().tryLock());
+        assertEquals(lock.getReadHoldCount(), 2);
+        assertTrue(lock.readLock().tryLock());
         lock.readLock().unlock();
       }
     }
-    Assert.assertEquals(lock.getReadHoldCount(), 0);
+    assertEquals(lock.getReadHoldCount(), 0);
 
     try (LockResource r1 = new LockResource(lock.writeLock())) {
       try (LockResource r2 = new LockResource(lock.readLock())) {
-        Assert.assertTrue(lock.isWriteLockedByCurrentThread());
-        Assert.assertEquals(lock.getReadHoldCount(), 1);
+        assertTrue(lock.isWriteLockedByCurrentThread());
+        assertEquals(lock.getReadHoldCount(), 1);
       }
     }
-    Assert.assertFalse(lock.isWriteLockedByCurrentThread());
-    Assert.assertEquals(lock.getReadHoldCount(), 0);
+    assertFalse(lock.isWriteLockedByCurrentThread());
+    assertEquals(lock.getReadHoldCount(), 0);
 
     try (LockResource r = new LockResource(lock.readLock())) {
-      Assert.assertFalse(lock.writeLock().tryLock());
+      assertFalse(lock.writeLock().tryLock());
     }
   }
 }

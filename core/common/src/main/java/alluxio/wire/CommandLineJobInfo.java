@@ -66,7 +66,7 @@ public final class CommandLineJobInfo implements Serializable {
    * @return the lineage command-line job information
    */
   public CommandLineJobInfo setCommand(String command) {
-    Preconditions.checkNotNull(command);
+    Preconditions.checkNotNull(command, "command");
     mCommand = command;
     return this;
   }

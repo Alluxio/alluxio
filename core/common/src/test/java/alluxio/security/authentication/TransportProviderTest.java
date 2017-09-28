@@ -14,6 +14,7 @@ package alluxio.security.authentication;
 import alluxio.Configuration;
 import alluxio.ConfigurationTestUtils;
 import alluxio.PropertyKey;
+import alluxio.exception.status.UnauthenticatedException;
 import alluxio.util.network.NetworkAddressUtils;
 
 import org.apache.thrift.protocol.TBinaryProtocol;
@@ -32,7 +33,6 @@ import org.junit.rules.ExpectedException;
 import java.net.InetSocketAddress;
 
 import javax.security.sasl.AuthenticationException;
-import javax.security.sasl.SaslException;
 
 /**
  * Unit test for methods of {@link TransportProvider}.
@@ -122,7 +122,7 @@ public final class TransportProviderTest {
     mTransportProvider = TransportProvider.Factory.create();
 
     // check case that user is null
-    mThrown.expect(SaslException.class);
+    mThrown.expect(UnauthenticatedException.class);
     mThrown.expectMessage("PLAIN: authorization ID and password must be specified");
     ((PlainSaslTransportProvider) mTransportProvider)
         .getClientTransport(null, "whatever", mServerAddress);
@@ -137,7 +137,7 @@ public final class TransportProviderTest {
     mTransportProvider = TransportProvider.Factory.create();
 
     // check case that password is null
-    mThrown.expect(SaslException.class);
+    mThrown.expect(UnauthenticatedException.class);
     mThrown.expectMessage("PLAIN: authorization ID and password must be specified");
     ((PlainSaslTransportProvider) mTransportProvider)
         .getClientTransport("anyone", null, mServerAddress);
@@ -257,7 +257,7 @@ public final class TransportProviderTest {
     mTransportProvider = TransportProvider.Factory.create();
 
     // check case that user is null
-    mThrown.expect(SaslException.class);
+    mThrown.expect(UnauthenticatedException.class);
     mThrown.expectMessage("PLAIN: authorization ID and password must be specified");
     ((PlainSaslTransportProvider) mTransportProvider)
         .getClientTransport(null, ExactlyMatchAuthenticationProvider.PASSWORD, mServerAddress);
@@ -272,7 +272,7 @@ public final class TransportProviderTest {
     mTransportProvider = TransportProvider.Factory.create();
 
     // check case that password is null
-    mThrown.expect(SaslException.class);
+    mThrown.expect(UnauthenticatedException.class);
     mThrown.expectMessage("PLAIN: authorization ID and password must be specified");
     ((PlainSaslTransportProvider) mTransportProvider)
         .getClientTransport(ExactlyMatchAuthenticationProvider.USERNAME, null, mServerAddress);
@@ -346,7 +346,7 @@ public final class TransportProviderTest {
 
   private void startServerThread() throws Exception {
     // create args and use them to build a Thrift TServer
-    TTransportFactory tTransportFactory = mTransportProvider.getServerTransportFactory();
+    TTransportFactory tTransportFactory = mTransportProvider.getServerTransportFactory("test");
 
     mServer = new TThreadPoolServer(
         new TThreadPoolServer.Args(mServerTSocket).maxWorkerThreads(2).minWorkerThreads(1)

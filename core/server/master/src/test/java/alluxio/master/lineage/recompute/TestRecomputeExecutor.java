@@ -18,10 +18,7 @@ import alluxio.master.lineage.meta.Lineage;
 
 import com.google.common.collect.Lists;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.mockito.Mockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
@@ -29,14 +26,10 @@ import java.util.concurrent.TimeUnit;
 /**
  * Unit tests for {@link RecomputeExecutor}.
  */
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(FileSystemMaster.class)
 public final class TestRecomputeExecutor {
 
   /**
    * Tests recompute executor creates a recompute plan and launches the recompute job at heartbeat.
-   *
-   * @throws Exception if anything wrong happens
    */
   @Test
   public void recomputeLauncher() throws Exception {

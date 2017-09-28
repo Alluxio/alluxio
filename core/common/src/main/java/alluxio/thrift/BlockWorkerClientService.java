@@ -43,8 +43,10 @@ public class BlockWorkerClientService {
      * Accesses a block given the block id.
      * 
      * @param blockId the id of the block being accessed
+     * 
+     * @param options the method options
      */
-    public void accessBlock(long blockId) throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException;
+    public AccessBlockTResponse accessBlock(long blockId, AccessBlockTOptions options) throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException;
 
     /**
      * Used to cache a block into Alluxio space, worker will move the temporary block file from session
@@ -54,8 +56,10 @@ public class BlockWorkerClientService {
      * @param sessionId the id of the current session
      * 
      * @param blockId the id of the block being accessed
+     * 
+     * @param options the method options
      */
-    public void cacheBlock(long sessionId, long blockId) throws alluxio.thrift.AlluxioTException, alluxio.thrift.ThriftIOException, org.apache.thrift.TException;
+    public CacheBlockTResponse cacheBlock(long sessionId, long blockId, CacheBlockTOptions options) throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException;
 
     /**
      * Used to cancel a block which is being written. worker will delete the temporary block file and
@@ -64,8 +68,10 @@ public class BlockWorkerClientService {
      * @param sessionId the id of the current session
      * 
      * @param blockId the id of the block being accessed
+     * 
+     * @param options the method options
      */
-    public void cancelBlock(long sessionId, long blockId) throws alluxio.thrift.AlluxioTException, alluxio.thrift.ThriftIOException, org.apache.thrift.TException;
+    public CancelBlockTResponse cancelBlock(long sessionId, long blockId, CancelBlockTOptions options) throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException;
 
     /**
      * Locks the file in Alluxio's space while the session is reading it. If lock succeeds, the path of
@@ -76,9 +82,9 @@ public class BlockWorkerClientService {
      * 
      * @param sessionId the id of the current session
      * 
-     * @param options the lock block options
+     * @param options the lock method options
      */
-    public LockBlockResult lockBlock(long blockId, long sessionId, LockBlockTOptions options) throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException;
+    public LockBlockTResponse lockBlock(long blockId, long sessionId, LockBlockTOptions options) throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException;
 
     /**
      * Used to promote block on under storage layer to top storage layer when there are more than one
@@ -86,16 +92,20 @@ public class BlockWorkerClientService {
      * otherwise.
      * 
      * @param blockId the id of the block being accessed
+     * 
+     * @param options the method options
      */
-    public boolean promoteBlock(long blockId) throws alluxio.thrift.AlluxioTException, alluxio.thrift.ThriftIOException, org.apache.thrift.TException;
+    public PromoteBlockTResponse promoteBlock(long blockId, PromoteBlockTOptions options) throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException;
 
     /**
      * Used to remove a block from an Alluxio worker.
      * 
      * 
      * @param blockId the id of the block being removed
+     * 
+     * @param options the method options
      */
-    public void removeBlock(long blockId) throws alluxio.thrift.AlluxioTException, alluxio.thrift.ThriftIOException, org.apache.thrift.TException;
+    public RemoveBlockTResponse removeBlock(long blockId, RemoveBlockTOptions options) throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException;
 
     /**
      * Used to allocate location and space for a new coming block, worker will choose the appropriate
@@ -111,8 +121,10 @@ public class BlockWorkerClientService {
      * @param initialBytes initial number of bytes requested
      * 
      * @param writeTier the target tier to write to
+     * 
+     * @param options the method options
      */
-    public String requestBlockLocation(long sessionId, long blockId, long initialBytes, int writeTier) throws alluxio.thrift.AlluxioTException, alluxio.thrift.ThriftIOException, org.apache.thrift.TException;
+    public RequestBlockLocationTResponse requestBlockLocation(long sessionId, long blockId, long initialBytes, int writeTier, RequestBlockLocationTOptions options) throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException;
 
     /**
      * Used to request space for some block file. return true if the worker successfully allocates
@@ -124,8 +136,10 @@ public class BlockWorkerClientService {
      * @param blockId the id of the block being accessed
      * 
      * @param requestBytes the number of bytes requested
+     * 
+     * @param options the method options
      */
-    public boolean requestSpace(long sessionId, long blockId, long requestBytes) throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException;
+    public RequestSpaceTResponse requestSpace(long sessionId, long blockId, long requestBytes, RequestSpaceTOptions options) throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException;
 
     /**
      * Local session send heartbeat to local worker to keep its temporary folder.
@@ -133,8 +147,10 @@ public class BlockWorkerClientService {
      * @param sessionId the id of the current session
      * 
      * @param metrics deprecated since 1.3.0 and will be removed in 2.0
+     * 
+     * @param options the method options
      */
-    public void sessionHeartbeat(long sessionId, List<Long> metrics) throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException;
+    public SessionBlockHeartbeatTResponse sessionBlockHeartbeat(long sessionId, List<Long> metrics, SessionBlockHeartbeatTOptions options) throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException;
 
     /**
      * Used to unlock a block after the block is accessed, if the block is to be removed, delete the
@@ -144,32 +160,34 @@ public class BlockWorkerClientService {
      * @param blockId the id of the block being accessed
      * 
      * @param sessionId the id of the current session
+     * 
+     * @param options the method options
      */
-    public boolean unlockBlock(long blockId, long sessionId) throws alluxio.thrift.AlluxioTException, alluxio.thrift.ThriftIOException, org.apache.thrift.TException;
+    public UnlockBlockTResponse unlockBlock(long blockId, long sessionId, UnlockBlockTOptions options) throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException;
 
   }
 
   public interface AsyncIface extends alluxio.thrift.AlluxioService .AsyncIface {
 
-    public void accessBlock(long blockId, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
+    public void accessBlock(long blockId, AccessBlockTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
-    public void cacheBlock(long sessionId, long blockId, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
+    public void cacheBlock(long sessionId, long blockId, CacheBlockTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
-    public void cancelBlock(long sessionId, long blockId, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
+    public void cancelBlock(long sessionId, long blockId, CancelBlockTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
     public void lockBlock(long blockId, long sessionId, LockBlockTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
-    public void promoteBlock(long blockId, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
+    public void promoteBlock(long blockId, PromoteBlockTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
-    public void removeBlock(long blockId, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
+    public void removeBlock(long blockId, RemoveBlockTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
-    public void requestBlockLocation(long sessionId, long blockId, long initialBytes, int writeTier, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
+    public void requestBlockLocation(long sessionId, long blockId, long initialBytes, int writeTier, RequestBlockLocationTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
-    public void requestSpace(long sessionId, long blockId, long requestBytes, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
+    public void requestSpace(long sessionId, long blockId, long requestBytes, RequestSpaceTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
-    public void sessionHeartbeat(long sessionId, List<Long> metrics, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
+    public void sessionBlockHeartbeat(long sessionId, List<Long> metrics, SessionBlockHeartbeatTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
-    public void unlockBlock(long blockId, long sessionId, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
+    public void unlockBlock(long blockId, long sessionId, UnlockBlockTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
   }
 
@@ -193,84 +211,90 @@ public class BlockWorkerClientService {
       super(iprot, oprot);
     }
 
-    public void accessBlock(long blockId) throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException
+    public AccessBlockTResponse accessBlock(long blockId, AccessBlockTOptions options) throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException
     {
-      send_accessBlock(blockId);
-      recv_accessBlock();
+      send_accessBlock(blockId, options);
+      return recv_accessBlock();
     }
 
-    public void send_accessBlock(long blockId) throws org.apache.thrift.TException
+    public void send_accessBlock(long blockId, AccessBlockTOptions options) throws org.apache.thrift.TException
     {
       accessBlock_args args = new accessBlock_args();
       args.setBlockId(blockId);
+      args.setOptions(options);
       sendBase("accessBlock", args);
     }
 
-    public void recv_accessBlock() throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException
+    public AccessBlockTResponse recv_accessBlock() throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException
     {
       accessBlock_result result = new accessBlock_result();
       receiveBase(result, "accessBlock");
+      if (result.isSetSuccess()) {
+        return result.success;
+      }
       if (result.e != null) {
         throw result.e;
       }
-      return;
+      throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "accessBlock failed: unknown result");
     }
 
-    public void cacheBlock(long sessionId, long blockId) throws alluxio.thrift.AlluxioTException, alluxio.thrift.ThriftIOException, org.apache.thrift.TException
+    public CacheBlockTResponse cacheBlock(long sessionId, long blockId, CacheBlockTOptions options) throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException
     {
-      send_cacheBlock(sessionId, blockId);
-      recv_cacheBlock();
+      send_cacheBlock(sessionId, blockId, options);
+      return recv_cacheBlock();
     }
 
-    public void send_cacheBlock(long sessionId, long blockId) throws org.apache.thrift.TException
+    public void send_cacheBlock(long sessionId, long blockId, CacheBlockTOptions options) throws org.apache.thrift.TException
     {
       cacheBlock_args args = new cacheBlock_args();
       args.setSessionId(sessionId);
       args.setBlockId(blockId);
+      args.setOptions(options);
       sendBase("cacheBlock", args);
     }
 
-    public void recv_cacheBlock() throws alluxio.thrift.AlluxioTException, alluxio.thrift.ThriftIOException, org.apache.thrift.TException
+    public CacheBlockTResponse recv_cacheBlock() throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException
     {
       cacheBlock_result result = new cacheBlock_result();
       receiveBase(result, "cacheBlock");
+      if (result.isSetSuccess()) {
+        return result.success;
+      }
       if (result.e != null) {
         throw result.e;
       }
-      if (result.ioe != null) {
-        throw result.ioe;
-      }
-      return;
+      throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "cacheBlock failed: unknown result");
     }
 
-    public void cancelBlock(long sessionId, long blockId) throws alluxio.thrift.AlluxioTException, alluxio.thrift.ThriftIOException, org.apache.thrift.TException
+    public CancelBlockTResponse cancelBlock(long sessionId, long blockId, CancelBlockTOptions options) throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException
     {
-      send_cancelBlock(sessionId, blockId);
-      recv_cancelBlock();
+      send_cancelBlock(sessionId, blockId, options);
+      return recv_cancelBlock();
     }
 
-    public void send_cancelBlock(long sessionId, long blockId) throws org.apache.thrift.TException
+    public void send_cancelBlock(long sessionId, long blockId, CancelBlockTOptions options) throws org.apache.thrift.TException
     {
       cancelBlock_args args = new cancelBlock_args();
       args.setSessionId(sessionId);
       args.setBlockId(blockId);
+      args.setOptions(options);
       sendBase("cancelBlock", args);
     }
 
-    public void recv_cancelBlock() throws alluxio.thrift.AlluxioTException, alluxio.thrift.ThriftIOException, org.apache.thrift.TException
+    public CancelBlockTResponse recv_cancelBlock() throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException
     {
       cancelBlock_result result = new cancelBlock_result();
       receiveBase(result, "cancelBlock");
+      if (result.isSetSuccess()) {
+        return result.success;
+      }
       if (result.e != null) {
         throw result.e;
       }
-      if (result.ioe != null) {
-        throw result.ioe;
-      }
-      return;
+      throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "cancelBlock failed: unknown result");
     }
 
-    public LockBlockResult lockBlock(long blockId, long sessionId, LockBlockTOptions options) throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException
+    public LockBlockTResponse lockBlock(long blockId, long sessionId, LockBlockTOptions options) throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException
     {
       send_lockBlock(blockId, sessionId, options);
       return recv_lockBlock();
@@ -285,7 +309,7 @@ public class BlockWorkerClientService {
       sendBase("lockBlock", args);
     }
 
-    public LockBlockResult recv_lockBlock() throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException
+    public LockBlockTResponse recv_lockBlock() throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException
     {
       lockBlock_result result = new lockBlock_result();
       receiveBase(result, "lockBlock");
@@ -298,20 +322,21 @@ public class BlockWorkerClientService {
       throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "lockBlock failed: unknown result");
     }
 
-    public boolean promoteBlock(long blockId) throws alluxio.thrift.AlluxioTException, alluxio.thrift.ThriftIOException, org.apache.thrift.TException
+    public PromoteBlockTResponse promoteBlock(long blockId, PromoteBlockTOptions options) throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException
     {
-      send_promoteBlock(blockId);
+      send_promoteBlock(blockId, options);
       return recv_promoteBlock();
     }
 
-    public void send_promoteBlock(long blockId) throws org.apache.thrift.TException
+    public void send_promoteBlock(long blockId, PromoteBlockTOptions options) throws org.apache.thrift.TException
     {
       promoteBlock_args args = new promoteBlock_args();
       args.setBlockId(blockId);
+      args.setOptions(options);
       sendBase("promoteBlock", args);
     }
 
-    public boolean recv_promoteBlock() throws alluxio.thrift.AlluxioTException, alluxio.thrift.ThriftIOException, org.apache.thrift.TException
+    public PromoteBlockTResponse recv_promoteBlock() throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException
     {
       promoteBlock_result result = new promoteBlock_result();
       receiveBase(result, "promoteBlock");
@@ -321,55 +346,54 @@ public class BlockWorkerClientService {
       if (result.e != null) {
         throw result.e;
       }
-      if (result.ioe != null) {
-        throw result.ioe;
-      }
       throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "promoteBlock failed: unknown result");
     }
 
-    public void removeBlock(long blockId) throws alluxio.thrift.AlluxioTException, alluxio.thrift.ThriftIOException, org.apache.thrift.TException
+    public RemoveBlockTResponse removeBlock(long blockId, RemoveBlockTOptions options) throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException
     {
-      send_removeBlock(blockId);
-      recv_removeBlock();
+      send_removeBlock(blockId, options);
+      return recv_removeBlock();
     }
 
-    public void send_removeBlock(long blockId) throws org.apache.thrift.TException
+    public void send_removeBlock(long blockId, RemoveBlockTOptions options) throws org.apache.thrift.TException
     {
       removeBlock_args args = new removeBlock_args();
       args.setBlockId(blockId);
+      args.setOptions(options);
       sendBase("removeBlock", args);
     }
 
-    public void recv_removeBlock() throws alluxio.thrift.AlluxioTException, alluxio.thrift.ThriftIOException, org.apache.thrift.TException
+    public RemoveBlockTResponse recv_removeBlock() throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException
     {
       removeBlock_result result = new removeBlock_result();
       receiveBase(result, "removeBlock");
+      if (result.isSetSuccess()) {
+        return result.success;
+      }
       if (result.e != null) {
         throw result.e;
       }
-      if (result.ioe != null) {
-        throw result.ioe;
-      }
-      return;
+      throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "removeBlock failed: unknown result");
     }
 
-    public String requestBlockLocation(long sessionId, long blockId, long initialBytes, int writeTier) throws alluxio.thrift.AlluxioTException, alluxio.thrift.ThriftIOException, org.apache.thrift.TException
+    public RequestBlockLocationTResponse requestBlockLocation(long sessionId, long blockId, long initialBytes, int writeTier, RequestBlockLocationTOptions options) throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException
     {
-      send_requestBlockLocation(sessionId, blockId, initialBytes, writeTier);
+      send_requestBlockLocation(sessionId, blockId, initialBytes, writeTier, options);
       return recv_requestBlockLocation();
     }
 
-    public void send_requestBlockLocation(long sessionId, long blockId, long initialBytes, int writeTier) throws org.apache.thrift.TException
+    public void send_requestBlockLocation(long sessionId, long blockId, long initialBytes, int writeTier, RequestBlockLocationTOptions options) throws org.apache.thrift.TException
     {
       requestBlockLocation_args args = new requestBlockLocation_args();
       args.setSessionId(sessionId);
       args.setBlockId(blockId);
       args.setInitialBytes(initialBytes);
       args.setWriteTier(writeTier);
+      args.setOptions(options);
       sendBase("requestBlockLocation", args);
     }
 
-    public String recv_requestBlockLocation() throws alluxio.thrift.AlluxioTException, alluxio.thrift.ThriftIOException, org.apache.thrift.TException
+    public RequestBlockLocationTResponse recv_requestBlockLocation() throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException
     {
       requestBlockLocation_result result = new requestBlockLocation_result();
       receiveBase(result, "requestBlockLocation");
@@ -379,28 +403,26 @@ public class BlockWorkerClientService {
       if (result.e != null) {
         throw result.e;
       }
-      if (result.ioe != null) {
-        throw result.ioe;
-      }
       throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "requestBlockLocation failed: unknown result");
     }
 
-    public boolean requestSpace(long sessionId, long blockId, long requestBytes) throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException
+    public RequestSpaceTResponse requestSpace(long sessionId, long blockId, long requestBytes, RequestSpaceTOptions options) throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException
     {
-      send_requestSpace(sessionId, blockId, requestBytes);
+      send_requestSpace(sessionId, blockId, requestBytes, options);
       return recv_requestSpace();
     }
 
-    public void send_requestSpace(long sessionId, long blockId, long requestBytes) throws org.apache.thrift.TException
+    public void send_requestSpace(long sessionId, long blockId, long requestBytes, RequestSpaceTOptions options) throws org.apache.thrift.TException
     {
       requestSpace_args args = new requestSpace_args();
       args.setSessionId(sessionId);
       args.setBlockId(blockId);
       args.setRequestBytes(requestBytes);
+      args.setOptions(options);
       sendBase("requestSpace", args);
     }
 
-    public boolean recv_requestSpace() throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException
+    public RequestSpaceTResponse recv_requestSpace() throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException
     {
       requestSpace_result result = new requestSpace_result();
       receiveBase(result, "requestSpace");
@@ -413,45 +435,50 @@ public class BlockWorkerClientService {
       throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "requestSpace failed: unknown result");
     }
 
-    public void sessionHeartbeat(long sessionId, List<Long> metrics) throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException
+    public SessionBlockHeartbeatTResponse sessionBlockHeartbeat(long sessionId, List<Long> metrics, SessionBlockHeartbeatTOptions options) throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException
     {
-      send_sessionHeartbeat(sessionId, metrics);
-      recv_sessionHeartbeat();
+      send_sessionBlockHeartbeat(sessionId, metrics, options);
+      return recv_sessionBlockHeartbeat();
     }
 
-    public void send_sessionHeartbeat(long sessionId, List<Long> metrics) throws org.apache.thrift.TException
+    public void send_sessionBlockHeartbeat(long sessionId, List<Long> metrics, SessionBlockHeartbeatTOptions options) throws org.apache.thrift.TException
     {
-      sessionHeartbeat_args args = new sessionHeartbeat_args();
+      sessionBlockHeartbeat_args args = new sessionBlockHeartbeat_args();
       args.setSessionId(sessionId);
       args.setMetrics(metrics);
-      sendBase("sessionHeartbeat", args);
+      args.setOptions(options);
+      sendBase("sessionBlockHeartbeat", args);
     }
 
-    public void recv_sessionHeartbeat() throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException
+    public SessionBlockHeartbeatTResponse recv_sessionBlockHeartbeat() throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException
     {
-      sessionHeartbeat_result result = new sessionHeartbeat_result();
-      receiveBase(result, "sessionHeartbeat");
+      sessionBlockHeartbeat_result result = new sessionBlockHeartbeat_result();
+      receiveBase(result, "sessionBlockHeartbeat");
+      if (result.isSetSuccess()) {
+        return result.success;
+      }
       if (result.e != null) {
         throw result.e;
       }
-      return;
+      throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "sessionBlockHeartbeat failed: unknown result");
     }
 
-    public boolean unlockBlock(long blockId, long sessionId) throws alluxio.thrift.AlluxioTException, alluxio.thrift.ThriftIOException, org.apache.thrift.TException
+    public UnlockBlockTResponse unlockBlock(long blockId, long sessionId, UnlockBlockTOptions options) throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException
     {
-      send_unlockBlock(blockId, sessionId);
+      send_unlockBlock(blockId, sessionId, options);
       return recv_unlockBlock();
     }
 
-    public void send_unlockBlock(long blockId, long sessionId) throws org.apache.thrift.TException
+    public void send_unlockBlock(long blockId, long sessionId, UnlockBlockTOptions options) throws org.apache.thrift.TException
     {
       unlockBlock_args args = new unlockBlock_args();
       args.setBlockId(blockId);
       args.setSessionId(sessionId);
+      args.setOptions(options);
       sendBase("unlockBlock", args);
     }
 
-    public boolean recv_unlockBlock() throws alluxio.thrift.AlluxioTException, alluxio.thrift.ThriftIOException, org.apache.thrift.TException
+    public UnlockBlockTResponse recv_unlockBlock() throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException
     {
       unlockBlock_result result = new unlockBlock_result();
       receiveBase(result, "unlockBlock");
@@ -460,9 +487,6 @@ public class BlockWorkerClientService {
       }
       if (result.e != null) {
         throw result.e;
-      }
-      if (result.ioe != null) {
-        throw result.ioe;
       }
       throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "unlockBlock failed: unknown result");
     }
@@ -485,41 +509,44 @@ public class BlockWorkerClientService {
       super(protocolFactory, clientManager, transport);
     }
 
-    public void accessBlock(long blockId, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
+    public void accessBlock(long blockId, AccessBlockTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
       checkReady();
-      accessBlock_call method_call = new accessBlock_call(blockId, resultHandler, this, ___protocolFactory, ___transport);
+      accessBlock_call method_call = new accessBlock_call(blockId, options, resultHandler, this, ___protocolFactory, ___transport);
       this.___currentMethod = method_call;
       ___manager.call(method_call);
     }
 
     public static class accessBlock_call extends org.apache.thrift.async.TAsyncMethodCall {
       private long blockId;
-      public accessBlock_call(long blockId, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
+      private AccessBlockTOptions options;
+      public accessBlock_call(long blockId, AccessBlockTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
         super(client, protocolFactory, transport, resultHandler, false);
         this.blockId = blockId;
+        this.options = options;
       }
 
       public void write_args(org.apache.thrift.protocol.TProtocol prot) throws org.apache.thrift.TException {
         prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("accessBlock", org.apache.thrift.protocol.TMessageType.CALL, 0));
         accessBlock_args args = new accessBlock_args();
         args.setBlockId(blockId);
+        args.setOptions(options);
         args.write(prot);
         prot.writeMessageEnd();
       }
 
-      public void getResult() throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException {
+      public AccessBlockTResponse getResult() throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException {
         if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
         org.apache.thrift.transport.TMemoryInputTransport memoryTransport = new org.apache.thrift.transport.TMemoryInputTransport(getFrameBuffer().array());
         org.apache.thrift.protocol.TProtocol prot = client.getProtocolFactory().getProtocol(memoryTransport);
-        (new Client(prot)).recv_accessBlock();
+        return (new Client(prot)).recv_accessBlock();
       }
     }
 
-    public void cacheBlock(long sessionId, long blockId, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
+    public void cacheBlock(long sessionId, long blockId, CacheBlockTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
       checkReady();
-      cacheBlock_call method_call = new cacheBlock_call(sessionId, blockId, resultHandler, this, ___protocolFactory, ___transport);
+      cacheBlock_call method_call = new cacheBlock_call(sessionId, blockId, options, resultHandler, this, ___protocolFactory, ___transport);
       this.___currentMethod = method_call;
       ___manager.call(method_call);
     }
@@ -527,10 +554,12 @@ public class BlockWorkerClientService {
     public static class cacheBlock_call extends org.apache.thrift.async.TAsyncMethodCall {
       private long sessionId;
       private long blockId;
-      public cacheBlock_call(long sessionId, long blockId, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
+      private CacheBlockTOptions options;
+      public cacheBlock_call(long sessionId, long blockId, CacheBlockTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
         super(client, protocolFactory, transport, resultHandler, false);
         this.sessionId = sessionId;
         this.blockId = blockId;
+        this.options = options;
       }
 
       public void write_args(org.apache.thrift.protocol.TProtocol prot) throws org.apache.thrift.TException {
@@ -538,23 +567,24 @@ public class BlockWorkerClientService {
         cacheBlock_args args = new cacheBlock_args();
         args.setSessionId(sessionId);
         args.setBlockId(blockId);
+        args.setOptions(options);
         args.write(prot);
         prot.writeMessageEnd();
       }
 
-      public void getResult() throws alluxio.thrift.AlluxioTException, alluxio.thrift.ThriftIOException, org.apache.thrift.TException {
+      public CacheBlockTResponse getResult() throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException {
         if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
         org.apache.thrift.transport.TMemoryInputTransport memoryTransport = new org.apache.thrift.transport.TMemoryInputTransport(getFrameBuffer().array());
         org.apache.thrift.protocol.TProtocol prot = client.getProtocolFactory().getProtocol(memoryTransport);
-        (new Client(prot)).recv_cacheBlock();
+        return (new Client(prot)).recv_cacheBlock();
       }
     }
 
-    public void cancelBlock(long sessionId, long blockId, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
+    public void cancelBlock(long sessionId, long blockId, CancelBlockTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
       checkReady();
-      cancelBlock_call method_call = new cancelBlock_call(sessionId, blockId, resultHandler, this, ___protocolFactory, ___transport);
+      cancelBlock_call method_call = new cancelBlock_call(sessionId, blockId, options, resultHandler, this, ___protocolFactory, ___transport);
       this.___currentMethod = method_call;
       ___manager.call(method_call);
     }
@@ -562,10 +592,12 @@ public class BlockWorkerClientService {
     public static class cancelBlock_call extends org.apache.thrift.async.TAsyncMethodCall {
       private long sessionId;
       private long blockId;
-      public cancelBlock_call(long sessionId, long blockId, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
+      private CancelBlockTOptions options;
+      public cancelBlock_call(long sessionId, long blockId, CancelBlockTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
         super(client, protocolFactory, transport, resultHandler, false);
         this.sessionId = sessionId;
         this.blockId = blockId;
+        this.options = options;
       }
 
       public void write_args(org.apache.thrift.protocol.TProtocol prot) throws org.apache.thrift.TException {
@@ -573,17 +605,18 @@ public class BlockWorkerClientService {
         cancelBlock_args args = new cancelBlock_args();
         args.setSessionId(sessionId);
         args.setBlockId(blockId);
+        args.setOptions(options);
         args.write(prot);
         prot.writeMessageEnd();
       }
 
-      public void getResult() throws alluxio.thrift.AlluxioTException, alluxio.thrift.ThriftIOException, org.apache.thrift.TException {
+      public CancelBlockTResponse getResult() throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException {
         if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
         org.apache.thrift.transport.TMemoryInputTransport memoryTransport = new org.apache.thrift.transport.TMemoryInputTransport(getFrameBuffer().array());
         org.apache.thrift.protocol.TProtocol prot = client.getProtocolFactory().getProtocol(memoryTransport);
-        (new Client(prot)).recv_cancelBlock();
+        return (new Client(prot)).recv_cancelBlock();
       }
     }
 
@@ -615,7 +648,7 @@ public class BlockWorkerClientService {
         prot.writeMessageEnd();
       }
 
-      public LockBlockResult getResult() throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException {
+      public LockBlockTResponse getResult() throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException {
         if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
@@ -625,29 +658,32 @@ public class BlockWorkerClientService {
       }
     }
 
-    public void promoteBlock(long blockId, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
+    public void promoteBlock(long blockId, PromoteBlockTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
       checkReady();
-      promoteBlock_call method_call = new promoteBlock_call(blockId, resultHandler, this, ___protocolFactory, ___transport);
+      promoteBlock_call method_call = new promoteBlock_call(blockId, options, resultHandler, this, ___protocolFactory, ___transport);
       this.___currentMethod = method_call;
       ___manager.call(method_call);
     }
 
     public static class promoteBlock_call extends org.apache.thrift.async.TAsyncMethodCall {
       private long blockId;
-      public promoteBlock_call(long blockId, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
+      private PromoteBlockTOptions options;
+      public promoteBlock_call(long blockId, PromoteBlockTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
         super(client, protocolFactory, transport, resultHandler, false);
         this.blockId = blockId;
+        this.options = options;
       }
 
       public void write_args(org.apache.thrift.protocol.TProtocol prot) throws org.apache.thrift.TException {
         prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("promoteBlock", org.apache.thrift.protocol.TMessageType.CALL, 0));
         promoteBlock_args args = new promoteBlock_args();
         args.setBlockId(blockId);
+        args.setOptions(options);
         args.write(prot);
         prot.writeMessageEnd();
       }
 
-      public boolean getResult() throws alluxio.thrift.AlluxioTException, alluxio.thrift.ThriftIOException, org.apache.thrift.TException {
+      public PromoteBlockTResponse getResult() throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException {
         if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
@@ -657,41 +693,44 @@ public class BlockWorkerClientService {
       }
     }
 
-    public void removeBlock(long blockId, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
+    public void removeBlock(long blockId, RemoveBlockTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
       checkReady();
-      removeBlock_call method_call = new removeBlock_call(blockId, resultHandler, this, ___protocolFactory, ___transport);
+      removeBlock_call method_call = new removeBlock_call(blockId, options, resultHandler, this, ___protocolFactory, ___transport);
       this.___currentMethod = method_call;
       ___manager.call(method_call);
     }
 
     public static class removeBlock_call extends org.apache.thrift.async.TAsyncMethodCall {
       private long blockId;
-      public removeBlock_call(long blockId, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
+      private RemoveBlockTOptions options;
+      public removeBlock_call(long blockId, RemoveBlockTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
         super(client, protocolFactory, transport, resultHandler, false);
         this.blockId = blockId;
+        this.options = options;
       }
 
       public void write_args(org.apache.thrift.protocol.TProtocol prot) throws org.apache.thrift.TException {
         prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("removeBlock", org.apache.thrift.protocol.TMessageType.CALL, 0));
         removeBlock_args args = new removeBlock_args();
         args.setBlockId(blockId);
+        args.setOptions(options);
         args.write(prot);
         prot.writeMessageEnd();
       }
 
-      public void getResult() throws alluxio.thrift.AlluxioTException, alluxio.thrift.ThriftIOException, org.apache.thrift.TException {
+      public RemoveBlockTResponse getResult() throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException {
         if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
         org.apache.thrift.transport.TMemoryInputTransport memoryTransport = new org.apache.thrift.transport.TMemoryInputTransport(getFrameBuffer().array());
         org.apache.thrift.protocol.TProtocol prot = client.getProtocolFactory().getProtocol(memoryTransport);
-        (new Client(prot)).recv_removeBlock();
+        return (new Client(prot)).recv_removeBlock();
       }
     }
 
-    public void requestBlockLocation(long sessionId, long blockId, long initialBytes, int writeTier, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
+    public void requestBlockLocation(long sessionId, long blockId, long initialBytes, int writeTier, RequestBlockLocationTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
       checkReady();
-      requestBlockLocation_call method_call = new requestBlockLocation_call(sessionId, blockId, initialBytes, writeTier, resultHandler, this, ___protocolFactory, ___transport);
+      requestBlockLocation_call method_call = new requestBlockLocation_call(sessionId, blockId, initialBytes, writeTier, options, resultHandler, this, ___protocolFactory, ___transport);
       this.___currentMethod = method_call;
       ___manager.call(method_call);
     }
@@ -701,12 +740,14 @@ public class BlockWorkerClientService {
       private long blockId;
       private long initialBytes;
       private int writeTier;
-      public requestBlockLocation_call(long sessionId, long blockId, long initialBytes, int writeTier, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
+      private RequestBlockLocationTOptions options;
+      public requestBlockLocation_call(long sessionId, long blockId, long initialBytes, int writeTier, RequestBlockLocationTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
         super(client, protocolFactory, transport, resultHandler, false);
         this.sessionId = sessionId;
         this.blockId = blockId;
         this.initialBytes = initialBytes;
         this.writeTier = writeTier;
+        this.options = options;
       }
 
       public void write_args(org.apache.thrift.protocol.TProtocol prot) throws org.apache.thrift.TException {
@@ -716,11 +757,12 @@ public class BlockWorkerClientService {
         args.setBlockId(blockId);
         args.setInitialBytes(initialBytes);
         args.setWriteTier(writeTier);
+        args.setOptions(options);
         args.write(prot);
         prot.writeMessageEnd();
       }
 
-      public String getResult() throws alluxio.thrift.AlluxioTException, alluxio.thrift.ThriftIOException, org.apache.thrift.TException {
+      public RequestBlockLocationTResponse getResult() throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException {
         if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
@@ -730,9 +772,9 @@ public class BlockWorkerClientService {
       }
     }
 
-    public void requestSpace(long sessionId, long blockId, long requestBytes, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
+    public void requestSpace(long sessionId, long blockId, long requestBytes, RequestSpaceTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
       checkReady();
-      requestSpace_call method_call = new requestSpace_call(sessionId, blockId, requestBytes, resultHandler, this, ___protocolFactory, ___transport);
+      requestSpace_call method_call = new requestSpace_call(sessionId, blockId, requestBytes, options, resultHandler, this, ___protocolFactory, ___transport);
       this.___currentMethod = method_call;
       ___manager.call(method_call);
     }
@@ -741,11 +783,13 @@ public class BlockWorkerClientService {
       private long sessionId;
       private long blockId;
       private long requestBytes;
-      public requestSpace_call(long sessionId, long blockId, long requestBytes, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
+      private RequestSpaceTOptions options;
+      public requestSpace_call(long sessionId, long blockId, long requestBytes, RequestSpaceTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
         super(client, protocolFactory, transport, resultHandler, false);
         this.sessionId = sessionId;
         this.blockId = blockId;
         this.requestBytes = requestBytes;
+        this.options = options;
       }
 
       public void write_args(org.apache.thrift.protocol.TProtocol prot) throws org.apache.thrift.TException {
@@ -754,11 +798,12 @@ public class BlockWorkerClientService {
         args.setSessionId(sessionId);
         args.setBlockId(blockId);
         args.setRequestBytes(requestBytes);
+        args.setOptions(options);
         args.write(prot);
         prot.writeMessageEnd();
       }
 
-      public boolean getResult() throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException {
+      public RequestSpaceTResponse getResult() throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException {
         if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
@@ -768,44 +813,47 @@ public class BlockWorkerClientService {
       }
     }
 
-    public void sessionHeartbeat(long sessionId, List<Long> metrics, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
+    public void sessionBlockHeartbeat(long sessionId, List<Long> metrics, SessionBlockHeartbeatTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
       checkReady();
-      sessionHeartbeat_call method_call = new sessionHeartbeat_call(sessionId, metrics, resultHandler, this, ___protocolFactory, ___transport);
+      sessionBlockHeartbeat_call method_call = new sessionBlockHeartbeat_call(sessionId, metrics, options, resultHandler, this, ___protocolFactory, ___transport);
       this.___currentMethod = method_call;
       ___manager.call(method_call);
     }
 
-    public static class sessionHeartbeat_call extends org.apache.thrift.async.TAsyncMethodCall {
+    public static class sessionBlockHeartbeat_call extends org.apache.thrift.async.TAsyncMethodCall {
       private long sessionId;
       private List<Long> metrics;
-      public sessionHeartbeat_call(long sessionId, List<Long> metrics, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
+      private SessionBlockHeartbeatTOptions options;
+      public sessionBlockHeartbeat_call(long sessionId, List<Long> metrics, SessionBlockHeartbeatTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
         super(client, protocolFactory, transport, resultHandler, false);
         this.sessionId = sessionId;
         this.metrics = metrics;
+        this.options = options;
       }
 
       public void write_args(org.apache.thrift.protocol.TProtocol prot) throws org.apache.thrift.TException {
-        prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("sessionHeartbeat", org.apache.thrift.protocol.TMessageType.CALL, 0));
-        sessionHeartbeat_args args = new sessionHeartbeat_args();
+        prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("sessionBlockHeartbeat", org.apache.thrift.protocol.TMessageType.CALL, 0));
+        sessionBlockHeartbeat_args args = new sessionBlockHeartbeat_args();
         args.setSessionId(sessionId);
         args.setMetrics(metrics);
+        args.setOptions(options);
         args.write(prot);
         prot.writeMessageEnd();
       }
 
-      public void getResult() throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException {
+      public SessionBlockHeartbeatTResponse getResult() throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException {
         if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
         org.apache.thrift.transport.TMemoryInputTransport memoryTransport = new org.apache.thrift.transport.TMemoryInputTransport(getFrameBuffer().array());
         org.apache.thrift.protocol.TProtocol prot = client.getProtocolFactory().getProtocol(memoryTransport);
-        (new Client(prot)).recv_sessionHeartbeat();
+        return (new Client(prot)).recv_sessionBlockHeartbeat();
       }
     }
 
-    public void unlockBlock(long blockId, long sessionId, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
+    public void unlockBlock(long blockId, long sessionId, UnlockBlockTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
       checkReady();
-      unlockBlock_call method_call = new unlockBlock_call(blockId, sessionId, resultHandler, this, ___protocolFactory, ___transport);
+      unlockBlock_call method_call = new unlockBlock_call(blockId, sessionId, options, resultHandler, this, ___protocolFactory, ___transport);
       this.___currentMethod = method_call;
       ___manager.call(method_call);
     }
@@ -813,10 +861,12 @@ public class BlockWorkerClientService {
     public static class unlockBlock_call extends org.apache.thrift.async.TAsyncMethodCall {
       private long blockId;
       private long sessionId;
-      public unlockBlock_call(long blockId, long sessionId, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
+      private UnlockBlockTOptions options;
+      public unlockBlock_call(long blockId, long sessionId, UnlockBlockTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
         super(client, protocolFactory, transport, resultHandler, false);
         this.blockId = blockId;
         this.sessionId = sessionId;
+        this.options = options;
       }
 
       public void write_args(org.apache.thrift.protocol.TProtocol prot) throws org.apache.thrift.TException {
@@ -824,11 +874,12 @@ public class BlockWorkerClientService {
         unlockBlock_args args = new unlockBlock_args();
         args.setBlockId(blockId);
         args.setSessionId(sessionId);
+        args.setOptions(options);
         args.write(prot);
         prot.writeMessageEnd();
       }
 
-      public boolean getResult() throws alluxio.thrift.AlluxioTException, alluxio.thrift.ThriftIOException, org.apache.thrift.TException {
+      public UnlockBlockTResponse getResult() throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException {
         if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
@@ -859,7 +910,7 @@ public class BlockWorkerClientService {
       processMap.put("removeBlock", new removeBlock());
       processMap.put("requestBlockLocation", new requestBlockLocation());
       processMap.put("requestSpace", new requestSpace());
-      processMap.put("sessionHeartbeat", new sessionHeartbeat());
+      processMap.put("sessionBlockHeartbeat", new sessionBlockHeartbeat());
       processMap.put("unlockBlock", new unlockBlock());
       return processMap;
     }
@@ -880,7 +931,7 @@ public class BlockWorkerClientService {
       public accessBlock_result getResult(I iface, accessBlock_args args) throws org.apache.thrift.TException {
         accessBlock_result result = new accessBlock_result();
         try {
-          iface.accessBlock(args.blockId);
+          result.success = iface.accessBlock(args.blockId, args.options);
         } catch (alluxio.thrift.AlluxioTException e) {
           result.e = e;
         }
@@ -904,11 +955,9 @@ public class BlockWorkerClientService {
       public cacheBlock_result getResult(I iface, cacheBlock_args args) throws org.apache.thrift.TException {
         cacheBlock_result result = new cacheBlock_result();
         try {
-          iface.cacheBlock(args.sessionId, args.blockId);
+          result.success = iface.cacheBlock(args.sessionId, args.blockId, args.options);
         } catch (alluxio.thrift.AlluxioTException e) {
           result.e = e;
-        } catch (alluxio.thrift.ThriftIOException ioe) {
-          result.ioe = ioe;
         }
         return result;
       }
@@ -930,11 +979,9 @@ public class BlockWorkerClientService {
       public cancelBlock_result getResult(I iface, cancelBlock_args args) throws org.apache.thrift.TException {
         cancelBlock_result result = new cancelBlock_result();
         try {
-          iface.cancelBlock(args.sessionId, args.blockId);
+          result.success = iface.cancelBlock(args.sessionId, args.blockId, args.options);
         } catch (alluxio.thrift.AlluxioTException e) {
           result.e = e;
-        } catch (alluxio.thrift.ThriftIOException ioe) {
-          result.ioe = ioe;
         }
         return result;
       }
@@ -980,12 +1027,9 @@ public class BlockWorkerClientService {
       public promoteBlock_result getResult(I iface, promoteBlock_args args) throws org.apache.thrift.TException {
         promoteBlock_result result = new promoteBlock_result();
         try {
-          result.success = iface.promoteBlock(args.blockId);
-          result.setSuccessIsSet(true);
+          result.success = iface.promoteBlock(args.blockId, args.options);
         } catch (alluxio.thrift.AlluxioTException e) {
           result.e = e;
-        } catch (alluxio.thrift.ThriftIOException ioe) {
-          result.ioe = ioe;
         }
         return result;
       }
@@ -1007,11 +1051,9 @@ public class BlockWorkerClientService {
       public removeBlock_result getResult(I iface, removeBlock_args args) throws org.apache.thrift.TException {
         removeBlock_result result = new removeBlock_result();
         try {
-          iface.removeBlock(args.blockId);
+          result.success = iface.removeBlock(args.blockId, args.options);
         } catch (alluxio.thrift.AlluxioTException e) {
           result.e = e;
-        } catch (alluxio.thrift.ThriftIOException ioe) {
-          result.ioe = ioe;
         }
         return result;
       }
@@ -1033,11 +1075,9 @@ public class BlockWorkerClientService {
       public requestBlockLocation_result getResult(I iface, requestBlockLocation_args args) throws org.apache.thrift.TException {
         requestBlockLocation_result result = new requestBlockLocation_result();
         try {
-          result.success = iface.requestBlockLocation(args.sessionId, args.blockId, args.initialBytes, args.writeTier);
+          result.success = iface.requestBlockLocation(args.sessionId, args.blockId, args.initialBytes, args.writeTier, args.options);
         } catch (alluxio.thrift.AlluxioTException e) {
           result.e = e;
-        } catch (alluxio.thrift.ThriftIOException ioe) {
-          result.ioe = ioe;
         }
         return result;
       }
@@ -1059,8 +1099,7 @@ public class BlockWorkerClientService {
       public requestSpace_result getResult(I iface, requestSpace_args args) throws org.apache.thrift.TException {
         requestSpace_result result = new requestSpace_result();
         try {
-          result.success = iface.requestSpace(args.sessionId, args.blockId, args.requestBytes);
-          result.setSuccessIsSet(true);
+          result.success = iface.requestSpace(args.sessionId, args.blockId, args.requestBytes, args.options);
         } catch (alluxio.thrift.AlluxioTException e) {
           result.e = e;
         }
@@ -1068,23 +1107,23 @@ public class BlockWorkerClientService {
       }
     }
 
-    public static class sessionHeartbeat<I extends Iface> extends org.apache.thrift.ProcessFunction<I, sessionHeartbeat_args> {
-      public sessionHeartbeat() {
-        super("sessionHeartbeat");
+    public static class sessionBlockHeartbeat<I extends Iface> extends org.apache.thrift.ProcessFunction<I, sessionBlockHeartbeat_args> {
+      public sessionBlockHeartbeat() {
+        super("sessionBlockHeartbeat");
       }
 
-      public sessionHeartbeat_args getEmptyArgsInstance() {
-        return new sessionHeartbeat_args();
+      public sessionBlockHeartbeat_args getEmptyArgsInstance() {
+        return new sessionBlockHeartbeat_args();
       }
 
       protected boolean isOneway() {
         return false;
       }
 
-      public sessionHeartbeat_result getResult(I iface, sessionHeartbeat_args args) throws org.apache.thrift.TException {
-        sessionHeartbeat_result result = new sessionHeartbeat_result();
+      public sessionBlockHeartbeat_result getResult(I iface, sessionBlockHeartbeat_args args) throws org.apache.thrift.TException {
+        sessionBlockHeartbeat_result result = new sessionBlockHeartbeat_result();
         try {
-          iface.sessionHeartbeat(args.sessionId, args.metrics);
+          result.success = iface.sessionBlockHeartbeat(args.sessionId, args.metrics, args.options);
         } catch (alluxio.thrift.AlluxioTException e) {
           result.e = e;
         }
@@ -1108,12 +1147,9 @@ public class BlockWorkerClientService {
       public unlockBlock_result getResult(I iface, unlockBlock_args args) throws org.apache.thrift.TException {
         unlockBlock_result result = new unlockBlock_result();
         try {
-          result.success = iface.unlockBlock(args.blockId, args.sessionId);
-          result.setSuccessIsSet(true);
+          result.success = iface.unlockBlock(args.blockId, args.sessionId, args.options);
         } catch (alluxio.thrift.AlluxioTException e) {
           result.e = e;
-        } catch (alluxio.thrift.ThriftIOException ioe) {
-          result.ioe = ioe;
         }
         return result;
       }
@@ -1140,12 +1176,12 @@ public class BlockWorkerClientService {
       processMap.put("removeBlock", new removeBlock());
       processMap.put("requestBlockLocation", new requestBlockLocation());
       processMap.put("requestSpace", new requestSpace());
-      processMap.put("sessionHeartbeat", new sessionHeartbeat());
+      processMap.put("sessionBlockHeartbeat", new sessionBlockHeartbeat());
       processMap.put("unlockBlock", new unlockBlock());
       return processMap;
     }
 
-    public static class accessBlock<I extends AsyncIface> extends org.apache.thrift.AsyncProcessFunction<I, accessBlock_args, Void> {
+    public static class accessBlock<I extends AsyncIface> extends org.apache.thrift.AsyncProcessFunction<I, accessBlock_args, AccessBlockTResponse> {
       public accessBlock() {
         super("accessBlock");
       }
@@ -1154,11 +1190,12 @@ public class BlockWorkerClientService {
         return new accessBlock_args();
       }
 
-      public AsyncMethodCallback<Void> getResultHandler(final AsyncFrameBuffer fb, final int seqid) {
+      public AsyncMethodCallback<AccessBlockTResponse> getResultHandler(final AsyncFrameBuffer fb, final int seqid) {
         final org.apache.thrift.AsyncProcessFunction fcall = this;
-        return new AsyncMethodCallback<Void>() { 
-          public void onComplete(Void o) {
+        return new AsyncMethodCallback<AccessBlockTResponse>() { 
+          public void onComplete(AccessBlockTResponse o) {
             accessBlock_result result = new accessBlock_result();
+            result.success = o;
             try {
               fcall.sendResponse(fb,result, org.apache.thrift.protocol.TMessageType.REPLY,seqid);
               return;
@@ -1196,12 +1233,12 @@ public class BlockWorkerClientService {
         return false;
       }
 
-      public void start(I iface, accessBlock_args args, org.apache.thrift.async.AsyncMethodCallback<Void> resultHandler) throws TException {
-        iface.accessBlock(args.blockId,resultHandler);
+      public void start(I iface, accessBlock_args args, org.apache.thrift.async.AsyncMethodCallback<AccessBlockTResponse> resultHandler) throws TException {
+        iface.accessBlock(args.blockId, args.options,resultHandler);
       }
     }
 
-    public static class cacheBlock<I extends AsyncIface> extends org.apache.thrift.AsyncProcessFunction<I, cacheBlock_args, Void> {
+    public static class cacheBlock<I extends AsyncIface> extends org.apache.thrift.AsyncProcessFunction<I, cacheBlock_args, CacheBlockTResponse> {
       public cacheBlock() {
         super("cacheBlock");
       }
@@ -1210,11 +1247,12 @@ public class BlockWorkerClientService {
         return new cacheBlock_args();
       }
 
-      public AsyncMethodCallback<Void> getResultHandler(final AsyncFrameBuffer fb, final int seqid) {
+      public AsyncMethodCallback<CacheBlockTResponse> getResultHandler(final AsyncFrameBuffer fb, final int seqid) {
         final org.apache.thrift.AsyncProcessFunction fcall = this;
-        return new AsyncMethodCallback<Void>() { 
-          public void onComplete(Void o) {
+        return new AsyncMethodCallback<CacheBlockTResponse>() { 
+          public void onComplete(CacheBlockTResponse o) {
             cacheBlock_result result = new cacheBlock_result();
+            result.success = o;
             try {
               fcall.sendResponse(fb,result, org.apache.thrift.protocol.TMessageType.REPLY,seqid);
               return;
@@ -1230,11 +1268,6 @@ public class BlockWorkerClientService {
             if (e instanceof alluxio.thrift.AlluxioTException) {
                         result.e = (alluxio.thrift.AlluxioTException) e;
                         result.setEIsSet(true);
-                        msg = result;
-            }
-            else             if (e instanceof alluxio.thrift.ThriftIOException) {
-                        result.ioe = (alluxio.thrift.ThriftIOException) e;
-                        result.setIoeIsSet(true);
                         msg = result;
             }
              else 
@@ -1257,12 +1290,12 @@ public class BlockWorkerClientService {
         return false;
       }
 
-      public void start(I iface, cacheBlock_args args, org.apache.thrift.async.AsyncMethodCallback<Void> resultHandler) throws TException {
-        iface.cacheBlock(args.sessionId, args.blockId,resultHandler);
+      public void start(I iface, cacheBlock_args args, org.apache.thrift.async.AsyncMethodCallback<CacheBlockTResponse> resultHandler) throws TException {
+        iface.cacheBlock(args.sessionId, args.blockId, args.options,resultHandler);
       }
     }
 
-    public static class cancelBlock<I extends AsyncIface> extends org.apache.thrift.AsyncProcessFunction<I, cancelBlock_args, Void> {
+    public static class cancelBlock<I extends AsyncIface> extends org.apache.thrift.AsyncProcessFunction<I, cancelBlock_args, CancelBlockTResponse> {
       public cancelBlock() {
         super("cancelBlock");
       }
@@ -1271,11 +1304,12 @@ public class BlockWorkerClientService {
         return new cancelBlock_args();
       }
 
-      public AsyncMethodCallback<Void> getResultHandler(final AsyncFrameBuffer fb, final int seqid) {
+      public AsyncMethodCallback<CancelBlockTResponse> getResultHandler(final AsyncFrameBuffer fb, final int seqid) {
         final org.apache.thrift.AsyncProcessFunction fcall = this;
-        return new AsyncMethodCallback<Void>() { 
-          public void onComplete(Void o) {
+        return new AsyncMethodCallback<CancelBlockTResponse>() { 
+          public void onComplete(CancelBlockTResponse o) {
             cancelBlock_result result = new cancelBlock_result();
+            result.success = o;
             try {
               fcall.sendResponse(fb,result, org.apache.thrift.protocol.TMessageType.REPLY,seqid);
               return;
@@ -1291,11 +1325,6 @@ public class BlockWorkerClientService {
             if (e instanceof alluxio.thrift.AlluxioTException) {
                         result.e = (alluxio.thrift.AlluxioTException) e;
                         result.setEIsSet(true);
-                        msg = result;
-            }
-            else             if (e instanceof alluxio.thrift.ThriftIOException) {
-                        result.ioe = (alluxio.thrift.ThriftIOException) e;
-                        result.setIoeIsSet(true);
                         msg = result;
             }
              else 
@@ -1318,12 +1347,12 @@ public class BlockWorkerClientService {
         return false;
       }
 
-      public void start(I iface, cancelBlock_args args, org.apache.thrift.async.AsyncMethodCallback<Void> resultHandler) throws TException {
-        iface.cancelBlock(args.sessionId, args.blockId,resultHandler);
+      public void start(I iface, cancelBlock_args args, org.apache.thrift.async.AsyncMethodCallback<CancelBlockTResponse> resultHandler) throws TException {
+        iface.cancelBlock(args.sessionId, args.blockId, args.options,resultHandler);
       }
     }
 
-    public static class lockBlock<I extends AsyncIface> extends org.apache.thrift.AsyncProcessFunction<I, lockBlock_args, LockBlockResult> {
+    public static class lockBlock<I extends AsyncIface> extends org.apache.thrift.AsyncProcessFunction<I, lockBlock_args, LockBlockTResponse> {
       public lockBlock() {
         super("lockBlock");
       }
@@ -1332,10 +1361,10 @@ public class BlockWorkerClientService {
         return new lockBlock_args();
       }
 
-      public AsyncMethodCallback<LockBlockResult> getResultHandler(final AsyncFrameBuffer fb, final int seqid) {
+      public AsyncMethodCallback<LockBlockTResponse> getResultHandler(final AsyncFrameBuffer fb, final int seqid) {
         final org.apache.thrift.AsyncProcessFunction fcall = this;
-        return new AsyncMethodCallback<LockBlockResult>() { 
-          public void onComplete(LockBlockResult o) {
+        return new AsyncMethodCallback<LockBlockTResponse>() { 
+          public void onComplete(LockBlockTResponse o) {
             lockBlock_result result = new lockBlock_result();
             result.success = o;
             try {
@@ -1375,12 +1404,12 @@ public class BlockWorkerClientService {
         return false;
       }
 
-      public void start(I iface, lockBlock_args args, org.apache.thrift.async.AsyncMethodCallback<LockBlockResult> resultHandler) throws TException {
+      public void start(I iface, lockBlock_args args, org.apache.thrift.async.AsyncMethodCallback<LockBlockTResponse> resultHandler) throws TException {
         iface.lockBlock(args.blockId, args.sessionId, args.options,resultHandler);
       }
     }
 
-    public static class promoteBlock<I extends AsyncIface> extends org.apache.thrift.AsyncProcessFunction<I, promoteBlock_args, Boolean> {
+    public static class promoteBlock<I extends AsyncIface> extends org.apache.thrift.AsyncProcessFunction<I, promoteBlock_args, PromoteBlockTResponse> {
       public promoteBlock() {
         super("promoteBlock");
       }
@@ -1389,13 +1418,12 @@ public class BlockWorkerClientService {
         return new promoteBlock_args();
       }
 
-      public AsyncMethodCallback<Boolean> getResultHandler(final AsyncFrameBuffer fb, final int seqid) {
+      public AsyncMethodCallback<PromoteBlockTResponse> getResultHandler(final AsyncFrameBuffer fb, final int seqid) {
         final org.apache.thrift.AsyncProcessFunction fcall = this;
-        return new AsyncMethodCallback<Boolean>() { 
-          public void onComplete(Boolean o) {
+        return new AsyncMethodCallback<PromoteBlockTResponse>() { 
+          public void onComplete(PromoteBlockTResponse o) {
             promoteBlock_result result = new promoteBlock_result();
             result.success = o;
-            result.setSuccessIsSet(true);
             try {
               fcall.sendResponse(fb,result, org.apache.thrift.protocol.TMessageType.REPLY,seqid);
               return;
@@ -1411,11 +1439,6 @@ public class BlockWorkerClientService {
             if (e instanceof alluxio.thrift.AlluxioTException) {
                         result.e = (alluxio.thrift.AlluxioTException) e;
                         result.setEIsSet(true);
-                        msg = result;
-            }
-            else             if (e instanceof alluxio.thrift.ThriftIOException) {
-                        result.ioe = (alluxio.thrift.ThriftIOException) e;
-                        result.setIoeIsSet(true);
                         msg = result;
             }
              else 
@@ -1438,12 +1461,12 @@ public class BlockWorkerClientService {
         return false;
       }
 
-      public void start(I iface, promoteBlock_args args, org.apache.thrift.async.AsyncMethodCallback<Boolean> resultHandler) throws TException {
-        iface.promoteBlock(args.blockId,resultHandler);
+      public void start(I iface, promoteBlock_args args, org.apache.thrift.async.AsyncMethodCallback<PromoteBlockTResponse> resultHandler) throws TException {
+        iface.promoteBlock(args.blockId, args.options,resultHandler);
       }
     }
 
-    public static class removeBlock<I extends AsyncIface> extends org.apache.thrift.AsyncProcessFunction<I, removeBlock_args, Void> {
+    public static class removeBlock<I extends AsyncIface> extends org.apache.thrift.AsyncProcessFunction<I, removeBlock_args, RemoveBlockTResponse> {
       public removeBlock() {
         super("removeBlock");
       }
@@ -1452,11 +1475,12 @@ public class BlockWorkerClientService {
         return new removeBlock_args();
       }
 
-      public AsyncMethodCallback<Void> getResultHandler(final AsyncFrameBuffer fb, final int seqid) {
+      public AsyncMethodCallback<RemoveBlockTResponse> getResultHandler(final AsyncFrameBuffer fb, final int seqid) {
         final org.apache.thrift.AsyncProcessFunction fcall = this;
-        return new AsyncMethodCallback<Void>() { 
-          public void onComplete(Void o) {
+        return new AsyncMethodCallback<RemoveBlockTResponse>() { 
+          public void onComplete(RemoveBlockTResponse o) {
             removeBlock_result result = new removeBlock_result();
+            result.success = o;
             try {
               fcall.sendResponse(fb,result, org.apache.thrift.protocol.TMessageType.REPLY,seqid);
               return;
@@ -1472,11 +1496,6 @@ public class BlockWorkerClientService {
             if (e instanceof alluxio.thrift.AlluxioTException) {
                         result.e = (alluxio.thrift.AlluxioTException) e;
                         result.setEIsSet(true);
-                        msg = result;
-            }
-            else             if (e instanceof alluxio.thrift.ThriftIOException) {
-                        result.ioe = (alluxio.thrift.ThriftIOException) e;
-                        result.setIoeIsSet(true);
                         msg = result;
             }
              else 
@@ -1499,12 +1518,12 @@ public class BlockWorkerClientService {
         return false;
       }
 
-      public void start(I iface, removeBlock_args args, org.apache.thrift.async.AsyncMethodCallback<Void> resultHandler) throws TException {
-        iface.removeBlock(args.blockId,resultHandler);
+      public void start(I iface, removeBlock_args args, org.apache.thrift.async.AsyncMethodCallback<RemoveBlockTResponse> resultHandler) throws TException {
+        iface.removeBlock(args.blockId, args.options,resultHandler);
       }
     }
 
-    public static class requestBlockLocation<I extends AsyncIface> extends org.apache.thrift.AsyncProcessFunction<I, requestBlockLocation_args, String> {
+    public static class requestBlockLocation<I extends AsyncIface> extends org.apache.thrift.AsyncProcessFunction<I, requestBlockLocation_args, RequestBlockLocationTResponse> {
       public requestBlockLocation() {
         super("requestBlockLocation");
       }
@@ -1513,10 +1532,10 @@ public class BlockWorkerClientService {
         return new requestBlockLocation_args();
       }
 
-      public AsyncMethodCallback<String> getResultHandler(final AsyncFrameBuffer fb, final int seqid) {
+      public AsyncMethodCallback<RequestBlockLocationTResponse> getResultHandler(final AsyncFrameBuffer fb, final int seqid) {
         final org.apache.thrift.AsyncProcessFunction fcall = this;
-        return new AsyncMethodCallback<String>() { 
-          public void onComplete(String o) {
+        return new AsyncMethodCallback<RequestBlockLocationTResponse>() { 
+          public void onComplete(RequestBlockLocationTResponse o) {
             requestBlockLocation_result result = new requestBlockLocation_result();
             result.success = o;
             try {
@@ -1534,11 +1553,6 @@ public class BlockWorkerClientService {
             if (e instanceof alluxio.thrift.AlluxioTException) {
                         result.e = (alluxio.thrift.AlluxioTException) e;
                         result.setEIsSet(true);
-                        msg = result;
-            }
-            else             if (e instanceof alluxio.thrift.ThriftIOException) {
-                        result.ioe = (alluxio.thrift.ThriftIOException) e;
-                        result.setIoeIsSet(true);
                         msg = result;
             }
              else 
@@ -1561,12 +1575,12 @@ public class BlockWorkerClientService {
         return false;
       }
 
-      public void start(I iface, requestBlockLocation_args args, org.apache.thrift.async.AsyncMethodCallback<String> resultHandler) throws TException {
-        iface.requestBlockLocation(args.sessionId, args.blockId, args.initialBytes, args.writeTier,resultHandler);
+      public void start(I iface, requestBlockLocation_args args, org.apache.thrift.async.AsyncMethodCallback<RequestBlockLocationTResponse> resultHandler) throws TException {
+        iface.requestBlockLocation(args.sessionId, args.blockId, args.initialBytes, args.writeTier, args.options,resultHandler);
       }
     }
 
-    public static class requestSpace<I extends AsyncIface> extends org.apache.thrift.AsyncProcessFunction<I, requestSpace_args, Boolean> {
+    public static class requestSpace<I extends AsyncIface> extends org.apache.thrift.AsyncProcessFunction<I, requestSpace_args, RequestSpaceTResponse> {
       public requestSpace() {
         super("requestSpace");
       }
@@ -1575,13 +1589,12 @@ public class BlockWorkerClientService {
         return new requestSpace_args();
       }
 
-      public AsyncMethodCallback<Boolean> getResultHandler(final AsyncFrameBuffer fb, final int seqid) {
+      public AsyncMethodCallback<RequestSpaceTResponse> getResultHandler(final AsyncFrameBuffer fb, final int seqid) {
         final org.apache.thrift.AsyncProcessFunction fcall = this;
-        return new AsyncMethodCallback<Boolean>() { 
-          public void onComplete(Boolean o) {
+        return new AsyncMethodCallback<RequestSpaceTResponse>() { 
+          public void onComplete(RequestSpaceTResponse o) {
             requestSpace_result result = new requestSpace_result();
             result.success = o;
-            result.setSuccessIsSet(true);
             try {
               fcall.sendResponse(fb,result, org.apache.thrift.protocol.TMessageType.REPLY,seqid);
               return;
@@ -1619,25 +1632,26 @@ public class BlockWorkerClientService {
         return false;
       }
 
-      public void start(I iface, requestSpace_args args, org.apache.thrift.async.AsyncMethodCallback<Boolean> resultHandler) throws TException {
-        iface.requestSpace(args.sessionId, args.blockId, args.requestBytes,resultHandler);
+      public void start(I iface, requestSpace_args args, org.apache.thrift.async.AsyncMethodCallback<RequestSpaceTResponse> resultHandler) throws TException {
+        iface.requestSpace(args.sessionId, args.blockId, args.requestBytes, args.options,resultHandler);
       }
     }
 
-    public static class sessionHeartbeat<I extends AsyncIface> extends org.apache.thrift.AsyncProcessFunction<I, sessionHeartbeat_args, Void> {
-      public sessionHeartbeat() {
-        super("sessionHeartbeat");
+    public static class sessionBlockHeartbeat<I extends AsyncIface> extends org.apache.thrift.AsyncProcessFunction<I, sessionBlockHeartbeat_args, SessionBlockHeartbeatTResponse> {
+      public sessionBlockHeartbeat() {
+        super("sessionBlockHeartbeat");
       }
 
-      public sessionHeartbeat_args getEmptyArgsInstance() {
-        return new sessionHeartbeat_args();
+      public sessionBlockHeartbeat_args getEmptyArgsInstance() {
+        return new sessionBlockHeartbeat_args();
       }
 
-      public AsyncMethodCallback<Void> getResultHandler(final AsyncFrameBuffer fb, final int seqid) {
+      public AsyncMethodCallback<SessionBlockHeartbeatTResponse> getResultHandler(final AsyncFrameBuffer fb, final int seqid) {
         final org.apache.thrift.AsyncProcessFunction fcall = this;
-        return new AsyncMethodCallback<Void>() { 
-          public void onComplete(Void o) {
-            sessionHeartbeat_result result = new sessionHeartbeat_result();
+        return new AsyncMethodCallback<SessionBlockHeartbeatTResponse>() { 
+          public void onComplete(SessionBlockHeartbeatTResponse o) {
+            sessionBlockHeartbeat_result result = new sessionBlockHeartbeat_result();
+            result.success = o;
             try {
               fcall.sendResponse(fb,result, org.apache.thrift.protocol.TMessageType.REPLY,seqid);
               return;
@@ -1649,7 +1663,7 @@ public class BlockWorkerClientService {
           public void onError(Exception e) {
             byte msgType = org.apache.thrift.protocol.TMessageType.REPLY;
             org.apache.thrift.TBase msg;
-            sessionHeartbeat_result result = new sessionHeartbeat_result();
+            sessionBlockHeartbeat_result result = new sessionBlockHeartbeat_result();
             if (e instanceof alluxio.thrift.AlluxioTException) {
                         result.e = (alluxio.thrift.AlluxioTException) e;
                         result.setEIsSet(true);
@@ -1675,12 +1689,12 @@ public class BlockWorkerClientService {
         return false;
       }
 
-      public void start(I iface, sessionHeartbeat_args args, org.apache.thrift.async.AsyncMethodCallback<Void> resultHandler) throws TException {
-        iface.sessionHeartbeat(args.sessionId, args.metrics,resultHandler);
+      public void start(I iface, sessionBlockHeartbeat_args args, org.apache.thrift.async.AsyncMethodCallback<SessionBlockHeartbeatTResponse> resultHandler) throws TException {
+        iface.sessionBlockHeartbeat(args.sessionId, args.metrics, args.options,resultHandler);
       }
     }
 
-    public static class unlockBlock<I extends AsyncIface> extends org.apache.thrift.AsyncProcessFunction<I, unlockBlock_args, Boolean> {
+    public static class unlockBlock<I extends AsyncIface> extends org.apache.thrift.AsyncProcessFunction<I, unlockBlock_args, UnlockBlockTResponse> {
       public unlockBlock() {
         super("unlockBlock");
       }
@@ -1689,13 +1703,12 @@ public class BlockWorkerClientService {
         return new unlockBlock_args();
       }
 
-      public AsyncMethodCallback<Boolean> getResultHandler(final AsyncFrameBuffer fb, final int seqid) {
+      public AsyncMethodCallback<UnlockBlockTResponse> getResultHandler(final AsyncFrameBuffer fb, final int seqid) {
         final org.apache.thrift.AsyncProcessFunction fcall = this;
-        return new AsyncMethodCallback<Boolean>() { 
-          public void onComplete(Boolean o) {
+        return new AsyncMethodCallback<UnlockBlockTResponse>() { 
+          public void onComplete(UnlockBlockTResponse o) {
             unlockBlock_result result = new unlockBlock_result();
             result.success = o;
-            result.setSuccessIsSet(true);
             try {
               fcall.sendResponse(fb,result, org.apache.thrift.protocol.TMessageType.REPLY,seqid);
               return;
@@ -1711,11 +1724,6 @@ public class BlockWorkerClientService {
             if (e instanceof alluxio.thrift.AlluxioTException) {
                         result.e = (alluxio.thrift.AlluxioTException) e;
                         result.setEIsSet(true);
-                        msg = result;
-            }
-            else             if (e instanceof alluxio.thrift.ThriftIOException) {
-                        result.ioe = (alluxio.thrift.ThriftIOException) e;
-                        result.setIoeIsSet(true);
                         msg = result;
             }
              else 
@@ -1738,8 +1746,8 @@ public class BlockWorkerClientService {
         return false;
       }
 
-      public void start(I iface, unlockBlock_args args, org.apache.thrift.async.AsyncMethodCallback<Boolean> resultHandler) throws TException {
-        iface.unlockBlock(args.blockId, args.sessionId,resultHandler);
+      public void start(I iface, unlockBlock_args args, org.apache.thrift.async.AsyncMethodCallback<UnlockBlockTResponse> resultHandler) throws TException {
+        iface.unlockBlock(args.blockId, args.sessionId, args.options,resultHandler);
       }
     }
 
@@ -1749,6 +1757,7 @@ public class BlockWorkerClientService {
     private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("accessBlock_args");
 
     private static final org.apache.thrift.protocol.TField BLOCK_ID_FIELD_DESC = new org.apache.thrift.protocol.TField("blockId", org.apache.thrift.protocol.TType.I64, (short)1);
+    private static final org.apache.thrift.protocol.TField OPTIONS_FIELD_DESC = new org.apache.thrift.protocol.TField("options", org.apache.thrift.protocol.TType.STRUCT, (short)2);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
@@ -1757,13 +1766,18 @@ public class BlockWorkerClientService {
     }
 
     private long blockId; // required
+    private AccessBlockTOptions options; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
       /**
        * the id of the block being accessed
        */
-      BLOCK_ID((short)1, "blockId");
+      BLOCK_ID((short)1, "blockId"),
+      /**
+       * the method options
+       */
+      OPTIONS((short)2, "options");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -1780,6 +1794,8 @@ public class BlockWorkerClientService {
         switch(fieldId) {
           case 1: // BLOCK_ID
             return BLOCK_ID;
+          case 2: // OPTIONS
+            return OPTIONS;
           default:
             return null;
         }
@@ -1827,6 +1843,8 @@ public class BlockWorkerClientService {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
       tmpMap.put(_Fields.BLOCK_ID, new org.apache.thrift.meta_data.FieldMetaData("blockId", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
+      tmpMap.put(_Fields.OPTIONS, new org.apache.thrift.meta_data.FieldMetaData("options", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, AccessBlockTOptions.class)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(accessBlock_args.class, metaDataMap);
     }
@@ -1835,11 +1853,13 @@ public class BlockWorkerClientService {
     }
 
     public accessBlock_args(
-      long blockId)
+      long blockId,
+      AccessBlockTOptions options)
     {
       this();
       this.blockId = blockId;
       setBlockIdIsSet(true);
+      this.options = options;
     }
 
     /**
@@ -1848,6 +1868,9 @@ public class BlockWorkerClientService {
     public accessBlock_args(accessBlock_args other) {
       __isset_bitfield = other.__isset_bitfield;
       this.blockId = other.blockId;
+      if (other.isSetOptions()) {
+        this.options = new AccessBlockTOptions(other.options);
+      }
     }
 
     public accessBlock_args deepCopy() {
@@ -1858,6 +1881,7 @@ public class BlockWorkerClientService {
     public void clear() {
       setBlockIdIsSet(false);
       this.blockId = 0;
+      this.options = null;
     }
 
     /**
@@ -1889,6 +1913,36 @@ public class BlockWorkerClientService {
       __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __BLOCKID_ISSET_ID, value);
     }
 
+    /**
+     * the method options
+     */
+    public AccessBlockTOptions getOptions() {
+      return this.options;
+    }
+
+    /**
+     * the method options
+     */
+    public accessBlock_args setOptions(AccessBlockTOptions options) {
+      this.options = options;
+      return this;
+    }
+
+    public void unsetOptions() {
+      this.options = null;
+    }
+
+    /** Returns true if field options is set (has been assigned a value) and false otherwise */
+    public boolean isSetOptions() {
+      return this.options != null;
+    }
+
+    public void setOptionsIsSet(boolean value) {
+      if (!value) {
+        this.options = null;
+      }
+    }
+
     public void setFieldValue(_Fields field, Object value) {
       switch (field) {
       case BLOCK_ID:
@@ -1899,6 +1953,14 @@ public class BlockWorkerClientService {
         }
         break;
 
+      case OPTIONS:
+        if (value == null) {
+          unsetOptions();
+        } else {
+          setOptions((AccessBlockTOptions)value);
+        }
+        break;
+
       }
     }
 
@@ -1906,6 +1968,9 @@ public class BlockWorkerClientService {
       switch (field) {
       case BLOCK_ID:
         return getBlockId();
+
+      case OPTIONS:
+        return getOptions();
 
       }
       throw new IllegalStateException();
@@ -1920,6 +1985,8 @@ public class BlockWorkerClientService {
       switch (field) {
       case BLOCK_ID:
         return isSetBlockId();
+      case OPTIONS:
+        return isSetOptions();
       }
       throw new IllegalStateException();
     }
@@ -1946,6 +2013,15 @@ public class BlockWorkerClientService {
           return false;
       }
 
+      boolean this_present_options = true && this.isSetOptions();
+      boolean that_present_options = true && that.isSetOptions();
+      if (this_present_options || that_present_options) {
+        if (!(this_present_options && that_present_options))
+          return false;
+        if (!this.options.equals(that.options))
+          return false;
+      }
+
       return true;
     }
 
@@ -1957,6 +2033,11 @@ public class BlockWorkerClientService {
       list.add(present_blockId);
       if (present_blockId)
         list.add(blockId);
+
+      boolean present_options = true && (isSetOptions());
+      list.add(present_options);
+      if (present_options)
+        list.add(options);
 
       return list.hashCode();
     }
@@ -1975,6 +2056,16 @@ public class BlockWorkerClientService {
       }
       if (isSetBlockId()) {
         lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.blockId, other.blockId);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
+      lastComparison = Boolean.valueOf(isSetOptions()).compareTo(other.isSetOptions());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetOptions()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.options, other.options);
         if (lastComparison != 0) {
           return lastComparison;
         }
@@ -2002,6 +2093,14 @@ public class BlockWorkerClientService {
       sb.append("blockId:");
       sb.append(this.blockId);
       first = false;
+      if (!first) sb.append(", ");
+      sb.append("options:");
+      if (this.options == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.options);
+      }
+      first = false;
       sb.append(")");
       return sb.toString();
     }
@@ -2009,6 +2108,9 @@ public class BlockWorkerClientService {
     public void validate() throws org.apache.thrift.TException {
       // check for required fields
       // check for sub-struct validity
+      if (options != null) {
+        options.validate();
+      }
     }
 
     private void writeObject(java.io.ObjectOutputStream out) throws java.io.IOException {
@@ -2055,6 +2157,15 @@ public class BlockWorkerClientService {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
+            case 2: // OPTIONS
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                struct.options = new AccessBlockTOptions();
+                struct.options.read(iprot);
+                struct.setOptionsIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
             default:
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
           }
@@ -2073,6 +2184,11 @@ public class BlockWorkerClientService {
         oprot.writeFieldBegin(BLOCK_ID_FIELD_DESC);
         oprot.writeI64(struct.blockId);
         oprot.writeFieldEnd();
+        if (struct.options != null) {
+          oprot.writeFieldBegin(OPTIONS_FIELD_DESC);
+          struct.options.write(oprot);
+          oprot.writeFieldEnd();
+        }
         oprot.writeFieldStop();
         oprot.writeStructEnd();
       }
@@ -2094,19 +2210,30 @@ public class BlockWorkerClientService {
         if (struct.isSetBlockId()) {
           optionals.set(0);
         }
-        oprot.writeBitSet(optionals, 1);
+        if (struct.isSetOptions()) {
+          optionals.set(1);
+        }
+        oprot.writeBitSet(optionals, 2);
         if (struct.isSetBlockId()) {
           oprot.writeI64(struct.blockId);
+        }
+        if (struct.isSetOptions()) {
+          struct.options.write(oprot);
         }
       }
 
       @Override
       public void read(org.apache.thrift.protocol.TProtocol prot, accessBlock_args struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
-        BitSet incoming = iprot.readBitSet(1);
+        BitSet incoming = iprot.readBitSet(2);
         if (incoming.get(0)) {
           struct.blockId = iprot.readI64();
           struct.setBlockIdIsSet(true);
+        }
+        if (incoming.get(1)) {
+          struct.options = new AccessBlockTOptions();
+          struct.options.read(iprot);
+          struct.setOptionsIsSet(true);
         }
       }
     }
@@ -2116,6 +2243,7 @@ public class BlockWorkerClientService {
   public static class accessBlock_result implements org.apache.thrift.TBase<accessBlock_result, accessBlock_result._Fields>, java.io.Serializable, Cloneable, Comparable<accessBlock_result>   {
     private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("accessBlock_result");
 
+    private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.STRUCT, (short)0);
     private static final org.apache.thrift.protocol.TField E_FIELD_DESC = new org.apache.thrift.protocol.TField("e", org.apache.thrift.protocol.TType.STRUCT, (short)1);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
@@ -2124,10 +2252,12 @@ public class BlockWorkerClientService {
       schemes.put(TupleScheme.class, new accessBlock_resultTupleSchemeFactory());
     }
 
+    private AccessBlockTResponse success; // required
     private alluxio.thrift.AlluxioTException e; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
+      SUCCESS((short)0, "success"),
       E((short)1, "e");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
@@ -2143,6 +2273,8 @@ public class BlockWorkerClientService {
        */
       public static _Fields findByThriftId(int fieldId) {
         switch(fieldId) {
+          case 0: // SUCCESS
+            return SUCCESS;
           case 1: // E
             return E;
           default:
@@ -2188,6 +2320,8 @@ public class BlockWorkerClientService {
     public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
     static {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
+      tmpMap.put(_Fields.SUCCESS, new org.apache.thrift.meta_data.FieldMetaData("success", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, AccessBlockTResponse.class)));
       tmpMap.put(_Fields.E, new org.apache.thrift.meta_data.FieldMetaData("e", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
@@ -2198,9 +2332,11 @@ public class BlockWorkerClientService {
     }
 
     public accessBlock_result(
+      AccessBlockTResponse success,
       alluxio.thrift.AlluxioTException e)
     {
       this();
+      this.success = success;
       this.e = e;
     }
 
@@ -2208,6 +2344,9 @@ public class BlockWorkerClientService {
      * Performs a deep copy on <i>other</i>.
      */
     public accessBlock_result(accessBlock_result other) {
+      if (other.isSetSuccess()) {
+        this.success = new AccessBlockTResponse(other.success);
+      }
       if (other.isSetE()) {
         this.e = new alluxio.thrift.AlluxioTException(other.e);
       }
@@ -2219,7 +2358,32 @@ public class BlockWorkerClientService {
 
     @Override
     public void clear() {
+      this.success = null;
       this.e = null;
+    }
+
+    public AccessBlockTResponse getSuccess() {
+      return this.success;
+    }
+
+    public accessBlock_result setSuccess(AccessBlockTResponse success) {
+      this.success = success;
+      return this;
+    }
+
+    public void unsetSuccess() {
+      this.success = null;
+    }
+
+    /** Returns true if field success is set (has been assigned a value) and false otherwise */
+    public boolean isSetSuccess() {
+      return this.success != null;
+    }
+
+    public void setSuccessIsSet(boolean value) {
+      if (!value) {
+        this.success = null;
+      }
     }
 
     public alluxio.thrift.AlluxioTException getE() {
@@ -2248,6 +2412,14 @@ public class BlockWorkerClientService {
 
     public void setFieldValue(_Fields field, Object value) {
       switch (field) {
+      case SUCCESS:
+        if (value == null) {
+          unsetSuccess();
+        } else {
+          setSuccess((AccessBlockTResponse)value);
+        }
+        break;
+
       case E:
         if (value == null) {
           unsetE();
@@ -2261,6 +2433,9 @@ public class BlockWorkerClientService {
 
     public Object getFieldValue(_Fields field) {
       switch (field) {
+      case SUCCESS:
+        return getSuccess();
+
       case E:
         return getE();
 
@@ -2275,6 +2450,8 @@ public class BlockWorkerClientService {
       }
 
       switch (field) {
+      case SUCCESS:
+        return isSetSuccess();
       case E:
         return isSetE();
       }
@@ -2294,6 +2471,15 @@ public class BlockWorkerClientService {
       if (that == null)
         return false;
 
+      boolean this_present_success = true && this.isSetSuccess();
+      boolean that_present_success = true && that.isSetSuccess();
+      if (this_present_success || that_present_success) {
+        if (!(this_present_success && that_present_success))
+          return false;
+        if (!this.success.equals(that.success))
+          return false;
+      }
+
       boolean this_present_e = true && this.isSetE();
       boolean that_present_e = true && that.isSetE();
       if (this_present_e || that_present_e) {
@@ -2309,6 +2495,11 @@ public class BlockWorkerClientService {
     @Override
     public int hashCode() {
       List<Object> list = new ArrayList<Object>();
+
+      boolean present_success = true && (isSetSuccess());
+      list.add(present_success);
+      if (present_success)
+        list.add(success);
 
       boolean present_e = true && (isSetE());
       list.add(present_e);
@@ -2326,6 +2517,16 @@ public class BlockWorkerClientService {
 
       int lastComparison = 0;
 
+      lastComparison = Boolean.valueOf(isSetSuccess()).compareTo(other.isSetSuccess());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetSuccess()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.success, other.success);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
       lastComparison = Boolean.valueOf(isSetE()).compareTo(other.isSetE());
       if (lastComparison != 0) {
         return lastComparison;
@@ -2356,6 +2557,14 @@ public class BlockWorkerClientService {
       StringBuilder sb = new StringBuilder("accessBlock_result(");
       boolean first = true;
 
+      sb.append("success:");
+      if (this.success == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.success);
+      }
+      first = false;
+      if (!first) sb.append(", ");
       sb.append("e:");
       if (this.e == null) {
         sb.append("null");
@@ -2370,6 +2579,9 @@ public class BlockWorkerClientService {
     public void validate() throws org.apache.thrift.TException {
       // check for required fields
       // check for sub-struct validity
+      if (success != null) {
+        success.validate();
+      }
     }
 
     private void writeObject(java.io.ObjectOutputStream out) throws java.io.IOException {
@@ -2406,6 +2618,15 @@ public class BlockWorkerClientService {
             break;
           }
           switch (schemeField.id) {
+            case 0: // SUCCESS
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                struct.success = new AccessBlockTResponse();
+                struct.success.read(iprot);
+                struct.setSuccessIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
             case 1: // E
               if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
                 struct.e = new alluxio.thrift.AlluxioTException();
@@ -2430,6 +2651,11 @@ public class BlockWorkerClientService {
         struct.validate();
 
         oprot.writeStructBegin(STRUCT_DESC);
+        if (struct.success != null) {
+          oprot.writeFieldBegin(SUCCESS_FIELD_DESC);
+          struct.success.write(oprot);
+          oprot.writeFieldEnd();
+        }
         if (struct.e != null) {
           oprot.writeFieldBegin(E_FIELD_DESC);
           struct.e.write(oprot);
@@ -2453,10 +2679,16 @@ public class BlockWorkerClientService {
       public void write(org.apache.thrift.protocol.TProtocol prot, accessBlock_result struct) throws org.apache.thrift.TException {
         TTupleProtocol oprot = (TTupleProtocol) prot;
         BitSet optionals = new BitSet();
-        if (struct.isSetE()) {
+        if (struct.isSetSuccess()) {
           optionals.set(0);
         }
-        oprot.writeBitSet(optionals, 1);
+        if (struct.isSetE()) {
+          optionals.set(1);
+        }
+        oprot.writeBitSet(optionals, 2);
+        if (struct.isSetSuccess()) {
+          struct.success.write(oprot);
+        }
         if (struct.isSetE()) {
           struct.e.write(oprot);
         }
@@ -2465,8 +2697,13 @@ public class BlockWorkerClientService {
       @Override
       public void read(org.apache.thrift.protocol.TProtocol prot, accessBlock_result struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
-        BitSet incoming = iprot.readBitSet(1);
+        BitSet incoming = iprot.readBitSet(2);
         if (incoming.get(0)) {
+          struct.success = new AccessBlockTResponse();
+          struct.success.read(iprot);
+          struct.setSuccessIsSet(true);
+        }
+        if (incoming.get(1)) {
           struct.e = new alluxio.thrift.AlluxioTException();
           struct.e.read(iprot);
           struct.setEIsSet(true);
@@ -2481,6 +2718,7 @@ public class BlockWorkerClientService {
 
     private static final org.apache.thrift.protocol.TField SESSION_ID_FIELD_DESC = new org.apache.thrift.protocol.TField("sessionId", org.apache.thrift.protocol.TType.I64, (short)1);
     private static final org.apache.thrift.protocol.TField BLOCK_ID_FIELD_DESC = new org.apache.thrift.protocol.TField("blockId", org.apache.thrift.protocol.TType.I64, (short)2);
+    private static final org.apache.thrift.protocol.TField OPTIONS_FIELD_DESC = new org.apache.thrift.protocol.TField("options", org.apache.thrift.protocol.TType.STRUCT, (short)3);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
@@ -2490,6 +2728,7 @@ public class BlockWorkerClientService {
 
     private long sessionId; // required
     private long blockId; // required
+    private CacheBlockTOptions options; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
@@ -2500,7 +2739,11 @@ public class BlockWorkerClientService {
       /**
        * the id of the block being accessed
        */
-      BLOCK_ID((short)2, "blockId");
+      BLOCK_ID((short)2, "blockId"),
+      /**
+       * the method options
+       */
+      OPTIONS((short)3, "options");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -2519,6 +2762,8 @@ public class BlockWorkerClientService {
             return SESSION_ID;
           case 2: // BLOCK_ID
             return BLOCK_ID;
+          case 3: // OPTIONS
+            return OPTIONS;
           default:
             return null;
         }
@@ -2569,6 +2814,8 @@ public class BlockWorkerClientService {
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
       tmpMap.put(_Fields.BLOCK_ID, new org.apache.thrift.meta_data.FieldMetaData("blockId", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
+      tmpMap.put(_Fields.OPTIONS, new org.apache.thrift.meta_data.FieldMetaData("options", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, CacheBlockTOptions.class)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(cacheBlock_args.class, metaDataMap);
     }
@@ -2578,13 +2825,15 @@ public class BlockWorkerClientService {
 
     public cacheBlock_args(
       long sessionId,
-      long blockId)
+      long blockId,
+      CacheBlockTOptions options)
     {
       this();
       this.sessionId = sessionId;
       setSessionIdIsSet(true);
       this.blockId = blockId;
       setBlockIdIsSet(true);
+      this.options = options;
     }
 
     /**
@@ -2594,6 +2843,9 @@ public class BlockWorkerClientService {
       __isset_bitfield = other.__isset_bitfield;
       this.sessionId = other.sessionId;
       this.blockId = other.blockId;
+      if (other.isSetOptions()) {
+        this.options = new CacheBlockTOptions(other.options);
+      }
     }
 
     public cacheBlock_args deepCopy() {
@@ -2606,6 +2858,7 @@ public class BlockWorkerClientService {
       this.sessionId = 0;
       setBlockIdIsSet(false);
       this.blockId = 0;
+      this.options = null;
     }
 
     /**
@@ -2666,6 +2919,36 @@ public class BlockWorkerClientService {
       __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __BLOCKID_ISSET_ID, value);
     }
 
+    /**
+     * the method options
+     */
+    public CacheBlockTOptions getOptions() {
+      return this.options;
+    }
+
+    /**
+     * the method options
+     */
+    public cacheBlock_args setOptions(CacheBlockTOptions options) {
+      this.options = options;
+      return this;
+    }
+
+    public void unsetOptions() {
+      this.options = null;
+    }
+
+    /** Returns true if field options is set (has been assigned a value) and false otherwise */
+    public boolean isSetOptions() {
+      return this.options != null;
+    }
+
+    public void setOptionsIsSet(boolean value) {
+      if (!value) {
+        this.options = null;
+      }
+    }
+
     public void setFieldValue(_Fields field, Object value) {
       switch (field) {
       case SESSION_ID:
@@ -2684,6 +2967,14 @@ public class BlockWorkerClientService {
         }
         break;
 
+      case OPTIONS:
+        if (value == null) {
+          unsetOptions();
+        } else {
+          setOptions((CacheBlockTOptions)value);
+        }
+        break;
+
       }
     }
 
@@ -2694,6 +2985,9 @@ public class BlockWorkerClientService {
 
       case BLOCK_ID:
         return getBlockId();
+
+      case OPTIONS:
+        return getOptions();
 
       }
       throw new IllegalStateException();
@@ -2710,6 +3004,8 @@ public class BlockWorkerClientService {
         return isSetSessionId();
       case BLOCK_ID:
         return isSetBlockId();
+      case OPTIONS:
+        return isSetOptions();
       }
       throw new IllegalStateException();
     }
@@ -2745,6 +3041,15 @@ public class BlockWorkerClientService {
           return false;
       }
 
+      boolean this_present_options = true && this.isSetOptions();
+      boolean that_present_options = true && that.isSetOptions();
+      if (this_present_options || that_present_options) {
+        if (!(this_present_options && that_present_options))
+          return false;
+        if (!this.options.equals(that.options))
+          return false;
+      }
+
       return true;
     }
 
@@ -2761,6 +3066,11 @@ public class BlockWorkerClientService {
       list.add(present_blockId);
       if (present_blockId)
         list.add(blockId);
+
+      boolean present_options = true && (isSetOptions());
+      list.add(present_options);
+      if (present_options)
+        list.add(options);
 
       return list.hashCode();
     }
@@ -2793,6 +3103,16 @@ public class BlockWorkerClientService {
           return lastComparison;
         }
       }
+      lastComparison = Boolean.valueOf(isSetOptions()).compareTo(other.isSetOptions());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetOptions()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.options, other.options);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
       return 0;
     }
 
@@ -2820,6 +3140,14 @@ public class BlockWorkerClientService {
       sb.append("blockId:");
       sb.append(this.blockId);
       first = false;
+      if (!first) sb.append(", ");
+      sb.append("options:");
+      if (this.options == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.options);
+      }
+      first = false;
       sb.append(")");
       return sb.toString();
     }
@@ -2827,6 +3155,9 @@ public class BlockWorkerClientService {
     public void validate() throws org.apache.thrift.TException {
       // check for required fields
       // check for sub-struct validity
+      if (options != null) {
+        options.validate();
+      }
     }
 
     private void writeObject(java.io.ObjectOutputStream out) throws java.io.IOException {
@@ -2881,6 +3212,15 @@ public class BlockWorkerClientService {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
+            case 3: // OPTIONS
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                struct.options = new CacheBlockTOptions();
+                struct.options.read(iprot);
+                struct.setOptionsIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
             default:
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
           }
@@ -2902,6 +3242,11 @@ public class BlockWorkerClientService {
         oprot.writeFieldBegin(BLOCK_ID_FIELD_DESC);
         oprot.writeI64(struct.blockId);
         oprot.writeFieldEnd();
+        if (struct.options != null) {
+          oprot.writeFieldBegin(OPTIONS_FIELD_DESC);
+          struct.options.write(oprot);
+          oprot.writeFieldEnd();
+        }
         oprot.writeFieldStop();
         oprot.writeStructEnd();
       }
@@ -2926,19 +3271,25 @@ public class BlockWorkerClientService {
         if (struct.isSetBlockId()) {
           optionals.set(1);
         }
-        oprot.writeBitSet(optionals, 2);
+        if (struct.isSetOptions()) {
+          optionals.set(2);
+        }
+        oprot.writeBitSet(optionals, 3);
         if (struct.isSetSessionId()) {
           oprot.writeI64(struct.sessionId);
         }
         if (struct.isSetBlockId()) {
           oprot.writeI64(struct.blockId);
         }
+        if (struct.isSetOptions()) {
+          struct.options.write(oprot);
+        }
       }
 
       @Override
       public void read(org.apache.thrift.protocol.TProtocol prot, cacheBlock_args struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
-        BitSet incoming = iprot.readBitSet(2);
+        BitSet incoming = iprot.readBitSet(3);
         if (incoming.get(0)) {
           struct.sessionId = iprot.readI64();
           struct.setSessionIdIsSet(true);
@@ -2946,6 +3297,11 @@ public class BlockWorkerClientService {
         if (incoming.get(1)) {
           struct.blockId = iprot.readI64();
           struct.setBlockIdIsSet(true);
+        }
+        if (incoming.get(2)) {
+          struct.options = new CacheBlockTOptions();
+          struct.options.read(iprot);
+          struct.setOptionsIsSet(true);
         }
       }
     }
@@ -2955,8 +3311,8 @@ public class BlockWorkerClientService {
   public static class cacheBlock_result implements org.apache.thrift.TBase<cacheBlock_result, cacheBlock_result._Fields>, java.io.Serializable, Cloneable, Comparable<cacheBlock_result>   {
     private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("cacheBlock_result");
 
+    private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.STRUCT, (short)0);
     private static final org.apache.thrift.protocol.TField E_FIELD_DESC = new org.apache.thrift.protocol.TField("e", org.apache.thrift.protocol.TType.STRUCT, (short)1);
-    private static final org.apache.thrift.protocol.TField IOE_FIELD_DESC = new org.apache.thrift.protocol.TField("ioe", org.apache.thrift.protocol.TType.STRUCT, (short)2);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
@@ -2964,13 +3320,13 @@ public class BlockWorkerClientService {
       schemes.put(TupleScheme.class, new cacheBlock_resultTupleSchemeFactory());
     }
 
+    private CacheBlockTResponse success; // required
     private alluxio.thrift.AlluxioTException e; // required
-    private alluxio.thrift.ThriftIOException ioe; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-      E((short)1, "e"),
-      IOE((short)2, "ioe");
+      SUCCESS((short)0, "success"),
+      E((short)1, "e");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -2985,10 +3341,10 @@ public class BlockWorkerClientService {
        */
       public static _Fields findByThriftId(int fieldId) {
         switch(fieldId) {
+          case 0: // SUCCESS
+            return SUCCESS;
           case 1: // E
             return E;
-          case 2: // IOE
-            return IOE;
           default:
             return null;
         }
@@ -3032,9 +3388,9 @@ public class BlockWorkerClientService {
     public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
     static {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
+      tmpMap.put(_Fields.SUCCESS, new org.apache.thrift.meta_data.FieldMetaData("success", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, CacheBlockTResponse.class)));
       tmpMap.put(_Fields.E, new org.apache.thrift.meta_data.FieldMetaData("e", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
-      tmpMap.put(_Fields.IOE, new org.apache.thrift.meta_data.FieldMetaData("ioe", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(cacheBlock_result.class, metaDataMap);
@@ -3044,23 +3400,23 @@ public class BlockWorkerClientService {
     }
 
     public cacheBlock_result(
-      alluxio.thrift.AlluxioTException e,
-      alluxio.thrift.ThriftIOException ioe)
+      CacheBlockTResponse success,
+      alluxio.thrift.AlluxioTException e)
     {
       this();
+      this.success = success;
       this.e = e;
-      this.ioe = ioe;
     }
 
     /**
      * Performs a deep copy on <i>other</i>.
      */
     public cacheBlock_result(cacheBlock_result other) {
+      if (other.isSetSuccess()) {
+        this.success = new CacheBlockTResponse(other.success);
+      }
       if (other.isSetE()) {
         this.e = new alluxio.thrift.AlluxioTException(other.e);
-      }
-      if (other.isSetIoe()) {
-        this.ioe = new alluxio.thrift.ThriftIOException(other.ioe);
       }
     }
 
@@ -3070,8 +3426,32 @@ public class BlockWorkerClientService {
 
     @Override
     public void clear() {
+      this.success = null;
       this.e = null;
-      this.ioe = null;
+    }
+
+    public CacheBlockTResponse getSuccess() {
+      return this.success;
+    }
+
+    public cacheBlock_result setSuccess(CacheBlockTResponse success) {
+      this.success = success;
+      return this;
+    }
+
+    public void unsetSuccess() {
+      this.success = null;
+    }
+
+    /** Returns true if field success is set (has been assigned a value) and false otherwise */
+    public boolean isSetSuccess() {
+      return this.success != null;
+    }
+
+    public void setSuccessIsSet(boolean value) {
+      if (!value) {
+        this.success = null;
+      }
     }
 
     public alluxio.thrift.AlluxioTException getE() {
@@ -3098,32 +3478,16 @@ public class BlockWorkerClientService {
       }
     }
 
-    public alluxio.thrift.ThriftIOException getIoe() {
-      return this.ioe;
-    }
-
-    public cacheBlock_result setIoe(alluxio.thrift.ThriftIOException ioe) {
-      this.ioe = ioe;
-      return this;
-    }
-
-    public void unsetIoe() {
-      this.ioe = null;
-    }
-
-    /** Returns true if field ioe is set (has been assigned a value) and false otherwise */
-    public boolean isSetIoe() {
-      return this.ioe != null;
-    }
-
-    public void setIoeIsSet(boolean value) {
-      if (!value) {
-        this.ioe = null;
-      }
-    }
-
     public void setFieldValue(_Fields field, Object value) {
       switch (field) {
+      case SUCCESS:
+        if (value == null) {
+          unsetSuccess();
+        } else {
+          setSuccess((CacheBlockTResponse)value);
+        }
+        break;
+
       case E:
         if (value == null) {
           unsetE();
@@ -3132,24 +3496,16 @@ public class BlockWorkerClientService {
         }
         break;
 
-      case IOE:
-        if (value == null) {
-          unsetIoe();
-        } else {
-          setIoe((alluxio.thrift.ThriftIOException)value);
-        }
-        break;
-
       }
     }
 
     public Object getFieldValue(_Fields field) {
       switch (field) {
+      case SUCCESS:
+        return getSuccess();
+
       case E:
         return getE();
-
-      case IOE:
-        return getIoe();
 
       }
       throw new IllegalStateException();
@@ -3162,10 +3518,10 @@ public class BlockWorkerClientService {
       }
 
       switch (field) {
+      case SUCCESS:
+        return isSetSuccess();
       case E:
         return isSetE();
-      case IOE:
-        return isSetIoe();
       }
       throw new IllegalStateException();
     }
@@ -3183,21 +3539,21 @@ public class BlockWorkerClientService {
       if (that == null)
         return false;
 
+      boolean this_present_success = true && this.isSetSuccess();
+      boolean that_present_success = true && that.isSetSuccess();
+      if (this_present_success || that_present_success) {
+        if (!(this_present_success && that_present_success))
+          return false;
+        if (!this.success.equals(that.success))
+          return false;
+      }
+
       boolean this_present_e = true && this.isSetE();
       boolean that_present_e = true && that.isSetE();
       if (this_present_e || that_present_e) {
         if (!(this_present_e && that_present_e))
           return false;
         if (!this.e.equals(that.e))
-          return false;
-      }
-
-      boolean this_present_ioe = true && this.isSetIoe();
-      boolean that_present_ioe = true && that.isSetIoe();
-      if (this_present_ioe || that_present_ioe) {
-        if (!(this_present_ioe && that_present_ioe))
-          return false;
-        if (!this.ioe.equals(that.ioe))
           return false;
       }
 
@@ -3208,15 +3564,15 @@ public class BlockWorkerClientService {
     public int hashCode() {
       List<Object> list = new ArrayList<Object>();
 
+      boolean present_success = true && (isSetSuccess());
+      list.add(present_success);
+      if (present_success)
+        list.add(success);
+
       boolean present_e = true && (isSetE());
       list.add(present_e);
       if (present_e)
         list.add(e);
-
-      boolean present_ioe = true && (isSetIoe());
-      list.add(present_ioe);
-      if (present_ioe)
-        list.add(ioe);
 
       return list.hashCode();
     }
@@ -3229,22 +3585,22 @@ public class BlockWorkerClientService {
 
       int lastComparison = 0;
 
+      lastComparison = Boolean.valueOf(isSetSuccess()).compareTo(other.isSetSuccess());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetSuccess()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.success, other.success);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
       lastComparison = Boolean.valueOf(isSetE()).compareTo(other.isSetE());
       if (lastComparison != 0) {
         return lastComparison;
       }
       if (isSetE()) {
         lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.e, other.e);
-        if (lastComparison != 0) {
-          return lastComparison;
-        }
-      }
-      lastComparison = Boolean.valueOf(isSetIoe()).compareTo(other.isSetIoe());
-      if (lastComparison != 0) {
-        return lastComparison;
-      }
-      if (isSetIoe()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.ioe, other.ioe);
         if (lastComparison != 0) {
           return lastComparison;
         }
@@ -3269,19 +3625,19 @@ public class BlockWorkerClientService {
       StringBuilder sb = new StringBuilder("cacheBlock_result(");
       boolean first = true;
 
+      sb.append("success:");
+      if (this.success == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.success);
+      }
+      first = false;
+      if (!first) sb.append(", ");
       sb.append("e:");
       if (this.e == null) {
         sb.append("null");
       } else {
         sb.append(this.e);
-      }
-      first = false;
-      if (!first) sb.append(", ");
-      sb.append("ioe:");
-      if (this.ioe == null) {
-        sb.append("null");
-      } else {
-        sb.append(this.ioe);
       }
       first = false;
       sb.append(")");
@@ -3291,6 +3647,9 @@ public class BlockWorkerClientService {
     public void validate() throws org.apache.thrift.TException {
       // check for required fields
       // check for sub-struct validity
+      if (success != null) {
+        success.validate();
+      }
     }
 
     private void writeObject(java.io.ObjectOutputStream out) throws java.io.IOException {
@@ -3327,20 +3686,20 @@ public class BlockWorkerClientService {
             break;
           }
           switch (schemeField.id) {
+            case 0: // SUCCESS
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                struct.success = new CacheBlockTResponse();
+                struct.success.read(iprot);
+                struct.setSuccessIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
             case 1: // E
               if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
                 struct.e = new alluxio.thrift.AlluxioTException();
                 struct.e.read(iprot);
                 struct.setEIsSet(true);
-              } else { 
-                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-              }
-              break;
-            case 2: // IOE
-              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                struct.ioe = new alluxio.thrift.ThriftIOException();
-                struct.ioe.read(iprot);
-                struct.setIoeIsSet(true);
               } else { 
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
@@ -3360,14 +3719,14 @@ public class BlockWorkerClientService {
         struct.validate();
 
         oprot.writeStructBegin(STRUCT_DESC);
+        if (struct.success != null) {
+          oprot.writeFieldBegin(SUCCESS_FIELD_DESC);
+          struct.success.write(oprot);
+          oprot.writeFieldEnd();
+        }
         if (struct.e != null) {
           oprot.writeFieldBegin(E_FIELD_DESC);
           struct.e.write(oprot);
-          oprot.writeFieldEnd();
-        }
-        if (struct.ioe != null) {
-          oprot.writeFieldBegin(IOE_FIELD_DESC);
-          struct.ioe.write(oprot);
           oprot.writeFieldEnd();
         }
         oprot.writeFieldStop();
@@ -3388,18 +3747,18 @@ public class BlockWorkerClientService {
       public void write(org.apache.thrift.protocol.TProtocol prot, cacheBlock_result struct) throws org.apache.thrift.TException {
         TTupleProtocol oprot = (TTupleProtocol) prot;
         BitSet optionals = new BitSet();
-        if (struct.isSetE()) {
+        if (struct.isSetSuccess()) {
           optionals.set(0);
         }
-        if (struct.isSetIoe()) {
+        if (struct.isSetE()) {
           optionals.set(1);
         }
         oprot.writeBitSet(optionals, 2);
+        if (struct.isSetSuccess()) {
+          struct.success.write(oprot);
+        }
         if (struct.isSetE()) {
           struct.e.write(oprot);
-        }
-        if (struct.isSetIoe()) {
-          struct.ioe.write(oprot);
         }
       }
 
@@ -3408,14 +3767,14 @@ public class BlockWorkerClientService {
         TTupleProtocol iprot = (TTupleProtocol) prot;
         BitSet incoming = iprot.readBitSet(2);
         if (incoming.get(0)) {
+          struct.success = new CacheBlockTResponse();
+          struct.success.read(iprot);
+          struct.setSuccessIsSet(true);
+        }
+        if (incoming.get(1)) {
           struct.e = new alluxio.thrift.AlluxioTException();
           struct.e.read(iprot);
           struct.setEIsSet(true);
-        }
-        if (incoming.get(1)) {
-          struct.ioe = new alluxio.thrift.ThriftIOException();
-          struct.ioe.read(iprot);
-          struct.setIoeIsSet(true);
         }
       }
     }
@@ -3427,6 +3786,7 @@ public class BlockWorkerClientService {
 
     private static final org.apache.thrift.protocol.TField SESSION_ID_FIELD_DESC = new org.apache.thrift.protocol.TField("sessionId", org.apache.thrift.protocol.TType.I64, (short)1);
     private static final org.apache.thrift.protocol.TField BLOCK_ID_FIELD_DESC = new org.apache.thrift.protocol.TField("blockId", org.apache.thrift.protocol.TType.I64, (short)2);
+    private static final org.apache.thrift.protocol.TField OPTIONS_FIELD_DESC = new org.apache.thrift.protocol.TField("options", org.apache.thrift.protocol.TType.STRUCT, (short)3);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
@@ -3436,6 +3796,7 @@ public class BlockWorkerClientService {
 
     private long sessionId; // required
     private long blockId; // required
+    private CancelBlockTOptions options; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
@@ -3446,7 +3807,11 @@ public class BlockWorkerClientService {
       /**
        * the id of the block being accessed
        */
-      BLOCK_ID((short)2, "blockId");
+      BLOCK_ID((short)2, "blockId"),
+      /**
+       * the method options
+       */
+      OPTIONS((short)3, "options");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -3465,6 +3830,8 @@ public class BlockWorkerClientService {
             return SESSION_ID;
           case 2: // BLOCK_ID
             return BLOCK_ID;
+          case 3: // OPTIONS
+            return OPTIONS;
           default:
             return null;
         }
@@ -3515,6 +3882,8 @@ public class BlockWorkerClientService {
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
       tmpMap.put(_Fields.BLOCK_ID, new org.apache.thrift.meta_data.FieldMetaData("blockId", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
+      tmpMap.put(_Fields.OPTIONS, new org.apache.thrift.meta_data.FieldMetaData("options", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, CancelBlockTOptions.class)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(cancelBlock_args.class, metaDataMap);
     }
@@ -3524,13 +3893,15 @@ public class BlockWorkerClientService {
 
     public cancelBlock_args(
       long sessionId,
-      long blockId)
+      long blockId,
+      CancelBlockTOptions options)
     {
       this();
       this.sessionId = sessionId;
       setSessionIdIsSet(true);
       this.blockId = blockId;
       setBlockIdIsSet(true);
+      this.options = options;
     }
 
     /**
@@ -3540,6 +3911,9 @@ public class BlockWorkerClientService {
       __isset_bitfield = other.__isset_bitfield;
       this.sessionId = other.sessionId;
       this.blockId = other.blockId;
+      if (other.isSetOptions()) {
+        this.options = new CancelBlockTOptions(other.options);
+      }
     }
 
     public cancelBlock_args deepCopy() {
@@ -3552,6 +3926,7 @@ public class BlockWorkerClientService {
       this.sessionId = 0;
       setBlockIdIsSet(false);
       this.blockId = 0;
+      this.options = null;
     }
 
     /**
@@ -3612,6 +3987,36 @@ public class BlockWorkerClientService {
       __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __BLOCKID_ISSET_ID, value);
     }
 
+    /**
+     * the method options
+     */
+    public CancelBlockTOptions getOptions() {
+      return this.options;
+    }
+
+    /**
+     * the method options
+     */
+    public cancelBlock_args setOptions(CancelBlockTOptions options) {
+      this.options = options;
+      return this;
+    }
+
+    public void unsetOptions() {
+      this.options = null;
+    }
+
+    /** Returns true if field options is set (has been assigned a value) and false otherwise */
+    public boolean isSetOptions() {
+      return this.options != null;
+    }
+
+    public void setOptionsIsSet(boolean value) {
+      if (!value) {
+        this.options = null;
+      }
+    }
+
     public void setFieldValue(_Fields field, Object value) {
       switch (field) {
       case SESSION_ID:
@@ -3630,6 +4035,14 @@ public class BlockWorkerClientService {
         }
         break;
 
+      case OPTIONS:
+        if (value == null) {
+          unsetOptions();
+        } else {
+          setOptions((CancelBlockTOptions)value);
+        }
+        break;
+
       }
     }
 
@@ -3640,6 +4053,9 @@ public class BlockWorkerClientService {
 
       case BLOCK_ID:
         return getBlockId();
+
+      case OPTIONS:
+        return getOptions();
 
       }
       throw new IllegalStateException();
@@ -3656,6 +4072,8 @@ public class BlockWorkerClientService {
         return isSetSessionId();
       case BLOCK_ID:
         return isSetBlockId();
+      case OPTIONS:
+        return isSetOptions();
       }
       throw new IllegalStateException();
     }
@@ -3691,6 +4109,15 @@ public class BlockWorkerClientService {
           return false;
       }
 
+      boolean this_present_options = true && this.isSetOptions();
+      boolean that_present_options = true && that.isSetOptions();
+      if (this_present_options || that_present_options) {
+        if (!(this_present_options && that_present_options))
+          return false;
+        if (!this.options.equals(that.options))
+          return false;
+      }
+
       return true;
     }
 
@@ -3707,6 +4134,11 @@ public class BlockWorkerClientService {
       list.add(present_blockId);
       if (present_blockId)
         list.add(blockId);
+
+      boolean present_options = true && (isSetOptions());
+      list.add(present_options);
+      if (present_options)
+        list.add(options);
 
       return list.hashCode();
     }
@@ -3739,6 +4171,16 @@ public class BlockWorkerClientService {
           return lastComparison;
         }
       }
+      lastComparison = Boolean.valueOf(isSetOptions()).compareTo(other.isSetOptions());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetOptions()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.options, other.options);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
       return 0;
     }
 
@@ -3766,6 +4208,14 @@ public class BlockWorkerClientService {
       sb.append("blockId:");
       sb.append(this.blockId);
       first = false;
+      if (!first) sb.append(", ");
+      sb.append("options:");
+      if (this.options == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.options);
+      }
+      first = false;
       sb.append(")");
       return sb.toString();
     }
@@ -3773,6 +4223,9 @@ public class BlockWorkerClientService {
     public void validate() throws org.apache.thrift.TException {
       // check for required fields
       // check for sub-struct validity
+      if (options != null) {
+        options.validate();
+      }
     }
 
     private void writeObject(java.io.ObjectOutputStream out) throws java.io.IOException {
@@ -3827,6 +4280,15 @@ public class BlockWorkerClientService {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
+            case 3: // OPTIONS
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                struct.options = new CancelBlockTOptions();
+                struct.options.read(iprot);
+                struct.setOptionsIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
             default:
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
           }
@@ -3848,6 +4310,11 @@ public class BlockWorkerClientService {
         oprot.writeFieldBegin(BLOCK_ID_FIELD_DESC);
         oprot.writeI64(struct.blockId);
         oprot.writeFieldEnd();
+        if (struct.options != null) {
+          oprot.writeFieldBegin(OPTIONS_FIELD_DESC);
+          struct.options.write(oprot);
+          oprot.writeFieldEnd();
+        }
         oprot.writeFieldStop();
         oprot.writeStructEnd();
       }
@@ -3872,19 +4339,25 @@ public class BlockWorkerClientService {
         if (struct.isSetBlockId()) {
           optionals.set(1);
         }
-        oprot.writeBitSet(optionals, 2);
+        if (struct.isSetOptions()) {
+          optionals.set(2);
+        }
+        oprot.writeBitSet(optionals, 3);
         if (struct.isSetSessionId()) {
           oprot.writeI64(struct.sessionId);
         }
         if (struct.isSetBlockId()) {
           oprot.writeI64(struct.blockId);
         }
+        if (struct.isSetOptions()) {
+          struct.options.write(oprot);
+        }
       }
 
       @Override
       public void read(org.apache.thrift.protocol.TProtocol prot, cancelBlock_args struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
-        BitSet incoming = iprot.readBitSet(2);
+        BitSet incoming = iprot.readBitSet(3);
         if (incoming.get(0)) {
           struct.sessionId = iprot.readI64();
           struct.setSessionIdIsSet(true);
@@ -3892,6 +4365,11 @@ public class BlockWorkerClientService {
         if (incoming.get(1)) {
           struct.blockId = iprot.readI64();
           struct.setBlockIdIsSet(true);
+        }
+        if (incoming.get(2)) {
+          struct.options = new CancelBlockTOptions();
+          struct.options.read(iprot);
+          struct.setOptionsIsSet(true);
         }
       }
     }
@@ -3901,8 +4379,8 @@ public class BlockWorkerClientService {
   public static class cancelBlock_result implements org.apache.thrift.TBase<cancelBlock_result, cancelBlock_result._Fields>, java.io.Serializable, Cloneable, Comparable<cancelBlock_result>   {
     private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("cancelBlock_result");
 
+    private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.STRUCT, (short)0);
     private static final org.apache.thrift.protocol.TField E_FIELD_DESC = new org.apache.thrift.protocol.TField("e", org.apache.thrift.protocol.TType.STRUCT, (short)1);
-    private static final org.apache.thrift.protocol.TField IOE_FIELD_DESC = new org.apache.thrift.protocol.TField("ioe", org.apache.thrift.protocol.TType.STRUCT, (short)2);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
@@ -3910,13 +4388,13 @@ public class BlockWorkerClientService {
       schemes.put(TupleScheme.class, new cancelBlock_resultTupleSchemeFactory());
     }
 
+    private CancelBlockTResponse success; // required
     private alluxio.thrift.AlluxioTException e; // required
-    private alluxio.thrift.ThriftIOException ioe; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-      E((short)1, "e"),
-      IOE((short)2, "ioe");
+      SUCCESS((short)0, "success"),
+      E((short)1, "e");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -3931,10 +4409,10 @@ public class BlockWorkerClientService {
        */
       public static _Fields findByThriftId(int fieldId) {
         switch(fieldId) {
+          case 0: // SUCCESS
+            return SUCCESS;
           case 1: // E
             return E;
-          case 2: // IOE
-            return IOE;
           default:
             return null;
         }
@@ -3978,9 +4456,9 @@ public class BlockWorkerClientService {
     public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
     static {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
+      tmpMap.put(_Fields.SUCCESS, new org.apache.thrift.meta_data.FieldMetaData("success", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, CancelBlockTResponse.class)));
       tmpMap.put(_Fields.E, new org.apache.thrift.meta_data.FieldMetaData("e", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
-      tmpMap.put(_Fields.IOE, new org.apache.thrift.meta_data.FieldMetaData("ioe", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(cancelBlock_result.class, metaDataMap);
@@ -3990,23 +4468,23 @@ public class BlockWorkerClientService {
     }
 
     public cancelBlock_result(
-      alluxio.thrift.AlluxioTException e,
-      alluxio.thrift.ThriftIOException ioe)
+      CancelBlockTResponse success,
+      alluxio.thrift.AlluxioTException e)
     {
       this();
+      this.success = success;
       this.e = e;
-      this.ioe = ioe;
     }
 
     /**
      * Performs a deep copy on <i>other</i>.
      */
     public cancelBlock_result(cancelBlock_result other) {
+      if (other.isSetSuccess()) {
+        this.success = new CancelBlockTResponse(other.success);
+      }
       if (other.isSetE()) {
         this.e = new alluxio.thrift.AlluxioTException(other.e);
-      }
-      if (other.isSetIoe()) {
-        this.ioe = new alluxio.thrift.ThriftIOException(other.ioe);
       }
     }
 
@@ -4016,8 +4494,32 @@ public class BlockWorkerClientService {
 
     @Override
     public void clear() {
+      this.success = null;
       this.e = null;
-      this.ioe = null;
+    }
+
+    public CancelBlockTResponse getSuccess() {
+      return this.success;
+    }
+
+    public cancelBlock_result setSuccess(CancelBlockTResponse success) {
+      this.success = success;
+      return this;
+    }
+
+    public void unsetSuccess() {
+      this.success = null;
+    }
+
+    /** Returns true if field success is set (has been assigned a value) and false otherwise */
+    public boolean isSetSuccess() {
+      return this.success != null;
+    }
+
+    public void setSuccessIsSet(boolean value) {
+      if (!value) {
+        this.success = null;
+      }
     }
 
     public alluxio.thrift.AlluxioTException getE() {
@@ -4044,32 +4546,16 @@ public class BlockWorkerClientService {
       }
     }
 
-    public alluxio.thrift.ThriftIOException getIoe() {
-      return this.ioe;
-    }
-
-    public cancelBlock_result setIoe(alluxio.thrift.ThriftIOException ioe) {
-      this.ioe = ioe;
-      return this;
-    }
-
-    public void unsetIoe() {
-      this.ioe = null;
-    }
-
-    /** Returns true if field ioe is set (has been assigned a value) and false otherwise */
-    public boolean isSetIoe() {
-      return this.ioe != null;
-    }
-
-    public void setIoeIsSet(boolean value) {
-      if (!value) {
-        this.ioe = null;
-      }
-    }
-
     public void setFieldValue(_Fields field, Object value) {
       switch (field) {
+      case SUCCESS:
+        if (value == null) {
+          unsetSuccess();
+        } else {
+          setSuccess((CancelBlockTResponse)value);
+        }
+        break;
+
       case E:
         if (value == null) {
           unsetE();
@@ -4078,24 +4564,16 @@ public class BlockWorkerClientService {
         }
         break;
 
-      case IOE:
-        if (value == null) {
-          unsetIoe();
-        } else {
-          setIoe((alluxio.thrift.ThriftIOException)value);
-        }
-        break;
-
       }
     }
 
     public Object getFieldValue(_Fields field) {
       switch (field) {
+      case SUCCESS:
+        return getSuccess();
+
       case E:
         return getE();
-
-      case IOE:
-        return getIoe();
 
       }
       throw new IllegalStateException();
@@ -4108,10 +4586,10 @@ public class BlockWorkerClientService {
       }
 
       switch (field) {
+      case SUCCESS:
+        return isSetSuccess();
       case E:
         return isSetE();
-      case IOE:
-        return isSetIoe();
       }
       throw new IllegalStateException();
     }
@@ -4129,21 +4607,21 @@ public class BlockWorkerClientService {
       if (that == null)
         return false;
 
+      boolean this_present_success = true && this.isSetSuccess();
+      boolean that_present_success = true && that.isSetSuccess();
+      if (this_present_success || that_present_success) {
+        if (!(this_present_success && that_present_success))
+          return false;
+        if (!this.success.equals(that.success))
+          return false;
+      }
+
       boolean this_present_e = true && this.isSetE();
       boolean that_present_e = true && that.isSetE();
       if (this_present_e || that_present_e) {
         if (!(this_present_e && that_present_e))
           return false;
         if (!this.e.equals(that.e))
-          return false;
-      }
-
-      boolean this_present_ioe = true && this.isSetIoe();
-      boolean that_present_ioe = true && that.isSetIoe();
-      if (this_present_ioe || that_present_ioe) {
-        if (!(this_present_ioe && that_present_ioe))
-          return false;
-        if (!this.ioe.equals(that.ioe))
           return false;
       }
 
@@ -4154,15 +4632,15 @@ public class BlockWorkerClientService {
     public int hashCode() {
       List<Object> list = new ArrayList<Object>();
 
+      boolean present_success = true && (isSetSuccess());
+      list.add(present_success);
+      if (present_success)
+        list.add(success);
+
       boolean present_e = true && (isSetE());
       list.add(present_e);
       if (present_e)
         list.add(e);
-
-      boolean present_ioe = true && (isSetIoe());
-      list.add(present_ioe);
-      if (present_ioe)
-        list.add(ioe);
 
       return list.hashCode();
     }
@@ -4175,22 +4653,22 @@ public class BlockWorkerClientService {
 
       int lastComparison = 0;
 
+      lastComparison = Boolean.valueOf(isSetSuccess()).compareTo(other.isSetSuccess());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetSuccess()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.success, other.success);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
       lastComparison = Boolean.valueOf(isSetE()).compareTo(other.isSetE());
       if (lastComparison != 0) {
         return lastComparison;
       }
       if (isSetE()) {
         lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.e, other.e);
-        if (lastComparison != 0) {
-          return lastComparison;
-        }
-      }
-      lastComparison = Boolean.valueOf(isSetIoe()).compareTo(other.isSetIoe());
-      if (lastComparison != 0) {
-        return lastComparison;
-      }
-      if (isSetIoe()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.ioe, other.ioe);
         if (lastComparison != 0) {
           return lastComparison;
         }
@@ -4215,19 +4693,19 @@ public class BlockWorkerClientService {
       StringBuilder sb = new StringBuilder("cancelBlock_result(");
       boolean first = true;
 
+      sb.append("success:");
+      if (this.success == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.success);
+      }
+      first = false;
+      if (!first) sb.append(", ");
       sb.append("e:");
       if (this.e == null) {
         sb.append("null");
       } else {
         sb.append(this.e);
-      }
-      first = false;
-      if (!first) sb.append(", ");
-      sb.append("ioe:");
-      if (this.ioe == null) {
-        sb.append("null");
-      } else {
-        sb.append(this.ioe);
       }
       first = false;
       sb.append(")");
@@ -4237,6 +4715,9 @@ public class BlockWorkerClientService {
     public void validate() throws org.apache.thrift.TException {
       // check for required fields
       // check for sub-struct validity
+      if (success != null) {
+        success.validate();
+      }
     }
 
     private void writeObject(java.io.ObjectOutputStream out) throws java.io.IOException {
@@ -4273,20 +4754,20 @@ public class BlockWorkerClientService {
             break;
           }
           switch (schemeField.id) {
+            case 0: // SUCCESS
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                struct.success = new CancelBlockTResponse();
+                struct.success.read(iprot);
+                struct.setSuccessIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
             case 1: // E
               if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
                 struct.e = new alluxio.thrift.AlluxioTException();
                 struct.e.read(iprot);
                 struct.setEIsSet(true);
-              } else { 
-                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-              }
-              break;
-            case 2: // IOE
-              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                struct.ioe = new alluxio.thrift.ThriftIOException();
-                struct.ioe.read(iprot);
-                struct.setIoeIsSet(true);
               } else { 
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
@@ -4306,14 +4787,14 @@ public class BlockWorkerClientService {
         struct.validate();
 
         oprot.writeStructBegin(STRUCT_DESC);
+        if (struct.success != null) {
+          oprot.writeFieldBegin(SUCCESS_FIELD_DESC);
+          struct.success.write(oprot);
+          oprot.writeFieldEnd();
+        }
         if (struct.e != null) {
           oprot.writeFieldBegin(E_FIELD_DESC);
           struct.e.write(oprot);
-          oprot.writeFieldEnd();
-        }
-        if (struct.ioe != null) {
-          oprot.writeFieldBegin(IOE_FIELD_DESC);
-          struct.ioe.write(oprot);
           oprot.writeFieldEnd();
         }
         oprot.writeFieldStop();
@@ -4334,18 +4815,18 @@ public class BlockWorkerClientService {
       public void write(org.apache.thrift.protocol.TProtocol prot, cancelBlock_result struct) throws org.apache.thrift.TException {
         TTupleProtocol oprot = (TTupleProtocol) prot;
         BitSet optionals = new BitSet();
-        if (struct.isSetE()) {
+        if (struct.isSetSuccess()) {
           optionals.set(0);
         }
-        if (struct.isSetIoe()) {
+        if (struct.isSetE()) {
           optionals.set(1);
         }
         oprot.writeBitSet(optionals, 2);
+        if (struct.isSetSuccess()) {
+          struct.success.write(oprot);
+        }
         if (struct.isSetE()) {
           struct.e.write(oprot);
-        }
-        if (struct.isSetIoe()) {
-          struct.ioe.write(oprot);
         }
       }
 
@@ -4354,14 +4835,14 @@ public class BlockWorkerClientService {
         TTupleProtocol iprot = (TTupleProtocol) prot;
         BitSet incoming = iprot.readBitSet(2);
         if (incoming.get(0)) {
+          struct.success = new CancelBlockTResponse();
+          struct.success.read(iprot);
+          struct.setSuccessIsSet(true);
+        }
+        if (incoming.get(1)) {
           struct.e = new alluxio.thrift.AlluxioTException();
           struct.e.read(iprot);
           struct.setEIsSet(true);
-        }
-        if (incoming.get(1)) {
-          struct.ioe = new alluxio.thrift.ThriftIOException();
-          struct.ioe.read(iprot);
-          struct.setIoeIsSet(true);
         }
       }
     }
@@ -4396,7 +4877,7 @@ public class BlockWorkerClientService {
        */
       SESSION_ID((short)2, "sessionId"),
       /**
-       * the lock block options
+       * the lock method options
        */
       OPTIONS((short)3, "options");
 
@@ -4575,14 +5056,14 @@ public class BlockWorkerClientService {
     }
 
     /**
-     * the lock block options
+     * the lock method options
      */
     public LockBlockTOptions getOptions() {
       return this.options;
     }
 
     /**
-     * the lock block options
+     * the lock method options
      */
     public lockBlock_args setOptions(LockBlockTOptions options) {
       this.options = options;
@@ -4975,7 +5456,7 @@ public class BlockWorkerClientService {
       schemes.put(TupleScheme.class, new lockBlock_resultTupleSchemeFactory());
     }
 
-    private LockBlockResult success; // required
+    private LockBlockTResponse success; // required
     private alluxio.thrift.AlluxioTException e; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
@@ -5044,7 +5525,7 @@ public class BlockWorkerClientService {
     static {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
       tmpMap.put(_Fields.SUCCESS, new org.apache.thrift.meta_data.FieldMetaData("success", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, LockBlockResult.class)));
+          new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, LockBlockTResponse.class)));
       tmpMap.put(_Fields.E, new org.apache.thrift.meta_data.FieldMetaData("e", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
@@ -5055,7 +5536,7 @@ public class BlockWorkerClientService {
     }
 
     public lockBlock_result(
-      LockBlockResult success,
+      LockBlockTResponse success,
       alluxio.thrift.AlluxioTException e)
     {
       this();
@@ -5068,7 +5549,7 @@ public class BlockWorkerClientService {
      */
     public lockBlock_result(lockBlock_result other) {
       if (other.isSetSuccess()) {
-        this.success = new LockBlockResult(other.success);
+        this.success = new LockBlockTResponse(other.success);
       }
       if (other.isSetE()) {
         this.e = new alluxio.thrift.AlluxioTException(other.e);
@@ -5085,11 +5566,11 @@ public class BlockWorkerClientService {
       this.e = null;
     }
 
-    public LockBlockResult getSuccess() {
+    public LockBlockTResponse getSuccess() {
       return this.success;
     }
 
-    public lockBlock_result setSuccess(LockBlockResult success) {
+    public lockBlock_result setSuccess(LockBlockTResponse success) {
       this.success = success;
       return this;
     }
@@ -5139,7 +5620,7 @@ public class BlockWorkerClientService {
         if (value == null) {
           unsetSuccess();
         } else {
-          setSuccess((LockBlockResult)value);
+          setSuccess((LockBlockTResponse)value);
         }
         break;
 
@@ -5343,7 +5824,7 @@ public class BlockWorkerClientService {
           switch (schemeField.id) {
             case 0: // SUCCESS
               if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                struct.success = new LockBlockResult();
+                struct.success = new LockBlockTResponse();
                 struct.success.read(iprot);
                 struct.setSuccessIsSet(true);
               } else { 
@@ -5422,7 +5903,7 @@ public class BlockWorkerClientService {
         TTupleProtocol iprot = (TTupleProtocol) prot;
         BitSet incoming = iprot.readBitSet(2);
         if (incoming.get(0)) {
-          struct.success = new LockBlockResult();
+          struct.success = new LockBlockTResponse();
           struct.success.read(iprot);
           struct.setSuccessIsSet(true);
         }
@@ -5440,6 +5921,7 @@ public class BlockWorkerClientService {
     private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("promoteBlock_args");
 
     private static final org.apache.thrift.protocol.TField BLOCK_ID_FIELD_DESC = new org.apache.thrift.protocol.TField("blockId", org.apache.thrift.protocol.TType.I64, (short)1);
+    private static final org.apache.thrift.protocol.TField OPTIONS_FIELD_DESC = new org.apache.thrift.protocol.TField("options", org.apache.thrift.protocol.TType.STRUCT, (short)2);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
@@ -5448,13 +5930,18 @@ public class BlockWorkerClientService {
     }
 
     private long blockId; // required
+    private PromoteBlockTOptions options; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
       /**
        * the id of the block being accessed
        */
-      BLOCK_ID((short)1, "blockId");
+      BLOCK_ID((short)1, "blockId"),
+      /**
+       * the method options
+       */
+      OPTIONS((short)2, "options");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -5471,6 +5958,8 @@ public class BlockWorkerClientService {
         switch(fieldId) {
           case 1: // BLOCK_ID
             return BLOCK_ID;
+          case 2: // OPTIONS
+            return OPTIONS;
           default:
             return null;
         }
@@ -5518,6 +6007,8 @@ public class BlockWorkerClientService {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
       tmpMap.put(_Fields.BLOCK_ID, new org.apache.thrift.meta_data.FieldMetaData("blockId", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
+      tmpMap.put(_Fields.OPTIONS, new org.apache.thrift.meta_data.FieldMetaData("options", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, PromoteBlockTOptions.class)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(promoteBlock_args.class, metaDataMap);
     }
@@ -5526,11 +6017,13 @@ public class BlockWorkerClientService {
     }
 
     public promoteBlock_args(
-      long blockId)
+      long blockId,
+      PromoteBlockTOptions options)
     {
       this();
       this.blockId = blockId;
       setBlockIdIsSet(true);
+      this.options = options;
     }
 
     /**
@@ -5539,6 +6032,9 @@ public class BlockWorkerClientService {
     public promoteBlock_args(promoteBlock_args other) {
       __isset_bitfield = other.__isset_bitfield;
       this.blockId = other.blockId;
+      if (other.isSetOptions()) {
+        this.options = new PromoteBlockTOptions(other.options);
+      }
     }
 
     public promoteBlock_args deepCopy() {
@@ -5549,6 +6045,7 @@ public class BlockWorkerClientService {
     public void clear() {
       setBlockIdIsSet(false);
       this.blockId = 0;
+      this.options = null;
     }
 
     /**
@@ -5580,6 +6077,36 @@ public class BlockWorkerClientService {
       __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __BLOCKID_ISSET_ID, value);
     }
 
+    /**
+     * the method options
+     */
+    public PromoteBlockTOptions getOptions() {
+      return this.options;
+    }
+
+    /**
+     * the method options
+     */
+    public promoteBlock_args setOptions(PromoteBlockTOptions options) {
+      this.options = options;
+      return this;
+    }
+
+    public void unsetOptions() {
+      this.options = null;
+    }
+
+    /** Returns true if field options is set (has been assigned a value) and false otherwise */
+    public boolean isSetOptions() {
+      return this.options != null;
+    }
+
+    public void setOptionsIsSet(boolean value) {
+      if (!value) {
+        this.options = null;
+      }
+    }
+
     public void setFieldValue(_Fields field, Object value) {
       switch (field) {
       case BLOCK_ID:
@@ -5590,6 +6117,14 @@ public class BlockWorkerClientService {
         }
         break;
 
+      case OPTIONS:
+        if (value == null) {
+          unsetOptions();
+        } else {
+          setOptions((PromoteBlockTOptions)value);
+        }
+        break;
+
       }
     }
 
@@ -5597,6 +6132,9 @@ public class BlockWorkerClientService {
       switch (field) {
       case BLOCK_ID:
         return getBlockId();
+
+      case OPTIONS:
+        return getOptions();
 
       }
       throw new IllegalStateException();
@@ -5611,6 +6149,8 @@ public class BlockWorkerClientService {
       switch (field) {
       case BLOCK_ID:
         return isSetBlockId();
+      case OPTIONS:
+        return isSetOptions();
       }
       throw new IllegalStateException();
     }
@@ -5637,6 +6177,15 @@ public class BlockWorkerClientService {
           return false;
       }
 
+      boolean this_present_options = true && this.isSetOptions();
+      boolean that_present_options = true && that.isSetOptions();
+      if (this_present_options || that_present_options) {
+        if (!(this_present_options && that_present_options))
+          return false;
+        if (!this.options.equals(that.options))
+          return false;
+      }
+
       return true;
     }
 
@@ -5648,6 +6197,11 @@ public class BlockWorkerClientService {
       list.add(present_blockId);
       if (present_blockId)
         list.add(blockId);
+
+      boolean present_options = true && (isSetOptions());
+      list.add(present_options);
+      if (present_options)
+        list.add(options);
 
       return list.hashCode();
     }
@@ -5666,6 +6220,16 @@ public class BlockWorkerClientService {
       }
       if (isSetBlockId()) {
         lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.blockId, other.blockId);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
+      lastComparison = Boolean.valueOf(isSetOptions()).compareTo(other.isSetOptions());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetOptions()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.options, other.options);
         if (lastComparison != 0) {
           return lastComparison;
         }
@@ -5693,6 +6257,14 @@ public class BlockWorkerClientService {
       sb.append("blockId:");
       sb.append(this.blockId);
       first = false;
+      if (!first) sb.append(", ");
+      sb.append("options:");
+      if (this.options == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.options);
+      }
+      first = false;
       sb.append(")");
       return sb.toString();
     }
@@ -5700,6 +6272,9 @@ public class BlockWorkerClientService {
     public void validate() throws org.apache.thrift.TException {
       // check for required fields
       // check for sub-struct validity
+      if (options != null) {
+        options.validate();
+      }
     }
 
     private void writeObject(java.io.ObjectOutputStream out) throws java.io.IOException {
@@ -5746,6 +6321,15 @@ public class BlockWorkerClientService {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
+            case 2: // OPTIONS
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                struct.options = new PromoteBlockTOptions();
+                struct.options.read(iprot);
+                struct.setOptionsIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
             default:
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
           }
@@ -5764,6 +6348,11 @@ public class BlockWorkerClientService {
         oprot.writeFieldBegin(BLOCK_ID_FIELD_DESC);
         oprot.writeI64(struct.blockId);
         oprot.writeFieldEnd();
+        if (struct.options != null) {
+          oprot.writeFieldBegin(OPTIONS_FIELD_DESC);
+          struct.options.write(oprot);
+          oprot.writeFieldEnd();
+        }
         oprot.writeFieldStop();
         oprot.writeStructEnd();
       }
@@ -5785,19 +6374,30 @@ public class BlockWorkerClientService {
         if (struct.isSetBlockId()) {
           optionals.set(0);
         }
-        oprot.writeBitSet(optionals, 1);
+        if (struct.isSetOptions()) {
+          optionals.set(1);
+        }
+        oprot.writeBitSet(optionals, 2);
         if (struct.isSetBlockId()) {
           oprot.writeI64(struct.blockId);
+        }
+        if (struct.isSetOptions()) {
+          struct.options.write(oprot);
         }
       }
 
       @Override
       public void read(org.apache.thrift.protocol.TProtocol prot, promoteBlock_args struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
-        BitSet incoming = iprot.readBitSet(1);
+        BitSet incoming = iprot.readBitSet(2);
         if (incoming.get(0)) {
           struct.blockId = iprot.readI64();
           struct.setBlockIdIsSet(true);
+        }
+        if (incoming.get(1)) {
+          struct.options = new PromoteBlockTOptions();
+          struct.options.read(iprot);
+          struct.setOptionsIsSet(true);
         }
       }
     }
@@ -5807,9 +6407,8 @@ public class BlockWorkerClientService {
   public static class promoteBlock_result implements org.apache.thrift.TBase<promoteBlock_result, promoteBlock_result._Fields>, java.io.Serializable, Cloneable, Comparable<promoteBlock_result>   {
     private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("promoteBlock_result");
 
-    private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.BOOL, (short)0);
+    private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.STRUCT, (short)0);
     private static final org.apache.thrift.protocol.TField E_FIELD_DESC = new org.apache.thrift.protocol.TField("e", org.apache.thrift.protocol.TType.STRUCT, (short)1);
-    private static final org.apache.thrift.protocol.TField IOE_FIELD_DESC = new org.apache.thrift.protocol.TField("ioe", org.apache.thrift.protocol.TType.STRUCT, (short)2);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
@@ -5817,15 +6416,13 @@ public class BlockWorkerClientService {
       schemes.put(TupleScheme.class, new promoteBlock_resultTupleSchemeFactory());
     }
 
-    private boolean success; // required
+    private PromoteBlockTResponse success; // required
     private alluxio.thrift.AlluxioTException e; // required
-    private alluxio.thrift.ThriftIOException ioe; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
       SUCCESS((short)0, "success"),
-      E((short)1, "e"),
-      IOE((short)2, "ioe");
+      E((short)1, "e");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -5844,8 +6441,6 @@ public class BlockWorkerClientService {
             return SUCCESS;
           case 1: // E
             return E;
-          case 2: // IOE
-            return IOE;
           default:
             return null;
         }
@@ -5886,16 +6481,12 @@ public class BlockWorkerClientService {
     }
 
     // isset id assignments
-    private static final int __SUCCESS_ISSET_ID = 0;
-    private byte __isset_bitfield = 0;
     public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
     static {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
       tmpMap.put(_Fields.SUCCESS, new org.apache.thrift.meta_data.FieldMetaData("success", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.BOOL)));
+          new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, PromoteBlockTResponse.class)));
       tmpMap.put(_Fields.E, new org.apache.thrift.meta_data.FieldMetaData("e", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
-      tmpMap.put(_Fields.IOE, new org.apache.thrift.meta_data.FieldMetaData("ioe", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(promoteBlock_result.class, metaDataMap);
@@ -5905,28 +6496,23 @@ public class BlockWorkerClientService {
     }
 
     public promoteBlock_result(
-      boolean success,
-      alluxio.thrift.AlluxioTException e,
-      alluxio.thrift.ThriftIOException ioe)
+      PromoteBlockTResponse success,
+      alluxio.thrift.AlluxioTException e)
     {
       this();
       this.success = success;
-      setSuccessIsSet(true);
       this.e = e;
-      this.ioe = ioe;
     }
 
     /**
      * Performs a deep copy on <i>other</i>.
      */
     public promoteBlock_result(promoteBlock_result other) {
-      __isset_bitfield = other.__isset_bitfield;
-      this.success = other.success;
+      if (other.isSetSuccess()) {
+        this.success = new PromoteBlockTResponse(other.success);
+      }
       if (other.isSetE()) {
         this.e = new alluxio.thrift.AlluxioTException(other.e);
-      }
-      if (other.isSetIoe()) {
-        this.ioe = new alluxio.thrift.ThriftIOException(other.ioe);
       }
     }
 
@@ -5936,33 +6522,32 @@ public class BlockWorkerClientService {
 
     @Override
     public void clear() {
-      setSuccessIsSet(false);
-      this.success = false;
+      this.success = null;
       this.e = null;
-      this.ioe = null;
     }
 
-    public boolean isSuccess() {
+    public PromoteBlockTResponse getSuccess() {
       return this.success;
     }
 
-    public promoteBlock_result setSuccess(boolean success) {
+    public promoteBlock_result setSuccess(PromoteBlockTResponse success) {
       this.success = success;
-      setSuccessIsSet(true);
       return this;
     }
 
     public void unsetSuccess() {
-      __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __SUCCESS_ISSET_ID);
+      this.success = null;
     }
 
     /** Returns true if field success is set (has been assigned a value) and false otherwise */
     public boolean isSetSuccess() {
-      return EncodingUtils.testBit(__isset_bitfield, __SUCCESS_ISSET_ID);
+      return this.success != null;
     }
 
     public void setSuccessIsSet(boolean value) {
-      __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __SUCCESS_ISSET_ID, value);
+      if (!value) {
+        this.success = null;
+      }
     }
 
     public alluxio.thrift.AlluxioTException getE() {
@@ -5989,37 +6574,13 @@ public class BlockWorkerClientService {
       }
     }
 
-    public alluxio.thrift.ThriftIOException getIoe() {
-      return this.ioe;
-    }
-
-    public promoteBlock_result setIoe(alluxio.thrift.ThriftIOException ioe) {
-      this.ioe = ioe;
-      return this;
-    }
-
-    public void unsetIoe() {
-      this.ioe = null;
-    }
-
-    /** Returns true if field ioe is set (has been assigned a value) and false otherwise */
-    public boolean isSetIoe() {
-      return this.ioe != null;
-    }
-
-    public void setIoeIsSet(boolean value) {
-      if (!value) {
-        this.ioe = null;
-      }
-    }
-
     public void setFieldValue(_Fields field, Object value) {
       switch (field) {
       case SUCCESS:
         if (value == null) {
           unsetSuccess();
         } else {
-          setSuccess((Boolean)value);
+          setSuccess((PromoteBlockTResponse)value);
         }
         break;
 
@@ -6031,27 +6592,16 @@ public class BlockWorkerClientService {
         }
         break;
 
-      case IOE:
-        if (value == null) {
-          unsetIoe();
-        } else {
-          setIoe((alluxio.thrift.ThriftIOException)value);
-        }
-        break;
-
       }
     }
 
     public Object getFieldValue(_Fields field) {
       switch (field) {
       case SUCCESS:
-        return isSuccess();
+        return getSuccess();
 
       case E:
         return getE();
-
-      case IOE:
-        return getIoe();
 
       }
       throw new IllegalStateException();
@@ -6068,8 +6618,6 @@ public class BlockWorkerClientService {
         return isSetSuccess();
       case E:
         return isSetE();
-      case IOE:
-        return isSetIoe();
       }
       throw new IllegalStateException();
     }
@@ -6087,12 +6635,12 @@ public class BlockWorkerClientService {
       if (that == null)
         return false;
 
-      boolean this_present_success = true;
-      boolean that_present_success = true;
+      boolean this_present_success = true && this.isSetSuccess();
+      boolean that_present_success = true && that.isSetSuccess();
       if (this_present_success || that_present_success) {
         if (!(this_present_success && that_present_success))
           return false;
-        if (this.success != that.success)
+        if (!this.success.equals(that.success))
           return false;
       }
 
@@ -6105,15 +6653,6 @@ public class BlockWorkerClientService {
           return false;
       }
 
-      boolean this_present_ioe = true && this.isSetIoe();
-      boolean that_present_ioe = true && that.isSetIoe();
-      if (this_present_ioe || that_present_ioe) {
-        if (!(this_present_ioe && that_present_ioe))
-          return false;
-        if (!this.ioe.equals(that.ioe))
-          return false;
-      }
-
       return true;
     }
 
@@ -6121,7 +6660,7 @@ public class BlockWorkerClientService {
     public int hashCode() {
       List<Object> list = new ArrayList<Object>();
 
-      boolean present_success = true;
+      boolean present_success = true && (isSetSuccess());
       list.add(present_success);
       if (present_success)
         list.add(success);
@@ -6130,11 +6669,6 @@ public class BlockWorkerClientService {
       list.add(present_e);
       if (present_e)
         list.add(e);
-
-      boolean present_ioe = true && (isSetIoe());
-      list.add(present_ioe);
-      if (present_ioe)
-        list.add(ioe);
 
       return list.hashCode();
     }
@@ -6167,16 +6701,6 @@ public class BlockWorkerClientService {
           return lastComparison;
         }
       }
-      lastComparison = Boolean.valueOf(isSetIoe()).compareTo(other.isSetIoe());
-      if (lastComparison != 0) {
-        return lastComparison;
-      }
-      if (isSetIoe()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.ioe, other.ioe);
-        if (lastComparison != 0) {
-          return lastComparison;
-        }
-      }
       return 0;
     }
 
@@ -6198,7 +6722,11 @@ public class BlockWorkerClientService {
       boolean first = true;
 
       sb.append("success:");
-      sb.append(this.success);
+      if (this.success == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.success);
+      }
       first = false;
       if (!first) sb.append(", ");
       sb.append("e:");
@@ -6208,14 +6736,6 @@ public class BlockWorkerClientService {
         sb.append(this.e);
       }
       first = false;
-      if (!first) sb.append(", ");
-      sb.append("ioe:");
-      if (this.ioe == null) {
-        sb.append("null");
-      } else {
-        sb.append(this.ioe);
-      }
-      first = false;
       sb.append(")");
       return sb.toString();
     }
@@ -6223,6 +6743,9 @@ public class BlockWorkerClientService {
     public void validate() throws org.apache.thrift.TException {
       // check for required fields
       // check for sub-struct validity
+      if (success != null) {
+        success.validate();
+      }
     }
 
     private void writeObject(java.io.ObjectOutputStream out) throws java.io.IOException {
@@ -6235,8 +6758,6 @@ public class BlockWorkerClientService {
 
     private void readObject(java.io.ObjectInputStream in) throws java.io.IOException, ClassNotFoundException {
       try {
-        // it doesn't seem like you should have to do this, but java serialization is wacky, and doesn't call the default constructor.
-        __isset_bitfield = 0;
         read(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(in)));
       } catch (org.apache.thrift.TException te) {
         throw new java.io.IOException(te);
@@ -6262,8 +6783,9 @@ public class BlockWorkerClientService {
           }
           switch (schemeField.id) {
             case 0: // SUCCESS
-              if (schemeField.type == org.apache.thrift.protocol.TType.BOOL) {
-                struct.success = iprot.readBool();
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                struct.success = new PromoteBlockTResponse();
+                struct.success.read(iprot);
                 struct.setSuccessIsSet(true);
               } else { 
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
@@ -6274,15 +6796,6 @@ public class BlockWorkerClientService {
                 struct.e = new alluxio.thrift.AlluxioTException();
                 struct.e.read(iprot);
                 struct.setEIsSet(true);
-              } else { 
-                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-              }
-              break;
-            case 2: // IOE
-              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                struct.ioe = new alluxio.thrift.ThriftIOException();
-                struct.ioe.read(iprot);
-                struct.setIoeIsSet(true);
               } else { 
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
@@ -6302,19 +6815,14 @@ public class BlockWorkerClientService {
         struct.validate();
 
         oprot.writeStructBegin(STRUCT_DESC);
-        if (struct.isSetSuccess()) {
+        if (struct.success != null) {
           oprot.writeFieldBegin(SUCCESS_FIELD_DESC);
-          oprot.writeBool(struct.success);
+          struct.success.write(oprot);
           oprot.writeFieldEnd();
         }
         if (struct.e != null) {
           oprot.writeFieldBegin(E_FIELD_DESC);
           struct.e.write(oprot);
-          oprot.writeFieldEnd();
-        }
-        if (struct.ioe != null) {
-          oprot.writeFieldBegin(IOE_FIELD_DESC);
-          struct.ioe.write(oprot);
           oprot.writeFieldEnd();
         }
         oprot.writeFieldStop();
@@ -6341,38 +6849,28 @@ public class BlockWorkerClientService {
         if (struct.isSetE()) {
           optionals.set(1);
         }
-        if (struct.isSetIoe()) {
-          optionals.set(2);
-        }
-        oprot.writeBitSet(optionals, 3);
+        oprot.writeBitSet(optionals, 2);
         if (struct.isSetSuccess()) {
-          oprot.writeBool(struct.success);
+          struct.success.write(oprot);
         }
         if (struct.isSetE()) {
           struct.e.write(oprot);
-        }
-        if (struct.isSetIoe()) {
-          struct.ioe.write(oprot);
         }
       }
 
       @Override
       public void read(org.apache.thrift.protocol.TProtocol prot, promoteBlock_result struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
-        BitSet incoming = iprot.readBitSet(3);
+        BitSet incoming = iprot.readBitSet(2);
         if (incoming.get(0)) {
-          struct.success = iprot.readBool();
+          struct.success = new PromoteBlockTResponse();
+          struct.success.read(iprot);
           struct.setSuccessIsSet(true);
         }
         if (incoming.get(1)) {
           struct.e = new alluxio.thrift.AlluxioTException();
           struct.e.read(iprot);
           struct.setEIsSet(true);
-        }
-        if (incoming.get(2)) {
-          struct.ioe = new alluxio.thrift.ThriftIOException();
-          struct.ioe.read(iprot);
-          struct.setIoeIsSet(true);
         }
       }
     }
@@ -6383,6 +6881,7 @@ public class BlockWorkerClientService {
     private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("removeBlock_args");
 
     private static final org.apache.thrift.protocol.TField BLOCK_ID_FIELD_DESC = new org.apache.thrift.protocol.TField("blockId", org.apache.thrift.protocol.TType.I64, (short)1);
+    private static final org.apache.thrift.protocol.TField OPTIONS_FIELD_DESC = new org.apache.thrift.protocol.TField("options", org.apache.thrift.protocol.TType.STRUCT, (short)2);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
@@ -6391,13 +6890,18 @@ public class BlockWorkerClientService {
     }
 
     private long blockId; // required
+    private RemoveBlockTOptions options; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
       /**
        * the id of the block being removed
        */
-      BLOCK_ID((short)1, "blockId");
+      BLOCK_ID((short)1, "blockId"),
+      /**
+       * the method options
+       */
+      OPTIONS((short)2, "options");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -6414,6 +6918,8 @@ public class BlockWorkerClientService {
         switch(fieldId) {
           case 1: // BLOCK_ID
             return BLOCK_ID;
+          case 2: // OPTIONS
+            return OPTIONS;
           default:
             return null;
         }
@@ -6461,6 +6967,8 @@ public class BlockWorkerClientService {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
       tmpMap.put(_Fields.BLOCK_ID, new org.apache.thrift.meta_data.FieldMetaData("blockId", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
+      tmpMap.put(_Fields.OPTIONS, new org.apache.thrift.meta_data.FieldMetaData("options", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, RemoveBlockTOptions.class)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(removeBlock_args.class, metaDataMap);
     }
@@ -6469,11 +6977,13 @@ public class BlockWorkerClientService {
     }
 
     public removeBlock_args(
-      long blockId)
+      long blockId,
+      RemoveBlockTOptions options)
     {
       this();
       this.blockId = blockId;
       setBlockIdIsSet(true);
+      this.options = options;
     }
 
     /**
@@ -6482,6 +6992,9 @@ public class BlockWorkerClientService {
     public removeBlock_args(removeBlock_args other) {
       __isset_bitfield = other.__isset_bitfield;
       this.blockId = other.blockId;
+      if (other.isSetOptions()) {
+        this.options = new RemoveBlockTOptions(other.options);
+      }
     }
 
     public removeBlock_args deepCopy() {
@@ -6492,6 +7005,7 @@ public class BlockWorkerClientService {
     public void clear() {
       setBlockIdIsSet(false);
       this.blockId = 0;
+      this.options = null;
     }
 
     /**
@@ -6523,6 +7037,36 @@ public class BlockWorkerClientService {
       __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __BLOCKID_ISSET_ID, value);
     }
 
+    /**
+     * the method options
+     */
+    public RemoveBlockTOptions getOptions() {
+      return this.options;
+    }
+
+    /**
+     * the method options
+     */
+    public removeBlock_args setOptions(RemoveBlockTOptions options) {
+      this.options = options;
+      return this;
+    }
+
+    public void unsetOptions() {
+      this.options = null;
+    }
+
+    /** Returns true if field options is set (has been assigned a value) and false otherwise */
+    public boolean isSetOptions() {
+      return this.options != null;
+    }
+
+    public void setOptionsIsSet(boolean value) {
+      if (!value) {
+        this.options = null;
+      }
+    }
+
     public void setFieldValue(_Fields field, Object value) {
       switch (field) {
       case BLOCK_ID:
@@ -6533,6 +7077,14 @@ public class BlockWorkerClientService {
         }
         break;
 
+      case OPTIONS:
+        if (value == null) {
+          unsetOptions();
+        } else {
+          setOptions((RemoveBlockTOptions)value);
+        }
+        break;
+
       }
     }
 
@@ -6540,6 +7092,9 @@ public class BlockWorkerClientService {
       switch (field) {
       case BLOCK_ID:
         return getBlockId();
+
+      case OPTIONS:
+        return getOptions();
 
       }
       throw new IllegalStateException();
@@ -6554,6 +7109,8 @@ public class BlockWorkerClientService {
       switch (field) {
       case BLOCK_ID:
         return isSetBlockId();
+      case OPTIONS:
+        return isSetOptions();
       }
       throw new IllegalStateException();
     }
@@ -6580,6 +7137,15 @@ public class BlockWorkerClientService {
           return false;
       }
 
+      boolean this_present_options = true && this.isSetOptions();
+      boolean that_present_options = true && that.isSetOptions();
+      if (this_present_options || that_present_options) {
+        if (!(this_present_options && that_present_options))
+          return false;
+        if (!this.options.equals(that.options))
+          return false;
+      }
+
       return true;
     }
 
@@ -6591,6 +7157,11 @@ public class BlockWorkerClientService {
       list.add(present_blockId);
       if (present_blockId)
         list.add(blockId);
+
+      boolean present_options = true && (isSetOptions());
+      list.add(present_options);
+      if (present_options)
+        list.add(options);
 
       return list.hashCode();
     }
@@ -6609,6 +7180,16 @@ public class BlockWorkerClientService {
       }
       if (isSetBlockId()) {
         lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.blockId, other.blockId);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
+      lastComparison = Boolean.valueOf(isSetOptions()).compareTo(other.isSetOptions());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetOptions()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.options, other.options);
         if (lastComparison != 0) {
           return lastComparison;
         }
@@ -6636,6 +7217,14 @@ public class BlockWorkerClientService {
       sb.append("blockId:");
       sb.append(this.blockId);
       first = false;
+      if (!first) sb.append(", ");
+      sb.append("options:");
+      if (this.options == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.options);
+      }
+      first = false;
       sb.append(")");
       return sb.toString();
     }
@@ -6643,6 +7232,9 @@ public class BlockWorkerClientService {
     public void validate() throws org.apache.thrift.TException {
       // check for required fields
       // check for sub-struct validity
+      if (options != null) {
+        options.validate();
+      }
     }
 
     private void writeObject(java.io.ObjectOutputStream out) throws java.io.IOException {
@@ -6689,6 +7281,15 @@ public class BlockWorkerClientService {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
+            case 2: // OPTIONS
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                struct.options = new RemoveBlockTOptions();
+                struct.options.read(iprot);
+                struct.setOptionsIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
             default:
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
           }
@@ -6707,6 +7308,11 @@ public class BlockWorkerClientService {
         oprot.writeFieldBegin(BLOCK_ID_FIELD_DESC);
         oprot.writeI64(struct.blockId);
         oprot.writeFieldEnd();
+        if (struct.options != null) {
+          oprot.writeFieldBegin(OPTIONS_FIELD_DESC);
+          struct.options.write(oprot);
+          oprot.writeFieldEnd();
+        }
         oprot.writeFieldStop();
         oprot.writeStructEnd();
       }
@@ -6728,19 +7334,30 @@ public class BlockWorkerClientService {
         if (struct.isSetBlockId()) {
           optionals.set(0);
         }
-        oprot.writeBitSet(optionals, 1);
+        if (struct.isSetOptions()) {
+          optionals.set(1);
+        }
+        oprot.writeBitSet(optionals, 2);
         if (struct.isSetBlockId()) {
           oprot.writeI64(struct.blockId);
+        }
+        if (struct.isSetOptions()) {
+          struct.options.write(oprot);
         }
       }
 
       @Override
       public void read(org.apache.thrift.protocol.TProtocol prot, removeBlock_args struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
-        BitSet incoming = iprot.readBitSet(1);
+        BitSet incoming = iprot.readBitSet(2);
         if (incoming.get(0)) {
           struct.blockId = iprot.readI64();
           struct.setBlockIdIsSet(true);
+        }
+        if (incoming.get(1)) {
+          struct.options = new RemoveBlockTOptions();
+          struct.options.read(iprot);
+          struct.setOptionsIsSet(true);
         }
       }
     }
@@ -6750,8 +7367,8 @@ public class BlockWorkerClientService {
   public static class removeBlock_result implements org.apache.thrift.TBase<removeBlock_result, removeBlock_result._Fields>, java.io.Serializable, Cloneable, Comparable<removeBlock_result>   {
     private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("removeBlock_result");
 
+    private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.STRUCT, (short)0);
     private static final org.apache.thrift.protocol.TField E_FIELD_DESC = new org.apache.thrift.protocol.TField("e", org.apache.thrift.protocol.TType.STRUCT, (short)1);
-    private static final org.apache.thrift.protocol.TField IOE_FIELD_DESC = new org.apache.thrift.protocol.TField("ioe", org.apache.thrift.protocol.TType.STRUCT, (short)2);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
@@ -6759,13 +7376,13 @@ public class BlockWorkerClientService {
       schemes.put(TupleScheme.class, new removeBlock_resultTupleSchemeFactory());
     }
 
+    private RemoveBlockTResponse success; // required
     private alluxio.thrift.AlluxioTException e; // required
-    private alluxio.thrift.ThriftIOException ioe; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-      E((short)1, "e"),
-      IOE((short)2, "ioe");
+      SUCCESS((short)0, "success"),
+      E((short)1, "e");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -6780,10 +7397,10 @@ public class BlockWorkerClientService {
        */
       public static _Fields findByThriftId(int fieldId) {
         switch(fieldId) {
+          case 0: // SUCCESS
+            return SUCCESS;
           case 1: // E
             return E;
-          case 2: // IOE
-            return IOE;
           default:
             return null;
         }
@@ -6827,9 +7444,9 @@ public class BlockWorkerClientService {
     public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
     static {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
+      tmpMap.put(_Fields.SUCCESS, new org.apache.thrift.meta_data.FieldMetaData("success", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, RemoveBlockTResponse.class)));
       tmpMap.put(_Fields.E, new org.apache.thrift.meta_data.FieldMetaData("e", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
-      tmpMap.put(_Fields.IOE, new org.apache.thrift.meta_data.FieldMetaData("ioe", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(removeBlock_result.class, metaDataMap);
@@ -6839,23 +7456,23 @@ public class BlockWorkerClientService {
     }
 
     public removeBlock_result(
-      alluxio.thrift.AlluxioTException e,
-      alluxio.thrift.ThriftIOException ioe)
+      RemoveBlockTResponse success,
+      alluxio.thrift.AlluxioTException e)
     {
       this();
+      this.success = success;
       this.e = e;
-      this.ioe = ioe;
     }
 
     /**
      * Performs a deep copy on <i>other</i>.
      */
     public removeBlock_result(removeBlock_result other) {
+      if (other.isSetSuccess()) {
+        this.success = new RemoveBlockTResponse(other.success);
+      }
       if (other.isSetE()) {
         this.e = new alluxio.thrift.AlluxioTException(other.e);
-      }
-      if (other.isSetIoe()) {
-        this.ioe = new alluxio.thrift.ThriftIOException(other.ioe);
       }
     }
 
@@ -6865,8 +7482,32 @@ public class BlockWorkerClientService {
 
     @Override
     public void clear() {
+      this.success = null;
       this.e = null;
-      this.ioe = null;
+    }
+
+    public RemoveBlockTResponse getSuccess() {
+      return this.success;
+    }
+
+    public removeBlock_result setSuccess(RemoveBlockTResponse success) {
+      this.success = success;
+      return this;
+    }
+
+    public void unsetSuccess() {
+      this.success = null;
+    }
+
+    /** Returns true if field success is set (has been assigned a value) and false otherwise */
+    public boolean isSetSuccess() {
+      return this.success != null;
+    }
+
+    public void setSuccessIsSet(boolean value) {
+      if (!value) {
+        this.success = null;
+      }
     }
 
     public alluxio.thrift.AlluxioTException getE() {
@@ -6893,32 +7534,16 @@ public class BlockWorkerClientService {
       }
     }
 
-    public alluxio.thrift.ThriftIOException getIoe() {
-      return this.ioe;
-    }
-
-    public removeBlock_result setIoe(alluxio.thrift.ThriftIOException ioe) {
-      this.ioe = ioe;
-      return this;
-    }
-
-    public void unsetIoe() {
-      this.ioe = null;
-    }
-
-    /** Returns true if field ioe is set (has been assigned a value) and false otherwise */
-    public boolean isSetIoe() {
-      return this.ioe != null;
-    }
-
-    public void setIoeIsSet(boolean value) {
-      if (!value) {
-        this.ioe = null;
-      }
-    }
-
     public void setFieldValue(_Fields field, Object value) {
       switch (field) {
+      case SUCCESS:
+        if (value == null) {
+          unsetSuccess();
+        } else {
+          setSuccess((RemoveBlockTResponse)value);
+        }
+        break;
+
       case E:
         if (value == null) {
           unsetE();
@@ -6927,24 +7552,16 @@ public class BlockWorkerClientService {
         }
         break;
 
-      case IOE:
-        if (value == null) {
-          unsetIoe();
-        } else {
-          setIoe((alluxio.thrift.ThriftIOException)value);
-        }
-        break;
-
       }
     }
 
     public Object getFieldValue(_Fields field) {
       switch (field) {
+      case SUCCESS:
+        return getSuccess();
+
       case E:
         return getE();
-
-      case IOE:
-        return getIoe();
 
       }
       throw new IllegalStateException();
@@ -6957,10 +7574,10 @@ public class BlockWorkerClientService {
       }
 
       switch (field) {
+      case SUCCESS:
+        return isSetSuccess();
       case E:
         return isSetE();
-      case IOE:
-        return isSetIoe();
       }
       throw new IllegalStateException();
     }
@@ -6978,21 +7595,21 @@ public class BlockWorkerClientService {
       if (that == null)
         return false;
 
+      boolean this_present_success = true && this.isSetSuccess();
+      boolean that_present_success = true && that.isSetSuccess();
+      if (this_present_success || that_present_success) {
+        if (!(this_present_success && that_present_success))
+          return false;
+        if (!this.success.equals(that.success))
+          return false;
+      }
+
       boolean this_present_e = true && this.isSetE();
       boolean that_present_e = true && that.isSetE();
       if (this_present_e || that_present_e) {
         if (!(this_present_e && that_present_e))
           return false;
         if (!this.e.equals(that.e))
-          return false;
-      }
-
-      boolean this_present_ioe = true && this.isSetIoe();
-      boolean that_present_ioe = true && that.isSetIoe();
-      if (this_present_ioe || that_present_ioe) {
-        if (!(this_present_ioe && that_present_ioe))
-          return false;
-        if (!this.ioe.equals(that.ioe))
           return false;
       }
 
@@ -7003,15 +7620,15 @@ public class BlockWorkerClientService {
     public int hashCode() {
       List<Object> list = new ArrayList<Object>();
 
+      boolean present_success = true && (isSetSuccess());
+      list.add(present_success);
+      if (present_success)
+        list.add(success);
+
       boolean present_e = true && (isSetE());
       list.add(present_e);
       if (present_e)
         list.add(e);
-
-      boolean present_ioe = true && (isSetIoe());
-      list.add(present_ioe);
-      if (present_ioe)
-        list.add(ioe);
 
       return list.hashCode();
     }
@@ -7024,22 +7641,22 @@ public class BlockWorkerClientService {
 
       int lastComparison = 0;
 
+      lastComparison = Boolean.valueOf(isSetSuccess()).compareTo(other.isSetSuccess());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetSuccess()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.success, other.success);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
       lastComparison = Boolean.valueOf(isSetE()).compareTo(other.isSetE());
       if (lastComparison != 0) {
         return lastComparison;
       }
       if (isSetE()) {
         lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.e, other.e);
-        if (lastComparison != 0) {
-          return lastComparison;
-        }
-      }
-      lastComparison = Boolean.valueOf(isSetIoe()).compareTo(other.isSetIoe());
-      if (lastComparison != 0) {
-        return lastComparison;
-      }
-      if (isSetIoe()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.ioe, other.ioe);
         if (lastComparison != 0) {
           return lastComparison;
         }
@@ -7064,19 +7681,19 @@ public class BlockWorkerClientService {
       StringBuilder sb = new StringBuilder("removeBlock_result(");
       boolean first = true;
 
+      sb.append("success:");
+      if (this.success == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.success);
+      }
+      first = false;
+      if (!first) sb.append(", ");
       sb.append("e:");
       if (this.e == null) {
         sb.append("null");
       } else {
         sb.append(this.e);
-      }
-      first = false;
-      if (!first) sb.append(", ");
-      sb.append("ioe:");
-      if (this.ioe == null) {
-        sb.append("null");
-      } else {
-        sb.append(this.ioe);
       }
       first = false;
       sb.append(")");
@@ -7086,6 +7703,9 @@ public class BlockWorkerClientService {
     public void validate() throws org.apache.thrift.TException {
       // check for required fields
       // check for sub-struct validity
+      if (success != null) {
+        success.validate();
+      }
     }
 
     private void writeObject(java.io.ObjectOutputStream out) throws java.io.IOException {
@@ -7122,20 +7742,20 @@ public class BlockWorkerClientService {
             break;
           }
           switch (schemeField.id) {
+            case 0: // SUCCESS
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                struct.success = new RemoveBlockTResponse();
+                struct.success.read(iprot);
+                struct.setSuccessIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
             case 1: // E
               if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
                 struct.e = new alluxio.thrift.AlluxioTException();
                 struct.e.read(iprot);
                 struct.setEIsSet(true);
-              } else { 
-                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-              }
-              break;
-            case 2: // IOE
-              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                struct.ioe = new alluxio.thrift.ThriftIOException();
-                struct.ioe.read(iprot);
-                struct.setIoeIsSet(true);
               } else { 
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
@@ -7155,14 +7775,14 @@ public class BlockWorkerClientService {
         struct.validate();
 
         oprot.writeStructBegin(STRUCT_DESC);
+        if (struct.success != null) {
+          oprot.writeFieldBegin(SUCCESS_FIELD_DESC);
+          struct.success.write(oprot);
+          oprot.writeFieldEnd();
+        }
         if (struct.e != null) {
           oprot.writeFieldBegin(E_FIELD_DESC);
           struct.e.write(oprot);
-          oprot.writeFieldEnd();
-        }
-        if (struct.ioe != null) {
-          oprot.writeFieldBegin(IOE_FIELD_DESC);
-          struct.ioe.write(oprot);
           oprot.writeFieldEnd();
         }
         oprot.writeFieldStop();
@@ -7183,18 +7803,18 @@ public class BlockWorkerClientService {
       public void write(org.apache.thrift.protocol.TProtocol prot, removeBlock_result struct) throws org.apache.thrift.TException {
         TTupleProtocol oprot = (TTupleProtocol) prot;
         BitSet optionals = new BitSet();
-        if (struct.isSetE()) {
+        if (struct.isSetSuccess()) {
           optionals.set(0);
         }
-        if (struct.isSetIoe()) {
+        if (struct.isSetE()) {
           optionals.set(1);
         }
         oprot.writeBitSet(optionals, 2);
+        if (struct.isSetSuccess()) {
+          struct.success.write(oprot);
+        }
         if (struct.isSetE()) {
           struct.e.write(oprot);
-        }
-        if (struct.isSetIoe()) {
-          struct.ioe.write(oprot);
         }
       }
 
@@ -7203,14 +7823,14 @@ public class BlockWorkerClientService {
         TTupleProtocol iprot = (TTupleProtocol) prot;
         BitSet incoming = iprot.readBitSet(2);
         if (incoming.get(0)) {
+          struct.success = new RemoveBlockTResponse();
+          struct.success.read(iprot);
+          struct.setSuccessIsSet(true);
+        }
+        if (incoming.get(1)) {
           struct.e = new alluxio.thrift.AlluxioTException();
           struct.e.read(iprot);
           struct.setEIsSet(true);
-        }
-        if (incoming.get(1)) {
-          struct.ioe = new alluxio.thrift.ThriftIOException();
-          struct.ioe.read(iprot);
-          struct.setIoeIsSet(true);
         }
       }
     }
@@ -7224,6 +7844,7 @@ public class BlockWorkerClientService {
     private static final org.apache.thrift.protocol.TField BLOCK_ID_FIELD_DESC = new org.apache.thrift.protocol.TField("blockId", org.apache.thrift.protocol.TType.I64, (short)2);
     private static final org.apache.thrift.protocol.TField INITIAL_BYTES_FIELD_DESC = new org.apache.thrift.protocol.TField("initialBytes", org.apache.thrift.protocol.TType.I64, (short)3);
     private static final org.apache.thrift.protocol.TField WRITE_TIER_FIELD_DESC = new org.apache.thrift.protocol.TField("writeTier", org.apache.thrift.protocol.TType.I32, (short)4);
+    private static final org.apache.thrift.protocol.TField OPTIONS_FIELD_DESC = new org.apache.thrift.protocol.TField("options", org.apache.thrift.protocol.TType.STRUCT, (short)5);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
@@ -7235,6 +7856,7 @@ public class BlockWorkerClientService {
     private long blockId; // required
     private long initialBytes; // required
     private int writeTier; // required
+    private RequestBlockLocationTOptions options; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
@@ -7253,7 +7875,11 @@ public class BlockWorkerClientService {
       /**
        * the target tier to write to
        */
-      WRITE_TIER((short)4, "writeTier");
+      WRITE_TIER((short)4, "writeTier"),
+      /**
+       * the method options
+       */
+      OPTIONS((short)5, "options");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -7276,6 +7902,8 @@ public class BlockWorkerClientService {
             return INITIAL_BYTES;
           case 4: // WRITE_TIER
             return WRITE_TIER;
+          case 5: // OPTIONS
+            return OPTIONS;
           default:
             return null;
         }
@@ -7332,6 +7960,8 @@ public class BlockWorkerClientService {
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
       tmpMap.put(_Fields.WRITE_TIER, new org.apache.thrift.meta_data.FieldMetaData("writeTier", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I32)));
+      tmpMap.put(_Fields.OPTIONS, new org.apache.thrift.meta_data.FieldMetaData("options", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, RequestBlockLocationTOptions.class)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(requestBlockLocation_args.class, metaDataMap);
     }
@@ -7343,7 +7973,8 @@ public class BlockWorkerClientService {
       long sessionId,
       long blockId,
       long initialBytes,
-      int writeTier)
+      int writeTier,
+      RequestBlockLocationTOptions options)
     {
       this();
       this.sessionId = sessionId;
@@ -7354,6 +7985,7 @@ public class BlockWorkerClientService {
       setInitialBytesIsSet(true);
       this.writeTier = writeTier;
       setWriteTierIsSet(true);
+      this.options = options;
     }
 
     /**
@@ -7365,6 +7997,9 @@ public class BlockWorkerClientService {
       this.blockId = other.blockId;
       this.initialBytes = other.initialBytes;
       this.writeTier = other.writeTier;
+      if (other.isSetOptions()) {
+        this.options = new RequestBlockLocationTOptions(other.options);
+      }
     }
 
     public requestBlockLocation_args deepCopy() {
@@ -7381,6 +8016,7 @@ public class BlockWorkerClientService {
       this.initialBytes = 0;
       setWriteTierIsSet(false);
       this.writeTier = 0;
+      this.options = null;
     }
 
     /**
@@ -7499,6 +8135,36 @@ public class BlockWorkerClientService {
       __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __WRITETIER_ISSET_ID, value);
     }
 
+    /**
+     * the method options
+     */
+    public RequestBlockLocationTOptions getOptions() {
+      return this.options;
+    }
+
+    /**
+     * the method options
+     */
+    public requestBlockLocation_args setOptions(RequestBlockLocationTOptions options) {
+      this.options = options;
+      return this;
+    }
+
+    public void unsetOptions() {
+      this.options = null;
+    }
+
+    /** Returns true if field options is set (has been assigned a value) and false otherwise */
+    public boolean isSetOptions() {
+      return this.options != null;
+    }
+
+    public void setOptionsIsSet(boolean value) {
+      if (!value) {
+        this.options = null;
+      }
+    }
+
     public void setFieldValue(_Fields field, Object value) {
       switch (field) {
       case SESSION_ID:
@@ -7533,6 +8199,14 @@ public class BlockWorkerClientService {
         }
         break;
 
+      case OPTIONS:
+        if (value == null) {
+          unsetOptions();
+        } else {
+          setOptions((RequestBlockLocationTOptions)value);
+        }
+        break;
+
       }
     }
 
@@ -7549,6 +8223,9 @@ public class BlockWorkerClientService {
 
       case WRITE_TIER:
         return getWriteTier();
+
+      case OPTIONS:
+        return getOptions();
 
       }
       throw new IllegalStateException();
@@ -7569,6 +8246,8 @@ public class BlockWorkerClientService {
         return isSetInitialBytes();
       case WRITE_TIER:
         return isSetWriteTier();
+      case OPTIONS:
+        return isSetOptions();
       }
       throw new IllegalStateException();
     }
@@ -7622,6 +8301,15 @@ public class BlockWorkerClientService {
           return false;
       }
 
+      boolean this_present_options = true && this.isSetOptions();
+      boolean that_present_options = true && that.isSetOptions();
+      if (this_present_options || that_present_options) {
+        if (!(this_present_options && that_present_options))
+          return false;
+        if (!this.options.equals(that.options))
+          return false;
+      }
+
       return true;
     }
 
@@ -7648,6 +8336,11 @@ public class BlockWorkerClientService {
       list.add(present_writeTier);
       if (present_writeTier)
         list.add(writeTier);
+
+      boolean present_options = true && (isSetOptions());
+      list.add(present_options);
+      if (present_options)
+        list.add(options);
 
       return list.hashCode();
     }
@@ -7700,6 +8393,16 @@ public class BlockWorkerClientService {
           return lastComparison;
         }
       }
+      lastComparison = Boolean.valueOf(isSetOptions()).compareTo(other.isSetOptions());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetOptions()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.options, other.options);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
       return 0;
     }
 
@@ -7735,6 +8438,14 @@ public class BlockWorkerClientService {
       sb.append("writeTier:");
       sb.append(this.writeTier);
       first = false;
+      if (!first) sb.append(", ");
+      sb.append("options:");
+      if (this.options == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.options);
+      }
+      first = false;
       sb.append(")");
       return sb.toString();
     }
@@ -7742,6 +8453,9 @@ public class BlockWorkerClientService {
     public void validate() throws org.apache.thrift.TException {
       // check for required fields
       // check for sub-struct validity
+      if (options != null) {
+        options.validate();
+      }
     }
 
     private void writeObject(java.io.ObjectOutputStream out) throws java.io.IOException {
@@ -7812,6 +8526,15 @@ public class BlockWorkerClientService {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
+            case 5: // OPTIONS
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                struct.options = new RequestBlockLocationTOptions();
+                struct.options.read(iprot);
+                struct.setOptionsIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
             default:
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
           }
@@ -7839,6 +8562,11 @@ public class BlockWorkerClientService {
         oprot.writeFieldBegin(WRITE_TIER_FIELD_DESC);
         oprot.writeI32(struct.writeTier);
         oprot.writeFieldEnd();
+        if (struct.options != null) {
+          oprot.writeFieldBegin(OPTIONS_FIELD_DESC);
+          struct.options.write(oprot);
+          oprot.writeFieldEnd();
+        }
         oprot.writeFieldStop();
         oprot.writeStructEnd();
       }
@@ -7869,7 +8597,10 @@ public class BlockWorkerClientService {
         if (struct.isSetWriteTier()) {
           optionals.set(3);
         }
-        oprot.writeBitSet(optionals, 4);
+        if (struct.isSetOptions()) {
+          optionals.set(4);
+        }
+        oprot.writeBitSet(optionals, 5);
         if (struct.isSetSessionId()) {
           oprot.writeI64(struct.sessionId);
         }
@@ -7882,12 +8613,15 @@ public class BlockWorkerClientService {
         if (struct.isSetWriteTier()) {
           oprot.writeI32(struct.writeTier);
         }
+        if (struct.isSetOptions()) {
+          struct.options.write(oprot);
+        }
       }
 
       @Override
       public void read(org.apache.thrift.protocol.TProtocol prot, requestBlockLocation_args struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
-        BitSet incoming = iprot.readBitSet(4);
+        BitSet incoming = iprot.readBitSet(5);
         if (incoming.get(0)) {
           struct.sessionId = iprot.readI64();
           struct.setSessionIdIsSet(true);
@@ -7904,6 +8638,11 @@ public class BlockWorkerClientService {
           struct.writeTier = iprot.readI32();
           struct.setWriteTierIsSet(true);
         }
+        if (incoming.get(4)) {
+          struct.options = new RequestBlockLocationTOptions();
+          struct.options.read(iprot);
+          struct.setOptionsIsSet(true);
+        }
       }
     }
 
@@ -7912,9 +8651,8 @@ public class BlockWorkerClientService {
   public static class requestBlockLocation_result implements org.apache.thrift.TBase<requestBlockLocation_result, requestBlockLocation_result._Fields>, java.io.Serializable, Cloneable, Comparable<requestBlockLocation_result>   {
     private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("requestBlockLocation_result");
 
-    private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.STRING, (short)0);
+    private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.STRUCT, (short)0);
     private static final org.apache.thrift.protocol.TField E_FIELD_DESC = new org.apache.thrift.protocol.TField("e", org.apache.thrift.protocol.TType.STRUCT, (short)1);
-    private static final org.apache.thrift.protocol.TField IOE_FIELD_DESC = new org.apache.thrift.protocol.TField("ioe", org.apache.thrift.protocol.TType.STRUCT, (short)2);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
@@ -7922,15 +8660,13 @@ public class BlockWorkerClientService {
       schemes.put(TupleScheme.class, new requestBlockLocation_resultTupleSchemeFactory());
     }
 
-    private String success; // required
+    private RequestBlockLocationTResponse success; // required
     private alluxio.thrift.AlluxioTException e; // required
-    private alluxio.thrift.ThriftIOException ioe; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
       SUCCESS((short)0, "success"),
-      E((short)1, "e"),
-      IOE((short)2, "ioe");
+      E((short)1, "e");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -7949,8 +8685,6 @@ public class BlockWorkerClientService {
             return SUCCESS;
           case 1: // E
             return E;
-          case 2: // IOE
-            return IOE;
           default:
             return null;
         }
@@ -7995,10 +8729,8 @@ public class BlockWorkerClientService {
     static {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
       tmpMap.put(_Fields.SUCCESS, new org.apache.thrift.meta_data.FieldMetaData("success", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
+          new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, RequestBlockLocationTResponse.class)));
       tmpMap.put(_Fields.E, new org.apache.thrift.meta_data.FieldMetaData("e", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
-      tmpMap.put(_Fields.IOE, new org.apache.thrift.meta_data.FieldMetaData("ioe", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(requestBlockLocation_result.class, metaDataMap);
@@ -8008,14 +8740,12 @@ public class BlockWorkerClientService {
     }
 
     public requestBlockLocation_result(
-      String success,
-      alluxio.thrift.AlluxioTException e,
-      alluxio.thrift.ThriftIOException ioe)
+      RequestBlockLocationTResponse success,
+      alluxio.thrift.AlluxioTException e)
     {
       this();
       this.success = success;
       this.e = e;
-      this.ioe = ioe;
     }
 
     /**
@@ -8023,13 +8753,10 @@ public class BlockWorkerClientService {
      */
     public requestBlockLocation_result(requestBlockLocation_result other) {
       if (other.isSetSuccess()) {
-        this.success = other.success;
+        this.success = new RequestBlockLocationTResponse(other.success);
       }
       if (other.isSetE()) {
         this.e = new alluxio.thrift.AlluxioTException(other.e);
-      }
-      if (other.isSetIoe()) {
-        this.ioe = new alluxio.thrift.ThriftIOException(other.ioe);
       }
     }
 
@@ -8041,14 +8768,13 @@ public class BlockWorkerClientService {
     public void clear() {
       this.success = null;
       this.e = null;
-      this.ioe = null;
     }
 
-    public String getSuccess() {
+    public RequestBlockLocationTResponse getSuccess() {
       return this.success;
     }
 
-    public requestBlockLocation_result setSuccess(String success) {
+    public requestBlockLocation_result setSuccess(RequestBlockLocationTResponse success) {
       this.success = success;
       return this;
     }
@@ -8092,37 +8818,13 @@ public class BlockWorkerClientService {
       }
     }
 
-    public alluxio.thrift.ThriftIOException getIoe() {
-      return this.ioe;
-    }
-
-    public requestBlockLocation_result setIoe(alluxio.thrift.ThriftIOException ioe) {
-      this.ioe = ioe;
-      return this;
-    }
-
-    public void unsetIoe() {
-      this.ioe = null;
-    }
-
-    /** Returns true if field ioe is set (has been assigned a value) and false otherwise */
-    public boolean isSetIoe() {
-      return this.ioe != null;
-    }
-
-    public void setIoeIsSet(boolean value) {
-      if (!value) {
-        this.ioe = null;
-      }
-    }
-
     public void setFieldValue(_Fields field, Object value) {
       switch (field) {
       case SUCCESS:
         if (value == null) {
           unsetSuccess();
         } else {
-          setSuccess((String)value);
+          setSuccess((RequestBlockLocationTResponse)value);
         }
         break;
 
@@ -8131,14 +8833,6 @@ public class BlockWorkerClientService {
           unsetE();
         } else {
           setE((alluxio.thrift.AlluxioTException)value);
-        }
-        break;
-
-      case IOE:
-        if (value == null) {
-          unsetIoe();
-        } else {
-          setIoe((alluxio.thrift.ThriftIOException)value);
         }
         break;
 
@@ -8152,9 +8846,6 @@ public class BlockWorkerClientService {
 
       case E:
         return getE();
-
-      case IOE:
-        return getIoe();
 
       }
       throw new IllegalStateException();
@@ -8171,8 +8862,6 @@ public class BlockWorkerClientService {
         return isSetSuccess();
       case E:
         return isSetE();
-      case IOE:
-        return isSetIoe();
       }
       throw new IllegalStateException();
     }
@@ -8208,15 +8897,6 @@ public class BlockWorkerClientService {
           return false;
       }
 
-      boolean this_present_ioe = true && this.isSetIoe();
-      boolean that_present_ioe = true && that.isSetIoe();
-      if (this_present_ioe || that_present_ioe) {
-        if (!(this_present_ioe && that_present_ioe))
-          return false;
-        if (!this.ioe.equals(that.ioe))
-          return false;
-      }
-
       return true;
     }
 
@@ -8233,11 +8913,6 @@ public class BlockWorkerClientService {
       list.add(present_e);
       if (present_e)
         list.add(e);
-
-      boolean present_ioe = true && (isSetIoe());
-      list.add(present_ioe);
-      if (present_ioe)
-        list.add(ioe);
 
       return list.hashCode();
     }
@@ -8266,16 +8941,6 @@ public class BlockWorkerClientService {
       }
       if (isSetE()) {
         lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.e, other.e);
-        if (lastComparison != 0) {
-          return lastComparison;
-        }
-      }
-      lastComparison = Boolean.valueOf(isSetIoe()).compareTo(other.isSetIoe());
-      if (lastComparison != 0) {
-        return lastComparison;
-      }
-      if (isSetIoe()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.ioe, other.ioe);
         if (lastComparison != 0) {
           return lastComparison;
         }
@@ -8315,14 +8980,6 @@ public class BlockWorkerClientService {
         sb.append(this.e);
       }
       first = false;
-      if (!first) sb.append(", ");
-      sb.append("ioe:");
-      if (this.ioe == null) {
-        sb.append("null");
-      } else {
-        sb.append(this.ioe);
-      }
-      first = false;
       sb.append(")");
       return sb.toString();
     }
@@ -8330,6 +8987,9 @@ public class BlockWorkerClientService {
     public void validate() throws org.apache.thrift.TException {
       // check for required fields
       // check for sub-struct validity
+      if (success != null) {
+        success.validate();
+      }
     }
 
     private void writeObject(java.io.ObjectOutputStream out) throws java.io.IOException {
@@ -8367,8 +9027,9 @@ public class BlockWorkerClientService {
           }
           switch (schemeField.id) {
             case 0: // SUCCESS
-              if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
-                struct.success = iprot.readString();
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                struct.success = new RequestBlockLocationTResponse();
+                struct.success.read(iprot);
                 struct.setSuccessIsSet(true);
               } else { 
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
@@ -8379,15 +9040,6 @@ public class BlockWorkerClientService {
                 struct.e = new alluxio.thrift.AlluxioTException();
                 struct.e.read(iprot);
                 struct.setEIsSet(true);
-              } else { 
-                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-              }
-              break;
-            case 2: // IOE
-              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                struct.ioe = new alluxio.thrift.ThriftIOException();
-                struct.ioe.read(iprot);
-                struct.setIoeIsSet(true);
               } else { 
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
@@ -8409,17 +9061,12 @@ public class BlockWorkerClientService {
         oprot.writeStructBegin(STRUCT_DESC);
         if (struct.success != null) {
           oprot.writeFieldBegin(SUCCESS_FIELD_DESC);
-          oprot.writeString(struct.success);
+          struct.success.write(oprot);
           oprot.writeFieldEnd();
         }
         if (struct.e != null) {
           oprot.writeFieldBegin(E_FIELD_DESC);
           struct.e.write(oprot);
-          oprot.writeFieldEnd();
-        }
-        if (struct.ioe != null) {
-          oprot.writeFieldBegin(IOE_FIELD_DESC);
-          struct.ioe.write(oprot);
           oprot.writeFieldEnd();
         }
         oprot.writeFieldStop();
@@ -8446,38 +9093,28 @@ public class BlockWorkerClientService {
         if (struct.isSetE()) {
           optionals.set(1);
         }
-        if (struct.isSetIoe()) {
-          optionals.set(2);
-        }
-        oprot.writeBitSet(optionals, 3);
+        oprot.writeBitSet(optionals, 2);
         if (struct.isSetSuccess()) {
-          oprot.writeString(struct.success);
+          struct.success.write(oprot);
         }
         if (struct.isSetE()) {
           struct.e.write(oprot);
-        }
-        if (struct.isSetIoe()) {
-          struct.ioe.write(oprot);
         }
       }
 
       @Override
       public void read(org.apache.thrift.protocol.TProtocol prot, requestBlockLocation_result struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
-        BitSet incoming = iprot.readBitSet(3);
+        BitSet incoming = iprot.readBitSet(2);
         if (incoming.get(0)) {
-          struct.success = iprot.readString();
+          struct.success = new RequestBlockLocationTResponse();
+          struct.success.read(iprot);
           struct.setSuccessIsSet(true);
         }
         if (incoming.get(1)) {
           struct.e = new alluxio.thrift.AlluxioTException();
           struct.e.read(iprot);
           struct.setEIsSet(true);
-        }
-        if (incoming.get(2)) {
-          struct.ioe = new alluxio.thrift.ThriftIOException();
-          struct.ioe.read(iprot);
-          struct.setIoeIsSet(true);
         }
       }
     }
@@ -8490,6 +9127,7 @@ public class BlockWorkerClientService {
     private static final org.apache.thrift.protocol.TField SESSION_ID_FIELD_DESC = new org.apache.thrift.protocol.TField("sessionId", org.apache.thrift.protocol.TType.I64, (short)1);
     private static final org.apache.thrift.protocol.TField BLOCK_ID_FIELD_DESC = new org.apache.thrift.protocol.TField("blockId", org.apache.thrift.protocol.TType.I64, (short)2);
     private static final org.apache.thrift.protocol.TField REQUEST_BYTES_FIELD_DESC = new org.apache.thrift.protocol.TField("requestBytes", org.apache.thrift.protocol.TType.I64, (short)3);
+    private static final org.apache.thrift.protocol.TField OPTIONS_FIELD_DESC = new org.apache.thrift.protocol.TField("options", org.apache.thrift.protocol.TType.STRUCT, (short)4);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
@@ -8500,6 +9138,7 @@ public class BlockWorkerClientService {
     private long sessionId; // required
     private long blockId; // required
     private long requestBytes; // required
+    private RequestSpaceTOptions options; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
@@ -8514,7 +9153,11 @@ public class BlockWorkerClientService {
       /**
        * the number of bytes requested
        */
-      REQUEST_BYTES((short)3, "requestBytes");
+      REQUEST_BYTES((short)3, "requestBytes"),
+      /**
+       * the method options
+       */
+      OPTIONS((short)4, "options");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -8535,6 +9178,8 @@ public class BlockWorkerClientService {
             return BLOCK_ID;
           case 3: // REQUEST_BYTES
             return REQUEST_BYTES;
+          case 4: // OPTIONS
+            return OPTIONS;
           default:
             return null;
         }
@@ -8588,6 +9233,8 @@ public class BlockWorkerClientService {
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
       tmpMap.put(_Fields.REQUEST_BYTES, new org.apache.thrift.meta_data.FieldMetaData("requestBytes", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
+      tmpMap.put(_Fields.OPTIONS, new org.apache.thrift.meta_data.FieldMetaData("options", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, RequestSpaceTOptions.class)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(requestSpace_args.class, metaDataMap);
     }
@@ -8598,7 +9245,8 @@ public class BlockWorkerClientService {
     public requestSpace_args(
       long sessionId,
       long blockId,
-      long requestBytes)
+      long requestBytes,
+      RequestSpaceTOptions options)
     {
       this();
       this.sessionId = sessionId;
@@ -8607,6 +9255,7 @@ public class BlockWorkerClientService {
       setBlockIdIsSet(true);
       this.requestBytes = requestBytes;
       setRequestBytesIsSet(true);
+      this.options = options;
     }
 
     /**
@@ -8617,6 +9266,9 @@ public class BlockWorkerClientService {
       this.sessionId = other.sessionId;
       this.blockId = other.blockId;
       this.requestBytes = other.requestBytes;
+      if (other.isSetOptions()) {
+        this.options = new RequestSpaceTOptions(other.options);
+      }
     }
 
     public requestSpace_args deepCopy() {
@@ -8631,6 +9283,7 @@ public class BlockWorkerClientService {
       this.blockId = 0;
       setRequestBytesIsSet(false);
       this.requestBytes = 0;
+      this.options = null;
     }
 
     /**
@@ -8720,6 +9373,36 @@ public class BlockWorkerClientService {
       __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __REQUESTBYTES_ISSET_ID, value);
     }
 
+    /**
+     * the method options
+     */
+    public RequestSpaceTOptions getOptions() {
+      return this.options;
+    }
+
+    /**
+     * the method options
+     */
+    public requestSpace_args setOptions(RequestSpaceTOptions options) {
+      this.options = options;
+      return this;
+    }
+
+    public void unsetOptions() {
+      this.options = null;
+    }
+
+    /** Returns true if field options is set (has been assigned a value) and false otherwise */
+    public boolean isSetOptions() {
+      return this.options != null;
+    }
+
+    public void setOptionsIsSet(boolean value) {
+      if (!value) {
+        this.options = null;
+      }
+    }
+
     public void setFieldValue(_Fields field, Object value) {
       switch (field) {
       case SESSION_ID:
@@ -8746,6 +9429,14 @@ public class BlockWorkerClientService {
         }
         break;
 
+      case OPTIONS:
+        if (value == null) {
+          unsetOptions();
+        } else {
+          setOptions((RequestSpaceTOptions)value);
+        }
+        break;
+
       }
     }
 
@@ -8759,6 +9450,9 @@ public class BlockWorkerClientService {
 
       case REQUEST_BYTES:
         return getRequestBytes();
+
+      case OPTIONS:
+        return getOptions();
 
       }
       throw new IllegalStateException();
@@ -8777,6 +9471,8 @@ public class BlockWorkerClientService {
         return isSetBlockId();
       case REQUEST_BYTES:
         return isSetRequestBytes();
+      case OPTIONS:
+        return isSetOptions();
       }
       throw new IllegalStateException();
     }
@@ -8821,6 +9517,15 @@ public class BlockWorkerClientService {
           return false;
       }
 
+      boolean this_present_options = true && this.isSetOptions();
+      boolean that_present_options = true && that.isSetOptions();
+      if (this_present_options || that_present_options) {
+        if (!(this_present_options && that_present_options))
+          return false;
+        if (!this.options.equals(that.options))
+          return false;
+      }
+
       return true;
     }
 
@@ -8842,6 +9547,11 @@ public class BlockWorkerClientService {
       list.add(present_requestBytes);
       if (present_requestBytes)
         list.add(requestBytes);
+
+      boolean present_options = true && (isSetOptions());
+      list.add(present_options);
+      if (present_options)
+        list.add(options);
 
       return list.hashCode();
     }
@@ -8884,6 +9594,16 @@ public class BlockWorkerClientService {
           return lastComparison;
         }
       }
+      lastComparison = Boolean.valueOf(isSetOptions()).compareTo(other.isSetOptions());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetOptions()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.options, other.options);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
       return 0;
     }
 
@@ -8915,6 +9635,14 @@ public class BlockWorkerClientService {
       sb.append("requestBytes:");
       sb.append(this.requestBytes);
       first = false;
+      if (!first) sb.append(", ");
+      sb.append("options:");
+      if (this.options == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.options);
+      }
+      first = false;
       sb.append(")");
       return sb.toString();
     }
@@ -8922,6 +9650,9 @@ public class BlockWorkerClientService {
     public void validate() throws org.apache.thrift.TException {
       // check for required fields
       // check for sub-struct validity
+      if (options != null) {
+        options.validate();
+      }
     }
 
     private void writeObject(java.io.ObjectOutputStream out) throws java.io.IOException {
@@ -8984,6 +9715,15 @@ public class BlockWorkerClientService {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
+            case 4: // OPTIONS
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                struct.options = new RequestSpaceTOptions();
+                struct.options.read(iprot);
+                struct.setOptionsIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
             default:
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
           }
@@ -9008,6 +9748,11 @@ public class BlockWorkerClientService {
         oprot.writeFieldBegin(REQUEST_BYTES_FIELD_DESC);
         oprot.writeI64(struct.requestBytes);
         oprot.writeFieldEnd();
+        if (struct.options != null) {
+          oprot.writeFieldBegin(OPTIONS_FIELD_DESC);
+          struct.options.write(oprot);
+          oprot.writeFieldEnd();
+        }
         oprot.writeFieldStop();
         oprot.writeStructEnd();
       }
@@ -9035,7 +9780,10 @@ public class BlockWorkerClientService {
         if (struct.isSetRequestBytes()) {
           optionals.set(2);
         }
-        oprot.writeBitSet(optionals, 3);
+        if (struct.isSetOptions()) {
+          optionals.set(3);
+        }
+        oprot.writeBitSet(optionals, 4);
         if (struct.isSetSessionId()) {
           oprot.writeI64(struct.sessionId);
         }
@@ -9045,12 +9793,15 @@ public class BlockWorkerClientService {
         if (struct.isSetRequestBytes()) {
           oprot.writeI64(struct.requestBytes);
         }
+        if (struct.isSetOptions()) {
+          struct.options.write(oprot);
+        }
       }
 
       @Override
       public void read(org.apache.thrift.protocol.TProtocol prot, requestSpace_args struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
-        BitSet incoming = iprot.readBitSet(3);
+        BitSet incoming = iprot.readBitSet(4);
         if (incoming.get(0)) {
           struct.sessionId = iprot.readI64();
           struct.setSessionIdIsSet(true);
@@ -9063,6 +9814,11 @@ public class BlockWorkerClientService {
           struct.requestBytes = iprot.readI64();
           struct.setRequestBytesIsSet(true);
         }
+        if (incoming.get(3)) {
+          struct.options = new RequestSpaceTOptions();
+          struct.options.read(iprot);
+          struct.setOptionsIsSet(true);
+        }
       }
     }
 
@@ -9071,7 +9827,7 @@ public class BlockWorkerClientService {
   public static class requestSpace_result implements org.apache.thrift.TBase<requestSpace_result, requestSpace_result._Fields>, java.io.Serializable, Cloneable, Comparable<requestSpace_result>   {
     private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("requestSpace_result");
 
-    private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.BOOL, (short)0);
+    private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.STRUCT, (short)0);
     private static final org.apache.thrift.protocol.TField E_FIELD_DESC = new org.apache.thrift.protocol.TField("e", org.apache.thrift.protocol.TType.STRUCT, (short)1);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
@@ -9080,7 +9836,7 @@ public class BlockWorkerClientService {
       schemes.put(TupleScheme.class, new requestSpace_resultTupleSchemeFactory());
     }
 
-    private boolean success; // required
+    private RequestSpaceTResponse success; // required
     private alluxio.thrift.AlluxioTException e; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
@@ -9145,13 +9901,11 @@ public class BlockWorkerClientService {
     }
 
     // isset id assignments
-    private static final int __SUCCESS_ISSET_ID = 0;
-    private byte __isset_bitfield = 0;
     public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
     static {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
       tmpMap.put(_Fields.SUCCESS, new org.apache.thrift.meta_data.FieldMetaData("success", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.BOOL)));
+          new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, RequestSpaceTResponse.class)));
       tmpMap.put(_Fields.E, new org.apache.thrift.meta_data.FieldMetaData("e", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
@@ -9162,12 +9916,11 @@ public class BlockWorkerClientService {
     }
 
     public requestSpace_result(
-      boolean success,
+      RequestSpaceTResponse success,
       alluxio.thrift.AlluxioTException e)
     {
       this();
       this.success = success;
-      setSuccessIsSet(true);
       this.e = e;
     }
 
@@ -9175,8 +9928,9 @@ public class BlockWorkerClientService {
      * Performs a deep copy on <i>other</i>.
      */
     public requestSpace_result(requestSpace_result other) {
-      __isset_bitfield = other.__isset_bitfield;
-      this.success = other.success;
+      if (other.isSetSuccess()) {
+        this.success = new RequestSpaceTResponse(other.success);
+      }
       if (other.isSetE()) {
         this.e = new alluxio.thrift.AlluxioTException(other.e);
       }
@@ -9188,32 +9942,32 @@ public class BlockWorkerClientService {
 
     @Override
     public void clear() {
-      setSuccessIsSet(false);
-      this.success = false;
+      this.success = null;
       this.e = null;
     }
 
-    public boolean isSuccess() {
+    public RequestSpaceTResponse getSuccess() {
       return this.success;
     }
 
-    public requestSpace_result setSuccess(boolean success) {
+    public requestSpace_result setSuccess(RequestSpaceTResponse success) {
       this.success = success;
-      setSuccessIsSet(true);
       return this;
     }
 
     public void unsetSuccess() {
-      __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __SUCCESS_ISSET_ID);
+      this.success = null;
     }
 
     /** Returns true if field success is set (has been assigned a value) and false otherwise */
     public boolean isSetSuccess() {
-      return EncodingUtils.testBit(__isset_bitfield, __SUCCESS_ISSET_ID);
+      return this.success != null;
     }
 
     public void setSuccessIsSet(boolean value) {
-      __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __SUCCESS_ISSET_ID, value);
+      if (!value) {
+        this.success = null;
+      }
     }
 
     public alluxio.thrift.AlluxioTException getE() {
@@ -9246,7 +10000,7 @@ public class BlockWorkerClientService {
         if (value == null) {
           unsetSuccess();
         } else {
-          setSuccess((Boolean)value);
+          setSuccess((RequestSpaceTResponse)value);
         }
         break;
 
@@ -9264,7 +10018,7 @@ public class BlockWorkerClientService {
     public Object getFieldValue(_Fields field) {
       switch (field) {
       case SUCCESS:
-        return isSuccess();
+        return getSuccess();
 
       case E:
         return getE();
@@ -9301,12 +10055,12 @@ public class BlockWorkerClientService {
       if (that == null)
         return false;
 
-      boolean this_present_success = true;
-      boolean that_present_success = true;
+      boolean this_present_success = true && this.isSetSuccess();
+      boolean that_present_success = true && that.isSetSuccess();
       if (this_present_success || that_present_success) {
         if (!(this_present_success && that_present_success))
           return false;
-        if (this.success != that.success)
+        if (!this.success.equals(that.success))
           return false;
       }
 
@@ -9326,7 +10080,7 @@ public class BlockWorkerClientService {
     public int hashCode() {
       List<Object> list = new ArrayList<Object>();
 
-      boolean present_success = true;
+      boolean present_success = true && (isSetSuccess());
       list.add(present_success);
       if (present_success)
         list.add(success);
@@ -9388,7 +10142,11 @@ public class BlockWorkerClientService {
       boolean first = true;
 
       sb.append("success:");
-      sb.append(this.success);
+      if (this.success == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.success);
+      }
       first = false;
       if (!first) sb.append(", ");
       sb.append("e:");
@@ -9405,6 +10163,9 @@ public class BlockWorkerClientService {
     public void validate() throws org.apache.thrift.TException {
       // check for required fields
       // check for sub-struct validity
+      if (success != null) {
+        success.validate();
+      }
     }
 
     private void writeObject(java.io.ObjectOutputStream out) throws java.io.IOException {
@@ -9417,8 +10178,6 @@ public class BlockWorkerClientService {
 
     private void readObject(java.io.ObjectInputStream in) throws java.io.IOException, ClassNotFoundException {
       try {
-        // it doesn't seem like you should have to do this, but java serialization is wacky, and doesn't call the default constructor.
-        __isset_bitfield = 0;
         read(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(in)));
       } catch (org.apache.thrift.TException te) {
         throw new java.io.IOException(te);
@@ -9444,8 +10203,9 @@ public class BlockWorkerClientService {
           }
           switch (schemeField.id) {
             case 0: // SUCCESS
-              if (schemeField.type == org.apache.thrift.protocol.TType.BOOL) {
-                struct.success = iprot.readBool();
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                struct.success = new RequestSpaceTResponse();
+                struct.success.read(iprot);
                 struct.setSuccessIsSet(true);
               } else { 
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
@@ -9475,9 +10235,9 @@ public class BlockWorkerClientService {
         struct.validate();
 
         oprot.writeStructBegin(STRUCT_DESC);
-        if (struct.isSetSuccess()) {
+        if (struct.success != null) {
           oprot.writeFieldBegin(SUCCESS_FIELD_DESC);
-          oprot.writeBool(struct.success);
+          struct.success.write(oprot);
           oprot.writeFieldEnd();
         }
         if (struct.e != null) {
@@ -9511,7 +10271,7 @@ public class BlockWorkerClientService {
         }
         oprot.writeBitSet(optionals, 2);
         if (struct.isSetSuccess()) {
-          oprot.writeBool(struct.success);
+          struct.success.write(oprot);
         }
         if (struct.isSetE()) {
           struct.e.write(oprot);
@@ -9523,7 +10283,8 @@ public class BlockWorkerClientService {
         TTupleProtocol iprot = (TTupleProtocol) prot;
         BitSet incoming = iprot.readBitSet(2);
         if (incoming.get(0)) {
-          struct.success = iprot.readBool();
+          struct.success = new RequestSpaceTResponse();
+          struct.success.read(iprot);
           struct.setSuccessIsSet(true);
         }
         if (incoming.get(1)) {
@@ -9536,20 +10297,22 @@ public class BlockWorkerClientService {
 
   }
 
-  public static class sessionHeartbeat_args implements org.apache.thrift.TBase<sessionHeartbeat_args, sessionHeartbeat_args._Fields>, java.io.Serializable, Cloneable, Comparable<sessionHeartbeat_args>   {
-    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("sessionHeartbeat_args");
+  public static class sessionBlockHeartbeat_args implements org.apache.thrift.TBase<sessionBlockHeartbeat_args, sessionBlockHeartbeat_args._Fields>, java.io.Serializable, Cloneable, Comparable<sessionBlockHeartbeat_args>   {
+    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("sessionBlockHeartbeat_args");
 
     private static final org.apache.thrift.protocol.TField SESSION_ID_FIELD_DESC = new org.apache.thrift.protocol.TField("sessionId", org.apache.thrift.protocol.TType.I64, (short)1);
     private static final org.apache.thrift.protocol.TField METRICS_FIELD_DESC = new org.apache.thrift.protocol.TField("metrics", org.apache.thrift.protocol.TType.LIST, (short)2);
+    private static final org.apache.thrift.protocol.TField OPTIONS_FIELD_DESC = new org.apache.thrift.protocol.TField("options", org.apache.thrift.protocol.TType.STRUCT, (short)3);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
-      schemes.put(StandardScheme.class, new sessionHeartbeat_argsStandardSchemeFactory());
-      schemes.put(TupleScheme.class, new sessionHeartbeat_argsTupleSchemeFactory());
+      schemes.put(StandardScheme.class, new sessionBlockHeartbeat_argsStandardSchemeFactory());
+      schemes.put(TupleScheme.class, new sessionBlockHeartbeat_argsTupleSchemeFactory());
     }
 
     private long sessionId; // required
     private List<Long> metrics; // required
+    private SessionBlockHeartbeatTOptions options; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
@@ -9560,7 +10323,11 @@ public class BlockWorkerClientService {
       /**
        * deprecated since 1.3.0 and will be removed in 2.0
        */
-      METRICS((short)2, "metrics");
+      METRICS((short)2, "metrics"),
+      /**
+       * the method options
+       */
+      OPTIONS((short)3, "options");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -9579,6 +10346,8 @@ public class BlockWorkerClientService {
             return SESSION_ID;
           case 2: // METRICS
             return METRICS;
+          case 3: // OPTIONS
+            return OPTIONS;
           default:
             return null;
         }
@@ -9629,37 +10398,44 @@ public class BlockWorkerClientService {
       tmpMap.put(_Fields.METRICS, new org.apache.thrift.meta_data.FieldMetaData("metrics", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.ListMetaData(org.apache.thrift.protocol.TType.LIST, 
               new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64))));
+      tmpMap.put(_Fields.OPTIONS, new org.apache.thrift.meta_data.FieldMetaData("options", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, SessionBlockHeartbeatTOptions.class)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
-      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(sessionHeartbeat_args.class, metaDataMap);
+      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(sessionBlockHeartbeat_args.class, metaDataMap);
     }
 
-    public sessionHeartbeat_args() {
+    public sessionBlockHeartbeat_args() {
     }
 
-    public sessionHeartbeat_args(
+    public sessionBlockHeartbeat_args(
       long sessionId,
-      List<Long> metrics)
+      List<Long> metrics,
+      SessionBlockHeartbeatTOptions options)
     {
       this();
       this.sessionId = sessionId;
       setSessionIdIsSet(true);
       this.metrics = metrics;
+      this.options = options;
     }
 
     /**
      * Performs a deep copy on <i>other</i>.
      */
-    public sessionHeartbeat_args(sessionHeartbeat_args other) {
+    public sessionBlockHeartbeat_args(sessionBlockHeartbeat_args other) {
       __isset_bitfield = other.__isset_bitfield;
       this.sessionId = other.sessionId;
       if (other.isSetMetrics()) {
         List<Long> __this__metrics = new ArrayList<Long>(other.metrics);
         this.metrics = __this__metrics;
       }
+      if (other.isSetOptions()) {
+        this.options = new SessionBlockHeartbeatTOptions(other.options);
+      }
     }
 
-    public sessionHeartbeat_args deepCopy() {
-      return new sessionHeartbeat_args(this);
+    public sessionBlockHeartbeat_args deepCopy() {
+      return new sessionBlockHeartbeat_args(this);
     }
 
     @Override
@@ -9667,6 +10443,7 @@ public class BlockWorkerClientService {
       setSessionIdIsSet(false);
       this.sessionId = 0;
       this.metrics = null;
+      this.options = null;
     }
 
     /**
@@ -9679,7 +10456,7 @@ public class BlockWorkerClientService {
     /**
      * the id of the current session
      */
-    public sessionHeartbeat_args setSessionId(long sessionId) {
+    public sessionBlockHeartbeat_args setSessionId(long sessionId) {
       this.sessionId = sessionId;
       setSessionIdIsSet(true);
       return this;
@@ -9723,7 +10500,7 @@ public class BlockWorkerClientService {
     /**
      * deprecated since 1.3.0 and will be removed in 2.0
      */
-    public sessionHeartbeat_args setMetrics(List<Long> metrics) {
+    public sessionBlockHeartbeat_args setMetrics(List<Long> metrics) {
       this.metrics = metrics;
       return this;
     }
@@ -9740,6 +10517,36 @@ public class BlockWorkerClientService {
     public void setMetricsIsSet(boolean value) {
       if (!value) {
         this.metrics = null;
+      }
+    }
+
+    /**
+     * the method options
+     */
+    public SessionBlockHeartbeatTOptions getOptions() {
+      return this.options;
+    }
+
+    /**
+     * the method options
+     */
+    public sessionBlockHeartbeat_args setOptions(SessionBlockHeartbeatTOptions options) {
+      this.options = options;
+      return this;
+    }
+
+    public void unsetOptions() {
+      this.options = null;
+    }
+
+    /** Returns true if field options is set (has been assigned a value) and false otherwise */
+    public boolean isSetOptions() {
+      return this.options != null;
+    }
+
+    public void setOptionsIsSet(boolean value) {
+      if (!value) {
+        this.options = null;
       }
     }
 
@@ -9761,6 +10568,14 @@ public class BlockWorkerClientService {
         }
         break;
 
+      case OPTIONS:
+        if (value == null) {
+          unsetOptions();
+        } else {
+          setOptions((SessionBlockHeartbeatTOptions)value);
+        }
+        break;
+
       }
     }
 
@@ -9771,6 +10586,9 @@ public class BlockWorkerClientService {
 
       case METRICS:
         return getMetrics();
+
+      case OPTIONS:
+        return getOptions();
 
       }
       throw new IllegalStateException();
@@ -9787,6 +10605,8 @@ public class BlockWorkerClientService {
         return isSetSessionId();
       case METRICS:
         return isSetMetrics();
+      case OPTIONS:
+        return isSetOptions();
       }
       throw new IllegalStateException();
     }
@@ -9795,12 +10615,12 @@ public class BlockWorkerClientService {
     public boolean equals(Object that) {
       if (that == null)
         return false;
-      if (that instanceof sessionHeartbeat_args)
-        return this.equals((sessionHeartbeat_args)that);
+      if (that instanceof sessionBlockHeartbeat_args)
+        return this.equals((sessionBlockHeartbeat_args)that);
       return false;
     }
 
-    public boolean equals(sessionHeartbeat_args that) {
+    public boolean equals(sessionBlockHeartbeat_args that) {
       if (that == null)
         return false;
 
@@ -9822,6 +10642,15 @@ public class BlockWorkerClientService {
           return false;
       }
 
+      boolean this_present_options = true && this.isSetOptions();
+      boolean that_present_options = true && that.isSetOptions();
+      if (this_present_options || that_present_options) {
+        if (!(this_present_options && that_present_options))
+          return false;
+        if (!this.options.equals(that.options))
+          return false;
+      }
+
       return true;
     }
 
@@ -9839,11 +10668,16 @@ public class BlockWorkerClientService {
       if (present_metrics)
         list.add(metrics);
 
+      boolean present_options = true && (isSetOptions());
+      list.add(present_options);
+      if (present_options)
+        list.add(options);
+
       return list.hashCode();
     }
 
     @Override
-    public int compareTo(sessionHeartbeat_args other) {
+    public int compareTo(sessionBlockHeartbeat_args other) {
       if (!getClass().equals(other.getClass())) {
         return getClass().getName().compareTo(other.getClass().getName());
       }
@@ -9870,6 +10704,16 @@ public class BlockWorkerClientService {
           return lastComparison;
         }
       }
+      lastComparison = Boolean.valueOf(isSetOptions()).compareTo(other.isSetOptions());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetOptions()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.options, other.options);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
       return 0;
     }
 
@@ -9887,7 +10731,7 @@ public class BlockWorkerClientService {
 
     @Override
     public String toString() {
-      StringBuilder sb = new StringBuilder("sessionHeartbeat_args(");
+      StringBuilder sb = new StringBuilder("sessionBlockHeartbeat_args(");
       boolean first = true;
 
       sb.append("sessionId:");
@@ -9901,6 +10745,14 @@ public class BlockWorkerClientService {
         sb.append(this.metrics);
       }
       first = false;
+      if (!first) sb.append(", ");
+      sb.append("options:");
+      if (this.options == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.options);
+      }
+      first = false;
       sb.append(")");
       return sb.toString();
     }
@@ -9908,6 +10760,9 @@ public class BlockWorkerClientService {
     public void validate() throws org.apache.thrift.TException {
       // check for required fields
       // check for sub-struct validity
+      if (options != null) {
+        options.validate();
+      }
     }
 
     private void writeObject(java.io.ObjectOutputStream out) throws java.io.IOException {
@@ -9928,15 +10783,15 @@ public class BlockWorkerClientService {
       }
     }
 
-    private static class sessionHeartbeat_argsStandardSchemeFactory implements SchemeFactory {
-      public sessionHeartbeat_argsStandardScheme getScheme() {
-        return new sessionHeartbeat_argsStandardScheme();
+    private static class sessionBlockHeartbeat_argsStandardSchemeFactory implements SchemeFactory {
+      public sessionBlockHeartbeat_argsStandardScheme getScheme() {
+        return new sessionBlockHeartbeat_argsStandardScheme();
       }
     }
 
-    private static class sessionHeartbeat_argsStandardScheme extends StandardScheme<sessionHeartbeat_args> {
+    private static class sessionBlockHeartbeat_argsStandardScheme extends StandardScheme<sessionBlockHeartbeat_args> {
 
-      public void read(org.apache.thrift.protocol.TProtocol iprot, sessionHeartbeat_args struct) throws org.apache.thrift.TException {
+      public void read(org.apache.thrift.protocol.TProtocol iprot, sessionBlockHeartbeat_args struct) throws org.apache.thrift.TException {
         org.apache.thrift.protocol.TField schemeField;
         iprot.readStructBegin();
         while (true)
@@ -9972,6 +10827,15 @@ public class BlockWorkerClientService {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
+            case 3: // OPTIONS
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                struct.options = new SessionBlockHeartbeatTOptions();
+                struct.options.read(iprot);
+                struct.setOptionsIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
             default:
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
           }
@@ -9983,7 +10847,7 @@ public class BlockWorkerClientService {
         struct.validate();
       }
 
-      public void write(org.apache.thrift.protocol.TProtocol oprot, sessionHeartbeat_args struct) throws org.apache.thrift.TException {
+      public void write(org.apache.thrift.protocol.TProtocol oprot, sessionBlockHeartbeat_args struct) throws org.apache.thrift.TException {
         struct.validate();
 
         oprot.writeStructBegin(STRUCT_DESC);
@@ -10002,22 +10866,27 @@ public class BlockWorkerClientService {
           }
           oprot.writeFieldEnd();
         }
+        if (struct.options != null) {
+          oprot.writeFieldBegin(OPTIONS_FIELD_DESC);
+          struct.options.write(oprot);
+          oprot.writeFieldEnd();
+        }
         oprot.writeFieldStop();
         oprot.writeStructEnd();
       }
 
     }
 
-    private static class sessionHeartbeat_argsTupleSchemeFactory implements SchemeFactory {
-      public sessionHeartbeat_argsTupleScheme getScheme() {
-        return new sessionHeartbeat_argsTupleScheme();
+    private static class sessionBlockHeartbeat_argsTupleSchemeFactory implements SchemeFactory {
+      public sessionBlockHeartbeat_argsTupleScheme getScheme() {
+        return new sessionBlockHeartbeat_argsTupleScheme();
       }
     }
 
-    private static class sessionHeartbeat_argsTupleScheme extends TupleScheme<sessionHeartbeat_args> {
+    private static class sessionBlockHeartbeat_argsTupleScheme extends TupleScheme<sessionBlockHeartbeat_args> {
 
       @Override
-      public void write(org.apache.thrift.protocol.TProtocol prot, sessionHeartbeat_args struct) throws org.apache.thrift.TException {
+      public void write(org.apache.thrift.protocol.TProtocol prot, sessionBlockHeartbeat_args struct) throws org.apache.thrift.TException {
         TTupleProtocol oprot = (TTupleProtocol) prot;
         BitSet optionals = new BitSet();
         if (struct.isSetSessionId()) {
@@ -10026,7 +10895,10 @@ public class BlockWorkerClientService {
         if (struct.isSetMetrics()) {
           optionals.set(1);
         }
-        oprot.writeBitSet(optionals, 2);
+        if (struct.isSetOptions()) {
+          optionals.set(2);
+        }
+        oprot.writeBitSet(optionals, 3);
         if (struct.isSetSessionId()) {
           oprot.writeI64(struct.sessionId);
         }
@@ -10039,12 +10911,15 @@ public class BlockWorkerClientService {
             }
           }
         }
+        if (struct.isSetOptions()) {
+          struct.options.write(oprot);
+        }
       }
 
       @Override
-      public void read(org.apache.thrift.protocol.TProtocol prot, sessionHeartbeat_args struct) throws org.apache.thrift.TException {
+      public void read(org.apache.thrift.protocol.TProtocol prot, sessionBlockHeartbeat_args struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
-        BitSet incoming = iprot.readBitSet(2);
+        BitSet incoming = iprot.readBitSet(3);
         if (incoming.get(0)) {
           struct.sessionId = iprot.readI64();
           struct.setSessionIdIsSet(true);
@@ -10062,26 +10937,34 @@ public class BlockWorkerClientService {
           }
           struct.setMetricsIsSet(true);
         }
+        if (incoming.get(2)) {
+          struct.options = new SessionBlockHeartbeatTOptions();
+          struct.options.read(iprot);
+          struct.setOptionsIsSet(true);
+        }
       }
     }
 
   }
 
-  public static class sessionHeartbeat_result implements org.apache.thrift.TBase<sessionHeartbeat_result, sessionHeartbeat_result._Fields>, java.io.Serializable, Cloneable, Comparable<sessionHeartbeat_result>   {
-    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("sessionHeartbeat_result");
+  public static class sessionBlockHeartbeat_result implements org.apache.thrift.TBase<sessionBlockHeartbeat_result, sessionBlockHeartbeat_result._Fields>, java.io.Serializable, Cloneable, Comparable<sessionBlockHeartbeat_result>   {
+    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("sessionBlockHeartbeat_result");
 
+    private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.STRUCT, (short)0);
     private static final org.apache.thrift.protocol.TField E_FIELD_DESC = new org.apache.thrift.protocol.TField("e", org.apache.thrift.protocol.TType.STRUCT, (short)1);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
-      schemes.put(StandardScheme.class, new sessionHeartbeat_resultStandardSchemeFactory());
-      schemes.put(TupleScheme.class, new sessionHeartbeat_resultTupleSchemeFactory());
+      schemes.put(StandardScheme.class, new sessionBlockHeartbeat_resultStandardSchemeFactory());
+      schemes.put(TupleScheme.class, new sessionBlockHeartbeat_resultTupleSchemeFactory());
     }
 
+    private SessionBlockHeartbeatTResponse success; // required
     private alluxio.thrift.AlluxioTException e; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
+      SUCCESS((short)0, "success"),
       E((short)1, "e");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
@@ -10097,6 +10980,8 @@ public class BlockWorkerClientService {
        */
       public static _Fields findByThriftId(int fieldId) {
         switch(fieldId) {
+          case 0: // SUCCESS
+            return SUCCESS;
           case 1: // E
             return E;
           default:
@@ -10142,45 +11027,77 @@ public class BlockWorkerClientService {
     public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
     static {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
+      tmpMap.put(_Fields.SUCCESS, new org.apache.thrift.meta_data.FieldMetaData("success", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, SessionBlockHeartbeatTResponse.class)));
       tmpMap.put(_Fields.E, new org.apache.thrift.meta_data.FieldMetaData("e", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
-      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(sessionHeartbeat_result.class, metaDataMap);
+      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(sessionBlockHeartbeat_result.class, metaDataMap);
     }
 
-    public sessionHeartbeat_result() {
+    public sessionBlockHeartbeat_result() {
     }
 
-    public sessionHeartbeat_result(
+    public sessionBlockHeartbeat_result(
+      SessionBlockHeartbeatTResponse success,
       alluxio.thrift.AlluxioTException e)
     {
       this();
+      this.success = success;
       this.e = e;
     }
 
     /**
      * Performs a deep copy on <i>other</i>.
      */
-    public sessionHeartbeat_result(sessionHeartbeat_result other) {
+    public sessionBlockHeartbeat_result(sessionBlockHeartbeat_result other) {
+      if (other.isSetSuccess()) {
+        this.success = new SessionBlockHeartbeatTResponse(other.success);
+      }
       if (other.isSetE()) {
         this.e = new alluxio.thrift.AlluxioTException(other.e);
       }
     }
 
-    public sessionHeartbeat_result deepCopy() {
-      return new sessionHeartbeat_result(this);
+    public sessionBlockHeartbeat_result deepCopy() {
+      return new sessionBlockHeartbeat_result(this);
     }
 
     @Override
     public void clear() {
+      this.success = null;
       this.e = null;
+    }
+
+    public SessionBlockHeartbeatTResponse getSuccess() {
+      return this.success;
+    }
+
+    public sessionBlockHeartbeat_result setSuccess(SessionBlockHeartbeatTResponse success) {
+      this.success = success;
+      return this;
+    }
+
+    public void unsetSuccess() {
+      this.success = null;
+    }
+
+    /** Returns true if field success is set (has been assigned a value) and false otherwise */
+    public boolean isSetSuccess() {
+      return this.success != null;
+    }
+
+    public void setSuccessIsSet(boolean value) {
+      if (!value) {
+        this.success = null;
+      }
     }
 
     public alluxio.thrift.AlluxioTException getE() {
       return this.e;
     }
 
-    public sessionHeartbeat_result setE(alluxio.thrift.AlluxioTException e) {
+    public sessionBlockHeartbeat_result setE(alluxio.thrift.AlluxioTException e) {
       this.e = e;
       return this;
     }
@@ -10202,6 +11119,14 @@ public class BlockWorkerClientService {
 
     public void setFieldValue(_Fields field, Object value) {
       switch (field) {
+      case SUCCESS:
+        if (value == null) {
+          unsetSuccess();
+        } else {
+          setSuccess((SessionBlockHeartbeatTResponse)value);
+        }
+        break;
+
       case E:
         if (value == null) {
           unsetE();
@@ -10215,6 +11140,9 @@ public class BlockWorkerClientService {
 
     public Object getFieldValue(_Fields field) {
       switch (field) {
+      case SUCCESS:
+        return getSuccess();
+
       case E:
         return getE();
 
@@ -10229,6 +11157,8 @@ public class BlockWorkerClientService {
       }
 
       switch (field) {
+      case SUCCESS:
+        return isSetSuccess();
       case E:
         return isSetE();
       }
@@ -10239,14 +11169,23 @@ public class BlockWorkerClientService {
     public boolean equals(Object that) {
       if (that == null)
         return false;
-      if (that instanceof sessionHeartbeat_result)
-        return this.equals((sessionHeartbeat_result)that);
+      if (that instanceof sessionBlockHeartbeat_result)
+        return this.equals((sessionBlockHeartbeat_result)that);
       return false;
     }
 
-    public boolean equals(sessionHeartbeat_result that) {
+    public boolean equals(sessionBlockHeartbeat_result that) {
       if (that == null)
         return false;
+
+      boolean this_present_success = true && this.isSetSuccess();
+      boolean that_present_success = true && that.isSetSuccess();
+      if (this_present_success || that_present_success) {
+        if (!(this_present_success && that_present_success))
+          return false;
+        if (!this.success.equals(that.success))
+          return false;
+      }
 
       boolean this_present_e = true && this.isSetE();
       boolean that_present_e = true && that.isSetE();
@@ -10264,6 +11203,11 @@ public class BlockWorkerClientService {
     public int hashCode() {
       List<Object> list = new ArrayList<Object>();
 
+      boolean present_success = true && (isSetSuccess());
+      list.add(present_success);
+      if (present_success)
+        list.add(success);
+
       boolean present_e = true && (isSetE());
       list.add(present_e);
       if (present_e)
@@ -10273,13 +11217,23 @@ public class BlockWorkerClientService {
     }
 
     @Override
-    public int compareTo(sessionHeartbeat_result other) {
+    public int compareTo(sessionBlockHeartbeat_result other) {
       if (!getClass().equals(other.getClass())) {
         return getClass().getName().compareTo(other.getClass().getName());
       }
 
       int lastComparison = 0;
 
+      lastComparison = Boolean.valueOf(isSetSuccess()).compareTo(other.isSetSuccess());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetSuccess()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.success, other.success);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
       lastComparison = Boolean.valueOf(isSetE()).compareTo(other.isSetE());
       if (lastComparison != 0) {
         return lastComparison;
@@ -10307,9 +11261,17 @@ public class BlockWorkerClientService {
 
     @Override
     public String toString() {
-      StringBuilder sb = new StringBuilder("sessionHeartbeat_result(");
+      StringBuilder sb = new StringBuilder("sessionBlockHeartbeat_result(");
       boolean first = true;
 
+      sb.append("success:");
+      if (this.success == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.success);
+      }
+      first = false;
+      if (!first) sb.append(", ");
       sb.append("e:");
       if (this.e == null) {
         sb.append("null");
@@ -10324,6 +11286,9 @@ public class BlockWorkerClientService {
     public void validate() throws org.apache.thrift.TException {
       // check for required fields
       // check for sub-struct validity
+      if (success != null) {
+        success.validate();
+      }
     }
 
     private void writeObject(java.io.ObjectOutputStream out) throws java.io.IOException {
@@ -10342,15 +11307,15 @@ public class BlockWorkerClientService {
       }
     }
 
-    private static class sessionHeartbeat_resultStandardSchemeFactory implements SchemeFactory {
-      public sessionHeartbeat_resultStandardScheme getScheme() {
-        return new sessionHeartbeat_resultStandardScheme();
+    private static class sessionBlockHeartbeat_resultStandardSchemeFactory implements SchemeFactory {
+      public sessionBlockHeartbeat_resultStandardScheme getScheme() {
+        return new sessionBlockHeartbeat_resultStandardScheme();
       }
     }
 
-    private static class sessionHeartbeat_resultStandardScheme extends StandardScheme<sessionHeartbeat_result> {
+    private static class sessionBlockHeartbeat_resultStandardScheme extends StandardScheme<sessionBlockHeartbeat_result> {
 
-      public void read(org.apache.thrift.protocol.TProtocol iprot, sessionHeartbeat_result struct) throws org.apache.thrift.TException {
+      public void read(org.apache.thrift.protocol.TProtocol iprot, sessionBlockHeartbeat_result struct) throws org.apache.thrift.TException {
         org.apache.thrift.protocol.TField schemeField;
         iprot.readStructBegin();
         while (true)
@@ -10360,6 +11325,15 @@ public class BlockWorkerClientService {
             break;
           }
           switch (schemeField.id) {
+            case 0: // SUCCESS
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                struct.success = new SessionBlockHeartbeatTResponse();
+                struct.success.read(iprot);
+                struct.setSuccessIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
             case 1: // E
               if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
                 struct.e = new alluxio.thrift.AlluxioTException();
@@ -10380,10 +11354,15 @@ public class BlockWorkerClientService {
         struct.validate();
       }
 
-      public void write(org.apache.thrift.protocol.TProtocol oprot, sessionHeartbeat_result struct) throws org.apache.thrift.TException {
+      public void write(org.apache.thrift.protocol.TProtocol oprot, sessionBlockHeartbeat_result struct) throws org.apache.thrift.TException {
         struct.validate();
 
         oprot.writeStructBegin(STRUCT_DESC);
+        if (struct.success != null) {
+          oprot.writeFieldBegin(SUCCESS_FIELD_DESC);
+          struct.success.write(oprot);
+          oprot.writeFieldEnd();
+        }
         if (struct.e != null) {
           oprot.writeFieldBegin(E_FIELD_DESC);
           struct.e.write(oprot);
@@ -10395,32 +11374,43 @@ public class BlockWorkerClientService {
 
     }
 
-    private static class sessionHeartbeat_resultTupleSchemeFactory implements SchemeFactory {
-      public sessionHeartbeat_resultTupleScheme getScheme() {
-        return new sessionHeartbeat_resultTupleScheme();
+    private static class sessionBlockHeartbeat_resultTupleSchemeFactory implements SchemeFactory {
+      public sessionBlockHeartbeat_resultTupleScheme getScheme() {
+        return new sessionBlockHeartbeat_resultTupleScheme();
       }
     }
 
-    private static class sessionHeartbeat_resultTupleScheme extends TupleScheme<sessionHeartbeat_result> {
+    private static class sessionBlockHeartbeat_resultTupleScheme extends TupleScheme<sessionBlockHeartbeat_result> {
 
       @Override
-      public void write(org.apache.thrift.protocol.TProtocol prot, sessionHeartbeat_result struct) throws org.apache.thrift.TException {
+      public void write(org.apache.thrift.protocol.TProtocol prot, sessionBlockHeartbeat_result struct) throws org.apache.thrift.TException {
         TTupleProtocol oprot = (TTupleProtocol) prot;
         BitSet optionals = new BitSet();
-        if (struct.isSetE()) {
+        if (struct.isSetSuccess()) {
           optionals.set(0);
         }
-        oprot.writeBitSet(optionals, 1);
+        if (struct.isSetE()) {
+          optionals.set(1);
+        }
+        oprot.writeBitSet(optionals, 2);
+        if (struct.isSetSuccess()) {
+          struct.success.write(oprot);
+        }
         if (struct.isSetE()) {
           struct.e.write(oprot);
         }
       }
 
       @Override
-      public void read(org.apache.thrift.protocol.TProtocol prot, sessionHeartbeat_result struct) throws org.apache.thrift.TException {
+      public void read(org.apache.thrift.protocol.TProtocol prot, sessionBlockHeartbeat_result struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
-        BitSet incoming = iprot.readBitSet(1);
+        BitSet incoming = iprot.readBitSet(2);
         if (incoming.get(0)) {
+          struct.success = new SessionBlockHeartbeatTResponse();
+          struct.success.read(iprot);
+          struct.setSuccessIsSet(true);
+        }
+        if (incoming.get(1)) {
           struct.e = new alluxio.thrift.AlluxioTException();
           struct.e.read(iprot);
           struct.setEIsSet(true);
@@ -10435,6 +11425,7 @@ public class BlockWorkerClientService {
 
     private static final org.apache.thrift.protocol.TField BLOCK_ID_FIELD_DESC = new org.apache.thrift.protocol.TField("blockId", org.apache.thrift.protocol.TType.I64, (short)1);
     private static final org.apache.thrift.protocol.TField SESSION_ID_FIELD_DESC = new org.apache.thrift.protocol.TField("sessionId", org.apache.thrift.protocol.TType.I64, (short)2);
+    private static final org.apache.thrift.protocol.TField OPTIONS_FIELD_DESC = new org.apache.thrift.protocol.TField("options", org.apache.thrift.protocol.TType.STRUCT, (short)3);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
@@ -10444,6 +11435,7 @@ public class BlockWorkerClientService {
 
     private long blockId; // required
     private long sessionId; // required
+    private UnlockBlockTOptions options; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
@@ -10454,7 +11446,11 @@ public class BlockWorkerClientService {
       /**
        * the id of the current session
        */
-      SESSION_ID((short)2, "sessionId");
+      SESSION_ID((short)2, "sessionId"),
+      /**
+       * the method options
+       */
+      OPTIONS((short)3, "options");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -10473,6 +11469,8 @@ public class BlockWorkerClientService {
             return BLOCK_ID;
           case 2: // SESSION_ID
             return SESSION_ID;
+          case 3: // OPTIONS
+            return OPTIONS;
           default:
             return null;
         }
@@ -10523,6 +11521,8 @@ public class BlockWorkerClientService {
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
       tmpMap.put(_Fields.SESSION_ID, new org.apache.thrift.meta_data.FieldMetaData("sessionId", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
+      tmpMap.put(_Fields.OPTIONS, new org.apache.thrift.meta_data.FieldMetaData("options", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, UnlockBlockTOptions.class)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(unlockBlock_args.class, metaDataMap);
     }
@@ -10532,13 +11532,15 @@ public class BlockWorkerClientService {
 
     public unlockBlock_args(
       long blockId,
-      long sessionId)
+      long sessionId,
+      UnlockBlockTOptions options)
     {
       this();
       this.blockId = blockId;
       setBlockIdIsSet(true);
       this.sessionId = sessionId;
       setSessionIdIsSet(true);
+      this.options = options;
     }
 
     /**
@@ -10548,6 +11550,9 @@ public class BlockWorkerClientService {
       __isset_bitfield = other.__isset_bitfield;
       this.blockId = other.blockId;
       this.sessionId = other.sessionId;
+      if (other.isSetOptions()) {
+        this.options = new UnlockBlockTOptions(other.options);
+      }
     }
 
     public unlockBlock_args deepCopy() {
@@ -10560,6 +11565,7 @@ public class BlockWorkerClientService {
       this.blockId = 0;
       setSessionIdIsSet(false);
       this.sessionId = 0;
+      this.options = null;
     }
 
     /**
@@ -10620,6 +11626,36 @@ public class BlockWorkerClientService {
       __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __SESSIONID_ISSET_ID, value);
     }
 
+    /**
+     * the method options
+     */
+    public UnlockBlockTOptions getOptions() {
+      return this.options;
+    }
+
+    /**
+     * the method options
+     */
+    public unlockBlock_args setOptions(UnlockBlockTOptions options) {
+      this.options = options;
+      return this;
+    }
+
+    public void unsetOptions() {
+      this.options = null;
+    }
+
+    /** Returns true if field options is set (has been assigned a value) and false otherwise */
+    public boolean isSetOptions() {
+      return this.options != null;
+    }
+
+    public void setOptionsIsSet(boolean value) {
+      if (!value) {
+        this.options = null;
+      }
+    }
+
     public void setFieldValue(_Fields field, Object value) {
       switch (field) {
       case BLOCK_ID:
@@ -10638,6 +11674,14 @@ public class BlockWorkerClientService {
         }
         break;
 
+      case OPTIONS:
+        if (value == null) {
+          unsetOptions();
+        } else {
+          setOptions((UnlockBlockTOptions)value);
+        }
+        break;
+
       }
     }
 
@@ -10648,6 +11692,9 @@ public class BlockWorkerClientService {
 
       case SESSION_ID:
         return getSessionId();
+
+      case OPTIONS:
+        return getOptions();
 
       }
       throw new IllegalStateException();
@@ -10664,6 +11711,8 @@ public class BlockWorkerClientService {
         return isSetBlockId();
       case SESSION_ID:
         return isSetSessionId();
+      case OPTIONS:
+        return isSetOptions();
       }
       throw new IllegalStateException();
     }
@@ -10699,6 +11748,15 @@ public class BlockWorkerClientService {
           return false;
       }
 
+      boolean this_present_options = true && this.isSetOptions();
+      boolean that_present_options = true && that.isSetOptions();
+      if (this_present_options || that_present_options) {
+        if (!(this_present_options && that_present_options))
+          return false;
+        if (!this.options.equals(that.options))
+          return false;
+      }
+
       return true;
     }
 
@@ -10715,6 +11773,11 @@ public class BlockWorkerClientService {
       list.add(present_sessionId);
       if (present_sessionId)
         list.add(sessionId);
+
+      boolean present_options = true && (isSetOptions());
+      list.add(present_options);
+      if (present_options)
+        list.add(options);
 
       return list.hashCode();
     }
@@ -10747,6 +11810,16 @@ public class BlockWorkerClientService {
           return lastComparison;
         }
       }
+      lastComparison = Boolean.valueOf(isSetOptions()).compareTo(other.isSetOptions());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetOptions()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.options, other.options);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
       return 0;
     }
 
@@ -10774,6 +11847,14 @@ public class BlockWorkerClientService {
       sb.append("sessionId:");
       sb.append(this.sessionId);
       first = false;
+      if (!first) sb.append(", ");
+      sb.append("options:");
+      if (this.options == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.options);
+      }
+      first = false;
       sb.append(")");
       return sb.toString();
     }
@@ -10781,6 +11862,9 @@ public class BlockWorkerClientService {
     public void validate() throws org.apache.thrift.TException {
       // check for required fields
       // check for sub-struct validity
+      if (options != null) {
+        options.validate();
+      }
     }
 
     private void writeObject(java.io.ObjectOutputStream out) throws java.io.IOException {
@@ -10835,6 +11919,15 @@ public class BlockWorkerClientService {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
+            case 3: // OPTIONS
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                struct.options = new UnlockBlockTOptions();
+                struct.options.read(iprot);
+                struct.setOptionsIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
             default:
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
           }
@@ -10856,6 +11949,11 @@ public class BlockWorkerClientService {
         oprot.writeFieldBegin(SESSION_ID_FIELD_DESC);
         oprot.writeI64(struct.sessionId);
         oprot.writeFieldEnd();
+        if (struct.options != null) {
+          oprot.writeFieldBegin(OPTIONS_FIELD_DESC);
+          struct.options.write(oprot);
+          oprot.writeFieldEnd();
+        }
         oprot.writeFieldStop();
         oprot.writeStructEnd();
       }
@@ -10880,19 +11978,25 @@ public class BlockWorkerClientService {
         if (struct.isSetSessionId()) {
           optionals.set(1);
         }
-        oprot.writeBitSet(optionals, 2);
+        if (struct.isSetOptions()) {
+          optionals.set(2);
+        }
+        oprot.writeBitSet(optionals, 3);
         if (struct.isSetBlockId()) {
           oprot.writeI64(struct.blockId);
         }
         if (struct.isSetSessionId()) {
           oprot.writeI64(struct.sessionId);
         }
+        if (struct.isSetOptions()) {
+          struct.options.write(oprot);
+        }
       }
 
       @Override
       public void read(org.apache.thrift.protocol.TProtocol prot, unlockBlock_args struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
-        BitSet incoming = iprot.readBitSet(2);
+        BitSet incoming = iprot.readBitSet(3);
         if (incoming.get(0)) {
           struct.blockId = iprot.readI64();
           struct.setBlockIdIsSet(true);
@@ -10900,6 +12004,11 @@ public class BlockWorkerClientService {
         if (incoming.get(1)) {
           struct.sessionId = iprot.readI64();
           struct.setSessionIdIsSet(true);
+        }
+        if (incoming.get(2)) {
+          struct.options = new UnlockBlockTOptions();
+          struct.options.read(iprot);
+          struct.setOptionsIsSet(true);
         }
       }
     }
@@ -10909,9 +12018,8 @@ public class BlockWorkerClientService {
   public static class unlockBlock_result implements org.apache.thrift.TBase<unlockBlock_result, unlockBlock_result._Fields>, java.io.Serializable, Cloneable, Comparable<unlockBlock_result>   {
     private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("unlockBlock_result");
 
-    private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.BOOL, (short)0);
+    private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.STRUCT, (short)0);
     private static final org.apache.thrift.protocol.TField E_FIELD_DESC = new org.apache.thrift.protocol.TField("e", org.apache.thrift.protocol.TType.STRUCT, (short)1);
-    private static final org.apache.thrift.protocol.TField IOE_FIELD_DESC = new org.apache.thrift.protocol.TField("ioe", org.apache.thrift.protocol.TType.STRUCT, (short)2);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
@@ -10919,15 +12027,13 @@ public class BlockWorkerClientService {
       schemes.put(TupleScheme.class, new unlockBlock_resultTupleSchemeFactory());
     }
 
-    private boolean success; // required
+    private UnlockBlockTResponse success; // required
     private alluxio.thrift.AlluxioTException e; // required
-    private alluxio.thrift.ThriftIOException ioe; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
       SUCCESS((short)0, "success"),
-      E((short)1, "e"),
-      IOE((short)2, "ioe");
+      E((short)1, "e");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -10946,8 +12052,6 @@ public class BlockWorkerClientService {
             return SUCCESS;
           case 1: // E
             return E;
-          case 2: // IOE
-            return IOE;
           default:
             return null;
         }
@@ -10988,16 +12092,12 @@ public class BlockWorkerClientService {
     }
 
     // isset id assignments
-    private static final int __SUCCESS_ISSET_ID = 0;
-    private byte __isset_bitfield = 0;
     public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
     static {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
       tmpMap.put(_Fields.SUCCESS, new org.apache.thrift.meta_data.FieldMetaData("success", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.BOOL)));
+          new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, UnlockBlockTResponse.class)));
       tmpMap.put(_Fields.E, new org.apache.thrift.meta_data.FieldMetaData("e", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
-      tmpMap.put(_Fields.IOE, new org.apache.thrift.meta_data.FieldMetaData("ioe", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(unlockBlock_result.class, metaDataMap);
@@ -11007,28 +12107,23 @@ public class BlockWorkerClientService {
     }
 
     public unlockBlock_result(
-      boolean success,
-      alluxio.thrift.AlluxioTException e,
-      alluxio.thrift.ThriftIOException ioe)
+      UnlockBlockTResponse success,
+      alluxio.thrift.AlluxioTException e)
     {
       this();
       this.success = success;
-      setSuccessIsSet(true);
       this.e = e;
-      this.ioe = ioe;
     }
 
     /**
      * Performs a deep copy on <i>other</i>.
      */
     public unlockBlock_result(unlockBlock_result other) {
-      __isset_bitfield = other.__isset_bitfield;
-      this.success = other.success;
+      if (other.isSetSuccess()) {
+        this.success = new UnlockBlockTResponse(other.success);
+      }
       if (other.isSetE()) {
         this.e = new alluxio.thrift.AlluxioTException(other.e);
-      }
-      if (other.isSetIoe()) {
-        this.ioe = new alluxio.thrift.ThriftIOException(other.ioe);
       }
     }
 
@@ -11038,33 +12133,32 @@ public class BlockWorkerClientService {
 
     @Override
     public void clear() {
-      setSuccessIsSet(false);
-      this.success = false;
+      this.success = null;
       this.e = null;
-      this.ioe = null;
     }
 
-    public boolean isSuccess() {
+    public UnlockBlockTResponse getSuccess() {
       return this.success;
     }
 
-    public unlockBlock_result setSuccess(boolean success) {
+    public unlockBlock_result setSuccess(UnlockBlockTResponse success) {
       this.success = success;
-      setSuccessIsSet(true);
       return this;
     }
 
     public void unsetSuccess() {
-      __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __SUCCESS_ISSET_ID);
+      this.success = null;
     }
 
     /** Returns true if field success is set (has been assigned a value) and false otherwise */
     public boolean isSetSuccess() {
-      return EncodingUtils.testBit(__isset_bitfield, __SUCCESS_ISSET_ID);
+      return this.success != null;
     }
 
     public void setSuccessIsSet(boolean value) {
-      __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __SUCCESS_ISSET_ID, value);
+      if (!value) {
+        this.success = null;
+      }
     }
 
     public alluxio.thrift.AlluxioTException getE() {
@@ -11091,37 +12185,13 @@ public class BlockWorkerClientService {
       }
     }
 
-    public alluxio.thrift.ThriftIOException getIoe() {
-      return this.ioe;
-    }
-
-    public unlockBlock_result setIoe(alluxio.thrift.ThriftIOException ioe) {
-      this.ioe = ioe;
-      return this;
-    }
-
-    public void unsetIoe() {
-      this.ioe = null;
-    }
-
-    /** Returns true if field ioe is set (has been assigned a value) and false otherwise */
-    public boolean isSetIoe() {
-      return this.ioe != null;
-    }
-
-    public void setIoeIsSet(boolean value) {
-      if (!value) {
-        this.ioe = null;
-      }
-    }
-
     public void setFieldValue(_Fields field, Object value) {
       switch (field) {
       case SUCCESS:
         if (value == null) {
           unsetSuccess();
         } else {
-          setSuccess((Boolean)value);
+          setSuccess((UnlockBlockTResponse)value);
         }
         break;
 
@@ -11133,27 +12203,16 @@ public class BlockWorkerClientService {
         }
         break;
 
-      case IOE:
-        if (value == null) {
-          unsetIoe();
-        } else {
-          setIoe((alluxio.thrift.ThriftIOException)value);
-        }
-        break;
-
       }
     }
 
     public Object getFieldValue(_Fields field) {
       switch (field) {
       case SUCCESS:
-        return isSuccess();
+        return getSuccess();
 
       case E:
         return getE();
-
-      case IOE:
-        return getIoe();
 
       }
       throw new IllegalStateException();
@@ -11170,8 +12229,6 @@ public class BlockWorkerClientService {
         return isSetSuccess();
       case E:
         return isSetE();
-      case IOE:
-        return isSetIoe();
       }
       throw new IllegalStateException();
     }
@@ -11189,12 +12246,12 @@ public class BlockWorkerClientService {
       if (that == null)
         return false;
 
-      boolean this_present_success = true;
-      boolean that_present_success = true;
+      boolean this_present_success = true && this.isSetSuccess();
+      boolean that_present_success = true && that.isSetSuccess();
       if (this_present_success || that_present_success) {
         if (!(this_present_success && that_present_success))
           return false;
-        if (this.success != that.success)
+        if (!this.success.equals(that.success))
           return false;
       }
 
@@ -11207,15 +12264,6 @@ public class BlockWorkerClientService {
           return false;
       }
 
-      boolean this_present_ioe = true && this.isSetIoe();
-      boolean that_present_ioe = true && that.isSetIoe();
-      if (this_present_ioe || that_present_ioe) {
-        if (!(this_present_ioe && that_present_ioe))
-          return false;
-        if (!this.ioe.equals(that.ioe))
-          return false;
-      }
-
       return true;
     }
 
@@ -11223,7 +12271,7 @@ public class BlockWorkerClientService {
     public int hashCode() {
       List<Object> list = new ArrayList<Object>();
 
-      boolean present_success = true;
+      boolean present_success = true && (isSetSuccess());
       list.add(present_success);
       if (present_success)
         list.add(success);
@@ -11232,11 +12280,6 @@ public class BlockWorkerClientService {
       list.add(present_e);
       if (present_e)
         list.add(e);
-
-      boolean present_ioe = true && (isSetIoe());
-      list.add(present_ioe);
-      if (present_ioe)
-        list.add(ioe);
 
       return list.hashCode();
     }
@@ -11269,16 +12312,6 @@ public class BlockWorkerClientService {
           return lastComparison;
         }
       }
-      lastComparison = Boolean.valueOf(isSetIoe()).compareTo(other.isSetIoe());
-      if (lastComparison != 0) {
-        return lastComparison;
-      }
-      if (isSetIoe()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.ioe, other.ioe);
-        if (lastComparison != 0) {
-          return lastComparison;
-        }
-      }
       return 0;
     }
 
@@ -11300,7 +12333,11 @@ public class BlockWorkerClientService {
       boolean first = true;
 
       sb.append("success:");
-      sb.append(this.success);
+      if (this.success == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.success);
+      }
       first = false;
       if (!first) sb.append(", ");
       sb.append("e:");
@@ -11310,14 +12347,6 @@ public class BlockWorkerClientService {
         sb.append(this.e);
       }
       first = false;
-      if (!first) sb.append(", ");
-      sb.append("ioe:");
-      if (this.ioe == null) {
-        sb.append("null");
-      } else {
-        sb.append(this.ioe);
-      }
-      first = false;
       sb.append(")");
       return sb.toString();
     }
@@ -11325,6 +12354,9 @@ public class BlockWorkerClientService {
     public void validate() throws org.apache.thrift.TException {
       // check for required fields
       // check for sub-struct validity
+      if (success != null) {
+        success.validate();
+      }
     }
 
     private void writeObject(java.io.ObjectOutputStream out) throws java.io.IOException {
@@ -11337,8 +12369,6 @@ public class BlockWorkerClientService {
 
     private void readObject(java.io.ObjectInputStream in) throws java.io.IOException, ClassNotFoundException {
       try {
-        // it doesn't seem like you should have to do this, but java serialization is wacky, and doesn't call the default constructor.
-        __isset_bitfield = 0;
         read(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(in)));
       } catch (org.apache.thrift.TException te) {
         throw new java.io.IOException(te);
@@ -11364,8 +12394,9 @@ public class BlockWorkerClientService {
           }
           switch (schemeField.id) {
             case 0: // SUCCESS
-              if (schemeField.type == org.apache.thrift.protocol.TType.BOOL) {
-                struct.success = iprot.readBool();
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                struct.success = new UnlockBlockTResponse();
+                struct.success.read(iprot);
                 struct.setSuccessIsSet(true);
               } else { 
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
@@ -11376,15 +12407,6 @@ public class BlockWorkerClientService {
                 struct.e = new alluxio.thrift.AlluxioTException();
                 struct.e.read(iprot);
                 struct.setEIsSet(true);
-              } else { 
-                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-              }
-              break;
-            case 2: // IOE
-              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                struct.ioe = new alluxio.thrift.ThriftIOException();
-                struct.ioe.read(iprot);
-                struct.setIoeIsSet(true);
               } else { 
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
@@ -11404,19 +12426,14 @@ public class BlockWorkerClientService {
         struct.validate();
 
         oprot.writeStructBegin(STRUCT_DESC);
-        if (struct.isSetSuccess()) {
+        if (struct.success != null) {
           oprot.writeFieldBegin(SUCCESS_FIELD_DESC);
-          oprot.writeBool(struct.success);
+          struct.success.write(oprot);
           oprot.writeFieldEnd();
         }
         if (struct.e != null) {
           oprot.writeFieldBegin(E_FIELD_DESC);
           struct.e.write(oprot);
-          oprot.writeFieldEnd();
-        }
-        if (struct.ioe != null) {
-          oprot.writeFieldBegin(IOE_FIELD_DESC);
-          struct.ioe.write(oprot);
           oprot.writeFieldEnd();
         }
         oprot.writeFieldStop();
@@ -11443,38 +12460,28 @@ public class BlockWorkerClientService {
         if (struct.isSetE()) {
           optionals.set(1);
         }
-        if (struct.isSetIoe()) {
-          optionals.set(2);
-        }
-        oprot.writeBitSet(optionals, 3);
+        oprot.writeBitSet(optionals, 2);
         if (struct.isSetSuccess()) {
-          oprot.writeBool(struct.success);
+          struct.success.write(oprot);
         }
         if (struct.isSetE()) {
           struct.e.write(oprot);
-        }
-        if (struct.isSetIoe()) {
-          struct.ioe.write(oprot);
         }
       }
 
       @Override
       public void read(org.apache.thrift.protocol.TProtocol prot, unlockBlock_result struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
-        BitSet incoming = iprot.readBitSet(3);
+        BitSet incoming = iprot.readBitSet(2);
         if (incoming.get(0)) {
-          struct.success = iprot.readBool();
+          struct.success = new UnlockBlockTResponse();
+          struct.success.read(iprot);
           struct.setSuccessIsSet(true);
         }
         if (incoming.get(1)) {
           struct.e = new alluxio.thrift.AlluxioTException();
           struct.e.read(iprot);
           struct.setEIsSet(true);
-        }
-        if (incoming.get(2)) {
-          struct.ioe = new alluxio.thrift.ThriftIOException();
-          struct.ioe.read(iprot);
-          struct.setIoeIsSet(true);
         }
       }
     }

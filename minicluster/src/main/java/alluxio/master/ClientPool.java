@@ -39,7 +39,6 @@ public final class ClientPool implements Closeable {
    * closed directly, but can be closed by calling {@link #close()} on this object.
    *
    * @return a {@link FileSystem} client
-   * @throws IOException when the operation fails
    */
   public FileSystem getClient() throws IOException {
     final FileSystem fs = FileSystem.Factory.get();

@@ -30,7 +30,7 @@ import java.util.Map;
 /**
  * Unit tests for {@link BlockStoreMeta}.
  */
-public class BlockStoreMetaTest {
+public final class BlockStoreMetaTest {
   private static final long TEST_SESSION_ID = 33L;
   /** block size in Bytes for test. */
   private static final long TEST_BLOCK_SIZE = 200L;
@@ -59,8 +59,8 @@ public class BlockStoreMetaTest {
       TieredBlockStoreTestUtils.cache(TEST_SESSION_ID, blockId, TEST_BLOCK_SIZE, dir,
           mMetadataManager, null);
     }
-    mBlockStoreMeta = BlockStoreMeta.getBlockStoreMeta(mMetadataManager);
-    mBlockStoreMetaFull = BlockStoreMeta.getBlockStoreMetaFull(mMetadataManager);
+    mBlockStoreMeta = BlockStoreMeta.Factory.create(mMetadataManager);
+    mBlockStoreMetaFull = BlockStoreMeta.Factory.createFull(mMetadataManager);
   }
 
   /**

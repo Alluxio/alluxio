@@ -86,6 +86,13 @@ public class URIStatus {
   }
 
   /**
+   * @return the percentage of blocks in Alluxio tier storage, mutable
+   */
+  public int getInAlluxioPercentage() {
+    return mInfo.getInAlluxioPercentage();
+  }
+
+  /**
    * @return the epoch time the entity referenced by this uri was last modified, mutable
    */
   public long getLastModificationTimeMs() {
@@ -204,6 +211,13 @@ public class URIStatus {
    */
   public boolean isMountPoint() {
     return mInfo.isMountPoint();
+  }
+
+  /**
+   * @return the id of the mount of this file is mapped to
+   */
+  public long getMountId() {
+    return mInfo.getMountId();
   }
 
   /**

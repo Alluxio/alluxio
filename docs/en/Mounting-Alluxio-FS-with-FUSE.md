@@ -1,15 +1,15 @@
 ---
 layout: global
-title: Mounting Alluxio with FUSE (Beta)
-nickname: Alluxio-FUSE
+title: (Experimental) Mounting Alluxio with FUSE
+nickname: (Experimental) Alluxio-FUSE
 group: Features
-priority: 4
+priority: 99
 ---
 
 * Table of Contents
 {:toc}
 
-Alluxio-FUSE is a new experimental feature that allows to mount a distributed Alluxio File System within the local file system hierarchy of a Linux node. Using this feature, standard tools (for example, `ls`, `cat` or `echo`) and legacy POSIX applications will have basic access to the distributed Alluxio data store.
+Alluxio-FUSE is a new experimental feature that allows mounting the distributed Alluxio File System within the local file system hierarchy of a Linux node. By using this feature, standard tools (for example, `ls`, `cat` or `echo`) and legacy POSIX applications will have basic access to the distributed Alluxio data store.
 
 Given the intrinsic characteristics of Alluxio, like its write-once/read-many-times file data model, the mounted file system will not have full POSIX semantics and will have specific limitations.  Please, read the rest of this document before using this feature to understand what it can and cannot do for you.
 
@@ -51,7 +51,9 @@ This will stop the background alluxio-fuse java process and unmount the file sys
 
 ### Optional configuration steps
 
-Alluxio-FUSE is based on the standard java alluxio-core-client to perform its operations. You might want to customize the behaviour of the alluxio client used by Alluxio-FUSE the same way you would for any other client application.
+Alluxio-FUSE is based on the standard java `alluxio-core-client-fs` to perform its operations. You
+might want to customize the behaviour of the alluxio client used by Alluxio-FUSE the same way you
+would for any other client application.
 
 One possibility, for example, is to edit `$ALLUXIO_HOME/integration/fuse/bin/alluxio-fuse.sh` and add your specific alluxio client options in the `ALLUXIO_JAVA_OPTS` variable.
 
@@ -59,7 +61,7 @@ One possibility, for example, is to edit `$ALLUXIO_HOME/integration/fuse/bin/all
 
 Currently, most basic file system operations are supported. However, due to Alluxio implicit characteristics, please, be aware that:
 
-* Files can be written only once, only sequentially, and never modified.
+* Files can be written only once, only sequentially, and never be modified.
 * Due to the above, any further access to a file must be read-only.
 
 This translates in the following constraints on the UNIX system calls that will operate on the file system:
@@ -94,7 +96,7 @@ opened  with the `O_WRONLY` flag.
 
 ## Performance considerations
 
-Due to the conjunct use of FUSE and JNR, the performance of the mounted file system is expected to be considerably worse than what you would see by using the `alluxio-core-client` directly. In other words, if you are concerned about performance rather then functionality, then Alluxio-FUSE is not what you are looking for.
+Due to the conjunct use of FUSE and JNR, the performance of the mounted file system is expected to be worse than what you would see by using the `alluxio-core-client-fs` directly.
 
 Most of the problems come from the fact that there are several memory copies going on for each call on `read` or `write` operations, and that FUSE caps the maximum granularity of writes to 128KB. This could be probably improved by a large extent by leveraging the FUSE cache write-backs feature introduced in kernel 3.15 (not supported yet, however, by libfuse 2.x userspace libs).
 

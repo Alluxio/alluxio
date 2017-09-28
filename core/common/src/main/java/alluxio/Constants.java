@@ -24,6 +24,11 @@ public final class Constants {
   public static final long TB = GB * 1024L;
   public static final long PB = TB * 1024L;
 
+  public static final long SECOND = 1000;
+  public static final long MINUTE = SECOND * 60L;
+  public static final long HOUR = MINUTE * 60L;
+  public static final long DAY = HOUR * 24L;
+
   public static final String ANSI_RESET = "\u001B[0m";
   public static final String ANSI_BLACK = "\u001B[30m";
   public static final String ANSI_RED = "\u001B[31m";
@@ -34,8 +39,10 @@ public final class Constants {
   public static final String ANSI_CYAN = "\u001B[36m";
   public static final String ANSI_WHITE = "\u001B[37m";
 
+  public static final String EXTENSION_JAR = ".jar";
+
   public static final String LS_FORMAT_PERMISSION = "%-15s";
-  public static final String LS_FORMAT_FILE_SIZE = "%-10s";
+  public static final String LS_FORMAT_FILE_SIZE = "%-15s";
   public static final String LS_FORMAT_CREATE_TIME = "%-25s";
   public static final String LS_FORMAT_FILE_TYPE = "%-15s";
   public static final String LS_FORMAT_USER_NAME = "%-15s";
@@ -71,7 +78,6 @@ public final class Constants {
   public static final String HEADER_OSS = "oss://";
 
   public static final String HEADER_S3 = "s3://";
-  public static final String HEADER_S3N = "s3n://";
   public static final String HEADER_S3A = "s3a://";
   public static final String HEADER_SWIFT = "swift://";
   // Google Cloud Storage header convention is "gs://".
@@ -81,22 +87,25 @@ public final class Constants {
   public static final int MAX_PORT = 65535;
 
   // Service versions should be incremented every time a backwards incompatible change occurs.
-  public static final long BLOCK_MASTER_CLIENT_SERVICE_VERSION = 1;
-  public static final long BLOCK_MASTER_WORKER_SERVICE_VERSION = 1;
-  public static final long BLOCK_WORKER_CLIENT_SERVICE_VERSION = 1;
-  public static final long FILE_SYSTEM_MASTER_CLIENT_SERVICE_VERSION = 1;
-  public static final long FILE_SYSTEM_MASTER_WORKER_SERVICE_VERSION = 1;
-  public static final long FILE_SYSTEM_WORKER_CLIENT_SERVICE_VERSION = 1;
-  public static final long LINEAGE_MASTER_CLIENT_SERVICE_VERSION = 1;
-  public static final long META_MASTER_CLIENT_SERVICE_VERSION = 1;
-  public static final long KEY_VALUE_MASTER_CLIENT_SERVICE_VERSION = 1;
-  public static final long KEY_VALUE_WORKER_SERVICE_VERSION = 1;
+  public static final long BLOCK_MASTER_CLIENT_SERVICE_VERSION = 2;
+  public static final long BLOCK_MASTER_WORKER_SERVICE_VERSION = 2;
+  public static final long BLOCK_WORKER_CLIENT_SERVICE_VERSION = 2;
+  public static final long FILE_SYSTEM_MASTER_CLIENT_SERVICE_VERSION = 2;
+  public static final long FILE_SYSTEM_MASTER_WORKER_SERVICE_VERSION = 2;
+  public static final long FILE_SYSTEM_WORKER_CLIENT_SERVICE_VERSION = 2;
+  public static final long LINEAGE_MASTER_CLIENT_SERVICE_VERSION = 2;
+  public static final long META_MASTER_CLIENT_SERVICE_VERSION = 2;
+  public static final long KEY_VALUE_MASTER_CLIENT_SERVICE_VERSION = 2;
+  public static final long KEY_VALUE_WORKER_SERVICE_VERSION = 2;
   public static final long UNKNOWN_SERVICE_VERSION = -1;
 
   public static final String BLOCK_MASTER_NAME = "BlockMaster";
   public static final String FILE_SYSTEM_MASTER_NAME = "FileSystemMaster";
   public static final String LINEAGE_MASTER_NAME = "LineageMaster";
   public static final String KEY_VALUE_MASTER_NAME = "KeyValueMaster";
+  public static final String BLOCK_WORKER_NAME = "BlockWorker";
+  public static final String FILE_SYSTEM_WORKER_NAME = "FileSystemWorker";
+  public static final String KEY_VALUE_WORKER_NAME = "KeyValueWorker";
 
   public static final String BLOCK_MASTER_CLIENT_SERVICE_NAME = "BlockMasterClient";
   public static final String BLOCK_MASTER_WORKER_SERVICE_NAME = "BlockMasterWorker";
@@ -112,9 +121,11 @@ public final class Constants {
   public static final String REST_API_PREFIX = "/api/v1";
 
   public static final String MASTER_COLUMN_FILE_PREFIX = "COL_";
-  public static final String FORMAT_FILE_PREFIX = "_format_";
+
+  public static final String SITE_PROPERTIES = "alluxio-site.properties";
 
   public static final String SWIFT_AUTH_KEYSTONE = "keystone";
+  public static final String SWIFT_AUTH_KEYSTONE_V3 = "keystonev3";
   public static final String SWIFT_AUTH_SWIFTAUTH = "swiftauth";
 
   public static final String MESOS_LOCAL_INSTALL = "LOCAL";
@@ -138,6 +149,11 @@ public final class Constants {
   public static final int FIRST_TIER = 0;
   public static final int SECOND_TIER = 1;
   public static final int LAST_TIER = -1;
+
+  // S3 northbound API constants
+  public static final String S3_DELETE_IN_ALLUXIO_ONLY = "ALLUXIO_ONLY";
+  public static final String S3_DELETE_IN_ALLUXIO_AND_UFS = "ALLUXIO_AND_UFS";
+  public static final String S3_MULTIPART_TEMPORARY_DIR_SUFFIX = "_s3_multipart_tmp";
 
   private Constants() {} // prevent instantiation
 }

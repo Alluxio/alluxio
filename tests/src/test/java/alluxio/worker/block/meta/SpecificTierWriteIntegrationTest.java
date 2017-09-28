@@ -15,7 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.PropertyKey;
-import alluxio.PropertyKeyFormat;
+import alluxio.BaseIntegrationTest;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
@@ -42,7 +42,10 @@ import org.junit.Test;
 import java.util.List;
 import java.util.Map;
 
-public class SpecificTierWriteIntegrationTest {
+/**
+ * Integration tests for writing to various storage tiers.
+ */
+public class SpecificTierWriteIntegrationTest extends BaseIntegrationTest {
   private static final int CAPACITY_BYTES = Constants.KB;
   private static final int FILE_SIZE = CAPACITY_BYTES;
   private static final String BLOCK_SIZE_BYTES = "1KB";
@@ -54,17 +57,17 @@ public class SpecificTierWriteIntegrationTest {
           .setProperty(PropertyKey.USER_FILE_BUFFER_BYTES, BLOCK_SIZE_BYTES)
           .setProperty(PropertyKey.WORKER_MEMORY_SIZE, CAPACITY_BYTES)
           .setProperty(PropertyKey.WORKER_TIERED_STORE_LEVELS, "3")
-          .setProperty(PropertyKeyFormat.WORKER_TIERED_STORE_LEVEL_ALIAS_FORMAT.format(1), "SSD")
-          .setProperty(PropertyKeyFormat.WORKER_TIERED_STORE_LEVEL_ALIAS_FORMAT.format(2), "HDD")
-          .setProperty(PropertyKeyFormat.WORKER_TIERED_STORE_LEVEL_DIRS_PATH_FORMAT.format(0),
+          .setProperty(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_ALIAS.format(1), "SSD")
+          .setProperty(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_ALIAS.format(2), "HDD")
+          .setProperty(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_PATH.format(0),
               Files.createTempDir().getAbsolutePath())
-          .setProperty(PropertyKeyFormat.WORKER_TIERED_STORE_LEVEL_DIRS_PATH_FORMAT.format(1),
+          .setProperty(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_PATH.format(1),
               Files.createTempDir().getAbsolutePath())
-          .setProperty(PropertyKeyFormat.WORKER_TIERED_STORE_LEVEL_DIRS_QUOTA_FORMAT.format(1),
+          .setProperty(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_QUOTA.format(1),
               String.valueOf(CAPACITY_BYTES))
-          .setProperty(PropertyKeyFormat.WORKER_TIERED_STORE_LEVEL_DIRS_PATH_FORMAT.format(2),
+          .setProperty(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_PATH.format(2),
               Files.createTempDir().getAbsolutePath())
-          .setProperty(PropertyKeyFormat.WORKER_TIERED_STORE_LEVEL_DIRS_QUOTA_FORMAT.format(2),
+          .setProperty(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_QUOTA.format(2),
               String.valueOf(CAPACITY_BYTES)).build();
 
   @ClassRule
@@ -77,8 +80,8 @@ public class SpecificTierWriteIntegrationTest {
   @Before
   public final void before() throws Exception {
     mFileSystem = mLocalAlluxioClusterResource.get().getClient();
-    mBlockMaster =
-        mLocalAlluxioClusterResource.get().getMaster().getInternalMaster().getBlockMaster();
+    mBlockMaster = mLocalAlluxioClusterResource.get().getLocalAlluxioMaster().getMasterProcess()
+        .getMaster(BlockMaster.class);
   }
 
   /**
@@ -88,7 +91,6 @@ public class SpecificTierWriteIntegrationTest {
    * @param memBytes the expected number of bytes used in the MEM tier
    * @param ssdBytes the expected number of bytes used in the SSD tier
    * @param hddBytes the expected number of bytes used in the HDD tier
-   * @throws Exception when an error occurs
    */
   private void writeFileAndCheckUsage(int writeTier, long memBytes, long ssdBytes, long hddBytes)
       throws Exception {
@@ -103,12 +105,12 @@ public class SpecificTierWriteIntegrationTest {
 
     long totalBytes = memBytes + ssdBytes + hddBytes;
     Assert.assertEquals("Total bytes used", totalBytes,
-        mLocalAlluxioClusterResource.get().getMaster().getInternalMaster().getBlockMaster()
-            .getUsedBytes());
+        mLocalAlluxioClusterResource.get().getLocalAlluxioMaster().getMasterProcess()
+            .getMaster(BlockMaster.class).getUsedBytes());
 
     Map<String, Long> bytesOnTiers =
-        mLocalAlluxioClusterResource.get().getMaster().getInternalMaster().getBlockMaster()
-            .getUsedBytesOnTiers();
+        mLocalAlluxioClusterResource.get().getLocalAlluxioMaster().getMasterProcess()
+            .getMaster(BlockMaster.class).getUsedBytesOnTiers();
     Assert.assertEquals("MEM tier usage", memBytes, bytesOnTiers.get("MEM").longValue());
     Assert.assertEquals("SSD tier usage", ssdBytes, bytesOnTiers.get("SSD").longValue());
     Assert.assertEquals("HDD tier usage", hddBytes, bytesOnTiers.get("HDD").longValue());
@@ -134,7 +136,7 @@ public class SpecificTierWriteIntegrationTest {
         }
         return mBlockMaster.getUsedBytes() == 0;
       }
-    }, WaitForOptions.defaults().setTimeout(10 * Constants.SECOND_MS));
+    }, WaitForOptions.defaults().setTimeoutMs(10 * Constants.SECOND_MS));
   }
 
   @Test

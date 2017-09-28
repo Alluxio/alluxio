@@ -11,6 +11,7 @@
 
 package alluxio.util;
 
+import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -19,18 +20,33 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.Charset;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
+import javax.annotation.concurrent.NotThreadSafe;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * A base class for running a Unix command.
+ * A utility class for running Unix commands.
  */
 @ThreadSafe
 public final class ShellUtils {
   private static final Logger LOG = LoggerFactory.getLogger(ShellUtils.class);
 
+  /**
+   * Common shell OPTS to prevent stalling.
+   * a. Disable StrictHostKeyChecking to prevent interactive prompt
+   * b. Set timeout for establishing connection with host
+   */
+  public static final String COMMON_SSH_OPTS = "-o StrictHostKeyChecking=no -o ConnectTimeout=5";
+
   /** a Unix command to set permission. */
   public static final String SET_PERMISSION_COMMAND = "chmod";
+
+  /** a Unix command for getting mount information. */
+  public static final String MOUNT_COMMAND = "mount";
 
   /**
    * Gets a Unix command to get a given user's groups list.
@@ -56,113 +72,127 @@ public final class ShellUtils {
   /** Token separator regex used to parse Shell tool outputs. */
   public static final String TOKEN_SEPARATOR_REGEX = "[ \t\n\r\f]";
 
-  private Process mProcess; // sub process used to execute the command
-  private int mExitCode;
-  private String[] mCommand;
-  private StringBuffer mOutput;
-
-  private ShellUtils(String[] execString) {
-    mCommand = execString.clone();
-  }
-
-  /** Checks to see if a command needs to be executed and execute command.
+  /**
+   * Gets system mount information. This method should only be attempted on Unix systems.
    *
-   * @throws IOException if command ran failed
+   * @return system mount information
    */
-  protected void run() throws IOException {
-    mExitCode = 0; // reset for next run
-    runCommand();
+  public static List<UnixMountInfo> getUnixMountInfo() throws IOException {
+    Preconditions.checkState(OSUtils.isLinux() || OSUtils.isMacOS());
+    String output = execCommand(MOUNT_COMMAND);
+    List<UnixMountInfo> mountInfo = new ArrayList<>();
+    for (String line : output.split("\n")) {
+      mountInfo.add(parseMountInfo(line));
+    }
+    return mountInfo;
   }
 
   /**
-   * Runs a command.
-   *
-   * @throws IOException if command ran failed
+   * @param line the line to parse
+   * @return the parsed {@link UnixMountInfo}
    */
-  private void runCommand() throws IOException {
-    ProcessBuilder builder = new ProcessBuilder(getExecString());
+  public static UnixMountInfo parseMountInfo(String line) {
+    // Example mount lines:
+    // ramfs on /mnt/ramdisk type ramfs (rw,relatime,size=1gb)
+    // map -hosts on /net (autofs, nosuid, automounted, nobrowse)
+    UnixMountInfo.Builder builder = new UnixMountInfo.Builder();
 
-    mProcess = builder.start();
+    // First get and remove the mount type if it's provided.
+    Matcher matcher = Pattern.compile(".* (type \\w+ ).*").matcher(line);
+    String lineWithoutType;
+    if (matcher.matches()) {
+      String match = matcher.group(1);
+      builder.setFsType(match.replace("type", "").trim());
+      lineWithoutType = line.replace(match, "");
+    } else {
+      lineWithoutType = line;
+    }
+    // Now parse the rest
+    matcher = Pattern.compile("(.*) on (.*) \\((.*)\\)").matcher(lineWithoutType);
+    if (!matcher.matches()) {
+      LOG.debug("Unable to parse output of 'mount': {}", line);
+      return builder.build();
+    }
+    builder.setDeviceSpec(matcher.group(1));
+    builder.setMountPoint(matcher.group(2));
+    builder.setOptions(parseUnixMountOptions(matcher.group(3)));
+    return builder.build();
+  }
 
-    BufferedReader inReader =
-        new BufferedReader(new InputStreamReader(mProcess.getInputStream(),
-            Charset.defaultCharset()));
-    final StringBuffer errMsg = new StringBuffer();
-
-    // read input streams as this would free up the buffers
-    try {
-      parseExecResult(inReader); // parse the output
-      // clear the input stream buffer
-      String line = inReader.readLine();
-      while (line != null) {
-        line = inReader.readLine();
-      }
-      // wait for the process to finish and check the exit code
-      mExitCode = mProcess.waitFor();
-      if (mExitCode != 0) {
-        throw new ExitCodeException(mExitCode, errMsg.toString());
-      }
-    } catch (InterruptedException e) {
-      throw new IOException(e);
-    } finally {
-      // close the input stream
-      try {
-        // JDK 7 tries to automatically drain the input streams for us
-        // when the process exits, but since close is not synchronized,
-        // it creates a race if we close the stream first and the same
-        // fd is recycled. the stream draining thread will attempt to
-        // drain that fd!! it may block, OOM, or cause bizarre behavior
-        // see: https://bugs.openjdk.java.net/browse/JDK-8024521
-        // issue is fixed in build 7u60
-        InputStream stdout = mProcess.getInputStream();
-        synchronized (stdout) {
-          inReader.close();
+  private static UnixMountInfo.Options parseUnixMountOptions(String line) {
+    UnixMountInfo.Options.Builder builder = new UnixMountInfo.Options.Builder();
+    for (String option : line.split(",")) {
+      Matcher matcher = Pattern.compile("(.*)=(.*)").matcher(option.trim());
+      if (matcher.matches() && matcher.group(1).equalsIgnoreCase("size")) {
+        try {
+          builder.setSize(FormatUtils.parseSpaceSize(matcher.group(2)));
+        } catch (IllegalArgumentException e) {
+          LOG.debug("Failed to parse mount point size: {}", e);
         }
-      } catch (IOException e) {
-        LOG.warn("Error while closing the input stream", e);
       }
-      mProcess.destroy();
     }
+    return builder.build();
   }
 
-  /**
-   * @return an array containing the command name & its parameters
-   */
-  protected String[] getExecString() {
-    return mCommand;
-  }
+  @NotThreadSafe
+  private static final class Command {
+    private String[] mCommand;
 
-  /** Parse the execution result. */
-  protected void parseExecResult(BufferedReader lines) throws IOException {
-    mOutput = new StringBuffer();
-    char[] buf = new char[512];
-    int nRead;
-    while ((nRead = lines.read(buf, 0, buf.length)) > 0) {
-      mOutput.append(buf, 0, nRead);
+    private Command(String[] execString) {
+      mCommand = execString.clone();
     }
-  }
 
-  /** @return the output of the shell command. */
-  public String getOutput() {
-    return (mOutput == null) ? "" : mOutput.toString();
-  }
+    /**
+     * Runs a command and returns its stdout on success.
+     *
+     * @return the output
+     * @throws ExitCodeException if the command returns a non-zero exit code
+     */
+    private String run() throws ExitCodeException, IOException {
+      Process process = new ProcessBuilder(mCommand).redirectErrorStream(true).start();
 
-  /**
-   * Gets the current sub-process executing the given command.
-   *
-   * @return process executing the command
-   */
-  public Process getProcess() {
-    return mProcess;
-  }
+      BufferedReader inReader =
+          new BufferedReader(new InputStreamReader(process.getInputStream(),
+              Charset.defaultCharset()));
 
-  /**
-   * Gets the exit code.
-   *
-   * @return the exit code of the process
-   */
-  public int getExitCode() {
-    return mExitCode;
+      try {
+        // read the output of the command
+        StringBuilder output = new StringBuilder();
+        String line = inReader.readLine();
+        while (line != null) {
+          output.append(line);
+          output.append("\n");
+          line = inReader.readLine();
+        }
+        // wait for the process to finish and check the exit code
+        int exitCode = process.waitFor();
+        if (exitCode != 0) {
+          throw new ExitCodeException(exitCode, output.toString());
+        }
+        return output.toString();
+      } catch (InterruptedException e) {
+        Thread.currentThread().interrupt();
+        throw new IOException(e);
+      } finally {
+        // close the input stream
+        try {
+          // JDK 7 tries to automatically drain the input streams for us
+          // when the process exits, but since close is not synchronized,
+          // it creates a race if we close the stream first and the same
+          // fd is recycled. the stream draining thread will attempt to
+          // drain that fd!! it may block, OOM, or cause bizarre behavior
+          // see: https://bugs.openjdk.java.net/browse/JDK-8024521
+          // issue is fixed in build 7u60
+          InputStream stdout = process.getInputStream();
+          synchronized (stdout) {
+            inReader.close();
+          }
+        } catch (IOException e) {
+          LOG.warn("Error while closing the input stream", e);
+        }
+        process.destroy();
+      }
+    }
   }
 
   /**
@@ -208,12 +238,10 @@ public final class ShellUtils {
    *
    * @param cmd shell command to execute
    * @return the output of the executed command
-   * @throws IOException if command ran failed
    */
   public static String execCommand(String... cmd) throws IOException {
-    ShellUtils exec = new ShellUtils(cmd);
-    exec.run();
-    return exec.getOutput();
+    return new Command(cmd).run();
   }
 
+  private ShellUtils() {} // prevent instantiation
 }

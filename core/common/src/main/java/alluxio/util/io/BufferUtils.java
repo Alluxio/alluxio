@@ -61,7 +61,7 @@ public final class BufferUtils {
    * @param buffer the byte buffer to be unmapped, this must be a direct buffer
    */
   public static synchronized void cleanDirectBuffer(ByteBuffer buffer) {
-    Preconditions.checkNotNull(buffer);
+    Preconditions.checkNotNull(buffer, "buffer");
     Preconditions.checkArgument(buffer.isDirect(), "buffer isn't a DirectByteBuffer");
     try {
       if (sByteBufferCleanerMethod == null) {
@@ -81,7 +81,8 @@ public final class BufferUtils {
       }
       sCleanerCleanMethod.invoke(cleaner);
     } catch (Exception e) {
-      LOG.warn("Failed to unmap direct ByteBuffer: {}", buffer.getClass().getName(), e);
+      LOG.warn("Failed to unmap direct ByteBuffer: {}, error message: {}",
+                buffer.getClass().getName(), e.getMessage());
     } finally {
       // Force to drop reference to the buffer to clean
       buffer = null;
@@ -94,7 +95,7 @@ public final class BufferUtils {
    * The new bytebuffer will have the same content, but the type of the bytebuffer may not be the
    * same.
    *
-   * @param buf The ByteBuffer to clone
+   * @param buf The ByteBuffer to copy
    * @return The new ByteBuffer
    */
   public static ByteBuffer cloneByteBuffer(ByteBuffer buf) {
@@ -112,7 +113,7 @@ public final class BufferUtils {
   /**
    * Clones a list of {@link ByteBuffer}s.
    *
-   * @param source the list of ByteBuffers to clone
+   * @param source the list of ByteBuffers to copy
    * @return the new list of ByteBuffers
    */
   public static List<ByteBuffer> cloneByteBufferList(List<ByteBuffer> source) {
@@ -283,7 +284,6 @@ public final class BufferUtils {
    *
    * @param path file path to write the data
    * @param buffer raw data
-   * @throws IOException if the operation fails
    */
   public static void writeBufferToFile(String path, byte[] buffer) throws IOException {
     try (FileOutputStream os = new FileOutputStream(path)) {
@@ -296,7 +296,6 @@ public final class BufferUtils {
    *
    * @param src the source channel
    * @param dest the destination channel
-   * @throws IOException if the copy fails
    */
   public static void fastCopy(final ReadableByteChannel src, final WritableByteChannel dest)
       throws IOException {

@@ -11,6 +11,7 @@
 
 package alluxio.worker.block.io;
 
+import alluxio.exception.status.FailedPreconditionException;
 import alluxio.util.io.BufferUtils;
 
 import org.junit.Assert;
@@ -20,8 +21,8 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
 
+import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.nio.channels.ClosedChannelException;
 import java.nio.channels.ReadableByteChannel;
 
 /**
@@ -103,13 +104,13 @@ public class LocalFileBlockReaderTest {
   }
 
   /**
-   * Tests that a {@link ClosedChannelException} is thrown when trying to read from a reader after
-   * closing it.
+   * Tests that a {@link FailedPreconditionException} is thrown when trying to read from a reader
+   * after closing it.
    */
   @Test
   public void close() throws Exception {
-    mThrown.expect(ClosedChannelException.class);
     mReader.close();
+    mThrown.expect(IOException.class);
     mReader.read(0, TEST_BLOCK_SIZE);
   }
 }

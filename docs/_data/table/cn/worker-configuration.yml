@@ -24,6 +24,8 @@ alluxio.worker.data.port:
   运行Alluxio worker数据服务的端口。
 alluxio.worker.data.server.class:
   选择运行worker的网络栈，可选值为：`alluxio.worker.netty.NettyDataServer`。
+alluxio.worker.data.server.domain.socket.address:
+  domain socket 路径。如果设置，Alluxio worker 通过这个路径读写数据。
 alluxio.worker.evictor.class:
   当某个存储层空间不足时，worker剔除块文件的策略。可选值包括`alluxio.worker.block.evictor.LRFUEvictor`、
   `alluxio.worker.block.evictor.GreedyEvictor`、 `alluxio.worker.block.evictor.LRUEvictor`。
@@ -57,6 +59,14 @@ alluxio.worker.network.netty.watermark.low:
   一旦写队列中的high watermark达到了，该队列在切换到可写状态之前必须刷新到该配置项指定的low watermark。
 alluxio.worker.network.netty.worker.threads:
   "处理请求的线程数目，0表示#cpuCores * 2"
+alluxio.worker.network.netty.block.reader.threads.max:
+  处理读数据块的线程数目。
+alluxio.worker.network.netty.block.writer.threads.max:
+  处理写数据块的线程数目。
+alluxio.worker.network.netty.file.writer.threads.max:
+  处理往底层文件系统写文件的线程数目。
+alluxio.worker.network.netty.rpc.threads.max:
+  处理RPC的线程数目。
 alluxio.worker.port:
   Alluxio worker节点运行端口。
 alluxio.worker.session.timeout.ms:
@@ -73,8 +83,10 @@ alluxio.worker.tieredstore.level0.dirs.path:
   顶层存储层在存储目录中的路径。注意对于MacoS该值应为`/Volumes/`。
 alluxio.worker.tieredstore.level0.dirs.quota:
   顶层存储层容量。
-alluxio.worker.tieredstore.level0.reserved.ratio:
-  在顶层存储层中预留空间的比例（取值为0到1之间）。
+alluxio.worker.tieredstore.level0.watermark.high.ratio:
+  在顶层存储层中的高水位比例 （取值为0到1之间）。
+alluxio.worker.tieredstore.level0.watermark.low.ratio:
+  在顶层存储层中的低水位比例 （取值为0到1之间）。
 alluxio.worker.tieredstore.reserver.enabled:
   是否启用层次化存储空间预留服务。
 alluxio.worker.tieredstore.reserver.interval.ms:

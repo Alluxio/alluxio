@@ -15,4 +15,5 @@ thriftGen,None
 protoGen,None
 version,None
 validateConf,None
+validateEnv,&lt;TARGET&gt; [NAME]
 

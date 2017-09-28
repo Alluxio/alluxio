@@ -11,6 +11,8 @@
 
 package alluxio.wire;
 
+import alluxio.annotation.PublicApi;
+
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 
@@ -21,6 +23,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 /**
  * The network address of a worker.
  */
+@PublicApi
 @NotThreadSafe
 public final class WorkerNetAddress implements Serializable {
   private static final long serialVersionUID = 5822347646342091434L;
@@ -29,6 +32,7 @@ public final class WorkerNetAddress implements Serializable {
   private int mRpcPort;
   private int mDataPort;
   private int mWebPort;
+  private String mDomainSocketPath = "";
 
   /**
    * Creates a new instance of {@link WorkerNetAddress}.
@@ -45,6 +49,7 @@ public final class WorkerNetAddress implements Serializable {
     mRpcPort = workerNetAddress.getRpcPort();
     mDataPort = workerNetAddress.getDataPort();
     mWebPort = workerNetAddress.getWebPort();
+    mDomainSocketPath = workerNetAddress.getDomainSocketPath();
   }
 
   /**
@@ -76,11 +81,18 @@ public final class WorkerNetAddress implements Serializable {
   }
 
   /**
+   * @return the domain socket path
+   */
+  public String getDomainSocketPath() {
+    return mDomainSocketPath;
+  }
+
+  /**
    * @param host the host to use
    * @return the worker net address
    */
   public WorkerNetAddress setHost(String host) {
-    Preconditions.checkNotNull(host);
+    Preconditions.checkNotNull(host, "host");
     mHost = host;
     return this;
   }
@@ -113,10 +125,20 @@ public final class WorkerNetAddress implements Serializable {
   }
 
   /**
+   * @param domainSocketPath the domain socket path
+   * @return the worker net address
+   */
+  public WorkerNetAddress setDomainSocketPath(String domainSocketPath) {
+    mDomainSocketPath = domainSocketPath;
+    return this;
+  }
+
+  /**
    * @return a net address of thrift construct
    */
   protected alluxio.thrift.WorkerNetAddress toThrift() {
-    return new alluxio.thrift.WorkerNetAddress(mHost, mRpcPort, mDataPort, mWebPort);
+    return new alluxio.thrift.WorkerNetAddress(mHost, mRpcPort, mDataPort, mWebPort,
+        mDomainSocketPath);
   }
 
   @Override
@@ -129,17 +151,18 @@ public final class WorkerNetAddress implements Serializable {
     }
     WorkerNetAddress that = (WorkerNetAddress) o;
     return mHost.equals(that.mHost) && mRpcPort == that.mRpcPort && mDataPort == that.mDataPort
-        && mWebPort == that.mWebPort;
+        && mWebPort == that.mWebPort && mDomainSocketPath.equals(that.mDomainSocketPath);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mHost, mDataPort, mRpcPort, mWebPort);
+    return Objects.hashCode(mHost, mDataPort, mRpcPort, mWebPort, mDomainSocketPath);
   }
 
   @Override
   public String toString() {
     return Objects.toStringHelper(this).add("host", mHost).add("rpcPort", mRpcPort)
-        .add("dataPort", mDataPort).add("webPort", mWebPort).toString();
+        .add("dataPort", mDataPort).add("webPort", mWebPort)
+        .add("domainSocketPath", mDomainSocketPath).toString();
   }
 }

@@ -1,9 +1,9 @@
 ---
 layout: global
-title: Lineage Client API (alpha)
-nickname: Lineage API
+title: (Experimental) Lineage Client API
+nickname: (Experimental) Lineage API
 group: Features
-priority: 2
+priority: 99
 ---
 
 * Table of Contents

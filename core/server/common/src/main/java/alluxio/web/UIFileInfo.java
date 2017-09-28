@@ -15,6 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.client.file.URIStatus;
 import alluxio.master.file.meta.PersistenceState;
 import alluxio.security.authorization.Mode;
+import alluxio.util.CommonUtils;
 import alluxio.util.FormatUtils;
 import alluxio.wire.FileInfo;
 
@@ -70,8 +71,8 @@ public final class UIFileInfo {
      */
     public LocalFileInfo(String name, String absolutePath, long size, long creationTimeMs,
         long lastModificationTimeMs, boolean isDirectory) {
-      mName = Preconditions.checkNotNull(name);
-      mAbsolutePath = Preconditions.checkNotNull(absolutePath);
+      mName = Preconditions.checkNotNull(name, "name");
+      mAbsolutePath = Preconditions.checkNotNull(absolutePath, "absolutePath");
       mSize = size;
       mCreationTimeMs = creationTimeMs;
       mLastModificationTimeMs = lastModificationTimeMs;
@@ -210,14 +211,14 @@ public final class UIFileInfo {
     if (mCreationTimeMs == LocalFileInfo.EMPTY_CREATION_TIME) {
       return "";
     }
-    return WebUtils.convertMsToDate(mCreationTimeMs);
+    return CommonUtils.convertMsToDate(mCreationTimeMs);
   }
 
   /**
    * @return the modification time (in milliseconds)
    */
   public String getModificationTime() {
-    return WebUtils.convertMsToDate(mLastModificationTimeMs);
+    return CommonUtils.convertMsToDate(mLastModificationTimeMs);
   }
 
   /**

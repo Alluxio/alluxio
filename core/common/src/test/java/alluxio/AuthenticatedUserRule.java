@@ -11,9 +11,8 @@
 
 package alluxio;
 
-import org.junit.rules.TestRule;
-import org.junit.runner.Description;
-import org.junit.runners.model.Statement;
+import alluxio.security.User;
+import alluxio.security.authentication.AuthenticatedClientUser;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -24,8 +23,9 @@ import javax.annotation.concurrent.NotThreadSafe;
  * of this rule. Note: setting the user only takes effect within the caller thread.
  */
 @NotThreadSafe
-public final class AuthenticatedUserRule implements TestRule {
+public final class AuthenticatedUserRule extends AbstractResourceRule {
   private final String mUser;
+  private User mPreviousUser;
 
   /**
    * @param user the user name to set as authenticated user
@@ -35,14 +35,17 @@ public final class AuthenticatedUserRule implements TestRule {
   }
 
   @Override
-  public Statement apply(final Statement statement, Description description) {
-    return new Statement() {
-      @Override
-      public void evaluate() throws Throwable {
-        try (SetAndRestoreAuthenticatedUser user = new SetAndRestoreAuthenticatedUser(mUser)) {
-          statement.evaluate();
-        }
-      }
-    };
+  protected void before() throws Exception {
+    mPreviousUser = AuthenticatedClientUser.get();
+    AuthenticatedClientUser.set(mUser);
+  }
+
+  @Override
+  protected void after() {
+    if (mPreviousUser == null) {
+      AuthenticatedClientUser.remove();
+    } else {
+      AuthenticatedClientUser.set(mPreviousUser.getName());
+    }
   }
 }

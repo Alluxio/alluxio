@@ -19,6 +19,8 @@ import alluxio.wire.FileInfo;
 import alluxio.wire.TtlAction;
 
 import com.google.common.base.Objects;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
@@ -32,6 +34,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public abstract class Inode<T> implements JournalEntryRepresentable {
+  private static final Logger LOG = LoggerFactory.getLogger(Inode.class);
   protected long mCreationTimeMs;
   private boolean mDeleted;
   protected final boolean mDirectory;
@@ -129,6 +132,23 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
    */
   public PersistenceState getPersistenceState() {
     return mPersistenceState;
+  }
+
+  /**
+   * Compare-and-swaps the persistence state.
+   *
+   * @param oldState the old {@link PersistenceState}
+   * @param newState the new {@link PersistenceState} to set
+   * @return true if the old state matches and the new state was set
+   */
+  public boolean compareAndSwap(PersistenceState oldState, PersistenceState newState) {
+    synchronized (this) {
+      if (mPersistenceState == oldState) {
+        mPersistenceState = newState;
+        return true;
+      }
+      return false;
+    }
   }
 
   /**
@@ -327,9 +347,10 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
   }
 
   /**
-   * Obtains a read lock on the inode. Afterward, checks the inode state to ensure the parent is
-   * consistent with what the caller is expecting. If the state is inconsistent, an exception
-   * will be thrown and the lock will be released.
+   * Obtains a read lock on the inode. Afterward, checks the inode state:
+   *   - parent is consistent with what the caller is expecting
+   *   - the inode is not marked as deleted
+   * If the state is inconsistent, an exception will be thrown and the lock will be released.
    *
    * NOTE: This method assumes that the inode path to the parent has been read locked.
    *
@@ -338,6 +359,10 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
    */
   public void lockReadAndCheckParent(Inode parent) throws InvalidPathException {
     lockRead();
+    if (mDeleted) {
+      unlockRead();
+      throw new InvalidPathException(ExceptionMessage.PATH_INVALID_CONCURRENT_DELETE.getMessage());
+    }
     if (mParentId != InodeTree.NO_PARENT && mParentId != parent.getId()) {
       unlockRead();
       throw new InvalidPathException(ExceptionMessage.PATH_INVALID_CONCURRENT_RENAME.getMessage());
@@ -372,9 +397,10 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
   }
 
   /**
-   * Obtains a write lock on the inode. Afterward, checks the inode state to ensure the parent is
-   * consistent with what the caller is expecting. If the state is inconsistent, an exception
-   * will be thrown and the lock will be released.
+   * Obtains a write lock on the inode. Afterward, checks the inode state:
+   *   - parent is consistent with what the caller is expecting
+   *   - the inode is not marked as deleted
+   * If the state is inconsistent, an exception will be thrown and the lock will be released.
    *
    * NOTE: This method assumes that the inode path to the parent has been read locked.
    *
@@ -383,6 +409,10 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
    */
   public void lockWriteAndCheckParent(Inode parent) throws InvalidPathException {
     lockWrite();
+    if (mDeleted) {
+      unlockWrite();
+      throw new InvalidPathException(ExceptionMessage.PATH_INVALID_CONCURRENT_DELETE.getMessage());
+    }
     if (mParentId != InodeTree.NO_PARENT && mParentId != parent.getId()) {
       unlockWrite();
       throw new InvalidPathException(ExceptionMessage.PATH_INVALID_CONCURRENT_RENAME.getMessage());

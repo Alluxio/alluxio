@@ -59,8 +59,7 @@ public class CachedGroupMapping implements GroupMappingService {
    */
   public CachedGroupMapping(GroupMappingService service) {
     mService = service;
-    long timeoutMs = Long.parseLong(Configuration.get(
-        PropertyKey.SECURITY_GROUP_MAPPING_CACHE_TIMEOUT_MS));
+    long timeoutMs = Configuration.getMs(PropertyKey.SECURITY_GROUP_MAPPING_CACHE_TIMEOUT_MS);
     mCacheEnabled = timeoutMs > 0;
     if (mCacheEnabled) {
       mCache = CacheBuilder.newBuilder()
@@ -111,7 +110,6 @@ public class CachedGroupMapping implements GroupMappingService {
    *
    * @param user user name
    * @return the list of groups that the user belongs to
-   * @throws IOException if failed to get groups
    */
   public List<String> getGroups(String user) throws IOException {
     if (!mCacheEnabled) {

@@ -49,7 +49,6 @@ public class OSSInputStream extends MultiRangeObjectInputStream {
    * @param bucketName the name of the bucket
    * @param key the key of the file
    * @param client the client for OSS
-   * @throws IOException if an I/O error occurs
    */
   OSSInputStream(String bucketName, String key, OSSClient client) throws IOException {
     this(bucketName, key, client, 0L);
@@ -62,7 +61,6 @@ public class OSSInputStream extends MultiRangeObjectInputStream {
    * @param key the key of the file
    * @param client the client for OSS
    * @param position the position to begin reading from
-   * @throws IOException if an I/O error occurs
    */
   OSSInputStream(String bucketName, String key, OSSClient client, long position)
       throws IOException {

@@ -12,6 +12,7 @@
 package alluxio.web;
 
 import alluxio.LocalAlluxioClusterResource;
+import alluxio.BaseIntegrationTest;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 
@@ -31,7 +32,7 @@ import java.util.Scanner;
 /**
  * Tests the web server is up when Alluxio starts.
  */
-public class WebServerIntegrationTest {
+public class WebServerIntegrationTest extends BaseIntegrationTest {
 
   // Web pages that will be verified.
   private static final Multimap<ServiceType, String> PAGES =
@@ -49,10 +50,10 @@ public class WebServerIntegrationTest {
       throws IOException {
     int port;
     if (serviceType == ServiceType.MASTER_WEB) {
-      port = mLocalAlluxioClusterResource.get().getMaster().getInternalMaster().getWebAddress()
-          .getPort();
+      port = mLocalAlluxioClusterResource.get().getLocalAlluxioMaster().getMasterProcess()
+          .getWebAddress().getPort();
     } else {
-      port = mLocalAlluxioClusterResource.get().getWorker().getWebLocalPort();
+      port = mLocalAlluxioClusterResource.get().getWorkerProcess().getWebLocalPort();
     }
     InetSocketAddress webAddr =
         new InetSocketAddress(NetworkAddressUtils.getConnectHost(serviceType), port);

@@ -101,7 +101,7 @@ public ConfigurationRule mConfigurationRule = new ConfigurationRule(ImmutableMap
     PropertyKey.key1, "value1",
     PropertyKey.key2, "value2"));
 ```
-For configuration changes needed for an individual test, use `Configuration.set(key, value)`, and create an `@After` method to clean up the configuration change after the test:
+For configuration changes needed for an individual test, use `Configuration.set(key, value)`, and create an `@After` method to clean up the configuration changes after the test:
 
 ```java
 @After
@@ -138,4 +138,4 @@ public void test() {
 
 ### Other global state
 
-If a test needs to modify other types of global state, create a new `@Rule` for managing the state so that it can be shared across tests. One example of this is [`TtlIntervalRule`](https://github.com/Alluxio/alluxio/blob/master/core/server/src/test/java/alluxio/master/file/meta/TtlIntervalRule.java).
+If a test needs to modify other types of global state, create a new `@Rule` for managing the state so that it can be shared across tests. One example of this is [`TtlIntervalRule`](https://github.com/Alluxio/alluxio/blob/master/core/server/master/src/test/java/alluxio/master/file/meta/TtlIntervalRule.java).

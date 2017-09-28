@@ -15,9 +15,12 @@ import com.google.common.base.Objects;
 
 import java.util.Map;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 /**
  * Alluxio proxy information.
  */
+@NotThreadSafe
 public class AlluxioProxyInfo {
   private Map<String, String> mConfiguration;
   private long mStartTimeMs;

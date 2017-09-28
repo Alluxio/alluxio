@@ -23,7 +23,7 @@ YARN_LOG_DIR="$LOG_DIRS"
 
 echo "Formatting Alluxio Worker"
 
-"${JAVA}" -cp "${CLASSPATH}" \
+"${JAVA}" -cp "${ALLUXIO_SERVER_CLASSPATH}" \
   ${ALLUXIO_WORKER_JAVA_OPTS} \
   -Dalluxio.home="${ALLUXIO_HOME}" \
   -Dalluxio.logger.type="WORKER_LOGGER" \
@@ -32,7 +32,7 @@ echo "Formatting Alluxio Worker"
 
 echo "Starting Alluxio Worker"
 
-"${JAVA}" -cp "${CLASSPATH}" \
+"${JAVA}" -cp "${ALLUXIO_SERVER_CLASSPATH}" \
   ${ALLUXIO_WORKER_JAVA_OPTS} \
   -Dalluxio.home="${ALLUXIO_HOME}" \
   -Dalluxio.logger.type="WORKER_LOGGER" \

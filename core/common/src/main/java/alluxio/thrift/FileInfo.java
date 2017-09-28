@@ -61,6 +61,8 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
   private static final org.apache.thrift.protocol.TField MOUNT_POINT_FIELD_DESC = new org.apache.thrift.protocol.TField("mountPoint", org.apache.thrift.protocol.TType.BOOL, (short)22);
   private static final org.apache.thrift.protocol.TField FILE_BLOCK_INFOS_FIELD_DESC = new org.apache.thrift.protocol.TField("fileBlockInfos", org.apache.thrift.protocol.TType.LIST, (short)23);
   private static final org.apache.thrift.protocol.TField TTL_ACTION_FIELD_DESC = new org.apache.thrift.protocol.TField("ttlAction", org.apache.thrift.protocol.TType.I32, (short)24);
+  private static final org.apache.thrift.protocol.TField MOUNT_ID_FIELD_DESC = new org.apache.thrift.protocol.TField("mountId", org.apache.thrift.protocol.TType.I64, (short)25);
+  private static final org.apache.thrift.protocol.TField IN_ALLUXIO_PERCENTAGE_FIELD_DESC = new org.apache.thrift.protocol.TField("inAlluxioPercentage", org.apache.thrift.protocol.TType.I32, (short)26);
 
   private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
   static {
@@ -91,6 +93,8 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
   private boolean mountPoint; // required
   private List<FileBlockInfo> fileBlockInfos; // required
   private alluxio.thrift.TTtlAction ttlAction; // required
+  private long mountId; // required
+  private int inAlluxioPercentage; // required
 
   /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
   public enum _Fields implements org.apache.thrift.TFieldIdEnum {
@@ -120,7 +124,9 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
      * 
      * @see alluxio.thrift.TTtlAction
      */
-    TTL_ACTION((short)24, "ttlAction");
+    TTL_ACTION((short)24, "ttlAction"),
+    MOUNT_ID((short)25, "mountId"),
+    IN_ALLUXIO_PERCENTAGE((short)26, "inAlluxioPercentage");
 
     private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -181,6 +187,10 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
           return FILE_BLOCK_INFOS;
         case 24: // TTL_ACTION
           return TTL_ACTION;
+        case 25: // MOUNT_ID
+          return MOUNT_ID;
+        case 26: // IN_ALLUXIO_PERCENTAGE
+          return IN_ALLUXIO_PERCENTAGE;
         default:
           return null;
       }
@@ -235,6 +245,8 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
   private static final int __TTL_ISSET_ID = 11;
   private static final int __MODE_ISSET_ID = 12;
   private static final int __MOUNTPOINT_ISSET_ID = 13;
+  private static final int __MOUNTID_ISSET_ID = 14;
+  private static final int __INALLUXIOPERCENTAGE_ISSET_ID = 15;
   private short __isset_bitfield = 0;
   public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
   static {
@@ -287,6 +299,10 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
             new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, FileBlockInfo.class))));
     tmpMap.put(_Fields.TTL_ACTION, new org.apache.thrift.meta_data.FieldMetaData("ttlAction", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.EnumMetaData(org.apache.thrift.protocol.TType.ENUM, alluxio.thrift.TTtlAction.class)));
+    tmpMap.put(_Fields.MOUNT_ID, new org.apache.thrift.meta_data.FieldMetaData("mountId", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
+    tmpMap.put(_Fields.IN_ALLUXIO_PERCENTAGE, new org.apache.thrift.meta_data.FieldMetaData("inAlluxioPercentage", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I32)));
     metaDataMap = Collections.unmodifiableMap(tmpMap);
     org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(FileInfo.class, metaDataMap);
   }
@@ -317,7 +333,9 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
     String persistenceState,
     boolean mountPoint,
     List<FileBlockInfo> fileBlockInfos,
-    alluxio.thrift.TTtlAction ttlAction)
+    alluxio.thrift.TTtlAction ttlAction,
+    long mountId,
+    int inAlluxioPercentage)
   {
     this();
     this.fileId = fileId;
@@ -357,6 +375,10 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
     setMountPointIsSet(true);
     this.fileBlockInfos = fileBlockInfos;
     this.ttlAction = ttlAction;
+    this.mountId = mountId;
+    setMountIdIsSet(true);
+    this.inAlluxioPercentage = inAlluxioPercentage;
+    setInAlluxioPercentageIsSet(true);
   }
 
   /**
@@ -410,6 +432,8 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
     if (other.isSetTtlAction()) {
       this.ttlAction = other.ttlAction;
     }
+    this.mountId = other.mountId;
+    this.inAlluxioPercentage = other.inAlluxioPercentage;
   }
 
   public FileInfo deepCopy() {
@@ -455,6 +479,10 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
     this.mountPoint = false;
     this.fileBlockInfos = null;
     this.ttlAction = null;
+    setMountIdIsSet(false);
+    this.mountId = 0;
+    setInAlluxioPercentageIsSet(false);
+    this.inAlluxioPercentage = 0;
   }
 
   public long getFileId() {
@@ -1033,6 +1061,52 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
     }
   }
 
+  public long getMountId() {
+    return this.mountId;
+  }
+
+  public FileInfo setMountId(long mountId) {
+    this.mountId = mountId;
+    setMountIdIsSet(true);
+    return this;
+  }
+
+  public void unsetMountId() {
+    __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __MOUNTID_ISSET_ID);
+  }
+
+  /** Returns true if field mountId is set (has been assigned a value) and false otherwise */
+  public boolean isSetMountId() {
+    return EncodingUtils.testBit(__isset_bitfield, __MOUNTID_ISSET_ID);
+  }
+
+  public void setMountIdIsSet(boolean value) {
+    __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __MOUNTID_ISSET_ID, value);
+  }
+
+  public int getInAlluxioPercentage() {
+    return this.inAlluxioPercentage;
+  }
+
+  public FileInfo setInAlluxioPercentage(int inAlluxioPercentage) {
+    this.inAlluxioPercentage = inAlluxioPercentage;
+    setInAlluxioPercentageIsSet(true);
+    return this;
+  }
+
+  public void unsetInAlluxioPercentage() {
+    __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __INALLUXIOPERCENTAGE_ISSET_ID);
+  }
+
+  /** Returns true if field inAlluxioPercentage is set (has been assigned a value) and false otherwise */
+  public boolean isSetInAlluxioPercentage() {
+    return EncodingUtils.testBit(__isset_bitfield, __INALLUXIOPERCENTAGE_ISSET_ID);
+  }
+
+  public void setInAlluxioPercentageIsSet(boolean value) {
+    __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __INALLUXIOPERCENTAGE_ISSET_ID, value);
+  }
+
   public void setFieldValue(_Fields field, Object value) {
     switch (field) {
     case FILE_ID:
@@ -1219,6 +1293,22 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
       }
       break;
 
+    case MOUNT_ID:
+      if (value == null) {
+        unsetMountId();
+      } else {
+        setMountId((Long)value);
+      }
+      break;
+
+    case IN_ALLUXIO_PERCENTAGE:
+      if (value == null) {
+        unsetInAlluxioPercentage();
+      } else {
+        setInAlluxioPercentage((Integer)value);
+      }
+      break;
+
     }
   }
 
@@ -1293,6 +1383,12 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
     case TTL_ACTION:
       return getTtlAction();
 
+    case MOUNT_ID:
+      return getMountId();
+
+    case IN_ALLUXIO_PERCENTAGE:
+      return getInAlluxioPercentage();
+
     }
     throw new IllegalStateException();
   }
@@ -1350,6 +1446,10 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
       return isSetFileBlockInfos();
     case TTL_ACTION:
       return isSetTtlAction();
+    case MOUNT_ID:
+      return isSetMountId();
+    case IN_ALLUXIO_PERCENTAGE:
+      return isSetInAlluxioPercentage();
     }
     throw new IllegalStateException();
   }
@@ -1574,6 +1674,24 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
         return false;
     }
 
+    boolean this_present_mountId = true;
+    boolean that_present_mountId = true;
+    if (this_present_mountId || that_present_mountId) {
+      if (!(this_present_mountId && that_present_mountId))
+        return false;
+      if (this.mountId != that.mountId)
+        return false;
+    }
+
+    boolean this_present_inAlluxioPercentage = true;
+    boolean that_present_inAlluxioPercentage = true;
+    if (this_present_inAlluxioPercentage || that_present_inAlluxioPercentage) {
+      if (!(this_present_inAlluxioPercentage && that_present_inAlluxioPercentage))
+        return false;
+      if (this.inAlluxioPercentage != that.inAlluxioPercentage)
+        return false;
+    }
+
     return true;
   }
 
@@ -1695,6 +1813,16 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
     list.add(present_ttlAction);
     if (present_ttlAction)
       list.add(ttlAction.getValue());
+
+    boolean present_mountId = true;
+    list.add(present_mountId);
+    if (present_mountId)
+      list.add(mountId);
+
+    boolean present_inAlluxioPercentage = true;
+    list.add(present_inAlluxioPercentage);
+    if (present_inAlluxioPercentage)
+      list.add(inAlluxioPercentage);
 
     return list.hashCode();
   }
@@ -1937,6 +2065,26 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
         return lastComparison;
       }
     }
+    lastComparison = Boolean.valueOf(isSetMountId()).compareTo(other.isSetMountId());
+    if (lastComparison != 0) {
+      return lastComparison;
+    }
+    if (isSetMountId()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.mountId, other.mountId);
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+    }
+    lastComparison = Boolean.valueOf(isSetInAlluxioPercentage()).compareTo(other.isSetInAlluxioPercentage());
+    if (lastComparison != 0) {
+      return lastComparison;
+    }
+    if (isSetInAlluxioPercentage()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.inAlluxioPercentage, other.inAlluxioPercentage);
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+    }
     return 0;
   }
 
@@ -2084,6 +2232,14 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
       sb.append(this.ttlAction);
     }
     first = false;
+    if (!first) sb.append(", ");
+    sb.append("mountId:");
+    sb.append(this.mountId);
+    first = false;
+    if (!first) sb.append(", ");
+    sb.append("inAlluxioPercentage:");
+    sb.append(this.inAlluxioPercentage);
+    first = false;
     sb.append(")");
     return sb.toString();
   }
@@ -2228,13 +2384,13 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
           case 13: // BLOCK_IDS
             if (schemeField.type == org.apache.thrift.protocol.TType.LIST) {
               {
-                org.apache.thrift.protocol.TList _list26 = iprot.readListBegin();
-                struct.blockIds = new ArrayList<Long>(_list26.size);
-                long _elem27;
-                for (int _i28 = 0; _i28 < _list26.size; ++_i28)
+                org.apache.thrift.protocol.TList _list32 = iprot.readListBegin();
+                struct.blockIds = new ArrayList<Long>(_list32.size);
+                long _elem33;
+                for (int _i34 = 0; _i34 < _list32.size; ++_i34)
                 {
-                  _elem27 = iprot.readI64();
-                  struct.blockIds.add(_elem27);
+                  _elem33 = iprot.readI64();
+                  struct.blockIds.add(_elem33);
                 }
                 iprot.readListEnd();
               }
@@ -2310,14 +2466,14 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
           case 23: // FILE_BLOCK_INFOS
             if (schemeField.type == org.apache.thrift.protocol.TType.LIST) {
               {
-                org.apache.thrift.protocol.TList _list29 = iprot.readListBegin();
-                struct.fileBlockInfos = new ArrayList<FileBlockInfo>(_list29.size);
-                FileBlockInfo _elem30;
-                for (int _i31 = 0; _i31 < _list29.size; ++_i31)
+                org.apache.thrift.protocol.TList _list35 = iprot.readListBegin();
+                struct.fileBlockInfos = new ArrayList<FileBlockInfo>(_list35.size);
+                FileBlockInfo _elem36;
+                for (int _i37 = 0; _i37 < _list35.size; ++_i37)
                 {
-                  _elem30 = new FileBlockInfo();
-                  _elem30.read(iprot);
-                  struct.fileBlockInfos.add(_elem30);
+                  _elem36 = new FileBlockInfo();
+                  _elem36.read(iprot);
+                  struct.fileBlockInfos.add(_elem36);
                 }
                 iprot.readListEnd();
               }
@@ -2330,6 +2486,22 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
             if (schemeField.type == org.apache.thrift.protocol.TType.I32) {
               struct.ttlAction = alluxio.thrift.TTtlAction.findByValue(iprot.readI32());
               struct.setTtlActionIsSet(true);
+            } else { 
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+            }
+            break;
+          case 25: // MOUNT_ID
+            if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
+              struct.mountId = iprot.readI64();
+              struct.setMountIdIsSet(true);
+            } else { 
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+            }
+            break;
+          case 26: // IN_ALLUXIO_PERCENTAGE
+            if (schemeField.type == org.apache.thrift.protocol.TType.I32) {
+              struct.inAlluxioPercentage = iprot.readI32();
+              struct.setInAlluxioPercentageIsSet(true);
             } else { 
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
@@ -2395,9 +2567,9 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
         oprot.writeFieldBegin(BLOCK_IDS_FIELD_DESC);
         {
           oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.I64, struct.blockIds.size()));
-          for (long _iter32 : struct.blockIds)
+          for (long _iter38 : struct.blockIds)
           {
-            oprot.writeI64(_iter32);
+            oprot.writeI64(_iter38);
           }
           oprot.writeListEnd();
         }
@@ -2437,9 +2609,9 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
         oprot.writeFieldBegin(FILE_BLOCK_INFOS_FIELD_DESC);
         {
           oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, struct.fileBlockInfos.size()));
-          for (FileBlockInfo _iter33 : struct.fileBlockInfos)
+          for (FileBlockInfo _iter39 : struct.fileBlockInfos)
           {
-            _iter33.write(oprot);
+            _iter39.write(oprot);
           }
           oprot.writeListEnd();
         }
@@ -2450,6 +2622,12 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
         oprot.writeI32(struct.ttlAction.getValue());
         oprot.writeFieldEnd();
       }
+      oprot.writeFieldBegin(MOUNT_ID_FIELD_DESC);
+      oprot.writeI64(struct.mountId);
+      oprot.writeFieldEnd();
+      oprot.writeFieldBegin(IN_ALLUXIO_PERCENTAGE_FIELD_DESC);
+      oprot.writeI32(struct.inAlluxioPercentage);
+      oprot.writeFieldEnd();
       oprot.writeFieldStop();
       oprot.writeStructEnd();
     }
@@ -2537,7 +2715,13 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
       if (struct.isSetTtlAction()) {
         optionals.set(22);
       }
-      oprot.writeBitSet(optionals, 23);
+      if (struct.isSetMountId()) {
+        optionals.set(23);
+      }
+      if (struct.isSetInAlluxioPercentage()) {
+        optionals.set(24);
+      }
+      oprot.writeBitSet(optionals, 25);
       if (struct.isSetFileId()) {
         oprot.writeI64(struct.fileId);
       }
@@ -2577,9 +2761,9 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
       if (struct.isSetBlockIds()) {
         {
           oprot.writeI32(struct.blockIds.size());
-          for (long _iter34 : struct.blockIds)
+          for (long _iter40 : struct.blockIds)
           {
-            oprot.writeI64(_iter34);
+            oprot.writeI64(_iter40);
           }
         }
       }
@@ -2610,21 +2794,27 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
       if (struct.isSetFileBlockInfos()) {
         {
           oprot.writeI32(struct.fileBlockInfos.size());
-          for (FileBlockInfo _iter35 : struct.fileBlockInfos)
+          for (FileBlockInfo _iter41 : struct.fileBlockInfos)
           {
-            _iter35.write(oprot);
+            _iter41.write(oprot);
           }
         }
       }
       if (struct.isSetTtlAction()) {
         oprot.writeI32(struct.ttlAction.getValue());
       }
+      if (struct.isSetMountId()) {
+        oprot.writeI64(struct.mountId);
+      }
+      if (struct.isSetInAlluxioPercentage()) {
+        oprot.writeI32(struct.inAlluxioPercentage);
+      }
     }
 
     @Override
     public void read(org.apache.thrift.protocol.TProtocol prot, FileInfo struct) throws org.apache.thrift.TException {
       TTupleProtocol iprot = (TTupleProtocol) prot;
-      BitSet incoming = iprot.readBitSet(23);
+      BitSet incoming = iprot.readBitSet(25);
       if (incoming.get(0)) {
         struct.fileId = iprot.readI64();
         struct.setFileIdIsSet(true);
@@ -2675,13 +2865,13 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
       }
       if (incoming.get(12)) {
         {
-          org.apache.thrift.protocol.TList _list36 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.I64, iprot.readI32());
-          struct.blockIds = new ArrayList<Long>(_list36.size);
-          long _elem37;
-          for (int _i38 = 0; _i38 < _list36.size; ++_i38)
+          org.apache.thrift.protocol.TList _list42 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.I64, iprot.readI32());
+          struct.blockIds = new ArrayList<Long>(_list42.size);
+          long _elem43;
+          for (int _i44 = 0; _i44 < _list42.size; ++_i44)
           {
-            _elem37 = iprot.readI64();
-            struct.blockIds.add(_elem37);
+            _elem43 = iprot.readI64();
+            struct.blockIds.add(_elem43);
           }
         }
         struct.setBlockIdsIsSet(true);
@@ -2720,14 +2910,14 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
       }
       if (incoming.get(21)) {
         {
-          org.apache.thrift.protocol.TList _list39 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
-          struct.fileBlockInfos = new ArrayList<FileBlockInfo>(_list39.size);
-          FileBlockInfo _elem40;
-          for (int _i41 = 0; _i41 < _list39.size; ++_i41)
+          org.apache.thrift.protocol.TList _list45 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
+          struct.fileBlockInfos = new ArrayList<FileBlockInfo>(_list45.size);
+          FileBlockInfo _elem46;
+          for (int _i47 = 0; _i47 < _list45.size; ++_i47)
           {
-            _elem40 = new FileBlockInfo();
-            _elem40.read(iprot);
-            struct.fileBlockInfos.add(_elem40);
+            _elem46 = new FileBlockInfo();
+            _elem46.read(iprot);
+            struct.fileBlockInfos.add(_elem46);
           }
         }
         struct.setFileBlockInfosIsSet(true);
@@ -2735,6 +2925,14 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
       if (incoming.get(22)) {
         struct.ttlAction = alluxio.thrift.TTtlAction.findByValue(iprot.readI32());
         struct.setTtlActionIsSet(true);
+      }
+      if (incoming.get(23)) {
+        struct.mountId = iprot.readI64();
+        struct.setMountIdIsSet(true);
+      }
+      if (incoming.get(24)) {
+        struct.inAlluxioPercentage = iprot.readI32();
+        struct.setInAlluxioPercentageIsSet(true);
       }
     }
   }

@@ -1,7 +1,7 @@
 ---
 layout: global
-title: 键值存储库（Key Value Store）客户端API（内测版）
-nickname: 键值存储库（Key Value Store) API
+title: （实验版）键值存储库（Key Value Store）客户端API
+nickname: （实验版）键值存储库（Key Value Store) API
 group: Features
 priority: 4
 ---
@@ -105,7 +105,7 @@ key-value URI作为参数把键值对放入键值存储库内。
 从代码库中的[样例](https://github.com/Alluxio/alluxio/blob/master/examples/src/main/java/alluxio/examples/keyvalue/hadoop/CloneStoreMapReduce.java)
  可以了解更多。
 
-如果你已经[将HDFS配置为Alluxio的底层存储](Configuring-Alluxio-with-HDFS.md), 并且已经启用了键值存储，
+如果你已经[将HDFS配置为Alluxio的底层存储](Configuring-Alluxio-with-HDFS.html), 并且已经启用了键值存储，
 那么可以按照如下方式运行上面的样例:
 
 {% include Key-Value-Store-API/run-mapreduce-example.md %}
