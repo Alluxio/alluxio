@@ -48,8 +48,14 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public class Registry<T extends Server<U>, U> {
+<<<<<<< HEAD
   private static final int DEFAULT_GET_TIMEOUT_MS = 60 * Constants.SECOND_MS;
 
+||||||| merged common ancestors
+  private static final int DEFAULT_GET_TIMEOUT_MS = 5000;
+
+=======
+>>>>>>> upstream/branch-1.6
   private final Map<Class<? extends Server>, T> mRegistry = new HashMap<>();
   private final Lock mLock = new ReentrantLock();
 
@@ -66,7 +72,7 @@ public class Registry<T extends Server<U>, U> {
    * @return the {@link Server} instance
    */
   public <W extends T> W get(final Class<W> clazz) {
-    return get(clazz, DEFAULT_GET_TIMEOUT_MS);
+    return get(clazz, Constants.DEFAULT_REGISTRY_GET_TIMEOUT_MS);
   }
 
   /**

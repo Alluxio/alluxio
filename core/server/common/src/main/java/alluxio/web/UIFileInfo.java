@@ -87,8 +87,8 @@ public final class UIFileInfo {
   private final long mSize;
   private final long mCreationTimeMs;
   private final long mLastModificationTimeMs;
-  private final boolean mInMemory;
-  private final int mInMemoryPercent;
+  private final boolean mInAlluxio;
+  private final int mInAlluxioPercentage;
   private final boolean mIsDirectory;
   private final boolean mPinned;
   private final String mOwner;
@@ -113,8 +113,8 @@ public final class UIFileInfo {
     mSize = status.getLength();
     mCreationTimeMs = status.getCreationTimeMs();
     mLastModificationTimeMs = status.getLastModificationTimeMs();
-    mInMemory = (100 == status.getInMemoryPercentage());
-    mInMemoryPercent = status.getInMemoryPercentage();
+    mInAlluxio = (100 == status.getInAlluxioPercentage());
+    mInAlluxioPercentage = status.getInAlluxioPercentage();
     mIsDirectory = status.isFolder();
     mPinned = status.isPinned();
     mOwner = status.getOwner();
@@ -146,8 +146,8 @@ public final class UIFileInfo {
     mSize = fileInfo.mSize;
     mCreationTimeMs = fileInfo.mCreationTimeMs;
     mLastModificationTimeMs = fileInfo.mLastModificationTimeMs;
-    mInMemory = false;
-    mInMemoryPercent = 0;
+    mInAlluxio = false;
+    mInAlluxioPercentage = 0;
     mIsDirectory = fileInfo.mIsDirectory;
     mPinned = false;
     mOwner = "";
@@ -238,15 +238,15 @@ public final class UIFileInfo {
   /**
    * @return whether the file is present in memory
    */
-  public boolean getInMemory() {
-    return mInMemory;
+  public boolean getInAlluxio() {
+    return mInAlluxio;
   }
 
   /**
    * @return the percentage of the file present in memory
    */
-  public int getInMemoryPercentage() {
-    return mInMemoryPercent;
+  public int getInAlluxioPercentage() {
+    return mInAlluxioPercentage;
   }
 
   /**
