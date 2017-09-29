@@ -941,7 +941,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey WORKER_FILE_BUFFER_SIZE =
       new Builder(Name.WORKER_FILE_BUFFER_SIZE)
           .setDefaultValue("1MB")
-          .setDescription("the buffer size for worker to write data into the tiered storage.")
+          .setDescription("The buffer size for worker to write data into the tiered storage.")
           .build();
   public static final PropertyKey WORKER_FILESYSTEM_HEARTBEAT_INTERVAL_MS =
       new Builder(Name.WORKER_FILESYSTEM_HEARTBEAT_INTERVAL_MS)
