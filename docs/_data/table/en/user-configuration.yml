@@ -31,7 +31,7 @@ alluxio.user.file.master.client.threads:
 alluxio.user.file.metadata.load.type:
   'The behavior of loading metadata from UFS. When information about a path is requested and the path does not exist in Alluxio, metadata can be loaded from the UFS. Valid options are `Always`, `Never`, and `Once`. `Always` will always access UFS to see if the path exists in the UFS. `Never` will never consult the UFS. `Once` will access the UFS the "first" time (according to a cache), but not after that.'
 alluxio.user.file.passive.cache.enabled:
-  'Whether to cache files when reading.'
+  'Whether to cache files to local Alluxio workers when the files are read from remote workers (not UFS).'
 alluxio.user.file.readtype.default:
   'Default read type when creating Alluxio files. Valid options are `CACHE_PROMOTE` (move data to highest tier if already in Alluxio storage, write data into highest tier of local Alluxio if data needs to be read from under storage), `CACHE` (write data into highest tier of local Alluxio if data needs to be read from under storage), `NO_CACHE` (no data interaction with Alluxio, if the read is from Alluxio data migration or eviction will not occur).'
 alluxio.user.file.seek.buffer.size.bytes:
