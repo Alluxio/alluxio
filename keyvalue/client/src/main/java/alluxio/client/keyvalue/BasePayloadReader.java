@@ -35,8 +35,8 @@ final class BasePayloadReader implements PayloadReader {
    *
    * @param buf input buffer
    */
-  public BasePayloadReader(ByteBuffer blockinfo) {
-    mBuf = Preconditions.checkNotNull(blockinfo, "blockinfo").duplicate();
+  public BasePayloadReader(ByteBuffer buf) {
+    mBuf = Preconditions.checkNotNull(buf, "buf").duplicate();
   }
 
   @Override
