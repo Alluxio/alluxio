@@ -269,9 +269,12 @@ public class LocalUnderFileSystem extends BaseUnderFileSystem
         try {
           setOwner(file.getPath(), options.getOwner(), options.getGroup());
         } catch (IOException e) {
-          LOG.warn("Failed to update the ufs dir ownership, default values will be used: {}",
-              e.getMessage());
-          throw e;
+          if (!Configuration.getBoolean(PropertyKey.UNDERFS_ALLOW_SET_OWNER_FAILURE)) {
+            throw e;
+          } else {
+            LOG.warn("Failed to update the ufs dir ownership, default values will be used: {}",
+                e.getMessage());
+          }
         }
         return true;
       }
