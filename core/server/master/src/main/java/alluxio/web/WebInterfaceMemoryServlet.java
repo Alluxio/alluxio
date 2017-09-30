@@ -73,15 +73,15 @@ public final class WebInterfaceMemoryServlet extends HttpServlet {
 
     FileSystemMaster fileSystemMaster = mMasterProcess.getMaster(FileSystemMaster.class);
 
-    List<AlluxioURI> inMemoryFiles = fileSystemMaster.getInAlluxioFiles();
-    Collections.sort(inMemoryFiles);
+    List<AlluxioURI> inAlluxioFiles = fileSystemMaster.getInAlluxioFiles();
+    Collections.sort(inAlluxioFiles);
 
-    List<UIFileInfo> fileInfos = new ArrayList<>(inMemoryFiles.size());
-    for (AlluxioURI file : inMemoryFiles) {
+    List<UIFileInfo> fileInfos = new ArrayList<>(inAlluxioFiles.size());
+    for (AlluxioURI file : inAlluxioFiles) {
       try {
         long fileId = fileSystemMaster.getFileId(file);
         FileInfo fileInfo = fileSystemMaster.getFileInfo(fileId);
-        if (fileInfo != null && fileInfo.getInMemoryPercentage() == 100) {
+        if (fileInfo != null && fileInfo.getInAlluxioPercentage() == 100) {
           fileInfos.add(new UIFileInfo(fileInfo));
         }
       } catch (FileDoesNotExistException e) {
@@ -96,7 +96,7 @@ public final class WebInterfaceMemoryServlet extends HttpServlet {
         return;
       }
     }
-    request.setAttribute("inMemoryFileNum", fileInfos.size());
+    request.setAttribute("inAlluxioFileNum", fileInfos.size());
 
     // URL is "./memory", can not determine offset and limit, let javascript in jsp determine
     // and redirect to "./memory?offset=xxx&limit=xxx"

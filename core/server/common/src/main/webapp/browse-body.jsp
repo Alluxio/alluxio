@@ -117,10 +117,10 @@
                 <th>${fileInfo.size} Bytes</th>
                 <th>${fileInfo.blockSizeBytes}</th>
                 <th>
-                  <c:if test = "${fileInfo.inMemory}">
+                  <c:if test = "${fileInfo.inAlluxio}">
                     <i class="icon-hdd"></i>
                   </c:if>
-                  <c:if test = "${not fileInfo.inMemory}">
+                  <c:if test = "${not fileInfo.inAlluxio}">
                     <i class="icon-hdd icon-white"></i>
                   </c:if>
                 </th>
@@ -155,13 +155,13 @@
                     <% if (fileInfo.getIsDirectory()) { %>
                     <% } %>
                     <% if (!fileInfo.getIsDirectory()) { %>
-                      <% if (fileInfo.getInMemory()) { %>
+                      <% if (fileInfo.getInAlluxio()) { %>
                         <i class="icon-hdd"></i>
                       <% } %>
-                      <% if (!fileInfo.getInMemory()) { %>
+                      <% if (!fileInfo.getInAlluxio()) { %>
                         <i class="icon-hdd icon-white"></i>
                       <% } %>
-                      <%= fileInfo.getInMemoryPercentage() %>%
+                      <%= fileInfo.getInAlluxioPercentage() %>%
                     <% } %>
                   </th>
                   <% if ((Boolean)request.getAttribute("showPermissions")) { %>

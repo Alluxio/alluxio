@@ -197,7 +197,6 @@ public abstract class AbstractClient implements Client {
               getServiceName(), mAddress, e.getMessage(), RuntimeConstants.ALLUXIO_DEBUG_DOCS_URL);
           throw new UnimplementedException(message, e);
         }
-        throw e;
       } catch (TTransportException e) {
         LOG.warn("Failed to connect ({}) with {} @ {}: {}", retryPolicy.getRetryCount(),
             getServiceName(), mAddress, e.getMessage());
@@ -208,10 +207,10 @@ public abstract class AbstractClient implements Client {
               + "is not able to connect to servers with SIMPLE security mode.";
           throw new UnavailableException(message, e);
         }
-        // TODO(peis): Consider closing the connection here as well.
-        if (!retryPolicy.attemptRetry()) {
-          break;
-        }
+      }
+      // TODO(peis): Consider closing the connection here as well.
+      if (!retryPolicy.attemptRetry()) {
+        break;
       }
     }
     // Reaching here indicates that we did not successfully connect.

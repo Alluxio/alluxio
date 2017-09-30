@@ -201,6 +201,9 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
     }
     if (mEOF) {
       closePacketReader();
+      Preconditions
+          .checkState(mPos >= mLength, PreconditionMessage.BLOCK_LENGTH_INCONSISTENT.toString(),
+              mId, mLength, mPos);
       return -1;
     }
     int toRead = Math.min(len, mCurrentPacket.readableBytes());
