@@ -162,7 +162,7 @@ Server: Jetty(9.2.z-SNAPSHOT)
 </InitiateMultipartUploadResult>
 ```
 
-### Upload part
+### 上传分块 
 
 ```bash
 # curl -i -X PUT http://localhost:39999/api/v1/s3/testbucket/testobject?partNumber=1&uploadId=2
@@ -172,7 +172,7 @@ ETag: "b54357faf0632cce46e942fa68356b38"
 Server: Jetty(9.2.z-SNAPSHOT)
 ``` 
 
-### List parts
+### 罗列已上传的分块
 
 ```bash
 # curl -i -X GET http://localhost:39999/api/v1/s3/testbucket/testobject?uploadId=2
@@ -320,7 +320,7 @@ bucket.delete_key(largeObjectKey)
 mp = b.initiate_multipart_upload(largeObjectFile)
 ```
 
-### Upload parts
+### 上传分块 
 
 ```python
 import math, os
