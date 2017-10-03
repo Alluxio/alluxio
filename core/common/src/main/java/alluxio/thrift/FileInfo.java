@@ -62,7 +62,8 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
   private static final org.apache.thrift.protocol.TField FILE_BLOCK_INFOS_FIELD_DESC = new org.apache.thrift.protocol.TField("fileBlockInfos", org.apache.thrift.protocol.TType.LIST, (short)23);
   private static final org.apache.thrift.protocol.TField TTL_ACTION_FIELD_DESC = new org.apache.thrift.protocol.TField("ttlAction", org.apache.thrift.protocol.TType.I32, (short)24);
   private static final org.apache.thrift.protocol.TField MOUNT_ID_FIELD_DESC = new org.apache.thrift.protocol.TField("mountId", org.apache.thrift.protocol.TType.I64, (short)25);
-  private static final org.apache.thrift.protocol.TField UFS_LAST_MODIFICATION_TIME_MS_FIELD_DESC = new org.apache.thrift.protocol.TField("ufsLastModificationTimeMs", org.apache.thrift.protocol.TType.I64, (short)26);
+  private static final org.apache.thrift.protocol.TField IN_ALLUXIO_PERCENTAGE_FIELD_DESC = new org.apache.thrift.protocol.TField("inAlluxioPercentage", org.apache.thrift.protocol.TType.I32, (short)26);
+  private static final org.apache.thrift.protocol.TField UFS_LAST_MODIFICATION_TIME_MS_FIELD_DESC = new org.apache.thrift.protocol.TField("ufsLastModificationTimeMs", org.apache.thrift.protocol.TType.I64, (short)27);
 
   private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
   static {
@@ -94,6 +95,7 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
   private List<FileBlockInfo> fileBlockInfos; // required
   private alluxio.thrift.TTtlAction ttlAction; // required
   private long mountId; // required
+  private int inAlluxioPercentage; // required
   private long ufsLastModificationTimeMs; // required
 
   /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
@@ -126,7 +128,8 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
      */
     TTL_ACTION((short)24, "ttlAction"),
     MOUNT_ID((short)25, "mountId"),
-    UFS_LAST_MODIFICATION_TIME_MS((short)26, "ufsLastModificationTimeMs");
+    IN_ALLUXIO_PERCENTAGE((short)26, "inAlluxioPercentage"),
+    UFS_LAST_MODIFICATION_TIME_MS((short)27, "ufsLastModificationTimeMs");
 
     private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -189,7 +192,9 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
           return TTL_ACTION;
         case 25: // MOUNT_ID
           return MOUNT_ID;
-        case 26: // UFS_LAST_MODIFICATION_TIME_MS
+        case 26: // IN_ALLUXIO_PERCENTAGE
+          return IN_ALLUXIO_PERCENTAGE;
+        case 27: // UFS_LAST_MODIFICATION_TIME_MS
           return UFS_LAST_MODIFICATION_TIME_MS;
         default:
           return null;
@@ -246,8 +251,9 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
   private static final int __MODE_ISSET_ID = 12;
   private static final int __MOUNTPOINT_ISSET_ID = 13;
   private static final int __MOUNTID_ISSET_ID = 14;
-  private static final int __UFSLASTMODIFICATIONTIMEMS_ISSET_ID = 15;
-  private short __isset_bitfield = 0;
+  private static final int __INALLUXIOPERCENTAGE_ISSET_ID = 15;
+  private static final int __UFSLASTMODIFICATIONTIMEMS_ISSET_ID = 16;
+  private int __isset_bitfield = 0;
   public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
   static {
     Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
@@ -301,6 +307,8 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
         new org.apache.thrift.meta_data.EnumMetaData(org.apache.thrift.protocol.TType.ENUM, alluxio.thrift.TTtlAction.class)));
     tmpMap.put(_Fields.MOUNT_ID, new org.apache.thrift.meta_data.FieldMetaData("mountId", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
+    tmpMap.put(_Fields.IN_ALLUXIO_PERCENTAGE, new org.apache.thrift.meta_data.FieldMetaData("inAlluxioPercentage", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I32)));
     tmpMap.put(_Fields.UFS_LAST_MODIFICATION_TIME_MS, new org.apache.thrift.meta_data.FieldMetaData("ufsLastModificationTimeMs", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
     metaDataMap = Collections.unmodifiableMap(tmpMap);
@@ -335,6 +343,7 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
     List<FileBlockInfo> fileBlockInfos,
     alluxio.thrift.TTtlAction ttlAction,
     long mountId,
+    int inAlluxioPercentage,
     long ufsLastModificationTimeMs)
   {
     this();
@@ -377,6 +386,8 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
     this.ttlAction = ttlAction;
     this.mountId = mountId;
     setMountIdIsSet(true);
+    this.inAlluxioPercentage = inAlluxioPercentage;
+    setInAlluxioPercentageIsSet(true);
     this.ufsLastModificationTimeMs = ufsLastModificationTimeMs;
     setUfsLastModificationTimeMsIsSet(true);
   }
@@ -433,6 +444,7 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
       this.ttlAction = other.ttlAction;
     }
     this.mountId = other.mountId;
+    this.inAlluxioPercentage = other.inAlluxioPercentage;
     this.ufsLastModificationTimeMs = other.ufsLastModificationTimeMs;
   }
 
@@ -481,6 +493,8 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
     this.ttlAction = null;
     setMountIdIsSet(false);
     this.mountId = 0;
+    setInAlluxioPercentageIsSet(false);
+    this.inAlluxioPercentage = 0;
     setUfsLastModificationTimeMsIsSet(false);
     this.ufsLastModificationTimeMs = 0;
   }
@@ -1084,6 +1098,29 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
     __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __MOUNTID_ISSET_ID, value);
   }
 
+  public int getInAlluxioPercentage() {
+    return this.inAlluxioPercentage;
+  }
+
+  public FileInfo setInAlluxioPercentage(int inAlluxioPercentage) {
+    this.inAlluxioPercentage = inAlluxioPercentage;
+    setInAlluxioPercentageIsSet(true);
+    return this;
+  }
+
+  public void unsetInAlluxioPercentage() {
+    __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __INALLUXIOPERCENTAGE_ISSET_ID);
+  }
+
+  /** Returns true if field inAlluxioPercentage is set (has been assigned a value) and false otherwise */
+  public boolean isSetInAlluxioPercentage() {
+    return EncodingUtils.testBit(__isset_bitfield, __INALLUXIOPERCENTAGE_ISSET_ID);
+  }
+
+  public void setInAlluxioPercentageIsSet(boolean value) {
+    __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __INALLUXIOPERCENTAGE_ISSET_ID, value);
+  }
+
   public long getUfsLastModificationTimeMs() {
     return this.ufsLastModificationTimeMs;
   }
@@ -1301,6 +1338,14 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
       }
       break;
 
+    case IN_ALLUXIO_PERCENTAGE:
+      if (value == null) {
+        unsetInAlluxioPercentage();
+      } else {
+        setInAlluxioPercentage((Integer)value);
+      }
+      break;
+
     case UFS_LAST_MODIFICATION_TIME_MS:
       if (value == null) {
         unsetUfsLastModificationTimeMs();
@@ -1386,6 +1431,9 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
     case MOUNT_ID:
       return getMountId();
 
+    case IN_ALLUXIO_PERCENTAGE:
+      return getInAlluxioPercentage();
+
     case UFS_LAST_MODIFICATION_TIME_MS:
       return getUfsLastModificationTimeMs();
 
@@ -1448,6 +1496,8 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
       return isSetTtlAction();
     case MOUNT_ID:
       return isSetMountId();
+    case IN_ALLUXIO_PERCENTAGE:
+      return isSetInAlluxioPercentage();
     case UFS_LAST_MODIFICATION_TIME_MS:
       return isSetUfsLastModificationTimeMs();
     }
@@ -1683,6 +1733,15 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
         return false;
     }
 
+    boolean this_present_inAlluxioPercentage = true;
+    boolean that_present_inAlluxioPercentage = true;
+    if (this_present_inAlluxioPercentage || that_present_inAlluxioPercentage) {
+      if (!(this_present_inAlluxioPercentage && that_present_inAlluxioPercentage))
+        return false;
+      if (this.inAlluxioPercentage != that.inAlluxioPercentage)
+        return false;
+    }
+
     boolean this_present_ufsLastModificationTimeMs = true;
     boolean that_present_ufsLastModificationTimeMs = true;
     if (this_present_ufsLastModificationTimeMs || that_present_ufsLastModificationTimeMs) {
@@ -1818,6 +1877,11 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
     list.add(present_mountId);
     if (present_mountId)
       list.add(mountId);
+
+    boolean present_inAlluxioPercentage = true;
+    list.add(present_inAlluxioPercentage);
+    if (present_inAlluxioPercentage)
+      list.add(inAlluxioPercentage);
 
     boolean present_ufsLastModificationTimeMs = true;
     list.add(present_ufsLastModificationTimeMs);
@@ -2075,6 +2139,16 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
         return lastComparison;
       }
     }
+    lastComparison = Boolean.valueOf(isSetInAlluxioPercentage()).compareTo(other.isSetInAlluxioPercentage());
+    if (lastComparison != 0) {
+      return lastComparison;
+    }
+    if (isSetInAlluxioPercentage()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.inAlluxioPercentage, other.inAlluxioPercentage);
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+    }
     lastComparison = Boolean.valueOf(isSetUfsLastModificationTimeMs()).compareTo(other.isSetUfsLastModificationTimeMs());
     if (lastComparison != 0) {
       return lastComparison;
@@ -2235,6 +2309,10 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
     if (!first) sb.append(", ");
     sb.append("mountId:");
     sb.append(this.mountId);
+    first = false;
+    if (!first) sb.append(", ");
+    sb.append("inAlluxioPercentage:");
+    sb.append(this.inAlluxioPercentage);
     first = false;
     if (!first) sb.append(", ");
     sb.append("ufsLastModificationTimeMs:");
@@ -2498,7 +2576,15 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
-          case 26: // UFS_LAST_MODIFICATION_TIME_MS
+          case 26: // IN_ALLUXIO_PERCENTAGE
+            if (schemeField.type == org.apache.thrift.protocol.TType.I32) {
+              struct.inAlluxioPercentage = iprot.readI32();
+              struct.setInAlluxioPercentageIsSet(true);
+            } else { 
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+            }
+            break;
+          case 27: // UFS_LAST_MODIFICATION_TIME_MS
             if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
               struct.ufsLastModificationTimeMs = iprot.readI64();
               struct.setUfsLastModificationTimeMsIsSet(true);
@@ -2625,6 +2711,9 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
       oprot.writeFieldBegin(MOUNT_ID_FIELD_DESC);
       oprot.writeI64(struct.mountId);
       oprot.writeFieldEnd();
+      oprot.writeFieldBegin(IN_ALLUXIO_PERCENTAGE_FIELD_DESC);
+      oprot.writeI32(struct.inAlluxioPercentage);
+      oprot.writeFieldEnd();
       oprot.writeFieldBegin(UFS_LAST_MODIFICATION_TIME_MS_FIELD_DESC);
       oprot.writeI64(struct.ufsLastModificationTimeMs);
       oprot.writeFieldEnd();
@@ -2718,10 +2807,13 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
       if (struct.isSetMountId()) {
         optionals.set(23);
       }
-      if (struct.isSetUfsLastModificationTimeMs()) {
+      if (struct.isSetInAlluxioPercentage()) {
         optionals.set(24);
       }
-      oprot.writeBitSet(optionals, 25);
+      if (struct.isSetUfsLastModificationTimeMs()) {
+        optionals.set(25);
+      }
+      oprot.writeBitSet(optionals, 26);
       if (struct.isSetFileId()) {
         oprot.writeI64(struct.fileId);
       }
@@ -2806,6 +2898,9 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
       if (struct.isSetMountId()) {
         oprot.writeI64(struct.mountId);
       }
+      if (struct.isSetInAlluxioPercentage()) {
+        oprot.writeI32(struct.inAlluxioPercentage);
+      }
       if (struct.isSetUfsLastModificationTimeMs()) {
         oprot.writeI64(struct.ufsLastModificationTimeMs);
       }
@@ -2814,7 +2909,7 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
     @Override
     public void read(org.apache.thrift.protocol.TProtocol prot, FileInfo struct) throws org.apache.thrift.TException {
       TTupleProtocol iprot = (TTupleProtocol) prot;
-      BitSet incoming = iprot.readBitSet(25);
+      BitSet incoming = iprot.readBitSet(26);
       if (incoming.get(0)) {
         struct.fileId = iprot.readI64();
         struct.setFileIdIsSet(true);
@@ -2931,6 +3026,10 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
         struct.setMountIdIsSet(true);
       }
       if (incoming.get(24)) {
+        struct.inAlluxioPercentage = iprot.readI32();
+        struct.setInAlluxioPercentageIsSet(true);
+      }
+      if (incoming.get(25)) {
         struct.ufsLastModificationTimeMs = iprot.readI64();
         struct.setUfsLastModificationTimeMsIsSet(true);
       }
