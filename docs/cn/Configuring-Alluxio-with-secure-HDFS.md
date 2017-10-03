@@ -96,7 +96,7 @@ alluxio.worker.principal=hdfs/<_HOST>@<REALM>
 
 在这一步开始之前，请确保你的HDFS集群处于运行状态，并且挂载到Alluxio的HDFS目录已经存在。
 
-在Alluxio节点运行`kinit`的时候，请使用相应master/worker上的principal和keytab文件来提供Kerberos票据缓存。一个已知的限制是Kerberos TGT可能会在达到最大更新周期后失效。你可以通过定期更新TGT来解决这个问题。否则，在启动Alluxio服务的时候，你可能会看到下面的错误：
+在Alluxio节点运行`kinit`的时候，请使用相应的principal和keytab文件来提供Kerberos票据缓存。如前例，你应该用principal `hdfs`和`<YOUR_HDFS_KEYTAB_FILE_PATH>`来`kinit`。一个已知的限制是Kerberos TGT可能会在达到最大更新周期后失效。你可以通过定期更新TGT来解决这个问题。否则，在启动Alluxio服务的时候，你可能会看到下面的错误：
 
 ```
 javax.security.sasl.SaslException: GSS initiate failed [Caused by GSSException: No valid credentials provided (Mechanism level: Failed to find any Kerberos tgt)]
@@ -116,6 +116,8 @@ $ bin/alluxio-start.sh local
 ```bash
 $ bin/alluxio runTests
 ```
+
+为了这个测试能成功运行，你需要保证Alluxio cli登入的用户对挂载到Alluxio的HDFS目录有读/写的访问权限。默认情况下，登入的用户是当前主机OS的用户。要改变默认配置，可以设置`./conf/alluxio-site.properties`文件中的`alluxio.security.login.username`的值为想要的用户名。
 
 运行成功后，访问HDFS Web UI [http://localhost:50070](http://localhost:50070)，确认其中包含了由Alluxio创建的文件和目录。在该测试中，创建的文件名称应像这样：`/default_tests_files/Basic_CACHE_THROUGH`。
 

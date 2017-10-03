@@ -79,7 +79,7 @@ $ ./bin/alluxio runTests
 运行成功后，你可以访问你的容器AZURE_CONTAINER，确认其中包含了由Alluxio创建的文件和目录。该测试中，创建的文件名应该像下面这样：
 
 ```
-AZURE_DIRECTORY/default_tests_files/BasicFile_CACHE_PROMOTE_MUST_CACHE
+AZURE_DIRECTORY/default_tests_files/BASIC_CACHE_PROMOTE_CACHE_THROUGH
 ```
 
 若要停止Alluxio，你可以运行以下命令:

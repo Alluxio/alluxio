@@ -178,9 +178,9 @@ public final class FormatUtilsTest {
     }
 
     List<TestCase> testCases = new ArrayList<>();
-    testCases.add(new TestCase("4.00B", 1L << 2));
-    testCases.add(new TestCase("8.00B", 1L << 3));
-    testCases.add(new TestCase("4096.00B", 1L << 12));
+    testCases.add(new TestCase("4B", 1L << 2));
+    testCases.add(new TestCase("8B", 1L << 3));
+    testCases.add(new TestCase("4096B", 1L << 12));
     testCases.add(new TestCase("8.00KB", 1L << 13));
     testCases.add(new TestCase("4096.00KB", 1L << 22));
     testCases.add(new TestCase("8.00MB", 1L << 23));

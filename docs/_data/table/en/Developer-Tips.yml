@@ -13,6 +13,9 @@ loadufs:
   Loads files under <code>UfsPath</code> to the given <code>AlluxioPath</code>.
   <code>ExcludePathPrefixes</code> can be a set of prefixes which are separated by ';'.
   The paths with a prefix in <code>ExcludePathPrefixes</code> will not be loaded.
+logLevel:
+  Dynamically changes the log level of a class on the running Alluxio server.
+  Try alluxio logLevel -help to see the meaning of each argument in detail.
 runTest:
   Run an end-to-end test on a Alluxio cluster. <code>Example</code> should be "Basic" or
   "BasicNonByteBuffer". <code>ReadType</code> should be "CACHE_PROMOTE", "CACHE",

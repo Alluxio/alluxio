@@ -48,8 +48,8 @@ public abstract class AbstractEvictor extends AbstractBlockStoreEventListener im
    * @param allocator an allocation policy
    */
   public AbstractEvictor(BlockMetadataManagerView view, Allocator allocator) {
-    mManagerView = Preconditions.checkNotNull(view);
-    mAllocator = Preconditions.checkNotNull(allocator);
+    mManagerView = Preconditions.checkNotNull(view, "view");
+    mAllocator = Preconditions.checkNotNull(allocator, "allocator");
   }
 
   /**

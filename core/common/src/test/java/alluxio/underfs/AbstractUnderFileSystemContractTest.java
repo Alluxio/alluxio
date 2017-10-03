@@ -11,6 +11,12 @@
 
 package alluxio.underfs;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertArrayEquals;
+
 import alluxio.Configuration;
 import alluxio.ConfigurationRule;
 import alluxio.PropertyKey;
@@ -25,7 +31,6 @@ import alluxio.util.io.PathUtils;
 
 import com.google.common.collect.ImmutableMap;
 import org.junit.After;
-import org.junit.Assert;
 import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Rule;
@@ -95,16 +100,16 @@ public abstract class AbstractUnderFileSystemContractTest {
     String testFile = PathUtils.concatPath(mUnderfsAddress, "createAtomic");
     OutputStream stream = mUfs.create(testFile, CreateOptions.defaults().setEnsureAtomic(true));
     stream.write(TEST_BYTES);
-    Assert.assertFalse(mUfs.isFile(testFile));
+    assertFalse(mUfs.isFile(testFile));
     stream.close();
-    Assert.assertTrue(mUfs.isFile(testFile));
+    assertTrue(mUfs.isFile(testFile));
   }
 
   @Test
   public void createEmpty() throws IOException {
     String testFile = PathUtils.concatPath(mUnderfsAddress, "createEmpty");
     createEmptyFile(testFile);
-    Assert.assertTrue(mUfs.isFile(testFile));
+    assertTrue(mUfs.isFile(testFile));
   }
 
   @Test
@@ -123,7 +128,7 @@ public abstract class AbstractUnderFileSystemContractTest {
     String testFile = PathUtils.concatPath(mUnderfsAddress, "createParent/testFile");
     OutputStream o = mUfs.create(testFile, CreateOptions.defaults().setCreateParent(true));
     o.close();
-    Assert.assertTrue(mUfs.exists(testFile));
+    assertTrue(mUfs.exists(testFile));
   }
 
   @Test
@@ -132,8 +137,8 @@ public abstract class AbstractUnderFileSystemContractTest {
     createTestBytesFile(testFile);
     byte[] buf = new byte[TEST_BYTES.length];
     int bytesRead = mUfs.open(testFile).read(buf);
-    Assert.assertEquals(TEST_BYTES.length, bytesRead);
-    Assert.assertTrue(Arrays.equals(buf, TEST_BYTES));
+    assertEquals(TEST_BYTES.length, bytesRead);
+    assertTrue(Arrays.equals(buf, TEST_BYTES));
   }
 
   @Test
@@ -144,9 +149,9 @@ public abstract class AbstractUnderFileSystemContractTest {
     int bytesRead = mUfs.open(testFile).read(buf);
     // TODO(adit): Consider making the return value uniform across UFSs
     if (UnderFileSystemUtils.isHdfs(mUfs)) {
-      Assert.assertEquals(-1, bytesRead);
+      assertEquals(-1, bytesRead);
     } else {
-      Assert.assertEquals(0, bytesRead);
+      assertEquals(0, bytesRead);
     }
   }
 
@@ -157,7 +162,7 @@ public abstract class AbstractUnderFileSystemContractTest {
     int[] offsets = {0, 256, 511, 512, 513, 768, 1024, 1025};
     for (int offset : offsets) {
       InputStream inputStream = mUfs.open(testFile, OpenOptions.defaults().setOffset(offset));
-      Assert.assertEquals(TEST_BYTES[offset % TEST_BYTES.length], inputStream.read());
+      assertEquals(TEST_BYTES[offset % TEST_BYTES.length], inputStream.read());
       inputStream.close();
     }
   }
@@ -175,14 +180,14 @@ public abstract class AbstractUnderFileSystemContractTest {
       if (bytesRead != -1) {
         noReadCount = 0;
         for (int i = 0; i < bytesRead; ++i) {
-          Assert.assertEquals(TEST_BYTES[(offset + i) % TEST_BYTES.length], buf[offset + i]);
+          assertEquals(TEST_BYTES[(offset + i) % TEST_BYTES.length], buf[offset + i]);
         }
         offset += bytesRead;
       } else {
         ++noReadCount;
       }
     }
-    Assert.assertTrue(noReadCount < 3);
+    assertTrue(noReadCount < 3);
   }
 
   @Test
@@ -190,8 +195,8 @@ public abstract class AbstractUnderFileSystemContractTest {
     String testFile = PathUtils.concatPath(mUnderfsAddress, "deleteFile");
     createEmptyFile(testFile);
     mUfs.deleteFile(testFile);
-    Assert.assertFalse(mUfs.exists(testFile));
-    Assert.assertFalse(mUfs.isFile(testFile));
+    assertFalse(mUfs.exists(testFile));
+    assertFalse(mUfs.isFile(testFile));
   }
 
   @Test
@@ -208,18 +213,18 @@ public abstract class AbstractUnderFileSystemContractTest {
     createEmptyFile(testDirNonEmptyChildFile);
     createEmptyFile(testDirNonEmptyChildDirFile);
     mUfs.deleteDirectory(testDirEmpty, DeleteOptions.defaults().setRecursive(false));
-    Assert.assertFalse(mUfs.isDirectory(testDirEmpty));
+    assertFalse(mUfs.isDirectory(testDirEmpty));
     try {
       mUfs.deleteDirectory(testDirNonEmpty, DeleteOptions.defaults().setRecursive(false));
     } catch (IOException e) {
       // Some File systems may throw IOException
     }
-    Assert.assertTrue(mUfs.isDirectory(testDirNonEmpty));
+    assertTrue(mUfs.isDirectory(testDirNonEmpty));
     mUfs.deleteDirectory(testDirNonEmpty, DeleteOptions.defaults().setRecursive(true));
-    Assert.assertFalse(mUfs.isDirectory(testDirNonEmpty));
-    Assert.assertFalse(mUfs.isDirectory(testDirNonEmptyChildDir));
-    Assert.assertFalse(mUfs.isFile(testDirNonEmptyChildFile));
-    Assert.assertFalse(mUfs.isFile(testDirNonEmptyChildDirFile));
+    assertFalse(mUfs.isDirectory(testDirNonEmpty));
+    assertFalse(mUfs.isDirectory(testDirNonEmptyChildDir));
+    assertFalse(mUfs.isFile(testDirNonEmptyChildFile));
+    assertFalse(mUfs.isFile(testDirNonEmptyChildDirFile));
   }
 
   @Test
@@ -242,20 +247,20 @@ public abstract class AbstractUnderFileSystemContractTest {
         }
         CommonUtils.sleepMs(500);
       }
-      Assert.assertTrue(childDeleted);
+      assertTrue(childDeleted);
     }
   }
 
   @Test
   public void exists() throws IOException {
     String testFile = PathUtils.concatPath(mUnderfsAddress, "testFile");
-    Assert.assertFalse(mUfs.isFile(testFile));
+    assertFalse(mUfs.isFile(testFile));
     createEmptyFile(testFile);
-    Assert.assertTrue(mUfs.isFile(testFile));
+    assertTrue(mUfs.isFile(testFile));
     String testDir = PathUtils.concatPath(mUnderfsAddress, "testDir");
-    Assert.assertFalse(mUfs.isDirectory(testDir));
+    assertFalse(mUfs.isDirectory(testDir));
     mUfs.mkdirs(testDir, MkdirsOptions.defaults().setCreateParent(false));
-    Assert.assertTrue(mUfs.isDirectory(testDir));
+    assertTrue(mUfs.isDirectory(testDir));
   }
 
   @Test
@@ -264,8 +269,8 @@ public abstract class AbstractUnderFileSystemContractTest {
     String testFileNonEmpty = PathUtils.concatPath(mUnderfsAddress, "testFileNonEmpty");
     createEmptyFile(testFileEmpty);
     createTestBytesFile(testFileNonEmpty);
-    Assert.assertEquals(mUfs.getFileStatus(testFileEmpty).getContentLength(), 0);
-    Assert.assertEquals(mUfs.getFileStatus(testFileNonEmpty).getContentLength(), TEST_BYTES.length);
+    assertEquals(mUfs.getFileStatus(testFileEmpty).getContentLength(), 0);
+    assertEquals(mUfs.getFileStatus(testFileNonEmpty).getContentLength(), TEST_BYTES.length);
   }
 
   @Test
@@ -276,19 +281,19 @@ public abstract class AbstractUnderFileSystemContractTest {
     createTestBytesFile(testFile);
     long end = System.currentTimeMillis();
     long modTime = mUfs.getFileStatus(testFile).getLastModifiedTime();
-    Assert.assertTrue(modTime >= start - slack);
-    Assert.assertTrue(modTime <= end + slack);
+    assertTrue(modTime >= start - slack);
+    assertTrue(modTime <= end + slack);
   }
 
   @Test
   public void isFile() throws IOException {
     String testFile = PathUtils.concatPath(mUnderfsAddress, "testFile");
     String testDir = PathUtils.concatPath(mUnderfsAddress, "testDir");
-    Assert.assertFalse(mUfs.isFile(testFile));
+    assertFalse(mUfs.isFile(testFile));
     createEmptyFile(testFile);
     mUfs.mkdirs(testDir, MkdirsOptions.defaults().setCreateParent(false));
-    Assert.assertTrue(mUfs.isFile(testFile));
-    Assert.assertFalse(mUfs.isFile(testDir));
+    assertTrue(mUfs.isFile(testFile));
+    assertFalse(mUfs.isFile(testDir));
   }
 
   @Test
@@ -310,14 +315,14 @@ public abstract class AbstractUnderFileSystemContractTest {
     UfsStatus[] resTopDirStatus = mUfs.listStatus(testDirNonEmpty);
     String[] resTopDir = UfsStatus.convertToNames(resTopDirStatus);
     Arrays.sort(resTopDir);
-    Assert.assertTrue(Arrays.equals(expectedResTopDir, resTopDir)
+    assertTrue(Arrays.equals(expectedResTopDir, resTopDir)
         || Arrays.equals(expectedResTopDir2, resTopDir));
-    Assert.assertTrue(
+    assertTrue(
         mUfs.listStatus(testDirNonEmptyChildDir)[0].getName().equals("testDirNonEmptyChildDirF")
             || mUfs.listStatus(testDirNonEmptyChildDir)[0].getName()
                 .equals("/testDirNonEmptyChildDirF"));
     for (int i = 0; i < resTopDir.length; ++i) {
-      Assert.assertEquals(
+      assertEquals(
           mUfs.isDirectory(PathUtils.concatPath(testDirNonEmpty, resTopDirStatus[i].getName())),
           resTopDirStatus[i].isDirectory());
     }
@@ -328,14 +333,14 @@ public abstract class AbstractUnderFileSystemContractTest {
     String testDir = PathUtils.concatPath(mUnderfsAddress, "listStatusEmpty");
     mUfs.mkdirs(testDir);
     UfsStatus[] res = mUfs.listStatus(testDir);
-    Assert.assertEquals(0, res.length);
+    assertEquals(0, res.length);
   }
 
   @Test
   public void listStatusFile() throws IOException {
     String testFile = PathUtils.concatPath(mUnderfsAddress, "listStatusFile");
     createEmptyFile(testFile);
-    Assert.assertTrue(mUfs.listStatus(testFile) == null);
+    assertTrue(mUfs.listStatus(testFile) == null);
   }
 
   @Test
@@ -355,12 +360,12 @@ public abstract class AbstractUnderFileSystemContractTest {
       }
       CommonUtils.sleepMs(500);
     }
-    Assert.assertEquals(children.length, results.length);
+    assertEquals(children.length, results.length);
 
     String[] resultNames = UfsStatus.convertToNames(results);
     Arrays.sort(resultNames);
     for (int i = 0; i < children.length; ++i) {
-      Assert.assertTrue(resultNames[i].equals(CommonUtils.stripPrefixIfPresent(children[i],
+      assertTrue(resultNames[i].equals(CommonUtils.stripPrefixIfPresent(children[i],
           PathUtils.normalizePath(config.getTopLevelDirectory(), "/"))));
     }
   }
@@ -371,7 +376,7 @@ public abstract class AbstractUnderFileSystemContractTest {
     // TODO(andrew): Should this directory be created in LocalAlluxioCluster creation code?
     mUfs.mkdirs(root);
     // Empty lsr should be empty
-    Assert.assertEquals(0, mUfs.listStatus(root).length);
+    assertEquals(0, mUfs.listStatus(root).length);
 
     // Create a tree of subdirectories and files
     String sub1 = PathUtils.concatPath(root, "sub1");
@@ -381,7 +386,7 @@ public abstract class AbstractUnderFileSystemContractTest {
     String file2 = PathUtils.concatPath(sub2, "file2");
     String file = PathUtils.concatPath(root, "file");
     // lsr of nonexistent path should be null
-    Assert.assertNull(mUfs.listStatus(sub1, ListOptions.defaults().setRecursive(true)));
+    assertNull(mUfs.listStatus(sub1, ListOptions.defaults().setRecursive(true)));
 
     mUfs.mkdirs(sub1, MkdirsOptions.defaults().setCreateParent(false));
     mUfs.mkdirs(sub2, MkdirsOptions.defaults().setCreateParent(false));
@@ -398,9 +403,9 @@ public abstract class AbstractUnderFileSystemContractTest {
     String[] actualResRoot = UfsStatus.convertToNames(actualResRootStatus);
     Arrays.sort(expectedResRoot);
     Arrays.sort(actualResRoot);
-    Assert.assertArrayEquals(expectedResRoot, actualResRoot);
+    assertArrayEquals(expectedResRoot, actualResRoot);
     for (int i = 0; i < actualResRoot.length; ++i) {
-      Assert.assertEquals(
+      assertEquals(
           mUfs.isDirectory(PathUtils.concatPath(root, actualResRootStatus[i].getName())),
           actualResRootStatus[i].isDirectory());
     }
@@ -410,10 +415,10 @@ public abstract class AbstractUnderFileSystemContractTest {
         UfsStatus.convertToNames(mUfs.listStatus(sub1, ListOptions.defaults().setRecursive(true)));
     Arrays.sort(expectedResSub1);
     Arrays.sort(actualResSub1);
-    Assert.assertArrayEquals(expectedResSub1, actualResSub1);
+    assertArrayEquals(expectedResSub1, actualResSub1);
 
     // lsr of file should be null
-    Assert.assertNull(mUfs.listStatus(file, ListOptions.defaults().setRecursive(true)));
+    assertNull(mUfs.listStatus(file, ListOptions.defaults().setRecursive(true)));
   }
 
   @Test
@@ -421,7 +426,7 @@ public abstract class AbstractUnderFileSystemContractTest {
     // make sure the underfs address dir exists already
     mUfs.mkdirs(mUnderfsAddress);
     // empty lsr should be empty
-    Assert.assertEquals(0, mUfs.listStatus(mUnderfsAddress).length);
+    assertEquals(0, mUfs.listStatus(mUnderfsAddress).length);
 
     String testDirTop = PathUtils.concatPath(mUnderfsAddress, "testDirTop");
     String testDir1 = PathUtils.concatPath(mUnderfsAddress, "1");
@@ -429,12 +434,12 @@ public abstract class AbstractUnderFileSystemContractTest {
     String testDir3 = PathUtils.concatPath(testDir2, "3");
     String testDirDeep = PathUtils.concatPath(testDir3, "testDirDeep");
     mUfs.mkdirs(testDirTop, MkdirsOptions.defaults().setCreateParent(false));
-    Assert.assertTrue(mUfs.isDirectory(testDirTop));
+    assertTrue(mUfs.isDirectory(testDirTop));
     mUfs.mkdirs(testDirDeep, MkdirsOptions.defaults().setCreateParent(true));
-    Assert.assertTrue(mUfs.isDirectory(testDir1));
-    Assert.assertTrue(mUfs.isDirectory(testDir2));
-    Assert.assertTrue(mUfs.isDirectory(testDir3));
-    Assert.assertTrue(mUfs.isDirectory(testDirDeep));
+    assertTrue(mUfs.isDirectory(testDir1));
+    assertTrue(mUfs.isDirectory(testDir2));
+    assertTrue(mUfs.isDirectory(testDir3));
+    assertTrue(mUfs.isDirectory(testDirDeep));
   }
 
   @Test
@@ -446,11 +451,11 @@ public abstract class AbstractUnderFileSystemContractTest {
     ObjectStorePreConfig config = prepareObjectStore(ufs);
 
     String baseDirectoryPath = config.getBaseDirectoryPath();
-    Assert.assertTrue(mUfs.isDirectory(baseDirectoryPath));
+    assertTrue(mUfs.isDirectory(baseDirectoryPath));
 
     for (String subDirName : config.getSubDirectoryNames()) {
       String subDirPath = PathUtils.concatPath(baseDirectoryPath, subDirName);
-      Assert.assertTrue(mUfs.isDirectory(subDirPath));
+      assertTrue(mUfs.isDirectory(subDirPath));
     }
   }
 
@@ -464,7 +469,7 @@ public abstract class AbstractUnderFileSystemContractTest {
 
     String baseDirectoryPath = config.getBaseDirectoryPath();
     UfsStatus[] results = mUfs.listStatus(baseDirectoryPath);
-    Assert.assertEquals(config.getSubDirectoryNames().length + config.getFileNames().length,
+    assertEquals(config.getSubDirectoryNames().length + config.getFileNames().length,
         results.length);
     // Check for direct children files
     for (String fileName : config.getFileNames()) {
@@ -474,8 +479,8 @@ public abstract class AbstractUnderFileSystemContractTest {
           foundIndex = i;
         }
       }
-      Assert.assertTrue(foundIndex >= 0);
-      Assert.assertTrue(results[foundIndex].isFile());
+      assertTrue(foundIndex >= 0);
+      assertTrue(results[foundIndex].isFile());
     }
     // Check if pseudo-directories were inferred
     for (String subDirName : config.getSubDirectoryNames()) {
@@ -485,8 +490,8 @@ public abstract class AbstractUnderFileSystemContractTest {
           foundIndex = i;
         }
       }
-      Assert.assertTrue(foundIndex >= 0);
-      Assert.assertTrue(results[foundIndex].isDirectory());
+      assertTrue(foundIndex >= 0);
+      assertTrue(results[foundIndex].isDirectory());
     }
   }
 
@@ -503,7 +508,7 @@ public abstract class AbstractUnderFileSystemContractTest {
         mUfs.listStatus(baseDirectoryPath, ListOptions.defaults().setRecursive(true));
     String[] fileNames = config.getFileNames();
     String[] subDirNames = config.getSubDirectoryNames();
-    Assert.assertEquals(
+    assertEquals(
         subDirNames.length + fileNames.length + subDirNames.length * fileNames.length,
         results.length);
     // Check for direct children files
@@ -514,8 +519,8 @@ public abstract class AbstractUnderFileSystemContractTest {
           foundIndex = i;
         }
       }
-      Assert.assertTrue(foundIndex >= 0);
-      Assert.assertTrue(results[foundIndex].isFile());
+      assertTrue(foundIndex >= 0);
+      assertTrue(results[foundIndex].isFile());
     }
     for (String subDirName : subDirNames) {
       // Check if pseudo-directories were inferred
@@ -525,8 +530,8 @@ public abstract class AbstractUnderFileSystemContractTest {
           dirIndex = i;
         }
       }
-      Assert.assertTrue(dirIndex >= 0);
-      Assert.assertTrue(results[dirIndex].isDirectory());
+      assertTrue(dirIndex >= 0);
+      assertTrue(results[dirIndex].isDirectory());
       // Check for indirect children
       for (String fileName : config.getFileNames()) {
         int fileIndex = -1;
@@ -535,8 +540,8 @@ public abstract class AbstractUnderFileSystemContractTest {
             fileIndex = i;
           }
         }
-        Assert.assertTrue(fileIndex >= 0);
-        Assert.assertTrue(results[fileIndex].isFile());
+        assertTrue(fileIndex >= 0);
+        assertTrue(results[fileIndex].isFile());
       }
     }
   }
@@ -547,8 +552,8 @@ public abstract class AbstractUnderFileSystemContractTest {
     String testFileDst = PathUtils.concatPath(mUnderfsAddress, "renameFileDst");
     createEmptyFile(testFileSrc);
     mUfs.renameFile(testFileSrc, testFileDst);
-    Assert.assertFalse(mUfs.isFile(testFileSrc));
-    Assert.assertTrue(mUfs.isFile(testFileDst));
+    assertFalse(mUfs.isFile(testFileSrc));
+    assertTrue(mUfs.isFile(testFileDst));
   }
 
   @Test
@@ -560,10 +565,10 @@ public abstract class AbstractUnderFileSystemContractTest {
     mUfs.mkdirs(testDirSrc, MkdirsOptions.defaults().setCreateParent(false));
     createEmptyFile(testDirSrcChild);
     mUfs.renameDirectory(testDirSrc, testDirDst);
-    Assert.assertFalse(mUfs.isDirectory(testDirSrc));
-    Assert.assertFalse(mUfs.isFile(testDirSrcChild));
-    Assert.assertTrue(mUfs.isDirectory(testDirDst));
-    Assert.assertTrue(mUfs.isFile(testDirDstChild));
+    assertFalse(mUfs.isDirectory(testDirSrc));
+    assertFalse(mUfs.isFile(testDirSrcChild));
+    assertTrue(mUfs.isDirectory(testDirDst));
+    assertTrue(mUfs.isFile(testDirDstChild));
   }
 
   @Test
@@ -585,15 +590,15 @@ public abstract class AbstractUnderFileSystemContractTest {
 
     mUfs.renameDirectory(testDirSrc, testDirDst);
 
-    Assert.assertFalse(mUfs.isDirectory(testDirSrc));
-    Assert.assertFalse(mUfs.isFile(testDirSrcChild));
-    Assert.assertFalse(mUfs.isDirectory(testDirSrcNested));
-    Assert.assertFalse(mUfs.isFile(testDirSrcNestedChild));
+    assertFalse(mUfs.isDirectory(testDirSrc));
+    assertFalse(mUfs.isFile(testDirSrcChild));
+    assertFalse(mUfs.isDirectory(testDirSrcNested));
+    assertFalse(mUfs.isFile(testDirSrcNestedChild));
 
-    Assert.assertTrue(mUfs.isDirectory(testDirDst));
-    Assert.assertTrue(mUfs.isFile(testDirDstChild));
-    Assert.assertTrue(mUfs.isDirectory(testDirDstNested));
-    Assert.assertTrue(mUfs.isFile(testDirDstNestedChild));
+    assertTrue(mUfs.isDirectory(testDirDst));
+    assertTrue(mUfs.isFile(testDirDstChild));
+    assertTrue(mUfs.isDirectory(testDirDstNested));
+    assertTrue(mUfs.isFile(testDirDstNestedChild));
   }
 
   private void createEmptyFile(String path) throws IOException {

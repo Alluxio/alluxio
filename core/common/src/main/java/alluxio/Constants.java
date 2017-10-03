@@ -41,19 +41,6 @@ public final class Constants {
 
   public static final String EXTENSION_JAR = ".jar";
 
-  public static final String LS_FORMAT_PERMISSION = "%-15s";
-  public static final String LS_FORMAT_FILE_SIZE = "%-15s";
-  public static final String LS_FORMAT_CREATE_TIME = "%-25s";
-  public static final String LS_FORMAT_FILE_TYPE = "%-15s";
-  public static final String LS_FORMAT_USER_NAME = "%-15s";
-  public static final String LS_FORMAT_GROUP_NAME = "%-15s";
-  public static final String LS_FORMAT_FILE_PATH = "%-5s";
-  public static final String LS_FORMAT = LS_FORMAT_PERMISSION + LS_FORMAT_USER_NAME
-      + LS_FORMAT_GROUP_NAME + LS_FORMAT_FILE_SIZE + LS_FORMAT_CREATE_TIME + LS_FORMAT_FILE_TYPE
-      + LS_FORMAT_FILE_PATH + "%n";
-  public static final String LS_FORMAT_NO_ACL = LS_FORMAT_FILE_SIZE + LS_FORMAT_CREATE_TIME
-      + LS_FORMAT_FILE_TYPE + LS_FORMAT_FILE_PATH + "%n";
-
   public static final String MESOS_RESOURCE_CPUS = "cpus";
   public static final String MESOS_RESOURCE_MEM = "mem";
   public static final String MESOS_RESOURCE_DISK = "disk";
@@ -117,6 +104,8 @@ public final class Constants {
   public static final String FILE_SYSTEM_WORKER_CLIENT_SERVICE_NAME = "FileSystemWorkerClient";
   public static final String KEY_VALUE_MASTER_CLIENT_SERVICE_NAME = "KeyValueMasterClient";
   public static final String KEY_VALUE_WORKER_CLIENT_SERVICE_NAME = "KeyValueWorkerClient";
+
+  public static final int DEFAULT_REGISTRY_GET_TIMEOUT_MS = 60 * SECOND_MS;
 
   public static final String REST_API_PREFIX = "/api/v1";
 

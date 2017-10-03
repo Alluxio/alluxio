@@ -17,6 +17,8 @@ import alluxio.client.block.policy.options.GetWorkerOptions;
 import alluxio.util.CommonUtils;
 import alluxio.wire.WorkerNetAddress;
 
+import javax.annotation.Nullable;
+
 /**
  * <p>
  * Interface for determining the Alluxio worker location to serve a block write or UFS block read.
@@ -68,5 +70,6 @@ public interface BlockLocationPolicy {
    * @param options the options to get a block worker network address for a block
    * @return the address of the worker to write to, null if no worker can be selected
    */
+  @Nullable
   WorkerNetAddress getWorker(GetWorkerOptions options);
 }

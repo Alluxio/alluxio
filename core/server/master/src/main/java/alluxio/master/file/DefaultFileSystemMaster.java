@@ -1420,7 +1420,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         ufsDeleter = new SafeUfsDeleter(mMountTable, delInodes, deleteOptions);
       }
       // Inodes to delete from tree after attempting to delete from UFS
-      List<Inode> inodesToDelete = new ArrayList<>();
+      List<Pair<AlluxioURI, Inode>> inodesToDelete = new ArrayList<>();
       // Inodes that are not safe for recursive deletes
       Set<Long> unsafeInodes = new HashSet<>();
       // Alluxio URIs which could not be deleted
@@ -1433,10 +1433,9 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         Pair<AlluxioURI, Inode> delInodePair = delInodes.get(i);
         AlluxioURI alluxioUriToDel = delInodePair.getFirst();
         Inode delInode = delInodePair.getSecond();
-        tempInodePath.setDescendant(delInode, alluxioUriToDel);
 
         boolean failedToDelete = unsafeInodes.contains(delInode.getId());
-        if (!failedToDelete && !replayed && inode.isPersisted()) {
+        if (!failedToDelete && !replayed && delInode.isPersisted()) {
           try {
             // If this is a mount point, we have deleted all the children and can unmount it
             // TODO(calvin): Add tests (ALLUXIO-1831)
@@ -1452,7 +1451,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         }
         if (!failedToDelete) {
           deletedInodes.add(delInode);
-          inodesToDelete.add(delInode);
+          inodesToDelete.add(new Pair<>(alluxioUriToDel, delInode));
         } else {
           unsafeInodes.add(delInode.getId());
           // Propagate 'unsafe-ness' to parent as one of its descendants can't be deleted
@@ -1461,7 +1460,9 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         }
       }
       // Delete Inodes
-      for (Inode delInode : inodesToDelete) {
+      for (Pair<AlluxioURI, Inode> delInodePair : inodesToDelete) {
+        Inode delInode = delInodePair.getSecond();
+        tempInodePath.setDescendant(delInode, delInodePair.getFirst());
         // Do not journal entries covered recursively for performance
         if (delInode.getId() == inode.getId() || unsafeInodes.contains(delInode.getParentId())) {
           mInodeTree.deleteInode(tempInodePath, opTimeMs, deleteOptions, journalContext);
