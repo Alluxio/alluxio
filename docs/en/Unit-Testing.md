@@ -101,7 +101,7 @@ public ConfigurationRule mConfigurationRule = new ConfigurationRule(ImmutableMap
     PropertyKey.key1, "value1",
     PropertyKey.key2, "value2"));
 ```
-For configuration changes needed for an individual test, use `Configuration.set(key, value)`, and create an `@After` method to clean up the configuration change after the test:
+For configuration changes needed for an individual test, use `Configuration.set(key, value)`, and create an `@After` method to clean up the configuration changes after the test:
 
 ```java
 @After

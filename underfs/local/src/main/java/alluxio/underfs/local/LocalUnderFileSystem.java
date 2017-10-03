@@ -35,6 +35,7 @@ import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 
 import com.google.common.base.Strings;
+import com.google.common.io.ByteStreams;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -310,15 +311,13 @@ public class LocalUnderFileSystem extends BaseUnderFileSystem
   public InputStream open(String path, OpenOptions options) throws IOException {
     path = stripPath(path);
     FileInputStream inputStream = new FileInputStream(path);
-    if (options.getOffset() > 0) {
-      try {
-        inputStream.skip(options.getOffset());
-      } catch (IOException e) {
-        inputStream.close();
-        throw e;
-      }
+    try {
+      ByteStreams.skipFully(inputStream, options.getOffset());
+    } catch (IOException e) {
+      inputStream.close();
+      throw e;
     }
-    return new LocalUnderFileInputStream(inputStream);
+    return inputStream;
   }
 
   @Override

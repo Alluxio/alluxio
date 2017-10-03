@@ -167,15 +167,16 @@
   </properties>
 
   <modules>
-    <module>underfs</module>
-    <module>core</module>
-    <module>keyvalue</module>
-    <module>shell</module>
-    <module>examples</module>
-    <module>tests</module>
-    <module>integration</module>
     <module>assembly</module>
+    <module>core</module>
+    <module>examples</module>
+    <module>integration</module>
+    <module>keyvalue</module>
+    <module>logserver</module>
     <module>minicluster</module>
+    <module>shell</module>
+    <module>tests</module>
+    <module>underfs</module>
   </modules>
 
   <dependencyManagement>
@@ -214,6 +215,11 @@
       <dependency>
         <groupId>com.fasterxml.jackson.core</groupId>
         <artifactId>jackson-databind</artifactId>
+        <version>2.6.6</version>
+      </dependency>
+      <dependency>
+        <groupId>com.fasterxml.jackson.dataformat</groupId>
+        <artifactId>jackson-dataformat-xml</artifactId>
         <version>2.6.6</version>
       </dependency>
       <dependency>
@@ -327,12 +333,12 @@
       <dependency>
         <groupId>jline</groupId>
         <artifactId>jline</artifactId>
-        <version>0.9.94</version>
+        <version>2.14.2</version>
       </dependency>
       <dependency>
         <groupId>log4j</groupId>
         <artifactId>log4j</artifactId>
-        <version>1.2.16</version>
+        <version>${log4j.version}</version>
       </dependency>
       <dependency>
         <groupId>net.java.dev.jets3t</groupId>
@@ -663,6 +669,12 @@
       </dependency>
       <dependency>
         <groupId>org.powermock</groupId>
+        <artifactId>powermock-classloading-xstream</artifactId>
+        <version>${powermock.version}</version>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.powermock</groupId>
         <artifactId>powermock-core</artifactId>
         <version>${powermock.version}</version>
         <scope>test</scope>
@@ -673,6 +685,12 @@
         <version>${powermock.version}</version>
         <scope>test</scope>
       </dependency>
+      <dependency>
+        <groupId>org.powermock</groupId>
+        <artifactId>powermock-module-junit4-rule</artifactId>
+        <version>${powermock.version}</version>
+        <scope>test</scope>
+      </dependency>      
       <dependency>
         <groupId>org.powermock</groupId>
         <artifactId>powermock-reflect</artifactId>
@@ -743,12 +761,22 @@
     </dependency>
     <dependency>
       <groupId>org.powermock</groupId>
+      <artifactId>powermock-classloading-xstream</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.powermock</groupId>
       <artifactId>powermock-core</artifactId>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.powermock</groupId>
       <artifactId>powermock-module-junit4</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.powermock</groupId>
+      <artifactId>powermock-module-junit4-rule</artifactId>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -844,6 +872,11 @@
               <arg>-Xlint:none</arg>
             </compilerArgs>
           </configuration>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-dependency-plugin</artifactId>
+          <version>3.0.1</version>
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>

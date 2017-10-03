@@ -12,6 +12,7 @@
 package alluxio.master.file;
 
 import alluxio.AlluxioURI;
+import alluxio.AuthenticatedUserRule;
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.PropertyKey;
 import alluxio.BaseIntegrationTest;
@@ -20,12 +21,10 @@ import alluxio.client.file.FileSystem;
 import alluxio.client.file.options.CreateDirectoryOptions;
 import alluxio.client.file.options.CreateFileOptions;
 import alluxio.master.file.options.CheckConsistencyOptions;
-import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.DeleteOptions;
 
 import com.google.common.collect.Lists;
-import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -54,6 +53,9 @@ public class CheckConsistencyIntegrationTest extends BaseIntegrationTest {
       new LocalAlluxioClusterResource.Builder().setProperty(PropertyKey.SECURITY_LOGIN_USERNAME,
           TEST_USER).build();
 
+  @Rule
+  public AuthenticatedUserRule mAuthenticatedUser = new AuthenticatedUserRule(TEST_USER);
+
   private FileSystemMaster mFileSystemMaster;
   private FileSystem mFileSystem;
 
@@ -62,15 +64,9 @@ public class CheckConsistencyIntegrationTest extends BaseIntegrationTest {
     mFileSystemMaster =
         mLocalAlluxioClusterResource.get().getLocalAlluxioMaster().getMasterProcess()
             .getMaster(FileSystemMaster.class);
-    AuthenticatedClientUser.set(TEST_USER);
     mFileSystem = FileSystem.Factory.get();
     mFileSystem.createDirectory(DIRECTORY, DIR_OPTIONS);
     mFileSystem.createFile(FILE, FILE_OPTIONS).close();
-  }
-
-  @After
-  public final void after() {
-    AuthenticatedClientUser.remove();
   }
 
   /**

@@ -61,16 +61,13 @@ public final class StorageTier {
 
   private void initStorageTier()
       throws BlockAlreadyExistsException, IOException, WorkerOutOfSpaceException {
-    String workerDataFolder = Configuration.get(PropertyKey.WORKER_DATA_FOLDER);
     String tmpDir = Configuration.get(PropertyKey.WORKER_DATA_TMP_FOLDER);
     PropertyKey tierDirPathConf =
         PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_PATH.format(mTierOrdinal);
     String[] dirPaths = Configuration.get(tierDirPathConf).split(",");
 
-    // Add the worker data folder path after each storage directory, the final path will be like
-    // /mnt/ramdisk/alluxioworker
     for (int i = 0; i < dirPaths.length; i++) {
-      dirPaths[i] = PathUtils.concatPath(dirPaths[i].trim(), workerDataFolder);
+      dirPaths[i] = PathUtils.getWorkerDataDirectory(dirPaths[i]);
     }
 
     PropertyKey tierDirCapacityConf =

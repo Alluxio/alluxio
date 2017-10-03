@@ -28,7 +28,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CyclicBarrier;
@@ -85,7 +85,7 @@ public class CommonUtilsTest {
       }
     }
 
-    List<TestCase> testCases = new LinkedList<>();
+    List<TestCase> testCases = new ArrayList<>();
     testCases.add(new TestCase(""));
     testCases.add(new TestCase("foo", "foo"));
     testCases.add(new TestCase("foo bar", "foo", "bar"));
@@ -110,7 +110,7 @@ public class CommonUtilsTest {
       }
     }
 
-    List<TestCase> testCases = new LinkedList<>();
+    List<TestCase> testCases = new ArrayList<>();
     testCases.add(new TestCase());
     testCases.add(new TestCase("foo"));
     testCases.add(new TestCase("foo", "bar"));
@@ -145,7 +145,7 @@ public class CommonUtilsTest {
       }
     }
 
-    List<TestCase> testCases = new LinkedList<>();
+    List<TestCase> testCases = new ArrayList<>();
     testCases.add(new TestCase("hello", TestClassA.class, null));
     testCases.add(new TestCase("1", TestClassB.class, new Class[] {int.class}, 1));
 

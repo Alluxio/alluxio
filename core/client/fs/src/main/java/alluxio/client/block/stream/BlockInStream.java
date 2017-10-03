@@ -15,7 +15,6 @@ import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.Seekable;
 import alluxio.client.BoundedStream;
-import alluxio.client.Locatable;
 import alluxio.client.PositionedReadable;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.options.InStreamOptions;
@@ -23,12 +22,14 @@ import alluxio.exception.PreconditionMessage;
 import alluxio.exception.status.NotFoundException;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.proto.dataserver.Protocol;
-import alluxio.util.CommonUtils;
 import alluxio.util.io.BufferUtils;
 import alluxio.util.network.NettyUtils;
+import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.base.Preconditions;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -41,15 +42,20 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public class BlockInStream extends InputStream implements BoundedStream, Seekable,
-    PositionedReadable, Locatable {
+    PositionedReadable {
+  private static final Logger LOG = LoggerFactory.getLogger(BlockInStream.class);
+  /** the source tracking where the block is from. */
+  public enum BlockInStreamSource {
+    LOCAL, REMOTE, UFS
+  }
+
   /** The id of the block or UFS file to which this instream provides access. */
   private final long mId;
   /** The size in bytes of the block. */
   private final long mLength;
 
   private final byte[] mSingleByte = new byte[1];
-  private final boolean mLocal;
-  private final WorkerNetAddress mAddress;
+  private final BlockInStreamSource mInStreamSource;
 
   /** Current position of the stream, relative to the start of the block. */
   private long mPos = 0;
@@ -69,22 +75,26 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
    * @param blockId the block ID
    * @param blockSize the block size in bytes
    * @param address the Alluxio worker address
+   * @param blockSource the source location of the block
    * @param openUfsBlockOptions the options to open a UFS block, set to null if this is block is
    *        not persisted in UFS
    * @param options the in stream options
    * @return the {@link InputStream} object
    */
   public static BlockInStream create(FileSystemContext context, long blockId, long blockSize,
-      WorkerNetAddress address, Protocol.OpenUfsBlockOptions openUfsBlockOptions,
-      InStreamOptions options) throws IOException {
-    if (CommonUtils.isLocalHost(address) && Configuration
-        .getBoolean(PropertyKey.USER_SHORT_CIRCUIT_ENABLED) && !NettyUtils
-        .isDomainSocketSupported(address)) {
+      WorkerNetAddress address, BlockInStreamSource blockSource,
+      Protocol.OpenUfsBlockOptions openUfsBlockOptions, InStreamOptions options)
+          throws IOException {
+    if (Configuration.getBoolean(PropertyKey.USER_SHORT_CIRCUIT_ENABLED)
+        && !NettyUtils.isDomainSocketSupported(address)
+        && blockSource == BlockInStreamSource.LOCAL) {
       try {
+        LOG.debug("Creating short circuit input stream for block {} @ {}", blockId, address);
         return createLocalBlockInStream(context, address, blockId, blockSize, options);
       } catch (NotFoundException e) {
         // Failed to do short circuit read because the block is not available in Alluxio.
         // We will try to read from UFS via netty. So this exception is ignored.
+        LOG.warn("Failed to create short circuit input stream for block {} @ {}", blockId, address);
       }
     }
     Protocol.ReadRequest.Builder builder = Protocol.ReadRequest.newBuilder().setBlockId(blockId)
@@ -93,7 +103,10 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
       builder.setOpenUfsBlockOptions(openUfsBlockOptions);
     }
 
-    return createNettyBlockInStream(context, address, builder.buildPartial(), blockSize, options);
+    LOG.debug("Creating netty input stream for block {} @ {} from client {}", blockId, address,
+        NetworkAddressUtils.getClientHostName());
+    return createNettyBlockInStream(context, address, blockSource, builder.buildPartial(),
+        blockSize, options);
   }
 
   /**
@@ -111,8 +124,8 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
       throws IOException {
     long packetSize = Configuration.getBytes(PropertyKey.USER_LOCAL_READER_PACKET_SIZE_BYTES);
     return new BlockInStream(
-        new LocalFilePacketReader.Factory(context, address, blockId, packetSize, options), address,
-        blockId, length);
+        new LocalFilePacketReader.Factory(context, address, blockId, packetSize, options),
+        BlockInStreamSource.LOCAL, blockId, length);
   }
 
   /**
@@ -120,36 +133,41 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
    *
    * @param context the file system context
    * @param address the address of the netty data server
+   * @param blockSource the source location of the block
    * @param blockSize the block size
    * @param readRequestPartial the partial read request
    * @param options the in stream options
    * @return the {@link BlockInStream} created
    */
   private static BlockInStream createNettyBlockInStream(FileSystemContext context,
-      WorkerNetAddress address, Protocol.ReadRequest readRequestPartial, long blockSize,
-      InStreamOptions options) {
+      WorkerNetAddress address, BlockInStreamSource blockSource,
+      Protocol.ReadRequest readRequestPartial, long blockSize, InStreamOptions options) {
     long packetSize =
         Configuration.getBytes(PropertyKey.USER_NETWORK_NETTY_READER_PACKET_SIZE_BYTES);
     PacketReader.Factory factory = new NettyPacketReader.Factory(context, address,
         readRequestPartial.toBuilder().setPacketSize(packetSize).buildPartial(), options);
-    return new BlockInStream(factory, address, readRequestPartial.getBlockId(), blockSize);
+    return new BlockInStream(factory, blockSource, readRequestPartial.getBlockId(), blockSize);
   }
 
   /**
    * Creates an instance of {@link BlockInStream}.
    *
    * @param packetReaderFactory the packet reader factory
-   * @param address the worker network address
+   * @param blockSource the source location of the block
    * @param id the ID (either block ID or UFS file ID)
    * @param length the length
    */
-  protected BlockInStream(PacketReader.Factory packetReaderFactory, WorkerNetAddress address,
+  protected BlockInStream(PacketReader.Factory packetReaderFactory, BlockInStreamSource blockSource,
       long id, long length) {
     mPacketReaderFactory = packetReaderFactory;
     mId = id;
     mLength = length;
-    mAddress = address;
-    mLocal = CommonUtils.isLocalHost(mAddress);
+    mInStreamSource = blockSource;
+  }
+
+  @Override
+  public long getPos() {
+    return mPos;
   }
 
   @Override
@@ -321,13 +339,10 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
     Preconditions.checkState(!mClosed, PreconditionMessage.ERR_CLOSED_BLOCK_IN_STREAM);
   }
 
-  @Override
-  public WorkerNetAddress location() {
-    return mAddress;
-  }
-
-  @Override
-  public boolean isLocal() {
-    return mLocal;
+  /**
+   * @return the source of the block location
+   */
+  public BlockInStreamSource Source() {
+    return mInStreamSource;
   }
 }

@@ -12,6 +12,7 @@
 package alluxio.master.lineage;
 
 import alluxio.AlluxioURI;
+import alluxio.AuthenticatedUserRule;
 import alluxio.Constants;
 import alluxio.IntegrationTestUtils;
 import alluxio.LocalAlluxioClusterResource;
@@ -30,8 +31,8 @@ import alluxio.client.lineage.LineageMasterClient;
 import alluxio.client.lineage.options.DeleteLineageOptions;
 import alluxio.job.CommandLineJob;
 import alluxio.job.JobConf;
+import alluxio.master.MasterClientConfig;
 import alluxio.master.file.meta.PersistenceState;
-import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 import alluxio.wire.LineageInfo;
@@ -39,7 +40,6 @@ import alluxio.wire.LineageInfo;
 import com.google.common.base.Function;
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableList;
-import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -81,20 +81,16 @@ public class LineageMasterIntegrationTest extends BaseIntegrationTest {
 
   private CommandLineJob mJob;
 
+  @Rule
+  public AuthenticatedUserRule mAuthenticatedUser = new AuthenticatedUserRule("test");
+
   @Before
   public void before() throws Exception {
-    AuthenticatedClientUser.set("test");
     mJob = new CommandLineJob("test", new JobConf("output"));
-  }
-
-  @After
-  public void after() throws Exception {
-    AuthenticatedClientUser.remove();
   }
 
   @Test
   public void lineageCreation() throws Exception {
-
     try (LineageMasterClient lineageMasterClient = getLineageMasterClient()) {
       ArrayList<String> outFiles = new ArrayList<>();
       Collections.addAll(outFiles, OUT_FILE);
@@ -111,7 +107,6 @@ public class LineageMasterIntegrationTest extends BaseIntegrationTest {
 
   @Test
   public void lineageCompleteAndAsyncPersist() throws Exception {
-
     try (LineageMasterClient lineageMasterClient = getLineageMasterClient()) {
       ArrayList<String> outFiles = new ArrayList<>();
       Collections.addAll(outFiles, OUT_FILE);
@@ -135,7 +130,6 @@ public class LineageMasterIntegrationTest extends BaseIntegrationTest {
       // worker notifies the master
       status = getFileSystemMasterClient().getStatus(uri, GET_STATUS_OPTIONS);
       Assert.assertEquals(PersistenceState.PERSISTED.toString(), status.getPersistenceState());
-
     }
   }
 
@@ -221,12 +215,10 @@ public class LineageMasterIntegrationTest extends BaseIntegrationTest {
   }
 
   private LineageMasterClient getLineageMasterClient() {
-    return new LineageMasterClient(
-        mLocalAlluxioClusterResource.get().getLocalAlluxioMaster().getAddress());
+    return new LineageMasterClient(MasterClientConfig.defaults());
   }
 
   private FileSystemMasterClient getFileSystemMasterClient() {
-    return FileSystemMasterClient.Factory
-        .create(mLocalAlluxioClusterResource.get().getLocalAlluxioMaster().getAddress());
+    return FileSystemMasterClient.Factory.create(MasterClientConfig.defaults());
   }
 }

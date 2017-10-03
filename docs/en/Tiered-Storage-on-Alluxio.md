@@ -142,7 +142,7 @@ size does not affect eviction latency.
 Space reserver makes tiered storage try to reserve certain portion of space on each storage layer
 before all space on that layer is consumed. This will improve the performance of bursty writes,
 and may also provide marginal performance gain for continuous writes that may otherwise be slower
-becasue eviction is continually running to free up space for the write. See the
+because eviction is continually running to free up space for the write. See the
 [configuration section](#enabling-and-configuring-tiered-storage) for how to enable and configure
 the space reserver.
 

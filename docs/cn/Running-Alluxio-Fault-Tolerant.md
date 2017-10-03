@@ -9,7 +9,7 @@ priority: 3
 * 内容列表
 {:toc}
 
-Alluxio的高可用性通过多master实现。同一时刻，有多个master进程运行。其中一个被选举为leader，作为所有worker和
+Alluxio的高可用性通过多master实现。同一时刻，系统中有多个master进程运行。其中一个被选举为leader，作为所有worker和
 client的通信首选。其余master进入备用状态，和leader共享日志，以确保和leader维护着同样的文件系统元数据并在
 leader失效时迅速接管leader的工作。
 
@@ -118,8 +118,8 @@ Zookeeper和共享文件系统都正常运行时，需要在每个主机上配�
 
 #### HDFS API
 
-如果使用HDFS API与高可用性模式的Alluxio通信，使用`alluxio-ft://`模式来代替`alluxio://`。在URL中的所有主机名都将被忽略，相应地，`alluxio.zookeeper.address`配置会被读取，从而寻找Alluxio leader master。
+如果使用HDFS API与高可用性模式的Alluxio通信，确保客户端的zookeeper配置正确。使用｀alluxio://｀模式但主机名和端口可以省略。在URL中的所有主机名都将被忽略，相应地，`alluxio.zookeeper.address`配置会被读取，从而寻找Alluxio leader master。
 
 ```bash
-hadoop fs -ls alluxio-ft:///directory
+hadoop fs -ls alluxio:///directory
 ```

@@ -20,7 +20,7 @@ priority: 1
 
 ## 编译Alluxio客户端
 
-为了使MapReduce应用可以与Alluxio进行通信，你需要将Alluxio Client的Jar包设置到MapReduce的classpaths中。我们建议你从Alluxio [download page](http://www.alluxio.org/download)下载Alluxio Client的Jar包。
+为了使MapReduce应用可以与Alluxio进行通信，你需要将Alluxio Client的Jar包包含在MapReduce的classpaths中。我们建议你从Alluxio [download page](http://www.alluxio.org/download) 下载压缩包。Alluxio Client的Jar包可以在`{{site.ALLUXIO_CLIENT_JAR_PATH_HADOOP}}`路径中找到。
 
 同时，高级用户可以选择使用源代码来编译生成Alluxio Client的Jar包。
 你可以在Alluxio目录下运行以下命令：
@@ -46,11 +46,6 @@ $ mvn install -Phadoop-2.7 -Dhadoop.version=2.7.1 -DskipTests
   <name>fs.alluxio.impl</name>
   <value>alluxio.hadoop.FileSystem</value>
   <description>The Alluxio FileSystem (Hadoop 1.x and 2.x)</description>
-</property>
-<property>
-  <name>fs.alluxio-ft.impl</name>
-  <value>alluxio.hadoop.FaultTolerantFileSystem</value>
-  <description>The Alluxio FileSystem (Hadoop 1.x and 2.x) with fault tolerant support</description>
 </property>
 <property>
   <name>fs.AbstractFileSystem.alluxio.impl</name>

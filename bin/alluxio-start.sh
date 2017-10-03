@@ -15,7 +15,7 @@ LAUNCHER=
 if [[ "$-" == *x* ]]; then
   LAUNCHER="bash -x"
 fi
-BIN=$(cd "$( dirname "$0" )"; pwd)
+BIN=$(cd "$( dirname "$( readlink "$0" || echo "$0" )" )"; pwd)
 
 #start up alluxio
 
@@ -137,6 +137,21 @@ stop() {
   ${BIN}/alluxio-stop.sh $1
 }
 
+start_logserver() {
+    if [[ ! -d "${ALLUXIO_LOGSERVER_LOGS_DIR}" ]]; then
+        echo "ALLUXIO_LOGSERVER_LOGS_DIR: ${ALLUXIO_LOGSERVER_LOGS_DIR}"
+        mkdir -p ${ALLUXIO_LOGSERVER_LOGS_DIR}
+    fi
+
+    echo "Starting logserver @ $(hostname -f)."
+    (nohup "${JAVA}" -cp ${CLASSPATH} \
+     ${ALLUXIO_LOGSERVER_JAVA_OPTS} \
+     alluxio.logserver.AlluxioLogServer "${ALLUXIO_LOGSERVER_LOGS_DIR}" > ${ALLUXIO_LOGS_DIR}/logserver.out 2>&1) &
+    # Wait for 1s before starting other Alluxio servers, otherwise may cause race condition
+    # leading to connection errors.
+    sleep 1
+}
+
 start_master() {
   if [[ "$1" == "-f" ]]; then
     ${LAUNCHER} ${BIN}/alluxio format
@@ -209,7 +224,7 @@ restart_worker() {
     ALLUXIO_WORKER_JAVA_OPTS=${ALLUXIO_JAVA_OPTS}
   fi
 
-  RUN=$(ps -ef | grep "alluxio.worker.AlluxioWorker" | grep "java" | wc | cut -d" " -f7)
+  RUN=$(ps -ef | grep "alluxio.worker.AlluxioWorker" | grep "java" | wc | awk '{ print $1; }')
   if [[ ${RUN} -eq 0 ]]; then
     echo "Restarting worker @ $(hostname -f). Logging to ${ALLUXIO_LOGS_DIR}"
     (nohup "${JAVA}" -cp ${CLASSPATH} \
@@ -225,7 +240,7 @@ restart_workers() {
 run_safe() {
   while [ 1 ]
   do
-    RUN=$(ps -ef | grep "alluxio.master.AlluxioMaster" | grep "java" | wc | cut -d" " -f7)
+    RUN=$(ps -ef | grep "alluxio.master.AlluxioMaster" | grep "java" | awk '{ print $1; }')
     if [[ ${RUN} -eq 0 ]]; then
       echo "Restarting the system master..."
       start_master
@@ -343,6 +358,9 @@ main() {
       ;;
     workers)
       start_workers "${MOPT}"
+      ;;
+    logserver)
+      start_logserver
       ;;
     *)
     echo "Error: Invalid ACTION: ${ACTION}" >&2

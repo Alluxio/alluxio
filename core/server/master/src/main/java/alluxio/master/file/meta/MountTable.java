@@ -42,6 +42,7 @@ import java.util.NoSuchElementException;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -90,14 +91,15 @@ public final class MountTable implements JournalEntryIterable {
         if (mEntry != null) {
           return true;
         }
-        while (it.hasNext()) {
+        if (it.hasNext()) {
           mEntry = it.next();
-          // Do not journal the root mount point.
-          if (!mEntry.getKey().equals(ROOT)) {
-            return true;
-          } else {
+          // Skip the root mount point, which is considered a part of initial state, not journaled
+          // state.
+          if (mEntry.getKey().equals(ROOT)) {
             mEntry = null;
+            return hasNext();
           }
+          return true;
         }
         return false;
       }
@@ -187,7 +189,7 @@ public final class MountTable implements JournalEntryIterable {
   }
 
   /**
-   * Clears all the mount point except the root.
+   * Clears all the mount points except the root.
    */
   public void clear() {
     LOG.info("Clearing mount table (except the root).");
@@ -328,6 +330,7 @@ public final class MountTable implements JournalEntryIterable {
    * @param mountId the given ufs id
    * @return the mount information with this id or null if this mount id is not found
    */
+  @Nullable
   public MountInfo getMountInfo(long mountId) {
     try (LockResource r = new LockResource(mReadLock)) {
       for (Map.Entry<String, MountInfo> entry : mMountTable.entrySet()) {

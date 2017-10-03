@@ -29,8 +29,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.management.ManagementFactory;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -51,14 +53,13 @@ import javax.annotation.concurrent.NotThreadSafe;
  * <li>Java system properties;</li>
  * <li>Environment variables via {@code alluxio-env.sh} or from OS settings;</li>
  * <li>Site specific properties via {@code alluxio-site.properties} file;</li>
- * <li>Default properties via {@code alluxio-default.properties} file.</li>
+ * <li>Default properties defined in the codebase, see {@link PropertyKey};</li>
  * </ol>
  *
  * <p>
- * The default properties are defined in a property file {@code alluxio-default.properties}
- * distributed with Alluxio jar. Alluxio users can override values of these default properties by
- * creating {@code alluxio-site.properties} and putting it under java {@code CLASSPATH} when running
- * Alluxio (e.g., ${ALLUXIO_HOME}/conf/)
+ * The default properties are defined in the {@link PropertyKey} class in the codebase. Alluxio
+ * users can override values of these default properties by creating {@code alluxio-site.properties}
+ * and putting it under java {@code CLASSPATH} when running Alluxio (e.g., ${ALLUXIO_HOME}/conf/)
  */
 @NotThreadSafe
 public final class Configuration {
@@ -70,9 +71,6 @@ public final class Configuration {
   private static final Pattern CONF_REGEX = Pattern.compile(REGEX_STRING);
   /** Map of properties. */
   private static final ConcurrentHashMapV8<String, String> PROPERTIES = new ConcurrentHashMapV8<>();
-
-  /** File to set customized properties for Alluxio server (both master and worker) and client. */
-  public static final String SITE_PROPERTIES = "alluxio-site.properties";
 
   static {
     init();
@@ -103,22 +101,14 @@ public final class Configuration {
     if (!getBoolean(PropertyKey.TEST_MODE)) {
       String confPaths = get(PropertyKey.SITE_CONF_DIR);
       String[] confPathList = confPaths.split(",");
-      Properties siteProps = ConfigurationUtils.searchPropertiesFile(SITE_PROPERTIES, confPathList);
+      Properties siteProps =
+          ConfigurationUtils.searchPropertiesFile(Constants.SITE_PROPERTIES, confPathList);
       // Update site properties and system properties in order
       if (siteProps != null) {
+        discardIgnoredSiteProperties(siteProps);
         merge(siteProps);
         merge(systemProps);
       }
-    }
-
-    // TODO(andrew): get rid of the MASTER_ADDRESS property key
-    if (containsKey(PropertyKey.MASTER_HOSTNAME)) {
-      String masterHostname = get(PropertyKey.MASTER_HOSTNAME);
-      String masterPort = get(PropertyKey.MASTER_RPC_PORT);
-      boolean useZk = Boolean.parseBoolean(get(PropertyKey.ZOOKEEPER_ENABLED));
-      String masterAddress =
-          (useZk ? Constants.HEADER_FT : Constants.HEADER) + masterHostname + ":" + masterPort;
-      set(PropertyKey.MASTER_ADDRESS, masterAddress);
     }
 
     validate();
@@ -177,11 +167,35 @@ public final class Configuration {
         String key = entry.getKey().toString();
         String value = entry.getValue().toString();
         if (PropertyKey.isValid(key)) {
-          PROPERTIES.put(key, value);
+          // Get the true name for the property key in case it is an alias.
+          PROPERTIES.put(PropertyKey.fromString(key).getName(), value);
         }
       }
     }
     checkUserFileBufferBytes();
+  }
+
+  /**
+   * Iterates a set of site properties and discards those that user should not use.
+   *
+   * @param siteProperties the set of site properties to check
+   */
+  private static void discardIgnoredSiteProperties(Map<?, ?> siteProperties) {
+    Iterator<? extends Map.Entry<?, ?>> iter = siteProperties.entrySet().iterator();
+    while (iter.hasNext()) {
+      Map.Entry<?, ?> entry  = iter.next();
+      String key = entry.getKey().toString();
+      if (PropertyKey.isValid(key)) {
+        PropertyKey propertyKey = PropertyKey.fromString(key);
+        if (propertyKey.isIgnoredSiteProperty()) {
+          iter.remove();
+          LOG.warn("{} is not accepted in alluxio-site.properties, "
+              + "and must be specified as a JVM property. "
+              + "If no JVM property is present, Alluxio will use default value '{}'.",
+              key, propertyKey.getDefaultValue());
+        }
+      }
+    }
   }
 
   // Public accessor methods
@@ -331,7 +345,7 @@ public final class Configuration {
         "Illegal separator for Alluxio properties as list");
     String rawValue = get(key);
 
-    return Lists.newLinkedList(Splitter.on(delimiter).trimResults().omitEmptyStrings()
+    return Lists.newArrayList(Splitter.on(delimiter).trimResults().omitEmptyStrings()
         .split(rawValue));
   }
 
@@ -346,7 +360,12 @@ public final class Configuration {
   public static <T extends Enum<T>> T getEnum(PropertyKey key, Class<T> enumType) {
     String rawValue = get(key);
 
-    return Enum.valueOf(enumType, rawValue);
+    try {
+      return Enum.valueOf(enumType, rawValue);
+    } catch (IllegalArgumentException e) {
+      throw new RuntimeException(ExceptionMessage.UNKNOWN_ENUM.getMessage(rawValue,
+          Arrays.toString(enumType.getEnumConstants())));
+    }
   }
 
   /**

@@ -14,6 +14,7 @@ package alluxio.underfs;
 import alluxio.AlluxioURI;
 import alluxio.exception.status.NotFoundException;
 import alluxio.exception.status.UnavailableException;
+import alluxio.master.MasterClientConfig;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.worker.file.FileSystemMasterClient;
 
@@ -38,8 +39,7 @@ public final class WorkerUfsManager extends AbstractUfsManager {
    * Constructs an instance of {@link WorkerUfsManager}.
    */
   public WorkerUfsManager() {
-    mMasterClient = mCloser.register(new FileSystemMasterClient(
-        NetworkAddressUtils.getConnectAddress(NetworkAddressUtils.ServiceType.MASTER_RPC)));
+    mMasterClient = mCloser.register(new FileSystemMasterClient(MasterClientConfig.defaults()));
   }
 
   /**
@@ -64,10 +64,11 @@ public final class WorkerUfsManager extends AbstractUfsManager {
           String.format("Failed to get UFS info for mount point with id %d", mountId), e);
     }
     Preconditions.checkState((info.isSetUri() && info.isSetProperties()), "unknown mountId");
-    UfsInfo ufsInfo = super.addMount(mountId, new AlluxioURI(info.getUri()),
+    super.addMount(mountId, new AlluxioURI(info.getUri()),
         UnderFileSystemConfiguration.defaults().setReadOnly(info.getProperties().isReadOnly())
             .setShared(info.getProperties().isShared())
             .setUserSpecifiedConf(info.getProperties().getProperties()));
+    UfsInfo ufsInfo = super.get(mountId);
     try {
       ufsInfo.getUfs().connectFromWorker(
           NetworkAddressUtils.getConnectHost(NetworkAddressUtils.ServiceType.WORKER_RPC));

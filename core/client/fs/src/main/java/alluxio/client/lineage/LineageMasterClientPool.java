@@ -13,6 +13,7 @@ package alluxio.client.lineage;
 
 import alluxio.Configuration;
 import alluxio.PropertyKey;
+import alluxio.master.MasterClientConfig;
 import alluxio.resource.ResourcePool;
 
 import java.net.InetSocketAddress;
@@ -22,8 +23,6 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 final class LineageMasterClientPool extends ResourcePool<LineageMasterClient> {
 
-  private final InetSocketAddress mMasterAddress;
-
   /**
    * Creates a new lineage master client pool.
    *
@@ -31,7 +30,6 @@ final class LineageMasterClientPool extends ResourcePool<LineageMasterClient> {
    */
   public LineageMasterClientPool(InetSocketAddress masterAddress) {
     super(Configuration.getInt(PropertyKey.USER_LINEAGE_MASTER_CLIENT_THREADS));
-    mMasterAddress = masterAddress;
   }
 
   @Override
@@ -41,6 +39,6 @@ final class LineageMasterClientPool extends ResourcePool<LineageMasterClient> {
 
   @Override
   protected LineageMasterClient createNewResource() {
-    return new LineageMasterClient(mMasterAddress);
+    return new LineageMasterClient(MasterClientConfig.defaults());
   }
 }

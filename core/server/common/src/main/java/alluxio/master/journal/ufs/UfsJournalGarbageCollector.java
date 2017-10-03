@@ -53,7 +53,7 @@ final class UfsJournalGarbageCollector implements Closeable {
    * @param journal the UFS journal handle
    */
   UfsJournalGarbageCollector(UfsJournal journal) {
-    mJournal = Preconditions.checkNotNull(journal);
+    mJournal = Preconditions.checkNotNull(journal, "journal");
     mUfs = mJournal.getUfs();
     mGc = mExecutor.scheduleAtFixedRate(new Runnable() {
           @Override
@@ -70,10 +70,11 @@ final class UfsJournalGarbageCollector implements Closeable {
       mGc.cancel(true);
       mGc = null;
     }
+    mExecutor.shutdown();
   }
 
   /**
-   * Snapshots the journal and deletes files that are not necessary.
+   * Deletes unneeded snapshots.
    */
   void gc() {
     UfsJournalSnapshot snapshot;

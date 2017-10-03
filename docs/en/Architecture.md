@@ -11,26 +11,26 @@ priority: 1
 
 ## Where Alluxio Fits
 
-Because of Alluxio's memory centric design and being the central point of access, Alluxio holds 
-a unique place in the big data ecosystem, residing between storage systems such as Amazon S3, 
-Apache HDFS or OpenStack Swift and computation frameworks and applications such as Apache Spark 
-or Hadoop MapReduce. For user applications and computation frameworks, Alluxio is the underlayer 
-that manages data access and fast storage, facilitating data sharing and locality between jobs, 
-regardless of whether they are running with the same computation engine. As a result, Alluxio 
-can bring an order of magnitude speed up for those big data applications while providing a 
-common interface of data access. For under storage systems, Alluxio connects the gap between 
-big data applications and traditional storage systems, and redefines the set of workloads 
-available to utilize the data. Since Alluxio hides the integration of under storage systems to 
-applications, any under storage can back all the applications and frameworks running on top of 
-Alluxio. Coupled with the potential to mount multiple under storage systems, Alluxio can serve 
-as a unifying layer for any number of varied data sources.
+Alluxio holds a unique place in the big data ecosystem, residing between storage systems such 
+as Amazon S3, Apache HDFS or OpenStack Swift and computation frameworks and applications such 
+as Apache Spark or Hadoop MapReduce and provides the central point of access with a memory 
+centric design. For user applications and computation frameworks, Alluxio is the underlayer 
+that manages data access and provides fast storage, facilitating data sharing and locality 
+between jobs, regardless of whether they are running on the same computation engine. As a 
+result, Alluxio can bring an order of magnitude speed up for those big data applications while
+providing a common interface of data access. For under storage systems, Alluxio connects the 
+gap between big data applications and traditional storage systems, and expands the set of 
+workloads available to utilize the data. Since Alluxio hides the integration of under storage 
+systems to applications, any under storage can back all the applications and frameworks running
+on top of Alluxio. Coupled with the potential to mount multiple under storage systems, Alluxio 
+can serve as a unifying layer for any number of varied data sources.
 
 ![Stack]({{site.data.img.stack}})
 
 ## Alluxio Components
 
-Alluxio's design uses a single master and multiple workers. At a very high level, Alluxio can 
-be divided into three components, the [master](#master), [workers](#worker), and 
+Alluxio's design uses a single primary master and multiple workers. At a very high level, Alluxio 
+can be divided into three components, the [master](#master), [workers](#worker), and 
 [clients](#client). The master and workers together make up the Alluxio servers, which are the 
 components a system admin would maintain and manage. The clients are generally the 
 applications, such as Spark or MapReduce jobs, or Alluxio command-line users. Users of Alluxio 

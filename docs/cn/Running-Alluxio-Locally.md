@@ -17,7 +17,7 @@ priority: 1
 
 {% include Running-Alluxio-Locally/download-Alluxio-binary.md %}
 
-在独立模式下运行，需要确保：
+在独立模式下运行，请执行以下操作：
 
 * 将`conf/alluxio-site.properties`中的`alluxio.master.hostname`设置为`localhost`(即`alluxio.master.hostname=localhost`)。
 

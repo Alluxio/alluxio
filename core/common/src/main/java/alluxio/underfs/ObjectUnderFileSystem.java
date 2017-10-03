@@ -36,7 +36,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
@@ -165,25 +164,41 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
   /**
    * Permissions in object UFS.
    */
-  protected class ObjectPermissions {
+  public class ObjectPermissions {
     final String mOwner;
     final String mGroup;
     final short mMode;
 
+    /**
+     * Creates a new ObjectPermissions.
+     *
+     * @param owner the owner of the object
+     * @param group the group of the object
+     * @param mode the representation of the permission bits
+     */
     public ObjectPermissions(String owner, String group, short mode) {
       mOwner = owner;
       mGroup = group;
       mMode = mode;
     }
 
+    /**
+     * @return the name of the owner
+     */
     public String getOwner() {
       return mOwner;
     }
 
+    /**
+     * @return the name of the group
+     */
     public String getGroup() {
       return mGroup;
     }
 
+    /**
+     * @return the short representation of the permission bits
+     */
     public short getMode() {
       return mMode;
     }
@@ -277,7 +292,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
     public DeleteBuffer() {
       mBatches = new ArrayList<>();
       mBatchesResult = new ArrayList<>();
-      mCurrentBatchBuffer = new LinkedList<>();
+      mCurrentBatchBuffer = new ArrayList<>();
       mEntriesAdded = 0;
     }
 
@@ -305,7 +320,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
      */
     public List<String> getResult() throws IOException {
       submitBatch();
-      LinkedList<String> result = new LinkedList<>();
+      List<String> result = new ArrayList<>();
       for (Future<List<String>> list : mBatchesResult) {
         try {
           result.addAll(list.get());
@@ -329,7 +344,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
     private void submitBatch() throws IOException {
       if (mCurrentBatchBuffer.size() != 0) {
         int batchNumber = mBatches.size();
-        mBatches.add(new LinkedList<>(mCurrentBatchBuffer));
+        mBatches.add(new ArrayList<>(mCurrentBatchBuffer));
         mCurrentBatchBuffer.clear();
         mBatchesResult.add(batchNumber,
             mExecutorService.submit(new DeleteThread(mBatches.get(batchNumber))));
@@ -440,6 +455,11 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
   }
 
   @Override
+  public boolean isObjectStorage() {
+    return true;
+  }
+
+  @Override
   public UfsStatus[] listStatus(String path) throws IOException {
     return listInternal(path, ListOptions.defaults());
   }
@@ -484,7 +504,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
 
   @Override
   public InputStream open(String path, OpenOptions options) throws IOException {
-    return new ObjectUnderFileInputStream(this, stripPrefixIfPresent(path), options);
+    return openObject(stripPrefixIfPresent(path), options);
   }
 
   @Override
@@ -598,7 +618,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
    * @return list of successfully deleted keys
    */
   protected List<String> deleteObjects(List<String> keys) throws IOException {
-    List<String> result = new LinkedList<>();
+    List<String> result = new ArrayList<>();
     for (String key : keys) {
       boolean status = deleteObject(key);
       // If key is a directory, it is possible that it was not created through Alluxio and no

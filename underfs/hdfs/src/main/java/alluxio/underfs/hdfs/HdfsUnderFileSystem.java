@@ -54,6 +54,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Stack;
 
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -127,7 +128,9 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
 
     // Load HDFS site properties from the given file and overwrite the default HDFS conf,
     // the path of this file can be passed through --option
-    hdfsConf.addResource(new Path(conf.getValue(PropertyKey.UNDERFS_HDFS_CONFIGURATION)));
+    for (String path : conf.getValue(PropertyKey.UNDERFS_HDFS_CONFIGURATION).split(":")) {
+      hdfsConf.addResource(new Path(path));
+    }
 
     // On Hadoop 2.x this is strictly unnecessary since it uses ServiceLoader to automatically
     // discover available file system implementations. However this configuration setting is
@@ -143,18 +146,6 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
     hdfsConf.set("fs.hdfs.impl.disable.cache",
         System.getProperty("fs.hdfs.impl.disable.cache", "true"));
 
-    // NOTE, adding S3 credentials in system properties to HDFS conf for backward compatibility.
-    // TODO(binfan): remove this as it can be set in mount options through --option
-    String accessKeyConf = PropertyKey.S3N_ACCESS_KEY.toString();
-    if (System.getProperty(accessKeyConf) != null
-        && !conf.containsKey(PropertyKey.S3N_ACCESS_KEY)) {
-      hdfsConf.set(accessKeyConf, System.getProperty(accessKeyConf));
-    }
-    String secretKeyConf = PropertyKey.S3N_SECRET_KEY.toString();
-    if (System.getProperty(secretKeyConf) != null
-        && !conf.containsKey(PropertyKey.S3N_SECRET_KEY)) {
-      hdfsConf.set(secretKeyConf, System.getProperty(secretKeyConf));
-    }
     // Set all parameters passed through --option
     for (Map.Entry<String, String> entry : conf.getUserSpecifiedConf().entrySet()) {
       hdfsConf.set(entry.getKey(), entry.getValue());
@@ -230,6 +221,7 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
   }
 
   @Override
+  @Nullable
   public List<String> getFileLocations(String path, FileLocationOptions options)
       throws IOException {
     // If the user has hinted the underlying storage nodes are not co-located with Alluxio
@@ -296,6 +288,7 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
   }
 
   @Override
+  @Nullable
   public UfsStatus[] listStatus(String path) throws IOException {
     FileStatus[] files = listStatusInternal(path);
     if (files == null) {
@@ -411,7 +404,7 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
           inputStream.close();
           throw e;
         }
-        return new HdfsUnderFileInputStream(inputStream);
+        return inputStream;
       } catch (IOException e) {
         LOG.warn("{} try to open {} : {}", retryPolicy.getRetryCount(), path, e.getMessage());
         te = e;
@@ -502,6 +495,7 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
    * @param path the pathname to list
    * @return {@code null} if the path is not a directory
    */
+  @Nullable
   private FileStatus[] listStatusInternal(String path) throws IOException {
     FileStatus[] files;
     try {
