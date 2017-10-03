@@ -228,7 +228,7 @@ public final class UIFileInfo {
    * @return the ufs modification time
    */
   public String getUfsModificationTime() {
-    return WebUtils.convertMsToDate(mUfsLastModificationTimeMs);
+    return CommonUtils.convertMsToDate(mUfsLastModificationTimeMs);
   }
 
   /**
