@@ -3,7 +3,7 @@ layout: global
 title: Go 客户端
 nickname: Go 客户端
 group: Clients
-priority: 3
+priority: 4
 ---
 
 Alluxio有一个[Go Client](https://github.com/Alluxio/alluxio-go), 此客户端通过[REST API](Clients-Rest.html)
