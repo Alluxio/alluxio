@@ -105,7 +105,11 @@ public final class StorageDir {
   private void initializeMeta() throws BlockAlreadyExistsException, IOException,
       WorkerOutOfSpaceException {
     // Create the storage directory path
-    FileUtils.createStorageDirPath(mDirPath);
+    boolean isDirectoryNewlyCreated = FileUtils.createStorageDirPath(mDirPath);
+
+    if (isDirectoryNewlyCreated) {
+      LOG.info("Folder {} was created!", mDirPath);
+    }
 
     File dir = new File(mDirPath);
     File[] paths = dir.listFiles();
