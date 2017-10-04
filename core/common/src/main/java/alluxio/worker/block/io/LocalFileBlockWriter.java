@@ -49,7 +49,6 @@ public final class LocalFileBlockWriter implements BlockWriter {
     mLocalFileChannel = mCloser.register(mLocalFile.getChannel());
   }
 
-  @Override
   public GatheringByteChannel getChannel() {
     return mLocalFileChannel;
   }
@@ -62,8 +61,10 @@ public final class LocalFileBlockWriter implements BlockWriter {
   }
 
   @Override
-  public void transferFrom(ByteBuf buf) throws IOException {
-    mPosition += buf.readBytes(mLocalFileChannel, buf.readableBytes());
+  public long transferFrom(ByteBuf buf) throws IOException {
+    long bytesWritten = buf.readBytes(mLocalFileChannel, buf.readableBytes());
+    mPosition += bytesWritten;
+    return bytesWritten;
   }
 
   @Override
