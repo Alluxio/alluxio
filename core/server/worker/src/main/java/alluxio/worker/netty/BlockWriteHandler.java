@@ -165,7 +165,7 @@ public final class BlockWriteHandler extends AbstractWriteHandler<BlockWriteRequ
       }
       Preconditions.checkState(context.getBlockWriter() != null);
       int sz = buf.readableBytes();
-      Preconditions.checkState(context.getBlockWriter().transferFrom(buf) == sz);
+      Preconditions.checkState(context.getBlockWriter().append(buf) == sz);
     }
   }
 }

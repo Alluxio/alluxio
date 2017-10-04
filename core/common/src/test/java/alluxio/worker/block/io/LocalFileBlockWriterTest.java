@@ -60,9 +60,9 @@ public final class LocalFileBlockWriterTest {
     ByteBuf buffer = Unpooled.wrappedBuffer(
         BufferUtils.getIncreasingByteBuffer(TEST_BLOCK_SIZE));
     buffer.markReaderIndex();
-    Assert.assertEquals(TEST_BLOCK_SIZE, mWriter.transferFrom(buffer));
+    Assert.assertEquals(TEST_BLOCK_SIZE, mWriter.append(buffer));
     buffer.resetReaderIndex();
-    Assert.assertEquals(TEST_BLOCK_SIZE, mWriter.transferFrom(buffer));
+    Assert.assertEquals(TEST_BLOCK_SIZE, mWriter.append(buffer));
     mWriter.close();
     Assert.assertEquals(2 * TEST_BLOCK_SIZE, new File(mTestFilePath).length());
     ByteBuffer result = ByteBuffer.wrap(Files.readAllBytes(Paths.get(mTestFilePath)));

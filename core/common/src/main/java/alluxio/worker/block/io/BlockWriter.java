@@ -32,12 +32,13 @@ public interface BlockWriter extends Closeable {
   long append(ByteBuffer inputBuf) throws IOException;
 
   /**
-   * Transfers buf.readableBytes() bytes to the this block writer from the given buf.
+   * Appends buf.readableBytes() bytes to the end of this block writer from the given buf.
    * This is only called in the netty data server.
    *
    * @param buf the byte buffer to hold the data
+   * @return the size of data that was appended in bytes
    */
-  long transferFrom(ByteBuf buf) throws IOException;
+  long append(ByteBuf buf) throws IOException;
 
   /**
    * @return the current write position (same as the number of bytes written)

@@ -120,7 +120,7 @@ public final class LocalFilePacketWriter implements PacketWriter {
       int sz = buf.readableBytes();
       ensureReserved(mPos + sz);
       mPos += sz;
-      Preconditions.checkState(mWriter.transferFrom(buf) == sz);
+      Preconditions.checkState(mWriter.append(buf) == sz);
     } finally {
       buf.release();
     }

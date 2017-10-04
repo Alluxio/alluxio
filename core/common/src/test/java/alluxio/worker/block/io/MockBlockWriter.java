@@ -50,7 +50,7 @@ public final class MockBlockWriter implements BlockWriter {
   }
 
   @Override
-  public long transferFrom(ByteBuf buf) throws IOException {
+  public long append(ByteBuf buf) throws IOException {
     long bytesWritten = buf.readBytes(getChannel(), buf.readableBytes());
     mPosition += bytesWritten;
     return bytesWritten;
