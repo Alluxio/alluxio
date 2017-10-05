@@ -356,7 +356,7 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
             if (mBlocks.remove(blockId) != null) {
               JournalEntry entry = JournalEntry.newBuilder()
                   .setDeleteBlock(DeleteBlockEntry.newBuilder().setBlockId(blockId)).build();
-              appendJournalEntry(entry, journalContext);
+              journalContext.append(entry);
             }
           }
         }
@@ -401,7 +401,7 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
       try (JournalContext journalContext = createJournalContext()) {
         // This must be flushed while holding the lock on mBlockContainerIdGenerator, in order to
         // prevent subsequent calls to return ids that have not been journaled and flushed.
-        appendJournalEntry(getContainerIdJournalEntry(), journalContext);
+        journalContext.append(getContainerIdJournalEntry());
       }
       return containerId;
     }
@@ -464,8 +464,7 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
             if (writeJournal) {
               BlockInfoEntry blockInfo =
                   BlockInfoEntry.newBuilder().setBlockId(blockId).setLength(length).build();
-              appendJournalEntry(JournalEntry.newBuilder().setBlockInfo(blockInfo).build(),
-                  journalContext);
+              journalContext.append(JournalEntry.newBuilder().setBlockInfo(blockInfo).build());
             }
             // At this point, both the worker and the block metadata are locked.
 
@@ -503,8 +502,7 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
           // Successfully added the new block metadata. Append a journal entry for the new metadata.
           BlockInfoEntry blockInfo =
               BlockInfoEntry.newBuilder().setBlockId(blockId).setLength(length).build();
-          appendJournalEntry(JournalEntry.newBuilder().setBlockInfo(blockInfo).build(),
-              journalContext);
+          journalContext.append(JournalEntry.newBuilder().setBlockInfo(blockInfo).build());
         }
       }
     }
