@@ -56,7 +56,7 @@ public final class LocalFileBlockWriterTest {
   }
 
   @Test
-  public void transferFrom() throws Exception {
+  public void appendByteBuf() throws Exception {
     ByteBuf buffer = Unpooled.wrappedBuffer(
         BufferUtils.getIncreasingByteBuffer(TEST_BLOCK_SIZE));
     buffer.markReaderIndex();
