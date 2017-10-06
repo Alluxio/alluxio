@@ -385,7 +385,11 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
           try {
             setOwner(dirToMake.toString(), options.getOwner(), options.getGroup());
           } catch (IOException e) {
-            LOG.warn("Failed to update the ufs dir ownership, default values will be used. " + e);
+            if (!alluxio.Configuration.getBoolean(PropertyKey.UNDERFS_ALLOW_SET_OWNER_FAILURE)) {
+              throw e;
+            } else {
+              LOG.warn("Failed to update the ufs dir ownership, default values will be used. " + e);
+            }
           }
         }
         return true;
