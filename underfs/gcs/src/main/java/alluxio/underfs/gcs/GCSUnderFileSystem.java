@@ -115,7 +115,7 @@ public class GCSUnderFileSystem extends ObjectUnderFileSystem {
       }
       accountOwner = owner == null ? accountOwnerId : owner;
     } else {
-      LOG.warn("GoogleStorageService returns a null StorageOwner with this Google Cloud account.");
+      LOG.debug("GoogleStorageService returns a null StorageOwner with this Google Cloud account.");
     }
 
     GSAccessControlList acl = googleStorageService.getBucketAcl(bucketName);
