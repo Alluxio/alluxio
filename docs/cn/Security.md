@@ -149,7 +149,7 @@ Alluxio审查日志格式如下表所示：
 </tr>
 </table>
 
-它和HDfS审查日志[wiki](https://wiki.apache.org/hadoop/HowToConfigure)的格式很像。
+它和HDfS审查日志的格式很像，参考[wiki](https://wiki.apache.org/hadoop/HowToConfigure)。
 
 要使用Alluxio审查记录功能，你需要将JVM参数`alluxio.master.audit.logging.enabled`设置为true，具体可见[Configuration settings](Configuration-Settings.html)。
 
