@@ -306,7 +306,7 @@ public final class FileInStreamTest {
     mTestStream.seek(readAmount - seekAmount);
 
     // Block 2 is cached though it is not fully read.
-    validatePartialCaching(2, (int) BLOCK_LENGTH);
+    validatePartialCaching(2, (int) BLOCK_LENGTH / 2, (int) BLOCK_LENGTH);
   }
 
   /**
@@ -336,9 +336,18 @@ public final class FileInStreamTest {
       Assert.assertEquals(readAmount, mInStreams.get(0).getBytesRead());
       Assert.assertEquals(0, mInStreams.get(1).getBytesRead());
     }
+  }
 
-    // nothing is written to cache stream
-    Assert.assertEquals(0, mCacheStreams.get(0).getWrittenData().length);
+  @Test
+  public void seekAndClose() throws IOException {
+    mTestStream = new FileInStream(mStatus, InStreamOptions.defaults()
+        .setReadType(ReadType.CACHE_PROMOTE).setCachePartiallyReadBlock(true), mContext);
+    int seekAmount = (int) (BLOCK_LENGTH / 2);
+    mTestStream.seek(seekAmount);
+    mTestStream.close();
+
+    // Block 0 is cached though it is not fully read.
+    validatePartialCaching(0, 0, (int) BLOCK_LENGTH);
   }
 
   /**
@@ -358,13 +367,13 @@ public final class FileInStreamTest {
     mTestStream.seek(readAmount - seekAmount);
 
     // Block 1 is cached though it is not fully read.
-    validatePartialCaching(1, (int) BLOCK_LENGTH);
+    validatePartialCaching(1, (int) BLOCK_LENGTH / 2, (int) BLOCK_LENGTH);
 
     // Seek many times. It will cache block 1 only once.
     for (int i = 0; i <= seekAmount; i++) {
       mTestStream.seek(readAmount - seekAmount - i);
     }
-    validatePartialCaching(1, (int) BLOCK_LENGTH);
+    validatePartialCaching(1, (int) BLOCK_LENGTH / 2, (int) BLOCK_LENGTH);
   }
 
   /**
@@ -384,10 +393,12 @@ public final class FileInStreamTest {
     mTestStream.seek(readAmount + seekAmount);
 
     // Block 0 is cached though it is not fully read.
-    validatePartialCaching(0, (int) BLOCK_LENGTH);
+    validatePartialCaching(0, readAmount, (int) BLOCK_LENGTH);
 
     // Block 1 is being cached though its prefix it not read.
-    validatePartialCaching(1, (int) BLOCK_LENGTH / 4 * 3);
+    validatePartialCaching(1, 0, (int) BLOCK_LENGTH / 4 * 3);
+    mTestStream.close();
+    validatePartialCaching(1, 0, (int) BLOCK_LENGTH);
   }
 
   /**
@@ -407,12 +418,12 @@ public final class FileInStreamTest {
     mTestStream.seek(readAmount + seekAmount);
 
     // Block 1 (till seek pos) is being cached.
-    validatePartialCaching(1, (int) BLOCK_LENGTH / 4 * 3);
+    validatePartialCaching(1, (int) BLOCK_LENGTH / 2, (int) BLOCK_LENGTH / 4 * 3);
 
     // Seek forward many times. The prefix is always cached.
     for (int i = 0; i < seekAmount; i++) {
       mTestStream.seek(readAmount + seekAmount + i);
-      validatePartialCaching(1, (int) BLOCK_LENGTH / 2 + seekAmount + i);
+      validatePartialCaching(1, (int) BLOCK_LENGTH / 2, (int) BLOCK_LENGTH / 2 + seekAmount + i);
     }
   }
 
@@ -430,7 +441,7 @@ public final class FileInStreamTest {
 
     mTestStream.seek(readAmount - 1);
 
-    validatePartialCaching(0, (int) BLOCK_LENGTH);
+    validatePartialCaching(0, readAmount, (int) BLOCK_LENGTH);
     Assert.assertEquals(0, mCacheStreams.get(1).getWrittenData().length);
   }
 
@@ -449,7 +460,7 @@ public final class FileInStreamTest {
     mTestStream.seek(seekAmount);
 
     // Block 1 is partially cached though it is not fully read.
-    validatePartialCaching(1, (int) BLOCK_LENGTH / 4);
+    validatePartialCaching(1, 0, (int) BLOCK_LENGTH / 4);
     // Block 0 is not cached.
     Assert.assertEquals(0, mCacheStreams.get(0).getWrittenData().length);
 
@@ -457,11 +468,14 @@ public final class FileInStreamTest {
     mTestStream.seek(0);
 
     // Block 1 is fully cached though it is not fully read.
-    validatePartialCaching(1, (int) BLOCK_LENGTH);
+    validatePartialCaching(1, 0, (int) BLOCK_LENGTH);
 
     // Block 0 is not cached.
     Assert.assertEquals(0, mCacheStreams.get(0).getWrittenData().length);
     mTestStream.close();
+
+    // block 0 is cached
+    validatePartialCaching(0, 0, (int) BLOCK_LENGTH);
   }
 
   /**
@@ -630,14 +644,14 @@ public final class FileInStreamTest {
 
   /**
    * Validates the partial caching behavior given the different block source type. This function
-   * assumes the block at the given index is cached for the given size.
+   * assumes the block at the given index is read and cached for the given sizes.
    *
    */
-  private void validatePartialCaching(int index, int cacheSize) {
+  private void validatePartialCaching(int index, int readSize, int cacheSize) {
     switch (mBlockSource) {
       case LOCAL:
         // nothing is cached, and the entire block is not read
-        Assert.assertTrue(mInStreams.get(index).getBytesRead() <= cacheSize);
+        Assert.assertEquals(readSize, mInStreams.get(index).getBytesRead());
         Assert.assertArrayEquals(new byte[0], mCacheStreams.get(index).getWrittenData());
         break;
       case REMOTE:
