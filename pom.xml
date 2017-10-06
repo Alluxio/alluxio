@@ -688,7 +688,7 @@
         <artifactId>powermock-module-junit4-rule</artifactId>
         <version>${powermock.version}</version>
         <scope>test</scope>
-      </dependency>      
+      </dependency>
       <dependency>
         <groupId>org.powermock</groupId>
         <artifactId>powermock-reflect</artifactId>

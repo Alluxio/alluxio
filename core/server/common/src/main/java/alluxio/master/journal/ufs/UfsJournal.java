@@ -14,9 +14,13 @@ package alluxio.master.journal.ufs;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.exception.InvalidJournalEntryException;
+import alluxio.master.journal.AsyncJournalWriter;
 import alluxio.master.journal.Journal;
+import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.JournalEntryStateMachine;
 import alluxio.master.journal.JournalReader;
+import alluxio.master.journal.MasterJournalContext;
+import alluxio.master.journal.NoopJournalContext;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.underfs.UfsStatus;
 import alluxio.underfs.UnderFileSystem;
@@ -83,6 +87,8 @@ public class UfsJournal implements Journal {
   private final long mQuietPeriodMs;
   /** The current log writer. Null when in secondary mode. */
   private UfsJournalLogWriter mWriter;
+  /** Asynchronous journal writer. */
+  private AsyncJournalWriter mAsyncWriter;
   /**
    * Thread for tailing the journal, taking snapshots, and applying updates to the state machine.
    * Null when in primary mode.
@@ -137,14 +143,26 @@ public class UfsJournal implements Journal {
     return mLocation;
   }
 
-  @Override
+  /**
+   * @param entry an entry to write to the journal
+   */
   public void write(JournalEntry entry) throws IOException {
     writer().write(entry);
   }
 
-  @Override
+  /**
+   * Flushes the journal.
+   */
   public void flush() throws IOException {
     writer().flush();
+  }
+
+  @Override
+  public JournalContext createJournalContext() {
+    if (mAsyncWriter == null) {
+      return new NoopJournalContext();
+    }
+    return new MasterJournalContext(mAsyncWriter);
   }
 
   private UfsJournalLogWriter writer() throws IOException {
@@ -176,6 +194,7 @@ public class UfsJournal implements Journal {
     mTailerThread = null;
     nextSequenceNumber = catchUp(nextSequenceNumber);
     mWriter = new UfsJournalLogWriter(this, nextSequenceNumber);
+    mAsyncWriter = new AsyncJournalWriter(mWriter);
   }
 
   /**
@@ -187,6 +206,7 @@ public class UfsJournal implements Journal {
     Preconditions.checkState(mTailerThread == null, "tailer thread must be null in primary mode");
     mWriter.close();
     mWriter = null;
+    mAsyncWriter = null;
     mMaster.resetState();
     mTailerThread = new UfsJournalCheckpointThread(mMaster, this);
     mTailerThread.start();
@@ -327,6 +347,7 @@ public class UfsJournal implements Journal {
     if (mWriter != null) {
       mWriter.close();
       mWriter = null;
+      mAsyncWriter = null;
     }
     if (mTailerThread != null) {
       mTailerThread.awaitTermination(false);

@@ -11,6 +11,7 @@
 
 package alluxio.resource;
 
+import java.io.Closeable;
 import java.util.concurrent.locks.Lock;
 
 /**
@@ -22,7 +23,8 @@ import java.util.concurrent.locks.Lock;
  *   }
  * </pre>
  */
-public class LockResource implements AutoCloseable {
+// extends Closeable instead of AutoCloseable to enable usage with Guava's Closer.
+public class LockResource implements Closeable {
   private final Lock mLock;
 
   /**
