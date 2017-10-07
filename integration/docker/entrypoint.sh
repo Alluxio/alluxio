@@ -43,16 +43,25 @@ alluxio_env_vars=(
   ALLUXIO_WORKER_JAVA_OPTS
 )
 
+# Map of environment variables that violates the "_ to ."-rule
+declare -A alluxio_env_violators=(
+    ["ALLUXIO_UNDERFS_S3A_INHERIT_ACL"]="alluxio.underfs.s3a.inherit_acl"
+)
+
 for keyvaluepair in $(env | grep "ALLUXIO_"); do
-  # split around the "="
-  key=$(echo ${keyvaluepair} | cut -d= -f1)
-  value=$(echo ${keyvaluepair} | cut -d= -f2)
-  if [[ ! "${alluxio_env_vars[*]}" =~ "${key}" ]]; then
-    confkey=$(echo ${key} | sed "s/_/./g" | tr '[:upper:]' '[:lower:]')
-    echo "${confkey}=${value}" >> conf/alluxio-site.properties
-  else
-    echo "export ${key}=${value}" >> conf/alluxio-env.sh
-  fi
+    # split around the "="
+    key=$(echo ${keyvaluepair} | cut -d= -f1)
+    value=$(echo ${keyvaluepair} | cut -d= -f2)
+    if [[ "${alluxio_env_vars[*]}" =~ "${key}" ]]; then
+        echo "export ${key}=${value}" >> conf/alluxio-env.sh
+    else
+        if [[ "${!alluxio_env_violators[*]}" =~ "${key}" ]]; then
+            echo "${alluxio_env_violators[${key}]}=${value}" >> conf/alluxio-site.properties
+        else
+            confkey=$(echo ${key} | sed "s/_/./g" | tr '[:upper:]' '[:lower:]')
+            echo "${confkey}=${value}" >> conf/alluxio-site.properties
+        fi
+    fi
 done
 
 case ${service,,} in
