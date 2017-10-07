@@ -117,35 +117,35 @@ Alluxio审查日志格式如下表所示：
 <tr><th>key</th><th>value</th></tr>
 <tr>
   <td>succeeded</td>
-  <td>True if the command has succeeded. To succeed, it must also have been allowed. </td>
+  <td>如果命令成功运行，值为true。在命令成功运行前，该命令必须是被允许的。 </td>
 </tr>
 <tr>
   <td>allowed</td>
-  <td>True if the command has been allowed. Note that a command can still fail even if it has been allowed. </td>
+  <td>如果命令是被允许的，值为true。即使一条命令是被允许的它也可能运行失败。 </td>
 </tr>
 <tr>
   <td>ugi</td>
-  <td>User group information, including username, primary group, and authentication type. </td>
+  <td>用户组信息，包括用户名，主要组，认证类型。 </td>
 </tr>
 <tr>
   <td>ip</td>
-  <td>Client IP address. </td>
+  <td>客户端IP地址。 </td>
 </tr>
 <tr>
   <td>cmd</td>
-  <td>Command issued by the user. </td>
+  <td>用户运行的命令。 </td>
 </tr>
 <tr>
   <td>src</td>
-  <td>Path of the source file or directory. </td>
+  <td>源文件或目录地址。 </td>
 </tr>
 <tr>
   <td>dst</td>
-  <td>Path of the destination file or directory. If not applicable, the value is null. </td>
+  <td>目标文件或目录的地址。如果不适用，值为空。 </td>
 </tr>
 <tr>
   <td>perm</td>
-  <td>User:group:mask or null if not applicable. </td>
+  <td>user:group:mask，如果不适用值为空。 </td>
 </tr>
 </table>
 
