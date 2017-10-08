@@ -666,7 +666,7 @@ public final class PermissionCheckTest {
         List<FileInfo> fileInfoList =
             mFileSystemMaster.listStatus(new AlluxioURI(path), ListStatusOptions.defaults());
         if (fileInfoList.size() > 0) {
-          assertTrue(PathUtils.getParent(fileInfoList.get(0).getPath()).equals(path));
+          Assert.assertTrue(PathUtils.getParent(fileInfoList.get(0).getPath()).equals(path));
         }
       }
     }
