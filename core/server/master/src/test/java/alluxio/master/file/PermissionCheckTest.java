@@ -58,6 +58,7 @@ import org.apache.commons.lang3.tuple.ImmutableTriple;
 import org.apache.commons.lang3.tuple.Triple;
 import org.junit.After;
 import org.junit.Assert;
+import static org.junit.Assert.assertTrue;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -665,7 +666,7 @@ public final class PermissionCheckTest {
         List<FileInfo> fileInfoList =
             mFileSystemMaster.listStatus(new AlluxioURI(path), ListStatusOptions.defaults());
         if (fileInfoList.size() > 0) {
-          Assert.assertTrue(PathUtils.getParent(fileInfoList.get(0).getPath()).equals(path));
+          assertTrue(PathUtils.getParent(fileInfoList.get(0).getPath()).equals(path));
         }
       }
     }
