@@ -10,7 +10,7 @@
  */
 
 package alluxio.master.file;
-
+import static org.junit.Assert.assertEquals;
 import alluxio.AlluxioTestDirectory;
 import alluxio.AlluxioURI;
 import alluxio.AuthenticatedUserRule;
