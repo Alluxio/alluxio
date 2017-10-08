@@ -14,6 +14,8 @@ package alluxio.master.file;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import alluxio.AlluxioTestDirectory;
 import alluxio.AlluxioURI;
@@ -61,13 +63,11 @@ import com.google.common.collect.Lists;
 import org.apache.commons.lang3.tuple.ImmutableTriple;
 import org.apache.commons.lang3.tuple.Triple;
 import org.junit.After;
-
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
-import org.mockito.Mockito;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -195,8 +195,8 @@ public final class PermissionCheckTest {
 
     createDirAndFileForTest();
 
-    mInodeTree = Mockito.mock(InodeTree.class);
-    Mockito.when(mInodeTree.getRootUserName()).thenReturn(TEST_USER_ADMIN.getUser());
+    mInodeTree = mock(InodeTree.class);
+    when(mInodeTree.getRootUserName()).thenReturn(TEST_USER_ADMIN.getUser());
   }
 
   @After
