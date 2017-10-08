@@ -71,6 +71,14 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertTrue;
+
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
+
 /**
  * Unit test for {@link FileSystemMaster} when permission check is enabled by configure
  * alluxio.security.authorization.permission.enabled=true.
@@ -190,8 +198,8 @@ public final class PermissionCheckTest {
 
     createDirAndFileForTest();
 
-    mInodeTree = Mockito.mock(InodeTree.class);
-    Mockito.when(mInodeTree.getRootUserName()).thenReturn(TEST_USER_ADMIN.getUser());
+    mInodeTree = mock(InodeTree.class);
+    when(mInodeTree.getRootUserName()).thenReturn(TEST_USER_ADMIN.getUser());
   }
 
   @After
