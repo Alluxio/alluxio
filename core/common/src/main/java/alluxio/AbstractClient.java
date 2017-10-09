@@ -298,9 +298,10 @@ public abstract class AbstractClient implements Client {
       } catch (TException e) {
         ex = e;
       }
-      LOG.warn(ex.toString());
       disconnect();
-      if (!retryPolicy.attemptRetry()) {
+      if (retryPolicy.attemptRetry()) {
+        LOG.warn("RPC failed with {}. Retrying.", ex.toString());
+      } else {
         throw new UnavailableException(
             "Failed after " + retryPolicy.getRetryCount() + " retries: " + ex.toString(), ex);
       }
