@@ -83,7 +83,7 @@ public final class NettyPacketWriter implements PacketWriter {
 
   private boolean mClosed;
 
-  private ReentrantLock mLock = new ReentrantLock();
+  private final ReentrantLock mLock = new ReentrantLock();
   /** The next pos to write to the channel. */
   @GuardedBy("mLock")
   private long mPosToWrite;
