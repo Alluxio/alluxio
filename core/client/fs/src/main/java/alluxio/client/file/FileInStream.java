@@ -567,7 +567,8 @@ public class FileInStream extends InputStream
    */
   private BlockInStream getBlockInStream(long blockId) throws IOException {
     Protocol.OpenUfsBlockOptions openUfsBlockOptions = null;
-    if (mStatus.isPersisted()) {
+    boolean readFromUfs = mStatus.isPersisted();
+    if (readFromUfs) {
       long blockStart = BlockId.getSequenceNumber(blockId) * mBlockSize;
       openUfsBlockOptions =
           Protocol.OpenUfsBlockOptions.newBuilder().setUfsPath(mStatus.getUfsPath())
