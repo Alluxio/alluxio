@@ -231,7 +231,7 @@ public final class UnderFileSystemBlockReader implements BlockReader {
         while (bufCopy.readableBytes() > 0) {
           mLocalBlockStore.requestSpace(mBlockMeta.getSessionId(), mBlockMeta.getBlockId(),
               mInStreamPos - mBlockWriter.getPosition());
-          mBlockWriter.transferFrom(bufCopy);
+          mBlockWriter.append(bufCopy);
         }
       } catch (Exception e) {
         LOG.warn("Failed to cache data read from UFS (on transferTo()): {}", e.getMessage());

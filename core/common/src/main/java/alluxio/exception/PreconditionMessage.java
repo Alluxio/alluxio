@@ -20,7 +20,6 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public enum PreconditionMessage {
-  ASYNC_JOURNAL_WRITER_NULL("AsyncJournalWriter cannot be null"),
   BLOCK_LENGTH_INCONSISTENT("Block %s is expected to be %s bytes, but only %s bytes are available. "
       + "Please ensure its metadata is consistent between Alluxio and UFS."),
   COMMAND_LINE_LINEAGE_ONLY("Only command line jobs are supported by createLineage"),

@@ -143,7 +143,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -1042,8 +1041,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     CompleteFileEntry completeFileEntry =
         CompleteFileEntry.newBuilder().addAllBlockIds(fileInode.getBlockIds()).setId(inode.getId())
             .setLength(length).setOpTimeMs(options.getOperationTimeMs()).build();
-    appendJournalEntry(JournalEntry.newBuilder().setCompleteFile(completeFileEntry).build(),
-        journalContext);
+    journalContext.append(JournalEntry.newBuilder().setCompleteFile(completeFileEntry).build());
   }
 
   /**
@@ -1192,8 +1190,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
           ReinitializeFileEntry.newBuilder().setPath(path.getPath())
               .setBlockSizeBytes(blockSizeBytes).setTtl(ttl)
               .setTtlAction(ProtobufUtils.toProtobuf(ttlAction)).build();
-      appendJournalEntry(
-          JournalEntry.newBuilder().setReinitializeFile(reinitializeFile).build(), journalContext);
+      journalContext
+          .append(JournalEntry.newBuilder().setReinitializeFile(reinitializeFile).build());
       return id;
     }
   }
@@ -1927,7 +1925,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     RenameEntry rename =
         RenameEntry.newBuilder().setId(srcInode.getId()).setDstPath(dstInodePath.getUri().getPath())
             .setOpTimeMs(options.getOperationTimeMs()).build();
-    appendJournalEntry(JournalEntry.newBuilder().setRename(rename).build(), journalContext);
+    journalContext.append(JournalEntry.newBuilder().setRename(rename).build());
   }
 
   /**
@@ -2139,8 +2137,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     for (Inode<?> inode : persistedInodes) {
       PersistDirectoryEntry persistDirectory =
           PersistDirectoryEntry.newBuilder().setId(inode.getId()).build();
-      appendJournalEntry(JournalEntry.newBuilder().setPersistDirectory(persistDirectory).build(),
-          journalContext);
+      journalContext
+          .append(JournalEntry.newBuilder().setPersistDirectory(persistDirectory).build());
     }
   }
 
@@ -2602,8 +2600,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
             .setUfsPath(ufsPath.toString()).setMountId(mountId)
             .setReadOnly(options.isReadOnly())
             .addAllProperties(protoProperties).setShared(options.isShared()).build();
-    appendJournalEntry(JournalEntry.newBuilder().setAddMountPoint(addMountPoint).build(),
-        journalContext);
+    journalContext.append(JournalEntry.newBuilder().setAddMountPoint(addMountPoint).build());
   }
 
   /**
@@ -2731,8 +2728,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     }
     DeleteMountPointEntry deleteMountPoint =
         DeleteMountPointEntry.newBuilder().setAlluxioPath(inodePath.getUri().toString()).build();
-    appendJournalEntry(JournalEntry.newBuilder().setDeleteMountPoint(deleteMountPoint).build(),
-        journalContext);
+    journalContext.append(JournalEntry.newBuilder().setDeleteMountPoint(deleteMountPoint).build());
     return deletedInodes;
   }
 
@@ -2906,7 +2902,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     if (options.getMode() != Constants.INVALID_MODE) {
       builder.setPermission(options.getMode());
     }
-    appendJournalEntry(JournalEntry.newBuilder().setSetAttribute(builder).build(), journalContext);
+    journalContext.append(JournalEntry.newBuilder().setSetAttribute(builder).build());
   }
 
   @Override
@@ -2934,9 +2930,9 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     // write to journal
     AsyncPersistRequestEntry asyncPersistRequestEntry =
         AsyncPersistRequestEntry.newBuilder().setFileId(fileId).build();
-    appendJournalEntry(
-        JournalEntry.newBuilder().setAsyncPersistRequest(asyncPersistRequestEntry).build(),
-        journalContext);
+    journalContext
+        .append(JournalEntry.newBuilder().setAsyncPersistRequest(asyncPersistRequestEntry).build());
+
   }
 
   /**

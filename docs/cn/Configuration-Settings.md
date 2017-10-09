@@ -41,6 +41,14 @@ Hadoop MapReduce用户可以在`hadoop jar`命令中添加`-Dkey=property`将配
 <table class="table table-striped">
 <tr><th>环境变量</th><th>意义</th></tr>
 <tr>
+  <td><code class="highlighter-rouge">ALLUXIO_CONF_DIR</code></td>
+  <td>Alluxio配置目录的路径.</td>
+</tr>
+<tr>
+  <td><code class="highlighter-rouge">ALLUXIO_LOGS_DIR</code></td>
+  <td>Alluxio logs目录的路径.</td>
+</tr>
+<tr>
   <td><code class="highlighter-rouge">ALLUXIO_MASTER_HOSTNAME</code></td>
   <td>Alluxio master的主机名，默认为localhost</td>
 </tr>
@@ -79,6 +87,18 @@ Hadoop MapReduce用户可以在`hadoop jar`命令中添加`-Dkey=property`将配
 <tr>
   <td><code class="highlighter-rouge">ALLUXIO_CLASSPATH</code></td>
   <td>Alluxio进程的额外classpath入口. 默认为空</td>
+</tr>
+<tr>
+  <td><code class="highlighter-rouge">ALLUXIO_LOGSERVER_HOSTNAME</code></td>
+  <td>log server的主机名.默认为空.</td>
+</tr>
+<tr>
+  <td><code class="highlighter-rouge">ALLUXIO_LOGSERVER_PORT</code></td>
+  <td>log server的端口名.默认为45600.</td>
+</tr>
+<tr>
+  <td><code class="highlighter-rouge">ALLUXIO_LOGSERVER_LOGS_DIR</code></td>
+  <td>Alluxio log服务器存储从Alluxio服务器接收的log的本地目录路径.</td>
 </tr>
 </table>
 

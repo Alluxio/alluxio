@@ -9,10 +9,11 @@ priority: 1
 * 内容列表
 {:toc}
 
-Alluxio安全性目前有两个特性，该文档介绍它们的概念以及用法。
+Alluxio安全性目前有三个特性，该文档介绍它们的概念以及用法。
 
 1. [安全认证](#authentication)：在启用安全认证的情况下，Alluxio文件系统能够识别确认访问用户的身份，这是访问权限等其他安全特性的基础。
 2. [访问权限控制](#authorization)：在启用访问权限控制的情况下，Alluxio文件系统能够控制用户的访问，Alluxio使用POSIX标准的授权模型赋予用户相应访问权限。
+3. [审查机制](#auditing)：在启用审查机制的情况下,Alluxio文件系统会维护一个审查日志，用于记录用户获取文件元数据。
 
 默认情况下，Alluxio会以SIMPLE安全模式启动并要求一个简单的认证。
 SIMPLE模式表明服务端信任客户端声明的任何身份。
@@ -105,6 +106,52 @@ Alluxio文件系统为目录和文件实现了一个访问权限模型，该模�
 
 所属用户只能由超级用户修改。
 所属组和访问权限只能由超级用户和文件所有者修改。
+
+## 审查
+Alluxio支持审查日志用于系统管理员追踪用户对文件元数据的访问操作。
+
+审查日志文件(`master_audit.log`) 包括多个审查记录条目，每个条目对应一次文件元数据获取记录。
+Alluxio审查日志格式如下表所示：
+
+<table class="table table-striped">
+<tr><th>key</th><th>value</th></tr>
+<tr>
+  <td>succeeded</td>
+  <td>如果命令成功运行，值为true。在命令成功运行前，该命令必须是被允许的。 </td>
+</tr>
+<tr>
+  <td>allowed</td>
+  <td>如果命令是被允许的，值为true。即使一条命令是被允许的它也可能运行失败。 </td>
+</tr>
+<tr>
+  <td>ugi</td>
+  <td>用户组信息，包括用户名，主要组，认证类型。 </td>
+</tr>
+<tr>
+  <td>ip</td>
+  <td>客户端IP地址。 </td>
+</tr>
+<tr>
+  <td>cmd</td>
+  <td>用户运行的命令。 </td>
+</tr>
+<tr>
+  <td>src</td>
+  <td>源文件或目录地址。 </td>
+</tr>
+<tr>
+  <td>dst</td>
+  <td>目标文件或目录的地址。如果不适用，值为空。 </td>
+</tr>
+<tr>
+  <td>perm</td>
+  <td>user:group:mask，如果不适用值为空。 </td>
+</tr>
+</table>
+
+它和HDfS审查日志的格式很像，参考[wiki](https://wiki.apache.org/hadoop/HowToConfigure)。
+
+要使用Alluxio审查记录功能，你需要将JVM参数`alluxio.master.audit.logging.enabled`设置为true，具体可见[Configuration settings](Configuration-Settings.html)。
 
 ## 加密
 
