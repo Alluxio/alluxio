@@ -102,7 +102,7 @@ public final class NettyPacketWriter implements PacketWriter {
   @GuardedBy("mLock")
   private boolean mCancelSent;
   /** This condition is met if mPacketWriteException != null or mDone = true. */
-  private Condition mDoneOrFailed = mLock.newCondition();
+  private final Condition mDoneOrFailed = mLock.newCondition();
   /** This condition is met if mPacketWriteException != null or the buffer is not full. */
   private Condition mBufferNotFullOrFailed = mLock.newCondition();
   /** This condition is met if there is nothing in the netty buffer. */
