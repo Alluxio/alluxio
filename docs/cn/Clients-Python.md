@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 ---
 layout: global
 title: Python Client
