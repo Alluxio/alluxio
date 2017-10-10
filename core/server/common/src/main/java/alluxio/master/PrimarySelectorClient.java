@@ -212,7 +212,7 @@ public final class PrimarySelectorClient
 
     // Sometimes, if the master crashes and restarts too quickly (faster than the zookeeper
     // timeout), zookeeper thinks the new client is still an old one. In order to ensure a clean
-    // state, explicitly close the "old" client recreate a new one.
+    // state, explicitly close the "old" client and recreate a new one.
     client.close();
     client = CuratorFrameworkFactory.newClient(mZookeeperAddress,
         new ExponentialBackoffRetry(Constants.SECOND_MS, 3));
