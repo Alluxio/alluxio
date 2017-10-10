@@ -24,6 +24,9 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
 /**
  * Tests for the {@link DataFileChannel} class.
  */
@@ -58,7 +61,7 @@ public class DataFileChannelTest {
   public void nettyOutput() {
     DataFileChannel data = new DataFileChannel(mFile, OFFSET, LENGTH);
     Object output = data.getNettyOutput();
-    Assert.assertTrue(output instanceof FileRegion);
+    assertTrue(output instanceof FileRegion);
   }
 
   /**
@@ -67,6 +70,6 @@ public class DataFileChannelTest {
   @Test
   public void length() {
     DataFileChannel data = new DataFileChannel(mFile, OFFSET, LENGTH);
-    Assert.assertEquals(LENGTH, data.getLength());
+    assertEquals(LENGTH, data.getLength());
   }
 }
