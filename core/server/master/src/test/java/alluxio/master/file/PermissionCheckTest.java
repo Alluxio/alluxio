@@ -77,9 +77,8 @@ import java.util.List;
 
 /**
  * Unit test for {@link FileSystemMaster} when permission check is enabled by configure
- * alluxio.security.authorization.permission.enabled=true...
+ * alluxio.security.authorization.permission.enabled=true.
  */
-
 public final class PermissionCheckTest {
   private static final String TEST_SUPER_GROUP = "test-supergroup";
 
