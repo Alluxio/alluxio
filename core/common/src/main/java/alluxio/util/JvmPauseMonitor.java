@@ -42,7 +42,7 @@ public final class JvmPauseMonitor {
       JvmPauseMonitor.class);
 
   /** The target sleep time. */
-  private final long mGcSleepINtervalMs;
+  private final long mGcSleepIntervalMs;
 
   /** log WARN if we detect a pause longer than this threshold.*/
   private final long mWarnThresholdMs;
@@ -61,7 +61,7 @@ public final class JvmPauseMonitor {
    * Constructs JvmPauseMonitor.
    */
   public JvmPauseMonitor() {
-    mGcSleepINtervalMs = Configuration.getLong(PropertyKey.JVM_MONITOR_SLEEP_INTERVAL_MS);
+    mGcSleepIntervalMs = Configuration.getLong(PropertyKey.JVM_MONITOR_SLEEP_INTERVAL_MS);
     mWarnThresholdMs = Configuration.getLong(PropertyKey.JVM_MONITOR_WARN_THRESHOLD_MS);
     mInfoThresholdMs = Configuration.getLong(PropertyKey.JVM_MONITOR_INFO_THRESHOLD_MS);
   }
@@ -186,11 +186,11 @@ public final class JvmPauseMonitor {
       while (mShouldRun) {
         sw.reset().start();
         try {
-          Thread.sleep(mGcSleepINtervalMs);
+          Thread.sleep(mGcSleepIntervalMs);
         } catch (InterruptedException ie) {
           return;
         }
-        long extraSleepTime = sw.now(TimeUnit.MILLISECONDS) - mGcSleepINtervalMs;
+        long extraSleepTime = sw.now(TimeUnit.MILLISECONDS) - mGcSleepIntervalMs;
         Map<String, GcTimes> gcTimesAfterSleep = getGcTimes();
 
         if (extraSleepTime > mWarnThresholdMs) {

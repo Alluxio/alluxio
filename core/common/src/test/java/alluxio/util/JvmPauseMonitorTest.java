@@ -31,7 +31,6 @@ public final class JvmPauseMonitorTest {
         break;
       }
     }
-    Assert.assertNotEquals(jvmPauseMonitor.getNumGcInfoThresholdExceeded(), 0);
     Assert.assertNotEquals(jvmPauseMonitor.getNumGcWarnThreadholdExceeded(), 0);
     Assert.assertNotEquals(jvmPauseMonitor.getTotalGcExtraSleepTime(), 0);
   }
