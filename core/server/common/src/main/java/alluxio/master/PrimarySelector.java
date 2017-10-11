@@ -29,7 +29,7 @@ public interface PrimarySelector {
     /** The current process is primary. */
     PRIMARY,
     /** The current process is secondary. */
-    SECONDARY;
+    SECONDARY,
   }
 
   /**
