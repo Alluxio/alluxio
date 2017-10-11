@@ -118,7 +118,7 @@ public final class JvmPauseMonitor {
   }
 
   private String formatMessage(long extraSleepTime, Map<String, GcTimes> gcTimesAfterSleep,
-                               Map<String, GcTimes> gcTimesBeforeSleep) {
+      Map<String, GcTimes> gcTimesBeforeSleep) {
 
     Set<String> gcBeanNames = Sets.intersection(
         gcTimesAfterSleep.keySet(),

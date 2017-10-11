@@ -223,8 +223,10 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
     mWebServer.addHandler(mMetricsServlet.getHandler());
     mWebServer.start();
 
-    //Start monitor jvm
-    mJvmPauseMonitor.start();
+    // Start monitor jvm
+    if (Configuration.getBoolean(PropertyKey.JVM_MONITOR_WORKER_START)) {
+      mJvmPauseMonitor.start();
+    }
 
     mIsServingRPC = true;
 

@@ -1756,6 +1756,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Name.JVM_MONITOR_SLEEP_INTERVAL_MS)
           .setDefaultValue(500)
           .build();
+  public static final PropertyKey JVM_MONITOR_MASTER_START =
+      new Builder(Name.JVM_MONITOR_MASTER_START)
+          .setDefaultValue(false)
+          .build();
+  public static final PropertyKey JVM_MONITOR_WORKER_START =
+      new Builder(Name.JVM_MONITOR_WORKER_START)
+          .setDefaultValue(false)
+          .build();
 
   /**
    * A nested class to hold named string constants for their corresponding properties.
@@ -2218,6 +2226,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String JVM_MONITOR_WARN_THRESHOLD_MS = "jvm.monitor.warn.threshold.ms";
     public static final String JVM_MONITOR_INFO_THRESHOLD_MS = "jvm.monitor.info.threshold.ms";
     public static final String JVM_MONITOR_SLEEP_INTERVAL_MS = "jvm.monitor.sleep.interval.ms";
+    public static final String JVM_MONITOR_MASTER_START = "jvm.monitor.master.start";
+    public static final String JVM_MONITOR_WORKER_START = "jvm.monitor.worker.start";
 
     private Name() {} // prevent instantiation
   }

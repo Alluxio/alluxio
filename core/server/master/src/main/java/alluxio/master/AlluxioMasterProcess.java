@@ -282,7 +282,9 @@ public class AlluxioMasterProcess implements MasterProcess {
    * Starts jvm monitor process, to monitor jvm.
    */
   protected void startJvmMonitorProcess() {
-    mJvmPauseMonitor.start();
+    if (Configuration.getBoolean(PropertyKey.JVM_MONITOR_MASTER_START)) {
+      mJvmPauseMonitor.start();
+    }
   }
 
   private void registerServices(TMultiplexedProcessor processor, Map<String, TProcessor> services) {
