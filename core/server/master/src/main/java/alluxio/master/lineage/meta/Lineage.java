@@ -66,7 +66,7 @@ public final class Lineage implements JournalEntryRepresentable {
       long creationTimeMs) {
     mInputFiles = Preconditions.checkNotNull(inputFiles, "inputFiles");
     mOutputFiles = Preconditions.checkNotNull(outputFiles, "outputFiles");
-    mJob = Preconditions.checkNotNull(job);
+    mJob = Preconditions.checkNotNull(job, "job");
     mId = id;
     mCreationTimeMs = creationTimeMs;
   }
