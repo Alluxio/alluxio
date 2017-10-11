@@ -49,8 +49,7 @@ import java.util.List;
  * Integration test for
  * {@link FileSystemMaster#checkConsistency(AlluxioURI, CheckConsistencyOptions)}.
  */
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(LocalUnderFileSystem.class)
+//@RunWith(PowerMockRunner.class)
 public class CheckConsistencyIntegrationTest extends BaseIntegrationTest {
   private static final AlluxioURI DIRECTORY = new AlluxioURI("/dir");
   private static final AlluxioURI FILE = new AlluxioURI("/dir/file");
