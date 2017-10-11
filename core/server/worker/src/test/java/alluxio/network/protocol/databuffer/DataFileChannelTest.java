@@ -17,7 +17,6 @@ import static org.junit.Assert.assertTrue;
 import alluxio.util.io.BufferUtils;
 
 import io.netty.channel.FileRegion;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
