@@ -26,7 +26,7 @@ public final class JvmPauseMonitorTest {
     int i = 0;
     while (true) {
       list.add(String.valueOf(i++));
-      if(jvmPauseMonitor.getNumGcWarnThreadholdExceeded() != 0) {
+      if (jvmPauseMonitor.getNumGcWarnThreadholdExceeded() != 0) {
         jvmPauseMonitor.stop();
         break;
       }
