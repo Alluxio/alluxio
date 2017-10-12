@@ -11,9 +11,11 @@
 
 package alluxio.network.protocol;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
+
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -37,18 +39,18 @@ public class RPCFileWriteResponseTest {
 
   private void assertValid(long tempUfsFileId, long offset, long length, RPCResponse.Status status,
       RPCFileWriteResponse resp) {
-    Assert.assertEquals(RPCMessage.Type.RPC_FILE_WRITE_RESPONSE, resp.getType());
-    Assert.assertEquals(tempUfsFileId, resp.getTempUfsFileId());
-    Assert.assertEquals(offset, resp.getOffset());
-    Assert.assertEquals(length, resp.getLength());
-    Assert.assertEquals(status, resp.getStatus());
+    assertEquals(RPCMessage.Type.RPC_FILE_WRITE_RESPONSE, resp.getType());
+    assertEquals(tempUfsFileId, resp.getTempUfsFileId());
+    assertEquals(offset, resp.getOffset());
+    assertEquals(length, resp.getLength());
+    assertEquals(status, resp.getStatus());
   }
 
   private void assertValid(RPCFileWriteResponse resp) {
     try {
       resp.validate();
     } catch (Exception e) {
-      Assert.fail("response should be valid.");
+      fail("response should be valid.");
     }
   }
 
@@ -68,7 +70,7 @@ public class RPCFileWriteResponseTest {
     RPCFileWriteResponse resp = new RPCFileWriteResponse(TEMP_UFS_FILE_ID, OFFSET, LENGTH, STATUS);
     int encodedLength = resp.getEncodedLength();
     resp.encode(mBuffer);
-    Assert.assertEquals(encodedLength, mBuffer.readableBytes());
+    assertEquals(encodedLength, mBuffer.readableBytes());
   }
 
   /**
