@@ -59,10 +59,6 @@ public class CheckConsistencyIntegrationTest extends BaseIntegrationTest {
   private FileSystem mFileSystem;
   private InodeTree mTree;
 
-  /** Rule to create a new temporary folder during each test. */
-  @Rule
-  public TemporaryFolder mTestFolder = new TemporaryFolder();
-
   @Before
   public final void before() throws Exception {
     mFileSystemMaster =
