@@ -12,6 +12,7 @@
 package alluxio.master.file;
 
 import alluxio.AlluxioURI;
+import alluxio.CommonTestUtils;
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.PropertyKey;
 import alluxio.BaseIntegrationTest;
@@ -70,7 +71,7 @@ public class CheckConsistencyIntegrationTest extends BaseIntegrationTest {
         CreateFileOptions.defaults().setWriteType(WriteType.CACHE_THROUGH);
     mFileSystem.createDirectory(DIRECTORY, dirOptions);
     mFileSystem.createFile(FILE, fileOptions).close();
-    mTree = mFileSystemMaster.getInodeTree();
+    mTree = CommonTestUtils.getInternalState(mFileSystemMaster, "mInodeTree");
   }
 
   @After
@@ -234,19 +235,32 @@ public class CheckConsistencyIntegrationTest extends BaseIntegrationTest {
 
   /**
    * Tests the {@link FileSystemMaster#checkConsistency(AlluxioURI, CheckConsistencyOptions)} method
-   * when file or directory user and group are changed.
+   * when file owner or group are changed.
    */
   @Test
-  public void chOwnAndGroup() throws Exception {
+  public void chOwnAndGroupFile() throws Exception {
+    chOwmAndGroup(FILE);
+  }
+
+  /**
+   * Tests the {@link FileSystemMaster#checkConsistency(AlluxioURI, CheckConsistencyOptions)} method
+   * when directory owner or group are changed.
+   */
+  @Test
+  public void chOwnAndGroupDir() throws Exception {
+    chOwmAndGroup(DIRECTORY);
+  }
+
+  private void chOwmAndGroup(AlluxioURI path) throws Exception {
     String owner = "alluxio-user1";
     String group = "alluxio-user1-group1";
 
-    LockedInodePath inodePathFile = mTree.lockFullInodePath(FILE, InodeTree.LockMode.WRITE);
-    Inode<?> inodeFile = inodePathFile.getInode();
-    inodeFile.setOwner(owner);
-    inodeFile.setGroup(group);
+    LockedInodePath inodePathDir = mTree.lockFullInodePath(path, InodeTree.LockMode.WRITE);
+    Inode<?> inodeDir = inodePathDir.getInode();
+    inodeDir.setOwner(owner);
+    inodeDir.setGroup(group);
 
-    List<AlluxioURI> expected = Lists.newArrayList(FILE);
+    List<AlluxioURI> expected = Lists.newArrayList(path);
     List<AlluxioURI> result =
         mFileSystemMaster.checkConsistency(new AlluxioURI("/"), CheckConsistencyOptions.defaults());
     Collections.sort(expected);

@@ -361,11 +361,6 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
   }
 
   @Override
-  public InodeTree getInodeTree() {
-    return mInodeTree;
-  }
-
-  @Override
   public Set<Class<? extends Server>> getDependencies() {
     return DEPS;
   }
@@ -888,14 +883,13 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       if (inode.getParentId() == -1) {
         return true;
       }
-      if (!ufs.isDirectory(ufsPath)) {
-        return false;
-      } else {
-        //UfsFileStatus fileStatus = ufs.getFileStatus(ufsPath);
+      if (ufs.isDirectory(ufsPath)) {
         UfsDirectoryStatus ufsDirectoryStatus = ufs.getDirectoryStatus(ufsPath);
         return ufsDirectoryStatus.getMode() == inode.getMode()
             && Objects.equals(ufsDirectoryStatus.getGroup(), inode.getGroup())
             && Objects.equals(ufsDirectoryStatus.getOwner(), inode.getOwner());
+      } else {
+        return false;
       }
     } else {
       InodeFile file = (InodeFile) inode;
