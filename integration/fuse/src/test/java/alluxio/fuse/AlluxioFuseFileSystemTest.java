@@ -11,18 +11,6 @@
 
 package alluxio.fuse;
 
-import static jnr.constants.platform.OpenFlags.O_RDONLY;
-import static jnr.constants.platform.OpenFlags.O_RDWR;
-import static jnr.constants.platform.OpenFlags.O_WRONLY;
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyInt;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyZeroInteractions;
-import static org.mockito.Mockito.when;
-
 import alluxio.AlluxioURI;
 import alluxio.ConfigurationRule;
 import alluxio.PropertyKey;
@@ -31,12 +19,10 @@ import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.wire.FileInfo;
-
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableMap;
 import jnr.ffi.Pointer;
 import jnr.ffi.Runtime;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -47,6 +33,13 @@ import ru.serce.jnrfuse.struct.FuseFileInfo;
 
 import java.util.Collections;
 import java.util.List;
+
+import static jnr.constants.platform.OpenFlags.*;
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyInt;
+import static org.mockito.Mockito.*;
 
 /**
  * Isolation tests for {@link AlluxioFuseFileSystem}.
@@ -219,11 +212,11 @@ public class AlluxioFuseFileSystemTest {
 
     AlluxioURI expected = new AlluxioURI(TEST_ROOT_PATH);
     AlluxioURI actual = resolver.apply("/");
-    Assert.assertEquals("/ should resolve to " + expected, expected, actual);
+    assertEquals("/ should resolve to " + expected, expected, actual);
 
     expected = new AlluxioURI(TEST_ROOT_PATH + "/home/foo");
     actual = resolver.apply("/home/foo");
-    Assert.assertEquals("/home/foo should resolve to " + expected, expected, actual);
+    assertEquals("/home/foo should resolve to " + expected, expected, actual);
   }
 
   // Allocate native memory for a FuseFileInfo data struct and return its pointer
