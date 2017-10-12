@@ -18,6 +18,7 @@ import alluxio.client.file.FileSystemTestUtils;
 import alluxio.exception.ExceptionMessage;
 import alluxio.cli.fs.AbstractAlluxioShellTest;
 
+import org.junit.Assert;
 import org.junit.Test;
 
 /**
