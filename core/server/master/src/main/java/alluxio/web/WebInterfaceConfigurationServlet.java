@@ -31,6 +31,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import com.google.common.collect.Sets
 
 /**
  * Servlet that provides data for displaying the system's configuration.
@@ -39,8 +40,8 @@ import javax.servlet.http.HttpServletResponse;
 public final class WebInterfaceConfigurationServlet extends HttpServlet {
   private static final long serialVersionUID = 2134205675393443914L;
   private static final String ALLUXIO_CONF_PREFIX = "alluxio";
-  private static final Set<String> ALLUXIO_CONF_EXCLUDES = new HashSet<>(
-      Arrays.asList(PropertyKey.MASTER_WHITELIST.toString()));
+ private static final Set<String> ALLUXIO_CONF_EXCLUDES = Sets.newHashSet(
+      PropertyKey.MASTER_WHITELIST.toString());
 
   private final FileSystemMaster mFsMaster;
 
