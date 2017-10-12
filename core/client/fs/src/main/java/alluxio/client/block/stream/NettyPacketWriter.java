@@ -83,7 +83,7 @@ public final class NettyPacketWriter implements PacketWriter {
 
   private boolean mClosed;
 
-  private ReentrantLock mLock = new ReentrantLock();
+  private final ReentrantLock mLock = new ReentrantLock();
   /** The next pos to write to the channel. */
   @GuardedBy("mLock")
   private long mPosToWrite;
@@ -104,7 +104,7 @@ public final class NettyPacketWriter implements PacketWriter {
   /** This condition is met if mPacketWriteException != null or mDone = true. */
   private final Condition mDoneOrFailed = mLock.newCondition();
   /** This condition is met if mPacketWriteException != null or the buffer is not full. */
-  private Condition mBufferNotFullOrFailed = mLock.newCondition();
+  private final Condition mBufferNotFullOrFailed = mLock.newCondition();
   /** This condition is met if there is nothing in the netty buffer. */
   private Condition mBufferEmptyOrFailed = mLock.newCondition();
 

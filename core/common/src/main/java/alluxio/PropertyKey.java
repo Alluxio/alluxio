@@ -573,7 +573,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue("_format_")
           .setDescription("The file prefix of the file generated in the journal directory "
               + "when the journal is formatted. The master will search for a file with this "
-              + "prefix when determining of the journal was once formatted.")
+              + "prefix when determining if the journal is formatted.")
           .build();
   public static final PropertyKey MASTER_HEARTBEAT_INTERVAL_MS =
       new Builder(Name.MASTER_HEARTBEAT_INTERVAL_MS)
