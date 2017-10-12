@@ -24,6 +24,7 @@ import alluxio.exception.InvalidPathException;
 import alluxio.exception.UnexpectedAlluxioException;
 import alluxio.master.Master;
 import alluxio.master.file.meta.FileSystemMasterView;
+import alluxio.master.file.meta.InodeTree;
 import alluxio.master.file.meta.PersistenceState;
 import alluxio.master.file.options.CheckConsistencyOptions;
 import alluxio.master.file.options.CompleteFileOptions;
@@ -226,6 +227,11 @@ public interface FileSystemMaster extends Master {
    * @return the number of pinned files and directories
    */
   int getNumberOfPinnedFiles();
+
+  /**
+   * @return the InodeTree of the fileSystem
+   */
+  InodeTree getInodeTree();
 
   /**
    * Deletes a given path.

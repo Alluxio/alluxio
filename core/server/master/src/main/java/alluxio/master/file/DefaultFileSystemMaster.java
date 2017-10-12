@@ -361,6 +361,11 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
   }
 
   @Override
+  public InodeTree getInodeTree() {
+    return mInodeTree;
+  }
+
+  @Override
   public Set<Class<? extends Server>> getDependencies() {
     return DEPS;
   }

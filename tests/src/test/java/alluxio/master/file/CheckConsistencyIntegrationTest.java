@@ -19,14 +19,13 @@ import alluxio.client.WriteType;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.options.CreateDirectoryOptions;
 import alluxio.client.file.options.CreateFileOptions;
-import alluxio.exception.InvalidPathException;
+import alluxio.master.file.meta.Inode;
+import alluxio.master.file.meta.InodeTree;
+import alluxio.master.file.meta.LockedInodePath;
 import alluxio.master.file.options.CheckConsistencyOptions;
 import alluxio.security.authentication.AuthenticatedClientUser;
-import alluxio.underfs.UfsDirectoryStatus;
-import alluxio.underfs.UfsFileStatus;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.DeleteOptions;
-import alluxio.underfs.local.LocalUnderFileSystem;
 
 import com.google.common.collect.Lists;
 import org.junit.After;
@@ -34,12 +33,8 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
+import org.junit.rules.TemporaryFolder;
 
-import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -49,7 +44,7 @@ import java.util.List;
  * Integration test for
  * {@link FileSystemMaster#checkConsistency(AlluxioURI, CheckConsistencyOptions)}.
  */
-//@RunWith(PowerMockRunner.class)
+
 public class CheckConsistencyIntegrationTest extends BaseIntegrationTest {
   private static final AlluxioURI DIRECTORY = new AlluxioURI("/dir");
   private static final AlluxioURI FILE = new AlluxioURI("/dir/file");
@@ -62,20 +57,11 @@ public class CheckConsistencyIntegrationTest extends BaseIntegrationTest {
 
   private FileSystemMaster mFileSystemMaster;
   private FileSystem mFileSystem;
+  private InodeTree mTree;
 
-  private void setupUserGroupMocks(String username, String groups)
-      throws Exception {
-    UfsFileStatus ufsFileStatus = PowerMockito.mock(UfsFileStatus.class);
-    UfsDirectoryStatus ufsDirectoryStatus = PowerMockito.mock(UfsDirectoryStatus.class);
-
-    PowerMockito.whenNew(UfsFileStatus.class).withAnyArguments().thenReturn(ufsFileStatus);
-    PowerMockito.whenNew(UfsDirectoryStatus.class).withAnyArguments().thenReturn(ufsDirectoryStatus);
-
-    PowerMockito.when(ufsFileStatus.getOwner()).thenReturn(username);
-    PowerMockito.when(ufsFileStatus.getGroup()).thenReturn(groups);
-    PowerMockito.when(ufsDirectoryStatus.getOwner()).thenReturn(username);
-    PowerMockito.when(ufsDirectoryStatus.getGroup()).thenReturn(groups);
-  }
+  /** Rule to create a new temporary folder during each test. */
+  @Rule
+  public TemporaryFolder mTestFolder = new TemporaryFolder();
 
   @Before
   public final void before() throws Exception {
@@ -90,6 +76,8 @@ public class CheckConsistencyIntegrationTest extends BaseIntegrationTest {
         CreateFileOptions.defaults().setWriteType(WriteType.CACHE_THROUGH);
     mFileSystem.createDirectory(DIRECTORY, dirOptions);
     mFileSystem.createFile(FILE, fileOptions).close();
+
+    mTree = mFileSystemMaster.getInodeTree();
   }
 
   @After
@@ -256,12 +244,16 @@ public class CheckConsistencyIntegrationTest extends BaseIntegrationTest {
    * when file or directory user and group are changed.
    */
   @Test
-  public void chUserAndGroup() throws Exception {
-    String userName = "alluxio-user1";
-    String userGroup = "alluxio-user1-group1";
-    setupUserGroupMocks(userName,userGroup);
+  public void chOwnAndGroup() throws Exception {
+    String owner = "alluxio-user1";
+    String group = "alluxio-user1-group1";
 
-    List<AlluxioURI> expected = Lists.newArrayList(FILE, DIRECTORY);
+    LockedInodePath inodePathFile = mTree.lockFullInodePath(FILE, InodeTree.LockMode.WRITE);
+    Inode<?> inodeFile = inodePathFile.getInode();
+    inodeFile.setOwner(owner);
+    inodeFile.setGroup(group);
+
+    List<AlluxioURI> expected = Lists.newArrayList(FILE);
     List<AlluxioURI> result =
         mFileSystemMaster.checkConsistency(new AlluxioURI("/"), CheckConsistencyOptions.defaults());
     Collections.sort(expected);
