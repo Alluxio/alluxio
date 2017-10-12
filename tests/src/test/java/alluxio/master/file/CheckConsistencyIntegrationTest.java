@@ -43,7 +43,6 @@ import java.util.List;
  * Integration test for
  * {@link FileSystemMaster#checkConsistency(AlluxioURI, CheckConsistencyOptions)}.
  */
-
 public class CheckConsistencyIntegrationTest extends BaseIntegrationTest {
   private static final AlluxioURI DIRECTORY = new AlluxioURI("/dir");
   private static final AlluxioURI FILE = new AlluxioURI("/dir/file");
@@ -71,7 +70,6 @@ public class CheckConsistencyIntegrationTest extends BaseIntegrationTest {
         CreateFileOptions.defaults().setWriteType(WriteType.CACHE_THROUGH);
     mFileSystem.createDirectory(DIRECTORY, dirOptions);
     mFileSystem.createFile(FILE, fileOptions).close();
-
     mTree = mFileSystemMaster.getInodeTree();
   }
 
@@ -223,8 +221,8 @@ public class CheckConsistencyIntegrationTest extends BaseIntegrationTest {
     String ufsDirectory = mFileSystem.getStatus(DIRECTORY).getUfsPath();
     String ufsFile = mFileSystem.getStatus(FILE).getUfsPath();
     UnderFileSystem ufs = UnderFileSystem.Factory.create(ufsDirectory);
-    ufs.setMode(ufsDirectory,(short)511);
-    ufs.setMode(ufsFile,(short)511);
+    ufs.setMode(ufsDirectory, (short) 511);
+    ufs.setMode(ufsFile, (short) 511);
 
     List<AlluxioURI> expected = Lists.newArrayList(FILE, DIRECTORY);
     List<AlluxioURI> result =
