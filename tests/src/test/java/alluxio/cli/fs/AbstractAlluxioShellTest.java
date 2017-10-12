@@ -11,8 +11,8 @@
 
 package alluxio.cli.fs;
 
-import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertTrue;
 
 import alluxio.PropertyKey;
@@ -34,7 +34,6 @@ import alluxio.util.io.BufferUtils;
 import alluxio.util.io.PathUtils;
 
 import org.junit.After;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.rules.ExpectedException;
