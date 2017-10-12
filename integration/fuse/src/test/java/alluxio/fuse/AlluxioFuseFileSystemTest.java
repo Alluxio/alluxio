@@ -219,11 +219,11 @@ public class AlluxioFuseFileSystemTest {
 
     AlluxioURI expected = new AlluxioURI(TEST_ROOT_PATH);
     AlluxioURI actual = resolver.apply("/");
-    Assert.assertEquals("/ should resolve to " + expected, expected, actual);
+    assertEquals("/ should resolve to " + expected, expected, actual);
 
     expected = new AlluxioURI(TEST_ROOT_PATH + "/home/foo");
     actual = resolver.apply("/home/foo");
-    Assert.assertEquals("/home/foo should resolve to " + expected, expected, actual);
+    assertEquals("/home/foo should resolve to " + expected, expected, actual);
   }
 
   // Allocate native memory for a FuseFileInfo data struct and return its pointer
