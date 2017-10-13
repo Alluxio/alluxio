@@ -11,6 +11,8 @@
 
 package alluxio.underfs;
 
+import alluxio.Configuration;
+import alluxio.PropertyKey;
 import alluxio.extensions.ExtensionsClassLoader;
 import alluxio.util.ExtensionUtils;
 
@@ -19,9 +21,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.net.MalformedURLException;
+import java.io.IOException;
 import java.net.URL;
+import java.nio.file.DirectoryStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -79,6 +86,7 @@ public final class UnderFileSystemFactoryRegistry {
   private static final Logger LOG = LoggerFactory.getLogger(UnderFileSystemFactoryRegistry.class);
 
   // Key: absolute path to jar file
+  private static final Set<String> LOADED_LIB_JARS = new HashSet<>();
   private static final Set<String> LOADED_EXTENSION_JARS = new HashSet<>();
   private static final List<UnderFileSystemFactory> FACTORIES = new CopyOnWriteArrayList<>();
 
@@ -111,7 +119,8 @@ public final class UnderFileSystemFactoryRegistry {
   public static UnderFileSystemFactory find(String path) {
     Preconditions.checkArgument(path != null, "path may not be null");
 
-    scanExtensions();
+    loadLibs();
+    loadExtensions();
 
     for (UnderFileSystemFactory factory : FACTORIES) {
       if (factory.supportsPath(path)) {
@@ -135,7 +144,8 @@ public final class UnderFileSystemFactoryRegistry {
   public static List<UnderFileSystemFactory> findAll(String path) {
     Preconditions.checkArgument(path != null, "path may not be null");
 
-    scanExtensions();
+    loadLibs();
+    loadExtensions();
 
     List<UnderFileSystemFactory> eligibleFactories = new ArrayList<>();
     for (UnderFileSystemFactory factory : FACTORIES) {
@@ -153,28 +163,50 @@ public final class UnderFileSystemFactoryRegistry {
   }
 
   /**
+   * Finds all {@link UnderFileSystemFactory} from the lib directory and caches.
+   */
+  private static void loadLibs() {
+    List<File> files = new ArrayList<>();
+    try (DirectoryStream<Path> stream = Files.newDirectoryStream(
+        Paths.get(Configuration.get(PropertyKey.HOME), "lib"), "alluxio-underfs-*.jar")) {
+      for (Path entry : stream) {
+        if (entry.toFile().isFile()) {
+          files.add(entry.toFile());
+        }
+      }
+    } catch (IOException e) {
+      LOG.warn("Failed to load UFS libs: {}", e.getMessage());
+    }
+    scan(files, LOADED_LIB_JARS);
+  }
+
+  /**
    * Finds all {@link UnderFileSystemFactory} extensions from the extensions directory and caches.
    */
-  private static void scanExtensions() {
-    for (File extension : ExtensionUtils.listExtensions()) {
+  private static void loadExtensions() {
+    scan(Arrays.asList(ExtensionUtils.listExtensions()), LOADED_EXTENSION_JARS);
+  }
+
+  private static void scan(List<File> files, Set<String> jars) {
+    for (File jar : files) {
       try {
-        URL extensionURL = extension.toURI().toURL();
+        URL extensionURL = jar.toURI().toURL();
         String jarPath = extensionURL.toString();
-        if (!LOADED_EXTENSION_JARS.contains(jarPath)) {
+        if (!jars.contains(jarPath)) {
           ClassLoader extensionsClassLoader = new ExtensionsClassLoader(new URL[] {extensionURL},
               ClassLoader.getSystemClassLoader());
           ServiceLoader<UnderFileSystemFactory> extensionServiceLoader =
               ServiceLoader.load(UnderFileSystemFactory.class, extensionsClassLoader);
           for (UnderFileSystemFactory factory : extensionServiceLoader) {
-            LOG.debug("Discovered an Under File System Factory implementation {} - {} in "
-                + "extension jar {}", factory.getClass(), factory.toString(), jarPath);
+            LOG.debug("Discovered an Under File System Factory implementation {} - {} in jar {}",
+                factory.getClass(), factory.toString(), jarPath);
             // Cache
             register(factory);
-            LOADED_EXTENSION_JARS.add(jarPath);
+            jars.add(jarPath);
           }
         }
-      } catch (MalformedURLException e) {
-        LOG.warn("Extension URL is malformed: {}", e.getMessage());
+      } catch (Throwable t) {
+        LOG.warn("Failed to load jar {}: {}", jar, t.getMessage());
       }
     }
   }
@@ -191,10 +223,11 @@ public final class UnderFileSystemFactoryRegistry {
     for (UnderFileSystemFactory factory : discoveredFactories) {
       LOG.debug("Discovered Under File System Factory implementation {} - {}", factory.getClass(),
           factory.toString());
-      FACTORIES.add(factory);
+      register(factory);
     }
 
-    scanExtensions();
+    loadLibs();
+    loadExtensions();
 
     sInit = true;
   }
@@ -235,6 +268,7 @@ public final class UnderFileSystemFactoryRegistry {
       // Reset state
       sInit = false;
       FACTORIES.clear();
+      LOADED_LIB_JARS.clear();
       LOADED_EXTENSION_JARS.clear();
     }
 
