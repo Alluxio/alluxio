@@ -106,7 +106,7 @@ public final class NettyPacketWriter implements PacketWriter {
   /** This condition is met if mPacketWriteException != null or the buffer is not full. */
   private final Condition mBufferNotFullOrFailed = mLock.newCondition();
   /** This condition is met if there is nothing in the netty buffer. */
-  private Condition mBufferEmptyOrFailed = mLock.newCondition();
+  private final Condition mBufferEmptyOrFailed = mLock.newCondition();
 
   /**
    * @param context the file system context
