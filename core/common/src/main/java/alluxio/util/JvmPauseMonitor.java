@@ -207,21 +207,4 @@ public final class JvmPauseMonitor {
       }
     }
   }
-
-  /**
-   * Simple 'main' to facilitate manual testing of the pause monitor.
-   *
-   * This main function just leaks memory into a list. Running this class
-   * with a 1GB heap will very quickly go into "GC hell" and result in
-   * log messages about the GC pauses.
-   * @param  args arg from command
-   */
-  public static void main(String []args) throws Exception {
-    new JvmPauseMonitor().start();
-    List<String> list = Lists.newArrayList();
-    int i = 0;
-    while (true) {
-      list.add(String.valueOf(i++));
-    }
-  }
 }
