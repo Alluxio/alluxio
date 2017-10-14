@@ -102,7 +102,7 @@ public class FileInStream extends InputStream
   private long mStreamBlockId;
 
   /** The read buffer in file seek. This is used in {@link #readCurrentBlockToEnd()}. */
-  private byte[] mSeekBuffer;
+  private final byte[] mSeekBuffer;
 
   /**
    * Creates a new file input stream.
