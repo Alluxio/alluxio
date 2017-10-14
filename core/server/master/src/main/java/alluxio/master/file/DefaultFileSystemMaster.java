@@ -878,16 +878,16 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       return !ufs.exists(ufsPath);
     }
     // TODO(calvin): Evaluate which other metadata fields should be validated.
-    if (inode.isDirectory()) {
-      //ignore root
-      if (inode.getParentId() == -1) {
-        return true;
-      }
+    //ignore root
+    if (inode.getParentId() == -1) {
+      return true;
+    } else if (inode.isDirectory()) {
+      InodeDirectory directory = (InodeDirectory) inode;
       if (ufs.isDirectory(ufsPath)) {
         UfsDirectoryStatus ufsDirectoryStatus = ufs.getDirectoryStatus(ufsPath);
-        return ufsDirectoryStatus.getMode() == inode.getMode()
-            && Objects.equals(ufsDirectoryStatus.getGroup(), inode.getGroup())
-            && Objects.equals(ufsDirectoryStatus.getOwner(), inode.getOwner());
+        return ufsDirectoryStatus.getMode() == directory.getMode()
+            && Objects.equals(ufsDirectoryStatus.getGroup(), directory.getGroup())
+            && Objects.equals(ufsDirectoryStatus.getOwner(), directory.getOwner());
       } else {
         return false;
       }
@@ -897,8 +897,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         UfsFileStatus ufsFileStatus = ufs.getFileStatus(ufsPath);
         return ufsFileStatus.getContentLength() == file.getLength()
             && ufsFileStatus.getMode() == file.getMode()
-            && Objects.equals(ufsFileStatus.getGroup(), inode.getGroup())
-            && Objects.equals(ufsFileStatus.getOwner(), inode.getOwner());
+            && Objects.equals(ufsFileStatus.getGroup(), file.getGroup())
+            && Objects.equals(ufsFileStatus.getOwner(), file.getOwner());
       } else {
         return false;
       }
