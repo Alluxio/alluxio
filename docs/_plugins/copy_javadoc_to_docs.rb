@@ -11,7 +11,7 @@ puts "Making directory " + dest
 mkdir_p dest
 
 if !File.directory?(source)
-  puts source + " not found, continuing without javadoc"
+  puts "WARNING: " + source + " not found, continuing without javadoc"
 else
   puts "cp -r " + source + "/. " + dest
   cp_r(source + "/.", dest)
