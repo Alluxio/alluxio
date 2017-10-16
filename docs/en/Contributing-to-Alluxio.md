@@ -28,7 +28,7 @@ There are a few things that new contributors can do to familiarize themselves wi
 6.  Fork the repository, add unit tests or javadoc for one or two files, and submit a pull request. You are also welcome to address
 issues in our [JIRA](https://alluxio.atlassian.net/browse/ALLUXIO).
 Here is a list of unassigned
-[New Contributor Tasks](https://alluxio.atlassian.net/issues/?jql=project%20%3D%20ALLUXIO%20AND%20status%20%3D%20Open%20AND%20labels%20%3D%20NewContributor%20AND%20assignee%20in%20(EMPTY)). 
+[New Contributor Tasks](https://alluxio.atlassian.net/issues/?jql=project%20%3D%20ALLUXIO%20AND%20status%20%3D%20Open%20AND%20labels%20%3D%20NewContributor%20AND%20assignee%20in%20(EMPTY)).
 Please limit 2 tasks per New Contributor.
 Afterwards, try some Beginner/Intermediate tasks, or ask in the
 [User Mailing List](https://groups.google.com/forum/?fromgroups#!forum/alluxio-users).
@@ -106,6 +106,8 @@ leverage the Scala shell, as discussed in this
        mWorkerClient;`
     -  Static variable names should be prefixed with `s`, for example `public static String
     sUnderFSAddress;`
+-   Bash scripts follow [Google Shell style](https://google.github.io/styleguide/shell.xml), and
+    must be compatible with Bash 3.x
 -   You can download our [Eclipse formatter](../resources/alluxio-code-formatter-eclipse.xml)
     -  For Eclipse to organize your imports correctly, configure "Organize Imports" to look like
        [this](../resources/eclipse_imports.png)
