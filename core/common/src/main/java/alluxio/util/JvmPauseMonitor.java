@@ -126,6 +126,13 @@ public final class JvmPauseMonitor {
     return mTotalExtraTime;
   }
 
+  private String getMemoryInfo() {
+    Runtime runtime = Runtime.getRuntime();
+    return "max memory = " + runtime.maxMemory() / (1024 * 1024) + "M total memory = "
+        + runtime.totalMemory() / (1024 * 1024) + "M free memory = "
+        + runtime.freeMemory() / (1024 * 1024) + "M";
+  }
+
   private String formatLogString(long extraSleepTime,
       List<GarbageCollectorMXBean> gcMXBeanListBeforeSleep,
         List<GarbageCollectorMXBean> gcMXBeanListAfterSleep) {
@@ -143,10 +150,11 @@ public final class JvmPauseMonitor {
     }
     String ret = "JVM pause " + extraSleepTime + "ms\n";
     if (diffBean.isEmpty()) {
-      ret += "No GCs detected";
+      ret += "No GCs detected ";
     } else {
       ret += "GC list:\n" + Joiner.on("\n").join(diffBean);
     }
+    ret += getMemoryInfo();
     return ret;
   }
 
@@ -177,9 +185,6 @@ public final class JvmPauseMonitor {
               extraTime, gcBeanListBeforeSleep, gcBeanListAfterSleep));
         } else if (extraTime > mInfoThresholdMs) {
           ++mExceedInfoTimes;
-          LOG.info(formatLogString(
-              extraTime, gcBeanListBeforeSleep, gcBeanListAfterSleep));
-        } else {
           LOG.info(formatLogString(
               extraTime, gcBeanListBeforeSleep, gcBeanListAfterSleep));
         }
