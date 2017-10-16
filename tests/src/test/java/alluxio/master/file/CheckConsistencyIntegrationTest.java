@@ -255,10 +255,11 @@ public class CheckConsistencyIntegrationTest extends BaseIntegrationTest {
     String owner = "alluxio-user1";
     String group = "alluxio-user1-group1";
 
-    LockedInodePath inodePathDir = mTree.lockFullInodePath(path, InodeTree.LockMode.WRITE);
-    Inode<?> inodeDir = inodePathDir.getInode();
-    inodeDir.setOwner(owner);
-    inodeDir.setGroup(group);
+    try (LockedInodePath inodePathDir = mTree.lockFullInodePath(path, InodeTree.LockMode.WRITE)) {
+      Inode<?> inodeDir = inodePathDir.getInode();
+      inodeDir.setOwner(owner);
+      inodeDir.setGroup(group);
+    }
 
     List<AlluxioURI> expected = Lists.newArrayList(path);
     List<AlluxioURI> result =
