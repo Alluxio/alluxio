@@ -26,12 +26,12 @@ public final class JvmPauseMonitorTest {
     int i = 0;
     while (true) {
       list.add(String.valueOf(i++));
-      if (jvmPauseMonitor.getNumGcWarnThreadholdExceeded() != 0) {
+      if (jvmPauseMonitor.getExceedWarnTimes() != 0) {
         jvmPauseMonitor.stop();
         break;
       }
     }
-    Assert.assertNotEquals(jvmPauseMonitor.getNumGcWarnThreadholdExceeded(), 0);
-    Assert.assertNotEquals(jvmPauseMonitor.getTotalGcExtraSleepTime(), 0);
+    Assert.assertNotEquals(jvmPauseMonitor.getExceedWarnTimes(), 0);
+    Assert.assertNotEquals(jvmPauseMonitor.getTotalExtraTime(), 0);
   }
 }

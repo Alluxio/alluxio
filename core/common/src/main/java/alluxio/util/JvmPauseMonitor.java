@@ -17,8 +17,7 @@ import alluxio.Configuration;
 import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
+import com.google.common.base.Stopwatch;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -26,36 +25,35 @@ import org.apache.commons.logging.LogFactory;
 import java.lang.management.GarbageCollectorMXBean;
 import java.lang.management.ManagementFactory;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Class which sets up a simple thread which runs in a loop sleeping
- * for a short interval of time. If the sleep takes significantly longer
- * than its target time, it implies that the JVM or host machine has
- * paused processing, which may cause other problems. If such a pause is
- * detected, the thread logs a message.
+ * Class to monitor JVM with a daemon thread, the thread sleep period of time
+ * and get the true time the sleep takes. If it is longer than it should be, the
+ * JVM has paused processing. Then log it into different level.
  */
 public final class JvmPauseMonitor {
   private static final Log LOG = LogFactory.getLog(
       JvmPauseMonitor.class);
 
-  /** The target sleep time. */
+  /** The time to sleep. */
   private final long mGcSleepIntervalMs;
 
-  /** log WARN if we detect a pause longer than this threshold.*/
+  /** Extra sleep time longer than this threshold, log WARN. */
   private final long mWarnThresholdMs;
 
-  /** log INFO if we detect a pause longer than this threshold. */
+  /** Extra sleep time longer than this threshold, log INFO. */
   private final long mInfoThresholdMs;
 
-  private long mNumGcWarnThresholdExceeded = 0;
-  private long mNumGcInfoThresholdExceeded = 0;
-  private long mTotalGcExtraSleepTime = 0;
+  /** Times extra sleep time exceed WARN. */
+  private long mExceedWarnTimes = 0;
+  /** Times extra sleep time exceed INFO. */
+  private long mExceedInfoTimes = 0;
+  /** Total extra sleep time. */
+  private long mTotalExtraTime = 0;
 
-  private Thread mMonitorThread;
-  private volatile boolean mShouldRun = true;
+  private Thread mJvmMonitorThread;
+  private volatile boolean mThreadStarted = true;
 
   /**
    * Constructs JvmPauseMonitor.
@@ -67,143 +65,125 @@ public final class JvmPauseMonitor {
   }
 
   /**
-   * Starts jvm monitor.
+   * Starts jvm monitor thread.
    */
   public void start() {
-    Preconditions.checkState(mMonitorThread == null,
-        "Already started");
-    mMonitorThread = new Daemon(new Monitor());
-    mMonitorThread.start();
+    Preconditions.checkState(mJvmMonitorThread == null,
+        "JVM monitor thread already started");
+    mJvmMonitorThread = new Daemon(new Monitor());
+    mJvmMonitorThread.start();
   }
 
   /**
    * Stops jvm monitor.
    */
   public void stop() {
-    mShouldRun = false;
-    mMonitorThread.interrupt();
+    mThreadStarted = false;
+    mJvmMonitorThread.interrupt();
     try {
-      mMonitorThread.join();
+      mJvmMonitorThread.join();
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
     }
+    reset();
   }
 
   /**
-   * @return boolean if started,false otherwise
+   * Resets value of mJvmMonitorThread and mThreadStarted.
+   * @return reseted mThreadStarted
+   */
+  public JvmPauseMonitor reset() {
+    mJvmMonitorThread = null;
+    mThreadStarted = true;
+    return this;
+  }
+
+  /**
+   * @return true if thread started,false otherwise
    */
   public boolean isStarted() {
-    return mMonitorThread != null;
+    return mJvmMonitorThread != null;
   }
 
   /**
-   * @return mNumGcWarnThresholdExceeded
+   * @return Times exceed WARN threshold
    */
-  public long getNumGcWarnThreadholdExceeded() {
-    return mNumGcWarnThresholdExceeded;
+  public long getExceedWarnTimes() {
+    return mExceedWarnTimes;
   }
 
   /**
-   * @return mNumGcInfoThresholdExceeded
+   * @return Times exceed INFO threshold
    */
-  public long getNumGcInfoThresholdExceeded() {
-    return mNumGcInfoThresholdExceeded;
+  public long getExceedInfoTimes() {
+    return mExceedInfoTimes;
   }
 
   /**
-   * @return mTotalGcExtraSleepTime
+   * @return Total extra time
    */
-  public long getTotalGcExtraSleepTime() {
-    return mTotalGcExtraSleepTime;
+  public long getTotalExtraTime() {
+    return mTotalExtraTime;
   }
 
-  private String formatMessage(long extraSleepTime, Map<String, GcTimes> gcTimesAfterSleep,
-      Map<String, GcTimes> gcTimesBeforeSleep) {
-
-    Set<String> gcBeanNames = Sets.intersection(
-        gcTimesAfterSleep.keySet(),
-        gcTimesBeforeSleep.keySet());
-    List<String> gcDiffs = Lists.newArrayList();
-    for (String name : gcBeanNames) {
-      GcTimes diff = gcTimesAfterSleep.get(name).subtract(
-          gcTimesBeforeSleep.get(name));
-      if (diff.mGcCount != 0) {
-        gcDiffs.add("GC pool '" + name + "' had collection(s): "
-            + diff.toString());
+  private String formatLogString(long extraSleepTime,
+      List<GarbageCollectorMXBean> gcMXBeanListBeforeSleep,
+        List<GarbageCollectorMXBean> gcMXBeanListAfterSleep) {
+    List<String> diffBean = Lists.newArrayList();
+    GarbageCollectorMXBean oldBean;
+    GarbageCollectorMXBean newBean;
+    for (int i = 0; i < gcMXBeanListBeforeSleep.size(); i++) {
+      oldBean = gcMXBeanListBeforeSleep.get(i);
+      newBean = gcMXBeanListAfterSleep.get(i);
+      if (oldBean.getCollectionTime() != newBean.getCollectionTime()
+          || oldBean.getCollectionCount() != newBean.getCollectionCount()) {
+        diffBean.add("GC name= '" + newBean.getName() + " count="
+            + newBean.getCollectionCount() + " time=" + newBean.getCollectionTime() + "ms");
       }
     }
-
-    String ret = "Detected pause in JVM or host machine (eg GC): "
-        + "pause of approximately " + extraSleepTime + "ms\n";
-    if (gcDiffs.isEmpty()) {
+    String ret = "JVM pause " + extraSleepTime + "ms\n";
+    if (diffBean.isEmpty()) {
       ret += "No GCs detected";
     } else {
-      ret += Joiner.on("\n").join(gcDiffs);
+      ret += "GC list:\n" + Joiner.on("\n").join(diffBean);
     }
     return ret;
   }
 
-  private Map<String, GcTimes> getGcTimes() {
-    Map<String, GcTimes> map = Maps.newHashMap();
-    List<GarbageCollectorMXBean> gcBeans =
-        ManagementFactory.getGarbageCollectorMXBeans();
-    for (GarbageCollectorMXBean gcBean : gcBeans) {
-      map.put(gcBean.getName(), new GcTimes(gcBean));
-    }
-    return map;
-  }
-
-  private static final class GcTimes {
-    private GcTimes(GarbageCollectorMXBean gcBean) {
-      mGcCount = gcBean.getCollectionCount();
-      mGcTimeMillis = gcBean.getCollectionTime();
-    }
-
-    private GcTimes(long count, long time) {
-      mGcCount = count;
-      mGcTimeMillis = time;
-    }
-
-    private GcTimes subtract(GcTimes other) {
-      return new GcTimes(this.mGcCount - other.mGcCount,
-          mGcTimeMillis - other.mGcTimeMillis);
-    }
-
-    @Override
-    public String toString() {
-      return "count=" + mGcCount + " time=" + mGcTimeMillis + "ms";
-    }
-
-    private long mGcCount;
-    private long mGcTimeMillis;
+  private List<GarbageCollectorMXBean> getGarbageCollectorMXBeanList() {
+    return ManagementFactory.getGarbageCollectorMXBeans();
   }
 
   private class Monitor implements Runnable {
     @Override
     public void run() {
-      StopWatch sw = new StopWatch();
-      Map<String, GcTimes> gcTimesBeforeSleep = getGcTimes();
-      while (mShouldRun) {
+      Stopwatch sw = new Stopwatch();
+      List<GarbageCollectorMXBean> gcBeanListBeforeSleep = getGarbageCollectorMXBeanList();
+      while (mThreadStarted) {
         sw.reset().start();
         try {
           Thread.sleep(mGcSleepIntervalMs);
         } catch (InterruptedException ie) {
+          LOG.warn(ie.getStackTrace());
           return;
         }
-        long extraSleepTime = sw.now(TimeUnit.MILLISECONDS) - mGcSleepIntervalMs;
-        Map<String, GcTimes> gcTimesAfterSleep = getGcTimes();
+        long extraTime = sw.elapsed(TimeUnit.MILLISECONDS) - mGcSleepIntervalMs;
+        mTotalExtraTime += extraTime;
+        List<GarbageCollectorMXBean> gcBeanListAfterSleep = getGarbageCollectorMXBeanList();
 
-        if (extraSleepTime > mWarnThresholdMs) {
-          ++mNumGcWarnThresholdExceeded;
-          LOG.warn(formatMessage(
-              extraSleepTime, gcTimesAfterSleep, gcTimesBeforeSleep));
-        } else if (extraSleepTime > mInfoThresholdMs) {
-          ++mNumGcInfoThresholdExceeded;
-          LOG.info(formatMessage(
-              extraSleepTime, gcTimesAfterSleep, gcTimesBeforeSleep));
+        if (extraTime > mWarnThresholdMs) {
+          ++mExceedWarnTimes;
+          LOG.warn(formatLogString(
+              extraTime, gcBeanListBeforeSleep, gcBeanListAfterSleep));
+        } else if (extraTime > mInfoThresholdMs) {
+          ++mExceedInfoTimes;
+          LOG.info(formatLogString(
+              extraTime, gcBeanListBeforeSleep, gcBeanListAfterSleep));
+        } else {
+          LOG.info(formatLogString(
+              extraTime, gcBeanListBeforeSleep, gcBeanListAfterSleep));
         }
-        mTotalGcExtraSleepTime += extraSleepTime;
-        gcTimesBeforeSleep = gcTimesAfterSleep;
+        gcBeanListBeforeSleep = gcBeanListAfterSleep;
       }
     }
   }
