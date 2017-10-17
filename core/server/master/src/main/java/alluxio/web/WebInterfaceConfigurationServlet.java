@@ -18,6 +18,8 @@ import alluxio.master.file.FileSystemMaster;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 
+import com.google.common.collect.Sets;
+
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -39,8 +41,8 @@ import javax.servlet.http.HttpServletResponse;
 public final class WebInterfaceConfigurationServlet extends HttpServlet {
   private static final long serialVersionUID = 2134205675393443914L;
   private static final String ALLUXIO_CONF_PREFIX = "alluxio";
-  private static final Set<String> ALLUXIO_CONF_EXCLUDES = new HashSet<>(
-      Arrays.asList(PropertyKey.MASTER_WHITELIST.toString()));
+  private static final Set<String> ALLUXIO_CONF_EXCLUDES = Sets.newHashSet(
+      PropertyKey.MASTER_WHITELIST.toString());
 
   private final FileSystemMaster mFsMaster;
 
