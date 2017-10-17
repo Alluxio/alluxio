@@ -40,7 +40,7 @@ import com.google.common.collect.Sets
 public final class WebInterfaceConfigurationServlet extends HttpServlet {
   private static final long serialVersionUID = 2134205675393443914L;
   private static final String ALLUXIO_CONF_PREFIX = "alluxio";
- private static final Set<String> ALLUXIO_CONF_EXCLUDES = Sets.newHashSet(
+  private static final Set<String> ALLUXIO_CONF_EXCLUDES = Sets.newHashSet(
       PropertyKey.MASTER_WHITELIST.toString());
 
   private final FileSystemMaster mFsMaster;
