@@ -11,6 +11,11 @@
 
 package alluxio;
 
+import alluxio.util.io.PathUtils;
+
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * Utility methods for the configuration tests.
  */
@@ -24,6 +29,59 @@ public final class ConfigurationTestUtils {
    */
   public static void resetConfiguration() {
     Configuration.init();
+  }
+
+  /**
+   * Returns reasonable default configuration values for running integration tests.
+   *
+   * These defaults are mostly aimed at getting tests to run faster. Individual tests may override
+   * them to test specific functionality.
+   *
+   * @return the configuration
+   */
+  public static Map<PropertyKey, String> testConfigurationDefaults() {
+    Map<PropertyKey, String> conf = new HashMap<>();
+    conf.put(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, "1KB");
+    conf.put(PropertyKey.USER_BLOCK_REMOTE_READ_BUFFER_SIZE_BYTES, "64");
+
+    conf.put(PropertyKey.MASTER_TTL_CHECKER_INTERVAL_MS, "1sec");
+    conf.put(PropertyKey.MASTER_WORKER_THREADS_MIN, "1");
+    conf.put(PropertyKey.MASTER_WORKER_THREADS_MAX, "100");
+    conf.put(PropertyKey.MASTER_STARTUP_CONSISTENCY_CHECK_ENABLED, "false");
+    conf.put(PropertyKey.MASTER_JOURNAL_FLUSH_TIMEOUT_MS, "1sec");
+
+    // Shutdown journal tailer quickly. Graceful shutdown is unnecessarily slow.
+    conf.put(PropertyKey.MASTER_JOURNAL_TAILER_SHUTDOWN_QUIET_WAIT_TIME_MS, "50ms");
+    conf.put(PropertyKey.MASTER_JOURNAL_TAILER_SLEEP_TIME_MS, "10ms");
+
+    // If tests fail to connect they should fail early rather than using the default ridiculously
+    // high retries
+    conf.put(PropertyKey.USER_RPC_RETRY_MAX_NUM_RETRY, "3");
+
+    // Since tests are always running on a single host keep the resolution timeout low as otherwise
+    // people running with strange network configurations will see very slow tests
+    conf.put(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS, "250ms");
+
+    // default write type becomes MUST_CACHE, set this value to CACHE_THROUGH for tests.
+    // default Alluxio storage is STORE, and under storage is SYNC_PERSIST for tests.
+    // TODO(binfan): eliminate this setting after updating integration tests
+    conf.put(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, "CACHE_THROUGH");
+
+    conf.put(PropertyKey.WEB_THREADS, "1");
+    conf.put(PropertyKey.WEB_RESOURCES, PathUtils
+        .concatPath(System.getProperty("user.dir"), "../core/server/common/src/main/webapp"));
+
+    conf.put(PropertyKey.WORKER_MEMORY_SIZE, "100MB");
+    conf.put(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS, "15ms");
+    conf.put(PropertyKey.WORKER_BLOCK_THREADS_MIN, "1");
+    conf.put(PropertyKey.WORKER_BLOCK_THREADS_MAX, "2048");
+    conf.put(PropertyKey.WORKER_NETWORK_NETTY_WORKER_THREADS, "2");
+
+    // Shutdown data server quickly. Graceful shutdown is unnecessarily slow.
+    conf.put(PropertyKey.WORKER_NETWORK_NETTY_SHUTDOWN_QUIET_PERIOD, "0ms");
+    conf.put(PropertyKey.WORKER_NETWORK_NETTY_SHUTDOWN_TIMEOUT, "0ms");
+
+    return conf;
   }
 
   private ConfigurationTestUtils() {} // prevent instantiation

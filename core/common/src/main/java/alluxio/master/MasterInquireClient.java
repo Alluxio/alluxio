@@ -17,6 +17,7 @@ import alluxio.exception.status.UnavailableException;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 
+import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.List;
 
@@ -39,6 +40,9 @@ public interface MasterInquireClient extends AutoCloseable {
    * @throws UnavailableException if the master rpc addresses cannot be determined
    */
   List<InetSocketAddress> getMasterRpcAddresses() throws UnavailableException;
+
+  @Override
+  void close() throws IOException;
 
   /**
    * Factory for getting a master inquire client.
