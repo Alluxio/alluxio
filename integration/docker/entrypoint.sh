@@ -45,7 +45,7 @@ alluxio_env_vars=(
 
 # Map of environment variables that violate the "_ to ."-rule
 declare -A alluxio_env_violators=(
-  ["ALLUXIO_UNDERFS_S3A_INHERIT_ACL"]="alluxio.underfs.s3a.inherit_acl",
+  ["ALLUXIO_UNDERFS_S3A_INHERIT_ACL"]="alluxio.underfs.s3a.inherit_acl"
   ["ALLUXIO_MASTER_FORMAT_FILE_PREFIX"]="alluxio.master.format.file_prefix"
 )
 
