@@ -29,6 +29,7 @@
     <module>oss</module>
     <module>s3a</module>
     <module>swift</module>
+    <module>wasb</module>
   </modules>
 
   <properties>
