@@ -13,6 +13,7 @@ package alluxio.underfs;
 
 import alluxio.Configuration;
 import alluxio.PropertyKey;
+import alluxio.RuntimeConstants;
 import alluxio.extensions.ExtensionsClassLoader;
 import alluxio.util.ExtensionUtils;
 
@@ -119,8 +120,8 @@ public final class UnderFileSystemFactoryRegistry {
   public static UnderFileSystemFactory find(String path) {
     Preconditions.checkArgument(path != null, "path may not be null");
 
-    loadLibs();
-    loadExtensions();
+    scanLibs();
+    scanExtensions();
 
     for (UnderFileSystemFactory factory : FACTORIES) {
       if (factory.supportsPath(path)) {
@@ -144,8 +145,8 @@ public final class UnderFileSystemFactoryRegistry {
   public static List<UnderFileSystemFactory> findAll(String path) {
     Preconditions.checkArgument(path != null, "path may not be null");
 
-    loadLibs();
-    loadExtensions();
+    scanLibs();
+    scanExtensions();
 
     List<UnderFileSystemFactory> eligibleFactories = new ArrayList<>();
     for (UnderFileSystemFactory factory : FACTORIES) {
@@ -163,12 +164,21 @@ public final class UnderFileSystemFactoryRegistry {
   }
 
   /**
+   * Finds all {@link UnderFileSystemFactory} from the extensions directory and caches.
+   */
+  private static void scanExtensions() {
+    LOG.info("Loading extension UFS jars from {}", Configuration.get(PropertyKey.EXTENSIONS_DIR));
+    scan(Arrays.asList(ExtensionUtils.listExtensions()), LOADED_EXTENSION_JARS);
+  }
+
+  /**
    * Finds all {@link UnderFileSystemFactory} from the lib directory and caches.
    */
-  private static void loadLibs() {
+  private static void scanLibs() {
+    LOG.info("Loading core UFS jars from {}", RuntimeConstants.LIB_DIR);
     List<File> files = new ArrayList<>();
     try (DirectoryStream<Path> stream = Files.newDirectoryStream(
-        Paths.get(Configuration.get(PropertyKey.HOME), "lib"), "alluxio-underfs-*.jar")) {
+        Paths.get(RuntimeConstants.LIB_DIR), "alluxio-underfs-*.jar")) {
       for (Path entry : stream) {
         if (entry.toFile().isFile()) {
           files.add(entry.toFile());
@@ -181,18 +191,17 @@ public final class UnderFileSystemFactoryRegistry {
   }
 
   /**
-   * Finds all {@link UnderFileSystemFactory} extensions from the extensions directory and caches.
+   * Class-loads jar files that have not been loaded.
+   *
+   * @param files jar files to class-load
+   * @param loadedJars jars already loaded under this dir
    */
-  private static void loadExtensions() {
-    scan(Arrays.asList(ExtensionUtils.listExtensions()), LOADED_EXTENSION_JARS);
-  }
-
-  private static void scan(List<File> files, Set<String> jars) {
+  private static void scan(List<File> files, Set<String> loadedJars) {
     for (File jar : files) {
       try {
         URL extensionURL = jar.toURI().toURL();
         String jarPath = extensionURL.toString();
-        if (!jars.contains(jarPath)) {
+        if (!loadedJars.contains(jarPath)) {
           ClassLoader extensionsClassLoader = new ExtensionsClassLoader(new URL[] {extensionURL},
               ClassLoader.getSystemClassLoader());
           ServiceLoader<UnderFileSystemFactory> extensionServiceLoader =
@@ -202,7 +211,7 @@ public final class UnderFileSystemFactoryRegistry {
                 factory.getClass(), factory.toString(), jarPath);
             // Cache
             register(factory);
-            jars.add(jarPath);
+            loadedJars.add(jarPath);
           }
         }
       } catch (Throwable t) {
@@ -226,8 +235,8 @@ public final class UnderFileSystemFactoryRegistry {
       register(factory);
     }
 
-    loadLibs();
-    loadExtensions();
+    scanLibs();
+    scanExtensions();
 
     sInit = true;
   }
