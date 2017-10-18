@@ -16,12 +16,14 @@ import alluxio.PropertyKey;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.hdfs.HdfsUnderFileSystem;
+import alluxio.underfs.options.FileLocationOptions;
 
 import org.apache.hadoop.conf.Configuration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.List;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -83,5 +85,20 @@ public final class WasbUnderFileSystem extends HdfsUnderFileSystem {
   public long getBlockSizeByte(String path) throws IOException {
     // wasb is an object store, so use the default block size, like other object stores.
     return alluxio.Configuration.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT);
+  }
+
+  // Not supported
+  @Override
+  public List<String> getFileLocations(String path) throws IOException {
+    LOG.debug("getFileLocations is not supported when using default ObjectUnderFileSystem.");
+    return null;
+  }
+
+  // Not supported
+  @Override
+  public List<String> getFileLocations(String path, FileLocationOptions options)
+      throws IOException {
+    LOG.debug("getFileLocations is not supported when using default ObjectUnderFileSystem.");
+    return null;
   }
 }
