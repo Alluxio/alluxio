@@ -58,7 +58,7 @@ public final class StorageDir {
   private StorageTier mTier;
 
   private StorageDir(StorageTier tier, int dirIndex, long capacityBytes, String dirPath) {
-    mTier = Preconditions.checkNotNull(tier);
+    mTier = Preconditions.checkNotNull(tier, "tier");
     mDirIndex = dirIndex;
     mCapacityBytes = capacityBytes;
     mAvailableBytes = new AtomicLong(capacityBytes);
@@ -269,7 +269,7 @@ public final class StorageDir {
    */
   public void addBlockMeta(BlockMeta blockMeta) throws WorkerOutOfSpaceException,
       BlockAlreadyExistsException {
-    Preconditions.checkNotNull(blockMeta);
+    Preconditions.checkNotNull(blockMeta, "blockMeta");
     long blockId = blockMeta.getBlockId();
     long blockSize = blockMeta.getBlockSize();
 
@@ -294,7 +294,7 @@ public final class StorageDir {
    */
   public void addTempBlockMeta(TempBlockMeta tempBlockMeta) throws WorkerOutOfSpaceException,
       BlockAlreadyExistsException {
-    Preconditions.checkNotNull(tempBlockMeta);
+    Preconditions.checkNotNull(tempBlockMeta, "tempBlockMeta");
     long sessionId = tempBlockMeta.getSessionId();
     long blockId = tempBlockMeta.getBlockId();
     long blockSize = tempBlockMeta.getBlockSize();
@@ -325,7 +325,7 @@ public final class StorageDir {
    * @throws BlockDoesNotExistException if no block is found
    */
   public void removeBlockMeta(BlockMeta blockMeta) throws BlockDoesNotExistException {
-    Preconditions.checkNotNull(blockMeta);
+    Preconditions.checkNotNull(blockMeta, "blockMeta");
     long blockId = blockMeta.getBlockId();
     BlockMeta deletedBlockMeta = mBlockIdToBlockMap.remove(blockId);
     if (deletedBlockMeta == null) {
@@ -341,7 +341,7 @@ public final class StorageDir {
    * @throws BlockDoesNotExistException if no temp block is found
    */
   public void removeTempBlockMeta(TempBlockMeta tempBlockMeta) throws BlockDoesNotExistException {
-    Preconditions.checkNotNull(tempBlockMeta);
+    Preconditions.checkNotNull(tempBlockMeta, "tempBlockMeta");
     final long blockId = tempBlockMeta.getBlockId();
     final long sessionId = tempBlockMeta.getSessionId();
     TempBlockMeta deletedTempBlockMeta = mBlockIdToTempBlockMap.remove(blockId);

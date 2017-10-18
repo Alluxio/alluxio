@@ -50,7 +50,7 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * Test master journal for cluster terminating. Assert that test can replay the log and reproduce
- * the correct state. Test both the single master (alluxio) and multi masters (alluxio-ft).
+ * the correct state. Test both the single master and multi masters.
  */
 public class JournalShutdownIntegrationTest extends BaseIntegrationTest {
   @Rule

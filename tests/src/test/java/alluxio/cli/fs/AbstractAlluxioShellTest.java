@@ -11,6 +11,10 @@
 
 package alluxio.cli.fs;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertTrue;
+
 import alluxio.PropertyKey;
 import alluxio.AlluxioURI;
 import alluxio.LocalAlluxioClusterResource;
@@ -30,7 +34,6 @@ import alluxio.util.io.BufferUtils;
 import alluxio.util.io.PathUtils;
 
 import org.junit.After;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.rules.ExpectedException;
@@ -87,7 +90,7 @@ public abstract class AbstractAlluxioShellTest extends BaseIntegrationTest {
     FileSystemTestUtils.createByteFile(mFileSystem, "/testFile", WriteType.MUST_CACHE, bytes);
     mFsShell.run("copyToLocal", "/testFile",
         mLocalAlluxioCluster.getAlluxioHome() + "/testFile");
-    Assert.assertEquals(getCommandOutput(new String[] {"copyToLocal", "/testFile",
+    assertEquals(getCommandOutput(new String[] {"copyToLocal", "/testFile",
         mLocalAlluxioCluster.getAlluxioHome() + "/testFile"}), mOutput.toString());
     fileReadTest("/testFile", 10);
   }
@@ -104,7 +107,7 @@ public abstract class AbstractAlluxioShellTest extends BaseIntegrationTest {
     byte[] read = new byte[size];
     fis.read(read);
     fis.close();
-    Assert.assertTrue(BufferUtils.equalIncreasingByteArray(size, read));
+    assertTrue(BufferUtils.equalIncreasingByteArray(size, read));
   }
 
   /**
@@ -262,12 +265,12 @@ public abstract class AbstractAlluxioShellTest extends BaseIntegrationTest {
    * @param size The size of the file
    */
   protected void checkFilePersisted(AlluxioURI uri, int size) throws Exception {
-    Assert.assertTrue(mFileSystem.getStatus(uri).isPersisted());
+    assertTrue(mFileSystem.getStatus(uri).isPersisted());
     mFileSystem.free(uri);
     try (FileInStream tfis = mFileSystem.openFile(uri)) {
       byte[] actual = new byte[size];
       tfis.read(actual);
-      Assert.assertArrayEquals(BufferUtils.getIncreasingByteArray(size), actual);
+      assertArrayEquals(BufferUtils.getIncreasingByteArray(size), actual);
     }
   }
 
@@ -281,7 +284,7 @@ public abstract class AbstractAlluxioShellTest extends BaseIntegrationTest {
   protected void verifyCommandReturnValueAndOutput(int expectedReturnValue, String expectedOutput,
       String... command) {
     int ret = mFsShell.run(command);
-    Assert.assertEquals(expectedReturnValue, ret);
-    Assert.assertTrue(mOutput.toString().contains(expectedOutput));
+    assertEquals(expectedReturnValue, ret);
+    assertTrue(mOutput.toString().contains(expectedOutput));
   }
 }

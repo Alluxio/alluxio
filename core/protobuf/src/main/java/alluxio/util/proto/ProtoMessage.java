@@ -26,7 +26,7 @@ import com.google.protobuf.MessageLite;
  * For any new proto message added here, consider adding a test in alluxio.worker.netty.CodecTest.
  */
 public final class ProtoMessage {
-  private MessageLite mMessage;
+  private final MessageLite mMessage;
 
   /**
    * Constructs a {@link ProtoMessage} instance wrapping around {@link MessageLite}.
