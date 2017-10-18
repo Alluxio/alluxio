@@ -175,7 +175,6 @@ public final class ZkMasterInquireClient implements MasterInquireClient {
     throw new UnavailableException("Failed to query zookeeper for master RPC addresses");
   }
 
-  @Override
   public void close() {
     mClient.close();
   }

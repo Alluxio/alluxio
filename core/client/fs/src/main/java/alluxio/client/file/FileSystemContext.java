@@ -147,7 +147,6 @@ public final class FileSystemContext implements Closeable {
     mFileSystemMasterClientPool = null;
     mBlockMasterClientPool.close();
     mBlockMasterClientPool = null;
-    mMasterInquireClient.close();
     mMasterInquireClient = null;
 
     for (NettyChannelPool pool : mNettyChannelPools.values()) {
