@@ -49,7 +49,7 @@
       <scope>provided</scope>
     </dependency>
 
-    <!-- External test dependencies -->
+    <!-- Internal test dependencies -->
     <dependency>
       <groupId>org.alluxio</groupId>
       <artifactId>alluxio-core-common</artifactId>

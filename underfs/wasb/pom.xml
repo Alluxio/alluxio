@@ -73,6 +73,15 @@
       <artifactId>commons-lang3</artifactId>
       <scope>test</scope>
     </dependency>
+
+    <!-- Internal test dependencies -->
+    <dependency>
+      <groupId>org.alluxio</groupId>
+      <artifactId>alluxio-core-common</artifactId>
+      <version>${project.version}</version>
+      <type>test-jar</type>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
 
   <build>
@@ -113,7 +122,8 @@
         <artifactId>maven-compiler-plugin</artifactId>
         <configuration>
           <testExcludes>
-            <!-- Skip UFS contract tests unless -DtestHdfsBaseDir="hdfs://ip:port/alluxio_test" is specified -->
+            <!-- Skip UFS contract tests unless -DtestWasbBaseDir="wasb://AZURE_CONTAINER@AZURE_ACCOUNT.blob.core.windows.net/AZURE_DIRECTORY/"
+                 is specified -->
             <exclude>**/WasbUnderFileSystemContractTest.java</exclude>
           </testExcludes>
         </configuration>
