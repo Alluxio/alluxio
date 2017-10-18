@@ -136,7 +136,7 @@
 
   <properties>
     <apache.curator.version>2.1.0-incubating</apache.curator.version>
-    <aws.amazonaws.version>1.11.7</aws.amazonaws.version>
+    <aws.amazonaws.version>1.11.215</aws.amazonaws.version>
     <build.path>build</build.path>
     <checkstyle.path>build/checkstyle/</checkstyle.path>
     <cxf.version>2.7.0</cxf.version>
