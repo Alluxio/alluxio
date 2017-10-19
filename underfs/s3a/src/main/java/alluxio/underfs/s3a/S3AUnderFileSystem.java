@@ -25,6 +25,7 @@ import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.util.io.PathUtils;
 
 import com.amazonaws.AmazonClientException;
+import com.amazonaws.AmazonServiceException;
 import com.amazonaws.ClientConfiguration;
 import com.amazonaws.Protocol;
 import com.amazonaws.auth.AWSCredentialsProvider;
@@ -484,10 +485,13 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
         return null;
       }
       return new ObjectStatus(key, meta.getContentLength(), meta.getLastModified().getTime());
-    } catch (AmazonClientException e) {
-      LOG.warn("getObjectStatus error for {}, exception: {}. Assuming file does not exist.", key,
-          e.getMessage());
-      return null;
+    } catch (AmazonServiceException e) {
+      if (e.getStatusCode() == 404) {
+        LOG.debug("getObjectStatus for {} returned 404. Assuming file does not exist.", key);
+        return null;
+      } else {
+        throw e;
+      }
     }
   }
 
