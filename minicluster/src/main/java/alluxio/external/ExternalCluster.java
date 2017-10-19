@@ -32,6 +32,7 @@ import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
 import com.google.common.io.Closer;
 import org.apache.commons.io.Charsets;
+import org.apache.commons.io.FileUtils;
 import org.apache.curator.test.TestingServer;
 import org.junit.rules.TestRule;
 import org.junit.runner.Description;
@@ -62,6 +63,7 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public final class ExternalCluster implements TestRule {
   private static final Logger LOG = LoggerFactory.getLogger(ExternalCluster.class);
+  private static final File ARTIFACTS_DIR = new File("./target/artifacts");
 
   private final Map<PropertyKey, String> mProperties;
   private final int mNumMasters;
@@ -186,6 +188,16 @@ public final class ExternalCluster implements TestRule {
         "must be in the started state to get an fs client, but state was %s", mState);
     MasterInquireClient inquireClient = getMasterInquireClient();
     return FileSystem.Factory.get(FileSystemContext.create(null, inquireClient));
+  }
+
+  /**
+   * Copies the work directory to the artifacts folder
+   */
+  public synchronized void saveWorkdir() throws IOException {
+    Preconditions.checkState(mState == State.STARTED,
+        "cluster must be started before you can save its work directory");
+    ARTIFACTS_DIR.mkdirs();
+    FileUtils.copyDirectory(mWorkDir, new File(ARTIFACTS_DIR, mWorkDir.getName()));
   }
 
   /**
