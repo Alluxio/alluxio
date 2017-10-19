@@ -69,7 +69,7 @@ public class WasbUnderFileSystem extends HdfsUnderFileSystem {
    * @param conf the configuration for this UFS
    * @param wasbConf the configuration for this Wasb UFS
    */
-  private WasbUnderFileSystem(AlluxioURI ufsUri, UnderFileSystemConfiguration conf,
+  public WasbUnderFileSystem(AlluxioURI ufsUri, UnderFileSystemConfiguration conf,
       final Configuration wasbConf) {
     super(ufsUri, conf, wasbConf);
   }
