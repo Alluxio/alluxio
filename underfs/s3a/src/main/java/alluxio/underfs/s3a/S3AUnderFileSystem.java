@@ -479,19 +479,13 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
   @Nullable
   protected ObjectStatus getObjectStatus(String key) {
     try {
-      LOG.info("Get Object Metadata for key: {}", key);
       ObjectMetadata meta = mClient.getObjectMetadata(mBucketName, key);
-      if (meta == null) {
-        return null;
-      }
       return new ObjectStatus(key, meta.getContentLength(), meta.getLastModified().getTime());
     } catch (AmazonServiceException e) {
-      if (e.getStatusCode() == 404) {
-        LOG.debug("getObjectStatus for {} returned 404. Assuming file does not exist.", key);
+      if (e.getStatusCode() == 404) { // file not found, possible for exists calls
         return null;
-      } else {
-        throw e;
       }
+      throw e;
     }
   }
 
