@@ -64,6 +64,7 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class ExternalCluster implements TestRule {
   private static final Logger LOG = LoggerFactory.getLogger(ExternalCluster.class);
   private static final File ARTIFACTS_DIR = new File("./target/artifacts");
+  private static final File TESTS_LOG = new File("./target/tests.log");
 
   private final Map<PropertyKey, String> mProperties;
   private final int mNumMasters;
@@ -197,7 +198,26 @@ public final class ExternalCluster implements TestRule {
     Preconditions.checkState(mState == State.STARTED,
         "cluster must be started before you can save its work directory");
     ARTIFACTS_DIR.mkdirs();
-    FileUtils.copyDirectory(mWorkDir, new File(ARTIFACTS_DIR, mWorkDir.getName()));
+    File targetDir = new File(".", mWorkDir.getName());
+    File tarball = new File(targetDir.getPath() + ".tar.gz");
+    // Copy the work directory to "."
+    FileUtils.copyDirectory(mWorkDir, targetDir);
+    // Tar up the work directory.
+    ProcessBuilder pb =
+        new ProcessBuilder("tar", "-czf", tarball.getPath(), targetDir.getPath());
+    pb.redirectOutput(TESTS_LOG);
+    pb.redirectError(TESTS_LOG);
+    Process p = pb.start();
+    try {
+      p.waitFor();
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      throw new RuntimeException(e);
+    }
+    // Delete copied work directory.
+    FileUtils.deleteDirectory(targetDir);
+    // Move tarball to artifacts directory.
+    FileUtils.moveFile(tarball, new File(ARTIFACTS_DIR, tarball.getName()));
   }
 
   /**
