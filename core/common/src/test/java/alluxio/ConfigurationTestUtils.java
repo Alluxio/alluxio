@@ -90,8 +90,8 @@ public final class ConfigurationTestUtils {
     conf.put(PropertyKey.MASTER_JOURNAL_TAILER_SLEEP_TIME_MS, "10ms");
 
     // To keep tests fast, we should do more retries with a lower max wait time.
-    conf.put(PropertyKey.USER_RPC_RETRY_MAX_NUM_RETRY, "30");
-    conf.put(PropertyKey.USER_RPC_RETRY_MAX_SLEEP_MS, "1sec");
+    conf.put(PropertyKey.USER_RPC_RETRY_MAX_NUM_RETRY, "60");
+    conf.put(PropertyKey.USER_RPC_RETRY_MAX_SLEEP_MS, "500ms");
 
     // Since tests are always running on a single host keep the resolution timeout low as otherwise
     // people running with strange network configurations will see very slow tests

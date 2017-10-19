@@ -98,6 +98,7 @@ public class Worker implements Closeable {
   public synchronized void close() {
     if (mProcess != null) {
       mProcess.close();
+      mProcess = null;
     }
   }
 }

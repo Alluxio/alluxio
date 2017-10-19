@@ -19,7 +19,6 @@ import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.client.file.options.CreateFileOptions;
-import alluxio.external.ExternalCluster.Builder;
 
 import org.junit.Test;
 
@@ -27,7 +26,7 @@ public final class ExternalClusterTest {
 
   @Test
   public void simpleCluster() throws Exception {
-    ExternalCluster cluster = new Builder()
+    ExternalCluster cluster = ExternalCluster.newBuilder()
         .setNumMasters(1)
         .setNumWorkers(1)
         .build();
@@ -42,7 +41,7 @@ public final class ExternalClusterTest {
 
   @Test
   public void zookeeper() throws Exception {
-    ExternalCluster cluster = new Builder()
+    ExternalCluster cluster = ExternalCluster.newBuilder()
         .addProperty(PropertyKey.ZOOKEEPER_ENABLED, "true")
         .setNumMasters(3)
         .setNumWorkers(2)

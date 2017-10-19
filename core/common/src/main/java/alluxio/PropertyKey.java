@@ -235,7 +235,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey ZOOKEEPER_CONNECTION_TIMEOUT =
       new Builder(Name.ZOOKEEPER_CONNECTION_TIMEOUT)
-          .setDefaultValue("15s")
+          .setDefaultValue("15s") // matches Zookeeper's default
           .setDescription("Connection timeout to use when connecting to Zookeeper")
           .build();
   public static final PropertyKey ZOOKEEPER_ELECTION_PATH =
@@ -260,7 +260,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey ZOOKEEPER_SESSION_TIMEOUT =
       new Builder(Name.ZOOKEEPER_SESSION_TIMEOUT)
-          .setDefaultValue("60s")
+          .setDefaultValue("60s") // matches Zookeeper's default
           .setDescription("Session timeout to use when connecting to Zookeeper")
           .build();
 

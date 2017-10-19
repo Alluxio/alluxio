@@ -51,10 +51,15 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ThreadLocalRandom;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 /**
  * Class for starting, stopping, and interacting with an Alluxio cluster where each master and
  * worker runs in its own process.
+ *
+ * The synchronization strategy for this class is to synchronize all public methods.
  */
+@ThreadSafe
 public final class ExternalCluster implements TestRule {
   private static final Logger LOG = LoggerFactory.getLogger(ExternalCluster.class);
 
@@ -65,9 +70,11 @@ public final class ExternalCluster implements TestRule {
 
   /** Base directory for storing configuration and logs. */
   private File mBaseDir;
+  /** Closer for closing all resources that must be closed when the cluster is destroyed. */
   private Closer mCloser;
   private List<Master> mMasters;
   private List<Worker> mWorkers;
+  /** Addresses of all masters. Should have the same size as {@link #mMasters}. */
   private List<MasterNetAddress> mMasterAddresses;
   private State mState;
   private TestingServer mCuratorServer;
@@ -75,6 +82,7 @@ public final class ExternalCluster implements TestRule {
   private ExternalCluster(Map<PropertyKey, String> properties, int numMasters, int numWorkers,
       String clusterName) {
     mProperties = ConfigurationTestUtils.testConfigurationDefaults();
+    // Allow explicitly set properties to override test defaults.
     mProperties.putAll(properties);
     mNumMasters = numMasters;
     mNumWorkers = numWorkers;
@@ -131,7 +139,7 @@ public final class ExternalCluster implements TestRule {
    * If no master is currently primary, this method blocks until a primary has been elected, then
    * kills it.
    */
-  public void killPrimaryMaster() {
+  public synchronized void killPrimaryMaster() {
     final FileSystem fs = getFileSystemClient();
     final MasterInquireClient inquireClient = getMasterInquireClient();
     CommonUtils.waitFor("a primary master to be serving", new Function<Void, Boolean>() {
@@ -162,13 +170,13 @@ public final class ExternalCluster implements TestRule {
       }
     }
     throw new RuntimeException(String.format(
-        "No master found with RPC port %. Master addresses: %s", primaryRpcPort, mMasterAddresses));
+        "No master found with RPC port %d. Master addresses: %s", primaryRpcPort, mMasterAddresses));
   }
 
   /**
    * @return a client for interacting with the cluster
    */
-  public FileSystem getFileSystemClient() {
+  public synchronized FileSystem getFileSystemClient() {
     Preconditions.checkState(mState == State.STARTED,
         "must be in the started state to get an fs client, but state was %s", mState);
     MasterInquireClient inquireClient = getMasterInquireClient();
@@ -189,13 +197,18 @@ public final class ExternalCluster implements TestRule {
    *
    * @param i the index of the master to start
    */
-  public void startMaster(int i) throws IOException {
+  public synchronized void startMaster(int i) throws IOException {
     Master master = mCloser.register(new Master(mBaseDir, i, mMasterAddresses.get(i)));
     mMasters.add(master);
     master.start();
   }
 
-  private void startWorker(int i) throws IOException {
+  /**
+   * Starts the specified worker.
+   *
+   * @param i the index of the worker to start
+   */
+  public synchronized void startWorker(int i) throws IOException {
     Worker worker = mCloser.register(new Worker(mBaseDir, i));
     mWorkers.add(worker);
     worker.start();
@@ -248,7 +261,7 @@ public final class ExternalCluster implements TestRule {
     confDir.mkdirs();
     StringBuilder sb = new StringBuilder();
     for (Entry<PropertyKey, String> entry : mProperties.entrySet()) {
-      sb.append(String.format("%s=%s\n", entry.getKey(), entry.getValue()));
+      sb.append(String.format("%s=%s%n", entry.getKey(), entry.getValue()));
     }
     try (
         FileOutputStream fos = new FileOutputStream(new File(confDir, "alluxio-site.properties"))) {
@@ -302,6 +315,8 @@ public final class ExternalCluster implements TestRule {
     private int mNumWorkers = 1;
     private String mClusterName = "AlluxioMiniCluster";
 
+    private Builder() {} // Should only be instantiated by newBuilder().
+
     /**
      * @param key the property key to set
      * @param value the value to set
@@ -354,5 +369,9 @@ public final class ExternalCluster implements TestRule {
     public ExternalCluster build() {
       return new ExternalCluster(mProperties, mNumMasters, mNumWorkers, mClusterName);
     }
+  }
+
+  public static Builder newBuilder() {
+    return new Builder();
   }
 }

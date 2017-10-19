@@ -93,7 +93,7 @@ public class JournalShutdownIntegrationTest extends BaseIntegrationTest {
 
   @Test
   public void singleMasterJournalStopIntegration() throws Exception {
-    ExternalCluster cluster = new ExternalCluster.Builder()
+    ExternalCluster cluster = ExternalCluster.newBuilder()
         .setNumWorkers(0)
         .setNumMasters(1)
         .build();
@@ -119,7 +119,7 @@ public class JournalShutdownIntegrationTest extends BaseIntegrationTest {
    */
   @Test
   public void multiMasterJournalStopIntegration() throws Exception {
-    ExternalCluster cluster = new ExternalCluster.Builder()
+    ExternalCluster cluster = ExternalCluster.newBuilder()
         .setNumWorkers(0)
         .setNumMasters(TEST_NUM_MASTERS)
         .addProperty(PropertyKey.ZOOKEEPER_ENABLED, "true")

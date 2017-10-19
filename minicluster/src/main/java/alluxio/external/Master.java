@@ -64,6 +64,9 @@ public final class Master implements Closeable {
 
   @Override
   public synchronized void close() {
-    mProcess.close();
+    if (mProcess != null) {
+      mProcess.close();
+      mProcess = null;
+    }
   }
 }
