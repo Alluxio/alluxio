@@ -83,7 +83,7 @@ public final class ExternalCluster implements TestRule {
 
   private ExternalCluster(Map<PropertyKey, String> properties, int numMasters, int numWorkers,
       String clusterName) {
-    mProperties= properties;
+    mProperties = properties;
     mNumMasters = numMasters;
     mNumWorkers = numWorkers;
     // Add a unique number so that different runs of the same test use different cluster names.
@@ -191,7 +191,7 @@ public final class ExternalCluster implements TestRule {
   }
 
   /**
-   * Copies the work directory to the artifacts folder
+   * Copies the work directory to the artifacts folder.
    */
   public synchronized void saveWorkdir() throws IOException {
     Preconditions.checkState(mState == State.STARTED,
