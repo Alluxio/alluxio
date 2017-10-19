@@ -89,9 +89,9 @@ public final class ConfigurationTestUtils {
     conf.put(PropertyKey.MASTER_JOURNAL_TAILER_SHUTDOWN_QUIET_WAIT_TIME_MS, "50ms");
     conf.put(PropertyKey.MASTER_JOURNAL_TAILER_SLEEP_TIME_MS, "10ms");
 
-    // If tests fail to connect they should fail early rather than using the default ridiculously
-    // high retries
-    conf.put(PropertyKey.USER_RPC_RETRY_MAX_NUM_RETRY, "3");
+    // To keep tests fast, we should do more retries with a lower max wait time.
+    conf.put(PropertyKey.USER_RPC_RETRY_MAX_NUM_RETRY, "60");
+    conf.put(PropertyKey.USER_RPC_RETRY_MAX_SLEEP_MS, "500ms");
 
     // Since tests are always running on a single host keep the resolution timeout low as otherwise
     // people running with strange network configurations will see very slow tests
@@ -115,6 +115,7 @@ public final class ConfigurationTestUtils {
     conf.put(PropertyKey.WORKER_NETWORK_NETTY_SHUTDOWN_QUIET_PERIOD, "0ms");
     conf.put(PropertyKey.WORKER_NETWORK_NETTY_SHUTDOWN_TIMEOUT, "0ms");
 
+    conf.put(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_ALIAS.format(0), "MEM");
     return conf;
   }
 

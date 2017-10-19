@@ -73,6 +73,8 @@ public final class Constants {
 
   public static final int MAX_PORT = 65535;
 
+  public static final int MAX_TEST_PROCESS_LIFETIME_MS = 20 * Constants.MINUTE_MS;
+
   // Service versions should be incremented every time a backwards incompatible change occurs.
   public static final long BLOCK_MASTER_CLIENT_SERVICE_VERSION = 2;
   public static final long BLOCK_MASTER_WORKER_SERVICE_VERSION = 2;
