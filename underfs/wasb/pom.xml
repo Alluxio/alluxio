@@ -22,7 +22,8 @@
   <description>Microsoft Azure Blob Storage Under File System implementation</description>
 
   <properties>
-    <ufs.hadoop.version>2.7.3.2.6.1.0-129</ufs.hadoop.version>
+    <!-- The hadoop client version wasb-hadoop depends on -->
+    <wasb.hadoop.version>2.7.3.2.6.1.0-129</wasb.hadoop.version>
     <!-- The following paths need to be defined here as well as in the parent pom so that mvn can -->
     <!-- run properly from sub-project directories -->
     <license.header.path>${project.parent.parent.basedir}/build/license/</license.header.path>
@@ -38,20 +39,18 @@
     </dependency>
     <dependency>
       <groupId>org.apache.hadoop</groupId>
+      <artifactId>hadoop-azure</artifactId>
+      <version>${wasb.hadoop.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.hadoop</groupId>
       <artifactId>hadoop-common</artifactId>
-      <!-- The hadoop version wasb-hadoop depends on -->
-      <version>${ufs.hadoop.version}</version>
+      <version>${wasb.hadoop.version}</version>
     </dependency>
     <dependency>
       <groupId>org.apache.hadoop</groupId>
       <artifactId>hadoop-hdfs</artifactId>
-      <!-- The hadoop version wasb-hadoop depends on -->
-      <version>${ufs.hadoop.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.hadoop</groupId>
-      <artifactId>hadoop-azure</artifactId>
-      <version>${ufs.hadoop.version}</version>
+      <version>${wasb.hadoop.version}</version>
     </dependency>
 
     <!-- Internal dependencies -->
@@ -83,6 +82,28 @@
       <scope>test</scope>
     </dependency>
   </dependencies>
+
+  <profiles>
+    <profile>
+      <id>ufsContractTest</id>
+      <activation>
+        <property>
+          <name>testWasbBaseDir</name>
+        </property>
+      </activation>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-compiler-plugin</artifactId>
+            <configuration>
+              <testExcludes combine.self="override" />
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
 
   <build>
     <plugins>
@@ -131,7 +152,6 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-antrun-plugin</artifactId>
-        <version>1.8</version>
         <executions>
           <execution>
             <id>copy-installed</id>

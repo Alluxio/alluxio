@@ -31,12 +31,10 @@ import javax.annotation.concurrent.ThreadSafe;
  * An {@link UnderFileSystem} uses the Microsoft Azure Blob Storage.
  */
 @ThreadSafe
-public final class WasbUnderFileSystem extends HdfsUnderFileSystem {
+public class WasbUnderFileSystem extends HdfsUnderFileSystem {
   private static final Logger LOG = LoggerFactory.getLogger(WasbUnderFileSystem.class);
 
-  /**
-   * Constant for the wasb URI scheme.
-   */
+  /** Constant for the wasb URI scheme. */
   public static final String SCHEME = "wasb://";
 
   /**
@@ -90,7 +88,7 @@ public final class WasbUnderFileSystem extends HdfsUnderFileSystem {
   // Not supported
   @Override
   public List<String> getFileLocations(String path) throws IOException {
-    LOG.debug("getFileLocations is not supported when using default ObjectUnderFileSystem.");
+    LOG.debug("getFileLocations is not supported when using WasbUnderFileSystem.");
     return null;
   }
 
@@ -98,7 +96,7 @@ public final class WasbUnderFileSystem extends HdfsUnderFileSystem {
   @Override
   public List<String> getFileLocations(String path, FileLocationOptions options)
       throws IOException {
-    LOG.debug("getFileLocations is not supported when using default ObjectUnderFileSystem.");
+    LOG.debug("getFileLocations is not supported when using WasbUnderFileSystem.");
     return null;
   }
 }
