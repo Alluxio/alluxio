@@ -169,8 +169,9 @@ public final class ExternalCluster implements TestRule {
         return;
       }
     }
-    throw new RuntimeException(String.format(
-        "No master found with RPC port %d. Master addresses: %s", primaryRpcPort, mMasterAddresses));
+    throw new RuntimeException(
+        String.format("No master found with RPC port %d. Master addresses: %s", primaryRpcPort,
+            mMasterAddresses));
   }
 
   /**
@@ -309,7 +310,7 @@ public final class ExternalCluster implements TestRule {
   /**
    * Builder for {@link ExternalCluster}.
    */
-  public static class Builder {
+  public final static class Builder {
     private Map<PropertyKey, String> mProperties = new HashMap<>();
     private int mNumMasters = 1;
     private int mNumWorkers = 1;
@@ -371,6 +372,9 @@ public final class ExternalCluster implements TestRule {
     }
   }
 
+  /**
+   * @return a new builder for an {@link ExternalCluster}
+   */
   public static Builder newBuilder() {
     return new Builder();
   }
