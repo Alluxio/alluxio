@@ -105,7 +105,8 @@ public class JournalShutdownIntegrationTest extends BaseIntegrationTest {
       cluster.startMaster(0);
       int actualFiles = fs.listStatus(new AlluxioURI(TEST_FILE_DIR)).size();
       int successFiles = mCreateFileThread.getSuccessNum();
-      Assert.assertTrue(String.format("successFiles: %s, actualFiles: %s", successFiles, actualFiles),
+      Assert.assertTrue(
+          String.format("successFiles: %s, actualFiles: %s", successFiles, actualFiles),
           (successFiles == actualFiles) || (successFiles + 1 == actualFiles));
     } finally {
       cluster.destroy();
@@ -136,7 +137,8 @@ public class JournalShutdownIntegrationTest extends BaseIntegrationTest {
       cluster.startMaster(0);
       int actualFiles = fs.listStatus(new AlluxioURI(TEST_FILE_DIR)).size();
       int successFiles = mCreateFileThread.getSuccessNum();
-      Assert.assertTrue(String.format("successFiles: %s, actualFiles: %s", successFiles, actualFiles),
+      Assert.assertTrue(
+          String.format("successFiles: %s, actualFiles: %s", successFiles, actualFiles),
           (successFiles == actualFiles) || (successFiles + 1 == actualFiles));
     } finally {
       cluster.destroy();

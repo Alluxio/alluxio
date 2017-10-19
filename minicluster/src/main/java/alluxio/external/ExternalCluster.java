@@ -97,7 +97,6 @@ public final class ExternalCluster implements TestRule {
     if (zkEnabled()) {
       mCuratorServer = mCloser
           .register(new TestingServer(-1, AlluxioTestDirectory.createTemporaryDirectory("zk")));
-
       mProperties.put(PropertyKey.ZOOKEEPER_ADDRESS, mCuratorServer.getConnectString());
     } else {
       mProperties.put(PropertyKey.MASTER_HOSTNAME, mMasterAddresses.get(0).getHostname());
@@ -108,29 +107,16 @@ public final class ExternalCluster implements TestRule {
     }
 
     mBaseDir = AlluxioTestDirectory.createTemporaryDirectory(mClusterName);
-    String journalFolder = new File(mBaseDir, "journal").getAbsolutePath();
-    File ufs = new File(mBaseDir, "underStorage");
-    // Fake ramdisk with a local file. This doesn't require sudo and perf isn't important here.
-    String ramdisk = new File(mBaseDir, "ramdisk").getAbsolutePath();
-    mProperties.put(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_PATH.format(0), ramdisk);
-    mProperties.put(PropertyKey.MASTER_JOURNAL_FOLDER, journalFolder);
-    mProperties.put(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS, ufs.getAbsolutePath());
-    try (Closeable c =
-        new ConfigurationRule(PropertyKey.MASTER_JOURNAL_FOLDER, journalFolder).toResource()) {
-      Format.format(Format.Mode.MASTER);
-    }
-    File confDir = new File(mBaseDir, "conf");
-    confDir.mkdirs();
-    StringBuilder sb = new StringBuilder();
-    for (Entry<PropertyKey, String> entry : mProperties.entrySet()) {
-      sb.append(String.format("%s=%s\n", entry.getKey(), entry.getValue()));
-    }
-    try (FileOutputStream fos = new FileOutputStream(new File(confDir, "alluxio-site.properties"))) {
-      fos.write(sb.toString().getBytes(Charsets.UTF_8));
-    }
-    ufs.mkdirs();
+    setupRamdisk();
+    setupUfs();
+    setupJournal();
+    // This must happen after setting up ramdisk, ufs, and journal because they must update
+    // configuration properties.
+    writeConf();
 
-    LOG.info("Starting alluxio cluster {} with base directory {}", mClusterName, mBaseDir.getAbsolutePath());
+    // Start servers
+    LOG.info("Starting alluxio cluster {} with base directory {}", mClusterName,
+        mBaseDir.getAbsolutePath());
     for (int i = 0; i < mNumMasters; i++) {
       startMaster(i);
     }
@@ -215,6 +201,27 @@ public final class ExternalCluster implements TestRule {
     worker.start();
   }
 
+  private void setupRamdisk() {
+    // Use a local file as a fake ramdisk. This doesn't require sudo and perf isn't important here.
+    String ramdisk = new File(mBaseDir, "ramdisk").getAbsolutePath();
+    mProperties.put(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_PATH.format(0), ramdisk);
+  }
+
+  private void setupUfs() {
+    File ufs = new File(mBaseDir, "underStorage");
+    ufs.mkdirs();
+    mProperties.put(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS, ufs.getAbsolutePath());
+  }
+
+  private void setupJournal() throws Exception {
+    String journalFolder = new File(mBaseDir, "journal").getAbsolutePath();
+    mProperties.put(PropertyKey.MASTER_JOURNAL_FOLDER, journalFolder);
+    try (Closeable c =
+        new ConfigurationRule(PropertyKey.MASTER_JOURNAL_FOLDER, journalFolder).toResource()) {
+      Format.format(Format.Mode.MASTER);
+    }
+  }
+
   private MasterInquireClient getMasterInquireClient() {
     if (zkEnabled()) {
       return ZkMasterInquireClient.getClient(mCuratorServer.getConnectString(),
@@ -231,6 +238,22 @@ public final class ExternalCluster implements TestRule {
   private boolean zkEnabled() {
     return mProperties.containsKey(PropertyKey.ZOOKEEPER_ENABLED)
         && mProperties.get(PropertyKey.ZOOKEEPER_ENABLED).equalsIgnoreCase("true");
+  }
+
+  /**
+   * Writes the contents of {@link #mProperties} to the configuration file.
+   */
+  private void writeConf() throws IOException {
+    File confDir = new File(mBaseDir, "conf");
+    confDir.mkdirs();
+    StringBuilder sb = new StringBuilder();
+    for (Entry<PropertyKey, String> entry : mProperties.entrySet()) {
+      sb.append(String.format("%s=%s\n", entry.getKey(), entry.getValue()));
+    }
+    try (
+        FileOutputStream fos = new FileOutputStream(new File(confDir, "alluxio-site.properties"))) {
+      fos.write(sb.toString().getBytes(Charsets.UTF_8));
+    }
   }
 
   @Override
@@ -325,6 +348,9 @@ public final class ExternalCluster implements TestRule {
       return this;
     }
 
+    /**
+     * @return a constructed {@link ExternalCluster}
+     */
     public ExternalCluster build() {
       return new ExternalCluster(mProperties, mNumMasters, mNumWorkers, mClusterName);
     }

@@ -25,6 +25,11 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class Utils {
   private static final Logger LOG = LoggerFactory.getLogger(Utils.class);
 
+  /**
+   * Launches a thread to terminate the current process after the specified period has elapsed.
+   *
+   * @param lifetimeMs the time to wait before terminating the current process
+   */
   public static void limitLife(final long lifetimeMs) {
     new Thread(new Runnable() {
       @Override

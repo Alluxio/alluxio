@@ -1934,7 +1934,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String WEB_THREADS = "alluxio.web.threads";
     public static final String WORK_DIR = "alluxio.work.dir";
     public static final String ZOOKEEPER_ADDRESS = "alluxio.zookeeper.address";
-    public static final String ZOOKEEPER_CONNECTION_TIMEOUT = "alluxio.zookeeper.connection.timeout";
+    public static final String ZOOKEEPER_CONNECTION_TIMEOUT =
+        "alluxio.zookeeper.connection.timeout";
     public static final String ZOOKEEPER_ELECTION_PATH = "alluxio.zookeeper.election.path";
     public static final String ZOOKEEPER_ENABLED = "alluxio.zookeeper.enabled";
     public static final String ZOOKEEPER_LEADER_INQUIRY_RETRY_COUNT =

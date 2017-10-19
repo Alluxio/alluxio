@@ -24,20 +24,34 @@ public class MasterNetAddress {
   private final int mRpcPort;
   private final int mWebPort;
 
+  /**
+   * @param hostname master hostname
+   * @param rpcPort master RPC port
+   * @param webPort master web port
+   */
   public MasterNetAddress(String hostname, int rpcPort, int webPort) {
     mHostname = hostname;
     mRpcPort = rpcPort;
     mWebPort = webPort;
   }
 
+  /**
+   * @return the master hostname
+   */
   public String getHostname() {
     return mHostname;
   }
 
+  /**
+   * @return the master RPC port
+   */
   public int getRpcPort() {
     return mRpcPort;
   }
 
+  /**
+   * @return the master web port
+   */
   public int getWebPort() {
     return mWebPort;
   }
