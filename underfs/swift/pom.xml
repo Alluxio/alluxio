@@ -51,9 +51,10 @@
       <groupId>org.alluxio</groupId>
       <artifactId>alluxio-core-common</artifactId>
       <version>${project.version}</version>
+      <scope>provided</scope>
     </dependency>
 
-    <!-- External test dependencies -->
+    <!-- Internal test dependencies -->
     <dependency>
       <groupId>org.alluxio</groupId>
       <artifactId>alluxio-core-common</artifactId>
@@ -98,21 +99,10 @@
               <goal>shade</goal>
             </goals>
             <configuration>
-              <artifactSet>
-                <includes>
-                  <include>org.codehaus.jackson:jackson-mapper-asl</include>
-                  <!-- transitive dependencies introduced by jackson-mapper-asl -->
-                  <include>org.codehaus.jackson:jackson-core-asl</include>
-
-                  <include>org.javaswift:joss</include>
-                  <!-- transitive dependencies introduced by joss -->
-                  <include>commons-codec:commons-codec</include>
-                  <include>commons-io:commons-io</include>
-                  <include>commons-lang:commons-lang</include>
-                  <include>org.apache.httpcomponents:httpclient</include>
-                  <include>org.apache.httpcomponents:httpcore</include>
-                </includes>
-              </artifactSet>
+              <finalName>${project.artifactId}-${project.version}-jar-with-dependencies</finalName>
+              <transformers>
+                <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
+              </transformers>
               <filters>
                 <filter>
                   <artifact>*:*</artifact>
@@ -125,32 +115,6 @@
                   </excludes>
                 </filter>
               </filters>
-              <relocations>
-                <relocation>
-                  <pattern>org.apache.commons.codec</pattern>
-                  <shadedPattern>${shading.prefix}.org.apache.commons.codec</shadedPattern>
-                </relocation>
-                <relocation>
-                  <pattern>org.apache.commons.io</pattern>
-                  <shadedPattern>${shading.prefix}.org.apache.commons.io</shadedPattern>
-                </relocation>
-                <relocation>
-                  <pattern>org.apache.commons.lang</pattern>
-                  <shadedPattern>${shading.prefix}.org.apache.commons.lang</shadedPattern>
-                </relocation>
-                <relocation>
-                  <pattern>org.apache.http</pattern>
-                  <shadedPattern>${shading.prefix}.org.apache.http</shadedPattern>
-                </relocation>
-                <relocation>
-                  <pattern>org.codehaus.jackson</pattern>
-                  <shadedPattern>${shading.prefix}.org.codehaus.jackson</shadedPattern>
-                </relocation>
-                <relocation>
-                  <pattern>org.javaswift.joss</pattern>
-                  <shadedPattern>${shading.prefix}.org.javaswift.joss</shadedPattern>
-                </relocation>
-              </relocations>
             </configuration>
           </execution>
         </executions>
@@ -164,6 +128,25 @@
             <exclude>**/SwiftUnderFileSystemContractTest.java</exclude>
           </testExcludes>
         </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>copy-installed</id>
+            <phase>install</phase>
+            <goals>
+              <goal>run</goal>
+            </goals>
+            <configuration>
+              <target>
+                <copy todir="${basedir}/../../lib" overwrite="true"
+                      file="target/${project.artifactId}-${project.version}-jar-with-dependencies.jar"/>
+              </target>
+            </configuration>
+          </execution>
+        </executions>
       </plugin>
     </plugins>
   </build>

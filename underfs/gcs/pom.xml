@@ -47,9 +47,10 @@
       <groupId>org.alluxio</groupId>
       <artifactId>alluxio-core-common</artifactId>
       <version>${project.version}</version>
+      <scope>provided</scope>
     </dependency>
 
-    <!-- External test dependencies -->
+    <!-- Internal test dependencies -->
     <dependency>
       <groupId>org.alluxio</groupId>
       <artifactId>alluxio-core-common</artifactId>
@@ -88,22 +89,16 @@
         <artifactId>maven-shade-plugin</artifactId>
         <executions>
           <execution>
-            <id>shade-jets3t</id>
+            <id>shade-gcs</id>
             <phase>package</phase>
             <goals>
               <goal>shade</goal>
             </goals>
             <configuration>
-              <artifactSet>
-                <includes>
-                  <include>net.java.dev.jets3t:jets3t</include>
-                  <!-- transitive dependencies introduced by jets3t -->
-                  <include>com.jamesmurty.utils:java-xmlbuilder</include>
-                  <include>commons-codec:commons-codec</include>
-                  <include>commons-logging:commons-logging</include>
-                  <include>commons-httpclient:commons-httpclient</include>
-                </includes>
-              </artifactSet>
+              <finalName>${project.artifactId}-${project.version}-jar-with-dependencies</finalName>
+              <transformers>
+                <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
+              </transformers>
               <filters>
                 <filter>
                   <artifact>*:*</artifact>
@@ -116,40 +111,6 @@
                   </excludes>
                 </filter>
               </filters>
-              <relocations>
-                <relocation>
-                  <pattern>com.jamesmurty.utils</pattern>
-                  <shadedPattern>${shading.prefix}.com.jamesmurty.utils</shadedPattern>
-                </relocation>
-                <relocation>
-                  <pattern>contribs.mx</pattern>
-                  <shadedPattern>${shading.prefix}.contribs.mx</shadedPattern>
-                </relocation>
-                <relocation>
-                  <pattern>net.iharder.base64</pattern>
-                  <shadedPattern>${shading.prefix}.net.iharder.base64</shadedPattern>
-                </relocation>
-                <relocation>
-                  <pattern>org.apache.commons.codec</pattern>
-                  <shadedPattern>${shading.prefix}.org.apache.commons.codec</shadedPattern>
-                </relocation>
-                <relocation>
-                  <pattern>org.apache.commons.httpclient</pattern>
-                  <shadedPattern>${shading.prefix}.org.apache.commons.httpclient</shadedPattern>
-                </relocation>
-                <relocation>
-                  <pattern>org.apache.commons.logging</pattern>
-                  <shadedPattern>${shading.prefix}.org.apache.commons.logging</shadedPattern>
-                </relocation>
-                <relocation>
-                  <pattern>org.apache</pattern>
-                  <shadedPattern>${shading.prefix}.org.apache</shadedPattern>
-                </relocation>
-                <relocation>
-                  <pattern>org.jets3t</pattern>
-                  <shadedPattern>${shading.prefix}.org.jets3t</shadedPattern>
-                </relocation>
-              </relocations>
             </configuration>
           </execution>
         </executions>
@@ -163,6 +124,25 @@
             <exclude>**/GCSUnderFileSystemContractTest.java</exclude>
           </testExcludes>
         </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>copy-installed</id>
+            <phase>install</phase>
+            <goals>
+              <goal>run</goal>
+            </goals>
+            <configuration>
+              <target>
+                <copy todir="${basedir}/../../lib" overwrite="true"
+                      file="target/${project.artifactId}-${project.version}-jar-with-dependencies.jar"/>
+              </target>
+            </configuration>
+          </execution>
+        </executions>
       </plugin>
     </plugins>
   </build>

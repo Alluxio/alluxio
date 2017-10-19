@@ -55,6 +55,7 @@
       <groupId>org.alluxio</groupId>
       <artifactId>alluxio-core-common</artifactId>
       <version>${project.version}</version>
+      <scope>provided</scope>
     </dependency>
 
     <!-- Internal test dependencies -->
@@ -102,25 +103,10 @@
               <goal>shade</goal>
             </goals>
             <configuration>
-              <artifactSet>
-                <includes>
-                  <include>com.amazonaws:aws-java-sdk-core</include>
-                  <!-- transitive dependencies introduced by com.amazonaws:aws-java-sdk-core -->
-                  <include>com.fasterxml.jackson.core:jackson-annotations</include>
-                  <include>com.fasterxml.jackson.core:jackson-core</include>
-                  <include>com.fasterxml.jackson.core:jackson-databind</include>
-                  <include>com.fasterxml.jackson.dataformat:jackson-dataformat-cbor</include>
-                  <include>commons-httpclient:commons-httpclient</include>
-                  <include>commons-logging:commons-logging</include>
-                  <include>joda-time:joda-time</include>
-                  <include>org.apache.httpcomponents:httpclient</include>
-                  <include>org.apache.httpcomponents:httpcore</include>
-
-                  <include>com.amazonaws:aws-java-sdk-s3</include>
-                  <!-- transitive dependencies introduced by com.amazonaws:aws-java-sdk-s3 -->
-                  <include>com.amazonaws:aws-java-sdk-kms</include>
-                </includes>
-              </artifactSet>
+              <finalName>${project.artifactId}-${project.version}-jar-with-dependencies</finalName>
+              <transformers>
+                <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
+              </transformers>
               <filters>
                 <filter>
                   <artifact>*:*</artifact>
@@ -133,44 +119,6 @@
                   </excludes>
                 </filter>
               </filters>
-              <relocations>
-                <relocation>
-                  <pattern>com.amazonaws</pattern>
-                  <shadedPattern>${shading.prefix}.com.amazonaws</shadedPattern>
-                </relocation>
-                <relocation>
-                  <pattern>com.fasterxml.jackson.annotation</pattern>
-                  <shadedPattern>${shading.prefix}.com.fasterxml.jackson.annotation</shadedPattern>
-                </relocation>
-                <relocation>
-                  <pattern>com.fasterxml.jackson.core</pattern>
-                  <shadedPattern>${shading.prefix}.com.fasterxml.jackson.core</shadedPattern>
-                </relocation>
-                <relocation>
-                  <pattern>com.fasterxml.jackson.databind</pattern>
-                  <shadedPattern>${shading.prefix}.com.fasterxml.jackson.databind</shadedPattern>
-                </relocation>
-                <relocation>
-                  <pattern>com.fasterxml.jackson.dataformat.cbor</pattern>
-                  <shadedPattern>${shading.prefix}.com.fasterxml.jackson.dataformat.cbor</shadedPattern>
-                </relocation>
-                <relocation>
-                  <pattern>org.apache.commons.logging</pattern>
-                  <shadedPattern>${shading.prefix}.org.apache.commons.logging</shadedPattern>
-                </relocation>
-                <relocation>
-                  <pattern>org.apache.http</pattern>
-                  <shadedPattern>${shading.prefix}.org.apache.http</shadedPattern>
-                </relocation>
-                <relocation>
-                  <pattern>org.jdom</pattern>
-                  <shadedPattern>${shading.prefix}.org.jdom</shadedPattern>
-                </relocation>
-                <relocation>
-                  <pattern>org.joda.time</pattern>
-                  <shadedPattern>${shading.prefix}.org.joda.time</shadedPattern>
-                </relocation>
-              </relocations>
             </configuration>
           </execution>
         </executions>
@@ -184,6 +132,25 @@
             <exclude>**/S3AUnderFileSystemContractTest.java</exclude>
           </testExcludes>
         </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>copy-installed</id>
+            <phase>install</phase>
+            <goals>
+              <goal>run</goal>
+            </goals>
+            <configuration>
+              <target>
+                <copy todir="${basedir}/../../lib" overwrite="true"
+                      file="target/${project.artifactId}-${project.version}-jar-with-dependencies.jar"/>
+              </target>
+            </configuration>
+          </execution>
+        </executions>
       </plugin>
     </plugins>
   </build>
