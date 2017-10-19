@@ -45,7 +45,8 @@ public final class ConfigurationTestUtils {
    * @param workDirectory the work directory in which to configure the journal and tiered storage
    * @return the configuration
    */
-  public static Map<PropertyKey, String> testConfigurationDefaults(String hostname, String workDirectory) {
+  public static Map<PropertyKey, String> testConfigurationDefaults(String hostname,
+      String workDirectory) {
     Map<PropertyKey, String> conf = new HashMap<>();
     conf.put(PropertyKey.MASTER_HOSTNAME, hostname);
     conf.put(PropertyKey.WORKER_BIND_HOST, hostname);
