@@ -58,11 +58,6 @@
       <artifactId>alluxio-logserver</artifactId>
       <version>${project.version}</version>
     </dependency>
-    <dependency>
-      <groupId>org.alluxio</groupId>
-      <artifactId>alluxio-underfs-local</artifactId>
-      <version>${project.version}</version>
-    </dependency>
   </dependencies>
 
   <profiles>
