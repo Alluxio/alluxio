@@ -478,6 +478,7 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
   @Nullable
   protected ObjectStatus getObjectStatus(String key) {
     try {
+      LOG.info("Get Object Metadata for key: {}", key);
       ObjectMetadata meta = mClient.getObjectMetadata(mBucketName, key);
       if (meta == null) {
         return null;
