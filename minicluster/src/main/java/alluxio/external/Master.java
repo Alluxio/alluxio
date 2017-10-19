@@ -34,14 +34,14 @@ public final class Master implements Closeable {
   private ExternalProcess mProcess;
 
   /**
-   * @param mBaseDir the base directory to use for the master process
+   * @param mWorkDir the work directory to use for the master process
    * @param address the address information for the master
    * @param masterId an ID for this master, used to distinguish it from other masters in the same
    *        cluster
    */
-  public Master(File mBaseDir, int masterId, MasterNetAddress address) throws IOException {
-    mLogsDir = new File(mBaseDir, "logs-master" + masterId);
-    mConfDir = new File(mBaseDir, "conf");
+  public Master(File mWorkDir, int masterId, MasterNetAddress address) throws IOException {
+    mLogsDir = new File(mWorkDir, "logs-master" + masterId);
+    mConfDir = new File(mWorkDir, "conf");
     mOutFile = new File(mLogsDir, "master.out");
     mAddress = address;
   }

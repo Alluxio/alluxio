@@ -69,7 +69,7 @@ public final class ExternalCluster implements TestRule {
   private final String mClusterName;
 
   /** Base directory for storing configuration and logs. */
-  private File mBaseDir;
+  private File mWorkDir;
   /** Closer for closing all resources that must be closed when the cluster is destroyed. */
   private Closer mCloser;
   private List<Master> mMasters;
@@ -81,9 +81,7 @@ public final class ExternalCluster implements TestRule {
 
   private ExternalCluster(Map<PropertyKey, String> properties, int numMasters, int numWorkers,
       String clusterName) {
-    mProperties = ConfigurationTestUtils.testConfigurationDefaults();
-    // Allow explicitly set properties to override test defaults.
-    mProperties.putAll(properties);
+    mProperties= properties;
     mNumMasters = numMasters;
     mNumWorkers = numWorkers;
     // Add a unique number so that different runs of the same test use different cluster names.
@@ -101,6 +99,7 @@ public final class ExternalCluster implements TestRule {
     Preconditions.checkState(mState != State.STARTED, "Cannot start while already started");
     Preconditions.checkState(mState != State.DESTROYED, "Cannot start a destroyed cluster");
     mState = State.STARTED;
+
     mMasterAddresses = generateMasterAddresses(mNumMasters);
     if (zkEnabled()) {
       mCuratorServer = mCloser
@@ -114,17 +113,22 @@ public final class ExternalCluster implements TestRule {
           Integer.toString(mMasterAddresses.get(0).getWebPort()));
     }
 
-    mBaseDir = AlluxioTestDirectory.createTemporaryDirectory(mClusterName);
-    setupRamdisk();
-    setupUfs();
-    setupJournal();
-    // This must happen after setting up ramdisk, ufs, and journal because they must update
-    // configuration properties.
+    mWorkDir = AlluxioTestDirectory.createTemporaryDirectory(mClusterName);
+    for (Entry<PropertyKey, String> entry : ConfigurationTestUtils.testConfigurationDefaults(
+        NetworkAddressUtils.getLocalHostName(), mWorkDir.getAbsolutePath()).entrySet()) {
+      // Don't overwrite explicitly set properties.
+      if (!mProperties.containsKey(entry.getKey())) {
+        mProperties.put(entry.getKey(), entry.getValue());
+      }
+    }
+
+    new File(Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS)).mkdirs();
+    formatJournal();
     writeConf();
 
     // Start servers
     LOG.info("Starting alluxio cluster {} with base directory {}", mClusterName,
-        mBaseDir.getAbsolutePath());
+        mWorkDir.getAbsolutePath());
     for (int i = 0; i < mNumMasters; i++) {
       startMaster(i);
     }
@@ -199,7 +203,7 @@ public final class ExternalCluster implements TestRule {
    * @param i the index of the master to start
    */
   public synchronized void startMaster(int i) throws IOException {
-    Master master = mCloser.register(new Master(mBaseDir, i, mMasterAddresses.get(i)));
+    Master master = mCloser.register(new Master(mWorkDir, i, mMasterAddresses.get(i)));
     mMasters.add(master);
     master.start();
   }
@@ -210,28 +214,14 @@ public final class ExternalCluster implements TestRule {
    * @param i the index of the worker to start
    */
   public synchronized void startWorker(int i) throws IOException {
-    Worker worker = mCloser.register(new Worker(mBaseDir, i));
+    Worker worker = mCloser.register(new Worker(mWorkDir, i));
     mWorkers.add(worker);
     worker.start();
   }
 
-  private void setupRamdisk() {
-    // Use a local file as a fake ramdisk. This doesn't require sudo and perf isn't important here.
-    String ramdisk = new File(mBaseDir, "ramdisk").getAbsolutePath();
-    mProperties.put(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_PATH.format(0), ramdisk);
-  }
-
-  private void setupUfs() {
-    File ufs = new File(mBaseDir, "underStorage");
-    ufs.mkdirs();
-    mProperties.put(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS, ufs.getAbsolutePath());
-  }
-
-  private void setupJournal() throws Exception {
-    String journalFolder = new File(mBaseDir, "journal").getAbsolutePath();
-    mProperties.put(PropertyKey.MASTER_JOURNAL_FOLDER, journalFolder);
-    try (Closeable c =
-        new ConfigurationRule(PropertyKey.MASTER_JOURNAL_FOLDER, journalFolder).toResource()) {
+  private void formatJournal() throws Exception {
+    try (Closeable c = new ConfigurationRule(PropertyKey.MASTER_JOURNAL_FOLDER,
+        mProperties.get(PropertyKey.MASTER_JOURNAL_FOLDER)).toResource()) {
       Format.format(Format.Mode.MASTER);
     }
   }
@@ -258,7 +248,7 @@ public final class ExternalCluster implements TestRule {
    * Writes the contents of {@link #mProperties} to the configuration file.
    */
   private void writeConf() throws IOException {
-    File confDir = new File(mBaseDir, "conf");
+    File confDir = new File(mWorkDir, "conf");
     confDir.mkdirs();
     StringBuilder sb = new StringBuilder();
     for (Entry<PropertyKey, String> entry : mProperties.entrySet()) {

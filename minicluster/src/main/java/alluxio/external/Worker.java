@@ -34,6 +34,7 @@ public class Worker implements Closeable {
 
   private final File mLogsDir;
   private final File mConfDir;
+  private final File mRamdiskFile;
   private final File mOutFile;
   private final int mRpcPort;
   private final int mDataPort;
@@ -42,13 +43,14 @@ public class Worker implements Closeable {
   private ExternalProcess mProcess;
 
   /**
-   * @param mBaseDir the base directory to use for the worker process
+   * @param mWorkDir the work directory to use for the worker process
    * @param workerId an ID for this worker, used to distinguish it from other workers in the same
    *        cluster
    */
-  public Worker(File mBaseDir, int workerId) throws IOException {
-    mLogsDir = new File(mBaseDir, "logs-worker" + workerId);
-    mConfDir = new File(mBaseDir, "conf");
+  public Worker(File mWorkDir, int workerId) throws IOException {
+    mLogsDir = new File(mWorkDir, "logs-worker" + workerId);
+    mConfDir = new File(mWorkDir, "conf");
+    mRamdiskFile = new File(mWorkDir, "ramdisk" + workerId);
     mOutFile = new File(mLogsDir, "worker.out");
     mRpcPort = PortUtils.getFreePort();
     mDataPort = PortUtils.getFreePort();
@@ -60,9 +62,12 @@ public class Worker implements Closeable {
    */
   public synchronized void start() throws IOException {
     mLogsDir.mkdirs();
+    mRamdiskFile.mkdirs();
     Map<PropertyKey, Object> conf = new HashMap<>();
     conf.put(PropertyKey.LOGGER_TYPE, "WORKER_LOGGER");
     conf.put(PropertyKey.CONF_DIR, mConfDir.getAbsolutePath());
+    conf.put(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_PATH.format(0),
+        mRamdiskFile.getAbsolutePath());
     conf.put(PropertyKey.LOGS_DIR, mLogsDir.getAbsolutePath());
     conf.put(PropertyKey.WORKER_RPC_PORT, mRpcPort);
     conf.put(PropertyKey.WORKER_DATA_PORT, mDataPort);
