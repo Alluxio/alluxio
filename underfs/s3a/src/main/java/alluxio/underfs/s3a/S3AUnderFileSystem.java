@@ -477,7 +477,7 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
 
   @Override
   @Nullable
-  protected ObjectStatus getObjectStatus(String key) {
+  protected ObjectStatus getObjectStatus(String key) throws IOException {
     try {
       ObjectMetadata meta = mClient.getObjectMetadata(mBucketName, key);
       return new ObjectStatus(key, meta.getContentLength(), meta.getLastModified().getTime());
@@ -485,7 +485,9 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
       if (e.getStatusCode() == 404) { // file not found, possible for exists calls
         return null;
       }
-      throw e;
+      throw new IOException(e);
+    } catch (AmazonClientException e) {
+      throw new IOException(e);
     }
   }
 
