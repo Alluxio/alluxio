@@ -27,7 +27,7 @@ import org.junit.rules.Timeout;
 public final class ExternalClusterTest {
 
   @Rule
-  public Timeout mTimeout = Timeout.seconds(6000);
+  public Timeout mTimeout = Timeout.seconds(600);
 
   @Test
   public void simpleCluster() throws Exception {
