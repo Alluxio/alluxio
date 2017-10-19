@@ -310,7 +310,7 @@ public final class ExternalCluster implements TestRule {
   /**
    * Builder for {@link ExternalCluster}.
    */
-  public final static class Builder {
+  public static final class Builder {
     private Map<PropertyKey, String> mProperties = new HashMap<>();
     private int mNumMasters = 1;
     private int mNumWorkers = 1;
