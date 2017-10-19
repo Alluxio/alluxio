@@ -107,7 +107,9 @@ public final class FileSystemContext implements Closeable {
 
   /**
    * @param subject the parent subject, set to null if not present
-   * @param masterInquireClient the client to use for determining the master
+   * @param masterInquireClient the client to use for determining the master; note that if the
+   *        context is reset, this client will be replaced with a new masterInquireClient based on
+   *        global configuration
    * @return the context
    */
   public static FileSystemContext create(Subject subject, MasterInquireClient masterInquireClient) {
@@ -127,6 +129,7 @@ public final class FileSystemContext implements Closeable {
 
   /**
    * Initializes the context. Only called in the factory methods and reset.
+   *
    * @param masterInquireClient the client to use for determining the master
    */
   private synchronized void init(MasterInquireClient masterInquireClient) {

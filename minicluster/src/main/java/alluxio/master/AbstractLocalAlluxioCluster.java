@@ -25,11 +25,9 @@ import alluxio.security.LoginUserTestUtils;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.UnderFileSystemUtils;
 import alluxio.util.io.FileUtils;
-import alluxio.util.io.PathUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.worker.WorkerProcess;
 
-import com.google.common.base.Joiner;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -261,55 +259,18 @@ public abstract class AbstractLocalAlluxioCluster {
     setAlluxioWorkDirectory();
     setHostname();
 
-    for (Entry<PropertyKey, String> entry : ConfigurationTestUtils.testConfigurationDefaults()
-        .entrySet()) {
+    for (Entry<PropertyKey, String> entry : ConfigurationTestUtils
+        .testConfigurationDefaults(mHostname, mWorkDirectory).entrySet()) {
       Configuration.set(entry.getKey(), entry.getValue());
     }
 
     Configuration.set(PropertyKey.TEST_MODE, true);
-    Configuration.set(PropertyKey.WORK_DIR, mWorkDirectory);
-    Configuration.set(PropertyKey.MASTER_HOSTNAME, mHostname);
     Configuration.set(PropertyKey.MASTER_RPC_PORT, 0);
     Configuration.set(PropertyKey.MASTER_WEB_PORT, 0);
-
-    Configuration.set(PropertyKey.MASTER_BIND_HOST, mHostname);
-    Configuration.set(PropertyKey.MASTER_WEB_BIND_HOST, mHostname);
-
     Configuration.set(PropertyKey.PROXY_WEB_PORT, 0);
-
     Configuration.set(PropertyKey.WORKER_RPC_PORT, 0);
     Configuration.set(PropertyKey.WORKER_DATA_PORT, 0);
     Configuration.set(PropertyKey.WORKER_WEB_PORT, 0);
-
-    Configuration.set(PropertyKey.WORKER_BIND_HOST, mHostname);
-    Configuration.set(PropertyKey.WORKER_DATA_BIND_HOST, mHostname);
-    Configuration.set(PropertyKey.WORKER_WEB_BIND_HOST, mHostname);
-
-    // Sets up the tiered store
-    String ramdiskPath = PathUtils.concatPath(mWorkDirectory, "ramdisk");
-    Configuration.set(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_ALIAS.format(0), "MEM");
-    Configuration
-        .set(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_PATH.format(0), ramdiskPath);
-
-    int numLevel = Configuration.getInt(PropertyKey.WORKER_TIERED_STORE_LEVELS);
-    for (int level = 1; level < numLevel; level++) {
-      PropertyKey tierLevelDirPath =
-          PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_PATH.format(level);
-      String[] dirPaths = Configuration.get(tierLevelDirPath).split(",");
-      List<String> newPaths = new ArrayList<>();
-      for (String dirPath : dirPaths) {
-        String newPath = mWorkDirectory + dirPath;
-        newPaths.add(newPath);
-      }
-      Configuration.set(
-          PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_PATH.format(level),
-          Joiner.on(',').join(newPaths));
-    }
-
-    // Sets up the journal folder
-    String journalFolder =
-        PathUtils.concatPath(mWorkDirectory, "journal" + RANDOM_GENERATOR.nextLong());
-    Configuration.set(PropertyKey.MASTER_JOURNAL_FOLDER, journalFolder);
   }
 
   /**

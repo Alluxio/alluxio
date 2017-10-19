@@ -13,7 +13,11 @@ package alluxio;
 
 import alluxio.util.io.PathUtils;
 
+import com.google.common.base.Joiner;
+
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -37,13 +41,43 @@ public final class ConfigurationTestUtils {
    * These defaults are mostly aimed at getting tests to run faster. Individual tests may override
    * them to test specific functionality.
    *
+   * @param hostname the master hostname
+   * @param workDirectory the work directory in which to configure the journal and tiered storage
    * @return the configuration
    */
-  public static Map<PropertyKey, String> testConfigurationDefaults() {
+  public static Map<PropertyKey, String> testConfigurationDefaults(String hostname, String workDirectory) {
     Map<PropertyKey, String> conf = new HashMap<>();
+    conf.put(PropertyKey.MASTER_HOSTNAME, hostname);
+    conf.put(PropertyKey.WORKER_BIND_HOST, hostname);
+    conf.put(PropertyKey.WORKER_DATA_BIND_HOST, hostname);
+    conf.put(PropertyKey.WORKER_WEB_BIND_HOST, hostname);
+    conf.put(PropertyKey.MASTER_BIND_HOST, hostname);
+    conf.put(PropertyKey.MASTER_WEB_BIND_HOST, hostname);
+
+    conf.put(PropertyKey.WORK_DIR, workDirectory);
+    // Sets up the tiered store
+    conf.put(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_ALIAS.format(0), "MEM");
+    String ramdiskPath = PathUtils.concatPath(workDirectory, "ramdisk");
+    conf.put(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_PATH.format(0), ramdiskPath);
+
+    int numLevel = Configuration.getInt(PropertyKey.WORKER_TIERED_STORE_LEVELS);
+    for (int level = 1; level < numLevel; level++) {
+      PropertyKey tierLevelDirPath =
+          PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_PATH.format(level);
+      String[] dirPaths = Configuration.get(tierLevelDirPath).split(",");
+      List<String> newPaths = new ArrayList<>();
+      for (String dirPath : dirPaths) {
+        String newPath = workDirectory + dirPath;
+        newPaths.add(newPath);
+      }
+      conf.put(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_PATH.format(level),
+          Joiner.on(',').join(newPaths));
+    }
+    // Sets up the journal folder
+    conf.put(PropertyKey.MASTER_JOURNAL_FOLDER, PathUtils.concatPath(workDirectory, "journal"));
+
     conf.put(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, "1KB");
     conf.put(PropertyKey.USER_BLOCK_REMOTE_READ_BUFFER_SIZE_BYTES, "64");
-
     conf.put(PropertyKey.MASTER_TTL_CHECKER_INTERVAL_MS, "1sec");
     conf.put(PropertyKey.MASTER_WORKER_THREADS_MIN, "1");
     conf.put(PropertyKey.MASTER_WORKER_THREADS_MAX, "100");
@@ -70,7 +104,6 @@ public final class ConfigurationTestUtils {
     conf.put(PropertyKey.WEB_THREADS, "1");
     conf.put(PropertyKey.WEB_RESOURCES, PathUtils
         .concatPath(System.getProperty("user.dir"), "../core/server/common/src/main/webapp"));
-
     conf.put(PropertyKey.WORKER_MEMORY_SIZE, "100MB");
     conf.put(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS, "15ms");
     conf.put(PropertyKey.WORKER_BLOCK_THREADS_MIN, "1");
