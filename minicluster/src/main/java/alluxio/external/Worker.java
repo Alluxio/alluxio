@@ -66,7 +66,7 @@ public class Worker implements Closeable {
     conf.put(PropertyKey.LOGS_DIR, mLogsDir.getAbsolutePath());
     conf.put(PropertyKey.WORKER_RPC_PORT, mRpcPort);
     conf.put(PropertyKey.WORKER_DATA_PORT, mDataPort);
-    conf.put(PropertyKey.WORKER_DATA_PORT, mWebPort);
+    conf.put(PropertyKey.WORKER_WEB_PORT, mWebPort);
     mProcess = new ExternalProcess(conf, LimitedLifeWorkerProcess.class, mOutFile);
     LOG.info("Starting worker with (rpc, data, web) ports ({}, {}, {})", mRpcPort, mDataPort,
         mWebPort);

@@ -20,9 +20,14 @@ import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.client.file.options.CreateFileOptions;
 
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.Timeout;
 
 public final class ExternalClusterTest {
+
+  @Rule
+  public Timeout mTimeout = Timeout.seconds(6000);
 
   @Test
   public void simpleCluster() throws Exception {
