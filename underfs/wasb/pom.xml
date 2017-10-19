@@ -17,11 +17,13 @@
     <artifactId>alluxio-underfs</artifactId>
     <version>1.7.0-SNAPSHOT</version>
   </parent>
-  <artifactId>alluxio-underfs-hdfs</artifactId>
-  <name>Alluxio Under File System - HDFS</name>
-  <description>HDFS Under File System implementation</description>
+  <artifactId>alluxio-underfs-wasb</artifactId>
+  <name>Alluxio Under File System - Microsoft Azure Blob Storage</name>
+  <description>Microsoft Azure Blob Storage Under File System implementation</description>
 
   <properties>
+    <!-- The hadoop client version wasb-hadoop depends on -->
+    <wasb.hadoop.version>2.7.3.2.6.1.0-129</wasb.hadoop.version>
     <!-- The following paths need to be defined here as well as in the parent pom so that mvn can -->
     <!-- run properly from sub-project directories -->
     <license.header.path>${project.parent.parent.basedir}/build/license/</license.header.path>
@@ -31,14 +33,24 @@
 
   <dependencies>
     <!-- External dependencies -->
-    <!-- Hadoop dependencies are included in individual profiles -->
     <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.apache.commons</groupId>
-      <artifactId>commons-lang3</artifactId>
+      <groupId>org.apache.hadoop</groupId>
+      <artifactId>hadoop-azure</artifactId>
+      <version>${wasb.hadoop.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.hadoop</groupId>
+      <artifactId>hadoop-common</artifactId>
+      <version>${wasb.hadoop.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.hadoop</groupId>
+      <artifactId>hadoop-hdfs</artifactId>
+      <version>${wasb.hadoop.version}</version>
     </dependency>
 
     <!-- Internal dependencies -->
@@ -47,6 +59,18 @@
       <artifactId>alluxio-core-common</artifactId>
       <version>${project.version}</version>
       <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.alluxio</groupId>
+      <artifactId>alluxio-underfs-hdfs</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+
+    <!-- External test dependencies -->
+    <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-lang3</artifactId>
+      <scope>test</scope>
     </dependency>
 
     <!-- Internal test dependencies -->
@@ -60,44 +84,11 @@
   </dependencies>
 
   <profiles>
-    <!-- Profile to build this UFS module connecting to hdfs 1 -->
-    <profile>
-      <id>hadoop-1</id>
-      <dependencies>
-        <dependency>
-          <groupId>org.apache.hadoop</groupId>
-          <artifactId>hadoop-core</artifactId>
-          <version>${hadoop.version}</version>
-        </dependency>
-      </dependencies>
-    </profile>
-
-    <!-- Profile to build this UFS module connecting to hdfs 2, this is the default profile -->
-    <profile>
-      <id>hadoop-2</id>
-      <activation>
-        <activeByDefault>true</activeByDefault>
-      </activation>
-      <dependencies>
-        <dependency>
-          <groupId>org.apache.hadoop</groupId>
-          <artifactId>hadoop-common</artifactId>
-          <version>${hadoop.version}</version>
-        </dependency>
-
-        <dependency>
-          <groupId>org.apache.hadoop</groupId>
-          <artifactId>hadoop-hdfs</artifactId>
-          <version>${hadoop.version}</version>
-        </dependency>
-      </dependencies>
-    </profile>
-
     <profile>
       <id>ufsContractTest</id>
       <activation>
         <property>
-          <name>testHdfsBaseDir</name>
+          <name>testWasbBaseDir</name>
         </property>
       </activation>
       <build>
@@ -121,7 +112,7 @@
         <artifactId>maven-shade-plugin</artifactId>
         <executions>
           <execution>
-            <id>shade-hdfs</id>
+            <id>shade-wasb</id>
             <phase>package</phase>
             <goals>
               <goal>shade</goal>
@@ -152,8 +143,9 @@
         <artifactId>maven-compiler-plugin</artifactId>
         <configuration>
           <testExcludes>
-            <!-- Skip UFS contract tests unless -DtestHdfsBaseDir="hdfs://ip:port/alluxio_test" is specified -->
-            <exclude>**/HdfsUnderFileSystemContractTest.java</exclude>
+            <!-- Skip UFS contract tests unless -DtestWasbBaseDir="wasb://AZURE_CONTAINER@AZURE_ACCOUNT.blob.core.windows.net/AZURE_DIRECTORY/"
+                 is specified -->
+            <exclude>**/WasbUnderFileSystemContractTest.java</exclude>
           </testExcludes>
         </configuration>
       </plugin>
