@@ -115,7 +115,6 @@ public class JournalShutdownIntegrationTest extends BaseIntegrationTest {
 
   /*
    * We use the external cluster for this test due to flakiness issues when running in a single JVM.
-   * Other tests are kept local because external cluster adds a lot of time when using zookeeper.
    */
   @Test
   public void multiMasterJournalStopIntegration() throws Exception {
