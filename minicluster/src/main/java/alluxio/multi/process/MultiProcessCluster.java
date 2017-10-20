@@ -155,8 +155,10 @@ public final class MultiProcessCluster implements TestRule {
    *
    * If no master is currently primary, this method blocks until a primary has been elected, then
    * kills it.
+   *
+   * @return the ID of the killed master
    */
-  public synchronized void killPrimaryMaster() {
+  public synchronized int killPrimaryMaster() {
     final FileSystem fs = getFileSystemClient();
     final MasterInquireClient inquireClient = getMasterInquireClient();
     CommonUtils.waitFor("a primary master to be serving", new Function<Void, Boolean>() {
@@ -183,7 +185,7 @@ public final class MultiProcessCluster implements TestRule {
     for (int i = 0; i < mMasterAddresses.size(); i++) {
       if (mMasterAddresses.get(i).getRpcPort() == primaryRpcPort) {
         mMasters.get(i).close();
-        return;
+        return i;
       }
     }
     throw new RuntimeException(
