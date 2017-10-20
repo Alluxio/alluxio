@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.external;
+package alluxio.multi.process;
 
 import alluxio.PropertyKey;
 
@@ -28,21 +28,18 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class Master implements Closeable {
   private final File mLogsDir;
   private final File mConfDir;
-  private final File mOutFile;
   private final MasterNetAddress mAddress;
 
   private ExternalProcess mProcess;
 
   /**
-   * @param mWorkDir the work directory to use for the master process
-   * @param address the address information for the master
-   * @param masterId an ID for this master, used to distinguish it from other masters in the same
-   *        cluster
+   * @param confDir configuration directory
+   * @param logsDir logs directory
+   * @param address address information for the master
    */
-  public Master(File mWorkDir, int masterId, MasterNetAddress address) throws IOException {
-    mLogsDir = new File(mWorkDir, "logs-master" + masterId);
-    mConfDir = new File(mWorkDir, "conf");
-    mOutFile = new File(mLogsDir, "master.out");
+  public Master(File confDir, File logsDir, MasterNetAddress address) throws IOException {
+    mConfDir = confDir;
+    mLogsDir = logsDir;
     mAddress = address;
   }
 
@@ -58,7 +55,8 @@ public final class Master implements Closeable {
     conf.put(PropertyKey.MASTER_HOSTNAME, mAddress.getHostname());
     conf.put(PropertyKey.MASTER_RPC_PORT, mAddress.getRpcPort());
     conf.put(PropertyKey.MASTER_WEB_PORT, mAddress.getWebPort());
-    mProcess = new ExternalProcess(conf, LimitedLifeMasterProcess.class, mOutFile);
+    mProcess =
+        new ExternalProcess(conf, LimitedLifeMasterProcess.class, new File(mLogsDir, "master.out"));
     mProcess.start();
   }
 

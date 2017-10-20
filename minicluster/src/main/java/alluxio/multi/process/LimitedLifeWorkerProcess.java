@@ -9,20 +9,20 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.external;
+package alluxio.multi.process;
 
 import alluxio.Constants;
-import alluxio.master.AlluxioMaster;
+import alluxio.worker.AlluxioWorker;
 
 /**
- * Wrapper around AlluxioMaster which will exit after a limited amount of time.
+ * Wrapper around AlluxioWorker which will exit after a limited amount of time.
  */
-public final class LimitedLifeMasterProcess {
+public final class LimitedLifeWorkerProcess {
   /**
    * @param args program arguments
    */
   public static void main(String[] args) {
     Utils.limitLife(Constants.MAX_TEST_PROCESS_LIFETIME_MS);
-    AlluxioMaster.main(args);
+    AlluxioWorker.main(args);
   }
 }

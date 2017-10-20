@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.external;
+package alluxio.multi.process;
 
 import alluxio.AlluxioTestDirectory;
 import alluxio.AlluxioURI;
@@ -19,6 +19,7 @@ import alluxio.ConfigurationTestUtils;
 import alluxio.PropertyKey;
 import alluxio.cli.Format;
 import alluxio.client.file.FileSystem;
+import alluxio.client.file.FileSystem.Factory;
 import alluxio.client.file.FileSystemContext;
 import alluxio.exception.status.UnavailableException;
 import alluxio.master.MasterInquireClient;
@@ -61,8 +62,8 @@ import javax.annotation.concurrent.ThreadSafe;
  * The synchronization strategy for this class is to synchronize all public methods.
  */
 @ThreadSafe
-public final class ExternalCluster implements TestRule {
-  private static final Logger LOG = LoggerFactory.getLogger(ExternalCluster.class);
+public final class MultiProcessCluster implements TestRule {
+  private static final Logger LOG = LoggerFactory.getLogger(MultiProcessCluster.class);
   private static final File ARTIFACTS_DIR = new File("./target/artifacts");
   private static final File TESTS_LOG = new File("./target/tests.log");
 
@@ -82,7 +83,7 @@ public final class ExternalCluster implements TestRule {
   private State mState;
   private TestingServer mCuratorServer;
 
-  private ExternalCluster(Map<PropertyKey, String> properties, int numMasters, int numWorkers,
+  private MultiProcessCluster(Map<PropertyKey, String> properties, int numMasters, int numWorkers,
       String clusterName) {
     mProperties = properties;
     mNumMasters = numMasters;
@@ -109,11 +110,10 @@ public final class ExternalCluster implements TestRule {
           .register(new TestingServer(-1, AlluxioTestDirectory.createTemporaryDirectory("zk")));
       mProperties.put(PropertyKey.ZOOKEEPER_ADDRESS, mCuratorServer.getConnectString());
     } else {
-      mProperties.put(PropertyKey.MASTER_HOSTNAME, mMasterAddresses.get(0).getHostname());
-      mProperties.put(PropertyKey.MASTER_RPC_PORT,
-          Integer.toString(mMasterAddresses.get(0).getRpcPort()));
-      mProperties.put(PropertyKey.MASTER_WEB_PORT,
-          Integer.toString(mMasterAddresses.get(0).getWebPort()));
+      MasterNetAddress masterAddress = mMasterAddresses.get(0);
+      mProperties.put(PropertyKey.MASTER_HOSTNAME, masterAddress.getHostname());
+      mProperties.put(PropertyKey.MASTER_RPC_PORT, Integer.toString(masterAddress.getRpcPort()));
+      mProperties.put(PropertyKey.MASTER_WEB_PORT, Integer.toString(masterAddress.getWebPort()));
     }
 
     mWorkDir = AlluxioTestDirectory.createTemporaryDirectory(mClusterName);
@@ -188,7 +188,7 @@ public final class ExternalCluster implements TestRule {
     Preconditions.checkState(mState == State.STARTED,
         "must be in the started state to get an fs client, but state was %s", mState);
     MasterInquireClient inquireClient = getMasterInquireClient();
-    return FileSystem.Factory.get(FileSystemContext.create(null, inquireClient));
+    return Factory.get(mCloser.register(FileSystemContext.create(null, inquireClient)));
   }
 
   /**
@@ -235,7 +235,11 @@ public final class ExternalCluster implements TestRule {
    * @param i the index of the master to start
    */
   public synchronized void startMaster(int i) throws IOException {
-    Master master = mCloser.register(new Master(mWorkDir, i, mMasterAddresses.get(i)));
+    Preconditions.checkState(mState == State.STARTED,
+        "Must be in a started state to start individual masters");
+    File confDir = new File(mWorkDir, "conf");
+    File logsDir = new File(mWorkDir, "logs-master" + i);
+    Master master = mCloser.register(new Master(confDir, logsDir, mMasterAddresses.get(i)));
     mMasters.add(master);
     master.start();
   }
@@ -246,7 +250,12 @@ public final class ExternalCluster implements TestRule {
    * @param i the index of the worker to start
    */
   public synchronized void startWorker(int i) throws IOException {
-    Worker worker = mCloser.register(new Worker(mWorkDir, i));
+    Preconditions.checkState(mState == State.STARTED,
+        "Must be in a started state to start individual workers");
+    File confDir = new File(mWorkDir, "conf");
+    File logsDir = new File(mWorkDir, "logs-worker" + i);
+    File ramdisk = new File(mWorkDir, "ramdisk" + i);
+    Worker worker = mCloser.register(new Worker(confDir, logsDir, ramdisk));
     mWorkers.add(worker);
     worker.start();
   }
@@ -330,7 +339,7 @@ public final class ExternalCluster implements TestRule {
   }
 
   /**
-   * Builder for {@link ExternalCluster}.
+   * Builder for {@link MultiProcessCluster}.
    */
   public static final class Builder {
     private Map<PropertyKey, String> mProperties = new HashMap<>();
@@ -387,15 +396,15 @@ public final class ExternalCluster implements TestRule {
     }
 
     /**
-     * @return a constructed {@link ExternalCluster}
+     * @return a constructed {@link MultiProcessCluster}
      */
-    public ExternalCluster build() {
-      return new ExternalCluster(mProperties, mNumMasters, mNumWorkers, mClusterName);
+    public MultiProcessCluster build() {
+      return new MultiProcessCluster(mProperties, mNumMasters, mNumWorkers, mClusterName);
     }
   }
 
   /**
-   * @return a new builder for an {@link ExternalCluster}
+   * @return a new builder for an {@link MultiProcessCluster}
    */
   public static Builder newBuilder() {
     return new Builder();

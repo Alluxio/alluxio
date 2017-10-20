@@ -23,7 +23,7 @@ import alluxio.SystemPropertyRule;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
-import alluxio.external.ExternalCluster;
+import alluxio.multi.process.MultiProcessCluster;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.options.ListStatusOptions;
 import alluxio.underfs.UnderFileSystemConfiguration;
@@ -93,7 +93,7 @@ public class JournalShutdownIntegrationTest extends BaseIntegrationTest {
 
   @Test
   public void singleMasterJournalStopIntegration() throws Exception {
-    ExternalCluster cluster = ExternalCluster.newBuilder()
+    MultiProcessCluster cluster = MultiProcessCluster.newBuilder()
         .setClusterName("singleMasterJournalStopIntegration")
         .setNumWorkers(0)
         .setNumMasters(1)
@@ -122,7 +122,7 @@ public class JournalShutdownIntegrationTest extends BaseIntegrationTest {
    */
   @Test
   public void multiMasterJournalStopIntegration() throws Exception {
-    ExternalCluster cluster = ExternalCluster.newBuilder()
+    MultiProcessCluster cluster = MultiProcessCluster.newBuilder()
         .setClusterName("multiMasterJournalStopIntegration")
         .setNumWorkers(0)
         .setNumMasters(TEST_NUM_MASTERS)

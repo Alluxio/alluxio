@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.external;
+package alluxio.multi.process;
 
 import static org.junit.Assert.assertEquals;
 
@@ -24,14 +24,14 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.Timeout;
 
-public final class ExternalClusterTest {
+public final class MultiProcessClusterTest {
 
   @Rule
   public Timeout mTimeout = Timeout.seconds(600);
 
   @Test
   public void simpleCluster() throws Exception {
-    ExternalCluster cluster = ExternalCluster.newBuilder()
+    MultiProcessCluster cluster = MultiProcessCluster.newBuilder()
         .setNumMasters(1)
         .setNumWorkers(1)
         .build();
@@ -46,7 +46,7 @@ public final class ExternalClusterTest {
 
   @Test
   public void zookeeper() throws Exception {
-    ExternalCluster cluster = ExternalCluster.newBuilder()
+    MultiProcessCluster cluster = MultiProcessCluster.newBuilder()
         .addProperty(PropertyKey.ZOOKEEPER_ENABLED, "true")
         .setNumMasters(3)
         .setNumWorkers(2)

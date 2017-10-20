@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.external;
+package alluxio.multi.process;
 
 import alluxio.PropertyKey;
 import alluxio.network.PortUtils;
@@ -35,7 +35,6 @@ public class Worker implements Closeable {
   private final File mLogsDir;
   private final File mConfDir;
   private final File mRamdiskFile;
-  private final File mOutFile;
   private final int mRpcPort;
   private final int mDataPort;
   private final int mWebPort;
@@ -43,15 +42,14 @@ public class Worker implements Closeable {
   private ExternalProcess mProcess;
 
   /**
-   * @param mWorkDir the work directory to use for the worker process
-   * @param workerId an ID for this worker, used to distinguish it from other workers in the same
-   *        cluster
+   * @param confDir the conf directory
+   * @param logsDir the work directory
+   * @param ramdisk the ramdisk
    */
-  public Worker(File mWorkDir, int workerId) throws IOException {
-    mLogsDir = new File(mWorkDir, "logs-worker" + workerId);
-    mConfDir = new File(mWorkDir, "conf");
-    mRamdiskFile = new File(mWorkDir, "ramdisk" + workerId);
-    mOutFile = new File(mLogsDir, "worker.out");
+  public Worker(File confDir, File logsDir, File ramdisk) throws IOException {
+    mConfDir = confDir;
+    mLogsDir = logsDir;
+    mRamdiskFile = ramdisk;
     mRpcPort = PortUtils.getFreePort();
     mDataPort = PortUtils.getFreePort();
     mWebPort = PortUtils.getFreePort();
@@ -72,7 +70,8 @@ public class Worker implements Closeable {
     conf.put(PropertyKey.WORKER_RPC_PORT, mRpcPort);
     conf.put(PropertyKey.WORKER_DATA_PORT, mDataPort);
     conf.put(PropertyKey.WORKER_WEB_PORT, mWebPort);
-    mProcess = new ExternalProcess(conf, LimitedLifeWorkerProcess.class, mOutFile);
+    mProcess =
+        new ExternalProcess(conf, LimitedLifeWorkerProcess.class, new File(mLogsDir, "worker.out"));
     LOG.info("Starting worker with (rpc, data, web) ports ({}, {}, {})", mRpcPort, mDataPort,
         mWebPort);
     mProcess.start();
