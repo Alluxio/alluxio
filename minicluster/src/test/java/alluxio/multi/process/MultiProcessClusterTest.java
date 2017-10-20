@@ -32,7 +32,7 @@ public final class MultiProcessClusterTest {
   private MultiProcessCluster mCluster;
 
   @Rule
-  public Timeout mTimeout = Timeout.millis(10 * Constants.MINUTE_MS);
+  public Timeout mTimeout = Timeout.millis(Constants.MAX_TEST_DURATION_MS);
 
   @Before
   public void before() {
@@ -91,7 +91,7 @@ public final class MultiProcessClusterTest {
   }
 
   private static void createAndOpenFile(FileSystem fs) throws Exception {
-    long timeoutMs = System.currentTimeMillis() + Constants.SECOND_MS;
+    long timeoutMs = System.currentTimeMillis() + Constants.MINUTE_MS;
     int len = 10;
     for (;;) {
       try {
@@ -101,7 +101,7 @@ public final class MultiProcessClusterTest {
       } catch (Exception e) {
         // This can indicate that the worker hasn't connected yet, so we must retry.
       }
-      if (System.currentTimeMillis() < timeoutMs) {
+      if (System.currentTimeMillis() >= timeoutMs) {
         Assert.fail("Timed out trying to create a file");
       }
     }
