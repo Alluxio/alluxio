@@ -94,15 +94,20 @@ public final class MultiProcessClusterTest {
     long timeoutMs = System.currentTimeMillis() + Constants.MINUTE_MS;
     int len = 10;
     for (;;) {
+      String testFile = "/fileName";
       try {
-        FileSystemTestUtils.createByteFile(fs, "/fileName", len,
+        FileSystemTestUtils.createByteFile(fs, testFile, len,
             CreateFileOptions.defaults().setBlockSizeBytes(100));
         break;
       } catch (Exception e) {
-        // This can indicate that the worker hasn't connected yet, so we must retry.
-      }
-      if (System.currentTimeMillis() >= timeoutMs) {
-        Assert.fail("Timed out trying to create a file");
+        // This can indicate that the worker hasn't connected yet, so we must delete and retry.
+        if (System.currentTimeMillis() < timeoutMs) {
+          if (fs.exists(new AlluxioURI(testFile))) {
+            fs.delete(new AlluxioURI(testFile));
+          }
+        } else {
+          Assert.fail(String.format("Timed out trying to create a file. Latest exception: %s", e.toString()));
+        }
       }
     }
     try (FileInStream is = fs.openFile(new AlluxioURI("/fileName"))) {
