@@ -484,7 +484,7 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
       }
       return new ObjectStatus(key, meta.getContentLength(), meta.getLastModified().getTime());
     } catch (AmazonClientException e) {
-      LOG.warn("getObjectStatus error for {}, exception: {}. Assuming file does not exist.", key,
+      LOG.debug("getObjectStatus error for {}, exception: {}. Assuming file does not exist.", key,
           e.getMessage());
       return null;
     }
