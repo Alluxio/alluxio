@@ -22,6 +22,7 @@ import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystem.Factory;
 import alluxio.client.file.FileSystemContext;
 import alluxio.exception.status.UnavailableException;
+import alluxio.master.LocalAlluxioCluster;
 import alluxio.master.MasterInquireClient;
 import alluxio.master.SingleMasterInquireClient;
 import alluxio.master.ZkMasterInquireClient;
@@ -58,6 +59,15 @@ import javax.annotation.concurrent.ThreadSafe;
 /**
  * Class for starting, stopping, and interacting with an Alluxio cluster where each master and
  * worker runs in its own process.
+ *
+ * Compared to {@link LocalAlluxioCluster}, {@link MultiProcessCluster} is
+ *   - Slower
+ *   - Black box testing only (No access to master/worker internals)
+ *   - Destructible (You can kill -9 masters/workers)
+ *   - More realistic of real deployments
+ *
+ * Due to the slower speed, [@link LocalAlluxioCluster} should generally be preferred.
+ * {@link MultiProcessCluster} is primarily for tests which want to stop or restart servers.
  *
  * The synchronization strategy for this class is to synchronize all public methods.
  */
