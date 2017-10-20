@@ -106,7 +106,8 @@ public final class MultiProcessClusterTest {
             fs.delete(new AlluxioURI(testFile));
           }
         } else {
-          Assert.fail(String.format("Timed out trying to create a file. Latest exception: %s", e.toString()));
+          Assert.fail(String.format("Timed out trying to create a file. Latest exception: %s",
+              e.toString()));
         }
       }
     }
