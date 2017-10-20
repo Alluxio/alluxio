@@ -229,7 +229,9 @@ public final class MultiProcessCluster implements TestRule {
     // Delete copied work directory.
     FileUtils.deleteDirectory(targetDir);
     // Move tarball to artifacts directory.
-    FileUtils.moveFile(tarball, new File(ARTIFACTS_DIR, tarball.getName()));
+    File finalTarball = new File(ARTIFACTS_DIR, tarball.getName());
+    FileUtils.moveFile(tarball, finalTarball);
+    LOG.info("Saved cluster {} to {}", mClusterName, finalTarball.getAbsolutePath());
   }
 
   /**

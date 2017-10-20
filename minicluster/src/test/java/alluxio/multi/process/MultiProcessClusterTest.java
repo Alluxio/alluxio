@@ -14,53 +14,84 @@ package alluxio.multi.process;
 import static org.junit.Assert.assertEquals;
 
 import alluxio.AlluxioURI;
+import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.client.file.options.CreateFileOptions;
 
+import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.Timeout;
 
 public final class MultiProcessClusterTest {
+  private boolean mSuccess;
+  private MultiProcessCluster mCluster;
 
   @Rule
-  public Timeout mTimeout = Timeout.seconds(600);
+  public Timeout mTimeout = Timeout.millis(10 * Constants.MINUTE_MS);
+
+  @Before
+  public void before() {
+    mSuccess = false;
+  }
 
   @Test
   public void simpleCluster() throws Exception {
-    MultiProcessCluster cluster = MultiProcessCluster.newBuilder()
+    mCluster = MultiProcessCluster.newBuilder()
+        .setClusterName("simpleCluster")
         .setNumMasters(1)
         .setNumWorkers(1)
         .build();
     try {
-      cluster.start();
-      FileSystem fs = cluster.getFileSystemClient();
+      mCluster.start();
+      FileSystem fs = mCluster.getFileSystemClient();
       createAndOpenFile(fs);
+      mSuccess = true;
     } finally {
-      cluster.destroy();
+      cleanup();
     }
   }
 
   @Test
   public void zookeeper() throws Exception {
-    MultiProcessCluster cluster = MultiProcessCluster.newBuilder()
+    mCluster = MultiProcessCluster.newBuilder()
+        .setClusterName("zookeeper")
         .addProperty(PropertyKey.ZOOKEEPER_ENABLED, "true")
         .setNumMasters(3)
         .setNumWorkers(2)
         .build();
+    boolean success = false;
     try {
-      cluster.start();
-      FileSystem fs = cluster.getFileSystemClient();
+      mCluster.start();
+      FileSystem fs = mCluster.getFileSystemClient();
       createAndOpenFile(fs);
+      mSuccess = true;
     } finally {
-      cluster.destroy();
+      cleanup();
+    }
+  }
+
+  /**
+   * Destroys the test cluster, saving its work directory in case of failure.
+   *
+   * This cannot be done with @After because @After methods are not necessarily called when a test
+   * times out due to a Timeout rule.
+   */
+  private void cleanup() throws Exception {
+    if (mCluster != null) {
+      if (!mSuccess) {
+        mCluster.saveWorkdir();
+      }
+      mCluster.destroy();
     }
   }
 
   private static void createAndOpenFile(FileSystem fs) throws Exception {
+    long timeoutMs = System.currentTimeMillis() + Constants.SECOND_MS;
     int len = 10;
     for (;;) {
       try {
@@ -69,6 +100,9 @@ public final class MultiProcessClusterTest {
         break;
       } catch (Exception e) {
         // This can indicate that the worker hasn't connected yet, so we must retry.
+      }
+      if (System.currentTimeMillis() < timeoutMs) {
+        Assert.fail("Timed out trying to create a file");
       }
     }
     try (FileInStream is = fs.openFile(new AlluxioURI("/fileName"))) {
