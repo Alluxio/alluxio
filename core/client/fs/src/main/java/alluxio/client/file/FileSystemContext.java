@@ -56,7 +56,7 @@ import javax.security.auth.Subject;
  */
 @ThreadSafe
 public final class FileSystemContext implements Closeable {
-  public static final FileSystemContext INSTANCE = create(null);
+  public static final FileSystemContext INSTANCE = create();
 
   static {
     MetricsSystem.startSinks();
@@ -91,8 +91,6 @@ public final class FileSystemContext implements Closeable {
   private final Subject mParentSubject;
 
   /**
-   * Creates a new file system context.
-   *
    * @return the context
    */
   public static FileSystemContext create() {
@@ -100,14 +98,23 @@ public final class FileSystemContext implements Closeable {
   }
 
   /**
-   * Creates a file system context with a subject.
-   *
    * @param subject the parent subject, set to null if not present
    * @return the context
    */
   public static FileSystemContext create(Subject subject) {
+    return create(subject, MasterInquireClient.Factory.create());
+  }
+
+  /**
+   * @param subject the parent subject, set to null if not present
+   * @param masterInquireClient the client to use for determining the master; note that if the
+   *        context is reset, this client will be replaced with a new masterInquireClient based on
+   *        global configuration
+   * @return the context
+   */
+  public static FileSystemContext create(Subject subject, MasterInquireClient masterInquireClient) {
     FileSystemContext context = new FileSystemContext(subject);
-    context.init();
+    context.init(masterInquireClient);
     return context;
   }
 
@@ -122,9 +129,11 @@ public final class FileSystemContext implements Closeable {
 
   /**
    * Initializes the context. Only called in the factory methods and reset.
+   *
+   * @param masterInquireClient the client to use for determining the master
    */
-  private synchronized void init() {
-    mMasterInquireClient = MasterInquireClient.Factory.create();
+  private synchronized void init(MasterInquireClient masterInquireClient) {
+    mMasterInquireClient = masterInquireClient;
     mFileSystemMasterClientPool =
         new FileSystemMasterClientPool(mParentSubject, mMasterInquireClient);
     mBlockMasterClientPool = new BlockMasterClientPool(mParentSubject, mMasterInquireClient);
@@ -141,6 +150,7 @@ public final class FileSystemContext implements Closeable {
     mFileSystemMasterClientPool = null;
     mBlockMasterClientPool.close();
     mBlockMasterClientPool = null;
+    mMasterInquireClient = null;
 
     for (NettyChannelPool pool : mNettyChannelPools.values()) {
       pool.close();
@@ -148,7 +158,6 @@ public final class FileSystemContext implements Closeable {
     mNettyChannelPools.clear();
 
     synchronized (this) {
-      mMasterInquireClient = null;
       mLocalWorkerInitialized = false;
       mLocalWorker = null;
     }
@@ -160,7 +169,7 @@ public final class FileSystemContext implements Closeable {
    */
   public synchronized void reset() throws IOException {
     close();
-    init();
+    init(MasterInquireClient.Factory.create());
   }
 
   /**
