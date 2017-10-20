@@ -5,19 +5,19 @@ kramdown:
   syntax_highlighter: rouge
 
 # These allow the documentation to be updated with new releases of Alluxio.
-ALLUXIO_RELEASED_VERSION: 1.6.0
+ALLUXIO_RELEASED_VERSION: 1.6.1
 # For example, "master" for the master branch, or the full version (1.1.1, 1.5.0, etc) for releases and release candidates.
-ALLUXIO_MASTER_VERSION_SHORT: 1.6.0
+ALLUXIO_MASTER_VERSION_SHORT: 1.6.1
 # This must track the major version of the release (1.5 for 1.5.x), or be "master".
 ALLUXIO_MAJOR_VERSION: 1.6
 # We must inline the version string (e.g., "1.4.0-SNAPSHOT") rather than using the macro of Alluxio version.
 # Otherwise the macro name remains in the output.
-ALLUXIO_CLIENT_JAR_PATH: /<PATH_TO_ALLUXIO>/client/default/alluxio-1.6.0-default-client.jar
-ALLUXIO_CLIENT_JAR_PATH_BUILD: /<PATH_TO_ALLUXIO>/core/client/runtime/target/alluxio-core-client-runtime-1.6.0-jar-with-dependencies.jar
-ALLUXIO_CLIENT_JAR_PATH_FLINK: /<PATH_TO_ALLUXIO>/client/flink/alluxio-1.6.0-flink-client.jar
-ALLUXIO_CLIENT_JAR_PATH_HADOOP: /<PATH_TO_ALLUXIO>/client/hadoop/alluxio-1.6.0-hadoop-client.jar
-ALLUXIO_CLIENT_JAR_PATH_PRESTO: /<PATH_TO_ALLUXIO>/client/presto/alluxio-1.6.0-presto-client.jar
-ALLUXIO_CLIENT_JAR_PATH_SPARK: /<PATH_TO_ALLUXIO>/client/spark/alluxio-1.6.0-spark-client.jar
+ALLUXIO_CLIENT_JAR_PATH: /<PATH_TO_ALLUXIO>/client/default/alluxio-1.6.1-default-client.jar
+ALLUXIO_CLIENT_JAR_PATH_BUILD: /<PATH_TO_ALLUXIO>/core/client/runtime/target/alluxio-core-client-runtime-1.6.1-jar-with-dependencies.jar
+ALLUXIO_CLIENT_JAR_PATH_FLINK: /<PATH_TO_ALLUXIO>/client/flink/alluxio-1.6.1-flink-client.jar
+ALLUXIO_CLIENT_JAR_PATH_HADOOP: /<PATH_TO_ALLUXIO>/client/hadoop/alluxio-1.6.1-hadoop-client.jar
+ALLUXIO_CLIENT_JAR_PATH_PRESTO: /<PATH_TO_ALLUXIO>/client/presto/alluxio-1.6.1-presto-client.jar
+ALLUXIO_CLIENT_JAR_PATH_SPARK: /<PATH_TO_ALLUXIO>/client/spark/alluxio-1.6.1-spark-client.jar
 
 # These attach the pages of different languages with different 'lang' attributes
 defaults:
