@@ -11,15 +11,15 @@
 
 package alluxio.cli.fs;
 
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-import alluxio.PropertyKey;
 import alluxio.AlluxioURI;
-import alluxio.LocalAlluxioClusterResource;
-import alluxio.Constants;
 import alluxio.BaseIntegrationTest;
+import alluxio.Constants;
+import alluxio.LocalAlluxioClusterResource;
+import alluxio.PropertyKey;
 import alluxio.SystemOutRule;
 import alluxio.client.ReadType;
 import alluxio.client.WriteType;
@@ -38,13 +38,14 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.rules.ExpectedException;
 
-import javax.annotation.Nullable;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+
+import javax.annotation.Nullable;
 
 /**
  * The base class for all the {@link FileSystemShell} test classes.
