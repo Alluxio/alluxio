@@ -27,8 +27,6 @@
     <license.header.path>${project.parent.parent.basedir}/build/license/</license.header.path>
     <checkstyle.path>${project.parent.parent.basedir}/build/checkstyle/</checkstyle.path>
     <findbugs.path>${project.parent.parent.basedir}/build/findbugs/</findbugs.path>
-    <!-- The shading prefix should match the artifact ID, replacing '-' with '.' -->
-    <shading.prefix>alluxio.underfs.s3a</shading.prefix>
   </properties>
 
   <dependencies>
@@ -44,6 +42,7 @@
     <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
+      <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>commons-codec</groupId>
@@ -55,6 +54,7 @@
       <groupId>org.alluxio</groupId>
       <artifactId>alluxio-core-common</artifactId>
       <version>${project.version}</version>
+      <scope>provided</scope>
     </dependency>
 
     <!-- Internal test dependencies -->
@@ -91,90 +91,6 @@
 
   <build>
     <plugins>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-shade-plugin</artifactId>
-        <executions>
-          <execution>
-            <id>shade-s3a</id>
-            <phase>package</phase>
-            <goals>
-              <goal>shade</goal>
-            </goals>
-            <configuration>
-              <artifactSet>
-                <includes>
-                  <include>com.amazonaws:aws-java-sdk-core</include>
-                  <!-- transitive dependencies introduced by com.amazonaws:aws-java-sdk-core -->
-                  <include>com.fasterxml.jackson.core:jackson-annotations</include>
-                  <include>com.fasterxml.jackson.core:jackson-core</include>
-                  <include>com.fasterxml.jackson.core:jackson-databind</include>
-                  <include>com.fasterxml.jackson.dataformat:jackson-dataformat-cbor</include>
-                  <include>commons-httpclient:commons-httpclient</include>
-                  <include>commons-logging:commons-logging</include>
-                  <include>joda-time:joda-time</include>
-                  <include>org.apache.httpcomponents:httpclient</include>
-                  <include>org.apache.httpcomponents:httpcore</include>
-
-                  <include>com.amazonaws:aws-java-sdk-s3</include>
-                  <!-- transitive dependencies introduced by com.amazonaws:aws-java-sdk-s3 -->
-                  <include>com.amazonaws:aws-java-sdk-kms</include>
-                </includes>
-              </artifactSet>
-              <filters>
-                <filter>
-                  <artifact>*:*</artifact>
-                  <excludes>
-                    <exclude>LICENSE</exclude>
-                    <exclude>META-INF/LICENSE</exclude>
-                    <exclude>META-INF/*.SF</exclude>
-                    <exclude>META-INF/*.DSA</exclude>
-                    <exclude>META-INF/*.RSA</exclude>
-                  </excludes>
-                </filter>
-              </filters>
-              <relocations>
-                <relocation>
-                  <pattern>com.amazonaws</pattern>
-                  <shadedPattern>${shading.prefix}.com.amazonaws</shadedPattern>
-                </relocation>
-                <relocation>
-                  <pattern>com.fasterxml.jackson.annotation</pattern>
-                  <shadedPattern>${shading.prefix}.com.fasterxml.jackson.annotation</shadedPattern>
-                </relocation>
-                <relocation>
-                  <pattern>com.fasterxml.jackson.core</pattern>
-                  <shadedPattern>${shading.prefix}.com.fasterxml.jackson.core</shadedPattern>
-                </relocation>
-                <relocation>
-                  <pattern>com.fasterxml.jackson.databind</pattern>
-                  <shadedPattern>${shading.prefix}.com.fasterxml.jackson.databind</shadedPattern>
-                </relocation>
-                <relocation>
-                  <pattern>com.fasterxml.jackson.dataformat.cbor</pattern>
-                  <shadedPattern>${shading.prefix}.com.fasterxml.jackson.dataformat.cbor</shadedPattern>
-                </relocation>
-                <relocation>
-                  <pattern>org.apache.commons.logging</pattern>
-                  <shadedPattern>${shading.prefix}.org.apache.commons.logging</shadedPattern>
-                </relocation>
-                <relocation>
-                  <pattern>org.apache.http</pattern>
-                  <shadedPattern>${shading.prefix}.org.apache.http</shadedPattern>
-                </relocation>
-                <relocation>
-                  <pattern>org.jdom</pattern>
-                  <shadedPattern>${shading.prefix}.org.jdom</shadedPattern>
-                </relocation>
-                <relocation>
-                  <pattern>org.joda.time</pattern>
-                  <shadedPattern>${shading.prefix}.org.joda.time</shadedPattern>
-                </relocation>
-              </relocations>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
