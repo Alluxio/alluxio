@@ -103,6 +103,7 @@ public class JournalShutdownIntegrationTest extends BaseIntegrationTest {
       FileSystem fs = cluster.getFileSystemClient();
       runCreateFileThread(fs);
       cluster.killPrimaryMaster();
+      awaitClientTermination();
       cluster.startMaster(0);
       int actualFiles = fs.listStatus(new AlluxioURI(TEST_FILE_DIR)).size();
       int successFiles = mCreateFileThread.getSuccessNum();
@@ -138,6 +139,7 @@ public class JournalShutdownIntegrationTest extends BaseIntegrationTest {
       for (int i = 0; i < TEST_NUM_MASTERS; i++) {
         cluster.killPrimaryMaster();
       }
+      awaitClientTermination();
       cluster.startMaster(0);
       int actualFiles = fs.listStatus(new AlluxioURI(TEST_FILE_DIR)).size();
       int successFiles = mCreateFileThread.getSuccessNum();
