@@ -23,7 +23,6 @@ import alluxio.security.authorization.Mode;
 import alluxio.security.group.provider.IdentityUserGroupsMapping;
 import alluxio.util.CommonUtils;
 
-import org.junit.Assert;
 import org.junit.Test;
 
 import java.io.IOException;
