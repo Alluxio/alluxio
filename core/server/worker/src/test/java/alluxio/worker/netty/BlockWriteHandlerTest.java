@@ -30,7 +30,7 @@ import java.io.InputStream;
 /**
  * Unit tests for {@link BlockWriteHandler}.
  */
-public final class BlockWriteHandlerTest extends WriteHandlerTest {
+public final class BlockWriteHandlerTest extends AbstractWriteHandlerTest {
   private BlockWorker mBlockWorker;
   private BlockWriter mBlockWriter;
   private File mFile;
