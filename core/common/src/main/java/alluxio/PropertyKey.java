@@ -2402,7 +2402,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
 
     /**
      * @param input the input property key string
-     * @return whether the input stream matches this template
+     * @return whether the input string matches this template
      */
     public boolean matches(String input) {
       Matcher matcher = mPattern.matcher(input);
