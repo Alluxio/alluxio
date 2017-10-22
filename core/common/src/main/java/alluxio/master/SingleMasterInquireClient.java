@@ -12,7 +12,7 @@
 package alluxio.master;
 
 import java.net.InetSocketAddress;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -35,7 +35,7 @@ public class SingleMasterInquireClient implements MasterInquireClient {
 
   @Override
   public List<InetSocketAddress> getMasterRpcAddresses() {
-    return Arrays.asList(mAddress);
+    return Collections.singletonList(mAddress);
   }
 
   @Override

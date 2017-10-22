@@ -11,11 +11,13 @@
 
 package alluxio.network.protocol;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
+
 import alluxio.network.protocol.databuffer.DataByteBuffer;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -45,18 +47,18 @@ public class RPCBlockReadResponseTest {
 
   private void assertValid(long blockId, long offset, long length, RPCResponse.Status status,
       RPCBlockReadResponse resp) {
-    Assert.assertEquals(RPCMessage.Type.RPC_BLOCK_READ_RESPONSE, resp.getType());
-    Assert.assertEquals(blockId, resp.getBlockId());
-    Assert.assertEquals(offset, resp.getOffset());
-    Assert.assertEquals(length, resp.getLength());
-    Assert.assertEquals(status, resp.getStatus());
+    assertEquals(RPCMessage.Type.RPC_BLOCK_READ_RESPONSE, resp.getType());
+    assertEquals(blockId, resp.getBlockId());
+    assertEquals(offset, resp.getOffset());
+    assertEquals(length, resp.getLength());
+    assertEquals(status, resp.getStatus());
   }
 
   private void assertValid(RPCBlockReadResponse resp) {
     try {
       resp.validate();
     } catch (Exception e) {
-      Assert.fail("response should be valid.");
+      fail("response should be valid.");
     }
   }
 
@@ -76,7 +78,7 @@ public class RPCBlockReadResponseTest {
     RPCBlockReadResponse resp = new RPCBlockReadResponse(BLOCK_ID, OFFSET, LENGTH, null, STATUS);
     int encodedLength = resp.getEncodedLength();
     resp.encode(mBuffer);
-    Assert.assertEquals(encodedLength, mBuffer.readableBytes());
+    assertEquals(encodedLength, mBuffer.readableBytes());
   }
 
   /**
@@ -110,7 +112,7 @@ public class RPCBlockReadResponseTest {
     DataByteBuffer payload = new DataByteBuffer(ByteBuffer.allocate(length), length);
     RPCBlockReadResponse resp = new RPCBlockReadResponse(BLOCK_ID, OFFSET, LENGTH, payload, STATUS);
     assertValid(resp);
-    Assert.assertEquals(payload, resp.getPayloadDataBuffer());
+    assertEquals(payload, resp.getPayloadDataBuffer());
   }
 
   /**

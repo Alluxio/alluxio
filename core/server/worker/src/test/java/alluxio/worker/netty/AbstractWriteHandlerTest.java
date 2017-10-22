@@ -39,7 +39,7 @@ import java.util.Random;
 /**
  * Unit tests for {@link AbstractWriteHandler}.
  */
-public abstract class WriteHandlerTest {
+public abstract class AbstractWriteHandlerTest {
   private static final Random RANDOM = new Random();
   protected static final int PACKET_SIZE = 1024;
   protected static final long TEST_BLOCK_ID = 1L;

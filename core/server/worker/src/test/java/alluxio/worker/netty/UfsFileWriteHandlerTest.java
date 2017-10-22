@@ -36,7 +36,7 @@ import java.io.OutputStream;
 /**
  * Unit tests for {@link UfsFileWriteHandler}.
  */
-public final class UfsFileWriteHandlerTest extends WriteHandlerTest {
+public final class UfsFileWriteHandlerTest extends AbstractWriteHandlerTest {
   private OutputStream mOutputStream;
   /** The file used to hold the data written by the test. */
   private File mFile;
