@@ -11,6 +11,9 @@
 
 package alluxio.client.file.options;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
 import alluxio.CommonTestUtils;
 import alluxio.Configuration;
 import alluxio.ConfigurationRule;
@@ -31,7 +34,6 @@ import alluxio.wire.TtlAction;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
-import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -78,17 +80,17 @@ public class OutStreamOptionsTest {
 
     OutStreamOptions options = OutStreamOptions.defaults();
 
-    Assert.assertEquals(alluxioType, options.getAlluxioStorageType());
-    Assert.assertEquals(64 * Constants.MB, options.getBlockSizeBytes());
-    Assert.assertTrue(options.getLocationPolicy() instanceof LocalFirstPolicy);
-    Assert.assertEquals("test_user", options.getOwner());
-    Assert.assertEquals("test_group", options.getGroup());
-    Assert.assertEquals(Mode.defaults().applyFileUMask(), options.getMode());
-    Assert.assertEquals(Constants.NO_TTL, options.getTtl());
-    Assert.assertEquals(TtlAction.DELETE, options.getTtlAction());
-    Assert.assertEquals(ufsType, options.getUnderStorageType());
-    Assert.assertEquals(WriteType.CACHE_THROUGH, options.getWriteType());
-    Assert.assertEquals(Constants.LAST_TIER, options.getWriteTier());
+    assertEquals(alluxioType, options.getAlluxioStorageType());
+    assertEquals(64 * Constants.MB, options.getBlockSizeBytes());
+    assertTrue(options.getLocationPolicy() instanceof LocalFirstPolicy);
+    assertEquals("test_user", options.getOwner());
+    assertEquals("test_group", options.getGroup());
+    assertEquals(Mode.defaults().applyFileUMask(), options.getMode());
+    assertEquals(Constants.NO_TTL, options.getTtl());
+    assertEquals(TtlAction.DELETE, options.getTtlAction());
+    assertEquals(ufsType, options.getUnderStorageType());
+    assertEquals(WriteType.CACHE_THROUGH, options.getWriteType());
+    assertEquals(Constants.LAST_TIER, options.getWriteTier());
     ConfigurationTestUtils.resetConfiguration();
   }
 
@@ -118,16 +120,16 @@ public class OutStreamOptionsTest {
     options.setWriteTier(writeTier);
     options.setWriteType(writeType);
 
-    Assert.assertEquals(blockSize, options.getBlockSizeBytes());
-    Assert.assertEquals(locationPolicy, options.getLocationPolicy());
-    Assert.assertEquals(owner, options.getOwner());
-    Assert.assertEquals(group, options.getGroup());
-    Assert.assertEquals(mode, options.getMode());
-    Assert.assertEquals(ttl, options.getTtl());
-    Assert.assertEquals(TtlAction.FREE, options.getTtlAction());
-    Assert.assertEquals(writeTier, options.getWriteTier());
-    Assert.assertEquals(writeType.getAlluxioStorageType(), options.getAlluxioStorageType());
-    Assert.assertEquals(writeType.getUnderStorageType(), options.getUnderStorageType());
+    assertEquals(blockSize, options.getBlockSizeBytes());
+    assertEquals(locationPolicy, options.getLocationPolicy());
+    assertEquals(owner, options.getOwner());
+    assertEquals(group, options.getGroup());
+    assertEquals(mode, options.getMode());
+    assertEquals(ttl, options.getTtl());
+    assertEquals(TtlAction.FREE, options.getTtlAction());
+    assertEquals(writeTier, options.getWriteTier());
+    assertEquals(writeType.getAlluxioStorageType(), options.getAlluxioStorageType());
+    assertEquals(writeType.getUnderStorageType(), options.getUnderStorageType());
   }
 
   @Test
