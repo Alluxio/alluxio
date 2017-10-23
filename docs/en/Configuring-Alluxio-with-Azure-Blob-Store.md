@@ -26,7 +26,10 @@ called `AZURE_DIRECTORY`. For more information about Azure storage account, Plea
 
 ## Configuring Alluxio
 
-You need to configure Alluxio to use under storage systems by modifying
+### Root Mount
+
+To use Azure blob store as the UFS of Alluxio root mount point,
+you need to configure Alluxio to use under storage systems by modifying
 `conf/alluxio-site.properties`. If it does not exist, create the configuration file from the
 template.
 
@@ -34,33 +37,25 @@ template.
 $ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 ```
 
-Alluxio can support the Azure Blob Store via the HDFS interface. You can find more about running Hadoop on Azure Blob Store [here](http://hadoop.apache.org/docs/r2.7.1/hadoop-azure/index.html).
-Download azure storage java library(version 2.2.0) from [here](https://mvnrepository.com/artifact/com.microsoft.azure/azure-storage) and hadoop azure libraries corresponding to your Hadoop version from [here](https://mvnrepository.com/artifact/org.apache.hadoop/hadoop-azure). Please make sure to use `azure-storage-2.2.0.jar` and not any other higher version due to version conflicts with hadoop-azure libraries.
-
-You need to add the above mentioned libraries in the `ALLUXIO_CLASSPATH`. You can do this by adding following line in the `conf/alluxio-env.sh`:
-```
-export ALLUXIO_CLASSPATH=PATH_TO_HADOOP_AZURE_JAR/hadoop-azure-2.7.3.jar:PATH_TO_AZURE_STORAGE_JAR/azure-storage-2.2.0.jar
-```
-
-You need to configure Alluxio to use Azure Blob Store as its under storage system. The first modification is to specify the underfs address and setting hdfs prefixes so that Alluxio can recognize `wasb://` scheme by modifying `conf/alluxio-site.properties` to include:
+The first modification is to specify the underfs address by modifying `conf/alluxio-site.properties` to include:
 
 ```
 alluxio.underfs.address=wasb://AZURE_CONTAINER@AZURE_ACCOUNT.blob.core.windows.net/AZURE_DIRECTORY/
-alluxio.underfs.hdfs.prefixes=hdfs://,glusterfs:///,maprfs:///,wasb://
 ```
 
-Next you need to specify credentials and the implementation class for the `wasb://` scheme by adding the following properties in `conf/core-site.xml`:
+Next, specify credentials for the Azure account by adding the following properties in `conf/alluxio-site.properties`:
+
 ```
-<configuration>
-<property>
-  <name>fs.AbstractFileSystem.wasb.impl</name>
-  <value>org.apache.hadoop.fs.azure.Wasb</value>
-</property>
-<property>
-  <name>fs.azure.account.key.AZURE_ACCOUNT.blob.core.windows.net</name>
-  <value>YOUR ACCESS KEY</value>
-</property>
-</configuration>
+fs.azure.account.key.AZURE_ACCOUNT.blob.core.windows.net=<YOUR ACCESS KEY>
+```
+
+### Nested Mount
+An Azure blob store location can be mounted at a nested directory in the Alluxio namespace to have unified access
+to multiple under storage systems. Alluxio's [Command Line Interface](Command-Line-Interface.html) can be used for this purpose.
+
+```bash
+$ ./bin/alluxio fs mount --option fs.azure.account.key.AZURE_ACCOUNT.blob.core.windows.net=<AZURE_ACCESS_KEY>\
+  /mnt/azure wasb://AZURE_CONTAINER@AZURE_ACCOUNT.blob.core.windows.net/AZURE_DIRECTORY/
 ```
 
 After these changes, Alluxio should be configured to work with Azure Blob Store as its under storage system, and you can try to run Alluxio locally with it.

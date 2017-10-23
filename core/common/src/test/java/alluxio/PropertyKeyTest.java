@@ -215,4 +215,17 @@ public final class PropertyKeyTest {
     assertTrue(PropertyKey.DEBUG.compareTo(PropertyKey.CONF_DIR) > 0);
     assertTrue(PropertyKey.DEBUG.compareTo(PropertyKey.DEBUG) == 0);
   }
+
+  @Test
+  public void templateMatches() throws Exception {
+    assertTrue(PropertyKey.Template.MASTER_MOUNT_TABLE_ALLUXIO.matches(
+        "alluxio.master.mount.table.root.alluxio"));
+    assertTrue(PropertyKey.Template.MASTER_MOUNT_TABLE_ALLUXIO.matches(
+        "alluxio.master.mount.table.ufs123.alluxio"));
+    assertFalse(PropertyKey.Template.MASTER_MOUNT_TABLE_ALLUXIO.matches(
+        "alluxio.master.mount.table..alluxio"));
+    assertFalse(PropertyKey.Template.MASTER_MOUNT_TABLE_ALLUXIO.matches(
+        "alluxio.master.mount.table.alluxio"));
+  }
+
 }

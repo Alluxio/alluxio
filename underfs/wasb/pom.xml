@@ -17,11 +17,13 @@
     <artifactId>alluxio-underfs</artifactId>
     <version>1.7.0-SNAPSHOT</version>
   </parent>
-  <artifactId>alluxio-underfs-swift</artifactId>
-  <name>Alluxio Under File System - Swift</name>
-  <description>Swift Under File System implementation</description>
+  <artifactId>alluxio-underfs-wasb</artifactId>
+  <name>Alluxio Under File System - Microsoft Azure Blob Storage</name>
+  <description>Microsoft Azure Blob Storage Under File System implementation</description>
 
   <properties>
+    <!-- The hadoop client version wasb-hadoop depends on -->
+    <wasb.hadoop.version>2.7.3.2.6.1.0-129</wasb.hadoop.version>
     <!-- The following paths need to be defined here as well as in the parent pom so that mvn can -->
     <!-- run properly from sub-project directories -->
     <license.header.path>${project.parent.parent.basedir}/build/license/</license.header.path>
@@ -34,15 +36,21 @@
     <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
-      <scope>provided</scope>
     </dependency>
     <dependency>
-      <groupId>org.codehaus.jackson</groupId>
-      <artifactId>jackson-mapper-asl</artifactId>
+      <groupId>org.apache.hadoop</groupId>
+      <artifactId>hadoop-azure</artifactId>
+      <version>${wasb.hadoop.version}</version>
     </dependency>
     <dependency>
-      <groupId>org.javaswift</groupId>
-      <artifactId>joss</artifactId>
+      <groupId>org.apache.hadoop</groupId>
+      <artifactId>hadoop-common</artifactId>
+      <version>${wasb.hadoop.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.hadoop</groupId>
+      <artifactId>hadoop-hdfs</artifactId>
+      <version>${wasb.hadoop.version}</version>
     </dependency>
 
     <!-- Internal dependencies -->
@@ -51,6 +59,18 @@
       <artifactId>alluxio-core-common</artifactId>
       <version>${project.version}</version>
       <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.alluxio</groupId>
+      <artifactId>alluxio-underfs-hdfs</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+
+    <!-- External test dependencies -->
+    <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-lang3</artifactId>
+      <scope>test</scope>
     </dependency>
 
     <!-- Internal test dependencies -->
@@ -68,7 +88,7 @@
       <id>ufsContractTest</id>
       <activation>
         <property>
-          <name>testSwiftContainerKey</name>
+          <name>testWasbBaseDir</name>
         </property>
       </activation>
       <build>
@@ -92,8 +112,9 @@
         <artifactId>maven-compiler-plugin</artifactId>
         <configuration>
           <testExcludes>
-            <!-- Skip UFS contract tests unless -DtestSwiftContainerKey=swift://container/folder is specified -->
-            <exclude>**/SwiftUnderFileSystemContractTest.java</exclude>
+            <!-- Skip UFS contract tests unless -DtestWasbBaseDir="wasb://AZURE_CONTAINER@AZURE_ACCOUNT.blob.core.windows.net/AZURE_DIRECTORY/"
+                 is specified -->
+            <exclude>**/WasbUnderFileSystemContractTest.java</exclude>
           </testExcludes>
         </configuration>
       </plugin>
