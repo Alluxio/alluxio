@@ -24,6 +24,7 @@ import alluxio.exception.status.InvalidArgumentException;
 
 import com.google.common.io.Closer;
 import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 
 import java.io.IOException;
@@ -32,11 +33,16 @@ import java.util.List;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * Loads a file or directory in Alluxio space, making it resident in memory.
+ * Loads a file or directory in Alluxio space, making it resident in Alluxio.
  */
 @ThreadSafe
 public final class LoadCommand extends WithWildCardPathCommand {
-
+  private static final Option FORCE_OPTION =
+      Option.builder("f")
+          .required(false)
+          .hasArg(false)
+          .desc("force to load metadata for immediate children in a directory")
+          .build();
   /**
    * Constructs a new instance to load a file or directory in Alluxio space.
    *
@@ -63,10 +69,10 @@ public final class LoadCommand extends WithWildCardPathCommand {
   }
 
   /**
-   * Loads a file or directory in Alluxio space, makes it resident in memory.
+   * Loads a file or directory in Alluxio space, makes it resident in Alluxio.
    *
-   * @param filePath The {@link AlluxioURI} path to load into Alluxio memory
-   * @param force the force flag; If the file is already in memory fully, enable the force flag,
+   * @param filePath The {@link AlluxioURI} path to load into Alluxio
+   * @param force the force flag; If the file is already in Alluxio fully, enable the force flag,
    *              Alluxio will still load the file, otherwise Alluxio will do nothing.
    */
   private void load(AlluxioURI filePath, boolean force) throws AlluxioException, IOException {
@@ -79,7 +85,7 @@ public final class LoadCommand extends WithWildCardPathCommand {
       }
     } else {
       if (!force && status.getInAlluxioPercentage() == 100) {
-        // The file has already been fully loaded into Alluxio memory.
+        // The file has already been fully loaded into Alluxio.
         System.out.println(filePath + " already in Alluxio fully");
         return;
       }
@@ -106,7 +112,7 @@ public final class LoadCommand extends WithWildCardPathCommand {
 
   @Override
   public String getDescription() {
-    return "Loads a file or directory in Alluxio space, makes it resident in memory.";
+    return "Loads a file or directory in Alluxio space, makes it resident in Alluxio.";
   }
 
   @Override
