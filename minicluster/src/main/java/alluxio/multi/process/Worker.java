@@ -101,7 +101,7 @@ public class Worker implements Closeable {
   @Override
   public synchronized void close() {
     if (mProcess != null) {
-      mProcess.close();
+      mProcess.stop();
       mProcess = null;
     }
   }

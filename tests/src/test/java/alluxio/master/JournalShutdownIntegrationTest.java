@@ -24,8 +24,6 @@ import alluxio.client.WriteType;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.multi.process.MultiProcessCluster;
-import alluxio.master.file.FileSystemMaster;
-import alluxio.master.file.options.ListStatusOptions;
 import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.UnderFileSystemFactory;
 import alluxio.underfs.UnderFileSystemFactoryRegistry;
@@ -33,7 +31,6 @@ import alluxio.underfs.sleepfs.SleepingUnderFileSystem;
 import alluxio.underfs.sleepfs.SleepingUnderFileSystemFactory;
 import alluxio.underfs.sleepfs.SleepingUnderFileSystemOptions;
 import alluxio.util.CommonUtils;
-import alluxio.util.IdUtils;
 
 import com.google.common.collect.ImmutableMap;
 import org.junit.After;
@@ -102,7 +99,7 @@ public class JournalShutdownIntegrationTest extends BaseIntegrationTest {
       cluster.start();
       FileSystem fs = cluster.getFileSystemClient();
       runCreateFileThread(fs);
-      cluster.killPrimaryMaster();
+      cluster.waitForAndKillPrimaryMaster();
       awaitClientTermination();
       cluster.startMaster(0);
       int actualFiles = fs.listStatus(new AlluxioURI(TEST_FILE_DIR)).size();
@@ -137,7 +134,7 @@ public class JournalShutdownIntegrationTest extends BaseIntegrationTest {
       FileSystem fs = cluster.getFileSystemClient();
       runCreateFileThread(fs);
       for (int i = 0; i < TEST_NUM_MASTERS; i++) {
-        cluster.killPrimaryMaster();
+        cluster.waitForAndKillPrimaryMaster();
       }
       awaitClientTermination();
       cluster.startMaster(0);
@@ -218,24 +215,6 @@ public class JournalShutdownIntegrationTest extends BaseIntegrationTest {
    */
   private MasterRegistry createFsMasterFromJournal() throws Exception {
     return MasterTestUtils.createLeaderFileSystemMasterFromJournal();
-  }
-
-  /**
-   * Reproduce the journal and check if the state is correct.
-   */
-  private void reproduceAndCheckState(int successFiles) throws Exception {
-    Assert.assertNotEquals(successFiles, 0);
-    MasterRegistry registry = createFsMasterFromJournal();
-    FileSystemMaster fsMaster = registry.get(FileSystemMaster.class);
-
-    int actualFiles =
-        fsMaster.listStatus(new AlluxioURI(TEST_FILE_DIR), ListStatusOptions.defaults()).size();
-    Assert.assertTrue((successFiles == actualFiles) || (successFiles + 1 == actualFiles));
-    for (int f = 0; f < successFiles; f++) {
-      Assert.assertTrue(
-          fsMaster.getFileId(new AlluxioURI(TEST_FILE_DIR + f)) != IdUtils.INVALID_FILE_ID);
-    }
-    registry.stop();
   }
 
   /**

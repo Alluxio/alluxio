@@ -14,7 +14,6 @@ package alluxio.multi.process;
 import alluxio.PropertyKey;
 import alluxio.util.io.PathUtils;
 
-import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -29,7 +28,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * Class for launching another class in a new processes.
  */
 @ThreadSafe
-public class ExternalProcess implements Closeable {
+public class ExternalProcess {
   private final Map<PropertyKey, Object> mConf;
   private final Class<?> mClazz;
   private final File mOutFile;
@@ -64,8 +63,10 @@ public class ExternalProcess implements Closeable {
     mProcess = pb.start();
   }
 
-  @Override
-  public synchronized void close() {
+  /**
+   * Stops the process.
+   */
+  public synchronized void stop() {
     if (mProcess != null) {
       mProcess.destroy();
       mProcess = null;

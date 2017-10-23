@@ -81,13 +81,13 @@ public final class MultiProcessCluster implements TestRule {
   private final int mNumMasters;
   private final int mNumWorkers;
   private final String mClusterName;
+  /** Closer for closing all resources that must be closed when the cluster is destroyed. */
+  private final Closer mCloser;
+  private final List<Master> mMasters;
+  private final List<Worker> mWorkers;
 
   /** Base directory for storing configuration and logs. */
   private File mWorkDir;
-  /** Closer for closing all resources that must be closed when the cluster is destroyed. */
-  private Closer mCloser;
-  private List<Master> mMasters;
-  private List<Worker> mWorkers;
   /** Addresses of all masters. Should have the same size as {@link #mMasters}. */
   private List<MasterNetAddress> mMasterAddresses;
   private State mState;
@@ -158,7 +158,7 @@ public final class MultiProcessCluster implements TestRule {
    *
    * @return the ID of the killed master
    */
-  public synchronized int killPrimaryMaster() {
+  public synchronized int waitForAndKillPrimaryMaster() {
     final FileSystem fs = getFileSystemClient();
     final MasterInquireClient inquireClient = getMasterInquireClient();
     CommonUtils.waitFor("a primary master to be serving", new Function<Void, Boolean>() {

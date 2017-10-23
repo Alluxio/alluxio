@@ -12,6 +12,7 @@
 package alluxio.multi.process;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
@@ -21,23 +22,16 @@ import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.client.file.options.CreateFileOptions;
 
-import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.Timeout;
 
 public final class MultiProcessClusterTest {
-  private boolean mSuccess;
+  private boolean mSuccess = false;
   private MultiProcessCluster mCluster;
 
   @Rule
   public Timeout mTimeout = Timeout.millis(Constants.MAX_TEST_DURATION_MS);
-
-  @Before
-  public void before() {
-    mSuccess = false;
-  }
 
   @Test
   public void simpleCluster() throws Exception {
@@ -64,7 +58,6 @@ public final class MultiProcessClusterTest {
         .setNumMasters(3)
         .setNumWorkers(2)
         .build();
-    boolean success = false;
     try {
       mCluster.start();
       FileSystem fs = mCluster.getFileSystemClient();
@@ -106,7 +99,7 @@ public final class MultiProcessClusterTest {
             fs.delete(new AlluxioURI(testFile));
           }
         } else {
-          Assert.fail(String.format("Timed out trying to create a file. Latest exception: %s",
+          fail(String.format("Timed out trying to create a file. Latest exception: %s",
               e.toString()));
         }
       }
