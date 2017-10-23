@@ -13,6 +13,9 @@ loadufs:
   Loads files under <code>UfsPath</code> to the given <code>AlluxioPath</code>.
   <code>ExcludePathPrefixes</code> can be a set of prefixes which are separated by ';'.
   The paths with a prefix in <code>ExcludePathPrefixes</code> will not be loaded.
+logLevel:
+  Dynamically changes the log level of a class on the running Alluxio server.
+  Try alluxio logLevel -help to see the meaning of each argument in detail.
 runTest:
   Run an end-to-end test on a Alluxio cluster. <code>Example</code> should be "Basic" or
   "BasicNonByteBuffer". <code>ReadType</code> should be "CACHE_PROMOTE", "CACHE",
@@ -41,4 +44,18 @@ protoGen:
 version:
   Print Alluxio version.
 validateConf:
-  Validate Alluxio conf.
+  Validate Alluxio configuration.
+validateEnv:
+  Validate environment for Alluxio. <code>TARGET</code> can be one of the following values:<br>
+  <code>local</code>   run all validation tasks on local<br>
+  <code>master</code>  run master validation tasks on local<br>
+  <code>worker</code>  run worker validation tasks on local<br>
+  <code>all</code>     run corresponding validation tasks on all master nodes and worker nodes<br>
+  <code>masters</code> run master validation tasks on all master nodes<br>
+  <code>workers</code> run worker validation tasks on all worker nodes<br>
+  <code>NAME</code> can be any task full name or prefix.<br>
+  When <code>NAME</code> is given, only tasks with name starts with the prefix will run.
+  For example, specifying <code>NAME</code> "master" or "ma" will run both tasks named
+  <code>master.rpc.port.available</code> and <code>master.web.port.available</code> but not
+  <code>worker.rpc.port.available</code>.<br>
+  If <code>NAME</code> is not given, all tasks for the given <code>TARGET</code> will run.

@@ -21,12 +21,13 @@ import alluxio.master.block.BlockMaster;
 import alluxio.master.file.DefaultFileSystemMaster;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.StartupConsistencyCheck;
-import alluxio.master.file.meta.options.MountInfo;
 import alluxio.metrics.MetricsSystem;
 import alluxio.underfs.UnderFileSystem;
+import alluxio.util.LogUtils;
 import alluxio.web.MasterWebServer;
 import alluxio.wire.AlluxioMasterInfo;
 import alluxio.wire.Capacity;
+import alluxio.wire.LogInfo;
 import alluxio.wire.MountPointInfo;
 import alluxio.wire.WorkerInfo;
 
@@ -47,6 +48,7 @@ import java.util.TreeMap;
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.servlet.ServletContext;
 import javax.ws.rs.GET;
+import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
@@ -69,6 +71,11 @@ public final class AlluxioMasterRestServiceHandler {
   // queries
   public static final String QUERY_RAW_CONFIGURATION = "raw_configuration";
 
+  // log
+  public static final String LOG_LEVEL = "logLevel";
+  public static final String LOG_ARGUMENT_NAME = "logName";
+  public static final String LOG_ARGUMENT_LEVEL = "level";
+
   // the following endpoints are deprecated
   public static final String GET_RPC_ADDRESS = "rpc_address";
   public static final String GET_CONFIGURATION = "configuration";
@@ -90,8 +97,8 @@ public final class AlluxioMasterRestServiceHandler {
   private final MasterProcess mMasterProcess;
   private final BlockMaster mBlockMaster;
   private final FileSystemMaster mFileSystemMaster;
-  private final String mUfsRoot = Configuration.get(PropertyKey.UNDERFS_ADDRESS);
-  private final UnderFileSystem mUfs = UnderFileSystem.Factory.get(mUfsRoot);
+  private final String mUfsRoot = Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
+  private final UnderFileSystem mUfs;
 
   /**
    * Constructs a new {@link AlluxioMasterRestServiceHandler}.
@@ -104,6 +111,7 @@ public final class AlluxioMasterRestServiceHandler {
         .getAttribute(MasterWebServer.ALLUXIO_MASTER_SERVLET_RESOURCE_KEY);
     mBlockMaster = mMasterProcess.getMaster(BlockMaster.class);
     mFileSystemMaster = mMasterProcess.getMaster(FileSystemMaster.class);
+    mUfs = UnderFileSystem.Factory.createForRoot();
   }
 
   /**
@@ -522,18 +530,7 @@ public final class AlluxioMasterRestServiceHandler {
   }
 
   private Map<String, MountPointInfo> getMountPointsInternal() {
-    SortedMap<String, MountPointInfo> mountPoints = new TreeMap<>();
-    for (Map.Entry<String, MountInfo> mountPoint : mFileSystemMaster.getMountTable()
-        .entrySet()) {
-      MountInfo mountInfo = mountPoint.getValue();
-      MountPointInfo info = new MountPointInfo();
-      info.setUfsInfo(mountInfo.getUfsUri().toString());
-      info.setReadOnly(mountInfo.getOptions().isReadOnly());
-      info.setProperties(mountInfo.getOptions().getProperties());
-      info.setShared(mountInfo.getOptions().isShared());
-      mountPoints.put(mountPoint.getKey(), info);
-    }
-    return mountPoints;
+    return mFileSystemMaster.getMountTable();
   }
 
   private alluxio.wire.StartupConsistencyCheck getStartupConsistencyCheckInternal() {
@@ -564,5 +561,24 @@ public final class AlluxioMasterRestServiceHandler {
   private Capacity getUfsCapacityInternal() throws IOException {
     return new Capacity().setTotal(mUfs.getSpace(mUfsRoot, UnderFileSystem.SpaceType.SPACE_TOTAL))
         .setUsed(mUfs.getSpace(mUfsRoot, UnderFileSystem.SpaceType.SPACE_USED));
+  }
+
+  /**
+   * @summary set the Alluxio log information
+   * @param logName the log's name
+   * @param level the log level
+   * @return the response object
+   */
+  @POST
+  @Path(LOG_LEVEL)
+  @ReturnType("alluxio.wire.LogInfo")
+  public Response logLevel(@QueryParam(LOG_ARGUMENT_NAME) final String logName, @QueryParam
+      (LOG_ARGUMENT_LEVEL) final String level) {
+    return RestUtils.call(new RestUtils.RestCallable<LogInfo>() {
+      @Override
+      public LogInfo call() throws Exception {
+        return LogUtils.setLogLevel(logName, level);
+      }
+    });
   }
 }

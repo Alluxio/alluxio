@@ -20,6 +20,7 @@ import alluxio.master.block.BlockMaster;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.StartupConsistencyCheck;
 import alluxio.underfs.UnderFileSystem;
+import alluxio.util.CommonUtils;
 import alluxio.util.FormatUtils;
 
 import java.io.IOException;
@@ -176,7 +177,7 @@ public final class WebInterfaceGeneralServlet extends HttpServlet {
     request.setAttribute("uptime", WebUtils
         .convertMsToClockTime(System.currentTimeMillis() - mMasterProcess.getStartTimeMs()));
 
-    request.setAttribute("startTime", WebUtils.convertMsToDate(mMasterProcess.getStartTimeMs()));
+    request.setAttribute("startTime", CommonUtils.convertMsToDate(mMasterProcess.getStartTimeMs()));
 
     request.setAttribute("version", RuntimeConstants.VERSION);
 
@@ -201,8 +202,8 @@ public final class WebInterfaceGeneralServlet extends HttpServlet {
       request.setAttribute("inconsistentPaths", 0);
     }
 
-    String ufsRoot = Configuration.get(PropertyKey.UNDERFS_ADDRESS);
-    UnderFileSystem ufs = UnderFileSystem.Factory.get(ufsRoot);
+    String ufsRoot = Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
+    UnderFileSystem ufs = UnderFileSystem.Factory.create(ufsRoot);
 
     long sizeBytes = ufs.getSpace(ufsRoot, UnderFileSystem.SpaceType.SPACE_TOTAL);
     if (sizeBytes >= 0) {

@@ -46,6 +46,8 @@ public enum ExceptionMessage {
   LOCK_RECORD_NOT_FOUND_FOR_BLOCK_AND_SESSION(
       "no lock is found for blockId {0,number,#} for sessionId {1,number,#}"),
   LOCK_RECORD_NOT_FOUND_FOR_LOCK_ID("lockId {0,number,#} has no lock record"),
+  LOCK_NOT_RELEASED("lockId {0,number,#} is not released."),
+  SESSION_NOT_CLOSED("session {0,number,#} is not closed."),
 
   // block metadata manager and view
   BLOCK_META_NOT_FOUND("BlockMeta not found for blockId {0,number,#}"),
@@ -61,8 +63,6 @@ public enum ExceptionMessage {
   FAILED_SKIP("Failed to skip {0}"),
   INSTREAM_CANNOT_SKIP("The underlying BlockInStream could not skip {0}"),
   READ_CLOSED_STREAM("Cannot read from a closed stream"),
-  SEEK_NEGATIVE("Seek position is negative: {0,number,#}"),
-  SEEK_PAST_EOF("Seek position is past EOF: {0,number,#}, fileSize: {1,number,#}"),
 
   // netty
   BLOCK_WRITE_ERROR(
@@ -114,6 +114,9 @@ public enum ExceptionMessage {
   // file
   CANNOT_READ_DIRECTORY("Cannot read from {0} because it is a directory"),
   DELETE_FAILED_UFS("Failed to delete {0} from the under file system"),
+  DELETE_FAILED_DIRECTORY_NOT_IN_SYNC(
+      "Cannot delete {0} because the UFS has contents not loaded into Alluxio. Sync Alluxio with "
+          + "UFS or run delete with unchecked flag to forcibly delete"),
   DELETE_NONEMPTY_DIRECTORY_NONRECURSIVE(
       "Cannot delete non-empty directory {0} because recursive is set to false"),
   DELETE_ROOT_DIRECTORY("Cannot delete the root directory"),
@@ -157,10 +160,20 @@ public enum ExceptionMessage {
       "Worker fileId {0,number,#} is invalid. The worker may have crashed or cleaned up "
           + "the client state due to a timeout."),
 
-  // shell
+  // cli
+  INVALID_ARGS_GENERIC("Invalid args for command {0}"),
+  INVALID_ARGS_NULL("Null args for command {0}"),
+  INVALID_ARGS_NUM("Command {0} takes {1} arguments, not {2}"),
+  INVALID_ARGS_NUM_INSUFFICIENT("Command {0} requires at least {1} arguments ({2} provided)"),
+
+  // extension shell
+  INVALID_EXTENSION_NOT_JAR("File {0} does not have the extension JAR"),
+
+  // fs shell
   DESTINATION_CANNOT_BE_FILE(
       "The destination cannot be an existing file when the source is a directory or a list of "
           + "files."),
+  INVALID_TIME("{0} is not valid time"),
 
   // lineage
   DELETE_LINEAGE_WITH_CHILDREN("The lineage {0} to delete has child lineages"),
@@ -176,6 +189,7 @@ public enum ExceptionMessage {
 
   // configuration
   DEFAULT_PROPERTIES_FILE_DOES_NOT_EXIST("The default Alluxio properties file does not exist"),
+  INVALID_CONFIGURATION_KEY("Invalid property key {0}"),
   INVALID_CONFIGURATION_VALUE("Invalid value {0} for configuration key {1}"),
   KEY_NOT_BOOLEAN("Configuration cannot evaluate key {0} as boolean"),
   KEY_NOT_BYTES("Configuration cannot evaluate key {0} as bytes"),
@@ -185,6 +199,7 @@ public enum ExceptionMessage {
   KEY_NOT_LONG("Configuration cannot evaluate key {0} as long"),
   KEY_NOT_MS("Configuration cannot evaluate key {0} as milliseconds"),
   UNDEFINED_CONFIGURATION_KEY("No value set for configuration key {0}"),
+  UNKNOWN_ENUM("Unrecognized configuration value <{0}>. Acceptable values: {1}"),
   UNKNOWN_PROPERTY("Unknown property for {0} {1}"),
 
   // security

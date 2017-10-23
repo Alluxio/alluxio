@@ -11,7 +11,6 @@
 
 package alluxio;
 
-import alluxio.exception.status.InternalException;
 import alluxio.resource.LockResource;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
@@ -49,8 +48,7 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public class Registry<T extends Server<U>, U> {
-  private static final int DEFAULT_GET_TIMEOUT_MS = 5000;
-
+  private static final int DEFAULT_GET_TIMEOUT_MS = 60 * Constants.SECOND_MS;
   private final Map<Class<? extends Server>, T> mRegistry = new HashMap<>();
   private final Lock mLock = new ReentrantLock();
 
@@ -67,7 +65,7 @@ public class Registry<T extends Server<U>, U> {
    * @return the {@link Server} instance
    */
   public <W extends T> W get(final Class<W> clazz) {
-    return get(clazz, DEFAULT_GET_TIMEOUT_MS);
+    return get(clazz, Constants.DEFAULT_REGISTRY_GET_TIMEOUT_MS);
   }
 
   /**
@@ -89,10 +87,10 @@ public class Registry<T extends Server<U>, U> {
               return mRegistry.get(clazz) != null;
             }
           }
-        }, WaitForOptions.defaults().setTimeout(timeoutMs));
+        }, WaitForOptions.defaults().setTimeoutMs(timeoutMs));
     T server = mRegistry.get(clazz);
     if (!(clazz.isInstance(server))) {
-      throw new InternalException("Server is not an instance of " + clazz.getName());
+      throw new RuntimeException("Server is not an instance of " + clazz.getName());
     }
     return clazz.cast(server);
   }
@@ -170,7 +168,7 @@ public class Registry<T extends Server<U>, U> {
           continue;
         }
         if (dep.equals(server)) {
-          throw new InternalException("Dependency cycle encountered");
+          throw new RuntimeException("Dependency cycle encountered");
         }
         if (result.contains(dep)) {
           continue;

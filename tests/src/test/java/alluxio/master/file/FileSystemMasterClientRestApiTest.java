@@ -16,6 +16,7 @@ import alluxio.Constants;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.master.file.options.CompleteFileOptions;
 import alluxio.master.file.options.CreateFileOptions;
+import alluxio.master.file.options.GetStatusOptions;
 import alluxio.master.file.options.ListStatusOptions;
 import alluxio.master.file.options.MountOptions;
 import alluxio.rest.RestApiTest;
@@ -42,6 +43,8 @@ import javax.ws.rs.HttpMethod;
  * Test cases for {@link FileSystemMasterClientRestServiceHandler}.
  */
 public final class FileSystemMasterClientRestApiTest extends RestApiTest {
+  private static final GetStatusOptions GET_STATUS_OPTIONS = GetStatusOptions.defaults();
+
   private FileSystemMaster mFileSystemMaster;
 
   @Rule
@@ -111,7 +114,7 @@ public final class FileSystemMasterClientRestApiTest extends RestApiTest {
     new TestCase(mHostname, mPort,
         getEndpoint(FileSystemMasterClientRestServiceHandler.CREATE_FILE), params, HttpMethod.POST,
         null).run();
-    Assert.assertFalse(mFileSystemMaster.getFileInfo(uri).isCompleted());
+    Assert.assertFalse(mFileSystemMaster.getFileInfo(uri, GET_STATUS_OPTIONS).isCompleted());
   }
 
   @Test
@@ -202,7 +205,7 @@ public final class FileSystemMasterClientRestApiTest extends RestApiTest {
         params, "POST", null).run();
 
     try {
-      mFileSystemMaster.getFileInfo(uri);
+      mFileSystemMaster.getFileInfo(uri, GET_STATUS_OPTIONS);
       Assert.fail("file should have been removed");
     } catch (FileDoesNotExistException e) {
       // Expected
@@ -223,12 +226,12 @@ public final class FileSystemMasterClientRestApiTest extends RestApiTest {
         params, HttpMethod.POST, null).run();
 
     try {
-      mFileSystemMaster.getFileInfo(uri1);
+      mFileSystemMaster.getFileInfo(uri1, GET_STATUS_OPTIONS);
       Assert.fail("file should have been removed");
     } catch (FileDoesNotExistException e) {
       // Expected
     }
-    mFileSystemMaster.getFileInfo(uri2);
+    mFileSystemMaster.getFileInfo(uri2, GET_STATUS_OPTIONS);
   }
 
   @Test
@@ -263,7 +266,7 @@ public final class FileSystemMasterClientRestApiTest extends RestApiTest {
         getEndpoint(FileSystemMasterClientRestServiceHandler.SET_ATTRIBUTE), params,
         HttpMethod.POST, null).run();
 
-    FileInfo fileInfo = mFileSystemMaster.getFileInfo(uri);
+    FileInfo fileInfo = mFileSystemMaster.getFileInfo(uri, GET_STATUS_OPTIONS);
     Assert.assertEquals(uri.toString(), fileInfo.getPath());
     Assert.assertTrue(fileInfo.isPinned());
     Assert.assertEquals(100000, fileInfo.getTtl());

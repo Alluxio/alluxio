@@ -12,6 +12,9 @@
 package alluxio.master.file;
 
 import alluxio.AlluxioURI;
+import alluxio.AuthenticatedUserRule;
+import alluxio.BaseIntegrationTest;
+import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.PropertyKey;
@@ -39,9 +42,9 @@ import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.util.CommonUtils;
 import alluxio.util.IdUtils;
 import alluxio.wire.FileInfo;
+import alluxio.wire.LoadMetadataType;
 import alluxio.wire.TtlAction;
 
-import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.ClassRule;
@@ -51,6 +54,9 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.Timeout;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -63,12 +69,14 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import javax.annotation.Nullable;
+
 /**
  * Test behavior of {@link FileSystemMaster}.
  *
  * For example, (concurrently) creating/deleting/renaming files.
  */
-public class FileSystemMasterIntegrationTest {
+public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
   private static final int DEPTH = 6;
   private static final int FILES_PER_NODE = 4;
   private static final int CONCURRENCY_DEPTH = 3;
@@ -103,20 +111,20 @@ public class FileSystemMasterIntegrationTest {
   @Rule
   public ExpectedException mThrown = ExpectedException.none();
 
+  @Rule
+  public AuthenticatedUserRule mAuthenticatedUser = new AuthenticatedUserRule(TEST_USER);
+
   private FileSystemMaster mFsMaster;
 
   @Before
   public final void before() throws Exception {
     mFsMaster = mLocalAlluxioClusterResource.get().getLocalAlluxioMaster().getMasterProcess()
         .getMaster(FileSystemMaster.class);
-    AuthenticatedClientUser.set(TEST_USER);
   }
 
-  @After
-  public final void after() throws Exception {
-    AuthenticatedClientUser.remove();
-  }
-
+  /**
+   * Tests the {@link FileInfo} of a directory.
+   */
   @Test
   public void clientFileInfoDirectory() throws Exception {
     AlluxioURI path = new AlluxioURI("/testFolder");
@@ -135,6 +143,9 @@ public class FileSystemMasterIntegrationTest {
     Assert.assertEquals(0755, (short) fileInfo.getMode());
   }
 
+  /**
+   * Tests the {@link FileInfo} of an empty file.
+   */
   @Test
   public void clientFileInfoEmptyFile() throws Exception {
     long fileId = mFsMaster.createFile(new AlluxioURI("/testFile"), CreateFileOptions.defaults());
@@ -180,6 +191,9 @@ public class FileSystemMasterIntegrationTest {
     }
   }
 
+  /**
+   * Tests concurrent create of files.
+   */
   @Test
   public void concurrentCreate() throws Exception {
     ConcurrentCreator concurrentCreator =
@@ -221,6 +235,7 @@ public class FileSystemMasterIntegrationTest {
   /**
    * Tests concurrent rename of files.
    */
+  @Ignore("https://alluxio.atlassian.net/browse/ALLUXIO-2908")
   @Test
   public void concurrentRename() throws Exception {
     ConcurrentCreator concurrentCreator =
@@ -237,6 +252,9 @@ public class FileSystemMasterIntegrationTest {
         mFsMaster.listStatus(ROOT_PATH2, ListStatusOptions.defaults()).size());
   }
 
+  /**
+   * Tests that creating a file which already exists.
+   */
   @Test
   public void createAlreadyExistFile() throws Exception {
     mThrown.expect(FileAlreadyExistsException.class);
@@ -244,6 +262,9 @@ public class FileSystemMasterIntegrationTest {
     mFsMaster.createDirectory(new AlluxioURI("/testFile"), CreateDirectoryOptions.defaults());
   }
 
+  /**
+   * Tests that creating a directory.
+   */
   @Test
   public void createDirectory() throws Exception {
     mFsMaster.createDirectory(new AlluxioURI("/testFolder"), CreateDirectoryOptions.defaults());
@@ -293,6 +314,30 @@ public class FileSystemMasterIntegrationTest {
     Assert.assertFalse(fileInfo.isFolder());
     Assert.assertEquals("", fileInfo.getOwner());
     Assert.assertEquals(0644, (short) fileInfo.getMode());
+  }
+
+  @Test
+  public void deleteUnsyncedDirectory() throws Exception {
+    mFsMaster.createDirectory(new AlluxioURI("/testFolder"),
+        CreateDirectoryOptions.defaults().setPersisted(true));
+    mFsMaster.createDirectory(new AlluxioURI("/testFolder/child"),
+        CreateDirectoryOptions.defaults().setPersisted(true));
+    String ufs = Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
+    Files.createDirectory(Paths.get(ufs, "testFolder", "ufsOnlyDir"));
+    try {
+      mFsMaster.delete(new AlluxioURI("/testFolder"),
+          DeleteOptions.defaults().setUnchecked(false).setRecursive(true));
+      Assert.fail("Expected deleting an out of sync directory to fail");
+    } catch (IOException e) {
+      // Expected
+    }
+    // Make sure the root folder still exists in Alluxio space.
+    mFsMaster.listStatus(new AlluxioURI("/testFolder"),
+        ListStatusOptions.defaults().setLoadMetadataType(LoadMetadataType.Never));
+    // The child was in sync, so it should be deleted both from Alluxio and the UFS.
+    mThrown.expect(FileDoesNotExistException.class);
+    mFsMaster.listStatus(new AlluxioURI("/testFolder/child"),
+        ListStatusOptions.defaults().setLoadMetadataType(LoadMetadataType.Always));
   }
 
   @Test
@@ -382,6 +427,22 @@ public class FileSystemMasterIntegrationTest {
   public void deleteEmptyDirectory() throws Exception {
     mFsMaster.createDirectory(new AlluxioURI("/testFolder"), CreateDirectoryOptions.defaults());
     Assert.assertEquals(1, mFsMaster.getFileId(new AlluxioURI("/testFolder")));
+    mFsMaster.delete(new AlluxioURI("/testFolder"), DeleteOptions.defaults()
+        .setRecursive(true));
+    Assert.assertEquals(IdUtils.INVALID_FILE_ID,
+        mFsMaster.getFileId(new AlluxioURI("/testFolder")));
+  }
+
+  @Test
+  public void deleteDirectoryWithPersistedAndNotPersistedSubfolders() throws Exception {
+    mFsMaster.createDirectory(new AlluxioURI("/testFolder"),
+        CreateDirectoryOptions.defaults().setPersisted(true));
+    mFsMaster.createDirectory(new AlluxioURI("/testFolder/persisted"),
+        CreateDirectoryOptions.defaults().setPersisted(true));
+    mFsMaster.createDirectory(new AlluxioURI("/testFolder/inAlluxio1"),
+        CreateDirectoryOptions.defaults().setPersisted(false));
+    mFsMaster.createDirectory(new AlluxioURI("/testFolder/inAlluxio1/inAlluxio2"),
+        CreateDirectoryOptions.defaults().setPersisted(false));
     mFsMaster.delete(new AlluxioURI("/testFolder"), DeleteOptions.defaults()
         .setRecursive(true));
     Assert.assertEquals(IdUtils.INVALID_FILE_ID,
@@ -490,7 +551,7 @@ public class FileSystemMasterIntegrationTest {
   }
 
   @Test
-  public void ls() throws Exception {
+  public void listStatus() throws Exception {
     CreateFileOptions options = CreateFileOptions.defaults().setBlockSizeBytes(64);
 
     for (int i = 0; i < 10; i++) {
@@ -745,6 +806,7 @@ public class FileSystemMasterIntegrationTest {
      * @return null
      */
     @Override
+    @Nullable
     public Void call() throws Exception {
       AuthenticatedClientUser.set(TEST_USER);
       exec(mDepth, mConcurrencyDepth, mInitPath);
@@ -823,6 +885,7 @@ public class FileSystemMasterIntegrationTest {
     }
 
     @Override
+    @Nullable
     public Void call() throws Exception {
       AuthenticatedClientUser.set(TEST_USER);
       exec(mDepth, mConcurrencyDepth, mInitPath);
@@ -896,6 +959,7 @@ public class FileSystemMasterIntegrationTest {
     }
 
     @Override
+    @Nullable
     public Void call() throws Exception {
       AuthenticatedClientUser.set(TEST_USER);
       exec(mDepth, mConcurrencyDepth, mInitPath);
@@ -976,6 +1040,7 @@ public class FileSystemMasterIntegrationTest {
     }
 
     @Override
+    @Nullable
     public Void call() throws Exception {
       AuthenticatedClientUser.set(TEST_USER);
       exec(mDepth, mConcurrencyDepth, mInitPath);
@@ -1056,6 +1121,7 @@ public class FileSystemMasterIntegrationTest {
     }
 
     @Override
+    @Nullable
     public Void call() throws Exception {
       AuthenticatedClientUser.set(TEST_USER);
       mStartBarrier.await();

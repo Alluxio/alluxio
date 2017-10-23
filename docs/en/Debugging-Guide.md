@@ -34,9 +34,12 @@ Java remote debugging technology can make it simple to debug Alluxio in source l
 ```
 export ALLUXIO_WORKER_JAVA_OPTS="$ALLUXIO_JAVA_OPTS -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=6606"
 export ALLUXIO_MASTER_JAVA_OPTS="$ALLUXIO_JAVA_OPTS -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=6607"
-export ALLUXIO_USER_JAVA_OPTS="$ALLUXIO_JAVA_OPTS -agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=6609"
+export ALLUXIO_USER_DEBUG_JAVA_OPTS="-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=6609"
 ```
-`suspend = y/n` will decide whether the JVM process wait until the debugger connects. If you want to debug with the shell command, set the `suspend = y`. Otherwise, you can set `suspend = n` so that avoid unnecessary waiting time. 
+
+Specially, if you want to debug shell command, you can add the `-debug` flag to start a debug server with the jvm debug parameters `ALLUXIO_USER_DEBUG_JAVA_OPTS`. Such as `alluxio fs -debug ls /`.
+
+`suspend = y/n` will decide whether the JVM process wait until the debugger connects. If you want to debug with the shell command, set the `suspend = y`. Otherwise, you can set `suspend = n` so that avoid unnecessary waiting time.
 
 After start the master or worker, use eclipse or IntelliJ idea and other java ide, new a java remote configuration, set the debug server's host and port, then start debug session. If you set a breakpoint which can be reached, the ide will enter debug mode, you can read and write the current context's variables, call stack, thread list, expression evaluation. You can also execute debugging control instrument, such as 'step into', 'step over', 'resume', 'suspend' and so on. If you get this skill, you will locate problem faster, and will impressed by the source code you have debugged.
 
@@ -70,7 +73,7 @@ A: Please follow [Running-Alluxio-on-EC2.html](Running-Alluxio-on-EC2.html) for 
 Typical issues:
 - Please make sure AWS access keys and Key Pairs are set up.
 - If the UnderFileSystem is S3, check the S3 bucket name in `ufs.yml` is the name of an existing
-bucket, without the `s3://`, `s3a://`, or `s3n://` prefix.
+bucket, without the `s3a://` prefix.
 - If you are not able to access the UI, please check that your security group allows incoming traffic on port 19999.
 
 
@@ -137,7 +140,10 @@ Please read [Configuration-Settings](Configuration-Settings.html) for how to cus
 
 A: This error indicates insufficient space left on Alluxio workers to complete your write request.
 
-- If you are copying a file to Alluxio using `copyFromLocal`, by default this shell command applies `LocalFirstPolicy`
+- For Alluxio version 1.6.0 and above, `copyFromLocal` uses `RoundRobinPolicy` by default.
+You can change the location policy for this command by changing `alluxio.user.file.copyfromlocal.write.location.policy.class` property.
+
+    Before version 1.6.0, if you are copying a file to Alluxio using `copyFromLocal`, by default this shell command applies `LocalFirstPolicy`
 and stores data on the local worker (see [location policy](File-System-API.html#location-policy)).
 In this case, you will see the above error once the local worker does not have enough space.
 To distribute the data of your file on different workers, you can change this policy to `RoundRobinPolicy` (see below).
@@ -146,13 +152,14 @@ To distribute the data of your file on different workers, you can change this po
 $ bin/alluxio fs -Dalluxio.user.file.write.location.policy.class=alluxio.client.file.policy.RoundRobinPolicy copyFromLocal foo /alluxio/path/foo
 ```
 
+
 - Check if you have any files unnecessarily pinned in memory and unpin them to release space.
 See [Command-Line-Interface](Command-Line-Interface.html) for more details.
 - Increase the capacity of workers by changing `alluxio.worker.memory.size` property.
 See [Configuration](Configuration-Settings.html#common-configuration) for more description.
 
 
-#### Q: I'm writing a new file/directory to Alluxio and seeing journal errors in my application  
+#### Q: I'm writing a new file/directory to Alluxio and seeing journal errors in my application
 
 A: When you see errors like "Failed to replace a bad datanode on the existing pipeline due to no more good datanodes being available to try",
 it is because Alluxio master failed to update journal files stored in a HDFS directory according to

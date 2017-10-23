@@ -11,9 +11,9 @@
 
 package alluxio.master.journal.ufs;
 
-import alluxio.Configuration;
-import alluxio.master.journal.JournalWriter;
-import alluxio.master.journal.options.JournalWriterOptions;
+import alluxio.BaseIntegrationTest;
+import alluxio.ConfigurationTestUtils;
+import alluxio.master.NoopMaster;
 import alluxio.proto.journal.Journal;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.URIUtils;
@@ -31,7 +31,7 @@ import java.net.URI;
 /**
  * Unit tests for {@link UfsJournalCheckpointWriter}.
  */
-public final class UfsJournalCheckpointWriterTest {
+public final class UfsJournalCheckpointWriterTest extends BaseIntegrationTest {
   @Rule
   public TemporaryFolder mFolder = new TemporaryFolder();
 
@@ -42,13 +42,13 @@ public final class UfsJournalCheckpointWriterTest {
   public void before() throws Exception {
     URI location = URIUtils
         .appendPathOrDie(new URI(mFolder.newFolder().getAbsolutePath()), "FileSystemMaster");
-    mUfs = Mockito.spy(UnderFileSystem.Factory.get(location.toString()));
-    mJournal = new UfsJournal(location, mUfs);
+    mUfs = Mockito.spy(UnderFileSystem.Factory.create(location));
+    mJournal = new UfsJournal(location, new NoopMaster(), mUfs, 0);
   }
 
   @After
   public void after() throws Exception {
-    Configuration.defaultInit();
+    ConfigurationTestUtils.resetConfiguration();
   }
 
   /**
@@ -57,8 +57,7 @@ public final class UfsJournalCheckpointWriterTest {
   @Test
   public void writeJournalEntry() throws Exception {
     long endSN = 0x20;
-    JournalWriter writer = mJournal
-        .getWriter(JournalWriterOptions.defaults().setPrimary(false).setNextSequenceNumber(endSN));
+    UfsJournalCheckpointWriter writer = mJournal.getCheckpointWriter(endSN);
     for (int i = 0; i < 5; i++) {
       writer.write(newEntry(i));
     }
@@ -83,8 +82,7 @@ public final class UfsJournalCheckpointWriterTest {
   @Test
   public void writeJournalEntryMoreThanJournalLogSequenceNumber() throws Exception {
     long endSN = 0x20;
-    JournalWriter writer = mJournal
-        .getWriter(JournalWriterOptions.defaults().setPrimary(false).setNextSequenceNumber(endSN));
+    UfsJournalCheckpointWriter writer = mJournal.getCheckpointWriter(endSN);
     for (int i = 0; i < endSN + 10; i++) {
       writer.write(newEntry(i));
     }
@@ -106,8 +104,7 @@ public final class UfsJournalCheckpointWriterTest {
   @Test
   public void cancel() throws Exception {
     long endSN = 0x20;
-    JournalWriter writer = mJournal
-        .getWriter(JournalWriterOptions.defaults().setPrimary(false).setNextSequenceNumber(endSN));
+    UfsJournalCheckpointWriter writer = mJournal.getCheckpointWriter(endSN);
     for (int i = 0; i < 5; i++) {
       writer.write(newEntry(i));
     }
@@ -124,8 +121,7 @@ public final class UfsJournalCheckpointWriterTest {
   @Test
   public void checkpointExists() throws Exception {
     long endSN = 0x20;
-    JournalWriter writer = mJournal
-        .getWriter(JournalWriterOptions.defaults().setPrimary(false).setNextSequenceNumber(endSN));
+    UfsJournalCheckpointWriter writer = mJournal.getCheckpointWriter(endSN);
     String expectedCheckpoint =
         URIUtils.appendPathOrDie(mJournal.getCheckpointDir(), String.format("0x%x-0x%x", 0, endSN))
             .toString();
@@ -148,8 +144,7 @@ public final class UfsJournalCheckpointWriterTest {
   @Test
   public void olderCheckpointExists() throws Exception {
     long endSN = 0x20;
-    JournalWriter writer = mJournal
-        .getWriter(JournalWriterOptions.defaults().setPrimary(false).setNextSequenceNumber(endSN));
+    UfsJournalCheckpointWriter writer = mJournal.getCheckpointWriter(endSN);
     String oldCheckpoint = URIUtils
         .appendPathOrDie(mJournal.getCheckpointDir(), String.format("0x%x-0x%x", 0, endSN - 1))
         .toString();
@@ -176,8 +171,7 @@ public final class UfsJournalCheckpointWriterTest {
   @Test
   public void newerCheckpointExists() throws Exception {
     long endSN = 0x20;
-    JournalWriter writer = mJournal
-        .getWriter(JournalWriterOptions.defaults().setPrimary(false).setNextSequenceNumber(endSN));
+    UfsJournalCheckpointWriter writer = mJournal.getCheckpointWriter(endSN);
     String newerCheckpoint = URIUtils
         .appendPathOrDie(mJournal.getCheckpointDir(), String.format("0x%x-0x%x", 0, endSN + 1))
         .toString();

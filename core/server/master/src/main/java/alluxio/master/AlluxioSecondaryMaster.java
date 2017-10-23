@@ -11,19 +11,17 @@
 
 package alluxio.master;
 
-import alluxio.Configuration;
 import alluxio.Process;
 import alluxio.ProcessUtils;
-import alluxio.PropertyKey;
 import alluxio.RuntimeConstants;
-import alluxio.master.journal.Journal;
-import alluxio.underfs.UnderFileSystem;
-import alluxio.util.network.NetworkAddressUtils;
+import alluxio.master.journal.JournalSystem;
+import alluxio.master.journal.JournalUtils;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.net.URI;
 import java.util.concurrent.CountDownLatch;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -35,6 +33,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 public final class AlluxioSecondaryMaster implements Process {
   private static final Logger LOG = LoggerFactory.getLogger(AlluxioSecondaryMaster.class);
   private final MasterRegistry mRegistry;
+  private final JournalSystem mJournalSystem;
   private final CountDownLatch mLatch;
 
   /**
@@ -42,11 +41,16 @@ public final class AlluxioSecondaryMaster implements Process {
    */
   AlluxioSecondaryMaster() {
     try {
-      // Check that journals of each service have been formatted.
-      MasterUtils.checkJournalFormatted();
+      URI journalLocation = JournalUtils.getJournalLocation();
+      mJournalSystem = new JournalSystem.Builder().setLocation(journalLocation).build();
       mRegistry = new MasterRegistry();
       // Create masters.
-      MasterUtils.createMasters(new Journal.Factory(MasterUtils.getJournalLocation()), mRegistry);
+      MasterUtils.createMasters(mJournalSystem, mRegistry);
+      // Check that journals of each service have been formatted.
+      if (!mJournalSystem.isFormatted()) {
+        throw new RuntimeException(
+            String.format("Journal %s has not been formatted!", journalLocation));
+      }
       mLatch = new CountDownLatch(1);
     } catch (IOException e) {
       throw new RuntimeException(e);
@@ -55,7 +59,6 @@ public final class AlluxioSecondaryMaster implements Process {
 
   @Override
   public void start() throws Exception {
-    connectToUFS();
     mRegistry.start(false);
     mLatch.await();
   }
@@ -89,15 +92,5 @@ public final class AlluxioSecondaryMaster implements Process {
 
     AlluxioSecondaryMaster master = new AlluxioSecondaryMaster();
     ProcessUtils.run(master);
-  }
-
-  /**
-   * Connects to the UFS.
-   */
-  private void connectToUFS() throws IOException {
-    String ufsAddress = Configuration.get(PropertyKey.UNDERFS_ADDRESS);
-    UnderFileSystem ufs = UnderFileSystem.Factory.get(ufsAddress);
-    ufs.connectFromMaster(
-        NetworkAddressUtils.getConnectHost(NetworkAddressUtils.ServiceType.MASTER_RPC));
   }
 }

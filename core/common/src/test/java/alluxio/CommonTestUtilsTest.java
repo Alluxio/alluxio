@@ -32,6 +32,9 @@ public final class CommonTestUtilsTest {
     private HardToInstantiateClass(Object o) {}
   }
 
+  /**
+   * A simple class that has a correct hashcode method.
+   */
   private static class Basic {
     private String mField;
 
@@ -53,6 +56,9 @@ public final class CommonTestUtilsTest {
     }
   }
 
+  /**
+   * A simple class that has a bad hashcode method.
+   */
   private static class BadHashCode {
     private String mField;
 
@@ -71,6 +77,9 @@ public final class CommonTestUtilsTest {
     }
   }
 
+  /**
+   * A simple class that has a correct equals method.
+   */
   private static class ManyFields {
     private String mField1;
     private boolean mField2;
@@ -97,6 +106,9 @@ public final class CommonTestUtilsTest {
     }
   }
 
+  /**
+   * A simple class that has a bad equals method due to missing field.
+   */
   private static class MissingField {
     private String mField1;
     private boolean mField2;
@@ -120,6 +132,9 @@ public final class CommonTestUtilsTest {
     }
   }
 
+  /**
+   * A simple class that has a bad equals method due to missing instance check.
+   */
   private static class EqualsMissingInstanceCheck {
     private String mField1;
     private boolean mField2;

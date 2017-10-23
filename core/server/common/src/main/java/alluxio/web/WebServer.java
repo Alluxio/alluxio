@@ -44,7 +44,7 @@ public abstract class WebServer {
 
   private final Server mServer;
   private final String mServiceName;
-  private InetSocketAddress mAddress;
+  private final InetSocketAddress mAddress;
   private final ServerConnector mServerConnector;
   protected final WebAppContext mWebAppContext;
 

@@ -24,8 +24,7 @@ import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 
 import alluxio.AlluxioURI;
-import alluxio.Configuration;
-import alluxio.ConfigurationTestUtils;
+import alluxio.ConfigurationRule;
 import alluxio.PropertyKey;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
@@ -34,11 +33,11 @@ import alluxio.client.file.URIStatus;
 import alluxio.wire.FileInfo;
 
 import com.google.common.cache.LoadingCache;
+import com.google.common.collect.ImmutableMap;
 import jnr.ffi.Pointer;
 import jnr.ffi.Runtime;
-import org.junit.After;
-import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
@@ -55,29 +54,25 @@ import java.util.List;
 public class AlluxioFuseFileSystemTest {
 
   private static final String TEST_ROOT_PATH = "/t/root";
-  private static final AlluxioURI BASE_EXPECTED_URI =
-      new AlluxioURI(TEST_ROOT_PATH);
+  private static final AlluxioURI BASE_EXPECTED_URI = new AlluxioURI(TEST_ROOT_PATH);
 
   private AlluxioFuseFileSystem mFuseFs;
   private FileSystem mFileSystem;
   private FuseFileInfo mFileInfo;
 
+  @Rule
+  public ConfigurationRule mConfiguration =
+      new ConfigurationRule(ImmutableMap.of(PropertyKey.FUSE_CACHED_PATHS_MAX, "0"));
+
   @Before
   public void before() throws Exception {
-    Configuration.set(PropertyKey.FUSE_CACHED_PATHS_MAX, "0");
-
     final List<String> empty = Collections.emptyList();
-    AlluxioFuseOptions opts = new AlluxioFuseOptions(
-        "/doesnt/matter", TEST_ROOT_PATH, false, empty);
+    AlluxioFuseOptions opts =
+        new AlluxioFuseOptions("/doesnt/matter", TEST_ROOT_PATH, false, empty);
 
     mFileSystem = mock(FileSystem.class);
     mFuseFs = new AlluxioFuseFileSystem(mFileSystem, opts);
     mFileInfo = allocateNativeFileInfo();
-  }
-
-  @After
-  public void after() {
-    ConfigurationTestUtils.resetConfiguration();
   }
 
   @Test
@@ -111,7 +106,7 @@ public class AlluxioFuseFileSystemTest {
     mFileInfo.flags.set(O_WRONLY.intValue());
     mFuseFs.create("/foo/bar", 0, mFileInfo);
 
-    //then call flush into it
+    // then call flush into it
     mFuseFs.flush("/foo/bar", mFileInfo);
     verify(fos).flush();
   }
@@ -219,22 +214,21 @@ public class AlluxioFuseFileSystemTest {
 
   @Test
   public void pathTranslation() throws Exception {
-    final LoadingCache<String, AlluxioURI> resolver =
-        mFuseFs.getPathResolverCache();
+    final LoadingCache<String, AlluxioURI> resolver = mFuseFs.getPathResolverCache();
 
     AlluxioURI expected = new AlluxioURI(TEST_ROOT_PATH);
     AlluxioURI actual = resolver.apply("/");
-    Assert.assertEquals("/ should resolve to " + expected, expected, actual);
+    assertEquals("/ should resolve to " + expected, expected, actual);
 
     expected = new AlluxioURI(TEST_ROOT_PATH + "/home/foo");
     actual = resolver.apply("/home/foo");
-    Assert.assertEquals("/home/foo should resolve to " + expected, expected, actual);
+    assertEquals("/home/foo should resolve to " + expected, expected, actual);
   }
 
   // Allocate native memory for a FuseFileInfo data struct and return its pointer
   private FuseFileInfo allocateNativeFileInfo() {
     final Runtime runtime = Runtime.getSystemRuntime();
     final Pointer pt = runtime.getMemoryManager().allocateTemporary(36, true);
-    return  FuseFileInfo.of(pt);
+    return FuseFileInfo.of(pt);
   }
 }

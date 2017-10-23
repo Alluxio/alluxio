@@ -11,11 +11,17 @@
 
 package alluxio.util;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertTrue;
+
+import alluxio.Constants;
 import alluxio.security.group.CachedGroupMapping;
 import alluxio.security.group.GroupMappingService;
 
 import com.google.common.collect.Lists;
-import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
@@ -27,8 +33,13 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.concurrent.CyclicBarrier;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Tests the {@link CommonUtils} class.
@@ -48,8 +59,8 @@ public class CommonUtilsTest {
     long currentTime = CommonUtils.getCurrentMs();
 
     /* Check that currentTime falls into the interval [startTime + delta; startTime + 2*delta] */
-    Assert.assertTrue(startTime + delta <= currentTime);
-    Assert.assertTrue(currentTime <= 2 * delta + startTime);
+    assertTrue(startTime + delta <= currentTime);
+    assertTrue(currentTime <= 2 * delta + startTime);
   }
 
   /**
@@ -57,11 +68,11 @@ public class CommonUtilsTest {
    */
   @Test
   public void argsToString() {
-    Assert.assertEquals("", CommonUtils.argsToString(".", ""));
-    Assert.assertEquals("foo", CommonUtils.argsToString(".", "foo"));
-    Assert.assertEquals("foo,bar", CommonUtils.argsToString(",", "foo", "bar"));
-    Assert.assertEquals("1", CommonUtils.argsToString("", 1));
-    Assert.assertEquals("1;2;3", CommonUtils.argsToString(";", 1, 2, 3));
+    assertEquals("", CommonUtils.argsToString(".", ""));
+    assertEquals("foo", CommonUtils.argsToString(".", "foo"));
+    assertEquals("foo,bar", CommonUtils.argsToString(",", "foo", "bar"));
+    assertEquals("1", CommonUtils.argsToString("", 1));
+    assertEquals("1;2;3", CommonUtils.argsToString(";", 1, 2, 3));
   }
 
   /**
@@ -79,7 +90,7 @@ public class CommonUtilsTest {
       }
     }
 
-    List<TestCase> testCases = new LinkedList<>();
+    List<TestCase> testCases = new ArrayList<>();
     testCases.add(new TestCase(""));
     testCases.add(new TestCase("foo", "foo"));
     testCases.add(new TestCase("foo bar", "foo", "bar"));
@@ -87,7 +98,7 @@ public class CommonUtilsTest {
     testCases.add(new TestCase("1 2 3", 1, 2, 3));
 
     for (TestCase testCase : testCases) {
-      Assert.assertEquals(testCase.mExpected, CommonUtils.listToString(testCase.mInput));
+      assertEquals(testCase.mExpected, CommonUtils.listToString(testCase.mInput));
     }
   }
 
@@ -104,7 +115,7 @@ public class CommonUtilsTest {
       }
     }
 
-    List<TestCase> testCases = new LinkedList<>();
+    List<TestCase> testCases = new ArrayList<>();
     testCases.add(new TestCase());
     testCases.add(new TestCase("foo"));
     testCases.add(new TestCase("foo", "bar"));
@@ -113,9 +124,9 @@ public class CommonUtilsTest {
       ArrayList<String> input = new ArrayList<>();
       Collections.addAll(input, testCase.mExpected);
       String[] got = CommonUtils.toStringArray(input);
-      Assert.assertEquals(testCase.mExpected.length, got.length);
+      assertEquals(testCase.mExpected.length, got.length);
       for (int k = 0; k < got.length; k++) {
-        Assert.assertEquals(testCase.mExpected[k], got[k]);
+        assertEquals(testCase.mExpected[k], got[k]);
       }
     }
   }
@@ -139,7 +150,7 @@ public class CommonUtilsTest {
       }
     }
 
-    List<TestCase> testCases = new LinkedList<>();
+    List<TestCase> testCases = new ArrayList<>();
     testCases.add(new TestCase("hello", TestClassA.class, null));
     testCases.add(new TestCase("1", TestClassB.class, new Class[] {int.class}, 1));
 
@@ -148,7 +159,7 @@ public class CommonUtilsTest {
         Object o =
             CommonUtils.createNewClassInstance(testCase.mCls, testCase.mCtorClassArgs,
                 testCase.mCtorArgs);
-        Assert.assertEquals(o.toString(), testCase.mExpected);
+        assertEquals(o.toString(), testCase.mExpected);
       } catch (Exception e) {
         e.printStackTrace();
       }
@@ -203,10 +214,10 @@ public class CommonUtilsTest {
 
     List<String> groups = CommonUtils.getUnixGroups(userName);
 
-    Assert.assertNotNull(groups);
-    Assert.assertEquals(groups.size(), 2);
-    Assert.assertEquals(groups.get(0), userGroup1);
-    Assert.assertEquals(groups.get(1), userGroup2);
+    assertNotNull(groups);
+    assertEquals(groups.size(), 2);
+    assertEquals(groups.get(0), userGroup1);
+    assertEquals(groups.get(1), userGroup2);
   }
 
   /**
@@ -228,11 +239,11 @@ public class CommonUtilsTest {
     Mockito.when(GroupMappingService.Factory.get()).thenReturn(cachedGroupService);
 
     List<String> groups = CommonUtils.getGroups(userName);
-    Assert.assertEquals(Arrays.asList(userGroup1, userGroup2), groups);
+    assertEquals(Arrays.asList(userGroup1, userGroup2), groups);
 
     String primaryGroup = CommonUtils.getPrimaryGroupName(userName);
-    Assert.assertNotNull(primaryGroup);
-    Assert.assertEquals(userGroup1, primaryGroup);
+    assertNotNull(primaryGroup);
+    assertEquals(userGroup1, primaryGroup);
   }
 
   /**
@@ -268,7 +279,7 @@ public class CommonUtilsTest {
         "ufs://bucket/file"
     };
     for (int i = 0; i < inputs.length; i++) {
-      Assert.assertEquals(results[i],
+      assertEquals(results[i],
           CommonUtils.stripSuffixIfPresent(inputs[i], suffixToStrip[i]));
     }
   }
@@ -306,38 +317,139 @@ public class CommonUtilsTest {
         "file"
     };
     for (int i = 0; i < inputs.length; i++) {
-      Assert.assertEquals(results[i],
+      assertEquals(results[i],
           CommonUtils.stripPrefixIfPresent(inputs[i], prefixToStrip[i]));
     }
   }
 
   @Test
   public void stripLeadingAndTrailingQuotes() throws Exception {
-    Assert.assertEquals("", CommonUtils.stripLeadingAndTrailingQuotes(""));
-    Assert.assertEquals("\"", CommonUtils.stripLeadingAndTrailingQuotes("\""));
-    Assert.assertEquals("", CommonUtils.stripLeadingAndTrailingQuotes("\"\""));
-    Assert.assertEquals("\"", CommonUtils.stripLeadingAndTrailingQuotes("\"\"\""));
-    Assert.assertEquals("\"\"", CommonUtils.stripLeadingAndTrailingQuotes("\"\"\"\""));
-    Assert.assertEquals("noquote", CommonUtils.stripLeadingAndTrailingQuotes("noquote"));
-    Assert.assertEquals(
+    assertEquals("", CommonUtils.stripLeadingAndTrailingQuotes(""));
+    assertEquals("\"", CommonUtils.stripLeadingAndTrailingQuotes("\""));
+    assertEquals("", CommonUtils.stripLeadingAndTrailingQuotes("\"\""));
+    assertEquals("\"", CommonUtils.stripLeadingAndTrailingQuotes("\"\"\""));
+    assertEquals("\"\"", CommonUtils.stripLeadingAndTrailingQuotes("\"\"\"\""));
+    assertEquals("noquote", CommonUtils.stripLeadingAndTrailingQuotes("noquote"));
+    assertEquals(
         "\"singlequote", CommonUtils.stripLeadingAndTrailingQuotes("\"singlequote"));
-    Assert.assertEquals(
+    assertEquals(
         "singlequote\"", CommonUtils.stripLeadingAndTrailingQuotes("singlequote\""));
-    Assert.assertEquals("quoted", CommonUtils.stripLeadingAndTrailingQuotes("\"quoted\""));
-    Assert.assertEquals("\"quoted\"", CommonUtils.stripLeadingAndTrailingQuotes("\"\"quoted\"\""));
+    assertEquals("quoted", CommonUtils.stripLeadingAndTrailingQuotes("\"quoted\""));
+    assertEquals("\"quoted\"", CommonUtils.stripLeadingAndTrailingQuotes("\"\"quoted\"\""));
   }
 
   @Test
   public void getValueFromStaticMapping() throws Exception {
     String mapping = "k=v; a=a; alice=bob; id1=userA; foo=bar";
-    Assert.assertEquals("v",     CommonUtils.getValueFromStaticMapping(mapping, "k"));
-    Assert.assertEquals("a",     CommonUtils.getValueFromStaticMapping(mapping, "a"));
-    Assert.assertEquals("bob",   CommonUtils.getValueFromStaticMapping(mapping, "alice"));
-    Assert.assertEquals("userA", CommonUtils.getValueFromStaticMapping(mapping, "id1"));
-    Assert.assertEquals("bar",   CommonUtils.getValueFromStaticMapping(mapping, "foo"));
-    Assert.assertEquals(null,    CommonUtils.getValueFromStaticMapping(mapping, ""));
-    Assert.assertEquals(null,    CommonUtils.getValueFromStaticMapping(mapping, "/"));
-    Assert.assertEquals(null,    CommonUtils.getValueFromStaticMapping(mapping, "v"));
-    Assert.assertEquals(null,    CommonUtils.getValueFromStaticMapping(mapping, "nonexist"));
+    assertEquals("v",     CommonUtils.getValueFromStaticMapping(mapping, "k"));
+    assertEquals("a",     CommonUtils.getValueFromStaticMapping(mapping, "a"));
+    assertEquals("bob",   CommonUtils.getValueFromStaticMapping(mapping, "alice"));
+    assertEquals("userA", CommonUtils.getValueFromStaticMapping(mapping, "id1"));
+    assertEquals("bar",   CommonUtils.getValueFromStaticMapping(mapping, "foo"));
+    assertEquals(null,    CommonUtils.getValueFromStaticMapping(mapping, ""));
+    assertEquals(null,    CommonUtils.getValueFromStaticMapping(mapping, "/"));
+    assertEquals(null,    CommonUtils.getValueFromStaticMapping(mapping, "v"));
+    assertEquals(null,    CommonUtils.getValueFromStaticMapping(mapping, "nonexist"));
+  }
+
+  @Test
+  public void invokeAllSuccess() throws Exception {
+    int numTasks = 5;
+    final CyclicBarrier b = new CyclicBarrier(numTasks);
+    final AtomicInteger completed = new AtomicInteger();
+    List<Callable<Void>> tasks = new ArrayList<>();
+    for (int i = 0; i < numTasks; i++) {
+      tasks.add(new Callable<Void>() {
+        @Override
+        public Void call() throws Exception {
+          b.await();
+          completed.incrementAndGet();
+          return null;
+        }
+      });
+    }
+    CommonUtils.invokeAll(tasks, 10, TimeUnit.SECONDS);
+    assertEquals(numTasks, completed.get());
+  }
+
+  @Test
+  public void invokeAllHang() throws Exception {
+    int numTasks = 5;
+    List<Callable<Void>> tasks = new ArrayList<>();
+    for (int i = 0; i < numTasks; i++) {
+      tasks.add(new Callable<Void>() {
+        @Override
+        public Void call() throws Exception {
+          Thread.sleep(10 * Constants.SECOND_MS);
+          return null;
+        }
+      });
+    }
+    try {
+      CommonUtils.invokeAll(tasks, 50, TimeUnit.MILLISECONDS);
+      fail("Expected a timeout exception");
+    } catch (TimeoutException e) {
+      // Expected
+    }
+  }
+
+  @Test
+  public void invokeAllPropagatesException() throws Exception {
+    int numTasks = 5;
+    final AtomicInteger id = new AtomicInteger();
+    List<Callable<Void>> tasks = new ArrayList<>();
+    final Exception testException = new Exception("test message");
+    for (int i = 0; i < numTasks; i++) {
+      tasks.add(new Callable<Void>() {
+        @Override
+        public Void call() throws Exception {
+          int myId = id.incrementAndGet();
+          // The 3rd task throws an exception
+          if (myId == 3) {
+            throw testException;
+          }
+          return null;
+        }
+      });
+    }
+    try {
+      CommonUtils.invokeAll(tasks, 2, TimeUnit.SECONDS);
+      fail("Expected an exception to be thrown");
+    } catch (Exception e) {
+      assertSame(testException, e);
+    }
+  }
+
+  /**
+   * Tests that when one task throws an exception and other tasks time out, the exception is
+   * propagated.
+   */
+  @Test
+  public void invokeAllPropagatesExceptionWithTimeout() throws Exception {
+    int numTasks = 5;
+    final AtomicInteger id = new AtomicInteger();
+    List<Callable<Void>> tasks = new ArrayList<>();
+    final Exception testException = new Exception("test message");
+    for (int i = 0; i < numTasks; i++) {
+      tasks.add(new Callable<Void>() {
+        @Override
+        public Void call() throws Exception {
+          int myId = id.incrementAndGet();
+          // The 3rd task throws an exception, other tasks sleep.
+          if (myId == 3) {
+            throw testException;
+          } else {
+            Thread.sleep(10 * Constants.SECOND_MS);
+          }
+          return null;
+        }
+      });
+    }
+    try {
+      CommonUtils.invokeAll(tasks, 50, TimeUnit.MILLISECONDS);
+      fail("Expected an exception to be thrown");
+    } catch (Exception e) {
+      assertSame(testException, e);
+    }
   }
 }

@@ -341,7 +341,7 @@ public final class Mode {
      * @return the intersection of thes bits and the given bits
      */
     public Bits and(Bits that) {
-      Preconditions.checkNotNull(that);
+      Preconditions.checkNotNull(that, "that");
       return SVALS[ordinal() & that.ordinal()];
     }
 
@@ -350,7 +350,7 @@ public final class Mode {
      * @return the union of thes bits and the given bits
      */
     public Bits or(Bits that) {
-      Preconditions.checkNotNull(that);
+      Preconditions.checkNotNull(that, "that");
       return SVALS[ordinal() | that.ordinal()];
     }
 

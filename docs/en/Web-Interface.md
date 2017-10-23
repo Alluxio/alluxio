@@ -56,18 +56,18 @@ in the navigation bar, you will see something like this:
 ![browse]({{site.data.img.screenshot_browseFileSystem}})
 
 Files in the current folder are listed, with the file name, file size, size for each block, the
-percentage of in-memory data, creation time, and the modification time. To view the content of a
+percentage of in-Alluxio data, creation time, and the modification time. To view the content of a
 file, click on that file.
 
 ![viewFile]({{site.data.img.screenshot_viewFile}})
 
-### Browse In-Memory Files Page
+### Browse In-Alluxio Files Page
 
-To browse all in-memory files, click on the "In-Memory Files" tab in the navigation bar.
+To browse all in-Alluxio files, click on the "In-Alluxio Files" tab in the navigation bar.
 
 ![inMemFiles]({{site.data.img.screenshot_inMemoryFiles}})
 
-Files currently in the memory tier are listed, with the file name, file size, size for each block,
+Files currently in Alluxio are listed, with the file name, file size, size for each block,
 whether the file is pinned or not, the file creation time, and the file modification time.
 
 ### Workers Page

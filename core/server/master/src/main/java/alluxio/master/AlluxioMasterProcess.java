@@ -15,13 +15,14 @@ import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.RuntimeConstants;
-import alluxio.master.journal.Journal;
+import alluxio.master.journal.JournalSystem;
+import alluxio.master.journal.JournalSystem.Mode;
 import alluxio.metrics.MetricsSystem;
 import alluxio.metrics.sink.MetricsServlet;
 import alluxio.security.authentication.TransportProvider;
 import alluxio.thrift.MetaMasterClientService;
-import alluxio.underfs.UnderFileSystem;
 import alluxio.util.CommonUtils;
+import alluxio.util.WaitForOptions;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 import alluxio.web.MasterWebServer;
@@ -37,6 +38,7 @@ import org.apache.thrift.server.TServer;
 import org.apache.thrift.server.TThreadPoolServer;
 import org.apache.thrift.server.TThreadPoolServer.Args;
 import org.apache.thrift.transport.TServerSocket;
+import org.apache.thrift.transport.TTransportException;
 import org.apache.thrift.transport.TTransportFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,6 +47,7 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.Map;
 
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -64,39 +67,45 @@ public class AlluxioMasterProcess implements MasterProcess {
   private final int mPort;
 
   /** The socket for thrift rpc server. */
-  private final TServerSocket mTServerSocket;
+  private TServerSocket mTServerSocket;
 
   /** The transport provider to create thrift server transport. */
   private final TransportProvider mTransportProvider;
 
-  /** The address for the rpc server. */
-  private final InetSocketAddress mRpcAddress;
+  /** The bind address for the rpc server. */
+  private final InetSocketAddress mRpcBindAddress;
+
+  /** The connect address for the rpc server. */
+  private final InetSocketAddress mRpcConnectAddress;
 
   private final MetricsServlet mMetricsServlet = new MetricsServlet(MetricsSystem.METRIC_REGISTRY);
 
   /** The master registry. */
-  private MasterRegistry mRegistry;
+  private final MasterRegistry mRegistry;
 
   /** The web ui server. */
-  private WebServer mWebServer = null;
+  private WebServer mWebServer;
 
   /** The RPC server. */
-  private TServer mThriftServer = null;
+  private TServer mThriftServer;
 
   /** is true if the master is serving the RPC server. */
-  private boolean mIsServing = false;
+  private boolean mIsServing;
 
   /** The start time for when the master started serving the RPC server. */
   private long mStartTimeMs = -1;
 
+  /** The journal system for writing journal entries and restoring master state. */
+  protected final JournalSystem mJournalSystem;
+
   /**
-   * Creates a {@link AlluxioMasterProcess} by the classes in the same packet of
-   * {@link AlluxioMasterProcess} or the subclasses of {@link AlluxioMasterProcess}.
+   * Creates a new {@link AlluxioMasterProcess}.
    */
-  AlluxioMasterProcess() {
+  AlluxioMasterProcess(JournalSystem journalSystem) {
+    mJournalSystem = Preconditions.checkNotNull(journalSystem, "journalSystem");
     mMinWorkerThreads = Configuration.getInt(PropertyKey.MASTER_WORKER_THREADS_MIN);
     mMaxWorkerThreads = Configuration.getInt(PropertyKey.MASTER_WORKER_THREADS_MAX);
-    int connectionTimeout = Configuration.getInt(PropertyKey.MASTER_CONNECTION_TIMEOUT_MS);
+    int connectionTimeout = (int) Configuration.getMs(PropertyKey.MASTER_CONNECTION_TIMEOUT_MS);
 
     Preconditions.checkArgument(mMaxWorkerThreads >= mMinWorkerThreads,
         PropertyKey.MASTER_WORKER_THREADS_MAX + " can not be less than "
@@ -118,20 +127,23 @@ public class AlluxioMasterProcess implements MasterProcess {
         Preconditions.checkState(Configuration.getInt(PropertyKey.MASTER_WEB_PORT) > 0,
             this + " web port is only allowed to be zero in test mode.");
       }
+
       mTransportProvider = TransportProvider.Factory.create();
-      mTServerSocket =
-          new TServerSocket(NetworkAddressUtils.getBindAddress(ServiceType.MASTER_RPC),
-                  connectionTimeout);
+      mTServerSocket = new TServerSocket(NetworkAddressUtils.getBindAddress(ServiceType.MASTER_RPC),
+          (int) Configuration.getMs(PropertyKey.MASTER_CONNECTION_TIMEOUT_MS));
       mPort = NetworkAddressUtils.getThriftPort(mTServerSocket);
       // reset master rpc port
       Configuration.set(PropertyKey.MASTER_RPC_PORT, Integer.toString(mPort));
-      mRpcAddress = NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC);
+      mRpcBindAddress = NetworkAddressUtils.getBindAddress(ServiceType.MASTER_RPC);
+      mRpcConnectAddress = NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC);
 
-      // Check that journals of each service have been formatted.
-      MasterUtils.checkJournalFormatted();
+      if (!mJournalSystem.isFormatted()) {
+        throw new RuntimeException(
+            String.format("Journal %s has not been formatted!", mJournalSystem));
+      }
       // Create masters.
       mRegistry = new MasterRegistry();
-      MasterUtils.createMasters(new Journal.Factory(MasterUtils.getJournalLocation()), mRegistry);
+      MasterUtils.createMasters(mJournalSystem, mRegistry);
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
@@ -144,7 +156,7 @@ public class AlluxioMasterProcess implements MasterProcess {
 
   @Override
   public InetSocketAddress getRpcAddress() {
-    return mRpcAddress;
+    return mRpcConnectAddress;
   }
 
   @Override
@@ -158,6 +170,7 @@ public class AlluxioMasterProcess implements MasterProcess {
   }
 
   @Override
+  @Nullable
   public InetSocketAddress getWebAddress() {
     if (mWebServer != null) {
       return new InetSocketAddress(mWebServer.getBindHost(), mWebServer.getLocalPort());
@@ -175,14 +188,16 @@ public class AlluxioMasterProcess implements MasterProcess {
     CommonUtils.waitFor(this + " to start", new Function<Void, Boolean>() {
       @Override
       public Boolean apply(Void input) {
-        return mThriftServer != null && mThriftServer.isServing()
-            && mWebServer != null && mWebServer.getServer().isRunning();
+        return mThriftServer != null && mThriftServer.isServing() && mWebServer != null
+            && mWebServer.getServer().isRunning();
       }
-    });
+    }, WaitForOptions.defaults().setTimeoutMs(10000));
   }
 
   @Override
   public void start() throws Exception {
+    mJournalSystem.start();
+    mJournalSystem.setMode(Mode.PRIMARY);
     startMasters(true);
     startServing();
   }
@@ -192,29 +207,29 @@ public class AlluxioMasterProcess implements MasterProcess {
     if (mIsServing) {
       stopServing();
       stopMasters();
-      mTServerSocket.close();
+      mJournalSystem.stop();
       mIsServing = false;
     }
   }
 
   /**
-   * First establish a connection to the under file system from master, then starts all masters,
-   * including block master, FileSystem master, lineage master and additional masters.
+   * Starts all masters, including block master, FileSystem master, lineage master and additional
+   * masters.
    *
    * @param isLeader if the Master is leader
    */
   protected void startMasters(boolean isLeader) {
     try {
-      connectToUFS();
       mRegistry.start(isLeader);
+      LOG.info("All masters started");
     } catch (IOException e) {
-      throw Throwables.propagate(e);
+      throw new RuntimeException(e);
     }
   }
 
   /**
-   * Stops all masters, including lineage master, block master and fileSystem master and
-   * additional masters.
+   * Stops all masters, including lineage master, block master and fileSystem master and additional
+   * masters.
    */
   protected void stopMasters() {
     try {
@@ -229,8 +244,8 @@ public class AlluxioMasterProcess implements MasterProcess {
   }
 
   /**
-   * Starts serving, letting {@link MetricsSystem} start sink and starting the web ui server and
-   * RPC Server.
+   * Starts serving, letting {@link MetricsSystem} start sink and starting the web ui server and RPC
+   * Server.
    *
    * @param startMessage empty string or the message that the master gains the leadership
    * @param stopMessage empty string or the message that the master loses the leadership
@@ -238,16 +253,16 @@ public class AlluxioMasterProcess implements MasterProcess {
   protected void startServing(String startMessage, String stopMessage) {
     MetricsSystem.startSinks();
     startServingWebServer();
-    LOG.info("{} version {} started @ {} {}", this, RuntimeConstants.VERSION, mRpcAddress,
-        startMessage);
+    LOG.info("{} version {} binding to {} @ {} {}", this, RuntimeConstants.VERSION, mRpcBindAddress,
+        mRpcConnectAddress, startMessage);
     startServingRPCServer();
-    LOG.info("{} version {} ended @ {} {}", this, RuntimeConstants.VERSION, mRpcAddress,
+    LOG.info("{} version {} ended @ {} {}", this, RuntimeConstants.VERSION, mRpcConnectAddress,
         stopMessage);
   }
 
   /**
-   * Starts serving web ui server, resetting master web port, adding the metrics servlet to the
-   * web server and starting web ui.
+   * Starts serving web ui server, resetting master web port, adding the metrics servlet to the web
+   * server and starting web ui.
    */
   protected void startServingWebServer() {
     mWebServer = new MasterWebServer(ServiceType.MASTER_WEB.getServiceName(),
@@ -280,17 +295,26 @@ public class AlluxioMasterProcess implements MasterProcess {
     }
     // register meta services
     processor.registerProcessor(Constants.META_MASTER_SERVICE_NAME,
-        new MetaMasterClientService.Processor<>(
-        new MetaMasterClientServiceHandler(this)));
+        new MetaMasterClientService.Processor<>(new MetaMasterClientServiceHandler(this)));
 
     // Return a TTransportFactory based on the authentication type
     TTransportFactory transportFactory;
     try {
-      transportFactory = mTransportProvider.getServerTransportFactory();
+      String serverName = NetworkAddressUtils.getConnectHost(ServiceType.MASTER_RPC);
+      transportFactory = mTransportProvider.getServerTransportFactory(serverName);
     } catch (IOException e) {
-      throw Throwables.propagate(e);
+      throw new RuntimeException(e);
     }
 
+    try {
+      if (mTServerSocket != null) {
+        mTServerSocket.close();
+      }
+      mTServerSocket = new TServerSocket(mRpcBindAddress,
+          (int) Configuration.getMs(PropertyKey.MASTER_CONNECTION_TIMEOUT_MS));
+    } catch (TTransportException e) {
+      throw new RuntimeException(e);
+    }
     // create master thrift service with the multiplexed processor.
     Args args = new TThreadPoolServer.Args(mTServerSocket).maxWorkerThreads(mMaxWorkerThreads)
         .minWorkerThreads(mMinWorkerThreads).processor(processor).transportFactory(transportFactory)
@@ -317,6 +341,10 @@ public class AlluxioMasterProcess implements MasterProcess {
       mThriftServer.stop();
       mThriftServer = null;
     }
+    if (mTServerSocket != null) {
+      mTServerSocket.close();
+      mTServerSocket = null;
+    }
     if (mWebServer != null) {
       mWebServer.stop();
       mWebServer = null;
@@ -325,14 +353,8 @@ public class AlluxioMasterProcess implements MasterProcess {
     mIsServing = false;
   }
 
-  private void connectToUFS() throws IOException {
-    String ufsAddress = Configuration.get(PropertyKey.UNDERFS_ADDRESS);
-    UnderFileSystem ufs = UnderFileSystem.Factory.get(ufsAddress);
-    ufs.connectFromMaster(NetworkAddressUtils.getConnectHost(ServiceType.MASTER_RPC));
-  }
-
   @Override
   public String toString() {
-    return "Alluxio master";
+    return "Alluxio master @" + mRpcConnectAddress;
   }
 }

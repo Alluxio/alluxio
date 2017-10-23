@@ -14,6 +14,7 @@ package alluxio.worker.block;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
+import alluxio.RuntimeConstants;
 import alluxio.Server;
 import alluxio.Sessions;
 import alluxio.exception.BlockAlreadyExistsException;
@@ -23,11 +24,13 @@ import alluxio.exception.InvalidWorkerStateException;
 import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatThread;
+import alluxio.master.MasterClientConfig;
 import alluxio.metrics.MetricsSystem;
+import alluxio.proto.dataserver.Protocol;
 import alluxio.thrift.BlockWorkerClientService;
+import alluxio.underfs.UfsManager;
+import alluxio.util.CommonUtils;
 import alluxio.util.ThreadFactoryUtils;
-import alluxio.util.network.NetworkAddressUtils;
-import alluxio.util.network.NetworkAddressUtils.ServiceType;
 import alluxio.wire.FileInfo;
 import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.AbstractWorker;
@@ -36,21 +39,23 @@ import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.BlockWriter;
 import alluxio.worker.block.meta.BlockMeta;
 import alluxio.worker.block.meta.TempBlockMeta;
-import alluxio.worker.block.options.OpenUfsBlockOptions;
 import alluxio.worker.file.FileSystemMasterClient;
 
 import com.codahale.metrics.Gauge;
+import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
 import org.apache.thrift.TProcessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -82,6 +87,12 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
 
   /** Client for all block master communication. */
   private final BlockMasterClient mBlockMasterClient;
+  /**
+   * Block master clients. commitBlock is the only reason to keep a pool of block master clients
+   * on each worker. We should either improve our RPC model in the master or get rid of the
+   * necessity to call commitBlock in the workers.
+   */
+  private final BlockMasterClientPool mBlockMasterClientPool;
 
   /** Client for all file system master communication. */
   private final FileSystemMasterClient mFileSystemMasterClient;
@@ -107,26 +118,30 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
 
   /**
    * Constructs a default block worker.
+   *
+   * @param ufsManager ufs manager
    */
-  DefaultBlockWorker() {
-    this(new BlockMasterClient(NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC)),
-        new FileSystemMasterClient(NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC)),
-        new Sessions(), new TieredBlockStore());
+  DefaultBlockWorker(UfsManager ufsManager) {
+    this(new BlockMasterClientPool(), new FileSystemMasterClient(MasterClientConfig.defaults()),
+        new Sessions(), new TieredBlockStore(), ufsManager);
   }
 
   /**
    * Constructs a default block worker.
    *
-   * @param blockMasterClient a client for talking to the block master
+   * @param blockMasterClientPool a client pool for talking to the block master
    * @param fileSystemMasterClient a client for talking to the file system master
    * @param sessions an object for tracking and cleaning up client sessions
    * @param blockStore an Alluxio block store
+   * @param ufsManager ufs manager
    */
-  DefaultBlockWorker(BlockMasterClient blockMasterClient,
-      FileSystemMasterClient fileSystemMasterClient, Sessions sessions, BlockStore blockStore) {
+  DefaultBlockWorker(BlockMasterClientPool blockMasterClientPool,
+      FileSystemMasterClient fileSystemMasterClient, Sessions sessions, BlockStore blockStore,
+      UfsManager ufsManager) {
     super(Executors
         .newFixedThreadPool(4, ThreadFactoryUtils.build("block-worker-heartbeat-%d", true)));
-    mBlockMasterClient = blockMasterClient;
+    mBlockMasterClientPool = blockMasterClientPool;
+    mBlockMasterClient = mBlockMasterClientPool.acquire();
     mFileSystemMasterClient = fileSystemMasterClient;
     mHeartbeatReporter = new BlockHeartbeatReporter();
     mMetricsReporter = new BlockMetricsReporter();
@@ -136,7 +151,7 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
 
     mBlockStore.registerBlockStoreEventListener(mHeartbeatReporter);
     mBlockStore.registerBlockStoreEventListener(mMetricsReporter);
-    mUnderFileSystemBlockStore = new UnderFileSystemBlockStore(mBlockStore);
+    mUnderFileSystemBlockStore = new UnderFileSystemBlockStore(mBlockStore, ufsManager);
 
     Metrics.registerGauges(this);
   }
@@ -179,7 +194,7 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
    * started.
    */
   @Override
-  public void start(WorkerNetAddress address) {
+  public void start(WorkerNetAddress address) throws IOException {
     mAddress = address;
     try {
       mWorkerId.set(mBlockMasterClient.getId(address));
@@ -203,17 +218,17 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
     if (Configuration.getBoolean(PropertyKey.WORKER_TIERED_STORE_RESERVER_ENABLED)) {
       getExecutorService().submit(
           new HeartbeatThread(HeartbeatContext.WORKER_SPACE_RESERVER, new SpaceReserver(this),
-              Configuration.getInt(PropertyKey.WORKER_TIERED_STORE_RESERVER_INTERVAL_MS)));
+              (int) Configuration.getMs(PropertyKey.WORKER_TIERED_STORE_RESERVER_INTERVAL_MS)));
     }
 
     getExecutorService()
         .submit(new HeartbeatThread(HeartbeatContext.WORKER_BLOCK_SYNC, mBlockMasterSync,
-            Configuration.getInt(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS)));
+            (int) Configuration.getMs(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS)));
 
     // Start the pinlist syncer to perform the periodical fetching
     getExecutorService()
         .submit(new HeartbeatThread(HeartbeatContext.WORKER_PIN_LIST_SYNC, mPinListSync,
-            Configuration.getInt(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS)));
+            (int) Configuration.getMs(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS)));
 
     // Start the session cleanup checker to perform the periodical checking
     getExecutorService().submit(mSessionCleaner);
@@ -224,11 +239,32 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
    */
   @Override
   public void stop() {
+    // Steps to shutdown:
+    // 1. Gracefully shut down the runnables running in the executors.
+    // 2. Shutdown the executors.
+    // 3. Shutdown the clients. This needs to happen after the executors is shutdown because
+    //    runnables running in the executors might be using the clients.
     mSessionCleaner.stop();
-    mBlockMasterClient.close();
+    // The executor shutdown needs to be done in a loop with retry because the interrupt
+    // signal can sometimes be ignored.
+    CommonUtils.waitFor("block worker executor shutdown", new Function<Void, Boolean>() {
+      @Override
+      public Boolean apply(Void input) {
+        getExecutorService().shutdownNow();
+        try {
+          return getExecutorService().awaitTermination(100, TimeUnit.MILLISECONDS);
+        } catch (InterruptedException e) {
+          throw new RuntimeException(e);
+        }
+      }
+    });
+    mBlockMasterClientPool.release(mBlockMasterClient);
+    try {
+      mBlockMasterClientPool.close();
+    } catch (IOException e) {
+      LOG.warn("Failed to close the block master client pool with error {}.", e.getMessage());
+    }
     mFileSystemMasterClient.close();
-    // Use shutdownNow because HeartbeatThreads never finish until they are interrupted
-    getExecutorService().shutdownNow();
   }
 
   @Override
@@ -258,17 +294,19 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
     // TODO(calvin): Reconsider how to do this without heavy locking.
     // Block successfully committed, update master with new block metadata
     Long lockId = mBlockStore.lockBlock(sessionId, blockId);
+    BlockMasterClient blockMasterClient = mBlockMasterClientPool.acquire();
     try {
       BlockMeta meta = mBlockStore.getBlockMeta(sessionId, blockId, lockId);
       BlockStoreLocation loc = meta.getBlockLocation();
       Long length = meta.getBlockSize();
       BlockStoreMeta storeMeta = mBlockStore.getBlockStoreMeta();
       Long bytesUsedOnTier = storeMeta.getUsedBytesOnTiers().get(loc.tierAlias());
-      mBlockMasterClient.commitBlock(mWorkerId.get(), bytesUsedOnTier, loc.tierAlias(), blockId,
+      blockMasterClient.commitBlock(mWorkerId.get(), bytesUsedOnTier, loc.tierAlias(), blockId,
           length);
     } catch (Exception e) {
       throw new IOException(ExceptionMessage.FAILED_COMMIT_BLOCK_TO_MASTER.getMessage(blockId), e);
     } finally {
+      mBlockMasterClientPool.release(blockMasterClient);
       mBlockStore.unlockBlock(lockId);
     }
   }
@@ -277,7 +315,15 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
   public String createBlock(long sessionId, long blockId, String tierAlias, long initialBytes)
       throws BlockAlreadyExistsException, WorkerOutOfSpaceException, IOException {
     BlockStoreLocation loc = BlockStoreLocation.anyDirInTier(tierAlias);
-    TempBlockMeta createdBlock = mBlockStore.createBlock(sessionId, blockId, loc, initialBytes);
+    TempBlockMeta createdBlock;
+    try {
+      createdBlock = mBlockStore.createBlock(sessionId, blockId, loc, initialBytes);
+    } catch (WorkerOutOfSpaceException e) {
+      InetSocketAddress address =
+          InetSocketAddress.createUnresolved(mAddress.getHost(), mAddress.getRpcPort());
+      throw new WorkerOutOfSpaceException(ExceptionMessage.CANNOT_REQUEST_SPACE
+          .getMessageWithUrl(RuntimeConstants.ALLUXIO_DEBUG_DOCS_URL, address, blockId), e);
+    }
     return createdBlock.getPath();
   }
 
@@ -378,9 +424,9 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
   }
 
   @Override
-  public BlockReader readUfsBlock(long sessionId, long blockId, long offset, boolean noCache)
+  public BlockReader readUfsBlock(long sessionId, long blockId, long offset)
       throws BlockDoesNotExistException, IOException {
-    return mUnderFileSystemBlockStore.getBlockReader(sessionId, blockId, offset, noCache);
+    return mUnderFileSystemBlockStore.getBlockReader(sessionId, blockId, offset);
   }
 
   @Override
@@ -417,12 +463,12 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
   }
 
   @Override
-  public FileInfo getFileInfo(long fileId) {
+  public FileInfo getFileInfo(long fileId) throws IOException {
     return mFileSystemMasterClient.getFileInfo(fileId);
   }
 
   @Override
-  public boolean openUfsBlock(long sessionId, long blockId, OpenUfsBlockOptions options)
+  public boolean openUfsBlock(long sessionId, long blockId, Protocol.OpenUfsBlockOptions options)
       throws BlockAlreadyExistsException {
     return mUnderFileSystemBlockStore.acquireAccess(sessionId, blockId, options);
   }
@@ -445,6 +491,12 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
       }
     }
     mUnderFileSystemBlockStore.releaseAccess(sessionId, blockId);
+  }
+
+  @Override
+  public void cleanupSession(long sessionId) {
+    mBlockStore.cleanupSession(sessionId);
+    mUnderFileSystemBlockStore.cleanupSession(sessionId);
   }
 
   /**

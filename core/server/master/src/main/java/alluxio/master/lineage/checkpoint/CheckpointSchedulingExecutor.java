@@ -38,8 +38,8 @@ public final class CheckpointSchedulingExecutor implements HeartbeatExecutor {
    */
   public CheckpointSchedulingExecutor(LineageMaster lineageMaster,
       FileSystemMaster fileSystemMaster) {
-    mLineageMaster = Preconditions.checkNotNull(lineageMaster);
-    mFileSystemMaster = Preconditions.checkNotNull(fileSystemMaster);
+    mLineageMaster = Preconditions.checkNotNull(lineageMaster, "lineageMaster");
+    mFileSystemMaster = Preconditions.checkNotNull(fileSystemMaster, "fileSystemMaster");
     mPlanner =
         CheckpointPlanner.Factory.create(mLineageMaster.getLineageStoreView(),
             mFileSystemMaster.getFileSystemMasterView());

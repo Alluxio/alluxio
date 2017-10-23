@@ -50,7 +50,7 @@ public final class ProxyWebServer extends WebServer {
     super(serviceName, address);
 
     // REST configuration
-    ResourceConfig config = new ResourceConfig().packages("alluxio.proxy");
+    ResourceConfig config = new ResourceConfig().packages("alluxio.proxy", "alluxio.proxy.s3");
     ServletContainer servlet = new ServletContainer(config) {
       private static final long serialVersionUID = 7756010860672831556L;
 
@@ -61,7 +61,7 @@ public final class ProxyWebServer extends WebServer {
         getServletContext()
             .setAttribute(FILE_SYSTEM_SERVLET_RESOURCE_KEY, FileSystem.Factory.get());
         getServletContext().setAttribute(STREAM_CACHE_SERVLET_RESOURCE_KEY,
-            new StreamCache(Configuration.getLong(PropertyKey.PROXY_STREAM_CACHE_TIMEOUT_MS)));
+            new StreamCache(Configuration.getMs(PropertyKey.PROXY_STREAM_CACHE_TIMEOUT_MS)));
       }
     };
     ServletHolder servletHolder = new ServletHolder("Alluxio Proxy Web Service", servlet);

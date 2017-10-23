@@ -17,7 +17,7 @@ import org.junit.Test;
 /**
  * Tests for the {@link CountingRetry} class.
  */
-public class CountingRetryTest {
+public final class CountingRetryTest {
 
   /**
    * Tests that the provided number of retries is equal the actual number of retries.

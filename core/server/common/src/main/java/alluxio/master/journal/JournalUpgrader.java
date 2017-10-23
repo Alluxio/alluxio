@@ -17,6 +17,8 @@ import alluxio.PropertyKey;
 import alluxio.RuntimeConstants;
 import alluxio.ServiceUtils;
 import alluxio.master.MasterFactory;
+import alluxio.master.NoopMaster;
+import alluxio.master.journal.ufs.UfsJournal;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.MkdirsOptions;
 import alluxio.util.URIUtils;
@@ -45,7 +47,8 @@ import javax.annotation.concurrent.NotThreadSafe;
  * any data in case of failures.
  *
  * <pre>
- * java -cp assembly/target/alluxio-assemblies-0.9.0-SNAPSHOT-jar-with-dependencies.jar \
+ * java -cp \
+ *   assembly/server/target/alluxio-assembly-server-<ALLUXIO-VERSION>-jar-with-dependencies.jar \
  *   alluxio.master.journal.JournalUpgrader -journalDirectoryV0 YourJournalDirectoryV0
  * </pre>
  */
@@ -70,7 +73,7 @@ public final class JournalUpgrader {
   private static final class Upgrader {
     private final String mMaster;
     private final alluxio.master.journalv0.MutableJournal mJournalV0;
-    private final Journal mJournalV1;
+    private final UfsJournal mJournalV1;
 
     private final UnderFileSystem mUfs;
 
@@ -84,10 +87,11 @@ public final class JournalUpgrader {
       mMaster = master;
       mJournalV0 = (new alluxio.master.journalv0.MutableJournal.Factory(
           getJournalLocation(sJournalDirectoryV0))).create(master);
-      mJournalV1 = (new Journal.Factory(
-          getJournalLocation(Configuration.get(PropertyKey.MASTER_JOURNAL_FOLDER)))).create(master);
+      mJournalV1 =
+          new UfsJournal(getJournalLocation(Configuration.get(PropertyKey.MASTER_JOURNAL_FOLDER)),
+              new NoopMaster(master), 0);
 
-      mUfs = UnderFileSystem.Factory.get(sJournalDirectoryV0);
+      mUfs = UnderFileSystem.Factory.create(sJournalDirectoryV0);
 
       mCheckpointV0 = URIUtils.appendPathOrDie(mJournalV0.getLocation(), "checkpoint.data");
       mCompletedLogsV0 = URIUtils.appendPathOrDie(mJournalV0.getLocation(), "completed");
@@ -144,6 +148,9 @@ public final class JournalUpgrader {
       LOG.info("Finished upgrading {} journal.", mMaster);
     }
 
+    /**
+     * Prepares journal writer to upgrade journals from v0 to v1.
+     */
     private void prepare() throws IOException {
       alluxio.master.journalv0.JournalWriter journalWriterV0 = mJournalV0.getWriter();
       journalWriterV0.recover();
@@ -164,6 +171,11 @@ public final class JournalUpgrader {
       }
     }
 
+    /**
+     * Renames checkpoint.
+     *
+     * @param sequenceNumber the sequence number
+     */
     private void renameCheckpoint(long sequenceNumber) throws IOException {
       URI dst = URIUtils.appendPathOrDie(mCheckpointsV1, String.format("0x0-0x%x", sequenceNumber));
       if (!mUfs.renameFile(mCheckpointV0.toString(), dst.toString()) && !mUfs
@@ -202,7 +214,7 @@ public final class JournalUpgrader {
   /**
    * Reads a journal via
    * {@code java -cp \
-   * assembly/target/alluxio-assemblies-<ALLUXIO-VERSION>-jar-with-dependencies.jar \
+   * assembly/server/target/alluxio-assembly-server-<ALLUXIO-VERSION>-jar-with-dependencies.jar \
    * alluxio.master.journal.JournalUpgrader -master BlockMaster}.
    *
    * @param args arguments passed to the tool

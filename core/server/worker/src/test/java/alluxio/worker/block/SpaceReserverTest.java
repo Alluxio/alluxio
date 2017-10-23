@@ -12,8 +12,8 @@
 package alluxio.worker.block;
 
 import alluxio.Configuration;
+import alluxio.ConfigurationTestUtils;
 import alluxio.PropertyKey;
-import alluxio.PropertyKeyFormat;
 import alluxio.Sessions;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatScheduler;
@@ -27,11 +27,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-import org.junit.runner.RunWith;
 import org.mockito.Mockito;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
@@ -40,8 +36,6 @@ import java.util.concurrent.Executors;
 /**
  * Unit tests for {@link SpaceReserver}.
  */
-@RunWith(PowerMockRunner.class)
-@PrepareForTest({BlockWorker.class, BlockStoreMeta.class})
 public class SpaceReserverTest {
   private ExecutorService mExecutorService;
 
@@ -57,7 +51,7 @@ public class SpaceReserverTest {
   public void before() {
     mExecutorService =
         Executors.newFixedThreadPool(1, ThreadFactoryUtils.build("space-reserver-test", true));
-    Configuration.defaultInit();
+    ConfigurationTestUtils.resetConfiguration();
   }
 
   @After
@@ -67,23 +61,25 @@ public class SpaceReserverTest {
 
   @Test
   public void reserveCorrectAmountsOfSpace() throws Exception {
-    BlockWorker blockWorker = PowerMockito.mock(BlockWorker.class);
-    BlockStoreMeta storeMeta = PowerMockito.mock(BlockStoreMeta.class);
+    BlockWorker blockWorker = Mockito.mock(BlockWorker.class);
+    BlockStoreMeta storeMeta = Mockito.mock(BlockStoreMeta.class);
     Mockito.when(blockWorker.getStoreMeta()).thenReturn(storeMeta);
     Map<String, Long> capacityBytesOnTiers = ImmutableMap.of("MEM", 400L, "HDD", 1000L);
     Mockito.when(storeMeta.getCapacityBytesOnTiers()).thenReturn(capacityBytesOnTiers);
 
+    String tmpFolderPath = mTempFolder.newFolder().getAbsolutePath();
+
     // Create two tiers named "MEM" and "HDD" with aliases 0 and 1.
-    TieredBlockStoreTestUtils.setupConfWithMultiTier("/",
+    TieredBlockStoreTestUtils.setupConfWithMultiTier(tmpFolderPath,
         new int[]{0, 1}, new String[] {"MEM", "HDD"},
         new String[][]{new String[]{"/a"}, new String[]{"/b"}},
         new long[][]{new long[]{0}, new long[]{0}}, "/");
 
     PropertyKey reserveRatioProp =
-        PropertyKeyFormat.WORKER_TIERED_STORE_LEVEL_RESERVED_RATIO_FORMAT.format(0);
+        PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_RESERVED_RATIO.format(0);
     Configuration.set(reserveRatioProp, "0.2");
     reserveRatioProp =
-        PropertyKeyFormat.WORKER_TIERED_STORE_LEVEL_RESERVED_RATIO_FORMAT.format(1);
+        PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_RESERVED_RATIO.format(1);
     Configuration.set(reserveRatioProp, "0.3");
     SpaceReserver spaceReserver = new SpaceReserver(blockWorker);
 
@@ -101,8 +97,8 @@ public class SpaceReserverTest {
 
   @Test
   public void testLowWatermark() throws Exception {
-    BlockWorker blockWorker = PowerMockito.mock(BlockWorker.class);
-    BlockStoreMeta storeMeta = PowerMockito.mock(BlockStoreMeta.class);
+    BlockWorker blockWorker = Mockito.mock(BlockWorker.class);
+    BlockStoreMeta storeMeta = Mockito.mock(BlockStoreMeta.class);
     Mockito.when(blockWorker.getStoreMeta()).thenReturn(storeMeta);
     Map<String, Long> capacityBytesOnTiers = ImmutableMap.of("MEM", 100L, "SSD", 200L, "HDD",
         1000L);
@@ -111,28 +107,30 @@ public class SpaceReserverTest {
     Mockito.when(storeMeta.getCapacityBytesOnTiers()).thenReturn(capacityBytesOnTiers);
     Mockito.when(storeMeta.getUsedBytesOnTiers()).thenReturn(usedCapacityBytesOnTiers);
 
+    String tmpFolderPath = mTempFolder.newFolder().getAbsolutePath();
+
     // Create two tiers named "MEM", "SSD" and "HDD" with aliases 0, 1 and 2.
-    TieredBlockStoreTestUtils.setupConfWithMultiTier("/",
+    TieredBlockStoreTestUtils.setupConfWithMultiTier(tmpFolderPath,
         new int[]{0, 1, 2}, new String[] {"MEM", "SSD", "HDD"},
         new String[][]{new String[]{"/a"}, new String[]{"/b"}, new String[]{"/c"}},
         new long[][]{new long[]{0}, new long[]{0}, new long[]{0}}, "/");
     PropertyKey highWatermarkRatioProp =
-        PropertyKeyFormat.WORKER_TIERED_STORE_LEVEL_HIGH_WATERMARK_RATIO_FORMAT.format(0);
+        PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_HIGH_WATERMARK_RATIO.format(0);
     Configuration.set(highWatermarkRatioProp, "0.9");
     PropertyKey lowWatermarkRatioProp =
-        PropertyKeyFormat.WORKER_TIERED_STORE_LEVEL_LOW_WATERMARK_RATIO_FORMAT.format(0);
+        PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_LOW_WATERMARK_RATIO.format(0);
     Configuration.set(lowWatermarkRatioProp, "0.8");
     highWatermarkRatioProp =
-        PropertyKeyFormat.WORKER_TIERED_STORE_LEVEL_HIGH_WATERMARK_RATIO_FORMAT.format(1);
+        PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_HIGH_WATERMARK_RATIO.format(1);
     Configuration.set(highWatermarkRatioProp, "0.9");
     lowWatermarkRatioProp =
-        PropertyKeyFormat.WORKER_TIERED_STORE_LEVEL_LOW_WATERMARK_RATIO_FORMAT.format(1);
+        PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_LOW_WATERMARK_RATIO.format(1);
     Configuration.set(lowWatermarkRatioProp, "0.7");
     highWatermarkRatioProp =
-        PropertyKeyFormat.WORKER_TIERED_STORE_LEVEL_HIGH_WATERMARK_RATIO_FORMAT.format(2);
+        PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_HIGH_WATERMARK_RATIO.format(2);
     Configuration.set(highWatermarkRatioProp, "0.8");
     lowWatermarkRatioProp =
-        PropertyKeyFormat.WORKER_TIERED_STORE_LEVEL_LOW_WATERMARK_RATIO_FORMAT.format(2);
+        PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_LOW_WATERMARK_RATIO.format(2);
     Configuration.set(lowWatermarkRatioProp, "0.6");
     SpaceReserver spaceReserver = new SpaceReserver(blockWorker);
 
@@ -152,8 +150,8 @@ public class SpaceReserverTest {
 
   @Test
   public void testHighWatermark() throws Exception {
-    BlockWorker blockWorker = PowerMockito.mock(BlockWorker.class);
-    BlockStoreMeta storeMeta = PowerMockito.mock(BlockStoreMeta.class);
+    BlockWorker blockWorker = Mockito.mock(BlockWorker.class);
+    BlockStoreMeta storeMeta = Mockito.mock(BlockStoreMeta.class);
     Mockito.when(blockWorker.getStoreMeta()).thenReturn(storeMeta);
     Map<String, Long> capacityBytesOnTiers = ImmutableMap.of("MEM", 100L, "SSD", 200L, "HDD",
         1000L);
@@ -162,28 +160,30 @@ public class SpaceReserverTest {
     Mockito.when(storeMeta.getCapacityBytesOnTiers()).thenReturn(capacityBytesOnTiers);
     Mockito.when(storeMeta.getUsedBytesOnTiers()).thenReturn(usedCapacityBytesOnTiers);
 
+    String tmpFolderPath = mTempFolder.newFolder().getAbsolutePath();
+
     // Create two tiers named "MEM", "SSD" and "HDD" with aliases 0, 1 and 2.
-    TieredBlockStoreTestUtils.setupConfWithMultiTier("/",
+    TieredBlockStoreTestUtils.setupConfWithMultiTier(tmpFolderPath,
         new int[]{0, 1, 2}, new String[] {"MEM", "SSD", "HDD"},
         new String[][]{new String[]{"/a"}, new String[]{"/b"}, new String[]{"/c"}},
         new long[][]{new long[]{0}, new long[]{0}, new long[]{0}}, "/");
     PropertyKey highWatermarkRatioProp =
-        PropertyKeyFormat.WORKER_TIERED_STORE_LEVEL_HIGH_WATERMARK_RATIO_FORMAT.format(0);
+        PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_HIGH_WATERMARK_RATIO.format(0);
     Configuration.set(highWatermarkRatioProp, "0.9");
     PropertyKey lowWatermarkRatioProp =
-        PropertyKeyFormat.WORKER_TIERED_STORE_LEVEL_LOW_WATERMARK_RATIO_FORMAT.format(0);
+        PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_LOW_WATERMARK_RATIO.format(0);
     Configuration.set(lowWatermarkRatioProp, "0.8");
     highWatermarkRatioProp =
-        PropertyKeyFormat.WORKER_TIERED_STORE_LEVEL_HIGH_WATERMARK_RATIO_FORMAT.format(1);
+        PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_HIGH_WATERMARK_RATIO.format(1);
     Configuration.set(highWatermarkRatioProp, "0.9");
     lowWatermarkRatioProp =
-        PropertyKeyFormat.WORKER_TIERED_STORE_LEVEL_LOW_WATERMARK_RATIO_FORMAT.format(1);
+        PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_LOW_WATERMARK_RATIO.format(1);
     Configuration.set(lowWatermarkRatioProp, "0.7");
     highWatermarkRatioProp =
-        PropertyKeyFormat.WORKER_TIERED_STORE_LEVEL_HIGH_WATERMARK_RATIO_FORMAT.format(2);
+        PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_HIGH_WATERMARK_RATIO.format(2);
     Configuration.set(highWatermarkRatioProp, "0.8");
     lowWatermarkRatioProp =
-        PropertyKeyFormat.WORKER_TIERED_STORE_LEVEL_LOW_WATERMARK_RATIO_FORMAT.format(2);
+        PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_LOW_WATERMARK_RATIO.format(2);
     Configuration.set(lowWatermarkRatioProp, "0.6");
     SpaceReserver spaceReserver = new SpaceReserver(blockWorker);
 

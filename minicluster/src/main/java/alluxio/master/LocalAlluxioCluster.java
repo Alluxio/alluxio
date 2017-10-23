@@ -109,11 +109,9 @@ public final class LocalAlluxioCluster extends AbstractLocalAlluxioCluster {
   }
 
   @Override
-  protected void startMasters() throws Exception {
+  public void startMasters() throws Exception {
     mMaster = LocalAlluxioMaster.create(mWorkDirectory);
     mMaster.start();
-    // TODO(peis): Reenable this. This is slowing down the tests.
-    // mMaster.startSecondary();
   }
 
   @Override

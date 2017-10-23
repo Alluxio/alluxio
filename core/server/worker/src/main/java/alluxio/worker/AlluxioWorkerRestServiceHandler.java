@@ -17,9 +17,11 @@ import alluxio.RestUtils;
 import alluxio.RuntimeConstants;
 import alluxio.WorkerStorageTierAssoc;
 import alluxio.metrics.MetricsSystem;
+import alluxio.util.LogUtils;
 import alluxio.web.WorkerWebServer;
 import alluxio.wire.AlluxioWorkerInfo;
 import alluxio.wire.Capacity;
+import alluxio.wire.LogInfo;
 import alluxio.worker.block.BlockStoreMeta;
 import alluxio.worker.block.BlockWorker;
 import alluxio.worker.block.DefaultBlockWorker;
@@ -39,6 +41,7 @@ import java.util.TreeMap;
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.servlet.ServletContext;
 import javax.ws.rs.GET;
+import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
@@ -60,6 +63,11 @@ public final class AlluxioWorkerRestServiceHandler {
 
   // queries
   public static final String QUERY_RAW_CONFIGURATION = "raw_configuration";
+
+  // log
+  public static final String LOG_LEVEL = "logLevel";
+  public static final String LOG_ARGUMENT_NAME = "logName";
+  public static final String LOG_ARGUMENT_LEVEL = "level";
 
   // the following endpoints are deprecated
   public static final String GET_RPC_ADDRESS = "rpc_address";
@@ -419,5 +427,24 @@ public final class AlluxioWorkerRestServiceHandler {
     SortedMap<String, List<String>> tierToDirPaths = new TreeMap<>(getTierAliasComparator());
     tierToDirPaths.putAll(mStoreMeta.getDirectoryPathsOnTiers());
     return tierToDirPaths;
+  }
+
+  /**
+   * @summary set the Alluxio log information
+   * @param logName the log's name
+   * @param level the log level
+   * @return the response object
+   */
+  @POST
+  @Path(LOG_LEVEL)
+  @ReturnType("alluxio.wire.LogInfo")
+  public Response logLevel(@QueryParam(LOG_ARGUMENT_NAME) final String logName, @QueryParam
+      (LOG_ARGUMENT_LEVEL) final String level) {
+    return RestUtils.call(new RestUtils.RestCallable<LogInfo>() {
+      @Override
+      public LogInfo call() throws Exception {
+        return LogUtils.setLogLevel(logName, level);
+      }
+    });
   }
 }

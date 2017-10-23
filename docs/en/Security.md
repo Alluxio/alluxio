@@ -9,14 +9,15 @@ priority: 1
 * Table of Contents
 {:toc}
 
-Secure Alluxio has two features currently. This document describes the concepts and usage of them.
+Secure Alluxio has three features currently. This document describes the concepts and usage of them.
 
 1. [Authentication](#authentication): If enabled, Alluxio file system can recognize and verify
-the user accessing it. It is the basis for other security features such as authorization and
-encryption.
+the user accessing it. It is the basis for other security features such as authorization.
 2. [Authorization](#authorization): If enabled, Alluxio file system can control the user's access.
 POSIX permission model is used in Alluxio to assign permissions and
 control access rights.
+3. [Auditing](#auditing): If enabled, Alluxio file system can maintain an audit log for users' accesses
+to file metadata.
 
 By default Alluxio runs in SIMPLE secure mode in which a simple authentication is required.
 SIMPLE indicates that server trusts whoever the client claims to be.
@@ -54,10 +55,10 @@ It is passed to master through RPC connection for authentication.
 
 ### NOSASL
 
-Authentication is disabled. Alluxio file system behaviors as before.
-SASL (Simple Authentication and Security Layer) is a framework to define the authentication
-between client and server applications, which used in Alluxio to implement authentication feature
-. So NOSASL is used to represent disabled case.
+Authentication is disabled. SASL (Simple Authentication and Security Layer) is a framework to 
+define the authentication between client and server applications, which is used in Alluxio to 
+implement authentication feature. So NOSASL is used to represent disabled case and Alluxio 
+file system behavior is as before.
 
 ### SIMPLE
 
@@ -137,6 +138,52 @@ The owner, group, and permissions can be changed by two ways:
 
 The owner can only be changed by super user.
 The group and permission can only be changed by super user and file owner.
+
+## Auditing
+Alluxio supports audit logging to allow system administrators to track users' access to file metadata.
+
+The audit log file (`master_audit.log`) contains multiple audit log entries, each of which corresponds to an access to file metadata.
+The format of Alluxio audit log entry is shown in the table below.
+
+<table class="table table-striped">
+<tr><th>key</th><th>value</th></tr>
+<tr>
+  <td>succeeded</td>
+  <td>True if the command has succeeded. To succeed, it must also have been allowed. </td>
+</tr>
+<tr>
+  <td>allowed</td>
+  <td>True if the command has been allowed. Note that a command can still fail even if it has been allowed. </td>
+</tr>
+<tr>
+  <td>ugi</td>
+  <td>User group information, including username, primary group, and authentication type. </td>
+</tr>
+<tr>
+  <td>ip</td>
+  <td>Client IP address. </td>
+</tr>
+<tr>
+  <td>cmd</td>
+  <td>Command issued by the user. </td>
+</tr>
+<tr>
+  <td>src</td>
+  <td>Path of the source file or directory. </td>
+</tr>
+<tr>
+  <td>dst</td>
+  <td>Path of the destination file or directory. If not applicable, the value is null. </td>
+</tr>
+<tr>
+  <td>perm</td>
+  <td>User:group:mask or null if not applicable. </td>
+</tr>
+</table>
+
+It is similar to the format of HDFS audit log [wiki](https://wiki.apache.org/hadoop/HowToConfigure).
+
+To enable Alluxio audit logging, you need to set the JVM property `alluxio.master.audit.logging.enabled` to true, see [Configuration settings](Configuration-Settings.html).
 
 ## Encryption
 

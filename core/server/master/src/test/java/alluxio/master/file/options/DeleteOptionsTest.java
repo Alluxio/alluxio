@@ -11,9 +11,11 @@
 
 package alluxio.master.file.options;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+
 import alluxio.CommonTestUtils;
 
-import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.Random;
@@ -29,8 +31,9 @@ public class DeleteOptionsTest {
   @Test
   public void defaults() throws Exception {
     DeleteOptions options = DeleteOptions.defaults();
-    Assert.assertFalse(options.isRecursive());
-    Assert.assertFalse(options.isAlluxioOnly());
+    assertFalse(options.isRecursive());
+    assertFalse(options.isAlluxioOnly());
+    assertFalse(options.isUnchecked());
   }
 
   /**
@@ -41,13 +44,16 @@ public class DeleteOptionsTest {
     Random random = new Random();
     boolean recursive = random.nextBoolean();
     boolean alluxioOnly = random.nextBoolean();
+    boolean skipCheck = random.nextBoolean();
     DeleteOptions options = DeleteOptions.defaults();
 
     options.setRecursive(recursive);
     options.setAlluxioOnly(alluxioOnly);
+    options.setUnchecked(skipCheck);
 
-    Assert.assertEquals(recursive, options.isRecursive());
-    Assert.assertEquals(alluxioOnly, options.isAlluxioOnly());
+    assertEquals(recursive, options.isRecursive());
+    assertEquals(alluxioOnly, options.isAlluxioOnly());
+    assertEquals(skipCheck, options.isUnchecked());
   }
 
   @Test

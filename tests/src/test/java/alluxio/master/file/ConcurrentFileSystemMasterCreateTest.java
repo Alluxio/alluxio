@@ -13,25 +13,28 @@ package alluxio.master.file;
 
 import alluxio.AlluxioURI;
 import alluxio.AuthenticatedUserRule;
+import alluxio.BaseIntegrationTest;
+import alluxio.Configuration;
+import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.PropertyKey;
+import alluxio.UnderFileSystemFactoryRegistryRule;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.CreateDirectoryOptions;
 import alluxio.client.file.options.ListStatusOptions;
 import alluxio.master.file.meta.PersistenceState;
-import alluxio.underfs.UnderFileSystemRegistry;
 import alluxio.underfs.sleepfs.SleepingUnderFileSystemFactory;
 import alluxio.underfs.sleepfs.SleepingUnderFileSystemOptions;
 import alluxio.wire.LoadMetadataType;
 
 import com.google.common.io.Files;
-import org.junit.AfterClass;
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.BeforeClass;
+import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -51,13 +54,11 @@ import java.util.List;
  * The tests also validate that operations are concurrent by injecting a short sleep in the
  * critical code path. Tests will timeout if the critical section is performed serially.
  */
-public class ConcurrentFileSystemMasterCreateTest {
+public class ConcurrentFileSystemMasterCreateTest extends BaseIntegrationTest {
   private static final String TEST_USER = "test";
   private static final int CONCURRENCY_FACTOR = 50;
   /** Duration to sleep during the rename call to show the benefits of concurrency. */
   private static final long SLEEP_MS = Constants.SECOND_MS;
-
-  private static SleepingUnderFileSystemFactory sSleepingUfsFactory;
 
   private FileSystem mFileSystem;
 
@@ -68,29 +69,31 @@ public class ConcurrentFileSystemMasterCreateTest {
 
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
-      new LocalAlluxioClusterResource.Builder().setProperty(PropertyKey.UNDERFS_ADDRESS,
+      new LocalAlluxioClusterResource.Builder().setProperty(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS,
           "sleep://" + mLocalUfsPath).setProperty(PropertyKey
           .USER_FILE_MASTER_CLIENT_THREADS, CONCURRENCY_FACTOR).build();
 
-  // Must be done in beforeClass so execution is before rules
-  @BeforeClass
-  public static void beforeClass() throws Exception {
-    SleepingUnderFileSystemOptions options = new SleepingUnderFileSystemOptions();
-    sSleepingUfsFactory = new SleepingUnderFileSystemFactory(options);
-    options.setMkdirsMs(SLEEP_MS).setIsDirectoryMs(SLEEP_MS);
-    UnderFileSystemRegistry.register(sSleepingUfsFactory);
-  }
-
-  @AfterClass
-  public static void afterClass() throws Exception {
-    UnderFileSystemRegistry.unregister(sSleepingUfsFactory);
-  }
+  @ClassRule
+  public static UnderFileSystemFactoryRegistryRule sUnderfilesystemfactoryregistry =
+      new UnderFileSystemFactoryRegistryRule(new SleepingUnderFileSystemFactory(
+          new SleepingUnderFileSystemOptions().setMkdirsMs(SLEEP_MS).setIsDirectoryMs(SLEEP_MS)
+              .setGetFileStatusMs(SLEEP_MS).setIsFileMs(SLEEP_MS)));
 
   @Before
   public void before() {
     mFileSystem = FileSystem.Factory.get();
+    Configuration.set(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, "2b");
   }
 
+  @After
+  public void after() {
+    ConfigurationTestUtils.resetConfiguration();
+  }
+
+  /**
+   * Tests concurrent create of files. Files are created under one shared directory but different
+   * sub-directories.
+   */
   @Test
   public void concurrentCreate() throws Exception {
     final int numThreads = CONCURRENCY_FACTOR;
@@ -102,12 +105,18 @@ public class ConcurrentFileSystemMasterCreateTest {
       paths[i] =
           new AlluxioURI("/existing/path/dir/shared_dir/t_" + i + "/sub_dir1/sub_dir2/file" + i);
     }
-    int errors = ConcurrentFileSystemMasterUtils
+    List<Throwable> errors = ConcurrentFileSystemMasterUtils
         .unaryOperation(mFileSystem, ConcurrentFileSystemMasterUtils.UnaryOperation.CREATE, paths,
             limitMs);
-    Assert.assertEquals("More than 0 errors: " + errors, 0, errors);
+    if (!errors.isEmpty()) {
+      Assert.fail("Encountered " + errors.size() + " errors, the first one is " + errors.get(0));
+    }
   }
 
+  /**
+   * Test concurrent create of existing directory. Existing directory is created as CACHE_THROUGH
+   * then files are created under that directory.
+   */
   @Test
   public void concurrentCreateExistingDir() throws Exception {
     final int numThreads = CONCURRENCY_FACTOR;
@@ -115,7 +124,7 @@ public class ConcurrentFileSystemMasterCreateTest {
     final long limitMs = 14 * SLEEP_MS * CONCURRENCY_FACTOR / 10;
     AlluxioURI[] paths = new AlluxioURI[numThreads];
 
-    // Create the existing path with MUST_CACHE, so subsequent creates have to persist the dirs.
+    // Create the existing path with CACHE_THROUGH that it will be persisted.
     mFileSystem.createDirectory(new AlluxioURI("/existing/path/dir/"),
         CreateDirectoryOptions.defaults().setRecursive(true).setWriteType(WriteType.CACHE_THROUGH));
 
@@ -123,12 +132,18 @@ public class ConcurrentFileSystemMasterCreateTest {
       paths[i] =
           new AlluxioURI("/existing/path/dir/shared_dir/t_" + i + "/sub_dir1/sub_dir2/file" + i);
     }
-    int errors = ConcurrentFileSystemMasterUtils
+    List<Throwable> errors = ConcurrentFileSystemMasterUtils
         .unaryOperation(mFileSystem, ConcurrentFileSystemMasterUtils.UnaryOperation.CREATE, paths,
             limitMs);
-    Assert.assertEquals("More than 0 errors: " + errors, 0, errors);
+    if (!errors.isEmpty()) {
+      Assert.fail("Encountered " + errors.size() + " errors, the first one is " + errors.get(0));
+    }
   }
 
+  /**
+   * Test concurrent create of non-persisted directory. Directory is created as MUST_CACHE then
+   * files are created under that directory.
+   */
   @Test
   public void concurrentCreateNonPersistedDir() throws Exception {
     final int numThreads = CONCURRENCY_FACTOR;
@@ -144,10 +159,12 @@ public class ConcurrentFileSystemMasterCreateTest {
       paths[i] =
           new AlluxioURI("/existing/path/dir/shared_dir/t_" + i + "/sub_dir1/sub_dir2/file" + i);
     }
-    int errors = ConcurrentFileSystemMasterUtils
+    List<Throwable> errors = ConcurrentFileSystemMasterUtils
         .unaryOperation(mFileSystem, ConcurrentFileSystemMasterUtils.UnaryOperation.CREATE, paths,
             limitMs);
-    Assert.assertEquals("More than 0 errors: " + errors, 0, errors);
+    if (!errors.isEmpty()) {
+      Assert.fail("Encountered " + errors.size() + " errors, the first one is " + errors.get(0));
+    }
   }
 
   @Test
@@ -252,7 +269,7 @@ public class ConcurrentFileSystemMasterCreateTest {
       boolean listParentDir) throws Exception {
     int numThreads = CONCURRENCY_FACTOR;
     // 2 nested components to create.
-    long limitMs = 2 * SLEEP_MS * 3;
+    long limitMs = 2 * SLEEP_MS * 4;
 
     int uniquePaths = useSinglePath ? 1 : numThreads;
 
@@ -267,7 +284,7 @@ public class ConcurrentFileSystemMasterCreateTest {
     for (int i = 0; i < uniquePaths; i++) {
       if (createFiles) {
         FileWriter fileWriter = new FileWriter(mLocalUfsPath + "/existing/path/last_" + i);
-        fileWriter.write("test");
+        fileWriter.write("testtesttesttest");
         fileWriter.close();
       } else {
         new File(mLocalUfsPath + "/existing/path/last_" + i).mkdirs();
@@ -291,7 +308,7 @@ public class ConcurrentFileSystemMasterCreateTest {
       }
     }
 
-    int errors = 0;
+    List<Throwable> errors;
     if (listParentDir) {
       errors = ConcurrentFileSystemMasterUtils
           .unaryOperation(mFileSystem, ConcurrentFileSystemMasterUtils.UnaryOperation.LIST_STATUS,
@@ -301,7 +318,9 @@ public class ConcurrentFileSystemMasterCreateTest {
           .unaryOperation(mFileSystem, ConcurrentFileSystemMasterUtils.UnaryOperation.GET_FILE_INFO,
               paths, limitMs);
     }
-    Assert.assertEquals("More than 0 errors: " + errors, 0, errors);
+    if (!errors.isEmpty()) {
+      Assert.fail("Encountered " + errors.size() + " errors, the first one is " + errors.get(0));
+    }
 
     ListStatusOptions listOptions = ListStatusOptions.defaults().setLoadMetadataType(
         LoadMetadataType.Never);

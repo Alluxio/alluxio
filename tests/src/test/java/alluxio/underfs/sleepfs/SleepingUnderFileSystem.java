@@ -12,7 +12,10 @@
 package alluxio.underfs.sleepfs;
 
 import alluxio.AlluxioURI;
-import alluxio.underfs.UnderFileStatus;
+import alluxio.underfs.UfsDirectoryStatus;
+import alluxio.underfs.UfsFileStatus;
+import alluxio.underfs.UfsStatus;
+import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.local.LocalUnderFileSystem;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.options.DeleteOptions;
@@ -39,9 +42,11 @@ public class SleepingUnderFileSystem extends LocalUnderFileSystem {
    * Creates a new {@link SleepingUnderFileSystem} for the given uri.
    *
    * @param uri path belonging to this under file system
+   * @param ufsConf UFS configuration
    */
-  public SleepingUnderFileSystem(AlluxioURI uri, SleepingUnderFileSystemOptions options) {
-    super(uri);
+  public SleepingUnderFileSystem(AlluxioURI uri, SleepingUnderFileSystemOptions options,
+      UnderFileSystemConfiguration ufsConf) {
+    super(uri, ufsConf);
     mOptions = options;
   }
 
@@ -88,15 +93,21 @@ public class SleepingUnderFileSystem extends LocalUnderFileSystem {
   }
 
   @Override
+  public boolean exists(String path) throws IOException {
+    sleepIfNecessary(mOptions.getExistsMs());
+    return super.exists(cleanPath(path));
+  }
+
+  @Override
   public long getBlockSizeByte(String path) throws IOException {
     sleepIfNecessary(mOptions.getGetBlockSizeByteMs());
     return super.getBlockSizeByte(cleanPath(path));
   }
 
   @Override
-  public Object getConf() {
-    sleepIfNecessary(mOptions.getGetConfMs());
-    return super.getConf();
+  public UfsDirectoryStatus getDirectoryStatus(String path) throws IOException {
+    sleepIfNecessary(mOptions.getGetFileStatusMs());
+    return super.getDirectoryStatus(cleanPath(path));
   }
 
   @Override
@@ -113,33 +124,9 @@ public class SleepingUnderFileSystem extends LocalUnderFileSystem {
   }
 
   @Override
-  public long getFileSize(String path) throws IOException {
-    sleepIfNecessary(mOptions.getGetFileSizeMs());
-    return super.getFileSize(cleanPath(path));
-  }
-
-  @Override
-  public String getGroup(String path) throws IOException {
-    sleepIfNecessary(mOptions.getGetGroupMs());
-    return super.getGroup(cleanPath(path));
-  }
-
-  @Override
-  public short getMode(String path) throws IOException {
-    sleepIfNecessary(mOptions.getGetModeMs());
-    return super.getMode(cleanPath(path));
-  }
-
-  @Override
-  public long getModificationTimeMs(String path) throws IOException {
-    sleepIfNecessary(mOptions.getGetModificationTimeMs());
-    return super.getModificationTimeMs(cleanPath(path));
-  }
-
-  @Override
-  public String getOwner(String path) throws IOException {
-    sleepIfNecessary(mOptions.getGetOwnerMs());
-    return super.getOwner(cleanPath(path));
+  public UfsFileStatus getFileStatus(String path) throws IOException {
+    sleepIfNecessary(mOptions.getGetFileStatusMs());
+    return super.getFileStatus(cleanPath(path));
   }
 
   @Override
@@ -167,7 +154,7 @@ public class SleepingUnderFileSystem extends LocalUnderFileSystem {
   }
 
   @Override
-  public UnderFileStatus[] listStatus(String path) throws IOException {
+  public UfsStatus[] listStatus(String path) throws IOException {
     sleepIfNecessary(mOptions.getListStatusMs());
     return super.listStatus(cleanPath(path));
   }
@@ -198,12 +185,6 @@ public class SleepingUnderFileSystem extends LocalUnderFileSystem {
       sleepIfNecessary(mOptions.getRenameTemporaryFileMs());
     }
     return super.renameFile(cleanPath(src), cleanPath(dst));
-  }
-
-  @Override
-  public void setConf(Object conf) {
-    sleepIfNecessary(mOptions.getSetConfMs());
-    super.setConf(conf);
   }
 
   @Override

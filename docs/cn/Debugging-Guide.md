@@ -28,8 +28,12 @@ Alluxio一般不在开发机上运行,这使得Alluxio的调试变得困难,我�
 ```
 export ALLUXIO_WORKER_JAVA_OPTS="$ALLUXIO_JAVA_OPTS -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=6606"
 export ALLUXIO_MASTER_JAVA_OPTS="$ALLUXIO_JAVA_OPTS -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=6607"
-export ALLUXIO_USER_JAVA_OPTS="$ALLUXIO_JAVA_OPTS -agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=6609"
+export ALLUXIO_USER_DEBUG_JAVA_OPTS="-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=6609"
 ```
+
+特别的，如果你想调试shell命令，可以通过加上`-debug`标志来加上jvm调试参数`ALLUXIO_USER_DEBUG_JAVA_OPTS`来开启调试服务。例如`alluxio fs -debug ls /`。
+
+
 `suspend = y/n` 会决定JVM进程是否等待直至调试器连接。如果你希望在命令行中进行调试，设置`suspend = y`。否则，设置 `suspend = n` ，这样就可以避免不必要的等待时间。
 
 这样启动该节点上的master或者worker后，使用eclipse或intellij IDE等java开发环境，新建java远程调试配置，设置调试主机名和端口号，然后启动调试连接。如果你设置了断点并且到达了断点处，开发环境会进入调试模式，可以读写当前现场的变量、调用栈、线程列表、表达式评估，也可以执行单步进入、单步跳过、恢复执行、挂起等调试控制。掌握这个技术使得日后的定位问题事半功倍，也会对调试过的代码上下文印象深刻。
@@ -123,13 +127,15 @@ Alluxio通过配置`alluxio.security.authentication.type`来提供不同的用�
 
 解决办法: 这种错误说明alluxio空间不足，无法完成用户写请求。
 
-- 如果你使用`copyFromLocal`命令向Alluxio写数据，shell命令默认使用`LocalFirstPolicy`命令,并将数据存储到本地worker节点上(查看[location policy](File-System-API.html#location-policy))
-如果本地worker节点没有足够空间，你将会看到上述错误。
-你可以通过将策略修改为`RoundRobinPolicy`(如下所述)来将你的文件分散存储到不同worker节点上。
+- 在版本1.6.0及以上，`copyFromLocal`命令默认使用`RoundRobinPolicy`定位策略。你可以通过更改 `alluxio.user.file.copyfromlocal.write.location.policy.class` 属性值来改变该命令的定位策略.
+
+    在版本1.6.0以前，如果你使用`copyFromLocal`命令向Alluxio写数据，该命令默认使用`LocalFirstPolicy`定位策略将数据存储到本地worker节点上(查看[location policy](File-System-API.html#location-policy))。
+如果本地worker节点没有足够空间，你将会看到上述错误。你可以通过将策略修改为`RoundRobinPolicy`(如下所述)来将你的文件分散存储到不同worker节点上。
 
 ```bash
 $ bin/alluxio fs -Dalluxio.user.file.write.location.policy.class=alluxio.client.file.policy.RoundRobinPolicy copyFromLocal foo /alluxio/path/foo
 ```
+
 
 - 检查一下内存中是否有多余的文件并从内存中释放这些文件。查看[Command-Line-Interface](Command-Line-Interface.html)获取更多信息。
 - 通过改变`alluxio.worker.memory.size`属性值增加worker节点可用内存的容量，查看[Configuration](Configuration-Settings.html#common-configuration) 获取更多信息。

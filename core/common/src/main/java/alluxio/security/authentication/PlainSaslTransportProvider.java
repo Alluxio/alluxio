@@ -48,18 +48,21 @@ public final class PlainSaslTransportProvider implements TransportProvider {
    * Constructor for transport provider with {@link AuthType#SIMPLE} or {@link AuthType#CUSTOM}.
    */
   public PlainSaslTransportProvider() {
-    mSocketTimeoutMs = Configuration.getInt(PropertyKey.SECURITY_AUTHENTICATION_SOCKET_TIMEOUT_MS);
+    mSocketTimeoutMs =
+        (int) Configuration.getMs(PropertyKey.SECURITY_AUTHENTICATION_SOCKET_TIMEOUT_MS);
   }
 
   @Override
-  public TTransport getClientTransport(InetSocketAddress serverAddress) {
+  public TTransport getClientTransport(InetSocketAddress serverAddress)
+      throws UnauthenticatedException {
     String username = LoginUser.get().getName();
     String password = "noPassword";
     return getClientTransport(username, password, serverAddress);
   }
 
   @Override
-  public TTransport getClientTransport(Subject subject, InetSocketAddress serverAddress) {
+  public TTransport getClientTransport(Subject subject, InetSocketAddress serverAddress)
+      throws UnauthenticatedException {
     String username = null;
     String password = "noPassword";
 
@@ -85,7 +88,7 @@ public final class PlainSaslTransportProvider implements TransportProvider {
    * @return Wrapped transport with PLAIN mechanism
    */
   public TTransport getClientTransport(String username, String password,
-      InetSocketAddress serverAddress) {
+      InetSocketAddress serverAddress) throws UnauthenticatedException {
     TTransport wrappedTransport =
         TransportProviderUtils.createThriftSocket(serverAddress, mSocketTimeoutMs);
     try {
@@ -98,15 +101,16 @@ public final class PlainSaslTransportProvider implements TransportProvider {
   }
 
   @Override
-  public TTransportFactory getServerTransportFactory() throws SaslException {
+  public TTransportFactory getServerTransportFactory(String serverName) throws SaslException {
     return getServerTransportFactory(new Runnable() {
       @Override
       public void run() {}
-    });
+    }, serverName);
   }
 
   @Override
-  public TTransportFactory getServerTransportFactory(Runnable runnable) throws SaslException {
+  public TTransportFactory getServerTransportFactory(Runnable runnable, String serverName)
+      throws SaslException {
     AuthType authType =
         Configuration.getEnum(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.class);
     TSaslServerTransport.Factory saslFactory = new TSaslServerTransport.Factory();

@@ -13,15 +13,20 @@ package alluxio.worker.block;
 
 import alluxio.AbstractMasterClient;
 import alluxio.Constants;
+import alluxio.master.MasterClientConfig;
 import alluxio.thrift.AlluxioService;
+import alluxio.thrift.BlockHeartbeatTOptions;
 import alluxio.thrift.BlockMasterWorkerService;
 import alluxio.thrift.Command;
+import alluxio.thrift.CommitBlockTOptions;
+import alluxio.thrift.GetWorkerIdTOptions;
+import alluxio.thrift.RegisterWorkerTOptions;
+import alluxio.wire.ThriftUtils;
 import alluxio.wire.WorkerNetAddress;
 
 import org.apache.thrift.TException;
 
 import java.io.IOException;
-import java.net.InetSocketAddress;
 import java.util.List;
 import java.util.Map;
 
@@ -40,10 +45,10 @@ public final class BlockMasterClient extends AbstractMasterClient {
   /**
    * Creates a new instance of {@link BlockMasterClient} for the worker.
    *
-   * @param masterAddress the master address
+   * @param conf master client configuration
    */
-  public BlockMasterClient(InetSocketAddress masterAddress) {
-    super(null, masterAddress);
+  public BlockMasterClient(MasterClientConfig conf) {
+    super(conf);
   }
 
   @Override
@@ -76,11 +81,12 @@ public final class BlockMasterClient extends AbstractMasterClient {
    * @param length the length of the block being committed
    */
   public synchronized void commitBlock(final long workerId, final long usedBytesOnTier,
-      final String tierAlias, final long blockId, final long length) {
+      final String tierAlias, final long blockId, final long length) throws IOException {
     retryRPC(new RpcCallable<Void>() {
       @Override
       public Void call() throws TException {
-        mClient.commitBlock(workerId, usedBytesOnTier, tierAlias, blockId, length);
+        mClient.commitBlock(workerId, usedBytesOnTier, tierAlias, blockId, length,
+            new CommitBlockTOptions());
         return null;
       }
     });
@@ -92,12 +98,12 @@ public final class BlockMasterClient extends AbstractMasterClient {
    * @param address the net address to get a worker id for
    * @return a worker id
    */
-  public synchronized long getId(final WorkerNetAddress address) {
+  public synchronized long getId(final WorkerNetAddress address) throws IOException {
     return retryRPC(new RpcCallable<Long>() {
       @Override
       public Long call() throws TException {
-        return mClient.getWorkerId(new alluxio.thrift.WorkerNetAddress(address.getHost(),
-            address.getRpcPort(), address.getDataPort(), address.getWebPort()));
+        return mClient.getWorkerId(ThriftUtils.toThrift(address), new GetWorkerIdTOptions())
+            .getWorkerId();
       }
     });
   }
@@ -113,11 +119,12 @@ public final class BlockMasterClient extends AbstractMasterClient {
    */
   public synchronized Command heartbeat(final long workerId,
       final Map<String, Long> usedBytesOnTiers, final List<Long> removedBlocks,
-      final Map<String, List<Long>> addedBlocks) {
+      final Map<String, List<Long>> addedBlocks) throws IOException {
     return retryRPC(new RpcCallable<Command>() {
       @Override
       public Command call() throws TException {
-        return mClient.heartbeat(workerId, usedBytesOnTiers, removedBlocks, addedBlocks);
+        return mClient.blockHeartbeat(workerId, usedBytesOnTiers, removedBlocks, addedBlocks,
+            new BlockHeartbeatTOptions()).getCommand();
       }
     });
   }
@@ -134,12 +141,12 @@ public final class BlockMasterClient extends AbstractMasterClient {
   // TODO(yupeng): rename to workerBlockReport or workerInitialize?
   public synchronized void register(final long workerId, final List<String> storageTierAliases,
       final Map<String, Long> totalBytesOnTiers, final Map<String, Long> usedBytesOnTiers,
-      final Map<String, List<Long>> currentBlocksOnTiers) {
+      final Map<String, List<Long>> currentBlocksOnTiers) throws IOException {
     retryRPC(new RpcCallable<Void>() {
       @Override
       public Void call() throws TException {
         mClient.registerWorker(workerId, storageTierAliases, totalBytesOnTiers, usedBytesOnTiers,
-            currentBlocksOnTiers);
+            currentBlocksOnTiers, new RegisterWorkerTOptions());
         return null;
       }
     });

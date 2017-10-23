@@ -23,6 +23,7 @@ import alluxio.retry.RetryPolicy;
 import alluxio.security.authentication.TransportProvider;
 import alluxio.thrift.AlluxioService;
 import alluxio.thrift.AlluxioTException;
+import alluxio.thrift.GetServiceVersionTOptions;
 
 import com.google.common.base.Preconditions;
 import org.apache.thrift.TException;
@@ -53,15 +54,14 @@ public abstract class AbstractClient implements Client {
       Pattern.compile("Frame size \\((\\d+)\\) larger than max length");
 
   private static final int BASE_SLEEP_MS =
-      Configuration.getInt(PropertyKey.USER_RPC_RETRY_BASE_SLEEP_MS);
+      (int) Configuration.getMs(PropertyKey.USER_RPC_RETRY_BASE_SLEEP_MS);
   private static final int MAX_SLEEP_MS =
-      Configuration.getInt(PropertyKey.USER_RPC_RETRY_MAX_SLEEP_MS);
+      (int) Configuration.getMs(PropertyKey.USER_RPC_RETRY_MAX_SLEEP_MS);
 
   /** The number of times to retry a particular RPC. */
   protected static final int RPC_MAX_NUM_RETRY =
       Configuration.getInt(PropertyKey.USER_RPC_RETRY_MAX_NUM_RETRY);
 
-  protected final String mMode;
   protected InetSocketAddress mAddress = null;
   protected TProtocol mProtocol = null;
 
@@ -72,7 +72,7 @@ public abstract class AbstractClient implements Client {
    * Is true if this client was closed by the user. No further actions are possible after the client
    * is closed.
    */
-  protected boolean mClosed = false;
+  protected volatile boolean mClosed = false;
 
   /**
    * Stores the service version; used for detecting incompatible client-server pairs.
@@ -89,11 +89,9 @@ public abstract class AbstractClient implements Client {
    *
    * @param subject the parent subject, set to null if not present
    * @param address the address
-   * @param mode the mode of the client for display
    */
-  public AbstractClient(Subject subject, InetSocketAddress address, String mode) {
-    mAddress = Preconditions.checkNotNull(address, "address");
-    mMode = mode;
+  public AbstractClient(Subject subject, InetSocketAddress address) {
+    mAddress = address;
     mServiceVersion = Constants.UNKNOWN_SERVICE_VERSION;
     mTransportProvider = TransportProvider.Factory.create();
     mParentSubject = subject;
@@ -123,7 +121,7 @@ public abstract class AbstractClient implements Client {
   protected void checkVersion(AlluxioService.Client client, long version) throws IOException {
     if (mServiceVersion == Constants.UNKNOWN_SERVICE_VERSION) {
       try {
-        mServiceVersion = client.getServiceVersion();
+        mServiceVersion = client.getServiceVersion(new GetServiceVersionTOptions()).getVersion();
       } catch (TException e) {
         throw new IOException(e);
       }
@@ -161,7 +159,7 @@ public abstract class AbstractClient implements Client {
   /**
    * Connects with the remote.
    */
-  public synchronized void connect() {
+  public synchronized void connect() throws IOException {
     if (mConnected) {
       return;
     }
@@ -170,17 +168,21 @@ public abstract class AbstractClient implements Client {
 
     RetryPolicy retryPolicy =
         new ExponentialBackoffRetry(BASE_SLEEP_MS, MAX_SLEEP_MS, RPC_MAX_NUM_RETRY);
-    while (!mClosed) {
+    while (true) {
+      if (mClosed) {
+        throw new FailedPreconditionException("Failed to connect: client has been closed");
+      }
+      // Re-query the address in each loop iteration in case it has changed (e.g. master failover).
       mAddress = getAddress();
-      LOG.info("Alluxio client (version {}) is trying to connect with {} {} @ {}",
-          RuntimeConstants.VERSION, getServiceName(), mMode, mAddress);
+      LOG.info("Alluxio client (version {}) is trying to connect with {} @ {}",
+          RuntimeConstants.VERSION, getServiceName(), mAddress);
 
       TProtocol binaryProtocol =
           new TBinaryProtocol(mTransportProvider.getClientTransport(mParentSubject, mAddress));
       mProtocol = new TMultiplexedProtocol(binaryProtocol, getServiceName());
       try {
         mProtocol.getTransport().open();
-        LOG.info("Client registered with {} {} @ {}", getServiceName(), mMode, mAddress);
+        LOG.info("Client registered with {} @ {}", getServiceName(), mAddress);
         mConnected = true;
         afterConnect();
         checkVersion(getClient(), getServiceVersion());
@@ -189,17 +191,15 @@ public abstract class AbstractClient implements Client {
         if (e.getMessage() != null && FRAME_SIZE_EXCEPTION_PATTERN.matcher(e.getMessage()).find()) {
           // See an error like "Frame size (67108864) larger than max length (16777216)!",
           // pointing to the helper page.
-          String message = String.format("Failed to connect to %s %s @ %s: %s. "
+          String message = String.format("Failed to connect with %s @ %s: %s. "
               + "This exception may be caused by incorrect network configuration. "
               + "Please consult %s for common solutions to address this problem.",
-              getServiceName(), mMode, mAddress, e.getMessage(),
-              RuntimeConstants.ALLUXIO_DEBUG_DOCS_URL);
+              getServiceName(), mAddress, e.getMessage(), RuntimeConstants.ALLUXIO_DEBUG_DOCS_URL);
           throw new UnimplementedException(message, e);
         }
-        throw AlluxioStatusException.fromIOException(e);
       } catch (TTransportException e) {
-        LOG.warn("Failed to connect ({}) to {} {} @ {}: {}", retryPolicy.getRetryCount(),
-            getServiceName(), mMode, mAddress, e.getMessage());
+        LOG.warn("Failed to connect ({}) with {} @ {}: {}", retryPolicy.getRetryCount(),
+            getServiceName(), mAddress, e.getMessage());
         if (e.getCause() instanceof java.net.SocketTimeoutException) {
           // Do not retry if socket timeout.
           String message = "Thrift transport open times out. Please check whether the "
@@ -207,15 +207,15 @@ public abstract class AbstractClient implements Client {
               + "is not able to connect to servers with SIMPLE security mode.";
           throw new UnavailableException(message, e);
         }
-        // TODO(peis): Consider closing the connection here as well.
-        if (!retryPolicy.attemptRetry()) {
-          break;
-        }
+      }
+      // TODO(peis): Consider closing the connection here as well.
+      if (!retryPolicy.attemptRetry()) {
+        break;
       }
     }
     // Reaching here indicates that we did not successfully connect.
-    throw new UnavailableException("Failed to connect to " + getServiceName() + " " + mMode
-        + " @ " + mAddress + " after " + (retryPolicy.getRetryCount()) + " attempts");
+    throw new UnavailableException(String.format("Failed to connect to %s @ %s after %s attempts",
+        getServiceName(), mAddress, retryPolicy.getRetryCount()));
   }
 
   /**
@@ -225,7 +225,7 @@ public abstract class AbstractClient implements Client {
   public synchronized void disconnect() {
     if (mConnected) {
       Preconditions.checkNotNull(mProtocol, PreconditionMessage.PROTOCOL_NULL_WHEN_CONNECTED);
-      LOG.debug("Disconnecting from the {} {} {}", getServiceName(), mMode, mAddress);
+      LOG.debug("Disconnecting from the {} @ {}", getServiceName(), mAddress);
       beforeDisconnect();
       mProtocol.getTransport().close();
       mConnected = false;
@@ -250,18 +250,8 @@ public abstract class AbstractClient implements Client {
     mClosed = true;
   }
 
-  /**
-   * Closes the connection, then queries and sets current remote address.
-   */
-  public synchronized void resetConnection() {
-    disconnect();
-    mAddress = getAddress();
-  }
-
-  /**
-   * @return the {@link InetSocketAddress} of the remote
-   */
-  public synchronized InetSocketAddress getAddress() {
+  @Override
+  public synchronized InetSocketAddress getAddress() throws UnavailableException {
     return mAddress;
   }
 
@@ -290,7 +280,7 @@ public abstract class AbstractClient implements Client {
    * @param <V> type of return value of the RPC call
    * @return the return value of the RPC call
    */
-  protected synchronized <V> V retryRPC(RpcCallable<V> rpc) {
+  protected synchronized <V> V retryRPC(RpcCallable<V> rpc) throws IOException {
     RetryPolicy retryPolicy =
         new ExponentialBackoffRetry(BASE_SLEEP_MS, MAX_SLEEP_MS, RPC_MAX_NUM_RETRY);
     while (!mClosed) {
@@ -308,9 +298,10 @@ public abstract class AbstractClient implements Client {
       } catch (TException e) {
         ex = e;
       }
-      LOG.warn(ex.toString());
       disconnect();
-      if (!retryPolicy.attemptRetry()) {
+      if (retryPolicy.attemptRetry()) {
+        LOG.warn("RPC failed with {}. Retrying.", ex.toString());
+      } else {
         throw new UnavailableException(
             "Failed after " + retryPolicy.getRetryCount() + " retries: " + ex.toString(), ex);
       }

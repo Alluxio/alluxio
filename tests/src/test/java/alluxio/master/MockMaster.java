@@ -13,6 +13,7 @@ package alluxio.master;
 
 import alluxio.Server;
 import alluxio.proto.journal.Journal;
+import alluxio.proto.journal.Journal.JournalEntry;
 
 import org.apache.thrift.TProcessor;
 
@@ -23,17 +24,20 @@ import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
 
+import javax.annotation.Nullable;
+
 /**
  * A fake master implementation.
  */
 public final class MockMaster implements Master {
-  private Queue<Journal.JournalEntry> mEntries;
+  private Queue<JournalEntry> mEntries;
 
   public MockMaster() {
     mEntries = new ArrayDeque<>();
   }
 
   @Override
+  @Nullable
   public Map<String, TProcessor> getServices() {
     return null;
   }
@@ -44,6 +48,7 @@ public final class MockMaster implements Master {
   }
 
   @Override
+  @Nullable
   public Set<Class<? extends Server>> getDependencies() {
     return null;
   }
@@ -52,6 +57,9 @@ public final class MockMaster implements Master {
   public void processJournalEntry(Journal.JournalEntry entry) throws IOException {
     mEntries.add(entry);
   }
+
+  @Override
+  public void resetState() {}
 
   @Override
   public void start(Boolean isPrimary) throws IOException {}

@@ -13,13 +13,12 @@ package alluxio.cli;
 
 import alluxio.Configuration;
 import alluxio.PropertyKey;
-import alluxio.PropertyKeyFormat;
 import alluxio.RuntimeConstants;
 import alluxio.ServiceUtils;
-import alluxio.master.journal.Journal;
-import alluxio.underfs.UnderFileStatus;
-import alluxio.underfs.UnderFileSystem;
-import alluxio.underfs.options.DeleteOptions;
+import alluxio.master.NoopMaster;
+import alluxio.master.journal.JournalSystem;
+import alluxio.master.journal.JournalUtils;
+import alluxio.util.io.FileUtils;
 import alluxio.util.io.PathUtils;
 
 import org.slf4j.Logger;
@@ -27,7 +26,11 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.URI;
-import java.net.URISyntaxException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.attribute.PosixFilePermission;
+import java.util.Set;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -48,25 +51,23 @@ public final class Format {
     WORKER,
   }
 
-  private static void formatFolder(String name, String folder) throws IOException {
-    UnderFileSystem ufs = UnderFileSystem.Factory.get(folder);
-    LOG.info("Formatting {}:{}", name, folder);
-    if (ufs.isDirectory(folder)) {
-      for (UnderFileStatus p : ufs.listStatus(folder)) {
-        String childPath = PathUtils.concatPath(folder, p.getName());
-        boolean failedToDelete;
-        if (p.isDirectory()) {
-          failedToDelete = !ufs.deleteDirectory(childPath,
-              DeleteOptions.defaults().setRecursive(true));
-        } else {
-          failedToDelete = !ufs.deleteFile(childPath);
-        }
-        if (failedToDelete) {
-          throw new IOException(String.format("Failed to delete %s", childPath));
-        }
-      }
-    } else if (!ufs.mkdirs(folder)) {
-      throw new IOException(String.format("Failed to create dir %s", folder));
+  /**
+   * Formats the worker data folder.
+   *
+   * @param folder folder path
+   */
+  private static void formatWorkerDataFolder(String folder) throws IOException {
+    Path path = Paths.get(folder);
+    if (Files.exists(path)) {
+      FileUtils.deletePathRecursively(folder);
+    }
+    Files.createDirectory(path);
+    // For short-circuit read/write to work, others needs to be able to access this directory.
+    // This may not be granted when umask bit of others is set to 7 in the system.
+    Set<PosixFilePermission> perm = Files.getPosixFilePermissions(path);
+    if (!perm.contains(PosixFilePermission.OTHERS_EXECUTE)) {
+      perm.add(PosixFilePermission.OTHERS_EXECUTE);
+      Files.setPosixFilePermissions(path, perm);
     }
   }
 
@@ -106,38 +107,28 @@ public final class Format {
   public static void format(Mode mode) throws IOException {
     switch (mode) {
       case MASTER:
-        String masterJournal = Configuration.get(PropertyKey.MASTER_JOURNAL_FOLDER);
-        LOG.info("MASTER JOURNAL: {}", masterJournal);
-        Journal.Factory factory;
-        try {
-          factory = new Journal.Factory(new URI(masterJournal));
-        } catch (URISyntaxException e) {
-          throw new IOException(e.getMessage());
-        }
+        URI journalLocation = JournalUtils.getJournalLocation();
+        LOG.info("Formatting master journal: {}", journalLocation);
+        JournalSystem journalSystem =
+            new JournalSystem.Builder().setLocation(journalLocation).build();
         for (String masterServiceName : ServiceUtils.getMasterServiceNames()) {
-          factory.create(masterServiceName).format();
+          journalSystem.createJournal(new NoopMaster(masterServiceName));
         }
+        journalSystem.format();
         break;
       case WORKER:
         String workerDataFolder = Configuration.get(PropertyKey.WORKER_DATA_FOLDER);
+        LOG.info("Formatting worker data folder: {}", workerDataFolder);
         int storageLevels = Configuration.getInt(PropertyKey.WORKER_TIERED_STORE_LEVELS);
         for (int level = 0; level < storageLevels; level++) {
           PropertyKey tierLevelDirPath =
-              PropertyKeyFormat.WORKER_TIERED_STORE_LEVEL_DIRS_PATH_FORMAT.format(level);
+              PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_PATH.format(level);
           String[] dirPaths = Configuration.get(tierLevelDirPath).split(",");
-          String name = "TIER_" + level + "_DIR_PATH";
+          String name = "Data path for tier " + level;
           for (String dirPath : dirPaths) {
-            String dirWorkerDataFolder = PathUtils.concatPath(dirPath.trim(), workerDataFolder);
-            UnderFileSystem ufs = UnderFileSystem.Factory.get(dirWorkerDataFolder);
-            if (ufs.isDirectory(dirWorkerDataFolder)) {
-              try {
-                formatFolder(name, dirWorkerDataFolder);
-              } catch (IOException e) {
-                throw new RuntimeException(String
-                    .format("Failed to format worker data folder %s due to %s", dirWorkerDataFolder,
-                        e.getMessage()));
-              }
-            }
+            String dirWorkerDataFolder = PathUtils.getWorkerDataDirectory(dirPath);
+            LOG.info("Formatting {}:{}", name, dirWorkerDataFolder);
+            formatWorkerDataFolder(dirWorkerDataFolder);
           }
         }
         break;

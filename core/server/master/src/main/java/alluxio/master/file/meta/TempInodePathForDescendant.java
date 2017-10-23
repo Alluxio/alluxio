@@ -12,6 +12,7 @@
 package alluxio.master.file.meta;
 
 import alluxio.AlluxioURI;
+import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 
@@ -79,7 +80,21 @@ public final class TempInodePathForDescendant extends LockedInodePath {
     if (mDescendantInode == null) {
       return super.getParentInodeDirectory();
     }
-    throw new UnsupportedOperationException();
+    try {
+      if (super.getInode().getId() == mDescendantInode.getParentId()) {
+        // It is possible to get the descendant parent if the descendant is the direct child.
+        Inode<?> parentInode = super.getInode();
+        if (!parentInode.isDirectory()) {
+          throw new InvalidPathException(
+              ExceptionMessage.PATH_MUST_HAVE_VALID_PARENT.getMessage(mDescendantUri));
+        }
+        return (InodeDirectory) parentInode;
+      } else {
+        throw new UnsupportedOperationException();
+      }
+    } catch (FileDoesNotExistException e) {
+      throw new UnsupportedOperationException();
+    }
   }
 
   @Override
@@ -87,7 +102,18 @@ public final class TempInodePathForDescendant extends LockedInodePath {
     if (mDescendantInode == null) {
       return super.getInodeList();
     }
-    throw new UnsupportedOperationException();
+    try {
+      if (super.getInode().getId() == mDescendantInode.getParentId()) {
+        // Only return the inode list if the descendant is the direct child.
+        List<Inode<?>> inodeList = super.getInodeList();
+        inodeList.add(mDescendantInode);
+        return inodeList;
+      } else {
+        throw new UnsupportedOperationException();
+      }
+    } catch (FileDoesNotExistException e) {
+      throw new UnsupportedOperationException();
+    }
   }
 
   @Override

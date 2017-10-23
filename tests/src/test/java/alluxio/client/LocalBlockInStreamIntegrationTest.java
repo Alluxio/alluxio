@@ -13,6 +13,7 @@ package alluxio.client;
 
 import alluxio.AlluxioURI;
 import alluxio.LocalAlluxioClusterResource;
+import alluxio.BaseIntegrationTest;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemTestUtils;
@@ -35,7 +36,7 @@ import java.util.List;
 /**
  * Integration tests for {@link alluxio.client.block.LocalBlockInStream}.
  */
-public final class LocalBlockInStreamIntegrationTest {
+public final class LocalBlockInStreamIntegrationTest extends BaseIntegrationTest {
   private static final int MIN_LEN = 0;
   private static final int MAX_LEN = 255;
   private static final int DELTA = 33;
@@ -114,7 +115,7 @@ public final class LocalBlockInStreamIntegrationTest {
         Assert.assertEquals(cnt, k);
         Assert.assertTrue(BufferUtils.equalIncreasingByteArray(k, ret));
         is.close();
-        Assert.assertTrue(sFileSystem.getStatus(uri).getInMemoryPercentage() == 100);
+        Assert.assertTrue(sFileSystem.getStatus(uri).getInAlluxioPercentage() == 100);
       }
     }
   }
@@ -139,7 +140,7 @@ public final class LocalBlockInStreamIntegrationTest {
         Assert.assertEquals(k, is.read(ret));
         Assert.assertTrue(BufferUtils.equalIncreasingByteArray(k, ret));
         is.close();
-        Assert.assertTrue(sFileSystem.getStatus(uri).getInMemoryPercentage() == 100);
+        Assert.assertTrue(sFileSystem.getStatus(uri).getInAlluxioPercentage() == 100);
       }
     }
   }
@@ -164,7 +165,7 @@ public final class LocalBlockInStreamIntegrationTest {
         Assert.assertEquals(k, is.read(ret, 0, k));
         Assert.assertTrue(BufferUtils.equalIncreasingByteArray(k, ret));
         is.close();
-        Assert.assertTrue(sFileSystem.getStatus(uri).getInMemoryPercentage() == 100);
+        Assert.assertTrue(sFileSystem.getStatus(uri).getInAlluxioPercentage() == 100);
       }
     }
   }
@@ -252,7 +253,7 @@ public final class LocalBlockInStreamIntegrationTest {
         Assert.assertEquals(t, is.skip(t));
         Assert.assertEquals(2 * t + 1, is.read());
         is.close();
-        Assert.assertTrue(sFileSystem.getStatus(uri).getInMemoryPercentage() == 100);
+        Assert.assertTrue(sFileSystem.getStatus(uri).getInAlluxioPercentage() == 100);
       }
     }
   }

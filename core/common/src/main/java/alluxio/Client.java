@@ -11,17 +11,21 @@
 
 package alluxio;
 
+import alluxio.exception.status.UnavailableException;
+
+import java.io.Closeable;
+import java.io.IOException;
 import java.net.InetSocketAddress;
 
 /**
  * Interface for a client in the Alluxio system.
  */
-public interface Client extends QuietlyCloseable {
+public interface Client extends Closeable {
 
   /**
    * Connects with the remote.
    */
-  void connect();
+  void connect() throws IOException;
 
   /**
    * Closes the connection with the Alluxio remote and does the necessary cleanup. It should be used
@@ -30,9 +34,10 @@ public interface Client extends QuietlyCloseable {
   void disconnect();
 
   /**
-   * @return the {@link InetSocketAddress} of the remote
+   * @return the {@link InetSocketAddress} of the remote,
+   * @throws UnavailableException if the primary address cannot be determined
    */
-  InetSocketAddress getAddress();
+  InetSocketAddress getAddress() throws UnavailableException;
 
   /**
    * Returns the connected status of the client.
@@ -40,9 +45,4 @@ public interface Client extends QuietlyCloseable {
    * @return true if this client is connected to the remote
    */
   boolean isConnected();
-
-  /**
-   * Closes the connection, then queries and sets current remote address.
-   */
-  void resetConnection();
 }

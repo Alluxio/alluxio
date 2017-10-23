@@ -14,11 +14,20 @@ package alluxio.worker.file;
 import alluxio.Constants;
 import alluxio.thrift.AlluxioTException;
 import alluxio.thrift.CancelUfsFileTOptions;
+import alluxio.thrift.CancelUfsFileTResponse;
 import alluxio.thrift.CloseUfsFileTOptions;
+import alluxio.thrift.CloseUfsFileTResponse;
 import alluxio.thrift.CompleteUfsFileTOptions;
+import alluxio.thrift.CompleteUfsFileTReponse;
 import alluxio.thrift.CreateUfsFileTOptions;
+import alluxio.thrift.CreateUfsFileTResponse;
 import alluxio.thrift.FileSystemWorkerClientService;
+import alluxio.thrift.GetServiceVersionTOptions;
+import alluxio.thrift.GetServiceVersionTResponse;
 import alluxio.thrift.OpenUfsFileTOptions;
+import alluxio.thrift.OpenUfsFileTResponse;
+import alluxio.thrift.SessionFileSystemHeartbeatTOptions;
+import alluxio.thrift.SessionFileSystemHeartbeatTResponse;
 
 import java.util.List;
 
@@ -31,99 +40,51 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public final class FileSystemWorkerClientServiceHandler
     implements FileSystemWorkerClientService.Iface {
-  private static final String UNSUPPORTED_MESSAGE = "Unsupported as of v1.5.0";
+  private static final String UNSUPPORTED_MESSAGE = "Unsupported as of version 1.5.0";
 
   /**
    * Creates a new instance of this class.
    */
-  public FileSystemWorkerClientServiceHandler() {}
+  FileSystemWorkerClientServiceHandler() {}
 
   @Override
-  public long getServiceVersion() {
-    return Constants.FILE_SYSTEM_WORKER_CLIENT_SERVICE_VERSION;
+  public GetServiceVersionTResponse getServiceVersion(GetServiceVersionTOptions options) {
+    return new GetServiceVersionTResponse(Constants.FILE_SYSTEM_WORKER_CLIENT_SERVICE_VERSION);
   }
 
-  /**
-   * Cancels the write to the file in the under file system specified by the worker file id. The
-   * temporary file will be automatically cleaned up.
-   *
-   * @param tempUfsFileId the worker id of the ufs file
-   * @param options the options for canceling the file
-   * @throws UnsupportedOperationException always
-   */
   @Override
-  public void cancelUfsFile(final long sessionId, final long tempUfsFileId,
+  public CancelUfsFileTResponse cancelUfsFile(final long sessionId, final long tempUfsFileId,
       final CancelUfsFileTOptions options) throws AlluxioTException {
     throw new UnsupportedOperationException(UNSUPPORTED_MESSAGE);
   }
 
-  /**
-   * Closes a file in the under file system which was opened for reading. The ufs id will be
-   * invalid after this call.
-   *
-   * @param tempUfsFileId the worker specific file id of the ufs file
-   * @param options the options for closing the file
-   * @throws UnsupportedOperationException always
-   */
   @Override
-  public void closeUfsFile(final long sessionId, final long tempUfsFileId,
+  public CloseUfsFileTResponse closeUfsFile(final long sessionId, final long tempUfsFileId,
       final CloseUfsFileTOptions options) throws AlluxioTException {
     throw new UnsupportedOperationException(UNSUPPORTED_MESSAGE);
   }
 
-  /**
-   * Completes the write to the file in the under file system specified by the worker file id. The
-   * temporary file will be automatically promoted to the final file if possible.
-   *
-   * @param tempUfsFileId the worker id of the ufs file
-   * @param options the options for completing the file
-   * @return this method always throws an exception
-   * @throws UnsupportedOperationException alwayss
-   */
   @Override
-  public long completeUfsFile(final long sessionId, final long tempUfsFileId,
+  public CompleteUfsFileTReponse completeUfsFile(final long sessionId, final long tempUfsFileId,
       final CompleteUfsFileTOptions options) throws AlluxioTException {
     throw new UnsupportedOperationException(UNSUPPORTED_MESSAGE);
   }
 
-  /**
-   * Creates a file in the under file system. The file will be a temporary file until {@link
-   * #completeUfsFile} is called.
-   *
-   * @param ufsUri the path of the file in the ufs
-   * @param options the options for creating the file
-   * @return this method always throws an exception
-   * @throws UnsupportedOperationException always
-   */
   @Override
-  public long createUfsFile(final long sessionId, final String ufsUri,
+  public CreateUfsFileTResponse createUfsFile(final long sessionId, final String ufsUri,
       final CreateUfsFileTOptions options) throws AlluxioTException {
     throw new UnsupportedOperationException(UNSUPPORTED_MESSAGE);
   }
 
-  /**
-   * Opens a file in the under file system.
-   *
-   * @param ufsUri the path of the file in the ufs
-   * @param options the options for opening the file
-   * @return this method always throws an exception
-   * @throws UnsupportedOperationException always
-   */
   @Override
-  public long openUfsFile(final long sessionId, final String ufsUri,
+  public OpenUfsFileTResponse openUfsFile(final long sessionId, final String ufsUri,
       final OpenUfsFileTOptions options) throws AlluxioTException {
     throw new UnsupportedOperationException(UNSUPPORTED_MESSAGE);
   }
 
-  /**
-   * Session heartbeat to worker to keep its state, for example open ufs streams.
-   *
-   * @param sessionId the session id of the client sending the heartbeat
-   * @param metrics a list of the client metrics that were collected since the last heartbeat
-   * @throws UnsupportedOperationException always
-   */
   @Override
-  public void sessionHeartbeat(final long sessionId, final List<Long> metrics)
+  public SessionFileSystemHeartbeatTResponse sessionFileSystemHeartbeat(final long sessionId,
+      final List<Long> metrics, final SessionFileSystemHeartbeatTOptions options)
       throws AlluxioTException {
     throw new UnsupportedOperationException(UNSUPPORTED_MESSAGE);
   }

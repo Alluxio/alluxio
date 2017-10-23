@@ -11,6 +11,7 @@
 
 package alluxio.worker.block;
 
+import alluxio.underfs.UfsManager;
 import alluxio.worker.WorkerFactory;
 import alluxio.worker.WorkerRegistry;
 
@@ -37,9 +38,9 @@ public final class BlockWorkerFactory implements WorkerFactory {
   }
 
   @Override
-  public BlockWorker create(WorkerRegistry registry) {
+  public BlockWorker create(WorkerRegistry registry, UfsManager ufsManager) {
     LOG.info("Creating {} ", BlockWorker.class.getName());
-    BlockWorker blockWorker = new DefaultBlockWorker();
+    BlockWorker blockWorker = new DefaultBlockWorker(ufsManager);
     registry.add(BlockWorker.class, blockWorker);
     return blockWorker;
   }

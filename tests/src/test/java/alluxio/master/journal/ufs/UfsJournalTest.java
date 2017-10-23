@@ -11,6 +11,8 @@
 
 package alluxio.master.journal.ufs;
 
+import alluxio.BaseIntegrationTest;
+import alluxio.master.NoopMaster;
 import alluxio.util.URIUtils;
 
 import org.junit.Assert;
@@ -24,7 +26,7 @@ import java.net.URI;
 /**
  * Unit tests for {@link UfsJournal}.
  */
-public final class UfsJournalTest {
+public final class UfsJournalTest extends BaseIntegrationTest {
   @Rule
   public TemporaryFolder mFolder = new TemporaryFolder();
 
@@ -32,8 +34,9 @@ public final class UfsJournalTest {
 
   @Before
   public void before() throws Exception {
-    mJournal = new UfsJournal(URIUtils
-        .appendPathOrDie(new URI(mFolder.newFolder().getAbsolutePath()), "FileSystemMaster"));
+    mJournal =
+        new UfsJournal(URIUtils.appendPathOrDie(new URI(mFolder.newFolder().getAbsolutePath()),
+            "FileSystemMaster"), new NoopMaster(), 0);
   }
 
   /**

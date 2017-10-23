@@ -15,6 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.PropertyKey;
+import alluxio.BaseIntegrationTest;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
@@ -41,7 +42,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 /**
  * Integration tests for reading data which is only stored in Alluxio's under storage.
  */
-public class UnderStorageReadIntegrationTest {
+public class UnderStorageReadIntegrationTest extends BaseIntegrationTest {
   private static final Logger LOG = LoggerFactory.getLogger(UnderStorageReadIntegrationTest.class);
   private static final int MIN_LEN = 0;
   private static final int MAX_LEN = 255;
@@ -93,9 +94,9 @@ public class UnderStorageReadIntegrationTest {
       Assert.assertTrue(BufferUtils.equalIncreasingByteArray(k, ret));
       is.close();
       if (k == 0) {
-        Assert.assertEquals(100, mFileSystem.getStatus(uri).getInMemoryPercentage());
+        Assert.assertEquals(100, mFileSystem.getStatus(uri).getInAlluxioPercentage());
       } else {
-        Assert.assertNotEquals(100, mFileSystem.getStatus(uri).getInMemoryPercentage());
+        Assert.assertNotEquals(100, mFileSystem.getStatus(uri).getInAlluxioPercentage());
       }
 
       is = mFileSystem.openFile(uri, mReadCache);
@@ -111,7 +112,7 @@ public class UnderStorageReadIntegrationTest {
       Assert.assertEquals(cnt, k);
       Assert.assertTrue(BufferUtils.equalIncreasingByteArray(k, ret));
       is.close();
-      Assert.assertEquals(100, mFileSystem.getStatus(uri).getInMemoryPercentage());
+      Assert.assertEquals(100, mFileSystem.getStatus(uri).getInAlluxioPercentage());
 
       is = mFileSystem.openFile(uri, mReadCache);
       ret = new byte[k];
@@ -126,7 +127,7 @@ public class UnderStorageReadIntegrationTest {
       Assert.assertEquals(cnt, k);
       Assert.assertTrue(BufferUtils.equalIncreasingByteArray(k, ret));
       is.close();
-      Assert.assertEquals(100, mFileSystem.getStatus(uri).getInMemoryPercentage());
+      Assert.assertEquals(100, mFileSystem.getStatus(uri).getInAlluxioPercentage());
     }
   }
 
@@ -168,10 +169,10 @@ public class UnderStorageReadIntegrationTest {
             is.close();
             Assert.assertEquals(cnt, MAX_LEN);
             Assert.assertTrue(BufferUtils.equalIncreasingByteArray(MAX_LEN, ret));
-            while (mFileSystem.getStatus(uri).getInMemoryPercentage() < 100) {
+            while (mFileSystem.getStatus(uri).getInAlluxioPercentage() < 100) {
               Thread.sleep(1000);
             }
-            Assert.assertEquals(100, mFileSystem.getStatus(uri).getInMemoryPercentage());
+            Assert.assertEquals(100, mFileSystem.getStatus(uri).getInAlluxioPercentage());
             count.incrementAndGet();
           } catch (Throwable e) {
             LOG.error("Failed to read file {}.", index, e);
@@ -223,7 +224,7 @@ public class UnderStorageReadIntegrationTest {
       Assert.assertEquals(k / 2, is.skip(k / 2));
       Assert.assertEquals(k / 2, is.read());
       is.close();
-      Assert.assertEquals(100, mFileSystem.getStatus(uri).getInMemoryPercentage());
+      Assert.assertEquals(100, mFileSystem.getStatus(uri).getInAlluxioPercentage());
 
       if (k >= 3) {
         is = mFileSystem.openFile(uri, mReadCache);
@@ -233,7 +234,7 @@ public class UnderStorageReadIntegrationTest {
         Assert.assertEquals(t, is.skip(t));
         Assert.assertEquals(2 * t + 1, is.read());
         is.close();
-        Assert.assertTrue(mFileSystem.getStatus(uri).getInMemoryPercentage() == 100);
+        Assert.assertTrue(mFileSystem.getStatus(uri).getInAlluxioPercentage() == 100);
       }
     }
   }
@@ -260,6 +261,6 @@ public class UnderStorageReadIntegrationTest {
       Assert.assertEquals((byte) i, is.read());
     }
     is.close();
-    Assert.assertTrue(mFileSystem.getStatus(uri).getInMemoryPercentage() == 100);
+    Assert.assertTrue(mFileSystem.getStatus(uri).getInAlluxioPercentage() == 100);
   }
 }

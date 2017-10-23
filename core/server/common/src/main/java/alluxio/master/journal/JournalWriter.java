@@ -13,13 +13,12 @@ package alluxio.master.journal;
 
 import alluxio.proto.journal.Journal.JournalEntry;
 
-import java.io.Closeable;
 import java.io.IOException;
 
 /**
- * This class manages all the writes to the journal.
+ * Interface for a class that can write and flush journal entries.
  */
-public interface JournalWriter extends Closeable {
+public interface JournalWriter {
   /**
    * Writes an entry. {@link #flush} should be called afterwards if we want to make sure the entry
    * is persisted.
@@ -32,9 +31,4 @@ public interface JournalWriter extends Closeable {
    * Flushes all the entries written to the underlying storage.
    */
   void flush() throws IOException;
-
-  /**
-   * Cancels the current journal writer.
-   */
-  void cancel() throws IOException;
 }

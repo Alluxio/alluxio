@@ -13,7 +13,6 @@ package alluxio.master;
 
 import alluxio.Registry;
 import alluxio.Server;
-import alluxio.exception.status.InternalException;
 
 import com.google.common.collect.ImmutableList;
 import org.apache.thrift.TProcessor;
@@ -29,6 +28,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import javax.annotation.Nullable;
+
 public final class RegistryTest {
 
   @Rule
@@ -36,6 +37,7 @@ public final class RegistryTest {
 
   public abstract class TestServer implements Server<Void> {
     @Override
+    @Nullable
     public Map<String, TProcessor> getServices() {
       return null;
     }
@@ -127,7 +129,7 @@ public final class RegistryTest {
     registry.add(ServerC.class, new ServerC());
     registry.add(ServerC.class, new ServerD());
 
-    mThrown.expect(InternalException.class);
+    mThrown.expect(RuntimeException.class);
     registry.getServers();
   }
 

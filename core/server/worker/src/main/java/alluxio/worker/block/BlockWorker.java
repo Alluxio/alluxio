@@ -16,12 +16,13 @@ import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.InvalidWorkerStateException;
 import alluxio.exception.UfsBlockAccessTokenUnavailableException;
 import alluxio.exception.WorkerOutOfSpaceException;
+import alluxio.proto.dataserver.Protocol;
 import alluxio.wire.FileInfo;
+import alluxio.worker.SessionCleanable;
 import alluxio.worker.Worker;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.BlockWriter;
 import alluxio.worker.block.meta.BlockMeta;
-import alluxio.worker.block.options.OpenUfsBlockOptions;
 
 import java.io.IOException;
 import java.util.Set;
@@ -30,7 +31,7 @@ import java.util.concurrent.atomic.AtomicReference;
 /**
  * A block worker in the Alluxio system.
  */
-public interface BlockWorker extends Worker {
+public interface BlockWorker extends Worker, SessionCleanable {
   /**
    * @return the worker data service bind host
    */
@@ -287,11 +288,10 @@ public interface BlockWorker extends Worker {
    * @param sessionId the client session ID
    * @param blockId the ID of the UFS block to read
    * @param offset the offset within the block
-   * @param noCache if set, do not try to cache the block in the Alluxio worker
    * @return the block reader instance
    * @throws BlockDoesNotExistException if the block does not exist in the UFS block store
    */
-  BlockReader readUfsBlock(long sessionId, long blockId, long offset, boolean noCache)
+  BlockReader readUfsBlock(long sessionId, long blockId, long offset)
       throws BlockDoesNotExistException, IOException;
 
   /**
@@ -371,7 +371,7 @@ public interface BlockWorker extends Worker {
    * @throws BlockAlreadyExistsException if the UFS block already exists in the
    *         {@link UnderFileSystemBlockStore}
    */
-  boolean openUfsBlock(long sessionId, long blockId, OpenUfsBlockOptions options)
+  boolean openUfsBlock(long sessionId, long blockId, Protocol.OpenUfsBlockOptions options)
       throws BlockAlreadyExistsException;
 
   /**

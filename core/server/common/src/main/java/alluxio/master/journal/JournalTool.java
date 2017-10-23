@@ -15,7 +15,10 @@ import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.RuntimeConstants;
-import alluxio.master.journal.options.JournalReaderOptions;
+import alluxio.master.NoopMaster;
+import alluxio.master.journal.ufs.UfsJournal;
+import alluxio.master.journal.ufs.UfsJournalReader;
+import alluxio.master.journal.ufs.UfsJournalSystem;
 import alluxio.proto.journal.Journal.JournalEntry;
 
 import org.apache.commons.cli.CommandLine;
@@ -38,9 +41,11 @@ import javax.annotation.concurrent.NotThreadSafe;
  * entries and prints human-readable ones to standard out. Example usage below.
  *
  * <pre>
- * java -cp assembly/target/alluxio-assemblies-0.9.0-SNAPSHOT-jar-with-dependencies.jar \
+ * java -cp \
+ *   assembly/server/target/alluxio-assembly-server-<ALLUXIO-VERSION>-jar-with-dependencies.jar \
  *   alluxio.master.journal.JournalTool -master FileSystemMaster -start 0x100 -end 0x109
- * java -cp assembly/target/alluxio-assemblies-0.9.0-SNAPSHOT-jar-with-dependencies.jar \
+ * java -cp \
+ *   assembly/server/target/alluxio-assembly-server-<ALLUXIO-VERSION>-jar-with-dependencies.jar \
  *   alluxio.master.journal.JournalTool -journalFile YourJournalFilePath
  * </pre>
  */
@@ -75,7 +80,7 @@ public final class JournalTool {
   /**
    * Reads a journal via
    * {@code java -cp \
-   * assembly/target/alluxio-assemblies-<ALLUXIO-VERSION>-jar-with-dependencies.jar \
+   * assembly/server/target/alluxio-assembly-server-<ALLUXIO-VERSION>-jar-with-dependencies.jar \
    * alluxio.master.journal.JournalTool -master BlockMaster -start 0x100 -end 0x109}.
    *
    * @param args arguments passed to the tool
@@ -123,11 +128,9 @@ public final class JournalTool {
   }
 
   private static void readFromJournal() {
-    JournalFactory factory = new Journal.Factory(getJournalLocation());
-    Journal journal = factory.create(sMaster);
-    JournalReaderOptions options =
-        JournalReaderOptions.defaults().setPrimary(true).setNextSequenceNumber(sStart);
-    try (JournalReader reader = journal.getReader(options)) {
+    UfsJournal journal =
+        new UfsJournalSystem(getJournalLocation(), 0).createJournal(new NoopMaster(sMaster));
+    try (JournalReader reader = new UfsJournalReader(journal, sStart, true)) {
       JournalEntry entry;
       while ((entry = reader.read()) != null) {
         if (entry.getSequenceNumber() >= sEnd) {

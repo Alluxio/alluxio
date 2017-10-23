@@ -1,0 +1,30 @@
+alluxio.integration.master.resource.cpu:
+  运行Alluxio master所需要的cpu核数。
+alluxio.integration.master.resource.mem:
+  运行Alluxio master所需要的内存大小。
+alluxio.integration.mesos.executor.dependency.path:
+  Mesos executor下载Alluxio依赖的URL。
+alluxio.integration.mesos.jre.path:
+  在JRE URL中可获取的压缩包中JRE目录的相对路径。
+alluxio.integration.mesos.jre.url:
+  Mesos executor下载JRE的URL。
+alluxio.integration.mesos.master.name:
+  Mesos运行Alluxio master的任务名称。
+alluxio.integration.mesos.master.node.count:
+  启动Alluxio master的进程数目。
+alluxio.integration.mesos.principal:
+  Alluxio框架账户。
+alluxio.integration.mesos.role:
+  Alluxio框架在Mesos集群中的角色。
+alluxio.integration.mesos.secret:
+  Alluxio框架密码。
+alluxio.integration.mesos.user:
+  Mesos executor运行Alluxio worker使用的账户。
+alluxio.integration.mesos.worker.name:
+  Mesos运行Alluxio worker的任务名称。
+alluxio.integration.yarn.max.workers.per.host:
+  单个主机上能启动的Alluxio worker的最大数目。
+alluxio.integration.worker.resource.cpu:
+  运行Alluxio worker所需要的cpu核数。
+alluxio.integration.worker.resource.mem:
+  运行Alluxio worker所需要的内存大小，该部分内存不包含为层次化存储配置的内容。

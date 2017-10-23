@@ -17,14 +17,16 @@ import alluxio.PropertyKey;
 import alluxio.Server;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatThread;
+import alluxio.master.MasterClientConfig;
 import alluxio.thrift.FileSystemWorkerClientService;
+import alluxio.underfs.UfsManager;
+import alluxio.util.CommonUtils;
 import alluxio.util.ThreadFactoryUtils;
-import alluxio.util.network.NetworkAddressUtils;
-import alluxio.util.network.NetworkAddressUtils.ServiceType;
 import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.AbstractWorker;
 import alluxio.worker.block.BlockWorker;
 
+import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.util.concurrent.RateLimiter;
@@ -35,6 +37,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -59,22 +62,26 @@ public final class DefaultFileSystemWorker extends AbstractWorker implements Fil
 
   /** The service that persists files. */
   private Future<?> mFilePersistenceService;
+  /** Handler to the ufs manager. */
+  private final UfsManager mUfsManager;
 
   /**
    * Creates a new DefaultFileSystemWorker.
    *
    * @param blockWorker the block worker handle
+   * @param ufsManager the ufs manager
    */
-  DefaultFileSystemWorker(BlockWorker blockWorker) {
+  DefaultFileSystemWorker(BlockWorker blockWorker, UfsManager ufsManager) {
     super(Executors.newFixedThreadPool(3,
         ThreadFactoryUtils.build("file-system-worker-heartbeat-%d", true)));
     mWorkerId = blockWorker.getWorkerId();
-    mFileDataManager = new FileDataManager(Preconditions.checkNotNull(blockWorker),
-        RateLimiter.create(Configuration.getBytes(PropertyKey.WORKER_FILE_PERSIST_RATE_LIMIT)));
+    mUfsManager = ufsManager;
+    mFileDataManager = new FileDataManager(Preconditions.checkNotNull(blockWorker, "blockWorker"),
+        RateLimiter.create(Configuration.getBytes(PropertyKey.WORKER_FILE_PERSIST_RATE_LIMIT)),
+        mUfsManager);
 
     // Setup AbstractMasterClient
-    mFileSystemMasterWorkerClient = new FileSystemMasterClient(
-        NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC));
+    mFileSystemMasterWorkerClient = new FileSystemMasterClient(MasterClientConfig.defaults());
 
     mServiceHandler = new FileSystemWorkerClientServiceHandler();
   }
@@ -103,7 +110,7 @@ public final class DefaultFileSystemWorker extends AbstractWorker implements Fil
         new HeartbeatThread(HeartbeatContext.WORKER_FILESYSTEM_MASTER_SYNC,
             new FileWorkerMasterSyncExecutor(mFileDataManager, mFileSystemMasterWorkerClient,
                 mWorkerId),
-            Configuration.getInt(PropertyKey.WORKER_FILESYSTEM_HEARTBEAT_INTERVAL_MS)));
+            (int) Configuration.getMs(PropertyKey.WORKER_FILESYSTEM_HEARTBEAT_INTERVAL_MS)));
   }
 
   @Override
@@ -111,8 +118,19 @@ public final class DefaultFileSystemWorker extends AbstractWorker implements Fil
     if (mFilePersistenceService != null) {
       mFilePersistenceService.cancel(true);
     }
+    // The executor shutdown needs to be done in a loop with retry because the interrupt
+    // signal can sometimes be ignored.
+    CommonUtils.waitFor("file system worker executor shutdown", new Function<Void, Boolean>() {
+      @Override
+      public Boolean apply(Void input) {
+        getExecutorService().shutdownNow();
+        try {
+          return getExecutorService().awaitTermination(100, TimeUnit.MILLISECONDS);
+        } catch (InterruptedException e) {
+          throw new RuntimeException(e);
+        }
+      }
+    });
     mFileSystemMasterWorkerClient.close();
-    // This needs to be shutdownNow because heartbeat threads will only stop when interrupted.
-    getExecutorService().shutdownNow();
   }
 }

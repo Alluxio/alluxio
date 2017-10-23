@@ -16,7 +16,7 @@ import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.client.file.FileSystem;
-import alluxio.util.UnderFileSystemUtils;
+import alluxio.util.io.FileUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 
@@ -26,6 +26,8 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -69,12 +71,9 @@ public final class LocalAlluxioMaster {
    */
   public static LocalAlluxioMaster create() throws IOException {
     String workDirectory = uniquePath();
-    UnderFileSystemUtils.deleteDirIfExists(workDirectory);
-    UnderFileSystemUtils.mkdirIfNotExists(workDirectory);
-
+    FileUtils.deletePathRecursively(workDirectory);
     Configuration.set(PropertyKey.WORK_DIR, workDirectory);
-
-    return new LocalAlluxioMaster();
+    return create(workDirectory);
   }
 
   /**
@@ -84,8 +83,9 @@ public final class LocalAlluxioMaster {
    * @return the created Alluxio master
    */
   public static LocalAlluxioMaster create(final String workDirectory) throws IOException {
-    UnderFileSystemUtils.mkdirIfNotExists(workDirectory);
-
+    if (!Files.isDirectory(Paths.get(workDirectory))) {
+      Files.createDirectory(Paths.get(workDirectory));
+    }
     return new LocalAlluxioMaster();
   }
 
@@ -98,7 +98,10 @@ public final class LocalAlluxioMaster {
       @Override
       public void run() {
         try {
+          LOG.info("Starting Alluxio master {}.", mMasterProcess);
           mMasterProcess.start();
+        } catch (InterruptedException e) {
+          // this is expected
         } catch (Exception e) {
           // Log the exception as the RuntimeException will be caught and handled silently by JUnit
           LOG.error("Start master error", e);
@@ -106,22 +109,19 @@ public final class LocalAlluxioMaster {
         }
       }
     };
-
     mMasterThread = new Thread(runMaster);
+    mMasterThread.setName("MasterThread-" + System.identityHashCode(mMasterThread));
     mMasterThread.start();
     mMasterProcess.waitForReady();
-  }
-
-  /**
-   * Starts the secondary master.
-   */
-  public void startSecondary() {
     mSecondaryMaster = new AlluxioSecondaryMaster();
     Runnable runSecondaryMaster = new Runnable() {
       @Override
       public void run() {
         try {
+          LOG.info("Starting secondary master {}.", mSecondaryMaster);
           mSecondaryMaster.start();
+        } catch (InterruptedException e) {
+          // this is expected
         } catch (Exception e) {
           // Log the exception as the RuntimeException will be caught and handled silently by JUnit
           LOG.error("Start secondary master error", e);
@@ -129,8 +129,9 @@ public final class LocalAlluxioMaster {
         }
       }
     };
-
     mSecondaryMasterThread = new Thread(runSecondaryMaster);
+    mSecondaryMasterThread
+        .setName("SecondaryMasterThread-" + System.identityHashCode(mSecondaryMasterThread));
     mSecondaryMasterThread.start();
     mSecondaryMaster.waitForReady();
   }
@@ -143,20 +144,28 @@ public final class LocalAlluxioMaster {
   }
 
   /**
-   * Stops the master and cleans up client connections.
+   * Stops the master processes and cleans up client connections.
    */
   public void stop() throws Exception {
-    clearClients();
-
-    mMasterProcess.stop();
-    mMasterThread.interrupt();
-    if (mSecondaryMaster != null) {
-      mSecondaryMaster.stop();
-    }
     if (mSecondaryMasterThread != null) {
-      mSecondaryMasterThread.interrupt();
+      mSecondaryMaster.stop();
+      while (mSecondaryMasterThread.isAlive()) {
+        LOG.info("Stopping thread {}.", mSecondaryMasterThread.getName());
+        mSecondaryMasterThread.interrupt();
+        mSecondaryMasterThread.join(1000);
+      }
+      mSecondaryMasterThread = null;
     }
-
+    if (mMasterThread != null) {
+      mMasterProcess.stop();
+      while (mMasterThread.isAlive()) {
+        LOG.info("Stopping thread {}.", mMasterThread.getName());
+        mMasterThread.interrupt();
+        mMasterThread.join(1000);
+      }
+      mMasterThread = null;
+    }
+    clearClients();
     System.clearProperty("alluxio.web.resources");
     System.clearProperty("alluxio.master.min.worker.threads");
   }

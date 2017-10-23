@@ -11,6 +11,8 @@
 
 package alluxio.master.lineage.recompute;
 
+import static org.junit.Assert.assertEquals;
+
 import alluxio.job.CommandLineJob;
 import alluxio.job.Job;
 import alluxio.job.JobConf;
@@ -21,7 +23,6 @@ import alluxio.master.lineage.meta.LineageIdGenerator;
 import alluxio.master.lineage.meta.LineageStore;
 
 import com.google.common.collect.Lists;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
@@ -61,8 +62,8 @@ public final class RecomputePlannerTest {
         .thenReturn(PersistenceState.NOT_PERSISTED);
     Mockito.when(mFileSystemMaster.getLostFiles()).thenReturn(Lists.newArrayList(1L));
     RecomputePlan plan = mPlanner.plan();
-    Assert.assertEquals(1, plan.getLineageToRecompute().size());
-    Assert.assertEquals(l1, plan.getLineageToRecompute().get(0).getId());
+    assertEquals(1, plan.getLineageToRecompute().size());
+    assertEquals(l1, plan.getLineageToRecompute().get(0).getId());
   }
 
   /**
@@ -78,9 +79,9 @@ public final class RecomputePlannerTest {
         .thenReturn(PersistenceState.NOT_PERSISTED);
     Mockito.when(mFileSystemMaster.getLostFiles()).thenReturn(Lists.newArrayList(1L, 2L));
     RecomputePlan plan = mPlanner.plan();
-    Assert.assertEquals(2, plan.getLineageToRecompute().size());
-    Assert.assertEquals(l1, plan.getLineageToRecompute().get(0).getId());
-    Assert.assertEquals(l2, plan.getLineageToRecompute().get(1).getId());
+    assertEquals(2, plan.getLineageToRecompute().size());
+    assertEquals(l1, plan.getLineageToRecompute().get(0).getId());
+    assertEquals(l2, plan.getLineageToRecompute().get(1).getId());
   }
 
   /**
@@ -93,7 +94,7 @@ public final class RecomputePlannerTest {
         .thenReturn(PersistenceState.PERSISTED);
     Mockito.when(mFileSystemMaster.getLostFiles()).thenReturn(Lists.newArrayList(1L));
     RecomputePlan plan = mPlanner.plan();
-    Assert.assertEquals(0, plan.getLineageToRecompute().size());
+    assertEquals(0, plan.getLineageToRecompute().size());
   }
 
   /**
@@ -109,7 +110,7 @@ public final class RecomputePlannerTest {
         .thenReturn(PersistenceState.NOT_PERSISTED);
     Mockito.when(mFileSystemMaster.getLostFiles()).thenReturn(Lists.newArrayList(2L));
     RecomputePlan plan = mPlanner.plan();
-    Assert.assertEquals(1, plan.getLineageToRecompute().size());
-    Assert.assertEquals(l2, plan.getLineageToRecompute().get(0).getId());
+    assertEquals(1, plan.getLineageToRecompute().size());
+    assertEquals(l2, plan.getLineageToRecompute().get(0).getId());
   }
 }

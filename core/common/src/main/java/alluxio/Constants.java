@@ -39,18 +39,7 @@ public final class Constants {
   public static final String ANSI_CYAN = "\u001B[36m";
   public static final String ANSI_WHITE = "\u001B[37m";
 
-  public static final String LS_FORMAT_PERMISSION = "%-15s";
-  public static final String LS_FORMAT_FILE_SIZE = "%-10s";
-  public static final String LS_FORMAT_CREATE_TIME = "%-25s";
-  public static final String LS_FORMAT_FILE_TYPE = "%-15s";
-  public static final String LS_FORMAT_USER_NAME = "%-15s";
-  public static final String LS_FORMAT_GROUP_NAME = "%-15s";
-  public static final String LS_FORMAT_FILE_PATH = "%-5s";
-  public static final String LS_FORMAT = LS_FORMAT_PERMISSION + LS_FORMAT_USER_NAME
-      + LS_FORMAT_GROUP_NAME + LS_FORMAT_FILE_SIZE + LS_FORMAT_CREATE_TIME + LS_FORMAT_FILE_TYPE
-      + LS_FORMAT_FILE_PATH + "%n";
-  public static final String LS_FORMAT_NO_ACL = LS_FORMAT_FILE_SIZE + LS_FORMAT_CREATE_TIME
-      + LS_FORMAT_FILE_TYPE + LS_FORMAT_FILE_PATH + "%n";
+  public static final String EXTENSION_JAR = ".jar";
 
   public static final String MESOS_RESOURCE_CPUS = "cpus";
   public static final String MESOS_RESOURCE_MEM = "mem";
@@ -76,7 +65,6 @@ public final class Constants {
   public static final String HEADER_OSS = "oss://";
 
   public static final String HEADER_S3 = "s3://";
-  public static final String HEADER_S3N = "s3n://";
   public static final String HEADER_S3A = "s3a://";
   public static final String HEADER_SWIFT = "swift://";
   // Google Cloud Storage header convention is "gs://".
@@ -117,11 +105,16 @@ public final class Constants {
   public static final String KEY_VALUE_MASTER_CLIENT_SERVICE_NAME = "KeyValueMasterClient";
   public static final String KEY_VALUE_WORKER_CLIENT_SERVICE_NAME = "KeyValueWorkerClient";
 
+  public static final int DEFAULT_REGISTRY_GET_TIMEOUT_MS = 60 * SECOND_MS;
+
   public static final String REST_API_PREFIX = "/api/v1";
 
   public static final String MASTER_COLUMN_FILE_PREFIX = "COL_";
 
+  public static final String SITE_PROPERTIES = "alluxio-site.properties";
+
   public static final String SWIFT_AUTH_KEYSTONE = "keystone";
+  public static final String SWIFT_AUTH_KEYSTONE_V3 = "keystonev3";
   public static final String SWIFT_AUTH_SWIFTAUTH = "swiftauth";
 
   public static final String MESOS_LOCAL_INSTALL = "LOCAL";
@@ -145,6 +138,11 @@ public final class Constants {
   public static final int FIRST_TIER = 0;
   public static final int SECOND_TIER = 1;
   public static final int LAST_TIER = -1;
+
+  // S3 northbound API constants
+  public static final String S3_DELETE_IN_ALLUXIO_ONLY = "ALLUXIO_ONLY";
+  public static final String S3_DELETE_IN_ALLUXIO_AND_UFS = "ALLUXIO_AND_UFS";
+  public static final String S3_MULTIPART_TEMPORARY_DIR_SUFFIX = "_s3_multipart_tmp";
 
   private Constants() {} // prevent instantiation
 }

@@ -75,13 +75,24 @@ public class LRFUEvictorTest {
     mEvictor = Evictor.Factory.create(mManagerView, allocator);
   }
 
+  /**
+   * Caches bytes into {@link StorageDir}.
+   *
+   * @param sessionId session who caches the data
+   * @param blockId id of the cached block
+   * @param bytes size of the block in bytes
+   * @param tierLevel tier level
+   * @param dirIdx index of a directory
+   */
   private void cache(long sessionId, long blockId, long bytes, int tierLevel, int dirIdx)
       throws Exception {
     StorageDir dir = mMetaManager.getTiers().get(tierLevel).getDir(dirIdx);
     TieredBlockStoreTestUtils.cache(sessionId, blockId, bytes, dir, mMetaManager, mEvictor);
   }
 
-  // access the block to update evictor
+  /**
+   * Access the block to update {@link Evictor}.
+   */
   private void access(long blockId) {
     ((BlockStoreEventListener) mEvictor).onAccessBlock(SESSION_ID, blockId);
   }
