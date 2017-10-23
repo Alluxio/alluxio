@@ -19,6 +19,7 @@ import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.options.DeleteOptions;
 
 import com.amazonaws.AmazonClientException;
+import com.amazonaws.AmazonServiceException;
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
 import com.amazonaws.internal.StaticCredentialsProvider;
@@ -83,6 +84,27 @@ public class S3AUnderFileSystemTest {
 
     mThrown.expect(IOException.class);
     mS3UnderFileSystem.deleteDirectory(PATH, DeleteOptions.defaults().setRecursive(true));
+  }
+
+  @Test
+  public void isFile404() throws IOException {
+    AmazonServiceException e = new AmazonServiceException("");
+    e.setStatusCode(404);
+    Mockito.when(mClient.getObjectMetadata(Matchers.anyString(), Matchers.anyString()))
+        .thenThrow(e);
+
+    Assert.assertFalse(mS3UnderFileSystem.isFile(SRC));
+  }
+
+  @Test
+  public void isFileException() throws IOException {
+    AmazonServiceException e = new AmazonServiceException("");
+    e.setStatusCode(403);
+    Mockito.when(mClient.getObjectMetadata(Matchers.anyString(), Matchers.anyString()))
+        .thenThrow(e);
+
+    mThrown.expect(IOException.class);
+    Assert.assertFalse(mS3UnderFileSystem.isFile(SRC));
   }
 
   @Test
