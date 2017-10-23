@@ -11,6 +11,8 @@
 
 package alluxio.client.block;
 
+import static org.junit.Assert.assertEquals;
+
 import alluxio.client.WriteType;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.options.OutStreamOptions;
@@ -31,7 +33,6 @@ import com.google.common.collect.Lists;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelPipeline;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -175,7 +176,7 @@ public final class AlluxioBlockStoreTest {
             Lists.newArrayList(WORKER_NET_ADDRESS_LOCAL)))
         .setWriteType(WriteType.MUST_CACHE);
     OutputStream stream = mBlockStore.getOutStream(BLOCK_ID, BLOCK_LENGTH, options);
-    Assert.assertEquals(alluxio.client.block.stream.BlockOutStream.class, stream.getClass());
+    assertEquals(alluxio.client.block.stream.BlockOutStream.class, stream.getClass());
   }
 
   @Test
@@ -185,6 +186,6 @@ public final class AlluxioBlockStoreTest {
             Lists.newArrayList(WORKER_NET_ADDRESS_REMOTE)))
         .setWriteType(WriteType.MUST_CACHE);
     OutputStream stream = mBlockStore.getOutStream(BLOCK_ID, BLOCK_LENGTH, options);
-    Assert.assertEquals(alluxio.client.block.stream.BlockOutStream.class, stream.getClass());
+    assertEquals(alluxio.client.block.stream.BlockOutStream.class, stream.getClass());
   }
 }

@@ -11,7 +11,6 @@
 
 package alluxio;
 
-import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.testing.EqualsTester;
@@ -106,7 +105,7 @@ public final class CommonTestUtils {
       try {
         field.set(instance, getValuesForFieldType(field.getType()).get(1));
       } catch (Exception e) {
-        throw Throwables.propagate(e);
+        throw new RuntimeException(e);
       }
       equalsTester.addEqualityGroup(instance);
     }
@@ -129,7 +128,7 @@ public final class CommonTestUtils {
       }
       return instance;
     } catch (Exception e) {
-      throw Throwables.propagate(e);
+      throw new RuntimeException(e);
     }
   }
 
