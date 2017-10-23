@@ -24,6 +24,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -45,6 +46,13 @@ public class WasbUnderFileSystem extends HdfsUnderFileSystem {
    */
   public static Configuration createConfiguration(UnderFileSystemConfiguration conf) {
     Configuration wasbConf = HdfsUnderFileSystem.createConfiguration(conf);
+    for (Map.Entry<String, String> entry : conf.toMap().entrySet()) {
+      String key = entry.getKey();
+      String value = entry.getValue();
+      if (PropertyKey.Template.UNDERFS_AZURE_ACCOUNT_KEY.matches(key)) {
+        wasbConf.set(key, value);
+      }
+    }
     wasbConf.set("fs.AbstractFileSystem.wasb.impl", "org.apache.hadoop.fs.azure.Wasb");
     return wasbConf;
   }

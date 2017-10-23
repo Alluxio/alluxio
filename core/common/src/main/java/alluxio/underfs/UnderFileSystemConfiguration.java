@@ -15,6 +15,7 @@ import alluxio.Configuration;
 import alluxio.PropertyKey;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -78,6 +79,15 @@ public final class UnderFileSystemConfiguration {
       return Collections.emptyMap();
     }
     return Collections.unmodifiableMap(mUfsConf);
+  }
+
+  /**
+   * @return all the global and mount specific properties as an immutable map
+   */
+  public Map<String, String> toMap() {
+    Map<String, String> all = new HashMap<>(Configuration.toMap());
+    all.putAll(mUfsConf);
+    return Collections.unmodifiableMap(all);
   }
 
   /**
