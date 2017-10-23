@@ -227,8 +227,8 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
     mIsServingRPC = true;
 
     // Start serving RPC, this will block
-    LOG.info("Alluxio worker version {} started. " +
-            "bindHost={}, connectHost={}, rpcPort={}, dataPort={}, webPort={}",
+    LOG.info("Alluxio worker version {} started. "
+            + "bindHost={}, connectHost={}, rpcPort={}, dataPort={}, webPort={}",
         RuntimeConstants.VERSION,
         NetworkAddressUtils.getBindHost(ServiceType.WORKER_RPC),
         NetworkAddressUtils.getConnectHost(ServiceType.WORKER_RPC),

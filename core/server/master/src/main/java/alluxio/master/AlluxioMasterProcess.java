@@ -251,7 +251,8 @@ public class AlluxioMasterProcess implements MasterProcess {
   protected void startServing(String startMessage, String stopMessage) {
     MetricsSystem.startSinks();
     startServingWebServer();
-    LOG.info("Alluxio master version {} started{}. " + "bindHost={}, connectHost={}, rpcPort={}, webPort={}",
+    LOG.info("Alluxio master version {} started{}. "
+            + "bindHost={}, connectHost={}, rpcPort={}, webPort={}",
         RuntimeConstants.VERSION,
         startMessage,
         NetworkAddressUtils.getBindAddress(ServiceType.MASTER_RPC),
