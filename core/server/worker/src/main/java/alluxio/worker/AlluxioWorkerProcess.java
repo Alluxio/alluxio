@@ -98,7 +98,7 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
   private UfsManager mUfsManager;
 
   /** The jvm monitor.*/
-  private final JvmPauseMonitor mJvmPauseMonitor = new JvmPauseMonitor();
+  private JvmPauseMonitor mJvmPauseMonitor;
 
   /**
    * Creates a new instance of {@link AlluxioWorkerProcess}.
@@ -225,6 +225,7 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
 
     // Start monitor jvm
     if (Configuration.getBoolean(PropertyKey.JVM_MONITOR_WORKER_START)) {
+      mJvmPauseMonitor = new JvmPauseMonitor();
       mJvmPauseMonitor.start();
     }
 

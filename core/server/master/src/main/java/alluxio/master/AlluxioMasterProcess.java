@@ -99,7 +99,7 @@ public class AlluxioMasterProcess implements MasterProcess {
   protected final JournalSystem mJournalSystem;
 
   /** The JVMMonitor Progress. */
-  private final JvmPauseMonitor mJvmPauseMonitor = new JvmPauseMonitor();
+  private JvmPauseMonitor mJvmPauseMonitor;
 
   /**
    * Creates a new {@link AlluxioMasterProcess}.
@@ -283,6 +283,7 @@ public class AlluxioMasterProcess implements MasterProcess {
    */
   protected void startJvmMonitorProcess() {
     if (Configuration.getBoolean(PropertyKey.JVM_MONITOR_MASTER_START)) {
+      mJvmPauseMonitor = new JvmPauseMonitor();
       mJvmPauseMonitor.start();
     }
   }

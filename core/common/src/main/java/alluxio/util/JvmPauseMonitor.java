@@ -46,9 +46,9 @@ public final class JvmPauseMonitor {
   private final long mInfoThresholdMs;
 
   /** Times extra sleep time exceed WARN. */
-  private long mExceedWarnTimes = 0;
+  private long mWarnTimeExceededMS = 0;
   /** Times extra sleep time exceed INFO. */
-  private long mExceedInfoTimes = 0;
+  private long mInfoTimeExceededMS = 0;
   /** Total extra sleep time. */
   private long mTotalExtraTime = 0;
 
@@ -90,7 +90,7 @@ public final class JvmPauseMonitor {
 
   /**
    * Resets value of mJvmMonitorThread and mThreadStarted.
-   * @return reseted mThreadStarted
+   * @return reseted JvmPauseMonitor
    */
   public JvmPauseMonitor reset() {
     mJvmMonitorThread = null;
@@ -106,17 +106,17 @@ public final class JvmPauseMonitor {
   }
 
   /**
-   * @return Times exceed WARN threshold
+   * @return time exceeds WARN threshold
    */
-  public long getExceedWarnTimes() {
-    return mExceedWarnTimes;
+  public long getWarnTimeExceeded() {
+    return mWarnTimeExceededMS;
   }
 
   /**
-   * @return Times exceed INFO threshold
+   * @return time exceeds INFO threshold
    */
-  public long getExceedInfoTimes() {
-    return mExceedInfoTimes;
+  public long getInfoTimeExceeded() {
+    return mInfoTimeExceededMS;
   }
 
   /**
@@ -180,11 +180,11 @@ public final class JvmPauseMonitor {
         List<GarbageCollectorMXBean> gcBeanListAfterSleep = getGarbageCollectorMXBeanList();
 
         if (extraTime > mWarnThresholdMs) {
-          ++mExceedWarnTimes;
+          ++mWarnTimeExceededMS;
           LOG.warn(formatLogString(
               extraTime, gcBeanListBeforeSleep, gcBeanListAfterSleep));
         } else if (extraTime > mInfoThresholdMs) {
-          ++mExceedInfoTimes;
+          ++mInfoTimeExceededMS;
           LOG.info(formatLogString(
               extraTime, gcBeanListBeforeSleep, gcBeanListAfterSleep));
         }
