@@ -41,7 +41,7 @@ public interface Allocator {
      * @return the generated {@link Allocator}, it will be a {@link MaxFreeAllocator} by default
      */
     public static Allocator create(BlockMetadataManagerView view) {
-      BlockMetadataManagerView managerView = Preconditions.checkNotNull(view);
+      BlockMetadataManagerView managerView = Preconditions.checkNotNull(view, "view");
       try {
         return CommonUtils.createNewClassInstance(
             Configuration.<Allocator>getClass(PropertyKey.WORKER_ALLOCATOR_CLASS),
