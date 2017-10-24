@@ -16,6 +16,7 @@ import alluxio.Constants;
 import alluxio.client.ReadType;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
+import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.OpenFileOptions;
 import alluxio.exception.AlluxioException;
@@ -86,7 +87,8 @@ public final class LoadCommand extends WithWildCardPathCommand {
         load(newPath, local);
       }
     } else {
-      if (!local && status.getInAlluxioPercentage() == 100) {
+      if (!(local && FileSystemContext.INSTANCE.hasLocalWorker())
+          && status.getInAlluxioPercentage() == 100) {
         // The file has already been fully loaded into Alluxio.
         System.out.println(filePath + " already in Alluxio fully");
         return;
