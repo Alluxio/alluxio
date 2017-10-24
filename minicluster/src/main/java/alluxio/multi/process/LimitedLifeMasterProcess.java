@@ -9,15 +9,20 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio;
+package alluxio.multi.process;
 
-import org.junit.Rule;
-import org.junit.rules.Timeout;
+import alluxio.Constants;
+import alluxio.master.AlluxioMaster;
 
 /**
- * Base class used for specifying the maximum time a test should run for.
+ * Wrapper around AlluxioMaster which will exit after a limited amount of time.
  */
-public abstract class BaseIntegrationTest {
-  @Rule
-  public Timeout mGlobalTimeout = Timeout.millis(Constants.MAX_TEST_DURATION_MS);
+public final class LimitedLifeMasterProcess {
+  /**
+   * @param args program arguments
+   */
+  public static void main(String[] args) {
+    Utils.limitLife(Constants.MAX_TEST_PROCESS_LIFETIME_MS);
+    AlluxioMaster.main(args);
+  }
 }
