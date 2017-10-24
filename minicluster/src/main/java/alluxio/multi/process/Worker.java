@@ -50,8 +50,8 @@ public class Worker implements Closeable {
    */
   public synchronized void start() throws IOException {
     Preconditions.checkState(mProcess == null, "Worker is already running");
-    mProcess =
-        new ExternalProcess(mProperties, LimitedLifeWorkerProcess.class, new File(mLogsDir, "worker.out"));
+    mProcess = new ExternalProcess(mProperties, LimitedLifeWorkerProcess.class,
+        new File(mLogsDir, "worker.out"));
     mProcess.start();
   }
 

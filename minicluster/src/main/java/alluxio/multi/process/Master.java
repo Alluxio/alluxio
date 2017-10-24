@@ -46,8 +46,8 @@ public final class Master implements Closeable {
    */
   public synchronized void start() throws IOException {
     Preconditions.checkState(mProcess == null, "Master is already running");
-    mProcess =
-        new ExternalProcess(mProperties, LimitedLifeMasterProcess.class, new File(mLogsDir, "master.out"));
+    mProcess = new ExternalProcess(mProperties, LimitedLifeMasterProcess.class,
+        new File(mLogsDir, "master.out"));
     mProcess.start();
   }
 
