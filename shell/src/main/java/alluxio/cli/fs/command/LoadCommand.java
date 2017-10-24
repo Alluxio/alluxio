@@ -68,7 +68,7 @@ public final class LoadCommand extends WithWildCardPathCommand {
 
   @Override
   protected void runCommand(AlluxioURI path, CommandLine cl) throws AlluxioException, IOException {
-    load(path, cl.hasOption(LOCAL_OPTION.getOpt()));
+    load(path, cl.hasOption(LOCAL_OPTION.getLongOpt()));
   }
 
   /**
