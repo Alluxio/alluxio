@@ -92,6 +92,11 @@ public final class MultiProcessCluster implements TestRule {
   private List<MasterNetAddress> mMasterAddresses;
   private State mState;
   private TestingServer mCuratorServer;
+  /**
+   * Tracks whether the test has succeeded. If mSuccess is never updated before {@link #destroy()},
+   * the state of the cluster will be saved as a tarball in the artifacts directory.
+   */
+  private boolean mSuccess;
 
   private MultiProcessCluster(Map<PropertyKey, String> properties, int numMasters, int numWorkers,
       String clusterName) {
@@ -104,6 +109,7 @@ public final class MultiProcessCluster implements TestRule {
     mWorkers = new ArrayList<>();
     mCloser = Closer.create();
     mState = State.NOT_STARTED;
+    mSuccess = false;
   }
 
   /**
@@ -143,10 +149,10 @@ public final class MultiProcessCluster implements TestRule {
     LOG.info("Starting alluxio cluster {} with base directory {}", mClusterName,
         mWorkDir.getAbsolutePath());
     for (int i = 0; i < mNumMasters; i++) {
-      startMaster(i);
+      createMaster(i).start();
     }
     for (int i = 0; i < mNumWorkers; i++) {
-      startWorker(i);
+      createWorker(i).start();
     }
   }
 
@@ -204,6 +210,14 @@ public final class MultiProcessCluster implements TestRule {
   }
 
   /**
+   * Informs the cluster that the test succeeded. If this method is never called, the cluster will
+   * save a copy of its state during teardown.
+   */
+  public synchronized void notifySuccess() {
+    mSuccess = true;
+  }
+
+  /**
    * Copies the work directory to the artifacts folder.
    */
   public synchronized void saveWorkdir() throws IOException {
@@ -238,6 +252,9 @@ public final class MultiProcessCluster implements TestRule {
    * Destroys the cluster. It may not be re-started after being destroyed.
    */
   public synchronized void destroy() throws IOException {
+    if (!mSuccess) {
+      saveWorkdir();
+    }
     mCloser.close();
     LOG.info("Destroyed cluster {}", mClusterName);
     mState = State.DESTROYED;
@@ -250,12 +267,8 @@ public final class MultiProcessCluster implements TestRule {
    */
   public synchronized void startMaster(int i) throws IOException {
     Preconditions.checkState(mState == State.STARTED,
-        "Must be in a started state to start individual masters");
-    File confDir = new File(mWorkDir, "conf");
-    File logsDir = new File(mWorkDir, "logs-master" + i);
-    Master master = mCloser.register(new Master(confDir, logsDir, mMasterAddresses.get(i)));
-    mMasters.add(master);
-    master.start();
+        "Must be in a started state to start masters");
+    mMasters.get(i).start();
   }
 
   /**
@@ -265,13 +278,80 @@ public final class MultiProcessCluster implements TestRule {
    */
   public synchronized void startWorker(int i) throws IOException {
     Preconditions.checkState(mState == State.STARTED,
-        "Must be in a started state to start individual workers");
+        "Must be in a started state to start workers");
+    mWorkers.get(i).start();
+  }
+
+  /**
+   * @param i the index of the master to stop
+   */
+  public synchronized void stopMaster(int i) throws IOException {
+    mMasters.get(i).close();
+  }
+
+  /**
+   * @param i the index of the worker to stop
+   */
+  public synchronized void stopWorker(int i) throws IOException {
+    mWorkers.get(i).close();
+  }
+
+  /**
+   * Creates the specified master without starting it.
+   *
+   * @param i the index of the master to create
+   */
+  private synchronized Master createMaster(int i) throws IOException {
+    Preconditions.checkState(mState == State.STARTED,
+        "Must be in a started state to create masters");
+    MasterNetAddress address = mMasterAddresses.get(i);
+    File confDir = new File(mWorkDir, "conf");
+    File logsDir = new File(mWorkDir, "logs-master" + i);
+    logsDir.mkdirs();
+    Map<PropertyKey, String> conf = new HashMap<>();
+    conf.put(PropertyKey.LOGGER_TYPE, "MASTER_LOGGER");
+    conf.put(PropertyKey.CONF_DIR, confDir.getAbsolutePath());
+    conf.put(PropertyKey.LOGS_DIR, logsDir.getAbsolutePath());
+    conf.put(PropertyKey.MASTER_HOSTNAME, address.getHostname());
+    conf.put(PropertyKey.MASTER_RPC_PORT, Integer.toString(address.getRpcPort()));
+    conf.put(PropertyKey.MASTER_WEB_PORT, Integer.toString(address.getWebPort()));
+    Master master = mCloser.register(new Master(logsDir, conf));
+    mMasters.add(master);
+    return master;
+  }
+
+  /**
+   * Creates the specified worker without starting it.
+   *
+   * @param i the index of the worker to create
+   */
+  private synchronized Worker createWorker(int i) throws IOException {
+    Preconditions.checkState(mState == State.STARTED,
+        "Must be in a started state to create workers");
     File confDir = new File(mWorkDir, "conf");
     File logsDir = new File(mWorkDir, "logs-worker" + i);
     File ramdisk = new File(mWorkDir, "ramdisk" + i);
-    Worker worker = mCloser.register(new Worker(confDir, logsDir, ramdisk));
+    logsDir.mkdirs();
+    ramdisk.mkdirs();
+    int rpcPort = PortUtils.getFreePort();
+    int dataPort = PortUtils.getFreePort();
+    int webPort = PortUtils.getFreePort();
+
+    Map<PropertyKey, String> conf = new HashMap<>();
+    conf.put(PropertyKey.LOGGER_TYPE, "WORKER_LOGGER");
+    conf.put(PropertyKey.CONF_DIR, confDir.getAbsolutePath());
+    conf.put(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_PATH.format(0),
+        ramdisk.getAbsolutePath());
+    conf.put(PropertyKey.LOGS_DIR, logsDir.getAbsolutePath());
+    conf.put(PropertyKey.WORKER_RPC_PORT, Integer.toString(rpcPort));
+    conf.put(PropertyKey.WORKER_DATA_PORT, Integer.toString(dataPort));
+    conf.put(PropertyKey.WORKER_WEB_PORT, Integer.toString(webPort));
+
+    Worker worker = mCloser.register(new Worker(logsDir, conf));
     mWorkers.add(worker);
-    worker.start();
+    LOG.info("Created worker with (rpc, data, web) ports ({}, {}, {})", rpcPort, dataPort,
+        webPort);
+    return worker;
   }
 
   private void formatJournal() throws Exception {

@@ -107,9 +107,7 @@ public class JournalShutdownIntegrationTest extends BaseIntegrationTest {
       Assert.assertTrue(
           String.format("successFiles: %s, actualFiles: %s", successFiles, actualFiles),
           (successFiles == actualFiles) || (successFiles + 1 == actualFiles));
-    } catch (Throwable t) {
-      cluster.saveWorkdir();
-      throw t;
+      cluster.notifySuccess();
     } finally {
       cluster.destroy();
     }
@@ -143,9 +141,7 @@ public class JournalShutdownIntegrationTest extends BaseIntegrationTest {
       Assert.assertTrue(
           String.format("successFiles: %s, actualFiles: %s", successFiles, actualFiles),
           (successFiles == actualFiles) || (successFiles + 1 == actualFiles));
-    } catch (Throwable t) {
-      cluster.saveWorkdir();
-      throw t;
+      cluster.notifySuccess();
     } finally {
       cluster.destroy();
     }

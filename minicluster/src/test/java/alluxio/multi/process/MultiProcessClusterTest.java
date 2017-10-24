@@ -27,7 +27,6 @@ import org.junit.Test;
 import org.junit.rules.Timeout;
 
 public final class MultiProcessClusterTest {
-  private boolean mSuccess = false;
   private MultiProcessCluster mCluster;
 
   @Rule
@@ -44,9 +43,9 @@ public final class MultiProcessClusterTest {
       mCluster.start();
       FileSystem fs = mCluster.getFileSystemClient();
       createAndOpenFile(fs);
-      mSuccess = true;
+      mCluster.notifySuccess();
     } finally {
-      cleanup();
+      mCluster.destroy();
     }
   }
 
@@ -62,23 +61,8 @@ public final class MultiProcessClusterTest {
       mCluster.start();
       FileSystem fs = mCluster.getFileSystemClient();
       createAndOpenFile(fs);
-      mSuccess = true;
+      mCluster.notifySuccess();
     } finally {
-      cleanup();
-    }
-  }
-
-  /**
-   * Destroys the test cluster, saving its work directory in case of failure.
-   *
-   * This cannot be done with @After because @After methods are not necessarily called when a test
-   * times out due to a Timeout rule.
-   */
-  private void cleanup() throws Exception {
-    if (mCluster != null) {
-      if (!mSuccess) {
-        mCluster.saveWorkdir();
-      }
       mCluster.destroy();
     }
   }
