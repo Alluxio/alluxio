@@ -60,7 +60,7 @@ public final class LoadCommandIntegrationTest extends AbstractAlluxioShellTest {
     mFsShell.run("load", "/testFile");
     status = mFileSystem.getStatus(uri);
     assertTrue(status.getInAlluxioPercentage() == 100);
-    mFsShell.run("load", "-f", "/testFile");
+    mFsShell.run("load", "--local", "/testFile");
     Assert.assertEquals("/testFile" + " loaded" + "\n" + "/testFile" + " loaded" + "\n",
         mOutput.toString());
   }

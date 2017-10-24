@@ -37,12 +37,14 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class LoadCommand extends WithWildCardPathCommand {
-  private static final Option FORCE_OPTION =
-      Option.builder("f")
+  private static final Option LOCAL_OPTION =
+      Option.builder()
+          .longOpt("local")
           .required(false)
           .hasArg(false)
-          .desc("force to load metadata for immediate children in a directory")
+          .desc("load the file to local worker.")
           .build();
+
   /**
    * Constructs a new instance to load a file or directory in Alluxio space.
    *
@@ -60,31 +62,31 @@ public final class LoadCommand extends WithWildCardPathCommand {
   @Override
   public Options getOptions() {
     return new Options()
-        .addOption(FORCE_OPTION);
+        .addOption(LOCAL_OPTION);
   }
 
   @Override
   protected void runCommand(AlluxioURI path, CommandLine cl) throws AlluxioException, IOException {
-    load(path, cl.hasOption(FORCE_OPTION.getOpt()));
+    load(path, cl.hasOption(LOCAL_OPTION.getOpt()));
   }
 
   /**
    * Loads a file or directory in Alluxio space, makes it resident in Alluxio.
    *
    * @param filePath The {@link AlluxioURI} path to load into Alluxio
-   * @param force the force flag; If the file is already in Alluxio fully, enable the force flag,
+   * @param local the local flag; If the file is already in Alluxio fully, enable the local flag,
    *              Alluxio will still load the file, otherwise Alluxio will do nothing.
    */
-  private void load(AlluxioURI filePath, boolean force) throws AlluxioException, IOException {
+  private void load(AlluxioURI filePath, boolean local) throws AlluxioException, IOException {
     URIStatus status = mFileSystem.getStatus(filePath);
     if (status.isFolder()) {
       List<URIStatus> statuses = mFileSystem.listStatus(filePath);
       for (URIStatus uriStatus : statuses) {
         AlluxioURI newPath = new AlluxioURI(uriStatus.getPath());
-        load(newPath, force);
+        load(newPath, local);
       }
     } else {
-      if (!force && status.getInAlluxioPercentage() == 100) {
+      if (!local && status.getInAlluxioPercentage() == 100) {
         // The file has already been fully loaded into Alluxio.
         System.out.println(filePath + " already in Alluxio fully");
         return;
@@ -107,7 +109,7 @@ public final class LoadCommand extends WithWildCardPathCommand {
 
   @Override
   public String getUsage() {
-    return "load [-f] <path>";
+    return "load [--local] <path>";
   }
 
   @Override
