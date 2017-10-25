@@ -483,7 +483,7 @@ public final class NettyPacketWriter implements PacketWriter {
    */
   private final class EofOrCancelListener implements ChannelFutureListener {
     /**
-     * Constructor
+     * Constructor.
      */
     EofOrCancelListener() {}
 
