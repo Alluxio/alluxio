@@ -391,7 +391,7 @@ public final class NettyPacketWriter implements PacketWriter {
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
-      LOG.error("Exception is caught while reading write response for block {} from channel {}:",
+      LOG.error("Exception is caught when writing block {} to channel {}:",
           mPartialRequest.getId(), ctx.channel(), cause);
       try (LockResource lr = new LockResource(mLock)) {
         updateException(cause);
@@ -404,15 +404,16 @@ public final class NettyPacketWriter implements PacketWriter {
 
     @Override
     public void channelUnregistered(ChannelHandlerContext ctx) {
-      LOG.warn("Channel is closed while reading write response for block {} from channel {}.",
-          mPartialRequest.getId(), ctx.channel());
+      LOG.warn("Channel {} is closed.", ctx.channel());
       try (LockResource lr = new LockResource(mLock)) {
-        updateException(new IOException(String.format(
-            "Channel is closed before response is received for block %d from channel %s.",
-            mPartialRequest.getId(), ctx.channel())));
-        mBufferNotFullOrFailed.signal();
-        mDoneOrFailed.signal();
-        mBufferEmptyOrFailed.signal();
+        if (!mDone) {
+          updateException(new IOException(String
+              .format("Channel %s is closed when writing block %d.", ctx.channel(),
+                  mPartialRequest.getId())));
+          mBufferNotFullOrFailed.signal();
+          mDoneOrFailed.signal();
+          mBufferEmptyOrFailed.signal();
+        }
       }
       ctx.fireChannelUnregistered();
     }
