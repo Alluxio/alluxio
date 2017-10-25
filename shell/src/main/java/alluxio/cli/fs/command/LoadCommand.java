@@ -19,6 +19,7 @@ import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.OpenFileOptions;
+import alluxio.client.file.policy.LocalFirstPolicy;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.InvalidArgumentException;
@@ -75,8 +76,7 @@ public final class LoadCommand extends WithWildCardPathCommand {
    * Loads a file or directory in Alluxio space, makes it resident in Alluxio.
    *
    * @param filePath The {@link AlluxioURI} path to load into Alluxio
-   * @param local the local flag; If the file is already in Alluxio fully, enable the local flag,
-   *              Alluxio will still load the file, otherwise Alluxio will do nothing.
+   * @param local whether to load data to local worker even when the data is already loaded remotely
    */
   private void load(AlluxioURI filePath, boolean local) throws AlluxioException, IOException {
     URIStatus status = mFileSystem.getStatus(filePath);
@@ -87,15 +87,21 @@ public final class LoadCommand extends WithWildCardPathCommand {
         load(newPath, local);
       }
     } else {
-      if (!(local && FileSystemContext.INSTANCE.hasLocalWorker())
-          && status.getInAlluxioPercentage() == 100) {
+      OpenFileOptions options = OpenFileOptions.defaults().setReadType(ReadType.CACHE_PROMOTE);
+      if (local && !(FileSystemContext.INSTANCE.hasLocalWorker()
+                   && options.getCacheLocationPolicy() instanceof LocalFirstPolicy)) {
+        System.out.println("When local option is specified,"
+            + " there must have a local worker available"
+            + " and use the LocalFirstPolicy when reading the file.");
+        return;
+      }
+      if (!local && status.getInAlluxioPercentage() == 100) {
         // The file has already been fully loaded into Alluxio.
         System.out.println(filePath + " already in Alluxio fully");
         return;
       }
       Closer closer = Closer.create();
       try {
-        OpenFileOptions options = OpenFileOptions.defaults().setReadType(ReadType.CACHE_PROMOTE);
         FileInStream in = closer.register(mFileSystem.openFile(filePath, options));
         byte[] buf = new byte[8 * Constants.MB];
         while (in.read(buf) != -1) {
