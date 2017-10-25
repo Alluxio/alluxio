@@ -88,14 +88,14 @@ public final class LoadCommand extends WithWildCardPathCommand {
       }
     } else {
       OpenFileOptions options = OpenFileOptions.defaults().setReadType(ReadType.CACHE_PROMOTE);
-      if (local && !(FileSystemContext.INSTANCE.hasLocalWorker()
-                   && options.getCacheLocationPolicy() instanceof LocalFirstPolicy)) {
-        System.out.println("When local option is specified,"
-            + " there must have a local worker available"
-            + " and use the LocalFirstPolicy when reading the file.");
-        return;
-      }
-      if (!local && status.getInAlluxioPercentage() == 100) {
+      if (local) {
+        if (!FileSystemContext.INSTANCE.hasLocalWorker()) {
+          System.out.println("When local option is specified,"
+              + " there must have a local worker available");
+          return;
+        }
+        options.setCacheLocationPolicy(new LocalFirstPolicy());
+      } else if (status.getInAlluxioPercentage() == 100) {
         // The file has already been fully loaded into Alluxio.
         System.out.println(filePath + " already in Alluxio fully");
         return;
