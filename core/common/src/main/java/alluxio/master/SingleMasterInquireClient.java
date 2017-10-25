@@ -37,9 +37,4 @@ public class SingleMasterInquireClient implements MasterInquireClient {
   public List<InetSocketAddress> getMasterRpcAddresses() {
     return Collections.singletonList(mAddress);
   }
-
-  @Override
-  public void close() {
-    // Nothing to close.
-  }
 }
