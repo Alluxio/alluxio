@@ -65,7 +65,7 @@ import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * Represents the tree of Inode's.
+ * Represents the tree of Inodes.
  */
 @NotThreadSafe
 // TODO(jiri): Make this class thread-safe.
