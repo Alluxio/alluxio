@@ -61,7 +61,7 @@ Alluxio master 主页如下所示:
 
 ![inMemFiles]({{site.data.img.screenshot_inMemoryFiles}})
 
-当前在内存存储层的文件会被列出，包括文件名，文件大小，块大小，文件是否被固定在内存中，文件创建时间和文件修改时间。
+当前在Alluxio的文件会被列出，包括文件名，文件大小，块大小，文件是否被固定在内存中，文件创建时间和文件修改时间。
 
 ### Workers页面
 

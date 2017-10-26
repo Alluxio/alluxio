@@ -69,7 +69,7 @@ public class FileOutStream extends AbstractOutStream {
   private boolean mClosed;
   private boolean mShouldCacheCurrentBlock;
   private BlockOutStream mCurrentBlockOutStream;
-  private List<BlockOutStream> mPreviousBlockOutStreams;
+  private final List<BlockOutStream> mPreviousBlockOutStreams;
 
   protected final AlluxioURI mUri;
 

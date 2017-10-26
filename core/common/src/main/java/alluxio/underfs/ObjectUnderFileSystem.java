@@ -668,7 +668,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
    * @return {@link ObjectStatus} if key exists and successful, otherwise null
    */
   @Nullable
-  protected abstract ObjectStatus getObjectStatus(String key);
+  protected abstract ObjectStatus getObjectStatus(String key) throws IOException;
 
   /**
    * Get parent path.

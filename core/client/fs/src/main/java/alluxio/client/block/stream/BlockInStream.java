@@ -63,7 +63,7 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
   private DataBuffer mCurrentPacket;
 
   private PacketReader mPacketReader;
-  private PacketReader.Factory mPacketReaderFactory;
+  private final PacketReader.Factory mPacketReaderFactory;
 
   private boolean mClosed = false;
   private boolean mEOF = false;

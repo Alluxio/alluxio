@@ -11,6 +11,9 @@
 
 package alluxio.worker.netty;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
 import alluxio.Constants;
 import alluxio.network.protocol.RPCProtoMessage;
 import alluxio.network.protocol.databuffer.DataBuffer;
@@ -27,7 +30,6 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.embedded.EmbeddedChannel;
-import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -39,7 +41,7 @@ import java.util.Random;
 /**
  * Unit tests for {@link AbstractWriteHandler}.
  */
-public abstract class WriteHandlerTest {
+public abstract class AbstractWriteHandlerTest {
   private static final Random RANDOM = new Random();
   protected static final int PACKET_SIZE = 1024;
   protected static final long TEST_BLOCK_ID = 1L;
@@ -162,10 +164,10 @@ public abstract class WriteHandlerTest {
    * @param writeResponse the write response
    */
   protected void checkWriteResponse(PStatus expectedStatus, Object writeResponse) {
-    Assert.assertTrue(writeResponse instanceof RPCProtoMessage);
+    assertTrue(writeResponse instanceof RPCProtoMessage);
     ProtoMessage response = ((RPCProtoMessage) writeResponse).getMessage();
-    Assert.assertTrue(response.isResponse());
-    Assert.assertEquals(expectedStatus, response.asResponse().getStatus());
+    assertTrue(response.isResponse());
+    assertEquals(expectedStatus, response.asResponse().getStatus());
   }
 
   /**
@@ -189,8 +191,8 @@ public abstract class WriteHandlerTest {
       }
     }
 
-    Assert.assertEquals(expectedChecksum, actualChecksum);
-    Assert.assertEquals(size, actualSize);
+    assertEquals(expectedChecksum, actualChecksum);
+    assertEquals(size, actualSize);
   }
 
   /**

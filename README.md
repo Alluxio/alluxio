@@ -18,15 +18,13 @@ The master branch is in version 1.7.0-SNAPSHOT:
 
 ### Dependency Information
 
-
-
-Starting from 1.5, Alluxio provides several different client artifacts. The Alluxio file system interface
-provided by the `alluxio-core-client-fs` artifact is recommended for the best performance and access
-to Alluxio-specific functionality. If you want to use other interfaces, include the appropriate
-client artifact. For example, `alluxio-core-client-hdfs` provides a client implementing HDFS's file
-system API.
-
 For Alluxio versions 1.4 or earlier, use the `alluxio-core-client` artifact.
+
+For Alluxio versions 1.5 or later, Alluxio provides several different client artifacts. The Alluxio
+file system interface provided by the `alluxio-core-client-fs` artifact is recommended for the best
+performance and access to Alluxio-specific functionality. If you want to use other interfaces,
+include the appropriate client artifact. For example, `alluxio-core-client-hdfs` provides a client
+implementing HDFS's file system API.
 
 #### Apache Maven
 ```xml

@@ -25,6 +25,7 @@ import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.util.io.PathUtils;
 
 import com.amazonaws.AmazonClientException;
+import com.amazonaws.AmazonServiceException;
 import com.amazonaws.ClientConfiguration;
 import com.amazonaws.Protocol;
 import com.amazonaws.auth.AWSCredentialsProvider;
@@ -476,17 +477,17 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
 
   @Override
   @Nullable
-  protected ObjectStatus getObjectStatus(String key) {
+  protected ObjectStatus getObjectStatus(String key) throws IOException {
     try {
       ObjectMetadata meta = mClient.getObjectMetadata(mBucketName, key);
-      if (meta == null) {
+      return new ObjectStatus(key, meta.getContentLength(), meta.getLastModified().getTime());
+    } catch (AmazonServiceException e) {
+      if (e.getStatusCode() == 404) { // file not found, possible for exists calls
         return null;
       }
-      return new ObjectStatus(key, meta.getContentLength(), meta.getLastModified().getTime());
+      throw new IOException(e);
     } catch (AmazonClientException e) {
-      LOG.warn("getObjectStatus error for {}, exception: {}. Assuming file does not exist.", key,
-          e.getMessage());
-      return null;
+      throw new IOException(e);
     }
   }
 

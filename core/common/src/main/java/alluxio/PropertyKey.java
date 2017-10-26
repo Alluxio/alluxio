@@ -233,6 +233,11 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Name.ZOOKEEPER_ADDRESS)
           .setDescription("Address of ZooKeeper.")
           .build();
+  public static final PropertyKey ZOOKEEPER_CONNECTION_TIMEOUT =
+      new Builder(Name.ZOOKEEPER_CONNECTION_TIMEOUT)
+          .setDefaultValue("15s") // matches Zookeeper's default
+          .setDescription("Connection timeout to use when connecting to Zookeeper")
+          .build();
   public static final PropertyKey ZOOKEEPER_ELECTION_PATH =
       new Builder(Name.ZOOKEEPER_ELECTION_PATH)
           .setDefaultValue("/election")
@@ -252,6 +257,11 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Name.ZOOKEEPER_LEADER_PATH)
           .setDefaultValue("/leader")
           .setDescription("Leader directory in ZooKeeper.")
+          .build();
+  public static final PropertyKey ZOOKEEPER_SESSION_TIMEOUT =
+      new Builder(Name.ZOOKEEPER_SESSION_TIMEOUT)
+          .setDefaultValue("60s") // matches Zookeeper's default
+          .setDescription("Session timeout to use when connecting to Zookeeper")
           .build();
 
   /**
@@ -1924,11 +1934,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String WEB_THREADS = "alluxio.web.threads";
     public static final String WORK_DIR = "alluxio.work.dir";
     public static final String ZOOKEEPER_ADDRESS = "alluxio.zookeeper.address";
+    public static final String ZOOKEEPER_CONNECTION_TIMEOUT =
+        "alluxio.zookeeper.connection.timeout";
     public static final String ZOOKEEPER_ELECTION_PATH = "alluxio.zookeeper.election.path";
     public static final String ZOOKEEPER_ENABLED = "alluxio.zookeeper.enabled";
     public static final String ZOOKEEPER_LEADER_INQUIRY_RETRY_COUNT =
         "alluxio.zookeeper.leader.inquiry.retry";
     public static final String ZOOKEEPER_LEADER_PATH = "alluxio.zookeeper.leader.path";
+    public static final String ZOOKEEPER_SESSION_TIMEOUT = "alluxio.zookeeper.session.timeout";
 
     //
     // UFS related properties
@@ -2350,6 +2363,9 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio\\.master\\.mount\\.table\\.root\\.option(\\.\\w+)++"),
     MASTER_TIERED_STORE_GLOBAL_LEVEL_ALIAS("alluxio.master.tieredstore.global.level%d.alias",
         "alluxio\\.master\\.tieredstore\\.global\\.level(\\d+)\\.alias"),
+    UNDERFS_AZURE_ACCOUNT_KEY(
+        "fs.azure.account.key.%s.blob.core.windows.net",
+        "fs\\.azure\\.account\\.key\\.(\\w+)\\.blob\\.core\\.windows\\.net"),
     WORKER_TIERED_STORE_LEVEL_ALIAS("alluxio.worker.tieredstore.level%d.alias",
         "alluxio\\.worker\\.tieredstore\\.level(\\d+)\\.alias"),
     WORKER_TIERED_STORE_LEVEL_DIRS_PATH("alluxio.worker.tieredstore.level%d.dirs.path",
@@ -2396,6 +2412,15 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public PropertyKey format(Object... params) {
       return new PropertyKey(String.format(mFormat, params));
     }
+
+    /**
+     * @param input the input property key string
+     * @return whether the input string matches this template
+     */
+    public boolean matches(String input) {
+      Matcher matcher = mPattern.matcher(input);
+      return matcher.matches();
+    }
   }
 
   /**
@@ -2409,8 +2434,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     }
     // Check if input matches any parameterized keys
     for (Template template : Template.values()) {
-      Matcher matcher = template.mPattern.matcher(input);
-      if (matcher.matches()) {
+      if (template.matches(input)) {
         return true;
       }
     }
@@ -2437,8 +2461,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     }
     // Try different templates and see if any template matches
     for (Template template : Template.values()) {
-      Matcher matcher = template.mPattern.matcher(input);
-      if (matcher.matches()) {
+      if (template.matches(input)) {
         return new PropertyKey(input);
       }
     }
