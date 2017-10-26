@@ -13,11 +13,11 @@
 SCRIPT_DIR="$(cd "$(dirname "$(readlink "$0" || echo "$0")")"; pwd)"
 
 get_env () {
-  DEFAULT_LIBEXEC_DIR="${SCRIPT_DIR}"/../../../libexec
+  DEFAULT_LIBEXEC_DIR="${SCRIPT_DIR}"/../libexec
   ALLUXIO_LIBEXEC_DIR=${ALLUXIO_LIBEXEC_DIR:-${DEFAULT_LIBEXEC_DIR}}
   . ${ALLUXIO_LIBEXEC_DIR}/alluxio-config.sh
 
-  ALLUXIO_FUSE_JAR=${SCRIPT_DIR}/../target/alluxio-integration-fuse-${VERSION}-jar-with-dependencies.jar
+  ALLUXIO_FUSE_JAR=${SCRIPT_DIR}/../integration/fuse/target/alluxio-integration-fuse-${VERSION}-jar-with-dependencies.jar
   FUSE_MAX_WRITE=131072
   CLASSPATH=${CLASSPATH}:${ALLUXIO_FUSE_JAR}
 }
@@ -25,17 +25,17 @@ get_env () {
 check_java_version () {
   local java_mjr_vers=$("${JAVA}" -version 2>&1 | awk -F '"' '/version/ {print $2}' | awk -F'.' '{print $1 $2}')
   if [[ ${java_mjr_vers} -lt 18 ]]; then
-    echo "It seems you are running a version of Java which is older then Java8.
-     Please, use Java8 to use alluxio-fuse" >&2
+    echo "You are running a version of Java which is older then Java8.
+     Please use Java 8 to use alluxio-fuse" >&2
     return 1
   else
     return 0
   fi
 }
 
-check_tfuse_jar () {
+check_fuse_jar () {
   if ! [[ -f ${ALLUXIO_FUSE_JAR} ]]; then
-    echo "Cannot find ${ALLUXIO_FUSE_JAR}. Was alluxio compiled with java8 or more recent?"
+    echo "Cannot find ${ALLUXIO_FUSE_JAR}. Please compile alluxio with fuse profile and Java 8"
     return 1
   else
     return 0
@@ -55,7 +55,7 @@ set_java_opt () {
 
 mount_fuse() {
   if fuse_stat > /dev/null ; then
-    echo "alluxio-fuse is already running on the local host. Please, stop it first." >&2
+    echo "alluxio-fuse is already running on the local host. Please stop it first." >&2
     return 1
   fi
   echo "Starting alluxio-fuse on local host."
@@ -115,7 +115,7 @@ if [[ $# -lt 1 ]]; then
 fi
 
 get_env
-check_java_version && check_tfuse_jar
+check_java_version && check_fuse_jar
 set_java_opt
 if [[ $? -ne 0 ]]; then
   exit 1
