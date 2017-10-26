@@ -73,6 +73,8 @@ public final class NettyPacketWriter implements PacketWriter {
       Configuration.getInt(PropertyKey.USER_NETWORK_NETTY_WRITER_BUFFER_SIZE_PACKETS);
   private static final long WRITE_TIMEOUT_MS =
       Configuration.getMs(PropertyKey.USER_NETWORK_NETTY_TIMEOUT_MS);
+  private static final long CLOSE_TIMEOUT_MS =
+      Configuration.getMs(PropertyKey.USER_NETWORK_NETTY_WRITER_CLOSE_TIMEOUT_MS);
 
   private final FileSystemContext mContext;
   private final Channel mChannel;
@@ -188,7 +190,7 @@ public final class NettyPacketWriter implements PacketWriter {
         try {
           if (!mBufferNotFullOrFailed.await(WRITE_TIMEOUT_MS, TimeUnit.MILLISECONDS)) {
             throw new DeadlineExceededException(
-                String.format("Timeout writing to %s for request %s after %d ms.",
+                String.format("Timeout writing to %s for request %s after %dms.",
                     mAddress, mPartialRequest, WRITE_TIMEOUT_MS));
           }
         } catch (InterruptedException e) {
@@ -230,7 +232,7 @@ public final class NettyPacketWriter implements PacketWriter {
         }
         if (!mBufferEmptyOrFailed.await(WRITE_TIMEOUT_MS, TimeUnit.MILLISECONDS)) {
           throw new DeadlineExceededException(
-              String.format("Timeout flushing to %s for request %s after %d ms.",
+              String.format("Timeout flushing to %s for request %s after %dms.",
                   mAddress, mPartialRequest, WRITE_TIMEOUT_MS));
         }
       }
@@ -264,9 +266,7 @@ public final class NettyPacketWriter implements PacketWriter {
             });
             throw new UnavailableException(mPacketWriteException);
           }
-          long timeoutMs =
-              Configuration.getMs(PropertyKey.USER_NETWORK_NETTY_WRITER_CLOSE_TIMEOUT_MS);
-          if (!mDoneOrFailed.await(timeoutMs, TimeUnit.MILLISECONDS)) {
+          if (!mDoneOrFailed.await(CLOSE_TIMEOUT_MS, TimeUnit.MILLISECONDS)) {
             closeFuture = mChannel.eventLoop().submit(new Runnable() {
               @Override
               public void run() {
@@ -275,7 +275,7 @@ public final class NettyPacketWriter implements PacketWriter {
             });
             throw new DeadlineExceededException(String.format(
                 "Timeout closing PacketWriter to %s for request %s after %s ms.",
-                mAddress, mPartialRequest, timeoutMs));
+                mAddress, mPartialRequest, CLOSE_TIMEOUT_MS));
           }
         } catch (InterruptedException e) {
           Thread.currentThread().interrupt();
