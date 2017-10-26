@@ -23,6 +23,8 @@ import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 import alluxio.security.authorization.Mode;
+import alluxio.security.group.GroupMappingService;
+import alluxio.security.group.provider.ShellBasedUnixGroupsMapping;
 
 import com.google.common.base.Preconditions;
 import com.google.common.cache.CacheBuilder;
@@ -228,13 +230,17 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
       stat.st_mtim.tv_sec.set(ctime_sec);
       stat.st_mtim.tv_nsec.set(ctime_nsec);
 
-      // TODO(andreareale): understand how to map FileInfo#getOwner()
-      // and FileInfo#getGroup() to UIDs and GIDs of the node
-      // where alluxio-fuse is mounted.
-      // While this is not done, just use uid and gid of the user
-      // running alluxio-fuse.
-      stat.st_uid.set(UID_AND_GID[0]);
-      stat.st_gid.set(UID_AND_GID[1]);
+      // for shell-based group mapping, use the uid and gid of the corresponding user registered in
+      // unix; otherwise use uid and gid of the user running alluxio-fuse
+      if(GroupMappingService.Factory.get() instanceof ShellBasedUnixGroupsMapping) {
+        String owner = status.getOwner();
+        long[] uidAndGid = AlluxioFuseUtils.getUidAndGid(owner);
+        stat.st_uid.set(uidAndGid[0]);
+        stat.st_gid.set(uidAndGid[1]);
+      } else {
+        stat.st_uid.set(UID_AND_GID[0]);
+        stat.st_gid.set(UID_AND_GID[1]);
+      }
 
       int mode = status.getMode();
       if (status.isFolder()) {

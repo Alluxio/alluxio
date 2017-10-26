@@ -35,8 +35,18 @@ public final class AlluxioFuseUtils {
    */
   public static long[] getUidAndGid() {
     final String uname = System.getProperty("user.name");
-    final long uid = getIdInfo("-u", uname);
-    final long gid = getIdInfo("-g", uname);
+    return getUidAndGid(uname);
+  }
+
+  /**
+   * Retrieves the uid and primary gid of the given user.
+   *
+   * @param userName the user name
+   * @return a long[2] array {uid, gid}
+   */
+  public static long[] getUidAndGid(String userName) {
+    final long uid = getIdInfo("-u", userName);
+    final long gid = getIdInfo("-g", userName);
     return new long[] {uid, gid};
   }
 
