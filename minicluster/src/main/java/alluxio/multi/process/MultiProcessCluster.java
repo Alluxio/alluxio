@@ -29,13 +29,13 @@ import alluxio.master.ZkMasterInquireClient;
 import alluxio.network.PortUtils;
 import alluxio.util.CommonUtils;
 import alluxio.util.network.NetworkAddressUtils;
+import alluxio.zookeeper.RestartableTestingServer;
 
 import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
 import com.google.common.io.Closer;
 import org.apache.commons.io.Charsets;
 import org.apache.commons.io.FileUtils;
-import org.apache.curator.test.TestingServer;
 import org.junit.rules.TestRule;
 import org.junit.runner.Description;
 import org.junit.runners.model.Statement;
@@ -91,7 +91,7 @@ public final class MultiProcessCluster implements TestRule {
   /** Addresses of all masters. Should have the same size as {@link #mMasters}. */
   private List<MasterNetAddress> mMasterAddresses;
   private State mState;
-  private TestingServer mCuratorServer;
+  private RestartableTestingServer mCuratorServer;
   /**
    * Tracks whether the test has succeeded. If mSuccess is never updated before {@link #destroy()},
    * the state of the cluster will be saved as a tarball in the artifacts directory.
@@ -122,8 +122,8 @@ public final class MultiProcessCluster implements TestRule {
 
     mMasterAddresses = generateMasterAddresses(mNumMasters);
     if (zkEnabled()) {
-      mCuratorServer = mCloser
-          .register(new TestingServer(-1, AlluxioTestDirectory.createTemporaryDirectory("zk")));
+      mCuratorServer =
+          new RestartableTestingServer(-1, AlluxioTestDirectory.createTemporaryDirectory("zk"));
       mProperties.put(PropertyKey.ZOOKEEPER_ADDRESS, mCuratorServer.getConnectString());
     } else {
       MasterNetAddress masterAddress = mMasterAddresses.get(0);
@@ -294,6 +294,21 @@ public final class MultiProcessCluster implements TestRule {
    */
   public synchronized void stopWorker(int i) throws IOException {
     mWorkers.get(i).close();
+  }
+
+  /**
+   * Stops the Zookeeper cluster.
+   */
+  public void stopZk() throws IOException {
+    mCuratorServer.stop();
+  }
+
+  /**
+   * Starts the Zookeeper cluster.
+   */
+  public void startZk() throws Exception {
+    Preconditions.checkNotNull(mCuratorServer, "mCuratorServer");
+    mCuratorServer.start();
   }
 
   /**
