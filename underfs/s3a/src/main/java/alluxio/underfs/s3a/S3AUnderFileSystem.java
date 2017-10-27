@@ -487,17 +487,10 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
       }
       throw new IOException(e);
     } catch (AmazonClientException e) {
-<<<<<<< HEAD
       throw new IOException(e);
-||||||| merged common ancestors
-      LOG.warn("getObjectStatus error for {}, exception: {}. Assuming file does not exist.", key,
-          e.getMessage());
-      return null;
-=======
       LOG.debug("getObjectStatus error for {}, exception: {}. Assuming file does not exist.", key,
           e.getMessage());
       return null;
->>>>>>> upstream/branch-1.6
     }
   }
 
