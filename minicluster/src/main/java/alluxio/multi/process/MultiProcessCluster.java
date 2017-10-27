@@ -125,8 +125,8 @@ public final class MultiProcessCluster implements TestRule {
     mMasterAddresses = generateMasterAddresses(mNumMasters);
     switch (mDeployMode) {
       case ZOOKEEPER_HA:
-      mCuratorServer = mCloser
-          .register(new TestingServer(-1, AlluxioTestDirectory.createTemporaryDirectory("zk")));
+        mCuratorServer = mCloser
+            .register(new TestingServer(-1, AlluxioTestDirectory.createTemporaryDirectory("zk")));
         mProperties.put(PropertyKey.ZOOKEEPER_ENABLED, "true");
         mProperties.put(PropertyKey.ZOOKEEPER_ADDRESS, mCuratorServer.getConnectString());
         break;
@@ -438,6 +438,9 @@ public final class MultiProcessCluster implements TestRule {
     NOT_STARTED, STARTED, DESTROYED;
   }
 
+  /**
+   * Deploy mode for the cluster.
+   */
   public enum DeployMode {
     NON_HA, ZOOKEEPER_HA
   }
@@ -519,7 +522,8 @@ public final class MultiProcessCluster implements TestRule {
      * @return a constructed {@link MultiProcessCluster}
      */
     public MultiProcessCluster build() {
-      return new MultiProcessCluster(mProperties, mNumMasters, mNumWorkers, mClusterName, mDeployMode);
+      return new MultiProcessCluster(mProperties, mNumMasters, mNumWorkers, mClusterName,
+          mDeployMode);
     }
   }
 
