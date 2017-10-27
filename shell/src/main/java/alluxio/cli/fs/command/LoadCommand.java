@@ -91,7 +91,7 @@ public final class LoadCommand extends WithWildCardPathCommand {
       if (local) {
         if (!FileSystemContext.INSTANCE.hasLocalWorker()) {
           System.out.println("When local option is specified,"
-              + " there must have a local worker available");
+              + " there must be a local worker available");
           return;
         }
         options.setCacheLocationPolicy(new LocalFirstPolicy());
