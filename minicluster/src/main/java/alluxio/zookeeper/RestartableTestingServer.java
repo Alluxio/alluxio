@@ -36,9 +36,9 @@ public final class RestartableTestingServer extends TestingServer {
   }
 
   /**
-   * Starts the internal testing server.
+   * Restarts the internal testing server.
    */
-  public void start() throws Exception {
-    mTestingZooKeeperServer.start();
+  public void restart() throws Exception {
+    mTestingZooKeeperServer.restart();
   }
 }

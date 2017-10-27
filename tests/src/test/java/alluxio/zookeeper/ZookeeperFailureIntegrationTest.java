@@ -11,21 +11,33 @@
 
 package alluxio.zookeeper;
 
-import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertFalse;
 
 import alluxio.AlluxioOperationThread;
 import alluxio.BaseIntegrationTest;
 import alluxio.ConfigurationRule;
+import alluxio.Constants;
 import alluxio.PropertyKey;
+import alluxio.multi.process.MasterNetAddress;
 import alluxio.multi.process.MultiProcessCluster;
+import alluxio.security.authentication.TransportProvider;
+import alluxio.security.authentication.TransportProvider.Factory;
+import alluxio.thrift.FileSystemMasterClientService.Client;
+import alluxio.thrift.ListStatusTOptions;
 import alluxio.util.CommonUtils;
 
 import com.google.common.base.Function;
 import com.google.common.collect.ImmutableMap;
+import org.apache.thrift.TException;
+import org.apache.thrift.protocol.TBinaryProtocol;
+import org.apache.thrift.protocol.TMultiplexedProtocol;
+import org.apache.thrift.protocol.TProtocol;
 import org.junit.Rule;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.net.InetSocketAddress;
 
 /**
  * Integration tests for Alluxio high availability when Zookeeper has failures.
@@ -35,19 +47,28 @@ public class ZookeeperFailureIntegrationTest extends BaseIntegrationTest {
 
   @Rule
   public ConfigurationRule mConf = new ConfigurationRule(ImmutableMap.of(
-      PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, "1000"));
+      PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, "1000",
+      PropertyKey.USER_RPC_RETRY_MAX_NUM_RETRY, "5",
+      PropertyKey.USER_RPC_RETRY_BASE_SLEEP_MS, "500",
+      PropertyKey.USER_RPC_RETRY_MAX_SLEEP_MS, "500")
+  );
 
   @Rule
   public MultiProcessCluster mCluster = MultiProcessCluster.newBuilder()
       .setClusterName("ZookeeperFailure")
       .addProperty(PropertyKey.ZOOKEEPER_ENABLED, "true")
-      .setNumMasters(2)
+      .setNumMasters(1)
       .setNumWorkers(1)
       .build();
 
+  /*
+   * This test starts alluxio in HA mode, kills Zookeeper, waits for Alluxio to fail, then restarts
+   * Zookeeper. Alluxio should recover when Zookeeper is restarted.
+   */
   @Test
   public void zkFailure() throws Exception {
-    final AlluxioOperationThread thread = new AlluxioOperationThread(mCluster.getFileSystemClient());
+    final AlluxioOperationThread thread =
+        new AlluxioOperationThread(mCluster.getFileSystemClient());
     thread.start();
     CommonUtils.waitFor("a successful operation to be performed", new Function<Void, Boolean>() {
       @Override
@@ -55,7 +76,6 @@ public class ZookeeperFailureIntegrationTest extends BaseIntegrationTest {
         return thread.successes() > 0;
       }
     });
-    assertNull(thread.getLatestFailure());
     mCluster.stopZk();
     long zkStopTime = System.currentTimeMillis();
     CommonUtils.waitFor("operations to start failing", new Function<Void, Boolean>() {
@@ -64,18 +84,43 @@ public class ZookeeperFailureIntegrationTest extends BaseIntegrationTest {
         return thread.getLatestFailure() != null;
       }
     });
+
+    assertFalse(rpcServiceAvailable());
     LOG.info("First operation failed {}ms after stopping the Zookeeper cluster",
         System.currentTimeMillis() - zkStopTime);
     final long successes = thread.successes();
-    mCluster.startZk();
+    mCluster.restartZk();
     long zkStartTime = System.currentTimeMillis();
-    CommonUtils.waitFor("another successful operation to be performed", new Function<Void, Boolean>() {
-      @Override
-      public Boolean apply(Void input) {
-        return thread.successes() > successes;
-      }
-    });
+    CommonUtils.waitFor("another successful operation to be performed",
+        new Function<Void, Boolean>() {
+          @Override
+          public Boolean apply(Void input) {
+            return thread.successes() > successes;
+          }
+        });
     LOG.info("Recovered after {}ms", System.currentTimeMillis() - zkStartTime);
     mCluster.notifySuccess();
+  }
+
+  /*
+   * This method uses a client with an explicit master address to ensure that the master has shut
+   * down its rpc service.
+   */
+  private boolean rpcServiceAvailable() throws Exception {
+    MasterNetAddress netAddress = mCluster.getMasterAddresses().get(0);
+    InetSocketAddress address =
+        new InetSocketAddress(netAddress.getHostname(), netAddress.getRpcPort());
+    try {
+      TransportProvider transportProvider = Factory.create();
+      TProtocol binaryProtocol =
+          new TBinaryProtocol(transportProvider.getClientTransport(null, address));
+      TMultiplexedProtocol protocol = new TMultiplexedProtocol(binaryProtocol,
+          Constants.FILE_SYSTEM_MASTER_CLIENT_SERVICE_NAME);
+      Client client = new Client(protocol);
+      client.listStatus("/", new ListStatusTOptions());
+    } catch (TException e) {
+      return false;
+    }
+    return true;
   }
 }

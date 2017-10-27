@@ -75,7 +75,7 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class MultiProcessCluster implements TestRule {
   private static final Logger LOG = LoggerFactory.getLogger(MultiProcessCluster.class);
   private static final File ARTIFACTS_DIR = new File("./target/artifacts");
-  private static final File TESTS_LOG = new File("./target/tests.log");
+  private static final File TESTS_LOG = new File("./target/logs/tests.log");
 
   private final Map<PropertyKey, String> mProperties;
   private final int mNumMasters;
@@ -297,6 +297,13 @@ public final class MultiProcessCluster implements TestRule {
   }
 
   /**
+   * @return return the list of master addresses
+   */
+  public List<MasterNetAddress> getMasterAddresses() {
+    return mMasterAddresses;
+  }
+
+  /**
    * Stops the Zookeeper cluster.
    */
   public void stopZk() throws IOException {
@@ -304,11 +311,11 @@ public final class MultiProcessCluster implements TestRule {
   }
 
   /**
-   * Starts the Zookeeper cluster.
+   * Restarts the Zookeeper cluster.
    */
-  public void startZk() throws Exception {
+  public void restartZk() throws Exception {
     Preconditions.checkNotNull(mCuratorServer, "mCuratorServer");
-    mCuratorServer.start();
+    mCuratorServer.restart();
   }
 
   /**
