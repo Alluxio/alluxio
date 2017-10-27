@@ -16,11 +16,11 @@ import static org.junit.Assert.fail;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
-import alluxio.PropertyKey;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.client.file.options.CreateFileOptions;
+import alluxio.multi.process.MultiProcessCluster.DeployMode;
 
 import org.junit.Rule;
 import org.junit.Test;
@@ -53,7 +53,7 @@ public final class MultiProcessClusterTest {
   public void zookeeper() throws Exception {
     mCluster = MultiProcessCluster.newBuilder()
         .setClusterName("zookeeper")
-        .addProperty(PropertyKey.ZOOKEEPER_ENABLED, "true")
+        .setDeployMode(DeployMode.ZOOKEEPER_HA)
         .setNumMasters(3)
         .setNumWorkers(2)
         .build();
