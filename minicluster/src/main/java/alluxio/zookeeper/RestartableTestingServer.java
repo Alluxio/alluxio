@@ -25,9 +25,7 @@ public final class RestartableTestingServer extends TestingServer {
   private final TestingZooKeeperServer mTestingZooKeeperServer;
 
   /**
-   * Creates the server using the given port.
-   *
-   * @param port the port
+   * @param port port to use
    * @param tempDirectory directory to use
    */
   public RestartableTestingServer(int port, File tempDirectory) throws Exception {
