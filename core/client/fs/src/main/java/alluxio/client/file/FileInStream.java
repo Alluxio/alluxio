@@ -40,6 +40,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.List;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -76,6 +77,8 @@ public class FileInStream extends InputStream
   private final AlluxioBlockStore mBlockStore;
   /** File information. */
   protected final URIStatus mStatus;
+  /** Block IDs. */
+  protected final List<Long> mBlockIds;
 
   /** If the stream is closed, this can only go from false to true. */
   protected boolean mClosed;
@@ -98,8 +101,8 @@ public class FileInStream extends InputStream
    * stream reads from a remote worker.
    */
   protected BlockOutStream mCurrentCacheStream;
-  /** The blockId used in the block streams. */
-  private long mStreamBlockId;
+  /** Index of the ID of the current block stream in {@link #mBlockIds}. */
+  protected int mBlockIdIndex = -1;
 
   /** The read buffer in file seek. This is used in {@link #readCurrentBlockToEnd()}. */
   private final byte[] mSeekBuffer;
@@ -128,6 +131,7 @@ public class FileInStream extends InputStream
    */
   protected FileInStream(URIStatus status, InStreamOptions options, FileSystemContext context) {
     mStatus = status;
+    mBlockIds = status.getBlockIds();
     mInStreamOptions = options;
     mOutStreamOptions = OutStreamOptions.defaults();
     mBlockSize = status.getBlockSizeBytes();
@@ -377,11 +381,11 @@ public class FileInStream extends InputStream
    * Checks whether block instream and cache outstream should be updated. This function is only
    * called by {@link #updateStreams()}.
    *
-   * @param currentBlockId cached result of {@link #getCurrentBlockId()}
+   * @param blockIdIndex the expected index of the block ID in {@link #mBlockIds}
    * @return true if the block stream should be updated
    */
-  protected boolean shouldUpdateStreams(long currentBlockId) {
-    if (mCurrentBlockInStream == null || currentBlockId != mStreamBlockId) {
+  protected boolean shouldUpdateStreams(int blockIdIndex) {
+    if (mCurrentBlockInStream == null || blockIdIndex != mBlockIdIndex) {
       return true;
     }
     if (mCurrentCacheStream != null
@@ -427,13 +431,15 @@ public class FileInStream extends InputStream
   }
 
   /**
-   * @return the current block id based on mPos, -1 if at the end of the file
+   * @return the current block id based on mBlockIdIndex, -1 if at the end of the file
    */
   private long getCurrentBlockId() {
     if (remainingInternal() <= 0) {
       return -1;
     }
-    return getBlockId(mPos);
+    Preconditions.checkState(mBlockIdIndex < mBlockIds.size(),
+        PreconditionMessage.ERR_BLOCK_INDEX.toString(), mBlockIdIndex, mPos, mBlockIds.size());
+    return mBlockIds.get(mBlockIdIndex);
   }
 
   /**
@@ -442,9 +448,9 @@ public class FileInStream extends InputStream
    */
   private long getBlockId(long pos) {
     int index = (int) (pos / mBlockSize);
-    Preconditions.checkState(index < mStatus.getBlockIds().size(),
-        PreconditionMessage.ERR_BLOCK_INDEX.toString(), index, pos, mStatus.getBlockIds().size());
-    return mStatus.getBlockIds().get(index);
+    Preconditions.checkState(index < mBlockIds.size(),
+        PreconditionMessage.ERR_BLOCK_INDEX.toString(), index, pos, mBlockIds.size());
+    return mBlockIds.get(index);
   }
 
   /**
@@ -469,20 +475,33 @@ public class FileInStream extends InputStream
 
   /**
    * Only updates {@link #mCurrentCacheStream}, {@link #mCurrentBlockInStream} and
-   * {@link #mStreamBlockId} to be in sync with the current block (i.e. {@link #getCurrentBlockId()}
-   * ). If this method is called multiple times, the subsequent invokes become no-op. Call this
-   * function every read and seek unless you are sure about the block streams are up-to-date.
+   * {@link #mBlockIdIndex} to be in sync with the current block
+   * (i.e. {@link #getCurrentBlockId()}). If this method is called multiple times, the subsequent
+   * invokes become no-op. Call this function every read and seek unless you are sure about the
+   * block streams are up-to-date.
    */
   private void updateStreams() throws IOException {
+    if (shouldUpdateStreams(mBlockIdIndex)) {
+      mBlockIdIndex++;
+      updateStreamsBasedOnBlockIdIndex();
+    }
+  }
+
+  private void updateStreamsBasedOnPos() throws IOException {
+    int blockIdIndex = (int) (mPos / mBlockSize);
+    if (shouldUpdateStreams(blockIdIndex)) {
+      mBlockIdIndex = blockIdIndex;
+      updateStreamsBasedOnBlockIdIndex();
+    }
+  }
+
+  private void updateStreamsBasedOnBlockIdIndex() throws IOException {
     long currentBlockId = getCurrentBlockId();
-    if (shouldUpdateStreams(currentBlockId)) {
-      // The following two function handle negative currentBlockId (i.e. the end of file)
-      // correctly.
-      updateBlockInStream(currentBlockId);
-      if (PASSIVE_CACHE_ENABLED) {
-        updateCacheStream(currentBlockId);
-      }
-      mStreamBlockId = currentBlockId;
+    // The following two function handle negative currentBlockId (i.e. the end of file)
+    // correctly.
+    updateBlockInStream(currentBlockId);
+    if (PASSIVE_CACHE_ENABLED) {
+      updateCacheStream(currentBlockId);
     }
   }
 
@@ -590,7 +609,7 @@ public class FileInStream extends InputStream
   private void seekInternal(long pos) throws IOException {
     closeOrCancelCacheStream();
     mPos = pos;
-    updateStreams();
+    updateStreamsBasedOnPos();
     if (mCurrentBlockInStream != null) {
       mCurrentBlockInStream.seek(mPos % mBlockSize);
     } else {
@@ -651,7 +670,7 @@ public class FileInStream extends InputStream
         // so directly seeks to position.
         mPos = pos;
         // updateStreams is necessary when pos = mFileLength.
-        updateStreams();
+        updateStreamsBasedOnPos();
         if (mCurrentBlockInStream != null) {
           mCurrentBlockInStream.seek(mPos % mBlockSize);
         } else {
@@ -693,7 +712,7 @@ public class FileInStream extends InputStream
     // lastly handle the target block
     // the seek is outside the current block, seek to the beginning of that block first
     mPos = pos / mBlockSize * mBlockSize;
-    updateStreams();
+    updateStreamsBasedOnPos();
     if (canCacheToLocalWorker()) {
       // cache till the seek position of the block unless
       // (1) the in stream reads from the local worker
