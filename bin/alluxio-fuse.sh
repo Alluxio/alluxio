@@ -63,7 +63,7 @@ mount_fuse() {
   (nohup "${JAVA}" -cp ${CLASSPATH} ${JAVA_OPTS} ${ALLUXIO_FUSE_JAVA_OPTS} \
     alluxio.fuse.AlluxioFuse \
     -m ${mount_point} \
-    -o big_writes,allow_root > ${ALLUXIO_LOGS_DIR}/fuse.out 2>&1) &
+    -o big_writes,allow_other > ${ALLUXIO_LOGS_DIR}/fuse.out 2>&1) &
   # sleep: workaround to let the bg java process exit on errors, if any
   sleep 2s
   if kill -0 $! > /dev/null 2>&1 ; then

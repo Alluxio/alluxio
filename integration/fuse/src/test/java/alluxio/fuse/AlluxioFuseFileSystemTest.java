@@ -50,7 +50,6 @@ import java.util.List;
 /**
  * Isolation tests for {@link AlluxioFuseFileSystem}.
  */
-// TODO(andreareale): this test suite should be completed
 public class AlluxioFuseFileSystemTest {
 
   private static final String TEST_ROOT_PATH = "/t/root";
@@ -84,19 +83,6 @@ public class AlluxioFuseFileSystemTest {
   }
 
   @Test
-  public void createWrongFlags() throws Exception {
-    mFileInfo.flags.set(O_RDONLY.intValue());
-    int ret = mFuseFs.create("/foo/bar", 0, mFileInfo);
-    verifyZeroInteractions(mFileSystem);
-    assertEquals("Expected invalid access", -ErrorCodes.EACCES(), ret);
-
-    mFileInfo.flags.set(O_RDWR.intValue());
-    ret = mFuseFs.create("/foo/bar", 0, mFileInfo);
-    verifyZeroInteractions(mFileSystem);
-    assertEquals("Expected invalid access", -ErrorCodes.EACCES(), ret);
-  }
-
-  @Test
   public void flush() throws Exception {
     FileOutStream fos = mock(FileOutStream.class);
     AlluxioURI anyURI = any();
@@ -109,6 +95,17 @@ public class AlluxioFuseFileSystemTest {
     // then call flush into it
     mFuseFs.flush("/foo/bar", mFileInfo);
     verify(fos).flush();
+  }
+
+  @Test
+  public void getattr() throws Exception {
+    FileInfo info = new FileInfo();
+    info.setLength(10);
+    info.setLastModificationTimeMs(1000);
+
+    URIStatus status = new URIStatus(info);
+    AlluxioURI anyURI = any();
+    when(mFileSystem.getStatus(anyURI)).thenReturn(status);
   }
 
   @Test

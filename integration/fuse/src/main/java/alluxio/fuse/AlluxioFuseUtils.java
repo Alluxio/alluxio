@@ -11,6 +11,7 @@
 
 package alluxio.fuse;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -51,27 +52,53 @@ public final class AlluxioFuseUtils {
   }
 
   /**
+   * Gets the user name and group name from the user id.
+   *
+   * @param uid user id
+   * @return a string[2] array {userName, groupName}
+   */
+  public static String[] getUserAndGroupName(long uid) {
+    String userName = runCommandAndGetOutputLine("id", "-nu", new Long(uid).toString());
+    String groupName = runCommandAndGetOutputLine("id", "-ng", new Long(uid).toString());
+    return new String[] {userName, groupName};
+  }
+
+  /**
    * Runs the "id" command with the given options on the passed username.
+   *
    * @param option option to pass to id (either -u or -g)
    * @param username the username on which to run the command
    * @return the uid (-u) or gid (-g) of username
    */
   private static long getIdInfo(String option, String username) {
+    String output = runCommandAndGetOutputLine("id", option, username);
+    return Long.parseLong(output);
+  }
+
+  /**
+   * Runs the given shell command and returns the single line output in string
+   *
+   * @param command the command to run
+   * @return the first line of the command output
+   */
+  private static String runCommandAndGetOutputLine(String... command) {
     BufferedReader br = null;
+    String commandLine = StringUtils.join(command, " ");
     try {
-      final Process idProc = new ProcessBuilder().command("id", option, username).start();
+      final Process idProc = new ProcessBuilder().command(command).start();
       br = new BufferedReader(new InputStreamReader(idProc.getInputStream()));
       // expect only one line output
       final String out = br.readLine();
       if (idProc.waitFor() == 0) {
-        return Long.parseLong(out);
+        return out;
       } else {
-        LOG.error("id {} {} completed with error", option, username);
+
+        LOG.error("{} completed with error", commandLine);
       }
     } catch (IOException e) {
-      LOG.error("Cannot execute: id {} {}", option, username, e);
+      LOG.error("Cannot execute: {}", commandLine, e);
     } catch (InterruptedException e) {
-      LOG.error("Interrupted while waiting: id {} {}", option, username, e);
+      LOG.error("Interrupted while waiting: {}", commandLine, e);
     } finally {
       if (br != null) {
         try {
@@ -81,6 +108,6 @@ public final class AlluxioFuseUtils {
         }
       }
     }
-    return -1;
+    return "";
   }
 }

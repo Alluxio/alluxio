@@ -23,7 +23,6 @@ import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 import alluxio.security.authorization.Mode;
-import alluxio.security.group.GroupMappingService;
 import alluxio.security.group.provider.ShellBasedUnixGroupsMapping;
 
 import com.google.common.base.Preconditions;
@@ -31,9 +30,11 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import jnr.ffi.Pointer;
+import jnr.ffi.types.gid_t;
 import jnr.ffi.types.mode_t;
 import jnr.ffi.types.off_t;
 import jnr.ffi.types.size_t;
+import jnr.ffi.types.uid_t;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.serce.jnrfuse.ErrorCodes;
@@ -62,6 +63,7 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
 
   private static final int MAX_OPEN_FILES = Integer.MAX_VALUE;
   private static final long[] UID_AND_GID = AlluxioFuseUtils.getUidAndGid();
+  private final boolean mIsShellGroupMapping;
 
   private final FileSystem mFileSystem;
   // base path within Alluxio namespace that is used for FUSE operations
@@ -90,6 +92,8 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
     mOpenFiles = new HashMap<>();
 
     final int maxCachedPaths = Configuration.getInt(PropertyKey.FUSE_CACHED_PATHS_MAX);
+    mIsShellGroupMapping = Configuration.get(
+        PropertyKey.SECURITY_GROUP_MAPPING_CLASS) == ShellBasedUnixGroupsMapping.class.getName();
     mPathResolverCache = CacheBuilder.newBuilder()
         .maximumSize(maxCachedPaths)
         .build(new PathCacheLoader());
@@ -117,6 +121,44 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
       return -ErrorCodes.EIO();
     }
 
+    return 0;
+  }
+
+  /**
+   * Changes the owner of an Alluxio file.
+   *
+   * This operation only works when the group mapping service is shelled based and the user is
+   * registered in unix. Otherwise it errors as not implemented.
+   */
+  @Override
+  public int chown(String path, @uid_t long uid, @gid_t long gid) {
+    if (!mIsShellGroupMapping) {
+      LOG.info("Cannot change the owner of path {} because the group mapping is not shell based",
+          path);
+      // not supported if the group mapping is not shell based
+      return -ErrorCodes.ENOSYS();
+    }
+    String[] userGroupNames = AlluxioFuseUtils.getUserAndGroupName(uid);
+    String userName = userGroupNames[0];
+    String groupName = userGroupNames[1];
+    if (userName.isEmpty()) {
+      LOG.error("Failed to get user name from uid {}", uid);
+      return -ErrorCodes.EFAULT();
+    }
+    if (groupName.isEmpty()) {
+      LOG.error("Failed to get group name from uid {}", uid);
+      return -ErrorCodes.EFAULT();
+    }
+    SetAttributeOptions options =
+        SetAttributeOptions.defaults().setGroup(groupName).setOwner(userName);
+    final AlluxioURI uri = mPathResolverCache.getUnchecked(path);
+    LOG.info("Change owner and group of file {} to {}:{}", path, userName, groupName);
+    try {
+      mFileSystem.setAttribute(uri, options);
+    } catch (IOException | AlluxioException e) {
+      LOG.error("Exception on {}", path, e);
+      return -ErrorCodes.EIO();
+    }
     return 0;
   }
 
@@ -232,7 +274,7 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
 
       // for shell-based group mapping, use the uid and gid of the corresponding user registered in
       // unix; otherwise use uid and gid of the user running alluxio-fuse
-      if(GroupMappingService.Factory.get() instanceof ShellBasedUnixGroupsMapping) {
+      if (mIsShellGroupMapping) {
         String owner = status.getOwner();
         long[] uidAndGid = AlluxioFuseUtils.getUidAndGid(owner);
         stat.st_uid.set(uidAndGid[0]);
