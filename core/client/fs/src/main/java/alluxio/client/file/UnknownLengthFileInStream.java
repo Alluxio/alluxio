@@ -100,7 +100,7 @@ public final class UnknownLengthFileInStream extends FileInStream {
   }
 
   @Override
-  protected boolean shouldUpdateStreams(int blockIdIndex) {
+  protected boolean shouldUpdateStreams() {
     // Return true either at the beginning of a file or the end of a file.
     return mCurrentBlockInStream == null || mCurrentBlockInStream.remaining() == 0;
   }

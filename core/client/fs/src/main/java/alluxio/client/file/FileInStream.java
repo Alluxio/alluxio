@@ -78,7 +78,7 @@ public class FileInStream extends InputStream
   /** File information. */
   protected final URIStatus mStatus;
   /** Block IDs. */
-  protected final List<Long> mBlockIds;
+  private final List<Long> mBlockIds;
 
   /** If the stream is closed, this can only go from false to true. */
   protected boolean mClosed;
@@ -103,10 +103,9 @@ public class FileInStream extends InputStream
   protected BlockOutStream mCurrentCacheStream;
   /** Index of the ID of the current block stream in {@link #mBlockIds}. -1 means there is no
    * current block stream yet. When the file stream has reached EOF, it is set to the length of
-   * {@link #mBlockIds}. It might be used in the protected method {@link #shouldUpdateStreams(int)},
-   * so it's made protected too.
+   * {@link #mBlockIds}.
    */
-  protected int mBlockIdIndex = -1;
+  private int mBlockIdIndex = -1;
 
   /** The read buffer in file seek. This is used in {@link #readCurrentBlockToEnd()}. */
   private final byte[] mSeekBuffer;
@@ -385,20 +384,23 @@ public class FileInStream extends InputStream
    * Checks whether block instream and cache outstream should be updated. This function is only
    * called by {@link #updateStreams()}.
    *
-   * @param blockIdIndex the expected index of the block ID in {@link #mBlockIds}
    * @return true if the block stream should be updated
    */
-  protected boolean shouldUpdateStreams(int blockIdIndex) {
-    if (mCurrentBlockInStream == null || blockIdIndex != mBlockIdIndex) {
-      return true;
+  protected boolean shouldUpdateStreams() {
+    if (mBlockIdIndex >= mBlockIds.size()) {
+      // EOF
+      return false;
     }
+    return mCurrentBlockInStream == null || mCurrentBlockInStream.remaining() == 0;
+  }
+
+  private void assureCacheStreamInSync() {
     if (mCurrentCacheStream != null
         && mCurrentBlockInStream.remaining() != mCurrentCacheStream.remaining()) {
       throw new IllegalStateException(
           String.format("BlockInStream and CacheStream is out of sync %d %d.",
               mCurrentBlockInStream.remaining(), mCurrentCacheStream.remaining()));
     }
-    return mCurrentBlockInStream.remaining() == 0;
   }
 
   /**
@@ -485,15 +487,19 @@ public class FileInStream extends InputStream
    * block streams are up-to-date.
    */
   private void updateStreams() throws IOException {
-    if (shouldUpdateStreams(mBlockIdIndex)) {
+    assureCacheStreamInSync();
+    if (shouldUpdateStreams()) {
       mBlockIdIndex++;
       updateStreamsBasedOnBlockIdIndex();
     }
   }
 
   private void updateStreamsBasedOnPos() throws IOException {
+    assureCacheStreamInSync();
     int blockIdIndex = (int) (mPos / mBlockSize);
-    if (shouldUpdateStreams(blockIdIndex)) {
+    if (blockIdIndex == mBlockIdIndex) {
+      updateStreams();
+    } else {
       mBlockIdIndex = blockIdIndex;
       updateStreamsBasedOnBlockIdIndex();
     }
