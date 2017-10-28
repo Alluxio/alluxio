@@ -480,11 +480,10 @@ public class FileInStream extends InputStream
   }
 
   /**
-   * Only updates {@link #mCurrentCacheStream}, {@link #mCurrentBlockInStream} and
-   * {@link #mBlockIdIndex} to be in sync with the current block
-   * (i.e. {@link #getCurrentBlockId()}). If this method is called multiple times, the subsequent
-   * invokes become no-op. Call this function every read and seek unless you are sure about the
-   * block streams are up-to-date.
+   * Checks whether the current block stream has remaining bytes, if not, advance to the next block
+   * stream, otherwise, this is a no-op. This should only be used in streaming read APIs.
+   * For APIs like {@link #seek(long)}, {@link #skip(long)}, the block stream should be updated
+   * according to the current read position, use {@link #updateStreamsBasedOnPosition()} instead.
    */
   private void updateStreams() throws IOException {
     assureCacheStreamInSync();
@@ -494,6 +493,12 @@ public class FileInStream extends InputStream
     }
   }
 
+  /**
+   * Computes the current block stream ID based on the current read position, and updates the
+   * stream. Comparing to {@link #updateStreams()}, this method has overhead for computing the
+   * block stream ID, only use this method for non-streaming read APIs like {@link #seek(long)}
+   * and {@link #skip(long)}.
+   */
   private void updateStreamsBasedOnPosition() throws IOException {
     assureCacheStreamInSync();
     int blockIdIndex = (int) (mPos / mBlockSize);
@@ -505,6 +510,10 @@ public class FileInStream extends InputStream
     }
   }
 
+  /**
+   * Updates block and cache streams based on the current block ID. Used internally in
+   * {@link #updateStreams()} and {@link #updateStreamsBasedOnPosition()}.
+   */
   private void updateStreamsInternal() throws IOException {
     long currentBlockId = getCurrentBlockId();
     // The following two function handle negative currentBlockId (i.e. the end of file)
