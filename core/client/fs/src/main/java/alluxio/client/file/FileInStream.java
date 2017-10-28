@@ -490,22 +490,22 @@ public class FileInStream extends InputStream
     assureCacheStreamInSync();
     if (shouldUpdateStreams()) {
       mBlockIdIndex++;
-      updateStreamsBasedOnBlockIdIndex();
+      updateStreamsInternal();
     }
   }
 
-  private void updateStreamsBasedOnPos() throws IOException {
+  private void updateStreamsBasedOnPosition() throws IOException {
     assureCacheStreamInSync();
     int blockIdIndex = (int) (mPos / mBlockSize);
     if (blockIdIndex == mBlockIdIndex) {
       updateStreams();
     } else {
       mBlockIdIndex = blockIdIndex;
-      updateStreamsBasedOnBlockIdIndex();
+      updateStreamsInternal();
     }
   }
 
-  private void updateStreamsBasedOnBlockIdIndex() throws IOException {
+  private void updateStreamsInternal() throws IOException {
     long currentBlockId = getCurrentBlockId();
     // The following two function handle negative currentBlockId (i.e. the end of file)
     // correctly.
@@ -619,7 +619,7 @@ public class FileInStream extends InputStream
   private void seekInternal(long pos) throws IOException {
     closeOrCancelCacheStream();
     mPos = pos;
-    updateStreamsBasedOnPos();
+    updateStreamsBasedOnPosition();
     if (mCurrentBlockInStream != null) {
       mCurrentBlockInStream.seek(mPos % mBlockSize);
     } else {
@@ -680,7 +680,7 @@ public class FileInStream extends InputStream
         // so directly seeks to position.
         mPos = pos;
         // updateStreams is necessary when pos = mFileLength.
-        updateStreamsBasedOnPos();
+        updateStreamsBasedOnPosition();
         if (mCurrentBlockInStream != null) {
           mCurrentBlockInStream.seek(mPos % mBlockSize);
         } else {
@@ -722,7 +722,7 @@ public class FileInStream extends InputStream
     // lastly handle the target block
     // the seek is outside the current block, seek to the beginning of that block first
     mPos = pos / mBlockSize * mBlockSize;
-    updateStreamsBasedOnPos();
+    updateStreamsBasedOnPosition();
     if (canCacheToLocalWorker()) {
       // cache till the seek position of the block unless
       // (1) the in stream reads from the local worker
