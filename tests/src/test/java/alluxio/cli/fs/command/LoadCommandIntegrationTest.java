@@ -60,10 +60,17 @@ public final class LoadCommandIntegrationTest extends AbstractAlluxioShellTest {
     mFsShell.run("load", "/testFile");
     status = mFileSystem.getStatus(uri);
     assertTrue(status.getInAlluxioPercentage() == 100);
+  }
+
+  @Test
+  public void loadFileWithLocalOption() throws IOException, AlluxioException {
+    FileSystemTestUtils.createByteFile(mFileSystem, "/testFile", WriteType.CACHE_THROUGH, 10);
+    AlluxioURI uri = new AlluxioURI("/testFile");
+    URIStatus status = mFileSystem.getStatus(uri);
+    assertTrue(status.getInAlluxioPercentage() == 100);
     // Testing loading a file has been loaded fully
     mFsShell.run("load", "--local", "/testFile");
-    Assert.assertEquals("/testFile" + " loaded" + "\n" + "/testFile" + " loaded" + "\n",
-        mOutput.toString());
+    Assert.assertEquals("/testFile" + " loaded" + "\n", mOutput.toString());
     // Testing "load --local" works when the file isn't already loaded
     FileSystemTestUtils.createByteFile(mFileSystem, "/testFile2", WriteType.THROUGH, 10);
     uri = new AlluxioURI("/testFile2");
