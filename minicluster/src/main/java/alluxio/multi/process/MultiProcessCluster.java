@@ -124,17 +124,17 @@ public final class MultiProcessCluster implements TestRule {
 
     mMasterAddresses = generateMasterAddresses(mNumMasters);
     switch (mDeployMode) {
-      case ZOOKEEPER_HA:
-        mCuratorServer = mCloser
-            .register(new TestingServer(-1, AlluxioTestDirectory.createTemporaryDirectory("zk")));
-        mProperties.put(PropertyKey.ZOOKEEPER_ENABLED, "true");
-        mProperties.put(PropertyKey.ZOOKEEPER_ADDRESS, mCuratorServer.getConnectString());
-        break;
       case NON_HA:
         MasterNetAddress masterAddress = mMasterAddresses.get(0);
         mProperties.put(PropertyKey.MASTER_HOSTNAME, masterAddress.getHostname());
         mProperties.put(PropertyKey.MASTER_RPC_PORT, Integer.toString(masterAddress.getRpcPort()));
         mProperties.put(PropertyKey.MASTER_WEB_PORT, Integer.toString(masterAddress.getWebPort()));
+        break;
+      case ZOOKEEPER_HA:
+        mCuratorServer = mCloser
+            .register(new TestingServer(-1, AlluxioTestDirectory.createTemporaryDirectory("zk")));
+        mProperties.put(PropertyKey.ZOOKEEPER_ENABLED, "true");
+        mProperties.put(PropertyKey.ZOOKEEPER_ADDRESS, mCuratorServer.getConnectString());
         break;
       default:
         throw new IllegalStateException("Unknown deploy mode: " + mDeployMode.toString());
@@ -371,15 +371,15 @@ public final class MultiProcessCluster implements TestRule {
 
   private MasterInquireClient getMasterInquireClient() {
     switch (mDeployMode) {
-      case ZOOKEEPER_HA:
-        return ZkMasterInquireClient.getClient(mCuratorServer.getConnectString(),
-            Configuration.get(PropertyKey.ZOOKEEPER_ELECTION_PATH),
-            Configuration.get(PropertyKey.ZOOKEEPER_LEADER_PATH));
       case NON_HA:
         Preconditions.checkState(mMasters.size() == 1,
             "Running with multiple masters requires Zookeeper to be enabled");
         return new SingleMasterInquireClient(new InetSocketAddress(
             mMasterAddresses.get(0).getHostname(), mMasterAddresses.get(0).getRpcPort()));
+      case ZOOKEEPER_HA:
+        return ZkMasterInquireClient.getClient(mCuratorServer.getConnectString(),
+            Configuration.get(PropertyKey.ZOOKEEPER_ELECTION_PATH),
+            Configuration.get(PropertyKey.ZOOKEEPER_LEADER_PATH));
       default:
         throw new IllegalStateException("Unknown deploy mode: " + mDeployMode.toString());
     }
@@ -463,10 +463,8 @@ public final class MultiProcessCluster implements TestRule {
      * @return the builder
      */
     public Builder addProperty(PropertyKey key, String value) {
-      if (key.equals(PropertyKey.ZOOKEEPER_ENABLED)) {
-        throw new IllegalArgumentException(
-            "Enable Zookeeper via #setDeployMode instead of #addProperty");
-      }
+      Preconditions.checkState(key.equals(PropertyKey.ZOOKEEPER_ENABLED),
+          "Enable Zookeeper via #setDeployMode instead of #addProperty");
       mProperties.put(key, value);
       return this;
     }
