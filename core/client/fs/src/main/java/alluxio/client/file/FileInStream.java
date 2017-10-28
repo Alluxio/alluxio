@@ -101,7 +101,11 @@ public class FileInStream extends InputStream
    * stream reads from a remote worker.
    */
   protected BlockOutStream mCurrentCacheStream;
-  /** Index of the ID of the current block stream in {@link #mBlockIds}. */
+  /** Index of the ID of the current block stream in {@link #mBlockIds}. -1 means there is no
+   * current block stream yet. When the file stream has reached EOF, it is set to the length of
+   * {@link #mBlockIds}. It might be used in the protected method {@link #shouldUpdateStreams(int)},
+   * so it's made protected too.
+   */
   protected int mBlockIdIndex = -1;
 
   /** The read buffer in file seek. This is used in {@link #readCurrentBlockToEnd()}. */
