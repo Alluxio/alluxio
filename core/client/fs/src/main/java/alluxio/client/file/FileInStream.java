@@ -387,8 +387,8 @@ public class FileInStream extends InputStream
    * @return true if the block stream should be updated
    */
   protected boolean shouldUpdateStreams() {
-    if (mBlockIdIndex >= mBlockIds.size()) {
-      // EOF
+    if (mBlockIdIndex == mBlockIds.size()) {
+      // EOF.
       return false;
     }
     return mCurrentBlockInStream == null || mCurrentBlockInStream.remaining() == 0;
@@ -444,7 +444,7 @@ public class FileInStream extends InputStream
       return -1;
     }
     Preconditions.checkState(mBlockIdIndex < mBlockIds.size(),
-        PreconditionMessage.ERR_BLOCK_INDEX.toString(), mBlockIdIndex, mPos, mBlockIds.size());
+        PreconditionMessage.ERR_BLOCK_INDEX.toString(), mBlockIdIndex, mPos, mBlockIds.size() - 1);
     return mBlockIds.get(mBlockIdIndex);
   }
 
@@ -455,7 +455,7 @@ public class FileInStream extends InputStream
   private long getBlockId(long pos) {
     int index = (int) (pos / mBlockSize);
     Preconditions.checkState(index < mBlockIds.size(),
-        PreconditionMessage.ERR_BLOCK_INDEX.toString(), index, pos, mBlockIds.size());
+        PreconditionMessage.ERR_BLOCK_INDEX.toString(), index, pos, mBlockIds.size() - 1);
     return mBlockIds.get(index);
   }
 
@@ -494,17 +494,16 @@ public class FileInStream extends InputStream
   }
 
   /**
-   * Computes the current block stream ID based on the current read position, and updates the
-   * stream. Comparing to {@link #updateStreams()}, this method has overhead for computing the
+   * Computes the current block stream ID based on the current read position, if the stream ID is
+   * different from the current block stream ID, then updates the stream.
+   * Comparing to {@link #updateStreams()}, this method has overhead for computing the
    * block stream ID, only use this method for non-streaming read APIs like {@link #seek(long)}
    * and {@link #skip(long)}.
    */
   private void updateStreamsBasedOnPosition() throws IOException {
     assureCacheStreamInSync();
     int blockIdIndex = (int) (mPos / mBlockSize);
-    if (blockIdIndex == mBlockIdIndex) {
-      updateStreams();
-    } else {
+    if (blockIdIndex != mBlockIdIndex || shouldUpdateStreams()) {
       mBlockIdIndex = blockIdIndex;
       updateStreamsInternal();
     }

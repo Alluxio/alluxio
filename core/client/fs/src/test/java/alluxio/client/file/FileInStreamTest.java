@@ -290,6 +290,25 @@ public final class FileInStreamTest {
   }
 
   /**
+   * Tests seeking back to the beginning of a block after the block's remaining is 0.
+   */
+  @Test
+  public void seekToBeginningAfterReadingWholeBlock() throws IOException {
+    // Read the whole block.
+    int blockSize = (int) BLOCK_LENGTH;
+    byte[] block = new byte[blockSize];
+    mTestStream.read(block);
+    Assert.assertArrayEquals(BufferUtils.getIncreasingByteArray(0, blockSize), block);
+
+    // Seek to the beginning of the current block, then read half of it.
+    mTestStream.seek(0);
+    int halfBlockSize = blockSize / 2;
+    byte[] halfBlock = new byte[halfBlockSize];
+    mTestStream.read(halfBlock);
+    Assert.assertArrayEquals(BufferUtils.getIncreasingByteArray(0, halfBlockSize), halfBlock);
+  }
+
+  /**
    * Tests seeking with incomplete block caching enabled. It seeks backward for more than a block.
    */
   @Test
