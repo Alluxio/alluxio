@@ -84,6 +84,7 @@ public final class ConfigurationTestUtils {
     conf.put(PropertyKey.MASTER_WORKER_THREADS_MAX, "100");
     conf.put(PropertyKey.MASTER_STARTUP_CONSISTENCY_CHECK_ENABLED, "false");
     conf.put(PropertyKey.MASTER_JOURNAL_FLUSH_TIMEOUT_MS, "1sec");
+    conf.put(PropertyKey.MASTER_THRIFT_SHUTDOWN_TIMEOUT, "0sec");
 
     // Shutdown journal tailer quickly. Graceful shutdown is unnecessarily slow.
     conf.put(PropertyKey.MASTER_JOURNAL_TAILER_SHUTDOWN_QUIET_WAIT_TIME_MS, "50ms");
