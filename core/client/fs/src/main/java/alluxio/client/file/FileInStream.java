@@ -447,7 +447,7 @@ public class FileInStream extends InputStream
     if (remainingInternal() <= 0) {
       return EOF_BLOCK_ID;
     }
-    Preconditions.checkState(mBlockIndex < mBlockIds.size(),
+    Preconditions.checkState(mBlockIndex >= 0 && mBlockIndex < mBlockIds.size(),
         PreconditionMessage.ERR_BLOCK_INDEX.toString(), mBlockIndex, mPos, mBlockIds.size() - 1);
     return mBlockIds.get(mBlockIndex);
   }
@@ -458,7 +458,7 @@ public class FileInStream extends InputStream
    */
   private long getBlockId(long pos) {
     int index = (int) (pos / mBlockSize);
-    Preconditions.checkState(index < mBlockIds.size(),
+    Preconditions.checkState(index >= 0 && index < mBlockIds.size(),
         PreconditionMessage.ERR_BLOCK_INDEX.toString(), index, pos, mBlockIds.size() - 1);
     return mBlockIds.get(index);
   }
@@ -484,8 +484,8 @@ public class FileInStream extends InputStream
   }
 
   /**
-   * Checks whether the current block stream has remaining bytes, if not, advance to the next block
-   * stream, otherwise, this is a no-op.
+   * Checks whether the current block stream has remaining bytes, if not, advances to the next block
+   * stream. Otherwise, this is a no-op.
    *
    * This should only be used in streaming read APIs. For APIs like {@link #seek(long)},
    * {@link #skip(long)}, the block stream should be updated according to the current read position,
