@@ -96,7 +96,8 @@ public class FileInStream extends InputStream
   /** Whether to cache blocks in this file into Alluxio. */
   private final boolean mShouldCache;
 
-  // The following 3 fields must be kept in sync. They are only updated in updateStreamsOnRead together.
+  // The following 3 fields must be kept in sync. They are only updated together in
+  // updateStreamsOnRead and updateStreamsOnSeek.
   /** Current block in stream backing this stream. */
   protected BlockInStream mCurrentBlockInStream;
   /**
@@ -386,7 +387,7 @@ public class FileInStream extends InputStream
 
   /**
    * Checks whether block instream and cache outstream should be updated. This function is only
-   * called by {@link #updateStreamsOnRead()}.
+   * called by {@link #updateStreamsOnRead()} and {@link #updateStreamsOnSeek()}.
    *
    * @return true if the block stream should be updated
    */
@@ -552,7 +553,8 @@ public class FileInStream extends InputStream
    * </ol>
    * After this call, {@link #mCurrentCacheStream} is either null or freshly created.
    * {@link #mCurrentCacheStream} is created only if the block is not cached in a chosen machine and
-   * mPos is at the beginning of a block. This function is only called by {@link #updateStreamsOnRead()}.
+   * mPos is at the beginning of a block. This function is only called by
+   * {@link #updateStreamsInternal()}.
    *
    * @param blockId cached result of {@link #getCurrentBlockId()}
    */
@@ -593,7 +595,7 @@ public class FileInStream extends InputStream
 
   /**
    * Update {@link #mCurrentBlockInStream} to be in-sync with mPos's block. This function is only
-   * called in {@link #updateStreamsOnRead()}.
+   * called in {@link #updateStreamsInternal()}.
    *
    * @param blockId cached result of {@link #getCurrentBlockId()}
    */
