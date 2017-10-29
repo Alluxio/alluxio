@@ -463,7 +463,7 @@ public final class MultiProcessCluster implements TestRule {
      * @return the builder
      */
     public Builder addProperty(PropertyKey key, String value) {
-      Preconditions.checkState(key.equals(PropertyKey.ZOOKEEPER_ENABLED),
+      Preconditions.checkState(!key.equals(PropertyKey.ZOOKEEPER_ENABLED),
           "Enable Zookeeper via #setDeployMode instead of #addProperty");
       mProperties.put(key, value);
       return this;
