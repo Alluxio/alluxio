@@ -104,7 +104,8 @@ public class FileInStream extends InputStream
    * stream reads from a remote worker.
    */
   protected BlockOutStream mCurrentCacheStream;
-  /** Index of the ID of the current block stream in {@link #mBlockIds}. -1 means there is no
+  /**
+   * Index of the ID of the current block stream in {@link #mBlockIds}. -1 means there is no
    * current block stream yet. When the file stream has reached EOF, it is set to the length of
    * {@link #mBlockIds}.
    */
@@ -397,7 +398,7 @@ public class FileInStream extends InputStream
     return mCurrentBlockInStream == null || mCurrentBlockInStream.remaining() == 0;
   }
 
-  private void assureCacheStreamInSync() {
+  private void checkCacheStreamInSync() {
     if (mCurrentCacheStream != null
         && mCurrentBlockInStream.remaining() != mCurrentCacheStream.remaining()) {
       throw new IllegalStateException(
@@ -491,7 +492,7 @@ public class FileInStream extends InputStream
    * use {@link #updateStreamsBasedOnPosition()} instead.
    */
   private void updateStreams() throws IOException {
-    assureCacheStreamInSync();
+    checkCacheStreamInSync();
     if (shouldUpdateStreams()) {
       mBlockIndex++;
       updateStreamsInternal();
@@ -508,7 +509,7 @@ public class FileInStream extends InputStream
    * and {@link #skip(long)}.
    */
   private void updateStreamsBasedOnPosition() throws IOException {
-    assureCacheStreamInSync();
+    checkCacheStreamInSync();
     int blockIndex = (int) (mPos / mBlockSize);
     if (blockIndex != mBlockIndex || shouldUpdateStreams()) {
       mBlockIndex = blockIndex;
