@@ -105,9 +105,9 @@ public class FileInStream extends InputStream
    */
   protected BlockOutStream mCurrentCacheStream;
   /**
-   * Index of the ID of the current block stream in {@link #mBlockIds}. -1 means there is no
-   * current block stream yet. When the file stream has reached EOF, it is set to the length of
-   * {@link #mBlockIds}.
+   * Index of the ID of the current block stream in {@link #mBlockIds}.
+   * {@link #UNINITIALIZED_BLOCK_INDEX} means there is no current block stream yet.
+   * When the file stream has reached EOF, it is set to the length of {@link #mBlockIds}.
    */
   private int mBlockIndex = UNINITIALIZED_BLOCK_INDEX;
 
@@ -493,6 +493,12 @@ public class FileInStream extends InputStream
    */
   private void updateStreamsOnRead() throws IOException {
     checkCacheStreamInSync();
+    if (mBlockIndex == UNINITIALIZED_BLOCK_INDEX) {
+      // Initializes the streams for the first block.
+      mBlockIndex = 0;
+      updateStreamsInternal();
+      return;
+    }
     if (shouldUpdateStreams()) {
       mBlockIndex++;
       updateStreamsInternal();
