@@ -73,8 +73,8 @@ mount_fuse() {
 }
 
 umount_fuse () {
-  local mount_point=$1
-  local fuse_pid=$(fuse_stat | awk '{print $1 $2}' | grep "\<${mount_point}\>" | awk '{print $1}')  
+  local mount_point=$1  
+  local fuse_pid=$(fuse_stat | awk '{print $1,$2}' | grep -w ${mount_point} | awk '{print $1}')  
   if [[ -z ${fuse_pid} ]]; then
     echo "No fuse mounted at ${mount_point}" >&2
     return 1
