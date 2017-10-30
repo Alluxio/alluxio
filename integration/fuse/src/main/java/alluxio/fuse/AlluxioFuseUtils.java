@@ -76,7 +76,7 @@ public final class AlluxioFuseUtils {
   }
 
   /**
-   * Runs the given shell command and returns the single line output in string
+   * Runs the given shell command and returns the single line output in string.
    *
    * @param command the command to run
    * @return the first line of the command output
