@@ -53,11 +53,7 @@ set_java_opt () {
   ALLUXIO_FUSE_JAVA_OPTS+=" -Dalluxio.logger.type=FUSE_LOGGER"
 }
 
-mount_fuse() {
-  if fuse_stat > /dev/null ; then
-    echo "alluxio-fuse is already running on the local host. Please stop it first." >&2
-    return 1
-  fi
+mount_fuse() {  
   echo "Starting alluxio-fuse on local host."
   local mount_point=$1
   local alluxio_root=$2
@@ -77,6 +73,7 @@ mount_fuse() {
 }
 
 umount_fuse () {
+  local mount_point=$1
   local fuse_pid=$(fuse_stat)
   if [[ $? -eq 0 ]]; then
     echo "Stopping alluxio-fuse on local host (PID: ${fuse_pid})."
@@ -89,23 +86,14 @@ umount_fuse () {
 }
 
 fuse_stat() {
-  local fuse_pid=$("${JAVA_HOME}/bin/jps" | grep AlluxioFuse | awk -F' ' '{print $1}')
-  if [[ -z ${fuse_pid} ]]; then
-    if [[ $1 == "-v" ]]; then
-      echo "AlluxioFuse: not running"
-      return 1
-    else
-      return 1
-    fi
+  local fuse_info=$("${JAVA_HOME}/bin/jps" | grep AlluxioFuse)
+  if [[ -z ${fuse_info} ]]; then    
+    echo "AlluxioFuse: not running"
+    return 1
   else
-    local fuse_mount=$(mount | grep alluxio-fuse | awk -F' ' '{print $3" "$6}')
-    if [[ $1 == "-v" ]]; then
-      echo "AlluxioFuse mounted on ${fuse_mount} [PID: ${fuse_pid}]"
-      return 0
-    else
-      echo ${fuse_pid}
-      return 0
-    fi
+    echo -e "pid\tmount_point\talluxio_path"
+    echo -e "$(ps -o pid,command | grep [A]lluxioFuse | awk -F' ' '{print $1 "\t" $(NF-2) "\t" $NF}')"
+    return 0    
   fi
 }
 
@@ -136,12 +124,16 @@ case $1 in
     echo -e "Usage\n\t$0 mount mount_point alluxio_path" >&2
     exit 1
     ;;
-  umount)
-    umount_fuse
-    exit $?
+  umount)    
+    if [[ $# -eq 2 ]]; then
+      umount_fuse $2
+      exit $?
+    fi
+    echo -e "Usage\n\t$0 umount mount_point" >&2
+    exit 1
     ;;
   stat)
-    fuse_stat -v
+    fuse_stat
     ;;
   *)
     echo "${USAGE_MSG}" >&2
