@@ -20,6 +20,7 @@ import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.multi.process.MasterNetAddress;
 import alluxio.multi.process.MultiProcessCluster;
+import alluxio.multi.process.MultiProcessCluster.DeployMode;
 import alluxio.security.authentication.TransportProvider;
 import alluxio.security.authentication.TransportProvider.Factory;
 import alluxio.thrift.FileSystemMasterClientService.Client;
@@ -56,7 +57,7 @@ public class ZookeeperFailureIntegrationTest extends BaseIntegrationTest {
   @Rule
   public MultiProcessCluster mCluster = MultiProcessCluster.newBuilder()
       .setClusterName("ZookeeperFailure")
-      .addProperty(PropertyKey.ZOOKEEPER_ENABLED, "true")
+      .setDeployMode(DeployMode.ZOOKEEPER_HA)
       .setNumMasters(1)
       .setNumWorkers(1)
       .build();
