@@ -35,7 +35,7 @@ export HIVE_AUX_JARS_PATH={{site.ALLUXIO_CLIENT_JAR_PATH}}:${HIVE_AUX_JARS_PATH}
 
 Alternatively, advanced users can choose to compile this client jar from the source code. Follow the instructs [here](Building-Alluxio-Master-Branch.html#compute-framework-support) and use the generated jar at `{{site.ALLUXIO_CLIENT_JAR_PATH_BUILD}}` for the rest of this guide.
 
-## Use Alluxio as One Option to Store Hive Tables
+## 1 Use Alluxio as One Option to Store Hive Tables
 
 There are different ways to integrate Hive with Alluxio. This section talks about how to use Alluxio
 as one of the filesystems (like HDFS) to store Hive tables. These tables can be either
@@ -177,10 +177,10 @@ hive> alter table TABLE_NAME set location "hdfs://namenode:port/table/path/in/HD
 ```
 
 Instructions and examples till here illustrate how to use Alluxio as one of the filesystems to store
-tables in Hive, together with other filesystems like HDFS. THey doo not require to change the global
-setting in Hive like default file system which is the topic in the next section.
+tables in Hive, together with other filesystems like HDFS. They do not require to change the global
+setting in Hive such as the default filesystem which is covered in the next section.
 
-## Use Alluxio as the Default Filesystem
+## 2 Use Alluxio as the Default Filesystem
 
 Apache Hive can also use Alluxio through a generic file system interface to replace the
 Hadoop file system. In this way, the Hive uses Alluxio as the default file system and its internal
