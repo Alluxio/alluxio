@@ -127,10 +127,6 @@
                   <shadedPattern>${shading.prefix}.org.apache.jute</shadedPattern>
                 </relocation>
                 <relocation>
-                  <pattern>org.apache.log4j</pattern>
-                  <shadedPattern>${shading.prefix}.org.apache.log4j</shadedPattern>
-                </relocation>
-                <relocation>
                   <pattern>org.apache.thrift</pattern>
                   <shadedPattern>${shading.prefix}.org.apache.thrift</shadedPattern>
                 </relocation>
