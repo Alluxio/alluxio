@@ -12,7 +12,6 @@
 package alluxio.fuse;
 
 import static jnr.constants.platform.OpenFlags.O_RDONLY;
-import static jnr.constants.platform.OpenFlags.O_RDWR;
 import static jnr.constants.platform.OpenFlags.O_WRONLY;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
@@ -20,7 +19,6 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 
 import alluxio.AlluxioURI;
@@ -41,7 +39,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
-import ru.serce.jnrfuse.ErrorCodes;
+import ru.serce.jnrfuse.struct.FileStat;
 import ru.serce.jnrfuse.struct.FuseFileInfo;
 
 import java.util.Collections;
@@ -99,13 +97,30 @@ public class AlluxioFuseFileSystemTest {
 
   @Test
   public void getattr() throws Exception {
+    // set up status
     FileInfo info = new FileInfo();
     info.setLength(10);
     info.setLastModificationTimeMs(1000);
-
+    info.setOwner(System.getProperty("user.name"));
+    info.setFolder(true);
     URIStatus status = new URIStatus(info);
+
+    // mock fs
     AlluxioURI anyURI = any();
+    when(mFileSystem.exists(anyURI)).thenReturn(true);
+    anyURI = any();
     when(mFileSystem.getStatus(anyURI)).thenReturn(status);
+
+    FileStat stat = new FileStat(Runtime.getSystemRuntime());
+    assertEquals(0, mFuseFs.getattr("/foo", stat));
+    assertEquals(status.getLength(), stat.st_size.get());
+    assertEquals(status.getLastModificationTimeMs() / 1000, stat.st_ctim.tv_sec.get());
+    assertEquals((status.getLastModificationTimeMs() % 1000) * 1000, stat.st_ctim.tv_nsec.get());
+    assertEquals(status.getLastModificationTimeMs() / 1000, stat.st_mtim.tv_sec.get());
+    assertEquals((status.getLastModificationTimeMs() % 1000) * 1000, stat.st_mtim.tv_nsec.get());
+    assertEquals(AlluxioFuseUtils.getUidAndGid()[0], stat.st_uid.get());
+    assertEquals(AlluxioFuseUtils.getUidAndGid()[1], stat.st_gid.get());
+    assertEquals(status.getMode() | FileStat.S_IFDIR, stat.st_mode.get());
   }
 
   @Test
@@ -130,21 +145,6 @@ public class AlluxioFuseFileSystemTest {
     mFuseFs.open("/foo/bar", mFileInfo);
     verify(mFileSystem).exists(expectedPath);
     verify(mFileSystem).openFile(expectedPath);
-  }
-
-  @Test
-  public void openWrongFlags() throws Exception {
-    mFileInfo.flags.set(O_RDWR.intValue());
-
-    // actual test
-    int ret = mFuseFs.open("/foo/bar", mFileInfo);
-    verifyZeroInteractions(mFileSystem);
-    assertEquals("Should return an access error", -ErrorCodes.EACCES(), ret);
-
-    mFileInfo.flags.set(O_WRONLY.intValue());
-    ret = mFuseFs.open("/foo/bar", mFileInfo);
-    verifyZeroInteractions(mFileSystem);
-    assertEquals("Should return an access error", -ErrorCodes.EACCES(), ret);
   }
 
   @Test
