@@ -184,7 +184,6 @@ public class FileInStream extends InputStream
     if (mClosed) {
       return;
     }
-    updateStreamsOnRead();
     if (shouldCachePartiallyReadBlock()) {
       // cache only when the read is not from local worker and there is a local worker to cache
       if (canCacheToLocalWorker()) {
