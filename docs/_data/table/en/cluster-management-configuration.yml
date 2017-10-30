@@ -19,7 +19,7 @@ alluxio.integration.mesos.role:
 alluxio.integration.mesos.secret:
   'Secret token for authenticating with Mesos.'
 alluxio.integration.mesos.user:
-  'The Mesos user for the Alluxio Mesos Framework. Defaults to the current user'
+  'The Mesos user for the Alluxio Mesos Framework. Defaults to the current user.'
 alluxio.integration.mesos.worker.name:
   'The name of the worker process to use within Mesos.'
 alluxio.integration.worker.resource.cpu:

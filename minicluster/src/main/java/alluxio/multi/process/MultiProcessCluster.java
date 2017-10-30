@@ -29,13 +29,13 @@ import alluxio.master.ZkMasterInquireClient;
 import alluxio.network.PortUtils;
 import alluxio.util.CommonUtils;
 import alluxio.util.network.NetworkAddressUtils;
+import alluxio.zookeeper.RestartableTestingServer;
 
 import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
 import com.google.common.io.Closer;
 import org.apache.commons.io.Charsets;
 import org.apache.commons.io.FileUtils;
-import org.apache.curator.test.TestingServer;
 import org.junit.rules.TestRule;
 import org.junit.runner.Description;
 import org.junit.runners.model.Statement;
@@ -75,7 +75,7 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class MultiProcessCluster implements TestRule {
   private static final Logger LOG = LoggerFactory.getLogger(MultiProcessCluster.class);
   private static final File ARTIFACTS_DIR = new File("./target/artifacts");
-  private static final File TESTS_LOG = new File("./target/tests.log");
+  private static final File TESTS_LOG = new File("./target/logs/tests.log");
 
   private final Map<PropertyKey, String> mProperties;
   private final int mNumMasters;
@@ -92,7 +92,7 @@ public final class MultiProcessCluster implements TestRule {
   /** Addresses of all masters. Should have the same size as {@link #mMasters}. */
   private List<MasterNetAddress> mMasterAddresses;
   private State mState;
-  private TestingServer mCuratorServer;
+  private RestartableTestingServer mCuratorServer;
   /**
    * Tracks whether the test has succeeded. If mSuccess is never updated before {@link #destroy()},
    * the state of the cluster will be saved as a tarball in the artifacts directory.
@@ -123,6 +123,7 @@ public final class MultiProcessCluster implements TestRule {
     mState = State.STARTED;
 
     mMasterAddresses = generateMasterAddresses(mNumMasters);
+<<<<<<< HEAD
     switch (mDeployMode) {
       case NON_HA:
         MasterNetAddress masterAddress = mMasterAddresses.get(0);
@@ -138,6 +139,27 @@ public final class MultiProcessCluster implements TestRule {
         break;
       default:
         throw new IllegalStateException("Unknown deploy mode: " + mDeployMode.toString());
+||||||| merged common ancestors
+    if (zkEnabled()) {
+      mCuratorServer = mCloser
+          .register(new TestingServer(-1, AlluxioTestDirectory.createTemporaryDirectory("zk")));
+      mProperties.put(PropertyKey.ZOOKEEPER_ADDRESS, mCuratorServer.getConnectString());
+    } else {
+      MasterNetAddress masterAddress = mMasterAddresses.get(0);
+      mProperties.put(PropertyKey.MASTER_HOSTNAME, masterAddress.getHostname());
+      mProperties.put(PropertyKey.MASTER_RPC_PORT, Integer.toString(masterAddress.getRpcPort()));
+      mProperties.put(PropertyKey.MASTER_WEB_PORT, Integer.toString(masterAddress.getWebPort()));
+=======
+    if (zkEnabled()) {
+      mCuratorServer =
+          new RestartableTestingServer(-1, AlluxioTestDirectory.createTemporaryDirectory("zk"));
+      mProperties.put(PropertyKey.ZOOKEEPER_ADDRESS, mCuratorServer.getConnectString());
+    } else {
+      MasterNetAddress masterAddress = mMasterAddresses.get(0);
+      mProperties.put(PropertyKey.MASTER_HOSTNAME, masterAddress.getHostname());
+      mProperties.put(PropertyKey.MASTER_RPC_PORT, Integer.toString(masterAddress.getRpcPort()));
+      mProperties.put(PropertyKey.MASTER_WEB_PORT, Integer.toString(masterAddress.getWebPort()));
+>>>>>>> upstream/master
     }
 
     mWorkDir = AlluxioTestDirectory.createTemporaryDirectory(mClusterName);
@@ -302,6 +324,28 @@ public final class MultiProcessCluster implements TestRule {
    */
   public synchronized void stopWorker(int i) throws IOException {
     mWorkers.get(i).close();
+  }
+
+  /**
+   * @return return the list of master addresses
+   */
+  public synchronized List<MasterNetAddress> getMasterAddresses() {
+    return mMasterAddresses;
+  }
+
+  /**
+   * Stops the Zookeeper cluster.
+   */
+  public synchronized void stopZk() throws IOException {
+    mCuratorServer.stop();
+  }
+
+  /**
+   * Restarts the Zookeeper cluster.
+   */
+  public synchronized void restartZk() throws Exception {
+    Preconditions.checkNotNull(mCuratorServer, "mCuratorServer");
+    mCuratorServer.restart();
   }
 
   /**
