@@ -28,6 +28,8 @@ import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
+import alluxio.client.file.options.SetAttributeOptions;
+import alluxio.security.authorization.Mode;
 import alluxio.wire.FileInfo;
 
 import com.google.common.cache.LoadingCache;
@@ -70,6 +72,28 @@ public class AlluxioFuseFileSystemTest {
     mFileSystem = mock(FileSystem.class);
     mFuseFs = new AlluxioFuseFileSystem(mFileSystem, opts);
     mFileInfo = allocateNativeFileInfo();
+  }
+
+  @Test
+  public void chmod() throws Exception {
+    long mode = 123;
+    mFuseFs.chmod("/foo/bar", mode);
+    AlluxioURI expectedPath = BASE_EXPECTED_URI.join("/foo/bar");
+    SetAttributeOptions options = SetAttributeOptions.defaults().setMode(new Mode((short) mode));
+    verify(mFileSystem).setAttribute(expectedPath, options);
+  }
+
+  @Test
+  public void chown() throws Exception {
+    long[] uidGid = AlluxioFuseUtils.getUidAndGid();
+    mFuseFs.chown("/foo/bar", uidGid[0], uidGid[1]);
+    String[] userGroupNames = AlluxioFuseUtils.getUserAndGroupName(uidGid[0]);
+    String userName = userGroupNames[0];
+    String groupName = userGroupNames[1];
+    AlluxioURI expectedPath = BASE_EXPECTED_URI.join("/foo/bar");
+    SetAttributeOptions options =
+        SetAttributeOptions.defaults().setGroup(groupName).setOwner(userName);
+    verify(mFileSystem).setAttribute(expectedPath, options);
   }
 
   @Test
