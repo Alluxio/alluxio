@@ -309,6 +309,19 @@ public final class FileInStreamTest {
   }
 
   /**
+   * Tests seeking to the beginning of the last block after reaching EOF.
+   */
+  @Test
+  public void seekToLastBlockAfterReachingEOF() throws IOException {
+    mTestStream.read(new byte[(int) FILE_LENGTH]);
+    mTestStream.seek(FILE_LENGTH - BLOCK_LENGTH);
+    byte[] block = new byte[(int) BLOCK_LENGTH];
+    mTestStream.read(block);
+    Assert.assertArrayEquals(BufferUtils.getIncreasingByteArray(
+        (int) (FILE_LENGTH - BLOCK_LENGTH), (int) BLOCK_LENGTH), block);
+  }
+
+  /**
    * Tests seeking with incomplete block caching enabled. It seeks backward for more than a block.
    */
   @Test
