@@ -60,10 +60,12 @@ mount_fuse() {
   fi
   echo "Starting alluxio-fuse on local host."
   local mount_point=$1
+  local alluxio_root=$2
   (nohup "${JAVA}" -cp ${CLASSPATH} ${JAVA_OPTS} ${ALLUXIO_FUSE_JAVA_OPTS} \
     alluxio.fuse.AlluxioFuse \
+    -o big_writes,allow_other \
     -m ${mount_point} \
-    -o big_writes,allow_other > ${ALLUXIO_LOGS_DIR}/fuse.out 2>&1) &
+    -r ${alluxio_root} > ${ALLUXIO_LOGS_DIR}/fuse.out 2>&1) &
   # sleep: workaround to let the bg java process exit on errors, if any
   sleep 2s
   if kill -0 $! > /dev/null 2>&1 ; then
@@ -123,12 +125,16 @@ fi
 
 case $1 in
   mount)
-    if [[ $# -ne 2 ]]; then
-      echo -e "Usage\n\t$0 mount [mount_point]" >&2
-      exit 1
+    if [[ $# -eq 2 ]]; then
+      mount_fuse $2 /
+      exit $?
     fi
-    mount_fuse $2
-    exit $?
+    if [[ $# -eq 3 ]]; then
+      mount_fuse $2 $3
+      exit $?
+    fi
+    echo -e "Usage\n\t$0 mount mount_point alluxio_path" >&2
+    exit 1
     ;;
   umount)
     umount_fuse
