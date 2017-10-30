@@ -62,6 +62,7 @@ public class FileInStream extends InputStream
   private static final boolean PASSIVE_CACHE_ENABLED =
       Configuration.getBoolean(PropertyKey.USER_FILE_PASSIVE_CACHE_ENABLED);
   private static final int UNINITIALIZED_BLOCK_INDEX = -1;
+  private static final int UNINITIALIZED_BLOCK_SIZE_BITS = -1;
   private static final int EOF_DATA = -1;
   private static final long EOF_BLOCK_ID = -1;
 
@@ -81,7 +82,8 @@ public class FileInStream extends InputStream
   private final boolean mIsBlockSizePowerOfTwo;
   /**
    * Number of bits in the binary representation of {@link #mBlockSize} if
-   * {@link #mIsBlockSizePowerOfTwo} is true.
+   * {@link #mIsBlockSizePowerOfTwo} is true, otherwise, it's set to
+   * {@link #UNINITIALIZED_BLOCK_SIZE_BITS}.
    */
   private final int mBlockSizeBits;
   /** Total length of the file in bytes. */
@@ -119,7 +121,7 @@ public class FileInStream extends InputStream
   /**
    * Index of the ID of the current block stream in {@link #mBlockIds}.
    * {@link #UNINITIALIZED_BLOCK_INDEX} means there is no current block stream yet.
-   * When the file stream has reached EOF, it is set to the length of {@link #mBlockIds}.
+   * Its maximum value is (mBlockIds.size() - 1).
    */
   private int mBlockIndex = UNINITIALIZED_BLOCK_INDEX;
 
@@ -155,7 +157,11 @@ public class FileInStream extends InputStream
     mOutStreamOptions = OutStreamOptions.defaults();
     mBlockSize = status.getBlockSizeBytes();
     mIsBlockSizePowerOfTwo = (mBlockSize & (mBlockSize - 1)) == 0;
-    if (mIsBlockSizePowerOfTwo)
+    if (mIsBlockSizePowerOfTwo) {
+      mBlockSizeBits = Long.numberOfTrailingZeros(mBlockSize);
+    } else {
+      mBlockSizeBits = UNINITIALIZED_BLOCK_SIZE_BITS;
+    }
     mFileLength = status.getLength();
     mContext = context;
     mAlluxioStorageType = options.getAlluxioStorageType();
@@ -398,17 +404,6 @@ public class FileInStream extends InputStream
     }
   }
 
-  /**
-   * Checks whether block instream and cache outstream should be updated. This function is only
-   * called by {@link #updateStreamsOnRead()} and {@link #updateStreamsOnSeek()}.
-   *
-   * @return true if the block stream should be updated
-   */
-  private boolean shouldUpdateStreams() {
-    return !isEndOfFile()
-        && (mCurrentBlockInStream == null || mCurrentBlockInStream.remaining() == 0);
-  }
-
   private void checkCacheStreamInSync() {
     if (mCurrentCacheStream != null
         && mCurrentBlockInStream.remaining() != mCurrentCacheStream.remaining()) {
@@ -472,6 +467,31 @@ public class FileInStream extends InputStream
   }
 
   /**
+   * @param pos the position, assumed to be in the range from 0 to (file length - 1), otherwise, the
+   *        returned block index will be out of range
+   * @return the block index corresponding to the position
+   */
+  private int getBlockIndex(long pos) {
+    // The optimization of replacing division with bit shift is based on two facts:
+    // 1. Bit shift is much faster than division;
+    // 2. block size is often the power of two
+    return (int) (mIsBlockSizePowerOfTwo ? (pos >> mBlockSizeBits) : (pos / mBlockSize));
+  }
+
+  /**
+   * @param pos the position, assumed to be in the range from 0 to (file length - 1)
+   * @return whether the position is in current block, if the current block stream is not created
+   *         yet, return false
+   */
+  private boolean isInCurrentBlock(long pos) {
+    // Instead of computing the block index with (pos / mBlockSize) and compare against mBlockIndex,
+    // multiplication is used, this optimization is based on the fact that multiplication is much
+    // faster than division.
+    return mBlockIndex != UNINITIALIZED_BLOCK_INDEX && pos >= mBlockIndex * mBlockSize
+        && pos < (mBlockIndex + 1) * mBlockSize;
+  }
+
+  /**
    * Handles IO exceptions thrown in response to the worker cache request. Cache stream is closed or
    * cancelled after logging some messages about the exceptions.
    *
@@ -507,7 +527,8 @@ public class FileInStream extends InputStream
       updateStreamsInternal();
       return;
     }
-    if (shouldUpdateStreams()) {
+    // Current block stream has no remaining data and is not EOF.
+    if (mCurrentBlockInStream.remaining() == 0 && !isEndOfFile()) {
       mBlockIndex++;
       updateStreamsInternal();
     }
@@ -524,11 +545,18 @@ public class FileInStream extends InputStream
    */
   private void updateStreamsOnSeek() throws IOException {
     checkCacheStreamInSync();
-    int blockIndex = (int) (mPos / mBlockSize);
-    if (blockIndex != mBlockIndex || shouldUpdateStreams()) {
-      mBlockIndex = blockIndex;
-      updateStreamsInternal();
+    if (isInCurrentBlock(mPos)) {
+      // The seek target is in the range of current stream, update streams if the current stream has
+      // no remaining data.
+      if (mCurrentBlockInStream.remaining() == 0) {
+        updateStreamsInternal();
+      }
+      return;
     }
+    // If there is no current block stream, or the seek target is out of bound of the current
+    // stream, recompute the block index.
+    mBlockIndex = getBlockIndex(mPos);
+    updateStreamsInternal();
   }
 
   /**
@@ -662,7 +690,7 @@ public class FileInStream extends InputStream
   }
 
   private boolean isEndOfFile() {
-    return mBlockIndex == mBlockIds.size();
+    return mPos == mFileLength;
   }
 
   /**
@@ -704,7 +732,7 @@ public class FileInStream extends InputStream
    */
   private void seekInternalWithCachingPartiallyReadBlock(long pos) throws IOException {
     // Precompute this because mPos will be updated several times in this function.
-    final boolean isInCurrentBlock = pos / mBlockSize == mPos / mBlockSize;
+    final boolean isInCurrentBlock = isInCurrentBlock(pos);
 
     if (isInCurrentBlock) {
       // the read is within the current block update stream to refresh the streams
