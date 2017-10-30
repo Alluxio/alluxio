@@ -123,7 +123,6 @@ public final class MultiProcessCluster implements TestRule {
     mState = State.STARTED;
 
     mMasterAddresses = generateMasterAddresses(mNumMasters);
-<<<<<<< HEAD
     switch (mDeployMode) {
       case NON_HA:
         MasterNetAddress masterAddress = mMasterAddresses.get(0);
@@ -132,34 +131,13 @@ public final class MultiProcessCluster implements TestRule {
         mProperties.put(PropertyKey.MASTER_WEB_PORT, Integer.toString(masterAddress.getWebPort()));
         break;
       case ZOOKEEPER_HA:
-        mCuratorServer = mCloser
-            .register(new TestingServer(-1, AlluxioTestDirectory.createTemporaryDirectory("zk")));
+        mCuratorServer = mCloser.register(
+            new RestartableTestingServer(-1, AlluxioTestDirectory.createTemporaryDirectory("zk")));
         mProperties.put(PropertyKey.ZOOKEEPER_ENABLED, "true");
         mProperties.put(PropertyKey.ZOOKEEPER_ADDRESS, mCuratorServer.getConnectString());
         break;
       default:
         throw new IllegalStateException("Unknown deploy mode: " + mDeployMode.toString());
-||||||| merged common ancestors
-    if (zkEnabled()) {
-      mCuratorServer = mCloser
-          .register(new TestingServer(-1, AlluxioTestDirectory.createTemporaryDirectory("zk")));
-      mProperties.put(PropertyKey.ZOOKEEPER_ADDRESS, mCuratorServer.getConnectString());
-    } else {
-      MasterNetAddress masterAddress = mMasterAddresses.get(0);
-      mProperties.put(PropertyKey.MASTER_HOSTNAME, masterAddress.getHostname());
-      mProperties.put(PropertyKey.MASTER_RPC_PORT, Integer.toString(masterAddress.getRpcPort()));
-      mProperties.put(PropertyKey.MASTER_WEB_PORT, Integer.toString(masterAddress.getWebPort()));
-=======
-    if (zkEnabled()) {
-      mCuratorServer =
-          new RestartableTestingServer(-1, AlluxioTestDirectory.createTemporaryDirectory("zk"));
-      mProperties.put(PropertyKey.ZOOKEEPER_ADDRESS, mCuratorServer.getConnectString());
-    } else {
-      MasterNetAddress masterAddress = mMasterAddresses.get(0);
-      mProperties.put(PropertyKey.MASTER_HOSTNAME, masterAddress.getHostname());
-      mProperties.put(PropertyKey.MASTER_RPC_PORT, Integer.toString(masterAddress.getRpcPort()));
-      mProperties.put(PropertyKey.MASTER_WEB_PORT, Integer.toString(masterAddress.getWebPort()));
->>>>>>> upstream/master
     }
 
     mWorkDir = AlluxioTestDirectory.createTemporaryDirectory(mClusterName);
