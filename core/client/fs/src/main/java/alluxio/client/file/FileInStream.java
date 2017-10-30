@@ -449,8 +449,6 @@ public class FileInStream extends InputStream
     if (isEndOfFile()) {
       return EOF_BLOCK_ID;
     }
-    Preconditions.checkState(mBlockIndex >= 0 && mBlockIndex < mBlockIds.size(),
-        PreconditionMessage.ERR_BLOCK_INDEX.toString(), mBlockIndex, mPos, mBlockIds.size() - 1);
     return mBlockIds.get(mBlockIndex);
   }
 
@@ -460,8 +458,6 @@ public class FileInStream extends InputStream
    */
   private long getBlockId(long pos) {
     int index = (int) (pos / mBlockSize);
-    Preconditions.checkState(index >= 0 && index < mBlockIds.size(),
-        PreconditionMessage.ERR_BLOCK_INDEX.toString(), index, pos, mBlockIds.size() - 1);
     return mBlockIds.get(index);
   }
 
