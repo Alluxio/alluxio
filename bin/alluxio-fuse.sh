@@ -74,14 +74,14 @@ mount_fuse() {
 
 umount_fuse () {
   local mount_point=$1
-  local fuse_pid=$(fuse_stat)
-  if [[ $? -eq 0 ]]; then
-    echo "Stopping alluxio-fuse on local host (PID: ${fuse_pid})."
+  local fuse_pid=$(fuse_stat | awk '{print $1 $2}' | grep "\<${mount_point}\>" | awk '{print $1}')  
+  if [[ -z ${fuse_pid} ]]; then
+    echo "No fuse mounted at ${mount_point}" >&2
+    return 1
+  else
+    echo "Unmount fuse at ${mount_point} (PID: ${fuse_pid})."
     kill ${fuse_pid}
     return $?
-  else
-    echo "alluxio-fuse is not running on local host." >&2
-    return 1
   fi
 }
 
@@ -129,7 +129,7 @@ case $1 in
       umount_fuse $2
       exit $?
     fi
-    echo -e "Usage\n\t$0 umount mount_point" >&2
+    echo -e "Usage\n\t$0 umount mount_point\n\tuse mount stat to show mount points" >&2
     exit 1
     ;;
   stat)
