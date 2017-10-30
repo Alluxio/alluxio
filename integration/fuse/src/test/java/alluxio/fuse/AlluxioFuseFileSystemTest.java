@@ -41,6 +41,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
+import ru.serce.jnrfuse.ErrorCodes;
 import ru.serce.jnrfuse.struct.FileStat;
 import ru.serce.jnrfuse.struct.FuseFileInfo;
 
@@ -209,7 +210,33 @@ public class AlluxioFuseFileSystemTest {
     final byte[] expected = new byte[] {0, 1, 2, 3};
 
     assertArrayEquals("Source and dst data should be equal", expected, dst);
+  }
 
+  @Test
+  public void rename() throws Exception {
+    AlluxioURI oldPath = BASE_EXPECTED_URI.join("/old");
+    AlluxioURI newPath = BASE_EXPECTED_URI.join("/new");
+    when(mFileSystem.exists(oldPath)).thenReturn(true);
+    when(mFileSystem.exists(newPath)).thenReturn(false);
+    mFuseFs.rename("/old", "/new");
+    verify(mFileSystem).rename(oldPath, newPath);
+  }
+
+  @Test
+  public void renameOldNotExist() throws Exception {
+    AlluxioURI oldPath = BASE_EXPECTED_URI.join("/old");
+    when(mFileSystem.exists(oldPath)).thenReturn(false);
+    assertEquals(-ErrorCodes.ENOENT(), mFuseFs.rename("/old", "/new"));
+  }
+
+  @Test
+  public void renameNewExist() throws Exception {
+    AlluxioURI oldPath = BASE_EXPECTED_URI.join("/old");
+    AlluxioURI newPath = BASE_EXPECTED_URI.join("/new");
+    when(mFileSystem.exists(oldPath)).thenReturn(true);
+    when(mFileSystem.exists(newPath)).thenReturn(true);
+    mFuseFs.rename("/old", "/new");
+    assertEquals(-ErrorCodes.EEXIST(), mFuseFs.rename("/old", "/new"));
   }
 
   @Test
