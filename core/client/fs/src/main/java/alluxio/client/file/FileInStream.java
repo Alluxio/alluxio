@@ -200,7 +200,7 @@ public class FileInStream extends InputStream
   }
 
   private int readInternal() throws IOException {
-    if (remainingInternal() <= 0) {
+    if (isEndOfFile()) {
       return EOF_DATA;
     }
     updateStreamsOnRead();
@@ -229,14 +229,14 @@ public class FileInStream extends InputStream
         PreconditionMessage.ERR_BUFFER_STATE.toString(), b.length, off, len);
     if (len == 0) {
       return 0;
-    } else if (remainingInternal() <= 0) {
+    } else if (isEndOfFile()) {
       return EOF_DATA;
     }
 
     int currentOffset = off;
     int bytesLeftToRead = len;
 
-    while (bytesLeftToRead > 0 && remainingInternal() > 0) {
+    while (bytesLeftToRead > 0 && !isEndOfFile()) {
       updateStreamsOnRead();
       Preconditions.checkNotNull(mCurrentBlockInStream, PreconditionMessage.ERR_UNEXPECTED_EOF);
       int bytesToRead = (int) Math.min(bytesLeftToRead, mCurrentBlockInStream.remaining());
@@ -446,7 +446,7 @@ public class FileInStream extends InputStream
    *         the file
    */
   private long getCurrentBlockId() {
-    if (remainingInternal() <= 0) {
+    if (isEndOfFile()) {
       return EOF_BLOCK_ID;
     }
     Preconditions.checkState(mBlockIndex >= 0 && mBlockIndex < mBlockIds.size(),
@@ -647,12 +647,16 @@ public class FileInStream extends InputStream
     if (mCurrentBlockInStream != null) {
       mCurrentBlockInStream.seek(mPos % mBlockSize);
     } else {
-      Preconditions.checkState(remainingInternal() == 0);
+      Preconditions.checkState(isEndOfFile());
     }
   }
 
   private long remainingInternal() {
     return mFileLength - mPos;
+  }
+
+  private boolean isEndOfFile() {
+    return mPos == mFileLength;
   }
 
   /**
