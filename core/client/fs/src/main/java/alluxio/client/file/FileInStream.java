@@ -73,6 +73,17 @@ public class FileInStream extends InputStream
   protected final AlluxioStorageType mAlluxioStorageType;
   /** Standard block size in bytes of the file, guaranteed for all but the last block. */
   protected final long mBlockSize;
+  /**
+   * Whether {@link #mBlockSize} is power of two. This is used together with
+   * {@link #mBlockSizeBits} to reduce the number of division operations in
+   * {@link #getBlockIndex(long)}.
+   */
+  private final boolean mIsBlockSizePowerOfTwo;
+  /**
+   * Number of bits in the binary representation of {@link #mBlockSize} if
+   * {@link #mIsBlockSizePowerOfTwo} is true.
+   */
+  private final int mBlockSizeBits;
   /** Total length of the file in bytes. */
   protected final long mFileLength;
   /** File system context containing the {@link FileSystemMasterClient} pool. */
@@ -143,6 +154,8 @@ public class FileInStream extends InputStream
     mInStreamOptions = options;
     mOutStreamOptions = OutStreamOptions.defaults();
     mBlockSize = status.getBlockSizeBytes();
+    mIsBlockSizePowerOfTwo = (mBlockSize & (mBlockSize - 1)) == 0;
+    if (mIsBlockSizePowerOfTwo)
     mFileLength = status.getLength();
     mContext = context;
     mAlluxioStorageType = options.getAlluxioStorageType();
@@ -391,12 +404,9 @@ public class FileInStream extends InputStream
    *
    * @return true if the block stream should be updated
    */
-  protected boolean shouldUpdateStreams() {
-    if (mBlockIndex == mBlockIds.size()) {
-      // EOF.
-      return false;
-    }
-    return mCurrentBlockInStream == null || mCurrentBlockInStream.remaining() == 0;
+  private boolean shouldUpdateStreams() {
+    return !isEndOfFile()
+        && (mCurrentBlockInStream == null || mCurrentBlockInStream.remaining() == 0);
   }
 
   private void checkCacheStreamInSync() {
@@ -652,7 +662,7 @@ public class FileInStream extends InputStream
   }
 
   private boolean isEndOfFile() {
-    return mPos == mFileLength;
+    return mBlockIndex == mBlockIds.size();
   }
 
   /**
