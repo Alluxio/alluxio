@@ -98,10 +98,4 @@ public final class UnknownLengthFileInStream extends FileInStream {
   protected long getBlockSize(long pos) {
     return mBlockSize;
   }
-
-  @Override
-  protected boolean shouldUpdateStreams() {
-    // Return true either at the beginning of a file or the end of a file.
-    return mCurrentBlockInStream == null || mCurrentBlockInStream.remaining() == 0;
-  }
 }
