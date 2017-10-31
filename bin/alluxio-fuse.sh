@@ -12,7 +12,7 @@
 
 SCRIPT_DIR="$(cd "$(dirname "$(readlink "$0" || echo "$0")")"; pwd)"
 
-get_env () {
+function getEnv {
   DEFAULT_LIBEXEC_DIR="${SCRIPT_DIR}"/../libexec
   ALLUXIO_LIBEXEC_DIR=${ALLUXIO_LIBEXEC_DIR:-${DEFAULT_LIBEXEC_DIR}}
   . ${ALLUXIO_LIBEXEC_DIR}/alluxio-config.sh
@@ -22,7 +22,7 @@ get_env () {
   CLASSPATH=${CLASSPATH}:${ALLUXIO_FUSE_JAR}
 }
 
-check_java_version () {
+function checkJavaVersion {
   local java_mjr_vers=$("${JAVA}" -version 2>&1 | awk -F '"' '/version/ {print $2}' | awk -F'.' '{print $1 $2}')
   if [[ ${java_mjr_vers} -lt 18 ]]; then
     echo "You are running a version of Java which is older than Java 8.
@@ -33,7 +33,7 @@ check_java_version () {
   fi
 }
 
-check_fuse_jar () {
+function checkFuseJar {
   if ! [[ -f ${ALLUXIO_FUSE_JAR} ]]; then
     echo "Cannot find ${ALLUXIO_FUSE_JAR}. Please compile alluxio with fuse profile and Java 8"
     return 1
@@ -42,7 +42,7 @@ check_fuse_jar () {
   fi
 }
 
-set_java_opt () {
+function setJavaOpt {
   JAVA_OPTS+="
     -server
     -Xms1G
@@ -53,7 +53,7 @@ set_java_opt () {
   ALLUXIO_FUSE_JAVA_OPTS+=" -Dalluxio.logger.type=FUSE_LOGGER"
 }
 
-mount_fuse() {  
+function mountFuse {  
   echo "Starting alluxio-fuse on local host."
   local mount_point=$1
   local alluxio_root=$2
@@ -72,9 +72,9 @@ mount_fuse() {
   fi
 }
 
-umount_fuse () {
+function umountFuse {
   local mount_point=$1  
-  local fuse_pid=$(fuse_stat | awk '{print $1,$2}' | grep -w ${mount_point} | awk '{print $1}')  
+  local fuse_pid=$(fuseStat | awk '{print $1,$2}' | grep -w ${mount_point} | awk '{print $1}')  
   if [[ -z ${fuse_pid} ]]; then
     echo "No fuse mounted at ${mount_point}" >&2
     return 1
@@ -85,7 +85,7 @@ umount_fuse () {
   fi
 }
 
-fuse_stat() {
+function fuseStat {
   local fuse_info=$("${JAVA_HOME}/bin/jps" | grep AlluxioFuse)
   if [[ -z ${fuse_info} ]]; then    
     echo "AlluxioFuse: not running"
@@ -104,9 +104,9 @@ if [[ $# -lt 1 ]]; then
   exit 1
 fi
 
-get_env
-check_java_version && check_fuse_jar
-set_java_opt
+getEnv
+checkJavaVersion && checkFuseJar
+setJavaOpt
 if [[ $? -ne 0 ]]; then
   exit 1
 fi
@@ -114,11 +114,11 @@ fi
 case $1 in
   mount)
     if [[ $# -eq 2 ]]; then
-      mount_fuse $2 /
+      mountFuse $2 /
       exit $?
     fi
     if [[ $# -eq 3 ]]; then
-      mount_fuse $2 $3
+      mountFuse $2 $3
       exit $?
     fi
     echo -e "Usage\n\t$0 mount mount_point alluxio_path" >&2
@@ -126,14 +126,14 @@ case $1 in
     ;;
   umount)    
     if [[ $# -eq 2 ]]; then
-      umount_fuse $2
+      umountFuse $2
       exit $?
     fi
     echo -e "Usage\n\t$0 umount mount_point\n\tuse mount stat to show mount points" >&2
     exit 1
     ;;
   stat)
-    fuse_stat
+    fuseStat
     ;;
   *)
     echo "${USAGE_MSG}" >&2
