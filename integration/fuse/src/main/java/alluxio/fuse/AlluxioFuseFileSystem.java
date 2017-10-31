@@ -62,7 +62,8 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
   private static final Logger LOG = LoggerFactory.getLogger(AlluxioFuseFileSystem.class);
 
   private static final int MAX_OPEN_FILES = Integer.MAX_VALUE;
-  private static final long[] UID_AND_GID = AlluxioFuseUtils.getUidAndGid();
+  private static final long UID = AlluxioFuseUtils.getUid(System.getProperty("user.name"));
+  private static final long GID = AlluxioFuseUtils.getGid(System.getProperty("user.name"));
   private final boolean mIsShellGroupMapping;
 
   private final FileSystem mFileSystem;
@@ -92,8 +93,8 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
     mOpenFiles = new HashMap<>();
 
     final int maxCachedPaths = Configuration.getInt(PropertyKey.FUSE_CACHED_PATHS_MAX);
-    mIsShellGroupMapping = Configuration.get(
-        PropertyKey.SECURITY_GROUP_MAPPING_CLASS) == ShellBasedUnixGroupsMapping.class.getName();
+    mIsShellGroupMapping = Configuration.get(PropertyKey.SECURITY_GROUP_MAPPING_CLASS)
+        .equals(ShellBasedUnixGroupsMapping.class.getName());
     mPathResolverCache = CacheBuilder.newBuilder()
         .maximumSize(maxCachedPaths)
         .build(new PathCacheLoader());
@@ -111,13 +112,13 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
    */
   @Override
   public int chmod(String path, @mode_t long mode) {
-    final AlluxioURI uri = mPathResolverCache.getUnchecked(path);
+    AlluxioURI uri = mPathResolverCache.getUnchecked(path);
 
     SetAttributeOptions options = SetAttributeOptions.defaults().setMode(new Mode((short) mode));
     try {
       mFileSystem.setAttribute(uri, options);
     } catch (IOException | AlluxioException e) {
-      LOG.error("Exception on {}", path, e);
+      LOG.error("Exception on {} of changing mode to {}", path, mode, e);
       return -ErrorCodes.EIO();
     }
 
@@ -138,22 +139,22 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
       // not supported if the group mapping is not shell based
       return -ErrorCodes.ENOSYS();
     }
-    String[] userGroupNames = AlluxioFuseUtils.getUserAndGroupName(uid);
-    String userName = userGroupNames[0];
-    String groupName = userGroupNames[1];
-    if (userName.isEmpty()) {
-      LOG.error("Failed to get user name from uid {}", uid);
-      return -ErrorCodes.EFAULT();
-    }
-    if (groupName.isEmpty()) {
-      LOG.error("Failed to get group name from uid {}", uid);
-      return -ErrorCodes.EFAULT();
-    }
-    SetAttributeOptions options =
-        SetAttributeOptions.defaults().setGroup(groupName).setOwner(userName);
-    final AlluxioURI uri = mPathResolverCache.getUnchecked(path);
-    LOG.info("Change owner and group of file {} to {}:{}", path, userName, groupName);
     try {
+      String userName = AlluxioFuseUtils.getUserName(uid);
+      String groupName = AlluxioFuseUtils.getGroupName(uid);
+      if (userName.isEmpty()) {
+        LOG.error("Failed to get user name from uid {}", uid);
+        return -ErrorCodes.EFAULT();
+      }
+      if (groupName.isEmpty()) {
+        LOG.error("Failed to get group name from uid {}", uid);
+        return -ErrorCodes.EFAULT();
+      }
+      SetAttributeOptions options =
+          SetAttributeOptions.defaults().setGroup(groupName).setOwner(userName);
+      final AlluxioURI uri = mPathResolverCache.getUnchecked(path);
+      LOG.info("Change owner and group of file {} to {}:{}", path, userName, groupName);
+
       mFileSystem.setAttribute(uri, options);
     } catch (IOException | AlluxioException e) {
       LOG.error("Exception on {}", path, e);
@@ -276,12 +277,11 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
       // unix; otherwise use uid and gid of the user running alluxio-fuse
       if (mIsShellGroupMapping) {
         String owner = status.getOwner();
-        long[] uidAndGid = AlluxioFuseUtils.getUidAndGid(owner);
-        stat.st_uid.set(uidAndGid[0]);
-        stat.st_gid.set(uidAndGid[1]);
+        stat.st_uid.set(AlluxioFuseUtils.getUid(owner));
+        stat.st_gid.set(AlluxioFuseUtils.getGid(owner));
       } else {
-        stat.st_uid.set(UID_AND_GID[0]);
-        stat.st_gid.set(UID_AND_GID[1]);
+        stat.st_uid.set(UID);
+        stat.st_gid.set(GID);
       }
 
       int mode = status.getMode();
@@ -581,7 +581,7 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
         return -ErrorCodes.ENOENT();
       }
       if (mFileSystem.exists(newUri)) {
-        LOG.error("File {} already exists, please delete the destine file first", newPath);
+        LOG.error("File {} already exists, please delete the destination file first", newPath);
         return -ErrorCodes.EEXIST();
       }
       mFileSystem.rename(oldUri, newUri);

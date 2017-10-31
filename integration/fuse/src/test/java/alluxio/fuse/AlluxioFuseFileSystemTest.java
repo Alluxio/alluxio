@@ -86,11 +86,11 @@ public class AlluxioFuseFileSystemTest {
 
   @Test
   public void chown() throws Exception {
-    long[] uidGid = AlluxioFuseUtils.getUidAndGid();
-    mFuseFs.chown("/foo/bar", uidGid[0], uidGid[1]);
-    String[] userGroupNames = AlluxioFuseUtils.getUserAndGroupName(uidGid[0]);
-    String userName = userGroupNames[0];
-    String groupName = userGroupNames[1];
+    long uid = AlluxioFuseUtils.getUid(System.getProperty("user.name"));
+    long gid = AlluxioFuseUtils.getGid(System.getProperty("user.name"));
+    mFuseFs.chown("/foo/bar", uid, gid);
+    String userName = System.getProperty("user.name");
+    String groupName = AlluxioFuseUtils.getGroupName(uid);
     AlluxioURI expectedPath = BASE_EXPECTED_URI.join("/foo/bar");
     SetAttributeOptions options =
         SetAttributeOptions.defaults().setGroup(groupName).setOwner(userName);
@@ -128,24 +128,25 @@ public class AlluxioFuseFileSystemTest {
     info.setLastModificationTimeMs(1000);
     info.setOwner(System.getProperty("user.name"));
     info.setFolder(true);
+    info.setMode(123);
     URIStatus status = new URIStatus(info);
 
     // mock fs
-    AlluxioURI anyURI = any();
-    when(mFileSystem.exists(anyURI)).thenReturn(true);
-    anyURI = any();
-    when(mFileSystem.getStatus(anyURI)).thenReturn(status);
+    when(mFileSystem.exists(any(AlluxioURI.class))).thenReturn(true);
+    when(mFileSystem.getStatus(any(AlluxioURI.class))).thenReturn(status);
 
     FileStat stat = new FileStat(Runtime.getSystemRuntime());
     assertEquals(0, mFuseFs.getattr("/foo", stat));
-    assertEquals(status.getLength(), stat.st_size.get());
+    assertEquals(status.getLength(), stat.st_size.longValue());
     assertEquals(status.getLastModificationTimeMs() / 1000, stat.st_ctim.tv_sec.get());
-    assertEquals((status.getLastModificationTimeMs() % 1000) * 1000, stat.st_ctim.tv_nsec.get());
+    assertEquals((status.getLastModificationTimeMs() % 1000) * 1000,
+        stat.st_ctim.tv_nsec.longValue());
     assertEquals(status.getLastModificationTimeMs() / 1000, stat.st_mtim.tv_sec.get());
-    assertEquals((status.getLastModificationTimeMs() % 1000) * 1000, stat.st_mtim.tv_nsec.get());
-    assertEquals(AlluxioFuseUtils.getUidAndGid()[0], stat.st_uid.get());
-    assertEquals(AlluxioFuseUtils.getUidAndGid()[1], stat.st_gid.get());
-    assertEquals(status.getMode() | FileStat.S_IFDIR, stat.st_mode.get());
+    assertEquals((status.getLastModificationTimeMs() % 1000) * 1000,
+        stat.st_mtim.tv_nsec.longValue());
+    assertEquals(AlluxioFuseUtils.getUid(System.getProperty("user.name")), stat.st_uid.get());
+    assertEquals(AlluxioFuseUtils.getGid(System.getProperty("user.name")), stat.st_gid.get());
+    assertEquals(123 | FileStat.S_IFDIR, stat.st_mode.intValue());
   }
 
   @Test
