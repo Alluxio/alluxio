@@ -98,6 +98,7 @@ import alluxio.thrift.PersistCommandOptions;
 import alluxio.thrift.PersistFile;
 import alluxio.thrift.UfsInfo;
 import alluxio.underfs.MasterUfsManager;
+import alluxio.underfs.UfsDirectoryStatus;
 import alluxio.underfs.UfsFileStatus;
 import alluxio.underfs.UfsManager;
 import alluxio.underfs.UfsStatus;
@@ -143,6 +144,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.Stack;
@@ -876,12 +878,30 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       return !ufs.exists(ufsPath);
     }
     // TODO(calvin): Evaluate which other metadata fields should be validated.
-    if (inode.isDirectory()) {
-      return ufs.isDirectory(ufsPath);
+    //ignore root
+    if (inode.getParentId() == -1) {
+      return true;
+    } else if (inode.isDirectory()) {
+      InodeDirectory directory = (InodeDirectory) inode;
+      if (ufs.isDirectory(ufsPath)) {
+        UfsDirectoryStatus ufsDirectoryStatus = ufs.getDirectoryStatus(ufsPath);
+        return ufsDirectoryStatus.getMode() == directory.getMode()
+            && Objects.equals(ufsDirectoryStatus.getGroup(), directory.getGroup())
+            && Objects.equals(ufsDirectoryStatus.getOwner(), directory.getOwner());
+      } else {
+        return false;
+      }
     } else {
       InodeFile file = (InodeFile) inode;
-      return ufs.isFile(ufsPath)
-          && ufs.getFileStatus(ufsPath).getContentLength() == file.getLength();
+      if (ufs.isFile(ufsPath)) {
+        UfsFileStatus ufsFileStatus = ufs.getFileStatus(ufsPath);
+        return ufsFileStatus.getContentLength() == file.getLength()
+            && ufsFileStatus.getMode() == file.getMode()
+            && Objects.equals(ufsFileStatus.getGroup(), file.getGroup())
+            && Objects.equals(ufsFileStatus.getOwner(), file.getOwner());
+      } else {
+        return false;
+      }
     }
   }
 

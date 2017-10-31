@@ -12,6 +12,7 @@
 package alluxio.master.file;
 
 import alluxio.AlluxioURI;
+import alluxio.CommonTestUtils;
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.PropertyKey;
 import alluxio.BaseIntegrationTest;
@@ -19,6 +20,9 @@ import alluxio.client.WriteType;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.options.CreateDirectoryOptions;
 import alluxio.client.file.options.CreateFileOptions;
+import alluxio.master.file.meta.Inode;
+import alluxio.master.file.meta.InodeTree;
+import alluxio.master.file.meta.LockedInodePath;
 import alluxio.master.file.options.CheckConsistencyOptions;
 import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.underfs.UnderFileSystem;
@@ -43,7 +47,7 @@ import java.util.List;
 public class CheckConsistencyIntegrationTest extends BaseIntegrationTest {
   private static final AlluxioURI DIRECTORY = new AlluxioURI("/dir");
   private static final AlluxioURI FILE = new AlluxioURI("/dir/file");
-  private static final String TEST_USER = "test";
+  private static final String TEST_USER = System.getProperties().getProperty("user.name");
 
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
@@ -52,6 +56,7 @@ public class CheckConsistencyIntegrationTest extends BaseIntegrationTest {
 
   private FileSystemMaster mFileSystemMaster;
   private FileSystem mFileSystem;
+  private InodeTree mTree;
 
   @Before
   public final void before() throws Exception {
@@ -66,6 +71,7 @@ public class CheckConsistencyIntegrationTest extends BaseIntegrationTest {
         CreateFileOptions.defaults().setWriteType(WriteType.CACHE_THROUGH);
     mFileSystem.createDirectory(DIRECTORY, dirOptions);
     mFileSystem.createFile(FILE, fileOptions).close();
+    mTree = CommonTestUtils.getInternalState(mFileSystemMaster, "mInodeTree");
   }
 
   @After
@@ -205,5 +211,61 @@ public class CheckConsistencyIntegrationTest extends BaseIntegrationTest {
     List<AlluxioURI> expected = Lists.newArrayList(FILE);
     Assert.assertEquals(expected, mFileSystemMaster
         .checkConsistency(FILE, CheckConsistencyOptions.defaults()));
+  }
+
+  /**
+   * Tests the {@link FileSystemMaster#checkConsistency(AlluxioURI, CheckConsistencyOptions)} method
+   * when file or directory mode are changed.
+   */
+  @Test
+  public void changeMode() throws Exception {
+    String ufsDirectory = mFileSystem.getStatus(DIRECTORY).getUfsPath();
+    String ufsFile = mFileSystem.getStatus(FILE).getUfsPath();
+    UnderFileSystem ufs = UnderFileSystem.Factory.create(ufsDirectory);
+    ufs.setMode(ufsDirectory, (short) 511);
+    ufs.setMode(ufsFile, (short) 511);
+
+    List<AlluxioURI> expected = Lists.newArrayList(FILE, DIRECTORY);
+    List<AlluxioURI> result =
+        mFileSystemMaster.checkConsistency(new AlluxioURI("/"), CheckConsistencyOptions.defaults());
+    Collections.sort(expected);
+    Collections.sort(result);
+    Assert.assertEquals(expected, result);
+  }
+
+  /**
+   * Tests the {@link FileSystemMaster#checkConsistency(AlluxioURI, CheckConsistencyOptions)} method
+   * when file owner or group are changed.
+   */
+  @Test
+  public void changeOwnAndGroupFile() throws Exception {
+    changeOwnAndGroup(FILE);
+  }
+
+  /**
+   * Tests the {@link FileSystemMaster#checkConsistency(AlluxioURI, CheckConsistencyOptions)} method
+   * when directory owner or group are changed.
+   */
+  @Test
+  public void changeOwnAndGroupDir() throws Exception {
+    changeOwnAndGroup(DIRECTORY);
+  }
+
+  private void changeOwnAndGroup(AlluxioURI path) throws Exception {
+    String owner = "alluxio-user1";
+    String group = "alluxio-user1-group1";
+
+    try (LockedInodePath inodePathDir = mTree.lockFullInodePath(path, InodeTree.LockMode.WRITE)) {
+      Inode<?> inodeDir = inodePathDir.getInode();
+      inodeDir.setOwner(owner);
+      inodeDir.setGroup(group);
+    }
+
+    List<AlluxioURI> expected = Lists.newArrayList(path);
+    List<AlluxioURI> result =
+        mFileSystemMaster.checkConsistency(new AlluxioURI("/"), CheckConsistencyOptions.defaults());
+    Collections.sort(expected);
+    Collections.sort(result);
+    Assert.assertEquals(expected, result);
   }
 }
