@@ -50,10 +50,9 @@ public final class JvmPauseMonitor {
   /** Times extra sleep time exceed INFO. */
   private long mInfoTimeExceededMS = 0;
   /** Total extra sleep time. */
-  private long mTotalExtraTime = 0;
+  private long mTotalExtraTimeMs = 0;
 
   private Thread mJvmMonitorThread;
-  private volatile boolean mThreadStarted = true;
 
   /**
    * Constructs JvmPauseMonitor.
@@ -78,7 +77,6 @@ public final class JvmPauseMonitor {
    * Stops jvm monitor.
    */
   public void stop() {
-    mThreadStarted = false;
     mJvmMonitorThread.interrupt();
     try {
       mJvmMonitorThread.join();
@@ -94,7 +92,6 @@ public final class JvmPauseMonitor {
    */
   public JvmPauseMonitor reset() {
     mJvmMonitorThread = null;
-    mThreadStarted = true;
     return this;
   }
 
@@ -106,24 +103,24 @@ public final class JvmPauseMonitor {
   }
 
   /**
-   * @return time exceeds WARN threshold
+   * @return time exceeds WARN threshold in milliseconds
    */
   public long getWarnTimeExceeded() {
     return mWarnTimeExceededMS;
   }
 
   /**
-   * @return time exceeds INFO threshold
+   * @return time exceeds INFO threshold in milliseconds
    */
   public long getInfoTimeExceeded() {
     return mInfoTimeExceededMS;
   }
 
   /**
-   * @return Total extra time
+   * @return Total extra time in milliseconds
    */
   public long getTotalExtraTime() {
-    return mTotalExtraTime;
+    return mTotalExtraTimeMs;
   }
 
   private String getMemoryInfo() {
@@ -154,7 +151,7 @@ public final class JvmPauseMonitor {
     } else {
       ret += "GC list:\n" + Joiner.on("\n").join(diffBean);
     }
-    ret += getMemoryInfo();
+    ret += "\n" + getMemoryInfo();
     return ret;
   }
 
@@ -167,7 +164,7 @@ public final class JvmPauseMonitor {
     public void run() {
       Stopwatch sw = new Stopwatch();
       List<GarbageCollectorMXBean> gcBeanListBeforeSleep = getGarbageCollectorMXBeanList();
-      while (mThreadStarted) {
+      while (true) {
         sw.reset().start();
         try {
           Thread.sleep(mGcSleepIntervalMs);
@@ -176,7 +173,7 @@ public final class JvmPauseMonitor {
           return;
         }
         long extraTime = sw.elapsed(TimeUnit.MILLISECONDS) - mGcSleepIntervalMs;
-        mTotalExtraTime += extraTime;
+        mTotalExtraTimeMs += extraTime;
         List<GarbageCollectorMXBean> gcBeanListAfterSleep = getGarbageCollectorMXBeanList();
 
         if (extraTime > mWarnThresholdMs) {

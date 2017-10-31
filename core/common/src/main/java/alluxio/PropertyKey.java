@@ -1756,11 +1756,11 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Name.JVM_MONITOR_SLEEP_INTERVAL_MS)
           .setDefaultValue(500)
           .build();
-  public static final PropertyKey JVM_MONITOR_MASTER_START =
+  public static final PropertyKey JVM_MONITOR_MASTER_ENABLE =
       new Builder(Name.JVM_MONITOR_MASTER_ENABLE)
           .setDefaultValue(false)
           .build();
-  public static final PropertyKey JVM_MONITOR_WORKER_START =
+  public static final PropertyKey JVM_MONITOR_WORKER_ENABLE =
       new Builder(Name.JVM_MONITOR_WORKER_ENABLE)
           .setDefaultValue(false)
           .build();
