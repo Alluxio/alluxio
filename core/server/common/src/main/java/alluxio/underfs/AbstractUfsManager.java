@@ -137,8 +137,8 @@ public abstract class AbstractUfsManager implements UfsManager {
   public void addMount(long mountId, final AlluxioURI ufsUri,
       final UnderFileSystemConfiguration ufsConf) {
     Preconditions.checkArgument(mountId != IdUtils.INVALID_MOUNT_ID, "mountId");
-    Preconditions.checkArgument(ufsUri != null, "ufsUri");
-    Preconditions.checkArgument(ufsConf != null, "ufsConf");
+    Preconditions.checkNotNull(ufsUri, "ufsUri");
+    Preconditions.checkNotNull(ufsConf, "ufsConf");
     mMountIdToUfsInfoMap.put(mountId, new UfsInfo(new Supplier<UnderFileSystem>() {
       @Override
       public UnderFileSystem get() {

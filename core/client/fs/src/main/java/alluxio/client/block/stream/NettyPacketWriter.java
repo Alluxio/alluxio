@@ -14,6 +14,7 @@ package alluxio.client.block.stream;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.client.file.FileSystemContext;
+import alluxio.client.file.options.OutStreamOptions;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.CanceledException;
 import alluxio.exception.status.DeadlineExceededException;
@@ -82,7 +83,7 @@ public final class NettyPacketWriter implements PacketWriter {
 
   private boolean mClosed;
 
-  private ReentrantLock mLock = new ReentrantLock();
+  private final ReentrantLock mLock = new ReentrantLock();
   /** The next pos to write to the channel. */
   @GuardedBy("mLock")
   private long mPosToWrite;
@@ -101,27 +102,29 @@ public final class NettyPacketWriter implements PacketWriter {
   @GuardedBy("mLock")
   private boolean mCancelSent;
   /** This condition is met if mPacketWriteException != null or mDone = true. */
-  private Condition mDoneOrFailed = mLock.newCondition();
+  private final Condition mDoneOrFailed = mLock.newCondition();
   /** This condition is met if mPacketWriteException != null or the buffer is not full. */
-  private Condition mBufferNotFullOrFailed = mLock.newCondition();
+  private final Condition mBufferNotFullOrFailed = mLock.newCondition();
   /** This condition is met if there is nothing in the netty buffer. */
-  private Condition mBufferEmptyOrFailed = mLock.newCondition();
+  private final Condition mBufferEmptyOrFailed = mLock.newCondition();
 
   /**
-   * Creates an instance of {@link NettyPacketWriter}.
-   *
    * @param context the file system context
    * @param address the data server address
-   * @param id the block ID or UFS file ID
+   * @param id the block or UFS ID
    * @param length the length of the block or file to write, set to Long.MAX_VALUE if unknown
-   * @param tier the target tier
-   * @param type the request type (block or UFS file)
-   * @param packetSize the packet size
+   * @param type type of the write request
+   * @param options the options of the output stream
+   * @return an instance of {@link NettyPacketWriter}
    */
-  public NettyPacketWriter(FileSystemContext context, final WorkerNetAddress address, long id,
-      long length, int tier, Protocol.RequestType type, long packetSize) throws IOException {
-    this(context, address, length, Protocol.WriteRequest.newBuilder().setId(id).setTier(tier)
-        .setType(type).buildPartial(), packetSize);
+  public static NettyPacketWriter create(FileSystemContext context, WorkerNetAddress address,
+      long id, long length, Protocol.RequestType type, OutStreamOptions options)
+      throws IOException {
+    long packetSize =
+        Configuration.getBytes(PropertyKey.USER_NETWORK_NETTY_WRITER_PACKET_SIZE_BYTES);
+    Channel nettyChannel = context.acquireNettyChannel(address);
+    return new NettyPacketWriter(context, address, id, length, packetSize, type, options,
+        nettyChannel);
   }
 
   /**
@@ -129,18 +132,31 @@ public final class NettyPacketWriter implements PacketWriter {
    *
    * @param context the file system context
    * @param address the data server address
+   * @param id the block or UFS file Id
    * @param length the length of the block or file to write, set to Long.MAX_VALUE if unknown
-   * @param partialRequest details of the write request which are constant for all requests
    * @param packetSize the packet size
+   * @param type type of the write request
+   * @param options details of the write request which are constant for all requests
+   * @param channel netty channel
    */
-  public NettyPacketWriter(FileSystemContext context, final WorkerNetAddress address, long length,
-      Protocol.WriteRequest partialRequest, long packetSize) throws IOException {
+  private NettyPacketWriter(FileSystemContext context, final WorkerNetAddress address, long id,
+      long length, long packetSize, Protocol.RequestType type, OutStreamOptions options,
+      Channel channel) {
     mContext = context;
     mAddress = address;
     mLength = length;
-    mPartialRequest = partialRequest;
+    Protocol.WriteRequest.Builder builder =
+        Protocol.WriteRequest.newBuilder().setId(id).setTier(options.getWriteTier()).setType(type);
+    if (type == Protocol.RequestType.UFS_FILE) {
+      Protocol.CreateUfsFileOptions ufsFileOptions =
+          Protocol.CreateUfsFileOptions.newBuilder().setUfsPath(options.getUfsPath())
+              .setOwner(options.getOwner()).setGroup(options.getGroup())
+              .setMode(options.getMode().toShort()).setMountId(options.getMountId()).build();
+      builder.setCreateUfsFileOptions(ufsFileOptions);
+    }
+    mPartialRequest = builder.buildPartial();
     mPacketSize = packetSize;
-    mChannel = mContext.acquireNettyChannel(address);
+    mChannel = channel;
     mChannel.pipeline().addLast(new PacketWriteHandler());
   }
 
@@ -348,7 +364,7 @@ public final class NettyPacketWriter implements PacketWriter {
       // Canceled is considered a valid status and handled in the writer. We avoid creating a
       // CanceledException as an optimization.
       if (response.getMessage().asResponse().getStatus() != PStatus.CANCELED) {
-        CommonUtils.unwrapResponse(response.getMessage().asResponse());
+        CommonUtils.unwrapResponseFrom(response.getMessage().asResponse(), ctx.channel());
       }
 
       try (LockResource lr = new LockResource(mLock)) {
@@ -359,7 +375,8 @@ public final class NettyPacketWriter implements PacketWriter {
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
-      LOG.error("Exception caught while reading response from netty channel {}.", cause);
+      LOG.error("Exception is caught while reading write response for block {} from channel {}:",
+          mPartialRequest.getId(), ctx.channel(), cause);
       try (LockResource lr = new LockResource(mLock)) {
         mPacketWriteException = cause;
         mBufferNotFullOrFailed.signal();
@@ -372,6 +389,8 @@ public final class NettyPacketWriter implements PacketWriter {
 
     @Override
     public void channelUnregistered(ChannelHandlerContext ctx) {
+      LOG.warn("Channel is closed while reading write response for block {} from channel {}.",
+          mPartialRequest.getId(), ctx.channel());
       try (LockResource lr = new LockResource(mLock)) {
         if (mPacketWriteException == null) {
           mPacketWriteException = new IOException("Channel closed.");

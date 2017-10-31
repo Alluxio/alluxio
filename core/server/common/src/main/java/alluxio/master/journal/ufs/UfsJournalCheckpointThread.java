@@ -72,8 +72,8 @@ public final class UfsJournalCheckpointThread extends Thread {
    * @param journal the journal
    */
   public UfsJournalCheckpointThread(JournalEntryStateMachine master, UfsJournal journal) {
-    mMaster = Preconditions.checkNotNull(master);
-    mJournal = Preconditions.checkNotNull(journal);
+    mMaster = Preconditions.checkNotNull(master, "master");
+    mJournal = Preconditions.checkNotNull(journal, "journal");
     mShutdownQuietWaitTimeMs = journal.getQuietPeriodMs();
     mJournalCheckpointSleepTimeMs =
         (int) Configuration.getMs(PropertyKey.MASTER_JOURNAL_TAILER_SLEEP_TIME_MS);

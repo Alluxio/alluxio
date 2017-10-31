@@ -154,7 +154,6 @@ public final class NettyPacketReaderTest {
    */
   private PacketReader create(long offset, long length) throws Exception {
     PacketReader reader = mFactory.create(offset, length);
-    mChannel.finishChannelCreation();
     return reader;
   }
 

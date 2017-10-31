@@ -17,7 +17,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import java.nio.ByteBuffer;
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -42,7 +42,7 @@ public final class FormatUtilsTest {
       }
     }
 
-    List<TestCase> testCases = new LinkedList<>();
+    List<TestCase> testCases = new ArrayList<>();
     testCases.add(new TestCase("()", null));
     testCases.add(new TestCase("(null)", new Object[] {null}));
     testCases.add(new TestCase("()", new Object[] {""}));
@@ -74,7 +74,7 @@ public final class FormatUtilsTest {
       }
     }
 
-    List<TestCase> testCases = new LinkedList<>();
+    List<TestCase> testCases = new ArrayList<>();
     testCases.add(new TestCase("", ByteBuffer.wrap(new byte[] {})));
     testCases.add(new TestCase("", ByteBuffer.wrap(new byte[] {0})));
     testCases.add(new TestCase("", ByteBuffer.wrap(new byte[] {0, 0})));
@@ -117,7 +117,7 @@ public final class FormatUtilsTest {
       }
     }
 
-    List<TestCase> testCases = new LinkedList<>();
+    List<TestCase> testCases = new ArrayList<>();
     testCases.add(new TestCase("^Task A took (.*) ms.$", "Task A"));
     testCases.add(new TestCase("^Task B took (.*) ms.$", "Task B"));
 
@@ -147,7 +147,7 @@ public final class FormatUtilsTest {
       }
     }
 
-    List<TestCase> testCases = new LinkedList<>();
+    List<TestCase> testCases = new ArrayList<>();
     testCases.add(new TestCase("^Task A took (.*) ns.$", "Task A"));
     testCases.add(new TestCase("^Task B took (.*) ns.$", "Task B"));
 
@@ -177,10 +177,10 @@ public final class FormatUtilsTest {
       }
     }
 
-    List<TestCase> testCases = new LinkedList<>();
-    testCases.add(new TestCase("4.00B", 1L << 2));
-    testCases.add(new TestCase("8.00B", 1L << 3));
-    testCases.add(new TestCase("4096.00B", 1L << 12));
+    List<TestCase> testCases = new ArrayList<>();
+    testCases.add(new TestCase("4B", 1L << 2));
+    testCases.add(new TestCase("8B", 1L << 3));
+    testCases.add(new TestCase("4096B", 1L << 12));
     testCases.add(new TestCase("8.00KB", 1L << 13));
     testCases.add(new TestCase("4096.00KB", 1L << 22));
     testCases.add(new TestCase("8.00MB", 1L << 23));

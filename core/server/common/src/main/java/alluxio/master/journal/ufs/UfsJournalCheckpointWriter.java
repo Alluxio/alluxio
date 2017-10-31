@@ -65,7 +65,7 @@ final class UfsJournalCheckpointWriter {
    */
   UfsJournalCheckpointWriter(UfsJournal journal, long snapshotSequenceNumber)
       throws IOException {
-    mJournal = Preconditions.checkNotNull(journal);
+    mJournal = Preconditions.checkNotNull(journal, "journal");
     mUfs = mJournal.getUfs();
     mNextSequenceNumber = 0;
 

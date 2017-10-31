@@ -11,6 +11,8 @@
 
 package alluxio;
 
+import alluxio.util.io.PathUtils;
+
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -42,6 +44,9 @@ public final class RuntimeConstants {
 
   /** The URL of Alluxio debugging documentation. */
   public static final String ALLUXIO_DEBUG_DOCS_URL = ALLUXIO_DOCS_URL + "/en/Debugging-Guide.html";
+
+  public static final String LIB_DIR =
+      PathUtils.concatPath(Configuration.get(PropertyKey.HOME), "lib");
 
   private RuntimeConstants() {} // prevent instantiation
 }

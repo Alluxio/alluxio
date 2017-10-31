@@ -20,6 +20,8 @@ import alluxio.cli.CommandUtils;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.exception.AlluxioException;
+import alluxio.exception.ExceptionMessage;
+import alluxio.util.FormatUtils;
 import alluxio.util.io.PathUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
@@ -28,7 +30,7 @@ import com.google.common.collect.Lists;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
@@ -125,7 +127,7 @@ public final class FileSystemShellUtils {
    */
   private static List<AlluxioURI> getAlluxioURIs(FileSystem alluxioClient, AlluxioURI inputURI,
       AlluxioURI parentDir) throws IOException {
-    List<AlluxioURI> res = new LinkedList<>();
+    List<AlluxioURI> res = new ArrayList<>();
     List<URIStatus> statuses;
     try {
       statuses = alluxioClient.listStatus(parentDir);
@@ -162,7 +164,7 @@ public final class FileSystemShellUtils {
   public static List<File> getFiles(String inputPath) {
     File file = new File(inputPath);
     if (!inputPath.contains("*")) {
-      List<File> res = new LinkedList<>();
+      List<File> res = new ArrayList<>();
       if (file.exists()) {
         res.add(file);
       }
@@ -184,7 +186,7 @@ public final class FileSystemShellUtils {
    * @return a list of files that matches the input path in the parent directory
    */
   private static List<File> getFiles(String inputPath, String parent) {
-    List<File> res = new LinkedList<>();
+    List<File> res = new ArrayList<>();
     File pFile = new File(parent);
     if (!pFile.exists() || !pFile.isDirectory()) {
       return res;
@@ -221,6 +223,20 @@ public final class FileSystemShellUtils {
   public static Map<String, Command> loadCommands(FileSystem fileSystem) {
     return CommandUtils.loadCommands(FileSystemShell.class.getPackage().getName(),
         new Class[] {FileSystem.class}, new Object[] {fileSystem});
+  }
+
+  /**
+   * Converts the input time into millisecond unit.
+   *
+   * @param time the time to be converted into milliseconds
+   * @return the time in millisecond unit
+   */
+  public static long getMs(String time) {
+    try {
+      return FormatUtils.parseTimeSize(time);
+    } catch (Exception e) {
+      throw new RuntimeException(ExceptionMessage.INVALID_TIME.getMessage(time));
+    }
   }
 
   /**

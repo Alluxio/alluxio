@@ -18,6 +18,8 @@ import alluxio.PropertyKey;
 import alluxio.collections.Pair;
 import alluxio.util.io.PathUtils;
 
+import com.google.common.base.Joiner;
+import org.apache.commons.lang.StringUtils;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -59,6 +61,8 @@ public class ConfigurationDocGeneratorTest {
   @Parameters
   public static Collection<Object[]> data() {
     return Arrays.asList(new Object[][]{
+        {TYPE.CSV, new Pair<>(PropertyKey.HOME,
+            "common-configuration.csv")},
         {TYPE.CSV, new Pair<>(PropertyKey.USER_LOCAL_READER_PACKET_SIZE_BYTES,
             "user-configuration.csv")},
         {TYPE.CSV, new Pair<>(PropertyKey.MASTER_CONNECTION_TIMEOUT_MS,
@@ -70,7 +74,9 @@ public class ConfigurationDocGeneratorTest {
         {TYPE.CSV, new Pair<>(PropertyKey.KEY_VALUE_PARTITION_SIZE_BYTES_MAX,
             "key-value-configuration.csv")},
         {TYPE.CSV, new Pair<>(PropertyKey.INTEGRATION_WORKER_RESOURCE_MEM,
-            "common-configuration.csv")},
+            "cluster-management-configuration.csv")},
+        {TYPE.YML, new Pair<>(PropertyKey.HOME,
+            "common-configuration.yml")},
         {TYPE.YML, new Pair<>(PropertyKey.USER_LOCAL_READER_PACKET_SIZE_BYTES,
             "user-configuration.yml")},
         {TYPE.YML, new Pair<>(PropertyKey.MASTER_CONNECTION_TIMEOUT_MS,
@@ -82,7 +88,7 @@ public class ConfigurationDocGeneratorTest {
         {TYPE.YML, new Pair<>(PropertyKey.KEY_VALUE_PARTITION_SIZE_BYTES_MAX,
             "key-value-configuration.yml")},
         {TYPE.YML, new Pair<>(PropertyKey.INTEGRATION_WORKER_RESOURCE_MEM,
-            "common-configuration.yml")}
+            "cluster-management-configuration.yml")}
     });
   }
 
@@ -103,8 +109,8 @@ public class ConfigurationDocGeneratorTest {
       assertEquals(ConfigurationDocGenerator.CSV_FILE_HEADER, target.get(0));
       assertEquals(source, target.get(1));
     } else if (fType == TYPE.YML) {
-      assertEquals(2, target.size());
-      assertEquals(source, target.get(0) + "\n" + target.get(1));
+      assertEquals(StringUtils.countMatches(source, "\n") + 1, target.size());
+      assertEquals(source, Joiner.on("\n").join(target));
     }
   }
 
@@ -145,6 +151,7 @@ public class ConfigurationDocGeneratorTest {
 
     //assert file contents
     List<String> keyDescription = Files.readAllLines(p, StandardCharsets.UTF_8);
-    checkFileContents(pKey + ":\n  " + description, keyDescription, mFileType);
+    String expected = pKey + ":\n  '" + description.replace("'", "''") + "'";
+    checkFileContents(expected, keyDescription, mFileType);
   }
 }

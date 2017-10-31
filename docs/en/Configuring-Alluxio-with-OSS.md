@@ -66,11 +66,15 @@ and you can try to run alluxio locally with OSS.
 ### Nested Mount
 An OSS location can be mounted at a nested directory in the Alluxio namespace to have unified
 access to multiple under storage systems. Alluxio's 
-[Command Line Interface](Command-Line-Interface.html) can be used for this purpose.
+[Mount Command](Command-Line-Interface.html#mount) can be used for this purpose.
+For example, the following command mounts a directory inside an OSS bucket into Alluxio directory
+`/oss`:
+
 ```bash 
 $ ./bin/alluxio fs mount --option fs.oss.accessKeyId=<OSS_ACCESS_KEY_ID> \
-  --option fs.oss.accessKeySecret=<OSS_ACCESS_KEY_SECRET>\
-  fs.oss.endpoint=<OSS_ENDPOINT>
+  --option fs.oss.accessKeySecret=<OSS_ACCESS_KEY_SECRET> \
+  --option fs.oss.endpoint=<OSS_ENDPOINT> \
+  /oss oss://OSS_BUCKET/OSS_DIRECTORY/
 ```
 
 ## Running Alluxio Locally with OSS

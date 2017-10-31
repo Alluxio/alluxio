@@ -11,9 +11,12 @@
 
 package alluxio.client.block.stream;
 
+import alluxio.ConfigurationRule;
 import alluxio.Constants;
 import alluxio.EmbeddedChannels;
+import alluxio.PropertyKey;
 import alluxio.client.file.FileSystemContext;
+import alluxio.client.file.options.OutStreamOptions;
 import alluxio.network.protocol.RPCProtoMessage;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.network.protocol.databuffer.DataNettyBufferV2;
@@ -31,6 +34,7 @@ import io.netty.channel.embedded.EmbeddedChannel;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
@@ -63,6 +67,11 @@ public final class NettyPacketWriterTest {
   private FileSystemContext mContext;
   private WorkerNetAddress mAddress;
   private EmbeddedChannels.EmbeddedEmptyCtorChannel mChannel;
+
+  @Rule
+  public ConfigurationRule mConfigurationRule =
+      new ConfigurationRule(PropertyKey.USER_NETWORK_NETTY_WRITER_PACKET_SIZE_BYTES,
+          String.valueOf(PACKET_SIZE));
 
   @Before
   public void before() throws Exception {
@@ -165,9 +174,9 @@ public final class NettyPacketWriterTest {
    */
   private PacketWriter create(long length) throws Exception {
     PacketWriter writer =
-        new NettyPacketWriter(mContext, mAddress, BLOCK_ID, length, TIER,
-            Protocol.RequestType.ALLUXIO_BLOCK, PACKET_SIZE);
-    mChannel.finishChannelCreation();
+        NettyPacketWriter.create(mContext, mAddress, BLOCK_ID, length,
+            Protocol.RequestType.ALLUXIO_BLOCK,
+            OutStreamOptions.defaults().setWriteTier(TIER));
     return writer;
   }
 

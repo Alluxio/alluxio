@@ -91,13 +91,20 @@ public interface UnderFileSystem extends Closeable {
 
       List<Throwable> errors = new ArrayList<>();
       for (UnderFileSystemFactory factory : factories) {
+        ClassLoader previousClassLoader = Thread.currentThread().getContextClassLoader();
         try {
+          // Reflection may be invoked during UFS creation on service loading which uses context
+          // classloader by default. Stashing the context classloader on creation and switch it back
+          // when creation is done.
+          Thread.currentThread().setContextClassLoader(factory.getClass().getClassLoader());
           // Use the factory to create the actual client for the Under File System
           return new UnderFileSystemWithLogging(factory.create(path, ufsConf));
         } catch (Throwable e) {
           // Catching Throwable rather than Exception to catch service loading errors
           errors.add(e);
           LOG.warn("Failed to create UnderFileSystem by factory {}: {}", factory, e.getMessage());
+        } finally {
+          Thread.currentThread().setContextClassLoader(previousClassLoader);
         }
       }
 
@@ -319,6 +326,11 @@ public interface UnderFileSystem extends Closeable {
    * @return true if the path exists and is a file, false otherwise
    */
   boolean isFile(String path) throws IOException;
+
+  /**
+   * @return true if under storage is an object store, false otherwise
+   */
+  boolean isObjectStorage();
 
   /**
    * Returns an array of statuses of the files and directories in the directory denoted by this

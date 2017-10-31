@@ -188,9 +188,8 @@ public final class UnderFileSystemBlockReader implements BlockReader {
             (int) (mInStreamPos - mBlockWriter.getPosition()));
         mBlockWriter.append(buffer.duplicate());
       } catch (Exception e) {
-        LOG.warn("Failed to cache data read from UFS: %s", e.getMessage());
-        mBlockWriter.close();
-        mBlockWriter = null;
+        LOG.warn("Failed to cache data read from UFS (on read()): {}", e.getMessage());
+        cancelBlockWriter();
       }
     }
     return ByteBuffer.wrap(data, 0, bytesRead);
@@ -230,12 +229,13 @@ public final class UnderFileSystemBlockReader implements BlockReader {
       try {
         bufCopy.writerIndex(buf.writerIndex());
         while (bufCopy.readableBytes() > 0) {
-          mBlockWriter.transferFrom(bufCopy);
+          mLocalBlockStore.requestSpace(mBlockMeta.getSessionId(), mBlockMeta.getBlockId(),
+              mInStreamPos - mBlockWriter.getPosition());
+          mBlockWriter.append(bufCopy);
         }
       } catch (Exception e) {
-        LOG.warn("Failed to cache data read from UFS: %s", e.getMessage());
-        mBlockWriter.close();
-        mBlockWriter = null;
+        LOG.warn("Failed to cache data read from UFS (on transferTo()): {}", e.getMessage());
+        cancelBlockWriter();
       }
     }
 
@@ -305,18 +305,16 @@ public final class UnderFileSystemBlockReader implements BlockReader {
   }
 
   /**
-   * Updates the block writer given an offset to read. If the offset is beyond the current
-   * position of the block writer, the block writer will be aborted.
-   *
-   * @param offset the read offset
+   * Closes the current block writer, cleans up its temp block and sets it to null.
    */
-  private void updateBlockWriter(long offset) throws IOException {
+  private void cancelBlockWriter() throws IOException {
+    if (mBlockWriter == null) {
+      return;
+    }
     try {
-      if (mBlockWriter != null && offset > mBlockWriter.getPosition()) {
-        mBlockWriter.close();
-        mBlockWriter = null;
-        mLocalBlockStore.abortBlock(mBlockMeta.getSessionId(), mBlockMeta.getBlockId());
-      }
+      mBlockWriter.close();
+      mBlockWriter = null;
+      mLocalBlockStore.abortBlock(mBlockMeta.getSessionId(), mBlockMeta.getBlockId());
     } catch (BlockDoesNotExistException e) {
       // This can only happen when the session is expired.
       LOG.warn("Block {} does not exist when being aborted. The session may have expired.",
@@ -325,6 +323,18 @@ public final class UnderFileSystemBlockReader implements BlockReader {
       // We cannot skip the exception here because we need to make sure that the user of this
       // reader does not commit the block if it fails to abort the block.
       throw AlluxioStatusException.fromCheckedException(e);
+    }
+  }
+
+  /**
+   * Updates the block writer given an offset to read. If the offset is beyond the current
+   * position of the block writer, the block writer will be aborted.
+   *
+   * @param offset the read offset
+   */
+  private void updateBlockWriter(long offset) throws IOException {
+    if (mBlockWriter != null && offset > mBlockWriter.getPosition()) {
+      cancelBlockWriter();
     }
     try {
       if (mBlockWriter == null && offset == 0 && !mBlockMeta.isNoCache()) {

@@ -1,11 +1,5 @@
 alluxio.user.block.master.client.threads:
   数据块master client与数据块master通信使用的线程数目。
-alluxio.user.block.worker.client.threads:
-  数据块worker client向worker发送心跳的线程池大小，如果某些worker宕机会影响client与其他正常worker的通信，那就增大该值。
-alluxio.user.block.worker.client.pool.size.max:
-  数据块worker client池中缓存的worker client的最大数目。
-alluxio.user.block.worker.client.pool.gc.threshold.ms:
-  数据块worker client如果闲置超过这个时间会被关闭。
 alluxio.user.block.remote.read.buffer.size.bytes:
   从远程Alluxio worker读取数据时的缓冲区大小。它决定了一个Alluxio client和一个Alluxio worker之间Thrift connections的最大数量
 alluxio.user.block.remote.reader.class:
@@ -16,37 +10,47 @@ alluxio.user.block.remote.writer.class:
   这个设置已经不推荐使用，将在2.0.0版本中删除。
 alluxio.user.block.size.bytes.default:
   Alluxio文件的默认大小。
+alluxio.user.block.worker.client.pool.gc.threshold.ms:
+  数据块worker client如果闲置超过这个时间会被关闭。
+alluxio.user.block.worker.client.pool.size.max:
+  数据块worker client池中缓存的worker client的最大数目。
+alluxio.user.block.worker.client.threads:
+  数据块worker client向worker发送心跳的线程池大小，如果某些worker宕机会影响client与其他正常worker的通信，那就增大该值。
+alluxio.user.date.format.pattern:
+  以指定的日期格式，在Cli命令和Web页面中显示日期。
 alluxio.user.failed.space.request.limits:
   从文件系统请求空间的尝试次数。
 alluxio.user.file.buffer.bytes:
   在文件系统中进行读写操作时使用的缓冲区大小。
+alluxio.user.file.cache.partially.read.block:
+  当读取类型是 `CACHE` 或者 `CACHE_PROMOTE` 的时候, 如果设置这个变量为真, 没有完全读取的数据块也会被存到Alluxio内.
 alluxio.user.file.copyfromlocal.write.location.policy.class:
   使用copyFromLocal命令时，选择worker进行写文件数据块所使用的默认定位机制。
+alluxio.user.file.delete.unchecked:
+  在尝试以递归方式删除持久化目录之前，检查底层文件系统中的内容是否与Alluxio同步。
 alluxio.user.file.master.client.threads:
   文件master client与文件master通信时使用的线程数目。
 alluxio.user.file.metadata.load.type:
   从UFS中加载元数据的行为。当访问关于路径的信息，但该路径在Alluxio中不存在时，元数据能够从UFS中加载。合法的选项有`Always`，`Never`，`Once`。`Always`将总是访问UFS来看路径是否存在于UFS中。`Never`表示从来不会访问UFS。`Once`表示在”首次“的时候会访问UFS（根据缓存），但是以后都不会在访问。默认值为`Once`。
+alluxio.user.file.passive.cache.enabled:
+  当从Alluxio远程worker读文件时，是否缓存文件到Alluxio的本地worker。当从UFS读文件时，是否缓存到本地worker与这个选项无关。
+alluxio.user.file.readtype.default:
+  创建Alluxio文件时的默认读类型。可选值为`CACHE_PROMOTE` (如果数据已经在Alluxio存储内，将其移动到最高存储层，如果数据需要从底层存储进行读取，将其写到本地Alluxio的最高存储层)、`CACHE` (如果数据需要从底层存储进行读取，将其写到本地Alluxio的最高存储层), `NO_CACHE` (数据不与Alluxio交互，如果是从Alluxio中进行读取，将不会发生数据块迁移或者剔除)。
+alluxio.user.file.seek.buffer.size.bytes:
+  在文件seek操作中使用的缓存大小。这个选项只在 `alluxio.user.file.cache.partially.read.block` 打开的时候有效。
 alluxio.user.file.waitcompleted.poll.ms:
   当使用waitCompleted机制时，查询文件完成状态的时间间隔。
 alluxio.user.file.worker.client.threads:
   文件worker client从worker读取数据时使用的线程数目。
-alluxio.user.file.write.location.policy.class:
-  选择worker进行写文件数据块时的默认定位机制。
 alluxio.user.file.write.avoid.eviction.policy.reserved.size.bytes:
   当用户选择LocalFirstAvoidEvictionPolicy作为写文件数据块的定位机制时,用户需要配置worker预留一些数据量来保证数据的存储，默认是0MB。
+alluxio.user.file.write.location.policy.class:
+  选择worker进行写文件数据块时的默认定位机制。
 alluxio.user.file.write.tier.default:
   数据块写入的默认存储层。可选值为整型数值。非负值代表从高层到底层的存储层（0代表第一层存储层，１代表第二层存储层，以此类推）。如果给定值大于存储层数量,这个数字代表最底层的存储层。负值代表从底层到高层的存储层（-1代表最底层存储层，-2代表次底层存储层，以此类推）如果给定值的绝对值大于存储层数量，这个数字代表最高层存储层。
-alluxio.user.file.readtype.default:
-  创建Alluxio文件时的默认读类型。可选值为`CACHE_PROMOTE` (如果数据已经在Alluxio存储内，将其移动到最高存储层，如果数据需要从底层存储进行读取，将其写到本地Alluxio的最高存储层)、`CACHE` (如果数据需要从底层存储进行读取，将其写到本地Alluxio的最高存储层), `NO_CACHE` (数据不与Alluxio交互，如果是从Alluxio中进行读取，将不会发生数据块迁移或者剔除)。
 alluxio.user.file.writetype.default:
   创建Alluxio文件时的默认写类型。可选值为`MUST_CACHE` (数据仅仅存储在Alluxio中，并且必须存储在其中),
   `CACHE_THROUGH` (尽量缓冲数据，同时同步写入到底层文件系统), `THROUGH` (不缓冲数据，同步写入到底层文件系统)。
-alluxio.user.file.cache.partially.read.block:
-  当读取类型是 `CACHE` 或者 `CACHE_PROMOTE` 的时候, 如果设置这个变量为真, 没有完全读取的数据块也会被存到Alluxio内.
-alluxio.user.file.delete.unchecked:
-  在尝试以递归方式删除持久化目录之前，检查底层文件系统中的内容是否与Alluxio同步。
-alluxio.user.file.seek.buffer.size.bytes:
-  在文件seek操作中使用的缓存大小。这个选项只在 `alluxio.user.file.cache.partially.read.block` 打开的时候有效。
 alluxio.user.heartbeat.interval.ms:
   Alluxio worker的心跳时间间隔（单位：毫秒）。
 alluxio.user.hostname:
@@ -55,18 +59,26 @@ alluxio.user.lineage.enabled:
   是否启用lineage。
 alluxio.user.lineage.master.client.threads:
   lineage master client与lineage master通信所使用的线程数目。
-alluxio.user.network.netty.timeout.ms:
-  Netty client（用于数据块的读写操作）等待数据服务端回复的最长时间（单位：毫秒）。
-alluxio.user.network.netty.writer.close.timeout.ms:
-  Netty 客户端关闭的最长时间（单位：毫秒）。
-alluxio.user.network.netty.worker.threads:
-  远程数据块worker client从远程数据块worker读取数据使用的线程数目。
-alluxio.user.network.netty.channel.pool.size.max:
-  netty网络通道池的最大容量。
-alluxio.user.network.netty.channel.pool.gc.threshold.ms:
-  netty网络通道会被关闭如果它被闲置超过这个时间。
 alluxio.user.network.netty.channel.pool.disabled:
   禁用netty网络通道池特性。设置这个选项为真如果客户端的版本 >= 1.3.0 但是服务器版本 <= 1.2.x。
+alluxio.user.network.netty.channel.pool.gc.threshold.ms:
+  netty网络通道会被关闭如果它被闲置超过这个时间。
+alluxio.user.network.netty.channel.pool.size.max:
+  netty网络通道池的最大容量。
+alluxio.user.network.netty.timeout.ms:
+  Netty client（用于数据块的读写操作）等待数据服务端回复的最长时间（单位：毫秒）。
+alluxio.user.network.netty.worker.threads:
+  远程数据块worker client从远程数据块worker读取数据使用的线程数目。
+alluxio.user.network.netty.writer.close.timeout.ms:
+  Netty 客户端关闭的最长时间（单位：毫秒）。
+alluxio.user.rpc.retry.base.sleep.ms:
+  在遇到一些错误的时候，Alluxio客户端的RPC会基于指数级的延迟进行重试。这个配置决定了这个指数级重试的基数。
+alluxio.user.rpc.retry.max.num.retry:
+  在遇到一些错误的时候，Alluxio客户端的RPC会基于指数级的延迟进行重试。这个配置决定了重试的最大次数。
+alluxio.user.rpc.retry.max.sleep.ms:
+  在遇到一些错误的时候，Alluxio客户端的RPC会基于指数级的延迟进行重试。这个配置决定了这个重试延迟的最大值。
+alluxio.user.short.circuit.enabled:
+  是否允许用户绕过Alluxio读取数据。
 alluxio.user.ufs.delegation.read.buffer.size.bytes:
   通过Alluxio worker从ufs读取数据时使用的缓存大小，每个读取操作至少会读取该数量的字节，除非已经到文件结束位置。
 alluxio.user.ufs.delegation.write.buffer.size.bytes:
@@ -75,13 +87,3 @@ alluxio.user.ufs.file.reader.class:
   选择通过worker的data server从底层文件系统读取数据的client所使用的网络栈。目前只支持 `alluxio.client.netty.NettyUnderFileSystemFileReader` （远程读取使用netty）
 alluxio.user.ufs.file.writer.class:
   选择通过worker的data server向底层文件系统写入数据的client所使用的网络栈。目前只支持 `alluxio.client.netty.NettyUnderFileSystemFileWriter` （远程读取使用netty）
-alluxio.user.rpc.retry.base.sleep.ms:
-  在遇到一些错误的时候，Alluxio客户端的RPC会基于指数级的延迟进行重试。这个配置决定了这个指数级重试的基数。
-alluxio.user.rpc.retry.max.sleep.ms:
-  在遇到一些错误的时候，Alluxio客户端的RPC会基于指数级的延迟进行重试。这个配置决定了这个重试延迟的最大值。
-alluxio.user.rpc.retry.max.num.retry:
-  在遇到一些错误的时候，Alluxio客户端的RPC会基于指数级的延迟进行重试。这个配置决定了重试的最大次数。
-alluxio.user.date.format.pattern:
-  以指定的日期格式，在Cli命令和Web页面中显示日期。
-alluxio.user.short.circuit.enabled:
-  是否允许用户绕过Alluxio读取数据。

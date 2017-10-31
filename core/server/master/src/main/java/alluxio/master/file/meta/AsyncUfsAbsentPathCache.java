@@ -78,6 +78,7 @@ public final class AsyncUfsAbsentPathCache implements UfsAbsentPathCache {
     mPool = new ThreadPoolExecutor(mThreads, mThreads, THREAD_KEEP_ALIVE_SECONDS,
         TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>(),
         ThreadFactoryUtils.build("UFS-Absent-Path-Cache-%d", true));
+    mPool.allowCoreThreadTimeOut(true);
   }
 
   @Override

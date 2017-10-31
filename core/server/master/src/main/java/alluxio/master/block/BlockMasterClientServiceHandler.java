@@ -54,7 +54,7 @@ public final class BlockMasterClientServiceHandler implements BlockMasterClientS
    * @param blockMaster the {@link BlockMaster} the handler uses internally
    */
   BlockMasterClientServiceHandler(BlockMaster blockMaster) {
-    Preconditions.checkNotNull(blockMaster);
+    Preconditions.checkNotNull(blockMaster, "blockMaster");
     mBlockMaster = blockMaster;
   }
 

@@ -12,9 +12,11 @@
 package alluxio.rest;
 
 import alluxio.Constants;
+import alluxio.exception.status.InvalidArgumentException;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.google.common.io.ByteStreams;
 import org.apache.commons.io.IOUtils;
 import org.junit.Assert;
@@ -100,7 +102,11 @@ public final class TestCase {
   public URL createURL() throws Exception {
     StringBuilder sb = new StringBuilder();
     for (Map.Entry<String, String> parameter : mParameters.entrySet()) {
-      sb.append(parameter.getKey() + "=" + parameter.getValue() + "&");
+      if (parameter.getValue() == null || parameter.getValue().isEmpty()) {
+        sb.append(parameter.getKey());
+      } else {
+        sb.append(parameter.getKey() + "=" + parameter.getValue() + "&");
+      }
     }
     return new URL(
         "http://" + mHostname + ":" + mPort + Constants.REST_API_PREFIX + "/" + mEndpoint
@@ -127,11 +133,14 @@ public final class TestCase {
   }
 
   /**
-   * Runs the test case and returns the output.
+   * Runs the test case and returns the {@link HttpURLConnection}.
    */
-  public String call() throws Exception {
+  public HttpURLConnection execute() throws Exception {
     HttpURLConnection connection = (HttpURLConnection) createURL().openConnection();
     connection.setRequestMethod(mMethod);
+    if (mOptions.getMD5() != null) {
+      connection.setRequestProperty("Content-MD5", mOptions.getMD5());
+    }
     if (mOptions.getInputStream() != null) {
       connection.setDoOutput(true);
       connection.setRequestProperty("Content-Type", "application/octet-stream");
@@ -139,7 +148,7 @@ public final class TestCase {
     }
     if (mOptions.getBody() != null) {
       connection.setDoOutput(true);
-      connection.setRequestProperty("Content-Type", "application/json");
+      connection.setRequestProperty("Content-Type", mOptions.getContentType());
       ObjectMapper mapper = new ObjectMapper();
       // make sure that serialization of empty objects does not fail
       mapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
@@ -149,14 +158,22 @@ public final class TestCase {
     }
 
     connection.connect();
-    if (connection.getResponseCode() != Response.Status.OK.getStatusCode()) {
+    if (Response.Status.Family.familyOf(connection.getResponseCode())
+        != Response.Status.Family.SUCCESSFUL) {
       InputStream errorStream = connection.getErrorStream();
       if (errorStream != null) {
         Assert.fail("Request failed: " + IOUtils.toString(errorStream));
       }
       Assert.fail("Request failed with status code " + connection.getResponseCode());
     }
-    return getResponse(connection);
+    return connection;
+  }
+
+  /**
+   * Runs the test case and returns the output.
+   */
+  public String call() throws Exception {
+    return getResponse(execute());
   }
 
   /**
@@ -165,11 +182,22 @@ public final class TestCase {
   public void run() throws Exception {
     String expected = "";
     if (mExpectedResult != null) {
-      ObjectMapper mapper = new ObjectMapper();
-      if (mOptions.isPrettyPrint()) {
-        expected = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(mExpectedResult);
+      if (mOptions.getContentType().equals(TestCaseOptions.JSON_CONTENT_TYPE)) {
+        ObjectMapper mapper = new ObjectMapper();
+        if (mOptions.isPrettyPrint()) {
+          expected = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(mExpectedResult);
+        } else {
+          expected = mapper.writeValueAsString(mExpectedResult);
+        }
+      } else if (mOptions.getContentType().equals(TestCaseOptions.XML_CONTENT_TYPE)) {
+        XmlMapper mapper = new XmlMapper();
+        if (mOptions.isPrettyPrint()) {
+          expected = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(mExpectedResult);
+        } else {
+          expected = mapper.writeValueAsString(mExpectedResult);
+        }
       } else {
-        expected = mapper.writeValueAsString(mExpectedResult);
+        throw new InvalidArgumentException("Invalid content type in TestCaseOptions!");
       }
     }
     String result = call();

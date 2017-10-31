@@ -83,11 +83,11 @@ When running Alluxio with resource managers like Mesos and YARN, Alluxio has add
 
 <table class="table table-striped">
 <tr><th>Property Name</th><th>Default</th><th>Description</th></tr>
-{% for item in site.data.table.cluster-management %}
+{% for item in site.data.table.cluster-management-configuration %}
   <tr>
     <td>{{ item.propertyName }}</td>
     <td>{{ item.defaultValue }}</td>
-    <td>{{ site.data.table.en.cluster-management[item.propertyName] }}</td>
+    <td>{{ site.data.table.en.cluster-management-configuration[item.propertyName] }}</td>
   </tr>
 {% endfor %}
 </table>

@@ -11,11 +11,15 @@
 
 package alluxio.underfs;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
 import alluxio.ConfigurationRule;
 import alluxio.PropertyKey;
 
 import com.google.common.collect.ImmutableMap;
-import org.junit.Assert;
 import org.junit.Test;
 
 import java.io.Closeable;
@@ -32,14 +36,14 @@ public final class UnderFileSystemConfigurationTest {
       boolean shared = random.nextBoolean();
       UnderFileSystemConfiguration conf =
           UnderFileSystemConfiguration.defaults().setReadOnly(readOnly).setShared(shared);
-      Assert.assertEquals(readOnly, conf.isReadOnly());
-      Assert.assertEquals(shared, conf.isShared());
-      Assert.assertEquals("bar", conf.getValue(PropertyKey.S3A_ACCESS_KEY));
+      assertEquals(readOnly, conf.isReadOnly());
+      assertEquals(shared, conf.isShared());
+      assertEquals("bar", conf.getValue(PropertyKey.S3A_ACCESS_KEY));
       conf = UnderFileSystemConfiguration.defaults().setReadOnly(readOnly).setShared(shared)
           .setUserSpecifiedConf(ImmutableMap.of(PropertyKey.S3A_ACCESS_KEY.toString(), "foo"));
-      Assert.assertEquals(readOnly, conf.isReadOnly());
-      Assert.assertEquals(shared, conf.isShared());
-      Assert.assertEquals("foo", conf.getValue(PropertyKey.S3A_ACCESS_KEY));
+      assertEquals(readOnly, conf.isReadOnly());
+      assertEquals(shared, conf.isShared());
+      assertEquals("foo", conf.getValue(PropertyKey.S3A_ACCESS_KEY));
     }
   }
 
@@ -54,14 +58,14 @@ public final class UnderFileSystemConfigurationTest {
           UnderFileSystemConfiguration.defaults().setReadOnly(readOnly).setShared(shared);
       try {
         conf.getValue(PropertyKey.S3A_ACCESS_KEY);
-        Assert.fail("this key should not exist");
+        fail("this key should not exist");
       } catch (Exception e) {
         // expect to pass
       }
       conf.setUserSpecifiedConf(ImmutableMap.of(PropertyKey.S3A_ACCESS_KEY.toString(), "foo"));
-      Assert.assertEquals(readOnly, conf.isReadOnly());
-      Assert.assertEquals(shared, conf.isShared());
-      Assert.assertEquals("foo", conf.getValue(PropertyKey.S3A_ACCESS_KEY));
+      assertEquals(readOnly, conf.isReadOnly());
+      assertEquals(shared, conf.isShared());
+      assertEquals("foo", conf.getValue(PropertyKey.S3A_ACCESS_KEY));
     }
   }
 
@@ -74,11 +78,11 @@ public final class UnderFileSystemConfigurationTest {
       boolean shared = random.nextBoolean();
       UnderFileSystemConfiguration conf =
           UnderFileSystemConfiguration.defaults().setReadOnly(readOnly).setShared(shared);
-      Assert.assertTrue(conf.containsKey(PropertyKey.S3A_ACCESS_KEY));
+      assertTrue(conf.containsKey(PropertyKey.S3A_ACCESS_KEY));
       conf.setUserSpecifiedConf(ImmutableMap.of(PropertyKey.S3A_ACCESS_KEY.toString(), "foo"));
-      Assert.assertEquals(readOnly, conf.isReadOnly());
-      Assert.assertEquals(shared, conf.isShared());
-      Assert.assertTrue(conf.containsKey(PropertyKey.S3A_ACCESS_KEY));
+      assertEquals(readOnly, conf.isReadOnly());
+      assertEquals(shared, conf.isShared());
+      assertTrue(conf.containsKey(PropertyKey.S3A_ACCESS_KEY));
     }
   }
 
@@ -91,11 +95,11 @@ public final class UnderFileSystemConfigurationTest {
       boolean shared = random.nextBoolean();
       UnderFileSystemConfiguration conf =
           UnderFileSystemConfiguration.defaults().setReadOnly(readOnly).setShared(shared);
-      Assert.assertFalse(conf.containsKey(PropertyKey.S3A_ACCESS_KEY));
+      assertFalse(conf.containsKey(PropertyKey.S3A_ACCESS_KEY));
       conf.setUserSpecifiedConf(ImmutableMap.of(PropertyKey.S3A_ACCESS_KEY.toString(), "foo"));
-      Assert.assertEquals(readOnly, conf.isReadOnly());
-      Assert.assertEquals(shared, conf.isShared());
-      Assert.assertTrue(conf.containsKey(PropertyKey.S3A_ACCESS_KEY));
+      assertEquals(readOnly, conf.isReadOnly());
+      assertEquals(shared, conf.isShared());
+      assertTrue(conf.containsKey(PropertyKey.S3A_ACCESS_KEY));
     }
   }
 }

@@ -16,14 +16,18 @@ import alluxio.Constants;
 import alluxio.client.ReadType;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
+import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.OpenFileOptions;
+import alluxio.client.file.policy.LocalFirstPolicy;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.InvalidArgumentException;
 
 import com.google.common.io.Closer;
 import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.Option;
+import org.apache.commons.cli.Options;
 
 import java.io.IOException;
 import java.util.List;
@@ -31,10 +35,17 @@ import java.util.List;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * Loads a file or directory in Alluxio space, making it resident in memory.
+ * Loads a file or directory in Alluxio space, making it resident in Alluxio.
  */
 @ThreadSafe
 public final class LoadCommand extends WithWildCardPathCommand {
+  private static final Option LOCAL_OPTION =
+      Option.builder()
+          .longOpt("local")
+          .required(false)
+          .hasArg(false)
+          .desc("load the file to local worker.")
+          .build();
 
   /**
    * Constructs a new instance to load a file or directory in Alluxio space.
@@ -51,31 +62,46 @@ public final class LoadCommand extends WithWildCardPathCommand {
   }
 
   @Override
+  public Options getOptions() {
+    return new Options()
+        .addOption(LOCAL_OPTION);
+  }
+
+  @Override
   protected void runCommand(AlluxioURI path, CommandLine cl) throws AlluxioException, IOException {
-    load(path);
+    load(path, cl.hasOption(LOCAL_OPTION.getLongOpt()));
   }
 
   /**
-   * Loads a file or directory in Alluxio space, makes it resident in memory.
+   * Loads a file or directory in Alluxio space, makes it resident in Alluxio.
    *
-   * @param filePath The {@link AlluxioURI} path to load into Alluxio memory
+   * @param filePath The {@link AlluxioURI} path to load into Alluxio
+   * @param local whether to load data to local worker even when the data is already loaded remotely
    */
-  private void load(AlluxioURI filePath) throws AlluxioException, IOException {
+  private void load(AlluxioURI filePath, boolean local) throws AlluxioException, IOException {
     URIStatus status = mFileSystem.getStatus(filePath);
     if (status.isFolder()) {
       List<URIStatus> statuses = mFileSystem.listStatus(filePath);
       for (URIStatus uriStatus : statuses) {
         AlluxioURI newPath = new AlluxioURI(uriStatus.getPath());
-        load(newPath);
+        load(newPath, local);
       }
     } else {
-      if (status.getInAlluxioPercentage() == 100) {
-        // The file has already been fully loaded into Alluxio memory.
+      OpenFileOptions options = OpenFileOptions.defaults().setReadType(ReadType.CACHE_PROMOTE);
+      if (local) {
+        if (!FileSystemContext.INSTANCE.hasLocalWorker()) {
+          System.out.println("When local option is specified,"
+              + " there must be a local worker available");
+          return;
+        }
+        options.setCacheLocationPolicy(new LocalFirstPolicy());
+      } else if (status.getInAlluxioPercentage() == 100) {
+        // The file has already been fully loaded into Alluxio.
+        System.out.println(filePath + " already in Alluxio fully");
         return;
       }
       Closer closer = Closer.create();
       try {
-        OpenFileOptions options = OpenFileOptions.defaults().setReadType(ReadType.CACHE_PROMOTE);
         FileInStream in = closer.register(mFileSystem.openFile(filePath, options));
         byte[] buf = new byte[8 * Constants.MB];
         while (in.read(buf) != -1) {
@@ -91,12 +117,12 @@ public final class LoadCommand extends WithWildCardPathCommand {
 
   @Override
   public String getUsage() {
-    return "load <path>";
+    return "load [--local] <path>";
   }
 
   @Override
   public String getDescription() {
-    return "Loads a file or directory in Alluxio space, makes it resident in memory.";
+    return "Loads a file or directory in Alluxio space, makes it resident in Alluxio.";
   }
 
   @Override

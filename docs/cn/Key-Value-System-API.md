@@ -17,7 +17,8 @@ Alluxio除了提供[Filesystem API](File-System-API.html) 让应用程序来读�
 * 用户可以创建一个键值存储库并且把键值对放入其中。键值对放入存储后是不可变的。
 * 键值存储库完整保存后，用户可以打开并使用该键值存储库。
 
-键值存储库可以用AlluxioURI来表示路径，比如`alluxio://path/my-kvstore`.
+键值存储库可以用AlluxioURI来表示路径，比如`alluxio://192.168.1.200:19998/path/my-kvstore`，
+表示master地址为192.168.1.200，RPC端口为19998，键值存储库路径为`/path/my-kvstore`。
 根据总容量和用户指定的数据块大小，单个键值存储库可能有一个以上的分区，分区是由Alluxio内部来管理，对用户透明。
 
 ## 键值存储库配置参数

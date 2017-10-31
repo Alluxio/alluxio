@@ -164,7 +164,6 @@ public abstract class AbstractClient implements Client {
       return;
     }
     disconnect();
-    mAddress = getAddress();
     Preconditions.checkState(!mClosed, "Client is closed, will not try to connect.");
 
     RetryPolicy retryPolicy =
@@ -173,6 +172,8 @@ public abstract class AbstractClient implements Client {
       if (mClosed) {
         throw new FailedPreconditionException("Failed to connect: client has been closed");
       }
+      // Re-query the address in each loop iteration in case it has changed (e.g. master failover).
+      mAddress = getAddress();
       LOG.info("Alluxio client (version {}) is trying to connect with {} @ {}",
           RuntimeConstants.VERSION, getServiceName(), mAddress);
 
@@ -196,7 +197,6 @@ public abstract class AbstractClient implements Client {
               getServiceName(), mAddress, e.getMessage(), RuntimeConstants.ALLUXIO_DEBUG_DOCS_URL);
           throw new UnimplementedException(message, e);
         }
-        throw e;
       } catch (TTransportException e) {
         LOG.warn("Failed to connect ({}) with {} @ {}: {}", retryPolicy.getRetryCount(),
             getServiceName(), mAddress, e.getMessage());
@@ -207,10 +207,10 @@ public abstract class AbstractClient implements Client {
               + "is not able to connect to servers with SIMPLE security mode.";
           throw new UnavailableException(message, e);
         }
-        // TODO(peis): Consider closing the connection here as well.
-        if (!retryPolicy.attemptRetry()) {
-          break;
-        }
+      }
+      // TODO(peis): Consider closing the connection here as well.
+      if (!retryPolicy.attemptRetry()) {
+        break;
       }
     }
     // Reaching here indicates that we did not successfully connect.
@@ -298,9 +298,10 @@ public abstract class AbstractClient implements Client {
       } catch (TException e) {
         ex = e;
       }
-      LOG.warn(ex.toString());
       disconnect();
-      if (!retryPolicy.attemptRetry()) {
+      if (retryPolicy.attemptRetry()) {
+        LOG.warn("RPC failed with {}. Retrying.", ex.toString());
+      } else {
         throw new UnavailableException(
             "Failed after " + retryPolicy.getRetryCount() + " retries: " + ex.toString(), ex);
       }

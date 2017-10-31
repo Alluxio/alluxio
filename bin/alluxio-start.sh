@@ -15,7 +15,7 @@ LAUNCHER=
 if [[ "$-" == *x* ]]; then
   LAUNCHER="bash -x"
 fi
-BIN=$(cd "$( dirname "$0" )"; pwd)
+BIN=$(cd "$( dirname "$( readlink "$0" || echo "$0" )" )"; pwd)
 
 #start up alluxio
 
@@ -135,6 +135,21 @@ do_mount() {
 
 stop() {
   ${BIN}/alluxio-stop.sh $1
+}
+
+start_logserver() {
+    if [[ ! -d "${ALLUXIO_LOGSERVER_LOGS_DIR}" ]]; then
+        echo "ALLUXIO_LOGSERVER_LOGS_DIR: ${ALLUXIO_LOGSERVER_LOGS_DIR}"
+        mkdir -p ${ALLUXIO_LOGSERVER_LOGS_DIR}
+    fi
+
+    echo "Starting logserver @ $(hostname -f)."
+    (nohup "${JAVA}" -cp ${CLASSPATH} \
+     ${ALLUXIO_LOGSERVER_JAVA_OPTS} \
+     alluxio.logserver.AlluxioLogServer "${ALLUXIO_LOGSERVER_LOGS_DIR}" > ${ALLUXIO_LOGS_DIR}/logserver.out 2>&1) &
+    # Wait for 1s before starting other Alluxio servers, otherwise may cause race condition
+    # leading to connection errors.
+    sleep 1
 }
 
 start_master() {
@@ -343,6 +358,9 @@ main() {
       ;;
     workers)
       start_workers "${MOPT}"
+      ;;
+    logserver)
+      start_logserver
       ;;
     *)
     echo "Error: Invalid ACTION: ${ACTION}" >&2

@@ -48,7 +48,7 @@ public final class ByteBufferKeyValuePartitionReader implements KeyValuePartitio
    * @param fileBytes the byte buffer as underline storage to read from
    */
   public ByteBufferKeyValuePartitionReader(ByteBuffer fileBytes) {
-    mBuf = Preconditions.checkNotNull(fileBytes);
+    mBuf = Preconditions.checkNotNull(fileBytes, "fileBytes");
     mBufferLength = mBuf.remaining();
     mIndex = createIndex();
     mPayloadReader = createPayloadReader();

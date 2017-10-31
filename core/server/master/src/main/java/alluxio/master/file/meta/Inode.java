@@ -19,6 +19,8 @@ import alluxio.wire.FileInfo;
 import alluxio.wire.TtlAction;
 
 import com.google.common.base.Objects;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
@@ -32,6 +34,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public abstract class Inode<T> implements JournalEntryRepresentable {
+  private static final Logger LOG = LoggerFactory.getLogger(Inode.class);
   protected long mCreationTimeMs;
   private boolean mDeleted;
   protected final boolean mDirectory;

@@ -14,7 +14,7 @@
 # Usage:
 #  alluxio-mesos-start.sh <mesos-master-hostname>
 
-SCRIPT_DIR="$(cd "$(dirname "$0")"; pwd)"
+SCRIPT_DIR="$(cd "$(dirname "$(readlink "$0" || echo "$0")")"; pwd)"
 source "${SCRIPT_DIR}/common.sh"
 ALLUXIO_FRAMEWORK_JAVA_OPTS="${ALLUXIO_FRAMEWORK_JAVA_OPTS:-${ALLUXIO_JAVA_OPTS}}"
 MESOS_LIBRARY_PATH="${MESOS_LIBRARY_PATH:-/usr/local/lib}"

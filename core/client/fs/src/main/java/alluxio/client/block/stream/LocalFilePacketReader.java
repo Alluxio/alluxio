@@ -59,7 +59,7 @@ public final class LocalFilePacketReader implements PacketReader {
     mReader = new LocalFileBlockReader(path);
     Preconditions.checkArgument(packetSize > 0);
     mPos = offset;
-    mEnd = offset + len;
+    mEnd = Math.min(mReader.getLength(), offset + len);
     mPacketSize = packetSize;
   }
 

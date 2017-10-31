@@ -146,6 +146,14 @@ public abstract class ReadHandlerTest {
     p.fireChannelUnregistered();
   }
 
+  @Test
+  public void UnregisteredChannelFiredAfterRequest() throws Exception {
+    populateInputFile(PACKET_SIZE * 10, 0, PACKET_SIZE * 10 - 1);
+    mChannel.writeInbound(buildReadRequest(0, PACKET_SIZE * 10));
+    ChannelPipeline p = mChannel.pipeline();
+    p.fireChannelUnregistered();
+  }
+
   /**
    * Populates the input file, also computes the checksum for part of the file.
    *
