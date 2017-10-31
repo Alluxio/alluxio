@@ -74,18 +74,6 @@ public class FileInStream extends InputStream
   protected final AlluxioStorageType mAlluxioStorageType;
   /** Standard block size in bytes of the file, guaranteed for all but the last block. */
   protected final long mBlockSize;
-  /**
-   * Whether {@link #mBlockSize} is power of two. This is used together with
-   * {@link #mBlockSizeBits} to reduce the number of division operations in
-   * {@link #getBlockIndex(long)}.
-   */
-  private final boolean mIsBlockSizePowerOfTwo;
-  /**
-   * Number of bits in the binary representation of {@link #mBlockSize} if
-   * {@link #mIsBlockSizePowerOfTwo} is true, otherwise, it's set to
-   * {@link #UNINITIALIZED_BLOCK_SIZE_BITS}.
-   */
-  private final int mBlockSizeBits;
   /** Total length of the file in bytes. */
   protected final long mFileLength;
   /** File system context containing the {@link FileSystemMasterClient} pool. */
@@ -156,12 +144,6 @@ public class FileInStream extends InputStream
     mInStreamOptions = options;
     mOutStreamOptions = OutStreamOptions.defaults();
     mBlockSize = status.getBlockSizeBytes();
-    mIsBlockSizePowerOfTwo = (mBlockSize & (mBlockSize - 1)) == 0;
-    if (mIsBlockSizePowerOfTwo) {
-      mBlockSizeBits = Long.numberOfTrailingZeros(mBlockSize);
-    } else {
-      mBlockSizeBits = UNINITIALIZED_BLOCK_SIZE_BITS;
-    }
     mFileLength = status.getLength();
     mContext = context;
     mAlluxioStorageType = options.getAlluxioStorageType();
@@ -471,10 +453,7 @@ public class FileInStream extends InputStream
    * @return the block index corresponding to the position
    */
   private int getBlockIndex(long pos) {
-    // The optimization of replacing division with bit shift is based on two facts:
-    // 1. Bit shift is much faster than division;
-    // 2. block size is often the power of two
-    return (int) (mIsBlockSizePowerOfTwo ? (pos >> mBlockSizeBits) : (pos / mBlockSize));
+    return (int) (pos / mBlockSize);
   }
 
   /**
