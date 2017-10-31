@@ -218,7 +218,7 @@ public class CheckConsistencyIntegrationTest extends BaseIntegrationTest {
    * when file or directory mode are changed.
    */
   @Test
-  public void chMode() throws Exception {
+  public void changeMode() throws Exception {
     String ufsDirectory = mFileSystem.getStatus(DIRECTORY).getUfsPath();
     String ufsFile = mFileSystem.getStatus(FILE).getUfsPath();
     UnderFileSystem ufs = UnderFileSystem.Factory.create(ufsDirectory);
@@ -238,8 +238,8 @@ public class CheckConsistencyIntegrationTest extends BaseIntegrationTest {
    * when file owner or group are changed.
    */
   @Test
-  public void chOwnAndGroupFile() throws Exception {
-    chOwmAndGroup(FILE);
+  public void changeOwnAndGroupFile() throws Exception {
+    changeOwnAndGroup(FILE);
   }
 
   /**
@@ -247,11 +247,11 @@ public class CheckConsistencyIntegrationTest extends BaseIntegrationTest {
    * when directory owner or group are changed.
    */
   @Test
-  public void chOwnAndGroupDir() throws Exception {
-    chOwmAndGroup(DIRECTORY);
+  public void changeOwnAndGroupDir() throws Exception {
+    changeOwnAndGroup(DIRECTORY);
   }
 
-  private void chOwmAndGroup(AlluxioURI path) throws Exception {
+  private void changeOwnAndGroup(AlluxioURI path) throws Exception {
     String owner = "alluxio-user1";
     String group = "alluxio-user1-group1";
 
