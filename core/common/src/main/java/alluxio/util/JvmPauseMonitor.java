@@ -87,12 +87,10 @@ public final class JvmPauseMonitor {
   }
 
   /**
-   * Resets value of mJvmMonitorThread and mThreadStarted.
-   * @return reseted JvmPauseMonitor
+   * Resets value of mJvmMonitorThread.
    */
-  public JvmPauseMonitor reset() {
+  public void reset() {
     mJvmMonitorThread = null;
-    return this;
   }
 
   /**
