@@ -16,7 +16,7 @@ import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.exception.status.NotFoundException;
 import alluxio.exception.status.UnavailableException;
-import alluxio.thrift.UfsInfo;
+
 import alluxio.util.IdUtils;
 
 import com.google.common.base.Objects;
