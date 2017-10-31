@@ -274,7 +274,7 @@ public final class NettyPacketWriter implements PacketWriter {
               }
             });
             throw new DeadlineExceededException(String.format(
-                "Timeout closing PacketWriter to %s for request %s after %s ms.",
+                "Timeout closing PacketWriter to %s for request %s after %dms.",
                 mAddress, mPartialRequest, CLOSE_TIMEOUT_MS));
           }
         } catch (InterruptedException e) {
@@ -491,9 +491,7 @@ public final class NettyPacketWriter implements PacketWriter {
     public void operationComplete(ChannelFuture future) {
       if (!future.isSuccess()) {
         future.channel().close();
-      }
-      try (LockResource lr = new LockResource(mLock)) {
-        if (future.cause() != null) {
+        try (LockResource lr = new LockResource(mLock)) {
           updateException(future.cause());
           mDoneOrFailed.signal();
           mBufferNotFullOrFailed.signal();
