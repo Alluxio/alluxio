@@ -25,7 +25,7 @@ get_env () {
 check_java_version () {
   local java_mjr_vers=$("${JAVA}" -version 2>&1 | awk -F '"' '/version/ {print $2}' | awk -F'.' '{print $1 $2}')
   if [[ ${java_mjr_vers} -lt 18 ]]; then
-    echo "You are running a version of Java which is older then Java8.
+    echo "You are running a version of Java which is older than Java 8.
      Please use Java 8 to use alluxio-fuse" >&2
     return 1
   else

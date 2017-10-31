@@ -111,13 +111,13 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
    */
   @Override
   public int chmod(String path, @mode_t long mode) {
-    final AlluxioURI uri = mPathResolverCache.getUnchecked(path);
+    AlluxioURI uri = mPathResolverCache.getUnchecked(path);
 
     SetAttributeOptions options = SetAttributeOptions.defaults().setMode(new Mode((short) mode));
     try {
       mFileSystem.setAttribute(uri, options);
     } catch (IOException | AlluxioException e) {
-      LOG.error("Exception on {}", path, e);
+      LOG.error("Exception on {} of changing mode to {}", path, mode, e);
       return -ErrorCodes.EIO();
     }
 
@@ -581,7 +581,7 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
         return -ErrorCodes.ENOENT();
       }
       if (mFileSystem.exists(newUri)) {
-        LOG.error("File {} already exists, please delete the destine file first", newPath);
+        LOG.error("File {} already exists, please delete the destination file first", newPath);
         return -ErrorCodes.EEXIST();
       }
       mFileSystem.rename(oldUri, newUri);
