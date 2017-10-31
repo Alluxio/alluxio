@@ -444,8 +444,8 @@ public class FileInStream extends InputStream
   }
 
   /**
-   * @return the current block id based on mCurrentBlockIndex, or {@link #EOF_BLOCK_ID} if at the end of
-   *         the file
+   * @return the current block id based on mCurrentBlockIndex, or {@link #EOF_BLOCK_ID} if at the
+   *         end of the file
    */
   private long getCurrentBlockId() {
     if (isEndOfFile()) {
@@ -477,9 +477,6 @@ public class FileInStream extends InputStream
    *         yet, return false
    */
   private boolean isInCurrentBlock(long pos) {
-    // Instead of computing the block index with (pos / mBlockSize) and compare against mCurrentBlockIndex,
-    // multiplication is used, this optimization is based on the fact that multiplication is much
-    // faster than division.
     return mCurrentBlockIndex != UNINITIALIZED_BLOCK_INDEX && pos >= mCurrentBlockStartPos
         && pos < mCurrentBlockEndPos;
   }
