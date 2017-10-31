@@ -56,7 +56,7 @@ public final class AlluxioFuseUtils {
    * @return user name
    */
   public static String getUserName(long uid) throws IOException {
-    return ShellUtils.execCommand("id", "-nu", new Long(uid).toString()).trim();
+    return ShellUtils.execCommand("id", "-nu", Long.toString(uid)).trim();
   }
 
   /**
@@ -66,7 +66,7 @@ public final class AlluxioFuseUtils {
    * @return group name
    */
   public static String getGroupName(long uid) throws IOException {
-    return ShellUtils.execCommand("id", "-ng", new Long(uid).toString()).trim();
+    return ShellUtils.execCommand("id", "-ng", Long.toString(uid)).trim();
   }
 
   /**
