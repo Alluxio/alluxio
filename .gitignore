@@ -16,6 +16,7 @@
 .metadata/
 .project
 .settings/
+/client/
 /conf/alluxio-env.sh
 /conf/metrics.properties
 /conf/alluxio-env.sh.bootstrap.bk

@@ -32,11 +32,6 @@ set -e
 readonly SCRIPT_DIR=$(cd "$( dirname "$0" )"; pwd)
 readonly TARBALL_DIR="${SCRIPT_DIR}/tarballs"
 readonly WORK_DIR="${SCRIPT_DIR}/workdir"
-readonly CLIENT_DIR="client"
-# These clients need to be recompiled.
-readonly EXTRA_ACTIVE_CLIENT_PROFILES=( "presto" "spark" )
-# These clients can be symlinks to the default client.
-readonly EXTRA_SYMLINK_CLIENT_PROFILES=( "flink" "hadoop" )
 readonly HOME="${SCRIPT_DIR}/../.."
 readonly BUILD_LOG="${HOME}/logs/build.log"
 readonly REPO_COPY="${WORK_DIR}/alluxio"
@@ -61,36 +56,13 @@ function prepare_repo {
 
 function build {
   cd "${REPO_COPY}" > /dev/null
-  local build_all_client_profiles=$1
-  local hadoop_profile=$2
-  local client_profiles_=( )
-  if [[ "${build_all_client_profiles}" == true ]]; then
-    client_profiles=( ${EXTRA_ACTIVE_CLIENT_PROFILES[@]} )
+  local hadoop_profile=$1
+  echo "Running build and logging to ${BUILD_LOG}"
+  local profiles_arg="-Pmesos"
+  if [[ ${hadoop_profile} != "default" ]]; then
+    profiles_arg+=" -P${hadoop_profile}"
   fi
-  client_profiles+=( "default" )
-  mkdir -p "${CLIENT_DIR}"
-  for profile in "${client_profiles[@]}"; do
-    echo "Running build ${profile} and logging to ${BUILD_LOG}"
-    local profiles_arg="-Pmesos"
-    if [[ ${profile} != "default" ]]; then
-      profiles_arg+=" -P${profile}"
-    fi
-    if [[ ${hadoop_profile} != "default" ]]; then
-      profiles_arg+=" -P${hadoop_profile}"
-    fi
-    mvn -T 4C clean install -Dmaven.javadoc.skip=true -DskipTests -Dlicense.skip=true -Dcheckstyle.skip=true -Dfindbugs.skip=true ${profiles_arg} ${BUILD_OPTS} > "${BUILD_LOG}" 2>&1
-    mkdir -p "${CLIENT_DIR}/${profile}"
-    local version=$(bin/alluxio version)
-    cp "core/client/runtime/target/alluxio-core-client-runtime-${version}-jar-with-dependencies.jar" "${CLIENT_DIR}/${profile}/alluxio-${version}-${profile}-client.jar"
-  done
-  if [[ "${build_all_client_profiles}" == true ]]; then
-    for profile in "${EXTRA_SYMLINK_CLIENT_PROFILES[@]}"; do
-      mkdir -p "${CLIENT_DIR}/${profile}"
-      pushd "${CLIENT_DIR}/${profile}" >> /dev/null
-      ln -s "../default/alluxio-${version}-default-client.jar" "alluxio-${version}-${profile}-client.jar"
-      popd >> /dev/null
-    done
-  fi
+  mvn -T 4C clean install -Dmaven.javadoc.skip=true -DskipTests -Dlicense.skip=true -Dcheckstyle.skip=true -Dfindbugs.skip=true ${profiles_arg} ${BUILD_OPTS} > "${BUILD_LOG}" 2>&1
 }
 
 function create_tarball {
@@ -115,7 +87,6 @@ function create_tarball {
 }
 
 function main {
-  local build_all_client_profiles=true
   local delete_unrevisioned=false
   local hadoop_profile="default"
   while [[ "$#" > 0 ]]; do
@@ -127,7 +98,7 @@ function main {
     esac
   done
   prepare_repo ${delete_unrevisioned}
-  build ${build_all_client_profiles} ${hadoop_profile}
+  build ${hadoop_profile}
   create_tarball ${hadoop_profile}
 }
 
