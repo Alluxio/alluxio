@@ -30,7 +30,7 @@ priority： 0
 $ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 ```
 
-第一个修改是通过修改`conf / alluxio-site.properties`来指定underfs address：
+首先修改`conf / alluxio-site.properties`来指定underfs address：
 
 ```
 alluxio.underfs.address=wasb://AZURE_CONTAINER@AZURE_ACCOUNT.blob.core.windows.net/AZURE_DIRECTORY/
@@ -43,7 +43,7 @@ fs.azure.account.key.AZURE_ACCOUNT.blob.core.windows.net=<YOUR ACCESS KEY>
 ```
 
 ### 嵌套挂载
- Azure blob store位置可以挂载在Alluxio命名空间中的嵌套目录中，以便统一访问到多个底层存储系统。Alluxio的[Command Line Interface]（Command-Line-Interface.html）可以用于此目的。
+ Azure blob store位置可以挂载在Alluxio命名空间中的嵌套目录中，以便统一访问到多个底层存储系统。Alluxio的[Command Line Interface](Command-Line-Interface.html)可以用于此目的。
 
 ```bash
 $ ./bin/alluxio fs mount --option fs.azure.account.key.AZURE_ACCOUNT.blob.core.windows.net=<AZURE_ACCESS_KEY>\
