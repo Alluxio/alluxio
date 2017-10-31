@@ -11,13 +11,12 @@
 
 package alluxio.fuse;
 
-import org.apache.commons.lang3.StringUtils;
+import alluxio.util.ShellUtils;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -56,8 +55,8 @@ public final class AlluxioFuseUtils {
    * @param uid user id
    * @return user name
    */
-  public static String getUserName(long uid) {
-    return runCommandAndGetOutputLine("id", "-nu", new Long(uid).toString());
+  public static String getUserName(long uid) throws IOException {
+    return ShellUtils.execCommand("id", "-nu", new Long(uid).toString()).trim();
   }
 
   /**
@@ -66,8 +65,8 @@ public final class AlluxioFuseUtils {
    * @param uid user id
    * @return group name
    */
-  public static String getGroupName(long uid) {
-    return runCommandAndGetOutputLine("id", "-ng", new Long(uid).toString());
+  public static String getGroupName(long uid) throws IOException {
+    return ShellUtils.execCommand("id", "-ng", new Long(uid).toString()).trim();
   }
 
   /**
@@ -78,43 +77,13 @@ public final class AlluxioFuseUtils {
    * @return the uid (-u) or gid (-g) of username
    */
   private static long getIdInfo(String option, String username) {
-    String output = runCommandAndGetOutputLine("id", option, username);
-    return Long.parseLong(output);
-  }
-
-  /**
-   * Runs the given shell command and returns the single line output in string.
-   *
-   * @param command the command to run
-   * @return the first line of the command output
-   */
-  private static String runCommandAndGetOutputLine(String... command) {
-    BufferedReader br = null;
-    String commandLine = StringUtils.join(command, " ");
+    String output;
     try {
-      final Process idProc = new ProcessBuilder().command(command).start();
-      br = new BufferedReader(new InputStreamReader(idProc.getInputStream()));
-      // expect only one line output
-      final String out = br.readLine();
-      if (idProc.waitFor() == 0) {
-        return out;
-      } else {
-
-        LOG.error("{} completed with error", commandLine);
-      }
+      output = ShellUtils.execCommand("id", option, username).trim();
     } catch (IOException e) {
-      LOG.error("Cannot execute: {}", commandLine, e);
-    } catch (InterruptedException e) {
-      LOG.error("Interrupted while waiting: {}", commandLine, e);
-    } finally {
-      if (br != null) {
-        try {
-          br.close();
-        } catch (IOException e) {
-          LOG.warn("Exception while closing Process output reader", e);
-        }
-      }
+      LOG.error("Failed to get id from {} with option {}", username, option);
+      return -1;
     }
-    return "";
+    return Long.parseLong(output);
   }
 }
