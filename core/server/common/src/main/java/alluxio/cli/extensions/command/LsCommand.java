@@ -11,17 +11,14 @@
 
 package alluxio.cli.extensions.command;
 
-import alluxio.Configuration;
-import alluxio.Constants;
-import alluxio.PropertyKey;
 import alluxio.cli.AbstractCommand;
+import alluxio.util.ExtensionUtils;
 
 import org.apache.commons.cli.CommandLine;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.io.FileFilter;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -58,13 +55,7 @@ public final class LsCommand extends AbstractCommand {
 
   @Override
   public int run(CommandLine cl) {
-    String extensionsDir = Configuration.get(PropertyKey.EXTENSIONS_DIR);
-    File[] extensions = new File(extensionsDir).listFiles(new FileFilter() {
-      public boolean accept(File file) {
-        return file.getPath().toLowerCase().endsWith(Constants.EXTENSION_JAR);
-      }
-    });
-    for (File extension : extensions) {
+    for (File extension : ExtensionUtils.listExtensions()) {
       System.out.println(extension.getName());
     }
     return 0;

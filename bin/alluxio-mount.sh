@@ -18,7 +18,7 @@ LAUNCHER=
 if [[ "$-" == *x* ]]; then
   LAUNCHER="bash -x"
 fi
-BIN=$(cd "$( dirname "$0" )"; pwd)
+BIN=$(cd "$( dirname "$( readlink "$0" || echo "$0" )" )"; pwd)
 
 USAGE="Usage: alluxio-mount.sh [Mount|SudoMount] [MACHINE]
 \nIf omitted, MACHINE is default to be 'local'. MACHINE is one of:\n

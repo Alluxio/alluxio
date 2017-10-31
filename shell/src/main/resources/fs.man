@@ -279,7 +279,7 @@ Remove a file, or a directory with all the files and sub-directories that this d
 .TP
 .BR setTtl
 \fItime\fR
-Set the TTL (time to live) in milliseconds to a file.
+Set the TTL (time to live) in milliseconds for a file.
 
 .TP
 .BR tail

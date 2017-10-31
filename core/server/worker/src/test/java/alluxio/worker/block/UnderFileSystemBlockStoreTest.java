@@ -11,10 +11,12 @@
 
 package alluxio.worker.block;
 
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertFalse;
+
 import alluxio.proto.dataserver.Protocol;
 import alluxio.underfs.UfsManager;
 
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -46,10 +48,10 @@ public final class UnderFileSystemBlockStoreTest {
     UnderFileSystemBlockStore blockStore =
         new UnderFileSystemBlockStore(mAlluxioBlockStore, mUfsManager);
     for (int i = 0; i < 5; i++) {
-      Assert.assertTrue(blockStore.acquireAccess(i + 1, BLOCK_ID, mOpenUfsBlockOptions));
+      assertTrue(blockStore.acquireAccess(i + 1, BLOCK_ID, mOpenUfsBlockOptions));
     }
 
-    Assert.assertFalse(blockStore.acquireAccess(6, BLOCK_ID, mOpenUfsBlockOptions));
+    assertFalse(blockStore.acquireAccess(6, BLOCK_ID, mOpenUfsBlockOptions));
   }
 
   @Test
@@ -57,10 +59,10 @@ public final class UnderFileSystemBlockStoreTest {
     UnderFileSystemBlockStore blockStore =
         new UnderFileSystemBlockStore(mAlluxioBlockStore, mUfsManager);
     for (int i = 0; i < 5; i++) {
-      Assert.assertTrue(blockStore.acquireAccess(i + 1, BLOCK_ID, mOpenUfsBlockOptions));
+      assertTrue(blockStore.acquireAccess(i + 1, BLOCK_ID, mOpenUfsBlockOptions));
       blockStore.releaseAccess(i + 1, BLOCK_ID);
     }
 
-    Assert.assertTrue(blockStore.acquireAccess(6, BLOCK_ID, mOpenUfsBlockOptions));
+    assertTrue(blockStore.acquireAccess(6, BLOCK_ID, mOpenUfsBlockOptions));
   }
 }

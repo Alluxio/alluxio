@@ -71,14 +71,14 @@ $ bin/hadoop jar libexec/share/hadoop/mapreduce/hadoop-mapreduce-examples-2.7.3.
 ## Use Site-Property Files (Recommended)
 
 Alluxio admins can create and customize the property file `alluxio-site.properties` to
-configuration an Alluxio cluster. If this file does not exist, it can be created from the
+configure an Alluxio cluster. If this file does not exist, it can be created from the
 template file under `${ALLUXIO_HOME}/conf`:
 
 ```bash
 $ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 ```
 
-Make sure that this file is distributed to `${ALLUXIO_HOME}/conf` on every Alluxio nodes (masters
+Make sure that this file is distributed to `${ALLUXIO_HOME}/conf` on every Alluxio node (masters
 and workers) before starting the cluster.
 
 > Note that, `${ALLUXIO_HOME}/conf/alluxio-site.properties` are only loaded by Alluxio server
@@ -92,6 +92,14 @@ variables, including:
 
 <table class="table table-striped">
 <tr><th>Environment Variable</th><th>Description</th></tr>
+<tr>
+  <td><code class="highlighter-rouge">ALLUXIO_CONF_DIR</code></td>
+  <td>path to Alluxio configuration directory.</td>
+</tr>
+<tr>
+  <td><code class="highlighter-rouge">ALLUXIO_LOGS_DIR</code></td>
+  <td>path to Alluxio logs directory.</td>
+</tr>
 <tr>
   <td><code class="highlighter-rouge">ALLUXIO_MASTER_HOSTNAME</code></td>
   <td>hostname of Alluxio master, defaults to localhost.</td>
@@ -128,6 +136,18 @@ variables, including:
 <tr>
   <td><code class="highlighter-rouge">ALLUXIO_CLASSPATH</code></td>
   <td>additional classpath entries for Alluxio processes. This is empty by default.</td>
+</tr>
+<tr>
+  <td><code class="highlighter-rouge">ALLUXIO_LOGSERVER_HOSTNAME</code></td>
+  <td>host name of the log server. This is empty by default.</td>
+</tr>
+<tr>
+  <td><code class="highlighter-rouge">ALLUXIO_LOGSERVER_PORT</code></td>
+  <td>port number of the log server. This is 45600 by default.</td>
+</tr>
+<tr>
+  <td><code class="highlighter-rouge">ALLUXIO_LOGSERVER_LOGS_DIR</code></td>
+  <td>path to the local directory where Alluxio log server stores logs received from Alluxio servers.</td>
 </tr>
 </table>
 

@@ -30,7 +30,7 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class AsyncJournalWriter {
-  private final Journal mJournal;
+  private final JournalWriter mJournalWriter;
   private final ConcurrentLinkedQueue<JournalEntry> mQueue;
   /** Represents the count of entries added to the journal queue. */
   private final AtomicLong mCounter;
@@ -53,10 +53,10 @@ public final class AsyncJournalWriter {
   /**
    * Creates a {@link AsyncJournalWriter}.
    *
-   * @param journal the {@link Journal} to use for writing
+   * @param journalWriter a journal writer to write to
    */
-  public AsyncJournalWriter(Journal journal) {
-    mJournal = Preconditions.checkNotNull(journal, "journal");
+  public AsyncJournalWriter(JournalWriter journalWriter) {
+    mJournalWriter = Preconditions.checkNotNull(journalWriter, "journalWriter");
     mQueue = new ConcurrentLinkedQueue<>();
     mCounter = new AtomicLong(0);
     mFlushCounter = new AtomicLong(0);
@@ -124,7 +124,7 @@ public final class AsyncJournalWriter {
             // No more entries in the queue. Break out of the infinite for-loop.
             break;
           }
-          mJournal.write(entry);
+          mJournalWriter.write(entry);
           // Remove the head entry, after the entry was successfully written.
           mQueue.poll();
           writeCounter = mWriteCounter.incrementAndGet();
@@ -138,7 +138,7 @@ public final class AsyncJournalWriter {
           }
         }
       }
-      mJournal.flush();
+      mJournalWriter.flush();
       mFlushCounter.set(writeCounter);
     }
   }

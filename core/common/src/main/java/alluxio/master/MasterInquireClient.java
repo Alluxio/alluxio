@@ -26,7 +26,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * Client for determining the primary master.
  */
 @ThreadSafe
-public interface MasterInquireClient extends AutoCloseable {
+public interface MasterInquireClient {
   /**
    * @return the rpc address of the primary master. The implementation should perform retries if
    *         appropriate

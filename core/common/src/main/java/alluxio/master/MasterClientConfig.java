@@ -16,20 +16,15 @@ import javax.security.auth.Subject;
 /**
  * Configuration for constructing an Alluxio master client.
  */
-public final class MasterClientConfig {
+public class MasterClientConfig {
   private Subject mSubject;
   private MasterInquireClient mMasterInquireClient;
-
-  private MasterClientConfig() {
-    mSubject = null;
-    mMasterInquireClient = MasterInquireClient.Factory.create();
-  }
 
   /**
    * @return a master client configuration with default values
    */
   public static MasterClientConfig defaults() {
-    return new MasterClientConfig();
+    return new MasterClientConfig().withMasterInquireClient(MasterInquireClient.Factory.create());
   }
 
   /**

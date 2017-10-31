@@ -41,6 +41,7 @@ public final class RestUtils {
    */
   public static <T> Response call(RestUtils.RestCallable<T> callable) {
     try {
+      // TODO(cc): reconsider how to enable authentication
       if (SecurityUtils.isSecurityEnabled() && AuthenticatedClientUser.get() == null) {
         AuthenticatedClientUser.set(LoginUser.get().getName());
       }

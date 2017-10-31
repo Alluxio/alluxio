@@ -48,6 +48,7 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.Map;
 
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -173,6 +174,7 @@ public class AlluxioMasterProcess implements MasterProcess {
   }
 
   @Override
+  @Nullable
   public InetSocketAddress getWebAddress() {
     if (mWebServer != null) {
       return new InetSocketAddress(mWebServer.getBindHost(), mWebServer.getLocalPort());
@@ -256,11 +258,16 @@ public class AlluxioMasterProcess implements MasterProcess {
     MetricsSystem.startSinks();
     startServingWebServer();
     startJvmMonitorProcess();
-    LOG.info("{} version {} binding to {} @ {} {}", this, RuntimeConstants.VERSION, mRpcBindAddress,
-        mRpcConnectAddress, startMessage);
+    LOG.info("Alluxio master version {} started{}. "
+            + "bindHost={}, connectHost={}, rpcPort={}, webPort={}",
+        RuntimeConstants.VERSION,
+        startMessage,
+        NetworkAddressUtils.getBindAddress(ServiceType.MASTER_RPC),
+        NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC),
+        NetworkAddressUtils.getPort(ServiceType.MASTER_RPC),
+        NetworkAddressUtils.getPort(ServiceType.MASTER_WEB));
     startServingRPCServer();
-    LOG.info("{} version {} ended @ {} {}", this, RuntimeConstants.VERSION, mRpcConnectAddress,
-        stopMessage);
+    LOG.info("Alluxio master ended{}", stopMessage);
   }
 
   /**
@@ -332,11 +339,8 @@ public class AlluxioMasterProcess implements MasterProcess {
     Args args = new TThreadPoolServer.Args(mTServerSocket).maxWorkerThreads(mMaxWorkerThreads)
         .minWorkerThreads(mMinWorkerThreads).processor(processor).transportFactory(transportFactory)
         .protocolFactory(new TBinaryProtocol.Factory(true, true));
-    if (Configuration.getBoolean(PropertyKey.TEST_MODE)) {
-      args.stopTimeoutVal = 0;
-    } else {
-      args.stopTimeoutVal = Constants.THRIFT_STOP_TIMEOUT_SECONDS;
-    }
+
+    args.stopTimeoutVal = (int) Configuration.getMs(PropertyKey.MASTER_THRIFT_SHUTDOWN_TIMEOUT);
     mThriftServer = new TThreadPoolServer(args);
 
     // start thrift rpc server

@@ -14,6 +14,7 @@ package alluxio.wire;
 import alluxio.annotation.PublicApi;
 import alluxio.thrift.LoadMetadataTType;
 
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -61,6 +62,7 @@ public enum LoadMetadataType {
    * @param loadMetadataTType the thrift representation of loadMetadataType
    * @return the {@link LoadMetadataType}
    */
+  @Nullable
   public static LoadMetadataType fromThrift(LoadMetadataTType loadMetadataTType) {
     switch (loadMetadataTType.getValue()) {
       case 0:

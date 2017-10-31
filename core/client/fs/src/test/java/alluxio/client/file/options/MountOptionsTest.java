@@ -11,10 +11,12 @@
 
 package alluxio.client.file.options;
 
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
 import alluxio.CommonTestUtils;
 import alluxio.thrift.MountTOptions;
 
-import org.junit.Assert;
 import org.junit.Test;
 
 /**
@@ -27,20 +29,20 @@ public final class MountOptionsTest {
   @Test
   public void defaults() {
     MountOptions options = MountOptions.defaults();
-    Assert.assertFalse(options.isReadOnly());
-    Assert.assertFalse(options.isShared());
+    assertFalse(options.isReadOnly());
+    assertFalse(options.isShared());
   }
 
   @Test
   public void readOnlyField() {
-    Assert.assertTrue(MountOptions.defaults().setReadOnly(true).isReadOnly());
-    Assert.assertFalse(MountOptions.defaults().setReadOnly(false).isReadOnly());
+    assertTrue(MountOptions.defaults().setReadOnly(true).isReadOnly());
+    assertFalse(MountOptions.defaults().setReadOnly(false).isReadOnly());
   }
 
   @Test
   public void sharedField() {
-    Assert.assertTrue(MountOptions.defaults().setShared(true).isShared());
-    Assert.assertFalse(MountOptions.defaults().setShared(false).isShared());
+    assertTrue(MountOptions.defaults().setShared(true).isShared());
+    assertFalse(MountOptions.defaults().setShared(false).isShared());
   }
 
   /**
@@ -50,13 +52,13 @@ public final class MountOptionsTest {
   public void toThrift() {
     MountOptions options = MountOptions.defaults();
     MountTOptions thriftOptions = options.toThrift();
-    Assert.assertFalse(thriftOptions.isReadOnly());
+    assertFalse(thriftOptions.isReadOnly());
 
     options.setReadOnly(true);
     options.setShared(true);
     thriftOptions = options.toThrift();
-    Assert.assertTrue(thriftOptions.isReadOnly());
-    Assert.assertTrue(thriftOptions.isShared());
+    assertTrue(thriftOptions.isReadOnly());
+    assertTrue(thriftOptions.isShared());
   }
 
   @Test

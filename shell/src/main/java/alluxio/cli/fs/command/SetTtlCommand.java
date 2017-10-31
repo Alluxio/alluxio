@@ -12,13 +12,13 @@
 package alluxio.cli.fs.command;
 
 import alluxio.AlluxioURI;
+import alluxio.cli.fs.FileSystemShellUtils;
 import alluxio.client.file.FileSystem;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.util.CommonUtils;
 import alluxio.wire.TtlAction;
 
-import com.google.common.base.Preconditions;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
@@ -67,6 +67,10 @@ public final class SetTtlCommand extends AbstractFileSystemCommand {
   public CommandLine parseAndValidateArgs(String... args) throws InvalidArgumentException {
 
     CommandLine cmd = super.parseAndValidateArgs(args);
+    if (cmd == null) {
+      return null;
+    }
+
     try {
       String operation = cmd.getOptionValue(TTL_ACTION);
       if (operation != null) {
@@ -82,8 +86,8 @@ public final class SetTtlCommand extends AbstractFileSystemCommand {
   @Override
   public int run(CommandLine cl) throws AlluxioException, IOException {
     String[] args = cl.getArgs();
-    long ttlMs = Long.parseLong(CommonUtils.stripLeadingAndTrailingQuotes(args[1]));
-    Preconditions.checkArgument(ttlMs >= 0, "TTL value must be >= 0");
+    String ttl = CommonUtils.stripLeadingAndTrailingQuotes(args[1]);
+    long ttlMs = FileSystemShellUtils.getMs(ttl);
     AlluxioURI path = new AlluxioURI(args[0]);
     FileSystemCommandUtils.setTtl(mFileSystem, path, ttlMs, mAction);
     System.out.println("TTL of path '" + path + "' was successfully set to " + ttlMs
@@ -93,7 +97,8 @@ public final class SetTtlCommand extends AbstractFileSystemCommand {
 
   @Override
   public String getUsage() {
-    return "setTtl [-action delete|free] <path> <time to live(in milliseconds)>";
+    return "setTtl [-action delete|free] <path> <time to live>[ms|millisecond|s"
+      + "|second|m|min|minute|h|hour|d|day]";
   }
 
   @Override

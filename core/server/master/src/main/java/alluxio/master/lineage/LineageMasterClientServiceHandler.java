@@ -64,7 +64,7 @@ public final class LineageMasterClientServiceHandler implements LineageMasterCli
    * @param lineageMaster the {@link LineageMaster} the handler uses internally
    */
   LineageMasterClientServiceHandler(LineageMaster lineageMaster) {
-    Preconditions.checkNotNull(lineageMaster);
+    Preconditions.checkNotNull(lineageMaster, "lineageMaster");
     mLineageMaster = lineageMaster;
   }
 

@@ -19,5 +19,5 @@ import org.junit.rules.Timeout;
  */
 public abstract class BaseIntegrationTest {
   @Rule
-  public Timeout mGlobalTimeout = Timeout.seconds(600);
+  public Timeout mGlobalTimeout = Timeout.millis(Constants.MAX_TEST_DURATION_MS);
 }

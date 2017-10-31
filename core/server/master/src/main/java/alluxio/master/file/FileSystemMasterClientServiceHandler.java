@@ -97,7 +97,7 @@ public final class FileSystemMasterClientServiceHandler implements
    * @param fileSystemMaster the {@link FileSystemMaster} the handler uses internally
    */
   FileSystemMasterClientServiceHandler(FileSystemMaster fileSystemMaster) {
-    Preconditions.checkNotNull(fileSystemMaster);
+    Preconditions.checkNotNull(fileSystemMaster, "fileSystemMaster");
     mFileSystemMaster = fileSystemMaster;
   }
 

@@ -23,7 +23,7 @@ mvn clean package -Ppresto -DskipTests
 ```
 
 Please [Download Presto](https://repo1.maven.org/maven2/com/facebook/presto/presto-server/)(This doc uses presto-0.170). Also, please complete Hive setup using
-[Hive On Alluxio](http://www.alluxio.org/docs/master/en/Running-Hive-with-Alluxio.html)
+[Hive On Alluxio](Running-Hive-with-Alluxio.html)
 
 # Configuration
 
@@ -80,8 +80,8 @@ Similar to above, add additional Alluxio properties to `core-site.xml` of Hadoop
 
 ```xml
 <property>
-<name>alluxio.user.file.writetype.default</name>
-<value>CACHE_THROUGH</value>
+  <name>alluxio.user.file.writetype.default</name>
+  <value>CACHE_THROUGH</value>
 </property>
 ```
 
@@ -133,7 +133,9 @@ View Alluxio WebUI at `http://master_hostname:19999` and you can see the directo
 
 ![HiveTableInAlluxio]({{site.data.img.screenshot_presto_table_in_alluxio}})
 
-Using a single query:
+Alternatively, you can follow the [instructions](Running-Hive-with-Alluxio.html#create-new-tables-from-files-in-alluxio) to create the tables from existing files in Alluxio.
+
+Next, using a single query:
 ```
 /home/path/presto/presto-cli-0.170-executable.jar --server masterIp:prestoPort --execute "use default;select * from u_user limit 10;" --user username --debug
 ```

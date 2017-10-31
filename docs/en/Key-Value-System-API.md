@@ -18,7 +18,8 @@ Like files in Alluxio filesystem, the semantics of key-value system are also wri
 * Users can create a key-value store and insert key-value pairs into the store. A store becomes immutable after it is complete.
 * Users can open key-value stores after they are complete.
 
-Each single key-value store is denoted by an AlluxioURI like `alluxio://path/my-kvstore`.
+Each single key-value store is denoted by an AlluxioURI like `alluxio://192.168.1.200:19998/path/my-kvstore`,
+it means master address is 192.168.1.200, PRC port is 19998, key-value store path is `/path/my-kvstore`.
 Depending on the total size and block size specified by the user, a single key-value
 store may consist of one or multiple partitions, but the internal is managed by Alluxio and thus
 transparent to users.

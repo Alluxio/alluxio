@@ -42,6 +42,7 @@ import java.util.NoSuchElementException;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -329,6 +330,7 @@ public final class MountTable implements JournalEntryIterable {
    * @param mountId the given ufs id
    * @return the mount information with this id or null if this mount id is not found
    */
+  @Nullable
   public MountInfo getMountInfo(long mountId) {
     try (LockResource r = new LockResource(mReadLock)) {
       for (Map.Entry<String, MountInfo> entry : mMountTable.entrySet()) {

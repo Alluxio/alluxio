@@ -73,7 +73,7 @@ public final class UfsJournalWriter implements JournalWriter {
    * @param journal the handle to the journal
    */
   UfsJournalWriter(UfsJournal journal) {
-    mJournal = Preconditions.checkNotNull(journal);
+    mJournal = Preconditions.checkNotNull(journal, "journal");
     mCompletedLocation = mJournal.getCompletedLocation();
     try {
       mTempCheckpoint = new URI(mJournal.getCheckpoint() + ".tmp");

@@ -15,7 +15,7 @@ LAUNCHER=
 if [[ "$-" == *x* ]]; then
   LAUNCHER="bash -x"
 fi
-BIN=$(cd "$( dirname "$0" )"; pwd)
+BIN=$(cd "$( dirname "$( readlink "$0" || echo "$0" )" )"; pwd)
 
 USAGE="Usage: alluxio-stop.sh [-h] [component]
 Where component is one of:
@@ -59,6 +59,10 @@ stop_workers() {
   ${LAUNCHER} "${BIN}/alluxio-workers.sh" "${BIN}/alluxio-stop.sh" "worker"
 }
 
+stop_logserver() {
+    ${LAUNCHER} "${BIN}/alluxio" "killAll" "alluxio.logserver.AlluxioLogServer"
+}
+
 
 WHAT=${1:--h}
 
@@ -93,6 +97,9 @@ case "${WHAT}" in
     ;;
   workers)
     stop_workers
+    ;;
+  logserver)
+    stop_logserver
     ;;
   -h)
     echo -e "${USAGE}"

@@ -136,20 +136,6 @@ public final class HadoopUtils {
   }
 
   /**
-   * Adds S3 keys to the given Hadoop Configuration object if the user has specified them using
-   * System properties, and they're not already set.
-   *
-   * This function is duplicated from {@code alluxio.underfs.hdfs.HdfsUnderFileSystemUtils}, to
-   * prevent the module alluxio-core-client-hdfs from depending on the module alluxio-underfs.
-   *
-   * @param conf Hadoop configuration
-   */
-  public static void addS3Credentials(Configuration conf) {
-    PropertyKey[] propertyNames = {PropertyKey.S3N_ACCESS_KEY, PropertyKey.S3N_SECRET_KEY};
-    setConfigurationFromSystemProperties(conf, propertyNames);
-  }
-
-  /**
    * Adds Swift keys to the given Hadoop Configuration object if the user has specified them using
    * System properties, and they're not already set.
    *

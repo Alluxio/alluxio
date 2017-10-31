@@ -38,7 +38,7 @@ public class RecomputePlan {
    * @param toRecompute the lineages to recompute
    */
   public RecomputePlan(List<Lineage> toRecompute) {
-    mToRecompute = Preconditions.checkNotNull(toRecompute);
+    mToRecompute = Preconditions.checkNotNull(toRecompute, "toRecompute");
   }
 
   /**

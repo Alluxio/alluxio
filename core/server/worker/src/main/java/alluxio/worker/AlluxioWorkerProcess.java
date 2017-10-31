@@ -120,7 +120,12 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
           }
         });
       }
-      CommonUtils.invokeAll(callables, 10, TimeUnit.SECONDS);
+      // In the worst case, each worker factory is blocked waiting for the dependent servers to be
+      // registered at worker registry, so the maximum timeout here is set to the multiply of
+      // the number of factories by the default timeout of getting a worker from the registry.
+      CommonUtils.invokeAll(callables,
+          (long) callables.size() * Constants.DEFAULT_REGISTRY_GET_TIMEOUT_MS,
+          TimeUnit.MILLISECONDS);
 
       // Setup web server
       mWebServer =
@@ -232,9 +237,16 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
     mIsServingRPC = true;
 
     // Start serving RPC, this will block
-    LOG.info("{} version {} started @ {}", this, RuntimeConstants.VERSION, mRpcAddress);
+    LOG.info("Alluxio worker version {} started. "
+            + "bindHost={}, connectHost={}, rpcPort={}, dataPort={}, webPort={}",
+        RuntimeConstants.VERSION,
+        NetworkAddressUtils.getBindHost(ServiceType.WORKER_RPC),
+        NetworkAddressUtils.getConnectHost(ServiceType.WORKER_RPC),
+        NetworkAddressUtils.getPort(ServiceType.WORKER_RPC),
+        NetworkAddressUtils.getPort(ServiceType.WORKER_DATA),
+        NetworkAddressUtils.getPort(ServiceType.WORKER_WEB));
     mThriftServer.serve();
-    LOG.info("{} version {} ended @ {}", this, RuntimeConstants.VERSION, mRpcAddress);
+    LOG.info("Alluxio worker ended");
   }
 
   @Override

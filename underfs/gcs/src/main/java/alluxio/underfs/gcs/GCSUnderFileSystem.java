@@ -29,6 +29,7 @@ import org.jets3t.service.acl.gs.GSAccessControlList;
 import org.jets3t.service.impl.rest.httpclient.GoogleStorageService;
 import org.jets3t.service.model.GSObject;
 import org.jets3t.service.model.StorageObject;
+import org.jets3t.service.model.StorageOwner;
 import org.jets3t.service.security.GSCredentials;
 import org.jets3t.service.utils.Mimetypes;
 import org.slf4j.Logger;
@@ -97,15 +98,25 @@ public class GCSUnderFileSystem extends ObjectUnderFileSystem {
     // TODO(chaomin): maybe add proxy support for GCS.
     GoogleStorageService googleStorageService = new GoogleStorageService(googleCredentials);
 
-    String accountOwnerId = googleStorageService.getAccountOwner().getId();
-    // Gets the owner from user-defined static mapping from GCS account id to Alluxio user name.
-    String owner = CommonUtils.getValueFromStaticMapping(
-        conf.getValue(PropertyKey.UNDERFS_GCS_OWNER_ID_TO_USERNAME_MAPPING), accountOwnerId);
-    // If there is no user-defined mapping, use the display name.
-    if (owner == null) {
-      owner = googleStorageService.getAccountOwner().getDisplayName();
+    // getAccountOwner() can return null even when the account is authenticated.
+    // TODO(chaomin): investigate the root cause why Google cloud service is returning
+    // null StorageOwner.
+    StorageOwner storageOwner = googleStorageService.getAccountOwner();
+    String accountOwnerId = "unknown";
+    String accountOwner = "unknown";
+    if (storageOwner != null) {
+      accountOwnerId = storageOwner.getId();
+      // Gets the owner from user-defined static mapping from GCS account id to Alluxio user name.
+      String owner = CommonUtils.getValueFromStaticMapping(
+          conf.getValue(PropertyKey.UNDERFS_GCS_OWNER_ID_TO_USERNAME_MAPPING), accountOwnerId);
+      // If there is no user-defined mapping, use the display name.
+      if (owner == null) {
+        owner = storageOwner.getDisplayName();
+      }
+      accountOwner = owner == null ? accountOwnerId : owner;
+    } else {
+      LOG.debug("GoogleStorageService returns a null StorageOwner with this Google Cloud account.");
     }
-    String accountOwner = owner == null ? accountOwnerId : owner;
 
     GSAccessControlList acl = googleStorageService.getBucketAcl(bucketName);
     short bucketMode = GCSUtils.translateBucketAcl(acl, accountOwnerId);

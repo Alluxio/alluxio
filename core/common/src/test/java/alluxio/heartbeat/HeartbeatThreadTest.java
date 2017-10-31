@@ -17,8 +17,9 @@ import org.junit.Before;
 import org.junit.Test;
 
 import javax.annotation.Nullable;
+
+import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
@@ -91,7 +92,7 @@ public final class HeartbeatThreadTest {
    */
   @Test
   public void concurrentHeartbeatThread() throws Exception {
-    List<FutureTask<Void>> tasks = new LinkedList<>();
+    List<FutureTask<Void>> tasks = new ArrayList<>();
 
     // Start the threads.
     for (int i = 0; i < NUMBER_OF_THREADS; i++) {

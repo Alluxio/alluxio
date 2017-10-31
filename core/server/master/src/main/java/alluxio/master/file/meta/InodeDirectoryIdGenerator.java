@@ -40,7 +40,8 @@ public class InodeDirectoryIdGenerator implements JournalEntryRepresentable {
    * @param containerIdGenerator the container id generator to use
    */
   public InodeDirectoryIdGenerator(ContainerIdGenerable containerIdGenerator) {
-    mContainerIdGenerator = Preconditions.checkNotNull(containerIdGenerator);
+    mContainerIdGenerator =
+            Preconditions.checkNotNull(containerIdGenerator, "containerIdGenerator");
   }
 
   /**
