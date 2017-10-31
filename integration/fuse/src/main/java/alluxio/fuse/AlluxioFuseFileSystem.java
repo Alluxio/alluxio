@@ -62,7 +62,8 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
   private static final Logger LOG = LoggerFactory.getLogger(AlluxioFuseFileSystem.class);
 
   private static final int MAX_OPEN_FILES = Integer.MAX_VALUE;
-  private static final long[] UID_AND_GID = AlluxioFuseUtils.getUidAndGid();
+  private static final long UID = AlluxioFuseUtils.getUid(System.getProperty("user.name"));
+  private static final long GID = AlluxioFuseUtils.getGid(System.getProperty("user.name"));
   private final boolean mIsShellGroupMapping;
 
   private final FileSystem mFileSystem;
@@ -138,9 +139,8 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
       // not supported if the group mapping is not shell based
       return -ErrorCodes.ENOSYS();
     }
-    String[] userGroupNames = AlluxioFuseUtils.getUserAndGroupName(uid);
-    String userName = userGroupNames[0];
-    String groupName = userGroupNames[1];
+    String userName = AlluxioFuseUtils.getUserName(uid);
+    String groupName = AlluxioFuseUtils.getGroupName(uid);
     if (userName.isEmpty()) {
       LOG.error("Failed to get user name from uid {}", uid);
       return -ErrorCodes.EFAULT();
@@ -276,12 +276,11 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
       // unix; otherwise use uid and gid of the user running alluxio-fuse
       if (mIsShellGroupMapping) {
         String owner = status.getOwner();
-        long[] uidAndGid = AlluxioFuseUtils.getUidAndGid(owner);
-        stat.st_uid.set(uidAndGid[0]);
-        stat.st_gid.set(uidAndGid[1]);
+        stat.st_uid.set(AlluxioFuseUtils.getUid(owner));
+        stat.st_gid.set(AlluxioFuseUtils.getGid(owner));
       } else {
-        stat.st_uid.set(UID_AND_GID[0]);
-        stat.st_gid.set(UID_AND_GID[1]);
+        stat.st_uid.set(UID);
+        stat.st_gid.set(GID);
       }
 
       int mode = status.getMode();

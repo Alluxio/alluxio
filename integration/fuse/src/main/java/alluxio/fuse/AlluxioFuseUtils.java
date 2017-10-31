@@ -31,36 +31,43 @@ public final class AlluxioFuseUtils {
   private AlluxioFuseUtils() {}
 
   /**
-   * Retrieves the uid and primary gid of the user running Alluxio-FUSE.
-   * @return a long[2] array {uid, gid}
-   */
-  public static long[] getUidAndGid() {
-    final String uname = System.getProperty("user.name");
-    return getUidAndGid(uname);
-  }
-
-  /**
-   * Retrieves the uid and primary gid of the given user.
+   * Retrieves the uid of the given user.
    *
    * @param userName the user name
-   * @return a long[2] array {uid, gid}
+   * @return uid
    */
-  public static long[] getUidAndGid(String userName) {
-    final long uid = getIdInfo("-u", userName);
-    final long gid = getIdInfo("-g", userName);
-    return new long[] {uid, gid};
+  public static long getUid(String userName) {
+    return getIdInfo("-u", userName);
   }
 
   /**
-   * Gets the user name and group name from the user id.
+   * Retrieves the primary gid of the given user.
+   *
+   * @param userName the user name
+   * @return gid
+   */
+  public static long getGid(String userName) {
+    return getIdInfo("-g", userName);
+  }
+
+  /**
+   * Gets the user name from the user id.
    *
    * @param uid user id
-   * @return a string[2] array {userName, groupName}
+   * @return user name
    */
-  public static String[] getUserAndGroupName(long uid) {
-    String userName = runCommandAndGetOutputLine("id", "-nu", new Long(uid).toString());
-    String groupName = runCommandAndGetOutputLine("id", "-ng", new Long(uid).toString());
-    return new String[] {userName, groupName};
+  public static String getUserName(long uid) {
+    return runCommandAndGetOutputLine("id", "-nu", new Long(uid).toString());
+  }
+
+  /**
+   * Gets the group name from the user id.
+   *
+   * @param uid user id
+   * @return group name
+   */
+  public static String getGroupName(long uid) {
+    return runCommandAndGetOutputLine("id", "-ng", new Long(uid).toString());
   }
 
   /**

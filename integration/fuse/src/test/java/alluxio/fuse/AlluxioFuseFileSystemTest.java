@@ -86,11 +86,11 @@ public class AlluxioFuseFileSystemTest {
 
   @Test
   public void chown() throws Exception {
-    long[] uidGid = AlluxioFuseUtils.getUidAndGid();
-    mFuseFs.chown("/foo/bar", uidGid[0], uidGid[1]);
-    String[] userGroupNames = AlluxioFuseUtils.getUserAndGroupName(uidGid[0]);
-    String userName = userGroupNames[0];
-    String groupName = userGroupNames[1];
+    long uid = AlluxioFuseUtils.getUid(System.getProperty("user.name"));
+    long gid = AlluxioFuseUtils.getGid(System.getProperty("user.name"));
+    mFuseFs.chown("/foo/bar", uid, gid);
+    String userName = System.getProperty("user.name");
+    String groupName = AlluxioFuseUtils.getGroupName(uid);
     AlluxioURI expectedPath = BASE_EXPECTED_URI.join("/foo/bar");
     SetAttributeOptions options =
         SetAttributeOptions.defaults().setGroup(groupName).setOwner(userName);
@@ -143,8 +143,8 @@ public class AlluxioFuseFileSystemTest {
     assertEquals((status.getLastModificationTimeMs() % 1000) * 1000, stat.st_ctim.tv_nsec.get());
     assertEquals(status.getLastModificationTimeMs() / 1000, stat.st_mtim.tv_sec.get());
     assertEquals((status.getLastModificationTimeMs() % 1000) * 1000, stat.st_mtim.tv_nsec.get());
-    assertEquals(AlluxioFuseUtils.getUidAndGid()[0], stat.st_uid.get());
-    assertEquals(AlluxioFuseUtils.getUidAndGid()[1], stat.st_gid.get());
+    assertEquals(AlluxioFuseUtils.getUid(System.getProperty("user.name")), stat.st_uid.get());
+    assertEquals(AlluxioFuseUtils.getGid(System.getProperty("user.name")), stat.st_gid.get());
     assertEquals(status.getMode() | FileStat.S_IFDIR, stat.st_mode.get());
   }
 
