@@ -31,13 +31,14 @@
 /deploy/vagrant/spot/roles/tag_ec2/vars/
 /deploy/vagrant/vbox/.vagrant/
 /deploy/vagrant/vbox/alluxio-dev.box
-/dev/scripts/tarballs
-/dev/scripts/workdir
+/dev/scripts/*
+!/dev/scripts/*.sh
 /docs/_site/
 /docs/api/
 /docs/serve/
 /extensions/
 /journal/
+/lib/
 /logs/*.log*
 /logs/*.out*
 /underFSStorage/
