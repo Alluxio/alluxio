@@ -33,6 +33,7 @@ import alluxio.job.Job;
 import alluxio.master.AbstractMaster;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.options.CreateFileOptions;
+import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.lineage.checkpoint.CheckpointPlan;
 import alluxio.master.lineage.checkpoint.CheckpointSchedulingExecutor;
@@ -203,22 +204,24 @@ public final class DefaultLineageMaster extends AbstractMaster implements Lineag
 
     LOG.info("Create lineage of input:{}, output:{}, job:{}", inputAlluxioFiles, outputAlluxioFiles,
         job);
-    long lineageId = mLineageStore.createLineage(inputAlluxioFiles, outputAlluxioFiles, job);
-
-    writeJournalEntry(mLineageIdGenerator.toJournalEntry());
-    writeJournalEntry(mLineageStore.getLineage(lineageId).toJournalEntry());
-    flushJournal();
+    long lineageId;
+    try (JournalContext journalContext = createJournalContext()) {
+      lineageId = mLineageStore.createLineage(inputAlluxioFiles, outputAlluxioFiles, job);
+      journalContext.append(mLineageIdGenerator.toJournalEntry());
+      journalContext.append(mLineageStore.getLineage(lineageId).toJournalEntry());
+    }
     return lineageId;
   }
 
   @Override
   public synchronized boolean deleteLineage(long lineageId, boolean cascade)
       throws LineageDoesNotExistException, LineageDeletionException {
-    deleteLineageInternal(lineageId, cascade);
-    DeleteLineageEntry deleteLineage =
-        DeleteLineageEntry.newBuilder().setLineageId(lineageId).setCascade(cascade).build();
-    writeJournalEntry(JournalEntry.newBuilder().setDeleteLineage(deleteLineage).build());
-    flushJournal();
+    try (JournalContext journalContext = createJournalContext()) {
+      deleteLineageInternal(lineageId, cascade);
+      DeleteLineageEntry deleteLineage =
+          DeleteLineageEntry.newBuilder().setLineageId(lineageId).setCascade(cascade).build();
+      journalContext.append(JournalEntry.newBuilder().setDeleteLineage(deleteLineage).build());
+    }
     return true;
   }
 

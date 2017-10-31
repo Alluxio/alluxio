@@ -35,11 +35,6 @@ public final class NoopJournalContext implements JournalContext {
   }
 
   @Override
-  public long getFlushCounter() {
-    return -1;
-  }
-
-  @Override
   public void close() {
     // Do nothing
   }

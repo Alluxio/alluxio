@@ -67,7 +67,7 @@ To browse all in-Alluxio files, click on the "In-Alluxio Files" tab in the navig
 
 ![inMemFiles]({{site.data.img.screenshot_inMemoryFiles}})
 
-Files currently in the memory tier are listed, with the file name, file size, size for each block,
+Files currently in Alluxio are listed, with the file name, file size, size for each block,
 whether the file is pinned or not, the file creation time, and the file modification time.
 
 ### Workers Page

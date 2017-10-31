@@ -76,7 +76,7 @@ rmr:
   Remove a file, or a directory with all the files and sub-directories that this directory
   contains.
 setTtl:
-  Set the TTL (time to live) in milliseconds to a file. Allow to perform either "delete"
+  Set the TTL (time to live) in milliseconds for a file. Allow to perform either "delete"
   or "free" after expiry of ttl interval.
 stat:
   Displays info for the specified path both file and directory.

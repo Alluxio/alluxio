@@ -14,8 +14,6 @@ package alluxio.worker.netty;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.worker.block.io.BlockWriter;
 
-import com.google.common.base.Preconditions;
-
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -23,13 +21,12 @@ import javax.annotation.concurrent.NotThreadSafe;
  * The block write request internal representation.
  */
 @NotThreadSafe
-public final class BlockWriteRequestContext extends WriteRequestContext<WriteRequest> {
+public final class BlockWriteRequestContext extends WriteRequestContext<BlockWriteRequest> {
   private BlockWriter mBlockWriter;
   private long mBytesReserved;
 
   BlockWriteRequestContext(Protocol.WriteRequest request, long bytesReserved) {
-    super(new WriteRequest(request));
-    Preconditions.checkState(request.getOffset() == 0);
+    super(new BlockWriteRequest(request));
     mBytesReserved = bytesReserved;
   }
 

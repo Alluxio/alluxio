@@ -53,7 +53,7 @@ public final class PermissionChecker {
    * @param inodeTree inode tree of the file system master
    */
   public PermissionChecker(InodeTree inodeTree) {
-    mInodeTree = Preconditions.checkNotNull(inodeTree);
+    mInodeTree = Preconditions.checkNotNull(inodeTree, "inodeTree");
     mPermissionCheckEnabled =
         Configuration.getBoolean(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED);
     mFileSystemSuperGroup =

@@ -20,7 +20,6 @@ import alluxio.util.OSUtils;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Splitter;
-import com.google.common.base.Throwables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.sun.management.OperatingSystemMXBean;
@@ -32,6 +31,7 @@ import java.lang.management.ManagementFactory;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -104,6 +104,7 @@ public final class Configuration {
           ConfigurationUtils.searchPropertiesFile(Constants.SITE_PROPERTIES, confPathList);
       // Update site properties and system properties in order
       if (siteProps != null) {
+        discardIgnoredSiteProperties(siteProps);
         merge(siteProps);
         merge(systemProps);
       }
@@ -171,6 +172,29 @@ public final class Configuration {
       }
     }
     checkUserFileBufferBytes();
+  }
+
+  /**
+   * Iterates a set of site properties and discards those that user should not use.
+   *
+   * @param siteProperties the set of site properties to check
+   */
+  private static void discardIgnoredSiteProperties(Map<?, ?> siteProperties) {
+    Iterator<? extends Map.Entry<?, ?>> iter = siteProperties.entrySet().iterator();
+    while (iter.hasNext()) {
+      Map.Entry<?, ?> entry  = iter.next();
+      String key = entry.getKey().toString();
+      if (PropertyKey.isValid(key)) {
+        PropertyKey propertyKey = PropertyKey.fromString(key);
+        if (propertyKey.isIgnoredSiteProperty()) {
+          iter.remove();
+          LOG.warn("{} is not accepted in alluxio-site.properties, "
+              + "and must be specified as a JVM property. "
+              + "If no JVM property is present, Alluxio will use default value '{}'.",
+              key, propertyKey.getDefaultValue());
+        }
+      }
+    }
   }
 
   // Public accessor methods
@@ -320,7 +344,7 @@ public final class Configuration {
         "Illegal separator for Alluxio properties as list");
     String rawValue = get(key);
 
-    return Lists.newLinkedList(Splitter.on(delimiter).trimResults().omitEmptyStrings()
+    return Lists.newArrayList(Splitter.on(delimiter).trimResults().omitEmptyStrings()
         .split(rawValue));
   }
 
@@ -390,7 +414,7 @@ public final class Configuration {
       return clazz;
     } catch (Exception e) {
       LOG.error("requested class could not be loaded: {}", rawValue, e);
-      throw Throwables.propagate(e);
+      throw new RuntimeException(e);
     }
   }
 

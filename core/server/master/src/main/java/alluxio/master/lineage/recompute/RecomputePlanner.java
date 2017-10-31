@@ -46,8 +46,8 @@ public class RecomputePlanner {
    * @param fileSystemMaster the file system master
    */
   public RecomputePlanner(LineageStore lineageStore, FileSystemMaster fileSystemMaster) {
-    mLineageStore = Preconditions.checkNotNull(lineageStore);
-    mFileSystemMaster = Preconditions.checkNotNull(fileSystemMaster);
+    mLineageStore = Preconditions.checkNotNull(lineageStore, "lineageStore");
+    mFileSystemMaster = Preconditions.checkNotNull(fileSystemMaster, "fileSystemMaster");
   }
 
   /**

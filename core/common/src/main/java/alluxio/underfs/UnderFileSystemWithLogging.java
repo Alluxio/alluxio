@@ -315,6 +315,11 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
   }
 
   @Override
+  public boolean isObjectStorage() {
+    return mUnderFileSystem.isObjectStorage();
+  }
+
+  @Override
   public UfsStatus[] listStatus(final String path) throws IOException {
     return call(new UfsCallable<UfsStatus[]>() {
       @Override

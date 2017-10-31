@@ -44,12 +44,14 @@ fs.oss.endpoint=<OSS_ENDPOINT>
 
 ###嵌套目录安装
 
-OSS可以安装在Alluxio命名空间中的嵌套目录中，以统一访问多个存储系统。 使用Alluxio的[命令行接口](Command-Line-Interface.html)可以实现这一目的。
+OSS可以安装在Alluxio命名空间中的嵌套目录中，以统一访问多个存储系统。 
+[Mount 命令](Command-Line-Interface.html#mount)可以实现这一目的。例如，下面的命令将OSS容器内部的目录挂载到Alluxio的`/oss`目录
 
 ```bash 
 $ ./bin/alluxio fs mount --option fs.oss.accessKeyId=<OSS_ACCESS_KEY_ID> \
-  --option fs.oss.accessKeySecret=<OSS_ACCESS_KEY_SECRET>\
-  fs.oss.endpoint=<OSS_ENDPOINT>
+  --option fs.oss.accessKeySecret=<OSS_ACCESS_KEY_SECRET> \
+  --option fs.oss.endpoint=<OSS_ENDPOINT> \
+  /oss oss://OSS_BUCKET/OSS_DIRECTORY/
 ```
 
 ## 使用OSS在本地运行Alluxio

@@ -49,11 +49,11 @@ $ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 
 ### 通过代理访问S3
 
-若要通过代理与S3交互，在`conf/alluxio-env.sh`中的`ALLUXIO_JAVA_OPTS`部分添加：
+若要通过代理与S3交互，修改文件`conf/alluxio-site.properties`以包含：
 
 {% include Configuring-Alluxio-with-S3/proxy.md %}
 
-其中，`<PROXY_HOST>`和`<PROXY_PORT>`为代理的主机名和端口，`<USE_HTTPS?>`根据是否使用https与代理通信设置为`true`或`false`。
+其中，`<PROXY_HOST>`和`<PROXY_PORT>`为代理的主机名和端口。
 
 ## 配置应用依赖
 
@@ -66,13 +66,11 @@ $ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 
 ### 使用非亚马逊服务提供商
 
-如果需要使用一个不是来自"s3.amazonaws.com"的S3服务，用户需要修改`conf/alluxio-env.sh`文件中的`ALLUXIO_JAVA_OPTS`部分，具体添加如下：
+如果需要使用一个不是来自"s3.amazonaws.com"的S3服务，修改文件`conf/alluxio-site.properties`以包含：
 
 {% include Configuring-Alluxio-with-S3/non-amazon.md %}
 
-对于这些参数，将`<S3_ENDPOINT>`参数替换成你的S3服务的主机名。该参数只有在你的服务提供商非`s3.amazonaws.com`时才需要进行配置。
-
-将`<USE_HTTPS>`设置为`true`或者`false`。如果设置为`true` (使用HTTPS)，同时需要设置`<HTTPS_PORT>`为服务提供商给定的HTTPS port，并且删除`alluxio.underfs.s3.endpoint.http.port`参数。 如果你将`<USE_HTTPS>`设置为`false`（即使用HTTP），同时也需要设置`<HTTPS_PORT>`为服务提供商给定的HTTPS port，并且删除`alluxio.underfs.s3.endpoint.https.port`参数。如果HTTP或HTTPS的port值没有设定，那么`<HTTP_PORT>`采用的默认端口为80，`<HTTPS_PORT>`采用的默认端口为443.
+对于这些参数，将`<S3_ENDPOINT>`参数替换成你的S3服务的主机名和端口，例如`http://localhost:9000`。该参数只有在你的服务提供商非`s3.amazonaws.com`时才需要进行配置。
 
 ### 使用v2的S3签名
 

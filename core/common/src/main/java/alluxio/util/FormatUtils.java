@@ -135,7 +135,7 @@ public final class FormatUtils {
   public static String getSizeFromBytes(long bytes) {
     double ret = bytes;
     if (ret <= 1024 * 5) {
-      return String.format(Locale.ENGLISH, "%.2fB", ret);
+      return String.format(Locale.ENGLISH, "%dB", bytes);
     }
     ret /= 1024;
     if (ret <= 1024 * 5) {

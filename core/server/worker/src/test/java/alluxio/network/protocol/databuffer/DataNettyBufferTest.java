@@ -11,11 +11,13 @@
 
 package alluxio.network.protocol.databuffer;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.CompositeByteBuf;
 import io.netty.buffer.Unpooled;
 import org.junit.After;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -101,7 +103,7 @@ public class DataNettyBufferTest {
   @Test
   public void length() {
     DataNettyBuffer data = new DataNettyBuffer(mBuffer, LENGTH);
-    Assert.assertEquals(LENGTH, data.getLength());
+    assertEquals(LENGTH, data.getLength());
   }
 
   /**
@@ -111,8 +113,8 @@ public class DataNettyBufferTest {
   public void readOnlyByteBuffer() {
     DataNettyBuffer data = new DataNettyBuffer(mBuffer, LENGTH);
     ByteBuffer readOnlyBuffer = data.getReadOnlyByteBuffer();
-    Assert.assertTrue(readOnlyBuffer.isReadOnly());
-    Assert.assertEquals(mBuffer.nioBuffer(), readOnlyBuffer);
+    assertTrue(readOnlyBuffer.isReadOnly());
+    assertEquals(mBuffer.nioBuffer(), readOnlyBuffer);
   }
 
   /**

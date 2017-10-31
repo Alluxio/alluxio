@@ -8,7 +8,7 @@ group: Home
 {:toc}
 
 Alluxio（之前名为Tachyon）是世界上第一个以内存为中心的虚拟的分布式存储系统。它统一了数据访问的方式，为上层计算框架和底层存储系统构建了桥梁。
-应用只需要连接Alluxio即可访问存储在底层任意存储系统中的数据。此外，Alluxio的以内存为中心的架构使得数据的访问速度能比现有常规方案快几个数量级。
+应用只需要连接Alluxio即可访问存储在底层任意存储系统中的数据。此外，Alluxio的以内存为中心的架构使得数据的访问速度能比现有方案快几个数量级。
 
 在大数据生态系统中，Alluxio介于计算框架(如Apache Spark，Apache MapReduce，Apache HBase，Apache Hive，Apache Flink)和现有的存储系统（如Amazon S3，OpenStack Swift，GlusterFS，HDFS，MaprFS，Ceph，NFS，OSS）之间。
 Alluxio为大数据软件栈带来了显著的性能提升。例如，[百度](https://www.baidu.com)采用Alluxio使他们数据分析流水线的吞吐量提升了[30倍](http://www.alluxio.com/assets/uploads/2016/02/Baidu-Case-Study.pdf)。
@@ -56,8 +56,8 @@ InputStream和OutputStream的接口和对内存映射I/O的高效支持。我们
 另外，Alluxio提供兼容Hadoop的文件系统接口，Hadoop MapReduce和Spark可以使用Alluxio代替HDFS。
 
 * **可插拔的底层存储** 在容错方面，Alluxio备份内存数据到底层存储系统。Alluxio提供了通用接口以简化插入
-不同的底层存储系统。目前我们支持Amazon S3，Google Cloud Storage，OpenStack Swift，GlusterFS，
-HDFS，MaprFS，Ceph，NFS，Alibaba OSS，以及单节点本地文件系统，后续也会支持很多其它的文件系统。
+不同的底层存储系统。目前我们支持Microsoft Azure Blob Store，Amazon S3，Google Cloud Storage，OpenStack Swift，GlusterFS，
+HDFS，MaprFS，Ceph，NFS，Alibaba OSS，Minio以及单节点本地文件系统，后续也会支持很多其它的文件系统。
 
 * **[层次化存储](Tiered-Storage-on-Alluxio.html)** 通过分层存储，Alluxio不仅可以管理内存，也可以管理SSD
 和HDD,能够让更大的数据集存储在Alluxio上。数据在不同层之间自动被管理，保证热数据在更快的存储层上。自定义策

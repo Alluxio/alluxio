@@ -55,7 +55,7 @@ public final class JournalReaderOptions {
   }
 
   /**
-   * @param primary whether jorunal reader is to run in a primary master
+   * @param primary whether journal reader is to run in a primary master
    * @return the updated options
    */
   public JournalReaderOptions setPrimary(boolean primary) {

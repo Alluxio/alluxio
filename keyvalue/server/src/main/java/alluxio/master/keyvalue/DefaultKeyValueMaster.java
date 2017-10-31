@@ -26,6 +26,7 @@ import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.DeleteOptions;
 import alluxio.master.file.options.RenameOptions;
+import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.JournalSystem;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.proto.journal.KeyValue;
@@ -151,10 +152,10 @@ public class DefaultKeyValueMaster extends AbstractMaster implements KeyValueMas
           String.format("Failed to completePartition: path %s does not exist", path));
     }
 
-    completePartitionInternal(fileId, info);
-
-    writeJournalEntry(newCompletePartitionEntry(fileId, info));
-    flushJournal();
+    try (JournalContext journalContext = createJournalContext()) {
+      completePartitionInternal(fileId, info);
+      journalContext.append(newCompletePartitionEntry(fileId, info));
+    }
   }
 
   // Marks a partition complete, called when replaying journals
@@ -185,9 +186,10 @@ public class DefaultKeyValueMaster extends AbstractMaster implements KeyValueMas
       throw new FileDoesNotExistException(
           String.format("Failed to completeStore: path %s does not exist", path));
     }
-    completeStoreInternal(fileId);
-    writeJournalEntry(newCompleteStoreEntry(fileId));
-    flushJournal();
+    try (JournalContext journalContext = createJournalContext()) {
+      completeStoreInternal(fileId);
+      journalContext.append(newCompleteStoreEntry(fileId));
+    }
   }
 
   // Marks a store complete, called when replaying journals
@@ -224,9 +226,10 @@ public class DefaultKeyValueMaster extends AbstractMaster implements KeyValueMas
     long fileId = mFileSystemMaster.getFileId(path);
     Preconditions.checkState(fileId != IdUtils.INVALID_FILE_ID);
 
-    createStoreInternal(fileId);
-    writeJournalEntry(newCreateStoreEntry(fileId));
-    flushJournal();
+    try (JournalContext journalContext = createJournalContext()) {
+      createStoreInternal(fileId);
+      journalContext.append(newCreateStoreEntry(fileId));
+    }
   }
 
   // Creates a store, called when replaying journals
@@ -251,9 +254,10 @@ public class DefaultKeyValueMaster extends AbstractMaster implements KeyValueMas
     long fileId = getFileId(uri);
     checkIsCompletePartition(fileId, uri);
     mFileSystemMaster.delete(uri, DeleteOptions.defaults().setRecursive(true));
-    deleteStoreInternal(fileId);
-    writeJournalEntry(newDeleteStoreEntry(fileId));
-    flushJournal();
+    try (JournalContext journalContext = createJournalContext()) {
+      deleteStoreInternal(fileId);
+      journalContext.append(newDeleteStoreEntry(fileId));
+    }
   }
 
   // Deletes a store, called when replaying journals.
@@ -295,10 +299,10 @@ public class DefaultKeyValueMaster extends AbstractMaster implements KeyValueMas
 
     final long newFileId = mFileSystemMaster.getFileId(newUri);
     Preconditions.checkState(newFileId != IdUtils.INVALID_FILE_ID);
-    renameStoreInternal(oldFileId, newFileId);
-
-    writeJournalEntry(newRenameStoreEntry(oldFileId, newFileId));
-    flushJournal();
+    try (JournalContext journalContext = createJournalContext()) {
+      renameStoreInternal(oldFileId, newFileId);
+      journalContext.append(newRenameStoreEntry(oldFileId, newFileId));
+    }
   }
 
   private void renameStoreInternal(long oldFileId, long newFileId) {
@@ -325,10 +329,10 @@ public class DefaultKeyValueMaster extends AbstractMaster implements KeyValueMas
         new AlluxioURI(PathUtils.concatPath(toUri.toString(),
             String.format("%s-%s", fromUri.getName(), UUID.randomUUID().toString()))),
         RenameOptions.defaults());
-    mergeStoreInternal(fromFileId, toFileId);
-
-    writeJournalEntry(newMergeStoreEntry(fromFileId, toFileId));
-    flushJournal();
+    try (JournalContext journalContext = createJournalContext()) {
+      mergeStoreInternal(fromFileId, toFileId);
+      journalContext.append(newMergeStoreEntry(fromFileId, toFileId));
+    }
   }
 
   // Internal implementation to merge two completed stores.

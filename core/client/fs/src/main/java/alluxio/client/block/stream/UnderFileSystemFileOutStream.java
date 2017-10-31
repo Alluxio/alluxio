@@ -11,8 +11,6 @@
 
 package alluxio.client.block.stream;
 
-import alluxio.Configuration;
-import alluxio.PropertyKey;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.options.OutStreamOptions;
 import alluxio.proto.dataserver.Protocol;
@@ -28,7 +26,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public class UnderFileSystemFileOutStream extends BlockOutStream {
-  private static final int TIER_UNUSED = -1;
+  private static final int ID_UNUSED = -1;
 
   /**
    * Creates an instance of {@link UnderFileSystemFileOutStream} that writes to a UFS file.
@@ -40,21 +38,12 @@ public class UnderFileSystemFileOutStream extends BlockOutStream {
    */
   public static UnderFileSystemFileOutStream create(FileSystemContext context,
       WorkerNetAddress address, OutStreamOptions options) throws IOException {
-    Protocol.CreateUfsFileOptions ufsFileOptions =
-        Protocol.CreateUfsFileOptions.newBuilder().setUfsPath(options.getUfsPath())
-            .setOwner(options.getOwner()).setGroup(options.getGroup())
-            .setMode(options.getMode().toShort()).setMountId(options.getMountId()).build();
-
-    long packetSize =
-        Configuration.getBytes(PropertyKey.USER_NETWORK_NETTY_WRITER_PACKET_SIZE_BYTES);
-    return new UnderFileSystemFileOutStream(new NettyPacketWriter(context, address, Long.MAX_VALUE,
-        Protocol.WriteRequest.newBuilder().setTier(TIER_UNUSED)
-            .setType(Protocol.RequestType.UFS_FILE).setCreateUfsFileOptions(ufsFileOptions)
-            .buildPartial(), packetSize));
+    return new UnderFileSystemFileOutStream(NettyPacketWriter.create(context, address,
+        ID_UNUSED, Long.MAX_VALUE, Protocol.RequestType.UFS_FILE, options));
   }
 
   /**
-   * Constructs a new {@link BlockOutStream} with only one {@link PacketWriter}.
+   * Constructs a new {@link UnderFileSystemFileOutStream} with only one {@link PacketWriter}.
    *
    * @param packetWriter the packet writer
    */

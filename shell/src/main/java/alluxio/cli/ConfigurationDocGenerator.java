@@ -58,7 +58,8 @@ public final class ConfigurationDocGenerator {
     Closer closer = Closer.create();
     String[] fileNames = {"user-configuration.csv", "master-configuration.csv",
         "worker-configuration.csv", "security-configuration.csv",
-        "key-value-configuration.csv", "common-configuration.csv"};
+        "key-value-configuration.csv", "common-configuration.csv",
+        "cluster-management-configuration.csv"};
 
     try {
       // HashMap for FileWriter per each category
@@ -99,6 +100,8 @@ public final class ConfigurationDocGenerator {
           fileWriter = fileWriterMap.get("security");
         } else if (pKey.startsWith("alluxio.keyvalue.")) {
           fileWriter = fileWriterMap.get("key-value");
+        } else if (pKey.startsWith("alluxio.integration")) {
+          fileWriter = fileWriterMap.get("cluster-management");
         } else {
           fileWriter = fileWriterMap.get("common");
         }
@@ -133,7 +136,9 @@ public final class ConfigurationDocGenerator {
     Closer closer = Closer.create();
     String[] fileNames = {"user-configuration.yml", "master-configuration.yml",
         "worker-configuration.yml", "security-configuration.yml",
-        "key-value-configuration.yml", "common-configuration.yml"};
+        "key-value-configuration.yml", "common-configuration.yml",
+        "cluster-management-configuration.yml"
+    };
 
     try {
       // HashMap for FileWriter per each category
@@ -153,10 +158,17 @@ public final class ConfigurationDocGenerator {
 
       for (PropertyKey iteratorPK : dfkeys) {
         String pKey = iteratorPK.toString();
-        String description = iteratorPK.getDescription();
+
+        // Puts descriptions in single quotes to avoid having to escaping reserved characters.
+        // Still needs to escape single quotes with double single quotes.
+        String description = iteratorPK.getDescription().replace("'", "''");
 
         // Write property key and default value to yml files
-        String keyValueStr = pKey + ":\n  " + description + "\n";
+        if (iteratorPK.isIgnoredSiteProperty()) {
+          description += " Note: This property must be specified as a JVM property; "
+              + "it is not accepted in alluxio-site.properties.";
+        }
+        String keyValueStr = pKey + ":\n  '" + description + "'\n";
         if (pKey.startsWith("alluxio.user.")) {
           fileWriter = fileWriterMap.get("user");
         } else if (pKey.startsWith("alluxio.master.")) {
@@ -167,6 +179,8 @@ public final class ConfigurationDocGenerator {
           fileWriter = fileWriterMap.get("security");
         } else if (pKey.startsWith("alluxio.keyvalue.")) {
           fileWriter = fileWriterMap.get("key-value");
+        } else if (pKey.startsWith("alluxio.integration.")) {
+          fileWriter = fileWriterMap.get("cluster-management");
         } else {
           fileWriter = fileWriterMap.get("common");
         }

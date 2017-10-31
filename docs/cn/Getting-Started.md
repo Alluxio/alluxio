@@ -11,6 +11,7 @@ priority: 0
 体验Alluxio最简单的方式是单机本地安装。在这个快速上手指南里，我们会引导你在本地机器上安装Alluxio，挂载样本数据，对Alluxio中的数据执行一些基本操作。具体来说，包括:
 
 * 下载和配置Alluxio
+* 验证Alluxio运行环境
 * 本地启动Alluxio
 * 通过Alluxio Shell进行基本的文件操作
 * **[奖励]** 挂载一个公开的Amazon S3 bucket到Alluxio上
@@ -67,6 +68,30 @@ $ echo "aws.secretKey=AWS_SECRET_ACCESS_KEY" >> conf/alluxio-site.properties
 ```
 
 你必须将**AWS_ACCESS_KEY_ID**替换成你的AWS access key id，将**AWS_SECRET_ACCESS_KEY**替换成你的AWS secret access key。现在，Alluxio完全配置好了。
+
+## 验证Alluxio运行环境
+
+在启动Alluxio前，我们要保证当前系统环境下Alluxio可以正常运行。我们可以通过运行如下命令来验证Alluxio的本地运行环境:
+
+```bash
+$ ./bin/alluxio validateEnv local
+```
+
+该命令将汇报在本地环境运行Alluxio可能出现的问题。如果你配置Alluxio运行在集群中，并且你想要验证所有节点的运行环境，你可以运行如下命令:
+
+```bash
+$ ./bin/alluxio validateEnv all
+```
+
+我们也可以使用该命令运行某些特定验证项目。例如，
+
+```bash
+$ ./bin/alluxio validateEnv local ulimit
+```
+
+将只运行验证本地系统资源限制方面的项目。
+
+你可以在[这里](Developer-Tips.html)查看更多关于本命令的信息。
 
 ## 启动Alluxio
 

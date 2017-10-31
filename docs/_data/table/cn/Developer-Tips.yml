@@ -29,4 +29,19 @@ protoGen:
 version:
   打印Alluxio版本信息。
 validateConf:
-  使Alluxio配置生效。
+  验证Alluxio配置。
+validateEnv:
+  验证Alluxio运行环境。<code>TARGET</code>可以是如下选项：<br>
+  <code>local</code>   在本地运行所有验证项目<br>
+  <code>master</code>  在本地运行master验证项目<br>
+  <code>worker</code>  在本地运行worker验证项目<br>
+  <code>all</code>     在所有master和worker结点运行相关验证项目<br>
+  <code>masters</code> 在所有master结点运行相关验证项目<br>
+  <code>workers</code> 在所有worker结点运行相关验证项目<br>
+  <code>NAME</code>可以是任何项目名称前缀。<br>
+  如果给出<code>NAME</code>参数，只有名称前缀和参数值相匹配的项目会运行。
+  例如，指定<code>NAME</code>参数为"master"或"ma"将运行验证项目
+  <code>master.rpc.port.available</code>和<code>master.web.port.available</code>，而不会运行
+  <code>worker.rpc.port.available</code>项目。<br>
+  如果未指定<code>NAME</code>参数，所有<code>TARGET</code>相关的项目将被运行。
+

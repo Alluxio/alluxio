@@ -12,7 +12,6 @@
 package alluxio.cli.fs.command;
 
 import alluxio.AlluxioURI;
-import alluxio.Constants;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.ListStatusOptions;
@@ -41,9 +40,21 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class LsCommand extends WithWildCardPathCommand {
-  public static final String STATE_FOLDER = "Directory";
-  public static final String STATE_FILE_IN_MEMORY = "In Memory";
-  public static final String STATE_FILE_NOT_IN_MEMORY = "Not In Memory";
+  public static final String IN_ALLUXIO_STATE_DIR = "DIR";
+  public static final String IN_ALLUXIO_STATE_FILE_FORMAT = "%d%%";
+  public static final String LS_FORMAT_PERMISSION = "%-11s";
+  public static final String LS_FORMAT_FILE_SIZE = "%15s";
+  public static final String LS_FORMAT_CREATE_TIME = "%24s";
+  public static final String LS_FORMAT_ALLUXIO_STATE = "%5s";
+  public static final String LS_FORMAT_PERSISTENCE_STATE = "%16s";
+  public static final String LS_FORMAT_USER_NAME = "%-15s";
+  public static final String LS_FORMAT_GROUP_NAME = "%-15s";
+  public static final String LS_FORMAT_FILE_PATH = "%-5s";
+  public static final String LS_FORMAT_NO_ACL = LS_FORMAT_FILE_SIZE + LS_FORMAT_PERSISTENCE_STATE
+      + LS_FORMAT_CREATE_TIME + LS_FORMAT_ALLUXIO_STATE + " " + LS_FORMAT_FILE_PATH + "%n";
+  public static final String LS_FORMAT = LS_FORMAT_PERMISSION + LS_FORMAT_USER_NAME
+      + LS_FORMAT_GROUP_NAME + LS_FORMAT_FILE_SIZE + LS_FORMAT_PERSISTENCE_STATE
+      + LS_FORMAT_CREATE_TIME + LS_FORMAT_ALLUXIO_STATE + " " + LS_FORMAT_FILE_PATH + "%n";
 
   private static final Option FORCE_OPTION =
       Option.builder("f")
@@ -91,28 +102,32 @@ public final class LsCommand extends WithWildCardPathCommand {
    * @param groupName group name
    * @param size size of the file in bytes
    * @param createTimeMs the epoch time in ms when the path is created
-   * @param inMemory whether the file is in memory
+   * @param inAlluxioPercentage whether the file is in Alluxio
+   * @param persistenceState the persistence state of the file
    * @param path path of the file or folder
    * @return the formatted string according to acl and isFolder
    */
   public static String formatLsString(boolean hSize, boolean acl, boolean isFolder, String
       permission,
-      String userName, String groupName, long size, long createTimeMs, boolean inMemory,
-      String path) {
-    String memoryState;
+      String userName, String groupName, long size, long createTimeMs, int inAlluxioPercentage,
+      String persistenceState, String path) {
+    String inAlluxioState;
+    String sizeStr;
     if (isFolder) {
-      memoryState = STATE_FOLDER;
+      inAlluxioState = IN_ALLUXIO_STATE_DIR;
+      sizeStr = String.valueOf(size);
     } else {
-      memoryState = inMemory ? STATE_FILE_IN_MEMORY : STATE_FILE_NOT_IN_MEMORY;
+      inAlluxioState = String.format(IN_ALLUXIO_STATE_FILE_FORMAT, inAlluxioPercentage);
+      sizeStr = hSize ? FormatUtils.getSizeFromBytes(size) : String.valueOf(size);
     }
-    String sizeStr = hSize ? FormatUtils.getSizeFromBytes(size) : String.valueOf(size);
+
     if (acl) {
-      return String.format(Constants.LS_FORMAT, permission, userName, groupName,
-          sizeStr, CommonUtils.convertMsToDate(createTimeMs),
-          memoryState, path);
+      return String.format(LS_FORMAT, permission, userName, groupName,
+          sizeStr, persistenceState, CommonUtils.convertMsToDate(createTimeMs),
+          inAlluxioState, path);
     } else {
-      return String.format(Constants.LS_FORMAT_NO_ACL, sizeStr,
-          CommonUtils.convertMsToDate(createTimeMs), memoryState, path);
+      return String.format(LS_FORMAT_NO_ACL, sizeStr,
+          persistenceState, CommonUtils.convertMsToDate(createTimeMs), inAlluxioState, path);
     }
   }
 
@@ -120,7 +135,7 @@ public final class LsCommand extends WithWildCardPathCommand {
     System.out.print(formatLsString(hSize, SecurityUtils.isSecurityEnabled(),
         status.isFolder(), FormatUtils.formatMode((short) status.getMode(), status.isFolder()),
         status.getOwner(), status.getGroup(), status.getLength(), status.getCreationTimeMs(),
-        100 == status.getInAlluxioPercentage(), status.getPath()));
+        status.getInAlluxioPercentage(), status.getPersistenceState(), status.getPath()));
   }
 
   /**
@@ -222,12 +237,10 @@ public final class LsCommand extends WithWildCardPathCommand {
 
   @Override
   public String getDescription() {
-    return "Displays information for all files and directories directly under the specified path."
-        + " Specify -d to list directories as plain files."
-        + " Specify -f to force loading files in the directory."
-        + " Specify -p to list all the pinned files."
-        + " Specify -R to display files and directories recursively."
-        + " Specify -h to print human-readable format sizes.";
+    return "Displays information for all files and directories directly under the specified path, "
+        + "including permission, owner, group, size (bytes for files or the number of children "
+        + "for directories, persistence state, creation time, the percentage of content already "
+        + "in Alluxio and the path in order.";
   }
 
   @Override

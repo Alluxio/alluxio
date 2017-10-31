@@ -20,7 +20,8 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public enum PreconditionMessage {
-  ASYNC_JOURNAL_WRITER_NULL("AsyncJournalWriter cannot be null"),
+  BLOCK_LENGTH_INCONSISTENT("Block %s is expected to be %s bytes, but only %s bytes are available. "
+      + "Please ensure its metadata is consistent between Alluxio and UFS."),
   COMMAND_LINE_LINEAGE_ONLY("Only command line jobs are supported by createLineage"),
   EMPTY_FILE_INFO_LIST_FOR_PERMISSION_CHECK(
       "The passed-in file info list can not be empty when checking permission"),
@@ -54,7 +55,7 @@ public enum PreconditionMessage {
   UFS_READ_LOCATION_POLICY_UNSPECIFIED("The UFS read location policy is not specified"),
   GCS_BUCKET_MUST_BE_SET("The %s system property must be set to use the GCSUnderStorageCluster"),
   INCONSISTENT_ZK_CONFIGURATION(
-      "Inconsistent Zookeeper configuration; %s should be set only when %s is true"),
+      "Inconsistent Zookeeper configuration; %s should be set if and only if %s is true"),
   INODE_TREE_UNINITIALIZED_IS_ROOT_ID("Cannot call isRootId() before initializeRoot()"),
   INVALID_PROPERTY("Invalid property: %s"),
   INVALID_USER_FILE_BUFFER_BYTES("Invalid value of %s: %d"),

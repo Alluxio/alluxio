@@ -20,7 +20,7 @@ import alluxio.master.file.StartupConsistencyCheck;
 import alluxio.metrics.MetricsSystem;
 import alluxio.rest.RestApiTest;
 import alluxio.rest.TestCase;
-import alluxio.util.UnderFileSystemUtils;
+import alluxio.underfs.UnderFileSystemTestUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 import alluxio.wire.AlluxioMasterInfo;
@@ -153,7 +153,7 @@ public final class AlluxioMasterRestApiTest extends RestApiTest {
 
   @Test
   public void getTierCapacity() throws Exception {
-    long total = Configuration.getLong(PropertyKey.WORKER_MEMORY_SIZE);
+    long total = Configuration.getBytes(PropertyKey.WORKER_MEMORY_SIZE);
     Capacity capacity = getInfo(NO_PARAMS).getTierCapacity().get("MEM");
     Assert.assertEquals(total, capacity.getTotal());
     Assert.assertEquals(0, capacity.getUsed());
@@ -167,7 +167,7 @@ public final class AlluxioMasterRestApiTest extends RestApiTest {
   @Test
   public void getUfsCapacity() throws Exception {
     Capacity ufsCapacity = getInfo(NO_PARAMS).getUfsCapacity();
-    if (UnderFileSystemUtils.isObjectStorage(mFileSystemMaster.getUfsAddress())) {
+    if (UnderFileSystemTestUtils.isObjectStorage(mFileSystemMaster.getUfsAddress())) {
       // Object storage ufs capacity is always invalid.
       Assert.assertEquals(-1, ufsCapacity.getTotal());
     } else {

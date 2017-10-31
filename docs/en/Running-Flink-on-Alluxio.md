@@ -45,14 +45,10 @@ Next, you have to specify the path to the Hadoop configuration in Flink. Open th
 configuration value to the **directory** containing the `core-site.xml`. (For newer Hadoop versions,
 the directory usually ends with `etc/hadoop`.)
 
-### Generate and Distribute the Alluxio Client Jar
+### Distribute the Alluxio Client Jar
 
 In order to communicate with Alluxio, we need to provide Flink programs with the Alluxio Core Client
-jar.
-Generate the Flink compatible client jar by building the entire project from the top level `alluxio`
-directory:
-
-{% include Running-Flink-on-Alluxio/flink-profile-build.md %}
+jar. If you are using Alluxio binary, then the jar is available at `{{site.ALLUXIO_CLIENT_JAR_PATH}}`.
 
 We need to make the Alluxio `jar` file available to Flink, because it contains the configured
 `alluxio.hadoop.FileSystem` class.
@@ -67,13 +63,20 @@ available on all cluster nodes as well). For example like this:
 
 {% include Running-Flink-on-Alluxio/hadoop-classpath.md %}
 
-Alternatively, advanced users can choose to compile this client jar from the source code. Follow the instructs [here](Building-Alluxio-Master-Branch.html#compute-framework-support) and use the generated jar at `{{site.ALLUXIO_CLIENT_JAR_PATH_BUILD}}` for the rest of this guide.
+Alternatively, advanced users can choose to compile this client jar from the source code. Follow the instructions
+[here](Building-Alluxio-Master-Branch.html#compute-framework-support) and use the generated jar at
+`{{site.ALLUXIO_CLIENT_JAR_PATH_BUILD}}` for the rest of this guide.
 
 ### Translate additional Alluxio site properties to Flink
 
-In addition, if there are any properties specified in `conf/alluxio-site.properties`,
+In addition, if there are any client-related properties specified in `conf/alluxio-site.properties`,
 translate those to `env.java.opts` in `{FLINK_HOME}/conf/flink-conf.yaml` for Flink to pick up
-Alluxio configuration.
+Alluxio configuration. For example, if you want to configure Alluxio client to use CACHE_THROUGH as
+the write type, you should add the following to `{FLINK_HOME}/conf/flink-conf.yaml`.
+
+```yaml
+env.java.opts: -Dalluxio.user.file.writetype.default=CACHE_THROUGH
+```
 
 ## Using Alluxio with Flink
 

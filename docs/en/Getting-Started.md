@@ -13,6 +13,7 @@ quick start guide, we will install Alluxio on your local machine, mount example 
 perform basic tasks with the data in Alluxio. During this guide, you will:
 
 * Download and configure Alluxio
+* Validating Alluxio environment
 * Start Alluxio locally
 * Perform basic tasks via Alluxio Shell
 * **[Bonus]** Mount a public Amazon S3 bucket in Alluxio
@@ -75,6 +76,10 @@ $ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 Update `alluxio.master.hostname` in `conf/alluxio-site.properties` to the hostname of the machine
 you plan to run Alluxio Master on.
 
+```bash
+$ echo "alluxio.master.hostname=localhost" >> conf/alluxio-site.properties
+```
+
 ### [Bonus] Configuration for AWS
 
 If you have an Amazon AWS account with your access key id and secret key, you can update your
@@ -90,6 +95,34 @@ $ echo "aws.secretKey=AWS_SECRET_ACCESS_KEY" >> conf/alluxio-site.properties
 You will have to replace **AWS_ACCESS_KEY_ID** with your AWS access key id, and
 **AWS_SECRET_ACCESS_KEY** with your AWS secret access key. Now, Alluxio is fully configured for the
 rest of this guide.
+
+## Validating Alluxio environment
+
+Before starting Alluxio, you might want to make sure that your system environment is ready for running
+Alluxio services. You can run the following command to validate your local environment with your
+Alluxio configuration:
+
+```bash
+$ ./bin/alluxio validateEnv local
+```
+
+This will report potential problems that might prevent you from starting Alluxio services locally. If
+you configured Alluxio to run in a cluster and you want to validate environment on all nodes, you
+can run the following command instead:
+
+```bash
+$ ./bin/alluxio validateEnv all
+```
+
+You can also make the command run only specific validation task. For example,
+
+```bash
+$ ./bin/alluxio validateEnv local ulimit
+```
+
+Will only run validation tasks that check your local system resource limits.
+
+You can check out [this page](Developer-Tips.html) for detailed usage information regarding this command.
 
 ## Starting Alluxio
 
@@ -399,4 +432,3 @@ Different frameworks and applications work with Alluxio.
 * [Presto with Alluxio](Running-Presto-with-Alluxio.html)
 * [Apache Hive with Alluxio](Running-Hive-with-Alluxio.html)
 * [Apache Zeppelin with Alluxio](Accessing-Alluxio-from-Zeppelin.html)
-

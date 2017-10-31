@@ -27,7 +27,7 @@ public final class SwiftUnderFileSystemContractTest extends AbstractUnderFileSys
 
   @BeforeClass
   public static void beforeClass() throws Exception {
-    Preconditions.checkNotNull(SWIFT_CONTAINER_KEY);
+    Preconditions.checkNotNull(SWIFT_CONTAINER_KEY, "SWIFT_CONTAINER_KEY");
     Preconditions.checkState(new SwiftUnderFileSystemFactory().supportsPath(SWIFT_CONTAINER_KEY),
         "%s is not a valid Swift path", SWIFT_CONTAINER_KEY);
   }
