@@ -20,6 +20,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -87,6 +88,7 @@ public abstract class ResourcePool<T> implements Pool<T> {
    * @return a resource taken from the pool, or null if the operation times out
    */
   @Override
+  @Nullable
   public T acquire(long time, TimeUnit unit) {
     // If either time or unit are null, the other should also be null.
     Preconditions.checkState((time <= 0) == (unit == null));

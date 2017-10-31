@@ -132,7 +132,7 @@ abstract class AbstractReadHandler<T extends ReadRequestContext<?>>
 
   @Override
   public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
-    LOG.error("Exception caught {} in AbstractReadHandler.", cause);
+    LOG.error("Exception caught in AbstractReadHandler for channel {}:", ctx.channel(), cause);
     setError(ctx.channel(), new Error(AlluxioStatusException.fromThrowable(cause), true));
   }
 
@@ -167,11 +167,11 @@ abstract class AbstractReadHandler<T extends ReadRequestContext<?>>
    * @param error the error
    */
   private void setError(Channel channel, Error error) {
-    Preconditions.checkNotNull(error);
+    Preconditions.checkNotNull(error, "error");
     try (LockResource lr = new LockResource(mLock)) {
-      // Note, network errors may be bubbling up through channelUnregistered to reach here before
-      // mContext is initialized.
-      if (mContext == null || mContext.getError() != null) {
+      if (mContext == null || mContext.getError() != null || mContext.isDoneUnsafe()) {
+        // Note, we may reach here via channelUnregistered due to network errors bubbling up before
+        // mContext is initialized, or channel garbage collection after the request is finished.
         return;
       }
       mContext.setError(error);

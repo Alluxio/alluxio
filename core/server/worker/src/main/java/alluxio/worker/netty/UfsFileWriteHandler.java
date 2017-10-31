@@ -70,9 +70,12 @@ public final class UfsFileWriteHandler extends AbstractWriteHandler<UfsFileWrite
   }
 
   @Override
-  protected UfsFileWriteRequestContext createRequestContext(Protocol.WriteRequest msg)
-      throws Exception {
+  protected UfsFileWriteRequestContext createRequestContext(Protocol.WriteRequest msg) {
     return new UfsFileWriteRequestContext(msg);
+  }
+
+  @Override
+  protected void initRequestContext(UfsFileWriteRequestContext context) {
   }
 
   @Override

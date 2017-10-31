@@ -23,6 +23,7 @@ import com.google.common.collect.Lists;
 import java.util.Collections;
 import java.util.List;
 
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 /**
  * A policy that returns local host first, and if the local worker doesn't have enough availability,
@@ -41,6 +42,7 @@ public final class LocalFirstPolicy implements FileWriteLocationPolicy, BlockLoc
   }
 
   @Override
+  @Nullable
   public WorkerNetAddress getWorkerForNextBlock(Iterable<BlockWorkerInfo> workerInfoList,
       long blockSizeBytes) {
     // first try the local host

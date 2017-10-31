@@ -27,7 +27,7 @@ public final class HdfsUnderFileSystemContractTest extends AbstractUnderFileSyst
 
   @BeforeClass
   public static void beforeClass() throws Exception {
-    Preconditions.checkNotNull(HDFS_BASE_DIR);
+    Preconditions.checkNotNull(HDFS_BASE_DIR, "HDFS_BASE_DIR");
     Preconditions.checkState(new HdfsUnderFileSystemFactory().supportsPath(HDFS_BASE_DIR),
         "%s is not a valid HDFS path", HDFS_BASE_DIR);
   }

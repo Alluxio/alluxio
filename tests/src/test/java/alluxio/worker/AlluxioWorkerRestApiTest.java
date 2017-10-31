@@ -80,7 +80,7 @@ public final class AlluxioWorkerRestApiTest extends RestApiTest {
 
   @Test
   public void getTierCapacity() throws Exception {
-    long total = Configuration.getLong(PropertyKey.WORKER_MEMORY_SIZE);
+    long total = Configuration.getBytes(PropertyKey.WORKER_MEMORY_SIZE);
     Capacity capacity = getInfo().getTierCapacity().get("MEM");
     Assert.assertEquals(total, capacity.getTotal());
     Assert.assertEquals(0, capacity.getUsed());

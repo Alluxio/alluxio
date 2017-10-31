@@ -24,11 +24,6 @@ public interface JournalContext extends Closeable {
    */
   void append(JournalEntry entry);
 
-  /**
-   * @return the journal flush counter
-   */
-  long getFlushCounter();
-
   @Override
   void close();
 }

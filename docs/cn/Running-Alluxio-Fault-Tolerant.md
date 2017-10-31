@@ -9,7 +9,7 @@ priority: 3
 * 内容列表
 {:toc}
 
-Alluxio的高可用性通过多master实现。同一时刻，有多个master进程运行。其中一个被选举为leader，作为所有worker和
+Alluxio的高可用性通过多master实现。同一时刻，系统中有多个master进程运行。其中一个被选举为leader，作为所有worker和
 client的通信首选。其余master进入备用状态，和leader共享日志，以确保和leader维护着同样的文件系统元数据并在
 leader失效时迅速接管leader的工作。
 

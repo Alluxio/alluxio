@@ -25,6 +25,7 @@ import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.util.io.PathUtils;
 
 import com.amazonaws.AmazonClientException;
+import com.amazonaws.AmazonServiceException;
 import com.amazonaws.ClientConfiguration;
 import com.amazonaws.Protocol;
 import com.amazonaws.auth.AWSCredentialsProvider;
@@ -60,7 +61,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 
@@ -308,13 +309,13 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
   protected List<String> deleteObjects(List<String> keys) throws IOException {
     Preconditions.checkArgument(keys != null && keys.size() <= getListingChunkLengthMax());
     try {
-      List<DeleteObjectsRequest.KeyVersion> keysToDelete = new LinkedList<>();
+      List<DeleteObjectsRequest.KeyVersion> keysToDelete = new ArrayList<>();
       for (String key : keys) {
         keysToDelete.add(new DeleteObjectsRequest.KeyVersion(key));
       }
       DeleteObjectsResult deletedObjectsResult =
           mClient.deleteObjects(new DeleteObjectsRequest(mBucketName).withKeys(keysToDelete));
-      List<String> deletedObjects = new LinkedList<>();
+      List<String> deletedObjects = new ArrayList<>();
       for (DeleteObjectsResult.DeletedObject deletedObject : deletedObjectsResult
           .getDeletedObjects()) {
         deletedObjects.add(deletedObject.getKey());
@@ -476,15 +477,17 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
 
   @Override
   @Nullable
-  protected ObjectStatus getObjectStatus(String key) {
+  protected ObjectStatus getObjectStatus(String key) throws IOException {
     try {
       ObjectMetadata meta = mClient.getObjectMetadata(mBucketName, key);
-      if (meta == null) {
+      return new ObjectStatus(key, meta.getContentLength(), meta.getLastModified().getTime());
+    } catch (AmazonServiceException e) {
+      if (e.getStatusCode() == 404) { // file not found, possible for exists calls
         return null;
       }
-      return new ObjectStatus(key, meta.getContentLength(), meta.getLastModified().getTime());
+      throw new IOException(e);
     } catch (AmazonClientException e) {
-      return null;
+      throw new IOException(e);
     }
   }
 

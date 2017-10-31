@@ -12,7 +12,9 @@
 package alluxio.master;
 
 import alluxio.AlluxioURI;
+import alluxio.Configuration;
 import alluxio.Constants;
+import alluxio.PropertyKey;
 
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
@@ -29,9 +31,11 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
+import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -53,8 +57,15 @@ public final class PrimarySelectorClient
   /** The address to Zookeeper. */
   private final String mZookeeperAddress;
 
-  /** Whether this master is the leader master now. */
-  private AtomicBoolean mIsLeader = new AtomicBoolean(false);
+  private final Lock mStateLock = new ReentrantLock();
+  private final Condition mStateCondition = mStateLock.newCondition();
+  /**
+   * Whether this master is the primary master now. Whenever this changes, {@link #mStateCondition}
+   * must be signalled. To enforce this, all modification should go through
+   * {@link #setState(State)}.
+   */
+  @GuardedBy("mStateLock")
+  private State mState = State.SECONDARY;
 
   /**
    * Constructs a new {@link PrimarySelectorClient}.
@@ -121,11 +132,16 @@ public final class PrimarySelectorClient
     }
   }
 
-  /**
-   * @return true if the client is the leader, false otherwise
-   */
-  public boolean isPrimary() {
-    return mIsLeader.get();
+  @Override
+  public void waitForState(State state) throws InterruptedException {
+    mStateLock.lock();
+    try {
+      while (mState != state) {
+        mStateCondition.await();
+      }
+    } finally {
+      mStateLock.unlock();
+    }
   }
 
   /**
@@ -141,11 +157,14 @@ public final class PrimarySelectorClient
 
   @Override
   public void stateChanged(CuratorFramework client, ConnectionState newState) {
-    mIsLeader.set(false);
+    setState(State.SECONDARY);
 
     if ((newState != ConnectionState.LOST) && (newState != ConnectionState.SUSPENDED)) {
       try {
-        LOG.info("The current leader is {}", mLeaderSelector.getLeader().getId());
+        String leaderId = mLeaderSelector.getLeader().getId();
+        if (!leaderId.isEmpty()) {
+          LOG.info("The current leader is {}", leaderId);
+        }
       } catch (Exception e) {
         LOG.error(e.getMessage(), e);
       }
@@ -154,7 +173,7 @@ public final class PrimarySelectorClient
 
   @Override
   public void takeLeadership(CuratorFramework client) throws Exception {
-    mIsLeader.set(true);
+    setState(State.PRIMARY);
     if (client.checkExists().forPath(mLeaderFolder + mName) != null) {
       LOG.info("Deleting zk path: {}{}", mLeaderFolder, mName);
       client.delete().forPath(mLeaderFolder + mName);
@@ -163,14 +182,18 @@ public final class PrimarySelectorClient
     client.create().creatingParentsIfNeeded().forPath(mLeaderFolder + mName);
     LOG.info("{} is now the leader.", mName);
     try {
-      while (true) {
-        Thread.sleep(TimeUnit.SECONDS.toMillis(5));
+      mStateLock.lock();
+      try {
+        while (mState == State.PRIMARY) {
+          mStateCondition.await();
+        }
+      } finally {
+        mStateLock.unlock();
       }
     } catch (InterruptedException e) {
       LOG.error(mName + " was interrupted.", e);
       Thread.currentThread().interrupt();
     } finally {
-      mIsLeader.set(false);
       LOG.warn("{} relinquishing leadership.", mName);
       LOG.info("The current leader is {}", mLeaderSelector.getLeader().getId());
       LOG.info("All participants: {}", mLeaderSelector.getParticipants());
@@ -186,16 +209,30 @@ public final class PrimarySelectorClient
    */
   private CuratorFramework getNewCuratorClient() {
     CuratorFramework client = CuratorFrameworkFactory.newClient(mZookeeperAddress,
+        (int) Configuration.getMs(PropertyKey.ZOOKEEPER_SESSION_TIMEOUT),
+        (int) Configuration.getMs(PropertyKey.ZOOKEEPER_CONNECTION_TIMEOUT),
         new ExponentialBackoffRetry(Constants.SECOND_MS, 3));
     client.start();
 
     // Sometimes, if the master crashes and restarts too quickly (faster than the zookeeper
     // timeout), zookeeper thinks the new client is still an old one. In order to ensure a clean
-    // state, explicitly close the "old" client recreate a new one.
+    // state, explicitly close the "old" client and recreate a new one.
     client.close();
     client = CuratorFrameworkFactory.newClient(mZookeeperAddress,
+        (int) Configuration.getMs(PropertyKey.ZOOKEEPER_SESSION_TIMEOUT),
+        (int) Configuration.getMs(PropertyKey.ZOOKEEPER_CONNECTION_TIMEOUT),
         new ExponentialBackoffRetry(Constants.SECOND_MS, 3));
     client.start();
     return client;
+  }
+
+  private void setState(State state) {
+    mStateLock.lock();
+    try {
+      mState = state;
+      mStateCondition.signalAll();
+    } finally {
+      mStateLock.unlock();
+    }
   }
 }

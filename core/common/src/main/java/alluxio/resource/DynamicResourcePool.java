@@ -243,7 +243,7 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
     mGcFuture = mExecutor.scheduleAtFixedRate(new Runnable() {
       @Override
       public void run() {
-        List<T> resourcesToGc = new ArrayList<T>();
+        List<T> resourcesToGc = new ArrayList<>();
 
         try {
           mLock.lock();

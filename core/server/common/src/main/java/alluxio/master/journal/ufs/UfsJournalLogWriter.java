@@ -15,6 +15,7 @@ import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.RuntimeConstants;
 import alluxio.exception.ExceptionMessage;
+import alluxio.master.journal.JournalWriter;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.CreateOptions;
@@ -42,7 +43,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * writer is closed.
  */
 @ThreadSafe
-final class UfsJournalLogWriter {
+final class UfsJournalLogWriter implements JournalWriter {
   private static final Logger LOG = LoggerFactory.getLogger(UfsJournalLogWriter.class);
 
   private final UfsJournal mJournal;
@@ -137,7 +138,7 @@ final class UfsJournalLogWriter {
    * @param nextSequenceNumber the sequence number to begin writing at
    */
   UfsJournalLogWriter(UfsJournal journal, long nextSequenceNumber) throws IOException {
-    mJournal = Preconditions.checkNotNull(journal);
+    mJournal = Preconditions.checkNotNull(journal, "journal");
     mUfs = mJournal.getUfs();
     mNextSequenceNumber = nextSequenceNumber;
     mMaxLogSize = Configuration.getBytes(PropertyKey.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX);

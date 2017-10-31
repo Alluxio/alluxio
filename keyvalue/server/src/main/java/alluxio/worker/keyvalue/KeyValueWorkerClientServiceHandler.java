@@ -62,7 +62,7 @@ public final class KeyValueWorkerClientServiceHandler implements KeyValueWorkerC
    * @param blockWorker the {@link BlockWorker}
    */
   KeyValueWorkerClientServiceHandler(BlockWorker blockWorker) {
-    mBlockWorker = Preconditions.checkNotNull(blockWorker);
+    mBlockWorker = Preconditions.checkNotNull(blockWorker, "blockWorker");
   }
 
   @Override

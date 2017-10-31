@@ -11,6 +11,10 @@
 
 package alluxio.underfs.options;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertEquals;
+
 import alluxio.CommonTestUtils;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
@@ -19,7 +23,6 @@ import alluxio.security.authorization.Mode;
 import alluxio.security.group.provider.IdentityUserGroupsMapping;
 import alluxio.util.CommonUtils;
 
-import org.junit.Assert;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -37,11 +40,11 @@ public final class MkdirsOptionsTest {
     MkdirsOptions options = MkdirsOptions.defaults();
 
     // Verify the default createParent is true.
-    Assert.assertTrue(options.getCreateParent());
+    assertTrue(options.getCreateParent());
     // Verify that the owner and group are not set.
-    Assert.assertEquals("", options.getOwner());
-    Assert.assertEquals("", options.getGroup());
-    Assert.assertEquals(Mode.defaults().applyDirectoryUMask(), options.getMode());
+    assertEquals("", options.getOwner());
+    assertEquals("", options.getGroup());
+    assertEquals(Mode.defaults().applyDirectoryUMask(), options.getMode());
   }
 
   /**
@@ -59,11 +62,11 @@ public final class MkdirsOptionsTest {
     MkdirsOptions options = MkdirsOptions.defaults();
 
     // Verify the default createParent is true.
-    Assert.assertTrue(options.getCreateParent());
+    assertTrue(options.getCreateParent());
     // Verify that the owner and group are not set.
-    Assert.assertEquals("", options.getOwner());
-    Assert.assertEquals("", options.getGroup());
-    Assert.assertEquals(Mode.defaults().applyDirectoryUMask(), options.getMode());
+    assertEquals("", options.getOwner());
+    assertEquals("", options.getGroup());
+    assertEquals(Mode.defaults().applyDirectoryUMask(), options.getMode());
   }
 
   /**
@@ -83,10 +86,10 @@ public final class MkdirsOptionsTest {
     options.setGroup(group);
     options.setMode(mode);
 
-    Assert.assertEquals(createParent, options.getCreateParent());
-    Assert.assertEquals(owner, options.getOwner());
-    Assert.assertEquals(group, options.getGroup());
-    Assert.assertEquals(mode, options.getMode());
+    assertEquals(createParent, options.getCreateParent());
+    assertEquals(owner, options.getOwner());
+    assertEquals(group, options.getGroup());
+    assertEquals(mode, options.getMode());
   }
 
   @Test

@@ -123,7 +123,7 @@ public class IndexedSet<T> extends AbstractSet<T> {
   public IndexedSet(IndexDefinition<T> primaryIndexDefinition,
       IndexDefinition<T>... otherIndexDefinitions) {
     Iterable<IndexDefinition<T>> indexDefinitions =
-        Iterables.concat(Arrays.asList(primaryIndexDefinition),
+        Iterables.concat(Collections.singletonList(primaryIndexDefinition),
             Arrays.asList(otherIndexDefinitions));
 
     // initialization

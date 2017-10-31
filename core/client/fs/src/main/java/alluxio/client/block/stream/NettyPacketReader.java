@@ -265,7 +265,7 @@ public final class NettyPacketReader implements PacketReader {
         // Canceled is considered a valid status and handled in the reader. We avoid creating a
         // CanceledException as an optimization.
         if (message.asResponse().getStatus() != PStatus.CANCELED) {
-          CommonUtils.unwrapResponse(response.getMessage().asResponse());
+          CommonUtils.unwrapResponseFrom(response.getMessage().asResponse(), ctx.channel());
         }
 
         DataBuffer dataBuffer = response.getPayloadDataBuffer();
@@ -288,7 +288,8 @@ public final class NettyPacketReader implements PacketReader {
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
-      LOG.error("Exception caught while reading from {}.", mReadRequest.getBlockId(), cause);
+      LOG.error("Exception is caught while reading block {} from channel {}:",
+          mReadRequest.getBlockId(), ctx.channel(), cause);
 
       // NOTE: The netty I/O thread associated with mChannel is the only thread that can update
       // mPacketReaderException and push to mPackets. So it is safe to do the following without
@@ -303,7 +304,8 @@ public final class NettyPacketReader implements PacketReader {
 
     @Override
     public void channelUnregistered(ChannelHandlerContext ctx) {
-      LOG.warn("Channel {} is closed while reading from {}.", mChannel, mReadRequest.getBlockId());
+      LOG.warn("Channel is closed while reading block {} from channel {}.",
+          mReadRequest.getBlockId(), ctx.channel());
 
       // NOTE: The netty I/O thread associated with mChannel is the only thread that can update
       // mPacketReaderException and push to mPackets. So it is safe to do the following without

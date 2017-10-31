@@ -120,3 +120,23 @@ log4j.appender.MASTER_LOGGER_SOCKET.layout.ConversionPattern=%d{ISO8601} %-5p %c
 This is an example of using remote logging with Alluxio, users are encouraged to explore the various
 appenders and configuration options provided by Log4J or 3rd parties to create a logging solution
 best suited for their use case.
+
+### Dynamically change the log level when Alluxio server is running
+
+Alluxio shell comes with a `logLevel` command that allows you to get or change the log level of a particular class on specific
+instances.
+
+The synax is `alluxio logLevel --logName=NAME [--target=<master|worker|host:port>] [--level=LEVEL]`, where the `logName`
+indicates the logger's name, and `target` lists the Alluxio masters or workers to set. If parameter `level` is provided the command
+changes the logger level, otherwise it gets and displays the current logger level.
+
+For example, this command sets the class `foo.Bar`'s logger level to DEBUG on master as well as a worker at `192.168.100.100:30000`.
+
+```bash
+alluxio logLevel --loggerName=foo.Bar --target=master,192.168.100.100:30000 --level=DEBUG
+```
+
+And the following command gets all workers' log level on class `foo.Bar`
+```bash
+alluxio logLevel --loggerName=foo.Bar --target=workers
+```

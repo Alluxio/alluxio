@@ -28,7 +28,7 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -145,7 +145,7 @@ public final class UfsSyncChecker {
     AlluxioURI curUri = ufsUri;
     while (curUri != null) {
       if (mListedDirectories.containsKey(curUri.toString())) {
-        List<UfsStatus> childrenList = new LinkedList<>();
+        List<UfsStatus> childrenList = new ArrayList<>();
         for (UfsStatus childStatus : mListedDirectories.get(curUri.toString())) {
           String childPath = PathUtils.concatPath(curUri, childStatus.getName());
           String prefix = PathUtils.normalizePath(ufsUri.toString(), AlluxioURI.SEPARATOR);
@@ -176,7 +176,7 @@ public final class UfsSyncChecker {
    * @return trimmed list, null if input is null
    */
   private UfsStatus[] trimIndirect(UfsStatus[] children) {
-    List<UfsStatus> childrenList = new LinkedList<>();
+    List<UfsStatus> childrenList = new ArrayList<>();
     for (UfsStatus child : children) {
       int index = child.getName().indexOf(AlluxioURI.SEPARATOR);
       if (index < 0 || index == child.getName().length()) {

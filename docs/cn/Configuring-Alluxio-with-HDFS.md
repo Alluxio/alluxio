@@ -92,7 +92,7 @@ $ bin/alluxio-start.sh local
 $ bin/alluxio runTests
 ```
 
-运行成功后，访问HDFS Web UI [http://localhost:50070](http://localhost:50070)，确认其中包含了由Alluxio创建的文件和目录。在该测试中，创建的文件名称应像这样：`/default_tests_files/BasicFile_STORE_SYNC_PERSIST`。
+运行成功后，访问HDFS Web UI [http://localhost:50070](http://localhost:50070)，确认其中包含了由Alluxio创建的文件和目录。在该测试中，创建的文件名称应像这样：`/default_tests_files/BASIC_CACHE_THROUGH`。
 
 运行以下命令停止Alluxio：
 

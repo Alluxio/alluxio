@@ -11,6 +11,7 @@
 
 package alluxio.master.block;
 
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
 
 import alluxio.AlluxioURI;
@@ -24,7 +25,6 @@ import alluxio.master.LocalAlluxioCluster;
 import alluxio.master.MasterProcess;
 import alluxio.wire.WorkerNetAddress;
 
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -53,11 +53,11 @@ public class BlockMasterJournalIntegrationTest {
     FileSystemTestUtils.createByteFile(fs, file, WriteType.MUST_CACHE, 10);
     URIStatus status = fs.getStatus(file);
     Long blockId = status.getBlockIds().get(0);
-    Assert.assertNotNull(blockMaster.getBlockInfo(blockId));
+    assertNotNull(blockMaster.getBlockInfo(blockId));
     mCluster.stopMasters();
     mCluster.startMasters();
     MasterProcess masterProcess = mCluster.getLocalAlluxioMaster().getMasterProcess();
-    Assert.assertNotNull(masterProcess.getMaster(BlockMaster.class).getBlockInfo(blockId));
+    assertNotNull(masterProcess.getMaster(BlockMaster.class).getBlockInfo(blockId));
   }
 
   @Test
@@ -69,7 +69,7 @@ public class BlockMasterJournalIntegrationTest {
     FileSystemTestUtils.createByteFile(fs, file, WriteType.MUST_CACHE, 10);
     URIStatus status = fs.getStatus(file);
     Long blockId = status.getBlockIds().get(0);
-    Assert.assertNotNull(blockMaster.getBlockInfo(blockId));
+    assertNotNull(blockMaster.getBlockInfo(blockId));
     fs.delete(file);
     WorkerNetAddress workerAddress = mCluster.getWorkerAddress();
     try {

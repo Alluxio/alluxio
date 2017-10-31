@@ -14,6 +14,7 @@ package alluxio.client.block;
 import alluxio.client.block.policy.BlockLocationPolicy;
 import alluxio.client.block.policy.options.GetWorkerOptions;
 import alluxio.client.block.stream.BlockInStream;
+import alluxio.client.block.stream.BlockInStream.BlockInStreamSource;
 import alluxio.client.block.stream.BlockOutStream;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.options.InStreamOptions;
@@ -134,44 +135,56 @@ public final class AlluxioBlockStore {
       blockInfo = masterClientResource.get().getBlockInfo(blockId);
     }
 
+    BlockInStreamSource source = BlockInStreamSource.UFS;
     if (blockInfo.getLocations().isEmpty() && openUfsBlockOptions == null) {
       throw new NotFoundException("Block " + blockId + " is unavailable in both Alluxio and UFS.");
     }
     WorkerNetAddress address = null;
     if (blockInfo.getLocations().isEmpty()) {
-      BlockLocationPolicy blockLocationPolicy = Preconditions
-          .checkNotNull(options.getUfsReadLocationPolicy(),
+      BlockLocationPolicy blockLocationPolicy =
+          Preconditions.checkNotNull(options.getUfsReadLocationPolicy(),
               PreconditionMessage.UFS_READ_LOCATION_POLICY_UNSPECIFIED);
-      address = blockLocationPolicy.getWorker(
-          GetWorkerOptions.defaults().setBlockWorkerInfos(getWorkerInfoList()).setBlockId(blockId)
-              .setBlockSize(blockInfo.getLength()));
-    }
-
-    // TODO(calvin): Get location via a policy.
-    // Although blockInfo.locations are sorted by tier, we prefer reading from the local worker.
-    // But when there is no local worker or there are no local blocks, we prefer the first
-    // location in blockInfo.locations that is nearest to memory tier.
-    // Assuming if there is no local worker, there are no local blocks in blockInfo.locations.
-    // TODO(cc): Check mContext.hasLocalWorker before finding for a local block when the TODO
-    // for hasLocalWorker is fixed.
-    for (BlockLocation location : blockInfo.getLocations()) {
-      WorkerNetAddress workerNetAddress = location.getWorkerAddress();
-      if (workerNetAddress.getHost().equals(mLocalHostName)) {
-        address = workerNetAddress;
-        break;
-      }
-    }
-    if (address == null) {
-      // No local worker/block, choose a random location. In the future we could change this to
-      // only randomize among locations in the highest tier, or have the master randomize the order.
-      List<BlockLocation> locations = blockInfo.getLocations();
-      if (locations.isEmpty()) {
+      address = blockLocationPolicy
+          .getWorker(GetWorkerOptions.defaults().setBlockWorkerInfos(getWorkerInfoList())
+              .setBlockId(blockId).setBlockSize(blockInfo.getLength()));
+      if (address == null) {
         throw new UnavailableException(ExceptionMessage.NO_WORKER_AVAILABLE.getMessage());
       }
-      address = locations.get(mRandom.nextInt(locations.size())).getWorkerAddress();
+    } else {
+      // TODO(calvin): Get location via a policy.
+      // Although blockInfo.locations are sorted by tier, we prefer reading from the local worker.
+      // But when there is no local worker or there are no local blocks, we prefer the first
+      // location in blockInfo.locations that is nearest to memory tier.
+      // Assuming if there is no local worker, there are no local blocks in blockInfo.locations.
+      // TODO(cc): Check mContext.hasLocalWorker before finding for a local block when the TODO
+      // for hasLocalWorker is fixed.
+      for (BlockLocation location : blockInfo.getLocations()) {
+        WorkerNetAddress workerNetAddress = location.getWorkerAddress();
+        if (workerNetAddress.getHost().equals(mLocalHostName)) {
+          address = workerNetAddress;
+          source = BlockInStreamSource.LOCAL;
+          break;
+        }
+      }
+      if (address == null) {
+        // No local worker/block, choose a random location. In the future we could change this to
+        // only randomize among locations in the highest tier, or have the master randomize the
+        // order.
+        List<BlockLocation> locations = blockInfo.getLocations();
+        if (locations.isEmpty()) {
+          throw new UnavailableException(ExceptionMessage.NO_WORKER_AVAILABLE.getMessage());
+        }
+        address = locations.get(mRandom.nextInt(locations.size())).getWorkerAddress();
+        source = BlockInStreamSource.REMOTE;
+      }
     }
-    return BlockInStream
-        .create(mContext, blockId, blockInfo.getLength(), address, openUfsBlockOptions, options);
+
+    LOG.debug(
+        "Create block instream for {} of length {}  at address {},"
+            + " using source: {}, openUfsBlockOptions: {}, options: {}",
+        blockId, blockInfo.getLength(), address, source, openUfsBlockOptions, options);
+    return BlockInStream.create(mContext, blockId, blockInfo.getLength(), address, source,
+        openUfsBlockOptions, options);
   }
 
   /**
@@ -183,8 +196,8 @@ public final class AlluxioBlockStore {
    * @param address the address of the worker to write the block to, fails if the worker cannot
    *        serve the request
    * @param options the output stream options
-   * @return an {@link BlockOutStream} which can be used to write data to the block in a
-   *         streaming fashion
+   * @return an {@link BlockOutStream} which can be used to write data to the block in a streaming
+   *         fashion
    */
   public BlockOutStream getOutStream(long blockId, long blockSize, WorkerNetAddress address,
       OutStreamOptions options) throws IOException {
@@ -196,9 +209,11 @@ public final class AlluxioBlockStore {
     }
     // No specified location to write to.
     if (address == null) {
-      throw new ResourceExhaustedException(ExceptionMessage.NO_SPACE_FOR_BLOCK_ON_WORKER.getMessage(
-          FormatUtils.getSizeFromBytes(blockSize)));
+      throw new ResourceExhaustedException(ExceptionMessage.NO_SPACE_FOR_BLOCK_ON_WORKER
+          .getMessage(FormatUtils.getSizeFromBytes(blockSize)));
     }
+    LOG.debug("Create block outstream for {} of block size {} at address {}, using options: {}",
+        blockId, blockSize, address, options);
     return BlockOutStream.create(mContext, blockId, blockSize, address, options);
   }
 
@@ -210,8 +225,8 @@ public final class AlluxioBlockStore {
    * @param blockSize the standard block size to write, or -1 if the block already exists (and this
    *        stream is just storing the block in Alluxio again)
    * @param options the output stream option
-   * @return a {@link BlockOutStream} which can be used to write data to the block in a
-   *         streaming fashion
+   * @return a {@link BlockOutStream} which can be used to write data to the block in a streaming
+   *         fashion
    */
   public BlockOutStream getOutStream(long blockId, long blockSize, OutStreamOptions options)
       throws IOException {

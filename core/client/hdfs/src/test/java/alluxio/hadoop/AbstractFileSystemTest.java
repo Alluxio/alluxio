@@ -11,6 +11,16 @@
 
 package alluxio.hadoop;
 
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.any;
+
 import alluxio.AlluxioURI;
 import alluxio.ConfigurationRule;
 import alluxio.Constants;
@@ -27,13 +37,11 @@ import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.security.UserGroupInformation;
 import org.junit.After;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
-import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
@@ -111,7 +119,7 @@ public class AbstractFileSystemTest {
             PropertyKey.ZOOKEEPER_ENABLED, "true")).toResource()) {
       final org.apache.hadoop.fs.FileSystem fs =
           org.apache.hadoop.fs.FileSystem.get(uri, getConf());
-      Assert.assertTrue(fs instanceof FaultTolerantFileSystem);
+      assertTrue(fs instanceof FaultTolerantFileSystem);
     }
   }
 
@@ -124,7 +132,7 @@ public class AbstractFileSystemTest {
     try (Closeable c = new ConfigurationRule(PropertyKey.ZOOKEEPER_ENABLED, "true").toResource()) {
       final org.apache.hadoop.fs.FileSystem fs =
           org.apache.hadoop.fs.FileSystem.get(uri, getConf());
-      Assert.assertTrue(fs instanceof FaultTolerantFileSystem);
+      assertTrue(fs instanceof FaultTolerantFileSystem);
     }
   }
 
@@ -140,7 +148,7 @@ public class AbstractFileSystemTest {
       org.apache.hadoop.fs.FileSystem.get(URI.create(Constants.HEADER + "host:1/"), getConf());
       org.apache.hadoop.fs.FileSystem fs =
           org.apache.hadoop.fs.FileSystem.get(URI.create(Constants.HEADER_FT + "/"), getConf());
-      Assert.assertTrue(fs instanceof FaultTolerantFileSystem);
+      assertTrue(fs instanceof FaultTolerantFileSystem);
     }
   }
 
@@ -158,7 +166,7 @@ public class AbstractFileSystemTest {
         PropertyKey.MASTER_RPC_PORT, Integer.toString(uri.getPort()),
         PropertyKey.ZOOKEEPER_ENABLED, "false")).toResource()) {
       final org.apache.hadoop.fs.FileSystem fs = org.apache.hadoop.fs.FileSystem.get(uri, conf);
-      Assert.assertTrue(fs instanceof FileSystem);
+      assertTrue(fs instanceof FileSystem);
     }
   }
 
@@ -173,7 +181,7 @@ public class AbstractFileSystemTest {
     org.apache.hadoop.fs.FileSystem fileSystem =
         org.apache.hadoop.fs.FileSystem.get(uri, getConf());
 
-    Mockito.verify(mMockFileSystemContext).reset();
+    verify(mMockFileSystemContext).reset();
   }
 
   /**
@@ -184,7 +192,7 @@ public class AbstractFileSystemTest {
   public void concurrentInitialize() throws Exception {
     List<Thread> threads = new ArrayList<>();
     final org.apache.hadoop.conf.Configuration conf = getConf();
-    Mockito.when(mMockFileSystemContext.getMasterAddress())
+    when(mMockFileSystemContext.getMasterAddress())
         .thenReturn(new InetSocketAddress("randomhost", 410));
     for (int i = 0; i < 100; i++) {
       Thread t = new Thread(new Runnable() {
@@ -194,7 +202,7 @@ public class AbstractFileSystemTest {
           try {
             org.apache.hadoop.fs.FileSystem.get(uri, conf);
           } catch (IOException e) {
-            Assert.fail();
+            fail();
           }
         }
       });
@@ -213,7 +221,7 @@ public class AbstractFileSystemTest {
    */
   @Test
   public void initializeFailToConnect() throws Exception {
-    Mockito.doThrow(new UnavailableException("test")).when(mMockFileSystemMasterClient).connect();
+    doThrow(new UnavailableException("test")).when(mMockFileSystemMasterClient).connect();
 
     URI uri = URI.create(Constants.HEADER + "randomhost:400/");
     mExpectedException.expect(UnavailableException.class);
@@ -230,7 +238,7 @@ public class AbstractFileSystemTest {
     URI uri = URI.create(Constants.HEADER + originalURI);
     org.apache.hadoop.fs.FileSystem.get(uri, conf);
 
-    Mockito.when(mMockFileSystemContext.getMasterAddress())
+    when(mMockFileSystemContext.getMasterAddress())
         .thenReturn(new InetSocketAddress("host1", 1));
 
     String[] newURIs = new String[]{"host2:1", "host1:2", "host2:2"};
@@ -269,8 +277,8 @@ public class AbstractFileSystemTest {
 
     Path path = new Path("/dir");
     alluxio.client.file.FileSystem alluxioFs =
-        Mockito.mock(alluxio.client.file.FileSystem.class);
-    Mockito.when(alluxioFs.listStatus(new AlluxioURI(HadoopUtils.getPathWithoutScheme(path))))
+        mock(alluxio.client.file.FileSystem.class);
+    when(alluxioFs.listStatus(new AlluxioURI(HadoopUtils.getPathWithoutScheme(path))))
         .thenReturn(Lists.newArrayList(new URIStatus(fileInfo1), new URIStatus(fileInfo2)));
     FileSystem alluxioHadoopFs = new FileSystem(alluxioFs);
 
@@ -291,8 +299,8 @@ public class AbstractFileSystemTest {
 
     Path path = new Path("/dir");
     alluxio.client.file.FileSystem alluxioFs =
-        Mockito.mock(alluxio.client.file.FileSystem.class);
-    Mockito.when(alluxioFs.getStatus(new AlluxioURI(HadoopUtils.getPathWithoutScheme(path))))
+        mock(alluxio.client.file.FileSystem.class);
+    when(alluxioFs.getStatus(new AlluxioURI(HadoopUtils.getPathWithoutScheme(path))))
         .thenReturn(new URIStatus(fileInfo));
     FileSystem alluxioHadoopFs = new FileSystem(alluxioFs);
 
@@ -334,32 +342,32 @@ public class AbstractFileSystemTest {
     mMockFileSystemContextCustomized = PowerMockito.mock(FileSystemContext.class);
     PowerMockito.mockStatic(FileSystemContext.class);
     Whitebox.setInternalState(FileSystemContext.class, "INSTANCE", mMockFileSystemContext);
-    PowerMockito.when(FileSystemContext.create(Mockito.any(Subject.class)))
+    PowerMockito.when(FileSystemContext.create(any(Subject.class)))
         .thenReturn(mMockFileSystemContextCustomized);
-    mMockFileSystemMasterClient = Mockito.mock(FileSystemMasterClient.class);
-    Mockito.when(mMockFileSystemContext.acquireMasterClient())
+    mMockFileSystemMasterClient = mock(FileSystemMasterClient.class);
+    when(mMockFileSystemContext.acquireMasterClient())
         .thenReturn(mMockFileSystemMasterClient);
-    Mockito.when(mMockFileSystemContextCustomized.acquireMasterClient())
+    when(mMockFileSystemContextCustomized.acquireMasterClient())
         .thenReturn(mMockFileSystemMasterClient);
-    Mockito.doNothing().when(mMockFileSystemMasterClient).connect();
-    Mockito.when(mMockFileSystemContext.getMasterAddress())
+    doNothing().when(mMockFileSystemMasterClient).connect();
+    when(mMockFileSystemContext.getMasterAddress())
         .thenReturn(new InetSocketAddress("defaultHost", 1));
   }
 
   private void mockUserGroupInformation(String username) throws IOException {
     // need to mock out since FileSystem.get calls UGI, which some times has issues on some systems
     PowerMockito.mockStatic(UserGroupInformation.class);
-    final UserGroupInformation ugi = Mockito.mock(UserGroupInformation.class);
-    Mockito.when(UserGroupInformation.getCurrentUser()).thenReturn(ugi);
-    Mockito.when(ugi.getUserName()).thenReturn(username);
-    Mockito.when(ugi.getShortUserName()).thenReturn(username.split("@")[0]);
+    final UserGroupInformation ugi = mock(UserGroupInformation.class);
+    when(UserGroupInformation.getCurrentUser()).thenReturn(ugi);
+    when(ugi.getUserName()).thenReturn(username);
+    when(ugi.getShortUserName()).thenReturn(username.split("@")[0]);
   }
 
   private void assertFileInfoEqualsFileStatus(FileInfo info, FileStatus status) {
-    Assert.assertEquals(info.getOwner(), status.getOwner());
-    Assert.assertEquals(info.getGroup(), status.getGroup());
-    Assert.assertEquals(info.getMode(), status.getPermission().toShort());
-    Assert.assertEquals(info.getLastModificationTimeMs(), status.getModificationTime());
-    Assert.assertEquals(info.isFolder(), status.isDir());
+    assertEquals(info.getOwner(), status.getOwner());
+    assertEquals(info.getGroup(), status.getGroup());
+    assertEquals(info.getMode(), status.getPermission().toShort());
+    assertEquals(info.getLastModificationTimeMs(), status.getModificationTime());
+    assertEquals(info.isFolder(), status.isDir());
   }
 }
