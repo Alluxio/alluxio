@@ -62,9 +62,9 @@ public class FileInStream extends InputStream
   private static final boolean PASSIVE_CACHE_ENABLED =
       Configuration.getBoolean(PropertyKey.USER_FILE_PASSIVE_CACHE_ENABLED);
   private static final int UNINITIALIZED_BLOCK_INDEX = -1;
-  private static final int UNINITIALIZED_BLOCK_SIZE_BITS = -1;
-  private static final int EOF_DATA = -1;
+  private static final int UNINITIALIZED_BLOCK_POSITION = -1;
   private static final long EOF_BLOCK_ID = -1;
+  private static final int EOF_DATA = -1;
 
   /** The instream options. */
   private final InStreamOptions mInStreamOptions;
@@ -97,7 +97,7 @@ public class FileInStream extends InputStream
   /** Whether to cache blocks in this file into Alluxio. */
   private final boolean mShouldCache;
 
-  // The following 3 fields must be kept in sync. They are only updated together in
+  // The following 5 fields must be kept in sync. They are only updated together in
   // updateStreamsOnRead and updateStreamsOnSeek.
   /** Current block in stream backing this stream. */
   protected BlockInStream mCurrentBlockInStream;
@@ -111,7 +111,19 @@ public class FileInStream extends InputStream
    * {@link #UNINITIALIZED_BLOCK_INDEX} means there is no current block stream yet.
    * Its maximum value is (mBlockIds.size() - 1).
    */
-  private int mBlockIndex = UNINITIALIZED_BLOCK_INDEX;
+  private int mCurrentBlockIndex = UNINITIALIZED_BLOCK_INDEX;
+  /**
+   * Start position of the current block, initialized to {@link #UNINITIALIZED_BLOCK_POSITION},
+   * meaning that there is no current block yet.
+   */
+  private long mCurrentBlockStartPos = UNINITIALIZED_BLOCK_POSITION;
+  /**
+   * Exclusive end position of the current block, initialized to
+   * {@link #UNINITIALIZED_BLOCK_POSITION}, meaning that there is no current block yet.
+   * For the last block, it might not be full, but the invariance
+   * {@code mCurrentBlockEndPos == mCurrentBlockStartPos} is always kept.
+   */
+  private long mCurrentBlockEndPos = UNINITIALIZED_BLOCK_POSITION;
 
   /** The read buffer in file seek. This is used in {@link #readCurrentBlockToEnd()}. */
   private final byte[] mSeekBuffer;
@@ -385,6 +397,10 @@ public class FileInStream extends InputStream
     }
   }
 
+  /**
+   * Checks whether the current cache stream is in sync with the current block stream, if they are
+   * out of sync, throws an {@link IllegalStateException}.
+   */
   private void checkCacheStreamInSync() {
     if (mCurrentCacheStream != null
         && mCurrentBlockInStream.remaining() != mCurrentCacheStream.remaining()) {
@@ -428,14 +444,14 @@ public class FileInStream extends InputStream
   }
 
   /**
-   * @return the current block id based on mBlockIndex, or {@link #EOF_BLOCK_ID} if at the end of
+   * @return the current block id based on mCurrentBlockIndex, or {@link #EOF_BLOCK_ID} if at the end of
    *         the file
    */
   private long getCurrentBlockId() {
     if (isEndOfFile()) {
       return EOF_BLOCK_ID;
     }
-    return mBlockIds.get(mBlockIndex);
+    return mBlockIds.get(mCurrentBlockIndex);
   }
 
   /**
@@ -443,8 +459,7 @@ public class FileInStream extends InputStream
    * @return the block ID based on the pos
    */
   private long getBlockId(long pos) {
-    int index = (int) (pos / mBlockSize);
-    return mBlockIds.get(index);
+    return mBlockIds.get(getBlockIndex(pos));
   }
 
   /**
@@ -462,11 +477,11 @@ public class FileInStream extends InputStream
    *         yet, return false
    */
   private boolean isInCurrentBlock(long pos) {
-    // Instead of computing the block index with (pos / mBlockSize) and compare against mBlockIndex,
+    // Instead of computing the block index with (pos / mBlockSize) and compare against mCurrentBlockIndex,
     // multiplication is used, this optimization is based on the fact that multiplication is much
     // faster than division.
-    return mBlockIndex != UNINITIALIZED_BLOCK_INDEX && pos >= mBlockIndex * mBlockSize
-        && pos < (mBlockIndex + 1) * mBlockSize;
+    return mCurrentBlockIndex != UNINITIALIZED_BLOCK_INDEX && pos >= mCurrentBlockStartPos
+        && pos < mCurrentBlockEndPos;
   }
 
   /**
@@ -499,15 +514,19 @@ public class FileInStream extends InputStream
    */
   private void updateStreamsOnRead() throws IOException {
     checkCacheStreamInSync();
-    if (mBlockIndex == UNINITIALIZED_BLOCK_INDEX) {
+    if (mCurrentBlockIndex == UNINITIALIZED_BLOCK_INDEX) {
       // Initializes the streams for the first block.
-      mBlockIndex = 0;
+      mCurrentBlockIndex = 0;
+      mCurrentBlockStartPos = 0;
+      mCurrentBlockEndPos = mBlockSize;
       updateStreamsInternal();
       return;
     }
     // Current block stream has no remaining data and is not EOF.
     if (mCurrentBlockInStream.remaining() == 0 && !isEndOfFile()) {
-      mBlockIndex++;
+      mCurrentBlockIndex++;
+      mCurrentBlockStartPos = mCurrentBlockEndPos;
+      mCurrentBlockEndPos += mBlockSize;
       updateStreamsInternal();
     }
   }
@@ -533,7 +552,9 @@ public class FileInStream extends InputStream
     }
     // If there is no current block stream, or the seek target is out of bound of the current
     // stream, recompute the block index.
-    mBlockIndex = getBlockIndex(mPos);
+    mCurrentBlockIndex = getBlockIndex(mPos);
+    mCurrentBlockStartPos = mCurrentBlockIndex * mBlockSize;
+    mCurrentBlockEndPos = mCurrentBlockStartPos + mBlockSize;
     updateStreamsInternal();
   }
 
@@ -713,14 +734,10 @@ public class FileInStream extends InputStream
     final boolean isInCurrentBlock = isInCurrentBlock(pos);
 
     if (isInCurrentBlock) {
-      // the read is within the current block update stream to refresh the streams
-      updateStreamsOnRead();
       if (isReadFromLocalWorker()) {
         // no need to partial cache the current block, and the seek is within the block
         // so directly seeks to position.
         mPos = pos;
-        // updateStreamsOnRead is necessary when pos = mFileLength.
-        updateStreamsOnSeek();
         if (mCurrentBlockInStream != null) {
           mCurrentBlockInStream.seek(mPos % mBlockSize);
         } else {
