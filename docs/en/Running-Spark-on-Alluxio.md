@@ -25,12 +25,11 @@ Alluxio works together with Spark 1.1 or later out-of-the-box.
 * Alluxio cluster has been set up in accordance to these guides for either
 [Local Mode](Running-Alluxio-Locally.html) or [Cluster Mode](Running-Alluxio-on-a-Cluster.html).
 
-* Alluxio client will need to be compiled with the Spark specific profile. Build the entire project
-from the top level `alluxio` directory with the following command:
-
-```bash
-$ mvn clean package -Pspark -DskipTests
-```
+* We recommend you to download the tarball from
+  Alluxio [download page](http://www.alluxio.org/download).
+  Alternatively, advanced users can choose to compile this client jar from the source code
+  by following Follow the instructs [here](Building-Alluxio-Master-Branch.html#compute-framework-support).
+  The Alluxio client jar can be found at `{{site.ALLUXIO_CLIENT_JAR_PATH}}`.
 
 * Add the following line to `spark/conf/spark-defaults.conf`.
 
@@ -38,9 +37,6 @@ $ mvn clean package -Pspark -DskipTests
 spark.driver.extraClassPath {{site.ALLUXIO_CLIENT_JAR_PATH}}
 spark.executor.extraClassPath {{site.ALLUXIO_CLIENT_JAR_PATH}}
 ```
-
-* Advanced users can choose to compile this client jar from the source code, follow the instructs [here](Building-Alluxio-Master-Branch.html#compute-framework-support) and use the generated jar at 
-`{{site.ALLUXIO_CLIENT_JAR_PATH_BUILD}}` for the rest of this guide.
 
 ### Additional Setup for HDFS
 
