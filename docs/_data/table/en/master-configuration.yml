@@ -9,7 +9,7 @@ alluxio.master.connection.timeout:
 alluxio.master.file.async.persist.handler:
   'The handler for processing the async persistence requests.'
 alluxio.master.format.file_prefix:
-  'The file prefix of the file generated in the journal directory when the journal is formatted. The master will search for a file with this prefix when determining of the journal was once formatted.'
+  'The file prefix of the file generated in the journal directory when the journal is formatted. The master will search for a file with this prefix when determining if the journal is formatted.'
 alluxio.master.heartbeat.interval:
   'The interval between Alluxio masters'' heartbeats.'
 alluxio.master.hostname:

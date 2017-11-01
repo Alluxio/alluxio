@@ -22,39 +22,32 @@ priority： 0
 
 ## 配置Alluxio
 
-你需要通过修改`conf/alluxio-site.properties`配置Alluxio使用底层存储系统。如果这个文件不存在，重命名template文件。
+### 根挂载
+
+要使用Azure blob store作为Alluxio根挂载点的UFS，您需要通过修改`conf/alluxio-site.properties`配置Alluxio使用底层存储系统。如果这个文件不存在，重命名template文件。
 
 ```bash
 $ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 ```
 
-Alluxio可以通过HDFS接口支持Azure Blob store。你可以在[这里](http://hadoop.apache.org/docs/r2.7.1/hadoop-azure/index.html)找到更多关于在Azure blob store上运行hadoop的信息。
-从[这里](https://mvnrepository.com/artifact/com.microsoft.azure/azure-storage)下载azure storage的java库(版本2.2.0)并根据你的Hadoop版本从[这里](https://mvnrepository.com/artifact/org.apache.hadoop/hadoop-azure)下载hadoop azure库。请确定使用了 `azure-storage-2.2.0.jar`而不是任何更高版本的，因为这些版本会与hadoop-azure库冲突。
-
-你需要将上面提到的库加入到`ALLUXIO_CLASSPATH`。你可以通过在`conf/alluxio-env.sh`中添加以下代码来完成：
-```
-export ALLUXIO_CLASSPATH=PATH_TO_HADOOP_AZURE_JAR/hadoop-azure-2.7.3.jar:PATH_TO_AZURE_STORAGE_JAR/azure-storage-2.2.0.jar
-```
-
-你需要配置Alluxio以使用Azure Blob Store作为底层存储系统。第一个需要修改的地方就是指定底层文件系统的地址并且设置hdfs前缀以便Alluxio可以识别 `wasb://`机制，你需要修改`conf/alluxio-site.properties`以包含以下内容：
+首先修改`conf / alluxio-site.properties`来指定underfs address：
 
 ```
 alluxio.underfs.address=wasb://AZURE_CONTAINER@AZURE_ACCOUNT.blob.core.windows.net/AZURE_DIRECTORY/
-alluxio.underfs.hdfs.prefixes=hdfs://,glusterfs:///,maprfs:///,wasb://
 ```
 
-接着你需要通过将下列属性添加到`conf/core-site.xml`中来指定证书和wasb的实现类：
+其次，将以下属性添加到`conf/alluxio-site.properties`来指定Azure account证书：
+
 ```
-<configuration>
-<property>
-  <name>fs.AbstractFileSystem.wasb.impl</name>
-  <value>org.apache.hadoop.fs.azure.Wasb</value>
-</property>
-<property>
-  <name>fs.azure.account.key.AZURE_ACCOUNT.blob.core.windows.net</name>
-  <value>YOUR ACCESS KEY</value>
-</property>
-</configuration>
+fs.azure.account.key.AZURE_ACCOUNT.blob.core.windows.net=<YOUR ACCESS KEY>
+```
+
+### 嵌套挂载
+ Azure blob store位置可以挂载在Alluxio命名空间中的嵌套目录中，以便统一访问到多个底层存储系统。Alluxio的[Command Line Interface](Command-Line-Interface.html)可以用于此目的。
+
+```bash
+$ ./bin/alluxio fs mount --option fs.azure.account.key.AZURE_ACCOUNT.blob.core.windows.net=<AZURE_ACCESS_KEY>\
+  /mnt/azure wasb://AZURE_CONTAINER@AZURE_ACCOUNT.blob.core.windows.net/AZURE_DIRECTORY/
 ```
 
 完成这些修改后，Alluxio应该已经配置好以使用Azure Blob Store作为底层存储系统，你可以试着使用它本地运行Alluxio。
