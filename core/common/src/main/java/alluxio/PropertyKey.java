@@ -1721,11 +1721,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue("alluxio-fuse")
           .setDescription("The FUSE file system name.")
           .build();
-  public static final PropertyKey FUSE_FS_ROOT =
-      new Builder(Name.FUSE_FS_ROOT)
-          .setDefaultValue("/")
-          .setDescription("The Alluxio path mounted to the FUSE file system root.")
-          .build();
   public static final PropertyKey FUSE_MAXWRITE_BYTES =
       new Builder(Name.FUSE_MAXWRITE_BYTES)
           .setDefaultValue("128KB")
@@ -2311,7 +2306,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String FUSE_CACHED_PATHS_MAX = "alluxio.fuse.cached.paths.max";
     public static final String FUSE_DEBUG_ENABLED = "alluxio.fuse.debug.enabled";
     public static final String FUSE_FS_NAME = "alluxio.fuse.fs.name";
-    public static final String FUSE_FS_ROOT = "alluxio.fuse.fs.root";
     public static final String FUSE_MAXWRITE_BYTES = "alluxio.fuse.maxwrite.bytes";
 
     //

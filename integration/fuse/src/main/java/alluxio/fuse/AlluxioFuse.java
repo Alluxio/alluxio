@@ -145,11 +145,6 @@ public final class AlluxioFuse {
         fuseOpts.add(String.format("-omax_write=%d", maxWrite));
       }
 
-      if (alluxioRootValue == null) {
-        alluxioRootValue = Configuration.get(PropertyKey.FUSE_FS_ROOT);
-        LOG.info("Using default alluxio root {}", alluxioRootValue);
-      }
-
       final boolean fuseDebug = Configuration.getBoolean(PropertyKey.FUSE_DEBUG_ENABLED);
 
       return new AlluxioFuseOptions(mntPointValue, alluxioRootValue, fuseDebug, fuseOpts);
