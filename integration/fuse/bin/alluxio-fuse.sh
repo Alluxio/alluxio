@@ -121,7 +121,7 @@ case $1 in
       mountFuse $2 $3
       exit $?
     fi
-    echo -e "Usage\n\t$0 mount mount_point alluxio_path" >&2
+    echo -e "Usage\n\t$0 mount mount_point [alluxio_path]" >&2
     exit 1
     ;;
   umount)    
