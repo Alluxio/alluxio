@@ -65,6 +65,7 @@ function mountFuse {
   # sleep: workaround to let the bg java process exit on errors, if any
   sleep 2s
   if kill -0 $! > /dev/null 2>&1 ; then
+    echo "Alluxio-fuse mounted at ${mount_point}. See ${ALLUXIO_LOGS_DIR}/fuse.log for logs"
     return 0
   else
     echo "alluxio-fuse not started. See ${ALLUXIO_LOGS_DIR}/fuse.out for details" >&2
