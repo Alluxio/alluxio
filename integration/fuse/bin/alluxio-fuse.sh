@@ -13,11 +13,11 @@
 SCRIPT_DIR="$(cd "$(dirname "$(readlink "$0" || echo "$0")")"; pwd)"
 
 function getEnv {
-  DEFAULT_LIBEXEC_DIR="${SCRIPT_DIR}"/../libexec
+  DEFAULT_LIBEXEC_DIR="${SCRIPT_DIR}"/../../../libexec
   ALLUXIO_LIBEXEC_DIR=${ALLUXIO_LIBEXEC_DIR:-${DEFAULT_LIBEXEC_DIR}}
   . ${ALLUXIO_LIBEXEC_DIR}/alluxio-config.sh
 
-  ALLUXIO_FUSE_JAR=${SCRIPT_DIR}/../integration/fuse/target/alluxio-integration-fuse-${VERSION}-jar-with-dependencies.jar
+  ALLUXIO_FUSE_JAR=${SCRIPT_DIR}/../target/alluxio-integration-fuse-${VERSION}-jar-with-dependencies.jar
   FUSE_MAX_WRITE=131072
   CLASSPATH=${CLASSPATH}:${ALLUXIO_FUSE_JAR}
 }

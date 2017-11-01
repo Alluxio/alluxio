@@ -253,11 +253,16 @@ public class AlluxioMasterProcess implements MasterProcess {
   protected void startServing(String startMessage, String stopMessage) {
     MetricsSystem.startSinks();
     startServingWebServer();
-    LOG.info("{} version {} binding to {} @ {} {}", this, RuntimeConstants.VERSION, mRpcBindAddress,
-        mRpcConnectAddress, startMessage);
+    LOG.info("Alluxio master version {} started{}. "
+            + "bindHost={}, connectHost={}, rpcPort={}, webPort={}",
+        RuntimeConstants.VERSION,
+        startMessage,
+        NetworkAddressUtils.getBindAddress(ServiceType.MASTER_RPC),
+        NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC),
+        NetworkAddressUtils.getPort(ServiceType.MASTER_RPC),
+        NetworkAddressUtils.getPort(ServiceType.MASTER_WEB));
     startServingRPCServer();
-    LOG.info("{} version {} ended @ {} {}", this, RuntimeConstants.VERSION, mRpcConnectAddress,
-        stopMessage);
+    LOG.info("Alluxio master ended{}", stopMessage);
   }
 
   /**
@@ -319,11 +324,8 @@ public class AlluxioMasterProcess implements MasterProcess {
     Args args = new TThreadPoolServer.Args(mTServerSocket).maxWorkerThreads(mMaxWorkerThreads)
         .minWorkerThreads(mMinWorkerThreads).processor(processor).transportFactory(transportFactory)
         .protocolFactory(new TBinaryProtocol.Factory(true, true));
-    if (Configuration.getBoolean(PropertyKey.TEST_MODE)) {
-      args.stopTimeoutVal = 0;
-    } else {
-      args.stopTimeoutVal = Constants.THRIFT_STOP_TIMEOUT_SECONDS;
-    }
+
+    args.stopTimeoutVal = (int) Configuration.getMs(PropertyKey.MASTER_THRIFT_SHUTDOWN_TIMEOUT);
     mThriftServer = new TThreadPoolServer(args);
 
     // start thrift rpc server
