@@ -322,6 +322,19 @@ public final class FileInStreamTest {
   }
 
   /**
+   * Tests seeking to EOF, then seeking to position 0 and read the whole file.
+   */
+  @Test
+  public void seekToEOFBeforeReadingFirstBlock() throws IOException {
+    mTestStream.seek(FILE_LENGTH);
+    mTestStream.seek(0);
+    byte[] block = new byte[(int) BLOCK_LENGTH];
+    mTestStream.read(block);
+    Assert.assertArrayEquals(
+        BufferUtils.getIncreasingByteArray(0, (int) BLOCK_LENGTH), block);
+  }
+
+  /**
    * Tests seeking with incomplete block caching enabled. It seeks backward for more than a block.
    */
   @Test

@@ -61,9 +61,7 @@ public class FileInStream extends InputStream
 
   private static final boolean PASSIVE_CACHE_ENABLED =
       Configuration.getBoolean(PropertyKey.USER_FILE_PASSIVE_CACHE_ENABLED);
-  private static final int UNINITIALIZED_BLOCK_INDEX = -1;
-  private static final int UNINITIALIZED_BLOCK_POSITION = -1;
-  private static final long EOF_BLOCK_ID = -1;
+  private static final long UNINITIALIZED_BLOCK_ID = -1;
   private static final int EOF_DATA = -1;
 
   /** The instream options. */
@@ -74,20 +72,14 @@ public class FileInStream extends InputStream
   protected final AlluxioStorageType mAlluxioStorageType;
   /** Standard block size in bytes of the file, guaranteed for all but the last block. */
   protected final long mBlockSize;
-  /** Total length of the file in bytes. */
-  protected final long mFileLength;
   /** File system context containing the {@link FileSystemMasterClient} pool. */
   protected final FileSystemContext mContext;
   private final AlluxioBlockStore mBlockStore;
   /** File information. */
   protected final URIStatus mStatus;
-  /** Block IDs. */
-  private final List<Long> mBlockIds;
 
   /** If the stream is closed, this can only go from false to true. */
   protected boolean mClosed;
-  /** Current position of the file instream. */
-  protected long mPos;
 
   /**
    * Caches the entire block even if only a portion of the block is read. Only valid when
@@ -97,8 +89,11 @@ public class FileInStream extends InputStream
   /** Whether to cache blocks in this file into Alluxio. */
   private final boolean mShouldCache;
 
-  // The following 5 fields must be kept in sync. They are only updated together in
-  // updateStreamsOnRead and updateStreamsOnSeek.
+  // The following variables should be kept in sync in updateStreams.
+  /** Position states. */
+  protected PositionState mPositionState;
+  /** Current block ID. */
+  private long mCurrentBlockId = UNINITIALIZED_BLOCK_ID;
   /** Current block in stream backing this stream. */
   protected BlockInStream mCurrentBlockInStream;
   /**
@@ -106,27 +101,207 @@ public class FileInStream extends InputStream
    * stream reads from a remote worker.
    */
   protected BlockOutStream mCurrentCacheStream;
-  /**
-   * Index of the ID of the current block stream in {@link #mBlockIds}.
-   * {@link #UNINITIALIZED_BLOCK_INDEX} means there is no current block stream yet.
-   * Its maximum value is (mBlockIds.size() - 1).
-   */
-  private int mCurrentBlockIndex = UNINITIALIZED_BLOCK_INDEX;
-  /**
-   * Start position of the current block, initialized to {@link #UNINITIALIZED_BLOCK_POSITION},
-   * meaning that there is no current block yet.
-   */
-  private long mCurrentBlockStartPos = UNINITIALIZED_BLOCK_POSITION;
-  /**
-   * Exclusive end position of the current block, initialized to
-   * {@link #UNINITIALIZED_BLOCK_POSITION}, meaning that there is no current block yet.
-   * For the last block, it might not be full, but the invariance
-   * {@code mCurrentBlockEndPos == mCurrentBlockStartPos} is always kept.
-   */
-  private long mCurrentBlockEndPos = UNINITIALIZED_BLOCK_POSITION;
 
   /** The read buffer in file seek. This is used in {@link #readCurrentBlockToEnd()}. */
   private final byte[] mSeekBuffer;
+
+  /**
+   * States related to position that need to be in sync.
+   */
+  protected class PositionState {
+    /** Block ID used when position reaches EOF. */
+    public static final long EOF_BLOCK_ID = -1;
+
+    /** File length. */
+    private final long mFileLength;
+    /** Block IDs. */
+    private final List<Long> mBlockIds;
+    /** Block size in bytes. */
+    private final long mBlockSize;
+
+    /**
+     * Current position of the file.
+     * Initially, it is 0.
+     * When EOF is reached, it is the file length.
+     */
+    private long mPos;
+    /** The remaining bytes of the file. */
+    private long mRemaining;
+
+    // States derived from mPos.
+    /**
+     * Index of the ID of the current block stream in mStatus.getBlockIds.
+     * Initially, it is 0.
+     * When EOF is reached, it is the size of mStatus.getBlockIds.
+     */
+    private int mBlockIndex;
+    /**
+     * Current block ID.
+     * Initially, it is the first block ID.
+     * When EOF is reached, it is {@link #EOF_BLOCK_ID}.
+     */
+    private long mBlockId;
+    /**
+     * Start position of the current block.
+     * Initially, it is 0.
+     * When EOF is reached, it is the file length.
+     */
+    private long mBlockStartPos;
+    /**
+     * Start position of the next block.
+     * Initially, it is the start position of the second block, or the file length if there is only
+     * one block.
+     * When EOF is reached or the current block is the last block, it is the file length.
+     */
+    private long mNextBlockStartPos;
+
+    /**
+     * Creates a new position state.
+     *
+     * @param fileLength the file length in bytes
+     * @param blockIds the block IDs, sorted by the blocks to be read in as a stream
+     * @param blockSize the block size in bytes
+     */
+    public PositionState(long fileLength, List<Long> blockIds, long blockSize) {
+      mFileLength = fileLength;
+      mBlockIds = blockIds;
+      mBlockSize = blockSize;
+
+      mPos = 0;
+      mRemaining = mFileLength;
+      computeState();
+    }
+
+    /**
+     * Increments position by 1, updates the block index and block position if necessary.
+     * If the position is already at EOF, this is a no-op.
+     */
+    public void inc() {
+      inc(1);
+    }
+
+    /**
+     * Increments position by delta, updates the block index and block position if necessary.
+     *
+     * @param inrease the position increment, expected to be non-negative
+     */
+    public void inc(long inrease) {
+      mPos += inrease;
+      mRemaining -= inrease;
+
+      if (mPos < mNextBlockStartPos) {
+        return;
+      }
+      if (mPos < (mNextBlockStartPos + mBlockSize)) {
+        incrementState();
+        return;
+      }
+      computeState();
+    }
+
+    /**
+     * Sets the position to pos, updates the block index and block position if necessary.
+     *
+     * @param pos the new file position, should be in a valid range from 0 to EOF
+     */
+    public void setPos(long pos) {
+      mPos = pos;
+      mRemaining = mFileLength - mPos;
+      if (isInCurrentBlock(mPos)) {
+        incrementState();
+        return;
+      }
+      computeState();
+    }
+
+    /**
+     * @return current file position
+     */
+    public long getPos() {
+      return mPos;
+    }
+
+    /**
+     * @return current remaining bytes
+     */
+    public long getRemaining() {
+      return mRemaining;
+    }
+
+    /**
+     * @return current block ID
+     */
+    public long getBlockId() {
+      return mBlockId;
+    }
+
+    /**
+     * @param pos the file position, assumed to be in range [0, file length)
+     * @return the block ID for pos
+     */
+    public long getBlockId(long pos) {
+      return mBlockIds.get((int) (pos / mBlockSize));
+    }
+
+    /**
+     * @return whether the position is in the current block
+     */
+    public boolean isInCurrentBlock(long pos) {
+      return pos >= mBlockStartPos && pos < mNextBlockStartPos;
+    }
+
+    /**
+     * @return whether EOF is reached
+     */
+    public boolean isEOF() {
+      return mPos == mFileLength;
+    }
+
+    /**
+     * Sets the states to special values when EOF is reached.
+     */
+    private void setEOFState() {
+      mPos = mBlockStartPos = mNextBlockStartPos = mFileLength;
+      mRemaining = 0;
+      mBlockIndex = mBlockIds.size();
+      mBlockId = EOF_BLOCK_ID;
+    }
+
+    /**
+     * Recomputes the states based on mPos.
+     * Comparing to {@link #incrementState()}, this method has higher CPU cost, it should only be
+     * used when {@link #incrementState()} cannot be used.
+     */
+    private void computeState() {
+      if (mPos >= mFileLength) {
+        setEOFState();
+        return;
+      }
+
+      mBlockIndex = (int) (mPos / mBlockSize);
+      mBlockId = mBlockIds.get(mBlockIndex);
+
+      mBlockStartPos = mBlockIndex * mBlockSize;
+      mNextBlockStartPos = Math.min(mBlockStartPos + mBlockSize, mFileLength);
+    }
+
+    /**
+     * Assumes the position just enters the next block, updates the states.
+     * Comparing to {@link #computeState()}, this method has lower CPU cost.
+     */
+    private void incrementState() {
+      if (mPos >= mFileLength) {
+        setEOFState();
+        return;
+      }
+
+      mBlockIndex++;
+      mBlockId = mBlockIds.get(mBlockIndex);
+
+      mBlockStartPos = mNextBlockStartPos;
+      mNextBlockStartPos = Math.min(mNextBlockStartPos + mBlockSize, mFileLength);
+    }
+  }
 
   /**
    * Creates a new file input stream.
@@ -135,9 +310,10 @@ public class FileInStream extends InputStream
    * @param options the client options
    * @param context file system context
    * @return the created {@link FileInStream} instance
+   * @throws IOException when failed to create a new {@link UnknownLengthFileInStream}
    */
   public static FileInStream create(URIStatus status, InStreamOptions options,
-      FileSystemContext context) {
+      FileSystemContext context) throws IOException {
     if (status.getLength() == Constants.UNKNOWN_SIZE) {
       return new UnknownLengthFileInStream(status, options, context);
     }
@@ -152,11 +328,11 @@ public class FileInStream extends InputStream
    */
   protected FileInStream(URIStatus status, InStreamOptions options, FileSystemContext context) {
     mStatus = status;
-    mBlockIds = status.getBlockIds();
+    mPositionState = new PositionState(mStatus.getLength(), mStatus.getBlockIds(),
+        mStatus.getBlockSizeBytes());
     mInStreamOptions = options;
     mOutStreamOptions = OutStreamOptions.defaults();
     mBlockSize = status.getBlockSizeBytes();
-    mFileLength = status.getLength();
     mContext = context;
     mAlluxioStorageType = options.getAlluxioStorageType();
     mShouldCache = mAlluxioStorageType.isStore();
@@ -193,7 +369,7 @@ public class FileInStream extends InputStream
 
   @Override
   public long getPos() {
-    return mPos;
+    return mPositionState.getPos();
   }
 
   @Override
@@ -212,10 +388,10 @@ public class FileInStream extends InputStream
   }
 
   private int readInternal() throws IOException {
-    if (isEndOfFile()) {
+    if (mPositionState.isEOF()) {
       return EOF_DATA;
     }
-    updateStreamsOnRead();
+    updateStreams();
     Preconditions.checkState(mCurrentBlockInStream != null, PreconditionMessage.ERR_UNEXPECTED_EOF);
 
     int data = mCurrentBlockInStream.read();
@@ -224,7 +400,7 @@ public class FileInStream extends InputStream
       return EOF_DATA;
     }
 
-    mPos++;
+    mPositionState.inc();
     if (mCurrentCacheStream != null) {
       try {
         mCurrentCacheStream.write(data);
@@ -241,15 +417,15 @@ public class FileInStream extends InputStream
         PreconditionMessage.ERR_BUFFER_STATE.toString(), b.length, off, len);
     if (len == 0) {
       return 0;
-    } else if (isEndOfFile()) {
+    } else if (mPositionState.isEOF()) {
       return EOF_DATA;
     }
 
     int currentOffset = off;
     int bytesLeftToRead = len;
 
-    while (bytesLeftToRead > 0 && !isEndOfFile()) {
-      updateStreamsOnRead();
+    while (bytesLeftToRead > 0 && !mPositionState.isEOF()) {
+      updateStreams();
       Preconditions.checkNotNull(mCurrentBlockInStream, PreconditionMessage.ERR_UNEXPECTED_EOF);
       int bytesToRead = (int) Math.min(bytesLeftToRead, mCurrentBlockInStream.remaining());
 
@@ -267,7 +443,7 @@ public class FileInStream extends InputStream
             handleCacheStreamException(e);
           }
         }
-        mPos += bytesRead;
+        mPositionState.inc(bytesRead);
         bytesLeftToRead -= bytesRead;
         currentOffset += bytesRead;
       }
@@ -287,14 +463,14 @@ public class FileInStream extends InputStream
   }
 
   private int positionedReadInternal(long pos, byte[] b, int off, int len) throws IOException {
-    if (pos < 0 || pos >= mFileLength) {
+    if (pos < 0 || pos >= getFileLength()) {
       return EOF_DATA;
     }
 
     // If partial read cache is enabled, we fall back to the normal read.
     if (shouldCachePartiallyReadBlock()) {
       synchronized (this) {
-        long oldPos = mPos;
+        long oldPos = mPositionState.getPos();
         try {
           seek(pos);
           return read(b, off, len);
@@ -307,10 +483,10 @@ public class FileInStream extends InputStream
     int lenCopy = len;
 
     while (len > 0) {
-      if (pos >= mFileLength) {
+      if (pos >= getFileLength()) {
         break;
       }
-      long blockId = getBlockId(pos);
+      long blockId = mPositionState.getBlockId(pos);
       long blockPos = pos % mBlockSize;
       try (BlockInStream bin = getBlockInStream(blockId)) {
         int bytesRead =
@@ -326,18 +502,16 @@ public class FileInStream extends InputStream
 
   @Override
   public long remaining() {
-    // WARNING: do not call remaining() directly within this file, use remainingInternal() instead
-    // so that remaining() can be overridden by subclasses.
-    return remainingInternal();
+    return mPositionState.getRemaining();
   }
 
   @Override
   public void seek(long pos) throws IOException {
-    if (mPos == pos) {
+    if (mPositionState.getPos() == pos) {
       return;
     }
     Preconditions.checkArgument(pos >= 0, PreconditionMessage.ERR_SEEK_NEGATIVE.toString(), pos);
-    Preconditions.checkArgument(pos <= maxSeekPosition(),
+    Preconditions.checkArgument(pos <= getFileLength(),
         PreconditionMessage.ERR_SEEK_PAST_END_OF_FILE.toString(), pos);
 
     if (shouldCachePartiallyReadBlock()) {
@@ -360,16 +534,9 @@ public class FileInStream extends InputStream
       return 0;
     }
 
-    long toSkip = Math.min(n, remainingInternal());
-    seek(mPos + toSkip);
+    long toSkip = Math.min(n, remaining());
+    seek(mPositionState.getPos() + toSkip);
     return toSkip;
-  }
-
-  /**
-   * @return the maximum position to seek to
-   */
-  protected long maxSeekPosition() {
-    return mFileLength;
   }
 
   /**
@@ -389,8 +556,8 @@ public class FileInStream extends InputStream
    */
   protected long getBlockSize(long pos) {
     // The size of the last block, 0 if it is equal to the normal block size
-    long lastBlockSize = mFileLength % mBlockSize;
-    if (mFileLength - pos > lastBlockSize) {
+    long lastBlockSize = getFileLength() % mBlockSize;
+    if (getFileLength() - pos > lastBlockSize) {
       return mBlockSize;
     } else {
       return lastBlockSize;
@@ -398,16 +565,10 @@ public class FileInStream extends InputStream
   }
 
   /**
-   * Checks whether the current cache stream is in sync with the current block stream, if they are
-   * out of sync, throws an {@link IllegalStateException}.
+   * @return the file length
    */
-  private void checkCacheStreamInSync() {
-    if (mCurrentCacheStream != null
-        && mCurrentBlockInStream.remaining() != mCurrentCacheStream.remaining()) {
-      throw new IllegalStateException(
-          String.format("BlockInStream and CacheStream is out of sync %d %d.",
-              mCurrentBlockInStream.remaining(), mCurrentCacheStream.remaining()));
-    }
+  protected long getFileLength() {
+    return mStatus.getLength();
   }
 
   /**
@@ -427,11 +588,11 @@ public class FileInStream extends InputStream
       // This happens if two concurrent readers read trying to cache the same block. One cancelled
       // before the other. Then the other reader will see this exception since we only keep
       // one block per blockId in block worker.
-      LOG.info("Block {} does not exist when being cancelled.", getCurrentBlockId());
+      LOG.info("Block {} does not exist when being cancelled.", mPositionState.getBlockId());
     } catch (AlreadyExistsException e) {
       // This happens if two concurrent readers trying to cache the same block. One successfully
       // committed. The other reader sees this.
-      LOG.info("Block {} exists.", getCurrentBlockId());
+      LOG.info("Block {} exists.", mPositionState.getBlockId());
     } catch (IOException e) {
       // This happens when there are any other cache stream close/cancel related errors (e.g.
       // server unreachable due to network partition, server busy due to Alluxio worker is
@@ -441,44 +602,6 @@ public class FileInStream extends InputStream
           + "the regular stream won't be affected.", e.getMessage());
     }
     mCurrentCacheStream = null;
-  }
-
-  /**
-   * @return the current block id based on mCurrentBlockIndex, or {@link #EOF_BLOCK_ID} if at the
-   *         end of the file
-   */
-  private long getCurrentBlockId() {
-    if (isEndOfFile()) {
-      return EOF_BLOCK_ID;
-    }
-    return mBlockIds.get(mCurrentBlockIndex);
-  }
-
-  /**
-   * @param pos the pos
-   * @return the block ID based on the pos
-   */
-  private long getBlockId(long pos) {
-    return mBlockIds.get(getBlockIndex(pos));
-  }
-
-  /**
-   * @param pos the position, assumed to be in the range from 0 to (file length - 1), otherwise, the
-   *        returned block index will be out of range
-   * @return the block index corresponding to the position
-   */
-  private int getBlockIndex(long pos) {
-    return (int) (pos / mBlockSize);
-  }
-
-  /**
-   * @param pos the position, assumed to be in the range from 0 to (file length - 1)
-   * @return whether the position is in current block, if the current block stream is not created
-   *         yet, return false
-   */
-  private boolean isInCurrentBlock(long pos) {
-    return mCurrentBlockIndex != UNINITIALIZED_BLOCK_INDEX && pos >= mCurrentBlockStartPos
-        && pos < mCurrentBlockEndPos;
   }
 
   /**
@@ -493,80 +616,43 @@ public class FileInStream extends InputStream
       // created the block (either as temp block or committed block). The second sees this
       // exception.
       LOG.info("The block with ID {} is already stored in the target worker, canceling the cache "
-          + "request.", getCurrentBlockId());
+          + "request.", mPositionState.getBlockId());
     } else {
       LOG.warn("The block with ID {} could not be cached into Alluxio storage: {}",
-          getCurrentBlockId(), e.toString());
+          mPositionState.getBlockId(), e.toString());
     }
     closeOrCancelCacheStream();
   }
 
   /**
-   * Checks whether the current block stream has remaining bytes, if not, advances to the next block
-   * stream. Otherwise, this is a no-op.
-   *
-   * This should only be used in streaming read APIs. For APIs like {@link #seek(long)},
-   * {@link #skip(long)}, the block stream should be updated according to the current read position,
-   * use {@link #updateStreamsOnSeek()} instead.
+   * Checks whether the current cache stream is in sync with the current block stream, if they are
+   * out of sync, throws an {@link IllegalStateException}.
    */
-  private void updateStreamsOnRead() throws IOException {
-    checkCacheStreamInSync();
-    if (mCurrentBlockIndex == UNINITIALIZED_BLOCK_INDEX) {
-      // Initializes the streams for the first block.
-      mCurrentBlockIndex = 0;
-      mCurrentBlockStartPos = 0;
-      mCurrentBlockEndPos = mBlockSize;
-      updateStreamsInternal();
-      return;
-    }
-    // Current block stream has no remaining data and is not EOF.
-    if (mCurrentBlockInStream.remaining() == 0 && !isEndOfFile()) {
-      mCurrentBlockIndex++;
-      mCurrentBlockStartPos = mCurrentBlockEndPos;
-      mCurrentBlockEndPos += mBlockSize;
-      updateStreamsInternal();
+  private void checkCacheStreamInSync() {
+    if (mCurrentCacheStream != null
+        && mCurrentBlockInStream.remaining() != mCurrentCacheStream.remaining()) {
+      throw new IllegalStateException(
+          String.format("BlockInStream and CacheStream is out of sync %d %d.",
+              mCurrentBlockInStream.remaining(), mCurrentCacheStream.remaining()));
     }
   }
 
   /**
-   * Computes the current block stream ID based on the current read position, if the stream ID is
-   * different from the current block stream ID, or the stream ID is the same as the current
-   * block stream ID but the current stream has no remaining bytes, then updates the stream.
-   *
-   * Comparing to {@link #updateStreamsOnRead()}, this method has overhead for computing the
-   * block stream ID, only use this method for non-streaming read APIs like {@link #seek(long)}
-   * and {@link #skip(long)}.
+   * Updates the streams to be able to start reading from the current file position.
+   * If the current file position is still in the range of the current stream, then this is a no-op;
+   * otherwise, both the block stream and the cache stream is updated.
    */
-  private void updateStreamsOnSeek() throws IOException {
-    checkCacheStreamInSync();
-    if (isInCurrentBlock(mPos)) {
-      // The seek target is in the range of current stream, update streams if the current stream has
-      // no remaining data.
-      if (mCurrentBlockInStream.remaining() == 0) {
-        updateStreamsInternal();
-      }
+  protected void updateStreams() throws IOException {
+    long blockId = mPositionState.getBlockId();
+    if (blockId == mCurrentBlockId) {
       return;
     }
-    // If there is no current block stream, or the seek target is out of bound of the current
-    // stream, recompute the block index.
-    mCurrentBlockIndex = getBlockIndex(mPos);
-    mCurrentBlockStartPos = mCurrentBlockIndex * mBlockSize;
-    mCurrentBlockEndPos = mCurrentBlockStartPos + mBlockSize;
-    updateStreamsInternal();
-  }
-
-  /**
-   * Updates block and cache streams based on the current block ID. Used internally in
-   * {@link #updateStreamsOnRead()} and {@link #updateStreamsOnSeek()}.
-   */
-  private void updateStreamsInternal() throws IOException {
-    long currentBlockId = getCurrentBlockId();
-    // The following two function handle negative currentBlockId (i.e. the end of file)
-    // correctly.
-    updateBlockInStream(currentBlockId);
+    checkCacheStreamInSync();
+    updateBlockInStream(blockId);
     if (PASSIVE_CACHE_ENABLED) {
-      updateCacheStream(currentBlockId);
+      updateCacheStream(blockId);
     }
+    mCurrentBlockId = blockId;
   }
 
   /**
@@ -584,10 +670,10 @@ public class FileInStream extends InputStream
    * </ol>
    * After this call, {@link #mCurrentCacheStream} is either null or freshly created.
    * {@link #mCurrentCacheStream} is created only if the block is not cached in a chosen machine and
-   * mPos is at the beginning of a block. This function is only called by
-   * {@link #updateStreamsInternal()}.
+   * position is at the beginning of a block. This function is only called by
+   * {@link #updateStreams()}.
    *
-   * @param blockId cached result of {@link #getCurrentBlockId()}
+   * @param blockId the block ID
    */
   private void updateCacheStream(long blockId) {
     // We should really only close a cache stream here. This check is to verify this.
@@ -608,7 +694,7 @@ public class FileInStream extends InputStream
 
     // Unlike updateBlockInStream below, we never start a block cache stream if mPos is in the
     // middle of a block.
-    if (mPos % mBlockSize != 0) {
+    if (mPositionState.getPos() % mBlockSize != 0) {
       return;
     }
 
@@ -617,7 +703,8 @@ public class FileInStream extends InputStream
       WorkerNetAddress localWorker = mContext.getLocalWorker();
       if (localWorker != null) {
         mCurrentCacheStream =
-            mBlockStore.getOutStream(blockId, getBlockSize(mPos), localWorker, mOutStreamOptions);
+            mBlockStore.getOutStream(blockId, getBlockSize(mPositionState.getPos()), localWorker,
+                mOutStreamOptions);
       }
     } catch (IOException e) {
       handleCacheStreamException(e);
@@ -625,10 +712,10 @@ public class FileInStream extends InputStream
   }
 
   /**
-   * Update {@link #mCurrentBlockInStream} to be in-sync with mPos's block. This function is only
-   * called in {@link #updateStreamsInternal()}.
+   * Update {@link #mCurrentBlockInStream} to be in-sync with the current position.
+   * This function is only called in {@link #updateStreams()}.
    *
-   * @param blockId cached result of {@link #getCurrentBlockId()}
+   * @param blockId the block ID
    */
   private void updateBlockInStream(long blockId) throws IOException {
     if (mCurrentBlockInStream != null) {
@@ -636,7 +723,7 @@ public class FileInStream extends InputStream
       mCurrentBlockInStream = null;
     }
 
-    if (blockId == EOF_BLOCK_ID) {
+    if (blockId == PositionState.EOF_BLOCK_ID) {
       return;
     }
     mCurrentBlockInStream = getBlockInStream(blockId);
@@ -672,21 +759,17 @@ public class FileInStream extends InputStream
    */
   private void seekInternal(long pos) throws IOException {
     closeOrCancelCacheStream();
-    mPos = pos;
-    updateStreamsOnSeek();
+    mPositionState.setPos(pos);
+    updateStreams();
     if (mCurrentBlockInStream != null) {
-      mCurrentBlockInStream.seek(mPos % mBlockSize);
+      mCurrentBlockInStream.seek(mPositionState.getPos() % mBlockSize);
     } else {
-      Preconditions.checkState(isEndOfFile());
+      Preconditions.checkState(mPositionState.isEOF());
     }
   }
 
   private long remainingInternal() {
-    return mFileLength - mPos;
-  }
-
-  private boolean isEndOfFile() {
-    return mPos == mFileLength;
+    return mPositionState.getRemaining();
   }
 
   /**
@@ -728,15 +811,15 @@ public class FileInStream extends InputStream
    */
   private void seekInternalWithCachingPartiallyReadBlock(long pos) throws IOException {
     // Precompute this because mPos will be updated several times in this function.
-    final boolean isInCurrentBlock = isInCurrentBlock(pos);
+    final boolean isInCurrentBlock = mPositionState.isInCurrentBlock(pos);
 
     if (isInCurrentBlock) {
       if (isReadFromLocalWorker()) {
         // no need to partial cache the current block, and the seek is within the block
         // so directly seeks to position.
-        mPos = pos;
+        mPositionState.setPos(pos);
         if (mCurrentBlockInStream != null) {
-          mCurrentBlockInStream.seek(mPos % mBlockSize);
+          mCurrentBlockInStream.seek(mPositionState.getPos() % mBlockSize);
         } else {
           Preconditions.checkState(remaining() == 0);
         }
@@ -749,15 +832,15 @@ public class FileInStream extends InputStream
     // (2) the in stream reads from the local worker
     // (3) the in stream reads from a remote worker but there is no local worker
     boolean firstSeekOutsideFirstBlock =
-        mPos == 0 && mCurrentBlockInStream == null && !isInCurrentBlock;
+        mPositionState.getPos() == 0 && mCurrentBlockInStream == null && !isInCurrentBlock;
     if (!firstSeekOutsideFirstBlock && canCacheToLocalWorker()) {
       // Make sure that mCurrentBlockInStream and mCurrentCacheStream is updated.
       // mPos is not updated here.
-      updateStreamsOnRead();
+      updateStreams();
 
       // Cache till pos if seeking forward within the current block. Otherwise cache the whole
       // block.
-      if (isInCurrentBlock && pos > mPos) {
+      if (isInCurrentBlock && pos > mPositionState.getPos()) {
         readCurrentBlockToPos(pos);
       } else {
         readCurrentBlockToEnd();
@@ -765,7 +848,7 @@ public class FileInStream extends InputStream
 
       // Early return if we are at pos already. This happens if we seek forward with caching
       // enabled for this block.
-      if (mPos == pos) {
+      if (mPositionState.getPos() == pos) {
         return;
       }
       // The early return above guarantees that we won't close an incomplete cache stream.
@@ -775,8 +858,8 @@ public class FileInStream extends InputStream
 
     // lastly handle the target block
     // the seek is outside the current block, seek to the beginning of that block first
-    mPos = pos / mBlockSize * mBlockSize;
-    updateStreamsOnSeek();
+    mPositionState.setPos(pos / mBlockSize * mBlockSize);
+    updateStreams();
     if (canCacheToLocalWorker()) {
       // cache till the seek position of the block unless
       // (1) the in stream reads from the local worker
@@ -819,7 +902,7 @@ public class FileInStream extends InputStream
     if (mCurrentBlockInStream == null) {
       return;
     }
-    long len = Math.min(pos - mPos, mCurrentBlockInStream.remaining());
+    long len = Math.min(pos - mPositionState.getPos(), mCurrentBlockInStream.remaining());
     if (len <= 0) {
       return;
     }
