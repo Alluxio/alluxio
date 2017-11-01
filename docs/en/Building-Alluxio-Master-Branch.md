@@ -59,7 +59,7 @@ To have the logs output to STDOUT, append the following to the `mvn` command
 {% include Building-Alluxio-Master-Branch/STDOUT.md %}
 
 ## Compute Framework Support
-To build Alluxio against different compute frameworks, you can run Maven build with different compute profiles. The generated Alluxio client is located at `{{site.ALLUXIO_CLIENT_JAR_PATH_BUILD}}`.
+To build Alluxio against different compute frameworks, you can run Maven build with different compute profiles. The generated Alluxio client is located at `{{site.ALLUXIO_CLIENT_JAR_PATH}}`.
 
 ### Hadoop
 
@@ -73,26 +73,13 @@ Available Hadoop profiles include `hadoop-1`, `hadoop-2.2`, `hadoop-2.3` ... `ha
 different distributions of Hadoop. You can further set a specific Hadoop release version to
 compile by checking out [this section](#distro-support).
 
-### Spark
-You can run the following command to compile Alluxio with Spark
+### Spark/Flink/Presto and etc
+
+You can run the following command to compile Alluxio server and client jars that work with
+different compute frameworks.
 
 ```bash
-$ mvn install -Pspark -DskipTests
-```
-
-### Flink
-
-You can run the following command to compile Alluxio with Flink
-
-```bash
-$ mvn install -Pflink -DskipTests
-```
-
-### Presto
-You can run the following command to compile Alluxio with Presto
-
-```bash
-$ mvn install -Ppresto -DskipTests
+$ mvn install -DskipTests
 ```
 
 ## Distro Support

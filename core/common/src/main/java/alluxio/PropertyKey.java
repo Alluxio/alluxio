@@ -730,6 +730,11 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "underlying storage on startup. During the time the check is running, Alluxio "
               + "will be in read only mode. Enabled by default.")
           .build();
+  public static final PropertyKey MASTER_THRIFT_SHUTDOWN_TIMEOUT =
+         new Builder(Name.MASTER_THRIFT_SHUTDOWN_TIMEOUT)
+         .setDefaultValue("60sec")
+         .setDescription("Maximum time to wait for thrift servers to stop on shutdown")
+         .build();
   public static final PropertyKey MASTER_TIERED_STORE_GLOBAL_LEVEL0_ALIAS =
       new Builder(Name.MASTER_TIERED_STORE_GLOBAL_LEVEL0_ALIAS)
           .setDefaultValue("MEM")
@@ -2059,6 +2064,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String MASTER_RPC_PORT = "alluxio.master.port";
     public static final String MASTER_STARTUP_CONSISTENCY_CHECK_ENABLED =
         "alluxio.master.startup.consistency.check.enabled";
+    public static final String MASTER_THRIFT_SHUTDOWN_TIMEOUT =
+        "alluxio.master.thrift.shutdown.timeout";
     public static final String MASTER_TIERED_STORE_GLOBAL_LEVEL0_ALIAS =
         "alluxio.master.tieredstore.global.level0.alias";
     public static final String MASTER_TIERED_STORE_GLOBAL_LEVEL1_ALIAS =

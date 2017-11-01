@@ -12,7 +12,6 @@
 package alluxio;
 
 import com.google.common.base.Preconditions;
-import com.google.common.base.Throwables;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandler;
@@ -87,7 +86,7 @@ public final class EmbeddedChannels {
         method.setAccessible(true);
         method.invoke(this, e);
       } catch (Exception ee) {
-        throw Throwables.propagate(ee);
+        throw new RuntimeException(ee);
       }
     }
 

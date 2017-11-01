@@ -28,10 +28,10 @@ based on your hadoop version, or if you are using Hadoop 1, this
 
 For the MapReduce applications to communicate with Alluxio service, it is required to have the
 Alluxio client jar on their classpaths. We recommend you to download the tarball from
-Alluxio [download page](http://www.alluxio.org/download). The Alluxio client jar for Hadoop can be found at `{{site.ALLUXIO_CLIENT_JAR_PATH_HADOOP}}`.
-
-Alternatively, advanced users can choose to compile this client jar from the source code. Follow the instructs [here](Building-Alluxio-Master-Branch.html#compute-framework-support) and use the generated jar at 
-`{{site.ALLUXIO_CLIENT_JAR_PATH_BUILD}}` for the rest of this guide.
+Alluxio [download page](http://www.alluxio.org/download).
+Alternatively, advanced users can choose to compile this client jar from the source code
+by following Follow the instructs [here](Building-Alluxio-Master-Branch.html#compute-framework-support).
+The Alluxio client jar can be found at `{{site.ALLUXIO_CLIENT_JAR_PATH}}`.
 
 ## Configuring Hadoop
 
