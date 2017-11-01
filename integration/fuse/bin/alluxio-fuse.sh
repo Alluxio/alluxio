@@ -25,17 +25,17 @@ get_env () {
 check_java_version () {
   local java_mjr_vers=$("${JAVA}" -version 2>&1 | awk -F '"' '/version/ {print $2}' | awk -F'.' '{print $1 $2}')
   if [[ ${java_mjr_vers} -lt 18 ]]; then
-    echo "It seems you are running a version of Java which is older then Java8.
-     Please, use Java8 to use alluxio-fuse" >&2
+    echo "You are running a version of Java which is older than Java 8.
+     Please use Java 8 to use alluxio-fuse" >&2
     return 1
   else
     return 0
   fi
 }
 
-check_tfuse_jar () {
+check_fuse_jar () {
   if ! [[ -f ${ALLUXIO_FUSE_JAR} ]]; then
-    echo "Cannot find ${ALLUXIO_FUSE_JAR}. Was alluxio compiled with java8 or more recent?"
+    echo "Cannot find ${ALLUXIO_FUSE_JAR}. Please compile alluxio with fuse profile and Java 8"
     return 1
   else
     return 0
@@ -55,7 +55,7 @@ set_java_opt () {
 
 mount_fuse() {
   if fuse_stat > /dev/null ; then
-    echo "alluxio-fuse is already running on the local host. Please, stop it first." >&2
+    echo "alluxio-fuse is already running on the local host. Please stop it first." >&2
     return 1
   fi
   echo "Starting alluxio-fuse on local host."
@@ -63,7 +63,7 @@ mount_fuse() {
   (nohup "${JAVA}" -cp ${CLASSPATH} ${JAVA_OPTS} ${ALLUXIO_FUSE_JAVA_OPTS} \
     alluxio.fuse.AlluxioFuse \
     -m ${mount_point} \
-    -o big_writes > ${ALLUXIO_LOGS_DIR}/fuse.out 2>&1) &
+    -o big_writes,allow_other > ${ALLUXIO_LOGS_DIR}/fuse.out 2>&1) &
   # sleep: workaround to let the bg java process exit on errors, if any
   sleep 2s
   if kill -0 $! > /dev/null 2>&1 ; then
@@ -115,7 +115,7 @@ if [[ $# -lt 1 ]]; then
 fi
 
 get_env
-check_java_version && check_tfuse_jar
+check_java_version && check_fuse_jar
 set_java_opt
 if [[ $? -ne 0 ]]; then
   exit 1
