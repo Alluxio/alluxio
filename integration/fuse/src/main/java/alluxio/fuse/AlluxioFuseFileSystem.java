@@ -93,8 +93,8 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
     mOpenFiles = new HashMap<>();
 
     final int maxCachedPaths = Configuration.getInt(PropertyKey.FUSE_CACHED_PATHS_MAX);
-    mIsShellGroupMapping = Configuration.get(PropertyKey.SECURITY_GROUP_MAPPING_CLASS)
-        .equals(ShellBasedUnixGroupsMapping.class.getName());
+    mIsShellGroupMapping = ShellBasedUnixGroupsMapping.class.getName()
+        .equals(Configuration.get(PropertyKey.SECURITY_GROUP_MAPPING_CLASS));
     mPathResolverCache = CacheBuilder.newBuilder()
         .maximumSize(maxCachedPaths)
         .build(new PathCacheLoader());

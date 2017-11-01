@@ -19,7 +19,7 @@ alluxio.worker.data.folder:
 alluxio.worker.data.folder.tmp:
   'A relative path in alluxio.worker.data.folder used to store the temporary data for uncommitted files.'
 alluxio.worker.data.hostname:
-  'The hostname of Alluxio worker data service'
+  'The hostname of Alluxio worker data service.'
 alluxio.worker.data.port:
   'The port Alluxio''s worker''s data server runs on.'
 alluxio.worker.data.server.class:

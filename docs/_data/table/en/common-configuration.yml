@@ -69,7 +69,7 @@ alluxio.underfs.hdfs.configuration:
 alluxio.underfs.hdfs.impl:
   'The implementation class of the HDFS as the under storage system.'
 alluxio.underfs.hdfs.prefixes:
-  'Optionally, specify which prefixes should run through the Apache Hadoop implementation of UnderFileSystem. The delimiter is any whitespace and/or '',''.'
+  'Optionally, specify which prefixes should run through the HDFS implementation of UnderFileSystem. The delimiter is any whitespace and/or '',''.'
 alluxio.underfs.hdfs.remote:
   'Boolean indicating whether or not the under storage worker nodes are remote with respect to Alluxio worker nodes. If set to true, Alluxio will not attempt to discover locality information from the under storage because locality is impossible. This will improve performance. The default value is false.'
 alluxio.underfs.listing.length:
@@ -130,6 +130,8 @@ alluxio.work.dir:
   'The directory to use for Alluxio''s working directory. By default, the journal, logs, and under file system data (if using local filesystem) are written here.'
 alluxio.zookeeper.address:
   'Address of ZooKeeper.'
+alluxio.zookeeper.connection.timeout:
+  'Connection timeout to use when connecting to Zookeeper'
 alluxio.zookeeper.election.path:
   'Election directory in ZooKeeper.'
 alluxio.zookeeper.enabled:
@@ -138,6 +140,8 @@ alluxio.zookeeper.leader.inquiry.retry:
   'The number of retries to inquire leader from ZooKeeper.'
 alluxio.zookeeper.leader.path:
   'Leader directory in ZooKeeper.'
+alluxio.zookeeper.session.timeout:
+  'Session timeout to use when connecting to Zookeeper'
 aws.accessKeyId:
   'The access key of S3 bucket.'
 aws.secretKey:
@@ -155,7 +159,7 @@ fs.oss.endpoint:
 fs.swift.apikey:
   '(deprecated) The API key used for user:tenant authentication.'
 fs.swift.auth.method:
-  'Choice of authenitcation method: [tempauth (default), swiftauth, keystone, keystonev3].'
+  'Choice of authentication method: [tempauth (default), swiftauth, keystone, keystonev3].'
 fs.swift.auth.url:
   'Authentication URL for REST server, e.g., http://server:8090/auth/v1.0.'
 fs.swift.password:

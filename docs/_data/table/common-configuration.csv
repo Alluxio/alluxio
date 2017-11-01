@@ -65,10 +65,12 @@ alluxio.web.resources,${alluxio.home}/core/server/common/src/main/webapp
 alluxio.web.threads,1
 alluxio.work.dir,${alluxio.home}
 alluxio.zookeeper.address,
+alluxio.zookeeper.connection.timeout,15s
 alluxio.zookeeper.election.path,/election
 alluxio.zookeeper.enabled,false
 alluxio.zookeeper.leader.inquiry.retry,10
 alluxio.zookeeper.leader.path,/leader
+alluxio.zookeeper.session.timeout,60s
 aws.accessKeyId,
 aws.secretKey,
 fs.gcs.accessKeyId,
