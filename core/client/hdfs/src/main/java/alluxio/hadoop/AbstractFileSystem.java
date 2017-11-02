@@ -415,10 +415,8 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
   @SuppressFBWarnings("ST_WRITE_TO_STATIC_FROM_INSTANCE_METHOD")
   @Override
   public void initialize(URI uri, org.apache.hadoop.conf.Configuration conf) throws IOException {
-    if (!uri.getScheme().equals(getScheme())) {
-      throw new IOException(ExceptionMessage.URI_SCHEME_MISMATCH.getMessage(uri.getScheme(),
-          getScheme()));
-    }
+    Preconditions.checkArgument(uri.getScheme().equals(getScheme()),
+        PreconditionMessage.URI_SCHEME_MISMATCH.toString(), uri.getScheme(), getScheme());
     super.initialize(uri, conf);
     LOG.debug("initialize({}, {}). Connecting to Alluxio", uri, conf);
     HadoopUtils.addSwiftCredentials(conf);

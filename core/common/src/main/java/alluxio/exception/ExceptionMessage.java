@@ -186,7 +186,6 @@ public enum ExceptionMessage {
   // client
   DIFFERENT_MASTER_ADDRESS("Master address {0} is different from that in file system context {1}"),
   INCOMPATIBLE_VERSION("{0} client version {1} is not compatible with server version {2}"),
-  URI_SCHEME_MISMATCH("URI scheme {0} does not match the expected scheme {1}"),
 
   // configuration
   DEFAULT_PROPERTIES_FILE_DOES_NOT_EXIST("The default Alluxio properties file does not exist"),
