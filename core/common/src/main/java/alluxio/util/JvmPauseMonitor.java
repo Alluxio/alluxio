@@ -144,7 +144,7 @@ public final class JvmPauseMonitor {
     GarbageCollectorMXBean newBean;
     Set<String> nameSet = Sets.intersection(gcMXBeanMapBeforeSleep.keySet(),
         gcMXBeanMapAfterSleep.keySet());
-    for (String name :nameSet) {
+    for (String name : nameSet) {
       oldBean = gcMXBeanMapBeforeSleep.get(name);
       newBean = gcMXBeanMapAfterSleep.get(name);
       if (oldBean == null) {
@@ -162,7 +162,9 @@ public final class JvmPauseMonitor {
       }
     }
     String ret = "JVM paused " + extraSleepTime + "ms\n";
-    if (!diffBean.isEmpty()) {
+    if (diffBean.isEmpty()) {
+      ret += "No GCs detected ";
+    } else {
       ret += "GC list:\n" + Joiner.on("\n").join(diffBean);
     }
     ret += "\n" + getMemoryInfo();
