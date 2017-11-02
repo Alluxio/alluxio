@@ -23,10 +23,12 @@ import alluxio.thrift.PartitionInfo;
 import alluxio.util.io.BufferUtils;
 
 import com.google.common.base.Preconditions;
+import com.google.common.base.Strings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.List;
@@ -65,8 +67,17 @@ class BaseKeyValueStoreWriter implements KeyValueStoreWriter {
    */
   BaseKeyValueStoreWriter(AlluxioURI uri) throws IOException {
     LOG.info("Create KeyValueStoreWriter for {}", uri);
-    mMasterClient = new KeyValueMasterClient(FileSystemContext.INSTANCE.getMasterAddress());
-
+    InetSocketAddress masterAddress = null;
+    if (!Strings.isNullOrEmpty(uri.getHost())) {
+      int port = uri.getPort();
+      if (port == -1) {
+        port = 80;
+      }
+      masterAddress = new InetSocketAddress(uri.getHost(), port);
+    } else {
+      masterAddress = FileSystemContext.INSTANCE.getMasterAddress();
+    }
+    mMasterClient = new KeyValueMasterClient(masterAddress);
     mStoreUri = Preconditions.checkNotNull(uri);
     mMasterClient.createStore(mStoreUri);
     mPartitionIndex = 0;
