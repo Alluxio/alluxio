@@ -253,6 +253,9 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
   public void stop() throws Exception {
     if (mIsServingRPC) {
       stopServing();
+      if (mJvmPauseMonitor.isStarted()) {
+        mJvmPauseMonitor.stop();
+      }
       stopWorkers();
       mIsServingRPC = false;
     }
