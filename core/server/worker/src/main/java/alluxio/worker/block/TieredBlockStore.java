@@ -22,6 +22,7 @@ import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidWorkerStateException;
 import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.resource.LockResource;
+import alluxio.util.CommonUtils;
 import alluxio.util.io.FileUtils;
 import alluxio.worker.block.allocator.Allocator;
 import alluxio.worker.block.evictor.BlockTransferInfo;
@@ -210,10 +211,7 @@ public class TieredBlockStore implements BlockStore {
         return tempBlockMeta;
       }
       if (i < MAX_RETRIES) {
-        // Failed to create a temp block, so trigger Evictor to make some space.
-        // NOTE: a successful {@link freeSpaceInternal} here does not ensure the subsequent
-        // allocation also successful, because these two operations are not atomic.
-        freeSpaceInternal(sessionId, initialBlockSize, location);
+        waitForEviction();
       }
     }
     // TODO(bin): We are probably seeing a rare transient failure, maybe define and throw some
@@ -278,7 +276,7 @@ public class TieredBlockStore implements BlockStore {
         return;
       }
       if (i < MAX_RETRIES) {
-        freeSpaceInternal(sessionId, additionalBytes, requestResult.getSecond());
+        waitForEviction();
       }
     }
     throw new WorkerOutOfSpaceException(ExceptionMessage.NO_SPACE_FOR_BLOCK_ALLOCATION,
@@ -309,7 +307,7 @@ public class TieredBlockStore implements BlockStore {
         return;
       }
       if (i < MAX_RETRIES) {
-        freeSpaceInternal(sessionId, moveResult.getBlockSize(), newLocation);
+        waitForEviction();
       }
     }
     throw new WorkerOutOfSpaceException(ExceptionMessage.NO_SPACE_FOR_BLOCK_MOVE, newLocation,
@@ -815,6 +813,10 @@ public class TieredBlockStore implements BlockStore {
     } finally {
       mLockManager.unlockBlock(lockId);
     }
+  }
+
+  private void waitForEviction() {
+    CommonUtils.sleepMs(LOG, 1000);
   }
 
   /**
