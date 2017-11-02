@@ -13,7 +13,6 @@ package alluxio.cli;
 
 import alluxio.util.CommonUtils;
 
-import com.google.common.base.Throwables;
 import org.reflections.Reflections;
 
 import java.lang.reflect.Modifier;
@@ -50,7 +49,7 @@ public final class CommandUtils {
         try {
           cmd = CommonUtils.createNewClassInstance(cls, classArgs, objectArgs);
         } catch (Exception e) {
-          throw Throwables.propagate(e);
+          throw new RuntimeException(e);
         }
         commandsMap.put(cmd.getCommandName(), cmd);
       }
