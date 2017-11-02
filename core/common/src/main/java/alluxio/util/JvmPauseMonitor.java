@@ -19,12 +19,17 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import com.google.common.base.Stopwatch;
 
+import com.google.common.collect.Sets;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import javax.annotation.concurrent.NotThreadSafe;
 import java.lang.management.GarbageCollectorMXBean;
 import java.lang.management.ManagementFactory;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -32,6 +37,7 @@ import java.util.concurrent.TimeUnit;
  * and get the true time the sleep takes. If it is longer than it should be, the
  * JVM has paused processing. Then log it into different level.
  */
+@NotThreadSafe
 public final class JvmPauseMonitor {
   private static final Log LOG = LogFactory.getLog(
       JvmPauseMonitor.class);
@@ -77,6 +83,8 @@ public final class JvmPauseMonitor {
    * Stops jvm monitor.
    */
   public void stop() {
+    Preconditions.checkState(mJvmMonitorThread != null,
+        "JVM monitor thread not start");
     mJvmMonitorThread.interrupt();
     try {
       mJvmMonitorThread.join();
@@ -129,39 +137,52 @@ public final class JvmPauseMonitor {
   }
 
   private String formatLogString(long extraSleepTime,
-      List<GarbageCollectorMXBean> gcMXBeanListBeforeSleep,
-        List<GarbageCollectorMXBean> gcMXBeanListAfterSleep) {
+      Map<String, GarbageCollectorMXBean> gcMXBeanMapBeforeSleep,
+        Map<String, GarbageCollectorMXBean> gcMXBeanMapAfterSleep) {
     List<String> diffBean = Lists.newArrayList();
     GarbageCollectorMXBean oldBean;
     GarbageCollectorMXBean newBean;
-    for (int i = 0; i < gcMXBeanListBeforeSleep.size(); i++) {
-      oldBean = gcMXBeanListBeforeSleep.get(i);
-      newBean = gcMXBeanListAfterSleep.get(i);
-      if (oldBean.getCollectionTime() != newBean.getCollectionTime()
-          || oldBean.getCollectionCount() != newBean.getCollectionCount()) {
-        diffBean.add("GC name= '" + newBean.getName() + " count="
+    Set<String> nameSet = Sets.intersection(gcMXBeanMapBeforeSleep.keySet(),
+        gcMXBeanMapAfterSleep.keySet());
+    for (String name :nameSet) {
+      oldBean = gcMXBeanMapBeforeSleep.get(name);
+      newBean = gcMXBeanMapAfterSleep.get(name);
+      if (oldBean == null) {
+        diffBean.add("new GCBean created name= '" + newBean.getName() + " count="
             + newBean.getCollectionCount() + " time=" + newBean.getCollectionTime() + "ms");
+      } else if (newBean == null) {
+        diffBean.add("old GCBean canceled name= '" + oldBean.getName() + " count="
+            + oldBean.getCollectionCount() + " time=" + oldBean.getCollectionTime() + "ms");
+      } else {
+        if (oldBean.getCollectionTime() != newBean.getCollectionTime()
+            || oldBean.getCollectionCount() != newBean.getCollectionCount()) {
+          diffBean.add("GC name= '" + newBean.getName() + " count="
+              + newBean.getCollectionCount() + " time=" + newBean.getCollectionTime() + "ms");
+        }
       }
     }
-    String ret = "JVM pause " + extraSleepTime + "ms\n";
-    if (diffBean.isEmpty()) {
-      ret += "No GCs detected ";
-    } else {
+    String ret = "JVM paused " + extraSleepTime + "ms\n";
+    if (!diffBean.isEmpty()) {
       ret += "GC list:\n" + Joiner.on("\n").join(diffBean);
     }
     ret += "\n" + getMemoryInfo();
     return ret;
   }
 
-  private List<GarbageCollectorMXBean> getGarbageCollectorMXBeanList() {
-    return ManagementFactory.getGarbageCollectorMXBeans();
+  private Map<String, GarbageCollectorMXBean> getGarbageCollectorMXBeans() {
+    List<GarbageCollectorMXBean> gcBeanList = ManagementFactory.getGarbageCollectorMXBeans();
+    Map<String, GarbageCollectorMXBean> gcBeanMap = new HashMap();
+    for (GarbageCollectorMXBean gcBean : gcBeanList) {
+      gcBeanMap.put(gcBean.getName(), gcBean);
+    }
+    return gcBeanMap;
   }
 
   private class Monitor implements Runnable {
     @Override
     public void run() {
       Stopwatch sw = new Stopwatch();
-      List<GarbageCollectorMXBean> gcBeanListBeforeSleep = getGarbageCollectorMXBeanList();
+      Map<String, GarbageCollectorMXBean> gcBeanMapBeforeSleep = getGarbageCollectorMXBeans();
       while (true) {
         sw.reset().start();
         try {
@@ -172,18 +193,18 @@ public final class JvmPauseMonitor {
         }
         long extraTime = sw.elapsed(TimeUnit.MILLISECONDS) - mGcSleepIntervalMs;
         mTotalExtraTimeMs += extraTime;
-        List<GarbageCollectorMXBean> gcBeanListAfterSleep = getGarbageCollectorMXBeanList();
+        Map<String, GarbageCollectorMXBean> gcBeanMapAfterSleep = getGarbageCollectorMXBeans();
 
         if (extraTime > mWarnThresholdMs) {
           ++mWarnTimeExceededMS;
           LOG.warn(formatLogString(
-              extraTime, gcBeanListBeforeSleep, gcBeanListAfterSleep));
+              extraTime, gcBeanMapBeforeSleep, gcBeanMapAfterSleep));
         } else if (extraTime > mInfoThresholdMs) {
           ++mInfoTimeExceededMS;
           LOG.info(formatLogString(
-              extraTime, gcBeanListBeforeSleep, gcBeanListAfterSleep));
+              extraTime, gcBeanMapBeforeSleep, gcBeanMapAfterSleep));
         }
-        gcBeanListBeforeSleep = gcBeanListAfterSleep;
+        gcBeanMapBeforeSleep = gcBeanMapAfterSleep;
       }
     }
   }

@@ -362,6 +362,9 @@ public class AlluxioMasterProcess implements MasterProcess {
       mTServerSocket.close();
       mTServerSocket = null;
     }
+    if (mJvmPauseMonitor != null) {
+      mJvmPauseMonitor.stop();
+    }
     if (mWebServer != null) {
       mWebServer.stop();
       mWebServer = null;
