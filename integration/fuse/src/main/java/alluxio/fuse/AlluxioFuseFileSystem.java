@@ -130,7 +130,7 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
    *
    * This operation only works when the group mapping service is shelled based and the user is
    * registered in unix. Otherwise it errors as not implemented. This is because the input uid and
-   * gid must map to the user and group in Unix.
+   * gid must match the user and group in Unix.
    */
   @Override
   public int chown(String path, @uid_t long uid, @gid_t long gid) {
