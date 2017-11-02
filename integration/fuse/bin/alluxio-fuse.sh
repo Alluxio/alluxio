@@ -59,7 +59,7 @@ function mountFuse {
   local alluxio_root=$2
   (nohup "${JAVA}" -cp ${CLASSPATH} ${JAVA_OPTS} ${ALLUXIO_FUSE_JAVA_OPTS} \
     alluxio.fuse.AlluxioFuse \
-    -o big_writes,allow_other \
+    -o big_writes \
     -m ${mount_point} \
     -r ${alluxio_root} > ${ALLUXIO_LOGS_DIR}/fuse.out 2>&1) &
   # sleep: workaround to let the bg java process exit on errors, if any
@@ -93,7 +93,7 @@ function fuseStat {
     return 1
   else
     echo -e "pid\tmount_point\talluxio_path"
-    echo -e "$(ps -o pid,command | grep [A]lluxioFuse | awk -F' ' '{print $1 "\t" $(NF-2) "\t" $NF}')"
+    echo -e "$(ps aux | grep [A]lluxioFuse | awk -F' ' '{print $2 "\t" $(NF-2) "\t" $NF}')"
     return 0    
   fi
 }
@@ -122,7 +122,7 @@ case $1 in
       mountFuse $2 $3
       exit $?
     fi
-    echo -e "Usage\n\t$0 mount mount_point [alluxio_path]" >&2
+    echo -e "Usage\n\t$0 mount mount_point [alluxio_path]\n\t alluxio_path is default to root" >&2
     exit 1
     ;;
   umount)    
