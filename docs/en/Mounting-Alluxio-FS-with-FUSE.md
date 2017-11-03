@@ -68,46 +68,17 @@ One possibility, for example, is to edit `$ALLUXIO_HOME/conf/alluxio-site.proper
 
 ## Assumptions and limitations
 
-Currently, most basic file system operations are supported. However, due to Alluxio implicit characteristics, please, be aware that:
+Currently, most basic file system operations are supported. However, due to Alluxio implicit characteristics, please be aware that:
 
-* Files can be written only once, only sequentially, and never be modified.
-* Due to the above, any further access to a file must be read-only.
-
-This translates in the following constraints on the UNIX system calls that will operate on the file system:
-
-### `open(const char* pathname, int flags, mode_t mode)` (see also `man 2 open`)
-
-If `pathname` indicates the path of a non-existing regular file in Alluxio, then an open will only succeed if:
-
-1. The base directory of `pathname` exists in Alluxio;
-2. `O_CREAT` and `O_WRONLY` are passed among the `flags` bitfield.
-
-Equivalently, `creat(const char* pathname )` calls will succeed as long as (1) holds and `pathname` does not exist yet.
-
-If `pathname`, instead, points to an existing regular file in Alluxio, then an open call will only succeed if:
-
-1. `O_RDONLY` is passed among the `flags` bitfield.
-
-Note that, in either cases, the `mode` parameter is currently ignored by Alluxio-FUSE.
-
-### `read(int fd, void* buf, size_t count)` (see also `man 2 read`)
-
-A read system call will only succeed when `fd` refers to an Alluxio file that has been previously opened with the `O_RDONLY` flags.
-
-### `lseek(int fd, off_t off, int whence)` (see also `man 2 lseek`)
-
-Seeking is supported only on files open for reading, i.e., on files that have been opened with an `O_RDONLY` flag.
-
-### `write(int fd, const void* buf, size_t count)` (see also `man 2 write`)
-
-A write system call will only succeed when `fd` refers to an Alluxio file that has been previously
-opened  with the `O_WRONLY` flag.
+* Files can be written only once, only sequentially, and never be modified. That means overriding a file is allowed, but a delete and then create combination is needed. For example, unlike the local file system, `cp srcFile dstFile` will fail with `dstFile already exists` exception when `dstFile` exists. 
+* Alluxio does not have hard-link and soft-link concepts, so the commands like `ln` are not supported, neither the hardlinks number is displayed in `ll` output.
+* The user and group are mapped to the Unix user and group only when Alluxio is configured to use shell-based mapping, by setting `alluxio.security.group.mapping.class` to `ShellBasedUnixGroupsMapping`. Otherwise `chown` and `chgrp` are no-ops, and `ll` will return the user and group as the one who started the alluxio-fuse process.
 
 ## Performance considerations
 
 Due to the conjunct use of FUSE and JNR, the performance of the mounted file system is expected to be worse than what you would see by using the `alluxio-core-client-fs` directly.
 
-Most of the problems come from the fact that there are several memory copies going on for each call on `read` or `write` operations, and that FUSE caps the maximum granularity of writes to 128KB. This could be probably improved by a large extent by leveraging the FUSE cache write-backs feature introduced in kernel 3.15 (not supported yet, however, by libfuse 2.x userspace libs).
+Most of the overheads come from the fact that there are several memory copies going on for each call on `read` or `write` operations, and that FUSE caps the maximum granularity of writes to 128KB. This could be probably improved by a large extent by leveraging the FUSE cache write-backs feature introduced in kernel 3.15 (not supported yet, however, by libfuse 2.x userspace libs).
 
 ## Configuration Parameters For Alluxio-FUSE
 
