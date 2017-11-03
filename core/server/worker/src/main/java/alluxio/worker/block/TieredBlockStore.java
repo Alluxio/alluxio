@@ -22,9 +22,9 @@ import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidWorkerStateException;
 import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.resource.LockResource;
+import alluxio.retry.CountingRetry;
 import alluxio.retry.RetryPolicy;
 import alluxio.retry.TimeoutRetry;
-import alluxio.util.CommonUtils;
 import alluxio.util.io.FileUtils;
 import alluxio.worker.block.allocator.Allocator;
 import alluxio.worker.block.evictor.BlockTransferInfo;
@@ -88,10 +88,14 @@ import javax.annotation.concurrent.NotThreadSafe;
 public class TieredBlockStore implements BlockStore {
   private static final Logger LOG = LoggerFactory.getLogger(TieredBlockStore.class);
 
+  private static final boolean RESERVER_ENABLED =
+      Configuration.getBoolean(PropertyKey.WORKER_TIERED_STORE_RESERVER_ENABLED);
   private static final int FREE_SPACE_TIMEOUT =
       Configuration.getInt(PropertyKey.WORKER_FREE_SPACE_TIMEOUT);
   private static final int EVICTION_INTERVAL_MS =
       Configuration.getInt(PropertyKey.WORKER_TIERED_STORE_RESERVER_INTERVAL_MS);
+  private static final int MAX_RETRIES =
+      Configuration.getInt(PropertyKey.WORKER_TIERED_STORE_RETRY);
 
   private final BlockMetadataManager mMetaManager;
   private final BlockLockManager mLockManager;
@@ -207,13 +211,26 @@ public class TieredBlockStore implements BlockStore {
   public TempBlockMeta createBlock(long sessionId, long blockId, BlockStoreLocation location,
       long initialBlockSize)
           throws BlockAlreadyExistsException, WorkerOutOfSpaceException, IOException {
-    RetryPolicy retryPolicy = new TimeoutRetry(FREE_SPACE_TIMEOUT, EVICTION_INTERVAL_MS);
-    while (retryPolicy.attemptRetry()) {
-      TempBlockMeta tempBlockMeta =
-          createBlockMetaInternal(sessionId, blockId, location, initialBlockSize, true);
-      if (tempBlockMeta != null) {
-        createBlockFile(tempBlockMeta.getPath());
-        return tempBlockMeta;
+    if (RESERVER_ENABLED) {
+      RetryPolicy retryPolicy = new TimeoutRetry(FREE_SPACE_TIMEOUT, EVICTION_INTERVAL_MS);
+      while (retryPolicy.attemptRetry()) {
+        TempBlockMeta tempBlockMeta =
+            createBlockMetaInternal(sessionId, blockId, location, initialBlockSize, true);
+        if (tempBlockMeta != null) {
+          createBlockFile(tempBlockMeta.getPath());
+          return tempBlockMeta;
+        }
+      }
+    } else {
+      RetryPolicy retryPolicy = new CountingRetry(MAX_RETRIES);
+      while (retryPolicy.attemptRetry()) {
+        TempBlockMeta tempBlockMeta =
+            createBlockMetaInternal(sessionId, blockId, location, initialBlockSize, true);
+        if (tempBlockMeta != null) {
+          createBlockFile(tempBlockMeta.getPath());
+          return tempBlockMeta;
+        }
+        freeSpaceInternal(sessionId, initialBlockSize, location);
       }
     }
     // TODO(bin): We are probably seeing a rare transient failure, maybe define and throw some
@@ -271,12 +288,24 @@ public class TieredBlockStore implements BlockStore {
   @Override
   public void requestSpace(long sessionId, long blockId, long additionalBytes)
       throws BlockDoesNotExistException, WorkerOutOfSpaceException, IOException {
-    RetryPolicy retryPolicy = new TimeoutRetry(FREE_SPACE_TIMEOUT, EVICTION_INTERVAL_MS);
-    while (retryPolicy.attemptRetry()) {
-      Pair<Boolean, BlockStoreLocation> requestResult =
-          requestSpaceInternal(blockId, additionalBytes);
-      if (requestResult.getFirst()) {
-        return;
+    if (RESERVER_ENABLED) {
+      RetryPolicy retryPolicy = new TimeoutRetry(FREE_SPACE_TIMEOUT, EVICTION_INTERVAL_MS);
+      while (retryPolicy.attemptRetry()) {
+        Pair<Boolean, BlockStoreLocation> requestResult =
+            requestSpaceInternal(blockId, additionalBytes);
+        if (requestResult.getFirst()) {
+          return;
+        }
+      }
+    } else {
+      RetryPolicy retryPolicy = new CountingRetry(MAX_RETRIES);
+      while (retryPolicy.attemptRetry()) {
+        Pair<Boolean, BlockStoreLocation> requestResult =
+            requestSpaceInternal(blockId, additionalBytes);
+        if (requestResult.getFirst()) {
+          return;
+        }
+        freeSpaceInternal(sessionId, additionalBytes, requestResult.getSecond());
       }
     }
     throw new WorkerOutOfSpaceException(ExceptionMessage.NO_SPACE_FOR_BLOCK_ALLOCATION,
@@ -295,17 +324,34 @@ public class TieredBlockStore implements BlockStore {
       BlockStoreLocation newLocation)
           throws BlockDoesNotExistException, BlockAlreadyExistsException,
           InvalidWorkerStateException, WorkerOutOfSpaceException, IOException {
-    RetryPolicy retryPolicy = new TimeoutRetry(FREE_SPACE_TIMEOUT, EVICTION_INTERVAL_MS);
-    while (retryPolicy.attemptRetry()) {
-      MoveBlockResult moveResult = moveBlockInternal(sessionId, blockId, oldLocation, newLocation);
-      if (moveResult.getSuccess()) {
-        synchronized (mBlockStoreEventListeners) {
-          for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
-            listener.onMoveBlockByClient(sessionId, blockId, moveResult.getSrcLocation(),
-                moveResult.getDstLocation());
+    if (RESERVER_ENABLED) {
+      RetryPolicy retryPolicy = new TimeoutRetry(FREE_SPACE_TIMEOUT, EVICTION_INTERVAL_MS);
+      while (retryPolicy.attemptRetry()) {
+        MoveBlockResult result = moveBlockInternal(sessionId, blockId, oldLocation, newLocation);
+        if (result.getSuccess()) {
+          synchronized (mBlockStoreEventListeners) {
+            for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
+              listener.onMoveBlockByClient(sessionId, blockId, result.getSrcLocation(),
+                  result.getDstLocation());
+            }
           }
+          return;
         }
-        return;
+      }
+    } else {
+      RetryPolicy retryPolicy = new CountingRetry(MAX_RETRIES);
+      while (retryPolicy.attemptRetry()) {
+        MoveBlockResult result = moveBlockInternal(sessionId, blockId, oldLocation, newLocation);
+        if (result.getSuccess()) {
+          synchronized (mBlockStoreEventListeners) {
+            for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
+              listener.onMoveBlockByClient(sessionId, blockId, result.getSrcLocation(),
+                  result.getDstLocation());
+            }
+          }
+          return;
+        }
+        freeSpaceInternal(sessionId, result.getBlockSize(), newLocation);
       }
     }
     throw new WorkerOutOfSpaceException(ExceptionMessage.NO_SPACE_FOR_BLOCK_MOVE, newLocation,
