@@ -129,7 +129,8 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
    * Changes the owner of an Alluxio file.
    *
    * This operation only works when the group mapping service is shelled based and the user is
-   * registered in unix. Otherwise it errors as not implemented.
+   * registered in unix. Otherwise it errors as not implemented. This is because the input uid and
+   * gid must match the user and group in Unix.
    */
   @Override
   public int chown(String path, @uid_t long uid, @gid_t long gid) {
