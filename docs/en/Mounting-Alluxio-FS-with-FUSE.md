@@ -9,14 +9,15 @@ priority: 7
 * Table of Contents
 {:toc}
 
-Alluxio-FUSE is a feature that allows mounting the distributed Alluxio File System as a standard file system on moust flavors of Unix. By using this feature, standard bash tools (for example, `ls`, `cat` or `mkdir`) will have basic access to the distributed Alluxio data store. More importantly, with FUSE, your application written in any language like C, C++, Python, Ruby, Perl, Java etc can interact with Alluxio by using standard POSIX libraries like open, write, read, without any Alluxio client integration or set up.
+Alluxio-FUSE is a feature that allows mounting the distributed Alluxio File System as a standard file system on most flavors of Unix. By using this feature, standard bash tools (for example, `ls`, `cat` or `mkdir`) will have basic access to the distributed Alluxio data store. More importantly, with FUSE your application written in any language like C, C++, Python, Ruby, Perl, Java etc can interact with Alluxio by using standard POSIX libraries like `open, write, read`, without any Alluxio client integration or set up.
 
-Alluxio-FUSE is based on the project [Filesystem in Userspace](http://fuse.sourceforge.net/) (FUSE). However, given the intrinsic characteristics of Alluxio, like its write-once/read-many-times file data model, the mounted file system will not have full POSIX semantics and will have specific limitations.  Please read the [section of limitations](#assumptions-and-limitations) for details.
+Alluxio-FUSE is based on the project [Filesystem in Userspace](http://fuse.sourceforge.net/) (FUSE), and most basic file system operations are supported. However, given the intrinsic characteristics of Alluxio, like its write-once/read-many-times file data model, the mounted file system will not have full POSIX semantics and will have specific limitations.  Please read the [section of limitations](#assumptions-and-limitations) for details.
 
 ## Requirements
 
 * JDK 1.8 or newer
-* [libfuse](https://github.com/libfuse/libfuse) 2.9.3 or newer (2.8.3 has been reported to also work - with some warnings) for Linux, or [osxfuse](https://osxfuse.github.io/) 3.7.1 or newer for MacOS
+* [libfuse](https://github.com/libfuse/libfuse) 2.9.3 or newer (2.8.3 has been reported to also work - with some warnings) for Linux
+* [osxfuse](https://osxfuse.github.io/) 3.7.1 or newer for MacOS
 
 ## Usage
 
@@ -36,9 +37,11 @@ Starting alluxio-fuse on local host.
 Alluxio-fuse mounted at /mnt/people. See /lib/alluxio/logs/fuse.log for logs
 ```
 
-When `alluxio_path` is not given, Alluxio-FUSE defaults it to root (`/`). Note that `mount_point` must be an existing and empty path in your local file system hierarchy and that the user that runs the `alluxio-fuse.sh` script must own the mount point and have read and write permissions on it. You can mount multiple mount points, and all of these alluxio-fuse processes share the same log output at `$ALLUXIO_HOME\logs\fuse.log`.
+When `alluxio_path` is not given, Alluxio-FUSE defaults it to root (`/`). Note that the `mount_point` must be an existing and empty path in your local file system hierarchy and that the user that runs the `alluxio-fuse.sh` script must own the mount point and have read and write permissions on it. You can mount Alluxio to multiple mount points, and all of these alluxio-fuse processes share the same log output at `$ALLUXIO_HOME\logs\fuse.log`.
 
 ### Unmount Alluxio-FUSE
+
+To list the mounting points, on the node where the file system is mounted, point a shell to your `$ALLUXIO_HOME` and run:
 
 To umount a previoulsy mounted Alluxio-FUSE file sytem, on the node where the file system is mounted, point a shell to your `$ALLUXIO_HOME` and run:
 
@@ -65,9 +68,9 @@ pid	mount_point	alluxio_path
 80847	/mnt/sales	/sales
 ```
 
-### Optional configuration steps
+## Optional configuration steps
 
-Alluxio-FUSE is based on the standard java `alluxio-core-client-fs` to perform its operations. You
+Alluxio-FUSE is based on the standard Java client API `alluxio-core-client-fs` to perform its operations. You
 might want to customize the behaviour of the alluxio client used by Alluxio-FUSE the same way you
 would for any other client application.
 
@@ -77,9 +80,9 @@ One possibility, for example, is to edit `$ALLUXIO_HOME/conf/alluxio-site.proper
 
 Currently, most basic file system operations are supported. However, due to Alluxio implicit characteristics, please be aware that:
 
-* Files can be written only once, only sequentially, and never be modified. That means overriding a file is allowed, but a delete and then create combination is needed. For example, unlike the local file system, `cp srcFile dstFile` will fail with `dstFile already exists` exception when `dstFile` exists. 
+* Files can be written only once, only sequentially, and never be modified. That means overriding a file is allowed, and an explicit combination of delete and then create is needed. For example, `cp` command will fail when the destination file exists. 
 * Alluxio does not have hard-link and soft-link concepts, so the commands like `ln` are not supported, neither the hardlinks number is displayed in `ll` output.
-* The user and group are mapped to the Unix user and group only when Alluxio is configured to use shell-based mapping, by setting `alluxio.security.group.mapping.class` to `ShellBasedUnixGroupsMapping`. Otherwise `chown` and `chgrp` are no-ops, and `ll` will return the user and group as the one who started the alluxio-fuse process.
+* The user and group are mapped to the Unix user and group only when Alluxio is configured to use shell-based mapping, by setting `alluxio.security.group.mapping.class` to `ShellBasedUnixGroupsMapping` in `conf/alluxio-site.properties`. Otherwise `chown` and `chgrp` are no-ops, and `ll` will return the user and group as the one who started the alluxio-fuse process.
 
 ## Performance considerations
 
