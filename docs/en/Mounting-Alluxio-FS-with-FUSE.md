@@ -33,7 +33,7 @@ For example, the following command will mount the alluxio path `/people` to the 
 ```bash
 $ integration/fuse/bin/alluxio-fuse mount /mnt/people /people
 Starting alluxio-fuse on local host.
-Alluxio-fuse mounted at /mnt/fuse. See /Users/richbird/git/tachyon/logs/fuse.log for logs
+Alluxio-fuse mounted at /mnt/people. See /lib/alluxio/logs/fuse.log for logs
 ```
 
 When `alluxio_path` is not given, Alluxio-FUSE defaults it to root (`/`). Note that `mount_point` must be an existing and empty path in your local file system hierarchy and that the user that runs the `alluxio-fuse.sh` script must own the mount point and have read and write permissions on it. You can mount multiple mount points, and all of these alluxio-fuse processes share the same log output at `$ALLUXIO_HOME\logs\fuse.log`.
@@ -44,9 +44,14 @@ To umount a previoulsy mounted Alluxio-FUSE file sytem, on the node where the fi
 
 {% include Mounting-Alluxio-FS-with-FUSE/alluxio-fuse-umount.md %}
 
-This unmounts the file system at the mounting point and stops the corresponding alluxio-fuse process.
+This unmounts the file system at the mounting point and stops the corresponding alluxio-fuse process. For example,
 
-### Check if Alluxio-FUSE is running
+```bash
+$ integration/fuse/bin/alluxio-fuse umount /mnt/people
+Unmount fuse at /mnt/people (PID: 97626).
+```
+
+### Check the Alluxio-FUSE mounting status
 
 {% include Mounting-Alluxio-FS-with-FUSE/alluxio-fuse-stat.md %}
 
