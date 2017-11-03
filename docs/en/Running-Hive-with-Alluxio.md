@@ -27,31 +27,38 @@ MapReduce can run with Alluxio.
 
 ## Configure Hive
 
-First of all, set `HIVE_AUX_JARS_PATH` either in shell or `conf/hive-env.sh`:
+We recommend you to download the tarball from
+Alluxio [download page](http://www.alluxio.org/download).
+Alternatively, advanced users can choose to compile this client jar from the source code
+by following Follow the instructs [here](Building-Alluxio-Master-Branch.html#compute-framework-support).
+The Alluxio client jar can be found at `{{site.ALLUXIO_CLIENT_JAR_PATH}}`.
+
+Set `HIVE_AUX_JARS_PATH` either in shell or `conf/hive-env.sh`:
 
 ```bash
 export HIVE_AUX_JARS_PATH={{site.ALLUXIO_CLIENT_JAR_PATH}}:${HIVE_AUX_JARS_PATH}
 ```
 
-Alternatively, advanced users can choose to compile this client jar from the source code. Follow the instructs [here](Building-Alluxio-Master-Branch.html#compute-framework-support) and use the generated jar at `{{site.ALLUXIO_CLIENT_JAR_PATH_BUILD}}` for the rest of this guide.
+## 1 Use Alluxio as One Option to Store Hive Tables
 
-## Create Hive Tables on Alluxio
+There are different ways to integrate Hive with Alluxio. This section talks about how to use Alluxio
+as one of the filesystems (like HDFS) to store Hive tables. These tables can be either
+[internal (managed) or external](https://cwiki.apache.org/confluence/display/Hive/LanguageManual+DDL#LanguageManualDDL-ManagedandExternalTables),
+either new tables to create or tables alreay exist in HDFS.
+The [next section](Running-Hive-with-Alluxio.html#use-alluxio-as-default-filesystem) talks about
+how to use Alluxio as the default file system
+for Hive. In the following sections, Hive is running on Hadoop MapReduce in this documentation.
 
-There are different ways to integrate Hive with Alluxio, as storage for
-[internal (managed) or external tables](https://cwiki.apache.org/confluence/display/Hive/LanguageManual+DDL#LanguageManualDDL-ManagedandExternalTables),
-newly created or existing tables. Alluxio can also be used as the default file system
-for Hive. In the following sections, we will describe how to use Hive with Alluxio for these use
-cases. Hive is running on Hadoop MapReduce in this documentation.
-*Tips：All the following Hive CLI examples are also applicable to Hive Beeline. You can try these commands out in Beeline shell.*
+> Tips：All the following Hive CLI examples are also applicable to Hive Beeline. You can try these commands out in Beeline shell.
 
-### Create New Tables from Files in Alluxio
+### Create New Tables from Alluxio Files
 
 Hive can create new tables from files stored on Alluxio. The setup is fairly straightforward
 and the change is also isolated from other Hive tables. An example use case is to store frequently
 used Hive tables in Alluxio for high throughput and low latency by serving these files from memory
 storage.
 
-#### Hive CLI examples for New Internal Table
+#### Example: Create a New Internal Table
 
 Here is an example to create an internal table in Hive backed by files in Alluxio.
 You can download a data file (e.g., `ml-100k.zip`) from
@@ -77,7 +84,7 @@ FIELDS TERMINATED BY '|'
 LOCATION 'alluxio://master_hostname:port/ml-100k';
 ```
 
-#### Hive CLI examples for New External Table
+#### Example: Create a New External Table
 
 Make the same setup as the previous example, and create a new external table:
 
@@ -103,7 +110,7 @@ Now you can query the created table. For example:
 hive> select * from u_user;
 ```
 
-### Use Alluxio for Existing Tables Stored in HDFS
+### Map Existing Tables Stored in HDFS to Alluxio
 
 When Hive is already serving and managing the tables stored in HDFS,
 Alluxio can also serve them for Hive if HDFS is mounted as the under storage of Alluxio.
@@ -112,7 +119,7 @@ Alluxio root directory (i.e., property `alluxio.underfs.address=hdfs://namenode:
 is set in `conf/alluxio-site.properties`). Please refer to
 [unified namespace](Unified-and-Transparent-Namespace.html) for more details about mount operation.
 
-#### Hive CLI examples for Existing Internal Table
+#### Example: Move an Internal Table from HDFS to Alluxio
 
 We assume that the `hive.metastore.warehouse.dir` property is set to `/user/hive/warehouse` which
 is the default value, and the internal table is already created like this:
@@ -148,7 +155,7 @@ first time will be translated to access corresponding files in
 the data is cached in Alluxio, Alluxio will serve them for follow-up queries without loading data
 again from HDFS. The entire process is transparent to Hive and users.
 
-#### Hive CLI examples for Existing External Table
+#### Example: Move an External Table from HDFS to Alluxio
 
 Assume there is an existing external table `u_user` in Hive with location set to
 `hdfs://namenode_hostname:port/ml-100k`.
@@ -164,7 +171,7 @@ Then use the following HiveQL statement to change the table data location from H
 hive> alter table u_user set location "alluxio://master_hostname:port/ml-100k";
 ```
 
-### Change Back the Table Metadata to HDFS
+#### Example: Move an Alluxio Table Back to HDFS
 
 In both cases above about changing table data location to Alluxio, you can also change the table
 location back to HDFS:
@@ -173,7 +180,11 @@ location back to HDFS:
 hive> alter table TABLE_NAME set location "hdfs://namenode:port/table/path/in/HDFS";
 ```
 
-## Use Alluxio as Default Filesystem
+Instructions and examples till here illustrate how to use Alluxio as one of the filesystems to store
+tables in Hive, together with other filesystems like HDFS. They do not require to change the global
+setting in Hive such as the default filesystem which is covered in the next section.
+
+## 2 Use Alluxio as the Default Filesystem
 
 Apache Hive can also use Alluxio through a generic file system interface to replace the
 Hadoop file system. In this way, the Hive uses Alluxio as the default file system and its internal
@@ -242,7 +253,7 @@ $ ./bin/alluxio fs chmod 775 /user/hive/warehouse
 Then you can follow the
 [Hive documentation](https://cwiki.apache.org/confluence/display/Hive/GettingStarted) to use Hive.
 
-### Hive CLI examples
+### Example: Create a Table
 
 Create a table in Hive and load a file in local path into Hive:
 
