@@ -34,13 +34,13 @@ public final class GreedyAllocator implements Allocator {
    * @param view {@link BlockMetadataManagerView} to pass to the allocator
    */
   public GreedyAllocator(BlockMetadataManagerView view) {
-    mManagerView = Preconditions.checkNotNull(view);
+    mManagerView = Preconditions.checkNotNull(view, "view");
   }
 
   @Override
   public StorageDirView allocateBlockWithView(long sessionId, long blockSize,
       BlockStoreLocation location, BlockMetadataManagerView view) {
-    mManagerView = Preconditions.checkNotNull(view);
+    mManagerView = Preconditions.checkNotNull(view, "view");
     return allocateBlock(sessionId, blockSize, location);
   }
 
@@ -57,7 +57,7 @@ public final class GreedyAllocator implements Allocator {
    */
   private StorageDirView allocateBlock(long sessionId, long blockSize,
       BlockStoreLocation location) {
-    Preconditions.checkNotNull(location);
+    Preconditions.checkNotNull(location, "location");
     if (location.equals(BlockStoreLocation.anyTier())) {
       // When any tier is ok, loop over all tier views and dir views,
       // and return a temp block meta from the first available dirview.

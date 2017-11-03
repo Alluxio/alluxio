@@ -239,7 +239,8 @@ The `leader` command prints the current Alluxio leader master host name.
 
 ### load
 
-The `load` command moves data from the under storage system into Alluxio storage. If there is a Alluxio worker on the machine this command is run from, the data will be loaded to that worker. Otherwise, a random worker will be selected to serve the data. Load will no-op if the file is already in Alluxio memory level storage. If `load` is run on a directory, files in the directory will be recursively loaded.
+The `load` command moves data from the under storage system into Alluxio storage. If there is a Alluxio worker on the machine this command is run from, the data will be loaded to that worker. Otherwise, a random worker will be selected to serve the data.
+If the data is already loaded into Alluxio, load is a no-op unless the `--local flag` is used, it means that the `--local` flag will load data to a local worker even if the data is already available on remote workers. If `load` is run on a directory, files in the directory will be recursively loaded.
 
 For example, `load` can be used to prefetch data for analytics jobs.
 

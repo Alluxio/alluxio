@@ -24,6 +24,7 @@ import alluxio.client.WriteType;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.multi.process.MultiProcessCluster;
+import alluxio.multi.process.MultiProcessCluster.DeployMode;
 import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.UnderFileSystemFactory;
 import alluxio.underfs.UnderFileSystemFactoryRegistry;
@@ -122,7 +123,7 @@ public class JournalShutdownIntegrationTest extends BaseIntegrationTest {
         .setClusterName("multiMasterJournalStopIntegration")
         .setNumWorkers(0)
         .setNumMasters(TEST_NUM_MASTERS)
-        .addProperty(PropertyKey.ZOOKEEPER_ENABLED, "true")
+        .setDeployMode(DeployMode.ZOOKEEPER_HA)
         // Cannot go lower than 2x the tick time. Curator testing cluster tick time is 3s and cannot
         // be overridden until later versions of Curator.
         .addProperty(PropertyKey.ZOOKEEPER_SESSION_TIMEOUT, "6s")
