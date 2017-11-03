@@ -9,7 +9,7 @@ priority: 7
 * Table of Contents
 {:toc}
 
-Alluxio-FUSE is a feature that allows mounting the distributed Alluxio File System as a standard file system on moust flavors of Unix. By using this feature, standard tools (for example, `ls`, `cat` or `mkdir`) and POSIX libraries like open, write, read will have basic access to the distributed Alluxio data store.
+Alluxio-FUSE is a feature that allows mounting the distributed Alluxio File System as a standard file system on moust flavors of Unix. By using this feature, standard bash tools (for example, `ls`, `cat` or `mkdir`) will have basic access to the distributed Alluxio data store. More importantly, with FUSE, your application written in any language like C, C++, Python, Ruby, Perl, Java etc can interact with Alluxio by using standard POSIX libraries like open, write, read, without any Alluxio client integration or set up.
 
 Alluxio-FUSE is based on the project [Filesystem in Userspace](http://fuse.sourceforge.net/) (FUSE). However, given the intrinsic characteristics of Alluxio, like its write-once/read-many-times file data model, the mounted file system will not have full POSIX semantics and will have specific limitations.  Please read the [section of limitations](#assumptions-and-limitations) for details.
 
@@ -31,7 +31,9 @@ This will spawn a background user-space java process (alluxio-fuse) that will mo
 For example, the following command will mount the alluxio path `/people` to the folder `/mnt/people` in the local file system.
 
 ```bash
-$ integration/fuse/bin/alluxio-fuse.sh mount /mnt/people /people
+$ integration/fuse/bin/alluxio-fuse mount /mnt/people /people
+Starting alluxio-fuse on local host.
+Alluxio-fuse mounted at /mnt/fuse. See /Users/richbird/git/tachyon/logs/fuse.log for logs
 ```
 
 When `alluxio_path` is not given, Alluxio-FUSE defaults it to root (`/`). Note that `mount_point` must be an existing and empty path in your local file system hierarchy and that the user that runs the `alluxio-fuse.sh` script must own the mount point and have read and write permissions on it. You can mount multiple mount points, and all of these alluxio-fuse processes share the same log output at `$ALLUXIO_HOME\logs\fuse.log`.
