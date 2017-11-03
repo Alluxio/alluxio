@@ -1,3 +1,3 @@
 ```bash
-$ integration/fuse/bin/alluxio-fuse.sh mount mount_point [alluxio_path]
+$ integration/fuse/bin/alluxio-fuse mount mount_point [alluxio_path]
 ```
