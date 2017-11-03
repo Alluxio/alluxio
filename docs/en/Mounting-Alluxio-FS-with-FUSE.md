@@ -26,7 +26,15 @@ After having properly configured and started the alluxio cluster, and from the n
 
 {% include Mounting-Alluxio-FS-with-FUSE/alluxio-fuse-mount.md %}
 
-This will spawn a background user-space java process (alluxio-fuse) that will mount the file system on the specified `<mount_point>`. Note that `<mount_point>` must be an existing and empty path in your local file system hierarchy and that the user that runs the `alluxio-fuse.sh` script must own the mount point and have read and write permissions on it. Also note that, currently, you are limited to have only one Alluxio-FUSE mount per node.
+This will spawn a background user-space java process (alluxio-fuse) that will mount the file system on the specified `mount_point` to the `alluxio_path`. 
+
+For example, the following command will mount the alluxio path `/people` to the folder `/mnt/people` in the local file system.
+
+```bash
+$ integration/fuse/bin/alluxio-fuse.sh mount /mnt/people /people
+```
+
+When `alluxio_path` is not given, Alluxio-FUSE defaults it to root (`/`). Note that `mount_point` must be an existing and empty path in your local file system hierarchy and that the user that runs the `alluxio-fuse.sh` script must own the mount point and have read and write permissions on it. You can mount multiple mount points, and all of these alluxio-fuse processes share the same log output at `$ALLUXIO_HOME\logs\fuse.log`.
 
 ### Unmount Alluxio-FUSE
 
@@ -34,11 +42,21 @@ To umount a previoulsy mounted Alluxio-FUSE file sytem, on the node where the fi
 
 {% include Mounting-Alluxio-FS-with-FUSE/alluxio-fuse-umount.md %}
 
-This will stop the background alluxio-fuse java process and unmount the file system.
+This unmounts the file system at the mounting point and stops the corresponding alluxio-fuse process.
 
 ### Check if Alluxio-FUSE is running
 
 {% include Mounting-Alluxio-FS-with-FUSE/alluxio-fuse-stat.md %}
+
+This outputs the `pid, mount_point, alluxio_path` of all the running alluxio-fuse processes.
+
+For example, the output will be like:
+
+```bash
+pid	mount_point	alluxio_path
+80846	/mnt/people	/people
+80847	/mnt/sales	/sales
+```
 
 ### Optional configuration steps
 
@@ -46,7 +64,7 @@ Alluxio-FUSE is based on the standard java `alluxio-core-client-fs` to perform i
 might want to customize the behaviour of the alluxio client used by Alluxio-FUSE the same way you
 would for any other client application.
 
-One possibility, for example, is to edit `$ALLUXIO_HOME/integration/fuse/bin/alluxio-fuse.sh` and add your specific alluxio client options in the `ALLUXIO_JAVA_OPTS` variable.
+One possibility, for example, is to edit `$ALLUXIO_HOME/conf/alluxio-site.properties` and set your specific alluxio client options.
 
 ## Assumptions and limitations
 
