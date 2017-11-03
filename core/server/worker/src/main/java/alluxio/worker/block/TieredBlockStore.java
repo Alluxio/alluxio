@@ -87,7 +87,9 @@ public class TieredBlockStore implements BlockStore {
   private static final Logger LOG = LoggerFactory.getLogger(TieredBlockStore.class);
 
   private static final int MAX_RETRIES =
-          Configuration.getInt(PropertyKey.WORKER_TIERED_STORE_RETRY);
+      Configuration.getInt(PropertyKey.WORKER_TIERED_STORE_RETRY);
+  private static final int EVICTION_INTERVAL_MS =
+      Configuration.getInt(PropertyKey.WORKER_TIERED_STORE_RESERVER_INTERVAL_MS);
 
   private final BlockMetadataManager mMetaManager;
   private final BlockLockManager mLockManager;
