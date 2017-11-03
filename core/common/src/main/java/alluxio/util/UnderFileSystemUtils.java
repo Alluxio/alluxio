@@ -15,8 +15,6 @@ import alluxio.AlluxioURI;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.DeleteOptions;
 
-import com.google.common.base.Throwables;
-
 import java.io.IOException;
 import java.io.OutputStream;
 
@@ -79,7 +77,7 @@ public final class UnderFileSystemUtils {
         ufs.deleteFile(path);
       }
     } catch (IOException e) {
-      throw Throwables.propagate(e);
+      throw new RuntimeException(e);
     }
   }
 
