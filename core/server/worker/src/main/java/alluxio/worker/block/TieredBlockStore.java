@@ -221,6 +221,8 @@ public class TieredBlockStore implements BlockStore {
           return tempBlockMeta;
         }
       }
+      throw new WorkerOutOfSpaceException(ExceptionMessage.NO_SPACE_FOR_BLOCK_ALLOCATION_TIMEOUT,
+          initialBlockSize, FREE_SPACE_TIMEOUT, blockId);
     } else {
       RetryPolicy retryPolicy = new CountingRetry(MAX_RETRIES);
       while (retryPolicy.attemptRetry()) {
@@ -232,11 +234,10 @@ public class TieredBlockStore implements BlockStore {
         }
         freeSpaceInternal(sessionId, initialBlockSize, location);
       }
+      throw new WorkerOutOfSpaceException(
+          ExceptionMessage.NO_SPACE_FOR_BLOCK_ALLOCATION_RETRIES_EXCEEDED, initialBlockSize,
+          MAX_RETRIES, blockId);
     }
-    // TODO(bin): We are probably seeing a rare transient failure, maybe define and throw some
-    // other types of exception to indicate this case.
-    throw new WorkerOutOfSpaceException(ExceptionMessage.NO_SPACE_FOR_BLOCK_ALLOCATION,
-        initialBlockSize, FREE_SPACE_TIMEOUT, blockId);
   }
 
   // TODO(bin): Make this method to return a snapshot.
@@ -297,6 +298,8 @@ public class TieredBlockStore implements BlockStore {
           return;
         }
       }
+      throw new WorkerOutOfSpaceException(ExceptionMessage.NO_SPACE_FOR_BLOCK_ALLOCATION_TIMEOUT,
+          additionalBytes, FREE_SPACE_TIMEOUT, blockId);
     } else {
       RetryPolicy retryPolicy = new CountingRetry(MAX_RETRIES);
       while (retryPolicy.attemptRetry()) {
@@ -307,9 +310,10 @@ public class TieredBlockStore implements BlockStore {
         }
         freeSpaceInternal(sessionId, additionalBytes, requestResult.getSecond());
       }
+      throw new WorkerOutOfSpaceException(
+          ExceptionMessage.NO_SPACE_FOR_BLOCK_ALLOCATION_RETRIES_EXCEEDED, additionalBytes,
+          MAX_RETRIES, blockId);
     }
-    throw new WorkerOutOfSpaceException(ExceptionMessage.NO_SPACE_FOR_BLOCK_ALLOCATION,
-        additionalBytes, FREE_SPACE_TIMEOUT, blockId);
   }
 
   @Override
@@ -338,6 +342,8 @@ public class TieredBlockStore implements BlockStore {
           return;
         }
       }
+      throw new WorkerOutOfSpaceException(ExceptionMessage.NO_SPACE_FOR_BLOCK_MOVE_TIMEOUT,
+          newLocation, blockId, FREE_SPACE_TIMEOUT);
     } else {
       RetryPolicy retryPolicy = new CountingRetry(MAX_RETRIES);
       while (retryPolicy.attemptRetry()) {
@@ -353,9 +359,9 @@ public class TieredBlockStore implements BlockStore {
         }
         freeSpaceInternal(sessionId, result.getBlockSize(), newLocation);
       }
+      throw new WorkerOutOfSpaceException(ExceptionMessage.NO_SPACE_FOR_BLOCK_MOVE_RETRIES_EXCEEDED,
+          newLocation, blockId, MAX_RETRIES);
     }
-    throw new WorkerOutOfSpaceException(ExceptionMessage.NO_SPACE_FOR_BLOCK_MOVE, newLocation,
-        blockId, FREE_SPACE_TIMEOUT);
   }
 
   @Override
