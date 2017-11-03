@@ -86,8 +86,8 @@ import javax.annotation.concurrent.NotThreadSafe;
 public class TieredBlockStore implements BlockStore {
   private static final Logger LOG = LoggerFactory.getLogger(TieredBlockStore.class);
 
-  private static final int MAX_RETRIES =
-      Configuration.getInt(PropertyKey.WORKER_TIERED_STORE_RETRY);
+  private static final int FREE_SPACE_TIMEOUT =
+      Configuration.getInt(PropertyKey.WORKER_FREE_SPACE_TIMEOUT);
   private static final int EVICTION_INTERVAL_MS =
       Configuration.getInt(PropertyKey.WORKER_TIERED_STORE_RESERVER_INTERVAL_MS);
 
