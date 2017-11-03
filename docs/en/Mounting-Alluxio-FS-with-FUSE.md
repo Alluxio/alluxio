@@ -1,31 +1,22 @@
 ---
 layout: global
-title: (Experimental) Mounting Alluxio with FUSE
-nickname: (Experimental) Alluxio-FUSE
+title: Mounting Alluxio with FUSE
+nickname: Alluxio-FUSE
 group: Features
-priority: 99
+priority: 7
 ---
 
 * Table of Contents
 {:toc}
 
-Alluxio-FUSE is a new experimental feature that allows mounting the distributed Alluxio File System within the local file system hierarchy of a Linux node. By using this feature, standard tools (for example, `ls`, `cat` or `echo`) and legacy POSIX applications will have basic access to the distributed Alluxio data store.
+Alluxio-FUSE is a feature that allows mounting the distributed Alluxio File System as a standard file system on moust flavors of Unix. By using this feature, standard tools (for example, `ls`, `cat` or `mkdir`) and POSIX libraries like open, write, read will have basic access to the distributed Alluxio data store.
 
-Given the intrinsic characteristics of Alluxio, like its write-once/read-many-times file data model, the mounted file system will not have full POSIX semantics and will have specific limitations.  Please, read the rest of this document before using this feature to understand what it can and cannot do for you.
+Alluxio-FUSE is based on the project [Filesystem in Userspace](http://fuse.sourceforge.net/) (FUSE). However, given the intrinsic characteristics of Alluxio, like its write-once/read-many-times file data model, the mounted file system will not have full POSIX semantics and will have specific limitations.  Please read the [section of limitations](#assumptions-and-limitations) for details.
 
 ## Requirements
 
-* Linux kernel 2.6.9 or newer
 * JDK 1.8 or newer
-* [libfuse](https://github.com/libfuse/libfuse) 2.9.3 or newer (2.8.3 has been reported to also work - with some warnings)
-
-## Building
-
-alluxio-fuse is only built with Alluxio when the `fuse` maven profile is active. This profile will be automatically activated by maven when it is detected that you are building Alluxio with a JDK version 8 or newer.
-
-For compatibility with Java 7, binary alluxio distributions may ship without alluxio-fuse support, so you will need to build your own Alluxio if you want to use alluxio-fuse on your deployment.
-
-The best way to do so is to either clone the Alluxio [GitHub repository](https://github.com/alluxio/alluxio) and choose your favourite branch from git, or to grab a [source distribution](https://github.com/alluxio/alluxio/releases) directly. Please, refer to [this page](Building-Alluxio-Master-Branch.html)) for building instructions.
+* [libfuse](https://github.com/libfuse/libfuse) 2.9.3 or newer (2.8.3 has been reported to also work - with some warnings) for Linux, or [osxfuse](https://osxfuse.github.io/) 3.7.1 or newer for MacOS
 
 ## Usage
 
@@ -57,7 +48,7 @@ would for any other client application.
 
 One possibility, for example, is to edit `$ALLUXIO_HOME/integration/fuse/bin/alluxio-fuse.sh` and add your specific alluxio client options in the `ALLUXIO_JAVA_OPTS` variable.
 
-## Operational assumptions and status
+## Assumptions and limitations
 
 Currently, most basic file system operations are supported. However, due to Alluxio implicit characteristics, please, be aware that:
 
@@ -114,6 +105,12 @@ These are the configuration parameters for Alluxio-FUSE.
   </tr>
 {% endfor %}
 </table>
+
+## Building manually
+
+You can build Alluxio-FUSE with the maven profile `fuse`. This profile will be automatically activated by maven when it is detected that you are building Alluxio with a JDK version 8 or newer. For compatibility with Java 7, binary Alluxio distributions for Java 7 ship without alluxio-fuse support.
+
+The best way to do so is to either clone the Alluxio [GitHub repository](https://github.com/alluxio/alluxio) and choose your favourite branch from git, or to grab a [source distribution](https://github.com/alluxio/alluxio/releases) directly. Please refer to [this page](Building-Alluxio-Master-Branch.html)) for building instructions.
 
 ## Acknowledgements
 
