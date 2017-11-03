@@ -94,13 +94,30 @@ public class FileInStream extends InputStream
   private final boolean mShouldCache;
 
   // The following variables should be kept in sync in updateStreams.
+  //
+  // When {@link #mPositionState} is updated, the other variables are not updated until
+  // {@link #updateStreams()} is called, so
+  // 1. {@link PositionState#getBlockId()} may not equal {@link #mCurrentBlockId}
+  // 2. {@link PositionState#getBlockStartPos()} may not equal {@link #mCurrentBlockStartPosck}
+  // 3. {@link PositionState#getNextBlockStartPos()} may not equal {@link #mCurrentBlockEndPos}
+  //
+  // The above values are equal only after {@link #updateStreams()} is called.
   /** Position states. */
   protected PositionState mPositionState;
   /** Current block ID. */
   private long mCurrentBlockId = UNINITIALIZED_BLOCK_ID;
-  /** Current block's start position. */
+  /**
+   * Current block's start position.
+   * It is in sync with {@link #mCurrentBlockInStream} and {@link #mCurrentBlockId},
+   * This variable and {@link #mCurrentBlockEndPos} are used in
+   * {@link #seekInternalWithCachingPartiallyReadBlock(long)} to determine whether the
+   * target position is in the current block stream. Otherwise, {@link #getBlockId(long)}
+   * needs to be called which has more CPU cost.
+   */
   private long mCurrentBlockStartPos = UNINITIALIZED_BLOCK_POS;
-  /** Current block's end position (exclusive). */
+  /**
+   * Current block's end position (exclusive).
+   */
   private long mCurrentBlockEndPos = UNINITIALIZED_BLOCK_POS;
   /** Current block in stream backing this stream. */
   protected BlockInStream mCurrentBlockInStream;
