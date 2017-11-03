@@ -916,6 +916,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("The maximum number of sub-directories allowed to be created in "
               + "alluxio.worker.data.tmp.folder.")
           .build();
+  public static final PropertyKey WORKER_FREE_SPACE_TIMEOUT =
+      new Builder(Name.WORKER_FREE_SPACE_TIMEOUT)
+          .setDefaultValue("10sec")
+          .setDescription("The duration for which a worker will wait for eviction to make space "
+              + "available for a client write request.")
+          .build();
   public static final PropertyKey WORKER_EVICTOR_CLASS =
       new Builder(Name.WORKER_EVICTOR_CLASS)
           .setDefaultValue("alluxio.worker.block.evictor.LRUEvictor")
@@ -2115,6 +2121,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.worker.data.server.domain.socket.address";
     public static final String WORKER_DATA_TMP_FOLDER = "alluxio.worker.data.folder.tmp";
     public static final String WORKER_DATA_TMP_SUBDIR_MAX = "alluxio.worker.data.tmp.subdir.max";
+    public static final String WORKER_FREE_SPACE_TIMEOUT = "alluxio.worker.free.space.timeout";
     public static final String WORKER_EVICTOR_CLASS = "alluxio.worker.evictor.class";
     public static final String WORKER_EVICTOR_LRFU_ATTENUATION_FACTOR =
         "alluxio.worker.evictor.lrfu.attenuation.factor";
