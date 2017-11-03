@@ -90,10 +90,10 @@ public class TieredBlockStore implements BlockStore {
 
   private static final boolean RESERVER_ENABLED =
       Configuration.getBoolean(PropertyKey.WORKER_TIERED_STORE_RESERVER_ENABLED);
-  private static final int FREE_SPACE_TIMEOUT =
-      Configuration.getInt(PropertyKey.WORKER_FREE_SPACE_TIMEOUT);
+  private static final long FREE_SPACE_TIMEOUT =
+      Configuration.getMs(PropertyKey.WORKER_FREE_SPACE_TIMEOUT);
   private static final int EVICTION_INTERVAL_MS =
-      Configuration.getInt(PropertyKey.WORKER_TIERED_STORE_RESERVER_INTERVAL_MS);
+      (int) Configuration.getMs(PropertyKey.WORKER_TIERED_STORE_RESERVER_INTERVAL_MS);
   private static final int MAX_RETRIES =
       Configuration.getInt(PropertyKey.WORKER_TIERED_STORE_RETRY);
 
