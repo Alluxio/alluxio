@@ -73,7 +73,7 @@ public enum PreconditionMessage {
   URI_HOST_NULL("URI hostname must not be null"),
   URI_PORT_NULL("URI port must not be null"),
   URI_KEY_VALUE_STORE_NULL("URI of key-value store must not be null"),
-
+  URI_SCHEME_MISMATCH("URI scheme %s does not match the expected scheme %s"),
   // SEMICOLON! minimize merge conflicts by putting it on its own line
   ;
 
