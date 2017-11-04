@@ -11,6 +11,8 @@
 
 package alluxio.underfs;
 
+import javax.annotation.Nullable;
+
 /**
  * Interface for under file system factories.
  */
@@ -25,7 +27,7 @@ public interface UnderFileSystemFactory {
    * @param conf optional configuration object for the UFS, may be null
    * @return the client
    */
-  UnderFileSystem create(String path, UnderFileSystemConfiguration conf);
+  UnderFileSystem create(String path, @Nullable UnderFileSystemConfiguration conf);
 
   /**
    * Gets whether this factory supports the given path and thus whether calling the
@@ -34,5 +36,18 @@ public interface UnderFileSystemFactory {
    * @param path file path
    * @return true if the path is supported, false otherwise
    */
+  @Deprecated
   boolean supportsPath(String path);
+
+  /**
+   * Gets whether this factory supports the given path and thus whether calling the
+   * {@link #create(String, UnderFileSystemConfiguration)} can succeed for this path.
+   *
+   * @param path file path
+   * @param conf optional configuration object for the UFS, may be null
+   * @return true if the path is supported, false otherwise
+   */
+  default boolean supportsPath(String path, @Nullable UnderFileSystemConfiguration conf) {
+    return supportsPath(path);
+  }
 }
