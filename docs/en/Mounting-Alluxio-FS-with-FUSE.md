@@ -9,7 +9,7 @@ priority: 7
 * Table of Contents
 {:toc}
 
-Alluxio-FUSE is a feature that allows mounting the distributed Alluxio File System as a standard file system on most flavors of Unix. By using this feature, standard bash tools (for example, `ls`, `cat` or `mkdir`) will have basic access to the distributed Alluxio data store. More importantly, with FUSE your application written in any language like C, C++, Python, Ruby, Perl, Java etc can interact with Alluxio by using standard POSIX libraries like `open, write, read`, without any Alluxio client integration or set up.
+Alluxio-FUSE is a feature that allows mounting the distributed Alluxio File System as a standard file system on most flavors of Unix. By using this feature, standard bash tools (for example, `ls`, `cat` or `mkdir`) will have basic access to the distributed Alluxio data store. More importantly, with FUSE your application written in any language like C, C++, Python, Ruby, Perl, Java etc can interact with Alluxio by using standard POSIX APIs like `open, write, read`, without any Alluxio client integration or set up.
 
 Alluxio-FUSE is based on the project [Filesystem in Userspace](http://fuse.sourceforge.net/) (FUSE), and most basic file system operations are supported. However, given the intrinsic characteristics of Alluxio, like its write-once/read-many-times file data model, the mounted file system will not have full POSIX semantics and will have specific limitations.  Please read the [section of limitations](#assumptions-and-limitations) for details.
 
@@ -27,7 +27,7 @@ After having properly configured and started the alluxio cluster, and from the n
 
 {% include Mounting-Alluxio-FS-with-FUSE/alluxio-fuse-mount.md %}
 
-This will spawn a background user-space java process (alluxio-fuse) that will mount the file system on the specified `mount_point` to the `alluxio_path`. 
+This will spawn a background user-space java process (alluxio-fuse) that will mount the alluxio path specified at `alluxio_path` to the local file system on the specified `mount_point`. 
 
 For example, the following command will mount the alluxio path `/people` to the folder `/mnt/people` in the local file system.
 
@@ -41,9 +41,7 @@ When `alluxio_path` is not given, Alluxio-FUSE defaults it to root (`/`). Note t
 
 ### Unmount Alluxio-FUSE
 
-To list the mounting points, on the node where the file system is mounted, point a shell to your `$ALLUXIO_HOME` and run:
-
-To umount a previoulsy mounted Alluxio-FUSE file sytem, on the node where the file system is mounted, point a shell to your `$ALLUXIO_HOME` and run:
+To umount a previously mounted Alluxio-FUSE file sytem, on the node where the file system is mounted, point a shell to your `$ALLUXIO_HOME` and run:
 
 {% include Mounting-Alluxio-FS-with-FUSE/alluxio-fuse-umount.md %}
 
@@ -55,6 +53,8 @@ Unmount fuse at /mnt/people (PID: 97626).
 ```
 
 ### Check the Alluxio-FUSE mounting status
+
+To list the mounting points, on the node where the file system is mounted, point a shell to your `$ALLUXIO_HOME` and run:
 
 {% include Mounting-Alluxio-FS-with-FUSE/alluxio-fuse-stat.md %}
 
@@ -74,7 +74,7 @@ Alluxio-FUSE is based on the standard Java client API `alluxio-core-client-fs` t
 might want to customize the behaviour of the alluxio client used by Alluxio-FUSE the same way you
 would for any other client application.
 
-One possibility, for example, is to edit `$ALLUXIO_HOME/conf/alluxio-site.properties` and set your specific alluxio client options.
+One possibility, for example, is to edit `$ALLUXIO_HOME/conf/alluxio-site.properties` and set your specific alluxio client options. Note that these changes should be before Alluxio-FUSE starts.
 
 ## Assumptions and limitations
 
@@ -82,7 +82,7 @@ Currently, most basic file system operations are supported. However, due to Allu
 
 * Files can be written only once, only sequentially, and never be modified. That means overriding a file is allowed, and an explicit combination of delete and then create is needed. For example, `cp` command will fail when the destination file exists. 
 * Alluxio does not have hard-link and soft-link concepts, so the commands like `ln` are not supported, neither the hardlinks number is displayed in `ll` output.
-* The user and group are mapped to the Unix user and group only when Alluxio is configured to use shell-based mapping, by setting `alluxio.security.group.mapping.class` to `ShellBasedUnixGroupsMapping` in `conf/alluxio-site.properties`. Otherwise `chown` and `chgrp` are no-ops, and `ll` will return the user and group as the one who started the alluxio-fuse process.
+* The user and group are mapped to the Unix user and group only when Alluxio is configured to use shell-based mapping, by setting `alluxio.security.group.mapping.class` to `ShellBasedUnixGroupsMapping` in `conf/alluxio-site.properties`. Otherwise `chown` and `chgrp` are no-ops, and `ll` will return the user and group of the user who started the alluxio-fuse process.
 
 ## Performance considerations
 
@@ -107,7 +107,7 @@ These are the configuration parameters for Alluxio-FUSE.
 
 ## Building manually
 
-You can build Alluxio-FUSE with the maven profile `fuse`. This profile will be automatically activated by maven when it is detected that you are building Alluxio with a JDK version 8 or newer. For compatibility with Java 7, binary Alluxio distributions for Java 7 ship without alluxio-fuse support.
+You can build Alluxio-FUSE with the maven profile `fuse`. This profile will be automatically activated by maven when it is detected that you are building Alluxio with a JDK version 8 or newer.
 
 The best way to do so is to either clone the Alluxio [GitHub repository](https://github.com/alluxio/alluxio) and choose your favourite branch from git, or to grab a [source distribution](https://github.com/alluxio/alluxio/releases) directly. Please refer to [this page](Building-Alluxio-Master-Branch.html)) for building instructions.
 
