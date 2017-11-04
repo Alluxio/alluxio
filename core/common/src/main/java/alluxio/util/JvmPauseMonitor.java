@@ -39,8 +39,7 @@ import java.util.concurrent.TimeUnit;
  */
 @NotThreadSafe
 public final class JvmPauseMonitor {
-  private static final Log LOG = LogFactory.getLog(
-      JvmPauseMonitor.class);
+  private static final Log LOG = LogFactory.getLog(JvmPauseMonitor.class);
 
   /** The time to sleep. */
   private final long mGcSleepIntervalMs;
@@ -52,9 +51,9 @@ public final class JvmPauseMonitor {
   private final long mInfoThresholdMs;
 
   /** Times extra sleep time exceed WARN. */
-  private long mWarnTimeExceededMS = 0;
+  private long mWarnTimeExceeded = 0;
   /** Times extra sleep time exceed INFO. */
-  private long mInfoTimeExceededMS = 0;
+  private long mInfoTimeExceeded = 0;
   /** Total extra sleep time. */
   private long mTotalExtraTimeMs = 0;
 
@@ -73,8 +72,7 @@ public final class JvmPauseMonitor {
    * Starts jvm monitor thread.
    */
   public void start() {
-    Preconditions.checkState(mJvmMonitorThread == null,
-        "JVM monitor thread already started");
+    Preconditions.checkState(mJvmMonitorThread == null, "JVM monitor thread already started");
     mJvmMonitorThread = new Daemon(new Monitor());
     mJvmMonitorThread.start();
   }
@@ -112,14 +110,14 @@ public final class JvmPauseMonitor {
    * @return time exceeds WARN threshold in milliseconds
    */
   public long getWarnTimeExceeded() {
-    return mWarnTimeExceededMS;
+    return mWarnTimeExceeded;
   }
 
   /**
    * @return time exceeds INFO threshold in milliseconds
    */
   public long getInfoTimeExceeded() {
-    return mInfoTimeExceededMS;
+    return mInfoTimeExceeded;
   }
 
   /**
@@ -136,10 +134,10 @@ public final class JvmPauseMonitor {
         + runtime.freeMemory() / (1024 * 1024) + "M";
   }
 
-  private String formatLogString(long extraSleepTime,
+  private StringBuilder formatLogString(long extraSleepTime,
       Map<String, GarbageCollectorMXBean> gcMXBeanMapBeforeSleep,
         Map<String, GarbageCollectorMXBean> gcMXBeanMapAfterSleep) {
-    List<String> diffBean = Lists.newArrayList();
+    List<String> beanDiffs = Lists.newArrayList();
     GarbageCollectorMXBean oldBean;
     GarbageCollectorMXBean newBean;
     Set<String> nameSet = Sets.intersection(gcMXBeanMapBeforeSleep.keySet(),
@@ -148,26 +146,27 @@ public final class JvmPauseMonitor {
       oldBean = gcMXBeanMapBeforeSleep.get(name);
       newBean = gcMXBeanMapAfterSleep.get(name);
       if (oldBean == null) {
-        diffBean.add("new GCBean created name= '" + newBean.getName() + " count="
+        beanDiffs.add("new GCBean created name= '" + newBean.getName() + " count="
             + newBean.getCollectionCount() + " time=" + newBean.getCollectionTime() + "ms");
       } else if (newBean == null) {
-        diffBean.add("old GCBean canceled name= '" + oldBean.getName() + " count="
+        beanDiffs.add("old GCBean canceled name= '" + oldBean.getName() + " count="
             + oldBean.getCollectionCount() + " time=" + oldBean.getCollectionTime() + "ms");
       } else {
         if (oldBean.getCollectionTime() != newBean.getCollectionTime()
             || oldBean.getCollectionCount() != newBean.getCollectionCount()) {
-          diffBean.add("GC name= '" + newBean.getName() + " count="
+          beanDiffs.add("GC name= '" + newBean.getName() + " count="
               + newBean.getCollectionCount() + " time=" + newBean.getCollectionTime() + "ms");
         }
       }
     }
-    String ret = "JVM paused " + extraSleepTime + "ms\n";
-    if (diffBean.isEmpty()) {
-      ret += "No GCs detected ";
+    StringBuilder ret = new StringBuilder().append("JVM paused ").append(extraSleepTime)
+        .append("ms\n");
+    if (beanDiffs.isEmpty()) {
+      ret.append("No GCs detected ");
     } else {
-      ret += "GC list:\n" + Joiner.on("\n").join(diffBean);
+      ret.append("GC list:\n" + Joiner.on("\n").join(beanDiffs));
     }
-    ret += "\n" + getMemoryInfo();
+    ret.append("\n").append(getMemoryInfo());
     return ret;
   }
 
@@ -198,16 +197,40 @@ public final class JvmPauseMonitor {
         Map<String, GarbageCollectorMXBean> gcBeanMapAfterSleep = getGarbageCollectorMXBeans();
 
         if (extraTime > mWarnThresholdMs) {
-          ++mWarnTimeExceededMS;
+          mWarnTimeExceeded++;
           LOG.warn(formatLogString(
               extraTime, gcBeanMapBeforeSleep, gcBeanMapAfterSleep));
         } else if (extraTime > mInfoThresholdMs) {
-          ++mInfoTimeExceededMS;
+          mInfoTimeExceeded++;
           LOG.info(formatLogString(
               extraTime, gcBeanMapBeforeSleep, gcBeanMapAfterSleep));
         }
         gcBeanMapBeforeSleep = gcBeanMapAfterSleep;
       }
+    }
+  }
+
+  private class Daemon extends Thread {
+
+    private final Runnable mRunnable;
+
+    /**
+     * Constructs a daemon thread.
+     *
+     * @param runnable given a Runnable object
+     */
+    public Daemon(Runnable runnable) {
+      super(runnable);
+      setDaemon(true);
+      mRunnable = runnable;
+      setName(((Object) mRunnable).toString());
+    }
+
+    /**
+     * @return mRunnable
+     */
+    public Runnable getRunnable() {
+      return mRunnable;
     }
   }
 }

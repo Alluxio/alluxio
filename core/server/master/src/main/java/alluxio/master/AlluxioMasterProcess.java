@@ -289,7 +289,7 @@ public class AlluxioMasterProcess implements MasterProcess {
    * Starts jvm monitor process, to monitor jvm.
    */
   protected void startJvmMonitorProcess() {
-    if (Configuration.getBoolean(PropertyKey.JVM_MONITOR_MASTER_ENABLE)) {
+    if (Configuration.getBoolean(PropertyKey.MASTER_JVM_MONITOR_ENABLED)) {
       mJvmPauseMonitor = new JvmPauseMonitor();
       mJvmPauseMonitor.start();
     }
