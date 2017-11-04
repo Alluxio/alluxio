@@ -1887,27 +1887,32 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
 
   //
-  // JVM related properties
+  // JVM Monitor related properties
   //
   public static final PropertyKey JVM_MONITOR_WARN_THRESHOLD_MS =
       new Builder(Name.JVM_MONITOR_WARN_THRESHOLD_MS)
           .setDefaultValue(10000)
+          .setDescription("Extra sleep time longer than this threshold, log WARN.")
           .build();
   public static final PropertyKey JVM_MONITOR_INFO_THRESHOLD_MS =
       new Builder(Name.JVM_MONITOR_INFO_THRESHOLD_MS)
           .setDefaultValue(1000)
+          .setDescription("Extra sleep time longer than this threshold, log INFO.")
           .build();
   public static final PropertyKey JVM_MONITOR_SLEEP_INTERVAL_MS =
       new Builder(Name.JVM_MONITOR_SLEEP_INTERVAL_MS)
           .setDefaultValue(500)
+          .setDescription("The time for the JVM monitor thread to sleep.")
           .build();
-  public static final PropertyKey JVM_MONITOR_MASTER_ENABLE =
-      new Builder(Name.JVM_MONITOR_MASTER_ENABLE)
+  public static final PropertyKey MASTER_JVM_MONITOR_ENABLED =
+      new Builder(Name.MASTER_JVM_MONITOR_ENABLED)
           .setDefaultValue(false)
+          .setDescription("Whether to enable start JVM monitor thread on master.")
           .build();
-  public static final PropertyKey JVM_MONITOR_WORKER_ENABLE =
-      new Builder(Name.JVM_MONITOR_WORKER_ENABLE)
+  public static final PropertyKey WORKER_JVM_MONITOR_ENABLED =
+      new Builder(Name.WORKER_JVM_MONITOR_ENABLED)
           .setDefaultValue(false)
+          .setDescription("Whether to enable start JVM monitor thread on worker.")
           .build();
 
   /**
@@ -2366,13 +2371,16 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String SECURITY_LOGIN_USERNAME = "alluxio.security.login.username";
 
     //
-    // JVM related properties
+    // JVM Monitor related properties
     //
-    public static final String JVM_MONITOR_WARN_THRESHOLD_MS = "jvm.monitor.warn.threshold.ms";
-    public static final String JVM_MONITOR_INFO_THRESHOLD_MS = "jvm.monitor.info.threshold.ms";
-    public static final String JVM_MONITOR_SLEEP_INTERVAL_MS = "jvm.monitor.sleep.interval.ms";
-    public static final String JVM_MONITOR_MASTER_ENABLE = "jvm.monitor.master.enable";
-    public static final String JVM_MONITOR_WORKER_ENABLE = "jvm.monitor.worker.enable";
+    public static final String JVM_MONITOR_WARN_THRESHOLD_MS =
+        "alluxio.jvm.monitor.warn.threshold.ms";
+    public static final String JVM_MONITOR_INFO_THRESHOLD_MS =
+        "alluxio.jvm.monitor.info.threshold.ms";
+    public static final String JVM_MONITOR_SLEEP_INTERVAL_MS =
+        "alluxio.jvm.monitor.sleep.interval.ms";
+    public static final String MASTER_JVM_MONITOR_ENABLED = "alluxio.master.jvm.monitor.enabled";
+    public static final String WORKER_JVM_MONITOR_ENABLED = "alluxio.worker.jvm.monitor.enabled";
 
     private Name() {} // prevent instantiation
   }
