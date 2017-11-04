@@ -25,7 +25,9 @@ Alluxio-FUSE is based on the project [Filesystem in Userspace](http://fuse.sourc
 
 After having properly configured and started the alluxio cluster, and from the node where you wish to mount Alluxio, point a shell to your `$ALLUXIO_HOME` and run:
 
-{% include Mounting-Alluxio-FS-with-FUSE/alluxio-fuse-mount.md %}
+```bash
+$ integration/fuse/bin/alluxio-fuse mount mount_point [alluxio_path]
+```
 
 This will spawn a background user-space java process (alluxio-fuse) that will mount the alluxio path specified at `alluxio_path` to the local file system on the specified `mount_point`. 
 
@@ -43,7 +45,9 @@ When `alluxio_path` is not given, Alluxio-FUSE defaults it to root (`/`). Note t
 
 To umount a previously mounted Alluxio-FUSE file sytem, on the node where the file system is mounted, point a shell to your `$ALLUXIO_HOME` and run:
 
-{% include Mounting-Alluxio-FS-with-FUSE/alluxio-fuse-umount.md %}
+```bash
+$ integration/fuse/bin/alluxio-fuse umount mount_point
+```
 
 This unmounts the file system at the mounting point and stops the corresponding alluxio-fuse process. For example,
 
@@ -56,7 +60,9 @@ Unmount fuse at /mnt/people (PID: 97626).
 
 To list the mounting points, on the node where the file system is mounted, point a shell to your `$ALLUXIO_HOME` and run:
 
-{% include Mounting-Alluxio-FS-with-FUSE/alluxio-fuse-stat.md %}
+```bash
+$ integration/fuse/bin/alluxio-fuse stat
+```
 
 This outputs the `pid, mount_point, alluxio_path` of all the running alluxio-fuse processes.
 
