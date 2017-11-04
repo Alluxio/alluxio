@@ -29,4 +29,8 @@
     <checkstyle.path>${project.parent.basedir}/build/checkstyle/</checkstyle.path>
     <findbugs.path>${project.parent.basedir}/build/findbugs/</findbugs.path>
   </properties>
+
+  <modules>
+    <module>fuse</module>
+  </modules>
 </project>
