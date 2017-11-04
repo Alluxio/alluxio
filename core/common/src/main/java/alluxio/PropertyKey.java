@@ -916,12 +916,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("The maximum number of sub-directories allowed to be created in "
               + "alluxio.worker.data.tmp.folder.")
           .build();
-  public static final PropertyKey WORKER_FREE_SPACE_TIMEOUT =
-      new Builder(Name.WORKER_FREE_SPACE_TIMEOUT)
-          .setDefaultValue("10sec")
-          .setDescription("The duration for which a worker will wait for eviction to make space "
-              + "available for a client write request.")
-          .build();
   public static final PropertyKey WORKER_EVICTOR_CLASS =
       new Builder(Name.WORKER_EVICTOR_CLASS)
           .setDefaultValue("alluxio.worker.block.evictor.LRUEvictor")
@@ -969,6 +963,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setAlias(new String[]{"alluxio.worker.filesystem.heartbeat.interval.ms"})
           .setDefaultValue("1sec")
           .setDescription("The heartbeat interval between the worker and file system master.")
+          .build();
+  public static final PropertyKey WORKER_FREE_SPACE_TIMEOUT =
+      new Builder(Name.WORKER_FREE_SPACE_TIMEOUT)
+          .setDefaultValue("10sec")
+          .setDescription("The duration for which a worker will wait for eviction to make space "
+              + "available for a client write request.")
           .build();
   public static final PropertyKey WORKER_HOSTNAME = new Builder(Name.WORKER_HOSTNAME)
       .setDescription("The hostname of Alluxio worker.")
@@ -2121,7 +2121,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.worker.data.server.domain.socket.address";
     public static final String WORKER_DATA_TMP_FOLDER = "alluxio.worker.data.folder.tmp";
     public static final String WORKER_DATA_TMP_SUBDIR_MAX = "alluxio.worker.data.tmp.subdir.max";
-    public static final String WORKER_FREE_SPACE_TIMEOUT = "alluxio.worker.free.space.timeout";
     public static final String WORKER_EVICTOR_CLASS = "alluxio.worker.evictor.class";
     public static final String WORKER_EVICTOR_LRFU_ATTENUATION_FACTOR =
         "alluxio.worker.evictor.lrfu.attenuation.factor";
@@ -2136,6 +2135,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String WORKER_FILE_PERSIST_RATE_LIMIT_ENABLED =
         "alluxio.worker.file.persist.rate.limit.enabled";
     public static final String WORKER_FILE_BUFFER_SIZE = "alluxio.worker.file.buffer.size";
+    public static final String WORKER_FREE_SPACE_TIMEOUT = "alluxio.worker.free.space.timeout";
     public static final String WORKER_HOSTNAME = "alluxio.worker.hostname";
     public static final String WORKER_KEYTAB_FILE = "alluxio.worker.keytab.file";
     public static final String WORKER_MEMORY_SIZE = "alluxio.worker.memory.size";
