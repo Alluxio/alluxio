@@ -93,20 +93,18 @@ public class FileInStream extends InputStream
   /** Whether to cache blocks in this file into Alluxio. */
   private final boolean mShouldCache;
 
-  // mCurrentBlockId, mCurrentBlockInStream, and mCurrentCacheStream should always be in sync.
+  // mCurrentBlockInStream, and mCurrentCacheStream should always be in sync.
   //
-  // When mPositionState is updated, the above three values are not updated, so they might be out
-  // of sync with the current position states.
+  // When mPositionState is updated, the above two values are not updated until calling
+  // updateStreams, so they might be out of sync with the current position states.
   //
   // But after calling updateStreams, they should be in sync with mPositionState, for example,
-  // mPosition.getBlockId should equal mCurrentBlockId,
+  // mPosition.getBlockId should equal mCurrentBlockInStream.getId(),
   // mPositionState.getBlockStartPos should be the start position of mCurrentBlockInStream, and
   // mPositionState.getNextBlockStartPos should be the exclusive end position of
   // mCurrentBlockInStream.
   /** Position states. */
   protected PositionState mPositionState;
-  /** Current block ID. */
-  private long mCurrentBlockId = UNINITIALIZED_BLOCK_ID;
   /** Current block in stream backing this stream. */
   protected BlockInStream mCurrentBlockInStream;
   /**
@@ -613,11 +611,11 @@ public class FileInStream extends InputStream
       // This happens if two concurrent readers read trying to cache the same block. One cancelled
       // before the other. Then the other reader will see this exception since we only keep
       // one block per blockId in block worker.
-      LOG.info("Block {} does not exist when being cancelled.", mCurrentBlockId);
+      LOG.info("Block {} does not exist when being cancelled.", mCurrentBlockInStream.getId());
     } catch (AlreadyExistsException e) {
       // This happens if two concurrent readers trying to cache the same block. One successfully
       // committed. The other reader sees this.
-      LOG.info("Block {} exists.", mCurrentBlockId);
+      LOG.info("Block {} exists.", mCurrentBlockInStream.getId());
     } catch (IOException e) {
       // This happens when there are any other cache stream close/cancel related errors (e.g.
       // server unreachable due to network partition, server busy due to Alluxio worker is
@@ -641,10 +639,10 @@ public class FileInStream extends InputStream
       // created the block (either as temp block or committed block). The second sees this
       // exception.
       LOG.info("The block with ID {} is already stored in the target worker, canceling the cache "
-          + "request.", mCurrentBlockId);
+          + "request.", mCurrentBlockInStream.getId());
     } else {
-      LOG.warn("The block with ID {} could not be cached into Alluxio storage: {}", mCurrentBlockId,
-          e.toString());
+      LOG.warn("The block with ID {} could not be cached into Alluxio storage: {}",
+          mCurrentBlockInStream.getId(), e.toString());
     }
     closeOrCancelCacheStream();
   }
@@ -670,7 +668,7 @@ public class FileInStream extends InputStream
    */
   protected void updateStreams() throws IOException {
     long blockId = mPositionState.getBlockId();
-    if (blockId == mCurrentBlockId && mCurrentBlockInStream != null
+    if (mCurrentBlockInStream != null && mCurrentBlockInStream.getId() == blockId
         && mCurrentBlockInStream.remaining() != 0) {
       return;
     }
@@ -679,7 +677,6 @@ public class FileInStream extends InputStream
     if (PASSIVE_CACHE_ENABLED) {
       updateCacheStream(blockId);
     }
-    mCurrentBlockId = blockId;
   }
 
   /**
@@ -834,7 +831,7 @@ public class FileInStream extends InputStream
    */
   private void seekInternalWithCachingPartiallyReadBlock(long pos) throws IOException {
     // Precompute this because mPos will be updated several times in this function.
-    final boolean isInCurrentBlock = mCurrentBlockId != UNINITIALIZED_BLOCK_ID &&
+    final boolean isInCurrentBlock = mCurrentBlockInStream != null &&
         mPositionState.isInCurrentBlock(pos);
 
     if (isInCurrentBlock) {
