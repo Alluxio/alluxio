@@ -38,7 +38,7 @@ public class UnderFileSystemFactoryRegistryRuleTest {
   @Test
   public void testUnderFileSystemFactoryRegistryRule() throws Throwable {
     mUnderFileSystemFactory = Mockito.mock(UnderFileSystemFactory.class);
-    Mockito.when(mUnderFileSystemFactory.supportsPath(UFS_PATH)).thenReturn(true);
+    Mockito.when(mUnderFileSystemFactory.supportsPath(UFS_PATH, null)).thenReturn(true);
     // check before
     Assert.assertEquals(null, UnderFileSystemFactoryRegistry.find(UFS_PATH));
     new UnderFileSystemFactoryRegistryRule(mUnderFileSystemFactory)

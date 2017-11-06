@@ -15,6 +15,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Matchers.anyObject;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
@@ -133,8 +134,10 @@ public final class AlluxioMasterRestServiceHandlerTest {
 
   private void registerFileSystemMock() throws IOException {
     UnderFileSystemFactory underFileSystemFactoryMock = mock(UnderFileSystemFactory.class);
-    when(underFileSystemFactoryMock.supportsPath(anyString())).thenReturn(Boolean.FALSE);
-    when(underFileSystemFactoryMock.supportsPath(TEST_PATH)).thenReturn(Boolean.TRUE);
+    when(underFileSystemFactoryMock.supportsPath(anyString(), anyObject()))
+        .thenReturn(Boolean.FALSE);
+    when(underFileSystemFactoryMock.supportsPath(eq(TEST_PATH), anyObject()))
+        .thenReturn(Boolean.TRUE);
     UnderFileSystem underFileSystemMock = mock(UnderFileSystem.class);
     when(underFileSystemMock.getSpace(TEST_PATH, UnderFileSystem.SpaceType.SPACE_FREE)).thenReturn(
         UFS_SPACE_FREE);
