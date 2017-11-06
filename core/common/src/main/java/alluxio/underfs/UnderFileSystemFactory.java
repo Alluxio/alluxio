@@ -36,7 +36,6 @@ public interface UnderFileSystemFactory {
    * @param path file path
    * @return true if the path is supported, false otherwise
    */
-  @Deprecated
   boolean supportsPath(String path);
 
   /**
