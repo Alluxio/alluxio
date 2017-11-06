@@ -119,6 +119,8 @@ public class FileInStream extends InputStream
     /** Block ID used when position reaches EOF, should be < 0. */
     public static final long EOF_BLOCK_ID = -1;
 
+    // These are not states related to position, but are constants needed for calculating and
+    // maintaining the invariants in the position related states.
     /** File length. */
     private final long mFileLength;
     /** Block IDs. */
