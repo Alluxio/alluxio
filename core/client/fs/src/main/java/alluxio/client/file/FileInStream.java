@@ -832,18 +832,12 @@ public class FileInStream extends InputStream
     final boolean isInCurrentBlock = mCurrentBlockInStream != null
         && mPositionState.isInCurrentBlock(pos);
 
-    if (isInCurrentBlock) {
-      if (isReadFromLocalWorker()) {
-        // no need to partial cache the current block, and the seek is within the block
-        // so directly seeks to position.
-        mPositionState.setPos(pos);
-        if (mCurrentBlockInStream != null) {
-          mCurrentBlockInStream.seek(mPositionState.getPos() % mBlockSize);
-        } else {
-          Preconditions.checkState(remaining() == 0);
-        }
-        return;
-      }
+    if (isInCurrentBlock && isReadFromLocalWorker()) {
+      // no need to partial cache the current block, and the seek is within the block
+      // so directly seeks to position.
+      mPositionState.setPos(pos);
+      mCurrentBlockInStream.seek(mPositionState.getPos() % mBlockSize);
+      return;
     }
 
     // cache the current block if neither of these conditions hold:
