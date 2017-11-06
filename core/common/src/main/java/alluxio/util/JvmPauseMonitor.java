@@ -73,7 +73,7 @@ public final class JvmPauseMonitor {
    */
   public void start() {
     Preconditions.checkState(mJvmMonitorThread == null, "JVM monitor thread already started");
-    mJvmMonitorThread = new Daemon(new Monitor());
+    mJvmMonitorThread = new Daemon();
     mJvmMonitorThread.start();
   }
 
@@ -179,7 +179,12 @@ public final class JvmPauseMonitor {
     return gcBeanMap;
   }
 
-  private class Monitor implements Runnable {
+  private class Daemon extends Thread {
+
+    public Daemon() {
+      setDaemon(true);
+    }
+
     @Override
     public void run() {
       Stopwatch sw = new Stopwatch();
@@ -197,7 +202,7 @@ public final class JvmPauseMonitor {
         Map<String, GarbageCollectorMXBean> gcBeanMapAfterSleep = getGarbageCollectorMXBeans();
 
         if (extraTime > mWarnThresholdMs) {
-        	mInfoTimeExceeded++;
+          mInfoTimeExceeded++;
           mWarnTimeExceeded++;
           LOG.warn(formatLogString(
               extraTime, gcBeanMapBeforeSleep, gcBeanMapAfterSleep));
@@ -208,30 +213,6 @@ public final class JvmPauseMonitor {
         }
         gcBeanMapBeforeSleep = gcBeanMapAfterSleep;
       }
-    }
-  }
-
-  private class Daemon extends Thread {
-
-    private final Runnable mRunnable;
-
-    /**
-     * Constructs a daemon thread.
-     *
-     * @param runnable given a Runnable object
-     */
-    public Daemon(Runnable runnable) {
-      super(runnable);
-      setDaemon(true);
-      mRunnable = runnable;
-      setName(((Object) mRunnable).toString());
-    }
-
-    /**
-     * @return mRunnable
-     */
-    public Runnable getRunnable() {
-      return mRunnable;
     }
   }
 }
