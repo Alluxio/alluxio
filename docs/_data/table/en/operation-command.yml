@@ -35,7 +35,7 @@ help:
   Prints help message for the given command. If there isn't given
   command, prints help messages for all supported commands.
 leader:
-  Prints the current Alluxio leader master host name.
+  Print the current Alluxio leader master host name.
 load:
   Load the data of a file or a directory from under storage into Alluxio.
 loadMetadata:
