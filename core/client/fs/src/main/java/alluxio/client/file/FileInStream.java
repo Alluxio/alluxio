@@ -186,7 +186,7 @@ public class FileInStream extends InputStream
      *
      * @param increment the position increment, expected to be non-negative
      */
-    public void increase(long increment) {
+    public void increment(long increment) {
       mPos += increment;
       mRemaining -= increment;
 
@@ -421,7 +421,7 @@ public class FileInStream extends InputStream
       return EOF_DATA;
     }
 
-    mPositionState.increase(1);
+    mPositionState.increment(1);
     if (mCurrentCacheStream != null) {
       try {
         mCurrentCacheStream.write(data);
@@ -464,7 +464,7 @@ public class FileInStream extends InputStream
             handleCacheStreamException(e);
           }
         }
-        mPositionState.increase(bytesRead);
+        mPositionState.increment(bytesRead);
         bytesLeftToRead -= bytesRead;
         currentOffset += bytesRead;
       }
@@ -653,7 +653,7 @@ public class FileInStream extends InputStream
     if (mCurrentCacheStream != null
         && mCurrentBlockInStream.remaining() != mCurrentCacheStream.remaining()) {
       throw new IllegalStateException(
-          String.format("BlockInStream and CacheStream is out of sync %d %d.",
+          String.format("BlockInStream and CacheStream are out of sync %d %d.",
               mCurrentBlockInStream.remaining(), mCurrentCacheStream.remaining()));
     }
   }
@@ -662,7 +662,7 @@ public class FileInStream extends InputStream
    * Updates the streams to be able to start reading from the current file position.
    * If the current file position is still in the range of the current stream, and the current
    * stream still has remaining data, then this is a no-op;
-   * otherwise, both the block stream and the cache stream is updated.
+   * otherwise, both the block stream and the cache stream are updated.
    */
   protected void updateStreams() throws IOException {
     long blockId = mPositionState.getBlockId();
