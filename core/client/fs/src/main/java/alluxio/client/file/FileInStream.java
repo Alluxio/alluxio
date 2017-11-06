@@ -61,10 +61,6 @@ public class FileInStream extends InputStream
 
   private static final boolean PASSIVE_CACHE_ENABLED =
       Configuration.getBoolean(PropertyKey.USER_FILE_PASSIVE_CACHE_ENABLED);
-  /** Used when there is no block stream yet, should be negative. */
-  private static final long UNINITIALIZED_BLOCK_ID = -1;
-  /** Used when there is no block stream yet, should be negative. */
-  private static final long UNINITIALIZED_BLOCK_POS = -1;
   /** Return by read when reaching EOF. */
   private static final int EOF_DATA = -1;
 
