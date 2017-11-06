@@ -70,20 +70,17 @@ public final class RetryHandlingMetaMasterClient extends AbstractMasterClient
 
   @Override
   public synchronized MasterInfo getInfo(final Set<MasterInfoField> fields) throws IOException {
-    return retryRPC(new RpcCallable<MasterInfo>() {
-      @Override
-      public MasterInfo call() throws TException {
-        Set<alluxio.thrift.MasterInfoField> thriftFields = new HashSet<>();
-        if (fields == null) {
-          thriftFields = null;
-        } else {
-          for (MasterInfoField field : fields) {
-            thriftFields.add(field.toThrift());
-          }
-        }
-        return MasterInfo.fromThrift(
-            mClient.getMasterInfo(new GetMasterInfoTOptions(thriftFields)).getMasterInfo());
-      }
-    });
+	  return retryRPC(() -> {
+	      Set<alluxio.thrift.MasterInfoField> thriftFields = new HashSet<>();
+	      if (fields == null) {
+	        thriftFields = null;
+	      } else {
+	        for (MasterInfoField field : fields) {
+	          thriftFields.add(field.toThrift());
+	        }
+	      }
+	      return MasterInfo.fromThrift(
+	          mClient.getMasterInfo(new GetMasterInfoTOptions(thriftFields)).getMasterInfo());
+	  });
   }
 }
