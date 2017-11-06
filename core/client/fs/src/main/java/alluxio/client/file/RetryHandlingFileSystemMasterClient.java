@@ -90,17 +90,14 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
   @Override
   public synchronized List<AlluxioURI> checkConsistency(final AlluxioURI path,
       final CheckConsistencyOptions options) throws IOException {
-    return retryRPC(new RpcCallable<List<AlluxioURI>>() {
-      @Override
-      public List<AlluxioURI> call() throws TException {
-        List<String> inconsistentPaths =
-            mClient.checkConsistency(path.getPath(), options.toThrift()).getInconsistentPaths();
-        List<AlluxioURI> inconsistentUris = new ArrayList<>(inconsistentPaths.size());
-        for (String path : inconsistentPaths) {
-          inconsistentUris.add(new AlluxioURI(path));
-        }
-        return inconsistentUris;
+    return retryRPC(() -> {
+      List<String> inconsistentPaths =
+          mClient.checkConsistency(path.getPath(), options.toThrift()).getInconsistentPaths();
+      List<AlluxioURI> inconsistentUris = new ArrayList<>(inconsistentPaths.size());
+      for (String inconsistentPath : inconsistentPaths) {
+        inconsistentUris.add(new AlluxioURI(inconsistentPath));
       }
+      return inconsistentUris;
     });
   }
 
