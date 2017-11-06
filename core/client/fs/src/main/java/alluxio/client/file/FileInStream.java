@@ -93,32 +93,20 @@ public class FileInStream extends InputStream
   /** Whether to cache blocks in this file into Alluxio. */
   private final boolean mShouldCache;
 
-  // The following variables should be kept in sync in updateStreams.
+  // mCurrentBlockId, mCurrentBlockInStream, and mCurrentCacheStream should always be in sync.
   //
-  // When {@link #mPositionState} is updated, the other variables are not updated until
-  // {@link #updateStreams()} is called, so
-  // 1. {@link PositionState#getBlockId()} may not equal {@link #mCurrentBlockId}
-  // 2. {@link PositionState#getBlockStartPos()} may not equal {@link #mCurrentBlockStartPosck}
-  // 3. {@link PositionState#getNextBlockStartPos()} may not equal {@link #mCurrentBlockEndPos}
+  // When mPositionState is updated, the above three values are not updated, so they might be out
+  // of sync with the current position states.
   //
-  // The above values are equal only after {@link #updateStreams()} is called.
+  // But after calling updateStreams, they should be in sync with mPositionState, for example,
+  // mPosition.getBlockId should equal mCurrentBlockId,
+  // mPositionState.getBlockStartPos should be the start position of mCurrentBlockInStream, and
+  // mPositionState.getNextBlockStartPos should be the exclusive end position of
+  // mCurrentBlockInStream.
   /** Position states. */
   protected PositionState mPositionState;
   /** Current block ID. */
   private long mCurrentBlockId = UNINITIALIZED_BLOCK_ID;
-  /**
-   * Current block's start position.
-   * It is in sync with {@link #mCurrentBlockInStream} and {@link #mCurrentBlockId},
-   * This variable and {@link #mCurrentBlockEndPos} are used in
-   * {@link #seekInternalWithCachingPartiallyReadBlock(long)} to determine whether the
-   * target position is in the current block stream. Otherwise, {@link #getBlockId(long)}
-   * needs to be called which has more CPU cost.
-   */
-  private long mCurrentBlockStartPos = UNINITIALIZED_BLOCK_POS;
-  /**
-   * Current block's end position (exclusive).
-   */
-  private long mCurrentBlockEndPos = UNINITIALIZED_BLOCK_POS;
   /** Current block in stream backing this stream. */
   protected BlockInStream mCurrentBlockInStream;
   /**
@@ -224,7 +212,7 @@ public class FileInStream extends InputStream
     public void setPos(long pos) {
       mPos = pos;
       mRemaining = mFileLength - mPos;
-      if (mPos >= mBlockStartPos && mPos < mNextBlockStartPos) {
+      if (isInCurrentBlock(mPos)) {
         // In current block.
         return;
       }
@@ -269,6 +257,14 @@ public class FileInStream extends InputStream
      */
     public long getNextBlockStartPos() {
       return mNextBlockStartPos;
+    }
+
+    /**
+     * @param pos the position to check
+     * @return whether the position in the current block
+     */
+    public boolean isInCurrentBlock(long pos) {
+      return pos >= getBlockStartPos() && pos < getNextBlockStartPos();
     }
 
     /**
@@ -684,8 +680,6 @@ public class FileInStream extends InputStream
       updateCacheStream(blockId);
     }
     mCurrentBlockId = blockId;
-    mCurrentBlockStartPos = mPositionState.getBlockStartPos();
-    mCurrentBlockEndPos = mPositionState.getNextBlockStartPos();
   }
 
   /**
@@ -840,7 +834,8 @@ public class FileInStream extends InputStream
    */
   private void seekInternalWithCachingPartiallyReadBlock(long pos) throws IOException {
     // Precompute this because mPos will be updated several times in this function.
-    final boolean isInCurrentBlock = (pos >= mCurrentBlockStartPos) && (pos < mCurrentBlockEndPos);
+    final boolean isInCurrentBlock = mCurrentBlockId != UNINITIALIZED_BLOCK_ID &&
+        mPositionState.isInCurrentBlock(pos);
 
     if (isInCurrentBlock) {
       if (isReadFromLocalWorker()) {
