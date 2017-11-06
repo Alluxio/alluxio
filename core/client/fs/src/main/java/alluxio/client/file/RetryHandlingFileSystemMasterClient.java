@@ -284,12 +284,9 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
 
   @Override
   public synchronized void unmount(final AlluxioURI alluxioPath) throws IOException {
-    retryRPC(new RpcCallable<Void>() {
-      @Override
-      public Void call() throws TException {
-        mClient.unmount(alluxioPath.toString(), new UnmountTOptions());
-        return null;
-      }
+    retryRPC(() -> {
+      mClient.unmount(alluxioPath.toString(), new UnmountTOptions());
+      return null;
     });
   }
 }
