@@ -831,8 +831,8 @@ public class FileInStream extends InputStream
    */
   private void seekInternalWithCachingPartiallyReadBlock(long pos) throws IOException {
     // Precompute this because mPos will be updated several times in this function.
-    final boolean isInCurrentBlock = mCurrentBlockInStream != null &&
-        mPositionState.isInCurrentBlock(pos);
+    final boolean isInCurrentBlock = mCurrentBlockInStream != null
+        && mPositionState.isInCurrentBlock(pos);
 
     if (isInCurrentBlock) {
       if (isReadFromLocalWorker()) {
