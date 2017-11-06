@@ -1891,17 +1891,20 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   //
   public static final PropertyKey JVM_MONITOR_WARN_THRESHOLD_MS =
       new Builder(Name.JVM_MONITOR_WARN_THRESHOLD_MS)
-          .setDefaultValue(10000)
+          .setAlias(new String[]{"alluxio.jvm.monitor.warn.threshold.ms"})
+          .setDefaultValue("10min")
           .setDescription("Extra sleep time longer than this threshold, log WARN.")
           .build();
   public static final PropertyKey JVM_MONITOR_INFO_THRESHOLD_MS =
       new Builder(Name.JVM_MONITOR_INFO_THRESHOLD_MS)
-          .setDefaultValue(1000)
+          .setAlias(new String[]{"alluxio.jvm.monitor.info.threshold.ms"})
+          .setDefaultValue("1min")
           .setDescription("Extra sleep time longer than this threshold, log INFO.")
           .build();
   public static final PropertyKey JVM_MONITOR_SLEEP_INTERVAL_MS =
       new Builder(Name.JVM_MONITOR_SLEEP_INTERVAL_MS)
-          .setDefaultValue(500)
+          .setAlias(new String[]{"alluxio.jvm.monitor.sleep.interval.ms"})
+          .setDefaultValue("1min")
           .setDescription("The time for the JVM monitor thread to sleep.")
           .build();
   public static final PropertyKey MASTER_JVM_MONITOR_ENABLED =
@@ -2374,11 +2377,11 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     // JVM Monitor related properties
     //
     public static final String JVM_MONITOR_WARN_THRESHOLD_MS =
-        "alluxio.jvm.monitor.warn.threshold.ms";
+        "alluxio.jvm.monitor.warn.threshold";
     public static final String JVM_MONITOR_INFO_THRESHOLD_MS =
-        "alluxio.jvm.monitor.info.threshold.ms";
+        "alluxio.jvm.monitor.info.threshold";
     public static final String JVM_MONITOR_SLEEP_INTERVAL_MS =
-        "alluxio.jvm.monitor.sleep.interval.ms";
+        "alluxio.jvm.monitor.sleep.interval";
     public static final String MASTER_JVM_MONITOR_ENABLED = "alluxio.master.jvm.monitor.enabled";
     public static final String WORKER_JVM_MONITOR_ENABLED = "alluxio.worker.jvm.monitor.enabled";
 

@@ -63,9 +63,9 @@ public final class JvmPauseMonitor {
    * Constructs JvmPauseMonitor.
    */
   public JvmPauseMonitor() {
-    mGcSleepIntervalMs = Configuration.getLong(PropertyKey.JVM_MONITOR_SLEEP_INTERVAL_MS);
-    mWarnThresholdMs = Configuration.getLong(PropertyKey.JVM_MONITOR_WARN_THRESHOLD_MS);
-    mInfoThresholdMs = Configuration.getLong(PropertyKey.JVM_MONITOR_INFO_THRESHOLD_MS);
+    mGcSleepIntervalMs = Configuration.getMs(PropertyKey.JVM_MONITOR_SLEEP_INTERVAL_MS);
+    mWarnThresholdMs = Configuration.getMs(PropertyKey.JVM_MONITOR_WARN_THRESHOLD_MS);
+    mInfoThresholdMs = Configuration.getMs(PropertyKey.JVM_MONITOR_INFO_THRESHOLD_MS);
   }
 
   /**
@@ -134,7 +134,7 @@ public final class JvmPauseMonitor {
         + runtime.freeMemory() / (1024 * 1024) + "M";
   }
 
-  private StringBuilder formatLogString(long extraSleepTime,
+  private String formatLogString(long extraSleepTime,
       Map<String, GarbageCollectorMXBean> gcMXBeanMapBeforeSleep,
         Map<String, GarbageCollectorMXBean> gcMXBeanMapAfterSleep) {
     List<String> beanDiffs = Lists.newArrayList();
@@ -167,7 +167,7 @@ public final class JvmPauseMonitor {
       ret.append("GC list:\n" + Joiner.on("\n").join(beanDiffs));
     }
     ret.append("\n").append(getMemoryInfo());
-    return ret;
+    return ret.toString();
   }
 
   private Map<String, GarbageCollectorMXBean> getGarbageCollectorMXBeans() {
@@ -197,6 +197,7 @@ public final class JvmPauseMonitor {
         Map<String, GarbageCollectorMXBean> gcBeanMapAfterSleep = getGarbageCollectorMXBeans();
 
         if (extraTime > mWarnThresholdMs) {
+        	mInfoTimeExceeded++;
           mWarnTimeExceeded++;
           LOG.warn(formatLogString(
               extraTime, gcBeanMapBeforeSleep, gcBeanMapAfterSleep));
