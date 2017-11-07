@@ -561,14 +561,6 @@ public class FileInStream extends InputStream
   }
 
   /**
-   * @param pos the position to check
-   * @return the block size in bytes for the given pos, used for worker allocation
-   */
-  protected long getBlockSizeAllocation(long pos) {
-    return getBlockSize(pos);
-  }
-
-  /**
    * If we are not in the last block or if the last block is equal to the normal block size, return
    * the normal block size. Otherwise return the block size of the last block.
    *
