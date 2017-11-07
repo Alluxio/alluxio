@@ -1891,20 +1891,17 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   //
   public static final PropertyKey JVM_MONITOR_WARN_THRESHOLD_MS =
       new Builder(Name.JVM_MONITOR_WARN_THRESHOLD_MS)
-          .setAlias(new String[]{"alluxio.jvm.monitor.warn.threshold.ms"})
-          .setDefaultValue("10000ms")
+          .setDefaultValue("10sec")
           .setDescription("Extra sleep time longer than this threshold, log WARN.")
           .build();
   public static final PropertyKey JVM_MONITOR_INFO_THRESHOLD_MS =
       new Builder(Name.JVM_MONITOR_INFO_THRESHOLD_MS)
-          .setAlias(new String[]{"alluxio.jvm.monitor.info.threshold.ms"})
-          .setDefaultValue("1000ms")
+          .setDefaultValue("1sec")
           .setDescription("Extra sleep time longer than this threshold, log INFO.")
           .build();
   public static final PropertyKey JVM_MONITOR_SLEEP_INTERVAL_MS =
       new Builder(Name.JVM_MONITOR_SLEEP_INTERVAL_MS)
-          .setAlias(new String[]{"alluxio.jvm.monitor.sleep.interval.ms"})
-          .setDefaultValue("1000ms")
+          .setDefaultValue("1sec")
           .setDescription("The time for the JVM monitor thread to sleep.")
           .build();
   public static final PropertyKey MASTER_JVM_MONITOR_ENABLED =
