@@ -73,7 +73,7 @@ public final class JvmPauseMonitor {
    */
   public void start() {
     Preconditions.checkState(mJvmMonitorThread == null, "JVM monitor thread already started");
-    mJvmMonitorThread = new Daemon();
+    mJvmMonitorThread = new GcMonitor();
     mJvmMonitorThread.start();
   }
 
@@ -179,9 +179,9 @@ public final class JvmPauseMonitor {
     return gcBeanMap;
   }
 
-  private class Daemon extends Thread {
+  private class GcMonitor extends Thread {
 
-    public Daemon() {
+    public GcMonitor() {
       setDaemon(true);
     }
 
@@ -204,8 +204,7 @@ public final class JvmPauseMonitor {
         if (extraTime > mWarnThresholdMs) {
           mInfoTimeExceeded++;
           mWarnTimeExceeded++;
-          LOG.warn(formatLogString(
-              extraTime, gcBeanMapBeforeSleep, gcBeanMapAfterSleep));
+          LOG.warn(formatLogString(extraTime, gcBeanMapBeforeSleep, gcBeanMapAfterSleep));
         } else if (extraTime > mInfoThresholdMs) {
           mInfoTimeExceeded++;
           LOG.info(formatLogString(
