@@ -119,7 +119,7 @@ final class FileWorkerMasterSyncExecutor implements HeartbeatExecutor {
    */
   class FilePersister implements Runnable {
     private final FileDataManager mFileDataManager;
-    private long mFileId;
+    private final long mFileId;
     private List<Long> mBlockIds;
 
     /**
