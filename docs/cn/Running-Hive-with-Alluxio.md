@@ -32,16 +32,16 @@ export HIVE_AUX_JARS_PATH={{site.ALLUXIO_CLIENT_JAR_PATH}}:${HIVE_AUX_JARS_PATH}
 ```
 
 
-## 1 使用Alluxio作为一个选项来存储Hive表
+## 在Alluxio上创建Hive表
 
-有不同的方法可以将Hive与Alluxio整合。本节讨论如何使用Alluxio作为一个文件系统（如HDFS）来存储Hive表。这些表可以是[内部的或外部的](https://cwiki.apache.org/confluence/display/Hive/LanguageManual+DDL#LanguageManualDDL-ManagedandExternalTables)，新创建的表或在HDFS中已存在的表。[下一节](Running-Hive-with-Alluxio.html#use-alluxio-as-default-filesystem)讨论如何使用Alluxio作为Hive默认的文件系统。在下面的章节中，本文档中Hive运行在Hadoop MapReduce上。
+有不同的方法可以将Hive与Alluxio整合，以将Alluxio作为[内部表或外部表](https://cwiki.apache.org/confluence/display/Hive/LanguageManual+DDL#LanguageManualDDL-ManagedandExternalTables)，新创建的表或已存在的表的存储器。Alluxio也可以作为Hive的默认文件系统。在接下来的部分我们会介绍对于这些情况如何在Alluxio上使用Hive。本文档中Hive运行在Hadoop MapReduce上。
 *建议：接下来所有的Hive命令行例子同样适用于Hive Beeline。你可以在Beeline shell中尝试这些例子*
 
-### 使用Alluxio文件创建新表
+### 使用文件在Alluxio中创建新表
 
 Hive可以使用存储在Alluxio中的文件来创建新表。设置非常直接并且独立于其他的Hive表。一个示例就是将频繁使用的Hive表存在Alluxio上，从而通过直接从内存中读文件获得高吞吐量和低延迟。
 
-#### 示例：创建一个新的内部表
+#### 创建新的内部表的Hive命令示例
 
 这里有一个示例展示了在Alluxio上创建Hive的内部表。你可以从[http://grouplens.org/datasets/movielens/](http://grouplens.org/datasets/movielens/)下载数据文件（如：`ml-100k.zip`）。然后接下该文件，并且将文件`u.user`上传到Alluxio的`ml-100k/`下：
 
@@ -63,7 +63,7 @@ FIELDS TERMINATED BY '|'
 LOCATION 'alluxio://master_hostname:port/ml-100k';
 ```
 
-#### 示例：创建一个新的外部表
+#### 创建新的外部表的Hive命令行示例
 
 与前面的例子做同样的设置，然后创建一个新的外部表：
 
@@ -88,11 +88,11 @@ LOCATION 'alluxio://master_hostname:port/ml-100k';
 hive> select * from u_user;
 ```
 
-### 将已经存储在HDFS中的表映射到Alluxio
+### 在ALluxio中使用已经存储在HDFS中的表
 
 当Hive已经在使用并且管理着存储在HDFS中的表时，只要HDFS安装为Alluxio的底层存储系统，Alluxio也可以为Hive中的这些表提供服务。在这个例子中，我们假设HDFS集群已经安装为Alluxio根目录下的底层存储系统（例如，在`conf/alluxio-site.properties`中设置属性`alluxio.underfs.address=hdfs://namenode:port/`）。请参考[统一命名空间](Unified-and-Transparent-Namespace.html)以获取更多关于安装操作的细节。
 
-#### 示例:将一个内部表从HDFS移动到Alluxio
+#### 使用已存在的内部表的Hive命令行示例
 
 我们假设属性`hive.metastore.warehouse.dir`设置为默认值`/user/hive/warehouse`, 并且内部表已经像这样创建:
 
@@ -123,7 +123,7 @@ hive> desc formatted u_user;
 
 注意，第一次访问`alluxio://master_hostname:port/user/hive/warehouse/u_user`中的文件时会被认为是访问`hdfs://namenode:port/user/hive/warehouse/u_user`（默认的Hive内部数据存储位置）中对应的文件;一旦数据缓存在Alluxio中，在接下来的查询中Alluxio会使用这些缓存数据来服务查询而不用再一次从HDFS中读取数据。整个过程对于Hive和用户是透明的。
 
-#### 示例:将一个外部表从HDFS移动到Alluxio
+#### 使用已存在的外部表的Hive命令行示例
 
 假设在Hive中有一个已存在的外部表`u_user` ，存储位置设置为`hdfs://namenode_hostname:port/ml-100k`.
 你可以使用下面的HiveQL语句来检查它的“位置”属性
@@ -138,7 +138,7 @@ hive> desc formatted u_user;
 hive> alter table u_user set location "alluxio://master_hostname:port/ml-100k";
 ```
 
-### 示例：将一个Alluxio表移动回到HDFS
+### 将表的元数据恢复到HDFS
 
 在上面的两个关于将转移表数据的存储位置至Alluxio的例子中，你也可以将表的存储位置恢复到HDFS中：
 
@@ -146,9 +146,7 @@ hive> alter table u_user set location "alluxio://master_hostname:port/ml-100k";
 hive> alter table TABLE_NAME set location "hdfs://namenode:port/table/path/in/HDFS";
 ```
 
-到这里的介绍和示例说明了如何使用Alluxio作为一个文件系统来存储Hive中的表，连同其它的文件系统如HDFS。它们不需要改变Hive中的全局设置，比如下一节所述的默认文件系统。
-
-## 2 使用Alluxio作为默认的文件系统
+## Alluxio作为默认文件系统
 
 Apache Hive也可以使用Alluxio，只需通过一个一般的文件系统接口来替换Hadoop文件系统使用Alluxio。这种方式下，Hive使用Alluxio作为其默认文件系统，它的元数据和中间结果都将存储在Alluxio上。
 
@@ -210,7 +208,7 @@ $ ./bin/alluxio fs chmod 775 /user/hive/warehouse
 
 接着你可以根据[Hive documentation](https://cwiki.apache.org/confluence/display/Hive/GettingStarted)来使用Hive了。
 
-### 示例：创建一张表
+### Hive命令行示例
 
 在Hive中创建表并且将本地文件加载到Hive中：
 
