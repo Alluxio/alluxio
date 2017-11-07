@@ -69,17 +69,19 @@ public class FileInStream extends InputStream
   /** The outstream options. */
   private final OutStreamOptions mOutStreamOptions;
   /** How the data should be written into Alluxio space, if at all. */
-  protected final AlluxioStorageType mAlluxioStorageType;
+  private final AlluxioStorageType mAlluxioStorageType;
   /** Standard block size in bytes of the file, guaranteed for all but the last block. */
-  protected final long mBlockSize;
+  private final long mBlockSize;
+  /** File length in bytes. */
+  private final long mFileLength;
   /** File system context containing the {@link FileSystemMasterClient} pool. */
-  protected final FileSystemContext mContext;
+  private final FileSystemContext mContext;
   private final AlluxioBlockStore mBlockStore;
   /** File information. */
-  protected final URIStatus mStatus;
+  private final URIStatus mStatus;
 
   /** If the stream is closed, this can only go from false to true. */
-  protected boolean mClosed;
+  private boolean mClosed;
 
   /**
    * Caches the entire block even if only a portion of the block is read. Only valid when
@@ -100,14 +102,14 @@ public class FileInStream extends InputStream
   // mPositionState.getNextBlockStartPos should be the exclusive end position of
   // mCurrentBlockInStream.
   /** Position states. */
-  protected PositionState mPositionState;
+  private PositionState mPositionState;
   /** Current block in stream backing this stream. */
-  protected BlockInStream mCurrentBlockInStream;
+  private BlockInStream mCurrentBlockInStream;
   /**
    * Current block out stream writing the data into the local worker. This is only used when the in
    * stream reads from a remote worker.
    */
-  protected BlockOutStream mCurrentCacheStream;
+  private BlockOutStream mCurrentCacheStream;
 
   /** The read buffer in file seek. This is used in {@link #readCurrentBlockToEnd()}. */
   private final byte[] mSeekBuffer;
@@ -115,7 +117,7 @@ public class FileInStream extends InputStream
   /**
    * States related to position that need to be in sync.
    */
-  protected class PositionState {
+  class PositionState {
     /** Block ID used when position reaches EOF, should be < 0. */
     public static final long EOF_BLOCK_ID = -1;
 
@@ -331,13 +333,10 @@ public class FileInStream extends InputStream
    * @param options the client options
    * @param context file system context
    * @return the created {@link FileInStream} instance
-   * @throws IOException when failed to create a new {@link UnknownLengthFileInStream}
    */
   public static FileInStream create(URIStatus status, InStreamOptions options,
-      FileSystemContext context) throws IOException {
-    if (status.getLength() == Constants.UNKNOWN_SIZE) {
-      return new UnknownLengthFileInStream(status, options, context);
-    }
+      FileSystemContext context) {
+    Preconditions.checkArgument(status.getLength() != Constants.UNKNOWN_SIZE);
     return new FileInStream(status, options, context);
   }
 
@@ -354,6 +353,7 @@ public class FileInStream extends InputStream
     mInStreamOptions = options;
     mOutStreamOptions = OutStreamOptions.defaults();
     mBlockSize = status.getBlockSizeBytes();
+    mFileLength = status.getLength();
     mContext = context;
     mAlluxioStorageType = options.getAlluxioStorageType();
     mShouldCache = mAlluxioStorageType.isStore();
@@ -484,7 +484,7 @@ public class FileInStream extends InputStream
   }
 
   private int positionedReadInternal(long pos, byte[] b, int off, int len) throws IOException {
-    if (pos < 0 || pos >= getFileLength()) {
+    if (pos < 0 || pos >= mFileLength) {
       return EOF_DATA;
     }
 
@@ -504,7 +504,7 @@ public class FileInStream extends InputStream
     int lenCopy = len;
 
     while (len > 0) {
-      if (pos >= getFileLength()) {
+      if (pos >= mFileLength) {
         break;
       }
       long blockId = getBlockId(pos);
@@ -532,7 +532,7 @@ public class FileInStream extends InputStream
       return;
     }
     Preconditions.checkArgument(pos >= 0, PreconditionMessage.ERR_SEEK_NEGATIVE.toString(), pos);
-    Preconditions.checkArgument(pos <= getFileLength(),
+    Preconditions.checkArgument(pos <= mFileLength,
         PreconditionMessage.ERR_SEEK_PAST_END_OF_FILE.toString(), pos);
 
     if (shouldCachePartiallyReadBlock()) {
@@ -577,19 +577,12 @@ public class FileInStream extends InputStream
    */
   protected long getBlockSize(long pos) {
     // The size of the last block, 0 if it is equal to the normal block size
-    long lastBlockSize = getFileLength() % mBlockSize;
-    if (getFileLength() - pos > lastBlockSize) {
+    long lastBlockSize = mFileLength % mBlockSize;
+    if (mFileLength - pos > lastBlockSize) {
       return mBlockSize;
     } else {
       return lastBlockSize;
     }
-  }
-
-  /**
-   * @return the file length
-   */
-  protected long getFileLength() {
-    return mStatus.getLength();
   }
 
   /**
@@ -664,7 +657,7 @@ public class FileInStream extends InputStream
    * stream still has remaining data, then this is a no-op;
    * otherwise, both the block stream and the cache stream are updated.
    */
-  protected void updateStreams() throws IOException {
+  private void updateStreams() throws IOException {
     long blockId = mPositionState.getBlockId();
     if (mCurrentBlockInStream != null && mCurrentBlockInStream.getId() == blockId
         && mCurrentBlockInStream.remaining() != 0) {
