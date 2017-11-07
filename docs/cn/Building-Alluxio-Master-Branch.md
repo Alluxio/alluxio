@@ -73,7 +73,7 @@ $ mvn install -P<HADOOP_PROFILE> -DskipTests
 
 
 
-### Spark/Flink/Presto和etc
+### Spark/Flink/Presto和其他框架
 
 你可以运行以下命令编译不同计算框架的Alluxio服务器和客户端Jar包。
 
