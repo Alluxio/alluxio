@@ -39,7 +39,7 @@ Starting alluxio-fuse on local host.
 Alluxio-fuse mounted at /mnt/people. See /lib/alluxio/logs/fuse.log for logs
 ```
 
-When `alluxio_path` is not given, Alluxio-FUSE defaults it to root (`/`). Note that the `mount_point` must be an existing and empty path in your local file system hierarchy and that the user that runs the `alluxio-fuse.sh` script must own the mount point and have read and write permissions on it. You can mount Alluxio to multiple mount points, and all of these alluxio-fuse processes share the same log output at `$ALLUXIO_HOME\logs\fuse.log`.
+When `alluxio_path` is not given, Alluxio-FUSE defaults it to root (`/`). Note that the `mount_point` must be an existing and empty path in your local file system hierarchy and that the user that runs the `alluxio-fuse.sh` script must own the mount point and have read and write permissions on it. You can mount Alluxio to multiple mount points. All of these alluxio-fuse processes share the same log output at `$ALLUXIO_HOME\logs\fuse.log`, which is useful for troubleshooting when errors happen on operations under the mounting point.
 
 ### Unmount Alluxio-FUSE
 
@@ -86,13 +86,13 @@ One possibility, for example, is to edit `$ALLUXIO_HOME/conf/alluxio-site.proper
 
 Currently, most basic file system operations are supported. However, due to Alluxio implicit characteristics, please be aware that:
 
-* Files can be written only once, only sequentially, and never be modified. That means overriding a file is allowed, and an explicit combination of delete and then create is needed. For example, `cp` command will fail when the destination file exists. 
+* Files can be written only once, only sequentially, and never be modified. That means overriding a file is not allowed, and an explicit combination of delete and then create is needed. For example, `cp` command will fail when the destination file exists. 
 * Alluxio does not have hard-link and soft-link concepts, so the commands like `ln` are not supported, neither the hardlinks number is displayed in `ll` output.
 * The user and group are mapped to the Unix user and group only when Alluxio is configured to use shell-based mapping, by setting `alluxio.security.group.mapping.class` to `ShellBasedUnixGroupsMapping` in `conf/alluxio-site.properties`. Otherwise `chown` and `chgrp` are no-ops, and `ll` will return the user and group of the user who started the alluxio-fuse process.
 
 ## Performance considerations
 
-Due to the conjunct use of FUSE and JNR, the performance of the mounted file system is expected to be worse than what you would see by using the `alluxio-core-client-fs` directly.
+Due to the conjunct use of FUSE and JNR, the performance of the mounted file system is expected to be worse than what you would see by using the [native client API](Clients-Java-Native.html) directly.
 
 Most of the overheads come from the fact that there are several memory copies going on for each call on `read` or `write` operations, and that FUSE caps the maximum granularity of writes to 128KB. This could be probably improved by a large extent by leveraging the FUSE cache write-backs feature introduced in kernel 3.15 (not supported yet, however, by libfuse 2.x userspace libs).
 
