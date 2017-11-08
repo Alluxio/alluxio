@@ -142,7 +142,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
    * @param permission permissions of the created file/folder
    * @param overwrite overwrite if file exists
    * @param bufferSize the size in bytes of the buffer to be used
-   * @param replication under filesystem replication factor
+   * @param replication under filesystem replication factor, this is ignored
    * @param blockSize block size in bytes
    * @param progress queryable progress
    * @return an {@link FSDataOutputStream} created at the indicated path of a file
