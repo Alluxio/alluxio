@@ -16,6 +16,9 @@ import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertFalse;
 
+import alluxio.Configuration;
+import alluxio.ConfigurationTestUtils;
+import alluxio.PropertyKey;
 import alluxio.exception.BlockAlreadyExistsException;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.ExceptionMessage;
@@ -28,6 +31,7 @@ import alluxio.worker.block.meta.StorageDir;
 import alluxio.worker.block.meta.TempBlockMeta;
 
 import com.google.common.collect.Sets;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -70,6 +74,8 @@ public final class TieredBlockStoreTest {
    */
   @Before
   public void before() throws Exception {
+    // TODO(calvin): Rewrite the tests to work with async eviction
+    Configuration.set(PropertyKey.WORKER_TIERED_STORE_RESERVER_ENABLED, "false");
     File tempFolder = mTestFolder.newFolder();
     TieredBlockStoreTestUtils.setupDefaultConf(tempFolder.getAbsolutePath());
     mBlockStore = new TieredBlockStore();
@@ -88,6 +94,11 @@ public final class TieredBlockStoreTest {
     mTestDir1 = mMetaManager.getTier(FIRST_TIER_ALIAS).getDir(0);
     mTestDir2 = mMetaManager.getTier(FIRST_TIER_ALIAS).getDir(1);
     mTestDir3 = mMetaManager.getTier(SECOND_TIER_ALIAS).getDir(1);
+  }
+
+  @After
+  public void after() throws Exception {
+    ConfigurationTestUtils.resetConfiguration();
   }
 
   /**
