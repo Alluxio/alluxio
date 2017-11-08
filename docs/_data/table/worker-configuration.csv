@@ -22,6 +22,7 @@ alluxio.worker.file.persist.pool.size,64
 alluxio.worker.file.persist.rate.limit,2GB
 alluxio.worker.file.persist.rate.limit.enabled,false
 alluxio.worker.filesystem.heartbeat.interval,1sec
+alluxio.worker.free.space.timeout,10sec
 alluxio.worker.hostname,
 alluxio.worker.keytab.file,
 alluxio.worker.memory.size,1GB
@@ -66,7 +67,7 @@ alluxio.worker.tieredstore.level2.reserved.ratio,
 alluxio.worker.tieredstore.level2.watermark.high.ratio,0.95
 alluxio.worker.tieredstore.level2.watermark.low.ratio,0.7
 alluxio.worker.tieredstore.levels,1
-alluxio.worker.tieredstore.reserver.enabled,false
+alluxio.worker.tieredstore.reserver.enabled,true
 alluxio.worker.tieredstore.reserver.interval,1sec
 alluxio.worker.tieredstore.retry,3
 alluxio.worker.ufs.block.open.timeout,5min
