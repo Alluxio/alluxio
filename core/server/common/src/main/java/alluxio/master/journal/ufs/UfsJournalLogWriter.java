@@ -162,9 +162,11 @@ final class UfsJournalLogWriter implements JournalWriter {
           .writeDelimitedTo(mJournalOutputStream.mOutputStream);
     } catch (IOException e) {
       mRotateLogForNextWrite = true;
+      UfsJournalFile currentLog = mJournalOutputStream.mCurrentLog;
+      mJournalOutputStream = null;
       throw new IOException(ExceptionMessage.JOURNAL_WRITE_FAILURE
           .getMessageWithUrl(RuntimeConstants.ALLUXIO_DEBUG_DOCS_URL,
-              mJournalOutputStream.mCurrentLog, e.getMessage()), e);
+              currentLog, e.getMessage()), e);
     }
     mNextSequenceNumber++;
   }
