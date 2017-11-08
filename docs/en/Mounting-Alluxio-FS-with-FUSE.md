@@ -111,12 +111,6 @@ These are the configuration parameters for Alluxio-FUSE.
 {% endfor %}
 </table>
 
-## Building manually
-
-You can build Alluxio-FUSE with the maven profile `fuse`. This profile will be automatically activated by maven when it is detected that you are building Alluxio with a JDK version 8 or newer.
-
-The best way to do so is to either clone the Alluxio [GitHub repository](https://github.com/alluxio/alluxio) and choose your favourite branch from git, or to grab a [source distribution](https://github.com/alluxio/alluxio/releases) directly. Please refer to [this page](Building-Alluxio-Master-Branch.html)) for building instructions.
-
 ## Acknowledgements
 
 This project uses [jnr-fuse](https://github.com/SerCeMan/jnr-fuse) for FUSE on Java.
