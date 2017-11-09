@@ -70,7 +70,7 @@ public final class RetryHandlingMetaMasterClient extends AbstractMasterClient
 
   @Override
   public synchronized MasterInfo getInfo(final Set<MasterInfoField> fields) throws IOException {
-    return retryRPC(() -> new RpcCallable<MasterInfo>(){
+    return retryRPC(<MasterInfo>() -> {
       Set<alluxio.thrift.MasterInfoField> thriftFields = new HashSet<>();
       if (fields == null) {
         thriftFields = null;
