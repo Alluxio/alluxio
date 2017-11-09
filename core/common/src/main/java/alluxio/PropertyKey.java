@@ -298,11 +298,11 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "\"Owners\" one.")
           .build();
   public static final PropertyKey UNDERFS_HDFS_CONFIGURATION =
-          new Builder(Name.UNDERFS_HDFS_CONFIGURATION)
-                  .setDefaultValue(String.format(
-                          "${%s}/core-site.xml:${%s}/hdfs-site.xml", Name.CONF_DIR, Name.CONF_DIR))
-                  .setDescription("Location of the HDFS configuration file.")
-                  .build();
+      new Builder(Name.UNDERFS_HDFS_CONFIGURATION)
+          .setDefaultValue(String.format(
+              "${%s}/core-site.xml:${%s}/hdfs-site.xml", Name.CONF_DIR, Name.CONF_DIR))
+          .setDescription("Location of the HDFS configuration file.")
+          .build();
   public static final PropertyKey UNDERFS_HDFS_IMPL =
       new Builder(Name.UNDERFS_HDFS_IMPL)
           .setDefaultValue("org.apache.hadoop.hdfs.DistributedFileSystem")
