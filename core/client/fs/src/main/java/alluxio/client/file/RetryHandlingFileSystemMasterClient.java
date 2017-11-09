@@ -125,12 +125,9 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
   @Override
   public synchronized void completeFile(final AlluxioURI path, final CompleteFileOptions options)
       throws IOException {
-    retryRPC(new RpcCallable<Void>() {
-      @Override
-      public Void call() throws TException {
-        mClient.completeFile(path.getPath(), options.toThrift());
-        return null;
-      }
+    retryRPC(() -> {
+      mClient.completeFile(path.getPath(), options.toThrift());
+      return null;
     });
   }
 
