@@ -90,29 +90,23 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
   @Override
   public synchronized List<AlluxioURI> checkConsistency(final AlluxioURI path,
       final CheckConsistencyOptions options) throws IOException {
-    return retryRPC(new RpcCallable<List<AlluxioURI>>() {
-      @Override
-      public List<AlluxioURI> call() throws TException {
-        List<String> inconsistentPaths =
-            mClient.checkConsistency(path.getPath(), options.toThrift()).getInconsistentPaths();
-        List<AlluxioURI> inconsistentUris = new ArrayList<>(inconsistentPaths.size());
-        for (String path : inconsistentPaths) {
-          inconsistentUris.add(new AlluxioURI(path));
-        }
-        return inconsistentUris;
+    return retryRPC(() -> {
+      List<String> inconsistentPaths =
+          mClient.checkConsistency(path.getPath(), options.toThrift()).getInconsistentPaths();
+      List<AlluxioURI> inconsistentUris = new ArrayList<>(inconsistentPaths.size());
+      for (String inconsistentPath : inconsistentPaths) {
+        inconsistentUris.add(new AlluxioURI(inconsistentPath));
       }
+      return inconsistentUris;
     });
   }
 
   @Override
   public synchronized void createDirectory(final AlluxioURI path,
       final CreateDirectoryOptions options) throws IOException {
-    retryRPC(new RpcCallable<Void>() {
-      @Override
-      public Void call() throws TException {
-        mClient.createDirectory(path.getPath(), options.toThrift());
-        return null;
-      }
+    retryRPC(() -> {
+      mClient.createDirectory(path.getPath(), options.toThrift());
+      return null;
     });
   }
 
@@ -284,12 +278,9 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
 
   @Override
   public synchronized void unmount(final AlluxioURI alluxioPath) throws IOException {
-    retryRPC(new RpcCallable<Void>() {
-      @Override
-      public Void call() throws TException {
-        mClient.unmount(alluxioPath.toString(), new UnmountTOptions());
-        return null;
-      }
+    retryRPC(() -> {
+      mClient.unmount(alluxioPath.toString(), new UnmountTOptions());
+      return null;
     });
   }
 }

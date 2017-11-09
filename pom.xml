@@ -990,6 +990,9 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-javadoc-plugin</artifactId>
+        <configuration>
+          <additionalparam>-Xdoclint:none</additionalparam>
+        </configuration>
         <executions>
           <execution>
             <id>aggregate</id>
@@ -1180,33 +1183,6 @@
 
   <profiles>
     <profile>
-      <!-- Turn off doclint for java8 and later -->
-      <id>doclint-java8-disable</id>
-      <activation>
-        <jdk>[1.8,)</jdk>
-      </activation>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-javadoc-plugin</artifactId>
-            <configuration>
-              <additionalparam>-Xdoclint:none</additionalparam>
-            </configuration>
-            <executions>
-              <execution>
-                <id>attach-javadoc</id>
-                <goals>
-                  <goal>jar</goal>
-                </goals>
-              </execution>
-            </executions>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-
-    <profile>
       <id>contractTest</id>
       <properties>
         <hadoop.version>2.6.5</hadoop.version>
@@ -1269,24 +1245,6 @@
       </properties>
     </profile>
 
-    <!--
-        build profile for Apache Spark.
-        Empty spark profile to avoid missing profile complaints. Client
-        submodules do more interesting things with this profile.
-    -->
-    <profile>
-      <id>spark</id>
-    </profile>
-
-    <!--
-        build profile for Apache Flink.
-        Empty flinkprofile to avoid missing profile complaints. Client
-        submodules do more interesting things with this profile.
-    -->
-    <profile>
-      <id>flink</id>
-    </profile>
-
     <profile>
       <id>mesos</id>
       <modules>
@@ -1300,15 +1258,6 @@
       <modules>
         <module>integration/yarn</module>
       </modules>
-    </profile>
-
-    <!--
-        build profile for Facebook Presto.
-        Empty Presto profile to avoid missing profile complaints. Client
-        submodules do more interesting things with this profile.
-    -->
-    <profile>
-      <id>presto</id>
     </profile>
 
     <!-- profile that Alluxio developers should use -->
@@ -1348,17 +1297,6 @@
           </plugins>
         </pluginManagement>
       </build>
-    </profile>
-
-    <!-- profile that activates alluxio fuse for java8 or newer -->
-    <profile>
-      <id>fuse</id>
-      <activation>
-        <jdk>[1.8,)</jdk> <!-- 1.8 or newer -->
-      </activation>
-      <modules>
-        <module>integration/fuse</module>
-      </modules>
     </profile>
   </profiles>
 </project>
