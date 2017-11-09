@@ -366,6 +366,15 @@ service FileSystemMasterClientService extends common.AlluxioService {
     throws (1: exception.AlluxioTException e)
 
   /**
+   * Syncs the Alluxio metadata with the UFS metadata, for a given path
+   */
+  SyncMetadataTResponse syncMetadata(
+    /** the root of the subtree to sync */ 1: string path,
+    /** the method options */ 2: SyncMetadataTOptions options,
+    )
+    throws (1: exception.AlluxioTException e)
+
+  /**
    * Deletes an existing "mount point", voiding the Alluxio namespace at the given path. The path
    * should correspond to an existing mount point. Any files in its subtree that are backed by UFS
    * will be persisted before they are removed from the Alluxio namespace.
