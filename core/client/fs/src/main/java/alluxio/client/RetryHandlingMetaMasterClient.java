@@ -80,7 +80,7 @@ public final class RetryHandlingMetaMasterClient extends AbstractMasterClient
         }
       }
       return MasterInfo.fromThrift(
-        mClient.getMasterInfo(new GetMasterInfoTOptions(thriftFields)).getMasterInfo());
+          mClient.getMasterInfo(new GetMasterInfoTOptions(thriftFields)).getMasterInfo());
     });
   }
 }
