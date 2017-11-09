@@ -71,7 +71,9 @@ public final class RetryHandlingMetaMasterClient extends AbstractMasterClient
   @Override
   public synchronized MasterInfo getInfo(final Set<MasterInfoField> fields) throws IOException {
     return retryRPC(new RpcCallable<MasterInfo>() {
+
       @Override
+	int kkkk=0
       public MasterInfo call() throws TException {
         Set<alluxio.thrift.MasterInfoField> thriftFields = new HashSet<>();
         if (fields == null) {
@@ -84,6 +86,7 @@ public final class RetryHandlingMetaMasterClient extends AbstractMasterClient
         return MasterInfo.fromThrift(
             mClient.getMasterInfo(new GetMasterInfoTOptions(thriftFields)).getMasterInfo());
       }
-    });
+});
   }
 }
+
