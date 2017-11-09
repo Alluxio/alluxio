@@ -654,12 +654,14 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
   }
 
   /**
-   * Writes a buffer to an open Alluxio file.
+   * Writes a buffer to an open Alluxio file. Random write is not supported, so the offset argument
+   * is ignored. Also, due to an issue in OSXFUSE that may write the same content at a offset
+   * multiple times, the write also checks that the subsequent write of the same offset is ignored.
    *
    * @param buf The buffer with source data
-   * @param size How much data to write from the buffer. The maximum accepted size
-   *             for writes is {@link Integer#MAX_VALUE}. Note that current FUSE
-   *             implementation will anyway call write with at most 128K writes
+   * @param size How much data to write from the buffer. The maximum accepted size for writes is
+   *        {@link Integer#MAX_VALUE}. Note that current FUSE implementation will anyway call write
+   *        with at most 128K writes
    * @param offset The offset where to write in the file (IGNORED)
    * @param fi FileInfo data structure kept by FUSE
    * @return number of bytes written on success, a negative value on error
@@ -689,7 +691,7 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
       return -ErrorCodes.EEXIST();
     }
 
-    if(offset<= oe.getWriteOffset()) {
+    if (offset <= oe.getWriteOffset()) {
       // no op
       return sz;
     }

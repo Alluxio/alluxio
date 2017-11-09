@@ -39,6 +39,7 @@ final class OpenFileEntry implements Closeable {
   public OpenFileEntry(FileInStream in, FileOutStream out) {
     mIn = in;
     mOut = out;
+    mOffset = -1;
   }
 
   /**
@@ -61,10 +62,16 @@ final class OpenFileEntry implements Closeable {
     return mOut;
   }
 
+  /**
+   * @return the offset of the most recent write
+   */
   public long getWriteOffset() {
     return mOffset;
   }
 
+  /**
+   * Sets the offset of the most recent write.
+   */
   public void setWriteOffset(long offset) {
     mOffset = offset;
   }
@@ -81,5 +88,6 @@ final class OpenFileEntry implements Closeable {
     if (mOut != null) {
       mOut.close();
     }
+    mOffset = -1;
   }
 }
