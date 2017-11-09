@@ -59,6 +59,8 @@ import alluxio.master.file.meta.TempInodePathForChild;
 import alluxio.master.file.meta.TempInodePathForDescendant;
 import alluxio.master.file.meta.TtlBucketList;
 import alluxio.master.file.meta.UfsAbsentPathCache;
+import alluxio.master.file.meta.UfsSyncPathCache;
+import alluxio.master.file.meta.UfsSyncUtils;
 import alluxio.master.file.meta.options.MountInfo;
 import alluxio.master.file.options.CheckConsistencyOptions;
 import alluxio.master.file.options.CompleteFileOptions;
@@ -72,6 +74,7 @@ import alluxio.master.file.options.LoadMetadataOptions;
 import alluxio.master.file.options.MountOptions;
 import alluxio.master.file.options.RenameOptions;
 import alluxio.master.file.options.SetAttributeOptions;
+import alluxio.master.file.options.SyncMetadataOptions;
 import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.NoopJournalContext;
@@ -304,6 +307,9 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
   /** This caches absent paths in the UFS. */
   private final UfsAbsentPathCache mUfsAbsentPathCache;
 
+  /** This caches paths which have been synced with UFS. */
+  private final UfsSyncPathCache mUfsSyncPathCache;
+
   /**
    * The service that checks for inode files with ttl set. We store it here so that it can be
    * accessed from tests.
@@ -359,6 +365,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     mAsyncPersistHandler = AsyncPersistHandler.Factory.create(new FileSystemMasterView(this));
     mPermissionChecker = new PermissionChecker(mInodeTree);
     mUfsAbsentPathCache = UfsAbsentPathCache.Factory.create(mMountTable);
+    mUfsSyncPathCache = new UfsSyncPathCache();
 
     resetState();
     Metrics.registerGauges(this, mUfsManager);
@@ -796,6 +803,9 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
   public List<FileInfo> listStatus(AlluxioURI path, ListStatusOptions listStatusOptions)
       throws AccessControlException, FileDoesNotExistException, InvalidPathException {
     Metrics.GET_FILE_INFO_OPS.inc();
+
+    syncMetadata(path, SyncMetadataOptions.defaults());
+
     try (JournalContext journalContext = createJournalContext();
         LockedInodePath inodePath = mInodeTree.lockInodePath(path, InodeTree.LockMode.READ);
         FileSystemMasterAuditContext auditContext =
@@ -2941,6 +2951,160 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    */
   private void scheduleAsyncPersistenceInternal(LockedInodePath inodePath) throws AlluxioException {
     inodePath.getInode().setPersistenceState(PersistenceState.TO_BE_PERSISTED);
+  }
+
+  @Override
+  public boolean syncMetadata(AlluxioURI path, SyncMetadataOptions options)
+      throws AccessControlException, FileDoesNotExistException, InvalidPathException {
+    if (!mUfsSyncPathCache.shouldSyncPath(path.getPath(), 10000)) {
+      return false;
+    }
+
+    // True if ufs metadata should be loaded later.
+    boolean loadMetadata = false;
+
+    // The high-level process for the syncing is:
+    // 1. Find all Alluxio paths which are not consistent with the corresponding UFS path.
+    //    This means the UFS path does not exist, or is different from the Alluxio metadata.
+    // 2. Delete those Alluxio paths which are not consistent with Alluxio. After this step, all
+    //    the paths in Alluxio are consistent with UFS, and there may be additional UFS paths to
+    //    load.
+    // 3. Load metadata from UFS.
+
+    try (JournalContext journalContext = createJournalContext();
+         LockedInodePath inodePath = mInodeTree.lockInodePath(path, InodeTree.LockMode.WRITE);
+         FileSystemMasterAuditContext auditContext =
+             createAuditContext("syncMetadata", path, null, inodePath.getInodeOrNull())) {
+      try {
+        mPermissionChecker.checkPermission(Mode.Bits.READ, inodePath);
+      } catch (AccessControlException e) {
+        auditContext.setAllowed(false);
+        throw e;
+      }
+
+      if (!inodePath.fullPathExists()) {
+        // The requested path does not exist in Alluxio, so just load metadata.
+        loadMetadata = true;
+      } else {
+        // The requested path already exists in Alluxio.
+
+        MountTable.Resolution resolution = mMountTable.resolve(path);
+        AlluxioURI ufsUri = resolution.getUri();
+        UnderFileSystem ufs = resolution.getUfs();
+
+        UfsSyncUtils.SyncPlan syncPlan = UfsSyncUtils.computeSyncPlan(inodePath.getInode(),
+            UfsSyncUtils.getUfsStatus(ufs, ufsUri.toString()));
+
+        if (syncPlan.toDelete() && inodePath.getParentInodeOrNull() != null) {
+          // Do not delete the root.
+          try {
+            deleteInternal(inodePath, true, System.currentTimeMillis(),
+                DeleteOptions.defaults().setRecursive(true).setAlluxioOnly(true).setUnchecked(true),
+                journalContext);
+          } catch (DirectoryNotEmptyException | IOException e) {
+            // Should not happen, since it is an unchecked delete.
+          }
+        }
+
+        if (syncPlan.toLoadMetadata()) {
+          loadMetadata = true;
+        }
+
+        if (syncPlan.toSyncChildren() && inodePath.getInode().isDirectory()) {
+          UfsStatus[] listStatus = null;
+          try {
+            listStatus = ufs.listStatus(ufsUri.toString());
+          } catch (IOException e) {
+            // ignore error
+          }
+
+          if (listStatus != null) {
+            HashMap<String, UfsStatus> ufsChildren = new HashMap<>();
+            HashMap<String, Inode<?>> inodeChildren = new HashMap<>();
+
+            for (UfsStatus ufsChildStatus : listStatus) {
+              ufsChildren.put(ufsChildStatus.getName(), ufsChildStatus);
+            }
+            InodeDirectory inodeDir = (InodeDirectory) inodePath.getInode();
+            for (Inode<?> child : inodeDir.getChildren()) {
+              inodeChildren.put(child.getName(), child);
+            }
+
+            // Process Ufs children which do not exist in Alluxio.
+            for (Map.Entry<String, UfsStatus> ufsEntry : ufsChildren.entrySet()) {
+              if (!inodeChildren.containsKey(ufsEntry.getKey()) && !PathUtils
+                  .isTemporaryFileName(ufsEntry.getKey())) {
+                // Ufs child exists, but Alluxio child does not. Must load metadata.
+                loadMetadata = true;
+                break;
+              }
+            }
+
+            // Process persisted Alluxio inode children.
+            for (Map.Entry<String, Inode<?>> inodeEntry : inodeChildren.entrySet()) {
+              if (!inodeEntry.getValue().isPersisted()) {
+                // Ignore non-persisted inodes.
+                continue;
+              }
+
+              boolean deleteChild = false;
+              UfsStatus ufsChildStatus = ufsChildren.get(inodeEntry.getKey());
+              if (ufsChildStatus != null) {
+                // Exists in both Alluxio and Ufs. Check for match.
+                deleteChild = !UfsSyncUtils.inodeUfsMatch(inodeEntry.getValue(), ufsChildStatus);
+              } else {
+                // Persisted Alluxio inode child exists, but Ufs child does not. Delete this child.
+                deleteChild = true;
+              }
+
+              if (deleteChild) {
+                TempInodePathForDescendant tempInodePath =
+                    new TempInodePathForDescendant(inodePath);
+                tempInodePath.setDescendant(inodeEntry.getValue(),
+                    inodePath.getUri().join(inodeEntry.getKey()));
+
+                try {
+                  deleteInternal(tempInodePath, true, System.currentTimeMillis(),
+                      DeleteOptions.defaults().setRecursive(true).setAlluxioOnly(true)
+                          .setUnchecked(true), journalContext);
+                } catch (DirectoryNotEmptyException | IOException e) {
+                  // Should not happen, since it is an unchecked delete.
+                }
+                // Must load metadata afterwards.
+                loadMetadata = true;
+              }
+            }
+          }
+        }
+      }
+      auditContext.setSucceeded(true);
+    }
+
+    if (loadMetadata) {
+      try (JournalContext journalContext = createJournalContext();
+           LockedInodePath inodePath = mInodeTree.lockInodePath(path, InodeTree.LockMode.READ);
+           FileSystemMasterAuditContext auditContext =
+               createAuditContext("syncMetadata", path, null, inodePath.getInodeOrNull())) {
+        try {
+          mPermissionChecker.checkPermission(Mode.Bits.READ, inodePath);
+        } catch (AccessControlException e) {
+          auditContext.setAllowed(false);
+          throw e;
+        }
+
+        try {
+          loadMetadataAndJournal(inodePath,
+              LoadMetadataOptions.defaults().setCreateAncestors(true).setLoadDirectChildren(true),
+              journalContext);
+        } catch (Exception e) {
+          LOG.debug("Failed to load metadata for path: {}", inodePath.getUri());
+        }
+        auditContext.setSucceeded(true);
+      }
+    }
+
+    mUfsSyncPathCache.addSyncPath(path.getPath());
+    return true;
   }
 
   @Override

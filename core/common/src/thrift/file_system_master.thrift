@@ -174,6 +174,13 @@ struct SetAttributeTResponse {}
 struct ScheduleAsyncPersistenceTOptions {}
 struct ScheduleAsyncPersistenceTResponse {}
 
+struct SyncMetadataTOptions {
+  1: optional LoadMetadataTType loadMetadataType
+}
+struct SyncMetadataTResponse {
+  1: bool synced
+}
+
 struct UnmountTOptions {}
 struct UnmountTResponse {}
 
@@ -329,6 +336,15 @@ service FileSystemMasterClientService extends common.AlluxioService {
   ScheduleAsyncPersistenceTResponse scheduleAsyncPersistence(
     /** the path of the file */ 1: string path,
     /** the method options */ 2: ScheduleAsyncPersistenceTOptions options,
+    )
+    throws (1: exception.AlluxioTException e)
+
+  /**
+   * Syncs the Alluxio metadata with the UFS metadata, for a given path
+   */
+  SyncMetadataTResponse syncMetadata(
+    /** the root of the subtree to sync */ 1: string path,
+    /** the method options */ 2: SyncMetadataTOptions options,
     )
     throws (1: exception.AlluxioTException e)
 
