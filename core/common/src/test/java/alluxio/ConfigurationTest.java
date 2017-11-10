@@ -525,4 +525,23 @@ public class ConfigurationTest {
       assertNotEquals("/tmp/logs1", Configuration.get(PropertyKey.LOGS_DIR));
     }
   }
+
+  @Test
+  public void noWhitespaceTrailingInSiteProperties() throws Exception {
+    Properties siteProps = new Properties();
+    siteProps.setProperty(PropertyKey.MASTER_HOSTNAME.toString(), " host-1 ");
+    siteProps.setProperty(PropertyKey.LOGS_DIR.toString(), "\t/tmp/logs1\t");
+    File propsFile = mFolder.newFile(Constants.SITE_PROPERTIES);
+    siteProps.store(new FileOutputStream(propsFile), "tmp site properties file");
+    // Avoid interference from system properties. Reset SITE_CONF_DIR to include the temp
+    // site-properties file
+    HashMap<String, String> sysProps = new HashMap<>();
+    sysProps.put(PropertyKey.SITE_CONF_DIR.toString(), mFolder.getRoot().getAbsolutePath());
+    sysProps.put(PropertyKey.TEST_MODE.toString(), "false");
+    try (Closeable p = new SystemPropertyRule(sysProps).toResource()) {
+      Configuration.init();
+      assertEquals("host-1", Configuration.get(PropertyKey.MASTER_HOSTNAME));
+      assertNotEquals("/tmp/logs1", Configuration.get(PropertyKey.LOGS_DIR));
+    }
+  }
 }
