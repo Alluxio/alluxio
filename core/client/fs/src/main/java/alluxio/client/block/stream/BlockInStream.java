@@ -348,4 +348,11 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
   public BlockInStreamSource Source() {
     return mInStreamSource;
   }
+
+  /**
+   * @return the block ID
+   */
+  public long getId() {
+    return mId;
+  }
 }
