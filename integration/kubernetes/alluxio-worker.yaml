@@ -38,6 +38,7 @@ spec:
       restartPolicy: Always
       volumes:
         - name: alluxio-ramdisk
-          emptyDir: {}
+          emptyDir:
+            medium: "Memory"
         - name: alluxio-data
           emptyDir: {}
