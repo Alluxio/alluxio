@@ -32,8 +32,8 @@ getCapacityBytes:
 getUsedBytes:
   Get number of bytes used in the AlluxioFS.
 help:
-  Prints help message for the given command. If there isn't given
-  command, prints help messages for all supported commands.
+  Print help information for the given command. If no command is given,
+  print help information for all supported commands.
 leader:
   Print the current Alluxio leader master host name.
 load:
