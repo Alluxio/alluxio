@@ -1,0 +1,43 @@
+apiVersion: extensions/v1beta1
+kind: DaemonSet
+metadata:
+  name: alluxio-worker
+spec:
+  template:
+    metadata:
+      labels:
+        name: alluxio-worker
+        app: alluxio-worker
+    spec:
+      hostNetwork: true
+      hostPID: true
+      dnsPolicy: ClusterFirstWithHostNet
+      containers:
+        - name: alluxio-worker
+          image: alluxioadit/alluxio:1.6.0
+          command: ["/entrypoint.sh"]
+          args: ["worker"]
+          env:
+            - name: ALLUXIO_UNDERFS_ADDRESS
+              value: /underStorage
+            - name: ALLUXIO_MASTER_HOSTNAME
+              value: alluxio-master
+            - name: ALLUXIO_WORKER_MEMORY_SIZE
+              value: "1GB"
+            - name: ALLUXIO_RAM_FOLDER
+              value: /opt/ramdisk
+            - name: ALLUXIO_WORKER_WEB_PORT
+              value: "30001"
+          securityContext:
+            privileged: true
+          volumeMounts:
+            - name: alluxio-ramdisk
+              mountPath: /opt/ramdisk
+            - name: alluxio-data
+              mountPath: /underStorage
+      restartPolicy: Always
+      volumes:
+        - name: alluxio-ramdisk
+          emptyDir: {}
+        - name: alluxio-data
+          emptyDir: {}
