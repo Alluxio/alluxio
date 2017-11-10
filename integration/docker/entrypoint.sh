@@ -47,12 +47,14 @@ alluxio_env_vars=(
 declare -A alluxio_env_violators=(
   ["ALLUXIO_UNDERFS_S3A_INHERIT_ACL"]="alluxio.underfs.s3a.inherit_acl"
   ["ALLUXIO_MASTER_FORMAT_FILE_PREFIX"]="alluxio.master.format.file_prefix"
+  ["AWS_ACCESSKEYID"]="aws.accessKeyId"
+  ["AWS_SECRETKEY"]="aws.secretKey"
 )
 
-for keyvaluepair in $(env | grep "ALLUXIO_"); do
+for keyvaluepair in $(env | grep -E "ALLUXIO_|FS_|AWS_"); do
   # split around the "="
   key=$(echo ${keyvaluepair} | cut -d= -f1)
-  value=$(echo ${keyvaluepair} | cut -d= -f2)
+  value=$(echo ${keyvaluepair} | cut -d= -f2-)
   if [[ "${alluxio_env_vars[*]}" =~ "${key}" ]]; then
     echo "export ${key}=${value}" >> conf/alluxio-env.sh
   else
