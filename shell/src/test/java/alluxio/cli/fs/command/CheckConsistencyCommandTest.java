@@ -1,11 +1,17 @@
+/*
+ * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
+ * (the "License"). You may not use this work except in compliance with the License, which is
+ * available at www.apache.org/licenses/LICENSE-2.0
+ *
+ * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+ * either express or implied, as more fully set forth in the License.
+ *
+ * See the NOTICE file distributed with this work for information regarding copyright ownership.
+ */
+
 package alluxio.cli.fs.command;
 
-import alluxio.AlluxioURI;
 import alluxio.exception.AlluxioException;
-
-import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.Option;
-import org.apache.commons.cli.Options;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -40,20 +46,6 @@ public class CheckConsistencyCommandTest {
   }
 
   @Test
-  public void testgetOptions() throws AlluxioException, IOException {
-    Option repairOption =
-        Option.builder("r")
-          .required(false)
-          .hasArg(false)
-          .desc("repair inconsistent files")
-          .build();
-    CheckConsistencyCommand command = new CheckConsistencyCommand(null);
-    Options opt = command.getOptions();
-    Options expect = new Options().addOption(repairOption);
-    Assert.assertEquals(expect, opt);
-  }
-
-  @Test
   public void testgetCommandName() throws AlluxioException, IOException {
     CheckConsistencyCommand command = new CheckConsistencyCommand(null);
     String commandName = command.getCommandName();
@@ -78,18 +70,5 @@ public class CheckConsistencyCommandTest {
             + "of files in the under storage will be returned. An administrator should then "
             + "reconcile the differences.Specify -r to repair the inconsistent files.";
     Assert.assertEquals(expect, commandDesc);
-  }
-
-  @Test
-  public void testcheckConsistency() throws AlluxioException, IOException {
-    String arg = "/textfile.txt";
-    AlluxioURI path = new AlluxioURI(arg);
-    CheckConsistencyCommand command = new CheckConsistencyCommand(null);
-    CommandLine cl = command.parseAndValidateArgs(arg);
-    mOutput.reset();
-    int result = command.run(cl);
-    String expectOutput = path + " is consistent with the under storage system.";
-    Assert.assertEquals(0, result);
-    Assert.assertEquals(expectOutput, mOutput.toString());
   }
 }
