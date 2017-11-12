@@ -1811,7 +1811,6 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       // happen.
       throw new RuntimeException(e);
     }
-    return null;
   }
 
   @Override
