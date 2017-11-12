@@ -11,9 +11,11 @@
 
 package alluxio.network.protocol;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
+
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -31,26 +33,26 @@ public class RPCBlockReadRequestTest {
 
   private void assertValid(long blockId, long offset, long length, long lockId, long sessionId,
       RPCBlockReadRequest req) {
-    Assert.assertEquals(RPCMessage.Type.RPC_BLOCK_READ_REQUEST, req.getType());
-    Assert.assertEquals(blockId, req.getBlockId());
-    Assert.assertEquals(offset, req.getOffset());
-    Assert.assertEquals(length, req.getLength());
-    Assert.assertEquals(lockId, req.getLockId());
-    Assert.assertEquals(sessionId, req.getSessionId());
+    assertEquals(RPCMessage.Type.RPC_BLOCK_READ_REQUEST, req.getType());
+    assertEquals(blockId, req.getBlockId());
+    assertEquals(offset, req.getOffset());
+    assertEquals(length, req.getLength());
+    assertEquals(lockId, req.getLockId());
+    assertEquals(sessionId, req.getSessionId());
   }
 
   private void assertValid(RPCBlockReadRequest req) {
     try {
       req.validate();
     } catch (Exception e) {
-      Assert.fail("request should be valid.");
+      fail("request should be valid.");
     }
   }
 
   private void assertInvalid(RPCBlockReadRequest req) {
     try {
       req.validate();
-      Assert.fail("request should be invalid.");
+      fail("request should be invalid.");
     } catch (Exception e) {
       return;
     }
@@ -73,7 +75,7 @@ public class RPCBlockReadRequestTest {
         SESSION_ID);
     int encodedLength = req.getEncodedLength();
     req.encode(mBuffer);
-    Assert.assertEquals(encodedLength, mBuffer.readableBytes());
+    assertEquals(encodedLength, mBuffer.readableBytes());
   }
 
   /**
