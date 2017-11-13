@@ -38,8 +38,6 @@ spec:
           command: ["/entrypoint.sh"]
           args: ["master"]
           env:
-            - name: ALLUXIO_UNDERFS_ADDRESS
-              value: /underStorage
             - name: ALLUXIO_MASTER_HOSTNAME
               value: alluxio-master
           ports:
