@@ -17,17 +17,11 @@ spec:
           image: alluxioadit/alluxio:1.6.0
           command: ["/entrypoint.sh"]
           args: ["worker"]
-          env:
-            - name: ALLUXIO_UNDERFS_ADDRESS
-              value: /underStorage
-            - name: ALLUXIO_MASTER_HOSTNAME
-              value: alluxio-master
-            - name: ALLUXIO_WORKER_MEMORY_SIZE
-              value: "1GB"
-            - name: ALLUXIO_RAM_FOLDER
-              value: /opt/ramdisk
-            - name: ALLUXIO_WORKER_WEB_PORT
-              value: "30001"
+          envFrom:
+          - configMapRef:
+              name: alluxio-common-config
+          - configMapRef:
+              name: alluxio-worker-config
           securityContext:
             privileged: true
           volumeMounts:
