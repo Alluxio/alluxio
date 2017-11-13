@@ -11,34 +11,34 @@
 
 package alluxio.master.file.options;
 
-import alluxio.thrift.CheckConsistencyTOptions;
+import alluxio.thrift.SyncMetadataTOptions;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * Method options for checking the consistency of a path.
+ * Method options for syncing the metadata of a path.
  */
 @NotThreadSafe
-public final class CheckConsistencyOptions extends CommonOptions {
+public final class SyncMetadataOptions extends CommonOptions {
   /**
-   * @return the default {@link CheckConsistencyOptions}
+   * @return the default {@link SyncMetadataOptions}
    */
-  public static CheckConsistencyOptions defaults() {
-    return new CheckConsistencyOptions();
-  }
-
-  private CheckConsistencyOptions() {
-    this(null);
+  public static SyncMetadataOptions defaults() {
+    return new SyncMetadataOptions();
   }
 
   /**
-   * Constructs an instance of {@link CheckConsistencyOptions} from
-   * {@link alluxio.thrift.CheckConsistencyTOptions}.
+   * Constructs an instance of {@link SyncMetadataOptions} from
+   * {@link SyncMetadataTOptions}.
    *
-   * @param options the {@link alluxio.thrift.CheckConsistencyTOptions} to use
+   * @param options the {@link SyncMetadataTOptions} to use
    */
-  public CheckConsistencyOptions(CheckConsistencyTOptions options) {
+  public SyncMetadataOptions(SyncMetadataTOptions options) {
     super(options != null ? options.getCommonOptions() : null);
+  }
+
+  private SyncMetadataOptions() {
+    this(null);
   }
 
   @Override
@@ -46,7 +46,7 @@ public final class CheckConsistencyOptions extends CommonOptions {
     if (this == o) {
       return true;
     }
-    if (!(o instanceof CheckConsistencyOptions)) {
+    if (!(o instanceof SyncMetadataOptions)) {
       return false;
     }
     return super.equals(o);

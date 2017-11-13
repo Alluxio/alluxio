@@ -11,18 +11,19 @@
 
 package alluxio.master.file.options;
 
+import alluxio.thrift.LoadMetadataTOptions;
 import alluxio.underfs.UfsStatus;
 
 import com.google.common.base.Objects;
 
-import javax.annotation.concurrent.NotThreadSafe;
 import javax.annotation.Nullable;
+import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * Method options for loading metadata.
  */
 @NotThreadSafe
-public final class LoadMetadataOptions {
+public final class LoadMetadataOptions extends CommonOptions {
   private boolean mCreateAncestors;
   private boolean mLoadDirectChildren;
   private UfsStatus mUfsStatus;
@@ -35,6 +36,11 @@ public final class LoadMetadataOptions {
   }
 
   private LoadMetadataOptions() {
+    this(null);
+  }
+
+  public LoadMetadataOptions(LoadMetadataTOptions options) {
+    super(options != null ? options.getCommonOptions() : null);
     mCreateAncestors = false;
     mLoadDirectChildren = false;
     mUfsStatus = null;
@@ -107,6 +113,9 @@ public final class LoadMetadataOptions {
     if (!(o instanceof LoadMetadataOptions)) {
       return false;
     }
+    if (!(super.equals(o))) {
+      return false;
+    }
     LoadMetadataOptions that = (LoadMetadataOptions) o;
     return Objects.equal(mCreateAncestors, that.mCreateAncestors)
         && Objects.equal(mLoadDirectChildren, that.mLoadDirectChildren)
@@ -115,12 +124,13 @@ public final class LoadMetadataOptions {
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mCreateAncestors, mLoadDirectChildren, mUfsStatus);
+    return super.hashCode() + Objects.hashCode(mCreateAncestors, mLoadDirectChildren, mUfsStatus);
   }
 
   @Override
   public String toString() {
-    return Objects.toStringHelper(this).add("createAncestors", mCreateAncestors)
+    return toStringHelper()
+        .add("createAncestors", mCreateAncestors)
         .add("loadDirectChildren", mLoadDirectChildren)
         .add("ufsStatus", mUfsStatus).toString();
   }

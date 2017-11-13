@@ -26,7 +26,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * Method option for mounting.
  */
 @NotThreadSafe
-public final class MountOptions {
+public final class MountOptions extends CommonOptions {
   private boolean mReadOnly;
   private Map<String, String> mProperties;
   private boolean mShared;
@@ -39,9 +39,7 @@ public final class MountOptions {
   }
 
   private MountOptions() {
-    mReadOnly = false;
-    mProperties = new HashMap<>();
-    mShared = false;
+    this((MountTOptions) null);
   }
 
   /**
@@ -50,7 +48,11 @@ public final class MountOptions {
    * @param options Thrift options
    */
   public MountOptions(MountTOptions options) {
-    this();
+    super(options != null ? options.getCommonOptions() : null);
+    mReadOnly = false;
+    mProperties = new HashMap<>();
+    mShared = false;
+
     if (options != null) {
       if (options.isSetReadOnly()) {
         mReadOnly = options.isReadOnly();
@@ -70,7 +72,8 @@ public final class MountOptions {
    * @param options Proto options
    */
   public MountOptions(File.AddMountPointEntry options) {
-    this();
+    this((MountTOptions) null);
+
     if (options != null) {
       if (options.hasReadOnly()) {
         mReadOnly = options.getReadOnly();
@@ -145,6 +148,9 @@ public final class MountOptions {
     if (!(o instanceof MountOptions)) {
       return false;
     }
+    if (!(super.equals(o))) {
+      return false;
+    }
     MountOptions that = (MountOptions) o;
     return Objects.equal(mReadOnly, that.mReadOnly)
         && Objects.equal(mProperties, that.mProperties)
@@ -153,12 +159,12 @@ public final class MountOptions {
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mReadOnly, mProperties, mShared);
+    return super.hashCode() + Objects.hashCode(mReadOnly, mProperties, mShared);
   }
 
   @Override
   public String toString() {
-    return Objects.toStringHelper(this)
+    return toStringHelper()
         .add("readOnly", mReadOnly)
         .add("properties", mProperties)
         .add("shared", mShared)

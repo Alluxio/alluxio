@@ -22,7 +22,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * Method options for getStatus.
  */
 @NotThreadSafe
-public final class GetStatusOptions {
+public final class GetStatusOptions extends CommonOptions {
   private LoadMetadataType mLoadMetadataType;
 
   /**
@@ -33,7 +33,7 @@ public final class GetStatusOptions {
   }
 
   private GetStatusOptions() {
-    mLoadMetadataType = LoadMetadataType.Once;
+    this(null);
   }
 
   /**
@@ -42,9 +42,13 @@ public final class GetStatusOptions {
    * @param options the thrift representation of getFileInfo options
    */
   public GetStatusOptions(GetStatusTOptions options) {
+    super(options != null ? options.getCommonOptions() : null);
     mLoadMetadataType = LoadMetadataType.Once;
-    if (options.isSetLoadMetadataType()) {
-      mLoadMetadataType = LoadMetadataType.fromThrift(options.getLoadMetadataType());
+
+    if (options != null) {
+      if (options.isSetLoadMetadataType()) {
+        mLoadMetadataType = LoadMetadataType.fromThrift(options.getLoadMetadataType());
+      }
     }
   }
 
@@ -74,18 +78,21 @@ public final class GetStatusOptions {
     if (!(o instanceof GetStatusOptions)) {
       return false;
     }
+    if (!(super.equals(o))) {
+      return false;
+    }
     GetStatusOptions that = (GetStatusOptions) o;
     return Objects.equal(mLoadMetadataType, that.mLoadMetadataType);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mLoadMetadataType);
+    return super.hashCode() + Objects.hashCode(mLoadMetadataType);
   }
 
   @Override
   public String toString() {
-    return Objects.toStringHelper(this)
+    return toStringHelper()
         .add("loadMetadataType", mLoadMetadataType.toString())
         .toString();
   }
