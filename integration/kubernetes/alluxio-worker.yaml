@@ -27,8 +27,6 @@ spec:
           volumeMounts:
             - name: alluxio-ramdisk
               mountPath: /opt/ramdisk
-            - name: alluxio-data
-              mountPath: /underStorage
       restartPolicy: Always
       volumes:
         - name: alluxio-ramdisk
