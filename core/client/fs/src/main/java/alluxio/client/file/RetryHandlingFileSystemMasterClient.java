@@ -253,12 +253,9 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
   @Override
   public synchronized void setAttribute(final AlluxioURI path, final SetAttributeOptions options)
       throws IOException {
-    retryRPC(new RpcCallable<Void>() {
-      @Override
-      public Void call() throws TException {
-        mClient.setAttribute(path.getPath(), options.toThrift());
-        return null;
-      }
+    retryRPC(() -> {
+      mClient.setAttribute(path.getPath(), options.toThrift());
+      return null;
     });
   }
 
