@@ -34,5 +34,6 @@ spec:
         - name: alluxio-ramdisk
           emptyDir:
             medium: "Memory"
+            sizeLimit: "1G"
         - name: alluxio-data
           emptyDir: {}
