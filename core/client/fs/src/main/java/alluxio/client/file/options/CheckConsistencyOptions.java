@@ -13,15 +13,13 @@ package alluxio.client.file.options;
 
 import alluxio.thrift.CheckConsistencyTOptions;
 
-import com.google.common.base.Objects;
-
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * Options for checking the consistency of an Alluxio subtree.
  */
 @NotThreadSafe
-public final class CheckConsistencyOptions {
+public final class CheckConsistencyOptions extends CommonOptions<CheckConsistencyOptions> {
   /**
    * @return the default {@link CheckConsistencyOptions}
    */
@@ -34,24 +32,40 @@ public final class CheckConsistencyOptions {
   }
 
   @Override
+  public CheckConsistencyOptions getThis() {
+    return this;
+  }
+
+  @Override
   public boolean equals(Object o) {
-    return this == o || o instanceof CheckConsistencyOptions;
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof CheckConsistencyOptions)) {
+      return false;
+    }
+    if (!(super.equals(o))) {
+      return false;
+    }
+    return true;
   }
 
   @Override
   public int hashCode() {
-    return 0;
+    return super.hashCode();
   }
 
   @Override
   public String toString() {
-    return Objects.toStringHelper(this).toString();
+    return toStringHelper().toString();
   }
 
   /**
    * @return Thrift representation of the options
    */
   public CheckConsistencyTOptions toThrift() {
-    return new CheckConsistencyTOptions();
+    CheckConsistencyTOptions options = new CheckConsistencyTOptions();
+    options.setCommonOptions(commonThrift());
+    return options;
   }
 }

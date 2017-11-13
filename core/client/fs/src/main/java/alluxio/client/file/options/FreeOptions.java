@@ -14,8 +14,11 @@ package alluxio.client.file.options;
 import alluxio.annotation.PublicApi;
 import alluxio.thrift.FreeTOptions;
 
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import com.google.common.base.Objects;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -26,7 +29,9 @@ import javax.annotation.concurrent.NotThreadSafe;
 @PublicApi
 @NotThreadSafe
 @JsonInclude(Include.NON_EMPTY)
-public final class FreeOptions {
+@JsonIdentityInfo(generator = ObjectIdGenerators.IntSequenceGenerator.class, property = "@id")
+@JsonIgnoreProperties(ignoreUnknown = true)
+public final class FreeOptions extends CommonOptions<FreeOptions> {
   private boolean mForced;
   private boolean mRecursive;
 
@@ -83,11 +88,19 @@ public final class FreeOptions {
   }
 
   @Override
+  public FreeOptions getThis() {
+    return this;
+  }
+
+  @Override
   public boolean equals(Object o) {
     if (this == o) {
       return true;
     }
     if (!(o instanceof FreeOptions)) {
+      return false;
+    }
+    if (!(super.equals(o))) {
       return false;
     }
     FreeOptions that = (FreeOptions) o;
@@ -96,12 +109,12 @@ public final class FreeOptions {
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mForced, mRecursive);
+    return super.hashCode() + Objects.hashCode(mForced, mRecursive);
   }
 
   @Override
   public String toString() {
-    return Objects.toStringHelper(this).add("forced", mForced).add("recursive", mRecursive)
+    return toStringHelper().add("forced", mForced).add("recursive", mRecursive)
         .toString();
   }
 
@@ -112,6 +125,7 @@ public final class FreeOptions {
     FreeTOptions options = new FreeTOptions();
     options.setForced(mForced);
     options.setRecursive(mRecursive);
+    options.setCommonOptions(commonThrift());
     return options;
   }
 }

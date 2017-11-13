@@ -21,8 +21,11 @@ import alluxio.thrift.CreateDirectoryTOptions;
 import alluxio.wire.ThriftUtils;
 import alluxio.wire.TtlAction;
 
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import com.google.common.base.Objects;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -33,7 +36,9 @@ import javax.annotation.concurrent.NotThreadSafe;
 @PublicApi
 @NotThreadSafe
 @JsonInclude(Include.NON_EMPTY)
-public final class CreateDirectoryOptions {
+@JsonIdentityInfo(generator = ObjectIdGenerators.IntSequenceGenerator.class, property = "@id")
+@JsonIgnoreProperties(ignoreUnknown = true)
+public final class CreateDirectoryOptions extends CommonOptions<CreateDirectoryOptions> {
   private boolean mAllowExists;
   private Mode mMode;
   private long mTtl;
@@ -162,11 +167,19 @@ public final class CreateDirectoryOptions {
   }
 
   @Override
+  public CreateDirectoryOptions getThis() {
+    return this;
+  }
+
+  @Override
   public boolean equals(Object o) {
     if (this == o) {
       return true;
     }
     if (!(o instanceof CreateDirectoryOptions)) {
+      return false;
+    }
+    if (!(super.equals(o))) {
       return false;
     }
     CreateDirectoryOptions that = (CreateDirectoryOptions) o;
@@ -180,13 +193,13 @@ public final class CreateDirectoryOptions {
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mAllowExists, mMode, mRecursive, mTtl,
+    return super.hashCode() + Objects.hashCode(mAllowExists, mMode, mRecursive, mTtl,
         mTtlAction, mWriteType);
   }
 
   @Override
   public String toString() {
-    return Objects.toStringHelper(this)
+    return toStringHelper()
         .add("allowExists", mAllowExists)
         .add("mode", mMode)
         .add("recursive", mRecursive)
@@ -209,6 +222,7 @@ public final class CreateDirectoryOptions {
     if (mMode != null) {
       options.setMode(mMode.toShort());
     }
+    options.setCommonOptions(commonThrift());
     return options;
   }
 }

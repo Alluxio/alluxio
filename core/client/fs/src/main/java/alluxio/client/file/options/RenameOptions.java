@@ -12,10 +12,13 @@
 package alluxio.client.file.options;
 
 import alluxio.annotation.PublicApi;
+import alluxio.thrift.RenameTOptions;
 
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
-import com.google.common.base.Objects;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -25,7 +28,9 @@ import javax.annotation.concurrent.NotThreadSafe;
 @PublicApi
 @NotThreadSafe
 @JsonInclude(Include.NON_EMPTY)
-public final class RenameOptions {
+@JsonIdentityInfo(generator = ObjectIdGenerators.IntSequenceGenerator.class, property = "@id")
+@JsonIgnoreProperties(ignoreUnknown = true)
+public final class RenameOptions extends CommonOptions<RenameOptions> {
   /**
    * @return the default {@link RenameOptions}
    */
@@ -38,17 +43,40 @@ public final class RenameOptions {
   }
 
   @Override
+  public RenameOptions getThis() {
+    return this;
+  }
+
+  @Override
   public boolean equals(Object o) {
-    return this == o || o instanceof RenameOptions;
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof RenameOptions)) {
+      return false;
+    }
+    if (!(super.equals(o))) {
+      return false;
+    }
+    return true;
   }
 
   @Override
   public int hashCode() {
-    return 0;
+    return super.hashCode();
   }
 
   @Override
   public String toString() {
-    return Objects.toStringHelper(this).toString();
+    return toStringHelper().toString();
+  }
+
+  /**
+   * @return Thrift representation of the options
+   */
+  public RenameTOptions toThrift() {
+    RenameTOptions options = new RenameTOptions();
+    options.setCommonOptions(commonThrift());
+    return options;
   }
 }

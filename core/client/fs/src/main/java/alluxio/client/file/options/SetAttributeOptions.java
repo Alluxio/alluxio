@@ -17,8 +17,11 @@ import alluxio.thrift.SetAttributeTOptions;
 import alluxio.wire.ThriftUtils;
 import alluxio.wire.TtlAction;
 
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import com.google.common.base.Objects;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -30,7 +33,9 @@ import javax.annotation.concurrent.NotThreadSafe;
 @PublicApi
 @NotThreadSafe
 @JsonInclude(Include.NON_EMPTY)
-public final class SetAttributeOptions {
+@JsonIdentityInfo(generator = ObjectIdGenerators.IntSequenceGenerator.class, property = "@id")
+@JsonIgnoreProperties(ignoreUnknown = true)
+public final class SetAttributeOptions extends CommonOptions<SetAttributeOptions> {
   private Boolean mPinned;
   private Long mTtl;
   private TtlAction mTtlAction;
@@ -209,6 +214,11 @@ public final class SetAttributeOptions {
     return this;
   }
 
+  @Override
+  public SetAttributeOptions getThis() {
+    return this;
+  }
+
   /**
    * @return Thrift representation of the options
    */
@@ -235,6 +245,7 @@ public final class SetAttributeOptions {
       options.setMode(mMode.toShort());
     }
     options.setRecursive(mRecursive);
+    options.setCommonOptions(commonThrift());
     return options;
   }
 
@@ -244,6 +255,9 @@ public final class SetAttributeOptions {
       return true;
     }
     if (!(o instanceof SetAttributeOptions)) {
+      return false;
+    }
+    if (!(super.equals(o))) {
       return false;
     }
     SetAttributeOptions that = (SetAttributeOptions) o;
@@ -259,13 +273,13 @@ public final class SetAttributeOptions {
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mPinned, mTtl, mTtlAction, mPersisted, mOwner,
+    return super.hashCode() + Objects.hashCode(mPinned, mTtl, mTtlAction, mPersisted, mOwner,
         mGroup, mMode, mRecursive);
   }
 
   @Override
   public String toString() {
-    return Objects.toStringHelper(this)
+    return toStringHelper()
         .add("pinned", mPinned)
         .add("ttl", mTtl)
         .add("ttlAction", mTtlAction)
