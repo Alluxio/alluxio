@@ -38,6 +38,11 @@ spec:
           command: ["/entrypoint.sh"]
           args: ["master"]
           env:
+            - name: ALLUXIO_COMMON_CONFIG
+              valueFrom:
+                configMapKeyRef:
+                  name: common-config
+                  key: common.properties
             - name: ALLUXIO_MASTER_HOSTNAME
               value: alluxio-master
           ports:
