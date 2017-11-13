@@ -11,10 +11,12 @@
 
 package alluxio.wire;
 
+import static org.junit.Assert.assertEquals;
+
 import alluxio.CommonTestUtils;
 
 import org.codehaus.jackson.map.ObjectMapper;
-import static org.junit.Assert.assertEquals;
+import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.Random;
