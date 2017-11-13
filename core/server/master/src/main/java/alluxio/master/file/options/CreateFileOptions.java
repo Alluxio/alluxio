@@ -48,30 +48,33 @@ public final class CreateFileOptions extends CreatePathOptions<CreateFileOptions
    * @param options the {@link CreateFileTOptions} to use
    */
   public CreateFileOptions(CreateFileTOptions options) {
-    super();
-    mBlockSizeBytes = options.getBlockSizeBytes();
-    mPersisted = options.isPersisted();
-    mRecursive = options.isRecursive();
-    mTtl = options.getTtl();
-    mTtlAction = ThriftUtils.fromThrift(options.getTtlAction());
-    if (SecurityUtils.isAuthenticationEnabled()) {
-      mOwner = SecurityUtils.getOwnerFromThriftClient();
-      mGroup = SecurityUtils.getGroupFromThriftClient();
-    }
-    if (options.isSetMode()) {
-      mMode = new Mode(options.getMode());
-    } else {
-      mMode.applyFileUMask();
-    }
-  }
-
-  private CreateFileOptions() {
-    super();
+    super(options != null ? options.getCommonOptions() : null);
     mBlockSizeBytes = Configuration.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT);
     mTtl = Constants.NO_TTL;
     mTtlAction = TtlAction.DELETE;
     mMode.applyFileUMask();
     mCacheable = false;
+
+    if (options != null) {
+      mBlockSizeBytes = options.getBlockSizeBytes();
+      mPersisted = options.isPersisted();
+      mRecursive = options.isRecursive();
+      mTtl = options.getTtl();
+      mTtlAction = ThriftUtils.fromThrift(options.getTtlAction());
+      if (SecurityUtils.isAuthenticationEnabled()) {
+        mOwner = SecurityUtils.getOwnerFromThriftClient();
+        mGroup = SecurityUtils.getGroupFromThriftClient();
+      }
+      if (options.isSetMode()) {
+        mMode = new Mode(options.getMode());
+      } else {
+        mMode.applyFileUMask();
+      }
+    }
+  }
+
+  private CreateFileOptions() {
+    this(null);
   }
 
   /**

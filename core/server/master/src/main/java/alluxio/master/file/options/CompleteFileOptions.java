@@ -21,7 +21,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * Method options for completing a file.
  */
 @NotThreadSafe
-public final class CompleteFileOptions {
+public final class CompleteFileOptions extends CommonOptions {
   private long mUfsLength;
   private long mOperationTimeMs;
 
@@ -38,13 +38,16 @@ public final class CompleteFileOptions {
    * @param options Thrift options
    */
   public CompleteFileOptions(CompleteFileTOptions options) {
-    mUfsLength = options.getUfsLength();
+    super(options != null ? options.getCommonOptions() : null);
+    mUfsLength = 0;
     mOperationTimeMs = System.currentTimeMillis();
+    if (options != null) {
+      mUfsLength = options.getUfsLength();
+    }
   }
 
   private CompleteFileOptions() {
-    mUfsLength = 0;
-    mOperationTimeMs = System.currentTimeMillis();
+    this(null);
   }
 
   /**
@@ -87,18 +90,21 @@ public final class CompleteFileOptions {
     if (!(o instanceof CompleteFileOptions)) {
       return false;
     }
+    if (!(super.equals(o))) {
+      return false;
+    }
     CompleteFileOptions that = (CompleteFileOptions) o;
     return Objects.equal(mUfsLength, that.mUfsLength) && mOperationTimeMs == that.mOperationTimeMs;
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mUfsLength, mOperationTimeMs);
+    return super.hashCode() + Objects.hashCode(mUfsLength, mOperationTimeMs);
   }
 
   @Override
   public String toString() {
-    return Objects.toStringHelper(this)
+    return toStringHelper()
         .add("ufsLength", mUfsLength)
         .add("operationTimeMs", mOperationTimeMs)
         .toString();

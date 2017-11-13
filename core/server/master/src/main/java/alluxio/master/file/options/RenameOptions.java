@@ -11,6 +11,8 @@
 
 package alluxio.master.file.options;
 
+import alluxio.thrift.RenameTOptions;
+
 import com.google.common.base.Objects;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -19,7 +21,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * Method options for completing a file.
  */
 @NotThreadSafe
-public final class RenameOptions {
+public final class RenameOptions extends CommonOptions {
   private long mOperationTimeMs;
 
   /**
@@ -30,6 +32,11 @@ public final class RenameOptions {
   }
 
   private RenameOptions() {
+    this(null);
+  }
+
+  public RenameOptions(RenameTOptions options) {
+    super(options != null ? options.getCommonOptions() : null);
     mOperationTimeMs = System.currentTimeMillis();
   }
 
@@ -57,18 +64,21 @@ public final class RenameOptions {
     if (!(o instanceof RenameOptions)) {
       return false;
     }
+    if (!(super.equals(o))) {
+      return false;
+    }
     RenameOptions that = (RenameOptions) o;
     return mOperationTimeMs == that.mOperationTimeMs;
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mOperationTimeMs);
+    return super.hashCode() + Objects.hashCode(mOperationTimeMs);
   }
 
   @Override
   public String toString() {
-    return Objects.toStringHelper(this)
+    return toStringHelper()
         .add("operationTimeMs", mOperationTimeMs)
         .toString();
   }
