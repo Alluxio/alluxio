@@ -48,9 +48,9 @@ spec:
           - containerPort: 19999
             name: web
           volumeMounts:
-            - name: alluxio-data
-              mountPath: /underStorage
+            - name: alluxio-journal
+              mountPath: /journal
       restartPolicy: Always
       volumes:
-        - name: alluxio-data
+        - name: alluxio-journal
           emptyDir: {}
