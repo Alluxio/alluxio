@@ -24,7 +24,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * Method options for setting the attributes.
  */
 @NotThreadSafe
-public final class SetAttributeOptions {
+public final class SetAttributeOptions extends CommonOptions {
   private Boolean mPinned;
   private Long mTtl;
   private TtlAction mTtlAction;
@@ -48,18 +48,7 @@ public final class SetAttributeOptions {
    * @param options the options for setting the attributes
    */
   public SetAttributeOptions(SetAttributeTOptions options) {
-    mPinned = options.isSetPinned() ? options.isPinned() : null;
-    mTtl = options.isSetTtl() ? options.getTtl() : null;
-    mTtlAction = ThriftUtils.fromThrift(options.getTtlAction());
-    mPersisted = options.isSetPersisted() ? options.isPersisted() : null;
-    mOwner = options.isSetOwner() ? options.getOwner() : null;
-    mGroup = options.isSetGroup() ? options.getGroup() : null;
-    mMode = options.isSetMode() ? options.getMode() : Constants.INVALID_MODE;
-    mRecursive = options.isRecursive();
-    mOperationTimeMs = System.currentTimeMillis();
-  }
-
-  private SetAttributeOptions() {
+    super(options != null ? options.getCommonOptions() : null);
     mPinned = null;
     mTtl = null;
     mTtlAction = TtlAction.DELETE;
@@ -69,6 +58,22 @@ public final class SetAttributeOptions {
     mMode = Constants.INVALID_MODE;
     mRecursive = false;
     mOperationTimeMs = System.currentTimeMillis();
+
+    if (options != null) {
+      mPinned = options.isSetPinned() ? options.isPinned() : null;
+      mTtl = options.isSetTtl() ? options.getTtl() : null;
+      mTtlAction = ThriftUtils.fromThrift(options.getTtlAction());
+      mPersisted = options.isSetPersisted() ? options.isPersisted() : null;
+      mOwner = options.isSetOwner() ? options.getOwner() : null;
+      mGroup = options.isSetGroup() ? options.getGroup() : null;
+      mMode = options.isSetMode() ? options.getMode() : Constants.INVALID_MODE;
+      mRecursive = options.isRecursive();
+      mOperationTimeMs = System.currentTimeMillis();
+    }
+  }
+
+  private SetAttributeOptions() {
+    this(null);
   }
 
   /**
@@ -231,6 +236,9 @@ public final class SetAttributeOptions {
     if (!(o instanceof SetAttributeOptions)) {
       return false;
     }
+    if (!(super.equals(o))) {
+      return false;
+    }
     SetAttributeOptions that = (SetAttributeOptions) o;
     return Objects.equal(mPinned, that.mPinned)
         && Objects.equal(mTtl, that.mTtl)
@@ -245,13 +253,14 @@ public final class SetAttributeOptions {
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mPinned, mTtl, mTtlAction, mPersisted, mOwner, mGroup, mMode,
-        mRecursive, mOperationTimeMs);
+    return super.hashCode() + Objects
+        .hashCode(mPinned, mTtl, mTtlAction, mPersisted, mOwner, mGroup, mMode, mRecursive,
+            mOperationTimeMs);
   }
 
   @Override
   public String toString() {
-    return Objects.toStringHelper(this)
+    return toStringHelper()
         .add("pinned", mPinned)
         .add("ttl", mTtl)
         .add("ttlAction", mTtlAction)

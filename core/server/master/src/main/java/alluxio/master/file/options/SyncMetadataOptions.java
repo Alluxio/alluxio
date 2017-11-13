@@ -13,19 +13,16 @@ package alluxio.master.file.options;
 
 import alluxio.thrift.SyncMetadataTOptions;
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * Method options for syncing the metadata of a path.
  */
 @NotThreadSafe
-public final class SyncMetadataOptions {
+public final class SyncMetadataOptions extends CommonOptions {
   /**
    * @return the default {@link SyncMetadataOptions}
    */
-  @SuppressFBWarnings("ISC_INSTANTIATE_STATIC_CLASS")
   public static SyncMetadataOptions defaults() {
     return new SyncMetadataOptions();
   }
@@ -36,7 +33,33 @@ public final class SyncMetadataOptions {
    *
    * @param options the {@link SyncMetadataTOptions} to use
    */
-  public SyncMetadataOptions(SyncMetadataTOptions options) {}
+  public SyncMetadataOptions(SyncMetadataTOptions options) {
+    super(options != null ? options.getCommonOptions() : null);
+  }
 
-  private SyncMetadataOptions() {} // prevent instantiation
+  private SyncMetadataOptions() {
+    this(null);
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof SyncMetadataOptions)) {
+      return false;
+    }
+    return super.equals(o);
+  }
+
+  @Override
+  public int hashCode() {
+    return super.hashCode();
+  }
+
+  @Override
+  public String toString() {
+    return toStringHelper()
+        .toString();
+  }
 }

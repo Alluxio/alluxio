@@ -21,7 +21,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * Method options for deleting a file or a directory.
  */
 @NotThreadSafe
-public final class DeleteOptions {
+public final class DeleteOptions extends CommonOptions {
   private boolean mRecursive;
   private boolean mAlluxioOnly;
   private boolean mUnchecked;
@@ -37,15 +37,20 @@ public final class DeleteOptions {
    * @param options the {@link DeleteTOptions} to use
    */
   public DeleteOptions(DeleteTOptions options) {
-    mRecursive = options.isRecursive();
-    mAlluxioOnly = options.isAlluxioOnly();
-    mUnchecked = options.isUnchecked();
-  }
-
-  private DeleteOptions() {
+    super(options != null ? options.getCommonOptions() : null);
     mRecursive = false;
     mAlluxioOnly = false;
     mUnchecked = false;
+
+    if (options != null) {
+      mRecursive = options.isRecursive();
+      mAlluxioOnly = options.isAlluxioOnly();
+      mUnchecked = options.isUnchecked();
+    }
+  }
+
+  private DeleteOptions() {
+    this(null);
   }
 
   /**
@@ -107,6 +112,9 @@ public final class DeleteOptions {
     if (!(o instanceof DeleteOptions)) {
       return false;
     }
+    if (!(super.equals(o))) {
+      return false;
+    }
     DeleteOptions that = (DeleteOptions) o;
     return Objects.equal(mRecursive, that.mRecursive)
         && Objects.equal(mAlluxioOnly, that.mAlluxioOnly)
@@ -115,12 +123,12 @@ public final class DeleteOptions {
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mRecursive, mAlluxioOnly, mUnchecked);
+    return super.hashCode() + Objects.hashCode(mRecursive, mAlluxioOnly, mUnchecked);
   }
 
   @Override
   public String toString() {
-    return Objects.toStringHelper(this)
+    return toStringHelper()
          .add("recursive", mRecursive)
          .add("alluxioOnly", mAlluxioOnly)
          .add("unchecked", mUnchecked)

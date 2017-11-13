@@ -22,7 +22,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * Method options for list status.
  */
 @NotThreadSafe
-public final class ListStatusOptions {
+public final class ListStatusOptions extends CommonOptions {
   private LoadMetadataType mLoadMetadataType;
 
   /**
@@ -33,7 +33,7 @@ public final class ListStatusOptions {
   }
 
   private ListStatusOptions() {
-    mLoadMetadataType = LoadMetadataType.Once;
+    this(null);
   }
 
   /**
@@ -42,11 +42,15 @@ public final class ListStatusOptions {
    * @param options the thrift representation of list status options
    */
   public ListStatusOptions(ListStatusTOptions options) {
+    super(options != null ? options.getCommonOptions() : null);
     mLoadMetadataType = LoadMetadataType.Once;
-    if (options.isSetLoadMetadataType()) {
-      mLoadMetadataType = LoadMetadataType.fromThrift(options.getLoadMetadataType());
-    } else if (!options.isLoadDirectChildren()) {
-      mLoadMetadataType = LoadMetadataType.Never;
+
+    if (options != null) {
+      if (options.isSetLoadMetadataType()) {
+        mLoadMetadataType = LoadMetadataType.fromThrift(options.getLoadMetadataType());
+      } else if (!options.isLoadDirectChildren()) {
+        mLoadMetadataType = LoadMetadataType.Never;
+      }
     }
   }
 
@@ -77,18 +81,21 @@ public final class ListStatusOptions {
     if (!(o instanceof ListStatusOptions)) {
       return false;
     }
+    if (!(super.equals(o))) {
+      return false;
+    }
     ListStatusOptions that = (ListStatusOptions) o;
     return Objects.equal(mLoadMetadataType, that.mLoadMetadataType);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mLoadMetadataType);
+    return super.hashCode() + Objects.hashCode(mLoadMetadataType);
   }
 
   @Override
   public String toString() {
-    return Objects.toStringHelper(this)
+    return toStringHelper()
         .add("loadMetadataType", mLoadMetadataType.toString())
         .toString();
   }
