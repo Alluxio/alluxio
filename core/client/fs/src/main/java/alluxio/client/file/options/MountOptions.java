@@ -14,8 +14,11 @@ package alluxio.client.file.options;
 import alluxio.annotation.PublicApi;
 import alluxio.thrift.MountTOptions;
 
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import com.google.common.base.Objects;
 
 import java.util.Collections;
@@ -30,7 +33,9 @@ import javax.annotation.concurrent.NotThreadSafe;
 @PublicApi
 @NotThreadSafe
 @JsonInclude(Include.NON_EMPTY)
-public final class MountOptions {
+@JsonIdentityInfo(generator = ObjectIdGenerators.IntSequenceGenerator.class, property = "@id")
+@JsonIgnoreProperties(ignoreUnknown = true)
+public final class MountOptions extends CommonOptions<MountOptions> {
   private boolean mReadOnly;
   private Map<String, String> mProperties;
   private boolean mShared;
@@ -105,9 +110,10 @@ public final class MountOptions {
     return this;
   }
 
-  /**
-   * @return the name : value pairs for all the fields
-   */
+  @Override
+  public MountOptions getThis() {
+    return this;
+  }
 
   @Override
   public boolean equals(Object o) {
@@ -115,6 +121,9 @@ public final class MountOptions {
       return true;
     }
     if (!(o instanceof MountOptions)) {
+      return false;
+    }
+    if (!(super.equals(o))) {
       return false;
     }
     MountOptions that = (MountOptions) o;
@@ -125,12 +134,12 @@ public final class MountOptions {
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mReadOnly, mProperties, mShared);
+    return super.hashCode() + Objects.hashCode(mReadOnly, mProperties, mShared);
   }
 
   @Override
   public String toString() {
-    return Objects.toStringHelper(this)
+    return toStringHelper()
         .add("readonly", mReadOnly)
         .add("properties", mProperties)
         .add("shared", mShared)
@@ -147,6 +156,7 @@ public final class MountOptions {
       options.setProperties(mProperties);
     }
     options.setShared(mShared);
+    options.setCommonOptions(commonThrift());
     return options;
   }
 }

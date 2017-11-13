@@ -16,8 +16,11 @@ import alluxio.PropertyKey;
 import alluxio.annotation.PublicApi;
 import alluxio.thrift.DeleteTOptions;
 
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import com.google.common.base.Objects;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -28,7 +31,9 @@ import javax.annotation.concurrent.NotThreadSafe;
 @PublicApi
 @NotThreadSafe
 @JsonInclude(Include.NON_EMPTY)
-public final class DeleteOptions {
+@JsonIdentityInfo(generator = ObjectIdGenerators.IntSequenceGenerator.class, property = "@id")
+@JsonIgnoreProperties(ignoreUnknown = true)
+public final class DeleteOptions extends CommonOptions<DeleteOptions> {
   private boolean mRecursive;
   private boolean mAlluxioOnly;
   private boolean mUnchecked;
@@ -100,11 +105,19 @@ public final class DeleteOptions {
   }
 
   @Override
+  public DeleteOptions getThis() {
+    return this;
+  }
+
+  @Override
   public boolean equals(Object o) {
     if (this == o) {
       return true;
     }
     if (!(o instanceof DeleteOptions)) {
+      return false;
+    }
+    if (!(super.equals(o))) {
       return false;
     }
     DeleteOptions that = (DeleteOptions) o;
@@ -115,12 +128,12 @@ public final class DeleteOptions {
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mRecursive, mAlluxioOnly, mUnchecked);
+    return super.hashCode() + Objects.hashCode(mRecursive, mAlluxioOnly, mUnchecked);
   }
 
   @Override
   public String toString() {
-    return Objects.toStringHelper(this)
+    return toStringHelper()
         .add("recursive", mRecursive)
         .add("alluxioOnly", mAlluxioOnly)
         .add("unchecked", mUnchecked)
@@ -135,6 +148,7 @@ public final class DeleteOptions {
     options.setRecursive(mRecursive);
     options.setAlluxioOnly(mAlluxioOnly);
     options.setUnchecked(mUnchecked);
+    options.setCommonOptions(commonThrift());
     return options;
   }
 }
