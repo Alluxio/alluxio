@@ -21,20 +21,15 @@ Alluxio直接兼容Spark 1.1或更新版本而无需修改.
 
 * Alluxio集群根据向导搭建完成(可以是[本地模式](Running-Alluxio-Locally.html)或者[集群模式](Running-Alluxio-on-a-Cluster.html))。
 
-* Alluxio client需要在编译时指定Spark选项。在顶层`alluxio`目录中执行如下命令构建Alluxio:
-
-```bash
-$ mvn clean package -Pspark -DskipTests
-```
-
+* 我们建议您从Alluxio[下载页面](http://www.alluxio.org/download)下载tarball.
+  另外，高级用户可以选择根据[这里](Building-Alluxio-Master-Branch.html#compute-framework-support)的说明将源代码编译为客户端jar包，并在本文余下部分使用于`{{site.ALLUXIO_CLIENT_JAR_PATH_BUILD}}`路径处生成的jar包。
+  
 * 请添加如下代码到`spark/conf/spark-defaults.conf`。
 
 ```bash
 spark.driver.extraClassPath {{site.ALLUXIO_CLIENT_JAR_PATH}}
 spark.executor.extraClassPath {{site.ALLUXIO_CLIENT_JAR_PATH}}
 ```
-
-高级用户可以选择通过源代码编译客户端jar包，参考说明[这里](Building-Alluxio-Master-Branch.html#compute-framework-support)，并在这篇说明剩余部分将生成的jar包应用在配置项`{{site.ALLUXIO_CLIENT_JAR_PATH_BUILD}}`中。
 
 ### 针对HDFS的额外设置
 
