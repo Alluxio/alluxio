@@ -29,7 +29,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 @PublicApi
 @NotThreadSafe
 @JsonInclude(Include.NON_EMPTY)
-public final class GetStatusOptions {
+public final class GetStatusOptions extends CommonOptions<GetStatusOptions> {
   private LoadMetadataType mLoadMetadataType;
 
   /**
@@ -61,11 +61,19 @@ public final class GetStatusOptions {
   }
 
   @Override
+  public GetStatusOptions getThis() {
+    return this;
+  }
+
+  @Override
   public boolean equals(Object o) {
     if (this == o) {
       return true;
     }
     if (!(o instanceof GetStatusOptions)) {
+      return false;
+    }
+    if (!(super.equals(o))) {
       return false;
     }
     GetStatusOptions that = (GetStatusOptions) o;
@@ -74,12 +82,12 @@ public final class GetStatusOptions {
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mLoadMetadataType);
+    return super.hashCode() + Objects.hashCode(mLoadMetadataType);
   }
 
   @Override
   public String toString() {
-    return Objects.toStringHelper(this)
+    return toStringHelper()
         .add("loadMetadataType", mLoadMetadataType.toString())
         .toString();
   }
@@ -90,6 +98,7 @@ public final class GetStatusOptions {
   public GetStatusTOptions toThrift() {
     GetStatusTOptions options = new GetStatusTOptions();
     options.setLoadMetadataType(LoadMetadataType.toThrift(mLoadMetadataType));
+    options.setCommonOptions(commonThrift());
     return options;
   }
 }

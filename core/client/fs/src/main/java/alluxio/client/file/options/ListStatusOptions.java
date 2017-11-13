@@ -17,8 +17,11 @@ import alluxio.annotation.PublicApi;
 import alluxio.thrift.ListStatusTOptions;
 import alluxio.wire.LoadMetadataType;
 
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import com.google.common.base.Objects;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -29,7 +32,9 @@ import javax.annotation.concurrent.NotThreadSafe;
 @PublicApi
 @NotThreadSafe
 @JsonInclude(Include.NON_EMPTY)
-public final class ListStatusOptions {
+@JsonIdentityInfo(generator = ObjectIdGenerators.IntSequenceGenerator.class, property = "@id")
+@JsonIgnoreProperties(ignoreUnknown = true)
+public final class ListStatusOptions extends CommonOptions<ListStatusOptions> {
   private LoadMetadataType mLoadMetadataType;
 
   /**
@@ -62,11 +67,19 @@ public final class ListStatusOptions {
   }
 
   @Override
+  public ListStatusOptions getThis() {
+    return this;
+  }
+
+  @Override
   public boolean equals(Object o) {
     if (this == o) {
       return true;
     }
     if (!(o instanceof ListStatusOptions)) {
+      return false;
+    }
+    if (!(super.equals(o))) {
       return false;
     }
     ListStatusOptions that = (ListStatusOptions) o;
@@ -75,12 +88,12 @@ public final class ListStatusOptions {
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mLoadMetadataType);
+    return super.hashCode() + Objects.hashCode(mLoadMetadataType);
   }
 
   @Override
   public String toString() {
-    return Objects.toStringHelper(this)
+    return toStringHelper()
         .add("loadMetadataType", mLoadMetadataType.toString())
         .toString();
   }
@@ -94,6 +107,7 @@ public final class ListStatusOptions {
         mLoadMetadataType == LoadMetadataType.Once || mLoadMetadataType == LoadMetadataType.Always);
 
     options.setLoadMetadataType(LoadMetadataType.toThrift(mLoadMetadataType));
+    options.setCommonOptions(commonThrift());
     return options;
   }
 }
