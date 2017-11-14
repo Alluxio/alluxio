@@ -163,8 +163,8 @@ public final class Configuration {
     if (properties != null) {
       // merge the system properties
       for (Map.Entry<?, ?> entry : properties.entrySet()) {
-        String key = entry.getKey().toString();
-        String value = entry.getValue().toString();
+        String key = entry.getKey().toString().trim();
+        String value = entry.getValue().toString().trim();
         if (PropertyKey.isValid(key)) {
           // Get the true name for the property key in case it is an alias.
           PROPERTIES.put(PropertyKey.fromString(key).getName(), value);
