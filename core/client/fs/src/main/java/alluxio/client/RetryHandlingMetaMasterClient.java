@@ -20,8 +20,6 @@ import alluxio.thrift.MetaMasterClientService;
 import alluxio.wire.MasterInfo;
 import alluxio.wire.MasterInfo.MasterInfoField;
 
-import org.apache.thrift.TException;
-
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
