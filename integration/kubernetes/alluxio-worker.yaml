@@ -41,11 +41,15 @@ spec:
           volumeMounts:
             - name: alluxio-ramdisk
               mountPath: /dev/shm
+            - name: alluxio-domain
+              mountPath: /opt/domain
       restartPolicy: Always
       volumes:
         - name: alluxio-ramdisk
           emptyDir:
             medium: "Memory"
             sizeLimit: "768M"
-        - name: alluxio-data
-          emptyDir: {}
+        - name: alluxio-domain
+          hostPath:
+            path: /tmp/domain
+            type: Directory

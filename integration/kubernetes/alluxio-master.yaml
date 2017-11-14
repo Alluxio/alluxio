@@ -57,7 +57,13 @@ spec:
           volumeMounts:
             - name: alluxio-journal
               mountPath: /journal
+            - name: alluxio-domain
+              mountPath: /opt/domain
       restartPolicy: Always
       volumes:
         - name: alluxio-journal
           emptyDir: {}
+        - name: alluxio-domain
+          hostPath:
+            path: /tmp/domain
+            type: Directory
