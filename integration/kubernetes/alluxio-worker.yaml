@@ -14,7 +14,7 @@ spec:
       dnsPolicy: ClusterFirstWithHostNet
       containers:
         - name: alluxio-worker
-          image: alluxioadit/alluxio:1.6.0
+          image: alluxioadit/alluxio:1.6.1
           command: ["/entrypoint.sh"]
           args: ["worker"]
           envFrom:
