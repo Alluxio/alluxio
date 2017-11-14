@@ -260,6 +260,7 @@ public class AlluxioFuseFileSystemTest {
     mFuseFs.write("/foo/bar", ptr, 4, 0, mFileInfo);
     verify(fos).write(expected);
 
+    // the second write is no-op because the writes must be sequential and overwriting is supported
     mFuseFs.write("/foo/bar", ptr, 4, 0, mFileInfo);
     verify(fos, Mockito.times(1)).write(expected);
   }
