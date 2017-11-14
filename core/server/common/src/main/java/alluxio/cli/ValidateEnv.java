@@ -15,6 +15,7 @@ import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.cli.validation.PortAvailabilityValidationTask;
 import alluxio.cli.validation.RamDiskMountPrivilegeValidationTask;
+import alluxio.cli.validation.SecurityValidationTask;
 import alluxio.cli.validation.StorageSpaceValidationTask;
 import alluxio.cli.validation.SshValidationTask;
 import alluxio.cli.validation.UfsDirectoryValidationTask;
@@ -79,6 +80,11 @@ public final class ValidateEnv {
       "proxy.web.port.available",
       new PortAvailabilityValidationTask(ServiceType.PROXY_WEB, ALLUXIO_PROXY_CLASS));
 
+  // security configuration validations
+  private static final ValidationTask SECURITY_VALIDATION_TASK = registerTask(
+      "security",
+      new SecurityValidationTask());
+
   // ssh validations
   private static final ValidationTask SSH_TO_MASTERS_VALIDATION_TASK = registerTask(
       "ssh.masters.reachable",
@@ -117,6 +123,7 @@ public final class ValidateEnv {
     Map<String, Collection<ValidationTask>> targetMap = new TreeMap<>();
     ValidationTask[] commonTasks = {
         PROXY_WEB_VALIDATION_TASK,
+        SECURITY_VALIDATION_TASK,
         SSH_TO_MASTERS_VALIDATION_TASK,
         SSH_TO_WORKERS_VALIDATION_TASK,
         UFS_ROOT_VALIDATION_TASK,
