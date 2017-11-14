@@ -13,9 +13,6 @@ package alluxio.worker.netty;
 
 import alluxio.Configuration;
 import alluxio.PropertyKey;
-import alluxio.network.protocol.RPCMessage;
-import alluxio.network.protocol.RPCMessageDecoder;
-import alluxio.network.protocol.RPCMessageEncoder;
 import alluxio.worker.WorkerProcess;
 import alluxio.worker.block.BlockWorker;
 
@@ -50,11 +47,6 @@ final class PipelineHandler extends ChannelInitializer<Channel> {
     ChannelPipeline pipeline = ch.pipeline();
 
     final long timeoutMs = Configuration.getMs(PropertyKey.NETWORK_NETTY_HEARTBEAT_TIMEOUT_MS);
-
-    // Decoders & Encoders
-    pipeline.addLast("frameDecoder", RPCMessage.createFrameDecoder());
-    pipeline.addLast("RPCMessageDecoder", new RPCMessageDecoder());
-    pipeline.addLast("RPCMessageEncoder", new RPCMessageEncoder());
 
     // Idle Event Handlers
     pipeline.addLast("idleEventHandler", new IdleStateHandler(timeoutMs, 0, 0,

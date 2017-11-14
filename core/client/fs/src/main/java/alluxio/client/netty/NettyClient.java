@@ -15,8 +15,6 @@ import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.network.ChannelType;
 import alluxio.network.protocol.RPCMessage;
-import alluxio.network.protocol.RPCMessageDecoder;
-import alluxio.network.protocol.RPCMessageEncoder;
 import alluxio.util.network.NettyUtils;
 
 import io.netty.bootstrap.Bootstrap;
@@ -41,10 +39,6 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class NettyClient {
-  /**  Share both the encoder and decoder with all the client pipelines. */
-  private static final RPCMessageEncoder ENCODER = new RPCMessageEncoder();
-  private static final RPCMessageDecoder DECODER = new RPCMessageDecoder();
-
   /**
    * Reuse {@link EventLoopGroup} for all clients. Use daemon threads so the JVM is allowed to
    * shutdown even when daemon threads are alive. If number of worker threads is 0, Netty creates
@@ -84,8 +78,6 @@ public final class NettyClient {
         ChannelPipeline pipeline = ch.pipeline();
 
         pipeline.addLast(RPCMessage.createFrameDecoder());
-        pipeline.addLast(ENCODER);
-        pipeline.addLast(DECODER);
         pipeline.addLast(new IdleStateHandler(0, heartbeatPeriodMs, 0, TimeUnit.MILLISECONDS));
         pipeline.addLast(new IdleWriteHandler());
       }

@@ -22,7 +22,6 @@ import alluxio.client.netty.NettyRPCContext;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.PreconditionMessage;
 import alluxio.exception.status.UnavailableException;
-import alluxio.network.protocol.RPCMessageDecoder;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.resource.DummyCloseableResource;
 import alluxio.util.network.NetworkAddressUtils;
@@ -119,7 +118,6 @@ public final class AlluxioBlockStoreTest {
     Mockito.when(mContext.acquireNettyChannel(Mockito.any(WorkerNetAddress.class)))
         .thenReturn(mChannel);
     Mockito.when(mChannel.pipeline()).thenReturn(mPipeline);
-    Mockito.when(mPipeline.last()).thenReturn(new RPCMessageDecoder());
     Mockito.when(mPipeline.addLast(Mockito.any(ChannelHandler.class))).thenReturn(mPipeline);
   }
 

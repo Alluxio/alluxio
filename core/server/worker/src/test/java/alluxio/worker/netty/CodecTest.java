@@ -13,8 +13,6 @@ package alluxio.worker.netty;
 
 import alluxio.Constants;
 import alluxio.network.protocol.RPCMessage;
-import alluxio.network.protocol.RPCMessageDecoder;
-import alluxio.network.protocol.RPCMessageEncoder;
 import alluxio.network.protocol.RPCProtoMessage;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.util.CommonUtils;
@@ -34,8 +32,7 @@ public final class CodecTest {
   @Before
   public void before() throws Exception {
     ResourceLeakDetector.setLevel(ResourceLeakDetector.Level.ADVANCED);
-    mChannel = new EmbeddedChannel(RPCMessage.createFrameDecoder(), new RPCMessageDecoder(),
-        new RPCMessageEncoder());
+    mChannel = new EmbeddedChannel(RPCMessage.createFrameDecoder());
   }
 
   @Test
