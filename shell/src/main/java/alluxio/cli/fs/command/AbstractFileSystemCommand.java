@@ -17,7 +17,7 @@ import alluxio.client.file.FileSystem;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * The base class for all the FileSystem {@link alluxio.cli.Command} classes. 
+ * The base class for all the FileSystem {@link alluxio.cli.Command} classes.
  * It provides a place to hold the {@link FileSystem} client.
  */
 @ThreadSafe
