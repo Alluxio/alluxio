@@ -21,7 +21,7 @@ use in that container, either by creating a new directory in the container, or u
 one. For the purposes of this guide, the Azure storage account name is called `AZURE_ACCOUNT`, the
 container in that storage account is called `AZURE_CONTAINER` and the directory in that bucket is
 called `AZURE_DIRECTORY`. For more information about Azure storage account, Please see
-[here](https://docs.microsoft.com/en-us/azure/storage/storage-create-storage-account)
+[here](https://docs.microsoft.com/en-us/azure/storage/storage-create-storage-account).
 
 
 ## Configuring Alluxio
