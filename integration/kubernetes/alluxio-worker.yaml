@@ -15,6 +15,13 @@ spec:
       containers:
         - name: alluxio-worker
           image: alluxioadit/alluxio:1.6.1
+          resources:
+            requests:
+              cpu: "0.5"
+              memory: "512M"
+            limits:
+              cpu: "1"
+              memory: "1024M"
           command: ["/entrypoint.sh"]
           args: ["worker"]
           envFrom:
@@ -22,6 +29,13 @@ spec:
               name: alluxio-common-config
           - configMapRef:
               name: alluxio-worker-config
+          ports:
+          - containerPort: 29998
+            name: rpc
+          - containerPort: 29999
+            name: data
+          - containerPort: 30001
+            name: web
           securityContext:
             privileged: true
           volumeMounts:

@@ -35,6 +35,13 @@ spec:
       containers:
         - name: alluxio-master
           image: alluxioadit/alluxio:1.6.1
+          resources:
+            requests:
+              cpu: "0.5"
+              memory: "512M"
+            limits:
+              cpu: "1"
+              memory: "1024M"
           command: ["/entrypoint.sh"]
           args: ["master"]
           envFrom:
