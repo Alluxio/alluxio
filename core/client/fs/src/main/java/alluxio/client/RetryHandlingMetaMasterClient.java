@@ -20,8 +20,6 @@ import alluxio.thrift.MetaMasterClientService;
 import alluxio.wire.MasterInfo;
 import alluxio.wire.MasterInfo.MasterInfoField;
 
-import org.apache.thrift.TException;
-
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
@@ -46,6 +44,7 @@ public final class RetryHandlingMetaMasterClient extends AbstractMasterClient
    */
   public RetryHandlingMetaMasterClient(MasterClientConfig conf) {
     super(conf);
+    mClient = null;
   }
 
   @Override
@@ -70,20 +69,17 @@ public final class RetryHandlingMetaMasterClient extends AbstractMasterClient
 
   @Override
   public synchronized MasterInfo getInfo(final Set<MasterInfoField> fields) throws IOException {
-    return retryRPC(new RpcCallable<MasterInfo>() {
-      @Override
-      public MasterInfo call() throws TException {
-        Set<alluxio.thrift.MasterInfoField> thriftFields = new HashSet<>();
-        if (fields == null) {
-          thriftFields = null;
-        } else {
-          for (MasterInfoField field : fields) {
-            thriftFields.add(field.toThrift());
-          }
+    return retryRPC(() -> {
+      Set<alluxio.thrift.MasterInfoField> thriftFields = new HashSet<>();
+      if (fields == null) {
+        thriftFields = null;
+      } else {
+        for (MasterInfoField field : fields) {
+          thriftFields.add(field.toThrift());
         }
-        return MasterInfo.fromThrift(
-            mClient.getMasterInfo(new GetMasterInfoTOptions(thriftFields)).getMasterInfo());
       }
+      return MasterInfo.fromThrift(
+          mClient.getMasterInfo(new GetMasterInfoTOptions(thriftFields)).getMasterInfo());
     });
   }
 }
