@@ -39,6 +39,7 @@ import jnr.ffi.Runtime;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import ru.serce.jnrfuse.ErrorCodes;
@@ -257,8 +258,11 @@ public class AlluxioFuseFileSystemTest {
     ptr.put(0, expected, 0, 4);
 
     mFuseFs.write("/foo/bar", ptr, 4, 0, mFileInfo);
-
     verify(fos).write(expected);
+
+    // the second write is no-op because the writes must be sequential and overwriting is supported
+    mFuseFs.write("/foo/bar", ptr, 4, 0, mFileInfo);
+    verify(fos, Mockito.times(1)).write(expected);
   }
 
   @Test
