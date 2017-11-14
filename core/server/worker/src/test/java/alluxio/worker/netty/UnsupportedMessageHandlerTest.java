@@ -12,11 +12,7 @@
 package alluxio.worker.netty;
 
 import alluxio.Constants;
-import alluxio.network.protocol.RPCBlockReadRequest;
-import alluxio.network.protocol.RPCErrorResponse;
-import alluxio.network.protocol.RPCMessage;
 import alluxio.network.protocol.RPCProtoMessage;
-import alluxio.network.protocol.RPCResponse;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.proto.dataserver.Protocol.Response;
 import alluxio.proto.status.Status.PStatus;
@@ -56,20 +52,6 @@ public class UnsupportedMessageHandlerTest {
     Assert.assertNull(protoResponse.getPayloadDataBuffer());
     Response r = protoResponse.getMessage().asResponse();
     Assert.assertEquals(PStatus.UNIMPLEMENTED, r.getStatus());
-  }
-
-  /**
-   * Tests a rpc message with the unknown message status is returned when a non-protobuf rpc message
-   * reaches the unsupported message handler.
-   */
-  @Test
-  public void testNonProtoUnsupported() throws Exception {
-    RPCMessage inboundRequest = new RPCBlockReadRequest(0, 0, 0, 0, 0);
-    mChannel.writeInbound(inboundRequest);
-    Object response = waitForResponse(mChannel);
-    Assert.assertTrue(response instanceof RPCErrorResponse);
-    RPCErrorResponse errorResponse = (RPCErrorResponse) response;
-    Assert.assertEquals(RPCResponse.Status.UNKNOWN_MESSAGE_ERROR, errorResponse.getStatus());
   }
 
   private Object waitForResponse(final EmbeddedChannel channel) {
