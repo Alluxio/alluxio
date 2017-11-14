@@ -143,13 +143,6 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
   @Override
   public synchronized void delete(final AlluxioURI path, final DeleteOptions options)
       throws IOException {
-    // retryRPC(new RpcCallable<Void>() {
-    //   @Override
-    //   public Void call() throws TException {
-    //     mClient.remove(path.getPath(), options.isRecursive(), options.toThrift());
-    //     return null;
-    //   }
-    // });
     retryRPC(() -> {
       mClient.remove(path.getPath(), options.isRecursive(), options.toThrift());
       return null;
