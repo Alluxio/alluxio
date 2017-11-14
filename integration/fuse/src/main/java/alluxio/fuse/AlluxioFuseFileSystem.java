@@ -691,7 +691,7 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
       return -ErrorCodes.EEXIST();
     }
 
-    if (offset <= oe.getWriteOffset()) {
+    if (offset < oe.getWriteOffset()) {
       // no op
       return sz;
     }
@@ -700,7 +700,7 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
       final byte[] dest = new byte[sz];
       buf.get(0, dest, 0, sz);
       oe.getOut().write(dest);
-      oe.setWriteOffset(offset);
+      oe.setWriteOffset(offset + size);
     } catch (IOException e) {
       LOG.error("IOException while writing to {}.", path, e);
       return -ErrorCodes.EIO();

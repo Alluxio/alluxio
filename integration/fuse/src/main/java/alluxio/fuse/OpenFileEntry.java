@@ -33,7 +33,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 final class OpenFileEntry implements Closeable {
   private final FileInStream mIn;
   private final FileOutStream mOut;
-  /** the most recent write offset.  */
+  /** the next write offset.  */
   private long mOffset;
 
   public OpenFileEntry(FileInStream in, FileOutStream out) {
@@ -63,14 +63,14 @@ final class OpenFileEntry implements Closeable {
   }
 
   /**
-   * @return the offset of the most recent write
+   * @return the offset of the next write
    */
   public long getWriteOffset() {
     return mOffset;
   }
 
   /**
-   * Sets the offset of the most recent write.
+   * Sets the offset of the next write.
    */
   public void setWriteOffset(long offset) {
     mOffset = offset;
