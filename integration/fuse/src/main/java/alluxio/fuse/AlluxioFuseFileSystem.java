@@ -42,6 +42,7 @@ import ru.serce.jnrfuse.FuseFillDir;
 import ru.serce.jnrfuse.FuseStubFS;
 import ru.serce.jnrfuse.struct.FileStat;
 import ru.serce.jnrfuse.struct.FuseFileInfo;
+import ru.serce.jnrfuse.struct.Timespec;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -651,6 +652,15 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
   public int unlink(String path) {
     LOG.trace("unlink({})", path);
     return rmInternal(path, true);
+  }
+
+  /**
+   * Alluxio does not have access time, and the file is created only once. So this operation is a
+   * no-op.
+   */
+  @Override
+  public int utimens(String path, Timespec[] timespec) {
+    return 0;
   }
 
   /**
