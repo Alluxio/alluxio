@@ -18,7 +18,7 @@ spec:
           resources:
             requests:
               cpu: "0.5"
-              memory: "512M"
+              memory: "1024M"
             limits:
               cpu: "1"
               memory: "1024M"
@@ -40,12 +40,12 @@ spec:
             privileged: true
           volumeMounts:
             - name: alluxio-ramdisk
-              mountPath: /opt/ramdisk
+              mountPath: /dev/shm
       restartPolicy: Always
       volumes:
         - name: alluxio-ramdisk
           emptyDir:
             medium: "Memory"
-            sizeLimit: "1G"
+            sizeLimit: "768M"
         - name: alluxio-data
           emptyDir: {}
