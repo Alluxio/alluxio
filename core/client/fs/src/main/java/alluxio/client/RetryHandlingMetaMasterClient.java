@@ -44,6 +44,7 @@ public final class RetryHandlingMetaMasterClient extends AbstractMasterClient
    */
   public RetryHandlingMetaMasterClient(MasterClientConfig conf) {
     super(conf);
+    mClient = null;
   }
 
   @Override
