@@ -201,7 +201,7 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
     return retryRPC(new RpcCallable<List<URIStatus>>() {
       @Override
       public List<URIStatus> call() throws TException {
-        List<URIStatus> result = new ArrayList<URIStatus>();
+        List<URIStatus> result = new ArrayList<>();
         for (alluxio.thrift.FileInfo fileInfo : mClient
             .listStatus(path.getPath(), options.toThrift()).getFileInfoList()) {
           result.add(new URIStatus(ThriftUtils.fromThrift(fileInfo)));
