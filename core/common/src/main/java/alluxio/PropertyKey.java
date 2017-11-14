@@ -1228,7 +1228,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey WORKER_TIERED_STORE_RESERVER_ENABLED =
       new Builder(Name.WORKER_TIERED_STORE_RESERVER_ENABLED)
-          .setDefaultValue(true)
+          .setDefaultValue(false)
           .setDescription("Whether to enable tiered store reserver service or not.")
           .build();
   public static final PropertyKey WORKER_TIERED_STORE_RESERVER_INTERVAL_MS =
