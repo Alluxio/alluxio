@@ -56,30 +56,30 @@ public class SpaceReserver implements HeartbeatExecutor {
   public SpaceReserver(BlockWorker blockWorker) {
     mBlockWorker = blockWorker;
     mStorageTierAssoc = new WorkerStorageTierAssoc();
-    Map<String, Long> capOnTiers = blockWorker.getStoreMeta().getCapacityBytesOnTiers();
+    Map<String, Long> tierCapacities = blockWorker.getStoreMeta().getCapacityBytesOnTiers();
     long lastTierReservedBytes = 0;
     for (int ordinal = 0; ordinal < mStorageTierAssoc.size(); ordinal++) {
       String tierAlias = mStorageTierAssoc.getAlias(ordinal);
-      long capOnTier = capOnTiers.get(tierAlias);
+      long tierCapacity = tierCapacities.get(tierAlias);
       long reservedBytes;
       PropertyKey tierReservedSpaceProp =
           PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_RESERVED_RATIO.format(ordinal);
       if (Configuration.containsKey(tierReservedSpaceProp)) {
         LOG.warn("The property reserved.ratio is deprecated use high/low watermark instead.");
-        reservedBytes = (long) (capOnTier * Configuration.getDouble(tierReservedSpaceProp));
+        reservedBytes = (long) (tierCapacity * Configuration.getDouble(tierReservedSpaceProp));
       } else {
         // High watermark defines when to start the space reserving process
         PropertyKey tierHighWatermarkProp =
             PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_HIGH_WATERMARK_RATIO.format(ordinal);
         long highWatermarkInBytes =
-            (long) (capOnTier * Configuration.getDouble(tierHighWatermarkProp));
+            (long) (tierCapacity * Configuration.getDouble(tierHighWatermarkProp));
         mHighWaterMarkInBytesOnTiers.put(tierAlias, highWatermarkInBytes);
 
         // Low watermark defines when to stop the space reserving process if started
         PropertyKey tierLowWatermarkProp =
             PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_LOW_WATERMARK_RATIO.format(ordinal);
         reservedBytes =
-            (long) (capOnTier - capOnTier * Configuration.getDouble(tierLowWatermarkProp));
+            (long) (tierCapacity - tierCapacity * Configuration.getDouble(tierLowWatermarkProp));
       }
       mReservedBytesOnTiers.put(tierAlias, reservedBytes + lastTierReservedBytes);
       lastTierReservedBytes += reservedBytes;
