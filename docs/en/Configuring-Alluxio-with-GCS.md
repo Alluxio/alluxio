@@ -57,8 +57,7 @@ Alternatively, these configuration settings can be set in the `conf/alluxio-env.
 details about setting configuration parameters can be found in
 [Configuration Settings](Configuration-Settings.html#environment-variables).
 
-After these changes, Alluxio should be configured to work with GCS as its under storage system, and
-you can try [Running Alluxio Locally with GCS](#running-alluxio-locally-with-gcs).
+After these changes, Alluxio should be configured to work with GCS as its under storage system, and you can [Run Alluxio Locally with GCS](#running-alluxio-locally-with-gcs).
 
 ### Configuring Application Dependency
 
