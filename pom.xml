@@ -793,6 +793,7 @@
   </pluginRepositories>
 
   <build>
+    <defaultGoal>compile</defaultGoal>
     <pluginManagement>
       <plugins>
         <plugin>
