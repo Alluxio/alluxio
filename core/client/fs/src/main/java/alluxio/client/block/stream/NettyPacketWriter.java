@@ -122,6 +122,7 @@ public final class NettyPacketWriter implements PacketWriter {
   public static NettyPacketWriter create(FileSystemContext context, WorkerNetAddress address,
       long id, long length, Protocol.RequestType type, OutStreamOptions options)
       throws IOException {
+    Preconditions.checkArgument(id >= 0, "block id should not be positive");
     long packetSize =
         Configuration.getBytes(PropertyKey.USER_NETWORK_NETTY_WRITER_PACKET_SIZE_BYTES);
     Channel nettyChannel = context.acquireNettyChannel(address);
