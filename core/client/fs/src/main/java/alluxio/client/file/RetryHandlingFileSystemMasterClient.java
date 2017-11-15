@@ -230,7 +230,6 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
     retryRPC(() -> {
         mClient.mount(alluxioPath.toString(), ufsPath.toString(), options.toThrift());
         return null;
-      }
     });
   }
 
