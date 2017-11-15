@@ -11,6 +11,9 @@
 
 package alluxio.master;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
 import alluxio.Configuration;
 import alluxio.ConfigurationTestUtils;
 import alluxio.PropertyKey;
@@ -74,8 +77,8 @@ public final class AlluxioMasterRestApiTest extends RestApiTest {
   public void getCapacity() throws Exception {
     long total = Configuration.getBytes(PropertyKey.WORKER_MEMORY_SIZE);
     Capacity capacity = getInfo(NO_PARAMS).getCapacity();
-    Assert.assertEquals(total, capacity.getTotal());
-    Assert.assertEquals(0, capacity.getUsed());
+    assertEquals(total, capacity.getTotal());
+    assertEquals(0, capacity.getUsed());
   }
 
   @Test
@@ -101,18 +104,18 @@ public final class AlluxioMasterRestApiTest extends RestApiTest {
 
   private void checkConfiguration(PropertyKey key, String expectedValue, Map<String, String> params)
       throws Exception {
-    Assert.assertEquals(expectedValue, getInfo(params).getConfiguration().get(key.toString()));
+    assertEquals(expectedValue, getInfo(params).getConfiguration().get(key.toString()));
   }
 
   @Test
   public void getLostWorkers() throws Exception {
     List<WorkerInfo> lostWorkersInfo = getInfo(NO_PARAMS).getLostWorkers();
-    Assert.assertEquals(0, lostWorkersInfo.size());
+    assertEquals(0, lostWorkersInfo.size());
   }
 
   @Test
   public void getMetrics() throws Exception {
-    Assert.assertEquals(Long.valueOf(0), getInfo(NO_PARAMS).getMetrics()
+    assertEquals(Long.valueOf(0), getInfo(NO_PARAMS).getMetrics()
         .get("master.CompleteFileOps"));
   }
 
@@ -120,24 +123,24 @@ public final class AlluxioMasterRestApiTest extends RestApiTest {
   public void getMountPoints() throws Exception {
     Map<String, MountPointInfo> mountTable = mFileSystemMaster.getMountTable();
     Map<String, MountPointInfo> mountPoints = getInfo(NO_PARAMS).getMountPoints();
-    Assert.assertEquals(mountTable.size(), mountPoints.size());
+    assertEquals(mountTable.size(), mountPoints.size());
     for (Map.Entry<String, MountPointInfo> mountPoint : mountTable.entrySet()) {
-      Assert.assertTrue(mountPoints.containsKey(mountPoint.getKey()));
+      assertTrue(mountPoints.containsKey(mountPoint.getKey()));
       String expectedUri = mountPoints.get(mountPoint.getKey()).getUfsUri();
       String returnedUri = mountPoint.getValue().getUfsUri();
-      Assert.assertEquals(expectedUri, returnedUri);
+      assertEquals(expectedUri, returnedUri);
     }
   }
 
   @Test
   public void getRpcAddress() throws Exception {
-    Assert.assertTrue(getInfo(NO_PARAMS).getRpcAddress()
+    assertTrue(getInfo(NO_PARAMS).getRpcAddress()
         .contains(String.valueOf(NetworkAddressUtils.getPort(ServiceType.MASTER_RPC))));
   }
 
   @Test
   public void getStartTimeMs() throws Exception {
-    Assert.assertTrue(getInfo(NO_PARAMS).getStartTimeMs() > 0);
+    assertTrue(getInfo(NO_PARAMS).getStartTimeMs() > 0);
   }
 
   @Test
@@ -145,23 +148,23 @@ public final class AlluxioMasterRestApiTest extends RestApiTest {
     MasterTestUtils.waitForStartupConsistencyCheck(mFileSystemMaster);
     alluxio.wire.StartupConsistencyCheck status = getInfo(NO_PARAMS)
         .getStartupConsistencyCheck();
-    Assert.assertEquals(
+    assertEquals(
         StartupConsistencyCheck.Status.COMPLETE.toString().toLowerCase(),
         status.getStatus());
-    Assert.assertEquals(0, status.getInconsistentUris().size());
+    assertEquals(0, status.getInconsistentUris().size());
   }
 
   @Test
   public void getTierCapacity() throws Exception {
     long total = Configuration.getBytes(PropertyKey.WORKER_MEMORY_SIZE);
     Capacity capacity = getInfo(NO_PARAMS).getTierCapacity().get("MEM");
-    Assert.assertEquals(total, capacity.getTotal());
-    Assert.assertEquals(0, capacity.getUsed());
+    assertEquals(total, capacity.getTotal());
+    assertEquals(0, capacity.getUsed());
   }
 
   @Test
   public void getUptimeMs() throws Exception {
-    Assert.assertTrue(getInfo(NO_PARAMS).getUptimeMs() > 0);
+    assertTrue(getInfo(NO_PARAMS).getUptimeMs() > 0);
   }
 
   @Test
@@ -169,24 +172,24 @@ public final class AlluxioMasterRestApiTest extends RestApiTest {
     Capacity ufsCapacity = getInfo(NO_PARAMS).getUfsCapacity();
     if (UnderFileSystemTestUtils.isObjectStorage(mFileSystemMaster.getUfsAddress())) {
       // Object storage ufs capacity is always invalid.
-      Assert.assertEquals(-1, ufsCapacity.getTotal());
+      assertEquals(-1, ufsCapacity.getTotal());
     } else {
-      Assert.assertTrue(ufsCapacity.getTotal() > 0);
+      assertTrue(ufsCapacity.getTotal() > 0);
     }
   }
 
   @Test
   public void getWorkers() throws Exception {
     List<WorkerInfo> workerInfos = getInfo(NO_PARAMS).getWorkers();
-    Assert.assertEquals(1, workerInfos.size());
+    assertEquals(1, workerInfos.size());
     WorkerInfo workerInfo = workerInfos.get(0);
-    Assert.assertEquals(0, workerInfo.getUsedBytes());
+    assertEquals(0, workerInfo.getUsedBytes());
     long bytes = Configuration.getBytes(PropertyKey.WORKER_MEMORY_SIZE);
-    Assert.assertEquals(bytes, workerInfo.getCapacityBytes());
+    assertEquals(bytes, workerInfo.getCapacityBytes());
   }
 
   @Test
   public void getVersion() throws Exception {
-    Assert.assertEquals(RuntimeConstants.VERSION, getInfo(NO_PARAMS).getVersion());
+    assertEquals(RuntimeConstants.VERSION, getInfo(NO_PARAMS).getVersion());
   }
 }
