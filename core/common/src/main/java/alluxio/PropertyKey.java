@@ -1453,6 +1453,16 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "`Never` will never consult the UFS. `Once` will access the UFS the \"first\" "
               + "time (according to a cache), but not after that.")
           .build();
+  public static final PropertyKey USER_FILE_METADATA_SYNC_INTERVAL =
+      new Builder(Name.USER_FILE_METADATA_SYNC_INTERVAL)
+          .setDefaultValue("-1")
+          .setDescription("The interval between metadata sync between Alluxio and UFS before an "
+              + "operation on a path is invoked. -1 means no sync will occur. 0 means Alluxio will "
+              + "always sync the metadata of the path before an operation. If you specify a time "
+              + "interval, Alluxio will (best effort) not re-sync a path within that time "
+              + "interval. Syncing the metadata for a path must interact with the UFS, so it is "
+              + "an expensive operation.")
+          .build();
   public static final PropertyKey USER_FILE_PASSIVE_CACHE_ENABLED =
       new Builder(Name.USER_FILE_PASSIVE_CACHE_ENABLED)
           .setDefaultValue(true)
@@ -2244,6 +2254,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.file.master.client.threads";
     public static final String USER_FILE_METADATA_LOAD_TYPE =
         "alluxio.user.file.metadata.load.type";
+    public static final String USER_FILE_METADATA_SYNC_INTERVAL =
+        "alluxio.user.file.metadata.sync.interval";
     public static final String USER_FILE_PASSIVE_CACHE_ENABLED =
         "alluxio.user.file.passive.cache.enabled";
     public static final String USER_FILE_READ_TYPE_DEFAULT = "alluxio.user.file.readtype.default";

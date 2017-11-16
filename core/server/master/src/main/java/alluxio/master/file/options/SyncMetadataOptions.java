@@ -37,8 +37,13 @@ public final class SyncMetadataOptions extends CommonOptions {
     super(options != null ? options.getCommonOptions() : null);
   }
 
+  public SyncMetadataOptions(CommonOptions options) {
+    this((SyncMetadataTOptions) null);
+    setSyncInterval(options.getSyncInterval());
+  }
+
   private SyncMetadataOptions() {
-    this(null);
+    this((SyncMetadataTOptions) null);
   }
 
   @Override

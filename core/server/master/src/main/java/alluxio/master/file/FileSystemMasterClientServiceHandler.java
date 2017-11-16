@@ -362,7 +362,7 @@ public final class FileSystemMasterClientServiceHandler implements
       @Override
       public RenameTResponse call() throws AlluxioException, IOException {
         mFileSystemMaster
-            .rename(new AlluxioURI(srcPath), new AlluxioURI(dstPath), RenameOptions.defaults());
+            .rename(new AlluxioURI(srcPath), new AlluxioURI(dstPath), new RenameOptions(options));
         return new RenameTResponse();
       }
 
@@ -392,24 +392,6 @@ public final class FileSystemMasterClientServiceHandler implements
   }
 
   @Override
-  public SyncMetadataTResponse syncMetadata(String path, SyncMetadataTOptions options)
-      throws AlluxioTException, TException {
-    return RpcUtils.callAndLog(LOG, new RpcCallableThrowsIOException<SyncMetadataTResponse>() {
-      @Override
-      public SyncMetadataTResponse call() throws AlluxioException, IOException {
-        boolean result =
-            mFileSystemMaster.syncMetadata(new AlluxioURI(path), new SyncMetadataOptions(options));
-        return new SyncMetadataTResponse(result);
-      }
-
-      @Override
-      public String toString() {
-        return String.format("SyncMetadata: path=%s, options=%s", path, options);
-      }
-    });
-  }
-
-  @Override
   public SetAttributeTResponse setAttribute(final String path, final SetAttributeTOptions options)
       throws AlluxioTException {
     return RpcUtils.callAndLog(LOG, new RpcCallableThrowsIOException<SetAttributeTResponse>() {
@@ -426,6 +408,23 @@ public final class FileSystemMasterClientServiceHandler implements
     });
   }
 
+  @Override
+  public SyncMetadataTResponse syncMetadata(String path, SyncMetadataTOptions options)
+      throws AlluxioTException, TException {
+    return RpcUtils.callAndLog(LOG, new RpcCallableThrowsIOException<SyncMetadataTResponse>() {
+      @Override
+      public SyncMetadataTResponse call() throws AlluxioException, IOException {
+        boolean result =
+            mFileSystemMaster.syncMetadata(new AlluxioURI(path), new SyncMetadataOptions(options));
+        return new SyncMetadataTResponse(result);
+      }
+
+      @Override
+      public String toString() {
+        return String.format("SyncMetadata: path=%s, options=%s", path, options);
+      }
+    });
+  }
 
   @Override
   public UnmountTResponse unmount(final String alluxioPath, final UnmountTOptions options)
