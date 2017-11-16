@@ -13,12 +13,14 @@ package alluxio.util;
 
 import com.google.common.collect.Lists;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.List;
 
 public final class JvmPauseMonitorTest {
   @Test
+  @Ignore("https://alluxio.atlassian.net/browse/ALLUXIO-3059")
   public void monitorTest() {
     JvmPauseMonitor jvmPauseMonitor = new JvmPauseMonitor();
     jvmPauseMonitor.start();
