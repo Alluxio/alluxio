@@ -11,6 +11,9 @@
 
 package alluxio.master.file.meta;
 
+import alluxio.Configuration;
+import alluxio.PropertyKey;
+
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import org.slf4j.Logger;
@@ -25,9 +28,9 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class UfsSyncPathCache {
   private static final Logger LOG = LoggerFactory.getLogger(UfsSyncPathCache.class);
 
-  // TODO(gpang): make this configurable
   /** Number of paths to cache. */
-  private static final int MAX_PATHS = 500000;
+  private static final int MAX_PATHS =
+      Configuration.getInt(PropertyKey.MASTER_UFS_PATH_CACHE_CAPACITY);
 
   /** Cache of paths which have been synced. */
   private final Cache<String, Long> mCache;
@@ -44,6 +47,9 @@ public final class UfsSyncPathCache {
   }
 
   public boolean shouldSyncPath(String path, long interval) {
+    if (interval < 0) {
+      return false;
+    }
     Long lastSync = mCache.getIfPresent(path);
     if (lastSync == null) {
       // No info about the last sync, so trigger a sync.
