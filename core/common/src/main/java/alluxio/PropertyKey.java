@@ -1309,6 +1309,19 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
 
   //
+  // Locality related properties
+  //
+  public static final PropertyKey LOCALITY_ORDER =
+      new Builder(Name.LOCALITY_ORDER)
+          .setDefaultValue("node,rack")
+          .setDescription("Ordering of locality tiers")
+          .build();
+  public static final PropertyKey LOCALITY_SCRIPT =
+      new Builder(Name.LOCALITY_SCRIPT)
+          .setDescription("A script to determine tiered identity for locality checking")
+          .build();
+
+  //
   // Log server related properties
   //
   public static final PropertyKey LOGSERVER_LOGS_DIR =
@@ -2222,6 +2235,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String PROXY_WEB_PORT = "alluxio.proxy.web.port";
 
     //
+    // Locality related properties
+    //
+    public static final String LOCALITY_ORDER = "alluxio.locality.order";
+    public static final String LOCALITY_SCRIPT = "alluxio.locality.script";
+
+    //
     // Log server related properties
     //
     public static final String LOGSERVER_LOGS_DIR = "alluxio.logserver.logs.dir";
@@ -2379,6 +2398,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
    */
   @ThreadSafe
   public enum Template {
+    LOCALITY_TIER("alluxio.locality.%s", "alluxio\\.locality\\.(\\w+)"),
+    LOCALITY_TIER_WAIT("alluxio.locality.%s.wait", "alluxio\\.locality\\.(\\w+)\\.wait"),
     MASTER_JOURNAL_UFS_OPTION("alluxio.master.journal.ufs.option",
         "alluxio\\.master\\.journal\\.ufs\\.option"),
     MASTER_JOURNAL_UFS_OPTION_PROPERTY("alluxio.master.journal.ufs.option.%s",
