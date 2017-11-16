@@ -47,6 +47,14 @@ public final class SyncMetadataOptions {
     }
   }
 
+  // TODO(gpang): unused?
+  public SyncMetadataOptions(CommonOptions options) {
+    this();
+    if (options != null) {
+      mCommonOptions = CommonOptions.defaults().setSyncIntervalMs(options.getSyncIntervalMs());
+    }
+  }
+
   private SyncMetadataOptions() {
     super();
     mCommonOptions = CommonOptions.defaults();
