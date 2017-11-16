@@ -27,6 +27,7 @@ import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 import alluxio.web.MasterWebServer;
 import alluxio.web.WebServer;
+import alluxio.util.JvmPauseMonitor;
 
 import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
@@ -97,6 +98,9 @@ public class AlluxioMasterProcess implements MasterProcess {
 
   /** The journal system for writing journal entries and restoring master state. */
   protected final JournalSystem mJournalSystem;
+
+  /** The JVMMonitor Progress. */
+  private JvmPauseMonitor mJvmPauseMonitor;
 
   /**
    * Creates a new {@link AlluxioMasterProcess}.
@@ -253,6 +257,7 @@ public class AlluxioMasterProcess implements MasterProcess {
   protected void startServing(String startMessage, String stopMessage) {
     MetricsSystem.startSinks();
     startServingWebServer();
+    startJvmMonitorProcess();
     LOG.info("Alluxio master version {} started{}. "
             + "bindHost={}, connectHost={}, rpcPort={}, webPort={}",
         RuntimeConstants.VERSION,
@@ -278,6 +283,16 @@ public class AlluxioMasterProcess implements MasterProcess {
     mWebServer.addHandler(mMetricsServlet.getHandler());
     // start web ui
     mWebServer.start();
+  }
+
+  /**
+   * Starts jvm monitor process, to monitor jvm.
+   */
+  protected void startJvmMonitorProcess() {
+    if (Configuration.getBoolean(PropertyKey.MASTER_JVM_MONITOR_ENABLED)) {
+      mJvmPauseMonitor = new JvmPauseMonitor();
+      mJvmPauseMonitor.start();
+    }
   }
 
   private void registerServices(TMultiplexedProcessor processor, Map<String, TProcessor> services) {
@@ -346,6 +361,9 @@ public class AlluxioMasterProcess implements MasterProcess {
     if (mTServerSocket != null) {
       mTServerSocket.close();
       mTServerSocket = null;
+    }
+    if (mJvmPauseMonitor != null) {
+      mJvmPauseMonitor.stop();
     }
     if (mWebServer != null) {
       mWebServer.stop();
