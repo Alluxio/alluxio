@@ -38,6 +38,7 @@ import org.slf4j.LoggerFactory;
 public class FileSystemHeartbeatTOptions implements org.apache.thrift.TBase<FileSystemHeartbeatTOptions, FileSystemHeartbeatTOptions._Fields>, java.io.Serializable, Cloneable, Comparable<FileSystemHeartbeatTOptions> {
   private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("FileSystemHeartbeatTOptions");
 
+  private static final org.apache.thrift.protocol.TField PERSISTED_FILE_STATUSES_FIELD_DESC = new org.apache.thrift.protocol.TField("persistedFileStatuses", org.apache.thrift.protocol.TType.LIST, (short)1);
 
   private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
   static {
@@ -45,10 +46,11 @@ public class FileSystemHeartbeatTOptions implements org.apache.thrift.TBase<File
     schemes.put(TupleScheme.class, new FileSystemHeartbeatTOptionsTupleSchemeFactory());
   }
 
+  private List<UfsFileTStatus> persistedFileStatuses; // optional
 
   /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
   public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-;
+    PERSISTED_FILE_STATUSES((short)1, "persistedFileStatuses");
 
     private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -63,6 +65,8 @@ public class FileSystemHeartbeatTOptions implements org.apache.thrift.TBase<File
      */
     public static _Fields findByThriftId(int fieldId) {
       switch(fieldId) {
+        case 1: // PERSISTED_FILE_STATUSES
+          return PERSISTED_FILE_STATUSES;
         default:
           return null;
       }
@@ -101,9 +105,15 @@ public class FileSystemHeartbeatTOptions implements org.apache.thrift.TBase<File
       return _fieldName;
     }
   }
+
+  // isset id assignments
+  private static final _Fields optionals[] = {_Fields.PERSISTED_FILE_STATUSES};
   public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
   static {
     Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
+    tmpMap.put(_Fields.PERSISTED_FILE_STATUSES, new org.apache.thrift.meta_data.FieldMetaData("persistedFileStatuses", org.apache.thrift.TFieldRequirementType.OPTIONAL, 
+        new org.apache.thrift.meta_data.ListMetaData(org.apache.thrift.protocol.TType.LIST, 
+            new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, UfsFileTStatus.class))));
     metaDataMap = Collections.unmodifiableMap(tmpMap);
     org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(FileSystemHeartbeatTOptions.class, metaDataMap);
   }
@@ -115,6 +125,13 @@ public class FileSystemHeartbeatTOptions implements org.apache.thrift.TBase<File
    * Performs a deep copy on <i>other</i>.
    */
   public FileSystemHeartbeatTOptions(FileSystemHeartbeatTOptions other) {
+    if (other.isSetPersistedFileStatuses()) {
+      List<UfsFileTStatus> __this__persistedFileStatuses = new ArrayList<UfsFileTStatus>(other.persistedFileStatuses.size());
+      for (UfsFileTStatus other_element : other.persistedFileStatuses) {
+        __this__persistedFileStatuses.add(new UfsFileTStatus(other_element));
+      }
+      this.persistedFileStatuses = __this__persistedFileStatuses;
+    }
   }
 
   public FileSystemHeartbeatTOptions deepCopy() {
@@ -123,15 +140,66 @@ public class FileSystemHeartbeatTOptions implements org.apache.thrift.TBase<File
 
   @Override
   public void clear() {
+    this.persistedFileStatuses = null;
+  }
+
+  public int getPersistedFileStatusesSize() {
+    return (this.persistedFileStatuses == null) ? 0 : this.persistedFileStatuses.size();
+  }
+
+  public java.util.Iterator<UfsFileTStatus> getPersistedFileStatusesIterator() {
+    return (this.persistedFileStatuses == null) ? null : this.persistedFileStatuses.iterator();
+  }
+
+  public void addToPersistedFileStatuses(UfsFileTStatus elem) {
+    if (this.persistedFileStatuses == null) {
+      this.persistedFileStatuses = new ArrayList<UfsFileTStatus>();
+    }
+    this.persistedFileStatuses.add(elem);
+  }
+
+  public List<UfsFileTStatus> getPersistedFileStatuses() {
+    return this.persistedFileStatuses;
+  }
+
+  public FileSystemHeartbeatTOptions setPersistedFileStatuses(List<UfsFileTStatus> persistedFileStatuses) {
+    this.persistedFileStatuses = persistedFileStatuses;
+    return this;
+  }
+
+  public void unsetPersistedFileStatuses() {
+    this.persistedFileStatuses = null;
+  }
+
+  /** Returns true if field persistedFileStatuses is set (has been assigned a value) and false otherwise */
+  public boolean isSetPersistedFileStatuses() {
+    return this.persistedFileStatuses != null;
+  }
+
+  public void setPersistedFileStatusesIsSet(boolean value) {
+    if (!value) {
+      this.persistedFileStatuses = null;
+    }
   }
 
   public void setFieldValue(_Fields field, Object value) {
     switch (field) {
+    case PERSISTED_FILE_STATUSES:
+      if (value == null) {
+        unsetPersistedFileStatuses();
+      } else {
+        setPersistedFileStatuses((List<UfsFileTStatus>)value);
+      }
+      break;
+
     }
   }
 
   public Object getFieldValue(_Fields field) {
     switch (field) {
+    case PERSISTED_FILE_STATUSES:
+      return getPersistedFileStatuses();
+
     }
     throw new IllegalStateException();
   }
@@ -143,6 +211,8 @@ public class FileSystemHeartbeatTOptions implements org.apache.thrift.TBase<File
     }
 
     switch (field) {
+    case PERSISTED_FILE_STATUSES:
+      return isSetPersistedFileStatuses();
     }
     throw new IllegalStateException();
   }
@@ -160,12 +230,26 @@ public class FileSystemHeartbeatTOptions implements org.apache.thrift.TBase<File
     if (that == null)
       return false;
 
+    boolean this_present_persistedFileStatuses = true && this.isSetPersistedFileStatuses();
+    boolean that_present_persistedFileStatuses = true && that.isSetPersistedFileStatuses();
+    if (this_present_persistedFileStatuses || that_present_persistedFileStatuses) {
+      if (!(this_present_persistedFileStatuses && that_present_persistedFileStatuses))
+        return false;
+      if (!this.persistedFileStatuses.equals(that.persistedFileStatuses))
+        return false;
+    }
+
     return true;
   }
 
   @Override
   public int hashCode() {
     List<Object> list = new ArrayList<Object>();
+
+    boolean present_persistedFileStatuses = true && (isSetPersistedFileStatuses());
+    list.add(present_persistedFileStatuses);
+    if (present_persistedFileStatuses)
+      list.add(persistedFileStatuses);
 
     return list.hashCode();
   }
@@ -178,6 +262,16 @@ public class FileSystemHeartbeatTOptions implements org.apache.thrift.TBase<File
 
     int lastComparison = 0;
 
+    lastComparison = Boolean.valueOf(isSetPersistedFileStatuses()).compareTo(other.isSetPersistedFileStatuses());
+    if (lastComparison != 0) {
+      return lastComparison;
+    }
+    if (isSetPersistedFileStatuses()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.persistedFileStatuses, other.persistedFileStatuses);
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+    }
     return 0;
   }
 
@@ -198,6 +292,15 @@ public class FileSystemHeartbeatTOptions implements org.apache.thrift.TBase<File
     StringBuilder sb = new StringBuilder("FileSystemHeartbeatTOptions(");
     boolean first = true;
 
+    if (isSetPersistedFileStatuses()) {
+      sb.append("persistedFileStatuses:");
+      if (this.persistedFileStatuses == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.persistedFileStatuses);
+      }
+      first = false;
+    }
     sb.append(")");
     return sb.toString();
   }
@@ -241,6 +344,25 @@ public class FileSystemHeartbeatTOptions implements org.apache.thrift.TBase<File
           break;
         }
         switch (schemeField.id) {
+          case 1: // PERSISTED_FILE_STATUSES
+            if (schemeField.type == org.apache.thrift.protocol.TType.LIST) {
+              {
+                org.apache.thrift.protocol.TList _list94 = iprot.readListBegin();
+                struct.persistedFileStatuses = new ArrayList<UfsFileTStatus>(_list94.size);
+                UfsFileTStatus _elem95;
+                for (int _i96 = 0; _i96 < _list94.size; ++_i96)
+                {
+                  _elem95 = new UfsFileTStatus();
+                  _elem95.read(iprot);
+                  struct.persistedFileStatuses.add(_elem95);
+                }
+                iprot.readListEnd();
+              }
+              struct.setPersistedFileStatusesIsSet(true);
+            } else { 
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+            }
+            break;
           default:
             org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
         }
@@ -256,6 +378,20 @@ public class FileSystemHeartbeatTOptions implements org.apache.thrift.TBase<File
       struct.validate();
 
       oprot.writeStructBegin(STRUCT_DESC);
+      if (struct.persistedFileStatuses != null) {
+        if (struct.isSetPersistedFileStatuses()) {
+          oprot.writeFieldBegin(PERSISTED_FILE_STATUSES_FIELD_DESC);
+          {
+            oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, struct.persistedFileStatuses.size()));
+            for (UfsFileTStatus _iter97 : struct.persistedFileStatuses)
+            {
+              _iter97.write(oprot);
+            }
+            oprot.writeListEnd();
+          }
+          oprot.writeFieldEnd();
+        }
+      }
       oprot.writeFieldStop();
       oprot.writeStructEnd();
     }
@@ -273,11 +409,40 @@ public class FileSystemHeartbeatTOptions implements org.apache.thrift.TBase<File
     @Override
     public void write(org.apache.thrift.protocol.TProtocol prot, FileSystemHeartbeatTOptions struct) throws org.apache.thrift.TException {
       TTupleProtocol oprot = (TTupleProtocol) prot;
+      BitSet optionals = new BitSet();
+      if (struct.isSetPersistedFileStatuses()) {
+        optionals.set(0);
+      }
+      oprot.writeBitSet(optionals, 1);
+      if (struct.isSetPersistedFileStatuses()) {
+        {
+          oprot.writeI32(struct.persistedFileStatuses.size());
+          for (UfsFileTStatus _iter98 : struct.persistedFileStatuses)
+          {
+            _iter98.write(oprot);
+          }
+        }
+      }
     }
 
     @Override
     public void read(org.apache.thrift.protocol.TProtocol prot, FileSystemHeartbeatTOptions struct) throws org.apache.thrift.TException {
       TTupleProtocol iprot = (TTupleProtocol) prot;
+      BitSet incoming = iprot.readBitSet(1);
+      if (incoming.get(0)) {
+        {
+          org.apache.thrift.protocol.TList _list99 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
+          struct.persistedFileStatuses = new ArrayList<UfsFileTStatus>(_list99.size);
+          UfsFileTStatus _elem100;
+          for (int _i101 = 0; _i101 < _list99.size; ++_i101)
+          {
+            _elem100 = new UfsFileTStatus();
+            _elem100.read(iprot);
+            struct.persistedFileStatuses.add(_elem100);
+          }
+        }
+        struct.setPersistedFileStatusesIsSet(true);
+      }
     }
   }
 

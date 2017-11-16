@@ -72,6 +72,7 @@ import alluxio.master.file.options.LoadMetadataOptions;
 import alluxio.master.file.options.MountOptions;
 import alluxio.master.file.options.RenameOptions;
 import alluxio.master.file.options.SetAttributeOptions;
+import alluxio.master.file.options.WorkerHeartbeatOptions;
 import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.NoopJournalContext;
@@ -2938,7 +2939,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
   }
 
   @Override
-  public FileSystemCommand workerHeartbeat(long workerId, List<Long> persistedFiles)
+  public FileSystemCommand workerHeartbeat(long workerId, List<Long> persistedFiles,
+      WorkerHeartbeatOptions options)
       throws FileDoesNotExistException, InvalidPathException, AccessControlException,
       IOException {
     for (long fileId : persistedFiles) {
@@ -2955,9 +2957,9 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     if (!filesToPersist.isEmpty()) {
       LOG.debug("Sent files {} to worker {} to persist", filesToPersist, workerId);
     }
-    FileSystemCommandOptions options = new FileSystemCommandOptions();
-    options.setPersistOptions(new PersistCommandOptions(filesToPersist));
-    return new FileSystemCommand(CommandType.Persist, options);
+    FileSystemCommandOptions commandOptions = new FileSystemCommandOptions();
+    commandOptions.setPersistOptions(new PersistCommandOptions(filesToPersist));
+    return new FileSystemCommand(CommandType.Persist, commandOptions);
   }
 
   /**
