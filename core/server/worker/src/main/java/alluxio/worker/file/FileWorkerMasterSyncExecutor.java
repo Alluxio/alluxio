@@ -17,6 +17,8 @@ import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.thrift.CommandType;
 import alluxio.thrift.FileSystemCommand;
 import alluxio.thrift.PersistFile;
+import alluxio.underfs.UfsFileStatus;
+import alluxio.underfs.UfsStatus;
 import alluxio.util.ThreadFactoryUtils;
 import alluxio.worker.block.BlockMasterSync;
 
@@ -76,21 +78,21 @@ final class FileWorkerMasterSyncExecutor implements HeartbeatExecutor {
 
   @Override
   public void heartbeat() {
-    List<Long> persistedFiles = mFileDataManager.getPersistedFiles();
-    if (!persistedFiles.isEmpty()) {
-      LOG.info("files {} persisted", persistedFiles);
+    FileDataManager.PersistedFilesInfo filesInfo = mFileDataManager.getPersistedFilesInfo();
+    if (!filesInfo.idList().isEmpty()) {
+      LOG.info("files {} persisted", filesInfo.idList());
     }
 
     FileSystemCommand command;
     try {
-      command = mMasterClient.heartbeat(mWorkerId.get(), persistedFiles);
+      command = mMasterClient.heartbeat(mWorkerId.get(), filesInfo.idList());
     } catch (Exception e) {
       LOG.error("Failed to heartbeat to master", e);
       return;
     }
 
     // removes the persisted files that are confirmed
-    mFileDataManager.clearPersistedFiles(persistedFiles);
+    mFileDataManager.clearPersistedFiles(filesInfo.idList());
 
     if (command == null) {
       LOG.error("The command sent from master is null");
