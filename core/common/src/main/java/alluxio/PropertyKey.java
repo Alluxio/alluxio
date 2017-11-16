@@ -1503,6 +1503,15 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "`CACHE_THROUGH` (try to cache, write to UnderFS synchronously), `THROUGH` "
               + "(no cache, write to UnderFS synchronously).")
           .build();
+  public static final PropertyKey USER_FILE_WRITE_TYPE_PATH =
+      new Builder(Name.USER_FILE_WRITE_TYPE_PATH).setDefaultValue("")
+          .setDescription("Specify the write type ('MUST_CACHE', 'CACHE_THROUGH', 'THROUGH') for "
+              + "the files in the directory recursively. The property will overwrite "
+              + "the value of 'alluxio.user.file.writetype.default' in alluxio.site.properties "
+              + "and the value of '-Dalluxio.user.file.writetype.default' in jobs. For the multiple "
+              + "configured path, the last one will take effect. Valid option is "
+              + "'<PATH1>:<WRITETYPE1>;<PATH2>:<WRITETYPE2>...<PATHN>:<WRITETYPEN>'")
+          .build();
   public static final PropertyKey USER_FILE_WRITE_TIER_DEFAULT =
       new Builder(Name.USER_FILE_WRITE_TIER_DEFAULT)
           .setDefaultValue(Constants.FIRST_TIER)
@@ -2275,6 +2284,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String USER_FILE_WRITE_AVOID_EVICTION_POLICY_RESERVED_BYTES =
         "alluxio.user.file.write.avoid.eviction.policy.reserved.size.bytes";
     public static final String USER_FILE_WRITE_TYPE_DEFAULT = "alluxio.user.file.writetype.default";
+    public static final String USER_FILE_WRITE_TYPE_PATH = "alluxio.user.file.writetype.path";
     public static final String USER_FILE_WRITE_TIER_DEFAULT =
         "alluxio.user.file.write.tier.default";
     public static final String USER_HEARTBEAT_INTERVAL_MS = "alluxio.user.heartbeat.interval";
