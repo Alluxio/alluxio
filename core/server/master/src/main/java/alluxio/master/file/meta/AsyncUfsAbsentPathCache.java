@@ -214,12 +214,12 @@ public final class AsyncUfsAbsentPathCache implements UfsAbsentPathCache {
   }
 
   /**
-   * Returns a sequence of Alluxio paths for a specified path, starting from the base of the
-   * mount point, to the specified path.
+   * Returns a sequence of Alluxio paths for a specified path, starting from the first nested path
+   * under the base of the mount point, to the specified path.
    *
    * @param alluxioUri the Alluxio path to get the nested paths for
    * @param mountInfo the mount info for this Alluxio path
-   * @return a list of nested paths from the mount base to the given path
+   * @return a list of nested paths from the mount base (excluding) to the given path
    */
   private List<AlluxioURI> getNestedPaths(AlluxioURI alluxioUri, MountInfo mountInfo) {
     try {
@@ -229,12 +229,7 @@ public final class AsyncUfsAbsentPathCache implements UfsAbsentPathCache {
       int mountBaseDepth = mountBaseUri.getDepth();
 
       List<AlluxioURI> components = new ArrayList<>(fullComponents.length - mountBaseDepth);
-      for (int i = 0; i < fullComponents.length; i++) {
-        if (i > 0 && i <= mountBaseDepth) {
-          // Do not include components before the base of the mount point.
-          // However, include the first component, since that will be the actual mount point base.
-          continue;
-        }
+      for (int i = mountBaseDepth + 1; i < fullComponents.length; i++) {
         mountBaseUri = mountBaseUri.join(fullComponents[i]);
         components.add(mountBaseUri);
       }
