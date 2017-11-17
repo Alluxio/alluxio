@@ -24,6 +24,11 @@ spec:
               memory: "1024M"
           command: ["/entrypoint.sh"]
           args: ["worker"]
+          env:
+          - name: ALLUXIO_WORKER_HOSTNAME
+            valueFrom:
+              fieldRef:
+                fieldPath: status.podIP
           envFrom:
           - configMapRef:
               name: alluxio-common-config
