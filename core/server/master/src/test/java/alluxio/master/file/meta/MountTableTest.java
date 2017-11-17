@@ -70,8 +70,7 @@ public final class MountTableTest {
     }
 
     try {
-      mMountTable.add(new AlluxioURI("/mnt/bar/baz"), new AlluxioURI("/baz"), 4L,
-          mDefaultOptions);
+      mMountTable.add(new AlluxioURI("/mnt/bar/baz"), new AlluxioURI("/baz"), 4L, mDefaultOptions);
     } catch (InvalidPathException e) {
       // Exception expected
       Assert.assertEquals(
@@ -87,9 +86,8 @@ public final class MountTableTest {
       Assert.fail("mount fails");
     } catch (InvalidPathException e) {
       // Exception expected
-      Assert.assertEquals(
-          ExceptionMessage.MOUNT_POINT_PREFIX_OF_ANOTHER.getMessage("hdfs://localhost", "hdfs://localhost"),
-          e.getMessage());
+      Assert.assertEquals(ExceptionMessage.MOUNT_POINT_PREFIX_OF_ANOTHER
+          .getMessage("hdfs://localhost", "hdfs://localhost"), e.getMessage());
     }
 
     // Test resolve()
@@ -142,14 +140,13 @@ public final class MountTableTest {
     try {
       mMountTable.add(new AlluxioURI("alluxio://localhost"), new AlluxioURI("s3a://localhost"), 4L,
           mDefaultOptions);
-      mMountTable.add(new AlluxioURI("alluxio://localhost/t2"), new AlluxioURI("s3a://localhost"), 4L,
-          mDefaultOptions);
+      mMountTable.add(new AlluxioURI("alluxio://localhost/t2"), new AlluxioURI("s3a://localhost"),
+          4L, mDefaultOptions);
       Assert.fail("mount fails");
     } catch (InvalidPathException e) {
       // Exception expected
-      Assert.assertEquals(
-          ExceptionMessage.MOUNT_POINT_PREFIX_OF_ANOTHER.getMessage("s3a://localhost", "s3a://localhost"),
-          e.getMessage());
+      Assert.assertEquals(ExceptionMessage.MOUNT_POINT_PREFIX_OF_ANOTHER
+          .getMessage("s3a://localhost", "s3a://localhost"), e.getMessage());
     }
   }
 
