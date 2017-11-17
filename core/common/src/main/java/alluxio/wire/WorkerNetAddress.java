@@ -18,6 +18,7 @@ import com.google.common.base.Preconditions;
 
 import java.io.Serializable;
 
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -33,6 +34,7 @@ public final class WorkerNetAddress implements Serializable {
   private int mDataPort;
   private int mWebPort;
   private String mDomainSocketPath = "";
+  private TieredIdentity mTieredIdentity;
 
   /**
    * Creates a new instance of {@link WorkerNetAddress}.
@@ -50,6 +52,7 @@ public final class WorkerNetAddress implements Serializable {
     mDataPort = workerNetAddress.getDataPort();
     mWebPort = workerNetAddress.getWebPort();
     mDomainSocketPath = workerNetAddress.getDomainSocketPath();
+    mTieredIdentity = TieredIdentity.fromThrift(workerNetAddress.getTieredIdentity());
   }
 
   /**
@@ -85,6 +88,14 @@ public final class WorkerNetAddress implements Serializable {
    */
   public String getDomainSocketPath() {
     return mDomainSocketPath;
+  }
+
+  /**
+   * @return the tiered identity
+   */
+  @Nullable
+  public TieredIdentity getTieredIdentity() {
+    return mTieredIdentity;
   }
 
   /**
@@ -134,11 +145,20 @@ public final class WorkerNetAddress implements Serializable {
   }
 
   /**
+   * @param tieredIdentity the tiered identity
+   * @return the worker net address
+   */
+  public WorkerNetAddress setTieredIdentity(TieredIdentity tieredIdentity) {
+    mTieredIdentity = tieredIdentity;
+    return this;
+  }
+
+  /**
    * @return a net address of thrift construct
    */
   protected alluxio.thrift.WorkerNetAddress toThrift() {
     return new alluxio.thrift.WorkerNetAddress(mHost, mRpcPort, mDataPort, mWebPort,
-        mDomainSocketPath);
+        mDomainSocketPath, mTieredIdentity.toThrift());
   }
 
   @Override
@@ -150,19 +170,28 @@ public final class WorkerNetAddress implements Serializable {
       return false;
     }
     WorkerNetAddress that = (WorkerNetAddress) o;
-    return mHost.equals(that.mHost) && mRpcPort == that.mRpcPort && mDataPort == that.mDataPort
-        && mWebPort == that.mWebPort && mDomainSocketPath.equals(that.mDomainSocketPath);
+    return mHost.equals(that.mHost)
+        && mRpcPort == that.mRpcPort
+        && mDataPort == that.mDataPort
+        && mWebPort == that.mWebPort
+        && mDomainSocketPath.equals(that.mDomainSocketPath)
+        && Objects.equal(mTieredIdentity, that.mTieredIdentity);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mHost, mDataPort, mRpcPort, mWebPort, mDomainSocketPath);
+    return Objects.hashCode(mHost, mDataPort, mRpcPort, mWebPort, mDomainSocketPath, mTieredIdentity);
   }
 
   @Override
   public String toString() {
-    return Objects.toStringHelper(this).add("host", mHost).add("rpcPort", mRpcPort)
-        .add("dataPort", mDataPort).add("webPort", mWebPort)
-        .add("domainSocketPath", mDomainSocketPath).toString();
+    return Objects.toStringHelper(this)
+        .add("host", mHost)
+        .add("rpcPort", mRpcPort)
+        .add("dataPort", mDataPort)
+        .add("webPort", mWebPort)
+        .add("domainSocketPath", mDomainSocketPath)
+        .add("tieredIdentity", mTieredIdentity)
+        .toString();
   }
 }

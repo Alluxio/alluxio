@@ -1313,12 +1313,20 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   //
   public static final PropertyKey LOCALITY_ORDER =
       new Builder(Name.LOCALITY_ORDER)
-          .setDefaultValue("node,rack")
+          .setDefaultValue(String.format("%s,%s", Constants.LOCALITY_NODE, Constants.LOCALITY_RACK))
           .setDescription("Ordering of locality tiers")
           .build();
   public static final PropertyKey LOCALITY_SCRIPT =
       new Builder(Name.LOCALITY_SCRIPT)
           .setDescription("A script to determine tiered identity for locality checking")
+          .build();
+  public static final PropertyKey LOCALITY_TIER_NODE =
+      new Builder(Template.LOCALITY_TIER, Constants.LOCALITY_NODE)
+          .setDescription("Value to use for determining node locality")
+          .build();
+  public static final PropertyKey LOCALITY_TIER_RACK =
+      new Builder(Template.LOCALITY_TIER, "rack")
+          .setDescription("Value to use for determining rack locality")
           .build();
 
   //
@@ -1534,8 +1542,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue("1sec")
           .setDescription("The interval between Alluxio workers' heartbeats.")
           .build();
+  @Deprecated
   public static final PropertyKey USER_HOSTNAME = new Builder(Name.USER_HOSTNAME)
-      .setDescription("The hostname to use for the client.")
+      .setDescription(String.format("The hostname to use for the client. Note: this property is " +
+          "deprecated. set %s instead", PropertyKey.LOCALITY_TIER_NODE))
       .build();
   public static final PropertyKey USER_LINEAGE_ENABLED =
       new Builder(Name.USER_LINEAGE_ENABLED)

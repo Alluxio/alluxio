@@ -11,6 +11,8 @@
 
 package alluxio.wire;
 
+import alluxio.Configuration;
+import alluxio.PropertyKey.Template;
 import alluxio.annotation.PublicApi;
 
 import com.google.common.base.Objects;
@@ -18,6 +20,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import javax.annotation.Nullable;
@@ -61,6 +64,31 @@ public final class TieredIdentity {
     return new TieredIdentity(tieredIdentity.getTiers().stream()
         .map(LocalityTier::fromThrift).collect(Collectors.toList())
     );
+  }
+
+  /**
+   * @param identities the tiered identities to compare to
+   * @return the identity closest to this one
+   */
+  public Optional<TieredIdentity> nearest(List<TieredIdentity> identities) {
+    Preconditions.checkState(!identities.isEmpty(), "No identities given");
+    for (LocalityTier tier : mTiers) {
+      for (TieredIdentity identity : identities) {
+        for (LocalityTier otherTier : identity.mTiers) {
+          if (tier.mTierName.equals(otherTier.mTierName)
+              && tier.mValue.equals(otherTier.mValue)) {
+            return Optional.of(identity);
+          }
+        }
+      }
+      // Negative wait for a tier indicates that we should never return identities that do not match
+      // in that tier.
+      if (Configuration.containsKey(Template.LOCALITY_TIER_WAIT.format(tier.getTierName()))
+          && Configuration.getInt(Template.LOCALITY_TIER_WAIT.format(tier.getTierName())) < 0) {
+        return Optional.empty();
+      }
+    }
+    return Optional.of(identities.get(0));
   }
 
   @Override

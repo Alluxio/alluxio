@@ -12,9 +12,11 @@
 package alluxio.network;
 
 import alluxio.Configuration;
+import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.PropertyKey.Template;
 import alluxio.util.ShellUtils;
+import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.TieredIdentity;
 import alluxio.wire.TieredIdentity.LocalityTier;
 
@@ -77,6 +79,11 @@ public final class TieredIdentityFactory {
         value = Configuration.get(Template.LOCALITY_TIER.format(tierName));
       }
       tiers.add(new LocalityTier(tierName, value));
+    }
+    if (tiers.size() > 0 && tiers.get(0).getTierName().equals(Constants.LOCALITY_NODE)
+        && tiers.get(0).getValue() == null) {
+      String name = NetworkAddressUtils.getLocalNodeName();
+      tiers.set(0, new LocalityTier(Constants.LOCALITY_NODE, name));
     }
     return new TieredIdentity(tiers);
   }
