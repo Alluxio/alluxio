@@ -26,8 +26,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
 import javax.annotation.Nullable;
 
@@ -35,15 +33,16 @@ import javax.annotation.Nullable;
  * Class for getting tiered identity.
  */
 public final class TieredIdentityFactory {
-  private static TieredIdentity sInstance = null;
-  private static Lock sInstanceLock = new ReentrantLock();
+  private static volatile TieredIdentity sInstance = null;
+  // Synchronize on this lock to modify sInstance.
+  private static final Object LOCK = new Object();
 
   /**
    * @return the singleton tiered identity instance for this JVM
    */
   public static TieredIdentity getInstance() {
     if (sInstance == null) {
-      synchronized (sInstanceLock) {
+      synchronized (LOCK) {
         if (sInstance == null) {
           sInstance = create();
         }
