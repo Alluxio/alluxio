@@ -14,8 +14,7 @@ copyFromLocal:
   Copy the specified file specified by "source path" to the path specified by "remote path".
   This command will fail if "remote path" already exists.
 copyToLocal:
-  Copy the specified file from the path specified by "remote path" to a local
-  destination.
+  Copy the file specified by "remote path" to a local destination.
 count:
   Display the number of folders and files matching the specified prefix in "path".
 cp:
