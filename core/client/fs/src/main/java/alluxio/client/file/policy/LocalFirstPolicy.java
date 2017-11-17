@@ -14,17 +14,22 @@ package alluxio.client.file.policy;
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.block.policy.BlockLocationPolicy;
 import alluxio.client.block.policy.options.GetWorkerOptions;
+import alluxio.network.TieredIdentityFactory;
 import alluxio.util.network.NetworkAddressUtils;
+import alluxio.wire.TieredIdentity;
 import alluxio.wire.WorkerNetAddress;
 
-import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
+
 /**
  * A policy that returns local host first, and if the local worker doesn't have enough availability,
  * it randomly picks a worker from the active workers list for each block write.
@@ -33,35 +38,56 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public final class LocalFirstPolicy implements FileWriteLocationPolicy, BlockLocationPolicy {
   private String mLocalHostName;
+  private TieredIdentity mTieredIdentity;
 
   /**
    * Constructs a {@link LocalFirstPolicy}.
    */
   public LocalFirstPolicy() {
     mLocalHostName = NetworkAddressUtils.getClientHostName();
+    mTieredIdentity = TieredIdentityFactory.getInstance();
   }
 
   @Override
   @Nullable
   public WorkerNetAddress getWorkerForNextBlock(Iterable<BlockWorkerInfo> workerInfoList,
       long blockSizeBytes) {
-    // first try the local host
-    for (BlockWorkerInfo workerInfo : workerInfoList) {
-      if (workerInfo.getNetAddress().getHost().equals(mLocalHostName)
-          && workerInfo.getCapacityBytes() >= blockSizeBytes) {
-        return workerInfo.getNetAddress();
+    List<BlockWorkerInfo> shuffledWorkers = Lists.newArrayList(workerInfoList);
+    Collections.shuffle(shuffledWorkers);
+    List<WorkerNetAddress> enoughCapacityWorkers = shuffledWorkers.stream()
+        .filter(worker -> worker.getCapacityBytes() >= blockSizeBytes)
+        .map(BlockWorkerInfo::getNetAddress)
+        .collect(Collectors.toList());
+    if (enoughCapacityWorkers.isEmpty()) {
+      return null;
+    }
+
+    // Try finding a worker based on nearest tiered identity.
+    List<TieredIdentity> identities = enoughCapacityWorkers.stream()
+        .map(worker -> worker.getTieredIdentity())
+        .filter(Objects::nonNull)
+        .collect(Collectors.toList());
+    if (!identities.isEmpty()) {
+      Optional<TieredIdentity> nearest = mTieredIdentity.nearest(identities);
+      if (nearest.isPresent()) {
+        return enoughCapacityWorkers.stream()
+            .filter(worker -> worker.getTieredIdentity() == nearest.get())
+            .findFirst().get();
+      } else {
+        return null;
       }
     }
 
-    // otherwise randomly pick a worker that has enough availability
-    List<BlockWorkerInfo> shuffledWorkers = Lists.newArrayList(workerInfoList);
-    Collections.shuffle(shuffledWorkers);
-    for (BlockWorkerInfo workerInfo : shuffledWorkers) {
-      if (workerInfo.getCapacityBytes() >= blockSizeBytes) {
-        return workerInfo.getNetAddress();
-      }
+    // Fall back on checking local hostname match.
+    Optional<WorkerNetAddress> localWorker = enoughCapacityWorkers.stream()
+        .filter(worker -> worker.getHost().equals(mLocalHostName))
+        .findFirst();
+    if (localWorker.isPresent()) {
+      return localWorker.get();
     }
-    return null;
+
+    // Otherwise pick a random worker (workers are already shuffled).
+    return enoughCapacityWorkers.get(0);
   }
 
   @Override
@@ -78,7 +104,7 @@ public final class LocalFirstPolicy implements FileWriteLocationPolicy, BlockLoc
       return false;
     }
     LocalFirstPolicy that = (LocalFirstPolicy) o;
-    return Objects.equal(mLocalHostName, that.mLocalHostName);
+    return Objects.equals(mLocalHostName, that.mLocalHostName);
   }
 
   @Override
@@ -88,7 +114,7 @@ public final class LocalFirstPolicy implements FileWriteLocationPolicy, BlockLoc
 
   @Override
   public String toString() {
-    return Objects.toStringHelper(this)
+    return com.google.common.base.Objects.toStringHelper(this)
         .add("localHostName", mLocalHostName)
         .toString();
   }

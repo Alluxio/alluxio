@@ -120,6 +120,8 @@ public final class Constants {
   public static final String SWIFT_AUTH_KEYSTONE_V3 = "keystonev3";
   public static final String SWIFT_AUTH_SWIFTAUTH = "swiftauth";
 
+  public static final String LOCALITY_NODE = "node";
+  public static final String LOCALITY_RACK = "rack";
   public static final String MESOS_LOCAL_INSTALL = "LOCAL";
 
   /**
