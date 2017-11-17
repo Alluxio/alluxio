@@ -9,14 +9,16 @@ priority: 4
 * Table of Contents
 {:toc}
 
-Alluxio supports tiered storage, which allows Alluxio to manage other storage types in addition to
-memory. Currently, Alluxio Tiered Storage supports these storage types or tiers:
+Alluxio supports heterogenous storage, which allows Alluxio to manage other storage types in
+addition to memory. Alluxio also supports Tiered Storage which enables Alluxio to be storage
+media aware, enabling more intelligent data management. For example, users often specify the
+following tiers:
 
 * MEM (Memory)
 * SSD (Solid State Drives)
 * HDD (Hard Disk Drives)
 
-Using Alluxio with tiered storage allows Alluxio to store more data in the system at once,
+Using Alluxio with heterogeneous storage allows Alluxio to store more data in the system at once,
 since memory capacity may be limited in some deployments. With tiered storage, Alluxio
 automatically manages blocks between all the configured tiers, so users and administrators do not
 have to manually manage the locations of the data. Users may specify their own data management
@@ -25,20 +27,22 @@ control over tier storage is possible, see [pinning files](#pinning-files).
 
 ## Using Tiered Storage
 
-With the introduction of tiers, the data blocks managed by Alluxio are not necessarily in memory;
-blocks can be in any of the available tiers. To manage the placement and movement of the blocks,
-Alluxio uses *allocators* and *evictors* to place and re-arrange blocks between the tiers. Alluxio
-assumes that tiers are ordered from top to bottom based on I/O performance. Therefore, the typical
-tiered storage configuration defines the top tier to be MEM, followed by SSD, and finally HDD.
+For typical deployments, it is recommended to use a single storage tier with heterogeneous storage
+media. However, in certain environments, workloads will benefit from explicit ordering of storage
+media based on I/O speed. In this case, tiered storage should be used. To manage the placement and
+movement of the blocks, Alluxio uses *allocators* and *evictors* to place and re-arrange blocks
+between the tiers. Alluxio  assumes that tiers are ordered from top to bottom based on I/O
+performance. Therefore, the typical tiered storage configuration defines the top tier to be MEM,
+followed by SSD, and finally HDD.
 
 ### Storage Directories
 
-A tier is made up of at least one storage directory. This directory is a file path where the Alluxio
-blocks should be stored. Alluxio supports configuring multiple directories for a single tier,
-allowing multiple mount points or storage devices for a particular tier. For example, if you have
-five SSD devices on your Alluxio worker, you can configure Alluxio to use all five devices for the
-SSD tier. Configuration for this is described [below](#enabling-and-configuring-tiered-storage).
-Choosing which directory the data should placed is determined by the [allocators](#allocators).
+A storage directory is a file path where the Alluxio blocks should be stored. Alluxio supports
+configuring multiple directories for a single tier, allowing multiple mount points or storage
+device types for a particular tier. For example, if you have five SSD devices on your Alluxio
+worker, you can configure Alluxio to use all five devices for the SSD tier. Configuration for this
+is described [below](#enabling-and-configuring-tiered-storage). Choosing which directory the data
+should placed is determined by the [allocators](#allocators).
 
 ### Writing Data
 
@@ -149,6 +153,14 @@ the space reserver.
 Space reservation can be enforced by configuring high watermark and low watermark per tier. Once the
 high watermark is reached, a background eviction process is started to free up space till the low
 watermark is reached.
+
+## Configuring Heterogeneous Storage
+
+Heterogeneous storage can be enabled in Alluxio using
+[configuration parameters](Configuration-Settings.html). By default, Alluxio only uses memory as a
+storage medium. To specify additional storage media, use the following configuration parameters:
+
+
 
 ## Enabling and Configuring Tiered Storage
 
