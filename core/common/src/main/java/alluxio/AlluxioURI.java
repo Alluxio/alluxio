@@ -266,7 +266,12 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
    * @return the path
    */
   public String getPath() {
-    return mUri.getPath();
+    String path = mUri.getPath();
+    if ("".equals(path)) {
+      // if path component is omitted, use root path explicitly
+      return "/";
+    }
+    return path;
   }
 
   /**

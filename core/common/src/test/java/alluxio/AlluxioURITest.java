@@ -154,7 +154,7 @@ public class AlluxioURITest {
     assertEquals(0, uri.getDepth());
     assertEquals(null, uri.getHost());
     assertEquals("", uri.getName());
-    assertEquals("", uri.getPath());
+    assertEquals("/", uri.getPath());
     assertEquals(-1, uri.getPort());
     assertEquals(null, uri.getScheme());
     assertFalse(uri.hasAuthority());
@@ -164,6 +164,13 @@ public class AlluxioURITest {
     assertEquals("/d", uri.join("/d").toString());
     assertEquals("/d", uri.join(new AlluxioURI("/d")).toString());
     assertEquals("", uri.toString());
+  }
+
+  @Test
+  public void rootURI() {
+    AlluxioURI uri = new AlluxioURI("hdfs://localhost");
+    assertEquals("", uri.getPath());
+    assertEquals("hdfs://localhost/d", uri.join("d").toString());
   }
 
   /**
