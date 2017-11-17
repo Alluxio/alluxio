@@ -33,9 +33,9 @@ import javax.annotation.Nullable;
  * Class for getting tiered identity.
  */
 public final class TieredIdentityFactory {
-  private static volatile TieredIdentity sInstance = null;
   // Synchronize on this lock to modify sInstance.
   private static final Object LOCK = new Object();
+  private static volatile TieredIdentity sInstance = null;
 
   /**
    * @return the singleton tiered identity instance for this JVM
