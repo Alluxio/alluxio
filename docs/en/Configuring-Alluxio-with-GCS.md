@@ -23,7 +23,7 @@ the bucket, or using an existing one. For the purposes of this guide, the GCS bu
 `GCS_BUCKET`, and the directory in that bucket is called `GCS_DIRECTORY`.
 
 If you are new to GCS, please read its
-[documentations](https://cloud.google.com/storage/docs/overview).
+[documentation](https://cloud.google.com/storage/docs/overview).
 
 ## Configuring Alluxio
 
