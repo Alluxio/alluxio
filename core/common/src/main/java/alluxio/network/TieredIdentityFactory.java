@@ -18,6 +18,7 @@ import alluxio.util.ShellUtils;
 import alluxio.wire.TieredIdentity;
 import alluxio.wire.TieredIdentity.LocalityTier;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 
 import java.io.IOException;
@@ -25,6 +26,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import javax.annotation.Nullable;
 
@@ -33,17 +36,20 @@ import javax.annotation.Nullable;
  */
 public final class TieredIdentityFactory {
   private static TieredIdentity sInstance = null;
+  private static Lock sInstanceLock = new ReentrantLock();
 
   /**
    * @return the singleton tiered identity instance for this JVM
    */
   public static TieredIdentity getInstance() {
-    synchronized (sInstance) {
-      if (sInstance == null) {
-        sInstance = create();
+    if (sInstance == null) {
+      synchronized (sInstanceLock) {
+        if (sInstance == null) {
+          sInstance = create();
+        }
       }
-      return sInstance;
     }
+    return sInstance;
   }
 
   /**
@@ -51,12 +57,9 @@ public final class TieredIdentityFactory {
    *
    * @return the created tiered identity
    */
-  public static TieredIdentity create() {
-    TieredIdentity scriptIdentity = null;
-    // If a script is configured, run the script to get all locality tiers.
-    if (Configuration.containsKey(PropertyKey.LOCALITY_SCRIPT)) {
-      scriptIdentity = fromScript();
-    }
+  @VisibleForTesting
+  static TieredIdentity create() {
+    TieredIdentity scriptIdentity = fromScript();
 
     List<LocalityTier> tiers = new ArrayList<>();
     List<String> orderedTierNames = Configuration.getList(PropertyKey.LOCALITY_ORDER, ",");
@@ -80,38 +83,45 @@ public final class TieredIdentityFactory {
   /**
    * @return a tiered identity created from running the user-provided script
    */
-  public static TieredIdentity fromScript() {
+  @Nullable
+  private static TieredIdentity fromScript() {
+    // If a script is configured, run the script to get all locality tiers.
+    if (!Configuration.containsKey(PropertyKey.LOCALITY_SCRIPT)) {
+      return null;
+    }
     String script = Configuration.get(PropertyKey.LOCALITY_SCRIPT);
     String identityString;
     try {
       identityString = ShellUtils.execCommand(script);
     } catch (IOException e) {
       throw new RuntimeException(
-          String.format("Failed to run script %s: %s", script, e.toString(), e));
+          String.format("Failed to run script %s: %s", script, e.toString()), e);
     }
-    TieredIdentity identity = parseIdentityString(identityString);
-    if (identity == null) {
-      throw new RuntimeException(String.format(
-          "Failed to parse the output of running %s. "
-              + "The value should be a comma-separated list of key=value pairs, but was %s",
-          script, identityString));
-    }
-    return identity;
+    return parseIdentityString(identityString);
   }
 
   /**
    * @param identityString tiered identity string to parse
-   * @return the parsed tiered identity, or null if the string could not be parsed
+   * @return the parsed tiered identity
    */
-  @Nullable
-  public static TieredIdentity parseIdentityString(String identityString) {
+  private static TieredIdentity parseIdentityString(String identityString) {
     Map<String, String> tiers = new HashMap<>();
     for (String tier : identityString.split(",")) {
       String[] parts = tier.split("=");
       if (parts.length != 2) {
-        return null;
+        throw new RuntimeException(String.format(
+            "Failed to parse the output of running %s. "
+                + "The value should be a comma-separated list of key=value pairs, but was %s",
+            Configuration.get(PropertyKey.LOCALITY_SCRIPT), identityString));
       }
-      tiers.put(parts[0].trim(), parts[1].trim());
+      String key = parts[0].trim();
+      if (tiers.containsKey(key)) {
+        throw new RuntimeException(String.format(
+            "Encountered repeated tier definition for %s when parsing the output of %s. "
+                + "Complete output: %s",
+            key, Configuration.get(PropertyKey.LOCALITY_SCRIPT), identityString));
+      }
+      tiers.put(key, parts[1].trim());
     }
     List<LocalityTier> tieredIdentity = new ArrayList<>();
     for (String localityTier : Configuration.getList(PropertyKey.LOCALITY_ORDER, ",")) {
