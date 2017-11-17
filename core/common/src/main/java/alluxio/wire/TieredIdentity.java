@@ -19,6 +19,7 @@ import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -45,6 +46,19 @@ public final class TieredIdentity {
    */
   public List<LocalityTier> getTiers() {
     return mTiers;
+  }
+
+  /**
+   * Parses a tiered identity in the format "tierName1=value1,tierName2=value2,..."
+   *
+   * @param s the string to parse
+   * @return the parsed tiered identity
+   */
+  public static TieredIdentity fromString(String s) {
+    return new TieredIdentity(Arrays.asList(s.split(",")).stream()
+        .map(rawTier -> rawTier.split("="))
+        .map(parts -> new LocalityTier(parts[0], parts[1]))
+        .collect(Collectors.toList()));
   }
 
   /**

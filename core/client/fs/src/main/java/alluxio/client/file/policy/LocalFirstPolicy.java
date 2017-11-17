@@ -19,6 +19,7 @@ import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.TieredIdentity;
 import alluxio.wire.WorkerNetAddress;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 
 import java.util.Collections;
@@ -37,15 +38,23 @@ import javax.annotation.concurrent.ThreadSafe;
 // TODO(peis): Move the BlockLocationPolicy implementation to alluxio.client.block.policy.
 @ThreadSafe
 public final class LocalFirstPolicy implements FileWriteLocationPolicy, BlockLocationPolicy {
-  private String mLocalHostName;
-  private TieredIdentity mTieredIdentity;
+  private final String mLocalHostName;
+  private final TieredIdentity mTieredIdentity;
 
   /**
    * Constructs a {@link LocalFirstPolicy}.
    */
   public LocalFirstPolicy() {
+    this(TieredIdentityFactory.getInstance());
+  }
+
+  /**
+   * @param localTieredIdentity the local tiered identity
+   */
+  @VisibleForTesting
+  LocalFirstPolicy(TieredIdentity localTieredIdentity) {
     mLocalHostName = NetworkAddressUtils.getClientHostName();
-    mTieredIdentity = TieredIdentityFactory.getInstance();
+    mTieredIdentity = localTieredIdentity;
   }
 
   @Override
@@ -104,18 +113,20 @@ public final class LocalFirstPolicy implements FileWriteLocationPolicy, BlockLoc
       return false;
     }
     LocalFirstPolicy that = (LocalFirstPolicy) o;
-    return Objects.equals(mLocalHostName, that.mLocalHostName);
+    return Objects.equals(mLocalHostName, that.mLocalHostName)
+        && Objects.equals(mTieredIdentity, that.mTieredIdentity);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mLocalHostName);
+    return Objects.hash(mLocalHostName, mTieredIdentity);
   }
 
   @Override
   public String toString() {
     return com.google.common.base.Objects.toStringHelper(this)
         .add("localHostName", mLocalHostName)
+        .add("tieredIdentity", mTieredIdentity)
         .toString();
   }
 }
