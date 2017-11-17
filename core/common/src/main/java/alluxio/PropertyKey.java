@@ -1510,7 +1510,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "the value of 'alluxio.user.file.writetype.default' in alluxio.site.properties "
               + "and the value of '-Dalluxio.user.file.writetype.default' in jobs. For the multiple "
               + "configured path, the last one will take effect. Valid option is "
-              + "'<PATH1>:<WRITETYPE1>;<PATH2>:<WRITETYPE2>...<PATHN>:<WRITETYPEN>'")
+              + "'<PATH1>:<WRITETYPE1>,<PATH2>:<WRITETYPE2>,...,<PATHN>:<WRITETYPEN>'")
           .build();
   public static final PropertyKey USER_FILE_WRITE_TIER_DEFAULT =
       new Builder(Name.USER_FILE_WRITE_TIER_DEFAULT)
