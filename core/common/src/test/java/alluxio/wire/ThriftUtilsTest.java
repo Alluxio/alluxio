@@ -72,7 +72,7 @@ public class ThriftUtilsTest {
 
   private alluxio.thrift.BlockLocation getBlockLocationThrift() {
     return new alluxio.thrift.BlockLocation(100L, new alluxio.thrift.WorkerNetAddress("host", 0, 0,
-        0, "", null), "tierAlias");
+        0, ""), "tierAlias");
   }
 
   private CommandLineJobInfo getCommandLineJobInfo() {

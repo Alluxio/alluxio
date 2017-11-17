@@ -11,6 +11,8 @@
 
 package alluxio.wire;
 
+import alluxio.annotation.PublicApi;
+
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
@@ -24,8 +26,9 @@ import javax.annotation.Nullable;
  * Class representing a node's tier identity. A tier identity is a list of locality tiers
  * identifying network topology, e.g. (host: hostname, rack: rack1).
  */
+@PublicApi
 public final class TieredIdentity {
-  private List<LocalityTier> mTiers;
+  private final List<LocalityTier> mTiers;
 
   /**
    * @param tiers the tiers of the tier identity
@@ -93,7 +96,7 @@ public final class TieredIdentity {
 
     /**
      * @param tierName the name of the tier
-     * @param value    the value of the tier
+     * @param value the value of the tier
      */
     public LocalityTier(String tierName, @Nullable String value) {
       mTierName = Preconditions.checkNotNull(tierName, "tierName");
