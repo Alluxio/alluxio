@@ -157,8 +157,16 @@ public final class WorkerNetAddress implements Serializable {
    * @return a net address of thrift construct
    */
   protected alluxio.thrift.WorkerNetAddress toThrift() {
-    return new alluxio.thrift.WorkerNetAddress(mHost, mRpcPort, mDataPort, mWebPort,
-        mDomainSocketPath, mTieredIdentity.toThrift());
+    alluxio.thrift.WorkerNetAddress address = new alluxio.thrift.WorkerNetAddress();
+    address.setHost(mHost);
+    address.setRpcPort(mRpcPort);
+    address.setDataPort(mDataPort);
+    address.setWebPort(mWebPort);
+    address.setDomainSocketPath(mDomainSocketPath);
+    if (mTieredIdentity != null) {
+      address.setTieredIdentity(mTieredIdentity.toThrift());
+    }
+    return address;
   }
 
   @Override
@@ -180,7 +188,8 @@ public final class WorkerNetAddress implements Serializable {
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mHost, mDataPort, mRpcPort, mWebPort, mDomainSocketPath, mTieredIdentity);
+    return Objects.hashCode(mHost, mDataPort, mRpcPort, mWebPort, mDomainSocketPath,
+        mTieredIdentity);
   }
 
   @Override
