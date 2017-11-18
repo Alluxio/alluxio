@@ -19,6 +19,7 @@ import static org.junit.Assert.fail;
 import alluxio.ConfigurationRule;
 import alluxio.PropertyKey;
 import alluxio.PropertyKey.Template;
+import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.TieredIdentity;
 import alluxio.wire.TieredIdentity.LocalityTier;
 
@@ -43,7 +44,7 @@ public class TieredIdentityFactoryTest {
   public void defaultConf() throws Exception {
     TieredIdentity identity = TieredIdentityFactory.create();
     TieredIdentity expected = new TieredIdentity(Arrays.asList(
-        new LocalityTier("node", null),
+        new LocalityTier("node", NetworkAddressUtils.getLocalNodeName()),
         new LocalityTier("rack", null)));
     assertEquals(expected, identity);
   }
@@ -130,6 +131,14 @@ public class TieredIdentityFactoryTest {
         assertThat(e.getMessage(), containsString("Permission denied"));
       }
     }
+  }
+
+  @Test
+  public void fromString() throws Exception {
+    assertEquals(new TieredIdentity(Arrays.asList(
+        new LocalityTier("node", "b"),
+        new LocalityTier("rack", "d")
+    )), TieredIdentityFactory.fromString("node=b,rack=d"));
   }
 
   private String setupScript(String tieredIdentityString) throws Exception {

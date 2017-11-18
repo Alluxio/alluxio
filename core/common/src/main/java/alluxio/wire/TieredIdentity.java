@@ -15,11 +15,12 @@ import alluxio.Configuration;
 import alluxio.PropertyKey.Template;
 import alluxio.annotation.PublicApi;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -37,7 +38,8 @@ public final class TieredIdentity {
   /**
    * @param tiers the tiers of the tier identity
    */
-  public TieredIdentity(List<LocalityTier> tiers) {
+  @JsonCreator
+  public TieredIdentity(@JsonProperty("tiers") List<LocalityTier> tiers) {
     mTiers = ImmutableList.copyOf(Preconditions.checkNotNull(tiers, "tiers"));
   }
 
@@ -46,19 +48,6 @@ public final class TieredIdentity {
    */
   public List<LocalityTier> getTiers() {
     return mTiers;
-  }
-
-  /**
-   * Parses a tiered identity in the format "tierName1=value1,tierName2=value2,..."
-   *
-   * @param s the string to parse
-   * @return the parsed tiered identity
-   */
-  public static TieredIdentity fromString(String s) {
-    return new TieredIdentity(Arrays.asList(s.split(",")).stream()
-        .map(rawTier -> rawTier.split("="))
-        .map(parts -> new LocalityTier(parts[0], parts[1]))
-        .collect(Collectors.toList()));
   }
 
   /**
@@ -75,9 +64,11 @@ public final class TieredIdentity {
    * @return the corresponding wire type tiered identity
    */
   public static TieredIdentity fromThrift(alluxio.thrift.TieredIdentity tieredIdentity) {
+    if (tieredIdentity == null) {
+      return null;
+    }
     return new TieredIdentity(tieredIdentity.getTiers().stream()
-        .map(LocalityTier::fromThrift).collect(Collectors.toList())
-    );
+        .map(LocalityTier::fromThrift).collect(Collectors.toList()));
   }
 
   /**
@@ -90,6 +81,7 @@ public final class TieredIdentity {
       for (TieredIdentity identity : identities) {
         for (LocalityTier otherTier : identity.mTiers) {
           if (tier.mTierName.equals(otherTier.mTierName)
+              && tier.mValue != null
               && tier.mValue.equals(otherTier.mValue)) {
             return Optional.of(identity);
           }
@@ -140,7 +132,9 @@ public final class TieredIdentity {
      * @param tierName the name of the tier
      * @param value the value of the tier
      */
-    public LocalityTier(String tierName, @Nullable String value) {
+    @JsonCreator
+    public LocalityTier(@JsonProperty("tierName") String tierName,
+        @JsonProperty("value") @Nullable String value) {
       mTierName = Preconditions.checkNotNull(tierName, "tierName");
       mValue = value;
     }
