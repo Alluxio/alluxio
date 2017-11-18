@@ -34,7 +34,7 @@ spec:
       dnsPolicy: ClusterFirstWithHostNet
       containers:
         - name: alluxio-master
-          image: alluxioadit/alluxio:1.6.1
+          image: alluxio/alluxio:1.6.1
           resources:
             requests:
               cpu: "0.5"
