@@ -2,7 +2,7 @@
 
 Alluxio workers use `emptyDir` volumes with `sizeLimit` is an alpha feature in Kubernetes 1.8. Please enable the feature.
 
-Nodes running Alluxio workers require a manual step for using domain sockets
+Nodes running Alluxio workers require a manual step for using domain sockets. Execute the following on host nodes.
 ```bash
 mkdir /tmp/domain
 chmod a+w /tmp/domain
