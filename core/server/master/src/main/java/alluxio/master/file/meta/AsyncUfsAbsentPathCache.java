@@ -83,8 +83,8 @@ public final class AsyncUfsAbsentPathCache implements UfsAbsentPathCache {
   }
 
   @Override
-  public void process(AlluxioURI path, List<Inode<?>> existingInodes) {
-    mPool.submit(new ProcessPathTask(path, existingInodes));
+  public void process(AlluxioURI path, List<Inode<?>> prefixInodes) {
+    mPool.submit(new ProcessPathTask(path, prefixInodes));
   }
 
   @Override
@@ -286,14 +286,15 @@ public final class AsyncUfsAbsentPathCache implements UfsAbsentPathCache {
    */
   private final class ProcessPathTask implements Runnable {
     private final AlluxioURI mPath;
-    private final List<Inode<?>> mExistingInodes;
+    private final List<Inode<?>> mPrefixInodes;
 
     /**
      * @param path the path to add
+     * @param prefixInodes the existing inodes for the path prefix
      */
-    private ProcessPathTask(AlluxioURI path, List<Inode<?>> existingInodes) {
+    private ProcessPathTask(AlluxioURI path, List<Inode<?>> prefixInodes) {
       mPath = path;
-      mExistingInodes = existingInodes;
+      mPrefixInodes = prefixInodes;
     }
 
     @Override
@@ -305,8 +306,8 @@ public final class AsyncUfsAbsentPathCache implements UfsAbsentPathCache {
 
       // baseIndex should be the index of the first non-persisted inode under the mount point.
       int baseIndex = mountInfo.getAlluxioUri().getDepth();
-      while (baseIndex < mExistingInodes.size()) {
-        if (mExistingInodes.get(baseIndex).isPersisted()) {
+      while (baseIndex < mPrefixInodes.size()) {
+        if (mPrefixInodes.get(baseIndex).isPersisted()) {
           baseIndex++;
         } else {
           break;

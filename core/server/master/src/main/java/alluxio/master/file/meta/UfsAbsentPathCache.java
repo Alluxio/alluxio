@@ -29,9 +29,9 @@ public interface UfsAbsentPathCache {
    * components which do and do not exist in the UFS, and updates the cache accordingly.
    *
    * @param path the path to process for the cache
-   * @param existingInodes the existing inodes for the path components
+   * @param prefixInodes the existing inodes for the path prefix
    */
-  void process(AlluxioURI path, List<Inode<?>> existingInodes);
+  void process(AlluxioURI path, List<Inode<?>> prefixInodes);
 
   /**
    * Processes the given path that already exists. This will sequentially walk down the path and
