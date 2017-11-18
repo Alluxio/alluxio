@@ -15,7 +15,7 @@ import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.cli.validation.PortAvailabilityValidationTask;
 import alluxio.cli.validation.RamDiskMountPrivilegeValidationTask;
-import alluxio.cli.validation.SecurityValidationTask;
+import alluxio.cli.validation.SecureHdfsValidationTask;
 import alluxio.cli.validation.StorageSpaceValidationTask;
 import alluxio.cli.validation.SshValidationTask;
 import alluxio.cli.validation.UfsDirectoryValidationTask;
@@ -81,9 +81,12 @@ public final class ValidateEnv {
       new PortAvailabilityValidationTask(ServiceType.PROXY_WEB, ALLUXIO_PROXY_CLASS));
 
   // security configuration validations
-  private static final ValidationTask SECURITY_VALIDATION_TASK = registerTask(
-      "security",
-      new SecurityValidationTask());
+  private static final ValidationTask MASTER_SECURITY_VALIDATION_TASK = registerTask(
+      "master.secure.hdfs",
+      new SecureHdfsValidationTask("master"));
+  private static final ValidationTask WORKER_SECURITY_VALIDATION_TASK = registerTask(
+      "worker.secure.hdfs",
+      new SecureHdfsValidationTask("worker"));
 
   // ssh validations
   private static final ValidationTask SSH_TO_MASTERS_VALIDATION_TASK = registerTask(
@@ -123,7 +126,6 @@ public final class ValidateEnv {
     Map<String, Collection<ValidationTask>> targetMap = new TreeMap<>();
     ValidationTask[] commonTasks = {
         PROXY_WEB_VALIDATION_TASK,
-        SECURITY_VALIDATION_TASK,
         SSH_TO_MASTERS_VALIDATION_TASK,
         SSH_TO_WORKERS_VALIDATION_TASK,
         UFS_ROOT_VALIDATION_TASK,
@@ -132,14 +134,16 @@ public final class ValidateEnv {
     };
     ValidationTask[] masterTasks = {
         MASTER_RPC_VALIDATION_TASK,
-        MASTER_WEB_VALIDATION_TASK
+        MASTER_WEB_VALIDATION_TASK,
+        MASTER_SECURITY_VALIDATION_TASK,
     };
     ValidationTask[] workerTasks = {
         WORKER_DATA_VALIDATION_TASK,
         WORKER_RAMDISK_MOUNT_PRIVILEGE_VALIDATION_TASK,
         WORKER_RPC_VALIDATION_TASK,
         WORKER_STORAGE_SPACE_VALIDATION_TASK,
-        WORKER_WEB_VALIDATION_TASK
+        WORKER_WEB_VALIDATION_TASK,
+        WORKER_SECURITY_VALIDATION_TASK,
     };
 
     targetMap.put("master", Arrays.asList(
