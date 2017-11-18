@@ -1542,10 +1542,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue("1sec")
           .setDescription("The interval between Alluxio workers' heartbeats.")
           .build();
+  /**
+   * @deprecated use PropertyKey.LOCALITY_TIER_NODE instead
+   */
   @Deprecated
   public static final PropertyKey USER_HOSTNAME = new Builder(Name.USER_HOSTNAME)
-      .setDescription(String.format("The hostname to use for the client. Note: this property is " +
-          "deprecated. set %s instead", PropertyKey.LOCALITY_TIER_NODE))
+      .setDescription(String.format("The hostname to use for the client. Note: this property is "
+          + "deprecated. set %s instead", PropertyKey.LOCALITY_TIER_NODE.toString()))
       .build();
   public static final PropertyKey USER_LINEAGE_ENABLED =
       new Builder(Name.USER_LINEAGE_ENABLED)
