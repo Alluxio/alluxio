@@ -62,7 +62,8 @@ spec:
       restartPolicy: Always
       volumes:
         - name: alluxio-journal
-          emptyDir: {}
+          emptyDir:
+            sizeLimit: "1G"
         - name: alluxio-domain
           hostPath:
             path: /tmp/domain
