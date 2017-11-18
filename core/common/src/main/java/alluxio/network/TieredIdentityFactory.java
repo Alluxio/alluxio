@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.Map;
 
 import javax.annotation.Nullable;
+import javax.annotation.concurrent.GuardedBy;
 
 /**
  * Class for getting tiered identity.
@@ -35,6 +36,7 @@ import javax.annotation.Nullable;
 public final class TieredIdentityFactory {
   // Synchronize on this lock to modify sInstance.
   private static final Object LOCK = new Object();
+  @GuardedBy("LOCK")
   private static volatile TieredIdentity sInstance = null;
 
   /**
