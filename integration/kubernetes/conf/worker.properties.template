@@ -8,6 +8,7 @@
 #
 # See the NOTICE file distributed with this work for information regarding copyright ownership.
 #
+
 ALLUXIO_WORKER_MEMORY_SIZE=768MB
 ALLUXIO_WORKER_PORT=29998
 ALLUXIO_WORKER_DATA_PORT=29999

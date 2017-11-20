@@ -8,6 +8,7 @@
 #
 # See the NOTICE file distributed with this work for information regarding copyright ownership.
 #
+
 apiVersion: extensions/v1beta1
 kind: DaemonSet
 metadata:
