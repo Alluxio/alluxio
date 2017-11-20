@@ -541,13 +541,10 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
               new LostFileDetector(this, mInodeTree),
               (int) Configuration.getMs(PropertyKey.MASTER_HEARTBEAT_INTERVAL_MS)));
       if (Configuration.getBoolean(PropertyKey.MASTER_STARTUP_CONSISTENCY_CHECK_ENABLED)) {
-        mStartupConsistencyCheck = getExecutorService().submit(new Callable<List<AlluxioURI>>() {
-          @Override
-          public List<AlluxioURI> call() throws Exception {
-            return startupCheckConsistency(ExecutorServiceFactories
-                .fixedThreadPoolExecutorServiceFactory("startup-consistency-check", 32).create());
-          }
-        });
+        mStartupConsistencyCheck = getExecutorService().submit(() -> startupCheckConsistency(
+            ExecutorServiceFactories
+               .fixedThreadPoolExecutorServiceFactory("startup-consistency-check", 32).create()));
+      }
       }
       if (Configuration.getBoolean(PropertyKey.MASTER_AUDIT_LOGGING_ENABLED)) {
         mAsyncAuditLogWriter = new AsyncUserAccessAuditLogWriter();
