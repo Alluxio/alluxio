@@ -24,8 +24,8 @@ import alluxio.underfs.swift.http.SwiftDirectClient;
 import alluxio.util.UnderFileSystemUtils;
 import alluxio.util.io.PathUtils;
 
-import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.map.SerializationConfig;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import org.javaswift.joss.client.factory.AccountConfig;
 import org.javaswift.joss.client.factory.AccountFactory;
 import org.javaswift.joss.client.factory.AuthenticationMethod;
@@ -157,7 +157,7 @@ public class SwiftUnderFileSystem extends ObjectUnderFileSystem {
     }
 
     ObjectMapper mapper = new ObjectMapper();
-    mapper.configure(SerializationConfig.Feature.WRAP_ROOT_VALUE, true);
+    mapper.configure(SerializationFeature.WRAP_ROOT_VALUE, true);
     mContainerName = containerName;
     mAccount = new AccountFactory(config).createAccount();
     // Do not allow container cache to avoid stale directory listings

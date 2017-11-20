@@ -32,10 +32,6 @@
   <dependencies>
     <!-- External dependencies -->
     <dependency>
-      <groupId>org.codehaus.jackson</groupId>
-      <artifactId>jackson-mapper-asl</artifactId>
-    </dependency>
-    <dependency>
       <groupId>org.javaswift</groupId>
       <artifactId>joss</artifactId>
     </dependency>
