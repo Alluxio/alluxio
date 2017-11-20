@@ -130,13 +130,13 @@ The synax is `alluxio logLevel --logName=NAME [--target=<master|worker|host:port
 indicates the logger's name, and `target` lists the Alluxio masters or workers to set. If parameter `level` is provided the command
 changes the logger level, otherwise it gets and displays the current logger level.
 
-For example, this command sets the class `foo.Bar`'s logger level to DEBUG on master as well as a worker at `192.168.100.100:30000`.
+For example, this command sets the class `alluxio.heartbeat.HeartbeatContext`'s logger level to DEBUG on master as well as a worker at `192.168.100.100:30000`.
 
 ```bash
-alluxio logLevel --loggerName=foo.Bar --target=master,192.168.100.100:30000 --level=DEBUG
+alluxio logLevel --logName=alluxio.heartbeat.HeartbeatContext --target=master,192.168.100.100:30000 --level=DEBUG
 ```
 
-And the following command gets all workers' log level on class `foo.Bar`
+And the following command gets all workers' log level on class `alluxio.heartbeat.HeartbeatContext`
 ```bash
-alluxio logLevel --loggerName=foo.Bar --target=workers
+alluxio logLevel --logName=alluxio.heartbeat.HeartbeatContext --target=workers
 ```
