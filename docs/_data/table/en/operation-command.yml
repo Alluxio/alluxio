@@ -9,7 +9,7 @@ chgrp:
 chmod:
   Change the permission of the directory or file.
 chown:
-  Change the owner of the directory or file.
+  Change the owner of a file or directory.
 copyFromLocal:
   Copy the specified file specified by "source path" to the path specified by "remote path".
   This command will fail if "remote path" already exists.

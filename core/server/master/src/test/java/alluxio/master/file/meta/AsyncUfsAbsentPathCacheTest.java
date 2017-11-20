@@ -199,7 +199,7 @@ public class AsyncUfsAbsentPathCacheTest {
   private void addAbsent(AlluxioURI path) throws Exception {
     final ThreadPoolExecutor pool = Whitebox.getInternalState(mUfsAbsentPathCache, "mPool");
     final long initialTasks = pool.getCompletedTaskCount();
-    mUfsAbsentPathCache.process(path);
+    mUfsAbsentPathCache.process(path, Collections.emptyList());
     // Wait until the async task is completed.
     CommonUtils
         .waitFor("path (" + path + ") to be added to absent cache", new Function<Void, Boolean>() {
@@ -216,7 +216,7 @@ public class AsyncUfsAbsentPathCacheTest {
   private void removeAbsent(AlluxioURI path) throws Exception {
     final ThreadPoolExecutor pool = Whitebox.getInternalState(mUfsAbsentPathCache, "mPool");
     final long initialTasks = pool.getCompletedTaskCount();
-    mUfsAbsentPathCache.process(path);
+    mUfsAbsentPathCache.process(path, Collections.emptyList());
     // Wait until the async task is completed.
     CommonUtils.waitFor("path (" + path + ") to be removed from absent cache",
         new Function<Void, Boolean>() {
