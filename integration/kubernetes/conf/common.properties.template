@@ -8,6 +8,7 @@
 #
 # See the NOTICE file distributed with this work for information regarding copyright ownership.
 #
+
 ALLUXIO_MASTER_HOSTNAME=alluxio-master
 ALLUXIO_UNDERFS_ADDRESS=<under_storage_address>
 AWS_ACCESSKEYID=<s3a_access_key>
