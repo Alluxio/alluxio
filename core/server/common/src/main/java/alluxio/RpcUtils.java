@@ -40,18 +40,13 @@ public final class RpcUtils {
       logger.debug("Exit (OK): {}", callable);
       return ret;
     } catch (AlluxioException e) {
-      if (logger.isDebugEnabled()) {
-        logger.debug("Exit (Error): {}", callable, e);
-      } else {
+      logger.debug("Exit (Error): {}", callable, e);
+      if (!logger.isDebugEnabled()) {
         logger.warn("{}, Error={}", callable, e.getMessage());
       }
       throw AlluxioStatusException.fromAlluxioException(e).toThrift();
     } catch (RuntimeException e) {
-      if (logger.isDebugEnabled()) {
-        logger.debug("Exit (Error): {}", callable, e);
-      } else {
-        logger.error("{}", callable, e);
-      }
+      logger.error("Exit (Error): {}", callable, e);
       throw new InternalException(e).toThrift();
     }
   }
@@ -73,25 +68,19 @@ public final class RpcUtils {
       logger.debug("Exit (OK): {}", callable);
       return ret;
     } catch (AlluxioException e) {
-      if (logger.isDebugEnabled()) {
-        logger.debug("Exit (Error): {}", callable, e);
-      } else {
+      logger.debug("Exit (Error): {}", callable, e);
+      if (!logger.isDebugEnabled()) {
         logger.warn("{}, Error={}", callable, e.getMessage());
       }
       throw AlluxioStatusException.fromAlluxioException(e).toThrift();
     } catch (IOException e) {
-      if (logger.isDebugEnabled()) {
-        logger.debug("Exit (Error): {}", callable, e);
-      } else {
+      logger.debug("Exit (Error): {}", callable, e);
+      if (!logger.isDebugEnabled()) {
         logger.warn("{}, Error={}", callable, e.getMessage());
       }
       throw AlluxioStatusException.fromIOException(e).toThrift();
     } catch (RuntimeException e) {
-      if (logger.isDebugEnabled()) {
-        logger.debug("Exit (Error): {}", callable, e);
-      } else {
-        logger.error("{}", callable, e);
-      }
+      logger.error("Exit (Error): {}", callable, e);
       throw new InternalException(e).toThrift();
     }
   }
