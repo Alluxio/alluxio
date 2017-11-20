@@ -16,21 +16,25 @@ Alluxio file system recognizes the user accessing the service.
 Having `SIMPLE` authentication is required to use other security features such as authorization.
 Alluxio also supports other authentication modes like `NOSASL` and `CUSTOM`.
 2. [Authorization](#authorization): If `alluxio.security.authorization.permission.enabled=true`,
-Alluxio file system will grant or deny user access based on the requesting users and the POSIX permission model.
-Note that, authentication must be enabled to enable authorization as user information is required.
+Alluxio file system will grant or deny user access based on the requesting user and the POSIX
+permission model of the files or directories to access.
+Note that, authentication cannot be `NOSASL` as authorization requires user information.
 3. [Auditing](#auditing): If `alluxio.master.audit.logging.enabled=true`, Alluxio file system can
 maintain an audit log for user accesses to file metadata.
 
-See [Security specific configuration](Configuration-Settings.html#security-configuration) for different
-security properties.
+See [Security specific configuration](Configuration-Settings.html#security-configuration) for
+different security properties.
 
 ## Authentication
 
 ### SIMPLE
 
-When `alluxio.security.authentication.type=SIMPLE`, authentication is enabled, before user accessing the service Alluxio client infers the user information in the following order:
+When `alluxio.security.authentication.type=SIMPLE`, authentication is enabled.
+Before an Alluxio client accessing the service, this client retrieve the user information to report
+to Alluxio service in the following order:
 
-1. If property `alluxio.security.login.username` is set on the client, its value will be the login user of this client.
+1. If property `alluxio.security.login.username` is set on the client, its value will be used as
+the login user of this client.
 2. Otherwise, the login user is inferred from the operating system.
 
 After the client retrieves the user information, it will use this user information to connect to the service. After a client creates directories/files, the user information is added into metadata.
