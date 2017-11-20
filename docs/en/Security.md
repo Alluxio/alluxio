@@ -11,16 +11,16 @@ priority: 1
 
 This document describes the following security related features in Alluxio.
 
-1. [Authentication](#authentication): If `alluxio.security.authentication.type=SIMPLE`,
+1. [Authentication](#authentication): If `alluxio.security.authentication.type=SIMPLE` (by default),
 Alluxio file system recognizes the user accessing the service.
 Having `SIMPLE` authentication is required to use other security features such as authorization.
 Alluxio also supports other authentication modes like `NOSASL` and `CUSTOM`.
-2. [Authorization](#authorization): If `alluxio.security.authorization.permission.enabled=true`,
-Alluxio file system will grant or deny user access based on the requesting user and the POSIX
-permission model of the files or directories to access.
+2. [Authorization](#authorization): If `alluxio.security.authorization.permission.enabled=true`
+(by default), Alluxio file system will grant or deny user access based on the requesting user and
+the POSIX permission model of the files or directories to access.
 Note that, authentication cannot be `NOSASL` as authorization requires user information.
-3. [Auditing](#auditing): If `alluxio.master.audit.logging.enabled=true`, Alluxio file system can
-maintain an audit log for user accesses to file metadata.
+3. [Auditing](#auditing): If `alluxio.master.audit.logging.enabled=true`, Alluxio file system
+maintains an audit log for user accesses to file metadata.
 
 See [Security specific configuration](Configuration-Settings.html#security-configuration) for
 different security properties.
@@ -29,33 +29,36 @@ different security properties.
 
 ### SIMPLE
 
-When `alluxio.security.authentication.type=SIMPLE`, authentication is enabled.
-Before an Alluxio client accessing the service, this client retrieve the user information to report
+When `alluxio.security.authentication.type` is set to `SIMPLE`, authentication is enabled.
+Before an Alluxio client accesses the service, this client retrieves the user information to report
 to Alluxio service in the following order:
 
 1. If property `alluxio.security.login.username` is set on the client, its value will be used as
 the login user of this client.
 2. Otherwise, the login user is inferred from the operating system.
 
-After the client retrieves the user information, it will use this user information to connect to the service. After a client creates directories/files, the user information is added into metadata.
-This user info could be retrieved in CLI and UI.
+After the client retrieves the user information, it will use this user information to connect to
+the service. After a client creates directories/files, the user information is added into metadata
+and can be retrieved in CLI and UI.
 
 ### NOSASL
 
-When `alluxio.security.authentication.type=NOSASL`, authentication is disabled. Alluxio service will ignore the user of the client and no information will be associated to the files or
+When `alluxio.security.authentication.type` is `NOSASL`, authentication is disabled. Alluxio
+service will ignore the user of the client and no information will be associated to the files or
 directories created by this user.
 
 ### CUSTOM
 
-Authentication is enabled. Alluxio file system can know the user accessing it,
-and use customized `AuthenticationProvider` to verify the user is the one he/she claims.
+When `alluxio.security.authentication.type` is `CUSTOM`, authentication is enabled. Alluxio clients
+checks `alluxio.security.authentication.custom.provider.class` which is name of a class
+implementing `alluxio.security.authentication.AuthenticationProvider` to retrieve the user.
 
 This mode is currently experimental and should only be used in tests.
 
 ## Authorization
 
-Alluxio file system implements a permissions model for directories and files,
-which is similar as the POSIX permission model.
+Alluxio file system implements a permissions model for directories and files similar as the POSIX
+ permission model.
 
 Each file and directory is associated with:
 
@@ -82,15 +85,19 @@ the file. For directories, the r permission is required to list the contents of 
 the w permission is required to create, rename or delete files or directories under it,
 and the x permission is required to access a child of the directory.
 
-For example, the output of the shell command `ls -R` when authorization is enabled is:
+For example, the output of the shell command `ls` when authorization is enabled is:
 
-{% include Security/lsr.md %}
+```bash
+$ ./bin/alluxio fs ls /
+drwxr-xr-x jack           staff                       24       PERSISTED 11-20-2017 13:24:15:649  DIR /default_tests_files
+-rw-r--r-- jack           staff                       80   NOT_PERSISTED 11-20-2017 13:24:15:649 100% /default_tests_files/BASIC_CACHE_PROMOTE_MUST_CACHE
+```
 
 ### User group mapping
 
 When user is determined, the list of groups is determined by a group mapping service, configured by
 `alluxio.security.group.mapping.class`. The default implementation is
-`alluxio.security.group.provider.ShellBasedUnixGroupsMapping`, which executes the 'groups' shell
+`alluxio.security.group.provider.ShellBasedUnixGroupsMapping`, which executes the `groups` shell
 command to fetch the group memberships of a given user. There is a caching mechanism for user group
 mapping, the mapping data will be cached for 60 seconds by default, this value can be configured by
 `alluxio.security.group.mapping.cache.timeout`, if the value is '0', the cached will be disabled.
@@ -102,7 +109,7 @@ belong to this group are also super users.
 
 The initial creation permission is 777, and the difference between directory and file is 111.
 For default umask value 022, the created directory has permission 755 and file has permission 644.
-The umask can be set by property 'alluxio.security.authorization.permission.umask'.
+The umask can be set by property `alluxio.security.authorization.permission.umask`.
 
 ### Update directory and file permission model
 
@@ -111,7 +118,9 @@ The owner, group, and permissions can be changed by two ways:
 1. User application invokes the setAttribute(...) method of `FileSystem API` or `Hadoop API`. See
 [File System API](File-System-API.html).
 2. CLI command in shell. See
-[chown, chgrp, chmod](Command-Line-Interface.html#list-of-operations).
+[chown](Command-Line-Interface.html#chown),
+[chgrp](Command-Line-Interface.html#chgrp),
+[chmod](Command-Line-Interface.html#chmod).
 
 The owner can only be changed by super user.
 The group and permission can only be changed by super user and file owner.
@@ -161,7 +170,8 @@ The format of Alluxio audit log entry is shown in the table below.
 It is similar to the format of HDFS audit log [wiki](https://wiki.apache.org/hadoop/HowToConfigure).
 
 To enable Alluxio audit logging, you need to set the JVM property
-`alluxio.master.audit.logging.enabled` to true, see [Configuration settings](Configuration-Settings.html).
+`alluxio.master.audit.logging.enabled` to `true`, see
+[Configuration settings](Configuration-Settings.html).
 
 ## Encryption
 
