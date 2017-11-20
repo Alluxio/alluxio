@@ -1,4 +1,4 @@
----
+﻿---
 layout: global
 title: 在集群上运行Alluxio实现高可用性
 nickname: Alluxio集群模式实现高可用性
@@ -86,7 +86,7 @@ Zookeeper和共享文件系统都正常运行时，需要在每个主机上配�
 
 ### Master配置
 
-除了以上配置，Alluxio master需要额外的配置，以下变量需在`conf/alluxio-site.properties`中正确设置：
+除了以上配置，Alluxio master需要额外的配置。以下变量需在每一个Alluxio Master上的`conf/alluxio-site.properties`中正确设置：
 
    alluxio.master.hostname=[externally visible address of this machine]
 
