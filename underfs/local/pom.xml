@@ -30,17 +30,6 @@
   </properties>
 
   <dependencies>
-    <!-- External dependencies -->
-    <dependency>
-      <groupId>com.google.guava</groupId>
-      <artifactId>guava</artifactId>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-api</artifactId>
-    </dependency>
-
     <!-- Internal dependencies -->
     <dependency>
       <groupId>org.alluxio</groupId>
