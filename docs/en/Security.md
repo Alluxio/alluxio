@@ -9,71 +9,44 @@ priority: 1
 * Table of Contents
 {:toc}
 
-Secure Alluxio has three features currently. This document describes the concepts and usage of them.
+This document describes the following security related features in Alluxio.
 
-1. [Authentication](#authentication): If enabled, Alluxio file system can recognize and verify
-the user accessing it. It is the basis for other security features such as authorization.
-2. [Authorization](#authorization): If enabled, Alluxio file system can control the user's access.
-POSIX permission model is used in Alluxio to assign permissions and
-control access rights.
-3. [Auditing](#auditing): If enabled, Alluxio file system can maintain an audit log for users' accesses
-to file metadata.
+1. [Authentication](#authentication): If `alluxio.security.authentication.type=SIMPLE`,
+Alluxio file system recognizes the user accessing the service.
+Having `SIMPLE` authentication is required to use other security features such as authorization.
+Alluxio also supports other authentication modes like `NOSASL` and `CUSTOM`.
+2. [Authorization](#authorization): If `alluxio.security.authorization.permission.enabled=true`,
+Alluxio file system will grant or deny user access based on the requesting users and the POSIX permission model.
+Note that, authentication must be enabled to enable authorization as user information is required.
+3. [Auditing](#auditing): If `alluxio.master.audit.logging.enabled=true`, Alluxio file system can
+maintain an audit log for user accesses to file metadata.
 
-By default Alluxio runs in SIMPLE secure mode in which a simple authentication is required.
-SIMPLE indicates that server trusts whoever the client claims to be.
-See [Security specific configuration](Configuration-Settings.html#security-configuration) to
-enable and use security features.
+See [Security specific configuration](Configuration-Settings.html#security-configuration) for different
+security properties.
 
 ## Authentication
 
-Alluxio provides file system service through Thrift RPC. The client side (representing a user)
-and the server side (such as master) should build an authenticated connection for communication.
-If authentication succeeds, the connection will be built. If fails,
-the connection can not be built and an exception will be thrown to client.
+### SIMPLE
 
-Three authentication modes are supported: NOSASL, SIMPLE (default mode), and CUSTOM.
+When `alluxio.security.authentication.type=SIMPLE`, authentication is enabled, before user accessing the service Alluxio client infers the user information in the following order:
 
-### User Accounts
+1. If property `alluxio.security.login.username` is set on the client, its value will be the login user of this client.
+2. Otherwise, the login user is inferred from the operating system.
 
-The communication entities in Alluxio consist of master, worker, and client. Each of them needs
-to know its user who are running it, also called as the login user. JAAS (Java Authentication and
-Authorization Service) is used to determine who is currently executing the process.
-
-When authentication is enabled, a login user for the component (master, worker, or client)
-can be obtained by following steps:
-
-1. Login by configurable user. If property 'alluxio.security.login.username' is set by
-application, its value will be the login user.
-2. If its value is empty, login by OS account.
-
-If login fails, an exception will be thrown. If succeeds,
-
-1. For master, the login user is the super user of Alluxio file system. It is also the owner of
-root directory.
-2. For worker and client, the login user is the user who contacts with master for accessing file.
-It is passed to master through RPC connection for authentication.
+After the client retrieves the user information, it will use this user information to connect to the service. After a client creates directories/files, the user information is added into metadata.
+This user info could be retrieved in CLI and UI.
 
 ### NOSASL
 
-Authentication is disabled. SASL (Simple Authentication and Security Layer) is a framework to 
-define the authentication between client and server applications, which is used in Alluxio to 
-implement authentication feature. So NOSASL is used to represent disabled case and Alluxio 
-file system behavior is as before.
-
-### SIMPLE
-
-Authentication is enabled. Alluxio file system can know the user accessing it,
-and simply believe the user is the one he/she claims.
-
-After a user creates directories/files, the user name is added into metadata. This user info
-could be read and shown in CLI and UI.
+When `alluxio.security.authentication.type=NOSASL`, authentication is disabled. Alluxio service will ignore the user of the client and no information will be associated to the files or
+directories created by this user.
 
 ### CUSTOM
 
 Authentication is enabled. Alluxio file system can know the user accessing it,
 and use customized `AuthenticationProvider` to verify the user is the one he/she claims.
 
-Experimental. This mode is only used in tests currently.
+This mode is currently experimental and should only be used in tests.
 
 ## Authorization
 
@@ -112,13 +85,13 @@ For example, the output of the shell command `ls -R` when authorization is enabl
 ### User group mapping
 
 When user is determined, the list of groups is determined by a group mapping service, configured by
-'alluxio.security.group.mapping.class'. The default implementation is 'alluxio.security.group
-.provider.ShellBasedUnixGroupsMapping', which executes the 'groups' shell
+`alluxio.security.group.mapping.class`. The default implementation is
+`alluxio.security.group.provider.ShellBasedUnixGroupsMapping`, which executes the 'groups' shell
 command to fetch the group memberships of a given user. There is a caching mechanism for user group
 mapping, the mapping data will be cached for 60 seconds by default, this value can be configured by
-'alluxio.security.group.mapping.cache.timeout.ms', if the value is '0', the cached will be disabled.
+`alluxio.security.group.mapping.cache.timeout`, if the value is '0', the cached will be disabled.
 
-Property 'alluxio.security.authorization.permission.supergroup' defines a super group. Any users
+Property `alluxio.security.authorization.permission.supergroup` defines a super group. Any users
 belong to this group are also super users.
 
 ### Initialized directory and file permissions
@@ -183,7 +156,8 @@ The format of Alluxio audit log entry is shown in the table below.
 
 It is similar to the format of HDFS audit log [wiki](https://wiki.apache.org/hadoop/HowToConfigure).
 
-To enable Alluxio audit logging, you need to set the JVM property `alluxio.master.audit.logging.enabled` to true, see [Configuration settings](Configuration-Settings.html).
+To enable Alluxio audit logging, you need to set the JVM property
+`alluxio.master.audit.logging.enabled` to true, see [Configuration settings](Configuration-Settings.html).
 
 ## Encryption
 
