@@ -888,7 +888,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       exists = true;
     } finally {
       if (!exists) {
-        mUfsAbsentPathCache.process(inodePath.getUri());
+        mUfsAbsentPathCache.process(inodePath.getUri(), inodePath.getInodeList());
       }
     }
   }
