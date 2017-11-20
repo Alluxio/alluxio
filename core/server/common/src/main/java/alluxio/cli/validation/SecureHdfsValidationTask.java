@@ -11,6 +11,7 @@
 
 package alluxio.cli.validation;
 
+import alluxio.Configuration;
 import alluxio.PropertyKey;
 
 import java.util.regex.Matcher;
@@ -52,15 +53,11 @@ public class SecureHdfsValidationTask implements ValidationTask {
     String instance;
     String realm;
     if (mProcess.equals("master")) {
-      principal = Utils.getResultFromProcess(new String[] {ALLUXIO_BIN, GETCONF_CMD,
-          PropertyKey.MASTER_PRINCIPAL.getName()}).getOutput();
-      keytab = Utils.getResultFromProcess(new String[] {ALLUXIO_BIN, GETCONF_CMD,
-          PropertyKey.MASTER_KEYTAB_KEY_FILE.getName()}).getOutput();
+      principal = Configuration.get(PropertyKey.MASTER_PRINCIPAL);
+      keytab = Configuration.get(PropertyKey.MASTER_KEYTAB_KEY_FILE);
     } else if (mProcess.equals("worker")) {
-      principal = Utils.getResultFromProcess(new String[] {ALLUXIO_BIN, GETCONF_CMD,
-          PropertyKey.WORKER_PRINCIPAL.getName()}).getOutput();
-      keytab = Utils.getResultFromProcess(new String[] {ALLUXIO_BIN, GETCONF_CMD,
-          PropertyKey.WORKER_KEYTAB_FILE.getName()}).getOutput();
+      principal = Configuration.get(PropertyKey.WORKER_PRINCIPAL);
+      keytab = Configuration.get(PropertyKey.WORKER_KEYTAB_FILE);
     }
     Matcher matchPrincipal = PRINCIPAL_PATTERN.matcher(principal);
     if (!matchPrincipal.matches()) {
