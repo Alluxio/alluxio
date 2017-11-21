@@ -73,9 +73,6 @@ public final class LocalFirstPolicy implements FileWriteLocationPolicy, BlockLoc
         .map(worker -> worker.getTieredIdentity())
         .filter(Objects::nonNull)
         .collect(Collectors.toList());
-    if (identities.isEmpty()) {
-      return null;
-    }
     Optional<TieredIdentity> nearest = mTieredIdentity.nearest(identities);
     if (!nearest.isPresent()) {
       return null;

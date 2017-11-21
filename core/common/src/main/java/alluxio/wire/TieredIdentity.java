@@ -73,10 +73,14 @@ public final class TieredIdentity {
 
   /**
    * @param identities the tiered identities to compare to
-   * @return the identity closest to this one
+   * @return the identity closest to this one; or Optional.empty if none of the identities match
+   *         within a strict tier. If none of the identities match and no strict tiers are defined,
+   *         the first identity is returned
    */
   public Optional<TieredIdentity> nearest(List<TieredIdentity> identities) {
-    Preconditions.checkState(!identities.isEmpty(), "No identities given");
+    if (identities.isEmpty()) {
+      return Optional.empty();
+    }
     for (LocalityTier tier : mTiers) {
       for (TieredIdentity identity : identities) {
         for (LocalityTier otherTier : identity.mTiers) {

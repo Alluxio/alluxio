@@ -320,7 +320,7 @@ public final class NetworkAddressUtils {
    *
    * @return the local node name
    */
-  public static synchronized String getLocalNodeName() {
+  public static String getLocalNodeName() {
     switch (CommonUtils.PROCESS_TYPE.get()) {
       case CLIENT:
         if (Configuration.containsKey(PropertyKey.USER_HOSTNAME)) {
