@@ -11,6 +11,8 @@
 
 package alluxio.client.file.policy;
 
+import alluxio.Configuration;
+import alluxio.PropertyKey;
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.block.policy.BlockLocationPolicy;
 import alluxio.client.block.policy.options.GetWorkerOptions;
@@ -40,21 +42,40 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class LocalFirstPolicy implements FileWriteLocationPolicy, BlockLocationPolicy {
   private final String mLocalHostName;
   private final TieredIdentity mTieredIdentity;
+  private final boolean mAvoidEviction;
 
   /**
    * Constructs a {@link LocalFirstPolicy}.
    */
   public LocalFirstPolicy() {
-    this(TieredIdentityFactory.getInstance());
+    this(false);
+  }
+
+  /**
+   * @param avoidEviction whether to prefer non-local workers if it avoids eviction
+   */
+  public LocalFirstPolicy(boolean avoidEviction) {
+    this(TieredIdentityFactory.getInstance(), avoidEviction);
   }
 
   /**
    * @param localTieredIdentity the local tiered identity
+   * @param avoidEviction whether to prefer non-local workers if it avoids eviction
    */
-  @VisibleForTesting
-  LocalFirstPolicy(TieredIdentity localTieredIdentity) {
+  private LocalFirstPolicy(TieredIdentity localTieredIdentity, boolean avoidEviction) {
     mLocalHostName = NetworkAddressUtils.getClientHostName();
     mTieredIdentity = localTieredIdentity;
+    mAvoidEviction = avoidEviction;
+  }
+
+  @VisibleForTesting
+  static LocalFirstPolicy create(TieredIdentity localTieredIdentity) {
+    return new LocalFirstPolicy(localTieredIdentity, false);
+  }
+
+  @VisibleForTesting
+  static LocalFirstPolicy createAvoidEviction(TieredIdentity localTieredIdentity) {
+    return new LocalFirstPolicy(localTieredIdentity, true);
   }
 
   @Override
@@ -63,29 +84,55 @@ public final class LocalFirstPolicy implements FileWriteLocationPolicy, BlockLoc
       long blockSizeBytes) {
     List<BlockWorkerInfo> shuffledWorkers = Lists.newArrayList(workerInfoList);
     Collections.shuffle(shuffledWorkers);
-    List<WorkerNetAddress> enoughCapacityWorkers = shuffledWorkers.stream()
+    // Workers must have enough capacity to hold the block.
+    List<BlockWorkerInfo> candidateWorkers = shuffledWorkers.stream()
         .filter(worker -> worker.getCapacityBytes() >= blockSizeBytes)
-        .map(BlockWorkerInfo::getNetAddress)
         .collect(Collectors.toList());
+    if (mAvoidEviction) {
+      // Workers must have enough availability to hold the block.
+      List<BlockWorkerInfo> nonEvictingWorkers = candidateWorkers.stream()
+          .filter(worker -> getAvailableBytes(worker) >= blockSizeBytes)
+          .collect(Collectors.toList());
+      if (!nonEvictingWorkers.isEmpty()) {
+        candidateWorkers = nonEvictingWorkers;
+      }
+    }
 
     // Try finding a worker based on nearest tiered identity.
-    List<TieredIdentity> identities = enoughCapacityWorkers.stream()
-        .map(worker -> worker.getTieredIdentity())
+    List<TieredIdentity> identities = candidateWorkers.stream()
+        .map(worker -> worker.getNetAddress().getTieredIdentity())
         .filter(Objects::nonNull)
         .collect(Collectors.toList());
     Optional<TieredIdentity> nearest = mTieredIdentity.nearest(identities);
     if (!nearest.isPresent()) {
       return null;
     }
-    // Map back to the address with the nearest tiered identity.
-    return enoughCapacityWorkers.stream()
-        .filter(worker -> worker.getTieredIdentity() == nearest.get())
+    // Map back to the worker with the nearest tiered identity.
+    return candidateWorkers.stream()
+        .filter(worker -> worker.getNetAddress().getTieredIdentity() == nearest.get())
+        .map(worker -> worker.getNetAddress())
         .findFirst().orElse(null);
   }
 
   @Override
   public WorkerNetAddress getWorker(GetWorkerOptions options) {
     return getWorkerForNextBlock(options.getBlockWorkerInfos(), options.getBlockSize());
+  }
+
+  /**
+   * The information of BlockWorkerInfo is update after a file complete write. To avoid evict,
+   * user should configure "alluxio.user.file.write.avoid.eviction.policy.reserved.size.bytes"
+   * to reserve some space to store the block.
+   *
+   * @param workerInfo BlockWorkerInfo of the worker
+   * @return the available bytes of the worker
+   */
+  private long getAvailableBytes(BlockWorkerInfo workerInfo) {
+    long mUserFileWriteCapacityReserved = Configuration
+            .getBytes(PropertyKey.USER_FILE_WRITE_AVOID_EVICTION_POLICY_RESERVED_BYTES);
+    long mCapacityBytes = workerInfo.getCapacityBytes();
+    long mUsedBytes = workerInfo.getUsedBytes();
+    return mCapacityBytes - mUsedBytes - mUserFileWriteCapacityReserved;
   }
 
   @Override
