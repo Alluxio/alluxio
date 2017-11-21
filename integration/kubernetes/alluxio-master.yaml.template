@@ -57,9 +57,7 @@ spec:
           args: ["master"]
           envFrom:
           - configMapRef:
-              name: alluxio-common-config
-          - configMapRef:
-              name: alluxio-master-config
+              name: alluxio-config
           ports:
           - containerPort: 19998
             name: rpc

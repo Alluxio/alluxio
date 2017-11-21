@@ -42,15 +42,13 @@ spec:
                 fieldPath: status.hostIP
           envFrom:
           - configMapRef:
-              name: alluxio-common-config
-          - configMapRef:
-              name: alluxio-worker-config
+              name: alluxio-config
           ports:
           - containerPort: 29998
             name: rpc
           - containerPort: 29999
             name: data
-          - containerPort: 30001
+          - containerPort: 29996
             name: web
           securityContext:
             privileged: true

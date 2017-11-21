@@ -10,16 +10,27 @@ touch /tmp/domain/d
 chmod a+w /tmp/domain/d
 ```
 
+## Create spec and configuration from templates
+
+Create Alluxio master and worker specs (modify defaults)
+```bash
+mv alluxio-master.yaml.template alluxio-master.yaml
+mv alluxio-worker.yaml.template alluxio-worker.yaml
+```
+
+Create configuration file
+```bash
+mv conf/alluxio.properties.template conf/alluxio.properties
+```
+
 ## Deploy
 
 Create configuration maps
 ```bash
-kubectl create configmap alluxio-common-config --from-file=ALLUXIO_COMMON_CONFIG=conf/common.properties
-kubectl create configmap alluxio-master-config --from-file=ALLUXIO_MASTER_CONFIG=conf/master.properties
-kubectl create configmap alluxio-worker-config --from-file=ALLUXIO_WORKER_CONFIG=conf/worker.properties
+kubectl create configmap alluxio-config --from-file=ALLUXIO_CONFIG=conf/alluxio.properties
 ```
 
-Start daemons:
+Start Alluxio:
 ```bash
 kubectl create -f alluxio-master.yaml
 kubectl create -f alluxio-worker.yaml
