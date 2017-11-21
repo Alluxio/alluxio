@@ -57,16 +57,18 @@ public final class UfsSyncPathCache {
    */
   public boolean shouldSyncPath(String path, long intervalMs) {
     if (intervalMs < 0) {
+      // Never sync.
       return false;
+    }
+    if (intervalMs == 0) {
+      // Always sync.
+      return true;
     }
     Long lastSync = mCache.getIfPresent(path);
     if (lastSync == null) {
       // No info about the last sync, so trigger a sync.
       return true;
     }
-    if ((System.currentTimeMillis() - lastSync) > intervalMs) {
-      return true;
-    }
-    return false;
+    return (System.currentTimeMillis() - lastSync) >= intervalMs;
   }
 }
