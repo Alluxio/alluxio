@@ -80,6 +80,7 @@ public final class TieredIdentityFactory {
       }
       tiers.add(new LocalityTier(tierName, value));
     }
+    // If the user doesn't specify the value of the "node" tier, we fill in a sensible default.
     if (tiers.size() > 0 && tiers.get(0).getTierName().equals(Constants.LOCALITY_NODE)
         && tiers.get(0).getValue() == null) {
       String name = NetworkAddressUtils.getLocalNodeName();
