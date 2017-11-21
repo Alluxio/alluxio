@@ -46,7 +46,7 @@ public interface KeyValuePartitionWriter extends Closeable, Cancelable {
      */
     public static KeyValuePartitionWriter create(AlluxioURI uri)
         throws AlluxioException, IOException {
-      Preconditions.checkNotNull(uri);
+      Preconditions.checkNotNull(uri, "uri");
       FileSystem fs = FileSystem.Factory.get();
       CreateFileOptions options = CreateFileOptions.defaults().setBlockSizeBytes(
           Configuration.getBytes(PropertyKey.KEY_VALUE_PARTITION_SIZE_BYTES_MAX));
