@@ -91,6 +91,11 @@
               <finalName>${project.artifactId}-${project.version}-jar-with-dependencies</finalName>
               <relocations>
                 <relocation>
+                  <pattern>META-INF/native/libnetty-transport-native-epoll.so</pattern>
+                  <shadedPattern>META-INF/native/liballuxio-core-client-runtime-netty-transport-native-epoll.so</shadedPattern>
+                  <rawString>true</rawString>
+                </relocation>
+                <relocation>
                   <pattern>com.codahale.metrics</pattern>
                   <shadedPattern>${shading.prefix}.com.codahale.metrics</shadedPattern>
                 </relocation>
