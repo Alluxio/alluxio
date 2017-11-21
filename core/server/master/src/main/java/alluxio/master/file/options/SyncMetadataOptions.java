@@ -12,6 +12,9 @@
 package alluxio.master.file.options;
 
 import alluxio.thrift.SyncMetadataTOptions;
+import alluxio.wire.CommonOptions;
+
+import com.google.common.base.Objects;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -19,7 +22,9 @@ import javax.annotation.concurrent.NotThreadSafe;
  * Method options for syncing the metadata of a path.
  */
 @NotThreadSafe
-public final class SyncMetadataOptions extends CommonOptions {
+public final class SyncMetadataOptions {
+  private CommonOptions mCommonOptions;
+
   /**
    * @return the default {@link SyncMetadataOptions}
    */
@@ -34,11 +39,17 @@ public final class SyncMetadataOptions extends CommonOptions {
    * @param options the {@link SyncMetadataTOptions} to use
    */
   public SyncMetadataOptions(SyncMetadataTOptions options) {
-    super(options != null ? options.getCommonOptions() : null);
+    this();
+    if (options != null) {
+      if (options.isSetCommonOptions()) {
+        mCommonOptions = new CommonOptions(options.getCommonOptions());
+      }
+    }
   }
 
   private SyncMetadataOptions() {
-    this(null);
+    super();
+    mCommonOptions = CommonOptions.defaults();
   }
 
   @Override
@@ -49,17 +60,19 @@ public final class SyncMetadataOptions extends CommonOptions {
     if (!(o instanceof SyncMetadataOptions)) {
       return false;
     }
-    return super.equals(o);
+    SyncMetadataOptions that = (SyncMetadataOptions) o;
+    return Objects.equal(mCommonOptions, that.mCommonOptions);
   }
 
   @Override
   public int hashCode() {
-    return super.hashCode();
+    return Objects.hashCode(mCommonOptions);
   }
 
   @Override
   public String toString() {
-    return toStringHelper()
+    return Objects.toStringHelper(this)
+        .add("commonOptions", mCommonOptions)
         .toString();
   }
 }

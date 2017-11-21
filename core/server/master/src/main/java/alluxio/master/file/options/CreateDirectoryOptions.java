@@ -15,6 +15,7 @@ import alluxio.Constants;
 import alluxio.security.authorization.Mode;
 import alluxio.thrift.CreateDirectoryTOptions;
 import alluxio.util.SecurityUtils;
+import alluxio.wire.CommonOptions;
 import alluxio.wire.ThriftUtils;
 import alluxio.wire.TtlAction;
 
@@ -45,13 +46,11 @@ public final class CreateDirectoryOptions extends CreatePathOptions<CreateDirect
    * @param options the {@link CreateDirectoryTOptions} to use
    */
   public CreateDirectoryOptions(CreateDirectoryTOptions options) {
-    super(options != null ? options.getCommonOptions() : null);
-    mAllowExists = false;
-    mTtl = Constants.NO_TTL;
-    mTtlAction = TtlAction.DELETE;
-    mMode.applyDirectoryUMask();
-
+    this();
     if (options != null) {
+      if (options.isSetCommonOptions()) {
+        mCommonOptions = new CommonOptions(options.getCommonOptions());
+      }
       mAllowExists = options.isAllowExists();
       mPersisted = options.isPersisted();
       mRecursive = options.isRecursive();
@@ -70,7 +69,11 @@ public final class CreateDirectoryOptions extends CreatePathOptions<CreateDirect
   }
 
   private CreateDirectoryOptions() {
-    this(null);
+    super();
+    mAllowExists = false;
+    mTtl = Constants.NO_TTL;
+    mTtlAction = TtlAction.DELETE;
+    mMode.applyDirectoryUMask();
   }
 
   /**

@@ -13,6 +13,7 @@ package alluxio.master.file.options;
 
 import alluxio.proto.journal.File;
 import alluxio.thrift.MountTOptions;
+import alluxio.wire.CommonOptions;
 
 import com.google.common.base.Objects;
 
@@ -26,7 +27,8 @@ import javax.annotation.concurrent.NotThreadSafe;
  * Method option for mounting.
  */
 @NotThreadSafe
-public final class MountOptions extends CommonOptions {
+public final class MountOptions {
+  private CommonOptions mCommonOptions;
   private boolean mReadOnly;
   private Map<String, String> mProperties;
   private boolean mShared;
@@ -39,7 +41,11 @@ public final class MountOptions extends CommonOptions {
   }
 
   private MountOptions() {
-    this((MountTOptions) null);
+    super();
+    mCommonOptions = CommonOptions.defaults();
+    mReadOnly = false;
+    mProperties = new HashMap<>();
+    mShared = false;
   }
 
   /**
@@ -48,12 +54,11 @@ public final class MountOptions extends CommonOptions {
    * @param options Thrift options
    */
   public MountOptions(MountTOptions options) {
-    super(options != null ? options.getCommonOptions() : null);
-    mReadOnly = false;
-    mProperties = new HashMap<>();
-    mShared = false;
-
+    this();
     if (options != null) {
+      if (options.isSetCommonOptions()) {
+        mCommonOptions = new CommonOptions(options.getCommonOptions());
+      }
       if (options.isSetReadOnly()) {
         mReadOnly = options.isReadOnly();
       }
@@ -72,8 +77,7 @@ public final class MountOptions extends CommonOptions {
    * @param options Proto options
    */
   public MountOptions(File.AddMountPointEntry options) {
-    this((MountTOptions) null);
-
+    this();
     if (options != null) {
       if (options.hasReadOnly()) {
         mReadOnly = options.getReadOnly();
@@ -85,6 +89,13 @@ public final class MountOptions extends CommonOptions {
         mShared = options.getShared();
       }
     }
+  }
+
+  /**
+   * @return the common options
+   */
+  public CommonOptions getCommonOptions() {
+    return mCommonOptions;
   }
 
   /**
@@ -110,6 +121,15 @@ public final class MountOptions extends CommonOptions {
    */
   public Map<String, String> getProperties() {
     return Collections.unmodifiableMap(mProperties);
+  }
+
+  /**
+   * @param options the common options
+   * @return the updated options object
+   */
+  public MountOptions setCommonOptions(CommonOptions options) {
+    mCommonOptions = options;
+    return this;
   }
 
   /**
@@ -148,23 +168,22 @@ public final class MountOptions extends CommonOptions {
     if (!(o instanceof MountOptions)) {
       return false;
     }
-    if (!(super.equals(o))) {
-      return false;
-    }
     MountOptions that = (MountOptions) o;
     return Objects.equal(mReadOnly, that.mReadOnly)
+        && Objects.equal(mCommonOptions, that.mCommonOptions)
         && Objects.equal(mProperties, that.mProperties)
         && Objects.equal(mShared, that.mShared);
   }
 
   @Override
   public int hashCode() {
-    return super.hashCode() + Objects.hashCode(mReadOnly, mProperties, mShared);
+    return Objects.hashCode(mReadOnly, mProperties, mShared, mCommonOptions);
   }
 
   @Override
   public String toString() {
-    return toStringHelper()
+    return Objects.toStringHelper(this)
+        .add("commonOptions", mCommonOptions)
         .add("readOnly", mReadOnly)
         .add("properties", mProperties)
         .add("shared", mShared)
