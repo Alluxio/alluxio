@@ -21,8 +21,9 @@ import java.util.regex.Pattern;
  * Task for validating security configurations.
  */
 public class SecureHdfsValidationTask implements ValidationTask {
-  private static final String ALLUXIO_BIN = "./bin/alluxio";
-  private static final String GETCONF_CMD = "getConf";
+  /** Name of the environment variable to store the path to Hadoop config directory */
+  private static final String HADOOP_CONF_DIR_ENV_VAR = "HADOOP_CONF_DIR";
+
   /**
    * Regular expression to parse principal used by Alluxio to connect to secure
    * HDFS.
@@ -46,6 +47,18 @@ public class SecureHdfsValidationTask implements ValidationTask {
 
   @Override
   public boolean validate() {
+    if (!validatePrincipalLogin()) {
+      System.err.format("Principal login test failed.");
+      return false;
+    }
+    if (!validateHdfsSettingParity()) {
+      System.err.format("Hdfs setting do not match.");
+      return false;
+    }
+    return true;
+  }
+
+  private boolean validatePrincipalLogin() {
     // Check whether can login with specified principal and keytab
     String principal = "";
     String keytab = "";
@@ -77,6 +90,14 @@ public class SecureHdfsValidationTask implements ValidationTask {
       System.err.format("Primary is %s, instance is %s and realm is %s.%n",
           primary, instance, realm);
       return false;
+    }
+    return true;
+  }
+
+  private boolean validateHdfsSettingParity() {
+    String hadoopConfDirPath = System.getenv(HADOOP_CONF_DIR_ENV_VAR);
+    if (hadoopConfDirPath == null || hadoopConfDirPath.isEmpty()) {
+      System.out.println("HDFS configuration parity check skipped.");
     }
     return true;
   }
