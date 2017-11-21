@@ -12,6 +12,9 @@
 package alluxio.client.file.options;
 
 import alluxio.thrift.CheckConsistencyTOptions;
+import alluxio.wire.CommonOptions;
+
+import com.google.common.base.Objects;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -19,7 +22,9 @@ import javax.annotation.concurrent.NotThreadSafe;
  * Options for checking the consistency of an Alluxio subtree.
  */
 @NotThreadSafe
-public final class CheckConsistencyOptions extends CommonOptions<CheckConsistencyOptions> {
+public final class CheckConsistencyOptions {
+  private CommonOptions mCommonOptions;
+
   /**
    * @return the default {@link CheckConsistencyOptions}
    */
@@ -28,11 +33,22 @@ public final class CheckConsistencyOptions extends CommonOptions<CheckConsistenc
   }
 
   private CheckConsistencyOptions() {
-    // No options currently
+    mCommonOptions = CommonOptions.defaults();
   }
 
-  @Override
-  public CheckConsistencyOptions getThis() {
+  /**
+   * @return the common options
+   */
+  public CommonOptions getCommonOptions() {
+    return mCommonOptions;
+  }
+
+  /**
+   * @param options the common options
+   * @return the updated options object
+   */
+  public CheckConsistencyOptions setCommonOptions(CommonOptions options) {
+    mCommonOptions = options;
     return this;
   }
 
@@ -44,20 +60,20 @@ public final class CheckConsistencyOptions extends CommonOptions<CheckConsistenc
     if (!(o instanceof CheckConsistencyOptions)) {
       return false;
     }
-    if (!(super.equals(o))) {
-      return false;
-    }
-    return true;
+    CheckConsistencyOptions that = (CheckConsistencyOptions) o;
+    return Objects.equal(mCommonOptions, that.mCommonOptions);
   }
 
   @Override
   public int hashCode() {
-    return super.hashCode();
+    return Objects.hashCode(mCommonOptions);
   }
 
   @Override
   public String toString() {
-    return toStringHelper().toString();
+    return Objects.toStringHelper(this)
+        .add("commonOptions", mCommonOptions)
+        .toString();
   }
 
   /**
@@ -65,7 +81,7 @@ public final class CheckConsistencyOptions extends CommonOptions<CheckConsistenc
    */
   public CheckConsistencyTOptions toThrift() {
     CheckConsistencyTOptions options = new CheckConsistencyTOptions();
-    options.setCommonOptions(commonThrift());
+    options.setCommonOptions(mCommonOptions.toThrift());
     return options;
   }
 }

@@ -12,6 +12,7 @@
 package alluxio.client.file.options;
 
 import alluxio.thrift.CompleteFileTOptions;
+import alluxio.wire.CommonOptions;
 
 import com.google.common.base.Objects;
 
@@ -21,7 +22,8 @@ import javax.annotation.concurrent.NotThreadSafe;
  * Method options for completing a file.
  */
 @NotThreadSafe
-public final class CompleteFileOptions extends CommonOptions<CompleteFileOptions> {
+public final class CompleteFileOptions {
+  private CommonOptions mCommonOptions;
   private long mUfsLength;
 
   /**
@@ -32,7 +34,15 @@ public final class CompleteFileOptions extends CommonOptions<CompleteFileOptions
   }
 
   private CompleteFileOptions() {
+    mCommonOptions = CommonOptions.defaults();
     mUfsLength = 0;
+  }
+
+  /**
+   * @return the common options
+   */
+  public CommonOptions getCommonOptions() {
+    return mCommonOptions;
   }
 
   /**
@@ -40,6 +50,15 @@ public final class CompleteFileOptions extends CommonOptions<CompleteFileOptions
    */
   public long getUfsLength() {
     return mUfsLength;
+  }
+
+  /**
+   * @param options the common options
+   * @return the updated options object
+   */
+  public CompleteFileOptions setCommonOptions(CommonOptions options) {
+    mCommonOptions = options;
+    return this;
   }
 
   /**
@@ -52,11 +71,6 @@ public final class CompleteFileOptions extends CommonOptions<CompleteFileOptions
   }
 
   @Override
-  public CompleteFileOptions getThis() {
-    return this;
-  }
-
-  @Override
   public boolean equals(Object o) {
     if (this == o) {
       return true;
@@ -64,21 +78,20 @@ public final class CompleteFileOptions extends CommonOptions<CompleteFileOptions
     if (!(o instanceof CompleteFileOptions)) {
       return false;
     }
-    if (!(super.equals(o))) {
-      return false;
-    }
     CompleteFileOptions that = (CompleteFileOptions) o;
-    return Objects.equal(mUfsLength, that.mUfsLength);
+    return Objects.equal(mUfsLength, that.mUfsLength)
+        && Objects.equal(mCommonOptions, that.mCommonOptions);
   }
 
   @Override
   public int hashCode() {
-    return super.hashCode() + Objects.hashCode(mUfsLength);
+    return Objects.hashCode(mUfsLength, mCommonOptions);
   }
 
   @Override
   public String toString() {
-    return toStringHelper()
+    return Objects.toStringHelper(this)
+        .add("commonOptions", mCommonOptions)
         .add("ufsLength", mUfsLength)
         .toString();
   }
@@ -88,8 +101,8 @@ public final class CompleteFileOptions extends CommonOptions<CompleteFileOptions
    */
   public CompleteFileTOptions toThrift() {
     CompleteFileTOptions options = new CompleteFileTOptions();
+    options.setCommonOptions(mCommonOptions.toThrift());
     options.setUfsLength(mUfsLength);
-    options.setCommonOptions(commonThrift());
     return options;
   }
 }

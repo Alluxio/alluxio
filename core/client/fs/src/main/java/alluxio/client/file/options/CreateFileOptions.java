@@ -22,15 +22,13 @@ import alluxio.client.file.policy.FileWriteLocationPolicy;
 import alluxio.security.authorization.Mode;
 import alluxio.thrift.CreateFileTOptions;
 import alluxio.util.CommonUtils;
+import alluxio.wire.CommonOptions;
 import alluxio.wire.ThriftUtils;
 import alluxio.wire.TtlAction;
 
-import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
-import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import com.google.common.base.Objects;
 import com.google.common.base.Throwables;
 
@@ -42,9 +40,8 @@ import javax.annotation.concurrent.NotThreadSafe;
 @PublicApi
 @NotThreadSafe
 @JsonInclude(Include.NON_EMPTY)
-@JsonIdentityInfo(generator = ObjectIdGenerators.IntSequenceGenerator.class, property = "@id")
-@JsonIgnoreProperties(ignoreUnknown = true)
-public final class CreateFileOptions extends CommonOptions<CreateFileOptions> {
+public final class CreateFileOptions {
+  private CommonOptions mCommonOptions;
   private boolean mRecursive;
   private FileWriteLocationPolicy mLocationPolicy;
   private long mBlockSizeBytes;
@@ -62,6 +59,7 @@ public final class CreateFileOptions extends CommonOptions<CreateFileOptions> {
   }
 
   private CreateFileOptions() {
+    mCommonOptions = CommonOptions.defaults();
     mRecursive = true;
     mBlockSizeBytes = Configuration.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT);
     try {
@@ -76,6 +74,13 @@ public final class CreateFileOptions extends CommonOptions<CreateFileOptions> {
     mTtl = Constants.NO_TTL;
     mTtlAction = TtlAction.DELETE;
     mMode = Mode.defaults().applyFileUMask();
+  }
+
+  /**
+   * @return the common options
+   */
+  public CommonOptions getCommonOptions() {
+    return mCommonOptions;
   }
 
   /**
@@ -141,6 +146,15 @@ public final class CreateFileOptions extends CommonOptions<CreateFileOptions> {
    */
   public boolean isRecursive() {
     return mRecursive;
+  }
+
+  /**
+   * @param options the common options
+   * @return the updated options object
+   */
+  public CreateFileOptions setCommonOptions(CommonOptions options) {
+    mCommonOptions = options;
+    return this;
   }
 
   /**
@@ -250,11 +264,6 @@ public final class CreateFileOptions extends CommonOptions<CreateFileOptions> {
   }
 
   @Override
-  public CreateFileOptions getThis() {
-    return this;
-  }
-
-  @Override
   public boolean equals(Object o) {
     if (this == o) {
       return true;
@@ -262,11 +271,9 @@ public final class CreateFileOptions extends CommonOptions<CreateFileOptions> {
     if (!(o instanceof CreateFileOptions)) {
       return false;
     }
-    if (!(super.equals(o))) {
-      return false;
-    }
     CreateFileOptions that = (CreateFileOptions) o;
     return Objects.equal(mRecursive, that.mRecursive)
+        && Objects.equal(mCommonOptions, that.mCommonOptions)
         && Objects.equal(mBlockSizeBytes, that.mBlockSizeBytes)
         && Objects.equal(mLocationPolicy, that.mLocationPolicy)
         && Objects.equal(mMode, that.mMode)
@@ -278,14 +285,15 @@ public final class CreateFileOptions extends CommonOptions<CreateFileOptions> {
 
   @Override
   public int hashCode() {
-    return super.hashCode() + Objects
+    return Objects
         .hashCode(mRecursive, mBlockSizeBytes, mLocationPolicy, mMode, mTtl, mTtlAction, mWriteTier,
-            mWriteType);
+            mWriteType, mCommonOptions);
   }
 
   @Override
   public String toString() {
-    return toStringHelper()
+    return Objects.toStringHelper(this)
+        .add("commonOptions", mCommonOptions)
         .add("recursive", mRecursive)
         .add("blockSizeBytes", mBlockSizeBytes)
         .add("locationPolicy", mLocationPolicy)
@@ -310,7 +318,7 @@ public final class CreateFileOptions extends CommonOptions<CreateFileOptions> {
     if (mMode != null) {
       options.setMode(mMode.toShort());
     }
-    options.setCommonOptions(commonThrift());
+    options.setCommonOptions(mCommonOptions.toThrift());
     return options;
   }
 }
