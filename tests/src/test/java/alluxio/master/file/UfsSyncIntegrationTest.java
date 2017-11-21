@@ -27,6 +27,7 @@ import alluxio.client.file.options.GetStatusOptions;
 import alluxio.client.file.options.ListStatusOptions;
 import alluxio.client.file.options.RenameOptions;
 import alluxio.exception.FileDoesNotExistException;
+import alluxio.util.CommonUtils;
 import alluxio.wire.LoadMetadataType;
 
 import com.google.common.collect.Sets;
@@ -247,6 +248,30 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
     Assert.assertTrue(file.getName().equals(new AlluxioURI(NEW_FILE).getName()));
   }
 
+  @Test
+  public void lastModifiedFileSync() throws Exception {
+    int sizefactor = 10;
+    GetStatusOptions options =
+        GetStatusOptions.defaults().setLoadMetadataType(LoadMetadataType.Never)
+            .setSyncInterval(0);
+    writeUfsFile(ufsPath(EXISTING_FILE), sizefactor);
+    URIStatus status = mFileSystem.getStatus(new AlluxioURI(alluxioPath(EXISTING_FILE)), options);
+    long startLength = status.getLength();
+    long startLastMod = status.getUfsLastModificationTimeMs();
+
+    // Sleep for a bit for a different last mod time.
+    long delay = 1000;
+    CommonUtils.sleepMs(delay);
+
+    // Write the same file, but with a different last mod time.
+    writeUfsFile(ufsPath(EXISTING_FILE), sizefactor);
+    status = mFileSystem.getStatus(new AlluxioURI(alluxioPath(EXISTING_FILE)), options);
+
+    // Verify the sizes are the same, but the last mod times are not.
+    Assert.assertTrue(status.getLength() == startLength);
+    Assert.assertTrue(status.getUfsLastModificationTimeMs() - startLastMod >= delay);
+  }
+
   private String ufsPath(String path) {
     return mLocalUfsPath + path;
   }
@@ -319,6 +344,13 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
       if (ufsLength != alluxioLength) {
         Assert.fail("Alluxio length (" + alluxioLength + ") and ufs length (" + ufsLength
             + ") are inconsistent. path: " + uriStatus.getPath());
+      }
+      long ufsLastMod = ufsFile.lastModified();
+      long alluxioLastMod = uriStatus.getUfsLastModificationTimeMs();
+      if (ufsLastMod != alluxioLastMod) {
+        Assert.fail(
+            "Alluxio last modified time (" + alluxioLastMod + ") and ufs last modified time ("
+                + ufsLastMod + ") are inconsistent. path: " + uriStatus.getPath());
       }
     }
   }
