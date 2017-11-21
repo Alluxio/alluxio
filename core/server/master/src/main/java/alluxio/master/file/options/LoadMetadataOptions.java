@@ -39,7 +39,7 @@ public final class LoadMetadataOptions extends CommonOptions {
     this(null);
   }
 
-  public LoadMetadataOptions(LoadMetadataTOptions options) {
+  private LoadMetadataOptions(LoadMetadataTOptions options) {
     super(options != null ? options.getCommonOptions() : null);
     mCreateAncestors = false;
     mLoadDirectChildren = false;

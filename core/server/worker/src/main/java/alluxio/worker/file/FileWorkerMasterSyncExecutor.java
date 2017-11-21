@@ -18,8 +18,6 @@ import alluxio.thrift.CommandType;
 import alluxio.thrift.FileSystemCommand;
 import alluxio.thrift.FileSystemHeartbeatTOptions;
 import alluxio.thrift.PersistFile;
-import alluxio.underfs.UfsFileStatus;
-import alluxio.underfs.UfsStatus;
 import alluxio.util.ThreadFactoryUtils;
 import alluxio.worker.block.BlockMasterSync;
 
