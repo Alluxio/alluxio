@@ -56,7 +56,7 @@ public final class AlluxioBlockStore {
 
   private final FileSystemContext mContext;
   private String mLocalHostName;
-  private Random mRandom;
+  private final Random mRandom;
 
   /**
    * Creates an Alluxio block store with default file system context and default local host name.

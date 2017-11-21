@@ -83,14 +83,14 @@ public final class AlluxioFuse {
     final Options opts = new Options();
     final Option mntPoint = Option.builder("m")
         .hasArg()
-        .required(false)
+        .required(true)
         .longOpt("mount-point")
         .desc("Desired local mount point for alluxio-fuse.")
         .build();
 
     final Option alluxioRoot = Option.builder("r")
         .hasArg()
-        .required(false)
+        .required(true)
         .longOpt("alluxio-root")
         .desc("Path within alluxio that will be used as the root of the FUSE mount "
             + "(e.g., /users/foo; defaults to /)")
@@ -143,16 +143,6 @@ public final class AlluxioFuse {
       if (noUserMaxWrite) {
         final long maxWrite = Configuration.getBytes(PropertyKey.FUSE_MAXWRITE_BYTES);
         fuseOpts.add(String.format("-omax_write=%d", maxWrite));
-      }
-
-      if (mntPointValue == null) {
-        mntPointValue = Configuration.get(PropertyKey.FUSE_MOUNT_DEFAULT);
-        LOG.info("Mounting on default {}", mntPointValue);
-      }
-
-      if (alluxioRootValue == null) {
-        alluxioRootValue = Configuration.get(PropertyKey.FUSE_FS_ROOT);
-        LOG.info("Using default alluxio root {}", alluxioRootValue);
       }
 
       final boolean fuseDebug = Configuration.getBoolean(PropertyKey.FUSE_DEBUG_ENABLED);

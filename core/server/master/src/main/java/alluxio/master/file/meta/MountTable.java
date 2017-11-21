@@ -236,17 +236,15 @@ public final class MountTable implements JournalEntryIterable {
    */
   public String getMountPoint(AlluxioURI uri) throws InvalidPathException {
     String path = uri.getPath();
-    String mountPoint = null;
 
     try (LockResource r = new LockResource(mReadLock)) {
       for (Map.Entry<String, MountInfo> entry : mMountTable.entrySet()) {
         String alluxioPath = entry.getKey();
-        if (PathUtils.hasPrefix(path, alluxioPath)
-            && (mountPoint == null || PathUtils.hasPrefix(alluxioPath, mountPoint))) {
-          mountPoint = alluxioPath;
+        if (!alluxioPath.equals(ROOT) && PathUtils.hasPrefix(path, alluxioPath)) {
+          return alluxioPath;
         }
       }
-      return mountPoint;
+      return mMountTable.containsKey(ROOT) ? ROOT : null;
     }
   }
 

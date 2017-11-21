@@ -223,7 +223,7 @@
       <dependency>
         <groupId>com.github.serceman</groupId>
         <artifactId>jnr-fuse</artifactId>
-        <version>0.3</version>
+        <version>0.5.1</version>
       </dependency>
       <dependency>
         <groupId>com.qmino</groupId>
@@ -518,16 +518,6 @@
         <groupId>org.apache.zookeeper</groupId>
         <artifactId>zookeeper</artifactId>
         <version>3.4.6</version>
-      </dependency>
-      <dependency>
-        <groupId>org.codehaus.jackson</groupId>
-        <artifactId>jackson-core-asl</artifactId>
-        <version>${jackson.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.codehaus.jackson</groupId>
-        <artifactId>jackson-mapper-asl</artifactId>
-        <version>${jackson.version}</version>
       </dependency>
       <dependency>
         <groupId>org.eclipse.jetty</groupId>

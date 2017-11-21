@@ -1721,21 +1721,11 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue("alluxio-fuse")
           .setDescription("The FUSE file system name.")
           .build();
-  public static final PropertyKey FUSE_FS_ROOT =
-      new Builder(Name.FUSE_FS_ROOT)
-          .setDefaultValue("/")
-          .setDescription("The Alluxio path mounted to the FUSE file system root.")
-          .build();
   public static final PropertyKey FUSE_MAXWRITE_BYTES =
       new Builder(Name.FUSE_MAXWRITE_BYTES)
           .setDefaultValue("128KB")
           .setDescription("Maximum granularity of write operations, capped by the kernel to 128KB "
               + "max (as of Linux 3.16.0).")
-          .build();
-  public static final PropertyKey FUSE_MOUNT_DEFAULT =
-      new Builder(Name.FUSE_MOUNT_DEFAULT)
-          .setDefaultValue("/mnt/alluxio")
-          .setDescription("Mount path in the local file system for the FUSE.")
           .build();
 
   //
@@ -1884,6 +1874,35 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Name.INTEGRATION_YARN_WORKERS_PER_HOST_MAX)
           .setDefaultValue(1)
           .setDescription("The number of workers to run on an Alluxio host for YARN framework.")
+          .build();
+
+  //
+  // JVM Monitor related properties
+  //
+  public static final PropertyKey JVM_MONITOR_WARN_THRESHOLD_MS =
+      new Builder(Name.JVM_MONITOR_WARN_THRESHOLD_MS)
+          .setDefaultValue("10sec")
+          .setDescription("Extra sleep time longer than this threshold, log WARN.")
+          .build();
+  public static final PropertyKey JVM_MONITOR_INFO_THRESHOLD_MS =
+      new Builder(Name.JVM_MONITOR_INFO_THRESHOLD_MS)
+          .setDefaultValue("1sec")
+          .setDescription("Extra sleep time longer than this threshold, log INFO.")
+          .build();
+  public static final PropertyKey JVM_MONITOR_SLEEP_INTERVAL_MS =
+      new Builder(Name.JVM_MONITOR_SLEEP_INTERVAL_MS)
+          .setDefaultValue("1sec")
+          .setDescription("The time for the JVM monitor thread to sleep.")
+          .build();
+  public static final PropertyKey MASTER_JVM_MONITOR_ENABLED =
+      new Builder(Name.MASTER_JVM_MONITOR_ENABLED)
+          .setDefaultValue(false)
+          .setDescription("Whether to enable start JVM monitor thread on master.")
+          .build();
+  public static final PropertyKey WORKER_JVM_MONITOR_ENABLED =
+      new Builder(Name.WORKER_JVM_MONITOR_ENABLED)
+          .setDefaultValue(false)
+          .setDescription("Whether to enable start JVM monitor thread on worker.")
           .build();
 
   /**
@@ -2316,9 +2335,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String FUSE_CACHED_PATHS_MAX = "alluxio.fuse.cached.paths.max";
     public static final String FUSE_DEBUG_ENABLED = "alluxio.fuse.debug.enabled";
     public static final String FUSE_FS_NAME = "alluxio.fuse.fs.name";
-    public static final String FUSE_FS_ROOT = "alluxio.fuse.fs.root";
     public static final String FUSE_MAXWRITE_BYTES = "alluxio.fuse.maxwrite.bytes";
-    public static final String FUSE_MOUNT_DEFAULT = "alluxio.fuse.mount.default";
 
     //
     // Security related properties
@@ -2340,6 +2357,18 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String SECURITY_GROUP_MAPPING_CLASS =
         "alluxio.security.group.mapping.class";
     public static final String SECURITY_LOGIN_USERNAME = "alluxio.security.login.username";
+
+    //
+    // JVM Monitor related properties
+    //
+    public static final String JVM_MONITOR_WARN_THRESHOLD_MS =
+        "alluxio.jvm.monitor.warn.threshold";
+    public static final String JVM_MONITOR_INFO_THRESHOLD_MS =
+        "alluxio.jvm.monitor.info.threshold";
+    public static final String JVM_MONITOR_SLEEP_INTERVAL_MS =
+        "alluxio.jvm.monitor.sleep.interval";
+    public static final String MASTER_JVM_MONITOR_ENABLED = "alluxio.master.jvm.monitor.enabled";
+    public static final String WORKER_JVM_MONITOR_ENABLED = "alluxio.worker.jvm.monitor.enabled";
 
     private Name() {} // prevent instantiation
   }
