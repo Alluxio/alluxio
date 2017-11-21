@@ -149,7 +149,7 @@ public final class LocalFirstPolicyTest {
   @Test
   public void respectStrictLocality() throws Exception {
     try (Closeable c =
-        new ConfigurationRule(Template.LOCALITY_TIER_WAIT.format(Constants.LOCALITY_RACK), "-1")
+        new ConfigurationRule(Template.LOCALITY_TIER_STRICT.format(Constants.LOCALITY_RACK), "true")
             .toResource()) {
       List<BlockWorkerInfo> workers = new ArrayList<>();
       workers.add(worker(Constants.GB, "node", "rack"));

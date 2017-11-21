@@ -67,7 +67,7 @@ public class LocalFirstPolicyIntegrationTest extends BaseIntegrationTest {
     map.put(PropertyKey.WORKER_WEB_PORT, "0");
 
     // Set rack locality to be strict.
-    map.put(Template.LOCALITY_TIER_WAIT.format(Constants.LOCALITY_RACK), "-1");
+    map.put(Template.LOCALITY_TIER_STRICT.format(Constants.LOCALITY_RACK), "true");
     return map;
   }
 

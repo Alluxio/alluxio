@@ -51,7 +51,7 @@ public class TieredIdentityTest {
     assertSame(id1,
         TieredIdentityFactory.fromString("host=D,rack=rack3").nearest(identities).get());
     try (Closeable c =
-        new ConfigurationRule(Template.LOCALITY_TIER_WAIT.format(Constants.LOCALITY_RACK), "-1")
+        new ConfigurationRule(Template.LOCALITY_TIER_STRICT.format(Constants.LOCALITY_RACK), "true")
             .toResource()) {
       assertFalse(
           TieredIdentityFactory.fromString("host=D,rack=rack3").nearest(identities).isPresent());

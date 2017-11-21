@@ -12,6 +12,7 @@
 package alluxio.wire;
 
 import alluxio.Configuration;
+import alluxio.PropertyKey;
 import alluxio.PropertyKey.Template;
 import alluxio.annotation.PublicApi;
 
@@ -91,14 +92,30 @@ public final class TieredIdentity {
           }
         }
       }
-      // Negative wait for a tier indicates that we should never return identities that do not match
-      // in that tier.
-      if (Configuration.containsKey(Template.LOCALITY_TIER_WAIT.format(tier.getTierName()))
-          && Configuration.getInt(Template.LOCALITY_TIER_WAIT.format(tier.getTierName())) < 0) {
+      if (Configuration.containsKey(Template.LOCALITY_TIER_STRICT.format(tier.getTierName()))
+          && Configuration.getBoolean(Template.LOCALITY_TIER_STRICT.format(tier.getTierName()))) {
         return Optional.empty();
       }
     }
     return Optional.of(identities.get(0));
+  }
+
+  /**
+   * @param other a locality tier to compare to
+   * @return whether this tiered identity matches the given tiered identity in all strict tiers
+   */
+  public boolean strictTiersMatch(TieredIdentity other) {
+    for (LocalityTier t : mTiers) {
+      PropertyKey strictKey = Template.LOCALITY_TIER_STRICT.format(t.getTierName());
+      if (Configuration.containsKey(strictKey) && Configuration.getBoolean(strictKey)) {
+        for (LocalityTier tier : other.getTiers()) {
+          if (tier.getTierName().equals(t.getTierName()) && !tier.getValue().equals(t.getValue())) {
+            return false;
+          }
+        }
+      }
+    }
+    return true;
   }
 
   @Override
