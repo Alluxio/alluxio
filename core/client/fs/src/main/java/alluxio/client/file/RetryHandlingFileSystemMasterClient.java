@@ -34,7 +34,6 @@ import alluxio.thrift.LoadMetadataTOptions;
 import alluxio.thrift.RenameTOptions;
 import alluxio.thrift.ScheduleAsyncPersistenceTOptions;
 import alluxio.thrift.UnmountTOptions;
-import alluxio.wire.MountPointInfo;
 import alluxio.wire.ThriftUtils;
 
 import org.apache.thrift.TException;
