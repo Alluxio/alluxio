@@ -20,6 +20,8 @@ import alluxio.PropertyKey.Template;
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.network.TieredIdentityFactory;
 import alluxio.util.network.NetworkAddressUtils;
+import alluxio.wire.TieredIdentity;
+import alluxio.wire.TieredIdentity.LocalityTier;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.testing.EqualsTester;
@@ -87,9 +89,9 @@ public final class LocalFirstPolicyTest {
   @Test
   public void chooseClosestTier() {
     List<BlockWorkerInfo> workers = new ArrayList<>();
-    workers.add(worker(Constants.GB, "", "node=node2,rack=rack3"));
-    workers.add(worker(Constants.GB, "", "node=node3,rack=rack2"));
-    workers.add(worker(Constants.GB, "", "node=node4,rack=rack3"));
+    workers.add(worker(Constants.GB, "node2", "rack3"));
+    workers.add(worker(Constants.GB, "node3", "rack2"));
+    workers.add(worker(Constants.GB, "node4", "rack3"));
     LocalFirstPolicy policy;
     WorkerNetAddress chosen;
     // local rack
@@ -109,7 +111,7 @@ public final class LocalFirstPolicyTest {
         new ConfigurationRule(Template.LOCALITY_TIER_WAIT.format(Constants.LOCALITY_RACK), "-1")
             .toResource()) {
       List<BlockWorkerInfo> workers = new ArrayList<>();
-      workers.add(worker(Constants.GB, "", "node=node,rack=rack"));
+      workers.add(worker(Constants.GB, "node", "rack"));
       LocalFirstPolicy policy =
           new LocalFirstPolicy(TieredIdentityFactory.fromString("node=other,rack=other"));
       WorkerNetAddress chosen = policy.getWorkerForNextBlock(workers, Constants.GB);
@@ -122,10 +124,10 @@ public final class LocalFirstPolicyTest {
   public void tieredLocalityEnoughSpace() throws Exception {
     List<BlockWorkerInfo> workers = new ArrayList<>();
     // Local node doesn't have enough space
-    workers.add(worker(Constants.MB, "", "node=node2,rack=rack3"));
-    workers.add(worker(Constants.GB, "", "node=node3,rack=rack2"));
+    workers.add(worker(Constants.MB, "node2", "rack3"));
+    workers.add(worker(Constants.GB, "node3", "rack2"));
     // Local rack has enough space
-    workers.add(worker(Constants.GB, "", "node=node4,rack=rack3"));
+    workers.add(worker(Constants.GB, "node4", "rack3"));
     LocalFirstPolicy policy =
         new LocalFirstPolicy(TieredIdentityFactory.fromString("node=node2,rack=rack3"));
     WorkerNetAddress chosen = policy.getWorkerForNextBlock(workers, Constants.GB);
@@ -140,14 +142,17 @@ public final class LocalFirstPolicyTest {
         .testEquals();
   }
 
-  private BlockWorkerInfo worker(long capacity, String hostname, String tieredIdentity) {
+  private BlockWorkerInfo worker(long capacity, String node, String rack) {
     WorkerNetAddress address = new WorkerNetAddress();
-    if (tieredIdentity != null && !tieredIdentity.isEmpty()) {
-      address.setTieredIdentity(TieredIdentityFactory.fromString(tieredIdentity));
+    List<LocalityTier> tiers = new ArrayList<>();
+    if (node != null && !node.isEmpty()) {
+      address.setHost(node);
+      tiers.add(new LocalityTier(Constants.LOCALITY_NODE, node));
     }
-    if (hostname != null && !hostname.isEmpty()) {
-      address.setHost(hostname);
+    if (rack != null && !rack.isEmpty()) {
+      tiers.add(new LocalityTier(Constants.LOCALITY_RACK, rack));
     }
+    address.setTieredIdentity(new TieredIdentity(tiers));
     return new BlockWorkerInfo(address, capacity, 0);
   }
 }

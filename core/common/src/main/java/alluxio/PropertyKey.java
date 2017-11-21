@@ -1325,7 +1325,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("Value to use for determining node locality")
           .build();
   public static final PropertyKey LOCALITY_TIER_RACK =
-      new Builder(Template.LOCALITY_TIER, "rack")
+      new Builder(Template.LOCALITY_TIER, Constants.LOCALITY_RACK)
           .setDescription("Value to use for determining rack locality")
           .build();
 
@@ -1543,7 +1543,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("The interval between Alluxio workers' heartbeats.")
           .build();
   /**
-   * @deprecated use PropertyKey.LOCALITY_TIER_NODE instead
+   * @deprecated use {@link PropertyKey#LOCALITY_TIER_NODE} instead
    */
   @Deprecated
   public static final PropertyKey USER_HOSTNAME = new Builder(Name.USER_HOSTNAME)
