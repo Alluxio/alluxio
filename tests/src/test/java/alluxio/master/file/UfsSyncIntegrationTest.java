@@ -56,7 +56,6 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
   private static final String NEW_DIR = "/dir_new";
   private static final String NEW_FILE = "/file_new";
 
-
   private FileSystem mFileSystem;
   private String mLocalUfsPath = Files.createTempDir().getAbsolutePath();
 

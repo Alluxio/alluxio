@@ -94,13 +94,17 @@ public final class UfsSyncUtils {
   public static boolean inodeUfsMatch(Inode inode, UfsStatus ufsStatus) {
     boolean matchPersisted = false;
     boolean matchUnpersisted = !inode.isPersisted() && ufsStatus == null;
-    if (inode.isFile()) {
+    if (inode instanceof InodeFile) {
       // Alluxio path is a file.
       InodeFile inodeFile = (InodeFile) inode;
-      UfsFileStatus ufsFile = (UfsFileStatus) ufsStatus;
-      matchPersisted = inodeFile.isPersisted() && ufsStatus != null && ufsFile.isFile()
-          && ufsFile.getContentLength() == inodeFile.getLength()
-          && ufsFile.getLastModifiedTime() == inodeFile.getUfsLastModificationTimeMs();
+      if (ufsStatus != null && ufsStatus instanceof UfsFileStatus) {
+        UfsFileStatus ufsFile = (UfsFileStatus) ufsStatus;
+        matchPersisted = inodeFile.isPersisted()
+            && ufsFile.getContentLength() == inodeFile.getLength()
+            && ufsFile.getLastModifiedTime() == inodeFile.getUfsLastModificationTimeMs();
+      } else {
+        matchPersisted = false;
+      }
     } else {
       // Alluxio path is a directory.
       matchPersisted = inode.isPersisted() && ufsStatus != null && ufsStatus.isDirectory();
