@@ -23,6 +23,7 @@ import com.google.common.base.Optional;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Task for validating whether worker has enough privilege to mount RAM disk.
@@ -37,7 +38,7 @@ public final class RamDiskMountPrivilegeValidationTask implements ValidationTask
   }
 
   @Override
-  public boolean validate() throws InterruptedException {
+  public boolean validate(String[] args, Map<String, String> optionsMap) throws InterruptedException {
     String path = Configuration.get(PropertyKey.WORKER_TIERED_STORE_LEVEL0_DIRS_PATH);
     String alias = Configuration.get(PropertyKey.WORKER_TIERED_STORE_LEVEL0_ALIAS);
     if (!alias.equals("MEM")) {
