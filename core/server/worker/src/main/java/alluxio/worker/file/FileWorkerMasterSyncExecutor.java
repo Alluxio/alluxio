@@ -16,6 +16,7 @@ import alluxio.PropertyKey;
 import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.thrift.CommandType;
 import alluxio.thrift.FileSystemCommand;
+import alluxio.thrift.FileSystemHeartbeatTOptions;
 import alluxio.thrift.PersistFile;
 import alluxio.underfs.UfsFileStatus;
 import alluxio.underfs.UfsStatus;
@@ -85,7 +86,9 @@ final class FileWorkerMasterSyncExecutor implements HeartbeatExecutor {
 
     FileSystemCommand command;
     try {
-      command = mMasterClient.heartbeat(mWorkerId.get(), filesInfo.idList());
+      FileSystemHeartbeatTOptions options = new FileSystemHeartbeatTOptions();
+      options.setPersistedFileStatuses(filesInfo.fileStatusTList());
+      command = mMasterClient.heartbeat(mWorkerId.get(), filesInfo.idList(), options);
     } catch (Exception e) {
       LOG.error("Failed to heartbeat to master", e);
       return;

@@ -122,12 +122,24 @@ public final class FileSystemMasterClient extends AbstractMasterClient {
    */
   public synchronized FileSystemCommand heartbeat(final long workerId,
       final List<Long> persistedFiles) throws IOException {
+    return heartbeat(workerId, persistedFiles, new FileSystemHeartbeatTOptions());
+  }
+
+  /**
+   * Heartbeats to the worker. It also carries command for the worker to persist the given files.
+   *
+   * @param workerId the id of the worker that heartbeats
+   * @param persistedFiles the files which have been persisted since the last heartbeat
+   * @param options heartbeat options
+   * @return the command for file system worker
+   */
+  public synchronized FileSystemCommand heartbeat(final long workerId,
+      final List<Long> persistedFiles, final FileSystemHeartbeatTOptions options)
+      throws IOException {
     return retryRPC(new RpcCallable<FileSystemCommand>() {
       @Override
       public FileSystemCommand call() throws AlluxioTException, TException {
-        return mClient
-            .fileSystemHeartbeat(workerId, persistedFiles, new FileSystemHeartbeatTOptions())
-            .getCommand();
+        return mClient.fileSystemHeartbeat(workerId, persistedFiles, options).getCommand();
       }
     });
   }

@@ -21,6 +21,7 @@ import alluxio.exception.AlluxioException;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.InvalidWorkerStateException;
 import alluxio.security.authorization.Mode;
+import alluxio.thrift.UfsFileTStatus;
 import alluxio.underfs.UfsFileStatus;
 import alluxio.underfs.UfsManager;
 import alluxio.underfs.UnderFileSystem;
@@ -360,10 +361,14 @@ public final class FileDataManager {
     }
 
     /**
-     * @return list of {@link UfsFileStatus} of persisted files
+     * @return list of {@link UfsFileTStatus} of persisted files
      */
-    public List<UfsFileStatus> fileStatusList() {
-      return mFileStatusList;
+    public List<UfsFileTStatus> fileStatusTList() {
+      List<UfsFileTStatus> list = new ArrayList<>(mFileStatusList.size());
+      for (UfsFileStatus status : mFileStatusList) {
+        list.add(status.toThrift());
+      }
+      return list;
     }
   }
 }
