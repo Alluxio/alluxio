@@ -109,13 +109,11 @@ public final class LocalFirstPolicy implements FileWriteLocationPolicy, BlockLoc
         .collect(Collectors.toList());
     if (!identities.isEmpty()) {
       Optional<TieredIdentity> nearest = mTieredIdentity.nearest(identities);
-      if (nearest.isPresent()) {
-        return candidateAddresses.stream()
-            .filter(worker -> worker.getTieredIdentity() == nearest.get())
-            .findFirst().get();
-      } else {
-        return null;
-      }
+      // Map back to the address with the nearest tiered identity.
+      return candidateAddresses.stream()
+          .filter(worker -> worker.getTieredIdentity() == nearest.get())
+          .findFirst()
+          .orElse(null);
     }
 
     // Fall back on checking local hostname match.
