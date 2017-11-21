@@ -36,6 +36,7 @@ public final class SetAttributeOptions {
   private Short mMode;
   private boolean mRecursive;
   private long mOperationTimeMs;
+  private long mUfsLastModifiedMs;
 
   /**
    * @return the default {@link SetAttributeOptions}
@@ -79,6 +80,7 @@ public final class SetAttributeOptions {
     mMode = Constants.INVALID_MODE;
     mRecursive = false;
     mOperationTimeMs = System.currentTimeMillis();
+    mUfsLastModifiedMs = Constants.INVALID_TIMESTAMP_MS;
   }
 
   /**
@@ -149,6 +151,13 @@ public final class SetAttributeOptions {
    */
   public long getOperationTimeMs() {
     return mOperationTimeMs;
+  }
+
+  /**
+   * @return the ufs last modified time (in milliseconds)
+   */
+  public long getUfsLastModifiedMs() {
+    return mUfsLastModifiedMs;
   }
 
   /**
@@ -249,6 +258,15 @@ public final class SetAttributeOptions {
     return this;
   }
 
+  /**
+   * @param ufsLastModifiedMs the ufs last modified time
+   * @return the updated options object
+   */
+  public SetAttributeOptions setUfsLastModifiedMs(long ufsLastModifiedMs) {
+    mUfsLastModifiedMs = ufsLastModifiedMs;
+    return this;
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) {
@@ -267,14 +285,15 @@ public final class SetAttributeOptions {
         && Objects.equal(mGroup, that.mGroup)
         && Objects.equal(mMode, that.mMode)
         && Objects.equal(mRecursive, that.mRecursive)
-        && mOperationTimeMs == that.mOperationTimeMs;
+        && mOperationTimeMs == that.mOperationTimeMs
+        && mUfsLastModifiedMs == that.mUfsLastModifiedMs;
   }
 
   @Override
   public int hashCode() {
     return Objects
         .hashCode(mPinned, mTtl, mTtlAction, mPersisted, mOwner, mGroup, mMode, mRecursive,
-            mOperationTimeMs, mCommonOptions);
+            mOperationTimeMs, mCommonOptions, mUfsLastModifiedMs);
   }
 
   @Override
@@ -290,6 +309,7 @@ public final class SetAttributeOptions {
         .add("mode", mMode)
         .add("recursive", mRecursive)
         .add("operationTimeMs", mOperationTimeMs)
+        .add("ufsLastModifiedTimeMs", mUfsLastModifiedMs)
         .toString();
   }
 }

@@ -11,6 +11,8 @@
 
 package alluxio.wire;
 
+import alluxio.Constants;
+
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 
@@ -53,6 +55,7 @@ public final class FileInfo implements Serializable {
   private ArrayList<FileBlockInfo> mFileBlockInfos = new ArrayList<>();
   private long mMountId;
   private int mInAlluxioPercentage;
+  private long mUfsLastModificationTimeMs;
 
   /**
    * Creates a new instance of {@link FileInfo}.
@@ -95,6 +98,10 @@ public final class FileInfo implements Serializable {
     }
     mMountId = fileInfo.getMountId();
     mInAlluxioPercentage = fileInfo.getInAlluxioPercentage();
+    mUfsLastModificationTimeMs = Constants.INVALID_TIMESTAMP_MS;
+    if (fileInfo.isSetUfsLastModificationTimeMs()) {
+      mUfsLastModificationTimeMs = fileInfo.getUfsLastModificationTimeMs();
+    }
   }
 
   /**
@@ -270,6 +277,13 @@ public final class FileInfo implements Serializable {
    */
   public long getMountId() {
     return mMountId;
+  }
+
+  /**
+   * @return the ufs file last modification time (in milliseconds)
+   */
+  public long getUfsLastModificationTimeMs() {
+    return mUfsLastModificationTimeMs;
   }
 
   /**
@@ -505,6 +519,15 @@ public final class FileInfo implements Serializable {
   }
 
   /**
+   * @param ufsLastModificationTimeMs the ufs last modification time (in milliseconds) to use
+   * @return the file information
+   */
+  public FileInfo setUfsLastModificationTimeMs(long ufsLastModificationTimeMs) {
+    mUfsLastModificationTimeMs = ufsLastModificationTimeMs;
+    return this;
+  }
+
+  /**
    * @return thrift representation of the file information
    */
   protected alluxio.thrift.FileInfo toThrift() {
@@ -519,6 +542,7 @@ public final class FileInfo implements Serializable {
         mInMemoryPercentage, mLastModificationTimeMs, mTtl, mOwner, mGroup, mMode,
         mPersistenceState, mMountPoint, fileBlockInfos, ThriftUtils.toThrift(mTtlAction), mMountId,
         mInAlluxioPercentage);
+    info.setUfsLastModificationTimeMs(mUfsLastModificationTimeMs);
     return info;
   }
 
@@ -541,7 +565,8 @@ public final class FileInfo implements Serializable {
         && mOwner.equals(that.mOwner) && mGroup.equals(that.mGroup) && mMode == that.mMode
         && mPersistenceState.equals(that.mPersistenceState) && mMountPoint == that.mMountPoint
         && mFileBlockInfos.equals(that.mFileBlockInfos) && mTtlAction == that.mTtlAction
-        && mMountId == that.mMountId && mInAlluxioPercentage == that.mInAlluxioPercentage;
+        && mMountId == that.mMountId && mInAlluxioPercentage == that.mInAlluxioPercentage
+        && mUfsLastModificationTimeMs == that.mUfsLastModificationTimeMs;
   }
 
   @Override
@@ -549,7 +574,8 @@ public final class FileInfo implements Serializable {
     return Objects.hashCode(mFileId, mName, mPath, mUfsPath, mLength, mBlockSizeBytes,
         mCreationTimeMs, mCompleted, mFolder, mPinned, mCacheable, mPersisted, mBlockIds,
         mInMemoryPercentage, mLastModificationTimeMs, mTtl, mOwner, mGroup, mMode,
-        mPersistenceState, mMountPoint, mFileBlockInfos, mTtlAction, mInAlluxioPercentage);
+        mPersistenceState, mMountPoint, mFileBlockInfos, mTtlAction, mInAlluxioPercentage,
+        mUfsLastModificationTimeMs);
   }
 
   @Override
@@ -564,6 +590,7 @@ public final class FileInfo implements Serializable {
         .add("persistenceState", mPersistenceState).add("mountPoint", mMountPoint)
         .add("fileBlockInfos", mFileBlockInfos)
         .add("mountId", mMountId).add("inAlluxioPercentage", mInAlluxioPercentage)
+        .add("ufsLastModificationTimeMs", mUfsLastModificationTimeMs)
         .toString();
   }
 }
