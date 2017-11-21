@@ -4,7 +4,7 @@ include "common.thrift"
 include "exception.thrift"
 
 struct FileSystemMasterCommonTOptions {
-  1: optional i64 syncInterval
+  1: optional i64 syncIntervalMs
 }
 
 struct CheckConsistencyTOptions {
