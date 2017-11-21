@@ -127,7 +127,6 @@ import alluxio.wire.WorkerInfo;
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Gauge;
 import com.google.common.base.Preconditions;
-import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterators;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
@@ -671,7 +670,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         inconsistentUris.addAll(result.get());
       } catch (Exception e) {
         // This shouldn't happen, all futures should be complete.
-        Throwables.propagate(e);
+        throw new RuntimeException(e);
       }
     }
     service.shutdown();
@@ -889,7 +888,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       exists = true;
     } finally {
       if (!exists) {
-        mUfsAbsentPathCache.process(inodePath.getUri());
+        mUfsAbsentPathCache.process(inodePath.getUri(), inodePath.getInodeList());
       }
     }
   }
@@ -1811,9 +1810,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     } catch (BlockInfoException e) {
       // Since we are creating a directory, the block size is ignored, no such exception should
       // happen.
-      Throwables.propagate(e);
+      throw new RuntimeException(e);
     }
-    return null;
   }
 
   @Override

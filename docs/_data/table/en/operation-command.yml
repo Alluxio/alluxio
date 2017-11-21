@@ -9,13 +9,12 @@ chgrp:
 chmod:
   Change the permission of the directory or file.
 chown:
-  Change the owner of the directory or file.
+  Change the owner of a file or directory.
 copyFromLocal:
   Copy the specified file specified by "source path" to the path specified by "remote path".
   This command will fail if "remote path" already exists.
 copyToLocal:
-  Copy the specified file from the path specified by "remote path" to a local
-  destination.
+  Copy the file specified by "remote path" to a local destination.
 count:
   Display the number of folders and files matching the specified prefix in "path".
 cp:
@@ -32,8 +31,8 @@ getCapacityBytes:
 getUsedBytes:
   Get number of bytes used in the AlluxioFS.
 help:
-  Prints help message for the given command. If there isn't given
-  command, prints help messages for all supported commands.
+  Print help information for the given command. If no command is given,
+  print help information for all supported commands.
 leader:
   Print the current Alluxio leader master host name.
 load:

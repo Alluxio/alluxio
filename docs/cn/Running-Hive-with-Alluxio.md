@@ -23,13 +23,14 @@ priority: 2
 
 ## 配置Hive
 
-首先，在shell或`conf/hive-env.sh`中设置`HIVE_AUX_JARS_PATH`：
+我们建议您从Alluxio[下载页面](http://www.alluxio.org/download)下载压缩包。或者，高级用户可以选择按照[这里](Building-Alluxio-Master-Branch.html#compute-framework-support)的说明来从源码编译这个客户端jar。Alluxio客户端jar可以在`{{site.ALLUXIO_CLIENT_JAR_PATH}}`找到。
+
+在shell或`conf/hive-env.sh`中设置`HIVE_AUX_JARS_PATH`：
 
 ```bash
 export HIVE_AUX_JARS_PATH={{site.ALLUXIO_CLIENT_JAR_PATH}}:${HIVE_AUX_JARS_PATH}
 ```
 
-或者，高级用户可以选择通过源代码编译客户端jar包，参考说明[here](Building-Alluxio-Master-Branch.html#compute-framework-support),在这篇说明下面的部分在配置项`{{site.ALLUXIO_CLIENT_JAR_PATH_BUILD}}`应用生成的jar包。
 
 ## 在Alluxio上创建Hive表
 

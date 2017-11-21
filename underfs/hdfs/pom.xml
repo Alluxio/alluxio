@@ -34,11 +34,6 @@
     <!-- External dependencies -->
     <!-- Hadoop dependencies are included in individual profiles -->
     <dependency>
-      <groupId>com.google.guava</groupId>
-      <artifactId>guava</artifactId>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-lang3</artifactId>
     </dependency>
