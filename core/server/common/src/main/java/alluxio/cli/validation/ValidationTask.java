@@ -11,6 +11,8 @@
 
 package alluxio.cli.validation;
 
+import java.util.Map;
+
 /**
  * Interface for a validation task run by validateEnv command.
  */
@@ -19,5 +21,5 @@ public interface ValidationTask {
    * Runs the validation task.
    * @return whether the validation succeeds
    */
-  boolean validate() throws InterruptedException;
+  boolean validate(String[] args, Map<String, String> optionMap) throws InterruptedException;
 }

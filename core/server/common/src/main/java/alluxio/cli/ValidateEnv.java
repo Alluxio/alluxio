@@ -22,8 +22,15 @@ import alluxio.cli.validation.UfsDirectoryValidationTask;
 import alluxio.cli.validation.UserLimitValidationTask;
 import alluxio.cli.validation.Utils;
 import alluxio.cli.validation.ValidationTask;
+import alluxio.exception.status.InvalidArgumentException;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.DefaultParser;
+import org.apache.commons.cli.Option;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
 import org.apache.commons.lang3.ArrayUtils;
 
 import java.io.IOException;
@@ -38,6 +45,10 @@ import java.util.Map;
  * Utility for checking Alluxio environment.
  */
 public final class ValidateEnv {
+  public static final Option HADOOP_CONF_DIR_OPTION =
+      Option.builder("hadoop").required(false).hasArg(true)
+          .desc("path to server-side hadoop conf dir").build();
+
   private static final String USAGE = "USAGE: validateEnv TARGET [NAME]\n\n"
       + "Validate environment for Alluxio.\n\n"
       + "TARGET can be one of the following values:\n"
@@ -204,7 +215,7 @@ public final class ValidateEnv {
   }
 
   // runs validation tasks in local environment
-  private static boolean validateLocal(String target, String name) throws InterruptedException {
+  private static boolean validateLocal(String target, String name, String[] args, Map<String, String> optionsMap) throws InterruptedException {
     int validationCount = 0;
     int failureCount = 0;
     Collection<ValidationTask> tasks = TARGET_TASKS.get(target);
@@ -215,7 +226,7 @@ public final class ValidateEnv {
       }
 
       System.out.format("Validating %s...", taskName);
-      if (task.validate()) {
+      if (task.validate(args, optionsMap)) {
         System.out.println("OK");
       } else {
         System.out.println("Failed");
@@ -264,25 +275,33 @@ public final class ValidateEnv {
    * @return 0 on success, -1 on validation failures, -2 on invalid arguments
    */
   public static int validate(String... args) throws InterruptedException {
-    if (args.length < 1) {
+    CommandLine cl;
+    try {
+      cl = parseArgsAndOptions(args);
+    } catch (InvalidArgumentException e) {
+      printHelp("Invalid argument");
+      return -1;
+    }
+
+    Map<String, String> optionsMap = new HashMap<>();
+    for (Option opt : cl.getOptions()) {
+      optionsMap.put(opt.getOpt(), opt.getValue());
+    }
+
+    String[] parsedArgs = cl.getArgs();
+    if (parsedArgs == null || parsedArgs.length < 1) {
       printHelp("Target not specified.");
       return -2;
     }
-
-    if (args.length > 2) {
-      printHelp("More arguments than expected.");
-      return -2;
-    }
-
-    String target = args[0];
-    String name = args.length > 1 ? args[1] : null;
+    String target = parsedArgs[0];
+    String name = parsedArgs.length > 1 ? parsedArgs[1] : null;
 
     boolean success;
     switch (target) {
       case "local":
       case "worker":
       case "master":
-        success = validateLocal(target, name);
+        success = validateLocal(target, name, cl.getArgs(), optionsMap);
         break;
       case "all":
         success = validateMasters(name);
@@ -309,6 +328,20 @@ public final class ValidateEnv {
    */
   public static void main(String[] args) throws InterruptedException {
     System.exit(validate(args));
+  }
+
+  private static CommandLine parseArgsAndOptions(String... args) throws InvalidArgumentException {
+    Options opts = new Options().addOption(HADOOP_CONF_DIR_OPTION);
+    CommandLineParser parser = new DefaultParser();
+    CommandLine cmd;
+
+    try {
+      cmd = parser.parse(opts, args);
+    } catch (ParseException e) {
+      throw new InvalidArgumentException(
+          "Failed to parse args for validateEnv", e);
+    }
+    return cmd;
   }
 
   private ValidateEnv() {} // prevents instantiation

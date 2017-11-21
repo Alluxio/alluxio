@@ -38,7 +38,7 @@ public final class StorageSpaceValidationTask implements ValidationTask {
   }
 
   @Override
-  public boolean validate() {
+  public boolean validate(String[] args, Map<String, String> optionsMap) {
     int numLevel = Configuration.getInt(PropertyKey.WORKER_TIERED_STORE_LEVELS);
     boolean success = true;
 

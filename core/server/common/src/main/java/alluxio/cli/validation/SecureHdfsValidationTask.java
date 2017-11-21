@@ -13,7 +13,9 @@ package alluxio.cli.validation;
 
 import alluxio.Configuration;
 import alluxio.PropertyKey;
+import alluxio.cli.ValidateEnv;
 
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -46,12 +48,12 @@ public class SecureHdfsValidationTask implements ValidationTask {
   }
 
   @Override
-  public boolean validate() {
+  public boolean validate(String[] args, Map<String, String> optionsMap) {
     if (!validatePrincipalLogin()) {
       System.err.format("Principal login test failed.");
       return false;
     }
-    if (!validateHdfsSettingParity()) {
+    if (!validateHdfsSettingParity(optionsMap)) {
       System.err.format("Hdfs setting do not match.");
       return false;
     }
@@ -94,10 +96,31 @@ public class SecureHdfsValidationTask implements ValidationTask {
     return true;
   }
 
-  private boolean validateHdfsSettingParity() {
-    String hadoopConfDirPath = System.getenv(HADOOP_CONF_DIR_ENV_VAR);
-    if (hadoopConfDirPath == null || hadoopConfDirPath.isEmpty()) {
-      System.out.println("HDFS configuration parity check skipped.");
+  private boolean validateHdfsSettingParity(Map<String, String> optionsMap) {
+    String serverHadoopConfDirPath;
+    if (optionsMap.containsKey(ValidateEnv.HADOOP_CONF_DIR_OPTION.getOpt())) {
+      serverHadoopConfDirPath = optionsMap.get(ValidateEnv.HADOOP_CONF_DIR_OPTION.getOpt());
+    } else {
+      serverHadoopConfDirPath = System.getenv(HADOOP_CONF_DIR_ENV_VAR);
+    }
+    if (serverHadoopConfDirPath == null) {
+      System.out.println("Path to server-side hadoop configuration unspecified,"
+          + " aborting validation for HDFS properties.");
+      return false;
+    }
+    String serverCoreSiteFilePath = serverHadoopConfDirPath + "/core-site.xml";
+    String serverHdfsSiteFilePath = serverHadoopConfDirPath + "/hdfs-site.xml";
+
+    // If Configuration does not contain the key, then a {@link RuntimeException} will be thrown
+    // before calling the {@link String#split} method.
+    String[] clientHaoopConfFilePaths = Configuration.get(PropertyKey.UNDERFS_HDFS_CONFIGURATION).split(":");
+    String clientCoreSiteFilePath = clientHaoopConfFilePaths[0];
+    String clientHdfsSiteFilePath = clientHaoopConfFilePaths[1];
+    if (clientCoreSiteFilePath == null || clientCoreSiteFilePath.isEmpty()
+        || clientHdfsSiteFilePath == null || clientHdfsSiteFilePath.isEmpty()) {
+      System.out.println("Cannot locate the client-side hadoop configurations,"
+          + " aborting validation for HDFS properties.");
+      return false;
     }
     return true;
   }

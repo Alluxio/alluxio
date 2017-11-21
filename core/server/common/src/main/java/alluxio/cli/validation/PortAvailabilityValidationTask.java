@@ -16,6 +16,7 @@ import alluxio.util.network.NetworkAddressUtils.ServiceType;
 
 import java.io.IOException;
 import java.net.ServerSocket;
+import java.util.Map;
 
 /**
  * Task for validating whether a specific port is available.
@@ -36,7 +37,7 @@ public final class PortAvailabilityValidationTask implements ValidationTask {
   }
 
   @Override
-  public boolean validate() {
+  public boolean validate(String[] args, Map<String, String> optionsMap) {
     if (Utils.isAlluxioRunning(mOwner)) {
       System.out.format("%s is already running. Skip validation.%n", mOwner);
       return true;
