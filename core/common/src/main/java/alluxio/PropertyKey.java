@@ -570,8 +570,9 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey MASTER_CONNECTION_TIMEOUT_MS =
       new Builder(Name.MASTER_CONNECTION_TIMEOUT_MS)
           .setAlias(new String[]{"alluxio.master.connection.timeout.ms"})
-          .setDefaultValue("0ms")
-          .setDescription("Timeout of connections between master and client.")
+          .setDefaultValue("0")
+          .setDescription("Timeout of connections between master and client. "
+              + "A value of 0 means never timeout")
           .build();
   public static final PropertyKey MASTER_FILE_ASYNC_PERSIST_HANDLER =
       new Builder(Name.MASTER_FILE_ASYNC_PERSIST_HANDLER)
