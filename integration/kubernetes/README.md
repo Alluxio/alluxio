@@ -1,13 +1,22 @@
 ## Pre-requisites
 
-Alluxio workers use `emptyDir` volumes with `sizeLimit`; an alpha feature in Kubernetes 1.8. Please ensure the feature is enabled.
+- Alluxio workers use `emptyDir` volumes with `sizeLimit`; an alpha feature in Kubernetes 1.8. Please ensure the feature is enabled.
 
-Nodes running Alluxio workers require a manual step for using domain sockets. Execute the following on host nodes.
+- Nodes running Alluxio workers require a manual step for using domain sockets. Execute the following on host nodes.
 ```bash
 mkdir /tmp/domain
 chmod a+w /tmp/domain
 touch /tmp/domain/d
 chmod a+w /tmp/domain/d
+```
+
+- Alluxio masters use a persistent volume for storing the journal. Create a persistent volume using the template.
+```bash
+mv alluxio-pv-volume.yaml.template alluxio-pv-volume.yaml
+# Create persistent volume
+kubectl create -f alluxio-pv-volume.yaml
+# Inspect status
+kubectl get pv alluxio-pv-volume
 ```
 
 ## Create spec and configuration from templates
