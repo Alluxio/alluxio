@@ -12,8 +12,9 @@
 
 set -e
 
+expected='"formatMaster", "formatWorker", "launchMaster", "launchWorker", "master, "worker", or "proxy"'
 if [[ $# -ne 1 ]]; then
-  echo 'expected one argument: "master", "worker", or "proxy"'
+  echo 'expected one argument: ' ${expected}
   exit 1
 fi
 
@@ -66,6 +67,18 @@ for keyvaluepair in $(env | grep "ALLUXIO_"); do
 done
 
 case ${service,,} in
+  format)
+    bin/alluxio format
+    ;;
+  formatWorker)
+    bin/alluxio formatWorker
+    ;;
+  launchMaster)
+    integration/docker/bin/alluxio-master.sh
+    ;;
+  launchWorker)
+    integration/docker/bin/alluxio-worker.sh
+    ;;
   master)
     bin/alluxio format
     integration/docker/bin/alluxio-master.sh
@@ -78,7 +91,7 @@ case ${service,,} in
     integration/docker/bin/alluxio-proxy.sh
     ;;
   *)
-    echo 'expected "master", "worker", or "proxy"';
+    echo 'expected ' ${expected};
     exit 1
     ;;
 esac
