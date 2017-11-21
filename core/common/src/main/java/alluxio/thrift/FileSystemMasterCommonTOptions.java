@@ -38,7 +38,7 @@ import org.slf4j.LoggerFactory;
 public class FileSystemMasterCommonTOptions implements org.apache.thrift.TBase<FileSystemMasterCommonTOptions, FileSystemMasterCommonTOptions._Fields>, java.io.Serializable, Cloneable, Comparable<FileSystemMasterCommonTOptions> {
   private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("FileSystemMasterCommonTOptions");
 
-  private static final org.apache.thrift.protocol.TField SYNC_INTERVAL_FIELD_DESC = new org.apache.thrift.protocol.TField("syncInterval", org.apache.thrift.protocol.TType.I64, (short)1);
+  private static final org.apache.thrift.protocol.TField SYNC_INTERVAL_MS_FIELD_DESC = new org.apache.thrift.protocol.TField("syncIntervalMs", org.apache.thrift.protocol.TType.I64, (short)1);
 
   private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
   static {
@@ -46,11 +46,11 @@ public class FileSystemMasterCommonTOptions implements org.apache.thrift.TBase<F
     schemes.put(TupleScheme.class, new FileSystemMasterCommonTOptionsTupleSchemeFactory());
   }
 
-  private long syncInterval; // optional
+  private long syncIntervalMs; // optional
 
   /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
   public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-    SYNC_INTERVAL((short)1, "syncInterval");
+    SYNC_INTERVAL_MS((short)1, "syncIntervalMs");
 
     private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -65,8 +65,8 @@ public class FileSystemMasterCommonTOptions implements org.apache.thrift.TBase<F
      */
     public static _Fields findByThriftId(int fieldId) {
       switch(fieldId) {
-        case 1: // SYNC_INTERVAL
-          return SYNC_INTERVAL;
+        case 1: // SYNC_INTERVAL_MS
+          return SYNC_INTERVAL_MS;
         default:
           return null;
       }
@@ -107,13 +107,13 @@ public class FileSystemMasterCommonTOptions implements org.apache.thrift.TBase<F
   }
 
   // isset id assignments
-  private static final int __SYNCINTERVAL_ISSET_ID = 0;
+  private static final int __SYNCINTERVALMS_ISSET_ID = 0;
   private byte __isset_bitfield = 0;
-  private static final _Fields optionals[] = {_Fields.SYNC_INTERVAL};
+  private static final _Fields optionals[] = {_Fields.SYNC_INTERVAL_MS};
   public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
   static {
     Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
-    tmpMap.put(_Fields.SYNC_INTERVAL, new org.apache.thrift.meta_data.FieldMetaData("syncInterval", org.apache.thrift.TFieldRequirementType.OPTIONAL, 
+    tmpMap.put(_Fields.SYNC_INTERVAL_MS, new org.apache.thrift.meta_data.FieldMetaData("syncIntervalMs", org.apache.thrift.TFieldRequirementType.OPTIONAL, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
     metaDataMap = Collections.unmodifiableMap(tmpMap);
     org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(FileSystemMasterCommonTOptions.class, metaDataMap);
@@ -127,7 +127,7 @@ public class FileSystemMasterCommonTOptions implements org.apache.thrift.TBase<F
    */
   public FileSystemMasterCommonTOptions(FileSystemMasterCommonTOptions other) {
     __isset_bitfield = other.__isset_bitfield;
-    this.syncInterval = other.syncInterval;
+    this.syncIntervalMs = other.syncIntervalMs;
   }
 
   public FileSystemMasterCommonTOptions deepCopy() {
@@ -136,40 +136,40 @@ public class FileSystemMasterCommonTOptions implements org.apache.thrift.TBase<F
 
   @Override
   public void clear() {
-    setSyncIntervalIsSet(false);
-    this.syncInterval = 0;
+    setSyncIntervalMsIsSet(false);
+    this.syncIntervalMs = 0;
   }
 
-  public long getSyncInterval() {
-    return this.syncInterval;
+  public long getSyncIntervalMs() {
+    return this.syncIntervalMs;
   }
 
-  public FileSystemMasterCommonTOptions setSyncInterval(long syncInterval) {
-    this.syncInterval = syncInterval;
-    setSyncIntervalIsSet(true);
+  public FileSystemMasterCommonTOptions setSyncIntervalMs(long syncIntervalMs) {
+    this.syncIntervalMs = syncIntervalMs;
+    setSyncIntervalMsIsSet(true);
     return this;
   }
 
-  public void unsetSyncInterval() {
-    __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __SYNCINTERVAL_ISSET_ID);
+  public void unsetSyncIntervalMs() {
+    __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __SYNCINTERVALMS_ISSET_ID);
   }
 
-  /** Returns true if field syncInterval is set (has been assigned a value) and false otherwise */
-  public boolean isSetSyncInterval() {
-    return EncodingUtils.testBit(__isset_bitfield, __SYNCINTERVAL_ISSET_ID);
+  /** Returns true if field syncIntervalMs is set (has been assigned a value) and false otherwise */
+  public boolean isSetSyncIntervalMs() {
+    return EncodingUtils.testBit(__isset_bitfield, __SYNCINTERVALMS_ISSET_ID);
   }
 
-  public void setSyncIntervalIsSet(boolean value) {
-    __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __SYNCINTERVAL_ISSET_ID, value);
+  public void setSyncIntervalMsIsSet(boolean value) {
+    __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __SYNCINTERVALMS_ISSET_ID, value);
   }
 
   public void setFieldValue(_Fields field, Object value) {
     switch (field) {
-    case SYNC_INTERVAL:
+    case SYNC_INTERVAL_MS:
       if (value == null) {
-        unsetSyncInterval();
+        unsetSyncIntervalMs();
       } else {
-        setSyncInterval((Long)value);
+        setSyncIntervalMs((Long)value);
       }
       break;
 
@@ -178,8 +178,8 @@ public class FileSystemMasterCommonTOptions implements org.apache.thrift.TBase<F
 
   public Object getFieldValue(_Fields field) {
     switch (field) {
-    case SYNC_INTERVAL:
-      return getSyncInterval();
+    case SYNC_INTERVAL_MS:
+      return getSyncIntervalMs();
 
     }
     throw new IllegalStateException();
@@ -192,8 +192,8 @@ public class FileSystemMasterCommonTOptions implements org.apache.thrift.TBase<F
     }
 
     switch (field) {
-    case SYNC_INTERVAL:
-      return isSetSyncInterval();
+    case SYNC_INTERVAL_MS:
+      return isSetSyncIntervalMs();
     }
     throw new IllegalStateException();
   }
@@ -211,12 +211,12 @@ public class FileSystemMasterCommonTOptions implements org.apache.thrift.TBase<F
     if (that == null)
       return false;
 
-    boolean this_present_syncInterval = true && this.isSetSyncInterval();
-    boolean that_present_syncInterval = true && that.isSetSyncInterval();
-    if (this_present_syncInterval || that_present_syncInterval) {
-      if (!(this_present_syncInterval && that_present_syncInterval))
+    boolean this_present_syncIntervalMs = true && this.isSetSyncIntervalMs();
+    boolean that_present_syncIntervalMs = true && that.isSetSyncIntervalMs();
+    if (this_present_syncIntervalMs || that_present_syncIntervalMs) {
+      if (!(this_present_syncIntervalMs && that_present_syncIntervalMs))
         return false;
-      if (this.syncInterval != that.syncInterval)
+      if (this.syncIntervalMs != that.syncIntervalMs)
         return false;
     }
 
@@ -227,10 +227,10 @@ public class FileSystemMasterCommonTOptions implements org.apache.thrift.TBase<F
   public int hashCode() {
     List<Object> list = new ArrayList<Object>();
 
-    boolean present_syncInterval = true && (isSetSyncInterval());
-    list.add(present_syncInterval);
-    if (present_syncInterval)
-      list.add(syncInterval);
+    boolean present_syncIntervalMs = true && (isSetSyncIntervalMs());
+    list.add(present_syncIntervalMs);
+    if (present_syncIntervalMs)
+      list.add(syncIntervalMs);
 
     return list.hashCode();
   }
@@ -243,12 +243,12 @@ public class FileSystemMasterCommonTOptions implements org.apache.thrift.TBase<F
 
     int lastComparison = 0;
 
-    lastComparison = Boolean.valueOf(isSetSyncInterval()).compareTo(other.isSetSyncInterval());
+    lastComparison = Boolean.valueOf(isSetSyncIntervalMs()).compareTo(other.isSetSyncIntervalMs());
     if (lastComparison != 0) {
       return lastComparison;
     }
-    if (isSetSyncInterval()) {
-      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.syncInterval, other.syncInterval);
+    if (isSetSyncIntervalMs()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.syncIntervalMs, other.syncIntervalMs);
       if (lastComparison != 0) {
         return lastComparison;
       }
@@ -273,9 +273,9 @@ public class FileSystemMasterCommonTOptions implements org.apache.thrift.TBase<F
     StringBuilder sb = new StringBuilder("FileSystemMasterCommonTOptions(");
     boolean first = true;
 
-    if (isSetSyncInterval()) {
-      sb.append("syncInterval:");
-      sb.append(this.syncInterval);
+    if (isSetSyncIntervalMs()) {
+      sb.append("syncIntervalMs:");
+      sb.append(this.syncIntervalMs);
       first = false;
     }
     sb.append(")");
@@ -323,10 +323,10 @@ public class FileSystemMasterCommonTOptions implements org.apache.thrift.TBase<F
           break;
         }
         switch (schemeField.id) {
-          case 1: // SYNC_INTERVAL
+          case 1: // SYNC_INTERVAL_MS
             if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
-              struct.syncInterval = iprot.readI64();
-              struct.setSyncIntervalIsSet(true);
+              struct.syncIntervalMs = iprot.readI64();
+              struct.setSyncIntervalMsIsSet(true);
             } else { 
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
@@ -346,9 +346,9 @@ public class FileSystemMasterCommonTOptions implements org.apache.thrift.TBase<F
       struct.validate();
 
       oprot.writeStructBegin(STRUCT_DESC);
-      if (struct.isSetSyncInterval()) {
-        oprot.writeFieldBegin(SYNC_INTERVAL_FIELD_DESC);
-        oprot.writeI64(struct.syncInterval);
+      if (struct.isSetSyncIntervalMs()) {
+        oprot.writeFieldBegin(SYNC_INTERVAL_MS_FIELD_DESC);
+        oprot.writeI64(struct.syncIntervalMs);
         oprot.writeFieldEnd();
       }
       oprot.writeFieldStop();
@@ -369,12 +369,12 @@ public class FileSystemMasterCommonTOptions implements org.apache.thrift.TBase<F
     public void write(org.apache.thrift.protocol.TProtocol prot, FileSystemMasterCommonTOptions struct) throws org.apache.thrift.TException {
       TTupleProtocol oprot = (TTupleProtocol) prot;
       BitSet optionals = new BitSet();
-      if (struct.isSetSyncInterval()) {
+      if (struct.isSetSyncIntervalMs()) {
         optionals.set(0);
       }
       oprot.writeBitSet(optionals, 1);
-      if (struct.isSetSyncInterval()) {
-        oprot.writeI64(struct.syncInterval);
+      if (struct.isSetSyncIntervalMs()) {
+        oprot.writeI64(struct.syncIntervalMs);
       }
     }
 
@@ -383,8 +383,8 @@ public class FileSystemMasterCommonTOptions implements org.apache.thrift.TBase<F
       TTupleProtocol iprot = (TTupleProtocol) prot;
       BitSet incoming = iprot.readBitSet(1);
       if (incoming.get(0)) {
-        struct.syncInterval = iprot.readI64();
-        struct.setSyncIntervalIsSet(true);
+        struct.syncIntervalMs = iprot.readI64();
+        struct.setSyncIntervalMsIsSet(true);
       }
     }
   }
