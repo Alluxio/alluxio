@@ -25,13 +25,13 @@ import alluxio.exception.PreconditionMessage;
 import alluxio.exception.status.NotFoundException;
 import alluxio.exception.status.ResourceExhaustedException;
 import alluxio.exception.status.UnavailableException;
+import alluxio.network.TieredIdentityFactory;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.resource.CloseableResource;
 import alluxio.util.FormatUtils;
-import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.BlockLocation;
-import alluxio.wire.WorkerInfo;
+import alluxio.wire.TieredIdentity;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.base.Preconditions;
@@ -40,9 +40,9 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -55,8 +55,7 @@ public final class AlluxioBlockStore {
   private static final Logger LOG = LoggerFactory.getLogger(AlluxioBlockStore.class);
 
   private final FileSystemContext mContext;
-  private String mLocalHostName;
-  private final Random mRandom;
+  private final TieredIdentity mTieredIdentity;
 
   /**
    * Creates an Alluxio block store with default file system context and default local host name.
@@ -64,8 +63,7 @@ public final class AlluxioBlockStore {
    * @return the {@link AlluxioBlockStore} created
    */
   public static AlluxioBlockStore create() {
-    return new AlluxioBlockStore(FileSystemContext.INSTANCE,
-        NetworkAddressUtils.getClientHostName());
+    return create(FileSystemContext.INSTANCE);
   }
 
   /**
@@ -75,19 +73,18 @@ public final class AlluxioBlockStore {
    * @return the {@link AlluxioBlockStore} created
    */
   public static AlluxioBlockStore create(FileSystemContext context) {
-    return new AlluxioBlockStore(context, NetworkAddressUtils.getClientHostName());
+    return new AlluxioBlockStore(context, TieredIdentityFactory.getInstance());
   }
 
   /**
    * Creates an Alluxio block store.
    *
    * @param context the file system context
-   * @param localHostName the local hostname for the block store
+   * @param tieredIdentity the tiered identity
    */
-  public AlluxioBlockStore(FileSystemContext context, String localHostName) {
+  public AlluxioBlockStore(FileSystemContext context, TieredIdentity tieredIdentity) {
     mContext = context;
-    mLocalHostName = localHostName;
-    mRandom = new Random();
+    mTieredIdentity = tieredIdentity;
   }
 
   /**
@@ -104,17 +101,25 @@ public final class AlluxioBlockStore {
   }
 
   /**
-   * @return the info of all active block workers
+   * @return the info of all available block workers
    */
-  public List<BlockWorkerInfo> getWorkerInfoList() throws IOException {
-    List<BlockWorkerInfo> infoList = new ArrayList<>();
+  public List<BlockWorkerInfo> getAvailableWorkers() throws IOException {
+    return getAllWorkers().stream()
+        // Filter out unavailable workers.
+        .filter(w -> w.getNetAddress().getTieredIdentity()
+              .strictTiersMatch(TieredIdentityFactory.getInstance()))
+        .collect(Collectors.toList());
+  }
+
+  /**
+   * @return the info of all block workers
+   */
+  public List<BlockWorkerInfo> getAllWorkers() throws IOException {
     try (CloseableResource<BlockMasterClient> masterClientResource =
         mContext.acquireBlockMasterClientResource()) {
-      for (WorkerInfo workerInfo : masterClientResource.get().getWorkerInfoList()) {
-        infoList.add(new BlockWorkerInfo(workerInfo.getAddress(), workerInfo.getCapacityBytes(),
-            workerInfo.getUsedBytes()));
-      }
-      return infoList;
+      return masterClientResource.get().getWorkerInfoList().stream()
+          .map(w -> new BlockWorkerInfo(w.getAddress(), w.getCapacityBytes(), w.getUsedBytes()))
+          .collect(Collectors.toList());
     }
   }
 
@@ -145,38 +150,28 @@ public final class AlluxioBlockStore {
           Preconditions.checkNotNull(options.getUfsReadLocationPolicy(),
               PreconditionMessage.UFS_READ_LOCATION_POLICY_UNSPECIFIED);
       address = blockLocationPolicy
-          .getWorker(GetWorkerOptions.defaults().setBlockWorkerInfos(getWorkerInfoList())
+          .getWorker(GetWorkerOptions.defaults().setBlockWorkerInfos(getAvailableWorkers())
               .setBlockId(blockId).setBlockSize(blockInfo.getLength()));
-      if (address == null) {
-        throw new UnavailableException(ExceptionMessage.NO_WORKER_AVAILABLE.getMessage());
-      }
     } else {
       // TODO(calvin): Get location via a policy.
-      // Although blockInfo.locations are sorted by tier, we prefer reading from the local worker.
-      // But when there is no local worker or there are no local blocks, we prefer the first
-      // location in blockInfo.locations that is nearest to memory tier.
-      // Assuming if there is no local worker, there are no local blocks in blockInfo.locations.
-      // TODO(cc): Check mContext.hasLocalWorker before finding for a local block when the TODO
-      // for hasLocalWorker is fixed.
-      for (BlockLocation location : blockInfo.getLocations()) {
-        WorkerNetAddress workerNetAddress = location.getWorkerAddress();
-        if (workerNetAddress.getHost().equals(mLocalHostName)) {
-          address = workerNetAddress;
+      List<TieredIdentity> workerAddresses = blockInfo.getLocations().stream()
+          .map(location -> location.getWorkerAddress().getTieredIdentity())
+          .collect(Collectors.toList());
+      Optional<TieredIdentity> nearest = mTieredIdentity.nearest(workerAddresses);
+      if (nearest.isPresent()) {
+        address = blockInfo.getLocations().stream()
+            .map(BlockLocation::getWorkerAddress)
+            .filter(a -> a.getTieredIdentity() == nearest.get())
+            .findFirst().get();
+        if (mTieredIdentity.getTiers().get(0).equals(nearest.get().getTiers().get(0))) {
           source = BlockInStreamSource.LOCAL;
-          break;
+        } else {
+          source = BlockInStreamSource.REMOTE;
         }
       }
-      if (address == null) {
-        // No local worker/block, choose a random location. In the future we could change this to
-        // only randomize among locations in the highest tier, or have the master randomize the
-        // order.
-        List<BlockLocation> locations = blockInfo.getLocations();
-        if (locations.isEmpty()) {
-          throw new UnavailableException(ExceptionMessage.NO_WORKER_AVAILABLE.getMessage());
-        }
-        address = locations.get(mRandom.nextInt(locations.size())).getWorkerAddress();
-        source = BlockInStreamSource.REMOTE;
-      }
+    }
+    if (address == null) {
+      throw new UnavailableException(ExceptionMessage.NO_WORKER_AVAILABLE.getMessage());
     }
 
     LOG.debug(
@@ -233,7 +228,7 @@ public final class AlluxioBlockStore {
     WorkerNetAddress address;
     FileWriteLocationPolicy locationPolicy = Preconditions.checkNotNull(options.getLocationPolicy(),
         PreconditionMessage.FILE_WRITE_LOCATION_POLICY_UNSPECIFIED);
-    address = locationPolicy.getWorkerForNextBlock(getWorkerInfoList(), blockSize);
+    address = locationPolicy.getWorkerForNextBlock(getAvailableWorkers(), blockSize);
     if (address == null) {
       throw new UnavailableException(
           ExceptionMessage.NO_SPACE_FOR_BLOCK_ON_WORKER.getMessage(blockSize));
@@ -263,14 +258,5 @@ public final class AlluxioBlockStore {
         mContext.acquireBlockMasterClientResource()) {
       return blockMasterClientResource.get().getUsedBytes();
     }
-  }
-
-  /**
-   * Sets the local host name. This is only used in the test.
-   *
-   * @param localHostName the local host name
-   */
-  public void setLocalHostName(String localHostName) {
-    mLocalHostName = localHostName;
   }
 }

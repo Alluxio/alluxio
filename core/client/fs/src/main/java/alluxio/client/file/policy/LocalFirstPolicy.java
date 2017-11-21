@@ -11,20 +11,28 @@
 
 package alluxio.client.file.policy;
 
+import alluxio.Configuration;
+import alluxio.PropertyKey;
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.block.policy.BlockLocationPolicy;
 import alluxio.client.block.policy.options.GetWorkerOptions;
+import alluxio.network.TieredIdentityFactory;
 import alluxio.util.network.NetworkAddressUtils;
+import alluxio.wire.TieredIdentity;
 import alluxio.wire.WorkerNetAddress;
 
-import com.google.common.base.Objects;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
+
 /**
  * A policy that returns local host first, and if the local worker doesn't have enough availability,
  * it randomly picks a worker from the active workers list for each block write.
@@ -32,41 +40,113 @@ import javax.annotation.concurrent.ThreadSafe;
 // TODO(peis): Move the BlockLocationPolicy implementation to alluxio.client.block.policy.
 @ThreadSafe
 public final class LocalFirstPolicy implements FileWriteLocationPolicy, BlockLocationPolicy {
-  private String mLocalHostName;
+  private final String mLocalHostName;
+  private final TieredIdentity mTieredIdentity;
+  private final boolean mAvoidEviction;
 
   /**
    * Constructs a {@link LocalFirstPolicy}.
    */
   public LocalFirstPolicy() {
+    this(false);
+  }
+
+  /**
+   * @param avoidEviction whether to prefer non-local workers if it avoids eviction
+   */
+  public LocalFirstPolicy(boolean avoidEviction) {
+    this(TieredIdentityFactory.getInstance(), avoidEviction);
+  }
+
+  /**
+   * @param localTieredIdentity the local tiered identity
+   * @param avoidEviction whether to prefer non-local workers if it avoids eviction
+   */
+  private LocalFirstPolicy(TieredIdentity localTieredIdentity, boolean avoidEviction) {
     mLocalHostName = NetworkAddressUtils.getClientHostName();
+    mTieredIdentity = localTieredIdentity;
+    mAvoidEviction = avoidEviction;
+  }
+
+  @VisibleForTesting
+  static LocalFirstPolicy create(TieredIdentity localTieredIdentity) {
+    return new LocalFirstPolicy(localTieredIdentity, false);
+  }
+
+  @VisibleForTesting
+  static LocalFirstPolicy createAvoidEviction(TieredIdentity localTieredIdentity) {
+    return new LocalFirstPolicy(localTieredIdentity, true);
   }
 
   @Override
   @Nullable
   public WorkerNetAddress getWorkerForNextBlock(Iterable<BlockWorkerInfo> workerInfoList,
       long blockSizeBytes) {
-    // first try the local host
-    for (BlockWorkerInfo workerInfo : workerInfoList) {
-      if (workerInfo.getNetAddress().getHost().equals(mLocalHostName)
-          && workerInfo.getCapacityBytes() >= blockSizeBytes) {
-        return workerInfo.getNetAddress();
-      }
-    }
-
-    // otherwise randomly pick a worker that has enough availability
     List<BlockWorkerInfo> shuffledWorkers = Lists.newArrayList(workerInfoList);
     Collections.shuffle(shuffledWorkers);
-    for (BlockWorkerInfo workerInfo : shuffledWorkers) {
-      if (workerInfo.getCapacityBytes() >= blockSizeBytes) {
-        return workerInfo.getNetAddress();
+    List<BlockWorkerInfo> candidateWorkers = shuffledWorkers.stream()
+        .filter(worker -> worker.getCapacityBytes() >= blockSizeBytes)
+        .collect(Collectors.toList());
+    if (candidateWorkers.isEmpty()) {
+      return null;
+    }
+    if (mAvoidEviction) {
+      List<BlockWorkerInfo> nonEvictingWorkers = candidateWorkers.stream()
+          .filter(worker -> !mAvoidEviction || getAvailableBytes(worker) >= blockSizeBytes)
+          .collect(Collectors.toList());
+      if (!nonEvictingWorkers.isEmpty()) {
+        candidateWorkers = nonEvictingWorkers;
       }
     }
-    return null;
+    List<WorkerNetAddress> candidateAddresses = candidateWorkers.stream()
+        .map(BlockWorkerInfo::getNetAddress)
+        .collect(Collectors.toList());
+
+    // Try finding a worker based on nearest tiered identity.
+    List<TieredIdentity> identities = candidateAddresses.stream()
+        .map(worker -> worker.getTieredIdentity())
+        .filter(Objects::nonNull)
+        .collect(Collectors.toList());
+    if (!identities.isEmpty()) {
+      Optional<TieredIdentity> nearest = mTieredIdentity.nearest(identities);
+      // Map back to the address with the nearest tiered identity.
+      return candidateAddresses.stream()
+          .filter(worker -> worker.getTieredIdentity() == nearest.get())
+          .findFirst()
+          .orElse(null);
+    }
+
+    // Fall back on checking local hostname match.
+    Optional<WorkerNetAddress> localWorker = candidateAddresses.stream()
+        .filter(worker -> worker.getHost().equals(mLocalHostName))
+        .findFirst();
+    if (localWorker.isPresent()) {
+      return localWorker.get();
+    }
+
+    // Otherwise pick a random worker (workers are already shuffled).
+    return candidateAddresses.get(0);
   }
 
   @Override
   public WorkerNetAddress getWorker(GetWorkerOptions options) {
     return getWorkerForNextBlock(options.getBlockWorkerInfos(), options.getBlockSize());
+  }
+
+  /**
+   * The information of BlockWorkerInfo is update after a file complete write. To avoid evict,
+   * user should configure "alluxio.user.file.write.avoid.eviction.policy.reserved.size.bytes"
+   * to reserve some space to store the block.
+   *
+   * @param workerInfo BlockWorkerInfo of the worker
+   * @return the available bytes of the worker
+   */
+  private long getAvailableBytes(BlockWorkerInfo workerInfo) {
+    long mUserFileWriteCapacityReserved = Configuration
+            .getBytes(PropertyKey.USER_FILE_WRITE_AVOID_EVICTION_POLICY_RESERVED_BYTES);
+    long mCapacityBytes = workerInfo.getCapacityBytes();
+    long mUsedBytes = workerInfo.getUsedBytes();
+    return mCapacityBytes - mUsedBytes - mUserFileWriteCapacityReserved;
   }
 
   @Override
@@ -78,18 +158,20 @@ public final class LocalFirstPolicy implements FileWriteLocationPolicy, BlockLoc
       return false;
     }
     LocalFirstPolicy that = (LocalFirstPolicy) o;
-    return Objects.equal(mLocalHostName, that.mLocalHostName);
+    return Objects.equals(mLocalHostName, that.mLocalHostName)
+        && Objects.equals(mTieredIdentity, that.mTieredIdentity);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mLocalHostName);
+    return Objects.hash(mLocalHostName, mTieredIdentity);
   }
 
   @Override
   public String toString() {
-    return Objects.toStringHelper(this)
+    return com.google.common.base.Objects.toStringHelper(this)
         .add("localHostName", mLocalHostName)
+        .add("tieredIdentity", mTieredIdentity)
         .toString();
   }
 }
