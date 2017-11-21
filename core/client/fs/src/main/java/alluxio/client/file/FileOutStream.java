@@ -17,7 +17,6 @@ import alluxio.client.AbstractOutStream;
 import alluxio.client.AlluxioStorageType;
 import alluxio.client.UnderStorageType;
 import alluxio.client.block.AlluxioBlockStore;
-import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.block.stream.BlockOutStream;
 import alluxio.client.block.stream.UnderFileSystemFileOutStream;
 import alluxio.client.file.options.CompleteFileOptions;
@@ -26,7 +25,6 @@ import alluxio.exception.ExceptionMessage;
 import alluxio.exception.PreconditionMessage;
 import alluxio.exception.status.UnavailableException;
 import alluxio.metrics.MetricsSystem;
-import alluxio.network.TieredIdentityFactory;
 import alluxio.resource.CloseableResource;
 import alluxio.util.CommonUtils;
 import alluxio.wire.WorkerNetAddress;
@@ -40,7 +38,6 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.annotation.concurrent.ThreadSafe;
@@ -101,12 +98,8 @@ public class FileOutStream extends AbstractOutStream {
     if (!mUnderStorageType.isSyncPersist()) {
       mUnderStorageOutputStream = null;
     } else { // Write is through to the under storage, create mUnderStorageOutputStream
-      List<BlockWorkerInfo> workers = mBlockStore.getWorkerInfoList().stream()
-          .filter(w -> w.getNetAddress().getTieredIdentity()
-              .strictTiersMatch(TieredIdentityFactory.getInstance()))
-          .collect(Collectors.toList());
       WorkerNetAddress workerNetAddress = // not storing data to Alluxio, so block size is 0
-          options.getLocationPolicy().getWorkerForNextBlock(workers, 0);
+          options.getLocationPolicy().getWorkerForNextBlock(mBlockStore.getAvailableWorkers(), 0);
       if (workerNetAddress == null) {
         // Assume no worker is available because block size is 0
         throw new UnavailableException(ExceptionMessage.NO_WORKER_AVAILABLE.getMessage());

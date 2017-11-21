@@ -29,11 +29,9 @@ import alluxio.network.TieredIdentityFactory;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.resource.CloseableResource;
 import alluxio.util.FormatUtils;
-import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.BlockLocation;
 import alluxio.wire.TieredIdentity;
-import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.base.Preconditions;
@@ -42,10 +40,8 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.Random;
 import java.util.stream.Collectors;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -59,10 +55,7 @@ public final class AlluxioBlockStore {
   private static final Logger LOG = LoggerFactory.getLogger(AlluxioBlockStore.class);
 
   private final FileSystemContext mContext;
-  private String mLocalHostName;
   private final TieredIdentity mTieredIdentity;
-
-  private final Random mRandom;
 
   /**
    * Creates an Alluxio block store with default file system context and default local host name.
@@ -80,22 +73,18 @@ public final class AlluxioBlockStore {
    * @return the {@link AlluxioBlockStore} created
    */
   public static AlluxioBlockStore create(FileSystemContext context) {
-    return new AlluxioBlockStore(context, NetworkAddressUtils.getClientHostName(),
-        TieredIdentityFactory.getInstance());
+    return new AlluxioBlockStore(context, TieredIdentityFactory.getInstance());
   }
 
   /**
    * Creates an Alluxio block store.
    *
    * @param context the file system context
-   * @param localHostName the local hostname for the block store
    * @param tieredIdentity the tiered identity
    */
-  public AlluxioBlockStore(FileSystemContext context, String localHostName, TieredIdentity tieredIdentity) {
+  public AlluxioBlockStore(FileSystemContext context, TieredIdentity tieredIdentity) {
     mContext = context;
-    mLocalHostName = localHostName;
     mTieredIdentity = tieredIdentity;
-    mRandom = new Random();
   }
 
   /**
@@ -112,17 +101,25 @@ public final class AlluxioBlockStore {
   }
 
   /**
-   * @return the info of all active block workers
+   * @return the info of all available block workers
    */
-  public List<BlockWorkerInfo> getWorkerInfoList() throws IOException {
-    List<BlockWorkerInfo> infoList = new ArrayList<>();
+  public List<BlockWorkerInfo> getAvailableWorkers() throws IOException {
+    return getAllWorkers().stream()
+        // Filter out unavailable workers.
+        .filter(w -> w.getNetAddress().getTieredIdentity()
+              .strictTiersMatch(TieredIdentityFactory.getInstance()))
+        .collect(Collectors.toList());
+  }
+
+  /**
+   * @return the info of all block workers
+   */
+  public List<BlockWorkerInfo> getAllWorkers() throws IOException {
     try (CloseableResource<BlockMasterClient> masterClientResource =
         mContext.acquireBlockMasterClientResource()) {
-      for (WorkerInfo workerInfo : masterClientResource.get().getWorkerInfoList()) {
-        infoList.add(new BlockWorkerInfo(workerInfo.getAddress(), workerInfo.getCapacityBytes(),
-            workerInfo.getUsedBytes()));
-      }
-      return infoList;
+      return masterClientResource.get().getWorkerInfoList().stream()
+          .map(w -> new BlockWorkerInfo(w.getAddress(), w.getCapacityBytes(), w.getUsedBytes()))
+          .collect(Collectors.toList());
     }
   }
 
@@ -153,7 +150,7 @@ public final class AlluxioBlockStore {
           Preconditions.checkNotNull(options.getUfsReadLocationPolicy(),
               PreconditionMessage.UFS_READ_LOCATION_POLICY_UNSPECIFIED);
       address = blockLocationPolicy
-          .getWorker(GetWorkerOptions.defaults().setBlockWorkerInfos(getWorkerInfoList())
+          .getWorker(GetWorkerOptions.defaults().setBlockWorkerInfos(getAvailableWorkers())
               .setBlockId(blockId).setBlockSize(blockInfo.getLength()));
     } else {
       // TODO(calvin): Get location via a policy.
@@ -231,10 +228,7 @@ public final class AlluxioBlockStore {
     WorkerNetAddress address;
     FileWriteLocationPolicy locationPolicy = Preconditions.checkNotNull(options.getLocationPolicy(),
         PreconditionMessage.FILE_WRITE_LOCATION_POLICY_UNSPECIFIED);
-    List<BlockWorkerInfo> workers = getWorkerInfoList().stream()
-        .filter(w -> mTieredIdentity.strictTiersMatch(w.getNetAddress().getTieredIdentity()))
-        .collect(Collectors.toList());
-    address = locationPolicy.getWorkerForNextBlock(workers, blockSize);
+    address = locationPolicy.getWorkerForNextBlock(getAvailableWorkers(), blockSize);
     if (address == null) {
       throw new UnavailableException(
           ExceptionMessage.NO_SPACE_FOR_BLOCK_ON_WORKER.getMessage(blockSize));
