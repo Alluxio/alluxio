@@ -117,10 +117,9 @@ public final class TieredIdentityFactory {
     for (String tier : identityString.split(",")) {
       String[] parts = tier.split("=");
       if (parts.length != 2) {
-        throw new RuntimeException(String.format(
-            "Failed to parse tiered identity. "
-                + "The value should be a comma-separated list of key=value pairs, but was %s",
-            identityString));
+        throw new RuntimeException(String
+            .format("Failed to parse tiered identity. The value should be a comma-separated list "
+                + "of key=value pairs, but was %s", identityString));
       }
       String key = parts[0].trim();
       if (tiers.containsKey(key)) {

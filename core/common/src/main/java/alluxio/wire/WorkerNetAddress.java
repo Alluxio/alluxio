@@ -11,12 +11,15 @@
 
 package alluxio.wire;
 
+import alluxio.Constants;
 import alluxio.annotation.PublicApi;
+import alluxio.wire.TieredIdentity.LocalityTier;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 
 import java.io.Serializable;
+import java.util.Arrays;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
@@ -53,6 +56,12 @@ public final class WorkerNetAddress implements Serializable {
     mWebPort = workerNetAddress.getWebPort();
     mDomainSocketPath = workerNetAddress.getDomainSocketPath();
     mTieredIdentity = TieredIdentity.fromThrift(workerNetAddress.getTieredIdentity());
+    if (mTieredIdentity == null) {
+      // This means the worker is pre-1.7.0. We handle this in post-1.7.0 clients by filling out
+      // the tiered identity using the hostname field.
+      mTieredIdentity =
+          new TieredIdentity(Arrays.asList(new LocalityTier(Constants.LOCALITY_NODE, mHost)));
+    }
   }
 
   /**

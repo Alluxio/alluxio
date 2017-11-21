@@ -67,36 +67,23 @@ public final class LocalFirstPolicy implements FileWriteLocationPolicy, BlockLoc
         .filter(worker -> worker.getCapacityBytes() >= blockSizeBytes)
         .map(BlockWorkerInfo::getNetAddress)
         .collect(Collectors.toList());
-    if (enoughCapacityWorkers.isEmpty()) {
-      return null;
-    }
 
     // Try finding a worker based on nearest tiered identity.
     List<TieredIdentity> identities = enoughCapacityWorkers.stream()
         .map(worker -> worker.getTieredIdentity())
         .filter(Objects::nonNull)
         .collect(Collectors.toList());
-    if (!identities.isEmpty()) {
-      Optional<TieredIdentity> nearest = mTieredIdentity.nearest(identities);
-      if (nearest.isPresent()) {
-        return enoughCapacityWorkers.stream()
-            .filter(worker -> worker.getTieredIdentity() == nearest.get())
-            .findFirst().get();
-      } else {
-        return null;
-      }
+    if (identities.isEmpty()) {
+      return null;
     }
-
-    // Fall back on checking local hostname match.
-    Optional<WorkerNetAddress> localWorker = enoughCapacityWorkers.stream()
-        .filter(worker -> worker.getHost().equals(mLocalHostName))
-        .findFirst();
-    if (localWorker.isPresent()) {
-      return localWorker.get();
+    Optional<TieredIdentity> nearest = mTieredIdentity.nearest(identities);
+    if (!nearest.isPresent()) {
+      return null;
     }
-
-    // Otherwise pick a random worker (workers are already shuffled).
-    return enoughCapacityWorkers.get(0);
+    // Map back to the address with the nearest tiered identity.
+    return enoughCapacityWorkers.stream()
+        .filter(worker -> worker.getTieredIdentity() == nearest.get())
+        .findFirst().orElse(null);
   }
 
   @Override
