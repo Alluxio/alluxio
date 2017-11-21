@@ -35,6 +35,9 @@ public final class RenameOptions extends CommonOptions {
     this(null);
   }
 
+  /**
+   * @param options the thrift options to create from
+   */
   public RenameOptions(RenameTOptions options) {
     super(options != null ? options.getCommonOptions() : null);
     mOperationTimeMs = System.currentTimeMillis();

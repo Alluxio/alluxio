@@ -39,6 +39,9 @@ public final class LoadMetadataOptions extends CommonOptions {
     this(null);
   }
 
+  /**
+   * @param options the thrift options to create from
+   */
   public LoadMetadataOptions(LoadMetadataTOptions options) {
     super(options != null ? options.getCommonOptions() : null);
     mCreateAncestors = false;
