@@ -545,7 +545,6 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
             ExecutorServiceFactories
                .fixedThreadPoolExecutorServiceFactory("startup-consistency-check", 32).create()));
       }
-      }
       if (Configuration.getBoolean(PropertyKey.MASTER_AUDIT_LOGGING_ENABLED)) {
         mAsyncAuditLogWriter = new AsyncUserAccessAuditLogWriter();
         mAsyncAuditLogWriter.start();
