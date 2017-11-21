@@ -1,6 +1,6 @@
-## Pre-requisites:
+## Pre-requisites
 
-Alluxio workers use `emptyDir` volumes with `sizeLimit`; which is an alpha feature in Kubernetes 1.8. Please ensure the feature is enabled.
+Alluxio workers use `emptyDir` volumes with `sizeLimit`; an alpha feature in Kubernetes 1.8. Please ensure the feature is enabled.
 
 Nodes running Alluxio workers require a manual step for using domain sockets. Execute the following on host nodes.
 ```bash
