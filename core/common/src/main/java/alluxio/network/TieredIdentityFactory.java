@@ -12,9 +12,11 @@
 package alluxio.network;
 
 import alluxio.Configuration;
+import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.PropertyKey.Template;
 import alluxio.util.ShellUtils;
+import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.TieredIdentity;
 import alluxio.wire.TieredIdentity.LocalityTier;
 
@@ -78,6 +80,12 @@ public final class TieredIdentityFactory {
       }
       tiers.add(new LocalityTier(tierName, value));
     }
+    // If the user doesn't specify the value of the "node" tier, we fill in a sensible default.
+    if (tiers.size() > 0 && tiers.get(0).getTierName().equals(Constants.LOCALITY_NODE)
+        && tiers.get(0).getValue() == null) {
+      String name = NetworkAddressUtils.getLocalNodeName();
+      tiers.set(0, new LocalityTier(Constants.LOCALITY_NODE, name));
+    }
     return new TieredIdentity(tiers);
   }
 
@@ -98,29 +106,28 @@ public final class TieredIdentityFactory {
       throw new RuntimeException(
           String.format("Failed to run script %s: %s", script, e.toString()), e);
     }
-    return parseIdentityString(identityString);
+    return fromString(identityString);
   }
 
   /**
    * @param identityString tiered identity string to parse
    * @return the parsed tiered identity
    */
-  private static TieredIdentity parseIdentityString(String identityString) {
+  public static TieredIdentity fromString(String identityString) {
     Map<String, String> tiers = new HashMap<>();
     for (String tier : identityString.split(",")) {
       String[] parts = tier.split("=");
       if (parts.length != 2) {
-        throw new RuntimeException(String.format(
-            "Failed to parse the output of running %s. "
-                + "The value should be a comma-separated list of key=value pairs, but was %s",
-            Configuration.get(PropertyKey.LOCALITY_SCRIPT), identityString));
+        throw new RuntimeException(String
+            .format("Failed to parse tiered identity. The value should be a comma-separated list "
+                + "of key=value pairs, but was %s", identityString));
       }
       String key = parts[0].trim();
       if (tiers.containsKey(key)) {
         throw new RuntimeException(String.format(
-            "Encountered repeated tier definition for %s when parsing the output of %s. "
-                + "Complete output: %s",
-            key, Configuration.get(PropertyKey.LOCALITY_SCRIPT), identityString));
+            "Encountered repeated tier definition for %s when parsing tiered identity from string "
+                + "%s",
+            key, identityString));
       }
       tiers.put(key, parts[1].trim());
     }
