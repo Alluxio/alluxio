@@ -70,9 +70,8 @@ public final class LocalFirstPolicyTest {
     LocalFirstPolicy policy = new LocalFirstPolicy(true);
     List<BlockWorkerInfo> workers = new ArrayList<>();
     workers.add(worker(Constants.GB, "worker1", ""));
-    workers.add(worker(Constants.MB, Constants.MB, localhostName,""));
-    Assert.assertEquals("worker1",
-        policy.getWorkerForNextBlock(workers, Constants.MB).getHost());
+    workers.add(worker(Constants.MB, Constants.MB, localhostName, ""));
+    Assert.assertEquals("worker1", policy.getWorkerForNextBlock(workers, Constants.MB).getHost());
   }
 
   /**
@@ -176,8 +175,10 @@ public final class LocalFirstPolicyTest {
   @Test
   public void equalsTest() throws Exception {
     new EqualsTester()
-        .addEqualityGroup(LocalFirstPolicy.create(TieredIdentityFactory.fromString("node=x,rack=y")))
-        .addEqualityGroup(LocalFirstPolicy.create(TieredIdentityFactory.fromString("node=x,rack=z")))
+        .addEqualityGroup(
+            LocalFirstPolicy.create(TieredIdentityFactory.fromString("node=x,rack=y")))
+        .addEqualityGroup(
+            LocalFirstPolicy.create(TieredIdentityFactory.fromString("node=x,rack=z")))
         .testEquals();
   }
 

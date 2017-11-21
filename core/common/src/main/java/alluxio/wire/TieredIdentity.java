@@ -11,11 +11,10 @@
 
 package alluxio.wire;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
-
-import javax.annotation.Nullable;
+import alluxio.Configuration;
+import alluxio.PropertyKey;
+import alluxio.PropertyKey.Template;
+import alluxio.annotation.PublicApi;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -23,11 +22,11 @@ import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 
-import alluxio.Configuration;
-import alluxio.PropertyKey;
-import alluxio.PropertyKey.Template;
-import alluxio.annotation.PublicApi;
-import alluxio.thrift.LocalityTier;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
+import javax.annotation.Nullable;
 
 /**
  * Class representing a node's tier identity. A tier identity is a list of locality tiers
@@ -103,7 +102,7 @@ public final class TieredIdentity {
    */
   public boolean strictTiersMatch(TieredIdentity other) {
     for (LocalityTier t : mTiers) {
-      PropertyKey strictKey = Template.LOCALITY_TIER_STRICT.format(t.getTierName();
+      PropertyKey strictKey = Template.LOCALITY_TIER_STRICT.format(t.getTierName());
       if (Configuration.containsKey(strictKey) && Configuration.getBoolean(strictKey)) {
         for (LocalityTier tier : other.getTiers()) {
           if (tier.getTierName().equals(t.getTierName()) && !tier.getValue().equals(t.getValue())) {

@@ -22,6 +22,7 @@ import alluxio.client.netty.NettyRPCContext;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.PreconditionMessage;
 import alluxio.exception.status.UnavailableException;
+import alluxio.network.TieredIdentityFactory;
 import alluxio.network.protocol.RPCMessageDecoder;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.resource.DummyCloseableResource;
@@ -114,7 +115,8 @@ public final class AlluxioBlockStoreTest {
         .thenReturn(new DummyCloseableResource<>(mMasterClient));
     mLocalAddr = new WorkerNetAddress().setHost(NetworkAddressUtils.getLocalHostName());
 
-    mBlockStore = new AlluxioBlockStore(mContext, WORKER_HOSTNAME_LOCAL);
+    mBlockStore = new AlluxioBlockStore(mContext,
+        TieredIdentityFactory.fromString("node=" + WORKER_HOSTNAME_LOCAL));
 
     Mockito.when(mContext.acquireNettyChannel(Mockito.any(WorkerNetAddress.class)))
         .thenReturn(mChannel);
