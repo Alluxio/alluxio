@@ -11,13 +11,18 @@
 
 package alluxio.wire;
 
+import alluxio.Configuration;
+import alluxio.PropertyKey.Template;
 import alluxio.annotation.PublicApi;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import javax.annotation.Nullable;
@@ -33,7 +38,8 @@ public final class TieredIdentity {
   /**
    * @param tiers the tiers of the tier identity
    */
-  public TieredIdentity(List<LocalityTier> tiers) {
+  @JsonCreator
+  public TieredIdentity(@JsonProperty("tiers") List<LocalityTier> tiers) {
     mTiers = ImmutableList.copyOf(Preconditions.checkNotNull(tiers, "tiers"));
   }
 
@@ -58,9 +64,41 @@ public final class TieredIdentity {
    * @return the corresponding wire type tiered identity
    */
   public static TieredIdentity fromThrift(alluxio.thrift.TieredIdentity tieredIdentity) {
+    if (tieredIdentity == null) {
+      return null;
+    }
     return new TieredIdentity(tieredIdentity.getTiers().stream()
-        .map(LocalityTier::fromThrift).collect(Collectors.toList())
-    );
+        .map(LocalityTier::fromThrift).collect(Collectors.toList()));
+  }
+
+  /**
+   * @param identities the tiered identities to compare to
+   * @return the identity closest to this one; or Optional.empty if none of the identities match
+   *         within a strict tier. If none of the identities match and no strict tiers are defined,
+   *         the first identity is returned
+   */
+  public Optional<TieredIdentity> nearest(List<TieredIdentity> identities) {
+    if (identities.isEmpty()) {
+      return Optional.empty();
+    }
+    for (LocalityTier tier : mTiers) {
+      for (TieredIdentity identity : identities) {
+        for (LocalityTier otherTier : identity.mTiers) {
+          if (tier.mTierName.equals(otherTier.mTierName)
+              && tier.mValue != null
+              && tier.mValue.equals(otherTier.mValue)) {
+            return Optional.of(identity);
+          }
+        }
+      }
+      // Negative wait for a tier indicates that we should never return identities that do not match
+      // in that tier.
+      if (Configuration.containsKey(Template.LOCALITY_TIER_WAIT.format(tier.getTierName()))
+          && Configuration.getInt(Template.LOCALITY_TIER_WAIT.format(tier.getTierName())) < 0) {
+        return Optional.empty();
+      }
+    }
+    return Optional.of(identities.get(0));
   }
 
   @Override
@@ -98,7 +136,9 @@ public final class TieredIdentity {
      * @param tierName the name of the tier
      * @param value the value of the tier
      */
-    public LocalityTier(String tierName, @Nullable String value) {
+    @JsonCreator
+    public LocalityTier(@JsonProperty("tierName") String tierName,
+        @JsonProperty("value") @Nullable String value) {
       mTierName = Preconditions.checkNotNull(tierName, "tierName");
       mValue = value;
     }
