@@ -227,6 +227,13 @@ public class URIStatus {
     return mInfo.getFileBlockInfos();
   }
 
+  /**
+   * @return the ufs last modified time, in ms
+   */
+  public long getUfsLastModificationTimeMs() {
+    return mInfo.getUfsLastModificationTimeMs();
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) {

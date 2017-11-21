@@ -34,6 +34,7 @@ public final class SetAttributeOptions extends CommonOptions {
   private Short mMode;
   private boolean mRecursive;
   private long mOperationTimeMs;
+  private long mUfsLastModifiedMs;
 
   /**
    * @return the default {@link SetAttributeOptions}
@@ -58,6 +59,7 @@ public final class SetAttributeOptions extends CommonOptions {
     mMode = Constants.INVALID_MODE;
     mRecursive = false;
     mOperationTimeMs = System.currentTimeMillis();
+    mUfsLastModifiedMs = Constants.INVALID_TIMESTAMP_MS;
 
     if (options != null) {
       mPinned = options.isSetPinned() ? options.isPinned() : null;
@@ -137,6 +139,13 @@ public final class SetAttributeOptions extends CommonOptions {
    */
   public long getOperationTimeMs() {
     return mOperationTimeMs;
+  }
+
+  /**
+   * @return the ufs last modified time (in milliseconds)
+   */
+  public long getUfsLastModifiedMs() {
+    return mUfsLastModifiedMs;
   }
 
   /**
@@ -228,6 +237,15 @@ public final class SetAttributeOptions extends CommonOptions {
     return this;
   }
 
+  /**
+   * @param ufsLastModifiedMs the ufs last modified time
+   * @return the updated options object
+   */
+  public SetAttributeOptions setUfsLastModifiedMs(long ufsLastModifiedMs) {
+    mUfsLastModifiedMs = ufsLastModifiedMs;
+    return this;
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) {
@@ -248,14 +266,15 @@ public final class SetAttributeOptions extends CommonOptions {
         && Objects.equal(mGroup, that.mGroup)
         && Objects.equal(mMode, that.mMode)
         && Objects.equal(mRecursive, that.mRecursive)
-        && mOperationTimeMs == that.mOperationTimeMs;
+        && mOperationTimeMs == that.mOperationTimeMs
+        && mUfsLastModifiedMs == that.mUfsLastModifiedMs;
   }
 
   @Override
   public int hashCode() {
     return super.hashCode() + Objects
         .hashCode(mPinned, mTtl, mTtlAction, mPersisted, mOwner, mGroup, mMode, mRecursive,
-            mOperationTimeMs);
+            mOperationTimeMs, mUfsLastModifiedMs);
   }
 
   @Override
@@ -270,6 +289,7 @@ public final class SetAttributeOptions extends CommonOptions {
         .add("mode", mMode)
         .add("recursive", mRecursive)
         .add("operationTimeMs", mOperationTimeMs)
+        .add("ufsLastModifiedTimeMs", mUfsLastModifiedMs)
         .toString();
   }
 }

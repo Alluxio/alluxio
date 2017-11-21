@@ -22,6 +22,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * Common method options.
+ * @param <T> the concrete subclass of this object
  */
 @PublicApi
 @NotThreadSafe
@@ -79,7 +80,10 @@ public abstract class CommonOptions<T> {
     return toStringHelper().toString();
   }
 
-  public Objects.ToStringHelper toStringHelper() {
+  /**
+   * @return a {@link Objects.ToStringHelper} for the common options
+   */
+  protected Objects.ToStringHelper toStringHelper() {
     return Objects.toStringHelper(this)
         .add("syncInterval", mSyncInterval);
   }

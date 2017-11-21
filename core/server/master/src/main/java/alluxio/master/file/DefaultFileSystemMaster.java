@@ -1055,11 +1055,26 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     // determined by its size in Alluxio.
     long length = fileInode.isPersisted() ? options.getUfsLength() : inAlluxioLength;
 
+    long ufsLastModifiedMs = Constants.INVALID_TIMESTAMP_MS;
+    if (fileInode.isPersisted()) {
+      // Retrieve the UFS last modified time for this file.
+      MountTable.Resolution resolution = mMountTable.resolve(inodePath.getUri());
+      AlluxioURI resolvedUri = resolution.getUri();
+      UnderFileSystem ufs = resolution.getUfs();
+      try {
+        UfsFileStatus fileStatus = ufs.getFileStatus(resolvedUri.toString());
+        ufsLastModifiedMs = fileStatus.getLastModifiedTime();
+      } catch (IOException e) {
+        // Ignore error
+      }
+    }
+
     completeFileInternal(fileInode.getBlockIds(), inodePath, length, options.getOperationTimeMs(),
-        false);
+        ufsLastModifiedMs, false);
     CompleteFileEntry completeFileEntry =
         CompleteFileEntry.newBuilder().addAllBlockIds(fileInode.getBlockIds()).setId(inode.getId())
-            .setLength(length).setOpTimeMs(options.getOperationTimeMs()).build();
+            .setLength(length).setOpTimeMs(options.getOperationTimeMs())
+            .setUfsLastModifiedTimeMs(ufsLastModifiedMs).build();
     journalContext.append(JournalEntry.newBuilder().setCompleteFile(completeFileEntry).build());
   }
 
@@ -1068,6 +1083,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    * @param inodePath the {@link LockedInodePath} to complete
    * @param length the length to use
    * @param opTimeMs the operation time (in milliseconds)
+   * @param ufsLastModifiedMs the ufs last modified time (in milliseconds)
    * @param replayed whether the operation is a result of replaying the journal
    * @throws FileDoesNotExistException if the file does not exist
    * @throws InvalidPathException if an invalid path is encountered
@@ -1075,12 +1091,13 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    * @throws FileAlreadyCompletedException if the file has already been completed
    */
   private void completeFileInternal(List<Long> blockIds, LockedInodePath inodePath, long length,
-      long opTimeMs, boolean replayed)
+      long opTimeMs, long ufsLastModifiedMs, boolean replayed)
       throws FileDoesNotExistException, InvalidPathException, InvalidFileSizeException,
       FileAlreadyCompletedException {
     InodeFile inode = inodePath.getInodeFile();
     inode.setBlockIds(blockIds);
     inode.setLastModificationTimeMs(opTimeMs);
+    inode.setUfsLastModificationTimeMs(ufsLastModifiedMs);
     inode.complete(length);
 
     if (inode.isPersisted()) {
@@ -1110,7 +1127,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     try (LockedInodePath inodePath = mInodeTree
         .lockFullInodePath(entry.getId(), InodeTree.LockMode.WRITE)) {
       completeFileInternal(entry.getBlockIdsList(), inodePath, entry.getLength(),
-          entry.getOpTimeMs(), true);
+          entry.getOpTimeMs(), entry.getUfsLastModifiedTimeMs(), true);
     } catch (FileDoesNotExistException e) {
       throw new RuntimeException(e);
     }
@@ -3128,10 +3145,17 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       WorkerHeartbeatOptions options)
       throws FileDoesNotExistException, InvalidPathException, AccessControlException,
       IOException {
-    for (long fileId : persistedFiles) {
+
+    List<UfsFileStatus> persistedFileStatus = options.getPersistedFileStatusList();
+    boolean hasPersistedStatus = persistedFileStatus.size() == persistedFiles.size();
+    for (int i = 0; i < persistedFiles.size(); i++) {
+      long fileId = persistedFiles.get(i);
+      long lastModified = hasPersistedStatus ? persistedFileStatus.get(i).getLastModifiedTime() :
+          Constants.INVALID_TIMESTAMP_MS;
       try {
         // Permission checking for each file is performed inside setAttribute
-        setAttribute(getPath(fileId), SetAttributeOptions.defaults().setPersisted(true));
+        setAttribute(getPath(fileId),
+            SetAttributeOptions.defaults().setPersisted(true).setUfsLastModifiedMs(lastModified));
       } catch (FileDoesNotExistException | AccessControlException | InvalidPathException e) {
         LOG.error("Failed to set file {} as persisted, because {}", fileId, e);
       }
@@ -3175,6 +3199,9 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         inode.setLastModificationTimeMs(opTimeMs);
         inode.setTtlAction(options.getTtlAction());
       }
+    }
+    if (options.getUfsLastModifiedMs() != Constants.INVALID_TIMESTAMP_MS) {
+      inode.setUfsLastModificationTimeMs(options.getUfsLastModifiedMs());
     }
     if (options.getPersisted() != null) {
       Preconditions.checkArgument(inode.isFile(), PreconditionMessage.PERSIST_ONLY_FOR_FILE);
@@ -3266,6 +3293,9 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     }
     if (entry.hasPermission()) {
       options.setMode((short) entry.getPermission());
+    }
+    if (entry.hasUfsLastModifiedMs()) {
+      options.setUfsLastModifiedMs(entry.getUfsLastModifiedMs());
     }
     try (LockedInodePath inodePath = mInodeTree
         .lockFullInodePath(entry.getId(), InodeTree.LockMode.WRITE)) {

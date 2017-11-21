@@ -74,8 +74,10 @@ public final class UfsSyncUtils {
     if (inode.isFile()) {
       // Alluxio path is a file.
       InodeFile inodeFile = (InodeFile) inode;
-      matchPersisted = inodeFile.isPersisted() && ufsStatus != null && ufsStatus.isFile()
-          && ((UfsFileStatus) ufsStatus).getContentLength() == inodeFile.getLength();
+      UfsFileStatus ufsFile = (UfsFileStatus) ufsStatus;
+      matchPersisted = inodeFile.isPersisted() && ufsStatus != null && ufsFile.isFile()
+          && ufsFile.getContentLength() == inodeFile.getLength()
+          && ufsFile.getLastModifiedTime() == inodeFile.getUfsLastModificationTimeMs();
     } else {
       // Alluxio path is a directory.
       matchPersisted = inode.isPersisted() && ufsStatus != null && ufsStatus.isDirectory();

@@ -26,12 +26,13 @@ message AsyncPersistRequestEntry {
   optional int64 file_id = 1;
 }
 
-// next available id: 5
+// next available id: 6
 message CompleteFileEntry {
   repeated int64 block_ids = 1;
   optional int64 id = 2;
   optional int64 length = 3;
   optional int64 op_time_ms = 4;
+  optional int64 ufs_last_modified_time_ms = 5;
 }
 
 // next available id: 5
@@ -130,7 +131,7 @@ message RenameEntry {
   optional int64 op_time_ms = 3;
 }
 
-// next available id: 10
+// next available id: 11
 message SetAttributeEntry {
   optional int64 id = 1;
   optional int64 op_time_ms = 2;
@@ -141,4 +142,5 @@ message SetAttributeEntry {
   optional string group = 7;
   optional int32 permission = 8;
   optional PTtlAction ttlAction = 9 [default = DELETE];
+  optional int64 ufs_last_modified_ms = 10;
 }
