@@ -12,6 +12,7 @@
 package alluxio.master.file.options;
 
 import alluxio.thrift.RenameTOptions;
+import alluxio.wire.CommonOptions;
 
 import com.google.common.base.Objects;
 
@@ -21,7 +22,8 @@ import javax.annotation.concurrent.NotThreadSafe;
  * Method options for completing a file.
  */
 @NotThreadSafe
-public final class RenameOptions extends CommonOptions {
+public final class RenameOptions {
+  private CommonOptions mCommonOptions;
   private long mOperationTimeMs;
 
   /**
@@ -32,15 +34,28 @@ public final class RenameOptions extends CommonOptions {
   }
 
   private RenameOptions() {
-    this(null);
+    super();
+    mCommonOptions = CommonOptions.defaults();
+    mOperationTimeMs = System.currentTimeMillis();
   }
 
   /**
    * @param options the thrift options to create from
    */
   public RenameOptions(RenameTOptions options) {
-    super(options != null ? options.getCommonOptions() : null);
-    mOperationTimeMs = System.currentTimeMillis();
+    this();
+    if (options != null) {
+      if (options.isSetCommonOptions()) {
+        mCommonOptions = new CommonOptions(options.getCommonOptions());
+      }
+    }
+  }
+
+  /**
+   * @return the common options
+   */
+  public CommonOptions getCommonOptions() {
+    return mCommonOptions;
   }
 
   /**
@@ -48,6 +63,15 @@ public final class RenameOptions extends CommonOptions {
    */
   public long getOperationTimeMs() {
     return mOperationTimeMs;
+  }
+
+  /**
+   * @param options the common options
+   * @return the updated options object
+   */
+  public RenameOptions setCommonOptions(CommonOptions options) {
+    mCommonOptions = options;
+    return this;
   }
 
   /**
@@ -67,21 +91,20 @@ public final class RenameOptions extends CommonOptions {
     if (!(o instanceof RenameOptions)) {
       return false;
     }
-    if (!(super.equals(o))) {
-      return false;
-    }
     RenameOptions that = (RenameOptions) o;
-    return mOperationTimeMs == that.mOperationTimeMs;
+    return Objects.equal(mCommonOptions, that.mCommonOptions)
+        && mOperationTimeMs == that.mOperationTimeMs;
   }
 
   @Override
   public int hashCode() {
-    return super.hashCode() + Objects.hashCode(mOperationTimeMs);
+    return Objects.hashCode(mOperationTimeMs, mCommonOptions);
   }
 
   @Override
   public String toString() {
-    return toStringHelper()
+    return Objects.toStringHelper(this)
+        .add("commonOptions", mCommonOptions)
         .add("operationTimeMs", mOperationTimeMs)
         .toString();
   }

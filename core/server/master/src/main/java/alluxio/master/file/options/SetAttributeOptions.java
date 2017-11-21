@@ -13,6 +13,7 @@ package alluxio.master.file.options;
 
 import alluxio.Constants;
 import alluxio.thrift.SetAttributeTOptions;
+import alluxio.wire.CommonOptions;
 import alluxio.wire.ThriftUtils;
 import alluxio.wire.TtlAction;
 
@@ -24,7 +25,8 @@ import javax.annotation.concurrent.NotThreadSafe;
  * Method options for setting the attributes.
  */
 @NotThreadSafe
-public final class SetAttributeOptions extends CommonOptions {
+public final class SetAttributeOptions {
+  private CommonOptions mCommonOptions;
   private Boolean mPinned;
   private Long mTtl;
   private TtlAction mTtlAction;
@@ -48,18 +50,11 @@ public final class SetAttributeOptions extends CommonOptions {
    * @param options the options for setting the attributes
    */
   public SetAttributeOptions(SetAttributeTOptions options) {
-    super(options != null ? options.getCommonOptions() : null);
-    mPinned = null;
-    mTtl = null;
-    mTtlAction = TtlAction.DELETE;
-    mPersisted = null;
-    mOwner = null;
-    mGroup = null;
-    mMode = Constants.INVALID_MODE;
-    mRecursive = false;
-    mOperationTimeMs = System.currentTimeMillis();
-
+    this();
     if (options != null) {
+      if (options.isSetCommonOptions()) {
+        mCommonOptions = new CommonOptions(options.getCommonOptions());
+      }
       mPinned = options.isSetPinned() ? options.isPinned() : null;
       mTtl = options.isSetTtl() ? options.getTtl() : null;
       mTtlAction = ThriftUtils.fromThrift(options.getTtlAction());
@@ -73,7 +68,24 @@ public final class SetAttributeOptions extends CommonOptions {
   }
 
   private SetAttributeOptions() {
-    this(null);
+    super();
+    mCommonOptions = CommonOptions.defaults();
+    mPinned = null;
+    mTtl = null;
+    mTtlAction = TtlAction.DELETE;
+    mPersisted = null;
+    mOwner = null;
+    mGroup = null;
+    mMode = Constants.INVALID_MODE;
+    mRecursive = false;
+    mOperationTimeMs = System.currentTimeMillis();
+  }
+
+  /**
+   * @return the common options
+   */
+  public CommonOptions getCommonOptions() {
+    return mCommonOptions;
   }
 
   /**
@@ -137,6 +149,15 @@ public final class SetAttributeOptions extends CommonOptions {
    */
   public long getOperationTimeMs() {
     return mOperationTimeMs;
+  }
+
+  /**
+   * @param options the common options
+   * @return the updated options object
+   */
+  public SetAttributeOptions setCommonOptions(CommonOptions options) {
+    mCommonOptions = options;
+    return this;
   }
 
   /**
@@ -236,11 +257,9 @@ public final class SetAttributeOptions extends CommonOptions {
     if (!(o instanceof SetAttributeOptions)) {
       return false;
     }
-    if (!(super.equals(o))) {
-      return false;
-    }
     SetAttributeOptions that = (SetAttributeOptions) o;
     return Objects.equal(mPinned, that.mPinned)
+        && Objects.equal(mCommonOptions, that.mCommonOptions)
         && Objects.equal(mTtl, that.mTtl)
         && Objects.equal(mTtlAction, that.mTtlAction)
         && Objects.equal(mPersisted, that.mPersisted)
@@ -253,14 +272,15 @@ public final class SetAttributeOptions extends CommonOptions {
 
   @Override
   public int hashCode() {
-    return super.hashCode() + Objects
+    return Objects
         .hashCode(mPinned, mTtl, mTtlAction, mPersisted, mOwner, mGroup, mMode, mRecursive,
-            mOperationTimeMs);
+            mOperationTimeMs, mCommonOptions);
   }
 
   @Override
   public String toString() {
-    return toStringHelper()
+    return Objects.toStringHelper(this)
+        .add("commonOptions", mCommonOptions)
         .add("pinned", mPinned)
         .add("ttl", mTtl)
         .add("ttlAction", mTtlAction)

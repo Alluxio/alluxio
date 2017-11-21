@@ -12,6 +12,7 @@
 package alluxio.master.file.options;
 
 import alluxio.thrift.ListStatusTOptions;
+import alluxio.wire.CommonOptions;
 import alluxio.wire.LoadMetadataType;
 
 import com.google.common.base.Objects;
@@ -22,7 +23,8 @@ import javax.annotation.concurrent.NotThreadSafe;
  * Method options for list status.
  */
 @NotThreadSafe
-public final class ListStatusOptions extends CommonOptions {
+public final class ListStatusOptions {
+  private CommonOptions mCommonOptions;
   private LoadMetadataType mLoadMetadataType;
 
   /**
@@ -33,7 +35,9 @@ public final class ListStatusOptions extends CommonOptions {
   }
 
   private ListStatusOptions() {
-    this(null);
+    super();
+    mCommonOptions = CommonOptions.defaults();
+    mLoadMetadataType = LoadMetadataType.Once;
   }
 
   /**
@@ -42,10 +46,11 @@ public final class ListStatusOptions extends CommonOptions {
    * @param options the thrift representation of list status options
    */
   public ListStatusOptions(ListStatusTOptions options) {
-    super(options != null ? options.getCommonOptions() : null);
-    mLoadMetadataType = LoadMetadataType.Once;
-
+    this();
     if (options != null) {
+      if (options.isSetCommonOptions()) {
+        mCommonOptions = new CommonOptions(options.getCommonOptions());
+      }
       if (options.isSetLoadMetadataType()) {
         mLoadMetadataType = LoadMetadataType.fromThrift(options.getLoadMetadataType());
       } else if (!options.isLoadDirectChildren()) {
@@ -55,11 +60,27 @@ public final class ListStatusOptions extends CommonOptions {
   }
 
   /**
+   * @return the common options
+   */
+  public CommonOptions getCommonOptions() {
+    return mCommonOptions;
+  }
+
+  /**
    * @return the load metadata type. It specifies whether the direct children should
    *         be loaded from UFS in different scenarios.
    */
   public LoadMetadataType getLoadMetadataType() {
     return mLoadMetadataType;
+  }
+
+  /**
+   * @param options the common options
+   * @return the updated options object
+   */
+  public ListStatusOptions setCommonOptions(CommonOptions options) {
+    mCommonOptions = options;
+    return this;
   }
 
   /**
@@ -81,21 +102,20 @@ public final class ListStatusOptions extends CommonOptions {
     if (!(o instanceof ListStatusOptions)) {
       return false;
     }
-    if (!(super.equals(o))) {
-      return false;
-    }
     ListStatusOptions that = (ListStatusOptions) o;
-    return Objects.equal(mLoadMetadataType, that.mLoadMetadataType);
+    return Objects.equal(mLoadMetadataType, that.mLoadMetadataType)
+        && Objects.equal(mCommonOptions, that.mCommonOptions);
   }
 
   @Override
   public int hashCode() {
-    return super.hashCode() + Objects.hashCode(mLoadMetadataType);
+    return Objects.hashCode(mLoadMetadataType, mCommonOptions);
   }
 
   @Override
   public String toString() {
-    return toStringHelper()
+    return Objects.toStringHelper(this)
+        .add("commonOptions", mCommonOptions)
         .add("loadMetadataType", mLoadMetadataType.toString())
         .toString();
   }

@@ -13,6 +13,7 @@ package alluxio.master.file.options;
 
 import alluxio.thrift.LoadMetadataTOptions;
 import alluxio.underfs.UfsStatus;
+import alluxio.wire.CommonOptions;
 
 import com.google.common.base.Objects;
 
@@ -23,7 +24,8 @@ import javax.annotation.concurrent.NotThreadSafe;
  * Method options for loading metadata.
  */
 @NotThreadSafe
-public final class LoadMetadataOptions extends CommonOptions {
+public final class LoadMetadataOptions {
+  private CommonOptions mCommonOptions;
   private boolean mCreateAncestors;
   private boolean mLoadDirectChildren;
   private UfsStatus mUfsStatus;
@@ -36,17 +38,30 @@ public final class LoadMetadataOptions extends CommonOptions {
   }
 
   private LoadMetadataOptions() {
-    this(null);
+    super();
+    mCommonOptions = CommonOptions.defaults();
+    mCreateAncestors = false;
+    mLoadDirectChildren = false;
+    mUfsStatus = null;
   }
 
   /**
    * @param options the thrift options to create from
    */
   public LoadMetadataOptions(LoadMetadataTOptions options) {
-    super(options != null ? options.getCommonOptions() : null);
-    mCreateAncestors = false;
-    mLoadDirectChildren = false;
-    mUfsStatus = null;
+    this();
+    if (options != null) {
+      if (options.isSetCommonOptions()) {
+        mCommonOptions = new CommonOptions(options.getCommonOptions());
+      }
+    }
+  }
+
+  /**
+   * @return the common options
+   */
+  public CommonOptions getCommonOptions() {
+    return mCommonOptions;
   }
 
   /**
@@ -71,6 +86,15 @@ public final class LoadMetadataOptions extends CommonOptions {
    */
   public boolean isLoadDirectChildren() {
     return mLoadDirectChildren;
+  }
+
+  /**
+   * @param options the common options
+   * @return the updated options object
+   */
+  public LoadMetadataOptions setCommonOptions(CommonOptions options) {
+    mCommonOptions = options;
+    return this;
   }
 
   /**
@@ -116,23 +140,22 @@ public final class LoadMetadataOptions extends CommonOptions {
     if (!(o instanceof LoadMetadataOptions)) {
       return false;
     }
-    if (!(super.equals(o))) {
-      return false;
-    }
     LoadMetadataOptions that = (LoadMetadataOptions) o;
     return Objects.equal(mCreateAncestors, that.mCreateAncestors)
+        && Objects.equal(mCommonOptions, that.mCommonOptions)
         && Objects.equal(mLoadDirectChildren, that.mLoadDirectChildren)
         && Objects.equal(mUfsStatus, that.mUfsStatus);
   }
 
   @Override
   public int hashCode() {
-    return super.hashCode() + Objects.hashCode(mCreateAncestors, mLoadDirectChildren, mUfsStatus);
+    return Objects.hashCode(mCreateAncestors, mLoadDirectChildren, mUfsStatus, mCommonOptions);
   }
 
   @Override
   public String toString() {
-    return toStringHelper()
+    return Objects.toStringHelper(this)
+        .add("commonOptions", mCommonOptions)
         .add("createAncestors", mCreateAncestors)
         .add("loadDirectChildren", mLoadDirectChildren)
         .add("ufsStatus", mUfsStatus).toString();

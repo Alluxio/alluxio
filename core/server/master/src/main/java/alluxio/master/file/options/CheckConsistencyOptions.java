@@ -12,6 +12,9 @@
 package alluxio.master.file.options;
 
 import alluxio.thrift.CheckConsistencyTOptions;
+import alluxio.wire.CommonOptions;
+
+import com.google.common.base.Objects;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -19,7 +22,9 @@ import javax.annotation.concurrent.NotThreadSafe;
  * Method options for checking the consistency of a path.
  */
 @NotThreadSafe
-public final class CheckConsistencyOptions extends CommonOptions {
+public final class CheckConsistencyOptions {
+  private CommonOptions mCommonOptions;
+
   /**
    * @return the default {@link CheckConsistencyOptions}
    */
@@ -28,7 +33,7 @@ public final class CheckConsistencyOptions extends CommonOptions {
   }
 
   private CheckConsistencyOptions() {
-    this(null);
+    mCommonOptions = CommonOptions.defaults();
   }
 
   /**
@@ -38,7 +43,28 @@ public final class CheckConsistencyOptions extends CommonOptions {
    * @param options the {@link alluxio.thrift.CheckConsistencyTOptions} to use
    */
   public CheckConsistencyOptions(CheckConsistencyTOptions options) {
-    super(options != null ? options.getCommonOptions() : null);
+    this();
+    if (options != null) {
+      if (options.isSetCommonOptions()) {
+        mCommonOptions = new CommonOptions(options.getCommonOptions());
+      }
+    }
+  }
+
+  /**
+   * @return the common options
+   */
+  public CommonOptions getCommonOptions() {
+    return mCommonOptions;
+  }
+
+  /**
+   * @param options the common options
+   * @return the updated options object
+   */
+  public CheckConsistencyOptions setCommonOptions(CommonOptions options) {
+    mCommonOptions = options;
+    return this;
   }
 
   @Override
@@ -49,17 +75,19 @@ public final class CheckConsistencyOptions extends CommonOptions {
     if (!(o instanceof CheckConsistencyOptions)) {
       return false;
     }
-    return super.equals(o);
+    CheckConsistencyOptions that = (CheckConsistencyOptions) o;
+    return Objects.equal(mCommonOptions, that.mCommonOptions);
   }
 
   @Override
   public int hashCode() {
-    return super.hashCode();
+    return Objects.hashCode(mCommonOptions);
   }
 
   @Override
   public String toString() {
-    return toStringHelper()
+    return Objects.toStringHelper(this)
+        .add("commonOptions", mCommonOptions)
         .toString();
   }
 }
