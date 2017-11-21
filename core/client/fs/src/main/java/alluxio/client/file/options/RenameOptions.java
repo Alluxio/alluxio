@@ -13,12 +13,11 @@ package alluxio.client.file.options;
 
 import alluxio.annotation.PublicApi;
 import alluxio.thrift.RenameTOptions;
+import alluxio.wire.CommonOptions;
 
-import com.fasterxml.jackson.annotation.JsonIdentityInfo;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
-import com.fasterxml.jackson.annotation.ObjectIdGenerators;
+import com.google.common.base.Objects;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -28,9 +27,9 @@ import javax.annotation.concurrent.NotThreadSafe;
 @PublicApi
 @NotThreadSafe
 @JsonInclude(Include.NON_EMPTY)
-@JsonIdentityInfo(generator = ObjectIdGenerators.IntSequenceGenerator.class, property = "@id")
-@JsonIgnoreProperties(ignoreUnknown = true)
-public final class RenameOptions extends CommonOptions<RenameOptions> {
+public final class RenameOptions {
+  private CommonOptions mCommonOptions;
+
   /**
    * @return the default {@link RenameOptions}
    */
@@ -39,11 +38,22 @@ public final class RenameOptions extends CommonOptions<RenameOptions> {
   }
 
   private RenameOptions() {
-    // No options currently
+    mCommonOptions = CommonOptions.defaults();
   }
 
-  @Override
-  public RenameOptions getThis() {
+  /**
+   * @return the common options
+   */
+  public CommonOptions getCommonOptions() {
+    return mCommonOptions;
+  }
+
+  /**
+   * @param options the common options
+   * @return the updated options object
+   */
+  public RenameOptions setCommonOptions(CommonOptions options) {
+    mCommonOptions = options;
     return this;
   }
 
@@ -55,20 +65,20 @@ public final class RenameOptions extends CommonOptions<RenameOptions> {
     if (!(o instanceof RenameOptions)) {
       return false;
     }
-    if (!(super.equals(o))) {
-      return false;
-    }
-    return true;
+    RenameOptions that = (RenameOptions) o;
+    return Objects.equal(mCommonOptions, that.mCommonOptions);
   }
 
   @Override
   public int hashCode() {
-    return super.hashCode();
+    return Objects.hashCode(mCommonOptions);
   }
 
   @Override
   public String toString() {
-    return toStringHelper().toString();
+    return Objects.toStringHelper(this)
+        .add("commonOptions", mCommonOptions)
+        .toString();
   }
 
   /**
@@ -76,7 +86,7 @@ public final class RenameOptions extends CommonOptions<RenameOptions> {
    */
   public RenameTOptions toThrift() {
     RenameTOptions options = new RenameTOptions();
-    options.setCommonOptions(commonThrift());
+    options.setCommonOptions(mCommonOptions.toThrift());
     return options;
   }
 }

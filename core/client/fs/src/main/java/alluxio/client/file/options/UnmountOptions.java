@@ -13,12 +13,11 @@ package alluxio.client.file.options;
 
 import alluxio.annotation.PublicApi;
 import alluxio.thrift.UnmountTOptions;
+import alluxio.wire.CommonOptions;
 
-import com.fasterxml.jackson.annotation.JsonIdentityInfo;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
-import com.fasterxml.jackson.annotation.ObjectIdGenerators;
+import com.google.common.base.Objects;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -28,9 +27,9 @@ import javax.annotation.concurrent.NotThreadSafe;
 @PublicApi
 @NotThreadSafe
 @JsonInclude(Include.NON_EMPTY)
-@JsonIdentityInfo(generator = ObjectIdGenerators.IntSequenceGenerator.class, property = "@id")
-@JsonIgnoreProperties(ignoreUnknown = true)
-public final class UnmountOptions extends CommonOptions<UnmountOptions> {
+public final class UnmountOptions {
+  private CommonOptions mCommonOptions;
+
   /**
    * @return the default {@link UnmountOptions}
    */
@@ -39,11 +38,22 @@ public final class UnmountOptions extends CommonOptions<UnmountOptions> {
   }
 
   private UnmountOptions() {
-    // No options currently
+    mCommonOptions = CommonOptions.defaults();
   }
 
-  @Override
-  public UnmountOptions getThis() {
+  /**
+   * @return the common options
+   */
+  public CommonOptions getCommonOptions() {
+    return mCommonOptions;
+  }
+
+  /**
+   * @param options the common options
+   * @return the updated options object
+   */
+  public UnmountOptions setCommonOptions(CommonOptions options) {
+    mCommonOptions = options;
     return this;
   }
 
@@ -55,20 +65,20 @@ public final class UnmountOptions extends CommonOptions<UnmountOptions> {
     if (!(o instanceof UnmountOptions)) {
       return false;
     }
-    if (!(super.equals(o))) {
-      return false;
-    }
-    return true;
+    UnmountOptions that = (UnmountOptions) o;
+    return Objects.equal(mCommonOptions, that.mCommonOptions);
   }
 
   @Override
   public int hashCode() {
-    return super.hashCode();
+    return Objects.hashCode(mCommonOptions);
   }
 
   @Override
   public String toString() {
-    return toStringHelper().toString();
+    return Objects.toStringHelper(this)
+        .add("commonOptions", mCommonOptions)
+        .toString();
   }
 
   /**
@@ -76,7 +86,7 @@ public final class UnmountOptions extends CommonOptions<UnmountOptions> {
    */
   public UnmountTOptions toThrift() {
     UnmountTOptions options = new UnmountTOptions();
-    options.setCommonOptions(commonThrift());
+    options.setCommonOptions(mCommonOptions.toThrift());
     return options;
   }
 }

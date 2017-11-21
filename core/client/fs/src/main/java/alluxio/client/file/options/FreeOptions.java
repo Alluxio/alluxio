@@ -13,12 +13,10 @@ package alluxio.client.file.options;
 
 import alluxio.annotation.PublicApi;
 import alluxio.thrift.FreeTOptions;
+import alluxio.wire.CommonOptions;
 
-import com.fasterxml.jackson.annotation.JsonIdentityInfo;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
-import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import com.google.common.base.Objects;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -29,9 +27,8 @@ import javax.annotation.concurrent.NotThreadSafe;
 @PublicApi
 @NotThreadSafe
 @JsonInclude(Include.NON_EMPTY)
-@JsonIdentityInfo(generator = ObjectIdGenerators.IntSequenceGenerator.class, property = "@id")
-@JsonIgnoreProperties(ignoreUnknown = true)
-public final class FreeOptions extends CommonOptions<FreeOptions> {
+public final class FreeOptions {
+  private CommonOptions mCommonOptions;
   private boolean mForced;
   private boolean mRecursive;
 
@@ -43,8 +40,16 @@ public final class FreeOptions extends CommonOptions<FreeOptions> {
   }
 
   private FreeOptions() {
+    mCommonOptions = CommonOptions.defaults();
     mForced = false;
     mRecursive = false;
+  }
+
+  /**
+   * @return the common options
+   */
+  public CommonOptions getCommonOptions() {
+    return mCommonOptions;
   }
 
   /**
@@ -61,6 +66,15 @@ public final class FreeOptions extends CommonOptions<FreeOptions> {
    */
   public boolean isRecursive() {
     return mRecursive;
+  }
+
+  /**
+   * @param options the common options
+   * @return the updated options object
+   */
+  public FreeOptions setCommonOptions(CommonOptions options) {
+    mCommonOptions = options;
+    return this;
   }
 
   /**
@@ -88,11 +102,6 @@ public final class FreeOptions extends CommonOptions<FreeOptions> {
   }
 
   @Override
-  public FreeOptions getThis() {
-    return this;
-  }
-
-  @Override
   public boolean equals(Object o) {
     if (this == o) {
       return true;
@@ -100,21 +109,23 @@ public final class FreeOptions extends CommonOptions<FreeOptions> {
     if (!(o instanceof FreeOptions)) {
       return false;
     }
-    if (!(super.equals(o))) {
-      return false;
-    }
     FreeOptions that = (FreeOptions) o;
-    return Objects.equal(mForced, that.mForced) && Objects.equal(mRecursive, that.mRecursive);
+    return Objects.equal(mForced, that.mForced)
+        && Objects.equal(mCommonOptions, that.mCommonOptions)
+        && Objects.equal(mRecursive, that.mRecursive);
   }
 
   @Override
   public int hashCode() {
-    return super.hashCode() + Objects.hashCode(mForced, mRecursive);
+    return Objects.hashCode(mForced, mRecursive, mCommonOptions);
   }
 
   @Override
   public String toString() {
-    return toStringHelper().add("forced", mForced).add("recursive", mRecursive)
+    return Objects.toStringHelper(this)
+        .add("commonOptions", mCommonOptions)
+        .add("forced", mForced)
+        .add("recursive", mRecursive)
         .toString();
   }
 
@@ -125,7 +136,7 @@ public final class FreeOptions extends CommonOptions<FreeOptions> {
     FreeTOptions options = new FreeTOptions();
     options.setForced(mForced);
     options.setRecursive(mRecursive);
-    options.setCommonOptions(commonThrift());
+    options.setCommonOptions(mCommonOptions.toThrift());
     return options;
   }
 }

@@ -13,12 +13,10 @@ package alluxio.client.file.options;
 
 import alluxio.annotation.PublicApi;
 import alluxio.thrift.MountTOptions;
+import alluxio.wire.CommonOptions;
 
-import com.fasterxml.jackson.annotation.JsonIdentityInfo;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
-import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import com.google.common.base.Objects;
 
 import java.util.Collections;
@@ -33,9 +31,8 @@ import javax.annotation.concurrent.NotThreadSafe;
 @PublicApi
 @NotThreadSafe
 @JsonInclude(Include.NON_EMPTY)
-@JsonIdentityInfo(generator = ObjectIdGenerators.IntSequenceGenerator.class, property = "@id")
-@JsonIgnoreProperties(ignoreUnknown = true)
-public final class MountOptions extends CommonOptions<MountOptions> {
+public final class MountOptions {
+  private CommonOptions mCommonOptions;
   private boolean mReadOnly;
   private Map<String, String> mProperties;
   private boolean mShared;
@@ -51,9 +48,17 @@ public final class MountOptions extends CommonOptions<MountOptions> {
    * Creates a new instance with default values.
    */
   private MountOptions() {
+    mCommonOptions = CommonOptions.defaults();
     mReadOnly = false;
     mProperties = new HashMap<>();
     mShared = false;
+  }
+
+  /**
+   * @return the common options
+   */
+  public CommonOptions getCommonOptions() {
+    return mCommonOptions;
   }
 
   /**
@@ -62,6 +67,15 @@ public final class MountOptions extends CommonOptions<MountOptions> {
    */
   public boolean isReadOnly() {
     return mReadOnly;
+  }
+
+  /**
+   * @param options the common options
+   * @return the updated options object
+   */
+  public MountOptions setCommonOptions(CommonOptions options) {
+    mCommonOptions = options;
+    return this;
   }
 
   /**
@@ -111,11 +125,6 @@ public final class MountOptions extends CommonOptions<MountOptions> {
   }
 
   @Override
-  public MountOptions getThis() {
-    return this;
-  }
-
-  @Override
   public boolean equals(Object o) {
     if (this == o) {
       return true;
@@ -123,23 +132,22 @@ public final class MountOptions extends CommonOptions<MountOptions> {
     if (!(o instanceof MountOptions)) {
       return false;
     }
-    if (!(super.equals(o))) {
-      return false;
-    }
     MountOptions that = (MountOptions) o;
     return Objects.equal(mReadOnly, that.mReadOnly)
+        && Objects.equal(mCommonOptions, that.mCommonOptions)
         && Objects.equal(mProperties, that.mProperties)
         && Objects.equal(mShared, that.mShared);
   }
 
   @Override
   public int hashCode() {
-    return super.hashCode() + Objects.hashCode(mReadOnly, mProperties, mShared);
+    return Objects.hashCode(mReadOnly, mProperties, mShared, mCommonOptions);
   }
 
   @Override
   public String toString() {
-    return toStringHelper()
+    return Objects.toStringHelper(this)
+        .add("commonOptions", mCommonOptions)
         .add("readonly", mReadOnly)
         .add("properties", mProperties)
         .add("shared", mShared)
@@ -156,7 +164,7 @@ public final class MountOptions extends CommonOptions<MountOptions> {
       options.setProperties(mProperties);
     }
     options.setShared(mShared);
-    options.setCommonOptions(commonThrift());
+    options.setCommonOptions(mCommonOptions.toThrift());
     return options;
   }
 }

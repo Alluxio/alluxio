@@ -14,14 +14,12 @@ package alluxio.client.file.options;
 import alluxio.annotation.PublicApi;
 import alluxio.security.authorization.Mode;
 import alluxio.thrift.SetAttributeTOptions;
+import alluxio.wire.CommonOptions;
 import alluxio.wire.ThriftUtils;
 import alluxio.wire.TtlAction;
 
-import com.fasterxml.jackson.annotation.JsonIdentityInfo;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
-import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import com.google.common.base.Objects;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -33,9 +31,8 @@ import javax.annotation.concurrent.NotThreadSafe;
 @PublicApi
 @NotThreadSafe
 @JsonInclude(Include.NON_EMPTY)
-@JsonIdentityInfo(generator = ObjectIdGenerators.IntSequenceGenerator.class, property = "@id")
-@JsonIgnoreProperties(ignoreUnknown = true)
-public final class SetAttributeOptions extends CommonOptions<SetAttributeOptions> {
+public final class SetAttributeOptions {
+  private CommonOptions mCommonOptions;
   private Boolean mPinned;
   private Long mTtl;
   private TtlAction mTtlAction;
@@ -54,6 +51,7 @@ public final class SetAttributeOptions extends CommonOptions<SetAttributeOptions
   }
 
   private SetAttributeOptions() {
+    mCommonOptions = CommonOptions.defaults();
     mPinned = null;
     mTtl = null;
     mTtlAction = TtlAction.DELETE;
@@ -62,6 +60,13 @@ public final class SetAttributeOptions extends CommonOptions<SetAttributeOptions
     mGroup = null;
     mMode = null;
     mRecursive = false;
+  }
+
+  /**
+   * @return the common options
+   */
+  public CommonOptions getCommonOptions() {
+    return mCommonOptions;
   }
 
   /**
@@ -123,6 +128,15 @@ public final class SetAttributeOptions extends CommonOptions<SetAttributeOptions
    */
   public boolean isRecursive() {
     return mRecursive;
+  }
+
+  /**
+   * @param options the common options
+   * @return the updated options object
+   */
+  public SetAttributeOptions setCommonOptions(CommonOptions options) {
+    mCommonOptions = options;
+    return this;
   }
 
   /**
@@ -214,11 +228,6 @@ public final class SetAttributeOptions extends CommonOptions<SetAttributeOptions
     return this;
   }
 
-  @Override
-  public SetAttributeOptions getThis() {
-    return this;
-  }
-
   /**
    * @return Thrift representation of the options
    */
@@ -245,7 +254,7 @@ public final class SetAttributeOptions extends CommonOptions<SetAttributeOptions
       options.setMode(mMode.toShort());
     }
     options.setRecursive(mRecursive);
-    options.setCommonOptions(commonThrift());
+    options.setCommonOptions(mCommonOptions.toThrift());
     return options;
   }
 
@@ -257,11 +266,9 @@ public final class SetAttributeOptions extends CommonOptions<SetAttributeOptions
     if (!(o instanceof SetAttributeOptions)) {
       return false;
     }
-    if (!(super.equals(o))) {
-      return false;
-    }
     SetAttributeOptions that = (SetAttributeOptions) o;
     return Objects.equal(mPinned, that.mPinned)
+        && Objects.equal(mCommonOptions, that.mCommonOptions)
         && Objects.equal(mTtl, that.mTtl)
         && Objects.equal(mTtlAction, that.mTtlAction)
         && Objects.equal(mPersisted, that.mPersisted)
@@ -273,13 +280,14 @@ public final class SetAttributeOptions extends CommonOptions<SetAttributeOptions
 
   @Override
   public int hashCode() {
-    return super.hashCode() + Objects.hashCode(mPinned, mTtl, mTtlAction, mPersisted, mOwner,
-        mGroup, mMode, mRecursive);
+    return Objects.hashCode(mPinned, mTtl, mTtlAction, mPersisted, mOwner,
+        mGroup, mMode, mRecursive, mCommonOptions);
   }
 
   @Override
   public String toString() {
-    return toStringHelper()
+    return Objects.toStringHelper(this)
+        .add("commonOptions", mCommonOptions)
         .add("pinned", mPinned)
         .add("ttl", mTtl)
         .add("ttlAction", mTtlAction)

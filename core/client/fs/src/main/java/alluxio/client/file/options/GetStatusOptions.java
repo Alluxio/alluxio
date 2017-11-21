@@ -15,6 +15,7 @@ import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.annotation.PublicApi;
 import alluxio.thrift.GetStatusTOptions;
+import alluxio.wire.CommonOptions;
 import alluxio.wire.LoadMetadataType;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -29,7 +30,8 @@ import javax.annotation.concurrent.NotThreadSafe;
 @PublicApi
 @NotThreadSafe
 @JsonInclude(Include.NON_EMPTY)
-public final class GetStatusOptions extends CommonOptions<GetStatusOptions> {
+public final class GetStatusOptions {
+  private CommonOptions mCommonOptions;
   private LoadMetadataType mLoadMetadataType;
 
   /**
@@ -40,8 +42,16 @@ public final class GetStatusOptions extends CommonOptions<GetStatusOptions> {
   }
 
   private GetStatusOptions() {
+    mCommonOptions = CommonOptions.defaults();
     mLoadMetadataType =
         Configuration.getEnum(PropertyKey.USER_FILE_METADATA_LOAD_TYPE, LoadMetadataType.class);
+  }
+
+  /**
+   * @return the common options
+   */
+  public CommonOptions getCommonOptions() {
+    return mCommonOptions;
   }
 
   /**
@@ -49,6 +59,15 @@ public final class GetStatusOptions extends CommonOptions<GetStatusOptions> {
    */
   public LoadMetadataType getLoadMetadataType() {
     return mLoadMetadataType;
+  }
+
+  /**
+   * @param options the common options
+   * @return the updated options object
+   */
+  public GetStatusOptions setCommonOptions(CommonOptions options) {
+    mCommonOptions = options;
+    return this;
   }
 
   /**
@@ -61,11 +80,6 @@ public final class GetStatusOptions extends CommonOptions<GetStatusOptions> {
   }
 
   @Override
-  public GetStatusOptions getThis() {
-    return this;
-  }
-
-  @Override
   public boolean equals(Object o) {
     if (this == o) {
       return true;
@@ -73,21 +87,20 @@ public final class GetStatusOptions extends CommonOptions<GetStatusOptions> {
     if (!(o instanceof GetStatusOptions)) {
       return false;
     }
-    if (!(super.equals(o))) {
-      return false;
-    }
     GetStatusOptions that = (GetStatusOptions) o;
-    return Objects.equal(mLoadMetadataType, that.mLoadMetadataType);
+    return Objects.equal(mLoadMetadataType, that.mLoadMetadataType)
+        && Objects.equal(mCommonOptions, that.mCommonOptions);
   }
 
   @Override
   public int hashCode() {
-    return super.hashCode() + Objects.hashCode(mLoadMetadataType);
+    return Objects.hashCode(mLoadMetadataType, mCommonOptions);
   }
 
   @Override
   public String toString() {
-    return toStringHelper()
+    return Objects.toStringHelper(this)
+        .add("commonOptions", mCommonOptions)
         .add("loadMetadataType", mLoadMetadataType.toString())
         .toString();
   }
@@ -98,7 +111,7 @@ public final class GetStatusOptions extends CommonOptions<GetStatusOptions> {
   public GetStatusTOptions toThrift() {
     GetStatusTOptions options = new GetStatusTOptions();
     options.setLoadMetadataType(LoadMetadataType.toThrift(mLoadMetadataType));
-    options.setCommonOptions(commonThrift());
+    options.setCommonOptions(mCommonOptions.toThrift());
     return options;
   }
 }

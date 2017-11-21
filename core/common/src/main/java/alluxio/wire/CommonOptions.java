@@ -9,30 +9,36 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.master.file.options;
+package alluxio.wire;
 
+import alluxio.annotation.PublicApi;
 import alluxio.thrift.FileSystemMasterCommonTOptions;
 
 import com.google.common.base.Objects;
 
+import java.io.Serializable;
+
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * Common options.
+ * Common method options.
  */
+@PublicApi
 @NotThreadSafe
-public class CommonOptions {
-  private long mSyncInterval;
+public final class CommonOptions implements Serializable {
+  private static final long serialVersionUID = -1491370184123698287L;
+
+  private long mSyncIntervalMs;
 
   /**
-   * @return the default {@link CompleteFileOptions}
+   * @return the default {@link CommonOptions}
    */
   public static CommonOptions defaults() {
     return new CommonOptions();
   }
 
   protected CommonOptions() {
-    mSyncInterval = -1;
+    mSyncIntervalMs = -1;
   }
 
   /**
@@ -44,7 +50,7 @@ public class CommonOptions {
     this();
     if (options != null) {
       if (options.isSetSyncIntervalMs()) {
-        mSyncInterval = options.getSyncIntervalMs();
+        mSyncIntervalMs = options.getSyncIntervalMs();
       }
     }
   }
@@ -52,16 +58,16 @@ public class CommonOptions {
   /**
    * @return the sync interval, in milliseconds
    */
-  public long getSyncInterval() {
-    return mSyncInterval;
+  public long getSyncIntervalMs() {
+    return mSyncIntervalMs;
   }
 
   /**
-   * @param syncInterval the sync interval, in milliseconds
+   * @param syncIntervalMs the sync interval, in milliseconds
    * @return the updated options object
    */
-  public CommonOptions setSyncInterval(long syncInterval) {
-    mSyncInterval = syncInterval;
+  public CommonOptions setSyncIntervalMs(long syncIntervalMs) {
+    mSyncIntervalMs = syncIntervalMs;
     return this;
   }
 
@@ -74,20 +80,27 @@ public class CommonOptions {
       return false;
     }
     CommonOptions that = (CommonOptions) o;
-    return Objects.equal(mSyncInterval, that.mSyncInterval);
+    return Objects.equal(mSyncIntervalMs, that.mSyncIntervalMs);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mSyncInterval);
+    return Objects.hashCode(mSyncIntervalMs);
   }
 
   @Override
   public String toString() {
-    return toStringHelper().toString();
+    return Objects.toStringHelper(this)
+        .add("syncIntervalMs", mSyncIntervalMs)
+        .toString();
   }
 
-  protected Objects.ToStringHelper toStringHelper() {
-    return Objects.toStringHelper(this).add("syncInterval", mSyncInterval);
+  /**
+   * @return thrift representation of the lineage information
+   */
+  public FileSystemMasterCommonTOptions toThrift() {
+    FileSystemMasterCommonTOptions options = new FileSystemMasterCommonTOptions();
+    options.setSyncIntervalMs(mSyncIntervalMs);
+    return options;
   }
 }
