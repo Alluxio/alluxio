@@ -25,6 +25,18 @@ spec:
   selector:
     app: alluxio-master
 ---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: alluxio-pv-claim
+spec:
+  storageClassName: standard
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---
 apiVersion: apps/v1beta1
 kind: StatefulSet
 metadata:
@@ -71,8 +83,8 @@ spec:
       restartPolicy: Always
       volumes:
         - name: alluxio-journal
-          emptyDir:
-            sizeLimit: "1G"
+          persistentVolumeClaim:
+            claimName: alluxio-pv-claim
         - name: alluxio-domain
           hostPath:
             path: /tmp/domain
