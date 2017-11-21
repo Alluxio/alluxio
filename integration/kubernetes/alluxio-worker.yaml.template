@@ -18,7 +18,7 @@ spec:
     metadata:
       labels:
         name: alluxio-worker
-        app: alluxio-worker
+        app: alluxio
     spec:
       hostNetwork: true
       hostPID: true
@@ -29,10 +29,10 @@ spec:
           resources:
             requests:
               cpu: "0.5"
-              memory: "1024M"
+              memory: "2G"
             limits:
               cpu: "1"
-              memory: "1024M"
+              memory: "2G"
           command: ["/entrypoint.sh"]
           args: ["worker"]
           env:
@@ -64,7 +64,7 @@ spec:
         - name: alluxio-ramdisk
           emptyDir:
             medium: "Memory"
-            sizeLimit: "768M"
+            sizeLimit: "1G"
         - name: alluxio-domain
           hostPath:
             path: /tmp/domain
