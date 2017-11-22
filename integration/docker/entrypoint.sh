@@ -12,11 +12,19 @@
 
 set -e
 
-EXPECTED='"master [--no-format]", "worker [--no-format]", or "proxy"'
 NO_FORMAT='--no-format'
 
+function printUsage {
+  echo "Usage: COMMAND [COMMAND_OPTIONS]"
+  echo
+  echo "COMMAND is one of:"
+  echo -e " master [--no-format]    \t Start Alluxio master. If --no-format is specified, do not format"
+  echo -e " worker [--no-format]    \t Start Alluxio worker. If --no-format is specified, do not format"
+  echo -e " proxy                   \t Start Alluxio proxy"
+}
+
 if [[ $# -lt 1 ]]; then
-  echo 'expected at least one argument: ' ${EXPECTED}
+  printUsage
   exit 1
 fi
 
@@ -94,7 +102,7 @@ case ${service,,} in
     integration/docker/bin/alluxio-proxy.sh
     ;;
   *)
-    echo 'expected ' ${EXPECTED};
+    printUsage
     exit 1
     ;;
 esac
