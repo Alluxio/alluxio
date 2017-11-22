@@ -209,7 +209,6 @@ public final class ValidateEnv {
     String localCommand = String.format(
         "ssh -o ConnectTimeout=5 -o StrictHostKeyChecking=no -tt %s \"bash %s\"",
         node, remoteCommand);
-    System.out.println("y7jin locla cmd " + localCommand);
     String[] command = {"bash", "-c", localCommand};
     try {
       ProcessBuilder builder = new ProcessBuilder(command);
