@@ -13,6 +13,7 @@ package alluxio.worker.block;
 
 import alluxio.Configuration;
 import alluxio.PropertyKey;
+import alluxio.Sessions;
 import alluxio.StorageTierAssoc;
 import alluxio.WorkerStorageTierAssoc;
 import alluxio.collections.Pair;
@@ -623,7 +624,8 @@ public class TieredBlockStore implements BlockStore {
     // 1. remove blocks to make room.
     for (Pair<Long, BlockStoreLocation> blockInfo : plan.toEvict()) {
       try {
-        removeBlockInternal(sessionId, blockInfo.getFirst(), blockInfo.getSecond());
+        removeBlockInternal(Sessions.createInternalSessionId(),
+            blockInfo.getFirst(), blockInfo.getSecond());
       } catch (InvalidWorkerStateException e) {
         // Evictor is not working properly
         LOG.error("Failed to evict blockId {}, this is temp block", blockInfo.getFirst());
@@ -661,15 +663,16 @@ public class TieredBlockStore implements BlockStore {
         BlockStoreLocation newLocation = entry.getDstLocation();
         MoveBlockResult moveResult;
         try {
-          moveResult = moveBlockInternal(sessionId, blockId, oldLocation, newLocation);
+          moveResult = moveBlockInternal(Sessions.createInternalSessionId(),
+              blockId, oldLocation, newLocation);
         } catch (InvalidWorkerStateException e) {
           // Evictor is not working properly
-          LOG.error("Failed to evict blockId {}, this is temp block", blockId);
+          LOG.error("Failed to demote blockId {}, this is temp block", blockId);
           continue;
         } catch (BlockAlreadyExistsException e) {
           continue;
         } catch (BlockDoesNotExistException e) {
-          LOG.info("Failed to move blockId {}, it could be already deleted", blockId);
+          LOG.info("Failed to demote blockId {}, it could be already deleted", blockId);
           continue;
         }
         if (moveResult.getSuccess()) {
