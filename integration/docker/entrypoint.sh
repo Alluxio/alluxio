@@ -16,7 +16,7 @@ EXPECTED='"master [--no-format]", "worker [--no-format]", or "proxy"'
 NO_FORMAT='--no-format'
 
 if [[ $# -lt 1 ]]; then
-  echo 'expected atleast one argument: ' ${EXPECTED}
+  echo 'expected at least one argument: ' ${EXPECTED}
   exit 1
 fi
 
