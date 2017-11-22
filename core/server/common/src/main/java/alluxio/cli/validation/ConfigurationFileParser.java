@@ -25,6 +25,8 @@ public class ConfigurationFileParser {
   /**
    * Parse an xml configuration file into a map.
    *
+   * Referred to https://www.mkyong.com/java/how-to-read-xml-file-in-java-dom-parser/
+   *
    * @param path path to the xml file
    * @return Map from property names to values
    */
