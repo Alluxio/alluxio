@@ -32,6 +32,7 @@ public final class IdUtils {
   public static final long INVALID_WORKER_ID = -1;
   public static final long INVALID_MOUNT_ID = -1;
   public static final long ROOT_MOUNT_ID = 1;
+  public static final long INTERNAL_SESSION_ID_BASE = -7;
   private static SecureRandom sRandom = new SecureRandom();
 
   private IdUtils() {} // prevent instantiation
@@ -83,6 +84,13 @@ public final class IdUtils {
    */
   public static long createSessionId() {
     return getRandomNonNegativeLong();
+  }
+
+  /**
+   * @return a session ID used internally in workers
+   */
+  public static long createInternalSessionId() {
+    return INTERNAL_SESSION_ID_BASE - (getRandomNonNegativeLong() % (Long.MAX_VALUE + INTERNAL_SESSION_ID_BASE));
   }
 
   /**
