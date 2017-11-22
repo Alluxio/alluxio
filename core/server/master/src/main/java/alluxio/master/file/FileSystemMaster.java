@@ -37,13 +37,7 @@ import alluxio.master.file.options.LoadMetadataOptions;
 import alluxio.master.file.options.MountOptions;
 import alluxio.master.file.options.RenameOptions;
 import alluxio.master.file.options.SetAttributeOptions;
-<<<<<<< HEAD
-||||||| parent of 0c00f73... Use worker heartbeat options
-import alluxio.master.file.options.SyncMetadataOptions;
-=======
-import alluxio.master.file.options.SyncMetadataOptions;
 import alluxio.master.file.options.WorkerHeartbeatOptions;
->>>>>>> 0c00f73... Use worker heartbeat options
 import alluxio.thrift.FileSystemCommand;
 import alluxio.thrift.UfsInfo;
 import alluxio.wire.FileBlockInfo;
