@@ -122,9 +122,14 @@ public class SecureHdfsValidationTask implements ValidationTask {
           + " aborting validation for HDFS properties.");
       return false;
     }
+    return compareConfigurations(clientCoreSiteFilePath, serverCoreSiteFilePath)
+        && compareConfigurations(clientHdfsSiteFilePath, serverHdfsSiteFilePath);
+  }
+
+  private boolean compareConfigurations(String clientConfigFilePath, String serverConfigFilePath) {
     ConfigurationFileParser parser = new ConfigurationFileParser();
-    Map<String, String> serverCoreSiteProps = parser.parseXmlConfiguration(serverCoreSiteFilePath);
-    Map<String, String> clientCoreSiteProps = parser.parseXmlConfiguration(clientCoreSiteFilePath);
+    Map<String, String> serverCoreSiteProps = parser.parseXmlConfiguration(serverConfigFilePath);
+    Map<String, String> clientCoreSiteProps = parser.parseXmlConfiguration(clientConfigFilePath);
     boolean matches = true;
     for (Map.Entry<String, String> prop : clientCoreSiteProps.entrySet()) {
       if (!serverCoreSiteProps.containsKey(prop.getKey())

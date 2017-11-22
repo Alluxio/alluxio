@@ -22,6 +22,12 @@ import javax.xml.parsers.ParserConfigurationException;
 public class ConfigurationFileParser {
   public ConfigurationFileParser() {}
 
+  /**
+   * Parse an xml configuration file into a map.
+   *
+   * @param path path to the xml file
+   * @return Map from property names to values
+   */
   public Map<String, String> parseXmlConfiguration(final String path) {
     File xmlFile;
     xmlFile = new File(path);
@@ -47,7 +53,6 @@ public class ConfigurationFileParser {
     // Optional, but recommended.
     // Refer to http://stackoverflow.com/questions/13786607/normalization-in-dom-parsing-with-java-how-does-it-work
     doc.getDocumentElement().normalize();
-    System.out.println("Root element: " + doc.getDocumentElement().getNodeName());
     Map<String, String> ret = new HashMap<>();
     NodeList propNodeList = doc.getElementsByTagName("property");
     for (int i=0; i<propNodeList.getLength(); i++) {
