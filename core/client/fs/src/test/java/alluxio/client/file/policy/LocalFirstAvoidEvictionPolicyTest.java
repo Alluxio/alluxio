@@ -17,7 +17,7 @@ import org.junit.Test;
 
 /**
  * Tests {@link LocalFirstAvoidEvictionPolicy}. The class delegates to {@link LocalFirstPolicy}, so
- * most of its functionality is test in {@link LocalFirstPolicyTest}.
+ * most of its functionality is tested in {@link LocalFirstPolicyTest}.
  */
 public class LocalFirstAvoidEvictionPolicyTest {
 

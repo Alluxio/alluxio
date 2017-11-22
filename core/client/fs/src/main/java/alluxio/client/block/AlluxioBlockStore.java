@@ -11,6 +11,7 @@
 
 package alluxio.client.block;
 
+import alluxio.Constants;
 import alluxio.client.block.policy.BlockLocationPolicy;
 import alluxio.client.block.policy.options.GetWorkerOptions;
 import alluxio.client.block.stream.BlockInStream;
@@ -32,6 +33,7 @@ import alluxio.util.FormatUtils;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.BlockLocation;
 import alluxio.wire.TieredIdentity;
+import alluxio.wire.TieredIdentity.LocalityTier;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.base.Preconditions;
@@ -154,16 +156,18 @@ public final class AlluxioBlockStore {
               .setBlockId(blockId).setBlockSize(blockInfo.getLength()));
     } else {
       // TODO(calvin): Get location via a policy.
-      List<TieredIdentity> workerAddresses = blockInfo.getLocations().stream()
+      List<TieredIdentity> locations = blockInfo.getLocations().stream()
           .map(location -> location.getWorkerAddress().getTieredIdentity())
           .collect(Collectors.toList());
-      Optional<TieredIdentity> nearest = mTieredIdentity.nearest(workerAddresses);
+      Optional<TieredIdentity> nearest = mTieredIdentity.nearest(locations);
       if (nearest.isPresent()) {
         address = blockInfo.getLocations().stream()
             .map(BlockLocation::getWorkerAddress)
             .filter(a -> a.getTieredIdentity() == nearest.get())
             .findFirst().get();
-        if (mTieredIdentity.getTiers().get(0).equals(nearest.get().getTiers().get(0))) {
+        LocalityTier topTier = mTieredIdentity.getTiers().get(0);
+        if (topTier.getTierName().equals(Constants.LOCALITY_NODE)
+            && topTier.getValue().equals(nearest.get().getTiers().get(0))) {
           source = BlockInStreamSource.LOCAL;
         } else {
           source = BlockInStreamSource.REMOTE;
