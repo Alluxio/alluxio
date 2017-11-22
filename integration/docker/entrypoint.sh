@@ -71,12 +71,18 @@ done
 
 case ${service,,} in
   master)
+    if [[ -n ${options} && ${options} != ${NO_FORMAT} ]]; then
+      echo 'invalid option ' ${options} ', expected ' ${NO_FORMAT}
+    fi
     if [[ ${options} != ${NO_FORMAT} ]]; then
       bin/alluxio format
     fi
     integration/docker/bin/alluxio-master.sh
     ;;
   worker)
+    if [[ -n ${options} && ${options} != ${NO_FORMAT} ]]; then
+      echo 'invalid option ' ${options} ', expected ' ${NO_FORMAT}
+    fi
     if [[ ${options} != ${NO_FORMAT} ]]; then
       bin/alluxio formatWorker
     fi
