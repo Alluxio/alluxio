@@ -91,8 +91,8 @@
               <finalName>${project.artifactId}-${project.version}-jar-with-dependencies</finalName>
               <relocations>
                 <relocation>
-                  <pattern>META-INF/native/libnetty-transport-native-epoll.so</pattern>
-                  <shadedPattern>META-INF/native/liballuxio-core-client-runtime-netty-transport-native-epoll.so</shadedPattern>
+                  <pattern>META-INF/native/libnetty_transport_native_epoll_x86_64.so</pattern>
+                  <shadedPattern>META-INF/native/liballuxio_core_client_runtime_netty_transport_native_epoll_x86_64.so</shadedPattern>
                   <rawString>true</rawString>
                 </relocation>
                 <relocation>
