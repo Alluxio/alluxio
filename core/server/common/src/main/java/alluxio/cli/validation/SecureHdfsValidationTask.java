@@ -122,6 +122,18 @@ public class SecureHdfsValidationTask implements ValidationTask {
           + " aborting validation for HDFS properties.");
       return false;
     }
-    return true;
+    ConfigurationFileParser parser = new ConfigurationFileParser();
+    Map<String, String> serverCoreSiteProps = parser.parseXmlConfiguration(serverCoreSiteFilePath);
+    Map<String, String> clientCoreSiteProps = parser.parseXmlConfiguration(clientCoreSiteFilePath);
+    boolean matches = true;
+    for (Map.Entry<String, String> prop : clientCoreSiteProps.entrySet()) {
+      if (!serverCoreSiteProps.containsKey(prop.getKey())
+          || !prop.getValue().equals(serverCoreSiteProps.get(prop.getKey()))) {
+        matches = false;
+        System.err.format("For %s, client has %s, but server has %s.%n",
+            prop.getKey(), prop.getValue(), serverCoreSiteProps.get(prop.getKey()));
+      }
+    }
+    return matches;
   }
 }
