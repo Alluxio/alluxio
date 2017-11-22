@@ -73,6 +73,7 @@ case ${service,,} in
   master)
     if [[ -n ${options} && ${options} != ${NO_FORMAT} ]]; then
       echo 'invalid option ' ${options} ', expected ' ${NO_FORMAT}
+      exit 1
     fi
     if [[ ${options} != ${NO_FORMAT} ]]; then
       bin/alluxio format
@@ -82,6 +83,7 @@ case ${service,,} in
   worker)
     if [[ -n ${options} && ${options} != ${NO_FORMAT} ]]; then
       echo 'invalid option ' ${options} ', expected ' ${NO_FORMAT}
+      exit 1
     fi
     if [[ ${options} != ${NO_FORMAT} ]]; then
       bin/alluxio formatWorker
