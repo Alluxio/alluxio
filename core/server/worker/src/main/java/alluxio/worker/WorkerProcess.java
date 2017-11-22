@@ -34,7 +34,7 @@ public interface WorkerProcess extends Process {
      * @return a new instance of {@link WorkerProcess}
      */
     public static WorkerProcess create() {
-      return create(TieredIdentityFactory.getInstance());
+      return create(TieredIdentityFactory.localIdentity());
     }
 
     /**

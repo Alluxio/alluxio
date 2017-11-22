@@ -122,12 +122,12 @@ public final class LocalFirstPolicyTest {
     // local rack
     policy = LocalFirstPolicy.create(TieredIdentityFactory.fromString("node=node1,rack=rack2"));
     chosen = policy.getWorkerForNextBlock(workers, Constants.GB);
-    assertEquals("rack2", chosen.getTieredIdentity().getTiers().get(1).getValue());
+    assertEquals("rack2", chosen.getTieredIdentity().getTier(1).getValue());
 
     // local node
     policy = LocalFirstPolicy.create(TieredIdentityFactory.fromString("node=node4,rack=rack3"));
     chosen = policy.getWorkerForNextBlock(workers, Constants.GB);
-    assertEquals("node4", chosen.getTieredIdentity().getTiers().get(0).getValue());
+    assertEquals("node4", chosen.getTieredIdentity().getTier(0).getValue());
   }
 
   @Test
@@ -142,7 +142,7 @@ public final class LocalFirstPolicyTest {
     policy = LocalFirstPolicy
         .createAvoidEviction(TieredIdentityFactory.fromString("node=node2,rack=rack3"));
     chosen = policy.getWorkerForNextBlock(workers, Constants.GB);
-    assertEquals("node4", chosen.getTieredIdentity().getTiers().get(0).getValue());
+    assertEquals("node4", chosen.getTieredIdentity().getTier(0).getValue());
   }
 
   @Test

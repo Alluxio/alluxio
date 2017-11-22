@@ -139,7 +139,7 @@ public class MasterFaultToleranceIntegrationTest extends BaseIntegrationTest {
       @Override
       public Boolean apply(Void aVoid) {
         try {
-          return store.getAvailableWorkers().size() >= numWorkers;
+          return store.getEligibleWorkers().size() >= numWorkers;
         } catch (Exception e) {
           return false;
         }
