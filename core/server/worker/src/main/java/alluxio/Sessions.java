@@ -38,7 +38,7 @@ public final class Sessions {
   public static final int ACCESS_BLOCK_SESSION_ID = -5;
   public static final int KEYVALUE_SESSION_ID = -6;
 
-  // internal session ID base should be smaller than all predefined session ids
+  // internal session id base should be smaller than all predefined session ids
   public static final long INTERNAL_SESSION_ID_BASE = -7;
 
   /** Map from SessionId to {@link alluxio.SessionInfo} object. */
@@ -98,7 +98,7 @@ public final class Sessions {
   }
 
   /**
-   * @return a session ID used internally in workers
+   * @return a session id used internally in workers
    */
   public static long createInternalSessionId() {
     return INTERNAL_SESSION_ID_BASE
