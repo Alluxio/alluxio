@@ -167,7 +167,7 @@ public final class AlluxioBlockStore {
             .findFirst().get();
         LocalityTier topTier = mTieredIdentity.getTiers().get(0);
         if (topTier.getTierName().equals(Constants.LOCALITY_NODE)
-            && topTier.getValue().equals(nearest.get().getTiers().get(0))) {
+            && topTier.getValue().equals(nearest.get().getTiers().get(0).getValue())) {
           source = BlockInStreamSource.LOCAL;
         } else {
           source = BlockInStreamSource.REMOTE;
