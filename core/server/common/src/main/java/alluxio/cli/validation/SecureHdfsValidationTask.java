@@ -15,6 +15,8 @@ import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.cli.ValidateEnv;
 
+import com.google.common.collect.ImmutableMap;
+
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -35,6 +37,13 @@ public class SecureHdfsValidationTask implements ValidationTask {
    */
   private static final Pattern PRINCIPAL_PATTERN =
       Pattern.compile("(?<primary>[\\w][\\w-]*\\$?)(/(?<instance>[\\w]+))?(@(?<realm>[\\w]+))?");
+
+  private static final Map<String, PropertyKey> PRINCIPAL_MAP = ImmutableMap.of(
+      "master", PropertyKey.MASTER_PRINCIPAL,
+      "worker", PropertyKey.WORKER_PRINCIPAL);
+  private static final Map<String, PropertyKey> KEYTAB_MAP = ImmutableMap.of(
+      "master", PropertyKey.MASTER_KEYTAB_KEY_FILE,
+      "worker", PropertyKey.WORKER_KEYTAB_FILE);
 
   private final String mProcess;
 
@@ -62,18 +71,12 @@ public class SecureHdfsValidationTask implements ValidationTask {
 
   private boolean validatePrincipalLogin() {
     // Check whether can login with specified principal and keytab
-    String principal = "";
-    String keytab = "";
+    String principal = Configuration.get(PRINCIPAL_MAP.get(mProcess));
+    String keytab = Configuration.get(KEYTAB_MAP.get(mProcess));
     String primary;
     String instance;
     String realm;
-    if (mProcess.equals("master")) {
-      principal = Configuration.get(PropertyKey.MASTER_PRINCIPAL);
-      keytab = Configuration.get(PropertyKey.MASTER_KEYTAB_KEY_FILE);
-    } else if (mProcess.equals("worker")) {
-      principal = Configuration.get(PropertyKey.WORKER_PRINCIPAL);
-      keytab = Configuration.get(PropertyKey.WORKER_KEYTAB_FILE);
-    }
+
     Matcher matchPrincipal = PRINCIPAL_PATTERN.matcher(principal);
     if (!matchPrincipal.matches()) {
       System.err.format("Principal %s is not in the right format.%n", principal);
