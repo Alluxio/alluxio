@@ -51,7 +51,7 @@ declare -A alluxio_env_violators=(
   ["AWS_SECRETKEY"]="aws.secretKey"
 )
 
-for keyvaluepair in $(env | grep -E "ALLUXIO_|FS_|AWS_"); do
+for keyvaluepair in $(env); do
   # split around the "="
   key=$(echo ${keyvaluepair} | cut -d= -f1)
   value=$(echo ${keyvaluepair} | cut -d= -f2-)
@@ -62,7 +62,11 @@ for keyvaluepair in $(env | grep -E "ALLUXIO_|FS_|AWS_"); do
       echo "${alluxio_env_violators[${key}]}=${value}" >> conf/alluxio-site.properties
     else
       confkey=$(echo ${key} | sed "s/_/./g" | tr '[:upper:]' '[:lower:]')
-      echo "${confkey}=${value}" >> conf/alluxio-site.properties
+      # check if property name is valid
+      bin/alluxio getConf ${confkey} &> /dev/null || has_key=$?
+      if [[ ${has_key} -eq 0 ]]; then
+        echo "${confkey}=${value}" >> conf/alluxio-site.properties
+      fi
     fi
   fi
 done
