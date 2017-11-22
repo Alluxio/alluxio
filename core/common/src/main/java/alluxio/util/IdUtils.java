@@ -90,7 +90,8 @@ public final class IdUtils {
    * @return a session ID used internally in workers
    */
   public static long createInternalSessionId() {
-    return INTERNAL_SESSION_ID_BASE - (getRandomNonNegativeLong() % (Long.MAX_VALUE + INTERNAL_SESSION_ID_BASE));
+    return INTERNAL_SESSION_ID_BASE -
+        getRandomNonNegativeLong() % (Long.MAX_VALUE + INTERNAL_SESSION_ID_BASE);
   }
 
   /**
