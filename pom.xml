@@ -313,6 +313,7 @@
         <artifactId>metrics-jvm</artifactId>
         <version>${metrics.version}</version>
       </dependency>
+      <!-- Netty 4.0.50+ required for shading in client runtime jar to work -->
       <dependency>
         <groupId>io.netty</groupId>
         <artifactId>netty-all</artifactId>
