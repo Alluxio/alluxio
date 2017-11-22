@@ -64,19 +64,6 @@ public final class LocalFirstPolicyTest {
   }
 
   /**
-   * Tests that another worker is picked in case the local host does not have enough availability.
-   */
-  @Test
-  public void getOthersWhenNotEnoughAvailabilityOnLocal() {
-    String localhostName = NetworkAddressUtils.getLocalHostName();
-    LocalFirstPolicy policy = new LocalFirstPolicy(true);
-    List<BlockWorkerInfo> workers = new ArrayList<>();
-    workers.add(worker(Constants.GB, "worker1", ""));
-    workers.add(worker(Constants.MB, Constants.MB, localhostName, ""));
-    Assert.assertEquals("worker1", policy.getWorkerForNextBlock(workers, Constants.MB).getHost());
-  }
-
-  /**
    * Tests that non-local workers are randomly selected.
    */
   @Test
@@ -97,20 +84,6 @@ public final class LocalFirstPolicyTest {
     Assert.assertTrue(success);
   }
 
-  /**
-   * Tests that local host is picked if none of the workers has enough availability.
-   */
-  @Test
-  public void getLocalWhenNoneHasAvailability() {
-    String localhostName = NetworkAddressUtils.getLocalHostName();
-    LocalFirstPolicy policy = new LocalFirstPolicy(true);
-    List<BlockWorkerInfo> workers = new ArrayList<>();
-    workers.add(worker(Constants.GB, Constants.MB, "worker1", ""));
-    workers.add(worker(Constants.GB, Constants.MB, localhostName, ""));
-    Assert.assertEquals(localhostName,
-        policy.getWorkerForNextBlock(workers, Constants.GB).getHost());
-  }
-
   @Test
   public void chooseClosestTier() {
     List<BlockWorkerInfo> workers = new ArrayList<>();
@@ -126,21 +99,6 @@ public final class LocalFirstPolicyTest {
 
     // local node
     policy = LocalFirstPolicy.create(TieredIdentityFactory.fromString("node=node4,rack=rack3"));
-    chosen = policy.getWorkerForNextBlock(workers, Constants.GB);
-    assertEquals("node4", chosen.getTieredIdentity().getTier(0).getValue());
-  }
-
-  @Test
-  public void chooseClosestTierAvoidEviction() {
-    List<BlockWorkerInfo> workers = new ArrayList<>();
-    workers.add(worker(Constants.GB, Constants.MB, "", "node=node2,rack=rack3"));
-    workers.add(worker(Constants.GB, "node3", "rack2"));
-    workers.add(worker(Constants.GB, "node4", "rack3"));
-    LocalFirstPolicy policy;
-    WorkerNetAddress chosen;
-    // local rack with enough availability
-    policy = LocalFirstPolicy
-        .createAvoidEviction(TieredIdentityFactory.fromString("node=node2,rack=rack3"));
     chosen = policy.getWorkerForNextBlock(workers, Constants.GB);
     assertEquals("node4", chosen.getTieredIdentity().getTier(0).getValue());
   }
@@ -185,10 +143,6 @@ public final class LocalFirstPolicyTest {
   }
 
   private BlockWorkerInfo worker(long capacity, String node, String rack) {
-    return worker(capacity, 0, node, rack);
-  }
-
-  private BlockWorkerInfo worker(long capacity, long used, String node, String rack) {
     WorkerNetAddress address = new WorkerNetAddress();
     List<LocalityTier> tiers = new ArrayList<>();
     if (node != null && !node.isEmpty()) {
@@ -199,6 +153,6 @@ public final class LocalFirstPolicyTest {
       tiers.add(new LocalityTier(Constants.LOCALITY_RACK, rack));
     }
     address.setTieredIdentity(new TieredIdentity(tiers));
-    return new BlockWorkerInfo(address, capacity, used);
+    return new BlockWorkerInfo(address, capacity, 0);
   }
 }

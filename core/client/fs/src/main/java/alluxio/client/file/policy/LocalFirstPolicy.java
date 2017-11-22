@@ -11,8 +11,6 @@
 
 package alluxio.client.file.policy;
 
-import alluxio.Configuration;
-import alluxio.PropertyKey;
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.block.policy.BlockLocationPolicy;
 import alluxio.client.block.policy.options.GetWorkerOptions;
