@@ -88,13 +88,13 @@ public final class GetStatusOptions {
       return false;
     }
     GetStatusOptions that = (GetStatusOptions) o;
-    return Objects.equal(mLoadMetadataType, that.mLoadMetadataType)
-        && Objects.equal(mCommonOptions, that.mCommonOptions);
+    return Objects.equal(mCommonOptions, that.mCommonOptions)
+        && Objects.equal(mLoadMetadataType, that.mLoadMetadataType);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mLoadMetadataType, mCommonOptions);
+    return Objects.hashCode(mCommonOptions, mLoadMetadataType);
   }
 
   @Override
