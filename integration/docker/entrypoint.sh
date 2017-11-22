@@ -12,13 +12,16 @@
 
 set -e
 
-expected='"formatMaster", "formatWorker", "launchMaster", "launchWorker", "master, "worker", or "proxy"'
-if [[ $# -ne 1 ]]; then
-  echo 'expected one argument: ' ${expected}
+EXPECTED='"master [--no-format]", "worker [--no-format]", or "proxy"'
+NO_FORMAT='--no-format'
+
+if [[ $# -lt 1 ]]; then
+  echo 'expected atleast one argument: ' ${EXPECTED}
   exit 1
 fi
 
 service=$1
+options=$2
 
 # Only set ALLUXIO_RAM_FOLDER if tiered storage isn't explicitly configured
 if [[ -z "${ALLUXIO_WORKER_TIEREDSTORE_LEVEL0_DIRS_PATH}" ]]; then
@@ -67,31 +70,23 @@ for keyvaluepair in $(env | grep "ALLUXIO_"); do
 done
 
 case ${service,,} in
-  format)
-    bin/alluxio format
-    ;;
-  formatWorker)
-    bin/alluxio formatWorker
-    ;;
-  launchMaster)
-    integration/docker/bin/alluxio-master.sh
-    ;;
-  launchWorker)
-    integration/docker/bin/alluxio-worker.sh
-    ;;
   master)
-    bin/alluxio format
+    if [[ ${options} != ${NO_FORMAT} ]]; then
+      bin/alluxio format
+    fi
     integration/docker/bin/alluxio-master.sh
     ;;
   worker)
-    bin/alluxio formatWorker
+    if [[ ${options} != ${NO_FORMAT} ]]; then
+      bin/alluxio formatWorker
+    fi
     integration/docker/bin/alluxio-worker.sh
     ;;
   proxy)
     integration/docker/bin/alluxio-proxy.sh
     ;;
   *)
-    echo 'expected ' ${expected};
+    echo 'expected ' ${EXPECTED};
     exit 1
     ;;
 esac
