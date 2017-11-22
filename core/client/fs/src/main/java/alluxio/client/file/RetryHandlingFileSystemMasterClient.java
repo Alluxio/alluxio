@@ -162,13 +162,9 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
 
   @Override
   public synchronized long getNewBlockIdForFile(final AlluxioURI path) throws IOException {
-    return retryRPC(new RpcCallable<Long>() {
-      @Override
-      public Long call() throws TException {
-        return mClient.getNewBlockIdForFile(path.getPath(), new GetNewBlockIdForFileTOptions())
-            .getId();
-      }
-    });
+    return retryRPC(
+        () -> mClient.getNewBlockIdForFile(path.getPath(), new GetNewBlockIdForFileTOptions())
+            .getId());
   }
 
   @Override
