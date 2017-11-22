@@ -49,7 +49,7 @@ public final class ValidateEnv {
       Option.builder("hadoopConfDir").required(false).hasArg(true)
           .desc("path to server-side hadoop conf dir").build();
 
-  private static final String USAGE = "USAGE: validateEnv TARGET [NAME]\n\n"
+  private static final String USAGE = "USAGE: validateEnv TARGET [NAME] [OPTIONS]\n\n"
       + "Validate environment for Alluxio.\n\n"
       + "TARGET can be one of the following values:\n"
       + "local:   run all validation tasks on local\n"
@@ -63,7 +63,9 @@ public final class ValidateEnv {
       + "For example, specifying NAME \"master\" or \"ma\" will run both tasks named "
       + "\"master.rpc.port.available\" and \"master.web.port.available\" but not "
       + "\"worker.rpc.port.available\".\n"
-      + "If NAME is not given, all tasks for the given TARGET will run.\n";
+      + "If NAME is not given, all tasks for the given TARGET will run.\n\n"
+      + "OPTIONS can be a list of command line options. Each option has the"
+      + " format \"-<optionName> [optionValue]\"\n";
 
   private static final Map<ValidationTask, String> TASKS = new HashMap<>();
 
@@ -170,35 +172,44 @@ public final class ValidateEnv {
     return task;
   }
 
-  private static boolean validateRemote(List<String> nodes, String target, String name)
-      throws InterruptedException {
+  private static boolean validateRemote(List<String> nodes, String target, String name,
+      Map<String, String> optionsMap) throws InterruptedException {
     if (nodes == null) {
       return false;
     }
 
     boolean success = true;
     for (String node : nodes) {
-      success &= validateRemote(node, target, name);
+      success &= validateRemote(node, target, name, optionsMap);
     }
 
     return success;
   }
 
   // validates environment on remote node
-  private static boolean validateRemote(String node, String target, String name)
-      throws InterruptedException {
+  private static boolean validateRemote(String node, String target, String name,
+      Map<String, String> optionsMap) throws InterruptedException {
     System.out.format("Validating %s environment on %s...%n", target, node);
     if (!Utils.isAddressReachable(node, 22)) {
       System.err.format("Unable to reach ssh port 22 on node %s.%n", node);
       return false;
     }
 
+    StringBuilder sb = new StringBuilder();
+    for (Map.Entry<String, String> entry : optionsMap.entrySet()) {
+      sb.append("-");
+      sb.append(entry.getKey());
+      sb.append(" ");
+      sb.append(entry.getValue());
+      sb.append(" ");
+    }
     String homeDir = Configuration.get(PropertyKey.HOME);
     String remoteCommand = String.format(
-        "%s/bin/alluxio validateEnv %s %s", homeDir, target, name == null ? "" : name);
+        "%s/bin/alluxio validateEnv %s %s %s", homeDir, target, name == null ? "" : name, sb.toString());
     String localCommand = String.format(
         "ssh -o ConnectTimeout=5 -o StrictHostKeyChecking=no -tt %s \"bash %s\"",
         node, remoteCommand);
+    System.out.println("y7jin locla cmd " + localCommand);
     String[] command = {"bash", "-c", localCommand};
     try {
       ProcessBuilder builder = new ProcessBuilder(command);
@@ -215,7 +226,8 @@ public final class ValidateEnv {
   }
 
   // runs validation tasks in local environment
-  private static boolean validateLocal(String target, String name, String[] args, Map<String, String> optionsMap) throws InterruptedException {
+  private static boolean validateLocal(String target, String name,
+      Map<String, String> optionsMap) throws InterruptedException {
     int validationCount = 0;
     int failureCount = 0;
     Collection<ValidationTask> tasks = TARGET_TASKS.get(target);
@@ -226,7 +238,7 @@ public final class ValidateEnv {
       }
 
       System.out.format("Validating %s...", taskName);
-      if (task.validate(args, optionsMap)) {
+      if (task.validate(optionsMap)) {
         System.out.println("OK");
       } else {
         System.out.println("Failed");
@@ -250,12 +262,12 @@ public final class ValidateEnv {
     return true;
   }
 
-  private static boolean validateWorkers(String name) throws InterruptedException {
-    return validateRemote(Utils.readNodeList("workers"), "worker", name);
+  private static boolean validateWorkers(String name, Map<String, String> optionsMap) throws InterruptedException {
+    return validateRemote(Utils.readNodeList("workers"), "worker", name, optionsMap);
   }
 
-  private static boolean validateMasters(String name) throws InterruptedException {
-    return validateRemote(Utils.readNodeList("masters"), "master", name);
+  private static boolean validateMasters(String name, Map<String, String> optionsMap) throws InterruptedException {
+    return validateRemote(Utils.readNodeList("masters"), "master", name, optionsMap);
   }
 
   /**
@@ -301,17 +313,17 @@ public final class ValidateEnv {
       case "local":
       case "worker":
       case "master":
-        success = validateLocal(target, name, cl.getArgs(), optionsMap);
+        success = validateLocal(target, name, optionsMap);
         break;
       case "all":
-        success = validateMasters(name);
-        success = validateWorkers(name) && success;
+        success = validateMasters(name, optionsMap);
+        success = validateWorkers(name, optionsMap) && success;
         break;
       case "workers":
-        success = validateWorkers(name);
+        success = validateWorkers(name, optionsMap);
         break;
       case "masters":
-        success = validateMasters(name);
+        success = validateMasters(name, optionsMap);
         break;
       default:
         printHelp("Invalid target.");

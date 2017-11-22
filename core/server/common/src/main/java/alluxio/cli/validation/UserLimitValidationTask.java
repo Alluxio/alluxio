@@ -37,7 +37,7 @@ public final class UserLimitValidationTask implements ValidationTask {
   }
 
   @Override
-  public boolean validate(String[] args, Map<String, String> optionsMap) {
+  public boolean validate(Map<String, String> optionsMap) {
     try {
       Process process = Runtime.getRuntime().exec(new String[] {"bash", "-c", mCommand});
       try (BufferedReader processOutputReader = new BufferedReader(

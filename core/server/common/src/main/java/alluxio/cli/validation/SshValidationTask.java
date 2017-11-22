@@ -30,7 +30,7 @@ public final class SshValidationTask implements ValidationTask {
   }
 
   @Override
-  public boolean validate(String[] args, Map<String, String> optionsMap) {
+  public boolean validate(Map<String, String> optionsMap) {
     List<String> nodes = Utils.readNodeList(mFileName);
     if (nodes == null) {
       return false;

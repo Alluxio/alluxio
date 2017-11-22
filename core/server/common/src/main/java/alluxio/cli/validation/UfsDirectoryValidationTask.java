@@ -36,7 +36,7 @@ public final class UfsDirectoryValidationTask implements ValidationTask {
   }
 
   @Override
-  public boolean validate(String[] args, Map<String, String> optionsMap) {
+  public boolean validate(Map<String, String> optionsMap) {
     try {
       UfsStatus[] listStatus = mUfs.listStatus(mPath);
       if (listStatus == null) {
