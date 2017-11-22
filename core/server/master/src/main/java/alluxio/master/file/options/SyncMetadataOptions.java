@@ -9,9 +9,9 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.client.file.options;
+package alluxio.master.file.options;
 
-import alluxio.thrift.CheckConsistencyTOptions;
+import alluxio.thrift.SyncMetadataTOptions;
 import alluxio.wire.CommonOptions;
 
 import com.google.common.base.Objects;
@@ -19,37 +19,37 @@ import com.google.common.base.Objects;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * Options for checking the consistency of an Alluxio subtree.
+ * Method options for syncing the metadata of a path.
  */
 @NotThreadSafe
-public final class CheckConsistencyOptions {
+public final class SyncMetadataOptions {
   private CommonOptions mCommonOptions;
 
   /**
-   * @return the default {@link CheckConsistencyOptions}
+   * @return the default {@link SyncMetadataOptions}
    */
-  public static CheckConsistencyOptions defaults() {
-    return new CheckConsistencyOptions();
+  public static SyncMetadataOptions defaults() {
+    return new SyncMetadataOptions();
   }
 
-  private CheckConsistencyOptions() {
+  /**
+   * Constructs an instance of {@link SyncMetadataOptions} from
+   * {@link SyncMetadataTOptions}.
+   *
+   * @param options the {@link SyncMetadataTOptions} to use
+   */
+  public SyncMetadataOptions(SyncMetadataTOptions options) {
+    this();
+    if (options != null) {
+      if (options.isSetCommonOptions()) {
+        mCommonOptions = new CommonOptions(options.getCommonOptions());
+      }
+    }
+  }
+
+  private SyncMetadataOptions() {
+    super();
     mCommonOptions = CommonOptions.defaults();
-  }
-
-  /**
-   * @return the common options
-   */
-  public CommonOptions getCommonOptions() {
-    return mCommonOptions;
-  }
-
-  /**
-   * @param options the common options
-   * @return the updated options object
-   */
-  public CheckConsistencyOptions setCommonOptions(CommonOptions options) {
-    mCommonOptions = options;
-    return this;
   }
 
   @Override
@@ -57,10 +57,10 @@ public final class CheckConsistencyOptions {
     if (this == o) {
       return true;
     }
-    if (!(o instanceof CheckConsistencyOptions)) {
+    if (!(o instanceof SyncMetadataOptions)) {
       return false;
     }
-    CheckConsistencyOptions that = (CheckConsistencyOptions) o;
+    SyncMetadataOptions that = (SyncMetadataOptions) o;
     return Objects.equal(mCommonOptions, that.mCommonOptions);
   }
 
@@ -74,14 +74,5 @@ public final class CheckConsistencyOptions {
     return Objects.toStringHelper(this)
         .add("commonOptions", mCommonOptions)
         .toString();
-  }
-
-  /**
-   * @return Thrift representation of the options
-   */
-  public CheckConsistencyTOptions toThrift() {
-    CheckConsistencyTOptions options = new CheckConsistencyTOptions();
-    options.setCommonOptions(mCommonOptions.toThrift());
-    return options;
   }
 }
