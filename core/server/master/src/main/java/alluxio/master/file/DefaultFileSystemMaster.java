@@ -1516,28 +1516,32 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     InodeFile file = inodePath.getInodeFile();
     FileBlockInfo fileBlockInfo = new FileBlockInfo();
     fileBlockInfo.setBlockInfo(blockInfo);
-    fileBlockInfo.setUfsLocations(new ArrayList<String>());
 
     // The sequence number part of the block id is the block index.
     long offset = file.getBlockSizeBytes() * BlockId.getSequenceNumber(blockInfo.getBlockId());
     fileBlockInfo.setOffset(offset);
 
     if (fileBlockInfo.getBlockInfo().getLocations().isEmpty() && file.isPersisted()) {
-      // No alluxio locations, but there is a checkpoint in the under storage system. Add the
-      // locations from the under storage system.
-      MountTable.Resolution resolution = mMountTable.resolve(inodePath.getUri());
-      String ufsUri = resolution.getUri().toString();
-      UnderFileSystem ufs = resolution.getUfs();
-      List<String> locs;
-      try {
-        locs = ufs.getFileLocations(ufsUri,
-            FileLocationOptions.defaults().setOffset(fileBlockInfo.getOffset()));
-      } catch (IOException e) {
-        return fileBlockInfo;
-      }
-      if (locs != null) {
-        for (String loc : locs) {
-          fileBlockInfo.getUfsLocations().add(loc);
+      if (!fileBlockInfo.getBlockInfo().getUfsLocations().isEmpty()) {
+        fileBlockInfo.setUfsLocations(fileBlockInfo.getBlockInfo().getUfsLocations());
+      } else {
+        // No alluxio locations, but there is a checkpoint in the under storage system. Add the
+        // locations from the under storage system.
+        MountTable.Resolution resolution = mMountTable.resolve(inodePath.getUri());
+        String ufsUri = resolution.getUri().toString();
+        UnderFileSystem ufs = resolution.getUfs();
+        List<String> locs;
+        try {
+          locs = ufs.getFileLocations(ufsUri,
+              FileLocationOptions.defaults().setOffset(fileBlockInfo.getOffset()));
+        } catch (IOException e) {
+          return fileBlockInfo;
+        }
+        if (locs != null) {
+          mBlockMaster.setBlockUfsLocations(blockInfo.getBlockId(), locs);
+          for (String loc : locs) {
+            fileBlockInfo.getUfsLocations().add(loc);
+          }
         }
       }
     }

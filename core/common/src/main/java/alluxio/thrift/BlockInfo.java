@@ -45,6 +45,7 @@ public class BlockInfo implements org.apache.thrift.TBase<BlockInfo, BlockInfo._
   private static final org.apache.thrift.protocol.TField BLOCK_ID_FIELD_DESC = new org.apache.thrift.protocol.TField("blockId", org.apache.thrift.protocol.TType.I64, (short)1);
   private static final org.apache.thrift.protocol.TField LENGTH_FIELD_DESC = new org.apache.thrift.protocol.TField("length", org.apache.thrift.protocol.TType.I64, (short)2);
   private static final org.apache.thrift.protocol.TField LOCATIONS_FIELD_DESC = new org.apache.thrift.protocol.TField("locations", org.apache.thrift.protocol.TType.LIST, (short)3);
+  private static final org.apache.thrift.protocol.TField UFS_LOCATIONS_FIELD_DESC = new org.apache.thrift.protocol.TField("ufsLocations", org.apache.thrift.protocol.TType.LIST, (short)4);
 
   private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
   static {
@@ -55,12 +56,14 @@ public class BlockInfo implements org.apache.thrift.TBase<BlockInfo, BlockInfo._
   private long blockId; // required
   private long length; // required
   private List<BlockLocation> locations; // required
+  private List<String> ufsLocations; // required
 
   /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
   public enum _Fields implements org.apache.thrift.TFieldIdEnum {
     BLOCK_ID((short)1, "blockId"),
     LENGTH((short)2, "length"),
-    LOCATIONS((short)3, "locations");
+    LOCATIONS((short)3, "locations"),
+    UFS_LOCATIONS((short)4, "ufsLocations");
 
     private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -81,6 +84,8 @@ public class BlockInfo implements org.apache.thrift.TBase<BlockInfo, BlockInfo._
           return LENGTH;
         case 3: // LOCATIONS
           return LOCATIONS;
+        case 4: // UFS_LOCATIONS
+          return UFS_LOCATIONS;
         default:
           return null;
       }
@@ -134,6 +139,9 @@ public class BlockInfo implements org.apache.thrift.TBase<BlockInfo, BlockInfo._
     tmpMap.put(_Fields.LOCATIONS, new org.apache.thrift.meta_data.FieldMetaData("locations", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.ListMetaData(org.apache.thrift.protocol.TType.LIST, 
             new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT            , "BlockLocation"))));
+    tmpMap.put(_Fields.UFS_LOCATIONS, new org.apache.thrift.meta_data.FieldMetaData("ufsLocations", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+        new org.apache.thrift.meta_data.ListMetaData(org.apache.thrift.protocol.TType.LIST, 
+            new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING))));
     metaDataMap = Collections.unmodifiableMap(tmpMap);
     org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(BlockInfo.class, metaDataMap);
   }
@@ -144,7 +152,8 @@ public class BlockInfo implements org.apache.thrift.TBase<BlockInfo, BlockInfo._
   public BlockInfo(
     long blockId,
     long length,
-    List<BlockLocation> locations)
+    List<BlockLocation> locations,
+    List<String> ufsLocations)
   {
     this();
     this.blockId = blockId;
@@ -152,6 +161,7 @@ public class BlockInfo implements org.apache.thrift.TBase<BlockInfo, BlockInfo._
     this.length = length;
     setLengthIsSet(true);
     this.locations = locations;
+    this.ufsLocations = ufsLocations;
   }
 
   /**
@@ -168,6 +178,10 @@ public class BlockInfo implements org.apache.thrift.TBase<BlockInfo, BlockInfo._
       }
       this.locations = __this__locations;
     }
+    if (other.isSetUfsLocations()) {
+      List<String> __this__ufsLocations = new ArrayList<String>(other.ufsLocations);
+      this.ufsLocations = __this__ufsLocations;
+    }
   }
 
   public BlockInfo deepCopy() {
@@ -181,6 +195,7 @@ public class BlockInfo implements org.apache.thrift.TBase<BlockInfo, BlockInfo._
     setLengthIsSet(false);
     this.length = 0;
     this.locations = null;
+    this.ufsLocations = null;
   }
 
   public long getBlockId() {
@@ -268,6 +283,45 @@ public class BlockInfo implements org.apache.thrift.TBase<BlockInfo, BlockInfo._
     }
   }
 
+  public int getUfsLocationsSize() {
+    return (this.ufsLocations == null) ? 0 : this.ufsLocations.size();
+  }
+
+  public java.util.Iterator<String> getUfsLocationsIterator() {
+    return (this.ufsLocations == null) ? null : this.ufsLocations.iterator();
+  }
+
+  public void addToUfsLocations(String elem) {
+    if (this.ufsLocations == null) {
+      this.ufsLocations = new ArrayList<String>();
+    }
+    this.ufsLocations.add(elem);
+  }
+
+  public List<String> getUfsLocations() {
+    return this.ufsLocations;
+  }
+
+  public BlockInfo setUfsLocations(List<String> ufsLocations) {
+    this.ufsLocations = ufsLocations;
+    return this;
+  }
+
+  public void unsetUfsLocations() {
+    this.ufsLocations = null;
+  }
+
+  /** Returns true if field ufsLocations is set (has been assigned a value) and false otherwise */
+  public boolean isSetUfsLocations() {
+    return this.ufsLocations != null;
+  }
+
+  public void setUfsLocationsIsSet(boolean value) {
+    if (!value) {
+      this.ufsLocations = null;
+    }
+  }
+
   public void setFieldValue(_Fields field, Object value) {
     switch (field) {
     case BLOCK_ID:
@@ -294,6 +348,14 @@ public class BlockInfo implements org.apache.thrift.TBase<BlockInfo, BlockInfo._
       }
       break;
 
+    case UFS_LOCATIONS:
+      if (value == null) {
+        unsetUfsLocations();
+      } else {
+        setUfsLocations((List<String>)value);
+      }
+      break;
+
     }
   }
 
@@ -307,6 +369,9 @@ public class BlockInfo implements org.apache.thrift.TBase<BlockInfo, BlockInfo._
 
     case LOCATIONS:
       return getLocations();
+
+    case UFS_LOCATIONS:
+      return getUfsLocations();
 
     }
     throw new IllegalStateException();
@@ -325,6 +390,8 @@ public class BlockInfo implements org.apache.thrift.TBase<BlockInfo, BlockInfo._
       return isSetLength();
     case LOCATIONS:
       return isSetLocations();
+    case UFS_LOCATIONS:
+      return isSetUfsLocations();
     }
     throw new IllegalStateException();
   }
@@ -369,6 +436,15 @@ public class BlockInfo implements org.apache.thrift.TBase<BlockInfo, BlockInfo._
         return false;
     }
 
+    boolean this_present_ufsLocations = true && this.isSetUfsLocations();
+    boolean that_present_ufsLocations = true && that.isSetUfsLocations();
+    if (this_present_ufsLocations || that_present_ufsLocations) {
+      if (!(this_present_ufsLocations && that_present_ufsLocations))
+        return false;
+      if (!this.ufsLocations.equals(that.ufsLocations))
+        return false;
+    }
+
     return true;
   }
 
@@ -390,6 +466,11 @@ public class BlockInfo implements org.apache.thrift.TBase<BlockInfo, BlockInfo._
     list.add(present_locations);
     if (present_locations)
       list.add(locations);
+
+    boolean present_ufsLocations = true && (isSetUfsLocations());
+    list.add(present_ufsLocations);
+    if (present_ufsLocations)
+      list.add(ufsLocations);
 
     return list.hashCode();
   }
@@ -432,6 +513,16 @@ public class BlockInfo implements org.apache.thrift.TBase<BlockInfo, BlockInfo._
         return lastComparison;
       }
     }
+    lastComparison = Boolean.valueOf(isSetUfsLocations()).compareTo(other.isSetUfsLocations());
+    if (lastComparison != 0) {
+      return lastComparison;
+    }
+    if (isSetUfsLocations()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.ufsLocations, other.ufsLocations);
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+    }
     return 0;
   }
 
@@ -465,6 +556,14 @@ public class BlockInfo implements org.apache.thrift.TBase<BlockInfo, BlockInfo._
       sb.append("null");
     } else {
       sb.append(this.locations);
+    }
+    first = false;
+    if (!first) sb.append(", ");
+    sb.append("ufsLocations:");
+    if (this.ufsLocations == null) {
+      sb.append("null");
+    } else {
+      sb.append(this.ufsLocations);
     }
     first = false;
     sb.append(")");
@@ -547,6 +646,24 @@ public class BlockInfo implements org.apache.thrift.TBase<BlockInfo, BlockInfo._
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
+          case 4: // UFS_LOCATIONS
+            if (schemeField.type == org.apache.thrift.protocol.TType.LIST) {
+              {
+                org.apache.thrift.protocol.TList _list3 = iprot.readListBegin();
+                struct.ufsLocations = new ArrayList<String>(_list3.size);
+                String _elem4;
+                for (int _i5 = 0; _i5 < _list3.size; ++_i5)
+                {
+                  _elem4 = iprot.readString();
+                  struct.ufsLocations.add(_elem4);
+                }
+                iprot.readListEnd();
+              }
+              struct.setUfsLocationsIsSet(true);
+            } else { 
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+            }
+            break;
           default:
             org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
         }
@@ -572,9 +689,21 @@ public class BlockInfo implements org.apache.thrift.TBase<BlockInfo, BlockInfo._
         oprot.writeFieldBegin(LOCATIONS_FIELD_DESC);
         {
           oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, struct.locations.size()));
-          for (BlockLocation _iter3 : struct.locations)
+          for (BlockLocation _iter6 : struct.locations)
           {
-            _iter3.write(oprot);
+            _iter6.write(oprot);
+          }
+          oprot.writeListEnd();
+        }
+        oprot.writeFieldEnd();
+      }
+      if (struct.ufsLocations != null) {
+        oprot.writeFieldBegin(UFS_LOCATIONS_FIELD_DESC);
+        {
+          oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRING, struct.ufsLocations.size()));
+          for (String _iter7 : struct.ufsLocations)
+          {
+            oprot.writeString(_iter7);
           }
           oprot.writeListEnd();
         }
@@ -607,7 +736,10 @@ public class BlockInfo implements org.apache.thrift.TBase<BlockInfo, BlockInfo._
       if (struct.isSetLocations()) {
         optionals.set(2);
       }
-      oprot.writeBitSet(optionals, 3);
+      if (struct.isSetUfsLocations()) {
+        optionals.set(3);
+      }
+      oprot.writeBitSet(optionals, 4);
       if (struct.isSetBlockId()) {
         oprot.writeI64(struct.blockId);
       }
@@ -617,9 +749,18 @@ public class BlockInfo implements org.apache.thrift.TBase<BlockInfo, BlockInfo._
       if (struct.isSetLocations()) {
         {
           oprot.writeI32(struct.locations.size());
-          for (BlockLocation _iter4 : struct.locations)
+          for (BlockLocation _iter8 : struct.locations)
           {
-            _iter4.write(oprot);
+            _iter8.write(oprot);
+          }
+        }
+      }
+      if (struct.isSetUfsLocations()) {
+        {
+          oprot.writeI32(struct.ufsLocations.size());
+          for (String _iter9 : struct.ufsLocations)
+          {
+            oprot.writeString(_iter9);
           }
         }
       }
@@ -628,7 +769,7 @@ public class BlockInfo implements org.apache.thrift.TBase<BlockInfo, BlockInfo._
     @Override
     public void read(org.apache.thrift.protocol.TProtocol prot, BlockInfo struct) throws org.apache.thrift.TException {
       TTupleProtocol iprot = (TTupleProtocol) prot;
-      BitSet incoming = iprot.readBitSet(3);
+      BitSet incoming = iprot.readBitSet(4);
       if (incoming.get(0)) {
         struct.blockId = iprot.readI64();
         struct.setBlockIdIsSet(true);
@@ -639,17 +780,30 @@ public class BlockInfo implements org.apache.thrift.TBase<BlockInfo, BlockInfo._
       }
       if (incoming.get(2)) {
         {
-          org.apache.thrift.protocol.TList _list5 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
-          struct.locations = new ArrayList<BlockLocation>(_list5.size);
-          BlockLocation _elem6;
-          for (int _i7 = 0; _i7 < _list5.size; ++_i7)
+          org.apache.thrift.protocol.TList _list10 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
+          struct.locations = new ArrayList<BlockLocation>(_list10.size);
+          BlockLocation _elem11;
+          for (int _i12 = 0; _i12 < _list10.size; ++_i12)
           {
-            _elem6 = new BlockLocation();
-            _elem6.read(iprot);
-            struct.locations.add(_elem6);
+            _elem11 = new BlockLocation();
+            _elem11.read(iprot);
+            struct.locations.add(_elem11);
           }
         }
         struct.setLocationsIsSet(true);
+      }
+      if (incoming.get(3)) {
+        {
+          org.apache.thrift.protocol.TList _list13 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRING, iprot.readI32());
+          struct.ufsLocations = new ArrayList<String>(_list13.size);
+          String _elem14;
+          for (int _i15 = 0; _i15 < _list13.size; ++_i15)
+          {
+            _elem14 = iprot.readString();
+            struct.ufsLocations.add(_elem14);
+          }
+        }
+        struct.setUfsLocationsIsSet(true);
       }
     }
   }

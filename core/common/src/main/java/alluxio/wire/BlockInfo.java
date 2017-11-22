@@ -33,6 +33,7 @@ public final class BlockInfo implements Serializable {
   private long mBlockId;
   private long mLength;
   private ArrayList<BlockLocation> mLocations = new ArrayList<>();
+  private ArrayList<String> mUfsLocations = new ArrayList<>();
 
   /**
    * Creates a new instance of {@link BlockInfo}.
@@ -75,6 +76,13 @@ public final class BlockInfo implements Serializable {
   }
 
   /**
+   * @return the block locations in ufs
+   */
+  public List<String> getUfsLocations() {
+    return mUfsLocations;
+  }
+
+  /**
    * @param blockId the block id to use
    * @return the block information
    */
@@ -102,6 +110,16 @@ public final class BlockInfo implements Serializable {
   }
 
   /**
+   * @param ufsLocations the block locations in ufs
+   * @return the block information
+   */
+  public BlockInfo setUfsLocations(List<String> ufsLocations) {
+    Preconditions.checkNotNull(ufsLocations, "ufsLocations should not be null");
+    mUfsLocations = new ArrayList<>(ufsLocations);
+    return this;
+  }
+
+  /**
    * @return thrift representation of the block information
    */
   protected alluxio.thrift.BlockInfo toThrift() {
@@ -109,7 +127,7 @@ public final class BlockInfo implements Serializable {
     for (BlockLocation location : mLocations) {
       locations.add(location.toThrift());
     }
-    return new alluxio.thrift.BlockInfo(mBlockId, mLength, locations);
+    return new alluxio.thrift.BlockInfo(mBlockId, mLength, locations, mUfsLocations);
   }
 
   @Override
@@ -122,17 +140,17 @@ public final class BlockInfo implements Serializable {
     }
     BlockInfo that = (BlockInfo) o;
     return mBlockId == that.mBlockId && mLength == that.mLength
-        && mLocations.equals(that.mLocations);
+        && mLocations.equals(that.mLocations) && mUfsLocations.equals(that.mUfsLocations);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mBlockId, mLength, mLocations);
+    return Objects.hashCode(mBlockId, mLength, mLocations, mUfsLocations);
   }
 
   @Override
   public String toString() {
     return Objects.toStringHelper(this).add("id", mBlockId).add("length", mLength)
-        .add("locations", mLocations).toString();
+        .add("locations", mLocations).add("ufsLocations", mUfsLocations).toString();
   }
 }

@@ -33,6 +33,10 @@ public final class FileBlockInfo implements Serializable {
 
   private BlockInfo mBlockInfo = new BlockInfo();
   private long mOffset;
+  /**
+   * @deprecated since 1.7, will be removed in 2.0, replaced by {@link BlockInfo#mUfsLocations}
+   */
+  @Deprecated
   private ArrayList<String> mUfsLocations = new ArrayList<>();
 
   /**
@@ -74,7 +78,10 @@ public final class FileBlockInfo implements Serializable {
 
   /**
    * @return the UFS locations
+   * @deprecated since 1.7, will be removed in 2.0. Use {@link #getBlockInfo()} and
+   *             {@link BlockInfo#getUfsLocations()} instead
    */
+  @Deprecated
   public List<String> getUfsLocations() {
     return mUfsLocations;
   }
@@ -101,7 +108,9 @@ public final class FileBlockInfo implements Serializable {
   /**
    * @param ufsLocations the UFS locations to use
    * @return the file block information
+   * @deprecated since 1.7, will be removed in 2.0
    */
+  @Deprecated
   public FileBlockInfo setUfsLocations(List<String> ufsLocations) {
     Preconditions.checkNotNull(ufsLocations, "ufsLocations");
     mUfsLocations = new ArrayList<>(ufsLocations);

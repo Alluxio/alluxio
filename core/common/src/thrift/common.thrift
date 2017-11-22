@@ -10,6 +10,7 @@ struct BlockInfo {
   1: i64 blockId
   2: i64 length
   3: list<BlockLocation> locations
+  4: list<string> ufsLocations
 }
 
 /**
