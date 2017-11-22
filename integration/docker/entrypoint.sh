@@ -43,14 +43,6 @@ alluxio_env_vars=(
   ALLUXIO_WORKER_JAVA_OPTS
 )
 
-# Map of environment variables that violate the "_ to ."-rule
-declare -A alluxio_env_violators=(
-  ["ALLUXIO_UNDERFS_S3A_INHERIT_ACL"]="alluxio.underfs.s3a.inherit_acl"
-  ["ALLUXIO_MASTER_FORMAT_FILE_PREFIX"]="alluxio.master.format.file_prefix"
-  ["AWS_ACCESSKEYID"]="aws.accessKeyId"
-  ["AWS_SECRETKEY"]="aws.secretKey"
-)
-
 for keyvaluepair in $(env); do
   # split around the "="
   key=$(echo ${keyvaluepair} | cut -d= -f1)
@@ -58,15 +50,10 @@ for keyvaluepair in $(env); do
   if [[ "${alluxio_env_vars[*]}" =~ "${key}" ]]; then
     echo "export ${key}=${value}" >> conf/alluxio-env.sh
   else
-    if [[ "${!alluxio_env_violators[*]}" =~ "${key}" ]]; then
-      echo "${alluxio_env_violators[${key}]}=${value}" >> conf/alluxio-site.properties
-    else
-      confkey=$(echo ${key} | sed "s/_/./g" | tr '[:upper:]' '[:lower:]')
-      # check if property name is valid
-      bin/alluxio getConf ${confkey} &> /dev/null || has_key=$?
-      if [[ ${has_key} -eq 0 ]]; then
-        echo "${confkey}=${value}" >> conf/alluxio-site.properties
-      fi
+    # check if property name is valid
+    if keyvaluepair=$(bin/alluxio getConf -e --display-name ${key} 2> /dev/null); then
+      confkey=$(echo ${keyvaluepair} | cut -d= -f1)
+      echo "${confkey}=${value}" >> conf/alluxio-site.properties
     fi
   fi
 done
