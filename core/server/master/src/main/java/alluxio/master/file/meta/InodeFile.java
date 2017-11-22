@@ -231,16 +231,17 @@ public final class InodeFile extends Inode<InodeFile> {
     }
     mCompleted = true;
     mLength = length;
-    mBlocks.clear();
-    if (length == Constants.UNKNOWN_SIZE) {
-      // TODO(gpang): allow unknown files to be multiple blocks.
-      // If the length of the file is unknown, only allow 1 block to the file.
-      length = mBlockSizeBytes;
-    }
-    while (length > 0) {
-      long blockSize = Math.min(length, mBlockSizeBytes);
-      getNewBlockId();
-      length -= blockSize;
+    if (mBlocks.isEmpty()) {
+      if (length == Constants.UNKNOWN_SIZE) {
+        // TODO(gpang): allow unknown files to be multiple blocks.
+        // If the length of the file is unknown, only allow 1 block to the file.
+        length = mBlockSizeBytes;
+      }
+      while (length > 0) {
+        long blockSize = Math.min(length, mBlockSizeBytes);
+        getNewBlockId();
+        length -= blockSize;
+      }
     }
   }
 
