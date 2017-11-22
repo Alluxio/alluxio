@@ -16,8 +16,10 @@ import alluxio.PropertyKey;
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.block.policy.BlockLocationPolicy;
 import alluxio.client.block.policy.options.GetWorkerOptions;
+import alluxio.wire.TieredIdentity;
 import alluxio.wire.WorkerNetAddress;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
 
@@ -43,6 +45,12 @@ public final class LocalFirstAvoidEvictionPolicy
    */
   public LocalFirstAvoidEvictionPolicy() {
     mPolicy = new LocalFirstPolicy();
+  }
+
+
+  @VisibleForTesting
+  LocalFirstAvoidEvictionPolicy(TieredIdentity localTieredIdentity) {
+    mPolicy = LocalFirstPolicy.create(localTieredIdentity);
   }
 
   @Override
