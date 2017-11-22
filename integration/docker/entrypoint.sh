@@ -80,7 +80,7 @@ done
 case ${service,,} in
   master)
     if [[ -n ${options} && ${options} != ${NO_FORMAT} ]]; then
-      echo 'invalid option ' ${options} ', expected ' ${NO_FORMAT}
+      printUsage
       exit 1
     fi
     if [[ ${options} != ${NO_FORMAT} ]]; then
@@ -90,7 +90,7 @@ case ${service,,} in
     ;;
   worker)
     if [[ -n ${options} && ${options} != ${NO_FORMAT} ]]; then
-      echo 'invalid option ' ${options} ', expected ' ${NO_FORMAT}
+      printUsage
       exit 1
     fi
     if [[ ${options} != ${NO_FORMAT} ]]; then
