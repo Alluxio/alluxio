@@ -13,7 +13,6 @@ package alluxio.worker.block;
 
 import alluxio.Configuration;
 import alluxio.PropertyKey;
-import alluxio.Sessions;
 import alluxio.StorageTierAssoc;
 import alluxio.WorkerStorageTierAssoc;
 import alluxio.collections.Pair;
@@ -625,7 +624,8 @@ public class TieredBlockStore implements BlockStore {
     // 1. remove blocks to make room.
     for (Pair<Long, BlockStoreLocation> blockInfo : plan.toEvict()) {
       try {
-        removeBlockInternal(IdUtils.createInternalSessionId(), blockInfo.getFirst(), blockInfo.getSecond());
+        removeBlockInternal(IdUtils.createInternalSessionId(),
+            blockInfo.getFirst(), blockInfo.getSecond());
       } catch (InvalidWorkerStateException e) {
         // Evictor is not working properly
         LOG.error("Failed to evict blockId {}, this is temp block", blockInfo.getFirst());
@@ -663,7 +663,8 @@ public class TieredBlockStore implements BlockStore {
         BlockStoreLocation newLocation = entry.getDstLocation();
         MoveBlockResult moveResult;
         try {
-          moveResult = moveBlockInternal(IdUtils.createInternalSessionId(), blockId, oldLocation, newLocation);
+          moveResult = moveBlockInternal(IdUtils.createInternalSessionId(),
+              blockId, oldLocation, newLocation);
         } catch (InvalidWorkerStateException e) {
           // Evictor is not working properly
           LOG.error("Failed to demote blockId {}, this is temp block", blockId);
