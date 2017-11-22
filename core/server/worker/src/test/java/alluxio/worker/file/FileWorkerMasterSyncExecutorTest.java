@@ -13,6 +13,7 @@ package alluxio.worker.file;
 
 import alluxio.exception.status.UnavailableException;
 import alluxio.thrift.FileSystemCommand;
+import alluxio.thrift.FileSystemHeartbeatTOptions;
 import alluxio.underfs.UfsFileStatus;
 
 import com.google.common.collect.Lists;
@@ -57,7 +58,8 @@ public final class FileWorkerMasterSyncExecutorTest {
         new FileDataManager.PersistedFilesInfo(persistedFiles, fileStatusList);
     Mockito.when(mFileDataManager.getPersistedFilesInfo()).thenReturn(filesInfo);
     // first time fails, second time passes
-    Mockito.when(mFileSystemMasterClient.heartbeat(Mockito.anyLong(), Mockito.eq(persistedFiles)))
+    Mockito.when(mFileSystemMasterClient.heartbeat(Mockito.anyLong(), Mockito.eq(persistedFiles),
+        Mockito.any(FileSystemHeartbeatTOptions.class)))
         .thenThrow(new UnavailableException("failure"));
     mFileWorkerMasterSyncExecutor.heartbeat();
     Mockito.verify(mFileDataManager, Mockito.never()).clearPersistedFiles(persistedFiles);
