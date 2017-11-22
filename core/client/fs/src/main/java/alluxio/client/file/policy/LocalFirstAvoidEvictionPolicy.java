@@ -47,7 +47,6 @@ public final class LocalFirstAvoidEvictionPolicy
     mPolicy = new LocalFirstPolicy();
   }
 
-
   @VisibleForTesting
   LocalFirstAvoidEvictionPolicy(TieredIdentity localTieredIdentity) {
     mPolicy = LocalFirstPolicy.create(localTieredIdentity);
