@@ -46,7 +46,7 @@ import java.util.Map;
  */
 public final class ValidateEnv {
   public static final Option HADOOP_CONF_DIR_OPTION =
-      Option.builder("hadoop").required(false).hasArg(true)
+      Option.builder("hdfsConf").required(false).hasArg(true)
           .desc("path to server-side hadoop conf dir").build();
 
   private static final String USAGE = "USAGE: validateEnv TARGET [NAME]\n\n"
