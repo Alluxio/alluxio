@@ -150,7 +150,7 @@ public final class FileDataManager {
    */
   private void addPersistedFile(long fileId, UfsFileStatus ufsFileStatus) {
     synchronized (mLock) {
-      mPersistedFilesInfo.put(fileId ,ufsFileStatus);
+      mPersistedFilesInfo.put(fileId, ufsFileStatus);
     }
   }
 
@@ -328,6 +328,9 @@ public final class FileDataManager {
     }
   }
 
+  /**
+   * Information about persisted files.
+   */
   public static class PersistedFilesInfo {
     private List<Long> mIdList;
     private List<UfsFileStatus> mFileStatusList;
@@ -341,11 +344,18 @@ public final class FileDataManager {
       }
     }
 
+    /**
+     * @param idList list of file ids of persisted files
+     * @param fileStatusList list of {@link UfsFileStatus} of persisted files
+     */
     public PersistedFilesInfo(List<Long> idList, List<UfsFileStatus> fileStatusList) {
       mIdList = idList;
       mFileStatusList = fileStatusList;
     }
 
+    /**
+     * @return a list of file ids of persisted files
+     */
     public List<Long> idList() {
       return mIdList;
     }
