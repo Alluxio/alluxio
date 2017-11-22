@@ -37,29 +37,30 @@ public final class GetConf {
       + "exit code will be nonzero. If the key is valid but isn't set, an empty string is printed. "
       + "If \"--display-name\" option is specified, both the key and value are printed. "
       + "If \"-e\" option is specified, the key is interpret as an environment variable name and "
-      + "the corresponding configuration key value is printed. "
+      + "the corresponding configuration value (or key value pair if --display-name is specified)"
+      + " is printed. "
       + "If no key is specified, all configuration is printed. If \"--unit\" option is specified, "
       + "values of data size configuration will be converted to a quantity in the given unit."
       + "E.g., with \"--unit KB\", a configuration value of \"4096\" will return 4, "
       + "and with \"--unit S\", a configuration value of \"5000\" will return 5."
       + "Possible unit options include B, KB, MB, GB, TP, PB, MS, S, M, H, D";
 
-  private static final String UNIT_OPTION_NAME = "unit";
-  private static final Option UNIT_OPTION =
-      Option.builder().required(false).longOpt(UNIT_OPTION_NAME).hasArg(true)
-          .desc("unit of the value to return.").build();
-  private static final String ENV_OPTION_NAME = "e";
-  private static final Option ENV_OPTION =
-      Option.builder(ENV_OPTION_NAME).required(false).hasArg(false)
-          .desc("use environment variable name of the key").build();
   private static final String DISPLAY_NAME_OPTION_NAME = "display-name";
   private static final Option DISPLAY_NAME_OPTION =
       Option.builder().required(false).longOpt(DISPLAY_NAME_OPTION_NAME).hasArg(false)
           .desc("display property name in the output").build();
+  private static final String ENV_OPTION_NAME = "e";
+  private static final Option ENV_OPTION =
+      Option.builder(ENV_OPTION_NAME).required(false).hasArg(false)
+          .desc("use environment variable name of the key").build();
+  private static final String UNIT_OPTION_NAME = "unit";
+  private static final Option UNIT_OPTION =
+      Option.builder().required(false).longOpt(UNIT_OPTION_NAME).hasArg(true)
+          .desc("unit of the value to return.").build();
   private static final Options OPTIONS = new Options()
-      .addOption(UNIT_OPTION)
       .addOption(DISPLAY_NAME_OPTION)
-      .addOption(ENV_OPTION);
+      .addOption(ENV_OPTION)
+      .addOption(UNIT_OPTION);
 
   private static final Map<String, String> ENV_VIOLATORS = ImmutableMap.of(
       "ALLUXIO_UNDERFS_S3A_INHERIT_ACL", "alluxio.underfs.s3a.inherit_acl",
