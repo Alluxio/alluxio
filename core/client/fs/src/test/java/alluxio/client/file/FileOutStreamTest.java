@@ -146,7 +146,7 @@ public class FileOutStreamTest {
         new BlockWorkerInfo(new WorkerNetAddress().setHost("localhost")
             .setTieredIdentity(TieredIdentityFactory.fromString("node=localhost"))
             .setRpcPort(1).setDataPort(2).setWebPort(3), Constants.GB, 0);
-    when(mBlockStore.getAvailableWorkers()).thenReturn(Lists.newArrayList(workerInfo));
+    when(mBlockStore.getEligibleWorkers()).thenReturn(Lists.newArrayList(workerInfo));
     mAlluxioOutStreamMap = outStreamMap;
 
     // Create an under storage stream so that we can check whether it has been flushed

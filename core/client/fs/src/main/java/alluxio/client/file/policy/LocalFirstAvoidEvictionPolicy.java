@@ -11,12 +11,18 @@
 
 package alluxio.client.file.policy;
 
+import alluxio.Configuration;
+import alluxio.PropertyKey;
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.block.policy.BlockLocationPolicy;
 import alluxio.client.block.policy.options.GetWorkerOptions;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.base.Objects;
+import com.google.common.collect.Lists;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 import javax.annotation.concurrent.ThreadSafe;
 /**
@@ -36,18 +42,43 @@ public final class LocalFirstAvoidEvictionPolicy
    * Constructs a {@link LocalFirstAvoidEvictionPolicy}.
    */
   public LocalFirstAvoidEvictionPolicy() {
-    mPolicy = new LocalFirstPolicy(true);
+    mPolicy = new LocalFirstPolicy();
   }
 
   @Override
   public WorkerNetAddress getWorkerForNextBlock(Iterable<BlockWorkerInfo> workerInfoList,
       long blockSizeBytes) {
-    return mPolicy.getWorkerForNextBlock(workerInfoList, blockSizeBytes);
+    List<BlockWorkerInfo> allWorkers = Lists.newArrayList(workerInfoList);
+    // Prefer workers with enough availability.
+    List<BlockWorkerInfo> workers = allWorkers.stream()
+        .filter(worker -> getAvailableBytes(worker) >= blockSizeBytes)
+        .collect(Collectors.toList());
+    if (workers.isEmpty()) {
+      workers = allWorkers;
+    }
+    return mPolicy.getWorkerForNextBlock(workers, blockSizeBytes);
   }
 
   @Override
   public WorkerNetAddress getWorker(GetWorkerOptions options) {
-    return mPolicy.getWorker(options);
+    return getWorkerForNextBlock(options.getBlockWorkerInfos(), options.getBlockSize());
+
+  }
+
+  /**
+   * The information of BlockWorkerInfo is update after a file complete write. To avoid evict,
+   * user should configure "alluxio.user.file.write.avoid.eviction.policy.reserved.size.bytes"
+   * to reserve some space to store the block.
+   *
+   * @param workerInfo BlockWorkerInfo of the worker
+   * @return the available bytes of the worker
+   */
+  private long getAvailableBytes(BlockWorkerInfo workerInfo) {
+    long mUserFileWriteCapacityReserved = Configuration
+            .getBytes(PropertyKey.USER_FILE_WRITE_AVOID_EVICTION_POLICY_RESERVED_BYTES);
+    long mCapacityBytes = workerInfo.getCapacityBytes();
+    long mUsedBytes = workerInfo.getUsedBytes();
+    return mCapacityBytes - mUsedBytes - mUserFileWriteCapacityReserved;
   }
 
   @Override

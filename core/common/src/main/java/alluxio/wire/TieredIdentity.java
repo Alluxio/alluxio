@@ -52,6 +52,14 @@ public final class TieredIdentity {
   }
 
   /**
+   * @param i a tier index
+   * @return the ith locality tier
+   */
+  public LocalityTier getTier(int i) {
+    return mTiers.get(i);
+  }
+
+  /**
    * @return a Thrift representation
    */
   public alluxio.thrift.TieredIdentity toThrift() {
@@ -101,7 +109,7 @@ public final class TieredIdentity {
   }
 
   /**
-   * @param other a locality tier to compare to
+   * @param other a tiered identity to compare to
    * @return whether this tiered identity matches the given tiered identity in all strict tiers
    */
   public boolean strictTiersMatch(TieredIdentity other) {
@@ -116,6 +124,14 @@ public final class TieredIdentity {
       }
     }
     return true;
+  }
+
+  /**
+   * @param other a tiered identity to compare to
+   * @return whether the top tier of this tiered identity matches the top tier of other
+   */
+  public boolean topTiersMatch(TieredIdentity other) {
+    return mTiers.get(0).equals(other.getTier(0));
   }
 
   @Override
