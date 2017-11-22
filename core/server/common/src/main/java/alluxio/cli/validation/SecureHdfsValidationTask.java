@@ -48,7 +48,7 @@ public class SecureHdfsValidationTask implements ValidationTask {
   }
 
   @Override
-  public boolean validate(String[] args, Map<String, String> optionsMap) {
+  public boolean validate(Map<String, String> optionsMap) {
     if (!validatePrincipalLogin()) {
       System.err.format("Principal login test failed.");
       return false;

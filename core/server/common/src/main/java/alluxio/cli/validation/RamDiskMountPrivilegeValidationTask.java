@@ -38,7 +38,7 @@ public final class RamDiskMountPrivilegeValidationTask implements ValidationTask
   }
 
   @Override
-  public boolean validate(String[] args, Map<String, String> optionsMap) throws InterruptedException {
+  public boolean validate(Map<String, String> optionsMap) throws InterruptedException {
     String path = Configuration.get(PropertyKey.WORKER_TIERED_STORE_LEVEL0_DIRS_PATH);
     String alias = Configuration.get(PropertyKey.WORKER_TIERED_STORE_LEVEL0_ALIAS);
     if (!alias.equals("MEM")) {

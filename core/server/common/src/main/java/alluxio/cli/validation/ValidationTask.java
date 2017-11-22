@@ -21,5 +21,5 @@ public interface ValidationTask {
    * Runs the validation task.
    * @return whether the validation succeeds
    */
-  boolean validate(String[] args, Map<String, String> optionMap) throws InterruptedException;
+  boolean validate(Map<String, String> optionMap) throws InterruptedException;
 }

@@ -37,7 +37,7 @@ public final class PortAvailabilityValidationTask implements ValidationTask {
   }
 
   @Override
-  public boolean validate(String[] args, Map<String, String> optionsMap) {
+  public boolean validate(Map<String, String> optionsMap) {
     if (Utils.isAlluxioRunning(mOwner)) {
       System.out.format("%s is already running. Skip validation.%n", mOwner);
       return true;
