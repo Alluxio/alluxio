@@ -56,7 +56,7 @@ public class LocalFirstAvoidEvictionPolicyTest {
     String localhostName = NetworkAddressUtils.getLocalHostName();
     FileWriteLocationPolicy policy = new LocalFirstAvoidEvictionPolicy();
     List<BlockWorkerInfo> workers = new ArrayList<>();
-    workers.add(worker(Constants.GB, 0,"worker1", ""));
+    workers.add(worker(Constants.GB, 0, "worker1", ""));
     workers.add(worker(Constants.MB, Constants.MB, localhostName, ""));
     assertEquals("worker1", policy.getWorkerForNextBlock(workers, Constants.MB).getHost());
   }
