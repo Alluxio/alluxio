@@ -110,14 +110,14 @@ public final class FreeOptions {
       return false;
     }
     FreeOptions that = (FreeOptions) o;
-    return Objects.equal(mForced, that.mForced)
-        && Objects.equal(mCommonOptions, that.mCommonOptions)
+    return Objects.equal(mCommonOptions, that.mCommonOptions)
+        && Objects.equal(mForced, that.mForced)
         && Objects.equal(mRecursive, that.mRecursive);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mForced, mRecursive, mCommonOptions);
+    return Objects.hashCode(mCommonOptions, mForced, mRecursive);
   }
 
   @Override

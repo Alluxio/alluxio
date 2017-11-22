@@ -79,13 +79,13 @@ public final class CompleteFileOptions {
       return false;
     }
     CompleteFileOptions that = (CompleteFileOptions) o;
-    return Objects.equal(mUfsLength, that.mUfsLength)
-        && Objects.equal(mCommonOptions, that.mCommonOptions);
+    return Objects.equal(mCommonOptions, that.mCommonOptions)
+        && Objects.equal(mUfsLength, that.mUfsLength);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mUfsLength, mCommonOptions);
+    return Objects.hashCode(mCommonOptions, mUfsLength);
   }
 
   @Override

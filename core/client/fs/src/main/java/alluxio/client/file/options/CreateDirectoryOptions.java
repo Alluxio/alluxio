@@ -35,8 +35,8 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 @JsonInclude(Include.NON_EMPTY)
 public final class CreateDirectoryOptions {
-  private CommonOptions mCommonOptions;
   private boolean mAllowExists;
+  private CommonOptions mCommonOptions;
   private Mode mMode;
   private long mTtl;
   private TtlAction mTtlAction;
@@ -201,7 +201,7 @@ public final class CreateDirectoryOptions {
   @Override
   public int hashCode() {
     return Objects
-        .hashCode(mAllowExists, mMode, mRecursive, mTtl, mTtlAction, mWriteType, mCommonOptions);
+        .hashCode(mAllowExists, mCommonOptions, mMode, mRecursive, mTtl, mTtlAction, mWriteType);
   }
 
   @Override
