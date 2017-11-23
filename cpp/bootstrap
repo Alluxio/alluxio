@@ -1,0 +1,11 @@
+#!/bin/sh
+
+# Check we are in the root directory.
+if test ! -f configure.ac; then
+    cat >&2 <<__EOF__
+You must run bootstrap from the root of the distribution.
+__EOF__
+    exit 1
+fi
+
+autoreconf --install -Wall --verbose "${@}"
