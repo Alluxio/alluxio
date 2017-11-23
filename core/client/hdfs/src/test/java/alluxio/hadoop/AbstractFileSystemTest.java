@@ -301,6 +301,8 @@ public class AbstractFileSystemTest {
       Path path = new Path("/dummyDir");
       alluxioHadoopFs = new FileSystem();
       FileStatus[] fileStatuses = alluxioHadoopFs.listStatus(path);
+      // if we reach here, no FileNotFound exception is thrown
+      Assert.assertFalse(false);
     } catch (FileNotFoundException fnf) {
       Assert.assertTrue(true);
     } finally {
