@@ -305,9 +305,9 @@ public class AbstractFileSystemTest {
       alluxioHadoopFs = new FileSystem(alluxioFs);
       FileStatus[] fileStatuses = alluxioHadoopFs.listStatus(path);
       // if we reach here, FileNotFoundException is not thrown hence Fail the test case
-      Assert.assertNotEquals(fileStatuses.length, 0);
+      assertTrue(false);
     } catch (FileNotFoundException fnf) {
-      Assert.assertEquals("ALLUXIO-2036 not Found", fnf.getMessage());
+      assertEquals("ALLUXIO-2036 not Found", fnf.getMessage());
     } finally {
       if (null != alluxioHadoopFs) {
         alluxioHadoopFs.close();
