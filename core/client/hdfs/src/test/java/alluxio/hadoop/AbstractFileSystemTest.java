@@ -296,27 +296,17 @@ public class AbstractFileSystemTest {
    */
   @Test
   public void listStatusFileNotFound() throws Exception {
-    FileInfo fileInfo1 = new FileInfo()
-        .setLastModificationTimeMs(111L)
-        .setFolder(false)
-        .setOwner("user1")
-        .setGroup("group1")
-        .setMode(00755);
-    FileInfo fileInfo2 = new FileInfo()
-        .setLastModificationTimeMs(222L)
-        .setFolder(true)
-        .setOwner("user2")
-        .setGroup("group2")
-        .setMode(00644);
-
+    FileSystem alluxioHadoopFs = null;
     try {
       Path path = new Path("/dummyDir");
-      alluxio.client.file.FileSystem alluxioFs =
-          mock(alluxio.client.file.FileSystem.class);
-      when(alluxioFs.listStatus(new AlluxioURI(HadoopUtils.getPathWithoutScheme(path))))
-        .thenReturn(Lists.newArrayList(new URIStatus(fileInfo1), new URIStatus(fileInfo2)));
+      alluxioHadoopFs = new FileSystem();
+      FileStatus[] fileStatuses = alluxioHadoopFs.listStatus(path);
     } catch (FileNotFoundException fnf) {
       Assert.assertTrue(true);
+    } finally {
+      if (null != alluxioHadoopFs) {
+        alluxioHadoopFs.close();
+      }
     }
   }
 
