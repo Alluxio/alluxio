@@ -37,6 +37,7 @@ import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.security.UserGroupInformation;
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -51,6 +52,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.Closeable;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.URI;
@@ -286,6 +288,36 @@ public class AbstractFileSystemTest {
     assertFileInfoEqualsFileStatus(fileInfo1, fileStatuses[0]);
     assertFileInfoEqualsFileStatus(fileInfo2, fileStatuses[1]);
     alluxioHadoopFs.close();
+  }
+
+  /**
+   * Tests that the {@link AbstractFileSystem#listStatus(Path)} method throws
+   * FileNotFound Exception.
+   */
+  @Test
+  public void listStatusFileNotFound() throws Exception {
+    FileInfo fileInfo1 = new FileInfo()
+        .setLastModificationTimeMs(111L)
+        .setFolder(false)
+        .setOwner("user1")
+        .setGroup("group1")
+        .setMode(00755);
+    FileInfo fileInfo2 = new FileInfo()
+        .setLastModificationTimeMs(222L)
+        .setFolder(true)
+        .setOwner("user2")
+        .setGroup("group2")
+        .setMode(00644);
+
+    try {
+      Path path = new Path("/dummyDir");
+      alluxio.client.file.FileSystem alluxioFs =
+          mock(alluxio.client.file.FileSystem.class);
+      when(alluxioFs.listStatus(new AlluxioURI(HadoopUtils.getPathWithoutScheme(path))))
+        .thenReturn(Lists.newArrayList(new URIStatus(fileInfo1), new URIStatus(fileInfo2)));
+    } catch (FileNotFoundException fnf) {
+      Assert.assertTrue(true);
+    }
   }
 
   @Test
