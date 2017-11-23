@@ -309,14 +309,23 @@ public class AbstractFileSystemTest {
         .setGroup("group2")
         .setMode(00644);
 
+    FileSystem alluxioHadoopFs = null;
     try {
       Path path = new Path("/dummyDir");
       alluxio.client.file.FileSystem alluxioFs =
           mock(alluxio.client.file.FileSystem.class);
       when(alluxioFs.listStatus(new AlluxioURI(HadoopUtils.getPathWithoutScheme(path))))
         .thenReturn(Lists.newArrayList(new URIStatus(fileInfo1), new URIStatus(fileInfo2)));
+
+      alluxioHadoopFs = new FileSystem(alluxioFs);
+
+      FileStatus[] fileStatuses = alluxioHadoopFs.listStatus(path);
     } catch (FileNotFoundException fnf) {
       Assert.assertTrue(true);
+    } finally {
+      if (null != alluxioHadoopFs) {
+        alluxioHadoopFs.close();
+      }
     }
   }
 
