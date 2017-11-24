@@ -43,7 +43,7 @@ class JniObjectBase {
   JniObjectBase& SetMemberValue(const std::string& className,
                                 const std::string& methodName, T t) {
     jobject result = JniHelper::CallObjectMethod(options, className, methodName,
-    											 className, t);
+                                                 className, t);
     options = JniHelper::GetEnv()->NewGlobalRef(result);
     JniHelper::DeleteObjectRef(result);
     return *this;

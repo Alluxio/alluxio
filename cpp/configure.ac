@@ -123,9 +123,6 @@ if test "x$JNI_LDFLAGS" = x; then
   AC_MSG_ERROR([could not determine \$JNI_LDFLAGS])
 fi
 
-includedire="-I/home/innkp/cpp/include"
-
-
 # Check whether we can build JNI
 AC_MSG_CHECKING([if we can build with JNI])
 cat <<__EOF__ >conftest.cc [

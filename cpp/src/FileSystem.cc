@@ -111,7 +111,7 @@ Status FileSystem::Exists(const std::string& path, const ExistsOptions& options,
   bool res;
   try {
     jobject alluxiURI = JniHelper::CreateObjectMethod("alluxio/AlluxioURI",
-													  path);
+                                                      path);
     localRefs[JniHelper::GetEnv()].push_back(alluxiURI);
     res = JniHelper::CallBooleanMethod(FileSystem::filesystem,
                                        "alluxio/client/file/FileSystem",

@@ -133,7 +133,7 @@ std::string ClassCache::getClassName(jobject obj) {
   if (itr != objectToTypeNameMap.end()) {
     return (std::string)itr->second;
   } else {
-    const std::string className =  JniHelper::GetObjectClassName(obj);
+    const std::string className = JniHelper::GetObjectClassName(obj);
     return "L" + className + ";";
   }
 }

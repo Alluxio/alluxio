@@ -73,7 +73,7 @@ typedef struct JniMethodInfo_ {
 class JniHelper {
 
  public:
-  typedef std::map<JNIEnv*, std::vector<jobject>> LocalRefMapType;
+  typedef std::map<JNIEnv*, std::vector<jobject> > LocalRefMapType;
   // Sets jvm information for JNI calling
   static void SetJavaVM(JavaVM *javaVM);
   // Gets the object of JavaVM
@@ -340,7 +340,7 @@ class JniHelper {
       env->ExceptionDescribe();
       env->ExceptionClear();
       std::string exceptionName = JniHelper::GetObjectClassName(
-      										     (jobject)javaException);
+                                                 (jobject)javaException);
       std::string errorMsg = JniHelper::CallStringMethod((jobject)javaException,
                                                          "java/lang/Throwable",
                                                          "getMessage");
