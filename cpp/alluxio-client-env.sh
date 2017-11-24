@@ -10,6 +10,7 @@
 # See the NOTICE file distributed with this work for information regarding copyright ownership.
 #
 
+# add jvm path to environment variables needed by JNI calling
 find_libjvm()
 {
   if [[ -z $JAVA_HOME ]]; then
@@ -38,14 +39,16 @@ find_libjvm()
   fi
 }
 
+# add alluxio client assembly jar file path to environment needed by JNI calling
 find_alluxio()
 {
   base_dir=$ALLUXIO_HOME
 
   if [[ -z $base_dir ]]; then
-    base_dir=$( cd "$( dirname "$0" )/../pasa/tachyon" && pwd )
+    base_dir=$( cd "$( dirname "$0" )/.." && pwd )
     export ALLUXIO_HOME=$base_dir
   fi
+    # needs to change if the alluxio jar version is different
     clientjarpath=$base_dir/assembly/client/target/alluxio-assembly-client-1.7.0-SNAPSHOT-jar-with-dependencies.jar
   if [ -f $clientjarpath ]; then
     echo "found alluxio client jar at $clientjarpath, add to CLASSPATH"
@@ -57,4 +60,3 @@ find_alluxio()
 
 find_libjvm
 find_alluxio
-

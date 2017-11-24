@@ -1,16 +1,13 @@
-/*
- * The Alluxio Open Foundation licenses this work under the Apache License,
- * version 2.0 (the "License"). You may not use this work except in compliance
- * with the License, which is available at www.apache.org/licenses/LICENSE-2.0
+/**
+ * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
+ * (the "License"). You may not use this work except in compliance with the License, which is
+ * available at www.apache.org/licenses/LICENSE-2.0
  *
- * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR
- * CONDITIONS OF ANY KIND, either express or implied, as more fully set forth
- * in the License.
+ * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+ * either express or implied, as more fully set forth in the License.
  *
- * See the NOTICE file distributed with this work for information regarding
- * copyright ownership.
+ * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
-
 
 #ifndef WIRE_H
 #define WIRE_H
@@ -36,11 +33,13 @@ class MountPointInfo {
     }
 
     std::string ToString() {
-        try {
-          return JniHelper::CallStringMethod(jMountPointInfo, "alluxio/wire/MountPointInfo", "toString");
-        } catch (std::string e ) {
-          return "";
-        }
+      try {
+        return JniHelper::CallStringMethod(jMountPointInfo,
+        																	 "alluxio/wire/MountPointInfo",
+        																	 "toString");
+      } catch (std::string e ) {
+        return ""
+      }
     }
    private:
     jobject jMountPointInfo;
@@ -65,17 +64,19 @@ class URIStatus {
     }
 
     std::string ToString() {
-        try {
-          return JniHelper::CallStringMethod(jURIStatus, "alluxio/client/file/URIStatus", "toString");
-        } catch (std::string e ) {
-          return "";
-        }
+      try {
+        return JniHelper::CallStringMethod(jURIStatus,
+        																	 "alluxio/client/file/URIStatus",
+        																	 "toString")
+      } catch (std::string e ) {
+        return "";
+      }
     }
 
   private:
     jobject jURIStatus;
 };
 
-}
+} // namespace alluxio
 
 #endif // WIRE_H
