@@ -38,7 +38,7 @@ class MountPointInfo {
                                            "alluxio/wire/MountPointInfo",
                                            "toString");
       } catch (std::string e ) {
-        return ""
+        return "";
       }
     }
    private:
@@ -67,7 +67,7 @@ class URIStatus {
       try {
         return JniHelper::CallStringMethod(jURIStatus,
                                            "alluxio/client/file/URIStatus",
-                                           "toString")
+                                           "toString");
       } catch (std::string e ) {
         return "";
       }
