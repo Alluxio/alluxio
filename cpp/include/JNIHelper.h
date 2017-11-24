@@ -368,7 +368,7 @@ class JniHelper {
             (jobject)javaException);
         statusInAlluxio = JniHelper::CallObjectMethod(statusException,
             "alluxio/exception/status/AlluxioStatusException", "getStatus",
-             "alluxio/exception/status/Status");
+            "alluxio/exception/status/Status");
         DeleteObjectRef(statusException);
       }
       std::string statusName = JniHelper::CallStringMethod(
