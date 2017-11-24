@@ -13,12 +13,6 @@ priority: 2
 开始之前你需要安装好[Java](Java-Setup.html)，Java 版本要求在1.8以上，同时使用[本地模式](Running-Alluxio-Locally.html)
 或[集群模式](Running-Alluxio-on-a-Cluster.html)构建好Alluxio。
 
-Alluxio客户端需要和Presto的具体配置文件一起编译。在顶层目录'alluxio'下使用下面的命令编译整个项目
-
-```bash
-mvn clean package -Ppresto -DskipTests
-```
-
 接着[下载Presto](https://repo1.maven.org/maven2/com/facebook/presto/presto-server/)(此文档使用0.170版本)。并且请使用
 [Hive On Alluxio](Running-Hive-with-Alluxio.html)完成Hive初始化。
 
@@ -92,13 +86,13 @@ Presto的Hive集成里使用了配置[`hive.max-split-size`](https://teradata.gi
 
 # 分发Alluxio客户端jar包
 
+推荐您从[http://www.alluxio.org/download](http://www.alluxio.org/download)下载压缩包。另外，高阶用户可以按照指导[here](Building-Alluxio-Master-Branch.html#compute-framework-support)从源码编译这个客户端jar包。在路径`{{site.ALLUXIO_CLIENT_JAR_PATH}}`下可以找到Alluxio客户端jar包。
+
 将Alluxio客户端Jar包分发到Presto所有节点中：
 - 因为Presto使用的guava版本是18.0，而Alluxio使用的是14.0，所以需要将Alluxio client端的pom.xml中guava版本修改为18.0并重新编译Alluxio客户端。
 
 - 你必须将Alluxio客户端jar包 `{{site.ALLUXIO_CLIENT_JAR_PATH}}`放置在所有Presto节点的`$PRESTO_HOME/plugin/hive-hadoop2/`
 目录中（针对不同hadoop版本，放到相应的文件夹下），并且重启所有coordinator和worker。
-
-另外，高级用户可以选择从源代码编译这个客户端jar。根据[这里](Building-Alluxio-Master-Branch.html#compute-framework-support)的指导，并在这份指导的其余部分使用`{{site.ALLUXIO_CLIENT_JAR_PATH_BUILD}}`里生成的jar。
 
 # Presto命令行示例
 

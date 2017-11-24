@@ -223,7 +223,7 @@
       <dependency>
         <groupId>com.github.serceman</groupId>
         <artifactId>jnr-fuse</artifactId>
-        <version>0.3</version>
+        <version>0.5.1</version>
       </dependency>
       <dependency>
         <groupId>com.qmino</groupId>

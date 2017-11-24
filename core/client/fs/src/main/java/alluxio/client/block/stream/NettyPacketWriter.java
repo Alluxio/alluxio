@@ -357,7 +357,7 @@ public final class NettyPacketWriter implements PacketWriter {
    */
   @GuardedBy("mLock")
   private void updateException(Throwable e) {
-    if (mPacketWriteException == null) {
+    if (mPacketWriteException == null || mPacketWriteException == e) {
       mPacketWriteException = e;
     } else {
       mPacketWriteException.addSuppressed(e);
