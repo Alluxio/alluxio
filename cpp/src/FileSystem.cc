@@ -116,7 +116,7 @@ Status FileSystem::Exists(const std::string& path, const ExistsOptions& options,
     res = JniHelper::CallBooleanMethod(FileSystem::filesystem,
                                        "alluxio/client/file/FileSystem",
                                        "exists", alluxiURI,
-									   options.getOptions());
+                                       options.getOptions());
     JniHelper::DeleteLocalRefs(JniHelper::GetEnv(), localRefs);
     result = &res;
     return JniHelper::AlluxioExceptionCheck();
