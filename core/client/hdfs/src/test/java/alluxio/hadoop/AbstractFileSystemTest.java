@@ -309,7 +309,11 @@ public class AbstractFileSystemTest {
       assertEquals("ALLUXIO-2036 not Found", fnf.getMessage());
     } finally {
       if (null != alluxioHadoopFs) {
-        alluxioHadoopFs.close();
+        try {
+          alluxioHadoopFs.close();
+        } catch (Exception ex) {
+          // nothing to catch, ignore it.
+        }
       }
     }
   }
