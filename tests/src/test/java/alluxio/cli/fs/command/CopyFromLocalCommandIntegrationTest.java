@@ -57,7 +57,6 @@ public final class CopyFromLocalCommandIntegrationTest extends AbstractAlluxioSh
 
     String[] cmd = {"copyFromLocal", testDir.getPath(), alluxioDirPath.getPath()};
     Assert.assertEquals(-1, mFsShell.run(cmd));
-    System.out.println(testFile.getAbsoluteFile());
     Assert.assertEquals(testFile.getPath() + " (Permission denied)\n", mOutput.toString());
     Assert.assertFalse(mFileSystem.exists(alluxioDirPath));
     mOutput.reset();

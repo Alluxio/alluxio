@@ -14,7 +14,7 @@
 
 # Common properties
 # alluxio.master.hostname=localhost
-# alluxio.underfs.address=${alluxio.work.dir}/underFSStorage
+alluxio.underfs.address=/home/innkp/pasa/tests
 
 # Security properties
 # alluxio.security.authorization.permission.enabled=true

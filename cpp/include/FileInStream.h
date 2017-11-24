@@ -44,6 +44,6 @@ class FileInStream {
   jobject inStream;
 };
 
-}
+} // namespace alluxio
 
 #endif // FILEINSTREAM_H
