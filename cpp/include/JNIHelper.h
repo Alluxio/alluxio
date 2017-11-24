@@ -340,7 +340,7 @@ class JniHelper {
       env->ExceptionDescribe();
       env->ExceptionClear();
       std::string exceptionName = JniHelper::GetObjectClassName(
-      														    (jobject)javaException);
+      										     (jobject)javaException);
       std::string errorMsg = JniHelper::CallStringMethod((jobject)javaException,
                                                          "java/lang/Throwable",
                                                          "getMessage");

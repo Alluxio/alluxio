@@ -21,11 +21,11 @@ class MountPointInfo {
     }
 
     MountPointInfo(const MountPointInfo& s) {
-      jMountPointInfo=  JniHelper::GetEnv()->NewGlobalRef(s.jMountPointInfo);
+      jMountPointInfo = JniHelper::GetEnv()->NewGlobalRef(s.jMountPointInfo);
     }
 
     void operator = (const MountPointInfo& s) {
-      jMountPointInfo=  JniHelper::GetEnv()->NewGlobalRef(s.jMountPointInfo);
+      jMountPointInfo = JniHelper::GetEnv()->NewGlobalRef(s.jMountPointInfo);
     }
 
     ~MountPointInfo() {
@@ -35,8 +35,8 @@ class MountPointInfo {
     std::string ToString() {
       try {
         return JniHelper::CallStringMethod(jMountPointInfo,
-        																	 "alluxio/wire/MountPointInfo",
-        																	 "toString");
+                                           "alluxio/wire/MountPointInfo",
+                                           "toString");
       } catch (std::string e ) {
         return ""
       }
@@ -66,8 +66,8 @@ class URIStatus {
     std::string ToString() {
       try {
         return JniHelper::CallStringMethod(jURIStatus,
-        																	 "alluxio/client/file/URIStatus",
-        																	 "toString")
+                                           "alluxio/client/file/URIStatus",
+                                           "toString")
       } catch (std::string e ) {
         return "";
       }

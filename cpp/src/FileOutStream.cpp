@@ -42,8 +42,8 @@ Status FileOutStream::Write(const char* buf, size_t off, size_t len) {
 
 Status FileOutStream::Flush() {
   try {
-		JniHelper::CallVoidMethod(FileOutStream::outStream,
-        "alluxio/client/file/FileOutStream", "flush");
+    JniHelper::CallVoidMethod(FileOutStream::outStream,
+         "alluxio/client/file/FileOutStream", "flush");
     return JniHelper::AlluxioExceptionCheck();
   } catch (std::string e) {
     return Status::jniError(e);
@@ -52,10 +52,10 @@ Status FileOutStream::Flush() {
 
 Status FileOutStream::Cancel() {
   try {
-  	JniHelper::CallVoidMethod(FileOutStream::outStream,
-                            	"alluxio/client/file/FileOutStream", "cancel");
-  	JniHelper::DeleteObjectRef(FileOutStream::outStream);
-  	return JniHelper::AlluxioExceptionCheck();
+    JniHelper::CallVoidMethod(FileOutStream::outStream,
+                              "alluxio/client/file/FileOutStream", "cancel");
+    JniHelper::DeleteObjectRef(FileOutStream::outStream);
+    return JniHelper::AlluxioExceptionCheck();
   } catch (std::string e) {
     return Status::jniError(e);
   }
@@ -63,9 +63,9 @@ Status FileOutStream::Cancel() {
 
 Status FileOutStream::Close() {
   try {
-  	JniHelper::CallVoidMethod(FileOutStream::outStream,
-     	                       "alluxio/client/file/FileOutStream", "close");
-  	JniHelper::DeleteObjectRef(FileOutStream::outStream);
+    JniHelper::CallVoidMethod(FileOutStream::outStream,
+                              "alluxio/client/file/FileOutStream", "close");
+    JniHelper::DeleteObjectRef(FileOutStream::outStream);
     return JniHelper::AlluxioExceptionCheck();
   } catch (std::string e) {
     return Status::jniError(e);

@@ -29,7 +29,7 @@ class FileInStream {
   // Reads one byte to b
   Status Read(char* b);
   // Reads len bytes into buf starting offset off of length len,
-  Status Read(char*  buf, size_t off, size_t len, size_t* result);
+  Status Read(char* buf, size_t off, size_t len, size_t* result);
   // Moves the starting read position of the stream to the specified position
   // which is relative to the start of the stream. Seeking to a position before
   // the current read position is supported.

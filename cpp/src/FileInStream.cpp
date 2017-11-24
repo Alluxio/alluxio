@@ -24,19 +24,18 @@ Status FileInStream::Read(char* b) {
   return FileInStream::Read(b, 0, strlen(b), NULL);
 }
 
-Status FileInStream::Read(char*  buf, size_t off, size_t len,
+Status FileInStream::Read(char* buf, size_t off, size_t len,
              size_t* result) {
   try {
     JNIEnv *env = JniHelper::GetEnv();
-  	jbyteArray jByteArrays = env->NewByteArray(len + off);
- 	  env->SetByteArrayRegion(jByteArrays, off, len, (jbyte*)buf);
-  	size_t res = JniHelper::CallIntMethod(FileInStream::inStream,
-                                    			"alluxio/client/file/FileInStream",
+    jbyteArray jByteArrays = env->NewByteArray(len + off);
+    env->SetByteArrayRegion(jByteArrays, off, len, (jbyte*)buf);
+    size_t res = JniHelper::CallIntMethod(FileInStream::inStream,
+                                          "alluxio/client/file/FileInStream",
                                           "read", jByteArrays, (int)off,
                                           (int)len);
-
-  	result = &res;
- 	  if (res > 0) {
+    result = &res;
+    if (res > 0) {
       env->GetByteArrayRegion(jByteArrays, 0, res, (jbyte*)buf);
     }
     env->DeleteLocalRef(jByteArrays);
@@ -59,7 +58,7 @@ Status FileInStream::Seek(size_t pos) {
 
 Status FileInStream::Skip(size_t pos) {
   try {
- 	  JniHelper::CallVoidMethod(FileInStream::inStream,
+    JniHelper::CallVoidMethod(FileInStream::inStream,
                               "alluxio/client/file/FileInStream", "skip",
                               (long)pos);
     return JniHelper::AlluxioExceptionCheck( );
