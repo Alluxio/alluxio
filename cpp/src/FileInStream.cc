@@ -9,6 +9,8 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
+#include <cmath>
+
 #include "FileInStream.h"
 
 using namespace alluxio;
@@ -34,12 +36,15 @@ Status FileInStream::Read(char* buf, size_t off, size_t len,
                                           "alluxio/client/file/FileInStream",
                                           "read", jByteArrays, (int)off,
                                           (int)len);
-    result = &res;
+    if (res == (pow(2, 64) - 1)) {
+      res = 0;
+    }
+    *result = res;
     if (res > 0) {
       env->GetByteArrayRegion(jByteArrays, 0, res, (jbyte*)buf);
     }
     env->DeleteLocalRef(jByteArrays);
-    return JniHelper::AlluxioExceptionCheck( );
+    return JniHelper::AlluxioExceptionCheck();
   } catch (std::string e) {
     return Status::jniError(e);
   }
@@ -61,7 +66,7 @@ Status FileInStream::Skip(size_t pos) {
     JniHelper::CallVoidMethod(FileInStream::inStream,
                               "alluxio/client/file/FileInStream", "skip",
                               (long)pos);
-    return JniHelper::AlluxioExceptionCheck( );
+    return JniHelper::AlluxioExceptionCheck();
   } catch (std::string e) {
     return Status::jniError(e);
   }

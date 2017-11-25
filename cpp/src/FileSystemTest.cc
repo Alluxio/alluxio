@@ -186,6 +186,67 @@ void SetAttributeTest(FileSystem* fileSystem, const char* path)  {
   }
 }
 
+void ReadFileTest(FileSystem* fileSystem, const char* path) {
+  std::cout << "TEST READ FILE" << std::endl;
+  FileInStream* in;
+  Status s = fileSystem->OpenFile(path, &in);
+  if(! s.ok()) {
+    std::cout << "open file failed" << std::endl
+    return;
+  }
+  int bufferSize =100;
+  char* inputBuffer = (char*)calloc(bufferSize, 1);
+  size_t bytesRead = bufferSize;
+  while (bytesRead == bufferSize) {
+    Status res = in->Read(inputBuffer, 0, bufferSize, &bytesRead);
+    std::cout<<"out " <<bytesRead<<std::endl;
+    if(! res.ok()) {
+      std::cout << "read failed" << std::endl;
+      in->Close();
+      return;
+    }
+  }
+  std::cout << "SUCCESS -  READ  " << path << std::endl;
+  in->Close();
+}
+
+std::string randomString(int length) {
+  std::string res = "";
+  srand((unsigned)time(NULL));
+  int temp = rand() % 3;
+  for (int i = 0 ; i < length; i ++) {
+    if (temp == 0) {
+      res += ('A' + rand() % ('Z' - 'A' + 1));
+    } else if (temp == 1) {
+      res += ('a' + rand() % ('z' - 'a' + 1));
+    } else {
+      res += ('0' + rand() % ('9' - '0' + 1));
+    }
+  }
+  return res;
+}
+
+void WriteFileTest(FileSystem* fileSystem, const char* path) {
+  std::cout << "TEST WRITE FILE" << std::endl;
+  FileOutStream* out;
+  Status s = fileSystem->CreateFile(path, &out);
+  if (! s.ok()) {
+    std::cout << "create file failed" << std::endl;
+    return;
+  }
+  std::string writeData;
+  for(int i = 0; i < 1000; i ++) {
+    writeData = randomString(100);
+    s = out->Write(writeData.c_str(), 0, 100);
+    if(!s.ok()) {
+      std::cout << "write failed" << std::endl;
+      return;
+    }
+  }
+  std::cout << "SUCCESS -  WRITE  " << path << std::endl;
+  out->Close();
+}
+
 // Tests fileSystem operations without reading and writing
 int main(void) {
   FileSystem* fileSystem = new FileSystem();
@@ -221,7 +282,12 @@ int main(void) {
   UnmountTest(fileSystem, "/2");
   GetMountTableTest(fileSystem);
 
+  // Tests Read and write
+  WriteFileTest(fileSystem, "/RW");
+  ReadFileTest(fileSystem, "/RW");
+
   // Tests delete
+  DeletePathTest(fileSystem, "/RW");
   DeletePathTest(fileSystem, "/foo/foo1");
   DeletePathTest(fileSystem, "/foo/foo2");
   DeletePathTest(fileSystem, "/foo");
