@@ -57,7 +57,7 @@ public class LockBlockOptionsTest {
 
     alluxio.thrift.LockBlockTOptions mockObject =
         PowerMockito.mock(alluxio.thrift.LockBlockTOptions.class);
-    PowerMockito.when(mockObject.getBlockSize()).thenReturn(new Long(1000));
+    PowerMockito.when(mockObject.getBlockSize()).thenReturn(blockSize);
     PowerMockito.when(mockObject.getUfsPath()).thenReturn(ufsPath);
 
     LockBlockOptions options = LockBlockOptions.defaults();
