@@ -25,34 +25,32 @@ public class CopyToLocalCommandTest {
     }
 
     @After
-    public void cleanupStream(){
+    public void cleanupStreams(){
         System.setOut(null);
         System.setErr(null);
     }
 
 
     @Test
-    public void getCommandName() throws Exception {
+    public void testgetCommandName() throws Exception {
         CopyToLocalCommand command=new CopyToLocalCommand(null);
-        assert command.getCommandName()=="copyToLocal";
+        String ret=command.getCommandName();
+        String exceptedRet="copyToLocal";
+        Assert.assertEquals(ret,exceptedRet);
 
     }
 
     @Test
-    public void getNumOfArgs() throws Exception {
+    public void testgetNumOfArgs() throws Exception {
         CopyToLocalCommand command=new CopyToLocalCommand(null);
         int ret=command.getNumOfArgs();
         Assert.assertEquals(ret,2);
     }
 
-    @Test
-    public void run() throws Exception {
-        
-    }
 
 
     @Test
-    public void getUsage() throws Exception {
+    public void testgetUsage() throws Exception {
         CopyToLocalCommand command=new CopyToLocalCommand(null);
         String ret=command.getUsage();
         String exceptedRet="copyToLocal <src> <localDst>";
@@ -60,7 +58,7 @@ public class CopyToLocalCommandTest {
     }
 
     @Test
-    public void getDescription() throws Exception {
+    public void testgetDescription() throws Exception {
         CopyToLocalCommand command=new CopyToLocalCommand(null);
         String ret=command.getDescription();
         String exceptedRet="Copies a file or a directory from the Alluxio filesystem to the local filesystem.";
