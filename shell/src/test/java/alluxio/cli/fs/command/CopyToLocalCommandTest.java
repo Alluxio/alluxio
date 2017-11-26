@@ -5,14 +5,14 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import sun.tools.jar.CommandLine;
+
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
-import java.util.Scanner;
 
-import static org.junit.Assert.*;
+
+
 
 public class CopyToLocalCommandTest {
     private ByteArrayOutputStream mOutput=new ByteArrayOutputStream();
@@ -32,7 +32,7 @@ public class CopyToLocalCommandTest {
 
 
     @Test
-    public void testgetCommandName() throws Exception {
+    public void testgetCommandName() throws AlluxioException,IOException {
         CopyToLocalCommand command=new CopyToLocalCommand(null);
         String ret=command.getCommandName();
         String exceptedRet="copyToLocal";
@@ -41,7 +41,7 @@ public class CopyToLocalCommandTest {
     }
 
     @Test
-    public void testgetNumOfArgs() throws Exception {
+    public void testgetNumOfArgs() throws AlluxioException,IOException {
         CopyToLocalCommand command=new CopyToLocalCommand(null);
         int ret=command.getNumOfArgs();
         Assert.assertEquals(ret,2);
@@ -50,7 +50,7 @@ public class CopyToLocalCommandTest {
 
 
     @Test
-    public void testgetUsage() throws Exception {
+    public void testgetUsage() throws AlluxioException,IOException {
         CopyToLocalCommand command=new CopyToLocalCommand(null);
         String ret=command.getUsage();
         String exceptedRet="copyToLocal <src> <localDst>";
@@ -58,7 +58,7 @@ public class CopyToLocalCommandTest {
     }
 
     @Test
-    public void testgetDescription() throws Exception {
+    public void testgetDescription() throws AlluxioException,IOException {
         CopyToLocalCommand command=new CopyToLocalCommand(null);
         String ret=command.getDescription();
         String exceptedRet="Copies a file or a directory from the Alluxio filesystem to the local filesystem.";
