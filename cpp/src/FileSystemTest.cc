@@ -191,7 +191,7 @@ void ReadFileTest(FileSystem* fileSystem, const char* path) {
   FileInStream* in;
   Status s = fileSystem->OpenFile(path, &in);
   if(! s.ok()) {
-    std::cout << "open file failed" << std::endl
+    std::cout << "open file failed" << std::endl;
     return;
   }
   int bufferSize =100;
@@ -199,7 +199,6 @@ void ReadFileTest(FileSystem* fileSystem, const char* path) {
   size_t bytesRead = bufferSize;
   while (bytesRead == bufferSize) {
     Status res = in->Read(inputBuffer, 0, bufferSize, &bytesRead);
-    std::cout<<"out " <<bytesRead<<std::endl;
     if(! res.ok()) {
       std::cout << "read failed" << std::endl;
       in->Close();
