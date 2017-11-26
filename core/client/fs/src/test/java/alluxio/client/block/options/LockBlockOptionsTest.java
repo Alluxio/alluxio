@@ -23,8 +23,6 @@ import org.powermock.modules.junit4.PowerMockRunner;
 
 /**
  * Tests for the {@link LockBlockOptions} class.
- * @author gurmeetb
- *
  */
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({LockBlockTOptions.class})
