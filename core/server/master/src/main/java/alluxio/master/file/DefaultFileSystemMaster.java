@@ -150,6 +150,7 @@ import java.util.Stack;
 import java.util.TreeMap;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -303,6 +304,9 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
   /** This caches absent paths in the UFS. */
   private final UfsAbsentPathCache mUfsAbsentPathCache;
 
+  /** Maps block ID to the list of block locations in UFS. */
+  private final ConcurrentHashMap<Long, List<String>> mUfsBlockLocations;
+
   /**
    * The service that checks for inode files with ttl set. We store it here so that it can be
    * accessed from tests.
@@ -358,6 +362,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     mAsyncPersistHandler = AsyncPersistHandler.Factory.create(new FileSystemMasterView(this));
     mPermissionChecker = new PermissionChecker(mInodeTree);
     mUfsAbsentPathCache = UfsAbsentPathCache.Factory.create(mMountTable);
+    mUfsBlockLocations = new ConcurrentHashMap<>();
 
     resetState();
     Metrics.registerGauges(this, mUfsManager);
@@ -1525,15 +1530,22 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     if (fileBlockInfo.getBlockInfo().getLocations().isEmpty() && file.isPersisted()) {
       // No alluxio locations, but there is a checkpoint in the under storage system. Add the
       // locations from the under storage system.
-      MountTable.Resolution resolution = mMountTable.resolve(inodePath.getUri());
-      String ufsUri = resolution.getUri().toString();
-      UnderFileSystem ufs = resolution.getUfs();
+      long blockId = fileBlockInfo.getBlockInfo().getBlockId();
       List<String> locs;
-      try {
-        locs = ufs.getFileLocations(ufsUri,
-            FileLocationOptions.defaults().setOffset(fileBlockInfo.getOffset()));
-      } catch (IOException e) {
-        return fileBlockInfo;
+      if (mUfsBlockLocations.containsKey(blockId)) {
+        locs = mUfsBlockLocations.get(blockId);
+      } else {
+        MountTable.Resolution resolution = mMountTable.resolve(inodePath.getUri());
+        String ufsUri = resolution.getUri().toString();
+        UnderFileSystem ufs = resolution.getUfs();
+        try {
+          locs = ufs.getFileLocations(ufsUri,
+              FileLocationOptions.defaults().setOffset(fileBlockInfo.getOffset()));
+        } catch (IOException e) {
+          return fileBlockInfo;
+        }
+        // Cache the ufs block locations.
+        mUfsBlockLocations.put(blockId, locs);
       }
       if (locs != null) {
         for (String loc : locs) {
