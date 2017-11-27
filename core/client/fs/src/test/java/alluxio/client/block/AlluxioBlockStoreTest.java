@@ -12,9 +12,12 @@
 package alluxio.client.block;
 
 import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.when;
 
 import alluxio.client.WriteType;
+import alluxio.client.block.stream.BlockOutStream;
 import alluxio.client.file.FileSystemContext;
+import alluxio.client.file.options.InStreamOptions;
 import alluxio.client.file.options.OutStreamOptions;
 import alluxio.client.file.policy.FileWriteLocationPolicy;
 import alluxio.client.netty.NettyRPC;
@@ -25,12 +28,17 @@ import alluxio.exception.status.UnavailableException;
 import alluxio.network.TieredIdentityFactory;
 import alluxio.network.protocol.RPCMessageDecoder;
 import alluxio.proto.dataserver.Protocol;
+import alluxio.proto.dataserver.Protocol.OpenUfsBlockOptions;
 import alluxio.resource.DummyCloseableResource;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.proto.ProtoMessage;
+import alluxio.wire.BlockInfo;
+import alluxio.wire.BlockLocation;
+import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelPipeline;
@@ -46,8 +54,10 @@ import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.OutputStream;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -111,18 +121,18 @@ public final class AlluxioBlockStoreTest {
     mPipeline = PowerMockito.mock(ChannelPipeline.class);
 
     mContext = PowerMockito.mock(FileSystemContext.class);
-    Mockito.when(mContext.acquireBlockMasterClientResource())
+    when(mContext.acquireBlockMasterClientResource())
         .thenReturn(new DummyCloseableResource<>(mMasterClient));
     mLocalAddr = new WorkerNetAddress().setHost(NetworkAddressUtils.getLocalHostName());
 
     mBlockStore = new AlluxioBlockStore(mContext,
         TieredIdentityFactory.fromString("node=" + WORKER_HOSTNAME_LOCAL));
 
-    Mockito.when(mContext.acquireNettyChannel(Mockito.any(WorkerNetAddress.class)))
+    when(mContext.acquireNettyChannel(Mockito.any(WorkerNetAddress.class)))
         .thenReturn(mChannel);
-    Mockito.when(mChannel.pipeline()).thenReturn(mPipeline);
-    Mockito.when(mPipeline.last()).thenReturn(new RPCMessageDecoder());
-    Mockito.when(mPipeline.addLast(Mockito.any(ChannelHandler.class))).thenReturn(mPipeline);
+    when(mChannel.pipeline()).thenReturn(mPipeline);
+    when(mPipeline.last()).thenReturn(new RPCMessageDecoder());
+    when(mPipeline.addLast(Mockito.any(ChannelHandler.class))).thenReturn(mPipeline);
   }
 
   @Test
@@ -170,24 +180,82 @@ public final class AlluxioBlockStoreTest {
     ProtoMessage message = new ProtoMessage(
         Protocol.LocalBlockCreateResponse.newBuilder().setPath(file.getAbsolutePath()).build());
     PowerMockito.mockStatic(NettyRPC.class);
-    Mockito.when(NettyRPC.call(Mockito.any(NettyRPCContext.class), Mockito.any(ProtoMessage.class)))
+    when(NettyRPC.call(Mockito.any(NettyRPCContext.class), Mockito.any(ProtoMessage.class)))
         .thenReturn(message);
 
     OutStreamOptions options = OutStreamOptions.defaults().setBlockSizeBytes(BLOCK_LENGTH)
         .setLocationPolicy(new MockFileWriteLocationPolicy(
             Lists.newArrayList(WORKER_NET_ADDRESS_LOCAL)))
         .setWriteType(WriteType.MUST_CACHE);
-    OutputStream stream = mBlockStore.getOutStream(BLOCK_ID, BLOCK_LENGTH, options);
-    assertEquals(alluxio.client.block.stream.BlockOutStream.class, stream.getClass());
+    BlockOutStream stream = mBlockStore.getOutStream(BLOCK_ID, BLOCK_LENGTH, options);
+    assertEquals(WORKER_NET_ADDRESS_LOCAL, stream.getAddress());
   }
 
   @Test
   public void getOutStreamRemote() throws Exception {
+    WorkerNetAddress worker1 = new WorkerNetAddress().setHost("worker1");
+    WorkerNetAddress worker2 = new WorkerNetAddress().setHost("worker2");
     OutStreamOptions options = OutStreamOptions.defaults().setBlockSizeBytes(BLOCK_LENGTH)
-        .setLocationPolicy(new MockFileWriteLocationPolicy(
-            Lists.newArrayList(WORKER_NET_ADDRESS_REMOTE)))
+        .setLocationPolicy(new MockFileWriteLocationPolicy(Arrays.asList(worker1, worker2)))
         .setWriteType(WriteType.MUST_CACHE);
-    OutputStream stream = mBlockStore.getOutStream(BLOCK_ID, BLOCK_LENGTH, options);
-    assertEquals(alluxio.client.block.stream.BlockOutStream.class, stream.getClass());
+    BlockOutStream stream1 = mBlockStore.getOutStream(BLOCK_ID, BLOCK_LENGTH, options);
+    assertEquals(worker1, stream1.getAddress());
+    BlockOutStream stream2 = mBlockStore.getOutStream(BLOCK_ID, BLOCK_LENGTH, options);
+    assertEquals(worker2, stream2.getAddress());
+  }
+
+  @Test
+  public void getInStreamUfs() throws Exception {
+    WorkerNetAddress worker1 = new WorkerNetAddress().setHost("worker1");
+    WorkerNetAddress worker2 = new WorkerNetAddress().setHost("worker2");
+    InStreamOptions options = InStreamOptions.defaults()
+        .setCacheLocationPolicy(new MockFileWriteLocationPolicy(Arrays.asList(worker1, worker2)));
+    when(mMasterClient.getBlockInfo(BLOCK_ID)).thenReturn(new BlockInfo());
+    when(mMasterClient.getWorkerInfoList()).thenReturn(
+        Arrays.asList(new WorkerInfo().setAddress(worker1), new WorkerInfo().setAddress(worker2)));
+
+    // Location policy chooses worker1 first.
+    assertEquals(worker1, mBlockStore
+        .getInStream(BLOCK_ID, OpenUfsBlockOptions.getDefaultInstance(), options).getAddress());
+    // Location policy chooses worker2 second.
+    assertEquals(worker2, mBlockStore
+        .getInStream(BLOCK_ID, OpenUfsBlockOptions.getDefaultInstance(), options).getAddress());
+  }
+
+  @Test
+  public void getInStreamLocal() throws Exception {
+    WorkerNetAddress remote = new WorkerNetAddress().setHost("remote");
+    WorkerNetAddress local = new WorkerNetAddress().setHost(WORKER_HOSTNAME_LOCAL);
+
+    // Mock away Netty usage.
+    ProtoMessage message = new ProtoMessage(
+        Protocol.LocalBlockOpenResponse.newBuilder().setPath("/tmp").build());
+    PowerMockito.mockStatic(NettyRPC.class);
+    when(NettyRPC.call(Mockito.any(NettyRPCContext.class), Mockito.any(ProtoMessage.class)))
+        .thenReturn(message);
+
+    when(mMasterClient.getBlockInfo(BLOCK_ID)).thenReturn(
+        new BlockInfo().setLocations(Arrays.asList(new BlockLocation().setWorkerAddress(remote),
+            new BlockLocation().setWorkerAddress(local))));
+    assertEquals(local, mBlockStore
+        .getInStream(BLOCK_ID, OpenUfsBlockOptions.getDefaultInstance(), InStreamOptions.defaults())
+        .getAddress());
+  }
+
+  @Test
+  public void getInStreamRemote() throws Exception {
+    WorkerNetAddress remote1 = new WorkerNetAddress().setHost("remote1");
+    WorkerNetAddress remote2 = new WorkerNetAddress().setHost("remote2");
+
+    when(mMasterClient.getBlockInfo(BLOCK_ID)).thenReturn(
+        new BlockInfo().setLocations(Arrays.asList(new BlockLocation().setWorkerAddress(remote1),
+            new BlockLocation().setWorkerAddress(remote2))));
+    // We should sometimes get remote1 and sometimes get remote2.
+    Set<WorkerNetAddress> results = new HashSet<>();
+    for (int i = 0; i < 40; i++) {
+      results.add(mBlockStore.getInStream(BLOCK_ID, OpenUfsBlockOptions.getDefaultInstance(),
+          InStreamOptions.defaults()).getAddress());
+    }
+    assertEquals(Sets.newHashSet(remote1, remote2), results);
   }
 }

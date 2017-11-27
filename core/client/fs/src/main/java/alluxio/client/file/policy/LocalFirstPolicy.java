@@ -83,7 +83,7 @@ public final class LocalFirstPolicy implements FileWriteLocationPolicy, BlockLoc
     }
     // Map back to the worker with the nearest tiered identity.
     return candidateWorkers.stream()
-        .filter(worker -> worker.getNetAddress().getTieredIdentity() == nearest.get())
+        .filter(worker -> worker.getNetAddress().getTieredIdentity().equals(nearest.get()))
         .map(worker -> worker.getNetAddress())
         .findFirst().orElse(null);
   }

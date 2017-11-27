@@ -30,7 +30,7 @@ public class TestBlockOutStream extends BlockOutStream {
    * @param blockSize the block size
    */
   public TestBlockOutStream(ByteBuffer data, long blockSize) {
-    super(new TestPacketWriter(data), blockSize);
+    super(new TestPacketWriter(data), blockSize, null);
     mData = data;
     mClosed = false;
     mCanceled = false;

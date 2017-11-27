@@ -42,6 +42,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -159,11 +160,12 @@ public final class AlluxioBlockStore {
       List<TieredIdentity> locations = blockInfo.getLocations().stream()
           .map(location -> location.getWorkerAddress().getTieredIdentity())
           .collect(Collectors.toList());
+      Collections.shuffle(locations);
       Optional<TieredIdentity> nearest = mTieredIdentity.nearest(locations);
       if (nearest.isPresent()) {
         address = blockInfo.getLocations().stream()
             .map(BlockLocation::getWorkerAddress)
-            .filter(a -> a.getTieredIdentity() == nearest.get())
+            .filter(a -> a.getTieredIdentity().equals(nearest.get()))
             .findFirst().get();
         if (mTieredIdentity.getTier(0).getTierName().equals(Constants.LOCALITY_NODE)
             && mTieredIdentity.topTiersMatch(nearest.get())) {

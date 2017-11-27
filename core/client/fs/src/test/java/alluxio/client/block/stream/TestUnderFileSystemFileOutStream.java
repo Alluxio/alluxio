@@ -29,7 +29,7 @@ public class TestUnderFileSystemFileOutStream extends UnderFileSystemFileOutStre
    * @param data the data to test
    */
   public TestUnderFileSystemFileOutStream(ByteBuffer data) {
-    super(new TestPacketWriter(data));
+    super(new TestPacketWriter(data), null);
     mData = data;
     mClosed = false;
     mCanceled = false;
