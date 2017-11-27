@@ -13,7 +13,7 @@ Alluxio的高可用性通过多master实现。同一时刻，系统中有多个m
 client的通信首选。其余master进入备用状态，和leader共享日志，以确保和leader维护着同样的文件系统元数据并在
 leader失效时迅速接管leader的工作。
 
-当前leader失效时，自动从可用的备用master中选举一个作为新的leader，Alluxio继续正常运行。但在切换到备用
+当前leader失效时，系统自动从可用的备用master中选举一个作为新的leader，Alluxio继续正常运行。但在切换到备用
 master时，客户端会有短暂的延迟或瞬态错误。
 
 ## 前期准备
