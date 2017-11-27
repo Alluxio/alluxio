@@ -182,7 +182,7 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
   public synchronized List<URIStatus> listStatus(final AlluxioURI path,
       final ListStatusOptions options) throws IOException {
     return retryRPC(() -> {
-      List<URIStatus> result = new ArrayList<URIStatus>();
+      List<URIStatus> result = new ArrayList<>();
       for (alluxio.thrift.FileInfo fileInfo : mClient.listStatus(path.getPath(), options.toThrift())
           .getFileInfoList()) {
         result.add(new URIStatus(ThriftUtils.fromThrift(fileInfo)));
