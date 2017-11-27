@@ -15,6 +15,8 @@ import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.when;
 
 import alluxio.client.WriteType;
+import alluxio.client.block.policy.BlockLocationPolicy;
+import alluxio.client.block.policy.options.GetWorkerOptions;
 import alluxio.client.block.stream.BlockOutStream;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.options.InStreamOptions;
@@ -59,6 +61,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -80,7 +83,8 @@ public final class AlluxioBlockStoreTest {
    * A mock class used to return controlled result when selecting workers.
    */
   @ThreadSafe
-  private static class MockFileWriteLocationPolicy implements FileWriteLocationPolicy {
+  private static class MockFileWriteLocationPolicy
+      implements FileWriteLocationPolicy, BlockLocationPolicy {
     private final List<WorkerNetAddress> mWorkerNetAddresses;
     private int mIndex;
 
@@ -101,6 +105,11 @@ public final class AlluxioBlockStoreTest {
         return null;
       }
       return mWorkerNetAddresses.get(mIndex++);
+    }
+
+    @Override
+    public WorkerNetAddress getWorker(GetWorkerOptions options) {
+      return getWorkerForNextBlock(options.getBlockWorkerInfos(), options.getBlockSize());
     }
   }
 
@@ -209,7 +218,7 @@ public final class AlluxioBlockStoreTest {
     WorkerNetAddress worker1 = new WorkerNetAddress().setHost("worker1");
     WorkerNetAddress worker2 = new WorkerNetAddress().setHost("worker2");
     InStreamOptions options = InStreamOptions.defaults()
-        .setCacheLocationPolicy(new MockFileWriteLocationPolicy(Arrays.asList(worker1, worker2)));
+        .setUfsReadLocationPolicy(new MockFileWriteLocationPolicy(Arrays.asList(worker1, worker2)));
     when(mMasterClient.getBlockInfo(BLOCK_ID)).thenReturn(new BlockInfo());
     when(mMasterClient.getWorkerInfoList()).thenReturn(
         Arrays.asList(new WorkerInfo().setAddress(worker1), new WorkerInfo().setAddress(worker2)));
