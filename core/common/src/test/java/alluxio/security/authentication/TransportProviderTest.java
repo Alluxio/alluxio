@@ -11,6 +11,8 @@
 
 package alluxio.security.authentication;
 
+import static org.junit.Assert.assertTrue;
+
 import alluxio.Configuration;
 import alluxio.ConfigurationTestUtils;
 import alluxio.PropertyKey;
@@ -24,7 +26,6 @@ import org.apache.thrift.transport.TTransport;
 import org.apache.thrift.transport.TTransportException;
 import org.apache.thrift.transport.TTransportFactory;
 import org.junit.After;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -84,7 +85,7 @@ public final class TransportProviderTest {
     // create client and connect to server
     TTransport client = mTransportProvider.getClientTransport(mServerAddress);
     client.open();
-    Assert.assertTrue(client.isOpen());
+    assertTrue(client.isOpen());
 
     // clean up
     client.close();
@@ -106,7 +107,7 @@ public final class TransportProviderTest {
     // when connecting, authentication happens. It is a no-op in Simple mode.
     TTransport client = mTransportProvider.getClientTransport(mServerAddress);
     client.open();
-    Assert.assertTrue(client.isOpen());
+    assertTrue(client.isOpen());
 
     // clean up
     client.close();
@@ -213,7 +214,7 @@ public final class TransportProviderTest {
         .getClientTransport(ExactlyMatchAuthenticationProvider.USERNAME,
             ExactlyMatchAuthenticationProvider.PASSWORD, mServerAddress);
     client.open();
-    Assert.assertTrue(client.isOpen());
+    assertTrue(client.isOpen());
 
     // clean up
     client.close();
