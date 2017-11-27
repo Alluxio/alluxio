@@ -11,6 +11,12 @@
 
 package alluxio.cli.fs.command;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertNotNull;
+
 import alluxio.AlluxioURI;
 import alluxio.ConfigurationRule;
 import alluxio.PropertyKey;
@@ -26,7 +32,7 @@ import alluxio.cli.fs.FileSystemShellUtilsTest;
 import alluxio.util.io.BufferUtils;
 
 import org.hamcrest.CoreMatchers;
-import org.junit.Assert;
+//import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -56,18 +62,18 @@ public final class CopyFromLocalCommandIntegrationTest extends AbstractAlluxioSh
     testFile.setReadable(false);
 
     String[] cmd = {"copyFromLocal", testDir.getPath(), alluxioDirPath.getPath()};
-    Assert.assertEquals(-1, mFsShell.run(cmd));
-    Assert.assertEquals(testFile.getPath() + " (Permission denied)\n", mOutput.toString());
-    Assert.assertFalse(mFileSystem.exists(alluxioDirPath));
+    assertEquals(-1, mFsShell.run(cmd));
+    assertEquals(testFile.getPath() + " (Permission denied)\n", mOutput.toString());
+    assertFalse(mFileSystem.exists(alluxioDirPath));
     mOutput.reset();
 
     // If we put a copyable file in the directory, we should be able to copy just that file
     generateFileContent("/localDir/testFile2", BufferUtils.getIncreasingByteArray(20));
-    Assert.assertEquals(-1, mFsShell.run(cmd));
-    Assert.assertEquals(testFile.getPath() + " (Permission denied)\n", mOutput.toString());
-    Assert.assertTrue(mFileSystem.exists(alluxioDirPath));
-    Assert.assertTrue(mFileSystem.exists(new AlluxioURI("/testDir/testFile2")));
-    Assert.assertFalse(mFileSystem.exists(new AlluxioURI("/testDir/testFile")));
+    assertEquals(-1, mFsShell.run(cmd));
+    assertEquals(testFile.getPath() + " (Permission denied)\n", mOutput.toString());
+    assertTrue(mFileSystem.exists(alluxioDirPath));
+    assertTrue(mFileSystem.exists(new AlluxioURI("/testDir/testFile2")));
+    assertFalse(mFileSystem.exists(new AlluxioURI("/testDir/testFile")));
 
     // The directory should also be deleted from Alluxio filesystem when all files in the
     // directory are failed.
@@ -76,12 +82,12 @@ public final class CopyFromLocalCommandIntegrationTest extends AbstractAlluxioSh
     File innerFile = generateFileContent("/localDir/innerDir/innerFile1",
         BufferUtils.getIncreasingByteArray(30));
     innerFile.setReadable(false);
-    Assert.assertEquals(-1, mFsShell.run(cmd));
-    Assert.assertTrue(mFileSystem.exists(alluxioDirPath));
-    Assert.assertTrue(mFileSystem.exists(new AlluxioURI("/testDir/testFile2")));
-    Assert.assertFalse(mFileSystem.exists(new AlluxioURI("/testDir/testFile")));
-    Assert.assertFalse(mFileSystem.exists(new AlluxioURI("/testDir/innerDir")));
-    Assert.assertFalse(mFileSystem.exists(new AlluxioURI("/testDir/innerDir/innerFile1")));
+    assertEquals(-1, mFsShell.run(cmd));
+    assertTrue(mFileSystem.exists(alluxioDirPath));
+    assertTrue(mFileSystem.exists(new AlluxioURI("/testDir/testFile2")));
+    assertFalse(mFileSystem.exists(new AlluxioURI("/testDir/testFile")));
+    assertFalse(mFileSystem.exists(new AlluxioURI("/testDir/innerDir")));
+    assertFalse(mFileSystem.exists(new AlluxioURI("/testDir/innerDir/innerFile1")));
   }
 
   @Test
@@ -97,19 +103,19 @@ public final class CopyFromLocalCommandIntegrationTest extends AbstractAlluxioSh
     testFile.setReadable(false);
 
     String[] cmd = {"copyFromLocal", testDir.getPath(), alluxioDirPath.getPath()};
-    Assert.assertEquals(-1, mFsShell.run(cmd));
-    Assert.assertEquals(testFile.getPath() + " (Permission denied)\n", mOutput.toString());
+    assertEquals(-1, mFsShell.run(cmd));
+    assertEquals(testFile.getPath() + " (Permission denied)\n", mOutput.toString());
     // The destination directory should not be deleted.
-    Assert.assertTrue(mFileSystem.exists(alluxioDirPath));
+    assertTrue(mFileSystem.exists(alluxioDirPath));
     mOutput.reset();
 
     // If we put a copyable file in the directory, we should be able to copy just that file
     generateFileContent("/localDir/testFile2", BufferUtils.getIncreasingByteArray(20));
-    Assert.assertEquals(-1, mFsShell.run(cmd));
-    Assert.assertEquals(testFile.getPath() + " (Permission denied)\n", mOutput.toString());
-    Assert.assertTrue(mFileSystem.exists(alluxioDirPath));
-    Assert.assertTrue(mFileSystem.exists(new AlluxioURI("/testDir/testFile2")));
-    Assert.assertFalse(mFileSystem.exists(new AlluxioURI("/testDir/testFile")));
+    assertEquals(-1, mFsShell.run(cmd));
+    assertEquals(testFile.getPath() + " (Permission denied)\n", mOutput.toString());
+    assertTrue(mFileSystem.exists(alluxioDirPath));
+    assertTrue(mFileSystem.exists(new AlluxioURI("/testDir/testFile2")));
+    assertFalse(mFileSystem.exists(new AlluxioURI("/testDir/testFile")));
 
     // The directory should also be deleted from Alluxio filesystem when all files in the
     // directory are failed.
@@ -118,12 +124,12 @@ public final class CopyFromLocalCommandIntegrationTest extends AbstractAlluxioSh
     File innerFile = generateFileContent("/localDir/innerDir/innerFile1",
         BufferUtils.getIncreasingByteArray(30));
     innerFile.setReadable(false);
-    Assert.assertEquals(-1, mFsShell.run(cmd));
-    Assert.assertTrue(mFileSystem.exists(alluxioDirPath));
-    Assert.assertTrue(mFileSystem.exists(new AlluxioURI("/testDir/testFile2")));
-    Assert.assertFalse(mFileSystem.exists(new AlluxioURI("/testDir/testFile")));
-    Assert.assertFalse(mFileSystem.exists(new AlluxioURI("/testDir/innerDir")));
-    Assert.assertFalse(mFileSystem.exists(new AlluxioURI("/testDir/innerDir/innerFile1")));
+    assertEquals(-1, mFsShell.run(cmd));
+    assertTrue(mFileSystem.exists(alluxioDirPath));
+    assertTrue(mFileSystem.exists(new AlluxioURI("/testDir/testFile2")));
+    assertFalse(mFileSystem.exists(new AlluxioURI("/testDir/testFile")));
+    assertFalse(mFileSystem.exists(new AlluxioURI("/testDir/innerDir")));
+    assertFalse(mFileSystem.exists(new AlluxioURI("/testDir/innerDir/innerFile1")));
   }
 
   @Test
@@ -137,11 +143,11 @@ public final class CopyFromLocalCommandIntegrationTest extends AbstractAlluxioSh
     // in Alluxio before it tries to open the source file
     testFile1.setReadable(false);
     String[] cmd = {"copyFromLocal", testFile1.getPath(), alluxioFilePath.getPath()};
-    Assert.assertEquals(-1, mFsShell.run(cmd));
-    Assert.assertEquals(testFile1.getPath() + " (Permission denied)\n", mOutput.toString());
+    assertEquals(-1, mFsShell.run(cmd));
+    assertEquals(testFile1.getPath() + " (Permission denied)\n", mOutput.toString());
 
     // Make sure the alluxio file wasn't created anyways
-    Assert.assertFalse(mFileSystem.exists(alluxioFilePath));
+    assertFalse(mFileSystem.exists(alluxioFilePath));
   }
 
   @Test
@@ -156,9 +162,9 @@ public final class CopyFromLocalCommandIntegrationTest extends AbstractAlluxioSh
 
     AlluxioURI uri = new AlluxioURI("/dstDir/testFile");
     URIStatus status = mFileSystem.getStatus(uri);
-    Assert.assertNotNull(status);
+    assertNotNull(status);
     byte[] read = readContent(uri, data.length);
-    Assert.assertEquals(new String(read), dataString);
+    assertEquals(new String(read), dataString);
   }
 
   @Test
@@ -174,13 +180,13 @@ public final class CopyFromLocalCommandIntegrationTest extends AbstractAlluxioSh
     generateFileContent("/outerDir/srcFile1", BufferUtils.getIncreasingByteArray(10));
     generateFileContent("/outerDir/innerDir/srcFile2", BufferUtils.getIncreasingByteArray(10));
     int ret = mFsShell.run("copyFromLocal", srcOuterDir.getPath() + "/", "/dstDir");
-    Assert.assertEquals(0, ret);
+    assertEquals(0, ret);
     AlluxioURI dstURI1 = new AlluxioURI("/dstDir/srcFile1");
     AlluxioURI dstURI2 = new AlluxioURI("/dstDir/innerDir/srcFile2");
     AlluxioURI dstURI3 = new AlluxioURI("/dstDir/emptyDir");
-    Assert.assertNotNull(mFileSystem.getStatus(dstURI1));
-    Assert.assertNotNull(mFileSystem.getStatus(dstURI2));
-    Assert.assertNotNull(mFileSystem.getStatus(dstURI3));
+    assertNotNull(mFileSystem.getStatus(dstURI1));
+    assertNotNull(mFileSystem.getStatus(dstURI2));
+    assertNotNull(mFileSystem.getStatus(dstURI3));
   }
 
   @Test
@@ -199,8 +205,8 @@ public final class CopyFromLocalCommandIntegrationTest extends AbstractAlluxioSh
     srcOuterDir.setReadable(false);
     int ret = mFsShell.run("copyFromLocal", srcOuterDir.getPath() + "/", "/dstDir");
 
-    Assert.assertEquals(-1, ret);
-    Assert.assertEquals("Failed to list files for directory "
+    assertEquals(-1, ret);
+    assertEquals("Failed to list files for directory "
         + srcOuterDir.getAbsolutePath() + "\n", mOutput.toString());
   }
 
@@ -220,8 +226,8 @@ public final class CopyFromLocalCommandIntegrationTest extends AbstractAlluxioSh
     srcInnerDir.setReadable(false);
     int ret = mFsShell.run("copyFromLocal", srcOuterDir.getPath() + "/", "/dstDir");
 
-    Assert.assertEquals(-1, ret);
-    Assert.assertEquals("Failed to list files for directory "
+    assertEquals(-1, ret);
+    assertEquals("Failed to list files for directory "
         + srcInnerDir.getAbsolutePath() + "\n", mOutput.toString());
   }
 
@@ -236,9 +242,9 @@ public final class CopyFromLocalCommandIntegrationTest extends AbstractAlluxioSh
     generateFileContent("/localDir/srcFile", BufferUtils.getIncreasingByteArray(10));
     mFileSystem.createFile(new AlluxioURI("/dstFile")).close();
     int ret = mFsShell.run("copyFromLocal", localDir.getPath(), "/dstFile");
-    Assert.assertEquals(-1, ret);
-    Assert.assertFalse(mFileSystem.getStatus(new AlluxioURI("/dstFile")).isFolder());
-    Assert.assertFalse(mFileSystem.exists(new AlluxioURI("/dstFile/innerDir")));
+    assertEquals(-1, ret);
+    assertFalse(mFileSystem.getStatus(new AlluxioURI("/dstFile")).isFolder());
+    assertFalse(mFileSystem.exists(new AlluxioURI("/dstFile/innerDir")));
   }
 
   @Test
@@ -257,27 +263,27 @@ public final class CopyFromLocalCommandIntegrationTest extends AbstractAlluxioSh
     // directory.
     mFileSystem.createDirectory(new AlluxioURI("/dstDir"));
     int ret = mFsShell.run("copyFromLocal", srcOuterDir.getPath(), "/dstDir");
-    Assert.assertEquals(0, ret);
+    assertEquals(0, ret);
     AlluxioURI dstURI1 = new AlluxioURI("/dstDir/srcFile1");
     AlluxioURI dstURI2 = new AlluxioURI("/dstDir/innerDir/srcFile2");
     AlluxioURI dstURI3 = new AlluxioURI("/dstDir/emptyDir");
-    Assert.assertNotNull(mFileSystem.getStatus(dstURI1));
-    Assert.assertNotNull(mFileSystem.getStatus(dstURI2));
-    Assert.assertNotNull(mFileSystem.getStatus(dstURI3));
+    assertNotNull(mFileSystem.getStatus(dstURI1));
+    assertNotNull(mFileSystem.getStatus(dstURI2));
+    assertNotNull(mFileSystem.getStatus(dstURI3));
 
     // Copying a directory to a destination directory which exists and does contain the copied
     // directory.
     mFileSystem.createDirectory(new AlluxioURI("/dstDir1"));
     mFileSystem.createDirectory(new AlluxioURI("/dstDir1/innerDir"));
     int ret1 = mFsShell.run("copyFromLocal", srcOuterDir.getPath(), "/dstDir1");
-    Assert.assertEquals(-1, ret1);
+    assertEquals(-1, ret1);
     dstURI1 = new AlluxioURI("/dstDir1/srcFile1");
     dstURI2 = new AlluxioURI("/dstDir1/innerDir/srcFile2");
     dstURI3 = new AlluxioURI("/dstDir1/emptyDir");
-    Assert.assertNotNull(mFileSystem.getStatus(dstURI1));
+    assertNotNull(mFileSystem.getStatus(dstURI1));
     // The directory already exists. But the sub directory shouldn't be copied.
-    Assert.assertFalse(mFileSystem.exists(dstURI2));
-    Assert.assertNotNull(mFileSystem.getStatus(dstURI3));
+    assertFalse(mFileSystem.exists(dstURI2));
+    assertNotNull(mFileSystem.getStatus(dstURI3));
   }
 
   @Test
@@ -289,20 +295,20 @@ public final class CopyFromLocalCommandIntegrationTest extends AbstractAlluxioSh
     fos.write(toWrite);
     fos.close();
     mFsShell.run("copyFromLocal", testFile.getAbsolutePath(), "/testFile");
-    Assert.assertEquals(
+    assertEquals(
         getCommandOutput(new String[] {"copyFromLocal", testFile.getAbsolutePath(),
             "/testFile"}),
         mOutput.toString());
     AlluxioURI uri = new AlluxioURI("/testFile");
     URIStatus status = mFileSystem.getStatus(uri);
-    Assert.assertNotNull(status);
-    Assert.assertEquals(SIZE_BYTES, status.getLength());
+    assertNotNull(status);
+    assertEquals(SIZE_BYTES, status.getLength());
 
     try (FileInStream tfis =
         mFileSystem.openFile(uri, OpenFileOptions.defaults().setReadType(ReadType.NO_CACHE))) {
       byte[] read = new byte[SIZE_BYTES];
       tfis.read(read);
-      Assert.assertTrue(BufferUtils.equalIncreasingByteArray(SIZE_BYTES, read));
+      assertTrue(BufferUtils.equalIncreasingByteArray(SIZE_BYTES, read));
     }
   }
 
@@ -318,17 +324,17 @@ public final class CopyFromLocalCommandIntegrationTest extends AbstractAlluxioSh
     // Write the first file
     String[] cmd1 = {"copyFromLocal", testFile1.getPath(), alluxioFilePath.getPath()};
     mFsShell.run(cmd1);
-    Assert.assertEquals(getCommandOutput(cmd1), mOutput.toString());
+    assertEquals(getCommandOutput(cmd1), mOutput.toString());
     mOutput.reset();
-    Assert.assertTrue(BufferUtils
+    assertTrue(BufferUtils
         .equalIncreasingByteArray(LEN1, readContent(alluxioFilePath, LEN1)));
 
     // Write the second file to the same location, which should cause an exception
     String[] cmd2 = {"copyFromLocal", testFile2.getPath(), alluxioFilePath.getPath()};
-    Assert.assertEquals(-1, mFsShell.run(cmd2));
-    Assert.assertEquals(alluxioFilePath.getPath() + " already exists\n", mOutput.toString());
+    assertEquals(-1, mFsShell.run(cmd2));
+    assertEquals(alluxioFilePath.getPath() + " already exists\n", mOutput.toString());
     // Make sure the original file is intact
-    Assert.assertTrue(BufferUtils
+    assertTrue(BufferUtils
         .equalIncreasingByteArray(LEN1, readContent(alluxioFilePath, LEN1)));
   }
 
@@ -344,21 +350,21 @@ public final class CopyFromLocalCommandIntegrationTest extends AbstractAlluxioSh
         BufferUtils.getIncreasingByteArray(10, 20));
 
     mFsShell.run("copyFromLocal", testFile.getParent(), "/testDir");
-    Assert.assertEquals(
+    assertEquals(
         getCommandOutput(new String[]{"copyFromLocal", testFile.getParent(), "/testDir"}),
         mOutput.toString());
     AlluxioURI uri1 = new AlluxioURI("/testDir/testFile");
     AlluxioURI uri2 = new AlluxioURI("/testDir/testDirInner/testFile2");
     URIStatus status1 = mFileSystem.getStatus(uri1);
     URIStatus status2 = mFileSystem.getStatus(uri2);
-    Assert.assertNotNull(status1);
-    Assert.assertNotNull(status2);
-    Assert.assertEquals(10, status1.getLength());
-    Assert.assertEquals(20, status2.getLength());
+    assertNotNull(status1);
+    assertNotNull(status2);
+    assertEquals(10, status1.getLength());
+    assertEquals(20, status2.getLength());
     byte[] read = readContent(uri1, 10);
-    Assert.assertTrue(BufferUtils.equalIncreasingByteArray(10, read));
+    assertTrue(BufferUtils.equalIncreasingByteArray(10, read));
     read = readContent(uri2, 20);
-    Assert.assertTrue(BufferUtils.equalIncreasingByteArray(10, 20, read));
+    assertTrue(BufferUtils.equalIncreasingByteArray(10, 20, read));
   }
 
   @Test
@@ -366,14 +372,14 @@ public final class CopyFromLocalCommandIntegrationTest extends AbstractAlluxioSh
     File file = mTestFolder.newFile();
     try (Closeable c = new ConfigurationRule(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT,
         WriteType.MUST_CACHE.toString()).toResource()) {
-      Assert.assertEquals(0, mFsShell.run("copyFromLocal", file.getAbsolutePath(), "/"));
+      assertEquals(0, mFsShell.run("copyFromLocal", file.getAbsolutePath(), "/"));
     }
     try (Closeable c = new ConfigurationRule(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT,
         WriteType.CACHE_THROUGH.toString()).toResource()) {
       mOutput.reset();
       mFsShell.run("copyFromLocal", file.getAbsolutePath(), "/");
     }
-    Assert.assertThat(mOutput.toString(), CoreMatchers.containsString("already exists"));
+    assertThat(mOutput.toString(), CoreMatchers.containsString("already exists"));
   }
 
   @Test
@@ -386,12 +392,12 @@ public final class CopyFromLocalCommandIntegrationTest extends AbstractAlluxioSh
     String cmdOut =
         getCommandOutput(new String[]{"copyFromLocal", testFile.getPath(), alluxioURI});
     // then
-    Assert.assertEquals(cmdOut, mOutput.toString());
+    assertEquals(cmdOut, mOutput.toString());
     AlluxioURI uri = new AlluxioURI("/destFileURI");
     URIStatus status = mFileSystem.getStatus(uri);
-    Assert.assertEquals(10L, status.getLength());
+    assertEquals(10L, status.getLength());
     byte[] read = readContent(uri, 10);
-    Assert.assertTrue(BufferUtils.equalIncreasingByteArray(10, read));
+    assertTrue(BufferUtils.equalIncreasingByteArray(10, read));
   }
 
   @Test
@@ -399,21 +405,21 @@ public final class CopyFromLocalCommandIntegrationTest extends AbstractAlluxioSh
     String testDir = FileSystemShellUtilsTest.resetLocalFileHierarchy(mLocalAlluxioCluster);
     mFileSystem.createDirectory(new AlluxioURI("/testDir"));
     int ret = mFsShell.run("copyFromLocal", testDir + "/*/foo*", "/testDir");
-    Assert.assertEquals(0, ret);
-    Assert.assertTrue(fileExists(new AlluxioURI("/testDir/foobar1")));
-    Assert.assertTrue(fileExists(new AlluxioURI("/testDir/foobar2")));
-    Assert.assertTrue(fileExists(new AlluxioURI("/testDir/foobar3")));
+    assertEquals(0, ret);
+    assertTrue(fileExists(new AlluxioURI("/testDir/foobar1")));
+    assertTrue(fileExists(new AlluxioURI("/testDir/foobar2")));
+    assertTrue(fileExists(new AlluxioURI("/testDir/foobar3")));
   }
 
   @Test
   public void copyFromLocalWildcardHier() throws IOException {
     String testDir = FileSystemShellUtilsTest.resetLocalFileHierarchy(mLocalAlluxioCluster);
     int ret = mFsShell.run("copyFromLocal", testDir + "/*", "/testDir");
-    Assert.assertEquals(0, ret);
-    Assert.assertTrue(fileExists(new AlluxioURI("/testDir/foo/foobar1")));
-    Assert.assertTrue(fileExists(new AlluxioURI("/testDir/foo/foobar2")));
-    Assert.assertTrue(fileExists(new AlluxioURI("/testDir/bar/foobar3")));
-    Assert.assertTrue(fileExists(new AlluxioURI("/testDir/foobar4")));
+    assertEquals(0, ret);
+    assertTrue(fileExists(new AlluxioURI("/testDir/foo/foobar1")));
+    assertTrue(fileExists(new AlluxioURI("/testDir/foo/foobar2")));
+    assertTrue(fileExists(new AlluxioURI("/testDir/bar/foobar3")));
+    assertTrue(fileExists(new AlluxioURI("/testDir/foobar4")));
   }
 
   @Test
@@ -421,18 +427,18 @@ public final class CopyFromLocalCommandIntegrationTest extends AbstractAlluxioSh
     String localTestDir = FileSystemShellUtilsTest.resetFileHierarchy(mFileSystem);
     String alluxioTestDir = FileSystemShellUtilsTest.resetFileHierarchy(mFileSystem);
     int ret = mFsShell.run("copyFromLocal", localTestDir + "/*/foo*", alluxioTestDir + "/foobar4");
-    Assert.assertEquals(-1, ret);
+    assertEquals(-1, ret);
   }
 
   @Test
   public void copyFromLocalWildcard() throws IOException {
     String testDir = FileSystemShellUtilsTest.resetLocalFileHierarchy(mLocalAlluxioCluster);
     int ret = mFsShell.run("copyFromLocal", testDir + "/*/foo*", "/testDir");
-    Assert.assertEquals(0, ret);
-    Assert.assertTrue(fileExists(new AlluxioURI("/testDir/foobar1")));
-    Assert.assertTrue(fileExists(new AlluxioURI("/testDir/foobar2")));
-    Assert.assertTrue(fileExists(new AlluxioURI("/testDir/foobar3")));
-    Assert.assertFalse(fileExists(new AlluxioURI("/testDir/foobar4")));
+    assertEquals(0, ret);
+    assertTrue(fileExists(new AlluxioURI("/testDir/foobar1")));
+    assertTrue(fileExists(new AlluxioURI("/testDir/foobar2")));
+    assertTrue(fileExists(new AlluxioURI("/testDir/foobar3")));
+    assertFalse(fileExists(new AlluxioURI("/testDir/foobar4")));
   }
 
   @Test
@@ -444,8 +450,8 @@ public final class CopyFromLocalCommandIntegrationTest extends AbstractAlluxioSh
       generateRelativeFileContent(localDir.getPath() + "/testFile",
               BufferUtils.getIncreasingByteArray(10));
       int ret = mFsShell.run("copyFromLocal", "testDir/testFile", "/testFile");
-      Assert.assertEquals(0, ret);
-      Assert.assertTrue(fileExists(new AlluxioURI(("/testFile"))));
+      assertEquals(0, ret);
+      assertTrue(fileExists(new AlluxioURI(("/testFile"))));
     }
   }
 }
