@@ -21,7 +21,7 @@ count:
 cp:
   Copy a file or directory within the Alluxio file system.
 du:
-  Display the size of a file or a directory specified by the input path.
+  Display the size of the file or a directory specified by the input path.
 fileInfo:
   Print the information of the blocks of a specified file.
 free:
