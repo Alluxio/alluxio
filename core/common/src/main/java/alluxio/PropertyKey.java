@@ -2412,7 +2412,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   @ThreadSafe
   public enum Template {
     LOCALITY_TIER("alluxio.locality.%s", "alluxio\\.locality\\.(\\w+)"),
-    LOCALITY_TIER_STRICT("alluxio.locality.%s.strict", "alluxio\\.locality\\.(\\w+)\\.strict"),
     MASTER_JOURNAL_UFS_OPTION("alluxio.master.journal.ufs.option",
         "alluxio\\.master\\.journal\\.ufs\\.option"),
     MASTER_JOURNAL_UFS_OPTION_PROPERTY("alluxio.master.journal.ufs.option.%s",
