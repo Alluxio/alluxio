@@ -50,7 +50,7 @@ public class BlockMetadataManagerView {
    * A list of {@link StorageTierView}, derived from {@link StorageTier}s from the
    * {@link BlockMetadataManager}.
    */
-  private List<StorageTierView> mTierViews = new ArrayList<>();
+  private final List<StorageTierView> mTierViews = new ArrayList<>();
 
   /** A list of pinned inodes. */
   private final Set<Long> mPinnedInodes = new HashSet<>();
