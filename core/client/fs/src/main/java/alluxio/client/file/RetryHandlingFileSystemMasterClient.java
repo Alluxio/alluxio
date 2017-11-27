@@ -150,7 +150,7 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
 
   @Override
   public synchronized URIStatus getStatus(final AlluxioURI path, final GetStatusOptions options)
-      throws AlluxioStatusException {
+      throws IOException {
     return retryRPC(() -> new URIStatus(ThriftUtils
             .fromThrift(mClient.getStatus(path.getPath(), options.toThrift()).getFileInfo())));
   }
