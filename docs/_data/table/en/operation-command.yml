@@ -11,7 +11,7 @@ chmod:
 chown:
   Change the owner of a file or directory.
 copyFromLocal:
-  Copy the specified file specified by "source path" to the path specified by "remote path".
+  Copy the file specified by "source path" to the path specified by "remote path".
   This command will fail if "remote path" already exists.
 copyToLocal:
   Copy the file specified by "remote path" to a local destination.
