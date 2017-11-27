@@ -11,6 +11,9 @@
 
 package alluxio.master.journal;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
+
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.doNothing;
@@ -23,7 +26,6 @@ import alluxio.PropertyKey;
 import alluxio.proto.journal.Journal.JournalEntry;
 
 import org.junit.After;
-import org.junit.Assert;
 import org.junit.Test;
 import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
@@ -68,7 +70,7 @@ public class AsyncJournalWriterTest {
     for (int i = 0; i < entries; i++) {
       long flushCounter = mAsyncJournalWriter.appendEntry(JournalEntry.getDefaultInstance());
       // Assuming the flush counter starts from 0.
-      Assert.assertEquals(i + 1, flushCounter);
+      assertEquals(i + 1, flushCounter);
     }
 
     for (int i = 1; i <= entries; i++) {
@@ -103,7 +105,7 @@ public class AsyncJournalWriterTest {
     for (int i = 0; i < entries; i++) {
       long flushCounter = mAsyncJournalWriter.appendEntry(JournalEntry.getDefaultInstance());
       // Assuming the flush counter starts from 0
-      Assert.assertEquals(i + 1, flushCounter);
+      assertEquals(i + 1, flushCounter);
     }
 
     // Start failing journal writes.
@@ -114,7 +116,7 @@ public class AsyncJournalWriterTest {
     for (int i = 1; i <= entries; i++) {
       try {
         mAsyncJournalWriter.flush(1);
-        Assert.fail("journal flush should not succeed if journal write fails.");
+        fail("journal flush should not succeed if journal write fails.");
       } catch (IOException e) {
         // This is expected.
       }
@@ -156,7 +158,7 @@ public class AsyncJournalWriterTest {
     for (int i = 0; i < entries; i++) {
       long flushCounter = mAsyncJournalWriter.appendEntry(JournalEntry.getDefaultInstance());
       // Assuming the flush counter starts from 0
-      Assert.assertEquals(i + 1, flushCounter);
+      assertEquals(i + 1, flushCounter);
     }
 
     // Start failing journal flushes.
@@ -166,7 +168,7 @@ public class AsyncJournalWriterTest {
     for (int i = 1; i <= entries; i++) {
       try {
         mAsyncJournalWriter.flush(1);
-        Assert.fail("journal flush should not succeed if journal flush fails.");
+        fail("journal flush should not succeed if journal flush fails.");
       } catch (IOException e) {
         // This is expected.
       }
