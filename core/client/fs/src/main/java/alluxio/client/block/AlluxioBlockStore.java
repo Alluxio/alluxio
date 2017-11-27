@@ -108,10 +108,7 @@ public final class AlluxioBlockStore {
    * @return the info of all block workers eligible for reads and writes
    */
   public List<BlockWorkerInfo> getEligibleWorkers() throws IOException {
-    return getAllWorkers().stream()
-        // Filter out workers in different strict tiers.
-        .filter(w -> w.getNetAddress().getTieredIdentity().strictTiersMatch(mTieredIdentity))
-        .collect(Collectors.toList());
+    return getAllWorkers();
   }
 
   /**

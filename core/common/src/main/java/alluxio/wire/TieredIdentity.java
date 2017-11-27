@@ -11,9 +11,6 @@
 
 package alluxio.wire;
 
-import alluxio.Configuration;
-import alluxio.PropertyKey;
-import alluxio.PropertyKey.Template;
 import alluxio.annotation.PublicApi;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
@@ -100,30 +97,8 @@ public final class TieredIdentity {
           }
         }
       }
-      if (Configuration.containsKey(Template.LOCALITY_TIER_STRICT.format(tier.getTierName()))
-          && Configuration.getBoolean(Template.LOCALITY_TIER_STRICT.format(tier.getTierName()))) {
-        return Optional.empty();
-      }
     }
     return Optional.of(identities.get(0));
-  }
-
-  /**
-   * @param other a tiered identity to compare to
-   * @return whether this tiered identity matches the given tiered identity in all strict tiers
-   */
-  public boolean strictTiersMatch(TieredIdentity other) {
-    for (LocalityTier t : mTiers) {
-      PropertyKey strictKey = Template.LOCALITY_TIER_STRICT.format(t.getTierName());
-      if (Configuration.containsKey(strictKey) && Configuration.getBoolean(strictKey)) {
-        for (LocalityTier tier : other.getTiers()) {
-          if (tier.getTierName().equals(t.getTierName()) && !tier.getValue().equals(t.getValue())) {
-            return false;
-          }
-        }
-      }
-    }
-    return true;
   }
 
   /**
