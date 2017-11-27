@@ -36,6 +36,7 @@ or let us know by email (project.alluxio@gmail.com) or
 * [Tencent](https://www.tencent.com)
 * [UC Berkeley AMPLab](https://amplab.cs.berkeley.edu/)
 * [Ultra Tendency](http://ultratendency.com/)
+* [ZTE](http://www.zte.com.cn)
 
 Here is a list that tracks external software projects that supplement Alluxio and add to its ecosystem.
 
@@ -47,5 +48,6 @@ Here is a list that tracks external software projects that supplement Alluxio an
 * [Apache Hadoop](https://hadoop.apache.org/)
 * [Apache Spark](http://spark.apache.org/)
 * [Apache Zeppelin](http://zeppelin-project.org/)
+* [Ceph](http://ceph.com/)
 * [GlusterFS](http://www.gluster.org/)
 * [Openstack Swift](http://docs.openstack.org/developer/swift/)
