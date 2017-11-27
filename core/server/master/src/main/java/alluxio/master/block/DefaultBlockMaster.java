@@ -748,12 +748,24 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
       }
     }
     return new BlockInfo().setBlockId(masterBlockInfo.getBlockId())
-        .setLength(masterBlockInfo.getLength()).setLocations(locations);
+        .setLength(masterBlockInfo.getLength()).setLocations(locations)
+        .setUfsLocations(masterBlockInfo.getUfsLocations());
   }
 
   @Override
   public void reportLostBlocks(List<Long> blockIds) {
     mLostBlocks.addAll(blockIds);
+  }
+
+  @Override
+  public void setBlockUfsLocations(long blockId, List<String> ufsLocations) {
+    MasterBlockInfo block = mBlocks.get(blockId);
+    if (block == null) {
+      return;
+    }
+    synchronized (block) {
+      block.setUfsLocations(ufsLocations);
+    }
   }
 
   /**

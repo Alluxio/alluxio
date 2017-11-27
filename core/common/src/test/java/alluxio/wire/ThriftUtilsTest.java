@@ -61,7 +61,8 @@ public class ThriftUtilsTest {
 
   private alluxio.thrift.BlockInfo getBlockInfoThrift() {
     return new alluxio.thrift.BlockInfo(100, 100L,
-        Collections.<alluxio.thrift.BlockLocation>emptyList());
+        Collections.<alluxio.thrift.BlockLocation>emptyList(),
+        Collections.<String>emptyList());
   }
 
   private BlockLocation getBlockLocation() {
@@ -94,7 +95,8 @@ public class ThriftUtilsTest {
 
   private alluxio.thrift.FileBlockInfo getFileBlockInfoThrift() {
     return new alluxio.thrift.FileBlockInfo(new alluxio.thrift.BlockInfo(100L, 200L,
-        Collections.<alluxio.thrift.BlockLocation>emptyList()), 100L,
+        Collections.<alluxio.thrift.BlockLocation>emptyList(),
+        Collections.<String>emptyList()), 100L,
         Collections.<alluxio.thrift.WorkerNetAddress>emptyList(), Collections.<String>emptyList());
   }
 

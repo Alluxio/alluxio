@@ -14,6 +14,7 @@ package alluxio.master.block.meta;
 import alluxio.Constants;
 
 import com.google.common.base.Objects;
+import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,6 +45,8 @@ public final class MasterBlockInfo {
 
   /** Maps from the worker id to the tier alias the block is on. */
   private final Map<Long, String> mWorkerIdToAlias;
+  /** List of block locations in the ufs, will be set lazily when the locations are needed. */
+  private List<String> mUfsLocations;
 
   /**
    * Creates a new instance of {@link MasterBlockInfo}.
@@ -57,6 +60,7 @@ public final class MasterBlockInfo {
     mLength = length;
 
     mWorkerIdToAlias = new HashMap<>();
+    mUfsLocations = new ArrayList<>();
   }
 
   /**
@@ -131,6 +135,23 @@ public final class MasterBlockInfo {
       ret.add(new MasterBlockLocation(entry.getKey(), entry.getValue()));
     }
     return ret;
+  }
+
+  /**
+   * @return the UFS locations
+   */
+  public List<String> getUfsLocations() {
+    return mUfsLocations;
+  }
+
+  /**
+   * Sets UFS locations for the block.
+   *
+   * @param ufsLocations the UFS locations to use
+   */
+  public void setUfsLocations(List<String> ufsLocations) {
+    Preconditions.checkNotNull(ufsLocations, "ufsLocations");
+    mUfsLocations = new ArrayList<>(ufsLocations);
   }
 
   /**

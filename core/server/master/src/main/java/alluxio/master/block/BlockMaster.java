@@ -161,4 +161,12 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
    * @param blockIds the ids of the lost blocks
    */
   void reportLostBlocks(List<Long> blockIds);
+
+  /**
+   * Sets UFS locations of the block. If the block does not exist, this is a noop.
+   *
+   * @param blockId the block ID
+   * @param ufsLocations the ufs locations, cannot be null
+   */
+  void setBlockUfsLocations(long blockId, List<String> ufsLocations);
 }

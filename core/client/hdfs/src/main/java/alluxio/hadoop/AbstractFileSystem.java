@@ -284,7 +284,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
           hosts.add(address.getHostText());
         }
         // add under file system locations
-        for (String location : fileBlockInfo.getUfsLocations()) {
+        for (String location : fileBlockInfo.getBlockInfo().getUfsLocations()) {
           names.add(location);
           hosts.add(HostAndPort.fromString(location).getHostText());
         }

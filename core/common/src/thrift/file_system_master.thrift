@@ -86,7 +86,7 @@ struct FileBlockInfo {
   1: common.BlockInfo blockInfo
   2: i64 offset
   3: list<common.WorkerNetAddress> ufsLocations // deprecated since 1.1 will be removed in 2.0 (replaced by ufsStringLocations)
-  4: list<string> ufsStringLocations
+  4: list<string> ufsStringLocations // deprecated since 1.7, will be removed in 2.0 (replaced by blockInfo.ufsLocations)
 }
 
 struct FileInfo {
