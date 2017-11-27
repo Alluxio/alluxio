@@ -153,7 +153,7 @@ public final class NettyPacketReaderTest {
    * @return the packet reader instance
    */
   private PacketReader create(long offset, long length) throws Exception {
-    PacketReader reader = mFactory.create(offset, length);
+    PacketReader reader = mFactory.create(offset, length, 0);
     return reader;
   }
 

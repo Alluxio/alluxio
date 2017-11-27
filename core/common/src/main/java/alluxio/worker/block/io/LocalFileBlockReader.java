@@ -96,4 +96,14 @@ public final class LocalFileBlockReader implements BlockReader {
   public boolean isClosed() {
     return mClosed;
   }
+
+  @Override
+  public void position(long newPosition) throws IOException {
+    mLocalFileChannel.position(newPosition);
+  }
+
+  @Override
+  public boolean isSeakable() {
+    return true;
+  }
 }

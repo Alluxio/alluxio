@@ -61,4 +61,13 @@ public interface BlockReader extends Closeable {
    * @return true if this reader is closed
    */
   boolean isClosed();
+
+  /**
+   * Moves the reader to the specified position.
+   *
+   * @param newPosition the position to move to
+   */
+  void position(long newPosition) throws IOException;
+
+  boolean isSeakable();
 }

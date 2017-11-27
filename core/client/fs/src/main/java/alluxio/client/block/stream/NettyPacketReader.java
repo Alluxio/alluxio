@@ -344,9 +344,9 @@ public final class NettyPacketReader implements PacketReader {
     }
 
     @Override
-    public PacketReader create(long offset, long len) throws IOException {
-      return new NettyPacketReader(mContext, mAddress,
-          mReadRequestPartial.toBuilder().setOffset(offset).setLength(len).build(), mOptions);
+    public PacketReader create(long offset, long len, long sessionId) throws IOException {
+      return new NettyPacketReader(mContext, mAddress, mReadRequestPartial.toBuilder()
+          .setOffset(offset).setLength(len).setSessionId(sessionId).build(), mOptions);
     }
 
     @Override

@@ -136,7 +136,7 @@ public final class LocalFilePacketReader implements PacketReader {
     }
 
     @Override
-    public PacketReader create(long offset, long len) throws IOException {
+    public PacketReader create(long offset, long len, long sessionId) throws IOException {
       return new LocalFilePacketReader(mPath, offset, len, mPacketSize);
     }
 

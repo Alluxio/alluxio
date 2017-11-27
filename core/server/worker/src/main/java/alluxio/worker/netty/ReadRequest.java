@@ -11,8 +11,6 @@
 
 package alluxio.worker.netty;
 
-import alluxio.util.IdUtils;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -26,12 +24,12 @@ class ReadRequest {
   private final long mPacketSize;
   private final long mSessionId;
 
-  ReadRequest(long id, long start, long end, long packetSize) {
+  ReadRequest(long id, long start, long end, long packetSize, long sessionId) {
     mId = id;
     mStart = start;
     mEnd = end;
     mPacketSize = packetSize;
-    mSessionId = IdUtils.createSessionId();
+    mSessionId = sessionId;
   }
 
   /**

@@ -77,7 +77,7 @@ public class TestBlockInStream extends BlockInStream {
     }
 
     @Override
-    public PacketReader create(long offset, long len) {
+    public PacketReader create(long offset, long len, long sessionId) {
       return new TestPacketReader(mData, offset, len);
     }
 

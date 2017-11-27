@@ -29,7 +29,6 @@ import alluxio.proto.dataserver.Protocol;
 import alluxio.retry.RetryPolicy;
 import alluxio.retry.TimeoutRetry;
 import alluxio.util.proto.ProtoMessage;
-import alluxio.worker.block.BlockLockManager;
 import alluxio.worker.block.BlockWorker;
 import alluxio.worker.block.UnderFileSystemBlockReader;
 import alluxio.worker.block.io.BlockReader;
@@ -42,7 +41,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.nio.channels.FileChannel;
 import java.util.concurrent.ExecutorService;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -151,27 +149,28 @@ public final class BlockReadHandler extends AbstractReadHandler<BlockReadRequest
         } else {
           lockId = mWorker.lockBlock(request.getSessionId(), request.getId());
         }
-        if (lockId != BlockLockManager.INVALID_LOCK_ID) {
-          try {
-            BlockReader reader =
-                mWorker.readBlockRemote(request.getSessionId(), request.getId(), lockId);
+        BlockReader reader;
+        try {
+          reader = mWorker.readBlockRemote(request.getSessionId(), request.getId(), lockId);
+          if (reader.isSeakable()){
             String metricName = "BytesReadAlluxio";
             context.setBlockReader(reader);
             context.setCounter(MetricsSystem.workerCounter(metricName));
             mWorker.accessBlock(request.getSessionId(), request.getId());
-            ((FileChannel) reader.getChannel()).position(request.getStart());
+            reader.position(request.getStart());
             return;
-          } catch (Exception e) {
-            mWorker.unlockBlock(lockId);
-            throw e;
           }
+        } catch (Exception e) {
+          LOG.info("Failed to read block remote: {} with lock id {} and block id", e, lockId, request.getId());
+          mWorker.unlockBlock(lockId);
+          throw e;
         }
 
         // When the block does not exist in Alluxio but exists in UFS, try to open the UFS block.
         Protocol.OpenUfsBlockOptions openUfsBlockOptions = request.getOpenUfsBlockOptions();
         if (mWorker.openUfsBlock(request.getSessionId(), request.getId(), openUfsBlockOptions)) {
           try {
-            BlockReader reader =
+            reader =
                 mWorker.readUfsBlock(request.getSessionId(), request.getId(), request.getStart());
             AlluxioURI ufsMountPointUri =
                 ((UnderFileSystemBlockReader) reader).getUfsMountPointUri();

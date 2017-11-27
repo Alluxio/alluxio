@@ -44,7 +44,7 @@ public interface PacketReader extends Closeable {
      * @param len the length of the stream
      * @return the created object
      */
-    PacketReader create(long offset, long len) throws IOException;
+    PacketReader create(long sessionId, long offset, long len) throws IOException;
 
     /**
      * @return whether this factory generates packet readers which perform short-circuit reads

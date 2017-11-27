@@ -14,6 +14,7 @@ package alluxio.worker.block.io;
 import io.netty.buffer.ByteBuf;
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
@@ -49,6 +50,7 @@ public final class MockBlockReader implements BlockReader {
     return buf.writeBytes(mBytes).readableBytes() - remaining;
   }
 
+  @Override
   public boolean isClosed() {
     return false;
   }
@@ -61,5 +63,15 @@ public final class MockBlockReader implements BlockReader {
   @Override
   public ReadableByteChannel getChannel() {
     return Channels.newChannel(new ByteArrayInputStream(mBytes));
+  }
+
+  @Override
+  public void position(long newPosition) throws IOException {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public boolean isSeakable() {
+    return false;
   }
 }

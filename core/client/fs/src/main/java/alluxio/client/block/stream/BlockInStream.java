@@ -22,6 +22,7 @@ import alluxio.exception.PreconditionMessage;
 import alluxio.exception.status.NotFoundException;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.proto.dataserver.Protocol;
+import alluxio.util.IdUtils;
 import alluxio.util.io.BufferUtils;
 import alluxio.util.network.NettyUtils;
 import alluxio.util.network.NetworkAddressUtils;
@@ -67,6 +68,8 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
 
   private boolean mClosed = false;
   private boolean mEOF = false;
+
+  private long mSessionId;
 
   /**
    * Creates an {@link BlockInStream} that reads from a local block.
@@ -163,6 +166,7 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
     mId = id;
     mLength = length;
     mInStreamSource = blockSource;
+    mSessionId = IdUtils.createSessionId();
   }
 
   @Override
@@ -219,7 +223,7 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
     }
 
     int lenCopy = len;
-    try (PacketReader reader = mPacketReaderFactory.create(pos, len)) {
+    try (PacketReader reader = mPacketReaderFactory.create(pos, len, mSessionId)) {
       // We try to read len bytes instead of returning after reading one packet because
       // it is not free to create/close a PacketReader.
       while (len > 0) {
@@ -306,7 +310,7 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
    */
   private void readPacket() throws IOException {
     if (mPacketReader == null) {
-      mPacketReader = mPacketReaderFactory.create(mPos, mLength - mPos);
+      mPacketReader = mPacketReaderFactory.create(mPos, mLength - mPos, mSessionId);
     }
 
     if (mCurrentPacket != null && mCurrentPacket.readableBytes() == 0) {
