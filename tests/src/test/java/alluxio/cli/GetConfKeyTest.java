@@ -13,13 +13,14 @@ package alluxio.cli;
 
 import static org.junit.Assert.assertEquals;
 
-import alluxio.Configuration;
+import alluxio.PropertyKey;
 import alluxio.SystemOutRule;
 
 import org.junit.Rule;
 import org.junit.Test;
 
 import java.io.ByteArrayOutputStream;
+import java.lang.reflect.Field;
 
 /**
  * Tests for {@link GetConfKey}.
@@ -32,8 +33,11 @@ public final class GetConfKeyTest {
 
   @Test
   public void getConfKeyWithAllPropertyNames() throws Exception {
-    for (String key : Configuration.toMap().keySet()) {
-      assertConfKey(key.toUpperCase().replace(".", "_"), key, 0);
+    for (Field field : PropertyKey.class.getDeclaredFields()) {
+      if (field.getType().equals(PropertyKey.class)) {
+        String key = ((PropertyKey) field.get(PropertyKey.class)).toString();
+        assertConfKey(key.toUpperCase().replace(".", "_"), key, 0);
+      }
     }
   }
 

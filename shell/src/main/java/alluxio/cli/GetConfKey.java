@@ -25,12 +25,16 @@ public final class GetConfKey {
       + "GetConfKey prints the configuration key given an environment variable name. "
       + "If the key is invalid, the exit code will be nonzero.";
 
-  private static final Map<String, String> ENV_VIOLATORS = ImmutableMap.of(
-      "ALLUXIO_UNDERFS_S3A_INHERIT_ACL", "alluxio.underfs.s3a.inherit_acl",
-      "ALLUXIO_MASTER_FORMAT_FILE_PREFIX", "alluxio.master.format.file_prefix",
-      "AWS_ACCESSKEYID", "aws.accessKeyId",
-      "AWS_SECRETKEY", "aws.secretKey"
-  );
+  private static final Map<String, String> ENV_VIOLATORS = ImmutableMap.<String, String>builder()
+      .put("ALLUXIO_UNDERFS_S3A_INHERIT_ACL", "alluxio.underfs.s3a.inherit_acl")
+      .put("ALLUXIO_MASTER_FORMAT_FILE_PREFIX", "alluxio.master.format.file_prefix")
+      .put("AWS_ACCESSKEYID", "aws.accessKeyId")
+      .put("AWS_SECRETKEY", "aws.secretKey")
+      .put("FS_GCS_ACCESSKEYID", "fs.gcs.accessKeyId")
+      .put("FS_GCS_SECRETACCESSKEY", "fs.gcs.secretAccessKey")
+      .put("FS_OSS_ACCESSKEYID", "fs.oss.accessKeyId")
+      .put("FS_OSS_ACCESSKEYSECRET", "fs.oss.accessKeySecret")
+      .build();
 
   /**
    * Prints the help message.
@@ -45,7 +49,7 @@ public final class GetConfKey {
   /**
    * Implements get configuration key.
    *
-   * @param args list of arguments
+   * @param args the arguments to specify the environment variable name
    * @return 0 on success, 1 on failures
    */
   public static int getConfKey(String... args) {
