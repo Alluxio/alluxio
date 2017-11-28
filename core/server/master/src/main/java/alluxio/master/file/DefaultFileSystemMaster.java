@@ -1543,8 +1543,9 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       long blockId = fileBlockInfo.getBlockInfo().getBlockId();
       List<String> locs = mUfsBlockLocationCache.get(blockId);
       if (locs == null) {
-        locs = mUfsBlockLocationCache.process(blockId, inodePath.getUri(),
+        mUfsBlockLocationCache.process(blockId, inodePath.getUri(),
             FileLocationOptions.defaults().setOffset(fileBlockInfo.getOffset()));
+        locs = mUfsBlockLocationCache.get(blockId);
       }
       if (locs != null) {
         for (String loc : locs) {

@@ -20,6 +20,8 @@ import alluxio.underfs.options.FileLocationOptions;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.List;
@@ -31,6 +33,8 @@ import java.util.List;
  * to synchronously retrieve and cache the block locations.
  */
 public class LazyUfsBlockLocationCache implements UfsBlockLocationCache {
+  private static final Logger LOG = LoggerFactory.getLogger(LazyUfsBlockLocationCache.class);
+
   /** Number of blocks to cache. */
   private static final int MAX_BLOCKS =
       Configuration.getInt(PropertyKey.MASTER_UFS_PATH_CACHE_CAPACITY);
@@ -60,20 +64,17 @@ public class LazyUfsBlockLocationCache implements UfsBlockLocationCache {
   }
 
   @Override
-  public List<String> process(long blockId, AlluxioURI fileUri, FileLocationOptions options)
-      throws InvalidPathException {
-    MountTable.Resolution resolution = mMountTable.resolve(fileUri);
-    String ufsUri = resolution.getUri().toString();
-    UnderFileSystem ufs = resolution.getUfs();
-    List<String> locations;
+  public void process(long blockId, AlluxioURI fileUri, FileLocationOptions options) {
     try {
-      locations = ufs.getFileLocations(ufsUri, options);
-    } catch (IOException e) {
-      return null;
+      MountTable.Resolution resolution = mMountTable.resolve(fileUri);
+      String ufsUri = resolution.getUri().toString();
+      UnderFileSystem ufs = resolution.getUfs();
+      List<String> locations = ufs.getFileLocations(ufsUri, options);
+      if (locations != null) {
+        mCache.put(blockId, locations);
+      }
+    } catch (InvalidPathException | IOException e) {
+      LOG.warn("Failed to get locations for block {}: ", blockId, e);
     }
-    if (locations != null) {
-      mCache.put(blockId, locations);
-    }
-    return locations;
   }
 }

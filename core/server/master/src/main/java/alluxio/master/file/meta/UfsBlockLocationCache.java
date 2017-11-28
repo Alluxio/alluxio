@@ -12,7 +12,6 @@
 package alluxio.master.file.meta;
 
 import alluxio.AlluxioURI;
-import alluxio.exception.InvalidPathException;
 import alluxio.underfs.options.FileLocationOptions;
 
 import java.util.List;
@@ -29,11 +28,8 @@ public interface UfsBlockLocationCache {
    * @param blockId the block ID
    * @param fileUri the URI of the file which contains the block
    * @param options the options for getting file locations from UFS
-   * @return the block locations in UFS or {@code null} if failed to get the locations
-   * @throws InvalidPathException if the fileUri is an invalid path
    */
-  List<String> process(long blockId, AlluxioURI fileUri, FileLocationOptions options)
-      throws InvalidPathException;
+  void process(long blockId, AlluxioURI fileUri, FileLocationOptions options);
 
   /**
    * @param blockId the block ID
