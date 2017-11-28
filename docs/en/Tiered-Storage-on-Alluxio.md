@@ -3,7 +3,7 @@ layout: global
 title: Alluxio Storage
 nickname: Alluxio Storage
 group: Features
-priority: 4
+priority: 1
 ---
 
 * Table of Contents
@@ -174,7 +174,7 @@ Reading data with the ReadType.CACHE_PROMOTE will ensure the data is first trans
 top tier before it is read from the worker. This can also be used as a data management strategy by
 explicitly moving hot data to higher tiers.
 
-## Enabling and Configuring Tiered Storage
+### Enabling and Configuring Tiered Storage
 
 Tiered storage can be enabled in Alluxio using
 [configuration parameters](Configuration-Settings.html). To specify additional tiers for Alluxio,
@@ -214,7 +214,7 @@ specific alias. For example, at most 1 tier can have the alias HDD. If you want 
 multiple hard drives for the HDD tier, you can configure that by using multiple paths for
 `alluxio.worker.tieredstore.level{x}.dirs.path`.
 
-## Configuration Parameters For Tiered Storage
+### Configuration Parameters For Tiered Storage
 
 These are the configuration parameters for tiered storage.
 
