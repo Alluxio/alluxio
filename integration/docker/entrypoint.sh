@@ -51,8 +51,7 @@ for keyvaluepair in $(env); do
     echo "export ${key}=${value}" >> conf/alluxio-env.sh
   else
     # check if property name is valid
-    if keyvaluepair=$(bin/alluxio getConf -e --display-name ${key} 2> /dev/null); then
-      confkey=$(echo ${keyvaluepair} | cut -d= -f1)
+    if confkey=$(bin/alluxio getConfKey ${key} 2> /dev/null); then
       echo "${confkey}=${value}" >> conf/alluxio-site.properties
     fi
   fi
