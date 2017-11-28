@@ -12,10 +12,10 @@ priority: 1
 # Tiered Identity
 
 In Alluxio, each entity (masters, workers, clients) has a *Tiered Identity*. A tiered
-identity is an address tuple such as `(node=..., rack=...)`. The elements
-of the tuple are ordered from most specific to least specific, so if two entities have
-the same node name, they are expected to also have the same rack name. Alluxio uses tiered
-identities to optimize for locality. For example, when the client wants to read a
+identity is an address tuple such as `(node=..., rack=...)`. Each pair in the tuple is called
+a *locality tier*. The locality tiers are ordered from most specific to least specific, so if
+two entities have the same node name, they are assumed to also have the same rack name. Alluxio
+uses tiered identities to optimize for locality. For example, when the client wants to read a
 file from the UFS, it will prefer to read through an Alluxio worker on the same node. 
 If there is no local worker in the first tier (node), the next tier (rack) will be checked 
 to prefer rack-local data transfer. If no workers share a node or rack with the client, an
@@ -24,7 +24,8 @@ arbitrary worker will be chosen.
 # Configuration
 
 If the user does nothing to provide tiered identity info, each entity will
-perform a localhost lookup to set its node-level identity info. To explicitly configure
+perform a localhost lookup to set its node-level identity info. If other locality tiers
+are left unset, they will not be used to inform locality decisions. To explicitly configure
 the value for a locality tier, set the configuration property
 
 ```
@@ -63,8 +64,8 @@ from highest priority to lowest priority:
 # When is tiered locality used?
 
 1. When choosing a worker to read from during UFS reads.
-2. When choosing a worker to read from when multiple Alluxio workers hold a block.
-3. If using the `LocalFirstPolicy` or `LocalFirstAvoidEvictionPolicy`, tiered locality is
+1. When choosing a worker to read from when multiple Alluxio workers hold a block.
+1. If using the `LocalFirstPolicy` or `LocalFirstAvoidEvictionPolicy`, tiered locality is
 used to choose which worker to write to when writing data to Alluxio.
 
 # Custom locality tiers
