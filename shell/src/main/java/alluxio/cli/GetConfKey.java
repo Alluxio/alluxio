@@ -18,7 +18,7 @@ import com.google.common.collect.ImmutableMap;
 import java.util.Map;
 
 /**
- * Utility for printing Alluxio configuration.
+ * Utility for printing Alluxio configuration key.
  */
 public final class GetConfKey {
   private static final String USAGE = "USAGE: GetConfKey [ENV_VARIABLE_NAME]\n\n"
@@ -43,7 +43,7 @@ public final class GetConfKey {
   }
 
   /**
-   * Implements get configuration.
+   * Implements get configuration key.
    *
    * @param args list of arguments
    * @return 0 on success, 1 on failures
@@ -54,8 +54,9 @@ public final class GetConfKey {
         printHelp("Missing argument.");
         return 1;
       case 1:
-        String propertyName = ENV_VIOLATORS.getOrDefault(args[0],
-            args[0].toLowerCase().replace("_", "."));
+        String varName = args[0].trim();
+        String propertyName = ENV_VIOLATORS.getOrDefault(varName,
+            varName.toLowerCase().replace("_", "."));
         if (!PropertyKey.isValid(propertyName)) {
           printHelp(String.format("%s is not a valid configuration key", propertyName));
           return 1;
@@ -71,9 +72,9 @@ public final class GetConfKey {
   }
 
   /**
-   * Prints Alluxio configuration.
+   * Prints Alluxio configuration key.
    *
-   * @param args the arguments to specify the unit (optional) and configuration key (optional)
+   * @param args the arguments to specify the environment variable name
    */
   public static void main(String[] args) {
     System.exit(getConfKey(args));
