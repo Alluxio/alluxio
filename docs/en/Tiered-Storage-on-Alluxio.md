@@ -1,7 +1,7 @@
 ---
 layout: global
-title: Tiered Storage on Alluxio
-nickname: Tiered Storage
+title: Alluxio Storage
+nickname: Alluxio Storage
 group: Features
 priority: 4
 ---
@@ -9,110 +9,60 @@ priority: 4
 * Table of Contents
 {:toc}
 
-Alluxio supports heterogenous storage, which allows Alluxio to manage other storage types in
-addition to memory. Alluxio also supports Tiered Storage which enables Alluxio to be storage
-media aware, enabling more intelligent data management. For example, users often specify the
-following tiers:
+Alluxio manages the local storage, including memory, of Alluxio workers to act as a distributed buffer cache. This fast data layer between user applications and the various under storages results in vastly improved I/O performance.
 
-* MEM (Memory)
-* SSD (Solid State Drives)
-* HDD (Hard Disk Drives)
+The amount and type of storage for each Alluxio node to manage is determined by user configuration. Alluxio also supports tiered storage, which makes the system storage media aware, enabling data storage optimizations similar to L1/L2 cpu caches.
 
-Using Alluxio with heterogeneous storage allows Alluxio to store more data in the system at once,
-since memory capacity may be limited in some deployments. With tiered storage, Alluxio
-automatically manages blocks between all the configured tiers, so users and administrators do not
-have to manually manage the locations of the data. Users may specify their own data management
-strategies by implementing [allocators](#allocators) and [evictors](#evictors). In addition, manual
-control over tier storage is possible, see [pinning files](#pinning-files).
+## Configuring Alluxio Storage
 
-## Using Tiered Storage
+The easiest way to configure Alluxio storage is to use the default single-tier mode.
 
-For typical deployments, it is recommended to use a single storage tier with heterogeneous storage
-media. However, in certain environments, workloads will benefit from explicit ordering of storage
-media based on I/O speed. In this case, tiered storage should be used. To manage the placement and
-movement of the blocks, Alluxio uses *allocators* and *evictors* to place and re-arrange blocks
-between the tiers. Alluxio  assumes that tiers are ordered from top to bottom based on I/O
-performance. Therefore, the typical tiered storage configuration defines the top tier to be MEM,
-followed by SSD, and finally HDD.
+Out-of-the-box Alluxio will provision a ramdisk on every worker and take a percentage of the system's total memory. This ramdisk will be used as the only storage medium allocated to each Alluxio worker.
 
-### Storage Directories
+A common modification to the default is to explicitly set the ramdisk size. For example, to set the ramdisk size to be 16GB on each worker:
 
-A storage directory is a file path where the Alluxio blocks should be stored. Alluxio supports
-configuring multiple directories for a single tier, allowing multiple mount points or storage
-device types for a particular tier. For example, if you have five SSD devices on your Alluxio
-worker, you can configure Alluxio to use all five devices for the SSD tier. Configuration for this
-is described [below](#enabling-and-configuring-tiered-storage). Choosing which directory the data
-should placed is determined by the [allocators](#allocators).
+```
+alluxio.worker.memory.size=16GB
+```
 
-### Writing Data
+Another common change is to specify multiple storage media, such as ramdisk and SSDs. We will need to update `alluxio.worker.tieredstore.level0.dirs.path` to take specify each storage medium we want to use as a storage directory. For example, to use the ramdisk (mounted at /mnt/ramdisk) and 2 ssds (mounted at /mnt/ssd1 and /mnt/ssd2):
 
-When a user writes a new block, it is written to the top tier by default. If there is not enough
-space for the block in the top tier, then the evictor is triggered in order to free space for the
-new block. If no space is available or can be freed up in the top tier, the write will fail. If
-the file size exceeds the size of the top tier, the write will also fail.
+```
+alluxio.worker.tieredstore.level0.dirs.path=/mnt/ramdisk,/mnt/ssd1,/mnt/ssd2
+```
 
-The user can also specify the tier that the data can be written to via
-[configuration settings](#configuration-parameters-for-tiered-storage).
+After updating the storage media, we need to indicate how much storage is allocated for each storage directory. For example, if we wanted to use 16 GB on the ramdisk and 100 GB on each SSD:
 
-Reading data with the ReadType.CACHE or ReadType.CACHE_PROMOTE will also result in the data being
-written into Alluxio. In this case, the data is always written to the top tier.
+```
+alluxio.worker.tieredstore.level0.dirs.quota=16GB,100GB,100GB
+```
 
-Finally, data in written into Alluxio via the load command. In this case also, the data is always
-written to the top tier.
+Note that the ordering of the quotas much match with the ordering of the paths.
 
-### Reading Data
+## Eviction
 
-Reading a data block with tiered storage is similar to standard Alluxio. If the data is already in
-Alluxio will simply read the block from where it is already stored. If Alluxio is configured with
-multiple tiers, then the block will not be necessarily read from the top tier, since it could have
-been moved to a lower tier transparently.
+Because Alluxio storage is designed to be volatile, there must be a mechanism to make space for new data when Alluxio storage is full. This is termed eviction.
 
-Reading data with the ReadType.CACHE_PROMOTE will ensure the data is first transferred to the
-top tier before it is read from the worker. This can also be used as a data management strategy by
-explicitly moving hot data to higher tiers.
+There are two modes of eviction in Alluxio, asynchronous (default) and synchronous. You can switch between the two by enabling and disabling the space reserver which handles asynchronous eviction. For example, to turn off asynchronous eviction:
 
-#### Pinning Files
+```
+alluxio.worker.tieredstore.reserver.enabled=false
+```
 
-A user can control the placement and movement of their files is using *pin* and *unpin*
-files. When a file is pinned, its blocks will not be evicted. However, users can still promote
-blocks of pinned files to move blocks to the top tier.
+Asynchronous eviction relies on a periodic space reserver thread in each worker to evict data. It waits until the worker storage utilization reaches a configurable high watermark. Then it evicts data based on the eviction policy until it reaches the confiurable low watermark. For example, if we had the same 16+100+100=216GB storage configured, we can set eviction to kick in at around 200GB and stop at around 160GB:
 
-An example of how to pin a file:
+```
+alluxio.worker.tieredstore.level0.watermark.high.ratio=0.9
+alluxio.worker.tieredstore.level0.watermark.low.ratio=0.75
+```
 
-{% include Tiered-Storage-on-Alluxio/pin-file.md %}
+Synchronous eviction is the legacy implementation of eviction. It waits for a client to request more space than is currently available on the worker and then kicks off the eviction process to free up enough space to serve that request. This leads to many small eviction attempts, which is less efficient.
 
-Similarly, the file can be unpinned through:
-
-{% include Tiered-Storage-on-Alluxio/unpin-file.md %}
-
-Since blocks of pinned files are no longer candidates for eviction, clients should make sure to
-unpin files when appropriate.
-
-### Allocators
-
-Alluxio uses allocators for choosing locations for writing new blocks. Alluxio has a framework for
-customized allocators, but there are a few default implementations of allocators. Here are the
-existing allocators in Alluxio:
-
-* **GreedyAllocator**
-
-    Allocates the new block to the first storage directory that has sufficient space.
-
-* **MaxFreeAllocator**
-
-    Allocates the block in the storage directory with most free space.
-
-* **RoundRobinAllocator**
-
-    Allocates the block in the highest tier with space, the storage directory is chosen through
-    round robin.
-
-In the future, additional allocators will be available. Since Alluxio supports custom allocators,
-you can also develop your own allocator appropriate for your workload.
+Two sub-components of the eviction process are the evictor and allocator. These can be customized to achieve various desired data management policies.
 
 ### Evictors
 
-Alluxio uses evictors for deciding which blocks to move to a lower tier, when space needs to be
+Alluxio uses evictors for deciding which blocks to evict, when space needs to be
 freed. Alluxio supports custom evictors, and implementations include:
 
 * **GreedyEvictor**
@@ -141,32 +91,67 @@ When using synchronous eviction, it is recommended to use small block size (arou
 to reduce the latency of block eviction. When using the [space reserver](#space-reserver), block
 size does not affect eviction latency.
 
-### Space Reserver
+### Allocators
 
-Space reserver makes tiered storage try to reserve certain portion of space on each storage layer
-before all space on that layer is consumed. This will improve the performance of bursty writes,
-and may also provide marginal performance gain for continuous writes that may otherwise be slower
-because eviction is continually running to free up space for the write. See the
-[configuration section](#enabling-and-configuring-tiered-storage) for how to enable and configure
-the space reserver.
+Alluxio uses allocators for choosing locations for writing new blocks. Alluxio has a framework for
+customized allocators, but there are a few default implementations of allocators. Here are the
+existing allocators in Alluxio:
 
-Space reservation can be enforced by configuring high watermark and low watermark per tier. Once the
-high watermark is reached, a background eviction process is started to free up space till the low
-watermark is reached.
+* **GreedyAllocator**
 
-## Configuring Heterogeneous Storage
+    Allocates the new block to the first storage directory that has sufficient space.
 
-Heterogeneous storage can be enabled in Alluxio using
-[configuration parameters](Configuration-Settings.html). By default, Alluxio only uses memory as a
-storage medium. To specify additional storage media, use the following configuration parameters:
+* **MaxFreeAllocator**
 
+    Allocates the block in the storage directory with most free space.
 
+* **RoundRobinAllocator**
+
+    Allocates the block in the highest tier with space, the storage directory is chosen through
+    round robin.
+
+In the future, additional allocators will be available. Since Alluxio supports custom allocators,
+you can also develop your own allocator appropriate for your workload.
+
+## Using Tiered Storage
+
+For typical deployments, it is recommended to use a single storage tier with heterogeneous storage
+media. However, in certain environments, workloads will benefit from explicit ordering of storage
+media based on I/O speed. In this case, tiered storage should be used. When tiered storage is enabled, the eviction process intelligently accounts for the tier concept. Alluxio assumes that tiers are ordered from top to bottom based on I/O performance. For example, users often specify the following tiers:
+
+ * MEM (Memory)
+ * SSD (Solid State Drives)
+ * HDD (Hard Disk Drives)
+
+### Writing Data
+
+When a user writes a new block, it is written to the top tier by default. If eviction cannot free up space in the top tier, the write will fail. If
+the file size exceeds the size of the top tier, the write will also fail.
+
+The user can also specify the tier that the data will be written to via
+[configuration settings](#configuration-parameters-for-tiered-storage).
+
+Reading data with the ReadType.CACHE or ReadType.CACHE_PROMOTE will also result in the data being
+written into Alluxio. In this case, the data is always written to the top tier.
+
+Finally, data in written into Alluxio via the load command. In this case also, the data is always
+written to the top tier.
+
+### Reading Data
+
+Reading a data block with tiered storage is similar to standard Alluxio. If the data is already in
+Alluxio, the client will simply read the block from where it is already stored. If Alluxio is configured with
+multiple tiers, then the block will not be necessarily read from the top tier, since it could have
+been moved to a lower tier transparently.
+
+Reading data with the ReadType.CACHE_PROMOTE will ensure the data is first transferred to the
+top tier before it is read from the worker. This can also be used as a data management strategy by
+explicitly moving hot data to higher tiers.
 
 ## Enabling and Configuring Tiered Storage
 
 Tiered storage can be enabled in Alluxio using
-[configuration parameters](Configuration-Settings.html). By default, Alluxio only enables a single,
-memory tier. To specify additional tiers for Alluxio, use the following configuration parameters:
+[configuration parameters](Configuration-Settings.html). To specify additional tiers for Alluxio, use the following configuration parameters:
 
 {% include Tiered-Storage-on-Alluxio/configuration-parameters.md %}
 
@@ -201,15 +186,6 @@ however, a common configuration has 3 tiers - Memory, HDD and SSD. At most 1 tie
 specific alias. For example, at most 1 tier can have the alias HDD. If you want Alluxio to use
 multiple hard drives for the HDD tier, you can configure that by using multiple paths for
 `alluxio.worker.tieredstore.level{x}.dirs.path`.
-
-Additionally, the specific evictor and allocator strategies can be configured. Those configuration
-parameters are:
-
-{% include Tiered-Storage-on-Alluxio/evictor-allocator.md %}
-
-Space reserver can be configured to be enabled or disabled through:
-
-    alluxio.worker.tieredstore.reserver.enabled=false
 
 ## Configuration Parameters For Tiered Storage
 
