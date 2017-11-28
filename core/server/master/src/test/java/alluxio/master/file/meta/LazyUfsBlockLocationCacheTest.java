@@ -17,7 +17,6 @@ import alluxio.underfs.MasterUfsManager;
 import alluxio.underfs.UfsManager;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
-import alluxio.underfs.options.FileLocationOptions;
 import alluxio.util.IdUtils;
 
 import com.google.common.io.Files;
@@ -74,8 +73,7 @@ public class LazyUfsBlockLocationCacheTest {
 
     Assert.assertNull(mUfsBlockLocationCache.get(blockId));
 
-    List<String> locations = mUfsBlockLocationCache.get(blockId, fileUri,
-        FileLocationOptions.defaults().setOffset(0));
+    List<String> locations = mUfsBlockLocationCache.get(blockId, fileUri, 0);
     Assert.assertArrayEquals(ufsLocations.toArray(), locations.toArray());
 
     locations = mUfsBlockLocationCache.get(blockId);

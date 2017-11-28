@@ -12,7 +12,6 @@
 package alluxio.master.file.meta;
 
 import alluxio.AlluxioURI;
-import alluxio.underfs.options.FileLocationOptions;
 
 import java.util.List;
 
@@ -33,10 +32,10 @@ public interface UfsBlockLocationCache {
    *
    * @param blockId the block ID
    * @param fileUri the URI of the file which contains the block
-   * @param options the options for getting file locations from UFS
+   * @param offset the block's offset in the file
    * @return the block locations or null if it fails to get the locations from UFS
    */
-  List<String> get(long blockId, AlluxioURI fileUri, FileLocationOptions options);
+  List<String> get(long blockId, AlluxioURI fileUri, long offset);
 
   /**
    * Invalidates the UFS locations for the block.

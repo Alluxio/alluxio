@@ -61,7 +61,7 @@ public class LazyUfsBlockLocationCache implements UfsBlockLocationCache {
   }
 
   @Override
-  public List<String> get(long blockId, AlluxioURI fileUri, FileLocationOptions options) {
+  public List<String> get(long blockId, AlluxioURI fileUri, long offset) {
     List<String> locations = mCache.getIfPresent(blockId);
     if (locations != null) {
       return locations;
@@ -70,13 +70,14 @@ public class LazyUfsBlockLocationCache implements UfsBlockLocationCache {
       MountTable.Resolution resolution = mMountTable.resolve(fileUri);
       String ufsUri = resolution.getUri().toString();
       UnderFileSystem ufs = resolution.getUfs();
-      locations = ufs.getFileLocations(ufsUri, options);
+      locations = ufs.getFileLocations(ufsUri, FileLocationOptions.defaults().setOffset(offset));
       if (locations != null) {
         mCache.put(blockId, locations);
         return locations;
       }
     } catch (InvalidPathException | IOException e) {
-      LOG.warn("Failed to get locations for block {}: ", blockId, e);
+      LOG.warn("Failed to get locations for block {} in file {} with offset {}: {}",
+          blockId, fileUri, offset, e);
     }
     return null;
   }

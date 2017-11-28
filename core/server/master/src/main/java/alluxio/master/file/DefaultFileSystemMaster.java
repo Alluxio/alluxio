@@ -108,7 +108,6 @@ import alluxio.underfs.UfsManager;
 import alluxio.underfs.UfsStatus;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
-import alluxio.underfs.options.FileLocationOptions;
 import alluxio.util.CommonUtils;
 import alluxio.util.IdUtils;
 import alluxio.util.SecurityUtils;
@@ -1542,7 +1541,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       // locations from the under storage system.
       long blockId = fileBlockInfo.getBlockInfo().getBlockId();
       List<String> locations = mUfsBlockLocationCache.get(blockId, inodePath.getUri(),
-          FileLocationOptions.defaults().setOffset(fileBlockInfo.getOffset()));
+          fileBlockInfo.getOffset());
       if (locations != null) {
         fileBlockInfo.setUfsLocations(locations);
       }
