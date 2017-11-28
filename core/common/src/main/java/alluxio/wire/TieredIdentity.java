@@ -11,8 +11,6 @@
 
 package alluxio.wire;
 
-import alluxio.Configuration;
-import alluxio.PropertyKey.Template;
 import alluxio.annotation.PublicApi;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
@@ -48,6 +46,14 @@ public final class TieredIdentity {
    */
   public List<LocalityTier> getTiers() {
     return mTiers;
+  }
+
+  /**
+   * @param i a tier index
+   * @return the ith locality tier
+   */
+  public LocalityTier getTier(int i) {
+    return mTiers.get(i);
   }
 
   /**
@@ -91,14 +97,16 @@ public final class TieredIdentity {
           }
         }
       }
-      // Negative wait for a tier indicates that we should never return identities that do not match
-      // in that tier.
-      if (Configuration.containsKey(Template.LOCALITY_TIER_WAIT.format(tier.getTierName()))
-          && Configuration.getInt(Template.LOCALITY_TIER_WAIT.format(tier.getTierName())) < 0) {
-        return Optional.empty();
-      }
     }
     return Optional.of(identities.get(0));
+  }
+
+  /**
+   * @param other a tiered identity to compare to
+   * @return whether the top tier of this tiered identity matches the top tier of other
+   */
+  public boolean topTiersMatch(TieredIdentity other) {
+    return mTiers.get(0).equals(other.getTier(0));
   }
 
   @Override

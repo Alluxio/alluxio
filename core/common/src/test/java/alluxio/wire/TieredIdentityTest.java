@@ -12,12 +12,8 @@
 package alluxio.wire;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertSame;
 
-import alluxio.ConfigurationRule;
-import alluxio.Constants;
-import alluxio.PropertyKey.Template;
 import alluxio.network.TieredIdentityFactory;
 import alluxio.util.CommonUtils;
 import alluxio.wire.TieredIdentity.LocalityTier;
@@ -25,7 +21,6 @@ import alluxio.wire.TieredIdentity.LocalityTier;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Test;
 
-import java.io.Closeable;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
@@ -50,12 +45,6 @@ public class TieredIdentityTest {
         TieredIdentityFactory.fromString("node=C,rack=rack2").nearest(identities).get());
     assertSame(id1,
         TieredIdentityFactory.fromString("host=D,rack=rack3").nearest(identities).get());
-    try (Closeable c =
-        new ConfigurationRule(Template.LOCALITY_TIER_WAIT.format(Constants.LOCALITY_RACK), "-1")
-            .toResource()) {
-      assertFalse(
-          TieredIdentityFactory.fromString("host=D,rack=rack3").nearest(identities).isPresent());
-    }
   }
 
   @Test
