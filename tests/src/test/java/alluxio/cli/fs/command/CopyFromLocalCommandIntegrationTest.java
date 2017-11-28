@@ -32,7 +32,6 @@ import alluxio.cli.fs.FileSystemShellUtilsTest;
 import alluxio.util.io.BufferUtils;
 
 import org.hamcrest.CoreMatchers;
-//import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
