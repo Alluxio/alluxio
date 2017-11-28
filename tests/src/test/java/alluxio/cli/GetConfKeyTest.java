@@ -13,7 +13,7 @@ package alluxio.cli;
 
 import static org.junit.Assert.assertEquals;
 
-import alluxio.PropertyKey;
+import alluxio.Configuration;
 import alluxio.SystemOutRule;
 
 import org.junit.Rule;
@@ -31,19 +31,24 @@ public final class GetConfKeyTest {
   public SystemOutRule mOutputStreamRule = new SystemOutRule(mOutputStream);
 
   @Test
-  public void getConfKey() throws Exception {
-    String varName = PropertyKey.WORKER_MEMORY_SIZE.getName().toUpperCase().replace(".", "_");
-    assertEquals(0, GetConfKey.getConfKey(varName));
-    assertEquals(String.format("%s\n", PropertyKey.WORKER_MEMORY_SIZE.getName()),
-        mOutputStream.toString());
+  public void getConfKeyWithAllPropertyNames() throws Exception {
+    for (String key : Configuration.toMap().keySet()) {
+      assertConfKey(key.toUpperCase().replace(".", "_"), key, 0);
+    }
+  }
 
-    mOutputStream.reset();
-    varName = "AWS_ACCESSKEYID";
-    assertEquals(0, GetConfKey.getConfKey(varName));
-    assertEquals(String.format("%s\n", PropertyKey.S3A_ACCESS_KEY.getName()),
-        mOutputStream.toString());
+  @Test
+  public void getConfKeyWithInvalidName() throws Exception {
+    assertConfKey("ALLUXIO_INVALID_COMMAND", "", 1);
+  }
 
+  private void assertConfKey(String varName, String confKey, int returnValue) {
     mOutputStream.reset();
-    assertEquals(1, GetConfKey.getConfKey("ALLUXIO_INVALID_COMMAND"));
+    assertEquals(String.format("check return value of getConfKey with variable name %s", varName),
+        returnValue, GetConfKey.getConfKey(varName));
+    if (returnValue == 0) {
+      assertEquals(String.format("check output of getConfKey with variable name %s", varName),
+          confKey, mOutputStream.toString().trim());
+    }
   }
 }
