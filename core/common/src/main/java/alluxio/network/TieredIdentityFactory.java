@@ -44,7 +44,7 @@ public final class TieredIdentityFactory {
   /**
    * @return the singleton tiered identity instance for this JVM
    */
-  public static TieredIdentity getInstance() {
+  public static TieredIdentity localIdentity() {
     if (sInstance == null) {
       synchronized (LOCK) {
         if (sInstance == null) {
@@ -70,7 +70,7 @@ public final class TieredIdentityFactory {
       String tierName = orderedTierNames.get(i);
       String value = null;
       if (scriptIdentity != null) {
-        LocalityTier scriptTier = scriptIdentity.getTiers().get(i);
+        LocalityTier scriptTier = scriptIdentity.getTier(i);
         Preconditions.checkState(scriptTier.getTierName().equals(tierName));
         value = scriptTier.getValue();
       }

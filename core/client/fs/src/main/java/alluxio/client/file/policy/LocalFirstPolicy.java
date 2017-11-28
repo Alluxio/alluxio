@@ -45,16 +45,20 @@ public final class LocalFirstPolicy implements FileWriteLocationPolicy, BlockLoc
    * Constructs a {@link LocalFirstPolicy}.
    */
   public LocalFirstPolicy() {
-    this(TieredIdentityFactory.getInstance());
+    this(TieredIdentityFactory.localIdentity());
   }
 
   /**
    * @param localTieredIdentity the local tiered identity
    */
-  @VisibleForTesting
-  LocalFirstPolicy(TieredIdentity localTieredIdentity) {
+  private LocalFirstPolicy(TieredIdentity localTieredIdentity) {
     mLocalHostName = NetworkAddressUtils.getClientHostName();
     mTieredIdentity = localTieredIdentity;
+  }
+
+  @VisibleForTesting
+  static LocalFirstPolicy create(TieredIdentity localTieredIdentity) {
+    return new LocalFirstPolicy(localTieredIdentity);
   }
 
   @Override
@@ -63,23 +67,24 @@ public final class LocalFirstPolicy implements FileWriteLocationPolicy, BlockLoc
       long blockSizeBytes) {
     List<BlockWorkerInfo> shuffledWorkers = Lists.newArrayList(workerInfoList);
     Collections.shuffle(shuffledWorkers);
-    List<WorkerNetAddress> enoughCapacityWorkers = shuffledWorkers.stream()
+    // Workers must have enough capacity to hold the block.
+    List<BlockWorkerInfo> candidateWorkers = shuffledWorkers.stream()
         .filter(worker -> worker.getCapacityBytes() >= blockSizeBytes)
-        .map(BlockWorkerInfo::getNetAddress)
         .collect(Collectors.toList());
 
     // Try finding a worker based on nearest tiered identity.
-    List<TieredIdentity> identities = enoughCapacityWorkers.stream()
-        .map(worker -> worker.getTieredIdentity())
+    List<TieredIdentity> identities = candidateWorkers.stream()
+        .map(worker -> worker.getNetAddress().getTieredIdentity())
         .filter(Objects::nonNull)
         .collect(Collectors.toList());
     Optional<TieredIdentity> nearest = mTieredIdentity.nearest(identities);
     if (!nearest.isPresent()) {
       return null;
     }
-    // Map back to the address with the nearest tiered identity.
-    return enoughCapacityWorkers.stream()
-        .filter(worker -> worker.getTieredIdentity() == nearest.get())
+    // Map back to the worker with the nearest tiered identity.
+    return candidateWorkers.stream()
+        .filter(worker -> worker.getNetAddress().getTieredIdentity().equals(nearest.get()))
+        .map(worker -> worker.getNetAddress())
         .findFirst().orElse(null);
   }
 

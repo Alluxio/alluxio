@@ -21,7 +21,6 @@ import com.google.common.base.Preconditions;
 import java.io.Serializable;
 import java.util.Arrays;
 
-import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -102,9 +101,11 @@ public final class WorkerNetAddress implements Serializable {
   /**
    * @return the tiered identity
    */
-  @Nullable
   public TieredIdentity getTieredIdentity() {
-    return mTieredIdentity;
+    if (mTieredIdentity != null) {
+      return mTieredIdentity;
+    }
+    return new TieredIdentity(Arrays.asList(new LocalityTier(Constants.LOCALITY_NODE, mHost)));
   }
 
   /**
