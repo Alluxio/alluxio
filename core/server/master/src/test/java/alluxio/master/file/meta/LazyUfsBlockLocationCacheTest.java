@@ -62,7 +62,7 @@ public class LazyUfsBlockLocationCacheTest {
   }
 
   @Test
-  public void process() throws Exception {
+  public void get() throws Exception {
     final long blockId = IdUtils.getRandomNonNegativeLong();
     final AlluxioURI fileUri = new AlluxioURI("/mnt/file");
     final String localFilePath = new AlluxioURI(mLocalUfsPath).join("file").getPath();
@@ -74,7 +74,7 @@ public class LazyUfsBlockLocationCacheTest {
 
     Assert.assertNull(mUfsBlockLocationCache.get(blockId));
 
-    List<String> locations = mUfsBlockLocationCache.process(blockId, fileUri,
+    List<String> locations = mUfsBlockLocationCache.get(blockId, fileUri,
         FileLocationOptions.defaults().setOffset(0));
     Assert.assertArrayEquals(ufsLocations.toArray(), locations.toArray());
 

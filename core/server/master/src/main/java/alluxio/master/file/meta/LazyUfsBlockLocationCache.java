@@ -28,9 +28,6 @@ import java.util.List;
 
 /**
  * Lazily cache the block locations only when needed.
- *
- * If {@link #get(long)} returns null, call {@link #process(long, AlluxioURI, FileLocationOptions)}
- * to synchronously retrieve and cache the block locations.
  */
 public class LazyUfsBlockLocationCache implements UfsBlockLocationCache {
   private static final Logger LOG = LoggerFactory.getLogger(LazyUfsBlockLocationCache.class);
@@ -64,17 +61,23 @@ public class LazyUfsBlockLocationCache implements UfsBlockLocationCache {
   }
 
   @Override
-  public void process(long blockId, AlluxioURI fileUri, FileLocationOptions options) {
+  public List<String> get(long blockId, AlluxioURI fileUri, FileLocationOptions options) {
+    List<String> locations = mCache.getIfPresent(blockId);
+    if (locations != null) {
+      return locations;
+    }
     try {
       MountTable.Resolution resolution = mMountTable.resolve(fileUri);
       String ufsUri = resolution.getUri().toString();
       UnderFileSystem ufs = resolution.getUfs();
-      List<String> locations = ufs.getFileLocations(ufsUri, options);
+      locations = ufs.getFileLocations(ufsUri, options);
       if (locations != null) {
         mCache.put(blockId, locations);
+        return locations;
       }
     } catch (InvalidPathException | IOException e) {
       LOG.warn("Failed to get locations for block {}: ", blockId, e);
     }
+    return null;
   }
 }

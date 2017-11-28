@@ -786,7 +786,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("The capacity of the UFS block locations cache. "
               + "This cache caches UFS block locations for files that are persisted "
               + "but not in Alluxio space, so that listing status of these files do not need to "
-              + "repeatedly ask UFS for their block locations.")
+              + "repeatedly ask UFS for their block locations. If this is set to 0, the cache "
+              + "will be disabled.")
           .build();
   public static final PropertyKey MASTER_WEB_BIND_HOST =
       new Builder(Name.MASTER_WEB_BIND_HOST)

@@ -21,21 +21,22 @@ import java.util.List;
  */
 public interface UfsBlockLocationCache {
   /**
-   * Retrieves the block locations from UFS, and caches the result.
-   * If failed to get the locations from UFS, {@code null} is returned and nothing is cached.
-   * The result will overwrite the existing cached locations for the block.
-   *
-   * @param blockId the block ID
-   * @param fileUri the URI of the file which contains the block
-   * @param options the options for getting file locations from UFS
-   */
-  void process(long blockId, AlluxioURI fileUri, FileLocationOptions options);
-
-  /**
    * @param blockId the block ID
    * @return the cached block locations or null if there is no cached locations for the block
    */
   List<String> get(long blockId);
+
+  /**
+   * If the locations exist in the cache, return them, otherwise, retrieves the block locations
+   * from UFS, and caches the result.
+   * If failed to get the locations from UFS, {@code null} is returned and nothing is cached.
+   *
+   * @param blockId the block ID
+   * @param fileUri the URI of the file which contains the block
+   * @param options the options for getting file locations from UFS
+   * @return the block locations or null if it fails to get the locations from UFS
+   */
+  List<String> get(long blockId, AlluxioURI fileUri, FileLocationOptions options);
 
   /**
    * Invalidates the UFS locations for the block.

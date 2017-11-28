@@ -1541,16 +1541,10 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       // No alluxio locations, but there is a checkpoint in the under storage system. Add the
       // locations from the under storage system.
       long blockId = fileBlockInfo.getBlockInfo().getBlockId();
-      List<String> locs = mUfsBlockLocationCache.get(blockId);
-      if (locs == null) {
-        mUfsBlockLocationCache.process(blockId, inodePath.getUri(),
-            FileLocationOptions.defaults().setOffset(fileBlockInfo.getOffset()));
-        locs = mUfsBlockLocationCache.get(blockId);
-      }
-      if (locs != null) {
-        for (String loc : locs) {
-          fileBlockInfo.getUfsLocations().add(loc);
-        }
+      List<String> locations = mUfsBlockLocationCache.get(blockId, inodePath.getUri(),
+          FileLocationOptions.defaults().setOffset(fileBlockInfo.getOffset()));
+      if (locations != null) {
+        fileBlockInfo.setUfsLocations(locations);
       }
     }
     return fileBlockInfo;
