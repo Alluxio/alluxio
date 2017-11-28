@@ -65,9 +65,9 @@ alluxio.worker.tieredstore.reserver.enabled=false
 
 Asynchronous eviction relies on a periodic space reserver thread in each worker to evict data. It
 waits until the worker storage utilization reaches a configurable high watermark. Then it evicts
-data based on the eviction policy until it reaches the confiurable low watermark. For example, if we
-had the same 16+100+100=216GB storage configured, we can set eviction to kick in at around 200GB and
-stop at around 160GB:
+data based on the eviction policy until it reaches the configurable low watermark. For example, if
+we had the same 16+100+100=216GB storage configured, we can set eviction to kick in at around 200GB
+and stop at around 160GB:
 
 ```
 alluxio.worker.tieredstore.level0.watermark.high.ratio=0.9
