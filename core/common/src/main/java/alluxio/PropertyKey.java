@@ -780,6 +780,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "is set to 0, the cache will be disabled, and "
               + "`alluxio.user.file.metadata.load.type=Once` will behave like `Always`.")
           .build();
+  public static final PropertyKey MASTER_UFS_BLOCK_LOCATION_CACHE_CAPACITY =
+      new Builder(Name.MASTER_UFS_BLOCK_LOCATION_CACHE_CAPACITY)
+          .setDefaultValue(1000000)
+          .setDescription("The capacity of the UFS block locations cache. "
+              + "This cache caches UFS block locations for files that are persisted "
+              + "but not in Alluxio space, so that listing status of these files do not need to "
+              + "repeatedly ask UFS for their block locations.")
+          .build();
   public static final PropertyKey MASTER_WEB_BIND_HOST =
       new Builder(Name.MASTER_WEB_BIND_HOST)
           .setDefaultValue("0.0.0.0")
@@ -2100,6 +2108,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.ufs.path.cache.capacity";
     public static final String MASTER_UFS_PATH_CACHE_THREADS =
         "alluxio.master.ufs.path.cache.threads";
+    public static final String MASTER_UFS_BLOCK_LOCATION_CACHE_CAPACITY =
+        "alluxio.master.ufs.block.location.cache.capacity";
     public static final String MASTER_WEB_BIND_HOST = "alluxio.master.web.bind.host";
     public static final String MASTER_WEB_HOSTNAME = "alluxio.master.web.hostname";
     public static final String MASTER_WEB_PORT = "alluxio.master.web.port";

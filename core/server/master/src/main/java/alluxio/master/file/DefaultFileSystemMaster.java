@@ -59,6 +59,7 @@ import alluxio.master.file.meta.TempInodePathForChild;
 import alluxio.master.file.meta.TempInodePathForDescendant;
 import alluxio.master.file.meta.TtlBucketList;
 import alluxio.master.file.meta.UfsAbsentPathCache;
+import alluxio.master.file.meta.UfsBlockLocationCache;
 import alluxio.master.file.meta.options.MountInfo;
 import alluxio.master.file.options.CheckConsistencyOptions;
 import alluxio.master.file.options.CompleteFileOptions;
@@ -150,7 +151,6 @@ import java.util.Stack;
 import java.util.TreeMap;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Callable;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -304,8 +304,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
   /** This caches absent paths in the UFS. */
   private final UfsAbsentPathCache mUfsAbsentPathCache;
 
-  /** Maps block ID to the list of block locations in UFS. */
-  private final ConcurrentHashMap<Long, List<String>> mUfsBlockLocations;
+  /** This caches block locations in the UFS. */
+  private final UfsBlockLocationCache mUfsBlockLocationCache;
 
   /**
    * The service that checks for inode files with ttl set. We store it here so that it can be
@@ -362,7 +362,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     mAsyncPersistHandler = AsyncPersistHandler.Factory.create(new FileSystemMasterView(this));
     mPermissionChecker = new PermissionChecker(mInodeTree);
     mUfsAbsentPathCache = UfsAbsentPathCache.Factory.create(mMountTable);
-    mUfsBlockLocations = new ConcurrentHashMap<>();
+    mUfsBlockLocationCache = UfsBlockLocationCache.Factory.create(mMountTable);
 
     resetState();
     Metrics.registerGauges(this, mUfsManager);
@@ -1292,6 +1292,16 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       }
       deletedInodes = deleteAndJournal(inodePath, options, journalContext);
       auditContext.setSucceeded(true);
+
+      if (!options.isAlluxioOnly()) {
+        for (Inode<?> inode : deletedInodes) {
+          if (inode.isFile() && inode.isPersisted()) {
+            for (long blockId : ((InodeFile) inode).getBlockIds()) {
+              mUfsBlockLocationCache.invalidate(blockId);
+            }
+          }
+        }
+      }
     }
     deleteInodeBlocks(deletedInodes);
   }
@@ -1531,26 +1541,13 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       // No alluxio locations, but there is a checkpoint in the under storage system. Add the
       // locations from the under storage system.
       long blockId = fileBlockInfo.getBlockInfo().getBlockId();
-      List<String> locs;
-      if (mUfsBlockLocations.containsKey(blockId)) {
-        locs = mUfsBlockLocations.get(blockId);
-      } else {
-        MountTable.Resolution resolution = mMountTable.resolve(inodePath.getUri());
-        String ufsUri = resolution.getUri().toString();
-        UnderFileSystem ufs = resolution.getUfs();
-        try {
-          locs = ufs.getFileLocations(ufsUri,
-              FileLocationOptions.defaults().setOffset(fileBlockInfo.getOffset()));
-        } catch (IOException e) {
-          return fileBlockInfo;
-        }
-        // Cache the ufs block locations.
-        mUfsBlockLocations.put(blockId, locs);
+      List<String> locs = mUfsBlockLocationCache.get(blockId);
+      if (locs == null) {
+        locs = mUfsBlockLocationCache.process(blockId, inodePath.getUri(),
+            FileLocationOptions.defaults().setOffset(fileBlockInfo.getOffset()));
       }
-      if (locs != null) {
-        for (String loc : locs) {
-          fileBlockInfo.getUfsLocations().add(loc);
-        }
+      for (String loc : locs) {
+        fileBlockInfo.getUfsLocations().add(loc);
       }
     }
     return fileBlockInfo;
