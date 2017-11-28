@@ -28,8 +28,12 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class TtlBucket implements Comparable<TtlBucket> {
-  /** The time interval of this bucket is the same as ttl checker's interval. */
-  private static final long TTL_INTERVAL_MS =
+  /**
+   * The time interval of this bucket is the same as ttl checker's interval.
+   *
+   * This field is intentionally not final so that tests can change the value.
+   */
+  private static long sTtlIntervalMs =
       Configuration.getMs(PropertyKey.MASTER_TTL_CHECKER_INTERVAL_MS);
   /**
    * Each bucket has a time to live interval, this value is the start of the interval, interval
@@ -61,14 +65,14 @@ public final class TtlBucket implements Comparable<TtlBucket> {
    * @return the ttl interval end time in milliseconds
    */
   public long getTtlIntervalEndTimeMs() {
-    return mTtlIntervalStartTimeMs + TTL_INTERVAL_MS;
+    return mTtlIntervalStartTimeMs + sTtlIntervalMs;
   }
 
   /**
    * @return the ttl interval in milliseconds
    */
   public static long getTtlIntervalMs() {
-    return TTL_INTERVAL_MS;
+    return sTtlIntervalMs;
   }
 
   /**

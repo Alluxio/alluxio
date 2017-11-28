@@ -11,6 +11,8 @@
 
 package alluxio.master;
 
+import static org.junit.Assert.assertTrue;
+
 import alluxio.AlluxioURI;
 import alluxio.AuthenticatedUserRule;
 import alluxio.BaseIntegrationTest;
@@ -35,7 +37,6 @@ import alluxio.util.CommonUtils;
 
 import com.google.common.collect.ImmutableMap;
 import org.junit.After;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Rule;
@@ -105,7 +106,7 @@ public class JournalShutdownIntegrationTest extends BaseIntegrationTest {
       cluster.startMaster(0);
       int actualFiles = fs.listStatus(new AlluxioURI(TEST_FILE_DIR)).size();
       int successFiles = mCreateFileThread.getSuccessNum();
-      Assert.assertTrue(
+      assertTrue(
           String.format("successFiles: %s, actualFiles: %s", successFiles, actualFiles),
           (successFiles == actualFiles) || (successFiles + 1 == actualFiles));
       cluster.notifySuccess();
@@ -139,7 +140,7 @@ public class JournalShutdownIntegrationTest extends BaseIntegrationTest {
       cluster.startMaster(0);
       int actualFiles = fs.listStatus(new AlluxioURI(TEST_FILE_DIR)).size();
       int successFiles = mCreateFileThread.getSuccessNum();
-      Assert.assertTrue(
+      assertTrue(
           String.format("successFiles: %s, actualFiles: %s", successFiles, actualFiles),
           (successFiles == actualFiles) || (successFiles + 1 == actualFiles));
       cluster.notifySuccess();
@@ -169,7 +170,7 @@ public class JournalShutdownIntegrationTest extends BaseIntegrationTest {
     // Kill the leader one by one.
     for (int kills = 0; kills < TEST_NUM_MASTERS; kills++) {
       cluster.waitForNewMaster(120 * Constants.SECOND_MS);
-      Assert.assertTrue(cluster.stopLeader());
+      assertTrue(cluster.stopLeader());
     }
     // Shutdown the cluster
     cluster.stopFS();
