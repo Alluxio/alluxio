@@ -77,9 +77,6 @@ submiting the pull requests. For instance:
 
 ### Testing
 
--   Some tests require libfuse installed. Make sure you have installed the correct libraries
-mentioned in [this page](Mounting-Alluxio-FS-with-FUSE.html#requirements).
-
 -   Run all unit tests with ``mvn test`` (will use the local filesystem as the under filesystem and
 HDFS 1.0.4 as the under filesystem in the HDFS module). ``mvn -Dhadoop.version=2.4.0 test`` will
 use HDFS 2.4.0 as the under filesystem for the HDFS module tests.
@@ -97,6 +94,9 @@ leverage the Scala shell, as discussed in this
 
 -   Run tests with Hadoop FileSystem contract tests (uses hadoop 2.6.0):
 `mvn -PcontractTest clean test`
+
+-   The fuse tests are ignored if the libfuse library is missing. To run those tests, please install the correct libraries
+mentioned in [this page](Mounting-Alluxio-FS-with-FUSE.html#requirements).
 
 ### Coding Style
 
