@@ -22,52 +22,26 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 
-import com.google.common.collect.ImmutableMap;
-
-import java.util.Map;
 import java.util.Map.Entry;
 
 /**
  * Utility for printing Alluxio configuration.
  */
 public final class GetConf {
-  private static final String USAGE = "USAGE: GetConf [--unit <arg>] [--display-name] [-e] [KEY]"
-      + "\n\n"
+  private static final String USAGE = "USAGE: GetConf [--unit <arg>] [KEY]\n\n"
       + "GetConf prints the configured value for the given key. If the key is invalid, the "
       + "exit code will be nonzero. If the key is valid but isn't set, an empty string is printed. "
-      + "If \"--display-name\" option is specified, both the key and value are printed. "
-      + "If \"-e\" option is specified, the key is interpret as an environment variable name and "
-      + "the corresponding configuration value (or key value pair if --display-name is specified)"
-      + " is printed. "
       + "If no key is specified, all configuration is printed. If \"--unit\" option is specified, "
       + "values of data size configuration will be converted to a quantity in the given unit."
       + "E.g., with \"--unit KB\", a configuration value of \"4096\" will return 4, "
       + "and with \"--unit S\", a configuration value of \"5000\" will return 5."
       + "Possible unit options include B, KB, MB, GB, TP, PB, MS, S, M, H, D";
 
-  private static final String DISPLAY_NAME_OPTION_NAME = "display-name";
-  private static final Option DISPLAY_NAME_OPTION =
-      Option.builder().required(false).longOpt(DISPLAY_NAME_OPTION_NAME).hasArg(false)
-          .desc("display property name in the output").build();
-  private static final String ENV_OPTION_NAME = "e";
-  private static final Option ENV_OPTION =
-      Option.builder(ENV_OPTION_NAME).required(false).hasArg(false)
-          .desc("use environment variable name of the key").build();
   private static final String UNIT_OPTION_NAME = "unit";
   private static final Option UNIT_OPTION =
       Option.builder().required(false).longOpt(UNIT_OPTION_NAME).hasArg(true)
           .desc("unit of the value to return.").build();
-  private static final Options OPTIONS = new Options()
-      .addOption(DISPLAY_NAME_OPTION)
-      .addOption(ENV_OPTION)
-      .addOption(UNIT_OPTION);
-
-  private static final Map<String, String> ENV_VIOLATORS = ImmutableMap.of(
-      "ALLUXIO_UNDERFS_S3A_INHERIT_ACL", "alluxio.underfs.s3a.inherit_acl",
-      "ALLUXIO_MASTER_FORMAT_FILE_PREFIX", "alluxio.master.format.file_prefix",
-      "AWS_ACCESSKEYID", "aws.accessKeyId",
-      "AWS_SECRETKEY", "aws.secretKey"
-  );
+  private static final Options OPTIONS = new Options().addOption(UNIT_OPTION);
 
   private enum ByteUnit {
     B(1L),
@@ -159,20 +133,11 @@ public final class GetConf {
         }
         break;
       case 1:
-        String propertyName = args[0];
-        if (cmd.hasOption(ENV_OPTION_NAME)) {
-          // converts environment variable name to property name
-          propertyName = ENV_VIOLATORS.getOrDefault(propertyName,
-            propertyName.toLowerCase().replace("_", "."));
-        }
-        if (!PropertyKey.isValid(propertyName)) {
-          printHelp(String.format("%s is not a valid configuration key", propertyName));
+        if (!PropertyKey.isValid(args[0])) {
+          printHelp(String.format("%s is not a valid configuration key", args[0]));
           return 1;
         }
-        if (cmd.hasOption(DISPLAY_NAME_OPTION_NAME)) {
-          System.out.print(String.format("%s=", propertyName));
-        }
-        PropertyKey key = PropertyKey.fromString(propertyName);
+        PropertyKey key = PropertyKey.fromString(args[0]);
         if (!Configuration.containsKey(key)) {
           System.out.println("");
         } else {
