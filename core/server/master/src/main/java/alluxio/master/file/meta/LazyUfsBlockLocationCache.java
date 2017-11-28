@@ -22,7 +22,6 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -66,14 +65,15 @@ public class LazyUfsBlockLocationCache implements UfsBlockLocationCache {
     MountTable.Resolution resolution = mMountTable.resolve(fileUri);
     String ufsUri = resolution.getUri().toString();
     UnderFileSystem ufs = resolution.getUfs();
-    List<String> locations = new ArrayList<>();
+    List<String> locations;
     try {
-      locations = ufs.getFileLocations(ufsUri,
-          FileLocationOptions.defaults().setOffset(options.getOffset()));
+      locations = ufs.getFileLocations(ufsUri, options);
     } catch (IOException e) {
-      return locations;
+      return null;
     }
-    mCache.put(blockId, locations);
+    if (locations != null) {
+      mCache.put(blockId, locations);
+    }
     return locations;
   }
 }
