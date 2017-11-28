@@ -5,7 +5,7 @@ checkConsistency:
 checksum:
   Calculate the md5 checksum for a file.
 chgrp:
-  Change the group of the directory or file.
+  Change the group of a file or directory.
 chmod:
   Change the permission of the directory or file.
 chown:
