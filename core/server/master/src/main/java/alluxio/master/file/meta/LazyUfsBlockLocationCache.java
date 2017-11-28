@@ -26,9 +26,12 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.List;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 /**
  * Lazily cache the block locations only when needed.
  */
+@ThreadSafe
 public class LazyUfsBlockLocationCache implements UfsBlockLocationCache {
   private static final Logger LOG = LoggerFactory.getLogger(LazyUfsBlockLocationCache.class);
 
