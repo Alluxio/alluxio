@@ -25,6 +25,9 @@ Out-of-the-box Alluxio will provision a ramdisk on every worker and take a perce
 system's total memory. This ramdisk will be used as the only storage medium allocated to each
 Alluxio worker.
 
+Alluxio storage is configured through Alluxio's configuration in `alluxio-site.properties`. See the
+[configuration docs](Configuration-Settings.html) for detailed information.
+
 A common modification to the default is to explicitly set the ramdisk size. For example, to set the
 ramdisk size to be 16GB on each worker:
 
@@ -34,8 +37,8 @@ alluxio.worker.memory.size=16GB
 
 Another common change is to specify multiple storage media, such as ramdisk and SSDs. We will need
 to update `alluxio.worker.tieredstore.level0.dirs.path` to take specify each storage medium we want
-to use as a storage directory. For example, to use the ramdisk (mounted at /mnt/ramdisk) and 2 ssds
-(mounted at /mnt/ssd1 and /mnt/ssd2):
+to use as a storage directory. For example, to use the ramdisk (mounted at `/mnt/ramdisk`) and 2
+SSDs (mounted at `/mnt/ssd1` and `/mnt/ssd2`):
 
 ```
 alluxio.worker.tieredstore.level0.dirs.path=/mnt/ramdisk,/mnt/ssd1,/mnt/ssd2
@@ -48,7 +51,7 @@ directory. For example, if we wanted to use 16 GB on the ramdisk and 100 GB on e
 alluxio.worker.tieredstore.level0.dirs.quota=16GB,100GB,100GB
 ```
 
-Note that the ordering of the quotas much match with the ordering of the paths.
+Note that the ordering of the quotas must match with the ordering of the paths.
 
 ## Eviction
 
@@ -77,15 +80,14 @@ alluxio.worker.tieredstore.level0.watermark.low.ratio=0.75
 Synchronous eviction is the legacy implementation of eviction. It waits for a client to request more
 space than is currently available on the worker and then kicks off the eviction process to free up
 enough space to serve that request. This leads to many small eviction attempts, which is less
-efficient.
+efficient. It is recommended to use asynchronous eviction.
 
-Two sub-components of the eviction process are the evictor and allocator. These can be customized to
-achieve various desired data management policies.
+Users can specify the Alluxio evictor to achieve fine grained control over the eviction process.
 
 ### Evictors
 
 Alluxio uses evictors for deciding which blocks to evict, when space needs to be
-freed. Alluxio supports custom evictors, and implementations include:
+freed. Alluxio supports custom evictors. Out-of-the-box implementations include:
 
 * **GreedyEvictor**
 
@@ -112,28 +114,6 @@ you can also develop your own evictor appropriate for your workload.
 When using synchronous eviction, it is recommended to use small block size (around 64MB),
 to reduce the latency of block eviction. When using the [space reserver](#space-reserver), block
 size does not affect eviction latency.
-
-### Allocators
-
-Alluxio uses allocators for choosing locations for writing new blocks. Alluxio has a framework for
-customized allocators, but there are a few default implementations of allocators. Here are the
-existing allocators in Alluxio:
-
-* **GreedyAllocator**
-
-    Allocates the new block to the first storage directory that has sufficient space.
-
-* **MaxFreeAllocator**
-
-    Allocates the block in the storage directory with most free space.
-
-* **RoundRobinAllocator**
-
-    Allocates the block in the highest tier with space, the storage directory is chosen through
-    round robin.
-
-In the future, additional allocators will be available. Since Alluxio supports custom allocators,
-you can also develop your own allocator appropriate for your workload.
 
 ## Using Tiered Storage
 
@@ -180,12 +160,31 @@ Tiered storage can be enabled in Alluxio using
 [configuration parameters](Configuration-Settings.html). To specify additional tiers for Alluxio,
 use the following configuration parameters:
 
-{% include Tiered-Storage-on-Alluxio/configuration-parameters.md %}
+```
+alluxio.worker.tieredstore.levels
+alluxio.worker.tieredstore.level{x}.alias
+alluxio.worker.tieredstore.level{x}.dirs.quota
+alluxio.worker.tieredstore.level{x}.dirs.path
+alluxio.worker.tieredstore.level{x}.watermark.high.ratio
+alluxio.worker.tieredstore.level{x}.watermark.low.ratio
+```
 
 For example, if you wanted to configure Alluxio to have two tiers -- memory and hard disk drive --
 you could use a configuration similar to:
 
-{% include Tiered-Storage-on-Alluxio/two-tiers.md %}
+```
+alluxio.worker.tieredstore.levels=2
+alluxio.worker.tieredstore.level0.alias=MEM
+alluxio.worker.tieredstore.level0.dirs.path=/mnt/ramdisk
+alluxio.worker.tieredstore.level0.dirs.quota=100GB
+alluxio.worker.tieredstore.level0.watermark.high.ratio=0.9
+alluxio.worker.tieredstore.level0.watermark.low.ratio=0.7
+alluxio.worker.tieredstore.level1.alias=HDD
+alluxio.worker.tieredstore.level1.dirs.path=/mnt/hdd1,/mnt/hdd2,/mnt/hdd3
+alluxio.worker.tieredstore.level1.dirs.quota=2TB,5TB,500GB
+alluxio.worker.tieredstore.level1.watermark.high.ratio=0.9
+alluxio.worker.tieredstore.level1.watermark.low.ratio=0.7
+```
 
 Here is the explanation of the example configuration:
 
