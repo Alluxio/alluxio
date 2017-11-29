@@ -11,12 +11,34 @@
 
 package alluxio.cli.validation;
 
+import alluxio.exception.status.InvalidArgumentException;
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.Options;
+
 import java.util.Map;
 
 /**
  * Interface for a validation task run by validateEnv command.
  */
 public interface ValidationTask {
+  /**
+   * @return options of this validation task
+   */
+  Options getOptions();
+
+  /**
+   * Parses the command line arguments and options in {@code args}.
+   *
+   * After successful execution of this method, command line arguments can be
+   * retrieved by invoking {@link CommandLine#getArgs()}, and options can be
+   * retrieved by calling {@link CommandLine#getOptions()}.
+   *
+   * @param args command line arguments to parse
+   * @return {@link CommandLine} object representing the parsing result
+   * @throws InvalidArgumentException if command line contains invalid argument(s)
+   */
+  CommandLine parseArgsAndOptions(String... args) throws InvalidArgumentException;
+
   /**
    * Runs the validation task.
    * @return whether the validation succeeds

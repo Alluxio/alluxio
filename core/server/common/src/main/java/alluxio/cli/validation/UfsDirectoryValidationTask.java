@@ -22,7 +22,7 @@ import java.util.Map;
 /**
  * Task for validating whether UFS directory is accessible.
  */
-public final class UfsDirectoryValidationTask implements ValidationTask {
+public final class UfsDirectoryValidationTask extends AbstractValidationTask {
   private final UnderFileSystem mUfs;
   private final String mPath;
 
