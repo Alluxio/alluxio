@@ -114,7 +114,7 @@ public final class FileSystemMasterClient extends AbstractMasterClient {
   }
 
   /**
-   * Heartbeats to the worker. It also carries command for the worker to persist the given files.
+   * Heartbeats to the master. It also carries command for the worker to persist the given files.
    *
    * @param workerId the id of the worker that heartbeats
    * @param persistedFiles the files which have been persisted since the last heartbeat
@@ -126,7 +126,7 @@ public final class FileSystemMasterClient extends AbstractMasterClient {
   }
 
   /**
-   * Heartbeats to the worker. It also carries command for the worker to persist the given files.
+   * Heartbeats to the master. It also carries command for the worker to persist the given files.
    *
    * @param workerId the id of the worker that heartbeats
    * @param persistedFiles the files which have been persisted since the last heartbeat
