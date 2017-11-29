@@ -286,11 +286,18 @@ public final class ValidateEnv {
       return -2;
     }
     String target = argv[0];
-    String name = argv.length > 1 ? argv[1] : null;
-
-    String[] args = null;
-    if (argv.length > 2) {
+    String name = null;
+    String[] args;
+    int argsLength = 0;
+    // Find all non-option command line arguments.
+    while (argsLength < argv.length && !argv[argsLength].startsWith("-")) {
+      argsLength++;
+    }
+    if (argsLength > 1) {
+      name = argv[1];
       args = Arrays.copyOfRange(argv, 2, argv.length);
+    } else {
+      args = Arrays.copyOfRange(argv, 1, argv.length);
     }
 
     boolean success;
