@@ -1516,7 +1516,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     InodeFile file = inodePath.getInodeFile();
     FileBlockInfo fileBlockInfo = new FileBlockInfo();
     fileBlockInfo.setBlockInfo(blockInfo);
-    fileBlockInfo.setUfsLocations(new ArrayList<String>());
+    fileBlockInfo.setUfsLocations(new ArrayList<>());
 
     // The sequence number part of the block id is the block index.
     long offset = file.getBlockSizeBytes() * BlockId.getSequenceNumber(blockInfo.getBlockId());
