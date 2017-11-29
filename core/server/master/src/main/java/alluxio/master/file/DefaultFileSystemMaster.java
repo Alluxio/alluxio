@@ -2966,10 +2966,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     boolean hasPersistedStatus = persistedFileStatus.size() == persistedFiles.size();
     for (int i = 0; i < persistedFiles.size(); i++) {
       long fileId = persistedFiles.get(i);
-      UfsFileStatus ufsStatus = persistedFileStatus.get(i);
-      long lastModified =
-          (hasPersistedStatus && ufsStatus != null) ? ufsStatus.getLastModifiedTime() :
-              Constants.INVALID_TIMESTAMP_MS;
+      long lastModified = (hasPersistedStatus && persistedFileStatus.get(i) != null) ?
+          persistedFileStatus.get(i).getLastModifiedTime() : Constants.INVALID_TIMESTAMP_MS;
       try {
         // Permission checking for each file is performed inside setAttribute
         setAttribute(getPath(fileId),
