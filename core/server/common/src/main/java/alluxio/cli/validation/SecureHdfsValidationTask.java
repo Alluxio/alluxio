@@ -116,9 +116,9 @@ public class SecureHdfsValidationTask extends AbstractValidationTask {
       serverHadoopConfDirPath = System.getenv(HADOOP_CONF_DIR_ENV_VAR);
     }
     if (serverHadoopConfDirPath == null) {
-      System.out.println("Path to server-side hadoop configuration unspecified,"
-          + " aborting validation for HDFS properties.");
-      return false;
+      System.err.println("Path to server-side hadoop configuration unspecified,"
+          + " skipping validation for HDFS properties.");
+      return true;
     }
     String serverCoreSiteFilePath = serverHadoopConfDirPath + "/core-site.xml";
     String serverHdfsSiteFilePath = serverHadoopConfDirPath + "/hdfs-site.xml";
@@ -131,8 +131,8 @@ public class SecureHdfsValidationTask extends AbstractValidationTask {
     if (clientCoreSiteFilePath == null || clientCoreSiteFilePath.isEmpty()
         || clientHdfsSiteFilePath == null || clientHdfsSiteFilePath.isEmpty()) {
       System.out.println("Cannot locate the client-side hadoop configurations,"
-          + " aborting validation for HDFS properties.");
-      return false;
+          + " skipping validation for HDFS properties.");
+      return true;
     }
     return compareConfigurations(clientCoreSiteFilePath, serverCoreSiteFilePath)
         && compareConfigurations(clientHdfsSiteFilePath, serverHdfsSiteFilePath);
@@ -149,6 +149,17 @@ public class SecureHdfsValidationTask extends AbstractValidationTask {
         matches = false;
         System.err.format("For %s, client has %s, but server has %s.%n",
             prop.getKey(), prop.getValue(), serverCoreSiteProps.get(prop.getKey()));
+      }
+    }
+    if (!matches) {
+      return false;
+    }
+    for (Map.Entry<String, String> prop : serverCoreSiteProps.entrySet()) {
+      if (!clientCoreSiteProps.containsKey(prop.getKey())
+          || !prop.getValue().equals(clientCoreSiteProps.get(prop.getKey()))) {
+        matches = false;
+        System.err.format("For %s, server has %s, but client has %s.%n",
+            prop.getKey(), prop.getValue(), clientCoreSiteProps.get(prop.getKey()));
       }
     }
     return matches;
