@@ -763,6 +763,15 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("Time interval to periodically delete the files "
               + "with expired ttl value.")
           .build();
+  public static final PropertyKey MASTER_UFS_BLOCK_LOCATION_CACHE_CAPACITY =
+      new Builder(Name.MASTER_UFS_BLOCK_LOCATION_CACHE_CAPACITY)
+          .setDefaultValue(1000000)
+          .setDescription("The capacity of the UFS block locations cache. "
+              + "This cache caches UFS block locations for files that are persisted "
+              + "but not in Alluxio space, so that listing status of these files do not need to "
+              + "repeatedly ask UFS for their block locations. If this is set to 0, the cache "
+              + "will be disabled.")
+          .build();
   public static final PropertyKey MASTER_UFS_PATH_CACHE_CAPACITY =
       new Builder(Name.MASTER_UFS_PATH_CACHE_CAPACITY)
           .setDefaultValue(100000)
@@ -2096,6 +2105,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.tieredstore.global.levels";
     public static final String MASTER_TTL_CHECKER_INTERVAL_MS =
         "alluxio.master.ttl.checker.interval";
+    public static final String MASTER_UFS_BLOCK_LOCATION_CACHE_CAPACITY =
+        "alluxio.master.ufs.block.location.cache.capacity";
     public static final String MASTER_UFS_PATH_CACHE_CAPACITY =
         "alluxio.master.ufs.path.cache.capacity";
     public static final String MASTER_UFS_PATH_CACHE_THREADS =
