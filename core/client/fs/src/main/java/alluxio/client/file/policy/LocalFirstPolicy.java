@@ -32,7 +32,7 @@ import javax.annotation.concurrent.ThreadSafe;
 // TODO(peis): Move the BlockLocationPolicy implementation to alluxio.client.block.policy.
 @ThreadSafe
 public final class LocalFirstPolicy implements FileWriteLocationPolicy, BlockLocationPolicy {
-  private String mLocalHostName;
+  private final String mLocalHostName;
 
   /**
    * Constructs a {@link LocalFirstPolicy}.
