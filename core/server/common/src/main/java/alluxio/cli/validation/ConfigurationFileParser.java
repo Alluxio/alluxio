@@ -1,3 +1,14 @@
+/*
+ * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
+ * (the "License"). You may not use this work except in compliance with the License, which is
+ * available at www.apache.org/licenses/LICENSE-2.0
+ *
+ * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+ * either express or implied, as more fully set forth in the License.
+ *
+ * See the NOTICE file distributed with this work for information regarding copyright ownership.
+ */
+
 package alluxio.cli.validation;
 
 import org.w3c.dom.Document;
@@ -20,6 +31,9 @@ import javax.xml.parsers.ParserConfigurationException;
  * Parser for configuration files.
  */
 public class ConfigurationFileParser {
+  /**
+   * Constructs a {@link ConfigurationFileParser} object.
+   */
   public ConfigurationFileParser() {}
 
   /**
@@ -57,7 +71,7 @@ public class ConfigurationFileParser {
     doc.getDocumentElement().normalize();
     Map<String, String> ret = new HashMap<>();
     NodeList propNodeList = doc.getElementsByTagName("property");
-    for (int i=0; i<propNodeList.getLength(); i++) {
+    for (int i = 0; i < propNodeList.getLength(); i++) {
       Node propNode = propNodeList.item(i);
       if (propNode.getNodeType() == Node.ELEMENT_NODE) {
         Element element = (Element) propNode;

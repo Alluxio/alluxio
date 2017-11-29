@@ -164,8 +164,8 @@ public final class ValidateEnv {
     return task;
   }
 
-  private static boolean validateRemote(List<String> nodes, String target, String name, String[] args)
-      throws InterruptedException {
+  private static boolean validateRemote(List<String> nodes, String target, String name,
+      String[] args) throws InterruptedException {
     if (nodes == null) {
       return false;
     }
@@ -187,9 +187,14 @@ public final class ValidateEnv {
       return false;
     }
 
+    StringBuilder sb = new StringBuilder();
+    for (String s : args) {
+      sb.append(s + " ");
+    }
     String homeDir = Configuration.get(PropertyKey.HOME);
     String remoteCommand = String.format(
-        "%s/bin/alluxio validateEnv %s %s %s", homeDir, target, name == null ? "" : name, args);
+        "%s/bin/alluxio validateEnv %s %s %s",
+        homeDir, target, name == null ? "" : name, sb.toString());
     String localCommand = String.format(
         "ssh -o ConnectTimeout=5 -o StrictHostKeyChecking=no -tt %s \"bash %s\"",
         node, remoteCommand);
