@@ -343,8 +343,12 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
    * @return the updated object
    */
   public T setUfsLastModificationTimeMs(long ufsLastModificationTimeMs) {
-    mUfsLastModificationTimeMs = ufsLastModificationTimeMs;
-    return getThis();
+    synchronized (this) {
+      if (mUfsLastModificationTimeMs < ufsLastModificationTimeMs) {
+        mUfsLastModificationTimeMs = ufsLastModificationTimeMs;
+      }
+      return getThis();
+    }
   }
 
   /**
