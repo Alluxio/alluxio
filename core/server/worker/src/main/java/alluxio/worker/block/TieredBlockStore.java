@@ -232,8 +232,13 @@ public class TieredBlockStore implements BlockStore {
           createBlockFile(tempBlockMeta.getPath());
           return tempBlockMeta;
         }
+        // Failed to create a temp block, so trigger Evictor to make some space.
+        // NOTE: a successful {@link freeSpaceInternal} here does not ensure the subsequent
+        // allocation also successful, because these two operations are not atomic.
         freeSpaceInternal(sessionId, initialBlockSize, location);
       }
+      // TODO(bin): We are probably seeing a rare transient failure, maybe define and throw some
+      // other types of exception to indicate this case.
       throw new WorkerOutOfSpaceException(
           ExceptionMessage.NO_SPACE_FOR_BLOCK_ALLOCATION_RETRIES_EXCEEDED, initialBlockSize,
           MAX_RETRIES, blockId);
@@ -308,8 +313,13 @@ public class TieredBlockStore implements BlockStore {
         if (requestResult.getFirst()) {
           return;
         }
+        // Failed to create a temp block, so trigger Evictor to make some space.
+        // NOTE: a successful {@link freeSpaceInternal} here does not ensure the subsequent
+        // allocation also successful, because these two operations are not atomic.
         freeSpaceInternal(sessionId, additionalBytes, requestResult.getSecond());
       }
+      // TODO(bin): We are probably seeing a rare transient failure, maybe define and throw some
+      // other types of exception to indicate this case.
       throw new WorkerOutOfSpaceException(
           ExceptionMessage.NO_SPACE_FOR_BLOCK_ALLOCATION_RETRIES_EXCEEDED, additionalBytes,
           MAX_RETRIES, blockId);
@@ -357,8 +367,13 @@ public class TieredBlockStore implements BlockStore {
           }
           return;
         }
+        // Failed to create a temp block, so trigger Evictor to make some space.
+        // NOTE: a successful {@link freeSpaceInternal} here does not ensure the subsequent
+        // allocation also successful, because these two operations are not atomic.
         freeSpaceInternal(sessionId, result.getBlockSize(), newLocation);
       }
+      // TODO(bin): We are probably seeing a rare transient failure, maybe define and throw some
+      // other types of exception to indicate this case.
       throw new WorkerOutOfSpaceException(ExceptionMessage.NO_SPACE_FOR_BLOCK_MOVE_RETRIES_EXCEEDED,
           newLocation, blockId, MAX_RETRIES);
     }
