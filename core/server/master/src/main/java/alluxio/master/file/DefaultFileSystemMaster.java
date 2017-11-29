@@ -1044,7 +1044,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         ufsLastModifiedMs = fileStatus.getLastModifiedTime();
       } catch (IOException e) {
         // Ignore error
-        LOG.warn("Failed to retrieve UFS file status for: " + resolvedUri, e);
+        LOG.warn("Failed to retrieve UFS file status for: {} error: {}", resolvedUri, e.toString());
       }
     }
 
