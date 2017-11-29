@@ -116,7 +116,7 @@ public final class FileDataManager {
     }
 
     try {
-      UfsFileStatus ufsFileStatus = fileExistsInUfs(fileId);
+      UfsFileStatus ufsFileStatus = ufsFileStatus(fileId);
       if (ufsFileStatus != null) {
         // mark as persisted
         addPersistedFile(fileId, ufsFileStatus);
@@ -155,12 +155,12 @@ public final class FileDataManager {
   }
 
   /**
-   * Checks if the given file exists in the under storage system.
+   * Returns the {@link UfsFileStatus} of the given file, or null if it doesn't exist.
    *
    * @param fileId the file id
    * @return the file status of the ufs file if exists, null otherwise
    */
-  private synchronized UfsFileStatus fileExistsInUfs(long fileId) throws IOException {
+  private synchronized UfsFileStatus ufsFileStatus(long fileId) throws IOException {
     FileInfo fileInfo = mBlockWorker.getFileInfo(fileId);
     String dstPath = fileInfo.getUfsPath();
     UnderFileSystem ufs = mUfsManager.get(fileInfo.getMountId()).getUfs();
@@ -366,7 +366,11 @@ public final class FileDataManager {
     public List<UfsFileTStatus> fileStatusTList() {
       List<UfsFileTStatus> list = new ArrayList<>(mFileStatusList.size());
       for (UfsFileStatus status : mFileStatusList) {
-        list.add(status.toThrift());
+        if (status != null) {
+          list.add(status.toThrift());
+        } else {
+          list.add(null);
+        }
       }
       return list;
     }
