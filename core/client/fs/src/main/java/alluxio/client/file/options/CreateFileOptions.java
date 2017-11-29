@@ -25,9 +25,12 @@ import alluxio.util.CommonUtils;
 import alluxio.wire.ThriftUtils;
 import alluxio.wire.TtlAction;
 
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import com.google.common.base.Objects;
 import com.google.common.base.Throwables;
 
@@ -39,7 +42,9 @@ import javax.annotation.concurrent.NotThreadSafe;
 @PublicApi
 @NotThreadSafe
 @JsonInclude(Include.NON_EMPTY)
-public final class CreateFileOptions {
+@JsonIdentityInfo(generator = ObjectIdGenerators.IntSequenceGenerator.class, property = "@id")
+@JsonIgnoreProperties(ignoreUnknown = true)
+public final class CreateFileOptions extends CommonOptions<CreateFileOptions> {
   private boolean mRecursive;
   private FileWriteLocationPolicy mLocationPolicy;
   private long mBlockSizeBytes;
@@ -245,11 +250,19 @@ public final class CreateFileOptions {
   }
 
   @Override
+  public CreateFileOptions getThis() {
+    return this;
+  }
+
+  @Override
   public boolean equals(Object o) {
     if (this == o) {
       return true;
     }
     if (!(o instanceof CreateFileOptions)) {
+      return false;
+    }
+    if (!(super.equals(o))) {
       return false;
     }
     CreateFileOptions that = (CreateFileOptions) o;
@@ -265,13 +278,14 @@ public final class CreateFileOptions {
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mRecursive, mBlockSizeBytes, mLocationPolicy, mMode, mTtl,
-        mTtlAction, mWriteTier, mWriteType);
+    return super.hashCode() + Objects
+        .hashCode(mRecursive, mBlockSizeBytes, mLocationPolicy, mMode, mTtl, mTtlAction, mWriteTier,
+            mWriteType);
   }
 
   @Override
   public String toString() {
-    return Objects.toStringHelper(this)
+    return toStringHelper()
         .add("recursive", mRecursive)
         .add("blockSizeBytes", mBlockSizeBytes)
         .add("locationPolicy", mLocationPolicy)
@@ -296,6 +310,7 @@ public final class CreateFileOptions {
     if (mMode != null) {
       options.setMode(mMode.toShort());
     }
+    options.setCommonOptions(commonThrift());
     return options;
   }
 }

@@ -24,7 +24,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * Method options for setting the attributes.
  */
 @NotThreadSafe
-public final class SetAttributeOptions {
+public final class SetAttributeOptions extends CommonOptions {
   private Boolean mPinned;
   private Long mTtl;
   private TtlAction mTtlAction;
@@ -34,6 +34,7 @@ public final class SetAttributeOptions {
   private Short mMode;
   private boolean mRecursive;
   private long mOperationTimeMs;
+  private long mUfsLastModifiedMs;
 
   /**
    * @return the default {@link SetAttributeOptions}
@@ -48,18 +49,7 @@ public final class SetAttributeOptions {
    * @param options the options for setting the attributes
    */
   public SetAttributeOptions(SetAttributeTOptions options) {
-    mPinned = options.isSetPinned() ? options.isPinned() : null;
-    mTtl = options.isSetTtl() ? options.getTtl() : null;
-    mTtlAction = ThriftUtils.fromThrift(options.getTtlAction());
-    mPersisted = options.isSetPersisted() ? options.isPersisted() : null;
-    mOwner = options.isSetOwner() ? options.getOwner() : null;
-    mGroup = options.isSetGroup() ? options.getGroup() : null;
-    mMode = options.isSetMode() ? options.getMode() : Constants.INVALID_MODE;
-    mRecursive = options.isRecursive();
-    mOperationTimeMs = System.currentTimeMillis();
-  }
-
-  private SetAttributeOptions() {
+    super(options != null ? options.getCommonOptions() : null);
     mPinned = null;
     mTtl = null;
     mTtlAction = TtlAction.DELETE;
@@ -69,6 +59,23 @@ public final class SetAttributeOptions {
     mMode = Constants.INVALID_MODE;
     mRecursive = false;
     mOperationTimeMs = System.currentTimeMillis();
+    mUfsLastModifiedMs = Constants.INVALID_TIMESTAMP_MS;
+
+    if (options != null) {
+      mPinned = options.isSetPinned() ? options.isPinned() : null;
+      mTtl = options.isSetTtl() ? options.getTtl() : null;
+      mTtlAction = ThriftUtils.fromThrift(options.getTtlAction());
+      mPersisted = options.isSetPersisted() ? options.isPersisted() : null;
+      mOwner = options.isSetOwner() ? options.getOwner() : null;
+      mGroup = options.isSetGroup() ? options.getGroup() : null;
+      mMode = options.isSetMode() ? options.getMode() : Constants.INVALID_MODE;
+      mRecursive = options.isRecursive();
+      mOperationTimeMs = System.currentTimeMillis();
+    }
+  }
+
+  private SetAttributeOptions() {
+    this(null);
   }
 
   /**
@@ -132,6 +139,13 @@ public final class SetAttributeOptions {
    */
   public long getOperationTimeMs() {
     return mOperationTimeMs;
+  }
+
+  /**
+   * @return the ufs last modified time (in milliseconds)
+   */
+  public long getUfsLastModifiedMs() {
+    return mUfsLastModifiedMs;
   }
 
   /**
@@ -223,12 +237,24 @@ public final class SetAttributeOptions {
     return this;
   }
 
+  /**
+   * @param ufsLastModifiedMs the ufs last modified time
+   * @return the updated options object
+   */
+  public SetAttributeOptions setUfsLastModifiedMs(long ufsLastModifiedMs) {
+    mUfsLastModifiedMs = ufsLastModifiedMs;
+    return this;
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) {
       return true;
     }
     if (!(o instanceof SetAttributeOptions)) {
+      return false;
+    }
+    if (!(super.equals(o))) {
       return false;
     }
     SetAttributeOptions that = (SetAttributeOptions) o;
@@ -240,18 +266,20 @@ public final class SetAttributeOptions {
         && Objects.equal(mGroup, that.mGroup)
         && Objects.equal(mMode, that.mMode)
         && Objects.equal(mRecursive, that.mRecursive)
-        && mOperationTimeMs == that.mOperationTimeMs;
+        && mOperationTimeMs == that.mOperationTimeMs
+        && mUfsLastModifiedMs == that.mUfsLastModifiedMs;
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mPinned, mTtl, mTtlAction, mPersisted, mOwner, mGroup, mMode,
-        mRecursive, mOperationTimeMs);
+    return super.hashCode() + Objects
+        .hashCode(mPinned, mTtl, mTtlAction, mPersisted, mOwner, mGroup, mMode, mRecursive,
+            mOperationTimeMs, mUfsLastModifiedMs);
   }
 
   @Override
   public String toString() {
-    return Objects.toStringHelper(this)
+    return toStringHelper()
         .add("pinned", mPinned)
         .add("ttl", mTtl)
         .add("ttlAction", mTtlAction)
@@ -261,6 +289,7 @@ public final class SetAttributeOptions {
         .add("mode", mMode)
         .add("recursive", mRecursive)
         .add("operationTimeMs", mOperationTimeMs)
+        .add("ufsLastModifiedTimeMs", mUfsLastModifiedMs)
         .toString();
   }
 }

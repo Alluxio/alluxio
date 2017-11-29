@@ -3,13 +3,20 @@ namespace java alluxio.thrift
 include "common.thrift"
 include "exception.thrift"
 
-struct CheckConsistencyTOptions {}
+struct FileSystemMasterCommonTOptions {
+  1: optional i64 syncInterval
+}
+
+struct CheckConsistencyTOptions {
+  1: optional FileSystemMasterCommonTOptions commonOptions
+}
 struct CheckConsistencyTResponse {
   1: list<string> inconsistentPaths
 }
 
 struct CompleteFileTOptions {
   1: optional i64 ufsLength
+  2: optional FileSystemMasterCommonTOptions commonOptions
 }
 struct CompleteFileTResponse {}
 
@@ -20,6 +27,7 @@ struct CreateDirectoryTOptions {
   4: optional i16 mode
   5: optional i64 ttl
   6: optional common.TTtlAction ttlAction
+  7: optional FileSystemMasterCommonTOptions commonOptions
 }
 struct CreateDirectoryTResponse {}
 
@@ -30,6 +38,7 @@ struct CreateFileTOptions {
   4: optional i64 ttl
   5: optional i16 mode
   6: optional common.TTtlAction ttlAction
+  7: optional FileSystemMasterCommonTOptions commonOptions
 }
 struct CreateFileTResponse {}
 
@@ -37,12 +46,14 @@ struct DeleteTOptions {
   1: optional bool recursive
   2: optional bool alluxioOnly
   3: optional bool unchecked
+  4: optional FileSystemMasterCommonTOptions commonOptions
 }
 struct DeleteTResponse {}
 
 struct FreeTOptions {
   1: optional bool recursive
   2: optional bool forced
+  3: optional FileSystemMasterCommonTOptions commonOptions
 }
 struct FreeTResponse {}
 
@@ -54,12 +65,15 @@ enum LoadMetadataTType {
 
 struct GetStatusTOptions {
   1: optional LoadMetadataTType loadMetadataType
+  2: optional FileSystemMasterCommonTOptions commonOptions
 }
 struct GetStatusTResponse {
   1: FileInfo fileInfo
 }
 
-struct GetNewBlockIdForFileTOptions {}
+struct GetNewBlockIdForFileTOptions {
+  1: optional FileSystemMasterCommonTOptions commonOptions
+}
 struct GetNewBlockIdForFileTResponse {
   1: i64 id
 }
@@ -68,12 +82,15 @@ struct ListStatusTOptions {
   // This is deprecated since 1.1.1 and will be removed in 2.0. Use loadMetadataType.
   1: optional bool loadDirectChildren
   2: optional LoadMetadataTType loadMetadataType
+  3: optional FileSystemMasterCommonTOptions commonOptions
 }
 struct ListStatusTResponse {
   1: list<FileInfo> fileInfoList
 }
 
-struct LoadMetadataTOptions {}
+struct LoadMetadataTOptions {
+  1: optional FileSystemMasterCommonTOptions commonOptions
+}
 struct LoadMetadataTResponse {
   1: i64 id
 }
@@ -115,12 +132,14 @@ struct FileInfo {
   24: common.TTtlAction ttlAction
   25: i64 mountId
   26: i32 inAlluxioPercentage
+  27: optional i64 ufsLastModificationTimeMs
 }
 
 struct MountTOptions {
   1: optional bool readOnly
   2: optional map<string, string> properties
   3: optional bool shared
+  4: optional FileSystemMasterCommonTOptions commonOptions
 }
 struct MountTResponse {}
 
@@ -156,7 +175,9 @@ struct PersistFile {
   2: list<i64> blockIds
 }
 
-struct RenameTOptions {}
+struct RenameTOptions {
+  1: optional FileSystemMasterCommonTOptions commonOptions
+}
 struct RenameTResponse {}
 
 struct SetAttributeTOptions {
@@ -168,13 +189,25 @@ struct SetAttributeTOptions {
   6: optional i16 mode
   7: optional bool recursive
   8: optional common.TTtlAction ttlAction
+  9: optional FileSystemMasterCommonTOptions commonOptions
 }
 struct SetAttributeTResponse {}
 
-struct ScheduleAsyncPersistenceTOptions {}
+struct ScheduleAsyncPersistenceTOptions {
+  1: optional FileSystemMasterCommonTOptions commonOptions
+}
 struct ScheduleAsyncPersistenceTResponse {}
 
-struct UnmountTOptions {}
+struct SyncMetadataTOptions {
+  1: optional FileSystemMasterCommonTOptions commonOptions
+}
+struct SyncMetadataTResponse {
+  1: bool synced
+}
+
+struct UnmountTOptions {
+  1: optional FileSystemMasterCommonTOptions commonOptions
+}
 struct UnmountTResponse {}
 
 struct UfsInfo {
@@ -333,6 +366,15 @@ service FileSystemMasterClientService extends common.AlluxioService {
     throws (1: exception.AlluxioTException e)
 
   /**
+   * Syncs the Alluxio metadata with the UFS metadata, for a given path
+   */
+  SyncMetadataTResponse syncMetadata(
+    /** the root of the subtree to sync */ 1: string path,
+    /** the method options */ 2: SyncMetadataTOptions options,
+    )
+    throws (1: exception.AlluxioTException e)
+
+  /**
    * Deletes an existing "mount point", voiding the Alluxio namespace at the given path. The path
    * should correspond to an existing mount point. Any files in its subtree that are backed by UFS
    * will be persisted before they are removed from the Alluxio namespace.
@@ -344,7 +386,27 @@ service FileSystemMasterClientService extends common.AlluxioService {
     throws (1: exception.AlluxioTException e)
 }
 
-struct FileSystemHeartbeatTOptions {}
+struct UfsTStatus {
+  1: optional string name
+  2: optional bool isDirectory
+  3: optional string owner
+  4: optional string group
+  5: optional i16 mode
+}
+
+struct UfsFileTStatus {
+  1: optional UfsTStatus commonStatus
+  2: optional i64 length
+  3: optional i64 lastModificationTimeMs
+}
+
+struct UfsDirectoryTStatus {
+  1: optional UfsTStatus commonStatus
+}
+
+struct FileSystemHeartbeatTOptions {
+  1: optional list<UfsFileTStatus> persistedFileStatuses
+}
 struct FileSystemHeartbeatTResponse {
   1: FileSystemCommand command
 }

@@ -370,7 +370,7 @@ public class BaseFileSystem implements FileSystem {
     FileSystemMasterClient masterClient = mFileSystemContext.acquireMasterClient();
     try {
       // TODO(calvin): Update this code on the master side.
-      masterClient.rename(src, dst);
+      masterClient.rename(src, dst, options);
       LOG.debug("Renamed {} to {}, options: {}", src.getPath(), dst.getPath(), options);
     } catch (NotFoundException e) {
       throw new FileDoesNotExistException(e.getMessage());

@@ -21,7 +21,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * Method options for completing a file.
  */
 @NotThreadSafe
-public final class CompleteFileOptions {
+public final class CompleteFileOptions extends CommonOptions<CompleteFileOptions> {
   private long mUfsLength;
 
   /**
@@ -52,11 +52,19 @@ public final class CompleteFileOptions {
   }
 
   @Override
+  public CompleteFileOptions getThis() {
+    return this;
+  }
+
+  @Override
   public boolean equals(Object o) {
     if (this == o) {
       return true;
     }
     if (!(o instanceof CompleteFileOptions)) {
+      return false;
+    }
+    if (!(super.equals(o))) {
       return false;
     }
     CompleteFileOptions that = (CompleteFileOptions) o;
@@ -65,12 +73,12 @@ public final class CompleteFileOptions {
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mUfsLength);
+    return super.hashCode() + Objects.hashCode(mUfsLength);
   }
 
   @Override
   public String toString() {
-    return Objects.toStringHelper(this)
+    return toStringHelper()
         .add("ufsLength", mUfsLength)
         .toString();
   }
@@ -81,6 +89,7 @@ public final class CompleteFileOptions {
   public CompleteFileTOptions toThrift() {
     CompleteFileTOptions options = new CompleteFileTOptions();
     options.setUfsLength(mUfsLength);
+    options.setCommonOptions(commonThrift());
     return options;
   }
 }

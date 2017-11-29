@@ -29,6 +29,7 @@ import alluxio.master.file.options.LoadMetadataOptions;
 import alluxio.master.file.options.MountOptions;
 import alluxio.master.file.options.RenameOptions;
 import alluxio.master.file.options.SetAttributeOptions;
+import alluxio.master.file.options.SyncMetadataOptions;
 import alluxio.thrift.AlluxioTException;
 import alluxio.thrift.CheckConsistencyTOptions;
 import alluxio.thrift.CheckConsistencyTResponse;
@@ -63,21 +64,23 @@ import alluxio.thrift.ScheduleAsyncPersistenceTOptions;
 import alluxio.thrift.ScheduleAsyncPersistenceTResponse;
 import alluxio.thrift.SetAttributeTOptions;
 import alluxio.thrift.SetAttributeTResponse;
+import alluxio.thrift.SyncMetadataTOptions;
+import alluxio.thrift.SyncMetadataTResponse;
 import alluxio.thrift.UnmountTOptions;
 import alluxio.thrift.UnmountTResponse;
+import alluxio.wire.MountPointInfo;
 import alluxio.wire.ThriftUtils;
 
-import alluxio.wire.MountPointInfo;
-
 import com.google.common.base.Preconditions;
+import org.apache.thrift.TException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.HashMap;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -359,7 +362,7 @@ public final class FileSystemMasterClientServiceHandler implements
       @Override
       public RenameTResponse call() throws AlluxioException, IOException {
         mFileSystemMaster
-            .rename(new AlluxioURI(srcPath), new AlluxioURI(dstPath), RenameOptions.defaults());
+            .rename(new AlluxioURI(srcPath), new AlluxioURI(dstPath), new RenameOptions(options));
         return new RenameTResponse();
       }
 
@@ -401,6 +404,24 @@ public final class FileSystemMasterClientServiceHandler implements
       @Override
       public String toString() {
         return String.format("SetAttribute: path=%s, options=%s", path, options);
+      }
+    });
+  }
+
+  @Override
+  public SyncMetadataTResponse syncMetadata(String path, SyncMetadataTOptions options)
+      throws AlluxioTException, TException {
+    return RpcUtils.callAndLog(LOG, new RpcCallableThrowsIOException<SyncMetadataTResponse>() {
+      @Override
+      public SyncMetadataTResponse call() throws AlluxioException, IOException {
+        boolean result =
+            mFileSystemMaster.syncMetadata(new AlluxioURI(path), new SyncMetadataOptions(options));
+        return new SyncMetadataTResponse(result);
+      }
+
+      @Override
+      public String toString() {
+        return String.format("SyncMetadata: path=%s, options=%s", path, options);
       }
     });
   }

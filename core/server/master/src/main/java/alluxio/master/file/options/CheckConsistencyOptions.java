@@ -13,21 +13,22 @@ package alluxio.master.file.options;
 
 import alluxio.thrift.CheckConsistencyTOptions;
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * Method options for checking the consistency of a path.
  */
 @NotThreadSafe
-public final class CheckConsistencyOptions {
+public final class CheckConsistencyOptions extends CommonOptions {
   /**
-   * @return the default {@link CompleteFileOptions}
+   * @return the default {@link CheckConsistencyOptions}
    */
-  @SuppressFBWarnings("ISC_INSTANTIATE_STATIC_CLASS")
   public static CheckConsistencyOptions defaults() {
     return new CheckConsistencyOptions();
+  }
+
+  private CheckConsistencyOptions() {
+    this(null);
   }
 
   /**
@@ -36,7 +37,29 @@ public final class CheckConsistencyOptions {
    *
    * @param options the {@link alluxio.thrift.CheckConsistencyTOptions} to use
    */
-  public CheckConsistencyOptions(CheckConsistencyTOptions options) {}
+  public CheckConsistencyOptions(CheckConsistencyTOptions options) {
+    super(options != null ? options.getCommonOptions() : null);
+  }
 
-  private CheckConsistencyOptions() {} // prevent instantiation
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof CheckConsistencyOptions)) {
+      return false;
+    }
+    return super.equals(o);
+  }
+
+  @Override
+  public int hashCode() {
+    return super.hashCode();
+  }
+
+  @Override
+  public String toString() {
+    return toStringHelper()
+        .toString();
+  }
 }

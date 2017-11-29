@@ -45,29 +45,32 @@ public final class CreateDirectoryOptions extends CreatePathOptions<CreateDirect
    * @param options the {@link CreateDirectoryTOptions} to use
    */
   public CreateDirectoryOptions(CreateDirectoryTOptions options) {
-    super();
-    mAllowExists = options.isAllowExists();
-    mPersisted = options.isPersisted();
-    mRecursive = options.isRecursive();
-    mTtl = options.getTtl();
-    mTtlAction = ThriftUtils.fromThrift(options.getTtlAction());
-    if (SecurityUtils.isAuthenticationEnabled()) {
-      mOwner = SecurityUtils.getOwnerFromThriftClient();
-      mGroup = SecurityUtils.getGroupFromThriftClient();
-    }
-    if (options.isSetMode()) {
-      mMode = new Mode(options.getMode());
-    } else {
-      mMode.applyDirectoryUMask();
-    }
-  }
-
-  private CreateDirectoryOptions() {
-    super();
+    super(options != null ? options.getCommonOptions() : null);
     mAllowExists = false;
     mTtl = Constants.NO_TTL;
     mTtlAction = TtlAction.DELETE;
     mMode.applyDirectoryUMask();
+
+    if (options != null) {
+      mAllowExists = options.isAllowExists();
+      mPersisted = options.isPersisted();
+      mRecursive = options.isRecursive();
+      mTtl = options.getTtl();
+      mTtlAction = ThriftUtils.fromThrift(options.getTtlAction());
+      if (SecurityUtils.isAuthenticationEnabled()) {
+        mOwner = SecurityUtils.getOwnerFromThriftClient();
+        mGroup = SecurityUtils.getGroupFromThriftClient();
+      }
+      if (options.isSetMode()) {
+        mMode = new Mode(options.getMode());
+      } else {
+        mMode.applyDirectoryUMask();
+      }
+    }
+  }
+
+  private CreateDirectoryOptions() {
+    this(null);
   }
 
   /**

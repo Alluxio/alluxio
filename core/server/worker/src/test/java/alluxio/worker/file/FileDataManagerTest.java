@@ -103,7 +103,8 @@ public final class FileDataManagerTest {
     writeFileWithBlocks(fileId, blockIds);
 
     // verify file persisted
-    assertEquals(Arrays.asList(fileId), mManager.getPersistedFiles());
+    FileDataManager.PersistedFilesInfo info = mManager.getPersistedFilesInfo();
+    assertEquals(Arrays.asList(fileId), info.idList());
 
     // verify fastCopy called twice, once per block
     PowerMockito.verifyStatic(Mockito.times(2));
@@ -121,7 +122,8 @@ public final class FileDataManagerTest {
   public void clearPersistedFiles() throws Exception {
     writeFileWithBlocks(1L, ImmutableList.of(2L, 3L));
     mManager.clearPersistedFiles(ImmutableList.of(1L));
-    assertEquals(Collections.emptyList(), mManager.getPersistedFiles());
+    FileDataManager.PersistedFilesInfo info = mManager.getPersistedFilesInfo();
+    assertEquals(Collections.emptyList(), info.idList());
   }
 
   /**

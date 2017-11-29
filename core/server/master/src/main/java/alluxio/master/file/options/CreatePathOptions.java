@@ -12,6 +12,7 @@
 package alluxio.master.file.options;
 
 import alluxio.security.authorization.Mode;
+import alluxio.thrift.FileSystemMasterCommonTOptions;
 
 import com.google.common.base.Objects;
 
@@ -23,7 +24,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * @param <T> the type of the object to create
  */
 @NotThreadSafe
-public abstract class CreatePathOptions<T> {
+public abstract class CreatePathOptions<T> extends CommonOptions {
   protected boolean mMountPoint;
   protected long mOperationTimeMs;
   protected String mOwner;
@@ -35,6 +36,11 @@ public abstract class CreatePathOptions<T> {
   protected boolean mMetadataLoad;
 
   protected CreatePathOptions() {
+    this(null);
+  }
+
+  protected CreatePathOptions(FileSystemMasterCommonTOptions commonOptions) {
+    super(commonOptions);
     mMountPoint = false;
     mOperationTimeMs = System.currentTimeMillis();
     mOwner = "";
@@ -188,6 +194,9 @@ public abstract class CreatePathOptions<T> {
     if (!(o instanceof CreatePathOptions)) {
       return false;
     }
+    if (!(super.equals(o))) {
+      return false;
+    }
     CreatePathOptions<?> that = (CreatePathOptions<?>) o;
     return Objects.equal(mMountPoint, that.mMountPoint)
         && Objects.equal(mOwner, that.mOwner)
@@ -201,13 +210,14 @@ public abstract class CreatePathOptions<T> {
 
   @Override
   public int hashCode() {
-    return Objects
+    return super.hashCode() + Objects
         .hashCode(mMountPoint, mOwner, mGroup, mMode, mPersisted, mRecursive, mMetadataLoad,
             mOperationTimeMs);
   }
 
+  @Override
   protected Objects.ToStringHelper toStringHelper() {
-    return Objects.toStringHelper(this)
+    return super.toStringHelper()
         .add("mountPoint", mMountPoint)
         .add("operationTimeMs", mOperationTimeMs)
         .add("owner", mOwner)

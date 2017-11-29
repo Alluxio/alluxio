@@ -21,7 +21,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * Method options for list status.
  */
 @NotThreadSafe
-public final class FreeOptions {
+public final class FreeOptions extends CommonOptions {
   private boolean mRecursive;
   private boolean mForced;
 
@@ -33,8 +33,7 @@ public final class FreeOptions {
   }
 
   private FreeOptions() {
-    mForced = false;
-    mRecursive = false;
+    this(null);
   }
 
   /**
@@ -43,8 +42,14 @@ public final class FreeOptions {
    * @param options the thrift representation of free options
    */
   public FreeOptions(FreeTOptions options) {
-    mForced = options.isForced();
-    mRecursive = options.isRecursive();
+    super(options != null ? options.getCommonOptions() : null);
+    mForced = false;
+    mRecursive = false;
+
+    if (options != null) {
+      mForced = options.isForced();
+      mRecursive = options.isRecursive();
+    }
   }
 
   /**
@@ -95,18 +100,21 @@ public final class FreeOptions {
     if (!(o instanceof FreeOptions)) {
       return false;
     }
+    if (!(super.equals(o))) {
+      return false;
+    }
     FreeOptions that = (FreeOptions) o;
     return Objects.equal(mForced, that.mForced) && Objects.equal(mRecursive, that.mRecursive);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mForced, mRecursive);
+    return super.hashCode() + Objects.hashCode(mForced, mRecursive);
   }
 
   @Override
   public String toString() {
-    return Objects.toStringHelper(this)
+    return toStringHelper()
         .add("forced", mForced)
         .add("recursive", mRecursive)
         .toString();

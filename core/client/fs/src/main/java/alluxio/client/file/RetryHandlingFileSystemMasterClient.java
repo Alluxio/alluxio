@@ -24,6 +24,7 @@ import alluxio.client.file.options.GetStatusOptions;
 import alluxio.client.file.options.ListStatusOptions;
 import alluxio.client.file.options.LoadMetadataOptions;
 import alluxio.client.file.options.MountOptions;
+import alluxio.client.file.options.RenameOptions;
 import alluxio.client.file.options.SetAttributeOptions;
 import alluxio.master.MasterClientConfig;
 import alluxio.thrift.AlluxioService;
@@ -31,7 +32,6 @@ import alluxio.thrift.FileSystemMasterClientService;
 import alluxio.thrift.GetMountTableTResponse;
 import alluxio.thrift.GetNewBlockIdForFileTOptions;
 import alluxio.thrift.LoadMetadataTOptions;
-import alluxio.thrift.RenameTOptions;
 import alluxio.thrift.ScheduleAsyncPersistenceTOptions;
 import alluxio.thrift.UnmountTOptions;
 import alluxio.wire.ThriftUtils;
@@ -218,10 +218,16 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
 
   @Override
   public synchronized void rename(final AlluxioURI src, final AlluxioURI dst) throws IOException {
+    rename(src, dst, RenameOptions.defaults());
+  }
+
+  @Override
+  public synchronized void rename(final AlluxioURI src, final AlluxioURI dst,
+      final RenameOptions options) throws IOException {
     retryRPC(new RpcCallable<Void>() {
       @Override
       public Void call() throws TException {
-        mClient.rename(src.getPath(), dst.getPath(), new RenameTOptions());
+        mClient.rename(src.getPath(), dst.getPath(), options.toThrift());
         return null;
       }
     });

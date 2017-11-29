@@ -16,8 +16,11 @@ import alluxio.PropertyKey;
 import alluxio.annotation.PublicApi;
 import alluxio.wire.LoadMetadataType;
 
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import com.google.common.base.Objects;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -28,7 +31,9 @@ import javax.annotation.concurrent.NotThreadSafe;
 @PublicApi
 @NotThreadSafe
 @JsonInclude(Include.NON_EMPTY)
-public final class ExistsOptions {
+@JsonIdentityInfo(generator = ObjectIdGenerators.IntSequenceGenerator.class, property = "@id")
+@JsonIgnoreProperties(ignoreUnknown = true)
+public final class ExistsOptions extends CommonOptions<ExistsOptions> {
   private LoadMetadataType mLoadMetadataType;
 
   /**
@@ -60,11 +65,19 @@ public final class ExistsOptions {
   }
 
   @Override
+  public ExistsOptions getThis() {
+    return this;
+  }
+
+  @Override
   public boolean equals(Object o) {
     if (this == o) {
       return true;
     }
     if (!(o instanceof ExistsOptions)) {
+      return false;
+    }
+    if (!(super.equals(o))) {
       return false;
     }
     ExistsOptions that = (ExistsOptions) o;
@@ -73,12 +86,12 @@ public final class ExistsOptions {
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mLoadMetadataType);
+    return super.hashCode() + Objects.hashCode(mLoadMetadataType);
   }
 
   @Override
   public String toString() {
-    return Objects.toStringHelper(this)
+    return toStringHelper()
         .add("loadMetadataType", mLoadMetadataType.toString())
         .toString();
   }
@@ -87,6 +100,7 @@ public final class ExistsOptions {
    * @return the {@link GetStatusOptions} representation of these options
    */
   public GetStatusOptions toGetStatusOptions() {
-    return GetStatusOptions.defaults().setLoadMetadataType(mLoadMetadataType);
+    return GetStatusOptions.defaults().setLoadMetadataType(mLoadMetadataType)
+        .setSyncInterval(getSyncInterval());
   }
 }
