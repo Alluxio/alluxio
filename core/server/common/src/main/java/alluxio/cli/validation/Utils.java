@@ -125,11 +125,11 @@ public final class Utils {
           errorSb.toString().trim());
     } catch (IOException e) {
       System.err.println("Failed to execute command.");
-      return new ProcessExecutionResult(1, "", "");
+      return new ProcessExecutionResult(1, "", e.getMessage());
     } catch (InterruptedException e) {
       System.err.println("Interrupted.");
       Thread.currentThread().interrupt();
-      return new ProcessExecutionResult(1, "", "");
+      return new ProcessExecutionResult(1, "", e.getMessage());
     }
   }
 
