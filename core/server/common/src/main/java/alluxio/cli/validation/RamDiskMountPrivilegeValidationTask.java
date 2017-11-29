@@ -28,7 +28,7 @@ import java.util.Map;
 /**
  * Task for validating whether worker has enough privilege to mount RAM disk.
  */
-public final class RamDiskMountPrivilegeValidationTask implements ValidationTask {
+public final class RamDiskMountPrivilegeValidationTask extends AbstractValidationTask {
 
   /**
    * Creates a new instance of {@link RamDiskMountPrivilegeValidationTask}

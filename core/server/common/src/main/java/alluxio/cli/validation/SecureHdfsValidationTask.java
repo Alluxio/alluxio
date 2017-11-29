@@ -15,6 +15,7 @@ import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.cli.ValidateEnv;
 
+import org.apache.commons.cli.Options;
 import com.google.common.collect.ImmutableMap;
 
 import java.util.Map;
@@ -24,7 +25,7 @@ import java.util.regex.Pattern;
 /**
  * Task for validating security configurations.
  */
-public class SecureHdfsValidationTask implements ValidationTask {
+public class SecureHdfsValidationTask extends AbstractValidationTask {
   /** Name of the environment variable to store the path to Hadoop config directory */
   private static final String HADOOP_CONF_DIR_ENV_VAR = "HADOOP_CONF_DIR";
 
@@ -54,6 +55,14 @@ public class SecureHdfsValidationTask implements ValidationTask {
    */
   public SecureHdfsValidationTask(String process) {
     mProcess = process.toLowerCase();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public Options getOptions() {
+    return new Options().addOption(HADOOP_CONF_DIR_OPTION);
   }
 
   @Override
@@ -101,8 +110,8 @@ public class SecureHdfsValidationTask implements ValidationTask {
 
   private boolean validateHdfsSettingParity(Map<String, String> optionsMap) {
     String serverHadoopConfDirPath;
-    if (optionsMap.containsKey(ValidateEnv.HADOOP_CONF_DIR_OPTION.getOpt())) {
-      serverHadoopConfDirPath = optionsMap.get(ValidateEnv.HADOOP_CONF_DIR_OPTION.getOpt());
+    if (optionsMap.containsKey(HADOOP_CONF_DIR_OPTION.getOpt())) {
+      serverHadoopConfDirPath = optionsMap.get(HADOOP_CONF_DIR_OPTION.getOpt());
     } else {
       serverHadoopConfDirPath = System.getenv(HADOOP_CONF_DIR_ENV_VAR);
     }
