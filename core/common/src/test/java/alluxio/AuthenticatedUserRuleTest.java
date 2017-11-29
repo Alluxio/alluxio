@@ -11,10 +11,11 @@
 
 package alluxio;
 
+import static org.junit.Assert.assertEquals;
+
 import alluxio.security.authentication.AuthenticatedClientUser;
 
 import org.junit.After;
-import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runners.model.Statement;
 
@@ -29,9 +30,9 @@ public final class AuthenticatedUserRuleTest {
   private final Statement mStatement = new Statement() {
     @Override
     public void evaluate() throws Throwable {
-      Assert.assertEquals(RULE_USER, AuthenticatedClientUser.get().getName());
+      assertEquals(RULE_USER, AuthenticatedClientUser.get().getName());
       AuthenticatedClientUser.set(TESTCASE_USER);
-      Assert.assertEquals(TESTCASE_USER, AuthenticatedClientUser.get().getName());
+      assertEquals(TESTCASE_USER, AuthenticatedClientUser.get().getName());
     }
   };
 
@@ -44,13 +45,13 @@ public final class AuthenticatedUserRuleTest {
   public void userSetBeforeRule() throws Throwable {
     AuthenticatedClientUser.set(OUTSIDE_RULE_USER);
     new AuthenticatedUserRule(RULE_USER).apply(mStatement, null).evaluate();
-    Assert.assertEquals(OUTSIDE_RULE_USER, AuthenticatedClientUser.get().getName());
+    assertEquals(OUTSIDE_RULE_USER, AuthenticatedClientUser.get().getName());
   }
 
   @Test
   public void noUserBeforeRule() throws Throwable {
     AuthenticatedClientUser.remove();
     new AuthenticatedUserRule(RULE_USER).apply(mStatement, null).evaluate();
-    Assert.assertEquals(null, AuthenticatedClientUser.get());
+    assertEquals(null, AuthenticatedClientUser.get());
   }
 }
