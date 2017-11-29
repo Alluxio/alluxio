@@ -1044,6 +1044,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         ufsLastModifiedMs = fileStatus.getLastModifiedTime();
       } catch (IOException e) {
         // Ignore error
+        LOG.warn("Failed to retrieve UFS file status for: " + resolvedUri, e);
       }
     }
 
@@ -2965,8 +2966,10 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     boolean hasPersistedStatus = persistedFileStatus.size() == persistedFiles.size();
     for (int i = 0; i < persistedFiles.size(); i++) {
       long fileId = persistedFiles.get(i);
-      long lastModified = hasPersistedStatus ? persistedFileStatus.get(i).getLastModifiedTime() :
-          Constants.INVALID_TIMESTAMP_MS;
+      UfsFileStatus ufsStatus = persistedFileStatus.get(i);
+      long lastModified =
+          (hasPersistedStatus && ufsStatus != null) ? ufsStatus.getLastModifiedTime() :
+              Constants.INVALID_TIMESTAMP_MS;
       try {
         // Permission checking for each file is performed inside setAttribute
         setAttribute(getPath(fileId),
