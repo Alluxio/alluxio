@@ -240,7 +240,7 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
   }
 
   @Override
-  public synchronized void scheduleAsyncPersist(final AlluxioURI path) throws IOException {
+  public synchronized void scheduleAsyncPersist(final AlluxioURI path) throws AlluxioStatusException {
     retryRPC(() -> {
       mClient.scheduleAsyncPersistence(path.getPath(), new ScheduleAsyncPersistenceTOptions());
       return null;
