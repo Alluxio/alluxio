@@ -159,7 +159,7 @@ public abstract class AbstractClient implements Client {
   /**
    * Connects with the remote.
    */
-  public synchronized void connect() throws IOException {
+  public synchronized void connect() throws AlluxioStatusException {
     if (mConnected) {
       return;
     }
@@ -280,7 +280,7 @@ public abstract class AbstractClient implements Client {
    * @param <V> type of return value of the RPC call
    * @return the return value of the RPC call
    */
-  protected synchronized <V> V retryRPC(RpcCallable<V> rpc) throws IOException {
+  protected synchronized <V> V retryRPC(RpcCallable<V> rpc) throws AlluxioStatusException {
     RetryPolicy retryPolicy =
         new ExponentialBackoffRetry(BASE_SLEEP_MS, MAX_SLEEP_MS, RPC_MAX_NUM_RETRY);
     while (!mClosed) {
