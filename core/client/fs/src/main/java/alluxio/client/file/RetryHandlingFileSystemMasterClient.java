@@ -196,37 +196,28 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
   @Override
   public synchronized void loadMetadata(final AlluxioURI path,
       final LoadMetadataOptions options) throws AlluxioStatusException {
-    retryRPC(new RpcCallable<Long>() {
-      @Override
-      public Long call() throws TException {
-        return mClient
+    retryRPC(() -> {
+      return mClient
             .loadMetadata(path.toString(), options.isRecursive(), new LoadMetadataTOptions())
             .getId();
-      }
     });
   }
 
   @Override
   public synchronized void mount(final AlluxioURI alluxioPath, final AlluxioURI ufsPath,
       final MountOptions options) throws AlluxioStatusException {
-    retryRPC(new RpcCallable<Void>() {
-      @Override
-      public Void call() throws TException {
-        mClient.mount(alluxioPath.toString(), ufsPath.toString(), options.toThrift());
-        return null;
-      }
+    retryRPC(() -> {
+      mClient.mount(alluxioPath.toString(), ufsPath.toString(), options.toThrift());
+      return null;
     });
   }
 
   @Override
   public synchronized void rename(final AlluxioURI src, final AlluxioURI dst)
       throws AlluxioStatusException {
-    retryRPC(new RpcCallable<Void>() {
-      @Override
-      public Void call() throws TException {
-        mClient.rename(src.getPath(), dst.getPath(), new RenameTOptions());
-        return null;
-      }
+    retryRPC(() -> {
+      mClient.rename(src.getPath(), dst.getPath(), new RenameTOptions());
+      return null;
     });
   }
 
@@ -240,7 +231,8 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
   }
 
   @Override
-  public synchronized void scheduleAsyncPersist(final AlluxioURI path) throws AlluxioStatusException {
+  public synchronized void scheduleAsyncPersist(final AlluxioURI path)
+      throws AlluxioStatusException {
     retryRPC(() -> {
       mClient.scheduleAsyncPersistence(path.getPath(), new ScheduleAsyncPersistenceTOptions());
       return null;
