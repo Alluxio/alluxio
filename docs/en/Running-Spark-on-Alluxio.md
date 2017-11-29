@@ -223,3 +223,16 @@ parameter may be set to:
 ```bash
 spark.sql.hive.metastore.sharedPrefixes=com.mysql.jdbc,org.postgresql,com.microsoft.sqlserver,oracle.jdbc,alluxio
 ```
+
+## `java.io.IOException: No FileSystem for scheme: alluxio` Issue with Spark on YARN
+
+If you use Spark on YARN with Alluxio and run into the exception `java.io.IOException: No FileSystem for scheme: alluxio`, please add the following content to `${SPARK_HOME}/conf/core-site.xml`:
+
+```xml
+<configuration>
+  <property>
+    <name>fs.alluxio.impl</name>
+    <value>alluxio.hadoop.FileSystem</value>
+  </property>
+</configuration>
+```
