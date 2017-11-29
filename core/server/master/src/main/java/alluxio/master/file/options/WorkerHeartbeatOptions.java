@@ -23,7 +23,7 @@ import java.util.List;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * Method options for syncing the metadata of a path.
+ * Method options for the worker to master heartbeat.
  */
 @NotThreadSafe
 public final class WorkerHeartbeatOptions {
