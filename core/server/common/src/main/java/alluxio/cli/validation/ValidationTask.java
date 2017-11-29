@@ -12,6 +12,7 @@
 package alluxio.cli.validation;
 
 import alluxio.exception.status.InvalidArgumentException;
+
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Options;
 
@@ -41,6 +42,8 @@ public interface ValidationTask {
 
   /**
    * Runs the validation task.
+   *
+   * @param optionMap contains string representation of <key, value> pairs
    * @return whether the validation succeeds
    */
   boolean validate(Map<String, String> optionMap) throws InterruptedException;

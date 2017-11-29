@@ -13,7 +13,6 @@ package alluxio.cli.validation;
 
 import alluxio.Configuration;
 import alluxio.PropertyKey;
-import alluxio.cli.ValidateEnv;
 
 import org.apache.commons.cli.Options;
 import com.google.common.collect.ImmutableMap;
@@ -26,7 +25,7 @@ import java.util.regex.Pattern;
  * Task for validating security configurations.
  */
 public class SecureHdfsValidationTask extends AbstractValidationTask {
-  /** Name of the environment variable to store the path to Hadoop config directory */
+  /** Name of the environment variable to store the path to Hadoop config directory. */
   private static final String HADOOP_CONF_DIR_ENV_VAR = "HADOOP_CONF_DIR";
 
   /**
@@ -125,7 +124,8 @@ public class SecureHdfsValidationTask extends AbstractValidationTask {
 
     // If Configuration does not contain the key, then a {@link RuntimeException} will be thrown
     // before calling the {@link String#split} method.
-    String[] clientHaoopConfFilePaths = Configuration.get(PropertyKey.UNDERFS_HDFS_CONFIGURATION).split(":");
+    String[] clientHaoopConfFilePaths =
+        Configuration.get(PropertyKey.UNDERFS_HDFS_CONFIGURATION).split(":");
     String clientCoreSiteFilePath = clientHaoopConfFilePaths[0];
     String clientHdfsSiteFilePath = clientHaoopConfFilePaths[1];
     if (clientCoreSiteFilePath == null || clientCoreSiteFilePath.isEmpty()
