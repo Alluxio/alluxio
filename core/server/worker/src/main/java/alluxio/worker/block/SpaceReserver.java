@@ -32,9 +32,9 @@ import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * The {@link SpaceReserver} periodically checks the available space on each storage tier. If the
- * available space is above the high watermark configured for the tier, eviction will be
- * triggered to reach the low watermark. If this is not the top tier, it will also add the amount
- * of space reserved on the tier above to reduce the impact of cascading eviction.
+ * used space is above the high watermark configured for the tier, eviction will be triggered to
+ * reach the low watermark. If this is not the top tier, it will also add the amount of space
+ * reserved on the tier above to reduce the impact of cascading eviction.
  */
 @NotThreadSafe
 public class SpaceReserver implements HeartbeatExecutor {
