@@ -120,7 +120,7 @@ final class FileWorkerMasterSyncExecutor implements HeartbeatExecutor {
   class FilePersister implements Runnable {
     private final FileDataManager mFileDataManager;
     private final long mFileId;
-    private List<Long> mBlockIds;
+    private final List<Long> mBlockIds;
 
     /**
      * Creates a new instance of {@link FilePersister}.
