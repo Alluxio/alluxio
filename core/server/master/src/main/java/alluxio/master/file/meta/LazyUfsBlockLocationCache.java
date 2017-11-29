@@ -37,7 +37,7 @@ public class LazyUfsBlockLocationCache implements UfsBlockLocationCache {
 
   /** Number of blocks to cache. */
   private static final int MAX_BLOCKS =
-      Configuration.getInt(PropertyKey.MASTER_UFS_PATH_CACHE_CAPACITY);
+      Configuration.getInt(PropertyKey.MASTER_UFS_BLOCK_LOCATION_CACHE_CAPACITY);
 
   /** Cache of ufs block locations, key is block ID, value is block locations. */
   private Cache<Long, List<String>> mCache;
