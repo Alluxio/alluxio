@@ -279,7 +279,10 @@ public final class InodeFile extends Inode<InodeFile> {
         .setTtlAction((ProtobufUtils.fromProtobuf(entry.getTtlAction())))
         .setOwner(entry.getOwner())
         .setGroup(entry.getGroup())
-        .setMode((short) entry.getMode());
+        .setMode((short) entry.getMode())
+        .setUfsLastModificationTimeMs(
+            entry.hasUfsLastModificationTimeMs() ? entry.getUfsLastModificationTimeMs() :
+                Constants.INVALID_TIMESTAMP_MS);
   }
 
   /**
@@ -328,7 +331,9 @@ public final class InodeFile extends Inode<InodeFile> {
         .setPersistenceState(getPersistenceState().name())
         .setPinned(isPinned())
         .setTtl(getTtl())
-        .setTtlAction(ProtobufUtils.toProtobuf(getTtlAction())).build();
+        .setTtlAction(ProtobufUtils.toProtobuf(getTtlAction()))
+        .setUfsLastModificationTimeMs(getUfsLastModificationTimeMs())
+        .build();
     return JournalEntry.newBuilder().setInodeFile(inodeFile).build();
   }
 
