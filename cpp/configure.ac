@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([2.69])
-AC_INIT([liballuxio], [0.1.120], [huang@cs.jhu.edu])
+AC_INIT([liballuxio], [0.1.170], [lwx371423@163.com])
 AC_CONFIG_MACRO_DIR([m4])
 
 AC_CANONICAL_HOST
