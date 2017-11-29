@@ -6697,12 +6697,21 @@ public final class File {
      * <code>optional .alluxio.proto.journal.PTtlAction ttlAction = 17 [default = DELETE];</code>
      */
     alluxio.proto.journal.File.PTtlAction getTtlAction();
+
+    /**
+     * <code>optional int64 ufs_last_modification_time_ms = 18;</code>
+     */
+    boolean hasUfsLastModificationTimeMs();
+    /**
+     * <code>optional int64 ufs_last_modification_time_ms = 18;</code>
+     */
+    long getUfsLastModificationTimeMs();
   }
   /**
    * Protobuf type {@code alluxio.proto.journal.InodeFileEntry}
    *
    * <pre>
-   * next available id: 18
+   * next available id: 19
    * </pre>
    */
   public static final class InodeFileEntry extends
@@ -6863,6 +6872,11 @@ public final class File {
                 bitField0_ |= 0x00008000;
                 ttlAction_ = value;
               }
+              break;
+            }
+            case 144: {
+              bitField0_ |= 0x00010000;
+              ufsLastModificationTimeMs_ = input.readInt64();
               break;
             }
           }
@@ -7278,6 +7292,21 @@ public final class File {
       return ttlAction_;
     }
 
+    public static final int UFS_LAST_MODIFICATION_TIME_MS_FIELD_NUMBER = 18;
+    private long ufsLastModificationTimeMs_;
+    /**
+     * <code>optional int64 ufs_last_modification_time_ms = 18;</code>
+     */
+    public boolean hasUfsLastModificationTimeMs() {
+      return ((bitField0_ & 0x00010000) == 0x00010000);
+    }
+    /**
+     * <code>optional int64 ufs_last_modification_time_ms = 18;</code>
+     */
+    public long getUfsLastModificationTimeMs() {
+      return ufsLastModificationTimeMs_;
+    }
+
     private void initFields() {
       id_ = 0L;
       parentId_ = 0L;
@@ -7296,6 +7325,7 @@ public final class File {
       group_ = "";
       mode_ = 0;
       ttlAction_ = alluxio.proto.journal.File.PTtlAction.DELETE;
+      ufsLastModificationTimeMs_ = 0L;
     }
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
@@ -7360,6 +7390,9 @@ public final class File {
       }
       if (((bitField0_ & 0x00008000) == 0x00008000)) {
         output.writeEnum(17, ttlAction_.getNumber());
+      }
+      if (((bitField0_ & 0x00010000) == 0x00010000)) {
+        output.writeInt64(18, ufsLastModificationTimeMs_);
       }
       getUnknownFields().writeTo(output);
     }
@@ -7443,6 +7476,10 @@ public final class File {
         size += com.google.protobuf.CodedOutputStream
           .computeEnumSize(17, ttlAction_.getNumber());
       }
+      if (((bitField0_ & 0x00010000) == 0x00010000)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt64Size(18, ufsLastModificationTimeMs_);
+      }
       size += getUnknownFields().getSerializedSize();
       memoizedSerializedSize = size;
       return size;
@@ -7525,7 +7562,7 @@ public final class File {
      * Protobuf type {@code alluxio.proto.journal.InodeFileEntry}
      *
      * <pre>
-     * next available id: 18
+     * next available id: 19
      * </pre>
      */
     public static final class Builder extends
@@ -7598,6 +7635,8 @@ public final class File {
         bitField0_ = (bitField0_ & ~0x00008000);
         ttlAction_ = alluxio.proto.journal.File.PTtlAction.DELETE;
         bitField0_ = (bitField0_ & ~0x00010000);
+        ufsLastModificationTimeMs_ = 0L;
+        bitField0_ = (bitField0_ & ~0x00020000);
         return this;
       }
 
@@ -7695,6 +7734,10 @@ public final class File {
           to_bitField0_ |= 0x00008000;
         }
         result.ttlAction_ = ttlAction_;
+        if (((from_bitField0_ & 0x00020000) == 0x00020000)) {
+          to_bitField0_ |= 0x00010000;
+        }
+        result.ufsLastModificationTimeMs_ = ufsLastModificationTimeMs_;
         result.bitField0_ = to_bitField0_;
         onBuilt();
         return result;
@@ -7776,6 +7819,9 @@ public final class File {
         }
         if (other.hasTtlAction()) {
           setTtlAction(other.getTtlAction());
+        }
+        if (other.hasUfsLastModificationTimeMs()) {
+          setUfsLastModificationTimeMs(other.getUfsLastModificationTimeMs());
         }
         this.mergeUnknownFields(other.getUnknownFields());
         return this;
@@ -8557,6 +8603,38 @@ public final class File {
       public Builder clearTtlAction() {
         bitField0_ = (bitField0_ & ~0x00010000);
         ttlAction_ = alluxio.proto.journal.File.PTtlAction.DELETE;
+        onChanged();
+        return this;
+      }
+
+      private long ufsLastModificationTimeMs_ ;
+      /**
+       * <code>optional int64 ufs_last_modification_time_ms = 18;</code>
+       */
+      public boolean hasUfsLastModificationTimeMs() {
+        return ((bitField0_ & 0x00020000) == 0x00020000);
+      }
+      /**
+       * <code>optional int64 ufs_last_modification_time_ms = 18;</code>
+       */
+      public long getUfsLastModificationTimeMs() {
+        return ufsLastModificationTimeMs_;
+      }
+      /**
+       * <code>optional int64 ufs_last_modification_time_ms = 18;</code>
+       */
+      public Builder setUfsLastModificationTimeMs(long value) {
+        bitField0_ |= 0x00020000;
+        ufsLastModificationTimeMs_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional int64 ufs_last_modification_time_ms = 18;</code>
+       */
+      public Builder clearUfsLastModificationTimeMs() {
+        bitField0_ = (bitField0_ & ~0x00020000);
+        ufsLastModificationTimeMs_ = 0L;
         onChanged();
         return this;
       }
@@ -12770,7 +12848,7 @@ public final class File {
       "\010\022\013\n\003ttl\030\r \001(\003\022<\n\tttlAction\030\016 \001(\0162!.allu" +
       "xio.proto.journal.PTtlAction:\006DELETE\"O\n\036" +
       "InodeDirectoryIdGeneratorEntry\022\024\n\014contai" +
-      "ner_id\030\001 \001(\003\022\027\n\017sequence_number\030\002 \001(\003\"\374\002" +
+      "ner_id\030\001 \001(\003\022\027\n\017sequence_number\030\002 \001(\003\"\243\003" +
       "\n\016InodeFileEntry\022\n\n\002id\030\001 \001(\003\022\021\n\tparent_i" +
       "d\030\002 \001(\003\022\014\n\004name\030\003 \001(\t\022\031\n\021persistence_sta" +
       "te\030\004 \001(\t\022\016\n\006pinned\030\005 \001(\010\022\030\n\020creation_tim" +
@@ -12780,24 +12858,25 @@ public final class File {
       "\013 \001(\010\022\016\n\006blocks\030\014 \003(\003\022\013\n\003ttl\030\r \001(\003\022\r\n\005ow" +
       "ner\030\016 \001(\t\022\r\n\005group\030\017 \001(\t\022\014\n\004mode\030\020 \001(\005\022<" +
       "\n\tttlAction\030\021 \001(\0162!.alluxio.proto.journa" +
-      "l.PTtlAction:\006DELETE\"O\n\036InodeLastModific" +
-      "ationTimeEntry\022\n\n\002id\030\001 \001(\003\022!\n\031last_modif" +
-      "ication_time_ms\030\002 \001(\003\"#\n\025PersistDirector" +
-      "yEntry\022\n\n\002id\030\001 \001(\003\"B\n\020PersistFileEntry\022\n" +
-      "\n\002id\030\001 \001(\003\022\016\n\006length\030\002 \001(\003\022\022\n\nop_time_ms" +
-      "\030\003 \001(\003\"\212\001\n\025ReinitializeFileEntry\022\014\n\004path",
-      "\030\001 \001(\t\022\030\n\020block_size_bytes\030\002 \001(\003\022\013\n\003ttl\030" +
-      "\003 \001(\003\022<\n\tttlAction\030\004 \001(\0162!.alluxio.proto" +
-      ".journal.PTtlAction:\006DELETE\"?\n\013RenameEnt" +
-      "ry\022\n\n\002id\030\001 \001(\003\022\020\n\010dst_path\030\002 \001(\t\022\022\n\nop_t" +
-      "ime_ms\030\003 \001(\003\"\361\001\n\021SetAttributeEntry\022\n\n\002id" +
-      "\030\001 \001(\003\022\022\n\nop_time_ms\030\002 \001(\003\022\016\n\006pinned\030\003 \001" +
-      "(\010\022\013\n\003ttl\030\004 \001(\003\022\021\n\tpersisted\030\005 \001(\010\022\r\n\005ow" +
-      "ner\030\006 \001(\t\022\r\n\005group\030\007 \001(\t\022\022\n\npermission\030\010" +
-      " \001(\005\022<\n\tttlAction\030\t \001(\0162!.alluxio.proto." +
-      "journal.PTtlAction:\006DELETE\022\034\n\024ufs_last_m",
-      "odified_ms\030\n \001(\003*\"\n\nPTtlAction\022\n\n\006DELETE" +
-      "\020\000\022\010\n\004FREE\020\001"
+      "l.PTtlAction:\006DELETE\022%\n\035ufs_last_modific" +
+      "ation_time_ms\030\022 \001(\003\"O\n\036InodeLastModifica" +
+      "tionTimeEntry\022\n\n\002id\030\001 \001(\003\022!\n\031last_modifi" +
+      "cation_time_ms\030\002 \001(\003\"#\n\025PersistDirectory" +
+      "Entry\022\n\n\002id\030\001 \001(\003\"B\n\020PersistFileEntry\022\n\n" +
+      "\002id\030\001 \001(\003\022\016\n\006length\030\002 \001(\003\022\022\n\nop_time_ms\030",
+      "\003 \001(\003\"\212\001\n\025ReinitializeFileEntry\022\014\n\004path\030" +
+      "\001 \001(\t\022\030\n\020block_size_bytes\030\002 \001(\003\022\013\n\003ttl\030\003" +
+      " \001(\003\022<\n\tttlAction\030\004 \001(\0162!.alluxio.proto." +
+      "journal.PTtlAction:\006DELETE\"?\n\013RenameEntr" +
+      "y\022\n\n\002id\030\001 \001(\003\022\020\n\010dst_path\030\002 \001(\t\022\022\n\nop_ti" +
+      "me_ms\030\003 \001(\003\"\361\001\n\021SetAttributeEntry\022\n\n\002id\030" +
+      "\001 \001(\003\022\022\n\nop_time_ms\030\002 \001(\003\022\016\n\006pinned\030\003 \001(" +
+      "\010\022\013\n\003ttl\030\004 \001(\003\022\021\n\tpersisted\030\005 \001(\010\022\r\n\005own" +
+      "er\030\006 \001(\t\022\r\n\005group\030\007 \001(\t\022\022\n\npermission\030\010 " +
+      "\001(\005\022<\n\tttlAction\030\t \001(\0162!.alluxio.proto.j",
+      "ournal.PTtlAction:\006DELETE\022\034\n\024ufs_last_mo" +
+      "dified_ms\030\n \001(\003*\"\n\nPTtlAction\022\n\n\006DELETE\020" +
+      "\000\022\010\n\004FREE\020\001"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
         new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
@@ -12864,7 +12943,7 @@ public final class File {
     internal_static_alluxio_proto_journal_InodeFileEntry_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_alluxio_proto_journal_InodeFileEntry_descriptor,
-        new java.lang.String[] { "Id", "ParentId", "Name", "PersistenceState", "Pinned", "CreationTimeMs", "LastModificationTimeMs", "BlockSizeBytes", "Length", "Completed", "Cacheable", "Blocks", "Ttl", "Owner", "Group", "Mode", "TtlAction", });
+        new java.lang.String[] { "Id", "ParentId", "Name", "PersistenceState", "Pinned", "CreationTimeMs", "LastModificationTimeMs", "BlockSizeBytes", "Length", "Completed", "Cacheable", "Blocks", "Ttl", "Owner", "Group", "Mode", "TtlAction", "UfsLastModificationTimeMs", });
     internal_static_alluxio_proto_journal_InodeLastModificationTimeEntry_descriptor =
       getDescriptor().getMessageTypes().get(9);
     internal_static_alluxio_proto_journal_InodeLastModificationTimeEntry_fieldAccessorTable = new
