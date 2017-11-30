@@ -21,6 +21,9 @@ storage optimizations similar to L1/L2 cpu caches.
 
 The easiest way to configure Alluxio storage is to use the default single-tier mode.
 
+Note that this doc refers to local storage and terms like `mount` refer to mounting in the local
+filesystem, not to be confused with Alluxio's `mount` concept for under storages.
+
 Out-of-the-box Alluxio will provision a ramdisk on every worker and take a percentage of the
 system's total memory. This ramdisk will be used as the only storage medium allocated to each
 Alluxio worker.
@@ -37,12 +40,15 @@ alluxio.worker.memory.size=16GB
 
 Another common change is to specify multiple storage media, such as ramdisk and SSDs. We will need
 to update `alluxio.worker.tieredstore.level0.dirs.path` to take specify each storage medium we want
-to use as a storage directory. For example, to use the ramdisk (mounted at `/mnt/ramdisk`) and 2
+to use as a storage directory. For example, to use the ramdisk (mounted at `/mnt/ramdisk`) and two
 SSDs (mounted at `/mnt/ssd1` and `/mnt/ssd2`):
 
 ```
 alluxio.worker.tieredstore.level0.dirs.path=/mnt/ramdisk,/mnt/ssd1,/mnt/ssd2
 ```
+
+The paths provided should point to paths in the local filesystem mounting the appropriate storage
+media. The permissions of these paths should be 777 to enable short circuit operations.
 
 After updating the storage media, we need to indicate how much storage is allocated for each storage
 directory. For example, if we wanted to use 16 GB on the ramdisk and 100 GB on each SSD:
@@ -52,6 +58,13 @@ alluxio.worker.tieredstore.level0.dirs.quota=16GB,100GB,100GB
 ```
 
 Note that the ordering of the quotas must match with the ordering of the paths.
+
+There is a subtle difference between `alluxio.worker.memory.size` and
+`alluxio.worker.tieredstore.level0.dirs.quota` (which defaults to the former). Alluxio will
+provision and mount a ramdisk when started with the `Mount` or `SudoMount` options. This ramdisk
+will have its size determined by `alluxio.worker.memory.size`, regardless of the value set in
+`alluxio.worker.tieredstore.level0.dirs.quota`. Similarly, the quota should be set independently
+of the memory size if devices other than the default Alluxio provisioned ramdisk are to be used.
 
 ## Eviction
 
@@ -73,8 +86,8 @@ we had the same 16+100+100=216GB storage configured, we can set eviction to kick
 and stop at around 160GB:
 
 ```
-alluxio.worker.tieredstore.level0.watermark.high.ratio=0.9
-alluxio.worker.tieredstore.level0.watermark.low.ratio=0.75
+alluxio.worker.tieredstore.level0.watermark.high.ratio=0.9 # 216GB * 0.9 ~ 200GB
+alluxio.worker.tieredstore.level0.watermark.low.ratio=0.75 # 216GB * 0.75 ~ 160GB
 ```
 
 Synchronous eviction is the legacy implementation of eviction. It waits for a client to request more
