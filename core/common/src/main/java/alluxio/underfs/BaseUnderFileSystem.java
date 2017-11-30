@@ -20,6 +20,7 @@ import alluxio.underfs.options.MkdirsOptions;
 import alluxio.underfs.options.OpenOptions;
 import alluxio.util.io.PathUtils;
 
+import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 
 import java.io.IOException;
@@ -68,6 +69,27 @@ public abstract class BaseUnderFileSystem implements UnderFileSystem {
   @Override
   public boolean exists(String path) throws IOException {
     return isFile(path) || isDirectory(path);
+  }
+
+  @Override
+  public String getFingerprint(String path) throws IOException {
+    Objects.ToStringHelper helper = Objects.toStringHelper(this);
+    if (isFile(path)) {
+      UfsFileStatus fileStatus = getFileStatus(path);
+      helper.add("type", "file");
+      helper.add("length", fileStatus.getContentLength());
+      helper.add("lastModified", fileStatus.getLastModifiedTime());
+      helper.add("owner", fileStatus.getOwner());
+      helper.add("group", fileStatus.getGroup());
+      helper.add("mode", fileStatus.getMode());
+    } else {
+      UfsDirectoryStatus dirStatus = getDirectoryStatus(path);
+      helper.add("type", "directory");
+      helper.add("owner", dirStatus.getOwner());
+      helper.add("group", dirStatus.getGroup());
+      helper.add("mode", dirStatus.getMode());
+    }
+    return helper.toString();
   }
 
   @Override
