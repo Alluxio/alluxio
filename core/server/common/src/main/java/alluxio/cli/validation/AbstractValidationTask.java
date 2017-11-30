@@ -24,10 +24,6 @@ import org.apache.commons.cli.ParseException;
  * Abstract class for validation environment.
  */
 public abstract class AbstractValidationTask implements ValidationTask {
-  protected static final Option HADOOP_CONF_DIR_OPTION =
-      Option.builder("hadoopConfDir").required(false).hasArg(true)
-      .desc("path to server-side hadoop conf dir").build();
-
   /**
    * {@inheritDoc}
    */

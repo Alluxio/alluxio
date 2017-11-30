@@ -23,7 +23,7 @@ import java.util.regex.Pattern;
 /**
  * Task for validating security configurations.
  */
-public class SecureHdfsValidationTask extends HdfsValidationTask {
+public final class SecureHdfsValidationTask extends HdfsValidationTask {
   /**
    * Regular expression to parse principal used by Alluxio to connect to secure
    * HDFS.
