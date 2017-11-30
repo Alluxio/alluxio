@@ -11,8 +11,6 @@
 
 package alluxio.underfs;
 
-import alluxio.thrift.UfsFileTStatus;
-
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -51,17 +49,6 @@ public class UfsFileStatus extends UfsStatus {
     mLastModifiedTimeMs = status.mLastModifiedTimeMs;
   }
 
-  /**
-   * Creates a new instance of {@link UfsFileStatus} from a thrift object.
-   *
-   * @param status the thrift object
-   */
-  public UfsFileStatus(UfsFileTStatus status) {
-    super(status.getCommonStatus());
-    mContentLength = status.getLength();
-    mLastModifiedTimeMs = status.getLastModificationTimeMs();
-  }
-
   @Override
   public UfsFileStatus copy() {
     return new UfsFileStatus(this);
@@ -83,16 +70,5 @@ public class UfsFileStatus extends UfsStatus {
    */
   public long getLastModifiedTime() {
     return mLastModifiedTimeMs;
-  }
-
-  /**
-   * @return the thrift representation
-   */
-  public UfsFileTStatus toThrift() {
-    UfsFileTStatus status = new UfsFileTStatus();
-    status.setLength(mContentLength);
-    status.setLastModificationTimeMs(mLastModifiedTimeMs);
-    status.setCommonStatus(ufsStatusThrift());
-    return status;
   }
 }

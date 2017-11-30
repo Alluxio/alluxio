@@ -228,10 +228,10 @@ public class URIStatus {
   }
 
   /**
-   * @return the ufs last modified time, in ms
+   * @return the ufs fingerprint
    */
-  public long getUfsLastModificationTimeMs() {
-    return mInfo.getUfsLastModificationTimeMs();
+  public String getUfsFingerprint() {
+    return mInfo.getUfsFingerprint();
   }
 
   @Override

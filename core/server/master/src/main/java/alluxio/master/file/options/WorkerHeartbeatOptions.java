@@ -12,8 +12,6 @@
 package alluxio.master.file.options;
 
 import alluxio.thrift.FileSystemHeartbeatTOptions;
-import alluxio.thrift.UfsFileTStatus;
-import alluxio.underfs.UfsFileStatus;
 
 import com.google.common.base.Objects;
 
@@ -27,7 +25,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class WorkerHeartbeatOptions {
-  private List<UfsFileStatus> mPersistedFileStatusList;
+  private List<String> mPersistedUfsFingerprintList;
 
   /**
    * @return the default {@link WorkerHeartbeatOptions}
@@ -44,30 +42,28 @@ public final class WorkerHeartbeatOptions {
    */
   public WorkerHeartbeatOptions(FileSystemHeartbeatTOptions options) {
     this();
-    if (options != null && options.isSetPersistedFileStatuses()) {
-      mPersistedFileStatusList.clear();
-      for (UfsFileTStatus tStatus : options.getPersistedFileStatuses()) {
-        mPersistedFileStatusList.add(new UfsFileStatus(tStatus));
-      }
+    if (options != null && options.isSetPersistedFileFingerprints()) {
+      mPersistedUfsFingerprintList.clear();
+      mPersistedUfsFingerprintList.addAll(options.getPersistedFileFingerprints());
     }
   }
 
   private WorkerHeartbeatOptions() {
-    mPersistedFileStatusList = new ArrayList<>();
+    mPersistedUfsFingerprintList = new ArrayList<>();
   }
 
   /**
-   * @return list of file status, of the persisted files
+   * @return list of ufs fingerprints, of the persisted files
    */
-  public List<UfsFileStatus> getPersistedFileStatusList() {
-    return mPersistedFileStatusList;
+  public List<String> getPersistedUfsFingerprintList() {
+    return mPersistedUfsFingerprintList;
   }
 
   /**
-   * @param persistedFileStatusList the list of file status, of persisted files
+   * @param persistedUfsFingerprintList the list of ufs fingerprints, of persisted files
    */
-  public void setPersistedFileStatusList(List<UfsFileStatus> persistedFileStatusList) {
-    mPersistedFileStatusList = persistedFileStatusList;
+  public void setPersistedUfsFingerprintList(List<String> persistedUfsFingerprintList) {
+    mPersistedUfsFingerprintList = persistedUfsFingerprintList;
   }
 
   @Override
@@ -79,18 +75,18 @@ public final class WorkerHeartbeatOptions {
       return false;
     }
     WorkerHeartbeatOptions that = (WorkerHeartbeatOptions) o;
-    return Objects.equal(mPersistedFileStatusList, that.mPersistedFileStatusList);
+    return Objects.equal(mPersistedUfsFingerprintList, that.mPersistedUfsFingerprintList);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mPersistedFileStatusList);
+    return Objects.hashCode(mPersistedUfsFingerprintList);
   }
 
   @Override
   public String toString() {
     return Objects.toStringHelper(this)
-        .add("persistedFileStatusList", mPersistedFileStatusList)
+        .add("persistedUfsFingerprintList", mPersistedUfsFingerprintList)
         .toString();
   }
 }

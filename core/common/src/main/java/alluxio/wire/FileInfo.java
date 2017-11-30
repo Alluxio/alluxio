@@ -55,7 +55,7 @@ public final class FileInfo implements Serializable {
   private ArrayList<FileBlockInfo> mFileBlockInfos = new ArrayList<>();
   private long mMountId;
   private int mInAlluxioPercentage;
-  private long mUfsLastModificationTimeMs;
+  private String mUfsFingerprint = Constants.INVALID_UFS_FINGERPRINT;
 
   /**
    * Creates a new instance of {@link FileInfo}.
@@ -98,9 +98,9 @@ public final class FileInfo implements Serializable {
     }
     mMountId = fileInfo.getMountId();
     mInAlluxioPercentage = fileInfo.getInAlluxioPercentage();
-    mUfsLastModificationTimeMs = Constants.INVALID_TIMESTAMP_MS;
-    if (fileInfo.isSetUfsLastModificationTimeMs()) {
-      mUfsLastModificationTimeMs = fileInfo.getUfsLastModificationTimeMs();
+    mUfsFingerprint = Constants.INVALID_UFS_FINGERPRINT;
+    if (fileInfo.isSetUfsFingerprint()) {
+      mUfsFingerprint = fileInfo.getUfsFingerprint();
     }
   }
 
@@ -280,10 +280,10 @@ public final class FileInfo implements Serializable {
   }
 
   /**
-   * @return the ufs file last modification time (in milliseconds)
+   * @return the ufs fingerprint for this file
    */
-  public long getUfsLastModificationTimeMs() {
-    return mUfsLastModificationTimeMs;
+  public String getUfsFingerprint() {
+    return mUfsFingerprint;
   }
 
   /**
@@ -519,11 +519,11 @@ public final class FileInfo implements Serializable {
   }
 
   /**
-   * @param ufsLastModificationTimeMs the ufs last modification time (in milliseconds) to use
+   * @param ufsFingerprint the ufs fingerprint to use
    * @return the file information
    */
-  public FileInfo setUfsLastModificationTimeMs(long ufsLastModificationTimeMs) {
-    mUfsLastModificationTimeMs = ufsLastModificationTimeMs;
+  public FileInfo setUfsFingerprint(String ufsFingerprint) {
+    mUfsFingerprint = ufsFingerprint;
     return this;
   }
 
@@ -542,7 +542,7 @@ public final class FileInfo implements Serializable {
         mInMemoryPercentage, mLastModificationTimeMs, mTtl, mOwner, mGroup, mMode,
         mPersistenceState, mMountPoint, fileBlockInfos, ThriftUtils.toThrift(mTtlAction), mMountId,
         mInAlluxioPercentage);
-    info.setUfsLastModificationTimeMs(mUfsLastModificationTimeMs);
+    info.setUfsFingerprint(mUfsFingerprint);
     return info;
   }
 
@@ -566,7 +566,7 @@ public final class FileInfo implements Serializable {
         && mPersistenceState.equals(that.mPersistenceState) && mMountPoint == that.mMountPoint
         && mFileBlockInfos.equals(that.mFileBlockInfos) && mTtlAction == that.mTtlAction
         && mMountId == that.mMountId && mInAlluxioPercentage == that.mInAlluxioPercentage
-        && mUfsLastModificationTimeMs == that.mUfsLastModificationTimeMs;
+        && mUfsFingerprint.equals(that.mUfsFingerprint);
   }
 
   @Override
@@ -575,7 +575,7 @@ public final class FileInfo implements Serializable {
         mCreationTimeMs, mCompleted, mFolder, mPinned, mCacheable, mPersisted, mBlockIds,
         mInMemoryPercentage, mLastModificationTimeMs, mTtl, mOwner, mGroup, mMode,
         mPersistenceState, mMountPoint, mFileBlockInfos, mTtlAction, mInAlluxioPercentage,
-        mUfsLastModificationTimeMs);
+        mUfsFingerprint);
   }
 
   @Override
@@ -590,7 +590,7 @@ public final class FileInfo implements Serializable {
         .add("persistenceState", mPersistenceState).add("mountPoint", mMountPoint)
         .add("fileBlockInfos", mFileBlockInfos)
         .add("mountId", mMountId).add("inAlluxioPercentage", mInAlluxioPercentage)
-        .add("ufsLastModificationTimeMs", mUfsLastModificationTimeMs)
+        .add("ufsFingerprint", mUfsFingerprint)
         .toString();
   }
 }

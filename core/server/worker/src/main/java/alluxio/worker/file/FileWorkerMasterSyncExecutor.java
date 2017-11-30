@@ -77,7 +77,7 @@ final class FileWorkerMasterSyncExecutor implements HeartbeatExecutor {
 
   @Override
   public void heartbeat() {
-    FileDataManager.PersistedFilesInfo filesInfo = mFileDataManager.getPersistedFilesInfo();
+    FileDataManager.PersistedFilesInfo filesInfo = mFileDataManager.getPersistedUfsFingerprints();
     if (!filesInfo.idList().isEmpty()) {
       LOG.info("files {} persisted", filesInfo.idList());
     }
@@ -85,7 +85,7 @@ final class FileWorkerMasterSyncExecutor implements HeartbeatExecutor {
     FileSystemCommand command;
     try {
       FileSystemHeartbeatTOptions options = new FileSystemHeartbeatTOptions();
-      options.setPersistedFileStatuses(filesInfo.fileStatusTList());
+      options.setPersistedFileFingerprints(filesInfo.ufsFingerprintList());
       command = mMasterClient.heartbeat(mWorkerId.get(), filesInfo.idList(), options);
     } catch (Exception e) {
       LOG.error("Failed to heartbeat to master", e);

@@ -51,7 +51,7 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
   private String mGroup;
   private short mMode;
 
-  private long mUfsLastModificationTimeMs;
+  private String mUfsFingerprint;
 
   private final ReentrantReadWriteLock mLock;
 
@@ -70,7 +70,7 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
     mPersistenceState = PersistenceState.NOT_PERSISTED;
     mPinned = false;
     mOwner = "";
-    mUfsLastModificationTimeMs = Constants.INVALID_TIMESTAMP_MS;
+    mUfsFingerprint = Constants.INVALID_UFS_FINGERPRINT;
     mLock = new ReentrantReadWriteLock();
   }
 
@@ -204,10 +204,10 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
   }
 
   /**
-   * @return the UFS last modification time, in milliseconds
+   * @return the UFS fingerprint
    */
-  public long getUfsLastModificationTimeMs() {
-    return mUfsLastModificationTimeMs;
+  public String getUfsFingerprint() {
+    return mUfsFingerprint;
   }
 
   /**
@@ -336,19 +336,12 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
   }
 
   /**
-   * Sets the UFS last modification time to the new time if the new time is more recent.
-   * This method can be called concurrently with deterministic results.
-   *
-   * @param ufsLastModificationTimeMs the ufs last modification time to use
+   * @param ufsFingerprint the ufs fingerprint to use
    * @return the updated object
    */
-  public T setUfsLastModificationTimeMs(long ufsLastModificationTimeMs) {
-    synchronized (this) {
-      if (mUfsLastModificationTimeMs < ufsLastModificationTimeMs) {
-        mUfsLastModificationTimeMs = ufsLastModificationTimeMs;
-      }
-      return getThis();
-    }
+  public T setUfsFingerprint(String ufsFingerprint) {
+    mUfsFingerprint = ufsFingerprint;
+    return getThis();
   }
 
   /**
@@ -517,6 +510,6 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
         .add("directory", mDirectory).add("persistenceState", mPersistenceState)
         .add("lastModificationTimeMs", mLastModificationTimeMs).add("owner", mOwner)
         .add("group", mGroup).add("permission", mMode)
-        .add("ufsLastModificationTimeMs", mUfsLastModificationTimeMs);
+        .add("ufsFingerprint", mUfsFingerprint);
   }
 }
