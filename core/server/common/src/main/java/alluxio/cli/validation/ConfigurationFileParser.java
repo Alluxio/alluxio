@@ -56,14 +56,18 @@ public class ConfigurationFileParser {
     try {
       docBuilder = docBuilderFactory.newDocumentBuilder();
     } catch (ParserConfigurationException e) {
+      System.err.format("Failed to create instance of DocumentBuilder for file: %s. %s. %n",
+          path, e.getMessage());
       return null;
     }
     Document doc;
     try {
       doc = docBuilder.parse(xmlFile);
     } catch (IOException e) {
+      System.err.format("An I/O error occured reading file %s. %s.%n", path, e.getMessage());
       return null;
     } catch (SAXException e) {
+      System.err.format("A parsing error occured parsing file %s. %s.%n", path, e.getMessage());
       return null;
     }
     // Optional, but recommended.

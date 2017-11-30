@@ -187,14 +187,16 @@ public final class ValidateEnv {
       return false;
     }
 
-    StringBuilder sb = new StringBuilder();
-    for (String s : args) {
-      sb.append(s + " ");
+    String argStr;
+    if (args != null) {
+      argStr = String.join(" ", args);
+    } else {
+      argStr = "";
     }
     String homeDir = Configuration.get(PropertyKey.HOME);
     String remoteCommand = String.format(
         "%s/bin/alluxio validateEnv %s %s %s",
-        homeDir, target, name == null ? "" : name, sb.toString());
+        homeDir, target, name == null ? "" : name, argStr);
     String localCommand = String.format(
         "ssh -o ConnectTimeout=5 -o StrictHostKeyChecking=no -tt %s \"bash %s\"",
         node, remoteCommand);
