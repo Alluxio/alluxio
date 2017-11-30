@@ -23,22 +23,9 @@ import java.util.Map;
  */
 public interface ValidationTask {
   /**
-   * @return options of this validation task
+   * @return {@link Options} to which new {@link Option} will be added
    */
-  Options getOptions();
-
-  /**
-   * Parses the command line arguments and options in {@code args}.
-   *
-   * After successful execution of this method, command line arguments can be
-   * retrieved by invoking {@link CommandLine#getArgs()}, and options can be
-   * retrieved by calling {@link CommandLine#getOptions()}.
-   *
-   * @param args command line arguments to parse
-   * @return {@link CommandLine} object representing the parsing result
-   * @throws InvalidArgumentException if command line contains invalid argument(s)
-   */
-  CommandLine parseArgsAndOptions(String... args) throws InvalidArgumentException;
+  Options addOptions(Options options);
 
   /**
    * Runs the validation task.

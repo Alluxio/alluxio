@@ -28,25 +28,5 @@ public abstract class AbstractValidationTask implements ValidationTask {
    * {@inheritDoc}
    */
   @Override
-  public Options getOptions() {
-    return new Options();
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public CommandLine parseArgsAndOptions(String... args) throws InvalidArgumentException {
-    Options opts = getOptions();
-    CommandLineParser parser = new DefaultParser();
-    CommandLine cmd;
-
-    try {
-      cmd = parser.parse(opts, args);
-    } catch (ParseException e) {
-      throw new InvalidArgumentException(
-          "Failed to parse args for validateEnv", e);
-    }
-    return cmd;
-  }
+  public Options addOptions(Options options) { return options; }
 }
