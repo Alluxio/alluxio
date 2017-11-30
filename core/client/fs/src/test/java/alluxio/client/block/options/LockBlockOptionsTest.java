@@ -11,10 +11,12 @@
 
 package alluxio.client.block.options;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+
 import alluxio.CommonTestUtils;
 import alluxio.thrift.LockBlockTOptions;
 
-import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.powermock.api.mockito.PowerMockito;
@@ -34,7 +36,7 @@ public class LockBlockOptionsTest {
   @Test
   public void testDefaults() {
     LockBlockOptions options = LockBlockOptions.defaults();
-    Assert.assertNotNull(options);
+    assertNotNull(options);
   }
 
   /**
@@ -63,7 +65,7 @@ public class LockBlockOptionsTest {
     options.setBlockSize(blockSize);
 
     LockBlockTOptions thriftOptions = options.toThrift();
-    Assert.assertEquals(thriftOptions.getBlockSize(), mockObject.getBlockSize());
-    Assert.assertEquals(thriftOptions.getUfsPath(), mockObject.getUfsPath());
+    assertEquals(thriftOptions.getBlockSize(), mockObject.getBlockSize());
+    assertEquals(thriftOptions.getUfsPath(), mockObject.getUfsPath());
   }
 }
