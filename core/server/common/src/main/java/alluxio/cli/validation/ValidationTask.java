@@ -11,9 +11,6 @@
 
 package alluxio.cli.validation;
 
-import alluxio.exception.status.InvalidArgumentException;
-
-import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Options;
 
 import java.util.Map;
@@ -23,6 +20,8 @@ import java.util.Map;
  */
 public interface ValidationTask {
   /**
+   * @param options If not null, validation task adds its options to {@link Options},
+   *                otherwise, task creates a new {@link Options} and adds options to it
    * @return {@link Options} to which new {@link Option} will be added
    */
   Options addOptions(Options options);

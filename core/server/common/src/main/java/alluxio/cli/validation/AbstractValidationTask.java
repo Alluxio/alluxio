@@ -11,14 +11,7 @@
 
 package alluxio.cli.validation;
 
-import alluxio.exception.status.InvalidArgumentException;
-
-import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.CommandLineParser;
-import org.apache.commons.cli.DefaultParser;
-import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
-import org.apache.commons.cli.ParseException;
 
 /**
  * Abstract class for validation environment.
@@ -28,5 +21,7 @@ public abstract class AbstractValidationTask implements ValidationTask {
    * {@inheritDoc}
    */
   @Override
-  public Options addOptions(Options options) { return options; }
+  public Options addOptions(Options options) {
+    return options;
+  }
 }

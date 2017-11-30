@@ -353,7 +353,8 @@ public final class ValidateEnv {
    * @return {@link CommandLine} object representing the parsing result
    * @throws InvalidArgumentException if command line contains invalid argument(s)
    */
-  private static CommandLine parseArgsAndOptions(Options options, String... args) throws InvalidArgumentException {
+  private static CommandLine parseArgsAndOptions(Options options, String... args)
+      throws InvalidArgumentException {
     CommandLineParser parser = new DefaultParser();
     CommandLine cmd;
 
