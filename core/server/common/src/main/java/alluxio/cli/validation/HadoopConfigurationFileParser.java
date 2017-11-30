@@ -30,11 +30,11 @@ import javax.xml.parsers.ParserConfigurationException;
 /**
  * Parser for configuration files.
  */
-public class ConfigurationFileParser {
+public class HadoopConfigurationFileParser {
   /**
-   * Constructs a {@link ConfigurationFileParser} object.
+   * Constructs a {@link HadoopConfigurationFileParser} object.
    */
-  public ConfigurationFileParser() {}
+  public HadoopConfigurationFileParser() {}
 
   /**
    * Parse an xml configuration file into a map.

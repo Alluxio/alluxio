@@ -14,6 +14,7 @@ package alluxio.cli.validation;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
 
+import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 
 import java.util.Map;
@@ -24,6 +25,10 @@ import java.util.Map;
 public class HdfsValidationTask extends AbstractValidationTask {
   /** Name of the environment variable to store the path to Hadoop config directory. */
   protected static final String HADOOP_CONF_DIR_ENV_VAR = "HADOOP_CONF_DIR";
+
+  protected static final Option HADOOP_CONF_DIR_OPTION =
+      Option.builder("hadoopConfDir").required(false).hasArg(true)
+      .desc("path to server-side hadoop conf dir").build();
 
   protected final String mProcess;
 
@@ -89,7 +94,7 @@ public class HdfsValidationTask extends AbstractValidationTask {
   }
 
   private boolean compareConfigurations(String clientConfigFilePath, String serverConfigFilePath) {
-    ConfigurationFileParser parser = new ConfigurationFileParser();
+    HadoopConfigurationFileParser parser = new HadoopConfigurationFileParser();
     Map<String, String> serverSiteProps = parser.parseXmlConfiguration(serverConfigFilePath);
     if (serverSiteProps == null) {
       System.err.format("Failed to parse server-side %s.%n", serverConfigFilePath);
