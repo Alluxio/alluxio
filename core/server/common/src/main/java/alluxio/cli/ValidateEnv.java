@@ -13,6 +13,7 @@ package alluxio.cli;
 
 import alluxio.Configuration;
 import alluxio.PropertyKey;
+import alluxio.cli.validation.HdfsValidationTask;
 import alluxio.cli.validation.PortAvailabilityValidationTask;
 import alluxio.cli.validation.RamDiskMountPrivilegeValidationTask;
 import alluxio.cli.validation.SecureHdfsValidationTask;
@@ -63,13 +64,18 @@ public final class ValidateEnv {
       + "OPTIONS can be a list of command line options. Each option has the"
       + " format \"-<optionName> [optionValue]\"\n";
 
-  private static final Options sOptions = new Options();
+  private static final Options OPTIONS = new Options();
 
   private static final Map<ValidationTask, String> TASKS = new HashMap<>();
 
   private static final String ALLUXIO_MASTER_CLASS = "alluxio.master.AlluxioMaster";
   private static final String ALLUXIO_WORKER_CLASS = "alluxio.worker.AlluxioWorker";
   private static final String ALLUXIO_PROXY_CLASS = "alluxio.proxy.AlluxioProxy";
+
+  // HDFS configuration validations
+  private static final ValidationTask HDFS_VALIDATION_TASK = registerTask(
+      "hdfs",
+      new HdfsValidationTask());
 
   // port availability validations
   private static final ValidationTask MASTER_RPC_VALIDATION_TASK = registerTask(
@@ -136,6 +142,7 @@ public final class ValidateEnv {
   private static Map<String, Collection<ValidationTask>> initializeTargetTasks() {
     Map<String, Collection<ValidationTask>> targetMap = new TreeMap<>();
     ValidationTask[] commonTasks = {
+        HDFS_VALIDATION_TASK,
         PROXY_WEB_VALIDATION_TASK,
         SSH_TO_MASTERS_VALIDATION_TASK,
         SSH_TO_WORKERS_VALIDATION_TASK,
@@ -169,7 +176,7 @@ public final class ValidateEnv {
     TASKS.put(task, name);
     List<Option> optList = task.getOptionList();
     synchronized (ValidateEnv.class) {
-      optList.forEach(opt -> sOptions.addOption(opt));
+      optList.forEach(opt -> OPTIONS.addOption(opt));
     }
     return task;
   }
@@ -228,7 +235,7 @@ public final class ValidateEnv {
     int failureCount = 0;
     CommandLine cmd;
     try {
-      cmd = parseArgsAndOptions(sOptions, args);
+      cmd = parseArgsAndOptions(OPTIONS, args);
     } catch (InvalidArgumentException e) {
       System.err.format("Invalid argument: %s.%n", e.getMessage());
       return false;
@@ -280,7 +287,7 @@ public final class ValidateEnv {
     System.err.println(message);
     System.out.print(USAGE);
     System.out.println("OPTIONS include the following:");
-    sOptions.getOptions().forEach((entry) -> {
+    OPTIONS.getOptions().forEach((entry) -> {
       System.out.format("%s: %s%n", entry.getOpt(), entry.getDescription());
     });
   }

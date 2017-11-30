@@ -41,13 +41,15 @@ public final class SecureHdfsValidationTask extends HdfsValidationTask {
       "master", PropertyKey.MASTER_KEYTAB_KEY_FILE,
       "worker", PropertyKey.WORKER_KEYTAB_FILE);
 
+  private final String mProcess;
+
   /**
    * Constructor of {@link SecureHdfsValidationTask}.
    *
    * @param process type of the process on behalf of which this validation task is run
    */
   public SecureHdfsValidationTask(String process) {
-    super(process);
+    mProcess = process.toLowerCase();
   }
 
   @Override

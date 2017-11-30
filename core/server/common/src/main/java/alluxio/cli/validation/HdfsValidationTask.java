@@ -31,16 +31,10 @@ public class HdfsValidationTask extends AbstractValidationTask {
       Option.builder("hadoopConfDir").required(false).hasArg(true)
       .desc("path to server-side hadoop conf dir").build();
 
-  protected final String mProcess;
-
   /**
-   * Constructor of {@link SecureHdfsValidationTask}.
-   *
-   * @param process type of the process on behalf of which this validation task is run
+   * Constructor of {@link HdfsValidationTask}.
    */
-  public HdfsValidationTask(String process) {
-    mProcess = process.toLowerCase();
-  }
+  public HdfsValidationTask() {}
 
   /**
    * {@inheritDoc}
