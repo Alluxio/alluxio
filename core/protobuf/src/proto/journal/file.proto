@@ -32,7 +32,7 @@ message CompleteFileEntry {
   optional int64 id = 2;
   optional int64 length = 3;
   optional int64 op_time_ms = 4;
-  optional int64 ufs_last_modified_time_ms = 5;
+  optional string ufs_fingerprint = 5;
 }
 
 // next available id: 5
@@ -96,7 +96,7 @@ message InodeFileEntry {
   optional string group = 15;
   optional int32 mode = 16;
   optional PTtlAction ttlAction = 17 [default = DELETE];
-  optional int64 ufs_last_modification_time_ms = 18;
+  optional string ufs_fingerprint = 18;
 }
 
 // next available id: 3
@@ -143,5 +143,5 @@ message SetAttributeEntry {
   optional string group = 7;
   optional int32 permission = 8;
   optional PTtlAction ttlAction = 9 [default = DELETE];
-  optional int64 ufs_last_modified_ms = 10;
+  optional string ufs_fingerprint = 10;
 }

@@ -36,7 +36,7 @@ public final class SetAttributeOptions {
   private Short mMode;
   private boolean mRecursive;
   private long mOperationTimeMs;
-  private long mUfsLastModifiedMs;
+  private String mUfsFingerprint;
 
   /**
    * @return the default {@link SetAttributeOptions}
@@ -80,7 +80,7 @@ public final class SetAttributeOptions {
     mMode = Constants.INVALID_MODE;
     mRecursive = false;
     mOperationTimeMs = System.currentTimeMillis();
-    mUfsLastModifiedMs = Constants.INVALID_TIMESTAMP_MS;
+    mUfsFingerprint = Constants.INVALID_UFS_FINGERPRINT;
   }
 
   /**
@@ -154,10 +154,10 @@ public final class SetAttributeOptions {
   }
 
   /**
-   * @return the ufs last modified time (in milliseconds)
+   * @return the ufs fingerprint
    */
-  public long getUfsLastModifiedMs() {
-    return mUfsLastModifiedMs;
+  public String getUfsFingerprint() {
+    return mUfsFingerprint;
   }
 
   /**
@@ -259,11 +259,11 @@ public final class SetAttributeOptions {
   }
 
   /**
-   * @param ufsLastModifiedMs the ufs last modified time
+   * @param ufsFingerprint the ufs fingerprint
    * @return the updated options object
    */
-  public SetAttributeOptions setUfsLastModifiedMs(long ufsLastModifiedMs) {
-    mUfsLastModifiedMs = ufsLastModifiedMs;
+  public SetAttributeOptions setUfsFingerprint(String ufsFingerprint) {
+    mUfsFingerprint = ufsFingerprint;
     return this;
   }
 
@@ -286,14 +286,14 @@ public final class SetAttributeOptions {
         && Objects.equal(mMode, that.mMode)
         && Objects.equal(mRecursive, that.mRecursive)
         && mOperationTimeMs == that.mOperationTimeMs
-        && mUfsLastModifiedMs == that.mUfsLastModifiedMs;
+        && Objects.equal(mUfsFingerprint, that.mUfsFingerprint);
   }
 
   @Override
   public int hashCode() {
     return Objects
         .hashCode(mPinned, mTtl, mTtlAction, mPersisted, mOwner, mGroup, mMode, mRecursive,
-            mOperationTimeMs, mCommonOptions, mUfsLastModifiedMs);
+            mOperationTimeMs, mCommonOptions, mUfsFingerprint);
   }
 
   @Override
@@ -309,7 +309,7 @@ public final class SetAttributeOptions {
         .add("mode", mMode)
         .add("recursive", mRecursive)
         .add("operationTimeMs", mOperationTimeMs)
-        .add("ufsLastModifiedTimeMs", mUfsLastModifiedMs)
+        .add("ufsFingerprint", mUfsFingerprint)
         .toString();
   }
 }

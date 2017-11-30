@@ -132,7 +132,7 @@ struct FileInfo {
   24: common.TTtlAction ttlAction
   25: i64 mountId
   26: i32 inAlluxioPercentage
-  27: optional i64 ufsLastModificationTimeMs
+  27: optional string ufsFingerprint
 }
 
 struct MountTOptions {
@@ -377,26 +377,8 @@ service FileSystemMasterClientService extends common.AlluxioService {
     throws (1: exception.AlluxioTException e)
 }
 
-struct UfsTStatus {
-  1: optional string name
-  2: optional bool isDirectory
-  3: optional string owner
-  4: optional string group
-  5: optional i16 mode
-}
-
-struct UfsFileTStatus {
-  1: optional UfsTStatus commonStatus
-  2: optional i64 length
-  3: optional i64 lastModificationTimeMs
-}
-
-struct UfsDirectoryTStatus {
-  1: optional UfsTStatus commonStatus
-}
-
 struct FileSystemHeartbeatTOptions {
-  1: optional list<UfsFileTStatus> persistedFileStatuses
+  1: optional list<string> persistedFileFingerprints
 }
 struct FileSystemHeartbeatTResponse {
   1: FileSystemCommand command

@@ -1033,15 +1033,14 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     // determined by its size in Alluxio.
     long length = fileInode.isPersisted() ? options.getUfsLength() : inAlluxioLength;
 
-    long ufsLastModifiedMs = Constants.INVALID_TIMESTAMP_MS;
+    String ufsFingerprint = Constants.INVALID_UFS_FINGERPRINT;
     if (fileInode.isPersisted()) {
       // Retrieve the UFS last modified time for this file.
       MountTable.Resolution resolution = mMountTable.resolve(inodePath.getUri());
       AlluxioURI resolvedUri = resolution.getUri();
       UnderFileSystem ufs = resolution.getUfs();
       try {
-        UfsFileStatus fileStatus = ufs.getFileStatus(resolvedUri.toString());
-        ufsLastModifiedMs = fileStatus.getLastModifiedTime();
+        ufs.getFingerprint(resolvedUri.toString());
       } catch (IOException e) {
         // Ignore error
         LOG.warn("Failed to retrieve UFS file status for: {} error: {}", resolvedUri, e.toString());
@@ -1049,11 +1048,11 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     }
 
     completeFileInternal(fileInode.getBlockIds(), inodePath, length, options.getOperationTimeMs(),
-        ufsLastModifiedMs, false);
+        ufsFingerprint, false);
     CompleteFileEntry completeFileEntry =
         CompleteFileEntry.newBuilder().addAllBlockIds(fileInode.getBlockIds()).setId(inode.getId())
             .setLength(length).setOpTimeMs(options.getOperationTimeMs())
-            .setUfsLastModifiedTimeMs(ufsLastModifiedMs).build();
+            .setUfsFingerprint(ufsFingerprint).build();
     journalContext.append(JournalEntry.newBuilder().setCompleteFile(completeFileEntry).build());
   }
 
@@ -1062,7 +1061,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    * @param inodePath the {@link LockedInodePath} to complete
    * @param length the length to use
    * @param opTimeMs the operation time (in milliseconds)
-   * @param ufsLastModifiedMs the ufs last modified time (in milliseconds)
+   * @param ufsFingerprint the ufs fingerprint
    * @param replayed whether the operation is a result of replaying the journal
    * @throws FileDoesNotExistException if the file does not exist
    * @throws InvalidPathException if an invalid path is encountered
@@ -1070,13 +1069,13 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    * @throws FileAlreadyCompletedException if the file has already been completed
    */
   private void completeFileInternal(List<Long> blockIds, LockedInodePath inodePath, long length,
-      long opTimeMs, long ufsLastModifiedMs, boolean replayed)
+      long opTimeMs, String ufsFingerprint, boolean replayed)
       throws FileDoesNotExistException, InvalidPathException, InvalidFileSizeException,
       FileAlreadyCompletedException {
     InodeFile inode = inodePath.getInodeFile();
     inode.setBlockIds(blockIds);
     inode.setLastModificationTimeMs(opTimeMs);
-    inode.setUfsLastModificationTimeMs(ufsLastModifiedMs);
+    inode.setUfsFingerprint(ufsFingerprint);
     inode.complete(length);
 
     if (inode.isPersisted()) {
@@ -1106,7 +1105,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     try (LockedInodePath inodePath = mInodeTree
         .lockFullInodePath(entry.getId(), InodeTree.LockMode.WRITE)) {
       completeFileInternal(entry.getBlockIdsList(), inodePath, entry.getLength(),
-          entry.getOpTimeMs(), entry.getUfsLastModifiedTimeMs(), true);
+          entry.getOpTimeMs(), entry.getUfsFingerprint(), true);
     } catch (FileDoesNotExistException e) {
       throw new RuntimeException(e);
     }
@@ -2962,18 +2961,16 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       throws FileDoesNotExistException, InvalidPathException, AccessControlException,
       IOException {
 
-    List<UfsFileStatus> persistedFileStatus = options.getPersistedFileStatusList();
-    boolean hasPersistedStatus = persistedFileStatus.size() == persistedFiles.size();
+    List<String> persistedUfsFingerprints = options.getPersistedUfsFingerprintList();
+    boolean hasPersistedFingerprints = persistedUfsFingerprints.size() == persistedFiles.size();
     for (int i = 0; i < persistedFiles.size(); i++) {
       long fileId = persistedFiles.get(i);
-      long lastModified = Constants.INVALID_TIMESTAMP_MS;
-      if (hasPersistedStatus && persistedFileStatus.get(i) != null) {
-        lastModified = persistedFileStatus.get(i).getLastModifiedTime();
-      }
+      String ufsFingerprint = hasPersistedFingerprints ? persistedUfsFingerprints.get(i) :
+          Constants.INVALID_UFS_FINGERPRINT;
       try {
         // Permission checking for each file is performed inside setAttribute
         setAttribute(getPath(fileId),
-            SetAttributeOptions.defaults().setPersisted(true).setUfsLastModifiedMs(lastModified));
+            SetAttributeOptions.defaults().setPersisted(true).setUfsFingerprint(ufsFingerprint));
       } catch (FileDoesNotExistException | AccessControlException | InvalidPathException e) {
         LOG.error("Failed to set file {} as persisted, because {}", fileId, e);
       }
@@ -3018,8 +3015,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         inode.setTtlAction(options.getTtlAction());
       }
     }
-    if (options.getUfsLastModifiedMs() != Constants.INVALID_TIMESTAMP_MS) {
-      inode.setUfsLastModificationTimeMs(options.getUfsLastModifiedMs());
+    if (!options.getUfsFingerprint().equals(Constants.INVALID_UFS_FINGERPRINT)) {
+      inode.setUfsFingerprint(options.getUfsFingerprint());
     }
     if (options.getPersisted() != null) {
       Preconditions.checkArgument(inode.isFile(), PreconditionMessage.PERSIST_ONLY_FOR_FILE);
@@ -3112,8 +3109,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     if (entry.hasPermission()) {
       options.setMode((short) entry.getPermission());
     }
-    if (entry.hasUfsLastModifiedMs()) {
-      options.setUfsLastModifiedMs(entry.getUfsLastModifiedMs());
+    if (entry.hasUfsFingerprint()) {
+      options.setUfsFingerprint(entry.getUfsFingerprint());
     }
     try (LockedInodePath inodePath = mInodeTree
         .lockFullInodePath(entry.getId(), InodeTree.LockMode.WRITE)) {

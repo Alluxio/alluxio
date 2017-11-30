@@ -21,8 +21,6 @@ import alluxio.exception.AlluxioException;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.InvalidWorkerStateException;
 import alluxio.security.authorization.Mode;
-import alluxio.thrift.UfsFileTStatus;
-import alluxio.underfs.UfsFileStatus;
 import alluxio.underfs.UfsManager;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.CreateOptions;
@@ -66,8 +64,9 @@ public final class FileDataManager {
   @GuardedBy("mLock")
   private final Map<Long, Map<Long, Long>> mPersistingInProgressFiles;
 
+  /** A map from file id to its ufs fingerprint. */
   @GuardedBy("mLock")
-  private final Map<Long, UfsFileStatus> mPersistedFilesInfo;
+  private final Map<Long, String> mPersistedUfsFingerprints;
 
   private final Object mLock = new Object();
 
@@ -87,7 +86,7 @@ public final class FileDataManager {
       UfsManager ufsManager) {
     mBlockWorker = Preconditions.checkNotNull(blockWorker, "blockWorker");
     mPersistingInProgressFiles = new HashMap<>();
-    mPersistedFilesInfo = new HashMap<>();
+    mPersistedUfsFingerprints = new HashMap<>();
     mPersistenceRateLimiter = persistenceRateLimiter;
     mUfsManager = ufsManager;
   }
@@ -116,10 +115,10 @@ public final class FileDataManager {
     }
 
     try {
-      UfsFileStatus ufsFileStatus = ufsFileStatus(fileId);
-      if (ufsFileStatus != null) {
+      String ufsFingerprint = ufsFingerprint(fileId);
+      if (ufsFingerprint != null) {
         // mark as persisted
-        addPersistedFile(fileId, ufsFileStatus);
+        addPersistedFile(fileId, ufsFingerprint);
         return false;
       }
     } catch (Exception e) {
@@ -138,7 +137,7 @@ public final class FileDataManager {
    */
   public boolean isFilePersisted(long fileId) {
     synchronized (mLock) {
-      return mPersistedFilesInfo.containsKey(fileId);
+      return mPersistedUfsFingerprints.containsKey(fileId);
     }
   }
 
@@ -146,25 +145,25 @@ public final class FileDataManager {
    * Adds a file as persisted.
    *
    * @param fileId the file id
-   * @param ufsFileStatus the ufs file status of the persisted file
+   * @param ufsFingerprint the ufs fingerprint of the persisted file
    */
-  private void addPersistedFile(long fileId, UfsFileStatus ufsFileStatus) {
+  private void addPersistedFile(long fileId, String ufsFingerprint) {
     synchronized (mLock) {
-      mPersistedFilesInfo.put(fileId, ufsFileStatus);
+      mPersistedUfsFingerprints.put(fileId, ufsFingerprint);
     }
   }
 
   /**
-   * Returns the {@link UfsFileStatus} of the given file, or null if it doesn't exist.
+   * Returns the ufs fingerprint of the given file, or null if the file doesn't exist.
    *
    * @param fileId the file id
-   * @return the file status of the ufs file if exists, null otherwise
+   * @return the ufs fingerprint of the file if it exists, null otherwise
    */
-  private synchronized UfsFileStatus ufsFileStatus(long fileId) throws IOException {
+  private synchronized String ufsFingerprint(long fileId) throws IOException {
     FileInfo fileInfo = mBlockWorker.getFileInfo(fileId);
     String dstPath = fileInfo.getUfsPath();
     UnderFileSystem ufs = mUfsManager.get(fileInfo.getMountId()).getUfs();
-    return ufs.isFile(dstPath) ? ufs.getFileStatus(dstPath) : null;
+    return ufs.isFile(dstPath) ? ufs.getFingerprint(dstPath) : null;
   }
 
   /**
@@ -281,10 +280,10 @@ public final class FileDataManager {
     outputStream.flush();
     outputChannel.close();
     outputStream.close();
-    UfsFileStatus ufsFileStatus = ufs.getFileStatus(dstPath);
+    String ufsFingerprint = ufs.getFingerprint(dstPath);
     synchronized (mLock) {
       mPersistingInProgressFiles.remove(fileId);
-      mPersistedFilesInfo.put(fileId, ufsFileStatus);
+      mPersistedUfsFingerprints.put(fileId, ufsFingerprint);
     }
   }
 
@@ -309,21 +308,21 @@ public final class FileDataManager {
   /**
    * @return information about persisted files
    */
-  public PersistedFilesInfo getPersistedFilesInfo() {
+  public PersistedFilesInfo getPersistedUfsFingerprints() {
     synchronized (mLock) {
-      return new PersistedFilesInfo(mPersistedFilesInfo);
+      return new PersistedFilesInfo(mPersistedUfsFingerprints);
     }
   }
 
   /**
-   * Clears the given persisted files stored in {@link #mPersistedFilesInfo}.
+   * Clears the given persisted files stored in {@link #mPersistedUfsFingerprints}.
    *
    * @param persistedFiles the list of persisted files to clear
    */
   public void clearPersistedFiles(List<Long> persistedFiles) {
     synchronized (mLock) {
       for (long persistedId : persistedFiles) {
-        mPersistedFilesInfo.remove(persistedId);
+        mPersistedUfsFingerprints.remove(persistedId);
       }
     }
   }
@@ -333,24 +332,24 @@ public final class FileDataManager {
    */
   public static class PersistedFilesInfo {
     private List<Long> mIdList;
-    private List<UfsFileStatus> mFileStatusList;
+    private List<String> mUfsFingerprintList;
 
-    private PersistedFilesInfo(Map<Long, UfsFileStatus> persistedMap) {
+    private PersistedFilesInfo(Map<Long, String> persistedMap) {
       mIdList = new ArrayList<>(persistedMap.size());
-      mFileStatusList = new ArrayList<>(persistedMap.size());
-      for (Map.Entry<Long, UfsFileStatus> entry : persistedMap.entrySet()) {
+      mUfsFingerprintList = new ArrayList<>(persistedMap.size());
+      for (Map.Entry<Long, String> entry : persistedMap.entrySet()) {
         mIdList.add(entry.getKey());
-        mFileStatusList.add(entry.getValue());
+        mUfsFingerprintList.add(entry.getValue());
       }
     }
 
     /**
      * @param idList list of file ids of persisted files
-     * @param fileStatusList list of {@link UfsFileStatus} of persisted files
+     * @param ufsFingerprintList list of ufs fingerprints of persisted files
      */
-    public PersistedFilesInfo(List<Long> idList, List<UfsFileStatus> fileStatusList) {
+    public PersistedFilesInfo(List<Long> idList, List<String> ufsFingerprintList) {
       mIdList = idList;
-      mFileStatusList = fileStatusList;
+      mUfsFingerprintList = ufsFingerprintList;
     }
 
     /**
@@ -361,18 +360,10 @@ public final class FileDataManager {
     }
 
     /**
-     * @return list of {@link UfsFileTStatus} of persisted files
+     * @return list of ufs fingerprints of persisted files
      */
-    public List<UfsFileTStatus> fileStatusTList() {
-      List<UfsFileTStatus> list = new ArrayList<>(mFileStatusList.size());
-      for (UfsFileStatus status : mFileStatusList) {
-        if (status != null) {
-          list.add(status.toThrift());
-        } else {
-          list.add(null);
-        }
-      }
-      return list;
+    public List<String> ufsFingerprintList() {
+      return mUfsFingerprintList;
     }
   }
 }

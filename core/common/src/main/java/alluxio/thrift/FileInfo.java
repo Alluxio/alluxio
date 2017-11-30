@@ -63,7 +63,7 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
   private static final org.apache.thrift.protocol.TField TTL_ACTION_FIELD_DESC = new org.apache.thrift.protocol.TField("ttlAction", org.apache.thrift.protocol.TType.I32, (short)24);
   private static final org.apache.thrift.protocol.TField MOUNT_ID_FIELD_DESC = new org.apache.thrift.protocol.TField("mountId", org.apache.thrift.protocol.TType.I64, (short)25);
   private static final org.apache.thrift.protocol.TField IN_ALLUXIO_PERCENTAGE_FIELD_DESC = new org.apache.thrift.protocol.TField("inAlluxioPercentage", org.apache.thrift.protocol.TType.I32, (short)26);
-  private static final org.apache.thrift.protocol.TField UFS_LAST_MODIFICATION_TIME_MS_FIELD_DESC = new org.apache.thrift.protocol.TField("ufsLastModificationTimeMs", org.apache.thrift.protocol.TType.I64, (short)27);
+  private static final org.apache.thrift.protocol.TField UFS_FINGERPRINT_FIELD_DESC = new org.apache.thrift.protocol.TField("ufsFingerprint", org.apache.thrift.protocol.TType.STRING, (short)27);
 
   private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
   static {
@@ -96,7 +96,7 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
   private alluxio.thrift.TTtlAction ttlAction; // required
   private long mountId; // required
   private int inAlluxioPercentage; // required
-  private long ufsLastModificationTimeMs; // optional
+  private String ufsFingerprint; // optional
 
   /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
   public enum _Fields implements org.apache.thrift.TFieldIdEnum {
@@ -129,7 +129,7 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
     TTL_ACTION((short)24, "ttlAction"),
     MOUNT_ID((short)25, "mountId"),
     IN_ALLUXIO_PERCENTAGE((short)26, "inAlluxioPercentage"),
-    UFS_LAST_MODIFICATION_TIME_MS((short)27, "ufsLastModificationTimeMs");
+    UFS_FINGERPRINT((short)27, "ufsFingerprint");
 
     private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -194,8 +194,8 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
           return MOUNT_ID;
         case 26: // IN_ALLUXIO_PERCENTAGE
           return IN_ALLUXIO_PERCENTAGE;
-        case 27: // UFS_LAST_MODIFICATION_TIME_MS
-          return UFS_LAST_MODIFICATION_TIME_MS;
+        case 27: // UFS_FINGERPRINT
+          return UFS_FINGERPRINT;
         default:
           return null;
       }
@@ -252,9 +252,8 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
   private static final int __MOUNTPOINT_ISSET_ID = 13;
   private static final int __MOUNTID_ISSET_ID = 14;
   private static final int __INALLUXIOPERCENTAGE_ISSET_ID = 15;
-  private static final int __UFSLASTMODIFICATIONTIMEMS_ISSET_ID = 16;
-  private int __isset_bitfield = 0;
-  private static final _Fields optionals[] = {_Fields.UFS_LAST_MODIFICATION_TIME_MS};
+  private short __isset_bitfield = 0;
+  private static final _Fields optionals[] = {_Fields.UFS_FINGERPRINT};
   public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
   static {
     Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
@@ -310,8 +309,8 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
     tmpMap.put(_Fields.IN_ALLUXIO_PERCENTAGE, new org.apache.thrift.meta_data.FieldMetaData("inAlluxioPercentage", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I32)));
-    tmpMap.put(_Fields.UFS_LAST_MODIFICATION_TIME_MS, new org.apache.thrift.meta_data.FieldMetaData("ufsLastModificationTimeMs", org.apache.thrift.TFieldRequirementType.OPTIONAL, 
-        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
+    tmpMap.put(_Fields.UFS_FINGERPRINT, new org.apache.thrift.meta_data.FieldMetaData("ufsFingerprint", org.apache.thrift.TFieldRequirementType.OPTIONAL, 
+        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
     metaDataMap = Collections.unmodifiableMap(tmpMap);
     org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(FileInfo.class, metaDataMap);
   }
@@ -443,7 +442,9 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
     }
     this.mountId = other.mountId;
     this.inAlluxioPercentage = other.inAlluxioPercentage;
-    this.ufsLastModificationTimeMs = other.ufsLastModificationTimeMs;
+    if (other.isSetUfsFingerprint()) {
+      this.ufsFingerprint = other.ufsFingerprint;
+    }
   }
 
   public FileInfo deepCopy() {
@@ -493,8 +494,7 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
     this.mountId = 0;
     setInAlluxioPercentageIsSet(false);
     this.inAlluxioPercentage = 0;
-    setUfsLastModificationTimeMsIsSet(false);
-    this.ufsLastModificationTimeMs = 0;
+    this.ufsFingerprint = null;
   }
 
   public long getFileId() {
@@ -1119,27 +1119,28 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
     __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __INALLUXIOPERCENTAGE_ISSET_ID, value);
   }
 
-  public long getUfsLastModificationTimeMs() {
-    return this.ufsLastModificationTimeMs;
+  public String getUfsFingerprint() {
+    return this.ufsFingerprint;
   }
 
-  public FileInfo setUfsLastModificationTimeMs(long ufsLastModificationTimeMs) {
-    this.ufsLastModificationTimeMs = ufsLastModificationTimeMs;
-    setUfsLastModificationTimeMsIsSet(true);
+  public FileInfo setUfsFingerprint(String ufsFingerprint) {
+    this.ufsFingerprint = ufsFingerprint;
     return this;
   }
 
-  public void unsetUfsLastModificationTimeMs() {
-    __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __UFSLASTMODIFICATIONTIMEMS_ISSET_ID);
+  public void unsetUfsFingerprint() {
+    this.ufsFingerprint = null;
   }
 
-  /** Returns true if field ufsLastModificationTimeMs is set (has been assigned a value) and false otherwise */
-  public boolean isSetUfsLastModificationTimeMs() {
-    return EncodingUtils.testBit(__isset_bitfield, __UFSLASTMODIFICATIONTIMEMS_ISSET_ID);
+  /** Returns true if field ufsFingerprint is set (has been assigned a value) and false otherwise */
+  public boolean isSetUfsFingerprint() {
+    return this.ufsFingerprint != null;
   }
 
-  public void setUfsLastModificationTimeMsIsSet(boolean value) {
-    __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __UFSLASTMODIFICATIONTIMEMS_ISSET_ID, value);
+  public void setUfsFingerprintIsSet(boolean value) {
+    if (!value) {
+      this.ufsFingerprint = null;
+    }
   }
 
   public void setFieldValue(_Fields field, Object value) {
@@ -1344,11 +1345,11 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
       }
       break;
 
-    case UFS_LAST_MODIFICATION_TIME_MS:
+    case UFS_FINGERPRINT:
       if (value == null) {
-        unsetUfsLastModificationTimeMs();
+        unsetUfsFingerprint();
       } else {
-        setUfsLastModificationTimeMs((Long)value);
+        setUfsFingerprint((String)value);
       }
       break;
 
@@ -1432,8 +1433,8 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
     case IN_ALLUXIO_PERCENTAGE:
       return getInAlluxioPercentage();
 
-    case UFS_LAST_MODIFICATION_TIME_MS:
-      return getUfsLastModificationTimeMs();
+    case UFS_FINGERPRINT:
+      return getUfsFingerprint();
 
     }
     throw new IllegalStateException();
@@ -1496,8 +1497,8 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
       return isSetMountId();
     case IN_ALLUXIO_PERCENTAGE:
       return isSetInAlluxioPercentage();
-    case UFS_LAST_MODIFICATION_TIME_MS:
-      return isSetUfsLastModificationTimeMs();
+    case UFS_FINGERPRINT:
+      return isSetUfsFingerprint();
     }
     throw new IllegalStateException();
   }
@@ -1740,12 +1741,12 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
         return false;
     }
 
-    boolean this_present_ufsLastModificationTimeMs = true && this.isSetUfsLastModificationTimeMs();
-    boolean that_present_ufsLastModificationTimeMs = true && that.isSetUfsLastModificationTimeMs();
-    if (this_present_ufsLastModificationTimeMs || that_present_ufsLastModificationTimeMs) {
-      if (!(this_present_ufsLastModificationTimeMs && that_present_ufsLastModificationTimeMs))
+    boolean this_present_ufsFingerprint = true && this.isSetUfsFingerprint();
+    boolean that_present_ufsFingerprint = true && that.isSetUfsFingerprint();
+    if (this_present_ufsFingerprint || that_present_ufsFingerprint) {
+      if (!(this_present_ufsFingerprint && that_present_ufsFingerprint))
         return false;
-      if (this.ufsLastModificationTimeMs != that.ufsLastModificationTimeMs)
+      if (!this.ufsFingerprint.equals(that.ufsFingerprint))
         return false;
     }
 
@@ -1881,10 +1882,10 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
     if (present_inAlluxioPercentage)
       list.add(inAlluxioPercentage);
 
-    boolean present_ufsLastModificationTimeMs = true && (isSetUfsLastModificationTimeMs());
-    list.add(present_ufsLastModificationTimeMs);
-    if (present_ufsLastModificationTimeMs)
-      list.add(ufsLastModificationTimeMs);
+    boolean present_ufsFingerprint = true && (isSetUfsFingerprint());
+    list.add(present_ufsFingerprint);
+    if (present_ufsFingerprint)
+      list.add(ufsFingerprint);
 
     return list.hashCode();
   }
@@ -2147,12 +2148,12 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
         return lastComparison;
       }
     }
-    lastComparison = Boolean.valueOf(isSetUfsLastModificationTimeMs()).compareTo(other.isSetUfsLastModificationTimeMs());
+    lastComparison = Boolean.valueOf(isSetUfsFingerprint()).compareTo(other.isSetUfsFingerprint());
     if (lastComparison != 0) {
       return lastComparison;
     }
-    if (isSetUfsLastModificationTimeMs()) {
-      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.ufsLastModificationTimeMs, other.ufsLastModificationTimeMs);
+    if (isSetUfsFingerprint()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.ufsFingerprint, other.ufsFingerprint);
       if (lastComparison != 0) {
         return lastComparison;
       }
@@ -2312,10 +2313,14 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
     sb.append("inAlluxioPercentage:");
     sb.append(this.inAlluxioPercentage);
     first = false;
-    if (isSetUfsLastModificationTimeMs()) {
+    if (isSetUfsFingerprint()) {
       if (!first) sb.append(", ");
-      sb.append("ufsLastModificationTimeMs:");
-      sb.append(this.ufsLastModificationTimeMs);
+      sb.append("ufsFingerprint:");
+      if (this.ufsFingerprint == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.ufsFingerprint);
+      }
       first = false;
     }
     sb.append(")");
@@ -2584,10 +2589,10 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
-          case 27: // UFS_LAST_MODIFICATION_TIME_MS
-            if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
-              struct.ufsLastModificationTimeMs = iprot.readI64();
-              struct.setUfsLastModificationTimeMsIsSet(true);
+          case 27: // UFS_FINGERPRINT
+            if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
+              struct.ufsFingerprint = iprot.readString();
+              struct.setUfsFingerprintIsSet(true);
             } else { 
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
@@ -2714,10 +2719,12 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
       oprot.writeFieldBegin(IN_ALLUXIO_PERCENTAGE_FIELD_DESC);
       oprot.writeI32(struct.inAlluxioPercentage);
       oprot.writeFieldEnd();
-      if (struct.isSetUfsLastModificationTimeMs()) {
-        oprot.writeFieldBegin(UFS_LAST_MODIFICATION_TIME_MS_FIELD_DESC);
-        oprot.writeI64(struct.ufsLastModificationTimeMs);
-        oprot.writeFieldEnd();
+      if (struct.ufsFingerprint != null) {
+        if (struct.isSetUfsFingerprint()) {
+          oprot.writeFieldBegin(UFS_FINGERPRINT_FIELD_DESC);
+          oprot.writeString(struct.ufsFingerprint);
+          oprot.writeFieldEnd();
+        }
       }
       oprot.writeFieldStop();
       oprot.writeStructEnd();
@@ -2812,7 +2819,7 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
       if (struct.isSetInAlluxioPercentage()) {
         optionals.set(24);
       }
-      if (struct.isSetUfsLastModificationTimeMs()) {
+      if (struct.isSetUfsFingerprint()) {
         optionals.set(25);
       }
       oprot.writeBitSet(optionals, 26);
@@ -2903,8 +2910,8 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
       if (struct.isSetInAlluxioPercentage()) {
         oprot.writeI32(struct.inAlluxioPercentage);
       }
-      if (struct.isSetUfsLastModificationTimeMs()) {
-        oprot.writeI64(struct.ufsLastModificationTimeMs);
+      if (struct.isSetUfsFingerprint()) {
+        oprot.writeString(struct.ufsFingerprint);
       }
     }
 
@@ -3032,8 +3039,8 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
         struct.setInAlluxioPercentageIsSet(true);
       }
       if (incoming.get(25)) {
-        struct.ufsLastModificationTimeMs = iprot.readI64();
-        struct.setUfsLastModificationTimeMsIsSet(true);
+        struct.ufsFingerprint = iprot.readString();
+        struct.setUfsFingerprintIsSet(true);
       }
     }
   }

@@ -235,7 +235,7 @@ public final class InodeDirectory extends Inode<InodeDirectory> {
     ret.setMode(getMode());
     ret.setPersistenceState(getPersistenceState().toString());
     ret.setMountPoint(isMountPoint());
-    ret.setUfsLastModificationTimeMs(Constants.INVALID_TIMESTAMP_MS);
+    ret.setUfsFingerprint(Constants.INVALID_UFS_FINGERPRINT);
     return ret;
   }
 

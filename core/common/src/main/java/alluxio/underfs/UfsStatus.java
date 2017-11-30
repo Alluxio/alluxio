@@ -11,8 +11,6 @@
 
 package alluxio.underfs;
 
-import alluxio.thrift.UfsTStatus;
-
 import com.google.common.base.Objects;
 
 import javax.annotation.Nullable;
@@ -60,19 +58,6 @@ public abstract class UfsStatus {
     mOwner = status.mOwner;
     mGroup = status.mGroup;
     mMode = status.mMode;
-  }
-
-  /**
-   * Creates a new instance of {@link UfsStatus} from a thrift object.
-   *
-   * @param status thrift object
-   */
-  protected UfsStatus(UfsTStatus status) {
-    mIsDirectory = status.isIsDirectory();
-    mName = status.getName();
-    mOwner = status.getOwner();
-    mGroup = status.getGroup();
-    mMode = status.getMode();
   }
 
   /**
@@ -184,18 +169,5 @@ public abstract class UfsStatus {
         && Objects.equal(mOwner, that.mOwner)
         && Objects.equal(mGroup, that.mGroup)
         && Objects.equal(mMode, that.mMode);
-  }
-
-  /**
-   * @return the thrift representation
-   */
-  public UfsTStatus ufsStatusThrift() {
-    UfsTStatus status = new UfsTStatus();
-    status.setName(mName);
-    status.setIsDirectory(mIsDirectory);
-    status.setOwner(mOwner);
-    status.setGroup(mGroup);
-    status.setMode(mMode);
-    return status;
   }
 }

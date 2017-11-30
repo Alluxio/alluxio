@@ -87,7 +87,7 @@ public final class InodeFile extends Inode<InodeFile> {
     ret.setMode(getMode());
     ret.setPersistenceState(getPersistenceState().toString());
     ret.setMountPoint(false);
-    ret.setUfsLastModificationTimeMs(getUfsLastModificationTimeMs());
+    ret.setUfsFingerprint(getUfsFingerprint());
     return ret;
   }
 
@@ -280,9 +280,8 @@ public final class InodeFile extends Inode<InodeFile> {
         .setOwner(entry.getOwner())
         .setGroup(entry.getGroup())
         .setMode((short) entry.getMode())
-        .setUfsLastModificationTimeMs(
-            entry.hasUfsLastModificationTimeMs() ? entry.getUfsLastModificationTimeMs() :
-                Constants.INVALID_TIMESTAMP_MS);
+        .setUfsFingerprint(entry.hasUfsFingerprint() ? entry.getUfsFingerprint() :
+            Constants.INVALID_UFS_FINGERPRINT);
   }
 
   /**
@@ -332,7 +331,7 @@ public final class InodeFile extends Inode<InodeFile> {
         .setPinned(isPinned())
         .setTtl(getTtl())
         .setTtlAction(ProtobufUtils.toProtobuf(getTtlAction()))
-        .setUfsLastModificationTimeMs(getUfsLastModificationTimeMs())
+        .setUfsFingerprint(getUfsFingerprint())
         .build();
     return JournalEntry.newBuilder().setInodeFile(inodeFile).build();
   }
