@@ -287,8 +287,9 @@ public final class ValidateEnv {
     System.err.println(message);
     System.out.print(USAGE);
     System.out.println("OPTIONS include the following:");
+    System.out.println("OptionName \tDescription");
     OPTIONS.getOptions().forEach((entry) -> {
-      System.out.format("%s: %s%n", entry.getOpt(), entry.getDescription());
+      System.out.format("%s: \t%s%n", entry.getOpt(), entry.getDescription());
     });
   }
 
