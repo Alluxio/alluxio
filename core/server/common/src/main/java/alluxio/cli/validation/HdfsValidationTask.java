@@ -15,8 +15,9 @@ import alluxio.Configuration;
 import alluxio.PropertyKey;
 
 import org.apache.commons.cli.Option;
-import org.apache.commons.cli.Options;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -45,12 +46,10 @@ public class HdfsValidationTask extends AbstractValidationTask {
    * {@inheritDoc}
    */
   @Override
-  public Options addOptions(Options options) {
-    if (options == null) {
-      return new Options().addOption(HADOOP_CONF_DIR_OPTION);
-    }
-    options.addOption(HADOOP_CONF_DIR_OPTION);
-    return options;
+  public List<Option> getOptionList() {
+    List<Option> opts = new ArrayList<>();
+    opts.add(HADOOP_CONF_DIR_OPTION);
+    return opts;
   }
 
   @Override
