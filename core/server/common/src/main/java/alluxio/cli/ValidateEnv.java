@@ -192,12 +192,8 @@ public final class ValidateEnv {
       return false;
     }
 
-    String argStr;
-    if (args != null) {
-      argStr = String.join(" ", args);
-    } else {
-      argStr = "";
-    }
+    // args is not null.
+    String argStr = String.join(" ", args);
     String homeDir = Configuration.get(PropertyKey.HOME);
     String remoteCommand = String.format(
         "%s/bin/alluxio validateEnv %s %s %s",
