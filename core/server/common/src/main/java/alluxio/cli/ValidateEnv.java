@@ -26,11 +26,16 @@ import alluxio.exception.status.InvalidArgumentException;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 
 import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.Option;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
 import org.apache.commons.lang3.ArrayUtils;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.TreeMap;
@@ -221,44 +226,44 @@ public final class ValidateEnv {
     int validationCount = 0;
     int failureCount = 0;
     Collection<ValidationTask> tasks = TARGET_TASKS.get(target);
-    for (ValidationTask task : tasks) {
+    List<ValidationTask> tasksToRun = new ArrayList<>();
+    Options options = new Options();
+    for (ValidationTask task: tasks) {
       String taskName = TASKS.get(task);
       if (name != null && !taskName.startsWith(name)) {
         continue;
       }
-
-      CommandLine cmd;
-      try {
-        cmd = task.parseArgsAndOptions(args);
-      } catch (InvalidArgumentException e) {
-        System.err.format("Invalid argument for task %s.%n", taskName);
-        continue;
-      }
-      Map<String, String> optionsMap = new HashMap<>();
-      for (Option opt : cmd.getOptions()) {
-        optionsMap.put(opt.getOpt(), opt.getValue());
-      }
-      System.out.format("Validating %s...", taskName);
+      task.addOptions(options);
+      tasksToRun.add(task);
+      validationCount++;
+    }
+    if (validationCount == 0) {
+      System.err.format("No validation task matched name \"%s\".%n", name);
+      return false;
+    }
+    CommandLine cmd;
+    try {
+      cmd = parseArgsAndOptions(options, args);
+    } catch (InvalidArgumentException e) {
+      System.err.format("Invalid argument: %s.%n", e.getMessage());
+      return false;
+    }
+    Map<String, String> optionsMap = new HashMap<>();
+    for (Option opt : cmd.getOptions()) {
+      optionsMap.put(opt.getOpt(), opt.getValue());
+    }
+    for (ValidationTask task : tasksToRun) {
       if (task.validate(optionsMap)) {
         System.out.println("OK");
       } else {
         System.out.println("Failed");
         failureCount++;
       }
-
-      validationCount++;
     }
-
     if (failureCount > 0) {
       System.err.format("Validation failed. Total failures: %d.%n", failureCount);
       return false;
     }
-
-    if (validationCount == 0) {
-      System.err.format("No validation task matched name \"%s\".%n", name);
-      return false;
-    }
-
     System.out.println("Validation succeeded.");
     return true;
   }
@@ -339,6 +344,30 @@ public final class ValidateEnv {
    */
   public static void main(String[] args) throws InterruptedException {
     System.exit(validate(args));
+  }
+
+  /**
+   * Parses the command line arguments and options in {@code args}.
+   *
+   * After successful execution of this method, command line arguments can be
+   * retrieved by invoking {@link CommandLine#getArgs()}, and options can be
+   * retrieved by calling {@link CommandLine#getOptions()}.
+   *
+   * @param args command line arguments to parse
+   * @return {@link CommandLine} object representing the parsing result
+   * @throws InvalidArgumentException if command line contains invalid argument(s)
+   */
+  private static CommandLine parseArgsAndOptions(Options options, String... args) throws InvalidArgumentException {
+    CommandLineParser parser = new DefaultParser();
+    CommandLine cmd;
+
+    try {
+      cmd = parser.parse(options, args);
+    } catch (ParseException e) {
+      throw new InvalidArgumentException(
+          "Failed to parse args for validateEnv", e);
+    }
+    return cmd;
   }
 
   private ValidateEnv() {} // prevents instantiation

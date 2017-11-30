@@ -45,8 +45,12 @@ public class HdfsValidationTask extends AbstractValidationTask {
    * {@inheritDoc}
    */
   @Override
-  public Options getOptions() {
-    return new Options().addOption(HADOOP_CONF_DIR_OPTION);
+  public Options addOptions(Options options) {
+    if (options == null) {
+      return new Options().addOption(HADOOP_CONF_DIR_OPTION);
+    }
+    options.addOption(HADOOP_CONF_DIR_OPTION);
+    return options;
   }
 
   @Override
