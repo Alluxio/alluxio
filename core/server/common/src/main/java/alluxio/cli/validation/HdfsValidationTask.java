@@ -13,6 +13,7 @@ package alluxio.cli.validation;
 
 import alluxio.Configuration;
 import alluxio.PropertyKey;
+
 import org.apache.commons.cli.Options;
 
 import java.util.Map;
@@ -75,7 +76,7 @@ public class HdfsValidationTask extends AbstractValidationTask {
     String clientHdfsSiteFilePath = clientHaoopConfFilePaths[1];
     if (clientCoreSiteFilePath == null || clientCoreSiteFilePath.isEmpty()
         || clientHdfsSiteFilePath == null || clientHdfsSiteFilePath.isEmpty()) {
-      System.out.println("Cannot locate the client-side hadoop configurations,"
+      System.err.println("Cannot locate the client-side hadoop configurations,"
           + " skipping validation for HDFS properties.");
       return true;
     }
@@ -85,26 +86,42 @@ public class HdfsValidationTask extends AbstractValidationTask {
 
   private boolean compareConfigurations(String clientConfigFilePath, String serverConfigFilePath) {
     ConfigurationFileParser parser = new ConfigurationFileParser();
-    Map<String, String> serverCoreSiteProps = parser.parseXmlConfiguration(serverConfigFilePath);
-    Map<String, String> clientCoreSiteProps = parser.parseXmlConfiguration(clientConfigFilePath);
+    Map<String, String> serverSiteProps = parser.parseXmlConfiguration(serverConfigFilePath);
+    if (serverSiteProps == null) {
+      System.err.format("Failed to parse server-side %s.%n", serverConfigFilePath);
+      return false;
+    }
+    Map<String, String> clientSiteProps = parser.parseXmlConfiguration(clientConfigFilePath);
+    if (clientSiteProps == null) {
+      System.err.format("Failed to parse client-side %s.%n", clientConfigFilePath);
+      return false;
+    }
     boolean matches = true;
-    for (Map.Entry<String, String> prop : clientCoreSiteProps.entrySet()) {
-      if (!serverCoreSiteProps.containsKey(prop.getKey())
-          || !prop.getValue().equals(serverCoreSiteProps.get(prop.getKey()))) {
+    for (Map.Entry<String, String> prop : clientSiteProps.entrySet()) {
+      if (!serverSiteProps.containsKey(prop.getKey())) {
         matches = false;
-        System.err.format("For %s, client has %s, but server has %s.%n",
-            prop.getKey(), prop.getValue(), serverCoreSiteProps.get(prop.getKey()));
+        System.err.format("%s is configured in %s, but not configured in %s.%n",
+            prop.getKey(), clientConfigFilePath, serverConfigFilePath);
+      } else if (!prop.getValue().equals(serverSiteProps.get(prop.getKey()))) {
+        matches = false;
+        System.err.format("%s is set to %s in %s, but to %s in %s.%n",
+            prop.getKey(), prop.getValue(), clientConfigFilePath,
+            serverSiteProps.get(prop.getKey()), serverConfigFilePath);
       }
     }
     if (!matches) {
       return false;
     }
-    for (Map.Entry<String, String> prop : serverCoreSiteProps.entrySet()) {
-      if (!clientCoreSiteProps.containsKey(prop.getKey())
-          || !prop.getValue().equals(clientCoreSiteProps.get(prop.getKey()))) {
+    for (Map.Entry<String, String> prop : serverSiteProps.entrySet()) {
+      if (!clientSiteProps.containsKey(prop.getKey())) {
         matches = false;
-        System.err.format("For %s, server has %s, but client has %s.%n",
-            prop.getKey(), prop.getValue(), clientCoreSiteProps.get(prop.getKey()));
+        System.err.format("%s is configured in %s, but not configured in %s.%n",
+            prop.getKey(), serverConfigFilePath, clientConfigFilePath);
+      } else if (!prop.getValue().equals(clientSiteProps.get(prop.getKey()))) {
+        matches = false;
+        System.err.format("%s is set to %s in %s, but to %s in %s.%n",
+            prop.getKey(), prop.getValue(), prop.getValue(),
+            clientSiteProps.get(prop.getKey()), clientConfigFilePath);
       }
     }
     return matches;
