@@ -14,7 +14,6 @@ package alluxio.cli.validation;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
 
-import org.apache.commons.cli.Options;
 import com.google.common.collect.ImmutableMap;
 
 import java.util.Map;
