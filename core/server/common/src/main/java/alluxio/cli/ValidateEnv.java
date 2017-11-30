@@ -279,6 +279,10 @@ public final class ValidateEnv {
   public static void printHelp(String message) {
     System.err.println(message);
     System.out.print(USAGE);
+    System.out.println("OPTIONS include the following:");
+    sOptions.getOptions().forEach((entry) -> {
+      System.out.format("%s: %s%n", entry.getOpt(), entry.getDescription());
+    });
   }
 
   /**
