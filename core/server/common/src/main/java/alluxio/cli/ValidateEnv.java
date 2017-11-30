@@ -35,7 +35,6 @@ import org.apache.commons.lang3.ArrayUtils;
 
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.TreeMap;
@@ -63,6 +62,8 @@ public final class ValidateEnv {
       + "If NAME is not given, all tasks for the given TARGET will run.\n\n"
       + "OPTIONS can be a list of command line options. Each option has the"
       + " format \"-<optionName> [optionValue]\"\n";
+
+  private static final Options sOptions = new Options();
 
   private static final Map<ValidationTask, String> TASKS = new HashMap<>();
 
@@ -166,6 +167,10 @@ public final class ValidateEnv {
 
   private static ValidationTask registerTask(String name, ValidationTask task) {
     TASKS.put(task, name);
+    List<Option> optList = task.getOptionList();
+    synchronized (ValidateEnv.class) {
+      optList.forEach(opt -> sOptions.addOption(opt));
+    }
     return task;
   }
 
@@ -221,25 +226,9 @@ public final class ValidateEnv {
       throws InterruptedException {
     int validationCount = 0;
     int failureCount = 0;
-    Collection<ValidationTask> tasks = TARGET_TASKS.get(target);
-    List<ValidationTask> tasksToRun = new ArrayList<>();
-    Options options = new Options();
-    for (ValidationTask task: tasks) {
-      String taskName = TASKS.get(task);
-      if (name != null && !taskName.startsWith(name)) {
-        continue;
-      }
-      task.addOptions(options);
-      tasksToRun.add(task);
-      validationCount++;
-    }
-    if (validationCount == 0) {
-      System.err.format("No validation task matched name \"%s\".%n", name);
-      return false;
-    }
     CommandLine cmd;
     try {
-      cmd = parseArgsAndOptions(options, args);
+      cmd = parseArgsAndOptions(sOptions, args);
     } catch (InvalidArgumentException e) {
       System.err.format("Invalid argument: %s.%n", e.getMessage());
       return false;
@@ -248,16 +237,26 @@ public final class ValidateEnv {
     for (Option opt : cmd.getOptions()) {
       optionsMap.put(opt.getOpt(), opt.getValue());
     }
-    for (ValidationTask task : tasksToRun) {
+    Collection<ValidationTask> tasks = TARGET_TASKS.get(target);
+    for (ValidationTask task: tasks) {
+      String taskName = TASKS.get(task);
+      if (name != null && !taskName.startsWith(name)) {
+        continue;
+      }
       if (task.validate(optionsMap)) {
         System.out.println("OK");
       } else {
         System.out.println("Failed");
         failureCount++;
       }
+      validationCount++;
     }
     if (failureCount > 0) {
       System.err.format("Validation failed. Total failures: %d.%n", failureCount);
+      return false;
+    }
+    if (validationCount == 0) {
+      System.err.format("No validation task matched name \"%s\".%n", name);
       return false;
     }
     System.out.println("Validation succeeded.");

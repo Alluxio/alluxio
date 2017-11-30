@@ -11,7 +11,10 @@
 
 package alluxio.cli.validation;
 
-import org.apache.commons.cli.Options;
+import org.apache.commons.cli.Option;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Abstract class for validation environment.
@@ -21,7 +24,7 @@ public abstract class AbstractValidationTask implements ValidationTask {
    * {@inheritDoc}
    */
   @Override
-  public Options addOptions(Options options) {
-    return options;
+  public List<Option> getOptionList() {
+    return new ArrayList<>();
   }
 }
