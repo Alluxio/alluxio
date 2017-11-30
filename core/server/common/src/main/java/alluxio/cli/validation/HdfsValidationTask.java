@@ -74,9 +74,13 @@ public class HdfsValidationTask extends AbstractValidationTask {
         Configuration.get(PropertyKey.UNDERFS_HDFS_CONFIGURATION).split(":");
     String clientCoreSiteFilePath = clientHaoopConfFilePaths[0];
     String clientHdfsSiteFilePath = clientHaoopConfFilePaths[1];
-    if (clientCoreSiteFilePath == null || clientCoreSiteFilePath.isEmpty()
-        || clientHdfsSiteFilePath == null || clientHdfsSiteFilePath.isEmpty()) {
-      System.err.println("Cannot locate the client-side hadoop configurations,"
+    if (clientCoreSiteFilePath == null || clientCoreSiteFilePath.isEmpty()) {
+      System.err.println("Cannot locate the client-side core-site.xml,"
+          + " skipping validation for HDFS properties.");
+      return true;
+    }
+    if (clientHdfsSiteFilePath == null || clientHdfsSiteFilePath.isEmpty()) {
+      System.err.println("Cannot locate the client-side hdfs-site.xml,"
           + " skipping validation for HDFS properties.");
       return true;
     }

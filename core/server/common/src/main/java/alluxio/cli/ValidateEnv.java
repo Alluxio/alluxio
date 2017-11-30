@@ -87,10 +87,10 @@ public final class ValidateEnv {
 
   // security configuration validations
   private static final ValidationTask MASTER_SECURE_HDFS_VALIDATION_TASK = registerTask(
-      "master.secure.hdfs",
+      "master.hdfs.security",
       new SecureHdfsValidationTask("master"));
   private static final ValidationTask WORKER_SECURE_HDFS_VALIDATION_TASK = registerTask(
-      "worker.secure.hdfs",
+      "worker.hdfs.security",
       new SecureHdfsValidationTask("worker"));
 
   // ssh validations
