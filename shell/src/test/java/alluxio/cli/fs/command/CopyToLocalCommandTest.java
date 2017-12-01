@@ -29,7 +29,7 @@ public class CopyToLocalCommandTest {
   private ByteArrayOutputStream mOutput = new ByteArrayOutputStream();
   private ByteArrayOutputStream mError = new ByteArrayOutputStream();
 
- @Before
+  @Before
   public void setupStreams() {
     System.setOut(new PrintStream(mOutput));
     System.setErr(new PrintStream(mError));
@@ -59,8 +59,8 @@ public class CopyToLocalCommandTest {
   @Test
   public void testgetDescription() throws AlluxioException, IOException {
     CopyToLocalCommand command = new CopyToLocalCommand(null);
-    String expectedRet = "Copies a file or a directory "
-        + "from local filesystem to Alluxio filesystem.";
+    String expectedRet =
+        "Copies a file or a directory " + "from local filesystem to Alluxio filesystem.";
     String ret = command.getDescription();
     Assert.assertEquals(ret, expectedRet);
   }
