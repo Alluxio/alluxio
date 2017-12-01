@@ -974,6 +974,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue("1sec")
           .setDescription("The heartbeat interval between the worker and file system master.")
           .build();
+  public static final PropertyKey WORKER_FREE_SPACE_TIMEOUT =
+      new Builder(Name.WORKER_FREE_SPACE_TIMEOUT)
+          .setDefaultValue("10sec")
+          .setDescription("The duration for which a worker will wait for eviction to make space "
+              + "available for a client write request.")
+          .build();
   public static final PropertyKey WORKER_HOSTNAME = new Builder(Name.WORKER_HOSTNAME)
       .setDescription("The hostname of Alluxio worker.")
       .build();
@@ -2160,6 +2166,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String WORKER_FILE_PERSIST_RATE_LIMIT_ENABLED =
         "alluxio.worker.file.persist.rate.limit.enabled";
     public static final String WORKER_FILE_BUFFER_SIZE = "alluxio.worker.file.buffer.size";
+    public static final String WORKER_FREE_SPACE_TIMEOUT = "alluxio.worker.free.space.timeout";
     public static final String WORKER_HOSTNAME = "alluxio.worker.hostname";
     public static final String WORKER_KEYTAB_FILE = "alluxio.worker.keytab.file";
     public static final String WORKER_MEMORY_SIZE = "alluxio.worker.memory.size";

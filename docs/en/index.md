@@ -70,14 +70,14 @@ and Spark to use Alluxio in place of HDFS.
 
 * **Pluggable Under Storage** To provide fault-tolerance, Alluxio checkpoints data to the
 underlying storage system. It has a generic interface to make plugging different underlayer storage
-systems easy. We currently support Microsoft Azure Blob Store, Amazon S3, Google Cloud Storage, 
+systems easy. We currently support Microsoft Azure Blob Store, Amazon S3, Google Cloud Storage,
 OpenStack Swift, GlusterFS, HDFS, MaprFS, Ceph, NFS, Alibaba OSS, Minio, and single-node local file
 systems, and support for many other file systems is coming.
 
-* **[Tiered Storage](Tiered-Storage-on-Alluxio.html)** With Tiered Storage, Alluxio can manage SSDs
-and HDDs in addition to memory, allowing for larger datasets to be stored in Alluxio. Data will
-automatically be managed between the different tiers, keeping hot data in faster tiers. Custom
-policies are easily pluggable, and a pin concept allows for direct user control.
+* **[Alluxio Storage](Alluxio-Storage.html)** Alluxio can manage memory and local storage such SSDs
+and HDDs to accelerate data access. If finer grained control is required, the tiered storage feature
+can be used to automatically manage data between different tiers, keeping hot data in faster tiers.
+Custom policies are easily pluggable, and a pin concept allows for direct user control.
 
 * **[Unified Namespace](Unified-and-Transparent-Namespace.html)** Alluxio enables effective
 data management across different storage systems through the mount feature. Furthermore,

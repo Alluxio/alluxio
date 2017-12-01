@@ -44,6 +44,8 @@ alluxio.worker.file.persist.rate.limit.enabled:
   'Whether to enable rate limiting when performing asynchronous persistence.'
 alluxio.worker.filesystem.heartbeat.interval:
   'The heartbeat interval between the worker and file system master.'
+alluxio.worker.free.space.timeout:
+  'The duration for which a worker will wait for eviction to make space available for a client write request.'
 alluxio.worker.hostname:
   'The hostname of Alluxio worker.'
 alluxio.worker.keytab.file:
