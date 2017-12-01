@@ -29,6 +29,7 @@ import alluxio.util.network.NetworkAddressUtils.ServiceType;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
+import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
@@ -46,7 +47,7 @@ import java.util.Map;
  * Utility for checking Alluxio environment.
  */
 public final class ValidateEnv {
-  private static final String USAGE = "USAGE: validateEnv TARGET [NAME] [OPTIONS]\n\n"
+  private static final String USAGE = "validateEnv TARGET [NAME] [OPTIONS]\n\n"
       + "Validate environment for Alluxio.\n\n"
       + "TARGET can be one of the following values:\n"
       + "local:   run all validation tasks on local\n"
@@ -74,8 +75,7 @@ public final class ValidateEnv {
 
   // HDFS configuration validations
   private static final ValidationTask HDFS_VALIDATION_TASK = registerTask(
-      "hdfs",
-      new HdfsValidationTask());
+      "ufs.hdfs.config.parity", new HdfsValidationTask());
 
   // port availability validations
   private static final ValidationTask MASTER_RPC_VALIDATION_TASK = registerTask(
@@ -285,12 +285,8 @@ public final class ValidateEnv {
    */
   public static void printHelp(String message) {
     System.err.println(message);
-    System.out.print(USAGE);
-    System.out.println("OPTIONS include the following:");
-    System.out.println("OptionName \tDescription");
-    OPTIONS.getOptions().forEach((entry) -> {
-      System.out.format("%s: \t%s%n", entry.getOpt(), entry.getDescription());
-    });
+    HelpFormatter formatter = new HelpFormatter();
+    formatter.printHelp(USAGE, null, OPTIONS, null, true);
   }
 
   /**
