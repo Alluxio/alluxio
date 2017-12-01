@@ -162,10 +162,10 @@ public final class NettyDataServer implements DataServer {
         "data-server-" + ((mSocketAddress instanceof DomainSocketAddress) ? "domain-socket" :
             "tcp-socket");
     final EventLoopGroup bossGroup = NettyUtils
-        .createEventLoop(type, bossThreadCount, dataServerEventLoopNamePrefix + "-boss-%d", false);
+        .createEventLoop(type, bossThreadCount, dataServerEventLoopNamePrefix + "-boss-%d", true);
     final EventLoopGroup workerGroup = NettyUtils
         .createEventLoop(type, workerThreadCount, dataServerEventLoopNamePrefix + "-worker-%d",
-            false);
+            true);
 
     final Class<? extends ServerChannel> socketChannelClass = NettyUtils.getServerChannelClass(type,
          mSocketAddress instanceof DomainSocketAddress);
