@@ -32,24 +32,6 @@
   <dependencies>
     <!-- External dependencies -->
     <dependency>
-<<<<<<< HEAD
-||||||| merged common ancestors
-      <groupId>com.google.guava</groupId>
-      <artifactId>guava</artifactId>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.codehaus.jackson</groupId>
-      <artifactId>jackson-mapper-asl</artifactId>
-    </dependency>
-    <dependency>
-=======
-      <groupId>com.google.guava</groupId>
-      <artifactId>guava</artifactId>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
->>>>>>> upstream/tiered-locality
       <groupId>org.javaswift</groupId>
       <artifactId>joss</artifactId>
     </dependency>
