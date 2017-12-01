@@ -1319,6 +1319,27 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
 
   //
+  // Locality related properties
+  //
+  public static final PropertyKey LOCALITY_ORDER =
+      new Builder(Name.LOCALITY_ORDER)
+          .setDefaultValue(String.format("%s,%s", Constants.LOCALITY_NODE, Constants.LOCALITY_RACK))
+          .setDescription("Ordering of locality tiers")
+          .build();
+  public static final PropertyKey LOCALITY_SCRIPT =
+      new Builder(Name.LOCALITY_SCRIPT)
+          .setDescription("A script to determine tiered identity for locality checking")
+          .build();
+  public static final PropertyKey LOCALITY_TIER_NODE =
+      new Builder(Template.LOCALITY_TIER, Constants.LOCALITY_NODE)
+          .setDescription("Value to use for determining node locality")
+          .build();
+  public static final PropertyKey LOCALITY_TIER_RACK =
+      new Builder(Template.LOCALITY_TIER, Constants.LOCALITY_RACK)
+          .setDescription("Value to use for determining rack locality")
+          .build();
+
+  //
   // Log server related properties
   //
   public static final PropertyKey LOGSERVER_LOGS_DIR =
@@ -1531,8 +1552,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue("1sec")
           .setDescription("The interval between Alluxio workers' heartbeats.")
           .build();
+  /**
+   * @deprecated use {@link PropertyKey#LOCALITY_TIER_NODE} instead
+   */
+  @Deprecated
   public static final PropertyKey USER_HOSTNAME = new Builder(Name.USER_HOSTNAME)
-      .setDescription("The hostname to use for the client.")
+      .setDescription(String.format("The hostname to use for the client. Note: this property is "
+          + "deprecated. set %s instead", PropertyKey.LOCALITY_TIER_NODE.toString()))
       .build();
   public static final PropertyKey USER_LINEAGE_ENABLED =
       new Builder(Name.USER_LINEAGE_ENABLED)
@@ -2234,6 +2260,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String PROXY_WEB_PORT = "alluxio.proxy.web.port";
 
     //
+    // Locality related properties
+    //
+    public static final String LOCALITY_ORDER = "alluxio.locality.order";
+    public static final String LOCALITY_SCRIPT = "alluxio.locality.script";
+
+    //
     // Log server related properties
     //
     public static final String LOGSERVER_LOGS_DIR = "alluxio.logserver.logs.dir";
@@ -2391,6 +2423,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
    */
   @ThreadSafe
   public enum Template {
+    LOCALITY_TIER("alluxio.locality.%s", "alluxio\\.locality\\.(\\w+)"),
     MASTER_JOURNAL_UFS_OPTION("alluxio.master.journal.ufs.option",
         "alluxio\\.master\\.journal\\.ufs\\.option"),
     MASTER_JOURNAL_UFS_OPTION_PROPERTY("alluxio.master.journal.ufs.option.%s",
