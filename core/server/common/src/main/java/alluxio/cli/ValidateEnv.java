@@ -99,10 +99,10 @@ public final class ValidateEnv {
 
   // security configuration validations
   private static final ValidationTask MASTER_SECURE_HDFS_VALIDATION_TASK = registerTask(
-      "master.hdfs.security",
+      "master.ufs.hdfs.security.kerberos",
       new SecureHdfsValidationTask("master"));
   private static final ValidationTask WORKER_SECURE_HDFS_VALIDATION_TASK = registerTask(
-      "worker.hdfs.security",
+      "worker.ufs.hdfs.security.kerberos",
       new SecureHdfsValidationTask("worker"));
 
   // ssh validations
@@ -286,7 +286,7 @@ public final class ValidateEnv {
   public static void printHelp(String message) {
     System.err.println(message);
     HelpFormatter formatter = new HelpFormatter();
-    formatter.printHelp(USAGE, null, OPTIONS, null, true);
+    formatter.printHelp(USAGE, OPTIONS, true);
   }
 
   /**
