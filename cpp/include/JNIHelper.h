@@ -81,8 +81,8 @@ class JniHelper {
   // Gets JNIEnv object of current thread, created if not set
   static JNIEnv* GetEnv();
   // Sets JNI environment. Must be called once before  JNI operations. The
-  // CLASSPATH environment must has the alluxio client jar file path. Can be
-  // set by run alluxio-client-env.sh
+  // CLASSPATH environment must has the alluxio client jar file path. See
+  // README.md
   static void Start() {
     JNIEnv *env;
     JavaVM *jvm;
