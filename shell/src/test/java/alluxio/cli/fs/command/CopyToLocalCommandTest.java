@@ -57,11 +57,10 @@ public class CopyToLocalCommandTest {
   }
 
   @Test
-  public void testgetDescription() throws AlluxioException, IOException {
+  public void testgetUsage() throws AlluxioException, IOException {
     CopyToLocalCommand command = new CopyToLocalCommand(null);
-    String expectedRet =
-        "Copies a file or a directory from the Alluxio filesystem to the local filesystem.";
-    String ret = command.getDescription();
+    String expectedRet = "copyToLocal <src> <localDst>";
+    String ret = command.getUsage();
     Assert.assertEquals(ret, expectedRet);
   }
 }
