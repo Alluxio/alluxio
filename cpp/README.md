@@ -23,7 +23,7 @@ make
 - You will get a static link library libfilesystem.a, a shared link library 
 libsharedfilesystem.so in cpp/build/src and an execuable file FileSystemTest in
 cpp/bin, you can link .a or .so file to your own cpp project. when calling 
-alluxio cpp API, you need to add this
+alluxio cpp API, you need to add .h file to your file
 ```
 #include <FileSystem.h>
 ```
