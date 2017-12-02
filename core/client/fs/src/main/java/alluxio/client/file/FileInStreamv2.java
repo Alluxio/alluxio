@@ -69,7 +69,7 @@ public class FileInStreamv2 extends InputStream implements Seekable {
 
   @Override
   public int read() throws IOException {
-    if (mPosition == mLength) {
+    if (mPosition == mLength) { // at end of file
       return -1;
     }
     updateStream();
@@ -144,14 +144,14 @@ public class FileInStreamv2 extends InputStream implements Seekable {
       return;
     }
 
-    long delta = mPosition - pos;
+    long delta = pos - mPosition;
     long fromBlockStart = Math.min(mLength, mBlockSize) - mBlockInStream.remaining();
     long fromBlockEnd = mBlockInStream.remaining();
 
     if (delta <= fromBlockEnd && delta >= -fromBlockStart) { // seek is within the current block
       mBlockInStream.seek(delta);
       mPosition += delta;
-    } else { // close the underlying stream as it is no longer in bounds
+    } else { // close the underlying stream as the new position is no longer in bounds
       closeBlockInStream();
       mPosition += delta;
     }
