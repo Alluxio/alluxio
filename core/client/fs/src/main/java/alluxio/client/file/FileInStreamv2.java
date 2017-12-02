@@ -172,7 +172,7 @@ public class FileInStreamv2 extends InputStream implements Seekable {
 
     /* Create a new stream to read from mPosition. */
     // Calculate block id.
-    int blockIndex = Math.toIntExact(mPosition % mBlockSize);
+    int blockIndex = Math.toIntExact(mPosition / mBlockSize);
     long blockId = mStatus.getBlockIds().get(blockIndex);
     // If the file is persisted, provide the necessary info for the worker to fetch from UFS.
     Protocol.OpenUfsBlockOptions ufsOptions = null;
@@ -191,6 +191,9 @@ public class FileInStreamv2 extends InputStream implements Seekable {
     }
 
     mBlockInStream = mBlockStore.getInStream(blockId, ufsOptions, mOptions);
+    // Set the stream to the correct position.
+    long offset = mPosition % mBlockSize;
+    mBlockInStream.seek(offset);
   }
 
   private void closeBlockInStream() throws IOException {
