@@ -150,11 +150,10 @@ public class FileInStreamv2 extends InputStream implements Seekable {
 
     if (delta <= fromBlockEnd && delta >= -fromBlockStart) { // seek is within the current block
       mBlockInStream.seek(delta);
-      mPosition += delta;
     } else { // close the underlying stream as the new position is no longer in bounds
       closeBlockInStream();
-      mPosition += delta;
     }
+    mPosition += delta;
   }
 
   /**
