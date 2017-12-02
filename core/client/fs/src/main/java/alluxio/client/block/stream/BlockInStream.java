@@ -345,7 +345,7 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
   /**
    * @return the source of the block location
    */
-  public BlockInStreamSource Source() {
+  public BlockInStreamSource getSource() {
     return mInStreamSource;
   }
 
