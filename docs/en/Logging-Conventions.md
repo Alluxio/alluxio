@@ -1,7 +1,7 @@
 ---
 layout: global
-title: Logging Conventions
-nickname: Logging Conventions
+title: Logging Conventions And Tips
+nickname: Logging Conventions And Tips
 group: Resources
 ---
 
@@ -40,7 +40,7 @@ Trace Level Logging
 
 * Trace level logs are not used in Alluxio.
 
-## Configuration
+## Logging Configuration
 
 Alluxio's logging behavior can be fully configured through the `log4j.properties` file found in the
 `conf` folder.
@@ -140,3 +140,7 @@ And the following command gets all workers' log level on class `alluxio.heartbea
 ```bash
 alluxio logLevel --logName=alluxio.heartbeat.HeartbeatContext --target=workers
 ```
+
+### Client-side Logging Configuration
+
+Often it's useful to change the logLevel of the Alluxio client running in the compute framework (e.g. Spark, Presto) process, and save it to a file for debugging. To achieve this, you can pass the following Java options to the compute framework process. For example, the options `-Dalluxio.logs.dir=/var/alluxio/ -Dalluxio.logger.type=USER_LOGGER -Dlog4j.configuration=/tmp/alluxio/conf/log4j.properties` will instruct Alluxio client to use the log4j configuration in the Alluxio's conf path and output the log to a file `user_time.log` at the path `/var/alluxio/`. 
