@@ -50,7 +50,7 @@ $ ./bin/alluxio fs mount --option fs.azure.account.key.AZURE_ACCOUNT.blob.core.w
   /mnt/azure wasb://AZURE_CONTAINER@AZURE_ACCOUNT.blob.core.windows.net/AZURE_DIRECTORY/
 ```
 
-完成这些修改后，Alluxio应该已经配置好以使用Azure Blob Store作为底层存储系统，你可以试着使用它本地运行Alluxio。
+完成这些修改后，Alluxio应该已经配置好以使用Azure Blob Store作为底层存储系统，你可以使用它本地运行Alluxio。
 
 ## 使用Azure Blob Store本地运行Alluxio
 

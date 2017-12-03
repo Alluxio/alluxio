@@ -34,6 +34,7 @@ alluxio.master.port,19998
 alluxio.master.principal,
 alluxio.master.retry,${alluxio.user.rpc.retry.max.num.retry}
 alluxio.master.startup.consistency.check.enabled,true
+alluxio.master.thrift.shutdown.timeout,60sec
 alluxio.master.tieredstore.global.level0.alias,MEM
 alluxio.master.tieredstore.global.level1.alias,SSD
 alluxio.master.tieredstore.global.level2.alias,HDD

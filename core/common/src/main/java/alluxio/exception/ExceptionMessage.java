@@ -88,10 +88,14 @@ public enum ExceptionMessage {
   MOVE_UNCOMMITTED_BLOCK("Cannot move uncommitted blockId {0,number,#}"),
   NO_BLOCK_ID_FOUND("blockId {0,number,#} not found"),
   NO_EVICTION_PLAN_TO_FREE_SPACE("No eviction plan by evictor to free space"),
-  NO_SPACE_FOR_BLOCK_ALLOCATION(
-      "Failed to allocate {0,number,#} bytes after {1} retries for blockId {2,number,#}"),
-  NO_SPACE_FOR_BLOCK_MOVE(
-      "Failed to find space in {0} to move blockId {1,number,#} after {2} retries"),
+  NO_SPACE_FOR_BLOCK_ALLOCATION_TIMEOUT(
+      "Failed to allocate {0,number,#} bytes after {1}ms for blockId {2,number,#}"),
+  NO_SPACE_FOR_BLOCK_ALLOCATION_RETRIES_EXCEEDED(
+      "Failed to allocate {0,number,#} bytes after {1} attempts for blockId {2,number,#}"),
+  NO_SPACE_FOR_BLOCK_MOVE_TIMEOUT(
+      "Failed to find space in {0} to move blockId {1,number,#} after {2}ms"),
+  NO_SPACE_FOR_BLOCK_MOVE_RETRIES_EXCEEDED(
+      "Failed to find space in {0} to move blockId {1,number,#} after {2} attempts"),
   REMOVE_UNCOMMITTED_BLOCK("Cannot remove uncommitted blockId {0,number,#}"),
   TEMP_BLOCK_ID_COMMITTED(
       "Temp blockId {0,number,#} is not available, because it is already committed"),

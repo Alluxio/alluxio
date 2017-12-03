@@ -21,7 +21,6 @@ import alluxio.wire.LogInfo;
 import alluxio.wire.WorkerNetAddress;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
@@ -32,11 +31,12 @@ import org.apache.commons.cli.ParseException;
 import org.apache.commons.lang.StringUtils;
 import org.apache.http.client.utils.URIBuilder;
 
-import javax.annotation.concurrent.NotThreadSafe;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+
+import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * Sets or gets the log level for the specified server.
@@ -136,7 +136,7 @@ public final class LogLevel {
         targetInfoList.add(new TargetInfo(masterHost, masterPort, ROLE_MASTER));
       } else if (target.equals(ROLE_WORKERS)) {
         AlluxioBlockStore alluxioBlockStore = AlluxioBlockStore.create();
-        List<BlockWorkerInfo> workerInfoList = alluxioBlockStore.getWorkerInfoList();
+        List<BlockWorkerInfo> workerInfoList = alluxioBlockStore.getAllWorkers();
         for (BlockWorkerInfo workerInfo : workerInfoList) {
           WorkerNetAddress netAddress = workerInfo.getNetAddress();
           targetInfoList.add(

@@ -55,23 +55,15 @@ alluxio_env_vars=(
   ALLUXIO_WORKER_JAVA_OPTS
 )
 
-# Map of environment variables that violate the "_ to ."-rule
-declare -A alluxio_env_violators=(
-  ["ALLUXIO_UNDERFS_S3A_INHERIT_ACL"]="alluxio.underfs.s3a.inherit_acl"
-  ["ALLUXIO_MASTER_FORMAT_FILE_PREFIX"]="alluxio.master.format.file_prefix"
-)
-
-for keyvaluepair in $(env | grep "ALLUXIO_"); do
+for keyvaluepair in $(env); do
   # split around the "="
   key=$(echo ${keyvaluepair} | cut -d= -f1)
-  value=$(echo ${keyvaluepair} | cut -d= -f2)
+  value=$(echo ${keyvaluepair} | cut -d= -f2-)
   if [[ "${alluxio_env_vars[*]}" =~ "${key}" ]]; then
     echo "export ${key}=${value}" >> conf/alluxio-env.sh
   else
-    if [[ "${!alluxio_env_violators[*]}" =~ "${key}" ]]; then
-      echo "${alluxio_env_violators[${key}]}=${value}" >> conf/alluxio-site.properties
-    else
-      confkey=$(echo ${key} | sed "s/_/./g" | tr '[:upper:]' '[:lower:]')
+    # check if property name is valid
+    if confkey=$(bin/alluxio runClass alluxio.cli.GetConfKey ${key} 2> /dev/null); then
       echo "${confkey}=${value}" >> conf/alluxio-site.properties
     fi
   fi
