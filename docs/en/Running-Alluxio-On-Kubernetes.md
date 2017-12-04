@@ -32,10 +32,9 @@ The kubernetes specifications required to deploy Alluxio can be found under `int
 
 ## Short-circuit operations
 
-In the tutorial, we set up a shared ramdisk between the host system and the worker container.
-This enables clients to perform read and write operations directly against the ramdisk instead
-of having to go through the worker process. Setup a domain socket on all hosts eligible to run 
-the Alluxio worker process.
+Short-circuit writes enable clients to perform read and write operations directly against the 
+worker memory instead of having to go through the worker process. Setup a domain socket on all hosts
+eligible to run the Alluxio worker process to enable this mode of operation.
 
 From the host machine, create a directory for the shared domain socket.
 ```bash
