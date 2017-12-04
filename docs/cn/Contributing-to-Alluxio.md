@@ -67,7 +67,6 @@ group: Resources
 ~~~~~
 
 #### 测试
--   一些测试需要安装libfuse。确保你已经安装了[本页]中所提到的正确的库(Mounting-Alluxio-FS-with-FUSE.html#requirements)。
 
 -   使用``mvn test``命令运行所有单元测试（会将本地文件系统作为底层文件系统，在HDFS模块中将HDFS 1.0.4作为底层文件系统），``mvn -Dhadoop.version=2.4.0 test``命令将HDFS 2.4.0作为HDFS模块中的底层文件系统。
 
@@ -82,6 +81,8 @@ group: Resources
 -   使用不同的Hadoop版本进行测试，运行``mvn -Dhadoop.version=2.2.0 clean test``。
 
 -   要进行Hadoop文件系统的契约式设计测试（用hadoop 2.6.0），运行：`mvn -PcontractTest clean test`。
+
+-   如果libfuse库丢失，测试将被忽略。要运行这些测试，请安装[本页]中所提到的正确的库(Mounting-Alluxio-FS-with-FUSE.html#requirements)。
 
 #### 编码风格
 
