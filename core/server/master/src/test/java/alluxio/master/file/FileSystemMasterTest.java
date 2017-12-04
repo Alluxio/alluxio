@@ -93,7 +93,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
@@ -1884,6 +1883,27 @@ public final class FileSystemMasterTest {
     assertFalse(noSuchUfsInfo.isSetUri());
     assertFalse(noSuchUfsInfo.isSetProperties());
   }
+
+  /**
+   * Tests that setting the ufs fingerprint persists across restarts.
+   */
+  @Test
+  public void setUfsFingerprintReplay() throws Exception {
+    String fingerprint = "FINGERPRINT";
+    createFileWithSingleBlock(NESTED_FILE_URI);
+
+    mFileSystemMaster.setAttribute(NESTED_FILE_URI,
+        SetAttributeOptions.defaults().setUfsFingerprint(fingerprint));
+
+    // Simulate restart.
+    stopServices();
+    startServices();
+
+    assertEquals(fingerprint,
+        mFileSystemMaster.getFileInfo(NESTED_FILE_URI, GetStatusOptions.defaults())
+            .getUfsFingerprint());
+  }
+
 
   private long createFileWithSingleBlock(AlluxioURI uri) throws Exception {
     mFileSystemMaster.createFile(uri, mNestedFileOptions);
