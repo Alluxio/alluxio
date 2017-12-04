@@ -2915,6 +2915,9 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     if (options.getMode() != Constants.INVALID_MODE) {
       builder.setPermission(options.getMode());
     }
+    if (!options.getUfsFingerprint().equals(Constants.INVALID_UFS_FINGERPRINT)) {
+      builder.setUfsFingerprint(options.getUfsFingerprint());
+    }
     journalContext.append(JournalEntry.newBuilder().setSetAttribute(builder).build());
   }
 
