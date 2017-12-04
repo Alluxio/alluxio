@@ -57,7 +57,7 @@ $ kubectl create -f alluxio-pv-volume.yaml
 
 ## Alluxio Configuration Properties
 Alluxio containers in Kubernetes use environment variables to set Alluxio properties. Refer to 
-[docker configuration](Running-Alluxio-On-Docker.html) for the corresponding environement variable
+[docker configuration](Running-Alluxio-On-Docker.html) for the corresponding environment variable
 name for Alluxio properties in `conf/alluxio-site.properties`.
 
 Define all  environment variables in a single file and create a `ConfigMap`.
