@@ -32,7 +32,7 @@ The kubernetes specifications required to deploy Alluxio can be found under `int
 
 ## Short-circuit operations
 
-Short-circuit writes enable clients to perform read and write operations directly against the 
+Short-circuit access enable clients to perform read and write operations directly against the 
 worker memory instead of having to go through the worker process. Setup a domain socket on all hosts
 eligible to run the Alluxio worker process to enable this mode of operation.
 
