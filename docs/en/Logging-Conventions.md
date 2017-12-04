@@ -148,4 +148,4 @@ framework process.
 
 For example, the options `-Dalluxio.logs.dir=/var/alluxio/ -Dalluxio.logger.type=USER_LOGGER -Dlog4j.configuration=/tmp/
 alluxio/conf/log4j.properties` will instruct Alluxio client to use the log4j configuration in the Alluxio's conf path and 
-output the log to a file `user_time.log` at the path `/var/alluxio/`. 
+output the log to a file `user_USER_NAME.log` at the path `/var/alluxio/`, where `USER_NAME` is the user that starts the client program. If the client is not on the same machine where Alluxio is installed, you can make a copy of the file in `conf/log4j.properties` to the client machine, and pass its path to the option `log4j.configuration`.
