@@ -51,7 +51,7 @@ once claimed, is persisted across restarts of the master process. Prepare a pers
 hosts eligible to run the Alluxio master process.
 
 ```bash
-$ mv alluxio-pv-volume.yaml.template alluxio-pv-volume.yaml
+$ cp alluxio-pv-volume.yaml.template alluxio-pv-volume.yaml
 $ kubectl create -f alluxio-pv-volume.yaml
 ```
 
@@ -62,7 +62,7 @@ name for Alluxio properties in `conf/alluxio-site.properties`.
 
 Define all  environment variables in a single file and create a `ConfigMap`.
 ```bash
-$ mv conf/alluxio.properties.template conf/alluxio.properties
+$ cp conf/alluxio.properties.template conf/alluxio.properties
 $ kubectl create configmap alluxio-config --from-file=ALLUXIO_CONFIG=conf/alluxio.properties
 ```
 
@@ -70,7 +70,9 @@ $ kubectl create configmap alluxio-config --from-file=ALLUXIO_CONFIG=conf/alluxi
 
 Once all the pre-requisites and configuration have been setup, deploy Alluxio.
 ```bash
+$ cp alluxio-master.yaml.template alluxio-master.yaml
 $ kubectl create -f alluxio-master.yaml
+$ cp alluxio-worker.yaml.template alluxio-worker.yaml
 $ kubectl create -f alluxio-worker.yaml
 ```
 
