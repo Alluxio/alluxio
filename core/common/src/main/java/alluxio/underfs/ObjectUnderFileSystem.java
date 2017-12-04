@@ -88,23 +88,35 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
    * Information about a single object in object UFS.
    */
   protected class ObjectStatus {
+    private static final String INVALID_CONTENT_HASH = "";
     private static final long INVALID_CONTENT_LENGTH = -1L;
     private static final long INVALID_MODIFIED_TIME = -1L;
 
+    private final String mContentHash;
     private final long mContentLength;
     private final long mLastModifiedTimeMs;
     private final String mName;
 
-    public ObjectStatus(String name, long contentLength, long lastModifiedTimeMs) {
+    public ObjectStatus(String name, String contentHash, long contentLength,
+        long lastModifiedTimeMs) {
+      mContentHash = contentHash;
       mContentLength = contentLength;
       mLastModifiedTimeMs = lastModifiedTimeMs;
       mName = name;
     }
 
     public ObjectStatus(String name) {
+      mContentHash = INVALID_CONTENT_HASH;
       mContentLength = INVALID_CONTENT_LENGTH;
       mLastModifiedTimeMs = INVALID_MODIFIED_TIME;
       mName = name;
+    }
+
+    /**
+     * @return the hash of the content
+     */
+    public String getContentHash() {
+      return mContentHash;
     }
 
     /**
@@ -431,8 +443,9 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
     ObjectStatus details = getObjectStatus(stripPrefixIfPresent(path));
     if (details != null) {
       ObjectPermissions permissions = getPermissions();
-      return new UfsFileStatus(path, details.getContentLength(), details.getLastModifiedTimeMs(),
-          permissions.getOwner(), permissions.getGroup(), permissions.getMode());
+      return new UfsFileStatus(path, details.getContentHash(), details.getContentLength(),
+          details.getLastModifiedTimeMs(), permissions.getOwner(), permissions.getGroup(),
+          permissions.getMode());
     } else {
       LOG.warn("Error fetching file status, assuming file {} does not exist", path);
       throw new FileNotFoundException(path);
@@ -819,8 +832,9 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
         } else {
           // Child is a file
           children.put(child,
-              new UfsFileStatus(child, status.getContentLength(), status.getLastModifiedTimeMs(),
-                  permissions.getOwner(), permissions.getGroup(), permissions.getMode()));
+              new UfsFileStatus(child, status.getContentHash(), status.getContentLength(),
+                  status.getLastModifiedTimeMs(), permissions.getOwner(), permissions.getGroup(),
+                  permissions.getMode()));
         }
       }
       // Handle case (2)
