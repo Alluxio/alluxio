@@ -21,12 +21,9 @@ import alluxio.Process;
 import alluxio.PropertyKey;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileSystem;
-import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.master.AlluxioMasterProcess;
-import alluxio.master.MasterInquireClient;
 import alluxio.master.MasterProcess;
-import alluxio.master.SingleMasterInquireClient;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.worker.AlluxioWorkerProcess;
 import alluxio.worker.WorkerProcess;
@@ -90,9 +87,7 @@ public class LocalFirstPolicyIntegrationTest extends BaseIntegrationTest {
     worker1.waitForReady();
     worker2.waitForReady();
 
-    MasterInquireClient inquireClient = new SingleMasterInquireClient(master.getRpcAddress());
-    FileSystemContext context = FileSystemContext.create(null, inquireClient);
-    FileSystem fs = FileSystem.Factory.get(context);
+    FileSystem fs = FileSystem.Factory.get();
 
     // Write to the worker in node1
     {

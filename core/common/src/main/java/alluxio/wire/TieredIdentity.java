@@ -19,6 +19,7 @@ import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 
+import java.io.Serializable;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -30,7 +31,9 @@ import javax.annotation.Nullable;
  * identifying network topology, e.g. (host: hostname, rack: rack1).
  */
 @PublicApi
-public final class TieredIdentity {
+public final class TieredIdentity implements Serializable {
+  private static final long serialVersionUID = -1920596090085594788L;
+
   private final List<LocalityTier> mTiers;
 
   /**
@@ -135,7 +138,9 @@ public final class TieredIdentity {
   /**
    * Class representing a locality tier, e.g. (host: hostname).
    */
-  public static final class LocalityTier {
+  public static final class LocalityTier implements Serializable {
+    private static final long serialVersionUID = 7078638137905293841L;
+
     private final String mTierName;
     private final String mValue;
 
