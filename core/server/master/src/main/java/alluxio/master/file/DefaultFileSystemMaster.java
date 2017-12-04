@@ -3066,6 +3066,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
             }
           }
           // Retrieve the ufs fingerprint after the ufs changes.
+          // TODO(gpang): update fingerprint from previous, since contents did not change.
           try {
             options.setUfsFingerprint(ufs.getFingerprint(ufsUri));
           } catch (IOException e) {
