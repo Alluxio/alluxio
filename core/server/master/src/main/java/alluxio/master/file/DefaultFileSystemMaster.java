@@ -1939,6 +1939,27 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         RenameEntry.newBuilder().setId(srcInode.getId()).setDstPath(dstInodePath.getUri().getPath())
             .setOpTimeMs(options.getOperationTimeMs()).build();
     journalContext.append(JournalEntry.newBuilder().setRename(rename).build());
+
+    // After the rename, retrieve the ufs fingerprint.
+    // Directory renames do not support re-retrieval of fingerprint, because of recursive calls.
+    if (srcInode.isFile()) {
+      MountTable.Resolution resolution = mMountTable.resolve(dstInodePath.getUri());
+      String ufsDstUri = resolution.getUri().toString();
+      UnderFileSystem ufs = resolution.getUfs();
+      String fingerprint = ufs.getFingerprint(ufsDstUri);
+      if (!fingerprint.equals(srcInode.getUfsFingerprint())) {
+        SetAttributeOptions setAttrOptions =
+            SetAttributeOptions.defaults().setUfsFingerprint(fingerprint);
+        try {
+          setAttributeInternal(srcInodePath, false, options.getOperationTimeMs(), setAttrOptions);
+        } catch (AccessControlException e) {
+          // unexpected, since only the fingerprint is being set
+          LOG.warn("Unexpected error: ", e.toString());
+        }
+        journalSetAttribute(srcInodePath, options.getOperationTimeMs(), setAttrOptions,
+            journalContext);
+      }
+    }
   }
 
   /**
