@@ -295,7 +295,8 @@ public interface UnderFileSystem extends Closeable {
 
   /**
    * Computes and returns a fingerprint for the path. The fingerprint is used to determine if two
-   * UFS files are identical.
+   * UFS files are identical. The fingerprint must be deterministic, and must not change if a
+   * file is only renamed (identical content and permissions).
    *
    * @param path the path to compute the fingerprint for
    * @return the string representing the fingerprint

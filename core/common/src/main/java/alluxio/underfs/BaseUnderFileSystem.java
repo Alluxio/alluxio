@@ -83,8 +83,7 @@ public abstract class BaseUnderFileSystem implements UnderFileSystem {
       if (isFile(path)) {
         UfsFileStatus fileStatus = getFileStatus(path);
         helper.add("type", "file");
-        helper.add("length", fileStatus.getContentLength());
-        helper.add("lastModified", fileStatus.getLastModifiedTime());
+        helper.add("hash", fileStatus.getContentHash());
         helper.add("owner", fileStatus.getOwner());
         helper.add("group", fileStatus.getGroup());
         helper.add("mode", fileStatus.getMode());
