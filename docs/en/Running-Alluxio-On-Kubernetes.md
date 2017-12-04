@@ -78,12 +78,12 @@ $ kubectl create -f alluxio-worker.yaml
 
 Verify status of the Alluxio deployment.
 ```bash
-kubectl get pods
+$ kubectl get pods
 ```
 
 If using peristent volumes for Alluxio master, the status of the volume should change to `CLAIMED`.
 ```bash
-kubectl get pv alluxio-pv-volume
+$ kubectl get pv alluxio-pv-volume
 ```
 
 ## Verify
