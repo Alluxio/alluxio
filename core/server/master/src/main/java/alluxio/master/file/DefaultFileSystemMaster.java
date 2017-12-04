@@ -1043,7 +1043,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         ufs.getFingerprint(resolvedUri.toString());
       } catch (IOException e) {
         // Ignore error
-        LOG.warn("Failed to retrieve UFS file status for: {} error: {}", resolvedUri, e.toString());
+        LOG.warn("Failed to retrieve UFS fingerprint for: {} error: {}", resolvedUri, e.toString());
       }
     }
 
@@ -3018,9 +3018,6 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         inode.setTtlAction(options.getTtlAction());
       }
     }
-    if (!options.getUfsFingerprint().equals(Constants.INVALID_UFS_FINGERPRINT)) {
-      inode.setUfsFingerprint(options.getUfsFingerprint());
-    }
     if (options.getPersisted() != null) {
       Preconditions.checkArgument(inode.isFile(), PreconditionMessage.PERSIST_ONLY_FOR_FILE);
       Preconditions.checkArgument(((InodeFile) inode).isCompleted(),
@@ -3068,8 +3065,17 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
                   + " . Aborting the setAttribute operation in Alluxio.", e);
             }
           }
+          // Retrieve the ufs fingerprint after the ufs changes.
+          try {
+            options.setUfsFingerprint(ufs.getFingerprint(ufsUri));
+          } catch (IOException e) {
+            LOG.warn("Failed to retrieve UFS fingerprint for: {} error: {}", ufsUri, e.toString());
+          }
         }
       }
+    }
+    if (!options.getUfsFingerprint().equals(Constants.INVALID_UFS_FINGERPRINT)) {
+      inode.setUfsFingerprint(options.getUfsFingerprint());
     }
     // Only commit the set permission to inode after the propagation to UFS succeeded.
     if (options.getOwner() != null) {
