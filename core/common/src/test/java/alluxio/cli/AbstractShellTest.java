@@ -11,9 +11,11 @@
 
 package alluxio.cli;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
 import com.google.common.collect.ImmutableMap;
 import org.apache.commons.cli.CommandLine;
-import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -60,18 +62,18 @@ public final class AbstractShellTest {
   @Test
   public void commandExists() throws Exception {
     TestShell shell = new TestShell();
-    Assert.assertEquals(0, shell.run("cmd"));
+    assertEquals(0, shell.run("cmd"));
   }
 
   @Test
   public void commandAliasExists() throws Exception {
     TestShell shell = new TestShell();
-    Assert.assertEquals(0, shell.run("cmdAlias"));
+    assertEquals(0, shell.run("cmdAlias"));
   }
 
   @Test
   public void commandDoesNotExist() throws Exception {
     TestShell shell = new TestShell();
-    Assert.assertTrue(shell.run("cmdNotExist") < 0);
+    assertTrue(shell.run("cmdNotExist") < 0);
   }
 }
