@@ -84,6 +84,8 @@ If using peristent volumes for Alluxio master, the status of the volume should c
 kubectl get pv alluxio-pv-volume
 ```
 
+## Verify
+
 Once ready, access the Alluxio CLI and run basic I/O tests.
 ```bash
 $ kubectl exec -ti alluxio-master-0 /bin/bash
