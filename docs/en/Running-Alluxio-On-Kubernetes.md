@@ -7,7 +7,7 @@ priority: 3
 ---
 
 Alluxio can be run on Kubernetes. This guide demonstrates how to run Alluxio
-on Kubernetes using a the specification that comes in the Alluxio Github repository.
+on Kubernetes using the specification that comes in the Alluxio Github repository.
 
 # Basic Tutorial
 
