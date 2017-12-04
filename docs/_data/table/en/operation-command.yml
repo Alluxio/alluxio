@@ -78,7 +78,7 @@ setTtl:
   Set the TTL (time to live) in milliseconds for a file. Allow to perform either "delete"
   or "free" after expiry of ttl interval.
 stat:
-  Displays info for the specified path both file and directory.
+  Display info for the specified file or directory.
 tail:
   Print the last 1KB of the specified file to the console.
 test:
