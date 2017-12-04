@@ -1,0 +1,94 @@
+---
+layout: global
+title: Running Alluxio on Kubernetes
+nickname: Alluxio on Kubernetes
+group: Deploying Alluxio
+priority: 3
+---
+
+Alluxio can be run on Kubernetes. This guide demonstrates how to run Alluxio
+on Kubernetes using a the specification that comes in the Alluxio Github repository.
+
+# Basic Tutorial
+
+This tutorial walks through a basic Alluxio setup on Kubernetes.
+
+## Prerequisites
+
+- A Kubernetes cluster (version >= 1.8). Alluxio workers will use `emptyDir` volumes with a 
+restricted size using the `sizeLimit` parameter. This is an alpha feature in Kubernetes 1.8.
+Please ensure the feature is enabled.
+- An Alluxio docker image. Refer to [this page](Running-Alluxio-On-Docker.html) for instructions
+to build an image.
+
+## Clone the Alluxio repo
+
+```bash
+$ git clone https://github.com/Alluxio/alluxio.git
+$ cd integration/kubernetes
+```
+
+The kubernetes specifications required to deploy Alluxio can be found under `integration/kubernetes`.
+
+## Short-circuit operations
+
+In the tutorial, we set up a shared ramdisk between the host system and the worker container.
+This enables clients to perform read and write operations directly against the ramdisk instead
+of having to go through the worker process. Setup a domain socket on all hosts eligible to run 
+the Alluxio worker process.
+
+From the host machine, create a directory for the shared domain socket.
+```bash
+$ mkdir /tmp/domain
+$ chmod a+w /tmp/domain
+$ touch /tmp/domain/d
+$ chmod a+w /tmp/domain/d
+```
+
+## Journal Volume
+
+Alluxio master can be configured to use a persistent volume for storing the journal. The volume,
+once claimed, is persisted across restarts of the master process. Prepare a persistent volume on 
+hosts eligible to run the Alluxio master process.
+
+```bash
+$ mv alluxio-pv-volume.yaml.template alluxio-pv-volume.yaml
+$ kubectl create -f alluxio-pv-volume.yaml
+```
+
+## Alluxio Configuration Properties
+Alluxio containers in Kubernetes use environment variables to set Alluxio properties. Refer to 
+[docker configuration](Running-Alluxio-On-Docker.html) for the corresponding environement variable
+name for Alluxio properties in `conf/alluxio-site.properties`.
+
+Define all  environment variables in a single file and create a `ConfigMap`.
+```bash
+$ mv conf/alluxio.properties.template conf/alluxio.properties
+$ kubectl create configmap alluxio-config --from-file=ALLUXIO_CONFIG=conf/alluxio.properties
+```
+
+## Deploy
+
+Once all the pre-requisites and configuration have been setup, deploy Alluxio.
+```bash
+$ kubectl create -f alluxio-master.yaml
+$ kubectl create -f alluxio-worker.yaml
+```
+
+Verify status of the Alluxio deployment.
+```bash
+kubectl get pods
+```
+
+If using peristent volumes for Alluxio master, the status of the volume should change to `CLAIMED`.
+```bash
+kubectl get pv alluxio-pv-volume
+```
+
+Once ready, access the Alluxio CLI and run basic I/O tests.
+```bash
+$ kubectl exec -ti alluxio-master-0 /bin/bash
+
+$ cd /opt/alluxio
+$ ./bin/alluxio runTests
+```
