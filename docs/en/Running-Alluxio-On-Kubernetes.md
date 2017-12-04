@@ -94,7 +94,7 @@ $ kubectl exec -ti alluxio-master-0 /bin/bash
 ```
 
 From the master pod, execute the following:
-```
+```bash
 $ cd /opt/alluxio
 $ ./bin/alluxio runTests
 ```
