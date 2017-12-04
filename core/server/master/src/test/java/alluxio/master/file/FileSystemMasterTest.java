@@ -1904,7 +1904,6 @@ public final class FileSystemMasterTest {
             .getUfsFingerprint());
   }
 
-
   private long createFileWithSingleBlock(AlluxioURI uri) throws Exception {
     mFileSystemMaster.createFile(uri, mNestedFileOptions);
     long blockId = mFileSystemMaster.getNewBlockIdForFile(uri);
