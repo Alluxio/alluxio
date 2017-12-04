@@ -88,10 +88,13 @@ $ kubectl get pv alluxio-pv-volume
 
 ## Verify
 
-Once ready, access the Alluxio CLI and run basic I/O tests.
+Once ready, access the Alluxio CLI from the master pod and run basic I/O tests.
 ```bash
 $ kubectl exec -ti alluxio-master-0 /bin/bash
+```
 
+From the master pod, execute the following:
+```
 $ cd /opt/alluxio
 $ ./bin/alluxio runTests
 ```
