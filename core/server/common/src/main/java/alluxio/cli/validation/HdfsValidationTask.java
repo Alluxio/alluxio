@@ -13,6 +13,7 @@ package alluxio.cli.validation;
 
 import alluxio.Configuration;
 import alluxio.PropertyKey;
+import alluxio.util.io.PathUtils;
 
 import org.apache.commons.cli.Option;
 
@@ -67,8 +68,8 @@ public class HdfsValidationTask extends AbstractValidationTask {
           + " skipping validation for HDFS properties.");
       return true;
     }
-    String serverCoreSiteFilePath = serverHadoopConfDirPath + "/core-site.xml";
-    String serverHdfsSiteFilePath = serverHadoopConfDirPath + "/hdfs-site.xml";
+    String serverCoreSiteFilePath = PathUtils.concatPath(serverHadoopConfDirPath, "/core-site.xml");
+    String serverHdfsSiteFilePath = PathUtils.concatPath(serverHadoopConfDirPath, "/hdfs-site.xml");
 
     // If Configuration does not contain the key, then a {@link RuntimeException} will be thrown
     // before calling the {@link String#split} method.

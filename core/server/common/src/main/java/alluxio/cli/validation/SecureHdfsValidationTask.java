@@ -34,12 +34,16 @@ public final class SecureHdfsValidationTask extends HdfsValidationTask {
   private static final Pattern PRINCIPAL_PATTERN =
       Pattern.compile("(?<primary>[\\w][\\w-]*\\$?)(/(?<instance>[\\w]+))?(@(?<realm>[\\w]+))?");
 
+  private static final String PRINCIPAL_MAP_MASTER_KEY = "master";
+
+  private static final String PRINCIPAL_MAP_WORKER_KEY = "worker";
+
   private static final Map<String, PropertyKey> PRINCIPAL_MAP = ImmutableMap.of(
-      "master", PropertyKey.MASTER_PRINCIPAL,
-      "worker", PropertyKey.WORKER_PRINCIPAL);
+      PRINCIPAL_MAP_MASTER_KEY, PropertyKey.MASTER_PRINCIPAL,
+      PRINCIPAL_MAP_WORKER_KEY, PropertyKey.WORKER_PRINCIPAL);
   private static final Map<String, PropertyKey> KEYTAB_MAP = ImmutableMap.of(
-      "master", PropertyKey.MASTER_KEYTAB_KEY_FILE,
-      "worker", PropertyKey.WORKER_KEYTAB_FILE);
+      PRINCIPAL_MAP_MASTER_KEY, PropertyKey.MASTER_KEYTAB_KEY_FILE,
+      PRINCIPAL_MAP_WORKER_KEY, PropertyKey.WORKER_KEYTAB_FILE);
 
   private final String mProcess;
 
@@ -67,21 +71,17 @@ public final class SecureHdfsValidationTask extends HdfsValidationTask {
   private boolean validatePrincipalLogin() {
     // Check whether can login with specified principal and keytab
     String principal = Configuration.get(PRINCIPAL_MAP.get(mProcess));
-    String keytab = Configuration.get(KEYTAB_MAP.get(mProcess));
-    String primary;
-    String instance;
-    String realm;
-
     Matcher matchPrincipal = PRINCIPAL_PATTERN.matcher(principal);
     if (!matchPrincipal.matches()) {
       System.err.format("Principal %s is not in the right format.%n", principal);
       return false;
     }
-    primary = matchPrincipal.group("primary");
-    instance = matchPrincipal.group("instance");
-    realm = matchPrincipal.group("realm");
+    String primary = matchPrincipal.group("primary");
+    String instance = matchPrincipal.group("instance");
+    String realm = matchPrincipal.group("realm");
 
     // Login with principal and keytab
+    String keytab = Configuration.get(KEYTAB_MAP.get(mProcess));
     int exitVal =
         Utils.getResultFromProcess(new String[] {"kinit", "-kt", keytab, principal}).getExitValue();
     if (exitVal != 0) {
