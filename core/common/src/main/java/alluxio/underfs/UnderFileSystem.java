@@ -302,7 +302,7 @@ public interface UnderFileSystem extends Closeable {
    * @param path the path to compute the fingerprint for
    * @return the string representing the fingerprint
    */
-  String getFingerprint(String path) throws IOException;
+  String getFingerprint(String path);
 
   /**
    * Queries the under file system about the space of the indicated path (e.g., space left, space

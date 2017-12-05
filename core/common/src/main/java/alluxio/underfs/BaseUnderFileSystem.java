@@ -77,7 +77,7 @@ public abstract class BaseUnderFileSystem implements UnderFileSystem {
   }
 
   @Override
-  public String getFingerprint(String path) throws IOException {
+  public String getFingerprint(String path) {
     Objects.ToStringHelper helper = Objects.toStringHelper(this);
     try {
       if (isFile(path)) {

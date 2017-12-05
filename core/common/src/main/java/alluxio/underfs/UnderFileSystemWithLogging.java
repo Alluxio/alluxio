@@ -265,18 +265,12 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
   }
 
   @Override
-  public String getFingerprint(String path) throws IOException {
-    return call(new UfsCallable<String>() {
-      @Override
-      public String call() throws IOException {
-        return mUnderFileSystem.getFingerprint(path);
-      }
-
-      @Override
-      public String toString() {
-        return String.format("GetFingerprint: path=%s", path);
-      }
-    });
+  public String getFingerprint(String path) {
+    String method = String.format("GetFingerprint: path=%s", path);
+    LOG.debug("Enter: {}", method);
+    String ret = mUnderFileSystem.getFingerprint(path);
+    LOG.debug("Exit (OK): {}", method);
+    return ret;
   }
 
   @Override
