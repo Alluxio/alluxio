@@ -27,6 +27,7 @@ import alluxio.client.file.options.GetStatusOptions;
 import alluxio.client.file.options.ListStatusOptions;
 import alluxio.client.file.options.RenameOptions;
 import alluxio.exception.FileDoesNotExistException;
+import alluxio.wire.CommonOptions;
 import alluxio.wire.LoadMetadataType;
 
 import com.google.common.collect.Sets;
@@ -49,12 +50,15 @@ import java.util.Set;
  */
 public class UfsSyncIntegrationTest extends BaseIntegrationTest {
   private static final long INTERVAL_MS = Constants.SECOND_MS;
+  private static final CommonOptions SYNC_NEVER = CommonOptions.defaults().setSyncIntervalMs(-1);
+  private static final CommonOptions SYNC_ALWAYS = CommonOptions.defaults().setSyncIntervalMs(0);
+  private static final CommonOptions SYNC_INTERVAL =
+      CommonOptions.defaults().setSyncIntervalMs(INTERVAL_MS);
   private static final String ROOT_DIR = "/";
   private static final String EXISTING_DIR = "/dir_exist";
   private static final String EXISTING_FILE = "/file_exist";
   private static final String NEW_DIR = "/dir_new";
   private static final String NEW_FILE = "/file_new";
-
 
   private FileSystem mFileSystem;
   private String mLocalUfsPath = Files.createTempDir().getAbsolutePath();
@@ -83,7 +87,8 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
   @Test
   public void getStatusNoSync() throws Exception {
     GetStatusOptions options =
-        GetStatusOptions.defaults().setLoadMetadataType(LoadMetadataType.Never).setSyncInterval(-1);
+        GetStatusOptions.defaults().setLoadMetadataType(LoadMetadataType.Never)
+            .setCommonOptions(SYNC_NEVER);
     checkGetStatus(EXISTING_DIR, options, false);
     checkGetStatus(EXISTING_FILE, options, false);
 
@@ -99,7 +104,7 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
   public void listStatusNoSync() throws Exception {
     ListStatusOptions options =
         ListStatusOptions.defaults().setLoadMetadataType(LoadMetadataType.Never)
-            .setSyncInterval(-1);
+            .setCommonOptions(SYNC_NEVER);
     checkListStatus(EXISTING_DIR, options, false);
     checkListStatus(EXISTING_FILE, options, false);
 
@@ -114,21 +119,24 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
   @Test
   public void getStatusFileSync() throws Exception {
     GetStatusOptions options =
-        GetStatusOptions.defaults().setLoadMetadataType(LoadMetadataType.Never).setSyncInterval(0);
+        GetStatusOptions.defaults().setLoadMetadataType(LoadMetadataType.Never)
+            .setCommonOptions(SYNC_ALWAYS);
     checkGetStatus(EXISTING_FILE, options, true);
   }
 
   @Test
   public void getStatusDirSync() throws Exception {
     GetStatusOptions options =
-        GetStatusOptions.defaults().setLoadMetadataType(LoadMetadataType.Never).setSyncInterval(0);
+        GetStatusOptions.defaults().setLoadMetadataType(LoadMetadataType.Never)
+            .setCommonOptions(SYNC_ALWAYS);
     checkGetStatus(EXISTING_DIR, options, true);
   }
 
   @Test
   public void listDirSync() throws Exception {
     ListStatusOptions options =
-        ListStatusOptions.defaults().setLoadMetadataType(LoadMetadataType.Never).setSyncInterval(0);
+        ListStatusOptions.defaults().setLoadMetadataType(LoadMetadataType.Never)
+            .setCommonOptions(SYNC_ALWAYS);
     checkListStatus(ROOT_DIR, options, true);
 
     // Create new ufs paths.
@@ -142,7 +150,7 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
   public void getStatusFileSyncInterval() throws Exception {
     GetStatusOptions options =
         GetStatusOptions.defaults().setLoadMetadataType(LoadMetadataType.Never)
-            .setSyncInterval(INTERVAL_MS);
+            .setCommonOptions(SYNC_INTERVAL);
     long startMs = System.currentTimeMillis();
     URIStatus status = mFileSystem.getStatus(new AlluxioURI(alluxioPath(EXISTING_FILE)), options);
     long startLength = status.getLength();
@@ -164,7 +172,7 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
   public void listDirSyncInterval() throws Exception {
     ListStatusOptions options =
         ListStatusOptions.defaults().setLoadMetadataType(LoadMetadataType.Never)
-            .setSyncInterval(INTERVAL_MS);
+            .setCommonOptions(SYNC_INTERVAL);
     long startMs = System.currentTimeMillis();
     List<URIStatus> statusList =
         mFileSystem.listStatus(new AlluxioURI(alluxioPath(ROOT_DIR)), options);
@@ -186,7 +194,7 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
 
   @Test
   public void deleteFileNoSync() throws Exception {
-    DeleteOptions options = DeleteOptions.defaults().setSyncInterval(-1);
+    DeleteOptions options = DeleteOptions.defaults().setCommonOptions(SYNC_NEVER);
     try {
       mFileSystem.delete(new AlluxioURI(alluxioPath(EXISTING_FILE)), options);
       Assert.fail("Delete expected to fail: " + alluxioPath(EXISTING_FILE));
@@ -197,13 +205,13 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
 
   @Test
   public void deleteFileSync() throws Exception {
-    DeleteOptions options = DeleteOptions.defaults().setSyncInterval(0);
+    DeleteOptions options = DeleteOptions.defaults().setCommonOptions(SYNC_ALWAYS);
     mFileSystem.delete(new AlluxioURI(alluxioPath(EXISTING_FILE)), options);
   }
 
   @Test
   public void renameFileNoSync() throws Exception {
-    RenameOptions options = RenameOptions.defaults().setSyncInterval(-1);
+    RenameOptions options = RenameOptions.defaults().setCommonOptions(SYNC_NEVER);
     try {
       mFileSystem
           .rename(new AlluxioURI(alluxioPath(EXISTING_FILE)), new AlluxioURI(alluxioPath(NEW_FILE)),
@@ -216,7 +224,7 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
 
   @Test
   public void renameFileSync() throws Exception {
-    RenameOptions options = RenameOptions.defaults().setSyncInterval(0);
+    RenameOptions options = RenameOptions.defaults().setCommonOptions(SYNC_ALWAYS);
     mFileSystem
         .rename(new AlluxioURI(alluxioPath(EXISTING_FILE)), new AlluxioURI(alluxioPath(NEW_FILE)),
             options);
@@ -225,7 +233,8 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
   @Test
   public void unpersistedFileSync() throws Exception {
     ListStatusOptions options =
-        ListStatusOptions.defaults().setLoadMetadataType(LoadMetadataType.Never).setSyncInterval(0);
+        ListStatusOptions.defaults().setLoadMetadataType(LoadMetadataType.Never)
+            .setCommonOptions(SYNC_ALWAYS);
     List<URIStatus> initialStatusList =
         mFileSystem.listStatus(new AlluxioURI(alluxioPath(ROOT_DIR)), options);
 
