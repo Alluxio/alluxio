@@ -18,7 +18,7 @@ This tutorial walks through a basic Alluxio setup on Kubernetes.
 - A Kubernetes cluster (version >= 1.8). Alluxio workers will use `emptyDir` volumes with a 
 restricted size using the `sizeLimit` parameter. This is an alpha feature in Kubernetes 1.8.
 Please ensure the feature is enabled.
-- An Alluxio docker image. Refer to [this page](Running-Alluxio-On-Docker.html) for instructions
+- An Alluxio Docker image. Refer to [this page](Running-Alluxio-On-Docker.html) for instructions
 to build an image.
 
 ## Clone the Alluxio repo
@@ -30,10 +30,10 @@ $ cd integration/kubernetes
 
 The kubernetes specifications required to deploy Alluxio can be found under `integration/kubernetes`.
 
-## Short-circuit operations
+## Enable short-circuit operations
 
 Short-circuit access enable clients to perform read and write operations directly against the 
-worker memory instead of having to go through the worker process. Setup a domain socket on all hosts
+worker memory instead of having to go through the worker process. Set up a domain socket on all hosts
 eligible to run the Alluxio worker process to enable this mode of operation.
 
 From the host machine, create a directory for the shared domain socket.
@@ -60,7 +60,7 @@ Alluxio containers in Kubernetes use environment variables to set Alluxio proper
 [docker configuration](Running-Alluxio-On-Docker.html) for the corresponding environment variable
 name for Alluxio properties in `conf/alluxio-site.properties`.
 
-Define all  environment variables in a single file and create a `ConfigMap`.
+Define all environment variables in a single file and create a ConfigMap.
 ```bash
 $ cp conf/alluxio.properties.template conf/alluxio.properties
 $ kubectl create configmap alluxio-config --from-file=ALLUXIO_CONFIG=conf/alluxio.properties
