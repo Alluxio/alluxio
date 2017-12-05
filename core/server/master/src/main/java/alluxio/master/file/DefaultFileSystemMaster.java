@@ -1040,10 +1040,11 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       AlluxioURI resolvedUri = resolution.getUri();
       UnderFileSystem ufs = resolution.getUfs();
       try {
-        ufs.getFingerprint(resolvedUri.toString());
+        ufsFingerprint = ufs.getFingerprint(resolvedUri.toString());
       } catch (IOException e) {
         // Ignore error
-        LOG.warn("Failed to retrieve UFS fingerprint for: {} error: {}", resolvedUri, e.toString());
+        LOG.warn("Failed to retrieve UFS fingerprint for: {} error: {}", resolvedUri,
+            e.getMessage());
       }
     }
 
@@ -3070,7 +3071,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
           try {
             options.setUfsFingerprint(ufs.getFingerprint(ufsUri));
           } catch (IOException e) {
-            LOG.warn("Failed to retrieve UFS fingerprint for: {} error: {}", ufsUri, e.toString());
+            LOG.warn("Failed to retrieve UFS fingerprint for: {} error: {}", ufsUri,
+                e.getMessage());
           }
         }
       }

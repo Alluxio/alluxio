@@ -103,7 +103,7 @@ public final class FileDataManagerTest {
     writeFileWithBlocks(fileId, blockIds);
 
     // verify file persisted
-    FileDataManager.PersistedFilesInfo info = mManager.getPersistedUfsFingerprints();
+    FileDataManager.PersistedFilesInfo info = mManager.getPersistedFileInfos();
     assertEquals(Arrays.asList(fileId), info.idList());
 
     // verify fastCopy called twice, once per block
@@ -122,7 +122,7 @@ public final class FileDataManagerTest {
   public void clearPersistedFiles() throws Exception {
     writeFileWithBlocks(1L, ImmutableList.of(2L, 3L));
     mManager.clearPersistedFiles(ImmutableList.of(1L));
-    FileDataManager.PersistedFilesInfo info = mManager.getPersistedUfsFingerprints();
+    FileDataManager.PersistedFilesInfo info = mManager.getPersistedFileInfos();
     assertEquals(Collections.emptyList(), info.idList());
   }
 

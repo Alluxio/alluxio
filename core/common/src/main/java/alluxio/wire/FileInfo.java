@@ -98,7 +98,6 @@ public final class FileInfo implements Serializable {
     }
     mMountId = fileInfo.getMountId();
     mInAlluxioPercentage = fileInfo.getInAlluxioPercentage();
-    mUfsFingerprint = Constants.INVALID_UFS_FINGERPRINT;
     if (fileInfo.isSetUfsFingerprint()) {
       mUfsFingerprint = fileInfo.getUfsFingerprint();
     }
