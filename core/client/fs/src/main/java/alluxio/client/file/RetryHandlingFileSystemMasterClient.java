@@ -205,7 +205,7 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
 
   @Override
   public synchronized void mount(final AlluxioURI alluxioPath, final AlluxioURI ufsPath,
-      final MountOptions options) throws AlluxioStatusException {
+      final MountOptions options) throws IOException {
     retryRPC(() -> {
       mClient.mount(alluxioPath.toString(), ufsPath.toString(), options.toThrift());
       return null;
