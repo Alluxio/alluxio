@@ -20,8 +20,8 @@ restricted size using the `sizeLimit` parameter. This is an alpha feature in Kub
 Please ensure the feature is enabled.
 - An Alluxio Docker image. Refer to [this page](Running-Alluxio-On-Docker.html) for instructions
 to build an image. The image must be available for a pull from all Kubernetes hosts running
-Alluxio processes. This can be achieved by pushing the image to an accessible docker registry,
-or pushing the image individually to all hosts. If using a private docker registry, refer to the
+Alluxio processes. This can be achieved by pushing the image to an accessible Docker registry,
+or pushing the image individually to all hosts. If using a private Docker registry, refer to the
 Kubernetes [documentation](https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/).
 
 ## Clone the Alluxio repo
@@ -67,9 +67,9 @@ Create the persistent volume.
 $ kubectl create -f alluxio-journal-volume.yaml
 ```
 
-## Alluxio Configuration Properties
+## Configure Alluxio properties
 Alluxio containers in Kubernetes use environment variables to set Alluxio properties. Refer to 
-[docker configuration](Running-Alluxio-On-Docker.html) for the corresponding environment variable
+[Docker configuration](Running-Alluxio-On-Docker.html) for the corresponding environment variable
 name for Alluxio properties in `conf/alluxio-site.properties`.
 
 Define all environment variables in a single file. Copy the properties template at
@@ -88,7 +88,7 @@ $ kubectl create configmap alluxio-config --from-file=ALLUXIO_CONFIG=conf/alluxi
 ## Deploy
 
 Prepare the Alluxio deployment specs from the templates. Modify any parameters required, such as
-location of the docker image, and CPU and memory requirements for pods.
+location of the Docker image, and CPU and memory requirements for pods.
 ```bash
 $ cp alluxio-master.yaml.template alluxio-master.yaml
 $ cp alluxio-worker.yaml.template alluxio-worker.yaml
