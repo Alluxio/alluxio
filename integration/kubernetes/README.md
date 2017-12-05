@@ -12,11 +12,11 @@ chmod a+w /tmp/domain/d
 
 - Alluxio masters use a persistent volume for storing the journal. Create a persistent volume using the template.
 ```bash
-mv alluxio-pv-volume.yaml.template alluxio-pv-volume.yaml
+mv alluxio-journal-volume.yaml.template alluxio-journal-volume.yaml
 # Create persistent volume
-kubectl create -f alluxio-pv-volume.yaml
+kubectl create -f alluxio-journal-volume.yaml
 # Inspect status
-kubectl get pv alluxio-pv-volume
+kubectl get pv alluxio-journal-volume
 ```
 
 ## Create spec and configuration from templates

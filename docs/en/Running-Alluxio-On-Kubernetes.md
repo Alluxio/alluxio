@@ -55,12 +55,12 @@ hosts eligible to run the Alluxio master process.
 
 Create the persistent volume spec from the template. Modify the storage capacity as needed.
 ```bash
-$ cp alluxio-pv-volume.yaml.template alluxio-pv-volume.yaml
+$ cp alluxio-journal-volume.yaml.template alluxio-journal-volume.yaml
 ```
 
 Create the persistent volume.
 ```bash
-$ kubectl create -f alluxio-pv-volume.yaml
+$ kubectl create -f alluxio-journal-volume.yaml
 ```
 
 ## Alluxio Configuration Properties
@@ -102,7 +102,7 @@ $ kubectl get pods
 
 If using peristent volumes for Alluxio master, the status of the volume should change to `CLAIMED`.
 ```bash
-$ kubectl get pv alluxio-pv-volume
+$ kubectl get pv alluxio-journal-volume
 ```
 
 ## Verify
