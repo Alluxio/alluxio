@@ -68,9 +68,10 @@ Alluxio containers in Kubernetes use environment variables to set Alluxio proper
 [docker configuration](Running-Alluxio-On-Docker.html) for the corresponding environment variable
 name for Alluxio properties in `conf/alluxio-site.properties`.
 
-Define all environment variables in a single file. Copy the properties template and fill in all
-required and any optional configuration. Note that when running Alluxio with host networking,
-the ports assigned to Alluxio services must not be occupied beforehand.
+Define all environment variables in a single file. Copy the properties template at
+`integration/kubernetes/conf` and fill in all required and any optional configuration.
+Note that when running Alluxio with host networking, the ports assigned to Alluxio services must
+not be occupied beforehand.
 ```bash
 $ cp conf/alluxio.properties.template conf/alluxio.properties
 ```
