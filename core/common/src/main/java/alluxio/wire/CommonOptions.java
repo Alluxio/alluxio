@@ -56,6 +56,18 @@ public final class CommonOptions implements Serializable {
   }
 
   /**
+   * Copies from {@link CommonOptions}.
+   *
+   * @param options the other option
+   */
+  public CommonOptions(CommonOptions options) {
+    this();
+    if (options != null) {
+      mSyncIntervalMs = options.mSyncIntervalMs;
+    }
+  }
+
+  /**
    * @return the sync interval, in milliseconds
    */
   public long getSyncIntervalMs() {

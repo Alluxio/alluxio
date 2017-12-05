@@ -33,8 +33,7 @@ public final class SyncMetadataOptions {
   }
 
   /**
-   * Constructs an instance of {@link SyncMetadataOptions} from
-   * {@link SyncMetadataTOptions}.
+   * Constructs an instance of {@link SyncMetadataOptions} from {@link SyncMetadataTOptions}.
    *
    * @param options the {@link SyncMetadataTOptions} to use
    */
@@ -47,17 +46,37 @@ public final class SyncMetadataOptions {
     }
   }
 
-  // TODO(gpang): unused?
-  SyncMetadataOptions(CommonOptions options) {
+  /**
+   * Constructs an instance from {@link CommonOptions}.
+   *
+   * @param options the {@link CommonOptions} to create from
+   */
+  public SyncMetadataOptions(CommonOptions options) {
     this();
     if (options != null) {
-      mCommonOptions = CommonOptions.defaults().setSyncIntervalMs(options.getSyncIntervalMs());
+      mCommonOptions = new CommonOptions(options);
     }
   }
 
   private SyncMetadataOptions() {
     super();
     mCommonOptions = CommonOptions.defaults();
+  }
+
+  /**
+   * @return the common options
+   */
+  public CommonOptions getCommonOptions() {
+    return mCommonOptions;
+  }
+
+  /**
+   * @param options the common options
+   * @return the updated options object
+   */
+  public SyncMetadataOptions setCommonOptions(CommonOptions options) {
+    mCommonOptions = options;
+    return this;
   }
 
   @Override
