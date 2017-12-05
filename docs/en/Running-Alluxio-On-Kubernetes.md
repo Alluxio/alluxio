@@ -21,7 +21,7 @@ Please ensure the feature is enabled.
 - An Alluxio Docker image. Refer to [this page](Running-Alluxio-On-Docker.html) for instructions
 to build an image. The image must be available for a pull from all Kubernetes hosts running
 Alluxio processes. This can be achieved by pushing the image to an accessible docker registry,
-or pushing the image indivdually to all hosts. If using a private docker registry, refer to the
+or pushing the image individually to all hosts. If using a private docker registry, refer to the
 Kubernetes [documentation](https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/).
 
 ## Clone the Alluxio repo
