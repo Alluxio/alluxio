@@ -47,6 +47,10 @@ $ touch /tmp/domain/d
 $ chmod a+w /tmp/domain/d
 ```
 
+This step can be skipped in case short-circuit accesss is not desired or cannot be set up. To disable
+this feature, set the property `alluxio.user.short.circuit.enabled=false` according to the instructions
+in the configuration section below.
+
 ## Provision a Persistent Volume
 
 Alluxio master can be configured to use a persistent volume for storing the journal. The volume,
@@ -69,7 +73,7 @@ Alluxio containers in Kubernetes use environment variables to set Alluxio proper
 name for Alluxio properties in `conf/alluxio-site.properties`.
 
 Define all environment variables in a single file. Copy the properties template at
-`integration/kubernetes/conf` and fill in all required and any optional configuration.
+`integration/kubernetes/conf`, and modify or add any configuration properties as required.
 Note that when running Alluxio with host networking, the ports assigned to Alluxio services must
 not be occupied beforehand.
 ```bash
