@@ -96,7 +96,7 @@ public abstract class BaseUnderFileSystem implements UnderFileSystem {
       }
       return helper.toString();
     } catch (Exception e) {
-      LOG.warn("Failed fingerprint. path: {} error: {}", path, e.toString());
+      LOG.warn("Failed fingerprint. path: {} error: {}", path, e.getMessage());
       return Constants.INVALID_UFS_FINGERPRINT;
     }
   }

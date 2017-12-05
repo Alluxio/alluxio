@@ -54,7 +54,7 @@ public final class FileWorkerMasterSyncExecutorTest {
     List<String> ufsFingerprintList = Lists.newArrayList("ufs fingerprint");
     FileDataManager.PersistedFilesInfo filesInfo =
         new FileDataManager.PersistedFilesInfo(persistedFiles, ufsFingerprintList);
-    Mockito.when(mFileDataManager.getPersistedUfsFingerprints()).thenReturn(filesInfo);
+    Mockito.when(mFileDataManager.getPersistedFileInfos()).thenReturn(filesInfo);
     // first time fails, second time passes
     Mockito.when(mFileSystemMasterClient.heartbeat(Mockito.anyLong(), Mockito.eq(persistedFiles),
         Mockito.any(FileSystemHeartbeatTOptions.class)))
@@ -73,7 +73,7 @@ public final class FileWorkerMasterSyncExecutorTest {
     List<String> ufsFingerprintList = Lists.newArrayList("ufs fingerprint");
     FileDataManager.PersistedFilesInfo filesInfo =
         new FileDataManager.PersistedFilesInfo(persistedFiles, ufsFingerprintList);
-    Mockito.when(mFileDataManager.getPersistedUfsFingerprints()).thenReturn(filesInfo);
+    Mockito.when(mFileDataManager.getPersistedFileInfos()).thenReturn(filesInfo);
     // first time fails, second time passes
     Mockito.when(mFileSystemMasterClient.heartbeat(Mockito.anyLong(), Mockito.eq(persistedFiles)))
         .thenReturn(new FileSystemCommand());

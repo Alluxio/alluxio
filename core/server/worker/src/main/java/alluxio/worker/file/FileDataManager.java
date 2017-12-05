@@ -308,7 +308,7 @@ public final class FileDataManager {
   /**
    * @return information about persisted files
    */
-  public PersistedFilesInfo getPersistedUfsFingerprints() {
+  public PersistedFilesInfo getPersistedFileInfos() {
     synchronized (mLock) {
       return new PersistedFilesInfo(mPersistedUfsFingerprints);
     }
