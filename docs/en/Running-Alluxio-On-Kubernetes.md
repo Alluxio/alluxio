@@ -47,7 +47,7 @@ $ touch /tmp/domain/d
 $ chmod a+w /tmp/domain/d
 ```
 
-## Journal Volume
+## Provision a Persistent Volume
 
 Alluxio master can be configured to use a persistent volume for storing the journal. The volume,
 once claimed, is persisted across restarts of the master process. Prepare a persistent volume on 
