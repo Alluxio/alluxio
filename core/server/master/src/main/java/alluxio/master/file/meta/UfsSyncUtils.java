@@ -120,7 +120,7 @@ public final class UfsSyncUtils {
     private boolean mLoadMetadata;
     private boolean mSyncChildren;
 
-    public SyncPlan() {
+    SyncPlan() {
       mDelete = false;
       mLoadMetadata = false;
       mSyncChildren = false;
