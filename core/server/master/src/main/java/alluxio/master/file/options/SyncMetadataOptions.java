@@ -48,7 +48,7 @@ public final class SyncMetadataOptions {
   }
 
   // TODO(gpang): unused?
-  public SyncMetadataOptions(CommonOptions options) {
+  SyncMetadataOptions(CommonOptions options) {
     this();
     if (options != null) {
       mCommonOptions = CommonOptions.defaults().setSyncIntervalMs(options.getSyncIntervalMs());

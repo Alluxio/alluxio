@@ -52,6 +52,7 @@ public final class UfsSyncPathCache {
   }
 
   /**
+   * @param path the path to check
    * @param intervalMs the sync interval, in ms
    * @return true if a sync should occur for the path and interval setting, false otherwise
    */
