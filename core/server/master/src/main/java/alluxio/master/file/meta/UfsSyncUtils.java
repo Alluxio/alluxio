@@ -25,6 +25,13 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public final class UfsSyncUtils {
 
+  /**
+   * Returns the {@link UfsStatus} of the given path.
+   *
+   * @param ufs the ufs object
+   * @param path the path to get the status for, can be a file or directory
+   * @return returns the {@link UfsStatus} of the given path
+   */
   public static UfsStatus getUfsStatus(UnderFileSystem ufs, String path) {
     UfsStatus ufsStatus = null;
     try {
@@ -47,6 +54,14 @@ public final class UfsSyncUtils {
     return ufsStatus;
   }
 
+  /**
+   * Given an {@link Inode} and {@link UfsStatus}, returns a {@link SyncPlan} describing how to
+   * sync the inode with the ufs.
+   *
+   * @param inode the inode to sync
+   * @param ufsStatus the ufs status to check for the sync
+   * @return a {@link SyncPlan} describing how to sync the inode with the ufs
+   */
   public static SyncPlan computeSyncPlan(Inode inode, UfsStatus ufsStatus) {
     boolean matches = inodeUfsMatch(inode, ufsStatus);
 
@@ -68,6 +83,14 @@ public final class UfsSyncUtils {
     return syncPlan;
   }
 
+  /**
+   * Returns true if the given inode matches the ufs status. This is a single inode check, so for
+   * directory inodes, this does not consider the children inodes.
+   *
+   * @param inode the inode to check for sync
+   * @param ufsStatus the ufs status to check for the sync
+   * @return true of the inode matches with the ufs status
+   */
   public static boolean inodeUfsMatch(Inode inode, UfsStatus ufsStatus) {
     boolean matchPersisted = false;
     boolean matchUnpersisted = !inode.isPersisted() && ufsStatus == null;
@@ -85,6 +108,13 @@ public final class UfsSyncUtils {
 
   private UfsSyncUtils() {} // prevent instantiation
 
+  /**
+   * A class describing how to sync an inode with the ufs.
+   * A sync plan has several steps:
+   * 1. delete: the inode should be deleted
+   * 2. syncChildren: the inode is a directory, and the children should be synced
+   * 3. loadMetadata: the inode metadata should loaded from UFS
+   */
   public static final class SyncPlan {
     private boolean mDelete;
     private boolean mLoadMetadata;
@@ -96,26 +126,35 @@ public final class UfsSyncUtils {
       mSyncChildren = false;
     }
 
-    public void setDelete() {
+    void setDelete() {
       mDelete = true;
     }
 
-    public void setLoadMetadata() {
+    void setLoadMetadata() {
       mLoadMetadata = true;
     }
 
-    public void setSyncChildren() {
+    void setSyncChildren() {
       mSyncChildren = true;
     }
 
+    /**
+     * @return true if the inode should be deleted for the sync plan
+     */
     public boolean toDelete() {
       return mDelete;
     }
 
+    /**
+     * @return true if the inode should load metadata from ufs
+     */
     public boolean toLoadMetadata() {
       return mLoadMetadata;
     }
 
+    /**
+     * @return true if the children of the directory inode should be synced
+     */
     public boolean toSyncChildren() {
       return mSyncChildren;
     }

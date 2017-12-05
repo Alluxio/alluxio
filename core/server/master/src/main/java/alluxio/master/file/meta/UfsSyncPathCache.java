@@ -42,12 +42,21 @@ public final class UfsSyncPathCache {
     mCache = CacheBuilder.newBuilder().maximumSize(MAX_PATHS).build();
   }
 
+  /**
+   * Adds the given path to the cache.
+   *
+   * @param path the path to add to the cache
+   */
   public void addSyncPath(String path) {
     mCache.put(path, System.currentTimeMillis());
   }
 
-  public boolean shouldSyncPath(String path, long interval) {
-    if (interval < 0) {
+  /**
+   * @param intervalMs the sync interval, in ms
+   * @return true if a sync should occur for the path and interval setting, false otherwise
+   */
+  public boolean shouldSyncPath(String path, long intervalMs) {
+    if (intervalMs < 0) {
       return false;
     }
     Long lastSync = mCache.getIfPresent(path);
@@ -55,7 +64,7 @@ public final class UfsSyncPathCache {
       // No info about the last sync, so trigger a sync.
       return true;
     }
-    if ((System.currentTimeMillis() - lastSync) > interval) {
+    if ((System.currentTimeMillis() - lastSync) > intervalMs) {
       return true;
     }
     return false;
