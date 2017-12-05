@@ -1039,13 +1039,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       MountTable.Resolution resolution = mMountTable.resolve(inodePath.getUri());
       AlluxioURI resolvedUri = resolution.getUri();
       UnderFileSystem ufs = resolution.getUfs();
-      try {
-        ufsFingerprint = ufs.getFingerprint(resolvedUri.toString());
-      } catch (IOException e) {
-        // Ignore error
-        LOG.warn("Failed to retrieve UFS fingerprint for: {} error: {}", resolvedUri,
-            e.getMessage());
-      }
+      ufsFingerprint = ufs.getFingerprint(resolvedUri.toString());
     }
 
     completeFileInternal(fileInode.getBlockIds(), inodePath, length, options.getOperationTimeMs(),
@@ -3068,12 +3062,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
           }
           // Retrieve the ufs fingerprint after the ufs changes.
           // TODO(gpang): update fingerprint from previous, since contents did not change.
-          try {
-            options.setUfsFingerprint(ufs.getFingerprint(ufsUri));
-          } catch (IOException e) {
-            LOG.warn("Failed to retrieve UFS fingerprint for: {} error: {}", ufsUri,
-                e.getMessage());
-          }
+          options.setUfsFingerprint(ufs.getFingerprint(ufsUri));
         }
       }
     }
