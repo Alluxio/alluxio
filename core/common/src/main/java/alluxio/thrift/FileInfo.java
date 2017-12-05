@@ -96,7 +96,7 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
   private alluxio.thrift.TTtlAction ttlAction; // required
   private long mountId; // required
   private int inAlluxioPercentage; // required
-  private String ufsFingerprint; // optional
+  private String ufsFingerprint; // required
 
   /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
   public enum _Fields implements org.apache.thrift.TFieldIdEnum {
@@ -253,7 +253,6 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
   private static final int __MOUNTID_ISSET_ID = 14;
   private static final int __INALLUXIOPERCENTAGE_ISSET_ID = 15;
   private short __isset_bitfield = 0;
-  private static final _Fields optionals[] = {_Fields.UFS_FINGERPRINT};
   public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
   static {
     Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
@@ -309,7 +308,7 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
     tmpMap.put(_Fields.IN_ALLUXIO_PERCENTAGE, new org.apache.thrift.meta_data.FieldMetaData("inAlluxioPercentage", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I32)));
-    tmpMap.put(_Fields.UFS_FINGERPRINT, new org.apache.thrift.meta_data.FieldMetaData("ufsFingerprint", org.apache.thrift.TFieldRequirementType.OPTIONAL, 
+    tmpMap.put(_Fields.UFS_FINGERPRINT, new org.apache.thrift.meta_data.FieldMetaData("ufsFingerprint", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
     metaDataMap = Collections.unmodifiableMap(tmpMap);
     org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(FileInfo.class, metaDataMap);
@@ -343,7 +342,8 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
     List<FileBlockInfo> fileBlockInfos,
     alluxio.thrift.TTtlAction ttlAction,
     long mountId,
-    int inAlluxioPercentage)
+    int inAlluxioPercentage,
+    String ufsFingerprint)
   {
     this();
     this.fileId = fileId;
@@ -387,6 +387,7 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
     setMountIdIsSet(true);
     this.inAlluxioPercentage = inAlluxioPercentage;
     setInAlluxioPercentageIsSet(true);
+    this.ufsFingerprint = ufsFingerprint;
   }
 
   /**
@@ -2313,16 +2314,14 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
     sb.append("inAlluxioPercentage:");
     sb.append(this.inAlluxioPercentage);
     first = false;
-    if (isSetUfsFingerprint()) {
-      if (!first) sb.append(", ");
-      sb.append("ufsFingerprint:");
-      if (this.ufsFingerprint == null) {
-        sb.append("null");
-      } else {
-        sb.append(this.ufsFingerprint);
-      }
-      first = false;
+    if (!first) sb.append(", ");
+    sb.append("ufsFingerprint:");
+    if (this.ufsFingerprint == null) {
+      sb.append("null");
+    } else {
+      sb.append(this.ufsFingerprint);
     }
+    first = false;
     sb.append(")");
     return sb.toString();
   }
@@ -2720,11 +2719,9 @@ public class FileInfo implements org.apache.thrift.TBase<FileInfo, FileInfo._Fie
       oprot.writeI32(struct.inAlluxioPercentage);
       oprot.writeFieldEnd();
       if (struct.ufsFingerprint != null) {
-        if (struct.isSetUfsFingerprint()) {
-          oprot.writeFieldBegin(UFS_FINGERPRINT_FIELD_DESC);
-          oprot.writeString(struct.ufsFingerprint);
-          oprot.writeFieldEnd();
-        }
+        oprot.writeFieldBegin(UFS_FINGERPRINT_FIELD_DESC);
+        oprot.writeString(struct.ufsFingerprint);
+        oprot.writeFieldEnd();
       }
       oprot.writeFieldStop();
       oprot.writeStructEnd();
