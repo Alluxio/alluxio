@@ -152,16 +152,16 @@ public final class ValidateEnv {
     };
     ValidationTask[] masterTasks = {
         MASTER_RPC_VALIDATION_TASK,
-        MASTER_WEB_VALIDATION_TASK,
         MASTER_SECURE_HDFS_VALIDATION_TASK,
+        MASTER_WEB_VALIDATION_TASK,
     };
     ValidationTask[] workerTasks = {
         WORKER_DATA_VALIDATION_TASK,
         WORKER_RAMDISK_MOUNT_PRIVILEGE_VALIDATION_TASK,
         WORKER_RPC_VALIDATION_TASK,
+        WORKER_SECURE_HDFS_VALIDATION_TASK,
         WORKER_STORAGE_SPACE_VALIDATION_TASK,
         WORKER_WEB_VALIDATION_TASK,
-        WORKER_SECURE_HDFS_VALIDATION_TASK,
     };
 
     targetMap.put("master", Arrays.asList(
