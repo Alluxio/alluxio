@@ -53,8 +53,13 @@ Alluxio master can be configured to use a persistent volume for storing the jour
 once claimed, is persisted across restarts of the master process. Prepare a persistent volume on 
 hosts eligible to run the Alluxio master process.
 
+Create the persistent volume spec from the template. Modify the storage capacity as needed.
 ```bash
 $ cp alluxio-pv-volume.yaml.template alluxio-pv-volume.yaml
+```
+
+Create the persistent volume.
+```bash
 $ kubectl create -f alluxio-pv-volume.yaml
 ```
 
@@ -63,19 +68,30 @@ Alluxio containers in Kubernetes use environment variables to set Alluxio proper
 [docker configuration](Running-Alluxio-On-Docker.html) for the corresponding environment variable
 name for Alluxio properties in `conf/alluxio-site.properties`.
 
-Define all environment variables in a single file and create a ConfigMap.
+Define all environment variables in a single file. Copy the properties template and fill in all
+required and any optional configuration. Note that when running Alluxio with host networking,
+the ports assigned to Alluxio services must not be occupied beforehand.
 ```bash
 $ cp conf/alluxio.properties.template conf/alluxio.properties
+```
+
+Create a ConfigMap.
+```bash
 $ kubectl create configmap alluxio-config --from-file=ALLUXIO_CONFIG=conf/alluxio.properties
 ```
 
 ## Deploy
 
-Once all the pre-requisites and configuration have been setup, deploy Alluxio.
+Prepare the Alluxio deployment specs from the templates. Modify any parameters required, such as
+location of the docker image, and CPU and memory requirements for pods.
 ```bash
 $ cp alluxio-master.yaml.template alluxio-master.yaml
-$ kubectl create -f alluxio-master.yaml
 $ cp alluxio-worker.yaml.template alluxio-worker.yaml
+```
+
+Once all the pre-requisites and configuration have been setup, deploy Alluxio.
+```bash
+$ kubectl create -f alluxio-master.yaml
 $ kubectl create -f alluxio-worker.yaml
 ```
 
