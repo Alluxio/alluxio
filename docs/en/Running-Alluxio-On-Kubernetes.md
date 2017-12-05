@@ -53,14 +53,18 @@ in the configuration section below.
 
 ## Provision a Persistent Volume
 
-Alluxio master can be configured to use a persistent volume for storing the journal. The volume,
-once claimed, is persisted across restarts of the master process. Prepare a persistent volume on 
-hosts eligible to run the Alluxio master process.
+Alluxio master can be configured to use a [persistent volume](https://kubernetes.io/docs/concepts/storage/persistent-volumes/)
+for storing the journal. The volume, once claimed, is persisted across restarts of the master process.
 
-Create the persistent volume spec from the template. Modify the storage capacity as needed.
+Create the persistent volume spec from the template. The access mode `ReadWriteMany` is used to allow
+multiple Alluxio master nodes to access the shared volume.
 ```bash
 $ cp alluxio-journal-volume.yaml.template alluxio-journal-volume.yaml
 ```
+
+Note: the spec provided uses a `hostPath` volume for demonstration on a single-node deployment. For a
+multi-node cluster, you may choose to use NFS, AWSElasticBlockStore, GCEPersistentDisk or other available
+persistent volume plugins.
 
 Create the persistent volume.
 ```bash
