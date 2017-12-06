@@ -22,7 +22,7 @@ priority: 1
 <tr><th>属性名</th><th>默认值</th><th>描述</th></tr>
 {% for item in site.data.table.common-configuration %}
   <tr>
-    <td>{{ item.propertyName }}</td>
+    <td><a class="anchor" name="{{ item.propertyName }}"></a> {{ item.propertyName }}</td>
     <td>{{ item.defaultValue }}</td>
     <td>{{ site.data.table.cn.common-configuration[item.propertyName] }}</td>
   </tr>
@@ -37,7 +37,7 @@ Master配置项指定master节点的信息，例如地址和端口号。
 <tr><th>属性名</th><th>默认值</th><th>描述</th></tr>
 {% for item in site.data.table.master-configuration %}
   <tr>
-    <td>{{ item.propertyName }}</td>
+    <td><a class="anchor" name="{{ item.propertyName }}"></a> {{ item.propertyName }}</td>
     <td>{{ item.defaultValue }}</td>
     <td>{{ site.data.table.cn.master-configuration[item.propertyName] }}</td>
   </tr>
@@ -52,7 +52,7 @@ Worker配置项指定worker节点的信息，例如地址和端口号。
 <tr><th>属性名</th><th>默认值</th><th>描述</th></tr>
 {% for item in site.data.table.worker-configuration %}
   <tr>
-    <td>{{ item.propertyName }}</td>
+    <td><a class="anchor" name="{{ item.propertyName }}"></a> {{ item.propertyName }}</td>
     <td>{{ item.defaultValue }}</td>
     <td>{{ site.data.table.cn.worker-configuration[item.propertyName] }}</td>
   </tr>
@@ -67,7 +67,7 @@ Worker配置项指定worker节点的信息，例如地址和端口号。
 <tr><th>属性名</th><th>默认值</th><th>描述</th></tr>
 {% for item in site.data.table.user-configuration %}
   <tr>
-    <td>{{ item.propertyName }}</td>
+    <td><a class="anchor" name="{{ item.propertyName }}"></a> {{ item.propertyName }}</td>
     <td>{{ item.defaultValue }}</td>
     <td>{{ site.data.table.cn.user-configuration[item.propertyName] }}</td>
   </tr>
@@ -82,7 +82,7 @@ Worker配置项指定worker节点的信息，例如地址和端口号。
 <tr><th>属性名</th><th>默认值</th><th>描述</th></tr>
 {% for item in site.data.table.cluster-management %}
   <tr>
-    <td>{{ item.propertyName }}</td>
+    <td><a class="anchor" name="{{ item.propertyName }}"></a> {{ item.propertyName }}</td>
     <td>{{ item.defaultValue }}</td>
     <td>{{ site.data.table.cn.cluster-management[item.propertyName] }}</td>
   </tr>
@@ -100,7 +100,7 @@ Worker配置项指定worker节点的信息，例如地址和端口号。
 <tr><th>属性名</th><th>默认值</th><th>描述</th></tr>
 {% for item in site.data.table.security-configuration %}
   <tr>
-    <td>{{ item.propertyName }}</td>
+    <td><a class="anchor" name="{{ item.propertyName }}"></a> {{ item.propertyName }}</td>
     <td>{{ item.defaultValue }}</td>
     <td>{{ site.data.table.cn.security-configuration[item.propertyName] }}</td>
   </tr>
