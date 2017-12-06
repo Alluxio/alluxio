@@ -46,6 +46,7 @@ import java.util.Map;
 /**
  * Utility for checking Alluxio environment.
  */
+// TODO(yanqin): decouple ValidationTask implementations for easier dependency management
 public final class ValidateEnv {
   private static final String USAGE = "validateEnv TARGET [NAME] [OPTIONS]\n\n"
       + "Validate environment for Alluxio.\n\n"
