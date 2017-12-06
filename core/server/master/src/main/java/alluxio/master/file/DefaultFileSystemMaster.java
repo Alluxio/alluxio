@@ -72,6 +72,7 @@ import alluxio.master.file.options.LoadMetadataOptions;
 import alluxio.master.file.options.MountOptions;
 import alluxio.master.file.options.RenameOptions;
 import alluxio.master.file.options.SetAttributeOptions;
+import alluxio.master.file.options.WorkerHeartbeatOptions;
 import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.NoopJournalContext;
@@ -1032,11 +1033,21 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     // determined by its size in Alluxio.
     long length = fileInode.isPersisted() ? options.getUfsLength() : inAlluxioLength;
 
+    String ufsFingerprint = Constants.INVALID_UFS_FINGERPRINT;
+    if (fileInode.isPersisted()) {
+      // Retrieve the UFS fingerprint for this file.
+      MountTable.Resolution resolution = mMountTable.resolve(inodePath.getUri());
+      AlluxioURI resolvedUri = resolution.getUri();
+      UnderFileSystem ufs = resolution.getUfs();
+      ufsFingerprint = ufs.getFingerprint(resolvedUri.toString());
+    }
+
     completeFileInternal(fileInode.getBlockIds(), inodePath, length, options.getOperationTimeMs(),
-        false);
+        ufsFingerprint, false);
     CompleteFileEntry completeFileEntry =
         CompleteFileEntry.newBuilder().addAllBlockIds(fileInode.getBlockIds()).setId(inode.getId())
-            .setLength(length).setOpTimeMs(options.getOperationTimeMs()).build();
+            .setLength(length).setOpTimeMs(options.getOperationTimeMs())
+            .setUfsFingerprint(ufsFingerprint).build();
     journalContext.append(JournalEntry.newBuilder().setCompleteFile(completeFileEntry).build());
   }
 
@@ -1045,6 +1056,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    * @param inodePath the {@link LockedInodePath} to complete
    * @param length the length to use
    * @param opTimeMs the operation time (in milliseconds)
+   * @param ufsFingerprint the ufs fingerprint
    * @param replayed whether the operation is a result of replaying the journal
    * @throws FileDoesNotExistException if the file does not exist
    * @throws InvalidPathException if an invalid path is encountered
@@ -1052,12 +1064,13 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    * @throws FileAlreadyCompletedException if the file has already been completed
    */
   private void completeFileInternal(List<Long> blockIds, LockedInodePath inodePath, long length,
-      long opTimeMs, boolean replayed)
+      long opTimeMs, String ufsFingerprint, boolean replayed)
       throws FileDoesNotExistException, InvalidPathException, InvalidFileSizeException,
       FileAlreadyCompletedException {
     InodeFile inode = inodePath.getInodeFile();
     inode.setBlockIds(blockIds);
     inode.setLastModificationTimeMs(opTimeMs);
+    inode.setUfsFingerprint(ufsFingerprint);
     inode.complete(length);
 
     if (inode.isPersisted()) {
@@ -1087,7 +1100,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     try (LockedInodePath inodePath = mInodeTree
         .lockFullInodePath(entry.getId(), InodeTree.LockMode.WRITE)) {
       completeFileInternal(entry.getBlockIdsList(), inodePath, entry.getLength(),
-          entry.getOpTimeMs(), true);
+          entry.getOpTimeMs(), entry.getUfsFingerprint(), true);
     } catch (FileDoesNotExistException e) {
       throw new RuntimeException(e);
     }
@@ -2897,6 +2910,9 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     if (options.getMode() != Constants.INVALID_MODE) {
       builder.setPermission(options.getMode());
     }
+    if (!options.getUfsFingerprint().equals(Constants.INVALID_UFS_FINGERPRINT)) {
+      builder.setUfsFingerprint(options.getUfsFingerprint());
+    }
     journalContext.append(JournalEntry.newBuilder().setSetAttribute(builder).build());
   }
 
@@ -2938,13 +2954,21 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
   }
 
   @Override
-  public FileSystemCommand workerHeartbeat(long workerId, List<Long> persistedFiles)
+  public FileSystemCommand workerHeartbeat(long workerId, List<Long> persistedFiles,
+      WorkerHeartbeatOptions options)
       throws FileDoesNotExistException, InvalidPathException, AccessControlException,
       IOException {
-    for (long fileId : persistedFiles) {
+
+    List<String> persistedUfsFingerprints = options.getPersistedUfsFingerprintList();
+    boolean hasPersistedFingerprints = persistedUfsFingerprints.size() == persistedFiles.size();
+    for (int i = 0; i < persistedFiles.size(); i++) {
+      long fileId = persistedFiles.get(i);
+      String ufsFingerprint = hasPersistedFingerprints ? persistedUfsFingerprints.get(i) :
+          Constants.INVALID_UFS_FINGERPRINT;
       try {
         // Permission checking for each file is performed inside setAttribute
-        setAttribute(getPath(fileId), SetAttributeOptions.defaults().setPersisted(true));
+        setAttribute(getPath(fileId),
+            SetAttributeOptions.defaults().setPersisted(true).setUfsFingerprint(ufsFingerprint));
       } catch (FileDoesNotExistException | AccessControlException | InvalidPathException e) {
         LOG.error("Failed to set file {} as persisted, because {}", fileId, e);
       }
@@ -2955,9 +2979,9 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     if (!filesToPersist.isEmpty()) {
       LOG.debug("Sent files {} to worker {} to persist", filesToPersist, workerId);
     }
-    FileSystemCommandOptions options = new FileSystemCommandOptions();
-    options.setPersistOptions(new PersistCommandOptions(filesToPersist));
-    return new FileSystemCommand(CommandType.Persist, options);
+    FileSystemCommandOptions commandOptions = new FileSystemCommandOptions();
+    commandOptions.setPersistOptions(new PersistCommandOptions(filesToPersist));
+    return new FileSystemCommand(CommandType.Persist, commandOptions);
   }
 
   /**
@@ -3036,8 +3060,14 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
                   + " . Aborting the setAttribute operation in Alluxio.", e);
             }
           }
+          // Retrieve the ufs fingerprint after the ufs changes.
+          // TODO(gpang): update fingerprint from previous, since contents did not change.
+          options.setUfsFingerprint(ufs.getFingerprint(ufsUri));
         }
       }
+    }
+    if (!options.getUfsFingerprint().equals(Constants.INVALID_UFS_FINGERPRINT)) {
+      inode.setUfsFingerprint(options.getUfsFingerprint());
     }
     // Only commit the set permission to inode after the propagation to UFS succeeded.
     if (options.getOwner() != null) {
@@ -3079,6 +3109,9 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     }
     if (entry.hasPermission()) {
       options.setMode((short) entry.getPermission());
+    }
+    if (entry.hasUfsFingerprint()) {
+      options.setUfsFingerprint(entry.getUfsFingerprint());
     }
     try (LockedInodePath inodePath = mInodeTree
         .lockFullInodePath(entry.getId(), InodeTree.LockMode.WRITE)) {

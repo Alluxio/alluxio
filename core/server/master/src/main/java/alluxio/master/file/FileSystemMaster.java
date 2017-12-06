@@ -37,6 +37,7 @@ import alluxio.master.file.options.LoadMetadataOptions;
 import alluxio.master.file.options.MountOptions;
 import alluxio.master.file.options.RenameOptions;
 import alluxio.master.file.options.SetAttributeOptions;
+import alluxio.master.file.options.WorkerHeartbeatOptions;
 import alluxio.thrift.FileSystemCommand;
 import alluxio.thrift.UfsInfo;
 import alluxio.wire.FileBlockInfo;
@@ -471,14 +472,15 @@ public interface FileSystemMaster extends Master {
    *
    * @param workerId the id of the worker that heartbeats
    * @param persistedFiles the files that persisted on the worker
+   * @param options the method options
    * @return the command for persisting the blocks of a file
    * @throws FileDoesNotExistException if the file does not exist
    * @throws InvalidPathException if the file path corresponding to the file id is invalid
    * @throws AccessControlException if permission checking fails
    */
-  FileSystemCommand workerHeartbeat(long workerId, List<Long> persistedFiles)
-      throws FileDoesNotExistException, InvalidPathException, AccessControlException,
-      IOException;
+  FileSystemCommand workerHeartbeat(long workerId, List<Long> persistedFiles,
+      WorkerHeartbeatOptions options)
+      throws FileDoesNotExistException, InvalidPathException, AccessControlException, IOException;
 
   /**
    * @return a list of {@link WorkerInfo} objects representing the workers in Alluxio

@@ -196,8 +196,19 @@ public class LocalUnderFileSystem extends BaseUnderFileSystem
     File file = new File(tpath);
     PosixFileAttributes attr =
         Files.readAttributes(Paths.get(file.getPath()), PosixFileAttributes.class);
-    return new UfsFileStatus(path, file.length(), file.lastModified(), attr.owner().getName(),
-        attr.group().getName(), FileUtils.translatePosixPermissionToMode(attr.permissions()));
+    // approximating the content hash with the file length and modtime.
+    StringBuilder sb = new StringBuilder();
+    sb.append('(');
+    sb.append("len:");
+    sb.append(file.length());
+    sb.append(", ");
+    sb.append("modtime:");
+    sb.append(file.lastModified());
+    sb.append(')');
+    String contentHash = sb.toString();
+    return new UfsFileStatus(path, contentHash, file.length(),
+        file.lastModified(), attr.owner().getName(), attr.group().getName(),
+        FileUtils.translatePosixPermissionToMode(attr.permissions()));
   }
 
   @Override
@@ -248,8 +259,8 @@ public class LocalUnderFileSystem extends BaseUnderFileSystem
           retStatus = new UfsDirectoryStatus(f.getName(), attr.owner().getName(),
               attr.group().getName(), mode);
         } else {
-          retStatus = new UfsFileStatus(f.getName(), f.length(), f.lastModified(),
-              attr.owner().getName(), attr.group().getName(), mode);
+          retStatus = new UfsFileStatus(f.getName(), UfsFileStatus.INVALID_CONTENT_HASH, f.length(),
+              f.lastModified(), attr.owner().getName(), attr.group().getName(), mode);
         }
         rtn[i++] = retStatus;
       }

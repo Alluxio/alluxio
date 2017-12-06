@@ -294,6 +294,17 @@ public interface UnderFileSystem extends Closeable {
   UfsFileStatus getFileStatus(String path) throws IOException;
 
   /**
+   * Computes and returns a fingerprint for the path. The fingerprint is used to determine if two
+   * UFS files are identical. The fingerprint must be deterministic, and must not change if a
+   * file is only renamed (identical content and permissions). Returns
+   * {@link alluxio.Constants#INVALID_UFS_FINGERPRINT} if there is any error.
+   *
+   * @param path the path to compute the fingerprint for
+   * @return the string representing the fingerprint
+   */
+  String getFingerprint(String path);
+
+  /**
    * Queries the under file system about the space of the indicated path (e.g., space left, space
    * used and etc).
    *
