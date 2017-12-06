@@ -25,7 +25,6 @@ import alluxio.client.file.options.ListStatusOptions;
 import alluxio.client.file.options.LoadMetadataOptions;
 import alluxio.client.file.options.MountOptions;
 import alluxio.client.file.options.SetAttributeOptions;
-import alluxio.exception.status.AlluxioStatusException;
 import alluxio.master.MasterClientConfig;
 import alluxio.thrift.AlluxioService;
 import alluxio.thrift.FileSystemMasterClientService;
@@ -39,6 +38,7 @@ import alluxio.wire.ThriftUtils;
 
 import org.apache.thrift.TException;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -88,7 +88,7 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
 
   @Override
   public synchronized List<AlluxioURI> checkConsistency(final AlluxioURI path,
-      final CheckConsistencyOptions options) throws AlluxioStatusException {
+      final CheckConsistencyOptions options) throws IOException {
     return retryRPC(() -> {
       List<String> inconsistentPaths =
           mClient.checkConsistency(path.getPath(), options.toThrift()).getInconsistentPaths();
@@ -102,7 +102,7 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
 
   @Override
   public synchronized void createDirectory(final AlluxioURI path,
-      final CreateDirectoryOptions options) throws AlluxioStatusException {
+      final CreateDirectoryOptions options) throws IOException {
     retryRPC(() -> {
       mClient.createDirectory(path.getPath(), options.toThrift());
       return null;
@@ -111,7 +111,7 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
 
   @Override
   public synchronized void createFile(final AlluxioURI path, final CreateFileOptions options)
-      throws AlluxioStatusException {
+      throws IOException {
     retryRPC(new RpcCallable<Void>() {
       @Override
       public Void call() throws TException {
@@ -123,7 +123,7 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
 
   @Override
   public synchronized void completeFile(final AlluxioURI path, final CompleteFileOptions options)
-      throws AlluxioStatusException {
+      throws IOException {
     retryRPC(() -> {
       mClient.completeFile(path.getPath(), options.toThrift());
       return null;
@@ -132,7 +132,7 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
 
   @Override
   public synchronized void delete(final AlluxioURI path, final DeleteOptions options)
-      throws AlluxioStatusException {
+      throws IOException {
     retryRPC(() -> {
       mClient.remove(path.getPath(), options.isRecursive(), options.toThrift());
       return null;
@@ -141,7 +141,7 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
 
   @Override
   public synchronized void free(final AlluxioURI path, final FreeOptions options)
-      throws AlluxioStatusException {
+      throws IOException {
     retryRPC(() -> {
       mClient.free(path.getPath(), options.isRecursive(), options.toThrift());
       return null;
@@ -150,22 +150,25 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
 
   @Override
   public synchronized URIStatus getStatus(final AlluxioURI path, final GetStatusOptions options)
-      throws AlluxioStatusException {
-    return retryRPC(() -> new URIStatus(ThriftUtils
-            .fromThrift(mClient.getStatus(path.getPath(), options.toThrift()).getFileInfo())));
+      throws IOException {
+    return retryRPC(new RpcCallable<URIStatus>() {
+      @Override
+      public URIStatus call() throws TException {
+        return new URIStatus(ThriftUtils
+            .fromThrift(mClient.getStatus(path.getPath(), options.toThrift()).getFileInfo()));
+      }
+    });
   }
 
   @Override
-  public synchronized long getNewBlockIdForFile(final AlluxioURI path)
-      throws AlluxioStatusException {
+  public synchronized long getNewBlockIdForFile(final AlluxioURI path) throws IOException {
     return retryRPC(
         () -> mClient.getNewBlockIdForFile(path.getPath(), new GetNewBlockIdForFileTOptions())
             .getId());
   }
 
   @Override
-  public synchronized Map<String, alluxio.wire.MountPointInfo> getMountTable()
-      throws AlluxioStatusException {
+  public synchronized Map<String, alluxio.wire.MountPointInfo> getMountTable() throws IOException {
     return retryRPC(() -> {
       GetMountTableTResponse result = mClient.getMountTable();
       Map<String, alluxio.thrift.MountPointInfo> mountTableThrift = result.getMountTable();
@@ -182,9 +185,9 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
 
   @Override
   public synchronized List<URIStatus> listStatus(final AlluxioURI path,
-      final ListStatusOptions options) throws AlluxioStatusException {
+      final ListStatusOptions options) throws IOException {
     return retryRPC(() -> {
-      List<URIStatus> result = new ArrayList<>();
+      List<URIStatus> result = new ArrayList<URIStatus>();
       for (alluxio.thrift.FileInfo fileInfo : mClient.listStatus(path.getPath(), options.toThrift())
           .getFileInfoList()) {
         result.add(new URIStatus(ThriftUtils.fromThrift(fileInfo)));
@@ -195,17 +198,20 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
 
   @Override
   public synchronized void loadMetadata(final AlluxioURI path,
-      final LoadMetadataOptions options) throws AlluxioStatusException {
-    retryRPC(() -> {
-      return mClient
+      final LoadMetadataOptions options) throws IOException {
+    retryRPC(new RpcCallable<Long>() {
+      @Override
+      public Long call() throws TException {
+        return mClient
             .loadMetadata(path.toString(), options.isRecursive(), new LoadMetadataTOptions())
             .getId();
+      }
     });
   }
 
   @Override
   public synchronized void mount(final AlluxioURI alluxioPath, final AlluxioURI ufsPath,
-      final MountOptions options) throws AlluxioStatusException {
+      final MountOptions options) throws IOException {
     retryRPC(() -> {
       mClient.mount(alluxioPath.toString(), ufsPath.toString(), options.toThrift());
       return null;
@@ -213,17 +219,19 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
   }
 
   @Override
-  public synchronized void rename(final AlluxioURI src, final AlluxioURI dst)
-      throws AlluxioStatusException {
-    retryRPC(() -> {
-      mClient.rename(src.getPath(), dst.getPath(), new RenameTOptions());
-      return null;
+  public synchronized void rename(final AlluxioURI src, final AlluxioURI dst) throws IOException {
+    retryRPC(new RpcCallable<Void>() {
+      @Override
+      public Void call() throws TException {
+        mClient.rename(src.getPath(), dst.getPath(), new RenameTOptions());
+        return null;
+      }
     });
   }
 
   @Override
   public synchronized void setAttribute(final AlluxioURI path, final SetAttributeOptions options)
-      throws AlluxioStatusException {
+      throws IOException {
     retryRPC(() -> {
       mClient.setAttribute(path.getPath(), options.toThrift());
       return null;
@@ -231,16 +239,18 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
   }
 
   @Override
-  public synchronized void scheduleAsyncPersist(final AlluxioURI path)
-      throws AlluxioStatusException {
-    retryRPC(() -> {
-      mClient.scheduleAsyncPersistence(path.getPath(), new ScheduleAsyncPersistenceTOptions());
-      return null;
+  public synchronized void scheduleAsyncPersist(final AlluxioURI path) throws IOException {
+    retryRPC(new RpcCallable<Void>() {
+      @Override
+      public Void call() throws TException {
+        mClient.scheduleAsyncPersistence(path.getPath(), new ScheduleAsyncPersistenceTOptions());
+        return null;
+      }
     });
   }
 
   @Override
-  public synchronized void unmount(final AlluxioURI alluxioPath) throws AlluxioStatusException {
+  public synchronized void unmount(final AlluxioURI alluxioPath) throws IOException {
     retryRPC(() -> {
       mClient.unmount(alluxioPath.toString(), new UnmountTOptions());
       return null;
