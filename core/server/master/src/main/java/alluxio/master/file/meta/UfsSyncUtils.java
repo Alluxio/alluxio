@@ -13,9 +13,6 @@ package alluxio.master.file.meta;
 
 import alluxio.Constants;
 import alluxio.underfs.UfsStatus;
-import alluxio.underfs.UnderFileSystem;
-
-import java.io.IOException;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -25,34 +22,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public final class UfsSyncUtils {
 
-  /**
-   * Returns the {@link UfsStatus} of the given path.
-   *
-   * @param ufs the ufs object
-   * @param path the path to get the status for, can be a file or directory
-   * @return returns the {@link UfsStatus} of the given path
-   */
-  public static UfsStatus getUfsStatus(UnderFileSystem ufs, String path) {
-    UfsStatus ufsStatus = null;
-    try {
-      if (ufs.isFile(path)) {
-        ufsStatus = ufs.getFileStatus(path);
-      }
-    } catch (IOException e) {
-      // ignore error, since ufs path may not exist, or may be a directory.
-    }
-
-    if (ufsStatus == null) {
-      try {
-        if (ufs.isDirectory(path)) {
-          ufsStatus = ufs.getDirectoryStatus(path);
-        }
-      } catch (IOException e) {
-        // ignore error, since ufs path may not exist, or may be a directory.
-      }
-    }
-    return ufsStatus;
-  }
+  private UfsSyncUtils() {} // prevent instantiation
 
   /**
    * Given an {@link Inode} and {@link UfsStatus}, returns a {@link SyncPlan} describing how to
@@ -110,14 +80,12 @@ public final class UfsSyncUtils {
     return matchPersisted || matchUnpersisted;
   }
 
-  private UfsSyncUtils() {} // prevent instantiation
-
   /**
    * A class describing how to sync an inode with the ufs.
    * A sync plan has several steps:
    * 1. delete: the inode should be deleted
    * 2. syncChildren: the inode is a directory, and the children should be synced
-   * 3. loadMetadata: the inode metadata should loaded from UFS
+   * 3. loadMetadata: the inode metadata should be loaded from UFS
    */
   public static final class SyncPlan {
     private boolean mDelete;
