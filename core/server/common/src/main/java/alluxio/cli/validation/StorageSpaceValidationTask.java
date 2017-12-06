@@ -28,7 +28,7 @@ import java.util.Map;
 /**
  * Task for validating whether worker tiered storage has enough space.
  */
-public final class StorageSpaceValidationTask implements ValidationTask {
+public final class StorageSpaceValidationTask extends AbstractValidationTask {
 
   /**
    * Creates a new instance of {@link StorageSpaceValidationTask}
@@ -38,7 +38,7 @@ public final class StorageSpaceValidationTask implements ValidationTask {
   }
 
   @Override
-  public boolean validate() {
+  public boolean validate(Map<String, String> optionsMap) {
     int numLevel = Configuration.getInt(PropertyKey.WORKER_TIERED_STORE_LEVELS);
     boolean success = true;
 
