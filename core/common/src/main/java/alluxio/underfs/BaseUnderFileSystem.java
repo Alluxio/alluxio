@@ -12,6 +12,7 @@
 package alluxio.underfs;
 
 import alluxio.AlluxioURI;
+import alluxio.Constants;
 import alluxio.collections.Pair;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.options.DeleteOptions;
@@ -20,7 +21,10 @@ import alluxio.underfs.options.MkdirsOptions;
 import alluxio.underfs.options.OpenOptions;
 import alluxio.util.io.PathUtils;
 
+import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -38,6 +42,8 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public abstract class BaseUnderFileSystem implements UnderFileSystem {
+  private static final Logger LOG = LoggerFactory.getLogger(BaseUnderFileSystem.class);
+
   /** The UFS {@link AlluxioURI} used to create this {@link BaseUnderFileSystem}. */
   protected final AlluxioURI mUri;
 
@@ -68,6 +74,31 @@ public abstract class BaseUnderFileSystem implements UnderFileSystem {
   @Override
   public boolean exists(String path) throws IOException {
     return isFile(path) || isDirectory(path);
+  }
+
+  @Override
+  public String getFingerprint(String path) {
+    Objects.ToStringHelper helper = Objects.toStringHelper(this);
+    try {
+      if (isFile(path)) {
+        UfsFileStatus fileStatus = getFileStatus(path);
+        helper.add("type", "file");
+        helper.add("hash", fileStatus.getContentHash());
+        helper.add("owner", fileStatus.getOwner());
+        helper.add("group", fileStatus.getGroup());
+        helper.add("mode", fileStatus.getMode());
+      } else {
+        UfsDirectoryStatus dirStatus = getDirectoryStatus(path);
+        helper.add("type", "directory");
+        helper.add("owner", dirStatus.getOwner());
+        helper.add("group", dirStatus.getGroup());
+        helper.add("mode", dirStatus.getMode());
+      }
+      return helper.toString();
+    } catch (Exception e) {
+      LOG.warn("Failed fingerprint. path: {} error: {}", path, e.getMessage());
+      return Constants.INVALID_UFS_FINGERPRINT;
+    }
   }
 
   @Override

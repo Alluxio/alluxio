@@ -254,8 +254,18 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
   public UfsFileStatus getFileStatus(String path) throws IOException {
     Path tPath = new Path(path);
     FileStatus fs = mFileSystem.getFileStatus(tPath);
-    return new UfsFileStatus(path, fs.getLen(), fs.getModificationTime(), fs.getOwner(),
-        fs.getGroup(), fs.getPermission().toShort());
+    // approximating the content hash with the file length and modtime.
+    StringBuilder sb = new StringBuilder();
+    sb.append('(');
+    sb.append("len:");
+    sb.append(fs.getLen());
+    sb.append(", ");
+    sb.append("modtime:");
+    sb.append(fs.getModificationTime());
+    sb.append(')');
+    String contentHash = sb.toString();
+    return new UfsFileStatus(path, contentHash, fs.getLen(),
+        fs.getModificationTime(), fs.getOwner(), fs.getGroup(), fs.getPermission().toShort());
   }
 
   @Override
@@ -306,9 +316,10 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
       // only return the relative path, to keep consistent with java.io.File.list()
       UfsStatus retStatus;
       if (!status.isDir()) {
-        retStatus = new UfsFileStatus(status.getPath().getName(), status.getLen(),
-            status.getModificationTime(), status.getOwner(), status.getGroup(),
-            status.getPermission().toShort());
+        retStatus =
+            new UfsFileStatus(status.getPath().getName(), UfsFileStatus.INVALID_CONTENT_HASH,
+                status.getLen(), status.getModificationTime(), status.getOwner(), status.getGroup(),
+                status.getPermission().toShort());
       } else {
         retStatus = new UfsDirectoryStatus(status.getPath().getName(), status.getOwner(),
             status.getGroup(), status.getPermission().toShort());

@@ -132,6 +132,7 @@ struct FileInfo {
   24: common.TTtlAction ttlAction
   25: i64 mountId
   26: i32 inAlluxioPercentage
+  27: string ufsFingerprint
 }
 
 struct MountTOptions {
@@ -376,7 +377,9 @@ service FileSystemMasterClientService extends common.AlluxioService {
     throws (1: exception.AlluxioTException e)
 }
 
-struct FileSystemHeartbeatTOptions {}
+struct FileSystemHeartbeatTOptions {
+  1: optional list<string> persistedFileFingerprints
+}
 struct FileSystemHeartbeatTResponse {
   1: FileSystemCommand command
 }

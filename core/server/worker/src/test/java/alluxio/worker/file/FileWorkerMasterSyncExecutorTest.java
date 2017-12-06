@@ -13,6 +13,7 @@ package alluxio.worker.file;
 
 import alluxio.exception.status.UnavailableException;
 import alluxio.thrift.FileSystemCommand;
+import alluxio.thrift.FileSystemHeartbeatTOptions;
 
 import com.google.common.collect.Lists;
 import org.junit.Before;
@@ -50,9 +51,13 @@ public final class FileWorkerMasterSyncExecutorTest {
   @Test
   public void heartbeatFailure() throws Exception {
     List<Long> persistedFiles = Lists.newArrayList(1L);
-    Mockito.when(mFileDataManager.getPersistedFiles()).thenReturn(persistedFiles);
+    List<String> ufsFingerprintList = Lists.newArrayList("ufs fingerprint");
+    FileDataManager.PersistedFilesInfo filesInfo =
+        new FileDataManager.PersistedFilesInfo(persistedFiles, ufsFingerprintList);
+    Mockito.when(mFileDataManager.getPersistedFileInfos()).thenReturn(filesInfo);
     // first time fails, second time passes
-    Mockito.when(mFileSystemMasterClient.heartbeat(Mockito.anyLong(), Mockito.eq(persistedFiles)))
+    Mockito.when(mFileSystemMasterClient.heartbeat(Mockito.anyLong(), Mockito.eq(persistedFiles),
+        Mockito.any(FileSystemHeartbeatTOptions.class)))
         .thenThrow(new UnavailableException("failure"));
     mFileWorkerMasterSyncExecutor.heartbeat();
     Mockito.verify(mFileDataManager, Mockito.never()).clearPersistedFiles(persistedFiles);
@@ -65,7 +70,10 @@ public final class FileWorkerMasterSyncExecutorTest {
   @Test
   public void heartbeat() throws Exception {
     List<Long> persistedFiles = Lists.newArrayList(1L);
-    Mockito.when(mFileDataManager.getPersistedFiles()).thenReturn(persistedFiles);
+    List<String> ufsFingerprintList = Lists.newArrayList("ufs fingerprint");
+    FileDataManager.PersistedFilesInfo filesInfo =
+        new FileDataManager.PersistedFilesInfo(persistedFiles, ufsFingerprintList);
+    Mockito.when(mFileDataManager.getPersistedFileInfos()).thenReturn(filesInfo);
     // first time fails, second time passes
     Mockito.when(mFileSystemMasterClient.heartbeat(Mockito.anyLong(), Mockito.eq(persistedFiles)))
         .thenReturn(new FileSystemCommand());

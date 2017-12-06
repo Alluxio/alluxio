@@ -36,6 +36,7 @@ public final class SetAttributeOptions {
   private Short mMode;
   private boolean mRecursive;
   private long mOperationTimeMs;
+  private String mUfsFingerprint;
 
   /**
    * @return the default {@link SetAttributeOptions}
@@ -79,6 +80,7 @@ public final class SetAttributeOptions {
     mMode = Constants.INVALID_MODE;
     mRecursive = false;
     mOperationTimeMs = System.currentTimeMillis();
+    mUfsFingerprint = Constants.INVALID_UFS_FINGERPRINT;
   }
 
   /**
@@ -149,6 +151,13 @@ public final class SetAttributeOptions {
    */
   public long getOperationTimeMs() {
     return mOperationTimeMs;
+  }
+
+  /**
+   * @return the ufs fingerprint
+   */
+  public String getUfsFingerprint() {
+    return mUfsFingerprint;
   }
 
   /**
@@ -249,6 +258,15 @@ public final class SetAttributeOptions {
     return this;
   }
 
+  /**
+   * @param ufsFingerprint the ufs fingerprint
+   * @return the updated options object
+   */
+  public SetAttributeOptions setUfsFingerprint(String ufsFingerprint) {
+    mUfsFingerprint = ufsFingerprint;
+    return this;
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) {
@@ -267,14 +285,15 @@ public final class SetAttributeOptions {
         && Objects.equal(mGroup, that.mGroup)
         && Objects.equal(mMode, that.mMode)
         && Objects.equal(mRecursive, that.mRecursive)
-        && mOperationTimeMs == that.mOperationTimeMs;
+        && mOperationTimeMs == that.mOperationTimeMs
+        && Objects.equal(mUfsFingerprint, that.mUfsFingerprint);
   }
 
   @Override
   public int hashCode() {
     return Objects
         .hashCode(mPinned, mTtl, mTtlAction, mPersisted, mOwner, mGroup, mMode, mRecursive,
-            mOperationTimeMs, mCommonOptions);
+            mOperationTimeMs, mCommonOptions, mUfsFingerprint);
   }
 
   @Override
@@ -290,6 +309,7 @@ public final class SetAttributeOptions {
         .add("mode", mMode)
         .add("recursive", mRecursive)
         .add("operationTimeMs", mOperationTimeMs)
+        .add("ufsFingerprint", mUfsFingerprint)
         .toString();
   }
 }
