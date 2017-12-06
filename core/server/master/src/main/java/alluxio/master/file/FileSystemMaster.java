@@ -37,7 +37,6 @@ import alluxio.master.file.options.LoadMetadataOptions;
 import alluxio.master.file.options.MountOptions;
 import alluxio.master.file.options.RenameOptions;
 import alluxio.master.file.options.SetAttributeOptions;
-import alluxio.master.file.options.SyncMetadataOptions;
 import alluxio.master.file.options.WorkerHeartbeatOptions;
 import alluxio.thrift.FileSystemCommand;
 import alluxio.thrift.UfsInfo;
@@ -198,16 +197,6 @@ public interface FileSystemMaster extends Master {
   // Used by lineage master
   long reinitializeFile(AlluxioURI path, long blockSizeBytes, long ttl, TtlAction ttlAction)
       throws InvalidPathException, FileDoesNotExistException;
-
-  /**
-   * Syncs the Alluxio metadata with the UFS metadata, for a given path.
-   *
-   * @param path the root of the subtree to sync
-   * @param options the options to use for the method
-   * @return true if the sync was performed
-   */
-  boolean syncMetadata(AlluxioURI path, SyncMetadataOptions options)
-      throws AccessControlException, FileDoesNotExistException, InvalidPathException, IOException;
 
   /**
    * Gets a new block id for the next block of a given file to write to.
