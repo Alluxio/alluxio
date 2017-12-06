@@ -148,4 +148,15 @@ framework process.
 
 For example, the options `-Dalluxio.logs.dir=/var/alluxio/ -Dalluxio.logger.type=USER_LOGGER -Dlog4j.configuration=/tmp/
 alluxio/conf/log4j.properties` will instruct Alluxio client to use the log4j configuration in the Alluxio's conf path and 
-output the log to a file `user_USER_NAME.log` at the path `/var/alluxio/`, where `USER_NAME` is the user that starts the client program. If the client is not on the same machine where Alluxio is installed, you can make a copy of the file in `conf/log4j.properties` to the client machine, and pass its path to the option `log4j.configuration`.
+output the log to a file `user_USER_NAME.log` at the path `/var/alluxio/`, where `USER_NAME` is the user that starts the client program. If the client is not on the same machine where Alluxio is installed, you can make a copy of the file in `conf/log4j.properties` to the client machine, and pass its path to the option `log4j.configuration`. If you do not want to override the application's `log4j.properties` path, alternatively you can append the followings to its `log4j.properties` file:
+
+```
+# Appender for Alluxio User
+log4j.rootLogger=INFO, ${alluxio.logger.type}
+log4j.appender.USER_LOGGER=org.apache.log4j.RollingFileAppender
+log4j.appender.USER_LOGGER.File=${alluxio.logs.dir}/user_${user.name}.log
+log4j.appender.USER_LOGGER.MaxFileSize=10MB
+log4j.appender.USER_LOGGER.MaxBackupIndex=10
+log4j.appender.USER_LOGGER.layout=org.apache.log4j.PatternLayout
+log4j.appender.USER_LOGGER.layout.ConversionPattern=%d{ISO8601} %-5p %c{1} - %m%n
+```
