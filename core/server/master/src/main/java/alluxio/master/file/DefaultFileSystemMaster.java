@@ -2979,8 +2979,14 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     inodePath.getInode().setPersistenceState(PersistenceState.TO_BE_PERSISTED);
   }
 
-  @Override
-  public boolean syncMetadata(AlluxioURI path, SyncMetadataOptions options)
+  /**
+   * Syncs the Alluxio metadata with the UFS metadata, for a given path.
+   *
+   * @param path the root of the subtree to sync
+   * @param options the options to use for the method
+   * @return true if the sync was performed
+   */
+  private boolean syncMetadata(AlluxioURI path, SyncMetadataOptions options)
       throws AccessControlException, FileDoesNotExistException, InvalidPathException {
     if (!mUfsSyncPathCache
         .shouldSyncPath(path.getPath(), options.getCommonOptions().getSyncIntervalMs())) {
