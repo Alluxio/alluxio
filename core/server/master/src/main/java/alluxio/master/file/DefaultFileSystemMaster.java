@@ -105,6 +105,7 @@ import alluxio.thrift.MountTOptions;
 import alluxio.thrift.PersistCommandOptions;
 import alluxio.thrift.PersistFile;
 import alluxio.thrift.UfsInfo;
+import alluxio.underfs.Fingerprint;
 import alluxio.underfs.MasterUfsManager;
 import alluxio.underfs.UfsFileStatus;
 import alluxio.underfs.UfsManager;
@@ -2989,6 +2990,9 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     // True if ufs metadata should be loaded later.
     boolean loadMetadata = false;
 
+    DeleteOptions syncDeleteOptions =
+        DeleteOptions.defaults().setRecursive(true).setAlluxioOnly(true).setUnchecked(true);
+
     // The high-level process for the syncing is:
     // 1. Find all Alluxio paths which are not consistent with the corresponding UFS path.
     //    This means the UFS path does not exist, or is different from the Alluxio metadata.
@@ -3018,14 +3022,13 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         AlluxioURI ufsUri = resolution.getUri();
         UnderFileSystem ufs = resolution.getUfs();
 
-        UfsSyncUtils.SyncPlan syncPlan = UfsSyncUtils.computeSyncPlan(inodePath.getInode(),
-            UfsSyncUtils.getUfsStatus(ufs, ufsUri.toString()));
+        UfsSyncUtils.SyncPlan syncPlan = UfsSyncUtils
+            .computeSyncPlan(inodePath.getInode(), ufs.getFingerprint(ufsUri.toString()));
 
         if (syncPlan.toDelete() && inodePath.getParentInodeOrNull() != null) {
           // Do not delete the root.
           try {
-            deleteInternal(inodePath, true, System.currentTimeMillis(),
-                DeleteOptions.defaults().setRecursive(true).setAlluxioOnly(true).setUnchecked(true),
+            deleteInternal(inodePath, true, System.currentTimeMillis(), syncDeleteOptions,
                 journalContext);
           } catch (DirectoryNotEmptyException | IOException e) {
             // Should not happen, since it is an unchecked delete.
@@ -3042,22 +3045,26 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
             listStatus = ufs.listStatus(ufsUri.toString());
           } catch (IOException e) {
             // ignore error
+            LOG.warn("Failed to list directory: {} error: {}", ufsUri, e.getMessage());
           }
 
           if (listStatus != null) {
-            HashMap<String, UfsStatus> ufsChildren = new HashMap<>();
+            // maps of children name to ufs or inode information
+            HashMap<String, String> ufsChildren = new HashMap<>();
             HashMap<String, Inode<?>> inodeChildren = new HashMap<>();
 
             for (UfsStatus ufsChildStatus : listStatus) {
-              ufsChildren.put(ufsChildStatus.getName(), ufsChildStatus);
+              ufsChildren.put(ufsChildStatus.getName(),
+                  Fingerprint.create(Fingerprint.getUfsName(ufs), ufsChildStatus)
+                      .serialize());
             }
             InodeDirectory inodeDir = (InodeDirectory) inodePath.getInode();
             for (Inode<?> child : inodeDir.getChildren()) {
               inodeChildren.put(child.getName(), child);
             }
 
-            // Process Ufs children which do not exist in Alluxio.
-            for (Map.Entry<String, UfsStatus> ufsEntry : ufsChildren.entrySet()) {
+            // Iterate over ufs children and process children which do not exist in Alluxio.
+            for (Map.Entry<String, String> ufsEntry : ufsChildren.entrySet()) {
               if (!inodeChildren.containsKey(ufsEntry.getKey()) && !PathUtils
                   .isTemporaryFileName(ufsEntry.getKey())) {
                 // Ufs child exists, but Alluxio child does not. Must load metadata.
@@ -3066,22 +3073,16 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
               }
             }
 
-            // Process persisted Alluxio inode children.
+            // Iterate over Alluxio children and process persisted children.
             for (Map.Entry<String, Inode<?>> inodeEntry : inodeChildren.entrySet()) {
               if (!inodeEntry.getValue().isPersisted()) {
                 // Ignore non-persisted inodes.
                 continue;
               }
 
-              boolean deleteChild = false;
-              UfsStatus ufsChildStatus = ufsChildren.get(inodeEntry.getKey());
-              if (ufsChildStatus != null) {
-                // Exists in both Alluxio and Ufs. Check for match.
-                deleteChild = !UfsSyncUtils.inodeUfsMatch(inodeEntry.getValue(), ufsChildStatus);
-              } else {
-                // Persisted Alluxio inode child exists, but Ufs child does not. Delete this child.
-                deleteChild = true;
-              }
+              String ufsFingerprint = ufsChildren.get(inodeEntry.getKey());
+              boolean deleteChild =
+                  !UfsSyncUtils.inodeUfsMatch(inodeEntry.getValue(), ufsFingerprint);
 
               if (deleteChild) {
                 TempInodePathForDescendant tempInodePath =
@@ -3090,9 +3091,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
                     inodePath.getUri().join(inodeEntry.getKey()));
 
                 try {
-                  deleteInternal(tempInodePath, true, System.currentTimeMillis(),
-                      DeleteOptions.defaults().setRecursive(true).setAlluxioOnly(true)
-                          .setUnchecked(true), journalContext);
+                  deleteInternal(tempInodePath, true, System.currentTimeMillis(), syncDeleteOptions,
+                      journalContext);
                 } catch (DirectoryNotEmptyException | IOException e) {
                   // Should not happen, since it is an unchecked delete.
                 }

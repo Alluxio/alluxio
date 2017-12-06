@@ -11,7 +11,7 @@
 
 package alluxio.master.file.meta;
 
-import alluxio.underfs.UfsFileStatus;
+import alluxio.Constants;
 import alluxio.underfs.UfsStatus;
 import alluxio.underfs.UnderFileSystem;
 
@@ -59,17 +59,17 @@ public final class UfsSyncUtils {
    * sync the inode with the ufs.
    *
    * @param inode the inode to sync
-   * @param ufsStatus the ufs status to check for the sync
+   * @param ufsFingerprint the ufs fingerprint to check for the sync
    * @return a {@link SyncPlan} describing how to sync the inode with the ufs
    */
-  public static SyncPlan computeSyncPlan(Inode inode, UfsStatus ufsStatus) {
-    boolean matches = inodeUfsMatch(inode, ufsStatus);
+  public static SyncPlan computeSyncPlan(Inode inode, String ufsFingerprint) {
+    boolean matches = inodeUfsMatch(inode, ufsFingerprint);
 
     UfsSyncUtils.SyncPlan syncPlan = new UfsSyncUtils.SyncPlan();
     if (!matches) {
       // UFS does not match with Alluxio inode.
       syncPlan.setDelete();
-      if (ufsStatus != null) {
+      if (!Constants.INVALID_UFS_FINGERPRINT.equals(ufsFingerprint)) {
         // UFS exists, so load metadata later.
         syncPlan.setLoadMetadata();
       }
@@ -88,26 +88,24 @@ public final class UfsSyncUtils {
    * directory inodes, this does not consider the children inodes.
    *
    * @param inode the inode to check for sync
-   * @param ufsStatus the ufs status to check for the sync
+   * @param ufsFingerprint the ufs fingerprint to check for the sync
    * @return true of the inode matches with the ufs status
    */
-  public static boolean inodeUfsMatch(Inode inode, UfsStatus ufsStatus) {
-    boolean matchPersisted = false;
-    boolean matchUnpersisted = !inode.isPersisted() && ufsStatus == null;
+  public static boolean inodeUfsMatch(Inode inode, String ufsFingerprint) {
+    boolean matchUnpersisted =
+        !inode.isPersisted() && Constants.INVALID_UFS_FINGERPRINT.equals(ufsFingerprint);
+
+    boolean matchPersisted;
     if (inode instanceof InodeFile) {
-      // Alluxio path is a file.
+      // match the file fingerprint.
       InodeFile inodeFile = (InodeFile) inode;
-      // TODO(gpang): use fingerprint
-      if (ufsStatus != null && ufsStatus instanceof UfsFileStatus) {
-        UfsFileStatus ufsFile = (UfsFileStatus) ufsStatus;
-        matchPersisted = inodeFile.isPersisted()
-            && ufsFile.getContentLength() == inodeFile.getLength();
-      } else {
-        matchPersisted = false;
-      }
+      matchPersisted = inodeFile.isPersisted()
+          && inodeFile.getUfsFingerprint().equals(ufsFingerprint)
+          && !inodeFile.getUfsFingerprint().equals(Constants.INVALID_UFS_FINGERPRINT);
     } else {
-      // Alluxio path is a directory.
-      matchPersisted = inode.isPersisted() && ufsStatus != null && ufsStatus.isDirectory();
+      // ufs fingerprint must exist.
+      matchPersisted =
+          inode.isPersisted() && !Constants.INVALID_UFS_FINGERPRINT.equals(ufsFingerprint);
     }
     return matchPersisted || matchUnpersisted;
   }
