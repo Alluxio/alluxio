@@ -33,10 +33,10 @@ import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
-import org.apache.commons.lang3.ArrayUtils;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.TreeMap;
@@ -73,107 +73,81 @@ public final class ValidateEnv {
   private static final String ALLUXIO_WORKER_CLASS = "alluxio.worker.AlluxioWorker";
   private static final String ALLUXIO_PROXY_CLASS = "alluxio.proxy.AlluxioProxy";
 
-  // HDFS configuration validations
-  private static final ValidationTask HDFS_VALIDATION_TASK = registerTask(
-      "ufs.hdfs.config.parity", new HdfsValidationTask());
+  private static final List<ValidationTask> COMMON_TASKS = new ArrayList<>();
+  private static final List<ValidationTask> MASTER_TASKS = new ArrayList<>();
+  private static final List<ValidationTask> WORKER_TASKS = new ArrayList<>();
 
-  // port availability validations
-  private static final ValidationTask MASTER_RPC_VALIDATION_TASK = registerTask(
-      "master.rpc.port.available",
-      new PortAvailabilityValidationTask(ServiceType.MASTER_RPC, ALLUXIO_MASTER_CLASS));
-  private static final ValidationTask MASTER_WEB_VALIDATION_TASK = registerTask(
-      "master.web.port.available",
-      new PortAvailabilityValidationTask(ServiceType.MASTER_WEB, ALLUXIO_MASTER_CLASS));
-  private static final ValidationTask WORKER_DATA_VALIDATION_TASK = registerTask(
-      "worker.data.port.available",
-      new PortAvailabilityValidationTask(ServiceType.WORKER_DATA, ALLUXIO_WORKER_CLASS));
-  private static final ValidationTask WORKER_RPC_VALIDATION_TASK = registerTask(
-      "worker.rpc.port.available",
-      new PortAvailabilityValidationTask(ServiceType.WORKER_RPC, ALLUXIO_WORKER_CLASS));
-  private static final ValidationTask WORKER_WEB_VALIDATION_TASK = registerTask(
-      "worker.web.port.available",
-      new PortAvailabilityValidationTask(ServiceType.WORKER_WEB, ALLUXIO_WORKER_CLASS));
-  private static final ValidationTask PROXY_WEB_VALIDATION_TASK = registerTask(
-      "proxy.web.port.available",
-      new PortAvailabilityValidationTask(ServiceType.PROXY_WEB, ALLUXIO_PROXY_CLASS));
+  static {
+    // HDFS configuration validations
+    registerTask("ufs.hdfs.config.parity", new HdfsValidationTask(), COMMON_TASKS);
 
-  // security configuration validations
-  private static final ValidationTask MASTER_SECURE_HDFS_VALIDATION_TASK = registerTask(
-      "master.ufs.hdfs.security.kerberos",
-      new SecureHdfsValidationTask("master"));
-  private static final ValidationTask WORKER_SECURE_HDFS_VALIDATION_TASK = registerTask(
-      "worker.ufs.hdfs.security.kerberos",
-      new SecureHdfsValidationTask("worker"));
+    // port availability validations
+    registerTask("master.rpc.port.available",
+        new PortAvailabilityValidationTask(ServiceType.MASTER_RPC, ALLUXIO_MASTER_CLASS),
+        MASTER_TASKS);
+    registerTask("master.web.port.available",
+        new PortAvailabilityValidationTask(ServiceType.MASTER_WEB, ALLUXIO_MASTER_CLASS),
+        MASTER_TASKS);
+    registerTask("worker.data.port.available",
+        new PortAvailabilityValidationTask(ServiceType.WORKER_DATA, ALLUXIO_WORKER_CLASS),
+        WORKER_TASKS);
+    registerTask("worker.rpc.port.available",
+        new PortAvailabilityValidationTask(ServiceType.WORKER_RPC, ALLUXIO_WORKER_CLASS),
+        WORKER_TASKS);
+    registerTask("worker.web.port.available",
+        new PortAvailabilityValidationTask(ServiceType.WORKER_WEB, ALLUXIO_WORKER_CLASS),
+        WORKER_TASKS);
+    registerTask("proxy.web.port.available",
+        new PortAvailabilityValidationTask(ServiceType.PROXY_WEB, ALLUXIO_PROXY_CLASS),
+        COMMON_TASKS);
 
-  // ssh validations
-  private static final ValidationTask SSH_TO_MASTERS_VALIDATION_TASK = registerTask(
-      "ssh.masters.reachable",
-      new SshValidationTask("masters"));
-  private static final ValidationTask SSH_TO_WORKERS_VALIDATION_TASK = registerTask(
-      "ssh.workers.reachable",
-      new SshValidationTask("workers"));
+    // security configuration validations
+    registerTask("master.ufs.hdfs.security.kerberos",
+        new SecureHdfsValidationTask("master"), MASTER_TASKS);
+    registerTask("worker.ufs.hdfs.security.kerberos",
+        new SecureHdfsValidationTask("worker"), WORKER_TASKS);
 
-  // UFS validations
-  private static final ValidationTask UFS_ROOT_VALIDATION_TASK = registerTask(
-      "ufs.root.accessible",
-      new UfsDirectoryValidationTask());
+    // ssh validations
+    registerTask("ssh.masters.reachable", new SshValidationTask("masters"), COMMON_TASKS);
+    registerTask("ssh.workers.reachable", new SshValidationTask("workers"), COMMON_TASKS);
 
-  // RAM disk validations
-  private static final ValidationTask WORKER_RAMDISK_MOUNT_PRIVILEGE_VALIDATION_TASK = registerTask(
-      "worker.ramdisk.mount.privilege", new RamDiskMountPrivilegeValidationTask());
+    // UFS validations
+    registerTask("ufs.root.accessible", new UfsDirectoryValidationTask(), COMMON_TASKS);
 
-  // User limit validations
-  private static final ValidationTask ULIMIT_OPEN_FILES_VALIDATION_TASK = registerTask(
-      "ulimit.nofile",
-      UserLimitValidationTask.createOpenFilesLimitValidationTask());
+    // RAM disk validations
+    registerTask("worker.ramdisk.mount.privilege",
+        new RamDiskMountPrivilegeValidationTask(), WORKER_TASKS);
 
-  private static final ValidationTask ULIMIT_USER_PROCS_VALIDATION_TASK = registerTask(
-      "ulimit.nproc",
-      UserLimitValidationTask.createUserProcessesLimitValidationTask());
+    // User limit validations
+    registerTask("ulimit.nofile",
+        UserLimitValidationTask.createOpenFilesLimitValidationTask(), COMMON_TASKS);
 
-  // space validations
-  private static final ValidationTask WORKER_STORAGE_SPACE_VALIDATION_TASK = registerTask(
-      "worker.storage.space",
-      new StorageSpaceValidationTask());
+    registerTask("ulimit.nproc",
+        UserLimitValidationTask.createUserProcessesLimitValidationTask(), COMMON_TASKS);
+
+    // space validations
+    registerTask("worker.storage.space", new StorageSpaceValidationTask(), WORKER_TASKS);
+  }
 
   private static final Map<String, Collection<ValidationTask>> TARGET_TASKS =
       initializeTargetTasks();
 
   private static Map<String, Collection<ValidationTask>> initializeTargetTasks() {
     Map<String, Collection<ValidationTask>> targetMap = new TreeMap<>();
-    ValidationTask[] commonTasks = {
-        HDFS_VALIDATION_TASK,
-        PROXY_WEB_VALIDATION_TASK,
-        SSH_TO_MASTERS_VALIDATION_TASK,
-        SSH_TO_WORKERS_VALIDATION_TASK,
-        UFS_ROOT_VALIDATION_TASK,
-        ULIMIT_OPEN_FILES_VALIDATION_TASK,
-        ULIMIT_USER_PROCS_VALIDATION_TASK
-    };
-    ValidationTask[] masterTasks = {
-        MASTER_RPC_VALIDATION_TASK,
-        MASTER_SECURE_HDFS_VALIDATION_TASK,
-        MASTER_WEB_VALIDATION_TASK,
-    };
-    ValidationTask[] workerTasks = {
-        WORKER_DATA_VALIDATION_TASK,
-        WORKER_RAMDISK_MOUNT_PRIVILEGE_VALIDATION_TASK,
-        WORKER_RPC_VALIDATION_TASK,
-        WORKER_SECURE_HDFS_VALIDATION_TASK,
-        WORKER_STORAGE_SPACE_VALIDATION_TASK,
-        WORKER_WEB_VALIDATION_TASK,
-    };
-
-    targetMap.put("master", Arrays.asList(
-        ArrayUtils.addAll(commonTasks, masterTasks)));
-    targetMap.put("worker", Arrays.asList(
-        ArrayUtils.addAll(commonTasks, workerTasks)));
+    List<ValidationTask> allMasterTasks = new ArrayList<>(COMMON_TASKS);
+    allMasterTasks.addAll(MASTER_TASKS);
+    targetMap.put("master", allMasterTasks);
+    List<ValidationTask> allWorkerTasks = new ArrayList<>(COMMON_TASKS);
+    allWorkerTasks.addAll(WORKER_TASKS);
+    targetMap.put("worker", allWorkerTasks);
     targetMap.put("local", TASKS.keySet());
     return targetMap;
   }
 
-  private static ValidationTask registerTask(String name, ValidationTask task) {
+  private static ValidationTask registerTask(String name, ValidationTask task,
+      List<ValidationTask> tasks) {
     TASKS.put(task, name);
+    tasks.add(task);
     List<Option> optList = task.getOptionList();
     synchronized (ValidateEnv.class) {
       optList.forEach(opt -> OPTIONS.addOption(opt));
