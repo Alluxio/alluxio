@@ -27,6 +27,8 @@ import alluxio.client.file.options.GetStatusOptions;
 import alluxio.client.file.options.ListStatusOptions;
 import alluxio.client.file.options.RenameOptions;
 import alluxio.exception.FileDoesNotExistException;
+import alluxio.underfs.UnderFileSystem;
+import alluxio.util.CommonUtils;
 import alluxio.wire.CommonOptions;
 import alluxio.wire.LoadMetadataType;
 
@@ -259,6 +261,31 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
     Assert.assertTrue(file.equals(new AlluxioURI(NEW_FILE).getName()));
   }
 
+  @Test
+  public void lastModifiedFileSync() throws Exception {
+    int sizefactor = 10;
+    GetStatusOptions options =
+        GetStatusOptions.defaults().setLoadMetadataType(LoadMetadataType.Never)
+            .setCommonOptions(SYNC_ALWAYS);
+    writeUfsFile(ufsPath(EXISTING_FILE), sizefactor);
+    URIStatus status = mFileSystem.getStatus(new AlluxioURI(alluxioPath(EXISTING_FILE)), options);
+    String startFingerprint = status.getUfsFingerprint();
+    long startLength = status.getLength();
+
+    // Sleep for a bit for a different last mod time.
+    long delay = 1000;
+    CommonUtils.sleepMs(delay);
+
+    // Write the same file, but with a different last mod time.
+    // Only local ufs will work (different
+    writeUfsFile(ufsPath(EXISTING_FILE), sizefactor);
+    status = mFileSystem.getStatus(new AlluxioURI(alluxioPath(EXISTING_FILE)), options);
+
+    // Verify the sizes are the same, but the fingerprints are different.
+    Assert.assertTrue(status.getLength() == startLength);
+    Assert.assertNotEquals(startFingerprint, status.getUfsFingerprint());
+  }
+
   private String ufsPath(String path) {
     return mLocalUfsPath + path;
   }
@@ -331,6 +358,15 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
       if (ufsLength != alluxioLength) {
         Assert.fail("Alluxio length (" + alluxioLength + ") and ufs length (" + ufsLength
             + ") are inconsistent. path: " + uriStatus.getPath());
+      }
+      // Check fingerprint.
+      UnderFileSystem ufs = UnderFileSystem.Factory.create(uriStatus.getUfsPath());
+      String ufsFingerprint = ufs.getFingerprint(uriStatus.getUfsPath());
+      String alluxioFingerprint = uriStatus.getUfsFingerprint();
+      if (!ufsFingerprint.equals(alluxioFingerprint)) {
+        Assert.fail(
+            "Alluxio fingerprint (" + alluxioFingerprint + ") and ufs fingerprint ("
+                + ufsFingerprint + ") are inconsistent. path: " + uriStatus.getPath());
       }
     }
   }
