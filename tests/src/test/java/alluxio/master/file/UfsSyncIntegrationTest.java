@@ -44,6 +44,7 @@ import java.io.IOException;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Tests the loading of metadata and the available options.
@@ -235,25 +236,27 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
     ListStatusOptions options =
         ListStatusOptions.defaults().setLoadMetadataType(LoadMetadataType.Never)
             .setCommonOptions(SYNC_ALWAYS);
-    List<URIStatus> initialStatusList =
-        mFileSystem.listStatus(new AlluxioURI(alluxioPath(ROOT_DIR)), options);
+    List<String> initialStatusList =
+        mFileSystem.listStatus(new AlluxioURI(alluxioPath(ROOT_DIR)), options).stream()
+            .map(URIStatus::getName).collect(Collectors.toList());
 
     // write a MUST_CACHE file
     writeMustCacheFile(alluxioPath(NEW_FILE), 1);
 
     // List the status with force sync.
-    List<URIStatus> syncStatusList =
-        mFileSystem.listStatus(new AlluxioURI(alluxioPath(ROOT_DIR)), options);
+    List<String> syncStatusList =
+        mFileSystem.listStatus(new AlluxioURI(alluxioPath(ROOT_DIR)), options).stream()
+            .map(URIStatus::getName).collect(Collectors.toList());
 
-    Set<URIStatus> initialSet = Sets.newHashSet(initialStatusList);
-    Set<URIStatus> syncSet = Sets.newHashSet(syncStatusList);
+    Set<String> initialSet = Sets.newHashSet(initialStatusList);
+    Set<String> syncSet = Sets.newHashSet(syncStatusList);
     Assert.assertTrue(syncSet.size() > initialSet.size());
     syncSet.removeAll(initialSet);
 
     // only the MUST_CACHE file should remain.
     Assert.assertTrue(syncSet.size() == 1);
-    URIStatus file = syncSet.iterator().next();
-    Assert.assertTrue(file.getName().equals(new AlluxioURI(NEW_FILE).getName()));
+    String file = syncSet.iterator().next();
+    Assert.assertTrue(file.equals(new AlluxioURI(NEW_FILE).getName()));
   }
 
   private String ufsPath(String path) {
