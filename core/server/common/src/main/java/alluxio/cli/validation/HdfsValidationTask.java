@@ -13,6 +13,7 @@ package alluxio.cli.validation;
 
 import alluxio.Configuration;
 import alluxio.PropertyKey;
+import alluxio.exception.InvalidPathException;
 import alluxio.util.io.PathUtils;
 
 import org.apache.commons.cli.Option;
@@ -73,10 +74,26 @@ public class HdfsValidationTask extends AbstractValidationTask {
 
     // If Configuration does not contain the key, then a {@link RuntimeException} will be thrown
     // before calling the {@link String#split} method.
-    String[] clientHaoopConfFilePaths =
+    String[] clientHadoopConfFilePaths =
         Configuration.get(PropertyKey.UNDERFS_HDFS_CONFIGURATION).split(":");
-    String clientCoreSiteFilePath = clientHaoopConfFilePaths[0];
-    String clientHdfsSiteFilePath = clientHaoopConfFilePaths[1];
+    String clientCoreSiteFilePath = null;
+    String clientHdfsSiteFilePath = null;
+    for (String path : clientHadoopConfFilePaths) {
+      try {
+        String[] pathComponents = PathUtils.getPathComponents(path);
+        if (pathComponents.length < 1) {
+          continue;
+        }
+        if (pathComponents[pathComponents.length - 1].equals("core-site.xml")) {
+          clientCoreSiteFilePath = path;
+        } else if (pathComponents[pathComponents.length - 1].equals("hdfs-site.xml")) {
+          clientHdfsSiteFilePath = path;
+        }
+      } catch (InvalidPathException e) {
+        System.err.format("%s is an invalid path. Skip HDFS config parity check.%n", path);
+        return true;
+      }
+    }
     if (clientCoreSiteFilePath == null || clientCoreSiteFilePath.isEmpty()) {
       System.err.println("Cannot locate the client-side core-site.xml,"
           + " skipping validation for HDFS properties.");
