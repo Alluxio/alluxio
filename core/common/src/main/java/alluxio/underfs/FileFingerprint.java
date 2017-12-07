@@ -22,9 +22,9 @@ import javax.annotation.concurrent.NotThreadSafe;
 public class FileFingerprint extends Fingerprint {
   static final String FINGERPRINT_TYPE = "file";
 
-  private static final String TAG_HASH = "hash";
+  public static final Tag TAG_HASH = new Tag("hash");
 
-  private static final String[] TAGS = {TAG_HASH};
+  private static final Tag[] TAGS = {TAG_HASH};
 
   /**
    * Creates new instance of {@link FileFingerprint}.
@@ -41,14 +41,14 @@ public class FileFingerprint extends Fingerprint {
     putTag(TAG_HASH, contentHash);
   }
 
-  FileFingerprint(Map<String, String> values) {
+  FileFingerprint(Map<Tag, String> values) {
     super(values);
   }
 
   @Override
   public String toString() {
     StringBuilder sb = new StringBuilder(super.toString());
-    for (String tag : TAGS) {
+    for (Tag tag : TAGS) {
       sb.append(tag).append(':').append(getTag(tag)).append(' ');
     }
     return sb.toString();

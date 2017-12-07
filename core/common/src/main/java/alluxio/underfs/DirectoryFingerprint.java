@@ -34,7 +34,7 @@ public class DirectoryFingerprint extends Fingerprint {
     super(ufsName, FINGERPRINT_TYPE, owner, group, mode);
   }
 
-  DirectoryFingerprint(Map<String, String> values) {
+  DirectoryFingerprint(Map<Tag, String> values) {
     super(values);
   }
 
