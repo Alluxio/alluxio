@@ -106,12 +106,23 @@ public class TieredIdentityFactoryTest {
   }
 
   @Test
+  public void unknownScriptKey() throws Exception {
+    String badOutput = "unknown=x";
+    try {
+      runScriptWithOutput(badOutput);
+      fail("Expected an exception to be thrown");
+    } catch (Exception e) {
+      assertThat(e.getMessage(), containsString("Unrecognized tier: unknown"));
+    }
+  }
+
+  @Test
   public void invalidScriptOutput() throws Exception {
-    for (String badOutput : new String[] {"x", "a=b c=d", "a=b,cd", "a=b,abc,x=y"}) {
+    for (String badOutput : new String[] {"x", "a=b c=d", "node=b,cd", "node=b,abc,x=y"}) {
       try {
         runScriptWithOutput(badOutput);
         fail("Expected an exception to be thrown");
-      } catch (RuntimeException e) {
+      } catch (Exception e) {
         assertThat(e.getMessage(), containsString("Failed to parse"));
         assertThat(e.getMessage(), containsString(badOutput));
       }

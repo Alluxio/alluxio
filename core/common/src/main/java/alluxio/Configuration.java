@@ -11,6 +11,7 @@
 
 package alluxio;
 
+import alluxio.PropertyKey.Template;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.PreconditionMessage;
 import alluxio.network.ChannelType;
@@ -22,6 +23,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import com.sun.management.OperatingSystemMXBean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,7 +36,9 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.regex.MatchResult;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -539,6 +543,26 @@ public final class Configuration {
   }
 
   /**
+   * Checks that tiered locality configuration is consistent.
+   *
+   * @throws IllegalStateException if invalid tiered locality configuration is encountered
+   */
+  private static void checkTieredLocality() {
+    Set<String> tiers = Sets.newHashSet(getList(PropertyKey.LOCALITY_ORDER, ","));
+    for (String key : PROPERTIES.keySet()) {
+      MatchResult match = Template.LOCALITY_TIER.match(key);
+      if (match.groupCount() > 1) {
+        String tierName = match.group(1);
+        if (!tiers.contains(tierName)) {
+          throw new IllegalStateException(String.format(
+              "Tier %s is configured by %s, but does not exist in the tier list %s configured by %s",
+              tierName, key, tiers, PropertyKey.LOCALITY_ORDER));
+        }
+      }
+    }
+  }
+
+  /**
    * Validates the configuration.
    *
    * @throws IllegalStateException if invalid configuration is encountered
@@ -551,6 +575,7 @@ public final class Configuration {
     checkWorkerPorts();
     checkUserFileBufferBytes();
     checkZkConfiguration();
+    checkTieredLocality();
   }
 
   private Configuration() {} // prevent instantiation

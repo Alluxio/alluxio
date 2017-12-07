@@ -23,6 +23,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.regex.MatchResult;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -1334,6 +1335,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey LOCALITY_SCRIPT =
       new Builder(Name.LOCALITY_SCRIPT)
+          .setDefaultValue(String.format("${%s}/tiered_identity.sh", Name.CONF_DIR))
           .setDescription("A script to determine tiered identity for locality checking")
           .build();
   public static final PropertyKey LOCALITY_TIER_NODE =
@@ -2508,6 +2510,15 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public boolean matches(String input) {
       Matcher matcher = mPattern.matcher(input);
       return matcher.matches();
+    }
+
+    /**
+     * @param input the input property key string
+     * @return the match result from matching the template to the string
+     */
+    public MatchResult match(String input) {
+      Matcher matcher = mPattern.matcher(input);
+      return matcher.toMatchResult();
     }
   }
 
