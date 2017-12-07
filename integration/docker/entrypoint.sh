@@ -76,7 +76,7 @@ case ${service,,} in
       exit 1
     fi
     if [[ ${options} != ${NO_FORMAT} ]]; then
-      bin/alluxio format
+      bin/alluxio formatMaster
     fi
     integration/docker/bin/alluxio-master.sh
     ;;
