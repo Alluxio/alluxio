@@ -26,9 +26,9 @@ public final class FingerprintTest {
     FileFingerprint fp = new FileFingerprint(CommonUtils.randomAlphaNumString(10),
         CommonUtils.randomAlphaNumString(10), CommonUtils.randomAlphaNumString(10),
         CommonUtils.randomAlphaNumString(10), CommonUtils.randomAlphaNumString(10));
-    String expected = fp.toString();
+    String expected = fp.serialize();
     Assert.assertNotNull(expected);
-    Assert.assertEquals(expected, Fingerprint.parse(expected).toString());
+    Assert.assertEquals(expected, Fingerprint.parse(expected).serialize());
   }
 
   @Test
@@ -36,16 +36,16 @@ public final class FingerprintTest {
     DirectoryFingerprint fp = new DirectoryFingerprint(CommonUtils.randomAlphaNumString(10),
         CommonUtils.randomAlphaNumString(10), CommonUtils.randomAlphaNumString(10),
         CommonUtils.randomAlphaNumString(10));
-    String expected = fp.toString();
+    String expected = fp.serialize();
     Assert.assertNotNull(expected);
-    Assert.assertEquals(expected, Fingerprint.parse(expected).toString());
+    Assert.assertEquals(expected, Fingerprint.parse(expected).serialize());
   }
 
   @Test
   public void parseInvalidFingerprint() {
     InvalidFingerprint fp = new InvalidFingerprint();
-    String expected = fp.toString();
+    String expected = fp.serialize();
     Assert.assertNotNull(expected);
-    Assert.assertEquals(expected, Fingerprint.parse(expected).toString());
+    Assert.assertEquals(expected, Fingerprint.parse(expected).serialize());
   }
 }
