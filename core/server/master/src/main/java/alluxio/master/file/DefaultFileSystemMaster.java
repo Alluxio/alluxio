@@ -3228,10 +3228,13 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
           LOG.warn("setOwner/setMode is not supported to object storage UFS via Alluxio. " + "UFS: "
               + ufsUri + ". This has no effect on the underlying object.");
         } else {
+          String owner = null;
+          String group = null;
+          String mode = null;
           if (ownerGroupChanged) {
             try {
-              String owner = options.getOwner() != null ? options.getOwner() : inode.getOwner();
-              String group = options.getGroup() != null ? options.getGroup() : inode.getGroup();
+              owner = options.getOwner() != null ? options.getOwner() : inode.getOwner();
+              group = options.getGroup() != null ? options.getGroup() : inode.getGroup();
               ufs.setOwner(ufsUri, owner, group);
             } catch (IOException e) {
               throw new AccessControlException("Could not setOwner for UFS file " + ufsUri
@@ -3240,6 +3243,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
           }
           if (modeChanged) {
             try {
+              mode = String.valueOf(options.getMode());
               ufs.setMode(ufsUri, options.getMode());
             } catch (IOException e) {
               throw new AccessControlException("Could not setMode for UFS file " + ufsUri
@@ -3247,8 +3251,18 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
             }
           }
           // Retrieve the ufs fingerprint after the ufs changes.
-          // TODO(gpang): update fingerprint from previous, since contents did not change.
-          options.setUfsFingerprint(ufs.getFingerprint(ufsUri));
+          String existingFingerprint = inode.getUfsFingerprint();
+          if (!existingFingerprint.equals(Constants.INVALID_UFS_FINGERPRINT)) {
+            // Update existing fingerprint, since contents did not change
+            Fingerprint fp = Fingerprint.parse(existingFingerprint);
+            fp.updateTag(Fingerprint.TAG_OWNER, owner);
+            fp.updateTag(Fingerprint.TAG_GROUP, group);
+            fp.updateTag(Fingerprint.TAG_MODE, mode);
+            options.setUfsFingerprint(fp.serialize());
+          } else {
+            // Need to retrieve the fingerprint from ufs.
+            options.setUfsFingerprint(ufs.getFingerprint(ufsUri));
+          }
         }
       }
     }

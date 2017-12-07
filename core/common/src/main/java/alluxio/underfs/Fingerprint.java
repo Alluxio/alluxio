@@ -26,17 +26,17 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public abstract class Fingerprint {
-  private static final String TAG_TYPE = "type";
-  private static final String TAG_UFS = "ufs";
-  private static final String TAG_OWNER = "owner";
-  private static final String TAG_GROUP = "group";
-  private static final String TAG_MODE = "mode";
+  public static final Tag TAG_TYPE = new Tag("type");
+  public static final Tag TAG_UFS = new Tag("ufs");
+  public static final Tag TAG_OWNER = new Tag("owner");
+  public static final Tag TAG_GROUP = new Tag("group");
+  public static final Tag TAG_MODE = new Tag("mode");
 
-  private static final String[] TAGS = {TAG_TYPE, TAG_UFS, TAG_OWNER, TAG_GROUP, TAG_MODE};
+  private static final Tag[] TAGS = {TAG_TYPE, TAG_UFS, TAG_OWNER, TAG_GROUP, TAG_MODE};
 
   private static final Pattern SANITIZE_REGEX = Pattern.compile("[ :]");
 
-  private final Map<String, String> mValues;
+  private final Map<Tag, String> mValues;
 
   /**
    * Returns the ufs name for fingerprints.
@@ -84,18 +84,24 @@ public abstract class Fingerprint {
     }
     Map<String, String> kv =
         Splitter.on(' ').trimResults().omitEmptyStrings().withKeyValueSeparator(':').split(input);
+    Map<Tag, String> tagMap = new HashMap<>();
 
-    String type = kv.get(TAG_TYPE);
+    for (Map.Entry<String, String> entry : kv.entrySet()) {
+      tagMap.put(new Tag(entry.getKey()), entry.getValue());
+    }
+
+    String type = tagMap.get(TAG_TYPE);
     if (type == null) {
       return null;
     }
 
-    if (type.equals(FileFingerprint.FINGERPRINT_TYPE)) {
-      return new FileFingerprint(kv);
-    } else if (type.equals(DirectoryFingerprint.FINGERPRINT_TYPE)) {
-      return new DirectoryFingerprint(kv);
-    } else {
-      return null;
+    switch (type) {
+      case FileFingerprint.FINGERPRINT_TYPE:
+        return new FileFingerprint(tagMap);
+      case DirectoryFingerprint.FINGERPRINT_TYPE:
+        return new DirectoryFingerprint(tagMap);
+      default:
+        return null;
     }
   }
 
@@ -104,6 +110,19 @@ public abstract class Fingerprint {
    */
   public String serialize() {
     return toString();
+  }
+
+  /**
+   * Updates a specific tag in the fingerprint. If the new value is null, the fingerprint is kept
+   * unchanged.
+   *
+   * @param tag the tag to update
+   * @param value the new value of the tag
+   */
+  public void updateTag(Tag tag, String value) {
+    if (value != null) {
+      mValues.put(tag, sanitizeString(value));
+    }
   }
 
   /**
@@ -124,18 +143,18 @@ public abstract class Fingerprint {
     putTag(TAG_MODE, mode);
   }
 
-  Fingerprint(Map<String, String> values) {
+  Fingerprint(Map<Tag, String> values) {
     mValues = new HashMap<>();
-    for (Map.Entry<String, String> entry : values.entrySet()) {
+    for (Map.Entry<Tag, String> entry : values.entrySet()) {
       putTag(entry.getKey(), entry.getValue());
     }
   }
 
-  void putTag(String tag, String value) {
+  void putTag(Tag tag, String value) {
     mValues.put(tag, sanitizeString(value));
   }
 
-  String getTag(String tag) {
+  String getTag(Tag tag) {
     String value = mValues.get(tag);
     if (value == null) {
       return "_";
@@ -143,7 +162,7 @@ public abstract class Fingerprint {
     return value;
   }
 
-  String sanitizeString(String input) {
+  private String sanitizeString(String input) {
     if (input == null || input.isEmpty()) {
       return "_";
     }
@@ -153,9 +172,39 @@ public abstract class Fingerprint {
   @Override
   public String toString() {
     StringBuilder sb = new StringBuilder();
-    for (String tag : TAGS) {
+    for (Tag tag : TAGS) {
       sb.append(tag).append(':').append(getTag(tag)).append(' ');
     }
     return sb.toString();
+  }
+
+  static final class Tag {
+    private final String mName;
+
+    Tag(String name) {
+      mName = name;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) {
+        return true;
+      }
+      if (!(o instanceof Tag)) {
+        return false;
+      }
+      Tag that = (Tag) o;
+      return mName.equals(that.mName);
+    }
+
+    @Override
+    public int hashCode() {
+      return mName.hashCode();
+    }
+
+    @Override
+    public String toString() {
+      return mName;
+    }
   }
 }
