@@ -22,7 +22,8 @@ import alluxio.client.file.policy.FileWriteLocationPolicy;
 import alluxio.util.CommonUtils;
 
 import com.google.common.base.Objects;
-import com.google.common.base.Throwables;
+
+import java.lang.reflect.InvocationTargetException;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -58,9 +59,11 @@ public final class InStreamOptions {
     try {
       mCacheLocationPolicy = CommonUtils.createNewClassInstance(
           Configuration.<FileWriteLocationPolicy>getClass(
-              PropertyKey.USER_FILE_WRITE_LOCATION_POLICY), new Class[] {}, new Object[] {});
+              PropertyKey.USER_FILE_WRITE_LOCATION_POLICY), new Class[]{}, new Object[]{});
+    } catch (InvocationTargetException e) {
+      throw new RuntimeException(e.getCause());
     } catch (Exception e) {
-      throw Throwables.propagate(e);
+      throw new RuntimeException(e);
     }
     CreateOptions blockLocationPolicyCreateOptions = CreateOptions.defaults()
         .setLocationPolicyClassName(

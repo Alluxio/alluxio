@@ -63,6 +63,13 @@ public class TieredIdentityTest {
     checkEquality(tieredIdentity, other);
   }
 
+  @Test
+  public void string() {
+    TieredIdentity identity = new TieredIdentity(
+        Arrays.asList(new LocalityTier("k1", "v1"), new LocalityTier("k2", "v2")));
+    assertEquals("TieredIdentity(k1=v1, k2=v2)", identity.toString());
+  }
+
   public void checkEquality(TieredIdentity a, TieredIdentity b) {
     assertEquals(a.getTiers(), b.getTiers());
     assertEquals(a, b);
