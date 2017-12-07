@@ -26,7 +26,9 @@ import alluxio.client.file.options.DeleteOptions;
 import alluxio.client.file.options.GetStatusOptions;
 import alluxio.client.file.options.ListStatusOptions;
 import alluxio.client.file.options.RenameOptions;
+import alluxio.client.file.options.SetAttributeOptions;
 import alluxio.exception.FileDoesNotExistException;
+import alluxio.security.authorization.Mode;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.CommonUtils;
 import alluxio.wire.CommonOptions;
@@ -262,7 +264,7 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
   }
 
   @Test
-  public void lastModifiedFileSync() throws Exception {
+  public void lastModifiedLocalFileSync() throws Exception {
     int sizefactor = 10;
     GetStatusOptions options =
         GetStatusOptions.defaults().setLoadMetadataType(LoadMetadataType.Never)
@@ -277,13 +279,64 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
     CommonUtils.sleepMs(delay);
 
     // Write the same file, but with a different last mod time.
-    // Only local ufs will work (different
+    // Will only work with local ufs, since local ufs uses the last mod time for the content hash.
     writeUfsFile(ufsPath(EXISTING_FILE), sizefactor);
     status = mFileSystem.getStatus(new AlluxioURI(alluxioPath(EXISTING_FILE)), options);
 
     // Verify the sizes are the same, but the fingerprints are different.
     Assert.assertTrue(status.getLength() == startLength);
     Assert.assertNotEquals(startFingerprint, status.getUfsFingerprint());
+  }
+
+  @Test
+  public void ufsModeSync() throws Exception {
+    GetStatusOptions options =
+        GetStatusOptions.defaults().setLoadMetadataType(LoadMetadataType.Never)
+            .setCommonOptions(SYNC_ALWAYS);
+    writeUfsFile(ufsPath(EXISTING_FILE), 10);
+    // Set the ufs permissions
+    File ufsFile = new File(ufsPath(EXISTING_FILE));
+    Assert.assertTrue(ufsFile.setReadable(true, false));
+    Assert.assertTrue(ufsFile.setWritable(true, false));
+    Assert.assertTrue(ufsFile.setExecutable(true, false));
+
+    URIStatus status = mFileSystem.getStatus(new AlluxioURI(alluxioPath(EXISTING_FILE)), options);
+    String startFingerprint = status.getUfsFingerprint();
+
+    // Update ufs permissions
+    Assert.assertTrue(ufsFile.setExecutable(false, false));
+
+    status = mFileSystem.getStatus(new AlluxioURI(alluxioPath(EXISTING_FILE)), options);
+
+    // Verify the fingerprints are different.
+    Assert.assertNotEquals(startFingerprint, status.getUfsFingerprint());
+  }
+
+  @Test
+  public void alluxioModeFingerprintUpdate() throws Exception {
+    GetStatusOptions options =
+        GetStatusOptions.defaults().setLoadMetadataType(LoadMetadataType.Once)
+            .setCommonOptions(SYNC_NEVER);
+    writeUfsFile(ufsPath(EXISTING_FILE), 10);
+    Assert
+        .assertNotNull(mFileSystem.getStatus(new AlluxioURI(alluxioPath(EXISTING_FILE)), options));
+
+    // Set initial alluxio permissions
+    mFileSystem.setAttribute(new AlluxioURI(alluxioPath(EXISTING_FILE)),
+        SetAttributeOptions.defaults().setMode(new Mode((short) 777)));
+
+    URIStatus status = mFileSystem.getStatus(new AlluxioURI(alluxioPath(EXISTING_FILE)), options);
+    String startFingerprint = status.getUfsFingerprint();
+
+    // Change alluxio permissions
+    mFileSystem.setAttribute(new AlluxioURI(alluxioPath(EXISTING_FILE)),
+        SetAttributeOptions.defaults().setMode(new Mode((short) 655)));
+
+    status = mFileSystem.getStatus(new AlluxioURI(alluxioPath(EXISTING_FILE)), options);
+    String endFingerprint = status.getUfsFingerprint();
+
+    // Verify the fingerprints are different.
+    Assert.assertNotEquals(startFingerprint, endFingerprint);
   }
 
   private String ufsPath(String path) {
