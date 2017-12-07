@@ -37,13 +37,12 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class LocalFilePacketReader implements PacketReader {
+
   /** The file reader to read a local block. */
   private final LocalFileBlockReader mReader;
-
-  private long mPos;
   private final long mEnd;
   private final long mPacketSize;
-
+  private long mPos;
   private boolean mClosed;
 
   /**
@@ -54,9 +53,9 @@ public final class LocalFilePacketReader implements PacketReader {
    * @param len the length to read
    * @param packetSize the packet size
    */
-  private LocalFilePacketReader(String path, long offset, long len, long packetSize)
+  private LocalFilePacketReader(LocalFileBlockReader reader, long offset, long len, long packetSize)
       throws IOException {
-    mReader = new LocalFileBlockReader(path);
+    mReader = reader;
     Preconditions.checkArgument(packetSize > 0);
     mPos = offset;
     mEnd = Math.min(mReader.getLength(), offset + len);
@@ -85,13 +84,13 @@ public final class LocalFilePacketReader implements PacketReader {
       return;
     }
     mClosed = true;
-    mReader.close();
   }
 
   /**
    * Factory class to create {@link LocalFilePacketReader}s.
    */
   public static class Factory implements PacketReader.Factory {
+
     private static final long READ_TIMEOUT_MS =
         Configuration.getMs(PropertyKey.USER_NETWORK_NETTY_TIMEOUT_MS);
 
@@ -101,6 +100,7 @@ public final class LocalFilePacketReader implements PacketReader {
     private final long mBlockId;
     private final String mPath;
     private final long mPacketSize;
+    private LocalFileBlockReader mReader;
     private boolean mClosed;
 
     /**
@@ -137,7 +137,10 @@ public final class LocalFilePacketReader implements PacketReader {
 
     @Override
     public PacketReader create(long offset, long len) throws IOException {
-      return new LocalFilePacketReader(mPath, offset, len, mPacketSize);
+      if (mReader == null) {
+        mReader = new LocalFileBlockReader(mPath);
+      }
+      return new LocalFilePacketReader(mReader, offset, len, mPacketSize);
     }
 
     @Override
@@ -158,6 +161,9 @@ public final class LocalFilePacketReader implements PacketReader {
       } finally {
         mClosed = true;
         mContext.releaseNettyChannel(mAddress, mChannel);
+        if (mReader != null) {
+          mReader.close();
+        }
       }
     }
   }
