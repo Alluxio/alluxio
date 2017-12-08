@@ -14,6 +14,7 @@ package alluxio.client.block.stream;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.network.protocol.databuffer.DataByteBuffer;
 
+import java.io.IOException;
 import java.nio.ByteBuffer;
 
 import javax.annotation.Nullable;
@@ -53,4 +54,21 @@ public class TestPacketReader implements PacketReader {
 
   @Override
   public void close() { }
+
+  @Override
+  public void pauseAndReposition(long position, long length) throws IOException {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public boolean isPaused() {
+    // TODO Auto-generated method stub
+    return false;
+  }
+
+  @Override
+  public void resume() {
+    // TODO Auto-generated method stub
+
+  }
 }

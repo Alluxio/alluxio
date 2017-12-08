@@ -26,9 +26,11 @@ import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.network.protocol.databuffer.DataFileChannel;
 import alluxio.network.protocol.databuffer.DataNettyBufferV2;
 import alluxio.proto.dataserver.Protocol;
+import alluxio.proto.dataserver.Protocol.ReadRequest;
 import alluxio.retry.RetryPolicy;
 import alluxio.retry.TimeoutRetry;
 import alluxio.util.proto.ProtoMessage;
+import alluxio.worker.block.BlockLockManager;
 import alluxio.worker.block.BlockWorker;
 import alluxio.worker.block.UnderFileSystemBlockReader;
 import alluxio.worker.block.io.BlockReader;
@@ -80,16 +82,22 @@ public final class BlockReadHandler extends AbstractReadHandler<BlockReadRequest
     @Override
     protected void completeRequest(BlockReadRequestContext context) throws Exception {
       BlockReader reader = context.getBlockReader();
-      if (reader != null) {
-        try {
-          reader.close();
-        } catch (Exception e) {
-          LOG.warn("Failed to close block reader for block {} with error {}.",
-              context.getRequest().getId(), e.getMessage());
+      // for seekable reader, do not release the block reader for pause, so future read request can
+      // reuse the reader
+      if (context.isCancel()) {
+        if (reader != null && !reader.isSeekable()) {
+          try {
+            reader.close();
+            context.setBlockReader(null);
+          } catch (Exception e) {
+            LOG.warn("Failed to close block reader for block {} with error {}.",
+                context.getRequest().getId(), e.getMessage());
+          }
         }
-      }
-      if (!mWorker.unlockBlock(context.getRequest().getSessionId(), context.getRequest().getId())) {
-        mWorker.closeUfsBlock(context.getRequest().getSessionId(), context.getRequest().getId());
+        if (!mWorker.unlockBlock(context.getRequest().getSessionId(),
+            context.getRequest().getId())) {
+          mWorker.closeUfsBlock(context.getRequest().getSessionId(), context.getRequest().getId());
+        }
       }
     }
 
@@ -123,10 +131,19 @@ public final class BlockReadHandler extends AbstractReadHandler<BlockReadRequest
      * @throws Exception if it fails to open the block
      */
     private void openBlock(BlockReadRequestContext context, Channel channel) throws Exception {
-      if (context.getBlockReader() != null) {
+      BlockReadRequest request = context.getRequest();
+      if (context.getBlockReader() != null && !context.isResume()) {
         return;
       }
-      BlockReadRequest request = context.getRequest();
+
+      BlockReader reader = context.getBlockReader();
+      if (context.isResume() && reader != null) {
+        // the reader stream is paused, reposition the reader and resume
+        reader.position(request.getStart());
+        context.setResume(false);
+        return;
+      }
+
       int retryInterval = Constants.SECOND_MS;
       RetryPolicy retryPolicy = new TimeoutRetry(UFS_BLOCK_OPEN_TIMEOUT_MS, retryInterval);
 
@@ -149,10 +166,9 @@ public final class BlockReadHandler extends AbstractReadHandler<BlockReadRequest
         } else {
           lockId = mWorker.lockBlock(request.getSessionId(), request.getId());
         }
-        BlockReader reader;
         try {
-          reader = mWorker.readBlockRemote(request.getSessionId(), request.getId(), lockId);
-          if (reader.isSeakable()){
+          if (lockId != BlockLockManager.INVALID_LOCK_ID){
+            reader = mWorker.readBlockRemote(request.getSessionId(), request.getId(), lockId);
             String metricName = "BytesReadAlluxio";
             context.setBlockReader(reader);
             context.setCounter(MetricsSystem.workerCounter(metricName));
@@ -218,5 +234,10 @@ public final class BlockReadHandler extends AbstractReadHandler<BlockReadRequest
   @Override
   protected PacketReader createPacketReader(BlockReadRequestContext context, Channel channel) {
     return new BlockPacketReader(context, channel, mWorker);
+  }
+
+  @Override
+  protected void updateRequestContext(BlockReadRequestContext context, ReadRequest request) {
+    context.init(request);
   }
 }

@@ -355,12 +355,13 @@ public final class UnderFileSystemBlockReader implements BlockReader {
     if (mUnderFileSystemInputStream instanceof FSDataInputStream) {
       ((FSDataInputStream) mUnderFileSystemInputStream).seek(newPosition);
       mInStreamPos = newPosition;
+      return;
     }
     throw new UnsupportedOperationException("Position operation is only for HDFS");
   }
 
   @Override
-  public boolean isSeakable() {
+  public boolean isSeekable() {
     if (mUnderFileSystemInputStream instanceof FSDataInputStream) {
       return true;
     }

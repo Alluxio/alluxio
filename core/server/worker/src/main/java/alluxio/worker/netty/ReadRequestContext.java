@@ -27,7 +27,7 @@ import javax.annotation.concurrent.ThreadSafe;
 public class ReadRequestContext<T extends ReadRequest> {
 
   /** The requests of this context. */
-  private final T mRequest;
+  private T mRequest;
 
   /**
    * Set to true if the packet reader is active. The following invariants must be maintained:
@@ -69,6 +69,8 @@ public class ReadRequestContext<T extends ReadRequest> {
    */
   private boolean mEof;
   private boolean mCancel;
+  private boolean mPause;
+  private boolean mResume;
   private Error mError;
 
   private Counter mCounter;
@@ -80,12 +82,17 @@ public class ReadRequestContext<T extends ReadRequest> {
    * @param request the read request
    */
   public ReadRequestContext(T request) {
+    init(request);
+  }
+
+  public void init(T request) {
     mRequest = request;
     mPosToQueue = 0;
     mPosToWrite = 0;
     mPacketReaderActive = false;
     mEof = false;
     mCancel = false;
+    mPause = false;
     mError = null;
     mDone = false;
   }
@@ -138,6 +145,19 @@ public class ReadRequestContext<T extends ReadRequest> {
   }
 
   /**
+   * @return true when a PAUSE request is received by the client, false otherwise
+   */
+  @GuardedBy("AbstractReadHandler#mLock")
+  public boolean isPause() {
+    return mPause;
+  }
+
+  @GuardedBy("AbstractReadHandler#mLock")
+  public boolean isResume() {
+    return mResume;
+  }
+
+  /**
    * @return the error during this read request
    */
   @GuardedBy("AbstractReadHandler#mLock")
@@ -147,7 +167,7 @@ public class ReadRequestContext<T extends ReadRequest> {
   }
 
   /**
-   * @return true when the SUCCESS or CANCEL response is sent, false otherwise
+   * @return true when the SUCCESS or CANCEL or PAUSE response is sent, false otherwise
    */
   public boolean isDoneUnsafe() {
     return mDone;
@@ -202,6 +222,22 @@ public class ReadRequestContext<T extends ReadRequest> {
   }
 
   /**
+   * @param cancel whether the PAUSE request is received
+   */
+  @GuardedBy("AbstractReadHandler#mLock")
+  public void setPause(boolean pause) {
+    mPause = pause;
+  }
+
+  /**
+   * @param cancel whether the PAUSE request is received
+   */
+  @GuardedBy("AbstractReadHandler#mLock")
+  public void setResume(boolean resume) {
+    mResume = resume;
+  }
+
+  /**
    * @param error the error
    */
   @GuardedBy("AbstractReadHandler#mLock")
@@ -210,7 +246,7 @@ public class ReadRequestContext<T extends ReadRequest> {
   }
 
   /**
-   * @param done whether the SUCCESS or CANCEL response is sent
+   * @param done whether the SUCCESS or CANCEL or PAUSE response is sent
    */
   public void setDoneUnsafe(boolean done) {
     mDone = done;

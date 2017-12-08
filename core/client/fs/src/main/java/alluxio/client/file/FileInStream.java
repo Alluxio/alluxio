@@ -264,37 +264,15 @@ public class FileInStream extends InputStream
       return -1;
     }
 
-    // If partial read cache is enabled, we fall back to the normal read.
-    if (shouldCachePartiallyReadBlock()) {
-      synchronized (this) {
-        long oldPos = mPos;
-        try {
-          seek(pos);
-          return read(b, off, len);
-        } finally {
-          seek(oldPos);
-        }
+    synchronized (this) {
+      long oldPos = mPos;
+      try {
+        seek(pos);
+        return read(b, off, len);
+      } finally {
+        seek(oldPos);
       }
     }
-
-    int lenCopy = len;
-
-    while (len > 0) {
-      if (pos >= mFileLength) {
-        break;
-      }
-      long blockId = getBlockId(pos);
-      long blockPos = pos % mBlockSize;
-      try (BlockInStream bin = getBlockInStream(blockId)) {
-        int bytesRead =
-            bin.positionedRead(blockPos, b, off, (int) Math.min(mBlockSize - blockPos, len));
-        Preconditions.checkState(bytesRead > 0, "No data is read before EOF");
-        pos += bytesRead;
-        off += bytesRead;
-        len -= bytesRead;
-      }
-    }
-    return lenCopy - len;
   }
 
   @Override

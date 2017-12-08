@@ -30,7 +30,7 @@ public final class BlockReadRequest extends ReadRequest {
    */
   BlockReadRequest(Protocol.ReadRequest request) {
     super(request.getBlockId(), request.getOffset(), request.getOffset() + request.getLength(),
-        request.getPacketSize(), request.getSessionId());
+        request.getPacketSize(), request.getSessionId(), request.getResume());
 
     if (request.hasOpenUfsBlockOptions()) {
       mOpenUfsBlockOptions = request.getOpenUfsBlockOptions();

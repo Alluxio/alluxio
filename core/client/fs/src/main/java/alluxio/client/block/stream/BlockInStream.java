@@ -191,7 +191,7 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
 
   @Override
   public int read(byte[] b, int off, int len) throws IOException {
-    checkIfClosed();
+    checkNotClosed();
     Preconditions.checkArgument(b != null, PreconditionMessage.ERR_READ_BUFFER_NULL);
     Preconditions.checkArgument(off >= 0 && len >= 0 && len + off <= b.length,
         PreconditionMessage.ERR_BUFFER_STATE.toString(), b.length, off, len);
@@ -204,7 +204,6 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
       mEOF = true;
     }
     if (mEOF) {
-      closePacketReader();
       return -1;
     }
     int toRead = Math.min(len, mCurrentPacket.readableBytes());
@@ -222,33 +221,19 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
       return -1;
     }
 
-    int lenCopy = len;
-    try (PacketReader reader = mPacketReaderFactory.create(pos, len, mSessionId)) {
-      // We try to read len bytes instead of returning after reading one packet because
-      // it is not free to create/close a PacketReader.
-      while (len > 0) {
-        DataBuffer dataBuffer = null;
-        try {
-          dataBuffer = reader.readPacket();
-          if (dataBuffer == null) {
-            break;
-          }
-          Preconditions.checkState(dataBuffer.readableBytes() <= len);
-          int toRead = dataBuffer.readableBytes();
-          dataBuffer.readBytes(b, off, toRead);
-          len -= toRead;
-          off += toRead;
-        } finally {
-          if (dataBuffer != null) {
-            dataBuffer.release();
-          }
-        }
+    synchronized (this) {
+      long oldPos = mPos;
+      // do not seek if not need to
+      if (oldPos == pos) {
+        return read(b, off, len);
+      }
+      try {
+        seek(pos);
+        return read(b, off, len);
+      } finally {
+        seek(oldPos);
       }
     }
-    if (lenCopy == len) {
-      return -1;
-    }
-    return lenCopy - len;
   }
 
   @Override
@@ -258,7 +243,7 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
 
   @Override
   public void seek(long pos) throws IOException {
-    checkIfClosed();
+    checkNotClosed();
     Preconditions.checkArgument(pos >= 0, PreconditionMessage.ERR_SEEK_NEGATIVE.toString(), pos);
     Preconditions
         .checkArgument(pos <= mLength, PreconditionMessage.ERR_SEEK_PAST_END_OF_REGION.toString(),
@@ -270,13 +255,13 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
       mEOF = false;
     }
 
-    closePacketReader();
+    reposition(pos, mLength - pos);
     mPos = pos;
   }
 
   @Override
   public long skip(long n) throws IOException {
-    checkIfClosed();
+    checkNotClosed();
     if (n <= 0) {
       return 0;
     }
@@ -312,6 +297,9 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
     if (mPacketReader == null) {
       mPacketReader = mPacketReaderFactory.create(mPos, mLength - mPos, mSessionId);
     }
+    if (mPacketReader.isPaused()) {
+      mPacketReader.resume();
+    }
 
     if (mCurrentPacket != null && mCurrentPacket.readableBytes() == 0) {
       mCurrentPacket.release();
@@ -336,10 +324,22 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
     mPacketReader = null;
   }
 
+  private void reposition(long newPosition, long newLength)  throws IOException {
+    if (mCurrentPacket != null) {
+      mCurrentPacket.release();
+      mCurrentPacket = null;
+    }
+
+    // if packet reader is null, it will be created before the read starts
+    if (mPacketReader !=null) {
+      mPacketReader.pauseAndReposition(newPosition, newLength);
+    }
+  }
+
   /**
    * Convenience method to ensure the stream is not closed.
    */
-  private void checkIfClosed() {
+  private void checkNotClosed() {
     Preconditions.checkState(!mClosed, PreconditionMessage.ERR_CLOSED_BLOCK_IN_STREAM);
   }
 

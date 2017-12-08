@@ -161,5 +161,20 @@ public final class LocalFilePacketReader implements PacketReader {
       }
     }
   }
+
+  @Override
+  public void pauseAndReposition(long position, long length) throws IOException {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public boolean isPaused() {
+    return false;
+  }
+
+  @Override
+  public void resume() {
+
+  }
 }
 

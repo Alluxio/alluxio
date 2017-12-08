@@ -81,7 +81,7 @@ public final class NettyPacketReader implements PacketReader {
 
   private final FileSystemContext mContext;
   private final Channel mChannel;
-  private final Protocol.ReadRequest mReadRequest;
+  private Protocol.ReadRequest mReadRequest;
   private final WorkerNetAddress mAddress;
 
   /**
@@ -107,7 +107,7 @@ public final class NettyPacketReader implements PacketReader {
    * by the client thread (not touched by the netty I/O thread).
    */
   private boolean mDone = false;
-
+  private boolean mPaused = false;
   private boolean mClosed = false;
 
   /**
@@ -182,11 +182,9 @@ public final class NettyPacketReader implements PacketReader {
       if (!mChannel.isOpen()) {
         return;
       }
-      if (remaining() > 0) {
-        Protocol.ReadRequest cancelRequest = mReadRequest.toBuilder().setCancel(true).build();
-        mChannel.writeAndFlush(new RPCProtoMessage(new ProtoMessage(cancelRequest)))
-            .addListener(ChannelFutureListener.CLOSE_ON_FAILURE);
-      }
+      Protocol.ReadRequest cancelRequest = mReadRequest.toBuilder().setCancel(true).build();
+      mChannel.writeAndFlush(new RPCProtoMessage(new ProtoMessage(cancelRequest)))
+          .addListener(ChannelFutureListener.CLOSE_ON_FAILURE);
 
       try {
         readAndDiscardAll();
@@ -205,6 +203,7 @@ public final class NettyPacketReader implements PacketReader {
       }
       mContext.releaseNettyChannel(mAddress, mChannel);
       mClosed = true;
+      mPaused =false;
     }
   }
 
@@ -356,6 +355,53 @@ public final class NettyPacketReader implements PacketReader {
 
     @Override
     public void close() throws IOException {}
+  }
+
+  @Override
+  public void pauseAndReposition(long position, long length) throws IOException {
+    if (!mChannel.isOpen()) {
+      return;
+    }
+    if (!mPaused) {
+      // send the pause request
+      Protocol.ReadRequest pauseRequest = mReadRequest.toBuilder().setPause(true).build();
+      mChannel.writeAndFlush(new RPCProtoMessage(new ProtoMessage(pauseRequest)))
+          .addListener(ChannelFutureListener.CLOSE_ON_FAILURE);
+
+      // flush the connection
+      try {
+        readAndDiscardAll();
+      } catch (IOException e) {
+        LOG.warn(
+            "Failed to flush the NettyBlockReader for pausing (block: {}, address: {}) with exception {}.",
+            mReadRequest.getBlockId(), mAddress, e.getMessage());
+        CommonUtils.closeChannel(mChannel);
+        return;
+      }
+    }
+
+    mPosToRead = position;
+    mDone = false;
+    mPaused = true;
+    // update the read request for the next read when it resumes
+    mReadRequest =
+        mReadRequest.toBuilder().setOffset(position).setLength(length).setResume(true).build();
+  }
+
+  @Override
+  public boolean isPaused() {
+    return mPaused;
+  }
+
+  @Override
+  public void resume() {
+    if (mPaused) {
+      // resume the read by sending the updated read request
+      mChannel.writeAndFlush(new RPCProtoMessage(new ProtoMessage(mReadRequest)))
+          .addListener(ChannelFutureListener.CLOSE_ON_FAILURE);
+      // unset the pause
+      mPaused = false;
+    }
   }
 }
 

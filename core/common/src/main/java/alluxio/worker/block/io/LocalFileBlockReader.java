@@ -103,7 +103,7 @@ public final class LocalFileBlockReader implements BlockReader {
   }
 
   @Override
-  public boolean isSeakable() {
+  public boolean isSeekable() {
     return true;
   }
 }

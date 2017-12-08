@@ -111,13 +111,24 @@ abstract class AbstractReadHandler<T extends ReadRequestContext<?>>
       return;
     }
 
+    if(msg.getPause()) {
+      setPause(ctx.channel());
+      return;
+    }
+
     // Expected state: context equals null as this handler is new for request, or the previous
     // context is not active (done / cancel / abort). Otherwise, notify the client an illegal state.
     // Note that, we reset the context before validation msg as validation may require to update
     // error in context.
     try (LockResource lr = new LockResource(mLock)) {
-      Preconditions.checkState(mContext == null || !mContext.isPacketReaderActive());
-      mContext = createRequestContext(msg);
+      Preconditions
+          .checkState(mContext == null || !mContext.isPacketReaderActive() || msg.getResume());
+      if (msg.getResume()) {
+        // reinit the context state
+        updateRequestContext(mContext, msg);
+      } else {
+        mContext = createRequestContext(msg);
+      }
     }
 
     validateReadRequest(msg);
@@ -126,6 +137,9 @@ abstract class AbstractReadHandler<T extends ReadRequestContext<?>>
       mContext.setPosToQueue(mContext.getRequest().getStart());
       mContext.setPosToWrite(mContext.getRequest().getStart());
       mPacketReaderExecutor.submit(createPacketReader(mContext, ctx.channel()));
+      if (msg.getResume()) {
+        mContext.setResume(true);
+      }
       mContext.setPacketReaderActive(true);
     }
   }
@@ -188,7 +202,7 @@ abstract class AbstractReadHandler<T extends ReadRequestContext<?>>
   private void setEof(Channel channel) {
     try (LockResource lr = new LockResource(mLock)) {
       if (mContext == null || mContext.getError() != null || mContext.isCancel()
-          || mContext.isEof()) {
+          || mContext.isEof() || mContext.isPause()) {
         return;
       }
       mContext.setEof(true);
@@ -204,11 +218,28 @@ abstract class AbstractReadHandler<T extends ReadRequestContext<?>>
    */
   private void setCancel(Channel channel) {
     try (LockResource lr = new LockResource(mLock)) {
-      if (mContext == null || mContext.getError() != null || mContext.isEof()
+      if (mContext == null || mContext.getError() != null
           || mContext.isCancel()) {
         return;
       }
       mContext.setCancel(true);
+      if (!mContext.isPacketReaderActive()) {
+        mContext.setPacketReaderActive(true);
+        mPacketReaderExecutor.submit(createPacketReader(mContext, channel));
+      }
+    }
+  }
+
+  /**
+   * @param channel the channel
+   */
+  private void setPause(Channel channel) {
+    try (LockResource lr = new LockResource(mLock)) {
+      if (mContext == null || mContext.getError() != null || mContext.isCancel() || mContext.isEof()
+          || mContext.isPause()) {
+        return;
+      }
+      mContext.setPause(true);
       if (!mContext.isPacketReaderActive()) {
         mContext.setPacketReaderActive(true);
         mPacketReaderExecutor.submit(createPacketReader(mContext, channel));
@@ -235,6 +266,8 @@ abstract class AbstractReadHandler<T extends ReadRequestContext<?>>
    * @return an instance of read request based on the request read from channel
    */
   protected abstract T createRequestContext(Protocol.ReadRequest request);
+
+  protected abstract void updateRequestContext(T context, Protocol.ReadRequest request);
 
   /**
    * Creates a read reader.
@@ -336,6 +369,7 @@ abstract class AbstractReadHandler<T extends ReadRequestContext<?>>
     private void runInternal() {
       boolean eof;  // End of file. Everything requested has been read.
       boolean cancel;
+      boolean pause;
       Error error;  // error occured, abort requested.
       while (true) {
         final long start;
@@ -344,9 +378,10 @@ abstract class AbstractReadHandler<T extends ReadRequestContext<?>>
           start = mContext.getPosToQueue();
           eof = mContext.isEof();
           cancel = mContext.isCancel();
+          pause =mContext.isPause();
           error = mContext.getError();
 
-          if (eof || cancel || error != null || tooManyPendingPackets()) {
+          if (eof || cancel || pause || error != null || tooManyPendingPackets()) {
             mContext.setPacketReaderActive(false);
             break;
           }
@@ -395,7 +430,7 @@ abstract class AbstractReadHandler<T extends ReadRequestContext<?>>
         if (error.isNotifyClient()) {
           replyError(error.getCause());
         }
-      } else if (eof || cancel) {
+      } else if (eof || cancel || pause) {
         try {
           completeRequest(mContext);
         } catch (IOException e) {
@@ -403,7 +438,8 @@ abstract class AbstractReadHandler<T extends ReadRequestContext<?>>
         } catch (Exception e) {
           setError(mChannel, new Error(AlluxioStatusException.fromThrowable(e), true));
         }
-        if (eof) {
+        if (eof || pause) {
+          // pause returns eof so the client can flush the channel
           replyEof();
         } else {
           replyCancel();
@@ -442,9 +478,8 @@ abstract class AbstractReadHandler<T extends ReadRequestContext<?>>
     /**
      * Writes a success response.
      */
-    private void replyEof() {
+    private synchronized void replyEof() {
       Preconditions.checkState(!mContext.isDoneUnsafe());
-      mContext.setDoneUnsafe(true);
       mChannel.writeAndFlush(RPCProtoMessage.createOkResponse(null))
           .addListeners(ChannelFutureListener.CLOSE_ON_FAILURE);
     }
@@ -452,7 +487,7 @@ abstract class AbstractReadHandler<T extends ReadRequestContext<?>>
     /**
      * Writes a cancel response.
      */
-    private void replyCancel() {
+    private synchronized void replyCancel() {
       Preconditions.checkState(!mContext.isDoneUnsafe());
       mContext.setDoneUnsafe(true);
       mChannel.writeAndFlush(RPCProtoMessage.createCancelResponse())

@@ -33,6 +33,12 @@ public interface PacketReader extends Closeable {
    */
   long pos();
 
+  void pauseAndReposition(long position, long length) throws IOException;
+
+  boolean isPaused();
+
+  void resume();
+
   /**
    * The factory interface to create {@link PacketReader}s.
    */

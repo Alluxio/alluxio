@@ -69,5 +69,5 @@ public interface BlockReader extends Closeable {
    */
   void position(long newPosition) throws IOException;
 
-  boolean isSeakable();
+  boolean isSeekable();
 }

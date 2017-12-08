@@ -71,7 +71,7 @@ public final class MockBlockReader implements BlockReader {
   }
 
   @Override
-  public boolean isSeakable() {
+  public boolean isSeekable() {
     return false;
   }
 }

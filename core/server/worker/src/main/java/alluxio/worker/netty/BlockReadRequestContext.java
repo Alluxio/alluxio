@@ -31,6 +31,10 @@ public final class BlockReadRequestContext extends ReadRequestContext<BlockReadR
     super(new BlockReadRequest(request));
   }
 
+  public void init(Protocol.ReadRequest request) {
+    super.init(new BlockReadRequest(request));
+  }
+
   /**
    * @return block reader
    */
