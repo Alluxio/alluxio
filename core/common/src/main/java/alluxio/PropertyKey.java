@@ -23,7 +23,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.regex.MatchResult;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -2514,11 +2513,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
 
     /**
      * @param input the input property key string
-     * @return the match result from matching the template to the string
+     * @return the matcher matching the template to the string
      */
-    public MatchResult match(String input) {
-      Matcher matcher = mPattern.matcher(input);
-      return matcher.toMatchResult();
+    public Matcher match(String input) {
+      return mPattern.matcher(input);
     }
   }
 
