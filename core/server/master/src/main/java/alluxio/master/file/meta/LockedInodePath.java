@@ -35,7 +35,7 @@ public abstract class LockedInodePath implements AutoCloseable {
   protected final String[] mPathComponents;
   protected final ArrayList<Inode<?>> mInodes;
   protected final InodeLockList mLockList;
-  protected final InodeTree.LockMode mLockMode;
+  protected InodeTree.LockMode mLockMode;
 
   LockedInodePath(AlluxioURI uri, List<Inode<?>> inodes, InodeLockList lockList,
       InodeTree.LockMode lockMode)
@@ -169,5 +169,44 @@ public abstract class LockedInodePath implements AutoCloseable {
    */
   public synchronized void downgradeLast() {
     mLockList.downgradeLast();
+  }
+
+  /**
+   * Downgrades the last inode that was locked, according to the specified {@link LockingScheme}.
+   * If the locking scheme initially desired the READ lock, the downgrade will occur. Otherwise,
+   * downgrade will not be performed.
+   *
+   * @param lockingScheme the locking scheme to inspect
+   */
+  public synchronized void downgradeLastWithScheme(LockingScheme lockingScheme) {
+    // Need to downgrade if the locking scheme initially desired the READ lock.
+    if (lockingScheme.getDesiredMode() == InodeTree.LockMode.READ) {
+      downgradeLast();
+      mLockMode = InodeTree.LockMode.READ;
+    }
+  }
+
+  /**
+   * Validates if the inode path is full, if required. Throws exception if validation fails.
+   *
+   * @param lockingScheme the locking scheme to determine if the full path is required
+   * @throws FileDoesNotExistException when the full path does not exist but is required
+   */
+  public synchronized void validatePath(LockingScheme lockingScheme)
+      throws FileDoesNotExistException {
+    if (lockingScheme.requiresFullPath() && !fullPathExists()) {
+      throw new FileDoesNotExistException(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(mUri));
+    }
+  }
+
+  /**
+   * Unlocks the last inode that was locked.
+   */
+  public synchronized void unlockLast() {
+    if (mInodes.isEmpty()) {
+      return;
+    }
+    mInodes.remove(mInodes.size() - 1);
+    mLockList.unlockLast();
   }
 }
