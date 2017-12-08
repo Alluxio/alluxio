@@ -33,11 +33,11 @@ public final class UfsSyncUtils {
    * @return a {@link SyncPlan} describing how to sync the inode with the ufs
    */
   public static SyncPlan computeSyncPlan(Inode inode, String ufsFingerprint) {
-    boolean matches = inodeUfsMatch(inode, ufsFingerprint);
+    boolean isSynced = inodeUfsIsSynced(inode, ufsFingerprint);
 
     UfsSyncUtils.SyncPlan syncPlan = new UfsSyncUtils.SyncPlan();
-    if (!matches) {
-      // UFS does not match with Alluxio inode.
+    if (!isSynced) {
+      // Alluxio inode is not synced with UFS.
       syncPlan.setDelete();
       if (!Constants.INVALID_UFS_FINGERPRINT.equals(ufsFingerprint)) {
         // UFS exists, so load metadata later.
@@ -45,7 +45,7 @@ public final class UfsSyncUtils {
       }
     }
 
-    if (inode.isDirectory() && inode.isPersisted() && matches) {
+    if (inode.isDirectory() && inode.isPersisted() && isSynced) {
       // Both Alluxio and UFS are directories, so sync the children of the directory.
       syncPlan.setSyncChildren();
     }
@@ -54,30 +54,32 @@ public final class UfsSyncUtils {
   }
 
   /**
-   * Returns true if the given inode matches the ufs status. This is a single inode check, so for
-   * directory inodes, this does not consider the children inodes.
+   * Returns true if the given inode is synced with the ufs status. This is a single inode check,
+   * so for directory inodes, this does not consider the children inodes.
    *
    * @param inode the inode to check for sync
    * @param ufsFingerprint the ufs fingerprint to check for the sync
-   * @return true of the inode matches with the ufs status
+   * @return true of the inode is synced with the ufs status
    */
-  public static boolean inodeUfsMatch(Inode inode, String ufsFingerprint) {
-    boolean matchUnpersisted =
+  public static boolean inodeUfsIsSynced(Inode inode, String ufsFingerprint) {
+    boolean isSyncedUnpersisted =
         !inode.isPersisted() && Constants.INVALID_UFS_FINGERPRINT.equals(ufsFingerprint);
 
-    boolean matchPersisted;
+    boolean isSyncedPersisted;
     if (inode instanceof InodeFile) {
-      // match the file fingerprint.
+      // check the file fingerprint.
       InodeFile inodeFile = (InodeFile) inode;
-      matchPersisted = inodeFile.isPersisted()
+      isSyncedPersisted = inodeFile.isPersisted()
           && inodeFile.getUfsFingerprint().equals(ufsFingerprint)
           && !inodeFile.getUfsFingerprint().equals(Constants.INVALID_UFS_FINGERPRINT);
     } else {
       // ufs fingerprint must exist.
-      matchPersisted =
+      // TODO(gpang): Currently, directory fingerprints are not considered, because directories are
+      // created/modified more frequently than files.
+      isSyncedPersisted =
           inode.isPersisted() && !Constants.INVALID_UFS_FINGERPRINT.equals(ufsFingerprint);
     }
-    return matchPersisted || matchUnpersisted;
+    return isSyncedPersisted || isSyncedUnpersisted;
   }
 
   /**
