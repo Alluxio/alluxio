@@ -3088,7 +3088,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
 
               String ufsFingerprint = ufsChildren.get(inodeEntry.getKey());
               boolean deleteChild =
-                  !UfsSyncUtils.inodeUfsMatch(inodeEntry.getValue(), ufsFingerprint);
+                  !UfsSyncUtils.inodeUfsIsSynced(inodeEntry.getValue(), ufsFingerprint);
 
               if (deleteChild) {
                 TempInodePathForDescendant tempInodePath =
