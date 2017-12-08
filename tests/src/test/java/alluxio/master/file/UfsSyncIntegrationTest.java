@@ -15,7 +15,6 @@ import alluxio.AlluxioURI;
 import alluxio.AuthenticatedUserRule;
 import alluxio.BaseIntegrationTest;
 import alluxio.ConfigurationTestUtils;
-import alluxio.Constants;
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileOutStream;
