@@ -1457,8 +1457,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey USER_FILE_METADATA_SYNC_INTERVAL =
       new Builder(Name.USER_FILE_METADATA_SYNC_INTERVAL)
           .setDefaultValue("-1")
-          .setDescription("The interval between metadata sync between Alluxio and UFS before an "
-              + "operation on a path is invoked. -1 means no sync will occur. 0 means Alluxio will "
+          .setDescription("The interval for syncing UFS metadata before invoking an "
+              + "operation on a path. -1 means no sync will occur. 0 means Alluxio will "
               + "always sync the metadata of the path before an operation. If you specify a time "
               + "interval, Alluxio will (best effort) not re-sync a path within that time "
               + "interval. Syncing the metadata for a path must interact with the UFS, so it is "
