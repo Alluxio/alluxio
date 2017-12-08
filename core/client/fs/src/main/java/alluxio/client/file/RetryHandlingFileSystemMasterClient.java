@@ -212,6 +212,7 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
     });
   }
 
+
   @Override
   public synchronized void rename(final AlluxioURI src, final AlluxioURI dst)
       throws AlluxioStatusException {
