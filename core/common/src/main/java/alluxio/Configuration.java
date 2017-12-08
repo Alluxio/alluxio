@@ -554,9 +554,9 @@ public final class Configuration {
       if (match.groupCount() > 1) {
         String tierName = match.group(1);
         if (!tiers.contains(tierName)) {
-          throw new IllegalStateException(String.format(
-              "Tier %s is configured by %s, but does not exist in the tier list %s configured by %s",
-              tierName, key, tiers, PropertyKey.LOCALITY_ORDER));
+          throw new IllegalStateException(
+              String.format("Tier %s is configured by %s, but does not exist in the tier list %s "
+                  + "configured by %s", tierName, key, tiers, PropertyKey.LOCALITY_ORDER));
         }
       }
     }
