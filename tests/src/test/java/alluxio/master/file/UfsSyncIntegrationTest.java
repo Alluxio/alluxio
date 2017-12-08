@@ -14,7 +14,6 @@ package alluxio.master.file;
 import alluxio.AlluxioURI;
 import alluxio.AuthenticatedUserRule;
 import alluxio.BaseIntegrationTest;
-import alluxio.ConfigurationTestUtils;
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileOutStream;
@@ -35,7 +34,6 @@ import alluxio.wire.LoadMetadataType;
 
 import com.google.common.collect.Sets;
 import com.google.common.io.Files;
-import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -81,11 +79,6 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
 
     new File(ufsPath(EXISTING_DIR)).mkdirs();
     writeUfsFile(ufsPath(EXISTING_FILE), 1);
-  }
-
-  @After
-  public void after() throws Exception {
-    ConfigurationTestUtils.resetConfiguration();
   }
 
   @Test
