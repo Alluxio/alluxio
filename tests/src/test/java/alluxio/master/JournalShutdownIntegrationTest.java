@@ -39,6 +39,7 @@ import com.google.common.collect.ImmutableMap;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.ClassRule;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mockito;
@@ -119,6 +120,7 @@ public class JournalShutdownIntegrationTest extends BaseIntegrationTest {
    * We use the external cluster for this test due to flakiness issues when running in a single JVM.
    */
   @Test
+  @Ignore
   public void multiMasterJournalStopIntegration() throws Exception {
     MultiProcessCluster cluster = MultiProcessCluster.newBuilder()
         .setClusterName("multiMasterJournalStopIntegration")
