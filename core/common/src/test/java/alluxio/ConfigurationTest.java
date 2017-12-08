@@ -483,7 +483,7 @@ public class ConfigurationTest {
       try {
         Configuration.init();
         fail("Expected an exception to be thrown");
-      } catch (IllegalStateException e ) {
+      } catch (IllegalStateException e) {
         assertThat(e.getMessage(), containsString("unknownTier"));
         assertThat(e.getMessage(), containsString("does not exist in the tier list"));
       }
