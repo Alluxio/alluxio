@@ -1455,7 +1455,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       }
       // Prepare to delete persisted inodes
       UfsDeleter ufsDeleter = NoopUfsDeleter.INSTANCE;
-      if (!replayed) {
+      if (!(replayed || deleteOptions.isAlluxioOnly())) {
         ufsDeleter = new SafeUfsDeleter(mMountTable, delInodes, deleteOptions);
       }
       // Inodes to delete from tree after attempting to delete from UFS
@@ -1480,7 +1480,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
             // TODO(calvin): Add tests (ALLUXIO-1831)
             if (mMountTable.isMountPoint(alluxioUriToDel)) {
               unmountInternal(alluxioUriToDel);
-            } else if (!deleteOptions.isAlluxioOnly()) {
+            } else {
               // Attempt to delete node if all children were deleted successfully
               failedToDelete = !ufsDeleter.delete(alluxioUriToDel, delInode);
             }
@@ -3077,11 +3077,12 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         if (syncPlan.toDelete() && inodePath.getParentInodeOrNull() != null) {
           // Do not delete the root.
           try {
-            deleteInternal(inodePath, true, System.currentTimeMillis(), syncDeleteOptions,
+            deleteInternal(inodePath, false, System.currentTimeMillis(), syncDeleteOptions,
                 journalContext);
             deletedInode = true;
           } catch (DirectoryNotEmptyException | IOException e) {
             // Should not happen, since it is an unchecked delete.
+            LOG.error("Unexpected error for unchecked delete. error: {}", e.toString());
           }
         }
 
@@ -3095,16 +3096,17 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
             listStatus = ufs.listStatus(ufsUri.toString());
           } catch (IOException e) {
             // ignore error
-            LOG.warn("Failed to list directory: {} error: {}", ufsUri, e.getMessage());
+            LOG.warn("Failed to list directory: {} error: {}", ufsUri, e.toString());
           }
 
           if (listStatus != null) {
-            // maps of children name to ufs or inode information
-            HashMap<String, String> ufsChildren = new HashMap<>();
-            HashMap<String, Inode<?>> inodeChildren = new HashMap<>();
+            // maps children name to ufs fingerprint
+            Map<String, String> ufsChildFingerprints = new HashMap<>();
+            // maps children name to inode
+            Map<String, Inode<?>> inodeChildren = new HashMap<>();
 
             for (UfsStatus ufsChildStatus : listStatus) {
-              ufsChildren.put(ufsChildStatus.getName(),
+              ufsChildFingerprints.put(ufsChildStatus.getName(),
                   Fingerprint.create(Fingerprint.getUfsName(ufs), ufsChildStatus)
                       .serialize());
             }
@@ -3114,7 +3116,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
             }
 
             // Iterate over ufs children and process children which do not exist in Alluxio.
-            for (Map.Entry<String, String> ufsEntry : ufsChildren.entrySet()) {
+            for (Map.Entry<String, String> ufsEntry : ufsChildFingerprints.entrySet()) {
               if (!inodeChildren.containsKey(ufsEntry.getKey()) && !PathUtils
                   .isTemporaryFileName(ufsEntry.getKey())) {
                 // Ufs child exists, but Alluxio child does not. Must load metadata.
@@ -3130,7 +3132,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
                 continue;
               }
 
-              String ufsFingerprint = ufsChildren.get(inodeEntry.getKey());
+              String ufsFingerprint = ufsChildFingerprints.get(inodeEntry.getKey());
               boolean deleteChild =
                   !UfsSyncUtils.inodeUfsIsSynced(inodeEntry.getValue(), ufsFingerprint);
 
@@ -3141,10 +3143,11 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
                     inodePath.getUri().join(inodeEntry.getKey()));
 
                 try {
-                  deleteInternal(tempInodePath, true, System.currentTimeMillis(), syncDeleteOptions,
-                      journalContext);
+                  deleteInternal(tempInodePath, false, System.currentTimeMillis(),
+                      syncDeleteOptions, journalContext);
                 } catch (DirectoryNotEmptyException | IOException e) {
                   // Should not happen, since it is an unchecked delete.
+                  LOG.error("Unexpected error for unchecked delete. error: {}", e.toString());
                 }
                 // Must load metadata afterwards.
                 loadMetadata = true;
