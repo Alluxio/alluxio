@@ -15,6 +15,7 @@ import alluxio.Constants;
 
 import com.google.common.base.Splitter;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Pattern;
@@ -25,18 +26,35 @@ import javax.annotation.concurrent.NotThreadSafe;
  * Fingerprint for a UFS file or directory.
  */
 @NotThreadSafe
-public abstract class Fingerprint {
-  public static final Tag TAG_TYPE = new Tag("type");
-  public static final Tag TAG_UFS = new Tag("ufs");
-  public static final Tag TAG_OWNER = new Tag("owner");
-  public static final Tag TAG_GROUP = new Tag("group");
-  public static final Tag TAG_MODE = new Tag("mode");
-
-  private static final Tag[] TAGS = {TAG_TYPE, TAG_UFS, TAG_OWNER, TAG_GROUP, TAG_MODE};
+public final class Fingerprint {
+  /** These tags are required in all fingerprints. */
+  private static final Tag[] REQUIRED_TAGS = {Tag.TYPE, Tag.UFS, Tag.OWNER, Tag.GROUP, Tag.MODE};
+  /** These tags are optional, and are serialized after the required tags. */
+  private static final Tag[] OPTIONAL_TAGS = {Tag.CONTENT_HASH};
 
   private static final Pattern SANITIZE_REGEX = Pattern.compile("[ :]");
 
   private final Map<Tag, String> mValues;
+
+  /**
+   * The possible types of the fingerprint.
+   */
+  public enum Type {
+    FILE,
+    DIRECTORY,
+  }
+
+  /**
+   * The possible tags within the fingerprint.
+   */
+  public enum Tag {
+    TYPE,
+    UFS,
+    OWNER,
+    GROUP,
+    MODE,
+    CONTENT_HASH,
+  }
 
   /**
    * Returns the ufs name for fingerprints.
@@ -57,16 +75,20 @@ public abstract class Fingerprint {
    */
   public static Fingerprint create(String ufsName, UfsStatus status) {
     if (status == null) {
-      return new InvalidFingerprint();
+      return new Fingerprint(Collections.emptyMap());
     }
+    Map<Tag, String> tagMap = new HashMap<>();
+    tagMap.put(Tag.UFS, ufsName);
+    tagMap.put(Tag.OWNER, status.getOwner());
+    tagMap.put(Tag.GROUP, status.getGroup());
+    tagMap.put(Tag.MODE, String.valueOf(status.getMode()));
     if (status instanceof UfsFileStatus) {
-      UfsFileStatus ufsFile = (UfsFileStatus) status;
-      return new FileFingerprint(ufsName, ufsFile.getOwner(), ufsFile.getGroup(),
-          String.valueOf(ufsFile.getMode()), ufsFile.getContentHash());
+      tagMap.put(Tag.TYPE, Type.FILE.name());
+      tagMap.put(Tag.CONTENT_HASH, ((UfsFileStatus) status).getContentHash());
     } else {
-      return new DirectoryFingerprint(ufsName, status.getOwner(), status.getGroup(),
-          String.valueOf(status.getMode()));
+      tagMap.put(Tag.TYPE, Type.DIRECTORY.name());
     }
+    return new Fingerprint(tagMap);
   }
 
   /**
@@ -80,36 +102,45 @@ public abstract class Fingerprint {
       return null;
     }
     if (Constants.INVALID_UFS_FINGERPRINT.equals(input)) {
-      return new InvalidFingerprint();
+      return new Fingerprint(Collections.emptyMap());
     }
     Map<String, String> kv =
         Splitter.on(' ').trimResults().omitEmptyStrings().withKeyValueSeparator(':').split(input);
     Map<Tag, String> tagMap = new HashMap<>();
 
     for (Map.Entry<String, String> entry : kv.entrySet()) {
-      tagMap.put(new Tag(entry.getKey()), entry.getValue());
+      tagMap.put(Tag.valueOf(entry.getKey()), entry.getValue());
     }
 
-    String type = tagMap.get(TAG_TYPE);
-    if (type == null) {
-      return null;
-    }
-
-    switch (type) {
-      case FileFingerprint.FINGERPRINT_TYPE:
-        return new FileFingerprint(tagMap);
-      case DirectoryFingerprint.FINGERPRINT_TYPE:
-        return new DirectoryFingerprint(tagMap);
-      default:
+    // Verify required tags
+    for (Tag tag : REQUIRED_TAGS) {
+      if (!tagMap.containsKey(tag)) {
         return null;
+      }
     }
+
+    return new Fingerprint(tagMap);
   }
 
   /**
    * @return the serialized string of the fingerprint
    */
   public String serialize() {
-    return toString();
+    if (mValues.isEmpty()) {
+      return Constants.INVALID_UFS_FINGERPRINT;
+    }
+    StringBuilder sb = new StringBuilder();
+    // Serialize required tags first
+    for (Tag tag : REQUIRED_TAGS) {
+      sb.append(tag).append(':').append(getTag(tag)).append(' ');
+    }
+    // Serialize optional tags last
+    for (Tag tag : OPTIONAL_TAGS) {
+      if (mValues.containsKey(tag)) {
+        sb.append(tag).append(':').append(getTag(tag)).append(' ');
+      }
+    }
+    return sb.toString();
   }
 
   /**
@@ -125,36 +156,18 @@ public abstract class Fingerprint {
     }
   }
 
-  /**
-   * Creates new instance of {@link Fingerprint}.
-   *
-   * @param ufsName name of the ufs
-   * @param type type of fingerprint
-   * @param owner of the file
-   * @param group of the file
-   * @param mode of the file
-   */
-  Fingerprint(String ufsName, String type, String owner, String group, String mode) {
-    mValues = new HashMap<>();
-    putTag(TAG_TYPE, type);
-    putTag(TAG_UFS, ufsName);
-    putTag(TAG_OWNER, owner);
-    putTag(TAG_GROUP, group);
-    putTag(TAG_MODE, mode);
-  }
-
-  Fingerprint(Map<Tag, String> values) {
+  private Fingerprint(Map<Tag, String> values) {
     mValues = new HashMap<>();
     for (Map.Entry<Tag, String> entry : values.entrySet()) {
       putTag(entry.getKey(), entry.getValue());
     }
   }
 
-  void putTag(Tag tag, String value) {
+  private void putTag(Tag tag, String value) {
     mValues.put(tag, sanitizeString(value));
   }
 
-  String getTag(Tag tag) {
+  private String getTag(Tag tag) {
     String value = mValues.get(tag);
     if (value == null) {
       return "_";
@@ -167,44 +180,5 @@ public abstract class Fingerprint {
       return "_";
     }
     return SANITIZE_REGEX.matcher(input).replaceAll("_");
-  }
-
-  @Override
-  public String toString() {
-    StringBuilder sb = new StringBuilder();
-    for (Tag tag : TAGS) {
-      sb.append(tag).append(':').append(getTag(tag)).append(' ');
-    }
-    return sb.toString();
-  }
-
-  static final class Tag {
-    private final String mName;
-
-    Tag(String name) {
-      mName = name;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-      if (this == o) {
-        return true;
-      }
-      if (!(o instanceof Tag)) {
-        return false;
-      }
-      Tag that = (Tag) o;
-      return mName.equals(that.mName);
-    }
-
-    @Override
-    public int hashCode() {
-      return mName.hashCode();
-    }
-
-    @Override
-    public String toString() {
-      return mName;
-    }
   }
 }

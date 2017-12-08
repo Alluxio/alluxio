@@ -16,16 +16,22 @@ import alluxio.util.CommonUtils;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.util.Random;
+
 /**
  * Tests for the {@link Fingerprint} class.
  */
 public final class FingerprintTest {
 
+  private Random mRandom = new Random();
+
   @Test
   public void parseFileFingerprint() {
-    FileFingerprint fp = new FileFingerprint(CommonUtils.randomAlphaNumString(10),
+    UfsStatus status = new UfsFileStatus(CommonUtils.randomAlphaNumString(10),
+        CommonUtils.randomAlphaNumString(10), mRandom.nextLong(), mRandom.nextLong(),
         CommonUtils.randomAlphaNumString(10), CommonUtils.randomAlphaNumString(10),
-        CommonUtils.randomAlphaNumString(10), CommonUtils.randomAlphaNumString(10));
+        (short) mRandom.nextInt());
+    Fingerprint fp = Fingerprint.create(CommonUtils.randomAlphaNumString(10), status);
     String expected = fp.serialize();
     Assert.assertNotNull(expected);
     Assert.assertEquals(expected, Fingerprint.parse(expected).serialize());
@@ -33,9 +39,10 @@ public final class FingerprintTest {
 
   @Test
   public void parseDirectoryFingerprint() {
-    DirectoryFingerprint fp = new DirectoryFingerprint(CommonUtils.randomAlphaNumString(10),
+    UfsStatus status = new UfsDirectoryStatus(CommonUtils.randomAlphaNumString(10),
         CommonUtils.randomAlphaNumString(10), CommonUtils.randomAlphaNumString(10),
-        CommonUtils.randomAlphaNumString(10));
+        (short) mRandom.nextInt());
+    Fingerprint fp = Fingerprint.create(CommonUtils.randomAlphaNumString(10), status);
     String expected = fp.serialize();
     Assert.assertNotNull(expected);
     Assert.assertEquals(expected, Fingerprint.parse(expected).serialize());
@@ -43,7 +50,7 @@ public final class FingerprintTest {
 
   @Test
   public void parseInvalidFingerprint() {
-    InvalidFingerprint fp = new InvalidFingerprint();
+    Fingerprint fp = Fingerprint.create(CommonUtils.randomAlphaNumString(10), null);
     String expected = fp.serialize();
     Assert.assertNotNull(expected);
     Assert.assertEquals(expected, Fingerprint.parse(expected).serialize());
