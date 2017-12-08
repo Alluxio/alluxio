@@ -54,7 +54,7 @@ import java.util.stream.Collectors;
  * Tests the loading of metadata and the available options.
  */
 public class UfsSyncIntegrationTest extends BaseIntegrationTest {
-  private static final long INTERVAL_MS = Constants.SECOND_MS;
+  private static final long INTERVAL_MS = 100;
   private static final CommonOptions SYNC_NEVER = CommonOptions.defaults().setSyncIntervalMs(-1);
   private static final CommonOptions SYNC_ALWAYS = CommonOptions.defaults().setSyncIntervalMs(0);
   private static final CommonOptions SYNC_INTERVAL =
@@ -173,7 +173,7 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
     Assert.assertTrue((endMs - startMs) >= INTERVAL_MS);
   }
 
-  @Test
+  @Test(timeout = 10000)
   public void listDirSyncInterval() throws Exception {
     ListStatusOptions options =
         ListStatusOptions.defaults().setLoadMetadataType(LoadMetadataType.Never)
@@ -263,7 +263,7 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
     Assert.assertTrue(file.equals(new AlluxioURI(NEW_FILE).getName()));
   }
 
-  @Test
+  @Test(timeout = 10000)
   public void lastModifiedLocalFileSync() throws Exception {
     int sizefactor = 10;
     GetStatusOptions options =
@@ -274,16 +274,23 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
     String startFingerprint = status.getUfsFingerprint();
     long startLength = status.getLength();
 
-    // Sleep for a bit for a different last mod time.
-    long delay = 1000;
-    CommonUtils.sleepMs(delay);
+    long modTime = new File(ufsPath(EXISTING_FILE)).lastModified();
+    long newModTime = modTime;
+    while (newModTime == modTime) {
+      // Sleep for a bit for a different last mod time.
+      // This could be flaky, so
+      long delay = 100;
+      CommonUtils.sleepMs(delay);
 
-    // Write the same file, but with a different last mod time.
-    // Will only work with local ufs, since local ufs uses the last mod time for the content hash.
-    writeUfsFile(ufsPath(EXISTING_FILE), sizefactor);
+      // Write the same file, but with a different last mod time.
+      writeUfsFile(ufsPath(EXISTING_FILE), sizefactor);
+      newModTime = new File(ufsPath(EXISTING_FILE)).lastModified();
+    }
+
     status = mFileSystem.getStatus(new AlluxioURI(alluxioPath(EXISTING_FILE)), options);
 
     // Verify the sizes are the same, but the fingerprints are different.
+    // Will only work with local ufs, since local ufs uses the last mod time for the content hash.
     Assert.assertTrue(status.getLength() == startLength);
     Assert.assertNotEquals(startFingerprint, status.getUfsFingerprint());
   }
