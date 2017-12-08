@@ -3135,7 +3135,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       }
     }
 
-    mUfsSyncPathCache.addSyncPath(path.getPath());
+    mUfsSyncPathCache.notifySyncedPath(path.getPath());
     return true;
   }
 
@@ -3255,9 +3255,9 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
           if (!existingFingerprint.equals(Constants.INVALID_UFS_FINGERPRINT)) {
             // Update existing fingerprint, since contents did not change
             Fingerprint fp = Fingerprint.parse(existingFingerprint);
-            fp.updateTag(Fingerprint.TAG_OWNER, owner);
-            fp.updateTag(Fingerprint.TAG_GROUP, group);
-            fp.updateTag(Fingerprint.TAG_MODE, mode);
+            fp.updateTag(Fingerprint.Tag.OWNER, owner);
+            fp.updateTag(Fingerprint.Tag.GROUP, group);
+            fp.updateTag(Fingerprint.Tag.MODE, mode);
             options.setUfsFingerprint(fp.serialize());
           } else {
             // Need to retrieve the fingerprint from ufs.

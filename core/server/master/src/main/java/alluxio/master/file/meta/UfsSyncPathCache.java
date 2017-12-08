@@ -43,11 +43,11 @@ public final class UfsSyncPathCache {
   }
 
   /**
-   * Adds the given path to the cache.
+   * Notifies the cache that the path was synced.
    *
-   * @param path the path to add to the cache
+   * @param path the path that was synced
    */
-  public void addSyncPath(String path) {
+  public void notifySyncedPath(String path) {
     mCache.put(path, System.currentTimeMillis());
   }
 
