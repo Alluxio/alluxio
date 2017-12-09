@@ -32,19 +32,20 @@ public class TieredIdentityTest {
 
   @Test
   public void nearest() throws Exception {
-    TieredIdentity id1 = TieredIdentityFactory.fromString("node=A,rack=rack1");
-    TieredIdentity id2 = TieredIdentityFactory.fromString("node=B,rack=rack2");
-    TieredIdentity id3 = TieredIdentityFactory.fromString("node=C,rack=rack2");
+    // using non-routable addresses in the block 192.0.2.0/24, See RFC 5737
+    TieredIdentity id1 = TieredIdentityFactory.fromString("node=192.0.2.1,rack=rack1");
+    TieredIdentity id2 = TieredIdentityFactory.fromString("node=192.0.2.2,rack=rack2");
+    TieredIdentity id3 = TieredIdentityFactory.fromString("node=192.0.2.3,rack=rack2");
     List<TieredIdentity> identities = Arrays.asList(id1, id2, id3);
 
     assertSame(id1,
-        TieredIdentityFactory.fromString("node=D,rack=rack1").nearest(identities).get());
+        TieredIdentityFactory.fromString("node=192.0.2.4,rack=rack1").nearest(identities).get());
     assertSame(id2,
-        TieredIdentityFactory.fromString("node=B,rack=rack2").nearest(identities).get());
+        TieredIdentityFactory.fromString("node=192.0.2.2,rack=rack2").nearest(identities).get());
     assertSame(id3,
-        TieredIdentityFactory.fromString("node=C,rack=rack2").nearest(identities).get());
+        TieredIdentityFactory.fromString("node=192.0.2.3,rack=rack2").nearest(identities).get());
     assertSame(id1,
-        TieredIdentityFactory.fromString("host=D,rack=rack3").nearest(identities).get());
+        TieredIdentityFactory.fromString("host=192.0.2.4,rack=rack3").nearest(identities).get());
   }
 
   @Test
