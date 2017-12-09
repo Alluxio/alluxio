@@ -11,7 +11,9 @@
 
 package alluxio.wire;
 
+import alluxio.Constants;
 import alluxio.annotation.PublicApi;
+import alluxio.util.network.NetworkAddressUtils;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -20,6 +22,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 
 import java.io.Serializable;
+import java.net.UnknownHostException;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -92,9 +95,7 @@ public final class TieredIdentity implements Serializable {
     for (LocalityTier tier : mTiers) {
       for (TieredIdentity identity : identities) {
         for (LocalityTier otherTier : identity.mTiers) {
-          if (tier.mTierName.equals(otherTier.mTierName)
-              && tier.mValue != null
-              && tier.mValue.equals(otherTier.mValue)) {
+          if (tier.checkLocality(otherTier)) {
             return Optional.of(identity);
           }
         }
@@ -169,6 +170,46 @@ public final class TieredIdentity implements Serializable {
     public String getValue() {
       return mValue;
     }
+
+    /**
+     * @param otherTier wire type locality tier to compare to
+     * @return true if the wire type locality tier is local in comparison to the given tier
+     */
+    public boolean checkLocality(LocalityTier otherTier) {
+
+      if (otherTier == null) {
+        return false;
+      }
+
+      String otherTierName = otherTier.getTierName();
+      if (!mTierName.equals(otherTierName)) {
+        return false;
+      }
+
+      String otherTierValue = otherTier.getValue();
+      if (Constants.LOCALITY_RACK.equals(mTierName)) {
+        if (mValue != null && mValue.equals(otherTierValue)) {
+          return true;
+        }
+      }
+
+      // For node tiers resolving hostnames to IP addresses, this avoid common mis-configuration
+      // errors where a worker is using one hostname and the client is using another.
+      try {
+        if (Constants.LOCALITY_NODE.equals(mTierName)) {
+          String tierIpAddress = NetworkAddressUtils.resolveIpAddress(mValue);
+          String otherTierIpAddress = NetworkAddressUtils.resolveIpAddress(otherTierValue);
+          if (tierIpAddress != null && tierIpAddress.equals(otherTierIpAddress)) {
+            return true;
+          }
+        }
+      } catch (UnknownHostException e) {
+        // ignore
+      }
+
+      return false;
+    }
+
     /**
      * @return a Thrift representation
      */
