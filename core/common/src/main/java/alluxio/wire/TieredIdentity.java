@@ -186,25 +186,23 @@ public final class TieredIdentity implements Serializable {
         return false;
       }
 
-      String otherTierValue = otherTier.getValue();
-      if (Constants.LOCALITY_RACK.equals(mTierName)) {
-        if (mValue != null && mValue.equals(otherTierValue)) {
-          return true;
-        }
-      }
-
       // For node tiers resolving hostnames to IP addresses, this avoid common mis-configuration
       // errors where a worker is using one hostname and the client is using another.
-      try {
-        if (Constants.LOCALITY_NODE.equals(mTierName)) {
+      String otherTierValue = otherTier.getValue();
+      if (Constants.LOCALITY_NODE.equals(mTierName)) {
+        try {
           String tierIpAddress = NetworkAddressUtils.resolveIpAddress(mValue);
           String otherTierIpAddress = NetworkAddressUtils.resolveIpAddress(otherTierValue);
           if (tierIpAddress != null && tierIpAddress.equals(otherTierIpAddress)) {
             return true;
           }
+        } catch (UnknownHostException e) {
+          // ignore
         }
-      } catch (UnknownHostException e) {
-        // ignore
+      }
+
+      if (mValue != null && mValue.equals(otherTierValue)) {
+        return true;
       }
 
       return false;
