@@ -95,7 +95,7 @@ public final class TieredIdentity implements Serializable {
     for (LocalityTier tier : mTiers) {
       for (TieredIdentity identity : identities) {
         for (LocalityTier otherTier : identity.mTiers) {
-          if (tier.checkLocality(otherTier)) {
+          if (tier != null && tier.checkLocality(otherTier)) {
             return Optional.of(identity);
           }
         }
@@ -186,8 +186,9 @@ public final class TieredIdentity implements Serializable {
         return false;
       }
 
-      // For node tiers resolving hostnames to IP addresses, this avoid common mis-configuration
-      // errors where a worker is using one hostname and the client is using another.
+      // For node tiers, attempt to resolve hostnames to IP addresses, this avoid common
+      // misconfiguration errors where a worker is using one hostname and the client is using
+      // another.
       String otherTierValue = otherTier.getValue();
       if (Constants.LOCALITY_NODE.equals(mTierName)) {
         try {
@@ -201,11 +202,7 @@ public final class TieredIdentity implements Serializable {
         }
       }
 
-      if (mValue != null && mValue.equals(otherTierValue)) {
-        return true;
-      }
-
-      return false;
+      return mValue != null && mValue.equals(otherTierValue);
     }
 
     /**
