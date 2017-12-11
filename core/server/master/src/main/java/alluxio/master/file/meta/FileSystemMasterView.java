@@ -39,7 +39,7 @@ public final class FileSystemMasterView {
    * @param fileSystemMaster the file system master
    */
   public FileSystemMasterView(FileSystemMaster fileSystemMaster) {
-    mFileSystemMaster = Preconditions.checkNotNull(fileSystemMaster);
+    mFileSystemMaster = Preconditions.checkNotNull(fileSystemMaster, "fileSystemMaster");
   }
 
   /**

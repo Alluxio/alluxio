@@ -1,4 +1,4 @@
----
+﻿---
 layout: global
 title: 在集群上运行Alluxio实现高可用性
 nickname: Alluxio集群模式实现高可用性
@@ -13,7 +13,7 @@ Alluxio的高可用性通过多master实现。同一时刻，系统中有多个m
 client的通信首选。其余master进入备用状态，和leader共享日志，以确保和leader维护着同样的文件系统元数据并在
 leader失效时迅速接管leader的工作。
 
-当前leader失效时，自动从可用的备用master中选举一个作为新的leader，Alluxio继续正常运行。但在切换到备用
+当前leader失效时，系统自动从可用的备用master中选举一个作为新的leader，Alluxio继续正常运行。但在切换到备用
 master时，客户端会有短暂的延迟或瞬态错误。
 
 ## 前期准备
@@ -54,7 +54,7 @@ Zookeeper和共享文件系统都正常运行时，需要在每个主机上配�
 
 ### 外部可见地址
 
-“外部可见地址”仅仅是机器上配置的接口地址，对Alluxio集群中其它节点可见。在EC2上，使用`ip-x-x-x-x`地址。而
+下文中提到的“外部可见地址(externally visible address)”指的是机器上配置的接口地址，对Alluxio集群中其它节点可见。在EC2上，使用`ip-x-x-x-x`地址。而
 且不能使用`localhost`或`127.0.0.1`，否则其它节点无法访问该结点。
 
 ### 配置容错的Alluxio
@@ -86,7 +86,7 @@ Zookeeper和共享文件系统都正常运行时，需要在每个主机上配�
 
 ### Master配置
 
-除了以上配置，Alluxio master需要额外的配置，以下变量需在`conf/alluxio-site.properties`中正确设置：
+除了以上配置，Alluxio master需要额外的配置。以下变量需在每一个Alluxio Master上的`conf/alluxio-site.properties`中正确设置：
 
    alluxio.master.hostname=[externally visible address of this machine]
 

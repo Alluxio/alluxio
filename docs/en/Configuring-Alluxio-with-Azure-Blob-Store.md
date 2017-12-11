@@ -21,7 +21,7 @@ use in that container, either by creating a new directory in the container, or u
 one. For the purposes of this guide, the Azure storage account name is called `AZURE_ACCOUNT`, the
 container in that storage account is called `AZURE_CONTAINER` and the directory in that bucket is
 called `AZURE_DIRECTORY`. For more information about Azure storage account, Please see
-[here](https://docs.microsoft.com/en-us/azure/storage/storage-create-storage-account)
+[here](https://docs.microsoft.com/en-us/azure/storage/storage-create-storage-account).
 
 
 ## Configuring Alluxio
@@ -58,7 +58,7 @@ $ ./bin/alluxio fs mount --option fs.azure.account.key.AZURE_ACCOUNT.blob.core.w
   /mnt/azure wasb://AZURE_CONTAINER@AZURE_ACCOUNT.blob.core.windows.net/AZURE_DIRECTORY/
 ```
 
-After these changes, Alluxio should be configured to work with Azure Blob Store as its under storage system, and you can try to run Alluxio locally with it.
+After these changes, Alluxio should be configured to work with Azure Blob Store as its under storage system, and you can run Alluxio locally with it.
 
 ## Running Alluxio Locally with Azure Blob Store
 

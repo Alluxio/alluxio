@@ -288,6 +288,10 @@ h1, h2, h3, h4 {
     margin-top: -70px;
     padding-top: 70px;
 }
+a.anchor {
+    margin-top: -115px;
+    padding-top: 115px;
+}
 @media (min-width: 1350px) {
     #toc + ul {
         position: fixed;

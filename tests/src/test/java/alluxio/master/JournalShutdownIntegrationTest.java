@@ -11,6 +11,8 @@
 
 package alluxio.master;
 
+import static org.junit.Assert.assertTrue;
+
 import alluxio.AlluxioURI;
 import alluxio.AuthenticatedUserRule;
 import alluxio.BaseIntegrationTest;
@@ -35,9 +37,9 @@ import alluxio.util.CommonUtils;
 
 import com.google.common.collect.ImmutableMap;
 import org.junit.After;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.ClassRule;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mockito;
@@ -100,12 +102,12 @@ public class JournalShutdownIntegrationTest extends BaseIntegrationTest {
       cluster.start();
       FileSystem fs = cluster.getFileSystemClient();
       runCreateFileThread(fs);
-      cluster.waitForAndKillPrimaryMaster();
+      cluster.waitForAndKillPrimaryMaster(10 * Constants.SECOND_MS);
       awaitClientTermination();
       cluster.startMaster(0);
       int actualFiles = fs.listStatus(new AlluxioURI(TEST_FILE_DIR)).size();
       int successFiles = mCreateFileThread.getSuccessNum();
-      Assert.assertTrue(
+      assertTrue(
           String.format("successFiles: %s, actualFiles: %s", successFiles, actualFiles),
           (successFiles == actualFiles) || (successFiles + 1 == actualFiles));
       cluster.notifySuccess();
@@ -118,6 +120,7 @@ public class JournalShutdownIntegrationTest extends BaseIntegrationTest {
    * We use the external cluster for this test due to flakiness issues when running in a single JVM.
    */
   @Test
+  @Ignore
   public void multiMasterJournalStopIntegration() throws Exception {
     MultiProcessCluster cluster = MultiProcessCluster.newBuilder()
         .setClusterName("multiMasterJournalStopIntegration")
@@ -133,13 +136,13 @@ public class JournalShutdownIntegrationTest extends BaseIntegrationTest {
       FileSystem fs = cluster.getFileSystemClient();
       runCreateFileThread(fs);
       for (int i = 0; i < TEST_NUM_MASTERS; i++) {
-        cluster.waitForAndKillPrimaryMaster();
+        cluster.waitForAndKillPrimaryMaster(30 * Constants.SECOND_MS);
       }
       awaitClientTermination();
       cluster.startMaster(0);
       int actualFiles = fs.listStatus(new AlluxioURI(TEST_FILE_DIR)).size();
       int successFiles = mCreateFileThread.getSuccessNum();
-      Assert.assertTrue(
+      assertTrue(
           String.format("successFiles: %s, actualFiles: %s", successFiles, actualFiles),
           (successFiles == actualFiles) || (successFiles + 1 == actualFiles));
       cluster.notifySuccess();
@@ -169,7 +172,7 @@ public class JournalShutdownIntegrationTest extends BaseIntegrationTest {
     // Kill the leader one by one.
     for (int kills = 0; kills < TEST_NUM_MASTERS; kills++) {
       cluster.waitForNewMaster(120 * Constants.SECOND_MS);
-      Assert.assertTrue(cluster.stopLeader());
+      assertTrue(cluster.stopLeader());
     }
     // Shutdown the cluster
     cluster.stopFS();

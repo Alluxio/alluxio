@@ -12,10 +12,7 @@
 package alluxio.worker.netty;
 
 import alluxio.exception.status.UnimplementedException;
-import alluxio.network.protocol.RPCErrorResponse;
-import alluxio.network.protocol.RPCMessage;
 import alluxio.network.protocol.RPCProtoMessage;
-import alluxio.network.protocol.RPCResponse;
 
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
@@ -40,9 +37,6 @@ public class UnsupportedMessageHandler extends ChannelInboundHandlerAdapter {
     if (object instanceof RPCProtoMessage) { // Unknown proto message, reply proto.
       RPCProtoMessage resp =
           RPCProtoMessage.createResponse(new UnimplementedException("Unrecognized RPC: " + object));
-      ctx.writeAndFlush(resp);
-    } else if (object instanceof RPCMessage) { // Unknown non-proto message, reply non-proto.
-      RPCErrorResponse resp = new RPCErrorResponse(RPCResponse.Status.UNKNOWN_MESSAGE_ERROR);
       ctx.writeAndFlush(resp);
     } else { // Unknown message, this should not happen.
       ctx.fireChannelRead(object);

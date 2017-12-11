@@ -44,18 +44,20 @@ import javax.annotation.concurrent.NotThreadSafe;
 public class BlockInStream extends InputStream implements BoundedStream, Seekable,
     PositionedReadable {
   private static final Logger LOG = LoggerFactory.getLogger(BlockInStream.class);
+
   /** the source tracking where the block is from. */
   public enum BlockInStreamSource {
     LOCAL, REMOTE, UFS
   }
 
+  private final WorkerNetAddress mAddress;
+  private final BlockInStreamSource mInStreamSource;
   /** The id of the block or UFS file to which this instream provides access. */
   private final long mId;
   /** The size in bytes of the block. */
   private final long mLength;
 
   private final byte[] mSingleByte = new byte[1];
-  private final BlockInStreamSource mInStreamSource;
 
   /** Current position of the stream, relative to the start of the block. */
   private long mPos = 0;
@@ -125,7 +127,7 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
     long packetSize = Configuration.getBytes(PropertyKey.USER_LOCAL_READER_PACKET_SIZE_BYTES);
     return new BlockInStream(
         new LocalFilePacketReader.Factory(context, address, blockId, packetSize, options),
-        BlockInStreamSource.LOCAL, blockId, length);
+        address, BlockInStreamSource.LOCAL, blockId, length);
   }
 
   /**
@@ -146,23 +148,26 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
         Configuration.getBytes(PropertyKey.USER_NETWORK_NETTY_READER_PACKET_SIZE_BYTES);
     PacketReader.Factory factory = new NettyPacketReader.Factory(context, address,
         readRequestPartial.toBuilder().setPacketSize(packetSize).buildPartial(), options);
-    return new BlockInStream(factory, blockSource, readRequestPartial.getBlockId(), blockSize);
+    return new BlockInStream(factory, address, blockSource, readRequestPartial.getBlockId(),
+        blockSize);
   }
 
   /**
    * Creates an instance of {@link BlockInStream}.
    *
    * @param packetReaderFactory the packet reader factory
+   * @param address the address of the netty data server
    * @param blockSource the source location of the block
    * @param id the ID (either block ID or UFS file ID)
    * @param length the length
    */
-  protected BlockInStream(PacketReader.Factory packetReaderFactory, BlockInStreamSource blockSource,
-      long id, long length) {
+  protected BlockInStream(PacketReader.Factory packetReaderFactory, WorkerNetAddress address,
+      BlockInStreamSource blockSource, long id, long length) {
     mPacketReaderFactory = packetReaderFactory;
+    mAddress = address;
+    mInStreamSource = blockSource;
     mId = id;
     mLength = length;
-    mInStreamSource = blockSource;
   }
 
   @Override
@@ -343,9 +348,23 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
   }
 
   /**
+   * @return the address of the data server
+   */
+  public WorkerNetAddress getAddress() {
+    return mAddress;
+  }
+
+  /**
    * @return the source of the block location
    */
-  public BlockInStreamSource Source() {
+  public BlockInStreamSource getSource() {
     return mInStreamSource;
+  }
+
+  /**
+   * @return the block ID
+   */
+  public long getId() {
+    return mId;
   }
 }
