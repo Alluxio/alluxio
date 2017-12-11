@@ -27,8 +27,6 @@ import alluxio.wire.TtlAction;
 
 import com.google.common.base.Objects;
 
-import java.lang.reflect.InvocationTargetException;
-
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -61,15 +59,9 @@ public final class OutStreamOptions {
     mTtl = Constants.NO_TTL;
     mTtlAction = TtlAction.DELETE;
 
-    try {
-      mLocationPolicy = CommonUtils.createNewClassInstance(
-          Configuration.<FileWriteLocationPolicy>getClass(
-              PropertyKey.USER_FILE_WRITE_LOCATION_POLICY), new Class[]{}, new Object[]{});
-    } catch (InvocationTargetException e) {
-      throw new RuntimeException(e.getCause());
-    } catch (Exception e) {
-      throw new RuntimeException(e);
-    }
+    mLocationPolicy =
+        CommonUtils.createNewClassInstance(Configuration.<FileWriteLocationPolicy>getClass(
+            PropertyKey.USER_FILE_WRITE_LOCATION_POLICY), new Class[] {}, new Object[] {});
     mWriteTier = Configuration.getInt(PropertyKey.USER_FILE_WRITE_TIER_DEFAULT);
     mWriteType = Configuration.getEnum(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class);
     mOwner = SecurityUtils.getOwnerFromLoginModule();

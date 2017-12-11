@@ -42,13 +42,9 @@ public interface Allocator {
      */
     public static Allocator create(BlockMetadataManagerView view) {
       BlockMetadataManagerView managerView = Preconditions.checkNotNull(view, "view");
-      try {
-        return CommonUtils.createNewClassInstance(
-            Configuration.<Allocator>getClass(PropertyKey.WORKER_ALLOCATOR_CLASS),
-            new Class[] {BlockMetadataManagerView.class}, new Object[] {managerView});
-      } catch (Exception e) {
-        throw new RuntimeException(e);
-      }
+      return CommonUtils.createNewClassInstance(
+          Configuration.<Allocator>getClass(PropertyKey.WORKER_ALLOCATOR_CLASS),
+          new Class[] {BlockMetadataManagerView.class}, new Object[] {managerView});
     }
   }
 

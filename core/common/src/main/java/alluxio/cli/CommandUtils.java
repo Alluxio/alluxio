@@ -45,12 +45,7 @@ public final class CommandUtils {
       if (cls.getPackage().getName().startsWith(pkgName)
           && !Modifier.isAbstract(cls.getModifiers())) {
         // Only instantiate a concrete class
-        Command cmd;
-        try {
-          cmd = CommonUtils.createNewClassInstance(cls, classArgs, objectArgs);
-        } catch (Exception e) {
-          throw new RuntimeException(e);
-        }
+        Command cmd = CommonUtils.createNewClassInstance(cls, classArgs, objectArgs);
         commandsMap.put(cmd.getCommandName(), cmd);
       }
     }
