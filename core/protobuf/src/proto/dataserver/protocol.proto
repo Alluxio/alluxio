@@ -12,7 +12,7 @@ enum RequestType {
 }
 
 // The read request.
-// next available id: 8
+// next available id: 9
 message ReadRequest {
   optional int64 block_id = 1;
   optional int64 offset = 2;
@@ -27,6 +27,17 @@ message ReadRequest {
 
   // This is only set for UFS block read.
   optional OpenUfsBlockOptions open_ufs_block_options = 6;
+
+  // Options related to caching the block asynchronously
+  optional AsyncCacheOptions cache_block_options = 8;
+}
+
+// Options for caching a block
+// next available id: 4
+message AsyncCacheOptions {
+  optional bool async_cache = 1;
+  optional string destination_host = 2;
+  optional int32 destination_port = 3;
 }
 
 // Options to open a UFS block.
