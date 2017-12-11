@@ -23,8 +23,6 @@ import alluxio.util.CommonUtils;
 
 import com.google.common.base.Objects;
 
-import java.lang.reflect.InvocationTargetException;
-
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -56,15 +54,9 @@ public final class InStreamOptions {
 
   private InStreamOptions() {
     mReadType = Configuration.getEnum(PropertyKey.USER_FILE_READ_TYPE_DEFAULT, ReadType.class);
-    try {
-      mCacheLocationPolicy = CommonUtils.createNewClassInstance(
-          Configuration.<FileWriteLocationPolicy>getClass(
-              PropertyKey.USER_FILE_WRITE_LOCATION_POLICY), new Class[]{}, new Object[]{});
-    } catch (InvocationTargetException e) {
-      throw new RuntimeException(e.getCause());
-    } catch (Exception e) {
-      throw new RuntimeException(e);
-    }
+    mCacheLocationPolicy =
+        CommonUtils.createNewClassInstance(Configuration.<FileWriteLocationPolicy>getClass(
+            PropertyKey.USER_FILE_WRITE_LOCATION_POLICY), new Class[] {}, new Object[] {});
     CreateOptions blockLocationPolicyCreateOptions = CreateOptions.defaults()
         .setLocationPolicyClassName(
             Configuration.get(PropertyKey.USER_UFS_BLOCK_READ_LOCATION_POLICY))
