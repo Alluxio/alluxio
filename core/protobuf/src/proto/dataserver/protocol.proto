@@ -12,7 +12,7 @@ enum RequestType {
 }
 
 // The read request.
-// next available id: 9
+// next available id: 10
 message ReadRequest {
   optional int64 block_id = 1;
   optional int64 offset = 2;
@@ -21,6 +21,8 @@ message ReadRequest {
   optional bool cancel = 4;
   // Whether the block should be promoted before reading
   optional bool promote = 7;
+  // Whether the block should be cached asynchronously if needed
+  optional bool async_cache = 9;
 
   // If set, the server should send packets in the specified packet size.
   optional int64 packet_size = 5;
@@ -29,15 +31,14 @@ message ReadRequest {
   optional OpenUfsBlockOptions open_ufs_block_options = 6;
 
   // Options related to caching the block asynchronously
-  optional AsyncCacheOptions cache_block_options = 8;
+  optional OpenAlluxioBlockOptions open_alluxio_block_options = 8;
 }
 
 // Options for caching a block
-// next available id: 4
-message AsyncCacheOptions {
-  optional bool async_cache = 1;
-  optional string destination_host = 2;
-  optional int32 destination_port = 3;
+// next available id: 3
+message OpenAlluxioBlockOptions {
+  optional string source_host = 1;
+  optional int32 source_port = 2;
 }
 
 // Options to open a UFS block.
