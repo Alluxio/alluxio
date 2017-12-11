@@ -479,8 +479,8 @@ public class ConfigurationTest {
     sysProps.put(Template.LOCALITY_TIER.format("unknownTier").toString(), "val");
     try (Closeable p = new SystemPropertyRule(sysProps).toResource()) {
       mThrown.expect(IllegalStateException.class);
-      mThrown.expectMessage("Tier unknownTier is configured by alluxio.locality.unknownTier, "
-          + "but does not exist in the tier list [node, rack] configured by alluxio.locality.order");
+      mThrown.expectMessage("Tier unknownTier is configured by alluxio.locality.unknownTier, but "
+          + "does not exist in the tier list [node, rack] configured by alluxio.locality.order");
       Configuration.init();
     }
   }
