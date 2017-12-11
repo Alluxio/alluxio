@@ -11,13 +11,11 @@
 
 package alluxio;
 
-import static org.hamcrest.CoreMatchers.containsString;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
+import static org.junit.Assert.assertTrue;
 
 import alluxio.PropertyKey.Template;
 
@@ -480,13 +478,10 @@ public class ConfigurationTest {
     HashMap<String, String> sysProps = new HashMap<>();
     sysProps.put(Template.LOCALITY_TIER.format("unknownTier").toString(), "val");
     try (Closeable p = new SystemPropertyRule(sysProps).toResource()) {
-      try {
-        Configuration.init();
-        fail("Expected an exception to be thrown");
-      } catch (IllegalStateException e) {
-        assertThat(e.getMessage(), containsString("unknownTier"));
-        assertThat(e.getMessage(), containsString("does not exist in the tier list"));
-      }
+      mThrown.expect(IllegalStateException.class);
+      mThrown.expectMessage("Tier unknownTier is configured by alluxio.locality.unknownTier, "
+          + "but does not exist in the tier list [node, rack] configured by alluxio.locality.order");
+      Configuration.init();
     }
   }
 

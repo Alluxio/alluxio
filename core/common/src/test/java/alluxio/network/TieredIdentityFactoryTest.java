@@ -27,6 +27,7 @@ import com.google.common.collect.ImmutableMap;
 import org.apache.commons.io.FileUtils;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
 
 import java.io.Closeable;
@@ -39,6 +40,9 @@ import java.util.Arrays;
 public class TieredIdentityFactoryTest {
   @Rule
   public TemporaryFolder mFolder = new TemporaryFolder();
+
+  @Rule
+  public ExpectedException mThrown = ExpectedException.none();
 
   @Test
   public void defaultConf() throws Exception {
@@ -96,24 +100,17 @@ public class TieredIdentityFactoryTest {
   @Test
   public void repeatedScriptKey() throws Exception {
     String output = "rack=myrack,node=myhost,rack=myrack2";
-    try {
-      runScriptWithOutput(output);
-      fail("Expected an exception to be thrown");
-    } catch (RuntimeException e) {
-      assertThat(e.getMessage(), containsString(output));
-      assertThat(e.getMessage(), containsString("repeated tier definition"));
-    }
+    mThrown.expectMessage("Encountered repeated tier definition for rack when parsing "
+        + "tiered identity from string rack=myrack,node=myhost,rack=myrack2");
+    runScriptWithOutput(output);
   }
 
   @Test
   public void unknownScriptKey() throws Exception {
     String badOutput = "unknown=x";
-    try {
-      runScriptWithOutput(badOutput);
-      fail("Expected an exception to be thrown");
-    } catch (Exception e) {
-      assertThat(e.getMessage(), containsString("Unrecognized tier: unknown"));
-    }
+    mThrown.expectMessage("Unrecognized tier: unknown. The tiers defined by " +
+        "alluxio.locality.order are [node, rack]");
+    runScriptWithOutput(badOutput);
   }
 
   @Test

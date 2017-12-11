@@ -104,10 +104,6 @@ public final class TieredIdentityFactory {
    */
   @Nullable
   private static TieredIdentity fromScript() {
-    // If a script is configured, run the script to get all locality tiers.
-    if (!Configuration.containsKey(PropertyKey.LOCALITY_SCRIPT)) {
-      return null;
-    }
     Path script = Paths.get(Configuration.get(PropertyKey.LOCALITY_SCRIPT));
     if (!Files.exists(script)) {
       return null;
