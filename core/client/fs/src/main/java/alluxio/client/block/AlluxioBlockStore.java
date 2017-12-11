@@ -124,6 +124,77 @@ public final class AlluxioBlockStore {
   }
 
   /**
+   * Gets a stream to read the data of a block. One of several possibilities, in order of priority:
+   *
+   * If there is a local worker:
+   * 1. Domain socket - if the data is on the local worker & the local worker has a domain
+   * socket server
+   * 2. Short-Circuit - if the data is on the local worker
+   * 3. Remote Read through worker - if the data is on a remote worker (worker -> worker -> client)
+   * 4. UFS Read through worker - if the data is not in Alluxio
+   *
+   * If there is no local worker:
+   * 1. Remote Read from worker - if the data is on a remote worker (worker -> client)
+   * 2. UFS Read through worker - if the data is not in Alluxio
+   *
+   * @param blockId
+   * @param options
+   * @return
+   */
+  public BlockInStream getInStreamv2(long blockId, Protocol.OpenUfsBlockOptions ufsOptions,
+      InStreamOptions options) throws IOException {
+    // Determine the available locations of the block
+    BlockInfo blockInfo;
+    try (CloseableResource<BlockMasterClient> res = mContext.acquireBlockMasterClientResource()) {
+      blockInfo = res.get().getBlockInfo(blockId);
+    }
+    List<BlockLocation> locations = blockInfo.getLocations();
+    if (locations.isEmpty() && ufsOptions == null) {
+      throw new NotFoundException(ExceptionMessage.BLOCK_UNAVAILABLE.getMessage(blockId));
+    }
+    // Determine which worker will serve the read request and the type of data source
+    BlockInStreamSource dataSourceType = null;
+    WorkerNetAddress dataSource = null;
+    if (locations.isEmpty()) { // Data will be read from UFS
+      BlockLocationPolicy policy = Preconditions.checkNotNull(options.getUfsReadLocationPolicy(),
+          PreconditionMessage.UFS_READ_LOCATION_POLICY_UNSPECIFIED);
+      GetWorkerOptions getWorkerOptions = GetWorkerOptions.defaults().setBlockId(blockId)
+          .setBlockSize(blockInfo.getLength()).setBlockWorkerInfos(getEligibleWorkers());
+      dataSourceType = BlockInStreamSource.UFS;
+      dataSource = policy.getWorker(getWorkerOptions);
+    } else { // Data will be read from Alluxio, determine which worker and if it is local
+      List<TieredIdentity> tieredLocations =
+          locations.stream().map(location -> location.getWorkerAddress().getTieredIdentity())
+              .collect(Collectors.toList());
+      Collections.shuffle(tieredLocations);
+      Optional<TieredIdentity> nearest = mTieredIdentity.nearest(tieredLocations);
+      if (nearest.isPresent()) {
+        dataSource = blockInfo.getLocations().stream()
+            .map(BlockLocation::getWorkerAddress)
+            .filter(a -> a.getTieredIdentity().equals(nearest.get()))
+            .findFirst().get();
+        if (mTieredIdentity.getTier(0).getTierName().equals(Constants.LOCALITY_NODE)
+            && mTieredIdentity.topTiersMatch(nearest.get())) {
+          dataSourceType = BlockInStreamSource.LOCAL;
+        } else {
+          dataSourceType = BlockInStreamSource.REMOTE;
+        }
+      }
+    }
+    if (dataSource == null) {
+      throw new UnavailableException(ExceptionMessage.NO_WORKER_AVAILABLE.getMessage());
+    }
+
+    if (mContext.hasLocalWorker()) {
+
+    }
+
+    // No local worker
+
+
+  }
+
+  /**
    * Gets a stream to read the data of a block. The stream is backed by Alluxio storage.
    *
    * @param blockId the block to read from
