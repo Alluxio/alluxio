@@ -108,8 +108,8 @@ public class TieredIdentityFactoryTest {
   @Test
   public void unknownScriptKey() throws Exception {
     String badOutput = "unknown=x";
-    mThrown.expectMessage("Unrecognized tier: unknown. The tiers defined by " +
-        "alluxio.locality.order are [node, rack]");
+    mThrown.expectMessage("Unrecognized tier: unknown. The tiers defined by "
+        + "alluxio.locality.order are [node, rack]");
     runScriptWithOutput(badOutput);
   }
 
