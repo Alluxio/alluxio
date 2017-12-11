@@ -22,7 +22,6 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class LockingScheme {
   private final AlluxioURI mPath;
   private final InodeTree.LockMode mDesiredLockMode;
-  private final boolean mFullPathRequired;
   private final boolean mShouldSync;
 
   /**
@@ -30,14 +29,11 @@ public final class LockingScheme {
    *
    * @param path the path to lock
    * @param desiredLockMode the desired lock mode
-   * @param fullPathRequired true if the full path is required
    * @param shouldSync true if the path should be synced
    */
-  public LockingScheme(AlluxioURI path, InodeTree.LockMode desiredLockMode,
-      boolean fullPathRequired, boolean shouldSync) {
+  public LockingScheme(AlluxioURI path, InodeTree.LockMode desiredLockMode, boolean shouldSync) {
     mPath = path;
     mDesiredLockMode = desiredLockMode;
-    mFullPathRequired = fullPathRequired;
     mShouldSync = shouldSync;
   }
 
@@ -71,12 +67,5 @@ public final class LockingScheme {
    */
   public boolean shouldSync() {
     return mShouldSync;
-  }
-
-  /**
-   * @return true if the locking scheme requires that the full path exists
-   */
-  boolean requiresFullPath() {
-    return mFullPathRequired;
   }
 }
