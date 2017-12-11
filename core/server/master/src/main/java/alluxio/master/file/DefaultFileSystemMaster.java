@@ -750,7 +750,6 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         // If synced, do not load metadata.
         options.setLoadMetadataType(LoadMetadataType.Never);
       }
-      inodePath.validatePath(lockingScheme);
 
       // If the file already exists, then metadata does not need to be loaded,
       // otherwise load metadata.
@@ -830,7 +829,6 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         // If synced, do not load metadata.
         listStatusOptions.setLoadMetadataType(LoadMetadataType.Never);
       }
-      inodePath.validatePath(lockingScheme);
 
       LoadMetadataOptions loadMetadataOptions =
           LoadMetadataOptions.defaults().setCreateAncestors(true).setLoadDirectChildren(
@@ -943,7 +941,6 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       }
       // Possible ufs sync.
       syncMetadata(journalContext, parent, lockingScheme);
-      parent.validatePath(lockingScheme);
 
       try (InodeLockList children = mInodeTree.lockDescendants(parent, InodeTree.LockMode.READ)) {
         if (!checkConsistencyInternal(parent.getInode(), parent.getUri())) {
@@ -1167,7 +1164,6 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       }
       // Possible ufs sync.
       syncMetadata(journalContext, inodePath, lockingScheme);
-      inodePath.validatePath(lockingScheme);
 
       mMountTable.checkUnderWritableMountPoint(path);
       createFileAndJournal(inodePath, options, journalContext);
@@ -1348,7 +1344,9 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       }
       // Possible ufs sync.
       syncMetadata(journalContext, inodePath, lockingScheme);
-      inodePath.validatePath(lockingScheme);
+      if (!inodePath.fullPathExists()) {
+        throw new FileDoesNotExistException(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(path));
+      }
 
       deletedInodes = deleteAndJournal(inodePath, options, journalContext);
       auditContext.setSucceeded(true);
@@ -1813,7 +1811,6 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       }
       // Possible ufs sync.
       syncMetadata(journalContext, inodePath, lockingScheme);
-      inodePath.validatePath(lockingScheme);
 
       mMountTable.checkUnderWritableMountPoint(path);
       createDirectoryAndJournal(inodePath, options, journalContext);
@@ -1912,9 +1909,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       }
       // Possible ufs sync.
       syncMetadata(journalContext, srcInodePath, srcLockingScheme);
-      srcInodePath.validatePath(srcLockingScheme);
       syncMetadata(journalContext, dstInodePath, dstLockingScheme);
-      srcInodePath.validatePath(dstLockingScheme);
 
       mMountTable.checkUnderWritableMountPoint(srcPath);
       mMountTable.checkUnderWritableMountPoint(dstPath);
@@ -2626,7 +2621,6 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       mMountTable.checkUnderWritableMountPoint(alluxioPath);
       // Possible ufs sync.
       syncMetadata(journalContext, inodePath, lockingScheme);
-      inodePath.validatePath(lockingScheme);
 
       mountAndJournal(inodePath, ufsPath, options, journalContext);
       auditContext.setSucceeded(true);
@@ -2893,7 +2887,9 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       }
       // Possible ufs sync.
       syncMetadata(journalContext, inodePath, lockingScheme);
-      inodePath.validatePath(lockingScheme);
+      if (!inodePath.fullPathExists()) {
+        throw new FileDoesNotExistException(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(path));
+      }
 
       setAttributeAndJournal(inodePath, rootRequired, ownerRequired, options, journalContext);
       auditContext.setSucceeded(true);

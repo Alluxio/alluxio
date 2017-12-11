@@ -187,19 +187,6 @@ public abstract class LockedInodePath implements AutoCloseable {
   }
 
   /**
-   * Validates if the inode path is full, if required. Throws exception if validation fails.
-   *
-   * @param lockingScheme the locking scheme to determine if the full path is required
-   * @throws FileDoesNotExistException when the full path does not exist but is required
-   */
-  public synchronized void validatePath(LockingScheme lockingScheme)
-      throws FileDoesNotExistException {
-    if (lockingScheme.requiresFullPath() && !fullPathExists()) {
-      throw new FileDoesNotExistException(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(mUri));
-    }
-  }
-
-  /**
    * Unlocks the last inode that was locked.
    */
   public synchronized void unlockLast() {
