@@ -1452,7 +1452,9 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "loaded from the UFS. Valid options are `Always`, `Never`, and `Once`. "
               + "`Always` will always access UFS to see if the path exists in the UFS. "
               + "`Never` will never consult the UFS. `Once` will access the UFS the \"first\" "
-              + "time (according to a cache), but not after that.")
+              + "time (according to a cache), but not after that. This parameter is ignored if a "
+              + "metadata sync is performed, via the parameter "
+              + "\"alluxio.user.file.metadata.sync.interval\"")
           .build();
   public static final PropertyKey USER_FILE_METADATA_SYNC_INTERVAL =
       new Builder(Name.USER_FILE_METADATA_SYNC_INTERVAL)
@@ -1462,7 +1464,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "always sync the metadata of the path before an operation. If you specify a time "
               + "interval, Alluxio will (best effort) not re-sync a path within that time "
               + "interval. Syncing the metadata for a path must interact with the UFS, so it is "
-              + "an expensive operation.")
+              + "an expensive operation. If a sync is performed for an operation, the "
+              + "configuration of \"alluxio.user.file.metadata.load.type\" will be ignored.")
           .build();
   public static final PropertyKey USER_FILE_PASSIVE_CACHE_ENABLED =
       new Builder(Name.USER_FILE_PASSIVE_CACHE_ENABLED)
