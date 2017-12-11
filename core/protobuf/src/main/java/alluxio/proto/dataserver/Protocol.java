@@ -207,13 +207,39 @@ public final class Protocol {
      * </pre>
      */
     alluxio.proto.dataserver.Protocol.OpenUfsBlockOptionsOrBuilder getOpenUfsBlockOptionsOrBuilder();
+
+    // optional .alluxio.proto.dataserver.AsyncCacheOptions cache_block_options = 8;
+    /**
+     * <code>optional .alluxio.proto.dataserver.AsyncCacheOptions cache_block_options = 8;</code>
+     *
+     * <pre>
+     * Options related to caching the block asynchronously
+     * </pre>
+     */
+    boolean hasCacheBlockOptions();
+    /**
+     * <code>optional .alluxio.proto.dataserver.AsyncCacheOptions cache_block_options = 8;</code>
+     *
+     * <pre>
+     * Options related to caching the block asynchronously
+     * </pre>
+     */
+    alluxio.proto.dataserver.Protocol.AsyncCacheOptions getCacheBlockOptions();
+    /**
+     * <code>optional .alluxio.proto.dataserver.AsyncCacheOptions cache_block_options = 8;</code>
+     *
+     * <pre>
+     * Options related to caching the block asynchronously
+     * </pre>
+     */
+    alluxio.proto.dataserver.Protocol.AsyncCacheOptionsOrBuilder getCacheBlockOptionsOrBuilder();
   }
   /**
    * Protobuf type {@code alluxio.proto.dataserver.ReadRequest}
    *
    * <pre>
    * The read request.
-   * next available id: 8
+   * next available id: 9
    * </pre>
    */
   public static final class ReadRequest extends
@@ -305,6 +331,19 @@ public final class Protocol {
             case 56: {
               bitField0_ |= 0x00000010;
               promote_ = input.readBool();
+              break;
+            }
+            case 66: {
+              alluxio.proto.dataserver.Protocol.AsyncCacheOptions.Builder subBuilder = null;
+              if (((bitField0_ & 0x00000080) == 0x00000080)) {
+                subBuilder = cacheBlockOptions_.toBuilder();
+              }
+              cacheBlockOptions_ = input.readMessage(alluxio.proto.dataserver.Protocol.AsyncCacheOptions.PARSER, extensionRegistry);
+              if (subBuilder != null) {
+                subBuilder.mergeFrom(cacheBlockOptions_);
+                cacheBlockOptions_ = subBuilder.buildPartial();
+              }
+              bitField0_ |= 0x00000080;
               break;
             }
           }
@@ -501,6 +540,40 @@ public final class Protocol {
       return openUfsBlockOptions_;
     }
 
+    // optional .alluxio.proto.dataserver.AsyncCacheOptions cache_block_options = 8;
+    public static final int CACHE_BLOCK_OPTIONS_FIELD_NUMBER = 8;
+    private alluxio.proto.dataserver.Protocol.AsyncCacheOptions cacheBlockOptions_;
+    /**
+     * <code>optional .alluxio.proto.dataserver.AsyncCacheOptions cache_block_options = 8;</code>
+     *
+     * <pre>
+     * Options related to caching the block asynchronously
+     * </pre>
+     */
+    public boolean hasCacheBlockOptions() {
+      return ((bitField0_ & 0x00000080) == 0x00000080);
+    }
+    /**
+     * <code>optional .alluxio.proto.dataserver.AsyncCacheOptions cache_block_options = 8;</code>
+     *
+     * <pre>
+     * Options related to caching the block asynchronously
+     * </pre>
+     */
+    public alluxio.proto.dataserver.Protocol.AsyncCacheOptions getCacheBlockOptions() {
+      return cacheBlockOptions_;
+    }
+    /**
+     * <code>optional .alluxio.proto.dataserver.AsyncCacheOptions cache_block_options = 8;</code>
+     *
+     * <pre>
+     * Options related to caching the block asynchronously
+     * </pre>
+     */
+    public alluxio.proto.dataserver.Protocol.AsyncCacheOptionsOrBuilder getCacheBlockOptionsOrBuilder() {
+      return cacheBlockOptions_;
+    }
+
     private void initFields() {
       blockId_ = 0L;
       offset_ = 0L;
@@ -509,6 +582,7 @@ public final class Protocol {
       promote_ = false;
       packetSize_ = 0L;
       openUfsBlockOptions_ = alluxio.proto.dataserver.Protocol.OpenUfsBlockOptions.getDefaultInstance();
+      cacheBlockOptions_ = alluxio.proto.dataserver.Protocol.AsyncCacheOptions.getDefaultInstance();
     }
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
@@ -542,6 +616,9 @@ public final class Protocol {
       }
       if (((bitField0_ & 0x00000010) == 0x00000010)) {
         output.writeBool(7, promote_);
+      }
+      if (((bitField0_ & 0x00000080) == 0x00000080)) {
+        output.writeMessage(8, cacheBlockOptions_);
       }
       getUnknownFields().writeTo(output);
     }
@@ -579,6 +656,10 @@ public final class Protocol {
       if (((bitField0_ & 0x00000010) == 0x00000010)) {
         size += com.google.protobuf.CodedOutputStream
           .computeBoolSize(7, promote_);
+      }
+      if (((bitField0_ & 0x00000080) == 0x00000080)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(8, cacheBlockOptions_);
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSerializedSize = size;
@@ -663,7 +744,7 @@ public final class Protocol {
      *
      * <pre>
      * The read request.
-     * next available id: 8
+     * next available id: 9
      * </pre>
      */
     public static final class Builder extends
@@ -694,6 +775,7 @@ public final class Protocol {
       private void maybeForceBuilderInitialization() {
         if (com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders) {
           getOpenUfsBlockOptionsFieldBuilder();
+          getCacheBlockOptionsFieldBuilder();
         }
       }
       private static Builder create() {
@@ -720,6 +802,12 @@ public final class Protocol {
           openUfsBlockOptionsBuilder_.clear();
         }
         bitField0_ = (bitField0_ & ~0x00000040);
+        if (cacheBlockOptionsBuilder_ == null) {
+          cacheBlockOptions_ = alluxio.proto.dataserver.Protocol.AsyncCacheOptions.getDefaultInstance();
+        } else {
+          cacheBlockOptionsBuilder_.clear();
+        }
+        bitField0_ = (bitField0_ & ~0x00000080);
         return this;
       }
 
@@ -780,6 +868,14 @@ public final class Protocol {
         } else {
           result.openUfsBlockOptions_ = openUfsBlockOptionsBuilder_.build();
         }
+        if (((from_bitField0_ & 0x00000080) == 0x00000080)) {
+          to_bitField0_ |= 0x00000080;
+        }
+        if (cacheBlockOptionsBuilder_ == null) {
+          result.cacheBlockOptions_ = cacheBlockOptions_;
+        } else {
+          result.cacheBlockOptions_ = cacheBlockOptionsBuilder_.build();
+        }
         result.bitField0_ = to_bitField0_;
         onBuilt();
         return result;
@@ -816,6 +912,9 @@ public final class Protocol {
         }
         if (other.hasOpenUfsBlockOptions()) {
           mergeOpenUfsBlockOptions(other.getOpenUfsBlockOptions());
+        }
+        if (other.hasCacheBlockOptions()) {
+          mergeCacheBlockOptions(other.getCacheBlockOptions());
         }
         this.mergeUnknownFields(other.getUnknownFields());
         return this;
@@ -1243,6 +1342,159 @@ public final class Protocol {
         return openUfsBlockOptionsBuilder_;
       }
 
+      // optional .alluxio.proto.dataserver.AsyncCacheOptions cache_block_options = 8;
+      private alluxio.proto.dataserver.Protocol.AsyncCacheOptions cacheBlockOptions_ = alluxio.proto.dataserver.Protocol.AsyncCacheOptions.getDefaultInstance();
+      private com.google.protobuf.SingleFieldBuilder<
+          alluxio.proto.dataserver.Protocol.AsyncCacheOptions, alluxio.proto.dataserver.Protocol.AsyncCacheOptions.Builder, alluxio.proto.dataserver.Protocol.AsyncCacheOptionsOrBuilder> cacheBlockOptionsBuilder_;
+      /**
+       * <code>optional .alluxio.proto.dataserver.AsyncCacheOptions cache_block_options = 8;</code>
+       *
+       * <pre>
+       * Options related to caching the block asynchronously
+       * </pre>
+       */
+      public boolean hasCacheBlockOptions() {
+        return ((bitField0_ & 0x00000080) == 0x00000080);
+      }
+      /**
+       * <code>optional .alluxio.proto.dataserver.AsyncCacheOptions cache_block_options = 8;</code>
+       *
+       * <pre>
+       * Options related to caching the block asynchronously
+       * </pre>
+       */
+      public alluxio.proto.dataserver.Protocol.AsyncCacheOptions getCacheBlockOptions() {
+        if (cacheBlockOptionsBuilder_ == null) {
+          return cacheBlockOptions_;
+        } else {
+          return cacheBlockOptionsBuilder_.getMessage();
+        }
+      }
+      /**
+       * <code>optional .alluxio.proto.dataserver.AsyncCacheOptions cache_block_options = 8;</code>
+       *
+       * <pre>
+       * Options related to caching the block asynchronously
+       * </pre>
+       */
+      public Builder setCacheBlockOptions(alluxio.proto.dataserver.Protocol.AsyncCacheOptions value) {
+        if (cacheBlockOptionsBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          cacheBlockOptions_ = value;
+          onChanged();
+        } else {
+          cacheBlockOptionsBuilder_.setMessage(value);
+        }
+        bitField0_ |= 0x00000080;
+        return this;
+      }
+      /**
+       * <code>optional .alluxio.proto.dataserver.AsyncCacheOptions cache_block_options = 8;</code>
+       *
+       * <pre>
+       * Options related to caching the block asynchronously
+       * </pre>
+       */
+      public Builder setCacheBlockOptions(
+          alluxio.proto.dataserver.Protocol.AsyncCacheOptions.Builder builderForValue) {
+        if (cacheBlockOptionsBuilder_ == null) {
+          cacheBlockOptions_ = builderForValue.build();
+          onChanged();
+        } else {
+          cacheBlockOptionsBuilder_.setMessage(builderForValue.build());
+        }
+        bitField0_ |= 0x00000080;
+        return this;
+      }
+      /**
+       * <code>optional .alluxio.proto.dataserver.AsyncCacheOptions cache_block_options = 8;</code>
+       *
+       * <pre>
+       * Options related to caching the block asynchronously
+       * </pre>
+       */
+      public Builder mergeCacheBlockOptions(alluxio.proto.dataserver.Protocol.AsyncCacheOptions value) {
+        if (cacheBlockOptionsBuilder_ == null) {
+          if (((bitField0_ & 0x00000080) == 0x00000080) &&
+              cacheBlockOptions_ != alluxio.proto.dataserver.Protocol.AsyncCacheOptions.getDefaultInstance()) {
+            cacheBlockOptions_ =
+              alluxio.proto.dataserver.Protocol.AsyncCacheOptions.newBuilder(cacheBlockOptions_).mergeFrom(value).buildPartial();
+          } else {
+            cacheBlockOptions_ = value;
+          }
+          onChanged();
+        } else {
+          cacheBlockOptionsBuilder_.mergeFrom(value);
+        }
+        bitField0_ |= 0x00000080;
+        return this;
+      }
+      /**
+       * <code>optional .alluxio.proto.dataserver.AsyncCacheOptions cache_block_options = 8;</code>
+       *
+       * <pre>
+       * Options related to caching the block asynchronously
+       * </pre>
+       */
+      public Builder clearCacheBlockOptions() {
+        if (cacheBlockOptionsBuilder_ == null) {
+          cacheBlockOptions_ = alluxio.proto.dataserver.Protocol.AsyncCacheOptions.getDefaultInstance();
+          onChanged();
+        } else {
+          cacheBlockOptionsBuilder_.clear();
+        }
+        bitField0_ = (bitField0_ & ~0x00000080);
+        return this;
+      }
+      /**
+       * <code>optional .alluxio.proto.dataserver.AsyncCacheOptions cache_block_options = 8;</code>
+       *
+       * <pre>
+       * Options related to caching the block asynchronously
+       * </pre>
+       */
+      public alluxio.proto.dataserver.Protocol.AsyncCacheOptions.Builder getCacheBlockOptionsBuilder() {
+        bitField0_ |= 0x00000080;
+        onChanged();
+        return getCacheBlockOptionsFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>optional .alluxio.proto.dataserver.AsyncCacheOptions cache_block_options = 8;</code>
+       *
+       * <pre>
+       * Options related to caching the block asynchronously
+       * </pre>
+       */
+      public alluxio.proto.dataserver.Protocol.AsyncCacheOptionsOrBuilder getCacheBlockOptionsOrBuilder() {
+        if (cacheBlockOptionsBuilder_ != null) {
+          return cacheBlockOptionsBuilder_.getMessageOrBuilder();
+        } else {
+          return cacheBlockOptions_;
+        }
+      }
+      /**
+       * <code>optional .alluxio.proto.dataserver.AsyncCacheOptions cache_block_options = 8;</code>
+       *
+       * <pre>
+       * Options related to caching the block asynchronously
+       * </pre>
+       */
+      private com.google.protobuf.SingleFieldBuilder<
+          alluxio.proto.dataserver.Protocol.AsyncCacheOptions, alluxio.proto.dataserver.Protocol.AsyncCacheOptions.Builder, alluxio.proto.dataserver.Protocol.AsyncCacheOptionsOrBuilder> 
+          getCacheBlockOptionsFieldBuilder() {
+        if (cacheBlockOptionsBuilder_ == null) {
+          cacheBlockOptionsBuilder_ = new com.google.protobuf.SingleFieldBuilder<
+              alluxio.proto.dataserver.Protocol.AsyncCacheOptions, alluxio.proto.dataserver.Protocol.AsyncCacheOptions.Builder, alluxio.proto.dataserver.Protocol.AsyncCacheOptionsOrBuilder>(
+                  cacheBlockOptions_,
+                  getParentForChildren(),
+                  isClean());
+          cacheBlockOptions_ = null;
+        }
+        return cacheBlockOptionsBuilder_;
+      }
+
       // @@protoc_insertion_point(builder_scope:alluxio.proto.dataserver.ReadRequest)
     }
 
@@ -1252,6 +1504,649 @@ public final class Protocol {
     }
 
     // @@protoc_insertion_point(class_scope:alluxio.proto.dataserver.ReadRequest)
+  }
+
+  public interface AsyncCacheOptionsOrBuilder
+      extends com.google.protobuf.MessageOrBuilder {
+
+    // optional bool async_cache = 1;
+    /**
+     * <code>optional bool async_cache = 1;</code>
+     */
+    boolean hasAsyncCache();
+    /**
+     * <code>optional bool async_cache = 1;</code>
+     */
+    boolean getAsyncCache();
+
+    // optional string destination_host = 2;
+    /**
+     * <code>optional string destination_host = 2;</code>
+     */
+    boolean hasDestinationHost();
+    /**
+     * <code>optional string destination_host = 2;</code>
+     */
+    java.lang.String getDestinationHost();
+    /**
+     * <code>optional string destination_host = 2;</code>
+     */
+    com.google.protobuf.ByteString
+        getDestinationHostBytes();
+
+    // optional int32 destination_port = 3;
+    /**
+     * <code>optional int32 destination_port = 3;</code>
+     */
+    boolean hasDestinationPort();
+    /**
+     * <code>optional int32 destination_port = 3;</code>
+     */
+    int getDestinationPort();
+  }
+  /**
+   * Protobuf type {@code alluxio.proto.dataserver.AsyncCacheOptions}
+   *
+   * <pre>
+   * Options for caching a block
+   * next available id: 4
+   * </pre>
+   */
+  public static final class AsyncCacheOptions extends
+      com.google.protobuf.GeneratedMessage
+      implements AsyncCacheOptionsOrBuilder {
+    // Use AsyncCacheOptions.newBuilder() to construct.
+    private AsyncCacheOptions(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
+      super(builder);
+      this.unknownFields = builder.getUnknownFields();
+    }
+    private AsyncCacheOptions(boolean noInit) { this.unknownFields = com.google.protobuf.UnknownFieldSet.getDefaultInstance(); }
+
+    private static final AsyncCacheOptions defaultInstance;
+    public static AsyncCacheOptions getDefaultInstance() {
+      return defaultInstance;
+    }
+
+    public AsyncCacheOptions getDefaultInstanceForType() {
+      return defaultInstance;
+    }
+
+    private final com.google.protobuf.UnknownFieldSet unknownFields;
+    @java.lang.Override
+    public final com.google.protobuf.UnknownFieldSet
+        getUnknownFields() {
+      return this.unknownFields;
+    }
+    private AsyncCacheOptions(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      initFields();
+      int mutable_bitField0_ = 0;
+      com.google.protobuf.UnknownFieldSet.Builder unknownFields =
+          com.google.protobuf.UnknownFieldSet.newBuilder();
+      try {
+        boolean done = false;
+        while (!done) {
+          int tag = input.readTag();
+          switch (tag) {
+            case 0:
+              done = true;
+              break;
+            default: {
+              if (!parseUnknownField(input, unknownFields,
+                                     extensionRegistry, tag)) {
+                done = true;
+              }
+              break;
+            }
+            case 8: {
+              bitField0_ |= 0x00000001;
+              asyncCache_ = input.readBool();
+              break;
+            }
+            case 18: {
+              bitField0_ |= 0x00000002;
+              destinationHost_ = input.readBytes();
+              break;
+            }
+            case 24: {
+              bitField0_ |= 0x00000004;
+              destinationPort_ = input.readInt32();
+              break;
+            }
+          }
+        }
+      } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+        throw e.setUnfinishedMessage(this);
+      } catch (java.io.IOException e) {
+        throw new com.google.protobuf.InvalidProtocolBufferException(
+            e.getMessage()).setUnfinishedMessage(this);
+      } finally {
+        this.unknownFields = unknownFields.build();
+        makeExtensionsImmutable();
+      }
+    }
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return alluxio.proto.dataserver.Protocol.internal_static_alluxio_proto_dataserver_AsyncCacheOptions_descriptor;
+    }
+
+    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return alluxio.proto.dataserver.Protocol.internal_static_alluxio_proto_dataserver_AsyncCacheOptions_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              alluxio.proto.dataserver.Protocol.AsyncCacheOptions.class, alluxio.proto.dataserver.Protocol.AsyncCacheOptions.Builder.class);
+    }
+
+    public static com.google.protobuf.Parser<AsyncCacheOptions> PARSER =
+        new com.google.protobuf.AbstractParser<AsyncCacheOptions>() {
+      public AsyncCacheOptions parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return new AsyncCacheOptions(input, extensionRegistry);
+      }
+    };
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<AsyncCacheOptions> getParserForType() {
+      return PARSER;
+    }
+
+    private int bitField0_;
+    // optional bool async_cache = 1;
+    public static final int ASYNC_CACHE_FIELD_NUMBER = 1;
+    private boolean asyncCache_;
+    /**
+     * <code>optional bool async_cache = 1;</code>
+     */
+    public boolean hasAsyncCache() {
+      return ((bitField0_ & 0x00000001) == 0x00000001);
+    }
+    /**
+     * <code>optional bool async_cache = 1;</code>
+     */
+    public boolean getAsyncCache() {
+      return asyncCache_;
+    }
+
+    // optional string destination_host = 2;
+    public static final int DESTINATION_HOST_FIELD_NUMBER = 2;
+    private java.lang.Object destinationHost_;
+    /**
+     * <code>optional string destination_host = 2;</code>
+     */
+    public boolean hasDestinationHost() {
+      return ((bitField0_ & 0x00000002) == 0x00000002);
+    }
+    /**
+     * <code>optional string destination_host = 2;</code>
+     */
+    public java.lang.String getDestinationHost() {
+      java.lang.Object ref = destinationHost_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs = 
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        if (bs.isValidUtf8()) {
+          destinationHost_ = s;
+        }
+        return s;
+      }
+    }
+    /**
+     * <code>optional string destination_host = 2;</code>
+     */
+    public com.google.protobuf.ByteString
+        getDestinationHostBytes() {
+      java.lang.Object ref = destinationHost_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b = 
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        destinationHost_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    // optional int32 destination_port = 3;
+    public static final int DESTINATION_PORT_FIELD_NUMBER = 3;
+    private int destinationPort_;
+    /**
+     * <code>optional int32 destination_port = 3;</code>
+     */
+    public boolean hasDestinationPort() {
+      return ((bitField0_ & 0x00000004) == 0x00000004);
+    }
+    /**
+     * <code>optional int32 destination_port = 3;</code>
+     */
+    public int getDestinationPort() {
+      return destinationPort_;
+    }
+
+    private void initFields() {
+      asyncCache_ = false;
+      destinationHost_ = "";
+      destinationPort_ = 0;
+    }
+    private byte memoizedIsInitialized = -1;
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized != -1) return isInitialized == 1;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      getSerializedSize();
+      if (((bitField0_ & 0x00000001) == 0x00000001)) {
+        output.writeBool(1, asyncCache_);
+      }
+      if (((bitField0_ & 0x00000002) == 0x00000002)) {
+        output.writeBytes(2, getDestinationHostBytes());
+      }
+      if (((bitField0_ & 0x00000004) == 0x00000004)) {
+        output.writeInt32(3, destinationPort_);
+      }
+      getUnknownFields().writeTo(output);
+    }
+
+    private int memoizedSerializedSize = -1;
+    public int getSerializedSize() {
+      int size = memoizedSerializedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      if (((bitField0_ & 0x00000001) == 0x00000001)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeBoolSize(1, asyncCache_);
+      }
+      if (((bitField0_ & 0x00000002) == 0x00000002)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeBytesSize(2, getDestinationHostBytes());
+      }
+      if (((bitField0_ & 0x00000004) == 0x00000004)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt32Size(3, destinationPort_);
+      }
+      size += getUnknownFields().getSerializedSize();
+      memoizedSerializedSize = size;
+      return size;
+    }
+
+    private static final long serialVersionUID = 0L;
+    @java.lang.Override
+    protected java.lang.Object writeReplace()
+        throws java.io.ObjectStreamException {
+      return super.writeReplace();
+    }
+
+    public static alluxio.proto.dataserver.Protocol.AsyncCacheOptions parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static alluxio.proto.dataserver.Protocol.AsyncCacheOptions parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static alluxio.proto.dataserver.Protocol.AsyncCacheOptions parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static alluxio.proto.dataserver.Protocol.AsyncCacheOptions parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static alluxio.proto.dataserver.Protocol.AsyncCacheOptions parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input);
+    }
+    public static alluxio.proto.dataserver.Protocol.AsyncCacheOptions parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input, extensionRegistry);
+    }
+    public static alluxio.proto.dataserver.Protocol.AsyncCacheOptions parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return PARSER.parseDelimitedFrom(input);
+    }
+    public static alluxio.proto.dataserver.Protocol.AsyncCacheOptions parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseDelimitedFrom(input, extensionRegistry);
+    }
+    public static alluxio.proto.dataserver.Protocol.AsyncCacheOptions parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input);
+    }
+    public static alluxio.proto.dataserver.Protocol.AsyncCacheOptions parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input, extensionRegistry);
+    }
+
+    public static Builder newBuilder() { return Builder.create(); }
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder(alluxio.proto.dataserver.Protocol.AsyncCacheOptions prototype) {
+      return newBuilder().mergeFrom(prototype);
+    }
+    public Builder toBuilder() { return newBuilder(this); }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * Protobuf type {@code alluxio.proto.dataserver.AsyncCacheOptions}
+     *
+     * <pre>
+     * Options for caching a block
+     * next available id: 4
+     * </pre>
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessage.Builder<Builder>
+       implements alluxio.proto.dataserver.Protocol.AsyncCacheOptionsOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return alluxio.proto.dataserver.Protocol.internal_static_alluxio_proto_dataserver_AsyncCacheOptions_descriptor;
+      }
+
+      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return alluxio.proto.dataserver.Protocol.internal_static_alluxio_proto_dataserver_AsyncCacheOptions_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                alluxio.proto.dataserver.Protocol.AsyncCacheOptions.class, alluxio.proto.dataserver.Protocol.AsyncCacheOptions.Builder.class);
+      }
+
+      // Construct using alluxio.proto.dataserver.Protocol.AsyncCacheOptions.newBuilder()
+      private Builder() {
+        maybeForceBuilderInitialization();
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+        super(parent);
+        maybeForceBuilderInitialization();
+      }
+      private void maybeForceBuilderInitialization() {
+        if (com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders) {
+        }
+      }
+      private static Builder create() {
+        return new Builder();
+      }
+
+      public Builder clear() {
+        super.clear();
+        asyncCache_ = false;
+        bitField0_ = (bitField0_ & ~0x00000001);
+        destinationHost_ = "";
+        bitField0_ = (bitField0_ & ~0x00000002);
+        destinationPort_ = 0;
+        bitField0_ = (bitField0_ & ~0x00000004);
+        return this;
+      }
+
+      public Builder clone() {
+        return create().mergeFrom(buildPartial());
+      }
+
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return alluxio.proto.dataserver.Protocol.internal_static_alluxio_proto_dataserver_AsyncCacheOptions_descriptor;
+      }
+
+      public alluxio.proto.dataserver.Protocol.AsyncCacheOptions getDefaultInstanceForType() {
+        return alluxio.proto.dataserver.Protocol.AsyncCacheOptions.getDefaultInstance();
+      }
+
+      public alluxio.proto.dataserver.Protocol.AsyncCacheOptions build() {
+        alluxio.proto.dataserver.Protocol.AsyncCacheOptions result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      public alluxio.proto.dataserver.Protocol.AsyncCacheOptions buildPartial() {
+        alluxio.proto.dataserver.Protocol.AsyncCacheOptions result = new alluxio.proto.dataserver.Protocol.AsyncCacheOptions(this);
+        int from_bitField0_ = bitField0_;
+        int to_bitField0_ = 0;
+        if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
+          to_bitField0_ |= 0x00000001;
+        }
+        result.asyncCache_ = asyncCache_;
+        if (((from_bitField0_ & 0x00000002) == 0x00000002)) {
+          to_bitField0_ |= 0x00000002;
+        }
+        result.destinationHost_ = destinationHost_;
+        if (((from_bitField0_ & 0x00000004) == 0x00000004)) {
+          to_bitField0_ |= 0x00000004;
+        }
+        result.destinationPort_ = destinationPort_;
+        result.bitField0_ = to_bitField0_;
+        onBuilt();
+        return result;
+      }
+
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof alluxio.proto.dataserver.Protocol.AsyncCacheOptions) {
+          return mergeFrom((alluxio.proto.dataserver.Protocol.AsyncCacheOptions)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(alluxio.proto.dataserver.Protocol.AsyncCacheOptions other) {
+        if (other == alluxio.proto.dataserver.Protocol.AsyncCacheOptions.getDefaultInstance()) return this;
+        if (other.hasAsyncCache()) {
+          setAsyncCache(other.getAsyncCache());
+        }
+        if (other.hasDestinationHost()) {
+          bitField0_ |= 0x00000002;
+          destinationHost_ = other.destinationHost_;
+          onChanged();
+        }
+        if (other.hasDestinationPort()) {
+          setDestinationPort(other.getDestinationPort());
+        }
+        this.mergeUnknownFields(other.getUnknownFields());
+        return this;
+      }
+
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        alluxio.proto.dataserver.Protocol.AsyncCacheOptions parsedMessage = null;
+        try {
+          parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          parsedMessage = (alluxio.proto.dataserver.Protocol.AsyncCacheOptions) e.getUnfinishedMessage();
+          throw e;
+        } finally {
+          if (parsedMessage != null) {
+            mergeFrom(parsedMessage);
+          }
+        }
+        return this;
+      }
+      private int bitField0_;
+
+      // optional bool async_cache = 1;
+      private boolean asyncCache_ ;
+      /**
+       * <code>optional bool async_cache = 1;</code>
+       */
+      public boolean hasAsyncCache() {
+        return ((bitField0_ & 0x00000001) == 0x00000001);
+      }
+      /**
+       * <code>optional bool async_cache = 1;</code>
+       */
+      public boolean getAsyncCache() {
+        return asyncCache_;
+      }
+      /**
+       * <code>optional bool async_cache = 1;</code>
+       */
+      public Builder setAsyncCache(boolean value) {
+        bitField0_ |= 0x00000001;
+        asyncCache_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional bool async_cache = 1;</code>
+       */
+      public Builder clearAsyncCache() {
+        bitField0_ = (bitField0_ & ~0x00000001);
+        asyncCache_ = false;
+        onChanged();
+        return this;
+      }
+
+      // optional string destination_host = 2;
+      private java.lang.Object destinationHost_ = "";
+      /**
+       * <code>optional string destination_host = 2;</code>
+       */
+      public boolean hasDestinationHost() {
+        return ((bitField0_ & 0x00000002) == 0x00000002);
+      }
+      /**
+       * <code>optional string destination_host = 2;</code>
+       */
+      public java.lang.String getDestinationHost() {
+        java.lang.Object ref = destinationHost_;
+        if (!(ref instanceof java.lang.String)) {
+          java.lang.String s = ((com.google.protobuf.ByteString) ref)
+              .toStringUtf8();
+          destinationHost_ = s;
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>optional string destination_host = 2;</code>
+       */
+      public com.google.protobuf.ByteString
+          getDestinationHostBytes() {
+        java.lang.Object ref = destinationHost_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b = 
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          destinationHost_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>optional string destination_host = 2;</code>
+       */
+      public Builder setDestinationHost(
+          java.lang.String value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000002;
+        destinationHost_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional string destination_host = 2;</code>
+       */
+      public Builder clearDestinationHost() {
+        bitField0_ = (bitField0_ & ~0x00000002);
+        destinationHost_ = getDefaultInstance().getDestinationHost();
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional string destination_host = 2;</code>
+       */
+      public Builder setDestinationHostBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000002;
+        destinationHost_ = value;
+        onChanged();
+        return this;
+      }
+
+      // optional int32 destination_port = 3;
+      private int destinationPort_ ;
+      /**
+       * <code>optional int32 destination_port = 3;</code>
+       */
+      public boolean hasDestinationPort() {
+        return ((bitField0_ & 0x00000004) == 0x00000004);
+      }
+      /**
+       * <code>optional int32 destination_port = 3;</code>
+       */
+      public int getDestinationPort() {
+        return destinationPort_;
+      }
+      /**
+       * <code>optional int32 destination_port = 3;</code>
+       */
+      public Builder setDestinationPort(int value) {
+        bitField0_ |= 0x00000004;
+        destinationPort_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional int32 destination_port = 3;</code>
+       */
+      public Builder clearDestinationPort() {
+        bitField0_ = (bitField0_ & ~0x00000004);
+        destinationPort_ = 0;
+        onChanged();
+        return this;
+      }
+
+      // @@protoc_insertion_point(builder_scope:alluxio.proto.dataserver.AsyncCacheOptions)
+    }
+
+    static {
+      defaultInstance = new AsyncCacheOptions(true);
+      defaultInstance.initFields();
+    }
+
+    // @@protoc_insertion_point(class_scope:alluxio.proto.dataserver.AsyncCacheOptions)
   }
 
   public interface OpenUfsBlockOptionsOrBuilder
@@ -8934,6 +9829,11 @@ public final class Protocol {
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_alluxio_proto_dataserver_ReadRequest_fieldAccessorTable;
   private static com.google.protobuf.Descriptors.Descriptor
+    internal_static_alluxio_proto_dataserver_AsyncCacheOptions_descriptor;
+  private static
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_alluxio_proto_dataserver_AsyncCacheOptions_fieldAccessorTable;
+  private static com.google.protobuf.Descriptors.Descriptor
     internal_static_alluxio_proto_dataserver_OpenUfsBlockOptions_descriptor;
   private static
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
@@ -9003,40 +9903,44 @@ public final class Protocol {
   static {
     java.lang.String[] descriptorData = {
       "\n\031dataserver/protocol.proto\022\030alluxio.pro" +
-      "to.dataserver\032\027dataserver/status.proto\"\304" +
-      "\001\n\013ReadRequest\022\020\n\010block_id\030\001 \001(\003\022\016\n\006offs" +
+      "to.dataserver\032\027dataserver/status.proto\"\216" +
+      "\002\n\013ReadRequest\022\020\n\010block_id\030\001 \001(\003\022\016\n\006offs" +
       "et\030\002 \001(\003\022\016\n\006length\030\003 \001(\003\022\016\n\006cancel\030\004 \001(\010" +
       "\022\017\n\007promote\030\007 \001(\010\022\023\n\013packet_size\030\005 \001(\003\022M" +
       "\n\026open_ufs_block_options\030\006 \001(\0132-.alluxio" +
-      ".proto.dataserver.OpenUfsBlockOptions\"\243\001" +
-      "\n\023OpenUfsBlockOptions\022\020\n\010ufs_path\030\001 \001(\t\022" +
-      "\026\n\016offset_in_file\030\002 \001(\003\022\022\n\nblock_size\030\003 " +
-      "\001(\003\022\035\n\025maxUfsReadConcurrency\030\004 \001(\005\022\017\n\007mo",
-      "untId\030\005 \001(\003\022\020\n\010no_cache\030\006 \001(\010\022\014\n\004user\030\007 " +
-      "\001(\t\"\333\001\n\014WriteRequest\0223\n\004type\030\001 \001(\0162%.all" +
-      "uxio.proto.dataserver.RequestType\022\n\n\002id\030" +
-      "\002 \001(\003\022\016\n\006offset\030\003 \001(\003\022\014\n\004tier\030\004 \001(\005\022\013\n\003e" +
-      "of\030\005 \001(\010\022\016\n\006cancel\030\006 \001(\010\022O\n\027create_ufs_f" +
-      "ile_options\030\007 \001(\0132..alluxio.proto.datase" +
-      "rver.CreateUfsFileOptions\"f\n\024CreateUfsFi" +
-      "leOptions\022\020\n\010ufs_path\030\001 \001(\t\022\r\n\005owner\030\002 \001" +
-      "(\t\022\r\n\005group\030\003 \001(\t\022\014\n\004mode\030\004 \001(\005\022\020\n\010mount" +
-      "_id\030\005 \001(\003\"J\n\010Response\022-\n\006status\030\001 \001(\0162\035.",
-      "alluxio.proto.status.PStatus\022\017\n\007message\030" +
-      "\002 \001(\t\"i\n\014ReadResponse\0229\n\004type\030\001 \001(\0162+.al" +
-      "luxio.proto.dataserver.ReadResponse.Type" +
-      "\"\036\n\004Type\022\026\n\022UFS_READ_HEARTBEAT\020\001\"\013\n\tHear" +
-      "tbeat\":\n\025LocalBlockOpenRequest\022\020\n\010block_" +
-      "id\030\001 \001(\003\022\017\n\007promote\030\002 \001(\010\"&\n\026LocalBlockO" +
-      "penResponse\022\014\n\004path\030\001 \001(\t\"*\n\026LocalBlockC" +
-      "loseRequest\022\020\n\010block_id\030\001 \001(\003\"o\n\027LocalBl" +
-      "ockCreateRequest\022\020\n\010block_id\030\001 \001(\003\022\014\n\004ti" +
-      "er\030\003 \001(\005\022\030\n\020space_to_reserve\030\004 \001(\003\022\032\n\022on",
-      "ly_reserve_space\030\005 \001(\010\"(\n\030LocalBlockCrea" +
-      "teResponse\022\014\n\004path\030\001 \001(\t\"=\n\031LocalBlockCo" +
-      "mpleteRequest\022\020\n\010block_id\030\001 \001(\003\022\016\n\006cance" +
-      "l\030\002 \001(\010*.\n\013RequestType\022\021\n\rALLUXIO_BLOCK\020" +
-      "\000\022\014\n\010UFS_FILE\020\001"
+      ".proto.dataserver.OpenUfsBlockOptions\022H\n" +
+      "\023cache_block_options\030\010 \001(\0132+.alluxio.pro" +
+      "to.dataserver.AsyncCacheOptions\"\\\n\021Async" +
+      "CacheOptions\022\023\n\013async_cache\030\001 \001(\010\022\030\n\020des",
+      "tination_host\030\002 \001(\t\022\030\n\020destination_port\030" +
+      "\003 \001(\005\"\243\001\n\023OpenUfsBlockOptions\022\020\n\010ufs_pat" +
+      "h\030\001 \001(\t\022\026\n\016offset_in_file\030\002 \001(\003\022\022\n\nblock" +
+      "_size\030\003 \001(\003\022\035\n\025maxUfsReadConcurrency\030\004 \001" +
+      "(\005\022\017\n\007mountId\030\005 \001(\003\022\020\n\010no_cache\030\006 \001(\010\022\014\n" +
+      "\004user\030\007 \001(\t\"\333\001\n\014WriteRequest\0223\n\004type\030\001 \001" +
+      "(\0162%.alluxio.proto.dataserver.RequestTyp" +
+      "e\022\n\n\002id\030\002 \001(\003\022\016\n\006offset\030\003 \001(\003\022\014\n\004tier\030\004 " +
+      "\001(\005\022\013\n\003eof\030\005 \001(\010\022\016\n\006cancel\030\006 \001(\010\022O\n\027crea" +
+      "te_ufs_file_options\030\007 \001(\0132..alluxio.prot",
+      "o.dataserver.CreateUfsFileOptions\"f\n\024Cre" +
+      "ateUfsFileOptions\022\020\n\010ufs_path\030\001 \001(\t\022\r\n\005o" +
+      "wner\030\002 \001(\t\022\r\n\005group\030\003 \001(\t\022\014\n\004mode\030\004 \001(\005\022" +
+      "\020\n\010mount_id\030\005 \001(\003\"J\n\010Response\022-\n\006status\030" +
+      "\001 \001(\0162\035.alluxio.proto.status.PStatus\022\017\n\007" +
+      "message\030\002 \001(\t\"i\n\014ReadResponse\0229\n\004type\030\001 " +
+      "\001(\0162+.alluxio.proto.dataserver.ReadRespo" +
+      "nse.Type\"\036\n\004Type\022\026\n\022UFS_READ_HEARTBEAT\020\001" +
+      "\"\013\n\tHeartbeat\":\n\025LocalBlockOpenRequest\022\020" +
+      "\n\010block_id\030\001 \001(\003\022\017\n\007promote\030\002 \001(\010\"&\n\026Loc",
+      "alBlockOpenResponse\022\014\n\004path\030\001 \001(\t\"*\n\026Loc" +
+      "alBlockCloseRequest\022\020\n\010block_id\030\001 \001(\003\"o\n" +
+      "\027LocalBlockCreateRequest\022\020\n\010block_id\030\001 \001" +
+      "(\003\022\014\n\004tier\030\003 \001(\005\022\030\n\020space_to_reserve\030\004 \001" +
+      "(\003\022\032\n\022only_reserve_space\030\005 \001(\010\"(\n\030LocalB" +
+      "lockCreateResponse\022\014\n\004path\030\001 \001(\t\"=\n\031Loca" +
+      "lBlockCompleteRequest\022\020\n\010block_id\030\001 \001(\003\022" +
+      "\016\n\006cancel\030\002 \001(\010*.\n\013RequestType\022\021\n\rALLUXI" +
+      "O_BLOCK\020\000\022\014\n\010UFS_FILE\020\001"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
       new com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner() {
@@ -9048,75 +9952,81 @@ public final class Protocol {
           internal_static_alluxio_proto_dataserver_ReadRequest_fieldAccessorTable = new
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_alluxio_proto_dataserver_ReadRequest_descriptor,
-              new java.lang.String[] { "BlockId", "Offset", "Length", "Cancel", "Promote", "PacketSize", "OpenUfsBlockOptions", });
-          internal_static_alluxio_proto_dataserver_OpenUfsBlockOptions_descriptor =
+              new java.lang.String[] { "BlockId", "Offset", "Length", "Cancel", "Promote", "PacketSize", "OpenUfsBlockOptions", "CacheBlockOptions", });
+          internal_static_alluxio_proto_dataserver_AsyncCacheOptions_descriptor =
             getDescriptor().getMessageTypes().get(1);
+          internal_static_alluxio_proto_dataserver_AsyncCacheOptions_fieldAccessorTable = new
+            com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+              internal_static_alluxio_proto_dataserver_AsyncCacheOptions_descriptor,
+              new java.lang.String[] { "AsyncCache", "DestinationHost", "DestinationPort", });
+          internal_static_alluxio_proto_dataserver_OpenUfsBlockOptions_descriptor =
+            getDescriptor().getMessageTypes().get(2);
           internal_static_alluxio_proto_dataserver_OpenUfsBlockOptions_fieldAccessorTable = new
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_alluxio_proto_dataserver_OpenUfsBlockOptions_descriptor,
               new java.lang.String[] { "UfsPath", "OffsetInFile", "BlockSize", "MaxUfsReadConcurrency", "MountId", "NoCache", "User", });
           internal_static_alluxio_proto_dataserver_WriteRequest_descriptor =
-            getDescriptor().getMessageTypes().get(2);
+            getDescriptor().getMessageTypes().get(3);
           internal_static_alluxio_proto_dataserver_WriteRequest_fieldAccessorTable = new
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_alluxio_proto_dataserver_WriteRequest_descriptor,
               new java.lang.String[] { "Type", "Id", "Offset", "Tier", "Eof", "Cancel", "CreateUfsFileOptions", });
           internal_static_alluxio_proto_dataserver_CreateUfsFileOptions_descriptor =
-            getDescriptor().getMessageTypes().get(3);
+            getDescriptor().getMessageTypes().get(4);
           internal_static_alluxio_proto_dataserver_CreateUfsFileOptions_fieldAccessorTable = new
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_alluxio_proto_dataserver_CreateUfsFileOptions_descriptor,
               new java.lang.String[] { "UfsPath", "Owner", "Group", "Mode", "MountId", });
           internal_static_alluxio_proto_dataserver_Response_descriptor =
-            getDescriptor().getMessageTypes().get(4);
+            getDescriptor().getMessageTypes().get(5);
           internal_static_alluxio_proto_dataserver_Response_fieldAccessorTable = new
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_alluxio_proto_dataserver_Response_descriptor,
               new java.lang.String[] { "Status", "Message", });
           internal_static_alluxio_proto_dataserver_ReadResponse_descriptor =
-            getDescriptor().getMessageTypes().get(5);
+            getDescriptor().getMessageTypes().get(6);
           internal_static_alluxio_proto_dataserver_ReadResponse_fieldAccessorTable = new
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_alluxio_proto_dataserver_ReadResponse_descriptor,
               new java.lang.String[] { "Type", });
           internal_static_alluxio_proto_dataserver_Heartbeat_descriptor =
-            getDescriptor().getMessageTypes().get(6);
+            getDescriptor().getMessageTypes().get(7);
           internal_static_alluxio_proto_dataserver_Heartbeat_fieldAccessorTable = new
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_alluxio_proto_dataserver_Heartbeat_descriptor,
               new java.lang.String[] { });
           internal_static_alluxio_proto_dataserver_LocalBlockOpenRequest_descriptor =
-            getDescriptor().getMessageTypes().get(7);
+            getDescriptor().getMessageTypes().get(8);
           internal_static_alluxio_proto_dataserver_LocalBlockOpenRequest_fieldAccessorTable = new
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_alluxio_proto_dataserver_LocalBlockOpenRequest_descriptor,
               new java.lang.String[] { "BlockId", "Promote", });
           internal_static_alluxio_proto_dataserver_LocalBlockOpenResponse_descriptor =
-            getDescriptor().getMessageTypes().get(8);
+            getDescriptor().getMessageTypes().get(9);
           internal_static_alluxio_proto_dataserver_LocalBlockOpenResponse_fieldAccessorTable = new
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_alluxio_proto_dataserver_LocalBlockOpenResponse_descriptor,
               new java.lang.String[] { "Path", });
           internal_static_alluxio_proto_dataserver_LocalBlockCloseRequest_descriptor =
-            getDescriptor().getMessageTypes().get(9);
+            getDescriptor().getMessageTypes().get(10);
           internal_static_alluxio_proto_dataserver_LocalBlockCloseRequest_fieldAccessorTable = new
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_alluxio_proto_dataserver_LocalBlockCloseRequest_descriptor,
               new java.lang.String[] { "BlockId", });
           internal_static_alluxio_proto_dataserver_LocalBlockCreateRequest_descriptor =
-            getDescriptor().getMessageTypes().get(10);
+            getDescriptor().getMessageTypes().get(11);
           internal_static_alluxio_proto_dataserver_LocalBlockCreateRequest_fieldAccessorTable = new
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_alluxio_proto_dataserver_LocalBlockCreateRequest_descriptor,
               new java.lang.String[] { "BlockId", "Tier", "SpaceToReserve", "OnlyReserveSpace", });
           internal_static_alluxio_proto_dataserver_LocalBlockCreateResponse_descriptor =
-            getDescriptor().getMessageTypes().get(11);
+            getDescriptor().getMessageTypes().get(12);
           internal_static_alluxio_proto_dataserver_LocalBlockCreateResponse_fieldAccessorTable = new
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_alluxio_proto_dataserver_LocalBlockCreateResponse_descriptor,
               new java.lang.String[] { "Path", });
           internal_static_alluxio_proto_dataserver_LocalBlockCompleteRequest_descriptor =
-            getDescriptor().getMessageTypes().get(12);
+            getDescriptor().getMessageTypes().get(13);
           internal_static_alluxio_proto_dataserver_LocalBlockCompleteRequest_fieldAccessorTable = new
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_alluxio_proto_dataserver_LocalBlockCompleteRequest_descriptor,
