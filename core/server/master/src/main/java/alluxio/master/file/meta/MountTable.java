@@ -149,7 +149,7 @@ public final class MountTable implements JournalEntryIterable {
    */
   public void add(AlluxioURI alluxioUri, AlluxioURI ufsUri, long mountId, MountOptions options)
       throws FileAlreadyExistsException, InvalidPathException {
-    String alluxioPath = alluxioUri.getPath();
+    String alluxioPath = alluxioUri.getPath().isEmpty() ? "/" : alluxioUri.getPath();
     LOG.info("Mounting {} at {}", ufsUri, alluxioPath);
 
     try (LockResource r = new LockResource(mWriteLock)) {
@@ -171,8 +171,8 @@ public final class MountTable implements JournalEntryIterable {
         if ((ufsUri.getScheme() == null || ufsUri.getScheme().equals(mountedUfsUri.getScheme()))
             && (ufsUri.getAuthority() == null || ufsUri.getAuthority()
             .equals(mountedUfsUri.getAuthority()))) {
-          String ufsPath = ufsUri.getPath();
-          String mountedUfsPath = mountedUfsUri.getPath();
+          String ufsPath = ufsUri.getPath().isEmpty() ? "/" : ufsUri.getPath();
+          String mountedUfsPath = mountedUfsUri.getPath().isEmpty() ? "/" : mountedUfsUri.getPath();
           if (PathUtils.hasPrefix(ufsPath, mountedUfsPath)) {
             throw new InvalidPathException(ExceptionMessage.MOUNT_POINT_PREFIX_OF_ANOTHER
                 .getMessage(mountedUfsUri.toString(), ufsUri.toString()));
@@ -236,17 +236,15 @@ public final class MountTable implements JournalEntryIterable {
    */
   public String getMountPoint(AlluxioURI uri) throws InvalidPathException {
     String path = uri.getPath();
-    String mountPoint = null;
 
     try (LockResource r = new LockResource(mReadLock)) {
       for (Map.Entry<String, MountInfo> entry : mMountTable.entrySet()) {
         String alluxioPath = entry.getKey();
-        if (PathUtils.hasPrefix(path, alluxioPath)
-            && (mountPoint == null || PathUtils.hasPrefix(alluxioPath, mountPoint))) {
-          mountPoint = alluxioPath;
+        if (!alluxioPath.equals(ROOT) && PathUtils.hasPrefix(path, alluxioPath)) {
+          return alluxioPath;
         }
       }
-      return mountPoint;
+      return mMountTable.containsKey(ROOT) ? ROOT : null;
     }
   }
 

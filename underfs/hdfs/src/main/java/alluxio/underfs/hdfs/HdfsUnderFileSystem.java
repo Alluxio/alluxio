@@ -94,7 +94,12 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
     super(ufsUri, conf);
     mUfsConf = conf;
     Path path = new Path(ufsUri.toString());
+    // UserGroupInformation.setConfiguration(hdfsConf) will trigger service loading.
+    // Stash the classloader to prevent service loading throwing exception due to
+    // classloader mismatch.
+    ClassLoader previousClassLoader = Thread.currentThread().getContextClassLoader();
     try {
+      Thread.currentThread().setContextClassLoader(hdfsConf.getClassLoader());
       // Set Hadoop UGI configuration to ensure UGI can be initialized by the shaded classes for
       // group service.
       UserGroupInformation.setConfiguration(hdfsConf);
@@ -102,6 +107,8 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
     } catch (IOException e) {
       throw new RuntimeException(
           String.format("Failed to get Hadoop FileSystem client for %s", ufsUri), e);
+    } finally {
+      Thread.currentThread().setContextClassLoader(previousClassLoader);
     }
   }
 
@@ -231,9 +238,15 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
     }
     List<String> ret = new ArrayList<>();
     try {
-      FileStatus fStatus = mFileSystem.getFileStatus(new Path(path));
+      // The only usage of fileStatus is to get the path in getFileBlockLocations.
+      // In HDFS 2, there is an API getFileBlockLocation(Path path, long offset, long len),
+      // but in HDFS 1, the only API is
+      // getFileBlockLocation(FileStatus stat, long offset, long len).
+      // By constructing the file status manually, we can save one RPC call to getFileStatus.
+      FileStatus fileStatus = new FileStatus(0L, false, 0, 0L,
+          0L, 0L, null, null, null, new Path(path));
       BlockLocation[] bLocations =
-          mFileSystem.getFileBlockLocations(fStatus, options.getOffset(), 1);
+          mFileSystem.getFileBlockLocations(fileStatus, options.getOffset(), 1);
       if (bLocations.length > 0) {
         String[] names = bLocations[0].getHosts();
         Collections.addAll(ret, names);

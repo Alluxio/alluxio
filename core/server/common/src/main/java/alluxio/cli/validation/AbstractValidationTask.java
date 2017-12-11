@@ -9,13 +9,22 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.network.protocol;
+package alluxio.cli.validation;
 
-import javax.annotation.concurrent.ThreadSafe;
+import org.apache.commons.cli.Option;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
- * The base class for constructing RPC requests.
+ * Abstract class for validation environment.
  */
-@ThreadSafe
-public abstract class RPCRequest extends RPCMessage {
+public abstract class AbstractValidationTask implements ValidationTask {
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public List<Option> getOptionList() {
+    return new ArrayList<>();
+  }
 }

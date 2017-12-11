@@ -113,7 +113,7 @@ public final class FileInStreamTest {
     mBlockStore = Mockito.mock(AlluxioBlockStore.class);
     PowerMockito.mockStatic(AlluxioBlockStore.class);
     PowerMockito.when(AlluxioBlockStore.create(mContext)).thenReturn(mBlockStore);
-    PowerMockito.when(mBlockStore.getWorkerInfoList()).thenReturn(new ArrayList<BlockWorkerInfo>());
+    PowerMockito.when(mBlockStore.getEligibleWorkers()).thenReturn(new ArrayList<>());
 
     // Set up BufferedBlockInStreams and caching streams
     mInStreams = new ArrayList<>();
@@ -125,7 +125,7 @@ public final class FileInStreamTest {
           .getIncreasingByteArray((int) (i * BLOCK_LENGTH), (int) getBlockLength(i));
       mInStreams.add(new TestBlockInStream(input, i, input.length, false, mBlockSource));
       mCacheStreams.add(new TestBlockOutStream(ByteBuffer.allocate(1000), getBlockLength(i)));
-      Mockito.when(mBlockStore.getWorkerInfoList())
+      Mockito.when(mBlockStore.getEligibleWorkers())
           .thenReturn(Arrays.asList(new BlockWorkerInfo(new WorkerNetAddress(), 0, 0)));
       Mockito
           .when(mBlockStore.getInStream(Mockito.eq((long) i),
@@ -287,6 +287,51 @@ public final class FileInStreamTest {
     mTestStream.seek((long) (BLOCK_LENGTH * 3.1));
     Assert.assertEquals((byte) (BLOCK_LENGTH * 3.1), mTestStream.read());
     mTestStream.seek(FILE_LENGTH);
+  }
+
+  /**
+   * Tests seeking back to the beginning of a block after the block's remaining is 0.
+   */
+  @Test
+  public void seekToBeginningAfterReadingWholeBlock() throws IOException {
+    // Read the whole block.
+    int blockSize = (int) BLOCK_LENGTH;
+    byte[] block = new byte[blockSize];
+    mTestStream.read(block);
+    Assert.assertArrayEquals(BufferUtils.getIncreasingByteArray(0, blockSize), block);
+
+    // Seek to the beginning of the current block, then read half of it.
+    mTestStream.seek(0);
+    int halfBlockSize = blockSize / 2;
+    byte[] halfBlock = new byte[halfBlockSize];
+    mTestStream.read(halfBlock);
+    Assert.assertArrayEquals(BufferUtils.getIncreasingByteArray(0, halfBlockSize), halfBlock);
+  }
+
+  /**
+   * Tests seeking to the beginning of the last block after reaching EOF.
+   */
+  @Test
+  public void seekToLastBlockAfterReachingEOF() throws IOException {
+    mTestStream.read(new byte[(int) FILE_LENGTH]);
+    mTestStream.seek(FILE_LENGTH - BLOCK_LENGTH);
+    byte[] block = new byte[(int) BLOCK_LENGTH];
+    mTestStream.read(block);
+    Assert.assertArrayEquals(BufferUtils.getIncreasingByteArray(
+        (int) (FILE_LENGTH - BLOCK_LENGTH), (int) BLOCK_LENGTH), block);
+  }
+
+  /**
+   * Tests seeking to EOF, then seeking to position 0 and read the whole file.
+   */
+  @Test
+  public void seekToEOFBeforeReadingFirstBlock() throws IOException {
+    mTestStream.seek(FILE_LENGTH);
+    mTestStream.seek(0);
+    byte[] block = new byte[(int) BLOCK_LENGTH];
+    mTestStream.read(block);
+    Assert.assertArrayEquals(
+        BufferUtils.getIncreasingByteArray(0, (int) BLOCK_LENGTH), block);
   }
 
   /**

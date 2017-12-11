@@ -46,6 +46,7 @@ public class WorkerNetAddress implements org.apache.thrift.TBase<WorkerNetAddres
   private static final org.apache.thrift.protocol.TField DATA_PORT_FIELD_DESC = new org.apache.thrift.protocol.TField("dataPort", org.apache.thrift.protocol.TType.I32, (short)3);
   private static final org.apache.thrift.protocol.TField WEB_PORT_FIELD_DESC = new org.apache.thrift.protocol.TField("webPort", org.apache.thrift.protocol.TType.I32, (short)4);
   private static final org.apache.thrift.protocol.TField DOMAIN_SOCKET_PATH_FIELD_DESC = new org.apache.thrift.protocol.TField("domainSocketPath", org.apache.thrift.protocol.TType.STRING, (short)5);
+  private static final org.apache.thrift.protocol.TField TIERED_IDENTITY_FIELD_DESC = new org.apache.thrift.protocol.TField("tieredIdentity", org.apache.thrift.protocol.TType.STRUCT, (short)6);
 
   private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
   static {
@@ -58,6 +59,7 @@ public class WorkerNetAddress implements org.apache.thrift.TBase<WorkerNetAddres
   private int dataPort; // required
   private int webPort; // required
   private String domainSocketPath; // required
+  private TieredIdentity tieredIdentity; // required
 
   /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
   public enum _Fields implements org.apache.thrift.TFieldIdEnum {
@@ -65,7 +67,8 @@ public class WorkerNetAddress implements org.apache.thrift.TBase<WorkerNetAddres
     RPC_PORT((short)2, "rpcPort"),
     DATA_PORT((short)3, "dataPort"),
     WEB_PORT((short)4, "webPort"),
-    DOMAIN_SOCKET_PATH((short)5, "domainSocketPath");
+    DOMAIN_SOCKET_PATH((short)5, "domainSocketPath"),
+    TIERED_IDENTITY((short)6, "tieredIdentity");
 
     private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -90,6 +93,8 @@ public class WorkerNetAddress implements org.apache.thrift.TBase<WorkerNetAddres
           return WEB_PORT;
         case 5: // DOMAIN_SOCKET_PATH
           return DOMAIN_SOCKET_PATH;
+        case 6: // TIERED_IDENTITY
+          return TIERED_IDENTITY;
         default:
           return null;
       }
@@ -147,6 +152,8 @@ public class WorkerNetAddress implements org.apache.thrift.TBase<WorkerNetAddres
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I32)));
     tmpMap.put(_Fields.DOMAIN_SOCKET_PATH, new org.apache.thrift.meta_data.FieldMetaData("domainSocketPath", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
+    tmpMap.put(_Fields.TIERED_IDENTITY, new org.apache.thrift.meta_data.FieldMetaData("tieredIdentity", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+        new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, TieredIdentity.class)));
     metaDataMap = Collections.unmodifiableMap(tmpMap);
     org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(WorkerNetAddress.class, metaDataMap);
   }
@@ -159,7 +166,8 @@ public class WorkerNetAddress implements org.apache.thrift.TBase<WorkerNetAddres
     int rpcPort,
     int dataPort,
     int webPort,
-    String domainSocketPath)
+    String domainSocketPath,
+    TieredIdentity tieredIdentity)
   {
     this();
     this.host = host;
@@ -170,6 +178,7 @@ public class WorkerNetAddress implements org.apache.thrift.TBase<WorkerNetAddres
     this.webPort = webPort;
     setWebPortIsSet(true);
     this.domainSocketPath = domainSocketPath;
+    this.tieredIdentity = tieredIdentity;
   }
 
   /**
@@ -185,6 +194,9 @@ public class WorkerNetAddress implements org.apache.thrift.TBase<WorkerNetAddres
     this.webPort = other.webPort;
     if (other.isSetDomainSocketPath()) {
       this.domainSocketPath = other.domainSocketPath;
+    }
+    if (other.isSetTieredIdentity()) {
+      this.tieredIdentity = new TieredIdentity(other.tieredIdentity);
     }
   }
 
@@ -202,6 +214,7 @@ public class WorkerNetAddress implements org.apache.thrift.TBase<WorkerNetAddres
     setWebPortIsSet(false);
     this.webPort = 0;
     this.domainSocketPath = null;
+    this.tieredIdentity = null;
   }
 
   public String getHost() {
@@ -321,6 +334,30 @@ public class WorkerNetAddress implements org.apache.thrift.TBase<WorkerNetAddres
     }
   }
 
+  public TieredIdentity getTieredIdentity() {
+    return this.tieredIdentity;
+  }
+
+  public WorkerNetAddress setTieredIdentity(TieredIdentity tieredIdentity) {
+    this.tieredIdentity = tieredIdentity;
+    return this;
+  }
+
+  public void unsetTieredIdentity() {
+    this.tieredIdentity = null;
+  }
+
+  /** Returns true if field tieredIdentity is set (has been assigned a value) and false otherwise */
+  public boolean isSetTieredIdentity() {
+    return this.tieredIdentity != null;
+  }
+
+  public void setTieredIdentityIsSet(boolean value) {
+    if (!value) {
+      this.tieredIdentity = null;
+    }
+  }
+
   public void setFieldValue(_Fields field, Object value) {
     switch (field) {
     case HOST:
@@ -363,6 +400,14 @@ public class WorkerNetAddress implements org.apache.thrift.TBase<WorkerNetAddres
       }
       break;
 
+    case TIERED_IDENTITY:
+      if (value == null) {
+        unsetTieredIdentity();
+      } else {
+        setTieredIdentity((TieredIdentity)value);
+      }
+      break;
+
     }
   }
 
@@ -382,6 +427,9 @@ public class WorkerNetAddress implements org.apache.thrift.TBase<WorkerNetAddres
 
     case DOMAIN_SOCKET_PATH:
       return getDomainSocketPath();
+
+    case TIERED_IDENTITY:
+      return getTieredIdentity();
 
     }
     throw new IllegalStateException();
@@ -404,6 +452,8 @@ public class WorkerNetAddress implements org.apache.thrift.TBase<WorkerNetAddres
       return isSetWebPort();
     case DOMAIN_SOCKET_PATH:
       return isSetDomainSocketPath();
+    case TIERED_IDENTITY:
+      return isSetTieredIdentity();
     }
     throw new IllegalStateException();
   }
@@ -466,6 +516,15 @@ public class WorkerNetAddress implements org.apache.thrift.TBase<WorkerNetAddres
         return false;
     }
 
+    boolean this_present_tieredIdentity = true && this.isSetTieredIdentity();
+    boolean that_present_tieredIdentity = true && that.isSetTieredIdentity();
+    if (this_present_tieredIdentity || that_present_tieredIdentity) {
+      if (!(this_present_tieredIdentity && that_present_tieredIdentity))
+        return false;
+      if (!this.tieredIdentity.equals(that.tieredIdentity))
+        return false;
+    }
+
     return true;
   }
 
@@ -497,6 +556,11 @@ public class WorkerNetAddress implements org.apache.thrift.TBase<WorkerNetAddres
     list.add(present_domainSocketPath);
     if (present_domainSocketPath)
       list.add(domainSocketPath);
+
+    boolean present_tieredIdentity = true && (isSetTieredIdentity());
+    list.add(present_tieredIdentity);
+    if (present_tieredIdentity)
+      list.add(tieredIdentity);
 
     return list.hashCode();
   }
@@ -559,6 +623,16 @@ public class WorkerNetAddress implements org.apache.thrift.TBase<WorkerNetAddres
         return lastComparison;
       }
     }
+    lastComparison = Boolean.valueOf(isSetTieredIdentity()).compareTo(other.isSetTieredIdentity());
+    if (lastComparison != 0) {
+      return lastComparison;
+    }
+    if (isSetTieredIdentity()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.tieredIdentity, other.tieredIdentity);
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+    }
     return 0;
   }
 
@@ -606,6 +680,14 @@ public class WorkerNetAddress implements org.apache.thrift.TBase<WorkerNetAddres
       sb.append(this.domainSocketPath);
     }
     first = false;
+    if (!first) sb.append(", ");
+    sb.append("tieredIdentity:");
+    if (this.tieredIdentity == null) {
+      sb.append("null");
+    } else {
+      sb.append(this.tieredIdentity);
+    }
+    first = false;
     sb.append(")");
     return sb.toString();
   }
@@ -613,6 +695,9 @@ public class WorkerNetAddress implements org.apache.thrift.TBase<WorkerNetAddres
   public void validate() throws org.apache.thrift.TException {
     // check for required fields
     // check for sub-struct validity
+    if (tieredIdentity != null) {
+      tieredIdentity.validate();
+    }
   }
 
   private void writeObject(java.io.ObjectOutputStream out) throws java.io.IOException {
@@ -691,6 +776,15 @@ public class WorkerNetAddress implements org.apache.thrift.TBase<WorkerNetAddres
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
+          case 6: // TIERED_IDENTITY
+            if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+              struct.tieredIdentity = new TieredIdentity();
+              struct.tieredIdentity.read(iprot);
+              struct.setTieredIdentityIsSet(true);
+            } else { 
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+            }
+            break;
           default:
             org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
         }
@@ -723,6 +817,11 @@ public class WorkerNetAddress implements org.apache.thrift.TBase<WorkerNetAddres
       if (struct.domainSocketPath != null) {
         oprot.writeFieldBegin(DOMAIN_SOCKET_PATH_FIELD_DESC);
         oprot.writeString(struct.domainSocketPath);
+        oprot.writeFieldEnd();
+      }
+      if (struct.tieredIdentity != null) {
+        oprot.writeFieldBegin(TIERED_IDENTITY_FIELD_DESC);
+        struct.tieredIdentity.write(oprot);
         oprot.writeFieldEnd();
       }
       oprot.writeFieldStop();
@@ -758,7 +857,10 @@ public class WorkerNetAddress implements org.apache.thrift.TBase<WorkerNetAddres
       if (struct.isSetDomainSocketPath()) {
         optionals.set(4);
       }
-      oprot.writeBitSet(optionals, 5);
+      if (struct.isSetTieredIdentity()) {
+        optionals.set(5);
+      }
+      oprot.writeBitSet(optionals, 6);
       if (struct.isSetHost()) {
         oprot.writeString(struct.host);
       }
@@ -774,12 +876,15 @@ public class WorkerNetAddress implements org.apache.thrift.TBase<WorkerNetAddres
       if (struct.isSetDomainSocketPath()) {
         oprot.writeString(struct.domainSocketPath);
       }
+      if (struct.isSetTieredIdentity()) {
+        struct.tieredIdentity.write(oprot);
+      }
     }
 
     @Override
     public void read(org.apache.thrift.protocol.TProtocol prot, WorkerNetAddress struct) throws org.apache.thrift.TException {
       TTupleProtocol iprot = (TTupleProtocol) prot;
-      BitSet incoming = iprot.readBitSet(5);
+      BitSet incoming = iprot.readBitSet(6);
       if (incoming.get(0)) {
         struct.host = iprot.readString();
         struct.setHostIsSet(true);
@@ -799,6 +904,11 @@ public class WorkerNetAddress implements org.apache.thrift.TBase<WorkerNetAddres
       if (incoming.get(4)) {
         struct.domainSocketPath = iprot.readString();
         struct.setDomainSocketPathIsSet(true);
+      }
+      if (incoming.get(5)) {
+        struct.tieredIdentity = new TieredIdentity();
+        struct.tieredIdentity.read(iprot);
+        struct.setTieredIdentityIsSet(true);
       }
     }
   }

@@ -50,8 +50,6 @@ public final class EmbeddedChannels {
       ChannelPipeline p = super.pipeline();
       // Remove the dummy handler.
       p.removeFirst();
-      // Remove the LastInboundHandler in super;
-      p.removeLast();
       // Add a LastInboundHandler instance of this class
       p.addLast(new LastInboundHandler());
       mPipeline = new EmbeddedChannelPipeline(p);

@@ -118,9 +118,9 @@ final class FileWorkerMasterSyncExecutor implements HeartbeatExecutor {
    * Thread to persist a file into under file system.
    */
   class FilePersister implements Runnable {
-    private FileDataManager mFileDataManager;
-    private long mFileId;
-    private List<Long> mBlockIds;
+    private final FileDataManager mFileDataManager;
+    private final long mFileId;
+    private final List<Long> mBlockIds;
 
     /**
      * Creates a new instance of {@link FilePersister}.

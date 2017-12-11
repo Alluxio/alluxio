@@ -1,6 +1,6 @@
 ---
 layout: global
-title:远程记录日志
+title: 远程记录日志
 group: Features
 priority: 5
 ---

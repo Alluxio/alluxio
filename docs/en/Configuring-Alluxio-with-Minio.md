@@ -10,7 +10,7 @@ priority: 0
 {:toc}
 
 This guide describes how to configure Alluxio with [Minio](https://minio.io/) as the
-under storage system. Alluxio natively provides the s3a:// scheme (recommended for better performance). You can
+under storage system. Alluxio natively provides the `s3a://` scheme (recommended for better performance). You can
 use this scheme to connect Alluxio with Minio server.
 
 ## Initial Setup

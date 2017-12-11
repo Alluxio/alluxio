@@ -11,13 +11,25 @@
 
 package alluxio.cli.validation;
 
+import org.apache.commons.cli.Option;
+
+import java.util.List;
+import java.util.Map;
+
 /**
  * Interface for a validation task run by validateEnv command.
  */
 public interface ValidationTask {
   /**
+   * @return Set of {@link Option} required by this task
+   */
+  List<Option> getOptionList();
+
+  /**
    * Runs the validation task.
+   *
+   * @param optionMap contains string representation of <key, value> pairs
    * @return whether the validation succeeds
    */
-  boolean validate() throws InterruptedException;
+  boolean validate(Map<String, String> optionMap) throws InterruptedException;
 }

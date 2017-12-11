@@ -59,6 +59,7 @@ import alluxio.master.file.meta.TempInodePathForChild;
 import alluxio.master.file.meta.TempInodePathForDescendant;
 import alluxio.master.file.meta.TtlBucketList;
 import alluxio.master.file.meta.UfsAbsentPathCache;
+import alluxio.master.file.meta.UfsBlockLocationCache;
 import alluxio.master.file.meta.options.MountInfo;
 import alluxio.master.file.options.CheckConsistencyOptions;
 import alluxio.master.file.options.CompleteFileOptions;
@@ -107,7 +108,6 @@ import alluxio.underfs.UfsManager;
 import alluxio.underfs.UfsStatus;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
-import alluxio.underfs.options.FileLocationOptions;
 import alluxio.util.CommonUtils;
 import alluxio.util.IdUtils;
 import alluxio.util.SecurityUtils;
@@ -127,7 +127,6 @@ import alluxio.wire.WorkerInfo;
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Gauge;
 import com.google.common.base.Preconditions;
-import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterators;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
@@ -154,6 +153,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.stream.Stream;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
@@ -303,6 +303,9 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
   /** This caches absent paths in the UFS. */
   private final UfsAbsentPathCache mUfsAbsentPathCache;
 
+  /** This caches block locations in the UFS. */
+  private final UfsBlockLocationCache mUfsBlockLocationCache;
+
   /**
    * The service that checks for inode files with ttl set. We store it here so that it can be
    * accessed from tests.
@@ -358,6 +361,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     mAsyncPersistHandler = AsyncPersistHandler.Factory.create(new FileSystemMasterView(this));
     mPermissionChecker = new PermissionChecker(mInodeTree);
     mUfsAbsentPathCache = UfsAbsentPathCache.Factory.create(mMountTable);
+    mUfsBlockLocationCache = UfsBlockLocationCache.Factory.create(mMountTable);
 
     resetState();
     Metrics.registerGauges(this, mUfsManager);
@@ -541,13 +545,9 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
               new LostFileDetector(this, mInodeTree),
               (int) Configuration.getMs(PropertyKey.MASTER_HEARTBEAT_INTERVAL_MS)));
       if (Configuration.getBoolean(PropertyKey.MASTER_STARTUP_CONSISTENCY_CHECK_ENABLED)) {
-        mStartupConsistencyCheck = getExecutorService().submit(new Callable<List<AlluxioURI>>() {
-          @Override
-          public List<AlluxioURI> call() throws Exception {
-            return startupCheckConsistency(ExecutorServiceFactories
-                .fixedThreadPoolExecutorServiceFactory("startup-consistency-check", 32).create());
-          }
-        });
+        mStartupConsistencyCheck = getExecutorService().submit(() -> startupCheckConsistency(
+            ExecutorServiceFactories
+               .fixedThreadPoolExecutorServiceFactory("startup-consistency-check", 32).create()));
       }
       if (Configuration.getBoolean(PropertyKey.MASTER_AUDIT_LOGGING_ENABLED)) {
         mAsyncAuditLogWriter = new AsyncUserAccessAuditLogWriter();
@@ -670,7 +670,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         inconsistentUris.addAll(result.get());
       } catch (Exception e) {
         // This shouldn't happen, all futures should be complete.
-        Throwables.propagate(e);
+        throw new RuntimeException(e);
       }
     }
     service.shutdown();
@@ -888,7 +888,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       exists = true;
     } finally {
       if (!exists) {
-        mUfsAbsentPathCache.process(inodePath.getUri());
+        mUfsAbsentPathCache.process(inodePath.getUri(), inodePath.getInodeList());
       }
     }
   }
@@ -1291,6 +1291,16 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       }
       deletedInodes = deleteAndJournal(inodePath, options, journalContext);
       auditContext.setSucceeded(true);
+
+      if (!options.isAlluxioOnly()) {
+        for (Inode<?> inode : deletedInodes) {
+          if (inode.isFile() && inode.isPersisted()) {
+            for (long blockId : ((InodeFile) inode).getBlockIds()) {
+              mUfsBlockLocationCache.invalidate(blockId);
+            }
+          }
+        }
+      }
     }
     deleteInodeBlocks(deletedInodes);
   }
@@ -1382,7 +1392,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     List<Pair<AlluxioURI, Inode>> delInodes = new ArrayList<>();
     List<Inode<?>> deletedInodes = new ArrayList<>();
 
-    Pair<AlluxioURI, Inode> inodePair = new Pair<AlluxioURI, Inode>(inodePath.getUri(), inode);
+    Pair<AlluxioURI, Inode> inodePair = new Pair<>(inodePath.getUri(), inode);
     delInodes.add(inodePair);
 
     try (InodeLockList lockList = mInodeTree.lockDescendants(inodePath, InodeTree.LockMode.WRITE)) {
@@ -1520,7 +1530,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     InodeFile file = inodePath.getInodeFile();
     FileBlockInfo fileBlockInfo = new FileBlockInfo();
     fileBlockInfo.setBlockInfo(blockInfo);
-    fileBlockInfo.setUfsLocations(new ArrayList<String>());
+    fileBlockInfo.setUfsLocations(new ArrayList<>());
 
     // The sequence number part of the block id is the block index.
     long offset = file.getBlockSizeBytes() * BlockId.getSequenceNumber(blockInfo.getBlockId());
@@ -1529,20 +1539,11 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     if (fileBlockInfo.getBlockInfo().getLocations().isEmpty() && file.isPersisted()) {
       // No alluxio locations, but there is a checkpoint in the under storage system. Add the
       // locations from the under storage system.
-      MountTable.Resolution resolution = mMountTable.resolve(inodePath.getUri());
-      String ufsUri = resolution.getUri().toString();
-      UnderFileSystem ufs = resolution.getUfs();
-      List<String> locs;
-      try {
-        locs = ufs.getFileLocations(ufsUri,
-            FileLocationOptions.defaults().setOffset(fileBlockInfo.getOffset()));
-      } catch (IOException e) {
-        return fileBlockInfo;
-      }
-      if (locs != null) {
-        for (String loc : locs) {
-          fileBlockInfo.getUfsLocations().add(loc);
-        }
+      long blockId = fileBlockInfo.getBlockInfo().getBlockId();
+      List<String> locations = mUfsBlockLocationCache.get(blockId, inodePath.getUri(),
+          fileBlockInfo.getOffset());
+      if (locations != null) {
+        fileBlockInfo.setUfsLocations(locations);
       }
     }
     return fileBlockInfo;
@@ -1810,9 +1811,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     } catch (BlockInfoException e) {
       // Since we are creating a directory, the block size is ignored, no such exception should
       // happen.
-      Throwables.propagate(e);
+      throw new RuntimeException(e);
     }
-    return null;
   }
 
   @Override
@@ -3152,43 +3152,33 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
               return master.getNumberOfPinnedFiles();
             }
           });
+
       MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMasterMetricName(PATHS_TOTAL),
-          new Gauge<Integer>() {
-            @Override
-            public Integer getValue() {
-              return master.getNumberOfPaths();
-            }
-          });
+          () -> master.getNumberOfPaths());
 
       final String ufsDataFolder = Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
       final UnderFileSystem ufs = ufsManager.getRoot().getUfs();
 
       MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMasterMetricName(UFS_CAPACITY_TOTAL),
-          new Gauge<Long>() {
-            @Override
-            public Long getValue() {
-              long ret = 0L;
-              try {
-                ret = ufs.getSpace(ufsDataFolder, UnderFileSystem.SpaceType.SPACE_TOTAL);
-              } catch (IOException e) {
-                LOG.error(e.getMessage(), e);
-              }
-              return ret;
+          () -> {
+            try {
+              return ufs.getSpace(ufsDataFolder, UnderFileSystem.SpaceType.SPACE_TOTAL);
+            } catch (IOException e) {
+              LOG.error(e.getMessage(), e);
+              return Stream.empty();
             }
           });
+
       MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMasterMetricName(UFS_CAPACITY_USED),
-          new Gauge<Long>() {
-            @Override
-            public Long getValue() {
-              long ret = 0L;
-              try {
-                ret = ufs.getSpace(ufsDataFolder, UnderFileSystem.SpaceType.SPACE_USED);
-              } catch (IOException e) {
-                LOG.error(e.getMessage(), e);
-              }
-              return ret;
+          () -> {
+            try {
+              return ufs.getSpace(ufsDataFolder, UnderFileSystem.SpaceType.SPACE_USED);
+            } catch (IOException e) {
+              LOG.error(e.getMessage(), e);
+              return Stream.empty();
             }
           });
+
       MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMasterMetricName(UFS_CAPACITY_FREE),
           new Gauge<Long>() {
             @Override

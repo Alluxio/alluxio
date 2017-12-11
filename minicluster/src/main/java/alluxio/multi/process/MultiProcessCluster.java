@@ -28,6 +28,7 @@ import alluxio.master.SingleMasterInquireClient;
 import alluxio.master.ZkMasterInquireClient;
 import alluxio.network.PortUtils;
 import alluxio.util.CommonUtils;
+import alluxio.util.WaitForOptions;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.zookeeper.RestartableTestingServer;
 
@@ -170,9 +171,10 @@ public final class MultiProcessCluster implements TestRule {
    * If no master is currently primary, this method blocks until a primary has been elected, then
    * kills it.
    *
+   * @param timeoutMs maximum amount of time to wait, in milliseconds
    * @return the ID of the killed master
    */
-  public synchronized int waitForAndKillPrimaryMaster() {
+  public synchronized int waitForAndKillPrimaryMaster(int timeoutMs) {
     final FileSystem fs = getFileSystemClient();
     final MasterInquireClient inquireClient = getMasterInquireClient();
     CommonUtils.waitFor("a primary master to be serving", new Function<Void, Boolean>() {
@@ -188,7 +190,7 @@ public final class MultiProcessCluster implements TestRule {
           throw new RuntimeException(e);
         }
       }
-    });
+    }, WaitForOptions.defaults().setTimeoutMs(timeoutMs));
     int primaryRpcPort;
     try {
       primaryRpcPort = inquireClient.getPrimaryRpcAddress().getPort();
