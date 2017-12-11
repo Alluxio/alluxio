@@ -709,7 +709,7 @@ public class TieredBlockStore implements BlockStore {
     for (BlockTransferInfo entry : plan.toMove()) {
       String alias = entry.getDstLocation().tierAlias();
       if (!blocksGroupedByDestTier.containsKey(alias)) {
-        blocksGroupedByDestTier.put(alias, new HashSet<BlockTransferInfo>());
+        blocksGroupedByDestTier.put(alias, new HashSet());
       }
       blocksGroupedByDestTier.get(alias).add(entry);
     }
