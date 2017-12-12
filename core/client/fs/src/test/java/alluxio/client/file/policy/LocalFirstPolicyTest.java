@@ -81,7 +81,7 @@ public final class LocalFirstPolicyTest {
   }
 
   @Test
-  public void chooseClosestTier() {
+  public void chooseClosestTier() throws Exception {
     List<BlockWorkerInfo> workers = new ArrayList<>();
     workers.add(worker(Constants.GB, "node2", "rack3"));
     workers.add(worker(Constants.GB, "node3", "rack2"));

@@ -22,12 +22,19 @@ import alluxio.wire.TieredIdentity.LocalityTier;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Sets;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.GuardedBy;
@@ -36,6 +43,8 @@ import javax.annotation.concurrent.GuardedBy;
  * Class for getting tiered identity.
  */
 public final class TieredIdentityFactory {
+  private static final Logger LOG = LoggerFactory.getLogger(TieredIdentityFactory.class);
+
   // Synchronize on this lock to modify sInstance.
   private static final Object LOCK = new Object();
   @GuardedBy("LOCK")
@@ -49,6 +58,7 @@ public final class TieredIdentityFactory {
       synchronized (LOCK) {
         if (sInstance == null) {
           sInstance = create();
+          LOG.info("Initialized tiered identity {}", sInstance);
         }
       }
     }
@@ -94,40 +104,49 @@ public final class TieredIdentityFactory {
    */
   @Nullable
   private static TieredIdentity fromScript() {
-    // If a script is configured, run the script to get all locality tiers.
-    if (!Configuration.containsKey(PropertyKey.LOCALITY_SCRIPT)) {
+    Path script = Paths.get(Configuration.get(PropertyKey.LOCALITY_SCRIPT));
+    if (!Files.exists(script)) {
       return null;
     }
-    String script = Configuration.get(PropertyKey.LOCALITY_SCRIPT);
     String identityString;
     try {
-      identityString = ShellUtils.execCommand(script);
+      identityString = ShellUtils.execCommand(script.toString());
     } catch (IOException e) {
       throw new RuntimeException(
           String.format("Failed to run script %s: %s", script, e.toString()), e);
     }
-    return fromString(identityString);
+    try {
+      return fromString(identityString);
+    } catch (IOException e) {
+      throw new RuntimeException(
+          String.format("Failed to parse output of running %s: %s", script, e.getMessage()), e);
+    }
   }
 
   /**
    * @param identityString tiered identity string to parse
    * @return the parsed tiered identity
    */
-  public static TieredIdentity fromString(String identityString) {
+  public static TieredIdentity fromString(String identityString) throws IOException {
+    Set<String> allTiers = Sets.newHashSet(Configuration.getList(PropertyKey.LOCALITY_ORDER, ","));
     Map<String, String> tiers = new HashMap<>();
     for (String tier : identityString.split(",")) {
       String[] parts = tier.split("=");
       if (parts.length != 2) {
-        throw new RuntimeException(String
+        throw new IOException(String
             .format("Failed to parse tiered identity. The value should be a comma-separated list "
                 + "of key=value pairs, but was %s", identityString));
       }
       String key = parts[0].trim();
       if (tiers.containsKey(key)) {
-        throw new RuntimeException(String.format(
+        throw new IOException(String.format(
             "Encountered repeated tier definition for %s when parsing tiered identity from string "
                 + "%s",
             key, identityString));
+      }
+      if (!allTiers.contains(key)) {
+        throw new IOException(String.format("Unrecognized tier: %s. The tiers defined by %s are %s",
+            key, PropertyKey.LOCALITY_ORDER.toString(), allTiers));
       }
       tiers.put(key, parts[1].trim());
     }

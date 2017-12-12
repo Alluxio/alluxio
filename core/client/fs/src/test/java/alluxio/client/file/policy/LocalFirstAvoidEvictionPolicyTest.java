@@ -34,7 +34,7 @@ import java.util.List;
 public class LocalFirstAvoidEvictionPolicyTest {
 
   @Test
-  public void chooseClosestTierAvoidEviction() {
+  public void chooseClosestTierAvoidEviction() throws Exception {
     List<BlockWorkerInfo> workers = new ArrayList<>();
     workers.add(worker(Constants.GB, Constants.MB, "node2", "rack3"));
     workers.add(worker(Constants.GB, 0, "node3", "rack2"));
