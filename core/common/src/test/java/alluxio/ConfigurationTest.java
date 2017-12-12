@@ -12,10 +12,10 @@
 package alluxio;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
@@ -338,6 +338,43 @@ public class ConfigurationTest {
     Configuration.set(PropertyKey.PROXY_STREAM_CACHE_TIMEOUT_MS, "10day");
     assertEquals(10 * Constants.DAY,
         Configuration.getMs(PropertyKey.PROXY_STREAM_CACHE_TIMEOUT_MS));
+  }
+
+  @Test
+  public void getNegativeSyncInterval() {
+    Configuration.set(PropertyKey.USER_FILE_METADATA_SYNC_INTERVAL, "-1");
+    assertEquals(-1, Configuration.getMs(PropertyKey.USER_FILE_METADATA_SYNC_INTERVAL));
+  }
+
+  @Test
+  public void getNegativeSyncIntervalS() {
+    Configuration.set(PropertyKey.USER_FILE_METADATA_SYNC_INTERVAL, "-1s");
+    assertTrue(Configuration.getMs(PropertyKey.USER_FILE_METADATA_SYNC_INTERVAL) < 0);
+  }
+
+  @Test
+  public void getZeroSyncInterval() {
+    Configuration.set(PropertyKey.USER_FILE_METADATA_SYNC_INTERVAL, "0");
+    assertEquals(0, Configuration.getMs(PropertyKey.USER_FILE_METADATA_SYNC_INTERVAL));
+  }
+
+  @Test
+  public void getZeroSyncIntervalS() {
+    Configuration.set(PropertyKey.USER_FILE_METADATA_SYNC_INTERVAL, "0s");
+    assertEquals(0, Configuration.getMs(PropertyKey.USER_FILE_METADATA_SYNC_INTERVAL));
+  }
+
+  @Test
+  public void getPositiveSyncInterval() {
+    Configuration.set(PropertyKey.USER_FILE_METADATA_SYNC_INTERVAL, "10");
+    assertEquals(10, Configuration.getMs(PropertyKey.USER_FILE_METADATA_SYNC_INTERVAL));
+  }
+
+  @Test
+  public void getPosiviteSyncIntervalS() {
+    Configuration.set(PropertyKey.USER_FILE_METADATA_SYNC_INTERVAL, "10s");
+    assertEquals(10 * Constants.SECOND_MS,
+        Configuration.getMs(PropertyKey.USER_FILE_METADATA_SYNC_INTERVAL));
   }
 
   @Test
