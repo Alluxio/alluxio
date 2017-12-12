@@ -110,7 +110,7 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
     OpenFileOptions readOptions = options.getOptions();
 
     boolean promote = readOptions.getReadType().isPromote();
-    boolean asyncCache = Configuration.getBoolean(PropertyKey.USER_FILE_CACHE_PARTIALLY_READ_BLOCK);
+    boolean asyncCache = readOptions.getCachePartiallyReadBlock();
 
     long blockId = info.getBlockId();
     long blockSize = info.getLength();
