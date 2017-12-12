@@ -124,43 +124,29 @@ public final class AlluxioBlockStore {
   }
 
   /**
-   * Gets a stream to read the data of a block. One of several possibilities, in order of priority:
+   * Gets a stream to read the data of a block. This method is primarily responsible for
+   * determining the location the client reads from, the location which will read the data, and
+   * the type of the data source.
    *
-   * If there is a local worker:
-   * 1. Domain socket - if the data is on the local worker & the local worker has a domain
-   * socket server
-   * 2. Short-Circuit - if the data is on the local worker
-   * 3. Remote Read through worker - if the data is on a remote worker (worker -> worker -> client)
-   * 4. UFS Read through worker - if the data is not in Alluxio
-   *
-   * If there is no local worker:
-   * 1. Remote Read from worker - if the data is on a remote worker (worker -> client)
-   * 2. UFS Read through worker - if the data is not in Alluxio
-   *
-   * @param blockId
-   * @param options
-   * @return
+   * @param info the block info for the block to read
+   * @param options the options associated with the read request
+   * @return a stream which reads from the beginning of the block
    */
-  public BlockInStream getInStreamv2(long blockId, Protocol.OpenUfsBlockOptions ufsOptions,
-      InStreamOptions options) throws IOException {
-    // Determine the available locations of the block
-    BlockInfo blockInfo;
-    try (CloseableResource<BlockMasterClient> res = mContext.acquireBlockMasterClientResource()) {
-      blockInfo = res.get().getBlockInfo(blockId);
-    }
-    List<BlockLocation> locations = blockInfo.getLocations();
-    if (locations.isEmpty() && ufsOptions == null) {
-      throw new NotFoundException(ExceptionMessage.BLOCK_UNAVAILABLE.getMessage(blockId));
+  public BlockInStream getInStreamv2(BlockInfo info, InStreamOptions options) throws IOException {
+    List<BlockLocation> locations = info.getLocations();
+    if (locations.isEmpty() && !options.getStatus().isPersisted()) {
+      throw new NotFoundException(ExceptionMessage.BLOCK_UNAVAILABLE.getMessage(info.getBlockId()));
     }
     // Determine which worker will serve the read request and the type of data source
     BlockInStreamSource dataSourceType = null;
     WorkerNetAddress dataSource = null;
     if (locations.isEmpty()) { // Data will be read from UFS
-      BlockLocationPolicy policy = Preconditions.checkNotNull(options.getUfsReadLocationPolicy(),
-          PreconditionMessage.UFS_READ_LOCATION_POLICY_UNSPECIFIED);
-      GetWorkerOptions getWorkerOptions = GetWorkerOptions.defaults().setBlockId(blockId)
-          .setBlockSize(blockInfo.getLength()).setBlockWorkerInfos(getEligibleWorkers());
       dataSourceType = BlockInStreamSource.UFS;
+      BlockLocationPolicy policy =
+          Preconditions.checkNotNull(options.getOptions().getUfsReadLocationPolicy(),
+              PreconditionMessage.UFS_READ_LOCATION_POLICY_UNSPECIFIED);
+      GetWorkerOptions getWorkerOptions = GetWorkerOptions.defaults().setBlockId(info.getBlockId())
+          .setBlockSize(info.getLength()).setBlockWorkerInfos(getEligibleWorkers());
       dataSource = policy.getWorker(getWorkerOptions);
     } else { // Data will be read from Alluxio, determine which worker and if it is local
       List<TieredIdentity> tieredLocations =
@@ -169,7 +155,7 @@ public final class AlluxioBlockStore {
       Collections.shuffle(tieredLocations);
       Optional<TieredIdentity> nearest = mTieredIdentity.nearest(tieredLocations);
       if (nearest.isPresent()) {
-        dataSource = blockInfo.getLocations().stream()
+        dataSource = info.getLocations().stream()
             .map(BlockLocation::getWorkerAddress)
             .filter(a -> a.getTieredIdentity().equals(nearest.get()))
             .findFirst().get();
@@ -185,12 +171,7 @@ public final class AlluxioBlockStore {
       throw new UnavailableException(ExceptionMessage.NO_WORKER_AVAILABLE.getMessage());
     }
 
-    if (mContext.hasLocalWorker()) {
-
-    }
-
-    // No local worker
-
+    return
 
   }
 

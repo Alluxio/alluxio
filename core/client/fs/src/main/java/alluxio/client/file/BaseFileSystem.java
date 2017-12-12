@@ -354,7 +354,7 @@ public class BaseFileSystem implements FileSystem {
       throw new FileDoesNotExistException(
           ExceptionMessage.CANNOT_READ_DIRECTORY.getMessage(status.getName()));
     }
-    InStreamOptions inStreamOptions = options.toInStreamOptions();
+    InStreamOptions inStreamOptions = options.toInStreamOptions(status);
     return FileInStream.create(status, inStreamOptions, mFileSystemContext);
   }
 

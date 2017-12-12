@@ -17,14 +17,18 @@ import alluxio.Seekable;
 import alluxio.client.BoundedStream;
 import alluxio.client.PositionedReadable;
 import alluxio.client.file.FileSystemContext;
+import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.InStreamOptions;
+import alluxio.client.file.options.OpenFileOptions;
 import alluxio.exception.PreconditionMessage;
 import alluxio.exception.status.NotFoundException;
+import alluxio.master.block.BlockId;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.util.io.BufferUtils;
 import alluxio.util.network.NettyUtils;
 import alluxio.util.network.NetworkAddressUtils;
+import alluxio.wire.BlockInfo;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.base.Preconditions;
@@ -71,6 +75,99 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
   private boolean mEOF = false;
 
   /**
+   * Creates a {@link BlockInStream}. Primarily responsible for determining where the client
+   * should connect based on its configuration.
+   *
+   * One of several read behaviors:
+   *
+   * 1. Domain socket - if the data source is the local worker and the local worker has a domain
+   * socket server
+   * 2. Short-Circuit - if the data source is the local worker
+   * 3. Local Loopback Read - if the data source is the local worker and short circuit is disabled
+   * 4. Remote Read through worker - if the data source is a remote worker, passive cache is
+   * enabled, and there is a local worker (remote worker -> local worker -> client)
+   * 5. Remote Read through worker - if the data is on a remote worker and passive cache is
+   * disabled or if there is no local worker (remote worker -> client)
+   * 6. UFS Read from remote worker through local worker - if the data source is UFS, passive
+   * cache is enabled, and the UFS read policy designates a remote worker (ufs -> remote worker ->
+   * local worker -> client)
+   * 7. UFS Read through local worker - if the data source is UFS and the UFS read policy
+   * designates the local worker (ufs -> local worker -> client)
+   * 8. UFS Read through remote worker - if the data source is UFS, the UFS read policy
+   * designates a remote worker, and there is no local worker or passive caching is disabled
+   *
+   * @param context the file system context
+   * @param info the block info
+   * @param dataSource the Alluxio worker which should read the data
+   * @param dataSourceType the source location of the block
+   * @param options the instream options
+   * @return the {@link BlockInStream} object
+   */
+  public static BlockInStream createv2(FileSystemContext context, BlockInfo info,
+      WorkerNetAddress dataSource, BlockInStreamSource dataSourceType, InStreamOptions options)
+      throws IOException {
+    URIStatus status = options.getStatus();
+    OpenFileOptions readOptions = options.getOptions();
+
+    boolean promote = readOptions.getReadType().isPromote();
+    boolean asyncCache = Configuration.getBoolean(PropertyKey.USER_FILE_CACHE_PARTIALLY_READ_BLOCK);
+
+    long blockId = info.getBlockId();
+    long blockSize = info.getLength();
+
+    // Construct the partial read request
+    Protocol.OpenAlluxioBlockOptions alluxioReadOptions =
+        Protocol.OpenAlluxioBlockOptions.newBuilder().setSourceHost(dataSource.getHost())
+            .setSourcePort(dataSource.getDataPort()).build();
+    Protocol.ReadRequest.Builder builder =
+        Protocol.ReadRequest.newBuilder().setBlockId(blockId).setPromote(promote)
+            .setAsyncCache(asyncCache).setOpenAlluxioBlockOptions(alluxioReadOptions);
+    if (status.isPersisted()) { // Add UFS fallback options
+      long blockStart = BlockId.getSequenceNumber(blockId) * blockSize;
+      Protocol.OpenUfsBlockOptions ufsReadOptions = Protocol.OpenUfsBlockOptions.newBuilder().
+          setUfsPath(status.getUfsPath())
+          .setOffsetInFile(blockStart).setBlockSize(blockSize)
+          .setMaxUfsReadConcurrency(readOptions.getMaxUfsReadConcurrency())
+          .setNoCache(!readOptions.getReadType().isCache())
+          .setMountId(status.getMountId()).build();
+      builder.setOpenUfsBlockOptions(ufsReadOptions);
+    }
+
+    boolean passiveCache = Configuration.getBoolean(PropertyKey.USER_FILE_PASSIVE_CACHE_ENABLED);
+
+    // Determine the worker the client will connect to
+    WorkerNetAddress connectHost;
+    if (!passiveCache || !context.hasLocalWorker()) {
+      connectHost = dataSource;
+    } else {
+      connectHost = context.getLocalWorker();
+    }
+
+    boolean shortCircuit = Configuration.getBoolean(PropertyKey.USER_SHORT_CIRCUIT_ENABLED);
+    boolean sourceSupportsDomainSocket = !NettyUtils.isDomainSocketSupported(dataSource);
+    boolean sourceIsLocal = dataSourceType == BlockInStreamSource.LOCAL;
+
+    // Short circuit
+    if (sourceIsLocal && shortCircuit && !sourceSupportsDomainSocket) {
+      LOG.debug("Creating short circuit input stream for block {} @ {}", blockId, dataSource);
+      try {
+        return createLocalBlockInStream(context, connectHost, blockId, blockSize, options);
+      } catch (NotFoundException e) {
+        // Failed to do short circuit read because the block is not available in Alluxio.
+        // We will try to read from via netty. So this exception is ignored.
+        LOG.warn("Failed to create short circuit input stream for block {} @ {}", blockId,
+            dataSource);
+      }
+    }
+
+    // Netty
+    LOG.debug("Creating netty input stream for block {} @ {} from client {} reading through {}",
+        blockId, dataSource, NetworkAddressUtils.getClientHostName(), connectHost);
+    return createNettyBlockInStream(context, connectHost, dataSourceType, builder.buildPartial(),
+        blockSize, options);
+  }
+
+  /**
    * Creates an {@link BlockInStream} that reads from a local block.
    *
    * @param context the file system context
@@ -115,7 +212,7 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
    * Creates a {@link BlockInStream} to read from a local file.
    *
    * @param context the file system context
-   * @param address the network address of the netty data server
+   * @param address the network address of the netty data server to read from
    * @param blockId the block ID
    * @param length the block length
    * @param options the in stream options
