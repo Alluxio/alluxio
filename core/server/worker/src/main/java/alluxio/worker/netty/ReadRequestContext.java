@@ -68,7 +68,7 @@ public class ReadRequestContext<T extends ReadRequest> {
    * when error happens (mError overrides mCancel and mEof).
    */
   private boolean mEof;
-  private boolean mCancel;
+  private boolean mClose;
   private boolean mPause;
   private boolean mResume;
   private Error mError;
@@ -91,7 +91,7 @@ public class ReadRequestContext<T extends ReadRequest> {
     mPosToWrite = 0;
     mPacketReaderActive = false;
     mEof = false;
-    mCancel = false;
+    mClose = false;
     mPause = false;
     mError = null;
     mDone = false;
@@ -140,8 +140,8 @@ public class ReadRequestContext<T extends ReadRequest> {
    * @return true when a CANCEL request is received by the client, false otherwise
    */
   @GuardedBy("AbstractReadHandler#mLock")
-  public boolean isCancel() {
-    return mCancel;
+  public boolean isClose() {
+    return mClose;
   }
 
   /**
@@ -214,11 +214,11 @@ public class ReadRequestContext<T extends ReadRequest> {
   }
 
   /**
-   * @param cancel whether the CANCEL request is received
+   * @param close whether the CANCEL request is received
    */
   @GuardedBy("AbstractReadHandler#mLock")
-  public void setCancel(boolean cancel) {
-    mCancel = cancel;
+  public void setClose(boolean close) {
+    mClose = close;
   }
 
   /**

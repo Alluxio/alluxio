@@ -182,8 +182,8 @@ public final class NettyPacketReader implements PacketReader {
       if (!mChannel.isOpen()) {
         return;
       }
-      Protocol.ReadRequest cancelRequest = mReadRequest.toBuilder().setCancel(true).build();
-      mChannel.writeAndFlush(new RPCProtoMessage(new ProtoMessage(cancelRequest)))
+      Protocol.ReadRequest closeRequest = mReadRequest.toBuilder().setClose(true).build();
+      mChannel.writeAndFlush(new RPCProtoMessage(new ProtoMessage(closeRequest)))
           .addListener(ChannelFutureListener.CLOSE_ON_FAILURE);
 
       try {
@@ -385,7 +385,7 @@ public final class NettyPacketReader implements PacketReader {
     mPaused = true;
     // update the read request for the next read when it resumes
     mReadRequest =
-        mReadRequest.toBuilder().setOffset(position).setLength(length).setResume(true).build();
+        mReadRequest.toBuilder().setOffset(position).setLength(length).build();
   }
 
   @Override

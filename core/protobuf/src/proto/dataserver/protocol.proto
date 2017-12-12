@@ -12,20 +12,19 @@ enum RequestType {
 }
 
 // The read request.
-// next available id: 11
+// next available id: 10
 message ReadRequest {
   optional int64 block_id = 1;
   optional int64 offset = 2;
   optional int64 length = 3;
-  // If set, this request is to cancel the reading request for the id.
-  optional bool cancel = 4;
+  // If set, this request is to close the reading request for the id.
+  optional bool close = 4;
   // Whether the block should be promoted before reading
   optional bool promote = 7;
   // the session id of the block read
   optional int64 session_id = 8;
   // if set, then pause the data read
   optional bool pause = 9;
-  optional bool resume = 10;
 
   // If set, the server should send packets in the specified packet size.
   optional int64 packet_size = 5;

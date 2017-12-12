@@ -115,7 +115,7 @@ public abstract class ReadHandlerTest {
     RPCProtoMessage readRequest = buildReadRequest(0, fileSize);
     Protocol.ReadRequest request = readRequest.getMessage().asReadRequest();
     RPCProtoMessage cancelRequest =
-        new RPCProtoMessage(new ProtoMessage(request.toBuilder().setCancel(true).build()), null);
+        new RPCProtoMessage(new ProtoMessage(request.toBuilder().setClose(true).build()), null);
     mChannel.writeInbound(readRequest);
     mChannel.writeInbound(cancelRequest);
 

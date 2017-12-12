@@ -23,15 +23,13 @@ class ReadRequest {
   private final long mEnd;
   private final long mPacketSize;
   private final long mSessionId;
-  private final boolean mResume;
 
-  ReadRequest(long id, long start, long end, long packetSize, long sessionId, boolean resume) {
+  ReadRequest(long id, long start, long end, long packetSize, long sessionId) {
     mId = id;
     mStart = start;
     mEnd = end;
     mPacketSize = packetSize;
     mSessionId = sessionId;
-    mResume = resume;
   }
 
   /**
@@ -67,9 +65,5 @@ class ReadRequest {
    */
   public long getPacketSize() {
     return mPacketSize;
-  }
-
-  public boolean isResume() {
-    return mResume;
   }
 }

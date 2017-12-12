@@ -63,6 +63,7 @@ public final class BlockReadHandler extends AbstractReadHandler<BlockReadRequest
   private final BlockWorker mWorker;
   /** The transfer type used by the data server. */
   private final FileTransferType mTransferType;
+  private long mStart;
 
   /**
    * The packet reader to read from a local block worker.
@@ -77,6 +78,7 @@ public final class BlockReadHandler extends AbstractReadHandler<BlockReadRequest
     BlockPacketReader(BlockReadRequestContext context, Channel channel, BlockWorker blockWorker) {
       super(context, channel);
       mWorker = blockWorker;
+      mStart = -1;
     }
 
     @Override
@@ -84,15 +86,14 @@ public final class BlockReadHandler extends AbstractReadHandler<BlockReadRequest
       BlockReader reader = context.getBlockReader();
       // for seekable reader, do not release the block reader for pause, so future read request can
       // reuse the reader
-      if (context.isCancel()) {
-        if (reader != null && !reader.isSeekable()) {
-          try {
-            reader.close();
-            context.setBlockReader(null);
-          } catch (Exception e) {
-            LOG.warn("Failed to close block reader for block {} with error {}.",
-                context.getRequest().getId(), e.getMessage());
-          }
+      if (context.isClose() || (reader != null && !reader.isSeekable())) {
+        try {
+          LOG.info("Close the UFS reader");
+          reader.close();
+          context.setBlockReader(null);
+        } catch (Exception e) {
+          LOG.warn("Failed to close block reader for block {} with error {}.",
+              context.getRequest().getId(), e.getMessage());
         }
         if (!mWorker.unlockBlock(context.getRequest().getSessionId(),
             context.getRequest().getId())) {
@@ -132,18 +133,19 @@ public final class BlockReadHandler extends AbstractReadHandler<BlockReadRequest
      */
     private void openBlock(BlockReadRequestContext context, Channel channel) throws Exception {
       BlockReadRequest request = context.getRequest();
-      if (context.getBlockReader() != null && !context.isResume()) {
-        return;
-      }
-
-      BlockReader reader = context.getBlockReader();
-      if (context.isResume() && reader != null) {
-        // the reader stream is paused, reposition the reader and resume
+      if (context.getBlockReader() != null) {
+        if (mStart == request.getStart()) {
+          LOG.info("Reused block reader");
+          return;
+        }
+        BlockReader reader = context.getBlockReader();
         reader.position(request.getStart());
-        context.setResume(false);
+        mStart = request.getStart();
+        LOG.info("Repositioned block reader to {}", request.getStart());
         return;
       }
 
+      LOG.info("Created new block reader");
       int retryInterval = Constants.SECOND_MS;
       RetryPolicy retryPolicy = new TimeoutRetry(UFS_BLOCK_OPEN_TIMEOUT_MS, retryInterval);
 
@@ -168,7 +170,7 @@ public final class BlockReadHandler extends AbstractReadHandler<BlockReadRequest
         }
         try {
           if (lockId != BlockLockManager.INVALID_LOCK_ID){
-            reader = mWorker.readBlockRemote(request.getSessionId(), request.getId(), lockId);
+            BlockReader reader = mWorker.readBlockRemote(request.getSessionId(), request.getId(), lockId);
             String metricName = "BytesReadAlluxio";
             context.setBlockReader(reader);
             context.setCounter(MetricsSystem.workerCounter(metricName));
@@ -186,7 +188,7 @@ public final class BlockReadHandler extends AbstractReadHandler<BlockReadRequest
         Protocol.OpenUfsBlockOptions openUfsBlockOptions = request.getOpenUfsBlockOptions();
         if (mWorker.openUfsBlock(request.getSessionId(), request.getId(), openUfsBlockOptions)) {
           try {
-            reader =
+            BlockReader reader =
                 mWorker.readUfsBlock(request.getSessionId(), request.getId(), request.getStart());
             AlluxioURI ufsMountPointUri =
                 ((UnderFileSystemBlockReader) reader).getUfsMountPointUri();

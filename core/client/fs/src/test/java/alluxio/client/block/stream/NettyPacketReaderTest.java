@@ -221,7 +221,7 @@ public final class NettyPacketReaderTest {
     Assert.assertEquals(BLOCK_ID, readRequest.getBlockId());
     Assert.assertEquals(offset, readRequest.getOffset());
     Assert.assertEquals(length, readRequest.getLength());
-    Assert.assertEquals(cancel, readRequest.getCancel());
+    Assert.assertEquals(cancel, readRequest.getClose());
     Assert.assertEquals(packetSize, readRequest.getPacketSize());
   }
 
