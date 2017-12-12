@@ -171,8 +171,7 @@ public final class AlluxioBlockStore {
       throw new UnavailableException(ExceptionMessage.NO_WORKER_AVAILABLE.getMessage());
     }
 
-    return
-
+    return BlockInStream.createv2(mContext, info, dataSource, dataSourceType, options);
   }
 
   /**
