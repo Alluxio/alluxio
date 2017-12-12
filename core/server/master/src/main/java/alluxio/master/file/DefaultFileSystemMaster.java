@@ -3054,9 +3054,6 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     DeleteOptions syncDeleteOptions =
         DeleteOptions.defaults().setRecursive(true).setAlluxioOnly(true).setUnchecked(true);
 
-    // TODO(gpang): remove debugging
-    LOG.info("sync path: {}", inodePath.getUri());
-
     try {
       if (!inodePath.fullPathExists()) {
         // The requested path does not exist in Alluxio, so just load metadata.
