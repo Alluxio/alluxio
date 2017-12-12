@@ -42,6 +42,8 @@ public final class OpenFileOptions {
   private int mMaxUfsReadConcurrency;
   /** The location policy to determine the worker location to serve UFS block reads. */
   private BlockLocationPolicy mUfsReadLocationPolicy;
+  /** Whether to cache a partially read block. */
+  private boolean mPartialCache;
 
   /**
    * @return the default {@link InStreamOptions}
@@ -72,6 +74,7 @@ public final class OpenFileOptions {
     mUfsReadLocationPolicy = BlockLocationPolicy.Factory.create(blockLocationPolicyCreateOptions);
     mMaxUfsReadConcurrency =
         Configuration.getInt(PropertyKey.USER_UFS_BLOCK_READ_CONCURRENCY_MAX);
+    mPartialCache = Configuration.getBoolean(PropertyKey.USER_FILE_CACHE_PARTIALLY_READ_BLOCK);
   }
 
   /**
@@ -91,6 +94,13 @@ public final class OpenFileOptions {
   @JsonIgnore
   public FileWriteLocationPolicy getCacheLocationPolicy() {
     return mCacheLocationPolicy;
+  }
+
+  /**
+   * @return whether partially read blocks should be cached
+   */
+  public boolean getCachePartiallyReadBlock() {
+    return mPartialCache;
   }
 
   /**
@@ -204,6 +214,15 @@ public final class OpenFileOptions {
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
+  }
+
+  /**
+   * @param cache whether to cache partially read blocks
+   * @return the updated options object
+   */
+  public OpenFileOptions setCachePartiallyReadBlock(boolean cache) {
+    mPartialCache = cache;
+    return this;
   }
 
   /**

@@ -18,11 +18,12 @@ import javax.annotation.concurrent.NotThreadSafe;
 
 import alluxio.Seekable;
 import alluxio.annotation.PublicApi;
+import alluxio.client.BoundedStream;
+import alluxio.client.PositionedReadable;
 import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.block.stream.BlockInStream;
 import alluxio.client.file.options.InStreamOptions;
 import alluxio.exception.PreconditionMessage;
-import alluxio.wire.BlockInfo;
 
 import com.google.common.base.Preconditions;
 
@@ -48,7 +49,8 @@ import com.google.common.base.Preconditions;
  */
 @PublicApi
 @NotThreadSafe
-public class FileInStream extends InputStream implements Seekable {
+public class FileInStream extends InputStream implements BoundedStream, PositionedReadable,
+    Seekable {
   private final URIStatus mStatus;
   private final InStreamOptions mOptions;
   private final FileSystemContext mContext;
@@ -78,6 +80,7 @@ public class FileInStream extends InputStream implements Seekable {
     mPosition = 0;
   }
 
+  /* Input Stream methods */
   @Override
   public int read() throws IOException {
     if (mPosition == mLength) { // at end of file
@@ -136,6 +139,43 @@ public class FileInStream extends InputStream implements Seekable {
     closeBlockInStream();
   }
 
+  /* Bounded Stream methods */
+  @Override
+  public long remaining() {
+    return mLength - mPosition;
+  }
+
+  /* Positioned Readable methods */
+  @Override
+  public int positionedRead(long pos, byte[] b, int off, int len) throws IOException {
+    return positionedReadInternal(pos, b, off, len);
+  }
+
+  private int positionedReadInternal(long pos, byte[] b, int off, int len) throws IOException {
+    if (pos < 0 || pos >= mLength) {
+      return -1;
+    }
+
+    int lenCopy = len;
+    while (len > 0) {
+      if (pos >= mLength) {
+        break;
+      }
+      long blockId = mStatus.getBlockIds().get(Math.toIntExact(mPosition / mBlockSize));
+      try (BlockInStream bin = mBlockStore.getInStream(mOptions.getBlockInfo(blockId), mOptions)) {
+        long offset = pos % mBlockSize;
+        int bytesRead =
+            bin.positionedRead(offset, b, off, (int) Math.min(mBlockSize - offset, len));
+        Preconditions.checkState(bytesRead > 0, "No data is read before EOF");
+        pos += bytesRead;
+        off += bytesRead;
+        len -= bytesRead;
+      }
+    }
+    return lenCopy - len;
+  }
+
+  /* Seekable methods */
   @Override
   public long getPos() {
     return mPosition;
@@ -182,11 +222,9 @@ public class FileInStream extends InputStream implements Seekable {
 
     /* Create a new stream to read from mPosition. */
     // Calculate block id.
-    int blockIndex = Math.toIntExact(mPosition / mBlockSize);
-    long blockId = mStatus.getBlockIds().get(blockIndex);
+    long blockId = mStatus.getBlockIds().get(Math.toIntExact(mPosition / mBlockSize));
     // Create stream
-    BlockInfo info = mOptions.getBlockInfo(blockId);
-    mBlockInStream = mBlockStore.getInStream(info, mOptions);
+    mBlockInStream = mBlockStore.getInStream(mOptions.getBlockInfo(blockId), mOptions);
     // Set the stream to the correct position.
     long offset = mPosition % mBlockSize;
     mBlockInStream.seek(offset);
