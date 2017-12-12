@@ -24,6 +24,7 @@ import alluxio.client.file.options.InStreamOptions;
 import alluxio.exception.PreconditionMessage;
 import alluxio.master.block.BlockId;
 import alluxio.proto.dataserver.Protocol;
+import alluxio.wire.BlockInfo;
 import com.google.common.base.Preconditions;
 
 /**
@@ -184,23 +185,9 @@ public class FileInStreamv2 extends InputStream implements Seekable {
     // Calculate block id.
     int blockIndex = Math.toIntExact(mPosition / mBlockSize);
     long blockId = mStatus.getBlockIds().get(blockIndex);
-    // If the file is persisted, provide the necessary info for the worker to fetch from UFS.
-    Protocol.OpenUfsBlockOptions ufsOptions = null;
-    if (mStatus.isPersisted()) {
-      long blockOffset = BlockId.getSequenceNumber(blockId) * mStatus.getBlockSizeBytes();
-      // Calculate the exact block size.
-      long lastBlockSize = mLength % mBlockSize;
-      long blockSize = mLength - blockOffset > lastBlockSize ? mBlockSize : lastBlockSize;
+    BlockInfo info = mOptions.getBlockInfo(blockId);
 
-      ufsOptions =
-          Protocol.OpenUfsBlockOptions.newBuilder().setUfsPath(mStatus.getUfsPath())
-              .setOffsetInFile(blockOffset).setBlockSize(blockSize)
-              .setMaxUfsReadConcurrency(mOptions.getMaxUfsReadConcurrency())
-              .setNoCache(!mOptions.getAlluxioStorageType().isStore())
-              .setMountId(mStatus.getMountId()).build();
-    }
-
-    mBlockInStream = mBlockStore.getInStream(blockId, ufsOptions, mOptions);
+    mBlockInStream = mBlockStore.getInStreamv2(info, mOptions);
     // Set the stream to the correct position.
     long offset = mPosition % mBlockSize;
     mBlockInStream.seek(offset);
@@ -208,6 +195,5 @@ public class FileInStreamv2 extends InputStream implements Seekable {
 
   private void closeBlockInStream() throws IOException {
     mBlockInStream.close();
-    // TODO(calvin): Handle async caching here
   }
 }
