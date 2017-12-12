@@ -1,7 +1,7 @@
 ---
 layout: global
-title: Logging Conventions
-nickname: Logging Conventions
+title: Logging Conventions And Tips
+nickname: Logging Conventions And Tips
 group: Resources
 ---
 
@@ -39,7 +39,7 @@ Alluxio使用如下的日志级别：
 
 * Alluxio中不使用跟踪级别日志。
 
-## 配置
+## 日志记录配置
 
 Alluxio的日志行为可以完全由`conf`文件夹下的`log4j.properties`文件进行配置。
 
@@ -120,3 +120,21 @@ alluxio logLevel --loggerName = alluxio.heartbeat.HeartbeatContext --target = ma
 alluxio logLevel --loggerName = alluxio.heartbeat.HeartbeatContext --target = workers
 ```
 
+###客户端日志记录配置
+
+改变在计算框架（例如Spark，Presto）进程中运行的Alluxio客户端的日志级别并且为了调试把它保存为一个文件通常是有用的。要做到这一点，你可以将下面的java选项传递给计算框架进程。
+
+例如，选项`-Dalluxio.log.dir=/var/alluxio/ -Dalluxio.logger.type=USER_LOGGER -Dlog4j.configuration=/tmp/
+alluxio/conf/log4j.properties`将指导Alluxio客户端在Alluxio的conf路径上使用log4j配置并且
+输出日志到路径为`/var/alluxio/`，名为`user_USER_NAME.log`的文件中，`USER_NAME`是开始该客户端程序的用户。如果客户端机器和安装Alluxio的机器不一样，你可以将`conf/log4j.properties`中的文件复制到客户端机器并且把它的路径传给`log4j.configuration`选项。如果你不想覆盖应用的`log4j.properties`路径，你可以将下面的内容添加到它的`log4j.properties`文件中：
+
+```
+# Appender for Alluxio User
+log4j.rootLogger=INFO,${alluxio.logger.type}
+log4j.appender.USER_LOGGER=org.apache.log4j.RollingFileAppender
+log4j.appender.USER_LOGGER.File=${alluxio.logs.dir}/user_${user.name}.log
+log4j.appender.USER_LOGGER.MaxFileSize=10MB
+log4j.appender.USER_LOGGER.MaxBackupIndex=10
+log4j.appender.USER_LOGGER.layout=org.apache.log4j.PatternLayout
+log4j.appender.USER_LOGGER.layout.ConversionPattern=%d{ISO8601} %-5p %c{1} - %m%n
+```
