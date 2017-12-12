@@ -532,12 +532,9 @@ public final class NetworkAddressUtils {
    * @return the hostname IP address, or null if it is null or empty
    * @throws UnknownHostException if the given hostname cannot be resolved
    */
-  @Nullable
   public static String resolveIpAddress(String hostname) throws UnknownHostException {
-    if (hostname == null || hostname.isEmpty()) {
-      return null;
-    }
-
+    Preconditions.checkNotNull(hostname);
+    Preconditions.checkArgument(!hostname.isEmpty());
     return InetAddress.getByName(hostname).getHostAddress();
   }
 
