@@ -222,6 +222,8 @@ public final class TieredIdentity implements Serializable {
           }
         } catch (IllegalArgumentException e) {
           // ignore
+        } catch (NullPointerException e) {
+          // ignore
         } catch (UnknownHostException e) {
           // ignore
         }
