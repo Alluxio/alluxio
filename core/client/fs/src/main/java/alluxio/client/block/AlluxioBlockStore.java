@@ -132,7 +132,7 @@ public final class AlluxioBlockStore {
    * @param options the options associated with the read request
    * @return a stream which reads from the beginning of the block
    */
-  public BlockInStream getInStreamv2(BlockInfo info, InStreamOptions options) throws IOException {
+  public BlockInStream getInStream(BlockInfo info, InStreamOptions options) throws IOException {
     List<BlockLocation> locations = info.getLocations();
     if (locations.isEmpty() && !options.getStatus().isPersisted()) {
       throw new NotFoundException(ExceptionMessage.BLOCK_UNAVAILABLE.getMessage(info.getBlockId()));
@@ -171,68 +171,7 @@ public final class AlluxioBlockStore {
       throw new UnavailableException(ExceptionMessage.NO_WORKER_AVAILABLE.getMessage());
     }
 
-    return BlockInStream.createv2(mContext, info, dataSource, dataSourceType, options);
-  }
-
-  /**
-   * Gets a stream to read the data of a block. The stream is backed by Alluxio storage.
-   *
-   * @param blockId the block to read from
-   * @param openUfsBlockOptions the options to open UFS block, set to null if the block is not in
-   *        UFS
-   * @param options the options
-   * @return an {@link InputStream} which can be used to read the data in a streaming fashion
-   */
-  public BlockInStream getInStream(long blockId, Protocol.OpenUfsBlockOptions openUfsBlockOptions,
-      InStreamOptions options) throws IOException {
-    BlockInfo blockInfo;
-    try (CloseableResource<BlockMasterClient> masterClientResource =
-        mContext.acquireBlockMasterClientResource()) {
-      blockInfo = masterClientResource.get().getBlockInfo(blockId);
-    }
-
-    BlockInStreamSource source = BlockInStreamSource.UFS;
-    if (blockInfo.getLocations().isEmpty() && openUfsBlockOptions == null) {
-      throw new NotFoundException("Block " + blockId + " is unavailable in both Alluxio and UFS.");
-    }
-    WorkerNetAddress address = null;
-    if (blockInfo.getLocations().isEmpty()) {
-      BlockLocationPolicy blockLocationPolicy =
-          Preconditions.checkNotNull(options.getUfsReadLocationPolicy(),
-              PreconditionMessage.UFS_READ_LOCATION_POLICY_UNSPECIFIED);
-      address = blockLocationPolicy
-          .getWorker(GetWorkerOptions.defaults().setBlockWorkerInfos(getEligibleWorkers())
-              .setBlockId(blockId).setBlockSize(blockInfo.getLength()));
-    } else {
-      // TODO(calvin): Get location via a policy.
-      List<TieredIdentity> locations = blockInfo.getLocations().stream()
-          .map(location -> location.getWorkerAddress().getTieredIdentity())
-          .collect(Collectors.toList());
-      Collections.shuffle(locations);
-      Optional<TieredIdentity> nearest = mTieredIdentity.nearest(locations);
-      if (nearest.isPresent()) {
-        address = blockInfo.getLocations().stream()
-            .map(BlockLocation::getWorkerAddress)
-            .filter(a -> a.getTieredIdentity().equals(nearest.get()))
-            .findFirst().get();
-        if (mTieredIdentity.getTier(0).getTierName().equals(Constants.LOCALITY_NODE)
-            && mTieredIdentity.topTiersMatch(nearest.get())) {
-          source = BlockInStreamSource.LOCAL;
-        } else {
-          source = BlockInStreamSource.REMOTE;
-        }
-      }
-    }
-    if (address == null) {
-      throw new UnavailableException(ExceptionMessage.NO_WORKER_AVAILABLE.getMessage());
-    }
-
-    LOG.debug(
-        "Create block instream for {} of length {}  at address {},"
-            + " using source: {}, openUfsBlockOptions: {}, options: {}",
-        blockId, blockInfo.getLength(), address, source, openUfsBlockOptions, options);
-    return BlockInStream.create(mContext, blockId, blockInfo.getLength(), address, source,
-        openUfsBlockOptions, options);
+    return BlockInStream.create(mContext, info, dataSource, dataSourceType, options);
   }
 
   /**

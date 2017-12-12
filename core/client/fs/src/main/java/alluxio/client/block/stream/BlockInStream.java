@@ -103,7 +103,7 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
    * @param options the instream options
    * @return the {@link BlockInStream} object
    */
-  public static BlockInStream createv2(FileSystemContext context, BlockInfo info,
+  public static BlockInStream create(FileSystemContext context, BlockInfo info,
       WorkerNetAddress dataSource, BlockInStreamSource dataSourceType, InStreamOptions options)
       throws IOException {
     URIStatus status = options.getStatus();
@@ -164,47 +164,6 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
     LOG.debug("Creating netty input stream for block {} @ {} from client {} reading through {}",
         blockId, dataSource, NetworkAddressUtils.getClientHostName(), connectHost);
     return createNettyBlockInStream(context, connectHost, dataSourceType, builder.buildPartial(),
-        blockSize, options);
-  }
-
-  /**
-   * Creates an {@link BlockInStream} that reads from a local block.
-   *
-   * @param context the file system context
-   * @param blockId the block ID
-   * @param blockSize the block size in bytes
-   * @param address the Alluxio worker address
-   * @param blockSource the source location of the block
-   * @param openUfsBlockOptions the options to open a UFS block, set to null if this is block is
-   *        not persisted in UFS
-   * @param options the in stream options
-   * @return the {@link InputStream} object
-   */
-  public static BlockInStream create(FileSystemContext context, long blockId, long blockSize,
-      WorkerNetAddress address, BlockInStreamSource blockSource,
-      Protocol.OpenUfsBlockOptions openUfsBlockOptions, InStreamOptions options)
-          throws IOException {
-    if (Configuration.getBoolean(PropertyKey.USER_SHORT_CIRCUIT_ENABLED)
-        && !NettyUtils.isDomainSocketSupported(address)
-        && blockSource == BlockInStreamSource.LOCAL) {
-      try {
-        LOG.debug("Creating short circuit input stream for block {} @ {}", blockId, address);
-        return createLocalBlockInStream(context, address, blockId, blockSize, options);
-      } catch (NotFoundException e) {
-        // Failed to do short circuit read because the block is not available in Alluxio.
-        // We will try to read from UFS via netty. So this exception is ignored.
-        LOG.warn("Failed to create short circuit input stream for block {} @ {}", blockId, address);
-      }
-    }
-    Protocol.ReadRequest.Builder builder = Protocol.ReadRequest.newBuilder().setBlockId(blockId)
-        .setPromote(options.getAlluxioStorageType().isPromote());
-    if (openUfsBlockOptions != null) {
-      builder.setOpenUfsBlockOptions(openUfsBlockOptions);
-    }
-
-    LOG.debug("Creating netty input stream for block {} @ {} from client {}", blockId, address,
-        NetworkAddressUtils.getClientHostName());
-    return createNettyBlockInStream(context, address, blockSource, builder.buildPartial(),
         blockSize, options);
   }
 
