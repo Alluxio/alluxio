@@ -19,6 +19,7 @@ import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 import alluxio.Configuration;
 import alluxio.ConfigurationTestUtils;
@@ -27,7 +28,6 @@ import alluxio.proto.journal.Journal.JournalEntry;
 
 import org.junit.After;
 import org.junit.Test;
-import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 
 import java.io.IOException;
@@ -77,9 +77,9 @@ public class AsyncJournalWriterTest {
       mAsyncJournalWriter.flush(i);
     }
     if (batchingEnabled) {
-      Mockito.verify(mMockJournalWriter, atLeastOnce()).flush();
+      verify(mMockJournalWriter, atLeastOnce()).flush();
     } else {
-      Mockito.verify(mMockJournalWriter, times(entries)).flush();
+      verify(mMockJournalWriter, times(entries)).flush();
     }
   }
 
@@ -130,9 +130,9 @@ public class AsyncJournalWriterTest {
       mAsyncJournalWriter.flush(i);
     }
     if (batchingEnabled) {
-      Mockito.verify(mMockJournalWriter, atLeastOnce()).flush();
+      verify(mMockJournalWriter, atLeastOnce()).flush();
     } else {
-      Mockito.verify(mMockJournalWriter, times(entries)).flush();
+      verify(mMockJournalWriter, times(entries)).flush();
     }
   }
 
@@ -182,10 +182,10 @@ public class AsyncJournalWriterTest {
       mAsyncJournalWriter.flush(i);
     }
     if (batchingEnabled) {
-      Mockito.verify(mMockJournalWriter, atLeastOnce()).flush();
+      verify(mMockJournalWriter, atLeastOnce()).flush();
     } else {
       // The first half of the calls were the failed flush calls.
-      Mockito.verify(mMockJournalWriter, times(2 * entries)).flush();
+      verify(mMockJournalWriter, times(2 * entries)).flush();
     }
   }
 
