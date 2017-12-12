@@ -45,7 +45,7 @@ public class TieredIdentityTest {
     assertSame(id3,
         TieredIdentityFactory.fromString("node=C,rack=rack2").nearest(identities).get());
     assertSame(id1,
-        TieredIdentityFactory.fromString("host=D,rack=rack3").nearest(identities).get());
+        TieredIdentityFactory.fromString("node=D,rack=rack3").nearest(identities).get());
   }
 
   @Test
