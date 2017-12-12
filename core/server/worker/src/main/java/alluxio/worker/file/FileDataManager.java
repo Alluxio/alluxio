@@ -64,7 +64,6 @@ public final class FileDataManager {
   /** The files being persisted, keyed by fileId,
    * and the inner map tracks the block id to lock id. */
   @GuardedBy("mLock")
-  // the file being persisted,
   private final Map<Long, Map<Long, Long>> mPersistingInProgressFiles;
 
   /** The file are persisted, but not sent back to master for confirmation yet. */
