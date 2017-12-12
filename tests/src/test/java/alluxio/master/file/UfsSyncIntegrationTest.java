@@ -14,7 +14,10 @@ package alluxio.master.file;
 import alluxio.AlluxioURI;
 import alluxio.AuthenticatedUserRule;
 import alluxio.BaseIntegrationTest;
+import alluxio.Configuration;
+import alluxio.ConfigurationTestUtils;
 import alluxio.LocalAlluxioClusterResource;
+import alluxio.PropertyKey;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
@@ -34,6 +37,7 @@ import alluxio.wire.LoadMetadataType;
 
 import com.google.common.collect.Sets;
 import com.google.common.io.Files;
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -61,6 +65,7 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
   private static final String EXISTING_FILE = "/file_exist";
   private static final String NEW_DIR = "/dir_new";
   private static final String NEW_FILE = "/file_new";
+  private static final String NEW_NESTED_FILE = "/a/b/file_new";
 
   private FileSystem mFileSystem;
   private String mLocalUfsPath = Files.createTempDir().getAbsolutePath();
@@ -71,6 +76,11 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
       new LocalAlluxioClusterResource.Builder().build();
+
+  @After
+  public void after() throws Exception {
+    ConfigurationTestUtils.resetConfiguration();
+  }
 
   @Before
   public void before() throws Exception {
@@ -336,6 +346,18 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
 
     // Verify the fingerprints are different.
     Assert.assertNotEquals(startFingerprint, endFingerprint);
+  }
+
+  @Test
+  public void createNestedFileSync() throws Exception {
+    Configuration.set(PropertyKey.USER_FILE_METADATA_SYNC_INTERVAL, "0");
+
+    mFileSystem.createFile(new AlluxioURI(alluxioPath(NEW_NESTED_FILE)),
+        CreateFileOptions.defaults().setRecursive(true).setWriteType(WriteType.CACHE_THROUGH)
+            .setCommonOptions(SYNC_ALWAYS)).close();
+
+    // Make sure we can create the nested file.
+    Assert.assertNotNull(mFileSystem.getStatus(new AlluxioURI(alluxioPath(EXISTING_FILE))));
   }
 
   private String ufsPath(String path) {

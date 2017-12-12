@@ -3060,13 +3060,19 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         loadMetadata = true;
       } else {
         // The requested path already exists in Alluxio.
+        Inode<?> inode = inodePath.getInode();
+
+        if (inode instanceof InodeFile && !((InodeFile) inode).isCompleted()) {
+          // Do not sync an incomplete file, since the UFS file is expected to not exist.
+          return false;
+        }
 
         MountTable.Resolution resolution = mMountTable.resolve(inodePath.getUri());
         AlluxioURI ufsUri = resolution.getUri();
         UnderFileSystem ufs = resolution.getUfs();
 
-        UfsSyncUtils.SyncPlan syncPlan = UfsSyncUtils
-            .computeSyncPlan(inodePath.getInode(), ufs.getFingerprint(ufsUri.toString()));
+        UfsSyncUtils.SyncPlan syncPlan =
+            UfsSyncUtils.computeSyncPlan(inode, ufs.getFingerprint(ufsUri.toString()));
 
         if (syncPlan.toDelete() && inodePath.getParentInodeOrNull() != null) {
           // Do not delete the root.
@@ -3104,7 +3110,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
                   Fingerprint.create(Fingerprint.getUfsName(ufs), ufsChildStatus)
                       .serialize());
             }
-            InodeDirectory inodeDir = (InodeDirectory) inodePath.getInode();
+            InodeDirectory inodeDir = (InodeDirectory) inode;
             for (Inode<?> child : inodeDir.getChildren()) {
               inodeChildren.put(child.getName(), child);
             }
