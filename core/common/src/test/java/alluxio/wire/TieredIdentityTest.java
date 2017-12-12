@@ -12,6 +12,7 @@
 package alluxio.wire;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertSame;
 
 import alluxio.network.TieredIdentityFactory;
@@ -61,6 +62,26 @@ public class TieredIdentityTest {
     TieredIdentity tieredIdentity = createRandomTieredIdentity();
     TieredIdentity other = TieredIdentity.fromThrift(tieredIdentity.toThrift());
     checkEquality(tieredIdentity, other);
+  }
+
+  @Test
+  public void locality() {
+    LocalityTier lt1 = new LocalityTier("node", "A");
+    LocalityTier lt2 = new LocalityTier("node", "A");
+    LocalityTier lt3 = new LocalityTier("node", "B");
+    LocalityTier lt4 = new LocalityTier("rack", "A");
+    LocalityTier lt5 = new LocalityTier("rack", "B");
+    LocalityTier lt6 = new LocalityTier("rack", "B");
+    LocalityTier lt7 = new LocalityTier("rack", "");
+    LocalityTier lt8 = new LocalityTier("node", "A");
+    LocalityTier lt9 = new LocalityTier("node", "");
+    assertEquals(lt1, lt1);
+    assertEquals(lt1, lt2);
+    assertNotEquals(lt2, lt3);
+    assertEquals(lt5, lt6);
+    assertNotEquals(lt4, lt5);
+    assertNotEquals(lt6, lt7);
+    assertNotEquals(lt8, lt9);
   }
 
   public void checkEquality(TieredIdentity a, TieredIdentity b) {
