@@ -25,7 +25,7 @@ $ git clone https://github.com/Alluxio/alluxio.git
 $ cd integration/kubernetes
 ```
 
-部署Alluxio所需的Kubernetes说明可以在`integration/kubernetes`下找到。
+可以在`integration/kubernetes`下找到部署Alluxio所需的Kubernetes说明。
 
 ## 启用短路操作
 
