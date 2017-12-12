@@ -11,25 +11,13 @@
 
 package alluxio.client.file.options;
 
-import alluxio.Configuration;
-import alluxio.PropertyKey;
-import alluxio.client.AlluxioStorageType;
-import alluxio.client.ReadType;
-import alluxio.client.block.policy.BlockLocationPolicy;
-import alluxio.client.block.policy.options.CreateOptions;
 import alluxio.client.file.URIStatus;
-import alluxio.client.file.policy.FileWriteLocationPolicy;
-import alluxio.util.CommonUtils;
-import alluxio.util.IdUtils;
 
 import alluxio.wire.BlockInfo;
-import alluxio.wire.BlockLocation;
 import alluxio.wire.FileBlockInfo;
 import com.google.common.base.Objects;
 
 import javax.annotation.concurrent.NotThreadSafe;
-import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * Information for reading a file. This is an internal options class which contains information
@@ -42,6 +30,10 @@ import java.util.stream.Collectors;
 public final class InStreamOptions {
   private final URIStatus mStatus;
   private final OpenFileOptions mOptions;
+
+  public InStreamOptions(URIStatus status) {
+    this(status, OpenFileOptions.defaults());
+  }
 
   public InStreamOptions(URIStatus status, OpenFileOptions options) {
     mStatus = status;
