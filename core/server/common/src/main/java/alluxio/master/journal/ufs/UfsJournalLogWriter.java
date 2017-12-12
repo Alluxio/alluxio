@@ -30,7 +30,6 @@ import java.io.Closeable;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.Iterator;
 import java.net.URI;
 import java.util.LinkedList;
 import java.util.Queue;
@@ -167,6 +166,7 @@ final class UfsJournalLogWriter implements JournalWriter {
     } catch (IOException e) {
       throw e;
     } finally {
+      LOG.info("Add this journal entry to retryList with {} entries.", mRetryList.size());
       mRetryList.add(entry);
     }
 
@@ -228,12 +228,18 @@ final class UfsJournalLogWriter implements JournalWriter {
     mUfs.renameFile(src, dst);
 
     maybeRotateLog();
-    Iterator<JournalEntry> iterator = mRetryList.iterator();
-    if (iterator.hasNext()) {
-      LOG.info("Retry writing unwritten journal entries.");
+    if (!mRetryList.isEmpty()) {
+      JournalEntry entry = mRetryList.peek();
+      if (entry.getSequenceNumber() > mNextSequenceNumber) {
+        LOG.error("Journal entries between [{}, {}) are missing. Exiting.",
+            mNextSequenceNumber, entry.getSequenceNumber());
+        throw new IOException(ExceptionMessage.JOURNAL_ENTRY_MISSING
+            .getMessageWithUrl(RuntimeConstants.ALLUXIO_DEBUG_DOCS_URL,
+                currentLog));
+      }
+      LOG.info("Retry writing unwritten journal entries");
     }
-    while (iterator.hasNext()) {
-      JournalEntry entry = iterator.next();
+    for (JournalEntry entry : mRetryList) {
       if (entry.getSequenceNumber() >= mNextSequenceNumber) {
         try {
           entry.toBuilder().build()
