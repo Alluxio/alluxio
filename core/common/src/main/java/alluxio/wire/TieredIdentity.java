@@ -95,7 +95,7 @@ public final class TieredIdentity implements Serializable {
     for (LocalityTier tier : mTiers) {
       for (TieredIdentity identity : identities) {
         for (LocalityTier otherTier : identity.mTiers) {
-          if (tier != null && tier.checkLocality(otherTier)) {
+          if (tier != null && tier.equals(otherTier)) {
             return Optional.of(identity);
           }
         }
@@ -172,40 +172,6 @@ public final class TieredIdentity implements Serializable {
     }
 
     /**
-     * @param otherTier wire type locality tier to compare to
-     * @return true if the wire type locality tier is local in comparison to the given tier
-     */
-    public boolean checkLocality(LocalityTier otherTier) {
-
-      if (otherTier == null) {
-        return false;
-      }
-
-      String otherTierName = otherTier.getTierName();
-      if (!mTierName.equals(otherTierName)) {
-        return false;
-      }
-
-      // For node tiers, attempt to resolve hostnames to IP addresses, this avoid common
-      // misconfiguration errors where a worker is using one hostname and the client is using
-      // another.
-      String otherTierValue = otherTier.getValue();
-      if (Constants.LOCALITY_NODE.equals(mTierName)) {
-        try {
-          String tierIpAddress = NetworkAddressUtils.resolveIpAddress(mValue);
-          String otherTierIpAddress = NetworkAddressUtils.resolveIpAddress(otherTierValue);
-          if (tierIpAddress != null && tierIpAddress.equals(otherTierIpAddress)) {
-            return true;
-          }
-        } catch (UnknownHostException e) {
-          // ignore
-        }
-      }
-
-      return mValue != null && mValue.equals(otherTierValue);
-    }
-
-    /**
      * @return a Thrift representation
      */
     public alluxio.thrift.LocalityTier toThrift() {
@@ -220,6 +186,13 @@ public final class TieredIdentity implements Serializable {
       return new LocalityTier(localityTier.getTierName(), localityTier.getValue());
     }
 
+    /**
+     * Equality comparison for wire type locality tiers, two locality tiers are considering
+     * equal if both name and values are equal.
+     *
+     * @param o a wire type locality tier to compare to
+     * @return true if the wire type locality tier is equal to the given tier
+     */
     @Override
     public boolean equals(Object o) {
       if (this == o) {
@@ -228,9 +201,32 @@ public final class TieredIdentity implements Serializable {
       if (!(o instanceof LocalityTier)) {
         return false;
       }
-      LocalityTier that = (LocalityTier) o;
-      return mTierName.equals(that.mTierName)
-          && Objects.equal(mValue, that.mValue);
+      LocalityTier otherTier = (LocalityTier) o;
+      String otherTierName = otherTier.getTierName();
+      if (!mTierName.equals(otherTierName)) {
+        return false;
+      }
+      String otherTierValue = otherTier.getValue();
+      if (mValue != null && mValue.equals(otherTierValue)) {
+        return true;
+      }
+      // For node tiers, attempt to resolve hostnames to IP addresses, this avoids common
+      // misconfiguration errors where a worker is using one hostname and the client is using
+      // another.
+      if (Constants.LOCALITY_NODE.equals(mTierName)) {
+        try {
+          String tierIpAddress = NetworkAddressUtils.resolveIpAddress(mValue);
+          String otherTierIpAddress = NetworkAddressUtils.resolveIpAddress(otherTierValue);
+          if (tierIpAddress != null && tierIpAddress.equals(otherTierIpAddress)) {
+            return true;
+          }
+        } catch (IllegalArgumentException e) {
+          // ignore
+        } catch (UnknownHostException e) {
+          // ignore
+        }
+      }
+      return false;
     }
 
     @Override
