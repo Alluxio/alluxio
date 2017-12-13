@@ -51,7 +51,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * Tests for the {@link FileInStream} class.
@@ -122,15 +121,18 @@ public final class FileInStreamTest {
     mInStreams = new ArrayList<>();
     mCacheStreams = new ArrayList<>();
     List<Long> blockIds = new ArrayList<>();
+    List<FileBlockInfo> fileBlockInfos = new ArrayList<>();
     for (int i = 0; i < NUM_STREAMS; i++) {
       blockIds.add((long) i);
+      FileBlockInfo fbInfo = new FileBlockInfo().setBlockInfo(new BlockInfo().setBlockId(i));
+      fileBlockInfos.add(fbInfo);
       final byte[] input = BufferUtils
           .getIncreasingByteArray((int) (i * BLOCK_LENGTH), (int) getBlockLength(i));
       mInStreams.add(new TestBlockInStream(input, i, input.length, false, mBlockSource));
       mCacheStreams.add(new TestBlockOutStream(ByteBuffer.allocate(1000), getBlockLength(i)));
       Mockito.when(mBlockStore.getEligibleWorkers())
           .thenReturn(Arrays.asList(new BlockWorkerInfo(new WorkerNetAddress(), 0, 0)));
-      Mockito.when(mBlockStore.getInStream(Mockito.any(BlockInfo.class),
+      Mockito.when(mBlockStore.getInStream(Mockito.eq(fbInfo.getBlockInfo()),
           Mockito.any(InStreamOptions.class)))
           .thenAnswer(new Answer<BlockInStream>() {
             @Override
@@ -152,9 +154,7 @@ public final class FileInStreamTest {
           });
     }
     mInfo.setBlockIds(blockIds);
-    mInfo.setFileBlockInfos(blockIds.stream()
-        .map(blockId -> new FileBlockInfo().setBlockInfo(new BlockInfo().setBlockId(blockId)))
-        .collect(Collectors.toList()));
+    mInfo.setFileBlockInfos(fileBlockInfos);
     mStatus = new URIStatus(mInfo);
 
     OpenFileOptions readOptions = OpenFileOptions.defaults().setReadType(ReadType.CACHE_PROMOTE)
@@ -567,7 +567,7 @@ public final class FileInStreamTest {
         .getInStream(Mockito.any(BlockInfo.class), Mockito.any(InStreamOptions.class)))
         .thenThrow(new UnavailableException("test exception"));
     try {
-      mTestStream.seek(BLOCK_LENGTH);
+      mTestStream.read();
       Assert.fail("block store should throw exception");
     } catch (IOException e) {
       Assert.assertEquals("test exception", e.getMessage());
