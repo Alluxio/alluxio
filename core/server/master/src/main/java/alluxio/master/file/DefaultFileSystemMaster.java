@@ -3074,6 +3074,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         UfsSyncUtils.SyncPlan syncPlan =
             UfsSyncUtils.computeSyncPlan(inode, ufs.getFingerprint(ufsUri.toString()));
 
+        // TODO(gpang): debug
+        LOG.info("syncPlan: {}", syncPlan);
         if (syncPlan.toDelete()) {
           if (!inodePath.tryUpgradeLast()) {
             LOG.warn("failed to upgrade lock for path: {}", inodePath.getUri());

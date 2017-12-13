@@ -14,6 +14,8 @@ package alluxio.master.file.meta;
 import alluxio.Constants;
 import alluxio.underfs.UfsStatus;
 
+import com.google.common.base.Objects;
+
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -134,6 +136,15 @@ public final class UfsSyncUtils {
      */
     public boolean toSyncChildren() {
       return mSyncChildren;
+    }
+
+    @Override
+    public String toString() {
+      return Objects.toStringHelper(this)
+          .add("delete", mDelete)
+          .add("loadMetadata", mLoadMetadata)
+          .add("syncChildren", mSyncChildren)
+          .toString();
     }
   }
 }
