@@ -42,12 +42,12 @@ Alluxio Master有[简单](#Running-Alluxio-Locally.html)和[高可用性](#Runni
 
 #### Worker
 
-Alluxio的Worker负责管理分配给Alluxio的[本地资源](Tiered-Storage-on-Alluxio.html)。这些资源可以是本地内存，SDD或者硬盘，其可以由用户配置。
+Alluxio的Worker负责管理分配给Alluxio的[本地资源](Alluxio-Storage.html)。这些资源可以是本地内存，SDD或者硬盘，其可以由用户配置。
 Alluxio的Worker以块的形式存储数据，并通过读或创建数据块的方式处理来自Client读写数据的请求。但Worker只负责这些数据块上的数据；文件到块的实际映
 射只会存储在Master上。
 
 #### Client
 
-Alluxio的Client为用户提供了一个与Alluxio服务端交互的入口。它为用户暴露了一组[文件系统API](File-System-API.html)。Client通过发起与Master
+Alluxio的Client为用户提供了一个与Alluxio服务端交互的入口。它为用户暴露了一组[文件系统API](Clients-Java-Native.html)。Client通过发起与Master
 的通信来执行元数据操作，并且通过与Worker通信来读取Alluxio上的数据或者向Alluxio上写数据。存储在底层存储系统上而不是Alluxio上的数据可以直接通过
 底层存储客户端访问。
