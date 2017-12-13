@@ -189,7 +189,7 @@ public final class TieredIdentity implements Serializable {
     }
 
     /**
-     * Equality comparison for wire type locality tiers, two locality tiers are considering
+     * Equality comparison for wire type locality tiers, two locality tiers are considered
      * equal if both name and values are equal.
      *
      * @param o a wire type locality tier to compare to
