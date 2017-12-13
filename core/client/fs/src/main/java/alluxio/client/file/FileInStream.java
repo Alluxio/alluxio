@@ -11,11 +11,6 @@
 
 package alluxio.client.file;
 
-import java.io.IOException;
-import java.io.InputStream;
-
-import javax.annotation.concurrent.NotThreadSafe;
-
 import alluxio.Seekable;
 import alluxio.annotation.PublicApi;
 import alluxio.client.BoundedStream;
@@ -26,6 +21,11 @@ import alluxio.client.file.options.InStreamOptions;
 import alluxio.exception.PreconditionMessage;
 
 import com.google.common.base.Preconditions;
+
+import java.io.IOException;
+import java.io.InputStream;
+
+import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * A streaming API to read a file. This API represents a file as a stream of bytes and provides a
@@ -53,7 +53,6 @@ public class FileInStream extends InputStream implements BoundedStream, Position
     Seekable {
   private final URIStatus mStatus;
   private final InStreamOptions mOptions;
-  private final FileSystemContext mContext;
   private final AlluxioBlockStore mBlockStore;
 
   /* Convenience values derived from mStatus, use these instead of querying mStatus. */
@@ -71,7 +70,6 @@ public class FileInStream extends InputStream implements BoundedStream, Position
   protected FileInStream(URIStatus status, InStreamOptions options, FileSystemContext context) {
     mStatus = status;
     mOptions = options;
-    mContext = context;
     mBlockStore = AlluxioBlockStore.create(context);
 
     mLength = mStatus.getLength();

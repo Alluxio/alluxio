@@ -124,8 +124,8 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
             .setAsyncCache(asyncCache).setOpenAlluxioBlockOptions(alluxioReadOptions);
     if (status.isPersisted()) { // Add UFS fallback options
       long blockStart = BlockId.getSequenceNumber(blockId) * blockSize;
-      Protocol.OpenUfsBlockOptions ufsReadOptions = Protocol.OpenUfsBlockOptions.newBuilder().
-          setUfsPath(status.getUfsPath())
+      Protocol.OpenUfsBlockOptions ufsReadOptions = Protocol.OpenUfsBlockOptions.newBuilder()
+          .setUfsPath(status.getUfsPath())
           .setOffsetInFile(blockStart).setBlockSize(blockSize)
           .setMaxUfsReadConcurrency(readOptions.getMaxUfsReadConcurrency())
           .setNoCache(!readOptions.getReadType().isCache())

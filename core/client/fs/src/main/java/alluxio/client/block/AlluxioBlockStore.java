@@ -27,7 +27,6 @@ import alluxio.exception.status.NotFoundException;
 import alluxio.exception.status.ResourceExhaustedException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.network.TieredIdentityFactory;
-import alluxio.proto.dataserver.Protocol;
 import alluxio.resource.CloseableResource;
 import alluxio.util.FormatUtils;
 import alluxio.wire.BlockInfo;
@@ -41,7 +40,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;

@@ -32,7 +32,6 @@ import alluxio.exception.status.UnavailableException;
 import alluxio.network.TieredIdentityFactory;
 import alluxio.network.protocol.RPCMessageDecoder;
 import alluxio.proto.dataserver.Protocol;
-import alluxio.proto.dataserver.Protocol.OpenUfsBlockOptions;
 import alluxio.resource.DummyCloseableResource;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.proto.ProtoMessage;
@@ -219,7 +218,7 @@ public final class AlluxioBlockStoreTest {
   public void getInStreamUfs() throws Exception {
     WorkerNetAddress worker1 = new WorkerNetAddress().setHost("worker1");
     WorkerNetAddress worker2 = new WorkerNetAddress().setHost("worker2");
-    URIStatus dummyStatus = new URIStatus(new FileInfo());
+    URIStatus dummyStatus = new URIStatus(new FileInfo().setPersisted(true));
     OpenFileOptions readOptions = OpenFileOptions.defaults().setUfsReadLocationPolicy(new
         MockFileWriteLocationPolicy(Arrays.asList(worker1, worker2)));
     InStreamOptions options = new InStreamOptions(dummyStatus, readOptions);
@@ -260,8 +259,9 @@ public final class AlluxioBlockStoreTest {
     WorkerNetAddress remote1 = new WorkerNetAddress().setHost("remote1");
     WorkerNetAddress remote2 = new WorkerNetAddress().setHost("remote2");
 
-    BlockInfo info = new BlockInfo().setLocations(Arrays.asList(new BlockLocation().setWorkerAddress(remote1),
-        new BlockLocation().setWorkerAddress(remote2)));
+    BlockInfo info =
+        new BlockInfo().setLocations(Arrays.asList(new BlockLocation().setWorkerAddress(remote1),
+            new BlockLocation().setWorkerAddress(remote2)));
 
     when(mMasterClient.getBlockInfo(BLOCK_ID)).thenReturn(info);
     // We should sometimes get remote1 and sometimes get remote2.
