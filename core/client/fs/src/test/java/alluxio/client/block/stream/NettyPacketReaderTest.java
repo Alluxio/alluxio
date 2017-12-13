@@ -12,7 +12,6 @@
 package alluxio.client.block.stream;
 
 import alluxio.Constants;
-import alluxio.EmbeddedChannels;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.options.InStreamOptions;
 import alluxio.network.protocol.RPCProtoMessage;
@@ -56,7 +55,7 @@ public final class NettyPacketReaderTest {
 
   private FileSystemContext mContext;
   private WorkerNetAddress mAddress;
-  private EmbeddedChannels.EmbeddedEmptyCtorChannel mChannel;
+  private EmbeddedChannel mChannel;
   private NettyPacketReader.Factory mFactory;
 
   @Before
@@ -68,7 +67,8 @@ public final class NettyPacketReaderTest {
     mFactory =
         new NettyPacketReader.Factory(mContext, mAddress, readRequest, InStreamOptions.defaults());
 
-    mChannel = new EmbeddedChannels.EmbeddedEmptyCtorChannel();
+    // mChannel = new EmbeddedChannels.EmbeddedEmptyCtorChannel();
+    mChannel = new EmbeddedChannel();
     PowerMockito.when(mContext.acquireNettyChannel(mAddress)).thenReturn(mChannel);
     PowerMockito.doNothing().when(mContext).releaseNettyChannel(mAddress, mChannel);
   }
