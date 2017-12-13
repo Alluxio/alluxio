@@ -1,7 +1,7 @@
 kind: PersistentVolume
 apiVersion: v1
 metadata:
-  name: alluxio-pv-volume
+  name: alluxio-journal-volume
   labels:
     type: local
 spec:

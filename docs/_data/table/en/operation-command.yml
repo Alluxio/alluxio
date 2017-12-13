@@ -1,5 +1,5 @@
 cat:
-  Print the content of the file to the console.
+  Print the content of a file to the console.
 checkConsistency:
   Check the metadata consistency between Alluxio and the under storage.
 checksum:
@@ -78,7 +78,7 @@ setTtl:
   Set the TTL (time to live) in milliseconds for a file. Allow to perform either "delete"
   or "free" after expiry of ttl interval.
 stat:
-  Displays info for the specified path both file and directory.
+  Display info for the specified file or directory.
 tail:
   Print the last 1KB of the specified file to the console.
 test:
