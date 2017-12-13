@@ -67,7 +67,6 @@ public final class NettyPacketReaderTest {
     mFactory =
         new NettyPacketReader.Factory(mContext, mAddress, readRequest, InStreamOptions.defaults());
 
-    // mChannel = new EmbeddedChannels.EmbeddedEmptyCtorChannel();
     mChannel = new EmbeddedChannel();
     PowerMockito.when(mContext.acquireNettyChannel(mAddress)).thenReturn(mChannel);
     PowerMockito.doNothing().when(mContext).releaseNettyChannel(mAddress, mChannel);
