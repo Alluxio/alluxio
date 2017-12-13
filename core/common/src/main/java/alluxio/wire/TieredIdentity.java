@@ -17,6 +17,7 @@ import alluxio.util.network.NetworkAddressUtils;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.common.base.Joiner;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
@@ -131,9 +132,10 @@ public final class TieredIdentity implements Serializable {
 
   @Override
   public String toString() {
-    return Objects.toStringHelper(this)
-        .add("tiers", mTiers)
-        .toString();
+    String tiers = Joiner.on(", ").join(mTiers.stream()
+        .map(tier -> tier.getTierName() + "=" + tier.getValue())
+        .collect(Collectors.toList()));
+    return String.format("TieredIdentity(%s)", tiers);
   }
 
   /**
@@ -207,6 +209,9 @@ public final class TieredIdentity implements Serializable {
         return false;
       }
       String otherTierValue = otherTier.getValue();
+      if (mValue == null && otherTierValue == null) {
+        return true;
+      }
       if (mValue != null && mValue.equals(otherTierValue)) {
         return true;
       }
