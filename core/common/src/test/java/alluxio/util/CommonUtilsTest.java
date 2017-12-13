@@ -12,10 +12,10 @@
 package alluxio.util;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import alluxio.Constants;
 import alluxio.security.group.CachedGroupMapping;
@@ -33,7 +33,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CyclicBarrier;
@@ -155,14 +154,9 @@ public class CommonUtilsTest {
     testCases.add(new TestCase("1", TestClassB.class, new Class[] {int.class}, 1));
 
     for (TestCase testCase : testCases) {
-      try {
-        Object o =
-            CommonUtils.createNewClassInstance(testCase.mCls, testCase.mCtorClassArgs,
-                testCase.mCtorArgs);
-        assertEquals(o.toString(), testCase.mExpected);
-      } catch (Exception e) {
-        e.printStackTrace();
-      }
+      Object o = CommonUtils.createNewClassInstance(testCase.mCls, testCase.mCtorClassArgs,
+          testCase.mCtorArgs);
+      assertEquals(o.toString(), testCase.mExpected);
     }
   }
 
