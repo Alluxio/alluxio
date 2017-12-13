@@ -190,7 +190,7 @@ final class UfsJournalLogWriter implements JournalWriter {
     }
     long startSeq = currentLog.getStart();
     long lastPersistSeq = -1;
-    LOG.info("Tryingn to recover from previous UFS journal failure."
+    LOG.info("Trying to recover from previous UFS journal failure."
         + " Scanning for the first corrupted journal entry.");
     try (JournalReader reader = new UfsJournalReader(mJournal, startSeq, true)) {
       JournalEntry entry;
