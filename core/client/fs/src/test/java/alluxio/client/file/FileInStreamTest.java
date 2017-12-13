@@ -34,6 +34,7 @@ import alluxio.wire.WorkerNetAddress;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -60,6 +61,7 @@ import java.util.List;
  */
 @RunWith(Parameterized.class)
 @PrepareForTest({FileSystemContext.class, AlluxioBlockStore.class})
+@Ignore
 public final class FileInStreamTest {
   @Rule
   public PowerMockRule mPowerMockRule = new PowerMockRule();
