@@ -88,21 +88,21 @@ libraries to specified Kerberos realm and KDC server address.
 If both are set to empty, Kerberos library will respect
 the default Kerberos configuration on the machine. For example:
 
-* If you use Hadoop, you can add to `HADOOP_OPTS` in `{HADOOP_CONF_DIR}/hadoop-env.sh`.
+* If you use Hadoop, you can add to `HADOOP_OPTS` in `${HADOOP_CONF_DIR}/hadoop-env.sh`.
 
 ```bash
 $ export HADOOP_OPTS="$HADOOP_OPTS -Djava.security.krb5.realm=<YOUR_KERBEROS_REALM> -Djava.security.krb5.kdc=<YOUR_KERBEROS_KDC_ADDRESS>"
 ```
 
-* If you use Spark, you can add to `SPARK_JAVA_OPTS` in `{SPARK_CONF_DIR}/spark-env.sh`.
+* If you use Spark, you can add to `SPARK_JAVA_OPTS` in `${SPARK_CONF_DIR}/spark-env.sh`.
 
-```properties
+```bash
 SPARK_JAVA_OPTS+=" -Djava.security.krb5.realm=<YOUR_KERBEROS_REALM> -Djava.security.krb5.kdc=<YOUR_KERBEROS_KDC_ADDRESS>"
 ```
 
 * If you use Alluxio shell, you can add to `ALLUXIO_JAVA_OPTS` in `conf/alluxio-env.sh`.
 
-```properties
+```bash
 ALLUXIO_JAVA_OPTS+=" -Djava.security.krb5.realm=<YOUR_KERBEROS_REALM> -Djava.security.krb5.kdc=<YOUR_KERBEROS_KDC_ADDRESS>"
 ```
 
@@ -116,10 +116,6 @@ alluxio.master.principal=hdfs/<_HOST>@<REALM>
 alluxio.worker.keytab.file=<YOUR_HDFS_KEYTAB_FILE_PATH>
 alluxio.worker.principal=hdfs/<_HOST>@<REALM>
 ```
-
-Alternatively, these configuration settings can be set in the `conf/alluxio-env.sh` file. More
-details about setting configuration parameters can be found in
-[Configuration Settings](Configuration-Settings.html).
 
 ## Running Alluxio Locally with secure HDFS
 
