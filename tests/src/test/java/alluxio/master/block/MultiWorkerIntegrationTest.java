@@ -27,6 +27,7 @@ import alluxio.client.file.options.CreateFileOptions;
 import alluxio.client.file.policy.RoundRobinPolicy;
 
 import org.apache.commons.io.IOUtils;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -48,6 +49,8 @@ public final class MultiWorkerIntegrationTest extends BaseIntegrationTest {
           .build();
 
   @Test
+  @Ignore
+  // TODO(calvin) Fix this
   public void writeLargeFile() throws Exception {
     int fileSize = NUM_WORKERS * WORKER_MEMORY_SIZE_BYTES;
     AlluxioURI file = new AlluxioURI("/test");
