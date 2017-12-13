@@ -19,7 +19,9 @@ import alluxio.client.block.policy.BlockLocationPolicy;
 import alluxio.client.block.policy.options.GetWorkerOptions;
 import alluxio.client.block.stream.BlockOutStream;
 import alluxio.client.file.FileSystemContext;
+import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.InStreamOptions;
+import alluxio.client.file.options.OpenFileOptions;
 import alluxio.client.file.options.OutStreamOptions;
 import alluxio.client.file.policy.FileWriteLocationPolicy;
 import alluxio.client.netty.NettyRPC;
@@ -36,6 +38,7 @@ import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.proto.ProtoMessage;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.BlockLocation;
+import alluxio.wire.FileInfo;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
 
@@ -216,18 +219,18 @@ public final class AlluxioBlockStoreTest {
   public void getInStreamUfs() throws Exception {
     WorkerNetAddress worker1 = new WorkerNetAddress().setHost("worker1");
     WorkerNetAddress worker2 = new WorkerNetAddress().setHost("worker2");
-    InStreamOptions options = InStreamOptions.defaults()
-        .setUfsReadLocationPolicy(new MockFileWriteLocationPolicy(Arrays.asList(worker1, worker2)));
+    URIStatus dummyStatus = new URIStatus(new FileInfo());
+    OpenFileOptions readOptions = OpenFileOptions.defaults().setUfsReadLocationPolicy(new
+        MockFileWriteLocationPolicy(Arrays.asList(worker1, worker2)));
+    InStreamOptions options = new InStreamOptions(dummyStatus, readOptions);
     when(mMasterClient.getBlockInfo(BLOCK_ID)).thenReturn(new BlockInfo());
     when(mMasterClient.getWorkerInfoList()).thenReturn(
         Arrays.asList(new WorkerInfo().setAddress(worker1), new WorkerInfo().setAddress(worker2)));
 
     // Location policy chooses worker1 first.
-    assertEquals(worker1, mBlockStore
-        .getInStream(BLOCK_ID, OpenUfsBlockOptions.getDefaultInstance(), options).getAddress());
+    assertEquals(worker1, mBlockStore.getInStream(new BlockInfo(), options).getAddress());
     // Location policy chooses worker2 second.
-    assertEquals(worker2, mBlockStore
-        .getInStream(BLOCK_ID, OpenUfsBlockOptions.getDefaultInstance(), options).getAddress());
+    assertEquals(worker2, mBlockStore.getInStream(new BlockInfo(), options).getAddress());
   }
 
   @Test
@@ -242,12 +245,14 @@ public final class AlluxioBlockStoreTest {
     when(NettyRPC.call(Mockito.any(NettyRPCContext.class), Mockito.any(ProtoMessage.class)))
         .thenReturn(message);
 
-    when(mMasterClient.getBlockInfo(BLOCK_ID)).thenReturn(
+    BlockInfo info =
         new BlockInfo().setLocations(Arrays.asList(new BlockLocation().setWorkerAddress(remote),
-            new BlockLocation().setWorkerAddress(local))));
-    assertEquals(local, mBlockStore
-        .getInStream(BLOCK_ID, OpenUfsBlockOptions.getDefaultInstance(), InStreamOptions.defaults())
-        .getAddress());
+            new BlockLocation().setWorkerAddress(local)));
+
+    when(mMasterClient.getBlockInfo(BLOCK_ID)).thenReturn(info);
+    assertEquals(local,
+        mBlockStore.getInStream(info, new InStreamOptions(new URIStatus(new FileInfo())))
+            .getAddress());
   }
 
   @Test
@@ -255,14 +260,15 @@ public final class AlluxioBlockStoreTest {
     WorkerNetAddress remote1 = new WorkerNetAddress().setHost("remote1");
     WorkerNetAddress remote2 = new WorkerNetAddress().setHost("remote2");
 
-    when(mMasterClient.getBlockInfo(BLOCK_ID)).thenReturn(
-        new BlockInfo().setLocations(Arrays.asList(new BlockLocation().setWorkerAddress(remote1),
-            new BlockLocation().setWorkerAddress(remote2))));
+    BlockInfo info = new BlockInfo().setLocations(Arrays.asList(new BlockLocation().setWorkerAddress(remote1),
+        new BlockLocation().setWorkerAddress(remote2)));
+
+    when(mMasterClient.getBlockInfo(BLOCK_ID)).thenReturn(info);
     // We should sometimes get remote1 and sometimes get remote2.
     Set<WorkerNetAddress> results = new HashSet<>();
     for (int i = 0; i < 40; i++) {
-      results.add(mBlockStore.getInStream(BLOCK_ID, OpenUfsBlockOptions.getDefaultInstance(),
-          InStreamOptions.defaults()).getAddress());
+      results.add(mBlockStore.getInStream(info, new InStreamOptions(new URIStatus(new FileInfo())))
+          .getAddress());
     }
     assertEquals(Sets.newHashSet(remote1, remote2), results);
   }
