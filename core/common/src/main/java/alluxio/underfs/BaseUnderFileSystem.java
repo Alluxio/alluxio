@@ -21,7 +21,6 @@ import alluxio.underfs.options.MkdirsOptions;
 import alluxio.underfs.options.OpenOptions;
 import alluxio.util.io.PathUtils;
 
-import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -78,27 +77,19 @@ public abstract class BaseUnderFileSystem implements UnderFileSystem {
 
   @Override
   public String getFingerprint(String path) {
-    Objects.ToStringHelper helper = Objects.toStringHelper(this);
+    UfsStatus status = null;
     try {
       if (isFile(path)) {
-        UfsFileStatus fileStatus = getFileStatus(path);
-        helper.add("type", "file");
-        helper.add("hash", fileStatus.getContentHash());
-        helper.add("owner", fileStatus.getOwner());
-        helper.add("group", fileStatus.getGroup());
-        helper.add("mode", fileStatus.getMode());
+        status = getFileStatus(path);
       } else {
-        UfsDirectoryStatus dirStatus = getDirectoryStatus(path);
-        helper.add("type", "directory");
-        helper.add("owner", dirStatus.getOwner());
-        helper.add("group", dirStatus.getGroup());
-        helper.add("mode", dirStatus.getMode());
+        status = getDirectoryStatus(path);
       }
-      return helper.toString();
     } catch (Exception e) {
-      LOG.warn("Failed fingerprint. path: {} error: {}", path, e.getMessage());
+//      LOG.warn("Failed fingerprint. path: {} error: {}", path, e.toString());
+      LOG.error("Failed fingerprint. path: " + path, e);
       return Constants.INVALID_UFS_FINGERPRINT;
     }
+    return Fingerprint.create(Fingerprint.getUfsName(this), status).serialize();
   }
 
   @Override
