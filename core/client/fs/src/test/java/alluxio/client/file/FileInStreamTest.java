@@ -25,9 +25,9 @@ import alluxio.client.file.options.OutStreamOptions;
 import alluxio.client.util.ClientTestUtils;
 import alluxio.exception.PreconditionMessage;
 import alluxio.exception.status.UnavailableException;
-import alluxio.proto.dataserver.Protocol;
 import alluxio.util.io.BufferUtils;
 import alluxio.wire.BlockInfo;
+import alluxio.wire.FileBlockInfo;
 import alluxio.wire.FileInfo;
 import alluxio.wire.WorkerNetAddress;
 
@@ -51,6 +51,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Tests for the {@link FileInStream} class.
@@ -134,7 +135,8 @@ public final class FileInStreamTest {
           .thenAnswer(new Answer<BlockInStream>() {
             @Override
             public BlockInStream answer(InvocationOnMock invocation) throws Throwable {
-              long i = (Long) invocation.getArguments()[0];
+              BlockInfo info = (BlockInfo) invocation.getArguments()[0];
+              long i = info == null ? 0 : info.getBlockId();
               return mInStreams.get((int) i).isClosed() ? new TestBlockInStream(input, i,
                   input.length, false, mBlockSource) : mInStreams.get((int) i);
             }
@@ -150,6 +152,9 @@ public final class FileInStreamTest {
           });
     }
     mInfo.setBlockIds(blockIds);
+    mInfo.setFileBlockInfos(blockIds.stream()
+        .map(blockId -> new FileBlockInfo().setBlockInfo(new BlockInfo().setBlockId(blockId)))
+        .collect(Collectors.toList()));
     mStatus = new URIStatus(mInfo);
 
     OpenFileOptions readOptions = OpenFileOptions.defaults().setReadType(ReadType.CACHE_PROMOTE)

@@ -12,9 +12,9 @@
 package alluxio.client.file.options;
 
 import alluxio.client.file.URIStatus;
-
 import alluxio.wire.BlockInfo;
 import alluxio.wire.FileBlockInfo;
+
 import com.google.common.base.Objects;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -31,10 +31,19 @@ public final class InStreamOptions {
   private final URIStatus mStatus;
   private final OpenFileOptions mOptions;
 
+  /**
+   * Creates with the default {@link OpenFileOptions}.
+   * @param status the file to create the options for
+   */
   public InStreamOptions(URIStatus status) {
     this(status, OpenFileOptions.defaults());
   }
 
+  /**
+   * Creates based on the arguments provided.
+   * @param status the file to create the options for
+   * @param options the {@link OpenFileOptions} to use
+   */
   public InStreamOptions(URIStatus status, OpenFileOptions options) {
     mStatus = status;
     mOptions = options;
