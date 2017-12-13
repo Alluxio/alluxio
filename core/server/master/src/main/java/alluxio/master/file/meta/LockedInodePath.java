@@ -196,4 +196,22 @@ public abstract class LockedInodePath implements AutoCloseable {
     mInodes.remove(mInodes.size() - 1);
     mLockList.unlockLast();
   }
+
+  /**
+   * Attempts to upgrade the last locked inode. The upgrade may fail, if the inode is modified
+   * during the upgrade.
+   *
+   * @return true if the upgrade succeeded
+   */
+  public synchronized boolean tryUpgradeLast() {
+    if (mInodes.isEmpty()) {
+      return true;
+    }
+    if (!mLockList.tryUpgradeLast()) {
+      // Failed to upgrade the last inode (either renamed, deleted, etc), so unlock it.
+      unlockLast();
+      return false;
+    }
+    return true;
+  }
 }

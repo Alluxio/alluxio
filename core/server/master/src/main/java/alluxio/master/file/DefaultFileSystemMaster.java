@@ -3075,6 +3075,10 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
             UfsSyncUtils.computeSyncPlan(inode, ufs.getFingerprint(ufsUri.toString()));
 
         if (syncPlan.toDelete()) {
+          if (!inodePath.tryUpgradeLast()) {
+            LOG.warn("failed to upgrade lock for path: {}", inodePath.getUri());
+            return false;
+          }
           try {
             deleteInternal(inodePath, false, System.currentTimeMillis(), syncDeleteOptions,
                 journalContext);
@@ -3136,6 +3140,11 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
                   !UfsSyncUtils.inodeUfsIsSynced(inodeEntry.getValue(), ufsFingerprint);
 
               if (deleteChild) {
+                if (!inodePath.tryUpgradeLast()) {
+                  LOG.warn("failed to upgrade lock for path: {}", inodePath.getUri());
+                  return false;
+                }
+
                 TempInodePathForDescendant tempInodePath =
                     new TempInodePathForDescendant(inodePath);
                 tempInodePath.setDescendant(inodeEntry.getValue(),

@@ -48,10 +48,11 @@ public final class LockingScheme {
    * @return the mode that should be used to lock the path, considering if ufs sync should occur
    */
   public InodeTree.LockMode getMode() {
-    if (mShouldSync) {
-      // Syncing requires write.
-      return InodeTree.LockMode.WRITE;
-    }
+    // TODO(gpang): do not modify the desired mode, since it maybe upgraded if needed
+//    if (mShouldSync) {
+//      // Syncing requires write.
+//      return InodeTree.LockMode.WRITE;
+//    }
     return mDesiredLockMode;
   }
 
