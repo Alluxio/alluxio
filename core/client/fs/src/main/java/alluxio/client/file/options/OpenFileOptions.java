@@ -271,6 +271,7 @@ public final class OpenFileOptions {
     }
     OpenFileOptions that = (OpenFileOptions) o;
     return Objects.equal(mCacheLocationPolicy, that.mCacheLocationPolicy)
+        && Objects.equal(mPartialCache, that.mPartialCache)
         && Objects.equal(mReadType, that.mReadType)
         && Objects.equal(mMaxUfsReadConcurrency, that.mMaxUfsReadConcurrency)
         && Objects.equal(mUfsReadLocationPolicy, that.mUfsReadLocationPolicy);
@@ -278,16 +279,18 @@ public final class OpenFileOptions {
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mCacheLocationPolicy, mReadType, mMaxUfsReadConcurrency);
+    return Objects.hashCode(mCacheLocationPolicy, mPartialCache, mReadType,
+        mMaxUfsReadConcurrency, mUfsReadLocationPolicy);
   }
 
   @Override
   public String toString() {
     return Objects.toStringHelper(this)
-        .add("cacheLocationPolicy", mCacheLocationPolicy)
-        .add("maxUfsReadConcurrency", mMaxUfsReadConcurrency)
-        .add("readType", mReadType)
-        .add("ufsReadLocationPolicy", mUfsReadLocationPolicy)
+        .add("Cache Location Policy", mCacheLocationPolicy)
+        .add("Cache Partially Read Block", mPartialCache)
+        .add("Max Ufs Read Concurrency", mMaxUfsReadConcurrency)
+        .add("Read Type", mReadType)
+        .add("Ufs Read Location Policy", mUfsReadLocationPolicy)
         .toString();
   }
 }
