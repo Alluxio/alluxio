@@ -920,7 +920,7 @@ public class InodeTree implements JournalEntryIterable {
    */
   public void addInodeFileFromJournal(InodeFileEntry entry) {
     InodeFile file = InodeFile.fromJournalEntry(entry);
-    addInodeFromJournalInternal(file);
+    addInodeFromJournalInternal(file, entry.hasMode());
   }
 
   /**
@@ -939,12 +939,11 @@ public class InodeTree implements JournalEntryIterable {
       setRoot(directory);
       // If journal entry has no security enabled, change the replayed inode permission to be 0777
       // for backwards-compatibility.
-      if (SecurityUtils.isSecurityEnabled() && mRoot.getOwner().isEmpty()
-          && mRoot.getGroup().isEmpty()) {
+      if (SecurityUtils.isSecurityEnabled() && entry.hasMode()) {
         mRoot.setMode(Constants.DEFAULT_FILE_SYSTEM_MODE);
       }
     } else {
-      addInodeFromJournalInternal(directory);
+      addInodeFromJournalInternal(directory, entry.hasMode());
     }
   }
 
@@ -969,8 +968,9 @@ public class InodeTree implements JournalEntryIterable {
    * appropriate inode indexes.
    *
    * @param inode the inode to add to the inode tree
+   * @param hasMode if the journal entry has mode set
    */
-  private void addInodeFromJournalInternal(Inode<?> inode) {
+  private void addInodeFromJournalInternal(Inode<?> inode, boolean hasMode) {
     InodeDirectory parentDirectory = mCachedInode;
     if (inode.getParentId() != mCachedInode.getId()) {
       parentDirectory = (InodeDirectory) mInodes.getFirst(inode.getParentId());
@@ -980,8 +980,7 @@ public class InodeTree implements JournalEntryIterable {
     mInodes.add(inode);
     // If journal entry has no security enabled, change the replayed inode permission to be 0777
     // for backwards-compatibility.
-    if (SecurityUtils.isSecurityEnabled() && inode != null && inode.getOwner().isEmpty()
-        && inode.getGroup().isEmpty()) {
+    if (SecurityUtils.isSecurityEnabled() && inode != null && !hasMode) {
       inode.setMode(Constants.DEFAULT_FILE_SYSTEM_MODE);
     }
     // Update indexes.
