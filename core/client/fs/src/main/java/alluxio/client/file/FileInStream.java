@@ -102,7 +102,9 @@ public class FileInStream extends InputStream implements BoundedStream, Position
     Preconditions.checkArgument(b != null, PreconditionMessage.ERR_READ_BUFFER_NULL);
     Preconditions.checkArgument(off >= 0 && len >= 0 && len + off <= b.length,
         PreconditionMessage.ERR_BUFFER_STATE.toString(), b.length, off, len);
-
+    if (len == 0) {
+      return 0;
+    }
     if (mPosition == mLength) { // at end of file
       return -1;
     }
