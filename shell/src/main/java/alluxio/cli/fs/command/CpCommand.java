@@ -398,14 +398,10 @@ public final class CpCommand extends AbstractFileSystemCommand {
       FileOutStream os = null;
       try (Closer closer = Closer.create()) {
         FileWriteLocationPolicy locationPolicy;
-        try {
-          locationPolicy =
-              CommonUtils.createNewClassInstance(Configuration.<FileWriteLocationPolicy>getClass(
-                  PropertyKey.USER_FILE_COPY_FROM_LOCAL_WRITE_LOCATION_POLICY), new Class[] {},
-                  new Object[] {});
-        } catch (Exception e) {
-          throw new RuntimeException(e);
-        }
+        locationPolicy = CommonUtils.createNewClassInstance(
+            Configuration.<FileWriteLocationPolicy>getClass(
+                PropertyKey.USER_FILE_COPY_FROM_LOCAL_WRITE_LOCATION_POLICY),
+            new Class[] {}, new Object[] {});
         os = closer.register(mFileSystem.createFile(dstPath,
             CreateFileOptions.defaults().setLocationPolicy(locationPolicy)));
         FileInputStream in = closer.register(new FileInputStream(src));

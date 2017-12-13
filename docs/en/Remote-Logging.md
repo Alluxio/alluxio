@@ -27,7 +27,7 @@ run the log server on the same machine as a master.
 
 ### Enable Remote Logging with Environment Variables
 Suppose the hostname of the log server is `AlluxioLogServer`, and the port is `45010`.
-In ./conf/alluxio-env.sh, add the following lines:
+In `conf/alluxio-env.sh`, add the following lines:
 
 ```bash
 ALLUXIO_LOGSERVER_HOSTNAME=AlluxioLogServer

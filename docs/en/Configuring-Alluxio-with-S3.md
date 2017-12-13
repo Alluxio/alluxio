@@ -60,10 +60,6 @@ You can specify credentials in 4 ways, from highest to lowest priority:
 See [Amazon's documentation](http://docs.aws.amazon.com/java-sdk/latest/developer-guide/credentials.html#id6)
 for more details.
 
-Alternatively, these configuration settings can be set in the `conf/alluxio-env.sh` file. More
-details about setting configuration parameters can be found in
-[Configuration Settings](Configuration-Settings.html#environment-variables).
-
 After these changes, Alluxio should be configured to work with S3 as its under storage system, and
 you can try [Running Alluxio Locally with S3](#running-alluxio-locally-with-s3).
 
