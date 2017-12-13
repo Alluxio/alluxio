@@ -11,6 +11,8 @@
 
 package alluxio.wire;
 
+import alluxio.Configuration;
+import alluxio.PropertyKey;
 import alluxio.annotation.PublicApi;
 import alluxio.thrift.FileSystemMasterCommonTOptions;
 
@@ -38,7 +40,7 @@ public final class CommonOptions implements Serializable {
   }
 
   protected CommonOptions() {
-    mSyncIntervalMs = -1;
+    mSyncIntervalMs = Configuration.getMs(PropertyKey.USER_FILE_METADATA_SYNC_INTERVAL);
   }
 
   /**
@@ -52,6 +54,18 @@ public final class CommonOptions implements Serializable {
       if (options.isSetSyncIntervalMs()) {
         mSyncIntervalMs = options.getSyncIntervalMs();
       }
+    }
+  }
+
+  /**
+   * Copies from {@link CommonOptions}.
+   *
+   * @param options the other option
+   */
+  public CommonOptions(CommonOptions options) {
+    this();
+    if (options != null) {
+      mSyncIntervalMs = options.mSyncIntervalMs;
     }
   }
 

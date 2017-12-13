@@ -114,6 +114,41 @@ public final class InodeLockList implements AutoCloseable {
   }
 
   /**
+   * Attempts to upgrade the last locked inode. The upgrade may fail, if the inode is modified
+   * during the upgrade.
+   *
+   * @return true if the upgrade succeeded
+   */
+  public synchronized boolean tryUpgradeLast() {
+    if (mInodes.isEmpty()) {
+      return true;
+    }
+    if (mLockModes.get(mLockModes.size() - 1) != InodeTree.LockMode.WRITE) {
+      // The last inode was previously not WRITE locked, so upgrade the lock.
+
+      Inode<?> inode = mInodes.get(mInodes.size() - 1);
+
+      String name = inode.getName();
+      long parentId = inode.getParentId();
+
+      // Java locks do not support true upgrade.
+      inode.unlockRead();
+      inode.lockWrite();
+
+      // Update the last lock mode to WRITE
+      mLockModes.remove(mLockModes.size() - 1);
+      mLockModes.add(InodeTree.LockMode.WRITE);
+
+      // check consistency of the inode
+      if (!name.equals(inode.getName()) || parentId != inode.getParentId() || inode.isDeleted()) {
+        // this inode is inconsistent, so the upgrade failed.
+        return false;
+      }
+    }
+    return true;
+  }
+
+  /**
    * Locks the given inode in write mode, and adds it to this lock list. This call should only be
    * used when locking the root or an inode by id and not path or parent.
    *

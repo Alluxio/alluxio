@@ -35,7 +35,7 @@ public abstract class LockedInodePath implements AutoCloseable {
   protected final String[] mPathComponents;
   protected final ArrayList<Inode<?>> mInodes;
   protected final InodeLockList mLockList;
-  protected final InodeTree.LockMode mLockMode;
+  protected InodeTree.LockMode mLockMode;
 
   LockedInodePath(AlluxioURI uri, List<Inode<?>> inodes, InodeLockList lockList,
       InodeTree.LockMode lockMode)
@@ -169,5 +169,49 @@ public abstract class LockedInodePath implements AutoCloseable {
    */
   public synchronized void downgradeLast() {
     mLockList.downgradeLast();
+  }
+
+  /**
+   * Downgrades the last inode that was locked, according to the specified {@link LockingScheme}.
+   * If the locking scheme initially desired the READ lock, the downgrade will occur. Otherwise,
+   * downgrade will not be performed.
+   *
+   * @param lockingScheme the locking scheme to inspect
+   */
+  public synchronized void downgradeLastWithScheme(LockingScheme lockingScheme) {
+    // Need to downgrade if the locking scheme initially desired the READ lock.
+    if (lockingScheme.getDesiredMode() == InodeTree.LockMode.READ) {
+      downgradeLast();
+      mLockMode = InodeTree.LockMode.READ;
+    }
+  }
+
+  /**
+   * Unlocks the last inode that was locked.
+   */
+  public synchronized void unlockLast() {
+    if (mInodes.isEmpty()) {
+      return;
+    }
+    mInodes.remove(mInodes.size() - 1);
+    mLockList.unlockLast();
+  }
+
+  /**
+   * Attempts to upgrade the last locked inode. The upgrade may fail, if the inode is modified
+   * during the upgrade.
+   *
+   * @return true if the upgrade succeeded
+   */
+  public synchronized boolean tryUpgradeLast() {
+    if (mInodes.isEmpty()) {
+      return true;
+    }
+    if (!mLockList.tryUpgradeLast()) {
+      // Failed to upgrade the last inode (either renamed, deleted, etc), so unlock it.
+      unlockLast();
+      return false;
+    }
+    return true;
   }
 }
