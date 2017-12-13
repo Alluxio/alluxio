@@ -77,7 +77,6 @@ public final class NettyPacketWriterTest {
     mContext = PowerMockito.mock(FileSystemContext.class);
     mAddress = Mockito.mock(WorkerNetAddress.class);
 
-    //mChannel = new EmbeddedChannels.EmbeddedEmptyCtorChannel();
     mChannel = new EmbeddedChannel();
     PowerMockito.when(mContext.acquireNettyChannel(mAddress)).thenReturn(mChannel);
     PowerMockito.doNothing().when(mContext).releaseNettyChannel(mAddress, mChannel);
