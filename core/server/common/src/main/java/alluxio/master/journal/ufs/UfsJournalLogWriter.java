@@ -15,6 +15,7 @@ import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.RuntimeConstants;
 import alluxio.exception.ExceptionMessage;
+import alluxio.exception.InvalidJournalEntryException;
 import alluxio.master.journal.JournalReader;
 import alluxio.master.journal.JournalWriter;
 import alluxio.proto.journal.Journal.JournalEntry;
@@ -160,19 +161,15 @@ final class UfsJournalLogWriter implements JournalWriter {
     if (mClosed) {
       throw new IOException(ExceptionMessage.JOURNAL_WRITE_AFTER_CLOSE.getMessage());
     }
-    try {
-      maybeRecoverFromUfsFailures();
-      maybeRotateLog();
-    } catch (IOException e) {
-      throw e;
-    } finally {
-      LOG.info("Add this journal entry to retryList with {} entries.", mRetryList.size());
-      mRetryList.add(entry);
-    }
+    maybeRecoverFromUfsFailures();
+    maybeRotateLog();
 
     try {
       entry.toBuilder().setSequenceNumber(mNextSequenceNumber).build()
           .writeDelimitedTo(mJournalOutputStream.mOutputStream);
+      LOG.debug("Add this journal entry to retryList with {} entries.", mRetryList.size());
+      mRetryList.add(entry);
+      mNextSequenceNumber++;
     } catch (IOException e) {
       mRotateLogForNextWrite = true;
       UfsJournalFile currentLog = mJournalOutputStream.mCurrentLog;
@@ -181,7 +178,6 @@ final class UfsJournalLogWriter implements JournalWriter {
           .getMessageWithUrl(RuntimeConstants.ALLUXIO_DEBUG_DOCS_URL,
               currentLog, e.getMessage()), e);
     }
-    mNextSequenceNumber++;
   }
 
   private void maybeRecoverFromUfsFailures() throws IOException {
@@ -193,30 +189,28 @@ final class UfsJournalLogWriter implements JournalWriter {
       return;
     }
     long startSeq = currentLog.getStart();
-    long nextSeq = startSeq + 1;
+    long lastPersistSeq = -1;
     try (JournalReader reader = new UfsJournalReader(mJournal, startSeq, true)) {
       JournalEntry entry;
       while ((entry = reader.read()) != null) {
-        if (entry.getSequenceNumber() + 1 > nextSeq) {
-          nextSeq++;
+        if (entry.getSequenceNumber() > lastPersistSeq) {
+          lastPersistSeq = entry.getSequenceNumber();
         }
       }
-    } catch (Exception e) {
+    } catch (InvalidJournalEntryException e) {
       LOG.info("Found first corrupt journal entry", e);
+    } catch (IOException e) {
+      throw e;
     }
-    LOG.info("Last journal entry sequence number is {}", nextSeq - 1);
-    mNextSequenceNumber = nextSeq;
     String src = currentLog.getLocation().toString();
-    // Since currentLog is obtained from listing files of the journal directory, it must exist.
-
-    // Delete the current log if it contains nothing.
-    if (nextSeq == currentLog.getStart()) {
+    LOG.info("Last persisted journal entry sequence number in {} is {}", src, lastPersistSeq);
+    if (lastPersistSeq < 0) {
       mUfs.deleteFile(src);
       return;
     }
 
     String dst = UfsJournalFile
-        .encodeLogFileLocation(mJournal, currentLog.getStart(), mNextSequenceNumber).toString();
+        .encodeLogFileLocation(mJournal, currentLog.getStart(), lastPersistSeq + 1).toString();
     if (mUfs.exists(dst)) {
       LOG.warn("Deleting duplicate completed log {}.", dst);
       // The dst can exist because of a master failure during commit. This can only happen
@@ -230,9 +224,9 @@ final class UfsJournalLogWriter implements JournalWriter {
     maybeRotateLog();
     if (!mRetryList.isEmpty()) {
       JournalEntry entry = mRetryList.peek();
-      if (entry.getSequenceNumber() > mNextSequenceNumber) {
+      if (entry.getSequenceNumber() > lastPersistSeq + 1) {
         LOG.error("Journal entries between [{}, {}) are missing. Exiting.",
-            mNextSequenceNumber, entry.getSequenceNumber());
+            lastPersistSeq + 1, entry.getSequenceNumber());
         throw new IOException(ExceptionMessage.JOURNAL_ENTRY_MISSING
             .getMessageWithUrl(RuntimeConstants.ALLUXIO_DEBUG_DOCS_URL,
                 currentLog));
@@ -240,7 +234,7 @@ final class UfsJournalLogWriter implements JournalWriter {
       LOG.info("Retry writing unwritten journal entries");
     }
     for (JournalEntry entry : mRetryList) {
-      if (entry.getSequenceNumber() >= mNextSequenceNumber) {
+      if (entry.getSequenceNumber() > lastPersistSeq) {
         try {
           entry.toBuilder().build()
               .writeDelimitedTo(mJournalOutputStream.mOutputStream);
@@ -255,7 +249,7 @@ final class UfsJournalLogWriter implements JournalWriter {
       }
     }
     if (!mRetryList.isEmpty()) {
-      LOG.info("Finished writing unwrittenn journal entries.");
+      LOG.info("Finished writing unwritten journal entries.");
     }
   }
 
