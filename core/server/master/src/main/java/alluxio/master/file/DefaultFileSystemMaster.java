@@ -3074,8 +3074,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         UfsSyncUtils.SyncPlan syncPlan =
             UfsSyncUtils.computeSyncPlan(inode, ufs.getFingerprint(ufsUri.toString()));
 
-        if (syncPlan.toDelete() && inodePath.getParentInodeOrNull() != null) {
-          // Do not delete the root.
+        if (syncPlan.toDelete()) {
           try {
             deleteInternal(inodePath, false, System.currentTimeMillis(), syncDeleteOptions,
                 journalContext);
