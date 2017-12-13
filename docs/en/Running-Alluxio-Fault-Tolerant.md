@@ -97,10 +97,6 @@ with commas, like:
 
     alluxio.zookeeper.address=[zookeeper_hostname1]:2181,[zookeeper_hostname2]:2181,[zookeeper_hostname3]:2181
 
-Alternatively, these configuration settings can be set in the `conf/alluxio-env.sh` file. More
-details about setting configuration parameters can be found in
-[Configuration Settings](Configuration-Settings.html).
-
 ### Master Configuration
 
 In addition to the above configuration settings, Alluxio masters need additional configuration. For
