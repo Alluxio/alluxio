@@ -936,7 +936,7 @@ public class InodeTree implements JournalEntryIterable {
       setRoot(directory);
       // If journal entry has no security enabled, change the replayed inode permission to be 0777
       // for backwards-compatibility.
-      if (SecurityUtils.isSecurityEnabled() && entry.hasMode()) {
+      if (SecurityUtils.isSecurityEnabled() && !entry.hasMode()) {
         mRoot.setMode(Constants.DEFAULT_FILE_SYSTEM_MODE);
       }
     } else {
