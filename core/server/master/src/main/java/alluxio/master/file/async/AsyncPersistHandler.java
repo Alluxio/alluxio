@@ -52,16 +52,10 @@ public interface AsyncPersistHandler {
      * @return the generated {@link AsyncPersistHandler}
      */
     public static AsyncPersistHandler create(FileSystemMasterView view) {
-      try {
-        return CommonUtils.createNewClassInstance(Configuration.<AsyncPersistHandler>getClass(
-            PropertyKey.MASTER_FILE_ASYNC_PERSIST_HANDLER),
-            new Class[] {FileSystemMasterView.class},
-            new Object[] {view});
-      } catch (Exception e) {
-        LOG.error("Failed to instantiate the async handler of class "
-            + PropertyKey.MASTER_FILE_ASYNC_PERSIST_HANDLER + ". Use the default handler instead");
-        return new DefaultAsyncPersistHandler(view);
-      }
+      return CommonUtils.createNewClassInstance(
+          Configuration
+              .<AsyncPersistHandler>getClass(PropertyKey.MASTER_FILE_ASYNC_PERSIST_HANDLER),
+          new Class[] {FileSystemMasterView.class}, new Object[] {view});
     }
   }
 

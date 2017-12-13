@@ -8,7 +8,7 @@ title: Java Setup
 
 ## Mac OSX
 
-1.  Download the latest Java JDK from [Oracle](http://www.oracle.com/technetwork/java/javase/downloads/index.html)
+1.  Download the latest Java JDK from [Oracle](http://www.oracle.com/technetwork/java/javase/downloads/index.html).
 2.  From either the Downloads window of the browser, or from the file browser, double click the .dmg file to launch it.
 3.  A Finder window appears containing an icon of an open box and the name of the .pkg file. Double click the package icon to launch the **Install** app.
 4.  The Install app displays the **Introduction** window. Click **Continue**.

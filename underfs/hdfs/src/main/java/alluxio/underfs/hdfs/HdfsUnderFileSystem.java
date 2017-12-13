@@ -94,7 +94,12 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
     super(ufsUri, conf);
     mUfsConf = conf;
     Path path = new Path(ufsUri.toString());
+    // UserGroupInformation.setConfiguration(hdfsConf) will trigger service loading.
+    // Stash the classloader to prevent service loading throwing exception due to
+    // classloader mismatch.
+    ClassLoader previousClassLoader = Thread.currentThread().getContextClassLoader();
     try {
+      Thread.currentThread().setContextClassLoader(hdfsConf.getClassLoader());
       // Set Hadoop UGI configuration to ensure UGI can be initialized by the shaded classes for
       // group service.
       UserGroupInformation.setConfiguration(hdfsConf);
@@ -102,6 +107,8 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
     } catch (IOException e) {
       throw new RuntimeException(
           String.format("Failed to get Hadoop FileSystem client for %s", ufsUri), e);
+    } finally {
+      Thread.currentThread().setContextClassLoader(previousClassLoader);
     }
   }
 

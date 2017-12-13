@@ -17,11 +17,12 @@ import alluxio.underfs.UfsStatus;
 import alluxio.underfs.UnderFileSystem;
 
 import java.io.IOException;
+import java.util.Map;
 
 /**
  * Task for validating whether UFS directory is accessible.
  */
-public final class UfsDirectoryValidationTask implements ValidationTask {
+public final class UfsDirectoryValidationTask extends AbstractValidationTask {
   private final UnderFileSystem mUfs;
   private final String mPath;
 
@@ -35,7 +36,7 @@ public final class UfsDirectoryValidationTask implements ValidationTask {
   }
 
   @Override
-  public boolean validate() {
+  public boolean validate(Map<String, String> optionsMap) {
     try {
       UfsStatus[] listStatus = mUfs.listStatus(mPath);
       if (listStatus == null) {
