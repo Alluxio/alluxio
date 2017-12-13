@@ -38,7 +38,10 @@ public final class UfsSyncUtils {
     UfsSyncUtils.SyncPlan syncPlan = new UfsSyncUtils.SyncPlan();
     if (!isSynced) {
       // Alluxio inode is not synced with UFS.
-      syncPlan.setDelete();
+      if (inode.getParentId() != InodeTree.NO_PARENT) {
+        // Do not delete the root.
+        syncPlan.setDelete();
+      }
       if (!Constants.INVALID_UFS_FINGERPRINT.equals(ufsFingerprint)) {
         // UFS exists, so load metadata later.
         syncPlan.setLoadMetadata();
