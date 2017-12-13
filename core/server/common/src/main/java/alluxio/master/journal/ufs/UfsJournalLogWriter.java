@@ -32,7 +32,7 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.URI;
-import java.util.LinkedList;
+import java.util.ArrayDeque;
 import java.util.Queue;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -66,7 +66,7 @@ final class UfsJournalLogWriter implements JournalWriter {
   private UfsJournalGarbageCollector mGarbageCollector;
   /** Whether the journal log writer is closed. */
   private boolean mClosed;
-  private Queue<JournalEntry> mRetryList;
+  private Queue<JournalEntry> mEntriesToFlush;
 
   /**
    * A simple wrapper that wraps a output stream to the current log file.
@@ -154,7 +154,7 @@ final class UfsJournalLogWriter implements JournalWriter {
       mJournalOutputStream = new JournalOutputStream(currentLog, null);
     }
     mGarbageCollector = new UfsJournalGarbageCollector(mJournal);
-    mRetryList = new LinkedList<>();
+    mEntriesToFlush = new ArrayDeque<>();
   }
 
   public synchronized void write(JournalEntry entry) throws IOException {
@@ -167,8 +167,8 @@ final class UfsJournalLogWriter implements JournalWriter {
     try {
       entry.toBuilder().setSequenceNumber(mNextSequenceNumber).build()
           .writeDelimitedTo(mJournalOutputStream.mOutputStream);
-      LOG.debug("Add this journal entry to retryList with {} entries.", mRetryList.size());
-      mRetryList.add(entry);
+      LOG.debug("Add this journal entry to retryList with {} entries.", mEntriesToFlush.size());
+      mEntriesToFlush.add(entry);
       mNextSequenceNumber++;
     } catch (IOException e) {
       mRotateLogForNextWrite = true;
@@ -190,6 +190,8 @@ final class UfsJournalLogWriter implements JournalWriter {
     }
     long startSeq = currentLog.getStart();
     long lastPersistSeq = -1;
+    LOG.info("Tryingn to recover from previous UFS journal failure."
+        + " Scanning for the first corrupted journal entry.");
     try (JournalReader reader = new UfsJournalReader(mJournal, startSeq, true)) {
       JournalEntry entry;
       while ((entry = reader.read()) != null) {
@@ -198,12 +200,14 @@ final class UfsJournalLogWriter implements JournalWriter {
         }
       }
     } catch (InvalidJournalEntryException e) {
-      LOG.info("Found first corrupt journal entry", e);
+      LOG.info("Found first corrupted journal entry.");
     } catch (IOException e) {
+      LOG.info("I/O error encountered while trying to read journal.");
       throw e;
     }
     String src = currentLog.getLocation().toString();
-    LOG.info("Last persisted journal entry sequence number in {} is {}", src, lastPersistSeq);
+    LOG.info("Last valid (persisted) journal entry sequence number in {} is {}",
+        src, lastPersistSeq);
     if (lastPersistSeq < 0) {
       mUfs.deleteFile(src);
       return;
@@ -222,8 +226,8 @@ final class UfsJournalLogWriter implements JournalWriter {
     mUfs.renameFile(src, dst);
 
     maybeRotateLog();
-    if (!mRetryList.isEmpty()) {
-      JournalEntry entry = mRetryList.peek();
+    if (!mEntriesToFlush.isEmpty()) {
+      JournalEntry entry = mEntriesToFlush.peek();
       if (entry.getSequenceNumber() > lastPersistSeq + 1) {
         LOG.error("Journal entries between [{}, {}) are missing. Exiting.",
             lastPersistSeq + 1, entry.getSequenceNumber());
@@ -233,7 +237,7 @@ final class UfsJournalLogWriter implements JournalWriter {
       }
       LOG.info("Retry writing unwritten journal entries");
     }
-    for (JournalEntry entry : mRetryList) {
+    for (JournalEntry entry : mEntriesToFlush) {
       if (entry.getSequenceNumber() > lastPersistSeq) {
         try {
           entry.toBuilder().build()
@@ -248,7 +252,7 @@ final class UfsJournalLogWriter implements JournalWriter {
         }
       }
     }
-    if (!mRetryList.isEmpty()) {
+    if (!mEntriesToFlush.isEmpty()) {
       LOG.info("Finished writing unwritten journal entries.");
     }
   }
@@ -285,7 +289,7 @@ final class UfsJournalLogWriter implements JournalWriter {
     DataOutputStream outputStream = mJournalOutputStream.mOutputStream;
     try {
       outputStream.flush();
-      mRetryList.clear();
+      mEntriesToFlush.clear();
     } catch (IOException e) {
       mRotateLogForNextWrite = true;
       UfsJournalFile currentLog = mJournalOutputStream.mCurrentLog;
