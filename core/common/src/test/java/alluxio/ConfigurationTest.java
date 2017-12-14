@@ -62,7 +62,8 @@ public class ConfigurationTest {
 
   @Test
   public void alias() {
-    Configuration.merge(ImmutableMap.of("alluxio.master.worker.timeout.ms", "100"));
+    Configuration.merge(ImmutableMap.of("alluxio.master.worker.timeout.ms", "100"),
+        Configuration.Source.SYSTEM_PROPERTY);
     assertEquals(100, Configuration.getMs(PropertyKey.MASTER_WORKER_TIMEOUT_MS));
   }
 
@@ -399,7 +400,8 @@ public class ConfigurationTest {
   public void variableSubstitution() {
     Configuration.merge(ImmutableMap.of(
         PropertyKey.WORK_DIR, "value",
-        PropertyKey.LOGS_DIR, "${alluxio.work.dir}/logs"));
+        PropertyKey.LOGS_DIR, "${alluxio.work.dir}/logs"),
+        Configuration.Source.SYSTEM_PROPERTY);
     String substitution = Configuration.get(PropertyKey.LOGS_DIR);
     assertEquals("value/logs", substitution);
   }
@@ -409,7 +411,8 @@ public class ConfigurationTest {
     Configuration.merge(ImmutableMap.of(
         PropertyKey.MASTER_HOSTNAME, "value1",
         PropertyKey.MASTER_RPC_PORT, "value2",
-        PropertyKey.MASTER_JOURNAL_FOLDER, "${alluxio.master.hostname}-${alluxio.master.port}"));
+        PropertyKey.MASTER_JOURNAL_FOLDER, "${alluxio.master.hostname}-${alluxio.master.port}"),
+        Configuration.Source.SYSTEM_PROPERTY);
     String substitution = Configuration.get(PropertyKey.MASTER_JOURNAL_FOLDER);
     assertEquals("value1-value2", substitution);
   }
@@ -419,7 +422,8 @@ public class ConfigurationTest {
     Configuration.merge(ImmutableMap.of(
         PropertyKey.WORK_DIR, "value",
         PropertyKey.LOGS_DIR, "${alluxio.work.dir}/logs",
-        PropertyKey.SITE_CONF_DIR, "${alluxio.logs.dir}/conf"));
+        PropertyKey.SITE_CONF_DIR, "${alluxio.logs.dir}/conf"),
+        Configuration.Source.SYSTEM_PROPERTY);
     String substitution2 = Configuration.get(PropertyKey.SITE_CONF_DIR);
     assertEquals("value/logs/conf", substitution2);
   }
