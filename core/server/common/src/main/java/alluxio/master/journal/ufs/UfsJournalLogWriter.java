@@ -68,7 +68,7 @@ final class UfsJournalLogWriter implements JournalWriter {
   private boolean mClosed;
   /**
    * Journal entries that have been written successfully to the underlying
-   * {@link DataoutputStream}, but have not been flushed.
+   * {@link DataOutputStream}, but have not been flushed.
    * The semantic and guarantee provided by the flush operation is
    * UFS-dependent. For HDFS, Alluxio flushes its journal entries using
    * hflush. After the successful execution of hflush, the journal entries
