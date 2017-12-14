@@ -61,21 +61,21 @@ alluxio.underfs.address=hdfs://NAMENODE:PORT
 
 可选配置项，你可以为自定义的Kerberos配置设置jvm级别的系统属性：`java.security.krb5.realm`和`java.security.krb5.kdc`。这些Kerberos配置将Java库路由到指定的Kerberos域和KDC服务器地址。如果两者都设置为空，Kerberos库将尊从机器上的默认Kerberos配置。例如：
 
-* 如果你使用的是Hadoop，你可以将这两项配置添加到`{HADOOP_CONF_DIR}/hadoop-env.sh`文件的`HADOOP_OPTS`配置项。
+* 如果你使用的是Hadoop，你可以将这两项配置添加到`${HADOOP_CONF_DIR}/hadoop-env.sh`文件的`HADOOP_OPTS`配置项。
 
 ```bash
 $ export HADOOP_OPTS="$HADOOP_OPTS -Djava.security.krb5.realm=<YOUR_KERBEROS_REALM> -Djava.security.krb5.kdc=<YOUR_KERBEROS_KDC_ADDRESS>"
 ```
 
-* 如果你使用的是Spark，你可以将这两项配置添加到`{SPARK_CONF_DIR}/spark-env.sh`文件的`SPARK_JAVA_OPTS`配置项。
+* 如果你使用的是Spark，你可以将这两项配置添加到`${SPARK_CONF_DIR}/spark-env.sh`文件的`SPARK_JAVA_OPTS`配置项。
 
-```properties
+```bash
 SPARK_JAVA_OPTS+=" -Djava.security.krb5.realm=<YOUR_KERBEROS_REALM> -Djava.security.krb5.kdc=<YOUR_KERBEROS_KDC_ADDRESS>"
 ```
 
 * 如果你使用的是Alluxio Shell，你可以将这两项配置添加到`conf/alluxio-env.sh`文件的`ALLUXIO_JAVA_OPTS`配置项。
 
-```properties
+```bash
 ALLUXIO_JAVA_OPTS+=" -Djava.security.krb5.realm=<YOUR_KERBEROS_REALM> -Djava.security.krb5.kdc=<YOUR_KERBEROS_KDC_ADDRESS>"
 ```
 
@@ -89,8 +89,6 @@ alluxio.master.principal=hdfs/<_HOST>@<REALM>
 alluxio.worker.keytab.file=<YOUR_HDFS_KEYTAB_FILE_PATH>
 alluxio.worker.principal=hdfs/<_HOST>@<REALM>
 ```
-
-或者，这些配置项可以在`conf/alluxio-env.sh`文件中设置。更多有关配置参数的设置可以参考[Configuration Settings](Configuration-Settings.html)。
 
 ## 使用安全认证模式下的HDFS在本地运行Alluxio
 
