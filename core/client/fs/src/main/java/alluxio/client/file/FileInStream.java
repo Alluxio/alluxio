@@ -11,6 +11,8 @@
 
 package alluxio.client.file;
 
+import alluxio.Configuration;
+import alluxio.PropertyKey;
 import alluxio.Seekable;
 import alluxio.annotation.PublicApi;
 import alluxio.client.BoundedStream;
@@ -18,9 +20,15 @@ import alluxio.client.PositionedReadable;
 import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.block.stream.BlockInStream;
 import alluxio.client.file.options.InStreamOptions;
+import alluxio.client.netty.NettyRPC;
+import alluxio.client.netty.NettyRPCContext;
 import alluxio.exception.PreconditionMessage;
+import alluxio.proto.dataserver.Protocol;
+import alluxio.util.proto.ProtoMessage;
+import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.base.Preconditions;
+import io.netty.channel.Channel;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -54,6 +62,7 @@ public class FileInStream extends InputStream implements BoundedStream, Position
   private final URIStatus mStatus;
   private final InStreamOptions mOptions;
   private final AlluxioBlockStore mBlockStore;
+  private final FileSystemContext mContext;
 
   /* Convenience values derived from mStatus, use these instead of querying mStatus. */
   /** Length of the file in bytes. */
@@ -71,6 +80,7 @@ public class FileInStream extends InputStream implements BoundedStream, Position
     mStatus = status;
     mOptions = options;
     mBlockStore = AlluxioBlockStore.create(context);
+    mContext = context;
 
     mLength = mStatus.getLength();
     mBlockSize = mStatus.getBlockSizeBytes();
@@ -229,8 +239,32 @@ public class FileInStream extends InputStream implements BoundedStream, Position
 
   private void closeBlockInStream() throws IOException {
     if (mBlockInStream != null) {
+      // Clean up the current stream.
+      WorkerNetAddress dataSource = mBlockInStream.getAddress();
+      long blockId = mBlockInStream.getId();
       mBlockInStream.close();
       mBlockInStream = null;
+
+      // Send an async cache request to a worker based on partial and passive cache options.
+      boolean passiveCache = Configuration.getBoolean(PropertyKey.USER_FILE_PASSIVE_CACHE_ENABLED);
+      boolean partialCache = mOptions.getOptions().getCachePartiallyReadBlock();
+      long channelTimeout = Configuration.getMs(PropertyKey.USER_NETWORK_NETTY_TIMEOUT_MS);
+      if (partialCache) {
+        // Construct the async cache request
+        Protocol.AsyncCacheRequest request =
+            Protocol.AsyncCacheRequest.newBuilder().setBlockId(blockId)
+                .setSourceHost(dataSource.getHost()).setSourcePort(dataSource.getDataPort())
+                .build();
+        Channel channel;
+        if (passiveCache && mContext.hasLocalWorker()) { // send request to local worker
+          channel = mContext.acquireNettyChannel(mContext.getLocalWorker());
+        } else { // send request to data source
+          channel = mContext.acquireNettyChannel(dataSource);
+        }
+        NettyRPCContext rpcContext =
+            NettyRPCContext.defaults().setChannel(channel).setTimeout(channelTimeout);
+        NettyRPC.call(rpcContext, new ProtoMessage(request));
+      }
     }
   }
 }
