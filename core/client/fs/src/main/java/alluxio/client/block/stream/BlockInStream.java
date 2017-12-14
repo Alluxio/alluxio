@@ -75,8 +75,7 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
   private boolean mEOF = false;
 
   /**
-   * Creates a {@link BlockInStream}. Primarily responsible for determining where the client
-   * should connect based on its configuration.
+   * Creates a {@link BlockInStream}.
    *
    * One of several read behaviors:
    *
@@ -84,17 +83,9 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
    * socket server
    * 2. Short-Circuit - if the data source is the local worker
    * 3. Local Loopback Read - if the data source is the local worker and short circuit is disabled
-   * 4. Remote Read through worker - if the data source is a remote worker, passive cache is
-   * enabled, and there is a local worker (remote worker -> local worker -> client)
-   * 5. Remote Read through worker - if the data is on a remote worker and passive cache is
-   * disabled or if there is no local worker (remote worker -> client)
-   * 6. UFS Read from remote worker through local worker - if the data source is UFS, passive
-   * cache is enabled, and the UFS read policy designates a remote worker (ufs -> remote worker ->
-   * local worker -> client)
-   * 7. UFS Read through local worker - if the data source is UFS and the UFS read policy
-   * designates the local worker (ufs -> local worker -> client)
-   * 8. UFS Read through remote worker - if the data source is UFS, the UFS read policy
-   * designates a remote worker, and there is no local worker or passive caching is disabled
+   * 4. Remote Read through worker - if the data source is a remote worker (remote worker -> client)
+   * 5. UFS Read from worker - if the data source is UFS, read from the UFS policy's designated
+   * worker (ufs -> local or remote worker -> client)
    *
    * @param context the file system context
    * @param info the block info
@@ -110,18 +101,13 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
     OpenFileOptions readOptions = options.getOptions();
 
     boolean promote = readOptions.getReadType().isPromote();
-    boolean asyncCache = readOptions.getCachePartiallyReadBlock();
 
     long blockId = info.getBlockId();
     long blockSize = info.getLength();
 
     // Construct the partial read request
-    Protocol.OpenAlluxioBlockOptions alluxioReadOptions =
-        Protocol.OpenAlluxioBlockOptions.newBuilder().setSourceHost(dataSource.getHost())
-            .setSourcePort(dataSource.getDataPort()).build();
     Protocol.ReadRequest.Builder builder =
-        Protocol.ReadRequest.newBuilder().setBlockId(blockId).setPromote(promote)
-            .setAsyncCache(asyncCache).setOpenAlluxioBlockOptions(alluxioReadOptions);
+        Protocol.ReadRequest.newBuilder().setBlockId(blockId).setPromote(promote);
     if (status.isPersisted()) { // Add UFS fallback options
       long blockStart = BlockId.getSequenceNumber(blockId) * blockSize;
       Protocol.OpenUfsBlockOptions ufsReadOptions = Protocol.OpenUfsBlockOptions.newBuilder()
@@ -133,16 +119,6 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
       builder.setOpenUfsBlockOptions(ufsReadOptions);
     }
 
-    boolean passiveCache = Configuration.getBoolean(PropertyKey.USER_FILE_PASSIVE_CACHE_ENABLED);
-
-    // Determine the worker the client will connect to
-    WorkerNetAddress connectHost;
-    if (!passiveCache || !context.hasLocalWorker()) {
-      connectHost = dataSource;
-    } else {
-      connectHost = context.getLocalWorker();
-    }
-
     boolean shortCircuit = Configuration.getBoolean(PropertyKey.USER_SHORT_CIRCUIT_ENABLED);
     boolean sourceSupportsDomainSocket = !NettyUtils.isDomainSocketSupported(dataSource);
     boolean sourceIsLocal = dataSourceType == BlockInStreamSource.LOCAL;
@@ -151,19 +127,19 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
     if (sourceIsLocal && shortCircuit && !sourceSupportsDomainSocket) {
       LOG.debug("Creating short circuit input stream for block {} @ {}", blockId, dataSource);
       try {
-        return createLocalBlockInStream(context, connectHost, blockId, blockSize, options);
+        return createLocalBlockInStream(context, dataSource, blockId, blockSize, options);
       } catch (NotFoundException e) {
         // Failed to do short circuit read because the block is not available in Alluxio.
         // We will try to read from via netty. So this exception is ignored.
-        LOG.warn("Failed to create short circuit input stream for block {} @ {}", blockId,
-            dataSource);
+        LOG.warn("Failed to create short circuit input stream for block {} @ {}. Falling back to "
+            + "network transfer", blockId, dataSource);
       }
     }
 
     // Netty
     LOG.debug("Creating netty input stream for block {} @ {} from client {} reading through {}",
-        blockId, dataSource, NetworkAddressUtils.getClientHostName(), connectHost);
-    return createNettyBlockInStream(context, connectHost, dataSourceType, builder.buildPartial(),
+        blockId, dataSource, NetworkAddressUtils.getClientHostName(), dataSource);
+    return createNettyBlockInStream(context, dataSource, dataSourceType, builder.buildPartial(),
         blockSize, options);
   }
 
