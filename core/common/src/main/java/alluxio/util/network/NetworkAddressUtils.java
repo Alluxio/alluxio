@@ -529,7 +529,7 @@ public final class NetworkAddressUtils {
    * Resolves a given hostname IP address.
    *
    * @param hostname the input hostname, which could be an alias
-   * @return the hostname IP address, or null if it is null or empty
+   * @return the hostname IP address
    * @throws UnknownHostException if the given hostname cannot be resolved
    */
   public static String resolveIpAddress(String hostname) throws UnknownHostException {
