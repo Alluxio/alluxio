@@ -917,7 +917,7 @@ public class InodeTree implements JournalEntryIterable {
    */
   public void addInodeFileFromJournal(InodeFileEntry entry) {
     InodeFile file = InodeFile.fromJournalEntry(entry);
-    addInodeFromJournalInternal(file, entry.hasMode());
+    addInodeFromJournalInternal(file);
   }
 
   /**
@@ -934,13 +934,8 @@ public class InodeTree implements JournalEntryIterable {
       // This is the root inode. Clear all the state, and set the root.
       reset();
       setRoot(directory);
-      // If journal entry has no security enabled, change the replayed inode permission to be 0777
-      // for backwards-compatibility.
-      if (SecurityUtils.isSecurityEnabled() && !entry.hasMode()) {
-        mRoot.setMode(Constants.DEFAULT_FILE_SYSTEM_MODE);
-      }
     } else {
-      addInodeFromJournalInternal(directory, entry.hasMode());
+      addInodeFromJournalInternal(directory);
     }
   }
 
@@ -965,9 +960,8 @@ public class InodeTree implements JournalEntryIterable {
    * appropriate inode indexes.
    *
    * @param inode the inode to add to the inode tree
-   * @param hasMode if the journal entry has mode set
    */
-  private void addInodeFromJournalInternal(Inode<?> inode, boolean hasMode) {
+  private void addInodeFromJournalInternal(Inode<?> inode) {
     InodeDirectory parentDirectory = mCachedInode;
     if (inode.getParentId() != mCachedInode.getId()) {
       parentDirectory = (InodeDirectory) mInodes.getFirst(inode.getParentId());
@@ -975,11 +969,6 @@ public class InodeTree implements JournalEntryIterable {
     }
     parentDirectory.addChild(inode);
     mInodes.add(inode);
-    // If journal entry has no security enabled, change the replayed inode permission to be 0777
-    // for backwards-compatibility.
-    if (SecurityUtils.isSecurityEnabled() && inode != null && !hasMode) {
-      inode.setMode(Constants.DEFAULT_FILE_SYSTEM_MODE);
-    }
     // Update indexes.
     if (inode.isFile() && inode.isPinned()) {
       mPinnedInodeFileIds.add(inode.getId());
