@@ -14,6 +14,7 @@ package alluxio.master.file;
 import alluxio.Constants;
 import alluxio.RpcUtils;
 import alluxio.exception.AlluxioException;
+import alluxio.exception.status.AlluxioStatusException;
 import alluxio.thrift.AlluxioTException;
 import alluxio.thrift.FileSystemHeartbeatTOptions;
 import alluxio.thrift.FileSystemHeartbeatTResponse;
@@ -81,9 +82,9 @@ public final class FileSystemMasterWorkerServiceHandler
   @Override
   public GetFileInfoTResponse getFileInfo(final long fileId, GetFileInfoTOptions options)
       throws AlluxioTException {
-    return RpcUtils.call(LOG, new RpcUtils.RpcCallable<GetFileInfoTResponse>() {
+    return RpcUtils.call(LOG, new RpcUtils.RpcCallableThrowsIOException<GetFileInfoTResponse>() {
       @Override
-      public GetFileInfoTResponse call() throws AlluxioException {
+      public GetFileInfoTResponse call() throws AlluxioException, AlluxioStatusException {
         return new GetFileInfoTResponse(
             ThriftUtils.toThrift(mFileSystemMaster.getFileInfo(fileId)));
       }
