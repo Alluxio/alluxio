@@ -123,8 +123,7 @@ public final class AlluxioBlockStore {
 
   /**
    * Gets a stream to read the data of a block. This method is primarily responsible for
-   * determining the location the client reads from, the location which will read the data, and
-   * the type of the data source.
+   * determining the data source and type of data source.
    *
    * @param info the block info for the block to read
    * @param options the options associated with the read request
@@ -135,7 +134,7 @@ public final class AlluxioBlockStore {
     if (locations.isEmpty() && !options.getStatus().isPersisted()) {
       throw new NotFoundException(ExceptionMessage.BLOCK_UNAVAILABLE.getMessage(info.getBlockId()));
     }
-    // Determine which worker will serve the read request and the type of data source
+    // Determine the data source and the type of data source
     BlockInStreamSource dataSourceType = null;
     WorkerNetAddress dataSource = null;
     if (locations.isEmpty()) { // Data will be read from UFS
