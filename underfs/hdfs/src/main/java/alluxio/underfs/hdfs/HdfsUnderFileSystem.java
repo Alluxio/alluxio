@@ -28,6 +28,7 @@ import alluxio.underfs.options.DeleteOptions;
 import alluxio.underfs.options.FileLocationOptions;
 import alluxio.underfs.options.MkdirsOptions;
 import alluxio.underfs.options.OpenOptions;
+import alluxio.util.UnderFileSystemUtils;
 
 import com.google.common.base.Preconditions;
 import org.apache.commons.lang3.StringUtils;
@@ -254,16 +255,8 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
   public UfsFileStatus getFileStatus(String path) throws IOException {
     Path tPath = new Path(path);
     FileStatus fs = mFileSystem.getFileStatus(tPath);
-    // approximating the content hash with the file length and modtime.
-    StringBuilder sb = new StringBuilder();
-    sb.append('(');
-    sb.append("len:");
-    sb.append(fs.getLen());
-    sb.append(", ");
-    sb.append("modtime:");
-    sb.append(fs.getModificationTime());
-    sb.append(')');
-    String contentHash = sb.toString();
+    String contentHash =
+        UnderFileSystemUtils.approximateContentHash(fs.getLen(), fs.getModificationTime());
     return new UfsFileStatus(path, contentHash, fs.getLen(),
         fs.getModificationTime(), fs.getOwner(), fs.getGroup(), fs.getPermission().toShort());
   }
@@ -316,10 +309,11 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
       // only return the relative path, to keep consistent with java.io.File.list()
       UfsStatus retStatus;
       if (!status.isDir()) {
-        retStatus =
-            new UfsFileStatus(status.getPath().getName(), UfsFileStatus.INVALID_CONTENT_HASH,
-                status.getLen(), status.getModificationTime(), status.getOwner(), status.getGroup(),
-                status.getPermission().toShort());
+        String contentHash = UnderFileSystemUtils
+            .approximateContentHash(status.getLen(), status.getModificationTime());
+        retStatus = new UfsFileStatus(status.getPath().getName(), contentHash, status.getLen(),
+            status.getModificationTime(), status.getOwner(), status.getGroup(),
+            status.getPermission().toShort());
       } else {
         retStatus = new UfsDirectoryStatus(status.getPath().getName(), status.getOwner(),
             status.getGroup(), status.getPermission().toShort());
