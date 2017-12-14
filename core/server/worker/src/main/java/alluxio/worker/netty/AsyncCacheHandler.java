@@ -1,6 +1,7 @@
 package alluxio.worker.netty;
 
 import alluxio.network.protocol.RPCProtoMessage;
+
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 
