@@ -77,7 +77,8 @@ public final class WebInterfaceConfigurationServlet extends HttpServlet {
         Configuration.Source source = Configuration.getSource(propertyKey);
         String sourceStr;
         if (source == Configuration.Source.SITE_PROPERTY) {
-          sourceStr = String.format("%s (%s)", source.name(), Configuration.getSitePropertiesFile());
+          sourceStr =
+              String.format("%s (%s)", source.name(), Configuration.getSitePropertiesFile());
         } else {
           sourceStr = source.name();
         }
