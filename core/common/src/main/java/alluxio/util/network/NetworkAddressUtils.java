@@ -533,8 +533,9 @@ public final class NetworkAddressUtils {
    * @throws UnknownHostException if the given hostname cannot be resolved
    */
   public static String resolveIpAddress(String hostname) throws UnknownHostException {
-    Preconditions.checkNotNull(hostname);
-    Preconditions.checkArgument(!hostname.isEmpty());
+    Preconditions.checkNotNull(hostname, "hostname");
+    Preconditions.checkArgument(!hostname.isEmpty(),
+            "Cannot resolve IP address for empty hostname");
     return InetAddress.getByName(hostname).getHostAddress();
   }
 
