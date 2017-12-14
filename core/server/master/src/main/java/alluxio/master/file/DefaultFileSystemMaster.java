@@ -458,8 +458,6 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
             .lockFullInodePath(fileId, InodeTree.LockMode.WRITE)) {
           scheduleAsyncPersistenceInternal(inodePath);
         }
-        // NOTE: persistence is asynchronous so there is no guarantee the path will still exist
-        mAsyncPersistHandler.scheduleAsyncPersistence(getPath(fileId));
       } catch (AlluxioException e) {
         // It's possible that rescheduling the async persist calls fails, because the blocks may no
         // longer be in the memory
@@ -714,7 +712,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
 
   @Override
   public FileInfo getFileInfo(long fileId)
-      throws FileDoesNotExistException, AccessControlException {
+      throws FileDoesNotExistException, AccessControlException, UnavailableException {
     Metrics.GET_FILE_INFO_OPS.inc();
     try (
         LockedInodePath inodePath = mInodeTree.lockFullInodePath(fileId, InodeTree.LockMode.READ)) {
@@ -724,7 +722,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
 
   @Override
   public FileInfo getFileInfo(AlluxioURI path, GetStatusOptions options)
-      throws FileDoesNotExistException, InvalidPathException, AccessControlException {
+      throws FileDoesNotExistException, InvalidPathException, AccessControlException, UnavailableException {
     Metrics.GET_FILE_INFO_OPS.inc();
     try (JournalContext journalContext = createJournalContext();
          LockedInodePath inodePath = mInodeTree.lockInodePath(path, InodeTree.LockMode.READ);
@@ -757,7 +755,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    * @throws AccessControlException if permission denied
    */
   private FileInfo getFileInfoInternal(LockedInodePath inodePath)
-      throws FileDoesNotExistException, AccessControlException {
+      throws FileDoesNotExistException, AccessControlException, UnavailableException {
     Inode<?> inode = inodePath.getInode();
     AlluxioURI uri = inodePath.getUri();
     FileInfo fileInfo = inode.generateClientFileInfo(uri.toString());
@@ -793,7 +791,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
 
   @Override
   public List<FileInfo> listStatus(AlluxioURI path, ListStatusOptions listStatusOptions)
-      throws AccessControlException, FileDoesNotExistException, InvalidPathException {
+      throws AccessControlException, FileDoesNotExistException, InvalidPathException, UnavailableException {
     Metrics.GET_FILE_INFO_OPS.inc();
     try (JournalContext journalContext = createJournalContext();
         LockedInodePath inodePath = mInodeTree.lockInodePath(path, InodeTree.LockMode.READ);
@@ -969,7 +967,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
   @Override
   public void completeFile(AlluxioURI path, CompleteFileOptions options)
       throws BlockInfoException, FileDoesNotExistException, InvalidPathException,
-      InvalidFileSizeException, FileAlreadyCompletedException, AccessControlException {
+      InvalidFileSizeException, FileAlreadyCompletedException, AccessControlException, UnavailableException {
     Metrics.COMPLETE_FILE_OPS.inc();
     try (JournalContext journalContext = createJournalContext();
          LockedInodePath inodePath = mInodeTree.lockFullInodePath(path, InodeTree.LockMode.WRITE);
@@ -1004,7 +1002,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
   private void completeFileAndJournal(LockedInodePath inodePath, CompleteFileOptions options,
       JournalContext journalContext)
       throws InvalidPathException, FileDoesNotExistException, BlockInfoException,
-      FileAlreadyCompletedException, InvalidFileSizeException {
+      FileAlreadyCompletedException, InvalidFileSizeException, UnavailableException {
     Inode<?> inode = inodePath.getInode();
     if (!inode.isFile()) {
       throw new FileDoesNotExistException(
@@ -1471,7 +1469,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
 
   @Override
   public List<FileBlockInfo> getFileBlockInfoList(AlluxioURI path)
-      throws FileDoesNotExistException, InvalidPathException, AccessControlException {
+      throws FileDoesNotExistException, InvalidPathException, AccessControlException, UnavailableException {
     Metrics.GET_FILE_BLOCK_INFO_OPS.inc();
     try (LockedInodePath inodePath = mInodeTree.lockFullInodePath(path, InodeTree.LockMode.READ);
         FileSystemMasterAuditContext auditContext =
@@ -1495,7 +1493,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    * @throws InvalidPathException if the path of the given file is invalid
    */
   private List<FileBlockInfo> getFileBlockInfoListInternal(LockedInodePath inodePath)
-      throws InvalidPathException, FileDoesNotExistException {
+      throws InvalidPathException, FileDoesNotExistException, UnavailableException {
     InodeFile file = inodePath.getInodeFile();
     List<BlockInfo> blockInfoList = mBlockMaster.getBlockInfoList(file.getBlockIds());
 
@@ -1554,7 +1552,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    *
    * @return true if the file is fully in Alluxio, false otherwise
    */
-  private boolean isFullyInAlluxio(InodeFile inode) {
+  private boolean isFullyInAlluxio(InodeFile inode) throws UnavailableException {
     return getInAlluxioPercentage(inode) == 100;
   }
 
@@ -1564,12 +1562,12 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    *
    * @return true if the file is fully in Alluxio, false otherwise
    */
-  private boolean isFullyInMemory(InodeFile inode) {
+  private boolean isFullyInMemory(InodeFile inode) throws UnavailableException {
     return getInMemoryPercentage(inode) == 100;
   }
 
   @Override
-  public List<AlluxioURI> getInAlluxioFiles() {
+  public List<AlluxioURI> getInAlluxioFiles() throws UnavailableException {
     List<AlluxioURI> files = new ArrayList<>();
     Inode root = mInodeTree.getRoot();
     // Root has no parent, lock directly.
@@ -1583,7 +1581,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
   }
 
   @Override
-  public List<AlluxioURI> getInMemoryFiles() {
+  public List<AlluxioURI> getInMemoryFiles() throws UnavailableException {
     List<AlluxioURI> files = new ArrayList<>();
     Inode root = mInodeTree.getRoot();
     // Root has no parent, lock directly.
@@ -1604,7 +1602,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    * @param uri the uri of the parent of the inode
    * @param files the list to accumulate the results in
    */
-  private void getInAlluxioFilesInternal(Inode<?> inode, AlluxioURI uri, List<AlluxioURI> files) {
+  private void getInAlluxioFilesInternal(Inode<?> inode, AlluxioURI uri, List<AlluxioURI> files) throws UnavailableException {
     AlluxioURI newUri = uri.join(inode.getName());
     if (inode.isFile()) {
       if (isFullyInAlluxio((InodeFile) inode)) {
@@ -1637,7 +1635,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    * @param uri the uri of the parent of the inode
    * @param files the list to accumulate the results in
    */
-  private void getInMemoryFilesInternal(Inode<?> inode, AlluxioURI uri, List<AlluxioURI> files) {
+  private void getInMemoryFilesInternal(Inode<?> inode, AlluxioURI uri, List<AlluxioURI> files) throws UnavailableException {
     AlluxioURI newUri = uri.join(inode.getName());
     if (inode.isFile()) {
       if (isFullyInMemory((InodeFile) inode)) {
@@ -1669,7 +1667,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    * @param inode the inode
    * @return the in memory percentage
    */
-  private int getInMemoryPercentage(Inode<?> inode) {
+  private int getInMemoryPercentage(Inode<?> inode) throws UnavailableException {
     if (!inode.isFile()) {
       return 0;
     }
@@ -1696,7 +1694,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    * @param inode the inode
    * @return the in alluxio percentage
    */
-  private int getInAlluxioPercentage(Inode<?> inode) {
+  private int getInAlluxioPercentage(Inode<?> inode) throws UnavailableException {
     if (!inode.isFile()) {
       return 0;
     }
@@ -2270,7 +2268,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
   }
 
   @Override
-  public void reportLostFile(long fileId) throws FileDoesNotExistException {
+  public void reportLostFile(long fileId) throws FileDoesNotExistException, UnavailableException {
     try (
         LockedInodePath inodePath = mInodeTree.lockFullInodePath(fileId, InodeTree.LockMode.READ)) {
       Inode<?> inode = inodePath.getInode();
@@ -3092,7 +3090,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
   }
 
   @Override
-  public List<WorkerInfo> getWorkerInfoList() {
+  public List<WorkerInfo> getWorkerInfoList() throws UnavailableException {
     return mBlockMaster.getWorkerInfoList();
   }
 
