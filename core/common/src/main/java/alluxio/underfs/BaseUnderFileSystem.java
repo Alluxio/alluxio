@@ -76,6 +76,11 @@ public abstract class BaseUnderFileSystem implements UnderFileSystem {
   }
 
   @Override
+  public boolean isSeekable() {
+    return false;
+  }
+
+  @Override
   @Nullable
   public UfsStatus[] listStatus(String path, ListOptions options) throws IOException {
     if (!options.isRecursive()) {

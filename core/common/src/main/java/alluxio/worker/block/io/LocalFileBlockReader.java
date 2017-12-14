@@ -96,4 +96,5 @@ public final class LocalFileBlockReader implements BlockReader {
   public boolean isClosed() {
     return mClosed;
   }
+
 }
