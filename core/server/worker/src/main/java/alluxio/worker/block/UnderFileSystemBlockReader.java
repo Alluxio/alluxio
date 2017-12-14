@@ -19,21 +19,18 @@ import alluxio.WorkerStorageTierAssoc;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.BlockAlreadyExistsException;
 import alluxio.exception.BlockDoesNotExistException;
-import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidWorkerStateException;
 import alluxio.exception.PreconditionMessage;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.underfs.UfsManager;
 import alluxio.underfs.UfsManager.UfsInfo;
 import alluxio.underfs.UnderFileSystem;
-import alluxio.underfs.options.OpenOptions;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.BlockWriter;
 import alluxio.worker.block.meta.UnderFileSystemBlockMeta;
 
 import com.google.common.base.Preconditions;
-import com.google.common.io.Closer;
 import io.netty.buffer.ByteBuf;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -128,10 +125,6 @@ public final class UnderFileSystemBlockReader implements BlockReader {
     UnderFileSystem ufs = mUfsManager.get(mBlockMeta.getMountId()).getUfs();
     ufs.connectFromWorker(
         NetworkAddressUtils.getConnectHost(NetworkAddressUtils.ServiceType.WORKER_RPC));
-    if (!ufs.isFile(mBlockMeta.getUnderFileSystemPath())) {
-      throw new BlockDoesNotExistException(
-          ExceptionMessage.UFS_PATH_DOES_NOT_EXIST.getMessage(mBlockMeta.getUnderFileSystemPath()));
-    }
 
     updateUnderFileSystemInputStream(offset);
     updateBlockWriter(offset);
@@ -217,7 +210,7 @@ public final class UnderFileSystemBlockReader implements BlockReader {
       bufCopy.readerIndex(bufCopy.writerIndex());
     }
     int bytesToRead =
-        (int) Math.min((long) buf.writableBytes(), mBlockMeta.getBlockSize() - mInStreamPos);
+        (int) Math.min(buf.writableBytes(), mBlockMeta.getBlockSize() - mInStreamPos);
     int bytesRead = buf.writeBytes(mUnderFileSystemInputStream, bytesToRead);
     if (bytesRead <= 0) {
       return bytesRead;
@@ -257,14 +250,15 @@ public final class UnderFileSystemBlockReader implements BlockReader {
       // This aborts the block if the block is not fully read.
       updateBlockWriter(mBlockMeta.getBlockSize());
 
-      Closer closer = Closer.create();
-      if (mBlockWriter != null) {
-        closer.register(mBlockWriter);
-      }
       if (mUnderFileSystemInputStream != null) {
-        closer.register(mUnderFileSystemInputStream);
+        UnderFileInputStreamsManager.INSTANCE.checkIn(mUnderFileSystemInputStream);
+        mUnderFileSystemInputStream = null;
       }
-      closer.close();
+
+      if(mBlockWriter!=null) {
+        mBlockWriter.close();
+      }
+
     } finally {
       mClosed = true;
     }
@@ -289,7 +283,7 @@ public final class UnderFileSystemBlockReader implements BlockReader {
    */
   private void updateUnderFileSystemInputStream(long offset) throws IOException {
     if ((mUnderFileSystemInputStream != null) && offset != mInStreamPos) {
-      mUnderFileSystemInputStream.close();
+      UnderFileInputStreamsManager.INSTANCE.checkIn(mUnderFileSystemInputStream);
       mUnderFileSystemInputStream = null;
       mInStreamPos = -1;
     }
@@ -298,8 +292,8 @@ public final class UnderFileSystemBlockReader implements BlockReader {
       UfsInfo ufsInfo = mUfsManager.get(mBlockMeta.getMountId());
       UnderFileSystem ufs = ufsInfo.getUfs();
       mUfsMountPointUri = ufsInfo.getUfsMountPointUri();
-      mUnderFileSystemInputStream = ufs.open(mBlockMeta.getUnderFileSystemPath(),
-          OpenOptions.defaults().setOffset(mBlockMeta.getOffset() + offset));
+      mUnderFileSystemInputStream = UnderFileInputStreamsManager.INSTANCE.checkOut(ufs,
+          mBlockMeta.getUnderFileSystemPath(), mBlockMeta.getOffset() + offset);
       mInStreamPos = offset;
     }
   }

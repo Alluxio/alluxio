@@ -174,6 +174,7 @@ public interface UnderFileSystem extends Closeable {
   /**
    * Closes this under file system.
    */
+  @Override
   void close() throws IOException;
 
   /**
@@ -332,6 +333,8 @@ public interface UnderFileSystem extends Closeable {
    * @return true if under storage is an object store, false otherwise
    */
   boolean isObjectStorage();
+
+  boolean isSeekable();
 
   /**
    * Returns an array of statuses of the files and directories in the directory denoted by this
