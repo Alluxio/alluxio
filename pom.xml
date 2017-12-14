@@ -1101,11 +1101,16 @@
 
             <!-- Build and Packaging Exclusions -->
             <exclude>build/**/*</exclude>
+            <exclude>conf/alluxio-env.sh</exclude>
             <exclude>conf/alluxio-site.properties</exclude>
+            <exclude>conf/masters</exclude>
+            <exclude>conf/tiered_identity.sh</exclude>
+            <exclude>conf/workers</exclude>
             <exclude>dev/scripts/tarballs/**/*</exclude>
             <exclude>dev/scripts/workdir/**/*</exclude>
             <exclude>**/.checkstyle</exclude>
             <exclude>**/src/main/assembly/*</exclude>
+            <exclude>**/.idea/**</exclude>
 
             <!-- Documentation Exclusions -->
             <exclude>docs/**/*</exclude>
