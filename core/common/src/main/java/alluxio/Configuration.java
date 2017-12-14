@@ -41,6 +41,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -67,6 +68,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 public final class Configuration {
   private static final Logger LOG = LoggerFactory.getLogger(Configuration.class);
 
+  /** The source of a configuration property. */
   public enum Source {
     UNKNOWN,
     DEFAULT,
@@ -182,13 +184,6 @@ public final class Configuration {
         String value = entry.getValue().toString().trim();
         if (PropertyKey.isValid(key)) {
           PropertyKey propertyKey = PropertyKey.fromString(key);
-          if (source == Source.SITE_PROPERTY && propertyKey.isIgnoredSiteProperty()) {
-            LOG.warn("{} is not accepted in alluxio-site.properties, "
-                    + "and must be specified as a JVM property. "
-                    + "If no JVM property is present, Alluxio will use default value '{}'.",
-                key, propertyKey.getDefaultValue());
-            continue;
-          }
           // Get the true name for the property key in case it is an alias.
           PROPERTIES.put(propertyKey.getName(), value);
           SOURCES.put(propertyKey, source);
@@ -198,9 +193,6 @@ public final class Configuration {
   }
 
   // Public accessor methods
-
-  // TODO(binfan): this method should be hidden and only used during initialization and tests.
-
   /**
    * Sets the value for the appropriate key in the {@link Properties}.
    *
@@ -237,27 +229,6 @@ public final class Configuration {
       throw new RuntimeException(ExceptionMessage.UNDEFINED_CONFIGURATION_KEY.getMessage(key));
     }
     return lookup(rawValue);
-  }
-
-  /**
-   * @param key the property key
-   * @return the source for the given key
-   */
-  public static String getSource(PropertyKey key) {
-    Source source = SOURCES.get(key);
-    if (source == null) {
-      return Source.UNKNOWN.name();
-    }
-    switch (source) {
-      case DEFAULT:
-        return Source.DEFAULT.name();
-      case SYSTEM_PROPERTY:
-        return Source.SYSTEM_PROPERTY.name();
-      case SITE_PROPERTY:
-        return SITE_PROPERTIES_FILE;
-      default:
-        return Source.UNKNOWN.name();
-    }
   }
 
   /**
@@ -510,6 +481,23 @@ public final class Configuration {
   }
 
   /**
+   * @param key the property key
+   * @return the source for the given key
+   */
+  public static Source getSource(PropertyKey key) {
+    Source source = SOURCES.get(key);
+    return (source == null) ? Source.UNKNOWN : source;
+  }
+
+  /**
+   * @return the path of the site property file
+   */
+  @Nullable
+  public static String getSitePropertiesFile() {
+    return SITE_PROPERTIES_FILE;
+  }
+
+  /**
    * Validates worker port configuration.
    *
    * @throws IllegalStateException if invalid worker port configuration is encountered
@@ -595,6 +583,13 @@ public final class Configuration {
     for (Map.Entry<String, String> entry : toMap().entrySet()) {
       String propertyName = entry.getKey();
       Preconditions.checkState(PropertyKey.isValid(propertyName), propertyName);
+      PropertyKey propertyKey = PropertyKey.fromString(propertyName);
+      Preconditions.checkState(
+          SOURCES.get(propertyKey) != Source.SITE_PROPERTY || !propertyKey.isIgnoredSiteProperty(),
+          "%s is not accepted in alluxio-site.properties, "
+              + "and must be specified as a JVM property. "
+              + "If no JVM property is present, Alluxio will use default value '%s'.", propertyName,
+          propertyKey.getDefaultValue());
     }
     checkWorkerPorts();
     checkUserFileBufferBytes();

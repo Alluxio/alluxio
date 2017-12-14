@@ -72,5 +72,6 @@ public final class HadoopConfigurationUtils {
     // Merge the relevant Hadoop configuration into Alluxio's configuration.
     // TODO(jiri): support multiple client configurations (ALLUXIO-2034)
     Configuration.merge(alluxioConfProperties, Configuration.Source.HADOOP_CONF);
+    Configuration.validate();
   }
 }

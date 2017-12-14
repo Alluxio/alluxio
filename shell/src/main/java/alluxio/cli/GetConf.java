@@ -22,7 +22,9 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 
+import java.util.Collections;
 import java.util.Map.Entry;
+import java.util.TreeMap;
 
 /**
  * Utility for printing Alluxio configuration.
@@ -50,7 +52,12 @@ public final class GetConf {
       new Options().addOption(SOURCE_OPTION).addOption(UNIT_OPTION);
 
   private enum ByteUnit {
-    B(1L), KB(1L << 10), MB(1L << 20), GB(1L << 30), TB(1L << 40), PB(1L << 50);
+    B(1L),
+    KB(1L << 10),
+    MB(1L << 20),
+    GB(1L << 30),
+    TB(1L << 40),
+    PB(1L << 50);
 
     /** value associated with each unit. */
     private long mValue;
@@ -128,13 +135,19 @@ public final class GetConf {
     StringBuilder output = new StringBuilder();
     switch (args.length) {
       case 0:
-        for (Entry<String, String> entry : Configuration.toMap().entrySet()) {
+        TreeMap<String, String> keyValueSet = new TreeMap<>(Configuration.toMap());
+        for (Entry<String, String> entry : keyValueSet.entrySet()) {
           String key = entry.getKey();
           String value = entry.getValue();
           output.append(String.format("%s=%s", key, value));
           if (cmd.hasOption(SOURCE_OPTION_NAME)) {
-            output.append(
-                String.format(" (%s)", Configuration.getSource(PropertyKey.fromString(key))));
+            Configuration.Source source = Configuration.getSource(PropertyKey.fromString(key));
+            if (source == Configuration.Source.SITE_PROPERTY) {
+              output.append(String.format(" (%s: %s)", source.name(),
+                  Configuration.getSitePropertiesFile()));
+            } else {
+              output.append(String.format(" (%s)", source.name()));
+            }
           }
           output.append("\n");
         }
@@ -150,7 +163,13 @@ public final class GetConf {
           System.out.println("");
         } else {
           if (cmd.hasOption(SOURCE_OPTION_NAME)) {
-            System.out.println(Configuration.getSource(key));
+            Configuration.Source source = Configuration.getSource(key);
+            if (source == Configuration.Source.SITE_PROPERTY) {
+              System.out.println(String.format("%s: %s", source.name(),
+                  Configuration.getSitePropertiesFile()));
+            } else {
+              System.out.println(String.format("%s", source.name()));
+            }
           } else if (cmd.hasOption(UNIT_OPTION_NAME)) {
             String arg = cmd.getOptionValue(UNIT_OPTION_NAME).toUpperCase();
             try {
