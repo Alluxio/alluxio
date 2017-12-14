@@ -135,6 +135,7 @@ public final class AlluxioBlockStore {
       throw new NotFoundException(ExceptionMessage.BLOCK_UNAVAILABLE.getMessage(info.getBlockId()));
     }
     // Determine the data source and the type of data source
+    // TODO(calvin): Consider containing these two variables in one object
     BlockInStreamSource dataSourceType = null;
     WorkerNetAddress dataSource = null;
     if (locations.isEmpty()) { // Data will be read from UFS
