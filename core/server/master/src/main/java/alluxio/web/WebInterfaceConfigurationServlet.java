@@ -16,11 +16,8 @@ import alluxio.PropertyKey;
 import alluxio.master.file.FileSystemMaster;
 
 import com.google.common.collect.Sets;
-
-import org.apache.commons.lang3.tuple.ImmutablePair;
-import org.apache.commons.lang3.tuple.Pair;
-
-import com.google.common.collect.Sets;
+import org.apache.commons.lang3.tuple.ImmutableTriple;
+import org.apache.commons.lang3.tuple.Triple;
 
 import java.io.IOException;
 import java.util.Map;
@@ -71,12 +68,20 @@ public final class WebInterfaceConfigurationServlet extends HttpServlet {
     getServletContext().getRequestDispatcher("/configuration.jsp").forward(request, response);
   }
 
-  private SortedSet<Pair<String, String>> getSortedProperties() {
-    TreeSet<Pair<String, String>> rtn = new TreeSet<>();
+  private SortedSet<Triple<String, String, String>> getSortedProperties() {
+    TreeSet<Triple<String, String, String>> rtn = new TreeSet<>();
     for (Map.Entry<String, String> entry : Configuration.toMap().entrySet()) {
       String key = entry.getKey();
       if (key.startsWith(ALLUXIO_CONF_PREFIX) && !ALLUXIO_CONF_EXCLUDES.contains(key)) {
-        rtn.add(new ImmutablePair<>(key, Configuration.get(PropertyKey.fromString(key))));
+        PropertyKey propertyKey = PropertyKey.fromString(key);
+        Configuration.Source source = Configuration.getSource(propertyKey);
+        String sourceStr;
+        if (source == Configuration.Source.SITE_PROPERTY) {
+          sourceStr = String.format("%s (%s)", source.name(), Configuration.getSitePropertiesFile());
+        } else {
+          sourceStr = source.name();
+        }
+        rtn.add(new ImmutableTriple<>(key, Configuration.get(propertyKey), sourceStr));
       }
     }
     return rtn;

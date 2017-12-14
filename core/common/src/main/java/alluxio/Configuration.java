@@ -85,7 +85,7 @@ public final class Configuration {
   private static final ConcurrentHashMap<String, String> PROPERTIES = new ConcurrentHashMap<>();
   /** Map of property sources. */
   private static final ConcurrentHashMap<PropertyKey, Source> SOURCES = new ConcurrentHashMap<>();
-  private static String SITE_PROPERTIES_FILE;
+  private static String sSitePropertyFile;
 
   static {
     init();
@@ -116,11 +116,11 @@ public final class Configuration {
     if (!getBoolean(PropertyKey.TEST_MODE)) {
       String confPaths = get(PropertyKey.SITE_CONF_DIR);
       String[] confPathList = confPaths.split(",");
-      SITE_PROPERTIES_FILE =
+      sSitePropertyFile =
           ConfigurationUtils.searchPropertiesFile(Constants.SITE_PROPERTIES, confPathList);
-      if (SITE_PROPERTIES_FILE != null) {
-        Properties siteProps = ConfigurationUtils.loadPropertiesFromFile(SITE_PROPERTIES_FILE);
-        LOG.info("Configuration file {} loaded.", SITE_PROPERTIES_FILE);
+      if (sSitePropertyFile != null) {
+        Properties siteProps = ConfigurationUtils.loadPropertiesFromFile(sSitePropertyFile);
+        LOG.info("Configuration file {} loaded.", sSitePropertyFile);
         // Update site properties and system properties in order
         merge(siteProps, Source.SITE_PROPERTY);
         merge(systemProps, Source.SYSTEM_PROPERTY);
@@ -175,6 +175,7 @@ public final class Configuration {
    * configuration wins if it also appears in the current configuration.
    *
    * @param properties The source {@link Properties} to be merged
+   * @param source The source of the the properties (e.g., system property, default and etc)
    */
   public static void merge(Map<?, ?> properties, Source source) {
     if (properties != null) {
@@ -494,7 +495,7 @@ public final class Configuration {
    */
   @Nullable
   public static String getSitePropertiesFile() {
-    return SITE_PROPERTIES_FILE;
+    return sSitePropertyFile;
   }
 
   /**
