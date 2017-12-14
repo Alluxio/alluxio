@@ -83,7 +83,7 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
    * socket server
    * 2. Short-Circuit - if the data source is the local worker
    * 3. Local Loopback Read - if the data source is the local worker and short circuit is disabled
-   * 4. Remote Read through worker - if the data source is a remote worker (remote worker -> client)
+   * 4. Read from remote worker - if the data source is a remote worker
    * 5. UFS Read from worker - if the data source is UFS, read from the UFS policy's designated
    * worker (ufs -> local or remote worker -> client)
    *
