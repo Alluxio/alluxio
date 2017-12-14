@@ -110,8 +110,8 @@ public final class NettyPacketWriterTest {
     long length = PACKET_SIZE * 1024 + PACKET_SIZE / 3;
     try (PacketWriter writer = create(length)) {
       checksumExpected = writeFile(writer, length, 0, length - 1);
-      checksumActual = verifyWriteRequests(mChannel, 0, length - 1);
       checksumExpected.get();
+      checksumActual = verifyWriteRequests(mChannel, 0, length - 1);
     }
     Assert.assertEquals(checksumExpected.get(), checksumActual.get());
   }
@@ -127,8 +127,8 @@ public final class NettyPacketWriterTest {
     long length = PACKET_SIZE * 1024 + PACKET_SIZE / 3;
     try (PacketWriter writer = create(length)) {
       checksumExpected = writeFile(writer, length, 10, length / 3);
-      checksumActual = verifyWriteRequests(mChannel, 10, length / 3);
       checksumExpected.get();
+      checksumActual = verifyWriteRequests(mChannel, 10, length / 3);
     }
     Assert.assertEquals(checksumExpected.get(), checksumActual.get());
   }
@@ -143,8 +143,8 @@ public final class NettyPacketWriterTest {
     long length = PACKET_SIZE * 1024;
     try (PacketWriter writer = create(Long.MAX_VALUE)) {
       checksumExpected = writeFile(writer, length, 10, length / 3);
-      checksumActual = verifyWriteRequests(mChannel, 10, length / 3);
       checksumExpected.get();
+      checksumActual = verifyWriteRequests(mChannel, 10, length / 3);
     }
     Assert.assertEquals(checksumExpected.get(), checksumActual.get());
   }
@@ -159,8 +159,8 @@ public final class NettyPacketWriterTest {
     long length = PACKET_SIZE * 30000 + PACKET_SIZE / 3;
     try (PacketWriter writer = create(Long.MAX_VALUE)) {
       checksumExpected = writeFile(writer, length, 10, length / 3);
-      checksumActual = verifyWriteRequests(mChannel, 10, length / 3);
       checksumExpected.get();
+      checksumActual = verifyWriteRequests(mChannel, 10, length / 3);
     }
     Assert.assertEquals(checksumExpected.get(), checksumActual.get());
   }
