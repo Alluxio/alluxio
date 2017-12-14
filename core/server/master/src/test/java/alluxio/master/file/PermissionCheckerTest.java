@@ -19,7 +19,9 @@ import alluxio.PropertyKey;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidPathException;
+import alluxio.master.DefaultSafeMode;
 import alluxio.master.MasterRegistry;
+import alluxio.master.SafeMode;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.block.BlockMasterFactory;
 import alluxio.master.file.meta.Inode;
@@ -100,6 +102,7 @@ public final class PermissionCheckerTest {
 
   private static InodeTree sTree;
   private static MasterRegistry sRegistry;
+  private static SafeMode sSafeMode;
 
   private PermissionChecker mPermissionChecker;
 
@@ -171,8 +174,9 @@ public final class PermissionCheckerTest {
 
     // setup an InodeTree
     sRegistry = new MasterRegistry();
+    sSafeMode = new DefaultSafeMode();
     JournalSystem journalSystem = new NoopJournalSystem();
-    BlockMaster blockMaster = new BlockMasterFactory().create(sRegistry, journalSystem);
+    BlockMaster blockMaster = new BlockMasterFactory().create(sRegistry, journalSystem, sSafeMode);
     InodeDirectoryIdGenerator directoryIdGenerator = new InodeDirectoryIdGenerator(blockMaster);
     UfsManager ufsManager = Mockito.mock(UfsManager.class);
     MountTable mountTable = new MountTable(ufsManager);

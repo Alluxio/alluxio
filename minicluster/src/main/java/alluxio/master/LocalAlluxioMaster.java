@@ -86,6 +86,7 @@ public final class LocalAlluxioMaster {
     if (!Files.isDirectory(Paths.get(workDirectory))) {
       Files.createDirectory(Paths.get(workDirectory));
     }
+    Configuration.set(PropertyKey.MASTER_SAFEMODE_WAIT, "100ms");
     return new LocalAlluxioMaster();
   }
 
