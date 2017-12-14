@@ -16,6 +16,7 @@ import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.master.MasterFactory;
 import alluxio.master.MasterRegistry;
+import alluxio.master.SafeMode;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.journal.JournalSystem;
 
@@ -48,7 +49,8 @@ public final class KeyValueMasterFactory implements MasterFactory {
   }
 
   @Override
-  public KeyValueMaster create(MasterRegistry registry, JournalSystem journalSystem) {
+  public KeyValueMaster create(MasterRegistry registry, JournalSystem journalSystem,
+      SafeMode safeMode) {
     Preconditions.checkNotNull(journalSystem, "journalSystem");
     LOG.info("Creating {} ", KeyValueMaster.class.getName());
     FileSystemMaster fileSystemMaster = registry.get(FileSystemMaster.class);
