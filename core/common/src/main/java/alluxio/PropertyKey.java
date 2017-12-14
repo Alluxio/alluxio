@@ -723,6 +723,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue(19998)
           .setDescription("The port that Alluxio master node runs on.")
           .build();
+  public static final PropertyKey MASTER_SAFEMODE_WAIT =
+      new Builder(Name.MASTER_SAFEMODE_WAIT)
+          .setDefaultValue("5sec")
+          .setDescription("Alluxio master will wait a period of time after start up for "
+              + "all workers to register, before it starts accepting client requests. "
+              + "This property determines the wait time in safe mode.")
+          .build();
   public static final PropertyKey MASTER_STARTUP_CONSISTENCY_CHECK_ENABLED =
       new Builder(Name.MASTER_STARTUP_CONSISTENCY_CHECK_ENABLED)
           .setDefaultValue(true)
@@ -1619,7 +1626,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey USER_RPC_RETRY_MAX_NUM_RETRY =
       new Builder(Name.USER_RPC_RETRY_MAX_NUM_RETRY)
-          .setDefaultValue(20)
+          .setDefaultValue(100)
           .setDescription("Alluxio client RPCs automatically retry for transient errors with "
               + "an exponential backoff. This property determines the maximum number of "
               + "retries.")
@@ -1627,7 +1634,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey USER_RPC_RETRY_MAX_SLEEP_MS =
       new Builder(Name.USER_RPC_RETRY_MAX_SLEEP_MS)
           .setAlias(new String[]{"alluxio.user.rpc.retry.max.sleep.ms"})
-          .setDefaultValue("30sec")
+          .setDefaultValue("3sec")
           .setDescription("Alluxio client RPCs automatically retry for transient errors with "
               + "an exponential backoff. This property determines the maximum wait time "
               + "in the backoff.")
@@ -2081,6 +2088,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String MASTER_PRINCIPAL = "alluxio.master.principal";
     public static final String MASTER_RETRY = "alluxio.master.retry";
     public static final String MASTER_RPC_PORT = "alluxio.master.port";
+    public static final String MASTER_SAFEMODE_WAIT = "alluxio.master.safemode.wait";
     public static final String MASTER_STARTUP_CONSISTENCY_CHECK_ENABLED =
         "alluxio.master.startup.consistency.check.enabled";
     public static final String MASTER_THRIFT_SHUTDOWN_TIMEOUT =
