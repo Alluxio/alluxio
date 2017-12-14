@@ -593,6 +593,50 @@ public final class InodeTreeTest {
     }
   }
 
+  /**
+   * Tests if mode is set correctly in the {@link InodeTree#addInodeFileFromJournal} and
+   * {@link InodeTree#addInodeDirectoryFromJournal} methods for empty owner/group.
+   */
+  @Test
+  public void addInodeModeFromJournalWithEmptyOwnership() throws Exception {
+    createPath(mTree, NESTED_FILE_URI, sNestedFileOptions);
+    InodeDirectory root = mTree.getRoot();
+    InodeDirectory nested = (InodeDirectory) root.getChild("nested");
+    InodeDirectory test = (InodeDirectory) nested.getChild("test");
+    Inode<?> file = test.getChild("file");
+    Inode[] inodeChildren = {nested, test, file};
+    for (Inode child : inodeChildren) {
+      child.setOwner("");
+      child.setGroup("");
+      child.setMode((short) 0600);
+    }
+
+    // reset the tree
+    mTree.addInodeDirectoryFromJournal(root.toJournalEntry().getInodeDirectory());
+
+    // re-init the root since the tree was reset above
+    mTree.getRoot();
+
+    try (LockedInodePath inodePath =
+             mTree.lockFullInodePath(new AlluxioURI("/"), InodeTree.LockMode.READ)) {
+      try (InodeLockList lockList = mTree.lockDescendants(inodePath, InodeTree.LockMode.READ)) {
+        Assert.assertEquals(0, lockList.getInodes().size());
+      }
+      mTree.addInodeDirectoryFromJournal(nested.toJournalEntry().getInodeDirectory());
+      mTree.addInodeDirectoryFromJournal(test.toJournalEntry().getInodeDirectory());
+      mTree.addInodeFileFromJournal(file.toJournalEntry().getInodeFile());
+      try (InodeLockList lockList = mTree.lockDescendants(inodePath, InodeTree.LockMode.READ)) {
+        List<Inode<?>> children = lockList.getInodes();
+        Assert.assertEquals(inodeChildren.length, children.size());
+        for (Inode<?> child : children) {
+          Assert.assertEquals("", child.getOwner());
+          Assert.assertEquals("", child.getGroup());
+          Assert.assertEquals((short) 0600, child.getMode());
+        }
+      }
+    }
+  }
+
   @Test
   public void getInodePathById() throws Exception {
     try (LockedInodePath rootPath = mTree.lockFullInodePath(0, InodeTree.LockMode.READ)) {
