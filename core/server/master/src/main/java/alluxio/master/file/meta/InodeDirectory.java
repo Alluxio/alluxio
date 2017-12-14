@@ -11,6 +11,7 @@
 
 package alluxio.master.file.meta;
 
+import alluxio.Constants;
 import alluxio.collections.FieldIndex;
 import alluxio.collections.IndexDefinition;
 import alluxio.collections.UniqueFieldIndex;
@@ -249,6 +250,12 @@ public final class InodeDirectory extends Inode<InodeDirectory> {
    * @return the {@link InodeDirectory} representation
    */
   public static InodeDirectory fromJournalEntry(InodeDirectoryEntry entry) {
+    // If journal entry has no security enabled, set default mode for backwards-compatibility.
+    short mode = Constants.DEFAULT_FILE_SYSTEM_MODE;
+    if (entry.hasMode()) {
+      // Journal entry has security enabled
+      mode = (short) entry.getMode();
+    }
     return new InodeDirectory(entry.getId())
         .setCreationTimeMs(entry.getCreationTimeMs())
         .setName(entry.getName())
@@ -258,7 +265,7 @@ public final class InodeDirectory extends Inode<InodeDirectory> {
         .setLastModificationTimeMs(entry.getLastModificationTimeMs(), true)
         .setOwner(entry.getOwner())
         .setGroup(entry.getGroup())
-        .setMode((short) entry.getMode())
+        .setMode(mode)
         .setMountPoint(entry.getMountPoint())
         .setTtl(entry.getTtl())
         .setTtlAction(ProtobufUtils.fromProtobuf(entry.getTtlAction()))
