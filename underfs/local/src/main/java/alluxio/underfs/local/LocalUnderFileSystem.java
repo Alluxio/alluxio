@@ -29,6 +29,7 @@ import alluxio.underfs.options.DeleteOptions;
 import alluxio.underfs.options.FileLocationOptions;
 import alluxio.underfs.options.MkdirsOptions;
 import alluxio.underfs.options.OpenOptions;
+import alluxio.util.UnderFileSystemUtils;
 import alluxio.util.io.FileUtils;
 import alluxio.util.io.PathUtils;
 import alluxio.util.network.NetworkAddressUtils;
@@ -196,16 +197,8 @@ public class LocalUnderFileSystem extends BaseUnderFileSystem
     File file = new File(tpath);
     PosixFileAttributes attr =
         Files.readAttributes(Paths.get(file.getPath()), PosixFileAttributes.class);
-    // approximating the content hash with the file length and modtime.
-    StringBuilder sb = new StringBuilder();
-    sb.append('(');
-    sb.append("len:");
-    sb.append(file.length());
-    sb.append(", ");
-    sb.append("modtime:");
-    sb.append(file.lastModified());
-    sb.append(')');
-    String contentHash = sb.toString();
+    String contentHash =
+        UnderFileSystemUtils.approximateContentHash(file.length(), file.lastModified());
     return new UfsFileStatus(path, contentHash, file.length(),
         file.lastModified(), attr.owner().getName(), attr.group().getName(),
         FileUtils.translatePosixPermissionToMode(attr.permissions()));
@@ -259,8 +252,10 @@ public class LocalUnderFileSystem extends BaseUnderFileSystem
           retStatus = new UfsDirectoryStatus(f.getName(), attr.owner().getName(),
               attr.group().getName(), mode);
         } else {
-          retStatus = new UfsFileStatus(f.getName(), UfsFileStatus.INVALID_CONTENT_HASH, f.length(),
-              f.lastModified(), attr.owner().getName(), attr.group().getName(), mode);
+          String contentHash =
+              UnderFileSystemUtils.approximateContentHash(f.length(), f.lastModified());
+          retStatus = new UfsFileStatus(f.getName(), contentHash, f.length(), f.lastModified(),
+              attr.owner().getName(), attr.group().getName(), mode);
         }
         rtn[i++] = retStatus;
       }
