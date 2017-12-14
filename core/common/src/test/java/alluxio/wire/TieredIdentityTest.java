@@ -12,14 +12,19 @@
 package alluxio.wire;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertTrue;
 
+import alluxio.Configuration;
+import alluxio.ConfigurationTestUtils;
+import alluxio.PropertyKey;
 import alluxio.network.TieredIdentityFactory;
 import alluxio.util.CommonUtils;
 import alluxio.wire.TieredIdentity.LocalityTier;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.After;
 import org.junit.Test;
 
 import java.util.Arrays;
@@ -30,6 +35,11 @@ import java.util.Random;
  * Unit tests for {@link TieredIdentity}.
  */
 public class TieredIdentityTest {
+
+  @After
+  public void after() {
+    ConfigurationTestUtils.resetConfiguration();
+  }
 
   @Test
   public void nearest() throws Exception {
@@ -66,6 +76,8 @@ public class TieredIdentityTest {
 
   @Test
   public void locality() {
+    Configuration.set(PropertyKey.LOCALITY_COMPARE_NODE_IP, "true");
+
     LocalityTier lt1 = new LocalityTier("node", "A");
     LocalityTier lt2 = new LocalityTier("node", "A");
     LocalityTier lt3 = new LocalityTier("node", "B");
@@ -75,13 +87,13 @@ public class TieredIdentityTest {
     LocalityTier lt7 = new LocalityTier("rack", "");
     LocalityTier lt8 = new LocalityTier("node", "A");
     LocalityTier lt9 = new LocalityTier("node", "");
-    assertEquals(lt1, lt1);
-    assertEquals(lt1, lt2);
-    assertNotEquals(lt2, lt3);
-    assertEquals(lt5, lt6);
-    assertNotEquals(lt4, lt5);
-    assertNotEquals(lt6, lt7);
-    assertNotEquals(lt8, lt9);
+    assertTrue(lt1.matches(lt1));
+    assertTrue(lt1.matches(lt2));
+    assertFalse(lt2.matches(lt3));
+    assertTrue(lt5.matches(lt6));
+    assertFalse(lt4.matches(lt5));
+    assertFalse(lt6.matches(lt7));
+    assertFalse(lt8.matches(lt9));
   }
 
   public void string() {
