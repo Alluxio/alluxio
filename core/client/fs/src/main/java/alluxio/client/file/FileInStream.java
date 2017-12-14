@@ -255,15 +255,20 @@ public class FileInStream extends InputStream implements BoundedStream, Position
             Protocol.AsyncCacheRequest.newBuilder().setBlockId(blockId)
                 .setSourceHost(dataSource.getHost()).setSourcePort(dataSource.getDataPort())
                 .build();
-        Channel channel;
+        WorkerNetAddress worker;
         if (passiveCache && mContext.hasLocalWorker()) { // send request to local worker
-          channel = mContext.acquireNettyChannel(mContext.getLocalWorker());
+          worker = mContext.getLocalWorker();
         } else { // send request to data source
-          channel = mContext.acquireNettyChannel(dataSource);
+          worker = dataSource;
         }
-        NettyRPCContext rpcContext =
-            NettyRPCContext.defaults().setChannel(channel).setTimeout(channelTimeout);
-        NettyRPC.call(rpcContext, new ProtoMessage(request));
+        Channel channel = mContext.acquireNettyChannel(worker);
+        try {
+          NettyRPCContext rpcContext =
+              NettyRPCContext.defaults().setChannel(channel).setTimeout(channelTimeout);
+          NettyRPC.call(rpcContext, new ProtoMessage(request));
+        } finally {
+          mContext.releaseNettyChannel(worker, channel);
+        }
       }
     }
   }
