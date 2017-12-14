@@ -66,6 +66,16 @@ final class UfsJournalLogWriter implements JournalWriter {
   private UfsJournalGarbageCollector mGarbageCollector;
   /** Whether the journal log writer is closed. */
   private boolean mClosed;
+  /**
+   * Journal entries that have been written successfully to the underlying
+   * {@link DataoutputStream}, but have not been flushed.
+   * The semantic and guarantee provided by the flush operation is
+   * UFS-dependent. For HDFS, Alluxio flushes its journal entries using
+   * hflush. After the successful execution of hflush, the journal entries
+   * have reached (not necessarily persisted) on the minimum number of
+   * datanodes. Therefore, we need a data structure to store the journal
+   * entries that have been written, but not flushed.
+   */
   private Queue<JournalEntry> mEntriesToFlush;
 
   /**
@@ -171,6 +181,8 @@ final class UfsJournalLogWriter implements JournalWriter {
       mEntriesToFlush.add(entry);
       mNextSequenceNumber++;
     } catch (IOException e) {
+      // Set mJournalOutputStream to null so that {@code maybeRecoverFromUfsFailures}
+      // can know a UFS failure has occurred.
       mRotateLogForNextWrite = true;
       UfsJournalFile currentLog = mJournalOutputStream.mCurrentLog;
       mJournalOutputStream = null;
@@ -180,6 +192,29 @@ final class UfsJournalLogWriter implements JournalWriter {
     }
   }
 
+  /**
+   * Core logic of UFS journal recovery from UFS failures.
+   *
+   * If Alluxio stores its journals in UFS, then Alluxio needs to handle UFS failures.
+   * When UFS is dead, there is nothing Alluxio can do because Alluxio relies on UFS to
+   * persist journal entries. Consequently any metadata operation will block because Alluxio
+   * cannot flush their journal entries.
+   * Once UFS comes back online, Alluxio needs to perform the following operations:
+   * 1. Locate the most recent incomplete journal file, i.e. journal file that starts with
+   *    a valid sequence number X (hex), and ends with 0x7fffffffffffffff. The journal file
+   *    name encodes this information, i.e. X-0x7fffffffffffffff.
+   * 2. Sequentially scan all the incomplete journal file, and identify the last valid journal
+   *    entry that has been persisted in UFS. Once we know the last valid journal entry in UFS,
+   *    we know the first journal entry that is not valid in UFS. Suppose it is Y.
+   * 3. Rename the incomplete journal file to X-Y. Future journal writes will write to a new file
+   *    named Y-0x7fffffffffffffff.
+   * 4. Check whether there is any missing journal entry between Y and the oldest entry in
+   *    mEntriesToFlush, say Z. If Z > Y, then it means journal entries in [Y, Z) are
+   *    missing, and Alluxio cannot recover. Otherwise, for each journal entry in
+   *    mEntriesToFlush, if its sequence number is newer than or equal to Y, retry writing it to
+   *    UFS by calling the {@code UfsJournalLogWriter#write} method.
+   * @throws IOException if reading journal entries from UFS fails
+   */
   private void maybeRecoverFromUfsFailures() throws IOException {
     if (mJournalOutputStream != null) {
       return;
@@ -289,6 +324,9 @@ final class UfsJournalLogWriter implements JournalWriter {
     DataOutputStream outputStream = mJournalOutputStream.mOutputStream;
     try {
       outputStream.flush();
+      // Since flush has succeeded, it's safe to clear the mEntriesToFlush queue
+      // because they are considered "persisted" in UFS. For example, in HDFS,
+      // the journal entries have reached a minimum number of datanodes.
       mEntriesToFlush.clear();
     } catch (IOException e) {
       mRotateLogForNextWrite = true;
