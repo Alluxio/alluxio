@@ -102,6 +102,9 @@ public class AlluxioMasterProcess implements MasterProcess {
   /** The JVMMonitor Progress. */
   private JvmPauseMonitor mJvmPauseMonitor;
 
+  /** The object that manages safe mode state */
+  protected final SafeMode mSafeMode;
+
   /**
    * Creates a new {@link AlluxioMasterProcess}.
    */
@@ -147,7 +150,8 @@ public class AlluxioMasterProcess implements MasterProcess {
       }
       // Create masters.
       mRegistry = new MasterRegistry();
-      MasterUtils.createMasters(mJournalSystem, mRegistry);
+      mSafeMode = new DefaultSafeMode();
+      MasterUtils.createMasters(mJournalSystem, mRegistry, mSafeMode);
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
@@ -202,6 +206,7 @@ public class AlluxioMasterProcess implements MasterProcess {
   public void start() throws Exception {
     mJournalSystem.start();
     mJournalSystem.setMode(Mode.PRIMARY);
+    mSafeMode.enterSafeMode();
     startMasters(true);
     startServing();
   }
