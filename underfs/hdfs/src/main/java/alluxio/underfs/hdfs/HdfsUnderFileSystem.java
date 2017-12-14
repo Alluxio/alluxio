@@ -417,7 +417,7 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
           inputStream.close();
           throw e;
         }
-        return inputStream;
+        return new HdfsUnderFileInputStream(inputStream);
       } catch (IOException e) {
         LOG.warn("{} try to open {} : {}", retryPolicy.getRetryCount(), path, e.getMessage());
         te = e;
@@ -543,5 +543,10 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
       }
     }
     throw te;
+  }
+
+  @Override
+  public boolean isSeekable(){
+    return true;
   }
 }
