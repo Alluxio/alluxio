@@ -28,28 +28,29 @@ import java.util.Map.Entry;
  * Utility for printing Alluxio configuration.
  */
 public final class GetConf {
-  private static final String USAGE = "USAGE: GetConf [--unit <arg>] [KEY]\n\n"
+  private static final String USAGE = "USAGE: GetConf [--unit <arg>] [--source] [KEY]\n\n"
       + "GetConf prints the configured value for the given key. If the key is invalid, the "
       + "exit code will be nonzero. If the key is valid but isn't set, an empty string is printed. "
       + "If no key is specified, all configuration is printed. If \"--unit\" option is specified, "
       + "values of data size configuration will be converted to a quantity in the given unit."
       + "E.g., with \"--unit KB\", a configuration value of \"4096\" will return 4, "
-      + "and with \"--unit S\", a configuration value of \"5000\" will return 5."
-      + "Possible unit options include B, KB, MB, GB, TP, PB, MS, S, M, H, D";
+      + "and with \"--unit S\", a configuration value of \"5000\" will return 5. "
+      + "Possible unit options include B, KB, MB, GB, TP, PB, MS, S, M, H, D. "
+      + "if \"--source\" option is specified, the source of configuration value will be printed.";
 
+  private static final String SOURCE_OPTION_NAME = "source";
   private static final String UNIT_OPTION_NAME = "unit";
+  private static final Option SOURCE_OPTION =
+      Option.builder().required(false).longOpt(SOURCE_OPTION_NAME).hasArg(false)
+          .desc("source of the configuration property.").build();
   private static final Option UNIT_OPTION =
       Option.builder().required(false).longOpt(UNIT_OPTION_NAME).hasArg(true)
           .desc("unit of the value to return.").build();
-  private static final Options OPTIONS = new Options().addOption(UNIT_OPTION);
+  private static final Options OPTIONS =
+      new Options().addOption(SOURCE_OPTION).addOption(UNIT_OPTION);
 
   private enum ByteUnit {
-    B(1L),
-    KB(1L << 10),
-    MB(1L << 20),
-    GB(1L << 30),
-    TB(1L << 40),
-    PB(1L << 50);
+    B(1L), KB(1L << 10), MB(1L << 20), GB(1L << 30), TB(1L << 40), PB(1L << 50);
 
     /** value associated with each unit. */
     private long mValue;
@@ -124,13 +125,20 @@ public final class GetConf {
       return 1;
     }
     args = cmd.getArgs();
+    StringBuilder output = new StringBuilder();
     switch (args.length) {
       case 0:
         for (Entry<String, String> entry : Configuration.toMap().entrySet()) {
           String key = entry.getKey();
           String value = entry.getValue();
-          System.out.println(String.format("%s=%s", key, value));
+          output.append(String.format("%s=%s", key, value));
+          if (cmd.hasOption(SOURCE_OPTION_NAME)) {
+            output.append(
+                String.format(" (%s)", Configuration.getSource(PropertyKey.fromString(key))));
+          }
+          output.append("\n");
         }
+        System.out.print(output.toString());
         break;
       case 1:
         if (!PropertyKey.isValid(args[0])) {
@@ -141,7 +149,9 @@ public final class GetConf {
         if (!Configuration.containsKey(key)) {
           System.out.println("");
         } else {
-          if (cmd.hasOption(UNIT_OPTION_NAME)) {
+          if (cmd.hasOption(SOURCE_OPTION_NAME)) {
+            System.out.println(Configuration.getSource(key));
+          } else if (cmd.hasOption(UNIT_OPTION_NAME)) {
             String arg = cmd.getOptionValue(UNIT_OPTION_NAME).toUpperCase();
             try {
               ByteUnit byteUnit;

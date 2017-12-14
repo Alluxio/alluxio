@@ -32,7 +32,6 @@ import java.lang.management.ManagementFactory;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -68,12 +67,23 @@ import javax.annotation.concurrent.NotThreadSafe;
 public final class Configuration {
   private static final Logger LOG = LoggerFactory.getLogger(Configuration.class);
 
+  public enum Source {
+    UNKNOWN,
+    DEFAULT,
+    SITE_PROPERTY,
+    SYSTEM_PROPERTY,
+    HADOOP_CONF,
+  }
+
   /** Regex string to find "${key}" for variable substitution. */
   private static final String REGEX_STRING = "(\\$\\{([^{}]*)\\})";
   /** Regex to find ${key} for variable substitution. */
   private static final Pattern CONF_REGEX = Pattern.compile(REGEX_STRING);
   /** Map of properties. */
   private static final ConcurrentHashMap<String, String> PROPERTIES = new ConcurrentHashMap<>();
+  /** Map of property sources. */
+  private static final ConcurrentHashMap<PropertyKey, Source> SOURCES = new ConcurrentHashMap<>();
+  private static String SITE_PROPERTIES_FILE;
 
   static {
     init();
@@ -95,8 +105,8 @@ public final class Configuration {
 
     // Now lets combine, order matters here
     PROPERTIES.clear();
-    merge(defaultProps);
-    merge(systemProps);
+    merge(defaultProps, Source.DEFAULT);
+    merge(systemProps, Source.SYSTEM_PROPERTY);
 
     // Load site specific properties file if not in test mode. Note that we decide whether in test
     // mode by default properties and system properties (via getBoolean). If it is not in test mode
@@ -104,13 +114,14 @@ public final class Configuration {
     if (!getBoolean(PropertyKey.TEST_MODE)) {
       String confPaths = get(PropertyKey.SITE_CONF_DIR);
       String[] confPathList = confPaths.split(",");
-      Properties siteProps =
+      SITE_PROPERTIES_FILE =
           ConfigurationUtils.searchPropertiesFile(Constants.SITE_PROPERTIES, confPathList);
-      // Update site properties and system properties in order
-      if (siteProps != null) {
-        discardIgnoredSiteProperties(siteProps);
-        merge(siteProps);
-        merge(systemProps);
+      if (SITE_PROPERTIES_FILE != null) {
+        Properties siteProps = ConfigurationUtils.loadPropertiesFromFile(SITE_PROPERTIES_FILE);
+        LOG.info("Configuration file {} loaded.", SITE_PROPERTIES_FILE);
+        // Update site properties and system properties in order
+        merge(siteProps, Source.SITE_PROPERTY);
+        merge(systemProps, Source.SYSTEM_PROPERTY);
       }
     }
 
@@ -163,39 +174,24 @@ public final class Configuration {
    *
    * @param properties The source {@link Properties} to be merged
    */
-  public static void merge(Map<?, ?> properties) {
+  public static void merge(Map<?, ?> properties, Source source) {
     if (properties != null) {
-      // merge the system properties
+      // merge the properties
       for (Map.Entry<?, ?> entry : properties.entrySet()) {
         String key = entry.getKey().toString().trim();
         String value = entry.getValue().toString().trim();
         if (PropertyKey.isValid(key)) {
+          PropertyKey propertyKey = PropertyKey.fromString(key);
+          if (source == Source.SITE_PROPERTY && propertyKey.isIgnoredSiteProperty()) {
+            LOG.warn("{} is not accepted in alluxio-site.properties, "
+                    + "and must be specified as a JVM property. "
+                    + "If no JVM property is present, Alluxio will use default value '{}'.",
+                key, propertyKey.getDefaultValue());
+            continue;
+          }
           // Get the true name for the property key in case it is an alias.
-          PROPERTIES.put(PropertyKey.fromString(key).getName(), value);
-        }
-      }
-    }
-    checkUserFileBufferBytes();
-  }
-
-  /**
-   * Iterates a set of site properties and discards those that user should not use.
-   *
-   * @param siteProperties the set of site properties to check
-   */
-  private static void discardIgnoredSiteProperties(Map<?, ?> siteProperties) {
-    Iterator<? extends Map.Entry<?, ?>> iter = siteProperties.entrySet().iterator();
-    while (iter.hasNext()) {
-      Map.Entry<?, ?> entry  = iter.next();
-      String key = entry.getKey().toString();
-      if (PropertyKey.isValid(key)) {
-        PropertyKey propertyKey = PropertyKey.fromString(key);
-        if (propertyKey.isIgnoredSiteProperty()) {
-          iter.remove();
-          LOG.warn("{} is not accepted in alluxio-site.properties, "
-              + "and must be specified as a JVM property. "
-              + "If no JVM property is present, Alluxio will use default value '{}'.",
-              key, propertyKey.getDefaultValue());
+          PROPERTIES.put(propertyKey.getName(), value);
+          SOURCES.put(propertyKey, source);
         }
       }
     }
@@ -215,7 +211,6 @@ public final class Configuration {
     Preconditions.checkArgument(key != null && value != null,
         String.format("the key value pair (%s, %s) cannot have null", key, value));
     PROPERTIES.put(key.toString(), value.toString());
-    checkUserFileBufferBytes();
   }
 
   /**
@@ -242,6 +237,27 @@ public final class Configuration {
       throw new RuntimeException(ExceptionMessage.UNDEFINED_CONFIGURATION_KEY.getMessage(key));
     }
     return lookup(rawValue);
+  }
+
+  /**
+   * @param key the property key
+   * @return the source for the given key
+   */
+  public static String getSource(PropertyKey key) {
+    Source source = SOURCES.get(key);
+    if (source == null) {
+      return Source.UNKNOWN.name();
+    }
+    switch (source) {
+      case DEFAULT:
+        return Source.DEFAULT.name();
+      case SYSTEM_PROPERTY:
+        return Source.SYSTEM_PROPERTY.name();
+      case SITE_PROPERTY:
+        return SITE_PROPERTIES_FILE;
+      default:
+        return Source.UNKNOWN.name();
+    }
   }
 
   /**
