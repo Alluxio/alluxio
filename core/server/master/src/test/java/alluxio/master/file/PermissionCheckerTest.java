@@ -176,7 +176,8 @@ public final class PermissionCheckerTest {
     sRegistry = new MasterRegistry();
     sSafeModeManager = new DefaultSafeModeManager();
     JournalSystem journalSystem = new NoopJournalSystem();
-    BlockMaster blockMaster = new BlockMasterFactory().create(sRegistry, journalSystem, sSafeModeManager);
+    BlockMaster blockMaster = new BlockMasterFactory().create(sRegistry, journalSystem,
+        sSafeModeManager);
     InodeDirectoryIdGenerator directoryIdGenerator = new InodeDirectoryIdGenerator(blockMaster);
     UfsManager ufsManager = Mockito.mock(UfsManager.class);
     MountTable mountTable = new MountTable(ufsManager);

@@ -51,7 +51,8 @@ public class DefaultSafeModeManager implements SafeModeManager {
    * Creates {@link DefaultSafeModeManager} with default ScheduledExecutorService.
    */
   public DefaultSafeModeManager() {
-    this(ThreadUtils.newSingleThreadScheduledExecutor(DefaultSafeModeManager.class.getSimpleName()));
+    this(ThreadUtils.newSingleThreadScheduledExecutor(
+        DefaultSafeModeManager.class.getSimpleName()));
   }
 
   @Override

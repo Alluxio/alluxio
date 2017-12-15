@@ -104,7 +104,8 @@ public final class InodeTreeTest {
     mRegistry = new MasterRegistry();
     mSafeModeManager = new DefaultSafeModeManager();
     JournalSystem journalSystem = new NoopJournalSystem();
-    BlockMaster blockMaster = new BlockMasterFactory().create(mRegistry, journalSystem, mSafeModeManager);
+    BlockMaster blockMaster = new BlockMasterFactory().create(mRegistry, journalSystem,
+        mSafeModeManager);
     InodeDirectoryIdGenerator directoryIdGenerator = new InodeDirectoryIdGenerator(blockMaster);
     UfsManager ufsManager = Mockito.mock(UfsManager.class);
     MountTable mountTable = new MountTable(ufsManager);
