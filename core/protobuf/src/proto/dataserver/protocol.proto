@@ -33,6 +33,7 @@ message ReadRequest {
 // next available id: 5
 message AsyncCacheRequest {
   optional int64 block_id = 1;
+  // TODO(calvin): source host and port should be replace with WorkerNetAddress
   optional string source_host = 2;
   optional int32 source_port = 3;
   optional OpenUfsBlockOptions open_ufs_block_options = 4;

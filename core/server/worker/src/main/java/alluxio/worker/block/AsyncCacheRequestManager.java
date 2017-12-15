@@ -11,7 +11,7 @@
 
 package alluxio.worker.block;
 
-import alluxio.wire.WorkerNetAddress;
+import alluxio.proto.dataserver.Protocol;
 
 /**
  * Handles client requests to asynchronously cache blocks. Responsible for managing the local
@@ -19,13 +19,12 @@ import alluxio.wire.WorkerNetAddress;
  */
 public class AsyncCacheRequestManager {
   /**
-   * Submits a request to cache the given block id. This is a non-blocking call.
+   * Handles a request to cache a block asynchronously. This is a non-blocking call.
    *
-   * @param blockId block to cache
-   * @param dataSource where the data can be retrieved from, note that only the host and data port
+   * @param request the async cache request
    * fields will be available
    */
-  public void submitRequest(long blockId, WorkerNetAddress dataSource) {
+  public void submitRequest(Protocol.AsyncCacheRequest request) {
 
   }
 }
