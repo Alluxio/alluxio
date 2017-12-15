@@ -334,6 +334,9 @@ public interface UnderFileSystem extends Closeable {
    */
   boolean isObjectStorage();
 
+  /**
+   * @return true if under storage is seekable, false otherwise
+   */
   boolean isSeekable();
 
   /**

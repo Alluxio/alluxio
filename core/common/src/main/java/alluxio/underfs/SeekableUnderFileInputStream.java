@@ -45,6 +45,8 @@ public abstract class SeekableUnderFileInputStream extends InputStream implement
 
   /**
    * Sets the resource id.
+   *
+   * @param resourceId the resource id
    */
   public void setResourceId(long resourceId) {
     Preconditions.checkArgument(resourceId >= 0, "resource id should be positive");
@@ -60,13 +62,15 @@ public abstract class SeekableUnderFileInputStream extends InputStream implement
 
   /**
    * Sets the under file path.
+   *
+   * @param filePath the file path
    */
   public void setFilePath(String filePath) {
     mFilePath = filePath;
   }
 
   /**
-   * @return the under file path.
+   * @return the under file path
    */
   public String getFilePath() {
     return mFilePath;
@@ -83,12 +87,12 @@ public abstract class SeekableUnderFileInputStream extends InputStream implement
   }
 
   @Override
-  public int read(byte b[]) throws IOException {
+  public int read(byte[] b) throws IOException {
     return mInputStream.read(b);
   }
 
   @Override
-  public int read(byte b[], int off, int len) throws IOException {
+  public int read(byte[] b, int off, int len) throws IOException {
     return mInputStream.read(b, off, len);
   }
 
