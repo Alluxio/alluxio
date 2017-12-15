@@ -59,6 +59,7 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -218,7 +219,8 @@ public final class AlluxioBlockStoreTest {
   public void getInStreamUfs() throws Exception {
     WorkerNetAddress worker1 = new WorkerNetAddress().setHost("worker1");
     WorkerNetAddress worker2 = new WorkerNetAddress().setHost("worker2");
-    URIStatus dummyStatus = new URIStatus(new FileInfo().setPersisted(true));
+    URIStatus dummyStatus = new URIStatus(new FileInfo().setPersisted(true).setBlockIds
+        (Collections.singletonList(0L)));
     OpenFileOptions readOptions = OpenFileOptions.defaults().setUfsReadLocationPolicy(new
         MockFileWriteLocationPolicy(Arrays.asList(worker1, worker2)));
     InStreamOptions options = new InStreamOptions(dummyStatus, readOptions);
