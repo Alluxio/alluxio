@@ -287,7 +287,7 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
   @Override
   public List<WorkerInfo> getWorkerInfoList() throws UnavailableException {
     if (mSafeModeManager.isInSafeMode()) {
-      throw new UnavailableException("Alluxio master is in safe mode. Please try again later.");
+      throw new UnavailableException(ExceptionMessage.MASTER_IN_SAFEMODE.getMessage());
     }
     List<WorkerInfo> workerInfoList = new ArrayList<>(mWorkers.size());
     for (MasterWorkerInfo worker : mWorkers) {
@@ -732,7 +732,7 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
   @GuardedBy("masterBlockInfo")
   private BlockInfo generateBlockInfo(MasterBlockInfo masterBlockInfo) throws UnavailableException {
     if (mSafeModeManager.isInSafeMode()) {
-      throw new UnavailableException("Alluxio master is in safe mode. Please try again later");
+      throw new UnavailableException(ExceptionMessage.MASTER_IN_SAFEMODE.getMessage());
     }
     // "Join" to get all the addresses of the workers.
     List<BlockLocation> locations = new ArrayList<>();
