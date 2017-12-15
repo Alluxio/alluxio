@@ -16,7 +16,7 @@ import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.master.MasterFactory;
 import alluxio.master.MasterRegistry;
-import alluxio.master.SafeMode;
+import alluxio.master.SafeModeManager;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.journal.JournalSystem;
 
@@ -50,7 +50,7 @@ public final class LineageMasterFactory implements MasterFactory {
 
   @Override
   public LineageMaster create(MasterRegistry registry, JournalSystem journalSystem,
-      SafeMode safeMode) {
+      SafeModeManager safeModeManager) {
     Preconditions.checkArgument(journalSystem != null, "journal system may not be null");
     LOG.info("Creating {} ", LineageMaster.class.getName());
     FileSystemMaster fileSystemMaster = registry.get(FileSystemMaster.class);
