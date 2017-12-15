@@ -324,7 +324,8 @@ public final class DefaultLineageMaster extends AbstractMaster implements Lineag
 
   @Override
   public synchronized void reportLostFile(String path)
-      throws FileDoesNotExistException, AccessControlException, InvalidPathException, UnavailableException {
+      throws FileDoesNotExistException, AccessControlException, InvalidPathException,
+      UnavailableException {
     long fileId = mFileSystemMaster.getFileId(new AlluxioURI(path));
     mFileSystemMaster.reportLostFile(fileId);
   }

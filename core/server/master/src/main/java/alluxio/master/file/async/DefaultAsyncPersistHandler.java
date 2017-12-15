@@ -93,14 +93,14 @@ public final class DefaultAsyncPersistHandler implements AsyncPersistHandler {
     try {
       if (mFileSystemMasterView.getFileInfo(fileId).getLength() == 0) {
         // if file is empty, return any worker
-          List<WorkerInfo> workerInfoList = mFileSystemMasterView.getWorkerInfoList();
-          if (workerInfoList.isEmpty()) {
-            LOG.error("No worker is available");
-            return IdUtils.INVALID_WORKER_ID;
-          }
-          // randomly pick a worker
-          int index = new Random().nextInt(workerInfoList.size());
-          return workerInfoList.get(index).getId();
+        List<WorkerInfo> workerInfoList = mFileSystemMasterView.getWorkerInfoList();
+        if (workerInfoList.isEmpty()) {
+          LOG.error("No worker is available");
+          return IdUtils.INVALID_WORKER_ID;
+        }
+        // randomly pick a worker
+        int index = new Random().nextInt(workerInfoList.size());
+        return workerInfoList.get(index).getId();
       }
     } catch (UnavailableException e) {
       return IdUtils.INVALID_WORKER_ID;

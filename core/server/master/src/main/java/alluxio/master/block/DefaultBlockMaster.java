@@ -29,7 +29,6 @@ import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.heartbeat.HeartbeatThread;
 import alluxio.master.AbstractMaster;
-import alluxio.master.DefaultSafeMode;
 import alluxio.master.SafeMode;
 import alluxio.master.block.meta.MasterBlockInfo;
 import alluxio.master.block.meta.MasterBlockLocation;
@@ -287,7 +286,7 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
 
   @Override
   public List<WorkerInfo> getWorkerInfoList() throws UnavailableException {
-    if (mSafeMode.isInSafeMode()){
+    if (mSafeMode.isInSafeMode()) {
       throw new UnavailableException("Alluxio master is in safe mode. Please try again later.");
     }
     List<WorkerInfo> workerInfoList = new ArrayList<>(mWorkers.size());
