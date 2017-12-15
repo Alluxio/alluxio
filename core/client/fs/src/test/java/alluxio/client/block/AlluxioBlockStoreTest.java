@@ -219,8 +219,8 @@ public final class AlluxioBlockStoreTest {
   public void getInStreamUfs() throws Exception {
     WorkerNetAddress worker1 = new WorkerNetAddress().setHost("worker1");
     WorkerNetAddress worker2 = new WorkerNetAddress().setHost("worker2");
-    URIStatus dummyStatus = new URIStatus(new FileInfo().setPersisted(true).setBlockIds
-        (Collections.singletonList(0L)));
+    URIStatus dummyStatus =
+        new URIStatus(new FileInfo().setPersisted(true).setBlockIds(Collections.singletonList(0L)));
     OpenFileOptions readOptions = OpenFileOptions.defaults().setUfsReadLocationPolicy(new
         MockFileWriteLocationPolicy(Arrays.asList(worker1, worker2)));
     InStreamOptions options = new InStreamOptions(dummyStatus, readOptions);
