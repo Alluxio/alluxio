@@ -136,7 +136,7 @@ public class UfsInputStreamManager {
     synchronized (resources) {
       long nextId = -1;
       SeekableUnderFileInputStream inputStream = null;
-      for (long id : resources.availableIds()) {
+      for (long id : resources.availableResources()) {
         inputStream = mUnderFileInputStreamCache.getIfPresent(id);
         if (inputStream != null) {
           nextId = id;
@@ -179,38 +179,63 @@ public class UfsInputStreamManager {
     private final Set<Long> mInUse;
     private final Set<Long> mAvailable;
 
+    /**
+     * Creates a new {@link UfsInputStreamResourceMetadata}.
+     */
     UfsInputStreamResourceMetadata() {
       mInUse = new HashSet<>();
       mAvailable = new HashSet<>();
     }
 
-    public Set<Long> availableIds() {
+    /**
+     * @return the a view of the available resources' id.
+     */
+    Set<Long> availableResources() {
       return Collections.unmodifiableSet(mAvailable);
     }
 
+    /**
+     * Marks an input stream as checked out.
+     *
+     * @param id the id of the input stream
+     */
     public synchronized void checkOut(long id) {
       Preconditions.checkArgument(!mInUse.contains(id), id + " is already in use");
       mAvailable.remove(id);
       mInUse.add(id);
     }
 
+    /**
+     * @return if there is any outstanding input streams of the file
+     */
     public synchronized boolean isEmpty() {
       return mInUse.isEmpty() && mAvailable.isEmpty();
     }
 
+    /**
+     * Marks an input stream as not in use.
+     * @param id the id of the input stream
+     */
     public synchronized void removeInUse(long id) {
       mInUse.remove(id);
     }
 
+    /**
+     * Removes the mark of the input stream as available.
+     *
+     * @param id the id of the input stream
+     * @return <code>true</code> if the given input stream is available, <code>false</code> if the
+     *         given input stream is not among available input streams
+     */
     public synchronized boolean removeAvailable(long id) {
       return mAvailable.remove(id);
     }
 
     /**
-     * Returns an id to the resource pool. If marks the id from in use to available. If the resource
-     * is already removed from the cache, then do nothing.
+     * Returns an id to the input stream pool. If marks the id from in use to available. If the
+     * input stream is already removed from the cache, then do nothing.
      *
-     * @param id id of the resource
+     * @param id id of the input stream
      * @return true if the id is marked from in use to available; false if the id no longer used for
      *         cache
      */
