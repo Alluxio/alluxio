@@ -17,23 +17,18 @@ import static org.junit.Assert.assertTrue;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
 
-import org.apache.curator.utils.ThreadUtils;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
-import java.util.concurrent.ScheduledExecutorService;
-
 /**
  * Unit tests for {@link SafeModeManager}.
  */
 public class SafeModeManagerTest {
-  private static final String SAFEMODE_WAIT_TEST = "500ms";
+  private static final String SAFEMODE_WAIT_TEST = "100ms";
 
   private SafeModeManager mSafeModeManager;
-  private ScheduledExecutorService mScheduledExecutorService;
 
   /** The exception expected to be thrown. */
   @Rule
@@ -45,17 +40,7 @@ public class SafeModeManagerTest {
   @Before
   public void before() throws Exception {
     Configuration.set(PropertyKey.MASTER_SAFEMODE_WAIT, SAFEMODE_WAIT_TEST);
-    mScheduledExecutorService =
-        ThreadUtils.newSingleThreadScheduledExecutor("TestSafeModeManager");
-    mSafeModeManager = new DefaultSafeModeManager(mScheduledExecutorService);
-  }
-
-  /**
-   * Stops the master after a test ran.
-   */
-  @After
-  public void after() throws Exception {
-    mScheduledExecutorService.shutdown();
+    mSafeModeManager = new DefaultSafeModeManager();
   }
 
   @Test
@@ -73,7 +58,7 @@ public class SafeModeManagerTest {
   public void leaveSafeMode() throws Exception {
     mSafeModeManager.enterSafeMode();
     assertTrue(mSafeModeManager.isInSafeMode());
-    Thread.sleep(Configuration.getMs(PropertyKey.MASTER_SAFEMODE_WAIT) + 100);
+    Thread.sleep(Configuration.getMs(PropertyKey.MASTER_SAFEMODE_WAIT) + 10);
     assertFalse(mSafeModeManager.isInSafeMode());
   }
 
@@ -81,7 +66,7 @@ public class SafeModeManagerTest {
   public void reenterSafeMode() throws Exception {
     mSafeModeManager.enterSafeMode();
     assertTrue(mSafeModeManager.isInSafeMode());
-    Thread.sleep(Configuration.getMs(PropertyKey.MASTER_SAFEMODE_WAIT) + 100);
+    Thread.sleep(Configuration.getMs(PropertyKey.MASTER_SAFEMODE_WAIT) + 10);
     assertFalse(mSafeModeManager.isInSafeMode());
     mSafeModeManager.enterSafeMode();
     assertTrue(mSafeModeManager.isInSafeMode());
@@ -93,15 +78,15 @@ public class SafeModeManagerTest {
     assertTrue(mSafeModeManager.isInSafeMode());
 
     // Enters safe mode again while in safe mode.
-    Thread.sleep(Configuration.getMs(PropertyKey.MASTER_SAFEMODE_WAIT) - 100);
+    Thread.sleep(Configuration.getMs(PropertyKey.MASTER_SAFEMODE_WAIT) - 10);
     assertTrue(mSafeModeManager.isInSafeMode());
     mSafeModeManager.enterSafeMode();
 
     // Verifies safe mode timer is reset.
     assertTrue(mSafeModeManager.isInSafeMode());
-    Thread.sleep(Configuration.getMs(PropertyKey.MASTER_SAFEMODE_WAIT) - 100);
+    Thread.sleep(Configuration.getMs(PropertyKey.MASTER_SAFEMODE_WAIT) - 10);
     assertTrue(mSafeModeManager.isInSafeMode());
-    Thread.sleep(200);
+    Thread.sleep(20);
     assertFalse(mSafeModeManager.isInSafeMode());
   }
 }
