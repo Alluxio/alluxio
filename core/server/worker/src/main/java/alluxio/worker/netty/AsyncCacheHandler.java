@@ -12,6 +12,9 @@
 package alluxio.worker.netty;
 
 import alluxio.network.protocol.RPCProtoMessage;
+import alluxio.proto.dataserver.Protocol;
+import alluxio.wire.WorkerNetAddress;
+import alluxio.worker.block.AsyncCacheRequestManager;
 
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
@@ -20,15 +23,27 @@ import io.netty.channel.ChannelInboundHandlerAdapter;
  * Handler for async cache requests.
  */
 public class AsyncCacheHandler extends ChannelInboundHandlerAdapter {
+  private final AsyncCacheRequestManager mRequestManager;
+
   /**
    * Constructs a new async cache handler.
    */
-  public AsyncCacheHandler() {}
+  public AsyncCacheHandler() {
+    mRequestManager = new AsyncCacheRequestManager();
+  }
 
   @Override
   public void channelRead(ChannelHandlerContext ctx, Object object) throws Exception {
     if (object instanceof RPCProtoMessage
         && ((RPCProtoMessage) object).getMessage().isAsyncCacheRequest()) {
+      Protocol.AsyncCacheRequest request =
+          ((RPCProtoMessage) object).getMessage().asAsyncCacheRequest();
+
+      // TODO(calvin): The worker net address should be a proto object and passed over the wire
+      mRequestManager.submitRequest(
+          request.getBlockId(),
+          new WorkerNetAddress().setHost(request.getSourceHost()).setDataPort(
+              request.getSourcePort()));
       ctx.writeAndFlush(RPCProtoMessage.createOkResponse(null));
     } else {
       ctx.fireChannelRead(object);

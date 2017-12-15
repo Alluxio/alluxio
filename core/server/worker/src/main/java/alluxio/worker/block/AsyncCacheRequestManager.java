@@ -19,9 +19,11 @@ import alluxio.wire.WorkerNetAddress;
  */
 public class AsyncCacheRequestManager {
   /**
-   * Submits a request to cache the given block id.
+   * Submits a request to cache the given block id. This is a non-blocking call.
+   *
    * @param blockId block to cache
-   * @param dataSource where the data can be retrieved from
+   * @param dataSource where the data can be retrieved from, note that only the host and data port
+   * fields will be available
    */
   public void submitRequest(long blockId, WorkerNetAddress dataSource) {
 
