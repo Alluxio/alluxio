@@ -102,7 +102,7 @@ public class AlluxioMasterProcess implements MasterProcess {
   /** The JVMMonitor Progress. */
   private JvmPauseMonitor mJvmPauseMonitor;
 
-  /** The object that manages safe mode state */
+  /** The object that manages safe mode state. */
   protected final SafeMode mSafeMode;
 
   /**

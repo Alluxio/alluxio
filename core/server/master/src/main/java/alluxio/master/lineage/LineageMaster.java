@@ -110,5 +110,6 @@ public interface LineageMaster extends Master {
    * @throws InvalidPathException if the path is invalid
    */
   void reportLostFile(String path)
-      throws FileDoesNotExistException, AccessControlException, InvalidPathException, UnavailableException;
+      throws FileDoesNotExistException, AccessControlException, InvalidPathException,
+      UnavailableException;
 }

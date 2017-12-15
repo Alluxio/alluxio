@@ -98,7 +98,8 @@ public interface FileSystemMaster extends Master {
    * @throws AccessControlException if permission checking fails
    */
   FileInfo getFileInfo(AlluxioURI path, GetStatusOptions options)
-      throws FileDoesNotExistException, InvalidPathException, AccessControlException, UnavailableException;
+      throws FileDoesNotExistException, InvalidPathException, AccessControlException,
+      UnavailableException;
 
   /**
    * Returns the persistence state for a file id. This method is used by the lineage master.
@@ -126,7 +127,8 @@ public interface FileSystemMaster extends Master {
    * @throws InvalidPathException if the path is invalid
    */
   List<FileInfo> listStatus(AlluxioURI path, ListStatusOptions listStatusOptions)
-      throws AccessControlException, FileDoesNotExistException, InvalidPathException, UnavailableException;
+      throws AccessControlException, FileDoesNotExistException, InvalidPathException,
+      UnavailableException;
 
   /**
    * @return a read-only view of the file system master
@@ -162,7 +164,8 @@ public interface FileSystemMaster extends Master {
    */
   void completeFile(AlluxioURI path, CompleteFileOptions options)
       throws BlockInfoException, FileDoesNotExistException, InvalidPathException,
-      InvalidFileSizeException, FileAlreadyCompletedException, AccessControlException, UnavailableException;
+      InvalidFileSizeException, FileAlreadyCompletedException, AccessControlException,
+      UnavailableException;
 
   /**
    * Creates a file (not a directory) for a given path.
@@ -257,7 +260,8 @@ public interface FileSystemMaster extends Master {
    * @throws AccessControlException if permission checking fails
    */
   List<FileBlockInfo> getFileBlockInfoList(AlluxioURI path)
-      throws FileDoesNotExistException, InvalidPathException, AccessControlException, UnavailableException;
+      throws FileDoesNotExistException, InvalidPathException, AccessControlException,
+      UnavailableException;
 
   /**
    * @return absolute paths of all in-Alluxio files

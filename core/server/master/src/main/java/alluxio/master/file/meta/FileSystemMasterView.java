@@ -97,7 +97,8 @@ public final class FileSystemMasterView {
    * @throws AccessControlException if permission checking fails
    */
   public synchronized List<FileBlockInfo> getFileBlockInfoList(AlluxioURI path)
-      throws FileDoesNotExistException, InvalidPathException, AccessControlException, UnavailableException {
+      throws FileDoesNotExistException, InvalidPathException, AccessControlException,
+      UnavailableException {
     return mFileSystemMaster.getFileBlockInfoList(path);
   }
 
