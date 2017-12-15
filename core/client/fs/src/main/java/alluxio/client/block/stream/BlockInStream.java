@@ -109,14 +109,7 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
     Protocol.ReadRequest.Builder builder =
         Protocol.ReadRequest.newBuilder().setBlockId(blockId).setPromote(promote);
     if (status.isPersisted()) { // Add UFS fallback options
-      long blockStart = BlockId.getSequenceNumber(blockId) * blockSize;
-      Protocol.OpenUfsBlockOptions ufsReadOptions = Protocol.OpenUfsBlockOptions.newBuilder()
-          .setUfsPath(status.getUfsPath())
-          .setOffsetInFile(blockStart).setBlockSize(blockSize)
-          .setMaxUfsReadConcurrency(readOptions.getMaxUfsReadConcurrency())
-          .setNoCache(!readOptions.getReadType().isCache())
-          .setMountId(status.getMountId()).build();
-      builder.setOpenUfsBlockOptions(ufsReadOptions);
+      builder.setOpenUfsBlockOptions(options.getOpenUfsBlockOptions(blockId));
     }
 
     boolean shortCircuit = Configuration.getBoolean(PropertyKey.USER_SHORT_CIRCUIT_ENABLED);
