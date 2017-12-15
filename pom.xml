@@ -1003,6 +1003,8 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-enforcer-plugin</artifactId>
+        <!-- hardcode the version here because maven failed to pick up the dependency-managed version of maven-enforcer-plugin -->
+        <version>1.4</version>
         <executions>
           <execution>
             <id>enforce-versions</id>
