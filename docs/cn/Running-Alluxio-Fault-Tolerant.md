@@ -82,8 +82,6 @@ Zookeeper和共享文件系统都正常运行时，需要在每个主机上配�
 
     -Dalluxio.zookeeper.address=[zookeeper_hostname1]:2181,[zookeeper_hostname2]:2181,[zookeeper_hostname3]:2181
 
-你也可以选择在`alluxio-site.properties`文件中配置以上的选项。更多配置参数选项请参考[配置设置](Configuration-Settings.html)。
-
 ### Master配置
 
 除了以上配置，Alluxio master需要额外的配置。以下变量需在每一个Alluxio Master上的`conf/alluxio-site.properties`中正确设置：
