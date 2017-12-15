@@ -193,7 +193,8 @@ public final class PermissionCheckTest {
     JournalSystem journalSystem = new NoopJournalSystem();
     mSafeModeManager = new DefaultSafeModeManager();
     mBlockMaster = new BlockMasterFactory().create(mRegistry, journalSystem, mSafeModeManager);
-    mFileSystemMaster = new FileSystemMasterFactory().create(mRegistry, journalSystem, mSafeModeManager);
+    mFileSystemMaster = new FileSystemMasterFactory().create(mRegistry, journalSystem,
+        mSafeModeManager);
     mRegistry.start(true);
 
     createDirAndFileForTest();
