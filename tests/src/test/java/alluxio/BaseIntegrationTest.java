@@ -33,17 +33,17 @@ public abstract class BaseIntegrationTest {
   @Rule
   public TestWatcher mWatcher = new TestWatcher() {
     // When tests fail, save the logs.
-    protected void failed(Throwable e, Description description) {
+    protected void failed(Throwable t, Description description) {
       try {
         Files.copy(Paths.get(Constants.TESTS_LOG),
             Paths.get(Constants.TEST_LOG_DIR, String.format("%s-%s.log",
                 description.getClassName(), description.getMethodName())),
             StandardCopyOption.REPLACE_EXISTING);
-      } catch (IOException e1) {
-        if (e != null) {
-          e.addSuppressed(e1);
+      } catch (IOException e) {
+        if (t != null) {
+          t.addSuppressed(e);
         } else {
-          throw new RuntimeException(e1);
+          throw new RuntimeException(e);
         }
       }
       return;
