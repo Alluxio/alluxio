@@ -48,7 +48,7 @@ public final class UnderFileSystemBlockReaderTest {
   private BlockStore mAlluxioBlockStore;
   private UnderFileSystemBlockMeta mUnderFileSystemBlockMeta;
   private UfsManager mUfsManager;
-  private UnderFileInputStreamManager mUfsInstreamManager;
+  private UfsInputStreamManager mUfsInstreamManager;
   private Protocol.OpenUfsBlockOptions mOpenUfsBlockOptions;
 
   /** Rule to create a new temporary folder during each test. */
@@ -79,7 +79,7 @@ public final class UnderFileSystemBlockReaderTest {
 
     mAlluxioBlockStore = new TieredBlockStore();
     mUfsManager = Mockito.mock(UfsManager.class);
-    mUfsInstreamManager = new UnderFileInputStreamManager();
+    mUfsInstreamManager = new UfsInputStreamManager();
     UfsInfo ufsInfo = new UfsInfo(
         Suppliers.ofInstance(UnderFileSystem.Factory.create(testFilePath)),
         new AlluxioURI(testFilePath));

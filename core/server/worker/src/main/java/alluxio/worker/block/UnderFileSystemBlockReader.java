@@ -71,7 +71,7 @@ public final class UnderFileSystemBlockReader implements BlockReader {
   /** The manager for different ufs. */
   private final UfsManager mUfsManager;
   /** The manager for all ufs instream */
-  private final UnderFileInputStreamManager mUfsInstreamManager;
+  private final UfsInputStreamManager mUfsInstreamManager;
 
   /**
    * The position of mUnderFileSystemInputStream (if not null) is blockStart + mInStreamPos.
@@ -94,7 +94,7 @@ public final class UnderFileSystemBlockReader implements BlockReader {
    * @throws BlockDoesNotExistException if the UFS block does not exist in the UFS block store
    */
   public static UnderFileSystemBlockReader create(UnderFileSystemBlockMeta blockMeta, long offset,
-      BlockStore localBlockStore, UfsManager ufsManager, UnderFileInputStreamManager ufsInstreamManager)
+      BlockStore localBlockStore, UfsManager ufsManager, UfsInputStreamManager ufsInstreamManager)
       throws BlockDoesNotExistException, IOException {
     UnderFileSystemBlockReader ufsBlockReader =
         new UnderFileSystemBlockReader(blockMeta, localBlockStore, ufsManager, ufsInstreamManager);
@@ -111,7 +111,7 @@ public final class UnderFileSystemBlockReader implements BlockReader {
    * @param ufsInstreamManager the manager of ufs instreams
    */
   private UnderFileSystemBlockReader(UnderFileSystemBlockMeta blockMeta, BlockStore localBlockStore,
-      UfsManager ufsManager, UnderFileInputStreamManager ufsInstreamManager) {
+      UfsManager ufsManager, UfsInputStreamManager ufsInstreamManager) {
     mInitialBlockSize = Configuration.getBytes(PropertyKey.WORKER_FILE_BUFFER_SIZE);
     mBlockMeta = blockMeta;
     mLocalBlockStore = localBlockStore;

@@ -75,7 +75,7 @@ public final class UnderFileSystemBlockStore implements SessionCleanable {
   private final UfsManager mUfsManager;
 
   /** The manager for all ufs instream */
-  private final UnderFileInputStreamManager mUfsInstreamManager;
+  private final UfsInputStreamManager mUfsInstreamManager;
 
   /**
    * Creates an instance of {@link UnderFileSystemBlockStore}.
@@ -86,7 +86,7 @@ public final class UnderFileSystemBlockStore implements SessionCleanable {
   public UnderFileSystemBlockStore(BlockStore localBlockStore, UfsManager ufsManager) {
     mLocalBlockStore = localBlockStore;
     mUfsManager = ufsManager;
-    mUfsInstreamManager = new UnderFileInputStreamManager();
+    mUfsInstreamManager = new UfsInputStreamManager();
   }
 
   /**

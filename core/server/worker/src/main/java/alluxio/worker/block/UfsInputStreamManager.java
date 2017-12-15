@@ -1,5 +1,7 @@
 package alluxio.worker.block;
 
+import alluxio.Configuration;
+import alluxio.PropertyKey;
 import alluxio.underfs.SeekableUnderFileInputStream;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.OpenOptions;
@@ -28,8 +30,8 @@ import java.util.concurrent.TimeUnit;
 import javax.annotation.concurrent.ThreadSafe;
 
 @ThreadSafe
-public class UnderFileInputStreamManager {
-  private static final Logger LOG = LoggerFactory.getLogger(UnderFileInputStreamManager.class);
+public class UfsInputStreamManager {
+  private static final Logger LOG = LoggerFactory.getLogger(UfsInputStreamManager.class);
 
   private final HashMap<String, UnderFileInputStreamResources> mResources;
   private final Cache<Long, SeekableUnderFileInputStream> mUnderFileInputStreamCache;
@@ -48,7 +50,7 @@ public class UnderFileInputStreamManager {
                 resources.removeInUse(removal.getKey());
                 if (resources.removeAvailable(removal.getKey())) {
                   // close the resource
-                  LOG.info("Removed the under file input stream resource of {}", removal.getKey());
+                  LOG.debug("Removed the under file input stream resource of {}", removal.getKey());
                   try {
                     inputStream.close();
                   } catch (IOException e) {
@@ -59,27 +61,25 @@ public class UnderFileInputStreamManager {
                 if (resources.isEmpty()) {
                   // remove the resources entry
                   mResources.remove(inputStream.getFilePath());
-                  LOG.info("Remove the resource {} of entry {}", removal.getKey(),
-                      inputStream.getFilePath());
                 }
               }
-            } else{
-              LOG.warn("Try to remove the resource entry of {} but not exists any more", removal.getKey());
+            } else {
+              LOG.warn("Try to remove the resource entry of {} but not exists any more",
+                  removal.getKey());
             }
           }
         }
       };
 
-  public UnderFileInputStreamManager() {
-    mResources=new HashMap<>();
+  public UfsInputStreamManager() {
+    mResources = new HashMap<>();
     mRemovalThreadPool = Executors.newFixedThreadPool(2);
 
     mUnderFileInputStreamCache = CacheBuilder.newBuilder()
-//        .expireAfterAccess(Configuration.getMs(PropertyKey.WORKER_UFS_INSTREAM_CACHE_EXPIRE_MS),
-//            TimeUnit.MILLISECONDS)
-        .expireAfterAccess(4000,
+        .expireAfterAccess(Configuration.getMs(PropertyKey.WORKER_UFS_INSTREAM_CACHE_EXPIRE_MS),
             TimeUnit.MILLISECONDS)
-        .removalListener(RemovalListeners.asynchronous(mRemovalListener,mRemovalThreadPool)).build();
+        .removalListener(RemovalListeners.asynchronous(mRemovalListener, mRemovalThreadPool))
+        .build();
   }
 
   public void checkIn(InputStream inputStream) throws IOException {
@@ -88,19 +88,18 @@ public class UnderFileInputStreamManager {
       return;
     }
 
-    mUnderFileInputStreamCache.cleanUp();
-
     SeekableUnderFileInputStream seekableInputStream = (SeekableUnderFileInputStream) inputStream;
     synchronized (mResources) {
       if (!mResources.containsKey(seekableInputStream.getFilePath())) {
-        LOG.info("The resource {} is already expired", seekableInputStream.getResourceId());
+        LOG.debug("The resource {} is already expired", seekableInputStream.getResourceId());
         // the cache no longer tracks this input stream
         seekableInputStream.close();
         return;
       }
       UnderFileInputStreamResources resources = mResources.get(seekableInputStream.getFilePath());
       if (!resources.checkIn(seekableInputStream.getResourceId())) {
-        LOG.info("Close the expired input stream resource of {}", seekableInputStream.getResourceId());
+        LOG.debug("Close the expired input stream resource of {}",
+            seekableInputStream.getResourceId());
         seekableInputStream.close();
       }
     }
@@ -117,8 +116,8 @@ public class UnderFileInputStreamManager {
 
     UnderFileInputStreamResources resources;
     synchronized (mResources) {
-      if(mResources.containsKey(path)) {
-        resources=mResources.get(path);
+      if (mResources.containsKey(path)) {
+        resources = mResources.get(path);
       } else {
         resources = new UnderFileInputStreamResources();
         mResources.put(path, resources);
@@ -132,7 +131,7 @@ public class UnderFileInputStreamManager {
         inputStream = mUnderFileInputStreamCache.getIfPresent(id);
         if (inputStream != null) {
           nextId = id;
-          LOG.info("Reused the under file input stream resource of {}", nextId);
+          LOG.debug("Reused the under file input stream resource of {}", nextId);
           // for the cached ufs instream, seek to the requested position
           inputStream.seek(offset);
           break;
@@ -145,7 +144,7 @@ public class UnderFileInputStreamManager {
           inputStream = mUnderFileInputStreamCache.get(nextId, () -> {
             SeekableUnderFileInputStream ufsStream = (SeekableUnderFileInputStream) ufs.open(path,
                 OpenOptions.defaults().setOffset(offset));
-            LOG.info("Created the under file input stream resource of {}", newId);
+            LOG.debug("Created the under file input stream resource of {}", newId);
             ufsStream.setResourceId(newId);
             ufsStream.setFilePath(path);
             return ufsStream;
@@ -163,13 +162,13 @@ public class UnderFileInputStreamManager {
   }
 
   @ThreadSafe
-  static class UnderFileInputStreamResources {
+  private static class UnderFileInputStreamResources {
     private final Set<Long> mInUse;
     private final Set<Long> mAvailable;
 
     UnderFileInputStreamResources() {
       mInUse = new HashSet<>();
-      mAvailable= new HashSet<>();
+      mAvailable = new HashSet<>();
     }
 
     public Set<Long> availableIds() {
@@ -204,7 +203,7 @@ public class UnderFileInputStreamManager {
      */
     public synchronized boolean checkIn(long id) {
       Preconditions.checkArgument(!mAvailable.contains(id));
-      if(mInUse.contains(id)) {
+      if (mInUse.contains(id)) {
         mInUse.remove(id);
         mAvailable.add(id);
         return true;
