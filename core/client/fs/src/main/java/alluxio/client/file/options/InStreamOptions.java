@@ -12,10 +12,13 @@
 package alluxio.client.file.options;
 
 import alluxio.client.file.URIStatus;
+import alluxio.master.block.BlockId;
+import alluxio.proto.dataserver.Protocol;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.FileBlockInfo;
 
 import com.google.common.base.Objects;
+import com.google.common.base.Preconditions;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -65,12 +68,25 @@ public final class InStreamOptions {
 
   /**
    * @param blockId id of the block
-   * @return the block info associated with the block id, or an exception if the block id is not
-   * associated with the file.
+   * @return the block info associated with the block id
    */
   public BlockInfo getBlockInfo(long blockId) {
+    Preconditions.checkArgument(mStatus.getBlockIds().contains(blockId), "blockId");
     return mStatus.getFileBlockInfos().stream().map(FileBlockInfo::getBlockInfo)
         .filter(blockInfo -> blockInfo.getBlockId() == blockId).findFirst().get();
+  }
+
+  /**
+   * @param blockId id of the block
+   * @return a {@link Protocol.OpenUfsBlockOptions} based on the block id and options
+   */
+  public Protocol.OpenUfsBlockOptions getOpenUfsBlockOptions(long blockId) {
+    Preconditions.checkArgument(mStatus.getBlockIds().contains(blockId), "blockId");
+    long blockStart = BlockId.getSequenceNumber(blockId) * mStatus.getBlockSizeBytes();
+    return Protocol.OpenUfsBlockOptions.newBuilder().setUfsPath(mStatus.getUfsPath())
+        .setOffsetInFile(blockStart).setBlockSize(mStatus.getBlockSizeBytes())
+        .setMaxUfsReadConcurrency(mOptions.getMaxUfsReadConcurrency())
+        .setNoCache(!mOptions.getReadType().isCache()).setMountId(mStatus.getMountId()).build();
   }
 
   @Override
