@@ -74,6 +74,9 @@ public final class UnderFileSystemBlockStore implements SessionCleanable {
   /** The manager for all ufs. */
   private final UfsManager mUfsManager;
 
+  /** The manager for all ufs instream */
+  private final UnderFileInputStreamManager mUfsInstreamManager;
+
   /**
    * Creates an instance of {@link UnderFileSystemBlockStore}.
    *
@@ -83,6 +86,7 @@ public final class UnderFileSystemBlockStore implements SessionCleanable {
   public UnderFileSystemBlockStore(BlockStore localBlockStore, UfsManager ufsManager) {
     mLocalBlockStore = localBlockStore;
     mUfsManager = ufsManager;
+    mUfsInstreamManager = new UnderFileInputStreamManager();
   }
 
   /**
@@ -181,6 +185,7 @@ public final class UnderFileSystemBlockStore implements SessionCleanable {
    *
    * @param sessionId the session ID
    */
+  @Override
   public void cleanupSession(long sessionId) {
     Set<Long> blockIds;
     try (LockResource lr = new LockResource(mLock)) {
@@ -226,7 +231,7 @@ public final class UnderFileSystemBlockStore implements SessionCleanable {
     }
     BlockReader reader =
         UnderFileSystemBlockReader.create(blockInfo.getMeta(), offset, mLocalBlockStore,
-            mUfsManager);
+            mUfsManager, mUfsInstreamManager);
     blockInfo.setBlockReader(reader);
     return reader;
   }
