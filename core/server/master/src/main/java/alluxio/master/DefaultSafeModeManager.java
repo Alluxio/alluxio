@@ -43,6 +43,6 @@ public class DefaultSafeModeManager implements SafeModeManager {
   public boolean isInSafeMode() {
     // lazily updates safe mode state upon inquiry
     return mSafeModeEndTime.get() != null
-        && mSafeModeEndTime.updateAndGet(x -> System.nanoTime() > x ? null : x) != null;
+        && mSafeModeEndTime.updateAndGet(x -> x != null && System.nanoTime() > x? null : x) != null;
   }
 }
