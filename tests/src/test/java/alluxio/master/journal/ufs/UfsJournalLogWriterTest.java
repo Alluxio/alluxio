@@ -27,8 +27,14 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.mockito.Mockito;
+import org.powermock.reflect.Whitebox;
 
+import java.io.DataOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.net.URI;
+import java.nio.channels.FileChannel;
 
 /**
  * Unit tests for {@link UfsJournalLogWriter}.
@@ -104,14 +110,18 @@ public final class UfsJournalLogWriterTest extends BaseIntegrationTest {
   public void writeJournalEntryUfsHasFlush() throws Exception {
     Mockito.when(mUfs.supportsFlush()).thenReturn(true);
     long nextSN = 0x20;
+    int count = 0;
     UfsJournalLogWriter writer = new UfsJournalLogWriter(mJournal, nextSN);
 
     for (int i = 0; i < 10; i++) {
       writer.write(newEntry(nextSN));
+      count++;
       nextSN++;
       if (i % 5 == 0) {
         writer.flush();
+        count = 0;
       }
+      Assert.assertEquals(count, writer.getNumberOfJournalEntriesToFlush());
     }
     writer.close();
 
@@ -176,6 +186,52 @@ public final class UfsJournalLogWriterTest extends BaseIntegrationTest {
       Assert.assertEquals(UfsJournalFile.encodeLogFileLocation(mJournal, 0x20 + i, 0x21 + i),
           snapshot.getLogs().get(i).getLocation());
     }
+  }
+
+  /**
+   * Test the case in which there are missing journal entries between the last persisted entry
+   * and the first entry in {@code UfsJournalLogWriter#mEntriesToFlush}.
+   * @throws Exception
+   */
+  @Test
+  public void missingJournalEntries() throws Exception {
+    Mockito.when(mUfs.supportsFlush()).thenReturn(true);
+    long dummySN = 0x10;
+    UfsJournalLogWriter writer = new UfsJournalLogWriter(mJournal, dummySN);
+    for (int i = 0; i < 5; i++) {
+      writer.write(newEntry(dummySN));
+    }
+    writer.flush();
+
+    writer.write(newEntry(dummySN));
+    Assert.assertNotNull(writer.getJournalOutputStream());
+    DataOutputStream badOut = Mockito.mock(DataOutputStream.class);
+    Mockito.doThrow(new IOException("injected I/O error")).when(badOut)
+        .write(Mockito.any(byte[].class), Mockito.anyInt(), Mockito.anyInt());
+    UfsJournalLogWriter.JournalOutputStream journalOutputStream = writer.getJournalOutputStream();
+    Whitebox.setInternalState(journalOutputStream, "mOutputStream", badOut);
+    Assert.assertEquals(writer.getUnderlyingDataOutputStream(), badOut);
+    try {
+      writer.write(newEntry(dummySN));
+      // Should not reach here
+      Assert.assertTrue(false);
+    } catch (IOException e) {
+      Assert.assertTrue(e.getMessage().contains("injected I/O error"));
+      Assert.assertNotEquals(journalOutputStream, writer.getJournalOutputStream());
+      Assert.assertNull(writer.getJournalOutputStream());
+      Assert.assertEquals(1, writer.getNumberOfJournalEntriesToFlush());
+    }
+    UfsJournalSnapshot snapshot = UfsJournalSnapshot.getSnapshot(mJournal);
+    UfsJournalFile journalFile = snapshot.getCurrentLog(mJournal);
+    File file = new File(journalFile.getLocation().toString());
+    try (FileOutputStream fileOutputStream = new FileOutputStream(file, true);
+        FileChannel fileChannel = fileOutputStream.getChannel()) {
+      long fileLen = file.length();
+      Assert.assertTrue(fileLen > 0);
+      fileChannel.truncate(fileLen / 2);
+    }
+    writer.write(newEntry(dummySN));
+    writer.close();
   }
 
   /**

@@ -81,7 +81,7 @@ final class UfsJournalLogWriter implements JournalWriter {
   /**
    * A simple wrapper that wraps a output stream to the current log file.
    */
-  private class JournalOutputStream implements Closeable {
+  protected class JournalOutputStream implements Closeable {
     final DataOutputStream mOutputStream;
     final UfsJournalFile mCurrentLog;
 
@@ -219,7 +219,8 @@ final class UfsJournalLogWriter implements JournalWriter {
     if (mJournalOutputStream != null) {
       return;
     }
-    UfsJournalFile currentLog = UfsJournalSnapshot.getCurrentLog(mJournal);
+    UfsJournalSnapshot snapshot = UfsJournalSnapshot.getSnapshot(mJournal);
+    UfsJournalFile currentLog = snapshot.getCurrentLog(mJournal);
     if (currentLog == null) {
       return;
     }
@@ -267,8 +268,9 @@ final class UfsJournalLogWriter implements JournalWriter {
         LOG.error("Journal entries between [{}, {}) are missing. Exiting.",
             lastPersistSeq + 1, entry.getSequenceNumber());
         throw new IOException(ExceptionMessage.JOURNAL_ENTRY_MISSING
-            .getMessageWithUrl(RuntimeConstants.ALLUXIO_DEBUG_DOCS_URL,
-                currentLog));
+            .getMessageWithUrl(RuntimeConstants.ALLUXIO_DEBUG_DOCS_URL, currentLog,
+            "Journal entries between [" + (lastPersistSeq + 1) + ", " + entry.getSequenceNumber()
+            + ") are missing."));
       }
       LOG.info("Retry writing unwritten journal entries");
     }
@@ -357,5 +359,20 @@ final class UfsJournalLogWriter implements JournalWriter {
     closer.register(mGarbageCollector);
     closer.close();
     mClosed = true;
+  }
+
+  protected int getNumberOfJournalEntriesToFlush() {
+    return mEntriesToFlush.size();
+  }
+
+  protected JournalOutputStream getJournalOutputStream() {
+    return mJournalOutputStream;
+  }
+
+  protected DataOutputStream getUnderlyingDataOutputStream() {
+    if (mJournalOutputStream == null) {
+      return null;
+    }
+    return mJournalOutputStream.mOutputStream;
   }
 }
