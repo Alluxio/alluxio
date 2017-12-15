@@ -438,9 +438,10 @@ public class ConfigurationTest {
 
   @Test
   public void userFileBufferBytesOverFlowException() {
-    mThrown.expect(IllegalStateException.class);
     Configuration.set(PropertyKey.USER_FILE_BUFFER_BYTES,
         String.valueOf(Integer.MAX_VALUE + 1) + "B");
+    mThrown.expect(IllegalStateException.class);
+    Configuration.validate();
   }
 
   @Test
@@ -557,6 +558,8 @@ public class ConfigurationTest {
     sysProps.put(PropertyKey.SITE_CONF_DIR.toString(), mFolder.getRoot().getAbsolutePath());
     sysProps.put(PropertyKey.TEST_MODE.toString(), "false");
     try (Closeable p = new SystemPropertyRule(sysProps).toResource()) {
+      assertEquals(
+          Configuration.Source.SYSTEM_PROPERTY, Configuration.getSource(PropertyKey.LOGS_DIR));
       assertEquals("/tmp/logs1", Configuration.get(PropertyKey.LOGS_DIR));
     }
   }
