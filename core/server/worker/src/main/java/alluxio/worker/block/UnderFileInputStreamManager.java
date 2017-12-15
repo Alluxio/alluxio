@@ -16,27 +16,24 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
 import javax.annotation.concurrent.ThreadSafe;
 
 @ThreadSafe
-public class UnderFileInputStreamsManager {
-  private static final Logger LOG = LoggerFactory.getLogger(UnderFileInputStreamsManager.class);
+public class UnderFileInputStreamManager {
+  private static final Logger LOG = LoggerFactory.getLogger(UnderFileInputStreamManager.class);
 
-  public static final UnderFileInputStreamsManager INSTANCE = create();
-
-  private final ConcurrentHashMap<String, UnderFileInputStreamResources> mResources;
+  private final HashMap<String, UnderFileInputStreamResources> mResources;
   private final Cache<Long, SeekableUnderFileInputStream> mUnderFileInputStreamCache;
   private final ExecutorService mRemovalThreadPool;
-  private final Future<?> mCacheCleanupService;
 
   private RemovalListener<Long, SeekableUnderFileInputStream> mRemovalListener =
       new RemovalListener<Long, SeekableUnderFileInputStream>() {
@@ -62,18 +59,19 @@ public class UnderFileInputStreamsManager {
                 if (resources.isEmpty()) {
                   // remove the resources entry
                   mResources.remove(inputStream.getFilePath());
-                  LOG.info("Remove the resource entry of {}", inputStream.getFilePath());
+                  LOG.info("Remove the resource {} of entry {}", removal.getKey(),
+                      inputStream.getFilePath());
                 }
               }
             } else{
-              LOG.info("Try to remove the resource entry of {} but not exists any more", removal.getKey());
+              LOG.warn("Try to remove the resource entry of {} but not exists any more", removal.getKey());
             }
           }
         }
       };
 
-  private UnderFileInputStreamsManager() {
-    mResources=new ConcurrentHashMap<>();
+  public UnderFileInputStreamManager() {
+    mResources=new HashMap<>();
     mRemovalThreadPool = Executors.newFixedThreadPool(2);
 
     mUnderFileInputStreamCache = CacheBuilder.newBuilder()
@@ -84,19 +82,18 @@ public class UnderFileInputStreamsManager {
         .removalListener(RemovalListeners.asynchronous(mRemovalListener,mRemovalThreadPool)).build();
   }
 
-  public static UnderFileInputStreamsManager create() {
-    return new UnderFileInputStreamsManager();
-  }
-
   public void checkIn(InputStream inputStream) throws IOException {
     if (!(inputStream instanceof SeekableUnderFileInputStream)) {
       inputStream.close();
       return;
     }
 
+    mUnderFileInputStreamCache.cleanUp();
+
     SeekableUnderFileInputStream seekableInputStream = (SeekableUnderFileInputStream) inputStream;
     synchronized (mResources) {
       if (!mResources.containsKey(seekableInputStream.getFilePath())) {
+        LOG.info("The resource {} is already expired", seekableInputStream.getResourceId());
         // the cache no longer tracks this input stream
         seekableInputStream.close();
         return;
@@ -115,6 +112,9 @@ public class UnderFileInputStreamsManager {
       return ufs.open(path, OpenOptions.defaults().setOffset(offset));
     }
 
+    // cleanup first
+    mUnderFileInputStreamCache.cleanUp();
+
     UnderFileInputStreamResources resources;
     synchronized (mResources) {
       if(mResources.containsKey(path)) {
@@ -126,31 +126,38 @@ public class UnderFileInputStreamsManager {
     }
 
     synchronized (resources) {
-      final long nextId = resources.nextAvailable();
-
-      final long cacheId = nextId < 0 ? IdUtils.getRandomNonNegativeLong() : nextId;
-      SeekableUnderFileInputStream inputStream=null;
-      try {
-        inputStream = mUnderFileInputStreamCache.get(cacheId, () -> {
-          SeekableUnderFileInputStream ufsStream =
-              (SeekableUnderFileInputStream) ufs.open(path, OpenOptions.defaults().setOffset(offset));
-          LOG.info("Created the under file input stream resource of {}", cacheId);
-          ufsStream.setResourceId(cacheId);
-          ufsStream.setFilePath(path);
-          return ufsStream;
-        });
-      } catch (ExecutionException e) {
-        LOG.warn("Failed to retrieve the cached UFS instream");
-        // fall back to a ufs creation.
-        return ufs.open(path, OpenOptions.defaults().setOffset(offset));
+      long nextId = -1;
+      SeekableUnderFileInputStream inputStream = null;
+      for (long id : resources.availableIds()) {
+        inputStream = mUnderFileInputStreamCache.getIfPresent(id);
+        if (inputStream != null) {
+          nextId = id;
+          LOG.info("Reused the under file input stream resource of {}", nextId);
+          // for the cached ufs instream, seek to the requested position
+          inputStream.seek(offset);
+          break;
+        }
       }
-      resources.checkOut(cacheId);
-      if (nextId>=0) {
-        LOG.info("Reused the under file input stream resource of {}", nextId);
-        // for the cached ufs instream, seek to the requested position
-        inputStream.seek(offset);
+      if (nextId == -1) {
+        nextId = IdUtils.getRandomNonNegativeLong();
+        final long newId = nextId;
+        try {
+          inputStream = mUnderFileInputStreamCache.get(nextId, () -> {
+            SeekableUnderFileInputStream ufsStream = (SeekableUnderFileInputStream) ufs.open(path,
+                OpenOptions.defaults().setOffset(offset));
+            LOG.info("Created the under file input stream resource of {}", newId);
+            ufsStream.setResourceId(newId);
+            ufsStream.setFilePath(path);
+            return ufsStream;
+          });
+        } catch (ExecutionException e) {
+          LOG.warn("Failed to retrieve the cached UFS instream");
+          // fall back to a ufs creation.
+          return ufs.open(path, OpenOptions.defaults().setOffset(offset));
+        }
       }
 
+      resources.checkOut(nextId);
       return inputStream;
     }
   }
@@ -165,11 +172,8 @@ public class UnderFileInputStreamsManager {
       mAvailable= new HashSet<>();
     }
 
-    public synchronized long nextAvailable() {
-      if (mAvailable.isEmpty()){
-        return -1;
-      }
-      return mAvailable.iterator().next();
+    public Set<Long> availableIds() {
+      return Collections.unmodifiableSet(mAvailable);
     }
 
     public synchronized void checkOut(long id) {
@@ -179,7 +183,7 @@ public class UnderFileInputStreamsManager {
     }
 
     public synchronized boolean isEmpty() {
-      return mInUse.isEmpty() || mAvailable.isEmpty();
+      return mInUse.isEmpty() && mAvailable.isEmpty();
     }
 
     public synchronized void removeInUse(long id) {
