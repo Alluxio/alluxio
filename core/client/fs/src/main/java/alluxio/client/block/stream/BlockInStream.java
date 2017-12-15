@@ -22,7 +22,6 @@ import alluxio.client.file.options.InStreamOptions;
 import alluxio.client.file.options.OpenFileOptions;
 import alluxio.exception.PreconditionMessage;
 import alluxio.exception.status.NotFoundException;
-import alluxio.master.block.BlockId;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.util.io.BufferUtils;
