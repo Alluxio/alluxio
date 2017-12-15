@@ -16,6 +16,7 @@ import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.ConfigurationRule;
 import alluxio.ConfigurationTestUtils;
+import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.cli.Format;
 import alluxio.client.file.FileSystem;
@@ -75,8 +76,8 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public final class MultiProcessCluster implements TestRule {
   private static final Logger LOG = LoggerFactory.getLogger(MultiProcessCluster.class);
-  private static final File ARTIFACTS_DIR = new File("./target/artifacts");
-  private static final File TESTS_LOG = new File("./target/logs/tests.log");
+  private static final File ARTIFACTS_DIR = new File(Constants.TEST_ARTIFACTS_DIR);
+  private static final File TESTS_LOG = new File(Constants.TESTS_LOG);
 
   private final Map<PropertyKey, String> mProperties;
   private final int mNumMasters;
