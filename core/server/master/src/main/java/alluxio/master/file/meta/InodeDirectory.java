@@ -250,7 +250,7 @@ public final class InodeDirectory extends Inode<InodeDirectory> {
    * @return the {@link InodeDirectory} representation
    */
   public static InodeDirectory fromJournalEntry(InodeDirectoryEntry entry) {
-    // If journal entry has no security enabled, set default mode for backwards-compatibility.
+    // If journal entry has no mode set, set default mode for backwards-compatibility.
     short mode = entry.hasMode() ? (short) entry.getMode() : Constants.DEFAULT_FILE_SYSTEM_MODE;
     return new InodeDirectory(entry.getId())
         .setCreationTimeMs(entry.getCreationTimeMs())
