@@ -16,6 +16,7 @@ import alluxio.Configuration;
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.PropertyKey;
 import alluxio.BaseIntegrationTest;
+import alluxio.ConcurrencyTestUtils;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
