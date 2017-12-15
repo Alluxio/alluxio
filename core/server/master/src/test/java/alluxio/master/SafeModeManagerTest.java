@@ -46,7 +46,7 @@ public class SafeModeManagerTest {
   public void before() throws Exception {
     Configuration.set(PropertyKey.MASTER_SAFEMODE_WAIT, SAFEMODE_WAIT_TEST);
     mScheduledExecutorService =
-        ThreadUtils.newSingleThreadScheduledExecutor("TestSafeMode");
+        ThreadUtils.newSingleThreadScheduledExecutor("TestSafeModeManager");
     mSafeModeManager = new DefaultSafeModeManager(mScheduledExecutorService);
   }
 
@@ -97,7 +97,7 @@ public class SafeModeManagerTest {
     assertTrue(mSafeModeManager.isInSafeMode());
     mSafeModeManager.enterSafeMode();
 
-    // Verifies safe mode timer is reset
+    // Verifies safe mode timer is reset.
     assertTrue(mSafeModeManager.isInSafeMode());
     Thread.sleep(Configuration.getMs(PropertyKey.MASTER_SAFEMODE_WAIT) - 100);
     assertTrue(mSafeModeManager.isInSafeMode());
