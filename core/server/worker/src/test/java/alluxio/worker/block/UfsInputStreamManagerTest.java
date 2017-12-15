@@ -19,13 +19,16 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
-public class UfsInputStreamManagerTest {
+/**
+ * Unit tests for {@link UfsInputStreamManager}.
+ */
+public final class UfsInputStreamManagerTest {
   private static final String FILE_NAME = "/test";
 
   private UnderFileSystem mUfs;
   private SeekableUnderFileInputStream[] mSeekableInStreams;
   private UfsInputStreamManager mManager;
-  private int mNumOfInputStreams = 10;
+  private int mNumOfInputStreams = 20;
 
   @Before
   public void before() throws Exception {
@@ -49,6 +52,9 @@ public class UfsInputStreamManagerTest {
     return instream;
   }
 
+  /**
+   * Test that verifies a checked-in input stream can be reused for the next check out.
+   */
   @Test
   public void testCheckInAndOut() throws Exception {
     SeekableUnderFileInputStream mockedStrem = createMockedSeekableStream();
@@ -68,6 +74,9 @@ public class UfsInputStreamManagerTest {
     Mockito.verify(mockedStrem).seek(4);
   }
 
+  /**
+   * Tests checking out multiple times will open new input streams.
+   */
   @Test
   public void testMultipleCheckIn() throws Exception {
     mManager.checkOut(mUfs, FILE_NAME, 2);
@@ -78,6 +87,9 @@ public class UfsInputStreamManagerTest {
         Mockito.any(OpenOptions.class));
   }
 
+  /**
+   * Tests the input stream is closed after the resource is expired.
+   */
   @Test
   public void testExpire() throws Exception {
     try (Closeable r = new ConfigurationRule(new HashMap<PropertyKey, String>() {
@@ -97,6 +109,9 @@ public class UfsInputStreamManagerTest {
     };
   }
 
+  /**
+   * Tests concurrent checkouts without expiration do not hit deadlock.
+   */
   @Test
   public void testConcurrency() throws Exception {
     mManager = new UfsInputStreamManager();
@@ -124,6 +139,9 @@ public class UfsInputStreamManagerTest {
         .seek(Mockito.anyLong());
   }
 
+  /**
+   * Tests concurrent checkouts with expiration do not hit deadlock.
+   */
   @Test
   public void testConcurrencyWithExpiration() throws Exception {
     try (Closeable r = new ConfigurationRule(new HashMap<PropertyKey, String>() {
@@ -141,7 +159,7 @@ public class UfsInputStreamManagerTest {
             try {
               instream = mManager.checkOut(mUfs, FILE_NAME, j);
               mManager.checkIn(instream);
-              Thread.sleep(50);
+              Thread.sleep(80);
             } catch (Exception e) {
               // the input streams created should not be more than mNumOfInputStreams
               Assert.fail("input stream check in and out failed." + e);
@@ -151,8 +169,13 @@ public class UfsInputStreamManagerTest {
         threads.add(new Thread(runnable));
       }
       ConcurrencyTestUtils.assertConcurrent(threads, 30);
-      // Each subsequent check out per thread should be a seek operation
-      Mockito.verify(mSeekableInStreams[0]).close();
+      for(int i=0;i<mNumOfInputStreams / 2;i++) {
+        // the first half of input streams are closed
+        Mockito.verify(mSeekableInStreams[i]).close();
+      }
+      // all the input streams should be opened
+      Mockito.verify(mUfs, Mockito.times(mNumOfInputStreams)).open(Mockito.eq(FILE_NAME),
+          Mockito.any(OpenOptions.class));
     }
   }
 }
