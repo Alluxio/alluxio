@@ -17,6 +17,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.UUID;
 
 /**
@@ -78,12 +79,9 @@ public final class AlluxioTestDirectory {
    */
   private static void cleanUpOldFiles(File dir) {
     long cutoffTimestamp = System.currentTimeMillis() - (MAX_FILE_AGE_HOURS * Constants.HOUR_MS);
-    File[] files = dir.listFiles();
-    for (File file : files) {
-      if (!FileUtils.isFileNewer(file, cutoffTimestamp)) {
-        delete(file);
-      }
-    }
+    Arrays.asList(dir.listFiles()).stream()
+        .filter(file -> !FileUtils.isFileNewer(file, cutoffTimestamp))
+        .forEach(file -> delete(file));
   }
 
   private static void delete(File file) {
@@ -91,7 +89,7 @@ public final class AlluxioTestDirectory {
       return;
     }
     try {
-      alluxio.util.io.FileUtils.deletePathRecursively(file.getAbsolutePath());
+      FileUtils.deleteDirectory(file);
     } catch (IOException e) {
       LOG.warn("Failed to clean up {} : {}", file.getAbsolutePath(), e.toString());
     }

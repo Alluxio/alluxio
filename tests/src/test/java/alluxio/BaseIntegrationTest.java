@@ -16,18 +16,16 @@ import org.junit.rules.TestWatcher;
 import org.junit.rules.Timeout;
 import org.junit.runner.Description;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.nio.file.StandardOpenOption;
 
 /**
  * Base class used for specifying the maximum time a test should run for.
  */
 public abstract class BaseIntegrationTest {
-  private static final File LOG_DIR = new File("./target/logs");
-  private static final File TESTS_LOG = new File("./target/logs/tests.log");
 
   @Rule
   public Timeout mGlobalTimeout = Timeout.millis(Constants.MAX_TEST_DURATION_MS);
@@ -37,8 +35,8 @@ public abstract class BaseIntegrationTest {
     // When tests fail, save the logs.
     protected void failed(Throwable e, Description description) {
       try {
-        Files.copy(Paths.get(TESTS_LOG.toURI()),
-            Paths.get(LOG_DIR.getAbsolutePath(), String.format("%s-%s.log",
+        Files.copy(Paths.get(Constants.TESTS_LOG),
+            Paths.get(Constants.TEST_LOG_DIR, String.format("%s-%s.log",
                 description.getClassName(), description.getMethodName())),
             StandardCopyOption.REPLACE_EXISTING);
       } catch (IOException e1) {
@@ -51,10 +49,11 @@ public abstract class BaseIntegrationTest {
       return;
     }
 
-    protected void succeeded(Description description) {
-      // When tests succeed, reset the log file.
+    // Before each test starts, truncate the log file.
+    protected void starting(Description description) {
       try {
-        Files.write(Paths.get(TESTS_LOG.getAbsolutePath()), "".getBytes());
+        Files.write(Paths.get(Constants.TESTS_LOG), new byte[0],
+            StandardOpenOption.TRUNCATE_EXISTING);
       } catch (IOException e) {
         throw new RuntimeException(e);
       }
