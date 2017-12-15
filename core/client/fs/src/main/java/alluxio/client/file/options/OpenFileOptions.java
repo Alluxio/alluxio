@@ -41,8 +41,6 @@ public final class OpenFileOptions {
   private int mMaxUfsReadConcurrency;
   /** The location policy to determine the worker location to serve UFS block reads. */
   private BlockLocationPolicy mUfsReadLocationPolicy;
-  /** Whether to cache a partially read block. */
-  private boolean mPartialCache;
 
   /**
    * @return the default {@link InStreamOptions}
@@ -68,7 +66,6 @@ public final class OpenFileOptions {
     mUfsReadLocationPolicy = BlockLocationPolicy.Factory.create(blockLocationPolicyCreateOptions);
     mMaxUfsReadConcurrency =
         Configuration.getInt(PropertyKey.USER_UFS_BLOCK_READ_CONCURRENCY_MAX);
-    mPartialCache = Configuration.getBoolean(PropertyKey.USER_FILE_CACHE_PARTIALLY_READ_BLOCK);
   }
 
   /**
@@ -88,13 +85,6 @@ public final class OpenFileOptions {
   @JsonIgnore
   public FileWriteLocationPolicy getCacheLocationPolicy() {
     return mCacheLocationPolicy;
-  }
-
-  /**
-   * @return whether partially read blocks should be cached
-   */
-  public boolean getCachePartiallyReadBlock() {
-    return mPartialCache;
   }
 
   /**
@@ -211,15 +201,6 @@ public final class OpenFileOptions {
   }
 
   /**
-   * @param cache whether to cache partially read blocks
-   * @return the updated options object
-   */
-  public OpenFileOptions setCachePartiallyReadBlock(boolean cache) {
-    mPartialCache = cache;
-    return this;
-  }
-
-  /**
    * @param className the location policy class to determine where to read a UFS block
    * @return the updated options object
    */
@@ -265,7 +246,6 @@ public final class OpenFileOptions {
     }
     OpenFileOptions that = (OpenFileOptions) o;
     return Objects.equal(mCacheLocationPolicy, that.mCacheLocationPolicy)
-        && Objects.equal(mPartialCache, that.mPartialCache)
         && Objects.equal(mReadType, that.mReadType)
         && Objects.equal(mMaxUfsReadConcurrency, that.mMaxUfsReadConcurrency)
         && Objects.equal(mUfsReadLocationPolicy, that.mUfsReadLocationPolicy);
@@ -273,18 +253,17 @@ public final class OpenFileOptions {
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mCacheLocationPolicy, mPartialCache, mReadType,
-        mMaxUfsReadConcurrency, mUfsReadLocationPolicy);
+    return Objects.hashCode(mCacheLocationPolicy, mReadType, mMaxUfsReadConcurrency,
+        mUfsReadLocationPolicy);
   }
 
   @Override
   public String toString() {
     return Objects.toStringHelper(this)
-        .add("Cache Location Policy", mCacheLocationPolicy)
-        .add("Cache Partially Read Block", mPartialCache)
-        .add("Max Ufs Read Concurrency", mMaxUfsReadConcurrency)
-        .add("Read Type", mReadType)
-        .add("Ufs Read Location Policy", mUfsReadLocationPolicy)
+        .add("cacheLocationPolicy", mCacheLocationPolicy)
+        .add("maxUfsReadConcurrency", mMaxUfsReadConcurrency)
+        .add("readType", mReadType)
+        .add("ufsReadLocationPolicy", mUfsReadLocationPolicy)
         .toString();
   }
 }

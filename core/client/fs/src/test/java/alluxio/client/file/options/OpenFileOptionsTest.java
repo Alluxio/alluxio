@@ -36,7 +36,6 @@ public class OpenFileOptionsTest {
     Assert.assertEquals(mDefaultReadType, options.getReadType());
     Assert.assertEquals(Integer.MAX_VALUE, options.getMaxUfsReadConcurrency());
     Assert.assertTrue(options.getUfsReadLocationPolicy() instanceof LocalFirstPolicy);
-    Assert.assertTrue(options.getCachePartiallyReadBlock());
   }
 
   /**
@@ -52,13 +51,11 @@ public class OpenFileOptionsTest {
     options.setCacheLocationPolicy(policy);
     options.setMaxUfsReadConcurrency(5);
     options.setUfsReadLocationPolicy((BlockLocationPolicy) policy);
-    options.setCachePartiallyReadBlock(false);
 
     Assert.assertEquals(readType, options.getReadType());
     Assert.assertEquals(policy, options.getCacheLocationPolicy());
     Assert.assertEquals(5, options.getMaxUfsReadConcurrency());
     Assert.assertEquals(policy, options.getUfsReadLocationPolicy());
-    Assert.assertFalse(options.getCachePartiallyReadBlock());
   }
 
   @Test
