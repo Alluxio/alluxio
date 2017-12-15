@@ -37,6 +37,7 @@ import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.proto.ProtoMessage;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.BlockLocation;
+import alluxio.wire.FileBlockInfo;
 import alluxio.wire.FileInfo;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
@@ -219,19 +220,22 @@ public final class AlluxioBlockStoreTest {
   public void getInStreamUfs() throws Exception {
     WorkerNetAddress worker1 = new WorkerNetAddress().setHost("worker1");
     WorkerNetAddress worker2 = new WorkerNetAddress().setHost("worker2");
+    BlockInfo info = new BlockInfo().setBlockId(0);
     URIStatus dummyStatus =
-        new URIStatus(new FileInfo().setPersisted(true).setBlockIds(Collections.singletonList(0L)));
-    OpenFileOptions readOptions = OpenFileOptions.defaults().setUfsReadLocationPolicy(new
-        MockFileWriteLocationPolicy(Arrays.asList(worker1, worker2)));
+        new URIStatus(new FileInfo().setPersisted(true).setBlockIds(Collections.singletonList(0L))
+            .setFileBlockInfos(Collections.singletonList(new FileBlockInfo().setBlockInfo(info))));
+    OpenFileOptions readOptions =
+        OpenFileOptions.defaults().setUfsReadLocationPolicy(
+            new MockFileWriteLocationPolicy(Arrays.asList(worker1, worker2)));
     InStreamOptions options = new InStreamOptions(dummyStatus, readOptions);
     when(mMasterClient.getBlockInfo(BLOCK_ID)).thenReturn(new BlockInfo());
     when(mMasterClient.getWorkerInfoList()).thenReturn(
         Arrays.asList(new WorkerInfo().setAddress(worker1), new WorkerInfo().setAddress(worker2)));
 
     // Location policy chooses worker1 first.
-    assertEquals(worker1, mBlockStore.getInStream(new BlockInfo(), options).getAddress());
+    assertEquals(worker1, mBlockStore.getInStream(info, options).getAddress());
     // Location policy chooses worker2 second.
-    assertEquals(worker2, mBlockStore.getInStream(new BlockInfo(), options).getAddress());
+    assertEquals(worker2, mBlockStore.getInStream(info, options).getAddress());
   }
 
   @Test
