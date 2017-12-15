@@ -90,7 +90,7 @@ public final class AlluxioMasterRestServiceHandlerTest {
   private BlockMaster mBlockMaster;
   private MasterRegistry mRegistry;
   private AlluxioMasterRestServiceHandler mHandler;
-  private SafeMode mSafeMode;
+  private SafeModeManager mSafeModeManager;
 
   @Rule
   public TemporaryFolder mTestFolder = new TemporaryFolder();
@@ -114,9 +114,9 @@ public final class AlluxioMasterRestServiceHandlerTest {
     mMasterProcess = mock(MasterProcess.class);
     ServletContext context = mock(ServletContext.class);
     mRegistry = new MasterRegistry();
-    mSafeMode = new DefaultSafeMode();
+    mSafeModeManager = new DefaultSafeModeManager();
     JournalSystem journalSystem = JournalTestUtils.createJournalSystem(mTestFolder);
-    mBlockMaster = new BlockMasterFactory().create(mRegistry, journalSystem, mSafeMode);
+    mBlockMaster = new BlockMasterFactory().create(mRegistry, journalSystem, mSafeModeManager);
     mRegistry.start(true);
     when(mMasterProcess.getMaster(BlockMaster.class)).thenReturn(mBlockMaster);
     when(context.getAttribute(MasterWebServer.ALLUXIO_MASTER_SERVLET_RESOURCE_KEY)).thenReturn(

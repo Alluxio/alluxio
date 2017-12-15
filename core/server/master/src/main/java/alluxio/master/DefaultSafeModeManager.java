@@ -26,8 +26,8 @@ import java.util.concurrent.TimeUnit;
 /**
  * Manages safe mode state for Alluxio master.
  */
-public class DefaultSafeMode implements SafeMode {
-  private static final Logger LOG = LoggerFactory.getLogger(DefaultSafeMode.class);
+public class DefaultSafeModeManager implements SafeModeManager {
+  private static final Logger LOG = LoggerFactory.getLogger(DefaultSafeModeManager.class);
 
   /** The executor used for running maintenance threads for the master. */
   private ScheduledExecutorService mScheduledExecutorService;
@@ -42,20 +42,20 @@ public class DefaultSafeMode implements SafeMode {
   /**
    * @param scheduledExecutorService an executor service for schedule maintenance tasks
    */
-  public DefaultSafeMode(ScheduledExecutorService scheduledExecutorService) {
+  public DefaultSafeModeManager(ScheduledExecutorService scheduledExecutorService) {
     mScheduledExecutorService =
         Preconditions.checkNotNull(scheduledExecutorService, "scheduledExecutorService");
   }
 
   /**
-   * Creates DefaultSafeMode with default ScheduledExecutorService.
+   * Creates {@link DefaultSafeModeManager} with default ScheduledExecutorService.
    */
-  public DefaultSafeMode() {
-    this(ThreadUtils.newSingleThreadScheduledExecutor(DefaultSafeMode.class.getSimpleName()));
+  public DefaultSafeModeManager() {
+    this(ThreadUtils.newSingleThreadScheduledExecutor(DefaultSafeModeManager.class.getSimpleName()));
   }
 
   @Override
-  public void enterSafeMode() {
+  public synchronized void enterSafeMode() {
     LOG.info("Entering safe mode.");
     if (mLeaveSafeModeTask == null) {
       mLeaveSafeModeTask = new LeaveSafeModeTask();

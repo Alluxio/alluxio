@@ -35,9 +35,9 @@ import alluxio.exception.UnexpectedAlluxioException;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatScheduler;
 import alluxio.heartbeat.ManuallyScheduleHeartbeat;
-import alluxio.master.DefaultSafeMode;
+import alluxio.master.DefaultSafeModeManager;
 import alluxio.master.MasterRegistry;
-import alluxio.master.SafeMode;
+import alluxio.master.SafeModeManager;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.block.BlockMasterFactory;
 import alluxio.master.file.meta.PersistenceState;
@@ -94,7 +94,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
@@ -129,7 +128,7 @@ public final class FileSystemMasterTest {
   private BlockMaster mBlockMaster;
   private ExecutorService mExecutorService;
   private FileSystemMaster mFileSystemMaster;
-  private SafeMode mSafeMode;
+  private SafeModeManager mSafeModeManager;
   private long mWorkerId1;
   private long mWorkerId2;
 
@@ -1898,9 +1897,9 @@ public final class FileSystemMasterTest {
 
   private void startServices() throws Exception {
     mRegistry = new MasterRegistry();
-    mSafeMode = new DefaultSafeMode();
+    mSafeModeManager = new DefaultSafeModeManager();
     mJournalSystem = JournalTestUtils.createJournalSystem(mJournalFolder);
-    mBlockMaster = new BlockMasterFactory().create(mRegistry, mJournalSystem, mSafeMode);
+    mBlockMaster = new BlockMasterFactory().create(mRegistry, mJournalSystem, mSafeModeManager);
     mExecutorService = Executors
         .newFixedThreadPool(2, ThreadFactoryUtils.build("DefaultFileSystemMasterTest-%d", true));
     mFileSystemMaster = new DefaultFileSystemMaster(mBlockMaster, mJournalSystem,

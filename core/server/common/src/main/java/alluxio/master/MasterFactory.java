@@ -35,8 +35,8 @@ public interface MasterFactory {
    *
    * @param registry the master registry
    * @param journalSystem a journal system for persisting master state
-   * @param safeMode an object that manages safe mode state
+   * @param safeModeManager an object that manages safe mode state
    * @return a new {@link Master} instance
    */
-  Master create(MasterRegistry registry, JournalSystem journalSystem, SafeMode safeMode);
+  Master create(MasterRegistry registry, JournalSystem journalSystem, SafeModeManager safeModeManager);
 }

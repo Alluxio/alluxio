@@ -29,7 +29,7 @@ import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.heartbeat.HeartbeatThread;
 import alluxio.master.AbstractMaster;
-import alluxio.master.SafeMode;
+import alluxio.master.SafeModeManager;
 import alluxio.master.block.meta.MasterBlockInfo;
 import alluxio.master.block.meta.MasterBlockLocation;
 import alluxio.master.block.meta.MasterWorkerInfo;
@@ -165,15 +165,15 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
   /** The value of the 'next container id' last journaled. */
   @GuardedBy("mBlockContainerIdGenerator")
   private long mJournaledNextContainerId = 0;
-  private SafeMode mSafeMode;
+  private SafeModeManager mSafeModeManager;
 
   /**
    * Creates a new instance of {@link DefaultBlockMaster}.
    *
    * @param journalSystem the journal system to use for tracking master operations
    */
-  DefaultBlockMaster(JournalSystem journalSystem, SafeMode safeMode) {
-    this(journalSystem, new SystemClock(), safeMode, ExecutorServiceFactories
+  DefaultBlockMaster(JournalSystem journalSystem, SafeModeManager safeModeManager) {
+    this(journalSystem, new SystemClock(), safeModeManager, ExecutorServiceFactories
         .fixedThreadPoolExecutorServiceFactory(Constants.BLOCK_MASTER_NAME, 2));
   }
 
@@ -185,10 +185,10 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
    * @param executorServiceFactory a factory for creating the executor service to use for running
    *        maintenance threads
    */
-  DefaultBlockMaster(JournalSystem journalSystem, Clock clock, SafeMode safeMode,
+  DefaultBlockMaster(JournalSystem journalSystem, Clock clock, SafeModeManager safeModeManager,
       ExecutorServiceFactory executorServiceFactory) {
     super(journalSystem, clock, executorServiceFactory);
-    mSafeMode = safeMode;
+    mSafeModeManager = safeModeManager;
     Metrics.registerGauges(this);
   }
 
@@ -286,7 +286,7 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
 
   @Override
   public List<WorkerInfo> getWorkerInfoList() throws UnavailableException {
-    if (mSafeMode.isInSafeMode()) {
+    if (mSafeModeManager.isInSafeMode()) {
       throw new UnavailableException("Alluxio master is in safe mode. Please try again later.");
     }
     List<WorkerInfo> workerInfoList = new ArrayList<>(mWorkers.size());
@@ -731,7 +731,7 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
    */
   @GuardedBy("masterBlockInfo")
   private BlockInfo generateBlockInfo(MasterBlockInfo masterBlockInfo) throws UnavailableException {
-    if (mSafeMode.isInSafeMode()) {
+    if (mSafeModeManager.isInSafeMode()) {
       throw new UnavailableException("Alluxio master is in safe mode. Please try again later");
     }
     // "Join" to get all the addresses of the workers.

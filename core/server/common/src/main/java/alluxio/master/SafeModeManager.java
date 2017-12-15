@@ -14,7 +14,7 @@ package alluxio.master;
 /**
  * Interface for managing safe mode state.
  */
-public interface SafeMode {
+public interface SafeModeManager {
 
   /**
    * Enters safe mode.

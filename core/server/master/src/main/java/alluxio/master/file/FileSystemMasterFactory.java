@@ -14,7 +14,7 @@ package alluxio.master.file;
 import alluxio.Constants;
 import alluxio.master.MasterFactory;
 import alluxio.master.MasterRegistry;
-import alluxio.master.SafeMode;
+import alluxio.master.SafeModeManager;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.journal.JournalSystem;
 
@@ -48,7 +48,7 @@ public final class FileSystemMasterFactory implements MasterFactory {
 
   @Override
   public FileSystemMaster create(MasterRegistry registry, JournalSystem journalFactory,
-      SafeMode safeMode) {
+      SafeModeManager safeModeManager) {
     Preconditions.checkArgument(journalFactory != null, "journal factory may not be null");
     LOG.info("Creating {} ", FileSystemMaster.class.getName());
     BlockMaster blockMaster = registry.get(BlockMaster.class);
