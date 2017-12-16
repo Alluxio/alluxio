@@ -364,14 +364,14 @@ final class UfsJournalLogWriter implements JournalWriter {
    *
    * @return number of journal entries to flush stored in the queue
    */
-  protected int getNumberOfJournalEntriesToFlush() {
+  protected synchronized  int getNumberOfJournalEntriesToFlush() {
     return mEntriesToFlush.size();
   }
 
   /**
    * Expose this method as protected, used only by unit test and/or integration test.
    */
-  protected JournalOutputStream getJournalOutputStream() {
+  protected synchronized JournalOutputStream getJournalOutputStream() {
     return mJournalOutputStream;
   }
 
@@ -380,7 +380,7 @@ final class UfsJournalLogWriter implements JournalWriter {
    *
    * @return the current underlying {@link DataOutputStream} to write journal entries
    */
-  protected DataOutputStream getUnderlyingDataOutputStream() {
+  protected synchronized DataOutputStream getUnderlyingDataOutputStream() {
     if (mJournalOutputStream == null) {
       return null;
     }
