@@ -18,6 +18,7 @@ import alluxio.PropertyKey;
 import alluxio.RuntimeConstants;
 import alluxio.exception.ExceptionMessage;
 import alluxio.master.NoopMaster;
+import alluxio.master.journal.JournalReader;
 import alluxio.proto.journal.Journal;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.URIUtils;
@@ -194,6 +195,52 @@ public final class UfsJournalLogWriterTest extends BaseIntegrationTest {
     for (int i = 0; i < 10; i++) {
       Assert.assertEquals(UfsJournalFile.encodeLogFileLocation(mJournal, 0x20 + i, 0x21 + i),
           snapshot.getLogs().get(i).getLocation());
+    }
+  }
+
+  /**
+   * Test whether {@link UfsJournalLogWriter} can withstand Ufs hiccups.
+   */
+  @Test
+  public void recoverFromUfsFailure() throws Exception {
+    long startSN = 0x10;
+    long nextSN = startSN;
+    UfsJournalLogWriter writer = new UfsJournalLogWriter(mJournal, startSN);
+    for (int i = 0; i < 10; i++) {
+      writer.write(newEntry(nextSN));
+      nextSN++;
+    }
+    Assert.assertNotNull(writer.getJournalOutputStream());
+    DataOutputStream badOut = Mockito.mock(DataOutputStream.class);
+    Mockito.doThrow(new IOException("injected I/O error")).when(badOut)
+        .write(Mockito.any(byte[].class), Mockito.anyInt(), Mockito.anyInt());
+    UfsJournalLogWriter.JournalOutputStream journalOutputStream = writer.getJournalOutputStream();
+    Whitebox.setInternalState(journalOutputStream, "mOutputStream", badOut);
+    Assert.assertEquals(writer.getUnderlyingDataOutputStream(), badOut);
+    try {
+      writer.write(newEntry(nextSN));
+      // Should not reach here.
+      Assert.fail();
+      nextSN++;
+    } catch (IOException e) {
+      Assert.assertTrue(e.getMessage().contains("injected I/O error"));
+      Assert.assertNotEquals(journalOutputStream, writer.getJournalOutputStream());
+      Assert.assertNull(writer.getJournalOutputStream());
+      Assert.assertEquals(10, writer.getNumberOfJournalEntriesToFlush());
+    }
+    // Perform another write. UfsJournalLogWriter will perform recover first.
+    writer.write(newEntry(nextSN));
+    nextSN++;
+    writer.close();
+
+    try (JournalReader reader = new UfsJournalReader(mJournal, startSN, true)) {
+      Journal.JournalEntry entry;
+      long expectedSeq = startSN;
+      while ((entry = reader.read()) != null) {
+        Assert.assertEquals(expectedSeq, entry.getSequenceNumber());
+        expectedSeq++;
+      }
+      Assert.assertEquals(expectedSeq, nextSN);
     }
   }
 
