@@ -15,6 +15,8 @@ import alluxio.BaseIntegrationTest;
 import alluxio.Configuration;
 import alluxio.ConfigurationTestUtils;
 import alluxio.PropertyKey;
+import alluxio.RuntimeConstants;
+import alluxio.exception.ExceptionMessage;
 import alluxio.master.NoopMaster;
 import alluxio.proto.journal.Journal;
 import alluxio.underfs.UnderFileSystem;
@@ -25,6 +27,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
 import org.mockito.Mockito;
 import org.powermock.reflect.Whitebox;
@@ -40,6 +43,12 @@ import java.nio.channels.FileChannel;
  * Unit tests for {@link UfsJournalLogWriter}.
  */
 public final class UfsJournalLogWriterTest extends BaseIntegrationTest {
+  /**
+   * The exception expected to be thrown.
+   */
+  @Rule
+  public ExpectedException mThrown = ExpectedException.none();
+
   @Rule
   public TemporaryFolder mFolder = new TemporaryFolder();
 
@@ -191,6 +200,7 @@ public final class UfsJournalLogWriterTest extends BaseIntegrationTest {
   /**
    * Test the case in which there are missing journal entries between the last persisted entry
    * and the first entry in {@code UfsJournalLogWriter#mEntriesToFlush}.
+   * {@code UfsJournalLogWriter} should be able to detect this issue.
    * @throws Exception
    */
   @Test
@@ -198,12 +208,26 @@ public final class UfsJournalLogWriterTest extends BaseIntegrationTest {
     Mockito.when(mUfs.supportsFlush()).thenReturn(true);
     long dummySN = 0x10;
     UfsJournalLogWriter writer = new UfsJournalLogWriter(mJournal, dummySN);
+    UfsJournalSnapshot snapshot;
+    UfsJournalFile journalFile;
+    long truncateSize = 0;
+    long firstCorruptedEntrySeq = 0;
     for (int i = 0; i < 5; i++) {
       writer.write(newEntry(dummySN));
+      dummySN++;
+      if (i == 3) {
+        firstCorruptedEntrySeq = dummySN;
+        snapshot = UfsJournalSnapshot.getSnapshot(mJournal);
+        journalFile = snapshot.getCurrentLog(mJournal);
+        File file = new File(journalFile.getLocation().toString());
+        truncateSize = file.length();
+      }
     }
     writer.flush();
 
     writer.write(newEntry(dummySN));
+    long seqOfFirstEntryToFlush = dummySN;
+    dummySN++;
     Assert.assertNotNull(writer.getJournalOutputStream());
     DataOutputStream badOut = Mockito.mock(DataOutputStream.class);
     Mockito.doThrow(new IOException("injected I/O error")).when(badOut)
@@ -213,24 +237,31 @@ public final class UfsJournalLogWriterTest extends BaseIntegrationTest {
     Assert.assertEquals(writer.getUnderlyingDataOutputStream(), badOut);
     try {
       writer.write(newEntry(dummySN));
+      dummySN++;
       // Should not reach here
-      Assert.assertTrue(false);
+      Assert.fail();
     } catch (IOException e) {
       Assert.assertTrue(e.getMessage().contains("injected I/O error"));
       Assert.assertNotEquals(journalOutputStream, writer.getJournalOutputStream());
       Assert.assertNull(writer.getJournalOutputStream());
       Assert.assertEquals(1, writer.getNumberOfJournalEntriesToFlush());
     }
-    UfsJournalSnapshot snapshot = UfsJournalSnapshot.getSnapshot(mJournal);
-    UfsJournalFile journalFile = snapshot.getCurrentLog(mJournal);
+    snapshot = UfsJournalSnapshot.getSnapshot(mJournal);
+    journalFile = snapshot.getCurrentLog(mJournal);
     File file = new File(journalFile.getLocation().toString());
     try (FileOutputStream fileOutputStream = new FileOutputStream(file, true);
         FileChannel fileChannel = fileOutputStream.getChannel()) {
       long fileLen = file.length();
-      Assert.assertTrue(fileLen > 0);
-      fileChannel.truncate(fileLen / 2);
+      Assert.assertTrue(fileLen > 0 && truncateSize > 0 && truncateSize < fileLen);
+      fileChannel.truncate(truncateSize);
     }
+    mThrown.expect(IOException.class);
+    mThrown.expectMessage(
+        ExceptionMessage.JOURNAL_ENTRY_MISSING.getMessageWithUrl(
+            RuntimeConstants.ALLUXIO_DEBUG_DOCS_URL,
+            firstCorruptedEntrySeq, seqOfFirstEntryToFlush));
     writer.write(newEntry(dummySN));
+    dummySN++;
     writer.close();
   }
 
