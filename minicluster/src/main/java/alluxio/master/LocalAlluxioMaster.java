@@ -86,7 +86,6 @@ public final class LocalAlluxioMaster {
     if (!Files.isDirectory(Paths.get(workDirectory))) {
       Files.createDirectory(Paths.get(workDirectory));
     }
-    Configuration.set(PropertyKey.MASTER_WORKER_CONNECT_WAIT_TIME, "0ms");
     return new LocalAlluxioMaster();
   }
 
