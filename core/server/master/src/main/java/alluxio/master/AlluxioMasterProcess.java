@@ -206,8 +206,8 @@ public class AlluxioMasterProcess implements MasterProcess {
   public void start() throws Exception {
     mJournalSystem.start();
     mJournalSystem.setMode(Mode.PRIMARY);
-    mSafeModeManager.enterSafeMode();
     startMasters(true);
+    mSafeModeManager.enterSafeMode();
     startServing();
   }
 
