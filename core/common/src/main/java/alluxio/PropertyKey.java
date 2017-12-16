@@ -723,13 +723,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue(19998)
           .setDescription("The port that Alluxio master node runs on.")
           .build();
-  public static final PropertyKey MASTER_WORKER_CONNECT_WAIT_TIME =
-      new Builder(Name.MASTER_WORKER_CONNECT_WAIT_TIME)
-          .setDefaultValue("5sec")
-          .setDescription("Alluxio master will wait a period of time after start up for "
-              + "all workers to register, before it starts accepting client requests. "
-              + "This property determines the wait time in safe mode.")
-          .build();
   public static final PropertyKey MASTER_STARTUP_CONSISTENCY_CHECK_ENABLED =
       new Builder(Name.MASTER_STARTUP_CONSISTENCY_CHECK_ENABLED)
           .setDefaultValue(true)
@@ -807,6 +800,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("A comma-separated list of prefixes of the paths which are "
               + "cacheable, separated by semi-colons. Alluxio will try to cache the cacheable "
               + "file when it is read for the first time.")
+          .build();
+  public static final PropertyKey MASTER_WORKER_CONNECT_WAIT_TIME =
+      new Builder(Name.MASTER_WORKER_CONNECT_WAIT_TIME)
+          .setDefaultValue("5sec")
+          .setDescription("Alluxio master will wait a period of time after start up for "
+              + "all workers to register, before it starts accepting client requests. "
+              + "This property determines the wait time.")
           .build();
   public static final PropertyKey MASTER_WORKER_THREADS_MAX =
       new Builder(Name.MASTER_WORKER_THREADS_MAX)
@@ -2088,7 +2088,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String MASTER_PRINCIPAL = "alluxio.master.principal";
     public static final String MASTER_RETRY = "alluxio.master.retry";
     public static final String MASTER_RPC_PORT = "alluxio.master.port";
-    public static final String MASTER_WORKER_CONNECT_WAIT_TIME = "alluxio.master.safemode.wait";
     public static final String MASTER_STARTUP_CONSISTENCY_CHECK_ENABLED =
         "alluxio.master.startup.consistency.check.enabled";
     public static final String MASTER_THRIFT_SHUTDOWN_TIMEOUT =
@@ -2111,6 +2110,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String MASTER_WEB_HOSTNAME = "alluxio.master.web.hostname";
     public static final String MASTER_WEB_PORT = "alluxio.master.web.port";
     public static final String MASTER_WHITELIST = "alluxio.master.whitelist";
+    public static final String MASTER_WORKER_CONNECT_WAIT_TIME =
+        "alluxio.master.worker.connect.wait.time";
     public static final String MASTER_WORKER_THREADS_MAX = "alluxio.master.worker.threads.max";
     public static final String MASTER_WORKER_THREADS_MIN = "alluxio.master.worker.threads.min";
     public static final String MASTER_WORKER_TIMEOUT_MS = "alluxio.master.worker.timeout";
