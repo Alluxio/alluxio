@@ -34,14 +34,14 @@ public class DefaultSafeModeManager implements SafeModeManager {
   public void enterSafeMode() {
     long waitTime = Configuration.getMs(PropertyKey.MASTER_WORKER_CONNECT_WAIT_TIME);
     LOG.info(String.format("Entering safe mode. Expect leaving safe mode after %dms", waitTime));
-    mWorkerConnectWaitEndTime = System.nanoTime() + waitTime * Constants.MS_NANO;
+    mWorkerConnectWaitEndTime = System.nanoTime() / Constants.MS_NANO + waitTime;
   }
 
   @Override
   public boolean isInSafeMode() {
     // lazily updates safe mode state upon inquiry
     Long endTime = mWorkerConnectWaitEndTime;
-    if (endTime != null && System.nanoTime() > endTime) {
+    if (endTime != null && System.nanoTime() / Constants.MS_NANO > endTime) {
       mWorkerConnectWaitEndTime = null;
     }
 
