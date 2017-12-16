@@ -147,6 +147,7 @@ public final class AlluxioBlockStore {
           .setBlockSize(info.getLength()).setBlockWorkerInfos(getEligibleWorkers());
       dataSource = policy.getWorker(getWorkerOptions);
     } else { // Data will be read from Alluxio, determine which worker and if it is local
+      // TODO(calvin): Get location via a policy
       List<TieredIdentity> tieredLocations =
           locations.stream().map(location -> location.getWorkerAddress().getTieredIdentity())
               .collect(Collectors.toList());
