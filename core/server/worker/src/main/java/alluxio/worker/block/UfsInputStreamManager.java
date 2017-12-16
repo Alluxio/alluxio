@@ -126,7 +126,7 @@ public class UfsInputStreamManager {
    */
   public void checkIn(InputStream inputStream) throws IOException {
     // for non-seekable input stream, close and return
-    if (!(inputStream instanceof SeekableUnderFileInputStream)) {
+    if (!(inputStream instanceof SeekableUnderFileInputStream) || !isCachingEnabled()) {
       inputStream.close();
       return;
     }
@@ -160,7 +160,7 @@ public class UfsInputStreamManager {
    * @throws IOException if the input stream fails to open
    */
   public InputStream checkOut(UnderFileSystem ufs, String path, long offset) throws IOException {
-    if (!ufs.isSeekable()) {
+    if (!ufs.isSeekable() || !isCachingEnabled()) {
       // not able to cache, always return a new input stream
       return ufs.open(path, OpenOptions.defaults().setOffset(offset));
     }
@@ -213,6 +213,10 @@ public class UfsInputStreamManager {
       resources.checkOut(nextId);
       return inputStream;
     }
+  }
+
+  private boolean isCachingEnabled() {
+    return Configuration.getBoolean(PropertyKey.WORKER_UFS_INSTREAM_CACHE_ENABLE);
   }
 
   /**

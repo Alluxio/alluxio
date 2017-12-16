@@ -1274,11 +1274,17 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue("5min")
           .setDescription("Timeout to open a block from UFS.")
           .build();
+  public static final PropertyKey WORKER_UFS_INSTREAM_CACHE_ENABLE =
+      new Builder(Name.WORKER_UFS_INSTREAM_CACHE_ENABLE)
+          .setAlias(new String[]{"alluxio.worker.ufs.instream.cache.enable"})
+          .setDefaultValue("true")
+          .setDescription("Enable caching for seekable under storage input stream.")
+          .build();
   public static final PropertyKey WORKER_UFS_INSTREAM_CACHE_EXPIRE_MS =
       new Builder(Name.WORKER_UFS_INSTREAM_CACHE_EXPIRE_MS)
           .setAlias(new String[]{"alluxio.worker.ufs.instream.cache.expire.ms"})
           .setDefaultValue("5min")
-          .setDescription("UFS instream expiration time.")
+          .setDescription("Cached UFS instream expiration time.")
           .build();
 
   //
@@ -2260,7 +2266,9 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String WORKER_UFS_BLOCK_OPEN_TIMEOUT_MS =
         "alluxio.worker.ufs.block.open.timeout";
     public static final String WORKER_UFS_INSTREAM_CACHE_EXPIRE_MS =
-        "alluxio.worker.ufs.instream.cache.expire";
+        "alluxio.worker.ufs.instream.cache.expire.ms";
+    public static final String WORKER_UFS_INSTREAM_CACHE_ENABLE =
+        "alluxio.worker.ufs.instream.cache.enable";
 
     //
     // Proxy related properties
