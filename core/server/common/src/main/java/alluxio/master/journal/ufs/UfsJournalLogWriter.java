@@ -359,14 +359,27 @@ final class UfsJournalLogWriter implements JournalWriter {
     mClosed = true;
   }
 
+  /**
+   * Expose this method as protected, used only by unit test and/or integration test.
+   *
+   * @return number of journal entries to flush stored in the queue
+   */
   protected int getNumberOfJournalEntriesToFlush() {
     return mEntriesToFlush.size();
   }
 
+  /**
+   * Expose this method as protected, used only by unit test and/or integration test.
+   */
   protected JournalOutputStream getJournalOutputStream() {
     return mJournalOutputStream;
   }
 
+  /**
+   * Expose this method as protected, used only by unit test and/or integration test.
+   *
+   * @return the current underlying {@link DataOutputStream} to write journal entries
+   */
   protected DataOutputStream getUnderlyingDataOutputStream() {
     if (mJournalOutputStream == null) {
       return null;
