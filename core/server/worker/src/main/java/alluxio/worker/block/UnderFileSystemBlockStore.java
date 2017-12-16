@@ -74,7 +74,7 @@ public final class UnderFileSystemBlockStore implements SessionCleanable {
   /** The manager for all ufs. */
   private final UfsManager mUfsManager;
 
-  /** The manager for all ufs instream */
+  /** The manager for all ufs instream. */
   private final UfsInputStreamManager mUfsInstreamManager;
 
   /**

@@ -546,7 +546,7 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
   }
 
   @Override
-  public boolean isSeekable(){
+  public boolean isSeekable() {
     return true;
   }
 }

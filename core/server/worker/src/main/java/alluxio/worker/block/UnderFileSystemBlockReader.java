@@ -70,7 +70,7 @@ public final class UnderFileSystemBlockReader implements BlockReader {
   private boolean mClosed;
   /** The manager for different ufs. */
   private final UfsManager mUfsManager;
-  /** The manager for all ufs instream */
+  /** The manager for all ufs instream. */
   private final UfsInputStreamManager mUfsInstreamManager;
 
   /**
@@ -260,7 +260,7 @@ public final class UnderFileSystemBlockReader implements BlockReader {
         mUnderFileSystemInputStream = null;
       }
 
-      if(mBlockWriter!=null) {
+      if (mBlockWriter != null) {
         mBlockWriter.close();
       }
 

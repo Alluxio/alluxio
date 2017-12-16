@@ -335,6 +335,10 @@ public interface UnderFileSystem extends Closeable {
   boolean isObjectStorage();
 
   /**
+   * Denotes if the under storage supports seeking. Note, the under file system subclass that
+   * returns true for this method should return the input stream extending
+   * {@link SeekableUnderFileInputStream} in the {@link #open(String, OpenOptions)} method.
+   *
    * @return true if under storage is seekable, false otherwise
    */
   boolean isSeekable();

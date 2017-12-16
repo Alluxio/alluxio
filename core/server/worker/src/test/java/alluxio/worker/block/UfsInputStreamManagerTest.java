@@ -46,7 +46,7 @@ public final class UfsInputStreamManagerTest {
     mSeekableInStreams = new SeekableUnderFileInputStream[mNumOfInputStreams];
     mUfs = Mockito.mock(UnderFileSystem.class);
     Mockito.when(mUfs.isSeekable()).thenReturn(true);
-    for (int i = 0; i < mNumOfInputStreams; i ++) {
+    for (int i = 0; i < mNumOfInputStreams; i++) {
       SeekableUnderFileInputStream instream = createMockedSeekableStream();
       mSeekableInStreams[i] = instream;
     }
@@ -117,7 +117,7 @@ public final class UfsInputStreamManagerTest {
       // check out another stream should trigger the timeout
       mManager.checkOut(mUfs, FILE_NAME, 4);
       Mockito.verify(mSeekableInStreams[0], Mockito.timeout(2000).times(1)).close();
-    };
+    }
   }
 
   /**
@@ -128,9 +128,9 @@ public final class UfsInputStreamManagerTest {
     mManager = new UfsInputStreamManager();
     List<Thread> threads = new ArrayList<>();
     int numCheckOutPerThread = 10;
-    for (int i = 0; i < mNumOfInputStreams / 2; i ++) {
+    for (int i = 0; i < mNumOfInputStreams / 2; i++) {
       Runnable runnable = () -> {
-        for (int j = 0; j < numCheckOutPerThread; j ++) {
+        for (int j = 0; j < numCheckOutPerThread; j++) {
           InputStream instream;
           try {
             instream = mManager.checkOut(mUfs, FILE_NAME, j);
@@ -163,9 +163,9 @@ public final class UfsInputStreamManagerTest {
       mManager = new UfsInputStreamManager();
       List<Thread> threads = new ArrayList<>();
       int numCheckOutPerThread = 2;
-      for (int i = 0; i < mNumOfInputStreams / 2; i ++) {
+      for (int i = 0; i < mNumOfInputStreams / 2; i++) {
         Runnable runnable = () -> {
-          for (int j = 0; j < numCheckOutPerThread; j ++) {
+          for (int j = 0; j < numCheckOutPerThread; j++) {
             InputStream instream;
             try {
               instream = mManager.checkOut(mUfs, FILE_NAME, j);
@@ -180,7 +180,7 @@ public final class UfsInputStreamManagerTest {
         threads.add(new Thread(runnable));
       }
       ConcurrencyTestUtils.assertConcurrent(threads, 30);
-      for(int i=0;i<mNumOfInputStreams / 2;i++) {
+      for (int i = 0; i < mNumOfInputStreams / 2; i++) {
         // the first half of input streams are closed
         Mockito.verify(mSeekableInStreams[i]).close();
       }
