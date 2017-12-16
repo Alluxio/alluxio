@@ -233,7 +233,7 @@ public class UfsInputStreamManager {
     }
 
     /**
-     * @return the a view of the available input stream' id.
+     * @return the a view of the available input stream' id
      */
     Set<Long> availableIds() {
       return Collections.unmodifiableSet(mAvailable);
