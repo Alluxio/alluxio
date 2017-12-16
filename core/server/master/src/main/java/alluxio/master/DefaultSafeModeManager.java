@@ -34,7 +34,7 @@ public class DefaultSafeModeManager implements SafeModeManager {
 
   @Override
   public void enterSafeMode() {
-    long waitTime = Configuration.getMs(PropertyKey.MASTER_SAFEMODE_WAIT);
+    long waitTime = Configuration.getMs(PropertyKey.MASTER_WORKER_CONNECT_WAIT_TIME);
     LOG.info(String.format("Entering safe mode. Expect leaving safe mode after %dms", waitTime));
     mSafeModeEndTime.set(System.nanoTime() + waitTime * Constants.MS_NANO);
   }

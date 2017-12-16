@@ -723,8 +723,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue(19998)
           .setDescription("The port that Alluxio master node runs on.")
           .build();
-  public static final PropertyKey MASTER_SAFEMODE_WAIT =
-      new Builder(Name.MASTER_SAFEMODE_WAIT)
+  public static final PropertyKey MASTER_WORKER_CONNECT_WAIT_TIME =
+      new Builder(Name.MASTER_WORKER_CONNECT_WAIT_TIME)
           .setDefaultValue("5sec")
           .setDescription("Alluxio master will wait a period of time after start up for "
               + "all workers to register, before it starts accepting client requests. "
@@ -2088,7 +2088,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String MASTER_PRINCIPAL = "alluxio.master.principal";
     public static final String MASTER_RETRY = "alluxio.master.retry";
     public static final String MASTER_RPC_PORT = "alluxio.master.port";
-    public static final String MASTER_SAFEMODE_WAIT = "alluxio.master.safemode.wait";
+    public static final String MASTER_WORKER_CONNECT_WAIT_TIME = "alluxio.master.safemode.wait";
     public static final String MASTER_STARTUP_CONSISTENCY_CHECK_ENABLED =
         "alluxio.master.startup.consistency.check.enabled";
     public static final String MASTER_THRIFT_SHUTDOWN_TIMEOUT =

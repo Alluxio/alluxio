@@ -39,7 +39,7 @@ public class SafeModeManagerTest {
    */
   @Before
   public void before() throws Exception {
-    Configuration.set(PropertyKey.MASTER_SAFEMODE_WAIT, SAFEMODE_WAIT_TEST);
+    Configuration.set(PropertyKey.MASTER_WORKER_CONNECT_WAIT_TIME, SAFEMODE_WAIT_TEST);
     mSafeModeManager = new DefaultSafeModeManager();
   }
 
@@ -58,7 +58,7 @@ public class SafeModeManagerTest {
   public void leaveSafeMode() throws Exception {
     mSafeModeManager.enterSafeMode();
     assertTrue(mSafeModeManager.isInSafeMode());
-    Thread.sleep(Configuration.getMs(PropertyKey.MASTER_SAFEMODE_WAIT) + 10);
+    Thread.sleep(Configuration.getMs(PropertyKey.MASTER_WORKER_CONNECT_WAIT_TIME) + 10);
     assertFalse(mSafeModeManager.isInSafeMode());
   }
 
@@ -66,7 +66,7 @@ public class SafeModeManagerTest {
   public void reenterSafeMode() throws Exception {
     mSafeModeManager.enterSafeMode();
     assertTrue(mSafeModeManager.isInSafeMode());
-    Thread.sleep(Configuration.getMs(PropertyKey.MASTER_SAFEMODE_WAIT) + 10);
+    Thread.sleep(Configuration.getMs(PropertyKey.MASTER_WORKER_CONNECT_WAIT_TIME) + 10);
     assertFalse(mSafeModeManager.isInSafeMode());
     mSafeModeManager.enterSafeMode();
     assertTrue(mSafeModeManager.isInSafeMode());
@@ -78,13 +78,13 @@ public class SafeModeManagerTest {
     assertTrue(mSafeModeManager.isInSafeMode());
 
     // Enters safe mode again while in safe mode.
-    Thread.sleep(Configuration.getMs(PropertyKey.MASTER_SAFEMODE_WAIT) - 10);
+    Thread.sleep(Configuration.getMs(PropertyKey.MASTER_WORKER_CONNECT_WAIT_TIME) - 10);
     assertTrue(mSafeModeManager.isInSafeMode());
     mSafeModeManager.enterSafeMode();
 
     // Verifies safe mode timer is reset.
     assertTrue(mSafeModeManager.isInSafeMode());
-    Thread.sleep(Configuration.getMs(PropertyKey.MASTER_SAFEMODE_WAIT) - 10);
+    Thread.sleep(Configuration.getMs(PropertyKey.MASTER_WORKER_CONNECT_WAIT_TIME) - 10);
     assertTrue(mSafeModeManager.isInSafeMode());
     Thread.sleep(20);
     assertFalse(mSafeModeManager.isInSafeMode());
