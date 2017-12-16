@@ -266,12 +266,9 @@ final class UfsJournalLogWriter implements JournalWriter {
     if (!mEntriesToFlush.isEmpty()) {
       JournalEntry entry = mEntriesToFlush.peek();
       if (entry.getSequenceNumber() > lastPersistSeq + 1) {
-        LOG.error("Journal entries between [{}, {}) are missing. Exiting.",
-            lastPersistSeq + 1, entry.getSequenceNumber());
         throw new IOException(ExceptionMessage.JOURNAL_ENTRY_MISSING
-            .getMessageWithUrl(RuntimeConstants.ALLUXIO_DEBUG_DOCS_URL, currentLog,
-            "Journal entries between [" + (lastPersistSeq + 1) + ", " + entry.getSequenceNumber()
-            + ") are missing."));
+            .getMessageWithUrl(RuntimeConstants.ALLUXIO_DEBUG_DOCS_URL,
+            lastPersistSeq + 1, entry.getSequenceNumber()));
       }
       LOG.info("Retry writing unwritten journal entries");
     }
