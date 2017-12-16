@@ -175,10 +175,11 @@ final class UfsJournalLogWriter implements JournalWriter {
     maybeRotateLog();
 
     try {
-      entry.toBuilder().setSequenceNumber(mNextSequenceNumber).build()
-          .writeDelimitedTo(mJournalOutputStream.mOutputStream);
+      JournalEntry entryToWrite =
+          entry.toBuilder().setSequenceNumber(mNextSequenceNumber).build();
+      entryToWrite.writeDelimitedTo(mJournalOutputStream.mOutputStream);
       LOG.debug("Add this journal entry to retryList with {} entries.", mEntriesToFlush.size());
-      mEntriesToFlush.add(entry);
+      mEntriesToFlush.add(entryToWrite);
       mNextSequenceNumber++;
     } catch (IOException e) {
       // Set mJournalOutputStream to null so that {@code maybeRecoverFromUfsFailures}
