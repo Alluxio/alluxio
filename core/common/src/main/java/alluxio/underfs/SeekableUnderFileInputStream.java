@@ -41,6 +41,8 @@ public abstract class SeekableUnderFileInputStream extends InputStream implement
   public SeekableUnderFileInputStream(InputStream inputStream) {
     Preconditions.checkNotNull(inputStream, "inputStream");
     mInputStream = inputStream;
+    mResourceId = null;
+    mFilePath = null;
   }
 
   /**
