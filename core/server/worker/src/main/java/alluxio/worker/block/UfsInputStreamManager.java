@@ -166,6 +166,9 @@ public class UfsInputStreamManager {
       return ufs.open(path, OpenOptions.defaults().setOffset(offset));
     }
 
+    // explicit cache cleanup
+    mUnderFileInputStreamCache.cleanUp();
+
     UfsInputStreamIds resources;
     synchronized (mFileToInputStreamIds) {
       if (mFileToInputStreamIds.containsKey(path)) {
