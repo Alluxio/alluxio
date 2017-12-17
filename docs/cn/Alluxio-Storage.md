@@ -11,15 +11,15 @@ priority: 1
 
 Alluxio管理Alluxio workers的本地存储，包括内存，来充当分布式缓冲缓存区。这个在用户应用程序和各种底层存储之间的快速数据层可以很大程度上改善I/O性能。
 
-每个Alluxio节点管理的存储数量和类型由用户配置决定。Alluxio还支持层次化存储，这使得系统存储介质能够让数据存储优化类似于L1/L2 cpu缓存。
+每个Alluxio节点管理的存储数量和类型由用户配置决定。Alluxio还支持层次化存储，这使得系统存储能够感知介质，让数据存储获得类似于L1/L2 cpu缓存的优化。
 
 ## 配置Alluxio存储
 
 配置Alluxio存储的最简单方法是使用默认的单层模式。
 
-请注意这个文档是指本地存储，像`mount`这样的术语是指在本地文件系统上的安装，不要与Alluxio底层存储的`mount`概念混为一谈。
+请注意本文中提到的本地存储以及`mount`这样的术语特指在本地文件系统中挂载，不要与Alluxio底层存储的`mount`概念混为一谈。
 
-开箱即用的Alluxio将为每个worker提供一个ramdisk，并占用一定的百分比的系统总内存。这个ramdisk将被用作分配给每个Alluxio worker的唯一存储介质。
+默认配置下的Alluxio将为每个worker提供一个ramdisk，并占用一定的百分比的系统总内存。这个ramdisk将被用作分配给每个Alluxio worker的唯一存储介质。
 
 Alluxio存储通过Alluxio的`alluxio-site.properties`配置。详细配置请参考[配置文档](Configuration-Settings.html)。
 
@@ -30,7 +30,7 @@ alluxio.worker.memory.size=16GB
 ```
 
 另一个常见设置是指定多个存储介质，如ramdisk和SSD。 我们需要更新`alluxio.worker.tieredstore.level0.dirs.path`来指定我们想要的每个存储介质作为存储目录。例如，要使用ramdisk（安装在`/ mnt / ramdisk`）和两个
-SSD（安装在`/ mnt / ssd1`和`/ mnt / ssd2`）：
+SSD（安装在`/mnt/ssd1`和`/mnt/ssd2`）：
 
 ```
 alluxio.worker.tieredstore.level0.dirs.path=/mnt/ramdisk,/mnt/ssd1,/mnt/ssd2
@@ -46,7 +46,7 @@ alluxio.worker.tieredstore.level0.dirs.quota=16GB,100GB,100GB
 
 请注意配额的序列必须与路径的序列相匹配。
 
-在`alluxio.worker.memory.size`和`alluxio.worker.tieredstore.level0.dirs.quota`（默认为前者）之间有一个微妙的区别。Alluxio在使用`Mount`或`SudoMount`选项启动时会提供并安装ramdisk。这个ramdisk无论在`alluxio.worker.tieredstore.level0.dirs.quota`中设置的值如何，其大小都由`alluxio.worker.memory.size`确定。 同样，如果要使用默认的Alluxio提供的ramdisk以外的其他设备，配额应该独立设置于内存大小。
+在`alluxio.worker.memory.size`和`alluxio.worker.tieredstore.level0.dirs.quota`（默认值等于前者）之间有一个微妙的区别。Alluxio在使用`Mount`或`SudoMount`选项启动时会提供并安装ramdisk。这个ramdisk无论在`alluxio.worker.tieredstore.level0.dirs.quota`中设置的值如何，其大小都由`alluxio.worker.memory.size`确定。 同样，如果要使用默认的Alluxio提供的ramdisk以外的其他设备，配额应该独立设置于内存大小。
 
 ## 回收
 
@@ -60,7 +60,7 @@ alluxio.worker.tieredstore.reserver.enabled=false
 ```
 
 异步回收依赖于每个worker的周期性空间预留线程来回收数据。它等待worker存储利用率达到配置的高水位。然后它回收
-基于回收策略的数据直到达到配置的低水位。例如，如果我们配置了相同的16 + 100 + 100 = 216GB的存储空间，我们可以将回收设置为200GB左右并停在160GB左右：
+基于回收策略的数据直到达到配置的低水位。例如，如果我们配置了相同的16 + 100 + 100 = 216GB的存储空间，我们可以将回收设置为200GB左右开始并在160GB左右停止：：
 
 ```
 alluxio.worker.tieredstore.level0.watermark.high.ratio=0.9 # 216GB * 0.9 ~ 200GB
@@ -68,7 +68,7 @@ alluxio.worker.tieredstore.level0.watermark.low.ratio=0.75 # 216GB * 0.75 ~ 160G
 ```
 
 
-同步回收是传统的回收实现。它当客户请求比当前在worker上可用空间更多空间时启动回收程序释放足够的空间来满足要求。 这导致许多小的回收尝试，并不高效。建议使用异步驱逐。
+同步回收是旧版的回收实现。它当客户请求比当前在worker上可用空间更多空间时启动回收程序释放足够的空间来满足要求。 这导致许多小的回收尝试，并不高效。建议使用异步驱逐。
 
 用户可以指定Alluxio evictor来实现对回收过程的细粒度控制。
 
@@ -76,25 +76,25 @@ alluxio.worker.tieredstore.level0.watermark.low.ratio=0.75 # 216GB * 0.75 ~ 160G
 
 Alluxio使用回收策略决定当空间需要释放时，哪些数据块被移到低存储层。Alluxio支持自定义回收策略，已有的实现包括：
 
-* **贪心回收策略**
+* **贪心回收策略(GreedyEvictor)**
 
-    移出任意的块直到释放出所需大小的空间。
+    回收任意的块直到释放出所需大小的空间。
 
-* **LRU回收策略**
+* **LRU回收策略(LRUEvictor)**
 
-    移出最近最少使用的数据块直到释放出所需大小的空间。
+    回收最近最少使用的数据块直到释放出所需大小的空间。
 
-* **LRFU回收策略**
+* **LRFU回收策略(LRFUEvictor)**
 
-    基于权重分配的最近最少使用和最不经常使用策略移出数据块。如果权重完全偏向最近最少使用,LRFU回收策略退化为LRU回收策略。
+    基于权重分配的最近最少使用和最不经常使用策略回收数据块。如果权重完全偏向最近最少使用,LRFU回收策略退化为LRU回收策略。
 
-* **部分LRU回收策略**
+* **部分LRU回收策略(PartialLRUEvictor)**
 
-    基于最近最少使用移出，但是选择有最大剩余空间的存储目录(StorageDir)，只从该目录移出数据块。
+    基于最近最少使用回收，但是选择有最大剩余空间的存储目录(StorageDir)，只从该目录回收数据块。
 
 将来会有更多的回收策略可供选择。由于Alluxio支持自定义回收策略。你也可以为自己的应用开发合适的回收策略。
 
-使用同步移出时，推荐使用较小的块大小配置（64MB左右），以降低块移出的延迟。使用[空间预留器](#space-reserver)时，块大小不会影响移出延迟。
+使用同步回收时，推荐使用较小的块大小配置（64MB左右），以降低块回收的延迟。使用[空间预留器](#space-reserver)时，块大小不会影响回收延迟。
 
 ## 使用分层存储
 
