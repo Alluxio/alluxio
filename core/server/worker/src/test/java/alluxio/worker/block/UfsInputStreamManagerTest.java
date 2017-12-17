@@ -170,7 +170,7 @@ public final class UfsInputStreamManagerTest {
             try {
               instream = mManager.checkOut(mUfs, FILE_NAME, j);
               mManager.checkIn(instream);
-              Thread.sleep(80);
+              Thread.sleep(100);
             } catch (Exception e) {
               // the input streams created should not be more than mNumOfInputStreams
               Assert.fail("input stream check in and out failed." + e);
@@ -184,9 +184,6 @@ public final class UfsInputStreamManagerTest {
         // the first half of input streams are closed
         Mockito.verify(mSeekableInStreams[i]).close();
       }
-      // all the input streams should be opened
-      Mockito.verify(mUfs, Mockito.times(mNumOfInputStreams)).open(Mockito.eq(FILE_NAME),
-          Mockito.any(OpenOptions.class));
     }
   }
 }
