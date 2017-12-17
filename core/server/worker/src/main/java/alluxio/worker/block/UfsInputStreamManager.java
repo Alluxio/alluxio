@@ -112,6 +112,7 @@ public class UfsInputStreamManager {
     mRemovalThreadPool = Executors.newFixedThreadPool(2);
 
     mUnderFileInputStreamCache = CacheBuilder.newBuilder()
+        .maximumSize(Configuration.getInt(PropertyKey.WORKER_UFS_INSTREAM_CACHE_MAX_SIZE))
         .expireAfterAccess(Configuration.getMs(PropertyKey.WORKER_UFS_INSTREAM_CACHE_EXPIRE_MS),
             TimeUnit.MILLISECONDS)
         .removalListener(RemovalListeners.asynchronous(mRemovalListener, mRemovalThreadPool))
