@@ -1456,12 +1456,15 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue("8MB")
           .setDescription("The size of the file buffer to use for file system reads/writes.")
           .build();
+  /**
+   * @deprecated It will be removed in 2.0.0.
+   */
+  @Deprecated
   public static final PropertyKey USER_FILE_CACHE_PARTIALLY_READ_BLOCK =
       new Builder(Name.USER_FILE_CACHE_PARTIALLY_READ_BLOCK)
           .setDefaultValue(true)
-          .setDescription("When read type is CACHE_PROMOTE or CACHE and this property is set "
-              + "to true, the entire block will be cached by Alluxio space even if the client "
-              + "only reads a part of this block.")
+          .setDescription("This property is deprecated as of 1.7 and has no effect. Use the read "
+              + "type to control caching behavior.")
           .build();
   public static final PropertyKey USER_FILE_COPY_FROM_LOCAL_WRITE_LOCATION_POLICY =
       new Builder(Name.USER_FILE_COPY_FROM_LOCAL_WRITE_LOCATION_POLICY)
