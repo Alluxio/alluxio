@@ -16,11 +16,11 @@ import org.junit.rules.TestWatcher;
 import org.junit.rules.Timeout;
 import org.junit.runner.Description;
 
+import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
-import java.nio.file.StandardOpenOption;
 
 /**
  * Base class used for specifying the maximum time a test should run for.
@@ -52,8 +52,7 @@ public abstract class BaseIntegrationTest {
     // Before each test starts, truncate the log file.
     protected void starting(Description description) {
       try {
-        Files.write(Paths.get(Constants.TESTS_LOG), new byte[0],
-            StandardOpenOption.TRUNCATE_EXISTING);
+        new FileWriter(Constants.TESTS_LOG).close();
       } catch (IOException e) {
         throw new RuntimeException(e);
       }
