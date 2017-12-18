@@ -19,6 +19,7 @@ import alluxio.ConfigurationTestUtils;
 import alluxio.PropertyKey;
 import alluxio.RuntimeConstants;
 import alluxio.exception.ExceptionMessage;
+import alluxio.exception.InvalidJournalEntryException;
 import alluxio.master.NoopMaster;
 import alluxio.master.journal.JournalReader;
 import alluxio.proto.journal.Journal;
@@ -222,15 +223,7 @@ public final class UfsJournalLogWriterTest extends BaseIntegrationTest {
     nextSN++;
     writer.close();
 
-    try (JournalReader reader = new UfsJournalReader(mJournal, startSN, true)) {
-      Journal.JournalEntry entry;
-      long expectedSeq = startSN;
-      while ((entry = reader.read()) != null) {
-        Assert.assertEquals(expectedSeq, entry.getSequenceNumber());
-        expectedSeq++;
-      }
-      Assert.assertEquals(expectedSeq, nextSN);
-    }
+    checkJournalEntries(startSN, nextSN);
   }
 
   /**
@@ -316,6 +309,27 @@ public final class UfsJournalLogWriterTest extends BaseIntegrationTest {
       Assert.fail("Should not reach here.");
     } catch (IOException e) {
       Assert.assertThat(e.getMessage(), containsString("injected I/O error"));
+    }
+  }
+
+  /**
+   * Checks that journal entries with sequence number between startSN (inclusive) and endSN
+   * (exclusive) exist in the current incomplete journal file, i.e. journal file whose name
+   * is in the form of <startSN>-0x7fffffffffffffff.
+   *
+   * @param startSN start sequence number (inclusive)
+   * @param endSN end sequence number (exclusive)
+   */
+  private void checkJournalEntries(long startSN, long endSN)
+      throws IOException, InvalidJournalEntryException {
+    try (JournalReader reader = new UfsJournalReader(mJournal, startSN, true)) {
+      Journal.JournalEntry entry;
+      long expectedSeq = startSN;
+      while ((entry = reader.read()) != null) {
+        Assert.assertEquals(expectedSeq, entry.getSequenceNumber());
+        expectedSeq++;
+      }
+      Assert.assertEquals(expectedSeq, endSN);
     }
   }
 
