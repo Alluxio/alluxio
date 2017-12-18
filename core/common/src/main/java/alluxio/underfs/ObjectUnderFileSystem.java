@@ -457,10 +457,12 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
     if (isRoot(path)) {
       return getDirectoryStatus(path);
     }
-
-    UfsFileStatus fileStatus = getFileStatus(path);
-    if (fileStatus != null) {
-      return fileStatus;
+    ObjectStatus details = getObjectStatus(stripPrefixIfPresent(path));
+    if (details != null) {
+      ObjectPermissions permissions = getPermissions();
+      return new UfsFileStatus(path, details.getContentHash(), details.getContentLength(),
+          details.getLastModifiedTimeMs(), permissions.getOwner(), permissions.getGroup(),
+          permissions.getMode());
     }
     return getDirectoryStatus(path);
   }
