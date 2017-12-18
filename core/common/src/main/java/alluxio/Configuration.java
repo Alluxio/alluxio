@@ -518,7 +518,7 @@ public final class Configuration {
     long waitTime = getMs(PropertyKey.MASTER_WORKER_CONNECT_WAIT_TIME);
     long retryInterval = getMs(PropertyKey.USER_RPC_RETRY_MAX_SLEEP_MS);
     if (waitTime < retryInterval) {
-      LOG.warn("%s=%dms is smaller than %s=%d. Workers might not have enough time to register. "
+      LOG.warn("%s=%dms is smaller than %s=%dms. Workers might not have enough time to register. "
           + "Consider either increasing %s or decreasing %s",
           PropertyKey.Name.MASTER_WORKER_CONNECT_WAIT_TIME, waitTime,
           PropertyKey.Name.USER_RPC_RETRY_MAX_SLEEP_MS, retryInterval,
