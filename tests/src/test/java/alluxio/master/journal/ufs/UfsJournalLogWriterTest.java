@@ -237,16 +237,14 @@ public final class UfsJournalLogWriterTest extends BaseIntegrationTest {
     long startSN = 0x10;
     long nextSN = startSN;
     UfsJournalLogWriter writer = new UfsJournalLogWriter(mJournal, nextSN);
-    UfsJournalSnapshot snapshot;
-    UfsJournalFile journalFile;
     long truncateSize = 0;
     long firstCorruptedEntrySeq = startSN + 4;
     for (int i = 0; i < 5; i++) {
       writer.write(newEntry(nextSN));
       nextSN++;
       if (i == 3) {
-        snapshot = UfsJournalSnapshot.getSnapshot(mJournal);
-        journalFile = snapshot.getCurrentLog(mJournal);
+        UfsJournalSnapshot snapshot = UfsJournalSnapshot.getSnapshot(mJournal);
+        UfsJournalFile journalFile = snapshot.getCurrentLog(mJournal);
         File file = new File(journalFile.getLocation().toString());
         truncateSize = file.length();
       }
@@ -265,8 +263,8 @@ public final class UfsJournalLogWriterTest extends BaseIntegrationTest {
     Mockito.doThrow(new IOException("injected I/O error")).when(badOut)
         .write(Mockito.any(byte[].class), Mockito.anyInt(), Mockito.anyInt());
     tryWriteAndExpectToFail(writer, nextSN);
-    snapshot = UfsJournalSnapshot.getSnapshot(mJournal);
-    journalFile = snapshot.getCurrentLog(mJournal);
+    UfsJournalSnapshot snapshot = UfsJournalSnapshot.getSnapshot(mJournal);
+    UfsJournalFile journalFile = snapshot.getCurrentLog(mJournal);
     File file = new File(journalFile.getLocation().toString());
     try (FileOutputStream fileOutputStream = new FileOutputStream(file, true);
         FileChannel fileChannel = fileOutputStream.getChannel()) {
