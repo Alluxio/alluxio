@@ -15,8 +15,10 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import alluxio.Configuration;
+import alluxio.ConfigurationRule;
 import alluxio.PropertyKey;
 
+import com.google.common.collect.ImmutableMap;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -30,7 +32,10 @@ public class SafeModeManagerTest {
 
   private SafeModeManager mSafeModeManager;
 
-  /** The exception expected to be thrown. */
+  @Rule
+  public ConfigurationRule mConfiguration = new ConfigurationRule(ImmutableMap
+      .of(PropertyKey.MASTER_WORKER_CONNECT_WAIT_TIME, SAFEMODE_WAIT_TEST));
+
   @Rule
   public ExpectedException mThrown = ExpectedException.none();
 
@@ -39,7 +44,6 @@ public class SafeModeManagerTest {
    */
   @Before
   public void before() throws Exception {
-    Configuration.set(PropertyKey.MASTER_WORKER_CONNECT_WAIT_TIME, SAFEMODE_WAIT_TEST);
     mSafeModeManager = new DefaultSafeModeManager();
   }
 
