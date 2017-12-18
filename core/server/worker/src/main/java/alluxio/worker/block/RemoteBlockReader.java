@@ -14,6 +14,7 @@ package alluxio.worker.block;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.worker.block.io.BlockReader;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import io.netty.buffer.ByteBuf;
 
 import java.io.IOException;
@@ -25,8 +26,11 @@ import java.nio.channels.ReadableByteChannel;
  * Reads a block from a remote worker node.
  */
 public class RemoteBlockReader implements BlockReader {
+  @SuppressFBWarnings("URF_UNREAD_FIELD")
   private final long mBlockId;
+  @SuppressFBWarnings("URF_UNREAD_FIELD")
   private final InetSocketAddress mDataSource;
+  @SuppressFBWarnings("URF_UNREAD_FIELD")
   private final Protocol.OpenUfsBlockOptions mUfsOptions;
 
   private boolean mClosed;
