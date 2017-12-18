@@ -287,6 +287,21 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
   }
 
   @Override
+  public UfsStatus getStatus(String path) throws IOException {
+    Path tPath = new Path(path);
+    FileStatus fs = mFileSystem.getFileStatus(tPath);
+    if (fs.isFile()) {
+      // Return file status.
+      String contentHash =
+          UnderFileSystemUtils.approximateContentHash(fs.getLen(), fs.getModificationTime());
+      return new UfsFileStatus(path, contentHash, fs.getLen(), fs.getModificationTime(),
+          fs.getOwner(), fs.getGroup(), fs.getPermission().toShort());
+    }
+    // Return directory status.
+    return new UfsDirectoryStatus(path, fs.getOwner(), fs.getGroup(), fs.getPermission().toShort());
+  }
+
+  @Override
   public boolean isDirectory(String path) throws IOException {
     return mFileSystem.isDirectory(new Path(path));
   }

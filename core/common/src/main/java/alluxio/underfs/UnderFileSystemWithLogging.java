@@ -289,6 +289,21 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
   }
 
   @Override
+  public UfsStatus getStatus(String path) throws IOException {
+    return call(new UfsCallable<UfsStatus>() {
+      @Override
+      public UfsStatus call() throws IOException {
+        return mUnderFileSystem.getStatus(path);
+      }
+
+      @Override
+      public String toString() {
+        return String.format("GetStatus: path=%s", path);
+      }
+    });
+  }
+
+  @Override
   public String getUnderFSType() {
     return mUnderFileSystem.getUnderFSType();
   }
