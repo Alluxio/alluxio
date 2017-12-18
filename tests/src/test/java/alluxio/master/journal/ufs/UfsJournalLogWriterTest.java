@@ -210,16 +210,12 @@ public final class UfsJournalLogWriterTest extends BaseIntegrationTest {
     }
     Assert.assertNotNull(writer.getJournalOutputStream());
     // Create a mock DataOutputStream.
-    DataOutputStream badOut = Mockito.mock(DataOutputStream.class);
+    DataOutputStream badOut = createMockDataOutputStream(writer);
     // Specify the behavior of badOut so that it throws an IOException containing
     // "injected I/O error" when its `write` method is invoked with any arguments
     // matching (byte[], int, int).
     Mockito.doThrow(new IOException("injected I/O error")).when(badOut)
         .write(Mockito.any(byte[].class), Mockito.anyInt(), Mockito.anyInt());
-    Object journalOutputStream = writer.getJournalOutputStream();
-    // Use Whitebox to set the private member of journalOutputStream to badOut.
-    Whitebox.setInternalState(journalOutputStream, "mOutputStream", badOut);
-    Assert.assertEquals(writer.getUnderlyingDataOutputStream(), badOut);
     try {
       writer.write(newEntry(nextSN));
       Assert.fail("Should not reach here");
@@ -276,16 +272,12 @@ public final class UfsJournalLogWriterTest extends BaseIntegrationTest {
     nextSN++;
     Assert.assertNotNull(writer.getJournalOutputStream());
     // Create a mock DataOutputStream.
-    DataOutputStream badOut = Mockito.mock(DataOutputStream.class);
+    DataOutputStream badOut = createMockDataOutputStream(writer);
     // Specify the behavior of badOut so that it throws an IOException containing
     // "injected I/O error" when its `write` method is invoked with any arguments
     // matching (byte[], int, int).
     Mockito.doThrow(new IOException("injected I/O error")).when(badOut)
         .write(Mockito.any(byte[].class), Mockito.anyInt(), Mockito.anyInt());
-    Object journalOutputStream = writer.getJournalOutputStream();
-    // Use Whitebox to set the private member of journalOutputStream to badOut.
-    Whitebox.setInternalState(journalOutputStream, "mOutputStream", badOut);
-    Assert.assertEquals(writer.getUnderlyingDataOutputStream(), badOut);
     try {
       writer.write(newEntry(nextSN));
       Assert.fail("Should not reach here.");
@@ -307,6 +299,21 @@ public final class UfsJournalLogWriterTest extends BaseIntegrationTest {
             firstCorruptedEntrySeq, seqOfFirstEntryToFlush));
     writer.write(newEntry(nextSN));
     writer.close();
+  }
+
+  /**
+   * Creates a mock {@link DataOutputStream} for {@link UfsJournalLogWriter#mJournalOutputStream}.
+   *
+   * @param writer the {@link UfsJournalLogWriter} instance for which the mock is created
+   * @return the created mock {@link DataOutputStream} instance
+   */
+  private DataOutputStream createMockDataOutputStream(UfsJournalLogWriter writer) {
+    DataOutputStream badOut = Mockito.mock(DataOutputStream.class);
+    Object journalOutputStream = writer.getJournalOutputStream();
+    // Use Whitebox to set the private member of journalOutputStream to badOut.
+    Whitebox.setInternalState(journalOutputStream, "mOutputStream", badOut);
+    Assert.assertEquals(writer.getUnderlyingDataOutputStream(), badOut);
+    return badOut;
   }
 
   /**
