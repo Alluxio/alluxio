@@ -38,16 +38,17 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
+import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * An under filesystem input stream manager that can cache seekable input streams for future reuse.
- * The manager uses guava's Cache to store the input streams, with a time-based eviction policy of
- * expiration configured in {@link PropertyKey.WORKER_UFS_INSTREAM_CACHE_EXPIRE_MS}.
+ * The manager caches the input streams, with a time-based eviction policy of expiration configured
+ * in {@link PropertyKey.WORKER_UFS_INSTREAM_CACHE_EXPIRE_MS}.
  *
  * An under storage file maybe opened with multiple input streams at the same time. The manager uses
- * {@link UfsInputStreamIds} to track the in-use input stream and the available ones. The
- * manager closes the input streams after they are expired and not in-use anymore.
+ * {@link UfsInputStreamIds} to track the in-use input stream and the available ones. The manager
+ * closes the input streams after they are expired and not in-use anymore.
  */
 @ThreadSafe
 public class UfsInputStreamManager {
@@ -61,6 +62,7 @@ public class UfsInputStreamManager {
   /**
    * Cache of the input streams, from the input stream id to the input stream.
    */
+  @GuardedBy("mFileToInputStreamIds")
   private final Cache<Long, SeekableUnderFileInputStream> mUnderFileInputStreamCache;
   /**
    * Thread pool for asynchronously removing the expired input streams.
@@ -68,12 +70,15 @@ public class UfsInputStreamManager {
   private final ExecutorService mRemovalThreadPool;
 
   /**
-   * A listener to the input stream removal.
+   * Creates a new {@link UfsInputStreamManager}.
    */
-  private RemovalListener<Long, SeekableUnderFileInputStream> mRemovalListener =
-      new RemovalListener<Long, SeekableUnderFileInputStream>() {
-        @Override
-        public void onRemoval(RemovalNotification<Long, SeekableUnderFileInputStream> removal) {
+  public UfsInputStreamManager() {
+    mFileToInputStreamIds = new HashMap<>();
+    mRemovalThreadPool = Executors.newFixedThreadPool(2);
+
+    // A listener to the input stream removal.
+    RemovalListener<Long, SeekableUnderFileInputStream> listener =
+        (RemovalNotification<Long, SeekableUnderFileInputStream> removal) -> {
           SeekableUnderFileInputStream inputStream = removal.getValue();
           synchronized (mFileToInputStreamIds) {
             if (mFileToInputStreamIds.containsKey(inputStream.getFilePath())) {
@@ -101,22 +106,12 @@ public class UfsInputStreamManager {
                   removal.getKey());
             }
           }
-        }
-      };
-
-  /**
-   * Creates a new {@link UfsInputStreamManager}.
-   */
-  public UfsInputStreamManager() {
-    mFileToInputStreamIds = new HashMap<>();
-    mRemovalThreadPool = Executors.newFixedThreadPool(2);
-
+        };
     mUnderFileInputStreamCache = CacheBuilder.newBuilder()
         .maximumSize(Configuration.getInt(PropertyKey.WORKER_UFS_INSTREAM_CACHE_MAX_SIZE))
         .expireAfterAccess(Configuration.getMs(PropertyKey.WORKER_UFS_INSTREAM_CACHE_EXPIRE_MS),
             TimeUnit.MILLISECONDS)
-        .removalListener(RemovalListeners.asynchronous(mRemovalListener, mRemovalThreadPool))
-        .build();
+        .removalListener(RemovalListeners.asynchronous(listener, mRemovalThreadPool)).build();
   }
 
   /**
