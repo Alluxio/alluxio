@@ -115,12 +115,12 @@ public class UfsInputStreamManager {
   }
 
   /**
-   * Checks in an input stream. The input stream is closed if it's already expired.
+   * Releases an input stream. The input stream is closed if it's already expired.
    *
-   * @param inputStream the input stream to check in
+   * @param inputStream the input stream to release
    * @throws IOException when input stream fails to close
    */
-  public void checkIn(InputStream inputStream) throws IOException {
+  public void release(InputStream inputStream) throws IOException {
     // for non-seekable input stream, close and return
     if (!(inputStream instanceof SeekableUnderFileInputStream) || !isCachingEnabled()) {
       inputStream.close();
@@ -136,7 +136,7 @@ public class UfsInputStreamManager {
         return;
       }
       UfsInputStreamIds resources = mFileToInputStreamIds.get(seekableInputStream.getFilePath());
-      if (!resources.checkIn(seekableInputStream.getResourceId())) {
+      if (!resources.release(seekableInputStream.getResourceId())) {
         LOG.debug("Close the expired input stream resource of {}",
             seekableInputStream.getResourceId());
         // the input stream expired, close it
@@ -146,16 +146,16 @@ public class UfsInputStreamManager {
   }
 
   /**
-   * Checks out an input stream. If there is available input stream in the cache, reuse it and
-   * repositions the offset, otherwise the manager opens a new input stream.
+   * Acquires an input stream. For seekable input streams, if there is an available input stream in
+   * the cache, reuse it and repositions the offset, otherwise the manager opens a new input stream.
    *
    * @param ufs the under file system
    * @param path the path to the under storage file
    * @param offset the offset to open
-   * @return the checked out input stream
+   * @return the acquired input stream
    * @throws IOException if the input stream fails to open
    */
-  public InputStream checkOut(UnderFileSystem ufs, String path, long offset) throws IOException {
+  public InputStream acquire(UnderFileSystem ufs, String path, long offset) throws IOException {
     if (!ufs.isSeekable() || !isCachingEnabled()) {
       // not able to cache, always return a new input stream
       return ufs.open(path, OpenOptions.defaults().setOffset(offset));
@@ -208,8 +208,8 @@ public class UfsInputStreamManager {
         }
       }
 
-      // mark the input stream id as checked out
-      resources.checkOut(nextId);
+      // mark the input stream id as acquired
+      resources.acquire(nextId);
       return inputStream;
     }
   }
@@ -236,18 +236,18 @@ public class UfsInputStreamManager {
     }
 
     /**
-     * @return the a view of the available input stream' id
+     * @return a view of the available input stream ids
      */
     Set<Long> availableIds() {
       return Collections.unmodifiableSet(mAvailable);
     }
 
     /**
-     * Marks an input stream as checked out.
+     * Marks an input stream as acquired.
      *
      * @param id the id of the input stream
      */
-    public synchronized void checkOut(long id) {
+    public synchronized void acquire(long id) {
       Preconditions.checkArgument(!mInUse.contains(id), id + " is already in use");
       mAvailable.remove(id);
       mInUse.add(id);
@@ -287,7 +287,7 @@ public class UfsInputStreamManager {
      * @return true if the id is marked from in use to available; false if the id no longer used for
      *         cache
      */
-    public synchronized boolean checkIn(long id) {
+    public synchronized boolean release(long id) {
       Preconditions.checkArgument(!mAvailable.contains(id));
       if (mInUse.contains(id)) {
         mInUse.remove(id);

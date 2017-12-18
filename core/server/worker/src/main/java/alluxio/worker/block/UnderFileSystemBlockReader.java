@@ -256,7 +256,7 @@ public final class UnderFileSystemBlockReader implements BlockReader {
       updateBlockWriter(mBlockMeta.getBlockSize());
 
       if (mUnderFileSystemInputStream != null) {
-        mUfsInstreamManager.checkIn(mUnderFileSystemInputStream);
+        mUfsInstreamManager.release(mUnderFileSystemInputStream);
         mUnderFileSystemInputStream = null;
       }
 
@@ -288,7 +288,7 @@ public final class UnderFileSystemBlockReader implements BlockReader {
    */
   private void updateUnderFileSystemInputStream(long offset) throws IOException {
     if ((mUnderFileSystemInputStream != null) && offset != mInStreamPos) {
-      mUfsInstreamManager.checkIn(mUnderFileSystemInputStream);
+      mUfsInstreamManager.release(mUnderFileSystemInputStream);
       mUnderFileSystemInputStream = null;
       mInStreamPos = -1;
     }
@@ -297,7 +297,7 @@ public final class UnderFileSystemBlockReader implements BlockReader {
       UfsInfo ufsInfo = mUfsManager.get(mBlockMeta.getMountId());
       UnderFileSystem ufs = ufsInfo.getUfs();
       mUfsMountPointUri = ufsInfo.getUfsMountPointUri();
-      mUnderFileSystemInputStream = mUfsInstreamManager.checkOut(ufs,
+      mUnderFileSystemInputStream = mUfsInstreamManager.acquire(ufs,
           mBlockMeta.getUnderFileSystemPath(), mBlockMeta.getOffset() + offset);
       mInStreamPos = offset;
     }

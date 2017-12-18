@@ -73,11 +73,11 @@ public final class UfsInputStreamManagerTest {
         .thenReturn(mockedStrem).thenThrow(new IllegalStateException("Should only be called once"));
 
     // check out a stream
-    InputStream instream1 = mManager.checkOut(mUfs, FILE_NAME, 2);
+    InputStream instream1 = mManager.acquire(mUfs, FILE_NAME, 2);
     // check in back
-    mManager.checkIn(instream1);
+    mManager.release(instream1);
     // check out a stream again
-    InputStream instream2 = mManager.checkOut(mUfs, FILE_NAME, 4);
+    InputStream instream2 = mManager.acquire(mUfs, FILE_NAME, 4);
 
     Assert.assertEquals(mockedStrem, instream1);
     Assert.assertEquals(mockedStrem, instream2);
@@ -90,9 +90,9 @@ public final class UfsInputStreamManagerTest {
    */
   @Test
   public void testMultipleCheckIn() throws Exception {
-    mManager.checkOut(mUfs, FILE_NAME, 2);
-    mManager.checkOut(mUfs, FILE_NAME, 4);
-    mManager.checkOut(mUfs, FILE_NAME, 6);
+    mManager.acquire(mUfs, FILE_NAME, 2);
+    mManager.acquire(mUfs, FILE_NAME, 4);
+    mManager.acquire(mUfs, FILE_NAME, 6);
     // 3 different input streams are checked out
     Mockito.verify(mUfs, Mockito.times(3)).open(Mockito.eq(FILE_NAME),
         Mockito.any(OpenOptions.class));
@@ -110,12 +110,12 @@ public final class UfsInputStreamManagerTest {
     }).toResource()) {
       mManager = new UfsInputStreamManager();
       // check out a stream
-      InputStream instream = mManager.checkOut(mUfs, FILE_NAME, 2);
+      InputStream instream = mManager.acquire(mUfs, FILE_NAME, 2);
       // check in back
-      mManager.checkIn(instream);
+      mManager.release(instream);
       Thread.sleep(10);
       // check out another stream should trigger the timeout
-      mManager.checkOut(mUfs, FILE_NAME, 4);
+      mManager.acquire(mUfs, FILE_NAME, 4);
       Mockito.verify(mSeekableInStreams[0], Mockito.timeout(2000).times(1)).close();
     }
   }
@@ -133,9 +133,9 @@ public final class UfsInputStreamManagerTest {
         for (int j = 0; j < numCheckOutPerThread; j++) {
           InputStream instream;
           try {
-            instream = mManager.checkOut(mUfs, FILE_NAME, j);
+            instream = mManager.acquire(mUfs, FILE_NAME, j);
             Thread.sleep(10);
-            mManager.checkIn(instream);
+            mManager.release(instream);
           } catch (Exception e) {
             // the input streams created should not be more than mNumOfInputStreams
             Assert.fail("input stream check in and out failed." + e);
@@ -168,8 +168,8 @@ public final class UfsInputStreamManagerTest {
           for (int j = 0; j < numCheckOutPerThread; j++) {
             InputStream instream;
             try {
-              instream = mManager.checkOut(mUfs, FILE_NAME, j);
-              mManager.checkIn(instream);
+              instream = mManager.acquire(mUfs, FILE_NAME, j);
+              mManager.release(instream);
               Thread.sleep(200);
             } catch (Exception e) {
               // the input streams created should not be more than mNumOfInputStreams
