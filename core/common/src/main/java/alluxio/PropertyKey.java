@@ -1276,19 +1276,16 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey WORKER_UFS_INSTREAM_CACHE_ENABLE =
       new Builder(Name.WORKER_UFS_INSTREAM_CACHE_ENABLE)
-          .setAlias(new String[]{"alluxio.worker.ufs.instream.cache.enable"})
           .setDefaultValue("true")
           .setDescription("Enable caching for seekable under storage input stream.")
           .build();
   public static final PropertyKey WORKER_UFS_INSTREAM_CACHE_EXPIRE_MS =
       new Builder(Name.WORKER_UFS_INSTREAM_CACHE_EXPIRE_MS)
-          .setAlias(new String[]{"alluxio.worker.ufs.instream.cache.expire.ms"})
           .setDefaultValue("5min")
           .setDescription("Cached UFS instream expiration time.")
           .build();
   public static final PropertyKey WORKER_UFS_INSTREAM_CACHE_MAX_SIZE =
-      new Builder(Name.WORKER_UFS_INSTREAM_CACHE_EXPIRE_MS)
-          .setAlias(new String[]{"alluxio.worker.ufs.instream.cache.max.size"})
+      new Builder(Name.WORKER_UFS_INSTREAM_CACHE_MAX_SIZE)
           .setDefaultValue("5000")
           .setDescription("The max entries in the ufs instream cache.")
           .build();
