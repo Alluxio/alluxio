@@ -18,6 +18,8 @@ import alluxio.PropertyKey;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.concurrent.atomic.AtomicReference;
+
 /**
  * Manages safe mode state for Alluxio master.
  */
@@ -28,23 +30,25 @@ public class DefaultSafeModeManager implements SafeModeManager {
    * Safe mode state. The value will be null if master is not in safe mode, or a nanosecond time
    * point indicating when master will stop waiting for workers and leave safe mode.
    */
-  private volatile Long mWorkerConnectWaitEndTime;
+  private AtomicReference<Long> mWorkerConnectWaitEndTime = new AtomicReference<>();
 
   @Override
   public void enterSafeMode() {
     long waitTime = Configuration.getMs(PropertyKey.MASTER_WORKER_CONNECT_WAIT_TIME);
     LOG.info(String.format("Entering safe mode. Expect leaving safe mode after %dms", waitTime));
-    mWorkerConnectWaitEndTime = System.nanoTime() / Constants.MS_NANO + waitTime;
+    mWorkerConnectWaitEndTime.set(System.nanoTime() / Constants.MS_NANO + waitTime);
   }
 
   @Override
   public boolean isInSafeMode() {
     // lazily updates safe mode state upon inquiry
-    Long endTime = mWorkerConnectWaitEndTime;
-    if (endTime != null && System.nanoTime() / Constants.MS_NANO > endTime) {
-      mWorkerConnectWaitEndTime = null;
+    Long endTime = mWorkerConnectWaitEndTime.get();
+    if (endTime == null) {
+      return false;
     }
-
-    return mWorkerConnectWaitEndTime != null;
+    if (System.nanoTime() / Constants.MS_NANO < endTime) {
+      return true;
+    }
+    return !mWorkerConnectWaitEndTime.compareAndSet(endTime, null);
   }
 }
