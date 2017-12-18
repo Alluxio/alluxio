@@ -60,7 +60,7 @@ public final class ProcessUtils {
           process.stop();
         } catch (Exception e) {
           LOG.error("Failed to shutdown process.", e);
-          System.exit(0);
+          System.exit(-1);
         }
       }
     });
