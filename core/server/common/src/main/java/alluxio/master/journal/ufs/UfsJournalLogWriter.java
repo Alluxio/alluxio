@@ -22,6 +22,7 @@ import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.CreateOptions;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.io.Closer;
 import org.slf4j.Logger;
@@ -60,7 +61,12 @@ final class UfsJournalLogWriter implements JournalWriter {
   private long mNextSequenceNumber;
   /** When mRotateForNextWrite is set, mJournalOutputStream must be closed before the next write. */
   private boolean mRotateLogForNextWrite;
-  /** The output stream to write the journal log entries. */
+  /**
+   * The output stream to write the journal log entries.
+   * Set this field to null when an {@link IOException} is caught.
+   * {@link #maybeRecoverFromUfsFailures()} will check the value of {@link #mJournalOutputStream}.
+   * If it's null, an I/O exception has occurred.
+   */
   private JournalOutputStream mJournalOutputStream;
   /** The garbage collector. */
   private UfsJournalGarbageCollector mGarbageCollector;
@@ -70,18 +76,17 @@ final class UfsJournalLogWriter implements JournalWriter {
    * Journal entries that have been written successfully to the underlying
    * {@link DataOutputStream}, but have not been flushed.
    * The semantic and guarantee provided by the flush operation is
-   * UFS-dependent. For HDFS, Alluxio flushes its journal entries using
-   * hflush. After the successful execution of hflush, the journal entries
-   * have reached (not necessarily persisted) on the minimum number of
-   * datanodes. Therefore, we need a data structure to store the journal
-   * entries that have been written, but not flushed.
+   * UFS-dependent. Therefore, we need a data structure to store the journal
+   * entries that have been written, but not flushed. Should a failure occur
+   * before flush, {@code UfsJournalLogWriter} is able to retry writing the
+   * journal entries.
    */
   private Queue<JournalEntry> mEntriesToFlush;
 
   /**
    * A simple wrapper that wraps a output stream to the current log file.
    */
-  protected class JournalOutputStream implements Closeable {
+  class JournalOutputStream implements Closeable {
     final DataOutputStream mOutputStream;
     final UfsJournalFile mCurrentLog;
 
@@ -178,7 +183,8 @@ final class UfsJournalLogWriter implements JournalWriter {
       JournalEntry entryToWrite =
           entry.toBuilder().setSequenceNumber(mNextSequenceNumber).build();
       entryToWrite.writeDelimitedTo(mJournalOutputStream.mOutputStream);
-      LOG.debug("Add this journal entry to retryList with {} entries.", mEntriesToFlush.size());
+      LOG.debug("Adding journal entry (seq={}) to retryList with {} entries.",
+          entryToWrite.getSequenceNumber(), mEntriesToFlush.size());
       mEntriesToFlush.add(entryToWrite);
       mNextSequenceNumber++;
     } catch (IOException e) {
@@ -214,7 +220,6 @@ final class UfsJournalLogWriter implements JournalWriter {
    *    missing, and Alluxio cannot recover. Otherwise, for each journal entry in
    *    mEntriesToFlush, if its sequence number is newer than or equal to Y, retry writing it to
    *    UFS by calling the {@code UfsJournalLogWriter#write} method.
-   * @throws IOException if reading journal entries from UFS fails
    */
   private void maybeRecoverFromUfsFailures() throws IOException {
     if (mJournalOutputStream != null) {
@@ -227,8 +232,8 @@ final class UfsJournalLogWriter implements JournalWriter {
     }
     long startSeq = currentLog.getStart();
     long lastPersistSeq = -1;
-    LOG.info("Trying to recover from previous UFS journal failure."
-        + " Scanning for the first corrupted journal entry.");
+    LOG.info("Recovering from previous UFS journal write failure."
+        + " Scanning for the last persisted journal entry.");
     try (JournalReader reader = new UfsJournalReader(mJournal, startSeq, true)) {
       JournalEntry entry;
       while ((entry = reader.read()) != null) {
@@ -237,13 +242,12 @@ final class UfsJournalLogWriter implements JournalWriter {
         }
       }
     } catch (InvalidJournalEntryException e) {
-      LOG.info("Found first corrupted journal entry.");
+      LOG.info("Found last persisted journal entry with seq={}.", lastPersistSeq);
     } catch (IOException e) {
-      LOG.info("I/O error encountered while trying to read journal.");
       throw e;
     }
     String src = currentLog.getLocation().toString();
-    LOG.info("Last valid (persisted) journal entry sequence number in {} is {}",
+    LOG.info("Last persisted journal entry sequence number in {} is {}",
         src, lastPersistSeq);
     if (lastPersistSeq < 0) {
       mUfs.deleteFile(src);
@@ -325,8 +329,7 @@ final class UfsJournalLogWriter implements JournalWriter {
     try {
       outputStream.flush();
       // Since flush has succeeded, it's safe to clear the mEntriesToFlush queue
-      // because they are considered "persisted" in UFS. For example, in HDFS,
-      // the journal entries have reached a minimum number of datanodes.
+      // because they are considered "persisted" in UFS.
       mEntriesToFlush.clear();
     } catch (IOException e) {
       mRotateLogForNextWrite = true;
@@ -360,27 +363,23 @@ final class UfsJournalLogWriter implements JournalWriter {
   }
 
   /**
-   * Expose this method as protected, used only by unit test and/or integration test.
-   *
    * @return number of journal entries to flush stored in the queue
    */
-  protected synchronized  int getNumberOfJournalEntriesToFlush() {
+  @VisibleForTesting
+  synchronized  int getNumberOfJournalEntriesToFlush() {
     return mEntriesToFlush.size();
   }
 
-  /**
-   * Expose this method as protected, used only by unit test and/or integration test.
-   */
-  protected synchronized JournalOutputStream getJournalOutputStream() {
+  @VisibleForTesting
+  synchronized JournalOutputStream getJournalOutputStream() {
     return mJournalOutputStream;
   }
 
   /**
-   * Expose this method as protected, used only by unit test and/or integration test.
-   *
    * @return the current underlying {@link DataOutputStream} to write journal entries
    */
-  protected synchronized DataOutputStream getUnderlyingDataOutputStream() {
+  @VisibleForTesting
+  synchronized DataOutputStream getUnderlyingDataOutputStream() {
     if (mJournalOutputStream == null) {
       return null;
     }
