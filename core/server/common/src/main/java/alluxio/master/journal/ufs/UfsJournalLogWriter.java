@@ -267,20 +267,24 @@ final class UfsJournalLogWriter implements JournalWriter {
     mUfs.renameFile(src, dst);
 
     maybeRotateLog();
-    if (!mEntriesToFlush.isEmpty()) {
-      JournalEntry entry = mEntriesToFlush.peek();
-      if (entry.getSequenceNumber() > lastPersistSeq + 1) {
-        throw new IOException(ExceptionMessage.JOURNAL_ENTRY_MISSING
-            .getMessageWithUrl(RuntimeConstants.ALLUXIO_DEBUG_DOCS_URL,
-            lastPersistSeq + 1, entry.getSequenceNumber()));
-      }
-      LOG.info("Retry writing unwritten journal entries");
+    if (mEntriesToFlush.isEmpty()) {
+      return;
     }
+    JournalEntry firstEntryToFlush = mEntriesToFlush.peek();
+    if (firstEntryToFlush.getSequenceNumber() > lastPersistSeq + 1) {
+      throw new IOException(ExceptionMessage.JOURNAL_ENTRY_MISSING
+          .getMessageWithUrl(RuntimeConstants.ALLUXIO_DEBUG_DOCS_URL,
+          lastPersistSeq + 1, firstEntryToFlush.getSequenceNumber()));
+    }
+    long retryStartSeq = firstEntryToFlush.getSequenceNumber();
+    long retryEndSeq = retryStartSeq;
+    LOG.info("Retry writing unwritten journal entries from seq {}", retryStartSeq);
     for (JournalEntry entry : mEntriesToFlush) {
       if (entry.getSequenceNumber() > lastPersistSeq) {
         try {
           entry.toBuilder().build()
               .writeDelimitedTo(mJournalOutputStream.mOutputStream);
+          retryEndSeq = entry.getSequenceNumber();
         } catch (IOException e) {
           mRotateLogForNextWrite = true;
           UfsJournalFile tempLog = mJournalOutputStream.mCurrentLog;
@@ -291,9 +295,8 @@ final class UfsJournalLogWriter implements JournalWriter {
         }
       }
     }
-    if (!mEntriesToFlush.isEmpty()) {
-      LOG.info("Finished writing unwritten journal entries.");
-    }
+    LOG.info("Finished writing unwritten journal entries from {} to {}.",
+        retryStartSeq, retryEndSeq);
   }
 
   /**
