@@ -52,6 +52,10 @@ pairs. Here is an example script for reference:
 echo "host=$(hostname),rack=/rack1"
 ```
 
+If the no script exists at `alluxio.locality.script`, the property will be ignored. If
+the script returns a nonzero exit code or returns malformed output, an error will be
+raised in Alluxio.
+
 ## Node locality priority order
 
 There are multiple ways to configure node locality. This is the order of precedence,
