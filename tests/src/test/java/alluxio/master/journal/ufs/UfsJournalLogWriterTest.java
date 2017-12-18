@@ -216,14 +216,7 @@ public final class UfsJournalLogWriterTest extends BaseIntegrationTest {
     // matching (byte[], int, int).
     Mockito.doThrow(new IOException("injected I/O error")).when(badOut)
         .write(Mockito.any(byte[].class), Mockito.anyInt(), Mockito.anyInt());
-    try {
-      writer.write(newEntry(nextSN));
-      Assert.fail("Should not reach here");
-    } catch (IOException e) {
-      Assert.assertThat(e.getMessage(), containsString("injected I/O error"));
-      Assert.assertEquals(numberOfEntriesWrittenBeforeFailure,
-          writer.getNumberOfJournalEntriesToFlush());
-    }
+    tryWriteAndExpectToFail(writer, nextSN);
     // Write another entry. UfsJournalLogWriter will perform recovery first.
     writer.write(newEntry(nextSN));
     nextSN++;
@@ -278,13 +271,7 @@ public final class UfsJournalLogWriterTest extends BaseIntegrationTest {
     // matching (byte[], int, int).
     Mockito.doThrow(new IOException("injected I/O error")).when(badOut)
         .write(Mockito.any(byte[].class), Mockito.anyInt(), Mockito.anyInt());
-    try {
-      writer.write(newEntry(nextSN));
-      Assert.fail("Should not reach here.");
-    } catch (IOException e) {
-      Assert.assertThat(e.getMessage(), containsString("injected I/O error"));
-      Assert.assertEquals(1, writer.getNumberOfJournalEntriesToFlush());
-    }
+    tryWriteAndExpectToFail(writer, nextSN);
     snapshot = UfsJournalSnapshot.getSnapshot(mJournal);
     journalFile = snapshot.getCurrentLog(mJournal);
     File file = new File(journalFile.getLocation().toString());
@@ -314,6 +301,22 @@ public final class UfsJournalLogWriterTest extends BaseIntegrationTest {
     Whitebox.setInternalState(journalOutputStream, "mOutputStream", badOut);
     Assert.assertEquals(writer.getUnderlyingDataOutputStream(), badOut);
     return badOut;
+  }
+
+  /**
+   * Tries to write a journal entry and expects the write to fail due to
+   * {@link IOException} thrown by {@link DataOutputStream#write(byte[], int, int)}.
+   *
+   * @param writer {@link UfsJournalLogWriter} that attempts the write
+   * @param nextSN the sequence number that the entry is expected to have
+   */
+  private void tryWriteAndExpectToFail(UfsJournalLogWriter writer, long nextSN) {
+    try {
+      writer.write(newEntry(nextSN));
+      Assert.fail("Should not reach here.");
+    } catch (IOException e) {
+      Assert.assertThat(e.getMessage(), containsString("injected I/O error"));
+    }
   }
 
   /**
