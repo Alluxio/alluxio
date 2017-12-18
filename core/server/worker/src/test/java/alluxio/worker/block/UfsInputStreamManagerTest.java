@@ -64,36 +64,36 @@ public final class UfsInputStreamManagerTest {
   }
 
   /**
-   * Test that verifies a checked-in input stream can be reused for the next check out.
+   * Test that verifies a released input stream can be reused for the next acquisition.
    */
   @Test
-  public void testCheckInAndOut() throws Exception {
+  public void testAcquireAndRelease() throws Exception {
     SeekableUnderFileInputStream mockedStrem = createMockedSeekableStream();
     Mockito.when(mUfs.open(Mockito.eq(FILE_NAME), Mockito.any(OpenOptions.class)))
         .thenReturn(mockedStrem).thenThrow(new IllegalStateException("Should only be called once"));
 
-    // check out a stream
+    // acquire a stream
     InputStream instream1 = mManager.acquire(mUfs, FILE_NAME, 2);
-    // check in back
+    // release
     mManager.release(instream1);
-    // check out a stream again
+    // acquire a stream again
     InputStream instream2 = mManager.acquire(mUfs, FILE_NAME, 4);
 
     Assert.assertEquals(mockedStrem, instream1);
     Assert.assertEquals(mockedStrem, instream2);
-    // ensure the second time the checked out instream is the same one but repositioned
+    // ensure the second time the released instream is the same one but repositioned
     Mockito.verify(mockedStrem).seek(4);
   }
 
   /**
-   * Tests checking out multiple times will open new input streams.
+   * Tests acquiring multiple times will open new input streams.
    */
   @Test
   public void testMultipleCheckIn() throws Exception {
     mManager.acquire(mUfs, FILE_NAME, 2);
     mManager.acquire(mUfs, FILE_NAME, 4);
     mManager.acquire(mUfs, FILE_NAME, 6);
-    // 3 different input streams are checked out
+    // 3 different input streams are acquired
     Mockito.verify(mUfs, Mockito.times(3)).open(Mockito.eq(FILE_NAME),
         Mockito.any(OpenOptions.class));
   }
@@ -121,7 +121,7 @@ public final class UfsInputStreamManagerTest {
   }
 
   /**
-   * Tests concurrent checkouts without expiration do not hit deadlock.
+   * Tests concurrent acquisitions without expiration do not hit deadlock.
    */
   @Test
   public void testConcurrency() throws Exception {
@@ -151,19 +151,19 @@ public final class UfsInputStreamManagerTest {
   }
 
   /**
-   * Tests concurrent checkouts with expiration do not hit deadlock.
+   * Tests concurrent acquisitions with expiration do not hit deadlock.
    */
   @Test
   public void testConcurrencyWithExpiration() throws Exception {
     try (Closeable r = new ConfigurationRule(new HashMap<PropertyKey, String>() {
       {
-        put(PropertyKey.WORKER_UFS_INSTREAM_CACHE_EXPIRE_MS, "2");
+        put(PropertyKey.WORKER_UFS_INSTREAM_CACHE_EXPIRE_MS, "20");
       }
     }).toResource()) {
       mManager = new UfsInputStreamManager();
       List<Thread> threads = new ArrayList<>();
-      int numCheckOutPerThread = 2;
-      for (int i = 0; i < mNumOfInputStreams / 2; i++) {
+      int numCheckOutPerThread = 4;
+      for (int i = 0; i < mNumOfInputStreams / 4; i++) {
         Runnable runnable = () -> {
           for (int j = 0; j < numCheckOutPerThread; j++) {
             InputStream instream;
@@ -180,8 +180,8 @@ public final class UfsInputStreamManagerTest {
         threads.add(new Thread(runnable));
       }
       ConcurrencyTestUtils.assertConcurrent(threads, 30);
-      for (int i = 0; i < mNumOfInputStreams / 2; i++) {
-        // the first half of input streams are closed
+      for (int i = 0; i < mNumOfInputStreams / 4; i++) {
+        // the first quarter of input streams are closed
         Mockito.verify(mSeekableInStreams[i], Mockito.timeout(2000)).close();
       }
     }
