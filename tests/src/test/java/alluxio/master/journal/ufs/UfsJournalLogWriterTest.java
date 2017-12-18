@@ -216,7 +216,7 @@ public final class UfsJournalLogWriterTest extends BaseIntegrationTest {
     // matching (byte[], int, int).
     Mockito.doThrow(new IOException("injected I/O error")).when(badOut)
         .write(Mockito.any(byte[].class), Mockito.anyInt(), Mockito.anyInt());
-    UfsJournalLogWriter.JournalOutputStream journalOutputStream = writer.getJournalOutputStream();
+    Object journalOutputStream = writer.getJournalOutputStream();
     // Use Whitebox to set the private member of journalOutputStream to badOut.
     Whitebox.setInternalState(journalOutputStream, "mOutputStream", badOut);
     Assert.assertEquals(writer.getUnderlyingDataOutputStream(), badOut);
@@ -252,17 +252,17 @@ public final class UfsJournalLogWriterTest extends BaseIntegrationTest {
   @Test
   public void missingJournalEntries() throws Exception {
     Mockito.when(mUfs.supportsFlush()).thenReturn(true);
-    long nextSN = 0x10;
+    long startSN = 0x10;
+    long nextSN = startSN;
     UfsJournalLogWriter writer = new UfsJournalLogWriter(mJournal, nextSN);
     UfsJournalSnapshot snapshot;
     UfsJournalFile journalFile;
     long truncateSize = 0;
-    long firstCorruptedEntrySeq = 0;
+    long firstCorruptedEntrySeq = startSN + 4;
     for (int i = 0; i < 5; i++) {
       writer.write(newEntry(nextSN));
       nextSN++;
       if (i == 3) {
-        firstCorruptedEntrySeq = nextSN;
         snapshot = UfsJournalSnapshot.getSnapshot(mJournal);
         journalFile = snapshot.getCurrentLog(mJournal);
         File file = new File(journalFile.getLocation().toString());
@@ -282,7 +282,7 @@ public final class UfsJournalLogWriterTest extends BaseIntegrationTest {
     // matching (byte[], int, int).
     Mockito.doThrow(new IOException("injected I/O error")).when(badOut)
         .write(Mockito.any(byte[].class), Mockito.anyInt(), Mockito.anyInt());
-    UfsJournalLogWriter.JournalOutputStream journalOutputStream = writer.getJournalOutputStream();
+    Object journalOutputStream = writer.getJournalOutputStream();
     // Use Whitebox to set the private member of journalOutputStream to badOut.
     Whitebox.setInternalState(journalOutputStream, "mOutputStream", badOut);
     Assert.assertEquals(writer.getUnderlyingDataOutputStream(), badOut);

@@ -86,7 +86,7 @@ final class UfsJournalLogWriter implements JournalWriter {
   /**
    * A simple wrapper that wraps a output stream to the current log file.
    */
-  class JournalOutputStream implements Closeable {
+  private class JournalOutputStream implements Closeable {
     final DataOutputStream mOutputStream;
     final UfsJournalFile mCurrentLog;
 
