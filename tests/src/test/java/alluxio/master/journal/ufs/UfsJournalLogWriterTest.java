@@ -227,9 +227,8 @@ public final class UfsJournalLogWriterTest extends BaseIntegrationTest {
   }
 
   /**
-   * Test the case in which there are missing journal entries between the last persisted entry
-   * and the first entry in {@code UfsJournalLogWriter#mEntriesToFlush}.
-   * {@code UfsJournalLogWriter} should be able to detect this issue.
+   * Tests that {@link UfsJournalLogWriter} can detect the failure in which some flushed journal
+   * entries are missing from the journal read from UFS during recovery.
    */
   @Test
   public void missingJournalEntries() throws Exception {
