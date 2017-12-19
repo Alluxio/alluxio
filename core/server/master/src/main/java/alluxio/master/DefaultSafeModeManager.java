@@ -12,8 +12,10 @@
 package alluxio.master;
 
 import alluxio.Configuration;
-import alluxio.Constants;
 import alluxio.PropertyKey;
+import alluxio.clock.Clock;
+import alluxio.clock.ElapsedTimeClock;
+import alluxio.clock.SystemClock;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,27 +28,39 @@ import java.util.concurrent.atomic.AtomicReference;
 public class DefaultSafeModeManager implements SafeModeManager {
   private static final Logger LOG = LoggerFactory.getLogger(DefaultSafeModeManager.class);
 
+  private final Clock mClock;
+
   /**
    * Safe mode state. The value will be null if master is not in safe mode, or a nanosecond time
    * point indicating when master will stop waiting for workers and leave safe mode.
    */
   private AtomicReference<Long> mWorkerConnectWaitEndTime = new AtomicReference<>();
 
+  public DefaultSafeModeManager() {
+    this(new ElapsedTimeClock());
+  }
+
+  public DefaultSafeModeManager(Clock clock) {
+    mClock = clock;
+  }
+
   @Override
   public void enterSafeMode() {
     long waitTime = Configuration.getMs(PropertyKey.MASTER_WORKER_CONNECT_WAIT_TIME);
     LOG.info(String.format("Entering safe mode. Expect leaving safe mode after %dms", waitTime));
-    mWorkerConnectWaitEndTime.set(System.nanoTime() / Constants.MS_NANO + waitTime);
+    mWorkerConnectWaitEndTime.set(mClock.millis() + waitTime);
   }
 
   @Override
   public boolean isInSafeMode() {
     // lazily updates safe mode state upon inquiry
     Long endTime = mWorkerConnectWaitEndTime.get();
+
+    // bails out early before expensive clock checks
     if (endTime == null) {
       return false;
     }
-    if (System.nanoTime() / Constants.MS_NANO < endTime) {
+    if (mClock.millis() < endTime) {
       return true;
     }
     return !mWorkerConnectWaitEndTime.compareAndSet(endTime, null);
