@@ -30,8 +30,8 @@ public class DefaultSafeModeManager implements SafeModeManager {
   private final Clock mClock;
 
   /**
-   * Safe mode state. The value will be null if master is not in safe mode, or a nanosecond time
-   * point indicating when master will stop waiting for workers and leave safe mode.
+   * Safe mode state. The value will be null if master is not in safe mode, or a time point in
+   * millisecond indicating when master will stop waiting for workers and leave safe mode.
    */
   private AtomicReference<Long> mWorkerConnectWaitEndTime = new AtomicReference<>();
 
