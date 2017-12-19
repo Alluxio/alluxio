@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.network.connection;
+package alluxio.network.netty;
 
 import alluxio.Configuration;
 import alluxio.exception.status.CanceledException;
