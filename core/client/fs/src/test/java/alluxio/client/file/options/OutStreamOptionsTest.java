@@ -14,7 +14,6 @@ package alluxio.client.file.options;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-import alluxio.CommonTestUtils;
 import alluxio.Configuration;
 import alluxio.ConfigurationRule;
 import alluxio.ConfigurationTestUtils;
@@ -29,6 +28,7 @@ import alluxio.client.file.policy.LocalFirstPolicy;
 import alluxio.client.file.policy.RoundRobinPolicy;
 import alluxio.security.authorization.Mode;
 import alluxio.security.group.GroupMappingService;
+import alluxio.test.utils.CommonTestUtils;
 import alluxio.util.CommonUtils;
 import alluxio.wire.TtlAction;
 

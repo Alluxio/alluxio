@@ -11,7 +11,7 @@
 
 package alluxio.master.file.options;
 
-import alluxio.CommonTestUtils;
+import alluxio.test.utils.CommonTestUtils;
 import alluxio.wire.TtlAction;
 
 import org.junit.Assert;

@@ -11,12 +11,12 @@
 
 package alluxio.master.file.options;
 
-import alluxio.CommonTestUtils;
 import alluxio.Configuration;
 import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.security.authorization.Mode;
+import alluxio.test.utils.CommonTestUtils;
 import alluxio.util.CommonUtils;
 import alluxio.wire.TtlAction;
 

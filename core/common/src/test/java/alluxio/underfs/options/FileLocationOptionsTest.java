@@ -11,7 +11,7 @@
 
 package alluxio.underfs.options;
 
-import alluxio.CommonTestUtils;
+import alluxio.test.utils.CommonTestUtils;
 
 import org.junit.Assert;
 import org.junit.Test;

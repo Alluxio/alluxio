@@ -14,12 +14,12 @@ package alluxio.master.file.options;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 
-import alluxio.CommonTestUtils;
 import alluxio.Configuration;
 import alluxio.ConfigurationTestUtils;
 import alluxio.PropertyKey;
 import alluxio.Constants;
 import alluxio.security.authorization.Mode;
+import alluxio.test.utils.CommonTestUtils;
 import alluxio.util.CommonUtils;
 import alluxio.wire.TtlAction;
 

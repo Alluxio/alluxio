@@ -13,10 +13,9 @@ package alluxio.client.block.policy.options;
 
 import static org.junit.Assert.assertEquals;
 
-import alluxio.CommonTestUtils;
 import alluxio.Constants;
 import alluxio.client.block.BlockWorkerInfo;
-
+import alluxio.test.utils.CommonTestUtils;
 import alluxio.wire.WorkerNetAddress;
 
 import org.junit.Test;

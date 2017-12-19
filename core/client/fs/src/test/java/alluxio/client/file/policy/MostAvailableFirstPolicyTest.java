@@ -11,9 +11,9 @@
 
 package alluxio.client.file.policy;
 
-import alluxio.CommonTestUtils;
 import alluxio.Constants;
 import alluxio.client.block.BlockWorkerInfo;
+import alluxio.test.utils.CommonTestUtils;
 import alluxio.wire.WorkerNetAddress;
 
 import org.junit.Assert;

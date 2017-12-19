@@ -11,7 +11,7 @@
 
 package alluxio.wire;
 
-import alluxio.CommonTestUtils;
+import alluxio.test.utils.CommonTestUtils;
 import alluxio.util.CommonUtils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;

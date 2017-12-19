@@ -11,9 +11,9 @@
 
 package alluxio.worker.block;
 
-import alluxio.ConcurrencyTestUtils;
 import alluxio.ConfigurationRule;
 import alluxio.PropertyKey;
+import alluxio.test.utils.ConcurrencyTestUtils;
 import alluxio.underfs.SeekableUnderFileInputStream;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.OpenOptions;

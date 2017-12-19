@@ -14,9 +14,9 @@ package alluxio.client.file.options;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertEquals;
 
-import alluxio.CommonTestUtils;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
+import alluxio.test.utils.CommonTestUtils;
 import alluxio.thrift.DeleteTOptions;
 
 import org.junit.Test;

@@ -11,7 +11,7 @@
 
 package alluxio.client.file.options;
 
-import alluxio.CommonTestUtils;
+import alluxio.test.utils.CommonTestUtils;
 import alluxio.thrift.CompleteFileTOptions;
 
 import org.junit.Assert;

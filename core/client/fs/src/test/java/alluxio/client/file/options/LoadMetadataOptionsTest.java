@@ -12,9 +12,10 @@
 package alluxio.client.file.options;
 
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertEquals;
 
-import alluxio.CommonTestUtils;
+import alluxio.test.utils.CommonTestUtils;
+
+import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
 

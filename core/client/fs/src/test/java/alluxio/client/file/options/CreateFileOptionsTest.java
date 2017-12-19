@@ -11,7 +11,6 @@
 
 package alluxio.client.file.options;
 
-import alluxio.CommonTestUtils;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
@@ -19,6 +18,7 @@ import alluxio.client.WriteType;
 import alluxio.client.file.policy.FileWriteLocationPolicy;
 import alluxio.client.file.policy.RoundRobinPolicy;
 import alluxio.security.authorization.Mode;
+import alluxio.test.utils.CommonTestUtils;
 import alluxio.thrift.CreateFileTOptions;
 import alluxio.wire.TtlAction;
 

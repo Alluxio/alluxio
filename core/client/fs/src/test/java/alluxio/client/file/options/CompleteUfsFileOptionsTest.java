@@ -11,12 +11,12 @@
 
 package alluxio.client.file.options;
 
-import alluxio.CommonTestUtils;
 import alluxio.ConfigurationRule;
 import alluxio.LoginUserRule;
 import alluxio.PropertyKey;
 import alluxio.security.authorization.Mode;
 import alluxio.security.group.provider.IdentityUserGroupsMapping;
+import alluxio.test.utils.CommonTestUtils;
 import alluxio.thrift.CompleteUfsFileTOptions;
 import alluxio.util.CommonUtils;
 

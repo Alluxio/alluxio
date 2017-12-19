@@ -17,8 +17,8 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
-import alluxio.CommonTestUtils;
 import alluxio.security.authorization.Mode;
+import alluxio.test.utils.CommonTestUtils;
 import alluxio.thrift.SetAttributeTOptions;
 import alluxio.wire.TtlAction;
 

@@ -13,10 +13,10 @@ package alluxio.client.file.policy;
 
 import static org.junit.Assert.assertEquals;
 
-import alluxio.CommonTestUtils;
 import alluxio.Constants;
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.network.TieredIdentityFactory;
+import alluxio.test.utils.CommonTestUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.TieredIdentity;
 import alluxio.wire.TieredIdentity.LocalityTier;
