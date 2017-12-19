@@ -57,41 +57,38 @@ public class SafeModeManagerTest {
 
   @Test
   public void enterSafeMode() throws Exception {
-    mSafeModeManager.enterSafeMode();
+    mSafeModeManager.notifyRpcServerStarted();
+
     assertTrue(mSafeModeManager.isInSafeMode());
   }
 
   @Test
   public void leaveSafeMode() throws Exception {
-    mSafeModeManager.enterSafeMode();
-    assertTrue(mSafeModeManager.isInSafeMode());
+    mSafeModeManager.notifyRpcServerStarted();
     mClock.addTimeMs(Configuration.getMs(PropertyKey.MASTER_WORKER_CONNECT_WAIT_TIME) + 10);
+
     assertFalse(mSafeModeManager.isInSafeMode());
   }
 
   @Test
   public void reenterSafeMode() throws Exception {
-    mSafeModeManager.enterSafeMode();
-    assertTrue(mSafeModeManager.isInSafeMode());
+    mSafeModeManager.notifyRpcServerStarted();
     mClock.addTimeMs(Configuration.getMs(PropertyKey.MASTER_WORKER_CONNECT_WAIT_TIME) + 10);
-    assertFalse(mSafeModeManager.isInSafeMode());
-    mSafeModeManager.enterSafeMode();
+    mSafeModeManager.notifyRpcServerStarted();
+
     assertTrue(mSafeModeManager.isInSafeMode());
   }
 
   @Test
   public void reenterSafeModeWhileInSafeMode() throws Exception {
-    mSafeModeManager.enterSafeMode();
-    assertTrue(mSafeModeManager.isInSafeMode());
+    mSafeModeManager.notifyRpcServerStarted();
 
     // Enters safe mode again while in safe mode.
     mClock.addTimeMs(Configuration.getMs(PropertyKey.MASTER_WORKER_CONNECT_WAIT_TIME) - 10);
-    assertTrue(mSafeModeManager.isInSafeMode());
-    mSafeModeManager.enterSafeMode();
+    mSafeModeManager.notifyRpcServerStarted();
+    mClock.addTimeMs(Configuration.getMs(PropertyKey.MASTER_WORKER_CONNECT_WAIT_TIME) - 10);
 
     // Verifies safe mode timer is reset.
-    assertTrue(mSafeModeManager.isInSafeMode());
-    mClock.addTimeMs(Configuration.getMs(PropertyKey.MASTER_WORKER_CONNECT_WAIT_TIME) - 10);
     assertTrue(mSafeModeManager.isInSafeMode());
     mClock.addTimeMs(20);
     assertFalse(mSafeModeManager.isInSafeMode());

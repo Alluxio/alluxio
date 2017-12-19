@@ -207,7 +207,7 @@ public class AlluxioMasterProcess implements MasterProcess {
     mJournalSystem.start();
     mJournalSystem.setMode(Mode.PRIMARY);
     startMasters(true);
-    mSafeModeManager.enterSafeMode();
+    mSafeModeManager.notifyRpcServerStarted();
     startServing();
   }
 
