@@ -17,9 +17,9 @@ package alluxio.master;
 public interface SafeModeManager {
 
   /**
-   * Enters safe mode.
+   * Notifies {@link SafeModeManager} that the RPC server is started.
    */
-  void enterSafeMode();
+  void notifyRpcServerStarted();
 
   /**
    * @return whether master is in safe mode

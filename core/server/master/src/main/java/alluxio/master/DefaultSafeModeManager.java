@@ -15,7 +15,6 @@ import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.clock.Clock;
 import alluxio.clock.ElapsedTimeClock;
-import alluxio.clock.SystemClock;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,16 +35,24 @@ public class DefaultSafeModeManager implements SafeModeManager {
    */
   private AtomicReference<Long> mWorkerConnectWaitEndTime = new AtomicReference<>();
 
+  /**
+   * Creates {@link DefaultSafeModeManager} with default clock.
+   */
   public DefaultSafeModeManager() {
     this(new ElapsedTimeClock());
   }
 
+  /**
+   * Creates {@link DefaultSafeModeManager} with given clock.
+   * @param clock a {@link Clock} for calculating elapsed time
+   */
   public DefaultSafeModeManager(Clock clock) {
     mClock = clock;
   }
 
   @Override
-  public void enterSafeMode() {
+  public void notifyRpcServerStarted() {
+    // updates end time after which master will leave safe mode
     long waitTime = Configuration.getMs(PropertyKey.MASTER_WORKER_CONNECT_WAIT_TIME);
     LOG.info(String.format("Entering safe mode. Expect leaving safe mode after %dms", waitTime));
     mWorkerConnectWaitEndTime.set(mClock.millis() + waitTime);
