@@ -221,6 +221,25 @@ public class LocalUnderFileSystem extends BaseUnderFileSystem
   }
 
   @Override
+  public UfsStatus getStatus(String path) throws IOException {
+    String tpath = stripPath(path);
+    File file = new File(tpath);
+    PosixFileAttributes attr =
+        Files.readAttributes(Paths.get(file.getPath()), PosixFileAttributes.class);
+    if (file.isFile()) {
+      // Return file status.
+      String contentHash =
+          UnderFileSystemUtils.approximateContentHash(file.length(), file.lastModified());
+      return new UfsFileStatus(path, contentHash, file.length(), file.lastModified(),
+          attr.owner().getName(), attr.group().getName(),
+          FileUtils.translatePosixPermissionToMode(attr.permissions()));
+    }
+    // Return directory status.
+    return new UfsDirectoryStatus(path, attr.owner().getName(), attr.group().getName(),
+        FileUtils.translatePosixPermissionToMode(attr.permissions()));
+  }
+
+  @Override
   public boolean isDirectory(String path) throws IOException {
     path = stripPath(path);
     File file = new File(path);

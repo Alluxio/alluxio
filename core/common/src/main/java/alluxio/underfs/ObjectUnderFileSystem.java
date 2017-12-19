@@ -453,6 +453,21 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
   }
 
   @Override
+  public UfsStatus getStatus(String path) throws IOException {
+    if (isRoot(path)) {
+      return getDirectoryStatus(path);
+    }
+    ObjectStatus details = getObjectStatus(stripPrefixIfPresent(path));
+    if (details != null) {
+      ObjectPermissions permissions = getPermissions();
+      return new UfsFileStatus(path, details.getContentHash(), details.getContentLength(),
+          details.getLastModifiedTimeMs(), permissions.getOwner(), permissions.getGroup(),
+          permissions.getMode());
+    }
+    return getDirectoryStatus(path);
+  }
+
+  @Override
   public boolean isDirectory(String path) throws IOException {
     // Root is always a folder
     if (isRoot(path)) {
