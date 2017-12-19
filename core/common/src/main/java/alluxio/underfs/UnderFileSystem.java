@@ -261,9 +261,10 @@ public interface UnderFileSystem extends Closeable {
   long getBlockSizeByte(String path) throws IOException;
 
   /**
-   * Gets the directory status.
+   * Gets the directory status. The caller must already know the path is a directory. This method
+   * will throw an exception if the path exists, but is a file.
    *
-   * @param path the file name
+   * @param path the path to the directory
    * @return the directory status
    */
   UfsDirectoryStatus getDirectoryStatus(String path) throws IOException;
@@ -286,9 +287,10 @@ public interface UnderFileSystem extends Closeable {
   List<String> getFileLocations(String path, FileLocationOptions options) throws IOException;
 
   /**
-   * Gets the file status.
+   * Gets the file status. The caller must already know the path is a file. This method will
+   * throw an exception if the path exists, but is a directory.
    *
-   * @param path the file name
+   * @param path the path to the file
    * @return the file status
    */
   UfsFileStatus getFileStatus(String path) throws IOException;
@@ -313,6 +315,15 @@ public interface UnderFileSystem extends Closeable {
    * @return The space in bytes
    */
   long getSpace(String path, SpaceType type) throws IOException;
+
+  /**
+   * Gets the file or directory status. The caller does not need to know if the path is a file or
+   * directory. This method will determine the path type, and will return the appropriate status.
+   *
+   * @param path the path to get the status
+   * @return the file or directory status
+   */
+  UfsStatus getStatus(String path) throws IOException;
 
   /**
    * Returns the name of the under filesystem implementation.
