@@ -33,7 +33,7 @@ public class DefaultSafeModeManager implements SafeModeManager {
    * Safe mode state. The value will be null if master is not in safe mode, or a time point in
    * millisecond indicating when master will stop waiting for workers and leave safe mode.
    */
-  private AtomicReference<Long> mWorkerConnectWaitEndTime = new AtomicReference<>();
+  private AtomicReference<Long> mWorkerConnectWaitEndTimeMs = new AtomicReference<>();
 
   /**
    * Creates {@link DefaultSafeModeManager} with default clock.
@@ -44,6 +44,7 @@ public class DefaultSafeModeManager implements SafeModeManager {
 
   /**
    * Creates {@link DefaultSafeModeManager} with given clock.
+   *
    * @param clock a {@link Clock} for calculating elapsed time
    */
   public DefaultSafeModeManager(Clock clock) {
@@ -55,13 +56,13 @@ public class DefaultSafeModeManager implements SafeModeManager {
     // updates end time after which master will leave safe mode
     long waitTime = Configuration.getMs(PropertyKey.MASTER_WORKER_CONNECT_WAIT_TIME);
     LOG.info(String.format("Entering safe mode. Expect leaving safe mode after %dms", waitTime));
-    mWorkerConnectWaitEndTime.set(mClock.millis() + waitTime);
+    mWorkerConnectWaitEndTimeMs.set(mClock.millis() + waitTime);
   }
 
   @Override
   public boolean isInSafeMode() {
     // lazily updates safe mode state upon inquiry
-    Long endTime = mWorkerConnectWaitEndTime.get();
+    Long endTime = mWorkerConnectWaitEndTimeMs.get();
 
     // bails out early before expensive clock checks
     if (endTime == null) {
@@ -70,6 +71,6 @@ public class DefaultSafeModeManager implements SafeModeManager {
     if (mClock.millis() < endTime) {
       return true;
     }
-    return !mWorkerConnectWaitEndTime.compareAndSet(endTime, null);
+    return !mWorkerConnectWaitEndTimeMs.compareAndSet(endTime, null);
   }
 }
