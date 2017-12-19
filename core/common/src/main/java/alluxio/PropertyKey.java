@@ -1280,7 +1280,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("Enable caching for seekable under storage input stream.")
           .build();
   public static final PropertyKey WORKER_UFS_INSTREAM_CACHE_EXPIRE_MS =
-      new Builder(Name.WORKER_UFS_INSTREAM_CACHE_EXPIRE_MS)
+      new Builder(Name.WORKER_UFS_INSTREAM_CACHE_EXPIRATION_TIME)
           .setDefaultValue("5min")
           .setDescription("Cached UFS instream expiration time.")
           .build();
@@ -2274,7 +2274,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String WORKER_WEB_PORT = "alluxio.worker.web.port";
     public static final String WORKER_UFS_BLOCK_OPEN_TIMEOUT_MS =
         "alluxio.worker.ufs.block.open.timeout";
-    public static final String WORKER_UFS_INSTREAM_CACHE_EXPIRE_MS =
+    public static final String WORKER_UFS_INSTREAM_CACHE_EXPIRATION_TIME =
         "alluxio.worker.ufs.instream.cache.expiration.time";
     public static final String WORKER_UFS_INSTREAM_CACHE_ENABLE =
         "alluxio.worker.ufs.instream.cache.enable";
