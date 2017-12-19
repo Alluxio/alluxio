@@ -47,7 +47,6 @@ public final class Constants {
   public static final String MESOS_RESOURCE_PORTS = "ports";
 
   public static final long SECOND_NANO = 1000000000L;
-  public static final long MS_NANO = 1000000L;
   public static final int SECOND_MS = 1000;
   public static final int MINUTE_MS = SECOND_MS * 60;
   public static final int HOUR_MS = MINUTE_MS * 60;
