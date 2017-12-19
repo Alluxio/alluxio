@@ -1361,6 +1361,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("Value to use for determining rack locality")
           .build();
 
+  public static final PropertyKey LOCALITY_COMPARE_NODE_IP =
+          new Builder(Name.LOCALITY_COMPARE_NODE_IP)
+          .setDefaultValue(false)
+          .setDescription("Whether try to resolve the node IP address for locality checking")
+          .build();
+
   //
   // Log server related properties
   //
@@ -2293,6 +2299,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     //
     public static final String LOCALITY_ORDER = "alluxio.locality.order";
     public static final String LOCALITY_SCRIPT = "alluxio.locality.script";
+    public static final String LOCALITY_COMPARE_NODE_IP = "alluxio.locality.compare.node.ip";
 
     //
     // Log server related properties
