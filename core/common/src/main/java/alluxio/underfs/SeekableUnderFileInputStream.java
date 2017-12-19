@@ -15,6 +15,7 @@ import alluxio.Seekable;
 
 import com.google.common.base.Preconditions;
 
+import java.io.FilterInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -25,9 +26,7 @@ import java.io.InputStream;
  *
  * The {@link #mResourceId} is used by Alluxio worker to cache for reuse.
  */
-public abstract class SeekableUnderFileInputStream extends InputStream implements Seekable {
-
-  protected final InputStream mInputStream;
+public abstract class SeekableUnderFileInputStream extends FilterInputStream implements Seekable {
   /** A unique resource id annotated for resource tracking. */
   private Long mResourceId;
   /** The file path of the input stream. */
@@ -39,8 +38,7 @@ public abstract class SeekableUnderFileInputStream extends InputStream implement
    * @param inputStream the input stream from the under storage
    */
   public SeekableUnderFileInputStream(InputStream inputStream) {
-    Preconditions.checkNotNull(inputStream, "inputStream");
-    mInputStream = inputStream;
+    super(inputStream);
     mResourceId = null;
     mFilePath = null;
   }
@@ -76,51 +74,6 @@ public abstract class SeekableUnderFileInputStream extends InputStream implement
    */
   public String getFilePath() {
     return mFilePath;
-  }
-
-  @Override
-  public void close() throws IOException {
-    mInputStream.close();
-  }
-
-  @Override
-  public int read() throws IOException {
-    return mInputStream.read();
-  }
-
-  @Override
-  public int read(byte[] b) throws IOException {
-    return mInputStream.read(b);
-  }
-
-  @Override
-  public int read(byte[] b, int off, int len) throws IOException {
-    return mInputStream.read(b, off, len);
-  }
-
-  @Override
-  public long skip(long n) throws IOException {
-    return mInputStream.skip(n);
-  }
-
-  @Override
-  public int available() throws IOException {
-    return mInputStream.available();
-  }
-
-  @Override
-  public synchronized void mark(int readlimit) {
-    mInputStream.mark(readlimit);
-  }
-
-  @Override
-  public synchronized void reset() throws IOException {
-    mInputStream.reset();
-  }
-
-  @Override
-  public boolean markSupported() {
-    return mInputStream.markSupported();
   }
 
   @Override

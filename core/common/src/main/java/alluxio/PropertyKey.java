@@ -2269,7 +2269,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String WORKER_UFS_BLOCK_OPEN_TIMEOUT_MS =
         "alluxio.worker.ufs.block.open.timeout";
     public static final String WORKER_UFS_INSTREAM_CACHE_EXPIRE_MS =
-        "alluxio.worker.ufs.instream.cache.expire.ms";
+        "alluxio.worker.ufs.instream.cache.expiration.time";
     public static final String WORKER_UFS_INSTREAM_CACHE_ENABLE =
         "alluxio.worker.ufs.instream.cache.enable";
     public static final String WORKER_UFS_INSTREAM_CACHE_MAX_SIZE =
