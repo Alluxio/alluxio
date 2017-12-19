@@ -17,6 +17,7 @@ import static org.junit.Assert.assertTrue;
 import alluxio.Configuration;
 import alluxio.ConfigurationRule;
 import alluxio.PropertyKey;
+import alluxio.clock.ManualClock;
 
 import com.google.common.collect.ImmutableMap;
 import org.junit.Before;
@@ -31,6 +32,7 @@ public class SafeModeManagerTest {
   private static final String SAFEMODE_WAIT_TEST = "100ms";
 
   private SafeModeManager mSafeModeManager;
+  private ManualClock mClock;
 
   @Rule
   public ConfigurationRule mConfiguration = new ConfigurationRule(ImmutableMap
@@ -44,7 +46,8 @@ public class SafeModeManagerTest {
    */
   @Before
   public void before() throws Exception {
-    mSafeModeManager = new DefaultSafeModeManager();
+    mClock = new ManualClock();
+    mSafeModeManager = new DefaultSafeModeManager(mClock);
   }
 
   @Test
@@ -62,7 +65,7 @@ public class SafeModeManagerTest {
   public void leaveSafeMode() throws Exception {
     mSafeModeManager.enterSafeMode();
     assertTrue(mSafeModeManager.isInSafeMode());
-    Thread.sleep(Configuration.getMs(PropertyKey.MASTER_WORKER_CONNECT_WAIT_TIME) + 10);
+    mClock.addTimeMs(Configuration.getMs(PropertyKey.MASTER_WORKER_CONNECT_WAIT_TIME) + 10);
     assertFalse(mSafeModeManager.isInSafeMode());
   }
 
@@ -70,7 +73,7 @@ public class SafeModeManagerTest {
   public void reenterSafeMode() throws Exception {
     mSafeModeManager.enterSafeMode();
     assertTrue(mSafeModeManager.isInSafeMode());
-    Thread.sleep(Configuration.getMs(PropertyKey.MASTER_WORKER_CONNECT_WAIT_TIME) + 10);
+    mClock.addTimeMs(Configuration.getMs(PropertyKey.MASTER_WORKER_CONNECT_WAIT_TIME) + 10);
     assertFalse(mSafeModeManager.isInSafeMode());
     mSafeModeManager.enterSafeMode();
     assertTrue(mSafeModeManager.isInSafeMode());
@@ -82,15 +85,15 @@ public class SafeModeManagerTest {
     assertTrue(mSafeModeManager.isInSafeMode());
 
     // Enters safe mode again while in safe mode.
-    Thread.sleep(Configuration.getMs(PropertyKey.MASTER_WORKER_CONNECT_WAIT_TIME) - 10);
+    mClock.addTimeMs(Configuration.getMs(PropertyKey.MASTER_WORKER_CONNECT_WAIT_TIME) - 10);
     assertTrue(mSafeModeManager.isInSafeMode());
     mSafeModeManager.enterSafeMode();
 
     // Verifies safe mode timer is reset.
     assertTrue(mSafeModeManager.isInSafeMode());
-    Thread.sleep(Configuration.getMs(PropertyKey.MASTER_WORKER_CONNECT_WAIT_TIME) - 10);
+    mClock.addTimeMs(Configuration.getMs(PropertyKey.MASTER_WORKER_CONNECT_WAIT_TIME) - 10);
     assertTrue(mSafeModeManager.isInSafeMode());
-    Thread.sleep(20);
+    mClock.addTimeMs(20);
     assertFalse(mSafeModeManager.isInSafeMode());
   }
 }
