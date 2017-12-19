@@ -16,10 +16,9 @@ import static org.junit.Assert.assertFalse;
 
 import alluxio.Configuration;
 import alluxio.ConfigurationTestUtils;
-import alluxio.PropertyKey;
 import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.security.authorization.Mode;
-import alluxio.test.utils.CommonTestUtils;
 import alluxio.util.CommonUtils;
 import alluxio.wire.TtlAction;
 
@@ -94,6 +93,6 @@ public final class CreateDirectoryOptionsTest {
 
   @Test
   public void equalsTest() throws Exception {
-    CommonTestUtils.testEquals(CreateDirectoryOptions.class);
+    alluxio.test.util.CommonUtils.testEquals(CreateDirectoryOptions.class);
   }
 }

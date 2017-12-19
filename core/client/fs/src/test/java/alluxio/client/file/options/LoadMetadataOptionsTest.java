@@ -14,7 +14,7 @@ package alluxio.client.file.options;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 
-import alluxio.test.utils.CommonTestUtils;
+import alluxio.test.util.CommonUtils;
 
 import org.junit.Test;
 
@@ -50,6 +50,6 @@ public final class LoadMetadataOptionsTest {
 
   @Test
   public void equalsTest() throws Exception {
-    CommonTestUtils.testEquals(LoadMetadataOptions.class);
+    CommonUtils.testEquals(LoadMetadataOptions.class);
   }
 }

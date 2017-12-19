@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.test.utils;
+package alluxio.test.util;
 
 import alluxio.underfs.UnderFileSystem.SpaceType;
 
@@ -23,7 +23,7 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import java.util.Objects;
 
 /**
- * Unit tests for {@link CommonTestUtils}.
+ * Unit tests for {@link CommonUtils}.
  */
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(CommonTestUtilsTest.HardToInstantiateClass.class)
@@ -112,7 +112,7 @@ public final class CommonTestUtilsTest {
   private static class MissingField {
     private String mField1;
     private boolean mField2;
-    private CommonTestUtils mField3;
+    private CommonUtils mField3;
 
     @Override
     public boolean equals(Object o) {
@@ -138,7 +138,7 @@ public final class CommonTestUtilsTest {
   private static class EqualsMissingInstanceCheck {
     private String mField1;
     private boolean mField2;
-    private CommonTestUtils mField3;
+    private CommonUtils mField3;
 
     @Override
     public boolean equals(Object o) {
@@ -158,12 +158,12 @@ public final class CommonTestUtilsTest {
 
   @Test
   public void testEqualsBasic() throws Exception {
-    CommonTestUtils.testEquals(Basic.class);
+    CommonUtils.testEquals(Basic.class);
   }
 
   @Test
   public void testEqualsManyFields() {
-    CommonTestUtils.testEquals(ManyFields.class);
+    CommonUtils.testEquals(ManyFields.class);
   }
 
   @Test
@@ -183,7 +183,7 @@ public final class CommonTestUtilsTest {
 
   private void testFail(Class<?> clazz) {
     try {
-      CommonTestUtils.testEquals(clazz);
+      CommonUtils.testEquals(clazz);
       Assert.fail("testEquals didn't throw an error for class " + clazz.getName());
     } catch (AssertionFailedError | NullPointerException e) {
       // expected

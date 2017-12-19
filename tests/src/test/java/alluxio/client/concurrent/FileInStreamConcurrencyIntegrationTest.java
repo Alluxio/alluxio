@@ -21,7 +21,7 @@ import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.client.file.options.CreateFileOptions;
-import alluxio.test.utils.ConcurrencyUtils;
+import alluxio.test.util.ConcurrencyUtils;
 import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Throwables;

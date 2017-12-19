@@ -13,7 +13,7 @@ package alluxio.worker.block;
 
 import alluxio.ConfigurationRule;
 import alluxio.PropertyKey;
-import alluxio.test.utils.ConcurrencyUtils;
+import alluxio.test.util.ConcurrencyUtils;
 import alluxio.underfs.SeekableUnderFileInputStream;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.OpenOptions;

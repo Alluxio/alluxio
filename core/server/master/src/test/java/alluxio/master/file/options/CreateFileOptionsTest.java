@@ -16,7 +16,6 @@ import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.security.authorization.Mode;
-import alluxio.test.utils.CommonTestUtils;
 import alluxio.util.CommonUtils;
 import alluxio.wire.TtlAction;
 
@@ -96,6 +95,6 @@ public class CreateFileOptionsTest {
 
   @Test
   public void equalsTest() throws Exception {
-    CommonTestUtils.testEquals(CreateFileOptions.class);
+    alluxio.test.util.CommonUtils.testEquals(CreateFileOptions.class);
   }
 }
