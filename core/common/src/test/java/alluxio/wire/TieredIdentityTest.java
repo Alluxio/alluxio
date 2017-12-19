@@ -15,6 +15,8 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assume.assumeTrue;
+
 
 import alluxio.Configuration;
 import alluxio.ConfigurationTestUtils;
@@ -27,6 +29,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.After;
 import org.junit.Test;
 
+import java.net.InetAddress;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
@@ -75,7 +78,7 @@ public class TieredIdentityTest {
   }
 
   @Test
-  public void locality() {
+  public void matchByStringEquality() {
     Configuration.set(PropertyKey.LOCALITY_COMPARE_NODE_IP, "true");
 
     LocalityTier lt1 = new LocalityTier("node", "A");
@@ -94,6 +97,19 @@ public class TieredIdentityTest {
     assertFalse(lt4.matches(lt5));
     assertFalse(lt6.matches(lt7));
     assertFalse(lt8.matches(lt9));
+  }
+
+  @Test
+  public void matchByIpResolution() throws Exception {
+    assumeTrue(InetAddress.getByName("localhost").getHostAddress().equals("127.0.0.1"));
+    LocalityTier lt1 = new LocalityTier("node", "localhost");
+    LocalityTier lt2 = new LocalityTier("node", "127.0.0.1");
+
+    Configuration.set(PropertyKey.LOCALITY_COMPARE_NODE_IP, "true");
+    assertTrue(lt1.matches(lt2));
+
+    Configuration.set(PropertyKey.LOCALITY_COMPARE_NODE_IP, "false");
+    assertFalse(lt1.matches(lt2));
   }
 
   public void string() {
