@@ -172,12 +172,6 @@ public interface UnderFileSystem extends Closeable {
   }
 
   /**
-   * Closes this under file system.
-   */
-  @Override
-  void close() throws IOException;
-
-  /**
    * Takes any necessary actions required to establish a connection to the under file system from
    * the given master host e.g. logging in
    * <p>

@@ -13,7 +13,7 @@ package alluxio.worker.block;
 
 import alluxio.ConfigurationRule;
 import alluxio.PropertyKey;
-import alluxio.test.utils.ConcurrencyTestUtils;
+import alluxio.test.utils.ConcurrencyUtils;
 import alluxio.underfs.SeekableUnderFileInputStream;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.OpenOptions;
@@ -144,7 +144,7 @@ public final class UfsInputStreamManagerTest {
       };
       threads.add(new Thread(runnable));
     }
-    ConcurrencyTestUtils.assertConcurrent(threads, 30);
+    ConcurrencyUtils.assertConcurrent(threads, 30);
     // Each subsequent check out per thread should be a seek operation
     Mockito.verify(mSeekableInStreams[0], Mockito.times(numCheckOutPerThread - 1))
         .seek(Mockito.anyLong());
@@ -179,7 +179,7 @@ public final class UfsInputStreamManagerTest {
         };
         threads.add(new Thread(runnable));
       }
-      ConcurrencyTestUtils.assertConcurrent(threads, 30);
+      ConcurrencyUtils.assertConcurrent(threads, 30);
       for (int i = 0; i < mNumOfInputStreams / 4; i++) {
         // the first quarter of input streams are closed
         Mockito.verify(mSeekableInStreams[i], Mockito.timeout(2000)).close();

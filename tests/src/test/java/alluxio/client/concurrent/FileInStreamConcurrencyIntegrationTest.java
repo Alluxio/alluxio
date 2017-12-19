@@ -21,7 +21,7 @@ import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.client.file.options.CreateFileOptions;
-import alluxio.test.utils.ConcurrencyTestUtils;
+import alluxio.test.utils.ConcurrencyUtils;
 import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Throwables;
@@ -65,7 +65,7 @@ public final class FileInStreamConcurrencyIntegrationTest extends BaseIntegratio
       threads.add(new Thread(new FileRead(new AlluxioURI(uniqPath))));
     }
 
-    ConcurrencyTestUtils.assertConcurrent(threads, 100);
+    ConcurrencyUtils.assertConcurrent(threads, 100);
   }
 
   class FileRead implements Runnable {
