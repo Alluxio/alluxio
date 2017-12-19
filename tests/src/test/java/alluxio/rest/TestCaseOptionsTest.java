@@ -11,7 +11,7 @@
 
 package alluxio.rest;
 
-import alluxio.CommonTestUtils;
+import alluxio.test.utils.CommonTestUtils;
 
 import org.apache.commons.lang.RandomStringUtils;
 import org.junit.Assert;

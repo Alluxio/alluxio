@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio;
+package alluxio.test.utils;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;

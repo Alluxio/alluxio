@@ -11,7 +11,7 @@
 
 package alluxio.client.block.policy.options;
 
-import alluxio.CommonTestUtils;
+import alluxio.test.utils.CommonTestUtils;
 import alluxio.util.CommonUtils;
 
 import org.junit.Assert;

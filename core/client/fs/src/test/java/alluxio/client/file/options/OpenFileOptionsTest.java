@@ -11,7 +11,6 @@
 
 package alluxio.client.file.options;
 
-import alluxio.CommonTestUtils;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.client.ReadType;
@@ -19,6 +18,7 @@ import alluxio.client.block.policy.BlockLocationPolicy;
 import alluxio.client.file.policy.FileWriteLocationPolicy;
 import alluxio.client.file.policy.LocalFirstPolicy;
 import alluxio.client.file.policy.RoundRobinPolicy;
+import alluxio.test.utils.CommonTestUtils;
 
 import org.junit.Assert;
 import org.junit.Test;

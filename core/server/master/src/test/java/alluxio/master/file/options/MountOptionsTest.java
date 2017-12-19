@@ -11,8 +11,8 @@
 
 package alluxio.master.file.options;
 
-import alluxio.CommonTestUtils;
 import alluxio.proto.journal.File;
+import alluxio.test.utils.CommonTestUtils;
 import alluxio.thrift.MountTOptions;
 
 import org.junit.Assert;

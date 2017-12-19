@@ -16,12 +16,12 @@ import alluxio.Configuration;
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.PropertyKey;
 import alluxio.BaseIntegrationTest;
-import alluxio.ConcurrencyTestUtils;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.client.file.options.CreateFileOptions;
+import alluxio.test.utils.ConcurrencyTestUtils;
 import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Throwables;

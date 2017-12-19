@@ -13,7 +13,7 @@ package alluxio.wire;
 
 import static org.junit.Assert.assertEquals;
 
-import alluxio.CommonTestUtils;
+import alluxio.test.utils.CommonTestUtils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Test;

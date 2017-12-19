@@ -11,7 +11,6 @@
 
 package alluxio.client.file.options;
 
-import alluxio.CommonTestUtils;
 import alluxio.Configuration;
 import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
@@ -22,6 +21,7 @@ import alluxio.client.block.policy.BlockLocationPolicy;
 import alluxio.client.block.policy.DeterministicHashPolicy;
 import alluxio.client.file.policy.FileWriteLocationPolicy;
 import alluxio.client.file.policy.RoundRobinPolicy;
+import alluxio.test.utils.CommonTestUtils;
 
 import org.junit.Assert;
 import org.junit.Test;

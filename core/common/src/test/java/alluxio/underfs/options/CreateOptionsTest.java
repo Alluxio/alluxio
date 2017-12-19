@@ -14,12 +14,12 @@ package alluxio.underfs.options;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 
-import alluxio.CommonTestUtils;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.security.authentication.AuthType;
 import alluxio.security.authorization.Mode;
 import alluxio.security.group.provider.IdentityUserGroupsMapping;
+import alluxio.test.utils.CommonTestUtils;
 import alluxio.util.CommonUtils;
 
 import org.junit.Test;

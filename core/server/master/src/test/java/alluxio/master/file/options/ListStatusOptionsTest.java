@@ -11,7 +11,7 @@
 
 package alluxio.master.file.options;
 
-import alluxio.CommonTestUtils;
+import alluxio.test.utils.CommonTestUtils;
 import alluxio.thrift.ListStatusTOptions;
 import alluxio.thrift.LoadMetadataTType;
 import alluxio.wire.LoadMetadataType;

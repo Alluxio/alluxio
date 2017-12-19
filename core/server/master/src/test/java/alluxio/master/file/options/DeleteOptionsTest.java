@@ -14,7 +14,7 @@ package alluxio.master.file.options;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 
-import alluxio.CommonTestUtils;
+import alluxio.test.utils.CommonTestUtils;
 
 import org.junit.Test;
 
