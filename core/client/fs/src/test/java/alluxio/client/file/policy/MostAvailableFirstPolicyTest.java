@@ -13,7 +13,7 @@ package alluxio.client.file.policy;
 
 import alluxio.Constants;
 import alluxio.client.block.BlockWorkerInfo;
-import alluxio.test.utils.CommonTestUtils;
+import alluxio.test.util.CommonUtils;
 import alluxio.wire.WorkerNetAddress;
 
 import org.junit.Assert;
@@ -47,6 +47,6 @@ public final class MostAvailableFirstPolicyTest {
 
   @Test
   public void equalsTest() throws Exception {
-    CommonTestUtils.testEquals(MostAvailableFirstPolicy.class);
+    CommonUtils.testEquals(MostAvailableFirstPolicy.class);
   }
 }

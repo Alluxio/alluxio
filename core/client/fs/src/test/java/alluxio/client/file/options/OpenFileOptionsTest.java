@@ -18,7 +18,7 @@ import alluxio.client.block.policy.BlockLocationPolicy;
 import alluxio.client.file.policy.FileWriteLocationPolicy;
 import alluxio.client.file.policy.LocalFirstPolicy;
 import alluxio.client.file.policy.RoundRobinPolicy;
-import alluxio.test.utils.CommonTestUtils;
+import alluxio.test.util.CommonUtils;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -76,6 +76,6 @@ public class OpenFileOptionsTest {
 
   @Test
   public void equalsTest() throws Exception {
-    CommonTestUtils.testEquals(OpenFileOptions.class);
+    CommonUtils.testEquals(OpenFileOptions.class);
   }
 }

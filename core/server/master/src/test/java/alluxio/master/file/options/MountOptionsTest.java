@@ -12,7 +12,7 @@
 package alluxio.master.file.options;
 
 import alluxio.proto.journal.File;
-import alluxio.test.utils.CommonTestUtils;
+import alluxio.test.util.CommonUtils;
 import alluxio.thrift.MountTOptions;
 
 import org.junit.Assert;
@@ -129,6 +129,6 @@ public final class MountOptionsTest {
 
   @Test
   public void equalsTest() throws Exception {
-    CommonTestUtils.testEquals(MountOptions.class);
+    CommonUtils.testEquals(MountOptions.class);
   }
 }

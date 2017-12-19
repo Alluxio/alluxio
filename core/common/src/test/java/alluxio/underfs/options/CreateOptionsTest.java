@@ -19,7 +19,6 @@ import alluxio.PropertyKey;
 import alluxio.security.authentication.AuthType;
 import alluxio.security.authorization.Mode;
 import alluxio.security.group.provider.IdentityUserGroupsMapping;
-import alluxio.test.utils.CommonTestUtils;
 import alluxio.util.CommonUtils;
 
 import org.junit.Test;
@@ -94,6 +93,6 @@ public final class CreateOptionsTest {
 
   @Test
   public void equalsTest() throws Exception {
-    CommonTestUtils.testEquals(CreateOptions.class);
+    alluxio.test.util.CommonUtils.testEquals(CreateOptions.class);
   }
 }

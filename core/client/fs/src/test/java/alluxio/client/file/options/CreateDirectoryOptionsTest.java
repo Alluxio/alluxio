@@ -19,7 +19,7 @@ import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.client.WriteType;
 import alluxio.security.authorization.Mode;
-import alluxio.test.utils.CommonTestUtils;
+import alluxio.test.util.CommonUtils;
 import alluxio.thrift.CreateDirectoryTOptions;
 import alluxio.wire.TtlAction;
 
@@ -104,6 +104,6 @@ public final class CreateDirectoryOptionsTest {
 
   @Test
   public void equalsTest() throws Exception {
-    CommonTestUtils.testEquals(CreateDirectoryOptions.class);
+    CommonUtils.testEquals(CreateDirectoryOptions.class);
   }
 }

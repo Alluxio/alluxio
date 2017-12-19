@@ -21,7 +21,7 @@ import alluxio.client.block.policy.BlockLocationPolicy;
 import alluxio.client.block.policy.DeterministicHashPolicy;
 import alluxio.client.file.policy.FileWriteLocationPolicy;
 import alluxio.client.file.policy.RoundRobinPolicy;
-import alluxio.test.utils.CommonTestUtils;
+import alluxio.test.util.CommonUtils;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -82,6 +82,6 @@ public class InStreamOptionsTest {
 
   @Test
   public void equalsTest() throws Exception {
-    CommonTestUtils.testEquals(InStreamOptions.class);
+    CommonUtils.testEquals(InStreamOptions.class);
   }
 }

@@ -18,7 +18,7 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import alluxio.security.authorization.Mode;
-import alluxio.test.utils.CommonTestUtils;
+import alluxio.test.util.CommonUtils;
 import alluxio.thrift.SetAttributeTOptions;
 import alluxio.wire.TtlAction;
 
@@ -113,7 +113,7 @@ public final class SetAttributeOptionsTest {
 
   @Test
   public void equalsTest() throws Exception {
-    CommonTestUtils.testEquals(SetAttributeOptions.class);
+    CommonUtils.testEquals(SetAttributeOptions.class);
   }
 
   @Test

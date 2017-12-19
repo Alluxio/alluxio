@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.test.utils;
+package alluxio.test.util;
 
 import org.junit.Assert;
 

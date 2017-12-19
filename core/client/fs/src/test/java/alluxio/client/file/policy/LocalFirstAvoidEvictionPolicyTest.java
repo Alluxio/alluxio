@@ -16,7 +16,7 @@ import static org.junit.Assert.assertEquals;
 import alluxio.Constants;
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.network.TieredIdentityFactory;
-import alluxio.test.utils.CommonTestUtils;
+import alluxio.test.util.CommonUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.TieredIdentity;
 import alluxio.wire.TieredIdentity.LocalityTier;
@@ -77,7 +77,7 @@ public class LocalFirstAvoidEvictionPolicyTest {
 
   @Test
   public void equalsTest() throws Exception {
-    CommonTestUtils.testEquals(LocalFirstAvoidEvictionPolicy.class);
+    CommonUtils.testEquals(LocalFirstAvoidEvictionPolicy.class);
   }
 
   private BlockWorkerInfo worker(long capacity, long used, String node, String rack) {

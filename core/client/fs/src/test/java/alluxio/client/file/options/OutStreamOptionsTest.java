@@ -28,7 +28,6 @@ import alluxio.client.file.policy.LocalFirstPolicy;
 import alluxio.client.file.policy.RoundRobinPolicy;
 import alluxio.security.authorization.Mode;
 import alluxio.security.group.GroupMappingService;
-import alluxio.test.utils.CommonTestUtils;
 import alluxio.util.CommonUtils;
 import alluxio.wire.TtlAction;
 
@@ -134,6 +133,6 @@ public class OutStreamOptionsTest {
 
   @Test
   public void equalsTest() throws Exception {
-    CommonTestUtils.testEquals(OutStreamOptions.class);
+    alluxio.test.util.CommonUtils.testEquals(OutStreamOptions.class);
   }
 }

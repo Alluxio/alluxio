@@ -16,7 +16,6 @@ import alluxio.LoginUserRule;
 import alluxio.PropertyKey;
 import alluxio.security.authorization.Mode;
 import alluxio.security.group.provider.IdentityUserGroupsMapping;
-import alluxio.test.utils.CommonTestUtils;
 import alluxio.thrift.CreateUfsFileTOptions;
 import alluxio.util.CommonUtils;
 
@@ -95,7 +94,7 @@ public final class CreateUfsFileOptionsTest {
 
   @Test
   public void equalsTest() throws Exception {
-    CommonTestUtils.testEquals(CreateUfsFileOptions.class);
+    alluxio.test.util.CommonUtils.testEquals(CreateUfsFileOptions.class);
   }
 }
 

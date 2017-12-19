@@ -13,7 +13,7 @@ package alluxio.wire;
 
 import static org.junit.Assert.assertEquals;
 
-import alluxio.test.utils.CommonTestUtils;
+import alluxio.test.util.CommonUtils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Test;
@@ -35,7 +35,7 @@ public class CapacityTest {
 
   @Test
   public void equals() {
-    CommonTestUtils.testEquals(AlluxioMasterInfo.class);
+    CommonUtils.testEquals(AlluxioMasterInfo.class);
   }
 
   /**

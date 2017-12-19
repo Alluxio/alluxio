@@ -15,7 +15,7 @@ import static org.junit.Assert.assertEquals;
 
 import alluxio.Constants;
 import alluxio.client.block.BlockWorkerInfo;
-import alluxio.test.utils.CommonTestUtils;
+import alluxio.test.util.CommonUtils;
 import alluxio.wire.WorkerNetAddress;
 
 import org.junit.Test;
@@ -78,6 +78,6 @@ public final class GetWorkerOptionsTest {
 
   @Test
   public void equalTest() throws Exception {
-    CommonTestUtils.testEquals(GetWorkerOptions.class);
+    CommonUtils.testEquals(GetWorkerOptions.class);
   }
 }
