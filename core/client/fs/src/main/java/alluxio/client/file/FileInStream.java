@@ -695,7 +695,7 @@ public class FileInStream extends InputStream
     Preconditions.checkNotNull(mCurrentBlockInStream, "mCurrentBlockInStream");
 
     // do not create cache stream when the block is not in remote worker
-    if (!(mShouldCache && mCurrentBlockInStream.Source() == BlockInStreamSource.REMOTE)) {
+    if (!(mShouldCache && mCurrentBlockInStream.getSource() == BlockInStreamSource.REMOTE)) {
       return;
     }
 
@@ -881,12 +881,12 @@ public class FileInStream extends InputStream
 
   private boolean isReadFromLocalWorker() {
     return mCurrentBlockInStream != null
-        && mCurrentBlockInStream.Source() == BlockInStreamSource.LOCAL;
+        && mCurrentBlockInStream.getSource() == BlockInStreamSource.LOCAL;
   }
 
   private boolean isRemoteReadButNoLocalWorker() throws IOException {
     return mCurrentBlockInStream != null
-        && mCurrentBlockInStream.Source() == BlockInStreamSource.REMOTE
+        && mCurrentBlockInStream.getSource() == BlockInStreamSource.REMOTE
         && mContext.getLocalWorker() == null;
   }
 

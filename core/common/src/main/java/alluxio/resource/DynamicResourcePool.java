@@ -16,7 +16,6 @@ import alluxio.clock.Clock;
 import alluxio.clock.SystemClock;
 
 import com.google.common.base.Preconditions;
-import io.netty.util.internal.chmv8.ConcurrentHashMapV8;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,6 +25,7 @@ import java.util.ArrayList;
 import java.util.Deque;
 import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
@@ -219,8 +219,8 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
   // put/delete operations are guarded by "mLock" so that we can control its size to be within
   // a [min, max] range. mLock is reused for simplicity. A separate lock can be used if we see
   // any performance overhead.
-  private final ConcurrentHashMapV8<T, ResourceInternal<T>> mResources =
-      new ConcurrentHashMapV8<>(32);
+  private final ConcurrentHashMap<T, ResourceInternal<T>> mResources =
+      new ConcurrentHashMap<>(32);
 
   // Thread to scan mAvailableResources to close those resources that are old.
   private ScheduledExecutorService mExecutor;

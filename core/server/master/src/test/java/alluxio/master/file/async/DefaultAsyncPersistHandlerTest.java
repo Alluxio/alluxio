@@ -11,6 +11,8 @@
 
 package alluxio.master.file.async;
 
+import static org.junit.Assert.assertEquals;
+
 import alluxio.AlluxioURI;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.meta.FileSystemMasterView;
@@ -21,7 +23,6 @@ import alluxio.wire.FileBlockInfo;
 import alluxio.wire.FileInfo;
 
 import com.google.common.collect.Lists;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
@@ -60,8 +61,8 @@ public class DefaultAsyncPersistHandlerTest {
 
     handler.scheduleAsyncPersistence(path);
     List<PersistFile> persistFiles = handler.pollFilesToPersist(workerId);
-    Assert.assertEquals(1, persistFiles.size());
-    Assert.assertEquals(Lists.newArrayList(blockId), persistFiles.get(0).getBlockIds());
+    assertEquals(1, persistFiles.size());
+    assertEquals(Lists.newArrayList(blockId), persistFiles.get(0).getBlockIds());
   }
 
   /**
@@ -86,7 +87,7 @@ public class DefaultAsyncPersistHandlerTest {
     Mockito.when(mFileSystemMaster.getFileBlockInfoList(path)).thenReturn(blockInfoList);
 
     // no persist scheduled on any worker
-    Assert.assertEquals(0, handler.pollFilesToPersist(1).size());
-    Assert.assertEquals(0, handler.pollFilesToPersist(2).size());
+    assertEquals(0, handler.pollFilesToPersist(1).size());
+    assertEquals(0, handler.pollFilesToPersist(2).size());
   }
 }

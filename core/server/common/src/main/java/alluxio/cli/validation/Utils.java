@@ -14,6 +14,7 @@ package alluxio.cli.validation;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
 
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.Socket;
@@ -27,6 +28,7 @@ import java.util.List;
  * Utilities for validating Alluxio environment.
  */
 public final class Utils {
+  private static final String LINE_SEPARATOR = System.getProperty("line.separator").toString();
   /**
    * Validates whether a network address is reachable.
    * @param hostname host name of the network address
@@ -89,6 +91,76 @@ public final class Utils {
     }
 
     return nodes;
+  }
+
+  /**
+   * Executes a command in another process and check for its execution result.
+   *
+   * @param args array representation of the command to execute
+   * @return {@link ProcessExecutionResult} including the process's exit value, output and error
+   */
+  public static ProcessExecutionResult getResultFromProcess(String[] args) {
+    try {
+      Process process = Runtime.getRuntime().exec(args);
+      StringBuilder outputSb = new StringBuilder();
+      try (BufferedReader processOutputReader = new BufferedReader(
+          new InputStreamReader(process.getInputStream()))) {
+        String line;
+        while ((line = processOutputReader.readLine()) != null) {
+          outputSb.append(line);
+          outputSb.append(LINE_SEPARATOR);
+        }
+      }
+      StringBuilder errorSb = new StringBuilder();
+      try (BufferedReader processErrorReader = new BufferedReader(
+          new InputStreamReader(process.getErrorStream()))) {
+        String line;
+        while ((line = processErrorReader.readLine()) != null) {
+          errorSb.append(line);
+          errorSb.append(LINE_SEPARATOR);
+        }
+      }
+      process.waitFor();
+      return new ProcessExecutionResult(process.exitValue(), outputSb.toString().trim(),
+          errorSb.toString().trim());
+    } catch (IOException e) {
+      System.err.println("Failed to execute command.");
+      return new ProcessExecutionResult(1, "", e.getMessage());
+    } catch (InterruptedException e) {
+      System.err.println("Interrupted.");
+      Thread.currentThread().interrupt();
+      return new ProcessExecutionResult(1, "", e.getMessage());
+    }
+  }
+
+  /**
+   * Class representing the return value of process execution.
+   */
+  static class ProcessExecutionResult {
+    /** The exit value of the process. */
+    private final int mExitValue;
+    /** The output of the process. */
+    private final String mOutput;
+    /** The error of the process. */
+    private final String mError;
+
+    public ProcessExecutionResult(int val, String output, String error) {
+      mExitValue = val;
+      mOutput = output;
+      mError = error;
+    }
+
+    public int getExitValue() {
+      return mExitValue;
+    }
+
+    public String getOutput() {
+      return mOutput;
+    }
+
+    public String getError() {
+      return mError;
+    }
   }
 
   private Utils() {} // prevents instantiation

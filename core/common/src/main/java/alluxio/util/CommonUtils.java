@@ -195,21 +195,22 @@ public final class CommonUtils {
    * @param ctorClassArgs parameters type list of the constructor to initiate, if null default
    *        constructor will be called
    * @param ctorArgs the arguments to pass the constructor
-   * @return new class object or null if not successful
-   * @throws InstantiationException if the instantiation fails
-   * @throws IllegalAccessException if the constructor cannot be accessed
-   * @throws NoSuchMethodException if the constructor does not exist
-   * @throws SecurityException if security violation has occurred
-   * @throws InvocationTargetException if the constructor invocation results in an exception
+   * @return new class object
+   * @throws RuntimeException if the class cannot be instantiated
    */
   public static <T> T createNewClassInstance(Class<T> cls, Class<?>[] ctorClassArgs,
-      Object[] ctorArgs) throws InstantiationException, IllegalAccessException,
-      NoSuchMethodException, SecurityException, InvocationTargetException {
-    if (ctorClassArgs == null) {
-      return cls.newInstance();
+      Object[] ctorArgs) {
+    try {
+      if (ctorClassArgs == null) {
+        return cls.newInstance();
+      }
+      Constructor<T> ctor = cls.getConstructor(ctorClassArgs);
+      return ctor.newInstance(ctorArgs);
+    } catch (InvocationTargetException e) {
+      throw new RuntimeException(e.getCause());
+    } catch (ReflectiveOperationException e) {
+      throw new RuntimeException(e);
     }
-    Constructor<T> ctor = cls.getConstructor(ctorClassArgs);
-    return ctor.newInstance(ctorArgs);
   }
 
   /**
@@ -522,6 +523,23 @@ public final class CommonUtils {
       closer.close();
     }
   }
+
+  /** Alluxio process types. */
+  public enum ProcessType {
+    CLIENT,
+    MASTER,
+    PROXY,
+    WORKER;
+  }
+
+  /**
+   * Represents the type of Alluxio process running in this JVM.
+   *
+   * NOTE: This will only be set by main methods of Alluxio processes. It will not be set properly
+   * for tests. Avoid using this field if at all possible.
+   */
+  public static final java.util.concurrent.atomic.AtomicReference<ProcessType> PROCESS_TYPE =
+      new java.util.concurrent.atomic.AtomicReference<>(ProcessType.CLIENT);
 
   /**
    * Unwraps a {@link alluxio.proto.dataserver.Protocol.Response}.

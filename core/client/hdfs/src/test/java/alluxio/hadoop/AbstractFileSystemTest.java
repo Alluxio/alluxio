@@ -51,6 +51,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.Closeable;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.URI;
@@ -286,6 +287,35 @@ public class AbstractFileSystemTest {
     assertFileInfoEqualsFileStatus(fileInfo1, fileStatuses[0]);
     assertFileInfoEqualsFileStatus(fileInfo2, fileStatuses[1]);
     alluxioHadoopFs.close();
+  }
+
+  /**
+   * Tests that the {@link AbstractFileSystem#listStatus(Path)} method throws
+   * FileNotFound Exception.
+   */
+  @Test
+  public void throwFileNotFoundExceptionWhenListStatusNonExistingTest() throws Exception {
+    FileSystem alluxioHadoopFs = null;
+    try {
+      Path path = new Path("/ALLUXIO-2036");
+      alluxio.client.file.FileSystem alluxioFs = mock(alluxio.client.file.FileSystem.class);
+      when(alluxioFs.listStatus(new AlluxioURI(HadoopUtils.getPathWithoutScheme(path))))
+        .thenThrow(new FileNotFoundException("ALLUXIO-2036 not Found"));
+      alluxioHadoopFs = new FileSystem(alluxioFs);
+      FileStatus[] fileStatuses = alluxioHadoopFs.listStatus(path);
+      // if we reach here, FileNotFoundException is not thrown hence Fail the test case
+      assertTrue(false);
+    } catch (FileNotFoundException fnf) {
+      assertEquals("ALLUXIO-2036 not Found", fnf.getMessage());
+    } finally {
+      if (null != alluxioHadoopFs) {
+        try {
+          alluxioHadoopFs.close();
+        } catch (Exception ex) {
+          // nothing to catch, ignore it.
+        }
+      }
+    }
   }
 
   @Test

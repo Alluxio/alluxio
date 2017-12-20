@@ -101,8 +101,8 @@ should be an output file `LICENSE2` which doubles each line in the file `LICENSE
 
 Alluxio supports transparently fetching the data from the under storage system, given the exact
 path. Put a file `LICENSE` into HDFS under the folder Alluxio is mounted to, by default this is
-/alluxio, meaning any files in hdfs under this folder will be discoverable by Alluxio. You can
-modify this setting by changing the `ALLUXIO_UNDERFS_ADDRESS` property in alluxio-env.sh on the
+`/alluxio`, meaning any files in HDFS under this folder will be discoverable by Alluxio. You can
+modify this setting by changing the `alluxio.underfs.address` property in `conf/alluxio-site.properties` on the
 server.
 
 Assuming the namenode is running on `localhost` and you are using the default mount directory
@@ -222,4 +222,17 @@ parameter may be set to:
 
 ```bash
 spark.sql.hive.metastore.sharedPrefixes=com.mysql.jdbc,org.postgresql,com.microsoft.sqlserver,oracle.jdbc,alluxio
+```
+
+## `java.io.IOException: No FileSystem for scheme: alluxio` Issue with Spark on YARN
+
+If you use Spark on YARN with Alluxio and run into the exception `java.io.IOException: No FileSystem for scheme: alluxio`, please add the following content to `${SPARK_HOME}/conf/core-site.xml`:
+
+```xml
+<configuration>
+  <property>
+    <name>fs.alluxio.impl</name>
+    <value>alluxio.hadoop.FileSystem</value>
+  </property>
+</configuration>
 ```

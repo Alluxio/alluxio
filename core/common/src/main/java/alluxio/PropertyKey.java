@@ -763,6 +763,15 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("Time interval to periodically delete the files "
               + "with expired ttl value.")
           .build();
+  public static final PropertyKey MASTER_UFS_BLOCK_LOCATION_CACHE_CAPACITY =
+      new Builder(Name.MASTER_UFS_BLOCK_LOCATION_CACHE_CAPACITY)
+          .setDefaultValue(1000000)
+          .setDescription("The capacity of the UFS block locations cache. "
+              + "This cache caches UFS block locations for files that are persisted "
+              + "but not in Alluxio space, so that listing status of these files do not need to "
+              + "repeatedly ask UFS for their block locations. If this is set to 0, the cache "
+              + "will be disabled.")
+          .build();
   public static final PropertyKey MASTER_UFS_PATH_CACHE_CAPACITY =
       new Builder(Name.MASTER_UFS_PATH_CACHE_CAPACITY)
           .setDefaultValue(100000)
@@ -964,6 +973,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setAlias(new String[]{"alluxio.worker.filesystem.heartbeat.interval.ms"})
           .setDefaultValue("1sec")
           .setDescription("The heartbeat interval between the worker and file system master.")
+          .build();
+  public static final PropertyKey WORKER_FREE_SPACE_TIMEOUT =
+      new Builder(Name.WORKER_FREE_SPACE_TIMEOUT)
+          .setDefaultValue("10sec")
+          .setDescription("The duration for which a worker will wait for eviction to make space "
+              + "available for a client write request.")
           .build();
   public static final PropertyKey WORKER_HOSTNAME = new Builder(Name.WORKER_HOSTNAME)
       .setDescription("The hostname of Alluxio worker.")
@@ -1310,6 +1325,34 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
 
   //
+  // Locality related properties
+  //
+  public static final PropertyKey LOCALITY_ORDER =
+      new Builder(Name.LOCALITY_ORDER)
+          .setDefaultValue(String.format("%s,%s", Constants.LOCALITY_NODE, Constants.LOCALITY_RACK))
+          .setDescription("Ordering of locality tiers")
+          .build();
+  public static final PropertyKey LOCALITY_SCRIPT =
+      new Builder(Name.LOCALITY_SCRIPT)
+          .setDefaultValue(String.format("${%s}/tiered_identity.sh", Name.CONF_DIR))
+          .setDescription("A script to determine tiered identity for locality checking")
+          .build();
+  public static final PropertyKey LOCALITY_TIER_NODE =
+      new Builder(Template.LOCALITY_TIER, Constants.LOCALITY_NODE)
+          .setDescription("Value to use for determining node locality")
+          .build();
+  public static final PropertyKey LOCALITY_TIER_RACK =
+      new Builder(Template.LOCALITY_TIER, Constants.LOCALITY_RACK)
+          .setDescription("Value to use for determining rack locality")
+          .build();
+
+  public static final PropertyKey LOCALITY_COMPARE_NODE_IP =
+          new Builder(Name.LOCALITY_COMPARE_NODE_IP)
+          .setDefaultValue(false)
+          .setDescription("Whether try to resolve the node IP address for locality checking")
+          .build();
+
+  //
   // Log server related properties
   //
   public static final PropertyKey LOGSERVER_LOGS_DIR =
@@ -1535,8 +1578,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue("1sec")
           .setDescription("The interval between Alluxio workers' heartbeats.")
           .build();
+  /**
+   * @deprecated use {@link PropertyKey#LOCALITY_TIER_NODE} instead
+   */
+  @Deprecated
   public static final PropertyKey USER_HOSTNAME = new Builder(Name.USER_HOSTNAME)
-      .setDescription("The hostname to use for the client.")
+      .setDescription(String.format("The hostname to use for the client. Note: this property is "
+          + "deprecated. set %s instead", PropertyKey.LOCALITY_TIER_NODE.toString()))
       .build();
   public static final PropertyKey USER_LINEAGE_ENABLED =
       new Builder(Name.USER_LINEAGE_ENABLED)
@@ -2109,6 +2157,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.tieredstore.global.levels";
     public static final String MASTER_TTL_CHECKER_INTERVAL_MS =
         "alluxio.master.ttl.checker.interval";
+    public static final String MASTER_UFS_BLOCK_LOCATION_CACHE_CAPACITY =
+        "alluxio.master.ufs.block.location.cache.capacity";
     public static final String MASTER_UFS_PATH_CACHE_CAPACITY =
         "alluxio.master.ufs.path.cache.capacity";
     public static final String MASTER_UFS_PATH_CACHE_THREADS =
@@ -2162,6 +2212,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String WORKER_FILE_PERSIST_RATE_LIMIT_ENABLED =
         "alluxio.worker.file.persist.rate.limit.enabled";
     public static final String WORKER_FILE_BUFFER_SIZE = "alluxio.worker.file.buffer.size";
+    public static final String WORKER_FREE_SPACE_TIMEOUT = "alluxio.worker.free.space.timeout";
     public static final String WORKER_HOSTNAME = "alluxio.worker.hostname";
     public static final String WORKER_KEYTAB_FILE = "alluxio.worker.keytab.file";
     public static final String WORKER_MEMORY_SIZE = "alluxio.worker.memory.size";
@@ -2234,6 +2285,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String PROXY_WEB_BIND_HOST = "alluxio.proxy.web.bind.host";
     public static final String PROXY_WEB_HOSTNAME = "alluxio.proxy.web.hostname";
     public static final String PROXY_WEB_PORT = "alluxio.proxy.web.port";
+
+    //
+    // Locality related properties
+    //
+    public static final String LOCALITY_ORDER = "alluxio.locality.order";
+    public static final String LOCALITY_SCRIPT = "alluxio.locality.script";
+    public static final String LOCALITY_COMPARE_NODE_IP = "alluxio.locality.compare.node.ip";
 
     //
     // Log server related properties
@@ -2395,6 +2453,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
    */
   @ThreadSafe
   public enum Template {
+    LOCALITY_TIER("alluxio.locality.%s", "alluxio\\.locality\\.(\\w+)"),
     MASTER_JOURNAL_UFS_OPTION("alluxio.master.journal.ufs.option",
         "alluxio\\.master\\.journal\\.ufs\\.option"),
     MASTER_JOURNAL_UFS_OPTION_PROPERTY("alluxio.master.journal.ufs.option.%s",
@@ -2472,6 +2531,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public boolean matches(String input) {
       Matcher matcher = mPattern.matcher(input);
       return matcher.matches();
+    }
+
+    /**
+     * @param input the input property key string
+     * @return the matcher matching the template to the string
+     */
+    public Matcher match(String input) {
+      return mPattern.matcher(input);
     }
   }
 

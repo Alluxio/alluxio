@@ -15,6 +15,7 @@ import alluxio.Constants;
 import alluxio.ProcessUtils;
 import alluxio.PropertyKey;
 import alluxio.RuntimeConstants;
+import alluxio.util.CommonUtils;
 import alluxio.util.ConfigurationUtils;
 
 import org.slf4j.Logger;
@@ -51,6 +52,7 @@ public final class AlluxioWorker {
       System.exit(1);
     }
 
+    CommonUtils.PROCESS_TYPE.set(CommonUtils.ProcessType.WORKER);
     WorkerProcess process = WorkerProcess.Factory.create();
     ProcessUtils.run(process);
   }
