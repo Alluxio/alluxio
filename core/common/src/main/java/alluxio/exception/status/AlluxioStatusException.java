@@ -189,6 +189,8 @@ public class AlluxioStatusException extends IOException {
   public static AlluxioStatusException fromCheckedException(Throwable throwable) {
     try {
       throw throwable;
+    } catch (AlluxioStatusException e) {
+      return e;
     } catch (IOException e) {
       return fromIOException(e);
     } catch (AlluxioException e) {
