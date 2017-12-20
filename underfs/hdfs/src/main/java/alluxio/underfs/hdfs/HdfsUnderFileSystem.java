@@ -406,8 +406,9 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
 
   @Override
   public InputStream open(String path, OpenOptions options) throws IOException {
+    Preconditions.checkNotNull(options.getRetryPolicy(), "Retry policy should not be null");
     IOException te = null;
-    RetryPolicy retryPolicy = new CountingRetry(MAX_TRY);
+    RetryPolicy retryPolicy = options.getRetryPolicy();
     while (retryPolicy.attemptRetry()) {
       try {
         FSDataInputStream inputStream = mFileSystem.open(new Path(path));
