@@ -151,6 +151,11 @@ public class UfsInputStreamManager {
     }
   }
 
+  public void invalidate(SeekableUnderFileInputStream inputStream) throws IOException {
+    mUnderFileInputStreamCache.invalidate(inputStream.getResourceId());
+    release(inputStream);
+  }
+
   /**
    * Acquires an input stream. For seekable input streams, if there is an available input stream in
    * the cache, reuse it and repositions the offset, otherwise the manager opens a new input stream.
@@ -162,6 +167,24 @@ public class UfsInputStreamManager {
    * @throws IOException if the input stream fails to open
    */
   public InputStream acquire(UnderFileSystem ufs, String path, OpenOptions openOptions)
+      throws IOException {
+    return acquire(ufs, path, openOptions, true);
+  }
+
+  /**
+   * Acquires an input stream. For seekable input streams, if there is an available input stream in
+   * the cache and reuse mode is specified, reuse it and repositions the offset, otherwise the
+   * manager opens a new input stream.
+   *
+   * @param ufs the under file system
+   * @param path the path to the under storage file
+   * @param openOptions the open options
+   * @return the acquired input stream
+   * @param reuse true to reuse existing input stream, otherwise acquire a new stream
+   * @return the acquired input stream
+   * @throws IOException if the input stream fails to open
+   */
+  public InputStream acquire(UnderFileSystem ufs, String path, OpenOptions openOptions, boolean reuse)
       throws IOException {
     if (!ufs.isSeekable() || !isCachingEnabled()) {
       // not able to cache, always return a new input stream
@@ -184,15 +207,17 @@ public class UfsInputStreamManager {
     synchronized (resources) {
       long nextId = UNAVAILABLE_RESOURCE_ID;
       SeekableUnderFileInputStream inputStream = null;
-      // find the next available input stream from the cache
-      for (long id : resources.availableIds()) {
-        inputStream = mUnderFileInputStreamCache.getIfPresent(id);
-        if (inputStream != null) {
-          nextId = id;
-          LOG.debug("Reused the under file input stream resource of {}", nextId);
-          // for the cached ufs instream, seek to the requested position
-          inputStream.seek(openOptions.getOffset());
-          break;
+      if (reuse) {
+        // find the next available input stream from the cache
+        for (long id : resources.availableIds()) {
+          inputStream = mUnderFileInputStreamCache.getIfPresent(id);
+          if (inputStream != null) {
+            nextId = id;
+            LOG.debug("Reused the under file input stream resource of {}", nextId);
+            // for the cached ufs instream, seek to the requested position
+            inputStream.seek(openOptions.getOffset());
+            break;
+          }
         }
       }
       // no cached input stream is available, open a new one
