@@ -70,11 +70,11 @@ public final class Configuration {
 
   /** The source of a configuration property. */
   public enum Source {
-    UNKNOWN,
     DEFAULT,
+    HADOOP_CONF,
     SITE_PROPERTY,
     SYSTEM_PROPERTY,
-    HADOOP_CONF,
+    UNKNOWN,
   }
 
   /** Regex string to find "${key}" for variable substitution. */
