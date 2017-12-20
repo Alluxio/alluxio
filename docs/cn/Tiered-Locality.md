@@ -16,7 +16,7 @@ priority: 1
 
 ＃配置
 
-如果用户没有提供任何分层的标识信息，每个实体将会执行本地主机查找来设置其节点级别的标识信息。如果其他局部性层没有设置，他们将不会被用来影响局部性的决定。可以通过设置配置属性来明确配置局部性层的值
+如果用户没有提供任何分层的标识信息，每个实体将会执行本地主机查找来设置其节点级别的标识信息。如果其他局部性层没有设置，他们将不会被用来影响局部性的决定。可以通过设置配置属性来设置局部性层的值
 
 ```
 alluxio.locality.[tiername] = ...
@@ -24,7 +24,7 @@ alluxio.locality.[tiername] = ...
 
 请参阅[配置项设置](Configuration-Settings.html)页面以获取详细信息来设置配置属性。
 
-也可以通过脚本配置分层的标识信息。要使用脚本，请设置
+也可以通过脚本配置分层的标识信息。默认情况下Alluxio在`${ALLUXIO_HOME}/conf/tiered_identity.sh`中寻找脚本。你可以通过设置覆盖这个位置
 
 ```
 alluxio.locality.script=/path/to/script
@@ -38,9 +38,11 @@ alluxio.locality.script=/path/to/script
 echo "host=$(hostname),rack=/rack1"
 ```
 
+如果`alluxio.locality.script`中没有脚本，则该属性将被忽略。 如果该脚本返回一个非零返回值或者是格式错误的输出，Alluxio会发生错误。
+
 ##节点位置优先级顺序
 
-配置节点位置的方法有很多。这是从最高优先级到最低优先级的顺序：
+有多种配置节点位置的方法。这是从最高优先级到最低优先级的顺序：
 
 1. 设置`alluxio.locality.node`
 1. 在由`alluxio.locality.script`配置的脚本的输出中设置`node = ...`
