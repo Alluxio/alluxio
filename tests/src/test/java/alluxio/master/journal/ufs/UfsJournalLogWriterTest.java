@@ -226,10 +226,24 @@ public final class UfsJournalLogWriterTest extends BaseIntegrationTest {
 
   /**
    * Tests that {@link UfsJournalLogWriter#flush()} can recover after Ufs failure.
+   *
+   * This test has two steps.
+   * 1. Write several journal entries, flush and close the journal. This will create a complete
+   *    journal file, i.e. <startSN>-<endSN>.
+   * 2. Write another journal entry, do NOT flush it, and inject an I/O error.
+   * 3. Attempt to write another journal entry, which is expected to fail. After the failure,
+   *    the newly created incomplete journal file may or may not have valid content.
+   * 4. At this point, the UFS does not guarantee the consistency of the incomplete journal. To
+   *    test how {@link UfsJournalLogWriter} recovers from Ufs failure before
+   *    {@link UfsJournalLogWriter#flush()}, we simply delete the possibly created incomplete
+   *    journal.
    */
   @Test
   public void flushAfterUfsFailure() throws Exception {
     Mockito.when(mUfs.supportsFlush()).thenReturn(true);
+
+    // Write several journal entries, creating and closing journal file.
+    // This file is complete.
     long startSN = 0x10;
     UfsJournalLogWriter writer = new UfsJournalLogWriter(mJournal, startSN);
     final int numberOfEntriesWrittenBeforeFailure = 10;
@@ -237,18 +251,22 @@ public final class UfsJournalLogWriterTest extends BaseIntegrationTest {
     writer.flush();
     writer.close();
 
+    // Write another entry without flushing.
     writer = new UfsJournalLogWriter(mJournal, nextSN);
     nextSN = writeJournalEntries(writer, nextSN, 1);
     DataOutputStream badOut = createMockDataOutputStream(writer);
     Mockito.doThrow(new IOException(INJECTED_IO_ERROR_MESSAGE)).when(badOut)
         .write(Mockito.any(byte[].class), Mockito.anyInt(), Mockito.anyInt());
     tryWriteAndExpectToFail(writer, nextSN);
-    Assert.assertNull(writer.getJournalOutputStream());
+
+    // Delete the incomplete journal file to simulate the case in which
+    // journal entries that have not been explicitly flushed will be lost.
     UfsJournalSnapshot snapshot = UfsJournalSnapshot.getSnapshot(mJournal);
     UfsJournalFile journalFile = snapshot.getCurrentLog(mJournal);
     File file = new File(journalFile.getLocation().toString());
     file.delete();
-    // Flush the journal
+
+    // Flush the journal, recovering from the Ufs failure.
     writer.flush();
     checkJournalEntries(startSN, nextSN);
     writer.close();
