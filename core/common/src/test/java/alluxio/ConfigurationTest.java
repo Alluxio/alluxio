@@ -558,6 +558,7 @@ public class ConfigurationTest {
     sysProps.put(PropertyKey.SITE_CONF_DIR.toString(), mFolder.getRoot().getAbsolutePath());
     sysProps.put(PropertyKey.TEST_MODE.toString(), "false");
     try (Closeable p = new SystemPropertyRule(sysProps).toResource()) {
+      Configuration.init();
       assertEquals(
           Configuration.Source.SYSTEM_PROPERTY, Configuration.getSource(PropertyKey.LOGS_DIR));
       assertEquals("/tmp/logs1", Configuration.get(PropertyKey.LOGS_DIR));
