@@ -260,11 +260,11 @@ final class UfsJournalLogWriter implements JournalWriter {
    *    name encodes this information, i.e. S-0x7fffffffffffffff.
    * 2. Sequentially scan the incomplete journal file, and identify the last journal
    *    entry that has been persisted in UFS. Suppose it is X.
-   * 3. Rename the incomplete journal file to S-<X+1>. Future journal writes will write to a new file
-   *    named <X+1>-0x7fffffffffffffff.
+   * 3. Rename the incomplete journal file to S-<X+1>. Future journal writes will write to
+   *    a new file named <X+1>-0x7fffffffffffffff.
    * 4. If the incomplete journal does not exist or no entry can be found in the incomplete
    *    journal, check the last complete journal file for the last persisted journal entry.
-   * @return sequence number of the last persisted journal entry, or -1 if no entry can be found.
+   * @return sequence number of the last persisted journal entry, or -1 if no entry can be found
    */
   private long getLastPersistedJournalEntrySequence() throws IOException {
     UfsJournalSnapshot snapshot = UfsJournalSnapshot.getSnapshot(mJournal);
