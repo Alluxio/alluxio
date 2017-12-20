@@ -13,6 +13,7 @@ package alluxio.master.lineage.checkpoint;
 
 import alluxio.exception.AccessControlException;
 import alluxio.exception.FileDoesNotExistException;
+import alluxio.exception.status.UnavailableException;
 import alluxio.master.file.meta.FileSystemMasterView;
 import alluxio.master.lineage.meta.Lineage;
 import alluxio.master.lineage.meta.LineageStateUtils;
@@ -59,6 +60,8 @@ public final class CheckpointLatestPlanner implements CheckpointPlanner {
         }
       } catch (FileDoesNotExistException | AccessControlException e) {
         LOG.error("The lineage file does not exist", e);
+        continue;
+      } catch (UnavailableException e) {
         continue;
       }
       if (lineage.getCreationTime() > latestCreated) {
