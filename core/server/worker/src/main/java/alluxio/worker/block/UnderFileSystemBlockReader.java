@@ -24,7 +24,6 @@ import alluxio.exception.PreconditionMessage;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.retry.CountingRetry;
 import alluxio.retry.RetryPolicy;
-import alluxio.underfs.SeekableUnderFileInputStream;
 import alluxio.underfs.UfsManager;
 import alluxio.underfs.UfsManager.UfsInfo;
 import alluxio.underfs.UnderFileSystem;
@@ -232,16 +231,16 @@ public final class UnderFileSystemBlockReader implements BlockReader {
       } catch (IOException e) {
         LOG.debug("Failed to read from ufs instream ");
         thrownException = e;
-        if (mUnderFileSystemInputStream instanceof SeekableUnderFileInputStream) {
+        if (mUnderFileSystemInputStream instanceof CachedSeekableInputStream) {
           // this may happen when the cached input stream is stale
           UfsInfo ufsInfo = mUfsManager.get(mBlockMeta.getMountId());
           UnderFileSystem ufs = ufsInfo.getUfs();
           mUfsInstreamManager
-              .invalidate((SeekableUnderFileInputStream) mUnderFileSystemInputStream);
+              .invalidate((CachedSeekableInputStream) mUnderFileSystemInputStream);
           mUnderFileSystemInputStream =
               mUfsInstreamManager.acquire(ufs, mBlockMeta.getUnderFileSystemPath(),
                   OpenOptions.defaults().setOffset(
-                      ((SeekableUnderFileInputStream) mUnderFileSystemInputStream).getPos()),
+                      ((CachedSeekableInputStream) mUnderFileSystemInputStream).getPos()),
               false);
         } else {
           throw thrownException;
