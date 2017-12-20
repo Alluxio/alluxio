@@ -227,13 +227,13 @@ public final class UfsJournalLogWriterTest extends BaseIntegrationTest {
   /**
    * Tests that {@link UfsJournalLogWriter#flush()} can recover after Ufs failure.
    *
-   * This test has two steps.
+   * This test has the following steps.
    * 1. Write several journal entries, flush and close the journal. This will create a complete
    *    journal file, i.e. <startSN>-<endSN>.
    * 2. Write another journal entry, do NOT flush it, and inject an I/O error.
    * 3. Attempt to write another journal entry, which is expected to fail. After the failure,
    *    the newly created incomplete journal file may or may not have valid content.
-   * 4. At this point, the UFS does not guarantee the consistency of the incomplete journal. To
+   * 4. The UFS does not guarantee the consistency of the incomplete journal. To
    *    test how {@link UfsJournalLogWriter} recovers from Ufs failure before
    *    {@link UfsJournalLogWriter#flush()}, we simply delete the possibly created incomplete
    *    journal.
