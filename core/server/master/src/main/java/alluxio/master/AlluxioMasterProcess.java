@@ -207,7 +207,6 @@ public class AlluxioMasterProcess implements MasterProcess {
     mJournalSystem.start();
     mJournalSystem.setMode(Mode.PRIMARY);
     startMasters(true);
-    mSafeModeManager.notifyRpcServerStarted();
     startServing();
   }
 
@@ -261,6 +260,7 @@ public class AlluxioMasterProcess implements MasterProcess {
    */
   protected void startServing(String startMessage, String stopMessage) {
     MetricsSystem.startSinks();
+    mSafeModeManager.notifyRpcServerStarted();
     startServingWebServer();
     startJvmMonitorProcess();
     LOG.info("Alluxio master version {} started{}. "
