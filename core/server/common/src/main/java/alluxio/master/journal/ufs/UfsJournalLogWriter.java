@@ -34,6 +34,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.net.URI;
 import java.util.ArrayDeque;
+import java.util.List;
 import java.util.Queue;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -63,15 +64,20 @@ final class UfsJournalLogWriter implements JournalWriter {
   private boolean mRotateLogForNextWrite;
   /**
    * The output stream to write the journal log entries.
-   * Set this field to null when an {@link IOException} is caught.
-   * {@link #maybeRecoverFromUfsFailures()} will check the value of {@link #mJournalOutputStream}.
-   * If it's null, an I/O exception has occurred.
+   * Initially this field is null.
+   * Also set this field to null when an {@link IOException} is caught.
    */
   private JournalOutputStream mJournalOutputStream;
   /** The garbage collector. */
   private UfsJournalGarbageCollector mGarbageCollector;
   /** Whether the journal log writer is closed. */
   private boolean mClosed;
+
+  /**
+   * Set mNeedsRecovery to true when an IOException is thrown when trying to write journal entries.
+   * Clear this flag when {@link #maybeRecoverFromUfsFailures()} successfully recovers.
+   */
+  private boolean mNeedsRecovery = false;
   /**
    * Journal entries that have been written successfully to the underlying
    * {@link DataOutputStream}, but have not been flushed.
@@ -193,6 +199,7 @@ final class UfsJournalLogWriter implements JournalWriter {
       mRotateLogForNextWrite = true;
       UfsJournalFile currentLog = mJournalOutputStream.mCurrentLog;
       mJournalOutputStream = null;
+      mNeedsRecovery = true;
       throw new IOException(ExceptionMessage.JOURNAL_WRITE_FAILURE
           .getMessageWithUrl(RuntimeConstants.ALLUXIO_DEBUG_DOCS_URL,
               currentLog, e.getMessage()), e);
@@ -222,81 +229,100 @@ final class UfsJournalLogWriter implements JournalWriter {
    *    UFS by calling the {@code UfsJournalLogWriter#write} method.
    */
   private void maybeRecoverFromUfsFailures() throws IOException {
-    if (mJournalOutputStream != null) {
+    if (!mNeedsRecovery) {
       return;
     }
     UfsJournalSnapshot snapshot = UfsJournalSnapshot.getSnapshot(mJournal);
-    UfsJournalFile currentLog = snapshot.getCurrentLog(mJournal);
-    if (currentLog == null) {
-      return;
-    }
-    long startSeq = currentLog.getStart();
     long lastPersistSeq = -1;
-    LOG.info("Recovering from previous UFS journal write failure."
-        + " Scanning for the last persisted journal entry.");
-    try (JournalReader reader = new UfsJournalReader(mJournal, startSeq, true)) {
-      JournalEntry entry;
-      while ((entry = reader.read()) != null) {
-        if (entry.getSequenceNumber() > lastPersistSeq) {
-          lastPersistSeq = entry.getSequenceNumber();
+    UfsJournalFile currentLog = snapshot.getCurrentLog(mJournal);
+    if (currentLog != null) {
+      long startSeq = currentLog.getStart();
+      LOG.info("Recovering from previous UFS journal write failure."
+          + " Scanning for the last persisted journal entry.");
+      try (JournalReader reader = new UfsJournalReader(mJournal, startSeq, true)) {
+        JournalEntry entry;
+        while ((entry = reader.read()) != null) {
+          if (entry.getSequenceNumber() > lastPersistSeq) {
+            lastPersistSeq = entry.getSequenceNumber();
+          }
         }
+      } catch (InvalidJournalEntryException e) {
+        LOG.info("Found last persisted journal entry with seq={}.", lastPersistSeq);
+      } catch (IOException e) {
+        throw e;
       }
-    } catch (InvalidJournalEntryException e) {
-      LOG.info("Found last persisted journal entry with seq={}.", lastPersistSeq);
-    } catch (IOException e) {
-      throw e;
+      String src = currentLog.getLocation().toString();
+      if (lastPersistSeq >= 0) {
+        LOG.info("Last persisted journal entry sequence number in {} is {}",
+            src, lastPersistSeq);
+        String dst = UfsJournalFile
+            .encodeLogFileLocation(mJournal, currentLog.getStart(), lastPersistSeq + 1).toString();
+        if (mUfs.exists(dst)) {
+          LOG.warn("Deleting duplicate completed log {}.", dst);
+          // The dst can exist because of a master failure during commit. This can only happen
+          // when the primary master starts. We can delete either the src or dst. We delete dst and
+          // do rename again.
+          mUfs.deleteFile(dst);
+        }
+        LOG.info("Renaming the previous incomplete journal file from {} to {}.", src, dst);
+        mUfs.renameFile(src, dst);
+      } else {
+        LOG.info("No journal entry found in current journal file {}. Deleting it", src);
+        mUfs.deleteFile(src);
+      }
     }
-    String src = currentLog.getLocation().toString();
-    LOG.info("Last persisted journal entry sequence number in {} is {}",
-        src, lastPersistSeq);
+    // Search for and scan the latest COMPLETE journal and find out the sequence number of the
+    // last persisted journal entry, in case no entry has been found in the INCOMPLETE journal.
     if (lastPersistSeq < 0) {
-      mUfs.deleteFile(src);
-      return;
-    }
-
-    String dst = UfsJournalFile
-        .encodeLogFileLocation(mJournal, currentLog.getStart(), lastPersistSeq + 1).toString();
-    if (mUfs.exists(dst)) {
-      LOG.warn("Deleting duplicate completed log {}.", dst);
-      // The dst can exist because of a master failure during commit. This can only happen
-      // when the primary master starts. We can delete either the src or dst. We delete dst and
-      // do rename again.
-      mUfs.deleteFile(dst);
-    }
-    LOG.info("Renaming the previous incomplete journal file.");
-    mUfs.renameFile(src, dst);
-
-    maybeRotateLog();
-    if (mEntriesToFlush.isEmpty()) {
-      return;
-    }
-    JournalEntry firstEntryToFlush = mEntriesToFlush.peek();
-    if (firstEntryToFlush.getSequenceNumber() > lastPersistSeq + 1) {
-      throw new IOException(ExceptionMessage.JOURNAL_ENTRY_MISSING
-          .getMessageWithUrl(RuntimeConstants.ALLUXIO_DEBUG_DOCS_URL,
-          lastPersistSeq + 1, firstEntryToFlush.getSequenceNumber()));
-    }
-    long retryStartSeq = firstEntryToFlush.getSequenceNumber();
-    long retryEndSeq = retryStartSeq;
-    LOG.info("Retry writing unwritten journal entries from seq {}", retryStartSeq);
-    for (JournalEntry entry : mEntriesToFlush) {
-      if (entry.getSequenceNumber() > lastPersistSeq) {
-        try {
-          entry.toBuilder().build()
-              .writeDelimitedTo(mJournalOutputStream.mOutputStream);
-          retryEndSeq = entry.getSequenceNumber();
-        } catch (IOException e) {
-          mRotateLogForNextWrite = true;
-          UfsJournalFile tempLog = mJournalOutputStream.mCurrentLog;
-          mJournalOutputStream = null;
-          throw new IOException(ExceptionMessage.JOURNAL_WRITE_FAILURE
-          .getMessageWithUrl(RuntimeConstants.ALLUXIO_DEBUG_DOCS_URL,
-              tempLog, e.getMessage()), e);
-        }
+      // Re-evaluate snapshot because the incomplete journal will be destroyed if
+      // it does not contain any valid entry.
+      snapshot = UfsJournalSnapshot.getSnapshot(mJournal);
+      // journalFiles[journalFiles.size()-1] is the latest journal file. If we have reached this
+      // point, we must have already deleted the previous empty incomplete journal file.
+      // Therefore, journalFiles[journalFiles.size()-1] must be a valid complete journal file
+      // assuming the Ufs was functioning correctly before journal file rotation.
+      // As a result, we don't have to read the journal file to find out the last journal entry
+      // sequence. We can get this information from the file name. <startSeq>-<endSeq>.
+      List<UfsJournalFile> journalFiles = snapshot.getLogs();
+      if (!journalFiles.isEmpty()) {
+        UfsJournalFile journal = journalFiles.get(journalFiles.size() - 1);
+        lastPersistSeq = journal.getEnd() - 1;
+        LOG.info("Found last persisted journal entry with seq {} in {}.",
+            lastPersistSeq, journal.getLocation().toString());
       }
     }
-    LOG.info("Finished writing unwritten journal entries from {} to {}.",
-        retryStartSeq, retryEndSeq);
+
+    if (!mEntriesToFlush.isEmpty()) {
+      maybeRotateLog();
+      JournalEntry firstEntryToFlush = mEntriesToFlush.peek();
+      if (firstEntryToFlush.getSequenceNumber() > lastPersistSeq + 1) {
+        throw new RuntimeException(ExceptionMessage.JOURNAL_ENTRY_MISSING.getMessageWithUrl(
+            RuntimeConstants.ALLUXIO_DEBUG_DOCS_URL,
+            lastPersistSeq + 1, firstEntryToFlush.getSequenceNumber()));
+      }
+      long retryStartSeq = firstEntryToFlush.getSequenceNumber();
+      long retryEndSeq = retryStartSeq;
+      LOG.info("Retry writing unwritten journal entries from seq {}", retryStartSeq);
+      for (JournalEntry entry : mEntriesToFlush) {
+        if (entry.getSequenceNumber() > lastPersistSeq) {
+          try {
+            entry.toBuilder().build()
+                .writeDelimitedTo(mJournalOutputStream.mOutputStream);
+            retryEndSeq = entry.getSequenceNumber();
+          } catch (IOException e) {
+            mRotateLogForNextWrite = true;
+            UfsJournalFile tempLog = mJournalOutputStream.mCurrentLog;
+            mJournalOutputStream = null;
+            throw new IOException(ExceptionMessage.JOURNAL_WRITE_FAILURE
+                .getMessageWithUrl(RuntimeConstants.ALLUXIO_DEBUG_DOCS_URL,
+                    tempLog, e.getMessage()), e);
+          }
+        }
+      }
+      LOG.info("Finished writing unwritten journal entries from {} to {}.",
+          retryStartSeq, retryEndSeq);
+    }
+    mNeedsRecovery = false;
   }
 
   /**
