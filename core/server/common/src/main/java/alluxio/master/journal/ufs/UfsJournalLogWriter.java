@@ -191,15 +191,12 @@ final class UfsJournalLogWriter implements JournalWriter {
       mEntriesToFlush.add(entryToWrite);
       mNextSequenceNumber++;
     } catch (IOException e) {
-      mRotateLogForNextWrite = true;
-      UfsJournalFile currentLog = mJournalOutputStream.mCurrentLog;
-      mJournalOutputStream = null;
       // Set mNeedsRecovery to true so that {@code maybeRecoverFromUfsFailures}
       // can know a UFS failure has occurred.
       mNeedsRecovery = true;
       throw new IOException(ExceptionMessage.JOURNAL_WRITE_FAILURE
           .getMessageWithUrl(RuntimeConstants.ALLUXIO_DEBUG_DOCS_URL,
-              currentLog, e.getMessage()), e);
+              mJournalOutputStream.mCurrentLog, e.getMessage()), e);
     }
   }
 
@@ -226,8 +223,8 @@ final class UfsJournalLogWriter implements JournalWriter {
 
     long lastPersistSeq = getLastPersistedJournalEntrySequence();
 
+    createNewLogFile();
     if (!mEntriesToFlush.isEmpty()) {
-      maybeRotateLog();
       JournalEntry firstEntryToFlush = mEntriesToFlush.peek();
       if (firstEntryToFlush.getSequenceNumber() > lastPersistSeq + 1) {
         throw new RuntimeException(ExceptionMessage.JOURNAL_ENTRY_MISSING.getMessageWithUrl(
@@ -243,12 +240,9 @@ final class UfsJournalLogWriter implements JournalWriter {
                 .writeDelimitedTo(mJournalOutputStream.mOutputStream);
             retryEndSeq = entry.getSequenceNumber();
           } catch (IOException e) {
-            mRotateLogForNextWrite = true;
-            UfsJournalFile tempLog = mJournalOutputStream.mCurrentLog;
-            mJournalOutputStream = null;
             throw new IOException(ExceptionMessage.JOURNAL_WRITE_FAILURE
                 .getMessageWithUrl(RuntimeConstants.ALLUXIO_DEBUG_DOCS_URL,
-                    tempLog, e.getMessage()), e);
+                    mJournalOutputStream.mCurrentLog, e.getMessage()), e);
           }
         }
       }
@@ -348,6 +342,11 @@ final class UfsJournalLogWriter implements JournalWriter {
       mJournalOutputStream = null;
     }
 
+    createNewLogFile();
+    mRotateLogForNextWrite = false;
+  }
+
+  private void createNewLogFile() throws IOException {
     URI newLog = UfsJournalFile
         .encodeLogFileLocation(mJournal, mNextSequenceNumber, UfsJournal.UNKNOWN_SEQUENCE_NUMBER);
     UfsJournalFile currentLog = UfsJournalFile.createLogFile(newLog, mNextSequenceNumber,
@@ -356,7 +355,6 @@ final class UfsJournalLogWriter implements JournalWriter {
         CreateOptions.defaults().setEnsureAtomic(false).setCreateParent(true));
     mJournalOutputStream = new JournalOutputStream(currentLog, outputStream);
     LOG.info("Created current log file: {}", currentLog);
-    mRotateLogForNextWrite = false;
   }
 
   public synchronized void flush() throws IOException {
