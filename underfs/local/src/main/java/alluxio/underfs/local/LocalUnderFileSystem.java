@@ -15,6 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.exception.ExceptionMessage;
+import alluxio.retry.RetryPolicy;
 import alluxio.security.authorization.Mode;
 import alluxio.underfs.AtomicFileOutputStream;
 import alluxio.underfs.AtomicFileOutputStreamCallback;
@@ -34,6 +35,7 @@ import alluxio.util.io.PathUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 
+import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.google.common.io.ByteStreams;
 import org.slf4j.Logger;
@@ -309,15 +311,25 @@ public class LocalUnderFileSystem extends BaseUnderFileSystem
 
   @Override
   public InputStream open(String path, OpenOptions options) throws IOException {
-    path = stripPath(path);
-    FileInputStream inputStream = new FileInputStream(path);
-    try {
-      ByteStreams.skipFully(inputStream, options.getOffset());
-    } catch (IOException e) {
-      inputStream.close();
-      throw e;
+    Preconditions.checkNotNull(options.getRetryPolicy(), "Retry policy should not be null");
+    IOException thrownException = null;
+    RetryPolicy retryPolicy = options.getRetryPolicy();
+    while (retryPolicy.attemptRetry()) {
+      path = stripPath(path);
+      try {
+        FileInputStream inputStream = new FileInputStream(path);
+        try {
+          ByteStreams.skipFully(inputStream, options.getOffset());
+          return inputStream;
+        } catch (IOException e) {
+          inputStream.close();
+        }
+      } catch (IOException e) {
+        LOG.warn("{} try to open {} : {}", retryPolicy.getRetryCount(), path, e.getMessage());
+        thrownException = e;
+      }
     }
-    return inputStream;
+    throw thrownException;
   }
 
   @Override
