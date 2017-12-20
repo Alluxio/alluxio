@@ -214,24 +214,68 @@ final class UfsJournalLogWriter implements JournalWriter {
    * persist journal entries. Consequently any metadata operation will block because Alluxio
    * cannot flush their journal entries.
    * Once UFS comes back online, Alluxio needs to perform the following operations:
-   * 1. Locate the most recent incomplete journal file, i.e. journal file that starts with
-   *    a valid sequence number X (hex), and ends with 0x7fffffffffffffff. The journal file
-   *    name encodes this information, i.e. X-0x7fffffffffffffff.
-   * 2. Sequentially scan all the incomplete journal file, and identify the last valid journal
-   *    entry that has been persisted in UFS. Once we know the last valid journal entry in UFS,
-   *    we know the first journal entry that is not valid in UFS. Suppose it is Y.
-   * 3. Rename the incomplete journal file to X-Y. Future journal writes will write to a new file
-   *    named Y-0x7fffffffffffffff.
-   * 4. Check whether there is any missing journal entry between Y and the oldest entry in
-   *    mEntriesToFlush, say Z. If Z > Y, then it means journal entries in [Y, Z) are
+   * 1. Find out the sequence number of the last persisted journal entry, say X. Then the first
+   *    non-persisted entry has sequence number Y = X + 1.
+   * 2. Check whether there is any missing journal entry between Y (inclusive) and the oldest
+   *    entry in mEntriesToFlush, say Z. If Z > Y, then it means journal entries in [Y, Z) are
    *    missing, and Alluxio cannot recover. Otherwise, for each journal entry in
-   *    mEntriesToFlush, if its sequence number is newer than or equal to Y, retry writing it to
-   *    UFS by calling the {@code UfsJournalLogWriter#write} method.
+   *    {@link #mEntriesToFlush}, if its sequence number is larger than or equal to Y, retry
+   *    writing it to UFS by calling the {@code UfsJournalLogWriter#write} method.
    */
   private void maybeRecoverFromUfsFailures() throws IOException {
     if (!mNeedsRecovery) {
       return;
     }
+
+    long lastPersistSeq = getLastPersistedJournalEntrySequence();
+
+    if (!mEntriesToFlush.isEmpty()) {
+      maybeRotateLog();
+      JournalEntry firstEntryToFlush = mEntriesToFlush.peek();
+      if (firstEntryToFlush.getSequenceNumber() > lastPersistSeq + 1) {
+        throw new RuntimeException(ExceptionMessage.JOURNAL_ENTRY_MISSING.getMessageWithUrl(
+            RuntimeConstants.ALLUXIO_DEBUG_DOCS_URL,
+            lastPersistSeq + 1, firstEntryToFlush.getSequenceNumber()));
+      }
+      long retryEndSeq = lastPersistSeq;
+      LOG.info("Retry writing unwritten journal entries from seq {}", lastPersistSeq + 1);
+      for (JournalEntry entry : mEntriesToFlush) {
+        if (entry.getSequenceNumber() > lastPersistSeq) {
+          try {
+            entry.toBuilder().build()
+                .writeDelimitedTo(mJournalOutputStream.mOutputStream);
+            retryEndSeq = entry.getSequenceNumber();
+          } catch (IOException e) {
+            mRotateLogForNextWrite = true;
+            UfsJournalFile tempLog = mJournalOutputStream.mCurrentLog;
+            mJournalOutputStream = null;
+            throw new IOException(ExceptionMessage.JOURNAL_WRITE_FAILURE
+                .getMessageWithUrl(RuntimeConstants.ALLUXIO_DEBUG_DOCS_URL,
+                    tempLog, e.getMessage()), e);
+          }
+        }
+      }
+      LOG.info("Finished writing unwritten journal entries from {} to {}.",
+          lastPersistSeq + 1, retryEndSeq);
+    }
+    mNeedsRecovery = false;
+  }
+
+  /**
+   * Find out the sequence number of the last persisted journal entry.
+   *
+   * 1. Locate the most recent incomplete journal file, i.e. journal file that starts with
+   *    a valid sequence number S (hex), and ends with 0x7fffffffffffffff. The journal file
+   *    name encodes this information, i.e. S-0x7fffffffffffffff.
+   * 2. Sequentially scan the incomplete journal file, and identify the last journal
+   *    entry that has been persisted in UFS. Suppose it is X.
+   * 3. Rename the incomplete journal file to S-<X+1>. Future journal writes will write to a new file
+   *    named <X+1>-0x7fffffffffffffff.
+   * 4. If the incomplete journal does not exist or no entry can be found in the incomplete
+   *    journal, check the last complete journal file for the last persisted journal entry.
+   * @return sequence number of the last persisted journal entry, or -1 if no entry can be found.
+   */
+  private long getLastPersistedJournalEntrySequence() throws IOException {
     UfsJournalSnapshot snapshot = UfsJournalSnapshot.getSnapshot(mJournal);
     long lastPersistSeq = -1;
     UfsJournalFile currentLog = snapshot.getCurrentLog(mJournal);
@@ -291,37 +335,7 @@ final class UfsJournalLogWriter implements JournalWriter {
             lastPersistSeq, journal.getLocation().toString());
       }
     }
-
-    if (!mEntriesToFlush.isEmpty()) {
-      maybeRotateLog();
-      JournalEntry firstEntryToFlush = mEntriesToFlush.peek();
-      if (firstEntryToFlush.getSequenceNumber() > lastPersistSeq + 1) {
-        throw new RuntimeException(ExceptionMessage.JOURNAL_ENTRY_MISSING.getMessageWithUrl(
-            RuntimeConstants.ALLUXIO_DEBUG_DOCS_URL,
-            lastPersistSeq + 1, firstEntryToFlush.getSequenceNumber()));
-      }
-      long retryEndSeq = lastPersistSeq;
-      LOG.info("Retry writing unwritten journal entries from seq {}", lastPersistSeq + 1);
-      for (JournalEntry entry : mEntriesToFlush) {
-        if (entry.getSequenceNumber() > lastPersistSeq) {
-          try {
-            entry.toBuilder().build()
-                .writeDelimitedTo(mJournalOutputStream.mOutputStream);
-            retryEndSeq = entry.getSequenceNumber();
-          } catch (IOException e) {
-            mRotateLogForNextWrite = true;
-            UfsJournalFile tempLog = mJournalOutputStream.mCurrentLog;
-            mJournalOutputStream = null;
-            throw new IOException(ExceptionMessage.JOURNAL_WRITE_FAILURE
-                .getMessageWithUrl(RuntimeConstants.ALLUXIO_DEBUG_DOCS_URL,
-                    tempLog, e.getMessage()), e);
-          }
-        }
-      }
-      LOG.info("Finished writing unwritten journal entries from {} to {}.",
-          lastPersistSeq + 1, retryEndSeq);
-    }
-    mNeedsRecovery = false;
+    return lastPersistSeq;
   }
 
   /**
