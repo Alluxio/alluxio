@@ -66,9 +66,7 @@ public final class NettyPacketReaderTest {
     mAddress = Mockito.mock(WorkerNetAddress.class);
     Protocol.ReadRequest readRequest =
         Protocol.ReadRequest.newBuilder().setBlockId(BLOCK_ID).setPacketSize(PACKET_SIZE).build();
-    mFactory =
-        new NettyPacketReader.Factory(mContext, mAddress, readRequest, new InStreamOptions(
-            new URIStatus(new FileInfo())));
+    mFactory = new NettyPacketReader.Factory(mContext, mAddress, readRequest);
 
     mChannel = new EmbeddedChannel();
     PowerMockito.when(mContext.acquireNettyChannel(mAddress)).thenReturn(mChannel);
