@@ -194,11 +194,11 @@ final class UfsJournalLogWriter implements JournalWriter {
       mEntriesToFlush.add(entryToWrite);
       mNextSequenceNumber++;
     } catch (IOException e) {
-      // Set mJournalOutputStream to null so that {@code maybeRecoverFromUfsFailures}
-      // can know a UFS failure has occurred.
       mRotateLogForNextWrite = true;
       UfsJournalFile currentLog = mJournalOutputStream.mCurrentLog;
       mJournalOutputStream = null;
+      // Set mNeedsRecovery to true so that {@code maybeRecoverFromUfsFailures}
+      // can know a UFS failure has occurred.
       mNeedsRecovery = true;
       throw new IOException(ExceptionMessage.JOURNAL_WRITE_FAILURE
           .getMessageWithUrl(RuntimeConstants.ALLUXIO_DEBUG_DOCS_URL,
@@ -393,27 +393,8 @@ final class UfsJournalLogWriter implements JournalWriter {
     mClosed = true;
   }
 
-  /**
-   * @return number of journal entries to flush stored in the queue
-   */
-  @VisibleForTesting
-  synchronized  int getNumberOfJournalEntriesToFlush() {
-    return mEntriesToFlush.size();
-  }
-
   @VisibleForTesting
   synchronized JournalOutputStream getJournalOutputStream() {
     return mJournalOutputStream;
-  }
-
-  /**
-   * @return the current underlying {@link DataOutputStream} to write journal entries
-   */
-  @VisibleForTesting
-  synchronized DataOutputStream getUnderlyingDataOutputStream() {
-    if (mJournalOutputStream == null) {
-      return null;
-    }
-    return mJournalOutputStream.mOutputStream;
   }
 }
