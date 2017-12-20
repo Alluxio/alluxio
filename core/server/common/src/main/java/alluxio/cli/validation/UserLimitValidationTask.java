@@ -14,11 +14,12 @@ package alluxio.cli.validation;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.Map;
 
 /**
  * Task for validating system limit for current user.
  */
-public final class UserLimitValidationTask implements ValidationTask {
+public final class UserLimitValidationTask extends AbstractValidationTask {
   private static final int NUMBER_OF_OPEN_FILES_MIN = 16384;
   private static final int NUMBER_OF_OPEN_FILES_MAX = 800000;
   private static final int NUMBER_OF_USER_PROCESSES_MIN = 16384;
@@ -36,7 +37,7 @@ public final class UserLimitValidationTask implements ValidationTask {
   }
 
   @Override
-  public boolean validate() {
+  public boolean validate(Map<String, String> optionsMap) {
     try {
       Process process = Runtime.getRuntime().exec(new String[] {"bash", "-c", mCommand});
       try (BufferedReader processOutputReader = new BufferedReader(

@@ -11,6 +11,14 @@
 
 package alluxio.worker.file;
 
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.anyLong;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import alluxio.exception.status.UnavailableException;
 import alluxio.thrift.FileSystemCommand;
 import alluxio.thrift.FileSystemHeartbeatTOptions;
@@ -19,7 +27,6 @@ import com.google.common.collect.Lists;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
@@ -38,8 +45,8 @@ public final class FileWorkerMasterSyncExecutorTest {
 
   @Before
   public void before() {
-    mFileDataManager = Mockito.mock(FileDataManager.class);
-    mFileSystemMasterClient = Mockito.mock(FileSystemMasterClient.class);
+    mFileDataManager = mock(FileDataManager.class);
+    mFileSystemMasterClient = mock(FileSystemMasterClient.class);
     mFileWorkerMasterSyncExecutor = new FileWorkerMasterSyncExecutor(mFileDataManager,
         mFileSystemMasterClient, new AtomicReference<>(10L));
   }
@@ -54,13 +61,13 @@ public final class FileWorkerMasterSyncExecutorTest {
     List<String> ufsFingerprintList = Lists.newArrayList("ufs fingerprint");
     FileDataManager.PersistedFilesInfo filesInfo =
         new FileDataManager.PersistedFilesInfo(persistedFiles, ufsFingerprintList);
-    Mockito.when(mFileDataManager.getPersistedFileInfos()).thenReturn(filesInfo);
+    when(mFileDataManager.getPersistedFileInfos()).thenReturn(filesInfo);
     // first time fails, second time passes
-    Mockito.when(mFileSystemMasterClient.heartbeat(Mockito.anyLong(), Mockito.eq(persistedFiles),
-        Mockito.any(FileSystemHeartbeatTOptions.class)))
+    when(mFileSystemMasterClient.heartbeat(anyLong(), eq(persistedFiles),
+        any(FileSystemHeartbeatTOptions.class)))
         .thenThrow(new UnavailableException("failure"));
     mFileWorkerMasterSyncExecutor.heartbeat();
-    Mockito.verify(mFileDataManager, Mockito.never()).clearPersistedFiles(persistedFiles);
+    verify(mFileDataManager, never()).clearPersistedFiles(persistedFiles);
   }
 
   /**
@@ -73,11 +80,11 @@ public final class FileWorkerMasterSyncExecutorTest {
     List<String> ufsFingerprintList = Lists.newArrayList("ufs fingerprint");
     FileDataManager.PersistedFilesInfo filesInfo =
         new FileDataManager.PersistedFilesInfo(persistedFiles, ufsFingerprintList);
-    Mockito.when(mFileDataManager.getPersistedFileInfos()).thenReturn(filesInfo);
+    when(mFileDataManager.getPersistedFileInfos()).thenReturn(filesInfo);
     // first time fails, second time passes
-    Mockito.when(mFileSystemMasterClient.heartbeat(Mockito.anyLong(), Mockito.eq(persistedFiles)))
+    when(mFileSystemMasterClient.heartbeat(anyLong(), eq(persistedFiles)))
         .thenReturn(new FileSystemCommand());
     mFileWorkerMasterSyncExecutor.heartbeat();
-    Mockito.verify(mFileDataManager).clearPersistedFiles(persistedFiles);
+    verify(mFileDataManager).clearPersistedFiles(persistedFiles);
   }
 }

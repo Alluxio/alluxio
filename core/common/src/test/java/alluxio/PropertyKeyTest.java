@@ -12,9 +12,10 @@
 package alluxio;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
+import alluxio.PropertyKey.Template;
 import alluxio.exception.ExceptionMessage;
 
 import org.junit.Assert;
@@ -228,4 +229,11 @@ public final class PropertyKeyTest {
         "alluxio.master.mount.table.alluxio"));
   }
 
+  @Test
+  public void localityTemplates() throws Exception {
+    assertTrue(PropertyKey.isValid("alluxio.locality.node"));
+    assertTrue(PropertyKey.isValid("alluxio.locality.custom"));
+
+    assertEquals("alluxio.locality.custom", Template.LOCALITY_TIER.format("custom").toString());
+  }
 }

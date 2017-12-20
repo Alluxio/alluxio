@@ -17,6 +17,8 @@ import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
+import alluxio.PropertyKey.Template;
+
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import org.hamcrest.CoreMatchers;
@@ -503,6 +505,21 @@ public class ConfigurationTest {
     assertTrue(Configuration.containsKey(PropertyKey.USER_FILE_BUFFER_BYTES));
     Configuration.unset(PropertyKey.USER_FILE_BUFFER_BYTES);
     assertFalse(Configuration.containsKey(PropertyKey.USER_FILE_BUFFER_BYTES));
+  }
+
+  @Test
+  public void validateTieredLocality() throws Exception {
+    // Pre-load the Configuration class so that the exception is thrown when we call init(), not
+    // during class loading.
+    Configuration.init();
+    HashMap<String, String> sysProps = new HashMap<>();
+    sysProps.put(Template.LOCALITY_TIER.format("unknownTier").toString(), "val");
+    try (Closeable p = new SystemPropertyRule(sysProps).toResource()) {
+      mThrown.expect(IllegalStateException.class);
+      mThrown.expectMessage("Tier unknownTier is configured by alluxio.locality.unknownTier, but "
+          + "does not exist in the tier list [node, rack] configured by alluxio.locality.order");
+      Configuration.init();
+    }
   }
 
   @Test

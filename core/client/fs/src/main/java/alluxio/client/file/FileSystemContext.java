@@ -30,7 +30,6 @@ import com.codahale.metrics.Gauge;
 import com.google.common.base.Preconditions;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
-import io.netty.util.internal.chmv8.ConcurrentHashMapV8;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -38,6 +37,7 @@ import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.ThreadSafe;
@@ -68,8 +68,8 @@ public final class FileSystemContext implements Closeable {
   private volatile BlockMasterClientPool mBlockMasterClientPool;
 
   // The netty data server channel pools.
-  private final ConcurrentHashMapV8<SocketAddress, NettyChannelPool>
-      mNettyChannelPools = new ConcurrentHashMapV8<>();
+  private final ConcurrentHashMap<SocketAddress, NettyChannelPool>
+      mNettyChannelPools = new ConcurrentHashMap<>();
 
   /** The shared master inquire client associated with the {@link FileSystemContext}. */
   @GuardedBy("this")

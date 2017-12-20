@@ -95,6 +95,9 @@ leverage the Scala shell, as discussed in this
 -   Run tests with Hadoop FileSystem contract tests (uses hadoop 2.6.0):
 `mvn -PcontractTest clean test`
 
+-   The fuse tests are ignored if the libfuse library is missing. To run those tests, please install the correct libraries
+mentioned in [this page](Mounting-Alluxio-FS-with-FUSE.html#requirements).
+
 ### Coding Style
 
 -   Please follow the style of the existing codebase. Specifically, we use

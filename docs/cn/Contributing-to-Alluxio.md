@@ -82,6 +82,8 @@ group: Resources
 
 -   要进行Hadoop文件系统的契约式设计测试（用hadoop 2.6.0），运行：`mvn -PcontractTest clean test`。
 
+-   如果libfuse库丢失，测试将被忽略。要运行这些测试，请安装[本页]中所提到的正确的库(Mounting-Alluxio-FS-with-FUSE.html#requirements)。
+
 #### 编码风格
 
 -   请遵循已有代码的风格。具体地，我们使用[Google Java style](https://google.github.io/styleguide/javaguide.html)风格，但有以下不同：

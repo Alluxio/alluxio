@@ -62,13 +62,9 @@ public final class CreateFileOptions {
     mCommonOptions = CommonOptions.defaults();
     mRecursive = true;
     mBlockSizeBytes = Configuration.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT);
-    try {
-      mLocationPolicy =
-          CommonUtils.createNewClassInstance(Configuration.<FileWriteLocationPolicy>getClass(
-              PropertyKey.USER_FILE_WRITE_LOCATION_POLICY), new Class[] {}, new Object[] {});
-    } catch (Exception e) {
-      throw Throwables.propagate(e);
-    }
+    mLocationPolicy =
+        CommonUtils.createNewClassInstance(Configuration.<FileWriteLocationPolicy>getClass(
+            PropertyKey.USER_FILE_WRITE_LOCATION_POLICY), new Class[] {}, new Object[] {});
     mWriteTier = Configuration.getInt(PropertyKey.USER_FILE_WRITE_TIER_DEFAULT);
     mWriteType = Configuration.getEnum(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class);
     mTtl = Constants.NO_TTL;

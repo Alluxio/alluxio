@@ -317,26 +317,26 @@ Alluxio可以部署在很多不同的环境下。
 
 * [本地运行Alluxio](Running-Alluxio-Locally.html)
 * [在集群上独立运行Alluxio](Running-Alluxio-on-a-Cluster.html)
-* [Alluxio on Virtual Box](Running-Alluxio-on-Virtual-Box.html)
-* [Alluxio on Docker](Running-Alluxio-On-Docker.html)
+* [在Virtual Box中运行Alluxio](Running-Alluxio-on-Virtual-Box.html)
+* [在Docker中运行Alluxio](Running-Alluxio-On-Docker.html)
 * [Alluxio独立模式实现容错](Running-Alluxio-Fault-Tolerant.html)
 * [在EC2上运行Alluxio](Running-Alluxio-on-EC2.html)
 * [在GCE上运行Alluxio](Running-Alluxio-on-GCE.html)
 * [在EC2上使用Mesos运行Alluxio](Running-Alluxio-on-Mesos.html)
 * [在EC2上运行带容错机制的Alluxio](Running-Alluxio-Fault-Tolerant-on-EC2.html)
 * [在EC2上使用YARN运行Alluxio](Running-Alluxio-on-EC2-Yarn.html)
-* [Alluxio YARN Integration](Running-Alluxio-Yarn-Integration.html)
-* [Alluxio Standalone with YARN](Running-Alluxio-Yarn-Standalone.html)
+* [Alluxio与YARN整合运行](Running-Alluxio-Yarn-Integration.html)
+* [在YARN Standalone模式上运行Alluxio](Running-Alluxio-Yarn-Standalone.html)
 
 ### 底层存储系统
 
 有很多可以通过Alluxio访问的底层存储系统。
 
-* [Alluxio with Azure Blob Store](Configuring-Alluxio-with-Azure-Blob-Store.html)
+* [Alluxio使用Azure Blob Store](Configuring-Alluxio-with-Azure-Blob-Store.html)
 * [Alluxio使用S3](Configuring-Alluxio-with-S3.html)
-* [Alluxio with GCS](Configuring-Alluxio-with-GCS.html)
-* [Alluxio with Minio](Configuring-Alluxio-with-Minio.html)
-* [Alluxio with Ceph](Configuring-Alluxio-with-Ceph.html)
+* [Alluxio使用GCS](Configuring-Alluxio-with-GCS.html)
+* [Alluxio使用Minio](Configuring-Alluxio-with-Minio.html)
+* [Alluxio使用Ceph](Configuring-Alluxio-with-Ceph.html)
 * [Alluxio使用Swift](Configuring-Alluxio-with-Swift.html)
 * [Alluxio使用GlusterFS](Configuring-Alluxio-with-GlusterFS.html)
 * [Alluxio使用MapR-FS](Configuring-Alluxio-with-MapR-FS.html)
@@ -353,6 +353,6 @@ Alluxio可以部署在很多不同的环境下。
 * [Apache Hadoop MapReduce使用Alluxio](Running-Hadoop-MapReduce-on-Alluxio.html)
 * [Apache HBase使用Alluxio](Running-HBase-on-Alluxio.html)
 * [Apache Flink使用Alluxio](Running-Flink-on-Alluxio.html)
-* [Presto with Alluxio](Running-Presto-with-Alluxio.html)
-* [Apache Hive with Alluxio](Running-Hive-with-Alluxio.html)
+* [Presto 使用 Alluxio](Running-Presto-with-Alluxio.html)
+* [Apache Hive 使用 Alluxio](Running-Hive-with-Alluxio.html)
 * [Apache Zeppelin使用Alluxio](Accessing-Alluxio-from-Zeppelin.html)
