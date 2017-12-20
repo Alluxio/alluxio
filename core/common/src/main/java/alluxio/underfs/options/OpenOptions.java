@@ -12,6 +12,8 @@
 package alluxio.underfs.options;
 
 import alluxio.annotation.PublicApi;
+import alluxio.retry.CountingRetry;
+import alluxio.retry.RetryPolicy;
 
 import com.google.common.base.Objects;
 
@@ -23,6 +25,8 @@ import javax.annotation.concurrent.NotThreadSafe;
 @PublicApi
 @NotThreadSafe
 public final class OpenOptions {
+  private RetryPolicy mRetryPolicy;
+
   // Offset within file in bytes
   private long mOffset;
 
@@ -39,8 +43,17 @@ public final class OpenOptions {
    * Constructs a default {@link OpenOptions}.
    */
   private OpenOptions() {
+    // Default to a single attempt
+    mRetryPolicy = new CountingRetry(1);
     mOffset = 0;
     mLength = Long.MAX_VALUE;
+  }
+
+  /**
+   * @return retry policy
+   */
+  public RetryPolicy getRetryPolicy() {
+    return mRetryPolicy;
   }
 
   /**
@@ -55,6 +68,17 @@ public final class OpenOptions {
    */
   public long getLength() {
     return mLength;
+  }
+
+  /**
+   * Sets the retry policy in case of failures.
+   *
+   * @param retryPolicy the retry policy
+   * @return the updated option object
+   */
+  public OpenOptions setRetryPolicy(RetryPolicy retryPolicy) {
+    mRetryPolicy = retryPolicy;
+    return this;
   }
 
   /**
