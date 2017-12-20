@@ -366,7 +366,6 @@ public final class UfsJournalLogWriterTest extends BaseIntegrationTest {
     DataOutputStream badOut = Mockito.mock(DataOutputStream.class);
     Object journalOutputStream = writer.getJournalOutputStream();
     Whitebox.setInternalState(journalOutputStream, "mOutputStream", badOut);
-    Assert.assertEquals(badOut, writer.getUnderlyingDataOutputStream());
     return badOut;
   }
 
