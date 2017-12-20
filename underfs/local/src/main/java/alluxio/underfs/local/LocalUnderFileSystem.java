@@ -323,6 +323,7 @@ public class LocalUnderFileSystem extends BaseUnderFileSystem
           return inputStream;
         } catch (IOException e) {
           inputStream.close();
+          throw e;
         }
       } catch (IOException e) {
         LOG.warn("{} try to open {} : {}", retryPolicy.getRetryCount(), path, e.getMessage());
