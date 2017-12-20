@@ -58,6 +58,9 @@ public final class SecureHdfsValidationTask extends HdfsValidationTask {
 
   @Override
   public boolean validate(Map<String, String> optionsMap) {
+    if (super.shouldSkip()) {
+      return true;
+    }
     if (!super.validate(optionsMap)) {
       return false;
     }

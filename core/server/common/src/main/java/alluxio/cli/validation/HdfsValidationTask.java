@@ -50,11 +50,24 @@ public class HdfsValidationTask extends AbstractValidationTask {
 
   @Override
   public boolean validate(Map<String, String> optionsMap) {
+    if (shouldSkip()) {
+      return true;
+    }
     if (!validateHdfsSettingParity(optionsMap)) {
       System.err.format("Hdfs setting do not match.");
       return false;
     }
     return true;
+  }
+
+  /**
+   * Checks whether this validation task should be skipped.
+   *
+   * @return true if underFS is NOT HDFS, false otherwise
+   */
+  protected boolean shouldSkip() {
+    String underFSURI = Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS).toLowerCase();
+    return !underFSURI.startsWith("hdfs://");
   }
 
   private boolean validateHdfsSettingParity(Map<String, String> optionsMap) {
