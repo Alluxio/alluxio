@@ -14,12 +14,8 @@ package alluxio.master.file;
 import alluxio.Constants;
 import alluxio.RpcUtils;
 import alluxio.exception.AlluxioException;
-<<<<<<< HEAD
-import alluxio.master.file.options.WorkerHeartbeatOptions;
-||||||| merged common ancestors
-=======
 import alluxio.exception.status.AlluxioStatusException;
->>>>>>> upstream/master
+import alluxio.master.file.options.WorkerHeartbeatOptions;
 import alluxio.thrift.AlluxioTException;
 import alluxio.thrift.FileSystemHeartbeatTOptions;
 import alluxio.thrift.FileSystemHeartbeatTResponse;
