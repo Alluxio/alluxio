@@ -225,27 +225,32 @@ public final class UnderFileSystemBlockReader implements BlockReader {
     int bytesRead = 0;
 
     RetryPolicy retryPolicy = new CountingRetry(RETRY_COUNT);
+    IOException thrownException = null;
     while (retryPolicy.attemptRetry()) {
       try {
         bytesRead = buf.writeBytes(mUnderFileSystemInputStream, bytesToRead);
       } catch (IOException e) {
         LOG.debug("Failed to read from ufs instream ");
-        if(mUnderFileSystemInputStream instanceof SeekableUnderFileInputStream) {
+        thrownException = e;
+        if (mUnderFileSystemInputStream instanceof SeekableUnderFileInputStream) {
           // this may happen when the cached input stream is stale
           UfsInfo ufsInfo = mUfsManager.get(mBlockMeta.getMountId());
           UnderFileSystem ufs = ufsInfo.getUfs();
-          mUfsInstreamManager.invalidate((SeekableUnderFileInputStream)mUnderFileSystemInputStream);
+          mUfsInstreamManager
+              .invalidate((SeekableUnderFileInputStream) mUnderFileSystemInputStream);
           mUnderFileSystemInputStream =
               mUfsInstreamManager.acquire(ufs, mBlockMeta.getUnderFileSystemPath(),
                   OpenOptions.defaults().setOffset(
                       ((SeekableUnderFileInputStream) mUnderFileSystemInputStream).getPos()),
               false);
+        } else {
+          throw thrownException;
         }
-
-
       }
     }
-
+    if (retryPolicy.getRetryCount() >= RETRY_COUNT) {
+      throw thrownException;
+    }
 
     if (bytesRead <= 0) {
       return bytesRead;
