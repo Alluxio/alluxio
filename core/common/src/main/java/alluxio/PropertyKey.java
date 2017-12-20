@@ -288,6 +288,24 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "to under file system. If the total number of entries is greater than the "
               + "specified length, multiple queries will be issued.")
           .build();
+  public static final PropertyKey UNDERFS_READ_RETRY_BASE_SLEEP_MS =
+      new Builder(Name.UNDERFS_READ_RETRY_BASE_SLEEP_MS).setDefaultValue("50ms")
+          .setDescription("Block reads from an under storage automatically retry for transient "
+              + "errors with an exponential backoff. This property determines the base time in the "
+              + "exponential backoff.")
+          .build();
+  public static final PropertyKey UNDERFS_READ_RETRY_MAX_NUM =
+      new Builder(Name.UNDERFS_READ_RETRY_MAX_NUM).setDefaultValue(20)
+          .setDescription("Block reads from an under storage automatically retry for transient "
+              + "errors with an exponential backoff. This property determines the maximum number of"
+              + " retries.")
+          .build();
+  public static final PropertyKey UNDERFS_READ_RETRY_MAX_SLEEP_MS =
+      new Builder(Name.UNDERFS_READ_RETRY_MAX_SLEEP_MS).setDefaultValue("30sec")
+          .setDescription("Block reads from an under storage automatically retry for transient "
+              + "errors with an exponential backoff. This property determines the maximum wait time"
+              + " in the backoff.")
+          .build();
   public static final PropertyKey UNDERFS_GCS_OWNER_ID_TO_USERNAME_MAPPING =
       new Builder(Name.UNDERFS_GCS_OWNER_ID_TO_USERNAME_MAPPING)
           .setDefaultValue("")
@@ -336,24 +354,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("Whether or not to share object storage under storage system "
               + "mounted point with all Alluxio users. Note that this configuration has no "
               + "effect on HDFS nor local UFS.")
-          .build();
-  public static final PropertyKey UNDERFS_OBJECT_STORE_OPEN_RETRY_BASE_SLEEP_MS =
-      new Builder(Name.UNDERFS_OBJECT_STORE_OPEN_RETRY_BASE_SLEEP_MS).setDefaultValue("50ms")
-          .setDescription("GET requests to an object store automatically retry for transient "
-              + "errors with an exponential backoff. This property determines the base time in the "
-              + "exponential backoff.")
-          .build();
-  public static final PropertyKey UNDERFS_OBJECT_STORE_OPEN_RETRY_MAX_NUM =
-      new Builder(Name.UNDERFS_OBJECT_STORE_OPEN_RETRY_MAX_NUM).setDefaultValue(20)
-          .setDescription("GET requests to an object store automatically retry for transient "
-              + "errors with an exponential backoff. This property determines the maximum number of"
-              + " retries.")
-          .build();
-  public static final PropertyKey UNDERFS_OBJECT_STORE_OPEN_RETRY_MAX_SLEEP_MS =
-      new Builder(Name.UNDERFS_OBJECT_STORE_OPEN_RETRY_MAX_SLEEP_MS).setDefaultValue("30sec")
-          .setDescription("GET requests to an object store automatically retry for transient "
-              + "errors with an exponential backoff. This property determines the maximum wait time"
-              + " in the backoff.")
           .build();
   public static final PropertyKey UNDERFS_OSS_CONNECT_MAX =
       new Builder(Name.UNDERFS_OSS_CONNECT_MAX)
@@ -2035,6 +2035,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String UNDERFS_ALLOW_SET_OWNER_FAILURE =
         "alluxio.underfs.allow.set.owner.failure";
     public static final String UNDERFS_LISTING_LENGTH = "alluxio.underfs.listing.length";
+    public static final String UNDERFS_READ_RETRY_BASE_SLEEP_MS =
+        "alluxio.underfs.read.retry.base.sleep";
+    public static final String UNDERFS_READ_RETRY_MAX_NUM =
+        "alluxio.underfs.read.retry.max.num";
+    public static final String UNDERFS_READ_RETRY_MAX_SLEEP_MS =
+        "alluxio.underfs.read.retry.max.sleep";
     public static final String UNDERFS_GCS_OWNER_ID_TO_USERNAME_MAPPING =
         "alluxio.underfs.gcs.owner.id.to.username.mapping";
     public static final String UNDERFS_HDFS_CONFIGURATION = "alluxio.underfs.hdfs.configuration";
@@ -2045,12 +2051,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.underfs.object.store.service.threads";
     public static final String UNDERFS_OBJECT_STORE_MOUNT_SHARED_PUBLICLY =
         "alluxio.underfs.object.store.mount.shared.publicly";
-    public static final String UNDERFS_OBJECT_STORE_OPEN_RETRY_BASE_SLEEP_MS =
-        "alluxio.underfs.object.store.open.retry.base.sleep";
-    public static final String UNDERFS_OBJECT_STORE_OPEN_RETRY_MAX_NUM =
-        "alluxio.underfs.object.store.open.retry.max.num";
-    public static final String UNDERFS_OBJECT_STORE_OPEN_RETRY_MAX_SLEEP_MS =
-        "alluxio.underfs.object.store.open.retry.max.sleep";
     public static final String UNDERFS_OSS_CONNECT_MAX = "alluxio.underfs.oss.connection.max";
     public static final String UNDERFS_OSS_CONNECT_TIMEOUT =
         "alluxio.underfs.oss.connection.timeout";
