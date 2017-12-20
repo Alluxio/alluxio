@@ -32,6 +32,7 @@ import java.io.InputStream;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -48,25 +49,24 @@ import javax.annotation.concurrent.ThreadSafe;
  *
  * An under storage file maybe opened with multiple input streams at the same time. The manager uses
  * {@link UfsInputStreamIds} to track the in-use input stream and the available ones. The manager
- * closes the input streams after they are expired and not in-use anymore.
+ * closes the input streams after they are expired and not in-use anymore. Lock
+ * {@link UfsInputStreamIds} before access, and in addition to that, lock
+ * {@link #mFileToInputStreamIds} before the resource retrieval.
  */
 @ThreadSafe
 public class UfsInputStreamManager {
   private static final Logger LOG = LoggerFactory.getLogger(UfsInputStreamManager.class);
+  private static final long UNAVAILABLE_RESOURCE_ID = -1;
 
   /**
-   * A map from the ufs file name to the metadata of the input streams. Synchronization is needed to
-   * access this map.
+   * A map from the ufs file name to the metadata of the input streams. Synchronization on this map
+   * before access.
    */
-  private final HashMap<String, UfsInputStreamIds> mFileToInputStreamIds;
-  /**
-   * Cache of the input streams, from the input stream id to the input stream.
-   */
+  private final Map<String, UfsInputStreamIds> mFileToInputStreamIds;
+  /** Cache of the input streams, from the input stream id to the input stream. */
   @GuardedBy("mFileToInputStreamIds")
   private final Cache<Long, SeekableUnderFileInputStream> mUnderFileInputStreamCache;
-  /**
-   * Thread pool for asynchronously removing the expired input streams.
-   */
+  /** Thread pool for asynchronously removing the expired input streams. */
   private final ExecutorService mRemovalThreadPool;
 
   /**
@@ -80,6 +80,7 @@ public class UfsInputStreamManager {
     RemovalListener<Long, SeekableUnderFileInputStream> listener =
         (RemovalNotification<Long, SeekableUnderFileInputStream> removal) -> {
           SeekableUnderFileInputStream inputStream = removal.getValue();
+          boolean shouldClose = false;
           synchronized (mFileToInputStreamIds) {
             if (mFileToInputStreamIds.containsKey(inputStream.getFilePath())) {
               UfsInputStreamIds resources = mFileToInputStreamIds.get(inputStream.getFilePath());
@@ -89,12 +90,7 @@ public class UfsInputStreamManager {
                 if (resources.removeAvailable(removal.getKey())) {
                   // close the resource
                   LOG.debug("Removed the under file input stream resource of {}", removal.getKey());
-                  try {
-                    inputStream.close();
-                  } catch (IOException e) {
-                    LOG.warn("Failed to close the input stream resource of file {} and resource id",
-                        inputStream.getFilePath(), removal.getKey());
-                  }
+                  shouldClose = true;
                 }
                 if (resources.isEmpty()) {
                   // remove the resources entry
@@ -104,6 +100,14 @@ public class UfsInputStreamManager {
             } else {
               LOG.warn("Try to remove the resource entry of {} but not exists any more",
                   removal.getKey());
+            }
+          }
+          if (shouldClose) {
+            try {
+              inputStream.close();
+            } catch (IOException e) {
+              LOG.warn("Failed to close the input stream resource of file {} and resource id",
+                  inputStream.getFilePath(), removal.getKey());
             }
           }
         };
@@ -127,20 +131,22 @@ public class UfsInputStreamManager {
       return;
     }
 
-    SeekableUnderFileInputStream seekableInputStream = (SeekableUnderFileInputStream) inputStream;
     synchronized (mFileToInputStreamIds) {
-      if (!mFileToInputStreamIds.containsKey(seekableInputStream.getFilePath())) {
-        LOG.debug("The resource {} is already expired", seekableInputStream.getResourceId());
+      if (!mFileToInputStreamIds
+          .containsKey(((SeekableUnderFileInputStream) inputStream).getFilePath())) {
+        LOG.debug("The resource {} is already expired",
+            ((SeekableUnderFileInputStream) inputStream).getResourceId());
         // the cache no longer tracks this input stream
-        seekableInputStream.close();
+        inputStream.close();
         return;
       }
-      UfsInputStreamIds resources = mFileToInputStreamIds.get(seekableInputStream.getFilePath());
-      if (!resources.release(seekableInputStream.getResourceId())) {
+      UfsInputStreamIds resources =
+          mFileToInputStreamIds.get(((SeekableUnderFileInputStream) inputStream).getFilePath());
+      if (!resources.release(((SeekableUnderFileInputStream) inputStream).getResourceId())) {
         LOG.debug("Close the expired input stream resource of {}",
-            seekableInputStream.getResourceId());
+            ((SeekableUnderFileInputStream) inputStream).getResourceId());
         // the input stream expired, close it
-        seekableInputStream.close();
+        inputStream.close();
       }
     }
   }
@@ -151,14 +157,14 @@ public class UfsInputStreamManager {
    *
    * @param ufs the under file system
    * @param path the path to the under storage file
-   * @param offset the offset to open
+   * @param openOptions the open options
    * @return the acquired input stream
    * @throws IOException if the input stream fails to open
    */
-  public InputStream acquire(UnderFileSystem ufs, String path, long offset) throws IOException {
+  public InputStream acquire(UnderFileSystem ufs, String path, OpenOptions openOptions) throws IOException {
     if (!ufs.isSeekable() || !isCachingEnabled()) {
       // not able to cache, always return a new input stream
-      return ufs.open(path, OpenOptions.defaults().setOffset(offset));
+      return ufs.open(path, openOptions);
     }
 
     // explicit cache cleanup
@@ -175,7 +181,7 @@ public class UfsInputStreamManager {
     }
 
     synchronized (resources) {
-      long nextId = -1;
+      long nextId = UNAVAILABLE_RESOURCE_ID;
       SeekableUnderFileInputStream inputStream = null;
       // find the next available input stream from the cache
       for (long id : resources.availableIds()) {
@@ -184,18 +190,18 @@ public class UfsInputStreamManager {
           nextId = id;
           LOG.debug("Reused the under file input stream resource of {}", nextId);
           // for the cached ufs instream, seek to the requested position
-          inputStream.seek(offset);
+          inputStream.seek(openOptions.getOffset());
           break;
         }
       }
       // no cached input stream is available, open a new one
-      if (nextId == -1) {
+      if (nextId == UNAVAILABLE_RESOURCE_ID) {
         nextId = IdUtils.getRandomNonNegativeLong();
         final long newId = nextId;
         try {
           inputStream = mUnderFileInputStreamCache.get(nextId, () -> {
             SeekableUnderFileInputStream ufsStream = (SeekableUnderFileInputStream) ufs.open(path,
-                OpenOptions.defaults().setOffset(offset));
+                OpenOptions.defaults().setOffset(openOptions.getOffset()));
             LOG.debug("Created the under file input stream resource of {}", newId);
             ufsStream.setResourceId(newId);
             ufsStream.setFilePath(path);
@@ -204,7 +210,7 @@ public class UfsInputStreamManager {
         } catch (ExecutionException e) {
           LOG.warn("Failed to retrieve the cached UFS instream");
           // fall back to a ufs creation.
-          return ufs.open(path, OpenOptions.defaults().setOffset(offset));
+          return ufs.open(path, OpenOptions.defaults().setOffset(openOptions.getOffset()));
         }
       }
 

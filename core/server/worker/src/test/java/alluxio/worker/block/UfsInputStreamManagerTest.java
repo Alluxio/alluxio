@@ -73,11 +73,11 @@ public final class UfsInputStreamManagerTest {
         .thenReturn(mockedStrem).thenThrow(new IllegalStateException("Should only be called once"));
 
     // acquire a stream
-    InputStream instream1 = mManager.acquire(mUfs, FILE_NAME, 2);
+    InputStream instream1 = mManager.acquire(mUfs, FILE_NAME, OpenOptions.defaults().setOffset(2));
     // release
     mManager.release(instream1);
     // acquire a stream again
-    InputStream instream2 = mManager.acquire(mUfs, FILE_NAME, 4);
+    InputStream instream2 = mManager.acquire(mUfs, FILE_NAME, OpenOptions.defaults().setOffset(4));
 
     Assert.assertEquals(mockedStrem, instream1);
     Assert.assertEquals(mockedStrem, instream2);
@@ -90,9 +90,9 @@ public final class UfsInputStreamManagerTest {
    */
   @Test
   public void testMultipleCheckIn() throws Exception {
-    mManager.acquire(mUfs, FILE_NAME, 2);
-    mManager.acquire(mUfs, FILE_NAME, 4);
-    mManager.acquire(mUfs, FILE_NAME, 6);
+    mManager.acquire(mUfs, FILE_NAME, OpenOptions.defaults().setOffset(2));
+    mManager.acquire(mUfs, FILE_NAME, OpenOptions.defaults().setOffset(4));
+    mManager.acquire(mUfs, FILE_NAME, OpenOptions.defaults().setOffset(6));
     // 3 different input streams are acquired
     Mockito.verify(mUfs, Mockito.times(3)).open(Mockito.eq(FILE_NAME),
         Mockito.any(OpenOptions.class));
@@ -110,12 +110,12 @@ public final class UfsInputStreamManagerTest {
     }).toResource()) {
       mManager = new UfsInputStreamManager();
       // check out a stream
-      InputStream instream = mManager.acquire(mUfs, FILE_NAME, 2);
+      InputStream instream = mManager.acquire(mUfs, FILE_NAME, OpenOptions.defaults().setOffset(2));
       // check in back
       mManager.release(instream);
       Thread.sleep(10);
       // check out another stream should trigger the timeout
-      mManager.acquire(mUfs, FILE_NAME, 4);
+      mManager.acquire(mUfs, FILE_NAME, OpenOptions.defaults().setOffset(4));
       Mockito.verify(mSeekableInStreams[0], Mockito.timeout(2000).times(1)).close();
     }
   }
@@ -133,7 +133,7 @@ public final class UfsInputStreamManagerTest {
         for (int j = 0; j < numCheckOutPerThread; j++) {
           InputStream instream;
           try {
-            instream = mManager.acquire(mUfs, FILE_NAME, j);
+            instream = mManager.acquire(mUfs, FILE_NAME, OpenOptions.defaults().setOffset(j));
             Thread.sleep(10);
             mManager.release(instream);
           } catch (Exception e) {
@@ -168,7 +168,7 @@ public final class UfsInputStreamManagerTest {
           for (int j = 0; j < numCheckOutPerThread; j++) {
             InputStream instream;
             try {
-              instream = mManager.acquire(mUfs, FILE_NAME, j);
+              instream = mManager.acquire(mUfs, FILE_NAME, OpenOptions.defaults().setOffset(j));
               mManager.release(instream);
               Thread.sleep(200);
             } catch (Exception e) {
