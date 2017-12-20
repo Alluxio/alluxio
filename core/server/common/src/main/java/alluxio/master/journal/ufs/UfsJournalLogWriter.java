@@ -80,10 +80,7 @@ final class UfsJournalLogWriter implements JournalWriter {
   private boolean mNeedsRecovery = false;
   /**
    * Journal entries that have been written successfully to the underlying
-   * {@link DataOutputStream}, but have not been flushed.
-   * The semantic and guarantee provided by the flush operation is
-   * UFS-dependent. Therefore, we need a data structure to store the journal
-   * entries that have been written, but not flushed. Should a failure occur
+   * {@link DataOutputStream}, but have not been flushed. Should a failure occur
    * before flush, {@code UfsJournalLogWriter} is able to retry writing the
    * journal entries.
    */
