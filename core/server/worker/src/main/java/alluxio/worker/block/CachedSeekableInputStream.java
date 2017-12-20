@@ -1,3 +1,14 @@
+/*
+ * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
+ * (the "License"). You may not use this work except in compliance with the License, which is
+ * available at www.apache.org/licenses/LICENSE-2.0
+ *
+ * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+ * either express or implied, as more fully set forth in the License.
+ *
+ * See the NOTICE file distributed with this work for information regarding copyright ownership.
+ */
+
 package alluxio.worker.block;
 
 import alluxio.underfs.SeekableUnderFileInputStream;
@@ -6,17 +17,24 @@ import com.google.common.base.Preconditions;
 
 import java.io.IOException;
 
-public class CachedSeekableInputStream extends SeekableUnderFileInputStream {
+/**
+ * A seekable input stream that can be cached.
+ */
+class CachedSeekableInputStream extends SeekableUnderFileInputStream {
   /** A unique resource id annotated for resource tracking. */
   private Long mResourceId;
   /** The file path of the input stream. */
   private String mFilePath;
+
   /**
    * Creates a new {@link CachedSeekableInputStream}.
    *
    * @param inputStream the input stream from the under storage
+   * @param resourceId the resource id
+   * @param filePath the file path
    */
-  public CachedSeekableInputStream(SeekableUnderFileInputStream inputStream, long resourceId, String filePath) {
+  CachedSeekableInputStream(SeekableUnderFileInputStream inputStream, long resourceId,
+      String filePath) {
     super(inputStream);
     Preconditions.checkArgument(resourceId >= 0, "resource id should be positive");
     mResourceId = resourceId;
@@ -26,14 +44,14 @@ public class CachedSeekableInputStream extends SeekableUnderFileInputStream {
   /**
    * @return the resource id
    */
-  public long getResourceId() {
+  long getResourceId() {
     return mResourceId;
   }
 
   /**
    * @return the under file path
    */
-  public String getFilePath() {
+  String getFilePath() {
     return mFilePath;
   }
 
