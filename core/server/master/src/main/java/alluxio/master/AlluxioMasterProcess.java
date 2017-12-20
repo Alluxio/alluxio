@@ -207,7 +207,6 @@ public class AlluxioMasterProcess implements MasterProcess {
     mJournalSystem.start();
     mJournalSystem.setMode(Mode.PRIMARY);
     startMasters(true);
-    mSafeModeManager.notifyRpcServerStarted();
     startServing();
   }
 
@@ -351,6 +350,7 @@ public class AlluxioMasterProcess implements MasterProcess {
     // start thrift rpc server
     mIsServing = true;
     mStartTimeMs = System.currentTimeMillis();
+    mSafeModeManager.notifyRpcServerStarted();
     mThriftServer.serve();
   }
 
