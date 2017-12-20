@@ -114,10 +114,6 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
         config_vb(n, i, Total, name, AlluxioV.type == "Local")
       end
 
-      if Provider == "docker"
-        config_docker(n, i, Total, name)
-      end
-
       if Provider == "aws"
         if (defined?(@ec2)).nil?
           @ec2 = YAML.load_file('conf/ec2.yml')

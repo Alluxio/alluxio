@@ -64,10 +64,6 @@ Replace `<container>/<folder>` with an existing Swift container location. Possib
 `true`, `false`. Specify `<swift-auth-model>` as `swiftauth` if using native Ceph RGW authentication and `<swift-auth-url>`
 as `http://<rgw-hostname>:<rgw-port>/auth/1.0`.
 
-Alternatively, these configuration settings can be set in the `conf/alluxio-env.sh` file. More
-details about setting configuration parameters can be found in
-[Configuration Settings](Configuration-Settings.html#environment-variables).
-
 ## Running Alluxio Locally with Ceph
 
 After everything is configured, you can start up Alluxio locally to see that everything works.

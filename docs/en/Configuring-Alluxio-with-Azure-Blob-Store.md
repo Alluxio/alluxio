@@ -58,7 +58,7 @@ $ ./bin/alluxio fs mount --option fs.azure.account.key.AZURE_ACCOUNT.blob.core.w
   /mnt/azure wasb://AZURE_CONTAINER@AZURE_ACCOUNT.blob.core.windows.net/AZURE_DIRECTORY/
 ```
 
-After these changes, Alluxio should be configured to work with Azure Blob Store as its under storage system, and you can try to run Alluxio locally with it.
+After these changes, Alluxio should be configured to work with Azure Blob Store as its under storage system, and you can run Alluxio locally with it.
 
 ## Running Alluxio Locally with Azure Blob Store
 

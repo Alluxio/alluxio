@@ -90,6 +90,12 @@
             <configuration>
               <finalName>${project.artifactId}-${project.version}-jar-with-dependencies</finalName>
               <relocations>
+                <!-- Relocate the native netty libraries to be prefixed with our shade prefix -->
+                <relocation>
+                  <pattern>META-INF/native/libnetty_transport_native_epoll_x86_64.so</pattern>
+                  <shadedPattern>META-INF/native/liballuxio_core_client_runtime_netty_transport_native_epoll_x86_64.so</shadedPattern>
+                  <rawString>true</rawString>
+                </relocation>
                 <relocation>
                   <pattern>com.codahale.metrics</pattern>
                   <shadedPattern>${shading.prefix}.com.codahale.metrics</shadedPattern>

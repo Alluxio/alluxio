@@ -28,6 +28,7 @@ import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 import alluxio.web.WebServer;
 import alluxio.web.WorkerWebServer;
+import alluxio.wire.TieredIdentity;
 import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.block.BlockWorker;
 import alluxio.util.JvmPauseMonitor;
@@ -61,6 +62,8 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public final class AlluxioWorkerProcess implements WorkerProcess {
   private static final Logger LOG = LoggerFactory.getLogger(AlluxioWorkerProcess.class);
+
+  private final TieredIdentity mTieredIdentitiy;
 
   /** Server for data requests and responses. */
   private DataServer mDataServer;
@@ -103,7 +106,8 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
   /**
    * Creates a new instance of {@link AlluxioWorkerProcess}.
    */
-  AlluxioWorkerProcess() {
+  AlluxioWorkerProcess(TieredIdentity tieredIdentity) {
+    mTieredIdentitiy = tieredIdentity;
     try {
       mStartTimeMs = System.currentTimeMillis();
       mUfsManager = new WorkerUfsManager();
@@ -367,7 +371,8 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
         .setRpcPort(mRpcAddress.getPort())
         .setDataPort(getDataLocalPort())
         .setDomainSocketPath(getDataDomainSocketPath())
-        .setWebPort(mWebServer.getLocalPort());
+        .setWebPort(mWebServer.getLocalPort())
+        .setTieredIdentity(mTieredIdentitiy);
   }
 
   @Override

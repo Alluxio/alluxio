@@ -42,13 +42,8 @@ public final class CustomAuthenticationProvider implements AuthenticationProvide
       throw new RuntimeException(providerName + " not found");
     }
 
-    try {
-      mCustomProvider = (AuthenticationProvider) CommonUtils
-          .createNewClassInstance(customProviderClass, null, null);
-    } catch (Exception e) {
-      throw new RuntimeException(
-          customProviderClass.getName() + " instantiate failed :" + e.getMessage());
-    }
+    mCustomProvider = (AuthenticationProvider) CommonUtils
+        .createNewClassInstance(customProviderClass, null, null);
   }
 
   /**

@@ -68,6 +68,8 @@ alluxio.master.retry:
   'The number of retries that the client connects to master. (NOTE: this property is deprecated, use `alluxio.user.rpc.retry.max.num.retry` instead).'
 alluxio.master.startup.consistency.check.enabled:
   'Whether the system should be checked for consistency with the underlying storage on startup. During the time the check is running, Alluxio will be in read only mode. Enabled by default.'
+alluxio.master.thrift.shutdown.timeout:
+  'Maximum time to wait for thrift servers to stop on shutdown'
 alluxio.master.tieredstore.global.level0.alias:
   'The name of the highest storage tier in the entire system.'
 alluxio.master.tieredstore.global.level1.alias:
