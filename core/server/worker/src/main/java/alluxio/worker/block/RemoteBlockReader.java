@@ -11,9 +11,14 @@
 
 package alluxio.worker.block;
 
+import alluxio.client.block.stream.BlockInStream;
+import alluxio.client.file.FileSystemContext;
+import alluxio.exception.status.AlluxioStatusException;
 import alluxio.proto.dataserver.Protocol;
+import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.block.io.BlockReader;
 
+import com.google.common.base.Preconditions;
 import io.netty.buffer.ByteBuf;
 
 import java.io.IOException;
@@ -29,6 +34,7 @@ public class RemoteBlockReader implements BlockReader {
   private final InetSocketAddress mDataSource;
   private final Protocol.OpenUfsBlockOptions mUfsOptions;
 
+  private BlockInStream mInputStream;
   private boolean mClosed;
 
   /**
@@ -48,22 +54,29 @@ public class RemoteBlockReader implements BlockReader {
 
   @Override
   public ByteBuffer read(long offset, long length) throws IOException {
-    return null;
+    throw new UnsupportedOperationException("RemoteBlockReader#read is not supported");
   }
 
   @Override
   public long getLength() {
-    return 0;
+    return mUfsOptions.getBlockSize();
   }
 
   @Override
   public ReadableByteChannel getChannel() {
-    return null;
+    throw new UnsupportedOperationException("RemoteBlockReader#getChannel is not supported");
   }
 
   @Override
   public int transferTo(ByteBuf buf) throws IOException {
-    return 0;
+    Preconditions.checkState(!mClosed);
+    initStream();
+    if (mInputStream == null || mInputStream.remaining() <= 0) {
+      return -1;
+    }
+    int bytesToRead =
+        (int) Math.min((long) buf.writableBytes(), mInputStream.remaining());
+    return buf.writeBytes(mInputStream, bytesToRead);
   }
 
   @Override
@@ -73,6 +86,22 @@ public class RemoteBlockReader implements BlockReader {
 
   @Override
   public void close() throws IOException {
+    if (mClosed) {
+      return;
+    }
+    if (mInputStream != null) {
+      mInputStream.close();
+    }
+    mClosed = true;
+  }
 
+  private void initStream() {
+    if (mInputStream != null) {
+      return;
+    }
+    WorkerNetAddress address = new WorkerNetAddress().setHost(mDataSource.getHostName())
+        .setDataPort(mDataSource.getPort());
+    mInputStream = BlockInStream.createRemoteBlockInStream(FileSystemContext.INSTANCE, mBlockId,
+        address, BlockInStream.BlockInStreamSource.REMOTE, mUfsOptions);
   }
 }
