@@ -154,6 +154,12 @@ public class UfsInputStreamManager {
     }
   }
 
+  /**
+   * Invalidates an input stream from the cache.
+   *
+   * @param inputStream the cached input stream
+   * @throws IOException when the invalidated input stream fails to release
+   */
   public void invalidate(CachedSeekableInputStream inputStream) throws IOException {
     mUnderFileInputStreamCache.invalidate(inputStream.getResourceId());
     release(inputStream);
@@ -182,13 +188,12 @@ public class UfsInputStreamManager {
    * @param ufs the under file system
    * @param path the path to the under storage file
    * @param openOptions the open options
-   * @return the acquired input stream
    * @param reuse true to reuse existing input stream, otherwise acquire a new stream
    * @return the acquired input stream
    * @throws IOException if the input stream fails to open
    */
-  public InputStream acquire(UnderFileSystem ufs, String path, OpenOptions openOptions, boolean reuse)
-      throws IOException {
+  public InputStream acquire(UnderFileSystem ufs, String path, OpenOptions openOptions,
+      boolean reuse) throws IOException {
     if (!ufs.isSeekable() || !isCachingEnabled()) {
       // not able to cache, always return a new input stream
       return ufs.open(path, openOptions);
