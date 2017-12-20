@@ -387,8 +387,7 @@ public final class UfsJournalLogWriterTest extends BaseIntegrationTest {
 
   /**
    * Checks that journal entries with sequence number between startSN (inclusive) and endSN
-   * (exclusive) exist in the current incomplete journal file, i.e. journal file whose name
-   * is in the form of <startSN>-0x7fffffffffffffff.
+   * (exclusive) exist in the current journal files.
    *
    * @param startSN start sequence number (inclusive)
    * @param endSN end sequence number (exclusive)
