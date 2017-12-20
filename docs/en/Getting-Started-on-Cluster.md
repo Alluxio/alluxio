@@ -62,10 +62,10 @@ Hadoop from the [Alluxio download page](http://www.alluxio.org/download).
 Second, `scp` the release tarball to all the Linux nodes. Feel free to use scriptable way (such as Ansible)
 to distribute the tarball and automate the following process on multiple machines. In this documentation,
 manual commands are shown and most of them should be executed on all the nodes. The raw commands are described
-to help user understand how Alluxio components are started individually.
+to help users understand how Alluxio components are started individually.
 
-Next, you can unpack the download with the following commands on all the nodes. Your file name may be different
-depending on which pre-built binaries you have downloaded.
+Next, unpack the download with the following commands on all the nodes. Your file name may be different
+depending on which of the pre-built binaries you have downloaded.
 
 ```bash
 $ tar -xzf alluxio-{{site.ALLUXIO_RELEASED_VERSION}}-bin.tar.gz
@@ -118,13 +118,13 @@ Before starting Alluxio, you might want to make sure that your system environmen
 Alluxio services. You can run the following command to validate environment on each node:
 
 ```bash
-$ ./bin/alluxio validateEnv
+$ ./bin/alluxio validateEnv local
 ```
 
 You can also make the command run only specific validation tasks. For example,
 
 ```bash
-$ ./bin/alluxio validateEnv ulimit
+$ ./bin/alluxio validateEnv local ulimit
 ```
 
 Will only run validation tasks that check your system resource limits, on the specific node.
@@ -219,7 +219,7 @@ Alluxio with the command:
 
 ```bash
 $ ./bin/alluxio fs ls /
-drwxr-xr-x   ubuntu    ubuntu    26.22KB   09-22-2017 09:30:08:781  In Memory      /LICENSE
+-rw-r--r--   ubuntu    ubuntu    26.22KB   NOT_PERSISTED 09-22-2017 09:30:08:781  100%      /LICENSE
 ```
 
 The output shows the file that exists in Alluxio, as well as some other useful information, like the
@@ -256,14 +256,14 @@ see the LICENSE file as well as other useful information. Here, the **Persistenc
 shows the file as **PERSISTED**.
 
 ## [Bonus] Run a Hadoop MapReduce job on Alluxio cluster
-Please refer to this [doc](Running-Hadoop-MapReduce-on-Alluxio.md) for how to install Hadoop MapReduce on this cluster,
+Please refer to this [doc](Running-Hadoop-MapReduce-on-Alluxio.html) for how to install Hadoop MapReduce on this cluster,
 and run a Hadoop MapReduce job on the installed Alluxio cluster.
 
 Please make sure all the environment and configuration are set up on all the nodes.
 
 ## [Bonus] Run a Spark job on Alluxio cluster
 
-Please refer to this [doc](Running-Spark-on-Alluxio.md) for how to install Apache Spark on this cluster,
+Please refer to this [doc](Running-Spark-on-Alluxio.html) for how to install Apache Spark on this cluster,
 and run a sample Spark job on the installed Alluxio cluster.
 
 Please make sure all the environment and configuration are set up on all the nodes.
