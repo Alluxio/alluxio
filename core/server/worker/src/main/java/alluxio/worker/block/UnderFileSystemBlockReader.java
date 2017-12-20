@@ -25,6 +25,7 @@ import alluxio.exception.status.AlluxioStatusException;
 import alluxio.underfs.UfsManager;
 import alluxio.underfs.UfsManager.UfsInfo;
 import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.options.OpenOptions;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.BlockWriter;
@@ -297,8 +298,9 @@ public final class UnderFileSystemBlockReader implements BlockReader {
       UfsInfo ufsInfo = mUfsManager.get(mBlockMeta.getMountId());
       UnderFileSystem ufs = ufsInfo.getUfs();
       mUfsMountPointUri = ufsInfo.getUfsMountPointUri();
-      mUnderFileSystemInputStream = mUfsInstreamManager.acquire(ufs,
-          mBlockMeta.getUnderFileSystemPath(), mBlockMeta.getOffset() + offset);
+      mUnderFileSystemInputStream =
+          mUfsInstreamManager.acquire(ufs, mBlockMeta.getUnderFileSystemPath(),
+              OpenOptions.defaults().setOffset(mBlockMeta.getOffset() + offset));
       mInStreamPos = offset;
     }
   }
