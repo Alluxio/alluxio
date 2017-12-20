@@ -50,8 +50,8 @@ added nodes in order to balance memory space utilization between the nodes?
 9. What happens if my data set does not fit in memory?
 
    Depends on the system setup, Alluxio may leverage local SSD and HDD. It keeps hot data in
-   Alluxio, and cold data in under storage systems. You can read more about tiered storage setup 
-   [here](Tiered-Storage-on-Alluxio.html).
+   Alluxio, and cold data in under storage systems. You can read more about Alluxio storage setup
+   [here](Alluxio-Storage.html).
 
 10. Can I run Alluxio as a stand-alone system for experimenting and validation?
 

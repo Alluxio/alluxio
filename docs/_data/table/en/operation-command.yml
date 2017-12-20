@@ -1,17 +1,17 @@
 cat:
-  Print the content of the file to the console.
+  Print the content of a file to the console.
 checkConsistency:
   Check the metadata consistency between Alluxio and the under storage.
 checksum:
   Calculate the md5 checksum for a file.
 chgrp:
-  Change the group of the directory or file.
+  Change the group of a file or directory.
 chmod:
   Change the permission of the directory or file.
 chown:
   Change the owner of a file or directory.
 copyFromLocal:
-  Copy the specified file specified by "source path" to the path specified by "remote path".
+  Copy the file specified by "source path" to the path specified by "remote path".
   This command will fail if "remote path" already exists.
 copyToLocal:
   Copy the file specified by "remote path" to a local destination.
@@ -20,7 +20,7 @@ count:
 cp:
   Copy a file or directory within the Alluxio file system.
 du:
-  Display the size of a file or a directory specified by the input path.
+  Display the size of the file or a directory specified by the input path.
 fileInfo:
   Print the information of the blocks of a specified file.
 free:
@@ -78,7 +78,7 @@ setTtl:
   Set the TTL (time to live) in milliseconds for a file. Allow to perform either "delete"
   or "free" after expiry of ttl interval.
 stat:
-  Displays info for the specified path both file and directory.
+  Display info for the specified file or directory.
 tail:
   Print the last 1KB of the specified file to the console.
 test:

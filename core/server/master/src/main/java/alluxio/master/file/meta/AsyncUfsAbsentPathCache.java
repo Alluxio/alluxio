@@ -22,7 +22,6 @@ import alluxio.util.io.PathUtils;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-import io.netty.util.internal.chmv8.ConcurrentHashMapV8;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,6 +30,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -56,7 +56,7 @@ public final class AsyncUfsAbsentPathCache implements UfsAbsentPathCache {
   /** The mount table. */
   private final MountTable mMountTable;
   /** Paths currently being processed. This is used to prevent duplicate processing. */
-  private final ConcurrentHashMapV8<String, PathLock> mCurrentPaths;
+  private final ConcurrentHashMap<String, PathLock> mCurrentPaths;
   /** Cache of paths which are absent in the ufs. */
   private final Cache<String, Long> mCache;
   /** A thread pool for the async tasks. */
@@ -72,7 +72,7 @@ public final class AsyncUfsAbsentPathCache implements UfsAbsentPathCache {
    */
   public AsyncUfsAbsentPathCache(MountTable mountTable, int numThreads) {
     mMountTable = mountTable;
-    mCurrentPaths = new ConcurrentHashMapV8<>(8, 0.95f, 8);
+    mCurrentPaths = new ConcurrentHashMap<>(8, 0.95f, 8);
     mCache = CacheBuilder.newBuilder().maximumSize(MAX_PATHS).build();
     mThreads = numThreads;
 
