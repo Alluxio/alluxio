@@ -15,14 +15,9 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertThat;
-<<<<<<< HEAD
-import static org.junit.Assert.assertTrue;
-||||||| merged common ancestors
-=======
 import static org.junit.Assert.assertTrue;
 
 import alluxio.PropertyKey.Template;
->>>>>>> upstream/master
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;

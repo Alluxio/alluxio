@@ -11,12 +11,13 @@
 
 package alluxio.worker.file;
 
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.anyLong;
 import static org.mockito.Mockito.eq;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import alluxio.exception.status.UnavailableException;
 import alluxio.thrift.FileSystemCommand;
@@ -57,25 +58,13 @@ public final class FileWorkerMasterSyncExecutorTest {
   @Test
   public void heartbeatFailure() throws Exception {
     List<Long> persistedFiles = Lists.newArrayList(1L);
-<<<<<<< HEAD
     List<String> ufsFingerprintList = Lists.newArrayList("ufs fingerprint");
     FileDataManager.PersistedFilesInfo filesInfo =
         new FileDataManager.PersistedFilesInfo(persistedFiles, ufsFingerprintList);
-    Mockito.when(mFileDataManager.getPersistedFileInfos()).thenReturn(filesInfo);
-||||||| merged common ancestors
-    Mockito.when(mFileDataManager.getPersistedFiles()).thenReturn(persistedFiles);
-=======
-    when(mFileDataManager.getPersistedFiles()).thenReturn(persistedFiles);
->>>>>>> upstream/master
+    when(mFileDataManager.getPersistedFileInfos()).thenReturn(filesInfo);
     // first time fails, second time passes
-<<<<<<< HEAD
-    Mockito.when(mFileSystemMasterClient.heartbeat(Mockito.anyLong(), Mockito.eq(persistedFiles),
-        Mockito.any(FileSystemHeartbeatTOptions.class)))
-||||||| merged common ancestors
-    Mockito.when(mFileSystemMasterClient.heartbeat(Mockito.anyLong(), Mockito.eq(persistedFiles)))
-=======
-    when(mFileSystemMasterClient.heartbeat(anyLong(), eq(persistedFiles)))
->>>>>>> upstream/master
+    when(mFileSystemMasterClient.heartbeat(anyLong(), eq(persistedFiles),
+        any(FileSystemHeartbeatTOptions.class)))
         .thenThrow(new UnavailableException("failure"));
     mFileWorkerMasterSyncExecutor.heartbeat();
     verify(mFileDataManager, never()).clearPersistedFiles(persistedFiles);
@@ -88,16 +77,10 @@ public final class FileWorkerMasterSyncExecutorTest {
   @Test
   public void heartbeat() throws Exception {
     List<Long> persistedFiles = Lists.newArrayList(1L);
-<<<<<<< HEAD
     List<String> ufsFingerprintList = Lists.newArrayList("ufs fingerprint");
     FileDataManager.PersistedFilesInfo filesInfo =
         new FileDataManager.PersistedFilesInfo(persistedFiles, ufsFingerprintList);
-    Mockito.when(mFileDataManager.getPersistedFileInfos()).thenReturn(filesInfo);
-||||||| merged common ancestors
-    Mockito.when(mFileDataManager.getPersistedFiles()).thenReturn(persistedFiles);
-=======
-    when(mFileDataManager.getPersistedFiles()).thenReturn(persistedFiles);
->>>>>>> upstream/master
+    when(mFileDataManager.getPersistedFileInfos()).thenReturn(filesInfo);
     // first time fails, second time passes
     when(mFileSystemMasterClient.heartbeat(anyLong(), eq(persistedFiles)))
         .thenReturn(new FileSystemCommand());
