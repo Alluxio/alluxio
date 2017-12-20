@@ -15,6 +15,8 @@ import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.exception.ExceptionMessage;
+import alluxio.retry.ExponentialBackoffRetry;
+import alluxio.retry.RetryPolicy;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.options.DeleteOptions;
 import alluxio.underfs.options.FileLocationOptions;
@@ -536,7 +538,21 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
 
   @Override
   public InputStream open(String path, OpenOptions options) throws IOException {
-    return openObject(stripPrefixIfPresent(path), options);
+    IOException thrownException = null;
+    RetryPolicy retryPolicy = new ExponentialBackoffRetry(
+        (int) Configuration.getMs(PropertyKey.UNDERFS_OBJECT_STORE_READ_RETRY_BASE_SLEEP_MS),
+        (int) Configuration.getMs(PropertyKey.UNDERFS_OBJECT_STORE_READ_RETRY_MAX_SLEEP_MS),
+        Configuration.getInt(PropertyKey.UNDERFS_OBJECT_STORE_READ_RETRY_MAX_NUM));
+    while (retryPolicy.attemptRetry()) {
+      try {
+        return openObject(stripPrefixIfPresent(path), options);
+      } catch (IOException e) {
+        LOG.warn("{} attempt to open {} failed with exception : {}", retryPolicy.getRetryCount(),
+            path, e.getMessage());
+        thrownException = e;
+      }
+    }
+    throw thrownException;
   }
 
   @Override
