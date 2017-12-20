@@ -350,6 +350,8 @@ final class UfsJournalLogWriter implements JournalWriter {
   }
 
   public synchronized void flush() throws IOException {
+    maybeRecoverFromUfsFailures();
+
     if (mClosed || mJournalOutputStream == null || mJournalOutputStream.bytesWritten() == 0) {
       // There is nothing to flush.
       return;
