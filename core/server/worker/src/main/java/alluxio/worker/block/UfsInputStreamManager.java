@@ -161,7 +161,8 @@ public class UfsInputStreamManager {
    * @return the acquired input stream
    * @throws IOException if the input stream fails to open
    */
-  public InputStream acquire(UnderFileSystem ufs, String path, OpenOptions openOptions) throws IOException {
+  public InputStream acquire(UnderFileSystem ufs, String path, OpenOptions openOptions)
+      throws IOException {
     if (!ufs.isSeekable() || !isCachingEnabled()) {
       // not able to cache, always return a new input stream
       return ufs.open(path, openOptions);
