@@ -300,9 +300,8 @@ final class UfsJournalLogWriter implements JournalWriter {
             RuntimeConstants.ALLUXIO_DEBUG_DOCS_URL,
             lastPersistSeq + 1, firstEntryToFlush.getSequenceNumber()));
       }
-      long retryStartSeq = firstEntryToFlush.getSequenceNumber();
-      long retryEndSeq = retryStartSeq;
-      LOG.info("Retry writing unwritten journal entries from seq {}", retryStartSeq);
+      long retryEndSeq = lastPersistSeq;
+      LOG.info("Retry writing unwritten journal entries from seq {}", lastPersistSeq + 1);
       for (JournalEntry entry : mEntriesToFlush) {
         if (entry.getSequenceNumber() > lastPersistSeq) {
           try {
@@ -320,7 +319,7 @@ final class UfsJournalLogWriter implements JournalWriter {
         }
       }
       LOG.info("Finished writing unwritten journal entries from {} to {}.",
-          retryStartSeq, retryEndSeq);
+          lastPersistSeq + 1, retryEndSeq);
     }
     mNeedsRecovery = false;
   }
