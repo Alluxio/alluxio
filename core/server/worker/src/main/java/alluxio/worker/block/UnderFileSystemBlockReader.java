@@ -23,7 +23,6 @@ import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidWorkerStateException;
 import alluxio.exception.PreconditionMessage;
 import alluxio.exception.status.AlluxioStatusException;
-import alluxio.retry.ExponentialBackoffRetry;
 import alluxio.underfs.UfsManager;
 import alluxio.underfs.UfsManager.UfsInfo;
 import alluxio.underfs.UnderFileSystem;
@@ -53,14 +52,6 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public final class UnderFileSystemBlockReader implements BlockReader {
   private static final Logger LOG = LoggerFactory.getLogger(UnderFileSystemBlockReader.class);
-
-  /** Exponential backoff parameters for read retries. */
-  private static final int RETRY_BASE_SLEEP_MS =
-      (int) Configuration.getMs(PropertyKey.UNDERFS_READ_RETRY_BASE_SLEEP_MS);
-  private static final int RETRY_MAX_SLEEP_MS =
-      (int) Configuration.getMs(PropertyKey.UNDERFS_READ_RETRY_MAX_SLEEP_MS);
-  private static final int RETRY_MAX_NUM =
-      Configuration.getInt(PropertyKey.UNDERFS_READ_RETRY_MAX_NUM);
 
   /** An object storing the mapping of tier aliases to ordinals. */
   private final StorageTierAssoc mStorageTierAssoc = new WorkerStorageTierAssoc();
@@ -309,8 +300,7 @@ public final class UnderFileSystemBlockReader implements BlockReader {
       UnderFileSystem ufs = ufsInfo.getUfs();
       mUfsMountPointUri = ufsInfo.getUfsMountPointUri();
       mUnderFileSystemInputStream = ufs.open(mBlockMeta.getUnderFileSystemPath(),
-          OpenOptions.defaults().setOffset(mBlockMeta.getOffset() + offset).setRetryPolicy(
-              new ExponentialBackoffRetry(RETRY_BASE_SLEEP_MS, RETRY_MAX_SLEEP_MS, RETRY_MAX_NUM)));
+          OpenOptions.defaults().setOffset(mBlockMeta.getOffset() + offset));
       mInStreamPos = offset;
     }
   }

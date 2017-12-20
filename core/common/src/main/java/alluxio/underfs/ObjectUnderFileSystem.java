@@ -15,6 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.exception.ExceptionMessage;
+import alluxio.retry.ExponentialBackoffRetry;
 import alluxio.retry.RetryPolicy;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.options.DeleteOptions;
@@ -26,7 +27,6 @@ import alluxio.util.CommonUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.util.io.PathUtils;
 
-import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -72,6 +72,11 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
   /** Executor service used for parallel UFS operations such as bulk deletes. */
   protected ExecutorService mExecutorService;
 
+  /** Retry policy parameters for {@link UnderFileSystem#open(String, OpenOptions)}. */
+  protected int mOpenRetryBaseSleepMs;
+  protected int mOpenRetryMaxSleepMs;
+  protected int mOpenRetryMaxNum;
+
   /**
    * Constructs an {@link ObjectUnderFileSystem}.
    *
@@ -84,6 +89,13 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
     int numThreads = Configuration.getInt(PropertyKey.UNDERFS_OBJECT_STORE_SERVICE_THREADS);
     mExecutorService = ExecutorServiceFactories.fixedThreadPoolExecutorServiceFactory(
         "alluxio-underfs-object-service-worker", numThreads).create();
+
+    mOpenRetryBaseSleepMs =
+        (int) Configuration.getMs(PropertyKey.UNDERFS_OBJECT_STORE_OPEN_RETRY_BASE_SLEEP_MS);
+    mOpenRetryMaxSleepMs =
+        (int) Configuration.getMs(PropertyKey.UNDERFS_OBJECT_STORE_OPEN_RETRY_MAX_SLEEP_MS);
+    mOpenRetryMaxNum =
+        Configuration.getInt(PropertyKey.UNDERFS_OBJECT_STORE_OPEN_RETRY_MAX_NUM);
   }
 
   /**
@@ -510,9 +522,9 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
 
   @Override
   public InputStream open(String path, OpenOptions options) throws IOException {
-    Preconditions.checkNotNull(options.getRetryPolicy(), "Retry policy should not be null");
     IOException thrownException = null;
-    RetryPolicy retryPolicy = options.getRetryPolicy();
+    RetryPolicy retryPolicy =
+        new ExponentialBackoffRetry(mOpenRetryBaseSleepMs, mOpenRetryMaxSleepMs, mOpenRetryMaxNum);
     while (retryPolicy.attemptRetry()) {
       try {
         return openObject(stripPrefixIfPresent(path), options);
