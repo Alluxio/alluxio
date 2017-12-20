@@ -50,8 +50,8 @@ Please make sure on all the nodes, ssh is enabled.
 Optionally, setting up password-less ssh
 will make distributed copy and configuration easier. In this doc, we use the example of manual
 downloading and starting Alluxio on multiple nodes, for demo purpose only. The manual process here
-can be much simplified and automated using `CopyDir` or Ansible scripts. Please refer to this [doc](Running-Alluxio-on-a-Cluster.html]
-and [Running-Alluxio-on-EC2](Running-Alluxio-on-EC2.html] for the alternatives.
+can be much simplified and automated using `CopyDir` or Ansible scripts. Please refer to this [doc](Running-Alluxio-on-a-Cluster.html)
+and [Running-Alluxio-on-EC2](Running-Alluxio-on-EC2.html) for the alternatives.
 
 ## Download Alluxio
 
