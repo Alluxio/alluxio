@@ -91,11 +91,11 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
         "alluxio-underfs-object-service-worker", numThreads).create();
 
     mOpenRetryBaseSleepMs =
-        (int) Configuration.getMs(PropertyKey.UNDERFS_OBJECT_STORE_OPEN_RETRY_BASE_SLEEP_MS);
+        (int) Configuration.getMs(PropertyKey.UNDERFS_OBJECT_STORE_READ_RETRY_BASE_SLEEP_MS);
     mOpenRetryMaxSleepMs =
-        (int) Configuration.getMs(PropertyKey.UNDERFS_OBJECT_STORE_OPEN_RETRY_MAX_SLEEP_MS);
+        (int) Configuration.getMs(PropertyKey.UNDERFS_OBJECT_STORE_READ_RETRY_MAX_SLEEP_MS);
     mOpenRetryMaxNum =
-        Configuration.getInt(PropertyKey.UNDERFS_OBJECT_STORE_OPEN_RETRY_MAX_NUM);
+        Configuration.getInt(PropertyKey.UNDERFS_OBJECT_STORE_READ_RETRY_MAX_NUM);
   }
 
   /**
