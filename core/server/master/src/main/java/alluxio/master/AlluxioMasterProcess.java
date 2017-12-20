@@ -260,7 +260,6 @@ public class AlluxioMasterProcess implements MasterProcess {
    */
   protected void startServing(String startMessage, String stopMessage) {
     MetricsSystem.startSinks();
-    mSafeModeManager.notifyRpcServerStarted();
     startServingWebServer();
     startJvmMonitorProcess();
     LOG.info("Alluxio master version {} started{}. "
@@ -351,6 +350,7 @@ public class AlluxioMasterProcess implements MasterProcess {
     // start thrift rpc server
     mIsServing = true;
     mStartTimeMs = System.currentTimeMillis();
+    mSafeModeManager.notifyRpcServerStarted();
     mThriftServer.serve();
   }
 
