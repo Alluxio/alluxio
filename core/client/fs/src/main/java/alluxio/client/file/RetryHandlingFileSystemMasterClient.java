@@ -213,35 +213,17 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
   }
 
   @Override
-<<<<<<< HEAD
-  public synchronized void rename(final AlluxioURI src, final AlluxioURI dst) throws IOException {
+  public synchronized void rename(final AlluxioURI src, final AlluxioURI dst)
+      throws AlluxioStatusException {
     rename(src, dst, RenameOptions.defaults());
   }
 
   @Override
   public synchronized void rename(final AlluxioURI src, final AlluxioURI dst,
-      final RenameOptions options) throws IOException {
-    retryRPC(new RpcCallable<Void>() {
-      @Override
-      public Void call() throws TException {
-        mClient.rename(src.getPath(), dst.getPath(), options.toThrift());
-        return null;
-      }
-||||||| merged common ancestors
-  public synchronized void rename(final AlluxioURI src, final AlluxioURI dst) throws IOException {
-    retryRPC(new RpcCallable<Void>() {
-      @Override
-      public Void call() throws TException {
-        mClient.rename(src.getPath(), dst.getPath(), new RenameTOptions());
-        return null;
-      }
-=======
-  public synchronized void rename(final AlluxioURI src, final AlluxioURI dst)
-      throws AlluxioStatusException {
+      final RenameOptions options) throws AlluxioStatusException {
     retryRPC(() -> {
-      mClient.rename(src.getPath(), dst.getPath(), new RenameTOptions());
+      mClient.rename(src.getPath(), dst.getPath(), options.toThrift());
       return null;
->>>>>>> upstream/master
     });
   }
 

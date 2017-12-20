@@ -60,13 +60,9 @@ import alluxio.master.file.meta.TempInodePathForChild;
 import alluxio.master.file.meta.TempInodePathForDescendant;
 import alluxio.master.file.meta.TtlBucketList;
 import alluxio.master.file.meta.UfsAbsentPathCache;
-<<<<<<< HEAD
+import alluxio.master.file.meta.UfsBlockLocationCache;
 import alluxio.master.file.meta.UfsSyncPathCache;
 import alluxio.master.file.meta.UfsSyncUtils;
-||||||| merged common ancestors
-=======
-import alluxio.master.file.meta.UfsBlockLocationCache;
->>>>>>> upstream/master
 import alluxio.master.file.meta.options.MountInfo;
 import alluxio.master.file.options.CheckConsistencyOptions;
 import alluxio.master.file.options.CompleteFileOptions;
@@ -313,16 +309,12 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
   /** This caches absent paths in the UFS. */
   private final UfsAbsentPathCache mUfsAbsentPathCache;
 
-<<<<<<< HEAD
-  /** This caches paths which have been synced with UFS. */
-  private final UfsSyncPathCache mUfsSyncPathCache;
-
-||||||| merged common ancestors
-=======
   /** This caches block locations in the UFS. */
   private final UfsBlockLocationCache mUfsBlockLocationCache;
 
->>>>>>> upstream/master
+  /** This caches paths which have been synced with UFS. */
+  private final UfsSyncPathCache mUfsSyncPathCache;
+
   /**
    * The service that checks for inode files with ttl set. We store it here so that it can be
    * accessed from tests.
@@ -378,12 +370,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     mAsyncPersistHandler = AsyncPersistHandler.Factory.create(new FileSystemMasterView(this));
     mPermissionChecker = new PermissionChecker(mInodeTree);
     mUfsAbsentPathCache = UfsAbsentPathCache.Factory.create(mMountTable);
-<<<<<<< HEAD
-    mUfsSyncPathCache = new UfsSyncPathCache();
-||||||| merged common ancestors
-=======
     mUfsBlockLocationCache = UfsBlockLocationCache.Factory.create(mMountTable);
->>>>>>> upstream/master
+    mUfsSyncPathCache = new UfsSyncPathCache();
 
     resetState();
     Metrics.registerGauges(this, mUfsManager);

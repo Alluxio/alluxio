@@ -180,7 +180,7 @@ public interface FileSystemMasterClient extends Client {
    * @param options rename options
    * @throws NotFoundException if the path does not exist
    */
-  void rename(AlluxioURI src, AlluxioURI dst, RenameOptions options) throws IOException;
+  void rename(AlluxioURI src, AlluxioURI dst, RenameOptions options) throws AlluxioStatusException;
 
   /**
    * Sets the file or directory attributes.
