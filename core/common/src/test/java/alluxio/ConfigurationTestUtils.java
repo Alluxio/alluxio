@@ -94,6 +94,9 @@ public final class ConfigurationTestUtils {
     conf.put(PropertyKey.USER_RPC_RETRY_MAX_NUM_RETRY, "60");
     conf.put(PropertyKey.USER_RPC_RETRY_MAX_SLEEP_MS, "500ms");
 
+    // Do not engage safe mode by default since the worker is connected when test starts.
+    conf.put(PropertyKey.MASTER_WORKER_CONNECT_WAIT_TIME, "0sec");
+
     // Since tests are always running on a single host keep the resolution timeout low as otherwise
     // people running with strange network configurations will see very slow tests
     conf.put(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS, "250ms");
