@@ -151,6 +151,11 @@ public final class LocalFilePacketReader implements PacketReader {
 
     @Override
     public void close() throws IOException {
+      if (mReaderThreadLocal.get() != null) {
+        LocalFileBlockReader reader = mReaderThreadLocal.get();
+        mReaderThreadLocal.remove();
+        reader.close();
+      }
       if (mClosed) {
         return;
       }
@@ -162,10 +167,6 @@ public final class LocalFilePacketReader implements PacketReader {
       } finally {
         mClosed = true;
         mContext.releaseNettyChannel(mAddress, mChannel);
-        if (mReaderThreadLocal.get() != null) {
-          mReaderThreadLocal.get().close();
-          mReaderThreadLocal.remove();
-        }
       }
     }
   }
