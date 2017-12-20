@@ -47,7 +47,7 @@ public final class UfsInputStreamManagerTest {
     mUfs = Mockito.mock(UnderFileSystem.class);
     Mockito.when(mUfs.isSeekable()).thenReturn(true);
     for (int i = 0; i < mNumOfInputStreams; i++) {
-      SeekableUnderFileInputStream instream = createMockedSeekableStream();
+      SeekableUnderFileInputStream instream = Mockito.mock(SeekableUnderFileInputStream.class);
       mSeekableInStreams[i] = instream;
     }
     Mockito.when(mUfs.open(Mockito.eq(FILE_NAME), Mockito.any(OpenOptions.class))).thenReturn(
@@ -55,20 +55,12 @@ public final class UfsInputStreamManagerTest {
     mManager = new UfsInputStreamManager();
   }
 
-  private SeekableUnderFileInputStream createMockedSeekableStream() {
-    SeekableUnderFileInputStream instream = Mockito.mock(SeekableUnderFileInputStream.class);
-    Mockito.when(instream.getFilePath()).thenReturn(FILE_NAME);
-    Mockito.doCallRealMethod().when(instream).setResourceId(Mockito.any(Long.class));
-    Mockito.when(instream.getResourceId()).thenCallRealMethod();
-    return instream;
-  }
-
   /**
    * Test that verifies a released input stream can be reused for the next acquisition.
    */
   @Test
   public void testAcquireAndRelease() throws Exception {
-    SeekableUnderFileInputStream mockedStrem = createMockedSeekableStream();
+    SeekableUnderFileInputStream mockedStrem = Mockito.mock(SeekableUnderFileInputStream.class);
     Mockito.when(mUfs.open(Mockito.eq(FILE_NAME), Mockito.any(OpenOptions.class)))
         .thenReturn(mockedStrem).thenThrow(new IllegalStateException("Should only be called once"));
 
@@ -79,8 +71,7 @@ public final class UfsInputStreamManagerTest {
     // acquire a stream again
     InputStream instream2 = mManager.acquire(mUfs, FILE_NAME, OpenOptions.defaults().setOffset(4));
 
-    Assert.assertEquals(mockedStrem, instream1);
-    Assert.assertEquals(mockedStrem, instream2);
+    Assert.assertEquals(instream1, instream2);
     // ensure the second time the released instream is the same one but repositioned
     Mockito.verify(mockedStrem).seek(4);
   }
