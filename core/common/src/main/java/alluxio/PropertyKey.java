@@ -811,6 +811,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "cacheable, separated by semi-colons. Alluxio will try to cache the cacheable "
               + "file when it is read for the first time.")
           .build();
+  public static final PropertyKey MASTER_WORKER_CONNECT_WAIT_TIME =
+      new Builder(Name.MASTER_WORKER_CONNECT_WAIT_TIME)
+          .setDefaultValue("5sec")
+          .setDescription("Alluxio master will wait a period of time after start up for "
+              + "all workers to register, before it starts accepting client requests. "
+              + "This property determines the wait time.")
+          .build();
   public static final PropertyKey MASTER_WORKER_THREADS_MAX =
       new Builder(Name.MASTER_WORKER_THREADS_MAX)
           .setDefaultValue(2048)
@@ -1668,7 +1675,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey USER_RPC_RETRY_MAX_NUM_RETRY =
       new Builder(Name.USER_RPC_RETRY_MAX_NUM_RETRY)
-          .setDefaultValue(20)
+          .setDefaultValue(100)
           .setDescription("Alluxio client RPCs automatically retry for transient errors with "
               + "an exponential backoff. This property determines the maximum number of "
               + "retries.")
@@ -1676,7 +1683,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey USER_RPC_RETRY_MAX_SLEEP_MS =
       new Builder(Name.USER_RPC_RETRY_MAX_SLEEP_MS)
           .setAlias(new String[]{"alluxio.user.rpc.retry.max.sleep.ms"})
-          .setDefaultValue("30sec")
+          .setDefaultValue("3sec")
           .setDescription("Alluxio client RPCs automatically retry for transient errors with "
               + "an exponential backoff. This property determines the maximum wait time "
               + "in the backoff.")
@@ -2154,6 +2161,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String MASTER_WEB_HOSTNAME = "alluxio.master.web.hostname";
     public static final String MASTER_WEB_PORT = "alluxio.master.web.port";
     public static final String MASTER_WHITELIST = "alluxio.master.whitelist";
+    public static final String MASTER_WORKER_CONNECT_WAIT_TIME =
+        "alluxio.master.worker.connect.wait.time";
     public static final String MASTER_WORKER_THREADS_MAX = "alluxio.master.worker.threads.max";
     public static final String MASTER_WORKER_THREADS_MIN = "alluxio.master.worker.threads.min";
     public static final String MASTER_WORKER_TIMEOUT_MS = "alluxio.master.worker.timeout";
