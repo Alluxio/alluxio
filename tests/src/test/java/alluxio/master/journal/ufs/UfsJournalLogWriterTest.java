@@ -32,6 +32,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+
 import org.junit.rules.TemporaryFolder;
 import org.mockito.Mockito;
 import org.powermock.reflect.Whitebox;
@@ -269,11 +270,42 @@ public final class UfsJournalLogWriterTest extends BaseIntegrationTest {
         FileChannel fileChannel = fileOutputStream.getChannel()) {
       fileChannel.truncate(truncateSize);
     }
-    mThrown.expect(IOException.class);
+    mThrown.expect(RuntimeException.class);
     mThrown.expectMessage(
         ExceptionMessage.JOURNAL_ENTRY_MISSING.getMessageWithUrl(
             RuntimeConstants.ALLUXIO_DEBUG_DOCS_URL,
             firstCorruptedEntrySeq, seqOfFirstEntryToFlush));
+    writer.write(newEntry(nextSN));
+    writer.close();
+  }
+
+  @Test
+  public void missingIncompleteJournalFile() throws Exception {
+    long startSN = 0x10;
+    long nextSN = startSN;
+    UfsJournalLogWriter writer = new UfsJournalLogWriter(mJournal, nextSN);
+    for (int i = 0; i < 5; i++) {
+      writer.write(newEntry(nextSN));
+      nextSN++;
+    }
+    Assert.assertNotNull(writer.getJournalOutputStream());
+    // Create a mock DataOutputStream.
+    DataOutputStream badOut = createMockDataOutputStream(writer);
+    // Specify the behavior of badOut so that it throws an IOException containing
+    // "injected I/O error" when its `write` method is invoked with any arguments
+    // matching (byte[], int, int).
+    Mockito.doThrow(new IOException("injected I/O error")).when(badOut)
+        .write(Mockito.any(byte[].class), Mockito.anyInt(), Mockito.anyInt());
+    tryWriteAndExpectToFail(writer, nextSN);
+    UfsJournalSnapshot snapshot = UfsJournalSnapshot.getSnapshot(mJournal);
+    UfsJournalFile journalFile = snapshot.getCurrentLog(mJournal);
+    File file = new File(journalFile.getLocation().toString());
+    file.delete();
+    mThrown.expect(RuntimeException.class);
+    mThrown.expectMessage(
+        ExceptionMessage.JOURNAL_ENTRY_MISSING.getMessageWithUrl(
+            RuntimeConstants.ALLUXIO_DEBUG_DOCS_URL, 0, 0x10));
+    writer.write(newEntry(nextSN));
     writer.write(newEntry(nextSN));
     writer.close();
   }
