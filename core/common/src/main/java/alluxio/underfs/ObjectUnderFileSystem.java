@@ -72,11 +72,6 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
   /** Executor service used for parallel UFS operations such as bulk deletes. */
   protected ExecutorService mExecutorService;
 
-  /** Retry policy parameters for {@link UnderFileSystem#open(String, OpenOptions)}. */
-  protected int mOpenRetryBaseSleepMs;
-  protected int mOpenRetryMaxSleepMs;
-  protected int mOpenRetryMaxNum;
-
   /**
    * Constructs an {@link ObjectUnderFileSystem}.
    *
@@ -89,13 +84,6 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
     int numThreads = Configuration.getInt(PropertyKey.UNDERFS_OBJECT_STORE_SERVICE_THREADS);
     mExecutorService = ExecutorServiceFactories.fixedThreadPoolExecutorServiceFactory(
         "alluxio-underfs-object-service-worker", numThreads).create();
-
-    mOpenRetryBaseSleepMs =
-        (int) Configuration.getMs(PropertyKey.UNDERFS_OBJECT_STORE_READ_RETRY_BASE_SLEEP_MS);
-    mOpenRetryMaxSleepMs =
-        (int) Configuration.getMs(PropertyKey.UNDERFS_OBJECT_STORE_READ_RETRY_MAX_SLEEP_MS);
-    mOpenRetryMaxNum =
-        Configuration.getInt(PropertyKey.UNDERFS_OBJECT_STORE_READ_RETRY_MAX_NUM);
   }
 
   /**
@@ -523,8 +511,10 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
   @Override
   public InputStream open(String path, OpenOptions options) throws IOException {
     IOException thrownException = null;
-    RetryPolicy retryPolicy =
-        new ExponentialBackoffRetry(mOpenRetryBaseSleepMs, mOpenRetryMaxSleepMs, mOpenRetryMaxNum);
+    RetryPolicy retryPolicy = new ExponentialBackoffRetry(
+        (int) Configuration.getMs(PropertyKey.UNDERFS_OBJECT_STORE_READ_RETRY_BASE_SLEEP_MS),
+        (int) Configuration.getMs(PropertyKey.UNDERFS_OBJECT_STORE_READ_RETRY_MAX_SLEEP_MS),
+        Configuration.getInt(PropertyKey.UNDERFS_OBJECT_STORE_READ_RETRY_MAX_NUM));
     while (retryPolicy.attemptRetry()) {
       try {
         return openObject(stripPrefixIfPresent(path), options);
