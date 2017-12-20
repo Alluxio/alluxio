@@ -128,7 +128,13 @@ public final class UnderFileSystemBlockReader implements BlockReader {
     UnderFileSystem ufs = mUfsManager.get(mBlockMeta.getMountId()).getUfs();
     ufs.connectFromWorker(
         NetworkAddressUtils.getConnectHost(NetworkAddressUtils.ServiceType.WORKER_RPC));
-    updateUnderFileSystemInputStream(offset);
+    try {
+      updateUnderFileSystemInputStream(offset);
+    } catch (IOException e) {
+      throw new BlockDoesNotExistException(
+          ExceptionMessage.UFS_PATH_DOES_NOT_EXIST.getMessage(mBlockMeta.getUnderFileSystemPath()),
+          e);
+    }
     updateBlockWriter(offset);
   }
 
