@@ -95,7 +95,7 @@ Run the following commands from `spark-shell`, assuming Alluxio Master is runnin
 ```
 
 Open your browser and check [http://localhost:19999/browse](http://localhost:19999/browse). There
-should be an output file `LICENSE2` which doubles each line in the file `LICENSE`.
+should be an output `LICENSE2` containing the doubled content of `LICENSE1`.
 
 ### Use Data from HDFS
 
