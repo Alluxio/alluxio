@@ -516,6 +516,22 @@ public final class Configuration {
   }
 
   /**
+   * Validates timeout related configuration.
+   */
+  private static void checkTimeouts() {
+    long waitTime = getMs(PropertyKey.MASTER_WORKER_CONNECT_WAIT_TIME);
+    long retryInterval = getMs(PropertyKey.USER_RPC_RETRY_MAX_SLEEP_MS);
+    if (waitTime < retryInterval) {
+      LOG.warn("%s=%dms is smaller than %s=%dms. Workers might not have enough time to register. "
+          + "Consider either increasing %s or decreasing %s",
+          PropertyKey.Name.MASTER_WORKER_CONNECT_WAIT_TIME, waitTime,
+          PropertyKey.Name.USER_RPC_RETRY_MAX_SLEEP_MS, retryInterval,
+          PropertyKey.Name.MASTER_WORKER_CONNECT_WAIT_TIME,
+          PropertyKey.Name.USER_RPC_RETRY_MAX_SLEEP_MS);
+    }
+  }
+
+  /**
    * Validates the user file buffer size is a non-negative number.
    *
    * @throws IllegalStateException if invalid user file buffer size configuration is encountered
@@ -580,6 +596,7 @@ public final class Configuration {
       String propertyName = entry.getKey();
       Preconditions.checkState(PropertyKey.isValid(propertyName), propertyName);
     }
+    checkTimeouts();
     checkWorkerPorts();
     checkUserFileBufferBytes();
     checkZkConfiguration();

@@ -19,6 +19,7 @@ import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 import alluxio.exception.LineageDeletionException;
 import alluxio.exception.LineageDoesNotExistException;
+import alluxio.exception.status.UnavailableException;
 import alluxio.job.Job;
 import alluxio.master.Master;
 import alluxio.master.lineage.checkpoint.CheckpointPlan;
@@ -83,7 +84,7 @@ public interface LineageMaster extends Master {
    */
   long reinitializeFile(String path, long blockSizeBytes, long ttl, TtlAction ttlAction)
       throws InvalidPathException, LineageDoesNotExistException, AccessControlException,
-      FileDoesNotExistException;
+      FileDoesNotExistException, UnavailableException;
 
   /**
    * @return the list of all the {@link LineageInfo}s
@@ -109,5 +110,6 @@ public interface LineageMaster extends Master {
    * @throws InvalidPathException if the path is invalid
    */
   void reportLostFile(String path)
-      throws FileDoesNotExistException, AccessControlException, InvalidPathException;
+      throws FileDoesNotExistException, AccessControlException, InvalidPathException,
+      UnavailableException;
 }

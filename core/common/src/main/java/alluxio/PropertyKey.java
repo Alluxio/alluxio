@@ -337,6 +337,24 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "mounted point with all Alluxio users. Note that this configuration has no "
               + "effect on HDFS nor local UFS.")
           .build();
+  public static final PropertyKey UNDERFS_OBJECT_STORE_READ_RETRY_BASE_SLEEP_MS =
+      new Builder(Name.UNDERFS_OBJECT_STORE_READ_RETRY_BASE_SLEEP_MS).setDefaultValue("50ms")
+          .setDescription("Block reads from an object store automatically retry for transient "
+              + "errors with an exponential backoff. This property determines the base time in the "
+              + "exponential backoff.")
+          .build();
+  public static final PropertyKey UNDERFS_OBJECT_STORE_READ_RETRY_MAX_NUM =
+      new Builder(Name.UNDERFS_OBJECT_STORE_READ_RETRY_MAX_NUM).setDefaultValue(20)
+          .setDescription("Block reads from  an object store automatically retry for transient "
+              + "errors with an exponential backoff. This property determines the maximum number of"
+              + " retries.")
+          .build();
+  public static final PropertyKey UNDERFS_OBJECT_STORE_READ_RETRY_MAX_SLEEP_MS =
+      new Builder(Name.UNDERFS_OBJECT_STORE_READ_RETRY_MAX_SLEEP_MS).setDefaultValue("30sec")
+          .setDescription("Block reads from an object store automatically retry for transient "
+              + "errors with an exponential backoff. This property determines the maximum wait time"
+              + " in the backoff.")
+          .build();
   public static final PropertyKey UNDERFS_OSS_CONNECT_MAX =
       new Builder(Name.UNDERFS_OSS_CONNECT_MAX)
           .setDefaultValue(1024)
@@ -810,6 +828,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("A comma-separated list of prefixes of the paths which are "
               + "cacheable, separated by semi-colons. Alluxio will try to cache the cacheable "
               + "file when it is read for the first time.")
+          .build();
+  public static final PropertyKey MASTER_WORKER_CONNECT_WAIT_TIME =
+      new Builder(Name.MASTER_WORKER_CONNECT_WAIT_TIME)
+          .setDefaultValue("5sec")
+          .setDescription("Alluxio master will wait a period of time after start up for "
+              + "all workers to register, before it starts accepting client requests. "
+              + "This property determines the wait time.")
           .build();
   public static final PropertyKey MASTER_WORKER_THREADS_MAX =
       new Builder(Name.MASTER_WORKER_THREADS_MAX)
@@ -1683,7 +1708,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey USER_RPC_RETRY_MAX_NUM_RETRY =
       new Builder(Name.USER_RPC_RETRY_MAX_NUM_RETRY)
-          .setDefaultValue(20)
+          .setDefaultValue(100)
           .setDescription("Alluxio client RPCs automatically retry for transient errors with "
               + "an exponential backoff. This property determines the maximum number of "
               + "retries.")
@@ -1691,7 +1716,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey USER_RPC_RETRY_MAX_SLEEP_MS =
       new Builder(Name.USER_RPC_RETRY_MAX_SLEEP_MS)
           .setAlias(new String[]{"alluxio.user.rpc.retry.max.sleep.ms"})
-          .setDefaultValue("30sec")
+          .setDefaultValue("3sec")
           .setDescription("Alluxio client RPCs automatically retry for transient errors with "
               + "an exponential backoff. This property determines the maximum wait time "
               + "in the backoff.")
@@ -2048,6 +2073,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.underfs.object.store.service.threads";
     public static final String UNDERFS_OBJECT_STORE_MOUNT_SHARED_PUBLICLY =
         "alluxio.underfs.object.store.mount.shared.publicly";
+    public static final String UNDERFS_OBJECT_STORE_READ_RETRY_BASE_SLEEP_MS =
+        "alluxio.underfs.object.store.read.retry.base.sleep";
+    public static final String UNDERFS_OBJECT_STORE_READ_RETRY_MAX_NUM =
+        "alluxio.underfs.object.store.read.retry.max.num";
+    public static final String UNDERFS_OBJECT_STORE_READ_RETRY_MAX_SLEEP_MS =
+        "alluxio.underfs.object.store.read.retry.max.sleep";
     public static final String UNDERFS_OSS_CONNECT_MAX = "alluxio.underfs.oss.connection.max";
     public static final String UNDERFS_OSS_CONNECT_TIMEOUT =
         "alluxio.underfs.oss.connection.timeout";
@@ -2169,6 +2200,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String MASTER_WEB_HOSTNAME = "alluxio.master.web.hostname";
     public static final String MASTER_WEB_PORT = "alluxio.master.web.port";
     public static final String MASTER_WHITELIST = "alluxio.master.whitelist";
+    public static final String MASTER_WORKER_CONNECT_WAIT_TIME =
+        "alluxio.master.worker.connect.wait.time";
     public static final String MASTER_WORKER_THREADS_MAX = "alluxio.master.worker.threads.max";
     public static final String MASTER_WORKER_THREADS_MIN = "alluxio.master.worker.threads.min";
     public static final String MASTER_WORKER_TIMEOUT_MS = "alluxio.master.worker.timeout";

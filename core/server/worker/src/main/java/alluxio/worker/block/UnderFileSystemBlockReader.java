@@ -96,11 +96,10 @@ public final class UnderFileSystemBlockReader implements BlockReader {
    * @param ufsManager the manager of ufs
    * @param ufsInstreamManager the manager of ufs instreams
    * @return the block reader
-   * @throws BlockDoesNotExistException if the UFS block does not exist in the UFS block store
    */
   public static UnderFileSystemBlockReader create(UnderFileSystemBlockMeta blockMeta, long offset,
       BlockStore localBlockStore, UfsManager ufsManager, UfsInputStreamManager ufsInstreamManager)
-      throws BlockDoesNotExistException, IOException {
+      throws IOException {
     UnderFileSystemBlockReader ufsBlockReader =
         new UnderFileSystemBlockReader(blockMeta, localBlockStore, ufsManager, ufsInstreamManager);
     ufsBlockReader.init(offset);
@@ -129,13 +128,11 @@ public final class UnderFileSystemBlockReader implements BlockReader {
    * Initializes the reader. This is only called in the factory method.
    *
    * @param offset the position within the block to start the read
-   * @throws BlockDoesNotExistException if the UFS block does not exist in the UFS block store
    */
-  private void init(long offset) throws BlockDoesNotExistException, IOException {
+  private void init(long offset) throws IOException {
     UnderFileSystem ufs = mUfsManager.get(mBlockMeta.getMountId()).getUfs();
     ufs.connectFromWorker(
         NetworkAddressUtils.getConnectHost(NetworkAddressUtils.ServiceType.WORKER_RPC));
-
     updateUnderFileSystemInputStream(offset);
     updateBlockWriter(offset);
   }
