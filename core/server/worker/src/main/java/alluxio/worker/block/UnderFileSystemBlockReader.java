@@ -22,12 +22,11 @@ import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.InvalidWorkerStateException;
 import alluxio.exception.PreconditionMessage;
 import alluxio.exception.status.AlluxioStatusException;
-import alluxio.retry.CountingRetry;
-import alluxio.retry.RetryPolicy;
 import alluxio.underfs.UfsManager;
 import alluxio.underfs.UfsManager.UfsInfo;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.OpenOptions;
+import alluxio.util.IdUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.BlockWriter;
@@ -52,8 +51,6 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public final class UnderFileSystemBlockReader implements BlockReader {
   private static final Logger LOG = LoggerFactory.getLogger(UnderFileSystemBlockReader.class);
-
-  private static final int RETRY_COUNT = 2;
 
   /** An object storing the mapping of tier aliases to ordinals. */
   private final StorageTierAssoc mStorageTierAssoc = new WorkerStorageTierAssoc();
@@ -218,35 +215,7 @@ public final class UnderFileSystemBlockReader implements BlockReader {
     }
     int bytesToRead =
         (int) Math.min(buf.writableBytes(), mBlockMeta.getBlockSize() - mInStreamPos);
-    int bytesRead = 0;
-
-    RetryPolicy retryPolicy = new CountingRetry(RETRY_COUNT);
-    IOException thrownException = null;
-    while (retryPolicy.attemptRetry()) {
-      try {
-        bytesRead = buf.writeBytes(mUnderFileSystemInputStream, bytesToRead);
-      } catch (IOException e) {
-        LOG.debug("Failed to read from ufs instream ");
-        thrownException = e;
-        if (mUnderFileSystemInputStream instanceof CachedSeekableInputStream) {
-          // this may happen when the cached input stream is stale
-          UfsInfo ufsInfo = mUfsManager.get(mBlockMeta.getMountId());
-          UnderFileSystem ufs = ufsInfo.getUfs();
-          mUfsInstreamManager
-              .invalidate((CachedSeekableInputStream) mUnderFileSystemInputStream);
-          mUnderFileSystemInputStream =
-              mUfsInstreamManager.acquire(ufs, mBlockMeta.getUnderFileSystemPath(),
-                  OpenOptions.defaults().setOffset(
-                      ((CachedSeekableInputStream) mUnderFileSystemInputStream).getPos()),
-              false);
-        } else {
-          throw thrownException;
-        }
-      }
-    }
-    if (retryPolicy.getRetryCount() >= RETRY_COUNT) {
-      throw thrownException;
-    }
+    int bytesRead = buf.writeBytes(mUnderFileSystemInputStream, bytesToRead);
 
     if (bytesRead <= 0) {
       return bytesRead;
@@ -328,9 +297,9 @@ public final class UnderFileSystemBlockReader implements BlockReader {
       UfsInfo ufsInfo = mUfsManager.get(mBlockMeta.getMountId());
       UnderFileSystem ufs = ufsInfo.getUfs();
       mUfsMountPointUri = ufsInfo.getUfsMountPointUri();
-      mUnderFileSystemInputStream =
-          mUfsInstreamManager.acquire(ufs, mBlockMeta.getUnderFileSystemPath(),
-              OpenOptions.defaults().setOffset(mBlockMeta.getOffset() + offset));
+      mUnderFileSystemInputStream = mUfsInstreamManager.acquire(ufs,
+          mBlockMeta.getUnderFileSystemPath(), IdUtils.fileIdFromBlockId(mBlockMeta.getBlockId()),
+          OpenOptions.defaults().setOffset(mBlockMeta.getOffset() + offset));
       mInStreamPos = offset;
     }
   }
