@@ -52,7 +52,7 @@ public abstract class AbstractMaster implements Master {
   /** The clock to use for determining the time. */
   protected final Clock mClock;
 
-  /** The manager for safe mode state */
+  /** The manager for safe mode state. */
   protected final SafeModeManager mSafeModeManager;
 
   /**
