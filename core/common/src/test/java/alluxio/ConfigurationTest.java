@@ -13,7 +13,6 @@ package alluxio;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
@@ -62,7 +61,8 @@ public class ConfigurationTest {
 
   @Test
   public void alias() {
-    Configuration.merge(ImmutableMap.of("alluxio.master.worker.timeout.ms", "100"));
+    Configuration.merge(ImmutableMap.of("alluxio.master.worker.timeout.ms", "100"),
+        Configuration.Source.SYSTEM_PROPERTY);
     assertEquals(100, Configuration.getMs(PropertyKey.MASTER_WORKER_TIMEOUT_MS));
   }
 
@@ -399,7 +399,8 @@ public class ConfigurationTest {
   public void variableSubstitution() {
     Configuration.merge(ImmutableMap.of(
         PropertyKey.WORK_DIR, "value",
-        PropertyKey.LOGS_DIR, "${alluxio.work.dir}/logs"));
+        PropertyKey.LOGS_DIR, "${alluxio.work.dir}/logs"),
+        Configuration.Source.SYSTEM_PROPERTY);
     String substitution = Configuration.get(PropertyKey.LOGS_DIR);
     assertEquals("value/logs", substitution);
   }
@@ -409,7 +410,8 @@ public class ConfigurationTest {
     Configuration.merge(ImmutableMap.of(
         PropertyKey.MASTER_HOSTNAME, "value1",
         PropertyKey.MASTER_RPC_PORT, "value2",
-        PropertyKey.MASTER_JOURNAL_FOLDER, "${alluxio.master.hostname}-${alluxio.master.port}"));
+        PropertyKey.MASTER_JOURNAL_FOLDER, "${alluxio.master.hostname}-${alluxio.master.port}"),
+        Configuration.Source.SYSTEM_PROPERTY);
     String substitution = Configuration.get(PropertyKey.MASTER_JOURNAL_FOLDER);
     assertEquals("value1-value2", substitution);
   }
@@ -419,7 +421,8 @@ public class ConfigurationTest {
     Configuration.merge(ImmutableMap.of(
         PropertyKey.WORK_DIR, "value",
         PropertyKey.LOGS_DIR, "${alluxio.work.dir}/logs",
-        PropertyKey.SITE_CONF_DIR, "${alluxio.logs.dir}/conf"));
+        PropertyKey.SITE_CONF_DIR, "${alluxio.logs.dir}/conf"),
+        Configuration.Source.SYSTEM_PROPERTY);
     String substitution2 = Configuration.get(PropertyKey.SITE_CONF_DIR);
     assertEquals("value/logs/conf", substitution2);
   }
@@ -435,9 +438,10 @@ public class ConfigurationTest {
 
   @Test
   public void userFileBufferBytesOverFlowException() {
-    mThrown.expect(IllegalStateException.class);
     Configuration.set(PropertyKey.USER_FILE_BUFFER_BYTES,
         String.valueOf(Integer.MAX_VALUE + 1) + "B");
+    mThrown.expect(IllegalStateException.class);
+    Configuration.validate();
   }
 
   @Test
@@ -527,9 +531,11 @@ public class ConfigurationTest {
   }
 
   @Test
-  public void discardIgnoredSiteProperties() throws Exception {
+  public void setIgnoredPropertiesInSiteProperties() throws Exception {
+    // Need to initialize the configuration instance first, other wise in after
+    // ConfigurationTestUtils.resetConfiguration() will fail due to failed class init.
+    Configuration.init();
     Properties siteProps = new Properties();
-    siteProps.setProperty(PropertyKey.MASTER_HOSTNAME.toString(), "host-1");
     siteProps.setProperty(PropertyKey.LOGS_DIR.toString(), "/tmp/logs1");
     File propsFile = mFolder.newFile(Constants.SITE_PROPERTIES);
     siteProps.store(new FileOutputStream(propsFile), "tmp site properties file");
@@ -537,9 +543,25 @@ public class ConfigurationTest {
     sysProps.put(PropertyKey.SITE_CONF_DIR.toString(), mFolder.getRoot().getAbsolutePath());
     sysProps.put(PropertyKey.TEST_MODE.toString(), "false");
     try (Closeable p = new SystemPropertyRule(sysProps).toResource()) {
+      mThrown.expect(IllegalStateException.class);
       Configuration.init();
-      assertEquals("host-1", Configuration.get(PropertyKey.MASTER_HOSTNAME));
-      assertNotEquals("/tmp/logs1", Configuration.get(PropertyKey.LOGS_DIR));
+    }
+  }
+
+  @Test
+  public void setIgnoredPropertiesInSystemProperties() throws Exception {
+    Properties siteProps = new Properties();
+    File propsFile = mFolder.newFile(Constants.SITE_PROPERTIES);
+    siteProps.store(new FileOutputStream(propsFile), "tmp site properties file");
+    Map<String, String> sysProps = new HashMap<>();
+    sysProps.put(PropertyKey.LOGS_DIR.toString(), "/tmp/logs1");
+    sysProps.put(PropertyKey.SITE_CONF_DIR.toString(), mFolder.getRoot().getAbsolutePath());
+    sysProps.put(PropertyKey.TEST_MODE.toString(), "false");
+    try (Closeable p = new SystemPropertyRule(sysProps).toResource()) {
+      Configuration.init();
+      assertEquals(
+          Configuration.Source.SYSTEM_PROPERTY, Configuration.getSource(PropertyKey.LOGS_DIR));
+      assertEquals("/tmp/logs1", Configuration.get(PropertyKey.LOGS_DIR));
     }
   }
 
@@ -559,6 +581,35 @@ public class ConfigurationTest {
       Configuration.init();
       assertEquals("host-1", Configuration.get(PropertyKey.MASTER_HOSTNAME));
       assertEquals("123", Configuration.get(PropertyKey.WEB_THREADS));
+    }
+  }
+
+  @Test
+  public void source() throws Exception {
+    Properties siteProps = new Properties();
+    File propsFile = mFolder.newFile(Constants.SITE_PROPERTIES);
+    siteProps.setProperty(PropertyKey.MASTER_HOSTNAME.toString(), "host-1");
+    siteProps.setProperty(PropertyKey.MASTER_WEB_PORT.toString(), "1234");
+    siteProps.store(new FileOutputStream(propsFile), "tmp site properties file");
+    Map<String, String> sysProps = new HashMap<>();
+    sysProps.put(PropertyKey.LOGS_DIR.toString(), "/tmp/logs1");
+    sysProps.put(PropertyKey.MASTER_WEB_PORT.toString(), "4321");
+    sysProps.put(PropertyKey.SITE_CONF_DIR.toString(), mFolder.getRoot().getAbsolutePath());
+    sysProps.put(PropertyKey.TEST_MODE.toString(), "false");
+    try (Closeable p = new SystemPropertyRule(sysProps).toResource()) {
+      Configuration.init();
+      // set only in site prop
+      assertEquals(Configuration.Source.SITE_PROPERTY,
+          Configuration.getSource(PropertyKey.MASTER_HOSTNAME));
+      // set both in site and system prop
+      assertEquals(Configuration.Source.SYSTEM_PROPERTY,
+          Configuration.getSource(PropertyKey.MASTER_WEB_PORT));
+      // set only in system prop
+      assertEquals(Configuration.Source.SYSTEM_PROPERTY,
+          Configuration.getSource(PropertyKey.LOGS_DIR));
+      // set neither in system prop
+      assertEquals(Configuration.Source.DEFAULT,
+          Configuration.getSource(PropertyKey.MASTER_RPC_PORT));
     }
   }
 }
