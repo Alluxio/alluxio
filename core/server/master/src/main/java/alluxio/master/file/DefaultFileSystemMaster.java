@@ -961,8 +961,19 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       return ufs.isDirectory(ufsPath);
     } else {
       InodeFile file = (InodeFile) inode;
-      return ufs.isFile(ufsPath)
-          && ufs.getFileStatus(ufsPath).getContentLength() == file.getLength();
+      if (ufs.isFile(ufsPath)) {
+        UfsFileStatus ufsFileStatus = ufs.getFileStatus(ufsPath);
+        if (ufs.getFileStatus(ufsPath).getContentLength() != file.getLength()
+            || (hasAnyBlockCached(mBlockMaster.getBlockInfoList(file.getBlockIds()))
+            && file.getUfsLastModificationTimeMs() != 0
+            && ufsFileStatus.getLastModifiedTime() > file.getUfsLastModificationTimeMs())) {
+          return false;
+        } else {
+          return true;
+        }
+      } else {
+        return false;
+      }
     }
   }
 
@@ -986,6 +997,15 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       completeFileAndJournal(inodePath, options, journalContext);
       auditContext.setSucceeded(true);
     }
+  }
+
+  private boolean hasAnyBlockCached(List<BlockInfo> blockInfoList) {
+    for (BlockInfo blockInfo : blockInfoList) {
+      if (blockInfo.getLocations().size() > 0) {
+        return true;
+      }
+    }
+    return false;
   }
 
   /**

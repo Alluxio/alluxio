@@ -30,6 +30,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -43,7 +44,10 @@ public class CheckConsistencyIntegrationTest extends BaseIntegrationTest {
   private static final AlluxioURI DIRECTORY = new AlluxioURI("/dir");
   private static final AlluxioURI FILE = new AlluxioURI("/dir/file");
   private static final String TEST_USER = "test";
-
+  private static final CreateDirectoryOptions DIR_OPTIONS =
+      CreateDirectoryOptions.defaults().setWriteType(WriteType.CACHE_THROUGH);
+  private static final CreateFileOptions FILE_OPTIONS =
+      CreateFileOptions.defaults().setWriteType(WriteType.CACHE_THROUGH);
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
       new LocalAlluxioClusterResource.Builder().setProperty(PropertyKey.SECURITY_LOGIN_USERNAME,
@@ -61,12 +65,8 @@ public class CheckConsistencyIntegrationTest extends BaseIntegrationTest {
         mLocalAlluxioClusterResource.get().getLocalAlluxioMaster().getMasterProcess()
             .getMaster(FileSystemMaster.class);
     mFileSystem = FileSystem.Factory.get();
-    CreateDirectoryOptions dirOptions =
-        CreateDirectoryOptions.defaults().setWriteType(WriteType.CACHE_THROUGH);
-    CreateFileOptions fileOptions =
-        CreateFileOptions.defaults().setWriteType(WriteType.CACHE_THROUGH);
-    mFileSystem.createDirectory(DIRECTORY, dirOptions);
-    mFileSystem.createFile(FILE, fileOptions).close();
+    mFileSystem.createDirectory(DIRECTORY, DIR_OPTIONS);
+    mFileSystem.createFile(FILE, FILE_OPTIONS).close();
   }
 
   /**
@@ -198,6 +198,34 @@ public class CheckConsistencyIntegrationTest extends BaseIntegrationTest {
     String ufsFile = mFileSystem.getStatus(FILE).getUfsPath();
     UnderFileSystem ufs = UnderFileSystem.Factory.create(ufsFile);
     ufs.deleteFile(ufsFile);
+    List<AlluxioURI> expected = Lists.newArrayList(FILE);
+    Assert.assertEquals(expected, mFileSystemMaster
+        .checkConsistency(FILE, CheckConsistencyOptions.defaults()));
+  }
+
+  /**
+   * Tests the {@link FileSystemMaster#checkConsistency(AlluxioURI, CheckConsistencyOptions)} method
+   * when the UFS file is modified.
+   */
+  @Test
+  public void inconsistentFileModifiedTime() throws Exception {
+    String ufsFile = mFileSystem.getStatus(FILE).getUfsPath();
+    mFileSystem.delete(FILE);
+    UnderFileSystem ufs = UnderFileSystem.Factory.create(ufsFile);
+    OutputStream out = ufs.create(ufsFile);
+    out.write('a');
+    out.close();
+    mFileSystem.createFile(FILE, FILE_OPTIONS);
+    InputStream is = mFileSystem.openFile(FILE);
+    is.read();
+    is.close();
+
+    ufs.deleteFile(ufsFile);
+
+    out = ufs.create(ufsFile);
+    out.write('b');
+    out.close();
+
     List<AlluxioURI> expected = Lists.newArrayList(FILE);
     Assert.assertEquals(expected, mFileSystemMaster
         .checkConsistency(FILE, CheckConsistencyOptions.defaults()));

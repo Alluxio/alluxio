@@ -41,6 +41,7 @@ public final class InodeFile extends Inode<InodeFile> {
   private boolean mCacheable;
   private boolean mCompleted;
   private long mLength;
+  private long mUfsLastModificationTimeMs;
 
   /**
    * Creates a new instance of {@link InodeFile}.
@@ -55,6 +56,7 @@ public final class InodeFile extends Inode<InodeFile> {
     mCacheable = false;
     mCompleted = false;
     mLength = 0;
+    mUfsLastModificationTimeMs = 0;
   }
 
   @Override
@@ -87,6 +89,7 @@ public final class InodeFile extends Inode<InodeFile> {
     ret.setMode(getMode());
     ret.setPersistenceState(getPersistenceState().toString());
     ret.setMountPoint(false);
+    ret.setUfsLastModificationTimeMs(getUfsLastModificationTimeMs());
     return ret;
   }
 
@@ -147,6 +150,13 @@ public final class InodeFile extends Inode<InodeFile> {
           "blockIndex " + blockIndex + " is out of range. File blocks: " + mBlocks.size());
     }
     return mBlocks.get(blockIndex);
+  }
+
+  /**
+   * @return the ufs last modification time, in milliseconds
+   */
+  public long getUfsLastModificationTimeMs() {
+    return mUfsLastModificationTimeMs;
   }
 
   /**
@@ -211,6 +221,15 @@ public final class InodeFile extends Inode<InodeFile> {
   }
 
   /**
+   * @param ufsLastModificationTimeMs the ufs last modification time to use
+   * @return the updated Object
+   */
+  public InodeFile setUfsLastModificationTimeMs(long ufsLastModificationTimeMs) {
+    mUfsLastModificationTimeMs = ufsLastModificationTimeMs;
+    return getThis();
+  }
+
+  /**
    * Completes the file. Cannot set the length if the file is already completed. However, an unknown
    * file size, {@link Constants#UNKNOWN_SIZE}, is valid. Cannot complete an already complete file,
    * unless the completed length was previously {@link Constants#UNKNOWN_SIZE}.
@@ -252,7 +271,8 @@ public final class InodeFile extends Inode<InodeFile> {
         .add("blockSizeBytes", mBlockSizeBytes)
         .add("cacheable", mCacheable)
         .add("completed", mCompleted)
-        .add("length", mLength).toString();
+        .add("length", mLength)
+        .add("ufsLastModificationTimeMs", mUfsLastModificationTimeMs).toString();
   }
 
   /**
@@ -278,7 +298,8 @@ public final class InodeFile extends Inode<InodeFile> {
         .setTtlAction((ProtobufUtils.fromProtobuf(entry.getTtlAction())))
         .setOwner(entry.getOwner())
         .setGroup(entry.getGroup())
-        .setMode((short) entry.getMode());
+        .setMode((short) entry.getMode())
+        .setUfsLastModificationTimeMs(entry.getUfsLastModificationTimeMs());
   }
 
   /**
@@ -327,7 +348,8 @@ public final class InodeFile extends Inode<InodeFile> {
         .setPersistenceState(getPersistenceState().name())
         .setPinned(isPinned())
         .setTtl(getTtl())
-        .setTtlAction(ProtobufUtils.toProtobuf(getTtlAction())).build();
+        .setTtlAction(ProtobufUtils.toProtobuf(getTtlAction()))
+        .setUfsLastModificationTimeMs(getUfsLastModificationTimeMs()).build();
     return JournalEntry.newBuilder().setInodeFile(inodeFile).build();
   }
 

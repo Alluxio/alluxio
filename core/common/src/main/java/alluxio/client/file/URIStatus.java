@@ -100,6 +100,13 @@ public class URIStatus {
   }
 
   /**
+   * @return the ufs last modified time
+   */
+  public long getUfsLastModificationTimeMs() {
+    return mInfo.getUfsLastModificationTimeMs();
+  }
+
+  /**
    * @return the length in bytes of the file, 0 for directories, mutable
    */
   public long getLength() {

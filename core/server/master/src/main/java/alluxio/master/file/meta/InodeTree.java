@@ -39,6 +39,7 @@ import alluxio.proto.journal.Journal;
 import alluxio.retry.ExponentialBackoffRetry;
 import alluxio.retry.RetryPolicy;
 import alluxio.security.authorization.Mode;
+import alluxio.underfs.UfsFileStatus;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.MkdirsOptions;
 import alluxio.util.SecurityUtils;
@@ -674,6 +675,14 @@ public class InodeTree implements JournalEntryIterable {
           lockList.lockWriteAndCheckNameAndParent(lastInode, currentInodeDirectory, name);
           if (fileOptions.isCacheable()) {
             ((InodeFile) lastInode).setCacheable(true);
+          }
+          MountTable.Resolution resolution = mMountTable.resolve(getPath(lastInode));
+          String ufsUri = resolution.getUri().toString();
+          UnderFileSystem ufs = resolution.getUfs();
+          if (ufs != null && ufs.exists(ufsUri)) {
+            UfsFileStatus ufsFileStatus = ufs.getFileStatus(ufsUri);
+            ((InodeFile) lastInode).setUfsLastModificationTimeMs(
+                ufsFileStatus.getLastModifiedTime());
           }
         }
         lastInode.setPinned(currentInodeDirectory.isPinned());

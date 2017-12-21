@@ -115,6 +115,7 @@ struct FileInfo {
   24: common.TTtlAction ttlAction
   25: i64 mountId
   26: i32 inAlluxioPercentage
+  27: i64 ufsLastModificationTimeMs
 }
 
 struct MountTOptions {
