@@ -13,7 +13,6 @@ package alluxio.master;
 
 import alluxio.Constants;
 import alluxio.Server;
-import alluxio.clock.Clock;
 import alluxio.master.journal.Journal;
 import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.JournalSystem;
@@ -24,6 +23,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.time.Clock;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
