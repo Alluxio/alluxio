@@ -11,10 +11,13 @@
 
 package alluxio.worker.block;
 
+import alluxio.client.block.stream.BlockInStream;
+import alluxio.client.file.FileSystemContext;
 import alluxio.proto.dataserver.Protocol;
+import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.block.io.BlockReader;
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import com.google.common.base.Preconditions;
 import io.netty.buffer.ByteBuf;
 
 import java.io.IOException;
@@ -23,16 +26,15 @@ import java.nio.ByteBuffer;
 import java.nio.channels.ReadableByteChannel;
 
 /**
- * Reads a block from a remote worker node.
+ * Reads a block from a remote worker node. This should only be used for reading entire blocks
+ * and thus only supports the {@link #transferTo(ByteBuf)} API.
  */
 public class RemoteBlockReader implements BlockReader {
-  @SuppressFBWarnings("URF_UNREAD_FIELD")
   private final long mBlockId;
-  @SuppressFBWarnings("URF_UNREAD_FIELD")
   private final InetSocketAddress mDataSource;
-  @SuppressFBWarnings("URF_UNREAD_FIELD")
   private final Protocol.OpenUfsBlockOptions mUfsOptions;
 
+  private BlockInStream mInputStream;
   private boolean mClosed;
 
   /**
@@ -52,22 +54,28 @@ public class RemoteBlockReader implements BlockReader {
 
   @Override
   public ByteBuffer read(long offset, long length) throws IOException {
-    return null;
+    throw new UnsupportedOperationException("RemoteBlockReader#read is not supported");
   }
 
   @Override
   public long getLength() {
-    return 0;
+    return mUfsOptions.getBlockSize();
   }
 
   @Override
   public ReadableByteChannel getChannel() {
-    return null;
+    throw new UnsupportedOperationException("RemoteBlockReader#getChannel is not supported");
   }
 
   @Override
   public int transferTo(ByteBuf buf) throws IOException {
-    return 0;
+    Preconditions.checkState(!mClosed);
+    initStream();
+    if (mInputStream == null || mInputStream.remaining() <= 0) {
+      return -1;
+    }
+    int bytesToRead = (int) Math.min((long) buf.writableBytes(), mInputStream.remaining());
+    return buf.writeBytes(mInputStream, bytesToRead);
   }
 
   @Override
@@ -77,6 +85,22 @@ public class RemoteBlockReader implements BlockReader {
 
   @Override
   public void close() throws IOException {
+    if (mClosed) {
+      return;
+    }
+    if (mInputStream != null) {
+      mInputStream.close();
+    }
+    mClosed = true;
+  }
 
+  private void initStream() {
+    if (mInputStream != null) {
+      return;
+    }
+    WorkerNetAddress address = new WorkerNetAddress().setHost(mDataSource.getHostName())
+        .setDataPort(mDataSource.getPort());
+    mInputStream = BlockInStream.createRemoteBlockInStream(FileSystemContext.INSTANCE, mBlockId,
+        address, BlockInStream.BlockInStreamSource.REMOTE, mUfsOptions);
   }
 }
