@@ -37,10 +37,16 @@
         <div id="data8" class="accordion-body collapse in">
           <div class="accordion-inner">
             <table class = "table">
+              <tr>
+                <th>Property</th>
+                <th>Value</th>
+                <th>Source</th>
+              </tr>
               <tbody>
-                <% for (ImmutablePair<String, String> entry : (SortedSet<ImmutablePair<String, String>>) request.getAttribute("configuration")) { %>
+                <% for (ImmutableTriple<String, String, String> entry : (SortedSet<ImmutableTriple<String, String, String>>) request.getAttribute("configuration")) { %>
                   <tr>
                     <th><%= entry.getLeft() %></th>
+                    <th><%= entry.getMiddle() %></th>
                     <th><%= entry.getRight() %></th>
                   </tr>
                 <% } %>
