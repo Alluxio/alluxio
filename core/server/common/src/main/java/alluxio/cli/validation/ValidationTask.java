@@ -26,6 +26,13 @@ public interface ValidationTask {
   List<Option> getOptionList();
 
   /**
+   * Checks whether the validation task is applicable.
+   *
+   * @return true if this validation task should be skipped, false otherwise
+   */
+  boolean shouldSkip();
+
+  /**
    * Runs the validation task.
    *
    * @param optionMap contains string representation of <key, value> pairs
