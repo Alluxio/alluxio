@@ -227,6 +227,13 @@ public class URIStatus {
     return mInfo.getFileBlockInfos();
   }
 
+  /**
+   * @return the ufs fingerprint
+   */
+  public String getUfsFingerprint() {
+    return mInfo.getUfsFingerprint();
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) {

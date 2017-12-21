@@ -12,6 +12,7 @@
 package alluxio.master.file.options;
 
 import alluxio.thrift.CompleteFileTOptions;
+import alluxio.wire.CommonOptions;
 
 import com.google.common.base.Objects;
 
@@ -22,6 +23,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class CompleteFileOptions {
+  private CommonOptions mCommonOptions;
   private long mUfsLength;
   private long mOperationTimeMs;
 
@@ -38,13 +40,26 @@ public final class CompleteFileOptions {
    * @param options Thrift options
    */
   public CompleteFileOptions(CompleteFileTOptions options) {
-    mUfsLength = options.getUfsLength();
-    mOperationTimeMs = System.currentTimeMillis();
+    this();
+    if (options != null) {
+      if (options.isSetCommonOptions()) {
+        mCommonOptions = new CommonOptions(options.getCommonOptions());
+      }
+      mUfsLength = options.getUfsLength();
+    }
   }
 
   private CompleteFileOptions() {
+    mCommonOptions = CommonOptions.defaults();
     mUfsLength = 0;
     mOperationTimeMs = System.currentTimeMillis();
+  }
+
+  /**
+   * @return the common options
+   */
+  public CommonOptions getCommonOptions() {
+    return mCommonOptions;
   }
 
   /**
@@ -59,6 +74,15 @@ public final class CompleteFileOptions {
    */
   public long getOperationTimeMs() {
     return mOperationTimeMs;
+  }
+
+  /**
+   * @param options the common options
+   * @return the updated options object
+   */
+  public CompleteFileOptions setCommonOptions(CommonOptions options) {
+    mCommonOptions = options;
+    return this;
   }
 
   /**
@@ -88,17 +112,20 @@ public final class CompleteFileOptions {
       return false;
     }
     CompleteFileOptions that = (CompleteFileOptions) o;
-    return Objects.equal(mUfsLength, that.mUfsLength) && mOperationTimeMs == that.mOperationTimeMs;
+    return Objects.equal(mUfsLength, that.mUfsLength)
+        && Objects.equal(mCommonOptions, that.mCommonOptions)
+        && mOperationTimeMs == that.mOperationTimeMs;
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mUfsLength, mOperationTimeMs);
+    return Objects.hashCode(mUfsLength, mOperationTimeMs, mCommonOptions);
   }
 
   @Override
   public String toString() {
     return Objects.toStringHelper(this)
+        .add("commonOptions", mCommonOptions)
         .add("ufsLength", mUfsLength)
         .add("operationTimeMs", mOperationTimeMs)
         .toString();
