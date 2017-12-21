@@ -52,7 +52,6 @@ public class HdfsValidationTask extends AbstractValidationTask {
       return true;
     }
     if (!validateHdfsSettingParity(optionsMap)) {
-      System.err.format("Hdfs setting do not match.%n");
       return false;
     }
     return true;
@@ -63,7 +62,7 @@ public class HdfsValidationTask extends AbstractValidationTask {
     String scheme =
         new AlluxioURI(Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS)).getScheme();
     if (scheme == null || !scheme.startsWith("hdfs")) {
-      System.err.format("Root underFS is not HDFS. Skipping validation for HDFS properties.%n");
+      System.out.format("Root underFS is not HDFS. Skipping validation for HDFS properties.%n");
       return true;
     }
     return false;
@@ -77,7 +76,7 @@ public class HdfsValidationTask extends AbstractValidationTask {
       serverHadoopConfDirPath = System.getenv(HADOOP_CONF_DIR_ENV_VAR);
     }
     if (serverHadoopConfDirPath == null) {
-      System.err.println("Path to server-side hadoop configuration unspecified,"
+      System.out.println("Path to server-side hadoop configuration unspecified,"
           + " skipping validation for HDFS properties.");
       return true;
     }
@@ -102,17 +101,17 @@ public class HdfsValidationTask extends AbstractValidationTask {
           clientHdfsSiteFilePath = path;
         }
       } catch (InvalidPathException e) {
-        System.err.format("%s is an invalid path. Skip HDFS config parity check.%n", path);
+        System.out.format("%s is an invalid path. Skip HDFS config parity check.%n", path);
         return true;
       }
     }
     if (clientCoreSiteFilePath == null || clientCoreSiteFilePath.isEmpty()) {
-      System.err.println("Cannot locate the client-side core-site.xml,"
+      System.out.println("Cannot locate the client-side core-site.xml,"
           + " skipping validation for HDFS properties.");
       return true;
     }
     if (clientHdfsSiteFilePath == null || clientHdfsSiteFilePath.isEmpty()) {
-      System.err.println("Cannot locate the client-side hdfs-site.xml,"
+      System.out.println("Cannot locate the client-side hdfs-site.xml,"
           + " skipping validation for HDFS properties.");
       return true;
     }
