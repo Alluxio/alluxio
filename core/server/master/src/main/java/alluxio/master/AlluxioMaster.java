@@ -50,6 +50,9 @@ public final class AlluxioMaster {
       throw t;
     }
 
+    // Register a shutdown hook for master, so that master closes the journal files when it
+    // receives SIGTERM.
+    ProcessUtils.stopProcessOnShutdown(process);
     ProcessUtils.run(process);
   }
 
