@@ -1902,7 +1902,7 @@ public final class FileSystemMasterTest {
     mBlockMaster = new BlockMasterFactory().create(mRegistry, mJournalSystem, mSafeModeManager);
     mExecutorService = Executors
         .newFixedThreadPool(2, ThreadFactoryUtils.build("DefaultFileSystemMasterTest-%d", true));
-    mFileSystemMaster = new DefaultFileSystemMaster(mBlockMaster, mJournalSystem,
+    mFileSystemMaster = new DefaultFileSystemMaster(mBlockMaster, mJournalSystem, mSafeModeManager,
         ExecutorServiceFactories.constantExecutorServiceFactory(mExecutorService));
     mRegistry.add(FileSystemMaster.class, mFileSystemMaster);
     mJournalSystem.start();

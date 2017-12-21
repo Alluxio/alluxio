@@ -52,7 +52,8 @@ public final class FileSystemMasterFactory implements MasterFactory {
     Preconditions.checkArgument(journalFactory != null, "journal factory may not be null");
     LOG.info("Creating {} ", FileSystemMaster.class.getName());
     BlockMaster blockMaster = registry.get(BlockMaster.class);
-    FileSystemMaster fileSystemMaster = new DefaultFileSystemMaster(blockMaster, journalFactory);
+    FileSystemMaster fileSystemMaster = new DefaultFileSystemMaster(blockMaster, journalFactory,
+        safeModeManager);
     registry.add(FileSystemMaster.class, fileSystemMaster);
     return fileSystemMaster;
   }
