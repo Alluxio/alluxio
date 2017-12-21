@@ -84,7 +84,7 @@ public final class SecureHdfsValidationTask extends HdfsValidationTask {
       principal = Configuration.get(mPrincipalProperty);
     }
     if (principal == null || principal.isEmpty()) {
-      System.err.format("Skip validation for secure HDFS. %s is not specified.%n",
+      System.out.format("Skip validation for secure HDFS. %s is not specified.%n",
           PRINCIPAL_MAP.get(mProcess).getName());
       return true;
     }
