@@ -209,7 +209,7 @@ public final class UnderFileSystemBlockReader implements BlockReader {
       bufCopy.readerIndex(bufCopy.writerIndex());
     }
     int bytesToRead =
-        (int) Math.min((long) buf.writableBytes(), mBlockMeta.getBlockSize() - mInStreamPos);
+        (int) Math.min(buf.writableBytes(), mBlockMeta.getBlockSize() - mInStreamPos);
     int bytesRead = buf.writeBytes(mUnderFileSystemInputStream, bytesToRead);
     if (bytesRead <= 0) {
       return bytesRead;
