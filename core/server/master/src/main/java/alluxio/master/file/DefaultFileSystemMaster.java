@@ -38,8 +38,8 @@ import alluxio.exception.status.UnavailableException;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatThread;
 import alluxio.master.AbstractMaster;
+import alluxio.master.MasterContext;
 import alluxio.master.ProtobufUtils;
-import alluxio.master.SafeModeManager;
 import alluxio.master.audit.AsyncUserAccessAuditLogWriter;
 import alluxio.master.audit.AuditContext;
 import alluxio.master.block.BlockId;
@@ -75,7 +75,6 @@ import alluxio.master.file.options.MountOptions;
 import alluxio.master.file.options.RenameOptions;
 import alluxio.master.file.options.SetAttributeOptions;
 import alluxio.master.journal.JournalContext;
-import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.NoopJournalContext;
 import alluxio.metrics.MetricsSystem;
 import alluxio.proto.journal.File.AddMountPointEntry;
@@ -307,10 +306,6 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
   /** This caches block locations in the UFS. */
   private final UfsBlockLocationCache mUfsBlockLocationCache;
 
-  /** The manager for master safe mode state. */
-  @SuppressFBWarnings("URF_UNREAD_FIELD")
-  private final SafeModeManager mSafeModeManager;
-
   /**
    * The service that checks for inode files with ttl set. We store it here so that it can be
    * accessed from tests.
@@ -335,11 +330,10 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    * Creates a new instance of {@link DefaultFileSystemMaster}.
    *
    * @param blockMaster a block master handle
-   * @param journalSystem the journal system to use for tracking master operations
+   * @param masterContext the context for Alluxio master
    */
-  DefaultFileSystemMaster(BlockMaster blockMaster, JournalSystem journalSystem,
-      SafeModeManager safeModeManager) {
-    this(blockMaster, journalSystem, safeModeManager, ExecutorServiceFactories
+  DefaultFileSystemMaster(BlockMaster blockMaster, MasterContext masterContext) {
+    this(blockMaster, masterContext, ExecutorServiceFactories
         .fixedThreadPoolExecutorServiceFactory(Constants.FILE_SYSTEM_MASTER_NAME, 3));
   }
 
@@ -347,20 +341,19 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    * Creates a new instance of {@link DefaultFileSystemMaster}.
    *
    * @param blockMaster a block master handle
-   * @param journalSystem the journal system to use for tracking master operations
+   * @param masterContext the context for Alluxio master
    * @param executorServiceFactory a factory for creating the executor service to use for running
    *        maintenance threads
    */
-  DefaultFileSystemMaster(BlockMaster blockMaster, JournalSystem journalSystem,
-      SafeModeManager safeModeManager, ExecutorServiceFactory executorServiceFactory) {
-    super(journalSystem, new SystemClock(), executorServiceFactory);
+  DefaultFileSystemMaster(BlockMaster blockMaster, MasterContext masterContext,
+      ExecutorServiceFactory executorServiceFactory) {
+    super(masterContext, new SystemClock(), executorServiceFactory);
 
     mBlockMaster = blockMaster;
     mDirectoryIdGenerator = new InodeDirectoryIdGenerator(mBlockMaster);
     mUfsManager = new MasterUfsManager();
     mMountTable = new MountTable(mUfsManager);
     mInodeTree = new InodeTree(mBlockMaster, mDirectoryIdGenerator, mMountTable);
-    mSafeModeManager = safeModeManager;
 
     // TODO(gene): Handle default config value for whitelist.
     mWhitelist = new PrefixList(Configuration.getList(PropertyKey.MASTER_WHITELIST, ","));
