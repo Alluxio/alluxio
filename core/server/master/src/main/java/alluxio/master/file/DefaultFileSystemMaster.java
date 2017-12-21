@@ -39,6 +39,7 @@ import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatThread;
 import alluxio.master.AbstractMaster;
 import alluxio.master.ProtobufUtils;
+import alluxio.master.SafeModeManager;
 import alluxio.master.audit.AsyncUserAccessAuditLogWriter;
 import alluxio.master.audit.AuditContext;
 import alluxio.master.block.BlockId;
@@ -306,6 +307,10 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
   /** This caches block locations in the UFS. */
   private final UfsBlockLocationCache mUfsBlockLocationCache;
 
+  /** The manager for master safe mode state. */
+  @SuppressFBWarnings("URF_UNREAD_FIELD")
+  private final SafeModeManager mSafeModeManager;
+
   /**
    * The service that checks for inode files with ttl set. We store it here so that it can be
    * accessed from tests.
@@ -332,8 +337,9 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    * @param blockMaster a block master handle
    * @param journalSystem the journal system to use for tracking master operations
    */
-  DefaultFileSystemMaster(BlockMaster blockMaster, JournalSystem journalSystem) {
-    this(blockMaster, journalSystem, ExecutorServiceFactories
+  DefaultFileSystemMaster(BlockMaster blockMaster, JournalSystem journalSystem,
+      SafeModeManager safeModeManager) {
+    this(blockMaster, journalSystem, safeModeManager, ExecutorServiceFactories
         .fixedThreadPoolExecutorServiceFactory(Constants.FILE_SYSTEM_MASTER_NAME, 3));
   }
 
@@ -346,7 +352,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    *        maintenance threads
    */
   DefaultFileSystemMaster(BlockMaster blockMaster, JournalSystem journalSystem,
-      ExecutorServiceFactory executorServiceFactory) {
+      SafeModeManager safeModeManager, ExecutorServiceFactory executorServiceFactory) {
     super(journalSystem, new SystemClock(), executorServiceFactory);
 
     mBlockMaster = blockMaster;
@@ -354,6 +360,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     mUfsManager = new MasterUfsManager();
     mMountTable = new MountTable(mUfsManager);
     mInodeTree = new InodeTree(mBlockMaster, mDirectoryIdGenerator, mMountTable);
+    mSafeModeManager = safeModeManager;
 
     // TODO(gene): Handle default config value for whitelist.
     mWhitelist = new PrefixList(Configuration.getList(PropertyKey.MASTER_WHITELIST, ","));
