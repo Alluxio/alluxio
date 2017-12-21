@@ -132,7 +132,7 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
     LOG.debug("Creating netty input stream for block {} @ {} from client {} reading through {}",
         blockId, dataSource, NetworkAddressUtils.getClientHostName(), dataSource);
     return createNettyBlockInStream(context, dataSource, dataSourceType, builder.buildPartial(),
-        blockSize, options);
+        blockSize);
   }
 
   /**
@@ -162,18 +162,41 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
    * @param blockSource the source location of the block
    * @param blockSize the block size
    * @param readRequestPartial the partial read request
-   * @param options the in stream options
    * @return the {@link BlockInStream} created
    */
   private static BlockInStream createNettyBlockInStream(FileSystemContext context,
       WorkerNetAddress address, BlockInStreamSource blockSource,
-      Protocol.ReadRequest readRequestPartial, long blockSize, InStreamOptions options) {
+      Protocol.ReadRequest readRequestPartial, long blockSize) {
     long packetSize =
         Configuration.getBytes(PropertyKey.USER_NETWORK_NETTY_READER_PACKET_SIZE_BYTES);
     PacketReader.Factory factory = new NettyPacketReader.Factory(context, address,
-        readRequestPartial.toBuilder().setPacketSize(packetSize).buildPartial(), options);
+        readRequestPartial.toBuilder().setPacketSize(packetSize).buildPartial());
     return new BlockInStream(factory, address, blockSource, readRequestPartial.getBlockId(),
         blockSize);
+  }
+
+  /**
+   * Creates a {@link BlockInStream} to read from a specific remote server. Should only be used
+   * in cases where the data source and method of reading is known, ie. worker - worker
+   * communication.
+   *
+   * @param context the file system context
+   * @param blockId the block id
+   * @param address the address of the netty data server
+   * @param blockSource the source location of the block
+   * @param ufsOptions the ufs read options
+   * @return the {@link BlockInStream} created
+   */
+  public static BlockInStream createRemoteBlockInStream(FileSystemContext context, long blockId,
+      WorkerNetAddress address, BlockInStreamSource blockSource,
+      Protocol.OpenUfsBlockOptions ufsOptions) {
+    long packetSize =
+        Configuration.getBytes(PropertyKey.USER_NETWORK_NETTY_READER_PACKET_SIZE_BYTES);
+    Protocol.ReadRequest readRequest = Protocol.ReadRequest.newBuilder().setBlockId(blockId)
+        .setOpenUfsBlockOptions(ufsOptions).setPacketSize(packetSize).buildPartial();
+    PacketReader.Factory factory = new NettyPacketReader.Factory(context, address,
+        readRequest.toBuilder().buildPartial());
+    return new BlockInStream(factory, address, blockSource, blockId, ufsOptions.getBlockSize());
   }
 
   /**

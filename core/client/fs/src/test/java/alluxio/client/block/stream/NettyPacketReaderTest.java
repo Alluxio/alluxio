@@ -13,8 +13,6 @@ package alluxio.client.block.stream;
 
 import alluxio.Constants;
 import alluxio.client.file.FileSystemContext;
-import alluxio.client.file.URIStatus;
-import alluxio.client.file.options.InStreamOptions;
 import alluxio.network.protocol.RPCProtoMessage;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.network.protocol.databuffer.DataNettyBufferV2;
@@ -23,7 +21,6 @@ import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 import alluxio.util.io.BufferUtils;
 import alluxio.util.proto.ProtoMessage;
-import alluxio.wire.FileInfo;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.base.Function;
@@ -66,9 +63,7 @@ public final class NettyPacketReaderTest {
     mAddress = Mockito.mock(WorkerNetAddress.class);
     Protocol.ReadRequest readRequest =
         Protocol.ReadRequest.newBuilder().setBlockId(BLOCK_ID).setPacketSize(PACKET_SIZE).build();
-    mFactory =
-        new NettyPacketReader.Factory(mContext, mAddress, readRequest, new InStreamOptions(
-            new URIStatus(new FileInfo())));
+    mFactory = new NettyPacketReader.Factory(mContext, mAddress, readRequest);
 
     mChannel = new EmbeddedChannel();
     PowerMockito.when(mContext.acquireNettyChannel(mAddress)).thenReturn(mChannel);
