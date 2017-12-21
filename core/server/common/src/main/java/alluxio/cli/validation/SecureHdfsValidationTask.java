@@ -58,17 +58,37 @@ public final class SecureHdfsValidationTask extends HdfsValidationTask {
 
   @Override
   public boolean validate(Map<String, String> optionsMap) {
-    if (super.shouldSkip()) {
+    if (shouldSkip()) {
       return true;
     }
     if (!super.validate(optionsMap)) {
       return false;
     }
     if (!validatePrincipalLogin()) {
-      System.err.format("Principal login test failed.");
+      System.err.format("Principal login test failed.%n");
       return false;
     }
     return true;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public boolean shouldSkip() {
+    if (super.shouldSkip()) {
+      return true;
+    }
+    String principal = null;
+    if (Configuration.containsKey(PRINCIPAL_MAP.get(mProcess))) {
+      principal = Configuration.get(PRINCIPAL_MAP.get(mProcess));
+    }
+    if (principal == null || principal.isEmpty()) {
+      System.err.format("Skip validation for secure HDFS. %s is not specified.%n",
+          PRINCIPAL_MAP.get(mProcess).getName());
+      return true;
+    }
+    return false;
   }
 
   private boolean validatePrincipalLogin() {
