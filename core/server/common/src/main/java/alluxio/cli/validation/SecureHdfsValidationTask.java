@@ -46,6 +46,8 @@ public final class SecureHdfsValidationTask extends HdfsValidationTask {
       PRINCIPAL_MAP_WORKER_KEY, PropertyKey.WORKER_KEYTAB_FILE);
 
   private final String mProcess;
+  private PropertyKey mPrincipalProperty;
+  private PropertyKey mKeytabProperty;
 
   /**
    * Constructor of {@link SecureHdfsValidationTask}.
@@ -54,6 +56,8 @@ public final class SecureHdfsValidationTask extends HdfsValidationTask {
    */
   public SecureHdfsValidationTask(String process) {
     mProcess = process.toLowerCase();
+    mPrincipalProperty = PRINCIPAL_MAP.get(mProcess);
+    mKeytabProperty = KEYTAB_MAP.get(mProcess);
   }
 
   @Override
@@ -65,23 +69,19 @@ public final class SecureHdfsValidationTask extends HdfsValidationTask {
       return false;
     }
     if (!validatePrincipalLogin()) {
-      System.err.format("Principal login test failed.%n");
       return false;
     }
     return true;
   }
 
-  /**
-   * {@inheritDoc}
-   */
   @Override
   public boolean shouldSkip() {
     if (super.shouldSkip()) {
       return true;
     }
     String principal = null;
-    if (Configuration.containsKey(PRINCIPAL_MAP.get(mProcess))) {
-      principal = Configuration.get(PRINCIPAL_MAP.get(mProcess));
+    if (Configuration.containsKey(mPrincipalProperty)) {
+      principal = Configuration.get(mPrincipalProperty);
     }
     if (principal == null || principal.isEmpty()) {
       System.err.format("Skip validation for secure HDFS. %s is not specified.%n",
@@ -93,7 +93,7 @@ public final class SecureHdfsValidationTask extends HdfsValidationTask {
 
   private boolean validatePrincipalLogin() {
     // Check whether can login with specified principal and keytab
-    String principal = Configuration.get(PRINCIPAL_MAP.get(mProcess));
+    String principal = Configuration.get(mPrincipalProperty);
     Matcher matchPrincipal = PRINCIPAL_PATTERN.matcher(principal);
     if (!matchPrincipal.matches()) {
       System.err.format("Principal %s is not in the right format.%n", principal);
@@ -104,7 +104,7 @@ public final class SecureHdfsValidationTask extends HdfsValidationTask {
     String realm = matchPrincipal.group("realm");
 
     // Login with principal and keytab
-    String keytab = Configuration.get(KEYTAB_MAP.get(mProcess));
+    String keytab = Configuration.get(mKeytabProperty);
     int exitVal =
         Utils.getResultFromProcess(new String[] {"kinit", "-kt", keytab, principal}).getExitValue();
     if (exitVal != 0) {

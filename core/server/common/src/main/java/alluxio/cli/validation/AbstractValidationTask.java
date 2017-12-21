@@ -20,17 +20,11 @@ import java.util.List;
  * Abstract class for validation environment.
  */
 public abstract class AbstractValidationTask implements ValidationTask {
-  /**
-   * {@inheritDoc}
-   */
   @Override
   public List<Option> getOptionList() {
     return new ArrayList<>();
   }
 
-  /**
-   * {@inheritDoc}
-   */
   @Override
   public boolean shouldSkip() {
     return false;

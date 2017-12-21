@@ -39,9 +39,6 @@ public class HdfsValidationTask extends AbstractValidationTask {
    */
   public HdfsValidationTask() {}
 
-  /**
-   * {@inheritDoc}
-   */
   @Override
   public List<Option> getOptionList() {
     List<Option> opts = new ArrayList<>();
@@ -61,16 +58,12 @@ public class HdfsValidationTask extends AbstractValidationTask {
     return true;
   }
 
-  /**
-   * {@inheritDoc}
-   */
   @Override
   public boolean shouldSkip() {
     String scheme =
         new AlluxioURI(Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS)).getScheme();
     if (scheme == null || !scheme.startsWith("hdfs")) {
-      System.err.format("Root underFS is %s, not HDFS. Skipping validation for HDFS properties.%n",
-          scheme);
+      System.err.format("Root underFS is not HDFS. Skipping validation for HDFS properties.%n");
       return true;
     }
     return false;
@@ -85,7 +78,7 @@ public class HdfsValidationTask extends AbstractValidationTask {
     }
     if (serverHadoopConfDirPath == null) {
       System.err.println("Path to server-side hadoop configuration unspecified,"
-          + " skipping validation for HDFS properties.%n");
+          + " skipping validation for HDFS properties.");
       return true;
     }
     String serverCoreSiteFilePath = PathUtils.concatPath(serverHadoopConfDirPath, "/core-site.xml");
@@ -115,12 +108,12 @@ public class HdfsValidationTask extends AbstractValidationTask {
     }
     if (clientCoreSiteFilePath == null || clientCoreSiteFilePath.isEmpty()) {
       System.err.println("Cannot locate the client-side core-site.xml,"
-          + " skipping validation for HDFS properties.%n");
+          + " skipping validation for HDFS properties.");
       return true;
     }
     if (clientHdfsSiteFilePath == null || clientHdfsSiteFilePath.isEmpty()) {
       System.err.println("Cannot locate the client-side hdfs-site.xml,"
-          + " skipping validation for HDFS properties.%n");
+          + " skipping validation for HDFS properties.");
       return true;
     }
     return compareConfigurations(clientCoreSiteFilePath, serverCoreSiteFilePath)
