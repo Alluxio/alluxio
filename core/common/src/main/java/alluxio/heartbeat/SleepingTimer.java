@@ -11,7 +11,6 @@
 
 package alluxio.heartbeat;
 
-import alluxio.clock.Clock;
 import alluxio.clock.SystemClock;
 import alluxio.time.Sleeper;
 import alluxio.time.ThreadSleeper;
@@ -20,6 +19,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.concurrent.NotThreadSafe;
+
+import java.time.Clock;
 
 /**
  * This class can be used for executing heartbeats periodically.

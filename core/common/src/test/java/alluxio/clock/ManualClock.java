@@ -11,10 +11,14 @@
 
 package alluxio.clock;
 
+import java.time.Clock;
+import java.time.Instant;
+import java.time.ZoneId;
+
 /**
  * A manually set clock useful for testing.
  */
-public final class ManualClock implements Clock {
+public final class ManualClock extends Clock {
   private long mTimeMs;
 
   /**
@@ -54,5 +58,20 @@ public final class ManualClock implements Clock {
   @Override
   public synchronized long millis() {
     return mTimeMs;
+  }
+
+  @Override
+  public ZoneId getZone() {
+    return null;
+  }
+
+  @Override
+  public Clock withZone(ZoneId zone) {
+    return null;
+  }
+
+  @Override
+  public Instant instant() {
+    return null;
   }
 }
