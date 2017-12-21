@@ -172,6 +172,7 @@ public class UfsInputStreamManager {
    *
    * @param ufs the under file system
    * @param path the path to the under storage file
+   * @param fileId the file id
    * @param openOptions the open options
    * @return the acquired input stream
    * @throws IOException if the input stream fails to open
