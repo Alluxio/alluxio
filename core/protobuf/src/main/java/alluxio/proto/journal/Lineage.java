@@ -8,10 +8,10 @@ public final class Lineage {
   public static void registerAllExtensions(
       com.google.protobuf.ExtensionRegistry registry) {
   }
-  public interface DeleteLineageEntryOrBuilder
-      extends com.google.protobuf.MessageOrBuilder {
+  public interface DeleteLineageEntryOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:alluxio.proto.journal.DeleteLineageEntry)
+      com.google.protobuf.MessageOrBuilder {
 
-    // optional int64 lineage_id = 1;
     /**
      * <code>optional int64 lineage_id = 1;</code>
      */
@@ -21,7 +21,6 @@ public final class Lineage {
      */
     long getLineageId();
 
-    // optional bool cascade = 2;
     /**
      * <code>optional bool cascade = 2;</code>
      */
@@ -39,8 +38,9 @@ public final class Lineage {
    * </pre>
    */
   public static final class DeleteLineageEntry extends
-      com.google.protobuf.GeneratedMessage
-      implements DeleteLineageEntryOrBuilder {
+      com.google.protobuf.GeneratedMessage implements
+      // @@protoc_insertion_point(message_implements:alluxio.proto.journal.DeleteLineageEntry)
+      DeleteLineageEntryOrBuilder {
     // Use DeleteLineageEntry.newBuilder() to construct.
     private DeleteLineageEntry(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
       super(builder);
@@ -136,7 +136,6 @@ public final class Lineage {
     }
 
     private int bitField0_;
-    // optional int64 lineage_id = 1;
     public static final int LINEAGE_ID_FIELD_NUMBER = 1;
     private long lineageId_;
     /**
@@ -152,7 +151,6 @@ public final class Lineage {
       return lineageId_;
     }
 
-    // optional bool cascade = 2;
     public static final int CASCADE_FIELD_NUMBER = 2;
     private boolean cascade_;
     /**
@@ -175,7 +173,8 @@ public final class Lineage {
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
-      if (isInitialized != -1) return isInitialized == 1;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
 
       memoizedIsInitialized = 1;
       return true;
@@ -293,8 +292,9 @@ public final class Lineage {
      * </pre>
      */
     public static final class Builder extends
-        com.google.protobuf.GeneratedMessage.Builder<Builder>
-       implements alluxio.proto.journal.Lineage.DeleteLineageEntryOrBuilder {
+        com.google.protobuf.GeneratedMessage.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:alluxio.proto.journal.DeleteLineageEntry)
+        alluxio.proto.journal.Lineage.DeleteLineageEntryOrBuilder {
       public static final com.google.protobuf.Descriptors.Descriptor
           getDescriptor() {
         return alluxio.proto.journal.Lineage.internal_static_alluxio_proto_journal_DeleteLineageEntry_descriptor;
@@ -416,7 +416,6 @@ public final class Lineage {
       }
       private int bitField0_;
 
-      // optional int64 lineage_id = 1;
       private long lineageId_ ;
       /**
        * <code>optional int64 lineage_id = 1;</code>
@@ -449,7 +448,6 @@ public final class Lineage {
         return this;
       }
 
-      // optional bool cascade = 2;
       private boolean cascade_ ;
       /**
        * <code>optional bool cascade = 2;</code>
@@ -493,10 +491,10 @@ public final class Lineage {
     // @@protoc_insertion_point(class_scope:alluxio.proto.journal.DeleteLineageEntry)
   }
 
-  public interface LineageEntryOrBuilder
-      extends com.google.protobuf.MessageOrBuilder {
+  public interface LineageEntryOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:alluxio.proto.journal.LineageEntry)
+      com.google.protobuf.MessageOrBuilder {
 
-    // optional int64 id = 1;
     /**
      * <code>optional int64 id = 1;</code>
      */
@@ -506,7 +504,6 @@ public final class Lineage {
      */
     long getId();
 
-    // repeated int64 input_files = 2;
     /**
      * <code>repeated int64 input_files = 2;</code>
      */
@@ -520,7 +517,6 @@ public final class Lineage {
      */
     long getInputFiles(int index);
 
-    // repeated int64 output_file_ids = 3;
     /**
      * <code>repeated int64 output_file_ids = 3;</code>
      */
@@ -534,7 +530,6 @@ public final class Lineage {
      */
     long getOutputFileIds(int index);
 
-    // optional string job_command = 4;
     /**
      * <code>optional string job_command = 4;</code>
      */
@@ -549,7 +544,6 @@ public final class Lineage {
     com.google.protobuf.ByteString
         getJobCommandBytes();
 
-    // optional string job_output_path = 5;
     /**
      * <code>optional string job_output_path = 5;</code>
      */
@@ -564,7 +558,6 @@ public final class Lineage {
     com.google.protobuf.ByteString
         getJobOutputPathBytes();
 
-    // optional int64 creation_time_ms = 6;
     /**
      * <code>optional int64 creation_time_ms = 6;</code>
      */
@@ -582,8 +575,9 @@ public final class Lineage {
    * </pre>
    */
   public static final class LineageEntry extends
-      com.google.protobuf.GeneratedMessage
-      implements LineageEntryOrBuilder {
+      com.google.protobuf.GeneratedMessage implements
+      // @@protoc_insertion_point(message_implements:alluxio.proto.journal.LineageEntry)
+      LineageEntryOrBuilder {
     // Use LineageEntry.newBuilder() to construct.
     private LineageEntry(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
       super(builder);
@@ -677,13 +671,15 @@ public final class Lineage {
               break;
             }
             case 34: {
+              com.google.protobuf.ByteString bs = input.readBytes();
               bitField0_ |= 0x00000002;
-              jobCommand_ = input.readBytes();
+              jobCommand_ = bs;
               break;
             }
             case 42: {
+              com.google.protobuf.ByteString bs = input.readBytes();
               bitField0_ |= 0x00000004;
-              jobOutputPath_ = input.readBytes();
+              jobOutputPath_ = bs;
               break;
             }
             case 48: {
@@ -737,7 +733,6 @@ public final class Lineage {
     }
 
     private int bitField0_;
-    // optional int64 id = 1;
     public static final int ID_FIELD_NUMBER = 1;
     private long id_;
     /**
@@ -753,7 +748,6 @@ public final class Lineage {
       return id_;
     }
 
-    // repeated int64 input_files = 2;
     public static final int INPUT_FILES_FIELD_NUMBER = 2;
     private java.util.List<java.lang.Long> inputFiles_;
     /**
@@ -776,7 +770,6 @@ public final class Lineage {
       return inputFiles_.get(index);
     }
 
-    // repeated int64 output_file_ids = 3;
     public static final int OUTPUT_FILE_IDS_FIELD_NUMBER = 3;
     private java.util.List<java.lang.Long> outputFileIds_;
     /**
@@ -799,7 +792,6 @@ public final class Lineage {
       return outputFileIds_.get(index);
     }
 
-    // optional string job_command = 4;
     public static final int JOB_COMMAND_FIELD_NUMBER = 4;
     private java.lang.Object jobCommand_;
     /**
@@ -842,7 +834,6 @@ public final class Lineage {
       }
     }
 
-    // optional string job_output_path = 5;
     public static final int JOB_OUTPUT_PATH_FIELD_NUMBER = 5;
     private java.lang.Object jobOutputPath_;
     /**
@@ -885,7 +876,6 @@ public final class Lineage {
       }
     }
 
-    // optional int64 creation_time_ms = 6;
     public static final int CREATION_TIME_MS_FIELD_NUMBER = 6;
     private long creationTimeMs_;
     /**
@@ -912,7 +902,8 @@ public final class Lineage {
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
-      if (isInitialized != -1) return isInitialized == 1;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
 
       memoizedIsInitialized = 1;
       return true;
@@ -1068,8 +1059,9 @@ public final class Lineage {
      * </pre>
      */
     public static final class Builder extends
-        com.google.protobuf.GeneratedMessage.Builder<Builder>
-       implements alluxio.proto.journal.Lineage.LineageEntryOrBuilder {
+        com.google.protobuf.GeneratedMessage.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:alluxio.proto.journal.LineageEntry)
+        alluxio.proto.journal.Lineage.LineageEntryOrBuilder {
       public static final com.google.protobuf.Descriptors.Descriptor
           getDescriptor() {
         return alluxio.proto.journal.Lineage.internal_static_alluxio_proto_journal_LineageEntry_descriptor;
@@ -1247,7 +1239,6 @@ public final class Lineage {
       }
       private int bitField0_;
 
-      // optional int64 id = 1;
       private long id_ ;
       /**
        * <code>optional int64 id = 1;</code>
@@ -1280,7 +1271,6 @@ public final class Lineage {
         return this;
       }
 
-      // repeated int64 input_files = 2;
       private java.util.List<java.lang.Long> inputFiles_ = java.util.Collections.emptyList();
       private void ensureInputFilesIsMutable() {
         if (!((bitField0_ & 0x00000002) == 0x00000002)) {
@@ -1332,7 +1322,8 @@ public final class Lineage {
       public Builder addAllInputFiles(
           java.lang.Iterable<? extends java.lang.Long> values) {
         ensureInputFilesIsMutable();
-        super.addAll(values, inputFiles_);
+        com.google.protobuf.AbstractMessageLite.Builder.addAll(
+            values, inputFiles_);
         onChanged();
         return this;
       }
@@ -1346,7 +1337,6 @@ public final class Lineage {
         return this;
       }
 
-      // repeated int64 output_file_ids = 3;
       private java.util.List<java.lang.Long> outputFileIds_ = java.util.Collections.emptyList();
       private void ensureOutputFileIdsIsMutable() {
         if (!((bitField0_ & 0x00000004) == 0x00000004)) {
@@ -1398,7 +1388,8 @@ public final class Lineage {
       public Builder addAllOutputFileIds(
           java.lang.Iterable<? extends java.lang.Long> values) {
         ensureOutputFileIdsIsMutable();
-        super.addAll(values, outputFileIds_);
+        com.google.protobuf.AbstractMessageLite.Builder.addAll(
+            values, outputFileIds_);
         onChanged();
         return this;
       }
@@ -1412,7 +1403,6 @@ public final class Lineage {
         return this;
       }
 
-      // optional string job_command = 4;
       private java.lang.Object jobCommand_ = "";
       /**
        * <code>optional string job_command = 4;</code>
@@ -1426,9 +1416,12 @@ public final class Lineage {
       public java.lang.String getJobCommand() {
         java.lang.Object ref = jobCommand_;
         if (!(ref instanceof java.lang.String)) {
-          java.lang.String s = ((com.google.protobuf.ByteString) ref)
-              .toStringUtf8();
-          jobCommand_ = s;
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          if (bs.isValidUtf8()) {
+            jobCommand_ = s;
+          }
           return s;
         } else {
           return (java.lang.String) ref;
@@ -1486,7 +1479,6 @@ public final class Lineage {
         return this;
       }
 
-      // optional string job_output_path = 5;
       private java.lang.Object jobOutputPath_ = "";
       /**
        * <code>optional string job_output_path = 5;</code>
@@ -1500,9 +1492,12 @@ public final class Lineage {
       public java.lang.String getJobOutputPath() {
         java.lang.Object ref = jobOutputPath_;
         if (!(ref instanceof java.lang.String)) {
-          java.lang.String s = ((com.google.protobuf.ByteString) ref)
-              .toStringUtf8();
-          jobOutputPath_ = s;
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          if (bs.isValidUtf8()) {
+            jobOutputPath_ = s;
+          }
           return s;
         } else {
           return (java.lang.String) ref;
@@ -1560,7 +1555,6 @@ public final class Lineage {
         return this;
       }
 
-      // optional int64 creation_time_ms = 6;
       private long creationTimeMs_ ;
       /**
        * <code>optional int64 creation_time_ms = 6;</code>
@@ -1604,10 +1598,10 @@ public final class Lineage {
     // @@protoc_insertion_point(class_scope:alluxio.proto.journal.LineageEntry)
   }
 
-  public interface LineageIdGeneratorEntryOrBuilder
-      extends com.google.protobuf.MessageOrBuilder {
+  public interface LineageIdGeneratorEntryOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:alluxio.proto.journal.LineageIdGeneratorEntry)
+      com.google.protobuf.MessageOrBuilder {
 
-    // optional int64 sequence_number = 1;
     /**
      * <code>optional int64 sequence_number = 1;</code>
      */
@@ -1625,8 +1619,9 @@ public final class Lineage {
    * </pre>
    */
   public static final class LineageIdGeneratorEntry extends
-      com.google.protobuf.GeneratedMessage
-      implements LineageIdGeneratorEntryOrBuilder {
+      com.google.protobuf.GeneratedMessage implements
+      // @@protoc_insertion_point(message_implements:alluxio.proto.journal.LineageIdGeneratorEntry)
+      LineageIdGeneratorEntryOrBuilder {
     // Use LineageIdGeneratorEntry.newBuilder() to construct.
     private LineageIdGeneratorEntry(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
       super(builder);
@@ -1717,7 +1712,6 @@ public final class Lineage {
     }
 
     private int bitField0_;
-    // optional int64 sequence_number = 1;
     public static final int SEQUENCE_NUMBER_FIELD_NUMBER = 1;
     private long sequenceNumber_;
     /**
@@ -1739,7 +1733,8 @@ public final class Lineage {
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
       byte isInitialized = memoizedIsInitialized;
-      if (isInitialized != -1) return isInitialized == 1;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
 
       memoizedIsInitialized = 1;
       return true;
@@ -1850,8 +1845,9 @@ public final class Lineage {
      * </pre>
      */
     public static final class Builder extends
-        com.google.protobuf.GeneratedMessage.Builder<Builder>
-       implements alluxio.proto.journal.Lineage.LineageIdGeneratorEntryOrBuilder {
+        com.google.protobuf.GeneratedMessage.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:alluxio.proto.journal.LineageIdGeneratorEntry)
+        alluxio.proto.journal.Lineage.LineageIdGeneratorEntryOrBuilder {
       public static final com.google.protobuf.Descriptors.Descriptor
           getDescriptor() {
         return alluxio.proto.journal.Lineage.internal_static_alluxio_proto_journal_LineageIdGeneratorEntry_descriptor;
@@ -1964,7 +1960,6 @@ public final class Lineage {
       }
       private int bitField0_;
 
-      // optional int64 sequence_number = 1;
       private long sequenceNumber_ ;
       /**
        * <code>optional int64 sequence_number = 1;</code>
@@ -2008,17 +2003,17 @@ public final class Lineage {
     // @@protoc_insertion_point(class_scope:alluxio.proto.journal.LineageIdGeneratorEntry)
   }
 
-  private static com.google.protobuf.Descriptors.Descriptor
+  private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_alluxio_proto_journal_DeleteLineageEntry_descriptor;
   private static
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_alluxio_proto_journal_DeleteLineageEntry_fieldAccessorTable;
-  private static com.google.protobuf.Descriptors.Descriptor
+  private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_alluxio_proto_journal_LineageEntry_descriptor;
   private static
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_alluxio_proto_journal_LineageEntry_fieldAccessorTable;
-  private static com.google.protobuf.Descriptors.Descriptor
+  private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_alluxio_proto_journal_LineageIdGeneratorEntry_descriptor;
   private static
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
@@ -2042,35 +2037,35 @@ public final class Lineage {
       "\027\n\017sequence_number\030\001 \001(\003"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
-      new com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner() {
-        public com.google.protobuf.ExtensionRegistry assignDescriptors(
-            com.google.protobuf.Descriptors.FileDescriptor root) {
-          descriptor = root;
-          internal_static_alluxio_proto_journal_DeleteLineageEntry_descriptor =
-            getDescriptor().getMessageTypes().get(0);
-          internal_static_alluxio_proto_journal_DeleteLineageEntry_fieldAccessorTable = new
-            com.google.protobuf.GeneratedMessage.FieldAccessorTable(
-              internal_static_alluxio_proto_journal_DeleteLineageEntry_descriptor,
-              new java.lang.String[] { "LineageId", "Cascade", });
-          internal_static_alluxio_proto_journal_LineageEntry_descriptor =
-            getDescriptor().getMessageTypes().get(1);
-          internal_static_alluxio_proto_journal_LineageEntry_fieldAccessorTable = new
-            com.google.protobuf.GeneratedMessage.FieldAccessorTable(
-              internal_static_alluxio_proto_journal_LineageEntry_descriptor,
-              new java.lang.String[] { "Id", "InputFiles", "OutputFileIds", "JobCommand", "JobOutputPath", "CreationTimeMs", });
-          internal_static_alluxio_proto_journal_LineageIdGeneratorEntry_descriptor =
-            getDescriptor().getMessageTypes().get(2);
-          internal_static_alluxio_proto_journal_LineageIdGeneratorEntry_fieldAccessorTable = new
-            com.google.protobuf.GeneratedMessage.FieldAccessorTable(
-              internal_static_alluxio_proto_journal_LineageIdGeneratorEntry_descriptor,
-              new java.lang.String[] { "SequenceNumber", });
-          return null;
-        }
-      };
+        new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
+          public com.google.protobuf.ExtensionRegistry assignDescriptors(
+              com.google.protobuf.Descriptors.FileDescriptor root) {
+            descriptor = root;
+            return null;
+          }
+        };
     com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
         new com.google.protobuf.Descriptors.FileDescriptor[] {
         }, assigner);
+    internal_static_alluxio_proto_journal_DeleteLineageEntry_descriptor =
+      getDescriptor().getMessageTypes().get(0);
+    internal_static_alluxio_proto_journal_DeleteLineageEntry_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+        internal_static_alluxio_proto_journal_DeleteLineageEntry_descriptor,
+        new java.lang.String[] { "LineageId", "Cascade", });
+    internal_static_alluxio_proto_journal_LineageEntry_descriptor =
+      getDescriptor().getMessageTypes().get(1);
+    internal_static_alluxio_proto_journal_LineageEntry_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+        internal_static_alluxio_proto_journal_LineageEntry_descriptor,
+        new java.lang.String[] { "Id", "InputFiles", "OutputFileIds", "JobCommand", "JobOutputPath", "CreationTimeMs", });
+    internal_static_alluxio_proto_journal_LineageIdGeneratorEntry_descriptor =
+      getDescriptor().getMessageTypes().get(2);
+    internal_static_alluxio_proto_journal_LineageIdGeneratorEntry_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+        internal_static_alluxio_proto_journal_LineageIdGeneratorEntry_descriptor,
+        new java.lang.String[] { "SequenceNumber", });
   }
 
   // @@protoc_insertion_point(outer_class_scope)

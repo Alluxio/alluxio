@@ -343,6 +343,43 @@ public class ConfigurationTest {
   }
 
   @Test
+  public void getNegativeSyncInterval() {
+    Configuration.set(PropertyKey.USER_FILE_METADATA_SYNC_INTERVAL, "-1");
+    assertEquals(-1, Configuration.getMs(PropertyKey.USER_FILE_METADATA_SYNC_INTERVAL));
+  }
+
+  @Test
+  public void getNegativeSyncIntervalS() {
+    Configuration.set(PropertyKey.USER_FILE_METADATA_SYNC_INTERVAL, "-1s");
+    assertTrue(Configuration.getMs(PropertyKey.USER_FILE_METADATA_SYNC_INTERVAL) < 0);
+  }
+
+  @Test
+  public void getZeroSyncInterval() {
+    Configuration.set(PropertyKey.USER_FILE_METADATA_SYNC_INTERVAL, "0");
+    assertEquals(0, Configuration.getMs(PropertyKey.USER_FILE_METADATA_SYNC_INTERVAL));
+  }
+
+  @Test
+  public void getZeroSyncIntervalS() {
+    Configuration.set(PropertyKey.USER_FILE_METADATA_SYNC_INTERVAL, "0s");
+    assertEquals(0, Configuration.getMs(PropertyKey.USER_FILE_METADATA_SYNC_INTERVAL));
+  }
+
+  @Test
+  public void getPositiveSyncInterval() {
+    Configuration.set(PropertyKey.USER_FILE_METADATA_SYNC_INTERVAL, "10");
+    assertEquals(10, Configuration.getMs(PropertyKey.USER_FILE_METADATA_SYNC_INTERVAL));
+  }
+
+  @Test
+  public void getPosiviteSyncIntervalS() {
+    Configuration.set(PropertyKey.USER_FILE_METADATA_SYNC_INTERVAL, "10s");
+    assertEquals(10 * Constants.SECOND_MS,
+        Configuration.getMs(PropertyKey.USER_FILE_METADATA_SYNC_INTERVAL));
+  }
+
+  @Test
   public void getNestedProperties() {
     Configuration.set(
         PropertyKey.Template.MASTER_MOUNT_TABLE_OPTION_PROPERTY.format("foo",

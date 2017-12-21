@@ -23,6 +23,7 @@ import alluxio.client.file.options.GetStatusOptions;
 import alluxio.client.file.options.ListStatusOptions;
 import alluxio.client.file.options.LoadMetadataOptions;
 import alluxio.client.file.options.MountOptions;
+import alluxio.client.file.options.RenameOptions;
 import alluxio.client.file.options.SetAttributeOptions;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.AlreadyExistsException;
@@ -170,6 +171,16 @@ public interface FileSystemMasterClient extends Client {
    * @throws NotFoundException if the path does not exist
    */
   void rename(AlluxioURI src, AlluxioURI dst) throws AlluxioStatusException;
+
+  /**
+   * Renames a file or a directory.
+   *
+   * @param src the path to rename
+   * @param dst new file path
+   * @param options rename options
+   * @throws NotFoundException if the path does not exist
+   */
+  void rename(AlluxioURI src, AlluxioURI dst, RenameOptions options) throws AlluxioStatusException;
 
   /**
    * Sets the file or directory attributes.

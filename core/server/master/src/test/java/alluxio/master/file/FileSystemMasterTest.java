@@ -53,6 +53,7 @@ import alluxio.master.file.options.LoadMetadataOptions;
 import alluxio.master.file.options.MountOptions;
 import alluxio.master.file.options.RenameOptions;
 import alluxio.master.file.options.SetAttributeOptions;
+import alluxio.master.file.options.WorkerHeartbeatOptions;
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.JournalSystem.Mode;
 import alluxio.master.journal.JournalTestUtils;
@@ -1781,8 +1782,8 @@ public final class FileSystemMasterTest {
     long fileId = mFileSystemMaster.getFileId(ROOT_FILE_URI);
     mFileSystemMaster.scheduleAsyncPersistence(ROOT_FILE_URI);
 
-    FileSystemCommand command =
-        mFileSystemMaster.workerHeartbeat(mWorkerId1, Lists.newArrayList(fileId));
+    FileSystemCommand command = mFileSystemMaster
+        .workerHeartbeat(mWorkerId1, Lists.newArrayList(fileId), WorkerHeartbeatOptions.defaults());
     assertEquals(CommandType.Persist, command.getCommandType());
     assertEquals(1,
         command.getCommandOptions().getPersistOptions().getPersistFiles().size());
@@ -1884,6 +1885,26 @@ public final class FileSystemMasterTest {
     UfsInfo noSuchUfsInfo = mFileSystemMaster.getUfsInfo(100L);
     assertFalse(noSuchUfsInfo.isSetUri());
     assertFalse(noSuchUfsInfo.isSetProperties());
+  }
+
+  /**
+   * Tests that setting the ufs fingerprint persists across restarts.
+   */
+  @Test
+  public void setUfsFingerprintReplay() throws Exception {
+    String fingerprint = "FINGERPRINT";
+    createFileWithSingleBlock(NESTED_FILE_URI);
+
+    mFileSystemMaster.setAttribute(NESTED_FILE_URI,
+        SetAttributeOptions.defaults().setUfsFingerprint(fingerprint));
+
+    // Simulate restart.
+    stopServices();
+    startServices();
+
+    assertEquals(fingerprint,
+        mFileSystemMaster.getFileInfo(NESTED_FILE_URI, GetStatusOptions.defaults())
+            .getUfsFingerprint());
   }
 
   private long createFileWithSingleBlock(AlluxioURI uri) throws Exception {
