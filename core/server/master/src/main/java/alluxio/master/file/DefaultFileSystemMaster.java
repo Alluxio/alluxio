@@ -3180,7 +3180,9 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
             LoadMetadataOptions.defaults().setCreateAncestors(true).setLoadDirectChildren(true),
             journalContext);
       } catch (Exception e) {
-        LOG.debug("Failed to load metadata for path: {}", inodePath.getUri());
+        LOG.error("Failed to load metadata for path: {} error: {}", inodePath.getUri(),
+            e.toString());
+        return false;
       }
     }
 
