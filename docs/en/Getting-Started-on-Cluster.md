@@ -282,13 +282,13 @@ $ ./bin/alluxio-stop.sh master
 On worker nodes:
 
 ```bash
-# ./bin/alluxio-stop.sh worker
+$ ./bin/alluxio-stop.sh worker
 ```
 
 ## Tips
 If you want to save the manual steps to ssh and configure on all the nodes, and you can also start
 Alluxio just from the master node. Set up password-less ssh on the server nodes, and follow the
-instructions in this [doc](Running-Alluxio-on-a-Cluster.html). There you can start Alluxio on a cluster
+instructions in this [doc](Running-Alluxio-on-a-Cluster.html). There you can manage Alluxio on a cluster
 in a more scalable and convenient way, by leveraging `alluxio/conf/workers`, `copyDir` and `./bin/alluxio-start.sh all`.
 
 ## Conclusion
