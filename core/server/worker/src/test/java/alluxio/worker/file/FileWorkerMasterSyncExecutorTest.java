@@ -11,15 +11,17 @@
 
 package alluxio.worker.file;
 
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.anyLong;
 import static org.mockito.Mockito.eq;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import alluxio.exception.status.UnavailableException;
 import alluxio.thrift.FileSystemCommand;
+import alluxio.thrift.FileSystemHeartbeatTOptions;
 
 import com.google.common.collect.Lists;
 import org.junit.Before;
@@ -56,9 +58,13 @@ public final class FileWorkerMasterSyncExecutorTest {
   @Test
   public void heartbeatFailure() throws Exception {
     List<Long> persistedFiles = Lists.newArrayList(1L);
-    when(mFileDataManager.getPersistedFiles()).thenReturn(persistedFiles);
+    List<String> ufsFingerprintList = Lists.newArrayList("ufs fingerprint");
+    FileDataManager.PersistedFilesInfo filesInfo =
+        new FileDataManager.PersistedFilesInfo(persistedFiles, ufsFingerprintList);
+    when(mFileDataManager.getPersistedFileInfos()).thenReturn(filesInfo);
     // first time fails, second time passes
-    when(mFileSystemMasterClient.heartbeat(anyLong(), eq(persistedFiles)))
+    when(mFileSystemMasterClient.heartbeat(anyLong(), eq(persistedFiles),
+        any(FileSystemHeartbeatTOptions.class)))
         .thenThrow(new UnavailableException("failure"));
     mFileWorkerMasterSyncExecutor.heartbeat();
     verify(mFileDataManager, never()).clearPersistedFiles(persistedFiles);
@@ -71,7 +77,10 @@ public final class FileWorkerMasterSyncExecutorTest {
   @Test
   public void heartbeat() throws Exception {
     List<Long> persistedFiles = Lists.newArrayList(1L);
-    when(mFileDataManager.getPersistedFiles()).thenReturn(persistedFiles);
+    List<String> ufsFingerprintList = Lists.newArrayList("ufs fingerprint");
+    FileDataManager.PersistedFilesInfo filesInfo =
+        new FileDataManager.PersistedFilesInfo(persistedFiles, ufsFingerprintList);
+    when(mFileDataManager.getPersistedFileInfos()).thenReturn(filesInfo);
     // first time fails, second time passes
     when(mFileSystemMasterClient.heartbeat(anyLong(), eq(persistedFiles)))
         .thenReturn(new FileSystemCommand());
