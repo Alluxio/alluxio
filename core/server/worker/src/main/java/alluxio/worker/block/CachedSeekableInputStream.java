@@ -22,11 +22,11 @@ import java.io.IOException;
  */
 class CachedSeekableInputStream extends SeekableUnderFileInputStream {
   /** A unique resource id annotated for resource tracking. */
-  private Long mResourceId;
+  private final Long mResourceId;
   /** The file path of the input stream. */
-  private String mFilePath;
+  private final String mFilePath;
   /** The file Id. */
-  private long mFileId;
+  private final long mFileId;
 
   /**
    * Creates a new {@link CachedSeekableInputStream}.

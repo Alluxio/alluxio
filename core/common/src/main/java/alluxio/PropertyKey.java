@@ -1297,17 +1297,22 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Name.WORKER_UFS_BLOCK_OPEN_TIMEOUT_MS)
           .setAlias(new String[]{"alluxio.worker.ufs.block.open.timeout.ms"})
           .setDefaultValue("5min")
-          .setDescription("Timeout to open a block from UFS.")
+          .setDescription("Timeout to open a block from ufs.")
           .build();
-  public static final PropertyKey WORKER_UFS_INSTREAM_CACHE_ENABLE =
-      new Builder(Name.WORKER_UFS_INSTREAM_CACHE_ENABLE)
+  public static final PropertyKey WORKER_UFS_INSTREAM_CACHE_ENABLED =
+      new Builder(Name.WORKER_UFS_INSTREAM_CACHE_ENABLED)
           .setDefaultValue("true")
-          .setDescription("Enable caching for seekable under storage input stream.")
+          .setDescription("Enable caching for seekable under storage input stream, "
+              + "so that subsequent seek operations on the same file will reuse "
+              + "the cached input stream. This will improve position read performance "
+              + "as the open operations of some under file system would be expensive. "
+              + "The cached input stream would be stale, when the ufs file is modified "
+              + "without notifying alluxio. ")
           .build();
-  public static final PropertyKey WORKER_UFS_INSTREAM_CACHE_EXPIRE_MS =
+  public static final PropertyKey WORKER_UFS_INSTREAM_CACHE_EXPIRARTION_TIME =
       new Builder(Name.WORKER_UFS_INSTREAM_CACHE_EXPIRATION_TIME)
           .setDefaultValue("5min")
-          .setDescription("Cached UFS instream expiration time.")
+          .setDescription("Cached ufs instream expiration time.")
           .build();
   public static final PropertyKey WORKER_UFS_INSTREAM_CACHE_MAX_SIZE =
       new Builder(Name.WORKER_UFS_INSTREAM_CACHE_MAX_SIZE)
@@ -2309,8 +2314,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.worker.ufs.block.open.timeout";
     public static final String WORKER_UFS_INSTREAM_CACHE_EXPIRATION_TIME =
         "alluxio.worker.ufs.instream.cache.expiration.time";
-    public static final String WORKER_UFS_INSTREAM_CACHE_ENABLE =
-        "alluxio.worker.ufs.instream.cache.enable";
+    public static final String WORKER_UFS_INSTREAM_CACHE_ENABLED =
+        "alluxio.worker.ufs.instream.cache.enabled";
     public static final String WORKER_UFS_INSTREAM_CACHE_MAX_SIZE =
         "alluxio.worker.ufs.instream.cache.max.size";
 
