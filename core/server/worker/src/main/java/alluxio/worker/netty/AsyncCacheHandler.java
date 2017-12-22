@@ -14,9 +14,12 @@ package alluxio.worker.netty;
 import alluxio.network.protocol.RPCProtoMessage;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.worker.block.AsyncCacheRequestManager;
+import alluxio.worker.block.BlockWorker;
 
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
+
+import java.util.concurrent.ExecutorService;
 
 /**
  * Handler for async cache requests.
@@ -27,8 +30,8 @@ public class AsyncCacheHandler extends ChannelInboundHandlerAdapter {
   /**
    * Constructs a new async cache handler.
    */
-  public AsyncCacheHandler() {
-    mRequestManager = new AsyncCacheRequestManager();
+  public AsyncCacheHandler(ExecutorService service, BlockWorker blockWorker) {
+    mRequestManager = new AsyncCacheRequestManager(service, blockWorker);
   }
 
   @Override
