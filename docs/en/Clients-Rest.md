@@ -6,7 +6,7 @@ group: Clients
 priority: 3
 ---
 
-For portability with other languages, the [Alluxio API](Clients-Java-Native.html) is also
+For portability with other languages, the [Alluxio API](Clients-Alluxio-Java.html) is also
 accessible via an HTTP proxy in the form of a REST API.
 
 The [REST API documentation](http://www.alluxio.org/restdoc/{{site.ALLUXIO_MAJOR_VERSION}}/proxy/index.html)
