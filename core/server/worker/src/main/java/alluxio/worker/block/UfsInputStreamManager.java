@@ -117,7 +117,7 @@ public class UfsInputStreamManager {
         };
     mUnderFileInputStreamCache = CacheBuilder.newBuilder()
         .maximumSize(Configuration.getInt(PropertyKey.WORKER_UFS_INSTREAM_CACHE_MAX_SIZE))
-        .expireAfterAccess(Configuration.getMs(PropertyKey.WORKER_UFS_INSTREAM_CACHE_EXPIRE_MS),
+        .expireAfterAccess(Configuration.getMs(PropertyKey.WORKER_UFS_INSTREAM_CACHE_EXPIRARTION_TIME),
             TimeUnit.MILLISECONDS)
         .removalListener(RemovalListeners.asynchronous(listener, mRemovalThreadPool)).build();
   }
@@ -257,7 +257,7 @@ public class UfsInputStreamManager {
   }
 
   private boolean isCachingEnabled() {
-    return Configuration.getBoolean(PropertyKey.WORKER_UFS_INSTREAM_CACHE_ENABLE);
+    return Configuration.getBoolean(PropertyKey.WORKER_UFS_INSTREAM_CACHE_ENABLED);
   }
 
   /**

@@ -99,7 +99,7 @@ public final class UfsInputStreamManagerTest {
   public void testExpire() throws Exception {
     try (Closeable r = new ConfigurationRule(new HashMap<PropertyKey, String>() {
       {
-        put(PropertyKey.WORKER_UFS_INSTREAM_CACHE_EXPIRE_MS, "2");
+        put(PropertyKey.WORKER_UFS_INSTREAM_CACHE_EXPIRARTION_TIME, "2");
       }
     }).toResource()) {
       mManager = new UfsInputStreamManager();
@@ -153,7 +153,7 @@ public final class UfsInputStreamManagerTest {
   public void testConcurrencyWithExpiration() throws Exception {
     try (Closeable r = new ConfigurationRule(new HashMap<PropertyKey, String>() {
       {
-        put(PropertyKey.WORKER_UFS_INSTREAM_CACHE_EXPIRE_MS, "20");
+        put(PropertyKey.WORKER_UFS_INSTREAM_CACHE_EXPIRARTION_TIME, "20");
       }
     }).toResource()) {
       mManager = new UfsInputStreamManager();
