@@ -63,7 +63,7 @@ public final class FileInStreamIntegrationTest extends BaseIntegrationTest {
   private String mTestPath;
 
   @Rule
-  public Timeout mGlobalTimeout = Timeout.seconds(600);
+  public Timeout mGlobalTimeout = Timeout.seconds(60);
 
   @Rule
   public ExpectedException mThrown = ExpectedException.none();
