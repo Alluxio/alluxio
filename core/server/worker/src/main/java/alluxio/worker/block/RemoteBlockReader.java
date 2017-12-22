@@ -38,8 +38,8 @@ public class RemoteBlockReader implements BlockReader {
   private boolean mClosed;
 
   /**
-   * Constructs a block cacher. Based on the data source, it will read from the under storage
-   * system or a remote worker.
+   * Constructs a remote block reader. It will read from a remote worker based on the data source.
+   *
    * @param blockId the block to cache
    * @param dataSource the data source to cache from
    * @param ufsOptions the options to read the block from ufs if necessary
