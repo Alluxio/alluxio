@@ -41,6 +41,7 @@ import alluxio.master.file.options.RenameOptions;
 import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.util.CommonUtils;
 import alluxio.util.IdUtils;
+import alluxio.wire.CommonOptions;
 import alluxio.wire.FileInfo;
 import alluxio.wire.LoadMetadataType;
 import alluxio.wire.TtlAction;
@@ -61,6 +62,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
+import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.ExecutorService;
@@ -68,6 +70,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Collectors;
 
 import javax.annotation.Nullable;
 
@@ -713,6 +716,53 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
       threadPool.shutdownNow();
       threadPool.awaitTermination(SHUTDOWN_TIME_MS, TimeUnit.MILLISECONDS);
     }
+  }
+
+  @Test
+  public void syncReplay() throws Exception {
+    AlluxioURI root = new AlluxioURI("/");
+    AlluxioURI alluxioFile = new AlluxioURI("/in_alluxio");
+
+    // Create a persisted Alluxio file (but no ufs file).
+    mFsMaster.createFile(alluxioFile, CreateFileOptions.defaults().setPersisted(true));
+    mFsMaster.completeFile(alluxioFile,
+        CompleteFileOptions.defaults().setOperationTimeMs(TEST_TIME_MS).setUfsLength(0));
+
+    // List what is in Alluxio, without syncing.
+    List<FileInfo> files = mFsMaster.listStatus(root,
+        ListStatusOptions.defaults().setLoadMetadataType(LoadMetadataType.Never)
+            .setCommonOptions(CommonOptions.defaults().setSyncIntervalMs(-1)));
+    Assert.assertEquals(1, files.size());
+    Assert.assertEquals(alluxioFile.getName(), files.get(0).getName());
+
+    // Add ufs only paths
+    String ufs = Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
+    Files.createDirectory(Paths.get(ufs, "ufs_dir"));
+    Files.createFile(Paths.get(ufs, "ufs_file"));
+
+    // List with syncing, which will remove alluxio only path, and add ufs only paths.
+    files = mFsMaster.listStatus(root,
+        ListStatusOptions.defaults().setLoadMetadataType(LoadMetadataType.Never)
+            .setCommonOptions(CommonOptions.defaults().setSyncIntervalMs(0)));
+    Assert.assertEquals(2, files.size());
+    Set<String> filenames = files.stream().map(FileInfo::getName).collect(Collectors.toSet());
+    Assert.assertTrue(filenames.contains("ufs_dir"));
+    Assert.assertTrue(filenames.contains("ufs_file"));
+
+    // Stop Alluxio.
+    mLocalAlluxioClusterResource.get().stopFS();
+    // Create the master using the existing journal.
+    MasterRegistry registry = createFileSystemMasterFromJournal();
+    FileSystemMaster fsMaster = registry.get(FileSystemMaster.class);
+
+    // List what is in Alluxio, without syncing. Should match the last state.
+    files = fsMaster.listStatus(root,
+        ListStatusOptions.defaults().setLoadMetadataType(LoadMetadataType.Never)
+            .setCommonOptions(CommonOptions.defaults().setSyncIntervalMs(-1)));
+    Assert.assertEquals(2, files.size());
+    filenames = files.stream().map(FileInfo::getName).collect(Collectors.toSet());
+    Assert.assertTrue(filenames.contains("ufs_dir"));
+    Assert.assertTrue(filenames.contains("ufs_file"));
   }
 
   // TODO(gene): Journal format has changed, maybe add Version to the format and add this test back
