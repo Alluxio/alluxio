@@ -222,10 +222,13 @@ public final class ValidateEnv {
     Collection<ValidationTask> tasks = TARGET_TASKS.get(target);
     for (ValidationTask task: tasks) {
       String taskName = TASKS.get(task);
-      if (name != null && !taskName.startsWith(name) || task.shouldSkip()) {
+      if (name != null && !taskName.startsWith(name)) {
         continue;
       }
       System.out.format("Validating %s...%n", taskName);
+      if (task.shouldSkip()) {
+        continue;
+      }
       if (task.validate(optionsMap)) {
         System.out.println("OK");
       } else {
