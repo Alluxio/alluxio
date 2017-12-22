@@ -211,7 +211,7 @@ public final class BufferUtils {
 
   /**
    * Checks if the given byte array starts with an increasing sequence of bytes of the given
-   * length, starting from the given value.
+   * length, starting from the given value. The array length must be equal to the length checked.
    *
    * @param start the starting value to use
    * @param len the target length of the sequence
@@ -220,7 +220,7 @@ public final class BufferUtils {
    *         sequence of bytes starting at {@code start}
    */
   public static boolean equalIncreasingByteArray(int start, int len, byte[] arr) {
-    if (arr == null) {
+    if (arr == null || arr.length != len) {
       return false;
     }
     for (int k = 0; k < len; k++) {
