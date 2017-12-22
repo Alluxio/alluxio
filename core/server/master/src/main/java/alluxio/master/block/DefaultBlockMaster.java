@@ -24,10 +24,12 @@ import alluxio.collections.IndexedSet;
 import alluxio.exception.BlockInfoException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.NoWorkerException;
+import alluxio.exception.status.UnavailableException;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.heartbeat.HeartbeatThread;
 import alluxio.master.AbstractMaster;
+import alluxio.master.SafeModeManager;
 import alluxio.master.block.meta.MasterBlockInfo;
 import alluxio.master.block.meta.MasterBlockLocation;
 import alluxio.master.block.meta.MasterWorkerInfo;
@@ -163,14 +165,15 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
   /** The value of the 'next container id' last journaled. */
   @GuardedBy("mBlockContainerIdGenerator")
   private long mJournaledNextContainerId = 0;
+  private SafeModeManager mSafeModeManager;
 
   /**
    * Creates a new instance of {@link DefaultBlockMaster}.
    *
    * @param journalSystem the journal system to use for tracking master operations
    */
-  DefaultBlockMaster(JournalSystem journalSystem) {
-    this(journalSystem, new SystemClock(), ExecutorServiceFactories
+  DefaultBlockMaster(JournalSystem journalSystem, SafeModeManager safeModeManager) {
+    this(journalSystem, new SystemClock(), safeModeManager, ExecutorServiceFactories
         .fixedThreadPoolExecutorServiceFactory(Constants.BLOCK_MASTER_NAME, 2));
   }
 
@@ -182,9 +185,10 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
    * @param executorServiceFactory a factory for creating the executor service to use for running
    *        maintenance threads
    */
-  DefaultBlockMaster(JournalSystem journalSystem, Clock clock,
+  DefaultBlockMaster(JournalSystem journalSystem, Clock clock, SafeModeManager safeModeManager,
       ExecutorServiceFactory executorServiceFactory) {
     super(journalSystem, clock, executorServiceFactory);
+    mSafeModeManager = safeModeManager;
     Metrics.registerGauges(this);
   }
 
@@ -281,7 +285,10 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
   }
 
   @Override
-  public List<WorkerInfo> getWorkerInfoList() {
+  public List<WorkerInfo> getWorkerInfoList() throws UnavailableException {
+    if (mSafeModeManager.isInSafeMode()) {
+      throw new UnavailableException(ExceptionMessage.MASTER_IN_SAFEMODE.getMessage());
+    }
     List<WorkerInfo> workerInfoList = new ArrayList<>(mWorkers.size());
     for (MasterWorkerInfo worker : mWorkers) {
       synchronized (worker) {
@@ -509,7 +516,7 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
   }
 
   @Override
-  public BlockInfo getBlockInfo(long blockId) throws BlockInfoException {
+  public BlockInfo getBlockInfo(long blockId) throws BlockInfoException, UnavailableException {
     MasterBlockInfo block = mBlocks.get(blockId);
     if (block == null) {
       throw new BlockInfoException(ExceptionMessage.BLOCK_META_NOT_FOUND, blockId);
@@ -520,7 +527,7 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
   }
 
   @Override
-  public List<BlockInfo> getBlockInfoList(List<Long> blockIds) {
+  public List<BlockInfo> getBlockInfoList(List<Long> blockIds) throws UnavailableException {
     List<BlockInfo> ret = new ArrayList<>(blockIds.size());
     for (long blockId : blockIds) {
       MasterBlockInfo block = mBlocks.get(blockId);
@@ -723,7 +730,10 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
    * @return a {@link BlockInfo} from a {@link MasterBlockInfo}. Populates worker locations
    */
   @GuardedBy("masterBlockInfo")
-  private BlockInfo generateBlockInfo(MasterBlockInfo masterBlockInfo) {
+  private BlockInfo generateBlockInfo(MasterBlockInfo masterBlockInfo) throws UnavailableException {
+    if (mSafeModeManager.isInSafeMode()) {
+      throw new UnavailableException(ExceptionMessage.MASTER_IN_SAFEMODE.getMessage());
+    }
     // "Join" to get all the addresses of the workers.
     List<BlockLocation> locations = new ArrayList<>();
     List<MasterBlockLocation> blockLocations = masterBlockInfo.getBlockLocations();

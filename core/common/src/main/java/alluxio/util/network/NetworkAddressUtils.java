@@ -526,6 +526,20 @@ public final class NetworkAddressUtils {
   }
 
   /**
+   * Resolves a given hostname IP address.
+   *
+   * @param hostname the input hostname, which could be an alias
+   * @return the hostname IP address
+   * @throws UnknownHostException if the given hostname cannot be resolved
+   */
+  public static String resolveIpAddress(String hostname) throws UnknownHostException {
+    Preconditions.checkNotNull(hostname, "hostname");
+    Preconditions.checkArgument(!hostname.isEmpty(),
+            "Cannot resolve IP address for empty hostname");
+    return InetAddress.getByName(hostname).getHostAddress();
+  }
+
+  /**
    * Gets FQDN(Full Qualified Domain Name) from Java representations of network address, except
    * String representation which should be handled by {@link #resolveHostName(String)} which will
    * handle the situation where hostname is null.

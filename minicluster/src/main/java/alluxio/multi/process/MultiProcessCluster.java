@@ -16,6 +16,7 @@ import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.ConfigurationRule;
 import alluxio.ConfigurationTestUtils;
+import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.cli.Format;
 import alluxio.client.file.FileSystem;
@@ -75,8 +76,8 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public final class MultiProcessCluster implements TestRule {
   private static final Logger LOG = LoggerFactory.getLogger(MultiProcessCluster.class);
-  private static final File ARTIFACTS_DIR = new File("./target/artifacts");
-  private static final File TESTS_LOG = new File("./target/logs/tests.log");
+  private static final File ARTIFACTS_DIR = new File(Constants.TEST_ARTIFACTS_DIR);
+  private static final File TESTS_LOG = new File(Constants.TESTS_LOG);
 
   private final Map<PropertyKey, String> mProperties;
   private final int mNumMasters;
@@ -121,6 +122,7 @@ public final class MultiProcessCluster implements TestRule {
   public synchronized void start() throws Exception {
     Preconditions.checkState(mState != State.STARTED, "Cannot start while already started");
     Preconditions.checkState(mState != State.DESTROYED, "Cannot start a destroyed cluster");
+    mWorkDir = AlluxioTestDirectory.createTemporaryDirectory(mClusterName);
     mState = State.STARTED;
 
     mMasterAddresses = generateMasterAddresses(mNumMasters);
@@ -141,7 +143,6 @@ public final class MultiProcessCluster implements TestRule {
         throw new IllegalStateException("Unknown deploy mode: " + mDeployMode.toString());
     }
 
-    mWorkDir = AlluxioTestDirectory.createTemporaryDirectory(mClusterName);
     for (Entry<PropertyKey, String> entry : ConfigurationTestUtils.testConfigurationDefaults(
         NetworkAddressUtils.getLocalHostName(), mWorkDir.getAbsolutePath()).entrySet()) {
       // Don't overwrite explicitly set properties.
@@ -262,6 +263,9 @@ public final class MultiProcessCluster implements TestRule {
    * Destroys the cluster. It may not be re-started after being destroyed.
    */
   public synchronized void destroy() throws IOException {
+    if (mState == State.DESTROYED) {
+      return;
+    }
     if (!mSuccess) {
       saveWorkdir();
     }
@@ -443,7 +447,11 @@ public final class MultiProcessCluster implements TestRule {
           start();
           base.evaluate();
         } finally {
-          destroy();
+          try {
+            destroy();
+          } catch (Throwable t) {
+            LOG.error("Failed to destroy cluster", t);
+          }
         }
       }
     };

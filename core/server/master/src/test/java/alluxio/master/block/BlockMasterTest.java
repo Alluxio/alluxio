@@ -19,7 +19,9 @@ import alluxio.clock.ManualClock;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatScheduler;
 import alluxio.heartbeat.ManuallyScheduleHeartbeat;
+import alluxio.master.DefaultSafeModeManager;
 import alluxio.master.MasterRegistry;
+import alluxio.master.SafeModeManager;
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.noop.NoopJournalSystem;
 import alluxio.thrift.Command;
@@ -64,6 +66,7 @@ public class BlockMasterTest {
   private MasterRegistry mRegistry;
   private ManualClock mClock;
   private ExecutorService mExecutorService;
+  private SafeModeManager mSafeModeManager;
 
   /** Rule to create a new temporary folder during each test. */
   @Rule
@@ -83,11 +86,12 @@ public class BlockMasterTest {
   @Before
   public void before() throws Exception {
     mRegistry = new MasterRegistry();
+    mSafeModeManager = new DefaultSafeModeManager();
     JournalSystem journalSystem = new NoopJournalSystem();
     mClock = new ManualClock();
     mExecutorService =
         Executors.newFixedThreadPool(2, ThreadFactoryUtils.build("TestBlockMaster-%d", true));
-    mBlockMaster = new DefaultBlockMaster(journalSystem, mClock,
+    mBlockMaster = new DefaultBlockMaster(journalSystem, mClock, mSafeModeManager,
         ExecutorServiceFactories.constantExecutorServiceFactory(mExecutorService));
     mRegistry.add(BlockMaster.class, mBlockMaster);
     mRegistry.start(true);
