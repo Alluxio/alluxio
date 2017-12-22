@@ -14,6 +14,7 @@ package alluxio.master.block;
 import alluxio.StorageTierAssoc;
 import alluxio.exception.BlockInfoException;
 import alluxio.exception.NoWorkerException;
+import alluxio.exception.status.UnavailableException;
 import alluxio.master.Master;
 import alluxio.thrift.Command;
 import alluxio.wire.BlockInfo;
@@ -37,7 +38,7 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
   /**
    * @return a list of {@link WorkerInfo} objects representing the workers in Alluxio
    */
-  List<WorkerInfo> getWorkerInfoList();
+  List<WorkerInfo> getWorkerInfoList() throws UnavailableException;
 
   /**
    * @return the total capacity (in bytes) on all tiers, on all workers of Alluxio
@@ -94,7 +95,7 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
    * @return the {@link BlockInfo} for the given block id
    * @throws BlockInfoException if the block info is not found
    */
-  BlockInfo getBlockInfo(long blockId) throws BlockInfoException;
+  BlockInfo getBlockInfo(long blockId) throws BlockInfoException, UnavailableException;
 
   /**
    * Retrieves information for the given list of block ids.
@@ -103,7 +104,7 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
    * @return A list of {@link BlockInfo} objects corresponding to the input list of block ids. The
    *         list is in the same order as the input list
    */
-  List<BlockInfo> getBlockInfoList(List<Long> blockIds);
+  List<BlockInfo> getBlockInfoList(List<Long> blockIds) throws UnavailableException;
 
   /**
    * @return the total bytes on each storage tier

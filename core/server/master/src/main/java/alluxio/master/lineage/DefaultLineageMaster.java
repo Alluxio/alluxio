@@ -26,6 +26,7 @@ import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 import alluxio.exception.LineageDeletionException;
 import alluxio.exception.LineageDoesNotExistException;
+import alluxio.exception.status.UnavailableException;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatThread;
 import alluxio.job.CommandLineJob;
@@ -253,7 +254,7 @@ public final class DefaultLineageMaster extends AbstractMaster implements Lineag
   @Override
   public synchronized long reinitializeFile(String path, long blockSizeBytes, long ttl,
       TtlAction ttlAction) throws InvalidPathException, LineageDoesNotExistException,
-      AccessControlException, FileDoesNotExistException {
+      AccessControlException, FileDoesNotExistException, UnavailableException {
     long fileId = mFileSystemMaster.getFileId(new AlluxioURI(path));
     FileInfo fileInfo;
     try {
@@ -323,7 +324,8 @@ public final class DefaultLineageMaster extends AbstractMaster implements Lineag
 
   @Override
   public synchronized void reportLostFile(String path)
-      throws FileDoesNotExistException, AccessControlException, InvalidPathException {
+      throws FileDoesNotExistException, AccessControlException, InvalidPathException,
+      UnavailableException {
     long fileId = mFileSystemMaster.getFileId(new AlluxioURI(path));
     mFileSystemMaster.reportLostFile(fileId);
   }

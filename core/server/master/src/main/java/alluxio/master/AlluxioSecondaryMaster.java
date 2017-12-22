@@ -35,6 +35,7 @@ public final class AlluxioSecondaryMaster implements Process {
   private final MasterRegistry mRegistry;
   private final JournalSystem mJournalSystem;
   private final CountDownLatch mLatch;
+  private final SafeModeManager mSafeModeManager;
 
   /**
    * Creates a {@link AlluxioSecondaryMaster}.
@@ -44,8 +45,9 @@ public final class AlluxioSecondaryMaster implements Process {
       URI journalLocation = JournalUtils.getJournalLocation();
       mJournalSystem = new JournalSystem.Builder().setLocation(journalLocation).build();
       mRegistry = new MasterRegistry();
+      mSafeModeManager = new DefaultSafeModeManager();
       // Create masters.
-      MasterUtils.createMasters(mJournalSystem, mRegistry);
+      MasterUtils.createMasters(mJournalSystem, mRegistry, mSafeModeManager);
       // Check that journals of each service have been formatted.
       if (!mJournalSystem.isFormatted()) {
         throw new RuntimeException(

@@ -44,6 +44,7 @@ public class CreateDirectoryTOptions implements org.apache.thrift.TBase<CreateDi
   private static final org.apache.thrift.protocol.TField MODE_FIELD_DESC = new org.apache.thrift.protocol.TField("mode", org.apache.thrift.protocol.TType.I16, (short)4);
   private static final org.apache.thrift.protocol.TField TTL_FIELD_DESC = new org.apache.thrift.protocol.TField("ttl", org.apache.thrift.protocol.TType.I64, (short)5);
   private static final org.apache.thrift.protocol.TField TTL_ACTION_FIELD_DESC = new org.apache.thrift.protocol.TField("ttlAction", org.apache.thrift.protocol.TType.I32, (short)6);
+  private static final org.apache.thrift.protocol.TField COMMON_OPTIONS_FIELD_DESC = new org.apache.thrift.protocol.TField("commonOptions", org.apache.thrift.protocol.TType.STRUCT, (short)7);
 
   private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
   static {
@@ -57,6 +58,7 @@ public class CreateDirectoryTOptions implements org.apache.thrift.TBase<CreateDi
   private short mode; // optional
   private long ttl; // optional
   private alluxio.thrift.TTtlAction ttlAction; // optional
+  private FileSystemMasterCommonTOptions commonOptions; // optional
 
   /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
   public enum _Fields implements org.apache.thrift.TFieldIdEnum {
@@ -69,7 +71,8 @@ public class CreateDirectoryTOptions implements org.apache.thrift.TBase<CreateDi
      * 
      * @see alluxio.thrift.TTtlAction
      */
-    TTL_ACTION((short)6, "ttlAction");
+    TTL_ACTION((short)6, "ttlAction"),
+    COMMON_OPTIONS((short)7, "commonOptions");
 
     private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -96,6 +99,8 @@ public class CreateDirectoryTOptions implements org.apache.thrift.TBase<CreateDi
           return TTL;
         case 6: // TTL_ACTION
           return TTL_ACTION;
+        case 7: // COMMON_OPTIONS
+          return COMMON_OPTIONS;
         default:
           return null;
       }
@@ -142,7 +147,7 @@ public class CreateDirectoryTOptions implements org.apache.thrift.TBase<CreateDi
   private static final int __MODE_ISSET_ID = 3;
   private static final int __TTL_ISSET_ID = 4;
   private byte __isset_bitfield = 0;
-  private static final _Fields optionals[] = {_Fields.PERSISTED,_Fields.RECURSIVE,_Fields.ALLOW_EXISTS,_Fields.MODE,_Fields.TTL,_Fields.TTL_ACTION};
+  private static final _Fields optionals[] = {_Fields.PERSISTED,_Fields.RECURSIVE,_Fields.ALLOW_EXISTS,_Fields.MODE,_Fields.TTL,_Fields.TTL_ACTION,_Fields.COMMON_OPTIONS};
   public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
   static {
     Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
@@ -158,6 +163,8 @@ public class CreateDirectoryTOptions implements org.apache.thrift.TBase<CreateDi
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
     tmpMap.put(_Fields.TTL_ACTION, new org.apache.thrift.meta_data.FieldMetaData("ttlAction", org.apache.thrift.TFieldRequirementType.OPTIONAL, 
         new org.apache.thrift.meta_data.EnumMetaData(org.apache.thrift.protocol.TType.ENUM, alluxio.thrift.TTtlAction.class)));
+    tmpMap.put(_Fields.COMMON_OPTIONS, new org.apache.thrift.meta_data.FieldMetaData("commonOptions", org.apache.thrift.TFieldRequirementType.OPTIONAL, 
+        new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, FileSystemMasterCommonTOptions.class)));
     metaDataMap = Collections.unmodifiableMap(tmpMap);
     org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(CreateDirectoryTOptions.class, metaDataMap);
   }
@@ -178,6 +185,9 @@ public class CreateDirectoryTOptions implements org.apache.thrift.TBase<CreateDi
     if (other.isSetTtlAction()) {
       this.ttlAction = other.ttlAction;
     }
+    if (other.isSetCommonOptions()) {
+      this.commonOptions = new FileSystemMasterCommonTOptions(other.commonOptions);
+    }
   }
 
   public CreateDirectoryTOptions deepCopy() {
@@ -197,6 +207,7 @@ public class CreateDirectoryTOptions implements org.apache.thrift.TBase<CreateDi
     setTtlIsSet(false);
     this.ttl = 0;
     this.ttlAction = null;
+    this.commonOptions = null;
   }
 
   public boolean isPersisted() {
@@ -346,6 +357,30 @@ public class CreateDirectoryTOptions implements org.apache.thrift.TBase<CreateDi
     }
   }
 
+  public FileSystemMasterCommonTOptions getCommonOptions() {
+    return this.commonOptions;
+  }
+
+  public CreateDirectoryTOptions setCommonOptions(FileSystemMasterCommonTOptions commonOptions) {
+    this.commonOptions = commonOptions;
+    return this;
+  }
+
+  public void unsetCommonOptions() {
+    this.commonOptions = null;
+  }
+
+  /** Returns true if field commonOptions is set (has been assigned a value) and false otherwise */
+  public boolean isSetCommonOptions() {
+    return this.commonOptions != null;
+  }
+
+  public void setCommonOptionsIsSet(boolean value) {
+    if (!value) {
+      this.commonOptions = null;
+    }
+  }
+
   public void setFieldValue(_Fields field, Object value) {
     switch (field) {
     case PERSISTED:
@@ -396,6 +431,14 @@ public class CreateDirectoryTOptions implements org.apache.thrift.TBase<CreateDi
       }
       break;
 
+    case COMMON_OPTIONS:
+      if (value == null) {
+        unsetCommonOptions();
+      } else {
+        setCommonOptions((FileSystemMasterCommonTOptions)value);
+      }
+      break;
+
     }
   }
 
@@ -418,6 +461,9 @@ public class CreateDirectoryTOptions implements org.apache.thrift.TBase<CreateDi
 
     case TTL_ACTION:
       return getTtlAction();
+
+    case COMMON_OPTIONS:
+      return getCommonOptions();
 
     }
     throw new IllegalStateException();
@@ -442,6 +488,8 @@ public class CreateDirectoryTOptions implements org.apache.thrift.TBase<CreateDi
       return isSetTtl();
     case TTL_ACTION:
       return isSetTtlAction();
+    case COMMON_OPTIONS:
+      return isSetCommonOptions();
     }
     throw new IllegalStateException();
   }
@@ -513,6 +561,15 @@ public class CreateDirectoryTOptions implements org.apache.thrift.TBase<CreateDi
         return false;
     }
 
+    boolean this_present_commonOptions = true && this.isSetCommonOptions();
+    boolean that_present_commonOptions = true && that.isSetCommonOptions();
+    if (this_present_commonOptions || that_present_commonOptions) {
+      if (!(this_present_commonOptions && that_present_commonOptions))
+        return false;
+      if (!this.commonOptions.equals(that.commonOptions))
+        return false;
+    }
+
     return true;
   }
 
@@ -549,6 +606,11 @@ public class CreateDirectoryTOptions implements org.apache.thrift.TBase<CreateDi
     list.add(present_ttlAction);
     if (present_ttlAction)
       list.add(ttlAction.getValue());
+
+    boolean present_commonOptions = true && (isSetCommonOptions());
+    list.add(present_commonOptions);
+    if (present_commonOptions)
+      list.add(commonOptions);
 
     return list.hashCode();
   }
@@ -621,6 +683,16 @@ public class CreateDirectoryTOptions implements org.apache.thrift.TBase<CreateDi
         return lastComparison;
       }
     }
+    lastComparison = Boolean.valueOf(isSetCommonOptions()).compareTo(other.isSetCommonOptions());
+    if (lastComparison != 0) {
+      return lastComparison;
+    }
+    if (isSetCommonOptions()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.commonOptions, other.commonOptions);
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+    }
     return 0;
   }
 
@@ -680,6 +752,16 @@ public class CreateDirectoryTOptions implements org.apache.thrift.TBase<CreateDi
       }
       first = false;
     }
+    if (isSetCommonOptions()) {
+      if (!first) sb.append(", ");
+      sb.append("commonOptions:");
+      if (this.commonOptions == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.commonOptions);
+      }
+      first = false;
+    }
     sb.append(")");
     return sb.toString();
   }
@@ -687,6 +769,9 @@ public class CreateDirectoryTOptions implements org.apache.thrift.TBase<CreateDi
   public void validate() throws org.apache.thrift.TException {
     // check for required fields
     // check for sub-struct validity
+    if (commonOptions != null) {
+      commonOptions.validate();
+    }
   }
 
   private void writeObject(java.io.ObjectOutputStream out) throws java.io.IOException {
@@ -773,6 +858,15 @@ public class CreateDirectoryTOptions implements org.apache.thrift.TBase<CreateDi
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
+          case 7: // COMMON_OPTIONS
+            if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+              struct.commonOptions = new FileSystemMasterCommonTOptions();
+              struct.commonOptions.read(iprot);
+              struct.setCommonOptionsIsSet(true);
+            } else { 
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+            }
+            break;
           default:
             org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
         }
@@ -820,6 +914,13 @@ public class CreateDirectoryTOptions implements org.apache.thrift.TBase<CreateDi
           oprot.writeFieldEnd();
         }
       }
+      if (struct.commonOptions != null) {
+        if (struct.isSetCommonOptions()) {
+          oprot.writeFieldBegin(COMMON_OPTIONS_FIELD_DESC);
+          struct.commonOptions.write(oprot);
+          oprot.writeFieldEnd();
+        }
+      }
       oprot.writeFieldStop();
       oprot.writeStructEnd();
     }
@@ -856,7 +957,10 @@ public class CreateDirectoryTOptions implements org.apache.thrift.TBase<CreateDi
       if (struct.isSetTtlAction()) {
         optionals.set(5);
       }
-      oprot.writeBitSet(optionals, 6);
+      if (struct.isSetCommonOptions()) {
+        optionals.set(6);
+      }
+      oprot.writeBitSet(optionals, 7);
       if (struct.isSetPersisted()) {
         oprot.writeBool(struct.persisted);
       }
@@ -875,12 +979,15 @@ public class CreateDirectoryTOptions implements org.apache.thrift.TBase<CreateDi
       if (struct.isSetTtlAction()) {
         oprot.writeI32(struct.ttlAction.getValue());
       }
+      if (struct.isSetCommonOptions()) {
+        struct.commonOptions.write(oprot);
+      }
     }
 
     @Override
     public void read(org.apache.thrift.protocol.TProtocol prot, CreateDirectoryTOptions struct) throws org.apache.thrift.TException {
       TTupleProtocol iprot = (TTupleProtocol) prot;
-      BitSet incoming = iprot.readBitSet(6);
+      BitSet incoming = iprot.readBitSet(7);
       if (incoming.get(0)) {
         struct.persisted = iprot.readBool();
         struct.setPersistedIsSet(true);
@@ -904,6 +1011,11 @@ public class CreateDirectoryTOptions implements org.apache.thrift.TBase<CreateDi
       if (incoming.get(5)) {
         struct.ttlAction = alluxio.thrift.TTtlAction.findByValue(iprot.readI32());
         struct.setTtlActionIsSet(true);
+      }
+      if (incoming.get(6)) {
+        struct.commonOptions = new FileSystemMasterCommonTOptions();
+        struct.commonOptions.read(iprot);
+        struct.setCommonOptionsIsSet(true);
       }
     }
   }

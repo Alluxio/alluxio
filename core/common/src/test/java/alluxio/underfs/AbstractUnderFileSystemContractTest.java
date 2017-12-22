@@ -264,6 +264,15 @@ public abstract class AbstractUnderFileSystemContractTest {
   }
 
   @Test
+  public void getDirectoryStatus() throws IOException {
+    String testDir = PathUtils.concatPath(mUnderfsAddress, "testDir");
+    mUfs.mkdirs(testDir);
+
+    UfsStatus status = mUfs.getStatus(testDir);
+    assertTrue(status instanceof UfsDirectoryStatus);
+  }
+
+  @Test
   public void getFileSize() throws IOException {
     String testFileEmpty = PathUtils.concatPath(mUnderfsAddress, "testFileEmpty");
     String testFileNonEmpty = PathUtils.concatPath(mUnderfsAddress, "testFileNonEmpty");
@@ -271,6 +280,15 @@ public abstract class AbstractUnderFileSystemContractTest {
     createTestBytesFile(testFileNonEmpty);
     assertEquals(mUfs.getFileStatus(testFileEmpty).getContentLength(), 0);
     assertEquals(mUfs.getFileStatus(testFileNonEmpty).getContentLength(), TEST_BYTES.length);
+  }
+
+  @Test
+  public void getFileStatus() throws IOException {
+    String testFile = PathUtils.concatPath(mUnderfsAddress, "testFile");
+    createEmptyFile(testFile);
+
+    UfsStatus status = mUfs.getStatus(testFile);
+    assertTrue(status instanceof UfsFileStatus);
   }
 
   @Test

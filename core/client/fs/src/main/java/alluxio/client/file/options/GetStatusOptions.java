@@ -15,6 +15,7 @@ import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.annotation.PublicApi;
 import alluxio.thrift.GetStatusTOptions;
+import alluxio.wire.CommonOptions;
 import alluxio.wire.LoadMetadataType;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -30,6 +31,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 @JsonInclude(Include.NON_EMPTY)
 public final class GetStatusOptions {
+  private CommonOptions mCommonOptions;
   private LoadMetadataType mLoadMetadataType;
 
   /**
@@ -40,8 +42,16 @@ public final class GetStatusOptions {
   }
 
   private GetStatusOptions() {
+    mCommonOptions = CommonOptions.defaults();
     mLoadMetadataType =
         Configuration.getEnum(PropertyKey.USER_FILE_METADATA_LOAD_TYPE, LoadMetadataType.class);
+  }
+
+  /**
+   * @return the common options
+   */
+  public CommonOptions getCommonOptions() {
+    return mCommonOptions;
   }
 
   /**
@@ -49,6 +59,15 @@ public final class GetStatusOptions {
    */
   public LoadMetadataType getLoadMetadataType() {
     return mLoadMetadataType;
+  }
+
+  /**
+   * @param options the common options
+   * @return the updated options object
+   */
+  public GetStatusOptions setCommonOptions(CommonOptions options) {
+    mCommonOptions = options;
+    return this;
   }
 
   /**
@@ -69,17 +88,19 @@ public final class GetStatusOptions {
       return false;
     }
     GetStatusOptions that = (GetStatusOptions) o;
-    return Objects.equal(mLoadMetadataType, that.mLoadMetadataType);
+    return Objects.equal(mCommonOptions, that.mCommonOptions)
+        && Objects.equal(mLoadMetadataType, that.mLoadMetadataType);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mLoadMetadataType);
+    return Objects.hashCode(mCommonOptions, mLoadMetadataType);
   }
 
   @Override
   public String toString() {
     return Objects.toStringHelper(this)
+        .add("commonOptions", mCommonOptions)
         .add("loadMetadataType", mLoadMetadataType.toString())
         .toString();
   }
@@ -90,6 +111,7 @@ public final class GetStatusOptions {
   public GetStatusTOptions toThrift() {
     GetStatusTOptions options = new GetStatusTOptions();
     options.setLoadMetadataType(LoadMetadataType.toThrift(mLoadMetadataType));
+    options.setCommonOptions(mCommonOptions.toThrift());
     return options;
   }
 }

@@ -13,6 +13,7 @@ package alluxio.master.file.options;
 
 import alluxio.proto.journal.File;
 import alluxio.thrift.MountTOptions;
+import alluxio.wire.CommonOptions;
 
 import com.google.common.base.Objects;
 
@@ -27,6 +28,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class MountOptions {
+  private CommonOptions mCommonOptions;
   private boolean mReadOnly;
   private Map<String, String> mProperties;
   private boolean mShared;
@@ -39,6 +41,8 @@ public final class MountOptions {
   }
 
   private MountOptions() {
+    super();
+    mCommonOptions = CommonOptions.defaults();
     mReadOnly = false;
     mProperties = new HashMap<>();
     mShared = false;
@@ -52,6 +56,9 @@ public final class MountOptions {
   public MountOptions(MountTOptions options) {
     this();
     if (options != null) {
+      if (options.isSetCommonOptions()) {
+        mCommonOptions = new CommonOptions(options.getCommonOptions());
+      }
       if (options.isSetReadOnly()) {
         mReadOnly = options.isReadOnly();
       }
@@ -85,6 +92,13 @@ public final class MountOptions {
   }
 
   /**
+   * @return the common options
+   */
+  public CommonOptions getCommonOptions() {
+    return mCommonOptions;
+  }
+
+  /**
    * @return the readOnly flag; if true, write or create operations will not be allowed under the
    *         mount point.
    */
@@ -107,6 +121,15 @@ public final class MountOptions {
    */
   public Map<String, String> getProperties() {
     return Collections.unmodifiableMap(mProperties);
+  }
+
+  /**
+   * @param options the common options
+   * @return the updated options object
+   */
+  public MountOptions setCommonOptions(CommonOptions options) {
+    mCommonOptions = options;
+    return this;
   }
 
   /**
@@ -147,18 +170,20 @@ public final class MountOptions {
     }
     MountOptions that = (MountOptions) o;
     return Objects.equal(mReadOnly, that.mReadOnly)
+        && Objects.equal(mCommonOptions, that.mCommonOptions)
         && Objects.equal(mProperties, that.mProperties)
         && Objects.equal(mShared, that.mShared);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mReadOnly, mProperties, mShared);
+    return Objects.hashCode(mReadOnly, mProperties, mShared, mCommonOptions);
   }
 
   @Override
   public String toString() {
     return Objects.toStringHelper(this)
+        .add("commonOptions", mCommonOptions)
         .add("readOnly", mReadOnly)
         .add("properties", mProperties)
         .add("shared", mShared)
