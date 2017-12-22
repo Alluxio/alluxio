@@ -212,7 +212,8 @@ public class OSSUnderFileSystem extends ObjectUnderFileSystem {
       ObjectStatus[] ret = new ObjectStatus[objects.size()];
       int i = 0;
       for (OSSObjectSummary obj : objects) {
-        ret[i++] = new ObjectStatus(obj.getKey(), obj.getSize(), obj.getLastModified().getTime());
+        ret[i++] = new ObjectStatus(obj.getKey(), obj.getETag(), obj.getSize(),
+            obj.getLastModified().getTime());
       }
       return ret;
     }
@@ -242,7 +243,8 @@ public class OSSUnderFileSystem extends ObjectUnderFileSystem {
       if (meta == null) {
         return null;
       }
-      return new ObjectStatus(key, meta.getContentLength(), meta.getLastModified().getTime());
+      return new ObjectStatus(key, meta.getETag(), meta.getContentLength(),
+          meta.getLastModified().getTime());
     } catch (ServiceException e) {
       LOG.warn("Failed to get Object {}, return null", key, e);
       return null;

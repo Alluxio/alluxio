@@ -51,7 +51,8 @@ public final class FileInStreamIntegrationTest extends BaseIntegrationTest {
 
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
-      new LocalAlluxioClusterResource.Builder().build();
+      new LocalAlluxioClusterResource.Builder().setProperty(
+          PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, BLOCK_SIZE).build();
   private FileSystem mFileSystem;
   private CreateFileOptions mWriteBoth;
   private CreateFileOptions mWriteAlluxio;
@@ -381,6 +382,7 @@ public final class FileInStreamIntegrationTest extends BaseIntegrationTest {
   @LocalAlluxioClusterResource.Config(
       confParams = {PropertyKey.Name.USER_SHORT_CIRCUIT_ENABLED, "false",
           PropertyKey.Name.USER_BLOCK_SIZE_BYTES_DEFAULT, "16MB",
+          PropertyKey.Name.USER_NETWORK_NETTY_READER_PACKET_SIZE_BYTES, "64KB",
           PropertyKey.Name.WORKER_MEMORY_SIZE, "1GB"})
   public void remoteReadLargeFile() throws Exception {
     // write a file outside of Alluxio
