@@ -220,7 +220,7 @@ public final class BufferUtils {
    *         sequence of bytes starting at {@code start}
    */
   public static boolean equalIncreasingByteArray(int start, int len, byte[] arr) {
-    if (arr == null || arr.length != len) {
+    if (arr == null) {
       return false;
     }
     for (int k = 0; k < len; k++) {
