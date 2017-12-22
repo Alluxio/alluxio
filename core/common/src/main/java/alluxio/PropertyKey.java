@@ -337,6 +337,24 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "mounted point with all Alluxio users. Note that this configuration has no "
               + "effect on HDFS nor local UFS.")
           .build();
+  public static final PropertyKey UNDERFS_OBJECT_STORE_READ_RETRY_BASE_SLEEP_MS =
+      new Builder(Name.UNDERFS_OBJECT_STORE_READ_RETRY_BASE_SLEEP_MS).setDefaultValue("50ms")
+          .setDescription("Block reads from an object store automatically retry for transient "
+              + "errors with an exponential backoff. This property determines the base time in the "
+              + "exponential backoff.")
+          .build();
+  public static final PropertyKey UNDERFS_OBJECT_STORE_READ_RETRY_MAX_NUM =
+      new Builder(Name.UNDERFS_OBJECT_STORE_READ_RETRY_MAX_NUM).setDefaultValue(20)
+          .setDescription("Block reads from  an object store automatically retry for transient "
+              + "errors with an exponential backoff. This property determines the maximum number of"
+              + " retries.")
+          .build();
+  public static final PropertyKey UNDERFS_OBJECT_STORE_READ_RETRY_MAX_SLEEP_MS =
+      new Builder(Name.UNDERFS_OBJECT_STORE_READ_RETRY_MAX_SLEEP_MS).setDefaultValue("30sec")
+          .setDescription("Block reads from an object store automatically retry for transient "
+              + "errors with an exponential backoff. This property determines the maximum wait time"
+              + " in the backoff.")
+          .build();
   public static final PropertyKey UNDERFS_OSS_CONNECT_MAX =
       new Builder(Name.UNDERFS_OSS_CONNECT_MAX)
           .setDefaultValue(1024)
@@ -810,6 +828,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("A comma-separated list of prefixes of the paths which are "
               + "cacheable, separated by semi-colons. Alluxio will try to cache the cacheable "
               + "file when it is read for the first time.")
+          .build();
+  public static final PropertyKey MASTER_WORKER_CONNECT_WAIT_TIME =
+      new Builder(Name.MASTER_WORKER_CONNECT_WAIT_TIME)
+          .setDefaultValue("5sec")
+          .setDescription("Alluxio master will wait a period of time after start up for "
+              + "all workers to register, before it starts accepting client requests. "
+              + "This property determines the wait time.")
           .build();
   public static final PropertyKey MASTER_WORKER_THREADS_MAX =
       new Builder(Name.MASTER_WORKER_THREADS_MAX)
@@ -1346,6 +1371,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("Value to use for determining rack locality")
           .build();
 
+  public static final PropertyKey LOCALITY_COMPARE_NODE_IP =
+          new Builder(Name.LOCALITY_COMPARE_NODE_IP)
+          .setDefaultValue(false)
+          .setDescription("Whether try to resolve the node IP address for locality checking")
+          .build();
+
   //
   // Log server related properties
   //
@@ -1492,7 +1523,20 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "loaded from the UFS. Valid options are `Always`, `Never`, and `Once`. "
               + "`Always` will always access UFS to see if the path exists in the UFS. "
               + "`Never` will never consult the UFS. `Once` will access the UFS the \"first\" "
-              + "time (according to a cache), but not after that.")
+              + "time (according to a cache), but not after that. This parameter is ignored if a "
+              + "metadata sync is performed, via the parameter "
+              + "\"alluxio.user.file.metadata.sync.interval\"")
+          .build();
+  public static final PropertyKey USER_FILE_METADATA_SYNC_INTERVAL =
+      new Builder(Name.USER_FILE_METADATA_SYNC_INTERVAL)
+          .setDefaultValue("-1")
+          .setDescription("The interval for syncing UFS metadata before invoking an "
+              + "operation on a path. -1 means no sync will occur. 0 means Alluxio will "
+              + "always sync the metadata of the path before an operation. If you specify a time "
+              + "interval, Alluxio will (best effort) not re-sync a path within that time "
+              + "interval. Syncing the metadata for a path must interact with the UFS, so it is "
+              + "an expensive operation. If a sync is performed for an operation, the "
+              + "configuration of \"alluxio.user.file.metadata.load.type\" will be ignored.")
           .build();
   public static final PropertyKey USER_FILE_PASSIVE_CACHE_ENABLED =
       new Builder(Name.USER_FILE_PASSIVE_CACHE_ENABLED)
@@ -1665,7 +1709,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey USER_RPC_RETRY_MAX_NUM_RETRY =
       new Builder(Name.USER_RPC_RETRY_MAX_NUM_RETRY)
-          .setDefaultValue(20)
+          .setDefaultValue(100)
           .setDescription("Alluxio client RPCs automatically retry for transient errors with "
               + "an exponential backoff. This property determines the maximum number of "
               + "retries.")
@@ -1673,7 +1717,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey USER_RPC_RETRY_MAX_SLEEP_MS =
       new Builder(Name.USER_RPC_RETRY_MAX_SLEEP_MS)
           .setAlias(new String[]{"alluxio.user.rpc.retry.max.sleep.ms"})
-          .setDefaultValue("30sec")
+          .setDefaultValue("3sec")
           .setDescription("Alluxio client RPCs automatically retry for transient errors with "
               + "an exponential backoff. This property determines the maximum wait time "
               + "in the backoff.")
@@ -2030,6 +2074,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.underfs.object.store.service.threads";
     public static final String UNDERFS_OBJECT_STORE_MOUNT_SHARED_PUBLICLY =
         "alluxio.underfs.object.store.mount.shared.publicly";
+    public static final String UNDERFS_OBJECT_STORE_READ_RETRY_BASE_SLEEP_MS =
+        "alluxio.underfs.object.store.read.retry.base.sleep";
+    public static final String UNDERFS_OBJECT_STORE_READ_RETRY_MAX_NUM =
+        "alluxio.underfs.object.store.read.retry.max.num";
+    public static final String UNDERFS_OBJECT_STORE_READ_RETRY_MAX_SLEEP_MS =
+        "alluxio.underfs.object.store.read.retry.max.sleep";
     public static final String UNDERFS_OSS_CONNECT_MAX = "alluxio.underfs.oss.connection.max";
     public static final String UNDERFS_OSS_CONNECT_TIMEOUT =
         "alluxio.underfs.oss.connection.timeout";
@@ -2151,6 +2201,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String MASTER_WEB_HOSTNAME = "alluxio.master.web.hostname";
     public static final String MASTER_WEB_PORT = "alluxio.master.web.port";
     public static final String MASTER_WHITELIST = "alluxio.master.whitelist";
+    public static final String MASTER_WORKER_CONNECT_WAIT_TIME =
+        "alluxio.master.worker.connect.wait.time";
     public static final String MASTER_WORKER_THREADS_MAX = "alluxio.master.worker.threads.max";
     public static final String MASTER_WORKER_THREADS_MIN = "alluxio.master.worker.threads.min";
     public static final String MASTER_WORKER_TIMEOUT_MS = "alluxio.master.worker.timeout";
@@ -2275,6 +2327,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     //
     public static final String LOCALITY_ORDER = "alluxio.locality.order";
     public static final String LOCALITY_SCRIPT = "alluxio.locality.script";
+    public static final String LOCALITY_COMPARE_NODE_IP = "alluxio.locality.compare.node.ip";
 
     //
     // Log server related properties
@@ -2318,6 +2371,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.file.master.client.threads";
     public static final String USER_FILE_METADATA_LOAD_TYPE =
         "alluxio.user.file.metadata.load.type";
+    public static final String USER_FILE_METADATA_SYNC_INTERVAL =
+        "alluxio.user.file.metadata.sync.interval";
     public static final String USER_FILE_PASSIVE_CACHE_ENABLED =
         "alluxio.user.file.passive.cache.enabled";
     public static final String USER_FILE_READ_TYPE_DEFAULT = "alluxio.user.file.readtype.default";

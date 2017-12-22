@@ -1270,14 +1270,26 @@ public final class Protocol {
     // optional string source_host = 2;
     /**
      * <code>optional string source_host = 2;</code>
+     *
+     * <pre>
+     * TODO(calvin): source host and port should be replace with WorkerNetAddress
+     * </pre>
      */
     boolean hasSourceHost();
     /**
      * <code>optional string source_host = 2;</code>
+     *
+     * <pre>
+     * TODO(calvin): source host and port should be replace with WorkerNetAddress
+     * </pre>
      */
     java.lang.String getSourceHost();
     /**
      * <code>optional string source_host = 2;</code>
+     *
+     * <pre>
+     * TODO(calvin): source host and port should be replace with WorkerNetAddress
+     * </pre>
      */
     com.google.protobuf.ByteString
         getSourceHostBytes();
@@ -1451,12 +1463,20 @@ public final class Protocol {
     private java.lang.Object sourceHost_;
     /**
      * <code>optional string source_host = 2;</code>
+     *
+     * <pre>
+     * TODO(calvin): source host and port should be replace with WorkerNetAddress
+     * </pre>
      */
     public boolean hasSourceHost() {
       return ((bitField0_ & 0x00000002) == 0x00000002);
     }
     /**
      * <code>optional string source_host = 2;</code>
+     *
+     * <pre>
+     * TODO(calvin): source host and port should be replace with WorkerNetAddress
+     * </pre>
      */
     public java.lang.String getSourceHost() {
       java.lang.Object ref = sourceHost_;
@@ -1474,6 +1494,10 @@ public final class Protocol {
     }
     /**
      * <code>optional string source_host = 2;</code>
+     *
+     * <pre>
+     * TODO(calvin): source host and port should be replace with WorkerNetAddress
+     * </pre>
      */
     public com.google.protobuf.ByteString
         getSourceHostBytes() {
@@ -1858,12 +1882,20 @@ public final class Protocol {
       private java.lang.Object sourceHost_ = "";
       /**
        * <code>optional string source_host = 2;</code>
+       *
+       * <pre>
+       * TODO(calvin): source host and port should be replace with WorkerNetAddress
+       * </pre>
        */
       public boolean hasSourceHost() {
         return ((bitField0_ & 0x00000002) == 0x00000002);
       }
       /**
        * <code>optional string source_host = 2;</code>
+       *
+       * <pre>
+       * TODO(calvin): source host and port should be replace with WorkerNetAddress
+       * </pre>
        */
       public java.lang.String getSourceHost() {
         java.lang.Object ref = sourceHost_;
@@ -1878,6 +1910,10 @@ public final class Protocol {
       }
       /**
        * <code>optional string source_host = 2;</code>
+       *
+       * <pre>
+       * TODO(calvin): source host and port should be replace with WorkerNetAddress
+       * </pre>
        */
       public com.google.protobuf.ByteString
           getSourceHostBytes() {
@@ -1894,6 +1930,10 @@ public final class Protocol {
       }
       /**
        * <code>optional string source_host = 2;</code>
+       *
+       * <pre>
+       * TODO(calvin): source host and port should be replace with WorkerNetAddress
+       * </pre>
        */
       public Builder setSourceHost(
           java.lang.String value) {
@@ -1907,6 +1947,10 @@ public final class Protocol {
       }
       /**
        * <code>optional string source_host = 2;</code>
+       *
+       * <pre>
+       * TODO(calvin): source host and port should be replace with WorkerNetAddress
+       * </pre>
        */
       public Builder clearSourceHost() {
         bitField0_ = (bitField0_ & ~0x00000002);
@@ -1916,6 +1960,10 @@ public final class Protocol {
       }
       /**
        * <code>optional string source_host = 2;</code>
+       *
+       * <pre>
+       * TODO(calvin): source host and port should be replace with WorkerNetAddress
+       * </pre>
        */
       public Builder setSourceHostBytes(
           com.google.protobuf.ByteString value) {
