@@ -243,7 +243,8 @@ public class UfsInputStreamManager {
             return new CachedSeekableInputStream(ufsStream, newId, fileId, path);
           });
         } catch (ExecutionException e) {
-          LOG.warn("Failed to retrieve the cached UFS instream");
+          LOG.warn("Failed to create a new cached ufs instream of file id {} and path {}", fileId,
+              path);
           // fall back to a ufs creation.
           return ufs.open(path, OpenOptions.defaults().setOffset(openOptions.getOffset()));
         }
@@ -321,7 +322,7 @@ public class UfsInputStreamManager {
     }
 
     /**
-     * Returns an id to the input stream pool. If marks the id from in use to available. If the
+     * Returns an id to the input stream pool. It marks the id from in use to available. If the
      * input stream is already removed from the cache, then do nothing.
      *
      * @param id id of the input stream
