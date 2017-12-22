@@ -11,11 +11,17 @@
 
 package alluxio.master.journal.ufs;
 
+import static org.hamcrest.CoreMatchers.containsString;
+
 import alluxio.BaseIntegrationTest;
 import alluxio.Configuration;
 import alluxio.ConfigurationTestUtils;
 import alluxio.PropertyKey;
+import alluxio.RuntimeConstants;
+import alluxio.exception.ExceptionMessage;
+import alluxio.exception.InvalidJournalEntryException;
 import alluxio.master.NoopMaster;
+import alluxio.master.journal.JournalReader;
 import alluxio.proto.journal.Journal;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.URIUtils;
@@ -25,15 +31,28 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
+
 import org.junit.rules.TemporaryFolder;
 import org.mockito.Mockito;
+import org.powermock.reflect.Whitebox;
 
+import java.io.DataOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.net.URI;
+import java.nio.channels.FileChannel;
 
 /**
  * Unit tests for {@link UfsJournalLogWriter}.
  */
 public final class UfsJournalLogWriterTest extends BaseIntegrationTest {
+  private static final String INJECTED_IO_ERROR_MESSAGE = "injected I/O error";
+
+  @Rule
+  public ExpectedException mThrown = ExpectedException.none();
+
   @Rule
   public TemporaryFolder mFolder = new TemporaryFolder();
 
@@ -175,6 +194,213 @@ public final class UfsJournalLogWriterTest extends BaseIntegrationTest {
     for (int i = 0; i < 10; i++) {
       Assert.assertEquals(UfsJournalFile.encodeLogFileLocation(mJournal, 0x20 + i, 0x21 + i),
           snapshot.getLogs().get(i).getLocation());
+    }
+  }
+
+  /**
+   * Tests that (1) {@link UfsJournalLogWriter#mJournalOutputStream} is reset when an exception
+   * is thrown, and (2) the {@link UfsJournalLogWriter} recovers during the next write. It should
+   * write out all entries, including the one that initially failed.
+   */
+  @Test
+  public void recoverFromUfsFailure() throws Exception {
+    long startSN = 0x10;
+    UfsJournalLogWriter writer = new UfsJournalLogWriter(mJournal, startSN);
+    final int numberOfEntriesWrittenBeforeFailure = 10;
+    long nextSN = writeJournalEntries(writer, startSN, numberOfEntriesWrittenBeforeFailure);
+    DataOutputStream badOut = createMockDataOutputStream(writer);
+    Mockito.doThrow(new IOException(INJECTED_IO_ERROR_MESSAGE)).when(badOut)
+        .write(Mockito.any(byte[].class), Mockito.anyInt(), Mockito.anyInt());
+    tryWriteAndExpectToFail(writer, nextSN);
+    // UfsJournalLogWriter will perform recovery before the write operation.
+    writer.write(newEntry(nextSN));
+    nextSN++;
+    writer.close();
+
+    checkJournalEntries(startSN, nextSN);
+  }
+
+  /**
+   * Tests that {@link UfsJournalLogWriter#flush()} can recover after Ufs failure.
+   *
+   * This test has the following steps.
+   * 1. Write several journal entries, flush and close the journal. This will create a complete
+   *    journal file, i.e. <startSN>-<endSN>.
+   * 2. Write another journal entry, do NOT flush it, and inject an I/O error.
+   * 3. Attempt to write another journal entry, which is expected to fail. After the failure,
+   *    the newly created incomplete journal file may or may not have valid content.
+   * 4. The UFS does not guarantee the consistency of the incomplete journal. To
+   *    test how {@link UfsJournalLogWriter} recovers from Ufs failure before
+   *    {@link UfsJournalLogWriter#flush()}, we simply delete the possibly created incomplete
+   *    journal.
+   */
+  @Test
+  public void flushAfterUfsFailure() throws Exception {
+    Mockito.when(mUfs.supportsFlush()).thenReturn(true);
+
+    // Write several journal entries, creating and closing journal file.
+    // This file is complete.
+    long startSN = 0x10;
+    UfsJournalLogWriter writer = new UfsJournalLogWriter(mJournal, startSN);
+    final int numberOfEntriesWrittenBeforeFailure = 10;
+    long nextSN = writeJournalEntries(writer, startSN, numberOfEntriesWrittenBeforeFailure);
+    writer.flush();
+    writer.close();
+
+    // Write another entry without flushing.
+    writer = new UfsJournalLogWriter(mJournal, nextSN);
+    nextSN = writeJournalEntries(writer, nextSN, 1);
+    DataOutputStream badOut = createMockDataOutputStream(writer);
+    Mockito.doThrow(new IOException(INJECTED_IO_ERROR_MESSAGE)).when(badOut)
+        .write(Mockito.any(byte[].class), Mockito.anyInt(), Mockito.anyInt());
+    tryWriteAndExpectToFail(writer, nextSN);
+
+    // Delete the incomplete journal file to simulate the case in which
+    // journal entries that have not been explicitly flushed will be lost.
+    UfsJournalSnapshot snapshot = UfsJournalSnapshot.getSnapshot(mJournal);
+    UfsJournalFile journalFile = snapshot.getCurrentLog(mJournal);
+    File file = new File(journalFile.getLocation().toString());
+    file.delete();
+
+    // Flush the journal, recovering from the Ufs failure.
+    writer.flush();
+    checkJournalEntries(startSN, nextSN);
+    writer.close();
+  }
+
+  /**
+   * Tests that {@link UfsJournalLogWriter} can detect the failure in which some flushed journal
+   * entries are missing from the journal during recovery.
+   */
+  @Test
+  public void missingJournalEntries() throws Exception {
+    Mockito.when(mUfs.supportsFlush()).thenReturn(true);
+    long startSN = 0x10;
+    long nextSN = startSN;
+    UfsJournalLogWriter writer = new UfsJournalLogWriter(mJournal, nextSN);
+    long truncateSize = 0;
+    long firstCorruptedEntrySeq = startSN + 4;
+    for (int i = 0; i < 5; i++) {
+      writer.write(newEntry(nextSN));
+      nextSN++;
+      if (i == 3) {
+        UfsJournalSnapshot snapshot = UfsJournalSnapshot.getSnapshot(mJournal);
+        UfsJournalFile journalFile = snapshot.getCurrentLog(mJournal);
+        File file = new File(journalFile.getLocation().toString());
+        truncateSize = file.length();
+      }
+    }
+    writer.flush();
+
+    writer.write(newEntry(nextSN));
+    long seqOfFirstEntryToFlush = nextSN;
+    nextSN++;
+    Assert.assertNotNull(writer.getJournalOutputStream());
+    DataOutputStream badOut = createMockDataOutputStream(writer);
+    Mockito.doThrow(new IOException(INJECTED_IO_ERROR_MESSAGE)).when(badOut)
+        .write(Mockito.any(byte[].class), Mockito.anyInt(), Mockito.anyInt());
+    tryWriteAndExpectToFail(writer, nextSN);
+    UfsJournalSnapshot snapshot = UfsJournalSnapshot.getSnapshot(mJournal);
+    UfsJournalFile journalFile = snapshot.getCurrentLog(mJournal);
+    File file = new File(journalFile.getLocation().toString());
+    try (FileOutputStream fileOutputStream = new FileOutputStream(file, true);
+        FileChannel fileChannel = fileOutputStream.getChannel()) {
+      fileChannel.truncate(truncateSize);
+    }
+    mThrown.expect(RuntimeException.class);
+    mThrown.expectMessage(
+        ExceptionMessage.JOURNAL_ENTRY_MISSING.getMessageWithUrl(
+            RuntimeConstants.ALLUXIO_DEBUG_DOCS_URL,
+            firstCorruptedEntrySeq, seqOfFirstEntryToFlush));
+    writer.write(newEntry(nextSN));
+    writer.close();
+  }
+
+  @Test
+  public void missingIncompleteJournalFile() throws Exception {
+    long startSN = 0x10;
+    UfsJournalLogWriter writer = new UfsJournalLogWriter(mJournal, startSN);
+    long nextSN = writeJournalEntries(writer, startSN, 5);
+    DataOutputStream badOut = createMockDataOutputStream(writer);
+    Mockito.doThrow(new IOException(INJECTED_IO_ERROR_MESSAGE)).when(badOut)
+        .write(Mockito.any(byte[].class), Mockito.anyInt(), Mockito.anyInt());
+    tryWriteAndExpectToFail(writer, nextSN);
+    UfsJournalSnapshot snapshot = UfsJournalSnapshot.getSnapshot(mJournal);
+    UfsJournalFile journalFile = snapshot.getCurrentLog(mJournal);
+    File file = new File(journalFile.getLocation().toString());
+    file.delete();
+    mThrown.expect(RuntimeException.class);
+    mThrown.expectMessage(
+        ExceptionMessage.JOURNAL_ENTRY_MISSING.getMessageWithUrl(
+            RuntimeConstants.ALLUXIO_DEBUG_DOCS_URL, 0, 0x10));
+    writer.write(newEntry(nextSN));
+    writer.close();
+  }
+
+  /**
+   * Writes {@code numberOfEntries} journal entries starting from {@code startSN}.
+   *
+   * @param writer {@link UfsJournalLogWriter} instance to use
+   * @param startSN start journal sequence number
+   * @param numberOfEntries number of journal entries
+   * @return next journal entry sequence number after writing these entries
+   */
+  private long writeJournalEntries(UfsJournalLogWriter writer, long startSN,
+      int numberOfEntries) throws IOException {
+    long nextSN = startSN;
+    for (int i = 0; i < numberOfEntries; i++) {
+      writer.write(newEntry(nextSN));
+      nextSN++;
+    }
+    Assert.assertNotNull(writer.getJournalOutputStream());
+    return nextSN;
+  }
+
+  /**
+   * Creates a mock {@link DataOutputStream} for {@link UfsJournalLogWriter#mJournalOutputStream}.
+   *
+   * @param writer the {@link UfsJournalLogWriter} instance for which the mock is created
+   * @return the created mock {@link DataOutputStream} instance
+   */
+  private DataOutputStream createMockDataOutputStream(UfsJournalLogWriter writer) {
+    DataOutputStream badOut = Mockito.mock(DataOutputStream.class);
+    Object journalOutputStream = writer.getJournalOutputStream();
+    Whitebox.setInternalState(journalOutputStream, "mOutputStream", badOut);
+    return badOut;
+  }
+
+  /**
+   * Tries to write a journal entry and expects the write to fail due to {@link IOException}.
+   *
+   * @param writer {@link UfsJournalLogWriter} that attempts the write
+   * @param nextSN the sequence number that the entry is expected to have
+   */
+  private void tryWriteAndExpectToFail(UfsJournalLogWriter writer, long nextSN) {
+    try {
+      writer.write(newEntry(nextSN));
+      Assert.fail("Should not reach here.");
+    } catch (IOException e) {
+      Assert.assertThat(e.getMessage(), containsString(INJECTED_IO_ERROR_MESSAGE));
+    }
+  }
+
+  /**
+   * Checks that journal entries with sequence number between startSN (inclusive) and endSN
+   * (exclusive) exist in the current journal files.
+   *
+   * @param startSN start sequence number (inclusive)
+   * @param endSN end sequence number (exclusive)
+   */
+  private void checkJournalEntries(long startSN, long endSN)
+      throws IOException, InvalidJournalEntryException {
+    try (JournalReader reader = new UfsJournalReader(mJournal, startSN, true)) {
+      Journal.JournalEntry entry;
+      long seq = startSN;
+      while ((entry = reader.read()) != null) {
+        Assert.assertEquals(seq, entry.getSequenceNumber());
+        seq++;
+      }
+      Assert.assertEquals(endSN, seq);
     }
   }
 
