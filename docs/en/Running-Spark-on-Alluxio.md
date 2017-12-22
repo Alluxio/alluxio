@@ -100,16 +100,12 @@ should be an output `LICENSE2` containing the doubled content of `LICENSE1`.
 ### Use Data from HDFS
 
 Alluxio supports transparently fetching the data from the under storage system, given the exact
-path. Put a file `LICENSE` into HDFS under the folder Alluxio is mounted to, by default this is
-`/alluxio`, meaning any files in HDFS under this folder will be discoverable by Alluxio. You can
-modify this setting by changing the `alluxio.underfs.address` property in `conf/alluxio-site.properties` on the
-server.
+path. Put a file `LICENSE` into HDFS under the folder Alluxio is mounted to.
 
-Assuming the namenode is running on `localhost` and you are using the default mount directory
-`/alluxio`:
+Assuming the root UFS address (`alluxio.master.mount.table.root.ufs`) is `hdfs://localhost:9000/alluxio/`, run
 
 ```bash
-$ hadoop fs -put -f /alluxio/LICENSE hdfs://localhost:9000/alluxio/LICENSE
+$ hadoop fs -put -f ${ALLUXIO_HOME}/LICENSE hdfs://localhost:9000/alluxio/LICENSE_HDFS
 ```
 
 Note that Alluxio has no notion of the file. You can verify this by going to the web UI. Run the
