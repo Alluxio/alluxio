@@ -48,6 +48,7 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -299,12 +300,9 @@ public class RemoteReadIntegrationTest extends BaseIntegrationTest {
           BlockInStream.create(FileSystemContext.INSTANCE, info.getBlockId(), info.getLength(),
               workerAddr, BlockInStreamSource.REMOTE, null, InStreamOptions.defaults());
       byte[] ret = new byte[k];
-      int start = 0;
-      while (start < k) {
-        int read = is.read(ret);
-        Assert.assertTrue(BufferUtils.equalIncreasingByteArray(start, read, ret));
-        start += read;
-      }
+      int read = is.read(ret);
+      Assert
+          .assertTrue(BufferUtils.equalIncreasingByteArray(read, Arrays.copyOfRange(ret, 0, read)));
       is.close();
       Assert.assertTrue(mFileSystem.getStatus(uri).getInAlluxioPercentage() == 100);
     }
@@ -328,12 +326,11 @@ public class RemoteReadIntegrationTest extends BaseIntegrationTest {
           BlockInStream.create(FileSystemContext.INSTANCE, info.getBlockId(), info.getLength(),
               workerAddr, BlockInStreamSource.REMOTE, null, InStreamOptions.defaults());
       byte[] ret = new byte[k / 2];
-      int start = 0;
-      while (start < k / 2) {
-        int read = is.read(ret, 0, (k / 2) - start);
-        Assert.assertTrue(BufferUtils.equalIncreasingByteArray(start, read, ret));
-        start += read;
+      int read = 0;
+      while (read < k / 2) {
+        read += is.read(ret, read, k / 2 - read);
       }
+      Assert.assertTrue(BufferUtils.equalIncreasingByteArray(read, ret));
       is.close();
       Assert.assertTrue(mFileSystem.getStatus(uri).getInAlluxioPercentage() == 100);
     }
