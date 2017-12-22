@@ -225,10 +225,11 @@ public final class ValidateEnv {
       if (name != null && !taskName.startsWith(name)) {
         continue;
       }
+      System.out.format("Validating %s...%n", taskName);
       if (task.validate(optionsMap)) {
         System.out.println("OK");
       } else {
-        System.out.println("Failed");
+        System.err.println("Failed");
         failureCount++;
       }
       validationCount++;
