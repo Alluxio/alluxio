@@ -33,11 +33,7 @@ public class HdfsUnderFileInputStream extends SeekableUnderFileInputStream {
   }
 
   @Override
-  public long getPos() {
-    try {
-      return ((FSDataInputStream) in).getPos();
-    } catch (IOException e) {
-      throw new RuntimeException("Failed to get position " + e);
-    }
+  public long getPos() throws IOException {
+    return ((FSDataInputStream) in).getPos();
   }
 }

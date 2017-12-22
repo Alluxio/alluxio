@@ -72,7 +72,7 @@ class CachedSeekableInputStream extends SeekableUnderFileInputStream {
   }
 
   @Override
-  public long getPos() {
+  public long getPos() throws IOException {
     return ((SeekableUnderFileInputStream) in).getPos();
   }
 }
