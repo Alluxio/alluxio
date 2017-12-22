@@ -48,9 +48,6 @@ public class HdfsValidationTask extends AbstractValidationTask {
 
   @Override
   public boolean validate(Map<String, String> optionsMap) {
-    if (shouldSkip()) {
-      return true;
-    }
     if (!validateHdfsSettingParity(optionsMap)) {
       return false;
     }
