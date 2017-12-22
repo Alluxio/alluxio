@@ -16,7 +16,7 @@ and a Hadoop compatible API. The Alluxio API provides additional functionality, 
 compatible API gives users the flexibility of leveraging Alluxio without having to modify existing
 code written using Hadoop's API.
 
-Alluxio has a wrapper of the [Alluxio client](Clients-Java-Native.html) which provides the Hadoop
+Alluxio has a wrapper of the [Alluxio client](Clients-Alluxio-Java.html) which provides the Hadoop
 compatible `FileSystem` interface. With this client, Hadoop file operations will be translated to
 FileSystem operations. The latest documentation for the `FileSystem` interface may be found
 [here](http://hadoop.apache.org/docs/current/api/org/apache/hadoop/fs/FileSystem.html).
