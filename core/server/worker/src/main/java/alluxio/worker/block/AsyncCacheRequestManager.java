@@ -29,11 +29,9 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 
-import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -49,15 +47,13 @@ public class AsyncCacheRequestManager {
   private final ExecutorService mAsyncCacheExecutor;
   /** The block worker. */
   private final BlockWorker mBlockWorker;
-  private final Object mLock = new Object();
-  @GuardedBy("mLock")
-  private final Set<Long> mPendingRequests;
+  private final ConcurrentHashMap<Long, Protocol.AsyncCacheRequest> mPendingRequests;
   private final WorkerNetAddress mLocalWorkerAddress;
 
   public AsyncCacheRequestManager(ExecutorService service, BlockWorker blockWorker) {
     mAsyncCacheExecutor = service;
     mBlockWorker = blockWorker;
-    mPendingRequests = new HashSet<>();
+    mPendingRequests = new ConcurrentHashMap<>();
     try {
       mLocalWorkerAddress = FileSystemContext.INSTANCE.getLocalWorker();
     } catch (IOException e) {
@@ -73,12 +69,9 @@ public class AsyncCacheRequestManager {
    */
   public void submitRequest(Protocol.AsyncCacheRequest request) {
     long blockId = request.getBlockId();
-    synchronized (mLock) {
-      if (mPendingRequests.contains(blockId)) {
+    if (mPendingRequests.putIfAbsent(blockId, request) != null) {
         // This block is already planned.
-        return;
-      }
-      mPendingRequests.add(request.getBlockId());
+      return;
     }
     mAsyncCacheExecutor.submit(() -> {
       Protocol.OpenUfsBlockOptions openUfsBlockOptions = request.getOpenUfsBlockOptions();
