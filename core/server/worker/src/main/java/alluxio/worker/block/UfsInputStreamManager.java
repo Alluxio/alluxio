@@ -117,7 +117,8 @@ public class UfsInputStreamManager {
         };
     mUnderFileInputStreamCache = CacheBuilder.newBuilder()
         .maximumSize(Configuration.getInt(PropertyKey.WORKER_UFS_INSTREAM_CACHE_MAX_SIZE))
-        .expireAfterAccess(Configuration.getMs(PropertyKey.WORKER_UFS_INSTREAM_CACHE_EXPIRARTION_TIME),
+        .expireAfterAccess(
+            Configuration.getMs(PropertyKey.WORKER_UFS_INSTREAM_CACHE_EXPIRARTION_TIME),
             TimeUnit.MILLISECONDS)
         .removalListener(RemovalListeners.asynchronous(listener, mRemovalThreadPool)).build();
   }
