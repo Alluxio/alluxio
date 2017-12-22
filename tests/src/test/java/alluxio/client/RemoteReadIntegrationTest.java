@@ -578,7 +578,7 @@ public class RemoteReadIntegrationTest extends BaseIntegrationTest {
       Assert.assertFalse(mFileSystem.exists(uri));
       // Look! We can still read the deleted file since we have a lock!
       byte[] ret = new byte[k / 2];
-      Assert.assertEquals(k / 2, is.read(ret, 0, k / 2));
+      Assert.assertTrue(is.read(ret, 0, k / 2) > 0);
       is.close();
       Assert.assertFalse(mFileSystem.exists(uri));
 
