@@ -11,14 +11,13 @@
 
 package alluxio.worker.block;
 
+import alluxio.Sessions;
 import alluxio.StorageTierAssoc;
 import alluxio.WorkerStorageTierAssoc;
 import alluxio.client.file.FileSystemContext;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.BlockAlreadyExistsException;
-import alluxio.exception.BlockDoesNotExistException;
 import alluxio.proto.dataserver.Protocol;
-import alluxio.util.IdUtils;
 import alluxio.util.io.BufferUtils;
 import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.block.io.BlockReader;
@@ -74,24 +73,22 @@ public class AsyncCacheRequestManager {
   public void submitRequest(Protocol.AsyncCacheRequest request) {
     long blockId = request.getBlockId();
     if (mPendingRequests.putIfAbsent(blockId, request) != null) {
-        // This block is already planned.
+      // This block is already planned.
       return;
     }
     mAsyncCacheExecutor.submit(() -> {
       Protocol.OpenUfsBlockOptions openUfsBlockOptions = request.getOpenUfsBlockOptions();
-      long sessionId = IdUtils.createSessionId();
       long blockSize = openUfsBlockOptions.getBlockSize();
       boolean isSourceLocal = mLocalWorkerAddress.getHost().equals(request.getSourceHost())
           && mLocalWorkerAddress.getDataPort() == request.getSourcePort();
       // Depends on the request, cache the target block from different sources
       try {
         if (isSourceLocal) {
-          cacheBlockFromUfs(sessionId, blockId, blockSize, openUfsBlockOptions);
+          cacheBlockFromUfs(blockId, blockSize, openUfsBlockOptions);
         } else {
           InetSocketAddress sourceAddress =
               new InetSocketAddress(request.getSourceHost(), request.getSourcePort());
-          cacheBlockFromRemoteWorker(sessionId, blockId, blockSize, sourceAddress,
-              openUfsBlockOptions);
+          cacheBlockFromRemoteWorker(blockId, blockSize, sourceAddress, openUfsBlockOptions);
         }
       } catch (BlockAlreadyExistsException e) {
         // It is already cached
@@ -104,48 +101,54 @@ public class AsyncCacheRequestManager {
   }
 
   /**
-   * Caches the block via the local worker to read from UFS.
+   * Caches the block via the local worker to read from UFS.  If cache fails, throw exceptions.
    *
-   * @param sessionId session ID
    * @param blockId block ID
    * @param blockSize block size
    * @param openUfsBlockOptions options to open the UFS file
    */
-  private void cacheBlockFromUfs(long sessionId, long blockId, long blockSize,
+  private void cacheBlockFromUfs(long blockId, long blockSize,
       Protocol.OpenUfsBlockOptions openUfsBlockOptions)
-      throws BlockAlreadyExistsException, BlockDoesNotExistException, IOException {
-    if (!mBlockWorker.openUfsBlock(sessionId, blockId, openUfsBlockOptions)) {
+      throws AlluxioException, IOException {
+    if (!mBlockWorker.openUfsBlock(Sessions.ASYNC_CACHE_SESSION_ID, blockId, openUfsBlockOptions)) {
       return;
     }
-    try (BlockReader reader = mBlockWorker.readUfsBlock(sessionId, blockId, 0)) {
-      reader.read(0, blockSize); // cache will be handled internally in UFS block store
+    try (BlockReader reader = mBlockWorker
+        .readUfsBlock(Sessions.ASYNC_CACHE_SESSION_ID, blockId, 0)) {
+      // Read the entire block, caching to block store will be handled internally in UFS block store
+      reader.read(0, blockSize);
+    } finally {
+      mBlockWorker.closeUfsBlock(Sessions.ASYNC_CACHE_SESSION_ID, blockId);
     }
   }
 
   /**
-   * Caches the block at best effort from a remote worker (possibly from UFS indirectly).
+   * Caches the block at best effort from a remote worker (possibly from UFS indirectly). If cache
+   * fails, throw exceptions.
    *
-   * @param sessionId session ID
    * @param blockId block ID
    * @param blockSize block size
    * @param sourceAddress the source to read the block previously by client
    * @param openUfsBlockOptions options to open the UFS file
    */
-  private void cacheBlockFromRemoteWorker(long sessionId, long blockId, long blockSize,
+  private void cacheBlockFromRemoteWorker(long blockId, long blockSize,
       InetSocketAddress sourceAddress, Protocol.OpenUfsBlockOptions openUfsBlockOptions)
       throws AlluxioException, IOException {
-    mBlockWorker.createBlockRemote(sessionId, blockId, mStorageTierAssoc.getAlias(0), blockSize);
+    mBlockWorker
+        .createBlockRemote(Sessions.ASYNC_CACHE_SESSION_ID, blockId, mStorageTierAssoc.getAlias(0),
+            blockSize);
     try (BlockReader reader = new RemoteBlockReader(blockId, sourceAddress, openUfsBlockOptions);
-         BlockWriter writer = mBlockWorker.getTempBlockWriterRemote(sessionId, blockId)) {
+         BlockWriter writer = mBlockWorker
+             .getTempBlockWriterRemote(Sessions.ASYNC_CACHE_SESSION_ID, blockId)) {
       BufferUtils.fastCopy(reader.getChannel(), writer.getChannel());
     } catch (AlluxioException | IOException e) {
       try {
-        mBlockWorker.abortBlock(sessionId, blockId);
+        mBlockWorker.abortBlock(Sessions.ASYNC_CACHE_SESSION_ID, blockId);
       } catch (AlluxioException | IOException ee) {
         LOG.warn("Failed to abort block {}: {}", blockId, ee.getMessage());
       }
       throw e;
     }
-    mBlockWorker.commitBlock(sessionId, blockId);
+    mBlockWorker.commitBlock(Sessions.ASYNC_CACHE_SESSION_ID, blockId);
   }
 }
