@@ -15,6 +15,8 @@ import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.exception.ExceptionMessage;
+import alluxio.retry.ExponentialBackoffRetry;
+import alluxio.retry.RetryPolicy;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.options.DeleteOptions;
 import alluxio.underfs.options.FileLocationOptions;
@@ -88,23 +90,35 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
    * Information about a single object in object UFS.
    */
   protected class ObjectStatus {
+    private static final String INVALID_CONTENT_HASH = "";
     private static final long INVALID_CONTENT_LENGTH = -1L;
     private static final long INVALID_MODIFIED_TIME = -1L;
 
+    private final String mContentHash;
     private final long mContentLength;
     private final long mLastModifiedTimeMs;
     private final String mName;
 
-    public ObjectStatus(String name, long contentLength, long lastModifiedTimeMs) {
+    public ObjectStatus(String name, String contentHash, long contentLength,
+        long lastModifiedTimeMs) {
+      mContentHash = contentHash;
       mContentLength = contentLength;
       mLastModifiedTimeMs = lastModifiedTimeMs;
       mName = name;
     }
 
     public ObjectStatus(String name) {
+      mContentHash = INVALID_CONTENT_HASH;
       mContentLength = INVALID_CONTENT_LENGTH;
       mLastModifiedTimeMs = INVALID_MODIFIED_TIME;
       mName = name;
+    }
+
+    /**
+     * @return the hash of the content
+     */
+    public String getContentHash() {
+      return mContentHash;
     }
 
     /**
@@ -431,12 +445,28 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
     ObjectStatus details = getObjectStatus(stripPrefixIfPresent(path));
     if (details != null) {
       ObjectPermissions permissions = getPermissions();
-      return new UfsFileStatus(path, details.getContentLength(), details.getLastModifiedTimeMs(),
-          permissions.getOwner(), permissions.getGroup(), permissions.getMode());
+      return new UfsFileStatus(path, details.getContentHash(), details.getContentLength(),
+          details.getLastModifiedTimeMs(), permissions.getOwner(), permissions.getGroup(),
+          permissions.getMode());
     } else {
       LOG.warn("Error fetching file status, assuming file {} does not exist", path);
       throw new FileNotFoundException(path);
     }
+  }
+
+  @Override
+  public UfsStatus getStatus(String path) throws IOException {
+    if (isRoot(path)) {
+      return getDirectoryStatus(path);
+    }
+    ObjectStatus details = getObjectStatus(stripPrefixIfPresent(path));
+    if (details != null) {
+      ObjectPermissions permissions = getPermissions();
+      return new UfsFileStatus(path, details.getContentHash(), details.getContentLength(),
+          details.getLastModifiedTimeMs(), permissions.getOwner(), permissions.getGroup(),
+          permissions.getMode());
+    }
+    return getDirectoryStatus(path);
   }
 
   @Override
@@ -508,7 +538,21 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
 
   @Override
   public InputStream open(String path, OpenOptions options) throws IOException {
-    return openObject(stripPrefixIfPresent(path), options);
+    IOException thrownException = null;
+    RetryPolicy retryPolicy = new ExponentialBackoffRetry(
+        (int) Configuration.getMs(PropertyKey.UNDERFS_OBJECT_STORE_READ_RETRY_BASE_SLEEP_MS),
+        (int) Configuration.getMs(PropertyKey.UNDERFS_OBJECT_STORE_READ_RETRY_MAX_SLEEP_MS),
+        Configuration.getInt(PropertyKey.UNDERFS_OBJECT_STORE_READ_RETRY_MAX_NUM));
+    while (retryPolicy.attemptRetry()) {
+      try {
+        return openObject(stripPrefixIfPresent(path), options);
+      } catch (IOException e) {
+        LOG.warn("{} attempt to open {} failed with exception : {}", retryPolicy.getRetryCount(),
+            path, e.getMessage());
+        thrownException = e;
+      }
+    }
+    throw thrownException;
   }
 
   @Override
@@ -819,8 +863,9 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
         } else {
           // Child is a file
           children.put(child,
-              new UfsFileStatus(child, status.getContentLength(), status.getLastModifiedTimeMs(),
-                  permissions.getOwner(), permissions.getGroup(), permissions.getMode()));
+              new UfsFileStatus(child, status.getContentHash(), status.getContentLength(),
+                  status.getLastModifiedTimeMs(), permissions.getOwner(), permissions.getGroup(),
+                  permissions.getMode()));
         }
       }
       // Handle case (2)

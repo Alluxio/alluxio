@@ -108,7 +108,12 @@ public final class Constants {
   public static final String KEY_VALUE_WORKER_CLIENT_SERVICE_NAME = "KeyValueWorkerClient";
 
   public static final int DEFAULT_REGISTRY_GET_TIMEOUT_MS = 60 * SECOND_MS;
+
+  // Test-related constants
   public static final int MAX_TEST_DURATION_MS = 10 * MINUTE_MS;
+  public static final String TEST_ARTIFACTS_DIR = "./target/artifacts";
+  public static final String TEST_LOG_DIR = "./target/logs";
+  public static final String TESTS_LOG = "./target/logs/tests.log";
 
   public static final String REST_API_PREFIX = "/api/v1";
 
@@ -148,6 +153,9 @@ public final class Constants {
   public static final String S3_DELETE_IN_ALLUXIO_ONLY = "ALLUXIO_ONLY";
   public static final String S3_DELETE_IN_ALLUXIO_AND_UFS = "ALLUXIO_AND_UFS";
   public static final String S3_MULTIPART_TEMPORARY_DIR_SUFFIX = "_s3_multipart_tmp";
+
+  // Ufs fingerprint
+  public static final String INVALID_UFS_FINGERPRINT = "";
 
   private Constants() {} // prevent instantiation
 }

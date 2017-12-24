@@ -11,6 +11,7 @@
 
 package alluxio.master.file.meta;
 
+import alluxio.Constants;
 import alluxio.collections.FieldIndex;
 import alluxio.collections.IndexDefinition;
 import alluxio.collections.UniqueFieldIndex;
@@ -234,6 +235,7 @@ public final class InodeDirectory extends Inode<InodeDirectory> {
     ret.setMode(getMode());
     ret.setPersistenceState(getPersistenceState().toString());
     ret.setMountPoint(isMountPoint());
+    ret.setUfsFingerprint(Constants.INVALID_UFS_FINGERPRINT);
     return ret;
   }
 
