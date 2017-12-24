@@ -47,9 +47,7 @@ public interface BlockWriter extends Closeable {
   long getPosition();
 
   /**
-   * Returns a writeable byte channel of the block.
-   *
-   * @return channel
+   * @return a writeable byte channel of the block
    */
   WritableByteChannel getChannel();
 }

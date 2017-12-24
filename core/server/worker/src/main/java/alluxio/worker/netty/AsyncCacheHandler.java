@@ -29,6 +29,9 @@ public class AsyncCacheHandler extends ChannelInboundHandlerAdapter {
 
   /**
    * Constructs a new async cache handler.
+   *
+   * @param service the thread pool
+   * @param blockWorker handler to the block worker
    */
   public AsyncCacheHandler(ExecutorService service, BlockWorker blockWorker) {
     mRequestManager = new AsyncCacheRequestManager(service, blockWorker);
