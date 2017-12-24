@@ -30,7 +30,6 @@ import alluxio.util.io.PathUtils;
 
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -425,48 +424,77 @@ public final class FileInStreamIntegrationTest extends BaseIntegrationTest {
   }
 
   @Test(timeout = 10000)
-  @Ignore
   public void asyncCacheFirstBlock() throws Exception {
     String filename = mTestPath + "/file_" + MAX_LEN + "_" + mWriteUnderStore.hashCode();
     AlluxioURI uri = new AlluxioURI(filename);
 
-    FileInStream is =
-        mFileSystem.openFile(uri, OpenFileOptions.defaults().setReadType(ReadType.CACHE));
-    is.read();
-    URIStatus status = mFileSystem.getStatus(uri);
-    Assert.assertEquals(0, status.getInAlluxioPercentage());
-    is.close();
-    CommonUtils.waitFor("First block to be cached.", (input) -> {
-      try {
-        URIStatus st = mFileSystem.getStatus(uri);
-        return !st.getFileBlockInfos().get(0).getBlockInfo().getLocations().isEmpty();
-      } catch (Exception e) {
-        return false;
+    for (ReadType readType : ReadType.values()) {
+      // Prepare: ensure no in-Alluxio data from previous iteration
+      mFileSystem.free(uri);
+      CommonUtils.waitFor("No in-Alluxio data left from previous iteration.", (input) -> {
+        try {
+          URIStatus st = mFileSystem.getStatus(uri);
+          return st.getInAlluxioPercentage() == 0;
+        } catch (Exception e) {
+          return false;
+        }
+      });
+      FileInStream is = mFileSystem.openFile(uri, OpenFileOptions.defaults().setReadType(readType));
+      is.read();
+      URIStatus status = mFileSystem.getStatus(uri);
+      Assert.assertEquals(0, status.getInAlluxioPercentage());
+      is.close();
+      if (readType.isCache()) {
+        CommonUtils.waitFor("First block to be cached.", (input) -> {
+          try {
+            URIStatus st = mFileSystem.getStatus(uri);
+            return !st.getFileBlockInfos().get(0).getBlockInfo().getLocations().isEmpty();
+          } catch (Exception e) {
+            return false;
+          }
+        });
+      } else {
+        Thread.sleep(1000);
+        Assert.assertEquals(0, status.getInAlluxioPercentage());
       }
-    });
+    }
   }
 
   @Test(timeout = 10000)
-  @Ignore
   public void asyncCacheAfterSeek() throws Exception {
     String filename = mTestPath + "/file_" + MAX_LEN + "_" + mWriteUnderStore.hashCode();
     AlluxioURI uri = new AlluxioURI(filename);
 
-    FileInStream is =
-        mFileSystem.openFile(uri, OpenFileOptions.defaults().setReadType(ReadType.CACHE));
-    URIStatus status = mFileSystem.getStatus(uri);
-    is.seek(status.getBlockSizeBytes() + 1);
-    is.read();
-    Assert.assertEquals(0, status.getInAlluxioPercentage());
-    is.close();
-    CommonUtils.waitFor("Second block to be cached.", (input) -> {
-      try {
-        URIStatus st = mFileSystem.getStatus(uri);
-        return !st.getFileBlockInfos().get(1).getBlockInfo().getLocations().isEmpty();
-      } catch (Exception e) {
-        return false;
+    for (ReadType readType : ReadType.values()) {
+      mFileSystem.free(uri);
+      CommonUtils.waitFor("No in-Alluxio data left from previous iteration.", (input) -> {
+        try {
+          URIStatus st = mFileSystem.getStatus(uri);
+          return st.getInAlluxioPercentage() == 0;
+        } catch (Exception e) {
+          return false;
+        }
+      });
+      FileInStream is = mFileSystem.openFile(uri, OpenFileOptions.defaults().setReadType(readType));
+      URIStatus status = mFileSystem.getStatus(uri);
+      is.seek(status.getBlockSizeBytes() + 1);
+      is.read();
+      Assert.assertEquals(0, status.getInAlluxioPercentage());
+      is.close();
+      if (readType.isCache()) {
+        CommonUtils.waitFor("Second block to be cached.", (input) -> {
+          try {
+            URIStatus st = mFileSystem.getStatus(uri);
+            return !st.getFileBlockInfos().get(1).getBlockInfo().getLocations().isEmpty();
+          } catch (Exception e) {
+            return false;
+          }
+        });
+      } else {
+        Thread.sleep(1000);
+        Assert.assertEquals(0, status.getInAlluxioPercentage());
       }
-    });
+    }
   }
 
   @Test
