@@ -156,6 +156,9 @@ public enum ExceptionMessage {
   // block master
   NO_WORKER_FOUND("No worker with workerId {0,number,#} is found"),
 
+  // safe mode
+  MASTER_IN_SAFEMODE("Alluxio master is in safe mode. Please try again later."),
+
   // file system master ufs
   FAILED_UFS_CREATE("Failed to create {0} in the under file system"),
   FAILED_UFS_RENAME("Failed to rename {0} to {1} in the under file system"),

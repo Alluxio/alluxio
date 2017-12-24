@@ -117,7 +117,8 @@ public class AbstractFileSystemTest {
     try (Closeable c = new ConfigurationRule(ImmutableMap.of(
         PropertyKey.MASTER_HOSTNAME, uri.getHost(),
         PropertyKey.MASTER_RPC_PORT, Integer.toString(uri.getPort()),
-            PropertyKey.ZOOKEEPER_ENABLED, "true")).toResource()) {
+        PropertyKey.ZOOKEEPER_ENABLED, "true",
+        PropertyKey.ZOOKEEPER_ADDRESS, "ignored")).toResource()) {
       final org.apache.hadoop.fs.FileSystem fs =
           org.apache.hadoop.fs.FileSystem.get(uri, getConf());
       assertTrue(fs instanceof FaultTolerantFileSystem);
@@ -130,7 +131,9 @@ public class AbstractFileSystemTest {
   @Test
   public void loadFaultTolerantSystemWhenUsingNoAuthority() throws Exception {
     URI uri = URI.create(Constants.HEADER_FT + "/tmp/path.txt");
-    try (Closeable c = new ConfigurationRule(PropertyKey.ZOOKEEPER_ENABLED, "true").toResource()) {
+    try (Closeable c = new ConfigurationRule(ImmutableMap.of(
+        PropertyKey.ZOOKEEPER_ENABLED, "true",
+        PropertyKey.ZOOKEEPER_ADDRESS, "ignored")).toResource()) {
       final org.apache.hadoop.fs.FileSystem fs =
           org.apache.hadoop.fs.FileSystem.get(uri, getConf());
       assertTrue(fs instanceof FaultTolerantFileSystem);

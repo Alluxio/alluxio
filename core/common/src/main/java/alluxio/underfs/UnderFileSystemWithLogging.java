@@ -12,6 +12,7 @@
 package alluxio.underfs;
 
 import alluxio.AlluxioURI;
+import alluxio.Constants;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.options.DeleteOptions;
 import alluxio.underfs.options.FileLocationOptions;
@@ -265,6 +266,26 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
   }
 
   @Override
+  public String getFingerprint(String path) {
+    try {
+      return call(new UfsCallable<String>() {
+        @Override
+        public String call() throws IOException {
+          return mUnderFileSystem.getFingerprint(path);
+        }
+
+        @Override
+        public String toString() {
+          return String.format("GetFingerprint: path=%s", path);
+        }
+      });
+    } catch (IOException e) {
+      // This is not possible.
+      return Constants.INVALID_UFS_FINGERPRINT;
+    }
+  }
+
+  @Override
   public long getSpace(final String path, final SpaceType type) throws IOException {
     return call(new UfsCallable<Long>() {
       @Override
@@ -275,6 +296,21 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
       @Override
       public String toString() {
         return String.format("GetSpace: path=%s, type=%s", path, type);
+      }
+    });
+  }
+
+  @Override
+  public UfsStatus getStatus(String path) throws IOException {
+    return call(new UfsCallable<UfsStatus>() {
+      @Override
+      public UfsStatus call() throws IOException {
+        return mUnderFileSystem.getStatus(path);
+      }
+
+      @Override
+      public String toString() {
+        return String.format("GetStatus: path=%s", path);
       }
     });
   }

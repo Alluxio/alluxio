@@ -22,12 +22,12 @@ import alluxio.metrics.sink.MetricsServlet;
 import alluxio.security.authentication.TransportProvider;
 import alluxio.thrift.MetaMasterClientService;
 import alluxio.util.CommonUtils;
+import alluxio.util.JvmPauseMonitor;
 import alluxio.util.WaitForOptions;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 import alluxio.web.MasterWebServer;
 import alluxio.web.WebServer;
-import alluxio.util.JvmPauseMonitor;
 
 import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
@@ -102,6 +102,9 @@ public class AlluxioMasterProcess implements MasterProcess {
   /** The JVMMonitor Progress. */
   private JvmPauseMonitor mJvmPauseMonitor;
 
+  /** The manager of safe mode state. */
+  protected final SafeModeManager mSafeModeManager;
+
   /**
    * Creates a new {@link AlluxioMasterProcess}.
    */
@@ -147,7 +150,8 @@ public class AlluxioMasterProcess implements MasterProcess {
       }
       // Create masters.
       mRegistry = new MasterRegistry();
-      MasterUtils.createMasters(mJournalSystem, mRegistry);
+      mSafeModeManager = new DefaultSafeModeManager();
+      MasterUtils.createMasters(mJournalSystem, mRegistry, mSafeModeManager);
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
@@ -346,6 +350,7 @@ public class AlluxioMasterProcess implements MasterProcess {
     // start thrift rpc server
     mIsServing = true;
     mStartTimeMs = System.currentTimeMillis();
+    mSafeModeManager.notifyRpcServerStarted();
     mThriftServer.serve();
   }
 

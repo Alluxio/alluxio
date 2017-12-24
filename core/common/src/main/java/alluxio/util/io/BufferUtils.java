@@ -211,7 +211,7 @@ public final class BufferUtils {
 
   /**
    * Checks if the given byte array starts with an increasing sequence of bytes of the given
-   * length, starting from the given value.
+   * length, starting from the given value. The array length must be equal to the length checked.
    *
    * @param start the starting value to use
    * @param len the target length of the sequence
@@ -313,6 +313,16 @@ public final class BufferUtils {
     while (buffer.hasRemaining()) {
       dest.write(buffer);
     }
+  }
+
+  /**
+   * Gets the unsigned byte value of an integer. Useful for comparing to the result of reading
+   * from an input stream.
+   * @param i the integer to convert
+   * @return the integer value after casting as an unsigned byte
+   */
+  public static int intAsUnsignedByteValue(int i) {
+    return ((byte) i) & 0xFF;
   }
 
   /**

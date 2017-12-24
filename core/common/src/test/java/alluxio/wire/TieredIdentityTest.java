@@ -12,15 +12,23 @@
 package alluxio.wire;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assume.assumeTrue;
 
+import alluxio.Configuration;
+import alluxio.ConfigurationTestUtils;
+import alluxio.PropertyKey;
 import alluxio.network.TieredIdentityFactory;
 import alluxio.util.CommonUtils;
 import alluxio.wire.TieredIdentity.LocalityTier;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.After;
 import org.junit.Test;
 
+import java.net.InetAddress;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
@@ -29,6 +37,11 @@ import java.util.Random;
  * Unit tests for {@link TieredIdentity}.
  */
 public class TieredIdentityTest {
+
+  @After
+  public void after() {
+    ConfigurationTestUtils.resetConfiguration();
+  }
 
   @Test
   public void nearest() throws Exception {
@@ -64,6 +77,40 @@ public class TieredIdentityTest {
   }
 
   @Test
+  public void matchByStringEquality() {
+    Configuration.set(PropertyKey.LOCALITY_COMPARE_NODE_IP, "true");
+
+    LocalityTier lt1 = new LocalityTier("node", "A");
+    LocalityTier lt2 = new LocalityTier("node", "A");
+    LocalityTier lt3 = new LocalityTier("node", "B");
+    LocalityTier lt4 = new LocalityTier("rack", "A");
+    LocalityTier lt5 = new LocalityTier("rack", "B");
+    LocalityTier lt6 = new LocalityTier("rack", "B");
+    LocalityTier lt7 = new LocalityTier("rack", "");
+    LocalityTier lt8 = new LocalityTier("node", "A");
+    LocalityTier lt9 = new LocalityTier("node", "");
+    assertTrue(lt1.matches(lt1));
+    assertTrue(lt1.matches(lt2));
+    assertFalse(lt2.matches(lt3));
+    assertTrue(lt5.matches(lt6));
+    assertFalse(lt4.matches(lt5));
+    assertFalse(lt6.matches(lt7));
+    assertFalse(lt8.matches(lt9));
+  }
+
+  @Test
+  public void matchByIpResolution() throws Exception {
+    assumeTrue(InetAddress.getByName("localhost").getHostAddress().equals("127.0.0.1"));
+    LocalityTier lt1 = new LocalityTier("node", "localhost");
+    LocalityTier lt2 = new LocalityTier("node", "127.0.0.1");
+
+    Configuration.set(PropertyKey.LOCALITY_COMPARE_NODE_IP, "true");
+    assertTrue(lt1.matches(lt2));
+
+    Configuration.set(PropertyKey.LOCALITY_COMPARE_NODE_IP, "false");
+    assertFalse(lt1.matches(lt2));
+  }
+
   public void string() {
     TieredIdentity identity = new TieredIdentity(
         Arrays.asList(new LocalityTier("k1", "v1"), new LocalityTier("k2", "v2")));
