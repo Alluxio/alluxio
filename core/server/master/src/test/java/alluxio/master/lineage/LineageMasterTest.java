@@ -19,7 +19,10 @@ import alluxio.exception.LineageDoesNotExistException;
 import alluxio.job.CommandLineJob;
 import alluxio.job.Job;
 import alluxio.job.JobConf;
+import alluxio.master.DefaultSafeModeManager;
+import alluxio.master.MasterContext;
 import alluxio.master.MasterRegistry;
+import alluxio.master.SafeModeManager;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.options.CompleteFileOptions;
 import alluxio.master.journal.JournalSystem;
@@ -55,6 +58,7 @@ public final class LineageMasterTest {
   private FileSystemMaster mFileSystemMaster;
   private Job mJob;
   private MasterRegistry mRegistry;
+  private SafeModeManager mSafeModeManager;
 
   /** Rule to create a new temporary folder during each test. */
   @Rule
@@ -69,9 +73,11 @@ public final class LineageMasterTest {
     JournalSystem journalSystem = new NoopJournalSystem();
     mFileSystemMaster = Mockito.mock(FileSystemMaster.class);
     mRegistry.add(FileSystemMaster.class, mFileSystemMaster);
+    mSafeModeManager = new DefaultSafeModeManager();
     ThreadFactory threadPool = ThreadFactoryUtils.build("LineageMasterTest-%d", true);
     mExecutorService = Executors.newFixedThreadPool(2, threadPool);
-    mLineageMaster = new DefaultLineageMaster(mFileSystemMaster, journalSystem,
+    mLineageMaster = new DefaultLineageMaster(mFileSystemMaster,
+        new MasterContext(journalSystem, mSafeModeManager),
         ExecutorServiceFactories.constantExecutorServiceFactory(mExecutorService));
     mRegistry.add(LineageMaster.class, mLineageMaster);
     mJob = new CommandLineJob("test", new JobConf("output"));
