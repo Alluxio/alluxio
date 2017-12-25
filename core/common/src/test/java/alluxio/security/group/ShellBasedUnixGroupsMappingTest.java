@@ -11,10 +11,12 @@
 
 package alluxio.security.group;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+
 import alluxio.security.group.provider.ShellBasedUnixGroupsMapping;
 import alluxio.util.CommonUtils;
 
-import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
@@ -53,8 +55,8 @@ public final class ShellBasedUnixGroupsMappingTest {
 
     GroupMappingService groups = new ShellBasedUnixGroupsMapping();
 
-    Assert.assertNotNull(groups);
-    Assert.assertNotNull(groups.getGroups(userName));
-    Assert.assertEquals(groups.getGroups(userName).size(), 2);
+    assertNotNull(groups);
+    assertNotNull(groups.getGroups(userName));
+    assertEquals(groups.getGroups(userName).size(), 2);
   }
 }
