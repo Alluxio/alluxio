@@ -20,6 +20,7 @@ import static org.mockito.Matchers.anyInt;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.time;
 
 import alluxio.AlluxioURI;
 import alluxio.ConfigurationRule;
@@ -268,7 +269,7 @@ public class AlluxioFuseFileSystemTest {
 
     // the second write is no-op because the writes must be sequential and overwriting is supported
     mFuseFs.write("/foo/bar", ptr, 4, 0, mFileInfo);
-    verify(fos, Mockito.times(1)).write(expected);
+    verify(fos, times(1)).write(expected);
   }
 
   @Test
