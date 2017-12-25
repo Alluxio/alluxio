@@ -12,6 +12,10 @@
 package alluxio.master;
 
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.anyString;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.spy;
 
 import alluxio.AlluxioURI;
 import alluxio.AuthenticatedUserRule;
@@ -42,7 +46,6 @@ import org.junit.ClassRule;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
-import org.mockito.Mockito;
 
 import java.io.IOException;
 import java.util.concurrent.ExecutorService;
@@ -160,8 +163,8 @@ public class JournalShutdownIntegrationTest extends BaseIntegrationTest {
     CommonUtils.sleepMs(TEST_TIME_MS);
     awaitClientTermination();
     // Fail the creation of UFS
-    Mockito.doThrow(new RuntimeException()).when(factory).create(Mockito.anyString(),
-        Mockito.any(UnderFileSystemConfiguration.class));
+    doThrow(new RuntimeException()).when(factory).create(anyString(),
+        any(UnderFileSystemConfiguration.class));
     createFsMasterFromJournal();
   }
 
@@ -179,8 +182,8 @@ public class JournalShutdownIntegrationTest extends BaseIntegrationTest {
     CommonUtils.sleepMs(TEST_TIME_MS);
     awaitClientTermination();
     // Fail the creation of UFS
-    Mockito.doThrow(new RuntimeException()).when(factory).create(Mockito.anyString(),
-        Mockito.any(UnderFileSystemConfiguration.class));
+    doThrow(new RuntimeException()).when(factory).create(anyString(),
+        any(UnderFileSystemConfiguration.class));
     createFsMasterFromJournal();
   }
 
@@ -196,7 +199,7 @@ public class JournalShutdownIntegrationTest extends BaseIntegrationTest {
     UnderFileSystemFactoryRegistry.register(sleepingUfsFactory);
     fs.mount(new AlluxioURI("/mnt"), new AlluxioURI("sleep:///"));
     fs.unmount(new AlluxioURI("/mnt"));
-    return Mockito.spy(sleepingUfsFactory);
+    return spy(sleepingUfsFactory);
   }
 
   /**
