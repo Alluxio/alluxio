@@ -79,8 +79,9 @@ public class AsyncCacheRequestManager {
     mAsyncCacheExecutor.submit(() -> {
       Protocol.OpenUfsBlockOptions openUfsBlockOptions = request.getOpenUfsBlockOptions();
       long blockSize = openUfsBlockOptions.getBlockSize();
-      boolean isSourceLocal = mLocalWorkerAddress.getHost().equals(request.getSourceHost())
-          && mLocalWorkerAddress.getDataPort() == request.getSourcePort();
+      // Note that, mLocalWorkerAddress is the first local worker (if multiple).
+      // Thus we only compare the host name to decide if we read from "a local worker"
+      boolean isSourceLocal = mLocalWorkerAddress.getHost().equals(request.getSourceHost());
       // Depends on the request, cache the target block from different sources
       boolean result;
       if (isSourceLocal) {
