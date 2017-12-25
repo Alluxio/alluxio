@@ -14,20 +14,19 @@ package alluxio.master.block;
 import static org.junit.Assert.assertEquals;
 
 import alluxio.AlluxioURI;
+import alluxio.BaseIntegrationTest;
 import alluxio.Constants;
+import alluxio.IntegrationTestUtils;
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.PropertyKey;
-import alluxio.BaseIntegrationTest;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemTestUtils;
-import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.CreateFileOptions;
 import alluxio.client.file.policy.RoundRobinPolicy;
 
 import org.apache.commons.io.IOUtils;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -49,8 +48,6 @@ public final class MultiWorkerIntegrationTest extends BaseIntegrationTest {
           .build();
 
   @Test
-  @Ignore
-  // TODO(calvin) Fix this
   public void writeLargeFile() throws Exception {
     int fileSize = NUM_WORKERS * WORKER_MEMORY_SIZE_BYTES;
     AlluxioURI file = new AlluxioURI("/test");
@@ -59,8 +56,7 @@ public final class MultiWorkerIntegrationTest extends BaseIntegrationTest {
     FileSystemTestUtils.createByteFile(fs, file.getPath(), fileSize,
         CreateFileOptions.defaults().setWriteType(WriteType.MUST_CACHE)
             .setLocationPolicy(new RoundRobinPolicy()));
-    URIStatus status = fs.getStatus(file);
-    assertEquals(100, status.getInAlluxioPercentage());
+    IntegrationTestUtils.waitForFileCached(fs, file, 1000);
     try (FileInStream inStream = fs.openFile(file)) {
       assertEquals(fileSize, IOUtils.toByteArray(inStream).length);
     }

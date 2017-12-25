@@ -90,7 +90,7 @@ public class AsyncCacheRequestManager {
             new InetSocketAddress(request.getSourceHost(), request.getSourcePort());
         result = cacheBlockFromRemoteWorker(blockId, blockSize, sourceAddress, openUfsBlockOptions);
       }
-      LOG.debug("Caching block {} result: {}", blockId, result);
+      LOG.debug("Result of async caching block {}: {}", blockId, result);
       mPendingRequests.remove(blockId);
     });
   }
@@ -136,8 +136,7 @@ public class AsyncCacheRequestManager {
   }
 
   /**
-   * Caches the block at best effort from a remote worker (possibly from UFS indirectly). If cache
-   * fails, throw exceptions.
+   * Caches the block at best effort from a remote worker (possibly from UFS indirectly).
    *
    * @param blockId block ID
    * @param blockSize block size
