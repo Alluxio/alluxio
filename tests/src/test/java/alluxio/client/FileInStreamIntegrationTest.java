@@ -27,6 +27,7 @@ import alluxio.security.authorization.Mode;
 import alluxio.util.CommonUtils;
 import alluxio.util.io.BufferUtils;
 import alluxio.util.io.PathUtils;
+import alluxio.wire.FileBlockInfo;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -429,7 +430,6 @@ public final class FileInStreamIntegrationTest extends BaseIntegrationTest {
     AlluxioURI uri = new AlluxioURI(filename);
 
     for (ReadType readType : ReadType.values()) {
-      // Prepare: ensure no in-Alluxio data from previous iteration
       mFileSystem.free(uri);
       CommonUtils.waitFor("No in-Alluxio data left from previous iteration.", (input) -> {
         try {
@@ -448,7 +448,17 @@ public final class FileInStreamIntegrationTest extends BaseIntegrationTest {
         CommonUtils.waitFor("First block to be cached.", (input) -> {
           try {
             URIStatus st = mFileSystem.getStatus(uri);
-            return !st.getFileBlockInfos().get(0).getBlockInfo().getLocations().isEmpty();
+            boolean achieved = true;
+            // Expect only first block to be cached, other blocks should be empty in Alluxio
+            for (int i = 0; i < st.getFileBlockInfos().size(); i++) {
+              FileBlockInfo info = st.getFileBlockInfos().get(i);
+              if (i == 0) {
+                achieved = achieved && !info.getBlockInfo().getLocations().isEmpty();
+              } else {
+                achieved = achieved && info.getBlockInfo().getLocations().isEmpty();
+              }
+            }
+            return achieved;
           } catch (Exception e) {
             return false;
           }
@@ -485,7 +495,17 @@ public final class FileInStreamIntegrationTest extends BaseIntegrationTest {
         CommonUtils.waitFor("Second block to be cached.", (input) -> {
           try {
             URIStatus st = mFileSystem.getStatus(uri);
-            return !st.getFileBlockInfos().get(1).getBlockInfo().getLocations().isEmpty();
+            boolean achieved = true;
+            // Expect only second block to be cached, other blocks should be empty in Alluxio
+            for (int i = 0; i < st.getFileBlockInfos().size(); i++) {
+              FileBlockInfo info = st.getFileBlockInfos().get(i);
+              if (i == 1) {
+                achieved = achieved && !info.getBlockInfo().getLocations().isEmpty();
+              } else {
+                achieved = achieved && info.getBlockInfo().getLocations().isEmpty();
+              }
+            }
+            return achieved;
           } catch (Exception e) {
             return false;
           }
