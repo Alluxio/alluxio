@@ -13,6 +13,7 @@ package alluxio.worker.file;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.fail;
 
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
@@ -39,7 +40,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.MockRateLimiter;
 import org.junit.After;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -211,7 +211,7 @@ public final class FileDataManagerTest {
         .thenThrow(new BlockDoesNotExistException("block 3 does not exist"));
     try {
       mManager.lockBlocks(fileId, blockIds);
-      Assert.fail("the lock should fail");
+      fail("the lock should fail");
     } catch (IOException e) {
       assertEquals(
           "failed to lock all blocks of file 1\n"
@@ -258,7 +258,7 @@ public final class FileDataManagerTest {
     mManager.lockBlocks(fileId, blockIds);
     try {
       mManager.persistFile(fileId, blockIds);
-      Assert.fail("the persist should fail");
+      fail("the persist should fail");
     } catch (IOException e) {
       assertEquals("the blocks of file1 are failed to persist\n"
           + "alluxio.exception.InvalidWorkerStateException: invalid worker\n", e.getMessage());
