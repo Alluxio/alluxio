@@ -22,12 +22,12 @@ import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 import alluxio.master.AbstractMaster;
+import alluxio.master.MasterContext;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.DeleteOptions;
 import alluxio.master.file.options.RenameOptions;
 import alluxio.master.journal.JournalContext;
-import alluxio.master.journal.JournalSystem;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.proto.journal.KeyValue;
 import alluxio.thrift.KeyValueMasterClientService;
@@ -75,10 +75,10 @@ public class DefaultKeyValueMaster extends AbstractMaster implements KeyValueMas
 
   /**
    * @param fileSystemMaster the file system master handle
-   * @param journalSystem the journal system to use for tracking master operations
+   * @param masterContext the context for Alluxio master
    */
-  DefaultKeyValueMaster(FileSystemMaster fileSystemMaster, JournalSystem journalSystem) {
-    super(journalSystem, new SystemClock(), ExecutorServiceFactories
+  DefaultKeyValueMaster(FileSystemMaster fileSystemMaster, MasterContext masterContext) {
+    super(masterContext, new SystemClock(), ExecutorServiceFactories
         .fixedThreadPoolExecutorServiceFactory(Constants.KEY_VALUE_MASTER_NAME, 2));
     mFileSystemMaster = fileSystemMaster;
     mCompleteStoreToPartitions = new HashMap<>();

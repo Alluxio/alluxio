@@ -28,12 +28,11 @@ import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.heartbeat.HeartbeatThread;
 import alluxio.master.AbstractMaster;
-import alluxio.master.SafeModeManager;
+import alluxio.master.MasterContext;
 import alluxio.master.block.meta.MasterBlockInfo;
 import alluxio.master.block.meta.MasterBlockLocation;
 import alluxio.master.block.meta.MasterWorkerInfo;
 import alluxio.master.journal.JournalContext;
-import alluxio.master.journal.JournalSystem;
 import alluxio.metrics.MetricsSystem;
 import alluxio.proto.journal.Block.BlockContainerIdGeneratorEntry;
 import alluxio.proto.journal.Block.BlockInfoEntry;
@@ -165,30 +164,28 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
   /** The value of the 'next container id' last journaled. */
   @GuardedBy("mBlockContainerIdGenerator")
   private long mJournaledNextContainerId = 0;
-  private SafeModeManager mSafeModeManager;
 
   /**
    * Creates a new instance of {@link DefaultBlockMaster}.
    *
-   * @param journalSystem the journal system to use for tracking master operations
+   * @param masterContext the context for Alluxio master
    */
-  DefaultBlockMaster(JournalSystem journalSystem, SafeModeManager safeModeManager) {
-    this(journalSystem, new SystemClock(), safeModeManager, ExecutorServiceFactories
+  DefaultBlockMaster(MasterContext masterContext) {
+    this(masterContext, new SystemClock(), ExecutorServiceFactories
         .fixedThreadPoolExecutorServiceFactory(Constants.BLOCK_MASTER_NAME, 2));
   }
 
   /**
    * Creates a new instance of {@link DefaultBlockMaster}.
    *
-   * @param journalSystem the journal system to use for tracking master operations
+   * @param masterContext the context for Alluxio master
    * @param clock the clock to use for determining the time
    * @param executorServiceFactory a factory for creating the executor service to use for running
    *        maintenance threads
    */
-  DefaultBlockMaster(JournalSystem journalSystem, Clock clock, SafeModeManager safeModeManager,
+  DefaultBlockMaster(MasterContext masterContext, Clock clock,
       ExecutorServiceFactory executorServiceFactory) {
-    super(journalSystem, clock, executorServiceFactory);
-    mSafeModeManager = safeModeManager;
+    super(masterContext, clock, executorServiceFactory);
     Metrics.registerGauges(this);
   }
 
