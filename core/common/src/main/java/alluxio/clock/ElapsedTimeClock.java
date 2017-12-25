@@ -11,6 +11,9 @@
 
 package alluxio.clock;
 
+import java.time.Clock;
+import java.time.Instant;
+import java.time.ZoneId;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -19,9 +22,24 @@ import java.util.concurrent.TimeUnit;
  * date time. The time can be different across JVM. Do not use it for across processes/machines
  * calculation.
  */
-public final class ElapsedTimeClock implements Clock {
+public final class ElapsedTimeClock extends Clock {
   @Override
   public long millis() {
     return TimeUnit.MILLISECONDS.convert(System.nanoTime(), TimeUnit.NANOSECONDS);
+  }
+
+  @Override
+  public ZoneId getZone() {
+    return null;
+  }
+
+  @Override
+  public Clock withZone(ZoneId zone) {
+    return null;
+  }
+
+  @Override
+  public Instant instant() {
+    return null;
   }
 }
