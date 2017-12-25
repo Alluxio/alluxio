@@ -13,13 +13,15 @@ package alluxio.cli;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.any;
 
 import com.google.common.collect.ImmutableMap;
 import org.apache.commons.cli.CommandLine;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-import org.mockito.Mockito;
 
 import java.util.Map;
 
@@ -47,11 +49,11 @@ public final class AbstractShellTest {
 
     @Override
     protected Map<String, Command> loadCommands() {
-      final Command cmd = Mockito.mock(Command.class);
+      final Command cmd = mock(Command.class);
       try {
-        Mockito.when(cmd.run(Mockito.any(CommandLine.class))).thenReturn(0);
-        Mockito.when(cmd.parseAndValidateArgs(Mockito.any(String[].class)))
-            .thenReturn(Mockito.mock(CommandLine.class));
+        when(cmd.run(any(CommandLine.class))).thenReturn(0);
+        when(cmd.parseAndValidateArgs(any(String[].class)))
+            .thenReturn(mock(CommandLine.class));
       } catch (Exception e) {
         throw new RuntimeException(e);
       }
