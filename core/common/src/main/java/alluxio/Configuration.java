@@ -118,9 +118,14 @@ public final class Configuration {
       String[] confPathList = confPaths.split(",");
       sSitePropertyFile =
           ConfigurationUtils.searchPropertiesFile(Constants.SITE_PROPERTIES, confPathList);
+      Properties siteProps;
       if (sSitePropertyFile != null) {
-        Properties siteProps = ConfigurationUtils.loadPropertiesFromFile(sSitePropertyFile);
+        siteProps = ConfigurationUtils.loadPropertiesFromFile(sSitePropertyFile);
         LOG.info("Configuration file {} loaded.", sSitePropertyFile);
+      } else {
+        siteProps = ConfigurationUtils.loadPropertiesFromResource(Constants.SITE_PROPERTIES);
+      }
+      if (siteProps != null) {
         // Update site properties and system properties in order
         merge(siteProps, Source.SITE_PROPERTY);
         merge(systemProps, Source.SYSTEM_PROPERTY);
