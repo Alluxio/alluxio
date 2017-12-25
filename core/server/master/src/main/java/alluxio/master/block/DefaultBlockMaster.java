@@ -16,7 +16,6 @@ import alluxio.Constants;
 import alluxio.MasterStorageTierAssoc;
 import alluxio.PropertyKey;
 import alluxio.StorageTierAssoc;
-import alluxio.clock.Clock;
 import alluxio.clock.SystemClock;
 import alluxio.collections.ConcurrentHashSet;
 import alluxio.collections.IndexDefinition;
@@ -62,6 +61,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.time.Clock;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
