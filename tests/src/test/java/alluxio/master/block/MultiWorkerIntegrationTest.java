@@ -18,14 +18,12 @@ import alluxio.BaseIntegrationTest;
 import alluxio.Constants;
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.PropertyKey;
-import alluxio.client.ReadType;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.CreateFileOptions;
-import alluxio.client.file.options.OpenFileOptions;
 import alluxio.client.file.policy.RoundRobinPolicy;
 
 import org.apache.commons.io.IOUtils;
@@ -60,9 +58,7 @@ public final class MultiWorkerIntegrationTest extends BaseIntegrationTest {
             .setLocationPolicy(new RoundRobinPolicy()));
     URIStatus status = fs.getStatus(file);
     assertEquals(100, status.getInAlluxioPercentage());
-    // Use NO_CACHE to prevent evicting "none-local" blocks
-    try (FileInStream inStream = fs
-        .openFile(file, OpenFileOptions.defaults().setReadType(ReadType.NO_CACHE))) {
+    try (FileInStream inStream = fs.openFile(file)) {
       assertEquals(fileSize, IOUtils.toByteArray(inStream).length);
     }
   }

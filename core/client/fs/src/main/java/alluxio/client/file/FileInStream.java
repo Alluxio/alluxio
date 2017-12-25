@@ -20,9 +20,9 @@ import alluxio.client.PositionedReadable;
 import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.block.stream.BlockInStream;
 import alluxio.client.file.options.InStreamOptions;
+import alluxio.exception.PreconditionMessage;
 import alluxio.network.netty.NettyRPC;
 import alluxio.network.netty.NettyRPCContext;
-import alluxio.exception.PreconditionMessage;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.util.proto.ProtoMessage;
 import alluxio.wire.WorkerNetAddress;
@@ -248,7 +248,11 @@ public class FileInStream extends InputStream implements BoundedStream, Position
       WorkerNetAddress dataSource = mBlockInStream.getAddress();
       long blockId = mBlockInStream.getId();
       mBlockInStream.close();
+      BlockInStream.BlockInStreamSource blockSource = mBlockInStream.getSource();
       mBlockInStream = null;
+      if (blockSource == BlockInStream.BlockInStreamSource.LOCAL) {
+        return;
+      }
 
       // Send an async cache request to a worker based on read type and passive cache options.
       boolean cache = mOptions.getOptions().getReadType().isCache();

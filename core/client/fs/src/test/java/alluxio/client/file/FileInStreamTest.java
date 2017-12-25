@@ -647,6 +647,8 @@ public final class FileInStreamTest {
    * Validates the partial caching behavior. This function
    * verifies the block at the given index is read for the given sizes.
    */
+  // TODO(binfan): with better netty RPC mocking, verify that async cache request for the target
+  // block is sent to the netty channel
   private void validatePartialCaching(int index, int readSize) {
     assertEquals(readSize, mInStreams.get(index).getBytesRead());
   }
