@@ -14,10 +14,10 @@ package alluxio.master.block;
 import static org.junit.Assert.assertEquals;
 
 import alluxio.AlluxioURI;
+import alluxio.BaseIntegrationTest;
 import alluxio.Constants;
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.PropertyKey;
-import alluxio.BaseIntegrationTest;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
@@ -27,7 +27,6 @@ import alluxio.client.file.options.CreateFileOptions;
 import alluxio.client.file.policy.RoundRobinPolicy;
 
 import org.apache.commons.io.IOUtils;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -49,8 +48,6 @@ public final class MultiWorkerIntegrationTest extends BaseIntegrationTest {
           .build();
 
   @Test
-  @Ignore
-  // TODO(calvin) Fix this
   public void writeLargeFile() throws Exception {
     int fileSize = NUM_WORKERS * WORKER_MEMORY_SIZE_BYTES;
     AlluxioURI file = new AlluxioURI("/test");

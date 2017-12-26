@@ -1090,6 +1090,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("The maximum number of parallel data packets when a client reads from a "
               + "worker.")
           .build();
+  public static final PropertyKey WORKER_NETWORK_NETTY_ASYNC_CACHE_MANAGER_THREADS_MAX =
+      new Builder(Name.WORKER_NETWORK_NETTY_ASYNC_CACHE_MANAGER_THREADS_MAX)
+          .setDefaultValue(512)
+          .setDescription("The maximum number of threads used to cache blocks asynchronously in "
+              + "the netty data server.")
+          .build();
   public static final PropertyKey WORKER_NETWORK_NETTY_BLOCK_READER_THREADS_MAX =
       new Builder(Name.WORKER_NETWORK_NETTY_BLOCK_READER_THREADS_MAX)
           .setDefaultValue(2048)
@@ -2278,6 +2284,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.worker.network.netty.writer.buffer.size.packets";
     public static final String WORKER_NETWORK_NETTY_READER_BUFFER_SIZE_PACKETS =
         "alluxio.worker.network.netty.reader.buffer.size.packets";
+    public static final String WORKER_NETWORK_NETTY_ASYNC_CACHE_MANAGER_THREADS_MAX =
+        "alluxio.worker.network.netty.async.cache.manager.threads.max";
     public static final String WORKER_NETWORK_NETTY_BLOCK_READER_THREADS_MAX =
         "alluxio.worker.network.netty.block.reader.threads.max";
     public static final String WORKER_NETWORK_NETTY_BLOCK_WRITER_THREADS_MAX =

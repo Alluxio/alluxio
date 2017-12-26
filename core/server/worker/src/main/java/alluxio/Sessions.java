@@ -37,9 +37,10 @@ public final class Sessions {
   public static final int MASTER_COMMAND_SESSION_ID = -4;
   public static final int ACCESS_BLOCK_SESSION_ID = -5;
   public static final int KEYVALUE_SESSION_ID = -6;
+  public static final int ASYNC_CACHE_SESSION_ID = -7;
 
   // internal session id base should be smaller than all predefined session ids
-  public static final long INTERNAL_SESSION_ID_BASE = -7;
+  public static final long INTERNAL_SESSION_ID_BASE = -8;
 
   /** Map from SessionId to {@link alluxio.SessionInfo} object. */
   private final Map<Long, SessionInfo> mSessions;
