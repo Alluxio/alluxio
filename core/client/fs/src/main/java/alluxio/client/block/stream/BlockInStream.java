@@ -122,7 +122,7 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
         return createLocalBlockInStream(context, dataSource, blockId, blockSize, options);
       } catch (NotFoundException e) {
         // Failed to do short circuit read because the block is not available in Alluxio.
-        // We will try to read from via netty. So this exception is ignored.
+        // We will try to read via netty. So this exception is ignored.
         LOG.warn("Failed to create short circuit input stream for block {} @ {}. Falling back to "
             + "network transfer", blockId, dataSource);
       }
