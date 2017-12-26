@@ -37,7 +37,7 @@ Alluxio Master有主从两种模式。
 
 ##### Master部署
 Alluxio Master有[简单](#Running-Alluxio-Locally.html)和[高可用性](#Running-Alluxio-Fault-Tolerant.html)
-两种部署模式。这两种模式都只有一个主Master。简单模式最多只会有一个从Master，而且这个从Master不会被转换为主Maste。高可用性模式可以有零个或者多个从Master。
+两种部署模式。这两种模式都只有一个主Master。简单模式最多只会有一个从Master，而且这个从Master不会被转换为主Master。高可用性模式可以有零个或者多个从Master。
 当主Master异常的时候，系统会选一个从Master担任新的主Master。
 
 #### Worker
