@@ -11,6 +11,7 @@
 
 package alluxio;
 
+import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemMasterClient;
 import alluxio.client.file.options.GetStatusOptions;
 import alluxio.heartbeat.HeartbeatContext;
@@ -69,6 +70,24 @@ public final class IntegrationTestUtils {
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
+  }
+
+  /**
+   * Blocks until the specified file is persisted or a timeout occurs.
+   *
+   * @param fileSystem the filesystem client
+   * @param uri the uri to wait to be persisted
+   * @param timeoutMs the number of milliseconds to wait before giving up and throwing an exception
+   */
+  public static void waitForFileCached(final FileSystem fileSystem, final AlluxioURI uri,
+      int timeoutMs) {
+    CommonUtils.waitFor(uri + " to be cached", (input) -> {
+      try {
+        return fileSystem.getStatus(uri).getInAlluxioPercentage() == 100;
+      } catch (Exception e) {
+        throw Throwables.propagate(e);
+      }
+    }, WaitForOptions.defaults().setTimeoutMs(timeoutMs));
   }
 
   /**
