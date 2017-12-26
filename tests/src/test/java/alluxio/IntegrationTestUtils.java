@@ -73,7 +73,7 @@ public final class IntegrationTestUtils {
   }
 
   /**
-   * Blocks until the specified file is persisted or a timeout occurs.
+   * Blocks until the specified file is full cached in Alluxio or a timeout occurs.
    *
    * @param fileSystem the filesystem client
    * @param uri the uri to wait to be persisted
