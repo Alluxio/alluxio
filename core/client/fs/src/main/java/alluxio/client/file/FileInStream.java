@@ -151,7 +151,7 @@ public class FileInStream extends InputStream implements BoundedStream, Position
 
   @Override
   public void close() throws IOException {
-    closeBlockInStream();
+    closeBlockInStream(mBlockInStream);
   }
 
   /* Bounded Stream methods */
@@ -177,14 +177,17 @@ public class FileInStream extends InputStream implements BoundedStream, Position
         break;
       }
       long blockId = mStatus.getBlockIds().get(Math.toIntExact(pos / mBlockSize));
-      try (BlockInStream bin = mBlockStore.getInStream(mOptions.getBlockInfo(blockId), mOptions)) {
+      BlockInStream stream = null;
+      try {
+        stream = mBlockStore.getInStream(mOptions.getBlockInfo(blockId), mOptions);
         long offset = pos % mBlockSize;
-        int bytesRead =
-            bin.positionedRead(offset, b, off, (int) Math.min(mBlockSize - offset, len));
+        int bytesRead = stream.positionedRead(offset, b, off, (int) Math.min(mBlockSize - offset, len));
         Preconditions.checkState(bytesRead > 0, "No data is read before EOF");
         pos += bytesRead;
         off += bytesRead;
         len -= bytesRead;
+      } finally {
+        closeBlockInStream(stream);
       }
     }
     return lenCopy - len;
@@ -214,7 +217,7 @@ public class FileInStream extends InputStream implements BoundedStream, Position
     if (delta <= mBlockInStream.remaining() && delta >= -mBlockInStream.getPos()) { // within block
       mBlockInStream.seek(mBlockInStream.getPos() + delta);
     } else { // close the underlying stream as the new position is no longer in bounds
-      closeBlockInStream();
+      closeBlockInStream(mBlockInStream);
     }
     mPosition += delta;
   }
@@ -229,7 +232,7 @@ public class FileInStream extends InputStream implements BoundedStream, Position
     }
 
     if (mBlockInStream != null && mBlockInStream.remaining() == 0) { // current stream is done
-      closeBlockInStream();
+      closeBlockInStream(mBlockInStream);
     }
 
     /* Create a new stream to read from mPosition. */
@@ -242,14 +245,17 @@ public class FileInStream extends InputStream implements BoundedStream, Position
     mBlockInStream.seek(offset);
   }
 
-  private void closeBlockInStream() throws IOException {
-    if (mBlockInStream != null) {
-      // Clean up the current stream.
-      WorkerNetAddress dataSource = mBlockInStream.getAddress();
-      long blockId = mBlockInStream.getId();
-      mBlockInStream.close();
-      BlockInStream.BlockInStreamSource blockSource = mBlockInStream.getSource();
-      mBlockInStream = null;
+  private void closeBlockInStream(BlockInStream stream) throws IOException {
+    if (stream != null) {
+      // Get relevant information from the stream.
+      WorkerNetAddress dataSource = stream.getAddress();
+      long blockId = stream.getId();
+      BlockInStream.BlockInStreamSource blockSource = stream.getSource();
+      stream.close();
+      // TODO(calvin): we should be able to do a close check instead of using null
+      if (stream == mBlockInStream) { // if stream is instance variable, set to null
+        mBlockInStream = null;
+      }
       if (blockSource == BlockInStream.BlockInStreamSource.LOCAL) {
         return;
       }
