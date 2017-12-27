@@ -7,7 +7,7 @@ priority: 4
 ---
 
 Alluxio has a [Go Client](https://github.com/Alluxio/alluxio-go) for interacting with Alluxio through its
-[REST API](Clients-Rest.html). The Go client exposes an API similar to the [native Java API](Clients-Java-Native.html).
+[REST API](Clients-Rest.html). The Go client exposes an API similar to the [Alluxio Java API](Clients-Alluxio-Java.html).
 See the [godoc](http://godoc.org/github.com/Alluxio/alluxio-go) for detailed documentation about all available
 methods. The godoc includes examples of how to download, upload, check existence for, and list status for files in
 Alluxio.
