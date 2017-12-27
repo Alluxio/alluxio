@@ -265,20 +265,20 @@ public class FileInStream extends InputStream implements BoundedStream, Position
       boolean cache = mOptions.getOptions().getReadType().isCache();
       boolean passiveCache = Configuration.getBoolean(PropertyKey.USER_FILE_PASSIVE_CACHE_ENABLED);
       long channelTimeout = Configuration.getMs(PropertyKey.USER_NETWORK_NETTY_TIMEOUT_MS);
-      try {
-        if (cache) {
+      if (cache) {
+        WorkerNetAddress worker;
+        if (passiveCache && mContext.hasLocalWorker()) { // send request to local worker
+          worker = mContext.getLocalWorker();
+        } else { // send request to data source
+          worker = dataSource;
+        }
+        try {
           // Construct the async cache request
           Protocol.AsyncCacheRequest request =
               Protocol.AsyncCacheRequest.newBuilder().setBlockId(blockId)
                   .setOpenUfsBlockOptions(mOptions.getOpenUfsBlockOptions(blockId))
                   .setSourceHost(dataSource.getHost()).setSourcePort(dataSource.getDataPort())
                   .build();
-          WorkerNetAddress worker;
-          if (passiveCache && mContext.hasLocalWorker()) { // send request to local worker
-            worker = mContext.getLocalWorker();
-          } else { // send request to data source
-            worker = dataSource;
-          }
           Channel channel = mContext.acquireNettyChannel(worker);
           try {
             NettyRPCContext rpcContext =
@@ -287,9 +287,10 @@ public class FileInStream extends InputStream implements BoundedStream, Position
           } finally {
             mContext.releaseNettyChannel(worker, channel);
           }
+        } catch (Exception e) {
+          LOG.warn("Failed to complete async cache request for block {} at worker {}: {}", blockId,
+              worker, e.getMessage());
         }
-      } catch (Exception e) {
-        LOG.warn("Failed to complete async cache request: {}", e.getMessage());
       }
     }
   }
