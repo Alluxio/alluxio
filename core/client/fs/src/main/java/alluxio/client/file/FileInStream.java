@@ -181,7 +181,8 @@ public class FileInStream extends InputStream implements BoundedStream, Position
       try {
         stream = mBlockStore.getInStream(mOptions.getBlockInfo(blockId), mOptions);
         long offset = pos % mBlockSize;
-        int bytesRead = stream.positionedRead(offset, b, off, (int) Math.min(mBlockSize - offset, len));
+        int bytesRead =
+            stream.positionedRead(offset, b, off, (int) Math.min(mBlockSize - offset, len));
         Preconditions.checkState(bytesRead > 0, "No data is read before EOF");
         pos += bytesRead;
         off += bytesRead;
