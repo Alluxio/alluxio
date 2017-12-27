@@ -517,6 +517,52 @@ public final class FileInStreamIntegrationTest extends BaseIntegrationTest {
     }
   }
 
+  @Test(timeout = 10000)
+  public void asyncCacheFirstBlockPRead() throws Exception {
+    String filename = mTestPath + "/file_" + MAX_LEN + "_" + mWriteUnderStore.hashCode();
+    AlluxioURI uri = new AlluxioURI(filename);
+
+    for (ReadType readType : ReadType.values()) {
+      mFileSystem.free(uri);
+      CommonUtils.waitFor("No in-Alluxio data left from previous iteration.", (input) -> {
+        try {
+          URIStatus st = mFileSystem.getStatus(uri);
+          return st.getInAlluxioPercentage() == 0;
+        } catch (Exception e) {
+          return false;
+        }
+      });
+      FileInStream is = mFileSystem.openFile(uri, OpenFileOptions.defaults().setReadType(readType));
+      is.positionedRead(BLOCK_SIZE / 2, new byte[1], 0, 1);
+      URIStatus status = mFileSystem.getStatus(uri);
+      Assert.assertEquals(0, status.getInAlluxioPercentage());
+      is.close();
+      if (readType.isCache()) {
+        CommonUtils.waitFor("First block to be cached.", (input) -> {
+          try {
+            URIStatus st = mFileSystem.getStatus(uri);
+            boolean achieved = true;
+            // Expect only first block to be cached, other blocks should be empty in Alluxio
+            for (int i = 0; i < st.getFileBlockInfos().size(); i++) {
+              FileBlockInfo info = st.getFileBlockInfos().get(i);
+              if (i == 0) {
+                achieved = achieved && !info.getBlockInfo().getLocations().isEmpty();
+              } else {
+                achieved = achieved && info.getBlockInfo().getLocations().isEmpty();
+              }
+            }
+            return achieved;
+          } catch (Exception e) {
+            return false;
+          }
+        });
+      } else {
+        Thread.sleep(1000);
+        Assert.assertEquals(0, status.getInAlluxioPercentage());
+      }
+    }
+  }
+
   @Test
   public void syncCacheFirstBlock() throws Exception {
     String filename = mTestPath + "/file_" + MAX_LEN + "_" + mWriteUnderStore.hashCode();
