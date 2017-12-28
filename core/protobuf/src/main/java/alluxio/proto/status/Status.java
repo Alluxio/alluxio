@@ -125,6 +125,7 @@ public final class Status {
      * system is not in a state required for the operation's execution.
      * For example, directory to be deleted may be non-empty, an rmdir
      * operation is applied to a non-directory, etc.
+     *
      * A litmus test that may help a service implementor in deciding
      * between FailedPrecondition, Aborted, and Unavailable:
      *  (a) Use Unavailable if the client can retry just the failing call.
@@ -149,6 +150,7 @@ public final class Status {
      * Aborted indicates the operation was aborted, typically due to a
      * concurrency issue like sequencer check failures, transaction aborts,
      * etc.
+     *
      * See litmus test above for deciding between FailedPrecondition,
      * Aborted, and Unavailable.
      * </pre>
@@ -160,12 +162,14 @@ public final class Status {
      * <pre>
      * OutOfRange means operation was attempted past the valid range.
      * E.g., seeking or reading past end of file.
+     *
      * Unlike InvalidArgument, this error indicates a problem that may
      * be fixed if the system state changes. For example, a 32-bit file
      * system will generate InvalidArgument if asked to read at an
      * offset that is not in the range [0,2^32-1], but it will generate
      * OutOfRange if asked to read from an offset past the current
      * file size.
+     *
      * There is a fair bit of overlap between FailedPrecondition and
      * OutOfRange.  We recommend using OutOfRange (the more specific
      * error) when it applies so that callers who are iterating through
@@ -200,6 +204,7 @@ public final class Status {
      * Unavailable indicates the service is currently unavailable.
      * This is a most likely a transient condition and may be corrected
      * by retrying with a backoff.
+     *
      * See litmus test above for deciding between FailedPrecondition,
      * Aborted, and Unavailable.
      * </pre>
@@ -323,6 +328,7 @@ public final class Status {
      * system is not in a state required for the operation's execution.
      * For example, directory to be deleted may be non-empty, an rmdir
      * operation is applied to a non-directory, etc.
+     *
      * A litmus test that may help a service implementor in deciding
      * between FailedPrecondition, Aborted, and Unavailable:
      *  (a) Use Unavailable if the client can retry just the failing call.
@@ -347,6 +353,7 @@ public final class Status {
      * Aborted indicates the operation was aborted, typically due to a
      * concurrency issue like sequencer check failures, transaction aborts,
      * etc.
+     *
      * See litmus test above for deciding between FailedPrecondition,
      * Aborted, and Unavailable.
      * </pre>
@@ -358,12 +365,14 @@ public final class Status {
      * <pre>
      * OutOfRange means operation was attempted past the valid range.
      * E.g., seeking or reading past end of file.
+     *
      * Unlike InvalidArgument, this error indicates a problem that may
      * be fixed if the system state changes. For example, a 32-bit file
      * system will generate InvalidArgument if asked to read at an
      * offset that is not in the range [0,2^32-1], but it will generate
      * OutOfRange if asked to read from an offset past the current
      * file size.
+     *
      * There is a fair bit of overlap between FailedPrecondition and
      * OutOfRange.  We recommend using OutOfRange (the more specific
      * error) when it applies so that callers who are iterating through
@@ -398,6 +407,7 @@ public final class Status {
      * Unavailable indicates the service is currently unavailable.
      * This is a most likely a transient condition and may be corrected
      * by retrying with a backoff.
+     *
      * See litmus test above for deciding between FailedPrecondition,
      * Aborted, and Unavailable.
      * </pre>
@@ -506,13 +516,13 @@ public final class Status {
       "S\020\017"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
-        new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
-          public com.google.protobuf.ExtensionRegistry assignDescriptors(
-              com.google.protobuf.Descriptors.FileDescriptor root) {
-            descriptor = root;
-            return null;
-          }
-        };
+      new com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner() {
+        public com.google.protobuf.ExtensionRegistry assignDescriptors(
+            com.google.protobuf.Descriptors.FileDescriptor root) {
+          descriptor = root;
+          return null;
+        }
+      };
     com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
         new com.google.protobuf.Descriptors.FileDescriptor[] {
