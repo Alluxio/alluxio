@@ -23,11 +23,11 @@ import io.netty.buffer.ByteBuf;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
+import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 
 /**
- * Reads a block from a remote worker node. This should only be used for reading entire blocks
- * and thus only supports the {@link #transferTo(ByteBuf)} API.
+ * Reads a block from a remote worker node. This should only be used for reading entire blocks.
  */
 public class RemoteBlockReader implements BlockReader {
   private final long mBlockId;
@@ -35,6 +35,7 @@ public class RemoteBlockReader implements BlockReader {
   private final Protocol.OpenUfsBlockOptions mUfsOptions;
 
   private BlockInStream mInputStream;
+  private ReadableByteChannel mChannel;
   private boolean mClosed;
 
   /**
@@ -64,13 +65,15 @@ public class RemoteBlockReader implements BlockReader {
 
   @Override
   public ReadableByteChannel getChannel() {
-    throw new UnsupportedOperationException("RemoteBlockReader#getChannel is not supported");
+    Preconditions.checkState(!mClosed);
+    init();
+    return mChannel;
   }
 
   @Override
   public int transferTo(ByteBuf buf) throws IOException {
     Preconditions.checkState(!mClosed);
-    initStream();
+    init();
     if (mInputStream == null || mInputStream.remaining() <= 0) {
       return -1;
     }
@@ -90,11 +93,12 @@ public class RemoteBlockReader implements BlockReader {
     }
     if (mInputStream != null) {
       mInputStream.close();
+      mChannel.close();
     }
     mClosed = true;
   }
 
-  private void initStream() {
+  private void init() {
     if (mInputStream != null) {
       return;
     }
@@ -102,5 +106,6 @@ public class RemoteBlockReader implements BlockReader {
         .setDataPort(mDataSource.getPort());
     mInputStream = BlockInStream.createRemoteBlockInStream(FileSystemContext.INSTANCE, mBlockId,
         address, BlockInStream.BlockInStreamSource.REMOTE, mUfsOptions);
+    mChannel = Channels.newChannel(mInputStream);
   }
 }
