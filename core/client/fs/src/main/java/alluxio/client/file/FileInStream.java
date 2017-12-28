@@ -34,6 +34,8 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.HashSet;
+import java.util.Set;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -68,6 +70,8 @@ public class FileInStream extends InputStream implements BoundedStream, Position
   private final AlluxioBlockStore mBlockStore;
   private final FileSystemContext mContext;
 
+  private final Set<Long> mCachedBlockIds;
+
   /* Convenience values derived from mStatus, use these instead of querying mStatus. */
   /** Length of the file in bytes. */
   private final long mLength;
@@ -85,6 +89,7 @@ public class FileInStream extends InputStream implements BoundedStream, Position
     mOptions = options;
     mBlockStore = AlluxioBlockStore.create(context);
     mContext = context;
+    mCachedBlockIds = new HashSet<>();
 
     mLength = mStatus.getLength();
     mBlockSize = mStatus.getBlockSizeBytes();
@@ -170,28 +175,15 @@ public class FileInStream extends InputStream implements BoundedStream, Position
     if (pos < 0 || pos >= mLength) {
       return -1;
     }
-
-    int lenCopy = len;
-    while (len > 0) {
-      if (pos >= mLength) {
-        break;
-      }
-      long blockId = mStatus.getBlockIds().get(Math.toIntExact(pos / mBlockSize));
-      BlockInStream stream = null;
+    synchronized (this) {
+      long oldPos = mPosition;
       try {
-        stream = mBlockStore.getInStream(mOptions.getBlockInfo(blockId), mOptions);
-        long offset = pos % mBlockSize;
-        int bytesRead =
-            stream.positionedRead(offset, b, off, (int) Math.min(mBlockSize - offset, len));
-        Preconditions.checkState(bytesRead > 0, "No data is read before EOF");
-        pos += bytesRead;
-        off += bytesRead;
-        len -= bytesRead;
+        seek(pos);
+        return read(b, off, len);
       } finally {
-        closeBlockInStream(stream);
+        seek(oldPos);
       }
     }
-    return lenCopy - len;
   }
 
   /* Seekable methods */
@@ -260,6 +252,11 @@ public class FileInStream extends InputStream implements BoundedStream, Position
       if (blockSource == BlockInStream.BlockInStreamSource.LOCAL) {
         return;
       }
+
+      if (mCachedBlockIds.contains(blockId)) {
+        return;
+      }
+      mCachedBlockIds.add(blockId);
 
       // Send an async cache request to a worker based on read type and passive cache options.
       boolean cache = mOptions.getOptions().getReadType().isCache();
