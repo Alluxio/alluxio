@@ -13,13 +13,13 @@ package alluxio.security.group;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.mockito.Mockito.eq;
 
 import alluxio.security.group.provider.ShellBasedUnixGroupsMapping;
 import alluxio.util.CommonUtils;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
@@ -37,7 +37,7 @@ public final class ShellBasedUnixGroupsMappingTest {
 
   private void setupShellMocks(String username, List<String> groups) throws IOException {
     PowerMockito.mockStatic(CommonUtils.class);
-    PowerMockito.when(CommonUtils.getUnixGroups(Mockito.eq(username))).thenReturn(groups);
+    PowerMockito.when(CommonUtils.getUnixGroups(eq(username))).thenReturn(groups);
   }
 
   /**
