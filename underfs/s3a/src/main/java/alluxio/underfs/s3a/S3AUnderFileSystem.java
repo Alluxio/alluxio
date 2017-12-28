@@ -312,13 +312,13 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
     }
     Preconditions.checkArgument(keys != null && keys.size() <= getListingChunkLengthMax());
     try {
-      List<String> deletedObjects = new ArrayList<>();
       List<DeleteObjectsRequest.KeyVersion> keysToDelete = new ArrayList<>();
       for (String key : keys) {
         keysToDelete.add(new DeleteObjectsRequest.KeyVersion(key));
       }
       DeleteObjectsResult deletedObjectsResult =
           mClient.deleteObjects(new DeleteObjectsRequest(mBucketName).withKeys(keysToDelete));
+      List<String> deletedObjects = new ArrayList<>();
       for (DeleteObjectsResult.DeletedObject deletedObject : deletedObjectsResult
           .getDeletedObjects()) {
         deletedObjects.add(deletedObject.getKey());
