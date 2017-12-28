@@ -307,26 +307,21 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
 
   @Override
   protected List<String> deleteObjects(List<String> keys) throws IOException {
+    if (!Configuration.getBoolean(PropertyKey.UNDERFS_S3A_BULK_DELETE_ENABLED)) {
+      return super.deleteObjects(keys);
+    }
     Preconditions.checkArgument(keys != null && keys.size() <= getListingChunkLengthMax());
     try {
       List<String> deletedObjects = new ArrayList<>();
-      if (Configuration.getBoolean(PropertyKey.UNDERFS_S3A_BULK_DELETE_ENABLED)) {
-        List<DeleteObjectsRequest.KeyVersion> keysToDelete = new ArrayList<>();
-        for (String key : keys) {
-          keysToDelete.add(new DeleteObjectsRequest.KeyVersion(key));
-        }
-        DeleteObjectsResult deletedObjectsResult =
-            mClient.deleteObjects(new DeleteObjectsRequest(mBucketName).withKeys(keysToDelete));
-        for (DeleteObjectsResult.DeletedObject deletedObject : deletedObjectsResult
-            .getDeletedObjects()) {
-          deletedObjects.add(deletedObject.getKey());
-        }
-      } else {
-        for (String key : keys) {
-          if (deleteObject(key)) {
-            deletedObjects.add(key);
-          }
-        }
+      List<DeleteObjectsRequest.KeyVersion> keysToDelete = new ArrayList<>();
+      for (String key : keys) {
+        keysToDelete.add(new DeleteObjectsRequest.KeyVersion(key));
+      }
+      DeleteObjectsResult deletedObjectsResult =
+          mClient.deleteObjects(new DeleteObjectsRequest(mBucketName).withKeys(keysToDelete));
+      for (DeleteObjectsResult.DeletedObject deletedObject : deletedObjectsResult
+          .getDeletedObjects()) {
+        deletedObjects.add(deletedObject.getKey());
       }
       return deletedObjects;
     } catch (AmazonClientException e) {
