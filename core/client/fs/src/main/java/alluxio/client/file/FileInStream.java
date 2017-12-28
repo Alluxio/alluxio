@@ -34,6 +34,8 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.HashSet;
+import java.util.Set;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -68,6 +70,8 @@ public class FileInStream extends InputStream implements BoundedStream, Position
   private final AlluxioBlockStore mBlockStore;
   private final FileSystemContext mContext;
 
+  private final Set<Long> mCachedBlockIds;
+
   /* Convenience values derived from mStatus, use these instead of querying mStatus. */
   /** Length of the file in bytes. */
   private final long mLength;
@@ -85,6 +89,7 @@ public class FileInStream extends InputStream implements BoundedStream, Position
     mOptions = options;
     mBlockStore = AlluxioBlockStore.create(context);
     mContext = context;
+    mCachedBlockIds = new HashSet<>();
 
     mLength = mStatus.getLength();
     mBlockSize = mStatus.getBlockSizeBytes();
@@ -260,6 +265,11 @@ public class FileInStream extends InputStream implements BoundedStream, Position
       if (blockSource == BlockInStream.BlockInStreamSource.LOCAL) {
         return;
       }
+
+      if (mCachedBlockIds.contains(blockId)) {
+        return;
+      }
+      mCachedBlockIds.add(blockId);
 
       // Send an async cache request to a worker based on read type and passive cache options.
       boolean cache = mOptions.getOptions().getReadType().isCache();
