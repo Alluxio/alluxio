@@ -316,6 +316,16 @@ public final class BufferUtils {
   }
 
   /**
+   * Gets the unsigned byte value of an integer. Useful for comparing to the result of reading
+   * from an input stream.
+   * @param i the integer to convert
+   * @return the integer value after casting as an unsigned byte
+   */
+  public static int intAsUnsignedByteValue(int i) {
+    return ((byte) i) & 0xFF;
+  }
+
+  /**
    * Creates a byte array from the given ByteBuffer, the position property of input
    * {@link ByteBuffer} remains unchanged.
    *

@@ -14,7 +14,6 @@ package alluxio.client.block.stream;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.client.file.FileSystemContext;
-import alluxio.client.file.options.InStreamOptions;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.CanceledException;
 import alluxio.exception.status.DeadlineExceededException;
@@ -117,10 +116,9 @@ public final class NettyPacketReader implements PacketReader {
    * @param context the file system context
    * @param address the netty data server address
    * @param readRequest the read request
-   * @param options the in stream options
    */
   private NettyPacketReader(FileSystemContext context, WorkerNetAddress address,
-      Protocol.ReadRequest readRequest, InStreamOptions options) throws IOException {
+      Protocol.ReadRequest readRequest) throws IOException {
     mContext = context;
     mAddress = address;
     mPosToRead = readRequest.getOffset();
@@ -327,7 +325,6 @@ public final class NettyPacketReader implements PacketReader {
     private final FileSystemContext mContext;
     private final WorkerNetAddress mAddress;
     private final Protocol.ReadRequest mReadRequestPartial;
-    private final InStreamOptions mOptions;
 
     /**
      * Creates an instance of {@link NettyPacketReader.Factory} for block reads.
@@ -335,20 +332,18 @@ public final class NettyPacketReader implements PacketReader {
      * @param context the file system context
      * @param address the worker address
      * @param readRequestPartial the partial read request
-     * @param options the in stream options
      */
     public Factory(FileSystemContext context, WorkerNetAddress address,
-        Protocol.ReadRequest readRequestPartial, InStreamOptions options) {
+        Protocol.ReadRequest readRequestPartial) {
       mContext = context;
       mAddress = address;
       mReadRequestPartial = readRequestPartial;
-      mOptions = options;
     }
 
     @Override
     public PacketReader create(long offset, long len) throws IOException {
       return new NettyPacketReader(mContext, mAddress,
-          mReadRequestPartial.toBuilder().setOffset(offset).setLength(len).build(), mOptions);
+          mReadRequestPartial.toBuilder().setOffset(offset).setLength(len).build());
     }
 
     @Override

@@ -9,8 +9,9 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.client.netty;
+package alluxio.network.netty;
 
+import alluxio.network.netty.NettyRPCContext;
 import alluxio.network.protocol.RPCProtoMessage;
 import alluxio.util.CommonUtils;
 import alluxio.util.proto.ProtoMessage;
