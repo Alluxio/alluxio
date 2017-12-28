@@ -175,28 +175,15 @@ public class FileInStream extends InputStream implements BoundedStream, Position
     if (pos < 0 || pos >= mLength) {
       return -1;
     }
-
-    int lenCopy = len;
-    while (len > 0) {
-      if (pos >= mLength) {
-        break;
-      }
-      long blockId = mStatus.getBlockIds().get(Math.toIntExact(pos / mBlockSize));
-      BlockInStream stream = null;
+    synchronized (this) {
+      long oldPos = mPosition;
       try {
-        stream = mBlockStore.getInStream(mOptions.getBlockInfo(blockId), mOptions);
-        long offset = pos % mBlockSize;
-        int bytesRead =
-            stream.positionedRead(offset, b, off, (int) Math.min(mBlockSize - offset, len));
-        Preconditions.checkState(bytesRead > 0, "No data is read before EOF");
-        pos += bytesRead;
-        off += bytesRead;
-        len -= bytesRead;
+        seek(pos);
+        return read(b, off, len);
       } finally {
-        closeBlockInStream(stream);
+        seek(oldPos);
       }
     }
-    return lenCopy - len;
   }
 
   /* Seekable methods */
