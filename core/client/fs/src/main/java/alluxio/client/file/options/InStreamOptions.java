@@ -82,12 +82,18 @@ public final class InStreamOptions {
    */
   public Protocol.OpenUfsBlockOptions getOpenUfsBlockOptions(long blockId) {
     Preconditions.checkArgument(mStatus.getBlockIds().contains(blockId), "blockId");
+    boolean readFromUfs = mStatus.isPersisted();
+    if (!readFromUfs) {
+      return Protocol.OpenUfsBlockOptions.getDefaultInstance();
+    }
     long blockStart = BlockId.getSequenceNumber(blockId) * mStatus.getBlockSizeBytes();
     BlockInfo info = getBlockInfo(blockId);
-    return Protocol.OpenUfsBlockOptions.newBuilder().setUfsPath(mStatus.getUfsPath())
-        .setOffsetInFile(blockStart).setBlockSize(info.getLength())
-        .setMaxUfsReadConcurrency(mOptions.getMaxUfsReadConcurrency())
-        .setNoCache(!mOptions.getReadType().isCache()).setMountId(mStatus.getMountId()).build();
+    Protocol.OpenUfsBlockOptions openUfsBlockOptions =
+        Protocol.OpenUfsBlockOptions.newBuilder().setUfsPath(mStatus.getUfsPath())
+            .setOffsetInFile(blockStart).setBlockSize(info.getLength())
+            .setMaxUfsReadConcurrency(mOptions.getMaxUfsReadConcurrency())
+            .setNoCache(!mOptions.getReadType().isCache()).setMountId(mStatus.getMountId()).build();
+    return openUfsBlockOptions;
   }
 
   @Override
@@ -99,17 +105,23 @@ public final class InStreamOptions {
       return false;
     }
     InStreamOptions that = (InStreamOptions) o;
-    return Objects.equal(mStatus, that.mStatus) && Objects.equal(mOptions, that.mOptions);
+    return Objects.equal(mStatus, that.mStatus)
+        && Objects.equal(mOptions, that.mOptions);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mStatus, mOptions);
+    return Objects.hashCode(
+        mStatus,
+        mOptions
+    );
   }
 
   @Override
   public String toString() {
-    return Objects.toStringHelper(this).add("URIStatus", mStatus).add("OpenFileOptions", mOptions)
+    return Objects.toStringHelper(this)
+        .add("URIStatus", mStatus)
+        .add("OpenFileOptions", mOptions)
         .toString();
   }
 }
