@@ -250,14 +250,13 @@ public final class AlluxioBlockStoreTest {
     when(NettyRPC.call(Mockito.any(NettyRPCContext.class), Mockito.any(ProtoMessage.class)))
         .thenReturn(message);
 
-    BlockInfo info =
-        new BlockInfo().setLocations(Arrays.asList(new BlockLocation().setWorkerAddress(remote),
+    BlockInfo info = new BlockInfo().setBlockId(BLOCK_ID).setLocations(Arrays
+        .asList(new BlockLocation().setWorkerAddress(remote),
             new BlockLocation().setWorkerAddress(local)));
 
     when(mMasterClient.getBlockInfo(BLOCK_ID)).thenReturn(info);
-    assertEquals(local,
-        mBlockStore.getInStream(info, new InStreamOptions(new URIStatus(new FileInfo())))
-            .getAddress());
+    assertEquals(local, mBlockStore.getInStream(info, new InStreamOptions(
+        new URIStatus(new FileInfo().setBlockIds(Lists.newArrayList(BLOCK_ID))))).getAddress());
   }
 
   @Test
@@ -265,15 +264,16 @@ public final class AlluxioBlockStoreTest {
     WorkerNetAddress remote1 = new WorkerNetAddress().setHost("remote1");
     WorkerNetAddress remote2 = new WorkerNetAddress().setHost("remote2");
 
-    BlockInfo info =
-        new BlockInfo().setLocations(Arrays.asList(new BlockLocation().setWorkerAddress(remote1),
+    BlockInfo info = new BlockInfo().setBlockId(BLOCK_ID).setLocations(Arrays
+        .asList(new BlockLocation().setWorkerAddress(remote1),
             new BlockLocation().setWorkerAddress(remote2)));
 
     when(mMasterClient.getBlockInfo(BLOCK_ID)).thenReturn(info);
     // We should sometimes get remote1 and sometimes get remote2.
     Set<WorkerNetAddress> results = new HashSet<>();
     for (int i = 0; i < 40; i++) {
-      results.add(mBlockStore.getInStream(info, new InStreamOptions(new URIStatus(new FileInfo())))
+      results.add(mBlockStore.getInStream(info, new InStreamOptions(
+          new URIStatus(new FileInfo().setBlockIds(Lists.newArrayList(BLOCK_ID)))))
           .getAddress());
     }
     assertEquals(Sets.newHashSet(remote1, remote2), results);
