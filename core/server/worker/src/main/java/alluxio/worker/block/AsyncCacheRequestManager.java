@@ -14,12 +14,11 @@ package alluxio.worker.block;
 import alluxio.Sessions;
 import alluxio.StorageTierAssoc;
 import alluxio.WorkerStorageTierAssoc;
-import alluxio.client.file.FileSystemContext;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.BlockAlreadyExistsException;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.util.io.BufferUtils;
-import alluxio.wire.WorkerNetAddress;
+import alluxio.util.network.NetworkAddressUtils;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.BlockWriter;
 
@@ -47,7 +46,7 @@ public class AsyncCacheRequestManager {
   /** The block worker. */
   private final BlockWorker mBlockWorker;
   private final ConcurrentHashMap<Long, Protocol.AsyncCacheRequest> mPendingRequests;
-  private final WorkerNetAddress mLocalWorkerAddress;
+  private final String mLocalWorkerHostname;
 
   /**
    * @param service thread pool to run the background caching work
@@ -57,11 +56,7 @@ public class AsyncCacheRequestManager {
     mAsyncCacheExecutor = service;
     mBlockWorker = blockWorker;
     mPendingRequests = new ConcurrentHashMap<>();
-    try {
-      mLocalWorkerAddress = FileSystemContext.INSTANCE.getLocalWorker();
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
+    mLocalWorkerHostname = NetworkAddressUtils.getLocalHostName();
   }
 
   /**
@@ -79,9 +74,7 @@ public class AsyncCacheRequestManager {
     mAsyncCacheExecutor.submit(() -> {
       Protocol.OpenUfsBlockOptions openUfsBlockOptions = request.getOpenUfsBlockOptions();
       long blockSize = openUfsBlockOptions.getBlockSize();
-      // Note that, mLocalWorkerAddress is the first local worker (if multiple).
-      // Thus we only compare the host name to decide if we read from "a local worker"
-      boolean isSourceLocal = mLocalWorkerAddress.getHost().equals(request.getSourceHost());
+      boolean isSourceLocal = mLocalWorkerHostname.equals(request.getSourceHost());
       // Depends on the request, cache the target block from different sources
       boolean result;
       if (isSourceLocal) {
