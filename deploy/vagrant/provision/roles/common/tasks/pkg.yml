@@ -3,21 +3,25 @@
 
 - name: install libselinux-python
   yum: name=libselinux-python
-  sudo: yes
+  become: yes
+  become_method: sudo
 
 - name: install git
   yum: name=git
-  sudo: yes
+  become: yes
+  become_method: sudo
 
 - name: install rsync
   yum: name=rsync
-  sudo: yes
+  become: yes
+  become_method: sudo
 
 - name: install wget
   yum: name=wget
-  sudo: yes
+  become: yes
+  become_method: sudo
 
 - name: install java
-  script: java.sh
+  script: roles/common/files/java.sh
 
 # vim: set filetype=ansible.yaml:

@@ -3,13 +3,14 @@
 ---
 
 - name: configure ssh
-  script: ssh.sh
+  script: roles/common/files/ssh.sh
 
 - name: configure hosts
-  script: host.sh
+  script: roles/common/files/host.sh
 
 - name: set hostname
   hostname: name={{ inventory_hostname }}
-  sudo: yes
+  become: yes
+  become_method: sudo
 
 # vim :set filetype=ansible.yaml:
