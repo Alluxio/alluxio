@@ -83,25 +83,23 @@ public final class LocalFilePacketReader implements PacketReader {
       return;
     }
     mClosed = true;
+    mReader.decreaseUsageCount();
   }
 
   /**
    * Factory class to create {@link LocalFilePacketReader}s.
    */
+  @NotThreadSafe
   public static class Factory implements PacketReader.Factory {
     private static final long READ_TIMEOUT_MS =
         Configuration.getMs(PropertyKey.USER_NETWORK_NETTY_TIMEOUT_MS);
-
-    /**
-     * use {@link ThreadLocal} variable to maintain a block reader along with a specific thread.
-     **/
-    private final ThreadLocal<LocalFileBlockReader> mReaderThreadLocal = new ThreadLocal<>();
     private final FileSystemContext mContext;
     private final WorkerNetAddress mAddress;
     private final Channel mChannel;
     private final long mBlockId;
     private final String mPath;
     private final long mPacketSize;
+    private LocalFileBlockReader mReader;
     private boolean mClosed;
 
     /**
@@ -138,10 +136,11 @@ public final class LocalFilePacketReader implements PacketReader {
 
     @Override
     public PacketReader create(long offset, long len) throws IOException {
-      if (mReaderThreadLocal.get() == null) {
-        mReaderThreadLocal.set(new LocalFileBlockReader(mPath));
+      if (mReader == null) {
+        mReader = new LocalFileBlockReader(mPath);
       }
-      return new LocalFilePacketReader(mReaderThreadLocal.get(), offset, len, mPacketSize);
+      mReader.increaseUsageCount();
+      return new LocalFilePacketReader(mReader, offset, len, mPacketSize);
     }
 
     @Override
@@ -151,13 +150,12 @@ public final class LocalFilePacketReader implements PacketReader {
 
     @Override
     public void close() throws IOException {
-      if (mReaderThreadLocal.get() != null) {
-        LocalFileBlockReader reader = mReaderThreadLocal.get();
-        mReaderThreadLocal.remove();
-        reader.close();
-      }
       if (mClosed) {
         return;
+      }
+      if (mReader != null) {
+        Preconditions.checkState(!mReader.isClosed() && mReader.getUsageCount() == 0);
+        mReader.close();
       }
       Protocol.LocalBlockCloseRequest request =
           Protocol.LocalBlockCloseRequest.newBuilder().setBlockId(mBlockId).build();
