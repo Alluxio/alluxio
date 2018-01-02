@@ -4,7 +4,8 @@
 
 - name: install rsync
   yum: name=rsync
-  sudo: yes
+  become: yes
+  become_method: sudo
 
 - name: mkdir /mesos
   script: mkdir.sh

@@ -1,6 +1,7 @@
 - name: install git
   yum: name=git
-  sudo: yes
+  become: yes
+  become_method: sudo
 
 - name: mkdir /spark
   script: mkdir.sh

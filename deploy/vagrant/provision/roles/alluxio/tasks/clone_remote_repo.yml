@@ -4,7 +4,8 @@
 
 - name: install git
   yum: name=git
-  sudo: yes
+  become: yes
+  become_method: sudo
 
 - name: mkdir /alluxio
   script: mkdir.sh
