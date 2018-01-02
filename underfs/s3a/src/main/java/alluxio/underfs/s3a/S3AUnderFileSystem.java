@@ -307,6 +307,9 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
 
   @Override
   protected List<String> deleteObjects(List<String> keys) throws IOException {
+    if (!Configuration.getBoolean(PropertyKey.UNDERFS_S3A_BULK_DELETE_ENABLED)) {
+      return super.deleteObjects(keys);
+    }
     Preconditions.checkArgument(keys != null && keys.size() <= getListingChunkLengthMax());
     try {
       List<DeleteObjectsRequest.KeyVersion> keysToDelete = new ArrayList<>();
@@ -408,7 +411,8 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
       ObjectStatus[] ret = new ObjectStatus[objects.size()];
       int i = 0;
       for (S3ObjectSummary obj : objects) {
-        ret[i++] = new ObjectStatus(obj.getKey(), obj.getSize(), obj.getLastModified().getTime());
+        ret[i++] = new ObjectStatus(obj.getKey(), obj.getETag(), obj.getSize(),
+            obj.getLastModified().getTime());
       }
       return ret;
     }
@@ -451,7 +455,8 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
       ObjectStatus[] ret = new ObjectStatus[objects.size()];
       int i = 0;
       for (S3ObjectSummary obj : objects) {
-        ret[i++] = new ObjectStatus(obj.getKey(), obj.getSize(), obj.getLastModified().getTime());
+        ret[i++] = new ObjectStatus(obj.getKey(), obj.getETag(), obj.getSize(),
+            obj.getLastModified().getTime());
       }
       return ret;
     }
@@ -480,7 +485,8 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
   protected ObjectStatus getObjectStatus(String key) throws IOException {
     try {
       ObjectMetadata meta = mClient.getObjectMetadata(mBucketName, key);
-      return new ObjectStatus(key, meta.getContentLength(), meta.getLastModified().getTime());
+      return new ObjectStatus(key, meta.getETag(), meta.getContentLength(),
+          meta.getLastModified().getTime());
     } catch (AmazonServiceException e) {
       if (e.getStatusCode() == 404) { // file not found, possible for exists calls
         return null;

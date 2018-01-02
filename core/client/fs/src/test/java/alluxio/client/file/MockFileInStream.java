@@ -30,7 +30,8 @@ public final class MockFileInStream extends FileInStream {
    * @param bytes the bytes to supply
    */
   public MockFileInStream(FileSystemContext context, byte[] bytes) {
-    super(new URIStatus(new FileInfo()), InStreamOptions.defaults(), context);
+    super(new URIStatus(new FileInfo()), new InStreamOptions(new URIStatus(new FileInfo())),
+        context);
     mStream = new ByteArrayInputStream(bytes);
   }
 

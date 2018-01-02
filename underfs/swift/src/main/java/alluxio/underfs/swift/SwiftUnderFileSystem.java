@@ -313,7 +313,8 @@ public class SwiftUnderFileSystem extends ObjectUnderFileSystem {
       ObjectStatus[] res = new ObjectStatus[objects.size()];
       for (DirectoryOrObject object : objects) {
         if (object.isObject()) {
-          res[i++] = new ObjectStatus(object.getName(), object.getAsObject().getContentLength(),
+          res[i++] = new ObjectStatus(object.getName(), object.getAsObject().getEtag(),
+              object.getAsObject().getContentLength(),
               object.getAsObject().getLastModifiedAsDate().getTime());
         } else {
           res[i++] = new ObjectStatus(object.getName());
@@ -344,7 +345,8 @@ public class SwiftUnderFileSystem extends ObjectUnderFileSystem {
     Container container = mAccount.getContainer(mContainerName);
     StoredObject meta = container.getObject(key);
     if (meta != null && meta.exists()) {
-      return new ObjectStatus(key, meta.getContentLength(), meta.getLastModifiedAsDate().getTime());
+      return new ObjectStatus(key, meta.getEtag(), meta.getContentLength(),
+          meta.getLastModifiedAsDate().getTime());
     }
     return null;
   }

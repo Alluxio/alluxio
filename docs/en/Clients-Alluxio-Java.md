@@ -1,7 +1,7 @@
 ---
 layout: global
-title: Native Java Client
-nickname: Native Java
+title: Alluxio Java Client
+nickname: Alluxio Java Client
 group: Clients
 priority: 1
 ---
@@ -11,12 +11,12 @@ priority: 1
 
 Alluxio provides access to data through a filesystem interface. Files in Alluxio offer write-once
 semantics: they become immutable after they have been written in their entirety and cannot be read
-before being completed. Alluxio provides two different Filesystem APIs, a native API and a Hadoop
-compatible API. The native API provides additional functionality, while the Hadoop compatible API
+before being completed. Alluxio provides two different Filesystem APIs, the Alluxio API and a Hadoop
+compatible API. The Alluxio API provides additional functionality, while the Hadoop compatible API
 gives users the flexibility of leveraging Alluxio without having to modify existing code written
 using Hadoop's API.
 
-All resources with the native Java API are specified through a `AlluxioURI` which represents the
+All resources with the Alluxio Java API are specified through a `AlluxioURI` which represents the
 path to the resource.
 
 ### Getting a Filesystem Client
@@ -46,7 +46,7 @@ users to specify non-default settings for the operation. For example:
 Alluxio uses two different storage types: Alluxio managed storage and under storage. Alluxio managed
 storage is the memory, SSD, and/or HDD allocated to Alluxio workers. Under storage is the storage
 resource managed by the underlying storage system, such as S3, Swift or HDFS. Users can specify the
-interaction with the Alluxio's native storage and under storage through `ReadType` and `WriteType`.
+interaction with Alluxio managed storage and under storage through `ReadType` and `WriteType`.
 `ReadType` specifies the data read behavior when reading a file. `WriteType` specifies the data
 write behavior when writing a new file, ie. whether the data should be written in Alluxio Storage.
 
