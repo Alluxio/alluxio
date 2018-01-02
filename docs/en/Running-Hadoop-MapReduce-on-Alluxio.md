@@ -67,6 +67,7 @@ Another way to distribute the client jar is to manually distribute it to all the
 Below are instructions for the two main alternatives:
 
 1.**Using the -libjars command line option.**
+
 You can use the `-libjars` command line option when using `hadoop jar ...`,
 specifying `{{site.ALLUXIO_CLIENT_JAR_PATH}}`
 as the argument of `-libjars`. Hadoop will place the jar in the Hadoop DistributedCache, making it
@@ -78,6 +79,7 @@ $ bin/hadoop jar libexec/share/hadoop/mapreduce/hadoop-mapreduce-examples-2.7.3.
 ```
 
 2.**Distributing the client jars to all nodes manually.**
+
 To install Alluxio on each node, place the client jar
 `{{site.ALLUXIO_CLIENT_JAR_PATH}}` in the `$HADOOP_HOME/lib`
 (may be `$HADOOP_HOME/share/hadoop/common/lib` for different versions of Hadoop) directory of every
