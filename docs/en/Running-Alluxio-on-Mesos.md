@@ -75,7 +75,7 @@ Note that the tarball should be compiled with `-Pmesos`. Released Alluxio tarbal
 
 #### Java
 
-By default, the Alluxio Mesos framework will download the Java 7 jdk and use it to run Alluxio. If you would prefer
+By default, the Alluxio Mesos framework will download the Java 8 jdk and use it to run Alluxio. If you would prefer
 to use whatever version of java is available on the Mesos executor, set the configuration property
 
 ```properties
