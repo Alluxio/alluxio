@@ -66,9 +66,8 @@ import alluxio.thrift.SetAttributeTOptions;
 import alluxio.thrift.SetAttributeTResponse;
 import alluxio.thrift.UnmountTOptions;
 import alluxio.thrift.UnmountTResponse;
-import alluxio.wire.ThriftUtils;
-
 import alluxio.wire.MountPointInfo;
+import alluxio.wire.ThriftUtils;
 
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
@@ -76,9 +75,9 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.HashMap;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -360,7 +359,7 @@ public final class FileSystemMasterClientServiceHandler implements
       @Override
       public RenameTResponse call() throws AlluxioException, IOException {
         mFileSystemMaster
-            .rename(new AlluxioURI(srcPath), new AlluxioURI(dstPath), RenameOptions.defaults());
+            .rename(new AlluxioURI(srcPath), new AlluxioURI(dstPath), new RenameOptions(options));
         return new RenameTResponse();
       }
 

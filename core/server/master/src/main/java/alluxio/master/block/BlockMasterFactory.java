@@ -12,6 +12,7 @@
 package alluxio.master.block;
 
 import alluxio.Constants;
+import alluxio.master.MasterContext;
 import alluxio.master.MasterFactory;
 import alluxio.master.MasterRegistry;
 import alluxio.master.SafeModeManager;
@@ -50,7 +51,7 @@ public final class BlockMasterFactory implements MasterFactory {
       SafeModeManager safeModeManager) {
     Preconditions.checkArgument(journalFactory != null, "journal");
     LOG.info("Creating {} ", BlockMaster.class.getName());
-    BlockMaster master = new DefaultBlockMaster(journalFactory, safeModeManager);
+    BlockMaster master = new DefaultBlockMaster(new MasterContext(journalFactory, safeModeManager));
     registry.add(BlockMaster.class, master);
     return master;
   }

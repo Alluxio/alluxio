@@ -18,6 +18,9 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public class UfsFileStatus extends UfsStatus {
+  public static final String INVALID_CONTENT_HASH = "";
+
+  protected final String mContentHash;
   protected final long mContentLength;
   protected final long mLastModifiedTimeMs;
 
@@ -25,15 +28,17 @@ public class UfsFileStatus extends UfsStatus {
    * Creates new instance of {@link UfsFileStatus}.
    *
    * @param name relative path of file
+   * @param contentHash hash of the file contents
    * @param contentLength in bytes
    * @param lastModifiedTimeMs UTC time
    * @param owner of the file
    * @param group of the file
    * @param mode of the file
    */
-  public UfsFileStatus(String name, long contentLength, long lastModifiedTimeMs, String owner,
-      String group, short mode) {
+  public UfsFileStatus(String name, String contentHash, long contentLength, long lastModifiedTimeMs,
+      String owner, String group, short mode) {
     super(name, false, owner, group, mode);
+    mContentHash = contentHash;
     mContentLength = contentLength;
     mLastModifiedTimeMs = lastModifiedTimeMs;
   }
@@ -45,6 +50,7 @@ public class UfsFileStatus extends UfsStatus {
    */
   public UfsFileStatus(UfsFileStatus status) {
     super(status);
+    mContentHash = status.mContentHash;
     mContentLength = status.mContentLength;
     mLastModifiedTimeMs = status.mLastModifiedTimeMs;
   }
@@ -52,6 +58,13 @@ public class UfsFileStatus extends UfsStatus {
   @Override
   public UfsFileStatus copy() {
     return new UfsFileStatus(this);
+  }
+
+  /**
+   * @return the hash of the file contents
+   */
+  public String getContentHash() {
+    return mContentHash;
   }
 
   /**

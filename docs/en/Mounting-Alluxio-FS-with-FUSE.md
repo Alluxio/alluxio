@@ -46,7 +46,7 @@ For example, the following command will mount the alluxio path `/people` to the 
 in the local file system.
 
 ```bash
-$ integration/fuse/bin/alluxio-fuse mount /mnt/people /people 
+$ integration/fuse/bin/alluxio-fuse mount /mnt/people /people
 Starting alluxio-fuse on local host. Alluxio-fuse mounted at /mnt/people. See /lib/alluxio/logs/fuse.log for logs
 ```
 
@@ -109,18 +109,18 @@ characteristics, please be aware that:
 
 * Files can be written only once, only sequentially, and never be modified. That means overriding a
   file is not allowed, and an explicit combination of delete and then create is needed. For example,
-  `cp` command will fail when the destination file exists. 
+  `cp` command will fail when the destination file exists.
 * Alluxio does not have hard-link and soft-link concepts, so the commands like `ln` are not supported,
-  neither the hardlinks number is displayed in `ll` output. 
+  neither the hardlinks number is displayed in `ll` output.
 * The user and group are mapped to the Unix user and group only when Alluxio is configured to use
   shell-based mapping, by setting `alluxio.security.group.mapping.class` to `ShellBasedUnixGroupsMapping`
-  in `conf/alluxio-site.properties`. Otherwise `chown` and `chgrp` are no-ops, and `ll` will return the 
+  in `conf/alluxio-site.properties`. Otherwise `chown` and `chgrp` are no-ops, and `ll` will return the
   user and group of the user who started the alluxio-fuse process.
 
 ## Performance considerations
 
 Due to the conjunct use of FUSE and JNR, the performance of the mounted file system is expected to
-be worse than what you would see by using the [native client API](Clients-Java-Native.html)
+be worse than what you would see by using the [Alluxio Java client](Clients-Alluxio-Java.html)
 directly.
 
 Most of the overheads come from the fact that there are several memory copies going on for each call

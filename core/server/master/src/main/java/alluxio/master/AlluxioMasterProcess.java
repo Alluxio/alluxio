@@ -22,12 +22,12 @@ import alluxio.metrics.sink.MetricsServlet;
 import alluxio.security.authentication.TransportProvider;
 import alluxio.thrift.MetaMasterClientService;
 import alluxio.util.CommonUtils;
+import alluxio.util.JvmPauseMonitor;
 import alluxio.util.WaitForOptions;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 import alluxio.web.MasterWebServer;
 import alluxio.web.WebServer;
-import alluxio.util.JvmPauseMonitor;
 
 import com.google.common.base.Function;
 import com.google.common.base.Preconditions;

@@ -58,22 +58,6 @@ public class OpenFileOptionsTest {
     Assert.assertEquals(policy, options.getUfsReadLocationPolicy());
   }
 
-  /**
-   * Tests conversion to {@link InStreamOptions}.
-   */
-  @Test
-  public void toInStreamOptions() {
-    OpenFileOptions options = OpenFileOptions.defaults();
-    InStreamOptions inStreamOptions = options.toInStreamOptions();
-    Assert.assertEquals(options.getReadType().getAlluxioStorageType(),
-        inStreamOptions.getAlluxioStorageType());
-    Assert.assertEquals(options.getCacheLocationPolicy(), inStreamOptions.getCacheLocationPolicy());
-    Assert.assertEquals(options.getUfsReadLocationPolicy(),
-        inStreamOptions.getUfsReadLocationPolicy());
-    Assert.assertEquals(options.getMaxUfsReadConcurrency(),
-        inStreamOptions.getMaxUfsReadConcurrency());
-  }
-
   @Test
   public void equalsTest() throws Exception {
     CommonUtils.testEquals(OpenFileOptions.class);

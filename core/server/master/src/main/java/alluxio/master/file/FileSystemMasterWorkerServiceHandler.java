@@ -15,6 +15,7 @@ import alluxio.Constants;
 import alluxio.RpcUtils;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.AlluxioStatusException;
+import alluxio.master.file.options.WorkerHeartbeatOptions;
 import alluxio.thrift.AlluxioTException;
 import alluxio.thrift.FileSystemHeartbeatTOptions;
 import alluxio.thrift.FileSystemHeartbeatTResponse;
@@ -72,8 +73,8 @@ public final class FileSystemMasterWorkerServiceHandler
         new RpcUtils.RpcCallableThrowsIOException<FileSystemHeartbeatTResponse>() {
           @Override
           public FileSystemHeartbeatTResponse call() throws AlluxioException, IOException {
-            return new FileSystemHeartbeatTResponse(
-                mFileSystemMaster.workerHeartbeat(workerId, persistedFiles));
+            return new FileSystemHeartbeatTResponse(mFileSystemMaster
+                .workerHeartbeat(workerId, persistedFiles, new WorkerHeartbeatOptions(options)));
           }
         }
     );

@@ -13,12 +13,12 @@ package alluxio.master;
 
 import alluxio.Configuration;
 import alluxio.PropertyKey;
-import alluxio.clock.Clock;
 import alluxio.clock.ElapsedTimeClock;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.time.Clock;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**

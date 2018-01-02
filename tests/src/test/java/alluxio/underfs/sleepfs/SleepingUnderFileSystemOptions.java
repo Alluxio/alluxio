@@ -29,6 +29,7 @@ public class SleepingUnderFileSystemOptions {
   private long mGetDirectoryStatusMs = -1;
   private long mGetFileLocationsMs = -1;
   private long mGetFileStatusMs = -1;
+  private long mGetFingerprintMs = -1;
   private long mGetSpaceMs = -1;
   private long mGetUnderFSTypeMs = -1;
   private long mIsDirectoryMs = -1;
@@ -233,6 +234,22 @@ public class SleepingUnderFileSystemOptions {
    */
   public SleepingUnderFileSystemOptions setGetFileStatusMs(long getFileStatusMs) {
     mGetFileStatusMs = getFileStatusMs;
+    return this;
+  }
+
+  /**
+   * @return milliseconds to sleep before executing a getFingerprint call
+   */
+  public long getGetFingerprintMs() {
+    return mGetFingerprintMs;
+  }
+
+  /**
+   * @param getFingerprintMs milliseconds to sleep before executing a getFingerprint call
+   * @return the updated object
+   */
+  public SleepingUnderFileSystemOptions setGetFingerprintMs(long getFingerprintMs) {
+    mGetFingerprintMs = getFingerprintMs;
     return this;
   }
 
