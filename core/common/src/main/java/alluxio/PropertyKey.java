@@ -1963,7 +1963,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey INTEGRATION_MESOS_JDK_PATH =
       new Builder(Name.INTEGRATION_MESOS_JDK_PATH)
-          .setDefaultValue("jdk1.7.0_79")
+          .setDefaultValue("jdk1.8.0_151")
           .setDescription("If installing java from a remote URL during mesos deployment, this must "
               + "be set to the directory name of the untarred jdk.")
           .build();
