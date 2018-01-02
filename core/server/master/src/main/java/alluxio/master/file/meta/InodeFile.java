@@ -263,6 +263,8 @@ public final class InodeFile extends Inode<InodeFile> {
    * @return the {@link InodeFile} representation
    */
   public static InodeFile fromJournalEntry(InodeFileEntry entry) {
+    // If journal entry has no mode set, set default mode for backwards-compatibility.
+    short mode = entry.hasMode() ? (short) entry.getMode() : Constants.DEFAULT_FILE_SYSTEM_MODE;
     return new InodeFile(BlockId.getContainerId(entry.getId()))
         .setName(entry.getName())
         .setBlockIds(entry.getBlocksList())
@@ -279,7 +281,7 @@ public final class InodeFile extends Inode<InodeFile> {
         .setTtlAction((ProtobufUtils.fromProtobuf(entry.getTtlAction())))
         .setOwner(entry.getOwner())
         .setGroup(entry.getGroup())
-        .setMode((short) entry.getMode())
+        .setMode(mode)
         .setUfsFingerprint(entry.hasUfsFingerprint() ? entry.getUfsFingerprint() :
             Constants.INVALID_UFS_FINGERPRINT);
   }
