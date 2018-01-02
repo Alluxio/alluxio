@@ -22,6 +22,6 @@
   become_method: sudo
 
 - name: install java
-  script: roles/common/files/java.sh
+  script: java.sh
 
 # vim: set filetype=ansible.yaml:
