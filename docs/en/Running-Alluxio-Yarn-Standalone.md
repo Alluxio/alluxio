@@ -6,6 +6,9 @@ group: Deploying Alluxio
 priority: 6
 ---
 
+* Table of Contents
+{:toc}
+
 Alluxio should be run alongside YARN so that all YARN nodes have access to a local Alluxio worker.
 For YARN and Alluxio to play nicely together on the same nodes, it's important to inform YARN of
 the resources used by Alluxio. YARN needs to know how much memory and cpu to leave for Alluxio.
