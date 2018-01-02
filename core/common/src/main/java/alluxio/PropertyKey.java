@@ -57,7 +57,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
 
     /**
      * @param template template of the name of the property to build
-     * @param params¬ parameters of the template
+     * @param params parameters of the template
      */
     public Builder(PropertyKey.Template template, Object... params) {
       mName = String.format(template.mFormat, params);

@@ -109,9 +109,9 @@ public class UfsInputStreamManager {
             try {
               inputStream.close();
             } catch (IOException e) {
-              LOG.warn(
-                  "Failed to close the input stream resource of file {} with resource id {} and resource id",
-                  inputStream.getFilePath(), inputStream.getFileId(), removal.getKey());
+              LOG.warn("Failed to close the input stream resource of file {} with file id {}",
+                  " and resource id {}", inputStream.getFilePath(), inputStream.getFileId(),
+                  removal.getKey());
             }
           }
         };
