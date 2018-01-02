@@ -110,7 +110,7 @@ public class UfsInputStreamManager {
               inputStream.close();
             } catch (IOException e) {
               LOG.warn(
-                  "Failed to close the input stream resource of file {} with id {} and resource id",
+                  "Failed to close the input stream resource of file {} with resource id {} and resource id",
                   inputStream.getFilePath(), inputStream.getFileId(), removal.getKey());
             }
           }
@@ -290,7 +290,7 @@ public class UfsInputStreamManager {
      *
      * @param id the id of the input stream
      */
-    public synchronized void acquire(long id) {
+    synchronized void acquire(long id) {
       Preconditions.checkArgument(!mInUse.contains(id), id + " is already in use");
       mAvailable.remove(id);
       mInUse.add(id);
@@ -299,7 +299,7 @@ public class UfsInputStreamManager {
     /**
      * @return if there is any outstanding input streams of the file
      */
-    public synchronized boolean isEmpty() {
+    synchronized boolean isEmpty() {
       return mInUse.isEmpty() && mAvailable.isEmpty();
     }
 
@@ -307,7 +307,7 @@ public class UfsInputStreamManager {
      * Marks an input stream as not in use.
      * @param id the id of the input stream
      */
-    public synchronized void removeInUse(long id) {
+    synchronized void removeInUse(long id) {
       mInUse.remove(id);
     }
 
@@ -318,7 +318,7 @@ public class UfsInputStreamManager {
      * @return <code>true</code> if the given input stream is available, <code>false</code> if the
      *         given input stream is not among available input streams
      */
-    public synchronized boolean removeAvailable(long id) {
+    synchronized boolean removeAvailable(long id) {
       return mAvailable.remove(id);
     }
 
@@ -330,7 +330,7 @@ public class UfsInputStreamManager {
      * @return true if the id is marked from in use to available; false if the id no longer used for
      *         cache
      */
-    public synchronized boolean release(long id) {
+    synchronized boolean release(long id) {
       Preconditions.checkArgument(!mAvailable.contains(id));
       if (mInUse.contains(id)) {
         mInUse.remove(id);

@@ -57,7 +57,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
 
     /**
      * @param template template of the name of the property to build
-     * @param params parameters of the template
+     * @param params¬ parameters of the template
      */
     public Builder(PropertyKey.Template template, Object... params) {
       mName = String.format(template.mFormat, params);
@@ -1306,18 +1306,18 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "so that subsequent seek operations on the same file will reuse "
               + "the cached input stream. This will improve position read performance "
               + "as the open operations of some under file system would be expensive. "
-              + "The cached input stream would be stale, when the ufs file is modified "
+              + "The cached input stream would be stale, when the UFS file is modified "
               + "without notifying alluxio. ")
           .build();
   public static final PropertyKey WORKER_UFS_INSTREAM_CACHE_EXPIRARTION_TIME =
       new Builder(Name.WORKER_UFS_INSTREAM_CACHE_EXPIRATION_TIME)
           .setDefaultValue("5min")
-          .setDescription("Cached ufs instream expiration time.")
+          .setDescription("Cached UFS instream expiration time.")
           .build();
   public static final PropertyKey WORKER_UFS_INSTREAM_CACHE_MAX_SIZE =
       new Builder(Name.WORKER_UFS_INSTREAM_CACHE_MAX_SIZE)
           .setDefaultValue("5000")
-          .setDescription("The max entries in the ufs instream cache.")
+          .setDescription("The max entries in the UFS instream cache.")
           .build();
 
   //
@@ -1733,7 +1733,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey USER_UFS_DELEGATION_READ_BUFFER_SIZE_BYTES =
       new Builder(Name.USER_UFS_DELEGATION_READ_BUFFER_SIZE_BYTES)
           .setDefaultValue("8MB")
-          .setDescription("Size of the read buffer when reading from the ufs through the "
+          .setDescription("Size of the read buffer when reading from the UFS through the "
               + "Alluxio worker. Each read request will fetch at least this many bytes, "
               + "unless the read reaches the end of the file.")
           .build();
@@ -1744,7 +1744,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey USER_UFS_DELEGATION_WRITE_BUFFER_SIZE_BYTES =
       new Builder(Name.USER_UFS_DELEGATION_WRITE_BUFFER_SIZE_BYTES)
           .setDefaultValue("2MB")
-          .setDescription("Size of the write buffer when writing to the ufs through the "
+          .setDescription("Size of the write buffer when writing to the UFS through the "
               + "Alluxio worker. Each write request will write at least this many bytes, "
               + "unless the write is at the end of the file.")
           .build();
