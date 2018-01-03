@@ -21,7 +21,7 @@ import com.google.common.base.Objects;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * Method options for updating attributes of a mount point.
+ * Method options for updating operation mode of a path.
  */
 @PublicApi
 @NotThreadSafe
