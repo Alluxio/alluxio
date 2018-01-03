@@ -74,7 +74,7 @@ public final class UfsCommand extends AbstractCommand {
 
   @Override
   public String getUsage() {
-    return "ufs [--mode <true/false>] <ufsPath>";
+    return "ufs [--mode <noAccess/readOnly/readWrite>] <ufsPath>";
   }
 
   @Override
