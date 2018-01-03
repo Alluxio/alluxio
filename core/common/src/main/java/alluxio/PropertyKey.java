@@ -1917,13 +1917,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey INTEGRATION_MESOS_JDK_PATH =
       new Builder(Name.INTEGRATION_MESOS_JDK_PATH)
-          .setDefaultValue("jdk1.7.0_79")
+          .setDefaultValue("jdk1.8.0_151")
           .setDescription("If installing java from a remote URL during mesos deployment, this must "
               + "be set to the directory name of the untarred jdk.")
           .build();
   public static final PropertyKey INTEGRATION_MESOS_JDK_URL =
       new Builder(Name.INTEGRATION_MESOS_JDK_URL)
-          .setDefaultValue("https://alluxio-mesos.s3.amazonaws.com/jdk-7u79-linux-x64.tar.gz")
+          .setDefaultValue("https://alluxio-mesos.s3.amazonaws.com/jdk-8u151-linux-x64.tar.gz")
           .setDescription("A url from which to install the jdk during Mesos deployment. When "
               + "using this property, alluxio.integration.mesos.jdk.path must also be set "
               + "correctly.")
