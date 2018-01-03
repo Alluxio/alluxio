@@ -267,7 +267,7 @@ function main {
     runJavaClass "$@"
   ;;
   "fsadmin")
-    CLASS="alluxio.cli.fs.FileSystemAdminShell"
+    CLASS="alluxio.cli.fsadmin.FileSystemAdminShell"
     CLASSPATH=${ALLUXIO_SERVER_CLASSPATH}
     runJavaClass "$@"
   ;;
