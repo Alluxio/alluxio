@@ -15,6 +15,7 @@ import java.util.Map;
 
 import alluxio.cli.AbstractShell;
 import alluxio.cli.Command;
+import alluxio.util.ConfigurationUtils;
 
 /**
  * Shell for admin to manage file system.
@@ -33,6 +34,10 @@ public final class FileSystemAdminShell extends AbstractShell {
    * @param args array of arguments given by the user's input from the terminal
    */
   public static void main(String[] args) {
+    if (!ConfigurationUtils.masterHostConfigured()) {
+      System.out.println("Cannot run fsadmin shell as master hostname is not configured.");
+      System.exit(1);
+    }
     FileSystemAdminShell fsAdminShell = new FileSystemAdminShell();
     System.exit(fsAdminShell.run(args));
   }
