@@ -130,6 +130,14 @@ public final class UnderFileSystemUtils {
   }
 
   /**
+   * @param ufs the {@link UnderFileSystem} implementation to check
+   * @return true if the implementation is a CephFS storage implementation
+   */
+  public static boolean isCephFS(UnderFileSystem ufs) {
+    return "cephfs".equals(ufs.getUnderFSType());
+  }
+
+  /**
    * @param uri the UFS path
    * @return the bucket or container name of the object storage
    */
