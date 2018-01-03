@@ -49,21 +49,22 @@ import javax.annotation.concurrent.ThreadSafe;
  * in {@link PropertyKey.WORKER_UFS_INSTREAM_CACHE_EXPIRE_MS}.
  *
  * An under storage file maybe opened with multiple input streams at the same time. The manager uses
- * {@link UfsInputStreamIds} to track the in-use input stream and the available ones. The manager
+ * {@link UfsInputStreamIdSet} to track the in-use input stream and the available ones. The manager
  * closes the input streams after they are expired and not in-use anymore. Lock
- * {@link UfsInputStreamIds} before access, and in addition to that, lock
+ * {@link UfsInputStreamIdSet} before access, and in addition to that, lock
  * {@link #mFileIdToInputStreamIds} before the resource retrieval.
  */
 @ThreadSafe
 public class UfsInputStreamManager {
   private static final Logger LOG = LoggerFactory.getLogger(UfsInputStreamManager.class);
   private static final long UNAVAILABLE_RESOURCE_ID = -1;
+  private static final boolean CACHE_ENABLED = Configuration.getBoolean(PropertyKey.WORKER_UFS_INSTREAM_CACHE_ENABLED);
 
   /**
    * A map from the ufs file id to the metadata of the input streams. Synchronization on this map
    * before access.
    */
-  private final Map<Long, UfsInputStreamIds> mFileIdToInputStreamIds;
+  private final Map<Long, UfsInputStreamIdSet> mFileIdToInputStreamIds;
   /** Cache of the input streams, from the input stream id to the input stream. */
   @GuardedBy("mFileToInputStreamIds")
   private final Cache<Long, CachedSeekableInputStream> mUnderFileInputStreamCache;
@@ -86,7 +87,7 @@ public class UfsInputStreamManager {
           boolean shouldClose = false;
           synchronized (mFileIdToInputStreamIds) {
             if (mFileIdToInputStreamIds.containsKey(inputStream.getFileId())) {
-              UfsInputStreamIds resources = mFileIdToInputStreamIds.get(inputStream.getFileId());
+              UfsInputStreamIdSet resources = mFileIdToInputStreamIds.get(inputStream.getFileId());
               synchronized (resources) {
                 // remove the key
                 resources.removeInUse(removal.getKey());
@@ -131,7 +132,7 @@ public class UfsInputStreamManager {
    */
   public void release(InputStream inputStream) throws IOException {
     // for non-seekable input stream, close and return
-    if (!(inputStream instanceof CachedSeekableInputStream) || !isCachingEnabled()) {
+    if (!(inputStream instanceof CachedSeekableInputStream) || !CACHE_ENABLED) {
       inputStream.close();
       return;
     }
@@ -145,7 +146,7 @@ public class UfsInputStreamManager {
         inputStream.close();
         return;
       }
-      UfsInputStreamIds resources =
+      UfsInputStreamIdSet resources =
           mFileIdToInputStreamIds.get(((CachedSeekableInputStream) inputStream).getFileId());
       if (!resources.release(((CachedSeekableInputStream) inputStream).getResourceId())) {
         LOG.debug("Close the expired input stream resource of {}",
@@ -198,7 +199,7 @@ public class UfsInputStreamManager {
    */
   public InputStream acquire(UnderFileSystem ufs, String path, long fileId, OpenOptions openOptions,
       boolean reuse) throws IOException {
-    if (!ufs.isSeekable() || !isCachingEnabled()) {
+    if (!ufs.isSeekable() || !CACHE_ENABLED) {
       // not able to cache, always return a new input stream
       return ufs.open(path, openOptions);
     }
@@ -206,12 +207,12 @@ public class UfsInputStreamManager {
     // explicit cache cleanup
     mUnderFileInputStreamCache.cleanUp();
 
-    UfsInputStreamIds resources;
+    UfsInputStreamIdSet resources;
     synchronized (mFileIdToInputStreamIds) {
       if (mFileIdToInputStreamIds.containsKey(fileId)) {
         resources = mFileIdToInputStreamIds.get(fileId);
       } else {
-        resources = new UfsInputStreamIds();
+        resources = new UfsInputStreamIdSet();
         mFileIdToInputStreamIds.put(fileId, resources);
       }
     }
@@ -257,32 +258,28 @@ public class UfsInputStreamManager {
     }
   }
 
-  private boolean isCachingEnabled() {
-    return Configuration.getBoolean(PropertyKey.WORKER_UFS_INSTREAM_CACHE_ENABLED);
-  }
-
   /**
    * The metadata of the input streams associated with an under storage file that tracks which input
    * streams are in-use or available. Each input stream is identified by a unique id.
    */
   @ThreadSafe
-  private static class UfsInputStreamIds {
-    private final Set<Long> mInUse;
-    private final Set<Long> mAvailable;
+  private static class UfsInputStreamIdSet {
+    private final Set<Long> mInUseStreamIds;
+    private final Set<Long> mAvailableStreamIds;
 
     /**
-     * Creates a new {@link UfsInputStreamIds}.
+     * Creates a new {@link UfsInputStreamIdSet}.
      */
-    UfsInputStreamIds() {
-      mInUse = new HashSet<>();
-      mAvailable = new HashSet<>();
+    UfsInputStreamIdSet() {
+      mInUseStreamIds = new HashSet<>();
+      mAvailableStreamIds = new HashSet<>();
     }
 
     /**
      * @return a view of the available input stream ids
      */
     Set<Long> availableIds() {
-      return Collections.unmodifiableSet(mAvailable);
+      return Collections.unmodifiableSet(mAvailableStreamIds);
     }
 
     /**
@@ -291,16 +288,16 @@ public class UfsInputStreamManager {
      * @param id the id of the input stream
      */
     synchronized void acquire(long id) {
-      Preconditions.checkArgument(!mInUse.contains(id), id + " is already in use");
-      mAvailable.remove(id);
-      mInUse.add(id);
+      Preconditions.checkArgument(!mInUseStreamIds.contains(id), "%d is already in use", id);
+      mAvailableStreamIds.remove(id);
+      mInUseStreamIds.add(id);
     }
 
     /**
      * @return if there is any outstanding input streams of the file
      */
     synchronized boolean isEmpty() {
-      return mInUse.isEmpty() && mAvailable.isEmpty();
+      return mInUseStreamIds.isEmpty() && mAvailableStreamIds.isEmpty();
     }
 
     /**
@@ -308,7 +305,7 @@ public class UfsInputStreamManager {
      * @param id the id of the input stream
      */
     synchronized void removeInUse(long id) {
-      mInUse.remove(id);
+      mInUseStreamIds.remove(id);
     }
 
     /**
@@ -319,7 +316,7 @@ public class UfsInputStreamManager {
      *         given input stream is not among available input streams
      */
     synchronized boolean removeAvailable(long id) {
-      return mAvailable.remove(id);
+      return mAvailableStreamIds.remove(id);
     }
 
     /**
@@ -331,10 +328,10 @@ public class UfsInputStreamManager {
      *         cache
      */
     synchronized boolean release(long id) {
-      Preconditions.checkArgument(!mAvailable.contains(id));
-      if (mInUse.contains(id)) {
-        mInUse.remove(id);
-        mAvailable.add(id);
+      Preconditions.checkArgument(!mAvailableStreamIds.contains(id));
+      if (mInUseStreamIds.contains(id)) {
+        mInUseStreamIds.remove(id);
+        mAvailableStreamIds.add(id);
         return true;
       }
       return false;
