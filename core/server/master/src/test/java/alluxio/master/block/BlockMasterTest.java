@@ -87,7 +87,7 @@ public class BlockMasterTest {
   @Before
   public void before() throws Exception {
     mRegistry = new MasterRegistry();
-    mSafeModeManager = new DefaultSafeModeManager();
+    mSafeModeManager = new DefaultSafeModeManager(new ManualClock(), false);
     JournalSystem journalSystem = new NoopJournalSystem();
     mClock = new ManualClock();
     mExecutorService =

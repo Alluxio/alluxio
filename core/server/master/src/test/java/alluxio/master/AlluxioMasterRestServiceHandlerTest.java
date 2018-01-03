@@ -24,6 +24,7 @@ import static org.mockito.Mockito.when;
 import alluxio.ConfigurationRule;
 import alluxio.PropertyKey;
 import alluxio.RuntimeConstants;
+import alluxio.clock.ManualClock;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.block.BlockMasterFactory;
 import alluxio.master.file.DefaultFileSystemMaster;
@@ -114,7 +115,7 @@ public final class AlluxioMasterRestServiceHandlerTest {
     mMasterProcess = mock(MasterProcess.class);
     ServletContext context = mock(ServletContext.class);
     mRegistry = new MasterRegistry();
-    mSafeModeManager = new DefaultSafeModeManager();
+    mSafeModeManager = new DefaultSafeModeManager(new ManualClock(), false);
     JournalSystem journalSystem = JournalTestUtils.createJournalSystem(mTestFolder);
     mBlockMaster = new BlockMasterFactory().create(mRegistry, journalSystem, mSafeModeManager);
     mRegistry.start(true);
