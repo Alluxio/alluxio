@@ -123,13 +123,20 @@ public final class AlluxioBlockStore {
 
   /**
    * Gets a stream to read the data of a block. This method is primarily responsible for
-   * determining the data source and type of data source.
+   * determining the data source and type of data source. The latest BlockInfo will be fetched
+   * from the master to ensure the locations are up to date.
    *
-   * @param info the block info for the block to read
+   * @param blockId the id of the block to read
    * @param options the options associated with the read request
    * @return a stream which reads from the beginning of the block
    */
-  public BlockInStream getInStream(BlockInfo info, InStreamOptions options) throws IOException {
+  public BlockInStream getInStream(long blockId, InStreamOptions options) throws IOException {
+    // Get the latest block info from master
+    BlockInfo info;
+    try (CloseableResource<BlockMasterClient> masterClientResource =
+             mContext.acquireBlockMasterClientResource()) {
+      info = masterClientResource.get().getBlockInfo(blockId);
+    }
     List<BlockLocation> locations = info.getLocations();
     if (locations.isEmpty() && !options.getStatus().isPersisted()) {
       throw new NotFoundException(ExceptionMessage.BLOCK_UNAVAILABLE.getMessage(info.getBlockId()));
