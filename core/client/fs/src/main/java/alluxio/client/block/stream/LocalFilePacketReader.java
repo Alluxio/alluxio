@@ -139,6 +139,7 @@ public final class LocalFilePacketReader implements PacketReader {
       if (mReader == null) {
         mReader = new LocalFileBlockReader(mPath);
       }
+      Preconditions.checkState(mReader.getUsageCount() == 0);
       mReader.increaseUsageCount();
       return new LocalFilePacketReader(mReader, offset, len, mPacketSize);
     }
