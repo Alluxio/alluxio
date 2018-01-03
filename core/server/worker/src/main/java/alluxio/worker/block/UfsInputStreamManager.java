@@ -58,7 +58,8 @@ import javax.annotation.concurrent.ThreadSafe;
 public class UfsInputStreamManager {
   private static final Logger LOG = LoggerFactory.getLogger(UfsInputStreamManager.class);
   private static final long UNAVAILABLE_RESOURCE_ID = -1;
-  private static final boolean CACHE_ENABLED = Configuration.getBoolean(PropertyKey.WORKER_UFS_INSTREAM_CACHE_ENABLED);
+  private static final boolean CACHE_ENABLED =
+      Configuration.getBoolean(PropertyKey.WORKER_UFS_INSTREAM_CACHE_ENABLED);
 
   /**
    * A map from the ufs file id to the metadata of the input streams. Synchronization on this map
