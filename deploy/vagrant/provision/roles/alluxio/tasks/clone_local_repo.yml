@@ -6,7 +6,7 @@
 
 - name: clone local alluxio repo
   synchronize:
-    src: ../../../../../../
+    src: ../../../
     dest: /alluxio
     rsync_opts: >
       --exclude=.gitignore,
