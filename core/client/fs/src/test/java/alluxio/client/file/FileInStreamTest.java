@@ -128,15 +128,14 @@ public final class FileInStreamTest {
       mInStreams.add(new TestBlockInStream(input, i, input.length, false, mBlockSource));
       Mockito.when(mBlockStore.getEligibleWorkers())
           .thenReturn(Arrays.asList(new BlockWorkerInfo(new WorkerNetAddress(), 0, 0)));
-      Mockito.when(mBlockStore.getInStream(Mockito.eq(fbInfo.getBlockInfo()),
-          Mockito.any(InStreamOptions.class)))
+      Mockito.when(mBlockStore.getInStream(Mockito.eq((long) i), Mockito.any(InStreamOptions
+          .class)))
           .thenAnswer(new Answer<BlockInStream>() {
             @Override
             public BlockInStream answer(InvocationOnMock invocation) throws Throwable {
-              BlockInfo info = (BlockInfo) invocation.getArguments()[0];
-              long i = info == null ? 0 : info.getBlockId();
-              return mInStreams.get((int) i).isClosed() ? new TestBlockInStream(input, i,
-                  input.length, false, mBlockSource) : mInStreams.get((int) i);
+              long blockId = (Long) invocation.getArguments()[0];
+              return mInStreams.get((int) blockId).isClosed() ? new TestBlockInStream(input,
+                  blockId, input.length, false, mBlockSource) : mInStreams.get((int) blockId);
             }
           });
     }
@@ -519,7 +518,7 @@ public final class FileInStreamTest {
   @Test
   public void failGetInStream() throws IOException {
     Mockito.when(mBlockStore
-        .getInStream(Mockito.any(BlockInfo.class), Mockito.any(InStreamOptions.class)))
+        .getInStream(Mockito.anyLong(), Mockito.any(InStreamOptions.class)))
         .thenThrow(new UnavailableException("test exception"));
     try {
       mTestStream.read();
@@ -613,7 +612,7 @@ public final class FileInStreamTest {
   @Test
   public void blockInStreamOutOfSync() throws Exception {
     Mockito.when(
-        mBlockStore.getInStream(Mockito.any(BlockInfo.class), Mockito.any(InStreamOptions.class)))
+        mBlockStore.getInStream(Mockito.anyLong(), Mockito.any(InStreamOptions.class)))
         .thenAnswer(new Answer<BlockInStream>() {
           @Override
           public BlockInStream answer(InvocationOnMock invocation) throws Throwable {
