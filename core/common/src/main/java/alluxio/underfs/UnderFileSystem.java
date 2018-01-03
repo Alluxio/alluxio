@@ -172,6 +172,16 @@ public interface UnderFileSystem extends Closeable {
   }
 
   /**
+   * The access mode for under storage. During maintainence the access mode may be changed to
+   * NO_ACCESS or READ_ONLY.
+   */
+  enum UfsMode {
+    NO_ACCESS,
+    READ_ONLY,
+    READ_WRITE
+  }
+
+  /**
    * Takes any necessary actions required to establish a connection to the under file system from
    * the given master host e.g. logging in
    * <p>
