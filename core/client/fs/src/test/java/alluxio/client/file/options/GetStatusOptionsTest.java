@@ -11,7 +11,7 @@
 
 package alluxio.client.file.options;
 
-import alluxio.CommonTestUtils;
+import alluxio.test.util.CommonUtils;
 import alluxio.thrift.GetStatusTOptions;
 import alluxio.thrift.LoadMetadataTType;
 import alluxio.wire.LoadMetadataType;
@@ -33,7 +33,7 @@ public class GetStatusOptionsTest {
 
   @Test
   public void equalsTest() throws Exception {
-    CommonTestUtils.testEquals(GetStatusOptions.class);
+    CommonUtils.testEquals(GetStatusOptions.class);
   }
 
   @Test

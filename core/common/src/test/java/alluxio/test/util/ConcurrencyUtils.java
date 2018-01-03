@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.client.concurrent;
+package alluxio.test.util;
 
 import org.junit.Assert;
 
@@ -24,8 +24,8 @@ import java.util.concurrent.TimeUnit;
 /**
  * A set of utility methods for testing concurrency.
  */
-public final class ConcurrencyTestUtils {
-  private ConcurrencyTestUtils() {} // prevent instantiation
+public final class ConcurrencyUtils {
+  private ConcurrencyUtils() {} // prevent instantiation
 
   /**
    * Tests the current operations of a list of runnables. Run all the operations at the same time to
