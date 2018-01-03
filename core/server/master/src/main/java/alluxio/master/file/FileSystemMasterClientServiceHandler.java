@@ -236,7 +236,8 @@ public final class FileSystemMasterClientServiceHandler implements
       public String toString() {
         return String.format("GetStatus: path=%s, options=%s", path, options);
       }
-    });
+      // getStatus is often used to check file existence, so we avoid logging all of its failures
+    }, false);
   }
 
   @Override
