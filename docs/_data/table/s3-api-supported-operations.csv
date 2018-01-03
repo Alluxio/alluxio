@@ -16,4 +16,4 @@ S3Feature,Status
 "Object ACLs (Get, Put)","Not Supported"
 "POST Object","Not Supported"
 "Copy Object","Not Supported"
-"Multipart Uploads","Not Supported"
+"Multipart Uploads","Supported"
