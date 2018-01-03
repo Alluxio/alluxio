@@ -172,6 +172,7 @@ public class AlluxioScheduler implements Scheduler {
                                     .setName("ALLUXIO_MESOS_SITE_PROPERTIES_CONTENT")
                                     .setValue(createAlluxioSiteProperties())
                                     .build())
+                            // TODO(adit): add all environment variables
                             .build()));
         // pre-build resource list here, then use it to build Protos.Task later.
         resources = getMasterRequiredResources(masterCpu, masterMem);
@@ -265,11 +266,7 @@ public class AlluxioScheduler implements Scheduler {
    *         current configuration
    */
   private String createAlluxioSiteProperties() {
-    StringBuilder siteProperties = new StringBuilder();
-    for (Entry<String, String> entry : Configuration.toMap().entrySet()) {
-      siteProperties.append(String.format("%s=%s%n", entry.getKey(), entry.getValue()));
-    }
-    return siteProperties.toString();
+    return Configuration.getSitePropertiesFile();
   }
 
   private static String createStartAlluxioCommand(String command) {
