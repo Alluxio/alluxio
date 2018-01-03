@@ -30,7 +30,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map.Entry;
 import java.util.Set;
 
 /**
@@ -170,7 +169,7 @@ public class AlluxioScheduler implements Scheduler {
                             .addVariables(
                                 Protos.Environment.Variable.newBuilder()
                                     .setName("ALLUXIO_MESOS_SITE_PROPERTIES_CONTENT")
-                                    .setValue(createAlluxioSiteProperties())
+                                    .setValue(Configuration.getSitePropertiesFile())
                                     .build())
                             .build()));
         // pre-build resource list here, then use it to build Protos.Task later.
@@ -215,7 +214,7 @@ public class AlluxioScheduler implements Scheduler {
                             .addVariables(
                                 Protos.Environment.Variable.newBuilder()
                                     .setName("ALLUXIO_MESOS_SITE_PROPERTIES_CONTENT")
-                                    .setValue(createAlluxioSiteProperties())
+                                    .setValue(Configuration.getSitePropertiesFile())
                                     .build())
                             .build()));
         // pre-build resource list here, then use it to build Protos.Task later.
@@ -258,14 +257,6 @@ public class AlluxioScheduler implements Scheduler {
       Protos.Filters filters = Protos.Filters.newBuilder().setRefuseSeconds(1).build();
       driver.acceptOffers(offerIds, operations, filters);
     }
-  }
-
-  /**
-   * @return the content that should be pasted into an alluxio-site.properties file to recreate the
-   *         current configuration
-   */
-  private String createAlluxioSiteProperties() {
-    return Configuration.getSitePropertiesFile();
   }
 
   private static String createStartAlluxioCommand(String command) {
