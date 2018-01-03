@@ -69,6 +69,7 @@ public final class InstallCommand extends AbstractCommand {
     File dir = new File(extensionsDir);
     if (!dir.exists() && !dir.mkdirs()) {
       System.err.println("Failed to create extensions directory " + extensionsDir);
+      return -1;
     }
     List<String> failedHosts = new ArrayList<>();
     for (String host : ExtensionsShellUtils.getServerHostnames()) {
