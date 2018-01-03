@@ -78,6 +78,8 @@ function create_tarball {
   rm -rf logs/*.log
   # Create the default under storage directory.
   mkdir underFSStorage
+  # Create the default extensions directory.
+  mkdir extensions
   cd ..
   rm -rf "${prefix}"
   mv "${REPO_COPY}" "${prefix}"
