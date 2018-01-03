@@ -25,6 +25,7 @@ import alluxio.client.file.options.LoadMetadataOptions;
 import alluxio.client.file.options.MountOptions;
 import alluxio.client.file.options.RenameOptions;
 import alluxio.client.file.options.SetAttributeOptions;
+import alluxio.client.file.options.UpdateUfsModeOptions;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.AlreadyExistsException;
 import alluxio.exception.status.NotFoundException;
@@ -204,4 +205,13 @@ public interface FileSystemMasterClient extends Client {
    * @param alluxioPath the Alluxio path
    */
   void unmount(AlluxioURI alluxioPath) throws AlluxioStatusException;
+
+  /**
+   * Updates the operation mode for the given ufs path.
+   *
+   * @param ufsPath the ufs path
+   * @param options the options to update ufs operation mode
+   */
+  void updateUfsMode(String ufsPath, UpdateUfsModeOptions options)
+      throws AlluxioStatusException;
 }
