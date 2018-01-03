@@ -25,6 +25,7 @@ import alluxio.ConfigurationRule;
 import alluxio.Constants;
 import alluxio.LoginUserRule;
 import alluxio.PropertyKey;
+import alluxio.clock.ManualClock;
 import alluxio.exception.BlockInfoException;
 import alluxio.exception.DirectoryNotEmptyException;
 import alluxio.exception.ExceptionMessage;
@@ -1919,7 +1920,7 @@ public final class FileSystemMasterTest {
 
   private void startServices() throws Exception {
     mRegistry = new MasterRegistry();
-    mSafeModeManager = new DefaultSafeModeManager();
+    mSafeModeManager = new DefaultSafeModeManager(new ManualClock(), false);
     mJournalSystem = JournalTestUtils.createJournalSystem(mJournalFolder);
     mBlockMaster = new BlockMasterFactory().create(mRegistry, mJournalSystem, mSafeModeManager);
     mExecutorService = Executors
