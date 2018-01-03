@@ -172,7 +172,6 @@ public class AlluxioScheduler implements Scheduler {
                                     .setName("ALLUXIO_MESOS_SITE_PROPERTIES_CONTENT")
                                     .setValue(createAlluxioSiteProperties())
                                     .build())
-                            // TODO(adit): add all environment variables
                             .build()));
         // pre-build resource list here, then use it to build Protos.Task later.
         resources = getMasterRequiredResources(masterCpu, masterMem);
