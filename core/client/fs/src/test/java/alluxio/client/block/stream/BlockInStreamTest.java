@@ -25,6 +25,7 @@ import alluxio.util.proto.ProtoMessage;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.FileInfo;
 import alluxio.wire.WorkerNetAddress;
+
 import io.netty.channel.Channel;
 import org.junit.Assert;
 import org.junit.Before;
@@ -62,7 +63,8 @@ public class BlockInStreamTest {
     WorkerNetAddress dataSource = new WorkerNetAddress();
     BlockInStream.BlockInStreamSource dataSourceType = BlockInStream.BlockInStreamSource.LOCAL;
     InStreamOptions options = new InStreamOptions(new URIStatus(new FileInfo()));
-    BlockInStream stream = BlockInStream.create(mMockContext, info, dataSource, dataSourceType, options);
+    BlockInStream stream =
+        BlockInStream.create(mMockContext, info, dataSource, dataSourceType, options);
     Assert.assertTrue(stream.isShortCircuit());
   }
 
@@ -72,7 +74,8 @@ public class BlockInStreamTest {
     WorkerNetAddress dataSource = new WorkerNetAddress();
     BlockInStream.BlockInStreamSource dataSourceType = BlockInStream.BlockInStreamSource.REMOTE;
     InStreamOptions options = new InStreamOptions(new URIStatus(new FileInfo()));
-    BlockInStream stream = BlockInStream.create(mMockContext, info, dataSource, dataSourceType, options);
+    BlockInStream stream =
+        BlockInStream.create(mMockContext, info, dataSource, dataSourceType, options);
     Assert.assertFalse(stream.isShortCircuit());
   }
 
@@ -82,7 +85,8 @@ public class BlockInStreamTest {
     WorkerNetAddress dataSource = new WorkerNetAddress();
     BlockInStream.BlockInStreamSource dataSourceType = BlockInStream.BlockInStreamSource.UFS;
     InStreamOptions options = new InStreamOptions(new URIStatus(new FileInfo()));
-    BlockInStream stream = BlockInStream.create(mMockContext, info, dataSource, dataSourceType, options);
+    BlockInStream stream =
+        BlockInStream.create(mMockContext, info, dataSource, dataSourceType, options);
     Assert.assertFalse(stream.isShortCircuit());
   }
 
@@ -94,7 +98,8 @@ public class BlockInStreamTest {
       WorkerNetAddress dataSource = new WorkerNetAddress();
       BlockInStream.BlockInStreamSource dataSourceType = BlockInStream.BlockInStreamSource.LOCAL;
       InStreamOptions options = new InStreamOptions(new URIStatus(new FileInfo()));
-      BlockInStream stream = BlockInStream.create(mMockContext, info, dataSource, dataSourceType, options);
+      BlockInStream stream =
+          BlockInStream.create(mMockContext, info, dataSource, dataSourceType, options);
       Assert.assertFalse(stream.isShortCircuit());
     } finally {
       ConfigurationTestUtils.resetConfiguration();
