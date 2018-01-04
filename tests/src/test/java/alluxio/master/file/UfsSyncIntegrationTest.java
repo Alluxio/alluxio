@@ -360,6 +360,70 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
     Assert.assertNotNull(mFileSystem.getStatus(new AlluxioURI(alluxioPath(EXISTING_FILE))));
   }
 
+  @Test
+  public void recursiveSync() throws Exception {
+    Configuration.set(PropertyKey.USER_FILE_METADATA_SYNC_INTERVAL, "-1");
+    Configuration.set(PropertyKey.USER_FILE_METADATA_LOAD_TYPE, "Never");
+
+    // make nested directories/files in UFS
+    new File(ufsPath("/dir1")).mkdirs();
+    new File(ufsPath("/dir1/dir2")).mkdirs();
+    new File(ufsPath("/dir1/dir2/dir3")).mkdirs();
+    String fileA = "/dir1/dir2/fileA";
+    String fileB = "/dir1/dir2/fileB";
+    String fileC = "/dir1/dir2/fileC";
+    writeUfsFile(ufsPath(fileA), 1);
+    writeUfsFile(ufsPath(fileB), 1);
+
+    try {
+      mFileSystem.getStatus(new AlluxioURI(alluxioPath(fileA)));
+      Assert.fail("path should not exist.");
+    } catch (FileDoesNotExistException e) {
+      // expected, continue
+    }
+
+    try {
+      mFileSystem.setAttribute(new AlluxioURI(alluxioPath("/dir1")),
+          SetAttributeOptions.defaults().setRecursive(true).setTtl(55555));
+    } catch (FileDoesNotExistException e) {
+      // expected, continue
+    }
+
+    // Enable UFS sync, before next recursive setAttribute.
+    Configuration.set(PropertyKey.USER_FILE_METADATA_SYNC_INTERVAL, "0");
+    long ttl = 123456789;
+    mFileSystem.setAttribute(new AlluxioURI(alluxioPath("/dir1")),
+        SetAttributeOptions.defaults().setRecursive(true).setTtl(ttl));
+
+    // Verify recursive set TTL by getting info, without sync.
+    Configuration.set(PropertyKey.USER_FILE_METADATA_SYNC_INTERVAL, "-1");
+    URIStatus status = mFileSystem.getStatus(new AlluxioURI(alluxioPath(fileA)));
+    Assert.assertEquals(ttl, status.getTtl());
+
+    // Add UFS fileC and remove existing UFS fileA.
+    writeUfsFile(ufsPath(fileC), 1);
+    Assert.assertTrue(new File(ufsPath(fileA)).delete());
+
+    // Enable UFS sync, before next recursive setAttribute.
+    Configuration.set(PropertyKey.USER_FILE_METADATA_SYNC_INTERVAL, "0");
+    ttl = 987654321;
+    mFileSystem.setAttribute(new AlluxioURI(alluxioPath("/dir1")),
+        SetAttributeOptions.defaults().setRecursive(true).setTtl(ttl));
+
+    // Verify recursive set TTL by getting info, without sync.
+    Configuration.set(PropertyKey.USER_FILE_METADATA_SYNC_INTERVAL, "-1");
+    status = mFileSystem.getStatus(new AlluxioURI(alluxioPath(fileB)));
+    Assert.assertEquals(ttl, status.getTtl());
+
+    // deleted UFS file should not exist.
+    try {
+      mFileSystem.getStatus(new AlluxioURI(alluxioPath(fileA)));
+      Assert.fail("path should not exist.");
+    } catch (FileDoesNotExistException e) {
+      // expected, continue
+    }
+  }
+
   private String ufsPath(String path) {
     return mLocalUfsPath + path;
   }
