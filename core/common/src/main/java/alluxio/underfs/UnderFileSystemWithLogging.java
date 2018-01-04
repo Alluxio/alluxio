@@ -27,6 +27,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.List;
+import java.util.Map;
 
 /**
  * This class forwards all calls to the {@link UnderFileSystem} interface to an internal
@@ -286,6 +287,11 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
   }
 
   @Override
+  public UfsMode getOperationMode(Map<String, UfsMode> physicalUfsState) {
+    return mUnderFileSystem.getOperationMode(physicalUfsState);
+  }
+
+  @Override
   public long getSpace(final String path, final SpaceType type) throws IOException {
     return call(new UfsCallable<Long>() {
       @Override
@@ -350,6 +356,11 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
     });
   }
 
+  @Override
+  public boolean isPathCovered(String ufsPath) {
+    return mUnderFileSystem.isPathCovered(ufsPath);
+  }
+  
   @Override
   public boolean isObjectStorage() {
     return mUnderFileSystem.isObjectStorage();
