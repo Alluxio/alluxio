@@ -48,6 +48,6 @@ Alluxio的Worker以块的形式存储数据，并通过读或创建数据块的�
 
 #### Client
 
-Alluxio的Client为用户提供了一个与Alluxio服务端交互的入口。它为用户暴露了一组[文件系统API](Clients-Java-Native.html)。Client通过发起与Master
+Alluxio的Client为用户提供了一个与Alluxio服务端交互的入口。它为用户暴露了一组[文件系统API](Clients-Alluxio-Java.html)。Client通过发起与Master
 的通信来执行元数据操作，并且通过与Worker通信来读取Alluxio上的数据或者向Alluxio上写数据。存储在底层存储系统上而不是Alluxio上的数据可以直接通过
 底层存储客户端访问。
