@@ -360,7 +360,7 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
   public boolean isPathCovered(String ufsPath) {
     return mUnderFileSystem.isPathCovered(ufsPath);
   }
-  
+
   @Override
   public boolean isObjectStorage() {
     return mUnderFileSystem.isObjectStorage();
