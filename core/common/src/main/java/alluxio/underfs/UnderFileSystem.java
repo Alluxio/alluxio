@@ -312,6 +312,15 @@ public interface UnderFileSystem extends Closeable {
   String getFingerprint(String path);
 
   /**
+   * A logical UFS may be composed of one or more physical UFSs. This method is used to determine
+   * the operation mode of the logical UFS based on the physical UFS state.
+   *
+   * @param physicalUfsState the state of all mounted physical UFS
+   * @return the desired operation mode for this UFS
+   */
+  UfsMode getOperationMode(Map<String, UfsMode> physicalUfsState);
+
+  /**
    * Queries the under file system about the space of the indicated path (e.g., space left, space
    * used and etc).
    *
@@ -354,6 +363,14 @@ public interface UnderFileSystem extends Closeable {
    * @return true if the path exists and is a file, false otherwise
    */
   boolean isFile(String path) throws IOException;
+
+  /**
+   * Checks if the ufs path is one of the underlying physical UFSs.
+   *
+   * @param ufsPath the ufs path w/ only scheme and authority
+   * @return true if physical UFS is covered by this UFS, false otherwise
+   */
+  boolean isPathCovered(String ufsPath);
 
   /**
    * @return true if under storage is an object store, false otherwise

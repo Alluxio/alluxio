@@ -31,6 +31,7 @@ import java.io.OutputStream;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Queue;
 
 import javax.annotation.Nullable;
@@ -84,6 +85,25 @@ public abstract class BaseUnderFileSystem implements UnderFileSystem {
       LOG.warn("Failed fingerprint. path: {} error: {}", path, e.toString());
       return Constants.INVALID_UFS_FINGERPRINT;
     }
+  }
+
+  @Override
+  public UfsMode getOperationMode(Map<String, UfsMode> physicalUfsState) {
+    for (Map.Entry<String, UfsMode> entry : physicalUfsState.entrySet()) {
+      if (isPathCovered(entry.getKey())) {
+        return entry.getValue();
+      }
+    }
+    return UfsMode.READ_WRITE;
+  }
+
+  @Override
+  public boolean isPathCovered(String ufsPath) {
+    AlluxioURI ufsUri = new AlluxioURI(ufsPath);
+    Preconditions.checkArgument(PathUtils.normalizePath(ufsUri.getPath(), AlluxioURI.SEPARATOR)
+        .equals(AlluxioURI.SEPARATOR));
+    return mUri.getScheme().equals(ufsUri.getScheme())
+        && mUri.getAuthority().equals(ufsUri.getAuthority());
   }
 
   @Override
