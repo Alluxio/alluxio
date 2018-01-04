@@ -15,6 +15,8 @@ import java.util.Map;
 
 import alluxio.cli.AbstractShell;
 import alluxio.cli.Command;
+import alluxio.client.file.FileSystemMasterClient;
+import alluxio.master.MasterClientConfig;
 import alluxio.util.ConfigurationUtils;
 
 /**
@@ -49,6 +51,7 @@ public final class FileSystemAdminShell extends AbstractShell {
 
   @Override
   protected Map<String, Command> loadCommands() {
-    return FileSystemAdminShellUtils.loadCommands();
+    return FileSystemAdminShellUtils
+        .loadCommands(FileSystemMasterClient.Factory.create(MasterClientConfig.defaults()));
   }
 }

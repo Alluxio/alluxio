@@ -13,6 +13,7 @@ package alluxio.cli.fsadmin;
 
 import alluxio.cli.Command;
 import alluxio.cli.CommandUtils;
+import alluxio.client.file.FileSystemMasterClient;
 
 import java.util.Map;
 
@@ -32,7 +33,8 @@ public final class FileSystemAdminShellUtils {
    *
    * @return a mapping from command name to command instance
    */
-  public static Map<String, Command> loadCommands() {
-    return CommandUtils.loadCommands(FileSystemAdminShell.class.getPackage().getName(), null, null);
+  public static Map<String, Command> loadCommands(FileSystemMasterClient masterClient) {
+    return CommandUtils.loadCommands(FileSystemAdminShell.class.getPackage().getName(),
+        new Class[] {FileSystemMasterClient.class}, new Object[] {masterClient});
   }
 }

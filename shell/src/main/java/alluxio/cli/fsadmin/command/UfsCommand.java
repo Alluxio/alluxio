@@ -19,7 +19,7 @@ import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 
-import alluxio.cli.AbstractCommand;
+import alluxio.client.file.FileSystemMasterClient;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.InvalidArgumentException;
@@ -28,7 +28,7 @@ import alluxio.exception.status.InvalidArgumentException;
  * Update attributes for an existing mount point.
  */
 @ThreadSafe
-public final class UfsCommand extends AbstractCommand {
+public final class UfsCommand extends AbstractFileSystemAdminCommand {
 
   private static final Option MODE_OPTION =
       Option.builder()
@@ -39,10 +39,10 @@ public final class UfsCommand extends AbstractCommand {
           .build();
 
   /**
-   * @param fs the filesystem of Alluxio
+   * @param masterClient the filesystem master client
    */
-  public UfsCommand() {
-    super();
+  public UfsCommand(FileSystemMasterClient masterClient) {
+    super(masterClient);
   }
 
   @Override
