@@ -12,6 +12,7 @@
 package alluxio.client.file.options;
 
 import alluxio.annotation.PublicApi;
+import alluxio.thrift.UpdateUfsModeTOptions;
 import alluxio.underfs.UnderFileSystem.UfsMode;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -36,6 +37,27 @@ public final class UpdateUfsModeOptions {
     return new UpdateUfsModeOptions();
   }
 
+  /**
+   * Constructs a mount options from thrift options.
+   *
+   * @param options the mount options to modify
+   */
+  public UpdateUfsModeOptions(UpdateUfsModeTOptions options) {
+    if (options.isSetUfsMode()) {
+      switch (options.getUfsMode()) {
+        case NoAccess:
+          mUfsMode = UfsMode.NO_ACCESS;
+          break;
+        case ReadOnly:
+          mUfsMode = UfsMode.READ_ONLY;
+          break;
+        case ReadWrite:
+          mUfsMode = UfsMode.READ_WRITE;
+          break;
+      }
+    }
+  }
+
   private UpdateUfsModeOptions() {
     mUfsMode = UfsMode.READ_WRITE;
   }
@@ -54,6 +76,27 @@ public final class UpdateUfsModeOptions {
   public UpdateUfsModeOptions setUfsMode(UfsMode ufsMode) {
     mUfsMode = ufsMode;
     return this;
+  }
+
+  /**
+   * @return Thrift representation of the options
+   */
+  public UpdateUfsModeTOptions toThrift() {
+    UpdateUfsModeTOptions tOptions = new UpdateUfsModeTOptions();
+    switch (mUfsMode) {
+      case NO_ACCESS:
+        tOptions.setUfsMode(alluxio.thrift.UfsMode.NoAccess);
+        break;
+      case READ_ONLY:
+        tOptions.setUfsMode(alluxio.thrift.UfsMode.ReadOnly);
+        break;
+      case READ_WRITE:
+        tOptions.setUfsMode(alluxio.thrift.UfsMode.ReadWrite);
+        break;
+      default:
+        break;
+    }
+    return tOptions;
   }
 
   @Override
