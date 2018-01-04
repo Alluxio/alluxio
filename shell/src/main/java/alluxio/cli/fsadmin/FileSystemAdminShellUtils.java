@@ -13,7 +13,6 @@ package alluxio.cli.fsadmin;
 
 import alluxio.cli.Command;
 import alluxio.cli.CommandUtils;
-import alluxio.cli.extensions.ExtensionsShell;
 
 import java.util.Map;
 

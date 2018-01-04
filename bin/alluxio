@@ -268,7 +268,7 @@ function main {
   ;;
   "fsadmin")
     CLASS="alluxio.cli.fsadmin.FileSystemAdminShell"
-    CLASSPATH=${ALLUXIO_SERVER_CLASSPATH}
+    CLASSPATH=${ALLUXIO_CLIENT_CLASSPATH}
     runJavaClass "$@"
   ;;
   "getConf")
