@@ -107,9 +107,8 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
     // Construct the partial read request
     Protocol.ReadRequest.Builder builder =
         Protocol.ReadRequest.newBuilder().setBlockId(blockId).setPromote(promote);
-    if (status.isPersisted()) { // Add UFS fallback options
-      builder.setOpenUfsBlockOptions(options.getOpenUfsBlockOptions(blockId));
-    }
+    // Add UFS fallback options
+    builder.setOpenUfsBlockOptions(options.getOpenUfsBlockOptions(blockId));
 
     boolean shortCircuit = Configuration.getBoolean(PropertyKey.USER_SHORT_CIRCUIT_ENABLED);
     boolean sourceSupportsDomainSocket = NettyUtils.isDomainSocketSupported(dataSource);
@@ -132,7 +131,7 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
     LOG.debug("Creating netty input stream for block {} @ {} from client {} reading through {}",
         blockId, dataSource, NetworkAddressUtils.getClientHostName(), dataSource);
     return createNettyBlockInStream(context, dataSource, dataSourceType, builder.buildPartial(),
-        blockSize);
+        blockSize, options);
   }
 
   /**
@@ -162,11 +161,12 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
    * @param blockSource the source location of the block
    * @param blockSize the block size
    * @param readRequestPartial the partial read request
+   * @param options the in stream options
    * @return the {@link BlockInStream} created
    */
   private static BlockInStream createNettyBlockInStream(FileSystemContext context,
       WorkerNetAddress address, BlockInStreamSource blockSource,
-      Protocol.ReadRequest readRequestPartial, long blockSize) {
+      Protocol.ReadRequest readRequestPartial, long blockSize, InStreamOptions options) {
     long packetSize =
         Configuration.getBytes(PropertyKey.USER_NETWORK_NETTY_READER_PACKET_SIZE_BYTES);
     PacketReader.Factory factory = new NettyPacketReader.Factory(context, address,

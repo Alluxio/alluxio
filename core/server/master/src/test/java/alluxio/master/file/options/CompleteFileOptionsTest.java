@@ -11,7 +11,7 @@
 
 package alluxio.master.file.options;
 
-import alluxio.CommonTestUtils;
+import alluxio.test.util.CommonUtils;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -50,6 +50,6 @@ public final class CompleteFileOptionsTest {
 
   @Test
   public void equalsTest() throws Exception {
-    CommonTestUtils.testEquals(CompleteFileOptions.class);
+    CommonUtils.testEquals(CompleteFileOptions.class);
   }
 }
