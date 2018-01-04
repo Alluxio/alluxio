@@ -23,6 +23,7 @@ import alluxio.master.DefaultSafeModeManager;
 import alluxio.master.MasterContext;
 import alluxio.master.MasterRegistry;
 import alluxio.master.SafeModeManager;
+import alluxio.master.TestSafeModeManager;
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.noop.NoopJournalSystem;
 import alluxio.thrift.Command;
@@ -87,7 +88,7 @@ public class BlockMasterTest {
   @Before
   public void before() throws Exception {
     mRegistry = new MasterRegistry();
-    mSafeModeManager = new DefaultSafeModeManager(new ManualClock(), false);
+    mSafeModeManager = new TestSafeModeManager();
     JournalSystem journalSystem = new NoopJournalSystem();
     mClock = new ManualClock();
     mExecutorService =

@@ -40,18 +40,16 @@ public class DefaultSafeModeManager implements SafeModeManager {
    * Creates {@link DefaultSafeModeManager} with default clock.
    */
   public DefaultSafeModeManager() {
-    this(new ElapsedTimeClock(), true);
+    this(new ElapsedTimeClock());
   }
 
   /**
    * Creates {@link DefaultSafeModeManager} with given clock.
    *
    * @param clock a {@link Clock} for calculating elapsed time
-   * @param enterSafeMode whether to start in safe mode
    */
-  public DefaultSafeModeManager(Clock clock, boolean enterSafeMode) {
+  public DefaultSafeModeManager(Clock clock) {
     mClock = clock;
-    mWorkerConnectWaitStartTimeMs.set(null, enterSafeMode);
   }
 
   @Override
@@ -80,6 +78,9 @@ public class DefaultSafeModeManager implements SafeModeManager {
     if (mClock.millis() - startTime < waitTime) {
       return true;
     }
-    return !mWorkerConnectWaitStartTimeMs.compareAndSet(startTime, null, true, false);
+
+    mWorkerConnectWaitStartTimeMs.compareAndSet(startTime, null, true, false);
+
+    return mWorkerConnectWaitStartTimeMs.isMarked();
   }
 }
