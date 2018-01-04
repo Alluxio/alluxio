@@ -78,11 +78,11 @@ Similar to above, add additional Alluxio properties to `core-site.xml` of Hadoop
 </property>
 ```
 
-Alternatively, you can also append the path to [`alluxio-site.properties`](Configuration-Settings.html) to Presto's JVM config at `etc/jvm.config` under Presto folder. The advantage of this approach is to have all the Alluxio properties set within the same file of `alluxio-site.properties`.
+Alternatively, you can also append the conf path (i.e. `/<PATH_TO_ALLUXIO>/conf`) containing [`alluxio-site.properties`](Configuration-Settings.html) to Presto's JVM config at `etc/jvm.config` under Presto folder. The advantage of this approach is to have all the Alluxio properties set within the same file of `alluxio-site.properties`.
 
 ```bash
 ...
--Xbootclasspath/p:<path-to-alluxio-site-properties>
+-Xbootclasspath/p:<path-to-alluxio-conf>
 ```
 
 Also, it's recommended to increase `alluxio.user.network.netty.timeout.ms` to a bigger value (e.g. 10 mins) to avoid the timeout
