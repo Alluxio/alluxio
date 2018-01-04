@@ -11,10 +11,10 @@
 
 package alluxio.cli.fsadmin.command;
 
-import javax.annotation.concurrent.ThreadSafe;
-
 import alluxio.cli.AbstractCommand;
 import alluxio.client.file.FileSystemMasterClient;
+
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * The base class for all the FileSystemAdmin {@link alluxio.cli.Command} classes.

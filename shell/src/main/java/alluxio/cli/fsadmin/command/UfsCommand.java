@@ -11,14 +11,6 @@
 
 package alluxio.cli.fsadmin.command;
 
-import java.io.IOException;
-
-import javax.annotation.concurrent.ThreadSafe;
-
-import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.Option;
-import org.apache.commons.cli.Options;
-
 import alluxio.AlluxioURI;
 import alluxio.client.file.FileSystemMasterClient;
 import alluxio.client.file.options.UpdateUfsModeOptions;
@@ -27,6 +19,14 @@ import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.io.PathUtils;
+
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.Option;
+import org.apache.commons.cli.Options;
+
+import java.io.IOException;
+
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Update attributes for an existing mount point.
@@ -69,13 +69,14 @@ public final class UfsCommand extends AbstractFileSystemAdminCommand {
     String[] args = cl.getArgs();
     String ufsPath = args[0];
     AlluxioURI uri = new AlluxioURI(ufsPath);
-    if (!PathUtils.normalizePath(uri.getPath(), AlluxioURI.SEPARATOR).equals(AlluxioURI.SEPARATOR)) {
+    if (!PathUtils.normalizePath(uri.getPath(), AlluxioURI.SEPARATOR)
+        .equals(AlluxioURI.SEPARATOR)) {
       System.out.println("The ufs path should have only scheme and authority but no path.");
       return -1;
     }
     if (cl.hasOption(MODE_OPTION.getLongOpt())) {
       UnderFileSystem.UfsMode mode;
-      switch(cl.getOptionValue(MODE_OPTION.getLongOpt())) {
+      switch (cl.getOptionValue(MODE_OPTION.getLongOpt())) {
         case "noAccess":
           mode = UnderFileSystem.UfsMode.NO_ACCESS;
           break;

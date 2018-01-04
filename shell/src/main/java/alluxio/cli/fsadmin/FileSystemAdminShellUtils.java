@@ -31,6 +31,7 @@ public final class FileSystemAdminShellUtils {
    * Gets all {@link Command} instances in the same package as {@link ExtensionsShell} and loads
    * them into a map.
    *
+   * @param masterClient the client to connect to Alluxio master
    * @return a mapping from command name to command instance
    */
   public static Map<String, Command> loadCommands(FileSystemMasterClient masterClient) {

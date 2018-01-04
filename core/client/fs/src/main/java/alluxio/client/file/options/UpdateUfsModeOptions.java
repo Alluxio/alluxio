@@ -51,7 +51,7 @@ public final class UpdateUfsModeOptions {
         case ReadOnly:
           mUfsMode = UfsMode.READ_ONLY;
           break;
-        case ReadWrite:
+        default:
           mUfsMode = UfsMode.READ_WRITE;
           break;
       }

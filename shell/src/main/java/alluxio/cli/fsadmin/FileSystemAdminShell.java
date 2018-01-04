@@ -11,13 +11,13 @@
 
 package alluxio.cli.fsadmin;
 
-import java.util.Map;
-
 import alluxio.cli.AbstractShell;
 import alluxio.cli.Command;
 import alluxio.client.file.FileSystemMasterClient;
 import alluxio.master.MasterClientConfig;
 import alluxio.util.ConfigurationUtils;
+
+import java.util.Map;
 
 /**
  * Shell for admin to manage file system.
