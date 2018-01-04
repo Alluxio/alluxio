@@ -9,7 +9,7 @@ priority: 5
 * 内容列表
 {:toc}
 
-Alluxio有一个Python客户端，这个客户端可以通过它的REST API来和Alluxio交流。它发布了一个和本地的Java API类似的API。通过看这篇doc来了解有关所有可用方法的详细文档。通过看例子来了解如何在Alluxio上执行基本的文件系统操作。
+Alluxio有一个Python客户端，这个客户端可以通过它的REST API来和Alluxio交流。它发布了一个和Alluxio的Java API类似的API。通过看这篇doc来了解有关所有可用方法的详细文档。通过看例子来了解如何在Alluxio上执行基本的文件系统操作。
 
 # Alluxio代理依赖
 这个Python客户端通过由Alluxio代理提供的REST API来和Alluxio相互交流。
@@ -57,21 +57,21 @@ def main():
     py_test_nested_dir = '/py-test-dir/nested'
     py_test = py_test_nested_dir + '/py-test'
     py_test_renamed = py_test_root_dir + '/py-test-renamed'
-    
+
     client = alluxio.Client('localhost', 39999)
-    
+
     info("creating directory %s" % py_test_nested_dir)
     opt = option.CreateDirectory(recursive=True)
     client.create_directory(py_test_nested_dir, opt)
     info("done")
-    
+
     info("writing to %s" % py_test)
     with client.open(py_test, 'w') as f:
         f.write('Alluxio works with Python!\n')
         with open(sys.argv[0]) as this_file:
             f.write(this_file)
     info("done")
-    
+
     info("getting status of %s" % py_test)
     stat = client.get_status(py_test)
     print pretty_json(stat.json())
