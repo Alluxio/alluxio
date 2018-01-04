@@ -69,6 +69,7 @@ public final class LocalFileBlockReader implements BlockReader {
    * decrease the file reader usage count.
    */
   public void decreaseUsageCount() {
+    Preconditions.checkState(mUsageCount > 0);
     mUsageCount--;
   }
 

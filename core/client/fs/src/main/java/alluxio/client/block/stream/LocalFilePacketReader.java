@@ -155,7 +155,6 @@ public final class LocalFilePacketReader implements PacketReader {
         return;
       }
       if (mReader != null) {
-        Preconditions.checkState(!mReader.isClosed() && mReader.getUsageCount() == 0);
         mReader.close();
       }
       Protocol.LocalBlockCloseRequest request =
