@@ -1322,6 +1322,26 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue("5min")
           .setDescription("Timeout to open a block from UFS.")
           .build();
+  public static final PropertyKey WORKER_UFS_INSTREAM_CACHE_ENABLED =
+      new Builder(Name.WORKER_UFS_INSTREAM_CACHE_ENABLED)
+          .setDefaultValue("true")
+          .setDescription("Enable caching for seekable under storage input stream, "
+              + "so that subsequent seek operations on the same file will reuse "
+              + "the cached input stream. This will improve position read performance "
+              + "as the open operations of some under file system would be expensive. "
+              + "The cached input stream would be stale, when the UFS file is modified "
+              + "without notifying alluxio. ")
+          .build();
+  public static final PropertyKey WORKER_UFS_INSTREAM_CACHE_EXPIRARTION_TIME =
+      new Builder(Name.WORKER_UFS_INSTREAM_CACHE_EXPIRATION_TIME)
+          .setDefaultValue("5min")
+          .setDescription("Cached UFS instream expiration time.")
+          .build();
+  public static final PropertyKey WORKER_UFS_INSTREAM_CACHE_MAX_SIZE =
+      new Builder(Name.WORKER_UFS_INSTREAM_CACHE_MAX_SIZE)
+          .setDefaultValue("5000")
+          .setDescription("The max entries in the UFS instream cache.")
+          .build();
 
   //
   // Proxy related properties
@@ -1752,7 +1772,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey USER_UFS_DELEGATION_READ_BUFFER_SIZE_BYTES =
       new Builder(Name.USER_UFS_DELEGATION_READ_BUFFER_SIZE_BYTES)
           .setDefaultValue("8MB")
-          .setDescription("Size of the read buffer when reading from the ufs through the "
+          .setDescription("Size of the read buffer when reading from the UFS through the "
               + "Alluxio worker. Each read request will fetch at least this many bytes, "
               + "unless the read reaches the end of the file.")
           .build();
@@ -1763,7 +1783,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey USER_UFS_DELEGATION_WRITE_BUFFER_SIZE_BYTES =
       new Builder(Name.USER_UFS_DELEGATION_WRITE_BUFFER_SIZE_BYTES)
           .setDefaultValue("2MB")
-          .setDescription("Size of the write buffer when writing to the ufs through the "
+          .setDescription("Size of the write buffer when writing to the UFS through the "
               + "Alluxio worker. Each write request will write at least this many bytes, "
               + "unless the write is at the end of the file.")
           .build();
@@ -2335,6 +2355,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String WORKER_WEB_PORT = "alluxio.worker.web.port";
     public static final String WORKER_UFS_BLOCK_OPEN_TIMEOUT_MS =
         "alluxio.worker.ufs.block.open.timeout";
+    public static final String WORKER_UFS_INSTREAM_CACHE_EXPIRATION_TIME =
+        "alluxio.worker.ufs.instream.cache.expiration.time";
+    public static final String WORKER_UFS_INSTREAM_CACHE_ENABLED =
+        "alluxio.worker.ufs.instream.cache.enabled";
+    public static final String WORKER_UFS_INSTREAM_CACHE_MAX_SIZE =
+        "alluxio.worker.ufs.instream.cache.max.size";
 
     //
     // Proxy related properties

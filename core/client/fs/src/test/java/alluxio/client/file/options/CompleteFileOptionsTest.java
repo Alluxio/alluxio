@@ -11,7 +11,7 @@
 
 package alluxio.client.file.options;
 
-import alluxio.CommonTestUtils;
+import alluxio.test.util.CommonUtils;
 import alluxio.thrift.CompleteFileTOptions;
 
 import org.junit.Assert;
@@ -58,6 +58,6 @@ public final class CompleteFileOptionsTest {
 
   @Test
   public void equalsTest() throws Exception {
-    CommonTestUtils.testEquals(CompleteFileOptions.class);
+    CommonUtils.testEquals(CompleteFileOptions.class);
   }
 }

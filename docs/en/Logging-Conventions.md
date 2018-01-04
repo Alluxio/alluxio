@@ -143,11 +143,11 @@ alluxio logLevel --logName=alluxio.heartbeat.HeartbeatContext --target=workers
 
 ### Client-side Logging Configuration
 
-Often it's useful to change the logLevel of the Alluxio client running in the compute framework (e.g. Spark, Presto) process, and save it to a file for debugging. To achieve this, you can pass the following Java options to the compute 
+Often it's useful to change the logLevel of the Alluxio client running in the compute framework (e.g. Spark, Presto) process, and save it to a file for debugging. To achieve this, you can pass the following Java options to the compute
 framework process.
 
 For example, the options `-Dalluxio.logs.dir=/var/alluxio/ -Dalluxio.logger.type=USER_LOGGER -Dlog4j.configuration=/tmp/
-alluxio/conf/log4j.properties` will instruct Alluxio client to use the log4j configuration in the Alluxio's conf path and 
+alluxio/conf/log4j.properties` will instruct Alluxio client to use the log4j configuration in the Alluxio's conf path and
 output the log to a file `user_USER_NAME.log` at the path `/var/alluxio/`, where `USER_NAME` is the user that starts the client program. If the client is not on the same machine where Alluxio is installed, you can make a copy of the file in `conf/log4j.properties` to the client machine, and pass its path to the option `log4j.configuration`. If you do not want to override the application's `log4j.properties` path, alternatively you can append the followings to its `log4j.properties` file:
 
 ```

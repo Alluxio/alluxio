@@ -6,6 +6,9 @@ group: Clients
 priority: 5
 ---
 
+* Table of Contents
+{:toc}
+
 Alluxio has a [Python Client](https://github.com/Alluxio/alluxio-py) for interacting with Alluxio through its
 [REST API](Clients-Rest.html). The Python client exposes an API similar to the [Alluxio Java API](Clients-Alluxio-Java.html).
 See the [doc](http://alluxio-py.readthedocs.io) for detailed documentation about all available

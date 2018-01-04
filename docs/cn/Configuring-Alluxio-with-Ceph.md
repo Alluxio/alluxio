@@ -50,8 +50,6 @@ $ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 `<swift-use-public>`可能的值为`true`，`false`。如果使用本地的Ceph RGW认证，指定`<swift-auth-model>`为`swiftauth`。指定
 `<swift-auth-url>`为`http://<rgw-hostname>:8090/auth/1.0`
 
-或者，你也可以在`conf/alluxio-env.sh`文件中设置这些配置，更多的参数配置细节可以查阅[Configuration Settings](Configuration-Settings.html#environment-variables)
-
 ## 使用Ceph本地运行Alluxio
 
 完成所有的配置之后，你可以本地运行Alluxio,观察是否一切运行正常。
