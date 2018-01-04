@@ -36,6 +36,8 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
+import java.util.Collections;
+
 /**
  * Tests the {@link BlockInStream} class's static methods.
  */
@@ -43,50 +45,50 @@ import org.powermock.modules.junit4.PowerMockRunner;
 @PrepareForTest({FileSystemContext.class, NettyRPC.class, NettyUtils.class})
 public class BlockInStreamTest {
   private FileSystemContext mMockContext;
+  private BlockInfo mInfo;
+  private InStreamOptions mOptions;
 
   @Before
   public void before() throws Exception {
+    Channel mockChannel = PowerMockito.mock(Channel.class);
     PowerMockito.mockStatic(NettyRPC.class);
     PowerMockito.when(
         NettyRPC.call(Matchers.any(NettyRPCContext.class), Matchers.any(ProtoMessage.class)))
         .thenReturn(new ProtoMessage(Protocol.LocalBlockOpenResponse.getDefaultInstance()));
     mMockContext = PowerMockito.mock(FileSystemContext.class);
     PowerMockito.when(mMockContext.acquireNettyChannel(Matchers.any(WorkerNetAddress.class)))
-        .thenReturn(null);
+        .thenReturn(mockChannel);
     PowerMockito.doNothing().when(mMockContext)
         .releaseNettyChannel(Matchers.any(WorkerNetAddress.class), Matchers.any(Channel.class));
+    mInfo = new BlockInfo().setBlockId(1);
+    mOptions = new InStreamOptions(new URIStatus(new FileInfo().setBlockIds(Collections
+        .singletonList(1L))));
   }
 
   @Test
   public void createShortCircuit() throws Exception {
-    BlockInfo info = new BlockInfo();
     WorkerNetAddress dataSource = new WorkerNetAddress();
     BlockInStream.BlockInStreamSource dataSourceType = BlockInStream.BlockInStreamSource.LOCAL;
-    InStreamOptions options = new InStreamOptions(new URIStatus(new FileInfo()));
     BlockInStream stream =
-        BlockInStream.create(mMockContext, info, dataSource, dataSourceType, options);
+        BlockInStream.create(mMockContext, mInfo, dataSource, dataSourceType, mOptions);
     Assert.assertTrue(stream.isShortCircuit());
   }
 
   @Test
   public void createRemote() throws Exception {
-    BlockInfo info = new BlockInfo();
     WorkerNetAddress dataSource = new WorkerNetAddress();
     BlockInStream.BlockInStreamSource dataSourceType = BlockInStream.BlockInStreamSource.REMOTE;
-    InStreamOptions options = new InStreamOptions(new URIStatus(new FileInfo()));
     BlockInStream stream =
-        BlockInStream.create(mMockContext, info, dataSource, dataSourceType, options);
+        BlockInStream.create(mMockContext, mInfo, dataSource, dataSourceType, mOptions);
     Assert.assertFalse(stream.isShortCircuit());
   }
 
   @Test
   public void createUfs() throws Exception {
-    BlockInfo info = new BlockInfo();
     WorkerNetAddress dataSource = new WorkerNetAddress();
     BlockInStream.BlockInStreamSource dataSourceType = BlockInStream.BlockInStreamSource.UFS;
-    InStreamOptions options = new InStreamOptions(new URIStatus(new FileInfo()));
     BlockInStream stream =
-        BlockInStream.create(mMockContext, info, dataSource, dataSourceType, options);
+        BlockInStream.create(mMockContext, mInfo, dataSource, dataSourceType, mOptions);
     Assert.assertFalse(stream.isShortCircuit());
   }
 
@@ -94,12 +96,10 @@ public class BlockInStreamTest {
   public void createShortCircuitDisabled() throws Exception {
     Configuration.set(PropertyKey.USER_SHORT_CIRCUIT_ENABLED, false);
     try {
-      BlockInfo info = new BlockInfo();
       WorkerNetAddress dataSource = new WorkerNetAddress();
       BlockInStream.BlockInStreamSource dataSourceType = BlockInStream.BlockInStreamSource.LOCAL;
-      InStreamOptions options = new InStreamOptions(new URIStatus(new FileInfo()));
       BlockInStream stream =
-          BlockInStream.create(mMockContext, info, dataSource, dataSourceType, options);
+          BlockInStream.create(mMockContext, mInfo, dataSource, dataSourceType, mOptions);
       Assert.assertFalse(stream.isShortCircuit());
     } finally {
       ConfigurationTestUtils.resetConfiguration();
@@ -111,12 +111,10 @@ public class BlockInStreamTest {
     PowerMockito.mockStatic(NettyUtils.class);
     PowerMockito.when(NettyUtils.isDomainSocketSupported(Matchers.any(WorkerNetAddress.class)))
         .thenReturn(true);
-    BlockInfo info = new BlockInfo();
     WorkerNetAddress dataSource = new WorkerNetAddress();
     BlockInStream.BlockInStreamSource dataSourceType = BlockInStream.BlockInStreamSource.LOCAL;
-    InStreamOptions options = new InStreamOptions(new URIStatus(new FileInfo()));
     BlockInStream stream =
-        BlockInStream.create(mMockContext, info, dataSource, dataSourceType, options);
+        BlockInStream.create(mMockContext, mInfo, dataSource, dataSourceType, mOptions);
     Assert.assertFalse(stream.isShortCircuit());
   }
 }
