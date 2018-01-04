@@ -237,6 +237,7 @@ public enum ExceptionMessage {
       "Mount path {0} shadows an existing path in the default underlying filesystem"),
   MOUNT_READONLY("A write operation on {0} is under a readonly mount point {1}"),
   UFS_PATH_DOES_NOT_EXIST("Ufs path {0} does not exist"),
+  UFS_PATH_IS_NOT_MOUNTED("Ufs path {0} is not mounted"),
 
   // key-value
   KEY_VALUE_TOO_LARGE("Unable to put key-value pair: key {0} bytes, value {1} bytes"),

@@ -11,6 +11,15 @@
 
 package alluxio.underfs;
 
+import alluxio.exception.ExceptionMessage;
+import alluxio.exception.InvalidPathException;
+import alluxio.util.UnderFileSystemUtils;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.concurrent.ConcurrentHashMap;
+
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -18,10 +27,40 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class MasterUfsManager extends AbstractUfsManager {
+  private static final Logger LOG = LoggerFactory.getLogger(MasterUfsManager.class);
+
+  // The physical ufs state for all active mounts if not the default
+  private ConcurrentHashMap<String, UnderFileSystem.UfsMode> physicalUfsState =
+      new ConcurrentHashMap<>();
 
   /**
    * Constructs the instance of {@link MasterUfsManager}.
    */
   public MasterUfsManager() {}
 
+  @Override
+  public void removeMount(long mountId) {
+    super.removeMount(mountId);
+    // TODO(adit): Remove ufs mode state any key in physicalUfsState is not active anymore
+  }
+
+  /**
+   * Set the operation mode the given physical ufs.
+   *
+   * @param ufsPath the physical ufs path (scheme and authority only)
+   * @param ufsMode the ufs operation mode
+   * @throws InvalidPathException if no managed ufs covers the given path
+   */
+  public void setUfsMode(String ufsPath, UnderFileSystem.UfsMode ufsMode)
+      throws InvalidPathException {
+    LOG.info("Set ufs mode for {} to {}", ufsPath, ufsMode);
+    for (UnderFileSystem ufs : mUnderFileSystemMap.values()) {
+      if(ufs.isPathCovered(ufsPath)) {
+        physicalUfsState.put(UnderFileSystemUtils.getPhysicalUfsPath(ufsPath), ufsMode);
+        return;
+      }
+    }
+    // No managed ufs uses the given physical ufs path
+    throw new InvalidPathException(ExceptionMessage.UFS_PATH_IS_NOT_MOUNTED.getMessage(ufsPath));
+  }
 }

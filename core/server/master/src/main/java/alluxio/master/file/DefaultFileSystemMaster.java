@@ -304,7 +304,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
   private final AsyncPersistHandler mAsyncPersistHandler;
 
   /** The manager of all ufs. */
-  private final UfsManager mUfsManager;
+  private final MasterUfsManager mUfsManager;
 
   /** This caches absent paths in the UFS. */
   private final UfsAbsentPathCache mUfsAbsentPathCache;
@@ -3379,7 +3379,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
   @Override
   public void updateUfsMode(String ufsPath, UnderFileSystem.UfsMode ufsMode)
       throws InvalidPathException {
-    // TODO(adit):
+    mUfsManager.setUfsMode(ufsPath, ufsMode);
   }
 
   /**

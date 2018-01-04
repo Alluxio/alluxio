@@ -14,6 +14,7 @@ package alluxio.util;
 import alluxio.AlluxioURI;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.DeleteOptions;
+import alluxio.util.io.PathUtils;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -135,6 +136,22 @@ public final class UnderFileSystemUtils {
    */
   public static String getBucketName(AlluxioURI uri) {
     return uri.getAuthority();
+  }
+
+  /**
+   * Get the physical ufs represented by path.
+   *
+   * @param ufsPath ufs path which may include folder
+   * @return the physical ufs path
+   */
+  public static String getPhysicalUfsPath(String ufsPath) {
+    String physicalUfsPath = ufsPath;
+    AlluxioURI uri = new AlluxioURI(ufsPath);
+    // Strip the folder path from ufsPath
+    if (uri.getPath() != null) {
+      physicalUfsPath = physicalUfsPath.substring(0, physicalUfsPath.lastIndexOf(uri.getPath()));
+    }
+    return PathUtils.normalizePath(physicalUfsPath, AlluxioURI.SEPARATOR);
   }
 
   /**

@@ -86,7 +86,7 @@ public abstract class AbstractUfsManager implements UfsManager {
    * instances, each keyed by their unique combination of Uri and conf information. This map
    * helps efficiently identify if a UFS instance in request should be created or can be reused.
    */
-  private final ConcurrentHashMap<Key, UnderFileSystem> mUnderFileSystemMap =
+  protected final ConcurrentHashMap<Key, UnderFileSystem> mUnderFileSystemMap =
       new ConcurrentHashMap<>();
   /**
    * Maps from mount id to {@link UfsInfo} instances. This map helps efficiently retrieve

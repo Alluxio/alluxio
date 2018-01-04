@@ -19,6 +19,7 @@ import alluxio.underfs.options.DeleteOptions;
 import alluxio.underfs.options.ListOptions;
 import alluxio.underfs.options.MkdirsOptions;
 import alluxio.underfs.options.OpenOptions;
+import alluxio.util.UnderFileSystemUtils;
 import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Preconditions;
@@ -102,8 +103,8 @@ public abstract class BaseUnderFileSystem implements UnderFileSystem {
     AlluxioURI ufsUri = new AlluxioURI(ufsPath);
     Preconditions.checkArgument(PathUtils.normalizePath(ufsUri.getPath(), AlluxioURI.SEPARATOR)
         .equals(AlluxioURI.SEPARATOR));
-    return mUri.getScheme().equals(ufsUri.getScheme())
-        && mUri.getAuthority().equals(ufsUri.getAuthority());
+    return UnderFileSystemUtils.getPhysicalUfsPath(mUri.toString())
+        .equals(UnderFileSystemUtils.getPhysicalUfsPath(ufsPath));
   }
 
   @Override
