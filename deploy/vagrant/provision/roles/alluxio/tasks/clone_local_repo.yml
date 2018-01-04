@@ -8,5 +8,14 @@
   synchronize:
     src: ../../../../
     dest: /alluxio
+    rsync_opts:
+      - "--exclude=.gitignore"
+      - "--exclude=/deploy/"
+      - "--exclude=/docs/"
+      - "--exclude=/logs/"
+      - "--exclude=/target/"
+      - "--exclude=/underFSStorage/"
+      - "--exclude=/.git/"
+
 
 # vim :set filetype=ansible.yaml:
