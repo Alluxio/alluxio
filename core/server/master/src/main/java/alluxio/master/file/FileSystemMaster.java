@@ -474,8 +474,8 @@ public interface FileSystemMaster extends Master {
   /**
    * Update the operation mode for the given ufs path under one or more mount points.
    *
-   * @param ufsPath
-   * @param ufsMode
+   * @param ufsPath the ufs path
+   * @param ufsMode the ufs operation mode
    * @throws InvalidPathException
    */
   void updateUfsMode(String ufsPath, UnderFileSystem.UfsMode ufsMode) throws InvalidPathException;
