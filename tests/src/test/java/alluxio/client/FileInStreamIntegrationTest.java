@@ -47,7 +47,10 @@ import java.util.concurrent.atomic.AtomicInteger;
  * Integration tests for {@link alluxio.client.file.FileInStream}.
  */
 public final class FileInStreamIntegrationTest extends BaseIntegrationTest {
-  private static final int BLOCK_SIZE = Constants.KB;
+  // The block size needs to be sufficiently large (i.e., more than 64B*16 where 64B is the default
+  // netty packet size in integration tests and 16 is the default max number of packets). Sets to
+  // 2KB for now.
+  private static final int BLOCK_SIZE = 2 * Constants.KB;
   private static final int MIN_LEN = BLOCK_SIZE + 1;
   private static final int MAX_LEN = BLOCK_SIZE * 4 + 1;
   private static final int DELTA = BLOCK_SIZE / 2;
