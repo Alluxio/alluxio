@@ -3376,6 +3376,12 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     return mBlockMaster.getWorkerInfoList();
   }
 
+  @Override
+  public void updateUfsMode(String ufsPath, UnderFileSystem.UfsMode ufsMode)
+      throws InvalidPathException {
+    // TODO(adit):
+  }
+
   /**
    * Class that contains metrics for FileSystemMaster.
    * This class is public because the counter names are referenced in

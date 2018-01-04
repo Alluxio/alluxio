@@ -41,6 +41,7 @@ import alluxio.master.file.options.SetAttributeOptions;
 import alluxio.master.file.options.WorkerHeartbeatOptions;
 import alluxio.thrift.FileSystemCommand;
 import alluxio.thrift.UfsInfo;
+import alluxio.underfs.UnderFileSystem;
 import alluxio.wire.FileBlockInfo;
 import alluxio.wire.FileInfo;
 import alluxio.wire.MountPointInfo;
@@ -469,6 +470,15 @@ public interface FileSystemMaster extends Master {
    * @param path the path of the file for persistence
    */
   void scheduleAsyncPersistence(AlluxioURI path) throws AlluxioException;
+
+  /**
+   * Update the operation mode for the given ufs path under one or more mount points.
+   *
+   * @param ufsPath
+   * @param ufsMode
+   * @throws InvalidPathException
+   */
+  void updateUfsMode(String ufsPath, UnderFileSystem.UfsMode ufsMode) throws InvalidPathException;
 
   /**
    * Instructs a worker to persist the files.

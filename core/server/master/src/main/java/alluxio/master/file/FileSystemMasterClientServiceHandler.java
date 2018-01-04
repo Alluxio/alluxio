@@ -68,6 +68,7 @@ import alluxio.thrift.UnmountTOptions;
 import alluxio.thrift.UnmountTResponse;
 import alluxio.thrift.UpdateUfsModeTOptions;
 import alluxio.thrift.UpdateUfsModeTResponse;
+import alluxio.underfs.UnderFileSystem;
 import alluxio.wire.MountPointInfo;
 import alluxio.wire.ThriftUtils;
 
@@ -430,7 +431,19 @@ public final class FileSystemMasterClientServiceHandler implements
     return RpcUtils.call(LOG, new RpcCallableThrowsIOException<UpdateUfsModeTResponse>() {
       @Override
       public UpdateUfsModeTResponse call() throws AlluxioException, IOException {
-        // TODO(adit):
+        UnderFileSystem.UfsMode ufsMode;
+        switch (options.getUfsMode()) {
+          case NoAccess:
+            ufsMode = UnderFileSystem.UfsMode.NO_ACCESS;
+            break;
+          case ReadOnly:
+            ufsMode = UnderFileSystem.UfsMode.READ_ONLY;
+            break;
+          default:
+            ufsMode = UnderFileSystem.UfsMode.READ_WRITE;
+            break;
+        }
+        mFileSystemMaster.updateUfsMode(ufsPath, ufsMode);
         return new UpdateUfsModeTResponse();
       }
 

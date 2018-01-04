@@ -19,12 +19,14 @@ import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 
+import alluxio.AlluxioURI;
 import alluxio.client.file.FileSystemMasterClient;
 import alluxio.client.file.options.UpdateUfsModeOptions;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.underfs.UnderFileSystem;
+import alluxio.util.io.PathUtils;
 
 /**
  * Update attributes for an existing mount point.
@@ -66,6 +68,11 @@ public final class UfsCommand extends AbstractFileSystemAdminCommand {
   public int run(CommandLine cl) throws AlluxioException, IOException {
     String[] args = cl.getArgs();
     String ufsPath = args[0];
+    AlluxioURI uri = new AlluxioURI(ufsPath);
+    if (!PathUtils.normalizePath(uri.getPath(), AlluxioURI.SEPARATOR).equals(AlluxioURI.SEPARATOR)) {
+      System.out.println("The ufs path should have only scheme and authority but no path.");
+      return -1;
+    }
     if (cl.hasOption(MODE_OPTION.getLongOpt())) {
       UnderFileSystem.UfsMode mode;
       switch(cl.getOptionValue(MODE_OPTION.getLongOpt())) {
