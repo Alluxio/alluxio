@@ -76,32 +76,32 @@ def main():
     stat = client.get_status(py_test)
     print pretty_json(stat.json())
     info("done")
-    
+
     info("renaming %s to %s" % (py_test, py_test_renamed))
     client.rename(py_test, py_test_renamed)
     info("done")
-    
+
     info("getting status of %s" % py_test_renamed)
     stat = client.get_status(py_test_renamed)
     print pretty_json(stat.json())
     info("done")
-    
+
     info("reading %s" % py_test_renamed)
     with client.open(py_test_renamed, 'r') as f:
         print f.read()
     info("done")
-    
+
     info("listing status of paths under /")
     root_stats = client.list_status('/')
     for stat in root_stats:
         print pretty_json(stat.json())
     info("done")
-    
+
     info("deleting %s" % py_test_root_dir)
     opt = option.Delete(recursive=True)
     client.delete(py_test_root_dir, opt)
     info("done")
-    
+
     info("asserting that %s is deleted" % py_test_root_dir)
     assert not client.exists(py_test_root_dir)
     info("done")
