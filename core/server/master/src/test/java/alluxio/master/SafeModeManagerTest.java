@@ -47,12 +47,12 @@ public class SafeModeManagerTest {
   @Before
   public void before() throws Exception {
     mClock = new ManualClock();
-    mSafeModeManager = new DefaultSafeModeManager(mClock, true);
+    mSafeModeManager = new DefaultSafeModeManager(mClock);
   }
 
   @Test
   public void defaultSafeMode() throws Exception {
-    assertTrue(new DefaultSafeModeManager().isInSafeMode());
+    assertTrue(mSafeModeManager.isInSafeMode());
   }
 
   @Test

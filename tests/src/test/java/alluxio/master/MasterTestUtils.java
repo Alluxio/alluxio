@@ -14,7 +14,6 @@ package alluxio.master;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
-import alluxio.clock.ManualClock;
 import alluxio.master.block.BlockMasterFactory;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.FileSystemMasterFactory;
@@ -60,7 +59,7 @@ public class MasterTestUtils {
       throws Exception {
     String masterJournal = Configuration.get(PropertyKey.MASTER_JOURNAL_FOLDER);
     MasterRegistry registry = new MasterRegistry();
-    SafeModeManager safeModeManager = new DefaultSafeModeManager(new ManualClock(), false);
+    SafeModeManager safeModeManager = new TestSafeModeManager();
     JournalSystem journalSystem = JournalTestUtils.createJournalSystem(masterJournal);
     new BlockMasterFactory().create(registry, journalSystem, safeModeManager);
     new FileSystemMasterFactory().create(registry, journalSystem, safeModeManager);
