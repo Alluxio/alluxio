@@ -1848,7 +1848,7 @@ public final class FileSystemMasterTest {
 
     // This should not throw file exists exception those a/f1 is loaded.
     mFileSystemMaster.loadMetadata(new AlluxioURI("alluxio:/a"),
-        LoadMetadataOptions.defaults().setCreateAncestors(true).setLoadDirectChildren(true));
+        LoadMetadataOptions.defaults().setCreateAncestors(true).setLoadDescendantLevels(1));
 
     // TODO(peis): Avoid this hack by adding an option in getFileInfo to skip loading metadata.
     try {
@@ -1861,7 +1861,7 @@ public final class FileSystemMasterTest {
     }
 
     mFileSystemMaster.loadMetadata(new AlluxioURI("alluxio:/a"),
-        LoadMetadataOptions.defaults().setCreateAncestors(true).setLoadDirectChildren(true));
+        LoadMetadataOptions.defaults().setCreateAncestors(true).setLoadDescendantLevels(1));
   }
 
   /**
