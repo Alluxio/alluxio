@@ -52,7 +52,7 @@ public class SafeModeManagerTest {
 
   @Test
   public void defaultSafeMode() throws Exception {
-    assertFalse(mSafeModeManager.isInSafeMode());
+    assertTrue(mSafeModeManager.isInSafeMode());
   }
 
   @Test
