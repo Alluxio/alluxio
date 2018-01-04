@@ -13,7 +13,7 @@
   when: alluxio_version_lessthan_1_1
 
 - name: set ufs related info in alluxio-env.sh
-  script: roles/ufs_{{ ufs }}/files/config_alluxio.sh
+  script: roles/ufs_{{ ufs }}/tasks/files/config_alluxio.sh
   environment:
     ALLUXIO_VERSION_LESSTHAN_1_1: "{{ alluxio_version_lessthan_1_1 }}"
     S3_BUCKET: "{{ s3_bucket }}"

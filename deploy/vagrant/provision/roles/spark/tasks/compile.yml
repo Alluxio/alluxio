@@ -12,7 +12,7 @@
   when: ufs == "gcs"
 
 - copy: >
-    src=roles/ufs_{{ ufs }}/files/compile_spark.sh
+    src=roles/ufs_{{ ufs }}/tasks/files/compile_spark.sh
     dest=/tmp/compile_spark.sh
 # need to use `shell`, `script` can not use `async`, then ssh will timeout
 - name: compile spark
