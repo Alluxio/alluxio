@@ -1170,6 +1170,10 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       syncMetadata(journalContext, inodePath, lockingScheme);
 
       mMountTable.checkUnderWritableMountPoint(path);
+      if (options.isPersisted()) {
+        // Check if ufs is writable
+        checkUfsMode(path, OperationType.WRITE);
+      }
       createFileAndJournal(inodePath, options, journalContext);
       auditContext.setSrcInode(inodePath.getInode()).setSucceeded(true);
       return inodePath.getInode().getId();
@@ -3380,6 +3384,39 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
   public void updateUfsMode(String ufsPath, UnderFileSystem.UfsMode ufsMode)
       throws InvalidPathException {
     mUfsManager.setUfsMode(ufsPath, ufsMode);
+  }
+
+  /**
+   * Check if the specified operation type is allowed to the ufs.
+   *
+   * @param alluxioPath the Alluxio path
+   * @param op the operation type
+   * @throws AccessControlException if the specified operation is not allowed
+   */
+  private void checkUfsMode(AlluxioURI alluxioPath, OperationType opType)
+      throws AccessControlException, InvalidPathException {
+    MountTable.Resolution resolution = mMountTable.resolve(alluxioPath);
+    UnderFileSystem ufs = resolution.getUfs();
+    UnderFileSystem.UfsMode ufsMode = ufs.getOperationMode(mUfsManager.getPhysicalUfsState());
+    switch (ufsMode) {
+      case NO_ACCESS:
+        throw new AccessControlException(
+            ExceptionMessage.UFS_OP_NOT_ALLOWED.getMessage(opType, resolution.getUri()));
+      case READ_ONLY:
+        if (opType == OperationType.WRITE) {
+          throw new AccessControlException(
+              ExceptionMessage.UFS_OP_NOT_ALLOWED.getMessage(opType, resolution.getUri()));
+        }
+        break;
+      default:
+        // All operations are allowed
+        break;
+    }
+  }
+
+  enum OperationType {
+    READ,
+    WRITE,
   }
 
   /**

@@ -18,6 +18,7 @@ import alluxio.util.UnderFileSystemUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -30,7 +31,7 @@ public final class MasterUfsManager extends AbstractUfsManager {
   private static final Logger LOG = LoggerFactory.getLogger(MasterUfsManager.class);
 
   // The physical ufs state for all active mounts if not the default
-  private ConcurrentHashMap<String, UnderFileSystem.UfsMode> physicalUfsState =
+  private ConcurrentHashMap<String, UnderFileSystem.UfsMode> mPhysicalUfsState =
       new ConcurrentHashMap<>();
 
   /**
@@ -41,7 +42,14 @@ public final class MasterUfsManager extends AbstractUfsManager {
   @Override
   public void removeMount(long mountId) {
     super.removeMount(mountId);
-    // TODO(adit): Remove ufs mode state any key in physicalUfsState is not active anymore
+    // TODO(adit): Remove ufs mode state any key in mPhysicalUfsState is not active anymore
+  }
+
+  /**
+   * @return the state of physical UFSs in maintenance
+   */
+  public Map<String, UnderFileSystem.UfsMode> getPhysicalUfsState() {
+    return mPhysicalUfsState;
   }
 
   /**
@@ -55,8 +63,18 @@ public final class MasterUfsManager extends AbstractUfsManager {
       throws InvalidPathException {
     LOG.info("Set ufs mode for {} to {}", ufsPath, ufsMode);
     for (UnderFileSystem ufs : mUnderFileSystemMap.values()) {
-      if(ufs.isPathCovered(ufsPath)) {
-        physicalUfsState.put(UnderFileSystemUtils.getPhysicalUfsPath(ufsPath), ufsMode);
+      if (ufs.isPathCovered(ufsPath)) {
+        // Found a managed ufs for the given physical path
+        String key = UnderFileSystemUtils.getPhysicalUfsPath(ufsPath);
+        if (ufsMode == UnderFileSystem.UfsMode.READ_WRITE) {
+          // Remove key from map if exists
+          if (mPhysicalUfsState.containsKey(key)) {
+            mPhysicalUfsState.remove(key);
+          }
+        } else {
+          // Set the maintenance state of the given ufs
+          mPhysicalUfsState.put(key, ufsMode);
+        }
         return;
       }
     }

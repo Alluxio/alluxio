@@ -247,6 +247,9 @@ public enum ExceptionMessage {
   // block worker
   FAILED_COMMIT_BLOCK_TO_MASTER("Failed to commit block with blockId {0,number,#} to master"),
 
+  // ufs maintenance
+  UFS_OP_NOT_ALLOWED("Operation {} not allowed to ufs path {0} under maintenance"),
+
   // SEMICOLON! minimize merge conflicts by putting it on its own line
   ;
 
