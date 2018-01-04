@@ -215,6 +215,17 @@ struct UfsInfo {
   2: optional MountTOptions properties
 }
 
+enum UfsMode {
+  NoAccess = 1,
+  ReadOnly = 2,
+  ReadWrite = 3,
+}
+
+struct UpdateUfsModeTOptions {
+  1: optional UfsMode ufsMode
+}
+struct UpdateUfsModeTResponse {}
+
 /**
  * This interface contains file system master service endpoints for Alluxio clients.
  */
@@ -373,6 +384,15 @@ service FileSystemMasterClientService extends common.AlluxioService {
   UnmountTResponse unmount(
     /** the path of the alluxio mount point */ 1: string alluxioPath,
     /** the method options */ 2: UnmountTOptions options,
+    )
+    throws (1: exception.AlluxioTException e)
+
+  /**
+   * Updates the ufs mode for a ufs path under one or more mount points.
+   */
+  UpdateUfsModeTResponse updateUfsMode(
+    /** the ufs path */ 1: string ufsPath,
+    /** the method options */ 2: UpdateUfsModeTOptions options,
     )
     throws (1: exception.AlluxioTException e)
 }
