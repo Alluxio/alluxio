@@ -274,7 +274,7 @@ public final class FileSystemMasterClientServiceHandler implements
       @Override
       public LoadMetadataTResponse call() throws AlluxioException, IOException {
         return new LoadMetadataTResponse(mFileSystemMaster.loadMetadata(new AlluxioURI(alluxioPath),
-            LoadMetadataOptions.defaults().setCreateAncestors(true).setLoadDirectChildren(true)));
+            LoadMetadataOptions.defaults().setCreateAncestors(true).setLoadDescendantLevels(1)));
       }
 
       @Override
