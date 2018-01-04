@@ -66,7 +66,9 @@ public final class ValidateEnv {
       + "OPTIONS can be a list of command line options. Each option has the"
       + " format \"-<optionName> [optionValue]\"\n";
 
-  private static final Options OPTIONS = new Options();
+  private static final Options OPTIONS = new Options()
+      .addOption("l", false,
+          "List tasks to run for the given TARGET and NAME");
 
   private static final Map<ValidationTask, String> TASKS = new HashMap<>();
 
@@ -157,21 +159,21 @@ public final class ValidateEnv {
   }
 
   private static boolean validateRemote(List<String> nodes, String target, String name,
-      String[] args) throws InterruptedException {
+      CommandLine cmd) throws InterruptedException {
     if (nodes == null) {
       return false;
     }
 
     boolean success = true;
     for (String node : nodes) {
-      success &= validateRemote(node, target, name, args);
+      success &= validateRemote(node, target, name, cmd);
     }
 
     return success;
   }
 
   // validates environment on remote node
-  private static boolean validateRemote(String node, String target, String name, String[] args)
+  private static boolean validateRemote(String node, String target, String name, CommandLine cmd)
       throws InterruptedException {
     System.out.format("Validating %s environment on %s...%n", target, node);
     if (!Utils.isAddressReachable(node, 22)) {
@@ -180,7 +182,7 @@ public final class ValidateEnv {
     }
 
     // args is not null.
-    String argStr = String.join(" ", args);
+    String argStr = String.join(" ", cmd.getArgs());
     String homeDir = Configuration.get(PropertyKey.HOME);
     String remoteCommand = String.format(
         "%s/bin/alluxio validateEnv %s %s %s",
@@ -204,17 +206,10 @@ public final class ValidateEnv {
   }
 
   // runs validation tasks in local environment
-  private static boolean validateLocal(String target, String name, String[] args)
+  private static boolean validateLocal(String target, String name, CommandLine cmd)
       throws InterruptedException {
     int validationCount = 0;
     int failureCount = 0;
-    CommandLine cmd;
-    try {
-      cmd = parseArgsAndOptions(OPTIONS, args);
-    } catch (InvalidArgumentException e) {
-      System.err.format("Invalid argument: %s.%n", e.getMessage());
-      return false;
-    }
     Map<String, String> optionsMap = new HashMap<>();
     for (Option opt : cmd.getOptions()) {
       optionsMap.put(opt.getOpt(), opt.getValue());
@@ -249,12 +244,81 @@ public final class ValidateEnv {
     return true;
   }
 
-  private static boolean validateWorkers(String name, String[] args) throws InterruptedException {
-    return validateRemote(Utils.readNodeList("workers"), "worker", name, args);
+  private static boolean validateWorkers(String name, CommandLine cmd) throws InterruptedException {
+    return validateRemote(Utils.readNodeList("workers"), "worker", name, cmd);
   }
 
-  private static boolean validateMasters(String name, String[] args) throws InterruptedException {
-    return validateRemote(Utils.readNodeList("masters"), "master", name, args);
+  private static boolean validateMasters(String name, CommandLine cmd) throws InterruptedException {
+    return validateRemote(Utils.readNodeList("masters"), "master", name, cmd);
+  }
+
+  private static void printTasks(String location, String target, String name) {
+    System.out.format("Will run the following tasks on %s:%n", location);
+    Collection<ValidationTask> tasks = TARGET_TASKS.get(target);
+    int count = 0;
+    for (ValidationTask task: tasks) {
+      String taskName = TASKS.get(task);
+      if (name != null && !taskName.startsWith(name)) {
+        continue;
+      }
+      System.out.println(taskName);
+      count++;
+    }
+    if (count == 0) {
+      System.err.format("No validation task matched name \"%s\".%n%n", name);
+    } else {
+      System.out.format("Total %d tasks to run on %s.%n%n", count, location);
+    }
+  }
+
+  private static int printTasks(String target, String name) {
+    switch (target) {
+      case "local":
+      case "worker":
+      case "master":
+        printTasks("localhost", target, name);
+        break;
+      case "all":
+        printTasks("masters", "master", name);
+        printTasks("workers", "worker", name);
+        break;
+      case "masters":
+        printTasks("masters", "master", name);
+        break;
+      case "workers":
+        printTasks("workers", "worker", name);
+        break;
+      default:
+        printHelp("Invalid target.");
+        return -2;
+    }
+    return 0;
+  }
+
+  private static int runTasks(String target, String name, CommandLine cmd)
+      throws InterruptedException {
+    boolean success;
+    switch (target) {
+      case "local":
+      case "worker":
+      case "master":
+        success = validateLocal(target, name, cmd);
+        break;
+      case "all":
+        success = validateMasters(name, cmd);
+        success = validateWorkers(name, cmd) && success;
+        break;
+      case "workers":
+        success = validateWorkers(name, cmd);
+        break;
+      case "masters":
+        success = validateMasters(name, cmd);
+        break;
+      default:
+        printHelp("Invalid target.");
+        return -2;
+    }
+    return success ? 0 : -1;
   }
 
   /**
@@ -294,29 +358,17 @@ public final class ValidateEnv {
       args = Arrays.copyOfRange(argv, 1, argv.length);
     }
 
-    boolean success;
-    switch (target) {
-      case "local":
-      case "worker":
-      case "master":
-        success = validateLocal(target, name, args);
-        break;
-      case "all":
-        success = validateMasters(name, args);
-        success = validateWorkers(name, args) && success;
-        break;
-      case "workers":
-        success = validateWorkers(name, args);
-        break;
-      case "masters":
-        success = validateMasters(name, args);
-        break;
-      default:
-        printHelp("Invalid target.");
-        return -2;
+    CommandLine cmd;
+    try {
+      cmd = parseArgsAndOptions(OPTIONS, args);
+    } catch (InvalidArgumentException e) {
+      System.err.format("Invalid argument: %s.%n", e.getMessage());
+      return -1;
     }
-
-    return success ? 0 : -1;
+    if (cmd.hasOption("l")) {
+      return printTasks(target, name);
+    }
+    return runTasks(target, name, cmd);
   }
 
   /**
