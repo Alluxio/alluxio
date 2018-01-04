@@ -33,6 +33,8 @@
 /deploy/vagrant/vbox/.vagrant/
 /deploy/vagrant/vbox/alluxio-dev.box
 /dev/scripts/*.tar.gz
+/dev/scripts/tarballs
+/dev/scripts/workdir
 /docs/_site/
 /docs/api/
 /docs/serve/
