@@ -20,9 +20,11 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 
 import alluxio.client.file.FileSystemMasterClient;
+import alluxio.client.file.options.UpdateUfsModeOptions;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.InvalidArgumentException;
+import alluxio.underfs.UnderFileSystem;
 
 /**
  * Update attributes for an existing mount point.
@@ -65,7 +67,22 @@ public final class UfsCommand extends AbstractFileSystemAdminCommand {
     String[] args = cl.getArgs();
     String ufsPath = args[0];
     if (cl.hasOption(MODE_OPTION.getLongOpt())) {
-      String mode = cl.getOptionValue(MODE_OPTION.getLongOpt());
+      UnderFileSystem.UfsMode mode;
+      switch(cl.getOptionValue(MODE_OPTION.getLongOpt())) {
+        case "noAccess":
+          mode = UnderFileSystem.UfsMode.NO_ACCESS;
+          break;
+        case "readOnly":
+          mode = UnderFileSystem.UfsMode.READ_ONLY;
+          break;
+        case "readWrite":
+          mode = UnderFileSystem.UfsMode.READ_WRITE;
+          break;
+        default:
+          System.out.println("Unrecognized mode");
+          return -1;
+      }
+      mMasterClient.updateUfsMode(ufsPath, UpdateUfsModeOptions.defaults().setUfsMode(mode));
       return 0;
     }
     System.out.println("No attribute to update");

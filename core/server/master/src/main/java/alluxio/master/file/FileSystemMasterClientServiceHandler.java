@@ -66,6 +66,8 @@ import alluxio.thrift.SetAttributeTOptions;
 import alluxio.thrift.SetAttributeTResponse;
 import alluxio.thrift.UnmountTOptions;
 import alluxio.thrift.UnmountTResponse;
+import alluxio.thrift.UpdateUfsModeTOptions;
+import alluxio.thrift.UpdateUfsModeTResponse;
 import alluxio.wire.MountPointInfo;
 import alluxio.wire.ThriftUtils;
 
@@ -418,6 +420,23 @@ public final class FileSystemMasterClientServiceHandler implements
       @Override
       public String toString() {
         return String.format("Unmount: alluxioPath=%s, options=%s", alluxioPath, options);
+      }
+    });
+  }
+
+  @Override
+  public UpdateUfsModeTResponse updateUfsMode(final String ufsPath,
+      final UpdateUfsModeTOptions options) throws AlluxioTException {
+    return RpcUtils.call(LOG, new RpcCallableThrowsIOException<UpdateUfsModeTResponse>() {
+      @Override
+      public UpdateUfsModeTResponse call() throws AlluxioException, IOException {
+        // TODO(adit):
+        return new UpdateUfsModeTResponse();
+      }
+
+      @Override
+      public String toString() {
+        return String.format("UpdateUfsMode: ufsPath=%s, options=%s", ufsPath, options);
       }
     });
   }

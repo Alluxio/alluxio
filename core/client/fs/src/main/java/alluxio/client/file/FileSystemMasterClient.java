@@ -212,6 +212,5 @@ public interface FileSystemMasterClient extends Client {
    * @param ufsPath the ufs path
    * @param options the options to update ufs operation mode
    */
-  void updateUfsMode(String ufsPath, UpdateUfsModeOptions options)
-      throws AlluxioStatusException;
+  void updateUfsMode(String ufsPath, UpdateUfsModeOptions options) throws AlluxioStatusException;
 }
