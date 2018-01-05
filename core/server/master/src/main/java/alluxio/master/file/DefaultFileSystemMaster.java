@@ -70,6 +70,7 @@ import alluxio.master.file.options.CompleteFileOptions;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
 import alluxio.master.file.options.DeleteOptions;
+import alluxio.master.file.options.DescendantType;
 import alluxio.master.file.options.FreeOptions;
 import alluxio.master.file.options.GetStatusOptions;
 import alluxio.master.file.options.ListStatusOptions;
@@ -749,7 +750,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         throw e;
       }
       // Possible ufs sync.
-      if (syncMetadata(journalContext, inodePath, lockingScheme)) {
+      if (syncMetadata(journalContext, inodePath, lockingScheme, DescendantType.ONE)) {
         // If synced, do not load metadata.
         options.setLoadMetadataType(LoadMetadataType.Never);
       }
@@ -828,21 +829,25 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         throw e;
       }
       // Possible ufs sync.
-      if (syncMetadata(journalContext, inodePath, lockingScheme)) {
+      if (syncMetadata(journalContext, inodePath, lockingScheme, DescendantType.ONE)) {
         // If synced, do not load metadata.
         listStatusOptions.setLoadMetadataType(LoadMetadataType.Never);
       }
 
+      // load metadata for 1 level of descendants
+      DescendantType loadDescendantType =
+          (listStatusOptions.getLoadMetadataType() != LoadMetadataType.Never) ? DescendantType.ONE :
+              DescendantType.NONE;
       LoadMetadataOptions loadMetadataOptions =
-          LoadMetadataOptions.defaults().setCreateAncestors(true).setLoadDirectChildren(
-              listStatusOptions.getLoadMetadataType() != LoadMetadataType.Never);
+          LoadMetadataOptions.defaults().setCreateAncestors(true)
+              .setLoadDescendantType(loadDescendantType);
       Inode<?> inode;
       if (inodePath.fullPathExists()) {
         inode = inodePath.getInode();
         if (inode.isDirectory()
             && listStatusOptions.getLoadMetadataType() != LoadMetadataType.Always
             && ((InodeDirectory) inode).isDirectChildrenLoaded()) {
-          loadMetadataOptions.setLoadDirectChildren(false);
+          loadMetadataOptions.setLoadDescendantType(DescendantType.NONE);
         }
       } else {
         checkLoadMetadataOptions(listStatusOptions.getLoadMetadataType(), inodePath.getUri());
@@ -943,7 +948,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         throw e;
       }
       // Possible ufs sync.
-      syncMetadata(journalContext, parent, lockingScheme);
+      syncMetadata(journalContext, parent, lockingScheme, DescendantType.ALL);
 
       try (InodeLockList children = mInodeTree.lockDescendants(parent, InodeTree.LockMode.READ)) {
         if (!checkConsistencyInternal(parent.getInode(), parent.getUri())) {
@@ -1167,7 +1172,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         throw e;
       }
       // Possible ufs sync.
-      syncMetadata(journalContext, inodePath, lockingScheme);
+      syncMetadata(journalContext, inodePath, lockingScheme, DescendantType.ONE);
 
       mMountTable.checkUnderWritableMountPoint(path);
       createFileAndJournal(inodePath, options, journalContext);
@@ -1347,7 +1352,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         mMountTable.checkUnderWritableMountPoint(path);
       }
       // Possible ufs sync.
-      syncMetadata(journalContext, inodePath, lockingScheme);
+      syncMetadata(journalContext, inodePath, lockingScheme,
+          options.isRecursive() ? DescendantType.ALL : DescendantType.ONE);
       if (!inodePath.fullPathExists()) {
         throw new FileDoesNotExistException(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(path));
       }
@@ -1818,7 +1824,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         throw e;
       }
       // Possible ufs sync.
-      syncMetadata(journalContext, inodePath, lockingScheme);
+      syncMetadata(journalContext, inodePath, lockingScheme, DescendantType.ONE);
 
       mMountTable.checkUnderWritableMountPoint(path);
       createDirectoryAndJournal(inodePath, options, journalContext);
@@ -1916,8 +1922,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         throw e;
       }
       // Possible ufs sync.
-      syncMetadata(journalContext, srcInodePath, srcLockingScheme);
-      syncMetadata(journalContext, dstInodePath, dstLockingScheme);
+      syncMetadata(journalContext, srcInodePath, srcLockingScheme, DescendantType.ONE);
+      syncMetadata(journalContext, dstInodePath, dstLockingScheme, DescendantType.ONE);
 
       mMountTable.checkUnderWritableMountPoint(srcPath);
       mMountTable.checkUnderWritableMountPoint(dstPath);
@@ -2439,18 +2445,26 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         loadDirectoryMetadataAndJournal(inodePath, options, journalContext);
         InodeDirectory inode = (InodeDirectory) inodePath.getInode();
 
-        if (options.isLoadDirectChildren()) {
-          UfsStatus[] files = ufs.listStatus(ufsUri.toString());
-          for (UfsStatus status : files) {
-            if (PathUtils.isTemporaryFileName(status.getName())
-                || inode.getChild(status.getName()) != null) {
+        if (options.getLoadDescendantType() != DescendantType.NONE) {
+          UfsStatus[] children = ufs.listStatus(ufsUri.toString());
+          for (UfsStatus childStatus : children) {
+            if (PathUtils.isTemporaryFileName(childStatus.getName())) {
+              continue;
+            }
+            if (inode.getChild(childStatus.getName()) != null && (childStatus.isFile()
+                || options.getLoadDescendantType() != DescendantType.ALL)) {
+              // stop traversing if this is an existing file, or an existing directory without
+              // loading all descendants.
               continue;
             }
             TempInodePathForChild tempInodePath =
-                new TempInodePathForChild(inodePath, status.getName());
+                new TempInodePathForChild(inodePath, childStatus.getName());
+            DescendantType loadDescendantType =
+                (options.getLoadDescendantType() == DescendantType.ONE) ? DescendantType.NONE :
+                    DescendantType.ALL;
             LoadMetadataOptions loadMetadataOptions =
-                LoadMetadataOptions.defaults().setLoadDirectChildren(false)
-                    .setCreateAncestors(false).setUfsStatus(status);
+                LoadMetadataOptions.defaults().setLoadDescendantType(loadDescendantType)
+                    .setCreateAncestors(false).setUfsStatus(childStatus);
             loadMetadataAndJournal(tempInodePath, loadMetadataOptions, journalContext);
           }
           inode.setDirectChildrenLoaded(true);
@@ -2590,7 +2604,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     if (inodeExists) {
       try {
         Inode<?> inode = inodePath.getInode();
-        loadDirectChildren = inode.isDirectory() && options.isLoadDirectChildren();
+        loadDirectChildren =
+            inode.isDirectory() && (options.getLoadDescendantType() != DescendantType.NONE);
       } catch (FileDoesNotExistException e) {
         // This should never happen.
         throw new RuntimeException(e);
@@ -2627,7 +2642,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       }
       mMountTable.checkUnderWritableMountPoint(alluxioPath);
       // Possible ufs sync.
-      syncMetadata(journalContext, inodePath, lockingScheme);
+      syncMetadata(journalContext, inodePath, lockingScheme, DescendantType.ONE);
 
       mountAndJournal(inodePath, ufsPath, options, journalContext);
       auditContext.setSucceeded(true);
@@ -2893,7 +2908,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         throw e;
       }
       // Possible ufs sync.
-      syncMetadata(journalContext, inodePath, lockingScheme);
+      syncMetadata(journalContext, inodePath, lockingScheme,
+          options.isRecursive() ? DescendantType.ALL : DescendantType.ONE);
       if (!inodePath.fullPathExists()) {
         throw new FileDoesNotExistException(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(path));
       }
@@ -3040,8 +3056,17 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     inodePath.getInode().setPersistenceState(PersistenceState.TO_BE_PERSISTED);
   }
 
+  /**
+   * Syncs the Alluxio metadata with UFS.
+   *
+   * @param journalContext the journal context
+   * @param inodePath the Alluxio inode path to sync with UFS
+   * @param lockingScheme the locking scheme used to lock the inode path
+   * @param syncDescendantType how to sync descendants
+   * @return true if the sync was performed successfully, false otherwise (including errors)
+   */
   private boolean syncMetadata(JournalContext journalContext, LockedInodePath inodePath,
-      LockingScheme lockingScheme) throws FileDoesNotExistException, InvalidPathException {
+      LockingScheme lockingScheme, DescendantType syncDescendantType) {
     if (!lockingScheme.shouldSync()) {
       return false;
     }
@@ -3099,71 +3124,13 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         }
 
         if (syncPlan.toSyncChildren()) {
-          UfsStatus[] listStatus = null;
-          try {
-            listStatus = ufs.listStatus(ufsUri.toString());
-          } catch (IOException e) {
-            // ignore error
-            LOG.warn("Failed to list directory: {} error: {}", ufsUri, e.toString());
-          }
-
-          if (listStatus != null) {
-            // maps children name to ufs fingerprint
-            Map<String, String> ufsChildFingerprints = new HashMap<>();
-            // maps children name to inode
-            Map<String, Inode<?>> inodeChildren = new HashMap<>();
-
-            for (UfsStatus ufsChildStatus : listStatus) {
-              ufsChildFingerprints.put(ufsChildStatus.getName(),
-                  Fingerprint.create(Fingerprint.getUfsName(ufs), ufsChildStatus)
-                      .serialize());
-            }
-            InodeDirectory inodeDir = (InodeDirectory) inode;
-            for (Inode<?> child : inodeDir.getChildren()) {
-              inodeChildren.put(child.getName(), child);
-            }
-
-            // Iterate over ufs children and process children which do not exist in Alluxio.
-            for (Map.Entry<String, String> ufsEntry : ufsChildFingerprints.entrySet()) {
-              if (!inodeChildren.containsKey(ufsEntry.getKey()) && !PathUtils
-                  .isTemporaryFileName(ufsEntry.getKey())) {
-                // Ufs child exists, but Alluxio child does not. Must load metadata.
-                loadMetadata = true;
-                break;
-              }
-            }
-
-            // Iterate over Alluxio children and process persisted children.
-            for (Map.Entry<String, Inode<?>> inodeEntry : inodeChildren.entrySet()) {
-              if (!inodeEntry.getValue().isPersisted()) {
-                // Ignore non-persisted inodes.
-                continue;
-              }
-
-              String ufsFingerprint = ufsChildFingerprints.get(inodeEntry.getKey());
-              boolean deleteChild =
-                  !UfsSyncUtils.inodeUfsIsSynced(inodeEntry.getValue(), ufsFingerprint);
-
-              if (deleteChild) {
-                TempInodePathForDescendant tempInodePath =
-                    new TempInodePathForDescendant(inodePath);
-                tempInodePath.setDescendant(inodeEntry.getValue(),
-                    inodePath.getUri().join(inodeEntry.getKey()));
-
-                try {
-                  deleteInternal(tempInodePath, false, System.currentTimeMillis(),
-                      syncDeleteOptions, journalContext);
-                } catch (DirectoryNotEmptyException | IOException e) {
-                  // Should not happen, since it is an unchecked delete.
-                  LOG.error("Unexpected error for unchecked delete. error: {}", e.toString());
-                }
-                // Must load metadata afterwards.
-                loadMetadata = true;
-              }
-            }
-          }
+          loadMetadata = syncDirMetadata(journalContext, inodePath, syncDescendantType);
         }
       }
+    } catch (Exception e) {
+      LOG.error("Failed to remove out-of-sync metadata for path: {} error: {}", inodePath.getUri(),
+          e.toString());
+      return false;
     } finally {
       if (deletedInode) {
         // If the inode was deleted, then the inode path should reflect the delete.
@@ -3176,9 +3143,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
 
     if (loadMetadata) {
       try {
-        loadMetadataAndJournal(inodePath,
-            LoadMetadataOptions.defaults().setCreateAncestors(true).setLoadDirectChildren(true),
-            journalContext);
+        loadMetadataAndJournal(inodePath, LoadMetadataOptions.defaults().setCreateAncestors(true)
+            .setLoadDescendantType(syncDescendantType), journalContext);
       } catch (Exception e) {
         LOG.error("Failed to load metadata for path: {} error: {}", inodePath.getUri(),
             e.toString());
@@ -3188,6 +3154,87 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
 
     mUfsSyncPathCache.notifySyncedPath(inodePath.getUri().getPath());
     return true;
+  }
+
+  private boolean syncDirMetadata(JournalContext journalContext, LockedInodePath inodePath,
+      DescendantType syncDescendantType)
+      throws FileDoesNotExistException, InvalidPathException, IOException,
+      DirectoryNotEmptyException {
+    if (syncDescendantType == DescendantType.NONE) {
+      return false;
+    }
+    MountTable.Resolution resolution = mMountTable.resolve(inodePath.getUri());
+    AlluxioURI ufsUri = resolution.getUri();
+    UnderFileSystem ufs = resolution.getUfs();
+
+    boolean loadMetadata = false;
+    DeleteOptions syncDeleteOptions =
+        DeleteOptions.defaults().setRecursive(true).setAlluxioOnly(true).setUnchecked(true);
+    Inode<?> inode = inodePath.getInode();
+
+    UfsStatus[] listStatus = ufs.listStatus(ufsUri.toString());
+
+    if (listStatus != null) {
+      // maps children name to up-to-date ufs fingerprint
+      Map<String, String> ufsChildFingerprints = new HashMap<>();
+      // maps children name to inode
+      Map<String, Inode<?>> inodeChildren = new HashMap<>();
+
+      for (UfsStatus ufsChildStatus : listStatus) {
+        ufsChildFingerprints.put(ufsChildStatus.getName(),
+            Fingerprint.create(ufs.getUnderFSType(), ufsChildStatus).serialize());
+      }
+      InodeDirectory inodeDir = (InodeDirectory) inode;
+      for (Inode<?> child : inodeDir.getChildren()) {
+        inodeChildren.put(child.getName(), child);
+      }
+
+      // Iterate over ufs children and process children which do not exist in Alluxio.
+      for (Map.Entry<String, String> ufsEntry : ufsChildFingerprints.entrySet()) {
+        if (!inodeChildren.containsKey(ufsEntry.getKey()) && !PathUtils
+            .isTemporaryFileName(ufsEntry.getKey())) {
+          // Ufs child exists, but Alluxio child does not. Must load metadata.
+          loadMetadata = true;
+          break;
+        }
+      }
+
+      // Iterate over Alluxio children and process persisted children.
+      for (Map.Entry<String, Inode<?>> inodeEntry : inodeChildren.entrySet()) {
+        if (!inodeEntry.getValue().isPersisted()) {
+          // Ignore non-persisted inodes.
+          continue;
+        }
+
+        String ufsFingerprint = ufsChildFingerprints.get(inodeEntry.getKey());
+        boolean deleteChild =
+            !UfsSyncUtils.inodeUfsIsSynced(inodeEntry.getValue(), ufsFingerprint);
+
+        if (deleteChild) {
+          TempInodePathForDescendant tempInodePath =
+              new TempInodePathForDescendant(inodePath);
+          tempInodePath.setDescendant(inodeEntry.getValue(),
+              inodePath.getUri().join(inodeEntry.getKey()));
+
+          deleteInternal(tempInodePath, false, System.currentTimeMillis(), syncDeleteOptions,
+              journalContext);
+          // Must load metadata afterwards.
+          loadMetadata = true;
+        } else if (inodeEntry.getValue().isDirectory()) {
+          // Recursively sync for this directory.
+          TempInodePathForDescendant tempInodePath =
+              new TempInodePathForDescendant(inodePath);
+          tempInodePath.setDescendant(inodeEntry.getValue(),
+              inodePath.getUri().join(inodeEntry.getKey()));
+
+          if (syncDescendantType == DescendantType.ALL) {
+            // Recursively sync children
+            loadMetadata |= syncDirMetadata(journalContext, tempInodePath, DescendantType.ALL);
+          }
+        }
+      }
+    }
+    return loadMetadata;
   }
 
   @Override
