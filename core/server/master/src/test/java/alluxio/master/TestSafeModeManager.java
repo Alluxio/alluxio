@@ -17,6 +17,10 @@ package alluxio.master;
 public class TestSafeModeManager implements SafeModeManager {
 
   @Override
+  public void notifyPrimaryMasterStarted() {
+  }
+
+  @Override
   public void notifyRpcServerStarted() {
   }
 
