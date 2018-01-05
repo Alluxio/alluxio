@@ -23,6 +23,7 @@ import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 import alluxio.exception.PreconditionMessage;
+import alluxio.exception.status.UnavailableException;
 import alluxio.master.block.ContainerIdGenerable;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
@@ -150,7 +151,7 @@ public class InodeTree implements JournalEntryIterable {
    * @param group the root group
    * @param mode the root mode
    */
-  public void initializeRoot(String owner, String group, Mode mode) {
+  public void initializeRoot(String owner, String group, Mode mode) throws UnavailableException {
     if (mRoot == null) {
       InodeDirectory root = InodeDirectory.create(mDirectoryIdGenerator.getNewDirectoryId(),
           NO_PARENT, ROOT_INODE_NAME,
