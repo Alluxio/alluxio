@@ -1497,8 +1497,19 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
             if (mMountTable.isMountPoint(alluxioUriToDel)) {
               unmountInternal(alluxioUriToDel);
             } else {
-              // Attempt to delete node if all children were deleted successfully
-              failedToDelete = !ufsDeleter.delete(alluxioUriToDel, delInode);
+              if (!(replayed || deleteOptions.isAlluxioOnly())) {
+                try {
+                  checkUfsMode(alluxioUriToDel, OperationType.WRITE);
+                  // Attempt to delete node if all children were deleted successfully
+                  failedToDelete = !ufsDeleter.delete(alluxioUriToDel, delInode);
+                } catch (AccessControlException e) {
+                  // In case ufs is not writable, we will still attempt to delete other entries
+                  // if any as they may be from a different mount point
+                  // TODO(adit): reason for failure is swallowed here
+                  LOG.warn(e.getMessage());
+                  failedToDelete = true;
+                }
+              }
             }
           } catch (InvalidPathException e) {
             LOG.warn(e.getMessage());
