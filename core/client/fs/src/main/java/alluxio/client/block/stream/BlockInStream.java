@@ -111,7 +111,7 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
     builder.setOpenUfsBlockOptions(options.getOpenUfsBlockOptions(blockId));
 
     boolean shortCircuit = Configuration.getBoolean(PropertyKey.USER_SHORT_CIRCUIT_ENABLED);
-    boolean sourceSupportsDomainSocket = !NettyUtils.isDomainSocketSupported(dataSource);
+    boolean sourceSupportsDomainSocket = NettyUtils.isDomainSocketSupported(dataSource);
     boolean sourceIsLocal = dataSourceType == BlockInStreamSource.LOCAL;
 
     // Short circuit
