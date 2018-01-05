@@ -12,7 +12,6 @@
 package alluxio.master.file.meta;
 
 import alluxio.AlluxioURI;
-import alluxio.Constants;
 import alluxio.collections.ConcurrentHashSet;
 import alluxio.collections.FieldIndex;
 import alluxio.collections.IndexDefinition;
@@ -41,7 +40,6 @@ import alluxio.retry.RetryPolicy;
 import alluxio.security.authorization.Mode;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.MkdirsOptions;
-import alluxio.util.SecurityUtils;
 import alluxio.util.io.PathUtils;
 import alluxio.wire.TtlAction;
 
@@ -54,7 +52,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -937,12 +934,6 @@ public class InodeTree implements JournalEntryIterable {
       // This is the root inode. Clear all the state, and set the root.
       reset();
       setRoot(directory);
-      // If journal entry has no security enabled, change the replayed inode permission to be 0777
-      // for backwards-compatibility.
-      if (SecurityUtils.isSecurityEnabled() && mRoot.getOwner().isEmpty()
-          && mRoot.getGroup().isEmpty()) {
-        mRoot.setMode(Constants.DEFAULT_FILE_SYSTEM_MODE);
-      }
     } else {
       addInodeFromJournalInternal(directory);
     }
@@ -978,12 +969,6 @@ public class InodeTree implements JournalEntryIterable {
     }
     parentDirectory.addChild(inode);
     mInodes.add(inode);
-    // If journal entry has no security enabled, change the replayed inode permission to be 0777
-    // for backwards-compatibility.
-    if (SecurityUtils.isSecurityEnabled() && inode != null && inode.getOwner().isEmpty()
-        && inode.getGroup().isEmpty()) {
-      inode.setMode(Constants.DEFAULT_FILE_SYSTEM_MODE);
-    }
     // Update indexes.
     if (inode.isFile() && inode.isPinned()) {
       mPinnedInodeFileIds.add(inode.getId());

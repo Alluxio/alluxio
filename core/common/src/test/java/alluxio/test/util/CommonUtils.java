@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio;
+package alluxio.test.util;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
@@ -30,7 +30,7 @@ import java.util.Set;
 /**
  * Common utilities for testing.
  */
-public final class CommonTestUtils {
+public final class CommonUtils {
   private static final Map<Class<?>, List<?>> PRIMITIVE_VALUES =
       ImmutableMap.<Class<?>, List<?>>builder()
       .put(boolean.class, Lists.newArrayList(true, false))

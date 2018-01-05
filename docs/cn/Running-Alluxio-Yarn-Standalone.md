@@ -6,6 +6,9 @@ group: Deploying Alluxio
 priority: 6
 ---
 
+* 内容列表
+{:toc}
+
 Alluxio应与YARN一起运行，以便所有YARN节点都可以访问本地的Alluxio worker。
 为了YARN和Alluxio能在同一节点上良好地共同运作，应该让YARN知道Alluxio使用的资源。YARN需要知道多少内存和CPU被分配给了Alluxio。
 

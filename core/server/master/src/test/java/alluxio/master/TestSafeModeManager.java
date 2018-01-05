@@ -9,17 +9,19 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio;
-
-import java.io.IOException;
+package alluxio.master;
 
 /**
- * An interface for an object which tracks and can report its current position (for example a
- * stream).
+ * Test implementation of @SafeModeManager.
  */
-public interface Positioned {
-  /**
-   * @return the current position
-   */
-  long getPos() throws IOException;
+public class TestSafeModeManager implements SafeModeManager {
+
+  @Override
+  public void notifyRpcServerStarted() {
+  }
+
+  @Override
+  public boolean isInSafeMode() {
+    return false;
+  }
 }
