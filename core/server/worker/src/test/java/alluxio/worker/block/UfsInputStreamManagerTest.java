@@ -177,6 +177,8 @@ public final class UfsInputStreamManagerTest {
         threads.add(new Thread(runnable));
       }
       ConcurrencyUtils.assertConcurrent(threads, 30);
+      // ensure at least one expired in stream is closed
+      Mockito.verify(mSeekableInStreams[0], Mockito.timeout(2000)).close();
     }
   }
 }
