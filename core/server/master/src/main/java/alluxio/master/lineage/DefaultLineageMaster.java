@@ -216,7 +216,7 @@ public final class DefaultLineageMaster extends AbstractMaster implements Lineag
 
   @Override
   public synchronized boolean deleteLineage(long lineageId, boolean cascade)
-      throws LineageDoesNotExistException, LineageDeletionException {
+      throws LineageDoesNotExistException, LineageDeletionException, UnavailableException {
     try (JournalContext journalContext = createJournalContext()) {
       deleteLineageInternal(lineageId, cascade);
       DeleteLineageEntry deleteLineage =
@@ -315,7 +315,7 @@ public final class DefaultLineageMaster extends AbstractMaster implements Lineag
       for (long file : lineage.getOutputFiles()) {
         try {
           mFileSystemMaster.scheduleAsyncPersistence(mFileSystemMaster.getPath(file));
-        } catch (AlluxioException e) {
+        } catch (AlluxioException | UnavailableException e) {
           LOG.error("Failed to persist the file {}.", file, e);
         }
       }
