@@ -81,6 +81,7 @@ import alluxio.master.file.options.WorkerHeartbeatOptions;
 import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.NoopJournalContext;
 import alluxio.metrics.MetricsSystem;
+import alluxio.proto.journal.File;
 import alluxio.proto.journal.File.AddMountPointEntry;
 import alluxio.proto.journal.File.AsyncPersistRequestEntry;
 import alluxio.proto.journal.File.CompleteFileEntry;
@@ -475,6 +476,12 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       } catch (AlluxioException e) {
         // It's possible that rescheduling the async persist calls fails, because the blocks may no
         // longer be in the memory
+        LOG.error(e.getMessage());
+      }
+    } else if (entry.hasUpdateUfsMode()) {
+      try {
+        updateUfsModeFromEntry(entry.getUpdateUfsMode());
+      } catch (AlluxioException e) {
         LOG.error(e.getMessage());
       }
     } else {
@@ -3402,6 +3409,67 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
 
   @Override
   public void updateUfsMode(String ufsPath, UnderFileSystem.UfsMode ufsMode)
+      throws InvalidPathException {
+    try (JournalContext journalContext = createJournalContext()) {
+      updateUfsModeAndJournal(ufsPath, ufsMode, journalContext);
+    }
+  }
+
+  /**
+   * Update the ufs mode for path and create a journal entry.
+   *
+   * @param ufsPath the ufs path
+   * @param ufsMode the ufs mode
+   * @param journalContext the journal context
+   * @throws InvalidPathException if path is not used  by any mount point
+   */
+  private void updateUfsModeAndJournal(String ufsPath, UnderFileSystem.UfsMode ufsMode,
+      JournalContext journalContext) throws InvalidPathException {
+    updateUfsModeInternal(ufsPath, ufsMode);
+
+    // Journal
+    File.UfsMode ufsModeEntry;
+    switch (ufsMode) {
+      case NO_ACCESS:
+        ufsModeEntry = File.UfsMode.NO_ACCESS;
+        break;
+      case READ_ONLY:
+        ufsModeEntry = File.UfsMode.READ_ONLY;
+        break;
+      default:
+        ufsModeEntry = File.UfsMode.READ_WRITE;
+        break;
+    }
+    File.UpdateUfsModeEntry ufsEntry =
+        File.UpdateUfsModeEntry.newBuilder().setUfsPath(ufsPath).setUfsMode(ufsModeEntry).build();
+    journalContext.append(JournalEntry.newBuilder().setUpdateUfsMode(ufsEntry).build());
+  }
+
+  /**
+   * Update ufs mode from journal entry.
+   *
+   * @param entry the update ufs mode journal entry
+   * @throws InvalidPathException if the path is not used by any mount point
+   */
+  private void updateUfsModeFromEntry(File.UpdateUfsModeEntry entry)
+      throws InvalidPathException {
+    String ufsPath = entry.getUfsPath();
+    UnderFileSystem.UfsMode ufsMode;
+    switch (entry.getUfsMode()) {
+      case NO_ACCESS:
+        ufsMode = UnderFileSystem.UfsMode.NO_ACCESS;
+        break;
+      case READ_ONLY:
+        ufsMode = UnderFileSystem.UfsMode.READ_ONLY;
+        break;
+      default:
+        ufsMode = UnderFileSystem.UfsMode.READ_WRITE;
+        break;
+    }
+    updateUfsModeInternal(ufsPath, ufsMode);
+  }
+
+  private void updateUfsModeInternal(String ufsPath, UnderFileSystem.UfsMode ufsMode)
       throws InvalidPathException {
     mUfsManager.setUfsMode(ufsPath, ufsMode);
   }
