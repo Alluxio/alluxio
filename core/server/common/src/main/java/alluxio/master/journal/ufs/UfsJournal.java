@@ -99,6 +99,7 @@ public class UfsJournal implements Journal {
   private enum State {
     SECONDARY, PRIMARY, CLOSED;
   }
+
   private State mState;
 
   /**

@@ -377,18 +377,19 @@ public final class FileSystemMasterClientServiceHandler implements
   @Override
   public ScheduleAsyncPersistenceTResponse scheduleAsyncPersistence(final String path,
       final ScheduleAsyncPersistenceTOptions options) throws AlluxioTException {
-    return RpcUtils.call(LOG, new RpcCallableThrowsIOException<ScheduleAsyncPersistenceTResponse>() {
-      @Override
-      public ScheduleAsyncPersistenceTResponse call() throws AlluxioException, IOException {
-        mFileSystemMaster.scheduleAsyncPersistence(new AlluxioURI(path));
-        return new ScheduleAsyncPersistenceTResponse();
-      }
+    return RpcUtils.call(LOG,
+        new RpcCallableThrowsIOException<ScheduleAsyncPersistenceTResponse>() {
+          @Override
+          public ScheduleAsyncPersistenceTResponse call() throws AlluxioException, IOException {
+            mFileSystemMaster.scheduleAsyncPersistence(new AlluxioURI(path));
+            return new ScheduleAsyncPersistenceTResponse();
+          }
 
-      @Override
-      public String toString() {
-        return String.format("ScheduleAsyncPersist: path=%s, options=%s", path, options);
-      }
-    });
+          @Override
+          public String toString() {
+            return String.format("ScheduleAsyncPersist: path=%s, options=%s", path, options);
+          }
+        });
   }
 
   @Override
