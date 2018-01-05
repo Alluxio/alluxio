@@ -36,6 +36,7 @@ public final class Utils {
 
   /**
    * Validates whether a network address is reachable.
+   *
    * @param hostname host name of the network address
    * @param port port of the network address
    * @return whether the network address is reachable
@@ -50,6 +51,7 @@ public final class Utils {
 
   /**
    * Checks whether an Alluxio service is running.
+   *
    * @param className class name of the Alluxio service
    * @return whether the Alluxio service is running
    */
@@ -100,10 +102,11 @@ public final class Utils {
 
   /**
    * Checks whether a path is the mounting point of a RAM disk volume.
+   *
    * @param path  a string represents the path to be checked
-   * @param fsTypes  an array of strings represents expected file system type
+   * @param fsTypes an array of strings represents expected file system type
    * @return true if the path is the mounting point of volume with one of the given fsTypes,
-   * false otherwise
+   *         false otherwise
    * @throws IOException if the function fails to get the mount information of the system
    */
   public static boolean isMountingPoint(String path, String[] fsTypes) throws IOException {
