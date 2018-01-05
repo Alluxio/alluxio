@@ -70,6 +70,7 @@ import alluxio.master.file.options.CompleteFileOptions;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
 import alluxio.master.file.options.DeleteOptions;
+import alluxio.master.file.options.DescendantType;
 import alluxio.master.file.options.FreeOptions;
 import alluxio.master.file.options.GetStatusOptions;
 import alluxio.master.file.options.ListStatusOptions;
@@ -749,7 +750,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         throw e;
       }
       // Possible ufs sync.
-      if (syncMetadata(journalContext, inodePath, lockingScheme, 1)) {
+      if (syncMetadata(journalContext, inodePath, lockingScheme, DescendantType.ONE)) {
         // If synced, do not load metadata.
         options.setLoadMetadataType(LoadMetadataType.Never);
       }
@@ -828,24 +829,25 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         throw e;
       }
       // Possible ufs sync.
-      if (syncMetadata(journalContext, inodePath, lockingScheme, 1)) {
+      if (syncMetadata(journalContext, inodePath, lockingScheme, DescendantType.ONE)) {
         // If synced, do not load metadata.
         listStatusOptions.setLoadMetadataType(LoadMetadataType.Never);
       }
 
       // load metadata for 1 level of descendants
-      int loadDescendantLevels =
-          (listStatusOptions.getLoadMetadataType() != LoadMetadataType.Never) ? 1 : 0;
+      DescendantType loadDescendantType =
+          (listStatusOptions.getLoadMetadataType() != LoadMetadataType.Never) ? DescendantType.ONE :
+              DescendantType.NONE;
       LoadMetadataOptions loadMetadataOptions =
           LoadMetadataOptions.defaults().setCreateAncestors(true)
-              .setLoadDescendantLevels(loadDescendantLevels);
+              .setLoadDescendantType(loadDescendantType);
       Inode<?> inode;
       if (inodePath.fullPathExists()) {
         inode = inodePath.getInode();
         if (inode.isDirectory()
             && listStatusOptions.getLoadMetadataType() != LoadMetadataType.Always
             && ((InodeDirectory) inode).isDirectChildrenLoaded()) {
-          loadMetadataOptions.setLoadDescendantLevels(0);
+          loadMetadataOptions.setLoadDescendantType(DescendantType.NONE);
         }
       } else {
         checkLoadMetadataOptions(listStatusOptions.getLoadMetadataType(), inodePath.getUri());
@@ -946,7 +948,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         throw e;
       }
       // Possible ufs sync.
-      syncMetadata(journalContext, parent, lockingScheme, -1);
+      syncMetadata(journalContext, parent, lockingScheme, DescendantType.ALL);
 
       try (InodeLockList children = mInodeTree.lockDescendants(parent, InodeTree.LockMode.READ)) {
         if (!checkConsistencyInternal(parent.getInode(), parent.getUri())) {
@@ -1170,7 +1172,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         throw e;
       }
       // Possible ufs sync.
-      syncMetadata(journalContext, inodePath, lockingScheme, 1);
+      syncMetadata(journalContext, inodePath, lockingScheme, DescendantType.ONE);
 
       mMountTable.checkUnderWritableMountPoint(path);
       createFileAndJournal(inodePath, options, journalContext);
@@ -1350,7 +1352,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         mMountTable.checkUnderWritableMountPoint(path);
       }
       // Possible ufs sync.
-      syncMetadata(journalContext, inodePath, lockingScheme, options.isRecursive() ? -1 : 1);
+      syncMetadata(journalContext, inodePath, lockingScheme,
+          options.isRecursive() ? DescendantType.ALL : DescendantType.ONE);
       if (!inodePath.fullPathExists()) {
         throw new FileDoesNotExistException(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(path));
       }
@@ -1821,7 +1824,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         throw e;
       }
       // Possible ufs sync.
-      syncMetadata(journalContext, inodePath, lockingScheme, 1);
+      syncMetadata(journalContext, inodePath, lockingScheme, DescendantType.ONE);
 
       mMountTable.checkUnderWritableMountPoint(path);
       createDirectoryAndJournal(inodePath, options, journalContext);
@@ -1919,8 +1922,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         throw e;
       }
       // Possible ufs sync.
-      syncMetadata(journalContext, srcInodePath, srcLockingScheme, 1);
-      syncMetadata(journalContext, dstInodePath, dstLockingScheme, 1);
+      syncMetadata(journalContext, srcInodePath, srcLockingScheme, DescendantType.ONE);
+      syncMetadata(journalContext, dstInodePath, dstLockingScheme, DescendantType.ONE);
 
       mMountTable.checkUnderWritableMountPoint(srcPath);
       mMountTable.checkUnderWritableMountPoint(dstPath);
@@ -2442,26 +2445,25 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         loadDirectoryMetadataAndJournal(inodePath, options, journalContext);
         InodeDirectory inode = (InodeDirectory) inodePath.getInode();
 
-        if (options.getLoadDescendantLevels() != 0) {
+        if (options.getLoadDescendantType() != DescendantType.NONE) {
           UfsStatus[] children = ufs.listStatus(ufsUri.toString());
           for (UfsStatus childStatus : children) {
-            boolean skipExisting = inode.getChild(childStatus.getName()) != null;
-            // Do not skip existing directories if there are more descendant levels to load
-            if (childStatus.isDirectory() && (options.getLoadDescendantLevels() < 0
-                || options.getLoadDescendantLevels() > 1)) {
-              skipExisting = false;
+            if (PathUtils.isTemporaryFileName(childStatus.getName())) {
+              continue;
             }
-            if (PathUtils.isTemporaryFileName(childStatus.getName()) || skipExisting) {
+            if (inode.getChild(childStatus.getName()) != null && (childStatus.isFile()
+                || options.getLoadDescendantType() != DescendantType.ALL)) {
+              // stop traversing if this is an existing file, or an existing directory without
+              // loading all descendants.
               continue;
             }
             TempInodePathForChild tempInodePath =
                 new TempInodePathForChild(inodePath, childStatus.getName());
-            int loadDescendantLevels = options.getLoadDescendantLevels();
-            if (loadDescendantLevels > 0) {
-              loadDescendantLevels--;
-            }
+            DescendantType loadDescendantType =
+                (options.getLoadDescendantType() == DescendantType.ONE) ? DescendantType.NONE :
+                    DescendantType.ALL;
             LoadMetadataOptions loadMetadataOptions =
-                LoadMetadataOptions.defaults().setLoadDescendantLevels(loadDescendantLevels)
+                LoadMetadataOptions.defaults().setLoadDescendantType(loadDescendantType)
                     .setCreateAncestors(false).setUfsStatus(childStatus);
             loadMetadataAndJournal(tempInodePath, loadMetadataOptions, journalContext);
           }
@@ -2602,7 +2604,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     if (inodeExists) {
       try {
         Inode<?> inode = inodePath.getInode();
-        loadDirectChildren = inode.isDirectory() && (options.getLoadDescendantLevels() != 0);
+        loadDirectChildren =
+            inode.isDirectory() && (options.getLoadDescendantType() != DescendantType.NONE);
       } catch (FileDoesNotExistException e) {
         // This should never happen.
         throw new RuntimeException(e);
@@ -2639,7 +2642,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       }
       mMountTable.checkUnderWritableMountPoint(alluxioPath);
       // Possible ufs sync.
-      syncMetadata(journalContext, inodePath, lockingScheme, 1);
+      syncMetadata(journalContext, inodePath, lockingScheme, DescendantType.ONE);
 
       mountAndJournal(inodePath, ufsPath, options, journalContext);
       auditContext.setSucceeded(true);
@@ -2905,7 +2908,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         throw e;
       }
       // Possible ufs sync.
-      syncMetadata(journalContext, inodePath, lockingScheme, options.isRecursive() ? -1 : 1);
+      syncMetadata(journalContext, inodePath, lockingScheme,
+          options.isRecursive() ? DescendantType.ALL : DescendantType.ONE);
       if (!inodePath.fullPathExists()) {
         throw new FileDoesNotExistException(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(path));
       }
@@ -3058,11 +3062,11 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    * @param journalContext the journal context
    * @param inodePath the Alluxio inode path to sync with UFS
    * @param lockingScheme the locking scheme used to lock the inode path
-   * @param syncDescendantLevels the number of levels to sync
+   * @param syncDescendantType how to sync descendants
    * @return true if the sync was performed successfully, false otherwise (including errors)
    */
   private boolean syncMetadata(JournalContext journalContext, LockedInodePath inodePath,
-      LockingScheme lockingScheme, int syncDescendantLevels) {
+      LockingScheme lockingScheme, DescendantType syncDescendantType) {
     if (!lockingScheme.shouldSync()) {
       return false;
     }
@@ -3120,7 +3124,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         }
 
         if (syncPlan.toSyncChildren()) {
-          loadMetadata = syncDirMetadata(journalContext, inodePath, syncDescendantLevels);
+          loadMetadata = syncDirMetadata(journalContext, inodePath, syncDescendantType);
         }
       }
     } catch (Exception e) {
@@ -3140,7 +3144,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     if (loadMetadata) {
       try {
         loadMetadataAndJournal(inodePath, LoadMetadataOptions.defaults().setCreateAncestors(true)
-            .setLoadDescendantLevels(syncDescendantLevels), journalContext);
+            .setLoadDescendantType(syncDescendantType), journalContext);
       } catch (Exception e) {
         LOG.error("Failed to load metadata for path: {} error: {}", inodePath.getUri(),
             e.toString());
@@ -3153,9 +3157,10 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
   }
 
   private boolean syncDirMetadata(JournalContext journalContext, LockedInodePath inodePath,
-      int syncDescendantLevels) throws FileDoesNotExistException, InvalidPathException, IOException,
+      DescendantType syncDescendantType)
+      throws FileDoesNotExistException, InvalidPathException, IOException,
       DirectoryNotEmptyException {
-    if (syncDescendantLevels == 0) {
+    if (syncDescendantType == DescendantType.NONE) {
       return false;
     }
     MountTable.Resolution resolution = mMountTable.resolve(inodePath.getUri());
@@ -3222,8 +3227,10 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
           tempInodePath.setDescendant(inodeEntry.getValue(),
               inodePath.getUri().join(inodeEntry.getKey()));
 
-          loadMetadata |= syncDirMetadata(journalContext, tempInodePath,
-              syncDescendantLevels < 0 ? -1 : syncDescendantLevels - 1);
+          if (syncDescendantType == DescendantType.ALL) {
+            // Recursively sync children
+            loadMetadata |= syncDirMetadata(journalContext, tempInodePath, DescendantType.ALL);
+          }
         }
       }
     }
