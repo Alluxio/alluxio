@@ -11,8 +11,7 @@
 
 package alluxio.client.block.stream;
 
-import alluxio.Configuration;
-import alluxio.ConfigurationTestUtils;
+import alluxio.ConfigurationRule;
 import alluxio.PropertyKey;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.URIStatus;
@@ -36,6 +35,7 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
+import java.io.Closeable;
 import java.util.Collections;
 
 /**
@@ -94,15 +94,13 @@ public class BlockInStreamTest {
 
   @Test
   public void createShortCircuitDisabled() throws Exception {
-    Configuration.set(PropertyKey.USER_SHORT_CIRCUIT_ENABLED, false);
-    try {
+    try (Closeable c =
+        new ConfigurationRule(PropertyKey.USER_SHORT_CIRCUIT_ENABLED, "false").toResource()) {
       WorkerNetAddress dataSource = new WorkerNetAddress();
       BlockInStream.BlockInStreamSource dataSourceType = BlockInStream.BlockInStreamSource.LOCAL;
       BlockInStream stream =
           BlockInStream.create(mMockContext, mInfo, dataSource, dataSourceType, mOptions);
       Assert.assertFalse(stream.isShortCircuit());
-    } finally {
-      ConfigurationTestUtils.resetConfiguration();
     }
   }
 
