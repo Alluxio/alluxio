@@ -15,14 +15,9 @@ import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.util.OSUtils;
-import alluxio.util.ShellUtils;
-import alluxio.util.UnixMountInfo;
-
-import com.google.common.base.Optional;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -70,7 +65,7 @@ public final class RamDiskMountPrivilegeValidationTask extends AbstractValidatio
           return false;
         }
 
-        if (isRamDiskMountingPoint(path)) {
+        if (Utils.isMountingPoint(path, new String[]{"ramfs", "tmpfs"})) {
           // If the RAM disk is already mounted, it must be writable for Alluxio worker
           // to be able to use it.
           if (!file.canWrite()) {
@@ -107,25 +102,5 @@ public final class RamDiskMountPrivilegeValidationTask extends AbstractValidatio
     Process process = Runtime.getRuntime().exec("sudo -v");
     int exitCode = process.waitFor();
     return exitCode == 0;
-  }
-
-  /**
-   * Checks whether a path is the mounting point of a RAM disk volume.
-   * @param path  a string represents the path to be checked
-   * @return true if the path is the mounting point of a ramfs or tmpfs volume, false otherwise
-   * @throws IOException if the function fails to get the mount information of the system
-   */
-  private boolean isRamDiskMountingPoint(String path) throws IOException {
-    List<UnixMountInfo> infoList = ShellUtils.getUnixMountInfo();
-    for (UnixMountInfo info : infoList) {
-      Optional<String> mountPoint = info.getMountPoint();
-      Optional<String> fsType = info.getFsType();
-      if (mountPoint.isPresent() && mountPoint.get().equals(path) && fsType.isPresent()
-          && (fsType.get().equalsIgnoreCase("tmpfs") || fsType.get().equalsIgnoreCase("ramfs"))) {
-        return true;
-      }
-    }
-
-    return false;
   }
 }
