@@ -91,6 +91,7 @@ public final class UfsCommand extends AbstractFileSystemAdminCommand {
           return -1;
       }
       mMasterClient.updateUfsMode(ufsPath, UpdateUfsModeOptions.defaults().setUfsMode(mode));
+      System.out.println("Ufs mode updated");
       return 0;
     }
     System.out.println("No attribute to update");

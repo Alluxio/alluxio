@@ -11,7 +11,6 @@
 
 package alluxio.underfs;
 
-import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidPathException;
 import alluxio.util.UnderFileSystemUtils;
 
