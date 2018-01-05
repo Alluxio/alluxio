@@ -233,9 +233,9 @@ public final class AlluxioBlockStoreTest {
         Arrays.asList(new WorkerInfo().setAddress(worker1), new WorkerInfo().setAddress(worker2)));
 
     // Location policy chooses worker1 first.
-    assertEquals(worker1, mBlockStore.getInStream(info, options).getAddress());
+    assertEquals(worker1, mBlockStore.getInStream(BLOCK_ID, options).getAddress());
     // Location policy chooses worker2 second.
-    assertEquals(worker2, mBlockStore.getInStream(info, options).getAddress());
+    assertEquals(worker2, mBlockStore.getInStream(BLOCK_ID, options).getAddress());
   }
 
   @Test
@@ -255,7 +255,7 @@ public final class AlluxioBlockStoreTest {
             new BlockLocation().setWorkerAddress(local)));
 
     when(mMasterClient.getBlockInfo(BLOCK_ID)).thenReturn(info);
-    assertEquals(local, mBlockStore.getInStream(info, new InStreamOptions(
+    assertEquals(local, mBlockStore.getInStream(BLOCK_ID, new InStreamOptions(
         new URIStatus(new FileInfo().setBlockIds(Lists.newArrayList(BLOCK_ID))))).getAddress());
   }
 
@@ -272,7 +272,7 @@ public final class AlluxioBlockStoreTest {
     // We should sometimes get remote1 and sometimes get remote2.
     Set<WorkerNetAddress> results = new HashSet<>();
     for (int i = 0; i < 40; i++) {
-      results.add(mBlockStore.getInStream(info, new InStreamOptions(
+      results.add(mBlockStore.getInStream(BLOCK_ID, new InStreamOptions(
           new URIStatus(new FileInfo().setBlockIds(Lists.newArrayList(BLOCK_ID)))))
           .getAddress());
     }
