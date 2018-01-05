@@ -13,10 +13,9 @@ package alluxio.client.block.policy.options;
 
 import static org.junit.Assert.assertEquals;
 
-import alluxio.CommonTestUtils;
 import alluxio.Constants;
 import alluxio.client.block.BlockWorkerInfo;
-
+import alluxio.test.util.CommonUtils;
 import alluxio.wire.WorkerNetAddress;
 
 import org.junit.Test;
@@ -79,6 +78,6 @@ public final class GetWorkerOptionsTest {
 
   @Test
   public void equalTest() throws Exception {
-    CommonTestUtils.testEquals(GetWorkerOptions.class);
+    CommonUtils.testEquals(GetWorkerOptions.class);
   }
 }

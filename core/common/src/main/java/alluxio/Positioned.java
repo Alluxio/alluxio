@@ -11,6 +11,8 @@
 
 package alluxio;
 
+import java.io.IOException;
+
 /**
  * An interface for an object which tracks and can report its current position (for example a
  * stream).
@@ -19,5 +21,5 @@ public interface Positioned {
   /**
    * @return the current position
    */
-  long getPos();
+  long getPos() throws IOException;
 }

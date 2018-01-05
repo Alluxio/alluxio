@@ -297,7 +297,7 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
   public UfsStatus getStatus(String path) throws IOException {
     Path tPath = new Path(path);
     FileStatus fs = mFileSystem.getFileStatus(tPath);
-    if (fs.isFile()) {
+    if (!fs.isDir()) {
       // Return file status.
       String contentHash =
           UnderFileSystemUtils.approximateContentHash(fs.getLen(), fs.getModificationTime());
@@ -437,7 +437,7 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
           inputStream.close();
           throw e;
         }
-        return inputStream;
+        return new HdfsUnderFileInputStream(inputStream);
       } catch (IOException e) {
         LOG.warn("{} try to open {} : {}", retryPolicy.getRetryCount(), path, e.getMessage());
         te = e;
@@ -563,5 +563,10 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
       }
     }
     throw te;
+  }
+
+  @Override
+  public boolean isSeekable() {
+    return true;
   }
 }

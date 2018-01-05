@@ -19,7 +19,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.time.Clock;
-import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.atomic.AtomicMarkableReference;
 
 /**
  * Manages safe mode state for Alluxio master.
@@ -30,10 +30,11 @@ public class DefaultSafeModeManager implements SafeModeManager {
   private final Clock mClock;
 
   /**
-   * Safe mode state. The value will be null if master is not in safe mode, or a time point in
-   * millisecond indicating when master will stop waiting for workers and leave safe mode.
+   * Safe mode state. The mark indicates whether master is in safe mode, the reference stores
+   * time point in millisecond indicating when master started waiting for workers.
    */
-  private AtomicReference<Long> mWorkerConnectWaitEndTimeMs = new AtomicReference<>();
+  private final AtomicMarkableReference<Long> mWorkerConnectWaitStartTimeMs =
+      new AtomicMarkableReference<>(null, true);
 
   /**
    * Creates {@link DefaultSafeModeManager} with default clock.
@@ -52,25 +53,40 @@ public class DefaultSafeModeManager implements SafeModeManager {
   }
 
   @Override
+  public void notifyPrimaryMasterStarted() {
+    LOG.info("Entering safe mode.");
+    mWorkerConnectWaitStartTimeMs.set(null, true);
+  }
+
+  @Override
   public void notifyRpcServerStarted() {
-    // updates end time after which master will leave safe mode
+    // updates start time when Alluxio master waits for workers to register
     long waitTime = Configuration.getMs(PropertyKey.MASTER_WORKER_CONNECT_WAIT_TIME);
-    LOG.info(String.format("Entering safe mode. Expect leaving safe mode after %dms", waitTime));
-    mWorkerConnectWaitEndTimeMs.set(mClock.millis() + waitTime);
+    LOG.info(String.format("Expect leaving safe mode after %dms", waitTime));
+    mWorkerConnectWaitStartTimeMs.set(mClock.millis(), true);
   }
 
   @Override
   public boolean isInSafeMode() {
-    // lazily updates safe mode state upon inquiry
-    Long endTime = mWorkerConnectWaitEndTimeMs.get();
-
     // bails out early before expensive clock checks
-    if (endTime == null) {
+    if (!mWorkerConnectWaitStartTimeMs.isMarked()) {
       return false;
     }
-    if (mClock.millis() < endTime) {
+
+    Long startTime = mWorkerConnectWaitStartTimeMs.getReference();
+    if (startTime == null) {
+      // master has not started waiting for workers yet
       return true;
     }
-    return !mWorkerConnectWaitEndTimeMs.compareAndSet(endTime, null);
+
+    // lazily updates safe mode state upon inquiry
+    long waitTime = Configuration.getMs(PropertyKey.MASTER_WORKER_CONNECT_WAIT_TIME);
+    if (mClock.millis() - startTime < waitTime) {
+      return true;
+    }
+
+    mWorkerConnectWaitStartTimeMs.compareAndSet(startTime, null, true, false);
+
+    return mWorkerConnectWaitStartTimeMs.isMarked();
   }
 }

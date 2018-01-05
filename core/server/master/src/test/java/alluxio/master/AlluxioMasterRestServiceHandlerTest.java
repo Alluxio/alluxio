@@ -114,7 +114,7 @@ public final class AlluxioMasterRestServiceHandlerTest {
     mMasterProcess = mock(MasterProcess.class);
     ServletContext context = mock(ServletContext.class);
     mRegistry = new MasterRegistry();
-    mSafeModeManager = new DefaultSafeModeManager();
+    mSafeModeManager = new TestSafeModeManager();
     JournalSystem journalSystem = JournalTestUtils.createJournalSystem(mTestFolder);
     mBlockMaster = new BlockMasterFactory().create(mRegistry, journalSystem, mSafeModeManager);
     mRegistry.start(true);
