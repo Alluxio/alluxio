@@ -6,11 +6,14 @@ group: Clients
 priority: 5
 ---
 
+* 内容列表
+{:toc}
+
 Alluxio有一个Python客户端，这个客户端可以通过它的REST API来和Alluxio交流。它发布了一个和本地的Java API类似的API。通过看这篇doc来了解有关所有可用方法的详细文档。通过看例子来了解如何在Alluxio上执行基本的文件系统操作。
 
 # Alluxio代理依赖
 这个Python客户端通过由Alluxio代理提供的REST API来和Alluxio相互交流。
-这个代理服务器是一个独立的服务器，可以通过${ALLUXIO_HOME}/bin/alluxio-start.sh proxy来开启它和通过命令${ALLUXIO_HOME}/bin/alluxio-stop.sh proxy来关闭它。默认情况下，可以通过端口39999来使用REST API。
+这个代理服务器是一个独立的服务器，可以通过`${ALLUXIO_HOME}/bin/alluxio-start.sh proxy`来开启它和通过命令`${ALLUXIO_HOME}/bin/alluxio-stop.sh proxy`来关闭它。默认情况下，可以通过端口39999来使用REST API。
 使用HTTP代理服务器有性能上的影响。特别的是，使用这个代理服务器需要一个额外的跳。为了达到最佳性能，运行这个代理服务器的时候推荐在每个计算节点上分配一个Alluxio worker。
 
 # 安装python客户端库
@@ -19,6 +22,7 @@ Alluxio有一个Python客户端，这个客户端可以通过它的REST API来�
 # 使用示例
 下面的程序示例包括了如何在Alluxio创建目录、下载、上传、检查文件是否存在以及文件列表状态。
 
+```python
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
@@ -105,3 +109,5 @@ def main():
 
 if __name__ == '__main__':
     main()
+
+```

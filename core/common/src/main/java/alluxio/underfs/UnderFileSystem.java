@@ -172,11 +172,6 @@ public interface UnderFileSystem extends Closeable {
   }
 
   /**
-   * Closes this under file system.
-   */
-  void close() throws IOException;
-
-  /**
    * Takes any necessary actions required to establish a connection to the under file system from
    * the given master host e.g. logging in
    * <p>
@@ -354,6 +349,15 @@ public interface UnderFileSystem extends Closeable {
    * @return true if under storage is an object store, false otherwise
    */
   boolean isObjectStorage();
+
+  /**
+   * Denotes if the under storage supports seeking. Note, the under file system subclass that
+   * returns true for this method should return the input stream extending
+   * {@link SeekableUnderFileInputStream} in the {@link #open(String, OpenOptions)} method.
+   *
+   * @return true if under storage is seekable, false otherwise
+   */
+  boolean isSeekable();
 
   /**
    * Returns an array of statuses of the files and directories in the directory denoted by this
