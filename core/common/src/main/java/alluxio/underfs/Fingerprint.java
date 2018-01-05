@@ -57,19 +57,9 @@ public final class Fingerprint {
   }
 
   /**
-   * Returns the ufs name for fingerprints.
-   *
-   * @param ufs the {@link UnderFileSystem} to get the name for
-   * @return the name of the UFS, for fingerprints
-   */
-  public static String getUfsName(UnderFileSystem ufs) {
-    return ufs.getClass().getSimpleName();
-  }
-
-  /**
    * Parses the input string and returns the fingerprint object.
    *
-   * @param ufsName the name of the ufs, calculated by {@link #getUfsName(UnderFileSystem)}
+   * @param ufsName the name of the ufs, should be {@link UnderFileSystem#getUnderFSType()}
    * @param status the {@link UfsStatus} to create the fingerprint from
    * @return the fingerprint object
    */
