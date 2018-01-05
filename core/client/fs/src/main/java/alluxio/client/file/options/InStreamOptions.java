@@ -68,7 +68,8 @@ public final class InStreamOptions {
 
   /**
    * @param blockId id of the block
-   * @return the block info associated with the block id
+   * @return the block info associated with the block id, note that this will be a cached copy
+   * and will not fetch the latest info from the master
    */
   public BlockInfo getBlockInfo(long blockId) {
     Preconditions.checkArgument(mStatus.getBlockIds().contains(blockId), "blockId");

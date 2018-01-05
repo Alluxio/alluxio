@@ -179,7 +179,7 @@ public class FileInStream extends InputStream implements BoundedStream, Position
       long blockId = mStatus.getBlockIds().get(Math.toIntExact(pos / mBlockSize));
       BlockInStream stream = null;
       try {
-        stream = mBlockStore.getInStream(mOptions.getBlockInfo(blockId), mOptions);
+        stream = mBlockStore.getInStream(blockId, mOptions);
         long offset = pos % mBlockSize;
         int bytesRead =
             stream.positionedRead(offset, b, off, (int) Math.min(mBlockSize - offset, len));
@@ -240,7 +240,7 @@ public class FileInStream extends InputStream implements BoundedStream, Position
     // Calculate block id.
     long blockId = mStatus.getBlockIds().get(Math.toIntExact(mPosition / mBlockSize));
     // Create stream
-    mBlockInStream = mBlockStore.getInStream(mOptions.getBlockInfo(blockId), mOptions);
+    mBlockInStream = mBlockStore.getInStream(blockId, mOptions);
     // Set the stream to the correct position.
     long offset = mPosition % mBlockSize;
     mBlockInStream.seek(offset);
