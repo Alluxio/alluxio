@@ -27,13 +27,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 public final class LoadMetadataOptions {
   private CommonOptions mCommonOptions;
   private boolean mCreateAncestors;
-  /**
-   * The number of descendant levels to load.
-   * -1: load all levels
-   *  0: do not load
-   * 1+: specific number of levels to load
-   */
-  private int mLoadDescendantLevels;
+  private DescendantType mLoadDescendantType;
   private UfsStatus mUfsStatus;
 
   /**
@@ -48,7 +42,7 @@ public final class LoadMetadataOptions {
     mCommonOptions = CommonOptions.defaults();
     mCreateAncestors = false;
     mUfsStatus = null;
-    mLoadDescendantLevels = 0;
+    mLoadDescendantType = DescendantType.NONE;
   }
 
   /**
@@ -71,10 +65,10 @@ public final class LoadMetadataOptions {
   }
 
   /**
-   * @return the number of levels of descendants to load (-1 means no loading)
+   * @return the type of descendants to load
    */
-  public int getLoadDescendantLevels() {
-    return mLoadDescendantLevels;
+  public DescendantType getLoadDescendantType() {
+    return mLoadDescendantType;
   }
 
   /**
@@ -115,11 +109,11 @@ public final class LoadMetadataOptions {
   }
 
   /**
-   * @param loadDescendantLevels the number of levels of descendants to load (-1 means no loading)
+   * @param loadDescendantType the type of descendants to load
    * @return the updated object
    */
-  public LoadMetadataOptions setLoadDescendantLevels(int loadDescendantLevels) {
-    mLoadDescendantLevels = loadDescendantLevels;
+  public LoadMetadataOptions setLoadDescendantType(DescendantType loadDescendantType) {
+    mLoadDescendantType = loadDescendantType;
     return this;
   }
 
@@ -145,13 +139,13 @@ public final class LoadMetadataOptions {
     LoadMetadataOptions that = (LoadMetadataOptions) o;
     return Objects.equal(mCreateAncestors, that.mCreateAncestors)
         && Objects.equal(mCommonOptions, that.mCommonOptions)
-        && Objects.equal(mLoadDescendantLevels, that.mLoadDescendantLevels)
+        && Objects.equal(mLoadDescendantType, that.mLoadDescendantType)
         && Objects.equal(mUfsStatus, that.mUfsStatus);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mCreateAncestors, mLoadDescendantLevels, mUfsStatus, mCommonOptions);
+    return Objects.hashCode(mCreateAncestors, mLoadDescendantType, mUfsStatus, mCommonOptions);
   }
 
   @Override
@@ -159,7 +153,7 @@ public final class LoadMetadataOptions {
     return Objects.toStringHelper(this)
         .add("commonOptions", mCommonOptions)
         .add("createAncestors", mCreateAncestors)
-        .add("loadDescendantLevels", mLoadDescendantLevels)
+        .add("loadDescendantLevels", mLoadDescendantType)
         .add("ufsStatus", mUfsStatus).toString();
   }
 }
