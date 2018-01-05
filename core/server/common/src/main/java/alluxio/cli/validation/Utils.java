@@ -13,6 +13,10 @@ package alluxio.cli.validation;
 
 import alluxio.Configuration;
 import alluxio.PropertyKey;
+import alluxio.util.ShellUtils;
+import alluxio.util.UnixMountInfo;
+
+import com.google.common.base.Optional;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -29,6 +33,7 @@ import java.util.List;
  */
 public final class Utils {
   private static final String LINE_SEPARATOR = System.getProperty("line.separator").toString();
+
   /**
    * Validates whether a network address is reachable.
    * @param hostname host name of the network address
@@ -91,6 +96,30 @@ public final class Utils {
     }
 
     return nodes;
+  }
+
+  /**
+   * Checks whether a path is the mounting point of a RAM disk volume.
+   * @param path  a string represents the path to be checked
+   * @param fsTypes  an array of strings represents expected file system type
+   * @return true if the path is the mounting point of volume with one of the given fsTypes,
+   * false otherwise
+   * @throws IOException if the function fails to get the mount information of the system
+   */
+  public static boolean isMountingPoint(String path, String[] fsTypes) throws IOException {
+    List<UnixMountInfo> infoList = ShellUtils.getUnixMountInfo();
+    for (UnixMountInfo info : infoList) {
+      Optional<String> mountPoint = info.getMountPoint();
+      Optional<String> fsType = info.getFsType();
+      if (mountPoint.isPresent() && mountPoint.get().equals(path) && fsType.isPresent()) {
+        for (String expectedType : fsTypes) {
+          if (fsType.get().equalsIgnoreCase(expectedType)) {
+            return true;
+          }
+        }
+      }
+    }
+    return false;
   }
 
   /**
