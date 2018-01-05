@@ -23,6 +23,7 @@ import alluxio.master.file.options.CompleteFileOptions;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
 import alluxio.master.file.options.DeleteOptions;
+import alluxio.master.file.options.DescendantType;
 import alluxio.master.file.options.FreeOptions;
 import alluxio.master.file.options.GetStatusOptions;
 import alluxio.master.file.options.ListStatusOptions;
@@ -275,7 +276,8 @@ public final class FileSystemMasterClientServiceHandler implements
       @Override
       public LoadMetadataTResponse call() throws AlluxioException, IOException {
         return new LoadMetadataTResponse(mFileSystemMaster.loadMetadata(new AlluxioURI(alluxioPath),
-            LoadMetadataOptions.defaults().setCreateAncestors(true).setLoadDescendantLevels(1)));
+            LoadMetadataOptions.defaults().setCreateAncestors(true).setLoadDescendantType(
+                DescendantType.ONE)));
       }
 
       @Override

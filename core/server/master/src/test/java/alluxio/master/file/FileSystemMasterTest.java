@@ -47,6 +47,7 @@ import alluxio.master.file.options.CompleteFileOptions;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
 import alluxio.master.file.options.DeleteOptions;
+import alluxio.master.file.options.DescendantType;
 import alluxio.master.file.options.FreeOptions;
 import alluxio.master.file.options.GetStatusOptions;
 import alluxio.master.file.options.ListStatusOptions;
@@ -1848,7 +1849,8 @@ public final class FileSystemMasterTest {
 
     // This should not throw file exists exception those a/f1 is loaded.
     mFileSystemMaster.loadMetadata(new AlluxioURI("alluxio:/a"),
-        LoadMetadataOptions.defaults().setCreateAncestors(true).setLoadDescendantLevels(1));
+        LoadMetadataOptions.defaults().setCreateAncestors(true).setLoadDescendantType(
+            DescendantType.ONE));
 
     // TODO(peis): Avoid this hack by adding an option in getFileInfo to skip loading metadata.
     try {
@@ -1861,7 +1863,8 @@ public final class FileSystemMasterTest {
     }
 
     mFileSystemMaster.loadMetadata(new AlluxioURI("alluxio:/a"),
-        LoadMetadataOptions.defaults().setCreateAncestors(true).setLoadDescendantLevels(1));
+        LoadMetadataOptions.defaults().setCreateAncestors(true)
+            .setLoadDescendantType(DescendantType.ONE));
   }
 
   /**

@@ -27,19 +27,24 @@ public final class LoadMetadataOptionsTest {
     LoadMetadataOptions options = LoadMetadataOptions.defaults();
     Assert.assertEquals(false, options.isCreateAncestors());
     Assert.assertEquals(null, options.getUfsStatus());
-    Assert.assertEquals(0, options.getLoadDescendantLevels());
+    Assert.assertEquals(DescendantType.NONE, options.getLoadDescendantType());
   }
 
   @Test
   public void fields() {
     Random random = new Random();
     boolean isCreateAncestors = random.nextBoolean();
-    int loadDescendantLevels = random.nextInt();
     LoadMetadataOptions options = LoadMetadataOptions.defaults();
     options.setCreateAncestors(isCreateAncestors);
-    options.setLoadDescendantLevels(loadDescendantLevels);
     Assert.assertEquals(isCreateAncestors, options.isCreateAncestors());
-    Assert.assertEquals(loadDescendantLevels, options.getLoadDescendantLevels());
+
+    DescendantType loadDescendantType = DescendantType.ALL;
+    options.setLoadDescendantType(loadDescendantType);
+    Assert.assertEquals(loadDescendantType, options.getLoadDescendantType());
+
+    loadDescendantType = DescendantType.ONE;
+    options.setLoadDescendantType(loadDescendantType);
+    Assert.assertEquals(loadDescendantType, options.getLoadDescendantType());
   }
 
   @Test
