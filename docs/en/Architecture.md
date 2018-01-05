@@ -14,7 +14,7 @@ priority: 1
 Alluxio holds a unique place in the big data ecosystem, residing between storage systems such
 as Amazon S3, Apache HDFS or OpenStack Swift and computation frameworks and applications such
 as Apache Spark or Hadoop MapReduce and provides the central point of access with a memory
-centric design. For user applications and computation frameworks, Alluxio is the underlayer
+centric design. For user applications and computation frameworks, Alluxio is the layer
 that manages data access and provides fast storage, facilitating data sharing and locality
 between jobs, regardless of whether they are running on the same computation engine. As a
 result, Alluxio can bring an order of magnitude speed up for those big data applications while
@@ -32,13 +32,13 @@ can serve as a unifying layer for any number of varied data sources.
 Alluxio's design uses a single primary master and multiple workers. At a very high level, Alluxio
 can be divided into three components, the [master](#master), [workers](#worker), and
 [clients](#client). The master and workers together make up the Alluxio servers, which are the
-components a system admin would maintain and manage. The clients are generally the
+components a system admin would maintain and manage. The Alluxio clients reside within the
 applications, such as Spark or MapReduce jobs, or Alluxio command-line users. Users of Alluxio
-will usually only need to interact with the client portion of Alluxio.
+will typically only need to interact with the client portion of Alluxio.
 
 ### Master
 
-Alluxio master can be deployed as primary master or secondary master.
+Alluxio masters can be deployed as a primary master or a secondary master.
 #### Primary Master
 The primary master is primarily responsible for managing the global metadata of the system,
 for example, the file system tree. Clients may interact with the primary master to read or
@@ -61,7 +61,7 @@ primary master if the primary master fails.
 
 ### Worker
 
-Alluxio workers are responsible for [managing local resources](Alluxio-Storage.html)
+Alluxio workers are responsible for [managing local storage resources](Alluxio-Storage.html)
 allocated to Alluxio. These resources could be local memory, SSD, or hard disk and are user
 configurable. Alluxio workers store data as blocks and serve requests from clients to read
 or write data by reading or creating new blocks. However, the worker is only responsible for the
