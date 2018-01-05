@@ -14,9 +14,9 @@ package alluxio.client.file.options;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertEquals;
 
-import alluxio.CommonTestUtils;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
+import alluxio.test.util.CommonUtils;
 import alluxio.thrift.DeleteTOptions;
 
 import org.junit.Test;
@@ -73,6 +73,6 @@ public final class DeleteOptionsTest {
 
   @Test
   public void equalsTest() throws Exception {
-    CommonTestUtils.testEquals(DeleteOptions.class);
+    CommonUtils.testEquals(DeleteOptions.class);
   }
 }

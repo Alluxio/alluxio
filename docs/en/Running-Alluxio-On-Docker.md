@@ -6,6 +6,9 @@ group: Deploying Alluxio
 priority: 3
 ---
 
+* Table of Contents
+{:toc}
+
 Alluxio can be run in a Docker container. This guide demonstrates how to run Alluxio
 in Docker using the Dockerfile that comes in the Alluxio Github repository.
 

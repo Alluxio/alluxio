@@ -11,7 +11,6 @@
 
 package alluxio.master.file.options;
 
-import alluxio.CommonTestUtils;
 import alluxio.Configuration;
 import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
@@ -96,6 +95,6 @@ public class CreateFileOptionsTest {
 
   @Test
   public void equalsTest() throws Exception {
-    CommonTestUtils.testEquals(CreateFileOptions.class);
+    alluxio.test.util.CommonUtils.testEquals(CreateFileOptions.class);
   }
 }

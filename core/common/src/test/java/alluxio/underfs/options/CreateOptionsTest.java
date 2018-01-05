@@ -14,7 +14,6 @@ package alluxio.underfs.options;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 
-import alluxio.CommonTestUtils;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.security.authentication.AuthType;
@@ -94,6 +93,6 @@ public final class CreateOptionsTest {
 
   @Test
   public void equalsTest() throws Exception {
-    CommonTestUtils.testEquals(CreateOptions.class);
+    alluxio.test.util.CommonUtils.testEquals(CreateOptions.class);
   }
 }
