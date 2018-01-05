@@ -117,8 +117,8 @@ public final class ValidateEnv {
     registerTask("master.ufs.hdfs.security.kerberos",
         "validate kerberos security configurations for masters",
         new SecureHdfsValidationTask("master"), MASTER_TASKS);
-    registerTask("worker.ufs.hdfs.security.kerberos for workers",
-        "validate kerberos security configurations",
+    registerTask("worker.ufs.hdfs.security.kerberos",
+        "validate kerberos security configurations for workers",
         new SecureHdfsValidationTask("worker"), WORKER_TASKS);
 
     // ssh validations
