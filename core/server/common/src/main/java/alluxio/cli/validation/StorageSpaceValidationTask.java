@@ -73,7 +73,7 @@ public final class StorageSpaceValidationTask extends AbstractValidationTask {
         for (int i = 0; i < dirPaths.length; i++) {
           int index = i >= dirQuotas.length ? dirQuotas.length - 1 : i;
           if (Utils.isMountingPoint(dirPaths[i], new String[] {"ramfs"})) {
-            System.out.format("ramfs is mounted at %s which does not report space information,"
+            System.out.format("ramfs mounted at %s does not report space information,"
                 + " skip validation.%n", dirPaths[i]);
             hasRamfsLocation = true;
             break;
