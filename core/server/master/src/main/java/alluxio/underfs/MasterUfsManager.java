@@ -79,6 +79,7 @@ public final class MasterUfsManager extends AbstractUfsManager {
       }
     }
     // No managed ufs uses the given physical ufs path
-    throw new InvalidPathException(ExceptionMessage.UFS_PATH_IS_NOT_MOUNTED.getMessage(ufsPath));
+    LOG.warn("No managed ufs for physical ufs path {}", ufsPath);
+    throw new InvalidPathException(String.format("Ufs path %s is not managed", ufsPath));
   }
 }
