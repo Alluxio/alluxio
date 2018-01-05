@@ -83,7 +83,8 @@ public final class NettyRPC {
   public static void callWithoutBlocking(final NettyRPCContext context, ProtoMessage request)
       throws IOException {
     Channel channel = Preconditions.checkNotNull(context.getChannel());
-    channel.writeAndFlush(new RPCProtoMessage(request)).addListener(ChannelFutureListener.CLOSE);
+    channel.writeAndFlush(new RPCProtoMessage(request))
+        .addListener(ChannelFutureListener.CLOSE_ON_FAILURE);
   }
 
   /**
