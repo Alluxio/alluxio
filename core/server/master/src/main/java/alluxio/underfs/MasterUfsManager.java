@@ -67,9 +67,7 @@ public final class MasterUfsManager extends AbstractUfsManager {
         String key = UnderFileSystemUtils.getPhysicalUfsPath(ufsPath);
         if (ufsMode == UnderFileSystem.UfsMode.READ_WRITE) {
           // Remove key from map if exists
-          if (mPhysicalUfsState.containsKey(key)) {
-            mPhysicalUfsState.remove(key);
-          }
+          mPhysicalUfsState.remove(key);
         } else {
           // Set the maintenance state of the given ufs
           mPhysicalUfsState.put(key, ufsMode);
