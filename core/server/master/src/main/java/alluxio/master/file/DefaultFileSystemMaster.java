@@ -3052,9 +3052,17 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     inodePath.getInode().setPersistenceState(PersistenceState.TO_BE_PERSISTED);
   }
 
+  /**
+   * Syncs the Alluxio metadata with UFS.
+   *
+   * @param journalContext the journal context
+   * @param inodePath the Alluxio inode path to sync with UFS
+   * @param lockingScheme the locking scheme used to lock the inode path
+   * @param syncDescendantLevels the number of levels to sync
+   * @return true if the sync was performed successfully, false otherwise (including errors)
+   */
   private boolean syncMetadata(JournalContext journalContext, LockedInodePath inodePath,
-      LockingScheme lockingScheme, int syncDescendantLevels)
-      throws FileDoesNotExistException, InvalidPathException {
+      LockingScheme lockingScheme, int syncDescendantLevels) {
     if (!lockingScheme.shouldSync()) {
       return false;
     }
@@ -3115,6 +3123,10 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
           loadMetadata = syncDirMetadata(journalContext, inodePath, syncDescendantLevels);
         }
       }
+    } catch (Exception e) {
+      LOG.error("Failed to remove out-of-sync metadata for path: {} error: {}", inodePath.getUri(),
+          e.toString());
+      return false;
     } finally {
       if (deletedInode) {
         // If the inode was deleted, then the inode path should reflect the delete.
@@ -3141,8 +3153,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
   }
 
   private boolean syncDirMetadata(JournalContext journalContext, LockedInodePath inodePath,
-      int syncDescendantLevels)
-      throws FileDoesNotExistException, InvalidPathException {
+      int syncDescendantLevels) throws FileDoesNotExistException, InvalidPathException, IOException,
+      DirectoryNotEmptyException {
     if (syncDescendantLevels == 0) {
       return false;
     }
@@ -3155,16 +3167,10 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         DeleteOptions.defaults().setRecursive(true).setAlluxioOnly(true).setUnchecked(true);
     Inode<?> inode = inodePath.getInode();
 
-    UfsStatus[] listStatus = null;
-    try {
-      listStatus = ufs.listStatus(ufsUri.toString());
-    } catch (IOException e) {
-      // ignore error
-      LOG.warn("Failed to list directory: {} error: {}", ufsUri, e.toString());
-    }
+    UfsStatus[] listStatus = ufs.listStatus(ufsUri.toString());
 
     if (listStatus != null) {
-      // maps children name to ufs fingerprint
+      // maps children name to up-to-date ufs fingerprint
       Map<String, String> ufsChildFingerprints = new HashMap<>();
       // maps children name to inode
       Map<String, Inode<?>> inodeChildren = new HashMap<>();
@@ -3205,13 +3211,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
           tempInodePath.setDescendant(inodeEntry.getValue(),
               inodePath.getUri().join(inodeEntry.getKey()));
 
-          try {
-            deleteInternal(tempInodePath, false, System.currentTimeMillis(),
-                syncDeleteOptions, journalContext);
-          } catch (DirectoryNotEmptyException | InvalidPathException | IOException e) {
-            // Should not happen, since it is an unchecked delete.
-            LOG.error("Unexpected error for unchecked delete. error: {}", e.toString());
-          }
+          deleteInternal(tempInodePath, false, System.currentTimeMillis(), syncDeleteOptions,
+              journalContext);
           // Must load metadata afterwards.
           loadMetadata = true;
         } else if (inodeEntry.getValue().isDirectory()) {
