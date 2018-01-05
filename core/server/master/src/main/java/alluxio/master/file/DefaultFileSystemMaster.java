@@ -3294,6 +3294,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       if ((inode instanceof InodeFile) && !((InodeFile) inode).isCompleted()) {
         LOG.debug("Alluxio does not propagate chown/chgrp/chmod to UFS for incomplete files.");
       } else {
+        checkUfsMode(inodePath.getUri(), OperationType.WRITE);
         MountTable.Resolution resolution = mMountTable.resolve(inodePath.getUri());
         String ufsUri = resolution.getUri().toString();
         UnderFileSystem ufs = resolution.getUfs();
