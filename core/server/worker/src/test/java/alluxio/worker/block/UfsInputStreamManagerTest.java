@@ -177,10 +177,6 @@ public final class UfsInputStreamManagerTest {
         threads.add(new Thread(runnable));
       }
       ConcurrencyUtils.assertConcurrent(threads, 30);
-      for (int i = 0; i < mNumOfInputStreams / 4; i++) {
-        // the first quarter of input streams are closed
-        Mockito.verify(mSeekableInStreams[i], Mockito.timeout(2000)).close();
-      }
     }
   }
 }
