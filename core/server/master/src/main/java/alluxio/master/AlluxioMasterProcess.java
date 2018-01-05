@@ -228,6 +228,9 @@ public class AlluxioMasterProcess implements MasterProcess {
    */
   protected void startMasters(boolean isLeader) {
     try {
+      if (isLeader) {
+        mSafeModeManager.notifyPrimaryMasterStarted();
+      }
       mRegistry.start(isLeader);
       LOG.info("All masters started");
     } catch (IOException e) {
