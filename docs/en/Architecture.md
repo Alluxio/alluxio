@@ -38,26 +38,21 @@ will typically only need to interact with the client portion of Alluxio.
 
 ### Master
 
-Alluxio masters can be deployed as a primary master or a secondary master.
+Alluxio masters are either a primary master, or a secondary master.
+
 #### Primary Master
 The primary master is primarily responsible for managing the global metadata of the system,
 for example, the file system tree. Clients may interact with the primary master to read or
 modify this metadata. In addition, all workers periodically heartbeat to the primary master to
 maintain their participation in the cluster. The primary master does not initiate communication
 with other components; it only interacts with other components by responding to requests. There
-is one and only one primary master in an Alluxio cluster.
+is at most one primary master in an Alluxio cluster. If the Alluxio master is deployed in
+high availability mode, the multiple masters will use Zookeeper for master election, in order
+to ensure there is at most 1 primary master.
 
 #### Secondary Master
 The secondary master replays journals written by the primary master and periodically writes
-checkpoints. It does not process any requests from any Alluxo components.
-
-#### Master Deployment
-Alluxio may be deployed in one of two master modes, [simple mode](Running-Alluxio-Locally.html) or
-[high availablity mode](Running-Alluxio-Fault-Tolerant.html). There must be one and only one
-primary master in both of the simple mode and the high availability mode. The simple mode can at
-most have one secondary master which cannot be promoted to the primary master. The high
-availability mode can have zero or more secondary masters, one of which will be promoted to the
-primary master if the primary master fails.
+checkpoints. It does not process any requests from any Alluxio components.
 
 ### Worker
 
