@@ -14,7 +14,7 @@ package alluxio.client.block.options;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
-import alluxio.CommonTestUtils;
+import alluxio.test.util.CommonUtils;
 import alluxio.thrift.LockBlockTOptions;
 
 import org.junit.Test;
@@ -44,7 +44,7 @@ public class LockBlockOptionsTest {
   */
   @Test
   public void testEquals() throws Exception {
-    CommonTestUtils.testEquals(LockBlockOptions.class);
+    CommonUtils.testEquals(LockBlockOptions.class);
   }
 
   /**

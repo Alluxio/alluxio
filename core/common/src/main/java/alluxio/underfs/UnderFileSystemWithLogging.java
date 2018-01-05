@@ -561,4 +561,9 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
       throw e;
     }
   }
+
+  @Override
+  public boolean isSeekable() {
+    return mUnderFileSystem.isSeekable();
+  }
 }

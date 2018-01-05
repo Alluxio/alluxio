@@ -6,6 +6,9 @@ group: Clients
 priority: 4
 ---
 
+* Table of Contents
+{:toc}
+
 Alluxio has a [Go Client](https://github.com/Alluxio/alluxio-go) for interacting with Alluxio through its
 [REST API](Clients-Rest.html). The Go client exposes an API similar to the [Alluxio Java API](Clients-Alluxio-Java.html).
 See the [godoc](http://godoc.org/github.com/Alluxio/alluxio-go) for detailed documentation about all available

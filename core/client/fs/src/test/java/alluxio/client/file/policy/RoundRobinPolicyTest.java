@@ -11,9 +11,9 @@
 
 package alluxio.client.file.policy;
 
-import alluxio.CommonTestUtils;
 import alluxio.Constants;
 import alluxio.client.block.BlockWorkerInfo;
+import alluxio.test.util.CommonUtils;
 import alluxio.wire.WorkerNetAddress;
 
 import org.junit.Assert;
@@ -49,6 +49,6 @@ public final class RoundRobinPolicyTest {
 
   @Test
   public void equalsTest() throws Exception {
-    CommonTestUtils.testEquals(RoundRobinPolicy.class);
+    CommonUtils.testEquals(RoundRobinPolicy.class);
   }
 }

@@ -14,7 +14,7 @@ package alluxio.client.file.options;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 
-import alluxio.CommonTestUtils;
+import alluxio.test.util.CommonUtils;
 
 import org.junit.Test;
 
@@ -50,6 +50,6 @@ public class FreeOptionsTest {
 
   @Test
   public void equalsTest() throws Exception {
-    CommonTestUtils.testEquals(FreeOptions.class);
+    CommonUtils.testEquals(FreeOptions.class);
   }
 }

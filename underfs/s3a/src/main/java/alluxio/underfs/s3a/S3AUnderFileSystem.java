@@ -307,6 +307,9 @@ public class S3AUnderFileSystem extends ObjectUnderFileSystem {
 
   @Override
   protected List<String> deleteObjects(List<String> keys) throws IOException {
+    if (!Configuration.getBoolean(PropertyKey.UNDERFS_S3A_BULK_DELETE_ENABLED)) {
+      return super.deleteObjects(keys);
+    }
     Preconditions.checkArgument(keys != null && keys.size() <= getListingChunkLengthMax());
     try {
       List<DeleteObjectsRequest.KeyVersion> keysToDelete = new ArrayList<>();

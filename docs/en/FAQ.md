@@ -16,7 +16,7 @@ priority: 2
 
 2. What platforms and Java versions does Alluxio run on?
 
-   Alluxio can run with Java 1.7 or above on various distributions of Linux / Mac.
+   Alluxio can run with Java 1.8 or above on various distributions of Linux / Mac.
 
 3. Is there an easy way to see the status and health of a cluster?
 

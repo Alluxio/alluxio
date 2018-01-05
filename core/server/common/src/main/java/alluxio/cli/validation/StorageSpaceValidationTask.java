@@ -65,15 +65,24 @@ public final class StorageSpaceValidationTask extends AbstractValidationTask {
         Map<String, MountedStorage> storageMap = new HashMap<>();
         File file = new File(dirPaths[0]);
         if (dirPaths.length == 1 && alias.equals("MEM") && !file.exists()) {
-          // skip checking if RAM disk is not mounted
           System.out.format("RAM disk is not mounted at %s, skip validation.%n", dirPaths[0]);
           continue;
         }
 
+        boolean hasRamfsLocation = false;
         for (int i = 0; i < dirPaths.length; i++) {
           int index = i >= dirQuotas.length ? dirQuotas.length - 1 : i;
+          if (Utils.isMountingPoint(dirPaths[i], new String[] {"ramfs"})) {
+            System.out.format("ramfs mounted at %s does not report space information,"
+                + " skip validation.%n", dirPaths[i]);
+            hasRamfsLocation = true;
+            break;
+          }
           long quota = FormatUtils.parseSpaceSize(dirQuotas[index]);
           success &= addDirectoryInfo(dirPaths[i], quota, storageMap);
+        }
+        if (hasRamfsLocation) {
+          continue;
         }
 
         for (Map.Entry<String, MountedStorage> storageEntry : storageMap.entrySet()) {
