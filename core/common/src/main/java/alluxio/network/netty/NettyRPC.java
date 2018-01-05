@@ -11,7 +11,6 @@
 
 package alluxio.network.netty;
 
-import alluxio.network.netty.NettyRPCContext;
 import alluxio.network.protocol.RPCProtoMessage;
 import alluxio.util.CommonUtils;
 import alluxio.util.proto.ProtoMessage;
@@ -48,13 +47,10 @@ public final class NettyRPC {
     Channel channel = Preconditions.checkNotNull(context.getChannel());
     final Promise<ProtoMessage> promise = channel.eventLoop().newPromise();
     channel.pipeline().addLast(new RPCHandler(promise));
-    channel.writeAndFlush(new RPCProtoMessage(request)).addListener(new ChannelFutureListener() {
-      @Override
-      public void operationComplete(ChannelFuture future) throws Exception {
-        if (future.cause() != null) {
-          future.channel().close();
-          promise.tryFailure(future.cause());
-        }
+    channel.writeAndFlush(new RPCProtoMessage(request)).addListener((ChannelFuture future) -> {
+      if (future.cause() != null) {
+        future.channel().close();
+        promise.tryFailure(future.cause());
       }
     });
     ProtoMessage message;
@@ -75,6 +71,19 @@ public final class NettyRPC {
       CommonUtils.unwrapResponseFrom(message.asResponse(), context.getChannel());
     }
     return message;
+  }
+
+  /**
+   * Sends a request and returns immediately without getting a response. Typically used for RPCs
+   * at best efforts (e.g., async cache).
+   *
+   * @param context the netty RPC context
+   * @param request the RPC request
+   */
+  public static void callWithoutBlocking(final NettyRPCContext context, ProtoMessage request)
+      throws IOException {
+    Channel channel = Preconditions.checkNotNull(context.getChannel());
+    channel.writeAndFlush(new RPCProtoMessage(request)).addListener(ChannelFutureListener.CLOSE);
   }
 
   /**

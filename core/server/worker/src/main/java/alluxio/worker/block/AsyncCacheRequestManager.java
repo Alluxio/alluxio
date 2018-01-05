@@ -71,22 +71,30 @@ public class AsyncCacheRequestManager {
       // This block is already planned.
       return;
     }
-    mAsyncCacheExecutor.submit(() -> {
-      Protocol.OpenUfsBlockOptions openUfsBlockOptions = request.getOpenUfsBlockOptions();
-      long blockSize = openUfsBlockOptions.getBlockSize();
-      boolean isSourceLocal = mLocalWorkerHostname.equals(request.getSourceHost());
-      // Depends on the request, cache the target block from different sources
-      boolean result;
-      if (isSourceLocal) {
-        result = cacheBlockFromUfs(blockId, blockSize, openUfsBlockOptions);
-      } else {
-        InetSocketAddress sourceAddress =
-            new InetSocketAddress(request.getSourceHost(), request.getSourcePort());
-        result = cacheBlockFromRemoteWorker(blockId, blockSize, sourceAddress, openUfsBlockOptions);
-      }
-      LOG.debug("Result of async caching block {}: {}", blockId, result);
-      mPendingRequests.remove(blockId);
-    });
+    try {
+      mAsyncCacheExecutor.submit(() -> {
+        Protocol.OpenUfsBlockOptions openUfsBlockOptions = request.getOpenUfsBlockOptions();
+        long blockSize = openUfsBlockOptions.getBlockSize();
+        boolean isSourceLocal = mLocalWorkerHostname.equals(request.getSourceHost());
+        // Depends on the request, cache the target block from different sources
+        boolean result;
+        if (isSourceLocal) {
+          result = cacheBlockFromUfs(blockId, blockSize, openUfsBlockOptions);
+        } else {
+          InetSocketAddress sourceAddress =
+              new InetSocketAddress(request.getSourceHost(), request.getSourcePort());
+          result =
+              cacheBlockFromRemoteWorker(blockId, blockSize, sourceAddress, openUfsBlockOptions);
+        }
+        LOG.debug("Result of async caching block {}: {}", blockId, result);
+        mPendingRequests.remove(blockId);
+      });
+    } catch (Exception e) {
+      // RuntimeExceptions (e.g. RejectedExecutionException) may be thrown in extreme cases when the
+      // netty thread pool is drained due to highly concurrent caching workloads. In these cases,
+      // return as async caching is at best effort.
+      LOG.warn("Failed to submit async cache request {}: {}", request, e.getMessage());
+    }
   }
 
   /**
