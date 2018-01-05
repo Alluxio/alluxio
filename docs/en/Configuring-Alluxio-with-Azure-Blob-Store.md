@@ -19,7 +19,7 @@ Also, in preparation for using Azure Blob Store with Alluxio, create a new conta
 storage account or use an existing container. You should also note that the directory you want to
 use in that container, either by creating a new directory in the container, or using an existing
 one. For the purposes of this guide, the Azure storage account name is called `AZURE_ACCOUNT`, the
-container in that storage account is called `AZURE_CONTAINER` and the directory in that bucket is
+container in that storage account is called `AZURE_CONTAINER` and the directory in that container is
 called `AZURE_DIRECTORY`. For more information about Azure storage account, Please see
 [here](https://docs.microsoft.com/en-us/azure/storage/storage-create-storage-account).
 
@@ -80,7 +80,7 @@ $ ./bin/alluxio runTests
 After this succeeds, you can visit your container `AZURE_CONTAINER` to verify the files and directories created by Alluxio exist. For this test, you should see files named like:
 
 ```
-AZURE_DIRECTORY/default_tests_files/BASIC_CACHE_PROMOTE_CACHE_THROUGH
+AZURE_CONTAINER/AZURE_DIRECTORY/default_tests_files/BASIC_CACHE_PROMOTE_CACHE_THROUGH
 ```
 
 To stop Alluxio, you can run:
