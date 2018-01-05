@@ -375,12 +375,8 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
     writeUfsFile(ufsPath(fileA), 1);
     writeUfsFile(ufsPath(fileB), 1);
 
-    try {
-      mFileSystem.getStatus(new AlluxioURI(alluxioPath(fileA)));
-      Assert.fail("path should not exist.");
-    } catch (FileDoesNotExistException e) {
-      // expected, continue
-    }
+    // Should not exist, since no loading or syncing
+    Assert.assertFalse(mFileSystem.exists(new AlluxioURI(alluxioPath(fileA))));
 
     try {
       mFileSystem.setAttribute(new AlluxioURI(alluxioPath("/dir1")),
@@ -416,12 +412,7 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
     Assert.assertEquals(ttl, status.getTtl());
 
     // deleted UFS file should not exist.
-    try {
-      mFileSystem.getStatus(new AlluxioURI(alluxioPath(fileA)));
-      Assert.fail("path should not exist.");
-    } catch (FileDoesNotExistException e) {
-      // expected, continue
-    }
+    Assert.assertFalse(mFileSystem.exists(new AlluxioURI(alluxioPath(fileA))));
   }
 
   private String ufsPath(String path) {
