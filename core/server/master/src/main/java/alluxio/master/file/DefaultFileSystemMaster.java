@@ -1825,6 +1825,9 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       syncMetadata(journalContext, inodePath, lockingScheme);
 
       mMountTable.checkUnderWritableMountPoint(path);
+      if (options.isPersisted()) {
+        checkUfsMode(path, OperationType.WRITE);
+      }
       createDirectoryAndJournal(inodePath, options, journalContext);
       auditContext.setSrcInode(inodePath.getInode()).setSucceeded(true);
       return inodePath.getInode().getId();
@@ -1947,7 +1950,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
   private void renameAndJournal(LockedInodePath srcInodePath, LockedInodePath dstInodePath,
       RenameOptions options, JournalContext journalContext)
       throws InvalidPathException, FileDoesNotExistException, FileAlreadyExistsException,
-      IOException {
+      IOException, AccessControlException {
     if (!srcInodePath.fullPathExists()) {
       throw new FileDoesNotExistException(
           ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(srcInodePath.getUri()));
@@ -2025,7 +2028,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    */
   private void renameInternal(LockedInodePath srcInodePath, LockedInodePath dstInodePath,
       boolean replayed, RenameOptions options, JournalContext journalContext)
-      throws FileDoesNotExistException, InvalidPathException, IOException {
+      throws FileDoesNotExistException, InvalidPathException, IOException, AccessControlException {
 
     // Rename logic:
     // 1. Change the source inode name to the destination name.
@@ -2060,8 +2063,11 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     // If the source file is persisted, rename it in the UFS.
     try {
       if (!replayed && srcInode.isPersisted()) {
-        MountTable.Resolution resolution = mMountTable.resolve(srcPath);
+        // Check if ufs is writable
+        checkUfsMode(srcPath, OperationType.WRITE);
+        checkUfsMode(dstPath, OperationType.WRITE);
 
+        MountTable.Resolution resolution = mMountTable.resolve(srcPath);
         // Persist ancestor directories from top to the bottom. We cannot use recursive create
         // parents here because the permission for the ancestors can be different.
 
@@ -3009,6 +3015,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
 
   @Override
   public void scheduleAsyncPersistence(AlluxioURI path) throws AlluxioException {
+    checkUfsMode(path, OperationType.WRITE);
     try (JournalContext journalContext = createJournalContext();
         LockedInodePath inodePath = mInodeTree.lockFullInodePath(path, InodeTree.LockMode.WRITE)) {
       scheduleAsyncPersistenceAndJournal(inodePath, journalContext);
