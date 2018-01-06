@@ -11,7 +11,7 @@ priority: 1
 
 # Requirement
 
-The prerequisite for this part is that you have [Java](Java-Setup.html) (JDK 7 or above) installed.
+The prerequisite for this part is that you have [Java](Java-Setup.html) (JDK 8 or above) installed.
 
 Download the binary distribution of Alluxio {{site.ALLUXIO_RELEASED_VERSION}}:
 
