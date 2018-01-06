@@ -85,6 +85,8 @@ public final class NettyRPC {
   public static void fireAndForget(final NettyRPCContext context, ProtoMessage request)
       throws IOException {
     Channel channel = Preconditions.checkNotNull(context.getChannel());
+    // Not really using the atomicity of flushed, but use it as a wrapper of boolean that is final,
+    // and can change value.
     final AtomicBoolean flushed = new AtomicBoolean(false);
     channel.writeAndFlush(new RPCProtoMessage(request)).addListener((ChannelFuture future) -> {
       if (future.cause() != null) {
