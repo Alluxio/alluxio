@@ -169,19 +169,16 @@ public class UfsJournal implements Journal {
 
   @Override
   public synchronized JournalContext createJournalContext() throws UnavailableException {
-    if (mState == State.CLOSED) {
+    if (mState != State.PRIMARY) {
       // We throw UnavailableException here so that clients will retry with the next primary master.
-      throw new UnavailableException("Failed to write to journal: journal is closed");
+      throw new UnavailableException("Failed to write to journal: journal is in state " + mState);
     }
-    Preconditions.checkState(mState == State.PRIMARY,
-        "Must be in primary state to create journal contexts, but in state " + mState);
     return new MasterJournalContext(mAsyncWriter);
   }
 
   private synchronized UfsJournalLogWriter writer() throws IOException {
-    if (mState != State.PRIMARY) {
-      throw new IllegalStateException("Cannot write to the journal in state " + mState);
-    }
+    Preconditions.checkState(mState == State.PRIMARY,
+        "Cannot write to the journal in state " + mState);
     return mWriter;
   }
 
@@ -239,7 +236,7 @@ public class UfsJournal implements Journal {
    * @param readIncompleteLogs whether the reader should read the latest incomplete log
    * @return a reader for reading from the start of the journal
    */
-  public synchronized UfsJournalReader getReader(boolean readIncompleteLogs) {
+  public UfsJournalReader getReader(boolean readIncompleteLogs) {
     return new UfsJournalReader(this, readIncompleteLogs);
   }
 
