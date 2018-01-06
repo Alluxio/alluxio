@@ -44,7 +44,8 @@ public class AsyncCacheHandler extends ChannelInboundHandlerAdapter {
       Protocol.AsyncCacheRequest request =
           ((RPCProtoMessage) object).getMessage().asAsyncCacheRequest();
       mRequestManager.submitRequest(request);
-      ctx.writeAndFlush(RPCProtoMessage.createOkResponse(null));
+      // Note that, because the client side of this RPC end point is fireAndForget, thus expecting
+      // no response. No OK response will be returned here.
     } else {
       ctx.fireChannelRead(object);
     }
