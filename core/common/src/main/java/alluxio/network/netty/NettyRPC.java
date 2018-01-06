@@ -18,7 +18,6 @@ import alluxio.util.proto.ProtoMessage;
 import com.google.common.base.Preconditions;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.util.concurrent.Promise;
@@ -74,17 +73,29 @@ public final class NettyRPC {
   }
 
   /**
-   * Sends a request and returns immediately without getting a response. Typically used for RPCs
-   * at best efforts (e.g., async cache).
+   * Sends a request and waits until the request is flushed to network. The caller of this method
+   * should expect no response from the server and hence the service handler on server side should
+   * not return any response or there will be issues. This method is typically used for RPCs
+   * providing best efforts (e.g., async cache).
    *
    * @param context the netty RPC context
    * @param request the RPC request
    */
-  public static void callWithoutBlocking(final NettyRPCContext context, ProtoMessage request)
+  public static void fireAndForget(final NettyRPCContext context, ProtoMessage request)
       throws IOException {
     Channel channel = Preconditions.checkNotNull(context.getChannel());
-    channel.writeAndFlush(new RPCProtoMessage(request))
-        .addListener(ChannelFutureListener.CLOSE_ON_FAILURE);
+    channel.writeAndFlush(new RPCProtoMessage(request)).addListener((ChannelFuture future) -> {
+      if (future.cause() != null) {
+        future.channel().close();
+      }
+      request.notify();
+    });
+    try {
+      request.wait();
+    } catch (InterruptedException e) {
+      CommonUtils.closeChannel(channel);
+      throw new RuntimeException(e);
+    }
   }
 
   /**
