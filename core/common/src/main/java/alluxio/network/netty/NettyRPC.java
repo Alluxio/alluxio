@@ -26,6 +26,7 @@ import java.io.IOException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Netty blocking RPC client. This provides a simple way to send a request and wait for response
@@ -84,19 +85,20 @@ public final class NettyRPC {
   public static void fireAndForget(final NettyRPCContext context, ProtoMessage request)
       throws IOException {
     Channel channel = Preconditions.checkNotNull(context.getChannel());
-    Object condition = new Object();
+    final AtomicBoolean flushed = new AtomicBoolean(false);
     channel.writeAndFlush(new RPCProtoMessage(request)).addListener((ChannelFuture future) -> {
       if (future.cause() != null) {
         future.channel().close();
       }
-      synchronized (condition) {
-        condition.notify();
+      flushed.set(true);
+      synchronized (flushed) {
+        flushed.notify();
       }
     });
     try {
-      synchronized (condition) {
-        while (channel.isOpen()) {
-          condition.wait();
+      synchronized (flushed) {
+        while (!flushed.get()) {
+          flushed.wait();
         }
       }
     } catch (InterruptedException e) {
