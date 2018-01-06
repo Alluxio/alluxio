@@ -283,7 +283,7 @@ public class FileInStream extends InputStream implements BoundedStream, Position
           try {
             NettyRPCContext rpcContext =
                 NettyRPCContext.defaults().setChannel(channel).setTimeout(channelTimeout);
-            NettyRPC.callWithoutBlocking(rpcContext, new ProtoMessage(request));
+            NettyRPC.fireAndForget(rpcContext, new ProtoMessage(request));
           } finally {
             mContext.releaseNettyChannel(worker, channel);
           }
