@@ -84,14 +84,21 @@ public final class NettyRPC {
   public static void fireAndForget(final NettyRPCContext context, ProtoMessage request)
       throws IOException {
     Channel channel = Preconditions.checkNotNull(context.getChannel());
+    Object condition = new Object();
     channel.writeAndFlush(new RPCProtoMessage(request)).addListener((ChannelFuture future) -> {
       if (future.cause() != null) {
         future.channel().close();
       }
-      request.notify();
+      synchronized (condition) {
+        condition.notify();
+      }
     });
     try {
-      request.wait();
+      synchronized (condition) {
+        while (channel.isOpen()) {
+          condition.wait();
+        }
+      }
     } catch (InterruptedException e) {
       CommonUtils.closeChannel(channel);
       throw new RuntimeException(e);
