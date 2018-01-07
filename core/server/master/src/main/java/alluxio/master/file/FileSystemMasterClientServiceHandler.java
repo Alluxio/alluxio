@@ -184,9 +184,9 @@ public final class FileSystemMasterClientServiceHandler implements
   @Override
   public FreeTResponse free(final String path, final boolean recursive, final FreeTOptions options)
       throws AlluxioTException {
-    return RpcUtils.call(LOG, new RpcCallable<FreeTResponse>() {
+    return RpcUtils.call(LOG, new RpcCallableThrowsIOException<FreeTResponse>() {
       @Override
-      public FreeTResponse call() throws AlluxioException {
+      public FreeTResponse call() throws AlluxioException, IOException {
         if (options == null) {
           // For Alluxio client v1.4 or earlier.
           // NOTE, we try to be conservative here so early Alluxio clients will not be able to force
@@ -377,18 +377,19 @@ public final class FileSystemMasterClientServiceHandler implements
   @Override
   public ScheduleAsyncPersistenceTResponse scheduleAsyncPersistence(final String path,
       final ScheduleAsyncPersistenceTOptions options) throws AlluxioTException {
-    return RpcUtils.call(LOG, new RpcCallable<ScheduleAsyncPersistenceTResponse>() {
-      @Override
-      public ScheduleAsyncPersistenceTResponse call() throws AlluxioException {
-        mFileSystemMaster.scheduleAsyncPersistence(new AlluxioURI(path));
-        return new ScheduleAsyncPersistenceTResponse();
-      }
+    return RpcUtils.call(LOG,
+        new RpcCallableThrowsIOException<ScheduleAsyncPersistenceTResponse>() {
+          @Override
+          public ScheduleAsyncPersistenceTResponse call() throws AlluxioException, IOException {
+            mFileSystemMaster.scheduleAsyncPersistence(new AlluxioURI(path));
+            return new ScheduleAsyncPersistenceTResponse();
+          }
 
-      @Override
-      public String toString() {
-        return String.format("ScheduleAsyncPersist: path=%s, options=%s", path, options);
-      }
-    });
+          @Override
+          public String toString() {
+            return String.format("ScheduleAsyncPersist: path=%s, options=%s", path, options);
+          }
+        });
   }
 
   @Override
