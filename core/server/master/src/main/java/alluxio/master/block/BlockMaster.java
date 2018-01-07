@@ -66,7 +66,7 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
    * @param blockIds a list of block ids to remove from Alluxio space
    * @param delete whether to delete blocks' metadata in Master
    */
-  void removeBlocks(List<Long> blockIds, boolean delete);
+  void removeBlocks(List<Long> blockIds, boolean delete) throws UnavailableException;
 
   /**
    * Marks a block as committed on a specific worker.
@@ -80,7 +80,7 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
    */
   // TODO(binfan): check the logic is correct or not when commitBlock is a retry
   void commitBlock(long workerId, long usedBytesOnTier, String tierAlias, long blockId, long
-      length) throws NoWorkerException;
+      length) throws NoWorkerException, UnavailableException;
 
   /**
    * Marks a block as committed, but without a worker location. This means the block is only in ufs.
@@ -88,7 +88,7 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
    * @param blockId the id of the block to commit
    * @param length the length of the block
    */
-  void commitBlockInUFS(long blockId, long length);
+  void commitBlockInUFS(long blockId, long length) throws UnavailableException;
 
   /**
    * @param blockId the block id to get information for

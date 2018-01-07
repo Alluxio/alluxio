@@ -21,6 +21,7 @@ import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
+import alluxio.exception.status.UnavailableException;
 import alluxio.master.AbstractMaster;
 import alluxio.master.MasterContext;
 import alluxio.master.file.FileSystemMaster;
@@ -145,7 +146,8 @@ public class DefaultKeyValueMaster extends AbstractMaster implements KeyValueMas
 
   @Override
   public synchronized void completePartition(AlluxioURI path, PartitionInfo info)
-      throws AccessControlException, FileDoesNotExistException, InvalidPathException {
+      throws AccessControlException, FileDoesNotExistException, InvalidPathException,
+      UnavailableException {
     final long fileId = mFileSystemMaster.getFileId(path);
     if (fileId == IdUtils.INVALID_FILE_ID) {
       throw new FileDoesNotExistException(
@@ -179,8 +181,8 @@ public class DefaultKeyValueMaster extends AbstractMaster implements KeyValueMas
   }
 
   @Override
-  public synchronized void completeStore(AlluxioURI path)
-      throws FileDoesNotExistException, InvalidPathException, AccessControlException {
+  public synchronized void completeStore(AlluxioURI path) throws FileDoesNotExistException,
+      InvalidPathException, AccessControlException, UnavailableException {
     final long fileId = mFileSystemMaster.getFileId(path);
     if (fileId == IdUtils.INVALID_FILE_ID) {
       throw new FileDoesNotExistException(
@@ -210,8 +212,8 @@ public class DefaultKeyValueMaster extends AbstractMaster implements KeyValueMas
   }
 
   @Override
-  public synchronized void createStore(AlluxioURI path)
-      throws FileAlreadyExistsException, InvalidPathException, AccessControlException {
+  public synchronized void createStore(AlluxioURI path) throws FileAlreadyExistsException,
+      InvalidPathException, AccessControlException, UnavailableException {
     try {
       // Create this dir
       mFileSystemMaster.createDirectory(path, CreateDirectoryOptions.defaults().setRecursive(true));
@@ -270,8 +272,8 @@ public class DefaultKeyValueMaster extends AbstractMaster implements KeyValueMas
     mCompleteStoreToPartitions.remove(fileId);
   }
 
-  private long getFileId(AlluxioURI uri)
-      throws AccessControlException, FileDoesNotExistException, InvalidPathException {
+  private long getFileId(AlluxioURI uri) throws AccessControlException, FileDoesNotExistException,
+      InvalidPathException, UnavailableException {
     long fileId = mFileSystemMaster.getFileId(uri);
     if (fileId == IdUtils.INVALID_FILE_ID) {
       throw new FileDoesNotExistException(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(uri));
@@ -349,7 +351,8 @@ public class DefaultKeyValueMaster extends AbstractMaster implements KeyValueMas
 
   @Override
   public synchronized List<PartitionInfo> getPartitionInfo(AlluxioURI path)
-      throws FileDoesNotExistException, AccessControlException, InvalidPathException {
+      throws FileDoesNotExistException, AccessControlException, InvalidPathException,
+      UnavailableException {
     long fileId = getFileId(path);
     List<PartitionInfo> partitions = mCompleteStoreToPartitions.get(fileId);
     if (partitions == null) {

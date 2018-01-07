@@ -101,9 +101,9 @@ public final class LineageMasterClientServiceHandler implements LineageMasterCli
   @Override
   public DeleteLineageTResponse deleteLineage(final long lineageId, final boolean cascade,
       DeleteLineageTOptions options) throws AlluxioTException {
-    return RpcUtils.call(LOG, new RpcCallable<DeleteLineageTResponse>() {
+    return RpcUtils.call(LOG, new RpcCallableThrowsIOException<DeleteLineageTResponse>() {
       @Override
-      public DeleteLineageTResponse call() throws AlluxioException {
+      public DeleteLineageTResponse call() throws AlluxioException, IOException {
         return new DeleteLineageTResponse(mLineageMaster.deleteLineage(lineageId, cascade));
       }
     });
