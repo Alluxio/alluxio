@@ -18,6 +18,7 @@ import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.PropertyKey;
+import alluxio.exception.AccessControlException;
 import alluxio.exception.DirectoryNotEmptyException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileAlreadyCompletedException;
@@ -39,8 +40,10 @@ import alluxio.master.file.options.FreeOptions;
 import alluxio.master.file.options.ListStatusOptions;
 import alluxio.master.file.options.RenameOptions;
 import alluxio.security.authentication.AuthenticatedClientUser;
+import alluxio.underfs.UnderFileSystem;
 import alluxio.util.CommonUtils;
 import alluxio.util.IdUtils;
+import alluxio.util.UnderFileSystemUtils;
 import alluxio.wire.CommonOptions;
 import alluxio.wire.FileInfo;
 import alluxio.wire.LoadMetadataType;
@@ -812,6 +815,23 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
   // Assert.assertEquals(0, checkpoint.getInt("editTransactionCounter").intValue());
   // Assert.assertEquals(0, checkpoint.getInt("dependencyCounter").intValue());
   // }
+
+  @Test
+  public void ufsModeReplay() throws Exception {
+    mFsMaster.updateUfsMode(UnderFileSystemUtils.getPhysicalUfsPath(mFsMaster.getUfsAddress()),
+        UnderFileSystem.UfsMode.NO_ACCESS);
+
+    // Stop Alluxio.
+    mLocalAlluxioClusterResource.get().stopFS();
+    // Create the master using the existing journal.
+    MasterRegistry registry = createFileSystemMasterFromJournal();
+    FileSystemMaster fsMaster = registry.get(FileSystemMaster.class);
+
+    AlluxioURI alluxioFile = new AlluxioURI("/in_alluxio");
+    // Create file should throw an Exception even after restart
+    mThrown.expect(AccessControlException.class);
+    fsMaster.createFile(alluxioFile, CreateFileOptions.defaults().setPersisted(true));
+  }
 
   /**
    * This class provides multiple concurrent threads to create all files in one directory.

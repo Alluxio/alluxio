@@ -1545,7 +1545,6 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         }
       }
       if (!failedUris.isEmpty()) {
-        // TODO(adit): this error message is misleading as failure can be of any other kind as well
         throw new FailedPreconditionException(ExceptionMessage.DELETE_FAILED_DIRECTORY_NOT_IN_SYNC
             .getMessage(StringUtils.join(failedUris, ',')));
       }
@@ -3502,6 +3501,10 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     }
   }
 
+  /**
+   * The operation type. This class is used to check if an operation to the under storage is allowed
+   * during maintenance.
+   */
   enum OperationType {
     READ,
     WRITE,
