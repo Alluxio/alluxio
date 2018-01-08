@@ -11,13 +11,13 @@
 
 package alluxio.client.file.options;
 
-import org.junit.Assert;
-import org.junit.Test;
-
 import alluxio.test.util.CommonUtils;
 import alluxio.thrift.UfsMode;
 import alluxio.thrift.UpdateUfsModeTOptions;
 import alluxio.underfs.UnderFileSystem;
+
+import org.junit.Assert;
+import org.junit.Test;
 
 /**
  * Tests for the {@link UpdateUfsModeOptions} class.
