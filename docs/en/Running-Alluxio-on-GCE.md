@@ -70,8 +70,8 @@ Copy `deploy/vagrant/conf/gce.yml.template` to `deploy/vagrant/conf/gce.yml` by:
 In the configuration file `deploy/vagrant/conf/gce.yml`, set the project id, service account, location to JSON key and ssh username you've just created.
 
 For GCE, the default underfs is Google Cloud Storage (GCS). Visit the
-[Storage](https://console.cloud.google.com/storage/)  of the Google Cloud console, create a GCS
-bucket, and fill in the bucket's name to the field `GCS:Bucket` in `conf/ufs.yml`. To use other
+[Storage page](https://console.cloud.google.com/storage/) of the Google Cloud console, create a GCS
+bucket, and set the bucket's name to the field `GCS:Bucket` in `conf/ufs.yml`. To use other
 under storage systems, configure the field `Type` and the corresponding configurations in
 `conf/ufs.yml`.
 
