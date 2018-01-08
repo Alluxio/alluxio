@@ -25,6 +25,7 @@ import alluxio.exception.FileAlreadyCompletedException;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
+import alluxio.exception.status.FailedPreconditionException;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatScheduler;
 import alluxio.heartbeat.ManuallyScheduleHeartbeat;
@@ -39,6 +40,7 @@ import alluxio.master.file.options.DeleteOptions;
 import alluxio.master.file.options.FreeOptions;
 import alluxio.master.file.options.ListStatusOptions;
 import alluxio.master.file.options.RenameOptions;
+import alluxio.master.file.options.SetAttributeOptions;
 import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.CommonUtils;
@@ -815,6 +817,126 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
   // Assert.assertEquals(0, checkpoint.getInt("editTransactionCounter").intValue());
   // Assert.assertEquals(0, checkpoint.getInt("dependencyCounter").intValue());
   // }
+
+  @Test
+  public void ufsModeCreateFile() throws Exception {
+    mFsMaster.updateUfsMode(UnderFileSystemUtils.getPhysicalUfsPath(mFsMaster.getUfsAddress()),
+        UnderFileSystem.UfsMode.READ_ONLY);
+
+    // Alluxio only should not be affected
+    mFsMaster.createFile(new AlluxioURI("/in_alluxio"),
+        CreateFileOptions.defaults().setPersisted(false));
+    // Ufs file creation should throw an exception
+    mThrown.expect(AccessControlException.class);
+    mFsMaster.createFile(new AlluxioURI("/in_ufs"),
+        CreateFileOptions.defaults().setPersisted(true));
+  }
+
+  @Test
+  public void ufsModeCreateDirectory() throws Exception {
+    mFsMaster.updateUfsMode(UnderFileSystemUtils.getPhysicalUfsPath(mFsMaster.getUfsAddress()),
+        UnderFileSystem.UfsMode.READ_ONLY);
+
+    // Alluxio only should not be affected
+    mFsMaster.createDirectory(new AlluxioURI("/in_alluxio"),
+        CreateDirectoryOptions.defaults().setPersisted(false));
+    // Ufs file creation should throw an exception
+    mThrown.expect(AccessControlException.class);
+    mFsMaster.createDirectory(new AlluxioURI("/in_ufs"),
+        CreateDirectoryOptions.defaults().setPersisted(true));
+  }
+
+  @Test
+  public void ufsModePersist() throws Exception {
+    mFsMaster.updateUfsMode(UnderFileSystemUtils.getPhysicalUfsPath(mFsMaster.getUfsAddress()),
+        UnderFileSystem.UfsMode.READ_ONLY);
+
+    AlluxioURI alluxioFile = new AlluxioURI("/in_alluxio");
+    mFsMaster.createFile(alluxioFile, CreateFileOptions.defaults().setPersisted(false));
+
+    mThrown.expect(AccessControlException.class);
+    mFsMaster.scheduleAsyncPersistence(alluxioFile);
+  }
+
+  @Test
+  public void ufsModeDeleteFile() throws Exception {
+    AlluxioURI alluxioFile = new AlluxioURI("/in_alluxio");
+    mFsMaster.createFile(alluxioFile, CreateFileOptions.defaults().setPersisted(true));
+
+    mFsMaster.updateUfsMode(UnderFileSystemUtils.getPhysicalUfsPath(mFsMaster.getUfsAddress()),
+        UnderFileSystem.UfsMode.READ_ONLY);
+
+    mThrown.expect(FailedPreconditionException.class);
+    mFsMaster.delete(alluxioFile, DeleteOptions.defaults().setAlluxioOnly(false));
+  }
+
+  @Test
+  public void ufsModeDeleteDirectory() throws Exception {
+    AlluxioURI alluxioDirectory = new AlluxioURI("/in_ufs_dir");
+    mFsMaster.createDirectory(alluxioDirectory,
+        CreateDirectoryOptions.defaults().setPersisted(true));
+    AlluxioURI alluxioFile = new AlluxioURI("/in_ufs_dir/in_ufs_file");
+    mFsMaster.createFile(alluxioFile, CreateFileOptions.defaults().setPersisted(true));
+
+    mFsMaster.updateUfsMode(UnderFileSystemUtils.getPhysicalUfsPath(mFsMaster.getUfsAddress()),
+        UnderFileSystem.UfsMode.READ_ONLY);
+
+    mThrown.expect(FailedPreconditionException.class);
+    mFsMaster.delete(alluxioDirectory,
+        DeleteOptions.defaults().setAlluxioOnly(false).setRecursive(true));
+
+    // Check Alluxio entries exist after failed delete
+    long dirId = mFsMaster.getFileId(alluxioDirectory);
+    Assert.assertNotEquals(-1, dirId);
+    long fileId = mFsMaster.getFileId(alluxioFile);
+    Assert.assertNotEquals(-1, fileId);
+  }
+
+  @Test
+  public void ufsModeRenameFile() throws Exception {
+    mFsMaster.createFile(new AlluxioURI("/in_ufs_src"),
+        CreateFileOptions.defaults().setPersisted(true));
+
+    mFsMaster.updateUfsMode(UnderFileSystemUtils.getPhysicalUfsPath(mFsMaster.getUfsAddress()),
+        UnderFileSystem.UfsMode.READ_ONLY);
+
+    mThrown.expect(AccessControlException.class);
+    mFsMaster.rename(new AlluxioURI("/in_ufs_src"), new AlluxioURI("/in_ufs_dst"),
+        RenameOptions.defaults());
+  }
+
+  @Test
+  public void ufsModeRenameDirectory() throws Exception {
+    AlluxioURI alluxioDirectory = new AlluxioURI("/in_ufs_dir");
+    mFsMaster.createDirectory(alluxioDirectory,
+        CreateDirectoryOptions.defaults().setPersisted(true));
+    AlluxioURI alluxioFile = new AlluxioURI("/in_ufs_dir/in_ufs_file");
+    mFsMaster.createFile(alluxioFile, CreateFileOptions.defaults().setPersisted(true));
+
+    mFsMaster.updateUfsMode(UnderFileSystemUtils.getPhysicalUfsPath(mFsMaster.getUfsAddress()),
+        UnderFileSystem.UfsMode.READ_ONLY);
+
+    mThrown.expect(AccessControlException.class);
+    mFsMaster.rename(alluxioDirectory, new AlluxioURI("/in_ufs_dst"), RenameOptions.defaults());
+
+    // Check Alluxio entries exist after failed rename
+    long dirId = mFsMaster.getFileId(alluxioDirectory);
+    Assert.assertNotEquals(-1, dirId);
+    long fileId = mFsMaster.getFileId(alluxioFile);
+    Assert.assertNotEquals(-1, fileId);
+  }
+
+  @Test
+  public void ufsModeSetAttribute() throws Exception {
+    AlluxioURI alluxioFile = new AlluxioURI("/in_alluxio");
+    mFsMaster.createFile(alluxioFile, CreateFileOptions.defaults().setPersisted(true));
+
+    mFsMaster.updateUfsMode(UnderFileSystemUtils.getPhysicalUfsPath(mFsMaster.getUfsAddress()),
+        UnderFileSystem.UfsMode.READ_ONLY);
+
+    mThrown.expect(AccessControlException.class);
+    mFsMaster.setAttribute(alluxioFile, SetAttributeOptions.defaults().setMode((short) 0777));
+  }
 
   @Test
   public void ufsModeReplay() throws Exception {
