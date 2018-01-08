@@ -172,10 +172,16 @@ public final class UnderFileSystemBlockStore implements SessionCleanable {
       Set<Long> blockIds = mSessionIdToBlockIds.get(sessionId);
       if (blockIds != null) {
         blockIds.remove(blockId);
+        if (blockIds.isEmpty()) {
+          mSessionIdToBlockIds.remove(sessionId);
+        }
       }
       Set<Long> sessionIds = mBlockIdToSessionIds.get(blockId);
       if (sessionIds != null) {
         sessionIds.remove(sessionId);
+        if (sessionIds.isEmpty()) {
+          mBlockIdToSessionIds.remove(blockId);
+        }
       }
     }
   }
