@@ -933,6 +933,9 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
 
     mFsMaster.updateUfsMode(UnderFileSystemUtils.getPhysicalUfsPath(mFsMaster.getUfsAddress()),
         UnderFileSystem.UfsMode.READ_ONLY);
+    long opTimeMs = TEST_TIME_MS;
+    mFsMaster.completeFile(alluxioFile,
+        CompleteFileOptions.defaults().setOperationTimeMs(opTimeMs).setUfsLength(0));
 
     mThrown.expect(AccessControlException.class);
     mFsMaster.setAttribute(alluxioFile, SetAttributeOptions.defaults().setMode((short) 0777));
