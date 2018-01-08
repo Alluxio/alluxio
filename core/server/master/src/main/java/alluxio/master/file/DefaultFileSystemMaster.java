@@ -1530,7 +1530,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         }
       }
       if (!failedUris.isEmpty()) {
-        throw new FailedPreconditionException(ExceptionMessage.DELETE_FAILED_DIRECTORY_NOT_IN_SYNC
+        // TODO(adit): Distinguish b/w different failure types
+        throw new FailedPreconditionException(ExceptionMessage.DELETE_FAILED_UFS
             .getMessage(StringUtils.join(failedUris, ',')));
       }
     }
