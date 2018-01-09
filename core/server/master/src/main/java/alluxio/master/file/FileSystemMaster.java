@@ -73,7 +73,7 @@ public interface FileSystemMaster extends Master {
    * @return the file id for a given path, or -1 if there is no file at that path
    * @throws AccessControlException if permission checking fails
    */
-  long getFileId(AlluxioURI path) throws AccessControlException;
+  long getFileId(AlluxioURI path) throws AccessControlException, UnavailableException;
 
   /**
    * Returns the {@link FileInfo} for a given file id. This method is not user-facing but supposed
@@ -202,7 +202,7 @@ public interface FileSystemMaster extends Master {
    */
   // Used by lineage master
   long reinitializeFile(AlluxioURI path, long blockSizeBytes, long ttl, TtlAction ttlAction)
-      throws InvalidPathException, FileDoesNotExistException;
+      throws InvalidPathException, FileDoesNotExistException, UnavailableException;
 
   /**
    * Gets a new block id for the next block of a given file to write to.
@@ -331,7 +331,7 @@ public interface FileSystemMaster extends Master {
   // into RuntimeException on the client.
   void free(AlluxioURI path, FreeOptions options)
       throws FileDoesNotExistException, InvalidPathException, AccessControlException,
-      UnexpectedAlluxioException;
+      UnexpectedAlluxioException, UnavailableException;
 
   /**
    * Gets the path of a file with the given id.
@@ -446,7 +446,7 @@ public interface FileSystemMaster extends Master {
   // TODO(binfan): Add permission checking for internal APIs
   void resetFile(long fileId)
       throws UnexpectedAlluxioException, FileDoesNotExistException, InvalidPathException,
-      AccessControlException;
+      AccessControlException, UnavailableException;
 
   /**
    * Sets the file attribute.
@@ -470,7 +470,7 @@ public interface FileSystemMaster extends Master {
    *
    * @param path the path of the file for persistence
    */
-  void scheduleAsyncPersistence(AlluxioURI path) throws AlluxioException;
+  void scheduleAsyncPersistence(AlluxioURI path) throws AlluxioException, UnavailableException;
 
   /**
    * Update the operation mode for the given ufs path under one or more mount points.

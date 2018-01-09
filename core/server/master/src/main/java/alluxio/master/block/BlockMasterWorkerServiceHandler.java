@@ -33,6 +33,7 @@ import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
@@ -80,9 +81,9 @@ public final class BlockMasterWorkerServiceHandler implements BlockMasterWorkerS
   public CommitBlockTResponse commitBlock(final long workerId, final long usedBytesOnTier,
       final String tierAlias, final long blockId, final long length, CommitBlockTOptions options)
       throws AlluxioTException {
-    return RpcUtils.call(LOG, new RpcUtils.RpcCallable<CommitBlockTResponse>() {
+    return RpcUtils.call(LOG, new RpcUtils.RpcCallableThrowsIOException<CommitBlockTResponse>() {
       @Override
-      public CommitBlockTResponse call() throws AlluxioException {
+      public CommitBlockTResponse call() throws AlluxioException, IOException {
         mBlockMaster.commitBlock(workerId, usedBytesOnTier, tierAlias, blockId, length);
         return new CommitBlockTResponse();
       }

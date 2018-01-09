@@ -24,6 +24,7 @@ import org.apache.commons.cli.CommandLine;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -65,12 +66,20 @@ public final class InstallCommand extends AbstractCommand {
   public int run(CommandLine cl) {
     String uri = cl.getArgs()[0];
     String extensionsDir = Configuration.get(PropertyKey.EXTENSIONS_DIR);
+    File dir = new File(extensionsDir);
+    if (!dir.exists() && !dir.mkdirs()) {
+      System.err.println("Failed to create extensions directory " + extensionsDir);
+      return -1;
+    }
     List<String> failedHosts = new ArrayList<>();
     for (String host : ExtensionsShellUtils.getServerHostnames()) {
       try {
         LOG.info("Attempting to install extension on host {}", host);
+        // Parent folder on target host
+        String targetUriParent =
+            extensionsDir.endsWith("/") ? extensionsDir : extensionsDir.concat("/");
         String rsyncCmd = String.format("rsync -e \"ssh %s\" -az %s %s:%s",
-            ShellUtils.COMMON_SSH_OPTS, uri, host, extensionsDir);
+            ShellUtils.COMMON_SSH_OPTS, uri, host, targetUriParent);
         LOG.debug("Executing: {}", rsyncCmd);
         String output = ShellUtils.execCommand("bash", "-c", rsyncCmd);
         LOG.debug("Succeeded w/ output: {}", output);
