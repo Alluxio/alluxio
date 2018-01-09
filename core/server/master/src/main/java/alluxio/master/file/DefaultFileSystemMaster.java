@@ -3459,7 +3459,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
 
   @Override
   public void updateUfsMode(String ufsPath, UnderFileSystem.UfsMode ufsMode)
-      throws InvalidPathException, InvalidArgumentException {
+      throws InvalidPathException, InvalidArgumentException, UnavailableException {
     try (JournalContext journalContext = createJournalContext()) {
       updateUfsModeAndJournal(ufsPath, ufsMode, journalContext);
     }

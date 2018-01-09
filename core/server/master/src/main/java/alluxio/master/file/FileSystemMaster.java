@@ -481,7 +481,7 @@ public interface FileSystemMaster extends Master {
    * @throws InvalidArgumentException if arguments for the method are invalid
    */
   void updateUfsMode(String ufsPath, UnderFileSystem.UfsMode ufsMode)
-      throws InvalidPathException, InvalidArgumentException;
+      throws InvalidPathException, InvalidArgumentException, UnavailableException;
 
   /**
    * Instructs a worker to persist the files.
