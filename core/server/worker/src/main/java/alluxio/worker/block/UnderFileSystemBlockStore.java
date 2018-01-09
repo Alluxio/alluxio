@@ -200,7 +200,9 @@ public final class UnderFileSystemBlockStore implements SessionCleanable {
         return;
       }
     }
-
+    // Note that, there can be a race condition that blockIds can be stale when we release the
+    // access. The race condition only has a minimal negative consequence (printing extra logging
+    // message), and is expected very rare to trigger.
     for (Long blockId : blockIds) {
       try {
         // Note that we don't need to explicitly call abortBlock to cleanup the temp block
