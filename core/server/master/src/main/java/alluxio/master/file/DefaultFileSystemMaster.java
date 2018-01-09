@@ -32,6 +32,7 @@ import alluxio.exception.InvalidPathException;
 import alluxio.exception.PreconditionMessage;
 import alluxio.exception.UnexpectedAlluxioException;
 import alluxio.exception.status.FailedPreconditionException;
+import alluxio.exception.status.InvalidArgumentException;
 import alluxio.exception.status.NotFoundException;
 import alluxio.exception.status.PermissionDeniedException;
 import alluxio.exception.status.UnavailableException;
@@ -3408,7 +3409,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
 
   @Override
   public void updateUfsMode(String ufsPath, UnderFileSystem.UfsMode ufsMode)
-      throws InvalidPathException {
+      throws InvalidPathException, InvalidArgumentException {
     try (JournalContext journalContext = createJournalContext()) {
       updateUfsModeAndJournal(ufsPath, ufsMode, journalContext);
     }
@@ -3421,9 +3422,10 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    * @param ufsMode the ufs mode
    * @param journalContext the journal context
    * @throws InvalidPathException if path is not used  by any mount point
+   * @throws InvalidArgumentException if arguments for the method are invalid
    */
   private void updateUfsModeAndJournal(String ufsPath, UnderFileSystem.UfsMode ufsMode,
-      JournalContext journalContext) throws InvalidPathException {
+      JournalContext journalContext) throws InvalidPathException, InvalidArgumentException {
     updateUfsModeInternal(ufsPath, ufsMode);
 
     // Journal
@@ -3435,9 +3437,11 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       case READ_ONLY:
         ufsModeEntry = File.UfsMode.READ_ONLY;
         break;
-      default:
+      case READ_WRITE:
         ufsModeEntry = File.UfsMode.READ_WRITE;
         break;
+      default:
+        throw new InvalidArgumentException(ExceptionMessage.INVALID_UFS_MODE.getMessage(ufsMode));
     }
     File.UpdateUfsModeEntry ufsEntry =
         File.UpdateUfsModeEntry.newBuilder().setUfsPath(ufsPath).setUfsMode(ufsModeEntry).build();
@@ -3449,9 +3453,10 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    *
    * @param entry the update ufs mode journal entry
    * @throws InvalidPathException if the path is not used by any mount point
+   * @throws InvalidArgumentException if arguments for the method are invalid
    */
   private void updateUfsModeFromEntry(File.UpdateUfsModeEntry entry)
-      throws InvalidPathException {
+      throws InvalidPathException, InvalidArgumentException {
     String ufsPath = entry.getUfsPath();
     UnderFileSystem.UfsMode ufsMode;
     switch (entry.getUfsMode()) {
@@ -3461,9 +3466,12 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       case READ_ONLY:
         ufsMode = UnderFileSystem.UfsMode.READ_ONLY;
         break;
-      default:
+      case READ_WRITE:
         ufsMode = UnderFileSystem.UfsMode.READ_WRITE;
         break;
+      default:
+        throw new InvalidArgumentException(
+            ExceptionMessage.INVALID_UFS_MODE.getMessage(entry.getUfsMode()));
     }
     updateUfsModeInternal(ufsPath, ufsMode);
   }

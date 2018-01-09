@@ -22,6 +22,7 @@ import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidFileSizeException;
 import alluxio.exception.InvalidPathException;
 import alluxio.exception.UnexpectedAlluxioException;
+import alluxio.exception.status.InvalidArgumentException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.master.Master;
 import alluxio.master.file.meta.FileSystemMasterView;
@@ -476,9 +477,11 @@ public interface FileSystemMaster extends Master {
    *
    * @param ufsPath the ufs path
    * @param ufsMode the ufs operation mode
-   * @throws InvalidPathException
+   * @throws InvalidPathException if ufs path is not used by any mount point
+   * @throws InvalidArgumentException if arguments for the method are invalid
    */
-  void updateUfsMode(String ufsPath, UnderFileSystem.UfsMode ufsMode) throws InvalidPathException;
+  void updateUfsMode(String ufsPath, UnderFileSystem.UfsMode ufsMode)
+      throws InvalidPathException, InvalidArgumentException;
 
   /**
    * Instructs a worker to persist the files.
