@@ -93,6 +93,7 @@ public final class BlockReadHandler extends AbstractReadHandler<BlockReadRequest
       if (!mWorker.unlockBlock(context.getRequest().getSessionId(), context.getRequest().getId())) {
         if (reader != null) {
           mWorker.closeUfsBlock(context.getRequest().getSessionId(), context.getRequest().getId());
+          context.setBlockReader(null);
         }
       }
     }
@@ -183,6 +184,9 @@ public final class BlockReadHandler extends AbstractReadHandler<BlockReadRequest
             context.setCounter(MetricsSystem.workerCounter(metricName));
             return;
           } catch (Exception e) {
+            // TODO(binfan): remove the closeUfsBlock here as the exception will be handled in
+            // AbstractReadHandler. Current approach to use context.blockReader as a flag is a
+            // workaround.
             mWorker.closeUfsBlock(request.getSessionId(), request.getId());
             context.setBlockReader(null);
             throw e;
