@@ -20,6 +20,7 @@ import alluxio.underfs.UfsManager;
 import alluxio.underfs.UfsManager.UfsInfo;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.CreateOptions;
+import alluxio.worker.file.UnderFileSystemUtils;
 
 import com.codahale.metrics.Counter;
 import com.google.common.base.Preconditions;
@@ -107,12 +108,10 @@ public final class UfsFileWriteHandler extends AbstractWriteHandler<UfsFileWrite
         Preconditions.checkNotNull(request);
         Protocol.CreateUfsFileOptions createUfsFileOptions = request.getCreateUfsFileOptions();
         try {
-          UfsInfo ufsInfo = mUfsManager.get(createUfsFileOptions.getMountId());
-          String ufsString = MetricsSystem.escape(ufsInfo.getUfsMountPointUri());
-          String activeWriteMetricName = String.format("ActiveUfsWriteCount-Ufs:%s", ufsString);
-          mActiveWriteCounter = MetricsSystem.workerCounter(activeWriteMetricName);
+          mActiveWriteCounter = UnderFileSystemUtils.getActiveWriteCounter(
+              mUfsManager.get(createUfsFileOptions.getMountId()).getUfsMountPointUri());
         } catch (Exception e) {
-          // Do nothing
+          // Do nothing; unable to find mount id
         }
       }
     }

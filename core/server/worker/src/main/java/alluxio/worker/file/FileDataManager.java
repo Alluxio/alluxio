@@ -236,10 +236,8 @@ public final class FileDataManager {
         .setMode(new Mode((short) fileInfo.getMode())));
     final WritableByteChannel outputChannel = Channels.newChannel(outputStream);
 
-    UfsManager.UfsInfo ufsInfo = mUfsManager.get(fileInfo.getMountId());
-    String ufsString = MetricsSystem.escape(ufsInfo.getUfsMountPointUri());
-    String activeWriteMetricName = String.format("ActiveUfsWriteCount-Ufs:%s", ufsString);
-    Counter activeWriteCounter = MetricsSystem.workerCounter(activeWriteMetricName);
+    Counter activeWriteCounter = UnderFileSystemUtils
+        .getActiveWriteCounter(mUfsManager.get(fileInfo.getMountId()).getUfsMountPointUri());
     activeWriteCounter.inc();
 
     List<Throwable> errors = new ArrayList<>();

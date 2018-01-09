@@ -17,9 +17,12 @@ import alluxio.client.file.URIStatus;
 import alluxio.collections.Pair;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
+import alluxio.metrics.MetricsSystem;
 import alluxio.security.authorization.Mode;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.MkdirsOptions;
+
+import com.codahale.metrics.Counter;
 
 import java.io.IOException;
 import java.util.Stack;
@@ -75,6 +78,18 @@ public final class UnderFileSystemUtils {
         }
       }
     }
+  }
+
+  /**
+   * Get the counter for tracking active writes to the ufs.
+   *
+   * @param ufsUri the ufs being written to
+   * @return the active write counter
+   */
+  public static Counter getActiveWriteCounter(AlluxioURI ufsUri) {
+    String ufsString = MetricsSystem.escape(ufsUri);
+    String activeWriteMetricName = String.format("ActiveUfsWriteCount-Ufs:%s", ufsString);
+    return MetricsSystem.workerCounter(activeWriteMetricName);
   }
 
   private UnderFileSystemUtils() {} // prevent instantiation
