@@ -14,6 +14,11 @@ package alluxio.client.file;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.anyLong;
+import static org.mockito.Mockito.any;
 
 import alluxio.client.ReadType;
 import alluxio.client.block.AlluxioBlockStore;
@@ -38,7 +43,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
-import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.powermock.api.mockito.PowerMockito;
@@ -110,7 +114,7 @@ public final class FileInStreamTest {
 
     mContext = PowerMockito.mock(FileSystemContext.class);
     PowerMockito.when(mContext.getLocalWorker()).thenReturn(new WorkerNetAddress());
-    mBlockStore = Mockito.mock(AlluxioBlockStore.class);
+    mBlockStore = mock(AlluxioBlockStore.class);
     PowerMockito.mockStatic(AlluxioBlockStore.class);
     PowerMockito.when(AlluxioBlockStore.create(mContext)).thenReturn(mBlockStore);
     PowerMockito.when(mBlockStore.getEligibleWorkers()).thenReturn(new ArrayList<>());
@@ -126,9 +130,9 @@ public final class FileInStreamTest {
       final byte[] input = BufferUtils
           .getIncreasingByteArray((int) (i * BLOCK_LENGTH), (int) getBlockLength(i));
       mInStreams.add(new TestBlockInStream(input, i, input.length, false, mBlockSource));
-      Mockito.when(mBlockStore.getEligibleWorkers())
+      when(mBlockStore.getEligibleWorkers())
           .thenReturn(Arrays.asList(new BlockWorkerInfo(new WorkerNetAddress(), 0, 0)));
-      Mockito.when(mBlockStore.getInStream(Mockito.eq((long) i), Mockito.any(InStreamOptions
+      when(mBlockStore.getInStream(eq((long) i), any(InStreamOptions
           .class)))
           .thenAnswer(new Answer<BlockInStream>() {
             @Override
@@ -517,8 +521,8 @@ public final class FileInStreamTest {
    */
   @Test
   public void failGetInStream() throws IOException {
-    Mockito.when(mBlockStore
-        .getInStream(Mockito.anyLong(), Mockito.any(InStreamOptions.class)))
+    when(mBlockStore
+        .getInStream(anyLong(), any(InStreamOptions.class)))
         .thenThrow(new UnavailableException("test exception"));
     try {
       mTestStream.read();
@@ -611,8 +615,8 @@ public final class FileInStreamTest {
    */
   @Test
   public void blockInStreamOutOfSync() throws Exception {
-    Mockito.when(
-        mBlockStore.getInStream(Mockito.anyLong(), Mockito.any(InStreamOptions.class)))
+    when(
+        mBlockStore.getInStream(anyLong(), any(InStreamOptions.class)))
         .thenAnswer(new Answer<BlockInStream>() {
           @Override
           public BlockInStream answer(InvocationOnMock invocation) throws Throwable {
