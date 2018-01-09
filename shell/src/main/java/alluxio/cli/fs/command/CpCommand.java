@@ -262,9 +262,6 @@ public final class CpCommand extends AbstractFileSystemCommand {
       if (os != null) {
         os.cancel();
       }
-      if (mFileSystem.exists(dstPath)) {
-        mFileSystem.delete(dstPath);
-      }
       throw e;
     }
   }
