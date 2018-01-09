@@ -38,7 +38,7 @@ public final class UnderFileSystemUtilsTest {
         UnderFileSystemUtils.getPhysicalUfsPath("s3a://s3-bucket-name/"));
     Assert.assertEquals("s3a://s3-bucket-name/",
         UnderFileSystemUtils.getPhysicalUfsPath("s3a://s3-bucket-name/folder"));
-    Assert.assertEquals("/tmp/folder",
-        UnderFileSystemUtils.getPhysicalUfsPath("/"));
+    Assert.assertEquals("/",
+        UnderFileSystemUtils.getPhysicalUfsPath("/tmp/folder"));
   }
 }
