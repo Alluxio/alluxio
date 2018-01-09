@@ -20,6 +20,7 @@ import alluxio.client.file.URIStatus;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.InvalidWorkerStateException;
+import alluxio.metrics.MetricsSystem;
 import alluxio.security.authorization.Mode;
 import alluxio.underfs.UfsManager;
 import alluxio.underfs.UnderFileSystem;
@@ -30,6 +31,7 @@ import alluxio.worker.block.BlockWorker;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.meta.BlockMeta;
 
+import com.codahale.metrics.Counter;
 import com.google.common.base.Preconditions;
 import com.google.common.util.concurrent.RateLimiter;
 import org.slf4j.Logger;
@@ -234,6 +236,12 @@ public final class FileDataManager {
         .setMode(new Mode((short) fileInfo.getMode())));
     final WritableByteChannel outputChannel = Channels.newChannel(outputStream);
 
+    UfsManager.UfsInfo ufsInfo = mUfsManager.get(fileInfo.getMountId());
+    String ufsString = MetricsSystem.escape(ufsInfo.getUfsMountPointUri());
+    String activeWriteMetricName = String.format("ActiveUfsWriteCount-Ufs:%s", ufsString);
+    Counter activeWriteCounter = MetricsSystem.workerCounter(activeWriteMetricName);
+    activeWriteCounter.inc();
+
     List<Throwable> errors = new ArrayList<>();
     try {
       for (long blockId : blockIds) {
@@ -285,6 +293,7 @@ public final class FileDataManager {
       mPersistingInProgressFiles.remove(fileId);
       mPersistedUfsFingerprints.put(fileId, ufsFingerprint);
     }
+    activeWriteCounter.dec();
   }
 
   /**
