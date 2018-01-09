@@ -11,6 +11,7 @@
 
 package alluxio.worker.netty;
 
+import alluxio.exception.status.AlluxioStatusException;
 import alluxio.metrics.MetricsSystem;
 import alluxio.network.protocol.RPCProtoMessage;
 import alluxio.proto.dataserver.Protocol;
@@ -89,6 +90,8 @@ public final class UfsFileWriteHandler extends AbstractWriteHandler<UfsFileWrite
   public class UfsFilePacketWriter extends PacketWriter {
     private final UfsManager mUfsManager;
 
+    private Counter mActiveWriteCounter;
+
     /**
      * @param context context of this packet writer
      * @param channel netty channel
@@ -98,11 +101,26 @@ public final class UfsFileWriteHandler extends AbstractWriteHandler<UfsFileWrite
         UfsManager ufsManager) {
       super(context, channel);
       mUfsManager = ufsManager;
+
+      if (context != null) {
+        UfsFileWriteRequest request = context.getRequest();
+        Preconditions.checkNotNull(request);
+        Protocol.CreateUfsFileOptions createUfsFileOptions = request.getCreateUfsFileOptions();
+        try {
+          UfsInfo ufsInfo = mUfsManager.get(createUfsFileOptions.getMountId());
+          String ufsString = MetricsSystem.escape(ufsInfo.getUfsMountPointUri());
+          String activeWriteMetricName = String.format("ActiveUfsWriteCount-Ufs:%s", ufsString);
+          mActiveWriteCounter = MetricsSystem.workerCounter(activeWriteMetricName);
+        } catch (Exception e) {
+          // Do nothing
+        }
+      }
     }
 
     @Override
     protected void completeRequest(UfsFileWriteRequestContext context, Channel channel)
         throws Exception {
+      mActiveWriteCounter.dec();
       if (context == null) {
         return;
       }
@@ -116,6 +134,7 @@ public final class UfsFileWriteHandler extends AbstractWriteHandler<UfsFileWrite
 
     @Override
     protected void cancelRequest(UfsFileWriteRequestContext context) throws Exception {
+      mActiveWriteCounter.dec();
       if (context == null) {
         return;
       }
@@ -160,6 +179,7 @@ public final class UfsFileWriteHandler extends AbstractWriteHandler<UfsFileWrite
       String metricName = String.format("BytesWrittenUfs-Ufs:%s", ufsString);
       Counter counter = MetricsSystem.workerCounter(metricName);
       context.setCounter(counter);
+      mActiveWriteCounter.inc();
     }
   }
 }
