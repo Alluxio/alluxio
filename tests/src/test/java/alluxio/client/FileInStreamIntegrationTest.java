@@ -536,10 +536,11 @@ public final class FileInStreamIntegrationTest extends BaseIntegrationTest {
         }
       });
       FileInStream is = mFileSystem.openFile(uri, OpenFileOptions.defaults().setReadType(readType));
-      is.positionedRead(BLOCK_SIZE / 2, new byte[1], 0, 1);
+      // Positioned reads trigger async caching after reading and do not need to wait for a close
+      // or a block boundary to be crossed.
       URIStatus status = mFileSystem.getStatus(uri);
       Assert.assertEquals(0, status.getInAlluxioPercentage());
-      is.close();
+      is.positionedRead(BLOCK_SIZE / 2, new byte[1], 0, 1);
       if (readType.isCache()) {
         CommonUtils.waitFor("First block to be cached.", (input) -> {
           try {
@@ -563,6 +564,7 @@ public final class FileInStreamIntegrationTest extends BaseIntegrationTest {
         Thread.sleep(1000);
         Assert.assertEquals(0, status.getInAlluxioPercentage());
       }
+      is.close();
     }
   }
 
