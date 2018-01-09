@@ -41,7 +41,21 @@ public final class MasterUfsManager extends AbstractUfsManager {
   @Override
   public void removeMount(long mountId) {
     super.removeMount(mountId);
-    // TODO(adit): Remove ufs mode state any key in mPhysicalUfsState is not active anymore
+
+    // Remove any unused physical paths from map
+    for (String physicalUfs : mPhysicalUfsState.keySet()) {
+      boolean found = false;
+      for (UnderFileSystem ufs : mUnderFileSystemMap.values()) {
+        if (ufs.isPathCovered(physicalUfs)) {
+          found = true;
+          break;
+        }
+      }
+      if (!found) {
+        mPhysicalUfsState.remove(physicalUfs);
+        return;
+      }
+    }
   }
 
   /**
