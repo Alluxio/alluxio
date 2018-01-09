@@ -103,8 +103,8 @@ public abstract class BaseUnderFileSystem implements UnderFileSystem {
     AlluxioURI ufsUri = new AlluxioURI(ufsPath);
     Preconditions.checkArgument(PathUtils.normalizePath(ufsUri.getPath(), AlluxioURI.SEPARATOR)
         .equals(AlluxioURI.SEPARATOR));
-    return UnderFileSystemUtils.getPhysicalUfsPath(mUri.toString())
-        .equals(UnderFileSystemUtils.getPhysicalUfsPath(ufsPath));
+    return UnderFileSystemUtils.stripFolderFromPath(mUri.toString())
+        .equals(UnderFileSystemUtils.stripFolderFromPath(ufsPath));
   }
 
   @Override

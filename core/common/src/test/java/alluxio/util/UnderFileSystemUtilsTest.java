@@ -35,10 +35,10 @@ public final class UnderFileSystemUtilsTest {
   @Test
   public void getPhysicalUfsPath() throws Exception {
     Assert.assertEquals("s3a://s3-bucket-name/",
-        UnderFileSystemUtils.getPhysicalUfsPath("s3a://s3-bucket-name/"));
+        UnderFileSystemUtils.stripFolderFromPath("s3a://s3-bucket-name/"));
     Assert.assertEquals("s3a://s3-bucket-name/",
-        UnderFileSystemUtils.getPhysicalUfsPath("s3a://s3-bucket-name/folder"));
+        UnderFileSystemUtils.stripFolderFromPath("s3a://s3-bucket-name/folder"));
     Assert.assertEquals("/",
-        UnderFileSystemUtils.getPhysicalUfsPath("/tmp/folder"));
+        UnderFileSystemUtils.stripFolderFromPath("/tmp/folder"));
   }
 }

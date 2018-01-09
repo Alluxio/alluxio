@@ -312,8 +312,12 @@ public interface UnderFileSystem extends Closeable {
   String getFingerprint(String path);
 
   /**
-   * A logical UFS may be composed of one or more physical UFSs. This method is used to determine
-   * the operation mode of the logical UFS based on the physical UFS state.
+   * An {@link UnderFileSystem} may be composed of one or more "physical UFS"s. This method is used
+   * to determine the operation mode based on the physical UFS operation modes. For example, if this
+   * {@link UnderFileSystem} is composed of physical UFS hdfs://ns1 and hdfs://ns2 with read
+   * operations split b/w the two, with physicalUfsState{hdfs://ns1:NO_ACCESS,
+   * hdfs://ns2:READ_WRITE} this method can return READ_ONLY to allow reads to proceed from
+   * hdfs://ns2.
    *
    * @param physicalUfsState the state of all mounted physical UFS
    * @return the desired operation mode for this UFS

@@ -139,12 +139,12 @@ public final class UnderFileSystemUtils {
   }
 
   /**
-   * Get the physical ufs represented by path.
+   * Strip the folder part from the given ufs path to extract scheme and authority only.
    *
    * @param ufsPath ufs path which may include folder
-   * @return the physical ufs path
+   * @return the normalized ufs path stripped of the folder part and ending with /
    */
-  public static String getPhysicalUfsPath(String ufsPath) {
+  public static String stripFolderFromPath(String ufsPath) {
     String physicalUfsPath = ufsPath;
     AlluxioURI uri = new AlluxioURI(ufsPath);
     // Strip the folder path from ufsPath
