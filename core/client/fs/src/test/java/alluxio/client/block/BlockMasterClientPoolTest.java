@@ -11,12 +11,16 @@
 
 package alluxio.client.block;
 
+import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import alluxio.master.MasterClientConfig;
 
-import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
@@ -26,17 +30,17 @@ import org.powermock.modules.junit4.PowerMockRunner;
 public class BlockMasterClientPoolTest {
   @Test
   public void create() throws Exception {
-    BlockMasterClient expectedClient = Mockito.mock(BlockMasterClient.class);
+    BlockMasterClient expectedClient = mock(BlockMasterClient.class);
     PowerMockito.mockStatic(BlockMasterClient.Factory.class);
-    Mockito.when(BlockMasterClient.Factory
-        .create(Mockito.any(MasterClientConfig.class)))
+    when(BlockMasterClient.Factory
+        .create(any(MasterClientConfig.class)))
         .thenReturn(expectedClient);
     BlockMasterClient client;
     try (BlockMasterClientPool pool = new BlockMasterClientPool(null, null)) {
       client = pool.acquire();
-      Assert.assertEquals(expectedClient, client);
+      assertEquals(expectedClient, client);
       pool.release(client);
     }
-    Mockito.verify(client).close();
+    verify(client).close();
   }
 }
