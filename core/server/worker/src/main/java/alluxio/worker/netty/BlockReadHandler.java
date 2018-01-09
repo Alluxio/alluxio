@@ -91,7 +91,9 @@ public final class BlockReadHandler extends AbstractReadHandler<BlockReadRequest
         }
       }
       if (!mWorker.unlockBlock(context.getRequest().getSessionId(), context.getRequest().getId())) {
-        mWorker.closeUfsBlock(context.getRequest().getSessionId(), context.getRequest().getId());
+        if (reader != null) {
+          mWorker.closeUfsBlock(context.getRequest().getSessionId(), context.getRequest().getId());
+        }
       }
     }
 
@@ -182,6 +184,7 @@ public final class BlockReadHandler extends AbstractReadHandler<BlockReadRequest
             return;
           } catch (Exception e) {
             mWorker.closeUfsBlock(request.getSessionId(), request.getId());
+            context.setBlockReader(null);
             throw e;
           }
         }
