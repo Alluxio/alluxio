@@ -11,6 +11,10 @@
 
 package alluxio.client.block.stream;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
+
 import alluxio.Constants;
 import alluxio.client.file.FileSystemContext;
 import alluxio.network.protocol.RPCProtoMessage;
@@ -28,11 +32,9 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.embedded.EmbeddedChannel;
 import org.junit.After;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
@@ -60,7 +62,7 @@ public final class NettyPacketReaderTest {
   @Before
   public void before() throws Exception {
     mContext = PowerMockito.mock(FileSystemContext.class);
-    mAddress = Mockito.mock(WorkerNetAddress.class);
+    mAddress = mock(WorkerNetAddress.class);
     Protocol.ReadRequest readRequest =
         Protocol.ReadRequest.newBuilder().setBlockId(BLOCK_ID).setPacketSize(PACKET_SIZE).build();
     mFactory = new NettyPacketReader.Factory(mContext, mAddress, readRequest);
@@ -82,7 +84,7 @@ public final class NettyPacketReaderTest {
   public void readEmptyFile() throws Exception {
     try (PacketReader reader = create(0, 10)) {
       sendReadResponses(mChannel, 0, 0, 0);
-      Assert.assertEquals(null, reader.readPacket());
+      assertEquals(null, reader.readPacket());
     }
     validateReadRequestSent(mChannel, 0, 10, false, PACKET_SIZE);
   }
@@ -97,7 +99,7 @@ public final class NettyPacketReaderTest {
       Future<Long> checksum = sendReadResponses(mChannel, length, 0, length - 1);
 
       long checksumActual = checkPackets(reader, 0, length);
-      Assert.assertEquals(checksum.get().longValue(), checksumActual);
+      assertEquals(checksum.get().longValue(), checksumActual);
     }
     validateReadRequestSent(mChannel, 0, length, false, PACKET_SIZE);
   }
@@ -116,7 +118,7 @@ public final class NettyPacketReaderTest {
       Future<Long> checksum = sendReadResponses(mChannel, length, checksumStart, bytesToRead - 1);
 
       long checksumActual = checkPackets(reader, checksumStart, bytesToRead);
-      Assert.assertEquals(checksum.get().longValue(), checksumActual);
+      assertEquals(checksum.get().longValue(), checksumActual);
     }
     validateReadRequestSent(mChannel, offset, length, false, PACKET_SIZE);
     validateReadRequestSent(mChannel, offset, length, true, PACKET_SIZE);
@@ -136,7 +138,7 @@ public final class NettyPacketReaderTest {
           sendReadResponses(mChannel, lengthActual, checksumStart, bytesToRead - 1);
 
       long checksumActual = checkPackets(reader, checksumStart, bytesToRead);
-      Assert.assertEquals(checksum.get().longValue(), checksumActual);
+      assertEquals(checksum.get().longValue(), checksumActual);
     }
     validateReadRequestSent(mChannel, 0, Long.MAX_VALUE, false, PACKET_SIZE);
     validateReadRequestSent(mChannel, 0, Long.MAX_VALUE, true, PACKET_SIZE);
@@ -173,7 +175,7 @@ public final class NettyPacketReaderTest {
         break;
       }
       try {
-        Assert.assertTrue(packet instanceof DataNettyBufferV2);
+        assertTrue(packet instanceof DataNettyBufferV2);
         ByteBuf buf = (ByteBuf) packet.getNettyOutput();
         byte[] bytes = new byte[buf.readableBytes()];
         buf.readBytes(bytes);
@@ -211,15 +213,15 @@ public final class NettyPacketReaderTest {
       }
     }, WaitForOptions.defaults().setTimeoutMs(Constants.MINUTE_MS));
 
-    Assert.assertTrue(request != null);
-    Assert.assertTrue(request instanceof RPCProtoMessage);
-    Assert.assertEquals(null, ((RPCProtoMessage) request).getPayloadDataBuffer());
+    assertTrue(request != null);
+    assertTrue(request instanceof RPCProtoMessage);
+    assertEquals(null, ((RPCProtoMessage) request).getPayloadDataBuffer());
     Protocol.ReadRequest readRequest = ((RPCProtoMessage) request).getMessage().asReadRequest();
-    Assert.assertEquals(BLOCK_ID, readRequest.getBlockId());
-    Assert.assertEquals(offset, readRequest.getOffset());
-    Assert.assertEquals(length, readRequest.getLength());
-    Assert.assertEquals(cancel, readRequest.getCancel());
-    Assert.assertEquals(packetSize, readRequest.getPacketSize());
+    assertEquals(BLOCK_ID, readRequest.getBlockId());
+    assertEquals(offset, readRequest.getOffset());
+    assertEquals(length, readRequest.getLength());
+    assertEquals(cancel, readRequest.getCancel());
+    assertEquals(packetSize, readRequest.getPacketSize());
   }
 
   /**
