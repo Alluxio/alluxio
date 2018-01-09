@@ -207,7 +207,10 @@ public interface FileSystemMasterClient extends Client {
   void unmount(AlluxioURI alluxioPath) throws AlluxioStatusException;
 
   /**
-   * Updates the operation mode for the given ufs path.
+   * Updates the operation mode for the given ufs path. The path is required to be the scheme and
+   * authority only. For example, to update the mode for under storage at hdfs://ns/folder1
+   * specify the argument as hdfs://ns/. Note: the mode for any other mounted under storage which
+   * shares the prefix (such as hdfs://ns/folder2) is also updated.
    *
    * @param ufsPath the ufs path
    * @param options the options to update ufs operation mode

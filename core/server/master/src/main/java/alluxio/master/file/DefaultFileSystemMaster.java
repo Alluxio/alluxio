@@ -3487,12 +3487,12 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     UnderFileSystem.UfsMode ufsMode = ufs.getOperationMode(mUfsManager.getPhysicalUfsState());
     switch (ufsMode) {
       case NO_ACCESS:
-        throw new AccessControlException(
-            ExceptionMessage.UFS_OP_NOT_ALLOWED.getMessage(opType, resolution.getUri()));
+        throw new AccessControlException(ExceptionMessage.UFS_OP_NOT_ALLOWED.getMessage(opType,
+            resolution.getUri(), UnderFileSystem.UfsMode.NO_ACCESS));
       case READ_ONLY:
         if (opType == OperationType.WRITE) {
-          throw new AccessControlException(
-              ExceptionMessage.UFS_OP_NOT_ALLOWED.getMessage(opType, resolution.getUri()));
+          throw new AccessControlException(ExceptionMessage.UFS_OP_NOT_ALLOWED.getMessage(opType,
+              resolution.getUri(), UnderFileSystem.UfsMode.READ_ONLY));
         }
         break;
       default:

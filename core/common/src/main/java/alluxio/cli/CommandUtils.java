@@ -30,7 +30,8 @@ public final class CommandUtils {
   private CommandUtils() {} // prevent instantiation
 
   /**
-   * Get instances of all subclasses of {@link Command} in the given package.
+   * Get instances of all subclasses of {@link Command} in a sub-package called "command" the given
+   * package.
    *
    * @param pkgName package prefix to look in
    * @param classArgs type of args to instantiate the class
@@ -42,6 +43,7 @@ public final class CommandUtils {
     Map<String, Command> commandsMap = new HashMap<>();
     Reflections reflections = new Reflections(Command.class.getPackage().getName());
     for (Class<? extends Command> cls : reflections.getSubTypesOf(Command.class)) {
+      // Add commands from <pkgName>.command.*
       if (cls.getPackage().getName().equals(pkgName + ".command")
           && !Modifier.isAbstract(cls.getModifiers())) {
         // Only instantiate a concrete class
