@@ -31,6 +31,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
@@ -91,7 +92,7 @@ public abstract class BaseUnderFileSystem implements UnderFileSystem {
   @Override
   public UfsMode getOperationMode(Map<String, UfsMode> physicalUfsState) {
     for (Map.Entry<String, UfsMode> entry : physicalUfsState.entrySet()) {
-      if (isPathCovered(entry.getKey())) {
+      if (entry.getKey().equals(UnderFileSystemUtils.stripFolderFromPath(mUri.toString()))) {
         return entry.getValue();
       }
     }
@@ -99,12 +100,9 @@ public abstract class BaseUnderFileSystem implements UnderFileSystem {
   }
 
   @Override
-  public boolean isPathCovered(String ufsPath) {
-    AlluxioURI ufsUri = new AlluxioURI(ufsPath);
-    Preconditions.checkArgument(PathUtils.normalizePath(ufsUri.getPath(), AlluxioURI.SEPARATOR)
-        .equals(AlluxioURI.SEPARATOR));
-    return UnderFileSystemUtils.stripFolderFromPath(mUri.toString())
-        .equals(UnderFileSystemUtils.stripFolderFromPath(ufsPath));
+  public List<String> getPhysicalUfs() {
+    return new ArrayList<String>(
+        Arrays.asList(UnderFileSystemUtils.stripFolderFromPath(mUri.toString())));
   }
 
   @Override

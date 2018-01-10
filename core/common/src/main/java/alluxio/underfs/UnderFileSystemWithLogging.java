@@ -357,8 +357,8 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
   }
 
   @Override
-  public boolean isPathCovered(String ufsPath) {
-    return mUnderFileSystem.isPathCovered(ufsPath);
+  public List<String> getPhysicalUfs() {
+    return mUnderFileSystem.getPhysicalUfs();
   }
 
   @Override

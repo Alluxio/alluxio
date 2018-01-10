@@ -325,6 +325,14 @@ public interface UnderFileSystem extends Closeable {
   UfsMode getOperationMode(Map<String, UfsMode> physicalUfsState);
 
   /**
+   * An {@link UnderFileSystem} may be composed of one or more "physical UFS"s. This method
+   * returns all underlying physical UFS URIs.
+   *
+   * @return physical UFSs this {@link UnderFileSystem} is composed of
+   */
+  List<String> getPhysicalUfs();
+
+  /**
    * Queries the under file system about the space of the indicated path (e.g., space left, space
    * used and etc).
    *
@@ -367,14 +375,6 @@ public interface UnderFileSystem extends Closeable {
    * @return true if the path exists and is a file, false otherwise
    */
   boolean isFile(String path) throws IOException;
-
-  /**
-   * Checks if the ufs path is one of the underlying physical UFSs.
-   *
-   * @param ufsPath the ufs path w/ only scheme and authority
-   * @return true if physical UFS is covered by this UFS, false otherwise
-   */
-  boolean isPathCovered(String ufsPath);
 
   /**
    * @return true if under storage is an object store, false otherwise

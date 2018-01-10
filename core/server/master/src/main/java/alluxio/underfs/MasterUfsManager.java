@@ -46,7 +46,7 @@ public final class MasterUfsManager extends AbstractUfsManager {
     for (String physicalUfs : mPhysicalUfsState.keySet()) {
       boolean found = false;
       for (UnderFileSystem ufs : mUnderFileSystemMap.values()) {
-        if (ufs.isPathCovered(physicalUfs)) {
+        if (ufs.getPhysicalUfs().contains(physicalUfs)) {
           found = true;
           break;
         }
@@ -76,9 +76,9 @@ public final class MasterUfsManager extends AbstractUfsManager {
       throws InvalidPathException {
     LOG.info("Set ufs mode for {} to {}", ufsPath, ufsMode);
     for (UnderFileSystem ufs : mUnderFileSystemMap.values()) {
-      if (ufs.isPathCovered(ufsPath)) {
+      String key = UnderFileSystemUtils.stripFolderFromPath(ufsPath);
+      if (ufs.getPhysicalUfs().contains(key)) {
         // Found a managed ufs for the given physical path
-        String key = UnderFileSystemUtils.stripFolderFromPath(ufsPath);
         if (ufsMode == UnderFileSystem.UfsMode.READ_WRITE) {
           // Remove key from map if exists
           mPhysicalUfsState.remove(key);
