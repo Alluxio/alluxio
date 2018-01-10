@@ -45,7 +45,6 @@ import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.CommonUtils;
 import alluxio.util.IdUtils;
-import alluxio.util.UnderFileSystemUtils;
 import alluxio.wire.CommonOptions;
 import alluxio.wire.FileInfo;
 import alluxio.wire.LoadMetadataType;
