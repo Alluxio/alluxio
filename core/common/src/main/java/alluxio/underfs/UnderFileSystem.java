@@ -314,12 +314,13 @@ public interface UnderFileSystem extends Closeable {
   /**
    * An {@link UnderFileSystem} may be composed of one or more "physical UFS"s. This method is used
    * to determine the operation mode based on the physical UFS operation modes. For example, if this
-   * {@link UnderFileSystem} is composed of physical UFS hdfs://ns1 and hdfs://ns2 with read
-   * operations split b/w the two, with physicalUfsState{hdfs://ns1:NO_ACCESS,
-   * hdfs://ns2:READ_WRITE} this method can return READ_ONLY to allow reads to proceed from
-   * hdfs://ns2.
+   * {@link UnderFileSystem} is composed of physical UFS hdfs://ns1/ and hdfs://ns2/ with read
+   * operations split b/w the two, with physicalUfsState{hdfs://ns1/:NO_ACCESS,
+   * hdfs://ns2/:READ_WRITE} this method can return READ_ONLY to allow reads to proceed from
+   * hdfs://ns2/.
    *
-   * @param physicalUfsState the state of all mounted physical UFS
+   * @param physicalUfsState the state of physical UFSs for this {@link UnderFileSystem}; keys are
+   *        expected to be normalized (ending with /)
    * @return the desired operation mode for this UFS
    */
   UfsMode getOperationMode(Map<String, UfsMode> physicalUfsState);
