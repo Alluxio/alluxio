@@ -3458,13 +3458,13 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
   }
 
   @Override
-  public void updateUfsMode(String ufsPath, UnderFileSystem.UfsMode ufsMode)
+  public void updateUfsMode(AlluxioURI ufsPath, UnderFileSystem.UfsMode ufsMode)
       throws InvalidPathException, InvalidArgumentException, UnavailableException,
       AccessControlException {
     // TODO(adit): Create new fsadmin audit context
     try (JournalContext journalContext = createJournalContext();
         FileSystemMasterAuditContext auditContext =
-            createAuditContext("updateUfsMode", new AlluxioURI(ufsPath), null, null)) {
+            createAuditContext("updateUfsMode", ufsPath, null, null)) {
       updateUfsModeAndJournal(ufsPath, ufsMode, journalContext);
       auditContext.setSucceeded(true);
     }
@@ -3479,7 +3479,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    * @throws InvalidPathException if path is not used  by any mount point
    * @throws InvalidArgumentException if arguments for the method are invalid
    */
-  private void updateUfsModeAndJournal(String ufsPath, UnderFileSystem.UfsMode ufsMode,
+  private void updateUfsModeAndJournal(AlluxioURI ufsPath, UnderFileSystem.UfsMode ufsMode,
       JournalContext journalContext) throws InvalidPathException, InvalidArgumentException {
     updateUfsModeInternal(ufsPath, ufsMode);
 
@@ -3498,8 +3498,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       default:
         throw new InvalidArgumentException(ExceptionMessage.INVALID_UFS_MODE.getMessage(ufsMode));
     }
-    File.UpdateUfsModeEntry ufsEntry =
-        File.UpdateUfsModeEntry.newBuilder().setUfsPath(ufsPath).setUfsMode(ufsModeEntry).build();
+    File.UpdateUfsModeEntry ufsEntry = File.UpdateUfsModeEntry.newBuilder()
+        .setUfsPath(ufsPath.getRootPath()).setUfsMode(ufsModeEntry).build();
     journalContext.append(JournalEntry.newBuilder().setUpdateUfsMode(ufsEntry).build());
   }
 
@@ -3528,10 +3528,10 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         throw new InvalidArgumentException(
             ExceptionMessage.INVALID_UFS_MODE.getMessage(entry.getUfsMode()));
     }
-    updateUfsModeInternal(ufsPath, ufsMode);
+    updateUfsModeInternal(new AlluxioURI(ufsPath), ufsMode);
   }
 
-  private void updateUfsModeInternal(String ufsPath, UnderFileSystem.UfsMode ufsMode)
+  private void updateUfsModeInternal(AlluxioURI ufsPath, UnderFileSystem.UfsMode ufsMode)
       throws InvalidPathException {
     mUfsManager.setUfsMode(ufsPath, ufsMode);
   }

@@ -475,12 +475,12 @@ public interface FileSystemMaster extends Master {
   /**
    * Update the operation mode for the given ufs path under one or more mount points.
    *
-   * @param ufsPath the ufs path
+   * @param ufsPath the physical ufs path
    * @param ufsMode the ufs operation mode
    * @throws InvalidPathException if ufs path is not used by any mount point
    * @throws InvalidArgumentException if arguments for the method are invalid
    */
-  void updateUfsMode(String ufsPath, UnderFileSystem.UfsMode ufsMode) throws InvalidPathException,
+  void updateUfsMode(AlluxioURI ufsPath, UnderFileSystem.UfsMode ufsMode) throws InvalidPathException,
       InvalidArgumentException, UnavailableException, AccessControlException;
 
   /**

@@ -91,19 +91,16 @@ public abstract class BaseUnderFileSystem implements UnderFileSystem {
 
   @Override
   public UfsMode getOperationMode(Map<String, UfsMode> physicalUfsState) {
-    for (Map.Entry<String, UfsMode> entry : physicalUfsState.entrySet()) {
-      if (UnderFileSystemUtils.stripFolderFromPath(entry.getKey())
-          .equals(UnderFileSystemUtils.stripFolderFromPath(mUri.toString()))) {
-        return entry.getValue();
-      }
+    UfsMode ufsMode = physicalUfsState.get(mUri.getRootPath());
+    if (ufsMode != null) {
+      return ufsMode;
     }
     return UfsMode.READ_WRITE;
   }
 
   @Override
   public List<String> getPhysicalUfs() {
-    return new ArrayList<String>(
-        Arrays.asList(UnderFileSystemUtils.stripFolderFromPath(mUri.toString())));
+    return new ArrayList<>(Arrays.asList(mUri.getRootPath()));
   }
 
   @Override

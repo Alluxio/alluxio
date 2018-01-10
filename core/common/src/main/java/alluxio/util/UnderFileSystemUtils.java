@@ -139,22 +139,6 @@ public final class UnderFileSystemUtils {
   }
 
   /**
-   * Strip the folder part from the given ufs path to extract scheme and authority only.
-   *
-   * @param ufsPath ufs path which may include folder
-   * @return the normalized ufs path stripped of the folder part and ending with /
-   */
-  public static String stripFolderFromPath(String ufsPath) {
-    String physicalUfsPath = ufsPath;
-    AlluxioURI uri = new AlluxioURI(ufsPath);
-    // Strip the folder path from ufsPath
-    if (uri.getPath() != null) {
-      physicalUfsPath = physicalUfsPath.substring(0, physicalUfsPath.lastIndexOf(uri.getPath()));
-    }
-    return PathUtils.normalizePath(physicalUfsPath, AlluxioURI.SEPARATOR);
-  }
-
-  /**
    * Returns an approximate content hash, using the length and modification time.
    *
    * @param length the content length

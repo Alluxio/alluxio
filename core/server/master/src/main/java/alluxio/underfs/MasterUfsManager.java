@@ -146,8 +146,7 @@ public final class MasterUfsManager extends AbstractUfsManager {
       MountTable.Resolution resolution) {
     Map<String, UnderFileSystem.UfsMode> ufsModeState = new HashMap<>();
     for (String physicalUfs : resolution.getUfs().getPhysicalUfs()) {
-      UfsState ufsState =
-          mPhysicalUfsToState.get(UnderFileSystemUtils.stripFolderFromPath(physicalUfs));
+      UfsState ufsState = mPhysicalUfsToState.get(new AlluxioURI(physicalUfs).getRootPath());
       if (ufsState != null) {
         ufsModeState.put(physicalUfs, ufsState.getUfsMode());
       }
@@ -162,10 +161,10 @@ public final class MasterUfsManager extends AbstractUfsManager {
    * @param ufsMode the ufs operation mode
    * @throws InvalidPathException if no managed ufs covers the given path
    */
-  public void setUfsMode(String ufsPath, UnderFileSystem.UfsMode ufsMode)
+  public void setUfsMode(AlluxioURI ufsPath, UnderFileSystem.UfsMode ufsMode)
       throws InvalidPathException {
     LOG.info("Set ufs mode for {} to {}", ufsPath, ufsMode);
-    String key = UnderFileSystemUtils.stripFolderFromPath(ufsPath);
+    String key = ufsPath.getRootPath();
     UfsState state = mPhysicalUfsToState.compute(key, (k, v) -> {
       if (v == null) {
         // No managed ufs uses the given physical ufs path

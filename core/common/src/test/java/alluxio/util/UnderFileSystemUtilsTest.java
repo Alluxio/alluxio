@@ -31,14 +31,4 @@ public final class UnderFileSystemUtilsTest {
     Assert.assertEquals("oss",
         UnderFileSystemUtils.getBucketName(new AlluxioURI("oss://oss/folder/.file")));
   }
-
-  @Test
-  public void getPhysicalUfsPath() throws Exception {
-    Assert.assertEquals("s3a://s3-bucket-name/",
-        UnderFileSystemUtils.stripFolderFromPath("s3a://s3-bucket-name/"));
-    Assert.assertEquals("s3a://s3-bucket-name/",
-        UnderFileSystemUtils.stripFolderFromPath("s3a://s3-bucket-name/folder"));
-    Assert.assertEquals("/",
-        UnderFileSystemUtils.stripFolderFromPath("/tmp/folder"));
-  }
 }

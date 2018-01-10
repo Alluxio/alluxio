@@ -447,7 +447,7 @@ public final class FileSystemMasterClientServiceHandler implements
             ufsMode = UnderFileSystem.UfsMode.READ_WRITE;
             break;
         }
-        mFileSystemMaster.updateUfsMode(ufsPath, ufsMode);
+        mFileSystemMaster.updateUfsMode(new AlluxioURI(ufsPath), ufsMode);
         return new UpdateUfsModeTResponse();
       }
 

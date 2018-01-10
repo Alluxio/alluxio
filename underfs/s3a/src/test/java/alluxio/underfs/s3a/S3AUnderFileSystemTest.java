@@ -166,19 +166,23 @@ public class S3AUnderFileSystemTest {
     // Check default
     Assert.assertEquals(UnderFileSystem.UfsMode.READ_WRITE,
         mS3UnderFileSystem.getOperationMode(physicalUfsState));
-    physicalUfsState.put("swift://" + BUCKET_NAME, UnderFileSystem.UfsMode.NO_ACCESS);
+    physicalUfsState.put(new AlluxioURI("swift://" + BUCKET_NAME).getRootPath(),
+        UnderFileSystem.UfsMode.NO_ACCESS);
     Assert.assertEquals(UnderFileSystem.UfsMode.READ_WRITE,
         mS3UnderFileSystem.getOperationMode(physicalUfsState));
     // Check setting NO_ACCESS mode
-    physicalUfsState.put("s3a://" + BUCKET_NAME, UnderFileSystem.UfsMode.NO_ACCESS);
+    physicalUfsState.put(new AlluxioURI("s3a://" + BUCKET_NAME).getRootPath(),
+        UnderFileSystem.UfsMode.NO_ACCESS);
     Assert.assertEquals(UnderFileSystem.UfsMode.NO_ACCESS,
         mS3UnderFileSystem.getOperationMode(physicalUfsState));
     // Check setting READ_ONLY mode
-    physicalUfsState.put("s3a://" + BUCKET_NAME, UnderFileSystem.UfsMode.READ_ONLY);
+    physicalUfsState.put(new AlluxioURI("s3a://" + BUCKET_NAME).getRootPath(),
+        UnderFileSystem.UfsMode.READ_ONLY);
     Assert.assertEquals(UnderFileSystem.UfsMode.READ_ONLY,
         mS3UnderFileSystem.getOperationMode(physicalUfsState));
     // Check setting READ_WRITE mode
-    physicalUfsState.put("s3a://" + BUCKET_NAME, UnderFileSystem.UfsMode.READ_WRITE);
+    physicalUfsState.put(new AlluxioURI("s3a://" + BUCKET_NAME).getRootPath(),
+        UnderFileSystem.UfsMode.READ_WRITE);
     Assert.assertEquals(UnderFileSystem.UfsMode.READ_WRITE,
         mS3UnderFileSystem.getOperationMode(physicalUfsState));
   }
