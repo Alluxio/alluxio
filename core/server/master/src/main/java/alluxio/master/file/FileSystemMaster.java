@@ -480,8 +480,9 @@ public interface FileSystemMaster extends Master {
    * @throws InvalidPathException if ufs path is not used by any mount point
    * @throws InvalidArgumentException if arguments for the method are invalid
    */
-  void updateUfsMode(AlluxioURI ufsPath, UnderFileSystem.UfsMode ufsMode) throws InvalidPathException,
-      InvalidArgumentException, UnavailableException, AccessControlException;
+  void updateUfsMode(AlluxioURI ufsPath, UnderFileSystem.UfsMode ufsMode)
+      throws InvalidPathException, InvalidArgumentException, UnavailableException,
+      AccessControlException;
 
   /**
    * Instructs a worker to persist the files.

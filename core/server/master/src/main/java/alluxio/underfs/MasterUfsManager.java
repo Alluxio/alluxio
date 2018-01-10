@@ -15,7 +15,6 @@ import alluxio.AlluxioURI;
 import alluxio.collections.ConcurrentHashSet;
 import alluxio.exception.InvalidPathException;
 import alluxio.master.file.meta.MountTable;
-import alluxio.util.UnderFileSystemUtils;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
