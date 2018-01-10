@@ -3298,6 +3298,9 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         mTtlBuckets.insert(inode);
         inode.setLastModificationTimeMs(opTimeMs);
         inode.setTtlAction(options.getTtlAction());
+      } else if (inode.getTtlAction() != options.getTtlAction()) {
+        inode.setLastModificationTimeMs(opTimeMs);
+        inode.setTtlAction(options.getTtlAction());
       }
     }
     if (options.getPersisted() != null) {
