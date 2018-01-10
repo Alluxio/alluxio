@@ -255,10 +255,10 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
   }
 
   @Override
-  public synchronized void updateUfsMode(final String ufsPath, final UpdateUfsModeOptions options)
-      throws AlluxioStatusException {
+  public synchronized void updateUfsMode(final AlluxioURI ufsUri,
+      final UpdateUfsModeOptions options) throws AlluxioStatusException {
     retryRPC(() -> {
-      mClient.updateUfsMode(ufsPath, options.toThrift());
+      mClient.updateUfsMode(ufsUri.getRootPath(), options.toThrift());
       return null;
     });
   }

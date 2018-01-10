@@ -68,8 +68,8 @@ public final class UfsCommand extends AbstractFileSystemAdminCommand {
   public int run(CommandLine cl) throws AlluxioException, IOException {
     String[] args = cl.getArgs();
     String ufsPath = args[0];
-    AlluxioURI uri = new AlluxioURI(ufsPath);
-    if (!PathUtils.normalizePath(uri.getPath(), AlluxioURI.SEPARATOR)
+    AlluxioURI ufsUri = new AlluxioURI(ufsPath);
+    if (!PathUtils.normalizePath(ufsUri.getPath(), AlluxioURI.SEPARATOR)
         .equals(AlluxioURI.SEPARATOR)) {
       System.out.println("The ufs path should have only scheme and authority but no path.");
       return -1;
@@ -90,7 +90,7 @@ public final class UfsCommand extends AbstractFileSystemAdminCommand {
           System.out.println("Unrecognized mode");
           return -1;
       }
-      mMasterClient.updateUfsMode(ufsPath, UpdateUfsModeOptions.defaults().setUfsMode(mode));
+      mMasterClient.updateUfsMode(ufsUri, UpdateUfsModeOptions.defaults().setUfsMode(mode));
       System.out.println("Ufs mode updated");
       return 0;
     }

@@ -212,8 +212,8 @@ public interface FileSystemMasterClient extends Client {
    * specify the argument as hdfs://ns/. Note: the mode for any other mounted under storage which
    * shares the prefix (such as hdfs://ns/folder2) is also updated.
    *
-   * @param ufsPath the ufs path
+   * @param ufsUri the ufs path
    * @param options the options to update ufs operation mode
    */
-  void updateUfsMode(String ufsPath, UpdateUfsModeOptions options) throws AlluxioStatusException;
+  void updateUfsMode(AlluxioURI ufsUri, UpdateUfsModeOptions options) throws AlluxioStatusException;
 }
