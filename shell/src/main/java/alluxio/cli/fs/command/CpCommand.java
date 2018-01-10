@@ -250,19 +250,18 @@ public final class CpCommand extends AbstractFileSystemCommand {
    */
   private void copyFile(AlluxioURI srcPath, AlluxioURI dstPath)
       throws AlluxioException, IOException {
-    FileOutStream os = null;
     try (Closer closer = Closer.create()) {
       OpenFileOptions openFileOptions = OpenFileOptions.defaults().setReadType(ReadType.NO_CACHE);
       FileInStream is = closer.register(mFileSystem.openFile(srcPath, openFileOptions));
       CreateFileOptions createFileOptions = CreateFileOptions.defaults();
-      os = closer.register(mFileSystem.createFile(dstPath, createFileOptions));
-      IOUtils.copy(is, os);
-      System.out.println("Copied " + srcPath + " to " + dstPath);
-    } catch (Exception e) {
-      if (os != null) {
+      FileOutStream os = closer.register(mFileSystem.createFile(dstPath, createFileOptions));
+      try {
+        IOUtils.copy(is, os);
+      } catch (Exception e) {
         os.cancel();
+        throw e;
       }
-      throw e;
+      System.out.println("Copied " + srcPath + " to " + dstPath);
     }
   }
 
