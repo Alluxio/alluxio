@@ -3292,13 +3292,12 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     }
     if (options.getTtl() != null) {
       long ttl = options.getTtl();
-      if (inode.getTtl() != ttl) {
-        mTtlBuckets.remove(inode);
-        inode.setTtl(ttl);
-        mTtlBuckets.insert(inode);
-        inode.setLastModificationTimeMs(opTimeMs);
-        inode.setTtlAction(options.getTtlAction());
-      } else if (inode.getTtlAction() != options.getTtlAction()) {
+      if (inode.getTtl() != ttl || inode.getTtlAction() != options.getTtlAction()) {
+        if (inode.getTtl() != ttl) {
+          mTtlBuckets.remove(inode);
+          inode.setTtl(ttl);
+          mTtlBuckets.insert(inode);
+        }
         inode.setLastModificationTimeMs(opTimeMs);
         inode.setTtlAction(options.getTtlAction());
       }
