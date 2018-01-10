@@ -11,12 +11,16 @@
 
 package alluxio.underfs;
 
+import alluxio.AlluxioURI;
+import alluxio.collections.ConcurrentHashSet;
 import alluxio.exception.InvalidPathException;
+import alluxio.master.file.meta.MountTable;
 import alluxio.util.UnderFileSystemUtils;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -29,8 +33,41 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class MasterUfsManager extends AbstractUfsManager {
   private static final Logger LOG = LoggerFactory.getLogger(MasterUfsManager.class);
 
-  // The physical ufs state for all active mounts if not the default
-  private ConcurrentHashMap<String, UnderFileSystem.UfsMode> mPhysicalUfsState =
+  public static class UfsState {
+    private UnderFileSystem.UfsMode mUfsMode;
+    private ConcurrentHashSet<Long> mMountIds;
+
+    UfsState() {
+      mUfsMode = UnderFileSystem.UfsMode.READ_WRITE;
+      mMountIds = new ConcurrentHashSet<>();
+    }
+
+    void addMount(long mountId) {
+      mMountIds.addIfAbsent(mountId);
+    }
+
+    /**
+     * Remove mount id.
+     *
+     * @param mountId mount id to remove
+     * @return true, if mount list is empty
+     */
+    boolean removeMount(long mountId) {
+      mMountIds.remove(mountId);
+      return mMountIds.size() == 0;
+    }
+
+    UnderFileSystem.UfsMode getUfsMode() {
+      return mUfsMode;
+    }
+
+    void setUfsMode(UnderFileSystem.UfsMode ufsMode) {
+      mUfsMode = ufsMode;
+    }
+  }
+
+  // The physical ufs state for all managed mounts
+  private ConcurrentHashMap<String, UfsState> mPhysicalUfsToState =
       new ConcurrentHashMap<>();
 
   /**
@@ -39,30 +76,64 @@ public final class MasterUfsManager extends AbstractUfsManager {
   public MasterUfsManager() {}
 
   @Override
-  public void removeMount(long mountId) {
-    super.removeMount(mountId);
+  public void addMount(long mountId, final AlluxioURI ufsUri,
+                       final UnderFileSystemConfiguration ufsConf) {
+    super.addMount(mountId, ufsUri, ufsConf);
 
-    // Remove any unused physical paths from map
-    for (String physicalUfs : mPhysicalUfsState.keySet()) {
-      boolean found = false;
-      for (UnderFileSystem ufs : mUnderFileSystemMap.values()) {
-        if (ufs.getPhysicalUfs().contains(physicalUfs)) {
-          found = true;
-          break;
-        }
+    try {
+      for (String physicalUfs : get(mountId).getUfs().getPhysicalUfs()) {
+        mPhysicalUfsToState.compute(physicalUfs, (k, v) -> {
+          if (v == null) {
+            v = new UfsState();
+          }
+          v.addMount(mountId);
+          return v;
+        });
       }
-      if (!found) {
-        mPhysicalUfsState.remove(physicalUfs);
-        return;
-      }
+    } catch (Exception e) {
+      // Unable to resolve mount point
+      LOG.error(e.getMessage());
     }
   }
 
+  @Override
+  public void removeMount(long mountId) {
+    try {
+      for (String physicalUfs : get(mountId).getUfs().getPhysicalUfs()) {
+        mPhysicalUfsToState.computeIfPresent(physicalUfs, (k, v) -> {
+          if (v.removeMount(mountId)) {
+            // Remove key if list is empty
+            return null;
+          }
+          return v;
+        });
+      }
+    } catch (Exception e) {
+      // Unable to resolve mount point
+      LOG.error(e.getMessage());
+    }
+
+    super.removeMount(mountId);
+  }
+
   /**
-   * @return the state of physical UFSs in maintenance
+   * Get the physical ufs operation modes for the {@link UnderFileSystem} under the given Mount
+   * table resolution.
+   *
+   * @param resolution the mount table resolution for an Alluxio path
+   * @return the state of physical UFS for given mount resolution
    */
-  public Map<String, UnderFileSystem.UfsMode> getPhysicalUfsState() {
-    return mPhysicalUfsState;
+  public Map<String, UnderFileSystem.UfsMode> getPhysicalUfsState(
+      MountTable.Resolution resolution) {
+    Map<String, UnderFileSystem.UfsMode> ufsModeState = new HashMap<>();
+    for (String physicalUfs : resolution.getUfs().getPhysicalUfs()) {
+      UfsState ufsState =
+          mPhysicalUfsToState.get(UnderFileSystemUtils.stripFolderFromPath(physicalUfs));
+      if (ufsState != null) {
+        ufsModeState.put(physicalUfs, ufsState.getUfsMode());
+      }
+    }
+    return ufsModeState;
   }
 
   /**
@@ -75,22 +146,20 @@ public final class MasterUfsManager extends AbstractUfsManager {
   public void setUfsMode(String ufsPath, UnderFileSystem.UfsMode ufsMode)
       throws InvalidPathException {
     LOG.info("Set ufs mode for {} to {}", ufsPath, ufsMode);
-    for (UnderFileSystem ufs : mUnderFileSystemMap.values()) {
-      String key = UnderFileSystemUtils.stripFolderFromPath(ufsPath);
-      if (ufs.getPhysicalUfs().contains(key)) {
-        // Found a managed ufs for the given physical path
-        if (ufsMode == UnderFileSystem.UfsMode.READ_WRITE) {
-          // Remove key from map if exists
-          mPhysicalUfsState.remove(key);
-        } else {
-          // Set the maintenance state of the given ufs
-          mPhysicalUfsState.put(key, ufsMode);
-        }
-        return;
+    String key = UnderFileSystemUtils.stripFolderFromPath(ufsPath);
+    UfsState state = mPhysicalUfsToState.compute(key, (k, v) -> {
+      if (v == null) {
+        // No managed ufs uses the given physical ufs path
+        return v;
       }
+      // Found a managed ufs for the given physical path
+      v.setUfsMode(ufsMode);
+      return v;
+    });
+
+    if (state == null) {
+      LOG.warn("No managed ufs for physical ufs path {}", ufsPath);
+      throw new InvalidPathException(String.format("Ufs path %s is not managed", ufsPath));
     }
-    // No managed ufs uses the given physical ufs path
-    LOG.warn("No managed ufs for physical ufs path {}", ufsPath);
-    throw new InvalidPathException(String.format("Ufs path %s is not managed", ufsPath));
   }
 }

@@ -3542,7 +3542,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       throws AccessControlException, InvalidPathException {
     MountTable.Resolution resolution = mMountTable.resolve(alluxioPath);
     UnderFileSystem ufs = resolution.getUfs();
-    UnderFileSystem.UfsMode ufsMode = ufs.getOperationMode(mUfsManager.getPhysicalUfsState());
+    UnderFileSystem.UfsMode ufsMode =
+        ufs.getOperationMode(mUfsManager.getPhysicalUfsState(resolution));
     switch (ufsMode) {
       case NO_ACCESS:
         throw new AccessControlException(ExceptionMessage.UFS_OP_NOT_ALLOWED.getMessage(opType,
