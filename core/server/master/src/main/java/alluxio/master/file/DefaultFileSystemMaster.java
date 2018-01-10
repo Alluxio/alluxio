@@ -3461,7 +3461,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
   public void updateUfsMode(String ufsPath, UnderFileSystem.UfsMode ufsMode)
       throws InvalidPathException, InvalidArgumentException, UnavailableException,
       AccessControlException {
-    // TODO(adit): No mode set in audit log entry
+    // TODO(adit): Create new fsadmin audit context
     try (JournalContext journalContext = createJournalContext();
         FileSystemMasterAuditContext auditContext =
             createAuditContext("updateUfsMode", new AlluxioURI(ufsPath), null, null)) {
