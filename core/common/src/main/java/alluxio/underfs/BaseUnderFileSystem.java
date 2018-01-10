@@ -19,7 +19,6 @@ import alluxio.underfs.options.DeleteOptions;
 import alluxio.underfs.options.ListOptions;
 import alluxio.underfs.options.MkdirsOptions;
 import alluxio.underfs.options.OpenOptions;
-import alluxio.util.UnderFileSystemUtils;
 import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Preconditions;

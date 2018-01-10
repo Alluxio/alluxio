@@ -14,7 +14,6 @@ package alluxio.util;
 import alluxio.AlluxioURI;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.DeleteOptions;
-import alluxio.util.io.PathUtils;
 
 import java.io.IOException;
 import java.io.OutputStream;
