@@ -33,23 +33,34 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class MasterUfsManager extends AbstractUfsManager {
   private static final Logger LOG = LoggerFactory.getLogger(MasterUfsManager.class);
 
+  /**
+   * {@link alluxio.underfs.UnderFileSystem.UfsMode} and mount ids corresponding to a physical ufs.
+   */
   public static class UfsState {
     private UnderFileSystem.UfsMode mUfsMode;
     private ConcurrentHashSet<Long> mMountIds;
 
+    /**
+     * Construct a new instance of UfsState w/ defaults.
+     */
     UfsState() {
       mUfsMode = UnderFileSystem.UfsMode.READ_WRITE;
       mMountIds = new ConcurrentHashSet<>();
     }
 
+    /**
+     * Add a mount id to list using physical ufs.
+     *
+     * @param mountId the mount id
+     */
     void addMount(long mountId) {
       mMountIds.addIfAbsent(mountId);
     }
 
     /**
-     * Remove mount id.
+     * Remove mount id from list using physical ufs.
      *
-     * @param mountId mount id to remove
+     * @param mountId the mount id
      * @return true, if mount list is empty
      */
     boolean removeMount(long mountId) {
@@ -57,10 +68,18 @@ public final class MasterUfsManager extends AbstractUfsManager {
       return mMountIds.size() == 0;
     }
 
+    /**
+     * @return the physical ufs operation mode
+     */
     UnderFileSystem.UfsMode getUfsMode() {
       return mUfsMode;
     }
 
+    /**
+     * Set the operation mode.
+     *
+     * @param ufsMode the ufs operation mode
+     */
     void setUfsMode(UnderFileSystem.UfsMode ufsMode) {
       mUfsMode = ufsMode;
     }
