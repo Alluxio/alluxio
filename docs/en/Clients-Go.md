@@ -39,18 +39,51 @@ package main
 
 import (
 	"fmt"
+	"io/ioutil"
 	"log"
+	"strings"
 
-	alluxio "github.com/Alluxio/alluxio-go"
-	"github.com/Alluxio/alluxio-go/option"
+	alluxio "github.com/alluxio/alluxio-go"
+	"github.com/alluxio/alluxio-go/option"
 )
 
 func main() {
-	fs := alluxio.NewClient(<proxy-host>, <proxy-port>, <timeout>)
-	ok, err := fs.Exists("/test_path", &option.Exists{})
+	fs := alluxio.NewClient(<proxy host>, <proxy port (39999 by default)>, <timeout>)
+	path := "/test_path"
+	exists, err := fs.Exists(path, &option.Exists{})
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Println(ok)
+	if exists {
+		if err := fs.Delete(path, &option.Delete{}); err != nil {
+			log.Fatal(err)
+		}
+	}
+	// Write data
+	id, err := fs.CreateFile(path, &option.CreateFile{})
+	if err != nil {
+		log.Fatal(err)
+	}
+	if _, err := fs.Write(id, strings.NewReader("Success!")); err != nil {
+		log.Fatal(err)
+	}
+	if err := fs.Close(id); err != nil {
+		log.Fatal(err)
+	}
+	// Read data
+	streamId, err := fs.OpenFile(path, &option.OpenFile{})
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer fs.Close(streamId)
+	rc, err := fs.Read(streamId)
+	if err != nil {
+		log.Fatal(err)
+	}
+	content, err := ioutil.ReadAll(rc)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf("Result: %v\n", string(content))
 }
 ```
