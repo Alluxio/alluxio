@@ -33,8 +33,7 @@ $ mvn install -P<YOUR_HADOOP_PROFILE> -DskipTests
 
 Alluxio provides predefined build profiles including `hadoop-1`, `hadoop-2.2`, `hadoop-2.3` ...
 `hadoop-2.8` for different distributions of Hadoop. If you want to build Alluxio with a specific
-Hadoop release version, you can also specify the version `<YOUR_HADOOP_VERSION>` in the command.
-For example,
+Hadoop release version, you can also specify the version in the command. For example,
 
 ```bash
 $ mvn install -Phadoop-2.7 -Dhadoop.version=2.7.1 -DskipTests
@@ -44,11 +43,6 @@ would compile Alluxio for the Apache Hadoop version 2.7.1.
 Please visit the
 [Building Alluxio Master Branch](Building-Alluxio-Master-Branch.html#distro-support) page for more
 information about support for other distributions.
-
-If everything succeeds, you should see
-`alluxio-assembly-server-{{site.ALLUXIO_RELEASED_VERSION}}-jar-with-dependencies.jar` created in
-the `assembly/server/target` directory and this is the jar file you can use to run both Alluxio
-Master and Worker.
 
 ## Configuring Alluxio
 
@@ -69,19 +63,28 @@ mapping HDFS root directory to Alluxio, or `hdfs://localhost:9000/alluxio/data` 
 directory `/alluxio/data` is mapped to Alluxio.
 
 ```
-alluxio.underfs.address=hdfs://NAMENODE:PORT
+alluxio.underfs.address=hdfs://<NAMENODE>:<PORT>
 ```
 
 ### HDFS namenode HA mode
 
-If HDFS namenodes are running in HA mode, both Alluxio servers and clients should be configured
-properly in order to access HDFS.
 
-For Alluxio servers (masters and workers), copy or make symbolic links from `hdfs-site.xml` and
-`core-site.xml` from your hadoop installation into `${ALLUXIO_HOME}/conf`. Alternatively, you can
-set `alluxio.underfs.hdfs.configuration` to the hadoop property file `hdfs-site.xml` (or
-`core-site.xml`) in `conf/alluxio-site.properties` (make sure all the relative configurations are
-available in the file).
+To configure Alluxio work with HDFS namenode in HA mode, you need to configure Alluxio servers to
+access HDFS with the proper configuration file. Note that once this is set, Your applications using
+Alluxio client do not need any special configuration.
+
+There are two possible approaches:
+- Copy or make symbolic links from `hdfs-site.xml` and
+`core-site.xml` from your Hadoop installation into `${ALLUXIO_HOME}/conf`. Make sure
+this is set up on all servers running Alluxio.
+
+- Alternatively, you can
+set the property `alluxio.underfs.hdfs.configuration` in `conf/alluxio-site.properties` to point to
+your `hdfs-site.xml` and `core-site.xml`. Make sure this configuration is set on all servers running Alluxio.
+
+```
+alluxio.underfs.hdfs.configuration=/path/to/hdfs/conf/core-site.xml:/path/to/hdfs/conf/hdfs-site.xml
+```
 
 Then, set the under storage address to `hdfs://nameservice/` (`nameservice` is the name of HDFS
 service already configured in `core-site.xml`) if you are mapping HDFS root directory to Alluxio,
@@ -91,14 +94,14 @@ Alluxio.
 ```
 alluxio.underfs.address=hdfs://nameservice/
 ```
-Next, for Alluxio clients, `alluxio.underfs.hdfs.configuration` should also be set to the hadoop
-property file `hdfs-site.xml` (or `core-site.xml`).
 
-## Ensure Correct Permission Mapping
+### Enforce User/Permission Mapping
 
-Since v1.3, Alluxio supports filesystem [user and permission checking](Security.html) by default.
+Alluxio supports POSIX-like filesystem [user and permission checking](Security.html) and this is
+enabled by default since v1.3.
 To ensure that the permission information of files/directories including user, group and mode in
-HDFS is consistent with Alluxio, the user to start Alluxio master and worker processes
+HDFS is consistent with Alluxio (e.g., a file created by user Foo in Alluxio also is persisted to
+HDFS also with owner as user Foo), the user to start Alluxio master and worker processes
 **is required** to be either case:
 
 1. [HDFS super user](http://hadoop.apache.org/docs/r2.7.2/hadoop-project-dist/hadoop-hdfs/HdfsPermissionsGuide.html#The_Super-User).
