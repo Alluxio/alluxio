@@ -154,6 +154,18 @@ public final class CpCommandIntegrationTest extends AbstractAlluxioShellTest {
     Assert.assertEquals(-1, ret);
   }
 
+  @Test
+  public void copyAfterWorkersNotAvailable() throws Exception {
+    FileSystemShellUtilsTest.resetFileHierarchy(mFileSystem);
+    File testFile = new File(mLocalAlluxioCluster.getAlluxioHome() + "/testFile");
+    testFile.createNewFile();
+    mFsShell.run("copyFromLocal", testFile.getPath(), "/");
+    Assert.assertTrue(mFileSystem.exists(new AlluxioURI("/testFile")));
+    mLocalAlluxioCluster.stopWorkers();
+    mFsShell.run("cp", "/testFile", "/testFile2");
+    Assert.assertFalse(mFileSystem.exists(new AlluxioURI("/testFile2")));
+  }
+
   private boolean equals(AlluxioURI file1, AlluxioURI file2) throws Exception {
     try (Closer closer = Closer.create()) {
       OpenFileOptions openFileOptions = OpenFileOptions.defaults().setReadType(ReadType.NO_CACHE);

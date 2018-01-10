@@ -255,7 +255,12 @@ public final class CpCommand extends AbstractFileSystemCommand {
       FileInStream is = closer.register(mFileSystem.openFile(srcPath, openFileOptions));
       CreateFileOptions createFileOptions = CreateFileOptions.defaults();
       FileOutStream os = closer.register(mFileSystem.createFile(dstPath, createFileOptions));
-      IOUtils.copy(is, os);
+      try {
+        IOUtils.copy(is, os);
+      } catch (Exception e) {
+        os.cancel();
+        throw e;
+      }
       System.out.println("Copied " + srcPath + " to " + dstPath);
     }
   }
