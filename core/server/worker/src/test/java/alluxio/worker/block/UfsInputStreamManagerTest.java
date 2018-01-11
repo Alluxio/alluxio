@@ -129,9 +129,9 @@ public final class UfsInputStreamManagerTest {
       mManager = new UfsInputStreamManager();
       List<Thread> threads = new ArrayList<>();
       int numCheckOutPerThread = 10;
-      for (int i = 0; i < mNumOfInputStreams / 2; i ++) {
+      for (int i = 0; i < mNumOfInputStreams / 2; i++) {
         Runnable runnable = () -> {
-          for (int j = 0; j < numCheckOutPerThread; j ++) {
+          for (int j = 0; j < numCheckOutPerThread; j++) {
             InputStream instream;
             try {
               instream =
