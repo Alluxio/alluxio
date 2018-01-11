@@ -76,11 +76,11 @@ func main() {
 		log.Fatal(err)
 	}
 	defer fs.Close(streamId)
-	rc, err := fs.Read(streamId)
+	r, err := fs.Read(streamId)
 	if err != nil {
 		log.Fatal(err)
 	}
-	content, err := ioutil.ReadAll(rc)
+	content, err := ioutil.ReadAll(r)
 	if err != nil {
 		log.Fatal(err)
 	}
