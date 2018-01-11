@@ -103,7 +103,7 @@ public final class RpcUtils {
       return ret;
     } catch (AlluxioException e) {
       logger.debug("Exit (Error): {}", callable, e);
-      if (!logger.isDebugEnabled()) {
+      if (logAnyFailure && !logger.isDebugEnabled()) {
         logger.warn("{}, Error={}", callable, e.getMessage());
       }
       throw AlluxioStatusException.fromAlluxioException(e).toThrift();
