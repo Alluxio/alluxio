@@ -11,6 +11,8 @@
 
 package alluxio.underfs;
 
+import alluxio.AlluxioURI;
+
 /**
  * A class that manages the UFS sessions by different services.
  */
@@ -18,14 +20,14 @@ public interface UfsSessionManager {
   /**
    * Open a session under the given mount id.
    *
-   * @param mountId the mount id
+   * @param ufsMountUri the ufs mount point uri
    */
-  void openSession(long mountId);
+  void openSession(AlluxioURI ufsMountUri);
 
   /**
    * Close a session under the given mount id.
    *
-   * @param mountId the mount id
+   * @param ufsMountUri the ufs mount point uri
    */
-  void closeSession(long mountId);
+  void closeSession(AlluxioURI ufsMountUri);
 }

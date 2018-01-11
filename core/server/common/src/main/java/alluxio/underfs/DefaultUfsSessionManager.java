@@ -26,24 +26,21 @@ import javax.annotation.concurrent.ThreadSafe;
  * Basic implementation of {@link UfsSessionManager}.
  */
 @ThreadSafe
-public abstract class AbstractUfsSessionManager implements UfsSessionManager {
-  private static final Logger LOG = LoggerFactory.getLogger(AbstractUfsSessionManager.class);
+public final class DefaultUfsSessionManager implements UfsSessionManager {
+  private static final Logger LOG = LoggerFactory.getLogger(DefaultUfsSessionManager.class);
 
-  private UfsManager mUfsManager;
-  private ConcurrentHashMap<Long, Counter> mUfsUriToCounter;
+  private ConcurrentHashMap<AlluxioURI, Counter> mUfsUriToCounter;
 
-  AbstractUfsSessionManager(UfsManager ufsManager) {
-    mUfsManager = ufsManager;
+  DefaultUfsSessionManager() {
     mUfsUriToCounter = new ConcurrentHashMap<>();
   }
 
   @Override
-  public void openSession(long mountId) {
-    mUfsUriToCounter.compute(mountId, (k, counter) -> {
+  public void openSession(AlluxioURI ufsMountUri) {
+    mUfsUriToCounter.compute(ufsMountUri, (k, counter) -> {
       if (counter == null) {
         try {
-          AlluxioURI key = mUfsManager.get(mountId).getUfsMountPointUri();
-          counter = getWriteSessionsCounter(key);
+          counter = getWriteSessionsCounter(ufsMountUri);
         } catch (Exception e) {
           LOG.warn(e.getMessage());
         }
@@ -54,8 +51,8 @@ public abstract class AbstractUfsSessionManager implements UfsSessionManager {
   }
 
   @Override
-  public void closeSession(long mountId) {
-    mUfsUriToCounter.computeIfPresent(mountId, (k, counter) -> {
+  public void closeSession(AlluxioURI ufsMountUri) {
+    mUfsUriToCounter.computeIfPresent(ufsMountUri, (k, counter) -> {
       counter.dec();
       if (counter.getCount() == 0) {
         // Remove key
@@ -73,7 +70,7 @@ public abstract class AbstractUfsSessionManager implements UfsSessionManager {
    */
   private static Counter getWriteSessionsCounter(AlluxioURI ufsUri) {
     String ufsString = MetricsSystem.escape(ufsUri);
-    String activeWriteMetricName = String.format("ActiveUfsWriteCount-Ufs:%s", ufsString);
+    String activeWriteMetricName = String.format("UfsWriteSessionsCount-Ufs:%s", ufsString);
     return MetricsSystem.workerCounter(activeWriteMetricName);
   }
 }

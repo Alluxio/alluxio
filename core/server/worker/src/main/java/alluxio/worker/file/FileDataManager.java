@@ -24,7 +24,6 @@ import alluxio.security.authorization.Mode;
 import alluxio.underfs.UfsManager;
 import alluxio.underfs.UfsSessionManager;
 import alluxio.underfs.UnderFileSystem;
-import alluxio.underfs.WorkerUfsSessionManager;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.util.io.BufferUtils;
 import alluxio.wire.FileInfo;
@@ -76,8 +75,6 @@ public final class FileDataManager {
   private final RateLimiter mPersistenceRateLimiter;
   /** The manager for all ufs. */
   private final UfsManager mUfsManager;
-  /** The manager for all ufs sessions. */
-  private final UfsSessionManager mUfsSessionManager;
 
   /**
    * Creates a new instance of {@link FileDataManager}.
@@ -93,7 +90,6 @@ public final class FileDataManager {
     mPersistedUfsFingerprints = new HashMap<>();
     mPersistenceRateLimiter = persistenceRateLimiter;
     mUfsManager = ufsManager;
-    mUfsSessionManager = new WorkerUfsSessionManager(ufsManager);
   }
 
   /**

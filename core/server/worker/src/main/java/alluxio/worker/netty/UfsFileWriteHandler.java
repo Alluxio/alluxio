@@ -19,7 +19,6 @@ import alluxio.underfs.UfsManager;
 import alluxio.underfs.UfsManager.UfsInfo;
 import alluxio.underfs.UfsSessionManager;
 import alluxio.underfs.UnderFileSystem;
-import alluxio.underfs.WorkerUfsSessionManager;
 import alluxio.underfs.options.CreateOptions;
 
 import com.codahale.metrics.Counter;
@@ -90,7 +89,6 @@ public final class UfsFileWriteHandler extends AbstractWriteHandler<UfsFileWrite
    */
   public class UfsFilePacketWriter extends PacketWriter {
     private final UfsManager mUfsManager;
-    private final UfsSessionManager mUfsSessionManager;
 
     /**
      * @param context context of this packet writer
@@ -101,7 +99,6 @@ public final class UfsFileWriteHandler extends AbstractWriteHandler<UfsFileWrite
         UfsManager ufsManager) {
       super(context, channel);
       mUfsManager = ufsManager;
-      mUfsSessionManager = new WorkerUfsSessionManager(ufsManager);
     }
 
     @Override
@@ -130,8 +127,8 @@ public final class UfsFileWriteHandler extends AbstractWriteHandler<UfsFileWrite
         context.getOutputStream().close();
         context.getUnderFileSystem().deleteFile(request.getUfsPath());
         context.setOutputStream(null);
+        mUfsSessionManager.closeSession(context.getRequest().getCreateUfsFileOptions().getMountId());
       }
-      mUfsSessionManager.closeSession(context.getRequest().getCreateUfsFileOptions().getMountId());
     }
 
     @Override

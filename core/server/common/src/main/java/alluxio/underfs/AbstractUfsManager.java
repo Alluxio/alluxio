@@ -98,8 +98,11 @@ public abstract class AbstractUfsManager implements UfsManager {
   private UfsInfo mRootUfsInfo;
   protected final Closer mCloser;
 
+  protected UfsSessionManager mUfsSessionManager;
+
   AbstractUfsManager() {
     mCloser = Closer.create();
+    mUfsSessionManager = new DefaultUfsSessionManager();
   }
 
   /**
