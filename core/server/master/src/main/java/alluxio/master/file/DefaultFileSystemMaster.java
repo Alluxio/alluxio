@@ -32,6 +32,7 @@ import alluxio.exception.InvalidPathException;
 import alluxio.exception.PreconditionMessage;
 import alluxio.exception.UnexpectedAlluxioException;
 import alluxio.exception.status.FailedPreconditionException;
+import alluxio.exception.status.InvalidArgumentException;
 import alluxio.exception.status.NotFoundException;
 import alluxio.exception.status.PermissionDeniedException;
 import alluxio.exception.status.UnavailableException;
@@ -82,6 +83,7 @@ import alluxio.master.file.options.WorkerHeartbeatOptions;
 import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.NoopJournalContext;
 import alluxio.metrics.MetricsSystem;
+import alluxio.proto.journal.File;
 import alluxio.proto.journal.File.AddMountPointEntry;
 import alluxio.proto.journal.File.AsyncPersistRequestEntry;
 import alluxio.proto.journal.File.CompleteFileEntry;
@@ -305,7 +307,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
   private final AsyncPersistHandler mAsyncPersistHandler;
 
   /** The manager of all ufs. */
-  private final UfsManager mUfsManager;
+  private final MasterUfsManager mUfsManager;
 
   /** This caches absent paths in the UFS. */
   private final UfsAbsentPathCache mUfsAbsentPathCache;
@@ -476,6 +478,12 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       } catch (AlluxioException e) {
         // It's possible that rescheduling the async persist calls fails, because the blocks may no
         // longer be in the memory
+        LOG.error(e.getMessage());
+      }
+    } else if (entry.hasUpdateUfsMode()) {
+      try {
+        updateUfsModeFromEntry(entry.getUpdateUfsMode());
+      } catch (AlluxioException e) {
         LOG.error(e.getMessage());
       }
     } else {
@@ -1176,6 +1184,10 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       syncMetadata(journalContext, inodePath, lockingScheme, DescendantType.ONE);
 
       mMountTable.checkUnderWritableMountPoint(path);
+      if (options.isPersisted()) {
+        // Check if ufs is writable
+        checkUfsMode(path, OperationType.WRITE);
+      }
       createFileAndJournal(inodePath, options, journalContext);
       auditContext.setSrcInode(inodePath.getInode()).setSucceeded(true);
       return inodePath.getInode().getId();
@@ -1500,8 +1512,19 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
             if (mMountTable.isMountPoint(alluxioUriToDel)) {
               unmountInternal(alluxioUriToDel);
             } else {
-              // Attempt to delete node if all children were deleted successfully
-              failedToDelete = !ufsDeleter.delete(alluxioUriToDel, delInode);
+              if (!(replayed || deleteOptions.isAlluxioOnly())) {
+                try {
+                  checkUfsMode(alluxioUriToDel, OperationType.WRITE);
+                  // Attempt to delete node if all children were deleted successfully
+                  failedToDelete = !ufsDeleter.delete(alluxioUriToDel, delInode);
+                } catch (AccessControlException e) {
+                  // In case ufs is not writable, we will still attempt to delete other entries
+                  // if any as they may be from a different mount point
+                  // TODO(adit): reason for failure is swallowed here
+                  LOG.warn(e.getMessage());
+                  failedToDelete = true;
+                }
+              }
             }
           } catch (InvalidPathException e) {
             LOG.warn(e.getMessage());
@@ -1829,6 +1852,9 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       syncMetadata(journalContext, inodePath, lockingScheme, DescendantType.ONE);
 
       mMountTable.checkUnderWritableMountPoint(path);
+      if (options.isPersisted()) {
+        checkUfsMode(path, OperationType.WRITE);
+      }
       createDirectoryAndJournal(inodePath, options, journalContext);
       auditContext.setSrcInode(inodePath.getInode()).setSucceeded(true);
       return inodePath.getInode().getId();
@@ -1951,7 +1977,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
   private void renameAndJournal(LockedInodePath srcInodePath, LockedInodePath dstInodePath,
       RenameOptions options, JournalContext journalContext)
       throws InvalidPathException, FileDoesNotExistException, FileAlreadyExistsException,
-      IOException {
+      IOException, AccessControlException {
     if (!srcInodePath.fullPathExists()) {
       throw new FileDoesNotExistException(
           ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(srcInodePath.getUri()));
@@ -2029,7 +2055,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    */
   private void renameInternal(LockedInodePath srcInodePath, LockedInodePath dstInodePath,
       boolean replayed, RenameOptions options, JournalContext journalContext)
-      throws FileDoesNotExistException, InvalidPathException, IOException {
+      throws FileDoesNotExistException, InvalidPathException, IOException, AccessControlException {
 
     // Rename logic:
     // 1. Change the source inode name to the destination name.
@@ -2064,8 +2090,11 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     // If the source file is persisted, rename it in the UFS.
     try {
       if (!replayed && srcInode.isPersisted()) {
-        MountTable.Resolution resolution = mMountTable.resolve(srcPath);
+        // Check if ufs is writable
+        checkUfsMode(srcPath, OperationType.WRITE);
+        checkUfsMode(dstPath, OperationType.WRITE);
 
+        MountTable.Resolution resolution = mMountTable.resolve(srcPath);
         // Persist ancestor directories from top to the bottom. We cannot use recursive create
         // parents here because the permission for the ancestors can be different.
 
@@ -3024,6 +3053,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
   @Override
   public void scheduleAsyncPersistence(AlluxioURI path)
       throws AlluxioException, UnavailableException {
+    checkUfsMode(path, OperationType.WRITE);
     try (JournalContext journalContext = createJournalContext();
         LockedInodePath inodePath = mInodeTree.lockFullInodePath(path, InodeTree.LockMode.WRITE)) {
       scheduleAsyncPersistenceAndJournal(inodePath, journalContext);
@@ -3322,6 +3352,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       if ((inode instanceof InodeFile) && !((InodeFile) inode).isCompleted()) {
         LOG.debug("Alluxio does not propagate chown/chgrp/chmod to UFS for incomplete files.");
       } else {
+        checkUfsMode(inodePath.getUri(), OperationType.WRITE);
         MountTable.Resolution resolution = mMountTable.resolve(inodePath.getUri());
         String ufsUri = resolution.getUri().toString();
         UnderFileSystem ufs = resolution.getUfs();
@@ -3424,6 +3455,123 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
   @Override
   public List<WorkerInfo> getWorkerInfoList() throws UnavailableException {
     return mBlockMaster.getWorkerInfoList();
+  }
+
+  @Override
+  public void updateUfsMode(AlluxioURI ufsPath, UnderFileSystem.UfsMode ufsMode)
+      throws InvalidPathException, InvalidArgumentException, UnavailableException,
+      AccessControlException {
+    // TODO(adit): Create new fsadmin audit context
+    try (JournalContext journalContext = createJournalContext();
+        FileSystemMasterAuditContext auditContext =
+            createAuditContext("updateUfsMode", ufsPath, null, null)) {
+      updateUfsModeAndJournal(ufsPath, ufsMode, journalContext);
+      auditContext.setSucceeded(true);
+    }
+  }
+
+  /**
+   * Update the ufs mode for path and create a journal entry.
+   *
+   * @param ufsPath the ufs path
+   * @param ufsMode the ufs mode
+   * @param journalContext the journal context
+   * @throws InvalidPathException if path is not used  by any mount point
+   * @throws InvalidArgumentException if arguments for the method are invalid
+   */
+  private void updateUfsModeAndJournal(AlluxioURI ufsPath, UnderFileSystem.UfsMode ufsMode,
+      JournalContext journalContext) throws InvalidPathException, InvalidArgumentException {
+    updateUfsModeInternal(ufsPath, ufsMode);
+
+    // Journal
+    File.UfsMode ufsModeEntry;
+    switch (ufsMode) {
+      case NO_ACCESS:
+        ufsModeEntry = File.UfsMode.NO_ACCESS;
+        break;
+      case READ_ONLY:
+        ufsModeEntry = File.UfsMode.READ_ONLY;
+        break;
+      case READ_WRITE:
+        ufsModeEntry = File.UfsMode.READ_WRITE;
+        break;
+      default:
+        throw new InvalidArgumentException(ExceptionMessage.INVALID_UFS_MODE.getMessage(ufsMode));
+    }
+    File.UpdateUfsModeEntry ufsEntry = File.UpdateUfsModeEntry.newBuilder()
+        .setUfsPath(ufsPath.getRootPath()).setUfsMode(ufsModeEntry).build();
+    journalContext.append(JournalEntry.newBuilder().setUpdateUfsMode(ufsEntry).build());
+  }
+
+  /**
+   * Update ufs mode from journal entry.
+   *
+   * @param entry the update ufs mode journal entry
+   * @throws InvalidPathException if the path is not used by any mount point
+   * @throws InvalidArgumentException if arguments for the method are invalid
+   */
+  private void updateUfsModeFromEntry(File.UpdateUfsModeEntry entry)
+      throws InvalidPathException, InvalidArgumentException {
+    String ufsPath = entry.getUfsPath();
+    UnderFileSystem.UfsMode ufsMode;
+    switch (entry.getUfsMode()) {
+      case NO_ACCESS:
+        ufsMode = UnderFileSystem.UfsMode.NO_ACCESS;
+        break;
+      case READ_ONLY:
+        ufsMode = UnderFileSystem.UfsMode.READ_ONLY;
+        break;
+      case READ_WRITE:
+        ufsMode = UnderFileSystem.UfsMode.READ_WRITE;
+        break;
+      default:
+        throw new InvalidArgumentException(
+            ExceptionMessage.INVALID_UFS_MODE.getMessage(entry.getUfsMode()));
+    }
+    updateUfsModeInternal(new AlluxioURI(ufsPath), ufsMode);
+  }
+
+  private void updateUfsModeInternal(AlluxioURI ufsPath, UnderFileSystem.UfsMode ufsMode)
+      throws InvalidPathException {
+    mUfsManager.setUfsMode(ufsPath, ufsMode);
+  }
+
+  /**
+   * Check if the specified operation type is allowed to the ufs.
+   *
+   * @param alluxioPath the Alluxio path
+   * @param op the operation type
+   * @throws AccessControlException if the specified operation is not allowed
+   */
+  private void checkUfsMode(AlluxioURI alluxioPath, OperationType opType)
+      throws AccessControlException, InvalidPathException {
+    MountTable.Resolution resolution = mMountTable.resolve(alluxioPath);
+    UnderFileSystem ufs = resolution.getUfs();
+    UnderFileSystem.UfsMode ufsMode =
+        ufs.getOperationMode(mUfsManager.getPhysicalUfsState(resolution));
+    switch (ufsMode) {
+      case NO_ACCESS:
+        throw new AccessControlException(ExceptionMessage.UFS_OP_NOT_ALLOWED.getMessage(opType,
+            resolution.getUri(), UnderFileSystem.UfsMode.NO_ACCESS));
+      case READ_ONLY:
+        if (opType == OperationType.WRITE) {
+          throw new AccessControlException(ExceptionMessage.UFS_OP_NOT_ALLOWED.getMessage(opType,
+              resolution.getUri(), UnderFileSystem.UfsMode.READ_ONLY));
+        }
+        break;
+      default:
+        // All operations are allowed
+        break;
+    }
+  }
+
+  /**
+   * The operation type. This class is used to check if an operation to the under storage is allowed
+   * during maintenance.
+   */
+  enum OperationType {
+    READ,
+    WRITE,
   }
 
   /**

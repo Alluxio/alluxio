@@ -22,6 +22,7 @@ import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidFileSizeException;
 import alluxio.exception.InvalidPathException;
 import alluxio.exception.UnexpectedAlluxioException;
+import alluxio.exception.status.InvalidArgumentException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.master.Master;
 import alluxio.master.file.meta.FileSystemMasterView;
@@ -41,6 +42,7 @@ import alluxio.master.file.options.SetAttributeOptions;
 import alluxio.master.file.options.WorkerHeartbeatOptions;
 import alluxio.thrift.FileSystemCommand;
 import alluxio.thrift.UfsInfo;
+import alluxio.underfs.UnderFileSystem;
 import alluxio.wire.FileBlockInfo;
 import alluxio.wire.FileInfo;
 import alluxio.wire.MountPointInfo;
@@ -469,6 +471,18 @@ public interface FileSystemMaster extends Master {
    * @param path the path of the file for persistence
    */
   void scheduleAsyncPersistence(AlluxioURI path) throws AlluxioException, UnavailableException;
+
+  /**
+   * Update the operation mode for the given ufs path under one or more mount points.
+   *
+   * @param ufsPath the physical ufs path
+   * @param ufsMode the ufs operation mode
+   * @throws InvalidPathException if ufs path is not used by any mount point
+   * @throws InvalidArgumentException if arguments for the method are invalid
+   */
+  void updateUfsMode(AlluxioURI ufsPath, UnderFileSystem.UfsMode ufsMode)
+      throws InvalidPathException, InvalidArgumentException, UnavailableException,
+      AccessControlException;
 
   /**
    * Instructs a worker to persist the files.
