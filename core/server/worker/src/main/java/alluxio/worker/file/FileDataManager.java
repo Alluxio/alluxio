@@ -22,7 +22,9 @@ import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.InvalidWorkerStateException;
 import alluxio.security.authorization.Mode;
 import alluxio.underfs.UfsManager;
+import alluxio.underfs.UfsSessionManager;
 import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.WorkerUfsSessionManager;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.util.io.BufferUtils;
 import alluxio.wire.FileInfo;
@@ -30,7 +32,6 @@ import alluxio.worker.block.BlockWorker;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.meta.BlockMeta;
 
-import com.codahale.metrics.Counter;
 import com.google.common.base.Preconditions;
 import com.google.common.util.concurrent.RateLimiter;
 import org.slf4j.Logger;
@@ -75,6 +76,8 @@ public final class FileDataManager {
   private final RateLimiter mPersistenceRateLimiter;
   /** The manager for all ufs. */
   private final UfsManager mUfsManager;
+  /** The manager for all ufs sessions. */
+  private final UfsSessionManager mUfsSessionManager;
 
   /**
    * Creates a new instance of {@link FileDataManager}.
@@ -90,6 +93,7 @@ public final class FileDataManager {
     mPersistedUfsFingerprints = new HashMap<>();
     mPersistenceRateLimiter = persistenceRateLimiter;
     mUfsManager = ufsManager;
+    mUfsSessionManager = new WorkerUfsSessionManager(ufsManager);
   }
 
   /**
@@ -234,11 +238,7 @@ public final class FileDataManager {
         .setOwner(fileInfo.getOwner()).setGroup(fileInfo.getGroup())
         .setMode(new Mode((short) fileInfo.getMode())));
     final WritableByteChannel outputChannel = Channels.newChannel(outputStream);
-
-    Counter activeWriteCounter = UnderFileSystemUtils
-        .getActiveWriteCounter(mUfsManager.get(fileInfo.getMountId()).getUfsMountPointUri());
-    activeWriteCounter.inc();
-
+    mUfsSessionManager.openSession(fileInfo.getMountId());
     List<Throwable> errors = new ArrayList<>();
     try {
       for (long blockId : blockIds) {
@@ -290,7 +290,7 @@ public final class FileDataManager {
       mPersistingInProgressFiles.remove(fileId);
       mPersistedUfsFingerprints.put(fileId, ufsFingerprint);
     }
-    activeWriteCounter.dec();
+    mUfsSessionManager.closeSession(fileInfo.getMountId());
   }
 
   /**

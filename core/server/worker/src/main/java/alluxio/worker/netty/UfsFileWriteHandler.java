@@ -17,9 +17,10 @@ import alluxio.proto.dataserver.Protocol;
 import alluxio.security.authorization.Mode;
 import alluxio.underfs.UfsManager;
 import alluxio.underfs.UfsManager.UfsInfo;
+import alluxio.underfs.UfsSessionManager;
 import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.WorkerUfsSessionManager;
 import alluxio.underfs.options.CreateOptions;
-import alluxio.worker.file.UnderFileSystemUtils;
 
 import com.codahale.metrics.Counter;
 import com.google.common.base.Preconditions;
@@ -89,8 +90,7 @@ public final class UfsFileWriteHandler extends AbstractWriteHandler<UfsFileWrite
    */
   public class UfsFilePacketWriter extends PacketWriter {
     private final UfsManager mUfsManager;
-
-    private Counter mActiveWriteCounter;
+    private final UfsSessionManager mUfsWriteManager;
 
     /**
      * @param context context of this packet writer
@@ -101,24 +101,12 @@ public final class UfsFileWriteHandler extends AbstractWriteHandler<UfsFileWrite
         UfsManager ufsManager) {
       super(context, channel);
       mUfsManager = ufsManager;
-
-      if (context != null) {
-        UfsFileWriteRequest request = context.getRequest();
-        Preconditions.checkNotNull(request);
-        Protocol.CreateUfsFileOptions createUfsFileOptions = request.getCreateUfsFileOptions();
-        try {
-          mActiveWriteCounter = UnderFileSystemUtils.getActiveWriteCounter(
-              mUfsManager.get(createUfsFileOptions.getMountId()).getUfsMountPointUri());
-        } catch (Exception e) {
-          // Do nothing; unable to find mount id
-        }
-      }
+      mUfsWriteManager = new WorkerUfsSessionManager(ufsManager);
     }
 
     @Override
     protected void completeRequest(UfsFileWriteRequestContext context, Channel channel)
         throws Exception {
-      mActiveWriteCounter.dec();
       if (context == null) {
         return;
       }
@@ -128,11 +116,11 @@ public final class UfsFileWriteHandler extends AbstractWriteHandler<UfsFileWrite
       Preconditions.checkState(context.getOutputStream() != null);
       context.getOutputStream().close();
       context.setOutputStream(null);
+      mUfsWriteManager.openSession(context.getRequest().getCreateUfsFileOptions().getMountId());
     }
 
     @Override
     protected void cancelRequest(UfsFileWriteRequestContext context) throws Exception {
-      mActiveWriteCounter.dec();
       if (context == null) {
         return;
       }
@@ -143,6 +131,7 @@ public final class UfsFileWriteHandler extends AbstractWriteHandler<UfsFileWrite
         context.getUnderFileSystem().deleteFile(request.getUfsPath());
         context.setOutputStream(null);
       }
+      mUfsWriteManager.closeSession(context.getRequest().getCreateUfsFileOptions().getMountId());
     }
 
     @Override
@@ -177,7 +166,7 @@ public final class UfsFileWriteHandler extends AbstractWriteHandler<UfsFileWrite
       String metricName = String.format("BytesWrittenUfs-Ufs:%s", ufsString);
       Counter counter = MetricsSystem.workerCounter(metricName);
       context.setCounter(counter);
-      mActiveWriteCounter.inc();
+      mUfsWriteManager.openSession(context.getRequest().getCreateUfsFileOptions().getMountId());
     }
   }
 }
