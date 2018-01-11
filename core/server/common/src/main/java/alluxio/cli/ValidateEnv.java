@@ -267,13 +267,13 @@ public final class ValidateEnv {
       System.out.println(Constants.ANSI_RESET);
       validationCount++;
     }
-    if (results.get(ValidationTask.TaskResult.FAILED) != null) {
+    if (results.containsKey(ValidationTask.TaskResult.FAILED)) {
       System.err.format("%d failures ", results.get(ValidationTask.TaskResult.FAILED));
     }
-    if (results.get(ValidationTask.TaskResult.WARNING) != null) {
+    if (results.containsKey(ValidationTask.TaskResult.WARNING)) {
       System.err.format("%d warnings ", results.get(ValidationTask.TaskResult.WARNING));
     }
-    if (results.get(ValidationTask.TaskResult.SKIPPED) != null) {
+    if (results.containsKey(ValidationTask.TaskResult.SKIPPED)) {
       System.err.format("%d skipped ", results.get(ValidationTask.TaskResult.WARNING));
     }
     System.err.println();
