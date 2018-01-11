@@ -63,7 +63,7 @@ public final class DefaultAsyncPersistHandler implements AsyncPersistHandler {
 
   @Override
   public synchronized void scheduleAsyncPersistence(AlluxioURI path)
-      throws AlluxioException {
+      throws AlluxioException, UnavailableException {
     // find the worker
     long workerId = getWorkerStoringFile(path);
 
@@ -88,7 +88,7 @@ public final class DefaultAsyncPersistHandler implements AsyncPersistHandler {
    */
   // TODO(calvin): Propagate the exceptions in certain cases
   private long getWorkerStoringFile(AlluxioURI path)
-      throws FileDoesNotExistException, AccessControlException {
+      throws FileDoesNotExistException, AccessControlException, UnavailableException {
     long fileId = mFileSystemMasterView.getFileId(path);
     try {
       if (mFileSystemMasterView.getFileInfo(fileId).getLength() == 0) {

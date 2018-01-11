@@ -11,7 +11,6 @@
 
 package alluxio.network.netty;
 
-import alluxio.network.netty.NettyRPCContext;
 import alluxio.network.protocol.RPCProtoMessage;
 import alluxio.util.CommonUtils;
 import alluxio.util.proto.ProtoMessage;
@@ -19,7 +18,6 @@ import alluxio.util.proto.ProtoMessage;
 import com.google.common.base.Preconditions;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.util.concurrent.Promise;
@@ -28,6 +26,7 @@ import java.io.IOException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Netty blocking RPC client. This provides a simple way to send a request and wait for response
@@ -48,13 +47,10 @@ public final class NettyRPC {
     Channel channel = Preconditions.checkNotNull(context.getChannel());
     final Promise<ProtoMessage> promise = channel.eventLoop().newPromise();
     channel.pipeline().addLast(new RPCHandler(promise));
-    channel.writeAndFlush(new RPCProtoMessage(request)).addListener(new ChannelFutureListener() {
-      @Override
-      public void operationComplete(ChannelFuture future) throws Exception {
-        if (future.cause() != null) {
-          future.channel().close();
-          promise.tryFailure(future.cause());
-        }
+    channel.writeAndFlush(new RPCProtoMessage(request)).addListener((ChannelFuture future) -> {
+      if (future.cause() != null) {
+        future.channel().close();
+        promise.tryFailure(future.cause());
       }
     });
     ProtoMessage message;
@@ -75,6 +71,42 @@ public final class NettyRPC {
       CommonUtils.unwrapResponseFrom(message.asResponse(), context.getChannel());
     }
     return message;
+  }
+
+  /**
+   * Sends a request and waits until the request is flushed to network. The caller of this method
+   * should expect no response from the server and hence the service handler on server side should
+   * not return any response or there will be issues. This method is typically used for RPCs
+   * providing best efforts (e.g., async cache).
+   *
+   * @param context the netty RPC context
+   * @param request the RPC request
+   */
+  public static void fireAndForget(final NettyRPCContext context, ProtoMessage request)
+      throws IOException {
+    Channel channel = Preconditions.checkNotNull(context.getChannel());
+    // Not really using the atomicity of flushed, but use it as a wrapper of boolean that is final,
+    // and can change value.
+    final AtomicBoolean flushed = new AtomicBoolean(false);
+    channel.writeAndFlush(new RPCProtoMessage(request)).addListener((ChannelFuture future) -> {
+      if (future.cause() != null) {
+        future.channel().close();
+      }
+      flushed.set(true);
+      synchronized (flushed) {
+        flushed.notify();
+      }
+    });
+    try {
+      synchronized (flushed) {
+        while (!flushed.get()) {
+          flushed.wait();
+        }
+      }
+    } catch (InterruptedException e) {
+      CommonUtils.closeChannel(channel);
+      throw new RuntimeException(e);
+    }
   }
 
   /**
