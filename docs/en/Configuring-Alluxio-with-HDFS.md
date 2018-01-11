@@ -69,8 +69,8 @@ alluxio.underfs.address=hdfs://<NAMENODE>:<PORT>
 ### HDFS namenode HA mode
 
 
-To configure Alluxio work with HDFS namenode in HA mode, you need to configure Alluxio servers to
-access HDFS with the proper configuration file. Note that once this is set, Your applications using
+To configure Alluxio work with HDFS namenodes in HA mode, you need to configure Alluxio servers to
+access HDFS with the proper configuration file. Note that once this is set, your applications using
 Alluxio client do not need any special configuration.
 
 There are two possible approaches:
@@ -100,9 +100,9 @@ alluxio.underfs.address=hdfs://nameservice/
 Alluxio supports POSIX-like filesystem [user and permission checking](Security.html) and this is
 enabled by default since v1.3.
 To ensure that the permission information of files/directories including user, group and mode in
-HDFS is consistent with Alluxio (e.g., a file created by user Foo in Alluxio also is persisted to
+HDFS is consistent with Alluxio (e.g., a file created by user Foo in Alluxio is persisted to
 HDFS also with owner as user Foo), the user to start Alluxio master and worker processes
-**is required** to be either case:
+**is required** to be either:
 
 1. [HDFS super user](http://hadoop.apache.org/docs/r2.7.2/hadoop-project-dist/hadoop-hdfs/HdfsPermissionsGuide.html#The_Super-User).
 Namely, use the same user that starts HDFS namenode process to also start Alluxio master and
