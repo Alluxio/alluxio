@@ -1,0 +1,2 @@
+operation,syntax
+ufs,"ufs --mode <noAccess/readOnly/readWrite> ""ufsPath"""
