@@ -42,13 +42,42 @@ import (
 	"io/ioutil"
 	"log"
 	"strings"
+	"time"
 
 	alluxio "github.com/alluxio/alluxio-go"
 	"github.com/alluxio/alluxio-go/option"
 )
 
+func write(fs *alluxio.Client, path, s string) error {
+	id, err := fs.CreateFile(path, &option.CreateFile{})
+	if err != nil {
+		return err
+	}
+	defer fs.Close(id)
+	_, err = fs.Write(id, strings.NewReader(s))
+	return err
+}
+
+func read(fs *alluxio.Client, path string) (string, error) {
+	id, err := fs.OpenFile(path, &option.OpenFile{})
+	if err != nil {
+		return "", err
+	}
+	defer fs.Close(id)
+	r, err := fs.Read(id)
+	if err != nil {
+		return "", err
+	}
+	defer r.Close()
+	content, err := ioutil.ReadAll(r)
+	if err != nil {
+		return "", err
+	}
+	return string(content), err
+}
+
 func main() {
-	fs := alluxio.NewClient(<proxy host>, <proxy port (39999 by default)>, <timeout>)
+	fs := alluxio.NewClient(<proxy host>, <proxy port - default is 39999>, 10*time.Second)
 	path := "/test_path"
 	exists, err := fs.Exists(path, &option.Exists{})
 	if err != nil {
@@ -59,31 +88,13 @@ func main() {
 			log.Fatal(err)
 		}
 	}
-	// Write data
-	id, err := fs.CreateFile(path, &option.CreateFile{})
+	if err := write(fs, path, "Success"); err != nil {
+		log.Fatal(err)
+	}
+	content, err := read(fs, path)
 	if err != nil {
 		log.Fatal(err)
 	}
-	if _, err := fs.Write(id, strings.NewReader("Success!")); err != nil {
-		log.Fatal(err)
-	}
-	if err := fs.Close(id); err != nil {
-		log.Fatal(err)
-	}
-	// Read data
-	streamId, err := fs.OpenFile(path, &option.OpenFile{})
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer fs.Close(streamId)
-	r, err := fs.Read(streamId)
-	if err != nil {
-		log.Fatal(err)
-	}
-	content, err := ioutil.ReadAll(r)
-	if err != nil {
-		log.Fatal(err)
-	}
-	fmt.Printf("Result: %v\n", string(content))
+	fmt.Printf("Result: %v\n", content)
 }
 ```
