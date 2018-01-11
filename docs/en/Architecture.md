@@ -14,7 +14,7 @@ priority: 1
 Alluxio holds a unique place in the big data ecosystem, residing between storage systems such
 as Amazon S3, Apache HDFS or OpenStack Swift and computation frameworks and applications such
 as Apache Spark or Hadoop MapReduce and provides the central point of access with a memory
-centric design. For user applications and computation frameworks, Alluxio is the underlayer
+centric design. For user applications and computation frameworks, Alluxio is the layer
 that manages data access and provides fast storage, facilitating data sharing and locality
 between jobs, regardless of whether they are running on the same computation engine. As a
 result, Alluxio can bring an order of magnitude speed up for those big data applications while
@@ -32,36 +32,31 @@ can serve as a unifying layer for any number of varied data sources.
 Alluxio's design uses a single primary master and multiple workers. At a very high level, Alluxio
 can be divided into three components, the [master](#master), [workers](#worker), and
 [clients](#client). The master and workers together make up the Alluxio servers, which are the
-components a system admin would maintain and manage. The clients are generally the
+components a system admin would maintain and manage. The Alluxio clients reside within the
 applications, such as Spark or MapReduce jobs, or Alluxio command-line users. Users of Alluxio
-will usually only need to interact with the client portion of Alluxio.
+will typically only need to interact with the client portion of Alluxio.
 
 ### Master
 
-Alluxio master can be deployed as primary master or secondary master.
+Alluxio masters are either a primary master, or a secondary master.
+
 #### Primary Master
 The primary master is primarily responsible for managing the global metadata of the system,
 for example, the file system tree. Clients may interact with the primary master to read or
 modify this metadata. In addition, all workers periodically heartbeat to the primary master to
 maintain their participation in the cluster. The primary master does not initiate communication
 with other components; it only interacts with other components by responding to requests. There
-is one and only one primary master in an Alluxio cluster.
+is at most one primary master in an Alluxio cluster. If the Alluxio master is deployed in
+high availability mode, the multiple masters will use Zookeeper for master election, in order
+to ensure there is at most 1 primary master.
 
 #### Secondary Master
 The secondary master replays journals written by the primary master and periodically writes
-checkpoints. It does not process any requests from any Alluxo components.
-
-#### Master Deployment
-Alluxio may be deployed in one of two master modes, [simple mode](Running-Alluxio-Locally.html) or
-[high availablity mode](Running-Alluxio-Fault-Tolerant.html). There must be one and only one
-primary master in both of the simple mode and the high availability mode. The simple mode can at
-most have one secondary master which cannot be promoted to the primary master. The high
-availability mode can have zero or more secondary masters, one of which will be promoted to the
-primary master if the primary master fails.
+checkpoints. It does not process any requests from any Alluxio components.
 
 ### Worker
 
-Alluxio workers are responsible for [managing local resources](Alluxio-Storage.html)
+Alluxio workers are responsible for [managing local storage resources](Alluxio-Storage.html)
 allocated to Alluxio. These resources could be local memory, SSD, or hard disk and are user
 configurable. Alluxio workers store data as blocks and serve requests from clients to read
 or write data by reading or creating new blocks. However, the worker is only responsible for the

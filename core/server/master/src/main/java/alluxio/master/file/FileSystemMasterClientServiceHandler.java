@@ -23,6 +23,7 @@ import alluxio.master.file.options.CompleteFileOptions;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
 import alluxio.master.file.options.DeleteOptions;
+import alluxio.master.file.options.DescendantType;
 import alluxio.master.file.options.FreeOptions;
 import alluxio.master.file.options.GetStatusOptions;
 import alluxio.master.file.options.ListStatusOptions;
@@ -183,9 +184,9 @@ public final class FileSystemMasterClientServiceHandler implements
   @Override
   public FreeTResponse free(final String path, final boolean recursive, final FreeTOptions options)
       throws AlluxioTException {
-    return RpcUtils.call(LOG, new RpcCallable<FreeTResponse>() {
+    return RpcUtils.call(LOG, new RpcCallableThrowsIOException<FreeTResponse>() {
       @Override
-      public FreeTResponse call() throws AlluxioException {
+      public FreeTResponse call() throws AlluxioException, IOException {
         if (options == null) {
           // For Alluxio client v1.4 or earlier.
           // NOTE, we try to be conservative here so early Alluxio clients will not be able to force
@@ -236,7 +237,8 @@ public final class FileSystemMasterClientServiceHandler implements
       public String toString() {
         return String.format("GetStatus: path=%s, options=%s", path, options);
       }
-    });
+      // getStatus is often used to check file existence, so we avoid logging all of its failures
+    }, false);
   }
 
   @Override
@@ -274,7 +276,8 @@ public final class FileSystemMasterClientServiceHandler implements
       @Override
       public LoadMetadataTResponse call() throws AlluxioException, IOException {
         return new LoadMetadataTResponse(mFileSystemMaster.loadMetadata(new AlluxioURI(alluxioPath),
-            LoadMetadataOptions.defaults().setCreateAncestors(true).setLoadDirectChildren(true)));
+            LoadMetadataOptions.defaults().setCreateAncestors(true).setLoadDescendantType(
+                DescendantType.ONE)));
       }
 
       @Override
@@ -374,18 +377,19 @@ public final class FileSystemMasterClientServiceHandler implements
   @Override
   public ScheduleAsyncPersistenceTResponse scheduleAsyncPersistence(final String path,
       final ScheduleAsyncPersistenceTOptions options) throws AlluxioTException {
-    return RpcUtils.call(LOG, new RpcCallable<ScheduleAsyncPersistenceTResponse>() {
-      @Override
-      public ScheduleAsyncPersistenceTResponse call() throws AlluxioException {
-        mFileSystemMaster.scheduleAsyncPersistence(new AlluxioURI(path));
-        return new ScheduleAsyncPersistenceTResponse();
-      }
+    return RpcUtils.call(LOG,
+        new RpcCallableThrowsIOException<ScheduleAsyncPersistenceTResponse>() {
+          @Override
+          public ScheduleAsyncPersistenceTResponse call() throws AlluxioException, IOException {
+            mFileSystemMaster.scheduleAsyncPersistence(new AlluxioURI(path));
+            return new ScheduleAsyncPersistenceTResponse();
+          }
 
-      @Override
-      public String toString() {
-        return String.format("ScheduleAsyncPersist: path=%s, options=%s", path, options);
-      }
-    });
+          @Override
+          public String toString() {
+            return String.format("ScheduleAsyncPersist: path=%s, options=%s", path, options);
+          }
+        });
   }
 
   @Override

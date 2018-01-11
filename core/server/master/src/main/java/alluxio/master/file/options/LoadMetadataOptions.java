@@ -27,7 +27,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 public final class LoadMetadataOptions {
   private CommonOptions mCommonOptions;
   private boolean mCreateAncestors;
-  private boolean mLoadDirectChildren;
+  private DescendantType mLoadDescendantType;
   private UfsStatus mUfsStatus;
 
   /**
@@ -41,8 +41,8 @@ public final class LoadMetadataOptions {
     super();
     mCommonOptions = CommonOptions.defaults();
     mCreateAncestors = false;
-    mLoadDirectChildren = false;
     mUfsStatus = null;
+    mLoadDescendantType = DescendantType.NONE;
   }
 
   /**
@@ -65,6 +65,13 @@ public final class LoadMetadataOptions {
   }
 
   /**
+   * @return the type of descendants to load
+   */
+  public DescendantType getLoadDescendantType() {
+    return mLoadDescendantType;
+  }
+
+  /**
    * @return null if unknown, else the status of UFS path for which loading metadata
    */
   @Nullable
@@ -78,14 +85,6 @@ public final class LoadMetadataOptions {
    */
   public boolean isCreateAncestors() {
     return mCreateAncestors;
-  }
-
-  /**
-   * @return the load direct children flag. It specifies whether the direct children should
-   * be loaded.
-   */
-  public boolean isLoadDirectChildren() {
-    return mLoadDirectChildren;
   }
 
   /**
@@ -110,14 +109,11 @@ public final class LoadMetadataOptions {
   }
 
   /**
-   * Sets the load direct children flag.
-   *
-   * @param loadDirectChildren the load direct children flag. It specifies whether the direct
-   *                           children should be loaded.
+   * @param loadDescendantType the type of descendants to load
    * @return the updated object
    */
-  public LoadMetadataOptions setLoadDirectChildren(boolean loadDirectChildren) {
-    mLoadDirectChildren = loadDirectChildren;
+  public LoadMetadataOptions setLoadDescendantType(DescendantType loadDescendantType) {
+    mLoadDescendantType = loadDescendantType;
     return this;
   }
 
@@ -143,13 +139,13 @@ public final class LoadMetadataOptions {
     LoadMetadataOptions that = (LoadMetadataOptions) o;
     return Objects.equal(mCreateAncestors, that.mCreateAncestors)
         && Objects.equal(mCommonOptions, that.mCommonOptions)
-        && Objects.equal(mLoadDirectChildren, that.mLoadDirectChildren)
+        && Objects.equal(mLoadDescendantType, that.mLoadDescendantType)
         && Objects.equal(mUfsStatus, that.mUfsStatus);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mCreateAncestors, mLoadDirectChildren, mUfsStatus, mCommonOptions);
+    return Objects.hashCode(mCreateAncestors, mLoadDescendantType, mUfsStatus, mCommonOptions);
   }
 
   @Override
@@ -157,7 +153,7 @@ public final class LoadMetadataOptions {
     return Objects.toStringHelper(this)
         .add("commonOptions", mCommonOptions)
         .add("createAncestors", mCreateAncestors)
-        .add("loadDirectChildren", mLoadDirectChildren)
+        .add("loadDescendantLevels", mLoadDescendantType)
         .add("ufsStatus", mUfsStatus).toString();
   }
 }

@@ -31,7 +31,7 @@ master for Alluxio at any given time.
 
 Alluxio also requires a shared under filesystem on which to place the journal. This shared
 filesystem must be accessible by all the masters, and possible options include
-[HDFS](Configuring-Alluxio-with-HDFS.html), [Amazon S3](Configuring-Alluxio-with-S3.html), or
+[HDFS](Configuring-Alluxio-with-HDFS.html) and
 [GlusterFS](Configuring-Alluxio-with-GlusterFS.html). The leader master writes the journal to the
 shared filesystem, while the other (standby) masters continually replay the journal entries to stay
 up-to-date.
@@ -118,13 +118,6 @@ and wait until the current master dies.
 As long as the config parameters above are correctly set, the worker will be able to consult with
 ZooKeeper, and find the current leader master to connect to. Therefore, `alluxio.master.hostname`
 does not have to be set for the workers.
-
-> Note: When running Alluxio in high availability mode, it is possible that the default worker
-> heartbeat timeout value is too short. It is recommended to increase that value to a higher value,
-> in order to handle the situations when a master failover occurs. In order to increase the
-> heartbeat timeout value on the workers, modify the configuration parameter
-> `alluxio.worker.block.heartbeat.timeout.ms` in `conf/alluxio-site.properties` to a larger value
-> (at least a few minutes).
 
 ### Client Configuration
 

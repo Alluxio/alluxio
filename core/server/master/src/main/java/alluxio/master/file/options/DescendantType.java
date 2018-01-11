@@ -9,16 +9,16 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.master.block;
-
-import alluxio.exception.status.UnavailableException;
+package alluxio.master.file.options;
 
 /**
- * Provides generation of container IDs.
+ * Type of descendant level processing for filesystem inodes.
  */
-public interface ContainerIdGenerable {
-  /**
-   * @return a unique block container id
-   */
-  long getNewContainerId() throws UnavailableException;
+public enum DescendantType {
+  /** No descendant processing. */
+  NONE,
+  /** Process only 1 level of children. */
+  ONE,
+  /** Process all descendants. */
+  ALL,
 }

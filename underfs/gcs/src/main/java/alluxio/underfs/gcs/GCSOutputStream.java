@@ -120,7 +120,7 @@ public final class GCSOutputStream extends OutputStream {
       obj.setBucketName(mBucketName);
       obj.setDataInputFile(mFile);
       obj.setContentLength(mFile.length());
-      obj.setContentEncoding(Mimetypes.MIMETYPE_BINARY_OCTET_STREAM);
+      obj.setContentType(Mimetypes.MIMETYPE_BINARY_OCTET_STREAM);
       if (mHash != null) {
         obj.setMd5Hash(mHash.digest());
       } else {

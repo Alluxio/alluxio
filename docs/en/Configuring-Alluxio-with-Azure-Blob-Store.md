@@ -18,9 +18,9 @@ To run an Alluxio cluster on a set of machines, you must deploy Alluxio binaries
 Also, in preparation for using Azure Blob Store with Alluxio, create a new container in your Azure
 storage account or use an existing container. You should also note that the directory you want to
 use in that container, either by creating a new directory in the container, or using an existing
-one. For the purposes of this guide, the Azure storage account name is called `AZURE_ACCOUNT`, the
-container in that storage account is called `AZURE_CONTAINER` and the directory in that bucket is
-called `AZURE_DIRECTORY`. For more information about Azure storage account, Please see
+one. For the purposes of this guide, the Azure storage account name is called `<AZURE_ACCOUNT>`, the
+container in that storage account is called `<AZURE_CONTAINER>` and the directory in that container is
+called `<AZURE_DIRECTORY>`. For more information about Azure storage account, Please see
 [here](https://docs.microsoft.com/en-us/azure/storage/storage-create-storage-account).
 
 
@@ -40,13 +40,13 @@ $ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
 The first modification is to specify the underfs address by modifying `conf/alluxio-site.properties` to include:
 
 ```
-alluxio.underfs.address=wasb://AZURE_CONTAINER@AZURE_ACCOUNT.blob.core.windows.net/AZURE_DIRECTORY/
+alluxio.underfs.address=wasb://<AZURE_CONTAINER>@<AZURE_ACCOUNT>.blob.core.windows.net/<AZURE_DIRECTORY>/
 ```
 
 Next, specify credentials for the Azure account by adding the following properties in `conf/alluxio-site.properties`:
 
 ```
-fs.azure.account.key.AZURE_ACCOUNT.blob.core.windows.net=<YOUR ACCESS KEY>
+fs.azure.account.key.<AZURE_ACCOUNT>.blob.core.windows.net=<YOUR ACCESS KEY>
 ```
 
 ### Nested Mount
@@ -54,8 +54,8 @@ An Azure blob store location can be mounted at a nested directory in the Alluxio
 to multiple under storage systems. Alluxio's [Command Line Interface](Command-Line-Interface.html) can be used for this purpose.
 
 ```bash
-$ ./bin/alluxio fs mount --option fs.azure.account.key.AZURE_ACCOUNT.blob.core.windows.net=<AZURE_ACCESS_KEY>\
-  /mnt/azure wasb://AZURE_CONTAINER@AZURE_ACCOUNT.blob.core.windows.net/AZURE_DIRECTORY/
+$ ./bin/alluxio fs mount --option fs.azure.account.key.<AZURE_ACCOUNT>.blob.core.windows.net=<AZURE_ACCESS_KEY>\
+  /mnt/azure wasb://<AZURE_CONTAINER>@<AZURE_ACCOUNT>.blob.core.windows.net/<AZURE_DIRECTORY>/
 ```
 
 After these changes, Alluxio should be configured to work with Azure Blob Store as its under storage system, and you can run Alluxio locally with it.
@@ -77,10 +77,10 @@ Next, you can run a simple example program:
 $ ./bin/alluxio runTests
 ```
 
-After this succeeds, you can visit your container `AZURE_CONTAINER` to verify the files and directories created by Alluxio exist. For this test, you should see files named like:
+After this succeeds, you can visit your container `<AZURE_CONTAINER>` to verify the files and directories created by Alluxio exist. For this test, you should see files named like:
 
 ```
-AZURE_DIRECTORY/default_tests_files/BASIC_CACHE_PROMOTE_CACHE_THROUGH
+<AZURE_CONTAINER>/<AZURE_DIRECTORY>/default_tests_files/BASIC_CACHE_PROMOTE_CACHE_THROUGH
 ```
 
 To stop Alluxio, you can run:

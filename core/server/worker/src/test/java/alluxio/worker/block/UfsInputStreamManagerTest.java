@@ -159,7 +159,7 @@ public final class UfsInputStreamManagerTest {
       mManager = new UfsInputStreamManager();
       List<Thread> threads = new ArrayList<>();
       int numCheckOutPerThread = 4;
-      for (int i = 0; i < mNumOfInputStreams / 4; i++) {
+      for (int i = 0; i < mNumOfInputStreams / numCheckOutPerThread; i++) {
         Runnable runnable = () -> {
           for (int j = 0; j < numCheckOutPerThread; j++) {
             InputStream instream;
@@ -177,10 +177,8 @@ public final class UfsInputStreamManagerTest {
         threads.add(new Thread(runnable));
       }
       ConcurrencyUtils.assertConcurrent(threads, 30);
-      for (int i = 0; i < mNumOfInputStreams / 4; i++) {
-        // the first quarter of input streams are closed
-        Mockito.verify(mSeekableInStreams[i], Mockito.timeout(2000)).close();
-      }
+      // ensure at least one expired in stream is closed
+      Mockito.verify(mSeekableInStreams[0], Mockito.timeout(2000)).close();
     }
   }
 }
