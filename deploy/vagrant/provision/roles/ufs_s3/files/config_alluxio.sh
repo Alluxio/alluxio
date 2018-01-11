@@ -10,7 +10,8 @@ export ALLUXIO_JAVA_OPTS+="
 "
 EOF
 else
-  cat >> /alluxio/conf/alluxio-env.sh << EOF
+  if [[ ${ALLUXIO_VERSION_LESSTHAN_1_2} == true ]]; then
+    cat >> /alluxio/conf/alluxio-env.sh << EOF
 ALLUXIO_UNDERFS_ADDRESS="s3n://${S3_BUCKET}"
 
 ALLUXIO_JAVA_OPTS+="
@@ -18,6 +19,11 @@ ALLUXIO_JAVA_OPTS+="
   -Dfs.s3n.awsAccessKeyId=${S3_ID}
 "
 EOF
+  else
+    echo "alluxio.underfs.address=s3a://${S3_BUCKET}" >> /alluxio/conf/alluxio-site.properties
+    echo "aws.accessKeyId=${S3_ID}" >> /alluxio/conf/alluxio-site.properties
+    echo "aws.secretKey=${S3_KEY}" >> /alluxio/conf/alluxio-site.properties
+  fi
 fi
 
 # For Alluxio version earlier than 0.8, remove schema "s3n" from default prefixes to be handled by HdfsUnderFileSystem.

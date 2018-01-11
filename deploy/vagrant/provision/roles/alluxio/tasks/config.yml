@@ -16,6 +16,7 @@
   script: roles/ufs_{{ ufs }}/files/config_alluxio.sh
   environment:
     ALLUXIO_VERSION_LESSTHAN_1_1: "{{ alluxio_version_lessthan_1_1 }}"
+    ALLUXIO_VERSION_LESSTHAN_1_2: "{{ alluxio_version_lessthan_1_2 }}"
     S3_BUCKET: "{{ s3_bucket }}"
     S3_ID: "{{ s3_id }}"
     S3_KEY: "{{ s3_key }}"

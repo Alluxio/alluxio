@@ -90,9 +90,11 @@ class AlluxioVersion
     minor = Integer(minor) rescue nil
     @v_lt_0_8 = false
     @v_lt_1_1 = false
+    @v_lt_1_2 = false
     if not major.nil? and not minor.nil?
       @v_lt_0_8 = ((major == 0) and (minor < 8))
       @v_lt_1_1 = ((major < 1) or (major == 1 and minor < 1))
+      @v_lt_1_2 = ((major < 1) or (major == 1 and minor < 2))
     end
 
     @mem = @yml['WorkerMemory']
@@ -121,6 +123,9 @@ class AlluxioVersion
 
   def v_lt_1_1
     return @v_lt_1_1
+  end
+  def v_lt_1_2
+    return @v_lt_1_2
   end
 end
 
