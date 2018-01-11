@@ -476,21 +476,24 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
   @Override
   public void closeUfsBlock(long sessionId, long blockId)
       throws BlockAlreadyExistsException, IOException, WorkerOutOfSpaceException {
-    mUnderFileSystemBlockStore.closeReaderOrWriter(sessionId, blockId);
-    if (mBlockStore.getTempBlockMeta(sessionId, blockId) != null) {
-      try {
-        commitBlock(sessionId, blockId);
-      } catch (BlockDoesNotExistException e) {
-        // This can only happen if the session is expired. Ignore this exception if that happens.
-        LOG.warn("Block {} does not exist while being committed.", blockId);
-      } catch (InvalidWorkerStateException e) {
-        // This can happen if there are multiple sessions writing to the same block.
-        // BlockStore#getTempBlockMeta does not check whether the temp block belongs to
-        // the sessionId.
-        LOG.debug("Invalid worker state while committing block.", e);
+    try {
+      mUnderFileSystemBlockStore.closeReaderOrWriter(sessionId, blockId);
+      if (mBlockStore.getTempBlockMeta(sessionId, blockId) != null) {
+        try {
+          commitBlock(sessionId, blockId);
+        } catch (BlockDoesNotExistException e) {
+          // This can only happen if the session is expired. Ignore this exception if that happens.
+          LOG.warn("Block {} does not exist while being committed.", blockId);
+        } catch (InvalidWorkerStateException e) {
+          // This can happen if there are multiple sessions writing to the same block.
+          // BlockStore#getTempBlockMeta does not check whether the temp block belongs to
+          // the sessionId.
+          LOG.debug("Invalid worker state while committing block.", e);
+        }
       }
+    } finally {
+      mUnderFileSystemBlockStore.releaseAccess(sessionId, blockId);
     }
-    mUnderFileSystemBlockStore.releaseAccess(sessionId, blockId);
   }
 
   @Override
