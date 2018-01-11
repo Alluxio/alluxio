@@ -90,7 +90,7 @@ public final class UfsFileWriteHandler extends AbstractWriteHandler<UfsFileWrite
    */
   public class UfsFilePacketWriter extends PacketWriter {
     private final UfsManager mUfsManager;
-    private final UfsSessionManager mUfsWriteManager;
+    private final UfsSessionManager mUfsSessionManager;
 
     /**
      * @param context context of this packet writer
@@ -101,7 +101,7 @@ public final class UfsFileWriteHandler extends AbstractWriteHandler<UfsFileWrite
         UfsManager ufsManager) {
       super(context, channel);
       mUfsManager = ufsManager;
-      mUfsWriteManager = new WorkerUfsSessionManager(ufsManager);
+      mUfsSessionManager = new WorkerUfsSessionManager(ufsManager);
     }
 
     @Override
@@ -116,7 +116,7 @@ public final class UfsFileWriteHandler extends AbstractWriteHandler<UfsFileWrite
       Preconditions.checkState(context.getOutputStream() != null);
       context.getOutputStream().close();
       context.setOutputStream(null);
-      mUfsWriteManager.openSession(context.getRequest().getCreateUfsFileOptions().getMountId());
+      mUfsSessionManager.closeSession(context.getRequest().getCreateUfsFileOptions().getMountId());
     }
 
     @Override
@@ -131,7 +131,7 @@ public final class UfsFileWriteHandler extends AbstractWriteHandler<UfsFileWrite
         context.getUnderFileSystem().deleteFile(request.getUfsPath());
         context.setOutputStream(null);
       }
-      mUfsWriteManager.closeSession(context.getRequest().getCreateUfsFileOptions().getMountId());
+      mUfsSessionManager.closeSession(context.getRequest().getCreateUfsFileOptions().getMountId());
     }
 
     @Override
@@ -166,7 +166,7 @@ public final class UfsFileWriteHandler extends AbstractWriteHandler<UfsFileWrite
       String metricName = String.format("BytesWrittenUfs-Ufs:%s", ufsString);
       Counter counter = MetricsSystem.workerCounter(metricName);
       context.setCounter(counter);
-      mUfsWriteManager.openSession(context.getRequest().getCreateUfsFileOptions().getMountId());
+      mUfsSessionManager.openSession(context.getRequest().getCreateUfsFileOptions().getMountId());
     }
   }
 }

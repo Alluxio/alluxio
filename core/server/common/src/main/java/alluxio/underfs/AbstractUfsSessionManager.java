@@ -15,11 +15,12 @@ import alluxio.AlluxioURI;
 import alluxio.metrics.MetricsSystem;
 
 import com.codahale.metrics.Counter;
-import net.jcip.annotations.ThreadSafe;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.ConcurrentHashMap;
+
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Basic implementation of {@link UfsSessionManager}.
@@ -38,29 +39,29 @@ public abstract class AbstractUfsSessionManager implements UfsSessionManager {
 
   @Override
   public void openSession(long mountId) {
-    mUfsUriToCounter.compute(mountId, (k, v) -> {
-      if (v == null) {
+    mUfsUriToCounter.compute(mountId, (k, counter) -> {
+      if (counter == null) {
         try {
           AlluxioURI key = mUfsManager.get(mountId).getUfsMountPointUri();
-          v = getWriteSessionsCounter(key);
+          counter = getWriteSessionsCounter(key);
         } catch (Exception e) {
           LOG.warn(e.getMessage());
         }
       }
-      v.inc();
-      return v;
+      counter.inc();
+      return counter;
     });
   }
 
   @Override
   public void closeSession(long mountId) {
-    mUfsUriToCounter.computeIfPresent(mountId, (k, v) -> {
-      v.dec();
-      if (v.getCount() == 0) {
+    mUfsUriToCounter.computeIfPresent(mountId, (k, counter) -> {
+      counter.dec();
+      if (counter.getCount() == 0) {
         // Remove key
         return null;
       }
-      return v;
+      return counter;
     });
   }
 
