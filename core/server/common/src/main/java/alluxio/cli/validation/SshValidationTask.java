@@ -30,10 +30,10 @@ public final class SshValidationTask extends AbstractValidationTask {
   }
 
   @Override
-  public boolean validate(Map<String, String> optionsMap) {
+  public TaskResult validate(Map<String, String> optionsMap) {
     List<String> nodes = Utils.readNodeList(mFileName);
     if (nodes == null) {
-      return false;
+      return TaskResult.FAILED;
     }
 
     boolean hasUnreachableNodes = false;
@@ -43,6 +43,6 @@ public final class SshValidationTask extends AbstractValidationTask {
         hasUnreachableNodes = true;
       }
     }
-    return !hasUnreachableNodes;
+    return hasUnreachableNodes ? TaskResult.WARNING : TaskResult.OK;
   }
 }
