@@ -98,7 +98,7 @@ public abstract class BaseUnderFileSystem implements UnderFileSystem {
   }
 
   @Override
-  public List<String> getPhysicalUfs() {
+  public List<String> getPhysicalStores() {
     return new ArrayList<>(Arrays.asList(mUri.getRootPath()));
   }
 

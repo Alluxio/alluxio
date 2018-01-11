@@ -99,7 +99,7 @@ public final class MasterUfsManager extends AbstractUfsManager {
     super.addMount(mountId, ufsUri, ufsConf);
 
     try {
-      for (String physicalUfs : get(mountId).getUfs().getPhysicalUfs()) {
+      for (String physicalUfs : get(mountId).getUfs().getPhysicalStores()) {
         mPhysicalUfsToState.compute(physicalUfs, (k, v) -> {
           if (v == null) {
             v = new UfsState();
@@ -117,7 +117,7 @@ public final class MasterUfsManager extends AbstractUfsManager {
   @Override
   public void removeMount(long mountId) {
     try {
-      for (String physicalUfs : get(mountId).getUfs().getPhysicalUfs()) {
+      for (String physicalUfs : get(mountId).getUfs().getPhysicalStores()) {
         mPhysicalUfsToState.computeIfPresent(physicalUfs, (k, v) -> {
           if (v.removeMount(mountId)) {
             // Remove key if list is empty
@@ -144,7 +144,7 @@ public final class MasterUfsManager extends AbstractUfsManager {
   public Map<String, UnderFileSystem.UfsMode> getPhysicalUfsState(
       MountTable.Resolution resolution) {
     Map<String, UnderFileSystem.UfsMode> ufsModeState = new HashMap<>();
-    for (String physicalUfs : resolution.getUfs().getPhysicalUfs()) {
+    for (String physicalUfs : resolution.getUfs().getPhysicalStores()) {
       UfsState ufsState = mPhysicalUfsToState.get(new AlluxioURI(physicalUfs).getRootPath());
       if (ufsState != null) {
         ufsModeState.put(physicalUfs, ufsState.getUfsMode());

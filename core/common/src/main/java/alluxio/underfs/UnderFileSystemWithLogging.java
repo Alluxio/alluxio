@@ -357,8 +357,8 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
   }
 
   @Override
-  public List<String> getPhysicalUfs() {
-    return mUnderFileSystem.getPhysicalUfs();
+  public List<String> getPhysicalStores() {
+    return mUnderFileSystem.getPhysicalStores();
   }
 
   @Override

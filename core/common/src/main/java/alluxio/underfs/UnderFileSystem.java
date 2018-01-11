@@ -327,11 +327,11 @@ public interface UnderFileSystem extends Closeable {
 
   /**
    * An {@link UnderFileSystem} may be composed of one or more "physical UFS"s. This method
-   * returns all underlying physical UFS URIs.
+   * returns all underlying physical stores; normalized with only scheme and authority.
    *
    * @return physical UFSs this {@link UnderFileSystem} is composed of
    */
-  List<String> getPhysicalUfs();
+  List<String> getPhysicalStores();
 
   /**
    * Queries the under file system about the space of the indicated path (e.g., space left, space
