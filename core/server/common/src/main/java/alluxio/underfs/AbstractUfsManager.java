@@ -98,7 +98,6 @@ public abstract class AbstractUfsManager implements UfsManager {
   private UfsInfo mRootUfsInfo;
   protected final Closer mCloser;
 
-
   AbstractUfsManager() {
     mCloser = Closer.create();
   }
