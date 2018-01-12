@@ -12,6 +12,7 @@
 package alluxio.client.block;
 
 import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.when;
 
 import alluxio.client.WriteType;
@@ -52,7 +53,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
-import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
@@ -140,11 +140,11 @@ public final class AlluxioBlockStoreTest {
     mBlockStore = new AlluxioBlockStore(mContext,
         TieredIdentityFactory.fromString("node=" + WORKER_HOSTNAME_LOCAL));
 
-    when(mContext.acquireNettyChannel(Mockito.any(WorkerNetAddress.class)))
+    when(mContext.acquireNettyChannel(any(WorkerNetAddress.class)))
         .thenReturn(mChannel);
     when(mChannel.pipeline()).thenReturn(mPipeline);
     when(mPipeline.last()).thenReturn(new RPCMessageDecoder());
-    when(mPipeline.addLast(Mockito.any(ChannelHandler.class))).thenReturn(mPipeline);
+    when(mPipeline.addLast(any(ChannelHandler.class))).thenReturn(mPipeline);
   }
 
   @Test
@@ -192,7 +192,7 @@ public final class AlluxioBlockStoreTest {
     ProtoMessage message = new ProtoMessage(
         Protocol.LocalBlockCreateResponse.newBuilder().setPath(file.getAbsolutePath()).build());
     PowerMockito.mockStatic(NettyRPC.class);
-    when(NettyRPC.call(Mockito.any(NettyRPCContext.class), Mockito.any(ProtoMessage.class)))
+    when(NettyRPC.call(any(NettyRPCContext.class), any(ProtoMessage.class)))
         .thenReturn(message);
 
     OutStreamOptions options = OutStreamOptions.defaults().setBlockSizeBytes(BLOCK_LENGTH)
@@ -247,7 +247,7 @@ public final class AlluxioBlockStoreTest {
     ProtoMessage message = new ProtoMessage(
         Protocol.LocalBlockOpenResponse.newBuilder().setPath("/tmp").build());
     PowerMockito.mockStatic(NettyRPC.class);
-    when(NettyRPC.call(Mockito.any(NettyRPCContext.class), Mockito.any(ProtoMessage.class)))
+    when(NettyRPC.call(any(NettyRPCContext.class), any(ProtoMessage.class)))
         .thenReturn(message);
 
     BlockInfo info = new BlockInfo().setBlockId(BLOCK_ID).setLocations(Arrays
