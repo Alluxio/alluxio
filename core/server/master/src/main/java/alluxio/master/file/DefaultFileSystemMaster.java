@@ -3642,7 +3642,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
           () -> master.getNumberOfPaths());
 
       final String ufsDataFolder = Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
-      // TODO(adit): ufs client resource is never closed
+      // Note: Ufs client resource is never closed
       final UnderFileSystem ufs = ufsManager.getRoot().acquireUfsClientResource().get();
 
       MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMasterMetricName(UFS_CAPACITY_TOTAL),
