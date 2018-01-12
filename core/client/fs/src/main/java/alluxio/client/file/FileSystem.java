@@ -44,6 +44,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Basic file system interface supporting metadata operations and data operations. Developers
@@ -59,6 +60,7 @@ public interface FileSystem {
    */
   class Factory {
     private static final Logger LOG = LoggerFactory.getLogger(Factory.class);
+    private static final AtomicBoolean CONF_LOGGED = new AtomicBoolean(false);
 
     private Factory() {} // prevent instantiation
 
@@ -67,8 +69,9 @@ public interface FileSystem {
     }
 
     public static FileSystem get(FileSystemContext context) {
-      if (LOG.isDebugEnabled()) {
-        TreeMap<String, String> keyValueSet = new TreeMap<>(Configuration.toMap());
+      if (LOG.isDebugEnabled() && !CONF_LOGGED.getAndSet(true)) {
+        // Store properties in tree map to keep output ordered
+        Map<String, String> keyValueSet = new TreeMap<>(Configuration.toMap());
         for (Map.Entry<String, String> entry : keyValueSet.entrySet()) {
           String key = entry.getKey();
           String value = entry.getValue();
