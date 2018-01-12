@@ -274,7 +274,7 @@ public final class ValidateEnv {
       System.err.format("%d warnings ", results.get(ValidationTask.TaskResult.WARNING));
     }
     if (results.containsKey(ValidationTask.TaskResult.SKIPPED)) {
-      System.err.format("%d skipped ", results.get(ValidationTask.TaskResult.WARNING));
+      System.err.format("%d skipped ", results.get(ValidationTask.TaskResult.SKIPPED));
     }
     System.err.println();
     if (validationCount == 0) {
