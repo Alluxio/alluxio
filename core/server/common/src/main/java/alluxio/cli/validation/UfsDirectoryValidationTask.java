@@ -36,19 +36,19 @@ public final class UfsDirectoryValidationTask extends AbstractValidationTask {
   }
 
   @Override
-  public boolean validate(Map<String, String> optionsMap) {
+  public TaskResult validate(Map<String, String> optionsMap) {
     try {
       UfsStatus[] listStatus = mUfs.listStatus(mPath);
       if (listStatus == null) {
         System.err.format("Unable to list under file system path %s.%n", mPath);
-        return false;
+        return TaskResult.FAILED;
       }
 
-      return true;
+      return TaskResult.OK;
     } catch (IOException e) {
       System.err.format("Unable to access under file system path %s: %s.%n", mPath,
           e.getMessage());
-      return false;
+      return TaskResult.FAILED;
     }
   }
 }
