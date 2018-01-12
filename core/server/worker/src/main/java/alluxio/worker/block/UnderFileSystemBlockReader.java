@@ -127,7 +127,7 @@ public final class UnderFileSystemBlockReader implements BlockReader {
    * @param offset the position within the block to start the read
    */
   private void init(long offset) throws IOException {
-    UnderFileSystem ufs = mUfsManager.get(mBlockMeta.getMountId()).getUfs();
+    UnderFileSystem ufs = mUfsManager.get(mBlockMeta.getMountId()).acquireUfsClientResource();
     ufs.connectFromWorker(
         NetworkAddressUtils.getConnectHost(NetworkAddressUtils.ServiceType.WORKER_RPC));
     updateUnderFileSystemInputStream(offset);
@@ -294,7 +294,7 @@ public final class UnderFileSystemBlockReader implements BlockReader {
 
     if (mUnderFileSystemInputStream == null && offset < mBlockMeta.getBlockSize()) {
       UfsInfo ufsInfo = mUfsManager.get(mBlockMeta.getMountId());
-      UnderFileSystem ufs = ufsInfo.getUfs();
+      UnderFileSystem ufs = ufsInfo.acquireUfsClientResource();
       mUfsMountPointUri = ufsInfo.getUfsMountPointUri();
       mUnderFileSystemInputStream = mUfsInstreamManager.acquire(ufs,
           mBlockMeta.getUnderFileSystemPath(), IdUtils.fileIdFromBlockId(mBlockMeta.getBlockId()),

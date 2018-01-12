@@ -99,7 +99,7 @@ public final class MasterUfsManager extends AbstractUfsManager {
     super.addMount(mountId, ufsUri, ufsConf);
 
     try {
-      for (String physicalUfs : get(mountId).getUfs().getPhysicalStores()) {
+      for (String physicalUfs : get(mountId).acquireUfsClientResource().getPhysicalStores()) {
         mPhysicalUfsToState.compute(physicalUfs, (k, v) -> {
           if (v == null) {
             v = new UfsState();
@@ -117,7 +117,7 @@ public final class MasterUfsManager extends AbstractUfsManager {
   @Override
   public void removeMount(long mountId) {
     try {
-      for (String physicalUfs : get(mountId).getUfs().getPhysicalStores()) {
+      for (String physicalUfs : get(mountId).acquireUfsClientResource().getPhysicalStores()) {
         mPhysicalUfsToState.computeIfPresent(physicalUfs, (k, v) -> {
           if (v.removeMount(mountId)) {
             // Remove key if list is empty

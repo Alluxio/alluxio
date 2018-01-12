@@ -14,7 +14,10 @@ package alluxio.underfs;
 import alluxio.AlluxioURI;
 import alluxio.exception.status.NotFoundException;
 import alluxio.exception.status.UnavailableException;
+import alluxio.metrics.MetricsSystem;
+import alluxio.resource.CloseableResource;
 
+import com.codahale.metrics.Counter;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Supplier;
 
@@ -29,6 +32,7 @@ public interface UfsManager extends Closeable {
     private UnderFileSystem mUfs;
     private final AlluxioURI mUfsMountPointUri;
     private final Supplier<UnderFileSystem> mUfsSupplier;
+    private final Counter mCounter;
 
     /**
      * @param ufsSupplier the supplier function to create a new UFS instance
@@ -37,16 +41,24 @@ public interface UfsManager extends Closeable {
     public UfsInfo(Supplier<UnderFileSystem> ufsSupplier, AlluxioURI ufsMountPointUri) {
       mUfsSupplier = Preconditions.checkNotNull(ufsSupplier, "ufsSupplier is null");
       mUfsMountPointUri = Preconditions.checkNotNull(ufsMountPointUri, "ufsMountPointUri is null");
+      mCounter = MetricsSystem.workerCounter(
+          String.format("UfsSessionsCount-Ufs:%s", MetricsSystem.escape(mUfsMountPointUri)));
     }
 
     /**
      * @return the UFS instance
      */
-    public synchronized UnderFileSystem getUfs() {
+    public synchronized CloseableResource<UnderFileSystem> acquireUfsClientResource() {
       if (mUfs == null) {
         mUfs = mUfsSupplier.get();
       }
-      return mUfs;
+      mCounter.inc();
+      return new CloseableResource<UnderFileSystem>(mUfs) {
+        @Override
+        public void close() {
+          mCounter.dec();
+        }
+      };
     }
 
     /**

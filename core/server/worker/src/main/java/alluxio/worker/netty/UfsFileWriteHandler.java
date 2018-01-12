@@ -17,7 +17,6 @@ import alluxio.proto.dataserver.Protocol;
 import alluxio.security.authorization.Mode;
 import alluxio.underfs.UfsManager;
 import alluxio.underfs.UfsManager.UfsInfo;
-import alluxio.underfs.UfsSessionManager;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.CreateOptions;
 
@@ -153,7 +152,7 @@ public final class UfsFileWriteHandler extends AbstractWriteHandler<UfsFileWrite
       Preconditions.checkState(request != null);
       Protocol.CreateUfsFileOptions createUfsFileOptions = request.getCreateUfsFileOptions();
       UfsInfo ufsInfo = mUfsManager.get(createUfsFileOptions.getMountId());
-      UnderFileSystem ufs = ufsInfo.getUfs();
+      UnderFileSystem ufs = ufsInfo.acquireUfsClientResource();
       context.setUnderFileSystem(ufs);
       context.setOutputStream(ufs.create(request.getUfsPath(),
           CreateOptions.defaults().setOwner(createUfsFileOptions.getOwner())

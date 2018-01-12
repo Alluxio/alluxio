@@ -22,7 +22,6 @@ import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.InvalidWorkerStateException;
 import alluxio.security.authorization.Mode;
 import alluxio.underfs.UfsManager;
-import alluxio.underfs.UfsSessionManager;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.util.io.BufferUtils;
@@ -163,7 +162,7 @@ public final class FileDataManager {
   private synchronized String ufsFingerprint(long fileId) throws IOException {
     FileInfo fileInfo = mBlockWorker.getFileInfo(fileId);
     String dstPath = fileInfo.getUfsPath();
-    UnderFileSystem ufs = mUfsManager.get(fileInfo.getMountId()).getUfs();
+    UnderFileSystem ufs = mUfsManager.get(fileInfo.getMountId()).acquireUfsClientResource();
     return ufs.isFile(dstPath) ? ufs.getFingerprint(dstPath) : null;
   }
 
@@ -229,7 +228,7 @@ public final class FileDataManager {
 
     String dstPath = prepareUfsFilePath(fileId);
     FileInfo fileInfo = mBlockWorker.getFileInfo(fileId);
-    UnderFileSystem ufs = mUfsManager.get(fileInfo.getMountId()).getUfs();
+    UnderFileSystem ufs = mUfsManager.get(fileInfo.getMountId()).acquireUfsClientResource();
     OutputStream outputStream = ufs.create(dstPath, CreateOptions.defaults()
         .setOwner(fileInfo.getOwner()).setGroup(fileInfo.getGroup())
         .setMode(new Mode((short) fileInfo.getMode())));
@@ -302,7 +301,7 @@ public final class FileDataManager {
     FileSystem fs = FileSystem.Factory.get();
     URIStatus status = fs.getStatus(alluxioPath);
     String ufsPath = status.getUfsPath();
-    UnderFileSystem ufs = mUfsManager.get(fileInfo.getMountId()).getUfs();
+    UnderFileSystem ufs = mUfsManager.get(fileInfo.getMountId()).acquireUfsClientResource();
     UnderFileSystemUtils.prepareFilePath(alluxioPath, ufsPath, fs, ufs);
     return ufsPath;
   }

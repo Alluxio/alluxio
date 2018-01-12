@@ -507,7 +507,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         long rootUfsMountId = IdUtils.ROOT_MOUNT_ID;
         mMountTable.add(new AlluxioURI(MountTable.ROOT), new AlluxioURI(rootUfsUri), rootUfsMountId,
             MountOptions.defaults()
-                .setShared(mUfsManager.getRoot().getUfs().isObjectStorage() && Configuration
+                .setShared(mUfsManager.getRoot().acquireUfsClientResource().isObjectStorage() && Configuration
                     .getBoolean(PropertyKey.UNDERFS_OBJECT_STORE_MOUNT_SHARED_PUBLICLY))
                 .setProperties(rootUfsConf));
       } catch (FileAlreadyExistsException | InvalidPathException e) {
@@ -1309,7 +1309,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       MountPointInfo info = mountInfo.toMountPointInfo();
       UnderFileSystem ufs;
       try {
-        ufs = mUfsManager.get(mountInfo.getMountId()).getUfs();
+        ufs = mUfsManager.get(mountInfo.getMountId()).acquireUfsClientResource();
       } catch (UnavailableException | NotFoundException e) {
         // We should never reach here
         LOG.error(String.format("No UFS cached for %s", info), e);
@@ -2773,7 +2773,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
             .setShared(options.isShared()).setUserSpecifiedConf(options.getProperties()));
     try {
       if (!replayed) {
-        UnderFileSystem ufs = mUfsManager.get(mountId).getUfs();
+        UnderFileSystem ufs = mUfsManager.get(mountId).acquireUfsClientResource();
         ufs.connectFromMaster(
             NetworkAddressUtils.getConnectHost(NetworkAddressUtils.ServiceType.MASTER_RPC));
         // Check that the ufsPath exists and is a directory
@@ -3634,7 +3634,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
           () -> master.getNumberOfPaths());
 
       final String ufsDataFolder = Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
-      final UnderFileSystem ufs = ufsManager.getRoot().getUfs();
+      final UnderFileSystem ufs = ufsManager.getRoot().acquireUfsClientResource();
 
       MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMasterMetricName(UFS_CAPACITY_TOTAL),
           () -> {

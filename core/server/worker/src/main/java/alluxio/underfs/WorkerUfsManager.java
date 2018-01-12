@@ -70,7 +70,7 @@ public final class WorkerUfsManager extends AbstractUfsManager {
             .setUserSpecifiedConf(info.getProperties().getProperties()));
     UfsInfo ufsInfo = super.get(mountId);
     try {
-      ufsInfo.getUfs().connectFromWorker(
+      ufsInfo.acquireUfsClientResource().connectFromWorker(
           NetworkAddressUtils.getConnectHost(NetworkAddressUtils.ServiceType.WORKER_RPC));
     } catch (IOException e) {
       removeMount(mountId);
