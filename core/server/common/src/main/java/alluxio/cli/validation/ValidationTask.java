@@ -26,17 +26,20 @@ public interface ValidationTask {
   List<Option> getOptionList();
 
   /**
-   * Checks whether the validation task is applicable.
-   *
-   * @return true if this validation task should be skipped, false otherwise
-   */
-  boolean shouldSkip();
-
-  /**
    * Runs the validation task.
    *
    * @param optionMap contains string representation of <key, value> pairs
-   * @return whether the validation succeeds
+   * @return the result of validation task
    */
-  boolean validate(Map<String, String> optionMap) throws InterruptedException;
+  TaskResult validate(Map<String, String> optionMap) throws InterruptedException;
+
+  /**
+   * Result of a validation task.
+   */
+  enum TaskResult {
+    OK,
+    WARNING,
+    FAILED,
+    SKIPPED
+  }
 }
