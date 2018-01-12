@@ -12,7 +12,6 @@
 package alluxio.client.block;
 
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.any;
 
 import alluxio.client.WriteType;
