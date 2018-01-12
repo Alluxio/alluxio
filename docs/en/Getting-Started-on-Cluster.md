@@ -315,7 +315,6 @@ Alluxio can be deployed in many different environments.
 * [Alluxio on GCE](Running-Alluxio-on-GCE.html)
 * [Alluxio with Mesos on EC2](Running-Alluxio-on-Mesos.html)
 * [Alluxio with Fault Tolerance on EC2](Running-Alluxio-Fault-Tolerant-on-EC2.html)
-* [Alluxio with YARN on EC2](Running-Alluxio-on-EC2-Yarn.html)
 * [Alluxio YARN Integration](Running-Alluxio-Yarn-Integration.html)
 * [Alluxio Standalone with YARN](Running-Alluxio-Yarn-Standalone.html)
 
