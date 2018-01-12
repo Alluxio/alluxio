@@ -15,6 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.collections.ConcurrentHashSet;
 import alluxio.exception.InvalidPathException;
 import alluxio.master.file.meta.MountTable;
+import alluxio.resource.CloseableResource;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -98,8 +99,10 @@ public final class MasterUfsManager extends AbstractUfsManager {
                        final UnderFileSystemConfiguration ufsConf) {
     super.addMount(mountId, ufsUri, ufsConf);
 
-    try {
-      for (String physicalUfs : get(mountId).acquireUfsClientResource().getPhysicalStores()) {
+    try (CloseableResource<UnderFileSystem> ufsClientResource =
+        get(mountId).acquireUfsClientResource()) {
+      UnderFileSystem ufs = ufsClientResource.get();
+      for (String physicalUfs : ufs.getPhysicalStores()) {
         mPhysicalUfsToState.compute(physicalUfs, (k, v) -> {
           if (v == null) {
             v = new UfsState();
@@ -116,8 +119,10 @@ public final class MasterUfsManager extends AbstractUfsManager {
 
   @Override
   public void removeMount(long mountId) {
-    try {
-      for (String physicalUfs : get(mountId).acquireUfsClientResource().getPhysicalStores()) {
+    try (CloseableResource<UnderFileSystem> ufsClientResource =
+        get(mountId).acquireUfsClientResource()) {
+      UnderFileSystem ufs = ufsClientResource.get();
+      for (String physicalUfs : ufs.getPhysicalStores()) {
         mPhysicalUfsToState.computeIfPresent(physicalUfs, (k, v) -> {
           if (v.removeMount(mountId)) {
             // Remove key if list is empty

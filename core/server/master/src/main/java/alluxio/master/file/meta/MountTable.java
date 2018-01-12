@@ -24,6 +24,7 @@ import alluxio.master.journal.JournalEntryIterable;
 import alluxio.proto.journal.File;
 import alluxio.proto.journal.File.AddMountPointEntry;
 import alluxio.proto.journal.Journal;
+import alluxio.resource.CloseableResource;
 import alluxio.resource.LockResource;
 import alluxio.underfs.UfsManager;
 import alluxio.underfs.UnderFileSystem;
@@ -288,16 +289,17 @@ public final class MountTable implements JournalEntryIterable {
       if (mountPoint != null) {
         MountInfo info = mMountTable.get(mountPoint);
         AlluxioURI ufsUri = info.getUfsUri();
-        UnderFileSystem ufs;
-        try {
-          ufs = mUfsManager.get(info.getMountId()).acquireUfsClientResource();
+        try (CloseableResource<UnderFileSystem> ufsClientResource =
+                 mUfsManager.get(info.getMountId()).acquireUfsClientResource()) {
+          UnderFileSystem ufs = ufsClientResource.get();
+          AlluxioURI resolvedUri = ufs.resolveUri(ufsUri, path.substring(mountPoint.length()));
+          // TODO(adit): ufs in resolution may be active after resource is closed
+          return new Resolution(resolvedUri, ufs, info.getOptions().isShared(), info.getMountId());
         } catch (NotFoundException | UnavailableException e) {
           throw new RuntimeException(
               String.format("No UFS information for %s for mount Id %d, we should never reach here",
                   uri, info.getMountId()), e);
         }
-        AlluxioURI resolvedUri = ufs.resolveUri(ufsUri, path.substring(mountPoint.length()));
-        return new Resolution(resolvedUri, ufs, info.getOptions().isShared(), info.getMountId());
       }
       // TODO(binfan): throw exception as we should never reach here
       return new Resolution(uri, null, false, IdUtils.INVALID_MOUNT_ID);

@@ -15,6 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.exception.status.NotFoundException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.master.MasterClientConfig;
+import alluxio.resource.CloseableResource;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.worker.file.FileSystemMasterClient;
 
@@ -69,8 +70,10 @@ public final class WorkerUfsManager extends AbstractUfsManager {
             .setShared(info.getProperties().isShared())
             .setUserSpecifiedConf(info.getProperties().getProperties()));
     UfsInfo ufsInfo = super.get(mountId);
-    try {
-      ufsInfo.acquireUfsClientResource().connectFromWorker(
+    try (
+        CloseableResource<UnderFileSystem> ufsClientResource = ufsInfo.acquireUfsClientResource()) {
+      UnderFileSystem ufs = ufsClientResource.get();
+      ufs.connectFromWorker(
           NetworkAddressUtils.getConnectHost(NetworkAddressUtils.ServiceType.WORKER_RPC));
     } catch (IOException e) {
       removeMount(mountId);
