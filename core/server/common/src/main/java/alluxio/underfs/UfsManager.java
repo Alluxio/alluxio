@@ -51,12 +51,14 @@ public interface UfsManager extends Closeable {
     public synchronized CloseableResource<UnderFileSystem> acquireUfsClientResource() {
       if (mUfs == null) {
         mUfs = mUfsSupplier.get();
+        mCounter.inc();
       }
-      mCounter.inc();
       return new CloseableResource<UnderFileSystem>(mUfs) {
         @Override
         public void close() {
-          mCounter.dec();
+          if (mUfs != null) {
+            mCounter.dec();
+          }
         }
       };
     }
