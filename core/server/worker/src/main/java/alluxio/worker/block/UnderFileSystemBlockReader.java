@@ -22,6 +22,7 @@ import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.InvalidWorkerStateException;
 import alluxio.exception.PreconditionMessage;
 import alluxio.exception.status.AlluxioStatusException;
+import alluxio.resource.CloseableResource;
 import alluxio.underfs.UfsManager;
 import alluxio.underfs.UfsManager.UfsInfo;
 import alluxio.underfs.UnderFileSystem;
@@ -74,6 +75,8 @@ public final class UnderFileSystemBlockReader implements BlockReader {
   private final UfsManager mUfsManager;
   /** The manager for all ufs instream. */
   private final UfsInputStreamManager mUfsInstreamManager;
+  /** The ufs client resource. */
+  private CloseableResource<UnderFileSystem> mUfsClientResource;
 
   /**
    * The position of mUnderFileSystemInputStream (if not null) is blockStart + mInStreamPos.
@@ -112,13 +115,14 @@ public final class UnderFileSystemBlockReader implements BlockReader {
    * @param ufsInstreamManager the manager of ufs instreams
    */
   private UnderFileSystemBlockReader(UnderFileSystemBlockMeta blockMeta, BlockStore localBlockStore,
-      UfsManager ufsManager, UfsInputStreamManager ufsInstreamManager) {
+      UfsManager ufsManager, UfsInputStreamManager ufsInstreamManager) throws IOException {
     mInitialBlockSize = Configuration.getBytes(PropertyKey.WORKER_FILE_BUFFER_SIZE);
     mBlockMeta = blockMeta;
     mLocalBlockStore = localBlockStore;
     mInStreamPos = -1;
     mUfsManager = ufsManager;
     mUfsInstreamManager = ufsInstreamManager;
+    mUfsClientResource = mUfsManager.get(mBlockMeta.getMountId()).acquireUfsClientResource();
   }
 
   /**
@@ -127,7 +131,7 @@ public final class UnderFileSystemBlockReader implements BlockReader {
    * @param offset the position within the block to start the read
    */
   private void init(long offset) throws IOException {
-    UnderFileSystem ufs = mUfsManager.get(mBlockMeta.getMountId()).acquireUfsClientResource();
+    UnderFileSystem ufs = mUfsClientResource.get();
     ufs.connectFromWorker(
         NetworkAddressUtils.getConnectHost(NetworkAddressUtils.ServiceType.WORKER_RPC));
     updateUnderFileSystemInputStream(offset);
@@ -263,6 +267,10 @@ public final class UnderFileSystemBlockReader implements BlockReader {
         mBlockWriter.close();
       }
 
+      if (mUfsClientResource != null) {
+        mUfsClientResource.close();
+      }
+
     } finally {
       mClosed = true;
     }
@@ -294,7 +302,7 @@ public final class UnderFileSystemBlockReader implements BlockReader {
 
     if (mUnderFileSystemInputStream == null && offset < mBlockMeta.getBlockSize()) {
       UfsInfo ufsInfo = mUfsManager.get(mBlockMeta.getMountId());
-      UnderFileSystem ufs = ufsInfo.acquireUfsClientResource();
+      UnderFileSystem ufs = mUfsClientResource.get();
       mUfsMountPointUri = ufsInfo.getUfsMountPointUri();
       mUnderFileSystemInputStream = mUfsInstreamManager.acquire(ufs,
           mBlockMeta.getUnderFileSystemPath(), IdUtils.fileIdFromBlockId(mBlockMeta.getBlockId()),
