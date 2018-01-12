@@ -77,6 +77,11 @@ public final class BlockMasterClientServiceHandler implements BlockMasterClientS
         }
         return new GetWorkerInfoListTResponse(workerInfos);
       }
+
+      @Override
+      public String toString() {
+        return String.format("getWorkerInfoList: options=%s", options);
+      }
     });
   }
 
@@ -88,6 +93,11 @@ public final class BlockMasterClientServiceHandler implements BlockMasterClientS
       public GetCapacityBytesTResponse call() throws AlluxioException {
         return new GetCapacityBytesTResponse(mBlockMaster.getCapacityBytes());
       }
+
+      @Override
+      public String toString() {
+        return String.format("getCapacityBytes: options=%s", options);
+      }
     });
   }
 
@@ -97,6 +107,11 @@ public final class BlockMasterClientServiceHandler implements BlockMasterClientS
       @Override
       public GetUsedBytesTResponse call() throws AlluxioException {
         return new GetUsedBytesTResponse(mBlockMaster.getUsedBytes());
+      }
+
+      @Override
+      public String toString() {
+        return String.format("getUsedBytes: options=%s", options);
       }
     });
   }
@@ -108,6 +123,11 @@ public final class BlockMasterClientServiceHandler implements BlockMasterClientS
       @Override
       public GetBlockInfoTResponse call() throws AlluxioException, AlluxioStatusException {
         return new GetBlockInfoTResponse(ThriftUtils.toThrift(mBlockMaster.getBlockInfo(blockId)));
+      }
+
+      @Override
+      public String toString() {
+        return String.format("getBlockInfo: blockId=%s, options=%s", blockId, options);
       }
     });
   }
