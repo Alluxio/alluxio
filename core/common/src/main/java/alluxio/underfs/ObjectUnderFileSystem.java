@@ -614,7 +614,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
   }
 
   /**
-   * Create a zero-byte object used to encode a directory.
+   * Creates a zero-byte object used to encode a directory.
    *
    * @param key the key to create
    * @return true if the operation was successful
