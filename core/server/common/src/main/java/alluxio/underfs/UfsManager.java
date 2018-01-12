@@ -42,7 +42,7 @@ public interface UfsManager extends Closeable {
       mUfsSupplier = Preconditions.checkNotNull(ufsSupplier, "ufsSupplier is null");
       mUfsMountPointUri = Preconditions.checkNotNull(ufsMountPointUri, "ufsMountPointUri is null");
       mCounter = MetricsSystem.workerCounter(
-          String.format("UfsSessionsCount-Ufs:%s", MetricsSystem.escape(mUfsMountPointUri)));
+          String.format("UfsSessionCount-Ufs:%s", MetricsSystem.escape(mUfsMountPointUri)));
     }
 
     /**

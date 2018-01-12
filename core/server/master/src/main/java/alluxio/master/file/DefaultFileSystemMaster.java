@@ -98,6 +98,7 @@ import alluxio.proto.journal.File.RenameEntry;
 import alluxio.proto.journal.File.SetAttributeEntry;
 import alluxio.proto.journal.File.StringPairEntry;
 import alluxio.proto.journal.Journal.JournalEntry;
+import alluxio.resource.CloseableResource;
 import alluxio.security.authentication.AuthType;
 import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.security.authorization.Mode;
@@ -505,11 +506,14 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         // journaled, so the root will be re-mounted based on configuration whenever the master
         // starts.
         long rootUfsMountId = IdUtils.ROOT_MOUNT_ID;
+        boolean isShared =
+            Configuration.getBoolean(PropertyKey.UNDERFS_OBJECT_STORE_MOUNT_SHARED_PUBLICLY);
+        try (CloseableResource<UnderFileSystem> ufsClientResource =
+            mUfsManager.getRoot().acquireUfsClientResource()) {
+          isShared = isShared && ufsClientResource.get().isObjectStorage();
+        }
         mMountTable.add(new AlluxioURI(MountTable.ROOT), new AlluxioURI(rootUfsUri), rootUfsMountId,
-            MountOptions.defaults()
-                .setShared(mUfsManager.getRoot().acquireUfsClientResource().isObjectStorage() && Configuration
-                    .getBoolean(PropertyKey.UNDERFS_OBJECT_STORE_MOUNT_SHARED_PUBLICLY))
-                .setProperties(rootUfsConf));
+            MountOptions.defaults().setShared(isShared).setProperties(rootUfsConf));
       } catch (FileAlreadyExistsException | InvalidPathException e) {
         throw new IllegalStateException(e);
       }
@@ -1307,25 +1311,26 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     for (Map.Entry<String, MountInfo> mountPoint : mMountTable.getMountTable().entrySet()) {
       MountInfo mountInfo = mountPoint.getValue();
       MountPointInfo info = mountInfo.toMountPointInfo();
-      UnderFileSystem ufs;
-      try {
-        ufs = mUfsManager.get(mountInfo.getMountId()).acquireUfsClientResource();
+      try (CloseableResource<UnderFileSystem> ufsClientResource =
+          mUfsManager.get(mountInfo.getMountId()).acquireUfsClientResource()) {
+        UnderFileSystem ufs = ufsClientResource.get();
+        info.setUfsType(ufs.getUnderFSType());
+        try {
+          info.setUfsCapacityBytes(
+              ufs.getSpace(info.getUfsUri(), UnderFileSystem.SpaceType.SPACE_TOTAL));
+        } catch (IOException e) {
+          // pass
+        }
+        try {
+          info.setUfsUsedBytes(
+              ufs.getSpace(info.getUfsUri(), UnderFileSystem.SpaceType.SPACE_USED));
+        } catch (IOException e) {
+          // pass
+        }
       } catch (UnavailableException | NotFoundException e) {
         // We should never reach here
         LOG.error(String.format("No UFS cached for %s", info), e);
         continue;
-      }
-      info.setUfsType(ufs.getUnderFSType());
-      try {
-        info.setUfsCapacityBytes(
-            ufs.getSpace(info.getUfsUri(), UnderFileSystem.SpaceType.SPACE_TOTAL));
-      } catch (IOException e) {
-        // pass
-      }
-      try {
-        info.setUfsUsedBytes(ufs.getSpace(info.getUfsUri(), UnderFileSystem.SpaceType.SPACE_USED));
-      } catch (IOException e) {
-        // pass
       }
       mountPoints.put(mountPoint.getKey(), info);
     }
@@ -2773,13 +2778,16 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
             .setShared(options.isShared()).setUserSpecifiedConf(options.getProperties()));
     try {
       if (!replayed) {
-        UnderFileSystem ufs = mUfsManager.get(mountId).acquireUfsClientResource();
-        ufs.connectFromMaster(
-            NetworkAddressUtils.getConnectHost(NetworkAddressUtils.ServiceType.MASTER_RPC));
-        // Check that the ufsPath exists and is a directory
-        if (!ufs.isDirectory(ufsPath.toString())) {
-          throw new IOException(
-              ExceptionMessage.UFS_PATH_DOES_NOT_EXIST.getMessage(ufsPath.getPath()));
+        try (CloseableResource<UnderFileSystem> ufsClientResource =
+            mUfsManager.get(mountId).acquireUfsClientResource()) {
+          UnderFileSystem ufs = ufsClientResource.get();
+          ufs.connectFromMaster(
+              NetworkAddressUtils.getConnectHost(NetworkAddressUtils.ServiceType.MASTER_RPC));
+          // Check that the ufsPath exists and is a directory
+          if (!ufs.isDirectory(ufsPath.toString())) {
+            throw new IOException(
+                ExceptionMessage.UFS_PATH_DOES_NOT_EXIST.getMessage(ufsPath.getPath()));
+          }
         }
         // Check that the alluxioPath we're creating doesn't shadow a path in the default UFS
         String defaultUfsPath = Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
@@ -3634,7 +3642,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
           () -> master.getNumberOfPaths());
 
       final String ufsDataFolder = Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
-      final UnderFileSystem ufs = ufsManager.getRoot().acquireUfsClientResource();
+      final UnderFileSystem ufs = ufsManager.getRoot().acquireUfsClientResource().get();
 
       MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMasterMetricName(UFS_CAPACITY_TOTAL),
           () -> {
