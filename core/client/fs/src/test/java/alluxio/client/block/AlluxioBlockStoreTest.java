@@ -13,6 +13,7 @@ package alluxio.client.block;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.when;
 
 import alluxio.client.WriteType;
 import alluxio.client.block.policy.BlockLocationPolicy;
@@ -52,7 +53,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
-import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
