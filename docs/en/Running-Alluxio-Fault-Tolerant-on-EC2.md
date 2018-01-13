@@ -67,7 +67,7 @@ Copy `deploy/vagrant/conf/ec2.yml.template` to `deploy/vagrant/conf/ec2.yml` by:
 In the configuration file `deploy/vagrant/conf/ec2.yml`, set the value of `Keypair` to your keypair
 name and `Key_Path` to the path to the pem key.
 
-In the configuration file `deploy/vagrant/conf/ufs.yml`, either set the value of `Type` to `hadoop` or
+In the configuration file `deploy/vagrant/conf/ufs.yml`, either set the value of `Type` to `hadoop2` or
 specify an S3 bucket for the `Bucket` field.
 
 In the configuration file `deploy/vagrant/conf/alluxio.yml`, set the value of `Masters` to the
