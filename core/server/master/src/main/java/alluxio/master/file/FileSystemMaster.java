@@ -470,7 +470,6 @@ public interface FileSystemMaster extends Master {
    *
    * @param path the path of the file for persistence
    */
-<<<<<<< HEAD
   void scheduleAsyncPersistence(AlluxioURI path) throws AlluxioException, UnavailableException;
 
   /**
@@ -484,11 +483,6 @@ public interface FileSystemMaster extends Master {
   void updateUfsMode(AlluxioURI ufsPath, UnderFileSystem.UfsMode ufsMode)
       throws InvalidPathException, InvalidArgumentException, UnavailableException,
       AccessControlException;
-||||||| merged common ancestors
-  void scheduleAsyncPersistence(AlluxioURI path) throws AlluxioException;
-=======
-  void scheduleAsyncPersistence(AlluxioURI path) throws AlluxioException, UnavailableException;
->>>>>>> branch-1.7
 
   /**
    * Instructs a worker to persist the files.
