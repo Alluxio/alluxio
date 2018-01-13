@@ -149,7 +149,7 @@ public final class MasterUfsManager extends AbstractUfsManager {
   public Map<String, UnderFileSystem.UfsMode> getPhysicalUfsState(
       MountTable.Resolution resolution) {
     Map<String, UnderFileSystem.UfsMode> ufsModeState = new HashMap<>();
-    for (String physicalUfs : resolution.getUfs().getPhysicalStores()) {
+    for (String physicalUfs : resolution.getUfsClient().getPhysicalStores()) {
       UfsState ufsState = mPhysicalUfsToState.get(new AlluxioURI(physicalUfs).getRootPath());
       if (ufsState != null) {
         ufsModeState.put(physicalUfs, ufsState.getUfsMode());

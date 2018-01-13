@@ -999,7 +999,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
   private boolean checkConsistencyInternal(Inode inode, AlluxioURI path)
       throws FileDoesNotExistException, InvalidPathException, IOException {
     MountTable.Resolution resolution = mMountTable.resolve(path);
-    UnderFileSystem ufs = resolution.getUfs();
+    UnderFileSystem ufs = resolution.getUfsClient();
     String ufsPath = resolution.getUri().getPath();
     if (ufs == null) {
       return true;
@@ -1094,7 +1094,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       // Retrieve the UFS fingerprint for this file.
       MountTable.Resolution resolution = mMountTable.resolve(inodePath.getUri());
       AlluxioURI resolvedUri = resolution.getUri();
-      UnderFileSystem ufs = resolution.getUfs();
+      UnderFileSystem ufs = resolution.getUfsClient();
       ufsFingerprint = ufs.getFingerprint(resolvedUri.toString());
     }
 
@@ -2123,7 +2123,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         }
 
         String ufsSrcPath = resolution.getUri().toString();
-        UnderFileSystem ufs = resolution.getUfs();
+        UnderFileSystem ufs = resolution.getUfsClient();
         String ufsDstUri = mMountTable.resolve(dstPath).getUri().toString();
         boolean success;
         if (srcInode.isFile()) {
@@ -2461,7 +2461,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     AlluxioURI path = inodePath.getUri();
     MountTable.Resolution resolution = mMountTable.resolve(path);
     AlluxioURI ufsUri = resolution.getUri();
-    UnderFileSystem ufs = resolution.getUfs();
+    UnderFileSystem ufs = resolution.getUfsClient();
     try {
       if (options.getUfsStatus() == null && !ufs.exists(ufsUri.toString())) {
         // uri does not exist in ufs
@@ -2534,7 +2534,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       return;
     }
     AlluxioURI ufsUri = resolution.getUri();
-    UnderFileSystem ufs = resolution.getUfs();
+    UnderFileSystem ufs = resolution.getUfsClient();
 
     long ufsBlockSizeByte = ufs.getBlockSizeByte(ufsUri.toString());
     UfsFileStatus ufsStatus = (UfsFileStatus) options.getUfsStatus();
@@ -2604,7 +2604,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     UfsStatus ufsStatus = options.getUfsStatus();
     if (ufsStatus == null) {
       AlluxioURI ufsUri = resolution.getUri();
-      UnderFileSystem ufs = resolution.getUfs();
+      UnderFileSystem ufs = resolution.getUfsClient();
       ufsStatus = ufs.getDirectoryStatus(ufsUri.toString());
     }
     String ufsOwner = ufsStatus.getOwner();
@@ -3144,7 +3144,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
 
         MountTable.Resolution resolution = mMountTable.resolve(inodePath.getUri());
         AlluxioURI ufsUri = resolution.getUri();
-        UnderFileSystem ufs = resolution.getUfs();
+        UnderFileSystem ufs = resolution.getUfsClient();
 
         UfsSyncUtils.SyncPlan syncPlan =
             UfsSyncUtils.computeSyncPlan(inode, ufs.getFingerprint(ufsUri.toString()));
@@ -3206,7 +3206,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     }
     MountTable.Resolution resolution = mMountTable.resolve(inodePath.getUri());
     AlluxioURI ufsUri = resolution.getUri();
-    UnderFileSystem ufs = resolution.getUfs();
+    UnderFileSystem ufs = resolution.getUfsClient();
 
     boolean loadMetadata = false;
     DeleteOptions syncDeleteOptions =
@@ -3363,7 +3363,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         checkUfsMode(inodePath.getUri(), OperationType.WRITE);
         MountTable.Resolution resolution = mMountTable.resolve(inodePath.getUri());
         String ufsUri = resolution.getUri().toString();
-        UnderFileSystem ufs = resolution.getUfs();
+        UnderFileSystem ufs = resolution.getUfsClient();
         if (ufs.isObjectStorage()) {
           LOG.warn("setOwner/setMode is not supported to object storage UFS via Alluxio. " + "UFS: "
               + ufsUri + ". This has no effect on the underlying object.");
@@ -3554,7 +3554,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
   private void checkUfsMode(AlluxioURI alluxioPath, OperationType opType)
       throws AccessControlException, InvalidPathException {
     MountTable.Resolution resolution = mMountTable.resolve(alluxioPath);
-    UnderFileSystem ufs = resolution.getUfs();
+    UnderFileSystem ufs = resolution.getUfsClient();
     UnderFileSystem.UfsMode ufsMode =
         ufs.getOperationMode(mUfsManager.getPhysicalUfsState(resolution));
     switch (ufsMode) {

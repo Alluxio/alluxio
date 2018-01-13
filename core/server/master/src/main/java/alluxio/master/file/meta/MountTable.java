@@ -369,7 +369,7 @@ public final class MountTable implements JournalEntryIterable {
     /**
      * @return the {@link UnderFileSystem} instance
      */
-    public UnderFileSystem getUfs() {
+    public UnderFileSystem getUfsClient() {
       return mUfs;
     }
 

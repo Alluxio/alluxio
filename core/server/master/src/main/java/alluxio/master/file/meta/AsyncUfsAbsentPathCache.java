@@ -164,7 +164,7 @@ public final class AsyncUfsAbsentPathCache implements UfsAbsentPathCache {
           return false;
         }
 
-        UnderFileSystem ufs = resolution.getUfs();
+        UnderFileSystem ufs = resolution.getUfsClient();
         if (ufs.exists(resolution.getUri().toString())) {
           // This ufs path exists. Remove the cache entry.
           mCache.invalidate(alluxioUri.getPath());

@@ -72,7 +72,7 @@ public class LazyUfsBlockLocationCache implements UfsBlockLocationCache {
     try {
       MountTable.Resolution resolution = mMountTable.resolve(fileUri);
       String ufsUri = resolution.getUri().toString();
-      UnderFileSystem ufs = resolution.getUfs();
+      UnderFileSystem ufs = resolution.getUfsClient();
       locations = ufs.getFileLocations(ufsUri, FileLocationOptions.defaults().setOffset(offset));
       if (locations != null) {
         mCache.put(blockId, locations);

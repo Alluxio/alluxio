@@ -140,7 +140,7 @@ public final class UfsSyncChecker {
       throws InvalidPathException, IOException {
     MountTable.Resolution resolution = mMountTable.resolve(alluxioUri);
     AlluxioURI ufsUri = resolution.getUri();
-    UnderFileSystem ufs = resolution.getUfs();
+    UnderFileSystem ufs = resolution.getUfsClient();
 
     AlluxioURI curUri = ufsUri;
     while (curUri != null) {
