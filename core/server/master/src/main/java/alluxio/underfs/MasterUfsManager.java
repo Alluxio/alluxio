@@ -21,6 +21,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -143,13 +144,12 @@ public final class MasterUfsManager extends AbstractUfsManager {
    * Get the physical ufs operation modes for the {@link UnderFileSystem} under the given Mount
    * table resolution.
    *
-   * @param resolution the mount table resolution for an Alluxio path
+   * @param physicalStores the physical stores for the mount resolution
    * @return the state of physical UFS for given mount resolution
    */
-  public Map<String, UnderFileSystem.UfsMode> getPhysicalUfsState(
-      MountTable.Resolution resolution) {
+  public Map<String, UnderFileSystem.UfsMode> getPhysicalUfsState(List<String> physicalStores) {
     Map<String, UnderFileSystem.UfsMode> ufsModeState = new HashMap<>();
-    for (String physicalUfs : resolution.getUfsClient().getPhysicalStores()) {
+    for (String physicalUfs : physicalStores) {
       UfsState ufsState = mPhysicalUfsToState.get(new AlluxioURI(physicalUfs).getRootPath());
       if (ufsState != null) {
         ufsModeState.put(physicalUfs, ufsState.getUfsMode());

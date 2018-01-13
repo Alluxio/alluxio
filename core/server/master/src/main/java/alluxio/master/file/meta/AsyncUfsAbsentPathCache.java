@@ -16,6 +16,7 @@ import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.exception.InvalidPathException;
 import alluxio.master.file.meta.options.MountInfo;
+import alluxio.resource.CloseableResource;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.ThreadFactoryUtils;
 import alluxio.util.io.PathUtils;
@@ -164,22 +165,25 @@ public final class AsyncUfsAbsentPathCache implements UfsAbsentPathCache {
           return false;
         }
 
-        UnderFileSystem ufs = resolution.getUfsClient();
-        if (ufs.exists(resolution.getUri().toString())) {
-          // This ufs path exists. Remove the cache entry.
-          mCache.invalidate(alluxioUri.getPath());
-        } else {
-          // This is the first ufs path which does not exist. Add it to the cache.
-          mCache.put(alluxioUri.getPath(), mountInfo.getMountId());
-
-          if (pathLock.isInvalidate()) {
-            // This path was marked to be invalidated, meaning this UFS path was just created,
-            // and now exists. Invalidate the entry.
-            // This check is necessary to avoid the race with the invalidating thread.
+        try (CloseableResource<UnderFileSystem> ufsClientResource =
+                 resolution.getUfsClient().acquireUfsClientResource()) {
+          UnderFileSystem ufs = ufsClientResource.get();
+          if (ufs.exists(resolution.getUri().toString())) {
+            // This ufs path exists. Remove the cache entry.
             mCache.invalidate(alluxioUri.getPath());
           } else {
-            // Further traversal is unnecessary.
-            return false;
+            // This is the first ufs path which does not exist. Add it to the cache.
+            mCache.put(alluxioUri.getPath(), mountInfo.getMountId());
+
+            if (pathLock.isInvalidate()) {
+              // This path was marked to be invalidated, meaning this UFS path was just created,
+              // and now exists. Invalidate the entry.
+              // This check is necessary to avoid the race with the invalidating thread.
+              mCache.invalidate(alluxioUri.getPath());
+            } else {
+              // Further traversal is unnecessary.
+              return false;
+            }
           }
         }
       }

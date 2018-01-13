@@ -36,6 +36,7 @@ import alluxio.proto.journal.File;
 import alluxio.proto.journal.File.InodeDirectoryEntry;
 import alluxio.proto.journal.File.InodeFileEntry;
 import alluxio.proto.journal.Journal;
+import alluxio.resource.CloseableResource;
 import alluxio.retry.ExponentialBackoffRetry;
 import alluxio.retry.RetryPolicy;
 import alluxio.security.authorization.Mode;
@@ -998,19 +999,22 @@ public class InodeTree implements JournalEntryIterable {
           AlluxioURI uri = getPath(dir);
           MountTable.Resolution resolution = mMountTable.resolve(uri);
           String ufsUri = resolution.getUri().toString();
-          UnderFileSystem ufs = resolution.getUfsClient();
-          MkdirsOptions mkdirsOptions =
-              MkdirsOptions.defaults().setCreateParent(false).setOwner(dir.getOwner())
-                  .setGroup(dir.getGroup()).setMode(new Mode(dir.getMode()));
-          ufs.mkdirs(ufsUri, mkdirsOptions);
-          dir.setPersistenceState(PersistenceState.PERSISTED);
+          try (CloseableResource<UnderFileSystem> ufsClientResource =
+                   resolution.getUfsClient().acquireUfsClientResource()) {
+            UnderFileSystem ufs = ufsClientResource.get();
+            MkdirsOptions mkdirsOptions =
+                MkdirsOptions.defaults().setCreateParent(false).setOwner(dir.getOwner())
+                    .setGroup(dir.getGroup()).setMode(new Mode(dir.getMode()));
+            ufs.mkdirs(ufsUri, mkdirsOptions);
+            dir.setPersistenceState(PersistenceState.PERSISTED);
 
-          // Append the persist entry to the journal.
-          File.PersistDirectoryEntry persistDirectory =
-              File.PersistDirectoryEntry.newBuilder().setId(dir.getId()).build();
-          journalContext.append(
-              Journal.JournalEntry.newBuilder().setPersistDirectory(persistDirectory).build());
-          success = true;
+            // Append the persist entry to the journal.
+            File.PersistDirectoryEntry persistDirectory =
+                File.PersistDirectoryEntry.newBuilder().setId(dir.getId()).build();
+            journalContext.append(
+                Journal.JournalEntry.newBuilder().setPersistDirectory(persistDirectory).build());
+            success = true;
+          }
         } finally {
           if (!success) {
             // Failed to persist the inode, so set the state back to NOT_PERSISTED.

@@ -289,12 +289,15 @@ public final class MountTable implements JournalEntryIterable {
       if (mountPoint != null) {
         MountInfo info = mMountTable.get(mountPoint);
         AlluxioURI ufsUri = info.getUfsUri();
-        try (CloseableResource<UnderFileSystem> ufsClientResource =
-                 mUfsManager.get(info.getMountId()).acquireUfsClientResource()) {
-          UnderFileSystem ufs = ufsClientResource.get();
-          AlluxioURI resolvedUri = ufs.resolveUri(ufsUri, path.substring(mountPoint.length()));
-          // TODO(adit): Change resolution to store a closeable resource
-          return new Resolution(resolvedUri, ufs, info.getOptions().isShared(), info.getMountId());
+        try {
+          UfsManager.UfsClient ufsClient = mUfsManager.get(info.getMountId());
+          try (CloseableResource<UnderFileSystem> ufsClientResource =
+              mUfsManager.get(info.getMountId()).acquireUfsClientResource()) {
+            UnderFileSystem ufs = ufsClientResource.get();
+            AlluxioURI resolvedUri = ufs.resolveUri(ufsUri, path.substring(mountPoint.length()));
+            return new Resolution(resolvedUri, ufsClient, info.getOptions().isShared(),
+                info.getMountId());
+          }
         } catch (NotFoundException | UnavailableException e) {
           throw new RuntimeException(
               String.format("No UFS information for %s for mount Id %d, we should never reach here",
@@ -348,13 +351,13 @@ public final class MountTable implements JournalEntryIterable {
    */
   public final class Resolution {
     private final AlluxioURI mUri;
-    private final UnderFileSystem mUfs;
+    private final UfsManager.UfsClient mUfsClient;
     private final boolean mShared;
     private final long mMountId;
 
-    private Resolution(AlluxioURI uri, UnderFileSystem ufs, boolean shared, long mountId) {
+    private Resolution(AlluxioURI uri, UfsManager.UfsClient ufs, boolean shared, long mountId) {
       mUri = uri;
-      mUfs = ufs;
+      mUfsClient = ufs;
       mShared = shared;
       mMountId = mountId;
     }
@@ -369,8 +372,8 @@ public final class MountTable implements JournalEntryIterable {
     /**
      * @return the {@link UnderFileSystem} instance
      */
-    public UnderFileSystem getUfsClient() {
-      return mUfs;
+    public UfsManager.UfsClient getUfsClient() {
+      return mUfsClient;
     }
 
     /**

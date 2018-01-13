@@ -3554,22 +3554,25 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
   private void checkUfsMode(AlluxioURI alluxioPath, OperationType opType)
       throws AccessControlException, InvalidPathException {
     MountTable.Resolution resolution = mMountTable.resolve(alluxioPath);
-    UnderFileSystem ufs = resolution.getUfsClient();
-    UnderFileSystem.UfsMode ufsMode =
-        ufs.getOperationMode(mUfsManager.getPhysicalUfsState(resolution));
-    switch (ufsMode) {
-      case NO_ACCESS:
-        throw new AccessControlException(ExceptionMessage.UFS_OP_NOT_ALLOWED.getMessage(opType,
-            resolution.getUri(), UnderFileSystem.UfsMode.NO_ACCESS));
-      case READ_ONLY:
-        if (opType == OperationType.WRITE) {
+    try (CloseableResource<UnderFileSystem> ufsClientResource =
+             resolution.getUfsClient().acquireUfsClientResource()) {
+      UnderFileSystem ufs = ufsClientResource.get();
+      UnderFileSystem.UfsMode ufsMode =
+          ufs.getOperationMode(mUfsManager.getPhysicalUfsState(ufs.getPhysicalStores()));
+      switch (ufsMode) {
+        case NO_ACCESS:
           throw new AccessControlException(ExceptionMessage.UFS_OP_NOT_ALLOWED.getMessage(opType,
-              resolution.getUri(), UnderFileSystem.UfsMode.READ_ONLY));
-        }
-        break;
-      default:
-        // All operations are allowed
-        break;
+              resolution.getUri(), UnderFileSystem.UfsMode.NO_ACCESS));
+        case READ_ONLY:
+          if (opType == OperationType.WRITE) {
+            throw new AccessControlException(ExceptionMessage.UFS_OP_NOT_ALLOWED.getMessage(opType,
+                resolution.getUri(), UnderFileSystem.UfsMode.READ_ONLY));
+          }
+          break;
+        default:
+          // All operations are allowed
+          break;
+      }
     }
   }
 
