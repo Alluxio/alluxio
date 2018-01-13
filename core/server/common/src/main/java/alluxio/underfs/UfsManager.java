@@ -58,6 +58,7 @@ public interface UfsManager extends Closeable {
         public void close() {
           if (mUfs != null) {
             mCounter.dec();
+            mUfs = null;
           }
         }
       };
