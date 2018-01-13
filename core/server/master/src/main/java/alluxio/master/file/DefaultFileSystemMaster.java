@@ -3642,12 +3642,12 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
           () -> master.getNumberOfPaths());
 
       final String ufsDataFolder = Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
-      // Note: Ufs client resource is never closed
-      final UnderFileSystem ufs = ufsManager.getRoot().acquireUfsClientResource().get();
 
       MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMasterMetricName(UFS_CAPACITY_TOTAL),
           () -> {
-            try {
+            try (CloseableResource<UnderFileSystem> ufsResource =
+                ufsManager.getRoot().acquireUfsClientResource()) {
+              UnderFileSystem ufs = ufsResource.get();
               return ufs.getSpace(ufsDataFolder, UnderFileSystem.SpaceType.SPACE_TOTAL);
             } catch (IOException e) {
               LOG.error(e.getMessage(), e);
@@ -3657,7 +3657,9 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
 
       MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMasterMetricName(UFS_CAPACITY_USED),
           () -> {
-            try {
+            try (CloseableResource<UnderFileSystem> ufsResource =
+                ufsManager.getRoot().acquireUfsClientResource()) {
+              UnderFileSystem ufs = ufsResource.get();
               return ufs.getSpace(ufsDataFolder, UnderFileSystem.SpaceType.SPACE_USED);
             } catch (IOException e) {
               LOG.error(e.getMessage(), e);
@@ -3670,7 +3672,9 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
             @Override
             public Long getValue() {
               long ret = 0L;
-              try {
+              try (CloseableResource<UnderFileSystem> ufsResource =
+                       ufsManager.getRoot().acquireUfsClientResource()) {
+                UnderFileSystem ufs = ufsResource.get();
                 ret = ufs.getSpace(ufsDataFolder, UnderFileSystem.SpaceType.SPACE_FREE);
               } catch (IOException e) {
                 LOG.error(e.getMessage(), e);
