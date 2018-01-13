@@ -19,7 +19,7 @@ import alluxio.PropertyKey;
 import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.underfs.UfsManager;
-import alluxio.underfs.UfsManager.UfsInfo;
+import alluxio.underfs.UfsManager.UfsClient;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.io.BufferUtils;
 import alluxio.worker.block.io.BlockReader;
@@ -80,10 +80,10 @@ public final class UnderFileSystemBlockReaderTest {
     mAlluxioBlockStore = new TieredBlockStore();
     mUfsManager = Mockito.mock(UfsManager.class);
     mUfsInstreamManager = new UfsInputStreamManager();
-    UfsInfo ufsInfo = new UfsInfo(
+    UfsManager.UfsClient ufsClient = new UfsClient(
         Suppliers.ofInstance(UnderFileSystem.Factory.create(testFilePath)),
         new AlluxioURI(testFilePath));
-    Mockito.when(mUfsManager.get(Mockito.anyLong())).thenReturn(ufsInfo);
+    Mockito.when(mUfsManager.get(Mockito.anyLong())).thenReturn(ufsClient);
 
     mOpenUfsBlockOptions = Protocol.OpenUfsBlockOptions.newBuilder().setMaxUfsReadConcurrency(10)
         .setBlockSize(TEST_BLOCK_SIZE).setOffsetInFile(TEST_BLOCK_SIZE).setUfsPath(testFilePath)

@@ -17,7 +17,6 @@ import alluxio.proto.dataserver.Protocol;
 import alluxio.resource.CloseableResource;
 import alluxio.security.authorization.Mode;
 import alluxio.underfs.UfsManager;
-import alluxio.underfs.UfsManager.UfsInfo;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.CreateOptions;
 
@@ -157,9 +156,9 @@ public final class UfsFileWriteHandler extends AbstractWriteHandler<UfsFileWrite
       UfsFileWriteRequest request = context.getRequest();
       Preconditions.checkState(request != null);
       Protocol.CreateUfsFileOptions createUfsFileOptions = request.getCreateUfsFileOptions();
-      UfsInfo ufsInfo = mUfsManager.get(createUfsFileOptions.getMountId());
+      UfsManager.UfsClient ufsClient = mUfsManager.get(createUfsFileOptions.getMountId());
       if (mUfsClientResource == null) {
-        mUfsClientResource = ufsInfo.acquireUfsClientResource();
+        mUfsClientResource = ufsClient.acquireUfsClientResource();
       }
       UnderFileSystem ufs = mUfsClientResource.get();
       context.setUnderFileSystem(ufs);
@@ -167,7 +166,7 @@ public final class UfsFileWriteHandler extends AbstractWriteHandler<UfsFileWrite
           CreateOptions.defaults().setOwner(createUfsFileOptions.getOwner())
               .setGroup(createUfsFileOptions.getGroup())
               .setMode(new Mode((short) createUfsFileOptions.getMode()))));
-      String ufsString = MetricsSystem.escape(ufsInfo.getUfsMountPointUri());
+      String ufsString = MetricsSystem.escape(ufsClient.getUfsMountPointUri());
       String metricName = String.format("BytesWrittenUfs-Ufs:%s", ufsString);
       Counter counter = MetricsSystem.workerCounter(metricName);
       context.setCounter(counter);

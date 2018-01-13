@@ -28,7 +28,7 @@ import java.io.Closeable;
  */
 public interface UfsManager extends Closeable {
   /** Container for a UFS and the URI for that UFS. */
-  class UfsInfo {
+  class UfsClient {
     private UnderFileSystem mUfs;
     private final AlluxioURI mUfsMountPointUri;
     private final Supplier<UnderFileSystem> mUfsSupplier;
@@ -38,7 +38,7 @@ public interface UfsManager extends Closeable {
      * @param ufsSupplier the supplier function to create a new UFS instance
      * @param ufsMountPointUri the URI for the UFS path which is mounted in Alluxio
      */
-    public UfsInfo(Supplier<UnderFileSystem> ufsSupplier, AlluxioURI ufsMountPointUri) {
+    public UfsClient(Supplier<UnderFileSystem> ufsSupplier, AlluxioURI ufsMountPointUri) {
       mUfsSupplier = Preconditions.checkNotNull(ufsSupplier, "ufsSupplier is null");
       mUfsMountPointUri = Preconditions.checkNotNull(ufsMountPointUri, "ufsMountPointUri is null");
       mCounter = MetricsSystem.workerCounter(
@@ -99,10 +99,10 @@ public interface UfsManager extends Closeable {
    * @throws NotFoundException if mount id is not found in mount table
    * @throws UnavailableException if master is not available to query for mount table
    */
-  UfsInfo get(long mountId) throws NotFoundException, UnavailableException;
+  UfsClient get(long mountId) throws NotFoundException, UnavailableException;
 
   /**
    * @return the UFS information associated with root
    */
-  UfsInfo getRoot();
+  UfsClient getRoot();
 }

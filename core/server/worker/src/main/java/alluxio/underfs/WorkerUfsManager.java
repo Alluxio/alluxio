@@ -50,7 +50,7 @@ public final class WorkerUfsManager extends AbstractUfsManager {
    * ufs info.
    */
   @Override
-  public UfsInfo get(long mountId) throws NotFoundException, UnavailableException {
+  public UfsClient get(long mountId) throws NotFoundException, UnavailableException {
     try {
       return super.get(mountId);
     } catch (NotFoundException e) {
@@ -69,9 +69,9 @@ public final class WorkerUfsManager extends AbstractUfsManager {
         UnderFileSystemConfiguration.defaults().setReadOnly(info.getProperties().isReadOnly())
             .setShared(info.getProperties().isShared())
             .setUserSpecifiedConf(info.getProperties().getProperties()));
-    UfsInfo ufsInfo = super.get(mountId);
+    UfsClient ufsClient = super.get(mountId);
     try (
-        CloseableResource<UnderFileSystem> ufsClientResource = ufsInfo.acquireUfsClientResource()) {
+        CloseableResource<UnderFileSystem> ufsClientResource = ufsClient.acquireUfsClientResource()) {
       UnderFileSystem ufs = ufsClientResource.get();
       ufs.connectFromWorker(
           NetworkAddressUtils.getConnectHost(NetworkAddressUtils.ServiceType.WORKER_RPC));
@@ -80,6 +80,6 @@ public final class WorkerUfsManager extends AbstractUfsManager {
       throw new UnavailableException(
           String.format("Failed to connect to UFS %s with id %d", info.getUri(), mountId), e);
     }
-    return ufsInfo;
+    return ufsClient;
   }
 }

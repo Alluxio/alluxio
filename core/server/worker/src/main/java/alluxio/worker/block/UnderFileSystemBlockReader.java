@@ -24,7 +24,6 @@ import alluxio.exception.PreconditionMessage;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.resource.CloseableResource;
 import alluxio.underfs.UfsManager;
-import alluxio.underfs.UfsManager.UfsInfo;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.OpenOptions;
 import alluxio.util.IdUtils;
@@ -301,9 +300,9 @@ public final class UnderFileSystemBlockReader implements BlockReader {
     }
 
     if (mUnderFileSystemInputStream == null && offset < mBlockMeta.getBlockSize()) {
-      UfsInfo ufsInfo = mUfsManager.get(mBlockMeta.getMountId());
+      UfsManager.UfsClient ufsClient = mUfsManager.get(mBlockMeta.getMountId());
       UnderFileSystem ufs = mUfsClientResource.get();
-      mUfsMountPointUri = ufsInfo.getUfsMountPointUri();
+      mUfsMountPointUri = ufsClient.getUfsMountPointUri();
       mUnderFileSystemInputStream = mUfsInstreamManager.acquire(ufs,
           mBlockMeta.getUnderFileSystemPath(), IdUtils.fileIdFromBlockId(mBlockMeta.getBlockId()),
           OpenOptions.defaults().setOffset(mBlockMeta.getOffset() + offset));
