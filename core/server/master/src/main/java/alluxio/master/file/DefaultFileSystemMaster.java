@@ -3051,16 +3051,9 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
   }
 
   @Override
-<<<<<<< HEAD
   public void scheduleAsyncPersistence(AlluxioURI path)
       throws AlluxioException, UnavailableException {
     checkUfsMode(path, OperationType.WRITE);
-||||||| merged common ancestors
-  public void scheduleAsyncPersistence(AlluxioURI path) throws AlluxioException {
-=======
-  public void scheduleAsyncPersistence(AlluxioURI path)
-      throws AlluxioException, UnavailableException {
->>>>>>> branch-1.7
     try (JournalContext journalContext = createJournalContext();
         LockedInodePath inodePath = mInodeTree.lockFullInodePath(path, InodeTree.LockMode.WRITE)) {
       scheduleAsyncPersistenceAndJournal(inodePath, journalContext);
@@ -3549,7 +3542,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    * Check if the specified operation type is allowed to the ufs.
    *
    * @param alluxioPath the Alluxio path
-   * @param op the operation type
+   * @param opType the operation type
    * @throws AccessControlException if the specified operation is not allowed
    */
   private void checkUfsMode(AlluxioURI alluxioPath, OperationType opType)
