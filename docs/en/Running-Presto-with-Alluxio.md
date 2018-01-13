@@ -15,7 +15,7 @@ The prerequisite for this part is that you have [Java](Java-Setup.html). And the
 Alluxio cluster should also be set up in accordance to these guides for either
 [Local Mode](Running-Alluxio-Locally.html) or [Cluster Mode](Running-Alluxio-on-a-Cluster.html).
 
-Please [Download Presto](https://repo1.maven.org/maven2/com/facebook/presto/presto-server/)(This doc uses presto-0.170). Also, please complete Hive setup using
+Please [Download Presto](https://repo1.maven.org/maven2/com/facebook/presto/presto-server/)(This doc uses presto-0.191). Also, please complete Hive setup using
 [Hive On Alluxio](Running-Hive-with-Alluxio.html)
 
 # Configuration
@@ -134,7 +134,7 @@ Alternatively, you can follow the [instructions](Running-Hive-with-Alluxio.html#
 
 Next, using a single query:
 ```
-/home/path/presto/presto-cli-0.170-executable.jar --server masterIp:prestoPort --execute "use default;select * from u_user limit 10;" --user username --debug
+/home/path/presto/presto-cli-0.191-executable.jar --server masterIp:prestoPort --execute "use default;select * from u_user limit 10;" --user username --debug
 ```
 
 And you can see the query results from console:

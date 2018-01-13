@@ -38,7 +38,7 @@ public final class StorageSpaceValidationTask extends AbstractValidationTask {
   }
 
   @Override
-  public boolean validate(Map<String, String> optionsMap) {
+  public TaskResult validate(Map<String, String> optionsMap) {
     int numLevel = Configuration.getInt(PropertyKey.WORKER_TIERED_STORE_LEVELS);
     boolean success = true;
 
@@ -56,7 +56,7 @@ public final class StorageSpaceValidationTask extends AbstractValidationTask {
       String rawDirQuota = Configuration.get(tierDirCapacityConf);
       if (rawDirQuota.isEmpty()) {
         System.err.format("Tier %d: Quota cannot be empty.%n", level);
-        return false;
+        return TaskResult.FAILED;
       }
 
       String[] dirQuotas = rawDirQuota.split(",");
@@ -118,7 +118,7 @@ public final class StorageSpaceValidationTask extends AbstractValidationTask {
       }
     }
 
-    return success;
+    return success ? TaskResult.OK : TaskResult.WARNING;
   }
 
   private boolean addDirectoryInfo(String path, long quota, Map<String, MountedStorage> storageMap)

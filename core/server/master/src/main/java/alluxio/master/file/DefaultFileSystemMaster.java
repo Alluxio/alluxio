@@ -3051,9 +3051,16 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
   }
 
   @Override
+<<<<<<< HEAD
   public void scheduleAsyncPersistence(AlluxioURI path)
       throws AlluxioException, UnavailableException {
     checkUfsMode(path, OperationType.WRITE);
+||||||| merged common ancestors
+  public void scheduleAsyncPersistence(AlluxioURI path) throws AlluxioException {
+=======
+  public void scheduleAsyncPersistence(AlluxioURI path)
+      throws AlluxioException, UnavailableException {
+>>>>>>> branch-1.7
     try (JournalContext journalContext = createJournalContext();
         LockedInodePath inodePath = mInodeTree.lockFullInodePath(path, InodeTree.LockMode.WRITE)) {
       scheduleAsyncPersistenceAndJournal(inodePath, journalContext);
@@ -3322,10 +3329,12 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     }
     if (options.getTtl() != null) {
       long ttl = options.getTtl();
-      if (inode.getTtl() != ttl) {
-        mTtlBuckets.remove(inode);
-        inode.setTtl(ttl);
-        mTtlBuckets.insert(inode);
+      if (inode.getTtl() != ttl || inode.getTtlAction() != options.getTtlAction()) {
+        if (inode.getTtl() != ttl) {
+          mTtlBuckets.remove(inode);
+          inode.setTtl(ttl);
+          mTtlBuckets.insert(inode);
+        }
         inode.setLastModificationTimeMs(opTimeMs);
         inode.setTtlAction(options.getTtlAction());
       }

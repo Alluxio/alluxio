@@ -45,23 +45,23 @@ You need to add the following three properties to `hbase-site.xml` in your HBase
 </property>
 <property>
   <name>hbase.rootdir</name>
-  <value>alluxio://master_hostname:port/hbase</value>
+  <value>alluxio://<ALLUXIO_MASTER_HOSTNAME>:<PORT>/hbase</value>
 </property>
 ```
 
 ## Distribute the Alluxio Client jar
 
-We need to make the Alluxio client `jar` file available to HBase, because it contains the configured
+We need to make the Alluxio client jar file available to HBase, because it contains the configured
 `alluxio.hadoop.FileSystem` class.
 We recommend you to download the tarball from
 Alluxio [download page](http://www.alluxio.org/download).
 Alternatively, advanced users can choose to compile this client jar from the source code
-by following Follow the instructs [here](Building-Alluxio-Master-Branch.html#compute-framework-support).
+by following the instructions [here](Building-Alluxio-Master-Branch.html#compute-framework-support).
 The Alluxio client jar can be found at `{{site.ALLUXIO_CLIENT_JAR_PATH}}`.
 
 There are two ways to achieve that:
 
-- Put the `{{site.ALLUXIO_CLIENT_JAR_PATH}}` file into the `lib` directory of HBase.
+- Copy the `{{site.ALLUXIO_CLIENT_JAR_PATH}}` file into the `lib` directory of HBase.
 - Specify the location of the jar file in the `$HBASE_CLASSPATH` environment variable (make sure it's available
 on all cluster nodes). For example:
 
@@ -89,12 +89,12 @@ Start HBase:
 $ ${HBASE_HOME}/bin/start-hbase.sh
 ```
 
-Visit HBase Web UI at `http://<hostname>:16010` to confirm that HBase is running on Alluxio
+Visit HBase Web UI at `http://<HBASE_MASTER_HOSTNAME>:16010` to confirm that HBase is running on Alluxio
 (check the `HBase Root Directory` attribute):
 
 ![HBaseRootDirectory]({{site.data.img.screenshot_start_hbase_webui}})
 
-And visit Alluxio Web UI at `http://<hostname>:19999`, click `Browse` and you can see the files HBase stores
+And visit Alluxio Web UI at `http://<ALLUXIO_MASTER_HOSTNAME>:19999`, click `Browse` and you can see the files HBase stores
 on Alluxio, including data and WALs:
 
 ![HBaseRootDirectoryOnAlluxio]({{site.data.img.screenshot_start_hbase_alluxio_webui}})
