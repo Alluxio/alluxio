@@ -266,9 +266,7 @@ public final class UnderFileSystemBlockReader implements BlockReader {
         mBlockWriter.close();
       }
 
-      if (mUfsClientResource != null) {
-        mUfsClientResource.close();
-      }
+      mUfsClientResource.close();
 
     } finally {
       mClosed = true;
