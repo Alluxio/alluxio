@@ -222,7 +222,7 @@ public class AlluxioURITest {
    */
   @Test
   public void constructFromParentAndChildTests() {
-    testParentChild(".", ".", ".");
+    testParentChild("", ".", ".");
     testParentChild("/", "/", ".");
     testParentChild("/", ".", "/");
     testParentChild("hdfs://localhost:8080/a/b/d.txt", "hdfs://localhost:8080/a/b/c.txt",
@@ -644,7 +644,7 @@ public class AlluxioURITest {
       assertEquals(uri, turi.toString());
     }
 
-    assertEquals("", new AlluxioURI(".").toString());
+    assertEquals(".", new AlluxioURI(".").toString());
     assertEquals("file:///a", new AlluxioURI("file:///a").toString());
     assertEquals("file:///a", new AlluxioURI("file", null, "/a").toString());
   }
@@ -759,7 +759,7 @@ public class AlluxioURITest {
 
     assertEquals("",       new AlluxioURI("").getLeadingPath(0));
     assertEquals(null,     new AlluxioURI("").getLeadingPath(1));
-    assertEquals("",       new AlluxioURI(".").getLeadingPath(0));
+    assertEquals(".",       new AlluxioURI(".").getLeadingPath(0));
     assertEquals(null,     new AlluxioURI(".").getLeadingPath(1));
     assertEquals("a/b",    new AlluxioURI("a/b/c").getLeadingPath(1));
   }
