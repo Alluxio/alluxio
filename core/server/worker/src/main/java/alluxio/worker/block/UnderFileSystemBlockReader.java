@@ -75,7 +75,7 @@ public final class UnderFileSystemBlockReader implements BlockReader {
   /** The manager for all ufs instream. */
   private final UfsInputStreamManager mUfsInstreamManager;
   /** The ufs client resource. */
-  private CloseableResource<UnderFileSystem> mUfsClientResource;
+  private CloseableResource<UnderFileSystem> mUfsResource;
 
   /**
    * The position of mUnderFileSystemInputStream (if not null) is blockStart + mInStreamPos.
@@ -121,7 +121,9 @@ public final class UnderFileSystemBlockReader implements BlockReader {
     mInStreamPos = -1;
     mUfsManager = ufsManager;
     mUfsInstreamManager = ufsInstreamManager;
-    mUfsClientResource = mUfsManager.get(mBlockMeta.getMountId()).acquireUfsResource();
+    UfsManager.UfsClient ufsClient = mUfsManager.get(mBlockMeta.getMountId());
+    mUfsResource = ufsClient.acquireUfsResource();
+    mUfsMountPointUri = ufsClient.getUfsMountPointUri();
   }
 
   /**
@@ -130,7 +132,7 @@ public final class UnderFileSystemBlockReader implements BlockReader {
    * @param offset the position within the block to start the read
    */
   private void init(long offset) throws IOException {
-    UnderFileSystem ufs = mUfsClientResource.get();
+    UnderFileSystem ufs = mUfsResource.get();
     ufs.connectFromWorker(
         NetworkAddressUtils.getConnectHost(NetworkAddressUtils.ServiceType.WORKER_RPC));
     updateUnderFileSystemInputStream(offset);
@@ -266,8 +268,7 @@ public final class UnderFileSystemBlockReader implements BlockReader {
         mBlockWriter.close();
       }
 
-      mUfsClientResource.close();
-
+      mUfsResource.close();
     } finally {
       mClosed = true;
     }
@@ -298,9 +299,7 @@ public final class UnderFileSystemBlockReader implements BlockReader {
     }
 
     if (mUnderFileSystemInputStream == null && offset < mBlockMeta.getBlockSize()) {
-      UfsManager.UfsClient ufsClient = mUfsManager.get(mBlockMeta.getMountId());
-      UnderFileSystem ufs = mUfsClientResource.get();
-      mUfsMountPointUri = ufsClient.getUfsMountPointUri();
+      UnderFileSystem ufs = mUfsResource.get();
       mUnderFileSystemInputStream = mUfsInstreamManager.acquire(ufs,
           mBlockMeta.getUnderFileSystemPath(), IdUtils.fileIdFromBlockId(mBlockMeta.getBlockId()),
           OpenOptions.defaults().setOffset(mBlockMeta.getOffset() + offset));

@@ -3388,12 +3388,12 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         checkUfsMode(inodePath.getUri(), OperationType.WRITE);
         MountTable.Resolution resolution = mMountTable.resolve(inodePath.getUri());
         String ufsUri = resolution.getUri().toString();
-        try (CloseableResource<UnderFileSystem> ufsClientResource =
-                 resolution.getUfsClient().acquireUfsResource()) {
-          UnderFileSystem ufs = ufsClientResource.get();
+        try (CloseableResource<UnderFileSystem> ufsResource =
+            resolution.getUfsClient().acquireUfsResource()) {
+          UnderFileSystem ufs = ufsResource.get();
           if (ufs.isObjectStorage()) {
-            LOG.warn("setOwner/setMode is not supported to object storage UFS via Alluxio. " + "UFS: "
-                + ufsUri + ". This has no effect on the underlying object.");
+            LOG.warn("setOwner/setMode is not supported to object storage UFS via Alluxio. "
+                + "UFS: " + ufsUri + ". This has no effect on the underlying object.");
           } else {
             String owner = null;
             String group = null;

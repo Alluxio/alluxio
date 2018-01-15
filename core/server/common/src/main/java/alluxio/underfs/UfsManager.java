@@ -99,7 +99,7 @@ public interface UfsManager extends Closeable {
   UfsClient get(long mountId) throws NotFoundException, UnavailableException;
 
   /**
-   * @return the UFS information associated with root
+   * @return the UFS client associated with root
    */
   UfsClient getRoot();
 }

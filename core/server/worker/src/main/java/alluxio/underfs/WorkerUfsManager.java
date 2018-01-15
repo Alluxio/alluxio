@@ -70,10 +70,8 @@ public final class WorkerUfsManager extends AbstractUfsManager {
             .setShared(info.getProperties().isShared())
             .setUserSpecifiedConf(info.getProperties().getProperties()));
     UfsClient ufsClient = super.get(mountId);
-    try (
-        CloseableResource<UnderFileSystem> ufsClientResource =
-            ufsClient.acquireUfsResource()) {
-      UnderFileSystem ufs = ufsClientResource.get();
+    try (CloseableResource<UnderFileSystem> ufsResource = ufsClient.acquireUfsResource()) {
+      UnderFileSystem ufs = ufsResource.get();
       ufs.connectFromWorker(
           NetworkAddressUtils.getConnectHost(NetworkAddressUtils.ServiceType.WORKER_RPC));
     } catch (IOException e) {

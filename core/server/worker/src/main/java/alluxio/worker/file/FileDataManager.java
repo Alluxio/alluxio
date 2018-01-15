@@ -163,9 +163,9 @@ public final class FileDataManager {
   private synchronized String ufsFingerprint(long fileId) throws IOException {
     FileInfo fileInfo = mBlockWorker.getFileInfo(fileId);
     String dstPath = fileInfo.getUfsPath();
-    try (CloseableResource<UnderFileSystem> ufsClientResource =
-             mUfsManager.get(fileInfo.getMountId()).acquireUfsResource()) {
-      UnderFileSystem ufs = ufsClientResource.get();
+    try (CloseableResource<UnderFileSystem> ufsResource =
+        mUfsManager.get(fileInfo.getMountId()).acquireUfsResource()) {
+      UnderFileSystem ufs = ufsResource.get();
       return ufs.isFile(dstPath) ? ufs.getFingerprint(dstPath) : null;
     }
   }
@@ -232,9 +232,9 @@ public final class FileDataManager {
 
     String dstPath = prepareUfsFilePath(fileId);
     FileInfo fileInfo = mBlockWorker.getFileInfo(fileId);
-    try (CloseableResource<UnderFileSystem> ufsClientResource =
-             mUfsManager.get(fileInfo.getMountId()).acquireUfsResource()) {
-      UnderFileSystem ufs = ufsClientResource.get();
+    try (CloseableResource<UnderFileSystem> ufsResource =
+        mUfsManager.get(fileInfo.getMountId()).acquireUfsResource()) {
+      UnderFileSystem ufs = ufsResource.get();
       OutputStream outputStream = ufs.create(dstPath, CreateOptions.defaults()
           .setOwner(fileInfo.getOwner()).setGroup(fileInfo.getGroup())
           .setMode(new Mode((short) fileInfo.getMode())));

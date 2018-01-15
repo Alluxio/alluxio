@@ -80,7 +80,7 @@ public final class UnderFileSystemBlockReaderTest {
     mAlluxioBlockStore = new TieredBlockStore();
     mUfsManager = Mockito.mock(UfsManager.class);
     mUfsInstreamManager = new UfsInputStreamManager();
-    UfsManager.UfsClient ufsClient = new UfsClient(
+    UfsClient ufsClient = new UfsClient(
         Suppliers.ofInstance(UnderFileSystem.Factory.create(testFilePath)),
         new AlluxioURI(testFilePath));
     Mockito.when(mUfsManager.get(Mockito.anyLong())).thenReturn(ufsClient);

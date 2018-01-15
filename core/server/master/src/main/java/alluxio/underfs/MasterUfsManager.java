@@ -99,9 +99,8 @@ public final class MasterUfsManager extends AbstractUfsManager {
                        final UnderFileSystemConfiguration ufsConf) {
     super.addMount(mountId, ufsUri, ufsConf);
 
-    try (CloseableResource<UnderFileSystem> ufsClientResource =
-        get(mountId).acquireUfsResource()) {
-      UnderFileSystem ufs = ufsClientResource.get();
+    try (CloseableResource<UnderFileSystem> ufsResource = get(mountId).acquireUfsResource()) {
+      UnderFileSystem ufs = ufsResource.get();
       for (String physicalUfs : ufs.getPhysicalStores()) {
         mPhysicalUfsToState.compute(physicalUfs, (k, v) -> {
           if (v == null) {
@@ -119,9 +118,8 @@ public final class MasterUfsManager extends AbstractUfsManager {
 
   @Override
   public void removeMount(long mountId) {
-    try (CloseableResource<UnderFileSystem> ufsClientResource =
-        get(mountId).acquireUfsResource()) {
-      UnderFileSystem ufs = ufsClientResource.get();
+    try (CloseableResource<UnderFileSystem> ufsResource = get(mountId).acquireUfsResource()) {
+      UnderFileSystem ufs = ufsResource.get();
       for (String physicalUfs : ufs.getPhysicalStores()) {
         mPhysicalUfsToState.computeIfPresent(physicalUfs, (k, v) -> {
           if (v.removeMount(mountId)) {
