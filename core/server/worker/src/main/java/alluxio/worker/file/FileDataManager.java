@@ -230,11 +230,11 @@ public final class FileDataManager {
       }
     }
 
-    String dstPath = prepareUfsFilePath(fileId);
     FileInfo fileInfo = mBlockWorker.getFileInfo(fileId);
     try (CloseableResource<UnderFileSystem> ufsResource =
         mUfsManager.get(fileInfo.getMountId()).acquireUfsResource()) {
       UnderFileSystem ufs = ufsResource.get();
+      String dstPath = prepareUfsFilePath(fileInfo, ufs);
       OutputStream outputStream = ufs.create(dstPath, CreateOptions.defaults()
           .setOwner(fileInfo.getOwner()).setGroup(fileInfo.getGroup())
           .setMode(new Mode((short) fileInfo.getMode())));
@@ -297,20 +297,17 @@ public final class FileDataManager {
    * Prepares the destination file path of the given file id. Also creates the parent folder if it
    * does not exist.
    *
-   * @param fileId the file id
+   * @param fileInfo the file info
+   * @param ufs the {@link UnderFileSystem} instance
    * @return the path for persistence
    */
-  private String prepareUfsFilePath(long fileId) throws AlluxioException, IOException {
-    FileInfo fileInfo = mBlockWorker.getFileInfo(fileId);
+  private String prepareUfsFilePath(FileInfo fileInfo, UnderFileSystem ufs)
+      throws AlluxioException, IOException {
     AlluxioURI alluxioPath = new AlluxioURI(fileInfo.getPath());
     FileSystem fs = FileSystem.Factory.get();
     URIStatus status = fs.getStatus(alluxioPath);
     String ufsPath = status.getUfsPath();
-    try (CloseableResource<UnderFileSystem> ufsClientResource =
-             mUfsManager.get(fileInfo.getMountId()).acquireUfsResource()) {
-      UnderFileSystem ufs = ufsClientResource.get();
-      UnderFileSystemUtils.prepareFilePath(alluxioPath, ufsPath, fs, ufs);
-    }
+    UnderFileSystemUtils.prepareFilePath(alluxioPath, ufsPath, fs, ufs);
     return ufsPath;
   }
 
