@@ -72,9 +72,9 @@ public final class SafeUfsDeleter implements UfsDeleter {
     boolean failedToDelete = false;
     MountTable.Resolution resolution = mMountTable.resolve(alluxioUri);
     String ufsUri = resolution.getUri().toString();
-    try (CloseableResource<UnderFileSystem> ufsClientResource =
+    try (CloseableResource<UnderFileSystem> ufsResource =
         resolution.getUfsClient().acquireUfsResource()) {
-      UnderFileSystem ufs = ufsClientResource.get();
+      UnderFileSystem ufs = ufsResource.get();
       AlluxioURI parentUri = alluxioUri.getParent();
       if (!isRecursiveDeleteSafe(parentUri)) {
         // Parent will not recursively delete, so delete this inode individually

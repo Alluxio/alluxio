@@ -141,9 +141,9 @@ public final class UfsSyncChecker {
       throws InvalidPathException, IOException {
     MountTable.Resolution resolution = mMountTable.resolve(alluxioUri);
     AlluxioURI ufsUri = resolution.getUri();
-    try (CloseableResource<UnderFileSystem> ufsClientResource =
-             resolution.getUfsClient().acquireUfsResource()) {
-      UnderFileSystem ufs = ufsClientResource.get();
+    try (CloseableResource<UnderFileSystem> ufsResource =
+        resolution.getUfsClient().acquireUfsResource()) {
+      UnderFileSystem ufs = ufsResource.get();
       AlluxioURI curUri = ufsUri;
       while (curUri != null) {
         if (mListedDirectories.containsKey(curUri.toString())) {
