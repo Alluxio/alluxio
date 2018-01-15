@@ -291,13 +291,13 @@ public final class MountTable implements JournalEntryIterable {
         AlluxioURI ufsUri = info.getUfsUri();
         try {
           UfsManager.UfsClient ufsClient = mUfsManager.get(info.getMountId());
-          try (CloseableResource<UnderFileSystem> ufsResource =
-              mUfsManager.get(info.getMountId()).acquireUfsResource()) {
+          AlluxioURI resolvedUri;
+          try (CloseableResource<UnderFileSystem> ufsResource = ufsClient.acquireUfsResource()) {
             UnderFileSystem ufs = ufsResource.get();
-            AlluxioURI resolvedUri = ufs.resolveUri(ufsUri, path.substring(mountPoint.length()));
-            return new Resolution(resolvedUri, ufsClient, info.getOptions().isShared(),
-                info.getMountId());
+            resolvedUri = ufs.resolveUri(ufsUri, path.substring(mountPoint.length()));
           }
+          return new Resolution(resolvedUri, ufsClient, info.getOptions().isShared(),
+              info.getMountId());
         } catch (NotFoundException | UnavailableException e) {
           throw new RuntimeException(
               String.format("No UFS information for %s for mount Id %d, we should never reach here",
@@ -370,10 +370,10 @@ public final class MountTable implements JournalEntryIterable {
     }
 
     /**
-     * @return the {@link UnderFileSystem} instance
+     * @return the {@link UnderFileSystem} closeable resource
      */
-    public UfsManager.UfsClient getUfsClient() {
-      return mUfsClient;
+    public CloseableResource<UnderFileSystem> acquireUfsResource() {
+      return mUfsClient.acquireUfsResource();
     }
 
     /**

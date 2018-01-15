@@ -999,8 +999,7 @@ public class InodeTree implements JournalEntryIterable {
           AlluxioURI uri = getPath(dir);
           MountTable.Resolution resolution = mMountTable.resolve(uri);
           String ufsUri = resolution.getUri().toString();
-          try (CloseableResource<UnderFileSystem> ufsResource =
-              resolution.getUfsClient().acquireUfsResource()) {
+          try (CloseableResource<UnderFileSystem> ufsResource = resolution.acquireUfsResource()) {
             UnderFileSystem ufs = ufsResource.get();
             MkdirsOptions mkdirsOptions = MkdirsOptions.defaults().setCreateParent(false)
                 .setOwner(dir.getOwner()).setGroup(dir.getGroup()).setMode(new Mode(dir.getMode()));
