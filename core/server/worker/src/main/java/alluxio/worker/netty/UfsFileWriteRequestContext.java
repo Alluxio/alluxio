@@ -56,7 +56,7 @@ public final class UfsFileWriteRequestContext extends WriteRequestContext<UfsFil
   }
 
   /**
-   * @param underFileSystem UFS to set
+   * @param ufsResource UFS to set
    */
   public void setUfsResource(CloseableResource<UnderFileSystem> ufsResource) {
     mUfsResource = ufsResource;
