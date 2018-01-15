@@ -88,7 +88,6 @@ public final class UfsFileWriteHandler extends AbstractWriteHandler<UfsFileWrite
    */
   public class UfsFilePacketWriter extends PacketWriter {
     private final UfsManager mUfsManager;
-    private CloseableResource<UnderFileSystem> mUfsClientResource;
 
     /**
      * @param context context of this packet writer
@@ -113,9 +112,7 @@ public final class UfsFileWriteHandler extends AbstractWriteHandler<UfsFileWrite
       Preconditions.checkState(context.getOutputStream() != null);
       context.getOutputStream().close();
       context.setOutputStream(null);
-      if (mUfsClientResource != null) {
-        mUfsClientResource.close();
-      }
+      context.getUfsResource().close();
     }
 
     @Override
@@ -125,13 +122,11 @@ public final class UfsFileWriteHandler extends AbstractWriteHandler<UfsFileWrite
       }
       UfsFileWriteRequest request = context.getRequest();
       // TODO(calvin): Consider adding cancel to the ufs stream api.
-      if (context.getOutputStream() != null && context.getUnderFileSystem() != null) {
+      if (context.getOutputStream() != null && context.getUfsResource() != null) {
         context.getOutputStream().close();
-        context.getUnderFileSystem().deleteFile(request.getUfsPath());
+        context.getUfsResource().get().deleteFile(request.getUfsPath());
         context.setOutputStream(null);
-      }
-      if (mUfsClientResource != null) {
-        mUfsClientResource.close();
+        context.getUfsResource().close();
       }
     }
 
@@ -157,11 +152,9 @@ public final class UfsFileWriteHandler extends AbstractWriteHandler<UfsFileWrite
       Preconditions.checkState(request != null);
       Protocol.CreateUfsFileOptions createUfsFileOptions = request.getCreateUfsFileOptions();
       UfsManager.UfsClient ufsClient = mUfsManager.get(createUfsFileOptions.getMountId());
-      if (mUfsClientResource == null) {
-        mUfsClientResource = ufsClient.acquireUfsResource();
-      }
-      UnderFileSystem ufs = mUfsClientResource.get();
-      context.setUnderFileSystem(ufs);
+      CloseableResource<UnderFileSystem> ufsResource = ufsClient.acquireUfsResource();
+      context.setUfsResource(ufsResource);
+      UnderFileSystem ufs = ufsResource.get();
       context.setOutputStream(ufs.create(request.getUfsPath(),
           CreateOptions.defaults().setOwner(createUfsFileOptions.getOwner())
               .setGroup(createUfsFileOptions.getGroup())
