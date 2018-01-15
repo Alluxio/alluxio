@@ -289,20 +289,21 @@ public final class MountTable implements JournalEntryIterable {
       if (mountPoint != null) {
         MountInfo info = mMountTable.get(mountPoint);
         AlluxioURI ufsUri = info.getUfsUri();
+        UfsManager.UfsClient ufsClient;
+        AlluxioURI resolvedUri;
         try {
-          UfsManager.UfsClient ufsClient = mUfsManager.get(info.getMountId());
-          AlluxioURI resolvedUri;
+          ufsClient = mUfsManager.get(info.getMountId());
           try (CloseableResource<UnderFileSystem> ufsResource = ufsClient.acquireUfsResource()) {
             UnderFileSystem ufs = ufsResource.get();
             resolvedUri = ufs.resolveUri(ufsUri, path.substring(mountPoint.length()));
           }
-          return new Resolution(resolvedUri, ufsClient, info.getOptions().isShared(),
-              info.getMountId());
         } catch (NotFoundException | UnavailableException e) {
           throw new RuntimeException(
               String.format("No UFS information for %s for mount Id %d, we should never reach here",
                   uri, info.getMountId()), e);
         }
+        return new Resolution(resolvedUri, ufsClient, info.getOptions().isShared(),
+            info.getMountId());
       }
       // TODO(binfan): throw exception as we should never reach here
       return new Resolution(uri, null, false, IdUtils.INVALID_MOUNT_ID);
