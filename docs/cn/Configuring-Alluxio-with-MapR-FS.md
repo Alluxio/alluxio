@@ -81,7 +81,7 @@ $ ${ALLUXIO_HOME}/bin/alluxio fs mount /<path in Alluxio>/ maprfs:///<path in Ma
 
 {% include Common-Commands/runTests.md %}
 
-成功启动后，你可以访问MapR-FS的web UI以确认通过Alluxio创建的文件和目录确实存在。对于该测试，你应该可以看到类似`/default_tests_files/Basic_CACHE_THROUGH`的文件。
+成功启动后，你可以访问MapR-FS的web UI以确认通过Alluxio创建的文件和目录确实存在。对于该测试，你应该可以看到类似`/default_tests_files/Basic_CACHE_CACHE_THROUGH`的文件。
 
 运行以下命令停止Alluxio：
 
