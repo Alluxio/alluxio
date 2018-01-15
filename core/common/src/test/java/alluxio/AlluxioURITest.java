@@ -417,6 +417,7 @@ public class AlluxioURITest {
    */
   @Test
   public void getHostTests() {
+    assertEquals(null, new AlluxioURI(".").getHost());
     assertEquals(null, new AlluxioURI("/").getHost());
     assertEquals(null, new AlluxioURI("file", "", "/a/b.txt").getHost());
     assertEquals(null, new AlluxioURI("file", null, "/a/b.txt").getHost());
@@ -431,6 +432,7 @@ public class AlluxioURITest {
    */
   @Test
   public void getNameTests() {
+    assertEquals(".", new AlluxioURI(".").getName());
     assertEquals("", new AlluxioURI("/").getName());
     assertEquals("", new AlluxioURI("alluxio://localhost/").getName());
     assertEquals("", new AlluxioURI("alluxio:/").getName());
@@ -462,6 +464,7 @@ public class AlluxioURITest {
    */
   @Test
   public void getPathTests() {
+    assertEquals(".", new AlluxioURI(".").getPath());
     assertEquals("/", new AlluxioURI("/").getPath());
     assertEquals("/", new AlluxioURI("alluxio:/").getPath());
     assertEquals("/", new AlluxioURI("alluxio://localhost:80/").getPath());
@@ -478,6 +481,7 @@ public class AlluxioURITest {
    */
   @Test
   public void getPortTests() {
+    assertEquals(-1, new AlluxioURI(".").getPort());
     assertEquals(-1, new AlluxioURI("/").getPort());
     assertEquals(-1, new AlluxioURI("alluxio:/").getPort());
     assertEquals(-1, new AlluxioURI("alluxio://127.0.0.1/").getPort());
@@ -491,6 +495,7 @@ public class AlluxioURITest {
    */
   @Test
   public void getSchemeTests() {
+    assertEquals(null, new AlluxioURI(".").getScheme());
     assertEquals(null, new AlluxioURI("/").getScheme());
     assertEquals("file", new AlluxioURI("file:/").getScheme());
     assertEquals("file", new AlluxioURI("file://localhost/").getScheme());
