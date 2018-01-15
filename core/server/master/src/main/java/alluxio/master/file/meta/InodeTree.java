@@ -1002,19 +1002,18 @@ public class InodeTree implements JournalEntryIterable {
           try (CloseableResource<UnderFileSystem> ufsResource =
               resolution.getUfsClient().acquireUfsResource()) {
             UnderFileSystem ufs = ufsResource.get();
-            MkdirsOptions mkdirsOptions =
-                MkdirsOptions.defaults().setCreateParent(false).setOwner(dir.getOwner())
-                    .setGroup(dir.getGroup()).setMode(new Mode(dir.getMode()));
+            MkdirsOptions mkdirsOptions = MkdirsOptions.defaults().setCreateParent(false)
+                .setOwner(dir.getOwner()).setGroup(dir.getGroup()).setMode(new Mode(dir.getMode()));
             ufs.mkdirs(ufsUri, mkdirsOptions);
-            dir.setPersistenceState(PersistenceState.PERSISTED);
-
-            // Append the persist entry to the journal.
-            File.PersistDirectoryEntry persistDirectory =
-                File.PersistDirectoryEntry.newBuilder().setId(dir.getId()).build();
-            journalContext.append(
-                Journal.JournalEntry.newBuilder().setPersistDirectory(persistDirectory).build());
-            success = true;
           }
+          dir.setPersistenceState(PersistenceState.PERSISTED);
+
+          // Append the persist entry to the journal.
+          File.PersistDirectoryEntry persistDirectory =
+              File.PersistDirectoryEntry.newBuilder().setId(dir.getId()).build();
+          journalContext.append(
+              Journal.JournalEntry.newBuilder().setPersistDirectory(persistDirectory).build());
+          success = true;
         } finally {
           if (!success) {
             // Failed to persist the inode, so set the state back to NOT_PERSISTED.
