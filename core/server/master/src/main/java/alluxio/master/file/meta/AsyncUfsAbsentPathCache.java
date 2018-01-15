@@ -165,25 +165,27 @@ public final class AsyncUfsAbsentPathCache implements UfsAbsentPathCache {
           return false;
         }
 
+        boolean existsInUfs;
         try (CloseableResource<UnderFileSystem> ufsResource =
             resolution.getUfsClient().acquireUfsResource()) {
           UnderFileSystem ufs = ufsResource.get();
-          if (ufs.exists(resolution.getUri().toString())) {
-            // This ufs path exists. Remove the cache entry.
+          existsInUfs = ufs.exists(resolution.getUri().toString());
+        }
+        if (existsInUfs) {
+          // This ufs path exists. Remove the cache entry.
+          mCache.invalidate(alluxioUri.getPath());
+        } else {
+          // This is the first ufs path which does not exist. Add it to the cache.
+          mCache.put(alluxioUri.getPath(), mountInfo.getMountId());
+
+          if (pathLock.isInvalidate()) {
+            // This path was marked to be invalidated, meaning this UFS path was just created,
+            // and now exists. Invalidate the entry.
+            // This check is necessary to avoid the race with the invalidating thread.
             mCache.invalidate(alluxioUri.getPath());
           } else {
-            // This is the first ufs path which does not exist. Add it to the cache.
-            mCache.put(alluxioUri.getPath(), mountInfo.getMountId());
-
-            if (pathLock.isInvalidate()) {
-              // This path was marked to be invalidated, meaning this UFS path was just created,
-              // and now exists. Invalidate the entry.
-              // This check is necessary to avoid the race with the invalidating thread.
-              mCache.invalidate(alluxioUri.getPath());
-            } else {
-              // Further traversal is unnecessary.
-              return false;
-            }
+            // Further traversal is unnecessary.
+            return false;
           }
         }
       }
