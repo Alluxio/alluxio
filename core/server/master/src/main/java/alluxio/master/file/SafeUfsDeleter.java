@@ -73,7 +73,7 @@ public final class SafeUfsDeleter implements UfsDeleter {
     MountTable.Resolution resolution = mMountTable.resolve(alluxioUri);
     String ufsUri = resolution.getUri().toString();
     try (CloseableResource<UnderFileSystem> ufsClientResource =
-             resolution.getUfsClient().acquireUfsClientResource()) {
+        resolution.getUfsClient().acquireUfsClientResource()) {
       UnderFileSystem ufs = ufsClientResource.get();
       AlluxioURI parentUri = alluxioUri.getParent();
       if (!isRecursiveDeleteSafe(parentUri)) {

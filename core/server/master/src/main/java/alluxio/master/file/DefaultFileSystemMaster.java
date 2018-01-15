@@ -999,21 +999,24 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
   private boolean checkConsistencyInternal(Inode inode, AlluxioURI path)
       throws FileDoesNotExistException, InvalidPathException, IOException {
     MountTable.Resolution resolution = mMountTable.resolve(path);
-    UnderFileSystem ufs = resolution.getUfsClient();
-    String ufsPath = resolution.getUri().getPath();
-    if (ufs == null) {
-      return true;
-    }
-    if (!inode.isPersisted()) {
-      return !ufs.exists(ufsPath);
-    }
-    // TODO(calvin): Evaluate which other metadata fields should be validated.
-    if (inode.isDirectory()) {
-      return ufs.isDirectory(ufsPath);
-    } else {
-      InodeFile file = (InodeFile) inode;
-      return ufs.isFile(ufsPath)
-          && ufs.getFileStatus(ufsPath).getContentLength() == file.getLength();
+    try (CloseableResource<UnderFileSystem> ufsClientResource =
+             resolution.getUfsClient().acquireUfsClientResource()) {
+      UnderFileSystem ufs = ufsClientResource.get();
+      String ufsPath = resolution.getUri().getPath();
+      if (ufs == null) {
+        return true;
+      }
+      if (!inode.isPersisted()) {
+        return !ufs.exists(ufsPath);
+      }
+      // TODO(calvin): Evaluate which other metadata fields should be validated.
+      if (inode.isDirectory()) {
+        return ufs.isDirectory(ufsPath);
+      } else {
+        InodeFile file = (InodeFile) inode;
+        return ufs.isFile(ufsPath)
+            && ufs.getFileStatus(ufsPath).getContentLength() == file.getLength();
+      }
     }
   }
 
@@ -1094,8 +1097,11 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       // Retrieve the UFS fingerprint for this file.
       MountTable.Resolution resolution = mMountTable.resolve(inodePath.getUri());
       AlluxioURI resolvedUri = resolution.getUri();
-      UnderFileSystem ufs = resolution.getUfsClient();
-      ufsFingerprint = ufs.getFingerprint(resolvedUri.toString());
+      try (CloseableResource<UnderFileSystem> ufsClientResource =
+               resolution.getUfsClient().acquireUfsClientResource()) {
+        UnderFileSystem ufs = ufsClientResource.get();
+        ufsFingerprint = ufs.getFingerprint(resolvedUri.toString());
+      }
     }
 
     completeFileInternal(fileInode.getBlockIds(), inodePath, length, options.getOperationTimeMs(),
@@ -2123,17 +2129,20 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         }
 
         String ufsSrcPath = resolution.getUri().toString();
-        UnderFileSystem ufs = resolution.getUfsClient();
-        String ufsDstUri = mMountTable.resolve(dstPath).getUri().toString();
-        boolean success;
-        if (srcInode.isFile()) {
-          success = ufs.renameFile(ufsSrcPath, ufsDstUri);
-        } else {
-          success = ufs.renameDirectory(ufsSrcPath, ufsDstUri);
-        }
-        if (!success) {
-          throw new IOException(
-              ExceptionMessage.FAILED_UFS_RENAME.getMessage(ufsSrcPath, ufsDstUri));
+        try (CloseableResource<UnderFileSystem> ufsClientResource =
+                 resolution.getUfsClient().acquireUfsClientResource()) {
+          UnderFileSystem ufs = ufsClientResource.get();
+          String ufsDstUri = mMountTable.resolve(dstPath).getUri().toString();
+          boolean success;
+          if (srcInode.isFile()) {
+            success = ufs.renameFile(ufsSrcPath, ufsDstUri);
+          } else {
+            success = ufs.renameDirectory(ufsSrcPath, ufsDstUri);
+          }
+          if (!success) {
+            throw new IOException(
+                ExceptionMessage.FAILED_UFS_RENAME.getMessage(ufsSrcPath, ufsDstUri));
+          }
         }
         // The destination was persisted in ufs.
         mUfsAbsentPathCache.processExisting(dstPath);
@@ -2461,8 +2470,9 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     AlluxioURI path = inodePath.getUri();
     MountTable.Resolution resolution = mMountTable.resolve(path);
     AlluxioURI ufsUri = resolution.getUri();
-    UnderFileSystem ufs = resolution.getUfsClient();
-    try {
+    try (CloseableResource<UnderFileSystem> ufsClientResource =
+        resolution.getUfsClient().acquireUfsClientResource()) {
+      UnderFileSystem ufs = ufsClientResource.get();
       if (options.getUfsStatus() == null && !ufs.exists(ufsUri.toString())) {
         // uri does not exist in ufs
         InodeDirectory inode = (InodeDirectory) inodePath.getInode();
@@ -2534,14 +2544,20 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       return;
     }
     AlluxioURI ufsUri = resolution.getUri();
-    UnderFileSystem ufs = resolution.getUfsClient();
-
-    long ufsBlockSizeByte = ufs.getBlockSizeByte(ufsUri.toString());
     UfsFileStatus ufsStatus = (UfsFileStatus) options.getUfsStatus();
-    if (ufsStatus == null) {
-      ufsStatus = ufs.getFileStatus(ufsUri.toString());
+    long ufsBlockSizeByte;
+    long ufsLength;
+    try (CloseableResource<UnderFileSystem> ufsClientResource =
+        resolution.getUfsClient().acquireUfsClientResource()) {
+      UnderFileSystem ufs = ufsClientResource.get();
+
+      ufsBlockSizeByte = ufs.getBlockSizeByte(ufsUri.toString());
+      if (ufsStatus == null) {
+        ufsStatus = ufs.getFileStatus(ufsUri.toString());
+      }
+      ufsLength = ufsStatus.getContentLength();
     }
-    long ufsLength = ufsStatus.getContentLength();
+
     // Metadata loaded from UFS has no TTL set.
     CreateFileOptions createFileOptions =
         CreateFileOptions.defaults().setBlockSizeBytes(ufsBlockSizeByte)
@@ -2604,8 +2620,11 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     UfsStatus ufsStatus = options.getUfsStatus();
     if (ufsStatus == null) {
       AlluxioURI ufsUri = resolution.getUri();
-      UnderFileSystem ufs = resolution.getUfsClient();
-      ufsStatus = ufs.getDirectoryStatus(ufsUri.toString());
+      try (CloseableResource<UnderFileSystem> ufsClientResource =
+               resolution.getUfsClient().acquireUfsClientResource()) {
+        UnderFileSystem ufs = ufsClientResource.get();
+        ufsStatus = ufs.getDirectoryStatus(ufsUri.toString());
+      }
     }
     String ufsOwner = ufsStatus.getOwner();
     String ufsGroup = ufsStatus.getGroup();
@@ -3144,28 +3163,31 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
 
         MountTable.Resolution resolution = mMountTable.resolve(inodePath.getUri());
         AlluxioURI ufsUri = resolution.getUri();
-        UnderFileSystem ufs = resolution.getUfsClient();
+        try (CloseableResource<UnderFileSystem> ufsClientResource =
+            resolution.getUfsClient().acquireUfsClientResource()) {
+          UnderFileSystem ufs = ufsClientResource.get();
 
-        UfsSyncUtils.SyncPlan syncPlan =
-            UfsSyncUtils.computeSyncPlan(inode, ufs.getFingerprint(ufsUri.toString()));
+          UfsSyncUtils.SyncPlan syncPlan =
+              UfsSyncUtils.computeSyncPlan(inode, ufs.getFingerprint(ufsUri.toString()));
 
-        if (syncPlan.toDelete()) {
-          try {
-            deleteInternal(inodePath, false, System.currentTimeMillis(), syncDeleteOptions,
-                journalContext);
-            deletedInode = true;
-          } catch (DirectoryNotEmptyException | IOException e) {
-            // Should not happen, since it is an unchecked delete.
-            LOG.error("Unexpected error for unchecked delete. error: {}", e.toString());
+          if (syncPlan.toDelete()) {
+            try {
+              deleteInternal(inodePath, false, System.currentTimeMillis(), syncDeleteOptions,
+                  journalContext);
+              deletedInode = true;
+            } catch (DirectoryNotEmptyException | IOException e) {
+              // Should not happen, since it is an unchecked delete.
+              LOG.error("Unexpected error for unchecked delete. error: {}", e.toString());
+            }
           }
-        }
 
-        if (syncPlan.toLoadMetadata()) {
-          loadMetadata = true;
-        }
+          if (syncPlan.toLoadMetadata()) {
+            loadMetadata = true;
+          }
 
-        if (syncPlan.toSyncChildren()) {
-          loadMetadata = syncDirMetadata(journalContext, inodePath, syncDescendantType);
+          if (syncPlan.toSyncChildren()) {
+            loadMetadata = syncDirMetadata(journalContext, inodePath, syncDescendantType);
+          }
         }
       }
     } catch (Exception e) {
@@ -3206,71 +3228,74 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     }
     MountTable.Resolution resolution = mMountTable.resolve(inodePath.getUri());
     AlluxioURI ufsUri = resolution.getUri();
-    UnderFileSystem ufs = resolution.getUfsClient();
 
     boolean loadMetadata = false;
     DeleteOptions syncDeleteOptions =
         DeleteOptions.defaults().setRecursive(true).setAlluxioOnly(true).setUnchecked(true);
     Inode<?> inode = inodePath.getInode();
 
-    UfsStatus[] listStatus = ufs.listStatus(ufsUri.toString());
+    try (CloseableResource<UnderFileSystem> ufsClientResource =
+        resolution.getUfsClient().acquireUfsClientResource()) {
+      UnderFileSystem ufs = ufsClientResource.get();
+      UfsStatus[] listStatus = ufs.listStatus(ufsUri.toString());
 
-    if (listStatus != null) {
-      // maps children name to up-to-date ufs fingerprint
-      Map<String, String> ufsChildFingerprints = new HashMap<>();
-      // maps children name to inode
-      Map<String, Inode<?>> inodeChildren = new HashMap<>();
+      if (listStatus != null) {
+        // maps children name to up-to-date ufs fingerprint
+        Map<String, String> ufsChildFingerprints = new HashMap<>();
+        // maps children name to inode
+        Map<String, Inode<?>> inodeChildren = new HashMap<>();
 
-      for (UfsStatus ufsChildStatus : listStatus) {
-        ufsChildFingerprints.put(ufsChildStatus.getName(),
-            Fingerprint.create(ufs.getUnderFSType(), ufsChildStatus).serialize());
-      }
-      InodeDirectory inodeDir = (InodeDirectory) inode;
-      for (Inode<?> child : inodeDir.getChildren()) {
-        inodeChildren.put(child.getName(), child);
-      }
-
-      // Iterate over ufs children and process children which do not exist in Alluxio.
-      for (Map.Entry<String, String> ufsEntry : ufsChildFingerprints.entrySet()) {
-        if (!inodeChildren.containsKey(ufsEntry.getKey()) && !PathUtils
-            .isTemporaryFileName(ufsEntry.getKey())) {
-          // Ufs child exists, but Alluxio child does not. Must load metadata.
-          loadMetadata = true;
-          break;
+        for (UfsStatus ufsChildStatus : listStatus) {
+          ufsChildFingerprints.put(ufsChildStatus.getName(),
+              Fingerprint.create(ufs.getUnderFSType(), ufsChildStatus).serialize());
         }
-      }
-
-      // Iterate over Alluxio children and process persisted children.
-      for (Map.Entry<String, Inode<?>> inodeEntry : inodeChildren.entrySet()) {
-        if (!inodeEntry.getValue().isPersisted()) {
-          // Ignore non-persisted inodes.
-          continue;
+        InodeDirectory inodeDir = (InodeDirectory) inode;
+        for (Inode<?> child : inodeDir.getChildren()) {
+          inodeChildren.put(child.getName(), child);
         }
 
-        String ufsFingerprint = ufsChildFingerprints.get(inodeEntry.getKey());
-        boolean deleteChild =
-            !UfsSyncUtils.inodeUfsIsSynced(inodeEntry.getValue(), ufsFingerprint);
+        // Iterate over ufs children and process children which do not exist in Alluxio.
+        for (Map.Entry<String, String> ufsEntry : ufsChildFingerprints.entrySet()) {
+          if (!inodeChildren.containsKey(ufsEntry.getKey()) && !PathUtils
+              .isTemporaryFileName(ufsEntry.getKey())) {
+            // Ufs child exists, but Alluxio child does not. Must load metadata.
+            loadMetadata = true;
+            break;
+          }
+        }
 
-        if (deleteChild) {
-          TempInodePathForDescendant tempInodePath =
-              new TempInodePathForDescendant(inodePath);
-          tempInodePath.setDescendant(inodeEntry.getValue(),
-              inodePath.getUri().join(inodeEntry.getKey()));
+        // Iterate over Alluxio children and process persisted children.
+        for (Map.Entry<String, Inode<?>> inodeEntry : inodeChildren.entrySet()) {
+          if (!inodeEntry.getValue().isPersisted()) {
+            // Ignore non-persisted inodes.
+            continue;
+          }
 
-          deleteInternal(tempInodePath, false, System.currentTimeMillis(), syncDeleteOptions,
-              journalContext);
-          // Must load metadata afterwards.
-          loadMetadata = true;
-        } else if (inodeEntry.getValue().isDirectory()) {
-          // Recursively sync for this directory.
-          TempInodePathForDescendant tempInodePath =
-              new TempInodePathForDescendant(inodePath);
-          tempInodePath.setDescendant(inodeEntry.getValue(),
-              inodePath.getUri().join(inodeEntry.getKey()));
+          String ufsFingerprint = ufsChildFingerprints.get(inodeEntry.getKey());
+          boolean deleteChild =
+              !UfsSyncUtils.inodeUfsIsSynced(inodeEntry.getValue(), ufsFingerprint);
 
-          if (syncDescendantType == DescendantType.ALL) {
-            // Recursively sync children
-            loadMetadata |= syncDirMetadata(journalContext, tempInodePath, DescendantType.ALL);
+          if (deleteChild) {
+            TempInodePathForDescendant tempInodePath =
+                new TempInodePathForDescendant(inodePath);
+            tempInodePath.setDescendant(inodeEntry.getValue(),
+                inodePath.getUri().join(inodeEntry.getKey()));
+
+            deleteInternal(tempInodePath, false, System.currentTimeMillis(), syncDeleteOptions,
+                journalContext);
+            // Must load metadata afterwards.
+            loadMetadata = true;
+          } else if (inodeEntry.getValue().isDirectory()) {
+            // Recursively sync for this directory.
+            TempInodePathForDescendant tempInodePath =
+                new TempInodePathForDescendant(inodePath);
+            tempInodePath.setDescendant(inodeEntry.getValue(),
+                inodePath.getUri().join(inodeEntry.getKey()));
+
+            if (syncDescendantType == DescendantType.ALL) {
+              // Recursively sync children
+              loadMetadata |= syncDirMetadata(journalContext, tempInodePath, DescendantType.ALL);
+            }
           }
         }
       }
@@ -3363,45 +3388,48 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         checkUfsMode(inodePath.getUri(), OperationType.WRITE);
         MountTable.Resolution resolution = mMountTable.resolve(inodePath.getUri());
         String ufsUri = resolution.getUri().toString();
-        UnderFileSystem ufs = resolution.getUfsClient();
-        if (ufs.isObjectStorage()) {
-          LOG.warn("setOwner/setMode is not supported to object storage UFS via Alluxio. " + "UFS: "
-              + ufsUri + ". This has no effect on the underlying object.");
-        } else {
-          String owner = null;
-          String group = null;
-          String mode = null;
-          if (ownerGroupChanged) {
-            try {
-              owner = options.getOwner() != null ? options.getOwner() : inode.getOwner();
-              group = options.getGroup() != null ? options.getGroup() : inode.getGroup();
-              ufs.setOwner(ufsUri, owner, group);
-            } catch (IOException e) {
-              throw new AccessControlException("Could not setOwner for UFS file " + ufsUri
-                  + " . Aborting the setAttribute operation in Alluxio.", e);
-            }
-          }
-          if (modeChanged) {
-            try {
-              mode = String.valueOf(options.getMode());
-              ufs.setMode(ufsUri, options.getMode());
-            } catch (IOException e) {
-              throw new AccessControlException("Could not setMode for UFS file " + ufsUri
-                  + " . Aborting the setAttribute operation in Alluxio.", e);
-            }
-          }
-          // Retrieve the ufs fingerprint after the ufs changes.
-          String existingFingerprint = inode.getUfsFingerprint();
-          if (!existingFingerprint.equals(Constants.INVALID_UFS_FINGERPRINT)) {
-            // Update existing fingerprint, since contents did not change
-            Fingerprint fp = Fingerprint.parse(existingFingerprint);
-            fp.updateTag(Fingerprint.Tag.OWNER, owner);
-            fp.updateTag(Fingerprint.Tag.GROUP, group);
-            fp.updateTag(Fingerprint.Tag.MODE, mode);
-            options.setUfsFingerprint(fp.serialize());
+        try (CloseableResource<UnderFileSystem> ufsClientResource =
+                 resolution.getUfsClient().acquireUfsClientResource()) {
+          UnderFileSystem ufs = ufsClientResource.get();
+          if (ufs.isObjectStorage()) {
+            LOG.warn("setOwner/setMode is not supported to object storage UFS via Alluxio. " + "UFS: "
+                + ufsUri + ". This has no effect on the underlying object.");
           } else {
-            // Need to retrieve the fingerprint from ufs.
-            options.setUfsFingerprint(ufs.getFingerprint(ufsUri));
+            String owner = null;
+            String group = null;
+            String mode = null;
+            if (ownerGroupChanged) {
+              try {
+                owner = options.getOwner() != null ? options.getOwner() : inode.getOwner();
+                group = options.getGroup() != null ? options.getGroup() : inode.getGroup();
+                ufs.setOwner(ufsUri, owner, group);
+              } catch (IOException e) {
+                throw new AccessControlException("Could not setOwner for UFS file " + ufsUri
+                    + " . Aborting the setAttribute operation in Alluxio.", e);
+              }
+            }
+            if (modeChanged) {
+              try {
+                mode = String.valueOf(options.getMode());
+                ufs.setMode(ufsUri, options.getMode());
+              } catch (IOException e) {
+                throw new AccessControlException("Could not setMode for UFS file " + ufsUri
+                    + " . Aborting the setAttribute operation in Alluxio.", e);
+              }
+            }
+            // Retrieve the ufs fingerprint after the ufs changes.
+            String existingFingerprint = inode.getUfsFingerprint();
+            if (!existingFingerprint.equals(Constants.INVALID_UFS_FINGERPRINT)) {
+              // Update existing fingerprint, since contents did not change
+              Fingerprint fp = Fingerprint.parse(existingFingerprint);
+              fp.updateTag(Fingerprint.Tag.OWNER, owner);
+              fp.updateTag(Fingerprint.Tag.GROUP, group);
+              fp.updateTag(Fingerprint.Tag.MODE, mode);
+              options.setUfsFingerprint(fp.serialize());
+            } else {
+              // Need to retrieve the fingerprint from ufs.
+              options.setUfsFingerprint(ufs.getFingerprint(ufsUri));
+            }
           }
         }
       }
