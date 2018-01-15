@@ -3322,10 +3322,12 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     }
     if (options.getTtl() != null) {
       long ttl = options.getTtl();
-      if (inode.getTtl() != ttl) {
-        mTtlBuckets.remove(inode);
-        inode.setTtl(ttl);
-        mTtlBuckets.insert(inode);
+      if (inode.getTtl() != ttl || inode.getTtlAction() != options.getTtlAction()) {
+        if (inode.getTtl() != ttl) {
+          mTtlBuckets.remove(inode);
+          inode.setTtl(ttl);
+          mTtlBuckets.insert(inode);
+        }
         inode.setLastModificationTimeMs(opTimeMs);
         inode.setTtlAction(options.getTtlAction());
       }
@@ -3540,7 +3542,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    * Check if the specified operation type is allowed to the ufs.
    *
    * @param alluxioPath the Alluxio path
-   * @param op the operation type
+   * @param opType the operation type
    * @throws AccessControlException if the specified operation is not allowed
    */
   private void checkUfsMode(AlluxioURI alluxioPath, OperationType opType)
