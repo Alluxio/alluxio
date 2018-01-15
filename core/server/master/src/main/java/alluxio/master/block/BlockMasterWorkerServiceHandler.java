@@ -74,6 +74,14 @@ public final class BlockMasterWorkerServiceHandler implements BlockMasterWorkerS
         return new BlockHeartbeatTResponse(mBlockMaster
             .workerHeartbeat(workerId, usedBytesOnTiers, removedBlockIds, addedBlocksOnTiers));
       }
+
+      @Override
+      public String toString() {
+        return String.format("blockHeartbeat: workerId=%s, usedBytesOnTiers=%s, "
+                + "removedBlockIds=%s, addedBlocksOnTiers=%s, options=%s", workerId,
+            usedBytesOnTiers,
+            removedBlockIds, addedBlocksOnTiers, options);
+      }
     });
   }
 
@@ -87,6 +95,14 @@ public final class BlockMasterWorkerServiceHandler implements BlockMasterWorkerS
         mBlockMaster.commitBlock(workerId, usedBytesOnTier, tierAlias, blockId, length);
         return new CommitBlockTResponse();
       }
+
+      @Override
+      public String toString() {
+        return String.format("commitBlock: workerId=%s, usedBytesOnTiers=%s, tierAlias=%s, "
+                + "blockId=%s, length=%s, options=%s", workerId, usedBytesOnTier, tierAlias,
+            blockId,
+            length, options);
+      }
     });
   }
 
@@ -98,6 +114,12 @@ public final class BlockMasterWorkerServiceHandler implements BlockMasterWorkerS
       public GetWorkerIdTResponse call() throws AlluxioException {
         return new GetWorkerIdTResponse(
             mBlockMaster.getWorkerId(ThriftUtils.fromThrift((workerNetAddress))));
+      }
+
+      @Override
+      public String toString() {
+        return String
+            .format("getWorkerId: workerNetAddress=%s, options=%s", workerNetAddress, options);
       }
     });
   }
@@ -113,6 +135,14 @@ public final class BlockMasterWorkerServiceHandler implements BlockMasterWorkerS
         mBlockMaster.workerRegister(workerId, storageTiers, totalBytesOnTiers, usedBytesOnTiers,
             currentBlocksOnTiers);
         return new RegisterWorkerTResponse();
+      }
+
+      @Override
+      public String toString() {
+        return String
+            .format("registerWorker: workerId=%s, storageTiers=%s, totalBytesOnTiers=%s,"
+                + "usedBytesOnTiers=%s, currentBlocksOnTiers=%s, options=%s", workerId,
+            storageTiers, totalBytesOnTiers, usedBytesOnTiers, currentBlocksOnTiers, options);
       }
     });
   }

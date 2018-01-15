@@ -19,7 +19,9 @@ This tutorial walks through a basic dockerized Alluxio setup on a single node.
 ## Prerequisites
 
 A Linux machine. For the purposes of this guide, we will use a fresh EC2 machine running
-Amazon Linux. The machine size doesn't need to be large; we will use t2.small.
+Amazon Linux. The machine size doesn't need to be large; we will use t2.small. When
+setting up the network security for the instance, allow traffic on ports 19998-19999 and
+29998-30000.
 
 ## Launch a standalone cluster
 
@@ -146,8 +148,8 @@ when the image starts.
 # Memory tier: ramdisk vs Docker tmpfs
 
 The tutorial used a ramdisk to enable short-circuit reads. Another option is to use the tmpfs that
-comes with Docker containers. This makes setup easier and improves isolation, but comes at the cost 
-of not being able to perform memory-speed short-circuit reads from local clients. Local clients will 
+comes with Docker containers. This makes setup easier and improves isolation, but comes at the cost
+of not being able to perform memory-speed short-circuit reads from local clients. Local clients will
 instead need to go over the network to get data from Alluxio workers.
 
 ## Using the Docker tmpfs
@@ -185,8 +187,6 @@ From the host machine, create a directory for the shared domain socket.
 ```bash
 $ mkdir /tmp/domain
 $ chmod a+w /tmp/domain
-$ touch /tmp/domain/d
-$ chmod a+w /tmp/domain/d
 ```
 
 When starting workers and clients, run their docker containers with `-v /tmp/domain:/opt/domain`

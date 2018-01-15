@@ -47,15 +47,17 @@ public class HdfsValidationTask extends AbstractValidationTask {
   }
 
   @Override
-  public boolean validate(Map<String, String> optionsMap) {
-    if (!validateHdfsSettingParity(optionsMap)) {
-      return false;
+  public TaskResult validate(Map<String, String> optionsMap) {
+    if (shouldSkip()) {
+      return TaskResult.SKIPPED;
     }
-    return true;
+    if (!validateHdfsSettingParity(optionsMap)) {
+      return TaskResult.FAILED;
+    }
+    return TaskResult.OK;
   }
 
-  @Override
-  public boolean shouldSkip() {
+  protected boolean shouldSkip() {
     String scheme =
         new AlluxioURI(Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS)).getScheme();
     if (scheme == null || !scheme.startsWith("hdfs")) {
