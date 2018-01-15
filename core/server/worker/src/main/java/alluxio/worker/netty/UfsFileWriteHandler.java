@@ -158,7 +158,7 @@ public final class UfsFileWriteHandler extends AbstractWriteHandler<UfsFileWrite
       Protocol.CreateUfsFileOptions createUfsFileOptions = request.getCreateUfsFileOptions();
       UfsManager.UfsClient ufsClient = mUfsManager.get(createUfsFileOptions.getMountId());
       if (mUfsClientResource == null) {
-        mUfsClientResource = ufsClient.acquireUfsClientResource();
+        mUfsClientResource = ufsClient.acquireUfsResource();
       }
       UnderFileSystem ufs = mUfsClientResource.get();
       context.setUnderFileSystem(ufs);

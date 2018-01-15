@@ -14,7 +14,6 @@ package alluxio.underfs;
 import alluxio.AlluxioURI;
 import alluxio.collections.ConcurrentHashSet;
 import alluxio.exception.InvalidPathException;
-import alluxio.master.file.meta.MountTable;
 import alluxio.resource.CloseableResource;
 
 import org.slf4j.Logger;
@@ -101,7 +100,7 @@ public final class MasterUfsManager extends AbstractUfsManager {
     super.addMount(mountId, ufsUri, ufsConf);
 
     try (CloseableResource<UnderFileSystem> ufsClientResource =
-        get(mountId).acquireUfsClientResource()) {
+        get(mountId).acquireUfsResource()) {
       UnderFileSystem ufs = ufsClientResource.get();
       for (String physicalUfs : ufs.getPhysicalStores()) {
         mPhysicalUfsToState.compute(physicalUfs, (k, v) -> {
@@ -121,7 +120,7 @@ public final class MasterUfsManager extends AbstractUfsManager {
   @Override
   public void removeMount(long mountId) {
     try (CloseableResource<UnderFileSystem> ufsClientResource =
-        get(mountId).acquireUfsClientResource()) {
+        get(mountId).acquireUfsResource()) {
       UnderFileSystem ufs = ufsClientResource.get();
       for (String physicalUfs : ufs.getPhysicalStores()) {
         mPhysicalUfsToState.computeIfPresent(physicalUfs, (k, v) -> {

@@ -48,7 +48,7 @@ public interface UfsManager extends Closeable {
     /**
      * @return the UFS instance
      */
-    public synchronized CloseableResource<UnderFileSystem> acquireUfsClientResource() {
+    public synchronized CloseableResource<UnderFileSystem> acquireUfsResource() {
       if (mUfs == null) {
         mUfs = mUfsSupplier.get();
       }

@@ -121,7 +121,7 @@ public final class UnderFileSystemBlockReader implements BlockReader {
     mInStreamPos = -1;
     mUfsManager = ufsManager;
     mUfsInstreamManager = ufsInstreamManager;
-    mUfsClientResource = mUfsManager.get(mBlockMeta.getMountId()).acquireUfsClientResource();
+    mUfsClientResource = mUfsManager.get(mBlockMeta.getMountId()).acquireUfsResource();
   }
 
   /**

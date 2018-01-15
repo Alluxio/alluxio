@@ -142,7 +142,7 @@ public final class UfsSyncChecker {
     MountTable.Resolution resolution = mMountTable.resolve(alluxioUri);
     AlluxioURI ufsUri = resolution.getUri();
     try (CloseableResource<UnderFileSystem> ufsClientResource =
-             resolution.getUfsClient().acquireUfsClientResource()) {
+             resolution.getUfsClient().acquireUfsResource()) {
       UnderFileSystem ufs = ufsClientResource.get();
       AlluxioURI curUri = ufsUri;
       while (curUri != null) {

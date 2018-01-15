@@ -164,7 +164,7 @@ public final class FileDataManager {
     FileInfo fileInfo = mBlockWorker.getFileInfo(fileId);
     String dstPath = fileInfo.getUfsPath();
     try (CloseableResource<UnderFileSystem> ufsClientResource =
-             mUfsManager.get(fileInfo.getMountId()).acquireUfsClientResource()) {
+             mUfsManager.get(fileInfo.getMountId()).acquireUfsResource()) {
       UnderFileSystem ufs = ufsClientResource.get();
       return ufs.isFile(dstPath) ? ufs.getFingerprint(dstPath) : null;
     }
@@ -233,7 +233,7 @@ public final class FileDataManager {
     String dstPath = prepareUfsFilePath(fileId);
     FileInfo fileInfo = mBlockWorker.getFileInfo(fileId);
     try (CloseableResource<UnderFileSystem> ufsClientResource =
-             mUfsManager.get(fileInfo.getMountId()).acquireUfsClientResource()) {
+             mUfsManager.get(fileInfo.getMountId()).acquireUfsResource()) {
       UnderFileSystem ufs = ufsClientResource.get();
       OutputStream outputStream = ufs.create(dstPath, CreateOptions.defaults()
           .setOwner(fileInfo.getOwner()).setGroup(fileInfo.getGroup())
@@ -307,7 +307,7 @@ public final class FileDataManager {
     URIStatus status = fs.getStatus(alluxioPath);
     String ufsPath = status.getUfsPath();
     try (CloseableResource<UnderFileSystem> ufsClientResource =
-             mUfsManager.get(fileInfo.getMountId()).acquireUfsClientResource()) {
+             mUfsManager.get(fileInfo.getMountId()).acquireUfsResource()) {
       UnderFileSystem ufs = ufsClientResource.get();
       UnderFileSystemUtils.prepareFilePath(alluxioPath, ufsPath, fs, ufs);
     }

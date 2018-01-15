@@ -292,7 +292,7 @@ public final class MountTable implements JournalEntryIterable {
         try {
           UfsManager.UfsClient ufsClient = mUfsManager.get(info.getMountId());
           try (CloseableResource<UnderFileSystem> ufsClientResource =
-              mUfsManager.get(info.getMountId()).acquireUfsClientResource()) {
+              mUfsManager.get(info.getMountId()).acquireUfsResource()) {
             UnderFileSystem ufs = ufsClientResource.get();
             AlluxioURI resolvedUri = ufs.resolveUri(ufsUri, path.substring(mountPoint.length()));
             return new Resolution(resolvedUri, ufsClient, info.getOptions().isShared(),

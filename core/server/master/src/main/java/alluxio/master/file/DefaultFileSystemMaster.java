@@ -509,7 +509,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         boolean isShared =
             Configuration.getBoolean(PropertyKey.UNDERFS_OBJECT_STORE_MOUNT_SHARED_PUBLICLY);
         try (CloseableResource<UnderFileSystem> ufsClientResource =
-            mUfsManager.getRoot().acquireUfsClientResource()) {
+            mUfsManager.getRoot().acquireUfsResource()) {
           isShared = isShared && ufsClientResource.get().isObjectStorage();
         }
         mMountTable.add(new AlluxioURI(MountTable.ROOT), new AlluxioURI(rootUfsUri), rootUfsMountId,
@@ -1000,7 +1000,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       throws FileDoesNotExistException, InvalidPathException, IOException {
     MountTable.Resolution resolution = mMountTable.resolve(path);
     try (CloseableResource<UnderFileSystem> ufsClientResource =
-             resolution.getUfsClient().acquireUfsClientResource()) {
+             resolution.getUfsClient().acquireUfsResource()) {
       UnderFileSystem ufs = ufsClientResource.get();
       String ufsPath = resolution.getUri().getPath();
       if (ufs == null) {
@@ -1098,7 +1098,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       MountTable.Resolution resolution = mMountTable.resolve(inodePath.getUri());
       AlluxioURI resolvedUri = resolution.getUri();
       try (CloseableResource<UnderFileSystem> ufsClientResource =
-               resolution.getUfsClient().acquireUfsClientResource()) {
+               resolution.getUfsClient().acquireUfsResource()) {
         UnderFileSystem ufs = ufsClientResource.get();
         ufsFingerprint = ufs.getFingerprint(resolvedUri.toString());
       }
@@ -1318,7 +1318,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       MountInfo mountInfo = mountPoint.getValue();
       MountPointInfo info = mountInfo.toMountPointInfo();
       try (CloseableResource<UnderFileSystem> ufsClientResource =
-          mUfsManager.get(mountInfo.getMountId()).acquireUfsClientResource()) {
+          mUfsManager.get(mountInfo.getMountId()).acquireUfsResource()) {
         UnderFileSystem ufs = ufsClientResource.get();
         info.setUfsType(ufs.getUnderFSType());
         try {
@@ -2130,7 +2130,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
 
         String ufsSrcPath = resolution.getUri().toString();
         try (CloseableResource<UnderFileSystem> ufsClientResource =
-                 resolution.getUfsClient().acquireUfsClientResource()) {
+                 resolution.getUfsClient().acquireUfsResource()) {
           UnderFileSystem ufs = ufsClientResource.get();
           String ufsDstUri = mMountTable.resolve(dstPath).getUri().toString();
           boolean success;
@@ -2471,7 +2471,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     MountTable.Resolution resolution = mMountTable.resolve(path);
     AlluxioURI ufsUri = resolution.getUri();
     try (CloseableResource<UnderFileSystem> ufsClientResource =
-        resolution.getUfsClient().acquireUfsClientResource()) {
+        resolution.getUfsClient().acquireUfsResource()) {
       UnderFileSystem ufs = ufsClientResource.get();
       if (options.getUfsStatus() == null && !ufs.exists(ufsUri.toString())) {
         // uri does not exist in ufs
@@ -2548,7 +2548,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     long ufsBlockSizeByte;
     long ufsLength;
     try (CloseableResource<UnderFileSystem> ufsClientResource =
-        resolution.getUfsClient().acquireUfsClientResource()) {
+        resolution.getUfsClient().acquireUfsResource()) {
       UnderFileSystem ufs = ufsClientResource.get();
 
       ufsBlockSizeByte = ufs.getBlockSizeByte(ufsUri.toString());
@@ -2621,7 +2621,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     if (ufsStatus == null) {
       AlluxioURI ufsUri = resolution.getUri();
       try (CloseableResource<UnderFileSystem> ufsClientResource =
-               resolution.getUfsClient().acquireUfsClientResource()) {
+               resolution.getUfsClient().acquireUfsResource()) {
         UnderFileSystem ufs = ufsClientResource.get();
         ufsStatus = ufs.getDirectoryStatus(ufsUri.toString());
       }
@@ -2798,7 +2798,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     try {
       if (!replayed) {
         try (CloseableResource<UnderFileSystem> ufsClientResource =
-            mUfsManager.get(mountId).acquireUfsClientResource()) {
+            mUfsManager.get(mountId).acquireUfsResource()) {
           UnderFileSystem ufs = ufsClientResource.get();
           ufs.connectFromMaster(
               NetworkAddressUtils.getConnectHost(NetworkAddressUtils.ServiceType.MASTER_RPC));
@@ -3164,7 +3164,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         MountTable.Resolution resolution = mMountTable.resolve(inodePath.getUri());
         AlluxioURI ufsUri = resolution.getUri();
         try (CloseableResource<UnderFileSystem> ufsClientResource =
-            resolution.getUfsClient().acquireUfsClientResource()) {
+            resolution.getUfsClient().acquireUfsResource()) {
           UnderFileSystem ufs = ufsClientResource.get();
 
           UfsSyncUtils.SyncPlan syncPlan =
@@ -3235,7 +3235,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     Inode<?> inode = inodePath.getInode();
 
     try (CloseableResource<UnderFileSystem> ufsClientResource =
-        resolution.getUfsClient().acquireUfsClientResource()) {
+        resolution.getUfsClient().acquireUfsResource()) {
       UnderFileSystem ufs = ufsClientResource.get();
       UfsStatus[] listStatus = ufs.listStatus(ufsUri.toString());
 
@@ -3389,7 +3389,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         MountTable.Resolution resolution = mMountTable.resolve(inodePath.getUri());
         String ufsUri = resolution.getUri().toString();
         try (CloseableResource<UnderFileSystem> ufsClientResource =
-                 resolution.getUfsClient().acquireUfsClientResource()) {
+                 resolution.getUfsClient().acquireUfsResource()) {
           UnderFileSystem ufs = ufsClientResource.get();
           if (ufs.isObjectStorage()) {
             LOG.warn("setOwner/setMode is not supported to object storage UFS via Alluxio. " + "UFS: "
@@ -3583,7 +3583,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       throws AccessControlException, InvalidPathException {
     MountTable.Resolution resolution = mMountTable.resolve(alluxioPath);
     try (CloseableResource<UnderFileSystem> ufsClientResource =
-             resolution.getUfsClient().acquireUfsClientResource()) {
+             resolution.getUfsClient().acquireUfsResource()) {
       UnderFileSystem ufs = ufsClientResource.get();
       UnderFileSystem.UfsMode ufsMode =
           ufs.getOperationMode(mUfsManager.getPhysicalUfsState(ufs.getPhysicalStores()));
@@ -3677,7 +3677,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMasterMetricName(UFS_CAPACITY_TOTAL),
           () -> {
             try (CloseableResource<UnderFileSystem> ufsResource =
-                ufsManager.getRoot().acquireUfsClientResource()) {
+                ufsManager.getRoot().acquireUfsResource()) {
               UnderFileSystem ufs = ufsResource.get();
               return ufs.getSpace(ufsDataFolder, UnderFileSystem.SpaceType.SPACE_TOTAL);
             } catch (IOException e) {
@@ -3689,7 +3689,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMasterMetricName(UFS_CAPACITY_USED),
           () -> {
             try (CloseableResource<UnderFileSystem> ufsResource =
-                ufsManager.getRoot().acquireUfsClientResource()) {
+                ufsManager.getRoot().acquireUfsResource()) {
               UnderFileSystem ufs = ufsResource.get();
               return ufs.getSpace(ufsDataFolder, UnderFileSystem.SpaceType.SPACE_USED);
             } catch (IOException e) {
@@ -3704,7 +3704,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
             public Long getValue() {
               long ret = 0L;
               try (CloseableResource<UnderFileSystem> ufsResource =
-                       ufsManager.getRoot().acquireUfsClientResource()) {
+                       ufsManager.getRoot().acquireUfsResource()) {
                 UnderFileSystem ufs = ufsResource.get();
                 ret = ufs.getSpace(ufsDataFolder, UnderFileSystem.SpaceType.SPACE_FREE);
               } catch (IOException e) {

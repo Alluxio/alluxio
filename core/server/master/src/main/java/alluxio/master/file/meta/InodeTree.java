@@ -1000,7 +1000,7 @@ public class InodeTree implements JournalEntryIterable {
           MountTable.Resolution resolution = mMountTable.resolve(uri);
           String ufsUri = resolution.getUri().toString();
           try (CloseableResource<UnderFileSystem> ufsClientResource =
-                   resolution.getUfsClient().acquireUfsClientResource()) {
+                   resolution.getUfsClient().acquireUfsResource()) {
             UnderFileSystem ufs = ufsClientResource.get();
             MkdirsOptions mkdirsOptions =
                 MkdirsOptions.defaults().setCreateParent(false).setOwner(dir.getOwner())
