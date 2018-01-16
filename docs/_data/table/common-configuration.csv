@@ -69,7 +69,7 @@ alluxio.underfs.s3a.secure.http.enabled,false
 alluxio.underfs.s3a.server.side.encryption.enabled,false
 alluxio.underfs.s3a.signer.algorithm,
 alluxio.underfs.s3a.socket.timeout,50sec
-alluxio.version,1.7.1-SNAPSHOT
+alluxio.version,1.7.0
 alluxio.web.resources,${alluxio.home}/core/server/common/src/main/webapp
 alluxio.web.threads,1
 alluxio.work.dir,${alluxio.home}
