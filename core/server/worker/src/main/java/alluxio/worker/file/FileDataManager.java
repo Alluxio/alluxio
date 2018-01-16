@@ -20,6 +20,7 @@ import alluxio.client.file.URIStatus;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.InvalidWorkerStateException;
+import alluxio.resource.CloseableResource;
 import alluxio.security.authorization.Mode;
 import alluxio.underfs.UfsManager;
 import alluxio.underfs.UnderFileSystem;
@@ -162,8 +163,11 @@ public final class FileDataManager {
   private synchronized String ufsFingerprint(long fileId) throws IOException {
     FileInfo fileInfo = mBlockWorker.getFileInfo(fileId);
     String dstPath = fileInfo.getUfsPath();
-    UnderFileSystem ufs = mUfsManager.get(fileInfo.getMountId()).getUfs();
-    return ufs.isFile(dstPath) ? ufs.getFingerprint(dstPath) : null;
+    try (CloseableResource<UnderFileSystem> ufsResource =
+        mUfsManager.get(fileInfo.getMountId()).acquireUfsResource()) {
+      UnderFileSystem ufs = ufsResource.get();
+      return ufs.isFile(dstPath) ? ufs.getFingerprint(dstPath) : null;
+    }
   }
 
   /**
@@ -226,64 +230,66 @@ public final class FileDataManager {
       }
     }
 
-    String dstPath = prepareUfsFilePath(fileId);
     FileInfo fileInfo = mBlockWorker.getFileInfo(fileId);
-    UnderFileSystem ufs = mUfsManager.get(fileInfo.getMountId()).getUfs();
-    OutputStream outputStream = ufs.create(dstPath, CreateOptions.defaults()
-        .setOwner(fileInfo.getOwner()).setGroup(fileInfo.getGroup())
-        .setMode(new Mode((short) fileInfo.getMode())));
-    final WritableByteChannel outputChannel = Channels.newChannel(outputStream);
+    try (CloseableResource<UnderFileSystem> ufsResource =
+        mUfsManager.get(fileInfo.getMountId()).acquireUfsResource()) {
+      UnderFileSystem ufs = ufsResource.get();
+      String dstPath = prepareUfsFilePath(fileInfo, ufs);
+      OutputStream outputStream = ufs.create(dstPath, CreateOptions.defaults()
+          .setOwner(fileInfo.getOwner()).setGroup(fileInfo.getGroup())
+          .setMode(new Mode((short) fileInfo.getMode())));
+      final WritableByteChannel outputChannel = Channels.newChannel(outputStream);
+      List<Throwable> errors = new ArrayList<>();
+      try {
+        for (long blockId : blockIds) {
+          long lockId = blockIdToLockId.get(blockId);
 
-    List<Throwable> errors = new ArrayList<>();
-    try {
-      for (long blockId : blockIds) {
-        long lockId = blockIdToLockId.get(blockId);
+          if (Configuration.getBoolean(PropertyKey.WORKER_FILE_PERSIST_RATE_LIMIT_ENABLED)) {
+            BlockMeta blockMeta =
+                mBlockWorker.getBlockMeta(Sessions.CHECKPOINT_SESSION_ID, blockId, lockId);
+            mPersistenceRateLimiter.acquire((int) blockMeta.getBlockSize());
+          }
 
-        if (Configuration.getBoolean(PropertyKey.WORKER_FILE_PERSIST_RATE_LIMIT_ENABLED)) {
-          BlockMeta blockMeta =
-              mBlockWorker.getBlockMeta(Sessions.CHECKPOINT_SESSION_ID, blockId, lockId);
-          mPersistenceRateLimiter.acquire((int) blockMeta.getBlockSize());
+          // obtain block reader
+          BlockReader reader =
+              mBlockWorker.readBlockRemote(Sessions.CHECKPOINT_SESSION_ID, blockId, lockId);
+
+          // write content out
+          ReadableByteChannel inputChannel = reader.getChannel();
+          BufferUtils.fastCopy(inputChannel, outputChannel);
+          reader.close();
+        }
+      } catch (BlockDoesNotExistException | InvalidWorkerStateException e) {
+        errors.add(e);
+      } finally {
+        // make sure all the locks are released
+        for (long lockId : blockIdToLockId.values()) {
+          try {
+            mBlockWorker.unlockBlock(lockId);
+          } catch (BlockDoesNotExistException e) {
+            errors.add(e);
+          }
         }
 
-        // obtain block reader
-        BlockReader reader =
-            mBlockWorker.readBlockRemote(Sessions.CHECKPOINT_SESSION_ID, blockId, lockId);
-
-        // write content out
-        ReadableByteChannel inputChannel = reader.getChannel();
-        BufferUtils.fastCopy(inputChannel, outputChannel);
-        reader.close();
-      }
-    } catch (BlockDoesNotExistException | InvalidWorkerStateException e) {
-      errors.add(e);
-    } finally {
-      // make sure all the locks are released
-      for (long lockId : blockIdToLockId.values()) {
-        try {
-          mBlockWorker.unlockBlock(lockId);
-        } catch (BlockDoesNotExistException e) {
-          errors.add(e);
+        // Process any errors
+        if (!errors.isEmpty()) {
+          StringBuilder errorStr = new StringBuilder();
+          errorStr.append("the blocks of file").append(fileId).append(" are failed to persist\n");
+          for (Throwable e : errors) {
+            errorStr.append(e).append('\n');
+          }
+          throw new IOException(errorStr.toString());
         }
       }
 
-      // Process any errors
-      if (!errors.isEmpty()) {
-        StringBuilder errorStr = new StringBuilder();
-        errorStr.append("the blocks of file").append(fileId).append(" are failed to persist\n");
-        for (Throwable e : errors) {
-          errorStr.append(e).append('\n');
-        }
-        throw new IOException(errorStr.toString());
+      outputStream.flush();
+      outputChannel.close();
+      outputStream.close();
+      String ufsFingerprint = ufs.getFingerprint(dstPath);
+      synchronized (mLock) {
+        mPersistingInProgressFiles.remove(fileId);
+        mPersistedUfsFingerprints.put(fileId, ufsFingerprint);
       }
-    }
-
-    outputStream.flush();
-    outputChannel.close();
-    outputStream.close();
-    String ufsFingerprint = ufs.getFingerprint(dstPath);
-    synchronized (mLock) {
-      mPersistingInProgressFiles.remove(fileId);
-      mPersistedUfsFingerprints.put(fileId, ufsFingerprint);
     }
   }
 
@@ -291,16 +297,16 @@ public final class FileDataManager {
    * Prepares the destination file path of the given file id. Also creates the parent folder if it
    * does not exist.
    *
-   * @param fileId the file id
+   * @param fileInfo the file info
+   * @param ufs the {@link UnderFileSystem} instance
    * @return the path for persistence
    */
-  private String prepareUfsFilePath(long fileId) throws AlluxioException, IOException {
-    FileInfo fileInfo = mBlockWorker.getFileInfo(fileId);
+  private String prepareUfsFilePath(FileInfo fileInfo, UnderFileSystem ufs)
+      throws AlluxioException, IOException {
     AlluxioURI alluxioPath = new AlluxioURI(fileInfo.getPath());
     FileSystem fs = FileSystem.Factory.get();
     URIStatus status = fs.getStatus(alluxioPath);
     String ufsPath = status.getUfsPath();
-    UnderFileSystem ufs = mUfsManager.get(fileInfo.getMountId()).getUfs();
     UnderFileSystemUtils.prepareFilePath(alluxioPath, ufsPath, fs, ufs);
     return ufsPath;
   }

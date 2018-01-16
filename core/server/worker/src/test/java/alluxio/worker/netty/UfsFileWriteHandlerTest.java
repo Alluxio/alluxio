@@ -15,7 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.proto.status.Status.PStatus;
 import alluxio.underfs.UfsManager;
-import alluxio.underfs.UfsManager.UfsInfo;
+import alluxio.underfs.UfsManager.UfsClient;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.CreateOptions;
 
@@ -47,8 +47,8 @@ public final class UfsFileWriteHandlerTest extends AbstractWriteHandlerTest {
     mOutputStream = new FileOutputStream(mFile);
     UnderFileSystem mockUfs = Mockito.mock(UnderFileSystem.class);
     UfsManager ufsManager = Mockito.mock(UfsManager.class);
-    UfsInfo ufsInfo = new UfsInfo(Suppliers.ofInstance(mockUfs), AlluxioURI.EMPTY_URI);
-    Mockito.when(ufsManager.get(TEST_MOUNT_ID)).thenReturn(ufsInfo);
+    UfsClient ufsClient = new UfsClient(Suppliers.ofInstance(mockUfs), AlluxioURI.EMPTY_URI);
+    Mockito.when(ufsManager.get(TEST_MOUNT_ID)).thenReturn(ufsClient);
     Mockito.when(mockUfs.create(Mockito.anyString(), Mockito.any(CreateOptions.class)))
         .thenReturn(mOutputStream)
         .thenReturn(new FileOutputStream(mFile, true));
