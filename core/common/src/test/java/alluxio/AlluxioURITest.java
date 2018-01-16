@@ -514,6 +514,7 @@ public class AlluxioURITest {
    */
   @Test
   public void hasAuthorityTests() {
+    assertFalse(new AlluxioURI(".").hasAuthority());
     assertFalse(new AlluxioURI("/").hasAuthority());
     assertFalse(new AlluxioURI("file:/").hasAuthority());
     assertFalse(new AlluxioURI("file:///test").hasAuthority());
