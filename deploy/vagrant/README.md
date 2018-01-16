@@ -46,24 +46,21 @@ it's easier for others to understand since most developers know bash.
 
 create new directory `roles/ufs_{filesystem_name}` with structure:
 
-	|-- files
-	|---- compile_alluxio.sh    # how to compile Alluxio against this ufs
-	|---- config_alluxio.sh     # there are ufs related configurations in Alluxio like ALLUXIO_UNDERFS_ADDRESS
-	|---- ...
 	|-- tasks
 	|---- download_release.yml  # how to download the binary release of this ufs to a specific directory
 	|---- config.yml            # how to configure the ufs
 	|---- rsync_dist.yml        # only master will download/compile, how do slaves rsync the binary distribution from master
 	|---- start.yml             # how to start the ufs
-
+	|---- files                 # script files related to same role tasks
+	|------ compile_alluxio.sh    # how to compile Alluxio against this ufs
+	|------ config_alluxio.sh     # there are ufs related configurations in Alluxio like ALLUXIO_UNDERFS_ADDRESS
+	|------ ...
 Then compose the task ymls in playbook.yml, configurations should be in `conf/ufs.yml`.
 
 ### Add new framework on top of Alluxio
 
 create new directory `roles/{framework_name}` with structure:
 
-	|-- files
-	|---- ...
 	|-- tasks
 	|---- download_release.yml   # if you want to support deploying releases instead of downloading source code and compiling, this file specifies how to download binary releases of this framework
 	|---- clone_remote_repo.yml  # how to git clone the repo
@@ -71,7 +68,8 @@ create new directory `roles/{framework_name}` with structure:
 	|---- config.yml             # how to configure the framework
 	|---- rsync_dist.yml         # how do slaves rsync the binary distribution from master. only master will download/compile
 	|---- start.yml              # how to start the framework
-
+	|---- files                  # script files related to same role tasks
+	|------ ...
 Then compose the task ymls in playbook.yml, configurations should be in `conf/{framework_name}.yml`.
 
 **Interface**
@@ -97,9 +95,9 @@ If you need to use conditional variables when composing tasks in playbook.yml, p
 
 **Relative Paths**
 
-1. when you want to use files under the `files` directory in the `tasks` directory of the same role, reference the file name directly.
+1. when you want to use files under the `tasks/files` directory in the `tasks` directory of the same role, reference the file name directly.
 
-	e.x. If you want to use `roles/role1/files/shell1.sh` in `roles/role1/tasks/task1.yml`, directly write `shell1.sh` in modules like `script: shell1.sh`, `synchronize: shell1.sh`, `copy: shell1.sh`, etc. Ansible
+	e.x. If you want to use `roles/role1/tasks/files/shell1.sh` in `roles/role1/tasks/task1.yml`, directly write `shell1.sh` in modules like `script: shell1.sh`, `synchronize: shell1.sh`, `copy: shell1.sh`, etc. Ansible
 will take care of relative path referencing for you.
 
 2. other paths in roles/xxx/tasks is relative to the current task yml file.
