@@ -172,6 +172,16 @@ public interface UnderFileSystem extends Closeable {
   }
 
   /**
+   * Operation mode for under storage. During maintenance the operation mode may be changed to
+   * NO_ACCESS or READ_ONLY.
+   */
+  enum UfsMode {
+    NO_ACCESS,
+    READ_ONLY,
+    READ_WRITE
+  }
+
+  /**
    * Takes any necessary actions required to establish a connection to the under file system from
    * the given master host e.g. logging in
    * <p>
@@ -300,6 +310,28 @@ public interface UnderFileSystem extends Closeable {
    * @return the string representing the fingerprint
    */
   String getFingerprint(String path);
+
+  /**
+   * An {@link UnderFileSystem} may be composed of one or more "physical UFS"s. This method is used
+   * to determine the operation mode based on the physical UFS operation modes. For example, if this
+   * {@link UnderFileSystem} is composed of physical UFS hdfs://ns1/ and hdfs://ns2/ with read
+   * operations split b/w the two, with physicalUfsState{hdfs://ns1/:NO_ACCESS,
+   * hdfs://ns2/:READ_WRITE} this method can return READ_ONLY to allow reads to proceed from
+   * hdfs://ns2/.
+   *
+   * @param physicalUfsState the state of physical UFSs for this {@link UnderFileSystem}; keys are
+   *        expected to be normalized (ending with /)
+   * @return the desired operation mode for this UFS
+   */
+  UfsMode getOperationMode(Map<String, UfsMode> physicalUfsState);
+
+  /**
+   * An {@link UnderFileSystem} may be composed of one or more "physical UFS"s. This method
+   * returns all underlying physical stores; normalized with only scheme and authority.
+   *
+   * @return physical UFSs this {@link UnderFileSystem} is composed of
+   */
+  List<String> getPhysicalStores();
 
   /**
    * Queries the under file system about the space of the indicated path (e.g., space left, space

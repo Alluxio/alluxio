@@ -86,16 +86,16 @@ public abstract class AbstractUfsManager implements UfsManager {
    * instances, each keyed by their unique combination of Uri and conf information. This map
    * helps efficiently identify if a UFS instance in request should be created or can be reused.
    */
-  private final ConcurrentHashMap<Key, UnderFileSystem> mUnderFileSystemMap =
+  protected final ConcurrentHashMap<Key, UnderFileSystem> mUnderFileSystemMap =
       new ConcurrentHashMap<>();
   /**
-   * Maps from mount id to {@link UfsInfo} instances. This map helps efficiently retrieve
+   * Maps from mount id to {@link UfsClient} instances. This map helps efficiently retrieve
    * existing UFS info given its mount id.
    */
-  private final ConcurrentHashMap<Long, UfsInfo> mMountIdToUfsInfoMap =
+  private final ConcurrentHashMap<Long, UfsClient> mMountIdToUfsInfoMap =
       new ConcurrentHashMap<>();
 
-  private UfsInfo mRootUfsInfo;
+  private UfsClient mRootUfsClient;
   protected final Closer mCloser;
 
   AbstractUfsManager() {
@@ -138,7 +138,7 @@ public abstract class AbstractUfsManager implements UfsManager {
     Preconditions.checkArgument(mountId != IdUtils.INVALID_MOUNT_ID, "mountId");
     Preconditions.checkNotNull(ufsUri, "ufsUri");
     Preconditions.checkNotNull(ufsConf, "ufsConf");
-    mMountIdToUfsInfoMap.put(mountId, new UfsInfo(new Supplier<UnderFileSystem>() {
+    mMountIdToUfsInfoMap.put(mountId, new UfsClient(new Supplier<UnderFileSystem>() {
       @Override
       public UnderFileSystem get() {
         return getOrAdd(ufsUri, ufsConf);
@@ -155,19 +155,19 @@ public abstract class AbstractUfsManager implements UfsManager {
   }
 
   @Override
-  public UfsInfo get(long mountId) throws NotFoundException, UnavailableException {
-    UfsInfo ufsInfo = mMountIdToUfsInfoMap.get(mountId);
-    if (ufsInfo == null) {
+  public UfsClient get(long mountId) throws NotFoundException, UnavailableException {
+    UfsClient ufsClient = mMountIdToUfsInfoMap.get(mountId);
+    if (ufsClient == null) {
       throw new NotFoundException(
           String.format("Mount Id %d not found in cached mount points", mountId));
     }
-    return ufsInfo;
+    return ufsClient;
   }
 
   @Override
-  public UfsInfo getRoot() {
+  public UfsClient getRoot() {
     synchronized (this) {
-      if (mRootUfsInfo == null) {
+      if (mRootUfsClient == null) {
         String rootUri = Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
         boolean rootReadOnly =
             Configuration.getBoolean(PropertyKey.MASTER_MOUNT_TABLE_ROOT_READONLY);
@@ -178,12 +178,12 @@ public abstract class AbstractUfsManager implements UfsManager {
             UnderFileSystemConfiguration.defaults().setReadOnly(rootReadOnly).setShared(rootShared)
                 .setUserSpecifiedConf(rootConf));
         try {
-          mRootUfsInfo = get(IdUtils.ROOT_MOUNT_ID);
+          mRootUfsClient = get(IdUtils.ROOT_MOUNT_ID);
         } catch (NotFoundException | UnavailableException e) {
           throw new RuntimeException("We should never reach here", e);
         }
       }
-      return mRootUfsInfo;
+      return mRootUfsClient;
     }
   }
 

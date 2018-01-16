@@ -67,6 +67,9 @@ import alluxio.thrift.SetAttributeTOptions;
 import alluxio.thrift.SetAttributeTResponse;
 import alluxio.thrift.UnmountTOptions;
 import alluxio.thrift.UnmountTResponse;
+import alluxio.thrift.UpdateUfsModeTOptions;
+import alluxio.thrift.UpdateUfsModeTResponse;
+import alluxio.underfs.UnderFileSystem;
 import alluxio.wire.MountPointInfo;
 import alluxio.wire.ThriftUtils;
 
@@ -422,6 +425,35 @@ public final class FileSystemMasterClientServiceHandler implements
       @Override
       public String toString() {
         return String.format("Unmount: alluxioPath=%s, options=%s", alluxioPath, options);
+      }
+    });
+  }
+
+  @Override
+  public UpdateUfsModeTResponse updateUfsMode(final String ufsPath,
+      final UpdateUfsModeTOptions options) throws AlluxioTException {
+    return RpcUtils.call(LOG, new RpcCallableThrowsIOException<UpdateUfsModeTResponse>() {
+      @Override
+      public UpdateUfsModeTResponse call() throws AlluxioException, IOException {
+        UnderFileSystem.UfsMode ufsMode;
+        switch (options.getUfsMode()) {
+          case NoAccess:
+            ufsMode = UnderFileSystem.UfsMode.NO_ACCESS;
+            break;
+          case ReadOnly:
+            ufsMode = UnderFileSystem.UfsMode.READ_ONLY;
+            break;
+          default:
+            ufsMode = UnderFileSystem.UfsMode.READ_WRITE;
+            break;
+        }
+        mFileSystemMaster.updateUfsMode(new AlluxioURI(ufsPath), ufsMode);
+        return new UpdateUfsModeTResponse();
+      }
+
+      @Override
+      public String toString() {
+        return String.format("UpdateUfsMode: ufsPath=%s, options=%s", ufsPath, options);
       }
     });
   }

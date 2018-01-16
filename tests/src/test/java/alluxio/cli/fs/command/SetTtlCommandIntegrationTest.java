@@ -13,10 +13,10 @@ package alluxio.cli.fs.command;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
+import alluxio.cli.fs.AbstractAlluxioShellTest;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.client.file.URIStatus;
-import alluxio.cli.fs.AbstractAlluxioShellTest;
 import alluxio.wire.TtlAction;
 
 import org.junit.Assert;
@@ -76,6 +76,24 @@ public final class SetTtlCommandIntegrationTest extends AbstractAlluxioShellTest
     URIStatus status = mFileSystem.getStatus(uri);
     Assert.assertEquals(ttl, status.getTtl());
     Assert.assertEquals(TtlAction.FREE, status.getTtlAction());
+  }
+
+  @Test
+  public void setTtlSameTimeDifferentAction() throws Exception {
+    String filePath = "/testFile";
+    AlluxioURI uri = new AlluxioURI("/testFile");
+    FileSystemTestUtils.createByteFile(mFileSystem, filePath, WriteType.MUST_CACHE, 1);
+    long ttl = 1000L;
+
+    Assert.assertEquals(0,
+        mFsShell.run("setTtl", "-action", "delete", filePath, String.valueOf(ttl)));
+    Assert.assertEquals(ttl, mFileSystem.getStatus(uri).getTtl());
+    Assert.assertEquals(TtlAction.DELETE, mFileSystem.getStatus(uri).getTtlAction());
+
+    Assert.assertEquals(0,
+        mFsShell.run("setTtl", "-action", "free", filePath, String.valueOf(ttl)));
+    Assert.assertEquals(ttl, mFileSystem.getStatus(uri).getTtl());
+    Assert.assertEquals(TtlAction.FREE, mFileSystem.getStatus(uri).getTtlAction());
   }
 
   @Test

@@ -763,4 +763,17 @@ public class AlluxioURITest {
     assertEquals(null,     new AlluxioURI(".").getLeadingPath(1));
     assertEquals("a/b",    new AlluxioURI("a/b/c").getLeadingPath(1));
   }
+
+  /**
+   * Tests the {@link alluxio.AlluxioURI#getRootPath()} method.
+   */
+  @Test
+  public void getRootPath() {
+    assertEquals("s3a://s3-bucket-name/",
+        new AlluxioURI("s3a://s3-bucket-name/").getRootPath());
+    assertEquals("s3a://s3-bucket-name/",
+        new AlluxioURI("s3a://s3-bucket-name/folder").getRootPath());
+    assertEquals("/",
+        new AlluxioURI("/tmp/folder").getRootPath());
+  }
 }

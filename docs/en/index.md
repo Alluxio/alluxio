@@ -30,7 +30,7 @@ storage systems. Users can run Alluxio using its
 [Amazon EC2](Running-Alluxio-on-EC2.html),
 [Google Compute Engine](Running-Alluxio-on-GCE.html), or launch Alluxio with
 [Apache Mesos](Running-Alluxio-on-Mesos.html) or
-[Apache Yarn](Running-Alluxio-on-EC2-Yarn.html).
+[Apache Yarn](Running-Alluxio-Yarn-Integration.html).
 
 Alluxio is Hadoop compatible. Existing data analytics applications, such as Spark and MapReduce
 programs, can run on top of Alluxio without any code change. The project is open source under
