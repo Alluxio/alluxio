@@ -11,7 +11,7 @@ priority: 1
 
 # 前提条件
 
-这部分的前提条件是你安装了[Java](Java-Setup.html)(JDK 7或更高版本)。
+这部分的前提条件是你安装了[Java](Java-Setup.html)(JDK 8或更高版本)。
 
 下载Alluxio二进制发行版{{site.ALLUXIO_RELEASED_VERSION}}:
 
