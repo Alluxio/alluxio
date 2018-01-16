@@ -21,7 +21,7 @@ alluxio.user.failed.space.request.limits:
 alluxio.user.file.buffer.bytes:
   'The size of the file buffer to use for file system reads/writes.'
 alluxio.user.file.cache.partially.read.block:
-  'When read type is CACHE_PROMOTE or CACHE and this property is set to true, the entire block will be cached by Alluxio space even if the client only reads a part of this block.'
+  'This property is deprecated as of 1.7 and has no effect. Use the read type to control caching behavior.'
 alluxio.user.file.copyfromlocal.write.location.policy.class:
   'The default location policy for choosing workers for writing a file''s blocks using copyFromLocal command.'
 alluxio.user.file.delete.unchecked:
@@ -29,7 +29,9 @@ alluxio.user.file.delete.unchecked:
 alluxio.user.file.master.client.threads:
   'The number of threads used by a file master client to talk to the file master.'
 alluxio.user.file.metadata.load.type:
-  'The behavior of loading metadata from UFS. When information about a path is requested and the path does not exist in Alluxio, metadata can be loaded from the UFS. Valid options are `Always`, `Never`, and `Once`. `Always` will always access UFS to see if the path exists in the UFS. `Never` will never consult the UFS. `Once` will access the UFS the "first" time (according to a cache), but not after that.'
+  'The behavior of loading metadata from UFS. When information about a path is requested and the path does not exist in Alluxio, metadata can be loaded from the UFS. Valid options are `Always`, `Never`, and `Once`. `Always` will always access UFS to see if the path exists in the UFS. `Never` will never consult the UFS. `Once` will access the UFS the "first" time (according to a cache), but not after that. This parameter is ignored if a metadata sync is performed, via the parameter "alluxio.user.file.metadata.sync.interval"'
+alluxio.user.file.metadata.sync.interval:
+  'The interval for syncing UFS metadata before invoking an operation on a path. -1 means no sync will occur. 0 means Alluxio will always sync the metadata of the path before an operation. If you specify a time interval, Alluxio will (best effort) not re-sync a path within that time interval. Syncing the metadata for a path must interact with the UFS, so it is an expensive operation. If a sync is performed for an operation, the configuration of "alluxio.user.file.metadata.load.type" will be ignored.'
 alluxio.user.file.passive.cache.enabled:
   'Whether to cache files to local Alluxio workers when the files are read from remote workers (not UFS).'
 alluxio.user.file.readtype.default:
@@ -49,7 +51,7 @@ alluxio.user.file.writetype.default:
 alluxio.user.heartbeat.interval:
   'The interval between Alluxio workers'' heartbeats.'
 alluxio.user.hostname:
-  'The hostname to use for the client.'
+  'The hostname to use for the client. Note: this property is deprecated. set alluxio.locality.node instead'
 alluxio.user.lineage.enabled:
   'Flag to enable lineage feature.'
 alluxio.user.lineage.master.client.threads:
@@ -95,9 +97,9 @@ alluxio.user.ufs.block.read.location.policy:
 alluxio.user.ufs.block.read.location.policy.deterministic.hash.shards:
   'When alluxio.user.ufs.block.read.location.policy is set to alluxio.client.block.policy.DeterministicHashPolicy, this specifies the number of hash shards.'
 alluxio.user.ufs.delegation.read.buffer.size.bytes:
-  'Size of the read buffer when reading from the ufs through the Alluxio worker. Each read request will fetch at least this many bytes, unless the read reaches the end of the file.'
+  'Size of the read buffer when reading from the UFS through the Alluxio worker. Each read request will fetch at least this many bytes, unless the read reaches the end of the file.'
 alluxio.user.ufs.delegation.write.buffer.size.bytes:
-  'Size of the write buffer when writing to the ufs through the Alluxio worker. Each write request will write at least this many bytes, unless the write is at the end of the file.'
+  'Size of the write buffer when writing to the UFS through the Alluxio worker. Each write request will write at least this many bytes, unless the write is at the end of the file.'
 alluxio.user.ufs.file.reader.class:
   'Selects networking stack to run the client with for reading from under file system through a worker''s data server. Currently only `alluxio.client.netty.NettyUnderFileSystemFileReader` (remote read using netty) is valid.'
 alluxio.user.ufs.file.writer.class:
