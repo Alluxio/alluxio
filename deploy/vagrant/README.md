@@ -69,7 +69,9 @@ create new directory `roles/{framework_name}` with structure:
 	|---- rsync_dist.yml         # how do slaves rsync the binary distribution from master. only master will download/compile
 	|---- start.yml              # how to start the framework
 	|---- files                  # script files related to same role tasks
-	|------ ...
+	|------ download_release.sh
+	|------ start.sh
+	
 Then compose the task ymls in playbook.yml, configurations should be in `conf/{framework_name}.yml`.
 
 **Interface**
