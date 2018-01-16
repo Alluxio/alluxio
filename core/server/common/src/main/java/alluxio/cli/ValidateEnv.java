@@ -14,6 +14,7 @@ package alluxio.cli;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
+import alluxio.cli.validation.ClusterConfConsistencyValidationTask;
 import alluxio.cli.validation.HdfsValidationTask;
 import alluxio.cli.validation.PortAvailabilityValidationTask;
 import alluxio.cli.validation.RamDiskMountPrivilegeValidationTask;
@@ -79,6 +80,7 @@ public final class ValidateEnv {
   private static final String ALLUXIO_PROXY_CLASS = "alluxio.proxy.AlluxioProxy";
 
   private static final List<ValidationTask> COMMON_TASKS = new ArrayList<>();
+  private static final List<ValidationTask> CLUSTER_TASKS = new ArrayList<>();
   private static final List<ValidationTask> MASTER_TASKS = new ArrayList<>();
   private static final List<ValidationTask> WORKER_TASKS = new ArrayList<>();
 
@@ -153,6 +155,9 @@ public final class ValidateEnv {
     registerTask("worker.storage.space",
         "validate tiered storage locations have enough space",
         new StorageSpaceValidationTask(), WORKER_TASKS);
+    registerTask("cluster.conf.consistent",
+        "validate configuration consistency across cluster",
+        new ClusterConfConsistencyValidationTask(), CLUSTER_TASKS);
   }
 
   private static final Map<String, Collection<ValidationTask>> TARGET_TASKS =
@@ -167,6 +172,7 @@ public final class ValidateEnv {
     allWorkerTasks.addAll(WORKER_TASKS);
     targetMap.put("worker", allWorkerTasks);
     targetMap.put("local", TASKS.keySet());
+    targetMap.put("cluster", new ArrayList<>(CLUSTER_TASKS));
     return targetMap;
   }
 
@@ -239,6 +245,7 @@ public final class ValidateEnv {
       optionsMap.put(opt.getOpt(), opt.getValue());
     }
     Collection<ValidationTask> tasks = TARGET_TASKS.get(target);
+    System.out.format("Validating %s environment...%n", target);
     for (ValidationTask task: tasks) {
       String taskName = TASKS.get(task);
       if (name != null && !taskName.startsWith(name)) {
@@ -309,6 +316,7 @@ public final class ValidateEnv {
   private static void printTasks() {
     printTasks("master");
     printTasks("worker");
+    printTasks("cluster");
   }
 
   private static int runTasks(String target, String name, CommandLine cmd)
@@ -323,6 +331,7 @@ public final class ValidateEnv {
       case "all":
         success = validateMasters(name, cmd);
         success = validateWorkers(name, cmd) && success;
+        success = validateLocal("cluster", name, cmd) && success;
         break;
       case "workers":
         success = validateWorkers(name, cmd);
