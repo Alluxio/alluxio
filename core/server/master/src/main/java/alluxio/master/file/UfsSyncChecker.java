@@ -17,6 +17,7 @@ import alluxio.exception.InvalidPathException;
 import alluxio.master.file.meta.Inode;
 import alluxio.master.file.meta.InodeDirectory;
 import alluxio.master.file.meta.MountTable;
+import alluxio.resource.CloseableResource;
 import alluxio.underfs.UfsStatus;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.ListOptions;
@@ -140,33 +141,34 @@ public final class UfsSyncChecker {
       throws InvalidPathException, IOException {
     MountTable.Resolution resolution = mMountTable.resolve(alluxioUri);
     AlluxioURI ufsUri = resolution.getUri();
-    UnderFileSystem ufs = resolution.getUfs();
-
-    AlluxioURI curUri = ufsUri;
-    while (curUri != null) {
-      if (mListedDirectories.containsKey(curUri.toString())) {
-        List<UfsStatus> childrenList = new ArrayList<>();
-        for (UfsStatus childStatus : mListedDirectories.get(curUri.toString())) {
-          String childPath = PathUtils.concatPath(curUri, childStatus.getName());
-          String prefix = PathUtils.normalizePath(ufsUri.toString(), AlluxioURI.SEPARATOR);
-          if (childPath.startsWith(prefix) && childPath.length() > prefix.length()) {
-            UfsStatus newStatus = childStatus.copy();
-            newStatus.setName(childPath.substring(prefix.length()));
-            childrenList.add(newStatus);
+    try (CloseableResource<UnderFileSystem> ufsResource = resolution.acquireUfsResource()) {
+      UnderFileSystem ufs = ufsResource.get();
+      AlluxioURI curUri = ufsUri;
+      while (curUri != null) {
+        if (mListedDirectories.containsKey(curUri.toString())) {
+          List<UfsStatus> childrenList = new ArrayList<>();
+          for (UfsStatus childStatus : mListedDirectories.get(curUri.toString())) {
+            String childPath = PathUtils.concatPath(curUri, childStatus.getName());
+            String prefix = PathUtils.normalizePath(ufsUri.toString(), AlluxioURI.SEPARATOR);
+            if (childPath.startsWith(prefix) && childPath.length() > prefix.length()) {
+              UfsStatus newStatus = childStatus.copy();
+              newStatus.setName(childPath.substring(prefix.length()));
+              childrenList.add(newStatus);
+            }
           }
+          return trimIndirect(childrenList.toArray(new UfsStatus[childrenList.size()]));
         }
-        return trimIndirect(childrenList.toArray(new UfsStatus[childrenList.size()]));
+        curUri = curUri.getParent();
       }
-      curUri = curUri.getParent();
+      UfsStatus[] children =
+          ufs.listStatus(ufsUri.toString(), ListOptions.defaults().setRecursive(true));
+      // Assumption: multiple mounted UFSs cannot have the same ufsUri
+      if (children == null) {
+        return EMPTY_CHILDREN;
+      }
+      mListedDirectories.put(ufsUri.toString(), children);
+      return trimIndirect(children);
     }
-    UfsStatus[] children =
-        ufs.listStatus(ufsUri.toString(), ListOptions.defaults().setRecursive(true));
-    // Assumption: multiple mounted UFSs cannot have the same ufsUri
-    if (children == null) {
-      return EMPTY_CHILDREN;
-    }
-    mListedDirectories.put(ufsUri.toString(), children);
-    return trimIndirect(children);
   }
 
   /**
