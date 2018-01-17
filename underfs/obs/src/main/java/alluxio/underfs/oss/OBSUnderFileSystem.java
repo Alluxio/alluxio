@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.underfs.obs;
+package alluxio.underfs.oss;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;

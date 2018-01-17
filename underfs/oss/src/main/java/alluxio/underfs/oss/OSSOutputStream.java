@@ -9,14 +9,14 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.underfs.obs;
+package alluxio.underfs.oss;
 
 import alluxio.util.io.PathUtils;
 
+import com.aliyun.oss.OSSClient;
+import com.aliyun.oss.ServiceException;
+import com.aliyun.oss.model.ObjectMetadata;
 import com.google.common.base.Preconditions;
-import com.obs.services.ObsClient;
-import com.obs.services.exception.ObsException;
-import com.obs.services.model.ObjectMetadata;
 import org.apache.commons.codec.binary.Base64;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,21 +37,21 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * A stream for writing a file into OBS. The data will be persisted to a temporary directory on the
+ * A stream for writing a file into OSS. The data will be persisted to a temporary directory on the
  * local disk and copied as a complete file when the {@link #close()} method is called.
  */
 @NotThreadSafe
-public final class OBSOutputStream extends OutputStream {
-  private static final Logger LOG = LoggerFactory.getLogger(OBSOutputStream.class);
+public final class OSSOutputStream extends OutputStream {
+  private static final Logger LOG = LoggerFactory.getLogger(OSSOutputStream.class);
 
-  /** Bucket name of the Huawei OBS bucket. */
+  /** Bucket name of the Alluxio OSS bucket. */
   private final String mBucketName;
-  /** Key of the file when it is uploaded to OBS. */
+  /** Key of the file when it is uploaded to OSS. */
   private final String mKey;
   /** The local file that will be uploaded when the stream is closed. */
   private final File mFile;
-  /** The OBS client. */
-  private final ObsClient mObsClient;
+  /** The oss client for OSS operations. */
+  private final OSSClient mOssClient;
 
   /** The outputstream to a local file where the file will be buffered until closed. */
   private OutputStream mLocalOutputStream;
@@ -62,21 +62,21 @@ public final class OBSOutputStream extends OutputStream {
   private AtomicBoolean mClosed = new AtomicBoolean(false);
 
   /**
-   * Creates a name instance of {@link OBSOutputStream}.
+   * Creates a name instance of {@link OSSOutputStream}.
    *
    * @param bucketName the name of the bucket
    * @param key the key of the file
-   * @param client the OBS client
+   * @param client the client for OSS
    */
-  public OBSOutputStream(String bucketName, String key, ObsClient client) throws IOException {
+  public OSSOutputStream(String bucketName, String key, OSSClient client) throws IOException {
     Preconditions.checkArgument(bucketName != null && !bucketName.isEmpty(),
         "Bucket name must not be null or empty.");
     Preconditions.checkArgument(key != null && !key.isEmpty(),
-        "OBS object key must not be null or empty.");
-    Preconditions.checkArgument(client != null, "ObsClient must not be null.");
+        "OSS path must not be null or empty.");
+    Preconditions.checkArgument(client != null, "OSSClient must not be null.");
     mBucketName = bucketName;
     mKey = key;
-    mObsClient = client;
+    mOssClient = client;
 
     mFile = new File(PathUtils.concatPath("/tmp", UUID.randomUUID()));
 
@@ -152,11 +152,11 @@ public final class OBSOutputStream extends OutputStream {
       objMeta.setContentLength(mFile.length());
       if (mHash != null) {
         byte[] hashBytes = mHash.digest();
-        objMeta.setContentMd5(new String(Base64.encodeBase64(hashBytes)));
+        objMeta.setContentMD5(new String(Base64.encodeBase64(hashBytes)));
       }
-      mObsClient.putObject(mBucketName, mKey, in, objMeta);
+      mOssClient.putObject(mBucketName, mKey, in, objMeta);
       mFile.delete();
-    } catch (ObsException e) {
+    } catch (ServiceException e) {
       LOG.error("Failed to upload {}. Temporary file @ {}", mKey, mFile.getPath());
       throw new IOException(e);
     }

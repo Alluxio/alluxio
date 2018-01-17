@@ -9,5 +9,5 @@
 # See the NOTICE file distributed with this work for information regarding copyright ownership.
 #
 
-alluxio.underfs.obs.OSSUnderFileSystemFactory
+alluxio.underfs.oss.OSSUnderFileSystemFactory
 

@@ -9,11 +9,11 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.underfs.obs;
+package alluxio.underfs.oss;
 
-import com.obs.services.ObsClient;
-import com.obs.services.exception.ObsException;
-import com.obs.services.model.ObjectMetadata;
+import com.aliyun.oss.OSSClient;
+import com.aliyun.oss.OSSException;
+import com.aliyun.oss.model.ObjectMetadata;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -35,11 +35,11 @@ import java.io.OutputStream;
 import java.security.DigestOutputStream;
 
 /**
- * Unit tests for the {@link OBSOutputStream}.
+ * Unit tests for the {@link OSSOutputStream}.
  */
 @RunWith(PowerMockRunner.class)
-public class OBSOutputStreamTest {
-  private ObsClient mObsClient;
+public class OSSOutputStreamTest {
+  private OSSClient mOssClient;
   private File mFile;
   private BufferedOutputStream mLocalOutputStream;
 
@@ -54,7 +54,7 @@ public class OBSOutputStreamTest {
    */
   @Before
   public void before() throws Exception {
-    mObsClient = Mockito.mock(ObsClient.class);
+    mOssClient = Mockito.mock(OSSClient.class);
     mFile = Mockito.mock(File.class);
     mLocalOutputStream = Mockito.mock(BufferedOutputStream.class);
   }
@@ -63,7 +63,7 @@ public class OBSOutputStreamTest {
    * Tests to ensure IOException is thrown if {@link FileOutputStream()} throws an IOException.
    */
   @Test
-  @PrepareForTest(OBSOutputStream.class)
+  @PrepareForTest(OSSOutputStream.class)
   public void testConstructor() throws Exception {
     PowerMockito.whenNew(File.class).withArguments(Mockito.anyString()).thenReturn(mFile);
     String errorMessage = "protocol doesn't support output";
@@ -71,37 +71,37 @@ public class OBSOutputStreamTest {
             .thenThrow(new IOException(errorMessage));
     mThrown.expect(IOException.class);
     mThrown.expectMessage(errorMessage);
-    new OBSOutputStream("testBucketName", "testKey", mObsClient).close();
+    new OSSOutputStream("testBucketName", "testKey", mOssClient).close();
   }
 
   /**
-   * Tests to ensure {@link OBSOutputStream#write(int)} calls {@link OutputStream#write(int)}.
+   * Tests to ensure {@link OSSOutputStream#write(int)} calls {@link OutputStream#write(int)}.
    */
   @Test
-  @PrepareForTest(OBSOutputStream.class)
+  @PrepareForTest(OSSOutputStream.class)
   public void testWrite1() throws Exception {
     PowerMockito.whenNew(BufferedOutputStream.class)
             .withArguments(Mockito.any(DigestOutputStream.class)).thenReturn(mLocalOutputStream);
     PowerMockito.whenNew(BufferedOutputStream.class)
             .withArguments(Mockito.any(FileOutputStream.class)).thenReturn(mLocalOutputStream);
-    OBSOutputStream stream = new OBSOutputStream("testBucketName", "testKey", mObsClient);
+    OSSOutputStream stream = new OSSOutputStream("testBucketName", "testKey", mOssClient);
     stream.write(1);
     stream.close();
     Mockito.verify(mLocalOutputStream).write(1);
   }
 
   /**
-   * Tests to ensure {@link OBSOutputStream#write(byte[], int, int)} calls
+   * Tests to ensure {@link OSSOutputStream#write(byte[], int, int)} calls
    * {@link OutputStream#write(byte[], int, int)} .
    */
   @Test
-  @PrepareForTest(OBSOutputStream.class)
+  @PrepareForTest(OSSOutputStream.class)
   public void testWrite2() throws Exception {
     PowerMockito.whenNew(BufferedOutputStream.class)
             .withArguments(Mockito.any(DigestOutputStream.class)).thenReturn(mLocalOutputStream);
     PowerMockito.whenNew(BufferedOutputStream.class)
             .withArguments(Mockito.any(FileOutputStream.class)).thenReturn(mLocalOutputStream);
-    OBSOutputStream stream = new OBSOutputStream("testBucketName", "testKey", mObsClient);
+    OSSOutputStream stream = new OSSOutputStream("testBucketName", "testKey", mOssClient);
     byte[] b = new byte[1];
     stream.write(b, 0, 1);
     stream.close();
@@ -109,16 +109,16 @@ public class OBSOutputStreamTest {
   }
 
   /**
-   * Tests to ensure {@link OBSOutputStream#write(byte[])} calls {@link OutputStream#write(byte[])}.
+   * Tests to ensure {@link OSSOutputStream#write(byte[])} calls {@link OutputStream#write(byte[])}.
    */
   @Test
-  @PrepareForTest(OBSOutputStream.class)
+  @PrepareForTest(OSSOutputStream.class)
   public void testWrite3() throws Exception {
     PowerMockito.whenNew(BufferedOutputStream.class)
             .withArguments(Mockito.any(DigestOutputStream.class)).thenReturn(mLocalOutputStream);
     PowerMockito.whenNew(BufferedOutputStream.class)
             .withArguments(Mockito.any(FileOutputStream.class)).thenReturn(mLocalOutputStream);
-    OBSOutputStream stream = new OBSOutputStream("testBucketName", "testKey", mObsClient);
+    OSSOutputStream stream = new OSSOutputStream("testBucketName", "testKey", mOssClient);
     byte[] b = new byte[1];
     stream.write(b);
     stream.close();
@@ -127,21 +127,21 @@ public class OBSOutputStreamTest {
 
   /**
    * Tests to ensure IOException is thrown if
-   * {@link ObsClient#putObject(String, String, InputStream, ObjectMetadata)} throws an
-   * {@link com.obs.services.exception.ObsException}.
+   * {@link OSSClient#putObject(String, String, InputStream, ObjectMetadata)} throws an
+   * OSSException.
    */
   @Test
-  @PrepareForTest(OBSOutputStream.class)
+  @PrepareForTest(OSSOutputStream.class)
   public void testCloseError() throws Exception {
     String errorMessage = "Invoke the createEmptyObject method error.";
     BufferedInputStream inputStream = PowerMockito.mock(BufferedInputStream.class);
     PowerMockito.whenNew(BufferedInputStream.class)
             .withArguments(Mockito.any(FileInputStream.class)).thenReturn(inputStream);
     PowerMockito
-            .when(mObsClient.putObject(Mockito.anyString(), Mockito.anyString(),
+            .when(mOssClient.putObject(Mockito.anyString(), Mockito.anyString(),
                     Mockito.any(InputStream.class), Mockito.any(ObjectMetadata.class)))
-            .thenThrow(new ObsException(errorMessage));
-    OBSOutputStream stream = new OBSOutputStream("testBucketName", "testKey", mObsClient);
+            .thenThrow(new OSSException(errorMessage));
+    OSSOutputStream stream = new OSSOutputStream("testBucketName", "testKey", mOssClient);
     mThrown.expect(IOException.class);
     mThrown.expectMessage(errorMessage);
     stream.close();
@@ -151,7 +151,7 @@ public class OBSOutputStreamTest {
    * Tests to ensure {@link File#delete()} is called when close the stream.
    */
   @Test
-  @PrepareForTest(OBSOutputStream.class)
+  @PrepareForTest(OSSOutputStream.class)
   public void testCloseSuccess() throws Exception {
     PowerMockito.whenNew(File.class).withArguments(Mockito.anyString()).thenReturn(mFile);
     FileOutputStream outputStream = PowerMockito.mock(FileOutputStream.class);
@@ -159,20 +159,20 @@ public class OBSOutputStreamTest {
     FileInputStream inputStream = PowerMockito.mock(FileInputStream.class);
     PowerMockito.whenNew(FileInputStream.class).withArguments(mFile).thenReturn(inputStream);
 
-    OBSOutputStream stream = new OBSOutputStream("testBucketName", "testKey", mObsClient);
+    OSSOutputStream stream = new OSSOutputStream("testBucketName", "testKey", mOssClient);
     stream.close();
     Mockito.verify(mFile).delete();
   }
 
   /**
-   * Tests to ensure {@link OBSOutputStream#flush()} calls {@link OutputStream#flush()}.
+   * Tests to ensure {@link OSSOutputStream#flush()} calls {@link OutputStream#flush()}.
    */
   @Test
-  @PrepareForTest(OBSOutputStream.class)
+  @PrepareForTest(OSSOutputStream.class)
   public void testFlush() throws Exception {
     PowerMockito.whenNew(BufferedOutputStream.class)
             .withArguments(Mockito.any(DigestOutputStream.class)).thenReturn(mLocalOutputStream);
-    OBSOutputStream stream = new OBSOutputStream("testBucketName", "testKey", mObsClient);
+    OSSOutputStream stream = new OSSOutputStream("testBucketName", "testKey", mOssClient);
     stream.flush();
     stream.close();
     Mockito.verify(mLocalOutputStream).flush();

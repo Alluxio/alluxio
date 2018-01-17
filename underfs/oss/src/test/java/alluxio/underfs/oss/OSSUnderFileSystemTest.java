@@ -9,15 +9,15 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.underfs.obs;
+package alluxio.underfs.oss;
 
 import alluxio.AlluxioURI;
 import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.options.DeleteOptions;
 
-import com.obs.services.ObsClient;
-import com.obs.services.exception.ObsException;
-import com.obs.services.model.ListObjectsRequest;
+import com.aliyun.oss.OSSClient;
+import com.aliyun.oss.ServiceException;
+import com.aliyun.oss.model.ListObjectsRequest;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -27,12 +27,12 @@ import org.mockito.Mockito;
 import java.io.IOException;
 
 /**
- * Unit tests for the {@link OBSUnderFileSystem}.
+ * Unit tests for the {@link OSSUnderFileSystem}.
  */
-public class OBSUnderFileSystemTest {
+public class OSSUnderFileSystemTest {
 
-  private OBSUnderFileSystem mOBSUnderFileSystem;
-  private ObsClient mClient;
+  private OSSUnderFileSystem mOSSUnderFileSystem;
+  private OSSClient mClient;
 
   private static final String PATH = "path";
   private static final String SRC = "src";
@@ -44,48 +44,48 @@ public class OBSUnderFileSystemTest {
    * Set up.
    */
   @Before
-  public void before() throws InterruptedException, ObsException {
-    mClient = Mockito.mock(ObsClient.class);
+  public void before() throws InterruptedException, ServiceException {
+    mClient = Mockito.mock(OSSClient.class);
 
-    mOBSUnderFileSystem = new OBSUnderFileSystem(new AlluxioURI(""), mClient, BUCKET_NAME,
+    mOSSUnderFileSystem = new OSSUnderFileSystem(new AlluxioURI(""), mClient, BUCKET_NAME,
         UnderFileSystemConfiguration.defaults());
   }
 
   /**
-   * Test case for {@link OBSUnderFileSystem#deleteDirectory(String, DeleteOptions)}.
+   * Test case for {@link OSSUnderFileSystem#deleteDirectory(String, DeleteOptions)}.
    */
   @Test
   public void deleteNonRecursiveOnServiceException() throws IOException {
     Mockito.when(mClient.listObjects(Matchers.any(ListObjectsRequest.class)))
-        .thenThrow(ObsException.class);
+        .thenThrow(ServiceException.class);
 
-    boolean result = mOBSUnderFileSystem.deleteDirectory(PATH,
+    boolean result = mOSSUnderFileSystem.deleteDirectory(PATH,
         DeleteOptions.defaults().setRecursive(false));
     Assert.assertFalse(result);
   }
 
   /**
-   * Test case for {@link OBSUnderFileSystem#deleteDirectory(String, DeleteOptions)}.
+   * Test case for {@link OSSUnderFileSystem#deleteDirectory(String, DeleteOptions)}.
    */
   @Test
   public void deleteRecursiveOnServiceException() throws IOException {
     Mockito.when(mClient.listObjects(Matchers.any(ListObjectsRequest.class)))
-        .thenThrow(ObsException.class);
+        .thenThrow(ServiceException.class);
 
-    boolean result = mOBSUnderFileSystem.deleteDirectory(PATH,
+    boolean result = mOSSUnderFileSystem.deleteDirectory(PATH,
         DeleteOptions.defaults().setRecursive(true));
     Assert.assertFalse(result);
   }
 
   /**
-   * Test case for {@link OBSUnderFileSystem#renameFile(String, String)}.
+   * Test case for {@link OSSUnderFileSystem#renameFile(String, String)}.
    */
   @Test
   public void renameOnServiceException() throws IOException {
     Mockito.when(mClient.listObjects(Matchers.any(ListObjectsRequest.class)))
-        .thenThrow(ObsException.class);
+        .thenThrow(ServiceException.class);
 
-    boolean result = mOBSUnderFileSystem.renameFile(SRC, DST);
+    boolean result = mOSSUnderFileSystem.renameFile(SRC, DST);
     Assert.assertFalse(result);
   }
 }

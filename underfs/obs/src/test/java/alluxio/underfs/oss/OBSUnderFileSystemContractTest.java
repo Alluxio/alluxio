@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.underfs.obs;
+package alluxio.underfs.oss;
 
 import alluxio.underfs.AbstractUnderFileSystemContractTest;
 import alluxio.underfs.UnderFileSystem;
@@ -19,27 +19,27 @@ import com.google.common.base.Preconditions;
 import org.junit.BeforeClass;
 
 /**
- * This UFS contract test will use Aliyun OSS as the backing store.
+ * This UFS contract test will use Huawei OBS as the backing store.
  */
-public final class OSSUnderFileSystemContractTest extends AbstractUnderFileSystemContractTest {
-  private static final String OSS_BUCKET_CONF = "testOSSBucket";
-  private static final String OSS_BUCKET = System.getProperty(OSS_BUCKET_CONF);
+public final class OBSUnderFileSystemContractTest extends AbstractUnderFileSystemContractTest {
+  private static final String OBS_BUCKET_CONF = "testOBSBucket";
+  private static final String OBS_BUCKET = System.getProperty(OBS_BUCKET_CONF);
 
   @BeforeClass
   public static void beforeClass() throws Exception {
-    Preconditions.checkNotNull(OSS_BUCKET, "OSS_BUCKET");
-    Preconditions.checkState(new OSSUnderFileSystemFactory().supportsPath(OSS_BUCKET),
-        "%s is not a valid OSS path", OSS_BUCKET);
+    Preconditions.checkNotNull(OBS_BUCKET, "OBS_BUCKET");
+    Preconditions.checkState(new OBSUnderFileSystemFactory().supportsPath(OBS_BUCKET),
+        "%s is not a valid OBS bucket", OBS_BUCKET);
   }
 
   @Override
   public UnderFileSystem createUfs(String path, UnderFileSystemConfiguration conf)
       throws Exception {
-    return new OSSUnderFileSystemFactory().create(path, conf);
+    return new OBSUnderFileSystemFactory().create(path, conf);
   }
 
   @Override
   public String getUfsBaseDir() {
-    return OSS_BUCKET;
+    return OBS_BUCKET;
   }
 }
