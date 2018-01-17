@@ -142,6 +142,7 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
    *
    * <pre>
    * /                                  = 0
+   * .                                  = 0
    * /a                                 = 1
    * /a/b/c.txt                         = 3
    * /a/b/                              = 3
@@ -158,7 +159,7 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
    */
   public int getDepth() {
     String path = mUri.getPath();
-    if (path.isEmpty()) {
+    if (path.isEmpty() || CUR_DIR.equals(path)) {
       return 0;
     }
     if (hasWindowsDrive(path, true)) {
