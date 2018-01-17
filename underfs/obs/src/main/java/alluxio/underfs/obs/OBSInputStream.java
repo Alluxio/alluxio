@@ -9,14 +9,14 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.underfs.oss;
+package alluxio.underfs.obs;
 
 import alluxio.underfs.MultiRangeObjectInputStream;
 
-import com.aliyun.oss.OSSClient;
-import com.aliyun.oss.model.GetObjectRequest;
-import com.aliyun.oss.model.OSSObject;
-import com.aliyun.oss.model.ObjectMetadata;
+import com.obs.services.ObsClient;
+import com.obs.services.model.GetObjectRequest;
+import com.obs.services.model.ObjectMetadata;
+import com.obs.services.model.S3Object;
 
 import java.io.BufferedInputStream;
 import java.io.IOException;
@@ -25,59 +25,59 @@ import java.io.InputStream;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * A stream for reading a file from OSS. This input stream returns 0 when calling read with an empty
+ * A stream for reading a file from OBS. This input stream returns 0 when calling read with an empty
  * buffer.
  */
 @NotThreadSafe
-public class OSSInputStream extends MultiRangeObjectInputStream {
+public class OBSInputStream extends MultiRangeObjectInputStream {
 
-  /** Bucket name of the Alluxio OSS bucket. */
+  /** Bucket name of the OBS bucket. */
   private final String mBucketName;
 
-  /** Key of the file in OSS to read. */
+  /** Key of the file in OBS. */
   private final String mKey;
 
-  /** The OSS client for OSS operations. */
-  private final OSSClient mOssClient;
+  /** The OBS client. */
+  private final ObsClient mObsClient;
 
   /** The size of the object in bytes. */
   private final long mContentLength;
 
   /**
-   * Creates a new instance of {@link OSSInputStream}.
+   * Creates a new instance of {@link OBSInputStream}.
    *
    * @param bucketName the name of the bucket
    * @param key the key of the file
    * @param client the client for OSS
    */
-  OSSInputStream(String bucketName, String key, OSSClient client) throws IOException {
+  OBSInputStream(String bucketName, String key, ObsClient client) throws IOException {
     this(bucketName, key, client, 0L);
   }
 
   /**
-   * Creates a new instance of {@link OSSInputStream}.
+   * Creates a new instance of {@link OBSInputStream}.
    *
    * @param bucketName the name of the bucket
    * @param key the key of the file
-   * @param client the client for OSS
+   * @param client the OBS client
    * @param position the position to begin reading from
    */
-  OSSInputStream(String bucketName, String key, OSSClient client, long position)
+  OBSInputStream(String bucketName, String key, ObsClient client, long position)
       throws IOException {
     mBucketName = bucketName;
     mKey = key;
-    mOssClient = client;
+    mObsClient = client;
     mPos = position;
-    ObjectMetadata meta = mOssClient.getObjectMetadata(mBucketName, key);
+    ObjectMetadata meta = mObsClient.getObjectMetadata(mBucketName, key);
     mContentLength = meta == null ? 0 : meta.getContentLength();
   }
 
   @Override
   protected InputStream createStream(long startPos, long endPos) throws IOException {
     GetObjectRequest req = new GetObjectRequest(mBucketName, mKey);
-    // OSS returns entire object if we read past the end
-    req.setRange(startPos, endPos < mContentLength ? endPos - 1 : mContentLength - 1);
-    OSSObject ossObject = mOssClient.getObject(req);
-    return new BufferedInputStream(ossObject.getObjectContent());
+    req.setRangeStart(startPos);
+    req.setRangeEnd(endPos < mContentLength ? endPos - 1 : mContentLength - 1);
+    S3Object obj = mObsClient.getObject(req);
+    return new BufferedInputStream(obj.getObjectContent());
   }
 }

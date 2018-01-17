@@ -26,6 +26,7 @@
     <module>gcs</module>
     <module>hdfs</module>
     <module>local</module>
+    <module>obs</module>
     <module>oss</module>
     <module>s3a</module>
     <module>swift</module>

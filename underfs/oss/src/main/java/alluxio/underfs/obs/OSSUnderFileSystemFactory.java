@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.underfs.oss;
+package alluxio.underfs.obs;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
@@ -48,7 +48,7 @@ public class OSSUnderFileSystemFactory implements UnderFileSystemFactory {
       }
     }
 
-    String err = "OSS Credentials not available, cannot create OSS Under File System.";
+    String err = "OSS credentials or endpoint not available, cannot create OSS Under File System.";
     throw Throwables.propagate(new IOException(err));
   }
 
