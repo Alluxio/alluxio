@@ -15,6 +15,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.junit.Assume.assumeFalse;
 
 import alluxio.AlluxioURI;
 
@@ -23,7 +24,6 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
 
-import javax.annotation.Nullable;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileWriter;
@@ -39,6 +39,8 @@ import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+
+import javax.annotation.Nullable;
 
 /**
  * Tests for the {@link FileUtils} class.
@@ -62,6 +64,9 @@ public class FileUtilsTest {
    */
   @Test
   public void changeLocalFilePermission() throws IOException {
+    // This test only works with normal users - superusers can operate on files whether or not they
+    // have the proper permission bits set.
+    assumeFalse(System.getProperty("user.name").equals("root"));
     File tempFile = mTestFolder.newFile("perm.txt");
     FileUtils.changeLocalFilePermission(tempFile.getAbsolutePath(), "---------");
     assertFalse(tempFile.canRead() || tempFile.canWrite() || tempFile.canExecute());
@@ -97,6 +102,9 @@ public class FileUtilsTest {
    */
   @Test
   public void changeLocalDirPermissionTests() throws IOException {
+    // This test only works with normal users - superusers can operate on files whether or not they
+    // have the proper permission bits set.
+    assumeFalse(System.getProperty("user.name").equals("root"));
     File tempFile = mTestFolder.newFile("perm.txt");
     // Change permission on directories
     FileUtils.changeLocalFilePermission(mTestFolder.getRoot().getAbsolutePath(), "r--r--r--");
