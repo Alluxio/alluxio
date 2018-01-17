@@ -79,7 +79,7 @@ public final class TestCase {
   }
 
   /**
-   * Creates a new instance of {@link TestCase} with JSON data.
+   * Creates a new instance of {@link TestCase}.
    *
    * @param hostname the hostname to use
    * @param port the port to use
