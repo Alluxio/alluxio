@@ -47,10 +47,8 @@ import java.util.concurrent.atomic.AtomicInteger;
  * Integration tests for {@link alluxio.client.file.FileInStream}.
  */
 public final class FileInStreamIntegrationTest extends BaseIntegrationTest {
-  // The block size needs to be sufficiently large (i.e., more than 64B*16 where 64B is the default
-  // netty packet size in integration tests and 16 is the default max number of packets). Sets to
-  // 2KB for now.
-  private static final int BLOCK_SIZE = 2 * Constants.KB;
+  // The block size needs to be sufficiently large based on TCP send/receive buffers, set to 1MB.
+  private static final int BLOCK_SIZE = Constants.MB;
   private static final int MIN_LEN = BLOCK_SIZE + 1;
   private static final int MAX_LEN = BLOCK_SIZE * 4 + 1;
   private static final int DELTA = BLOCK_SIZE / 2;
@@ -106,6 +104,8 @@ public final class FileInStreamIntegrationTest extends BaseIntegrationTest {
    * Tests {@link FileInStream#read()} across block boundary.
    */
   @Test
+  @LocalAlluxioClusterResource.Config(
+      confParams = {PropertyKey.Name.USER_NETWORK_NETTY_READER_PACKET_SIZE_BYTES, "64KB"})
   public void readTest1() throws Exception {
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (CreateFileOptions op : getOptionSet()) {
@@ -147,6 +147,8 @@ public final class FileInStreamIntegrationTest extends BaseIntegrationTest {
    * Tests {@link FileInStream#read(byte[])}.
    */
   @Test
+  @LocalAlluxioClusterResource.Config(
+      confParams = {PropertyKey.Name.USER_NETWORK_NETTY_READER_PACKET_SIZE_BYTES, "64KB"})
   public void readTest2() throws Exception {
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (CreateFileOptions op : getOptionSet()) {
@@ -172,6 +174,8 @@ public final class FileInStreamIntegrationTest extends BaseIntegrationTest {
    * Tests {@link FileInStream#read(byte[], int, int)}.
    */
   @Test
+  @LocalAlluxioClusterResource.Config(
+      confParams = {PropertyKey.Name.USER_NETWORK_NETTY_READER_PACKET_SIZE_BYTES, "64KB"})
   public void readTest3() throws Exception {
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (CreateFileOptions op : getOptionSet()) {
