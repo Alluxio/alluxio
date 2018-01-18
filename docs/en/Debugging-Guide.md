@@ -124,6 +124,13 @@ spark.executor.extraClassPath
 {{site.ALLUXIO_CLIENT_JAR_PATH}}
 ```
 
+If the corresponding classpath has been set but exceptions still exist, users can check 
+whether the path is valid by:
+
+```bash
+$ ls {{site.ALLUXIO_CLIENT_JAR_PATH}}
+```
+
 #### Q: I'm seeing error messages like "Frame size (67108864) larger than max length (16777216)". What is wrong?
 
 A: This problem can be caused by different possible reasons.
