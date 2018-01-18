@@ -44,6 +44,7 @@ public final class TestCase {
   private String mMethod;
   private Object mExpectedResult;
   private TestCaseOptions mOptions;
+  private String mPrefix;
 
   /**
    * Creates a new instance of {@link TestCase}.
@@ -73,6 +74,24 @@ public final class TestCase {
    */
   public TestCase(String hostname, int port, String endpoint, Map<String, String> parameters,
       String method, Object expectedResult, TestCaseOptions options) {
+    this(hostname, port, endpoint, parameters, method, expectedResult, options,
+        Constants.REST_API_PREFIX);
+  }
+
+  /**
+   * Creates a new instance of {@link TestCase}.
+   *
+   * @param hostname the hostname to use
+   * @param port the port to use
+   * @param endpoint the endpoint to use
+   * @param parameters the parameters to use
+   * @param method the method to use
+   * @param expectedResult the expected result to use
+   * @param options the test case options to use
+   * @param prefix the endpoint prefix to use
+   */
+  public TestCase(String hostname, int port, String endpoint, Map<String, String> parameters,
+      String method, Object expectedResult, TestCaseOptions options, String prefix) {
     mHostname = hostname;
     mPort = port;
     mEndpoint = endpoint;
@@ -80,6 +99,7 @@ public final class TestCase {
     mMethod = method;
     mExpectedResult = expectedResult;
     mOptions = options;
+    mPrefix = prefix;
   }
 
   /**
@@ -109,8 +129,7 @@ public final class TestCase {
       }
     }
     return new URL(
-        "http://" + mHostname + ":" + mPort + Constants.REST_API_PREFIX + "/" + mEndpoint
-            + "?" + sb.toString());
+        "http://" + mHostname + ":" + mPort + mPrefix + "/" + mEndpoint + "?" + sb.toString());
   }
 
   /**
