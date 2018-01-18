@@ -28,27 +28,33 @@ Additional configuration files can be included when building the image by adding
 copied to `/opt/alluxio/conf`.
 
 
-## Building docker image with fuse support
-To build a docker image with fuse support, run
+## Building docker image with FUSE support
+To build a docker image with 
+[FUSE](https://www.alluxio.org/docs/master/en/Mounting-Alluxio-FS-with-FUSE.html) support, run
 
 ```bash
 docker build -f Dockerfile.fuse -t alluxio-fuse .
 ```
 
-You can add the same arguments supported by the non-fuse docker file.
+You can add the same arguments supported by the non-FUSE docker file.
 
 
-## Running docker image with fuse support
-There are a couple extra arguments required to run the docker image with fuse support, for example:
+## Running docker image with FUSE support
+There are a couple extra arguments required to run the docker image with FUSE support, for example:
 
 ```bash
 docker run -e ALLUXIO_MASTER_HOSTNAME=alluxio-master --cap-add SYS_ADMIN --device /dev/fuse  alluxio-fuse [master|worker|proxy]
 ```
 
+Note: running FUSE in docker requires adding 
+[SYS_ADMIN capability](http://man7.org/linux/man-pages/man7/capabilities.7.html) to the container. 
+This removes isolation of the container and should be used with caution.
+
 ## Extending docker image with applications
 You can easily extend the docker image to include applications to run on top of Alluxio. 
-For example, to run TensorFlow with Alluxio inside a docker container, just edit `Dockerfile.fuse`
-and replace 
+In order for the application to access data from Alluxio storage mounted with FUSE, it must run
+in the same container as Alluxio. For example, to run TensorFlow with Alluxio inside a docker 
+container, just edit `Dockerfile.fuse` and replace 
 
 ```bash
 FROM ubuntu:16.04
@@ -60,4 +66,6 @@ with
 FROM tensorflow/tensorflow:1.3.0
 ```
 
-You can then build the image with the same command for building image with fuse support and run it.
+You can then build the image with the same command for building image with FUSE support and run it.
+There is a pre-built docker image with TensorFlow at 
+https://hub.docker.com/r/alluxio/alluxio-tensorflow/ 
