@@ -22,5 +22,5 @@ ALLUXIO_WORKER_DATA_PORT=29999
 ALLUXIO_WORKER_WEB_PORT=29996
 
 # If using S3A
-# AWS_ACCESS_KEY=<s3a_access_key>
-# AWS_SECRET_KEY=<s3a_secret_key>
+# AWS_ACCESSKEYID=<s3a_access_key>
+# AWS_SECRETKEY=<s3a_secret_key>
