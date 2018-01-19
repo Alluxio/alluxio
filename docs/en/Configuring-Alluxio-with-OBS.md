@@ -20,10 +20,10 @@ machines.You can either
 [compile the binaries from Alluxio source code](http://alluxio.org/documentation/master/Building-Alluxio-Master-Branch.html),
 or [download the precompiled binaries directly](http://alluxio.org/documentation/master/Running-Alluxio-Locally.html).
 
-Also, in preparation for using OBS with alluxio, create a bucket or use an existing bucket. You
+Also, in preparation for using OBS with Alluxio, create a bucket or use an existing bucket. You
 should also note that the directory you want to use in that bucket, either by creating a new
 directory in the bucket, or using an existing one. For the purposes of this guide, the OBS bucket
-name is called `OBS_BUCKET`, and the directory in that bucket is called `OBS_DIRECTORY`. Also, for
+name is called <OBS_BUCKET>, and the directory in that bucket is called <OBS_DIRECTORY>. Also, for
 using the OBS Service, you should provide an OBS endpoint to specify which region your bucket is
 on. The endpoint here is called `OBS_ENDPOINT`, and to learn more about the different endpoints for different
 regions, please see [here](http://support.huaweicloud.com/en-us/qs-obs/en-us_topic_0075679174.html). For more
@@ -42,7 +42,7 @@ specify an existing OBS bucket and folder as the under storage system by modifyi
 `conf/alluxio-site.properties` to include:
 
 ```
-alluxio.underfs.address=obs://<OBS_BUCKET>/<OBS_FOLDER>/
+alluxio.underfs.address=obs://<OBS_BUCKET>/<OBS_DIRECTORY>/
 ```
 
 Next you need to specify the Huawei Cloud credentials for OBS access. In `conf/alluxio-site.properties`,
@@ -72,7 +72,7 @@ For example, the following command mounts a folder inside an OBS bucket into All
 $ ./bin/alluxio fs mount --option fs.obs.accessKey=<OBS_ACCESS_KEY> \
   --option fs.obs.secretKey=<OBS_SECRET_KEY> \
   --option fs.obs.endpoint=<OBS_ENDPOINT> \
-  /obs obs://<OBS_BUCKET>/<OBS_FOLDER>/
+  /obs obs://<OBS_BUCKET>/<OBS_DIRECTORY>/
 ```
 
 ## Running Alluxio Locally with OBS
@@ -93,7 +93,7 @@ Next, you can run a simple example program:
 $ bin/alluxio runTests
 ```
 
-After this succeeds, you can visit your OBS folder `obs://<OBS_BUCKET>/<OBS_FOLDER>` to verify the files
+After this succeeds, you can visit your OBS folder `obs://<OBS_BUCKET>/<OBS_DIRECTORY>` to verify the files
 and directories created by Alluxio exist.
 
 To stop Alluxio, you can run:
