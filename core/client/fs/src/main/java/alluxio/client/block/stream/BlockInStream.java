@@ -184,11 +184,12 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
    * @param blockId the block id
    * @param address the address of the netty data server
    * @param blockSource the source location of the block
+   * @param blockSize the size of the block
    * @param ufsOptions the ufs read options
    * @return the {@link BlockInStream} created
    */
   public static BlockInStream createRemoteBlockInStream(FileSystemContext context, long blockId,
-      WorkerNetAddress address, BlockInStreamSource blockSource,
+      WorkerNetAddress address, BlockInStreamSource blockSource, long blockSize,
       Protocol.OpenUfsBlockOptions ufsOptions) {
     long packetSize =
         Configuration.getBytes(PropertyKey.USER_NETWORK_NETTY_READER_PACKET_SIZE_BYTES);
@@ -196,7 +197,7 @@ public class BlockInStream extends InputStream implements BoundedStream, Seekabl
         .setOpenUfsBlockOptions(ufsOptions).setPacketSize(packetSize).buildPartial();
     PacketReader.Factory factory = new NettyPacketReader.Factory(context, address,
         readRequest.toBuilder().buildPartial());
-    return new BlockInStream(factory, address, blockSource, blockId, ufsOptions.getBlockSize());
+    return new BlockInStream(factory, address, blockSource, blockId, blockSize);
   }
 
   /**
