@@ -251,12 +251,6 @@ run_safe() {
 }
 
 main() {
-  # get environment
-  get_env
-
-  # ensure log/data dirs
-  ensure_dirs
-
   while getopts "hNw" o; do
     case "${o}" in
       h)
@@ -285,6 +279,11 @@ main() {
     exit 1
   fi
   shift
+  
+  # get environment
+  get_env
+  # ensure log/data dirs
+  ensure_dirs
 
   MOPT=$1
   # Set MOPT.
