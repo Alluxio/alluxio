@@ -160,9 +160,10 @@ public class AsyncCacheRequestManager {
           blockId, sourceAddress, e.getMessage());
       return false;
     }
-    try (BlockReader reader = new RemoteBlockReader(blockId, sourceAddress, openUfsBlockOptions);
-         BlockWriter writer = mBlockWorker
-             .getTempBlockWriterRemote(Sessions.ASYNC_CACHE_SESSION_ID, blockId)) {
+    try (BlockReader reader =
+        new RemoteBlockReader(blockId, blockSize, sourceAddress, openUfsBlockOptions);
+        BlockWriter writer =
+            mBlockWorker.getTempBlockWriterRemote(Sessions.ASYNC_CACHE_SESSION_ID, blockId)) {
       BufferUtils.fastCopy(reader.getChannel(), writer.getChannel());
       mBlockWorker.commitBlock(Sessions.ASYNC_CACHE_SESSION_ID, blockId);
       return true;
