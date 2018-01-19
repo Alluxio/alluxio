@@ -67,6 +67,7 @@ public class AsyncCacheRequestManager {
    */
   public void submitRequest(Protocol.AsyncCacheRequest request) {
     long blockId = request.getBlockId();
+    long blockLength = request.getLength();
     if (mPendingRequests.putIfAbsent(blockId, request) != null) {
       // This block is already planned.
       return;
@@ -74,17 +75,16 @@ public class AsyncCacheRequestManager {
     try {
       mAsyncCacheExecutor.submit(() -> {
         Protocol.OpenUfsBlockOptions openUfsBlockOptions = request.getOpenUfsBlockOptions();
-        long blockSize = openUfsBlockOptions.getBlockSize();
         boolean isSourceLocal = mLocalWorkerHostname.equals(request.getSourceHost());
         // Depends on the request, cache the target block from different sources
         boolean result;
         if (isSourceLocal) {
-          result = cacheBlockFromUfs(blockId, blockSize, openUfsBlockOptions);
+          result = cacheBlockFromUfs(blockId, blockLength, openUfsBlockOptions);
         } else {
           InetSocketAddress sourceAddress =
               new InetSocketAddress(request.getSourceHost(), request.getSourcePort());
           result =
-              cacheBlockFromRemoteWorker(blockId, blockSize, sourceAddress, openUfsBlockOptions);
+              cacheBlockFromRemoteWorker(blockId, blockLength, sourceAddress, openUfsBlockOptions);
         }
         LOG.debug("Result of async caching block {}: {}", blockId, result);
         mPendingRequests.remove(blockId);

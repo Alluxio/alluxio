@@ -30,13 +30,14 @@ message ReadRequest {
 }
 
 // Options for caching a block asynchronously
-// next available id: 5
+// next available id: 6
 message AsyncCacheRequest {
   optional int64 block_id = 1;
   // TODO(calvin): source host and port should be replace with WorkerNetAddress
   optional string source_host = 2;
   optional int32 source_port = 3;
   optional OpenUfsBlockOptions open_ufs_block_options = 4;
+  optional int64 length = 5;
 }
 
 // Options to open a UFS block.
