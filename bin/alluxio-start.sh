@@ -251,6 +251,7 @@ run_safe() {
 }
 
 main() {
+  ACTION=$1
   # get environment
   get_env
 
@@ -278,7 +279,6 @@ main() {
 
   shift $((${OPTIND} - 1))
 
-  ACTION=$1
   if [[ -z "${ACTION}" ]]; then
     echo "Error: no ACTION specified" >&2
     echo -e "${USAGE}" >&2
