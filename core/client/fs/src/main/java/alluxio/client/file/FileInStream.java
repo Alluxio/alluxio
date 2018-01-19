@@ -274,8 +274,9 @@ public class FileInStream extends InputStream implements BoundedStream, Position
         }
         try {
           // Construct the async cache request
+          long blockLength = mOptions.getBlockInfo(blockId).getLength();
           Protocol.AsyncCacheRequest request =
-              Protocol.AsyncCacheRequest.newBuilder().setBlockId(blockId)
+              Protocol.AsyncCacheRequest.newBuilder().setBlockId(blockId).setLength(blockLength)
                   .setOpenUfsBlockOptions(mOptions.getOpenUfsBlockOptions(blockId))
                   .setSourceHost(dataSource.getHost()).setSourcePort(dataSource.getDataPort())
                   .build();
