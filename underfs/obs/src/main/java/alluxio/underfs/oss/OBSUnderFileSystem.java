@@ -47,7 +47,7 @@ public class OBSUnderFileSystem extends ObjectUnderFileSystem {
   private static final Logger LOG = LoggerFactory.getLogger(OBSUnderFileSystem.class);
 
   /** Suffix for an empty file to flag it as a directory. */
-  private static final String FOLDER_SUFFIX = "_$folder$";
+  private static final String FOLDER_SUFFIX = PATH_SEPARATOR;
 
   /** Huawei OBS client. */
   private final ObsClient mClient;
