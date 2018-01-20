@@ -23,7 +23,7 @@ or [download the precompiled binaries directly](http://alluxio.org/documentation
 Also, in preparation for using OBS with Alluxio, create a bucket or use an existing bucket. You
 should also note that the directory you want to use in that bucket, either by creating a new
 directory in the bucket, or using an existing one. For the purposes of this guide, the OBS bucket
-name is called <OBS_BUCKET>, and the directory in that bucket is called <OBS_DIRECTORY>. Also, for
+name is called `OBS_BUCKET`, and the directory in that bucket is called `OBS_DIRECTORY`. Also, for
 using the OBS Service, you should provide an OBS endpoint to specify which region your bucket is
 on. The endpoint here is called `OBS_ENDPOINT`, and to learn more about the different endpoints for different
 regions, please see [here](http://support.huaweicloud.com/en-us/qs-obs/en-us_topic_0075679174.html). For more
