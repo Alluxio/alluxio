@@ -9,6 +9,6 @@
   script: spark-defaults.sh
 
 - name: set ufs related configurations
-  script: roles/ufs_{{ ufs }}/files/config_spark.sh
+  script: roles/ufs_{{ ufs }}/tasks/files/config_spark.sh
 
 # vim :set filetype=ansible.yaml:

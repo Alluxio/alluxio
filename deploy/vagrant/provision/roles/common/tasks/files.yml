@@ -7,7 +7,7 @@
 # src is files/ in the same directory as Vagrantfile
 - name: sync files
   synchronize: >
-    src="../../../../files"
+    src="../files"
     dest=/vagrant
 
 # vim: set filetype=ansible.yaml:

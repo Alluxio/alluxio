@@ -4,6 +4,7 @@
 
 - name: install necessary packages
   hosts: all
+  remote_user: root
   tasks:
     - include: roles/common/tasks/pkg.yml
     - include: roles/lib/tasks/maven.yml

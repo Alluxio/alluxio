@@ -6,18 +6,16 @@
 
 - name: clone local alluxio repo
   synchronize:
-    src: ../../../../../../
+    src: ../../../../
     dest: /alluxio
-    rsync_opts: >
-      --exclude=.gitignore,
-      --filter="- /*/target/",
-      --filter="- /.git/",
-      --filter="- /deploy/",
-      --filter="- /docs/",
-      --filter="- /journal/",
-      --filter="- /logs/",
-      --filter="- /target/",
-      --filter="- /underFSStorage/"
+    rsync_opts:
+      - "--exclude=.gitignore"
+      - "--exclude=/deploy/"
+      - "--exclude=/docs/"
+      - "--exclude=/logs/"
+      - "--exclude=/target/"
+      - "--exclude=/underFSStorage/"
+      - "--exclude=/.git/"
 
 
 # vim :set filetype=ansible.yaml:

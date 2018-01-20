@@ -1,7 +1,7 @@
 - include: install_deps.yml
 
 - copy: >
-    src=roles/mesos/files/start_slave.sh
+    src=roles/mesos/tasks/files/start_slave.sh
     dest=/tmp/start_mesos_slave.sh
 
 - name: start Mesos slave

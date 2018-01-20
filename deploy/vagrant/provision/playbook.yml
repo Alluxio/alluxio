@@ -1,5 +1,6 @@
 # Environment setup: network, ssh, mount disk, install development tools, etc.
 - hosts: all
+  remote_user: root
   tasks:
     - include: roles/common/tasks/main.yml
     - include: roles/lib/tasks/mount.yml
@@ -15,6 +16,7 @@
 
 # Download, compile, configure all the cluster components.
 - hosts: AlluxioMaster
+  remote_user: root
   tasks:
     - include: roles/vagrant_utils/tasks/main.yml
 
@@ -68,6 +70,7 @@
 
 # Rsync compiled and configured packages to other machines.
 - hosts: all
+  remote_user: root
   tasks:
     - include: roles/ufs_{{ ufs }}/tasks/rsync_dist.yml
 
@@ -81,6 +84,7 @@
 
 # Start UFS.
 - hosts: AlluxioMaster
+  remote_user: root
   tasks:
     - include: roles/ufs_{{ ufs }}/tasks/start.yml
 
@@ -89,6 +93,7 @@
 
 # Start computation frameworks.
 - hosts: AlluxioMaster
+  remote_user: root
   tasks:
     - include: roles/spark/tasks/start.yml
       when: spark_type != "None"

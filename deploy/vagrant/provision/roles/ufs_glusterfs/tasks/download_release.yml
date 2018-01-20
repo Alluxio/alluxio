@@ -1,6 +1,7 @@
 - name: install wget
   yum: name=wget
-  sudo: yes
+  become: yes
+  become_method: sudo
 
 - name: download glusterfs
   script: down.sh
