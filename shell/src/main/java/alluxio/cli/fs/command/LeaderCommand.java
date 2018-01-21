@@ -11,14 +11,17 @@
 
 package alluxio.cli.fs.command;
 
+import alluxio.Constants;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.FileSystemMasterClient;
 import alluxio.exception.status.UnavailableException;
 import alluxio.resource.CloseableResource;
+import alluxio.util.network.NetworkAddressUtils;
 
 import org.apache.commons.cli.CommandLine;
 
+import java.io.IOException;
 import java.net.InetSocketAddress;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -53,8 +56,17 @@ public final class LeaderCommand extends AbstractFileSystemCommand {
       try {
         InetSocketAddress address = client.get().getAddress();
         System.out.println(address.getHostName());
+
+        try {
+          if (!NetworkAddressUtils.isReachable(address.getAddress(),
+                  Constants.SECOND_MS * 5)) {
+            System.err.println("Leader master is not available.");
+          }
+        } catch (IOException e) {
+          System.err.println("Failed while attempting to reach the leader master address.");
+        }
       } catch (UnavailableException e) {
-        System.out.println("Failed to get the leader master.");
+        System.err.println("Failed to get the leader master.");
       }
     }
     return 0;
