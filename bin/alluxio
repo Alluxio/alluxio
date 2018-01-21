@@ -123,7 +123,8 @@ function killAll {
   count=0
   for pid in $(ps -Aww -o pid,command | grep -i "[j]ava" | grep ${keyword} | awk '{print $1}'); do
     kill -15 ${pid} > /dev/null 2>&1
-    local cnt=120
+    local maxWait=120
+    local cnt=${maxWait}
     while kill -0 ${pid} > /dev/null 2>&1; do
       if [[ ${cnt} -gt 1 ]]; then
         # still not dead, wait
@@ -131,7 +132,7 @@ function killAll {
         sleep 1
       else
         # waited long enough, kill the process
-        echo "Process did not complete after 30 seconds, killing."
+        echo "Process did not complete after "${maxWait}" seconds, killing."
         kill -9 ${pid} 2> /dev/null
       fi
     done
