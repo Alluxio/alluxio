@@ -62,7 +62,7 @@ priority: 4
 
 在`deploy/vagrant/conf/ec2.yml`配置文件中，将`Keypair`设置为你的keypair名，`Key_Path`设置成pem key路径。
 
-在`deploy/vagrant/conf/ufs.yml`配置文件中，将`Type`的值设置为`hadoop2`，或者指定一个`S3 bucket`给`Bucket`字段。
+在`deploy/vagrant/conf/ufs.yml`配置文件中，将`Type`的值设置为`hadoop`，或者指定一个`S3 bucket`给`Bucket`字段。
 
 在`deploy/vagrant/conf/alluxio.yml`配置文件中，将`Masters`设置为你想要的AlluxioMasters的数量，在容错
 模式下，`Masters`的值应该大于1。
