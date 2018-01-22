@@ -45,20 +45,20 @@ import (
 	"github.com/alluxio/alluxio-go/option"
 )
 
-func write(fs *alluxio.Client, path, s string) error {
-        id, err := fs.CreateFile(path, &option.CreateFile{})
+func  write(fs *alluxio.Client, path, s string) error {
+	id, err := fs.CreateFile(path, &option.CreateFile{})
 	if err != nil {
-	        return err
+		return err
 	}
 	defer fs.Close(id)
-	_, err := fs.Write(id, strings.NewReader(s))
+	_, err = fs.Write(id, strings.NewReader(s))
 	return err
 }
 
-func read(fs *alluxio.Client, path string) (string, error) {
-        id, err := fs.OpenFile(path, &option.OpenFile{})
+func  read(fs *alluxio.Client, path string) (string, error) {
+	id, err := fs.OpenFile(path, &option.OpenFile{})
 	if err != nil {
-	        return "", err
+		return "", err
 	}
 	defer fs.Close(id)
 	r, err := fs.Read(id)
@@ -73,7 +73,7 @@ func read(fs *alluxio.Client, path string) (string, error) {
 	return string(content), err
 }
 
-func main() {
+func  main() {
 	fs := alluxio.NewClient(<proxy host>, <proxy port - default is 39999>, 10*time.Second)
 	path := "/test_path"
 	exists, err := fs.Exists(path, &option.Exists{})
@@ -81,16 +81,16 @@ func main() {
 		log.Fatal(err)
 	}
 	if exists {
-	        if err := fs.Delete(path, &option.Delete{}); err != nil {
-		        log.Fatal(err)
+		if err := fs.Delete(path, &option.Delete{}); err != nil {
+			log.Fatal(err)
 	        }
 	}
 	if err := write(fs, path, "Success"); err != nil {
 	        log.Fatal(err)
 	}
-	content, err != read(fs, path)
+	content, err := read(fs, path)
 	if err != nil {
-	        log.Fatal(err)
+		log.Fatal(err)
 	}
 	fmt.Printf("Result: %v\n", content)
 }
