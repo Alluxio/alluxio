@@ -14,7 +14,7 @@ Alluxio可以运行在一个Docker容器中，本指南介绍如何使用Alluxio
 
 # 前期准备
 
-一台Linux主机。在该指南中，我们将使用一台全新的运行着Amazon Linux的EC2主机。主机容量不需要太大，这里我们使用t2.small。
+一台Linux主机。在该指南中，我们将使用一台全新的运行着Amazon Linux的EC2主机。主机容量不需要太大，这里我们使用t2.small。当为实例设置网络安全时，允许端口19998-19999和29998-30000通信。
 
 # 启动一个独立模式集群
 
@@ -173,8 +173,6 @@ $ docker run -d --net=host --shm-size=1G \
 ```bash
 $ mkdir /tmp/domain
 $ chmod a+w /tmp/domain
-$ touch /tmp/domain/d
-$ chmod a+w /tmp/domain/d
 ```
 
 当通过worker和客户端的docker容器启动它们时，通过`-v /tmp/domain:/opt/domain`共享域套接字文件夹。同时在启动容器时，通过添加`-e ALLUXIO_WORKER_DATA_SERVER_DOMAIN_SOCKET_ADDRESS=/opt/domain/d`
