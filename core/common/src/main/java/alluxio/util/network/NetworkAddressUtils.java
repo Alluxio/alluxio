@@ -469,21 +469,6 @@ public final class NetworkAddressUtils {
   }
 
   /**
-   * Test whether the address is reachable.
-   *
-   * @param address The testing address
-   * @param timeoutMs Timeout in milliseconds for checking the address is reachable
-   * @return a {@code boolean} indicating if the given address is resolvable
-   * @throws IOException if a network error occurs
-   */
-  public static boolean isReachable(InetAddress address, int timeoutMs) throws IOException {
-    Preconditions.checkNotNull(address, "address");
-    Preconditions.checkArgument(timeoutMs >= 0,
-            "Timeout must be non-negative");
-    return address.isReachable(timeoutMs);
-  }
-
-  /**
    * Tests if the address is externally resolvable. Address must not be wildcard, link local,
    * loopback address, non-IPv4, or other unreachable addresses.
    *

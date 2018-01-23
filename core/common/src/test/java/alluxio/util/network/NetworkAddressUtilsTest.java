@@ -12,7 +12,6 @@
 package alluxio.util.network;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
@@ -29,8 +28,6 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.io.Closeable;
-import java.io.IOException;
-import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
 
@@ -307,33 +304,6 @@ public class NetworkAddressUtilsTest {
   @Test(expected = IllegalArgumentException.class)
   public void resolveEmptyIpAddress() throws UnknownHostException {
     NetworkAddressUtils.resolveIpAddress("");
-  }
-
-  /**
-   * Tests the {@link NetworkAddressUtils#isReachable(InetAddress, int)} method.
-   */
-  @Test
-  public void isReachable() throws IOException {
-    InetAddress address = InetAddress.getLocalHost();
-    assertTrue(NetworkAddressUtils.isReachable(address, 0));
-  }
-
-  /**
-   * Tests the {@link NetworkAddressUtils#isReachable(InetAddress, int)} method.
-   */
-  @Test(expected = NullPointerException.class)
-  public void isReachableNullAddress() throws IOException {
-    InetAddress address = null;
-    NetworkAddressUtils.isReachable(address, 0);
-  }
-
-  /**
-   * Tests the {@link NetworkAddressUtils#isReachable(InetAddress, int)} method.
-   */
-  @Test(expected = IllegalArgumentException.class)
-  public void isReachableInvalidTimeout() throws IOException {
-    InetAddress address = InetAddress.getLocalHost();
-    NetworkAddressUtils.isReachable(address, -1);
   }
 
   /**
