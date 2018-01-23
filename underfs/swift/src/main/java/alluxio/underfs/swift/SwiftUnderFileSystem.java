@@ -106,7 +106,7 @@ public class SwiftUnderFileSystem extends ObjectUnderFileSystem {
     }
 
     if (mSimulationMode) {
-      // We do not need access credentials in simulation mode
+      // We do not need access credentials in simulation mode.
       config.setMock(true);
       config.setMockAllowEveryone(true);
     } else {
