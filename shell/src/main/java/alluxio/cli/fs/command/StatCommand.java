@@ -25,6 +25,7 @@ import org.apache.commons.cli.Options;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -72,10 +73,15 @@ public final class StatCommand extends WithWildCardPathCommand {
       } else {
         System.out.println(path + " is a file path.");
         System.out.println(status);
-        System.out.println("Containing the following blocks: ");
         AlluxioBlockStore blockStore = AlluxioBlockStore.create();
-        for (long blockId : status.getBlockIds()) {
-          System.out.println(blockStore.getInfo(blockId));
+        List<Long> blockIds = status.getBlockIds();
+        if (blockIds.isEmpty()) {
+          System.out.println("This file does not contain any blocks.");
+        } else {
+          System.out.println("Containing the following blocks: ");
+          for (long blockId : blockIds) {
+            System.out.println(blockStore.getInfo(blockId));
+          }
         }
       }
     }
