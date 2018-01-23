@@ -235,13 +235,12 @@ public final class MultiProcessCluster implements TestRule {
     Preconditions.checkState(mState == State.STARTED,
         "cluster must be started before you can save its work directory");
     ARTIFACTS_DIR.mkdirs();
-    File targetDir = new File(".", mWorkDir.getName());
-    File tarball = new File(targetDir.getPath() + ".tar.gz");
-    // Copy the work directory to "."
-    FileUtils.copyDirectory(mWorkDir, targetDir);
+
+    File tarball = new File(mWorkDir.getParentFile(), mWorkDir.getName() + ".tar.gz");
     // Tar up the work directory.
     ProcessBuilder pb =
-        new ProcessBuilder("tar", "-czf", tarball.getPath(), targetDir.getPath());
+        new ProcessBuilder("tar", "-czf", tarball.getName(), mWorkDir.getName());
+    pb.directory(mWorkDir.getParentFile());
     pb.redirectOutput(TESTS_LOG);
     pb.redirectError(TESTS_LOG);
     Process p = pb.start();
@@ -251,8 +250,6 @@ public final class MultiProcessCluster implements TestRule {
       Thread.currentThread().interrupt();
       throw new RuntimeException(e);
     }
-    // Delete copied work directory.
-    FileUtils.deleteDirectory(targetDir);
     // Move tarball to artifacts directory.
     File finalTarball = new File(ARTIFACTS_DIR, tarball.getName());
     FileUtils.moveFile(tarball, finalTarball);
