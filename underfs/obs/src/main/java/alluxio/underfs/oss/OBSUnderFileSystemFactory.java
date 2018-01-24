@@ -26,45 +26,45 @@ import java.io.IOException;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * Factory for creating {@link OSSUnderFileSystem}.
+ * Factory for creating {@link OBSUnderFileSystem}.
  */
 @ThreadSafe
-public class OSSUnderFileSystemFactory implements UnderFileSystemFactory {
+public class OBSUnderFileSystemFactory implements UnderFileSystemFactory {
 
   /**
-   * Constructs a new {@link OSSUnderFileSystemFactory}.
+   * Constructs a new {@link OBSUnderFileSystemFactory}.
    */
-  public OSSUnderFileSystemFactory() {}
+  public OBSUnderFileSystemFactory() {}
 
   @Override
   public UnderFileSystem create(String path, UnderFileSystemConfiguration conf) {
     Preconditions.checkNotNull(path, "path");
 
-    if (checkOSSCredentials(conf)) {
+    if (checkOBSCredentials(conf)) {
       try {
-        return OSSUnderFileSystem.createInstance(new AlluxioURI(path), conf);
+        return OBSUnderFileSystem.createInstance(new AlluxioURI(path), conf);
       } catch (Exception e) {
         throw Throwables.propagate(e);
       }
     }
 
-    String err = "OSS credentials or endpoint not available, cannot create OSS Under File System.";
+    String err = "OBS credentials or endpoint not available, cannot create OBS Under File System.";
     throw Throwables.propagate(new IOException(err));
   }
 
   @Override
   public boolean supportsPath(String path) {
-    return path != null && path.startsWith(Constants.HEADER_OSS);
+    return path != null && path.startsWith(Constants.HEADER_OBS);
   }
 
   /**
    * @param conf optional configuration object for the UFS
    *
-   * @return true if both access, secret and endpoint keys are present, false otherwise
+   * @return true if access, secret and endpoint keys are present, false otherwise
    */
-  private boolean checkOSSCredentials(UnderFileSystemConfiguration conf) {
-    return conf.containsKey(PropertyKey.OSS_ACCESS_KEY)
-        && conf.containsKey(PropertyKey.OSS_SECRET_KEY)
-        && conf.containsKey(PropertyKey.OSS_ENDPOINT_KEY);
+  private boolean checkOBSCredentials(UnderFileSystemConfiguration conf) {
+    return conf.containsKey(PropertyKey.OBS_ACCESS_KEY)
+        && conf.containsKey(PropertyKey.OBS_SECRET_KEY)
+        && conf.containsKey(PropertyKey.OBS_ENDPOINT);
   }
 }

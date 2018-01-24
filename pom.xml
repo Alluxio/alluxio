@@ -132,6 +132,16 @@
       <name>MireDot Releases</name>
       <url>http://nexus.qmino.com/content/repositories/miredot</url>
     </repository>
+    <repository>
+      <id>huaweicloudsdk</id>
+      <url>https://repo.huaweicloud.com/repository/maven/huaweicloudsdk/</url>
+      <releases>
+        <enabled>true</enabled>
+      </releases>
+      <snapshots>
+        <enabled>false</enabled>
+      </snapshots>
+    </repository>
   </repositories>
 
   <properties>
@@ -225,6 +235,11 @@
         <version>0.5.1</version>
       </dependency>
       <dependency>
+        <groupId>com.huawei.storage</groupId>
+        <artifactId>esdk-obs-java</artifactId>
+        <version>2.1.18</version>
+      </dependency>
+      <dependency>
         <groupId>com.qmino</groupId>
         <artifactId>miredot-annotations</artifactId>
         <version>1.4.0</version>
@@ -250,7 +265,7 @@
       <dependency>
         <groupId>com.jamesmurty.utils</groupId>
         <artifactId>java-xmlbuilder</artifactId>
-        <version>0.4</version>
+        <version>1.1</version>
       </dependency>
       <dependency>
         <groupId>commons-cli</groupId>
