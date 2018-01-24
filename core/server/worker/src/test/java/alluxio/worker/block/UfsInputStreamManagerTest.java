@@ -147,8 +147,9 @@ public final class UfsInputStreamManagerTest {
         threads.add(new Thread(runnable));
       }
       ConcurrencyUtils.assertConcurrent(threads, 30);
-      // Each subsequent check out per thread should be a seek operation
-      Mockito.verify(mSeekableInStreams[0], Mockito.times(numCheckOutPerThread - 1))
+      // Each subsequent check out per thread should be a seek operation, check that at least half
+      // of them call seek method
+      Mockito.verify(mSeekableInStreams[0], Mockito.atLeast(numCheckOutPerThread / 2))
           .seek(Mockito.anyLong());
     }
   }
