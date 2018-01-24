@@ -34,9 +34,9 @@ Alluxio通过文件系统接口提供对数据的访问。Alluxio中的文件提
 
 ### IO选项
 
-Alluxio使用两种不同的存储类型：Alluxio管理存储和存储。 Alluxio管理存储是分配给Alluxio worker的内存，SSD和/或HDD。在存储下是由底层存储系统（如S3，Swift或HDFS）管理的资源。用户可以指定通过`ReadType`和`WriteType`与Alluxio管理的存储交互。`ReadType`指定读取文件时的数据读取行为。`WriteType`指定数据编写新文件时写入行为，例如数据是否应该写入Alluxio Storage。
+Alluxio使用两种不同的存储类型：Alluxio管理存储和底层存储。 Alluxio管理存储是分配给Alluxio worker的内存，SSD和/或HDD。底层存储是由在最下层的存储系统（如S3，Swift或HDFS）管理的资源。用户可以指定通过`ReadType`和`WriteType`与Alluxio管理的存储交互。`ReadType`指定读取文件时的数据读取行为。`WriteType`指定数据编写新文件时写入行为，例如数据是否应该写入Alluxio Storage。
 
-下面是`ReadType`的预期行为表。读取将始终比起本地存储更偏好Alluxio存储。
+下面是`ReadType`的预期行为表。读取总是偏好Alluxio存储优先于底层存储。
 
 <table class="table table-striped">
 <tr><th>Read Type</th><th>Behavior</th>
