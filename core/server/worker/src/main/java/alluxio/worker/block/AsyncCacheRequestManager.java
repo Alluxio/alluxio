@@ -16,6 +16,7 @@ import alluxio.StorageTierAssoc;
 import alluxio.WorkerStorageTierAssoc;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.BlockAlreadyExistsException;
+import alluxio.exception.BlockDoesNotExistException;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.util.io.BufferUtils;
 import alluxio.util.network.NetworkAddressUtils;
@@ -107,6 +108,17 @@ public class AsyncCacheRequestManager {
    */
   private boolean cacheBlockFromUfs(long blockId, long blockSize,
       Protocol.OpenUfsBlockOptions openUfsBlockOptions) {
+    // Check if the block has already been cached on this worker
+    long lockId = mBlockWorker.lockBlockNoException(Sessions.ASYNC_CACHE_SESSION_ID, blockId);
+    if (lockId != BlockLockManager.INVALID_LOCK_ID) {
+      try {
+        mBlockWorker.unlockBlock(lockId);
+      } catch (BlockDoesNotExistException e) {
+        LOG.error("Unlock block failed on caching block from UFS. We should never reach here", e);
+      }
+      return true;
+    }
+    // Check if the block has been requested in UFS block store
     try {
       if (!mBlockWorker
           .openUfsBlock(Sessions.ASYNC_CACHE_SESSION_ID, blockId, openUfsBlockOptions)) {
