@@ -68,7 +68,8 @@ public class PollingMasterInquireClient implements MasterInquireClient {
       if (address != null) {
         return address;
       }
-    } while (retry.attemptRetry());
+    }
+    while (retry.attemptRetry());
     throw new UnavailableException(String.format(
         "Failed to determine primary master rpc address after polling each of %s %d times",
         mMasterAddresses, retry.getRetryCount()));
