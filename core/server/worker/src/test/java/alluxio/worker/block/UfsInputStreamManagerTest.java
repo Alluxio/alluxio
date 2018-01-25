@@ -22,6 +22,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
+import org.mockito.invocation.Invocation;
 
 import java.io.Closeable;
 import java.io.InputStream;
@@ -147,10 +148,17 @@ public final class UfsInputStreamManagerTest {
         threads.add(new Thread(runnable));
       }
       ConcurrencyUtils.assertConcurrent(threads, 30);
-      // Each subsequent check out per thread should be a seek operation, check that at least half
-      // of them call seek method
-      Mockito.verify(mSeekableInStreams[0], Mockito.atLeast(numCheckOutPerThread / 2))
-          .seek(Mockito.anyLong());
+      // Each subsequent check out per thread should be a seek operation
+      int numSeek = 0;
+      for (int i = 0; i < mNumOfInputStreams; i++) {
+        for (Invocation invocation : Mockito.mockingDetails(mSeekableInStreams[i])
+            .getInvocations()) {
+          if (invocation.getMethod().getName().equals("seek")) {
+            numSeek++;
+          }
+        }
+      }
+      Assert.assertEquals(mNumOfInputStreams / 2 * (numCheckOutPerThread - 1), numSeek);
     }
   }
 
