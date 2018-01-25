@@ -18,6 +18,7 @@ import alluxio.exception.status.UnavailableException;
 import alluxio.master.MasterInquireClient;
 import alluxio.master.PollingMasterInquireClient;
 import alluxio.resource.CloseableResource;
+import alluxio.retry.ExponentialBackoffRetry;
 
 import org.apache.commons.cli.CommandLine;
 
@@ -59,14 +60,16 @@ public final class LeaderCommand extends AbstractFileSystemCommand {
         System.out.println(address.getHostName());
 
         List<InetSocketAddress> addresses = Arrays.asList(address);
-        MasterInquireClient inquireClient = new PollingMasterInquireClient(addresses);
+        MasterInquireClient inquireClient = new PollingMasterInquireClient(addresses, () ->
+          new ExponentialBackoffRetry(50, 100, 2)
+        );
         try {
           inquireClient.getPrimaryRpcAddress();
         } catch (UnavailableException e) {
-          System.err.println("Leader master RPC address is not available.");
+          System.out.println("Leader master RPC address is not available.");
         }
       } catch (UnavailableException e) {
-        System.err.println("Failed to get the leader master.");
+        System.out.println("Failed to get the leader master.");
       }
     }
     return 0;

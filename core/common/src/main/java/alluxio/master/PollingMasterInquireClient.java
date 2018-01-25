@@ -14,7 +14,7 @@ package alluxio.master;
 import alluxio.Constants;
 import alluxio.exception.status.UnauthenticatedException;
 import alluxio.exception.status.UnavailableException;
-import alluxio.retry.ExponentialBackoffRetry;
+import alluxio.retry.CountingRetry;
 import alluxio.retry.RetryPolicy;
 import alluxio.security.authentication.TransportProvider;
 
@@ -27,6 +27,7 @@ import org.slf4j.LoggerFactory;
 
 import java.net.InetSocketAddress;
 import java.util.List;
+import java.util.function.Supplier;
 
 import javax.annotation.Nullable;
 
@@ -39,17 +40,28 @@ public class PollingMasterInquireClient implements MasterInquireClient {
   private static final Logger LOG = LoggerFactory.getLogger(PollingMasterInquireClient.class);
 
   private final List<InetSocketAddress> mMasterAddresses;
+  private final Supplier<RetryPolicy> mRetryPolicySupplier;
 
   /**
    * @param masterAddresses the potential master addresses
    */
   public PollingMasterInquireClient(List<InetSocketAddress> masterAddresses) {
     mMasterAddresses = masterAddresses;
+    mRetryPolicySupplier = () -> new CountingRetry(1);
+  }
+
+  /**
+   * @param masterAddresses the potential master addresses
+   */
+  public PollingMasterInquireClient(List<InetSocketAddress> masterAddresses,
+                                    Supplier<RetryPolicy> retryPolicySupplier) {
+    mMasterAddresses = masterAddresses;
+    mRetryPolicySupplier = retryPolicySupplier;
   }
 
   @Override
   public InetSocketAddress getPrimaryRpcAddress() throws UnavailableException {
-    RetryPolicy retry = new ExponentialBackoffRetry(20, 2000, 30);
+    RetryPolicy retry = mRetryPolicySupplier.get();
     do {
       InetSocketAddress address = getAddress();
       if (address != null) {

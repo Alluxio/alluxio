@@ -20,11 +20,22 @@ import org.junit.Test;
  * Tests for leader command.
  */
 public final class LeaderCommandIntegrationTest extends AbstractAlluxioShellTest {
+
   @Test
   public void leader() {
     mFsShell.run("leader");
     String expected =
         mLocalAlluxioCluster.getLocalAlluxioMaster().getAddress().getHostName() + "\n";
+    Assert.assertEquals(expected, mOutput.toString());
+  }
+
+  @Test
+  public void leaderAddressNotAvailable() throws Exception {
+    mLocalAlluxioCluster.stopMasters();
+    mFsShell.run("leader");
+    String expected =
+            mLocalAlluxioCluster.getLocalAlluxioMaster().getAddress().getHostName() + "\n" +
+            "Leader master RPC address is not available." + "\n";
     Assert.assertEquals(expected, mOutput.toString());
   }
 }
