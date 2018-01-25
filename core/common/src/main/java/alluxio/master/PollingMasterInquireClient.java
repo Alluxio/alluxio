@@ -52,6 +52,7 @@ public class PollingMasterInquireClient implements MasterInquireClient {
 
   /**
    * @param masterAddresses the potential master addresses
+   * @param retryPolicySupplier the retry policy supplier
    */
   public PollingMasterInquireClient(List<InetSocketAddress> masterAddresses,
                                     Supplier<RetryPolicy> retryPolicySupplier) {
