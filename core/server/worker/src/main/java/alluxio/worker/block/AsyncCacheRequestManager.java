@@ -73,18 +73,18 @@ public class AsyncCacheRequestManager {
       // This block is already planned.
       return;
     }
-    // Check if the block has already been cached on this worker
-    long lockId = mBlockWorker.lockBlockNoException(Sessions.ASYNC_CACHE_SESSION_ID, blockId);
-    if (lockId != BlockLockManager.INVALID_LOCK_ID) {
-      try {
-        mBlockWorker.unlockBlock(lockId);
-      } catch (BlockDoesNotExistException e) {
-        LOG.error("Unlock block failed on caching block from UFS. We should never reach here", e);
-      }
-      return;
-    }
     try {
       mAsyncCacheExecutor.submit(() -> {
+        // Check if the block has already been cached on this worker
+        long lockId = mBlockWorker.lockBlockNoException(Sessions.ASYNC_CACHE_SESSION_ID, blockId);
+        if (lockId != BlockLockManager.INVALID_LOCK_ID) {
+          try {
+            mBlockWorker.unlockBlock(lockId);
+          } catch (BlockDoesNotExistException e) {
+            LOG.error("Failed to unlock block on async caching. We should never reach here", e);
+          }
+          return;
+        }
         Protocol.OpenUfsBlockOptions openUfsBlockOptions = request.getOpenUfsBlockOptions();
         boolean isSourceLocal = mLocalWorkerHostname.equals(request.getSourceHost());
         // Depends on the request, cache the target block from different sources
