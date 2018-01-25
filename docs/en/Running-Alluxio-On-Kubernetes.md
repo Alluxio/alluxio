@@ -43,8 +43,6 @@ From the host machine, create a directory for the shared domain socket.
 ```bash
 $ mkdir /tmp/domain
 $ chmod a+w /tmp/domain
-$ touch /tmp/domain/d
-$ chmod a+w /tmp/domain/d
 ```
 
 This step can be skipped in case short-circuit accesss is not desired or cannot be set up. To disable
