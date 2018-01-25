@@ -35,7 +35,7 @@ public final class LeaderCommandIntegrationTest extends AbstractAlluxioShellTest
     mFsShell.run("leader");
     String expected =
             mLocalAlluxioCluster.getLocalAlluxioMaster().getAddress().getHostName() + "\n" +
-            "Leader master RPC address is not available." + "\n";
+            "Failed to get the leader master RPC address." + "\n";
     Assert.assertEquals(expected, mOutput.toString());
   }
 }

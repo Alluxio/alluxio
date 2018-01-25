@@ -61,12 +61,12 @@ public final class LeaderCommand extends AbstractFileSystemCommand {
 
         List<InetSocketAddress> addresses = Arrays.asList(address);
         MasterInquireClient inquireClient = new PollingMasterInquireClient(addresses, () ->
-          new ExponentialBackoffRetry(50, 100, 2)
+                new ExponentialBackoffRetry(50, 100, 2)
         );
         try {
           inquireClient.getPrimaryRpcAddress();
         } catch (UnavailableException e) {
-          System.out.println("Leader master RPC address is not available.");
+          System.out.println("Failed to get the leader master RPC address.");
         }
       } catch (UnavailableException e) {
         System.out.println("Failed to get the leader master.");
