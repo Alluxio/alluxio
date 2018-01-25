@@ -327,7 +327,7 @@ bucket.delete_key(largeObjectKey)
 ### Initiate a multipart upload
 
 ```python
-mp = b.initiate_multipart_upload(largeObjectFile)
+mp = bucket.initiate_multipart_upload(largeObjectFile)
 ```
 
 ### Upload parts
@@ -342,10 +342,10 @@ sourceSize = os.stat(largeObjectFile).st_size
 chunkSize = 1048576
 chunkCount = int(math.ceil(sourceSize / float(chunkSize)))
 
-for i in range(chunk_count):
-    offset = chunk_size * i
-    bytes = min(chunk_size, source_size - offset)
-    with FileChunkIO(source_path, 'r', offset=offset, bytes=bytes) as fp:
+for i in range(chunkCount):
+    offset = chunkSize * i
+    bytes = min(chunkSize, sourceSize - offset)
+    with FileChunkIO(largeObjectFile, 'r', offset=offset, bytes=bytes) as fp:
         mp.upload_part_from_file(fp, part_num=i + 1)
 ```
 
