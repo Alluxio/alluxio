@@ -20,8 +20,12 @@ machines.You can either
 [compile the binaries from Alluxio source code](http://alluxio.org/documentation/master/Building-Alluxio-Master-Branch.html),
 or [download the precompiled binaries directly](http://alluxio.org/documentation/master/Running-Alluxio-Locally.html).
 
+OBS under storage is implemented as an under storage extension, see [this doc](UFSExtensions.html) for how to install the OBS extension,
+the OBS extension's **groupId** is `org.alluxio`, **artifactId** is `alluxio-underfs-obs`, **version** should match the version of the 
+Alluxio binaries you downloaded above.
+
 Also, in preparation for using OBS with Alluxio, create a bucket or use an existing bucket. You
-should also note that the directory you want to use in that bucket, either by creating a new
+should also note the directory you want to use in that bucket, either by creating a new
 directory in the bucket, or using an existing one. For the purposes of this guide, the OBS bucket
 name is called `OBS_BUCKET`, and the directory in that bucket is called `OBS_DIRECTORY`. Also, for
 using the OBS Service, you should provide an OBS endpoint to specify which region your bucket is
