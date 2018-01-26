@@ -11,24 +11,21 @@
 
 package alluxio;
 
-import java.io.OutputStream;
-
 import javax.annotation.concurrent.NotThreadSafe;
+
+import java.io.OutputStream;
 
 /**
  * A rule for setting output stream during a test suite. It sets
- * System.out to the specified output stream during the lifetime
+ * System.err to the specified output stream during the lifetime
  * of this rule.
  */
 @NotThreadSafe
-public final class SystemOutRule extends AbstractResourceRule {
+public final class SystemErrRule extends AbstractResourceRule {
   private RedirectOutputRule mRedirectOutputRule;
 
-  /**
-   * @param outputStream the output stream to set as output
-   */
-  public SystemOutRule(OutputStream outputStream) {
-    mRedirectOutputRule = new RedirectOutputRule(System.out, outputStream, System::setOut);
+  public SystemErrRule(OutputStream outputStream) {
+    mRedirectOutputRule = new RedirectOutputRule(System.err, outputStream, System::setErr);
   }
 
   @Override
