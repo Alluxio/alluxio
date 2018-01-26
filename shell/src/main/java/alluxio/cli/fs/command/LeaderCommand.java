@@ -66,10 +66,10 @@ public final class LeaderCommand extends AbstractFileSystemCommand {
         try {
           inquireClient.getPrimaryRpcAddress();
         } catch (UnavailableException e) {
-          System.out.println("Failed to get the leader master RPC address.");
+          System.err.println("The leader is not currently serving requests.");
         }
       } catch (UnavailableException e) {
-        System.out.println("Failed to get the leader master.");
+        System.err.println("Failed to get the leader master.");
       }
     }
     return 0;

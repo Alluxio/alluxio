@@ -33,9 +33,7 @@ public final class LeaderCommandIntegrationTest extends AbstractAlluxioShellTest
   public void leaderAddressNotAvailable() throws Exception {
     mLocalAlluxioCluster.stopMasters();
     mFsShell.run("leader");
-    String expected =
-            mLocalAlluxioCluster.getLocalAlluxioMaster().getAddress().getHostName() + "\n"
-                    + "Failed to get the leader master RPC address." + "\n";
-    Assert.assertEquals(expected, mOutput.toString());
+    String expected = "The leader is not currently serving requests.\n";
+    Assert.assertEquals(expected, mErrOutput.toString());
   }
 }
