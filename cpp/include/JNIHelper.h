@@ -59,7 +59,7 @@ class ClassCaches {
   ClassCache* getCache(JNIEnv *env);
 
  private:
-  std::map<JNIEnv *, std::shared_ptr<ClassCache> > m_caches;
+  std::map<JNIEnv*, std::shared_ptr<ClassCache>> m_caches;
 };
 
 typedef struct JniMethodInfo_ {
@@ -73,15 +73,15 @@ typedef struct JniMethodInfo_ {
 class JniHelper {
 
  public:
-  typedef std::map<JNIEnv*, std::vector<jobject> > LocalRefMapType;
+  typedef std::map<JNIEnv*, std::vector<jobject>> LocalRefMapType;
   // Sets jvm information for JNI calling
   static void SetJavaVM(JavaVM *javaVM);
   // Gets the object of JavaVM
   static JavaVM* GetJavaVM();
-  // Gets JNIEnv object of current thread, created if not set
+  // Gets JNIEnv object of current thread, creates if not set
   static JNIEnv* GetEnv();
-  // Sets JNI environment. Must be called once before  JNI operations. The
-  // CLASSPATH environment must has the alluxio client jar file path. See
+  // Sets JNI environment. Must be called once before JNI operations. The
+  // CLASSPATH environment must have the alluxio client jar file path. See
   // README.md
   static void Start() {
     JNIEnv *env;
@@ -91,7 +91,7 @@ class JniHelper {
 
     char *classpath = getenv("CLASSPATH");
     if (classpath == NULL) {
-      throw std::runtime_error("CLASSPATH env variable is not set");
+      throw std::runtime_error("CLASSPATH env variable is not been set");
     }
 
     const char *classpath_opt = "-Djava.class.path=";
@@ -292,43 +292,43 @@ class JniHelper {
   // Get Status instance by status name
   static Status GetStatusFromAlluxioException(const std::string& statusName,
       const std::string& errorMsg) {
-    if (statusName.compare("CANCELED") == 0) {
-      return Status::canceled(errorMsg);
-    } else if (statusName.compare("UNKNOWN") == 0) {
-      return Status::unknown(errorMsg);
-    } else if (statusName.compare("INVALID_ARGUMENT") == 0) {
-      return Status::invalidArgument(errorMsg);
-    } else if (statusName.compare("DEADLINE_EXCEEDED") == 0) {
-      return Status::deadlineExceeded(errorMsg);
-    } else if (statusName.compare("NOT_FOUND") == 0) {
-      return Status::notFound(errorMsg);
+    if (statusName.compare("ABORTED") == 0) {
+      return Status::aborted(errorMsg);
     } else if (statusName.compare("ALREADY_EXISTS") == 0) {
       return Status::alreadyExist(errorMsg);
-    } else if (statusName.compare("PERMISSION_DENIED") == 0) {
-      return Status::permissionDenied(errorMsg);
-    } else if (statusName.compare("UNAUTHENTICATED") == 0) {
-      return Status::unAuthenticated(errorMsg);
-    } else if (statusName.compare("RESOURCE_EXHAUSTED") == 0) {
-      return Status::resourceExhausted(errorMsg);
-    } else if (statusName.compare("FAILED_PRECONDITION") == 0) {
-      return Status::failedPrecondition(errorMsg);
-    } else if (statusName.compare("ABORTED") == 0) {
-      return Status::aborted(errorMsg);
-    } else if (statusName.compare("OUT_OF_RANGE") == 0) {
-      return Status::outOfRange(errorMsg);
-    } else if (statusName.compare("UNIMPLEMENTED") == 0) {
-      return Status::unImplemented(errorMsg);
-    } else if (statusName.compare("INTERNAL") == 0) {
-      return Status::internal(errorMsg);
-    } else if (statusName.compare("UNAVAILABLE") == 0) {
-      return Status::unavailable(errorMsg);
+    } else if (statusName.compare("CANCELED") == 0) {
+      return Status::canceled(errorMsg);
     } else if (statusName.compare("DATA_LOSS") == 0) {
       return Status::dataLoss(errorMsg);
+    } else if (statusName.compare("DEADLINE_EXCEEDED") == 0) {
+      return Status::deadlineExceeded(errorMsg);
+    } else if (statusName.compare("FAILED_PRECONDITION") == 0) {
+      return Status::failedPrecondition(errorMsg);
+    } else if (statusName.compare("INTERNAL") == 0) {
+      return Status::internal(errorMsg);
+    } else if (statusName.compare("INVALID_ARGUMENT") == 0) {
+      return Status::invalidArgument(errorMsg);
+    } else if (statusName.compare("NOT_FOUND") == 0) {
+      return Status::notFound(errorMsg);
+    } else if (statusName.compare("OUT_OF_RANGE") == 0) {
+      return Status::outOfRange(errorMsg);
+    } else if (statusName.compare("PERMISSION_DENIED") == 0) {
+      return Status::permissionDenied(errorMsg);
+    } else if (statusName.compare("RESOURCE_EXHAUSTED") == 0) {
+      return Status::resourceExhausted(errorMsg);
+    } else if (statusName.compare("UNAUTHENTICATED") == 0) {
+      return Status::unAuthenticated(errorMsg);
+    } else if (statusName.compare("UNAVAILABLE") == 0) {
+      return Status::unavailable(errorMsg);
+    } else if (statusName.compare("UNIMPLEMENTED") == 0) {
+      return Status::unImplemented(errorMsg);
+    } else if (statusName.compare("UNKNOWN") == 0) {
+      return Status::unknown(errorMsg);
     }
     return Status::OK();
   };
 
-  // Checks if there are some AlluxioExceptions happened during JNI calling.
+  // Checks if there are some AlluxioExceptions happening during JNI calling.
   // Returns Status object depending on the AlluxioException status
   static Status AlluxioExceptionCheck() {
     JNIEnv *env = GetEnv();

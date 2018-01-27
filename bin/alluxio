@@ -271,8 +271,8 @@ function main {
     runJavaClass "$@"
   ;;
   "loadufs")
-    echo "The \"alluxio loadufs <AlluxioURI> <UfsURI>\" command is deprecated since version 1.1." >&2
-    echo "Use the \"alluxio fs mount <AlluxioURI> <UfsURI>\" command followed by the \"alluxio fs ls -R <AlluxioURI>\" command instead." >&2
+    echo "The \"alluxio loadufs <AlluxioURI.h> <UfsURI>\" command is deprecated since version 1.1." >&2
+    echo "Use the \"alluxio fs mount <AlluxioURI.h> <UfsURI>\" command followed by the \"alluxio fs ls -R <AlluxioURI.h>\" command instead." >&2
     exit 1
   ;;
   "logLevel")

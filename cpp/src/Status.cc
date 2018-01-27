@@ -50,55 +50,56 @@ std::string Status::ToString() const {
     char tmp[30];
     const char* type;
     switch (code()) {
-    case CANCELED:
-      type = "CanceledError";
-      break;
-    case UNKNOWN:
-      type = "UnknownError: ";
-      break;
-    case INVALID_ARGUMENT:
-      type = "InvalidArgumentError: ";
-      break;
-    case DEADLINE_EXCEEDED:
-      type = "DeadlineExceededError: ";
-      break;
-    case NOT_FOUND:
-      type = "NotFoundError: ";
+    case ABORTED:
+      type = "AbortedError: ";
       break;
     case ALREADY_EXISTS:
       type = "AlreadyExistsError: ";
       break;
-    case PERMISSION_DENIED:
-      type = "PermissionDeniedError: ";
+    case CANCELED:
+      type = "CanceledError";
       break;
-    case UNAUTHENTICATED:
-      type = "UnauthenticatedError: ";
+    case DATA_LOSS:
+      type = "DataLossError: ";
       break;
-    case RESOURCE_EXHAUSTED:
-      type = "ResourceExhaustedError: ";
+    case DEADLINE_EXCEEDED:
+      type = "DeadlineExceededError: ";
       break;
     case FAILED_PRECONDITION:
       type = "FailedPreconditionError: ";
       break;
-    case ABORTED:
-      type = "AbortedError: ";
+    case INTERNAL:
+      type = "InternalError: ";
+      break;
+    case JNI_ERROR:
+      type = "jniError: ";
+      break;
+    case INVALID_ARGUMENT:
+      type = "InvalidArgumentError: ";
+      break;
+    case NOT_FOUND:
+      type = "NotFoundError: ";
       break;
     case OUT_OF_RANGE:
       type = "OutOfRangeError: ";
       break;
-    case UNIMPLEMENTED:
-      type = "UnimplementedError: ";
+    case PERMISSION_DENIED:
+      type = "PermissionDeniedError: ";
       break;
-    case INTERNAL:
-      type = "InternalError: ";
+    case RESOURCE_EXHAUSTED:
+      type = "ResourceExhaustedError: ";
+      break;
+    case UNAUTHENTICATED:
+      type = "UnauthenticatedError: ";
       break;
     case UNAVAILABLE:
       type = "UnavailableError: ";
       break;
-    case DATA_LOSS:
-      type = "DataLossError: ";
-    case JNI_ERROR:
-      type = "jniError: ";
+    case UNKNOWN:
+      type = "UnknownError: ";
+      break;
+    case UNIMPLEMENTED:
+      type = "UnimplementedError: ";
       break;
 
     default:

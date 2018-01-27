@@ -72,17 +72,20 @@ bool JniHelper::GetMethodInfo(JniMethodInfo &methodinfo, const char *className,
   if (! env) {
     return false;
   }
+
   jclass classID = ClassCache::instance(env)->getJclass(className);
   if (! classID) {
     env->ExceptionClear();
     return false;
   }
+
   jmethodID methodID;
   if(isStatic) {
     methodID = env->GetStaticMethodID(classID, methodName, paramCode);
   } else {
     methodID = env->GetMethodID(classID, methodName, paramCode);
   }
+
   if (! methodID) {
     env->ExceptionClear();
     return false;
@@ -124,6 +127,7 @@ void JniHelper::ReportError(const std::string& className,
   std::string errorMsg = "Failed to call java method. Class name: ";
   errorMsg = errorMsg + className + ", method name: " + methodName +
       ", signature: " + signature;
+  std::cout<<errorMsg<<std::endl;
   throw errorMsg;
 }
 

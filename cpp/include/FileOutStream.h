@@ -27,14 +27,14 @@ class FileOutStream {
   // Writes the specified byte to this output stream
   Status Write(char b);
   // Writes len bytes from the specified byte array
-  // starting at off to this output stream.
+  // starting at offset to this output stream.
   Status Write(const char* buf, size_t off, size_t len);
   // Flushes this output stream and forces any buffered output bytes
    // to be written out.
   Status Flush();
   // Cancels write operation, closing current stream
   Status Cancel();
-  // Closing current stream
+  // Closes current stream
   Status Close();
 
  private:

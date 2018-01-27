@@ -34,28 +34,44 @@ class Status {
     return Status();  // return success status
   }
 
+  static Status aborted(const std::string& msg) {
+    return Status(ABORTED, msg);
+  }
+
+  static Status alreadyExist(const std::string& msg) {
+    return Status(ALREADY_EXISTS, msg);
+  }
+
   static Status canceled(const std::string& msg) {
     return Status(CANCELED, msg );
   }
 
-  static Status unknown(const std::string& msg) {
-    return Status(UNKNOWN, msg);
-  }
-
-  static Status invalidArgument(const std::string& msg) {
-    return Status(INVALID_ARGUMENT, msg);
+  static Status dataLoss(const std::string& msg) {
+    return Status(DATA_LOSS, msg);
   }
 
   static Status deadlineExceeded(const std::string& msg) {
     return Status(DEADLINE_EXCEEDED, msg);
   }
 
+  static Status failedPrecondition(const std::string& msg) {
+    return Status(FAILED_PRECONDITION, msg);
+  }
+
+  static Status internal(const std::string& msg) {
+    return Status(INTERNAL, msg);
+  }
+
+  static Status invalidArgument(const std::string& msg) {
+    return Status(INVALID_ARGUMENT, msg);
+  }
+
   static Status notFound(const std::string& msg) {
     return Status(NOT_FOUND, msg);
   }
 
-  static Status alreadyExist(const std::string& msg) {
-    return Status(ALREADY_EXISTS, msg);
+  static Status outOfRange(const std::string& msg) {
+    return Status(OUT_OF_RANGE, msg);
   }
 
   static Status permissionDenied(const std::string& msg) {
@@ -70,32 +86,16 @@ class Status {
     return Status(RESOURCE_EXHAUSTED, msg);
   }
 
-  static Status failedPrecondition(const std::string& msg) {
-    return Status(FAILED_PRECONDITION, msg);
-  }
-
-  static Status aborted(const std::string& msg) {
-    return Status(ABORTED, msg);
-  }
-
-  static Status outOfRange(const std::string& msg) {
-    return Status(OUT_OF_RANGE, msg);
+  static Status unavailable(const std::string& msg) {
+    return Status(UNAVAILABLE, msg);
   }
 
   static Status unImplemented(const std::string& msg) {
     return Status(UNIMPLEMENTED, msg);
   }
 
-  static Status internal(const std::string& msg) {
-    return Status(INTERNAL, msg);
-  }
-
-  static Status unavailable(const std::string& msg) {
-    return Status(UNAVAILABLE, msg);
-  }
-
-  static Status dataLoss(const std::string& msg) {
-    return Status(DATA_LOSS, msg);
+  static Status unknown(const std::string& msg) {
+    return Status(UNKNOWN, msg);
   }
 
   static Status jniError(const std::string& msg) {
@@ -106,7 +106,7 @@ class Status {
     return (state_ == NULL);
   }
 
-  // Return a string representation of this status suitable for printing.
+  // Returns a string representation of this status suitable for printing.
   // Returns the string "OK" for success.
   std::string ToString() const;
 
@@ -119,24 +119,24 @@ class Status {
   const char* state_;
 
   enum Code {
-    CANCELED = 0,
-    UNKNOWN = 1,
-    INVALID_ARGUMENT = 2,
-    DEADLINE_EXCEEDED = 3,
-    NOT_FOUND = 4,
-    ALREADY_EXISTS = 5,
-    PERMISSION_DENIED = 6,
-    UNAUTHENTICATED = 7,
-    RESOURCE_EXHAUSTED = 8,
-    FAILED_PRECONDITION = 9,
-    ABORTED = 10,
+    SUCCEED = 0,
+    ABORTED = 1,
+    ALREADY_EXISTS = 2,
+    CANCELED = 3,
+    DATA_LOSS =4,
+    DEADLINE_EXCEEDED = 5,
+    FAILED_PRECONDITION = 6,
+    INTERNAL = 7,
+    INVALID_ARGUMENT = 8,
+    JNI_ERROR = 9,
+    NOT_FOUND = 10,
     OUT_OF_RANGE = 11,
-    UNIMPLEMENTED = 12,
-    INTERNAL = 13,
-    UNAVAILABLE =14,
-    DATA_LOSS =15,
-    JNI_ERROR = 16,
-    SUCCEED = 17
+    PERMISSION_DENIED = 12,
+    RESOURCE_EXHAUSTED = 13,
+    UNAUTHENTICATED = 14,
+    UNAVAILABLE =15,
+    UNIMPLEMENTED = 16,
+    UNKNOWN = 17
   };
 
   Code code() const {
