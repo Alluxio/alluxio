@@ -14,7 +14,6 @@ package alluxio.master;
 import alluxio.Constants;
 import alluxio.exception.status.UnauthenticatedException;
 import alluxio.exception.status.UnavailableException;
-import alluxio.retry.CountingRetry;
 import alluxio.retry.RetryPolicy;
 import alluxio.security.authentication.TransportProvider;
 
@@ -44,18 +43,10 @@ public class PollingMasterInquireClient implements MasterInquireClient {
 
   /**
    * @param masterAddresses the potential master addresses
-   */
-  public PollingMasterInquireClient(List<InetSocketAddress> masterAddresses) {
-    mMasterAddresses = masterAddresses;
-    mRetryPolicySupplier = () -> new CountingRetry(1);
-  }
-
-  /**
-   * @param masterAddresses the potential master addresses
    * @param retryPolicySupplier the retry policy supplier
    */
   public PollingMasterInquireClient(List<InetSocketAddress> masterAddresses,
-                                    Supplier<RetryPolicy> retryPolicySupplier) {
+      Supplier<RetryPolicy> retryPolicySupplier) {
     mMasterAddresses = masterAddresses;
     mRetryPolicySupplier = retryPolicySupplier;
   }
@@ -68,8 +59,7 @@ public class PollingMasterInquireClient implements MasterInquireClient {
       if (address != null) {
         return address;
       }
-    }
-    while (retry.attemptRetry());
+    } while (retry.attemptRetry());
     throw new UnavailableException(String.format(
         "Failed to determine primary master rpc address after polling each of %s %d times",
         mMasterAddresses, retry.getRetryCount()));
