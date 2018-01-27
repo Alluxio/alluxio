@@ -16,22 +16,34 @@ Service (OBS) is a massive, secure and highly reliable cloud storage service pro
 ## Initial Setup
 
 To run an Alluxio cluster on a set of machines, you must deploy Alluxio binaries to each of these
-machines.You can either
+machines. You can either
 [compile the binaries from Alluxio source code](http://alluxio.org/documentation/master/Building-Alluxio-Master-Branch.html),
 or [download the precompiled binaries directly](http://alluxio.org/documentation/master/Running-Alluxio-Locally.html).
 
-OBS under storage is implemented as an under storage extension, see [this doc](UFSExtensions.html) for how to install the OBS extension,
-the OBS extension's **groupId** is `org.alluxio`, **artifactId** is `alluxio-underfs-obs`, **version** should match the version of the 
-Alluxio binaries you downloaded above.
+OBS under storage is implemented as an under storage extension, execute the following command on master to download the extension:
 
-Also, in preparation for using OBS with Alluxio, create a bucket or use an existing bucket. You
-should also note the directory you want to use in that bucket, either by creating a new
-directory in the bucket, or using an existing one. For the purposes of this guide, the OBS bucket
-name is called `OBS_BUCKET`, and the directory in that bucket is called `OBS_DIRECTORY`. Also, for
-using the OBS Service, you should provide an OBS endpoint to specify which region your bucket is
-on. The endpoint here is called `OBS_ENDPOINT`, and to learn more about the different endpoints for different
-regions, please see [here](http://support.huaweicloud.com/en-us/qs-obs/en-us_topic_0075679174.html). For more
-information about OBS Bucket, please see [here](http://support.huaweicloud.com/en-us/qs-obs/en-us_topic_0046535383.html).
+```
+mvn dependency:get -DremoteRepositories=http://repo1.maven.org/maven2/ -DgroupId=org.alluxio \
+ -DartifactId=alluxio-underfs-obs -Dversion=<alluxio version> -Dtransitive=false -Ddest=<download destination>.jar
+```
+
+Then execute the following command on master to install the extension to all masters and workers defined in `conf/masters` and `conf/workers`:
+
+```
+bin/alluxio extensions install <download destination>.jar
+```
+
+See [this doc](UFSExtensions.html) for more details on Alluxio extension management.
+
+A bucket and directory in OBS should exist before mounting OBS to Alluxio, create them if they do not exist.
+Suppose the bucket is named `OBS_BUCKET` and the directory is named `OBS_DIRECTORY`.
+Please refer to [this doc](http://support.huaweicloud.com/en-us/qs-obs/en-us_topic_0046535383.html) for more
+information on creating a bucket in OBS.
+
+The OBS endpoint specifying the region of your bucket should also be set in Alluxio configurations.
+Suppose the endpoint is named `OBS_ENDPOINT`.
+Please refer to [this doc](http://support.huaweicloud.com/en-us/qs-obs/en-us_topic_0075679174.html) for more
+information on different regions and endpoints in OBS.
 
 ## Mounting OBS
 
