@@ -21,7 +21,7 @@ machines.You can either
 or [download the precompiled binaries directly](http://alluxio.org/documentation/master/Running-Alluxio-Locally.html).
 
 Also, in preparation for using OSS with alluxio, create a bucket or use an existing bucket. You
-should also note that the directory you want to use in that bucket, either by creating a new
+should also note the directory you want to use in that bucket, either by creating a new
 directory in the bucket, or using an existing one. For the purposes of this guide, the OSS bucket
 name is called `OSS_BUCKET`, and the directory in that bucket is called `OSS_DIRECTORY`. Also, for
 using the OSS Service, you should provide an OSS endpoint to specify which range your bucket is
