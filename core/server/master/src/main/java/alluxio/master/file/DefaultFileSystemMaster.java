@@ -476,8 +476,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         try {
           scheduleAsyncPersistenceInternal(inodePath);
         } catch (AlluxioException e) {
-          // It's possible that rescheduling the async persist calls fails, because the blocks may no
-          // longer be in the memory
+          // It's possible that rescheduling the async persist calls fails, because the blocks may
+          // no longer be in the memory
           LOG.warn("Failed to reschedule async persistence for {}: {}", inodePath.getUri(),
               e.toString());
         }
