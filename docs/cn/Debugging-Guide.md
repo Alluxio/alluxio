@@ -111,7 +111,6 @@ spark.executor.extraClassPath
 
 如果已经设置相关的classpath，但是异常仍然存在，用户可以这样检测路径是否有效：
 
-
 ```bash
 $ ls {{site.ALLUXIO_CLIENT_JAR_PATH}}
 ```
