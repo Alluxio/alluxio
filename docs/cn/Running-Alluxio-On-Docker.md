@@ -203,7 +203,7 @@ $ ALLUXIO_WORKER_CONTAINER_ID=$(docker run -d --net=host --shm-size=1G \
 docker build -f Dockerfile.fuse -t alluxio-fuse .
 ```
 
-运行支持FUSE的docker镜像还需要一对额外的理由。
+运行支持FUSE的docker镜像还需要一对额外的参数。
 例如：
 
 ```bash
