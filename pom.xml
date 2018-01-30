@@ -174,6 +174,7 @@
     <module>shell</module>
     <module>tests</module>
     <module>underfs</module>
+    <module>checker</module>
   </modules>
 
   <dependencyManagement>
