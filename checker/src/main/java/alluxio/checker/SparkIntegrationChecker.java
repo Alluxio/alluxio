@@ -34,7 +34,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 /**
- * A spark job to test the integration of Spark with Alluxio. This class will be Triggered
+ * A spark job to test the integration of Spark with Alluxio. This class will be triggered
  * in yarn-client and yarn-cluster mode through spark-submit.
  *
  * This job requires a running Spark cluster, but not requires a running Alluxio cluster.

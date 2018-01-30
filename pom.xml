@@ -165,6 +165,7 @@
 
   <modules>
     <module>assembly</module>
+    <module>checker</module>
     <module>core</module>
     <module>examples</module>
     <module>integration</module>
@@ -174,7 +175,6 @@
     <module>shell</module>
     <module>tests</module>
     <module>underfs</module>
-    <module>checker</module>
   </modules>
 
   <dependencyManagement>
