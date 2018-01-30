@@ -2796,6 +2796,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
    * @param aliases alias of this property key
    * @param ignoredSiteProperty true if Alluxio ignores user-specified value for this property
    *                            in site properties file
+   * @param consistencyCheckLevel the level consistency check should apply to this property
    */
   private PropertyKey(String name, String description, Object defaultValue, String[] aliases,
       boolean ignoredSiteProperty, boolean isHidden, ConsistencyCheckLevel consistencyCheckLevel) {
@@ -2925,7 +2926,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   }
 
   /**
-   * @return true if this property should be consistent within cluster
+   * @return the level consistency check should apply to this property
    */
   public ConsistencyCheckLevel getConsistencyLevel() {
     return mConsistencyCheckLevel;
