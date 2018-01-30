@@ -22,7 +22,7 @@ yarn.nodemanager.resource.memory-mb = Total RAM - Other services RAM - Alluxio R
 
 ## 虚拟CPU核
 
-在'yarn-site.xml'中设置
+在`yarn-site.xml`中设置
 
 ```
 yarn.nodemanager.resource.cpu-vcores = Total cores - Other services vcores - Alluxio vcores
