@@ -73,7 +73,7 @@ public class SparkIntegrationChecker {
       return 1;
     }
 
-    // support Alluxio HA-mode
+    // support Alluxio high availability mode
     if (alluxio.Configuration.getBoolean(PropertyKey.ZOOKEEPER_ENABLED)) {
       sAlluxioHAMode = true;
       try {
