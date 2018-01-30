@@ -19,7 +19,7 @@
   </parent>
   <artifactId>alluxio-checker</artifactId>
   <name>Alluxio Integration Checker</name>
-  <description>Check Integration of computation frameworks with Alluxio</description>
+  <description>Check integration of computation frameworks with Alluxio</description>
 
   <properties>
     <!-- The following paths need to be defined here as well as in the parent pom so that mvn can -->

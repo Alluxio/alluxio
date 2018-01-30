@@ -41,8 +41,8 @@ import java.util.stream.IntStream;
  * It will check whether Alluxio class and Alluxio filesystem can be recognize in Spark
  * driver and executors.
  */
-public class SparkIntegrationCheck {
-  private static final Logger LOG = LoggerFactory.getLogger(SparkIntegrationCheck.class);
+public class SparkIntegrationChecker {
+  private static final Logger LOG = LoggerFactory.getLogger(SparkIntegrationChecker.class);
   private static List<Tuple2<Boolean, String>> sSparkJobResult;
   private static boolean sAlluxioHAMode = false;
   private static String sZookeeperAddress = "";
@@ -51,7 +51,7 @@ public class SparkIntegrationCheck {
    * Implements check Integration.
    *
    * @param sc current JavaSparkContext
-   * @return 0 on success, 1 on fail to recognize Alluxio, 2 on fail to support Alluxio HA mode
+   * @return 0 succeed, 1 fail to recognize Alluxio, 2 fail to support Alluxio HA mode
    */
   private static int checkIntegration(JavaSparkContext sc) {
     // check if Spark driver can recognize Alluxio class
@@ -83,7 +83,6 @@ public class SparkIntegrationCheck {
         return 2;
       }
     }
-
     return runOperations(sc);
   }
 
@@ -138,7 +137,6 @@ public class SparkIntegrationCheck {
     } catch (Exception e) {
       return false;
     }
-
     return true;
   }
 
@@ -210,7 +208,7 @@ public class SparkIntegrationCheck {
    */
   public static void main(String[] args) {
     // start the Java Spark Context
-    SparkConf conf = new SparkConf().setAppName(SparkIntegrationCheck.class.getName());
+    SparkConf conf = new SparkConf().setAppName(SparkIntegrationChecker.class.getName());
     JavaSparkContext sc = new JavaSparkContext(conf);
 
     int resultCode = checkIntegration(sc);
