@@ -14,11 +14,14 @@ package alluxio.cli.validation;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
 
+import com.google.common.collect.Sets;
+import org.apache.commons.lang3.StringUtils;
+
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Properties;
 import java.util.Set;
 
@@ -26,58 +29,79 @@ import java.util.Set;
  * Task for validating system limit for current user.
  */
 public final class ClusterConfConsistencyValidationTask extends AbstractValidationTask {
-  private static final Set<String> PROPERTIES_TO_IGNORE =  new HashSet<>(Arrays.asList(
-      PropertyKey.USER_HOSTNAME.getName(),
-      PropertyKey.WORKER_HOSTNAME.getName(),
-      PropertyKey.MASTER_HOSTNAME.getName()
-  ));
 
   @Override
   public TaskResult validate(Map<String, String> optionMap) throws InterruptedException {
-    Set<String> nodes = new HashSet<>(Utils.readNodeList("masters"));
-    nodes.addAll(Utils.readNodeList("workers"));
+    Set<String> masters = new HashSet<>(Utils.readNodeList("masters"));
+    Set<String> workers = new HashSet<>(Utils.readNodeList("workers"));
+    Set<String> nodes = Sets.union(masters, workers);
     Map<String, Properties> allProperties = new HashMap<>();
     Set<String> propertyNames = new HashSet<>();
-    if (nodes.size() < 2) {
-      System.err.println("Less than two nodes to check, skipping.");
+    if (masters.isEmpty()) {
+      System.err.println("No master nodes specified in conf/masters file");
       return TaskResult.SKIPPED;
     }
-    boolean isConsistent = true;
-    String baseNode = null;
+    if (workers.isEmpty()) {
+      System.err.println("No worker nodes specified in conf/workers file");
+      return TaskResult.SKIPPED;
+    }
+    TaskResult result = TaskResult.OK;
     for (String node : nodes) {
-      baseNode = node;
       Properties props = getNodeConf(node);
       if (props == null) {
-        isConsistent = false;
+        result = TaskResult.FAILED;
         continue;
       }
       allProperties.put(node, props);
       propertyNames.addAll(props.stringPropertyNames());
     }
-    Properties baselineProps = allProperties.get(baseNode);
-    nodes.remove(baseNode);
     for (String propertyName : propertyNames) {
-      if (PROPERTIES_TO_IGNORE.contains(propertyName)) {
+      Set<String> targetNodes = nodes;
+      if (propertyName.startsWith("alluxio.user.")) {
+        continue;
+      } else if (propertyName.startsWith("alluxio.master.")) {
+        targetNodes = masters;
+      } else if (propertyName.startsWith("alluxio.worker.")) {
+        targetNodes = workers;
+      }
+      if (targetNodes.size() < 2) {
         continue;
       }
-      String baseValue = baselineProps.getProperty(propertyName);
-      if (baseValue == null) {
-        System.err.format("Property \"%s\" is absent on node %s.%n",
-            propertyName, baseNode);
+      PropertyKey propertyKey = PropertyKey.fromString(propertyName);
+      PropertyKey.ConsistencyCheckLevel level = propertyKey.getConsistencyLevel();
+      if (level == PropertyKey.ConsistencyCheckLevel.IGNORE) {
+        continue;
       }
-      for (String remoteNode : nodes) {
+      String baseNode = null;
+      String baseValue = null;
+      boolean isConsistent = true;
+      String errLabel = "Warning";
+      TaskResult errLevel = TaskResult.WARNING;
+      if (level == PropertyKey.ConsistencyCheckLevel.ENFORCE) {
+        errLabel = "Error";
+        errLevel = TaskResult.FAILED;
+      }
+      for (String remoteNode : targetNodes) {
+        if (baseNode == null) {
+          baseNode = remoteNode;
+          Properties baselineProps = allProperties.get(baseNode);
+          baseValue = baselineProps.getProperty(propertyName);
+          continue;
+        }
         String remoteValue = allProperties.get(remoteNode).getProperty(propertyName);
-        if (remoteValue == null) {
-          System.err.format("Property \"%s\" is absent on node %s.%n", propertyName, remoteNode);
-        } else if (baseValue != null && !remoteValue.equals(baseValue)) {
-          System.err.format("Property \"%s\" is inconsistent on node %s and %s.%n",
-              propertyName, baseNode, remoteNode);
-          System.err.format("%s: %s%n%s: %s%n", baseNode, baseValue, remoteNode, remoteValue);
+        if (!StringUtils.equals(remoteValue, baseValue)) {
+          System.err.format("%s: Property \"%s\" is inconsistent on node %s and %s.%n",
+              errLabel, propertyName, baseNode, remoteNode);
+          System.err.format(" %s: %s%n %s: %s%n", baseNode, Objects.toString(baseValue, "not set"),
+              remoteNode,  Objects.toString(remoteValue, "not set"));
           isConsistent = false;
         }
       }
+      if (!isConsistent) {
+        result = result == TaskResult.FAILED ? TaskResult.FAILED : errLevel;
+      }
     }
-    return isConsistent ? TaskResult.OK : TaskResult.WARNING;
+    return result;
   }
 
   private Properties getNodeConf(String node) {

@@ -33,11 +33,22 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class PropertyKey implements Comparable<PropertyKey> {
+
+  /**
+   * The level consistency check should apply to a certain property key.
+   */
+  public enum ConsistencyCheckLevel {
+    IGNORE,
+    WARN,
+    ENFORCE,
+  }
+
   // The following two maps must be the first to initialize within this file.
   /** A map from default property key's string name to the key. */
   private static final Map<String, PropertyKey> DEFAULT_KEYS_MAP = new HashMap<>();
   /** A map from default property key's alias to the key. */
   private static final Map<String, PropertyKey> DEFAULT_ALIAS_MAP = new HashMap<>();
+
   /**
    * Builder to create {@link PropertyKey} instances.
    */
@@ -48,6 +59,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     private final String mName;
     private boolean mIgnoredSiteProperty;
     private boolean mIsHidden;
+    private ConsistencyCheckLevel mConsistencyCheckLevel = ConsistencyCheckLevel.WARN;
 
     /**
      * @param name name of this property to build
@@ -111,11 +123,21 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     }
 
     /**
+     * @param consistencyCheckLevel the consistency level that applies to this property
+     * @return the updated builder instance
+     */
+    public Builder setConsistencyCheckLevel(ConsistencyCheckLevel consistencyCheckLevel) {
+      mConsistencyCheckLevel = consistencyCheckLevel;
+      return this;
+    }
+
+    /**
      * @return the created property key instance
      */
     public PropertyKey build() {
       return PropertyKey.create(
-          mName, mDefaultValue, mAlias, mDescription, mIgnoredSiteProperty, mIsHidden);
+          mName, mDefaultValue, mAlias, mDescription, mIgnoredSiteProperty, mIsHidden,
+          mConsistencyCheckLevel);
     }
 
     @Override
@@ -243,6 +265,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey ZOOKEEPER_ADDRESS =
       new Builder(Name.ZOOKEEPER_ADDRESS)
           .setDescription("Address of ZooKeeper.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .build();
   public static final PropertyKey ZOOKEEPER_CONNECTION_TIMEOUT =
       new Builder(Name.ZOOKEEPER_CONNECTION_TIMEOUT)
@@ -253,11 +276,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Name.ZOOKEEPER_ELECTION_PATH)
           .setDefaultValue("/election")
           .setDescription("Election directory in ZooKeeper.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .build();
   public static final PropertyKey ZOOKEEPER_ENABLED =
       new Builder(Name.ZOOKEEPER_ENABLED)
           .setDefaultValue(false)
           .setDescription("If true, setup master fault tolerant mode using ZooKeeper.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .build();
   public static final PropertyKey ZOOKEEPER_LEADER_INQUIRY_RETRY_COUNT =
       new Builder(Name.ZOOKEEPER_LEADER_INQUIRY_RETRY_COUNT)
@@ -268,6 +293,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Name.ZOOKEEPER_LEADER_PATH)
           .setDefaultValue("/leader")
           .setDescription("Leader directory in ZooKeeper.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .build();
   public static final PropertyKey ZOOKEEPER_SESSION_TIMEOUT =
       new Builder(Name.ZOOKEEPER_SESSION_TIMEOUT)
@@ -285,12 +311,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Name.UNDERFS_ADDRESS)
           .setDefaultValue(String.format("${%s}/underFSStorage", Name.WORK_DIR))
           .setDescription("Alluxio directory in the under file system.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .build();
   public static final PropertyKey UNDERFS_ALLOW_SET_OWNER_FAILURE =
       new Builder(Name.UNDERFS_ALLOW_SET_OWNER_FAILURE)
           .setDefaultValue(false)
           .setDescription("Whether to allow setting owner in UFS to fail. When set to true, "
               + "it is possible file or directory owners diverge between Alluxio and UFS.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .build();
   public static final PropertyKey UNDERFS_LISTING_LENGTH =
       new Builder(Name.UNDERFS_LISTING_LENGTH)
@@ -298,6 +326,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("The maximum number of directory entries to list in a single query "
               + "to under file system. If the total number of entries is greater than the "
               + "specified length, multiple queries will be issued.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .build();
   public static final PropertyKey UNDERFS_GCS_OWNER_ID_TO_USERNAME_MAPPING =
       new Builder(Name.UNDERFS_GCS_OWNER_ID_TO_USERNAME_MAPPING)
@@ -307,17 +336,20 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "Storage IDs can be found at the console address "
               + "https://console.cloud.google.com/storage/settings . Please use the "
               + "\"Owners\" one.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .build();
   public static final PropertyKey UNDERFS_HDFS_CONFIGURATION =
       new Builder(Name.UNDERFS_HDFS_CONFIGURATION)
           .setDefaultValue(String.format(
               "${%s}/core-site.xml:${%s}/hdfs-site.xml", Name.CONF_DIR, Name.CONF_DIR))
           .setDescription("Location of the HDFS configuration file.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .build();
   public static final PropertyKey UNDERFS_HDFS_IMPL =
       new Builder(Name.UNDERFS_HDFS_IMPL)
           .setDefaultValue("org.apache.hadoop.hdfs.DistributedFileSystem")
           .setDescription("The implementation class of the HDFS as the under storage system.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .build();
   public static final PropertyKey UNDERFS_HDFS_PREFIXES =
       new Builder(Name.UNDERFS_HDFS_PREFIXES)
@@ -325,6 +357,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("Optionally, specify which prefixes should run through the HDFS "
               + "implementation of UnderFileSystem. The delimiter is any whitespace "
               + "and/or ','.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .build();
   public static final PropertyKey UNDERFS_HDFS_REMOTE =
       new Builder(Name.UNDERFS_HDFS_REMOTE)
@@ -334,6 +367,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "will not attempt to discover locality information from the under storage "
               + "because locality is impossible. This will improve performance. The default "
               + "value is false.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .build();
   public static final PropertyKey UNDERFS_OBJECT_STORE_SERVICE_THREADS =
       new Builder(Name.UNDERFS_OBJECT_STORE_SERVICE_THREADS)
@@ -347,6 +381,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("Whether or not to share object storage under storage system "
               + "mounted point with all Alluxio users. Note that this configuration has no "
               + "effect on HDFS nor local UFS.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .build();
   public static final PropertyKey UNDERFS_OBJECT_STORE_READ_RETRY_BASE_SLEEP_MS =
       new Builder(Name.UNDERFS_OBJECT_STORE_READ_RETRY_BASE_SLEEP_MS).setDefaultValue("50ms")
@@ -399,6 +434,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Name.UNDERFS_S3_DISABLE_DNS_BUCKETS)
           .setDefaultValue(false)
           .setDescription("Optionally, specify to make all S3 requests path style.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .build();
   public static final PropertyKey UNDERFS_S3_ENDPOINT =
       new Builder(Name.UNDERFS_S3_ENDPOINT)
@@ -407,6 +443,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "requests. An endpoint is a URL that is the entry point for a web service. "
               + "For example, s3.cn-north-1.amazonaws.com.cn is an entry point for the Amazon "
               + "S3 service in beijing region.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .build();
   public static final PropertyKey UNDERFS_S3_OWNER_ID_TO_USERNAME_MAPPING =
       new Builder(Name.UNDERFS_S3_OWNER_ID_TO_USERNAME_MAPPING)
@@ -416,14 +453,17 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "ID can be found at the console address "
               + "https://console.aws.amazon.com/iam/home?#security_credential . Please expand "
               + "the \"Account Identifiers\" tab and refer to \"Canonical User ID\".")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .build();
   public static final PropertyKey UNDERFS_S3_PROXY_HOST =
       new Builder(Name.UNDERFS_S3_PROXY_HOST)
           .setDescription("Optionally, specify a proxy host for communicating with S3.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .build();
   public static final PropertyKey UNDERFS_S3_PROXY_PORT =
       new Builder(Name.UNDERFS_S3_PROXY_PORT)
           .setDescription("Optionally, specify a proxy port for communicating with S3.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .build();
   public static final PropertyKey UNDERFS_S3_THREADS_MAX =
       new Builder(Name.UNDERFS_S3_THREADS_MAX)
@@ -455,11 +495,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue("/")
           .setDescription("Directories are represented in S3 as zero-byte objects named with "
               + "the specified suffix.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .build();
   public static final PropertyKey UNDERFS_S3A_BULK_DELETE_ENABLED =
       new Builder(Name.UNDERFS_S3A_BULK_DELETE_ENABLED)
           .setDefaultValue(true)
           .setIsHidden(true)
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .build();
 
   public static final PropertyKey UNDERFS_S3A_INHERIT_ACL =
@@ -467,11 +509,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue(true)
           .setDescription("Optionally disable this to disable inheriting bucket ACLs on "
               + "objects.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .build();
   public static final PropertyKey UNDERFS_S3A_LIST_OBJECTS_VERSION_1 =
       new Builder(Name.UNDERFS_S3A_LIST_OBJECTS_VERSION_1)
           .setDefaultValue(false)
           .setDescription("Whether to use version 1 of GET Bucket (List Objects) API.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .build();
   public static final PropertyKey UNDERFS_S3A_REQUEST_TIMEOUT =
       new Builder(Name.UNDERFS_S3A_REQUEST_TIMEOUT_MS)
@@ -486,11 +530,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Name.UNDERFS_S3A_SECURE_HTTP_ENABLED)
           .setDefaultValue(false)
           .setDescription("Whether or not to use HTTPS protocol when communicating with S3.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .build();
   public static final PropertyKey UNDERFS_S3A_SERVER_SIDE_ENCRYPTION_ENABLED =
       new Builder(Name.UNDERFS_S3A_SERVER_SIDE_ENCRYPTION_ENABLED)
           .setDefaultValue(false)
           .setDescription("Whether or not to encrypt data stored in S3.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .build();
   public static final PropertyKey UNDERFS_S3A_SIGNER_ALGORITHM =
       new Builder(Name.UNDERFS_S3A_SIGNER_ALGORITHM)
@@ -498,6 +544,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "the s3 service. This is optional, and if not set, the client will "
               + "automatically determine it. For interacting with an S3 endpoint which only "
               + "supports v2 signatures, set this to \"S3SignerType\".")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .build();
   public static final PropertyKey UNDERFS_S3A_SOCKET_TIMEOUT_MS =
       new Builder(Name.UNDERFS_S3A_SOCKET_TIMEOUT_MS)
@@ -511,47 +558,64 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   //
   // Not prefixed with fs, the s3a property names mirror the aws-sdk property names for ease of use
   public static final PropertyKey GCS_ACCESS_KEY = new Builder(Name.GCS_ACCESS_KEY)
+      .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
       .setDescription("The access key of GCS bucket.").build();
   public static final PropertyKey GCS_SECRET_KEY = new Builder(Name.GCS_SECRET_KEY)
+      .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
       .setDescription("The secret key of GCS bucket.").build();
   public static final PropertyKey OSS_ACCESS_KEY = new Builder(Name.OSS_ACCESS_KEY)
+      .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
       .setDescription("The access key of OSS bucket.").build();
   public static final PropertyKey OSS_ENDPOINT_KEY = new Builder(Name.OSS_ENDPOINT_KEY)
+      .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
       .setDescription("The endpoint key of OSS bucket.").build();
   public static final PropertyKey OSS_SECRET_KEY = new Builder(Name.OSS_SECRET_KEY)
+      .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
       .setDescription("The secret key of OSS bucket.").build();
   public static final PropertyKey S3A_ACCESS_KEY = new Builder(Name.S3A_ACCESS_KEY)
+      .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
       .setDescription("The access key of S3 bucket.").build();
   public static final PropertyKey S3A_SECRET_KEY = new Builder(Name.S3A_SECRET_KEY)
+      .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
       .setDescription("The secret key of S3 bucket.").build();
   public static final PropertyKey SWIFT_API_KEY = new Builder(Name.SWIFT_API_KEY)
+      .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
       .setDescription("(deprecated) The API key used for user:tenant authentication.").build();
   public static final PropertyKey SWIFT_AUTH_METHOD_KEY = new Builder(Name.SWIFT_AUTH_METHOD_KEY)
       .setDescription("Choice of authentication method: "
           + "[tempauth (default), swiftauth, keystone, keystonev3].")
+      .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
       .build();
   public static final PropertyKey SWIFT_AUTH_URL_KEY = new Builder(Name.SWIFT_AUTH_URL_KEY)
       .setDescription("Authentication URL for REST server, e.g., http://server:8090/auth/v1.0.")
+      .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
       .build();
   public static final PropertyKey SWIFT_PASSWORD_KEY = new Builder(Name.SWIFT_PASSWORD_KEY)
+      .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
       .setDescription("The password used for user:tenant authentication.").build();
   public static final PropertyKey SWIFT_SIMULATION = new Builder(Name.SWIFT_SIMULATION)
+      .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
       .setDescription("Whether to simulate a single node Swift backend for testing purposes: "
           + "true or false (default).").build();
   public static final PropertyKey SWIFT_TENANT_KEY = new Builder(Name.SWIFT_TENANT_KEY)
+      .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
       .setDescription("Swift user for authentication.").build();
   public static final PropertyKey SWIFT_USE_PUBLIC_URI_KEY =
       new Builder(Name.SWIFT_USE_PUBLIC_URI_KEY)
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setDescription("Whether the REST server is in a public domain: true (default) or false.")
           .build();
   public static final PropertyKey SWIFT_USER_KEY = new Builder(Name.SWIFT_USER_KEY)
+      .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
       .setDescription("Swift tenant for authentication.").build();
   public static final PropertyKey SWIFT_REGION_KEY = new Builder(Name.SWIFT_REGION_KEY)
+      .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
       .setDescription("Service region when using Keystone authentication.").build();
 
   // Journal ufs related properties
   public static final PropertyKey MASTER_JOURNAL_UFS_OPTION =
       new Builder(Template.MASTER_JOURNAL_UFS_OPTION)
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .setDescription("The configuration to use for the journal operations.").build();
 
   //
@@ -561,25 +625,30 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Template.MASTER_MOUNT_TABLE_ALLUXIO, "root")
           .setDefaultValue("/")
           .setDescription("Alluxio root mount point.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .build();
   public static final PropertyKey MASTER_MOUNT_TABLE_ROOT_OPTION =
       new Builder(Template.MASTER_MOUNT_TABLE_OPTION, "root")
           .setDescription("Configuration for the UFS of Alluxio root mount point.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .build();
   public static final PropertyKey MASTER_MOUNT_TABLE_ROOT_READONLY =
       new Builder(Template.MASTER_MOUNT_TABLE_READONLY, "root")
           .setDefaultValue(false)
           .setDescription("Whether Alluxio root mount point is readonly.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .build();
   public static final PropertyKey MASTER_MOUNT_TABLE_ROOT_SHARED =
       new Builder(Template.MASTER_MOUNT_TABLE_SHARED, "root")
           .setDefaultValue(true)
           .setDescription("Whether Alluxio root mount point is shared.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .build();
   public static final PropertyKey MASTER_MOUNT_TABLE_ROOT_UFS =
       new Builder(Template.MASTER_MOUNT_TABLE_UFS, "root")
           .setDefaultValue(String.format("${%s}", Name.UNDERFS_ADDRESS))
           .setDescription("The UFS mounted to Alluxio root mount point.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .build();
 
   /**
@@ -629,6 +698,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey MASTER_HOSTNAME = new Builder(Name.MASTER_HOSTNAME)
       .setDescription("The hostname of Alluxio master.")
+      .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
       .build();
   public static final PropertyKey MASTER_JOURNAL_FLUSH_BATCH_TIME_MS =
       new Builder(Name.MASTER_JOURNAL_FLUSH_BATCH_TIME_MS)
@@ -647,12 +717,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Name.MASTER_JOURNAL_FOLDER)
           .setDefaultValue(String.format("${%s}/journal", Name.WORK_DIR))
           .setDescription("The path to store master journal logs.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .build();
   public static final PropertyKey MASTER_JOURNAL_TYPE =
       new Builder(Name.MASTER_JOURNAL_TYPE)
           .setDefaultValue("UFS")
           .setDescription("The type of journal to use. Valid options are UFS (store journal in "
               + "UFS) and NOOP (do not use a journal).")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .build();
   /**
    * @deprecated since 1.5.0 and will be removed in 2.0.
@@ -711,6 +783,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey MASTER_KEYTAB_KEY_FILE =
       new Builder(Name.MASTER_KEYTAB_KEY_FILE)
           .setDescription("Kerberos keytab file for Alluxio master.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .build();
   public static final PropertyKey MASTER_LINEAGE_CHECKPOINT_CLASS =
       new Builder(Name.MASTER_LINEAGE_CHECKPOINT_CLASS)
@@ -741,6 +814,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey MASTER_PRINCIPAL = new Builder(Name.MASTER_PRINCIPAL)
       .setDescription("Kerberos principal for Alluxio master.")
+      .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
       .build();
   /**
    * @deprecated since version 1.4 and will be removed in version 2.0.
@@ -1024,9 +1098,11 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey WORKER_HOSTNAME = new Builder(Name.WORKER_HOSTNAME)
       .setDescription("The hostname of Alluxio worker.")
+      .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
       .build();
   public static final PropertyKey WORKER_KEYTAB_FILE = new Builder(Name.WORKER_KEYTAB_FILE)
       .setDescription("Kerberos keytab file for Alluxio worker.")
+      .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
       .build();
   public static final PropertyKey WORKER_MEMORY_SIZE =
       new Builder(Name.WORKER_MEMORY_SIZE)
@@ -1148,6 +1224,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
 
   public static final PropertyKey WORKER_PRINCIPAL = new Builder(Name.WORKER_PRINCIPAL)
       .setDescription("Kerberos principal for Alluxio worker.")
+      .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
       .build();
   public static final PropertyKey WORKER_RPC_PORT =
       new Builder(Name.WORKER_RPC_PORT)
@@ -1884,17 +1961,20 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("The authentication mode. Currently three modes are supported: "
               + "NOSASL, SIMPLE, CUSTOM. The default value SIMPLE indicates that a simple "
               + "authentication is enabled. Server trusts whoever the client claims to be.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .build();
   public static final PropertyKey SECURITY_AUTHORIZATION_PERMISSION_ENABLED =
       new Builder(Name.SECURITY_AUTHORIZATION_PERMISSION_ENABLED)
           .setDefaultValue(true)
           .setDescription("Whether to enable access control based on file permission.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .build();
   public static final PropertyKey SECURITY_AUTHORIZATION_PERMISSION_SUPERGROUP =
       new Builder(Name.SECURITY_AUTHORIZATION_PERMISSION_SUPERGROUP)
           .setDefaultValue("supergroup")
           .setDescription("The super group of Alluxio file system. All users in this group "
               + "have super permission.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .build();
   public static final PropertyKey SECURITY_AUTHORIZATION_PERMISSION_UMASK =
       new Builder(Name.SECURITY_AUTHORIZATION_PERMISSION_UMASK)
@@ -1903,12 +1983,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "permission is 777, and the difference between directory and file is 111. So "
               + "for default umask value 022, the created directory has permission 755 and "
               + "file has permission 644.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .build();
   public static final PropertyKey SECURITY_GROUP_MAPPING_CACHE_TIMEOUT_MS =
       new Builder(Name.SECURITY_GROUP_MAPPING_CACHE_TIMEOUT_MS)
           .setAlias(new String[]{"alluxio.security.group.mapping.cache.timeout.ms"})
           .setDefaultValue("1min")
           .setDescription("Time for cached group mapping to expire.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .build();
   public static final PropertyKey SECURITY_GROUP_MAPPING_CLASS =
       new Builder(Name.SECURITY_GROUP_MAPPING_CLASS)
@@ -1918,12 +2000,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "interface 'alluxio.security.group.GroupMappingService'. The default "
               + "implementation execute the 'groups' shell command to fetch the group "
               + "memberships of a given user.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .build();
   public static final PropertyKey SECURITY_LOGIN_USERNAME =
       new Builder(Name.SECURITY_LOGIN_USERNAME)
           .setDescription("When alluxio.security.authentication.type is set to SIMPLE or "
               + "CUSTOM, user application uses this property to indicate the user requesting "
               + "Alluxio service. If it is not set explicitly, the OS login user will be used.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .build();
 
   //
@@ -2702,6 +2786,9 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   /** Whether to hide in document. */
   private final boolean mIsHidden;
 
+  /** Whether property should be consistent within the cluster. */
+  private final ConsistencyCheckLevel mConsistencyCheckLevel;
+
   /**
    * @param name String of this property
    * @param description String description of this property key
@@ -2711,7 +2798,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
    *                            in site properties file
    */
   private PropertyKey(String name, String description, Object defaultValue, String[] aliases,
-      boolean ignoredSiteProperty, boolean isHidden) {
+      boolean ignoredSiteProperty, boolean isHidden, ConsistencyCheckLevel consistencyCheckLevel) {
     mName = Preconditions.checkNotNull(name, "name");
     // TODO(binfan): null check after we add description for each property key
     mDescription = Strings.isNullOrEmpty(description) ? "N/A" : description;
@@ -2719,30 +2806,31 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     mAliases = aliases;
     mIgnoredSiteProperty = ignoredSiteProperty;
     mIsHidden = isHidden;
+    mConsistencyCheckLevel = consistencyCheckLevel;
   }
 
   /**
    * @param name String of this property
    */
   private PropertyKey(String name) {
-    this(name, null, null, null, false, false);
+    this(name, null, null, null, false, false, ConsistencyCheckLevel.IGNORE);
   }
 
   /**
    * Factory method to create a constant default property
    * and assign a default value together with its alias.
-   *
-   * @param name String of this property
+   *  @param name String of this property
    * @param defaultValue Default value of this property in compile time if not null
    * @param aliases String list of aliases of this property
    * @param description String description of this property key
    * @param ignoredSiteProperty true if Alluxio ignores user-specified value for this property
-   *                            in the site properties file
+   * @param consistencyCheckLevel Whether the property value should be consistent within the cluster
    */
   static PropertyKey create(String name, Object defaultValue, String[] aliases,
-      String description, boolean ignoredSiteProperty, boolean isHidden) {
-    PropertyKey key = new PropertyKey(
-        name, description, defaultValue, aliases, ignoredSiteProperty, isHidden);
+                            String description, boolean ignoredSiteProperty, boolean isHidden,
+                            ConsistencyCheckLevel consistencyCheckLevel) {
+    PropertyKey key = new PropertyKey(name, description, defaultValue, aliases, ignoredSiteProperty,
+        isHidden, consistencyCheckLevel);
     DEFAULT_KEYS_MAP.put(name, key);
     if (aliases != null) {
       for (String alias : aliases) {
@@ -2834,6 +2922,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
    */
   public boolean isHidden() {
     return mIsHidden;
+  }
+
+  /**
+   * @return true if this property should be consistent within cluster
+   */
+  public ConsistencyCheckLevel getConsistencyLevel() {
+    return mConsistencyCheckLevel;
   }
 
   /**
