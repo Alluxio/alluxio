@@ -470,22 +470,25 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     } else if (entry.hasDeleteMountPoint()) {
       unmountFromEntry(entry.getDeleteMountPoint());
     } else if (entry.hasAsyncPersistRequest()) {
-      try {
-        long fileId = (entry.getAsyncPersistRequest()).getFileId();
-        try (LockedInodePath inodePath = mInodeTree
-            .lockFullInodePath(fileId, InodeTree.LockMode.WRITE)) {
+      long fileId = (entry.getAsyncPersistRequest()).getFileId();
+      try (LockedInodePath inodePath = mInodeTree
+          .lockFullInodePath(fileId, InodeTree.LockMode.WRITE)) {
+        try {
           scheduleAsyncPersistenceInternal(inodePath);
+        } catch (AlluxioException e) {
+          // It's possible that rescheduling the async persist calls fails, because the blocks may
+          // no longer be in the memory
+          LOG.warn("Failed to reschedule async persistence for {}: {}", inodePath.getUri(),
+              e.toString());
         }
-      } catch (AlluxioException e) {
-        // It's possible that rescheduling the async persist calls fails, because the blocks may no
-        // longer be in the memory
-        LOG.error(e.getMessage());
+      } catch (FileDoesNotExistException e) {
+        throw new RuntimeException(e);
       }
     } else if (entry.hasUpdateUfsMode()) {
       try {
         updateUfsModeFromEntry(entry.getUpdateUfsMode());
       } catch (AlluxioException e) {
-        LOG.error(e.getMessage());
+        throw new RuntimeException(e);
       }
     } else {
       throw new IOException(ExceptionMessage.UNEXPECTED_JOURNAL_ENTRY.getMessage(entry));
