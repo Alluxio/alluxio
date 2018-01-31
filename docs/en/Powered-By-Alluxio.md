@@ -22,6 +22,7 @@ or let us know by email (project.alluxio@gmail.com) or
 * [ESRI](http://www.esri.com/)
 * [GBICC](http://www.gbicc.net/)
 * [Guardant Health](http://www.guardanthealth.com/)
+* [HuaTai Securities](http://www.htsc.com.cn/htzq/investor/en/about.jsp)
 * [Huawei](http://www.huawei.com/)
 * [IBM](http://www.ibm.com/)
 * [IBM Research](http://www.research.ibm.com/)
