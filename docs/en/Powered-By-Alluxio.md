@@ -17,6 +17,7 @@ or let us know by email (project.alluxio@gmail.com) or
 * [Atigeo](http://atigeo.com/)
 * [Baidu](http://www.baidu.com/)
 * [Barclays](http://www.barclays.co.uk/)
+* [CTrip](http://www.ctrip.com/)
 * [Didi](http://www.didichuxing.com/)
 * [EMC](https://www.emc.com/)
 * [ESRI](http://www.esri.com/)
