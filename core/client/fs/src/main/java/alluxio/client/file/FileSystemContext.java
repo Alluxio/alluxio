@@ -15,12 +15,12 @@ import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.client.block.BlockMasterClient;
 import alluxio.client.block.BlockMasterClientPool;
-import alluxio.network.netty.NettyClient;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.UnavailableException;
 import alluxio.master.MasterInquireClient;
 import alluxio.metrics.MetricsSystem;
 import alluxio.network.netty.NettyChannelPool;
+import alluxio.network.netty.NettyClient;
 import alluxio.resource.CloseableResource;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.WorkerInfo;
@@ -145,6 +145,7 @@ public final class FileSystemContext implements Closeable {
    * that acquired from this context might fail. Only call this when you are done with using
    * the {@link FileSystem} associated with this {@link FileSystemContext}.
    */
+  @Override
   public void close() throws IOException {
     mFileSystemMasterClientPool.close();
     mFileSystemMasterClientPool = null;
