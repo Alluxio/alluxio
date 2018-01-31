@@ -23,12 +23,8 @@ The SPARK_MASTER_ADDRESS should be one of the following:
   spark://host:port     \ Spark standalone mode
   mesos://host:port     \ Running Spark on Mesos
   yarn                  \ launching Spark on Yarn
--h  display this help."
 
-function trigger_spark_local () {
-  ${LAUNCHER} "$SPARK_HOME/bin/spark-submit" --class alluxio.checker.SparkIntegrationChecker \
-  --master $1 "${CHECKER}/target/alluxio-checker-1.8.0-SNAPSHOT.jar"
-}
+-h  display this help."
 
 function trigger_spark_cluster() {
   #client mode
@@ -40,12 +36,17 @@ function trigger_spark_cluster() {
   --master $1 --deploy-mode cluster "${CHECKER}/target/alluxio-checker-1.8.0-SNAPSHOT.jar"
 }
 
+function trigger_spark_local () {
+  ${LAUNCHER} "$SPARK_HOME/bin/spark-submit" --class alluxio.checker.SparkIntegrationChecker \
+  --master $1 "${CHECKER}/target/alluxio-checker-1.8.0-SNAPSHOT.jar"
+}
+
 function main {
   case "$1" in
     local*)
       trigger_spark_local $1
       ;;
-    spark://* | mesos://* | yarn)
+    mesos://* | spark://* | yarn)
       trigger_spark_cluster $1
       ;;
     *)
