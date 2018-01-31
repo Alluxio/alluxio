@@ -32,6 +32,12 @@
   <dependencies>
     <!-- External dependencies -->
     <dependency>
+      <groupId>com.beust</groupId>
+      <artifactId>jcommander</artifactId>
+      <version>1.48</version>
+    </dependency>
+
+    <dependency>
       <groupId>org.apache.hadoop</groupId>
       <artifactId>hadoop-client</artifactId>
       <version>2.2.0</version>
@@ -53,18 +59,34 @@
   </dependencies>
 
   <build>
-    <pluginManagement>
-      <plugins>
-        <plugin>
-          <artifactId>maven-assembly-plugin</artifactId>
-          <version>3.1.0</version>
-          <configuration>
-            <descriptorRefs>
-              <descriptorRef>jar-with-dependencies</descriptorRef>
-            </descriptorRefs>
-          </configuration>
-        </plugin>
-      </plugins>
-    </pluginManagement>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-shade-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>uber-jar</id>
+            <phase>package</phase>
+            <goals>
+              <goal>shade</goal>
+            </goals>
+            <configuration>
+              <finalName>${project.artifactId}-${project.version}-jar-with-dependencies</finalName>
+              <filters>
+                <filter>
+                  <artifact>*:* </artifact>
+                  <excludes>
+                    <exclude>LICENSE</exclude>
+                    <exclude>META-INF/*.SF</exclude>
+                    <exclude>META-INF/*.DSA</exclude>
+                    <exclude>META-INF/*.RSA</exclude>
+                  </excludes>
+                </filter>
+              </filters>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
   </build>
 </project>

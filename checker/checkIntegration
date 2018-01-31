@@ -19,44 +19,42 @@ CHECKER=$(cd "$( dirname "$( readlink "$0" || echo "$0" )" )"; pwd)
 
 USAGE="Usage: checkIntegration FRAMEWORK [FRAMEWORK_ARGS]
 Where FRAMEWORK is one of:
+  Spark           \Run Spark job to check Spark with Alluxio integration.
+  MapReduce       \Run MapReduce job to check MapReduce with Alluxio integration.
   HBase           \Run HBase job to check HBase with Alluxio integration.
   Hive            \Run Hive job to check Hive with Alluxio integration.
-  MapReduce       \Run MapReduce job to check MapReduce with Alluxio integration.
-  Spark           \Run Spark job to check Spark with Alluxio integration.
-
-FRAMEWORK_ARGS will be pass to run corresponding FRAMEWORK job.
 
 -h  display this help."
 
-function run_hbase() {
-  ${LAUNCHER} "${CHECKER}/hbase-integration.sh"
-}
-
-function run_hive() {
-  ${LAUNCHER} "${CHECKER}/hive-integration.sh"
+function run_spark() {
+   ${LAUNCHER} "${CHECKER}/spark-integration.sh" "$@"
 }
 
 function run_mapreduce() {
-  ${LAUNCHER} "${CHECKER}/mapreduce-integration.sh"
+  ${LAUNCHER} "${CHECKER}/mapreduce-integration.sh" "$@"
 }
 
-function run_spark() {
-   ${LAUNCHER} "${CHECKER}/spark-integration.sh" "$1"
+function run_hbase() {
+  ${LAUNCHER} "${CHECKER}/hbase-integration.sh" "$@"
+}
+
+function run_hive() {
+  ${LAUNCHER} "${CHECKER}/hive-integration.sh" "$@"
 }
 
 function main {
   case "$1" in
-    HBASE | HBase | hbase)
-      run_hbase
-      ;;
-    HIVE | Hive | hive)
-      run_hive
+    SPARK | Spark | spark)
+      run_spark "${@:2}"
       ;;
     MAPREDUCE | MapReduce | mapreduce)
-      run_mapreduce
+      run_mapreduce "${@:2}"
       ;;
-    SPARK | Spark | spark)
-      run_spark $2
+    HBASE | HBase | hbase)
+      run_hbase "${@:2}"
+      ;;
+    HIVE | Hive | hive)
+      run_hive "${@:2}"
       ;;
     *)
     echo -e "${USAGE}" >&2

@@ -16,18 +16,22 @@ import alluxio.PropertyKey;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 
-import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
+import org.apache.spark.SparkConf;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import scala.Tuple2;
 
+import com.beust.jcommander.JCommander;
+import com.beust.jcommander.Parameter;
+
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
@@ -38,10 +42,14 @@ import java.util.stream.IntStream;
  * in yarn-client and yarn-cluster mode through spark-submit.
  *
  * This job requires a running Spark cluster, but not requires a running Alluxio cluster.
- * It will check whether Alluxio class and Alluxio filesystem can be recognize in Spark
+ * It will check whether Alluxio classes and Alluxio filesystem can be recognized in Spark
  * driver and executors.
  */
 public class SparkIntegrationChecker {
+
+  @Parameter(names = {"-p", "--partition"}, description = "The user defined partition number")
+  private static int sPartition;
+
   private static final Logger LOG = LoggerFactory.getLogger(SparkIntegrationChecker.class);
   private static List<Tuple2<Integer, String>> sSparkJobResult;
   private static boolean sAlluxioHAMode = false;
@@ -55,10 +63,10 @@ public class SparkIntegrationChecker {
    * 2 fail to recognize Alluxio filesystem, 3 fail to support Alluxio HA mode
    */
   private static int checkIntegration(JavaSparkContext sc) {
-    // check if Spark driver can recognize Alluxio classes
+    // Check if Spark driver can recognize Alluxio classes
     try {
       Class alluxioURIClass = Class.forName("alluxio.AlluxioURI");
-      LOG.info("Spark driver can find: " + alluxioURIClass.getName());
+      LOG.debug("Spark driver can find: " + alluxioURIClass.getName());
     } catch (ClassNotFoundException e) {
       LOG.error("Spark driver cannot find AlluxioURI class:" + e);
       return 1;
@@ -66,7 +74,7 @@ public class SparkIntegrationChecker {
 
     try {
       Class alluxioBaseFSClass = Class.forName("alluxio.client.file.BaseFileSystem");
-      LOG.info("Spark driver can find: " + alluxioBaseFSClass.getName());
+      LOG.debug("Spark driver can find: " + alluxioBaseFSClass.getName());
     } catch (ClassNotFoundException e) {
       LOG.error("Spark driver cannot find alluxio.client.file.BaseFileSystem class:" + e);
       return 1;
@@ -74,22 +82,22 @@ public class SparkIntegrationChecker {
 
     try {
       Class alluxioHadoopFSClass = Class.forName("alluxio.hadoop.AlluxioFileSystem");
-      LOG.info("Spark driver can find: " + alluxioHadoopFSClass.getName());
+      LOG.debug("Spark driver can find: " + alluxioHadoopFSClass.getName());
     } catch (ClassNotFoundException e) {
       LOG.error("Spark driver cannot find alluxio.hadoop.AlluxioFileSystem class:" + e);
       return 1;
     }
 
-    // check if Spark driver can recognize Alluxio filesystem
+    // Check if Spark driver can recognize Alluxio filesystem
     try {
       Class alluxioFSClass = FileSystem.getFileSystemClass("alluxio", new Configuration());
-      LOG.info("Spark driver can recognize Alluxio filesystem: " + alluxioFSClass.getName());
+      LOG.debug("Spark driver can recognize Alluxio filesystem: " + alluxioFSClass.getName());
     } catch (Exception e) {
       LOG.error("Spark driver cannot recognize Alluxio filesystem: " + e);
       return 2;
     }
 
-    // support Alluxio high availability mode
+    // Support Alluxio high availability mode
     if (alluxio.Configuration.getBoolean(PropertyKey.ZOOKEEPER_ENABLED)) {
       sAlluxioHAMode = true;
       try {
@@ -100,7 +108,7 @@ public class SparkIntegrationChecker {
       }
     }
 
-    // run a Spark job to check Spark executors configuration
+    // Run a Spark job to check Spark executors configuration
     return runOperations(sc);
   }
 
@@ -111,17 +119,16 @@ public class SparkIntegrationChecker {
    * @return 0 on success, 1 on failures
    */
   private static int runOperations(JavaSparkContext sc) {
-    // generate a list of integer for testing
-    List<Integer> nums = IntStream.rangeClosed(1, 1000).boxed().collect(Collectors.toList());
+    // Generate a list of integer for testing
+    List<Integer> nums = IntStream.rangeClosed(1, sPartition).boxed().collect(Collectors.toList());
 
-    //TODO(lu) set a reasonable parition number to check as many executors as possible
-    JavaRDD<Integer> dataSet = sc.parallelize(nums);
+    JavaRDD<Integer> dataSet = sc.parallelize(nums, sPartition);
 
-    // run a Spark job to check whether Spark executors can recognize Alluxio
+    // Run a Spark job to check whether Spark executors can recognize Alluxio
     JavaPairRDD<Integer, String> extractedStatus = dataSet
         .mapToPair(s -> new Tuple2<>(getStatus(s), getAddress(s)));
 
-    // merge the IP addresses that can/cannot recognize Alluxio
+    // Merge the IP addresses that can/cannot recognize Alluxio
     JavaPairRDD<Integer, String> mergeStatus = extractedStatus.reduceByKey((a, b) -> merge(a, b));
 
     sSparkJobResult = mergeStatus.collect();
@@ -148,37 +155,29 @@ public class SparkIntegrationChecker {
    * 2 fail to recognize Alluxio filesystem
    */
   private static int getStatus(Integer s) {
-    // check if Spark executors can recognize Alluxio classes
+    // Check if Spark executors can recognize Alluxio classes
     try {
       Class alluxioURIClass = Class.forName("alluxio.AlluxioURI");
-      LOG.info("Spark driver can find: " + alluxioURIClass.getName());
     } catch (ClassNotFoundException e) {
-      LOG.error("Spark driver cannot find AlluxioURI class:" + e);
       return 1;
     }
 
     try {
       Class alluxioBaseFSClass = Class.forName("alluxio.client.file.BaseFileSystem");
-      LOG.info("Spark driver can find: " + alluxioBaseFSClass.getName());
     } catch (ClassNotFoundException e) {
-      LOG.error("Spark driver cannot find alluxio.client.file.BaseFileSystem class:" + e);
       return 1;
     }
 
     try {
       Class alluxioHadoopFSClass = Class.forName("alluxio.hadoop.AlluxioFileSystem");
-      LOG.info("Spark driver can find: " + alluxioHadoopFSClass.getName());
     } catch (ClassNotFoundException e) {
-      LOG.error("Spark driver cannot find alluxio.hadoop.AlluxioFileSystem class:" + e);
       return 1;
     }
 
     // check if Spark executors can recognize Alluxio filesystem
     try {
       Class alluxioFSClass = FileSystem.getFileSystemClass("alluxio", new Configuration());
-      LOG.info("Spark driver can recognize Alluxio filesystem: " + alluxioFSClass.getName());
     } catch (Exception e) {
-      LOG.error("Spark driver cannot recognize Alluxio filesystem: " + e);
       return 2;
     }
 
@@ -196,7 +195,7 @@ public class SparkIntegrationChecker {
     try {
       address = InetAddress.getLocalHost().getHostAddress();
     } catch (UnknownHostException e) {
-      LOG.info("cannot get host address");
+      LOG.debug("cannot get host address");
       address = "unknown address";
     }
     return address;
@@ -253,19 +252,7 @@ public class SparkIntegrationChecker {
     if (sAlluxioHAMode && !sZookeeperAddress.equals("")) {
       System.out.println("alluxio.zookeeper.address is " + sZookeeperAddress + ".");
     }
-  }
 
-  /**
-   * Print Spark and Alluxio integration helping information.
-   *
-   * @param args no argument needed in this class
-   */
-  public static void main(String[] args) {
-    // start the Java Spark Context
-    SparkConf conf = new SparkConf().setAppName(SparkIntegrationChecker.class.getName());
-    JavaSparkContext sc = new JavaSparkContext(conf);
-
-    int resultCode = checkIntegration(sc);
     switch (resultCode) {
       case 1:
         System.out.println("Please check the spark.driver.extraClassPath "
@@ -287,7 +274,26 @@ public class SparkIntegrationChecker {
         System.out.println("Integration test passed.");
         break;
     }
+  }
+
+  /**
+   * Print Spark and Alluxio integration helping information.
+   *
+   * @param args no argument needed in this class
+   */
+  public static void main(String[] args) {
+    SparkIntegrationChecker checker = new SparkIntegrationChecker();
+    JCommander jCommander = new JCommander(checker, args);
+    jCommander.setProgramName("SparkIntegrationChecker");
+
+    // Start the Java Spark Context
+    SparkConf conf = new SparkConf().setAppName(SparkIntegrationChecker.class.getName());
+    JavaSparkContext sc = new JavaSparkContext(conf);
+
+    int resultCode = checkIntegration(sc);
+
     printMessage(resultCode, conf);
+
     System.exit(resultCode);
   }
 }
