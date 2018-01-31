@@ -28,6 +28,7 @@ or let us know by email (project.alluxio@gmail.com) or
 * [Intel](http://www.intel.com/)
 * [JD](http://www.jd.com/)
 * [Juniper Networks](http://www.juniper.net/)
+* [Lenovo](https://www3.lenovo.com/us/en/)
 * [Neusoft](http://www.neusoft.com/)
 * [PerceptIn](http://www.perceptin.io/)
 * [Qunar](http://www.qunar.com/)
