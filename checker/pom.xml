@@ -57,7 +57,7 @@
       <plugins>
         <plugin>
           <artifactId>maven-assembly-plugin</artifactId>
-          <version>3.2</version>
+          <version>3.1.0</version>
           <configuration>
             <descriptorRefs>
               <descriptorRef>jar-with-dependencies</descriptorRef>
