@@ -41,6 +41,7 @@ or let us know by email (project.alluxio@gmail.com) or
 * [Tencent](https://www.tencent.com)
 * [UC Berkeley AMPLab](https://amplab.cs.berkeley.edu/)
 * [Ultra Tendency](http://ultratendency.com/)
+* [Walmart](https://www.walmart.com/)
 * [ZTE](http://www.zte.com.cn)
 
 Here is a list that tracks external software projects that supplement Alluxio and add to its ecosystem.
