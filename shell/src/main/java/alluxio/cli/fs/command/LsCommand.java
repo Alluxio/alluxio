@@ -29,9 +29,10 @@ import org.apache.commons.cli.Options;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.HashMap;
 import java.util.Comparator;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -101,6 +102,13 @@ public final class LsCommand extends WithWildCardPathCommand {
               .desc("sort statuses by the given field "
                       + "{size|creationTime|inMemoryPercentage|lastModificationTime|path}")
               .build();
+
+  private static final Option REVERSE_SORT_OPTION =
+          Option.builder("r")
+                  .required(false)
+                  .hasArg(false)
+                  .desc("reverse order while sorting")
+                  .build();
 
   private static final Map<String, Comparator<URIStatus>> SORT_FIELD_COMPARATORS = new HashMap<>();
 
@@ -190,7 +198,8 @@ public final class LsCommand extends WithWildCardPathCommand {
         .addOption(LIST_DIR_AS_FILE_OPTION)
         .addOption(LIST_PINNED_FILES_OPTION)
         .addOption(LIST_HUMAN_READABLE_OPTION)
-        .addOption(SORT_OPTION);
+        .addOption(SORT_OPTION)
+        .addOption(REVERSE_SORT_OPTION);
   }
 
   /**
@@ -203,7 +212,7 @@ public final class LsCommand extends WithWildCardPathCommand {
    * @param sortField sort the result by this field
    */
   private void ls(AlluxioURI path, boolean recursive, boolean forceLoadMetadata, boolean dirAsFile,
-                  boolean hSize, boolean pinnedOnly, String sortField)
+                  boolean hSize, boolean pinnedOnly, String sortField, boolean reverse)
       throws AlluxioException, IOException {
     if (dirAsFile) {
       URIStatus status = mFileSystem.getStatus(path);
@@ -219,34 +228,46 @@ public final class LsCommand extends WithWildCardPathCommand {
       options.setLoadMetadataType(LoadMetadataType.Always);
     }
     List<URIStatus> statuses = mFileSystem.listStatus(path, options);
-    List<URIStatus> sorted = sortBySortField(statuses, sortField);
+    List<URIStatus> sorted = sortByFieldAndOrder(statuses, sortField, reverse);
     for (URIStatus status : sorted) {
       if (!pinnedOnly || status.isPinned()) {
         printLsString(status, hSize);
       }
       if (recursive && status.isFolder()) {
         ls(new AlluxioURI(path.getScheme(), path.getAuthority(), status.getPath()), true,
-            forceLoadMetadata, false, hSize, pinnedOnly, sortField);
+            forceLoadMetadata, false, hSize, pinnedOnly, sortField, reverse);
       }
     }
   }
 
-  private List<URIStatus> sortBySortField(List<URIStatus> statuses, String sortField) {
-    return statuses.stream()
-            .sorted(SORT_FIELD_COMPARATORS.getOrDefault(sortField,
-                    SORT_FIELD_COMPARATORS.get("creationTime")))
-            .collect(Collectors.toList());
+  private List<URIStatus> sortByFieldAndOrder(
+          List<URIStatus> statuses, String sortField, boolean reverse) throws IOException {
+    Optional<Comparator<URIStatus>> sortToUse = Optional.ofNullable(
+            SORT_FIELD_COMPARATORS.get(sortField));
+
+    if (!sortToUse.isPresent()) {
+      throw new InvalidArgumentException(ExceptionMessage.INVALID_ARGS_SORT_FIELD
+              .getMessage(sortField));
+    }
+
+    Comparator<URIStatus> sortBy = sortToUse.get();
+    if (reverse) {
+      sortBy = sortBy.reversed();
+    }
+
+    return statuses.stream().sorted(sortBy).collect(Collectors.toList());
   }
 
   @Override
   public void runCommand(AlluxioURI path, CommandLine cl) throws AlluxioException, IOException {
     ls(path, cl.hasOption("R"), cl.hasOption("f"), cl.hasOption("d"), cl.hasOption("h"),
-        cl.hasOption("p"), cl.getOptionValue("sort", "creationTime"));
+        cl.hasOption("p"), cl.getOptionValue("sort", "creationTime"),
+            cl.hasOption("r"));
   }
 
   @Override
   public String getUsage() {
-    return "ls [-d|-f|-p|-R|-h|--sort=WORD] <path>";
+    return "ls [-d|-f|-p|-R|-h|--sort=option|-r] <path>";
   }
 
   @Override
