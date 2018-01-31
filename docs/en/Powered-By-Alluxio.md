@@ -32,6 +32,7 @@ or let us know by email (project.alluxio@gmail.com) or
 * [Juniper Networks](http://www.juniper.net/)
 * [Lenovo](https://www3.lenovo.com/us/en/)
 * [Microsoft](https://www.microsoft.com/en-us/)
+* [Momo](https://www.immomo.com/)
 * [NetEase](https://game.163.com/en/)
 * [Neusoft](http://www.neusoft.com/)
 * [PerceptIn](http://www.perceptin.io/)
