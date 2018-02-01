@@ -43,17 +43,18 @@ function run_hive() {
 }
 
 function main {
-  case "$1" in
-    SPARK | Spark | spark)
+  FRAMEWORK=$(echo "$1" | tr '[:upper:]' '[:lower:]')
+  case $FRAMEWORK in
+    spark)
       run_spark "${@:2}"
       ;;
-    MAPREDUCE | MapReduce | mapreduce)
+    mapreduce)
       run_mapreduce "${@:2}"
       ;;
-    HBASE | HBase | hbase)
+    hbase)
       run_hbase "${@:2}"
       ;;
-    HIVE | Hive | hive)
+    hive)
       run_hive "${@:2}"
       ;;
     *)
