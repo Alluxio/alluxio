@@ -15,7 +15,7 @@ LAUNCHER=
 if [[ "$-" == *x* ]]; then
   LAUNCHER="bash -x"
 fi
-CHECKER=$(cd "$( dirname "$( readlink "$0" || echo "$0" )" )"; pwd)
+BIN=$(cd "$( dirname "$( readlink "$0" || echo "$0" )" )"; pwd)
 
 USAGE="Usage: checkIntegration Spark [SPARK_MASTER_ADDRESS] [PARTITION]
 The SPARK_MASTER_ADDRESS should be one of the following:
@@ -60,18 +60,22 @@ function find_spark_path() {
   } 
 }
 
+DEFAULT_LIBEXEC_DIR="${BIN}/../../libexec"
+ALLUXIO_LIBEXEC_DIR="${ALLUXIO_LIBEXEC_DIR:-${DEFAULT_LIBEXEC_DIR}}"
+source "${ALLUXIO_LIBEXEC_DIR}/alluxio-config.sh"
+
 function trigger_spark_cluster() {
   # Client mode
   ${LAUNCHER} "$MSPARKPATH/spark-submit" --class alluxio.checker.SparkIntegrationChecker --master $1 \
-  --deploy-mode client "${CHECKER}/target/alluxio-checker-1.8.0-SNAPSHOT-jar-with-dependencies.jar" --partition ${2-10}
+  --deploy-mode client "${BIN}/../target/alluxio-checker-${VERSION}-jar-with-dependencies.jar" --partition ${2-10}
   # Cluster mode
   ${LAUNCHER} "$MSPARKPATH/spark-submit" --class alluxio.checker.SparkIntegrationChecker --master $1 \
-  --deploy-mode cluster "${CHECKER}/target/alluxio-checker-1.8.0-SNAPSHOT-jar-with-dependencies.jar" --partition ${2-10}
+  --deploy-mode cluster "${BIN}/../target/alluxio-checker-${VERSION}-jar-with-dependencies.jar" --partition ${2-10}
 }
 
 function trigger_spark_local () {
   ${LAUNCHER} "$MSPARKPATH/spark-submit" --class alluxio.checker.SparkIntegrationChecker --master $1 \
-  "${CHECKER}/target/alluxio-checker-1.8.0-SNAPSHOT-jar-with-dependencies.jar" --partition ${2-10}
+  "${BIN}/../target/alluxio-checker-${VERSION}-jar-with-dependencies.jar" --partition ${2-10}
 }
 
 function main {

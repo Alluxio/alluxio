@@ -15,7 +15,7 @@ LAUNCHER=
 if [[ "$-" == *x* ]]; then
   LAUNCHER="bash -x"
 fi
-CHECKER=$(cd "$( dirname "$( readlink "$0" || echo "$0" )" )"; pwd)
+BIN=$(cd "$( dirname "$( readlink "$0" || echo "$0" )" )"; pwd)
 
 USAGE="Usage: checkIntegration FRAMEWORK [FRAMEWORK_ARGS]
 Where FRAMEWORK is one of:
@@ -27,19 +27,19 @@ Where FRAMEWORK is one of:
 -h  display this help."
 
 function run_spark() {
-   ${LAUNCHER} "${CHECKER}/spark-integration.sh" "$@"
+   ${LAUNCHER} "${BIN}/spark-integration.sh" "$@"
 }
 
 function run_mapreduce() {
-  ${LAUNCHER} "${CHECKER}/mapreduce-integration.sh" "$@"
+  ${LAUNCHER} "${BIN}/mapreduce-integration.sh" "$@"
 }
 
 function run_hbase() {
-  ${LAUNCHER} "${CHECKER}/hbase-integration.sh" "$@"
+  ${LAUNCHER} "${BIN}/hbase-integration.sh" "$@"
 }
 
 function run_hive() {
-  ${LAUNCHER} "${CHECKER}/hive-integration.sh" "$@"
+  ${LAUNCHER} "${BIN}/hive-integration.sh" "$@"
 }
 
 function main {
