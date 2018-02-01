@@ -67,8 +67,8 @@ log in the directory `alluxio/logs`, or run a sample program:
 High availability in Alluxio is based upon a multi-master approach, where multiple master processes
 are running in the system. One of these processes is elected the leader and is used by all workers 
 and clients as the primary point of contact. The other masters act as standby, and use the shared 
-journal to ensure that they maintain the same file system metadata as the leader. And it can rapidly 
-take over in the event of the leader failing.
+journal to ensure that they maintain the same file system metadata as the leader. A standby master can
+ rapidly take over in the event of the leader failing.
 
 If the leader fails, a new leader is automatically selected from the available standby masters and
 Alluxio proceeds as usual. Note that while the failover to a standby master happens clients may
