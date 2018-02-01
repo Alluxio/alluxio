@@ -96,24 +96,23 @@ public final class LsCommand extends WithWildCardPathCommand {
 
   private static final Option SORT_OPTION =
       Option.builder()
-              .required(false)
-              .longOpt("sort")
-              .hasArg(true)
-              .desc("sort statuses by the given field "
-                      + "{size|creationTime|inMemoryPercentage|lastModificationTime|path}")
-              .build();
+          .required(false)
+          .longOpt("sort")
+          .hasArg(true)
+          .desc("sort statuses by the given field "
+                  + "{size|creationTime|inMemoryPercentage|lastModificationTime|path}")
+          .build();
 
   private static final Option REVERSE_SORT_OPTION =
-          Option.builder("r")
-                  .required(false)
-                  .hasArg(false)
-                  .desc("reverse order while sorting")
-                  .build();
+      Option.builder("r")
+              .required(false)
+              .hasArg(false)
+              .desc("reverse order while sorting")
+              .build();
 
   private static final Map<String, Comparator<URIStatus>> SORT_FIELD_COMPARATORS = new HashMap<>();
 
   static {
-    SORT_FIELD_COMPARATORS.put("size", Comparator.comparingLong(URIStatus::getBlockSizeBytes));
     SORT_FIELD_COMPARATORS.put("creationTime",
             Comparator.comparingLong(URIStatus::getCreationTimeMs));
     SORT_FIELD_COMPARATORS.put("inMemoryPercentage",
@@ -121,6 +120,7 @@ public final class LsCommand extends WithWildCardPathCommand {
     SORT_FIELD_COMPARATORS.put("lastModificationTime",
             Comparator.comparingLong(URIStatus::getLastModificationTimeMs));
     SORT_FIELD_COMPARATORS.put("path", Comparator.comparing(URIStatus::getPath));
+    SORT_FIELD_COMPARATORS.put("size", Comparator.comparingLong(URIStatus::getBlockSizeBytes));
   }
 
   /**
@@ -193,13 +193,13 @@ public final class LsCommand extends WithWildCardPathCommand {
   @Override
   public Options getOptions() {
     return new Options()
-        .addOption(RECURSIVE_OPTION)
         .addOption(FORCE_OPTION)
         .addOption(LIST_DIR_AS_FILE_OPTION)
-        .addOption(LIST_PINNED_FILES_OPTION)
         .addOption(LIST_HUMAN_READABLE_OPTION)
-        .addOption(SORT_OPTION)
-        .addOption(REVERSE_SORT_OPTION);
+        .addOption(LIST_PINNED_FILES_OPTION)
+        .addOption(RECURSIVE_OPTION)
+        .addOption(REVERSE_SORT_OPTION)
+        .addOption(SORT_OPTION);
   }
 
   /**
