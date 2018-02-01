@@ -189,7 +189,7 @@ public class SparkIntegrationChecker {
       System.out.println("Alluixo is running in high availbility mode.");
     }
 
-    if (resultCode != 3) {
+    try {
       for (Tuple2<Integer, String> sjr : sSparkJobResult) {
         if (sjr._1() == 1) {
           System.out.println("IP addresses: " + sjr._2 + " cannot recognize Alluxio classes.");
@@ -199,6 +199,8 @@ public class SparkIntegrationChecker {
           System.out.println("IP addresses: " + sjr._2 + " can recognize Alluxio filesystem.");
         }
       }
+    } catch (NullPointerException e) {
+      //
     }
 
     try {
@@ -250,9 +252,12 @@ public class SparkIntegrationChecker {
     // Starts the Java Spark Context
     SparkConf conf = new SparkConf().setAppName(SparkIntegrationChecker.class.getName());
     JavaSparkContext sc = new JavaSparkContext(conf);
+    sc.setLogLevel("ERROR");
 
+    // Checks the Spark and Alluxio integration
     int resultCode = checkIntegration(sc);
 
+    // Prints the user-facing message
     printMessage(resultCode, conf);
 
     System.exit(resultCode);

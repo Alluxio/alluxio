@@ -47,7 +47,6 @@ function find_spark_path() {
   } || { # Try PATH
     IFS=':' read -ra PATHARR <<< "$PATH"
     for p in "${PATHARR[@]}"; do
-      echo $p
       if [ -f $p/spark-submit ]; then
           MSPARKPATH=$p
           break;
