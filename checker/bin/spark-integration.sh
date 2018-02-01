@@ -60,9 +60,7 @@ function find_spark_path() {
   } 
 }
 
-DEFAULT_LIBEXEC_DIR="${BIN}/../../libexec"
-ALLUXIO_LIBEXEC_DIR="${ALLUXIO_LIBEXEC_DIR:-${DEFAULT_LIBEXEC_DIR}}"
-source "${ALLUXIO_LIBEXEC_DIR}/alluxio-config.sh"
+source "${BIN}/../../libexec/alluxio-config.sh"
 
 function trigger_spark_cluster() {
   # Client mode
