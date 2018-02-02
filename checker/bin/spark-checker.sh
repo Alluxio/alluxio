@@ -33,10 +33,9 @@ PARTITIONS
 
 -h  display this help."
 
-SPARK_SUBMIT="";
-SPARK_MASTER=$1;
 PARTITIONS="${2:-10}";
-SPARK_RESULT=-1;
+SPARK_MASTER=$1;
+SPARK_SUBMIT="";
 
 # Find the location of spark-submit in order to run the Spark job
 function find_spark_path() {
@@ -63,35 +62,42 @@ function trigger_spark_cluster() {
   # Client mode
   ${LAUNCHER} "$SPARK_SUBMIT/spark-submit" --class alluxio.checker.SparkIntegrationChecker --master ${SPARK_MASTER} \
     --deploy-mode client "${BIN}/../target/alluxio-checker-${VERSION}-jar-with-dependencies.jar" --partition ${PARTITIONS}
-  CLIENT_RESULT=$?
+  CLIENT_RESULT="$?"
   # Cluster mode
   ${LAUNCHER} "$SPARK_SUBMIT/spark-submit" --class alluxio.checker.SparkIntegrationChecker --master ${SPARK_MASTER} \
     --deploy-mode cluster "${BIN}/../target/alluxio-checker-${VERSION}-jar-with-dependencies.jar" --partition ${PARTITIONS}
-  SPARK_RESULT=$?
-  if [[ ${CLIENT_RESULT} != ${SPARK_RESULT} ]]; then
-    echo "Spark cluster and client mode have different results, the following information is about Spark cluster mode."
-  fi
+  CLUSTER_RESULT="$?"
+
+  echo "The following information is about Spark client mode."
+  print_message "${CLIENT_RESULT}"
+  echo "The following information is about Spark cluster mode."
+  print_message "${CLUSTER_RESULT}"
 }
 
 function trigger_spark_local() {
   ${LAUNCHER} "$SPARK_SUBMIT/spark-submit" --class alluxio.checker.SparkIntegrationChecker --master ${SPARK_MASTER} \
     "${BIN}/../target/alluxio-checker-${VERSION}-jar-with-dependencies.jar" --partition ${PARTITIONS}
-  SPARK_RESULT=$?
+  print_message "$?"
 }
 
 function print_message() {
-  if [[ ${SPARK_RESULT} == 1 ]]; then
+  if [[ "$1" == 1 ]]; then
     echo "Please check the spark.driver.extraClassPath and spark.executor.extraClassPath in \${SPARK_HOME}/conf/spark-defaults.conf."
+    echo "If Alluxio jar paths have been set, please check if Alluxio client jar has been distributed on the classpath of all Spark nodes."
+    echo "For details, please refer to:
+      https://www.alluxio.org/docs/master/en/Running-Spark-on-Alluxio.html"
     echo "Integration test failed."
-  elif [[ ${SPARK_RESULT} == 2 ]]; then
+  elif [[ "$1" == 2 ]]; then
     echo "Please check the fs.alluxio.impl property in \${SPARK_HOME}/conf/core-site.xml."
     echo "For details, please refer to:
       https://www.alluxio.org/docs/master/en/Debugging-Guide.html"
     echo "Integration test failed."
-  elif [[ ${SPARK_RESULT} == 3 ]]; then
+  elif [[ "$1" == 3 ]]; then
     echo "Please check the alluxio.zookeeper.address property in \${SPARK_HOME}/conf/core-site.xml."
+    echo "For details, please refer to:
+      https://www.alluxio.org/docs/master/en/Running-Spark-on-Alluxio.html"
     echo "Integration test failed."
-  elif [[ ${SPARK_RESULT} == 0 ]]; then
+  elif [[ "$1" == 0 ]]; then
     echo "Integration test passed."
   fi
 }
@@ -102,12 +108,10 @@ function main {
     local*) 
       find_spark_path
       trigger_spark_local "$@"
-      print_message
       ;;
     mesos://* | spark://* | yarn)
       find_spark_path
       trigger_spark_cluster "$@"
-      print_message
       ;;
     *)
       echo -e "${USAGE}" >&2
