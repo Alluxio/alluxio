@@ -6,31 +6,32 @@ group: Deploying Alluxio
 priority: 6
 ---
 
-* 内容列表
-{:toc}
-
 Alluxio应与YARN一起运行，以便所有YARN节点都可以访问本地的Alluxio worker。
-为了YARN和Alluxio能在同一节点上良好地共同运作，应该让YARN知道Alluxio使用的资源。YARN需要知道多少内存和CPU被分配给了Alluxio。
+为了YARN和Alluxio能在同一节点上良好地共同运作，必须区分节点上YARN和Alluxio的内存和计算资源。要做到这一点，首先要确定Alluxio需要多少内存和CPU，然后从YARN使用的资源上减去那些资源。
 
-## 为Alluxio分配资源
+## 内存
 
-### Alluxio Worker内存
+在`yarn-site.xml`中设置
 
-Alluxio worker节点请求一些内存用于自己的JVM进程，以及一些内存用于作虚拟内存盘。
-给JVM的内存一般1GB就足够了，因为这部分内存只用与缓冲和元数据。如果worker正在为内存加速数据使用虚拟内存盘，分配给虚拟内存盘的内存应该加到1GB的JVM内存上，以获得worker所需的总内存。能被虚拟内存盘使用的内存量由 `alluxio.worker.memory.size` 控制。存储在非内存存储层的数据，如SSD或者HDD上的数据无需包括在内存大小计算中。
+```
+yarn.nodemanager.resource.memory-mb = Total RAM - Other services RAM - Alluxio RAM
+```
 
-### Alluxio Master内存
+在Alluxio worker节点上，Alluxio RAM的使用量是1GB加上虚拟内存的大小，通过`alluxio.workder.memory.size`配置。
+在Alluxio master节点上，Alluxio RAM的使用量与文件的数量成正比。分配至少1GB，在生产部署中推荐使用32GB。
 
-Alluxio master节点存储Alluxio每个文件的元数据，所以它需要一部分内存。这部分至少1GB，在生产部署中，我们推荐使用至少32GB。
+## 虚拟CPU核
 
-### 虚拟CPU核
+在`yarn-site.xml`中设置
 
-对于Alluxio worker节点来说，一个虚拟核就足够了。对于生产部署中的Alluxio master节点，我们推荐至少4个虚拟核。
+```
+yarn.nodemanager.resource.cpu-vcores = Total cores - Other services vcores - Alluxio vcores
+```
 
-### YARN配置
+在Alluxio worker节点上，Alluxio只需要1或2个虚拟核。
+在Alluxio master节点上，我们推荐至少4个虚拟核。
 
-为了通知YARN在每个节点上有哪些为Alluxio保留的资源，在 `yarn-site.xml` 中编辑YARN配置参数 `yarn.nodemanager.resource.memory-mb` 和 `yarn.nodemanager.resource.cpu-vcores`。
-当确定分配多少内存给Alluxio后，从 `yarn.nodemanager.resource.memory-mb` 中减去这个数，用新的值更新参数。在 `yarn.nodemanager.resource.cpu-vcores` 也一样。
+## 重启YARN
 
 更新YARN配置后，重启YARN以保证更改生效：
 
