@@ -492,6 +492,15 @@ public class ConfigurationTest {
   }
 
   @Test
+  public void systemPropertySubstitution() throws Exception {
+    try (Closeable p = new SystemPropertyRule("user.home", "/home").toResource()) {
+      Configuration.merge(ImmutableMap.of(PropertyKey.WORK_DIR, "${user.home}/work"),
+          Configuration.Source.SITE_PROPERTY);
+      assertEquals("/home/work", Configuration.get(PropertyKey.WORK_DIR));
+    }
+  }
+
+  @Test
   public void userFileBufferBytesOverFlowException() {
     Configuration.set(PropertyKey.USER_FILE_BUFFER_BYTES,
         String.valueOf(Integer.MAX_VALUE + 1) + "B");

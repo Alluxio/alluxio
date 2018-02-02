@@ -485,6 +485,9 @@ public final class Configuration {
         value = found.get(match);
       }
       if (value == null) {
+        value = System.getProperty(match);
+      }
+      if (value == null) {
         value = defaultValue;
       }
       if (value == null) {
