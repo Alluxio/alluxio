@@ -69,13 +69,7 @@ alluxio.underfs.s3a.secure.http.enabled,false
 alluxio.underfs.s3a.server.side.encryption.enabled,false
 alluxio.underfs.s3a.signer.algorithm,
 alluxio.underfs.s3a.socket.timeout,50sec
-<<<<<<< HEAD
 alluxio.version,1.8.0-SNAPSHOT
-||||||| merged common ancestors
-alluxio.version,1.7.0-SNAPSHOT
-=======
-alluxio.version,1.7.0
->>>>>>> upstream/branch-1.7
 alluxio.web.resources,${alluxio.home}/core/server/common/src/main/webapp
 alluxio.web.threads,1
 alluxio.work.dir,${alluxio.home}

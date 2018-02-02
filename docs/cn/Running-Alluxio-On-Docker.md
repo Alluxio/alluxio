@@ -193,7 +193,6 @@ $ ALLUXIO_WORKER_CONTAINER_ID=$(docker run -d --net=host --shm-size=1G \
              -e ALLUXIO_UNDERFS_ADDRESS=/underStorage \
              alluxio worker)
 ```
-<<<<<<< HEAD
 
 ## FUSE
 为了使用FUSE,你需要在FUSE激活状态下创建一个docker镜像。
@@ -225,37 +224,3 @@ FROM ubuntu:16.04
 ```
 
 然后你可以用和创建支持FUSE的镜像一样的命令来创建镜像并且运行它。https://hub.docker.com/r/alluxio/alluxio-tensorflow/有一个预先创建好的带有TersorFlow的docker镜像。
-||||||| merged common ancestors
-=======
-
-## FUSE
-
-要使用FUSE，需要在启用FUSE的情况下构建一个docker镜像：
-
-```bash
-docker build -f Dockerfile.fuse -t alluxio-fuse .
-```
-
-要运行支持FUSE的docker镜像需要有几个额外的参数，
-例如：
-
-```bash
-docker run -e ALLUXIO_MASTER_HOSTNAME=alluxio-master --cap-add SYS_ADMIN --device /dev/fuse  alluxio-fuse [master|worker|proxy]
-```
-
-注意：在Docker中运行FUSE需要在容器中添加[SYS_ADMIN 功能](http://man7.org/linux/man-pages/man7/capabilities.7.html)。这消除了容器的隔离性，应谨慎使用。
-
-重要的是，为了让应用程序访问挂载了FUSE的Alluxio存储的数据，它必须与Alluxio在同一个容器中运行。您可以轻松扩展docker镜像，使其包含在Alluxio之上运行的应用程序。例如，要在docker容器内使用Alluxio运行TensorFlow，只需编辑Dockerfile.fuse并替换
-
-```bash
-FROM ubuntu:16.04
-```
-
-为
-
-```bash
-FROM tensorflow/tensorflow:1.3.0
-```
-
-然后，您可以使用与构建支持FUSE的镜像的相同命令来构建镜像并运行它。在https://hub.docker.com/r/alluxio/alluxio-tensorflow/上有使用TensorFlow的预构建的docker镜像。
->>>>>>> upstream/branch-1.7
