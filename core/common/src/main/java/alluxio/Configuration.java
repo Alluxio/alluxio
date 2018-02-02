@@ -471,6 +471,12 @@ public final class Configuration {
     Matcher matcher = CONF_REGEX.matcher(base);
     while (matcher.find()) {
       String match = matcher.group(2).trim();
+      String defaultValue = null;
+      if (match.contains(":-")) {
+        String[] parts = match.split(":-");
+        match = parts[0];
+        defaultValue = parts[1];
+      }
       String value;
       if (!found.containsKey(match)) {
         value = lookupRecursively(PROPERTIES.get(match), found);
@@ -478,10 +484,14 @@ public final class Configuration {
       } else {
         value = found.get(match);
       }
-      if (value != null) {
-        LOG.debug("Replacing {} with {}", matcher.group(1), value);
-        resolved = resolved.replaceFirst(REGEX_STRING, Matcher.quoteReplacement(value));
+      if (value == null) {
+        value = defaultValue;
       }
+      if (value == null) {
+        throw new RuntimeException("No value specified for configuration property " + match);
+      }
+      LOG.debug("Replacing {} with {}", matcher.group(1), value);
+      resolved = resolved.replaceFirst(REGEX_STRING, Matcher.quoteReplacement(value));
     }
     return resolved;
   }
