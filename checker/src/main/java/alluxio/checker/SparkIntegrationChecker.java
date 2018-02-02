@@ -62,8 +62,8 @@ public class SparkIntegrationChecker implements Serializable{
   /* The Spark driver and executors performIntegrationChecks results*/
   private enum Status {
     FAILCLASS, // Spark driver or executors cannot recognize Alluxio classes
-    FAILHA,    // Spark driver cannot support Alluxio-HA mode
     FAILFS,    // Spark driver or executors cannot recognize Alluxio filesystem
+    FAILHA,    // Spark driver cannot support Alluxio-HA mode
     SUCCESS;
   }
 
@@ -115,7 +115,8 @@ public class SparkIntegrationChecker implements Serializable{
         .mapToPair(s -> new Tuple2<>(performIntegrationChecks(), getAddress()));
 
     // Merges the IP addresses that can/cannot recognize Alluxio
-    JavaPairRDD<Status, String> mergeStatus = extractedStatus.reduceByKey((a, b) -> merge(a, b));
+    JavaPairRDD<Status, String> mergeStatus = extractedStatus.reduceByKey((a, b)
+        -> a.contains(b) ?  a : (b.contains(a) ? b : a + "; " + b));
 
     mSparkJobResult = mergeStatus.collect();
 
@@ -177,28 +178,11 @@ public class SparkIntegrationChecker implements Serializable{
   }
 
   /**
-   * Merges the IP addresses that have the same Status.
+   * Prints related Spark and Alluxio configuration information.
    *
-   * @param addressA,addressB two IP addresses that have the same Status
-   * @return merged Spark executor IP addresses
-   */
-  private String merge(String addressA, String addressB) {
-    if (addressA.contains(addressB)) {
-      return addressA;
-    } else if (addressB.contains(addressA)) {
-      return addressB;
-    } else {
-      return addressA + "; " + addressB;
-    }
-  }
-
-  /**
-   * Prints the user-facing messages.
-   *
-   * @param resultStatus the result code get from checkIntegration
    * @param conf the current SparkConf
    */
-  private void printMessage(Status resultStatus, SparkConf conf) {
+  private void printConfigInfo(SparkConf conf) {
     if (mAlluxioHAMode) {
       LOG.info("Alluixo is running in high availbility mode.");
     }
@@ -232,28 +216,6 @@ public class SparkIntegrationChecker implements Serializable{
     if (mAlluxioHAMode && mZookeeperAddress.isEmpty()) {
       LOG.info("alluxio.zookeeper.address is " + mZookeeperAddress + ".");
     }
-
-    switch (resultStatus) {
-      case FAILCLASS:
-        LOG.error("Please check the spark.driver.extraClassPath "
-            + "and spark.executor.extraClassPath.");
-        System.out.println("Integration test failed.");
-        break;
-      case FAILFS:
-        LOG.error("Please check the fs.alluxio.impl property.");
-        LOG.error("For details, please refer to: "
-            + "https://www.alluxio.org/docs/master/en/Debugging-Guide.html"
-            + "#q-why-do-i-see-exceptions-like-no-filesystem-for-scheme-alluxio");
-        System.out.println("Integration test failed.");
-        break;
-      case FAILHA:
-        LOG.error("Please check the alluxio.zookeeper.address property.");
-        System.out.println("Integration test failed.");
-        break;
-      default:
-        System.out.println("Integration test passed.");
-        break;
-    }
   }
 
   /**
@@ -272,7 +234,10 @@ public class SparkIntegrationChecker implements Serializable{
     sc.setLogLevel("INFO");
 
     Status resultStatus = checker.run(sc);
-    checker.printMessage(resultStatus, conf);
-    System.exit(resultStatus.equals(Status.SUCCESS) ? 0 : 1);
+    checker.printConfigInfo(conf);
+
+    System.exit(resultStatus.equals(Status.SUCCESS) ? 0 :
+        (resultStatus.equals(Status.FAILCLASS) ? 1 :
+        (resultStatus.equals(Status.FAILFS) ? 2 : 3)));
   }
 }

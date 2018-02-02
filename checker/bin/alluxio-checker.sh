@@ -17,19 +17,19 @@ if [[ "$-" == *x* ]]; then
 fi
 BIN=$(cd "$( dirname "$( readlink "$0" || echo "$0" )" )"; pwd)
 
-USAGE="Usage: checkIntegration FRAMEWORK [FRAMEWORK_ARGS]
+USAGE="Usage: alluxio-checker.sh FRAMEWORK [FRAMEWORK_ARGS]
 Where FRAMEWORK is Spark so far.
 
 -h  display this help."
 
 function run_spark() {
-  ${LAUNCHER} "${BIN}/spark-integration.sh" "$@"
+  ${LAUNCHER} "${BIN}/spark-checker.sh" "$@"
 }
 
 function main {
-  FRAMEWORK="$(echo "$1" | tr '[:upper:]' '[:lower:]')"
+  FRAMEWORK=$(echo "$1" | tr '[:upper:]' '[:lower:]')
   shift
-  case ${FRAMEWORK} in
+  case "${FRAMEWORK}" in
     spark)
       run_spark "$@"
       ;;
