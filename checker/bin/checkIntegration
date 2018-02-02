@@ -18,48 +18,24 @@ fi
 BIN=$(cd "$( dirname "$( readlink "$0" || echo "$0" )" )"; pwd)
 
 USAGE="Usage: checkIntegration FRAMEWORK [FRAMEWORK_ARGS]
-Where FRAMEWORK is one of:
-  Spark           \Run Spark job to check Spark with Alluxio integration.
-  MapReduce       \Run MapReduce job to check MapReduce with Alluxio integration.
-  HBase           \Run HBase job to check HBase with Alluxio integration.
-  Hive            \Run Hive job to check Hive with Alluxio integration.
+Where FRAMEWORK is Spark so far.
 
 -h  display this help."
 
 function run_spark() {
-   ${LAUNCHER} "${BIN}/spark-integration.sh" "$@"
-}
-
-function run_mapreduce() {
-  ${LAUNCHER} "${BIN}/mapreduce-integration.sh" "$@"
-}
-
-function run_hbase() {
-  ${LAUNCHER} "${BIN}/hbase-integration.sh" "$@"
-}
-
-function run_hive() {
-  ${LAUNCHER} "${BIN}/hive-integration.sh" "$@"
+  ${LAUNCHER} "${BIN}/spark-integration.sh" "$@"
 }
 
 function main {
-  FRAMEWORK=$(echo "$1" | tr '[:upper:]' '[:lower:]')
-  case $FRAMEWORK in
+  FRAMEWORK="$(echo "$1" | tr '[:upper:]' '[:lower:]')"
+  shift
+  case ${FRAMEWORK} in
     spark)
-      run_spark "${@:2}"
-      ;;
-    mapreduce)
-      run_mapreduce "${@:2}"
-      ;;
-    hbase)
-      run_hbase "${@:2}"
-      ;;
-    hive)
-      run_hive "${@:2}"
+      run_spark "$@"
       ;;
     *)
-    echo -e "${USAGE}" >&2
-    exit 1
+      echo -e "${USAGE}" >&2
+      exit 1
   esac
 }
 
