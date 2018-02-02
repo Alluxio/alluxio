@@ -368,7 +368,7 @@ public final class LsCommandIntegrationTest extends AbstractAlluxioShellTest {
   }
 
   /**
-   * Tests ls command with sort option.
+   * Tests ls command with sort by path option.
    */
   @Test
   @LocalAlluxioClusterResource.Config(
@@ -396,6 +396,9 @@ public final class LsCommandIntegrationTest extends AbstractAlluxioShellTest {
     Assert.assertEquals(expected, mOutput.toString());
   }
 
+  /**
+   * Tests ls command with sort by size option.
+   */
   @Test
   @LocalAlluxioClusterResource.Config(
           confParams = {PropertyKey.Name.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "false",
@@ -422,6 +425,9 @@ public final class LsCommandIntegrationTest extends AbstractAlluxioShellTest {
     Assert.assertEquals(expected, mOutput.toString());
   }
 
+  /**
+   * Tests ls command with sort by size and reverse order option.
+   */
   @Test
   @LocalAlluxioClusterResource.Config(
           confParams = {PropertyKey.Name.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "false",
@@ -447,6 +453,9 @@ public final class LsCommandIntegrationTest extends AbstractAlluxioShellTest {
     Assert.assertEquals(expected, mOutput.toString());
   }
 
+  /**
+   * Tests ls command with an invalid sort option.
+   */
   @Test
   @LocalAlluxioClusterResource.Config(
           confParams = {PropertyKey.Name.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "false",
@@ -459,6 +468,9 @@ public final class LsCommandIntegrationTest extends AbstractAlluxioShellTest {
     Assert.assertEquals(expected, mOutput.toString());
   }
 
+  /**
+   * Tests ls command with reverse sort order option.
+   */
   @Test
   @LocalAlluxioClusterResource.Config(
           confParams = {PropertyKey.Name.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "false",
