@@ -85,7 +85,7 @@ Alternatively, you can also append the conf path (i.e. `/<PATH_TO_ALLUXIO>/conf`
 -Xbootclasspath/p:<path-to-alluxio-conf>
 ```
 
-Also, it's recommended to increase `alluxio.user.network.netty.timeout.ms` to a bigger value (e.g. 10 mins) to avoid the timeout
+Also, it's recommended to increase `alluxio.user.network.netty.timeout` to a bigger value (e.g. `10min`) to avoid the timeout
  failure when reading large files from remote worker.
 
 #### Increase `hive.max-split-size`
