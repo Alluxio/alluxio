@@ -118,11 +118,28 @@ class JniHelper {
                                  signature.c_str(), false)) {
       LocalRefMapType localRefs;
       t.env->CallVoidMethod(obj, t.methodID, Convert(localRefs, t, xs)...);
+      t.env->CallVoidMethod(obj, t.methodID, Convert(localRefs, t, xs)...);
       DeleteLocalRefs(t.env, localRefs);
     } else {
       ReportError(className, methodName, signature);
     }
   }
+
+  template <typename... Ts>
+  static void CallStaticVoidMethod(const std::string& className,
+						           const std::string& methodName, Ts... xs) {
+  JniMethodInfo t;
+  std::string signature = "(" + std::string(GetJniSignature(xs...)) + ")V";
+  if (JniHelper::GetMethodInfo(t, className.c_str(), methodName.c_str(),
+							   signature.c_str(), true)) {
+    LocalRefMapType localRefs;
+	t.env->CallStaticVoidMethod(t.classID, t.methodID,
+	                            Convert(localRefs, t, xs)...);
+	DeleteLocalRefs(t.env, localRefs);
+  } else {
+	ReportError(className, methodName, signature);
+  }
+}
 
   template <typename... Ts>
   static jobject CallObjectMethod(jobject& obj, const std::string& className,

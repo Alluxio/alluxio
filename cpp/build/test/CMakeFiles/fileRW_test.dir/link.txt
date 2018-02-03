@@ -1,0 +1,1 @@
+/usr/bin/c++    -std=c++11    CMakeFiles/fileRW_test.dir/FileRWTest.cc.o  -o ../../bin/fileRW_test  -L/home/innkp/jdk1.8.0_144/jre/lib/server -rdynamic libFILESYSTEM.a -ljvm -lpthread -Wl,-rpath,/home/innkp/jdk1.8.0_144/jre/lib/server 

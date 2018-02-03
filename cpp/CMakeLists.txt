@@ -1,3 +1,14 @@
+#
+# The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
+# (the "License"). You may not use this work except in compliance with the License, which is
+# available at www.apache.org/licenses/LICENSE-2.0
+#
+# This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+# either express or implied, as more fully set forth in the License.
+#
+# See the NOTICE file distributed with this work for information regarding copyright ownership.
+#
+
 cmake_minimum_required(VERSION 3.0.1 FATAL_ERROR)
 
 PROJECT(Alluxio_cpp_client)
@@ -6,4 +17,13 @@ SET(CMAKE_BUILE_TYPE DEBUG)
 SET(CMAKE_CXX_FLAGS_DEBUG "-g -Wall")
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 
+IF(${CMAKE_SYSTEM_PROCESSOR} MATCHES "i386" OR ${CMAKE_SYSTEM_PROCESSOR} MATCHES "i686")
+    SET(JVM_LIB_PATH $ENV{JAVA_HOME}/jre/lib/i386/server)
+ELSEIF(${CMAKE_SYSTEM_PROCESSOR} MATCHES "x86-64")
+    SET(JVM_LIB_PATH $ENV{JAVA_HOME}/jre/lib/amd64/server)
+ELSE()
+    SET(JVM_LIB_PATH $ENV{JAVA_HOME}/jre/lib/server)
+ENDIF()
+
 ADD_SUBDIRECTORY(src)
+ADD_SUBDIRECTORY(test)

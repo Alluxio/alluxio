@@ -28,6 +28,7 @@
     <license.header.path>${project.parent.basedir}/build/license/</license.header.path>
     <checkstyle.path>${project.parent.basedir}/build/checkstyle/</checkstyle.path>
     <findbugs.path>${project.parent.basedir}/build/findbugs/</findbugs.path>
+    <maven-antrun-plugin.version>1.8</maven-antrun-plugin.version>
   </properties>
 
   <build>
@@ -52,9 +53,10 @@
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-antrun-plugin</artifactId>
-            <version>${maven-antrun-plugin.varsion}</version>
+            <version>${maven-antrun-plugin.version}</version>
             <executions>
               <execution>
+                <id>make</id>
                 <phase>compile</phase>
                 <goals>
                   <goal>run</goal>
@@ -72,11 +74,24 @@
                   </target>
                 </configuration>
               </execution>
+              <execution>
+                <id>native_tests</id>
+                <phase>test</phase>
+                <goals><goal>run</goal></goals>
+                <configuration>
+                  <skip>${skipTests}</skip>
+                  <target>
+                    <exec executable="ctest" failonerror="true" dir="${project.build.directory}/native/test">
+                      <env key="CLASSPATH" value=".:${basedir}/../minicluster/target/alluxio-minicluster-1.7.0-SNAPSHOT-jar-with-dependencies.jar"/>
+                      <arg line="." />
+                    </exec>
+                  </target>
+                </configuration>
+              </execution>
             </executions>
           </plugin>
         </plugins>
       </build>
     </profile>
   </profiles>
-
 </project>

@@ -162,7 +162,6 @@
     <surefire.forkCount>2</surefire.forkCount>
     <surefire.useSystemClassLoader>true</surefire.useSystemClassLoader>
     <test.output.redirect>true</test.output.redirect>
-    <maven-antrun-plugin.varsion>1.8</maven-antrun-plugin.varsion>
   </properties>
 
   <modules>

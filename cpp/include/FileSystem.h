@@ -23,7 +23,6 @@
 #include "Options.h"
 #include "Wire.h"
 
-
 using namespace alluxio;
 
 namespace alluxio {
@@ -39,6 +38,7 @@ class FileSystem {
  public:
   // Constructor of FileSystem
   FileSystem();
+  FileSystem(jobject localObj);
   // Creates a directory with default option
   Status CreateDirectory(const AlluxioURI& path);
   // Creates a directory

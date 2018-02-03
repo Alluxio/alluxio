@@ -9,16 +9,6 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-#include <stdlib.h>
-#include <string.h>
-#include <fstream>
-#include <iostream>
-#include <ctime>
-#include <iomanip>
-#include <chrono>
-#include <functional>
-#include <thread>
-#include <stdio.h>
 #include <assert.h>
 
 #include "FileSystem.h"
@@ -130,66 +120,40 @@ void SetAttributeTest(FileSystem* fileSystem, const char* path)  {
   assert(status.ok());
 }
 
-void ReadFileTest(FileSystem* fileSystem, const char* path) {
-  FileInStream* in;
-  AlluxioURI* uri = new AlluxioURI(path);
-  Status s = fileSystem->OpenFile(*uri, &in);
-  delete uri;
-  assert(s.ok());
+void startMultiProcessCluster(FileSystem** filesystem,
+                              JniHelper::LocalRefMapType& localRefs) {
+  JniHelper::Start();
+  jobject builder = JniHelper::CallStaticObjectMethod(
+                        "alluxio/multi/process/MultiProcessCluster",
+                        "newBuilder",
+                        "alluxio/multi/process/MultiProcessCluster$Builder");
+  localRefs[JniHelper::GetEnv()].push_back(builder);
+  jobject miniCluster = JniHelper::CallObjectMethod(builder,
+                            "alluxio/multi/process/MultiProcessCluster$Builder",
+                            "build",
+                            "alluxio/multi/process/MultiProcessCluster");
+  localRefs[JniHelper::GetEnv()].push_back(miniCluster);
+  JniHelper::CallVoidMethod(miniCluster,
+                            "alluxio/multi/process/MultiProcessCluster",
+                            "start");
+  jobject jfileSystem = JniHelper::CallObjectMethod(miniCluster,
+                            "alluxio/multi/process/MultiProcessCluster",
+                            "getFileSystemClient",
+                            "alluxio/client/file/FileSystem");
+  * filesystem = new FileSystem(jfileSystem);
 
-  int bufferSize =100;
-  char* inputBuffer = (char*)calloc(bufferSize, 1);
-  size_t bytesRead = bufferSize;
-  while (bytesRead == bufferSize) {
-    Status res = in->Read(inputBuffer, 0, bufferSize, &bytesRead);
-    if(! res.ok()) {
-      in->Close();
-      assert(res.ok());
-      return;
-    }
-  }
-  in->Close();
-}
-
-std::string randomString(int length) {
-  std::string res = "";
-  srand((unsigned)time(NULL));
-  int temp = rand() % 3;
-  for (int i = 0 ; i < length; i ++) {
-    if (temp == 0) {
-      res += ('A' + rand() % ('Z' - 'A' + 1));
-    } else if (temp == 1) {
-      res += ('a' + rand() % ('z' - 'a' + 1));
-    } else {
-      res += ('0' + rand() % ('9' - '0' + 1));
-    }
-  }
-  return res;
-}
-
-void WriteFileTest(FileSystem* fileSystem, const char* path) {
-  FileOutStream* out;
-  AlluxioURI* uri = new AlluxioURI(path);
-  Status s = fileSystem->CreateFile(*uri, &out);
-  delete uri;
-  assert(s.ok());
-  std::string writeData;
-  for(int i = 0; i < 1000; i ++) {
-    writeData = randomString(100);
-    s = out->Write(writeData.c_str(), 0, 100);
-    if(!s.ok()) {
-      assert(s.ok());
-      return;
-    }
-  }
-  out->Close();
 }
 
 // Tests fileSystem operations without reading and writing
 int main(void) {
-  FileSystem* fileSystem = new FileSystem();
+  FileSystem* fileSystem;
+  JniHelper::LocalRefMapType localRefs;
+
+  startMultiProcessCluster(&fileSystem, localRefs);
+
   // Tests create directory
   CreateDirectoryTest(fileSystem, "/foo");
+
   CreateDirectoryTest(fileSystem, "/foo0");
 
   // Tests create file
@@ -219,15 +183,13 @@ int main(void) {
   UnmountTest(fileSystem, "/2");
   GetMountTableTest(fileSystem);
 
-  // Tests Read and write
-  WriteFileTest(fileSystem, "/RW");
-  ReadFileTest(fileSystem, "/RW");
-
   // Tests delete
-  DeletePathTest(fileSystem, "/RW");
   DeletePathTest(fileSystem, "/foo/foo1");
   DeletePathTest(fileSystem, "/foo/foo2");
   DeletePathTest(fileSystem, "/foo");
   DeletePathTest(fileSystem, "/foo0");
+
+  JniHelper::DeleteLocalRefs(JniHelper::GetEnv(), localRefs);
+
   return 0;
 }

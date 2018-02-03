@@ -18,6 +18,10 @@ FileSystem::FileSystem() {
       "alluxio/client/file/FileSystem");
 }
 
+FileSystem::FileSystem(jobject localObj) {
+  FileSystem::filesystem = localObj;
+}
+
 void FileSystem::closeFileSystem() {
   JniHelper::DeleteLocalRefs(JniHelper::GetEnv(), localRefs);
   JniHelper::DeleteObjectRef(FileSystem::filesystem);
@@ -342,7 +346,7 @@ Status FileSystem::callJniByOption(const AlluxioURI& src,
                                    const AlluxioURI& dst,
                                    const std::string& methodName,
                                    const jobject option) {
-  try {
+  try {   
     JniHelper::CallVoidMethod(FileSystem::filesystem,
                               "alluxio/client/file/FileSystem", methodName,
                               src.getObj(), dst.getObj(), option);
