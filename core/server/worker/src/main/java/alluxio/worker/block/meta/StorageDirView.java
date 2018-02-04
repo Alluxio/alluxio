@@ -11,7 +11,6 @@
 
 package alluxio.worker.block.meta;
 
-import alluxio.collections.ConcurrentHashSet;
 import alluxio.worker.block.BlockMetadataManagerView;
 import alluxio.worker.block.BlockStoreLocation;
 
