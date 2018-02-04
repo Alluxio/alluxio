@@ -82,7 +82,7 @@
                   <skip>${skipTests}</skip>
                   <target>
                     <exec executable="ctest" failonerror="true" dir="${project.build.directory}/native/test">
-                      <env key="CLASSPATH" value=".:${basedir}/../minicluster/target/alluxio-minicluster-1.7.0-SNAPSHOT-jar-with-dependencies.jar"/>
+                      <env key="CLASSPATH" value="4{CLASSPATH}:${basedir}/../minicluster/target/alluxio-minicluster-1.7.0-SNAPSHOT-jar-with-dependencies.jar"/>
                       <env key="LD_LIBRARY_PATH" value=".:${env.JAVA_HOME}/jre/lib/amd64/server"/>
                       <arg line="." />
                     </exec>

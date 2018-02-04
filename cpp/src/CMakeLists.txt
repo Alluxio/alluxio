@@ -31,5 +31,5 @@ LINK_DIRECTORIES(
 
 ADD_LIBRARY(filesystem STATIC ${SOURCE_FILES})
 ADD_LIBRARY(sharedfilesystem SHARED ${SOURCE_FILES})
-TARGET_LINK_LIBRARIES(filesystem libjvm.so -lpthread)
 
+TARGET_LINK_LIBRARIES(filesystem libjvm.so -lpthread)

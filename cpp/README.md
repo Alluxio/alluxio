@@ -39,7 +39,7 @@ cpp/bin, you can link .a or .so file to your own cpp project.
 
 - You can run execuable files mapping to different test cases directly 
 ```
-cd $ALLUXIO_HOME/cpp/bin
+cd $ALLUXIO_HOME/cpp/build/test
 ./FileSystemTest
 ./FileRWTest
 ```
