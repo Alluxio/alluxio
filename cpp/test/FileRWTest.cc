@@ -79,7 +79,13 @@ jobject startLocalCluster(FileSystem** fileSystem) {
                             "initConfiguration");
   JniHelper::CallVoidMethod(miniCluster,
                             "alluxio/master/AbstractLocalAlluxioCluster",
-                            "start");
+                            "setupTest");
+  JniHelper::CallVoidMethod(miniCluster,
+                            "alluxio/master/LocalAlluxioCluster",
+                            "startMasters");
+  JniHelper::CallVoidMethod(miniCluster,
+                            "alluxio/master/AbstractLocalAlluxioCluster",
+                            "startWorkers");
   jobject jfileSystem = JniHelper::CallObjectMethod(miniCluster,
                                        "alluxio/master/LocalAlluxioCluster",
                                        "getClient",
@@ -88,7 +94,7 @@ jobject startLocalCluster(FileSystem** fileSystem) {
   return miniCluster;
 }
 
-// Tests fileSystem operations witho ut reading and writing
+// Tests fileSystem operations including reading and writing
 int main(void) {
   FileSystem* fileSystem;
   jobject miniCluster = startLocalCluster(&fileSystem);
@@ -97,11 +103,12 @@ int main(void) {
   // Tests write
   ReadFileTest(fileSystem, "/RW");
 
-  //Status status = JniHelper::AlluxioExceptionCheck();
-
   JniHelper::CallVoidMethod(miniCluster,
                             "alluxio/master/AbstractLocalAlluxioCluster",
                             "stop");
+  Status status = JniHelper::AlluxioExceptionCheck();
+  assert(status.ok());
+
   JniHelper::DeleteObjectRef(miniCluster);
 
   return 0;

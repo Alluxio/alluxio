@@ -43,5 +43,5 @@ cd $ALLUXIO_HOME/cpp/bin
 ```
 - Or use mvn tools to test all cases
 ```
-mvn 
+mvn test
 ```

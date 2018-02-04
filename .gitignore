@@ -20,7 +20,6 @@
 /conf/alluxio-env.sh
 /conf/metrics.properties
 /conf/alluxio-env.sh.bootstrap.bk
-/cpp/bin/*
 /data/
 /deploy/vagrant/.request_ids
 /deploy/vagrant/.vagrant/

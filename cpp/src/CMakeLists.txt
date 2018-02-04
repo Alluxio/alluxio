@@ -31,5 +31,5 @@ ${JVM_LIB_PATH}
 
 ADD_LIBRARY(filesystem STATIC ${SOURCE_FILES})
 ADD_LIBRARY(sharedfilesystem SHARED ${SOURCE_FILES})
-target_link_libraries(filesystem libjvm.so -lpthread)
+TARGET_LINK_LIBRARIES(filesystem libjvm.so -lpthread)
 

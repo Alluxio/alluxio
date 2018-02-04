@@ -118,7 +118,6 @@ class JniHelper {
                                  signature.c_str(), false)) {
       LocalRefMapType localRefs;
       t.env->CallVoidMethod(obj, t.methodID, Convert(localRefs, t, xs)...);
-      t.env->CallVoidMethod(obj, t.methodID, Convert(localRefs, t, xs)...);
       DeleteLocalRefs(t.env, localRefs);
     } else {
       ReportError(className, methodName, signature);
