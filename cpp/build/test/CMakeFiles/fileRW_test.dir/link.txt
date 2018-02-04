@@ -1,0 +1,1 @@
+/usr/bin/c++    -std=c++11    CMakeFiles/fileRW_test.dir/FileRWTest.cc.o  -o ../../bin/fileRW_test  -L/caonima -rdynamic libFILESYSTEM.a -ljvm -lpthread -Wl,-rpath,/caonima 
