@@ -18,6 +18,7 @@ import alluxio.worker.block.BlockStoreLocation;
 import com.google.common.base.Preconditions;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -39,8 +40,8 @@ public final class StorageDirView {
 
   // The below data structures are used by the evictor to mark blocks to move in/out during
   // generating an eviction plan.
-  private final Set<Long> mBlocksToMoveIn = new ConcurrentHashSet<>();
-  private final Set<Long> mBlocksToMoveOut = new ConcurrentHashSet<>();
+  private final Set<Long> mBlocksToMoveIn = new HashSet<>();
+  private final Set<Long> mBlocksToMoveOut = new HashSet<>();
   private long mBlocksToMoveInSize = 0L;
   private long mBlocksToMoveOutSize = 0L;
 
