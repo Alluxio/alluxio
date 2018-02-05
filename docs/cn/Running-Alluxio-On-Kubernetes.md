@@ -35,8 +35,6 @@ $ cd integration/kubernetes
 ```bash
 $ mkdir /tmp/domain
 $ chmod a+w /tmp/domain
-$ touch /tmp/domain/d
-$ chmod a+w /tmp/domain/d
 ```
 
 如果不需要或不能设置短路访问，则可以跳过此步骤。要禁用此功能，请根据下面的配置部分中的说明设置属性 `alluxio.user.short.circuit.enabled=false`。
