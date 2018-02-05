@@ -78,7 +78,7 @@ alluxio.zookeeper.address=[zookeeper_hostname]:2181
 -Xbootclasspath/p:<path-to-alluxio-site-properties>
 ```
 
-此外，我们建议提高`alluxio.user.network.netty.timeout.ms`的值（比如10分钟），来防止读远程worker中的大文件时的超时问题。
+此外，我们建议提高`alluxio.user.network.netty.timeout`的值（比如10分钟），来防止读远程worker中的大文件时的超时问题。
 
 #### 提高`hive.max-split-size`值
 
