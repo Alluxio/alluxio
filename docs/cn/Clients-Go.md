@@ -31,6 +31,8 @@ $ go get -d github.com/Alluxio/alluxio-go
 
 # 示例使用程序
 
+如果本地没有Alluxio代理在运行，将下面的"localhost"替换为代理的主机名。
+
 ```go
 package main
 
@@ -63,18 +65,18 @@ func read(fs *alluxio.Client, path string) (string, error) {
 	defer fs.Close(id)
 	r, err := fs.Read(id)
 	if err != nil {
-	        return "", err
+		return "", err
 	}
 	defer r.Close()
 	content, err := ioutil.ReadAll(r)
 	if err != nil {
-	        return "", err
+		return "", err
 	}
 	return string(content), err
 }
 
 func main() {
-	fs := alluxio.NewClient(<proxy host>, <proxy port - default is 39999>, 10*time.Second)
+	fs := alluxio.NewClient("localhost", 39999, 10*time.Second)
 	path := "/test_path"
 	exists, err := fs.Exists(path, &option.Exists{})
 	if err != nil {
@@ -83,10 +85,10 @@ func main() {
 	if exists {
 		if err := fs.Delete(path, &option.Delete{}); err != nil {
 			log.Fatal(err)
-	        }
+		}
 	}
 	if err := write(fs, path, "Success"); err != nil {
-	        log.Fatal(err)
+		log.Fatal(err)
 	}
 	content, err := read(fs, path)
 	if err != nil {
