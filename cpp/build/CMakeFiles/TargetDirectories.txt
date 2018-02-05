@@ -1,5 +1,0 @@
-/home/innkp/tachyon/cpp/build/test/CMakeFiles/FILESYSTEM.dir
-/home/innkp/tachyon/cpp/build/test/CMakeFiles/fileRW_test.dir
-/home/innkp/tachyon/cpp/build/src/CMakeFiles/filesystem.dir
-/home/innkp/tachyon/cpp/build/test/CMakeFiles/filesystem_test.dir
-/home/innkp/tachyon/cpp/build/src/CMakeFiles/sharedfilesystem.dir
