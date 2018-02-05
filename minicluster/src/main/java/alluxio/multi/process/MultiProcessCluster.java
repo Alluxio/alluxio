@@ -16,6 +16,7 @@ import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.ConfigurationRule;
 import alluxio.ConfigurationTestUtils;
+import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.cli.Format;
 import alluxio.client.file.FileSystem;
@@ -28,6 +29,7 @@ import alluxio.master.SingleMasterInquireClient;
 import alluxio.master.ZkMasterInquireClient;
 import alluxio.network.PortUtils;
 import alluxio.util.CommonUtils;
+import alluxio.util.WaitForOptions;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.zookeeper.RestartableTestingServer;
 
@@ -74,8 +76,8 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public final class MultiProcessCluster implements TestRule {
   private static final Logger LOG = LoggerFactory.getLogger(MultiProcessCluster.class);
-  private static final File ARTIFACTS_DIR = new File("./target/artifacts");
-  private static final File TESTS_LOG = new File("./target/logs/tests.log");
+  private static final File ARTIFACTS_DIR = new File(Constants.TEST_ARTIFACTS_DIR);
+  private static final File TESTS_LOG = new File(Constants.TESTS_LOG);
 
   private final Map<PropertyKey, String> mProperties;
   private final int mNumMasters;
@@ -120,6 +122,7 @@ public final class MultiProcessCluster implements TestRule {
   public synchronized void start() throws Exception {
     Preconditions.checkState(mState != State.STARTED, "Cannot start while already started");
     Preconditions.checkState(mState != State.DESTROYED, "Cannot start a destroyed cluster");
+    mWorkDir = AlluxioTestDirectory.createTemporaryDirectory(mClusterName);
     mState = State.STARTED;
 
     mMasterAddresses = generateMasterAddresses(mNumMasters);
@@ -140,7 +143,6 @@ public final class MultiProcessCluster implements TestRule {
         throw new IllegalStateException("Unknown deploy mode: " + mDeployMode.toString());
     }
 
-    mWorkDir = AlluxioTestDirectory.createTemporaryDirectory(mClusterName);
     for (Entry<PropertyKey, String> entry : ConfigurationTestUtils.testConfigurationDefaults(
         NetworkAddressUtils.getLocalHostName(), mWorkDir.getAbsolutePath()).entrySet()) {
       // Don't overwrite explicitly set properties.
@@ -170,9 +172,10 @@ public final class MultiProcessCluster implements TestRule {
    * If no master is currently primary, this method blocks until a primary has been elected, then
    * kills it.
    *
+   * @param timeoutMs maximum amount of time to wait, in milliseconds
    * @return the ID of the killed master
    */
-  public synchronized int waitForAndKillPrimaryMaster() {
+  public synchronized int waitForAndKillPrimaryMaster(int timeoutMs) {
     final FileSystem fs = getFileSystemClient();
     final MasterInquireClient inquireClient = getMasterInquireClient();
     CommonUtils.waitFor("a primary master to be serving", new Function<Void, Boolean>() {
@@ -188,7 +191,7 @@ public final class MultiProcessCluster implements TestRule {
           throw new RuntimeException(e);
         }
       }
-    });
+    }, WaitForOptions.defaults().setTimeoutMs(timeoutMs));
     int primaryRpcPort;
     try {
       primaryRpcPort = inquireClient.getPrimaryRpcAddress().getPort();
@@ -232,13 +235,12 @@ public final class MultiProcessCluster implements TestRule {
     Preconditions.checkState(mState == State.STARTED,
         "cluster must be started before you can save its work directory");
     ARTIFACTS_DIR.mkdirs();
-    File targetDir = new File(".", mWorkDir.getName());
-    File tarball = new File(targetDir.getPath() + ".tar.gz");
-    // Copy the work directory to "."
-    FileUtils.copyDirectory(mWorkDir, targetDir);
+
+    File tarball = new File(mWorkDir.getParentFile(), mWorkDir.getName() + ".tar.gz");
     // Tar up the work directory.
     ProcessBuilder pb =
-        new ProcessBuilder("tar", "-czf", tarball.getPath(), targetDir.getPath());
+        new ProcessBuilder("tar", "-czf", tarball.getName(), mWorkDir.getName());
+    pb.directory(mWorkDir.getParentFile());
     pb.redirectOutput(TESTS_LOG);
     pb.redirectError(TESTS_LOG);
     Process p = pb.start();
@@ -248,8 +250,6 @@ public final class MultiProcessCluster implements TestRule {
       Thread.currentThread().interrupt();
       throw new RuntimeException(e);
     }
-    // Delete copied work directory.
-    FileUtils.deleteDirectory(targetDir);
     // Move tarball to artifacts directory.
     File finalTarball = new File(ARTIFACTS_DIR, tarball.getName());
     FileUtils.moveFile(tarball, finalTarball);
@@ -260,6 +260,9 @@ public final class MultiProcessCluster implements TestRule {
    * Destroys the cluster. It may not be re-started after being destroyed.
    */
   public synchronized void destroy() throws IOException {
+    if (mState == State.DESTROYED) {
+      return;
+    }
     if (!mSuccess) {
       saveWorkdir();
     }
@@ -441,7 +444,11 @@ public final class MultiProcessCluster implements TestRule {
           start();
           base.evaluate();
         } finally {
-          destroy();
+          try {
+            destroy();
+          } catch (Throwable t) {
+            LOG.error("Failed to destroy cluster", t);
+          }
         }
       }
     };

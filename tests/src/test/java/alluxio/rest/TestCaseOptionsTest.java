@@ -11,7 +11,7 @@
 
 package alluxio.rest;
 
-import alluxio.CommonTestUtils;
+import alluxio.test.util.CommonUtils;
 
 import org.apache.commons.lang.RandomStringUtils;
 import org.junit.Assert;
@@ -65,6 +65,6 @@ public class TestCaseOptionsTest {
 
   @Test
   public void equals() throws Exception {
-    CommonTestUtils.testEquals(TestCaseOptions.class, "mInputStream");
+    CommonUtils.testEquals(TestCaseOptions.class, "mInputStream");
   }
 }

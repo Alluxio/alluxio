@@ -31,7 +31,11 @@ Alluxio works together with Spark 1.1 or later out-of-the-box.
   by following Follow the instructs [here](Building-Alluxio-Master-Branch.html#compute-framework-support).
   The Alluxio client jar can be found at `{{site.ALLUXIO_CLIENT_JAR_PATH}}`.
 
-* Add the following line to `spark/conf/spark-defaults.conf`.
+* In order for Spark applications to read and write files in Alluxio, the Alluxio client jar must be distributed 
+  on the classpath of the application across different nodes 
+  (each node must have the client jar on the same local path {{site.ALLUXIO_CLIENT_JAR_PATH}}). 
+  
+* Add the following line to `spark/conf/spark-defaults.conf`.  
 
 ```bash
 spark.driver.extraClassPath {{site.ALLUXIO_CLIENT_JAR_PATH}}
@@ -95,46 +99,42 @@ Run the following commands from `spark-shell`, assuming Alluxio Master is runnin
 ```
 
 Open your browser and check [http://localhost:19999/browse](http://localhost:19999/browse). There
-should be an output file `LICENSE2` which doubles each line in the file `LICENSE`.
+should be an output `LICENSE2` containing the doubled content of `LICENSE`.
 
 ### Use Data from HDFS
 
 Alluxio supports transparently fetching the data from the under storage system, given the exact
-path. Put a file `LICENSE` into HDFS under the folder Alluxio is mounted to, by default this is
-/alluxio, meaning any files in hdfs under this folder will be discoverable by Alluxio. You can
-modify this setting by changing the `ALLUXIO_UNDERFS_ADDRESS` property in alluxio-env.sh on the
-server.
+path. Put a file `LICENSE_HDFS` into HDFS under the folder Alluxio is mounted to.
 
-Assuming the namenode is running on `localhost` and you are using the default mount directory
-`/alluxio`:
+Assuming the root UFS address (`alluxio.master.mount.table.root.ufs`) is `hdfs://localhost:9000/alluxio/`, run
 
 ```bash
-$ hadoop fs -put -f /alluxio/LICENSE hdfs://localhost:9000/alluxio/LICENSE
+$ hdfs dfs -put -f ${ALLUXIO_HOME}/LICENSE hdfs://localhost:9000/alluxio/LICENSE_HDFS
 ```
 
 Note that Alluxio has no notion of the file. You can verify this by going to the web UI. Run the
 following commands from `spark-shell`, assuming Alluxio Master is running on `localhost`:
 
 ```scala
-> val s = sc.textFile("alluxio://localhost:19998/LICENSE")
+> val s = sc.textFile("alluxio://localhost:19998/LICENSE_HDFS")
 > val double = s.map(line => line + line)
-> double.saveAsTextFile("alluxio://localhost:19998/LICENSE2")
+> double.saveAsTextFile("alluxio://localhost:19998/LICENSE_HDFS2")
 ```
 
 Open your browser and check [http://localhost:19999/browse](http://localhost:19999/browse). There
-should be an output file `LICENSE2` which doubles each line in the file `LICENSE`. Also, the
-`LICENSE` file now appears in the Alluxio file system space.
+should be an output `LICENSE_HDFS2` which doubles each line in the file `LICENSE_HDFS`. Also, the
+`LICENSE_HDFS` file now appears in the Alluxio file system space.
 
 > NOTE: Block caching on partial reads is enabled by default, but if you have turned off the option,
-> it is possible that the `LICENSE` file is not in Alluxio storage. This is
+> it is possible that the `LICENSE_HDFS` file is not in Alluxio storage. This is
 > because Alluxio only stores fully read blocks, and if the file is too small, the Spark job will
 > have each executor read a partial block. To avoid this behavior, you can specify the partition
 > count in Spark. For this example, we would set it to 1 as there is only 1 block.
 
 ```scala
-> val s = sc.textFile("alluxio://localhost:19998/LICENSE", 1)
+> val s = sc.textFile("alluxio://localhost:19998/LICENSE_HDFS", 1)
 > val double = s.map(line => line + line)
-> double.saveAsTextFile("alluxio://localhost:19998/LICENSE2")
+> double.saveAsTextFile("alluxio://localhost:19998/LICENSE_HDFS2")
 ```
 
 ### Using Fault Tolerant Mode
@@ -222,4 +222,17 @@ parameter may be set to:
 
 ```bash
 spark.sql.hive.metastore.sharedPrefixes=com.mysql.jdbc,org.postgresql,com.microsoft.sqlserver,oracle.jdbc,alluxio
+```
+
+## `java.io.IOException: No FileSystem for scheme: alluxio` Issue with Spark on YARN
+
+If you use Spark on YARN with Alluxio and run into the exception `java.io.IOException: No FileSystem for scheme: alluxio`, please add the following content to `${SPARK_HOME}/conf/core-site.xml`:
+
+```xml
+<configuration>
+  <property>
+    <name>fs.alluxio.impl</name>
+    <value>alluxio.hadoop.FileSystem</value>
+  </property>
+</configuration>
 ```

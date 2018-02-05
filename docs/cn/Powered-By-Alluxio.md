@@ -42,6 +42,7 @@ group: Resources
 * [Ultra Tendency](http://ultratendency.com/)
 * [Verizon](https://www.verizonwireless.com/)
 * [Walmart](https://www.walmart.com/)
+* [ZTE](http://www.zte.com.cn)
 
 以下是一些将Alluxio加入到自身的生态系统以增强功能的第三方软件项目。
 
@@ -53,5 +54,6 @@ group: Resources
 * [Apache Hadoop](https://hadoop.apache.org/)
 * [Apache Spark](http://spark.apache.org/)
 * [Apache Zeppelin](http://zeppelin-project.org/)
+* [Ceph](http://ceph.com/)
 * [GlusterFS](http://www.gluster.org/)
 * [Openstack Swift](http://docs.openstack.org/developer/swift/)

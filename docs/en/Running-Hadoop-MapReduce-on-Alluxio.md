@@ -30,13 +30,12 @@ For the MapReduce applications to communicate with Alluxio service, it is requir
 Alluxio client jar on their classpaths. We recommend you to download the tarball from
 Alluxio [download page](http://www.alluxio.org/download).
 Alternatively, advanced users can choose to compile this client jar from the source code
-by following Follow the instructs [here](Building-Alluxio-Master-Branch.html#compute-framework-support).
+by following the instructions [here](Building-Alluxio-Master-Branch.html#compute-framework-support).
 The Alluxio client jar can be found at `{{site.ALLUXIO_CLIENT_JAR_PATH}}`.
 
 ## Configuring Hadoop
 
-Add the following three properties to the `core-site.xml` file in `conf` directory of your Hadoop
-installation:
+Add the following two properties to the `core-site.xml` file of your Hadoop installation:
 
 ```xml
 <property>
@@ -51,23 +50,12 @@ installation:
 </property>
 ```
 
-This will allow your MapReduce jobs to recognize URIs with Alluxio scheme (i.e., `alluxio://`) in
+This will allow your MapReduce jobs to recognize URIs with Alluxio scheme `alluxio://` in
 their input and output files.
-
-Optionally, modify `$HADOOP_CLASSPATH` by changing `hadoop-env.sh` also in `conf` directory to
-have:
-
-```bash
-$ export HADOOP_CLASSPATH={{site.ALLUXIO_CLIENT_JAR_PATH}}:${HADOOP_CLASSPATH}
-```
-
-This ensures Alluxio client jar available for the MapReduce job client that creates and submits
-jobs to interact with URIs with Alluxio scheme.
-
 
 ## Distributing the Alluxio Client Jar
 
-In order for the MapReduce applications to be able to read and write files in Alluxio, the Alluxio client jar
+In order for the MapReduce applications to read and write files in Alluxio, the Alluxio client jar
 must be distributed on the classpath of the application across different nodes.
 
 This guide on
@@ -78,6 +66,7 @@ Another way to distribute the client jar is to manually distribute it to all the
 Below are instructions for the two main alternatives:
 
 1.**Using the -libjars command line option.**
+
 You can use the `-libjars` command line option when using `hadoop jar ...`,
 specifying `{{site.ALLUXIO_CLIENT_JAR_PATH}}`
 as the argument of `-libjars`. Hadoop will place the jar in the Hadoop DistributedCache, making it
@@ -85,10 +74,11 @@ available to all the nodes. For example, the following command adds the Alluxio 
 `-libjars` option:
 
 ```bash
-$ bin/hadoop jar libexec/share/hadoop/mapreduce/hadoop-mapreduce-examples-2.7.3.jar wordcount -libjars {{site.ALLUXIO_CLIENT_JAR_PATH}} <INPUT FILES> <OUTPUT DIRECTORY>
+$ bin/hadoop jar share/hadoop/mapreduce/hadoop-mapreduce-examples-2.7.3.jar wordcount -libjars {{site.ALLUXIO_CLIENT_JAR_PATH}} <INPUT FILES> <OUTPUT DIRECTORY>
 ```
 
 2.**Distributing the client jars to all nodes manually.**
+
 To install Alluxio on each node, place the client jar
 `{{site.ALLUXIO_CLIENT_JAR_PATH}}` in the `$HADOOP_HOME/lib`
 (may be `$HADOOP_HOME/share/hadoop/common/lib` for different versions of Hadoop) directory of every
@@ -127,7 +117,7 @@ This command will copy the `LICENSE` file into the Alluxio namespace with the pa
 Now we can run a MapReduce job (using Hadoop 2.7.3 as example) for wordcount.
 
 ```bash
-$ bin/hadoop jar libexec/share/hadoop/mapreduce/hadoop-mapreduce-examples-2.7.3.jar wordcount -libjars {{site.ALLUXIO_CLIENT_JAR_PATH}} alluxio://localhost:19998/wordcount/input.txt alluxio://localhost:19998/wordcount/output
+$ bin/hadoop jar share/hadoop/mapreduce/hadoop-mapreduce-examples-2.7.3.jar wordcount -libjars {{site.ALLUXIO_CLIENT_JAR_PATH}} alluxio://localhost:19998/wordcount/input.txt alluxio://localhost:19998/wordcount/output
 ```
 
 After this job completes, the result of the wordcount will be in the `/wordcount/output` directory

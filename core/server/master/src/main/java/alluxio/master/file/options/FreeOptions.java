@@ -12,6 +12,7 @@
 package alluxio.master.file.options;
 
 import alluxio.thrift.FreeTOptions;
+import alluxio.wire.CommonOptions;
 
 import com.google.common.base.Objects;
 
@@ -22,6 +23,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class FreeOptions {
+  private CommonOptions mCommonOptions;
   private boolean mRecursive;
   private boolean mForced;
 
@@ -33,6 +35,8 @@ public final class FreeOptions {
   }
 
   private FreeOptions() {
+    super();
+    mCommonOptions = CommonOptions.defaults();
     mForced = false;
     mRecursive = false;
   }
@@ -43,8 +47,21 @@ public final class FreeOptions {
    * @param options the thrift representation of free options
    */
   public FreeOptions(FreeTOptions options) {
-    mForced = options.isForced();
-    mRecursive = options.isRecursive();
+    this();
+    if (options != null) {
+      if (options.isSetCommonOptions()) {
+        mCommonOptions = new CommonOptions(options.getCommonOptions());
+      }
+      mForced = options.isForced();
+      mRecursive = options.isRecursive();
+    }
+  }
+
+  /**
+   * @return the common options
+   */
+  public CommonOptions getCommonOptions() {
+    return mCommonOptions;
   }
 
   /**
@@ -61,6 +78,15 @@ public final class FreeOptions {
    */
   public boolean isRecursive() {
     return mRecursive;
+  }
+
+  /**
+   * @param options the common options
+   * @return the updated options object
+   */
+  public FreeOptions setCommonOptions(CommonOptions options) {
+    mCommonOptions = options;
+    return this;
   }
 
   /**
@@ -96,17 +122,20 @@ public final class FreeOptions {
       return false;
     }
     FreeOptions that = (FreeOptions) o;
-    return Objects.equal(mForced, that.mForced) && Objects.equal(mRecursive, that.mRecursive);
+    return Objects.equal(mForced, that.mForced)
+        && Objects.equal(mCommonOptions, that.mCommonOptions)
+        && Objects.equal(mRecursive, that.mRecursive);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mForced, mRecursive);
+    return Objects.hashCode(mForced, mRecursive, mCommonOptions);
   }
 
   @Override
   public String toString() {
     return Objects.toStringHelper(this)
+        .add("commonOptions", mCommonOptions)
         .add("forced", mForced)
         .add("recursive", mRecursive)
         .toString();

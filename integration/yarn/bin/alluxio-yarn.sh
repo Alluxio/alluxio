@@ -56,7 +56,7 @@ rm -rf $ALLUXIO_TARFILE
 tar -C $ALLUXIO_HOME -zcf $ALLUXIO_TARFILE \
   assembly/server/target/alluxio-assembly-server-${VERSION}-jar-with-dependencies.jar libexec \
   core/server/common/src/main/webapp \
-  bin conf integration/yarn/bin/common.sh integration/yarn/bin/alluxio-master-yarn.sh \
+  bin conf lib integration/yarn/bin/common.sh integration/yarn/bin/alluxio-master-yarn.sh \
   integration/yarn/bin/alluxio-worker-yarn.sh \
   integration/yarn/bin/alluxio-application-master.sh \
 

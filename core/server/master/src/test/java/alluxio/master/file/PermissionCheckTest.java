@@ -29,7 +29,9 @@ import alluxio.PropertyKey;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileDoesNotExistException;
+import alluxio.master.DefaultSafeModeManager;
 import alluxio.master.MasterRegistry;
+import alluxio.master.SafeModeManager;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.block.BlockMasterFactory;
 import alluxio.master.file.meta.Inode;
@@ -111,6 +113,7 @@ public final class PermissionCheckTest {
   private static final Mode TEST_FILE_MODE = new Mode((short) 0755);
 
   private MasterRegistry mRegistry;
+  private SafeModeManager mSafeModeManager;
   private FileSystemMaster mFileSystemMaster;
   private BlockMaster mBlockMaster;
 
@@ -188,8 +191,10 @@ public final class PermissionCheckTest {
     GroupMappingServiceTestUtils.resetCache();
     mRegistry = new MasterRegistry();
     JournalSystem journalSystem = new NoopJournalSystem();
-    mBlockMaster = new BlockMasterFactory().create(mRegistry, journalSystem);
-    mFileSystemMaster = new FileSystemMasterFactory().create(mRegistry, journalSystem);
+    mSafeModeManager = new DefaultSafeModeManager();
+    mBlockMaster = new BlockMasterFactory().create(mRegistry, journalSystem, mSafeModeManager);
+    mFileSystemMaster = new FileSystemMasterFactory().create(mRegistry, journalSystem,
+        mSafeModeManager);
     mRegistry.start(true);
 
     createDirAndFileForTest();

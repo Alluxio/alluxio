@@ -14,7 +14,7 @@ package alluxio.client.file.options;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-import alluxio.CommonTestUtils;
+import alluxio.test.util.CommonUtils;
 import alluxio.thrift.MountTOptions;
 
 import org.junit.Test;
@@ -63,6 +63,6 @@ public final class MountOptionsTest {
 
   @Test
   public void equalsTest() throws Exception {
-    CommonTestUtils.testEquals(MountOptions.class);
+    CommonUtils.testEquals(MountOptions.class);
   }
 }

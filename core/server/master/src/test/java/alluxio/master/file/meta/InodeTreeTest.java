@@ -25,7 +25,9 @@ import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
+import alluxio.master.DefaultSafeModeManager;
 import alluxio.master.MasterRegistry;
+import alluxio.master.SafeModeManager;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.block.BlockMasterFactory;
 import alluxio.master.file.options.CreateDirectoryOptions;
@@ -77,6 +79,7 @@ public final class InodeTreeTest {
   private static CreateDirectoryOptions sNestedDirectoryOptions;
   private InodeTree mTree;
   private MasterRegistry mRegistry;
+  private SafeModeManager mSafeModeManager;
 
   /** Rule to create a new temporary folder during each test. */
   @Rule
@@ -99,8 +102,10 @@ public final class InodeTreeTest {
   @Before
   public void before() throws Exception {
     mRegistry = new MasterRegistry();
+    mSafeModeManager = new DefaultSafeModeManager();
     JournalSystem journalSystem = new NoopJournalSystem();
-    BlockMaster blockMaster = new BlockMasterFactory().create(mRegistry, journalSystem);
+    BlockMaster blockMaster = new BlockMasterFactory().create(mRegistry, journalSystem,
+        mSafeModeManager);
     InodeDirectoryIdGenerator directoryIdGenerator = new InodeDirectoryIdGenerator(blockMaster);
     UfsManager ufsManager = Mockito.mock(UfsManager.class);
     MountTable mountTable = new MountTable(ufsManager);
@@ -595,6 +600,50 @@ public final class InodeTreeTest {
       mTree.addInodeFileFromJournal(file1.toJournalEntry().getInodeFile());
       verifyChildrenNames(mTree, inodePath,
           Sets.newHashSet("nested", "test", "test1", "file", "file1"));
+    }
+  }
+
+  /**
+   * Tests if mode is set correctly in the {@link InodeTree#addInodeFileFromJournal} and
+   * {@link InodeTree#addInodeDirectoryFromJournal} methods for empty owner/group.
+   */
+  @Test
+  public void addInodeModeFromJournalWithEmptyOwnership() throws Exception {
+    createPath(mTree, NESTED_FILE_URI, sNestedFileOptions);
+    InodeDirectory root = mTree.getRoot();
+    InodeDirectory nested = (InodeDirectory) root.getChild("nested");
+    InodeDirectory test = (InodeDirectory) nested.getChild("test");
+    Inode<?> file = test.getChild("file");
+    Inode[] inodeChildren = {nested, test, file};
+    for (Inode child : inodeChildren) {
+      child.setOwner("");
+      child.setGroup("");
+      child.setMode((short) 0600);
+    }
+
+    // reset the tree
+    mTree.addInodeDirectoryFromJournal(root.toJournalEntry().getInodeDirectory());
+
+    // re-init the root since the tree was reset above
+    mTree.getRoot();
+
+    try (LockedInodePath inodePath =
+             mTree.lockFullInodePath(new AlluxioURI("/"), InodeTree.LockMode.READ)) {
+      try (InodeLockList lockList = mTree.lockDescendants(inodePath, InodeTree.LockMode.READ)) {
+        Assert.assertEquals(0, lockList.getInodes().size());
+      }
+      mTree.addInodeDirectoryFromJournal(nested.toJournalEntry().getInodeDirectory());
+      mTree.addInodeDirectoryFromJournal(test.toJournalEntry().getInodeDirectory());
+      mTree.addInodeFileFromJournal(file.toJournalEntry().getInodeFile());
+      try (InodeLockList lockList = mTree.lockDescendants(inodePath, InodeTree.LockMode.READ)) {
+        List<Inode<?>> children = lockList.getInodes();
+        Assert.assertEquals(inodeChildren.length, children.size());
+        for (Inode<?> child : children) {
+          Assert.assertEquals("", child.getOwner());
+          Assert.assertEquals("", child.getGroup());
+          Assert.assertEquals((short) 0600, child.getMode());
+        }
+      }
     }
   }
 

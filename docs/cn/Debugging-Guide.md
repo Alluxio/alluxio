@@ -25,7 +25,7 @@ Alluxio一般不在开发机上运行,这使得Alluxio的调试变得困难,我�
 
 使用java远程调试技术可以简单、不修改源码的方式，进行源码级调试。你需要增加jvm 远程调试参数，启动调试服务。增加远程调试参数的方法有很多，比较方便的一种方法是，你可以在需要调试的节点上，在命令行中或`alluxio-env.sh`中配置环境变量，增加如下配置属性。
 
-```
+```bash
 export ALLUXIO_WORKER_JAVA_OPTS="$ALLUXIO_JAVA_OPTS -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=6606"
 export ALLUXIO_MASTER_JAVA_OPTS="$ALLUXIO_JAVA_OPTS -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=6607"
 export ALLUXIO_USER_DEBUG_JAVA_OPTS="-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=6609"
@@ -107,6 +107,12 @@ $ export SPARK_CLASSPATH={{site.ALLUXIO_CLIENT_JAR_PATH}}:${SPARK_CLASSPATH}
 spark.driver.extraClassPath {{site.ALLUXIO_CLIENT_JAR_PATH}}
 spark.executor.extraClassPath
 {{site.ALLUXIO_CLIENT_JAR_PATH}}
+```
+
+如果已经设置相关的classpath，但是异常仍然存在，用户可以这样检测路径是否有效：
+
+```bash
+$ ls {{site.ALLUXIO_CLIENT_JAR_PATH}}
 ```
 
 #### 问题: 出现类似如下的错误信息: "Frame size (67108864) larger than max length (16777216)",这种类型错误信息出现的原因是什么?

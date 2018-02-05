@@ -12,11 +12,12 @@
 package alluxio.cli.validation;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * Task for validating SSH reachability.
  */
-public final class SshValidationTask implements ValidationTask {
+public final class SshValidationTask extends AbstractValidationTask {
   private final String mFileName;
 
   /**
@@ -29,10 +30,10 @@ public final class SshValidationTask implements ValidationTask {
   }
 
   @Override
-  public boolean validate() {
+  public TaskResult validate(Map<String, String> optionsMap) {
     List<String> nodes = Utils.readNodeList(mFileName);
     if (nodes == null) {
-      return false;
+      return TaskResult.FAILED;
     }
 
     boolean hasUnreachableNodes = false;
@@ -42,6 +43,6 @@ public final class SshValidationTask implements ValidationTask {
         hasUnreachableNodes = true;
       }
     }
-    return !hasUnreachableNodes;
+    return hasUnreachableNodes ? TaskResult.WARNING : TaskResult.OK;
   }
 }

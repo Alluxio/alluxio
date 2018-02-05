@@ -199,16 +199,13 @@ public class AsyncUfsAbsentPathCacheTest {
   private void addAbsent(AlluxioURI path) throws Exception {
     final ThreadPoolExecutor pool = Whitebox.getInternalState(mUfsAbsentPathCache, "mPool");
     final long initialTasks = pool.getCompletedTaskCount();
-    mUfsAbsentPathCache.process(path);
+    mUfsAbsentPathCache.process(path, Collections.emptyList());
     // Wait until the async task is completed.
     CommonUtils
         .waitFor("path (" + path + ") to be added to absent cache", new Function<Void, Boolean>() {
           @Override
           public Boolean apply(Void input) {
-            if (pool.getCompletedTaskCount() == initialTasks) {
-              return false;
-            }
-            return true;
+            return pool.getCompletedTaskCount() != initialTasks;
           }
         }, WaitForOptions.defaults().setTimeoutMs(10000));
   }
@@ -216,16 +213,13 @@ public class AsyncUfsAbsentPathCacheTest {
   private void removeAbsent(AlluxioURI path) throws Exception {
     final ThreadPoolExecutor pool = Whitebox.getInternalState(mUfsAbsentPathCache, "mPool");
     final long initialTasks = pool.getCompletedTaskCount();
-    mUfsAbsentPathCache.process(path);
+    mUfsAbsentPathCache.process(path, Collections.emptyList());
     // Wait until the async task is completed.
     CommonUtils.waitFor("path (" + path + ") to be removed from absent cache",
         new Function<Void, Boolean>() {
           @Override
           public Boolean apply(Void input) {
-            if (pool.getCompletedTaskCount() == initialTasks) {
-              return false;
-            }
-            return true;
+            return pool.getCompletedTaskCount() != initialTasks;
           }
         }, WaitForOptions.defaults().setTimeoutMs(10000));
   }

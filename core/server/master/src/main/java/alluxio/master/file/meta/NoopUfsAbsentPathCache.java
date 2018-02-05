@@ -16,6 +16,8 @@ import alluxio.AlluxioURI;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.List;
+
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -33,7 +35,7 @@ public final class NoopUfsAbsentPathCache implements UfsAbsentPathCache {
   }
 
   @Override
-  public void process(AlluxioURI path) {
+  public void process(AlluxioURI path, List<Inode<?>> prefixInodes) {
     // Do nothing
   }
 

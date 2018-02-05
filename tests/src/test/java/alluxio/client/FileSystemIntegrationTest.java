@@ -48,7 +48,7 @@ import org.junit.rules.ExpectedException;
 import java.io.IOException;
 
 /**
- * Integration tests on Alluxio Client (reuse the {@link LocalAlluxioCluster}).
+ * Integration tests for Alluxio Client (reuse the {@link LocalAlluxioCluster}).
  */
 public final class FileSystemIntegrationTest extends BaseIntegrationTest {
   private static final byte[] TEST_BYTES = "TestBytes".getBytes();

@@ -13,9 +13,13 @@ package alluxio.web;
 
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.BaseIntegrationTest;
+import alluxio.rest.TestCase;
+import alluxio.rest.TestCaseOptions;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.Multimap;
 import org.junit.Assert;
@@ -26,8 +30,12 @@ import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.InetSocketAddress;
 import java.net.URL;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Scanner;
+
+import javax.ws.rs.HttpMethod;
 
 /**
  * Tests the web server is up when Alluxio starts.
@@ -46,17 +54,43 @@ public class WebServerIntegrationTest extends BaseIntegrationTest {
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
       new LocalAlluxioClusterResource.Builder().build();
 
+  /**
+   * Tests whether the metrics json is being served.
+   */
+  @Test
+  public void metricsJson() throws Exception {
+    for (ServiceType serviceType : PAGES.keys()) {
+      verifyMetricsJson(serviceType);
+    }
+  }
+
+  private void verifyMetricsJson(ServiceType serviceType) throws Exception {
+    InetSocketAddress address = getInetSocketAddresss(serviceType);
+    Map<String, String> params = new HashMap<>();
+    String result = new TestCase(address.getHostName(), address.getPort(), "metrics/json", params,
+        HttpMethod.GET, null, TestCaseOptions.defaults(), "").call();
+
+    TypeReference<HashMap<String, Object>> typeRef =
+        new TypeReference<HashMap<String, Object>>() {};
+    HashMap<String, Object> metrics = new ObjectMapper().readValue(result, typeRef);
+    Assert.assertTrue(metrics.containsKey("version"));
+    Assert.assertTrue(metrics.containsKey("counters"));
+  }
+
+  /**
+   * Tests whether the master and worker web homepage is up.
+   */
+  @Test
+  public void serverUp() throws Exception {
+    for (Entry<ServiceType, String> entry : PAGES.entries()) {
+      verifyWebService(entry.getKey(), entry.getValue());
+    }
+  }
+
   private void verifyWebService(ServiceType serviceType, String path)
       throws IOException {
-    int port;
-    if (serviceType == ServiceType.MASTER_WEB) {
-      port = mLocalAlluxioClusterResource.get().getLocalAlluxioMaster().getMasterProcess()
-          .getWebAddress().getPort();
-    } else {
-      port = mLocalAlluxioClusterResource.get().getWorkerProcess().getWebLocalPort();
-    }
-    InetSocketAddress webAddr =
-        new InetSocketAddress(NetworkAddressUtils.getConnectHost(serviceType), port);
+    InetSocketAddress webAddr = getInetSocketAddresss(serviceType);
+
     HttpURLConnection webService = (HttpURLConnection) new URL(
         "http://" + webAddr.getAddress().getHostAddress() + ":"
         + webAddr.getPort() + path).openConnection();
@@ -87,13 +121,16 @@ public class WebServerIntegrationTest extends BaseIntegrationTest {
         serviceType.getServiceName()), verified);
   }
 
-  /**
-   * Tests whether the master and worker web homepage is up.
-   */
-  @Test
-  public void serverUp() throws Exception {
-    for (Entry<ServiceType, String> entry : PAGES.entries()) {
-      verifyWebService(entry.getKey(), entry.getValue());
+  private InetSocketAddress getInetSocketAddresss(ServiceType serviceType) {
+    int port;
+    if (serviceType == ServiceType.MASTER_WEB) {
+      port = mLocalAlluxioClusterResource.get().getLocalAlluxioMaster().getMasterProcess()
+          .getWebAddress().getPort();
+    } else {
+      port = mLocalAlluxioClusterResource.get().getWorkerProcess().getWebLocalPort();
     }
+    InetSocketAddress webAddr =
+        new InetSocketAddress(NetworkAddressUtils.getConnectHost(serviceType), port);
+    return webAddr;
   }
 }

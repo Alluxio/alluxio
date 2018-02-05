@@ -15,11 +15,16 @@ import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.FileSystemMasterClient;
 import alluxio.exception.status.UnavailableException;
+import alluxio.master.MasterInquireClient;
+import alluxio.master.PollingMasterInquireClient;
 import alluxio.resource.CloseableResource;
+import alluxio.retry.ExponentialBackoffRetry;
 
 import org.apache.commons.cli.CommandLine;
 
 import java.net.InetSocketAddress;
+import java.util.Arrays;
+import java.util.List;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -53,8 +58,18 @@ public final class LeaderCommand extends AbstractFileSystemCommand {
       try {
         InetSocketAddress address = client.get().getAddress();
         System.out.println(address.getHostName());
+
+        List<InetSocketAddress> addresses = Arrays.asList(address);
+        MasterInquireClient inquireClient = new PollingMasterInquireClient(addresses, () ->
+                new ExponentialBackoffRetry(50, 100, 2)
+        );
+        try {
+          inquireClient.getPrimaryRpcAddress();
+        } catch (UnavailableException e) {
+          System.err.println("The leader is not currently serving requests.");
+        }
       } catch (UnavailableException e) {
-        System.out.println("Failed to get the leader master.");
+        System.err.println("Failed to get the leader master.");
       }
     }
     return 0;
