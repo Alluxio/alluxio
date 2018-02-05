@@ -2,9 +2,7 @@
 
 ### environment variables configuration
 - $JAVA_HOME must be set
-- Java 8 is needed. Add jvm path "$JAVA_HOME/jre/lib/i386/server"(32bit) or 
-"$JAVA_HOME/jre/lib/amd64/server"(64bit) or "$JAVA_HOME/jre/lib/server"(Darwin) 
-to "LD_LIBRARY_PATH" depend on your OS platform version
+- Java 8 is needed.
 -  Append $ALLUXIO_CLIENT_CLASSPATH to CLASSPATH in libexec/alluxio-config.sh.
 ```
 . alluxio-config.sh

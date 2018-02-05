@@ -24,11 +24,7 @@ ${JNI_INCLUDE_DIRS}
 ${CMAKE_CURRENT_SOURCE_DIR}/../include
 )
 
-LINK_DIRECTORIES(
-    ${JNI_LIBRARIES}
-)
-
 ADD_LIBRARY(filesystem STATIC ${SOURCE_FILES})
 ADD_LIBRARY(sharedfilesystem SHARED ${SOURCE_FILES})
 
-TARGET_LINK_LIBRARIES(filesystem libjvm.so -lpthread)
+TARGET_LINK_LIBRARIES(filesystem ${JNI_LIBRARIES} -lpthread)
