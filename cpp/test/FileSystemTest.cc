@@ -153,7 +153,7 @@ int main(void) {
 
   // Tests mount
   MountTest(fileSystem, "/1", "/usr");
-  MountTest(fileSystem, "/2", "/share");
+  MountTest(fileSystem, "/2", "/home");
   GetMountTableTest(fileSystem);
   UnmountTest(fileSystem, "/1");
   UnmountTest(fileSystem, "/2");
