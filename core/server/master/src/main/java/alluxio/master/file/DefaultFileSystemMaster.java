@@ -54,12 +54,12 @@ import alluxio.master.file.meta.InodeFile;
 import alluxio.master.file.meta.InodeLockList;
 import alluxio.master.file.meta.InodePathPair;
 import alluxio.master.file.meta.InodeTree;
+import alluxio.master.file.meta.LockedInode;
 import alluxio.master.file.meta.LockedInodePath;
 import alluxio.master.file.meta.LockingScheme;
 import alluxio.master.file.meta.MountTable;
 import alluxio.master.file.meta.PersistenceState;
-import alluxio.master.file.meta.TempInodePathForChild;
-import alluxio.master.file.meta.TempInodePathForDescendant;
+import alluxio.master.file.meta.TempLockedInode;
 import alluxio.master.file.meta.TtlBucketList;
 import alluxio.master.file.meta.UfsAbsentPathCache;
 import alluxio.master.file.meta.UfsBlockLocationCache;
@@ -783,21 +783,21 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
   }
 
   /**
-   * @param inodePath the {@link LockedInodePath} to get the {@link FileInfo} for
+   * @param lockedInode the {@link LockedInode} to get the {@link FileInfo} for
    * @return the {@link FileInfo} for the given inode
    * @throws FileDoesNotExistException if the file does not exist
    * @throws AccessControlException if permission denied
    */
-  private FileInfo getFileInfoInternal(LockedInodePath inodePath)
+  private FileInfo getFileInfoInternal(LockedInode lockedInode)
       throws FileDoesNotExistException, AccessControlException, UnavailableException {
-    Inode<?> inode = inodePath.getInode();
-    AlluxioURI uri = inodePath.getUri();
+    Inode<?> inode = lockedInode.getInode();
+    AlluxioURI uri = lockedInode.getUri();
     FileInfo fileInfo = inode.generateClientFileInfo(uri.toString());
     fileInfo.setInMemoryPercentage(getInMemoryPercentage(inode));
     fileInfo.setInAlluxioPercentage(getInAlluxioPercentage(inode));
     if (inode instanceof InodeFile) {
       try {
-        fileInfo.setFileBlockInfos(getFileBlockInfoListInternal(inodePath));
+        fileInfo.setFileBlockInfos(getFileBlockInfoListInternal(lockedInode));
       } catch (InvalidPathException e) {
         throw new FileDoesNotExistException(e.getMessage(), e);
       }
@@ -873,7 +873,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
 
       List<FileInfo> ret = new ArrayList<>();
       if (inode.isDirectory()) {
-        TempInodePathForDescendant tempInodePath = new TempInodePathForDescendant(inodePath);
+        TempLockedInode tempLockedInode =
+            new TempLockedInode(inodePath.getUri(), inodePath.getInode());
         try {
           mPermissionChecker.checkPermission(Mode.Bits.EXECUTE, inodePath);
         } catch (AccessControlException e) {
@@ -884,8 +885,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
           child.lockReadAndCheckParent(inode);
           try {
             // the path to child for getPath should already be locked.
-            tempInodePath.setDescendant(child, mInodeTree.getPath(child));
-            ret.add(getFileInfoInternal(tempInodePath));
+            tempLockedInode.setInode(mInodeTree.getPath(child), child);
+            ret.add(getFileInfoInternal(tempLockedInode));
           } finally {
             child.unlockRead();
           }
@@ -1446,7 +1447,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    * be deleted after the inode deletion journal entry has been written. We cannot delete blocks
    * earlier because the inode deletion may fail, leaving us with inode containing deleted blocks.
    *
-   * @param inodePath the file {@link LockedInodePath}
+   * @param lockedInode the file {@link LockedInode}
    * @param replayed whether the operation is a result of replaying the journal
    * @param opTimeMs the time of the operation
    * @param deleteOptions the method optitions
@@ -1456,15 +1457,12 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    * @throws InvalidPathException if the specified path is the root
    * @throws DirectoryNotEmptyException if recursive is false and the file is a nonempty directory
    */
-  private List<Inode<?>> deleteInternal(LockedInodePath inodePath, boolean replayed, long opTimeMs,
+  private List<Inode<?>> deleteInternal(LockedInode lockedInode, boolean replayed, long opTimeMs,
       DeleteOptions deleteOptions, JournalContext journalContext) throws FileDoesNotExistException,
       IOException, DirectoryNotEmptyException, InvalidPathException {
     // TODO(jiri): A crash after any UFS object is deleted and before the delete operation is
     // journaled will result in an inconsistency between Alluxio and UFS.
-    if (!inodePath.fullPathExists()) {
-      return Collections.EMPTY_LIST;
-    }
-    Inode<?> inode = inodePath.getInode();
+    Inode<?> inode = lockedInode.getInode();
     if (inode == null) {
       return Collections.EMPTY_LIST;
     }
@@ -1484,10 +1482,11 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     List<Pair<AlluxioURI, Inode>> delInodes = new ArrayList<>();
     List<Inode<?>> deletedInodes = new ArrayList<>();
 
-    Pair<AlluxioURI, Inode> inodePair = new Pair<>(inodePath.getUri(), inode);
+    Pair<AlluxioURI, Inode> inodePair = new Pair<>(lockedInode.getUri(), inode);
     delInodes.add(inodePair);
 
-    try (InodeLockList lockList = mInodeTree.lockDescendants(inodePath, InodeTree.LockMode.WRITE)) {
+    try (InodeLockList lockList = mInodeTree
+        .lockDescendants(lockedInode, InodeTree.LockMode.WRITE)) {
       // Traverse inodes top-down
       for (Inode descendant : lockList.getInodes()) {
         AlluxioURI descendantPath = mInodeTree.getPath(descendant);
@@ -1506,7 +1505,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       // Alluxio URIs which could not be deleted
       List<String> failedUris = new ArrayList<>();
 
-      TempInodePathForDescendant tempInodePath = new TempInodePathForDescendant(inodePath);
+      TempLockedInode tempLockedInode =
+          new TempLockedInode(lockedInode.getUri(), lockedInode.getInode());
       // We go through each inode, removing it from its parent set and from mDelInodes. If it's a
       // file, we deal with the checkpoints and blocks as well.
       for (int i = delInodes.size() - 1; i >= 0; i--) {
@@ -1553,12 +1553,12 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       // Delete Inodes
       for (Pair<AlluxioURI, Inode> delInodePair : inodesToDelete) {
         Inode delInode = delInodePair.getSecond();
-        tempInodePath.setDescendant(delInode, delInodePair.getFirst());
+        tempLockedInode.setInode(delInodePair.getFirst(), delInode);
         // Do not journal entries covered recursively for performance
         if (delInode.getId() == inode.getId() || unsafeInodes.contains(delInode.getParentId())) {
-          mInodeTree.deleteInode(tempInodePath, opTimeMs, deleteOptions, journalContext);
+          mInodeTree.deleteInode(tempLockedInode, opTimeMs, deleteOptions, journalContext);
         } else {
-          mInodeTree.deleteInode(tempInodePath, opTimeMs, deleteOptions,
+          mInodeTree.deleteInode(tempLockedInode, opTimeMs, deleteOptions,
               NoopJournalContext.INSTANCE);
         }
       }
@@ -1605,18 +1605,18 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
   }
 
   /**
-   * @param inodePath the {@link LockedInodePath} to get the info for
+   * @param lockedInode the {@link LockedInode} to get the info for
    * @return a list of {@link FileBlockInfo} for all the blocks of the given inode
    * @throws InvalidPathException if the path of the given file is invalid
    */
-  private List<FileBlockInfo> getFileBlockInfoListInternal(LockedInodePath inodePath)
+  private List<FileBlockInfo> getFileBlockInfoListInternal(LockedInode lockedInode)
       throws InvalidPathException, FileDoesNotExistException, UnavailableException {
-    InodeFile file = inodePath.getInodeFile();
+    InodeFile file = lockedInode.getInodeFile();
     List<BlockInfo> blockInfoList = mBlockMaster.getBlockInfoList(file.getBlockIds());
 
     List<FileBlockInfo> ret = new ArrayList<>();
     for (BlockInfo blockInfo : blockInfoList) {
-      ret.add(generateFileBlockInfo(inodePath, blockInfo));
+      ret.add(generateFileBlockInfo(lockedInode, blockInfo));
     }
     return ret;
   }
@@ -1625,14 +1625,14 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    * Generates a {@link FileBlockInfo} object from internal metadata. This adds file information to
    * the block, such as the file offset, and additional UFS locations for the block.
    *
-   * @param inodePath the file the block is a part of
+   * @param lockedInode the file the block is a part of
    * @param blockInfo the {@link BlockInfo} to generate the {@link FileBlockInfo} from
    * @return a new {@link FileBlockInfo} for the block
    * @throws InvalidPathException if the mount table is not able to resolve the file
    */
-  private FileBlockInfo generateFileBlockInfo(LockedInodePath inodePath, BlockInfo blockInfo)
+  private FileBlockInfo generateFileBlockInfo(LockedInode lockedInode, BlockInfo blockInfo)
       throws InvalidPathException, FileDoesNotExistException {
-    InodeFile file = inodePath.getInodeFile();
+    InodeFile file = lockedInode.getInodeFile();
     FileBlockInfo fileBlockInfo = new FileBlockInfo();
     fileBlockInfo.setBlockInfo(blockInfo);
     fileBlockInfo.setUfsLocations(new ArrayList<>());
@@ -1645,7 +1645,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       // No alluxio locations, but there is a checkpoint in the under storage system. Add the
       // locations from the under storage system.
       long blockId = fileBlockInfo.getBlockInfo().getBlockId();
-      List<String> locations = mUfsBlockLocationCache.get(blockId, inodePath.getUri(),
+      List<String> locations = mUfsBlockLocationCache.get(blockId, lockedInode.getUri(),
           fileBlockInfo.getOffset());
       if (locations != null) {
         fileBlockInfo.setUfsLocations(locations);
@@ -2214,49 +2214,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
   }
 
   /**
-   * Propagates the persisted status to all parents of the given inode in the same mount partition.
-   *
-   * @param inodePath the inode to start the propagation at
-   * @param replayed whether the invocation is a result of replaying the journal
-   * @return list of inodes which were marked as persisted
-   * @throws FileDoesNotExistException if a non-existent file is encountered
-   */
-  private List<Inode<?>> propagatePersistedInternal(LockedInodePath inodePath, boolean replayed)
-      throws FileDoesNotExistException {
-    Inode<?> inode = inodePath.getInode();
-    if (!inode.isPersisted()) {
-      return Collections.emptyList();
-    }
-
-    List<Inode<?>> inodes = inodePath.getInodeList();
-    // Traverse the inodes from target inode to the root.
-    Collections.reverse(inodes);
-    // Skip the first, to not examine the target inode itself.
-    inodes = inodes.subList(1, inodes.size());
-
-    List<Inode<?>> persistedInodes = new ArrayList<>();
-    for (Inode<?> handle : inodes) {
-      // the path is already locked.
-      AlluxioURI path = mInodeTree.getPath(handle);
-      if (mMountTable.isMountPoint(path)) {
-        // Stop propagating the persisted status at mount points.
-        break;
-      }
-      if (handle.isPersisted()) {
-        // Stop if a persisted directory is encountered.
-        break;
-      }
-      handle.setPersistenceState(PersistenceState.PERSISTED);
-      if (!replayed) {
-        persistedInodes.add(inode);
-      }
-    }
-    return persistedInodes;
-  }
-
-  /**
-   * Journals the list of persisted inodes returned from
-   * {@link #propagatePersistedInternal(LockedInodePath, boolean)}. This does not flush the journal.
+   * Journals the list of persisted inodes. This does not flush the journal.
    *
    * @param persistedInodes the list of persisted inodes to journal
    * @param journalContext the journal context
@@ -2322,7 +2280,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
 
     try (InodeLockList lockList = mInodeTree.lockDescendants(inodePath, InodeTree.LockMode.WRITE)) {
       freeInodes.addAll(lockList.getInodes());
-      TempInodePathForDescendant tempInodePath = new TempInodePathForDescendant(inodePath);
+      TempLockedInode tempLockedInode =
+          new TempLockedInode(inodePath.getUri(), inodePath.getInode());
       // We go through each inode.
       for (int i = freeInodes.size() - 1; i >= 0; i--) {
         Inode<?> freeInode = freeInodes.get(i);
@@ -2338,11 +2297,11 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
                   .getMessage(mInodeTree.getPath(freeInode)));
             }
             // the path to inode for getPath should already be locked.
-            tempInodePath.setDescendant(freeInode, mInodeTree.getPath(freeInode));
+            tempLockedInode.setInode(mInodeTree.getPath(freeInode), freeInode);
             SetAttributeOptions setAttributeOptions =
                 SetAttributeOptions.defaults().setRecursive(false).setPinned(false);
-            setAttributeInternal(tempInodePath, false, opTimeMs, setAttributeOptions);
-            journalSetAttribute(tempInodePath, opTimeMs, setAttributeOptions, journalContext);
+            setAttributeInternal(tempLockedInode, false, opTimeMs, setAttributeOptions);
+            journalSetAttribute(tempLockedInode, opTimeMs, setAttributeOptions, journalContext);
           }
           // Remove corresponding blocks from workers.
           mBlockMaster.removeBlocks(((InodeFile) freeInode).getBlockIds(), false /* delete */);
@@ -2500,15 +2459,16 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
               // loading all descendants.
               continue;
             }
-            TempInodePathForChild tempInodePath =
-                new TempInodePathForChild(inodePath, childStatus.getName());
             DescendantType loadDescendantType =
                 (options.getLoadDescendantType() == DescendantType.ONE) ? DescendantType.NONE :
                     DescendantType.ALL;
             LoadMetadataOptions loadMetadataOptions =
                 LoadMetadataOptions.defaults().setLoadDescendantType(loadDescendantType)
                     .setCreateAncestors(false).setUfsStatus(childStatus);
-            loadMetadataAndJournal(tempInodePath, loadMetadataOptions, journalContext);
+            try (LockedInodePath tempInodePath = inodePath
+                .createTempPathForChild(childStatus.getName())) {
+              loadMetadataAndJournal(tempInodePath, loadMetadataOptions, journalContext);
+            }
           }
           inode.setDirectChildrenLoaded(true);
         }
@@ -3019,14 +2979,15 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
             mPermissionChecker.checkSetAttributePermission(childPath, rootRequired, ownerRequired);
           }
         }
-        TempInodePathForDescendant tempInodePath = new TempInodePathForDescendant(inodePath);
+        TempLockedInode tempLockedInode =
+            new TempLockedInode(inodePath.getUri(), inodePath.getInode());
         for (Inode<?> inode : inodeChildren) {
           // the path to inode for getPath should already be locked.
-          tempInodePath.setDescendant(inode, mInodeTree.getPath(inode));
+          tempLockedInode.setInode(mInodeTree.getPath(inode), inode);
           List<Inode<?>> persistedInodes =
-              setAttributeInternal(tempInodePath, false, opTimeMs, options);
+              setAttributeInternal(tempLockedInode, false, opTimeMs, options);
           journalPersistedInodes(persistedInodes, journalContext);
-          journalSetAttribute(tempInodePath, opTimeMs, options, journalContext);
+          journalSetAttribute(tempLockedInode, opTimeMs, options, journalContext);
         }
       }
     }
@@ -3036,16 +2997,16 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
   }
 
   /**
-   * @param inodePath the file path to use
+   * @param lockedInode the file path to use
    * @param opTimeMs the operation time (in milliseconds)
    * @param options the method options
    * @param journalContext the journal context
    * @throws FileDoesNotExistException if path does not exist
    */
-  private void journalSetAttribute(LockedInodePath inodePath, long opTimeMs,
+  private void journalSetAttribute(LockedInode lockedInode, long opTimeMs,
       SetAttributeOptions options, JournalContext journalContext) throws FileDoesNotExistException {
     SetAttributeEntry.Builder builder =
-        SetAttributeEntry.newBuilder().setId(inodePath.getInode().getId()).setOpTimeMs(opTimeMs);
+        SetAttributeEntry.newBuilder().setId(lockedInode.getInode().getId()).setOpTimeMs(opTimeMs);
     if (options.getPinned() != null) {
       builder.setPinned(options.getPinned());
     }
@@ -3213,20 +3174,20 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     return true;
   }
 
-  private boolean syncDirMetadata(JournalContext journalContext, LockedInodePath inodePath,
+  private boolean syncDirMetadata(JournalContext journalContext, LockedInode lockedInode,
       DescendantType syncDescendantType)
       throws FileDoesNotExistException, InvalidPathException, IOException,
       DirectoryNotEmptyException {
     if (syncDescendantType == DescendantType.NONE) {
       return false;
     }
-    MountTable.Resolution resolution = mMountTable.resolve(inodePath.getUri());
+    MountTable.Resolution resolution = mMountTable.resolve(lockedInode.getUri());
     AlluxioURI ufsUri = resolution.getUri();
 
     boolean loadMetadata = false;
     DeleteOptions syncDeleteOptions =
         DeleteOptions.defaults().setRecursive(true).setAlluxioOnly(true).setUnchecked(true);
-    Inode<?> inode = inodePath.getInode();
+    Inode<?> inode = lockedInode.getInode();
 
     try (CloseableResource<UnderFileSystem> ufsResource = resolution.acquireUfsResource()) {
       UnderFileSystem ufs = ufsResource.get();
@@ -3269,25 +3230,23 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
               !UfsSyncUtils.inodeUfsIsSynced(inodeEntry.getValue(), ufsFingerprint);
 
           if (deleteChild) {
-            TempInodePathForDescendant tempInodePath =
-                new TempInodePathForDescendant(inodePath);
-            tempInodePath.setDescendant(inodeEntry.getValue(),
-                inodePath.getUri().join(inodeEntry.getKey()));
+            TempLockedInode tempLockedInode =
+                new TempLockedInode(lockedInode.getUri().join(inodeEntry.getKey()),
+                    inodeEntry.getValue());
 
-            deleteInternal(tempInodePath, false, System.currentTimeMillis(), syncDeleteOptions,
+            deleteInternal(tempLockedInode, false, System.currentTimeMillis(), syncDeleteOptions,
                 journalContext);
             // Must load metadata afterwards.
             loadMetadata = true;
           } else if (inodeEntry.getValue().isDirectory()) {
             // Recursively sync for this directory.
-            TempInodePathForDescendant tempInodePath =
-                new TempInodePathForDescendant(inodePath);
-            tempInodePath.setDescendant(inodeEntry.getValue(),
-                inodePath.getUri().join(inodeEntry.getKey()));
+            TempLockedInode tempLockedInode =
+                new TempLockedInode(lockedInode.getUri().join(inodeEntry.getKey()),
+                    inodeEntry.getValue());
 
             if (syncDescendantType == DescendantType.ALL) {
               // Recursively sync children
-              loadMetadata |= syncDirMetadata(journalContext, tempInodePath, DescendantType.ALL);
+              loadMetadata |= syncDirMetadata(journalContext, tempLockedInode, DescendantType.ALL);
             }
           }
         }
@@ -3328,7 +3287,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
   }
 
   /**
-   * @param inodePath the {@link LockedInodePath} to use
+   * @param lockedInode the {@link LockedInode} to use
    * @param replayed whether the operation is a result of replaying the journal
    * @param opTimeMs the operation time (in milliseconds)
    * @param options the method options
@@ -3337,13 +3296,13 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    * @throws InvalidPathException if the file path corresponding to the file id is invalid
    * @throws AccessControlException if failed to set permission
    */
-  private List<Inode<?>> setAttributeInternal(LockedInodePath inodePath, boolean replayed,
+  private List<Inode<?>> setAttributeInternal(LockedInode lockedInode, boolean replayed,
       long opTimeMs, SetAttributeOptions options)
       throws FileDoesNotExistException, InvalidPathException, AccessControlException {
     List<Inode<?>> persistedInodes = Collections.emptyList();
-    Inode<?> inode = inodePath.getInode();
+    Inode<?> inode = lockedInode.getInode();
     if (options.getPinned() != null) {
-      mInodeTree.setPinned(inodePath, options.getPinned(), opTimeMs);
+      mInodeTree.setPinned(lockedInode, options.getPinned(), opTimeMs);
       inode.setLastModificationTimeMs(opTimeMs);
     }
     if (options.getTtl() != null) {
@@ -3368,7 +3327,12 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
           .checkArgument(options.getPersisted(), PreconditionMessage.ERR_SET_STATE_UNPERSIST);
       if (!file.isPersisted()) {
         file.setPersistenceState(PersistenceState.PERSISTED);
-        persistedInodes = propagatePersistedInternal(inodePath, false);
+        if (replayed) {
+          // Do not return persisted inodes for replayed operations
+          mInodeTree.propagatePersisted(lockedInode);
+        } else {
+          persistedInodes = mInodeTree.propagatePersisted(lockedInode);
+        }
         file.setLastModificationTimeMs(opTimeMs);
         Metrics.FILES_PERSISTED.inc();
       }
@@ -3380,8 +3344,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       if ((inode instanceof InodeFile) && !((InodeFile) inode).isCompleted()) {
         LOG.debug("Alluxio does not propagate chown/chgrp/chmod to UFS for incomplete files.");
       } else {
-        checkUfsMode(inodePath.getUri(), OperationType.WRITE);
-        MountTable.Resolution resolution = mMountTable.resolve(inodePath.getUri());
+        checkUfsMode(lockedInode.getUri(), OperationType.WRITE);
+        MountTable.Resolution resolution = mMountTable.resolve(lockedInode.getUri());
         String ufsUri = resolution.getUri().toString();
         try (CloseableResource<UnderFileSystem> ufsResource = resolution.acquireUfsResource()) {
           UnderFileSystem ufs = ufsResource.get();

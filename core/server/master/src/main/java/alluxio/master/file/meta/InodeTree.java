@@ -52,6 +52,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -201,8 +202,8 @@ public class InodeTree implements JournalEntryIterable {
   public boolean inodePathExists(AlluxioURI uri) {
     try {
       TraversalResult traversalResult =
-          traverseToInode(PathUtils.getPathComponents(uri.getPath()), LockMode.READ, null);
-      traversalResult.getInodeLockList().close();
+          traverseToInode(uri, PathUtils.getPathComponents(uri.getPath()), LockMode.READ, null);
+      traversalResult.getLockedPath().close();
       return traversalResult.isFound();
     } catch (InvalidPathException e) {
       return false;
@@ -221,9 +222,8 @@ public class InodeTree implements JournalEntryIterable {
   public LockedInodePath lockInodePath(AlluxioURI path, LockMode lockMode)
       throws InvalidPathException {
     TraversalResult traversalResult =
-        traverseToInode(PathUtils.getPathComponents(path.getPath()), lockMode, null);
-    return new MutableLockedInodePath(path, traversalResult.getInodes(),
-        traversalResult.getInodeLockList(), lockMode);
+        traverseToInode(path, PathUtils.getPathComponents(path.getPath()), lockMode, null);
+    return traversalResult.getLockedPath();
   }
 
   /**
@@ -268,26 +268,24 @@ public class InodeTree implements JournalEntryIterable {
     try {
       // Lock paths in a deterministic order.
       if (path1.compareTo(path2) > 0) {
-        traversalResult2 = traverseToInode(pathComponents2, lockMode2, lockHints);
-        traversalResult1 = traverseToInode(pathComponents1, lockMode1, lockHints);
+        traversalResult2 = traverseToInode(path2, pathComponents2, lockMode2, lockHints);
+        traversalResult1 = traverseToInode(path1, pathComponents1, lockMode1, lockHints);
       } else {
-        traversalResult1 = traverseToInode(pathComponents1, lockMode1, lockHints);
-        traversalResult2 = traverseToInode(pathComponents2, lockMode2, lockHints);
+        traversalResult1 = traverseToInode(path1, pathComponents1, lockMode1, lockHints);
+        traversalResult2 = traverseToInode(path2, pathComponents2, lockMode2, lockHints);
       }
 
-      LockedInodePath inodePath1 = new MutableLockedInodePath(path1, traversalResult1.getInodes(),
-          traversalResult1.getInodeLockList(), lockMode1);
-      LockedInodePath inodePath2 = new MutableLockedInodePath(path2, traversalResult2.getInodes(),
-          traversalResult2.getInodeLockList(), lockMode2);
+      LockedInodePath inodePath1 = traversalResult1.getLockedPath();
+      LockedInodePath inodePath2 = traversalResult2.getLockedPath();
       valid = true;
       return new InodePathPair(inodePath1, inodePath2);
     } finally {
       if (!valid) {
         if (traversalResult1 != null) {
-          traversalResult1.getInodeLockList().close();
+          traversalResult1.getLockedPath().close();
         }
         if (traversalResult2 != null) {
-          traversalResult2.getInodeLockList().close();
+          traversalResult2.getLockedPath().close();
         }
       }
     }
@@ -334,13 +332,12 @@ public class InodeTree implements JournalEntryIterable {
   public LockedInodePath lockFullInodePath(AlluxioURI path, LockMode lockMode)
       throws InvalidPathException, FileDoesNotExistException {
     TraversalResult traversalResult =
-        traverseToInode(PathUtils.getPathComponents(path.getPath()), lockMode, null);
+        traverseToInode(path, PathUtils.getPathComponents(path.getPath()), lockMode, null);
     if (!traversalResult.isFound()) {
-      traversalResult.getInodeLockList().close();
+      traversalResult.getLockedPath().close();
       throw new FileDoesNotExistException(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(path));
     }
-    return new MutableLockedInodePath(path, traversalResult.getInodes(),
-        traversalResult.getInodeLockList(), lockMode);
+    return traversalResult.getLockedPath();
   }
 
   /**
@@ -519,14 +516,13 @@ public class InodeTree implements JournalEntryIterable {
     LOG.debug("createPath {}", path);
 
     TraversalResult traversalResult = traverseToInode(inodePath, inodePath.getLockMode());
-    InodeLockList lockList = traversalResult.getInodeLockList();
 
-    MutableLockedInodePath extensibleInodePath = (MutableLockedInodePath) inodePath;
+    MutableLockedInodePath extensibleInodePath = traversalResult.getLockedPath();
     String[] pathComponents = extensibleInodePath.getPathComponents();
     String name = path.getName();
 
     // pathIndex is the index into pathComponents where we start filling in the path from the inode.
-    int pathIndex = extensibleInodePath.getInodes().size();
+    int pathIndex = extensibleInodePath.getInodeList().size();
     if (pathIndex < pathComponents.length - 1) {
       // The immediate parent was not found. If it's not recursive, we throw an exception here.
       // Otherwise we add the remaining path components to the list of components to create.
@@ -588,14 +584,15 @@ public class InodeTree implements JournalEntryIterable {
         dir = InodeDirectory.create(mDirectoryIdGenerator.getNewDirectoryId(journalContext),
             currentInodeDirectory.getId(), pathComponents[k], missingDirOptions);
         // Lock the newly created inode before subsequent operations, and add it to the lock group.
-        lockList.lockWriteAndCheckNameAndParent(dir, currentInodeDirectory, pathComponents[k]);
+        extensibleInodePath.getLockList()
+            .lockWriteAndCheckNameAndParent(dir, currentInodeDirectory, pathComponents[k]);
 
         if (!currentInodeDirectory.addChild(dir)) {
           // The child directory inode already exists. Get the existing child inode.
-          lockList.unlockLast();
+          extensibleInodePath.unlockLast();
 
-          dir =
-              (InodeDirectory) currentInodeDirectory.getChildReadLock(pathComponents[k], lockList);
+          dir = (InodeDirectory) currentInodeDirectory
+              .getChildReadLock(pathComponents[k], extensibleInodePath.getLockList());
           if (dir == null) {
             // Could not get the child inode. Continue and try again.
             continue;
@@ -612,12 +609,11 @@ public class InodeTree implements JournalEntryIterable {
           mInodes.add(dir);
 
           // After creation and journaling, downgrade to a read lock.
-          lockList.downgradeLast();
+          extensibleInodePath.downgradeLast();
         }
       }
 
       createdInodes.add(dir);
-      extensibleInodePath.getInodes().add(dir);
       currentInodeDirectory = dir;
     }
 
@@ -627,18 +623,25 @@ public class InodeTree implements JournalEntryIterable {
     // FileAlreadyExistsException unless options.allowExists is true.
     Inode<?> lastInode = null;
     while (lastInode == null) {
-      // Try to lock the last inode with the lock mode of the path.
-      switch (extensibleInodePath.getLockMode()) {
-        case READ:
-          lastInode = currentInodeDirectory.getChildReadLock(name, lockList);
-          break;
-        case WRITE_PARENT:
-        case WRITE:
-          lastInode = currentInodeDirectory.getChildWriteLock(name, lockList);
-          break;
-        default:
-          // This should not be reachable.
-          LOG.warn("Unexpected lock mode encountered: {}", extensibleInodePath.getLockMode());
+      // Get the last inode in the given inode path, since a full directory is allowed to be
+      // created again (to persist).
+      lastInode = inodePath.getInodeOrNull();
+      if (lastInode == null) {
+        // Try to lock the last inode with the lock mode of the path.
+        switch (extensibleInodePath.getLockMode()) {
+          case READ:
+            lastInode =
+                currentInodeDirectory.getChildReadLock(name, extensibleInodePath.getLockList());
+            break;
+          case WRITE_PARENT:
+          case WRITE:
+            lastInode =
+                currentInodeDirectory.getChildWriteLock(name, extensibleInodePath.getLockList());
+            break;
+          default:
+            // This should not be reachable.
+            LOG.warn("Unexpected lock mode encountered: {}", extensibleInodePath.getLockMode());
+        }
       }
       if (lastInode != null) {
         // inode to create already exists
@@ -660,7 +663,8 @@ public class InodeTree implements JournalEntryIterable {
           lastInode = InodeDirectory.create(mDirectoryIdGenerator.getNewDirectoryId(journalContext),
               currentInodeDirectory.getId(), name, directoryOptions);
           // Lock the created inode before subsequent operations, and add it to the lock group.
-          lockList.lockWriteAndCheckNameAndParent(lastInode, currentInodeDirectory, name);
+          extensibleInodePath.getLockList()
+              .lockWriteAndCheckNameAndParent(lastInode, currentInodeDirectory, name);
           if (directoryOptions.isPersisted()) {
             // Do not journal the persist entry, since a creation entry will be journaled instead.
             syncPersistDirectory((InodeDirectory) lastInode, NoopJournalContext.INSTANCE);
@@ -670,7 +674,8 @@ public class InodeTree implements JournalEntryIterable {
           lastInode = InodeFile.create(mContainerIdGenerator.getNewContainerId(),
               currentInodeDirectory.getId(), name, System.currentTimeMillis(), fileOptions);
           // Lock the created inode before subsequent operations, and add it to the lock group.
-          lockList.lockWriteAndCheckNameAndParent(lastInode, currentInodeDirectory, name);
+          extensibleInodePath.getLockList()
+              .lockWriteAndCheckNameAndParent(lastInode, currentInodeDirectory, name);
           if (fileOptions.isCacheable()) {
             ((InodeFile) lastInode).setCacheable(true);
           }
@@ -680,7 +685,7 @@ public class InodeTree implements JournalEntryIterable {
         if (!currentInodeDirectory.addChild(lastInode)) {
           // Could not add the child inode to the parent. Continue and try again.
           // Cleanup is not necessary, since other state is updated later, after a successful add.
-          lockList.unlockLast();
+          extensibleInodePath.unlockLast();
           lastInode = null;
           continue;
         }
@@ -699,7 +704,6 @@ public class InodeTree implements JournalEntryIterable {
         mInodes.add(lastInode);
 
         createdInodes.add(lastInode);
-        extensibleInodePath.getInodes().add(lastInode);
       }
     }
 
@@ -710,7 +714,7 @@ public class InodeTree implements JournalEntryIterable {
   /**
    * Reinitializes the block size and TTL of an existing open file.
    *
-   * @param inodePath the path to the file
+   * @param lockedInode the locked inode
    * @param blockSizeBytes the new block size
    * @param ttl the ttl
    * @param ttlAction action to perform after TTL expiry
@@ -718,10 +722,10 @@ public class InodeTree implements JournalEntryIterable {
    * @throws InvalidPathException if the path is invalid
    * @throws FileDoesNotExistException if the path does not exist
    */
-  public long reinitializeFile(LockedInodePath inodePath, long blockSizeBytes, long ttl,
+  public long reinitializeFile(LockedInode lockedInode, long blockSizeBytes, long ttl,
       TtlAction ttlAction)
       throws InvalidPathException, FileDoesNotExistException {
-    InodeFile file = inodePath.getInodeFile();
+    InodeFile file = lockedInode.getInodeFile();
     file.setBlockSizeBytes(blockSizeBytes);
     file.setTtl(ttl);
     file.setTtlAction(ttlAction);
@@ -729,17 +733,17 @@ public class InodeTree implements JournalEntryIterable {
   }
 
   /**
-   * Locks all descendants of a particular {@link LockedInodePath}. Any directory inode
+   * Locks all descendants of a particular {@link LockedInode}. Any directory inode
    * precedes its descendants in the list.
    *
-   * @param inodePath the root {@link LockedInodePath} to retrieve all descendants from
+   * @param lockedInode the root {@link LockedInode} to retrieve all descendants from
    * @param lockMode the lock type to use
    * @return an {@link InodeLockList} representing the list of all descendants
    * @throws FileDoesNotExistException if inode does not exist
    */
-  public InodeLockList lockDescendants(LockedInodePath inodePath, LockMode lockMode)
+  public InodeLockList lockDescendants(LockedInode lockedInode, LockMode lockMode)
       throws FileDoesNotExistException {
-    Inode<?> inode = inodePath.getInode();
+    Inode<?> inode = lockedInode.getInode();
     InodeLockList inodeGroup = new InodeLockList();
     if (!inode.isDirectory()) {
       return inodeGroup;
@@ -775,16 +779,16 @@ public class InodeTree implements JournalEntryIterable {
   /**
    * Deletes a single inode from the inode tree by removing it from the parent inode.
    *
-   * @param inodePath The {@link LockedInodePath} to delete
+   * @param lockedInode The {@link LockedInode} to delete
    * @param opTimeMs The operation time
    * @param deleteOptions the delete options
    * @param journalContext the journal context
    * @throws FileDoesNotExistException if the Inode cannot be retrieved
    */
-  public void deleteInode(LockedInodePath inodePath, long opTimeMs, DeleteOptions deleteOptions,
+  public void deleteInode(LockedInode lockedInode, long opTimeMs, DeleteOptions deleteOptions,
       JournalContext journalContext)
       throws FileDoesNotExistException {
-    Inode<?> inode = inodePath.getInode();
+    Inode<?> inode = lockedInode.getInode();
     InodeDirectory parent = (InodeDirectory) mInodes.getFirst(inode.getParentId());
     if (parent == null) {
       LOG.warn("Parent id not found: {} deleting inode: {}", inode.getParentId(), inode);
@@ -811,14 +815,14 @@ public class InodeTree implements JournalEntryIterable {
    * Sets the pinned state of an inode. If the inode is a directory, the pinned state will be set
    * recursively.
    *
-   * @param inodePath the {@link LockedInodePath} to set the pinned state for
+   * @param lockedInode the {@link LockedInode} to set the pinned state for
    * @param pinned the pinned state to set for the inode (and possible descendants)
    * @param opTimeMs the operation time
    * @throws FileDoesNotExistException if inode does not exist
    */
-  public void setPinned(LockedInodePath inodePath, boolean pinned, long opTimeMs)
+  public void setPinned(LockedInode lockedInode, boolean pinned, long opTimeMs)
       throws FileDoesNotExistException {
-    Inode<?> inode = inodePath.getInode();
+    Inode<?> inode = lockedInode.getInode();
     inode.setPinned(pinned);
     inode.setLastModificationTimeMs(opTimeMs);
 
@@ -832,7 +836,8 @@ public class InodeTree implements JournalEntryIterable {
     } else {
       assert inode instanceof InodeDirectory;
       // inode is a directory. Set the pinned state for all children.
-      TempInodePathForDescendant tempInodePath = new TempInodePathForDescendant(inodePath);
+      TempLockedInode tempInodePath =
+          new TempLockedInode(lockedInode.getUri(), lockedInode.getInode());
       for (Inode<?> child : ((InodeDirectory) inode).getChildren()) {
         try {
           child.lockWriteAndCheckParent(inode);
@@ -841,7 +846,7 @@ public class InodeTree implements JournalEntryIterable {
           continue;
         }
         try {
-          tempInodePath.setDescendant(child, getPath(child));
+          tempInodePath.setInode(getPath(child), child);
           setPinned(tempInodePath, pinned, opTimeMs);
         } finally {
           child.unlockWrite();
@@ -854,13 +859,13 @@ public class InodeTree implements JournalEntryIterable {
    * Sets the pinned state of an inode. If the inode is a directory, the pinned state will be set
    * recursively.
    *
-   * @param inodePath the {@link LockedInodePath} to set the pinned state for
+   * @param lockedInode the {@link LockedInode} to set the pinned state for
    * @param pinned the pinned state to set for the inode (and possible descendants)
    * @throws FileDoesNotExistException if inode does not exist
    */
-  public void setPinned(LockedInodePath inodePath, boolean pinned)
+  public void setPinned(LockedInode lockedInode, boolean pinned)
       throws FileDoesNotExistException {
-    setPinned(inodePath, pinned, System.currentTimeMillis());
+    setPinned(lockedInode, pinned, System.currentTimeMillis());
   }
 
   /**
@@ -868,6 +873,47 @@ public class InodeTree implements JournalEntryIterable {
    */
   public Set<Long> getPinIdSet() {
     return new HashSet<>(mPinnedInodeFileIds);
+  }
+
+  /**
+   * Propagates the persisted status to all parents of the given inode in the same mount partition.
+   * The inode and path must already be locked.
+   *
+   * @param lockedInode the inode to start the propagation at
+   * @return list of inodes which were marked as persisted
+   * @throws FileDoesNotExistException if a non-existent file is encountered
+   */
+  public List<Inode<?>> propagatePersisted(LockedInode lockedInode)
+      throws FileDoesNotExistException {
+    Inode<?> targetInode = lockedInode.getInode();
+    if (!targetInode.isPersisted()) {
+      return Collections.emptyList();
+    }
+
+    // Start iterating from parent inode
+    long id = targetInode.getParentId();
+    List<Inode<?>> persistedInodes = new ArrayList<>();
+
+    while (id != NO_PARENT) {
+      Inode<?> inode = mInodes.getFirst(id);
+      if (inode == null) {
+        throw new FileDoesNotExistException(
+            ExceptionMessage.INODE_DOES_NOT_EXIST.getMessage(id));
+      }
+      AlluxioURI path = getPath(inode);
+      if (mMountTable.isMountPoint(path)) {
+        // Stop propagating the persisted status at mount points.
+        break;
+      }
+      if (inode.isPersisted()) {
+        // Stop if a persisted directory is encountered.
+        break;
+      }
+      inode.setPersistenceState(PersistenceState.PERSISTED);
+      persistedInodes.add(targetInode);
+      id = inode.getParentId();
+    }
+    return persistedInodes;
   }
 
   /**
@@ -1061,11 +1107,10 @@ public class InodeTree implements JournalEntryIterable {
    * @return the {@link TraversalResult} for this traversal
    * @throws InvalidPathException if the path is invalid
    */
-  private TraversalResult traverseToInode(String[] pathComponents, LockMode lockMode,
-      List<LockMode> lockHints)
+  private TraversalResult traverseToInode(AlluxioURI path, String[] pathComponents,
+      LockMode lockMode, List<LockMode> lockHints)
       throws InvalidPathException {
     List<Inode<?>> nonPersistedInodes = new ArrayList<>();
-    List<Inode<?>> inodes = new ArrayList<>();
     InodeLockList lockList = new InodeLockList();
 
     // This must be set to true before returning a valid value, otherwise all the inodes will be
@@ -1085,9 +1130,10 @@ public class InodeTree implements JournalEntryIterable {
           } else {
             lockList.lockWrite(mRoot);
           }
-          inodes.add(mRoot);
+          MutableLockedInodePath extensibleInodePath =
+              new MutableLockedInodePath(path, lockList, lockMode);
           valid = true;
-          return TraversalResult.createFoundResult(nonPersistedInodes, inodes, lockList);
+          return TraversalResult.createFoundResult(nonPersistedInodes, extensibleInodePath);
         } else {
           throw new InvalidPathException(
               ExceptionMessage.PATH_COMPONENTS_INVALID_START.getMessage(pathComponents[0]));
@@ -1099,10 +1145,12 @@ public class InodeTree implements JournalEntryIterable {
       } else {
         lockList.lockWrite(mRoot);
       }
-      inodes.add(mRoot);
+      MutableLockedInodePath extensibleInodePath =
+          new MutableLockedInodePath(path, lockList, lockMode);
+
       TraversalResult result =
-          traverseToInodeInternal(pathComponents, inodes, nonPersistedInodes, lockList, lockMode,
-              lockHints);
+          traverseToInodeInternal(pathComponents, nonPersistedInodes, extensibleInodePath,
+              lockMode, lockHints);
       valid = true;
       return result;
     } finally {
@@ -1129,50 +1177,46 @@ public class InodeTree implements JournalEntryIterable {
           ExceptionMessage.NOT_MUTABLE_INODE_PATH.getMessage(inodePath.getUri()));
     }
     MutableLockedInodePath extensibleInodePath = (MutableLockedInodePath) inodePath;
-    List<Inode<?>> inodes = extensibleInodePath.getInodes();
-    InodeLockList lockList = extensibleInodePath.getLockList();
     List<Inode<?>> nonPersistedInodes = new ArrayList<>();
-    for (Inode<?> inode : inodes) {
+    for (Inode<?> inode : extensibleInodePath.getInodeList()) {
       if (!inode.isPersisted()) {
         nonPersistedInodes.add(inode);
       }
     }
-    return traverseToInodeInternal(extensibleInodePath.getPathComponents(), inodes,
-        nonPersistedInodes, lockList, lockMode, null);
+    return traverseToInodeInternal(extensibleInodePath.getPathComponents(), nonPersistedInodes,
+        extensibleInodePath, lockMode, null);
   }
 
-  private TraversalResult traverseToInodeInternal(String[] pathComponents, List<Inode<?>> inodes,
-      List<Inode<?>> nonPersistedInodes, InodeLockList lockList, LockMode lockMode,
+  private TraversalResult traverseToInodeInternal(String[] pathComponents,
+      List<Inode<?>> nonPersistedInodes, MutableLockedInodePath mutablePath, LockMode lockMode,
       List<LockMode> lockHints)
       throws InvalidPathException {
-    Inode<?> current = inodes.get(inodes.size() - 1);
-    for (int i = inodes.size(); i < pathComponents.length; i++) {
+    Inode<?> current = mutablePath.getLastExistingInode();
+    for (int i = mutablePath.getInodeList().size(); i < pathComponents.length; i++) {
       Inode<?> next = ((InodeDirectory) current).getChild(pathComponents[i]);
       if (next == null) {
         // The user might want to create the nonexistent directories, so return the traversal
         // result current inode with the last Inode taken, and the index of the first path
         // component that couldn't be found.
-        return TraversalResult.createNotFoundResult(i, nonPersistedInodes, inodes, lockList);
+        return TraversalResult.createNotFoundResult(i, nonPersistedInodes, mutablePath);
       }
       // Lock the existing next inode before proceeding.
       if (getLockModeForComponent(i, pathComponents.length, lockMode, lockHints)
           == LockMode.READ) {
-        lockList.lockReadAndCheckNameAndParent(next, current, pathComponents[i]);
+        mutablePath.getLockList().lockReadAndCheckNameAndParent(next, current, pathComponents[i]);
       } else {
-        lockList.lockWriteAndCheckNameAndParent(next, current, pathComponents[i]);
+        mutablePath.getLockList().lockWriteAndCheckNameAndParent(next, current, pathComponents[i]);
       }
       if (next.isFile()) {
         // The inode can't have any children. If this is the last path component, we're good.
         // Otherwise, we can't traverse further, so we clean up and throw an exception.
         if (i == pathComponents.length - 1) {
-          inodes.add(next);
-          return TraversalResult.createFoundResult(nonPersistedInodes, inodes, lockList);
+          return TraversalResult.createFoundResult(nonPersistedInodes, mutablePath);
         } else {
           throw new InvalidPathException(
               "Traversal failed. Component " + i + "(" + next.getName() + ") is a file");
         }
       } else {
-        inodes.add(next);
         if (!next.isPersisted()) {
           // next is a directory and not persisted
           nonPersistedInodes.add(next);
@@ -1180,7 +1224,7 @@ public class InodeTree implements JournalEntryIterable {
         current = next;
       }
     }
-    return TraversalResult.createFoundResult(nonPersistedInodes, inodes, lockList);
+    return TraversalResult.createFoundResult(nonPersistedInodes, mutablePath);
   }
 
   private static final class TraversalResult {
@@ -1190,29 +1234,25 @@ public class InodeTree implements JournalEntryIterable {
     /** The list of non-persisted inodes encountered during the traversal. */
     private final List<Inode<?>> mNonPersisted;
 
-    /** The list of all inodes encountered during the traversal. */
-    private final List<Inode<?>> mInodes;
-
-    /** The {@link InodeLockList} managing the locks for the inodes. */
-    private final InodeLockList mLockList;
+    /** The {@link MutableLockedInodePath} managing the locks for the inodes. */
+    private final MutableLockedInodePath mLockedPath;
 
     // TODO(gpang): consider a builder paradigm to iteratively build the traversal result.
-    static TraversalResult createFoundResult(List<Inode<?>> nonPersisted, List<Inode<?>> inodes,
-        InodeLockList lockList) {
-      return new TraversalResult(true, nonPersisted, inodes, lockList);
+    static TraversalResult createFoundResult(List<Inode<?>> nonPersisted,
+        MutableLockedInodePath lockedPath) {
+      return new TraversalResult(true, nonPersisted, lockedPath);
     }
 
     static TraversalResult createNotFoundResult(int index, List<Inode<?>> nonPersisted,
-        List<Inode<?>> inodes, InodeLockList lockList) {
-      return new TraversalResult(false, nonPersisted, inodes, lockList);
+        MutableLockedInodePath lockedPath) {
+      return new TraversalResult(false, nonPersisted, lockedPath);
     }
 
     private TraversalResult(boolean found, List<Inode<?>> nonPersisted,
-        List<Inode<?>> inodes, InodeLockList lockList) {
+        MutableLockedInodePath lockedPath) {
       mFound = found;
       mNonPersisted = nonPersisted;
-      mInodes = inodes;
-      mLockList = lockList;
+      mLockedPath = lockedPath;
     }
 
     /**
@@ -1230,17 +1270,10 @@ public class InodeTree implements JournalEntryIterable {
     }
 
     /**
-     * @return the list of all inodes encountered during the traversal
+     * @return the {@link MutableLockedInodePath} managing the locks for all the inodes
      */
-    List<Inode<?>> getInodes() {
-      return mInodes;
-    }
-
-    /**
-     * @return the {@link InodeLockList} managing the locks for all the inodes
-     */
-    InodeLockList getInodeLockList() {
-      return mLockList;
+    MutableLockedInodePath getLockedPath() {
+      return mLockedPath;
     }
   }
 

@@ -22,11 +22,14 @@ import javax.annotation.concurrent.ThreadSafe;
  * Manages the locks for a list of {@link Inode}.
  */
 @ThreadSafe
-public final class InodeLockList implements AutoCloseable {
-  private final List<Inode<?>> mInodes;
-  private final List<InodeTree.LockMode> mLockModes;
+public class InodeLockList implements AutoCloseable {
+  protected final List<Inode<?>> mInodes;
+  protected final List<InodeTree.LockMode> mLockModes;
 
-  InodeLockList() {
+  /**
+   * Constructs a new lock list.
+   */
+  public InodeLockList() {
     mInodes = new ArrayList<>();
     mLockModes = new ArrayList<>();
   }
