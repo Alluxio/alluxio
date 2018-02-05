@@ -11,6 +11,8 @@
 
 package alluxio.master.block;
 
+import alluxio.exception.status.UnavailableException;
+
 /**
  * Provides generation of container IDs.
  */
@@ -18,5 +20,5 @@ public interface ContainerIdGenerable {
   /**
    * @return a unique block container id
    */
-  long getNewContainerId();
+  long getNewContainerId() throws UnavailableException;
 }

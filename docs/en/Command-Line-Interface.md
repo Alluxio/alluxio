@@ -278,12 +278,14 @@ size are loaded this way and no data transfer occurs.
 Options:
 
 * `-d` option lists the directories as plain files. For example, `ls -d /` shows the atrributes
-of root directory
+of root directory.
 * `-f` option forces loading metadata for immediate children in a directory. By default, it loads
 metadata only at the first time at which a directory is listed.
 * `-h` option displays file sizes in human-readable formats.
-* `-p` option lists all pinned files
+* `-p` option lists all pinned files.
 * `-R` option also recursively lists child directories, displaying the entire subtree starting from the input path.
+* `--sort` sorts the result by the given option. Possible values: `size|creationTime|inMemoryPercentage|lastModificationTime|path`
+* `-r` reverses the sorting order.
 
 For example, `ls` can be used to browse the file system.
 

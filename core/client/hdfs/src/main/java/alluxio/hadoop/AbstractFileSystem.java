@@ -129,10 +129,14 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
 
   @Override
   public void close() throws IOException {
+    // super.close should be called first before releasing the resources in this instance, as the
+    // super class may invoke other methods in this class. For example,
+    // org.apache.hadoop.fs.FileSystem.close may check the existence of certain temp files before
+    // closing
+    super.close();
     if (mContext != null && mContext != FileSystemContext.INSTANCE) {
       mContext.close();
     }
-    super.close();
   }
 
   /**
@@ -142,7 +146,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
    * @param permission permissions of the created file/folder
    * @param overwrite overwrite if file exists
    * @param bufferSize the size in bytes of the buffer to be used
-   * @param replication under filesystem replication factor
+   * @param replication under filesystem replication factor, this is ignored
    * @param blockSize block size in bytes
    * @param progress queryable progress
    * @return an {@link FSDataOutputStream} created at the indicated path of a file
@@ -321,10 +325,14 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
     }
 
     return new FileStatus(fileStatus.getLength(), fileStatus.isFolder(),
-        BLOCK_REPLICATION_CONSTANT, fileStatus.getBlockSizeBytes(),
+        getReplica(fileStatus), fileStatus.getBlockSizeBytes(),
         fileStatus.getLastModificationTimeMs(),
         fileStatus.getCreationTimeMs(), new FsPermission((short) fileStatus.getMode()),
         fileStatus.getOwner(), fileStatus.getGroup(), new Path(mAlluxioHeader + uri));
+  }
+
+  private int getReplica(URIStatus status) {
+    return BLOCK_REPLICATION_CONSTANT;
   }
 
   /**
@@ -389,6 +397,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
    * @see org.apache.hadoop.fs.FileSystem#createFileSystem(java.net.URI,
    *      org.apache.hadoop.conf.Configuration)
    */
+  @Override
   public abstract String getScheme();
 
   @Override
@@ -415,6 +424,8 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
   @SuppressFBWarnings("ST_WRITE_TO_STATIC_FROM_INSTANCE_METHOD")
   @Override
   public void initialize(URI uri, org.apache.hadoop.conf.Configuration conf) throws IOException {
+    Preconditions.checkArgument(uri.getScheme().equals(getScheme()),
+        PreconditionMessage.URI_SCHEME_MISMATCH.toString(), uri.getScheme(), getScheme());
     super.initialize(uri, conf);
     LOG.debug("initialize({}, {}). Connecting to Alluxio", uri, conf);
     HadoopUtils.addSwiftCredentials(conf);
@@ -580,7 +591,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
     for (int k = 0; k < statuses.size(); k++) {
       URIStatus status = statuses.get(k);
 
-      ret[k] = new FileStatus(status.getLength(), status.isFolder(), BLOCK_REPLICATION_CONSTANT,
+      ret[k] = new FileStatus(status.getLength(), status.isFolder(), getReplica(status),
           status.getBlockSizeBytes(), status.getLastModificationTimeMs(),
           status.getCreationTimeMs(), new FsPermission((short) status.getMode()), status.getOwner(),
           status.getGroup(), new Path(mAlluxioHeader + status.getPath()));

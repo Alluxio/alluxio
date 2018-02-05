@@ -22,9 +22,12 @@ alluxio.worker.file.persist.pool.size,64
 alluxio.worker.file.persist.rate.limit,2GB
 alluxio.worker.file.persist.rate.limit.enabled,false
 alluxio.worker.filesystem.heartbeat.interval,1sec
+alluxio.worker.free.space.timeout,10sec
 alluxio.worker.hostname,
+alluxio.worker.jvm.monitor.enabled,false
 alluxio.worker.keytab.file,
 alluxio.worker.memory.size,1GB
+alluxio.worker.network.netty.async.cache.manager.threads.max,512
 alluxio.worker.network.netty.backlog,
 alluxio.worker.network.netty.block.reader.threads.max,2048
 alluxio.worker.network.netty.block.writer.threads.max,1024
@@ -70,6 +73,9 @@ alluxio.worker.tieredstore.reserver.enabled,false
 alluxio.worker.tieredstore.reserver.interval,1sec
 alluxio.worker.tieredstore.retry,3
 alluxio.worker.ufs.block.open.timeout,5min
+alluxio.worker.ufs.instream.cache.enabled,true
+alluxio.worker.ufs.instream.cache.expiration.time,5min
+alluxio.worker.ufs.instream.cache.max.size,5000
 alluxio.worker.web.bind.host,0.0.0.0
 alluxio.worker.web.hostname,
 alluxio.worker.web.port,30000

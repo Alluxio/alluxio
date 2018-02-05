@@ -13,6 +13,7 @@ package alluxio;
 
 import alluxio.annotation.PublicApi;
 import alluxio.util.URIUtils;
+import alluxio.util.io.PathUtils;
 
 import org.apache.commons.lang.StringUtils;
 
@@ -141,6 +142,7 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
    *
    * <pre>
    * /                                  = 0
+   * .                                  = 0
    * /a                                 = 1
    * /a/b/c.txt                         = 3
    * /a/b/                              = 3
@@ -157,7 +159,7 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
    */
   public int getDepth() {
     String path = mUri.getPath();
-    if (path.isEmpty()) {
+    if (path.isEmpty() || CUR_DIR.equals(path)) {
       return 0;
     }
     if (hasWindowsDrive(path, true)) {
@@ -295,6 +297,17 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
   @Nullable
   public String getScheme() {
     return mUri.getScheme();
+  }
+
+  /**
+   * @return the normalized path stripped of the folder path component
+   */
+  public String getRootPath() {
+    String rootPath = this.toString();
+    if (this.getPath() != null) {
+      rootPath = rootPath.substring(0, rootPath.lastIndexOf(this.getPath()));
+    }
+    return PathUtils.normalizePath(rootPath, AlluxioURI.SEPARATOR);
   }
 
   /**

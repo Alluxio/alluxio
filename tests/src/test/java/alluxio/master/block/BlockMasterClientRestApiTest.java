@@ -11,6 +11,8 @@
 
 package alluxio.master.block;
 
+import static org.junit.Assert.assertEquals;
+
 import alluxio.Constants;
 import alluxio.rest.RestApiTest;
 import alluxio.rest.TestCase;
@@ -19,7 +21,6 @@ import alluxio.worker.block.BlockWorker;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Iterables;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -73,8 +74,8 @@ public final class BlockMasterClientRestApiTest extends RestApiTest {
         getEndpoint(BlockMasterClientRestServiceHandler.GET_BLOCK_INFO), params, HttpMethod.GET,
         null).call();
     BlockInfo blockInfo = new ObjectMapper().readValue(response, BlockInfo.class);
-    Assert.assertEquals(blockId, blockInfo.getBlockId());
-    Assert.assertEquals(initialBytes, blockInfo.getLength());
-    Assert.assertEquals("MEM", Iterables.getOnlyElement(blockInfo.getLocations()).getTierAlias());
+    assertEquals(blockId, blockInfo.getBlockId());
+    assertEquals(initialBytes, blockInfo.getLength());
+    assertEquals("MEM", Iterables.getOnlyElement(blockInfo.getLocations()).getTierAlias());
   }
 }

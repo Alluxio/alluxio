@@ -18,6 +18,7 @@ import alluxio.annotation.PublicApi;
 import alluxio.client.WriteType;
 import alluxio.security.authorization.Mode;
 import alluxio.thrift.CreateDirectoryTOptions;
+import alluxio.wire.CommonOptions;
 import alluxio.wire.ThriftUtils;
 import alluxio.wire.TtlAction;
 
@@ -35,6 +36,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 @JsonInclude(Include.NON_EMPTY)
 public final class CreateDirectoryOptions {
   private boolean mAllowExists;
+  private CommonOptions mCommonOptions;
   private Mode mMode;
   private long mTtl;
   private TtlAction mTtlAction;
@@ -49,6 +51,7 @@ public final class CreateDirectoryOptions {
   }
 
   private CreateDirectoryOptions() {
+    mCommonOptions = CommonOptions.defaults();
     mRecursive = false;
     mAllowExists = false;
     mMode = Mode.defaults().applyDirectoryUMask();
@@ -56,6 +59,13 @@ public final class CreateDirectoryOptions {
     mTtlAction = TtlAction.DELETE;
     mWriteType =
         Configuration.getEnum(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class);
+  }
+
+  /**
+   * @return the common options
+   */
+  public CommonOptions getCommonOptions() {
+    return mCommonOptions;
   }
 
   /**
@@ -101,6 +111,15 @@ public final class CreateDirectoryOptions {
    */
   public boolean isRecursive() {
     return mRecursive;
+  }
+
+  /**
+   * @param options the common options
+   * @return the updated options object
+   */
+  public CreateDirectoryOptions setCommonOptions(CommonOptions options) {
+    mCommonOptions = options;
+    return this;
   }
 
   /**
@@ -171,6 +190,7 @@ public final class CreateDirectoryOptions {
     }
     CreateDirectoryOptions that = (CreateDirectoryOptions) o;
     return Objects.equal(mAllowExists, that.mAllowExists)
+        && Objects.equal(mCommonOptions, that.mCommonOptions)
         && Objects.equal(mMode, that.mMode)
         && Objects.equal(mRecursive, that.mRecursive)
         && Objects.equal(mTtl, that.mTtl)
@@ -180,13 +200,14 @@ public final class CreateDirectoryOptions {
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mAllowExists, mMode, mRecursive, mTtl,
-        mTtlAction, mWriteType);
+    return Objects
+        .hashCode(mAllowExists, mCommonOptions, mMode, mRecursive, mTtl, mTtlAction, mWriteType);
   }
 
   @Override
   public String toString() {
     return Objects.toStringHelper(this)
+        .add("commonOptions", mCommonOptions)
         .add("allowExists", mAllowExists)
         .add("mode", mMode)
         .add("recursive", mRecursive)
@@ -209,6 +230,7 @@ public final class CreateDirectoryOptions {
     if (mMode != null) {
       options.setMode(mMode.toShort());
     }
+    options.setCommonOptions(mCommonOptions.toThrift());
     return options;
   }
 }

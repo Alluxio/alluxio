@@ -20,6 +20,7 @@ function printUsage {
   echo -e "  formatWorker  \t Format Alluxio worker storage"
   echo -e "  bootstrapConf \t Generate a config file if one doesn't exist"
   echo -e "  fs            \t Command line tool for interacting with the Alluxio filesystem."
+  echo -e "  fsadmin       \t Command line tool for admins to manage the Alluxio filesystem."
   echo -e "  getConf [key] \t Look up a configuration key, or print all configuration."
   echo -e "  loadufs       \t Load existing files in underlayer filesystem into Alluxio."
   echo -e "  logLevel      \t Set or get log level of Alluxio servers."
@@ -122,7 +123,8 @@ function killAll {
   count=0
   for pid in $(ps -Aww -o pid,command | grep -i "[j]ava" | grep ${keyword} | awk '{print $1}'); do
     kill -15 ${pid} > /dev/null 2>&1
-    local cnt=30
+    local maxWait=120
+    local cnt=${maxWait}
     while kill -0 ${pid} > /dev/null 2>&1; do
       if [[ ${cnt} -gt 1 ]]; then
         # still not dead, wait
@@ -130,7 +132,7 @@ function killAll {
         sleep 1
       else
         # waited long enough, kill the process
-        echo "Process did not complete after 30 seconds, killing."
+        echo "Process did not complete after "${maxWait}" seconds, killing."
         kill -9 ${pid} 2> /dev/null
       fi
     done
@@ -262,6 +264,11 @@ function main {
   ;;
   "fs")
     CLASS="alluxio.cli.fs.FileSystemShell"
+    CLASSPATH=${ALLUXIO_CLIENT_CLASSPATH}
+    runJavaClass "$@"
+  ;;
+  "fsadmin")
+    CLASS="alluxio.cli.fsadmin.FileSystemAdminShell"
     CLASSPATH=${ALLUXIO_CLIENT_CLASSPATH}
     runJavaClass "$@"
   ;;

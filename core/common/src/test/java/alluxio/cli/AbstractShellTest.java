@@ -11,13 +11,17 @@
 
 package alluxio.cli;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.any;
+
 import com.google.common.collect.ImmutableMap;
 import org.apache.commons.cli.CommandLine;
-import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-import org.mockito.Mockito;
 
 import java.util.Map;
 
@@ -45,11 +49,11 @@ public final class AbstractShellTest {
 
     @Override
     protected Map<String, Command> loadCommands() {
-      final Command cmd = Mockito.mock(Command.class);
+      final Command cmd = mock(Command.class);
       try {
-        Mockito.when(cmd.run(Mockito.any(CommandLine.class))).thenReturn(0);
-        Mockito.when(cmd.parseAndValidateArgs(Mockito.any(String[].class)))
-            .thenReturn(Mockito.mock(CommandLine.class));
+        when(cmd.run(any(CommandLine.class))).thenReturn(0);
+        when(cmd.parseAndValidateArgs(any(String[].class)))
+            .thenReturn(mock(CommandLine.class));
       } catch (Exception e) {
         throw new RuntimeException(e);
       }
@@ -60,18 +64,18 @@ public final class AbstractShellTest {
   @Test
   public void commandExists() throws Exception {
     TestShell shell = new TestShell();
-    Assert.assertEquals(0, shell.run("cmd"));
+    assertEquals(0, shell.run("cmd"));
   }
 
   @Test
   public void commandAliasExists() throws Exception {
     TestShell shell = new TestShell();
-    Assert.assertEquals(0, shell.run("cmdAlias"));
+    assertEquals(0, shell.run("cmdAlias"));
   }
 
   @Test
   public void commandDoesNotExist() throws Exception {
     TestShell shell = new TestShell();
-    Assert.assertTrue(shell.run("cmdNotExist") < 0);
+    assertTrue(shell.run("cmdNotExist") < 0);
   }
 }

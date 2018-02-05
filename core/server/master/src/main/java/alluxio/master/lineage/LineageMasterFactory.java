@@ -14,8 +14,10 @@ package alluxio.master.lineage;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
+import alluxio.master.MasterContext;
 import alluxio.master.MasterFactory;
 import alluxio.master.MasterRegistry;
+import alluxio.master.SafeModeManager;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.journal.JournalSystem;
 
@@ -48,11 +50,13 @@ public final class LineageMasterFactory implements MasterFactory {
   }
 
   @Override
-  public LineageMaster create(MasterRegistry registry, JournalSystem journalSystem) {
+  public LineageMaster create(MasterRegistry registry, JournalSystem journalSystem,
+      SafeModeManager safeModeManager) {
     Preconditions.checkArgument(journalSystem != null, "journal system may not be null");
     LOG.info("Creating {} ", LineageMaster.class.getName());
     FileSystemMaster fileSystemMaster = registry.get(FileSystemMaster.class);
-    LineageMaster lineageMaster = new DefaultLineageMaster(fileSystemMaster, journalSystem);
+    LineageMaster lineageMaster = new DefaultLineageMaster(fileSystemMaster,
+        new MasterContext(journalSystem, safeModeManager));
     registry.add(LineageMaster.class, lineageMaster);
     return lineageMaster;
   }

@@ -13,6 +13,7 @@ package alluxio.worker.file;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.fail;
 
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
@@ -24,7 +25,7 @@ import alluxio.client.file.URIStatus;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.InvalidWorkerStateException;
 import alluxio.underfs.UfsManager;
-import alluxio.underfs.UfsManager.UfsInfo;
+import alluxio.underfs.UfsManager.UfsClient;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.util.io.BufferUtils;
@@ -39,7 +40,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.MockRateLimiter;
 import org.junit.After;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -80,11 +80,11 @@ public final class FileDataManagerTest {
         new FileDataManager(mBlockWorker, mMockRateLimiter.getGuavaRateLimiter(), mUfsManager);
 
     mMockFileSystem = PowerMockito.mock(FileSystem.class);
-    UfsInfo ufsInfo = new UfsInfo(Suppliers.ofInstance(mUfs), AlluxioURI.EMPTY_URI);
+    UfsClient ufsClient = new UfsClient(Suppliers.ofInstance(mUfs), AlluxioURI.EMPTY_URI);
     PowerMockito.mockStatic(FileSystem.Factory.class);
     Mockito.when(FileSystem.Factory.get()).thenReturn(mMockFileSystem);
     Mockito.when(mUfs.isDirectory(Mockito.anyString())).thenReturn(true);
-    Mockito.when(mUfsManager.get(Mockito.anyLong())).thenReturn(ufsInfo);
+    Mockito.when(mUfsManager.get(Mockito.anyLong())).thenReturn(ufsClient);
   }
 
   @After
@@ -103,7 +103,8 @@ public final class FileDataManagerTest {
     writeFileWithBlocks(fileId, blockIds);
 
     // verify file persisted
-    assertEquals(Arrays.asList(fileId), mManager.getPersistedFiles());
+    FileDataManager.PersistedFilesInfo info = mManager.getPersistedFileInfos();
+    assertEquals(Arrays.asList(fileId), info.idList());
 
     // verify fastCopy called twice, once per block
     PowerMockito.verifyStatic(Mockito.times(2));
@@ -121,7 +122,8 @@ public final class FileDataManagerTest {
   public void clearPersistedFiles() throws Exception {
     writeFileWithBlocks(1L, ImmutableList.of(2L, 3L));
     mManager.clearPersistedFiles(ImmutableList.of(1L));
-    assertEquals(Collections.emptyList(), mManager.getPersistedFiles());
+    FileDataManager.PersistedFilesInfo info = mManager.getPersistedFileInfos();
+    assertEquals(Collections.emptyList(), info.idList());
   }
 
   /**
@@ -209,7 +211,7 @@ public final class FileDataManagerTest {
         .thenThrow(new BlockDoesNotExistException("block 3 does not exist"));
     try {
       mManager.lockBlocks(fileId, blockIds);
-      Assert.fail("the lock should fail");
+      fail("the lock should fail");
     } catch (IOException e) {
       assertEquals(
           "failed to lock all blocks of file 1\n"
@@ -256,7 +258,7 @@ public final class FileDataManagerTest {
     mManager.lockBlocks(fileId, blockIds);
     try {
       mManager.persistFile(fileId, blockIds);
-      Assert.fail("the persist should fail");
+      fail("the persist should fail");
     } catch (IOException e) {
       assertEquals("the blocks of file1 are failed to persist\n"
           + "alluxio.exception.InvalidWorkerStateException: invalid worker\n", e.getMessage());

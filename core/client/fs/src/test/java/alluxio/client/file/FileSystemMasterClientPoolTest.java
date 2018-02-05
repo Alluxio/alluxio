@@ -11,9 +11,10 @@
 
 package alluxio.client.file;
 
+import static org.junit.Assert.assertEquals;
+
 import alluxio.master.MasterClientConfig;
 
-import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
@@ -34,7 +35,7 @@ public class FileSystemMasterClientPoolTest {
     FileSystemMasterClient client;
     try (FileSystemMasterClientPool pool = new FileSystemMasterClientPool(null, null)) {
       client = pool.acquire();
-      Assert.assertEquals(expectedClient, client);
+      assertEquals(expectedClient, client);
       pool.release(client);
     }
     Mockito.verify(client).close();

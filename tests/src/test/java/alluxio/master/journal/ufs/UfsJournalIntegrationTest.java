@@ -491,15 +491,10 @@ public class UfsJournalIntegrationTest extends BaseIntegrationTest {
     MasterRegistry registry = MasterTestUtils.createStandbyFileSystemMasterFromJournal();
     final FileSystemMaster fsMaster = registry.get(FileSystemMaster.class);
     try {
-      CommonUtils.waitFor("standby journal checkpoint replay", new Function<Void, Boolean>() {
+      CommonUtils.waitFor("journal checkpoint replay", new Function<Void, Boolean>() {
         @Override
         public Boolean apply(Void input) {
-          try {
-            fsMaster.listStatus(mountUri, ListStatusOptions.defaults());
-            return true;
-          } catch (Exception e) {
-            return false;
-          }
+          return fsMaster.getMountTable().containsKey(mountUri.toString());
         }
       }, WaitForOptions.defaults().setTimeoutMs(60 * Constants.SECOND_MS));
     } finally {

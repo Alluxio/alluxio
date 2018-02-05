@@ -11,6 +11,10 @@
 
 package alluxio.master.file.async;
 
+import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import alluxio.AlluxioURI;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.meta.FileSystemMasterView;
@@ -21,10 +25,8 @@ import alluxio.wire.FileBlockInfo;
 import alluxio.wire.FileInfo;
 
 import com.google.common.collect.Lists;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Mockito;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -37,7 +39,7 @@ public class DefaultAsyncPersistHandlerTest {
 
   @Before
   public void before() {
-    mFileSystemMaster = Mockito.mock(FileSystemMaster.class);
+    mFileSystemMaster = mock(FileSystemMaster.class);
   }
 
   @Test
@@ -52,16 +54,16 @@ public class DefaultAsyncPersistHandlerTest {
     BlockLocation location = new BlockLocation().setWorkerId(workerId);
     blockInfoList.add(new FileBlockInfo().setBlockInfo(
         new BlockInfo().setBlockId(blockId).setLocations(Lists.newArrayList(location))));
-    Mockito.when(mFileSystemMaster.getFileBlockInfoList(path)).thenReturn(blockInfoList);
-    Mockito.when(mFileSystemMaster.getFileId(path)).thenReturn(fileId);
-    Mockito.when(mFileSystemMaster.getPath(fileId)).thenReturn(path);
-    Mockito.when(mFileSystemMaster.getFileInfo(fileId))
+    when(mFileSystemMaster.getFileBlockInfoList(path)).thenReturn(blockInfoList);
+    when(mFileSystemMaster.getFileId(path)).thenReturn(fileId);
+    when(mFileSystemMaster.getPath(fileId)).thenReturn(path);
+    when(mFileSystemMaster.getFileInfo(fileId))
         .thenReturn(new FileInfo().setLength(1).setCompleted(true));
 
     handler.scheduleAsyncPersistence(path);
     List<PersistFile> persistFiles = handler.pollFilesToPersist(workerId);
-    Assert.assertEquals(1, persistFiles.size());
-    Assert.assertEquals(Lists.newArrayList(blockId), persistFiles.get(0).getBlockIds());
+    assertEquals(1, persistFiles.size());
+    assertEquals(Lists.newArrayList(blockId), persistFiles.get(0).getBlockIds());
   }
 
   /**
@@ -80,13 +82,13 @@ public class DefaultAsyncPersistHandlerTest {
     blockInfoList.add(new FileBlockInfo()
         .setBlockInfo(new BlockInfo().setLocations(Lists.newArrayList(location2))));
     long fileId = 2;
-    Mockito.when(mFileSystemMaster.getFileId(path)).thenReturn(fileId);
-    Mockito.when(mFileSystemMaster.getFileInfo(fileId))
+    when(mFileSystemMaster.getFileId(path)).thenReturn(fileId);
+    when(mFileSystemMaster.getFileInfo(fileId))
         .thenReturn(new FileInfo().setLength(1).setCompleted(true));
-    Mockito.when(mFileSystemMaster.getFileBlockInfoList(path)).thenReturn(blockInfoList);
+    when(mFileSystemMaster.getFileBlockInfoList(path)).thenReturn(blockInfoList);
 
     // no persist scheduled on any worker
-    Assert.assertEquals(0, handler.pollFilesToPersist(1).size());
-    Assert.assertEquals(0, handler.pollFilesToPersist(2).size());
+    assertEquals(0, handler.pollFilesToPersist(1).size());
+    assertEquals(0, handler.pollFilesToPersist(2).size());
   }
 }

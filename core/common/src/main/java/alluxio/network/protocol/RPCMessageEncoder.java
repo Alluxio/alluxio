@@ -40,7 +40,7 @@ public final class RPCMessageEncoder extends MessageToMessageEncoder<RPCMessage>
   @Override
   protected void encode(ChannelHandlerContext ctx, RPCMessage in, List<Object> out)
       throws Exception {
-    RPCRequest.Type type = in.getType();
+    RPCMessage.Type type = in.getType();
 
     long bodyBytes = 0;
     DataBuffer payload = null;

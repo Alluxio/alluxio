@@ -51,6 +51,8 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
   private String mGroup;
   private short mMode;
 
+  private String mUfsFingerprint;
+
   private final ReentrantReadWriteLock mLock;
 
   protected Inode(long id, boolean isDirectory) {
@@ -68,6 +70,7 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
     mPersistenceState = PersistenceState.NOT_PERSISTED;
     mPinned = false;
     mOwner = "";
+    mUfsFingerprint = Constants.INVALID_UFS_FINGERPRINT;
     mLock = new ReentrantReadWriteLock();
   }
 
@@ -201,6 +204,13 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
   }
 
   /**
+   * @return the UFS fingerprint
+   */
+  public String getUfsFingerprint() {
+    return mUfsFingerprint;
+  }
+
+  /**
    * @param creationTimeMs the creation time to use (in milliseconds)
    * @return the updated object
    */
@@ -322,6 +332,15 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
    */
   public T setMode(short mode) {
     mMode = mode;
+    return getThis();
+  }
+
+  /**
+   * @param ufsFingerprint the ufs fingerprint to use
+   * @return the updated object
+   */
+  public T setUfsFingerprint(String ufsFingerprint) {
+    mUfsFingerprint = ufsFingerprint;
     return getThis();
   }
 
@@ -490,6 +509,7 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
         .add("ttl", mTtl).add("ttlAction", mTtlAction)
         .add("directory", mDirectory).add("persistenceState", mPersistenceState)
         .add("lastModificationTimeMs", mLastModificationTimeMs).add("owner", mOwner)
-        .add("group", mGroup).add("permission", mMode);
+        .add("group", mGroup).add("permission", mMode)
+        .add("ufsFingerprint", mUfsFingerprint);
   }
 }

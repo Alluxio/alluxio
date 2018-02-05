@@ -23,7 +23,7 @@ the bucket, or using an existing one. For the purposes of this guide, the GCS bu
 `GCS_BUCKET`, and the directory in that bucket is called `GCS_DIRECTORY`.
 
 If you are new to GCS, please read its
-[documentations](https://cloud.google.com/storage/docs/overview).
+[documentation](https://cloud.google.com/storage/docs/overview).
 
 ## Configuring Alluxio
 
@@ -53,12 +53,7 @@ Note: GCS interoperability is disabled by default. Please click on the Interoper
 in [GCS setting](https://console.cloud.google.com/storage/settings) and enable this feature.
 Then click on `Create a new key` to get the Access Key and Secret pair.
 
-Alternatively, these configuration settings can be set in the `conf/alluxio-env.sh` file. More
-details about setting configuration parameters can be found in
-[Configuration Settings](Configuration-Settings.html#environment-variables).
-
-After these changes, Alluxio should be configured to work with GCS as its under storage system, and
-you can try [Running Alluxio Locally with GCS](#running-alluxio-locally-with-gcs).
+After these changes, Alluxio should be configured to work with GCS as its under storage system, and you can [Run Alluxio Locally with GCS](#running-alluxio-locally-with-gcs).
 
 ### Configuring Application Dependency
 

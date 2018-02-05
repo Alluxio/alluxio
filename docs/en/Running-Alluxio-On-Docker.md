@@ -6,6 +6,9 @@ group: Deploying Alluxio
 priority: 3
 ---
 
+* Table of Contents
+{:toc}
+
 Alluxio can be run in a Docker container. This guide demonstrates how to run Alluxio
 in Docker using the Dockerfile that comes in the Alluxio Github repository.
 
@@ -16,7 +19,9 @@ This tutorial walks through a basic dockerized Alluxio setup on a single node.
 ## Prerequisites
 
 A Linux machine. For the purposes of this guide, we will use a fresh EC2 machine running
-Amazon Linux. The machine size doesn't need to be large; we will use t2.small.
+Amazon Linux. The machine size doesn't need to be large; we will use t2.small. When
+setting up the network security for the instance, allow traffic on ports 19998-19999 and
+29998-30000.
 
 ## Launch a standalone cluster
 
@@ -143,8 +148,8 @@ when the image starts.
 # Memory tier: ramdisk vs Docker tmpfs
 
 The tutorial used a ramdisk to enable short-circuit reads. Another option is to use the tmpfs that
-comes with Docker containers. This makes setup easier and improves isolation, but comes at the cost 
-of not being able to perform memory-speed short-circuit reads from local clients. Local clients will 
+comes with Docker containers. This makes setup easier and improves isolation, but comes at the cost
+of not being able to perform memory-speed short-circuit reads from local clients. Local clients will
 instead need to go over the network to get data from Alluxio workers.
 
 ## Using the Docker tmpfs
@@ -182,8 +187,6 @@ From the host machine, create a directory for the shared domain socket.
 ```bash
 $ mkdir /tmp/domain
 $ chmod a+w /tmp/domain
-$ touch /tmp/domain/d
-$ chmod a+w /tmp/domain/d
 ```
 
 When starting workers and clients, run their docker containers with `-v /tmp/domain:/opt/domain`
@@ -204,3 +207,37 @@ $ ALLUXIO_WORKER_CONTAINER_ID=$(docker run -d --net=host --shm-size=1G \
              -e ALLUXIO_UNDERFS_ADDRESS=/underStorage \
              alluxio worker)
 ```
+
+## FUSE
+
+To use FUSE, you need to build a docker image with FUSE enabled:
+
+```bash
+docker build -f Dockerfile.fuse -t alluxio-fuse .
+```
+
+There are a couple extra arguments required to run the docker image with FUSE support, 
+for example:
+
+```bash
+docker run -e ALLUXIO_MASTER_HOSTNAME=alluxio-master --cap-add SYS_ADMIN --device /dev/fuse  alluxio-fuse [master|worker|proxy]
+```
+
+Note: running FUSE in docker requires adding [SYS_ADMIN capability](http://man7.org/linux/man-pages/man7/capabilities.7.html)
+ to the container. This removes isolation of the container and should be used with caution.
+
+Importantly, in order for the application to access data from Alluxio storage mounted with FUSE, it must run in the same
+ container as Alluxio. You can easily extend the docker image to include applications to run on top of Alluxio. For example, 
+ to run TensorFlow with Alluxio inside a docker container, just edit Dockerfile.fuse and replace
+
+```bash
+FROM ubuntu:16.04
+```
+
+with
+
+```bash
+FROM tensorflow/tensorflow:1.3.0
+```
+
+You can then build the image with the same command for building image with FUSE support and run it. There is a pre-built docker image with TensorFlow at https://hub.docker.com/r/alluxio/alluxio-tensorflow/

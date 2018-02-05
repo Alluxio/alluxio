@@ -370,6 +370,20 @@ public final class Journal {
      * <code>optional .alluxio.proto.journal.SetAttributeEntry set_attribute = 27;</code>
      */
     alluxio.proto.journal.File.SetAttributeEntryOrBuilder getSetAttributeOrBuilder();
+
+    // optional .alluxio.proto.journal.UpdateUfsModeEntry update_ufs_mode = 30;
+    /**
+     * <code>optional .alluxio.proto.journal.UpdateUfsModeEntry update_ufs_mode = 30;</code>
+     */
+    boolean hasUpdateUfsMode();
+    /**
+     * <code>optional .alluxio.proto.journal.UpdateUfsModeEntry update_ufs_mode = 30;</code>
+     */
+    alluxio.proto.journal.File.UpdateUfsModeEntry getUpdateUfsMode();
+    /**
+     * <code>optional .alluxio.proto.journal.UpdateUfsModeEntry update_ufs_mode = 30;</code>
+     */
+    alluxio.proto.journal.File.UpdateUfsModeEntryOrBuilder getUpdateUfsModeOrBuilder();
   }
   /**
    * Protobuf type {@code alluxio.proto.journal.JournalEntry}
@@ -382,7 +396,7 @@ public final class Journal {
    * 2.6.0 and adding this depedency would conflict with the version of protobuf used by Hadoop 2.x
    * and Spark. We use protobuf version 2.5.0 instead, which is compatible with Hadoop and Spark.
    *
-   * next available id: 30
+   * next available id: 31
    * </pre>
    */
   public static final class JournalEntry extends
@@ -761,6 +775,19 @@ public final class Journal {
                 deleteBlock_ = subBuilder.buildPartial();
               }
               bitField0_ |= 0x00000200;
+              break;
+            }
+            case 242: {
+              alluxio.proto.journal.File.UpdateUfsModeEntry.Builder subBuilder = null;
+              if (((bitField0_ & 0x04000000) == 0x04000000)) {
+                subBuilder = updateUfsMode_.toBuilder();
+              }
+              updateUfsMode_ = input.readMessage(alluxio.proto.journal.File.UpdateUfsModeEntry.PARSER, extensionRegistry);
+              if (subBuilder != null) {
+                subBuilder.mergeFrom(updateUfsMode_);
+                updateUfsMode_ = subBuilder.buildPartial();
+              }
+              bitField0_ |= 0x04000000;
               break;
             }
           }
@@ -1369,6 +1396,28 @@ public final class Journal {
       return setAttribute_;
     }
 
+    // optional .alluxio.proto.journal.UpdateUfsModeEntry update_ufs_mode = 30;
+    public static final int UPDATE_UFS_MODE_FIELD_NUMBER = 30;
+    private alluxio.proto.journal.File.UpdateUfsModeEntry updateUfsMode_;
+    /**
+     * <code>optional .alluxio.proto.journal.UpdateUfsModeEntry update_ufs_mode = 30;</code>
+     */
+    public boolean hasUpdateUfsMode() {
+      return ((bitField0_ & 0x04000000) == 0x04000000);
+    }
+    /**
+     * <code>optional .alluxio.proto.journal.UpdateUfsModeEntry update_ufs_mode = 30;</code>
+     */
+    public alluxio.proto.journal.File.UpdateUfsModeEntry getUpdateUfsMode() {
+      return updateUfsMode_;
+    }
+    /**
+     * <code>optional .alluxio.proto.journal.UpdateUfsModeEntry update_ufs_mode = 30;</code>
+     */
+    public alluxio.proto.journal.File.UpdateUfsModeEntryOrBuilder getUpdateUfsModeOrBuilder() {
+      return updateUfsMode_;
+    }
+
     private void initFields() {
       sequenceNumber_ = 0L;
       addMountPoint_ = alluxio.proto.journal.File.AddMountPointEntry.getDefaultInstance();
@@ -1396,6 +1445,7 @@ public final class Journal {
       rename_ = alluxio.proto.journal.File.RenameEntry.getDefaultInstance();
       renameStore_ = alluxio.proto.journal.KeyValue.RenameStoreEntry.getDefaultInstance();
       setAttribute_ = alluxio.proto.journal.File.SetAttributeEntry.getDefaultInstance();
+      updateUfsMode_ = alluxio.proto.journal.File.UpdateUfsModeEntry.getDefaultInstance();
     }
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
@@ -1486,6 +1536,9 @@ public final class Journal {
       }
       if (((bitField0_ & 0x00000200) == 0x00000200)) {
         output.writeMessage(29, deleteBlock_);
+      }
+      if (((bitField0_ & 0x04000000) == 0x04000000)) {
+        output.writeMessage(30, updateUfsMode_);
       }
       getUnknownFields().writeTo(output);
     }
@@ -1600,6 +1653,10 @@ public final class Journal {
         size += com.google.protobuf.CodedOutputStream
           .computeMessageSize(29, deleteBlock_);
       }
+      if (((bitField0_ & 0x04000000) == 0x04000000)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(30, updateUfsMode_);
+      }
       size += getUnknownFields().getSerializedSize();
       memoizedSerializedSize = size;
       return size;
@@ -1689,7 +1746,7 @@ public final class Journal {
      * 2.6.0 and adding this depedency would conflict with the version of protobuf used by Hadoop 2.x
      * and Spark. We use protobuf version 2.5.0 instead, which is compatible with Hadoop and Spark.
      *
-     * next available id: 30
+     * next available id: 31
      * </pre>
      */
     public static final class Builder extends
@@ -1744,6 +1801,7 @@ public final class Journal {
           getRenameFieldBuilder();
           getRenameStoreFieldBuilder();
           getSetAttributeFieldBuilder();
+          getUpdateUfsModeFieldBuilder();
         }
       }
       private static Builder create() {
@@ -1904,6 +1962,12 @@ public final class Journal {
           setAttributeBuilder_.clear();
         }
         bitField0_ = (bitField0_ & ~0x02000000);
+        if (updateUfsModeBuilder_ == null) {
+          updateUfsMode_ = alluxio.proto.journal.File.UpdateUfsModeEntry.getDefaultInstance();
+        } else {
+          updateUfsModeBuilder_.clear();
+        }
+        bitField0_ = (bitField0_ & ~0x04000000);
         return this;
       }
 
@@ -2136,6 +2200,14 @@ public final class Journal {
         } else {
           result.setAttribute_ = setAttributeBuilder_.build();
         }
+        if (((from_bitField0_ & 0x04000000) == 0x04000000)) {
+          to_bitField0_ |= 0x04000000;
+        }
+        if (updateUfsModeBuilder_ == null) {
+          result.updateUfsMode_ = updateUfsMode_;
+        } else {
+          result.updateUfsMode_ = updateUfsModeBuilder_.build();
+        }
         result.bitField0_ = to_bitField0_;
         onBuilt();
         return result;
@@ -2229,6 +2301,9 @@ public final class Journal {
         }
         if (other.hasSetAttribute()) {
           mergeSetAttribute(other.getSetAttribute());
+        }
+        if (other.hasUpdateUfsMode()) {
+          mergeUpdateUfsMode(other.getUpdateUfsMode());
         }
         this.mergeUnknownFields(other.getUnknownFields());
         return this;
@@ -5215,6 +5290,123 @@ public final class Journal {
         return setAttributeBuilder_;
       }
 
+      // optional .alluxio.proto.journal.UpdateUfsModeEntry update_ufs_mode = 30;
+      private alluxio.proto.journal.File.UpdateUfsModeEntry updateUfsMode_ = alluxio.proto.journal.File.UpdateUfsModeEntry.getDefaultInstance();
+      private com.google.protobuf.SingleFieldBuilder<
+          alluxio.proto.journal.File.UpdateUfsModeEntry, alluxio.proto.journal.File.UpdateUfsModeEntry.Builder, alluxio.proto.journal.File.UpdateUfsModeEntryOrBuilder> updateUfsModeBuilder_;
+      /**
+       * <code>optional .alluxio.proto.journal.UpdateUfsModeEntry update_ufs_mode = 30;</code>
+       */
+      public boolean hasUpdateUfsMode() {
+        return ((bitField0_ & 0x04000000) == 0x04000000);
+      }
+      /**
+       * <code>optional .alluxio.proto.journal.UpdateUfsModeEntry update_ufs_mode = 30;</code>
+       */
+      public alluxio.proto.journal.File.UpdateUfsModeEntry getUpdateUfsMode() {
+        if (updateUfsModeBuilder_ == null) {
+          return updateUfsMode_;
+        } else {
+          return updateUfsModeBuilder_.getMessage();
+        }
+      }
+      /**
+       * <code>optional .alluxio.proto.journal.UpdateUfsModeEntry update_ufs_mode = 30;</code>
+       */
+      public Builder setUpdateUfsMode(alluxio.proto.journal.File.UpdateUfsModeEntry value) {
+        if (updateUfsModeBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          updateUfsMode_ = value;
+          onChanged();
+        } else {
+          updateUfsModeBuilder_.setMessage(value);
+        }
+        bitField0_ |= 0x04000000;
+        return this;
+      }
+      /**
+       * <code>optional .alluxio.proto.journal.UpdateUfsModeEntry update_ufs_mode = 30;</code>
+       */
+      public Builder setUpdateUfsMode(
+          alluxio.proto.journal.File.UpdateUfsModeEntry.Builder builderForValue) {
+        if (updateUfsModeBuilder_ == null) {
+          updateUfsMode_ = builderForValue.build();
+          onChanged();
+        } else {
+          updateUfsModeBuilder_.setMessage(builderForValue.build());
+        }
+        bitField0_ |= 0x04000000;
+        return this;
+      }
+      /**
+       * <code>optional .alluxio.proto.journal.UpdateUfsModeEntry update_ufs_mode = 30;</code>
+       */
+      public Builder mergeUpdateUfsMode(alluxio.proto.journal.File.UpdateUfsModeEntry value) {
+        if (updateUfsModeBuilder_ == null) {
+          if (((bitField0_ & 0x04000000) == 0x04000000) &&
+              updateUfsMode_ != alluxio.proto.journal.File.UpdateUfsModeEntry.getDefaultInstance()) {
+            updateUfsMode_ =
+              alluxio.proto.journal.File.UpdateUfsModeEntry.newBuilder(updateUfsMode_).mergeFrom(value).buildPartial();
+          } else {
+            updateUfsMode_ = value;
+          }
+          onChanged();
+        } else {
+          updateUfsModeBuilder_.mergeFrom(value);
+        }
+        bitField0_ |= 0x04000000;
+        return this;
+      }
+      /**
+       * <code>optional .alluxio.proto.journal.UpdateUfsModeEntry update_ufs_mode = 30;</code>
+       */
+      public Builder clearUpdateUfsMode() {
+        if (updateUfsModeBuilder_ == null) {
+          updateUfsMode_ = alluxio.proto.journal.File.UpdateUfsModeEntry.getDefaultInstance();
+          onChanged();
+        } else {
+          updateUfsModeBuilder_.clear();
+        }
+        bitField0_ = (bitField0_ & ~0x04000000);
+        return this;
+      }
+      /**
+       * <code>optional .alluxio.proto.journal.UpdateUfsModeEntry update_ufs_mode = 30;</code>
+       */
+      public alluxio.proto.journal.File.UpdateUfsModeEntry.Builder getUpdateUfsModeBuilder() {
+        bitField0_ |= 0x04000000;
+        onChanged();
+        return getUpdateUfsModeFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>optional .alluxio.proto.journal.UpdateUfsModeEntry update_ufs_mode = 30;</code>
+       */
+      public alluxio.proto.journal.File.UpdateUfsModeEntryOrBuilder getUpdateUfsModeOrBuilder() {
+        if (updateUfsModeBuilder_ != null) {
+          return updateUfsModeBuilder_.getMessageOrBuilder();
+        } else {
+          return updateUfsMode_;
+        }
+      }
+      /**
+       * <code>optional .alluxio.proto.journal.UpdateUfsModeEntry update_ufs_mode = 30;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilder<
+          alluxio.proto.journal.File.UpdateUfsModeEntry, alluxio.proto.journal.File.UpdateUfsModeEntry.Builder, alluxio.proto.journal.File.UpdateUfsModeEntryOrBuilder> 
+          getUpdateUfsModeFieldBuilder() {
+        if (updateUfsModeBuilder_ == null) {
+          updateUfsModeBuilder_ = new com.google.protobuf.SingleFieldBuilder<
+              alluxio.proto.journal.File.UpdateUfsModeEntry, alluxio.proto.journal.File.UpdateUfsModeEntry.Builder, alluxio.proto.journal.File.UpdateUfsModeEntryOrBuilder>(
+                  updateUfsMode_,
+                  getParentForChildren(),
+                  isClean());
+          updateUfsMode_ = null;
+        }
+        return updateUfsModeBuilder_;
+      }
+
       // @@protoc_insertion_point(builder_scope:alluxio.proto.journal.JournalEntry)
     }
 
@@ -5243,7 +5435,7 @@ public final class Journal {
       "\n\025journal/journal.proto\022\025alluxio.proto.j" +
       "ournal\032\023journal/block.proto\032\022journal/fil" +
       "e.proto\032\027journal/key_value.proto\032\025journa" +
-      "l/lineage.proto\"\352\r\n\014JournalEntry\022\027\n\017sequ" +
+      "l/lineage.proto\"\256\016\n\014JournalEntry\022\027\n\017sequ" +
       "ence_number\030\001 \001(\003\022B\n\017add_mount_point\030\002 \001" +
       "(\0132).alluxio.proto.journal.AddMountPoint" +
       "Entry\022N\n\025async_persist_request\030\020 \001(\0132/.a" +
@@ -5287,8 +5479,10 @@ public final class Journal {
       ".journal.RenameEntry\022=\n\014rename_store\030\034 \001" +
       "(\0132\'.alluxio.proto.journal.RenameStoreEn" +
       "try\022?\n\rset_attribute\030\033 \001(\0132(.alluxio.pro" +
-      "to.journal.SetAttributeEntryB\027\n\025alluxio." +
-      "proto.journal"
+      "to.journal.SetAttributeEntry\022B\n\017update_u" +
+      "fs_mode\030\036 \001(\0132).alluxio.proto.journal.Up" +
+      "dateUfsModeEntryB\027\n\025alluxio.proto.journa",
+      "l"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
       new com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner() {
@@ -5300,7 +5494,7 @@ public final class Journal {
           internal_static_alluxio_proto_journal_JournalEntry_fieldAccessorTable = new
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_alluxio_proto_journal_JournalEntry_descriptor,
-              new java.lang.String[] { "SequenceNumber", "AddMountPoint", "AsyncPersistRequest", "BlockContainerIdGenerator", "BlockInfo", "CompleteFile", "CompletePartition", "CompleteStore", "CreateStore", "DeleteBlock", "DeleteFile", "DeleteLineage", "DeleteMountPoint", "DeleteStore", "InodeDirectory", "InodeDirectoryIdGenerator", "InodeFile", "InodeLastModificationTime", "Lineage", "LineageIdGenerator", "MergeStore", "PersistDirectory", "ReinitializeFile", "Rename", "RenameStore", "SetAttribute", });
+              new java.lang.String[] { "SequenceNumber", "AddMountPoint", "AsyncPersistRequest", "BlockContainerIdGenerator", "BlockInfo", "CompleteFile", "CompletePartition", "CompleteStore", "CreateStore", "DeleteBlock", "DeleteFile", "DeleteLineage", "DeleteMountPoint", "DeleteStore", "InodeDirectory", "InodeDirectoryIdGenerator", "InodeFile", "InodeLastModificationTime", "Lineage", "LineageIdGenerator", "MergeStore", "PersistDirectory", "ReinitializeFile", "Rename", "RenameStore", "SetAttribute", "UpdateUfsMode", });
           return null;
         }
       };
