@@ -27,31 +27,31 @@ The SPARK_MASTER_ADDRESS should be one of the following:
 PARTITIONS
   optional Spark argument.
   The partition number that allows Spark to distribute dataset better.
-  Please set the partition number according to your Spark cluster size \
+  Please set the partition number according to your Spark cluster size
   so that integration checker can check more Spark executors.
   By default, the value is 10.
 
 -h  display this help."
 
 PARTITIONS="${2:-10}";
-SPARK_MASTER=$1;
+SPARK_MASTER="$1";
 SPARK_SUBMIT="";
 
 # Find the location of spark-submit in order to run the Spark job
 function find_spark_path() {
   { # Try SPARK_HOME
-    [ -f $SPARK_HOME/bin/spark-submit ] && SPARK_SUBMIT=$SPARK_HOME/bin
+    [ -f "${SPARK_HOME}/bin/spark-submit" ] && SPARK_SUBMIT="${SPARK_HOME}/bin"
   } || { # Try SPARKPATH
-    [ -f $SPARKPATH/spark-submit ] && SPARK_SUBMIT=$SPARKPATH
+    [ -f "${SPARKPATH}/spark-submit" ] && SPARK_SUBMIT="${SPARKPATH}"
   } || { # Try PATH
     IFS=':' read -ra PATHARR <<< "$PATH"
     for p in "${PATHARR[@]}"; do
-      if [ -f $p/spark-submit ]; then
-        SPARK_SUBMIT=$p
+      if [ -f "$p/spark-submit" ]; then
+        SPARK_SUBMIT="$p"
         break;
       fi
     done
-    if [[ $SPARK_SUBMIT == "" ]]; then
+    if [[ "${SPARK_SUBMIT}" == "" ]]; then
       echo -e "Please set SPARK_HOME or SPARKPATH before running Spark integration checker." >&2
       exit 1
     fi
