@@ -13,6 +13,7 @@
 #define LOCALALLUXIOCLUSTER_H
 
 #include "JNIHelper.h"
+#include "FileSystem.h"
 
 using namespace jnihelper;
 
@@ -24,7 +25,7 @@ class LocalAlluxioCluster {
   LocalAlluxioCluster() {
     JniHelper::Start();
     miniCluster = JniHelper::CreateObjectMethod(
-                                 "alluxio/master/LocalAlluxioCluster");
+        "alluxio/master/LocalAlluxioCluster");
   }
 
   void start() {

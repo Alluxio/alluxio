@@ -134,7 +134,7 @@ int main(void) {
   // Tests create file
   CreateFileTest(fileSystem, "/foo/foo1");
 
-  // Test file Exist
+  // Tests file Exist
   ExistTest(fileSystem, "/foo/foo1");
 
   // Tests get status

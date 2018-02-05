@@ -303,7 +303,7 @@ class JniHelper {
     JNIEnv* env = GetEnv();
     ClassCache::instance(env)->deleteClassName(obj);
     env->DeleteLocalRef(obj);
-   }
+  }
 
   // Get Status instance by status name
   static Status GetStatusFromAlluxioException(const std::string& statusName,

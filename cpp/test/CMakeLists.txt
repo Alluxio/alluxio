@@ -24,13 +24,16 @@ ADD_LIBRARY(FILESYSTEM
     ${CMAKE_CURRENT_SOURCE_DIR}/../src/FileOutStream.cc
 )
 
+ADD_EXECUTABLE(JNIHelper_Test JNIHelperTest.cc)
 ADD_EXECUTABLE(filesystem_test FileSystemTest.cc)
 ADD_EXECUTABLE(fileRW_test FileRWTest.cc)
 
 TARGET_LINK_LIBRARIES(fileRW_test FILESYSTEM ${JNI_LIBRARIES} -lpthread)
 TARGET_LINK_LIBRARIES(filesystem_test FILESYSTEM ${JNI_LIBRARIES} -lpthread)
+TARGET_LINK_LIBRARIES(JNIHelper_Test FILESYSTEM ${JNI_LIBRARIES} -lpthread)
 
 ENABLE_TESTING()
 
 ADD_TEST(NAME test_filesystem_API COMMAND filesystem_test)
 ADD_TEST(NAME test_read_write_API COMMAND fileRW_test)
+ADD_TEST(NAME JNIHelper_Test COMMAND JNIHelper_Test)
