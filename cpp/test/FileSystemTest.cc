@@ -12,6 +12,7 @@
 #include <assert.h>
 
 #include "FileSystem.h"
+#include "LocalAlluxioCluster.h"
 
 using namespace alluxio;
 
@@ -120,43 +121,15 @@ void SetAttributeTest(FileSystem* fileSystem, const char* path)  {
   assert(status.ok());
 }
 
-jobject startMultiProcessCluster(FileSystem** filesystem,
-                              JniHelper::LocalRefMapType& localRefs) {
-  JniHelper::Start();
-
-  jobject builder = JniHelper::CallStaticObjectMethod(
-                        "alluxio/multi/process/MultiProcessCluster",
-                        "newBuilder",
-                        "alluxio/multi/process/MultiProcessCluster$Builder");
-
-  localRefs[JniHelper::GetEnv()].push_back(builder);
-  jobject miniCluster = JniHelper::CallObjectMethod(builder,
-                            "alluxio/multi/process/MultiProcessCluster$Builder",
-                            "build",
-                            "alluxio/multi/process/MultiProcessCluster");
-  localRefs[JniHelper::GetEnv()].push_back(miniCluster);
-  JniHelper::CallVoidMethod(miniCluster,
-                            "alluxio/multi/process/MultiProcessCluster",
-                            "start");
-  jobject jfileSystem = JniHelper::CallObjectMethod(miniCluster,
-                            "alluxio/multi/process/MultiProcessCluster",
-                            "getFileSystemClient",
-                            "alluxio/client/file/FileSystem");
-  * filesystem = new FileSystem(jfileSystem);
-  return miniCluster;
-}
-
 // Tests fileSystem operations without reading and writing
 int main(void) {
   FileSystem* fileSystem;
-  JniHelper::LocalRefMapType localRefs;
-
-  jobject miniCluster = startMultiProcessCluster(&fileSystem, localRefs);
+  LocalAlluxioCluster* miniCluster = new LocalAlluxioCluster();
+  miniCluster->start();
+  miniCluster->getClient(&fileSystem);
 
   // Tests create directory
   CreateDirectoryTest(fileSystem, "/foo");
-
-  CreateDirectoryTest(fileSystem, "/foo0");
 
   // Tests create file
   CreateFileTest(fileSystem, "/foo/foo1");
@@ -167,14 +140,15 @@ int main(void) {
   // Tests get status
   GetStatusTest(fileSystem, "/foo/foo1");
 
-  // Tests rename
-  RenameTest(fileSystem, "/foo/foo1", "/foo/foo2");
-
   // Tests open file
-  OpenFileTest(fileSystem, "/foo/foo2");
+  OpenFileTest(fileSystem, "/foo/foo1");
+
+  // Tests rename
+  CreateDirectoryTest(fileSystem, "/foo0");
+  RenameTest(fileSystem, "/foo0", "/foo1");
 
   // Tests list status
-  CreateFileTest(fileSystem, "/foo/foo1");
+  CreateFileTest(fileSystem, "/foo/foo2");
   ListStatusTest(fileSystem, "/foo");
 
   // Tests mount
@@ -189,19 +163,13 @@ int main(void) {
   DeletePathTest(fileSystem, "/foo/foo1");
   DeletePathTest(fileSystem, "/foo/foo2");
   DeletePathTest(fileSystem, "/foo");
-  DeletePathTest(fileSystem, "/foo0");
+  DeletePathTest(fileSystem, "/foo1");
 
-  JniHelper::CallVoidMethod(miniCluster,
-                            "alluxio/multi/process/MultiProcessCluster",
-                            "notifySuccess");
-  JniHelper::CallVoidMethod(miniCluster,
-                            "alluxio/multi/process/MultiProcessCluster",
-                            "destroy");
+  //delete miniCluster;
+  delete miniCluster;
 
   Status status = JniHelper::AlluxioExceptionCheck();
   assert(status.ok());
-
-  JniHelper::DeleteLocalRefs(JniHelper::GetEnv(), localRefs);
 
   return 0;
 }

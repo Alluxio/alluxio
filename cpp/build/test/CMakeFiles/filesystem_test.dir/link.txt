@@ -1,0 +1,1 @@
+/usr/bin/c++   -std=c++11  -rdynamic CMakeFiles/filesystem_test.dir/FileSystemTest.cc.o  -o filesystem_test -Wl,-rpath,/usr/local/jdk1.8.0_151/jre/lib/amd64:/usr/local/jdk1.8.0_151/jre/lib/amd64/server libFILESYSTEM.a /usr/local/jdk1.8.0_151/jre/lib/amd64/libjawt.so /usr/local/jdk1.8.0_151/jre/lib/amd64/server/libjvm.so -lpthread 

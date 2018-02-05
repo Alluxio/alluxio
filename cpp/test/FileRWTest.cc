@@ -12,6 +12,8 @@
 #include <assert.h>
 
 #include "FileSystem.h"
+#include "LocalAlluxioCluster.h"
+
 
 using namespace alluxio;
 
@@ -70,46 +72,19 @@ void WriteFileTest(FileSystem* fileSystem, const char* path) {
   out->Close();
 }
 
-jobject startLocalCluster(FileSystem** fileSystem) {
-  JniHelper::Start();
-  jobject miniCluster = JniHelper::CreateObjectMethod(
-      "alluxio/master/LocalAlluxioCluster");
-  JniHelper::CallVoidMethod(miniCluster,
-                            "alluxio/master/AbstractLocalAlluxioCluster",
-                            "initConfiguration");
-  JniHelper::CallVoidMethod(miniCluster,
-                            "alluxio/master/AbstractLocalAlluxioCluster",
-                            "setupTest");
-  JniHelper::CallVoidMethod(miniCluster,
-                            "alluxio/master/LocalAlluxioCluster",
-                            "startMasters");
-  JniHelper::CallVoidMethod(miniCluster,
-                            "alluxio/master/AbstractLocalAlluxioCluster",
-                            "startWorkers");
-  jobject jfileSystem = JniHelper::CallObjectMethod(miniCluster,
-                                       "alluxio/master/LocalAlluxioCluster",
-                                       "getClient",
-                                       "alluxio/client/file/FileSystem");
-  * fileSystem = new FileSystem(jfileSystem);
-  return miniCluster;
-}
-
 // Tests fileSystem operations including reading and writing
 int main(void) {
   FileSystem* fileSystem;
-  jobject miniCluster = startLocalCluster(&fileSystem);
+  LocalAlluxioCluster* miniCluster = new LocalAlluxioCluster();
+  miniCluster->start();
+  miniCluster->getClient(&fileSystem);
   // Tests read
   WriteFileTest(fileSystem, "/RW");
   // Tests write
   ReadFileTest(fileSystem, "/RW");
+  delete miniCluster;
 
-  JniHelper::CallVoidMethod(miniCluster,
-                            "alluxio/master/AbstractLocalAlluxioCluster",
-                            "stop");
   Status status = JniHelper::AlluxioExceptionCheck();
   assert(status.ok());
-
-  JniHelper::DeleteObjectRef(miniCluster);
-
   return 0;
 }
