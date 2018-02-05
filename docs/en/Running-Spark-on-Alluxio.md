@@ -73,14 +73,18 @@ Alternatively you can add the properties to the previously created Hadoop config
 </configuration>
 ```
 
-### Check Setup
+## Check Spark with Alluxio integration
 
-* You can run the following command in the Alluxio project directory 
-to check if you have successfully setup Spark with Alluxio:
+Before running Spark on Alluxio, you might want to make sure that your Spark configurations has been 
+setup correctly for integrating with Alluxio. The Spark integration checker can help you achieve this. 
+
+When you have a running Spark cluster (or Spark standalone), you can run the following command in the Alluxio project directory:
 
 ```bash
 $ checker/bin/alluxio-checker.sh Spark <spark master uri> <spark partition number(optional)>
 ```
+
+This will report potential problems that might prevent you from running Spark with Alluxio. 
 
 ## Use Alluxio as Input and Output
 
