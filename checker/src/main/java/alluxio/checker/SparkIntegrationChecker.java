@@ -30,7 +30,8 @@ import org.slf4j.LoggerFactory;
 import scala.Serializable;
 import scala.Tuple2;
 
-import java.io.File;
+import java.io.BufferedWriter;
+import java.io.FileWriter;
 import java.io.PrintWriter;
 
 import java.net.InetAddress;
@@ -130,7 +131,7 @@ public class SparkIntegrationChecker implements Serializable{
 
     // Merges the IP addresses that can/cannot recognize Alluxio
     JavaPairRDD<Status, String> mergeStatus = extractedStatus.reduceByKey((a, b)
-        -> a.contains(b) ?  a : (b.contains(a) ? b : a + "; " + b));
+        -> a.contains(b) ?  a : (b.contains(a) ? b : a + " " + b), 1);
 
     mSparkJobResult = mergeStatus.collect();
 
@@ -244,11 +245,11 @@ public class SparkIntegrationChecker implements Serializable{
                 + "cannot recognize Alluxio classes.%n%n", sjr._2);
             break;
           case FAIL_TO_FIND_FS:
-            printWriter.printf("Spark executors of IP addresses: %s "
+            printWriter.printf("Spark executors of IP addresses %s "
                 + "cannot recognize Alluxio filesystem.%n%n", sjr._2);
             break;
           default:
-            printWriter.printf("Spark executors of IP addresses: %s "
+            printWriter.printf("Spark executors of IP addresses %s "
                 + "can recognize Alluxio filesystem.%n%n", sjr._2);
             break;
         }
@@ -259,20 +260,24 @@ public class SparkIntegrationChecker implements Serializable{
       case FAIL_TO_FIND_CLASS:
         printWriter.println("Please check the spark.driver.extraClassPath "
             + "and spark.executor.extraClassPath properties in "
-            + "${SPARK_HOME}/conf/core-site.xml\n");
+            + "${SPARK_HOME}/conf/spark-defaults.conf\n");
+        printWriter.println("If Alluxio client jar path has been set correctly, "
+            + "please check whether the Alluxio client jar has been distributed "
+            + "on the classpath of all Spark cluster nodes.");
         printWriter.println("For details, please refer to: "
             + "https://www.alluxio.org/docs/master/en/Running-Spark-on-Alluxio.html\n");
         printWriter.println("***** Integration test failed. *****");
         break;
       case FAIL_TO_FIND_FS:
-        printWriter.println("Please check the fs.alluxio.impl property.\n");
+        printWriter.println("Please check the fs.alluxio.impl property "
+            + "in ${SPARK_HOME}/conf/core-site.xml\n");
         printWriter.println("For details, please refer to: "
             + "https://www.alluxio.org/docs/master/en/Debugging-Guide.html"
             + "#q-why-do-i-see-exceptions-like-no-filesystem-for-scheme-alluxio\n");
         printWriter.println("***** Integration test failed. *****");
         break;
       case FAIL_TO_SUPPORT_HA:
-        printWriter.println("Please check the alluxio.zookeeper.address property"
+        printWriter.println("Please check the alluxio.zookeeper.address property "
             + "in ${SPARK_HOME}/conf/core-site.xml\n");
         printWriter.println("For details, please refer to: "
             + "https://www.alluxio.org/docs/master/en/Running-Spark-on-Alluxio.html\n");
@@ -295,8 +300,9 @@ public class SparkIntegrationChecker implements Serializable{
     jCommander.setProgramName("SparkIntegrationChecker");
 
     // Creates a file to save user-facing messages
-    File file = new File("./SparkOutputFile.txt");
-    PrintWriter printWriter = new PrintWriter(file);
+    FileWriter fw = new FileWriter("./SparkOutputFile.txt", true);
+    BufferedWriter bw = new BufferedWriter(fw);
+    PrintWriter printWriter = new PrintWriter(bw);
 
     // Starts the Java Spark Context
     SparkConf conf = new SparkConf().setAppName(SparkIntegrationChecker.class.getName());

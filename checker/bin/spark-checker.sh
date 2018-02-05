@@ -19,10 +19,10 @@ BIN=$(cd "$( dirname "$( readlink "$0" || echo "$0" )" )"; pwd)
 
 USAGE="Usage: alluxio-checker.sh Spark [SPARK_MASTER_ADDRESS] [PARTITIONS]
 The SPARK_MASTER_ADDRESS should be one of the following:
-  local                 \ Running Spark on local machine.
-  spark://host:port     \ Spark standalone mode.
-  mesos://host:port     \ Running Spark on Mesos.
-  yarn                  \ launching Spark on Yarn.
+  local or local[*] or local[K,F]  Running Spark on local machine.
+  spark://host:port                Spark standalone mode.
+  mesos://host:port                Running Spark on Mesos.
+  yarn                             Launching Spark on Yarn.
 
 PARTITIONS
   optional Spark argument.
