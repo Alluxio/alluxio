@@ -17,7 +17,7 @@ if [[ "$-" == *x* ]]; then
 fi
 BIN=$(cd "$( dirname "$( readlink "$0" || echo "$0" )" )"; pwd)
 
-USAGE="Usage: checkIntegration Spark [SPARK_MASTER_ADDRESS] [PARTITIONS]
+USAGE="Usage: alluxio-checker.sh Spark [SPARK_MASTER_ADDRESS] [PARTITIONS]
 The SPARK_MASTER_ADDRESS should be one of the following:
   local                 \ Running Spark on local machine.
   spark://host:port     \ Spark standalone mode.
@@ -60,63 +60,36 @@ function find_spark_path() {
 
 function trigger_spark_cluster() {
   # Client mode
-  ${LAUNCHER} "$SPARK_SUBMIT/spark-submit" --class alluxio.checker.SparkIntegrationChecker --master ${SPARK_MASTER} \
-    --deploy-mode client "${BIN}/../target/alluxio-checker-${VERSION}-jar-with-dependencies.jar" --partition ${PARTITIONS}
-  CLIENT_RESULT="$?"
-  # Cluster mode
-  ${LAUNCHER} "$SPARK_SUBMIT/spark-submit" --class alluxio.checker.SparkIntegrationChecker --master ${SPARK_MASTER} \
-    --deploy-mode cluster "${BIN}/../target/alluxio-checker-${VERSION}-jar-with-dependencies.jar" --partition ${PARTITIONS}
-  CLUSTER_RESULT="$?"
+  ${LAUNCHER} "${SPARK_SUBMIT}/spark-submit" --class alluxio.checker.SparkIntegrationChecker --master "${SPARK_MASTER}" \
+    --deploy-mode client "${BIN}/../target/alluxio-checker-${VERSION}-jar-with-dependencies.jar" --partitions "${PARTITIONS}"
 
-  echo "The following information is about Spark client mode."
-  print_message "${CLIENT_RESULT}"
-  echo "The following information is about Spark cluster mode."
-  print_message "${CLUSTER_RESULT}"
+  # Cluster mode
+  ${LAUNCHER} "${SPARK_SUBMIT}/spark-submit" --class alluxio.checker.SparkIntegrationChecker --master "${SPARK_MASTER}" \
+    --deploy-mode cluster "${BIN}/../target/alluxio-checker-${VERSION}-jar-with-dependencies.jar" --partitions "${PARTITIONS}"
 }
 
 function trigger_spark_local() {
-  ${LAUNCHER} "$SPARK_SUBMIT/spark-submit" --class alluxio.checker.SparkIntegrationChecker --master ${SPARK_MASTER} \
-    "${BIN}/../target/alluxio-checker-${VERSION}-jar-with-dependencies.jar" --partition ${PARTITIONS}
-  print_message "$?"
-}
-
-function print_message() {
-  if [[ "$1" == 1 ]]; then
-    echo "Please check the spark.driver.extraClassPath and spark.executor.extraClassPath in \${SPARK_HOME}/conf/spark-defaults.conf."
-    echo "If Alluxio jar paths have been set, please check if Alluxio client jar has been distributed on the classpath of all Spark nodes."
-    echo "For details, please refer to:
-      https://www.alluxio.org/docs/master/en/Running-Spark-on-Alluxio.html"
-    echo "Integration test failed."
-  elif [[ "$1" == 2 ]]; then
-    echo "Please check the fs.alluxio.impl property in \${SPARK_HOME}/conf/core-site.xml."
-    echo "For details, please refer to:
-      https://www.alluxio.org/docs/master/en/Debugging-Guide.html"
-    echo "Integration test failed."
-  elif [[ "$1" == 3 ]]; then
-    echo "Please check the alluxio.zookeeper.address property in \${SPARK_HOME}/conf/core-site.xml."
-    echo "For details, please refer to:
-      https://www.alluxio.org/docs/master/en/Running-Spark-on-Alluxio.html"
-    echo "Integration test failed."
-  elif [[ "$1" == 0 ]]; then
-    echo "Integration test passed."
-  fi
+  ${LAUNCHER} "${SPARK_SUBMIT}/spark-submit" --class alluxio.checker.SparkIntegrationChecker --master "${SPARK_MASTER}" \
+    "${BIN}/../target/alluxio-checker-${VERSION}-jar-with-dependencies.jar" --partitions "${PARTITIONS}"
 }
 
 function main {
   source "${BIN}/../../libexec/alluxio-config.sh"
-  case "$1" in
+  [ -f "./SparkOutputFile.txt" ] && rm "./SparkOutputFile.txt"
+  case "${SPARK_MASTER}" in
     local*) 
       find_spark_path
-      trigger_spark_local "$@"
+      trigger_spark_local
       ;;
     mesos://* | spark://* | yarn)
       find_spark_path
-      trigger_spark_cluster "$@"
+      trigger_spark_cluster
       ;;
     *)
       echo -e "${USAGE}" >&2
       exit 1
   esac
+  [ -f "./SparkOutputFile.txt" ] && cat "./SparkOutputFile.txt" && rm "./SparkOutputFile.txt"
 }
 
 main "$@"
