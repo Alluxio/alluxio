@@ -1,2 +1,0 @@
-/usr/bin/ar qc libfilesystem.a  CMakeFiles/filesystem.dir/FileSystem.cc.o CMakeFiles/filesystem.dir/JNIHelper.cc.o CMakeFiles/filesystem.dir/Status.cc.o CMakeFiles/filesystem.dir/FileInStream.cc.o CMakeFiles/filesystem.dir/FileOutStream.cc.o
-/usr/bin/ranlib libfilesystem.a
