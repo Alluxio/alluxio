@@ -23,7 +23,7 @@ The common configuration contains constants shared by different components.
 <tr><th>Property Name</th><th>Default</th><th>Description</th></tr>
 {% for item in site.data.table.common-configuration %}
   <tr>
-    <td>{{ item.propertyName }}</td>
+    <td><a class="anchor" name="{{ item.propertyName }}"></a> {{ item.propertyName }}</td>
     <td>{{ item.defaultValue }}</td>
     <td>{{ site.data.table.en.common-configuration[item.propertyName] }}</td>
   </tr>
@@ -39,7 +39,7 @@ the port number.
 <tr><th>Property Name</th><th>Default</th><th>Description</th></tr>
 {% for item in site.data.table.master-configuration %}
   <tr>
-    <td>{{ item.propertyName }}</td>
+    <td><a class="anchor" name="{{ item.propertyName }}"></a> {{ item.propertyName }}</td>
     <td>{{ item.defaultValue }}</td>
     <td>{{ site.data.table.en.master-configuration[item.propertyName] }}</td>
   </tr>
@@ -55,7 +55,7 @@ the port number.
 <tr><th>Property Name</th><th>Default</th><th>Description</th></tr>
 {% for item in site.data.table.worker-configuration %}
   <tr>
-    <td>{{ item.propertyName }}</td>
+    <td><a class="anchor" name="{{ item.propertyName }}"></a> {{ item.propertyName }}</td>
     <td>{{ item.defaultValue }}</td>
     <td>{{ site.data.table.en.worker-configuration[item.propertyName] }}</td>
   </tr>
@@ -70,7 +70,7 @@ The user configuration specifies values regarding file system access.
 <tr><th>Property Name</th><th>Default</th><th>Description</th></tr>
 {% for item in site.data.table.user-configuration %}
   <tr>
-    <td>{{ item.propertyName }}</td>
+    <td><a class="anchor" name="{{ item.propertyName }}"></a> {{ item.propertyName }}</td>
     <td>{{ item.defaultValue }}</td>
     <td>{{ site.data.table.en.user-configuration[item.propertyName] }}</td>
   </tr>
@@ -85,7 +85,7 @@ When running Alluxio with resource managers like Mesos and YARN, Alluxio has add
 <tr><th>Property Name</th><th>Default</th><th>Description</th></tr>
 {% for item in site.data.table.cluster-management-configuration %}
   <tr>
-    <td>{{ item.propertyName }}</td>
+    <td><a class="anchor" name="{{ item.propertyName }}"></a> {{ item.propertyName }}</td>
     <td>{{ item.defaultValue }}</td>
     <td>{{ site.data.table.en.cluster-management-configuration[item.propertyName] }}</td>
   </tr>
@@ -100,7 +100,7 @@ The security configuration specifies information regarding the security features
 <tr><th>Property Name</th><th>Default</th><th>Description</th></tr>
 {% for item in site.data.table.security-configuration %}
   <tr>
-    <td>{{ item.propertyName }}</td>
+    <td><a class="anchor" name="{{ item.propertyName }}"></a> {{ item.propertyName }}</td>
     <td>{{ item.defaultValue }}</td>
     <td>{{ site.data.table.en.security-configuration[item.propertyName] }}</td>
   </tr>

@@ -35,7 +35,10 @@ import alluxio.exception.UnexpectedAlluxioException;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatScheduler;
 import alluxio.heartbeat.ManuallyScheduleHeartbeat;
+import alluxio.master.MasterContext;
 import alluxio.master.MasterRegistry;
+import alluxio.master.SafeModeManager;
+import alluxio.master.TestSafeModeManager;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.block.BlockMasterFactory;
 import alluxio.master.file.meta.PersistenceState;
@@ -44,6 +47,7 @@ import alluxio.master.file.options.CompleteFileOptions;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
 import alluxio.master.file.options.DeleteOptions;
+import alluxio.master.file.options.DescendantType;
 import alluxio.master.file.options.FreeOptions;
 import alluxio.master.file.options.GetStatusOptions;
 import alluxio.master.file.options.ListStatusOptions;
@@ -51,6 +55,7 @@ import alluxio.master.file.options.LoadMetadataOptions;
 import alluxio.master.file.options.MountOptions;
 import alluxio.master.file.options.RenameOptions;
 import alluxio.master.file.options.SetAttributeOptions;
+import alluxio.master.file.options.WorkerHeartbeatOptions;
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.JournalSystem.Mode;
 import alluxio.master.journal.JournalTestUtils;
@@ -92,7 +97,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
@@ -127,6 +131,7 @@ public final class FileSystemMasterTest {
   private BlockMaster mBlockMaster;
   private ExecutorService mExecutorService;
   private FileSystemMaster mFileSystemMaster;
+  private SafeModeManager mSafeModeManager;
   private long mWorkerId1;
   private long mWorkerId2;
 
@@ -1779,8 +1784,8 @@ public final class FileSystemMasterTest {
     long fileId = mFileSystemMaster.getFileId(ROOT_FILE_URI);
     mFileSystemMaster.scheduleAsyncPersistence(ROOT_FILE_URI);
 
-    FileSystemCommand command =
-        mFileSystemMaster.workerHeartbeat(mWorkerId1, Lists.newArrayList(fileId));
+    FileSystemCommand command = mFileSystemMaster
+        .workerHeartbeat(mWorkerId1, Lists.newArrayList(fileId), WorkerHeartbeatOptions.defaults());
     assertEquals(CommandType.Persist, command.getCommandType());
     assertEquals(1,
         command.getCommandOptions().getPersistOptions().getPersistFiles().size());
@@ -1844,7 +1849,8 @@ public final class FileSystemMasterTest {
 
     // This should not throw file exists exception those a/f1 is loaded.
     mFileSystemMaster.loadMetadata(new AlluxioURI("alluxio:/a"),
-        LoadMetadataOptions.defaults().setCreateAncestors(true).setLoadDirectChildren(true));
+        LoadMetadataOptions.defaults().setCreateAncestors(true).setLoadDescendantType(
+            DescendantType.ONE));
 
     // TODO(peis): Avoid this hack by adding an option in getFileInfo to skip loading metadata.
     try {
@@ -1857,7 +1863,8 @@ public final class FileSystemMasterTest {
     }
 
     mFileSystemMaster.loadMetadata(new AlluxioURI("alluxio:/a"),
-        LoadMetadataOptions.defaults().setCreateAncestors(true).setLoadDirectChildren(true));
+        LoadMetadataOptions.defaults().setCreateAncestors(true)
+            .setLoadDescendantType(DescendantType.ONE));
   }
 
   /**
@@ -1884,6 +1891,26 @@ public final class FileSystemMasterTest {
     assertFalse(noSuchUfsInfo.isSetProperties());
   }
 
+  /**
+   * Tests that setting the ufs fingerprint persists across restarts.
+   */
+  @Test
+  public void setUfsFingerprintReplay() throws Exception {
+    String fingerprint = "FINGERPRINT";
+    createFileWithSingleBlock(NESTED_FILE_URI);
+
+    mFileSystemMaster.setAttribute(NESTED_FILE_URI,
+        SetAttributeOptions.defaults().setUfsFingerprint(fingerprint));
+
+    // Simulate restart.
+    stopServices();
+    startServices();
+
+    assertEquals(fingerprint,
+        mFileSystemMaster.getFileInfo(NESTED_FILE_URI, GetStatusOptions.defaults())
+            .getUfsFingerprint());
+  }
+
   private long createFileWithSingleBlock(AlluxioURI uri) throws Exception {
     mFileSystemMaster.createFile(uri, mNestedFileOptions);
     long blockId = mFileSystemMaster.getNewBlockIdForFile(uri);
@@ -1895,11 +1922,13 @@ public final class FileSystemMasterTest {
 
   private void startServices() throws Exception {
     mRegistry = new MasterRegistry();
+    mSafeModeManager = new TestSafeModeManager();
     mJournalSystem = JournalTestUtils.createJournalSystem(mJournalFolder);
-    mBlockMaster = new BlockMasterFactory().create(mRegistry, mJournalSystem);
+    mBlockMaster = new BlockMasterFactory().create(mRegistry, mJournalSystem, mSafeModeManager);
     mExecutorService = Executors
         .newFixedThreadPool(2, ThreadFactoryUtils.build("DefaultFileSystemMasterTest-%d", true));
-    mFileSystemMaster = new DefaultFileSystemMaster(mBlockMaster, mJournalSystem,
+    mFileSystemMaster = new DefaultFileSystemMaster(mBlockMaster,
+        new MasterContext(mJournalSystem, mSafeModeManager),
         ExecutorServiceFactories.constantExecutorServiceFactory(mExecutorService));
     mRegistry.add(FileSystemMaster.class, mFileSystemMaster);
     mJournalSystem.start();

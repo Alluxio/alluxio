@@ -59,7 +59,7 @@ Maven构建环境将自动获取依赖，编译源码，运行单元测试，并
 {% include Building-Alluxio-Master-Branch/STDOUT.md %}
 
 ## 计算框架支持
-针对不同的计算框架构建Alluxio，可以使用不同的计算配置文件运行Maven构建。 生成的Alluxio客户端位于                                                        `{{site.ALLUXIO_CLIENT_JAR_PATH_BUILD}}`.
+针对不同的计算框架构建Alluxio，可以使用不同的计算配置文件运行Maven构建。 生成的Alluxio客户端位于`{{site.ALLUXIO_CLIENT_JAR_PATH}}`。
 
 ### Hadoop
 
@@ -73,26 +73,12 @@ $ mvn install -P<HADOOP_PROFILE> -DskipTests
 
 
 
-### Spark
-你可以运行以下命令以使用Spark编译Alluxio。
+### Spark/Flink/Presto和其他框架
+
+你可以运行以下命令编译不同计算框架的Alluxio服务器和客户端Jar包。
 
 ```bash
-$ mvn install -Pspark -DskipTests
-```
-
-### Flink
-
-你可以运行以下命令以使用Flink编译Alluxio。
-
-```bash
-$ mvn install -Pflink -DskipTests
-```
-
-### Presto
-你可以运行以下命令以使用Presto编译Alluxio。
-
-```bash
-$ mvn install -Ppresto -DskipTests
+$ mvn install -DskipTests
 ```
 
 ## 发行版支持

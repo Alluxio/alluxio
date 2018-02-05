@@ -55,7 +55,7 @@
                 </div>
             </a>
             <ul class="nav">
-                {% assign categories = {{site.categoryList}} %}
+                {% assign categories = site.categoryList %}
                 {% for groupName in categories %}
                     <li class="dropdown">
                         {% if page.group == groupName %}

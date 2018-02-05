@@ -22,6 +22,7 @@ import alluxio.metrics.sink.MetricsServlet;
 import alluxio.security.authentication.TransportProvider;
 import alluxio.thrift.MetaMasterClientService;
 import alluxio.util.CommonUtils;
+import alluxio.util.JvmPauseMonitor;
 import alluxio.util.WaitForOptions;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
@@ -98,6 +99,12 @@ public class AlluxioMasterProcess implements MasterProcess {
   /** The journal system for writing journal entries and restoring master state. */
   protected final JournalSystem mJournalSystem;
 
+  /** The JVMMonitor Progress. */
+  private JvmPauseMonitor mJvmPauseMonitor;
+
+  /** The manager of safe mode state. */
+  protected final SafeModeManager mSafeModeManager;
+
   /**
    * Creates a new {@link AlluxioMasterProcess}.
    */
@@ -143,7 +150,8 @@ public class AlluxioMasterProcess implements MasterProcess {
       }
       // Create masters.
       mRegistry = new MasterRegistry();
-      MasterUtils.createMasters(mJournalSystem, mRegistry);
+      mSafeModeManager = new DefaultSafeModeManager();
+      MasterUtils.createMasters(mJournalSystem, mRegistry, mSafeModeManager);
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
@@ -220,6 +228,9 @@ public class AlluxioMasterProcess implements MasterProcess {
    */
   protected void startMasters(boolean isLeader) {
     try {
+      if (isLeader) {
+        mSafeModeManager.notifyPrimaryMasterStarted();
+      }
       mRegistry.start(isLeader);
       LOG.info("All masters started");
     } catch (IOException e) {
@@ -253,6 +264,7 @@ public class AlluxioMasterProcess implements MasterProcess {
   protected void startServing(String startMessage, String stopMessage) {
     MetricsSystem.startSinks();
     startServingWebServer();
+    startJvmMonitorProcess();
     LOG.info("Alluxio master version {} started{}. "
             + "bindHost={}, connectHost={}, rpcPort={}, webPort={}",
         RuntimeConstants.VERSION,
@@ -278,6 +290,16 @@ public class AlluxioMasterProcess implements MasterProcess {
     mWebServer.addHandler(mMetricsServlet.getHandler());
     // start web ui
     mWebServer.start();
+  }
+
+  /**
+   * Starts jvm monitor process, to monitor jvm.
+   */
+  protected void startJvmMonitorProcess() {
+    if (Configuration.getBoolean(PropertyKey.MASTER_JVM_MONITOR_ENABLED)) {
+      mJvmPauseMonitor = new JvmPauseMonitor();
+      mJvmPauseMonitor.start();
+    }
   }
 
   private void registerServices(TMultiplexedProcessor processor, Map<String, TProcessor> services) {
@@ -331,6 +353,7 @@ public class AlluxioMasterProcess implements MasterProcess {
     // start thrift rpc server
     mIsServing = true;
     mStartTimeMs = System.currentTimeMillis();
+    mSafeModeManager.notifyRpcServerStarted();
     mThriftServer.serve();
   }
 
@@ -346,6 +369,9 @@ public class AlluxioMasterProcess implements MasterProcess {
     if (mTServerSocket != null) {
       mTServerSocket.close();
       mTServerSocket = null;
+    }
+    if (mJvmPauseMonitor != null) {
+      mJvmPauseMonitor.stop();
     }
     if (mWebServer != null) {
       mWebServer.stop();

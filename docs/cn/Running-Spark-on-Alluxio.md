@@ -21,11 +21,10 @@ Alluxio直接兼容Spark 1.1或更新版本而无需修改.
 
 * Alluxio集群根据向导搭建完成(可以是[本地模式](Running-Alluxio-Locally.html)或者[集群模式](Running-Alluxio-on-a-Cluster.html))。
 
-* Alluxio client需要在编译时指定Spark选项。在顶层`alluxio`目录中执行如下命令构建Alluxio:
+* 我们建议您从Alluxio[下载页面](http://www.alluxio.org/download)下载tarball.
+  另外，高级用户可以选择根据[这里](Building-Alluxio-Master-Branch.html#compute-framework-support)的说明将源代码编译为客户端jar包，并在本文余下部分使用于`{{site.ALLUXIO_CLIENT_JAR_PATH}}`路径处生成的jar包。
 
-```bash
-$ mvn clean package -Pspark -DskipTests
-```
+* 为使Spark应用程序能够在Alluxio中读写文件， 必须将Alluxio客户端jar包分布在不同节点的应用程序的classpath中（每个节点必须使客户端jar包具有相同的本地路径{{site.ALLUXIO_CLIENT_JAR_PATH}}）
 
 * 请添加如下代码到`spark/conf/spark-defaults.conf`。
 
@@ -33,8 +32,6 @@ $ mvn clean package -Pspark -DskipTests
 spark.driver.extraClassPath {{site.ALLUXIO_CLIENT_JAR_PATH}}
 spark.executor.extraClassPath {{site.ALLUXIO_CLIENT_JAR_PATH}}
 ```
-
-高级用户可以选择通过源代码编译客户端jar包，参考说明[这里](Building-Alluxio-Master-Branch.html#compute-framework-support)，并在这篇说明剩余部分将生成的jar包应用在配置项`{{site.ALLUXIO_CLIENT_JAR_PATH_BUILD}}`中。
 
 ### 针对HDFS的额外设置
 
@@ -91,7 +88,7 @@ $ bin/alluxio fs copyFromLocal LICENSE /LICENSE
 
 ### 使用来自HDFS的数据
 
-Alluxio支持在给出具体的路径时，透明的从底层文件系统中取数据。将文件`LICENSE`放到Alluxio所挂载的目录下（默认是/alluxio）的HDFS中，意味着在这个目录下的HDFS中的任何文件都能被Alluxio发现。通过改变位于Server上的alluxio-env.sh文件中的 `ALLUXIO_UNDERFS_ADDRESS`属性可以修改这个设置。假定namenode节点运行在`localhost`，并且Alluxio默认的挂载目录是`alluxio`:
+Alluxio支持在给出具体的路径时，透明的从底层文件系统中取数据。将文件`LICENSE`放到Alluxio所挂载的目录下（默认是`/alluxio`）的HDFS中，意味着在这个目录下的HDFS中的任何文件都能被Alluxio发现。通过改变位于Server上的`conf/alluxio-site.properties`文件中的 `alluxio.underfs.address`属性可以修改这个设置。假定namenode节点运行在`localhost`，并且Alluxio默认的挂载目录是`alluxio`:
 
 ```bash
 $ hadoop fs -put -f /alluxio/LICENSE hdfs://localhost:9000/alluxio/LICENSE

@@ -14,7 +14,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.alluxio</groupId>
   <artifactId>alluxio-parent</artifactId>
-  <version>1.7.0-SNAPSHOT</version>
+  <version>1.8.0-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>Alluxio Parent</name>
   <description>Parent POM of Alluxio project: a Memory-Speed Virtual Distributed Storage System</description>
@@ -145,8 +145,7 @@
     <gmetric4j.version>1.0.7</gmetric4j.version>
     <hadoop.version>2.2.0</hadoop.version>
     <hadoop-openstack.version>2.6.0</hadoop-openstack.version>
-    <jackson.version>1.9.7</jackson.version>
-    <java.version>1.7</java.version>
+    <java.version>1.8</java.version>
     <jersey.version>2.22</jersey.version>
     <jetty.version>9.2.16.v20160414</jetty.version>
     <junit.version>4.12</junit.version>
@@ -223,7 +222,7 @@
       <dependency>
         <groupId>com.github.serceman</groupId>
         <artifactId>jnr-fuse</artifactId>
-        <version>0.3</version>
+        <version>0.5.1</version>
       </dependency>
       <dependency>
         <groupId>com.qmino</groupId>
@@ -313,10 +312,11 @@
         <artifactId>metrics-jvm</artifactId>
         <version>${metrics.version}</version>
       </dependency>
+      <!-- Netty 4.0.50+ required for shading in client runtime jar to work -->
       <dependency>
         <groupId>io.netty</groupId>
         <artifactId>netty-all</artifactId>
-        <version>4.0.29.Final</version>
+        <version>4.0.53.Final</version>
       </dependency>
       <dependency>
         <groupId>javax.ws.rs</groupId>
@@ -518,16 +518,6 @@
         <groupId>org.apache.zookeeper</groupId>
         <artifactId>zookeeper</artifactId>
         <version>3.4.6</version>
-      </dependency>
-      <dependency>
-        <groupId>org.codehaus.jackson</groupId>
-        <artifactId>jackson-core-asl</artifactId>
-        <version>${jackson.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.codehaus.jackson</groupId>
-        <artifactId>jackson-mapper-asl</artifactId>
-        <version>${jackson.version}</version>
       </dependency>
       <dependency>
         <groupId>org.eclipse.jetty</groupId>
@@ -927,7 +917,7 @@
           <artifactId>maven-surefire-plugin</artifactId>
           <version>2.19.1</version>
           <configuration>
-            <argLine>-Djava.net.preferIPv4Stack=true -XX:MaxPermSize=512M</argLine>
+            <argLine>-Djava.net.preferIPv4Stack=true</argLine>
             <forkCount>${surefire.forkCount}</forkCount>
             <redirectTestOutputToFile>${test.output.redirect}</redirectTestOutputToFile>
             <reuseForks>false</reuseForks>
@@ -990,6 +980,9 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-javadoc-plugin</artifactId>
+        <configuration>
+          <additionalparam>-Xdoclint:none</additionalparam>
+        </configuration>
         <executions>
           <execution>
             <id>aggregate</id>
@@ -1010,6 +1003,8 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-enforcer-plugin</artifactId>
+        <!-- hardcode the version here because maven failed to pick up the dependency-managed version of maven-enforcer-plugin -->
+        <version>1.4</version>
         <executions>
           <execution>
             <id>enforce-versions</id>
@@ -1108,11 +1103,16 @@
 
             <!-- Build and Packaging Exclusions -->
             <exclude>build/**/*</exclude>
+            <exclude>conf/alluxio-env.sh</exclude>
             <exclude>conf/alluxio-site.properties</exclude>
+            <exclude>conf/masters</exclude>
+            <exclude>conf/tiered_identity.sh</exclude>
+            <exclude>conf/workers</exclude>
             <exclude>dev/scripts/tarballs/**/*</exclude>
             <exclude>dev/scripts/workdir/**/*</exclude>
             <exclude>**/.checkstyle</exclude>
             <exclude>**/src/main/assembly/*</exclude>
+            <exclude>**/.idea/**</exclude>
 
             <!-- Documentation Exclusions -->
             <exclude>docs/**/*</exclude>
@@ -1180,33 +1180,6 @@
 
   <profiles>
     <profile>
-      <!-- Turn off doclint for java8 and later -->
-      <id>doclint-java8-disable</id>
-      <activation>
-        <jdk>[1.8,)</jdk>
-      </activation>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-javadoc-plugin</artifactId>
-            <configuration>
-              <additionalparam>-Xdoclint:none</additionalparam>
-            </configuration>
-            <executions>
-              <execution>
-                <id>attach-javadoc</id>
-                <goals>
-                  <goal>jar</goal>
-                </goals>
-              </execution>
-            </executions>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-
-    <profile>
       <id>contractTest</id>
       <properties>
         <hadoop.version>2.6.5</hadoop.version>
@@ -1269,24 +1242,6 @@
       </properties>
     </profile>
 
-    <!--
-        build profile for Apache Spark.
-        Empty spark profile to avoid missing profile complaints. Client
-        submodules do more interesting things with this profile.
-    -->
-    <profile>
-      <id>spark</id>
-    </profile>
-
-    <!--
-        build profile for Apache Flink.
-        Empty flinkprofile to avoid missing profile complaints. Client
-        submodules do more interesting things with this profile.
-    -->
-    <profile>
-      <id>flink</id>
-    </profile>
-
     <profile>
       <id>mesos</id>
       <modules>
@@ -1300,15 +1255,6 @@
       <modules>
         <module>integration/yarn</module>
       </modules>
-    </profile>
-
-    <!--
-        build profile for Facebook Presto.
-        Empty Presto profile to avoid missing profile complaints. Client
-        submodules do more interesting things with this profile.
-    -->
-    <profile>
-      <id>presto</id>
     </profile>
 
     <!-- profile that Alluxio developers should use -->
@@ -1348,17 +1294,6 @@
           </plugins>
         </pluginManagement>
       </build>
-    </profile>
-
-    <!-- profile that activates alluxio fuse for java8 or newer -->
-    <profile>
-      <id>fuse</id>
-      <activation>
-        <jdk>[1.8,)</jdk> <!-- 1.8 or newer -->
-      </activation>
-      <modules>
-        <module>integration/fuse</module>
-      </modules>
     </profile>
   </profiles>
 </project>

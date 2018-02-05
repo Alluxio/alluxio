@@ -13,7 +13,6 @@ package alluxio.cli;
 
 import alluxio.util.CommonUtils;
 
-import com.google.common.base.Throwables;
 import org.reflections.Reflections;
 
 import java.lang.reflect.Modifier;
@@ -31,7 +30,8 @@ public final class CommandUtils {
   private CommandUtils() {} // prevent instantiation
 
   /**
-   * Get instances of all subclasses of {@link Command} in the given package.
+   * Get instances of all subclasses of {@link Command} in a sub-package called "command" the given
+   * package.
    *
    * @param pkgName package prefix to look in
    * @param classArgs type of args to instantiate the class
@@ -43,15 +43,11 @@ public final class CommandUtils {
     Map<String, Command> commandsMap = new HashMap<>();
     Reflections reflections = new Reflections(Command.class.getPackage().getName());
     for (Class<? extends Command> cls : reflections.getSubTypesOf(Command.class)) {
-      if (cls.getPackage().getName().startsWith(pkgName)
+      // Add commands from <pkgName>.command.*
+      if (cls.getPackage().getName().equals(pkgName + ".command")
           && !Modifier.isAbstract(cls.getModifiers())) {
         // Only instantiate a concrete class
-        Command cmd;
-        try {
-          cmd = CommonUtils.createNewClassInstance(cls, classArgs, objectArgs);
-        } catch (Exception e) {
-          throw Throwables.propagate(e);
-        }
+        Command cmd = CommonUtils.createNewClassInstance(cls, classArgs, objectArgs);
         commandsMap.put(cmd.getCommandName(), cmd);
       }
     }

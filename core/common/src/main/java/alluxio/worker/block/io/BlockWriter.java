@@ -16,6 +16,7 @@ import io.netty.buffer.ByteBuf;
 import java.io.Closeable;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.channels.WritableByteChannel;
 
 /**
  * A writer interface to write or update a block stored in managed storage.
@@ -44,4 +45,9 @@ public interface BlockWriter extends Closeable {
    * @return the current write position (same as the number of bytes written)
    */
   long getPosition();
+
+  /**
+   * @return a writeable byte channel of the block
+   */
+  WritableByteChannel getChannel();
 }

@@ -15,12 +15,12 @@ import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.client.block.BlockMasterClient;
 import alluxio.client.block.BlockMasterClientPool;
-import alluxio.client.netty.NettyClient;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.UnavailableException;
 import alluxio.master.MasterInquireClient;
 import alluxio.metrics.MetricsSystem;
-import alluxio.network.connection.NettyChannelPool;
+import alluxio.network.netty.NettyChannelPool;
+import alluxio.network.netty.NettyClient;
 import alluxio.resource.CloseableResource;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.WorkerInfo;
@@ -30,7 +30,6 @@ import com.codahale.metrics.Gauge;
 import com.google.common.base.Preconditions;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
-import io.netty.util.internal.chmv8.ConcurrentHashMapV8;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -38,6 +37,7 @@ import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.ThreadSafe;
@@ -68,8 +68,8 @@ public final class FileSystemContext implements Closeable {
   private volatile BlockMasterClientPool mBlockMasterClientPool;
 
   // The netty data server channel pools.
-  private final ConcurrentHashMapV8<SocketAddress, NettyChannelPool>
-      mNettyChannelPools = new ConcurrentHashMapV8<>();
+  private final ConcurrentHashMap<SocketAddress, NettyChannelPool>
+      mNettyChannelPools = new ConcurrentHashMap<>();
 
   /** The shared master inquire client associated with the {@link FileSystemContext}. */
   @GuardedBy("this")
@@ -145,6 +145,7 @@ public final class FileSystemContext implements Closeable {
    * that acquired from this context might fail. Only call this when you are done with using
    * the {@link FileSystem} associated with this {@link FileSystemContext}.
    */
+  @Override
   public void close() throws IOException {
     mFileSystemMasterClientPool.close();
     mFileSystemMasterClientPool = null;

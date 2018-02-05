@@ -276,7 +276,8 @@ public class ConcurrentFileSystemMasterCreateTest extends BaseIntegrationTest {
     if (listParentDir) {
       // Loading direct children needs to load each child, so reduce the branching factor.
       uniquePaths = 10;
-      limitMs = (2 + uniquePaths) * SLEEP_MS * 2;
+//      limitMs = (2 + uniquePaths) * SLEEP_MS * 2;
+      limitMs = 2 * SLEEP_MS * 4 + uniquePaths * SLEEP_MS * 3;
     }
 
     // Create UFS files outside of Alluxio.

@@ -53,12 +53,12 @@ public interface BlockLocationPolicy {
         Class<BlockLocationPolicy> clazz =
             (Class<BlockLocationPolicy>) Class.forName(options.getLocationPolicyClassName());
         if (numShards > 1) {
-          return CommonUtils
-              .createNewClassInstance(clazz, new Class[] {Integer.class}, new Object[] {numShards});
+          return CommonUtils.createNewClassInstance(clazz, new Class[] {Integer.class},
+              new Object[] {numShards});
         } else {
           return CommonUtils.createNewClassInstance(clazz, new Class[] {}, new Object[] {});
         }
-      } catch (ReflectiveOperationException e) {
+      } catch (ClassNotFoundException e) {
         throw new RuntimeException(e);
       }
     }

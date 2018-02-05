@@ -20,7 +20,6 @@ import alluxio.resource.ResourcePool;
 
 import com.google.common.base.Objects;
 import com.google.common.collect.Sets;
-import io.netty.util.internal.chmv8.ConcurrentHashMapV8;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,6 +28,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -380,7 +380,7 @@ public final class BlockLockManager {
   public void validate() {
     synchronized (mSharedMapsLock) {
       // Compute block lock reference counts based off of lock records
-      ConcurrentMap<Long, AtomicInteger> blockLockReferenceCounts = new ConcurrentHashMapV8<>();
+      ConcurrentMap<Long, AtomicInteger> blockLockReferenceCounts = new ConcurrentHashMap<>();
       for (LockRecord record : mLockIdToRecordMap.values()) {
         blockLockReferenceCounts.putIfAbsent(record.getBlockId(), new AtomicInteger(0));
         blockLockReferenceCounts.get(record.getBlockId()).incrementAndGet();

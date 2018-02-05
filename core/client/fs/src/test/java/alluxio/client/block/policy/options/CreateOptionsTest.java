@@ -11,7 +11,6 @@
 
 package alluxio.client.block.policy.options;
 
-import alluxio.CommonTestUtils;
 import alluxio.util.CommonUtils;
 
 import org.junit.Assert;
@@ -54,6 +53,6 @@ public final class CreateOptionsTest {
 
   @Test
   public void equalsTest() throws Exception {
-    CommonTestUtils.testEquals(CreateOptions.class);
+    alluxio.test.util.CommonUtils.testEquals(CreateOptions.class);
   }
 }

@@ -11,10 +11,9 @@
 
 package alluxio.wire;
 
-import alluxio.CommonTestUtils;
 import alluxio.util.CommonUtils;
 
-import org.codehaus.jackson.map.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -35,7 +34,7 @@ public class AlluxioProxyInfoTest {
 
   @Test
   public void equals() {
-    CommonTestUtils.testEquals(AlluxioProxyInfo.class);
+    alluxio.test.util.CommonUtils.testEquals(AlluxioProxyInfo.class);
   }
 
   private void checkEquality(AlluxioProxyInfo a, AlluxioProxyInfo b) {

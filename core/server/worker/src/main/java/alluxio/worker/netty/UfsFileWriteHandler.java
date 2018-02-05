@@ -14,9 +14,9 @@ package alluxio.worker.netty;
 import alluxio.metrics.MetricsSystem;
 import alluxio.network.protocol.RPCProtoMessage;
 import alluxio.proto.dataserver.Protocol;
+import alluxio.resource.CloseableResource;
 import alluxio.security.authorization.Mode;
 import alluxio.underfs.UfsManager;
-import alluxio.underfs.UfsManager.UfsInfo;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.CreateOptions;
 
@@ -112,6 +112,7 @@ public final class UfsFileWriteHandler extends AbstractWriteHandler<UfsFileWrite
       Preconditions.checkState(context.getOutputStream() != null);
       context.getOutputStream().close();
       context.setOutputStream(null);
+      context.getUfsResource().close();
     }
 
     @Override
@@ -121,10 +122,11 @@ public final class UfsFileWriteHandler extends AbstractWriteHandler<UfsFileWrite
       }
       UfsFileWriteRequest request = context.getRequest();
       // TODO(calvin): Consider adding cancel to the ufs stream api.
-      if (context.getOutputStream() != null && context.getUnderFileSystem() != null) {
+      if (context.getOutputStream() != null && context.getUfsResource() != null) {
         context.getOutputStream().close();
-        context.getUnderFileSystem().deleteFile(request.getUfsPath());
+        context.getUfsResource().get().deleteFile(request.getUfsPath());
         context.setOutputStream(null);
+        context.getUfsResource().close();
       }
     }
 
@@ -149,14 +151,15 @@ public final class UfsFileWriteHandler extends AbstractWriteHandler<UfsFileWrite
       UfsFileWriteRequest request = context.getRequest();
       Preconditions.checkState(request != null);
       Protocol.CreateUfsFileOptions createUfsFileOptions = request.getCreateUfsFileOptions();
-      UfsInfo ufsInfo = mUfsManager.get(createUfsFileOptions.getMountId());
-      UnderFileSystem ufs = ufsInfo.getUfs();
-      context.setUnderFileSystem(ufs);
+      UfsManager.UfsClient ufsClient = mUfsManager.get(createUfsFileOptions.getMountId());
+      CloseableResource<UnderFileSystem> ufsResource = ufsClient.acquireUfsResource();
+      context.setUfsResource(ufsResource);
+      UnderFileSystem ufs = ufsResource.get();
       context.setOutputStream(ufs.create(request.getUfsPath(),
           CreateOptions.defaults().setOwner(createUfsFileOptions.getOwner())
               .setGroup(createUfsFileOptions.getGroup())
               .setMode(new Mode((short) createUfsFileOptions.getMode()))));
-      String ufsString = MetricsSystem.escape(ufsInfo.getUfsMountPointUri());
+      String ufsString = MetricsSystem.escape(ufsClient.getUfsMountPointUri());
       String metricName = String.format("BytesWrittenUfs-Ufs:%s", ufsString);
       Counter counter = MetricsSystem.workerCounter(metricName);
       context.setCounter(counter);

@@ -118,13 +118,26 @@ public final class UnderFileSystemFactoryRegistry {
    */
   @Nullable
   public static UnderFileSystemFactory find(String path) {
+    return find(path, null);
+  }
+
+  /**
+   * Finds the first Under File System factory that supports the given path.
+   *
+   * @param path path
+   * @param ufsConf optional configuration object for the UFS, may be null
+   * @return factory if available, null otherwise
+   */
+  @Nullable
+  public static UnderFileSystemFactory find(
+      String path, @Nullable UnderFileSystemConfiguration ufsConf) {
     Preconditions.checkArgument(path != null, "path may not be null");
 
     scanLibs();
     scanExtensions();
 
     for (UnderFileSystemFactory factory : FACTORIES) {
-      if (factory.supportsPath(path)) {
+      if (factory.supportsPath(path, ufsConf)) {
         LOG.debug("Selected Under File System Factory implementation {} for path {}",
             factory.getClass(), path);
         return factory;
@@ -140,9 +153,11 @@ public final class UnderFileSystemFactoryRegistry {
    * Finds all the Under File System factories that support the given path.
    *
    * @param path path
+   * @param ufsConf configuration of the UFS
    * @return list of factories that support the given path which may be an empty list
    */
-  public static List<UnderFileSystemFactory> findAll(String path) {
+  public static List<UnderFileSystemFactory> findAll(
+      String path, UnderFileSystemConfiguration ufsConf) {
     Preconditions.checkArgument(path != null, "path may not be null");
 
     scanLibs();
@@ -150,7 +165,7 @@ public final class UnderFileSystemFactoryRegistry {
 
     List<UnderFileSystemFactory> eligibleFactories = new ArrayList<>();
     for (UnderFileSystemFactory factory : FACTORIES) {
-      if (factory.supportsPath(path)) {
+      if (factory.supportsPath(path, ufsConf)) {
         LOG.debug("Under File System Factory implementation {} is eligible for path {}",
             factory.getClass(), path);
         eligibleFactories.add(factory);

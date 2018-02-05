@@ -13,10 +13,9 @@ package alluxio.master;
 
 import alluxio.Constants;
 import alluxio.Server;
-import alluxio.clock.Clock;
+import alluxio.exception.status.UnavailableException;
 import alluxio.master.journal.Journal;
 import alluxio.master.journal.JournalContext;
-import alluxio.master.journal.JournalSystem;
 import alluxio.util.executor.ExecutorServiceFactory;
 
 import com.google.common.base.Preconditions;
@@ -24,6 +23,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.time.Clock;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
@@ -53,18 +53,22 @@ public abstract class AbstractMaster implements Master {
   /** The clock to use for determining the time. */
   protected final Clock mClock;
 
+  /** The manager for safe mode state. */
+  protected final SafeModeManager mSafeModeManager;
+
   /**
-   * @param journalSystem the journal system to use for tracking master operations
+   * @param masterContext the context for Alluxio master
    * @param clock the Clock to use for determining the time
    * @param executorServiceFactory a factory for creating the executor service to use for
    *        running maintenance threads
    */
-  protected AbstractMaster(JournalSystem journalSystem, Clock clock,
+  protected AbstractMaster(MasterContext masterContext, Clock clock,
       ExecutorServiceFactory executorServiceFactory) {
-    mJournal = journalSystem.createJournal(this);
-    mClock = Preconditions.checkNotNull(clock, "clock");
-    mExecutorServiceFactory =
-        Preconditions.checkNotNull(executorServiceFactory, "executorServiceFactory");
+    Preconditions.checkNotNull(masterContext, "masterContext");
+    mJournal = masterContext.getJournalSystem().createJournal(this);
+    mSafeModeManager = masterContext.getmSafeModeManager();
+    mClock = clock;
+    mExecutorServiceFactory = executorServiceFactory;
   }
 
   @Override
@@ -128,7 +132,7 @@ public abstract class AbstractMaster implements Master {
   /**
    * @return new instance of {@link JournalContext}
    */
-  protected JournalContext createJournalContext() {
+  protected JournalContext createJournalContext() throws UnavailableException {
     return mJournal.createJournalContext();
   }
 }

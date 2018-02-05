@@ -15,6 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
+import alluxio.exception.status.UnavailableException;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.wire.FileBlockInfo;
 import alluxio.wire.FileInfo;
@@ -39,7 +40,7 @@ public final class FileSystemMasterView {
    * @param fileSystemMaster the file system master
    */
   public FileSystemMasterView(FileSystemMaster fileSystemMaster) {
-    mFileSystemMaster = Preconditions.checkNotNull(fileSystemMaster);
+    mFileSystemMaster = Preconditions.checkNotNull(fileSystemMaster, "fileSystemMaster");
   }
 
   /**
@@ -63,7 +64,7 @@ public final class FileSystemMasterView {
    * @throws AccessControlException if permission denied
    */
   public synchronized FileInfo getFileInfo(long fileId)
-      throws FileDoesNotExistException, AccessControlException {
+      throws FileDoesNotExistException, AccessControlException, UnavailableException {
     return mFileSystemMaster.getFileInfo(fileId);
   }
 
@@ -84,7 +85,7 @@ public final class FileSystemMasterView {
    * @throws FileDoesNotExistException if file does not exist
    */
   public synchronized long getFileId(AlluxioURI path)
-      throws AccessControlException, FileDoesNotExistException {
+      throws AccessControlException, FileDoesNotExistException, UnavailableException {
     return mFileSystemMaster.getFileId(path);
   }
 
@@ -96,7 +97,8 @@ public final class FileSystemMasterView {
    * @throws AccessControlException if permission checking fails
    */
   public synchronized List<FileBlockInfo> getFileBlockInfoList(AlluxioURI path)
-      throws FileDoesNotExistException, InvalidPathException, AccessControlException {
+      throws FileDoesNotExistException, InvalidPathException, AccessControlException,
+      UnavailableException {
     return mFileSystemMaster.getFileBlockInfoList(path);
   }
 
@@ -114,7 +116,7 @@ public final class FileSystemMasterView {
   /**
    * @return a list of {@link WorkerInfo} objects representing the workers in Alluxio
    */
-  public synchronized List<WorkerInfo> getWorkerInfoList() {
+  public synchronized List<WorkerInfo> getWorkerInfoList() throws UnavailableException {
     return mFileSystemMaster.getWorkerInfoList();
   }
 }

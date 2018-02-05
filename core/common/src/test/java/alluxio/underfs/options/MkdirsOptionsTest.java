@@ -12,10 +12,9 @@
 package alluxio.underfs.options;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
-import alluxio.CommonTestUtils;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.security.authentication.AuthType;
@@ -94,6 +93,6 @@ public final class MkdirsOptionsTest {
 
   @Test
   public void equalsTest() throws Exception {
-    CommonTestUtils.testEquals(MkdirsOptions.class);
+    alluxio.test.util.CommonUtils.testEquals(MkdirsOptions.class);
   }
 }

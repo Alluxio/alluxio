@@ -11,6 +11,16 @@
 
 package alluxio.client.file;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
+import static org.junit.Assert.assertSame;
+
+import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.doThrow;
+
 import alluxio.AlluxioURI;
 import alluxio.client.file.options.CreateDirectoryOptions;
 import alluxio.client.file.options.CreateFileOptions;
@@ -28,11 +38,9 @@ import alluxio.wire.FileInfo;
 import alluxio.wire.LoadMetadataType;
 
 import org.junit.After;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
@@ -69,7 +77,7 @@ public final class BaseFileSystemTest {
     mFileContext = PowerMockito.mock(FileSystemContext.class);
     mFileSystem = new DummyAlluxioFileSystem(mFileContext);
     mFileSystemMasterClient = PowerMockito.mock(FileSystemMasterClient.class);
-    Mockito.when(mFileContext.acquireMasterClient()).thenReturn(mFileSystemMasterClient);
+    when(mFileContext.acquireMasterClient()).thenReturn(mFileSystemMasterClient);
   }
 
   /**
@@ -77,8 +85,8 @@ public final class BaseFileSystemTest {
    */
   @After
   public void after() {
-    Mockito.verify(mFileContext).acquireMasterClient();
-    Mockito.verify(mFileContext).releaseMasterClient(mFileSystemMasterClient);
+    verify(mFileContext).acquireMasterClient();
+    verify(mFileContext).releaseMasterClient(mFileSystemMasterClient);
   }
 
   /**
@@ -87,17 +95,17 @@ public final class BaseFileSystemTest {
    */
   @Test
   public void createFile() throws Exception {
-    Mockito.doNothing().when(mFileSystemMasterClient)
-        .createFile(Mockito.any(AlluxioURI.class), Mockito.any(CreateFileOptions.class));
+    doNothing().when(mFileSystemMasterClient)
+        .createFile(any(AlluxioURI.class), any(CreateFileOptions.class));
     URIStatus status = new URIStatus(new FileInfo());
     AlluxioURI file = new AlluxioURI("/file");
     GetStatusOptions getStatusOptions = GetStatusOptions.defaults().setLoadMetadataType(
         LoadMetadataType.Never);
-    Mockito.when(mFileSystemMasterClient.getStatus(file, getStatusOptions)).thenReturn(status);
+    when(mFileSystemMasterClient.getStatus(file, getStatusOptions)).thenReturn(status);
     CreateFileOptions options = CreateFileOptions.defaults();
     FileOutStream out = mFileSystem.createFile(file, options);
-    Mockito.verify(mFileSystemMasterClient).createFile(file, options);
-    Assert.assertEquals(out.mUri, file);
+    verify(mFileSystemMasterClient).createFile(file, options);
+    assertEquals(out.mUri, file);
   }
 
   /**
@@ -105,14 +113,14 @@ public final class BaseFileSystemTest {
    */
   @Test
   public void createException() throws Exception {
-    Mockito.doThrow(EXCEPTION).when(mFileSystemMasterClient)
-        .createFile(Mockito.any(AlluxioURI.class), Mockito.any(CreateFileOptions.class));
+    doThrow(EXCEPTION).when(mFileSystemMasterClient)
+        .createFile(any(AlluxioURI.class), any(CreateFileOptions.class));
     CreateFileOptions options = CreateFileOptions.defaults();
     try {
       mFileSystem.createFile(new AlluxioURI("/"), options);
-      Assert.fail(SHOULD_HAVE_PROPAGATED_MESSAGE);
+      fail(SHOULD_HAVE_PROPAGATED_MESSAGE);
     } catch (Exception e) {
-      Assert.assertSame(EXCEPTION, e);
+      assertSame(EXCEPTION, e);
     }
   }
 
@@ -124,7 +132,7 @@ public final class BaseFileSystemTest {
     AlluxioURI file = new AlluxioURI("/file");
     DeleteOptions deleteOptions = DeleteOptions.defaults().setRecursive(true);
     mFileSystem.delete(file, deleteOptions);
-    Mockito.verify(mFileSystemMasterClient).delete(file, deleteOptions);
+    verify(mFileSystemMasterClient).delete(file, deleteOptions);
   }
 
   /**
@@ -134,12 +142,12 @@ public final class BaseFileSystemTest {
   public void deleteException() throws Exception {
     AlluxioURI file = new AlluxioURI("/file");
     DeleteOptions deleteOptions = DeleteOptions.defaults().setRecursive(true);
-    Mockito.doThrow(EXCEPTION).when(mFileSystemMasterClient).delete(file, deleteOptions);
+    doThrow(EXCEPTION).when(mFileSystemMasterClient).delete(file, deleteOptions);
     try {
       mFileSystem.delete(file, deleteOptions);
-      Assert.fail(SHOULD_HAVE_PROPAGATED_MESSAGE);
+      fail(SHOULD_HAVE_PROPAGATED_MESSAGE);
     } catch (Exception e) {
-      Assert.assertSame(EXCEPTION, e);
+      assertSame(EXCEPTION, e);
     }
   }
 
@@ -151,7 +159,7 @@ public final class BaseFileSystemTest {
     AlluxioURI file = new AlluxioURI("/file");
     FreeOptions freeOptions = FreeOptions.defaults().setRecursive(true);
     mFileSystem.free(file, freeOptions);
-    Mockito.verify(mFileSystemMasterClient).free(file, freeOptions);
+    verify(mFileSystemMasterClient).free(file, freeOptions);
   }
 
   /**
@@ -161,12 +169,12 @@ public final class BaseFileSystemTest {
   public void freeException() throws Exception {
     AlluxioURI file = new AlluxioURI("/file");
     FreeOptions freeOptions = FreeOptions.defaults().setRecursive(true);
-    Mockito.doThrow(EXCEPTION).when(mFileSystemMasterClient).free(file, freeOptions);
+    doThrow(EXCEPTION).when(mFileSystemMasterClient).free(file, freeOptions);
     try {
       mFileSystem.free(file, freeOptions);
-      Assert.fail(SHOULD_HAVE_PROPAGATED_MESSAGE);
+      fail(SHOULD_HAVE_PROPAGATED_MESSAGE);
     } catch (Exception e) {
-      Assert.assertSame(EXCEPTION, e);
+      assertSame(EXCEPTION, e);
     }
   }
 
@@ -178,9 +186,9 @@ public final class BaseFileSystemTest {
     AlluxioURI file = new AlluxioURI("/file");
     URIStatus status = new URIStatus(new FileInfo());
     GetStatusOptions getStatusOptions = GetStatusOptions.defaults();
-    Mockito.when(mFileSystemMasterClient.getStatus(file, getStatusOptions)).thenReturn(status);
-    Assert.assertSame(status, mFileSystem.getStatus(file, getStatusOptions));
-    Mockito.verify(mFileSystemMasterClient).getStatus(file, getStatusOptions);
+    when(mFileSystemMasterClient.getStatus(file, getStatusOptions)).thenReturn(status);
+    assertSame(status, mFileSystem.getStatus(file, getStatusOptions));
+    verify(mFileSystemMasterClient).getStatus(file, getStatusOptions);
   }
 
   /**
@@ -190,12 +198,12 @@ public final class BaseFileSystemTest {
   public void getStatusException() throws Exception {
     AlluxioURI file = new AlluxioURI("/file");
     GetStatusOptions getStatusOptions = GetStatusOptions.defaults();
-    Mockito.when(mFileSystemMasterClient.getStatus(file, getStatusOptions)).thenThrow(EXCEPTION);
+    when(mFileSystemMasterClient.getStatus(file, getStatusOptions)).thenThrow(EXCEPTION);
     try {
       mFileSystem.getStatus(file, getStatusOptions);
-      Assert.fail(SHOULD_HAVE_PROPAGATED_MESSAGE);
+      fail(SHOULD_HAVE_PROPAGATED_MESSAGE);
     } catch (Exception e) {
-      Assert.assertSame(EXCEPTION, e);
+      assertSame(EXCEPTION, e);
     }
   }
 
@@ -208,9 +216,9 @@ public final class BaseFileSystemTest {
     List<URIStatus> infos = new ArrayList<>();
     infos.add(new URIStatus(new FileInfo()));
     ListStatusOptions listStatusOptions = ListStatusOptions.defaults();
-    Mockito.when(mFileSystemMasterClient.listStatus(file, listStatusOptions)).thenReturn(infos);
-    Assert.assertSame(infos, mFileSystem.listStatus(file, listStatusOptions));
-    Mockito.verify(mFileSystemMasterClient).listStatus(file, listStatusOptions);
+    when(mFileSystemMasterClient.listStatus(file, listStatusOptions)).thenReturn(infos);
+    assertSame(infos, mFileSystem.listStatus(file, listStatusOptions));
+    verify(mFileSystemMasterClient).listStatus(file, listStatusOptions);
   }
 
   /**
@@ -219,14 +227,14 @@ public final class BaseFileSystemTest {
   @Test
   public void listStatusException() throws Exception {
     AlluxioURI file = new AlluxioURI("/file");
-    Mockito.when(mFileSystemMasterClient.listStatus(file, ListStatusOptions.defaults()))
+    when(mFileSystemMasterClient.listStatus(file, ListStatusOptions.defaults()))
         .thenThrow(EXCEPTION);
     ListStatusOptions listStatusOptions = ListStatusOptions.defaults();
     try {
       mFileSystem.listStatus(file, listStatusOptions);
-      Assert.fail(SHOULD_HAVE_PROPAGATED_MESSAGE);
+      fail(SHOULD_HAVE_PROPAGATED_MESSAGE);
     } catch (Exception e) {
-      Assert.assertSame(EXCEPTION, e);
+      assertSame(EXCEPTION, e);
     }
   }
 
@@ -238,9 +246,9 @@ public final class BaseFileSystemTest {
   public void loadMetadata() throws Exception {
     AlluxioURI file = new AlluxioURI("/file");
     LoadMetadataOptions loadMetadataOptions = LoadMetadataOptions.defaults().setRecursive(true);
-    Mockito.doNothing().when(mFileSystemMasterClient).loadMetadata(file, loadMetadataOptions);
+    doNothing().when(mFileSystemMasterClient).loadMetadata(file, loadMetadataOptions);
     mFileSystem.loadMetadata(file, loadMetadataOptions);
-    Mockito.verify(mFileSystemMasterClient).loadMetadata(file, loadMetadataOptions);
+    verify(mFileSystemMasterClient).loadMetadata(file, loadMetadataOptions);
   }
 
   /**
@@ -250,13 +258,13 @@ public final class BaseFileSystemTest {
   public void loadMetadataException() throws Exception {
     AlluxioURI file = new AlluxioURI("/file");
     LoadMetadataOptions loadMetadataOptions = LoadMetadataOptions.defaults().setRecursive(true);
-    Mockito.doThrow(EXCEPTION).when(mFileSystemMasterClient)
+    doThrow(EXCEPTION).when(mFileSystemMasterClient)
         .loadMetadata(file, loadMetadataOptions);
     try {
       mFileSystem.loadMetadata(file, loadMetadataOptions);
-      Assert.fail(SHOULD_HAVE_PROPAGATED_MESSAGE);
+      fail(SHOULD_HAVE_PROPAGATED_MESSAGE);
     } catch (Exception e) {
-      Assert.assertSame(EXCEPTION, e);
+      assertSame(EXCEPTION, e);
     }
   }
 
@@ -268,9 +276,9 @@ public final class BaseFileSystemTest {
   public void createDirectory() throws Exception {
     AlluxioURI dir = new AlluxioURI("/dir");
     CreateDirectoryOptions createDirectoryOptions = CreateDirectoryOptions.defaults();
-    Mockito.doNothing().when(mFileSystemMasterClient).createDirectory(dir, createDirectoryOptions);
+    doNothing().when(mFileSystemMasterClient).createDirectory(dir, createDirectoryOptions);
     mFileSystem.createDirectory(dir, createDirectoryOptions);
-    Mockito.verify(mFileSystemMasterClient).createDirectory(dir, createDirectoryOptions);
+    verify(mFileSystemMasterClient).createDirectory(dir, createDirectoryOptions);
   }
 
   /**
@@ -280,13 +288,13 @@ public final class BaseFileSystemTest {
   public void createDirectoryException() throws Exception {
     AlluxioURI dir = new AlluxioURI("/dir");
     CreateDirectoryOptions createDirectoryOptions = CreateDirectoryOptions.defaults();
-    Mockito.doThrow(EXCEPTION).when(mFileSystemMasterClient)
+    doThrow(EXCEPTION).when(mFileSystemMasterClient)
         .createDirectory(dir, createDirectoryOptions);
     try {
       mFileSystem.createDirectory(dir, createDirectoryOptions);
-      Assert.fail(SHOULD_HAVE_PROPAGATED_MESSAGE);
+      fail(SHOULD_HAVE_PROPAGATED_MESSAGE);
     } catch (Exception e) {
-      Assert.assertSame(EXCEPTION, e);
+      assertSame(EXCEPTION, e);
     }
   }
 
@@ -298,9 +306,9 @@ public final class BaseFileSystemTest {
     AlluxioURI alluxioPath = new AlluxioURI("/t");
     AlluxioURI ufsPath = new AlluxioURI("/u");
     MountOptions mountOptions = MountOptions.defaults();
-    Mockito.doNothing().when(mFileSystemMasterClient).mount(alluxioPath, ufsPath, mountOptions);
+    doNothing().when(mFileSystemMasterClient).mount(alluxioPath, ufsPath, mountOptions);
     mFileSystem.mount(alluxioPath, ufsPath, mountOptions);
-    Mockito.verify(mFileSystemMasterClient).mount(alluxioPath, ufsPath, mountOptions);
+    verify(mFileSystemMasterClient).mount(alluxioPath, ufsPath, mountOptions);
   }
 
   /**
@@ -311,13 +319,13 @@ public final class BaseFileSystemTest {
     AlluxioURI alluxioPath = new AlluxioURI("/t");
     AlluxioURI ufsPath = new AlluxioURI("/u");
     MountOptions mountOptions = MountOptions.defaults();
-    Mockito.doThrow(EXCEPTION).when(mFileSystemMasterClient)
+    doThrow(EXCEPTION).when(mFileSystemMasterClient)
         .mount(alluxioPath, ufsPath, mountOptions);
     try {
       mFileSystem.mount(alluxioPath, ufsPath, mountOptions);
-      Assert.fail(SHOULD_HAVE_PROPAGATED_MESSAGE);
+      fail(SHOULD_HAVE_PROPAGATED_MESSAGE);
     } catch (Exception e) {
-      Assert.assertSame(EXCEPTION, e);
+      assertSame(EXCEPTION, e);
     }
   }
 
@@ -330,10 +338,10 @@ public final class BaseFileSystemTest {
     AlluxioURI file = new AlluxioURI("/file");
     URIStatus status = new URIStatus(new FileInfo());
     GetStatusOptions getStatusOptions = GetStatusOptions.defaults();
-    Mockito.when(mFileSystemMasterClient.getStatus(file, getStatusOptions)).thenReturn(status);
+    when(mFileSystemMasterClient.getStatus(file, getStatusOptions)).thenReturn(status);
     OpenFileOptions openOptions = OpenFileOptions.defaults();
     mFileSystem.openFile(file, openOptions);
-    Mockito.verify(mFileSystemMasterClient).getStatus(file, getStatusOptions);
+    verify(mFileSystemMasterClient).getStatus(file, getStatusOptions);
   }
 
   /**
@@ -343,13 +351,13 @@ public final class BaseFileSystemTest {
   public void openException() throws Exception {
     AlluxioURI file = new AlluxioURI("/file");
     GetStatusOptions getStatusOptions = GetStatusOptions.defaults();
-    Mockito.when(mFileSystemMasterClient.getStatus(file, getStatusOptions)).thenThrow(EXCEPTION);
+    when(mFileSystemMasterClient.getStatus(file, getStatusOptions)).thenThrow(EXCEPTION);
     OpenFileOptions openOptions = OpenFileOptions.defaults();
     try {
       mFileSystem.openFile(file, openOptions);
-      Assert.fail(SHOULD_HAVE_PROPAGATED_MESSAGE);
+      fail(SHOULD_HAVE_PROPAGATED_MESSAGE);
     } catch (Exception e) {
-      Assert.assertSame(EXCEPTION, e);
+      assertSame(EXCEPTION, e);
     }
   }
 
@@ -362,9 +370,9 @@ public final class BaseFileSystemTest {
     AlluxioURI src = new AlluxioURI("/file");
     AlluxioURI dst = new AlluxioURI("/file2");
     RenameOptions renameOptions = RenameOptions.defaults();
-    Mockito.doNothing().when(mFileSystemMasterClient).rename(src, dst);
+    doNothing().when(mFileSystemMasterClient).rename(src, dst, renameOptions);
     mFileSystem.rename(src, dst, renameOptions);
-    Mockito.verify(mFileSystemMasterClient).rename(src, dst);
+    verify(mFileSystemMasterClient).rename(src, dst, renameOptions);
   }
 
   /**
@@ -375,12 +383,12 @@ public final class BaseFileSystemTest {
     AlluxioURI src = new AlluxioURI("/file");
     AlluxioURI dst = new AlluxioURI("/file2");
     RenameOptions renameOptions = RenameOptions.defaults();
-    Mockito.doThrow(EXCEPTION).when(mFileSystemMasterClient).rename(src, dst);
+    doThrow(EXCEPTION).when(mFileSystemMasterClient).rename(src, dst, renameOptions);
     try {
       mFileSystem.rename(src, dst, renameOptions);
-      Assert.fail(SHOULD_HAVE_PROPAGATED_MESSAGE);
+      fail(SHOULD_HAVE_PROPAGATED_MESSAGE);
     } catch (Exception e) {
-      Assert.assertSame(EXCEPTION, e);
+      assertSame(EXCEPTION, e);
     }
   }
 
@@ -392,7 +400,7 @@ public final class BaseFileSystemTest {
     AlluxioURI file = new AlluxioURI("/file");
     SetAttributeOptions setAttributeOptions = SetAttributeOptions.defaults();
     mFileSystem.setAttribute(file, setAttributeOptions);
-    Mockito.verify(mFileSystemMasterClient).setAttribute(file, setAttributeOptions);
+    verify(mFileSystemMasterClient).setAttribute(file, setAttributeOptions);
   }
 
   /**
@@ -402,13 +410,13 @@ public final class BaseFileSystemTest {
   public void setStateException() throws Exception {
     AlluxioURI file = new AlluxioURI("/file");
     SetAttributeOptions setAttributeOptions = SetAttributeOptions.defaults();
-    Mockito.doThrow(EXCEPTION).when(mFileSystemMasterClient)
+    doThrow(EXCEPTION).when(mFileSystemMasterClient)
         .setAttribute(file, setAttributeOptions);
     try {
       mFileSystem.setAttribute(file, setAttributeOptions);
-      Assert.fail(SHOULD_HAVE_PROPAGATED_MESSAGE);
+      fail(SHOULD_HAVE_PROPAGATED_MESSAGE);
     } catch (Exception e) {
-      Assert.assertSame(EXCEPTION, e);
+      assertSame(EXCEPTION, e);
     }
   }
 
@@ -419,9 +427,9 @@ public final class BaseFileSystemTest {
   public void unmount() throws Exception {
     AlluxioURI path = new AlluxioURI("/");
     UnmountOptions unmountOptions = UnmountOptions.defaults();
-    Mockito.doNothing().when(mFileSystemMasterClient).unmount(path);
+    doNothing().when(mFileSystemMasterClient).unmount(path);
     mFileSystem.unmount(path, unmountOptions);
-    Mockito.verify(mFileSystemMasterClient).unmount(path);
+    verify(mFileSystemMasterClient).unmount(path);
   }
 
   /**
@@ -431,12 +439,12 @@ public final class BaseFileSystemTest {
   public void unmountException() throws Exception {
     AlluxioURI path = new AlluxioURI("/");
     UnmountOptions unmountOptions = UnmountOptions.defaults();
-    Mockito.doThrow(EXCEPTION).when(mFileSystemMasterClient).unmount(path);
+    doThrow(EXCEPTION).when(mFileSystemMasterClient).unmount(path);
     try {
       mFileSystem.unmount(path, unmountOptions);
-      Assert.fail(SHOULD_HAVE_PROPAGATED_MESSAGE);
+      fail(SHOULD_HAVE_PROPAGATED_MESSAGE);
     } catch (Exception e) {
-      Assert.assertSame(EXCEPTION, e);
+      assertSame(EXCEPTION, e);
     }
   }
 }

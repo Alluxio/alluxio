@@ -44,12 +44,18 @@ alluxio.worker.file.persist.rate.limit.enabled:
   'Whether to enable rate limiting when performing asynchronous persistence.'
 alluxio.worker.filesystem.heartbeat.interval:
   'The heartbeat interval between the worker and file system master.'
+alluxio.worker.free.space.timeout:
+  'The duration for which a worker will wait for eviction to make space available for a client write request.'
 alluxio.worker.hostname:
   'The hostname of Alluxio worker.'
+alluxio.worker.jvm.monitor.enabled:
+  'Whether to enable start JVM monitor thread on worker.'
 alluxio.worker.keytab.file:
   'Kerberos keytab file for Alluxio worker.'
 alluxio.worker.memory.size:
   'Memory capacity of each worker node.'
+alluxio.worker.network.netty.async.cache.manager.threads.max:
+  'The maximum number of threads used to cache blocks asynchronously in the netty data server.'
 alluxio.worker.network.netty.backlog:
   'Netty socket option for SO_BACKLOG: the number of connections queued.'
 alluxio.worker.network.netty.block.reader.threads.max:
@@ -140,6 +146,12 @@ alluxio.worker.tieredstore.retry:
   'The number of retries that the worker uses to process blocks.'
 alluxio.worker.ufs.block.open.timeout:
   'Timeout to open a block from UFS.'
+alluxio.worker.ufs.instream.cache.enabled:
+  'Enable caching for seekable under storage input stream, so that subsequent seek operations on the same file will reuse the cached input stream. This will improve position read performance as the open operations of some under file system would be expensive. The cached input stream would be stale, when the UFS file is modified without notifying alluxio. '
+alluxio.worker.ufs.instream.cache.expiration.time:
+  'Cached UFS instream expiration time.'
+alluxio.worker.ufs.instream.cache.max.size:
+  'The max entries in the UFS instream cache.'
 alluxio.worker.web.bind.host:
   'The hostname Alluxio worker''s web server binds to. See <a href="#configure-multihomed-networks">multi-homed networks</a>.'
 alluxio.worker.web.hostname:
