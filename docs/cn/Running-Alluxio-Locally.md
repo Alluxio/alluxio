@@ -19,6 +19,8 @@ priority: 1
 
 在独立模式下运行，请执行以下操作：
 
+通过拷贝`conf/alluxio-site.properties.template`文件，创建`conf/alluxio-site.properties`。
+
 * 将`conf/alluxio-site.properties`中的`alluxio.master.hostname`设置为`localhost`(即`alluxio.master.hostname=localhost`)。
 
 * 将`conf/alluxio-site.properties`中的`alluxio.underfs.address`设置为一个本地文件系统上的临时文件夹（例如，`alluxio.underfs.address=/tmp`）。
