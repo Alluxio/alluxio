@@ -12,21 +12,20 @@
 cmake_minimum_required(VERSION 3.0.1 FATAL_ERROR)
 
 SET(SOURCE_FILES
-FileSystem.cc 
-JNIHelper.cc
-Status.cc 
-FileInStream.cc
-FileOutStream.cc 
+    FileSystem.cc
+    JNIHelper.cc
+    Status.cc
+    FileInStream.cc
+    FileOutStream.cc
 )
 
 INCLUDE_DIRECTORIES(
-$ENV{JAVA_HOME}/include
-$ENV{JAVA_HOME}/include/linux
+${JNI_INCLUDE_DIRS}
 ${CMAKE_CURRENT_SOURCE_DIR}/../include
 )
 
 LINK_DIRECTORIES(
-    $ENV{LD_LIBRARY_PATH}
+    ${JNI_LIBRARIES}
 )
 
 ADD_LIBRARY(filesystem STATIC ${SOURCE_FILES})

@@ -1,0 +1,1 @@
+/usr/bin/c++    -std=c++11    CMakeFiles/filesystem_test.dir/FileSystemTest.cc.o  -o filesystem_test -rdynamic libFILESYSTEM.a -ljvm -lpthread 

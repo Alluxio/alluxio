@@ -1,0 +1,2 @@
+/usr/bin/ar cr libFILESYSTEM.a  CMakeFiles/FILESYSTEM.dir/__/src/FileSystem.cc.o CMakeFiles/FILESYSTEM.dir/__/src/JNIHelper.cc.o CMakeFiles/FILESYSTEM.dir/__/src/Status.cc.o CMakeFiles/FILESYSTEM.dir/__/src/FileInStream.cc.o CMakeFiles/FILESYSTEM.dir/__/src/FileOutStream.cc.o
+/usr/bin/ranlib libFILESYSTEM.a
