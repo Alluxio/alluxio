@@ -252,6 +252,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue(String.format("${%s}/extensions", Name.HOME))
           .setDescription("The directory containing Alluxio extensions.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScopes(Scopes.Server())
           .build();
   public static final PropertyKey HOME =
       new Builder(Name.HOME)
@@ -264,6 +265,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue(false)
           .setDescription("Whether the key-value service is enabled.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScopes(Scopes.Server())
           .build();
   public static final PropertyKey KEY_VALUE_PARTITION_SIZE_BYTES_MAX =
       new Builder(Name.KEY_VALUE_PARTITION_SIZE_BYTES_MAX)
@@ -273,6 +275,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
                   + "in a store. This value should be no larger than the block size "
                   + "(%s).", Name.USER_BLOCK_SIZE_BYTES_DEFAULT))
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScopes(Scopes.Client())
           .build();
   public static final PropertyKey LOGGER_TYPE =
       new Builder(Name.LOGGER_TYPE)
@@ -293,6 +296,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("The file path of the metrics system configuration file. By default "
               + "it is `metrics.properties` in the `conf` directory.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScopes(Scopes.Server())
           .build();
   public static final PropertyKey NETWORK_HOST_RESOLUTION_TIMEOUT_MS =
       new Builder(Name.NETWORK_HOST_RESOLUTION_TIMEOUT_MS)
@@ -314,7 +318,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "connection if there has not been any incoming traffic. The client will "
               + "periodically heartbeat when there is no activity on a connection. This value "
               + "should be the same on the clients and server.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .build();
   public static final PropertyKey NETWORK_THRIFT_FRAME_SIZE_BYTES_MAX =
       new Builder(Name.NETWORK_THRIFT_FRAME_SIZE_BYTES_MAX)
@@ -340,21 +344,25 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey VERSION =
       new Builder(Name.VERSION)
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
           .setDefaultValue(ProjectConstants.VERSION)
           .setDescription("Version of Alluxio. User should never modify this property.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setIgnoredSiteProperty(true)
+          .setIsHidden(true)
           .build();
   public static final PropertyKey WEB_RESOURCES =
       new Builder(Name.WEB_RESOURCES)
           .setDefaultValue(String.format("${%s}/core/server/common/src/main/webapp", Name.HOME))
           .setDescription("Path to the web application resources.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScopes(Scopes.Server())
           .build();
   public static final PropertyKey WEB_THREADS =
       new Builder(Name.WEB_THREADS)
           .setDefaultValue(1)
           .setDescription("How many threads to use for the web server.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScopes(Scopes.Server())
           .build();
   public static final PropertyKey WORK_DIR =
       new Builder(Name.WORK_DIR)
@@ -417,6 +425,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue(String.format("${%s}/underFSStorage", Name.WORK_DIR))
           .setDescription("Alluxio directory in the under file system.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScopes(Scopes.Server())
           .build();
   public static final PropertyKey UNDERFS_ALLOW_SET_OWNER_FAILURE =
       new Builder(Name.UNDERFS_ALLOW_SET_OWNER_FAILURE)
@@ -424,6 +433,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("Whether to allow setting owner in UFS to fail. When set to true, "
               + "it is possible file or directory owners diverge between Alluxio and UFS.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScopes(Scopes.Master())
           .build();
   public static final PropertyKey UNDERFS_LISTING_LENGTH =
       new Builder(Name.UNDERFS_LISTING_LENGTH)
@@ -432,6 +442,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "to under file system. If the total number of entries is greater than the "
               + "specified length, multiple queries will be issued.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScopes(Scopes.Master())
           .build();
   public static final PropertyKey UNDERFS_GCS_OWNER_ID_TO_USERNAME_MAPPING =
       new Builder(Name.UNDERFS_GCS_OWNER_ID_TO_USERNAME_MAPPING)
@@ -442,6 +453,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "https://console.cloud.google.com/storage/settings . Please use the "
               + "\"Owners\" one.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScopes(Scopes.Server())
           .build();
   public static final PropertyKey UNDERFS_HDFS_CONFIGURATION =
       new Builder(Name.UNDERFS_HDFS_CONFIGURATION)
@@ -473,6 +485,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "because locality is impossible. This will improve performance. The default "
               + "value is false.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScopes(Scopes.Server())
           .build();
   public static final PropertyKey UNDERFS_OBJECT_STORE_SERVICE_THREADS =
       new Builder(Name.UNDERFS_OBJECT_STORE_SERVICE_THREADS)
@@ -480,6 +493,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("The number of threads in executor pool for parallel object store "
               + "UFS operations.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScopes(Scopes.Server())
           .build();
   public static final PropertyKey UNDERFS_OBJECT_STORE_MOUNT_SHARED_PUBLICLY =
       new Builder(Name.UNDERFS_OBJECT_STORE_MOUNT_SHARED_PUBLICLY)
@@ -496,6 +510,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "errors with an exponential backoff. This property determines the base time in the "
               + "exponential backoff.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScopes(Scopes.Worker())
           .build();
   public static final PropertyKey UNDERFS_OBJECT_STORE_READ_RETRY_MAX_NUM =
       new Builder(Name.UNDERFS_OBJECT_STORE_READ_RETRY_MAX_NUM)
@@ -504,6 +519,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "errors with an exponential backoff. This property determines the maximum number of"
               + " retries.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScopes(Scopes.Worker())
           .build();
   public static final PropertyKey UNDERFS_OBJECT_STORE_READ_RETRY_MAX_SLEEP_MS =
       new Builder(Name.UNDERFS_OBJECT_STORE_READ_RETRY_MAX_SLEEP_MS)
@@ -512,12 +528,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "errors with an exponential backoff. This property determines the maximum wait time"
               + " in the backoff.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScopes(Scopes.Worker())
           .build();
   public static final PropertyKey UNDERFS_OSS_CONNECT_MAX =
       new Builder(Name.UNDERFS_OSS_CONNECT_MAX)
           .setDefaultValue(1024)
           .setDescription("The maximum number of OSS connections.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScopes(Scopes.Server())
           .build();
   public static final PropertyKey UNDERFS_OSS_CONNECT_TIMEOUT =
       new Builder(Name.UNDERFS_OSS_CONNECT_TIMEOUT)
@@ -525,12 +543,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue("50sec")
           .setDescription("The timeout when connecting to OSS.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScopes(Scopes.Server())
           .build();
   public static final PropertyKey UNDERFS_OSS_CONNECT_TTL =
       new Builder(Name.UNDERFS_OSS_CONNECT_TTL)
           .setDefaultValue(-1)
           .setDescription("The TTL of OSS connections in ms.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScopes(Scopes.Server())
           .build();
   public static final PropertyKey UNDERFS_OSS_SOCKET_TIMEOUT =
       new Builder(Name.UNDERFS_OSS_SOCKET_TIMEOUT)
@@ -538,6 +558,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue("50sec")
           .setDescription("The timeout of OSS socket.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScopes(Scopes.Server())
           .build();
   public static final PropertyKey UNDERFS_S3_ADMIN_THREADS_MAX =
       new Builder(Name.UNDERFS_S3_ADMIN_THREADS_MAX)
@@ -546,12 +567,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "communicating with S3. These operations may be fairly concurrent and "
               + "frequent but should not take much time to process.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScopes(Scopes.Server())
           .build();
   public static final PropertyKey UNDERFS_S3_DISABLE_DNS_BUCKETS =
       new Builder(Name.UNDERFS_S3_DISABLE_DNS_BUCKETS)
           .setDefaultValue(false)
           .setDescription("Optionally, specify to make all S3 requests path style.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScopes(Scopes.Server())
           .build();
   public static final PropertyKey UNDERFS_S3_ENDPOINT =
       new Builder(Name.UNDERFS_S3_ENDPOINT)
@@ -561,6 +584,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "For example, s3.cn-north-1.amazonaws.com.cn is an entry point for the Amazon "
               + "S3 service in beijing region.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScopes(Scopes.Server())
           .build();
   public static final PropertyKey UNDERFS_S3_OWNER_ID_TO_USERNAME_MAPPING =
       new Builder(Name.UNDERFS_S3_OWNER_ID_TO_USERNAME_MAPPING)
@@ -571,16 +595,19 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "https://console.aws.amazon.com/iam/home?#security_credential . Please expand "
               + "the \"Account Identifiers\" tab and refer to \"Canonical User ID\".")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScopes(Scopes.Server())
           .build();
   public static final PropertyKey UNDERFS_S3_PROXY_HOST =
       new Builder(Name.UNDERFS_S3_PROXY_HOST)
           .setDescription("Optionally, specify a proxy host for communicating with S3.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScopes(Scopes.Server())
           .build();
   public static final PropertyKey UNDERFS_S3_PROXY_PORT =
       new Builder(Name.UNDERFS_S3_PROXY_PORT)
           .setDescription("Optionally, specify a proxy port for communicating with S3.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScopes(Scopes.Server())
           .build();
   public static final PropertyKey UNDERFS_S3_THREADS_MAX =
       new Builder(Name.UNDERFS_S3_THREADS_MAX)
@@ -590,6 +617,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "for data upload and metadata operations. This number should be at least as "
               + "large as the max admin threads plus max upload threads.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScopes(Scopes.Server())
           .build();
   public static final PropertyKey UNDERFS_S3_UPLOAD_THREADS_MAX =
       new Builder(Name.UNDERFS_S3_UPLOAD_THREADS_MAX)
@@ -600,6 +628,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "threads, meaning the overall latency for completing an upload will be higher "
               + "for more threads.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScopes(Scopes.Server())
           .build();
   public static final PropertyKey UNDERFS_S3A_CONSISTENCY_TIMEOUT_MS =
       new Builder(Name.UNDERFS_S3A_CONSISTENCY_TIMEOUT_MS)
@@ -609,6 +638,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "storage. This is only used by internal Alluxio operations which should be "
               + "successful, but may appear unsuccessful due to eventual consistency.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScopes(Scopes.Server())
           .build();
   public static final PropertyKey UNDERFS_S3A_DIRECTORY_SUFFIX =
       new Builder(Name.UNDERFS_S3A_DIRECTORY_SUFFIX)
@@ -616,26 +646,29 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("Directories are represented in S3 as zero-byte objects named with "
               + "the specified suffix.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScopes(Scopes.Server())
           .build();
   public static final PropertyKey UNDERFS_S3A_BULK_DELETE_ENABLED =
       new Builder(Name.UNDERFS_S3A_BULK_DELETE_ENABLED)
           .setDefaultValue(true)
           .setIsHidden(true)
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScopes(Scopes.Server())
           .build();
-
   public static final PropertyKey UNDERFS_S3A_INHERIT_ACL =
       new Builder(Name.UNDERFS_S3A_INHERIT_ACL)
           .setDefaultValue(true)
           .setDescription("Optionally disable this to disable inheriting bucket ACLs on "
               + "objects.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScopes(Scopes.Server())
           .build();
   public static final PropertyKey UNDERFS_S3A_LIST_OBJECTS_VERSION_1 =
       new Builder(Name.UNDERFS_S3A_LIST_OBJECTS_VERSION_1)
           .setDefaultValue(false)
           .setDescription("Whether to use version 1 of GET Bucket (List Objects) API.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScopes(Scopes.Server())
           .build();
   public static final PropertyKey UNDERFS_S3A_REQUEST_TIMEOUT =
       new Builder(Name.UNDERFS_S3A_REQUEST_TIMEOUT_MS)
@@ -646,18 +679,21 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "avoiding the long tail of requests to S3. For very slow connections to S3, "
               + "consider increasing this value or setting it to 0.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScopes(Scopes.Server())
           .build();
   public static final PropertyKey UNDERFS_S3A_SECURE_HTTP_ENABLED =
       new Builder(Name.UNDERFS_S3A_SECURE_HTTP_ENABLED)
           .setDefaultValue(false)
           .setDescription("Whether or not to use HTTPS protocol when communicating with S3.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScopes(Scopes.Server())
           .build();
   public static final PropertyKey UNDERFS_S3A_SERVER_SIDE_ENCRYPTION_ENABLED =
       new Builder(Name.UNDERFS_S3A_SERVER_SIDE_ENCRYPTION_ENABLED)
           .setDefaultValue(false)
           .setDescription("Whether or not to encrypt data stored in S3.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScopes(Scopes.Server())
           .build();
   public static final PropertyKey UNDERFS_S3A_SIGNER_ALGORITHM =
       new Builder(Name.UNDERFS_S3A_SIGNER_ALGORITHM)
@@ -666,6 +702,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "automatically determine it. For interacting with an S3 endpoint which only "
               + "supports v2 signatures, set this to \"S3SignerType\".")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+          .setScopes(Scopes.Server())
           .build();
   public static final PropertyKey UNDERFS_S3A_SOCKET_TIMEOUT_MS =
       new Builder(Name.UNDERFS_S3A_SOCKET_TIMEOUT_MS)
@@ -673,6 +710,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue("50sec")
           .setDescription("Length of the socket timeout when communicating with S3.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScopes(Scopes.Server())
           .build();
 
   //
@@ -682,30 +720,37 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey GCS_ACCESS_KEY = new Builder(Name.GCS_ACCESS_KEY)
       .setDescription("The access key of GCS bucket.")
       .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+      .setScopes(Scopes.Server())
       .build();
   public static final PropertyKey GCS_SECRET_KEY = new Builder(Name.GCS_SECRET_KEY)
       .setDescription("The secret key of GCS bucket.")
       .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+      .setScopes(Scopes.Server())
       .build();
   public static final PropertyKey OSS_ACCESS_KEY = new Builder(Name.OSS_ACCESS_KEY)
       .setDescription("The access key of OSS bucket.")
       .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+      .setScopes(Scopes.Server())
       .build();
   public static final PropertyKey OSS_ENDPOINT_KEY = new Builder(Name.OSS_ENDPOINT_KEY)
       .setDescription("The endpoint key of OSS bucket.")
       .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+      .setScopes(Scopes.Server())
       .build();
   public static final PropertyKey OSS_SECRET_KEY = new Builder(Name.OSS_SECRET_KEY)
       .setDescription("The secret key of OSS bucket.")
       .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+      .setScopes(Scopes.Server())
       .build();
   public static final PropertyKey S3A_ACCESS_KEY = new Builder(Name.S3A_ACCESS_KEY)
       .setDescription("The access key of S3 bucket.")
       .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+      .setScopes(Scopes.Server())
       .build();
   public static final PropertyKey S3A_SECRET_KEY = new Builder(Name.S3A_SECRET_KEY)
       .setDescription("The secret key of S3 bucket.")
       .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
+      .setScopes(Scopes.Server())
       .build();
   public static final PropertyKey SWIFT_API_KEY = new Builder(Name.SWIFT_API_KEY)
       .setDescription("(deprecated) The API key used for user:tenant authentication.")
@@ -851,10 +896,11 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScopes(Scopes.Master())
           .build();
-  public static final PropertyKey MASTER_HOSTNAME = new Builder(Name.MASTER_HOSTNAME)
-      .setDescription("The hostname of Alluxio master.")
-      .setScopes(Scopes.Server())
-      .build();
+  public static final PropertyKey MASTER_HOSTNAME =
+      new Builder(Name.MASTER_HOSTNAME)
+          .setDescription("The hostname of Alluxio master.")
+          .setScopes(Scopes.All())
+          .build();
   public static final PropertyKey MASTER_JOURNAL_FLUSH_BATCH_TIME_MS =
       new Builder(Name.MASTER_JOURNAL_FLUSH_BATCH_TIME_MS)
           .setAlias(new String[]{"alluxio.master.journal.flush.batch.time.ms"})
@@ -1022,7 +1068,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue(19998)
           .setDescription("The port that Alluxio master node runs on.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScopes(Scopes.Master())
+          .setScopes(Scopes.All())
           .build();
   public static final PropertyKey MASTER_STARTUP_CONSISTENCY_CHECK_ENABLED =
       new Builder(Name.MASTER_STARTUP_CONSISTENCY_CHECK_ENABLED)
@@ -1119,14 +1165,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey MASTER_WEB_HOSTNAME =
       new Builder(Name.MASTER_WEB_HOSTNAME)
           .setDescription("The hostname of Alluxio Master web UI.")
-          .setScopes(Scopes.Master())
+          .setScopes(Scopes.All())
           .build();
   public static final PropertyKey MASTER_WEB_PORT =
       new Builder(Name.MASTER_WEB_PORT)
           .setDefaultValue(19999)
           .setDescription("The port Alluxio web UI runs on.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScopes(Scopes.Master())
+          .setScopes(Scopes.All())
           .build();
   public static final PropertyKey MASTER_WHITELIST =
       new Builder(Name.MASTER_WHITELIST)
@@ -2621,18 +2667,21 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue("10sec")
           .setDescription("Extra sleep time longer than this threshold, log WARN.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScopes(Scopes.Server())
           .build();
   public static final PropertyKey JVM_MONITOR_INFO_THRESHOLD_MS =
       new Builder(Name.JVM_MONITOR_INFO_THRESHOLD_MS)
           .setDefaultValue("1sec")
           .setDescription("Extra sleep time longer than this threshold, log INFO.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScopes(Scopes.Server())
           .build();
   public static final PropertyKey JVM_MONITOR_SLEEP_INTERVAL_MS =
       new Builder(Name.JVM_MONITOR_SLEEP_INTERVAL_MS)
           .setDefaultValue("1sec")
           .setDescription("The time for the JVM monitor thread to sleep.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScopes(Scopes.Server())
           .build();
   public static final PropertyKey MASTER_JVM_MONITOR_ENABLED =
       new Builder(Name.MASTER_JVM_MONITOR_ENABLED)
