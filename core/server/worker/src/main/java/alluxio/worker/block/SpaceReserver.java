@@ -80,7 +80,7 @@ public class SpaceReserver implements HeartbeatExecutor {
         Preconditions.checkArgument(Configuration.getDouble(tierHighWatermarkProp) > 0,
             "The high watermark of tier " + ordinal + " should be positive");
         Preconditions.checkArgument(Configuration.getDouble(tierHighWatermarkProp) < 1,
-            "The high watermark of tier " + ordinal + " should be less than 100%");
+            "The high watermark of tier " + ordinal + " should be less than 1.0");
         long highWatermark =
             (long) (tierCapacity * Configuration.getDouble(tierHighWatermarkProp));
         mHighWatermarks.put(tierAlias, highWatermark);
@@ -88,8 +88,8 @@ public class SpaceReserver implements HeartbeatExecutor {
         // Low watermark defines when to stop the space reserving process if started
         PropertyKey tierLowWatermarkProp =
             PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_LOW_WATERMARK_RATIO.format(ordinal);
-        Preconditions.checkArgument(Configuration.getDouble(tierLowWatermarkProp) > 0,
-            "The low watermark of tier " + ordinal + " should be positive");
+        Preconditions.checkArgument(Configuration.getDouble(tierLowWatermarkProp) >= 0,
+            "The low watermark of tier " + ordinal + " should not be negative");
         reservedSpace =
             (long) (tierCapacity - tierCapacity * Configuration.getDouble(tierLowWatermarkProp));
       }
