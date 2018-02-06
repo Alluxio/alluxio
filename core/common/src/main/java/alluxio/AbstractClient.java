@@ -20,6 +20,7 @@ import alluxio.exception.status.UnavailableException;
 import alluxio.exception.status.UnimplementedException;
 import alluxio.retry.ExponentialBackoffRetry;
 import alluxio.retry.RetryPolicy;
+import alluxio.security.authentication.TProtocols;
 import alluxio.security.authentication.TransportProvider;
 import alluxio.thrift.AlluxioService;
 import alluxio.thrift.AlluxioTException;
@@ -27,8 +28,6 @@ import alluxio.thrift.GetServiceVersionTOptions;
 
 import com.google.common.base.Preconditions;
 import org.apache.thrift.TException;
-import org.apache.thrift.protocol.TBinaryProtocol;
-import org.apache.thrift.protocol.TMultiplexedProtocol;
 import org.apache.thrift.protocol.TProtocol;
 import org.apache.thrift.transport.TTransportException;
 import org.slf4j.Logger;
@@ -177,9 +176,8 @@ public abstract class AbstractClient implements Client {
       LOG.info("Alluxio client (version {}) is trying to connect with {} @ {}",
           RuntimeConstants.VERSION, getServiceName(), mAddress);
 
-      TProtocol binaryProtocol =
-          new TBinaryProtocol(mTransportProvider.getClientTransport(mParentSubject, mAddress));
-      mProtocol = new TMultiplexedProtocol(binaryProtocol, getServiceName());
+      mProtocol = TProtocols.createProtocol(
+          mTransportProvider.getClientTransport(mParentSubject, mAddress), getServiceName());
       try {
         mProtocol.getTransport().open();
         LOG.info("Client registered with {} @ {}", getServiceName(), mAddress);
