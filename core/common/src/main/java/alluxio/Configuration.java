@@ -14,24 +14,20 @@ package alluxio;
 import alluxio.PropertyKey.Template;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.PreconditionMessage;
-import alluxio.network.ChannelType;
 import alluxio.util.ConfigurationUtils;
 import alluxio.util.FormatUtils;
-import alluxio.util.OSUtils;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import com.sun.management.OperatingSystemMXBean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.lang.management.ManagementFactory;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -56,7 +52,6 @@ import javax.annotation.concurrent.NotThreadSafe;
  * <li>Java system properties;</li>
  * <li>Environment variables via {@code alluxio-env.sh} or from OS settings;</li>
  * <li>Site specific properties via {@code alluxio-site.properties} file;</li>
- * <li>Default properties defined in the codebase, see {@link PropertyKey};</li>
  * </ol>
  *
  * <p>
@@ -98,16 +93,12 @@ public final class Configuration {
    * default property values.
    */
   static void init() {
-    // Load default
-    Properties defaultProps = createDefaultProps();
-
     // Load system properties
     Properties systemProps = new Properties();
     systemProps.putAll(System.getProperties());
 
     // Now lets combine, order matters here
     PROPERTIES.clear();
-    merge(defaultProps, Source.DEFAULT);
     merge(systemProps, Source.SYSTEM_PROPERTY);
 
     // Load site specific properties file if not in test mode. Note that we decide whether in test
@@ -133,46 +124,6 @@ public final class Configuration {
     }
 
     validate();
-  }
-
-  /**
-   * @return default properties
-   */
-  private static Properties createDefaultProps() {
-    Properties defaultProps = new Properties();
-    // Load compile-time default
-    for (PropertyKey key : PropertyKey.defaultKeys()) {
-      String value = key.getDefaultValue();
-      if (value != null) {
-        defaultProps.setProperty(key.toString(), value);
-      }
-    }
-
-    // Load run-time default
-    defaultProps.setProperty(PropertyKey.WORKER_NETWORK_NETTY_CHANNEL.toString(),
-        String.valueOf(ChannelType.defaultType()));
-    defaultProps.setProperty(PropertyKey.USER_NETWORK_NETTY_CHANNEL.toString(),
-        String.valueOf(ChannelType.defaultType()));
-    // Set ramdisk volume according to OS type
-    if (OSUtils.isLinux()) {
-      defaultProps
-          .setProperty(PropertyKey.WORKER_TIERED_STORE_LEVEL0_DIRS_PATH.toString(), "/mnt/ramdisk");
-    } else if (OSUtils.isMacOS()) {
-      defaultProps.setProperty(PropertyKey.WORKER_TIERED_STORE_LEVEL0_DIRS_PATH.toString(),
-          "/Volumes/ramdisk");
-    }
-    // Set a reasonable default size for worker memory
-    try {
-      OperatingSystemMXBean operatingSystemMXBean =
-          (OperatingSystemMXBean) ManagementFactory.getOperatingSystemMXBean();
-      long memSize = operatingSystemMXBean.getTotalPhysicalMemorySize();
-      defaultProps
-          .setProperty(PropertyKey.WORKER_MEMORY_SIZE.toString(), String.valueOf(memSize * 2 / 3));
-    } catch (Exception e) {
-      // The package com.sun.management may not be available on every platform.
-      // fallback to the compile-time default value
-    }
-    return defaultProps;
   }
 
   /**
@@ -231,6 +182,9 @@ public final class Configuration {
   public static String get(PropertyKey key) {
     String rawValue = PROPERTIES.get(key.toString());
     if (rawValue == null) {
+      rawValue = key.getDefaultValue();
+    }
+    if (rawValue == null) {
       // if key is not found among the default properties
       throw new RuntimeException(ExceptionMessage.UNDEFINED_CONFIGURATION_KEY.getMessage(key));
     }
@@ -238,13 +192,13 @@ public final class Configuration {
   }
 
   /**
-   * Checks if the {@link Properties} contains the given key.
+   * Checks if the configuration contains the given key.
    *
    * @param key the key to check
    * @return true if the key is in the {@link Properties}, false otherwise
    */
   public static boolean containsKey(PropertyKey key) {
-    return PROPERTIES.containsKey(key.toString());
+    return PROPERTIES.containsKey(key.toString()) || key.getDefaultValue() != null;
   }
 
   /**
@@ -445,21 +399,21 @@ public final class Configuration {
   /**
    * Lookup key names to handle ${key} stuff.
    *
-   * @param base string to look for
-   * @return the key name with the ${key} substituted
+   * @param base the String to look for
+   * @return resolved String value
    */
-  private static String lookup(String base) {
-    return lookupRecursively(base, new HashMap<String, String>());
+  private static String lookup(final String base) {
+    return lookupRecursively(base, new HashSet<>());
   }
 
   /**
    * Actual recursive lookup replacement.
    *
-   * @param base the String to look for
-   * @param found {@link Map} of String that already seen in this path
-   * @return resolved String value
+   * @param base the string to resolve
+   * @param seen strings already seen during this lookup, used to prevent unbound recursion
+   * @return the resolved string
    */
-  private static String lookupRecursively(final String base, Map<String, String> found) {
+  private static String lookupRecursively(String base, Set<String> seen) {
     // check argument
     if (base == null) {
       return null;
@@ -471,19 +425,33 @@ public final class Configuration {
     Matcher matcher = CONF_REGEX.matcher(base);
     while (matcher.find()) {
       String match = matcher.group(2).trim();
-      String value;
-      if (!found.containsKey(match)) {
-        value = lookupRecursively(PROPERTIES.get(match), found);
-        found.put(match, value);
-      } else {
-        value = found.get(match);
+      if (!seen.add(match)) {
+        throw new RuntimeException("Circular dependency found while resolving " + match);
       }
-      if (value != null) {
-        LOG.debug("Replacing {} with {}", matcher.group(1), value);
-        resolved = resolved.replaceFirst(REGEX_STRING, Matcher.quoteReplacement(value));
+      String value = lookupRecursively(lookupNonRecursively(match), seen);
+      seen.remove(match);
+      if (value == null) {
+        throw new RuntimeException("No value specified for configuration property " + match);
       }
+      LOG.debug("Replacing {} with {}", matcher.group(1), value);
+      resolved = resolved.replaceFirst(REGEX_STRING, Matcher.quoteReplacement(value));
     }
     return resolved;
+  }
+
+  /**
+   * Looks up a property without resolving ${key} stuff.
+   *
+   * @param property the property name
+   */
+  private static String lookupNonRecursively(String property) {
+    if (PROPERTIES.containsKey(property)) {
+      return PROPERTIES.get(property);
+    }
+    if (!PropertyKey.isValid(property)) {
+      throw new RuntimeException("Invalid key encountered: " + property);
+    }
+    return PropertyKey.fromString(property).getDefaultValue();
   }
 
   /**
@@ -492,7 +460,7 @@ public final class Configuration {
    */
   public static Source getSource(PropertyKey key) {
     Source source = SOURCES.get(key);
-    return (source == null) ? Source.UNKNOWN : source;
+    return (source == null) ? Source.DEFAULT : source;
   }
 
   /**
