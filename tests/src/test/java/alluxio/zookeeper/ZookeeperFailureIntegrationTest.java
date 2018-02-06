@@ -113,7 +113,7 @@ public class ZookeeperFailureIntegrationTest extends BaseIntegrationTest {
     try {
       TransportProvider transportProvider = Factory.create();
       TProtocol protocol =
-          TProtocols.createProtocol(transportProvider.getClientTransport(null, address),
+          TProtocols.createProtocol(transportProvider.getClientTransport(address),
               Constants.FILE_SYSTEM_MASTER_CLIENT_SERVICE_NAME);
       Client client = new Client(protocol);
       client.listStatus("/", new ListStatusTOptions());
