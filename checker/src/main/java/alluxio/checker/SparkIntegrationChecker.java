@@ -119,8 +119,8 @@ public class SparkIntegrationChecker implements Serializable{
     if (alluxio.Configuration.getBoolean(PropertyKey.ZOOKEEPER_ENABLED)) {
       mAlluxioHAMode = true;
       if (!alluxio.Configuration.containsKey(PropertyKey.ZOOKEEPER_ADDRESS)) {
-        reportWriter.println("Alluxio is in high availability mode"
-            + ", but Zookeeper address has not been set.\n");
+        reportWriter.println("Alluxio is in high availability mode, "
+            + "but Zookeeper address has not been set.\n");
         return Status.FAIL_TO_SUPPORT_HA;
       } else {
         mZookeeperAddress = alluxio.Configuration.get(PropertyKey.ZOOKEEPER_ADDRESS);
@@ -204,7 +204,7 @@ public class SparkIntegrationChecker implements Serializable{
     try {
       address = InetAddress.getLocalHost().getHostAddress();
     } catch (UnknownHostException e) {
-      LOG.debug("cannot get host address");
+      LOG.debug("Integration Checker cannot get the host address of current Spark executor.");
       address = "unknown address";
     }
     return address;
