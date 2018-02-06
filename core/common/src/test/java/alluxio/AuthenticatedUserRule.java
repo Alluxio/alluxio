@@ -21,6 +21,9 @@ import javax.annotation.concurrent.NotThreadSafe;
  * It sets {@link alluxio.security.authentication.AuthenticatedClientUser}
  * to the specified user name during the lifetime
  * of this rule. Note: setting the user only takes effect within the caller thread.
+ *
+ * NOTE: If this rule is used in conjunction with LocalAlluxioClusterResource, it must be ordered to
+ * be second within a RuleChain.
  */
 @NotThreadSafe
 public final class AuthenticatedUserRule extends AbstractResourceRule {
