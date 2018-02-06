@@ -26,7 +26,7 @@ alluxio.worker.free.space.timeout,10sec
 alluxio.worker.hostname,
 alluxio.worker.jvm.monitor.enabled,false
 alluxio.worker.keytab.file,
-alluxio.worker.memory.size,1GB
+alluxio.worker.memory.size,2/3 of total system memory, or 1GB if system memory size cannot be determined
 alluxio.worker.network.netty.async.cache.manager.threads.max,512
 alluxio.worker.network.netty.backlog,
 alluxio.worker.network.netty.block.reader.threads.max,2048
@@ -34,7 +34,7 @@ alluxio.worker.network.netty.block.writer.threads.max,1024
 alluxio.worker.network.netty.boss.threads,1
 alluxio.worker.network.netty.buffer.receive,
 alluxio.worker.network.netty.buffer.send,
-alluxio.worker.network.netty.channel,
+alluxio.worker.network.netty.channel,EPOLL if it is available, otherwise NIO
 alluxio.worker.network.netty.file.transfer,MAPPED
 alluxio.worker.network.netty.file.writer.threads.max,1024
 alluxio.worker.network.netty.reader.buffer.size.packets,16
@@ -51,7 +51,7 @@ alluxio.worker.session.timeout,1min
 alluxio.worker.tieredstore.block.lock.readers,1000
 alluxio.worker.tieredstore.block.locks,1000
 alluxio.worker.tieredstore.level0.alias,MEM
-alluxio.worker.tieredstore.level0.dirs.path,/mnt/ramdisk
+alluxio.worker.tieredstore.level0.dirs.path,/mnt/ramdisk on Linux, /Volumes/ramdisk on OSX
 alluxio.worker.tieredstore.level0.dirs.quota,${alluxio.worker.memory.size}
 alluxio.worker.tieredstore.level0.reserved.ratio,
 alluxio.worker.tieredstore.level0.watermark.high.ratio,0.95
