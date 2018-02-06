@@ -79,11 +79,11 @@ For example, to turn on asynchronous eviction:
 alluxio.worker.tieredstore.reserver.enabled=true
 ```
 
-Synchronous eviction is the legacy implementation of eviction. It waits for a client to request more
-space than is currently available on the worker and then kicks off the eviction process to free up
-enough space to serve that request. This leads to many small eviction attempts, which is less
-efficient but maximizes the utilization of available Alluxio space. In write or read-cache heavy
-workloads, asynchronous eviction can improve performance.
+Synchronous eviction is the initial and default implementation of eviction. It waits for a client to
+request more space than is currently available on the worker and then kicks off the eviction process
+to free up enough space to serve that request. This leads to many small eviction attempts, which is
+less efficient but maximizes the utilization of available Alluxio space. In write or read-cache
+heavy workloads, asynchronous eviction can improve performance.
 
 Asynchronous eviction relies on a periodic space reserver thread in each worker to evict data. It
 waits until the worker storage utilization reaches a configurable high watermark. Then it evicts
