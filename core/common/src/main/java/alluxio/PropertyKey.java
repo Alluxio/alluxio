@@ -85,15 +85,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final class Scopes {
     public static final Set<Scope> ALL =
         Sets.immutableEnumSet(Scope.MASTER, Scope.WORKER, Scope.CLIENT);
-
     public static final Set<Scope> SERVER = Sets.immutableEnumSet(Scope.MASTER, Scope.WORKER);
-
     public static final Set<Scope> CLIENT = Sets.immutableEnumSet(Scope.CLIENT);
-
     public static final Set<Scope> MASTER = Sets.immutableEnumSet(Scope.MASTER);
-
     public static final Set<Scope> WORKER = Sets.immutableEnumSet(Scope.WORKER);
-
     public static final Set<Scope> NONE = ImmutableSet.of();
   }
 
