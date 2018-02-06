@@ -17,7 +17,7 @@ if [[ "$-" == *x* ]]; then
 fi
 BIN=$(cd "$( dirname "$( readlink "$0" || echo "$0" )" )"; pwd)
 
-USAGE="Usage: alluxio-checker.sh Spark [SPARK_MASTER_ADDRESS] [PARTITIONS]
+USAGE="Usage: alluxio-checker.sh spark [SPARK_MASTER_ADDRESS] [PARTITIONS]
 The SPARK_MASTER_ADDRESS should be one of the following:
   local or local[*] or local[K,F]  Running Spark on local machine.
   spark://host:port                Spark standalone mode.
@@ -75,7 +75,7 @@ function trigger_spark_local() {
 
 function main {
   source "${BIN}/../../libexec/alluxio-config.sh"
-  [ -f "./SparkOutputFile.txt" ] && rm "./SparkOutputFile.txt"
+  [ -f "./SparkIntegrationReport.txt" ] && rm "./SparkIntegrationReport.txt"
   case "${SPARK_MASTER}" in
     local*) 
       find_spark_path
@@ -89,7 +89,7 @@ function main {
       echo -e "${USAGE}" >&2
       exit 1
   esac
-  [ -f "./SparkOutputFile.txt" ] && cat "./SparkOutputFile.txt" && rm "./SparkOutputFile.txt"
+  [ -f "./SparkIntegrationReport.txt" ] && cat "./SparkIntegrationReport.txt" && rm "./SparkIntegrationReport.txt"
 }
 
 main "$@"

@@ -84,7 +84,7 @@ When you have a running Spark cluster (or Spark standalone), you can run the fol
 $ checker/bin/alluxio-checker.sh Spark <spark master uri> <spark partition number(optional)>
 ```
 
-This will report potential problems that might prevent you from running Spark with Alluxio. 
+This will report potential problems that might prevent you from running Spark on Alluxio. 
 
 ## Use Alluxio as Input and Output
 

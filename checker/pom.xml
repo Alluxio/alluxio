@@ -57,6 +57,8 @@
       <groupId>org.alluxio</groupId>
       <artifactId>alluxio-core-common</artifactId>
       <version>${project.version}</version>
+      <!-- We mark alluxio-core-common as provided to prevent the integration checker
+           Assembly jar to include Alluxio classes-->
       <scope>provided</scope>
     </dependency>
   </dependencies>

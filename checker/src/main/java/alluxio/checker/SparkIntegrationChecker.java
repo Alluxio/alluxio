@@ -45,7 +45,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 /**
- * The Spark integration checker includes a spark job to test the integration of Spark with Alluxio.
+ * The Spark integration checker includes a Spark job to test the integration of Spark with Alluxio.
  * This class will be triggered in client and cluster mode through spark-submit.
  *
  * This checker requires a running Spark cluster, but does not require a running Alluxio cluster.
@@ -53,13 +53,30 @@ import java.util.stream.IntStream;
  * driver and executors.
  */
 public class SparkIntegrationChecker implements Serializable{
-  private static final long serialVersionUID = 1106074873546987859L;
-
-  @Parameter(names = {"--partitions"}, description = "The user defined partition number, "
-      + "by default the value is 10")
-  private int mPartitions;
-
   private static final Logger LOG = LoggerFactory.getLogger(SparkIntegrationChecker.class);
+  private static final long serialVersionUID = 1106074873546987859L;
+  private static final String FAIL_TO_FIND_CLASS_MESSAGE = "Please check the "
+      + "spark.driver.extraClassPath and spark.executor.extraClassPath properties in "
+      + "${SPARK_HOME}/conf/spark-defaults.conf.\n\n"
+      + "If Alluxio client jar path has been set correctly, please check whether the "
+      + "Alluxio client jar has been distributed on the classpath of all Spark cluster nodes.\n\n"
+      + "For details, please refer to: "
+      + "https://www.alluxio.org/docs/master/en/Running-Spark-on-Alluxio.html\n";
+  private static final String FAIL_TO_FIND_FS_MESSAGE = "Please check the "
+      + "fs.alluxio.impl property in ${SPARK_HOME}/conf/core-site.xml.\n\n"
+      + "For details, please refer to: "
+      + "https://www.alluxio.org/docs/master/en/Debugging-Guide.html"
+      + "#q-why-do-i-see-exceptions-like-no-filesystem-for-scheme-alluxio\n";
+  private static final String FAIL_TO_SUPPORT_HA_MESSAGE = "Please check the "
+      + "alluxio.zookeeper.address property in ${SPARK_HOME}/conf/core-site.xml\n\n"
+      + "For details, please refer to: "
+      + "https://www.alluxio.org/docs/master/en/Running-Spark-on-Alluxio.html\n";
+  private static final String TEST_FAILED_MESSAGE = "***** Integration test failed. *****";
+  private static final String TEST_PASSED_MESSAGE = "***** Integration test passed. *****";
+
+  @Parameter(names = {"--partitions"}, description = "The user defined partition number")
+  private int mPartitions = 10;
+
   private List<Tuple2<Status, String>> mSparkJobResult = null;
   private boolean mAlluxioHAMode = false;
   private String mZookeeperAddress = "";
@@ -67,8 +84,8 @@ public class SparkIntegrationChecker implements Serializable{
   /** The Spark driver and executors performIntegrationChecks results. */
   private enum Status {
     FAIL_TO_FIND_CLASS, // Spark driver or executors cannot recognize Alluxio classes
-    FAIL_TO_FIND_FS,    // Spark driver or executors cannot recognize Alluxio filesystem
-    FAIL_TO_SUPPORT_HA,    // Spark driver cannot support Alluxio-HA mode
+    FAIL_TO_FIND_FS, // Spark driver or executors cannot recognize Alluxio filesystem
+    FAIL_TO_SUPPORT_HA, // Spark driver cannot support Alluxio-HA mode
     SUCCESS;
   }
 
@@ -76,24 +93,24 @@ public class SparkIntegrationChecker implements Serializable{
    * Implements Spark with Alluxio integration checker.
    *
    * @param sc current JavaSparkContext
-   * @param printWriter save user-facing messages to a generated file
+   * @param reportWriter save user-facing messages to a generated file
    * @return performIntegrationChecks results
    */
-  private Status run(JavaSparkContext sc, PrintWriter printWriter) {
+  private Status run(JavaSparkContext sc, PrintWriter reportWriter) {
     // Checks whether Spark driver can recognize Alluxio classes and filesystem
     Status driverStatus = performIntegrationChecks();
     String driverAddress = sc.getConf().get("spark.driver.host");
     switch (driverStatus) {
       case FAIL_TO_FIND_CLASS:
-        printWriter.printf("Spark driver: %s failed to recognize Alluxio classes.%n%n",
+        reportWriter.printf("Spark driver: %s failed to recognize Alluxio classes.%n%n",
             driverAddress);
         return driverStatus;
       case FAIL_TO_FIND_FS:
-        printWriter.printf("Spark driver: %s failed to recognize Alluxio filesystem.%n%n",
+        reportWriter.printf("Spark driver: %s failed to recognize Alluxio filesystem.%n%n",
             driverAddress);
         return driverStatus;
       default:
-        printWriter.printf("Spark driver: %s can recognize Alluxio filesystem.%n%n",
+        reportWriter.printf("Spark driver: %s can recognize Alluxio filesystem.%n%n",
             driverAddress);
         break;
     }
@@ -102,7 +119,7 @@ public class SparkIntegrationChecker implements Serializable{
     if (alluxio.Configuration.getBoolean(PropertyKey.ZOOKEEPER_ENABLED)) {
       mAlluxioHAMode = true;
       if (!alluxio.Configuration.containsKey(PropertyKey.ZOOKEEPER_ADDRESS)) {
-        printWriter.println("Alluxio is in high availability mode"
+        reportWriter.println("Alluxio is in high availability mode"
             + ", but Zookeeper address has not been set.\n");
         return Status.FAIL_TO_SUPPORT_HA;
       } else {
@@ -131,7 +148,8 @@ public class SparkIntegrationChecker implements Serializable{
 
     // Merges the IP addresses that can/cannot recognize Alluxio
     JavaPairRDD<Status, String> mergeStatus = extractedStatus.reduceByKey((a, b)
-        -> a.contains(b) ?  a : (b.contains(a) ? b : a + " " + b), 1);
+        -> a.contains(b) ?  a : (b.contains(a) ? b : a + " " + b),
+        (mPartitions < 10 ? 1 : mPartitions / 10));
 
     mSparkJobResult = mergeStatus.collect();
 
@@ -196,29 +214,29 @@ public class SparkIntegrationChecker implements Serializable{
    * Saves related Spark and Alluxio configuration information.
    *
    * @param conf the current SparkConf
-   * @param printWriter save user-facing messages to a generated file
+   * @param reportWriter save user-facing messages to a generated file
    */
-  private void printConfigInfo(SparkConf conf, PrintWriter printWriter) {
+  private void printConfigInfo(SparkConf conf, PrintWriter reportWriter) {
     // Prints the current time to separate integration checker results
     SimpleDateFormat df = new SimpleDateFormat("dd/MM/yy HH:mm:ss");
     Date date = new Date();
-    printWriter.printf("%n%n%n***** The integration checker ran at %s. *****%n%n",
+    reportWriter.printf("%n%n%n***** The integration checker ran at %s. *****%n%n",
         df.format(date));
 
     // Gets Spark configurations
     if (conf.contains("spark.master")) {
-      printWriter.printf("Spark master is: %s.%n%n", conf.get("spark.master"));
+      reportWriter.printf("Spark master is: %s.%n%n", conf.get("spark.master"));
     }
     if (conf.contains("spark.submit.deployMode")) {
-      printWriter.printf("spark-submit deploy mode is: %s.%n%n",
+      reportWriter.printf("spark-submit deploy mode is: %s.%n%n",
           conf.get("spark.submit.deployMode"));
     }
     if (conf.contains("spark.driver.extraClassPath")) {
-      printWriter.printf("spark.driver.extraClassPath includes jar paths: %s.%n%n",
+      reportWriter.printf("spark.driver.extraClassPath includes jar paths: %s.%n%n",
           conf.get("spark.driver.extraClassPath"));
     }
     if (conf.contains("spark.executor.extraClassPath")) {
-      printWriter.printf("spark.executor.extraClassPath includes jar paths: %s.%n%n",
+      reportWriter.printf("spark.executor.extraClassPath includes jar paths: %s.%n%n",
           conf.get("spark.executor.extraClassPath"));
     }
   }
@@ -227,13 +245,13 @@ public class SparkIntegrationChecker implements Serializable{
    * Saves Spark with Alluixo integration checker results.
    *
    * @param resultStatus Spark job result
-   * @param printWriter save user-facing messages to a generated file
+   * @param reportWriter save user-facing messages to a generated file
    */
-  private void printResultInfo(Status resultStatus, PrintWriter printWriter) {
+  private void printResultInfo(Status resultStatus, PrintWriter reportWriter) {
     if (mAlluxioHAMode) {
-      printWriter.println("Alluixo is running in high availbility mode.");
+      reportWriter.println("Alluixo is running in high availbility mode.");
       if (!mZookeeperAddress.isEmpty()) {
-        printWriter.printf("alluxio.zookeeper.address is %s.%n%n", mZookeeperAddress);
+        reportWriter.printf("alluxio.zookeeper.address is %s.%n%n", mZookeeperAddress);
       }
     }
 
@@ -241,15 +259,15 @@ public class SparkIntegrationChecker implements Serializable{
       for (Tuple2<Status, String> sjr : mSparkJobResult) {
         switch (sjr._1()) {
           case FAIL_TO_FIND_CLASS:
-            printWriter.printf("Spark executors of IP addresses: %s "
+            reportWriter.printf("Spark executors of IP addresses: %s "
                 + "cannot recognize Alluxio classes.%n%n", sjr._2);
             break;
           case FAIL_TO_FIND_FS:
-            printWriter.printf("Spark executors of IP addresses %s "
+            reportWriter.printf("Spark executors of IP addresses %s "
                 + "cannot recognize Alluxio filesystem.%n%n", sjr._2);
             break;
           default:
-            printWriter.printf("Spark executors of IP addresses %s "
+            reportWriter.printf("Spark executors of IP addresses %s "
                 + "can recognize Alluxio filesystem.%n%n", sjr._2);
             break;
         }
@@ -258,33 +276,19 @@ public class SparkIntegrationChecker implements Serializable{
 
     switch (resultStatus) {
       case FAIL_TO_FIND_CLASS:
-        printWriter.println("Please check the spark.driver.extraClassPath "
-            + "and spark.executor.extraClassPath properties in "
-            + "${SPARK_HOME}/conf/spark-defaults.conf\n");
-        printWriter.println("If Alluxio client jar path has been set correctly, "
-            + "please check whether the Alluxio client jar has been distributed "
-            + "on the classpath of all Spark cluster nodes.");
-        printWriter.println("For details, please refer to: "
-            + "https://www.alluxio.org/docs/master/en/Running-Spark-on-Alluxio.html\n");
-        printWriter.println("***** Integration test failed. *****");
+        reportWriter.println(FAIL_TO_FIND_CLASS_MESSAGE);
+        reportWriter.println(TEST_FAILED_MESSAGE);
         break;
       case FAIL_TO_FIND_FS:
-        printWriter.println("Please check the fs.alluxio.impl property "
-            + "in ${SPARK_HOME}/conf/core-site.xml\n");
-        printWriter.println("For details, please refer to: "
-            + "https://www.alluxio.org/docs/master/en/Debugging-Guide.html"
-            + "#q-why-do-i-see-exceptions-like-no-filesystem-for-scheme-alluxio\n");
-        printWriter.println("***** Integration test failed. *****");
+        reportWriter.println(FAIL_TO_FIND_FS_MESSAGE);
+        reportWriter.println(TEST_FAILED_MESSAGE);
         break;
       case FAIL_TO_SUPPORT_HA:
-        printWriter.println("Please check the alluxio.zookeeper.address property "
-            + "in ${SPARK_HOME}/conf/core-site.xml\n");
-        printWriter.println("For details, please refer to: "
-            + "https://www.alluxio.org/docs/master/en/Running-Spark-on-Alluxio.html\n");
-        printWriter.println("***** Integration test failed. *****");
+        reportWriter.println(FAIL_TO_SUPPORT_HA_MESSAGE);
+        reportWriter.println(TEST_FAILED_MESSAGE);
         break;
       default:
-        printWriter.println("***** Integration test passed. *****");
+        reportWriter.println(TEST_PASSED_MESSAGE);
         break;
     }
   }
@@ -300,20 +304,20 @@ public class SparkIntegrationChecker implements Serializable{
     jCommander.setProgramName("SparkIntegrationChecker");
 
     // Creates a file to save user-facing messages
-    FileWriter fw = new FileWriter("./SparkOutputFile.txt", true);
-    BufferedWriter bw = new BufferedWriter(fw);
-    PrintWriter printWriter = new PrintWriter(bw);
+    FileWriter fileWriter = new FileWriter("./SparkIntegrationReport.txt", true);
+    BufferedWriter bufferedWriter = new BufferedWriter(fileWriter);
+    PrintWriter reportWriter = new PrintWriter(bufferedWriter);
 
     // Starts the Java Spark Context
     SparkConf conf = new SparkConf().setAppName(SparkIntegrationChecker.class.getName());
     JavaSparkContext sc = new JavaSparkContext(conf);
 
-    checker.printConfigInfo(conf, printWriter);
-    Status resultStatus = checker.run(sc, printWriter);
-    checker.printResultInfo(resultStatus, printWriter);
+    checker.printConfigInfo(conf, reportWriter);
+    Status resultStatus = checker.run(sc, reportWriter);
+    checker.printResultInfo(resultStatus, reportWriter);
 
-    printWriter.flush();
-    printWriter.close();
+    reportWriter.flush();
+    reportWriter.close();
 
     System.exit(resultStatus.equals(Status.SUCCESS) ? 0 : 1);
   }

@@ -18,7 +18,7 @@ fi
 BIN=$(cd "$( dirname "$( readlink "$0" || echo "$0" )" )"; pwd)
 
 USAGE="Usage: alluxio-checker.sh FRAMEWORK [FRAMEWORK_ARGS]
-Where FRAMEWORK is Spark so far.
+Where FRAMEWORK is spark so far.
 
 -h  display this help."
 
