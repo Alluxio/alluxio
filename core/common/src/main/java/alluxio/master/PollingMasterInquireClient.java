@@ -15,11 +15,11 @@ import alluxio.Constants;
 import alluxio.exception.status.UnauthenticatedException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.retry.RetryPolicy;
+import alluxio.security.authentication.TProtocols;
 import alluxio.security.authentication.TransportProvider;
 
-import org.apache.thrift.protocol.TBinaryProtocol;
-import org.apache.thrift.protocol.TMultiplexedProtocol;
 import org.apache.thrift.protocol.TProtocol;
+import org.apache.thrift.transport.TTransport;
 import org.apache.thrift.transport.TTransportException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -86,12 +86,8 @@ public class PollingMasterInquireClient implements MasterInquireClient {
 
   private void pingMetaService(InetSocketAddress address)
       throws UnauthenticatedException, TTransportException {
-    TransportProvider transportProvider = TransportProvider.Factory.create();
-
-    TProtocol binaryProtocol = new TBinaryProtocol(transportProvider.getClientTransport(address));
-    TMultiplexedProtocol protocol =
-        new TMultiplexedProtocol(binaryProtocol, Constants.META_MASTER_SERVICE_NAME);
-
+    TTransport transport = TransportProvider.Factory.create().getClientTransport(address);
+    TProtocol protocol = TProtocols.createProtocol(transport, Constants.META_MASTER_SERVICE_NAME);
     protocol.getTransport().open();
     protocol.getTransport().close();
   }
