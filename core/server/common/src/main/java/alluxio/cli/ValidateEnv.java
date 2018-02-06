@@ -156,7 +156,7 @@ public final class ValidateEnv {
         "validate tiered storage locations have enough space",
         new StorageSpaceValidationTask(), WORKER_TASKS);
     registerTask("cluster.conf.consistent",
-        "validate configuration consistency across cluster",
+        "validate configuration consistency across the cluster",
         new ClusterConfConsistencyValidationTask(), CLUSTER_TASKS);
   }
 

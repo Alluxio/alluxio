@@ -14,6 +14,7 @@ package alluxio.cli.validation;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
 
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import org.apache.commons.lang3.StringUtils;
 
@@ -56,30 +57,43 @@ public final class ClusterConfConsistencyValidationTask extends AbstractValidati
       propertyNames.addAll(props.stringPropertyNames());
     }
     for (String propertyName : propertyNames) {
-      Set<String> targetNodes = nodes;
-      if (propertyName.startsWith("alluxio.user.")) {
-        continue;
-      } else if (propertyName.startsWith("alluxio.master.")) {
-        targetNodes = masters;
-      } else if (propertyName.startsWith("alluxio.worker.")) {
-        targetNodes = workers;
-      }
-      if (targetNodes.size() < 2) {
-        continue;
-      }
       PropertyKey propertyKey = PropertyKey.fromString(propertyName);
       PropertyKey.ConsistencyCheckLevel level = propertyKey.getConsistencyLevel();
       if (level == PropertyKey.ConsistencyCheckLevel.IGNORE) {
         continue;
       }
+      Set<PropertyKey.Scope> scopes = propertyKey.getScopes();
+      Set<String> targetNodes = ImmutableSet.of();
+      if (scopes.contains(PropertyKey.Scope.MASTER)) {
+        targetNodes = masters;
+      }
+      if (scopes.contains(PropertyKey.Scope.WORKER)) {
+        targetNodes = Sets.union(targetNodes, workers);
+      }
+      if (targetNodes.size() < 2) {
+        continue;
+      }
       String baseNode = null;
       String baseValue = null;
       boolean isConsistent = true;
-      String errLabel = "Warning";
-      TaskResult errLevel = TaskResult.WARNING;
-      if (level == PropertyKey.ConsistencyCheckLevel.ENFORCE) {
-        errLabel = "Error";
-        errLevel = TaskResult.FAILED;
+
+      String errLabel;
+      TaskResult errLevel;
+      switch (level) {
+        case ENFORCE:
+          errLabel = "Error";
+          errLevel = TaskResult.FAILED;
+          break;
+        case WARN:
+          errLabel = "Warning";
+          errLevel = TaskResult.WARNING;
+          break;
+        default:
+          System.err.format(
+              "Error: Consistency check level \"%s\" for property \"%s\" is invalid.%n",
+              level.name(), propertyName);
+          result = TaskResult.FAILED;
+          continue;
       }
       for (String remoteNode : targetNodes) {
         if (baseNode == null) {
@@ -90,7 +104,7 @@ public final class ClusterConfConsistencyValidationTask extends AbstractValidati
         }
         String remoteValue = allProperties.get(remoteNode).getProperty(propertyName);
         if (!StringUtils.equals(remoteValue, baseValue)) {
-          System.err.format("%s: Property \"%s\" is inconsistent on node %s and %s.%n",
+          System.err.format("%s: Property \"%s\" is inconsistent between node %s and %s.%n",
               errLabel, propertyName, baseNode, remoteNode);
           System.err.format(" %s: %s%n %s: %s%n", baseNode, Objects.toString(baseValue, "not set"),
               remoteNode,  Objects.toString(remoteValue, "not set"));
@@ -118,7 +132,7 @@ public final class ClusterConfConsistencyValidationTask extends AbstractValidati
       properties.load(process.getInputStream());
       return properties;
     } catch (IOException e) {
-      System.err.format("Unable retrieve configuration for %s: %s.", node, e.getMessage());
+      System.err.format("Unable to retrieve configuration for %s: %s.", node, e.getMessage());
       return null;
     }
   }
