@@ -22,12 +22,14 @@ import alluxio.exception.InvalidWorkerStateException;
 import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.heartbeat.HeartbeatExecutor;
 
+import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -69,12 +71,16 @@ public class SpaceReserver implements HeartbeatExecutor {
       PropertyKey tierReservedSpaceProp =
           PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_RESERVED_RATIO.format(ordinal);
       if (Configuration.containsKey(tierReservedSpaceProp)) {
-        LOG.warn("The property reserved.ratio is deprecated use high/low watermark instead.");
+        LOG.warn("The property reserved.ratio is deprecated, use high/low watermark instead.");
         reservedSpace = (long) (tierCapacity * Configuration.getDouble(tierReservedSpaceProp));
       } else {
         // High watermark defines when to start the space reserving process
         PropertyKey tierHighWatermarkProp =
             PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_HIGH_WATERMARK_RATIO.format(ordinal);
+        Preconditions.checkArgument(Configuration.getDouble(tierHighWatermarkProp) > 0,
+            "The high watermark of tier " + ordinal + " should be positive");
+        Preconditions.checkArgument(Configuration.getDouble(tierHighWatermarkProp) < 1,
+            "The high watermark of tier " + ordinal + " should be less than 100%");
         long highWatermark =
             (long) (tierCapacity * Configuration.getDouble(tierHighWatermarkProp));
         mHighWatermarks.put(tierAlias, highWatermark);
@@ -82,6 +88,8 @@ public class SpaceReserver implements HeartbeatExecutor {
         // Low watermark defines when to stop the space reserving process if started
         PropertyKey tierLowWatermarkProp =
             PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_LOW_WATERMARK_RATIO.format(ordinal);
+        Preconditions.checkArgument(Configuration.getDouble(tierLowWatermarkProp) > 0,
+            "The low watermark of tier " + ordinal + " should be positive");
         reservedSpace =
             (long) (tierCapacity - tierCapacity * Configuration.getDouble(tierLowWatermarkProp));
       }
