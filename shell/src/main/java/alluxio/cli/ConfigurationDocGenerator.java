@@ -87,6 +87,8 @@ public final class ConfigurationDocGenerator {
         } else {
           defaultDescription = propertyKey.getDefaultSupplier().getDescription();
         }
+        // Quote the whole description to escape characters such as commas.
+        defaultDescription = String.format("\"%s\"", defaultDescription);
 
         // Write property key and default value to CSV
         String keyValueStr = pKey + "," + defaultDescription + "\n";
