@@ -40,9 +40,9 @@ public class UfsJournalSystem extends AbstractJournalSystem {
    * Creates a UFS journal system with the specified base location. When journals are created, their
    * names are appended to the base location. The created journals all function independently.
    *
-   * @param base        the base location for journals created by this factory
+   * @param base the base location for journals created by this factory
    * @param quietTimeMs before upgrading from SECONDARY to PRIMARY mode, the journal will wait until
-   *                    this duration has passed without any journal entries being written.
+   *        this duration has passed without any journal entries being written.
    */
   public UfsJournalSystem(URI base, long quietTimeMs) {
     mBase = base;
