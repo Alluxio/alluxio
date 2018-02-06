@@ -81,7 +81,7 @@ setup correctly for integrating with Alluxio. The Spark integration checker can 
 When you have a running Spark cluster (or Spark standalone), you can run the following command in the Alluxio project directory:
 
 ```bash
-$ checker/bin/alluxio-checker.sh Spark <spark master uri> <spark partition number(optional)>
+$ checker/bin/alluxio-checker.sh spark <spark master uri> <spark partition number(optional)>
 ```
 
 This will report potential problems that might prevent you from running Spark on Alluxio. 
