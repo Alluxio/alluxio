@@ -83,34 +83,17 @@ public final class PropertyKey implements Comparable<PropertyKey> {
    * Common scope combinations.
    */
   public static final class Scopes {
-    /**
-     * A set of scopes including all masters, workers and clients.
-     */
     public static final Set<Scope> ALL =
         Sets.immutableEnumSet(Scope.MASTER, Scope.WORKER, Scope.CLIENT);
-    /**
-     * A set of scopes including masters and workers.
-     */
+
     public static final Set<Scope> SERVER = Sets.immutableEnumSet(Scope.MASTER, Scope.WORKER);
 
-    /**
-     * A set of scopes including clients.
-     */
     public static final Set<Scope> CLIENT = Sets.immutableEnumSet(Scope.CLIENT);
 
-    /**
-     * A set of scopes including masters.
-     */
     public static final Set<Scope> MASTER = Sets.immutableEnumSet(Scope.MASTER);
 
-    /**
-     * A set of scopes including workers.
-     */
     public static final Set<Scope> WORKER = Sets.immutableEnumSet(Scope.WORKER);
 
-    /**
-     * An empty set of scopes.
-     */
     public static final Set<Scope> NONE = ImmutableSet.of();
   }
 
