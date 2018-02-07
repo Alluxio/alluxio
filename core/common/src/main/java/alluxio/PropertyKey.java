@@ -12,17 +12,23 @@
 package alluxio;
 
 import alluxio.exception.ExceptionMessage;
+import alluxio.network.ChannelType;
+import alluxio.util.OSUtils;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
+import com.google.common.collect.Sets;
+import com.sun.management.OperatingSystemMXBean;
 
 import java.lang.annotation.Annotation;
+import java.lang.management.ManagementFactory;
 import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -35,14 +41,15 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class PropertyKey implements Comparable<PropertyKey> {
   // The following two maps must be the first to initialize within this file.
   /** A map from default property key's string name to the key. */
-  private static final Map<String, PropertyKey> DEFAULT_KEYS_MAP = new HashMap<>();
+  private static final Map<String, PropertyKey> DEFAULT_KEYS_MAP = new ConcurrentHashMap<>();
   /** A map from default property key's alias to the key. */
-  private static final Map<String, PropertyKey> DEFAULT_ALIAS_MAP = new HashMap<>();
+  private static final Map<String, PropertyKey> DEFAULT_ALIAS_MAP = new ConcurrentHashMap<>();
   /**
    * Builder to create {@link PropertyKey} instances.
    */
   public static final class Builder {
     private String[] mAlias;
+    private DefaultSupplier mDefaultSupplier;
     private Object mDefaultValue;
     private String mDescription;
     private final String mName;
@@ -70,6 +77,25 @@ public final class PropertyKey implements Comparable<PropertyKey> {
      */
     public Builder setAlias(String[] alias) {
       mAlias = Arrays.copyOf(alias, alias.length);
+      return this;
+    }
+
+    /**
+     * @param defaultSupplier supplier for the default value of this property key
+     * @return the updated builder instance
+     */
+    public Builder setDefaultSupplier(DefaultSupplier defaultSupplier) {
+      mDefaultSupplier = defaultSupplier;
+      return this;
+    }
+
+    /**
+     * @param supplier supplier for the default value of this property key
+     * @param description description of the default value of this property key
+     * @return the updated builder instance
+     */
+    public Builder setDefaultSupplier(Supplier<Object> supplier, String description) {
+      mDefaultSupplier = new DefaultSupplier(supplier, description);
       return this;
     }
 
@@ -114,8 +140,16 @@ public final class PropertyKey implements Comparable<PropertyKey> {
      * @return the created property key instance
      */
     public PropertyKey build() {
-      return PropertyKey.create(
-          mName, mDefaultValue, mAlias, mDescription, mIgnoredSiteProperty, mIsHidden);
+      DefaultSupplier defaultSupplier = mDefaultSupplier;
+      if (defaultSupplier == null) {
+        String defaultString = String.valueOf(mDefaultValue);
+        defaultSupplier = (mDefaultValue == null)
+            ? new DefaultSupplier(() -> null, "null")
+            : new DefaultSupplier(() -> defaultString, defaultString);
+      }
+
+      return PropertyKey.create(mName, defaultSupplier, mAlias, mDescription, mIgnoredSiteProperty,
+          mIsHidden);
     }
 
     @Override
@@ -212,6 +246,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription(
               String.format("Comma-separated search path for %s.", Constants.SITE_PROPERTIES))
           .setIgnoredSiteProperty(true)
+          .build();
+  public static final PropertyKey USER_HOME =
+      new Builder(Name.USER_HOME)
+          .setIsHidden(true)
+          .setDescription("The user.home system property")
+          .setDefaultValue("boop")
           .build();
   public static final PropertyKey TEST_MODE =
       new Builder(Name.TEST_MODE)
@@ -1030,7 +1070,17 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       .build();
   public static final PropertyKey WORKER_MEMORY_SIZE =
       new Builder(Name.WORKER_MEMORY_SIZE)
-          .setDefaultValue("1GB")
+          .setDefaultSupplier(() -> {
+            try {
+              OperatingSystemMXBean operatingSystemMXBean =
+                  (OperatingSystemMXBean) ManagementFactory.getOperatingSystemMXBean();
+              return operatingSystemMXBean.getTotalPhysicalMemorySize() * 2 / 3;
+            } catch (Exception e) {
+              // The package com.sun.management may not be available on every platform.
+              // fallback to a reasonable size.
+              return "1GB";
+            }
+          }, "2/3 of total system memory, or 1GB if system memory size cannot be determined")
           .setDescription("Memory capacity of each worker node.")
           .build();
   public static final PropertyKey WORKER_NETWORK_NETTY_BACKLOG =
@@ -1055,6 +1105,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey WORKER_NETWORK_NETTY_CHANNEL =
       new Builder(Name.WORKER_NETWORK_NETTY_CHANNEL)
           .setDescription("Netty channel type: NIO or EPOLL.")
+          .setDefaultSupplier(ChannelType.DEFAULT_SUPPLIER)
           .build();
   public static final PropertyKey WORKER_NETWORK_NETTY_FILE_TRANSFER_TYPE =
       new Builder(Name.WORKER_NETWORK_NETTY_FILE_TRANSFER_TYPE)
@@ -1183,7 +1234,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey WORKER_TIERED_STORE_LEVEL0_DIRS_PATH =
       new Builder(Template.WORKER_TIERED_STORE_LEVEL_DIRS_PATH, 0)
-          .setDefaultValue("/mnt/ramdisk")
+          .setDefaultSupplier(() -> OSUtils.isLinux() ? "/mnt/ramdisk" : "/Volumes/ramdisk",
+              "/mnt/ramdisk on Linux, /Volumes/ramdisk on OSX")
           .setDescription("The path of storage directory for the top storage tier. Note "
               + "for MacOS the value should be `/Volumes/`.")
           .build();
@@ -1681,6 +1733,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey USER_NETWORK_NETTY_CHANNEL =
       new Builder(Name.USER_NETWORK_NETTY_CHANNEL)
           .setDescription("Type of netty channels.")
+          .setDefaultSupplier(ChannelType.DEFAULT_SUPPLIER)
           .build();
   public static final PropertyKey USER_NETWORK_NETTY_TIMEOUT_MS =
       new Builder(Name.USER_NETWORK_NETTY_TIMEOUT_MS)
@@ -2086,6 +2139,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.network.thrift.frame.size.bytes.max";
     public static final String SITE_CONF_DIR = "alluxio.site.conf.dir";
     public static final String TEST_MODE = "alluxio.test.mode";
+    public static final String USER_HOME = "user.home";
     public static final String VERSION = "alluxio.version";
     public static final String WEB_RESOURCES = "alluxio.web.resources";
     public static final String WEB_THREADS = "alluxio.web.threads";
@@ -2681,7 +2735,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
    * @return all pre-defined property keys
    */
   public static Collection<? extends PropertyKey> defaultKeys() {
-    return DEFAULT_KEYS_MAP.values();
+    return Sets.newHashSet(DEFAULT_KEYS_MAP.values());
   }
 
   /** Property name. */
@@ -2690,8 +2744,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   /** Property Key description. */
   private final String mDescription;
 
-  /** Property Key default value. */
-  private final Object mDefaultValue;
+  /** Supplies the Property Key default value. */
+  private final DefaultSupplier mDefaultSupplier;
 
   /** Property Key alias. */
   private final String[] mAliases;
@@ -2705,17 +2759,17 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   /**
    * @param name String of this property
    * @param description String description of this property key
-   * @param defaultValue default value
+   * @param defaultSupplier default value supplier
    * @param aliases alias of this property key
-   * @param ignoredSiteProperty true if Alluxio ignores user-specified value for this property
-   *                            in site properties file
+   * @param ignoredSiteProperty true if Alluxio ignores user-specified value for this property in
+   *        site properties file
    */
-  private PropertyKey(String name, String description, Object defaultValue, String[] aliases,
-      boolean ignoredSiteProperty, boolean isHidden) {
+  private PropertyKey(String name, String description, DefaultSupplier defaultSupplier,
+      String[] aliases, boolean ignoredSiteProperty, boolean isHidden) {
     mName = Preconditions.checkNotNull(name, "name");
     // TODO(binfan): null check after we add description for each property key
     mDescription = Strings.isNullOrEmpty(description) ? "N/A" : description;
-    mDefaultValue = defaultValue;
+    mDefaultSupplier = defaultSupplier;
     mAliases = aliases;
     mIgnoredSiteProperty = ignoredSiteProperty;
     mIsHidden = isHidden;
@@ -2725,24 +2779,24 @@ public final class PropertyKey implements Comparable<PropertyKey> {
    * @param name String of this property
    */
   private PropertyKey(String name) {
-    this(name, null, null, null, false, false);
+    this(name, null, new DefaultSupplier(() -> null, "null"), null, false, false);
   }
 
   /**
-   * Factory method to create a constant default property
-   * and assign a default value together with its alias.
+   * Factory method to create a constant default property and assign a default value together with
+   * its alias.
    *
-   * @param name String of this property
-   * @param defaultValue Default value of this property in compile time if not null
-   * @param aliases String list of aliases of this property
-   * @param description String description of this property key
-   * @param ignoredSiteProperty true if Alluxio ignores user-specified value for this property
-   *                            in the site properties file
+   * @param name name of this property
+   * @param defaultSupplier a supplier to return the default value for this property
+   * @param aliases list of aliases of this property
+   * @param description description of this property key
+   * @param ignoredSiteProperty true if Alluxio ignores user-specified value for this property in
+   *        the site properties file
    */
-  static PropertyKey create(String name, Object defaultValue, String[] aliases,
+  static PropertyKey create(String name, DefaultSupplier defaultSupplier, String[] aliases,
       String description, boolean ignoredSiteProperty, boolean isHidden) {
-    PropertyKey key = new PropertyKey(
-        name, description, defaultValue, aliases, ignoredSiteProperty, isHidden);
+    PropertyKey key =
+        new PropertyKey(name, description, defaultSupplier, aliases, ignoredSiteProperty, isHidden);
     DEFAULT_KEYS_MAP.put(name, key);
     if (aliases != null) {
       for (String alias : aliases) {
@@ -2816,10 +2870,18 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   }
 
   /**
-   * @return the default value of a property key or null if no default value set
+   * @return the default value of a property key
    */
   public String getDefaultValue() {
-    return mDefaultValue != null ? mDefaultValue.toString() : null;
+    Object defaultValue = mDefaultSupplier.get();
+    return defaultValue == null ? null : defaultValue.toString();
+  }
+
+  /**
+   * @return the default supplier of a property key
+   */
+  public DefaultSupplier getDefaultSupplier() {
+    return mDefaultSupplier;
   }
 
   /**
