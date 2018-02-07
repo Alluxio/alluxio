@@ -90,6 +90,11 @@ public class SpaceReserver implements HeartbeatExecutor {
             PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_LOW_WATERMARK_RATIO.format(ordinal);
         Preconditions.checkArgument(Configuration.getDouble(tierLowWatermarkProp) >= 0,
             "The low watermark of tier " + ordinal + " should not be negative");
+        Preconditions.checkArgument(
+            Configuration.getDouble(tierLowWatermarkProp) < Configuration
+                .getDouble(tierHighWatermarkProp),
+            "The low watermark of tier " + ordinal
+                + " should not be smaller than the high watermark");
         reservedSpace =
             (long) (tierCapacity - tierCapacity * Configuration.getDouble(tierLowWatermarkProp));
       }
