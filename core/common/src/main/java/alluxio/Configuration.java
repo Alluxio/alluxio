@@ -180,10 +180,7 @@ public final class Configuration {
    * @return the value for the given key
    */
   public static String get(PropertyKey key) {
-    String rawValue = PROPERTIES.get(key.toString());
-    if (rawValue == null) {
-      rawValue = key.getDefaultValue();
-    }
+    String rawValue = lookupNonRecursively(key.toString());
     if (rawValue == null) {
       // if key is not found among the default properties
       throw new RuntimeException(ExceptionMessage.UNDEFINED_CONFIGURATION_KEY.getMessage(key));
