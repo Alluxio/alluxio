@@ -465,11 +465,38 @@ public class ConfigurationTest {
   }
 
   @Test
+  public void variableSubstitutionUsingDefault() {
+    assertFalse(Configuration.containsKey(PropertyKey.MASTER_HOSTNAME));
+    Configuration.merge(ImmutableMap.of(
+        PropertyKey.MASTER_BIND_HOST, "${alluxio.master.hostname:-default}"),
+        Configuration.Source.SITE_PROPERTY);
+    assertEquals("default", Configuration.get(PropertyKey.MASTER_BIND_HOST));
+  }
+
+  @Test
+  public void variableSubstitutionNotUsingDefault() {
+    Configuration.merge(ImmutableMap.of(
+        PropertyKey.MASTER_HOSTNAME, "hostname",
+        PropertyKey.MASTER_BIND_HOST, "${alluxio.master.hostname:-default}"),
+        Configuration.Source.SITE_PROPERTY);
+    assertEquals("hostname", Configuration.get(PropertyKey.MASTER_BIND_HOST));
+  }
+
+  @Test
   public void systemVariableSubstitution() throws Exception {
     try (Closeable p =
         new SystemPropertyRule(PropertyKey.MASTER_HOSTNAME.toString(), "new_master").toResource()) {
       Configuration.init();
       assertEquals("new_master", Configuration.get(PropertyKey.MASTER_HOSTNAME));
+    }
+  }
+
+  @Test
+  public void systemPropertySubstitution() throws Exception {
+    try (Closeable p = new SystemPropertyRule("user.home", "/home").toResource()) {
+      Configuration.merge(ImmutableMap.of(PropertyKey.WORK_DIR, "${user.home}/work"),
+          Configuration.Source.SITE_PROPERTY);
+      assertEquals("/home/work", Configuration.get(PropertyKey.WORK_DIR));
     }
   }
 
