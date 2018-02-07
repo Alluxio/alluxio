@@ -77,24 +77,23 @@ public class SpaceReserver implements HeartbeatExecutor {
         // High watermark defines when to start the space reserving process
         PropertyKey tierHighWatermarkProp =
             PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_HIGH_WATERMARK_RATIO.format(ordinal);
-        Preconditions.checkArgument(Configuration.getDouble(tierHighWatermarkProp) > 0,
-            "The high watermark of tier " + ordinal + " should be positive");
-        Preconditions.checkArgument(Configuration.getDouble(tierHighWatermarkProp) < 1,
-            "The high watermark of tier " + ordinal + " should be less than 1.0");
-        long highWatermark =
-            (long) (tierCapacity * Configuration.getDouble(tierHighWatermarkProp));
+        double tierHighWatermarkConf = Configuration.getDouble(tierHighWatermarkProp);
+        Preconditions.checkArgument(tierHighWatermarkConf > 0, "The high watermark of tier "
+            + ordinal + " should be positive, but is " + tierHighWatermarkConf);
+        Preconditions.checkArgument(tierHighWatermarkConf < 1, "The high watermark of tier "
+            + ordinal + " should be less than 1.0, but is " + tierHighWatermarkConf);
+        long highWatermark = (long) (tierCapacity * Configuration.getDouble(tierHighWatermarkProp));
         mHighWatermarks.put(tierAlias, highWatermark);
 
         // Low watermark defines when to stop the space reserving process if started
         PropertyKey tierLowWatermarkProp =
             PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_LOW_WATERMARK_RATIO.format(ordinal);
-        Preconditions.checkArgument(Configuration.getDouble(tierLowWatermarkProp) >= 0,
-            "The low watermark of tier " + ordinal + " should not be negative");
-        Preconditions.checkArgument(
-            Configuration.getDouble(tierLowWatermarkProp) < Configuration
-                .getDouble(tierHighWatermarkProp),
-            "The low watermark of tier " + ordinal
-                + " should not be smaller than the high watermark");
+        double tierLowWatermarkConf = Configuration.getDouble(tierLowWatermarkProp);
+        Preconditions.checkArgument(tierLowWatermarkConf >= 0, "The low watermark of tier "
+            + ordinal + " should not be negative, but is " + tierLowWatermarkConf);
+        Preconditions.checkArgument(tierLowWatermarkConf < tierHighWatermarkConf,
+            "The low watermark (" + tierLowWatermarkConf + ") of tier " + ordinal
+                + " should not be smaller than the high watermark (" + tierHighWatermarkConf + ")");
         reservedSpace =
             (long) (tierCapacity - tierCapacity * Configuration.getDouble(tierLowWatermarkProp));
       }
