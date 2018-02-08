@@ -110,7 +110,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
      * @return true if the scope contains the target scope
      */
     public boolean contains(Scope scope) {
-      return (mValue & scope.mValue) == mValue;
+      return (mValue | scope.mValue) == mValue;
     }
   }
 
