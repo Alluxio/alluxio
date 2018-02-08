@@ -62,12 +62,12 @@ public final class ClusterConfConsistencyValidationTask extends AbstractValidati
       if (level == PropertyKey.ConsistencyCheckLevel.IGNORE) {
         continue;
       }
-      Set<PropertyKey.Scope> scopes = propertyKey.getScopes();
+      PropertyKey.Scope scope = propertyKey.getScope();
       Set<String> targetNodes = ImmutableSet.of();
-      if (scopes.contains(PropertyKey.Scope.MASTER)) {
+      if (scope.contains(PropertyKey.Scope.MASTER)) {
         targetNodes = masters;
       }
-      if (scopes.contains(PropertyKey.Scope.WORKER)) {
+      if (scope.contains(PropertyKey.Scope.WORKER)) {
         targetNodes = Sets.union(targetNodes, workers);
       }
       if (targetNodes.size() < 2) {
