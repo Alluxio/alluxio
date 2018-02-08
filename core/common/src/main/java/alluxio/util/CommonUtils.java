@@ -50,6 +50,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.function.Supplier;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -236,6 +237,16 @@ public final class CommonUtils {
       groups.add(tokenizer.nextToken());
     }
     return groups;
+  }
+
+  /**
+   * Waits for a condition to be satisfied.
+   *
+   * @param description a description of what causes condition to evaluate to true
+   * @param condition the condition to wait on
+   */
+  public static void waitFor(String description, Supplier<Boolean> condition) {
+    waitFor(description, input -> condition.get(), WaitForOptions.defaults());
   }
 
   /**
