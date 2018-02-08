@@ -332,7 +332,7 @@ public class FileInStream extends InputStream implements BoundedStream, Position
   private long prepareForRetry(BlockInStream stream, long bytesRead, long position, Exception e,
       Set<WorkerNetAddress> lostWorkers) {
     WorkerNetAddress workerAddress = stream.getAddress();
-    LOG.warn("Failed to read block %s from worker %s, will retry from another worker: %s",
+    LOG.warn("Failed to read block {} from worker {}, will retry from another worker: {}",
         stream.getId(), workerAddress, e.getMessage());
     try {
       closeBlockInStream(stream);

@@ -18,12 +18,10 @@ import alluxio.BaseIntegrationTest;
 import alluxio.Constants;
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.PropertyKey;
-import alluxio.client.ReadType;
 import alluxio.client.WriteType;
 import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.file.FileInStream;
-import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.client.file.URIStatus;
@@ -31,10 +29,7 @@ import alluxio.client.file.options.CreateFileOptions;
 import alluxio.client.file.options.InStreamOptions;
 import alluxio.client.file.options.OpenFileOptions;
 import alluxio.client.file.options.OutStreamOptions;
-import alluxio.client.file.policy.FileWriteLocationPolicy;
-import alluxio.client.file.policy.LocalFirstPolicy;
 import alluxio.client.file.policy.RoundRobinPolicy;
-import alluxio.client.file.policy.SpecificHostPolicy;
 import alluxio.util.io.BufferUtils;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.FileBlockInfo;
@@ -50,8 +45,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.List;
-import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.stream.StreamSupport;
 
 /**
@@ -118,7 +111,7 @@ public final class MultiWorkerIntegrationTest extends BaseIntegrationTest {
       PropertyKey.Name.USER_NETWORK_NETTY_READER_PACKET_SIZE_BYTES, "64KB",
       PropertyKey.Name.WORKER_MEMORY_SIZE, "1GB"})
   public void readOneRecoverFromLostWorker() throws Exception {
-    int offset = 3 * Constants.MB ;
+    int offset = 3 * Constants.MB;
     int length = 3 * Constants.MB;
     int total = offset + length;
     // creates a test file on one worker
