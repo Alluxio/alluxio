@@ -252,7 +252,7 @@ public final class CommonUtils {
   /**
    * Waits for a condition to be satisfied.
    *
-   * @param description a description of what causes condition to evaluation to true
+   * @param description a description of what causes condition to evaluate to true
    * @param condition the condition to wait on
    */
   public static void waitFor(String description, Function<Void, Boolean> condition) {
