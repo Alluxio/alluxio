@@ -43,9 +43,7 @@ import java.net.URI;
 
 import java.text.SimpleDateFormat;
 
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
 
 /**
  * The MapReduce integration checker includes a MapReduce job
@@ -78,22 +76,17 @@ public class MapReduceIntegrationChecker {
   /** The MapReduce task nodes performIntegrationChecks results. */
   protected enum Status {
     FAIL_TO_FIND_CLASS, // MapReduce task nodes cannot recognize Alluxio classes
-    FAIL_TO_FIND_FS,    // MapReduce task nodes cannot recognize Alluxio filesystem
+    FAIL_TO_FIND_FS, // MapReduce task nodes cannot recognize Alluxio filesystem
     SUCCESS;
   }
 
   /**
-   * The mapper class.
    * In each mapper node, we will check whether this node can recognize
    * Alluxio classes and filesystem.
    */
   protected static class CheckStatusMapper extends Mapper<Object, Text, Text, Text> {
     /**
      * Gets the Status and IP address of each mapper task node.
-     *
-     * @param key a MapReduce auto generated object
-     * @param value a number that want to distribute evenly
-     * @param context Hadoop MapReduce mapper context
      */
     protected void map(Object key, Text value, Context context)
         throws IOException, InterruptedException {
@@ -102,7 +95,6 @@ public class MapReduceIntegrationChecker {
   }
 
   /**
-   * The reducer class.
    * In each reducer node, we will combine the IP addresses that have the same Status.
    */
   protected static class MergeStatusReducer extends Reducer<Text, Text, Text, Text> {
@@ -110,190 +102,19 @@ public class MapReduceIntegrationChecker {
 
     /**
      * Merges the IP addresses of same Status.
-     *
-     * @param key mapper node Status
-     * @param values IP addresses
-     * @param context Hadoop MapReduce reducer context
      */
     protected void reduce(Text key, Iterable<Text> values, Context context)
         throws IOException, InterruptedException {
       String mergedAddress = "";
       for (Text val : values) {
-        String address = val.toString();
-        if (!mergedAddress.contains(address)) {
-          mergedAddress = mergedAddress + " " + address;
+        String nodeAddress = val.toString();
+        if (!mergedAddress.contains(nodeAddress)) {
+          mergedAddress = mergedAddress + " " + nodeAddress;
         }
       }
       mMergedAddress.set(mergedAddress);
       context.write(key, mMergedAddress);
     }
-  }
-
-  /**
-   * Creates the Hdfs filesystem to generate input and output files.
-   *
-   * @param conf Hadoop configuration
-   */
-  private static void createHdfsFilesystem(Configuration conf) throws Exception {
-    // Inits HDFS File System Object
-    String systemUserName = System.getProperty("user.name");
-    System.setProperty("HADOOP_USER_NAME", systemUserName);
-    System.setProperty("hadoop.home.dir", "/");
-    sFileSystem = FileSystem.get(URI.create(conf.get("fs.defaultFS")), conf);
-
-    String stringPath = "/user/" + systemUserName + "/";
-    Path userPath = new Path(stringPath);
-    // Creates user folder if not exists
-    if (!sFileSystem.exists(userPath)) {
-      sFileSystem.mkdirs(userPath);
-      LOG.info("User Path " + stringPath + " created.");
-    }
-    sInputFilePath = new Path(userPath + "/MapReduceInputFile");
-    sOutputFilePath = new Path(userPath + "/MapReduceOutputFile");
-  }
-
-  /**
-   * Creates the MapReduce input file and delete previous output file if exists.
-   */
-  private static void createInputFile(int inputSplits) throws Exception {
-
-    // Writes MapReduce input file
-    if (!sFileSystem.exists(new Path(sInputFilePath + "/1.txt"))) {
-      LOG.info("Begin Write MapReduce input file into hdfs");
-      for (int i = 1; i <= inputSplits; i++) {
-        FSDataOutputStream inputFileStream = sFileSystem
-            .create(new Path(sInputFilePath + "/" + i + ".txt"));
-        inputFileStream.writeByte(1);
-        inputFileStream.close();
-      }
-      LOG.info("End Write MapReduce input file into hdfs");
-    }
-
-    if (sFileSystem.exists(sOutputFilePath)) {
-      sFileSystem.delete(sOutputFilePath, true);
-    }
-  }
-
-  /**
-   * @return Generates MapReduce with Alluixo integration checker report
-   */
-  private static int generateReport() throws Exception {
-    // if we do not have output file or Mapreduce job is not success, we do not generate report
-    if (!sFileSystem.exists(sOutputFilePath)) {
-      return 1;
-    }
-    if (!sFileSystem.exists(new Path(sOutputFilePath + "/_SUCCESS"))) {
-      return 1;
-    }
-
-    // Reads all the part-r-* files in MapReduceOutPutFile folder
-    sFileSystem.delete(new Path(sOutputFilePath + "/_SUCCESS"), true);
-    FileStatus[] status = sFileSystem.listStatus(sOutputFilePath);
-    List<Path> resultPaths = new ArrayList<>();
-    for (int i = 0; i < status.length; i++) {
-      resultPaths.add(status[i].getPath());
-    }
-    boolean canFindClass = true;
-    boolean canFindFS = true;
-
-    String cannotFindClassAddresses = "";
-    String cannotFindFSAddresses = "";
-    String successAddresses = "";
-
-    for (Path resultPath : resultPaths) {
-      BufferedReader outputFileReader = new BufferedReader(
-          new InputStreamReader(sFileSystem.open(resultPath)));
-      try {
-        String nextLine = "";
-        while ((nextLine = outputFileReader.readLine()) != null) {
-          Status outputStatus = Status.valueOf(nextLine.substring(0, nextLine.indexOf(' ')).trim());
-          String outputAddresses = nextLine.substring(nextLine.indexOf(' ') + 1).trim();
-          switch (outputStatus) {
-            case FAIL_TO_FIND_CLASS:
-              canFindClass = false;
-              cannotFindClassAddresses += " " + outputAddresses;
-              break;
-            case FAIL_TO_FIND_FS:
-              canFindFS = false;
-              cannotFindFSAddresses += " " + outputAddresses;
-              break;
-            default:
-              successAddresses += " " + outputAddresses;
-          }
-        }
-      } catch (IOException e) {
-        LOG.error("Cannot read content from output file: " + e);
-      } finally {
-        outputFileReader.close();
-      }
-    }
-
-    // Creates a file to save user-facing messages
-    File reportFile = new File("./MapReduceIntegrationReport.txt");
-    PrintWriter reportWriter = new PrintWriter(reportFile);
-    try {
-      SimpleDateFormat df = new SimpleDateFormat("dd/MM/yy HH:mm:ss");
-      Date date = new Date();
-      reportWriter.printf("%n%n%n***** The integration checker ran at %s. *****%n%n",
-          df.format(date));
-
-      if (!cannotFindClassAddresses.equals("")) {
-        reportWriter.printf("Hadoop nodes of IP addresses: %s "
-            + "cannot recognize Alluxio classes.%n%n", cannotFindClassAddresses);
-      }
-      if (!cannotFindFSAddresses.equals("")) {
-        reportWriter.printf("Hadoop nodes of IP addresses: %s "
-            + "cannot recognize Alluxio filesystem.%n%n", cannotFindFSAddresses);
-      }
-      if (!successAddresses.equals("")) {
-        reportWriter.printf("Hadoop nodes of IP addresses: %s "
-            + "can recognize Alluxio filesystem.%n%n", successAddresses);
-      }
-
-      if (!canFindClass) {
-        reportWriter.println(FAIL_TO_FIND_CLASS_MESSAGE);
-        reportWriter.println(TEST_FAILED_MESSAGE);
-      } else if (!canFindFS) {
-        reportWriter.println(FAIL_TO_FIND_FS_MESSAGE);
-        reportWriter.println(TEST_FAILED_MESSAGE);
-      } else {
-        reportWriter.println(TEST_PASSED_MESSAGE);
-      }
-    } catch (Exception e) {
-      LOG.error("Cannot generate report: " + e);
-    } finally {
-      reportWriter.flush();
-      reportWriter.close();
-    }
-
-    return (canFindClass && canFindFS) ? 0 : 1;
-  }
-
-  /**
-   * Implements MapReduce with Alluxio integration checker.
-   *
-   * @return MapReduce job complete or not
-   */
-  private static int run(String[] args) throws Exception {
-    Configuration conf = new Configuration();
-    String[] otherArgs =  new GenericOptionsParser(conf, args).getRemainingArgs();
-
-    createHdfsFilesystem(conf);
-    int inputSplits = Integer.parseInt(otherArgs[0]);
-    createInputFile(inputSplits);
-
-    Job job = Job.getInstance(conf, "MapReduceIntegrationChecker");
-    job.setJarByClass(MapReduceIntegrationChecker.class);
-    job.setMapperClass(CheckStatusMapper.class);
-    job.setCombinerClass(MergeStatusReducer.class);
-    job.setReducerClass(MergeStatusReducer.class);
-    job.setOutputKeyClass(Text.class);
-    job.setOutputValueClass(Text.class);
-
-    FileInputFormat.addInputPath(job, sInputFilePath);
-    FileOutputFormat.setOutputPath(job, sOutputFilePath);
-
-    return job.waitForCompletion(true) ? 0 : 1;
   }
 
   /**
@@ -338,12 +159,178 @@ public class MapReduceIntegrationChecker {
   }
 
   /**
-   * Main function will be triggered via hadoop jar.
+   * Creates the Hdfs filesystem to generate input and output files.
    *
-   * @param args no arguments are needed
+   * @param conf Hadoop configuration
    */
-  public static void main(String[] args) throws Exception {
-    int runResult = run(args);
+  private static void createHdfsFilesystem(Configuration conf) throws Exception {
+    // Inits HDFS File System Object
+    String systemUserName = System.getProperty("user.name");
+    System.setProperty("HADOOP_USER_NAME", systemUserName);
+    System.setProperty("hadoop.home.dir", "/");
+    sFileSystem = FileSystem.get(URI.create(conf.get("fs.defaultFS")), conf);
+
+    String stringPath = "/user/" + systemUserName + "/";
+    Path userPath = new Path(stringPath);
+
+    // Creates user folder if not exists
+    if (!sFileSystem.exists(userPath)) {
+      sFileSystem.mkdirs(userPath);
+      LOG.info("User Path " + stringPath + " created.");
+    }
+    sInputFilePath = new Path(userPath + "/MapReduceInputFile");
+    sOutputFilePath = new Path(userPath + "/MapReduceOutputFile");
+  }
+
+  /**
+   * Creates the MapReduce input file and delete previous output file if exists.
+   */
+  private static void createInputFile(int inputSplits) throws Exception {
+    if (!sFileSystem.exists(new Path(sInputFilePath + "/1.txt"))) {
+      LOG.info("Begin Write MapReduce input file into hdfs");
+      for (int i = 1; i <= inputSplits; i++) {
+        FSDataOutputStream inputFileStream = sFileSystem
+            .create(new Path(sInputFilePath + "/" + i + ".txt"));
+        inputFileStream.writeByte(1);
+        inputFileStream.close();
+      }
+      LOG.info("End Write MapReduce input file into hdfs");
+    }
+
+    if (sFileSystem.exists(sOutputFilePath)) {
+      sFileSystem.delete(sOutputFilePath, true);
+    }
+  }
+
+  /**
+   * @return whether MapReduce can find Alluxio classes and filesystem
+   */
+  private static boolean generateReport() throws Exception {
+    // if we do not have output file or MapReduce job is not success, we do not generate report
+    if (!sFileSystem.exists(sOutputFilePath)) {
+      return false;
+    }
+    if (!sFileSystem.exists(new Path(sOutputFilePath + "/_SUCCESS"))) {
+      return false;
+    }
+
+    // Reads all the part-r-* files in MapReduceOutPutFile folder
+    sFileSystem.delete(new Path(sOutputFilePath + "/_SUCCESS"), true);
+    FileStatus[] outputFileStatus = sFileSystem.listStatus(sOutputFilePath);
+
+    boolean canFindClass = true;
+    boolean canFindFS = true;
+
+    StringBuilder cannotFindClassBuilder = new StringBuilder();
+    StringBuilder cannotFindFSBuilder = new StringBuilder();
+    StringBuilder successBuilder = new StringBuilder();
+
+    for (int i = 0; i < outputFileStatus.length; i++) {
+      Path curOutputFilePath = outputFileStatus[i].getPath();
+      BufferedReader curOutputFileReader = new BufferedReader(
+          new InputStreamReader(sFileSystem.open(curOutputFilePath)));
+      try {
+        String nextLine = "";
+        while ((nextLine = curOutputFileReader.readLine()) != null) {
+          Status curOutputStatus = Status.valueOf(nextLine
+              .substring(0, nextLine.indexOf(' ')).trim());
+          String curOutputAddresses = nextLine.substring(nextLine.indexOf(' ') + 1).trim();
+          switch (curOutputStatus) {
+            case FAIL_TO_FIND_CLASS:
+              canFindClass = false;
+              cannotFindClassBuilder.append(" ").append(curOutputAddresses);
+              break;
+            case FAIL_TO_FIND_FS:
+              canFindFS = false;
+              cannotFindFSBuilder.append(" ").append(curOutputAddresses);
+              break;
+            default:
+              successBuilder.append(" ").append(curOutputAddresses);
+          }
+        }
+      } catch (IOException e) {
+        LOG.error("Cannot read content from output file: " + e);
+      } finally {
+        curOutputFileReader.close();
+      }
+    }
+
+    String cannotFindClassAddresses = cannotFindClassBuilder.toString();
+    String cannotFindFSAddresses = cannotFindFSBuilder.toString();
+    String successAddresses = successBuilder.toString();
+
+    // Creates a file to save user-facing messages
+    File reportFile = new File("./MapReduceIntegrationReport.txt");
+    PrintWriter reportWriter = new PrintWriter(reportFile);
+    try {
+      SimpleDateFormat df = new SimpleDateFormat("dd/MM/yy HH:mm:ss");
+      Date date = new Date();
+      reportWriter.printf("%n%n%n***** The integration checker ran at %s. *****%n%n",
+          df.format(date));
+
+      if (!cannotFindClassAddresses.equals("")) {
+        reportWriter.printf("Hadoop nodes of IP addresses: %s "
+            + "cannot recognize Alluxio classes.%n%n", cannotFindClassAddresses);
+      }
+      if (!cannotFindFSAddresses.equals("")) {
+        reportWriter.printf("Hadoop nodes of IP addresses: %s "
+            + "cannot recognize Alluxio filesystem.%n%n", cannotFindFSAddresses);
+      }
+      if (!successAddresses.equals("")) {
+        reportWriter.printf("Hadoop nodes of IP addresses: %s "
+            + "can recognize Alluxio filesystem.%n%n", successAddresses);
+      }
+
+      if (!canFindClass) {
+        reportWriter.println(FAIL_TO_FIND_CLASS_MESSAGE);
+        reportWriter.println(TEST_FAILED_MESSAGE);
+      } else if (!canFindFS) {
+        reportWriter.println(FAIL_TO_FIND_FS_MESSAGE);
+        reportWriter.println(TEST_FAILED_MESSAGE);
+      } else {
+        reportWriter.println(TEST_PASSED_MESSAGE);
+      }
+    } catch (Exception e) {
+      LOG.error("Cannot generate report: " + e);
+    } finally {
+      reportWriter.flush();
+      reportWriter.close();
+    }
+
+    return canFindClass && canFindFS;
+  }
+
+  /**
+   * Implements MapReduce with Alluxio integration checker.
+   *
+   * @return 0 for success, 1 otherwise
+   */
+  private static int run(String[] args) throws Exception {
+    Configuration conf = new Configuration();
+    String[] otherArgs =  new GenericOptionsParser(conf, args).getRemainingArgs();
+
+    createHdfsFilesystem(conf);
+    int inputSplits = Integer.parseInt(otherArgs[0]);
+    createInputFile(inputSplits);
+
+    Job job = Job.getInstance(conf, "MapReduceIntegrationChecker");
+    job.setJarByClass(MapReduceIntegrationChecker.class);
+    job.setMapperClass(CheckStatusMapper.class);
+    job.setCombinerClass(MergeStatusReducer.class);
+    job.setReducerClass(MergeStatusReducer.class);
+    job.setOutputKeyClass(Text.class);
+    job.setOutputValueClass(Text.class);
+
+    FileInputFormat.addInputPath(job, sInputFilePath);
+    FileOutputFormat.setOutputPath(job, sOutputFilePath);
+
+    boolean jobFinished = job.waitForCompletion(true);
+
+    boolean resultIsSuccess = false;
+    if (jobFinished) {
+      resultIsSuccess = generateReport();
+    }
+
     if (sFileSystem.exists(sInputFilePath)) {
       sFileSystem.delete(sInputFilePath, true);
     }
@@ -351,9 +338,16 @@ public class MapReduceIntegrationChecker {
       sFileSystem.delete(sOutputFilePath, true);
     }
     sFileSystem.close();
-    if (runResult == 1) {
-      System.exit(1);
-    }
-    System.exit(generateReport());
+
+    return (jobFinished && resultIsSuccess) ? 0 : 1;
+  }
+
+  /**
+   * Main function will be triggered via hadoop jar.
+   *
+   * @param args inputSplits will be passed in
+   */
+  public static void main(String[] args) throws Exception {
+    System.exit(run(args));
   }
 }
