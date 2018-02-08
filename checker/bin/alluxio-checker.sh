@@ -26,12 +26,19 @@ function run_spark() {
   ${LAUNCHER} "${BIN}/spark-checker.sh" "$@"
 }
 
+function run_mapreduce() {
+  ${LAUNCHER} "${BIN}/mapreduce-checker.sh" "$@"
+}
+
 function main {
   FRAMEWORK=$(echo "$1" | tr '[:upper:]' '[:lower:]')
   shift
   case "${FRAMEWORK}" in
     spark)
       run_spark "$@"
+      ;;
+    mapreduce)
+      run_mapreduce "$@"
       ;;
     *)
       echo -e "${USAGE}" >&2
