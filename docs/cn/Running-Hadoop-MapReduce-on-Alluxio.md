@@ -29,7 +29,7 @@ priority: 1
 
 ## 配置Hadoop
 
-将以下三个属性添加到Hadoop的安装目录下的`conf`目录中的`core-site.xml`文件中：
+将以下两个属性添加到Hadoop的安装目录下的`core-site.xml`文件中：
 
 ```xml
 <property>
@@ -44,7 +44,7 @@ priority: 1
 </property>
 ```
 
-该配置让你的MapReduce作用在输入和输出文件中通过Alluxio scheme（比如`alluxio://`）来识别URIs。
+该配置让你的MapReduce作用在输入和输出文件中通过Alluxio scheme `alluxio://` 来识别URIs。
 
 其次, 在`conf`目录中`hadoop-env.sh`文件中修改`$HADOOP_CLASSPATH`：
 
@@ -56,7 +56,7 @@ $ export HADOOP_CLASSPATH={{site.ALLUXIO_CLIENT_JAR_PATH}}:${HADOOP_CLASSPATH}
 
 ## 分发Alluxio客户端Jar包
 
-为了让MapRedude应用可以在Alluxio上读写文件，Alluxio客户端Jar包必须被分发到不同节点的应用相应的classpaths中。
+为了让MapRedude应用在Alluxio上读写文件，Alluxio客户端Jar包必须被分发到不同节点的应用相应的classpaths中。
 
 [如何从Cloudera上加入第三方库](http://blog.cloudera.com/blog/2011/01/how-to-include-third-party-libraries-in-your-map-reduce-job/)这篇文档介绍了分发Jar包的多种方式。文档中建议通过使用命令行的`-libjars`选项，使用分布式缓存来分发Alluxio客户端Jar包。另一种分发客户端Jar包的方式就是手动将其分发到Hadoop节点上。下面就是这两种主流方法的介绍：
 
@@ -65,7 +65,7 @@ $ export HADOOP_CLASSPATH={{site.ALLUXIO_CLIENT_JAR_PATH}}:${HADOOP_CLASSPATH}
 你可以在使用`hadoop jar ...`的时候加入-libjars命令行选项，指定`{{site.ALLUXIO_CLIENT_JAR_PATH}}`为`-libjars`的参数。这条命令会把该Jar包放到Hadoop的DistributedCache中，使所有节点都可以访问到。例如，下面的命令就是将Alluxio客户端Jar包添加到`-libjars`选项中。
 
 ```bash
-$ bin/hadoop jar libexec/share/hadoop/mapreduce/hadoop-mapreduce-examples-2.7.3.jar wordcount -libjars {{site.ALLUXIO_CLIENT_JAR_PATH}} <INPUT FILES> <OUTPUT DIRECTORY>
+$ bin/hadoop jar share/hadoop/mapreduce/hadoop-mapreduce-examples-2.7.3.jar wordcount -libjars {{site.ALLUXIO_CLIENT_JAR_PATH}} <INPUT FILES> <OUTPUT DIRECTORY>
 ```
 
 2.**手动将Client Jar包分发到所有节点**
@@ -101,7 +101,7 @@ $ bin/alluxio fs copyFromLocal LICENSE /wordcount/input.txt
 现在我们运行一个用于wordcount的MapReduce作业。
 
 ```bash
-$ bin/hadoop jar libexec/share/hadoop/mapreduce/hadoop-mapreduce-examples-2.7.3.jar wordcount -libjars {{site.ALLUXIO_CLIENT_JAR_PATH}} alluxio://localhost:19998/wordcount/input.txt alluxio://localhost:19998/wordcount/output
+$ bin/hadoop jar share/hadoop/mapreduce/hadoop-mapreduce-examples-2.7.3.jar wordcount -libjars {{site.ALLUXIO_CLIENT_JAR_PATH}} alluxio://localhost:19998/wordcount/input.txt alluxio://localhost:19998/wordcount/output
 ```
 
 作业完成后，wordcount的结果将存在Alluxio的`/wordcount/output`目录下。你可以通过运行如下命令来查看结果文件：

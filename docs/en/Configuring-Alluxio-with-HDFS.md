@@ -140,7 +140,8 @@ $ bin/alluxio runTests
 ```
 After this succeeds, you can visit HDFS web UI at [http://localhost:50070](http://localhost:50070)
 to verify the files and directories created by Alluxio exist. For this test, you should see
-files named like: `/default_tests_files/BASIC_CACHE_THROUGH`
+files named like: `/default_tests_files/BASIC_CACHE_THROUGH` at 
+[http://localhost:50070/explorer.html](http://localhost:50070/explorer.html)
 
 You can stop Alluxio any time by running:
 

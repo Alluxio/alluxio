@@ -29,10 +29,18 @@ Therefore, the configuration of Alluxio is done mostly in HBase configuration fi
 
 ### Set property in `hbase-site.xml`
 
-You need to add the following three properties to `hbase-site.xml` in your HBase installation `conf` directory
-(make sure these properties are configured in all HBase cluster nodes):
-
+Change the `hbase.rootdir` property in `conf/hbase-site.xml`:
 > You do not need to create the `/hbase` directory in Alluxio, HBase will do this for you.
+
+```xml
+<property>
+  <name>hbase.rootdir</name>
+  <value>alluxio://<ALLUXIO_MASTER_HOSTNAME>:<PORT>/hbase</value>
+</property>
+```
+
+Add the following two properties to the same file `hbase-site.xml`.
+(make sure these three properties are configured in all HBase cluster nodes):
 
 ```xml
 <property>
@@ -42,10 +50,6 @@ You need to add the following three properties to `hbase-site.xml` in your HBase
 <property>
   <name>fs.AbstractFileSystem.alluxio.impl</name>
   <value>alluxio.hadoop.AlluxioFileSystem</value>
-</property>
-<property>
-  <name>hbase.rootdir</name>
-  <value>alluxio://<ALLUXIO_MASTER_HOSTNAME>:<PORT>/hbase</value>
 </property>
 ```
 

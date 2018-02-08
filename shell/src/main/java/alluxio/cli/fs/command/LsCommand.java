@@ -28,9 +28,12 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 
 import java.io.IOException;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
+import java.util.Comparator;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -90,6 +93,35 @@ public final class LsCommand extends WithWildCardPathCommand {
           .hasArg(false)
           .desc("list subdirectories recursively")
           .build();
+
+  private static final Option SORT_OPTION =
+      Option.builder()
+          .required(false)
+          .longOpt("sort")
+          .hasArg(true)
+          .desc("sort statuses by the given field "
+                  + "{size|creationTime|inMemoryPercentage|lastModificationTime|path}")
+          .build();
+
+  private static final Option REVERSE_SORT_OPTION =
+      Option.builder("r")
+              .required(false)
+              .hasArg(false)
+              .desc("reverse order while sorting")
+              .build();
+
+  private static final Map<String, Comparator<URIStatus>> SORT_FIELD_COMPARATORS = new HashMap<>();
+
+  static {
+    SORT_FIELD_COMPARATORS.put("creationTime",
+            Comparator.comparingLong(URIStatus::getCreationTimeMs));
+    SORT_FIELD_COMPARATORS.put("inMemoryPercentage",
+            Comparator.comparingLong(URIStatus::getInMemoryPercentage));
+    SORT_FIELD_COMPARATORS.put("lastModificationTime",
+            Comparator.comparingLong(URIStatus::getLastModificationTimeMs));
+    SORT_FIELD_COMPARATORS.put("path", Comparator.comparing(URIStatus::getPath));
+    SORT_FIELD_COMPARATORS.put("size", Comparator.comparingLong(URIStatus::getBlockSizeBytes));
+  }
 
   /**
    * Formats the ls result string.
@@ -161,11 +193,13 @@ public final class LsCommand extends WithWildCardPathCommand {
   @Override
   public Options getOptions() {
     return new Options()
-        .addOption(RECURSIVE_OPTION)
         .addOption(FORCE_OPTION)
         .addOption(LIST_DIR_AS_FILE_OPTION)
+        .addOption(LIST_HUMAN_READABLE_OPTION)
         .addOption(LIST_PINNED_FILES_OPTION)
-        .addOption(LIST_HUMAN_READABLE_OPTION);
+        .addOption(RECURSIVE_OPTION)
+        .addOption(REVERSE_SORT_OPTION)
+        .addOption(SORT_OPTION);
   }
 
   /**
@@ -175,9 +209,10 @@ public final class LsCommand extends WithWildCardPathCommand {
    * @param recursive Whether list the path recursively
    * @param dirAsFile list the directory status as a plain file
    * @param hSize print human-readable format sizes
+   * @param sortField sort the result by this field
    */
   private void ls(AlluxioURI path, boolean recursive, boolean forceLoadMetadata, boolean dirAsFile,
-                  boolean hSize, boolean pinnedOnly)
+                  boolean hSize, boolean pinnedOnly, String sortField, boolean reverse)
       throws AlluxioException, IOException {
     if (dirAsFile) {
       URIStatus status = mFileSystem.getStatus(path);
@@ -192,47 +227,47 @@ public final class LsCommand extends WithWildCardPathCommand {
     if (forceLoadMetadata) {
       options.setLoadMetadataType(LoadMetadataType.Always);
     }
-    List<URIStatus> statuses = listStatusSortedByIncreasingCreationTime(path, options);
-    for (URIStatus status : statuses) {
+    List<URIStatus> statuses = mFileSystem.listStatus(path, options);
+    List<URIStatus> sorted = sortByFieldAndOrder(statuses, sortField, reverse);
+    for (URIStatus status : sorted) {
       if (!pinnedOnly || status.isPinned()) {
         printLsString(status, hSize);
       }
       if (recursive && status.isFolder()) {
         ls(new AlluxioURI(path.getScheme(), path.getAuthority(), status.getPath()), true,
-            forceLoadMetadata, false, hSize, pinnedOnly);
+            forceLoadMetadata, false, hSize, pinnedOnly, sortField, reverse);
       }
     }
   }
 
-  private List<URIStatus> listStatusSortedByIncreasingCreationTime(AlluxioURI path,
-      ListStatusOptions options) throws AlluxioException, IOException {
-    List<URIStatus> statuses = mFileSystem.listStatus(path, options);
-    Collections.sort(statuses, new Comparator<URIStatus>() {
-      @Override
-      public int compare(URIStatus status1, URIStatus status2) {
-        long t1 = status1.getCreationTimeMs();
-        long t2 = status2.getCreationTimeMs();
-        if (t1 < t2) {
-          return -1;
-        }
-        if (t1 == t2) {
-          return 0;
-        }
-        return 1;
-      }
-    });
-    return statuses;
+  private List<URIStatus> sortByFieldAndOrder(
+          List<URIStatus> statuses, String sortField, boolean reverse) throws IOException {
+    Optional<Comparator<URIStatus>> sortToUse = Optional.ofNullable(
+            SORT_FIELD_COMPARATORS.get(sortField));
+
+    if (!sortToUse.isPresent()) {
+      throw new InvalidArgumentException(ExceptionMessage.INVALID_ARGS_SORT_FIELD
+              .getMessage(sortField));
+    }
+
+    Comparator<URIStatus> sortBy = sortToUse.get();
+    if (reverse) {
+      sortBy = sortBy.reversed();
+    }
+
+    return statuses.stream().sorted(sortBy).collect(Collectors.toList());
   }
 
   @Override
   public void runCommand(AlluxioURI path, CommandLine cl) throws AlluxioException, IOException {
     ls(path, cl.hasOption("R"), cl.hasOption("f"), cl.hasOption("d"), cl.hasOption("h"),
-        cl.hasOption("p"));
+        cl.hasOption("p"), cl.getOptionValue("sort", "creationTime"),
+            cl.hasOption("r"));
   }
 
   @Override
   public String getUsage() {
-    return "ls [-d|-f|-p|-R|-h] <path>";
+    return "ls [-d|-f|-p|-R|-h|--sort=option|-r] <path>";
   }
 
   @Override

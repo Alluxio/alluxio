@@ -13,7 +13,7 @@ priority: 2
 开始之前你需要安装好[Java](Java-Setup.html)，Java 版本要求在1.8以上，同时使用[本地模式](Running-Alluxio-Locally.html)
 或[集群模式](Running-Alluxio-on-a-Cluster.html)构建好Alluxio。
 
-接着[下载Presto](https://repo1.maven.org/maven2/com/facebook/presto/presto-server/)(此文档使用0.170版本)。并且请使用
+接着[下载Presto](https://repo1.maven.org/maven2/com/facebook/presto/presto-server/)(此文档使用0.191版本)。并且请使用
 [Hive On Alluxio](Running-Hive-with-Alluxio.html)完成Hive初始化。
 
 # 配置
@@ -78,7 +78,7 @@ alluxio.zookeeper.address=[zookeeper_hostname]:2181
 -Xbootclasspath/p:<path-to-alluxio-site-properties>
 ```
 
-此外，我们建议提高`alluxio.user.network.netty.timeout.ms`的值（比如10分钟），来防止读远程worker中的大文件时的超时问题。
+此外，我们建议提高`alluxio.user.network.netty.timeout`的值（比如10分钟），来防止读远程worker中的大文件时的超时问题。
 
 #### 提高`hive.max-split-size`值
 
@@ -124,7 +124,7 @@ OVERWRITE INTO TABLE u_user;
 之后，在presto client执行如下查询：
 
 ```
-/home/path/presto/presto-cli-0.170-executable.jar --server masterIp:prestoPort --execute "use default;select * from u_user limit 10;" --user username --debug
+/home/path/presto/presto-cli-0.191-executable.jar --server masterIp:prestoPort --execute "use default;select * from u_user limit 10;" --user username --debug
 ```
 
 你可以在命令行中看到相应查询结果：

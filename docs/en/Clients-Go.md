@@ -34,6 +34,8 @@ $ go get -d github.com/Alluxio/alluxio-go
 
 # Example Usage
 
+If there is no Alluxio proxy running locally, replace "localhost" below with a hostname of a proxy.
+
 ```go
 package main
 
@@ -77,7 +79,7 @@ func read(fs *alluxio.Client, path string) (string, error) {
 }
 
 func main() {
-	fs := alluxio.NewClient(<proxy host>, <proxy port - default is 39999>, 10*time.Second)
+	fs := alluxio.NewClient("localhost", 39999, 10*time.Second)
 	path := "/test_path"
 	exists, err := fs.Exists(path, &option.Exists{})
 	if err != nil {

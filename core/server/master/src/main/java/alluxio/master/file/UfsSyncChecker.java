@@ -17,12 +17,15 @@ import alluxio.exception.InvalidPathException;
 import alluxio.master.file.meta.Inode;
 import alluxio.master.file.meta.InodeDirectory;
 import alluxio.master.file.meta.MountTable;
+import alluxio.resource.CloseableResource;
 import alluxio.underfs.UfsStatus;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.ListOptions;
 import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Preconditions;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -31,6 +34,7 @@ import java.util.HashMap;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -39,6 +43,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class UfsSyncChecker {
+  private static final Logger LOG = LoggerFactory.getLogger(UfsSyncChecker.class);
 
   /** Empty array for a directory with no children. */
   private static final UfsStatus[] EMPTY_CHILDREN = new UfsStatus[0];
@@ -71,30 +76,20 @@ public final class UfsSyncChecker {
       throws FileDoesNotExistException, InvalidPathException, IOException {
     Preconditions.checkArgument(inode.isPersisted());
     UfsStatus[] ufsChildren = getChildrenInUFS(alluxioUri);
-    Arrays.sort(ufsChildren, new Comparator<UfsStatus>() {
-      @Override
-      public int compare(UfsStatus a, UfsStatus b) {
-        return a.getName().compareTo(b.getName());
-      }
-    });
+    // Filter out temporary files
+    ufsChildren = Arrays.stream(ufsChildren)
+        .filter(ufsStatus -> !PathUtils.isTemporaryFileName(ufsStatus.getName()))
+        .toArray(UfsStatus[]::new);
+    Arrays.sort(ufsChildren, Comparator.comparing(UfsStatus::getName));
     int numInodeChildren = inode.getChildren().size();
     Inode[] inodeChildren = inode.getChildren().toArray(new Inode[numInodeChildren]);
-    Arrays.sort(inodeChildren, new Comparator<Inode>() {
-      @Override
-      public int compare(Inode a, Inode b) {
-        return a.getName().compareTo(b.getName());
-      }
-    });
+    Arrays.sort(inodeChildren, Comparator.comparing(Inode::getName));
     int ufsPos = 0;
     int inodePos = 0;
     while (ufsPos < ufsChildren.length && inodePos < numInodeChildren) {
       String ufsName = ufsChildren[ufsPos].getName();
       if (ufsName.endsWith(AlluxioURI.SEPARATOR)) {
         ufsName = ufsName.substring(0, ufsName.length() - 1);
-      }
-      if (PathUtils.isTemporaryFileName(ufsName)) {
-        // Check if Alluxio is aware of permanent filename
-        ufsName = PathUtils.getPermanentFileName(ufsName);
       }
       if (ufsName.equals(inodeChildren[inodePos].getName())) {
         ufsPos++;
@@ -113,6 +108,11 @@ public final class UfsSyncChecker {
         mSyncedDirectories.remove(currentPath.getParent());
         currentPath = currentPath.getParent();
       }
+      LOG.debug("Inode children ({}) for Alluxio URI {} do not match children in Ufs ({})",
+          Arrays.stream(inodeChildren).map(inodeChild -> inodeChild.getName())
+              .collect(Collectors.joining(",")),
+          alluxioUri.toString(), Arrays.stream(ufsChildren).map(ufsStatus -> ufsStatus.getName())
+              .collect(Collectors.joining(",")));
     }
   }
 
@@ -140,33 +140,34 @@ public final class UfsSyncChecker {
       throws InvalidPathException, IOException {
     MountTable.Resolution resolution = mMountTable.resolve(alluxioUri);
     AlluxioURI ufsUri = resolution.getUri();
-    UnderFileSystem ufs = resolution.getUfs();
-
-    AlluxioURI curUri = ufsUri;
-    while (curUri != null) {
-      if (mListedDirectories.containsKey(curUri.toString())) {
-        List<UfsStatus> childrenList = new ArrayList<>();
-        for (UfsStatus childStatus : mListedDirectories.get(curUri.toString())) {
-          String childPath = PathUtils.concatPath(curUri, childStatus.getName());
-          String prefix = PathUtils.normalizePath(ufsUri.toString(), AlluxioURI.SEPARATOR);
-          if (childPath.startsWith(prefix) && childPath.length() > prefix.length()) {
-            UfsStatus newStatus = childStatus.copy();
-            newStatus.setName(childPath.substring(prefix.length()));
-            childrenList.add(newStatus);
+    try (CloseableResource<UnderFileSystem> ufsResource = resolution.acquireUfsResource()) {
+      UnderFileSystem ufs = ufsResource.get();
+      AlluxioURI curUri = ufsUri;
+      while (curUri != null) {
+        if (mListedDirectories.containsKey(curUri.toString())) {
+          List<UfsStatus> childrenList = new ArrayList<>();
+          for (UfsStatus childStatus : mListedDirectories.get(curUri.toString())) {
+            String childPath = PathUtils.concatPath(curUri, childStatus.getName());
+            String prefix = PathUtils.normalizePath(ufsUri.toString(), AlluxioURI.SEPARATOR);
+            if (childPath.startsWith(prefix) && childPath.length() > prefix.length()) {
+              UfsStatus newStatus = childStatus.copy();
+              newStatus.setName(childPath.substring(prefix.length()));
+              childrenList.add(newStatus);
+            }
           }
+          return trimIndirect(childrenList.toArray(new UfsStatus[childrenList.size()]));
         }
-        return trimIndirect(childrenList.toArray(new UfsStatus[childrenList.size()]));
+        curUri = curUri.getParent();
       }
-      curUri = curUri.getParent();
+      UfsStatus[] children =
+          ufs.listStatus(ufsUri.toString(), ListOptions.defaults().setRecursive(true));
+      // Assumption: multiple mounted UFSs cannot have the same ufsUri
+      if (children == null) {
+        return EMPTY_CHILDREN;
+      }
+      mListedDirectories.put(ufsUri.toString(), children);
+      return trimIndirect(children);
     }
-    UfsStatus[] children =
-        ufs.listStatus(ufsUri.toString(), ListOptions.defaults().setRecursive(true));
-    // Assumption: multiple mounted UFSs cannot have the same ufsUri
-    if (children == null) {
-      return EMPTY_CHILDREN;
-    }
-    mListedDirectories.put(ufsUri.toString(), children);
-    return trimIndirect(children);
   }
 
   /**

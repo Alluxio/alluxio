@@ -20,6 +20,7 @@ import alluxio.BaseIntegrationTest;
 import alluxio.Constants;
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.PropertyKey;
+import alluxio.SystemErrRule;
 import alluxio.SystemOutRule;
 import alluxio.client.ReadType;
 import alluxio.client.WriteType;
@@ -62,12 +63,16 @@ public abstract class AbstractAlluxioShellTest extends BaseIntegrationTest {
   protected FileSystem mFileSystem = null;
   protected FileSystemShell mFsShell = null;
   protected ByteArrayOutputStream mOutput = new ByteArrayOutputStream();
+  protected ByteArrayOutputStream mErrOutput = new ByteArrayOutputStream();
 
   @Rule
   public ExpectedException mException = ExpectedException.none();
 
   @Rule
   public SystemOutRule mOutRule = new SystemOutRule(mOutput);
+
+  @Rule
+  public SystemErrRule mErrRule = new SystemErrRule(mErrOutput);
 
   @After
   public final void after() throws Exception {

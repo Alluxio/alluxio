@@ -36,6 +36,7 @@ import alluxio.proto.journal.File;
 import alluxio.proto.journal.File.InodeDirectoryEntry;
 import alluxio.proto.journal.File.InodeFileEntry;
 import alluxio.proto.journal.Journal;
+import alluxio.resource.CloseableResource;
 import alluxio.retry.ExponentialBackoffRetry;
 import alluxio.retry.RetryPolicy;
 import alluxio.security.authorization.Mode;
@@ -998,11 +999,12 @@ public class InodeTree implements JournalEntryIterable {
           AlluxioURI uri = getPath(dir);
           MountTable.Resolution resolution = mMountTable.resolve(uri);
           String ufsUri = resolution.getUri().toString();
-          UnderFileSystem ufs = resolution.getUfs();
-          MkdirsOptions mkdirsOptions =
-              MkdirsOptions.defaults().setCreateParent(false).setOwner(dir.getOwner())
-                  .setGroup(dir.getGroup()).setMode(new Mode(dir.getMode()));
-          ufs.mkdirs(ufsUri, mkdirsOptions);
+          try (CloseableResource<UnderFileSystem> ufsResource = resolution.acquireUfsResource()) {
+            UnderFileSystem ufs = ufsResource.get();
+            MkdirsOptions mkdirsOptions = MkdirsOptions.defaults().setCreateParent(false)
+                .setOwner(dir.getOwner()).setGroup(dir.getGroup()).setMode(new Mode(dir.getMode()));
+            ufs.mkdirs(ufsUri, mkdirsOptions);
+          }
           dir.setPersistenceState(PersistenceState.PERSISTED);
 
           // Append the persist entry to the journal.

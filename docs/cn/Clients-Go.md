@@ -31,23 +31,69 @@ $ go get -d github.com/Alluxio/alluxio-go
 
 # 示例使用程序
 
+如果本地没有Alluxio代理在运行，将下面的"localhost"替换为代理的主机名。
+
 ```go
 package main
 
 import (
 	"fmt"
+	"io/ioutil"
 	"log"
+	"strings"
+	"time"
 
-	alluxio "github.com/Alluxio/alluxio-go"
-	"github.com/Alluxio/alluxio-go/option"
+	alluxio "github.com/alluxio/alluxio-go"
+	"github.com/alluxio/alluxio-go/option"
 )
 
+func write(fs *alluxio.Client, path, s string) error {
+	id, err := fs.CreateFile(path, &option.CreateFile{})
+	if err != nil {
+		return err
+	}
+	defer fs.Close(id)
+	_, err = fs.Write(id, strings.NewReader(s))
+	return err
+}
+
+func read(fs *alluxio.Client, path string) (string, error) {
+	id, err := fs.OpenFile(path, &option.OpenFile{})
+	if err != nil {
+		return "", err
+	}
+	defer fs.Close(id)
+	r, err := fs.Read(id)
+	if err != nil {
+		return "", err
+	}
+	defer r.Close()
+	content, err := ioutil.ReadAll(r)
+	if err != nil {
+		return "", err
+	}
+	return string(content), err
+}
+
 func main() {
-	fs := alluxio.NewClient(<proxy-host>, <proxy-port>, <timeout>)
-	ok, err := fs.Exists("/test_path", &option.Exists{})
+	fs := alluxio.NewClient("localhost", 39999, 10*time.Second)
+	path := "/test_path"
+	exists, err := fs.Exists(path, &option.Exists{})
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Println(ok)
+	if exists {
+		if err := fs.Delete(path, &option.Delete{}); err != nil {
+			log.Fatal(err)
+		}
+	}
+	if err := write(fs, path, "Success"); err != nil {
+		log.Fatal(err)
+	}
+	content, err := read(fs, path)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf("Result: %v\n", content)
 }
 ```

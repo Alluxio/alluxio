@@ -21,6 +21,7 @@ import alluxio.PropertyKey;
 import alluxio.multi.process.MasterNetAddress;
 import alluxio.multi.process.MultiProcessCluster;
 import alluxio.multi.process.MultiProcessCluster.DeployMode;
+import alluxio.security.authentication.TProtocols;
 import alluxio.security.authentication.TransportProvider;
 import alluxio.security.authentication.TransportProvider.Factory;
 import alluxio.thrift.FileSystemMasterClientService.Client;
@@ -30,8 +31,6 @@ import alluxio.util.CommonUtils;
 import com.google.common.base.Function;
 import com.google.common.collect.ImmutableMap;
 import org.apache.thrift.TException;
-import org.apache.thrift.protocol.TBinaryProtocol;
-import org.apache.thrift.protocol.TMultiplexedProtocol;
 import org.apache.thrift.protocol.TProtocol;
 import org.junit.Rule;
 import org.junit.Test;
@@ -113,10 +112,9 @@ public class ZookeeperFailureIntegrationTest extends BaseIntegrationTest {
         new InetSocketAddress(netAddress.getHostname(), netAddress.getRpcPort());
     try {
       TransportProvider transportProvider = Factory.create();
-      TProtocol binaryProtocol =
-          new TBinaryProtocol(transportProvider.getClientTransport(null, address));
-      TMultiplexedProtocol protocol = new TMultiplexedProtocol(binaryProtocol,
-          Constants.FILE_SYSTEM_MASTER_CLIENT_SERVICE_NAME);
+      TProtocol protocol =
+          TProtocols.createProtocol(transportProvider.getClientTransport(address),
+              Constants.FILE_SYSTEM_MASTER_CLIENT_SERVICE_NAME);
       Client client = new Client(protocol);
       client.listStatus("/", new ListStatusTOptions());
     } catch (TException e) {

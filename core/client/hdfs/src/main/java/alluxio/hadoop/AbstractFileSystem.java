@@ -129,10 +129,14 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
 
   @Override
   public void close() throws IOException {
+    // super.close should be called first before releasing the resources in this instance, as the
+    // super class may invoke other methods in this class. For example,
+    // org.apache.hadoop.fs.FileSystem.close may check the existence of certain temp files before
+    // closing
+    super.close();
     if (mContext != null && mContext != FileSystemContext.INSTANCE) {
       mContext.close();
     }
-    super.close();
   }
 
   /**
@@ -393,6 +397,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
    * @see org.apache.hadoop.fs.FileSystem#createFileSystem(java.net.URI,
    *      org.apache.hadoop.conf.Configuration)
    */
+  @Override
   public abstract String getScheme();
 
   @Override

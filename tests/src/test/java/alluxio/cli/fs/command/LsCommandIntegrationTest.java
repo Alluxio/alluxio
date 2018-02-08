@@ -366,4 +366,133 @@ public final class LsCommandIntegrationTest extends AbstractAlluxioShellTest {
         STATE_FILE_IN_ALLUXIO, file.getPersistenceState());
     Assert.assertEquals(expected, mOutput.toString());
   }
+
+  /**
+   * Tests ls command with sort by path option.
+   */
+  @Test
+  @LocalAlluxioClusterResource.Config(
+          confParams = {PropertyKey.Name.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "false",
+                  PropertyKey.Name.SECURITY_AUTHENTICATION_TYPE, "NOSASL"})
+  public void lsWithSortByPath() throws IOException, AlluxioException {
+    FileSystemTestUtils
+            .createByteFile(mFileSystem, "/testRoot/testLongFile", WriteType.MUST_CACHE, 100);
+    FileSystemTestUtils
+            .createByteFile(mFileSystem, "/testRoot/testFileZ", WriteType.MUST_CACHE, 10);
+    FileSystemTestUtils
+            .createByteFile(mFileSystem, "/testRoot/testFileA", WriteType.MUST_CACHE, 50);
+    URIStatus testFileA = mFileSystem.getStatus(new AlluxioURI("/testRoot/testFileA"));
+    URIStatus testFileZ = mFileSystem.getStatus(new AlluxioURI("/testRoot/testFileZ"));
+    URIStatus testLongFile = mFileSystem.getStatus(new AlluxioURI("/testRoot/testLongFile"));
+    mFsShell.run("ls", "--sort", "path", "/testRoot");
+    String expected = "";
+    expected += getLsNoAclResultStr("/testRoot/testFileA", testFileA.getCreationTimeMs(), 50,
+            STATE_FILE_IN_ALLUXIO, testFileA.getPersistenceState());
+    expected += getLsNoAclResultStr("/testRoot/testFileZ", testFileZ.getCreationTimeMs(), 10,
+            STATE_FILE_IN_ALLUXIO, testFileZ.getPersistenceState());
+    expected += getLsNoAclResultStr("/testRoot/testLongFile",
+            testLongFile.getCreationTimeMs(), 100,
+            STATE_FILE_IN_ALLUXIO, testLongFile.getPersistenceState());
+    Assert.assertEquals(expected, mOutput.toString());
+  }
+
+  /**
+   * Tests ls command with sort by size option.
+   */
+  @Test
+  @LocalAlluxioClusterResource.Config(
+          confParams = {PropertyKey.Name.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "false",
+                  PropertyKey.Name.SECURITY_AUTHENTICATION_TYPE, "NOSASL"})
+  public void lsWithSortBySize() throws IOException, AlluxioException {
+    FileSystemTestUtils
+            .createByteFile(mFileSystem, "/testRoot/testFileA", WriteType.MUST_CACHE, 50, 50);
+    FileSystemTestUtils
+            .createByteFile(mFileSystem, "/testRoot/testFileZ", WriteType.MUST_CACHE, 10, 10);
+    FileSystemTestUtils
+            .createByteFile(mFileSystem, "/testRoot/testLongFile", WriteType.MUST_CACHE, 100, 100);
+    URIStatus testFileA = mFileSystem.getStatus(new AlluxioURI("/testRoot/testFileA"));
+    URIStatus testFileZ = mFileSystem.getStatus(new AlluxioURI("/testRoot/testFileZ"));
+    URIStatus testLongFile = mFileSystem.getStatus(new AlluxioURI("/testRoot/testLongFile"));
+    mFsShell.run("ls", "--sort", "size", "/testRoot");
+    String expected = "";
+    expected += getLsNoAclResultStr("/testRoot/testFileZ", testFileZ.getCreationTimeMs(), 10,
+            STATE_FILE_IN_ALLUXIO, testFileZ.getPersistenceState());
+    expected += getLsNoAclResultStr("/testRoot/testFileA", testFileA.getCreationTimeMs(), 50,
+            STATE_FILE_IN_ALLUXIO, testFileA.getPersistenceState());
+    expected += getLsNoAclResultStr("/testRoot/testLongFile",
+            testLongFile.getCreationTimeMs(), 100,
+            STATE_FILE_IN_ALLUXIO, testLongFile.getPersistenceState());
+    Assert.assertEquals(expected, mOutput.toString());
+  }
+
+  /**
+   * Tests ls command with sort by size and reverse order option.
+   */
+  @Test
+  @LocalAlluxioClusterResource.Config(
+          confParams = {PropertyKey.Name.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "false",
+                  PropertyKey.Name.SECURITY_AUTHENTICATION_TYPE, "NOSASL"})
+  public void lsWithSortBySizeAndReverse() throws IOException, AlluxioException {
+    FileSystemTestUtils
+            .createByteFile(mFileSystem, "/testRoot/testFileA", WriteType.MUST_CACHE, 50, 50);
+    FileSystemTestUtils
+            .createByteFile(mFileSystem, "/testRoot/testFileZ", WriteType.MUST_CACHE, 10, 10);
+    FileSystemTestUtils
+            .createByteFile(mFileSystem, "/testRoot/testLongFile", WriteType.MUST_CACHE, 100, 100);
+    URIStatus testFileA = mFileSystem.getStatus(new AlluxioURI("/testRoot/testFileA"));
+    URIStatus testFileZ = mFileSystem.getStatus(new AlluxioURI("/testRoot/testFileZ"));
+    URIStatus testLongFile = mFileSystem.getStatus(new AlluxioURI("/testRoot/testLongFile"));
+    mFsShell.run("ls", "--sort", "size", "-r", "/testRoot");
+    String expected = "";
+    expected += getLsNoAclResultStr("/testRoot/testLongFile", testLongFile.getCreationTimeMs(), 100,
+            STATE_FILE_IN_ALLUXIO, testLongFile.getPersistenceState());
+    expected += getLsNoAclResultStr("/testRoot/testFileA", testFileA.getCreationTimeMs(), 50,
+            STATE_FILE_IN_ALLUXIO, testFileA.getPersistenceState());
+    expected += getLsNoAclResultStr("/testRoot/testFileZ", testFileZ.getCreationTimeMs(), 10,
+            STATE_FILE_IN_ALLUXIO, testFileZ.getPersistenceState());
+    Assert.assertEquals(expected, mOutput.toString());
+  }
+
+  /**
+   * Tests ls command with an invalid sort option.
+   */
+  @Test
+  @LocalAlluxioClusterResource.Config(
+          confParams = {PropertyKey.Name.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "false",
+                  PropertyKey.Name.SECURITY_AUTHENTICATION_TYPE, "NOSASL"})
+  public void lsWithInvalidSortOption() throws IOException, AlluxioException {
+    FileSystemTestUtils
+            .createByteFile(mFileSystem, "/testRoot/testFileA", WriteType.MUST_CACHE, 50, 50);
+    mFsShell.run("ls", "--sort", "unknownfield", "/testRoot");
+    String expected = "Invalid sort option ‘unknownfield’ for --sort\n";
+    Assert.assertEquals(expected, mOutput.toString());
+  }
+
+  /**
+   * Tests ls command with reverse sort order option.
+   */
+  @Test
+  @LocalAlluxioClusterResource.Config(
+          confParams = {PropertyKey.Name.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "false",
+                  PropertyKey.Name.SECURITY_AUTHENTICATION_TYPE, "NOSASL"})
+  public void lsReverseWithoutSort() throws IOException, AlluxioException {
+    FileSystemTestUtils
+            .createByteFile(mFileSystem, "/testRoot/testFileA", WriteType.MUST_CACHE, 50, 50);
+    FileSystemTestUtils
+            .createByteFile(mFileSystem, "/testRoot/testFileZ", WriteType.MUST_CACHE, 10, 10);
+    FileSystemTestUtils
+            .createByteFile(mFileSystem, "/testRoot/testLongFile", WriteType.MUST_CACHE, 100, 100);
+    URIStatus testFileA = mFileSystem.getStatus(new AlluxioURI("/testRoot/testFileA"));
+    URIStatus testFileZ = mFileSystem.getStatus(new AlluxioURI("/testRoot/testFileZ"));
+    URIStatus testLongFile = mFileSystem.getStatus(new AlluxioURI("/testRoot/testLongFile"));
+    mFsShell.run("ls", "-r", "/testRoot");
+    String expected = "";
+    expected += getLsNoAclResultStr("/testRoot/testLongFile", testLongFile.getCreationTimeMs(), 100,
+            STATE_FILE_IN_ALLUXIO, testLongFile.getPersistenceState());
+    expected += getLsNoAclResultStr("/testRoot/testFileZ", testFileZ.getCreationTimeMs(), 10,
+            STATE_FILE_IN_ALLUXIO, testFileZ.getPersistenceState());
+    expected += getLsNoAclResultStr("/testRoot/testFileA", testFileA.getCreationTimeMs(), 50,
+            STATE_FILE_IN_ALLUXIO, testFileA.getPersistenceState());
+    Assert.assertEquals(expected, mOutput.toString());
+  }
 }

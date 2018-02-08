@@ -14,12 +14,13 @@ package alluxio.underfs;
 import alluxio.AlluxioURI;
 import alluxio.collections.ConcurrentHashSet;
 import alluxio.exception.InvalidPathException;
-import alluxio.master.file.meta.MountTable;
+import alluxio.resource.CloseableResource;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -98,8 +99,9 @@ public final class MasterUfsManager extends AbstractUfsManager {
                        final UnderFileSystemConfiguration ufsConf) {
     super.addMount(mountId, ufsUri, ufsConf);
 
-    try {
-      for (String physicalUfs : get(mountId).getUfs().getPhysicalStores()) {
+    try (CloseableResource<UnderFileSystem> ufsResource = get(mountId).acquireUfsResource()) {
+      UnderFileSystem ufs = ufsResource.get();
+      for (String physicalUfs : ufs.getPhysicalStores()) {
         mPhysicalUfsToState.compute(physicalUfs, (k, v) -> {
           if (v == null) {
             v = new UfsState();
@@ -116,8 +118,9 @@ public final class MasterUfsManager extends AbstractUfsManager {
 
   @Override
   public void removeMount(long mountId) {
-    try {
-      for (String physicalUfs : get(mountId).getUfs().getPhysicalStores()) {
+    try (CloseableResource<UnderFileSystem> ufsResource = get(mountId).acquireUfsResource()) {
+      UnderFileSystem ufs = ufsResource.get();
+      for (String physicalUfs : ufs.getPhysicalStores()) {
         mPhysicalUfsToState.computeIfPresent(physicalUfs, (k, v) -> {
           if (v.removeMount(mountId)) {
             // Remove key if list is empty
@@ -138,13 +141,12 @@ public final class MasterUfsManager extends AbstractUfsManager {
    * Get the physical ufs operation modes for the {@link UnderFileSystem} under the given Mount
    * table resolution.
    *
-   * @param resolution the mount table resolution for an Alluxio path
+   * @param physicalStores the physical stores for the mount resolution
    * @return the state of physical UFS for given mount resolution
    */
-  public Map<String, UnderFileSystem.UfsMode> getPhysicalUfsState(
-      MountTable.Resolution resolution) {
+  public Map<String, UnderFileSystem.UfsMode> getPhysicalUfsState(List<String> physicalStores) {
     Map<String, UnderFileSystem.UfsMode> ufsModeState = new HashMap<>();
-    for (String physicalUfs : resolution.getUfs().getPhysicalStores()) {
+    for (String physicalUfs : physicalStores) {
       UfsState ufsState = mPhysicalUfsToState.get(new AlluxioURI(physicalUfs).getRootPath());
       if (ufsState != null) {
         ufsModeState.put(physicalUfs, ufsState.getUfsMode());
