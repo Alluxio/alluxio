@@ -57,14 +57,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     private boolean mIsHidden;
 
     /**
-     * @param name name of this property to build
+     * @param name name of the property
      */
     public Builder(String name) {
       mName = name;
     }
 
     /**
-     * @param template template of the name of the property to build
+     * @param template template for the property name
      * @param params parameters of the template
      */
     public Builder(PropertyKey.Template template, Object... params) {
@@ -72,7 +72,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     }
 
     /**
-     * @param alias alias of this property key to build
+     * @param alias aliases for the property
      * @return the updated builder instance
      */
     public Builder setAlias(String[] alias) {
@@ -81,7 +81,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     }
 
     /**
-     * @param defaultSupplier supplier for the default value of this property key
+     * @param defaultSupplier supplier for the property's default value
      * @return the updated builder instance
      */
     public Builder setDefaultSupplier(DefaultSupplier defaultSupplier) {
@@ -90,8 +90,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     }
 
     /**
-     * @param supplier supplier for the default value of this property key
-     * @param description description of the default value of this property key
+     * @param supplier supplier for the property's default value
+     * @param description description of the default value
      * @return the updated builder instance
      */
     public Builder setDefaultSupplier(Supplier<Object> supplier, String description) {
@@ -100,7 +100,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     }
 
     /**
-     * @param defaultValue default value of this property key to build
+     * @param defaultValue the property's default value
      * @return the updated builder instance
      */
     public Builder setDefaultValue(Object defaultValue) {
@@ -109,7 +109,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     }
 
     /**
-     * @param description of this property key to build
+     * @param description of the property
      * @return the updated builder instance
      */
     public Builder setDescription(String description) {
@@ -118,7 +118,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     }
 
     /**
-     * @param isHidden of this property key to build
+     * @param isHidden whether to hide the property when generating property documentation
      * @return the updated builder instance
      */
     public Builder setIsHidden(boolean isHidden) {
@@ -127,8 +127,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     }
 
     /**
-     * @param ignoredSiteProperty true if this property should be ignored when appearing
-     *                            in alluxio-site.properties
+     * @param ignoredSiteProperty whether the property should be ignored in alluxio-site.properties
      * @return the updated builder instance
      */
     public Builder setIgnoredSiteProperty(boolean ignoredSiteProperty) {
