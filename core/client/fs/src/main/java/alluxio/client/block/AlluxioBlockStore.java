@@ -36,6 +36,7 @@ import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,6 +44,7 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -131,6 +133,20 @@ public final class AlluxioBlockStore {
    * @return a stream which reads from the beginning of the block
    */
   public BlockInStream getInStream(long blockId, InStreamOptions options) throws IOException {
+    return getInStream(blockId, options, ImmutableSet.of());
+  }
+
+  /**
+   * Gets a stream to read the data of a block. This method is primarily responsible for
+   * determining the data source and type of data source. The latest BlockInfo will be fetched
+   * from the master to ensure the locations are up to date.
+   *
+   * @param blockId the id of the block to read
+   * @param options the options associated with the read request
+   * @param lostWorkers worker ids to exclude from the candidate list
+   * @return a stream which reads from the beginning of the block
+   */
+  public BlockInStream getInStream(long blockId, InStreamOptions options, Set<WorkerNetAddress> lostWorkers) throws IOException {
     // Get the latest block info from master
     BlockInfo info;
     try (CloseableResource<BlockMasterClient> masterClientResource =
@@ -138,6 +154,7 @@ public final class AlluxioBlockStore {
       info = masterClientResource.get().getBlockInfo(blockId);
     }
     List<BlockLocation> locations = info.getLocations();
+    locations.removeIf(location -> lostWorkers.contains(location.getWorkerAddress()));
     if (locations.isEmpty() && !options.getStatus().isPersisted()) {
       throw new NotFoundException(ExceptionMessage.BLOCK_UNAVAILABLE.getMessage(info.getBlockId()));
     }
