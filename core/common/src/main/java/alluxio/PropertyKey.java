@@ -36,7 +36,6 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class PropertyKey implements Comparable<PropertyKey> {
-
   // The following two maps must be the first to initialize within this file.
   /** A map from default property key's string name to the key. */
   private static final Map<String, PropertyKey> DEFAULT_KEYS_MAP = new HashMap<>();
@@ -480,7 +479,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "errors with an exponential backoff. This property determines the base time in the "
               + "exponential backoff.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScopes(Scopes.WORKER)
+          .setScopes(Scopes.SERVER)
           .build();
   public static final PropertyKey UNDERFS_OBJECT_STORE_READ_RETRY_MAX_NUM =
       new Builder(Name.UNDERFS_OBJECT_STORE_READ_RETRY_MAX_NUM)
@@ -489,7 +488,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "errors with an exponential backoff. This property determines the maximum number of"
               + " retries.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScopes(Scopes.WORKER)
+          .setScopes(Scopes.SERVER)
           .build();
   public static final PropertyKey UNDERFS_OBJECT_STORE_READ_RETRY_MAX_SLEEP_MS =
       new Builder(Name.UNDERFS_OBJECT_STORE_READ_RETRY_MAX_SLEEP_MS)
@@ -498,7 +497,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "errors with an exponential backoff. This property determines the maximum wait time"
               + " in the backoff.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScopes(Scopes.WORKER)
+          .setScopes(Scopes.SERVER)
           .build();
   public static final PropertyKey UNDERFS_OSS_CONNECT_MAX =
       new Builder(Name.UNDERFS_OSS_CONNECT_MAX)
