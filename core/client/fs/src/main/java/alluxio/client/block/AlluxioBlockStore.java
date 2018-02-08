@@ -146,7 +146,8 @@ public final class AlluxioBlockStore {
    * @param lostWorkers worker ids to exclude from the candidate list
    * @return a stream which reads from the beginning of the block
    */
-  public BlockInStream getInStream(long blockId, InStreamOptions options, Set<WorkerNetAddress> lostWorkers) throws IOException {
+  public BlockInStream getInStream(long blockId, InStreamOptions options,
+      Set<WorkerNetAddress> lostWorkers) throws IOException {
     // Get the latest block info from master
     BlockInfo info;
     try (CloseableResource<BlockMasterClient> masterClientResource =
