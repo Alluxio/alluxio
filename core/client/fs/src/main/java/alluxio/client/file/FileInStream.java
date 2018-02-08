@@ -34,6 +34,8 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.HashSet;
+import java.util.Set;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -80,6 +82,8 @@ public class FileInStream extends InputStream implements BoundedStream, Position
   /** Underlying block stream, null if a position change has invalidated the previous stream. */
   private BlockInStream mBlockInStream;
 
+  private Set<WorkerNetAddress> mLostWorkers = new HashSet<>();
+
   protected FileInStream(URIStatus status, InStreamOptions options, FileSystemContext context) {
     mStatus = status;
     mOptions = options;
@@ -99,12 +103,20 @@ public class FileInStream extends InputStream implements BoundedStream, Position
     if (mPosition == mLength) { // at end of file
       return -1;
     }
-    updateStream();
-    int result = mBlockInStream.read();
-    if (result != -1) {
-      mPosition++;
+    Set<WorkerNetAddress> lostWorkers = new HashSet<>();
+    while (true) {
+      updateStream(lostWorkers);
+      try {
+        int result = mBlockInStream.read();
+        if (result != -1) {
+          mPosition++;
+        }
+        return result;
+      } catch (IOException e) {
+        prepareForRetry(mBlockInStream, 0, mPosition, e, lostWorkers);
+        mBlockInStream = null;
+      }
     }
-    return result;
   }
 
   @Override
@@ -126,13 +138,24 @@ public class FileInStream extends InputStream implements BoundedStream, Position
 
     int bytesLeft = len;
     int currentOffset = off;
+    Set<WorkerNetAddress> lostWorkers = new HashSet<>();
     while (bytesLeft > 0 && mPosition != mLength) {
-      updateStream();
-      int bytesRead = mBlockInStream.read(b, currentOffset, bytesLeft);
-      if (bytesRead > 0) {
-        bytesLeft -= bytesRead;
-        currentOffset += bytesRead;
-        mPosition += bytesRead;
+      updateStream(lostWorkers);
+      try {
+        int bytesRead = mBlockInStream.read(b, currentOffset, bytesLeft);
+        if (bytesRead > 0) {
+          bytesLeft -= bytesRead;
+          currentOffset += bytesRead;
+          mPosition += bytesRead;
+        }
+      } catch (IOException e) {
+        long bytesReadInCurrentBlock = prepareForRetry(mBlockInStream, len - bytesLeft,
+            mPosition, e, lostWorkers);
+        // rollback bytes read in current block
+        mPosition -= bytesReadInCurrentBlock;
+        bytesLeft += bytesReadInCurrentBlock;
+        currentOffset -= bytesReadInCurrentBlock;
+        mBlockInStream = null;
       }
     }
     return len - bytesLeft;
@@ -172,6 +195,7 @@ public class FileInStream extends InputStream implements BoundedStream, Position
     }
 
     int lenCopy = len;
+    Set<WorkerNetAddress> lostWorkers = new HashSet<>();
     while (len > 0) {
       if (pos >= mLength) {
         break;
@@ -179,14 +203,23 @@ public class FileInStream extends InputStream implements BoundedStream, Position
       long blockId = mStatus.getBlockIds().get(Math.toIntExact(pos / mBlockSize));
       BlockInStream stream = null;
       try {
-        stream = mBlockStore.getInStream(blockId, mOptions);
+        stream = mBlockStore.getInStream(blockId, mOptions, lostWorkers);
         long offset = pos % mBlockSize;
-        int bytesRead =
-            stream.positionedRead(offset, b, off, (int) Math.min(mBlockSize - offset, len));
-        Preconditions.checkState(bytesRead > 0, "No data is read before EOF");
-        pos += bytesRead;
-        off += bytesRead;
-        len -= bytesRead;
+        try {
+          int bytesRead =
+              stream.positionedRead(offset, b, off, (int) Math.min(mBlockSize - offset, len));
+          Preconditions.checkState(bytesRead > 0, "No data is read before EOF");
+          pos += bytesRead;
+          off += bytesRead;
+          len -= bytesRead;
+        } catch (IOException e) {
+          long bytesReadInCurrentBlock = prepareForRetry(stream, lenCopy - len, pos, e,
+              lostWorkers);
+          // rollback bytes read in current block
+          pos -= bytesReadInCurrentBlock;
+          off -= bytesReadInCurrentBlock;
+          len += bytesReadInCurrentBlock;
+        }
       } finally {
         closeBlockInStream(stream);
       }
@@ -227,7 +260,7 @@ public class FileInStream extends InputStream implements BoundedStream, Position
    * Initializes the underlying block stream if necessary. This method must be called before
    * reading from mBlockInStream.
    */
-  private void updateStream() throws IOException {
+  private void updateStream(Set<WorkerNetAddress> lostWorkers) throws IOException {
     if (mBlockInStream != null && mBlockInStream.remaining() > 0) { // can still read from stream
       return;
     }
@@ -240,7 +273,7 @@ public class FileInStream extends InputStream implements BoundedStream, Position
     // Calculate block id.
     long blockId = mStatus.getBlockIds().get(Math.toIntExact(mPosition / mBlockSize));
     // Create stream
-    mBlockInStream = mBlockStore.getInStream(blockId, mOptions);
+    mBlockInStream = mBlockStore.getInStream(blockId, mOptions, lostWorkers);
     // Set the stream to the correct position.
     long offset = mPosition % mBlockSize;
     mBlockInStream.seek(offset);
@@ -294,5 +327,20 @@ public class FileInStream extends InputStream implements BoundedStream, Position
         }
       }
     }
+  }
+
+  private long prepareForRetry(BlockInStream stream, long bytesRead, long position, Exception e,
+      Set<WorkerNetAddress> lostWorkers) {
+    WorkerNetAddress workerAddress = stream.getAddress();
+    LOG.warn("Failed to read block %s from worker %s, will retry from another worker: %s",
+        stream.getId(), workerAddress, e.getMessage());
+    try {
+      closeBlockInStream(stream);
+    } catch (Exception ex) {
+      // Do not throw doing a best effort close
+    }
+    lostWorkers.add(workerAddress);
+    long positionInBlock = position % mBlockSize;
+    return Math.min(bytesRead, positionInBlock);
   }
 }
