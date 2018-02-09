@@ -1532,8 +1532,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey USER_BLOCK_WORKER_CLIENT_READ_RETRY =
       new Builder(Name.USER_BLOCK_WORKER_CLIENT_READ_RETRY)
           .setDefaultValue(5)
-          .setDescription("The maximum number of workers to retry before client gives up on" +
-              " reading a block")
+          .setDescription("The maximum number of workers to retry before client gives up on"
+              + " reading a block")
           .build();
   public static final PropertyKey USER_DATE_FORMAT_PATTERN =
       new Builder(Name.USER_DATE_FORMAT_PATTERN)
