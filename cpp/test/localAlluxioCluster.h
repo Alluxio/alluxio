@@ -9,18 +9,17 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-#ifndef LOCALALLUXIOCLUSTER_H
-#define LOCALALLUXIOCLUSTER_H
+#ifndef CPP_TEST_LOCALALLUXIOCLUSTER_H_
+#define CPP_TEST_LOCALALLUXIOCLUSTER_H_
 
-#include "JNIHelper.h"
-#include "FileSystem.h"
+#include "jniHelper.h"
+#include "fileSystem.h"
 
-using namespace jnihelper;
+using ::jnihelper::JniHelper;
 
 namespace alluxio {
 
 class LocalAlluxioCluster {
-
  public:
   LocalAlluxioCluster() {
     JniHelper::Start();
@@ -66,6 +65,6 @@ class LocalAlluxioCluster {
   jobject miniCluster;
 };
 
-} // namespace alluxio
+}  // namespace alluxio
 
-#endif //LOCALALLUXIOCLUSTER_H
+#endif  // CPP_TEST_LOCALALLUXIOCLUSTER_H_

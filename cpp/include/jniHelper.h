@@ -9,31 +9,28 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-#ifndef JNI_HELPER_H__
-#define JNI_HELPER_H__
+#ifndef CPP_INCLUDE_JNIHELPER_H_
+#define CPP_INCLUDE_JNIHELPER_H_
 
-#include <jni.h>
-#include <vector>
-#include <functional>
-#include <cstdlib>
+#include <status.h>
 #include <stdio.h>
-#include <string.h>
-#include <map>
+#include <jni.h>
 #include <pthread.h>
+#include <functional>
 #include <memory>
+#include <cstdlib>
 #include <iostream>
-
-#include "Status.h"
+#include <vector>
+#include <map>
+#include <string>
 
 namespace jnihelper {
-
 // Caches the jclass object and Class name for further JNI calling
 class ClassCache {
-
  public:
   ~ClassCache();
   // Gets the static ClassCache Instance
-  ClassCache(JNIEnv* jniEnv) : env(jniEnv) {};
+  explicit ClassCache(JNIEnv* jniEnv) : env(jniEnv) {}
   static ClassCache* instance(JNIEnv* env);
   // Gets jclass object by class name
   jclass getJclass(const char* className);
@@ -44,9 +41,9 @@ class ClassCache {
   // Gets class name of object
   std::string getClassName(jobject obj);
  private:
-   std::map<const char*, jclass>  classNameToJclassMap;
-   std::map<jobject, const std::string> objectToTypeNameMap;
-   JNIEnv* env;
+  std::map<const char*, jclass>  classNameToJclassMap;
+  std::map<jobject, const std::string> objectToTypeNameMap;
+  JNIEnv* env;
 };
 
 // Caches the map from JNIEnv* to ClassCache instance
@@ -71,7 +68,6 @@ typedef struct JniMethodInfo_ {
 // The JNI function tools. The public static function can be called when calling
 // JNI function.
 class JniHelper {
-
  public:
   typedef std::map<JNIEnv*, std::vector<jobject>> LocalRefMapType;
   // Sets jvm information for JNI calling
@@ -104,21 +100,21 @@ class JniHelper {
     vm_args.nOptions = 1;
     vm_args.options = options;
 
-    JNI_CreateJavaVM(&jvm, (void**)&env, &vm_args);
+    JNI_CreateJavaVM(&jvm, reinterpret_cast<void**>(&env), &vm_args);
     JniHelper::SetJavaVM(jvm);
     JniHelper::CacheEnv(jvm);
   }
 
   template <typename... Ts>
-  static void CallVoidMethod(jobject& obj, const std::string& className,
+  static void CallVoidMethod(jobject obj, const std::string& className,
                              const std::string& methodName, Ts... xs) {
     JniMethodInfo t;
     std::string signature = "(" + std::string(GetJniSignature(xs...)) + ")V";
-    if (JniHelper::GetMethodInfo(t, className.c_str(), methodName.c_str(),
+    if (JniHelper::GetMethodInfo(&t, className.c_str(), methodName.c_str(),
                                  signature.c_str(), false)) {
       LocalRefMapType localRefs;
-      t.env->CallVoidMethod(obj, t.methodID, Convert(localRefs, t, xs)...);
-      DeleteLocalRefs(t.env, localRefs);
+      t.env->CallVoidMethod(obj, t.methodID, Convert(&localRefs, &t, xs)...);
+      DeleteLocalRefs(t.env, &localRefs);
     } else {
       ReportError(className, methodName, signature);
     }
@@ -126,22 +122,22 @@ class JniHelper {
 
   template <typename... Ts>
   static void CallStaticVoidMethod(const std::string& className,
-						           const std::string& methodName, Ts... xs) {
+                                   const std::string& methodName, Ts... xs) {
   JniMethodInfo t;
   std::string signature = "(" + std::string(GetJniSignature(xs...)) + ")V";
-  if (JniHelper::GetMethodInfo(t, className.c_str(), methodName.c_str(),
-							   signature.c_str(), true)) {
+  if (JniHelper::GetMethodInfo(&t, className.c_str(), methodName.c_str(),
+                               signature.c_str(), true)) {
     LocalRefMapType localRefs;
-	t.env->CallStaticVoidMethod(t.classID, t.methodID,
-	                            Convert(localRefs, t, xs)...);
-	DeleteLocalRefs(t.env, localRefs);
+    t.env->CallStaticVoidMethod(t.classID, t.methodID,
+                                Convert(&localRefs, &t, xs)...);
+    DeleteLocalRefs(t.env, &localRefs);
   } else {
-	ReportError(className, methodName, signature);
+    ReportError(className, methodName, signature);
   }
 }
 
   template <typename... Ts>
-  static jobject CallObjectMethod(jobject& obj, const std::string& className,
+  static jobject CallObjectMethod(jobject obj, const std::string& className,
                                   const std::string& methodName,
                                   const std::string& returnClassName,
                                   Ts... xs) {
@@ -149,17 +145,17 @@ class JniHelper {
     JniMethodInfo t;
     std::string signature = "(" + std::string(GetJniSignature(xs...));
     // if the returned object is array
-    if (returnClassName[0] != '[' ) {
+    if (returnClassName[0] != '[') {
       signature = signature + ")L" + returnClassName + ";";
     } else {
       signature = signature + ")" + returnClassName + ";";
     }
-    if (JniHelper::GetMethodInfo(t, className.c_str(), methodName.c_str(),
+    if (JniHelper::GetMethodInfo(&t, className.c_str(), methodName.c_str(),
                                  signature.c_str(), false)) {
       LocalRefMapType localRefs;
       res = t.env->CallObjectMethod(obj, t.methodID,
-                                    Convert(localRefs, t, xs)...);
-      DeleteLocalRefs(t.env, localRefs);
+                                    Convert(&localRefs, &t, xs)...);
+      DeleteLocalRefs(t.env, &localRefs);
     } else {
       ReportError(className, methodName, signature);
       return NULL;
@@ -174,12 +170,12 @@ class JniHelper {
     JniMethodInfo t;
     std::string methodName = "<init>";
     std::string signature = "(" + std::string(GetJniSignature(xs...)) + ")V";
-    if (JniHelper::GetMethodInfo(t, className.c_str(), methodName.c_str(),
+    if (JniHelper::GetMethodInfo(&t, className.c_str(), methodName.c_str(),
                                  signature.c_str(), false)) {
       LocalRefMapType localRefs;
       res = t.env->NewObject(t.classID, t.methodID,
-                             Convert(localRefs, t, xs)...);
-      DeleteLocalRefs(t.env, localRefs);
+                             Convert(&localRefs, &t, xs)...);
+      DeleteLocalRefs(t.env, &localRefs);
     } else {
       ReportError(className, methodName, signature);
       return 0;
@@ -189,17 +185,17 @@ class JniHelper {
   }
 
   template <typename... Ts>
-  static bool CallBooleanMethod(jobject& obj, const std::string& className,
+  static bool CallBooleanMethod(jobject obj, const std::string& className,
                                 const std::string& methodName, Ts... xs) {
     jboolean jret = JNI_FALSE;
     JniMethodInfo t;
     std::string signature = "(" + std::string(GetJniSignature(xs...)) + ")Z";
-    if (JniHelper::GetMethodInfo(t, className.c_str(), methodName.c_str(),
+    if (JniHelper::GetMethodInfo(&t, className.c_str(), methodName.c_str(),
                                  signature.c_str(), false)) {
       LocalRefMapType localRefs;
       jret = t.env->CallBooleanMethod(obj, t.methodID,
-                                      Convert(localRefs, t, xs)...);
-      DeleteLocalRefs(t.env, localRefs);
+                                      Convert(&localRefs, &t, xs)...);
+      DeleteLocalRefs(t.env, &localRefs);
     } else {
       ReportError(className, methodName, signature);
     }
@@ -212,15 +208,16 @@ class JniHelper {
     jint res;
     JniMethodInfo t;
     std::string signature = "(" + std::string(GetJniSignature(xs...)) + ")I";
-    if (JniHelper::GetMethodInfo(t, className.c_str(), methodName.c_str(),
+    if (JniHelper::GetMethodInfo(&t, className.c_str(), methodName.c_str(),
                                  signature.c_str(), false)) {
       LocalRefMapType localRefs;
-      res = t.env->CallIntMethod(obj, t.methodID, Convert(localRefs, t, xs)...);
-      DeleteLocalRefs(t.env, localRefs);
+      res = t.env->CallIntMethod(obj, t.methodID,
+                                 Convert(&localRefs, &t, xs)...);
+      DeleteLocalRefs(t.env, &localRefs);
     } else {
       ReportError(className, methodName, signature);
     }
-    return (int)res;
+    return static_cast<int>(res);
   }
 
   template <typename... Ts>
@@ -230,14 +227,14 @@ class JniHelper {
     JniMethodInfo t;
     std::string signature =
         "(" + std::string(GetJniSignature(xs...)) + ")Ljava/lang/String;";
-    if (JniHelper::GetMethodInfo(t, className.c_str(), methodName.c_str(),
+    if (JniHelper::GetMethodInfo(&t, className.c_str(), methodName.c_str(),
                                  signature.c_str(), false)) {
       LocalRefMapType localRefs;
       jstring jret = (jstring)t.env->CallObjectMethod(obj, t.methodID,
-                                         Convert(localRefs, t, xs)...);
-      res =JniHelper::JstringToString(jret);
+                                         Convert(&localRefs, &t, xs)...);
+      res = JniHelper::JstringToString(jret);
       DeleteObjectRef(jret);
-      DeleteLocalRefs(t.env, localRefs);
+      DeleteLocalRefs(t.env, &localRefs);
     } else {
       ReportError(className, methodName, signature);
     }
@@ -258,16 +255,16 @@ class JniHelper {
     } else {
       signature = signature + ")" + returnClassName + ";";
     }
-    if (JniHelper::GetMethodInfo(t, className.c_str(), methodName.c_str(),
+    if (JniHelper::GetMethodInfo(&t, className.c_str(), methodName.c_str(),
                                  signature.c_str(), true)) {
       LocalRefMapType localRefs;
       res = t.env->CallStaticObjectMethod(t.classID, t.methodID,
-                                          Convert(localRefs, t, xs)...);
-      DeleteLocalRefs(t.env, localRefs);
+                                          Convert(&localRefs, &t, xs)...);
+      DeleteLocalRefs(t.env, &localRefs);
     } else {
       ReportError(className, methodName, signature);
     }
-    ClassCache::instance(t.env)->CacheClassName(res, returnClassName) ;
+    ClassCache::instance(t.env)->CacheClassName(res, returnClassName);
     return res;
   }
 
@@ -288,15 +285,15 @@ class JniHelper {
     return className;
   }
 
-  static void DeleteLocalRefs(JNIEnv* env, LocalRefMapType& localRefs) {
-    if (! env) {
+  static void DeleteLocalRefs(JNIEnv* env, LocalRefMapType* localRefs) {
+    if (!env) {
      return;
     }
-    for (const auto& ref : localRefs[env]) {
+    for (const auto& ref : (*localRefs)[env]) {
       env->DeleteLocalRef(ref);
       ClassCache::instance(env)->deleteClassName(ref);
     }
-    localRefs[env].clear();
+    (*localRefs)[env].clear();
   }
 
   static void DeleteObjectRef(jobject obj) {
@@ -342,7 +339,7 @@ class JniHelper {
       return Status::unknown(errorMsg);
     }
     return Status::OK();
-  };
+  }
 
   // Checks if there are some AlluxioExceptions happening during JNI calling.
   // Returns Status object depending on the AlluxioException status
@@ -360,14 +357,19 @@ class JniHelper {
       std::string errorMsg = JniHelper::CallStringMethod((jobject)javaException,
                                                          "java/lang/Throwable",
                                                          "getMessage");
-      char* exceptionSplit = strtok((char*)exceptionName.c_str(), "/");
+      char* base = NULL;
+      char* m = NULL;
+      memcpy(m, exceptionName.c_str(), exceptionName.length() + 1);
+      char* exceptionSplit =
+          strtok_r(m, "/", &base);
       if (strcmp(exceptionSplit, "java") == 0) {
         // these exceptions are thrown by FileInStream and FileOutStream, are
         // not the subClass of alluxio.exception.AlluxioException
         return Status::internal(errorMsg);
       }
+      char *save = NULL;
       for (int i = 2; i > 0; i --) {
-        exceptionSplit = strtok(NULL, "/");
+        exceptionSplit = strtok_r(NULL, "/", &save);
       }
 
       jobject statusInAlluxio;
@@ -376,7 +378,7 @@ class JniHelper {
         statusInAlluxio = (jobject)javaException;
       } else {  // Converts the AlluxioException to AlluxioStatusException
         ClassCache::instance(env)->CacheClassName((jobject)javaException,
-            "alluxio/exception/AlluxioException") ;
+            "alluxio/exception/AlluxioException");
         jobject statusException = JniHelper::CallStaticObjectMethod(
             "alluxio/exception/status/AlluxioStatusException",
             "fromAlluxioException",
@@ -409,7 +411,7 @@ class JniHelper {
     jsize byteArrayLength = env->GetArrayLength(byteArray);
     jbyte* bArray = env->GetByteArrayElements(byteArray, JNI_FALSE);
     if (byteArrayLength > 0) {
-      rtn = (char*)malloc(byteArrayLength + 1);
+      rtn = reinterpret_cast<char*>(malloc(byteArrayLength + 1));
       memcpy(rtn, bArray, byteArrayLength);
       rtn[byteArrayLength] = 0;
     }
@@ -424,19 +426,19 @@ class JniHelper {
   }
 
  private:
-  static jstring SringToJstring(JNIEnv* env,const char* pat);
+  static jstring SringToJstring(JNIEnv* env, const char* pat);
   static JNIEnv* CacheEnv(JavaVM* jvm);
-  static bool GetMethodInfo(JniMethodInfo& methodinfo, const char* className,
+  static bool GetMethodInfo(JniMethodInfo* methodinfo, const char* className,
                             const char *methodName, const char* paramCode,
                             bool isStatic);
   static JavaVM* _psJavaVM;
-  static jstring Convert(LocalRefMapType& localRefs, JniMethodInfo& t,
+  static jstring Convert(LocalRefMapType* localRefs, JniMethodInfo* t,
                          const char* x);
-  static jstring Convert(LocalRefMapType& localRefs, JniMethodInfo& t,
+  static jstring Convert(LocalRefMapType* localRefs, JniMethodInfo* t,
                          const std::string& x);
 
   template <typename T>
-  static T Convert(LocalRefMapType& localRefs, JniMethodInfo&, T x) {
+  static T Convert(LocalRefMapType* localRefs, JniMethodInfo*, T x) {
     return x;
   }
 
@@ -456,11 +458,11 @@ class JniHelper {
     return "C";
   }
 
-  static std::string GetJniSignature(short) {
+  static std::string GetJniSignature(int16_t) {
     return "S";
   }
 
-  static std::string GetJniSignature(long) {
+  static std::string GetJniSignature(int64_t) {
     return "J";
   }
 
@@ -504,6 +506,6 @@ class JniHelper {
                           const std::string& signature);
 };
 
-} // namespace jnihelper
+}  // namespace jnihelper
 
-#endif //JNI_HELPER_H__
+#endif  // CPP_INCLUDE_JNIHELPER_H_

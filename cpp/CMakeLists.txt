@@ -17,6 +17,8 @@ SET(CMAKE_BUILE_TYPE DEBUG)
 SET(CMAKE_CXX_FLAGS_DEBUG "-g -Wall")
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 
+SET(ALLUXIO_CPP_VERSION 1.0)
+
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
     # Locate JNI_INCLUDE_DIRS and JNI_LIBRARIES.
     # Since we were invoked from Maven, we know that the JAVA_HOME environment
@@ -82,7 +84,6 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
 else()
     find_package(JNI REQUIRED)
 endif()
-
 
 ADD_SUBDIRECTORY(src)
 ADD_SUBDIRECTORY(test)

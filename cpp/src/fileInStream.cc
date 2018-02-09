@@ -11,9 +11,9 @@
 
 #include <cmath>
 
-#include "FileInStream.h"
+#include "fileInStream.h"
 
-using namespace alluxio;
+using ::alluxio::FileInStream;
 
 FileInStream::FileInStream(jobject alluxioInStream) {
   FileInStream::inStream = alluxioInStream;
@@ -31,17 +31,20 @@ Status FileInStream::Read(char* buf, size_t off, size_t len,
   try {
     JNIEnv *env = JniHelper::GetEnv();
     jbyteArray jByteArrays = env->NewByteArray(len + off);
-    env->SetByteArrayRegion(jByteArrays, off, len, (jbyte*)buf);
+    env->SetByteArrayRegion(jByteArrays, off, len,
+                            reinterpret_cast<jbyte*>(buf));
     size_t res = JniHelper::CallIntMethod(FileInStream::inStream,
                                           "alluxio/client/file/FileInStream",
-                                          "read", jByteArrays, (int)off,
-                                          (int)len);
+                                          "read", jByteArrays,
+                                          static_cast<int>(off),
+                                          static_cast<int>(len));
     if (res == (pow(2, 64) - 1)) {
       res = 0;
     }
     *result = res;
     if (res > 0) {
-      env->GetByteArrayRegion(jByteArrays, 0, res, (jbyte*)buf);
+      env->GetByteArrayRegion(jByteArrays, 0, res,
+                              reinterpret_cast<jbyte*>(buf));
     }
     env->DeleteLocalRef(jByteArrays);
     return JniHelper::AlluxioExceptionCheck();
@@ -54,7 +57,7 @@ Status FileInStream::Seek(size_t pos) {
   try {
     JniHelper::CallVoidMethod(FileInStream::inStream,
                               "alluxio/client/file/FileInStream",
-                              "seek", (long)pos);
+                              "seek", (int64_t)pos);
     return JniHelper::AlluxioExceptionCheck( );
   } catch (std::string e) {
     return Status::jniError(e);
@@ -65,7 +68,7 @@ Status FileInStream::Skip(size_t pos) {
   try {
     JniHelper::CallVoidMethod(FileInStream::inStream,
                               "alluxio/client/file/FileInStream", "skip",
-                              (long)pos);
+                              (int64_t)pos);
     return JniHelper::AlluxioExceptionCheck();
   } catch (std::string e) {
     return Status::jniError(e);

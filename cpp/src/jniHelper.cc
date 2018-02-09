@@ -9,9 +9,11 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-#include "JNIHelper.h"
+#include "jniHelper.h"
 
-using namespace jnihelper;
+using ::jnihelper::JniHelper;
+using ::jnihelper::ClassCache;
+using ::jnihelper::ClassCaches;
 
 static pthread_key_t g_key;
 
@@ -34,13 +36,13 @@ void JniHelper::SetJavaVM(JavaVM *javaVM) {
 
 JNIEnv* JniHelper::CacheEnv(JavaVM* jvm) {
   JNIEnv* _env = nullptr;
-  jint ret = jvm->GetEnv((void**)&_env, JNI_VERSION_1_8);
+  jint ret = jvm->GetEnv(reinterpret_cast<void**>(&_env), JNI_VERSION_1_8);
   switch (ret) {
   case JNI_OK :
     pthread_setspecific(g_key, _env);
     return _env;
   case JNI_EDETACHED :
-    if (jvm->AttachCurrentThread((void**)_env, nullptr) < 0) {
+    if (jvm->AttachCurrentThread(reinterpret_cast<void**>(_env), nullptr) < 0) {
       return nullptr;
     } else {
       pthread_setspecific(g_key, _env);
@@ -54,14 +56,14 @@ JNIEnv* JniHelper::CacheEnv(JavaVM* jvm) {
 }
 
 JNIEnv* JniHelper::GetEnv() {
-  JNIEnv* _env = (JNIEnv* )pthread_getspecific(g_key);
+  JNIEnv* _env = reinterpret_cast<JNIEnv* >(pthread_getspecific(g_key));
   if (_env == nullptr) {
     _env = JniHelper::CacheEnv(_psJavaVM);
   }
   return _env;
 }
 
-bool JniHelper::GetMethodInfo(JniMethodInfo &methodinfo, const char *className,
+bool JniHelper::GetMethodInfo(JniMethodInfo *methodinfo, const char *className,
                               const char *methodName, const char *paramCode,
                               bool isStatic) {
   if ((nullptr == className) || (nullptr == methodName) ||
@@ -69,55 +71,56 @@ bool JniHelper::GetMethodInfo(JniMethodInfo &methodinfo, const char *className,
     return false;
   }
   JNIEnv* env = JniHelper::GetEnv();
-  if (! env) {
+  if (!env) {
     return false;
   }
 
   jclass classID = ClassCache::instance(env)->getJclass(className);
-  if (! classID) {
+  if (!classID) {
     env->ExceptionClear();
     return false;
   }
 
   jmethodID methodID;
-  if(isStatic) {
+  if (isStatic) {
     methodID = env->GetStaticMethodID(classID, methodName, paramCode);
   } else {
     methodID = env->GetMethodID(classID, methodName, paramCode);
   }
 
-  if (! methodID) {
+  if (!methodID) {
     env->ExceptionClear();
     return false;
   }
 
-  methodinfo.classID = classID;
-  methodinfo.env = env;
-  methodinfo.methodID = methodID;
+  methodinfo->classID = classID;
+  methodinfo->env = env;
+  methodinfo->methodID = methodID;
   return true;
 }
 
-jstring JniHelper::SringToJstring(JNIEnv* env, const char* pat) {
+jstring JniHelper::SringToJstring(JNIEnv *env, const char *pat) {
   jclass strClass = env->FindClass("Ljava/lang/String;");
   jmethodID ctorID = env->GetMethodID(strClass, "<init>",
                                       "([BLjava/lang/String;)V");
   jbyteArray bytes = env->NewByteArray(strlen(pat));
-  env->SetByteArrayRegion(bytes, 0, strlen(pat), (jbyte*)pat);
+  char* pc = const_cast<char* >(pat);
+  env->SetByteArrayRegion(bytes, 0, strlen(pat), reinterpret_cast<jbyte*>(pc));
   jstring encoding = env->NewStringUTF("GB2312");
   return (jstring)env->NewObject(strClass, ctorID, bytes, encoding);
 }
 
-jstring JniHelper::Convert(LocalRefMapType& localRefs, JniMethodInfo& t,
+jstring JniHelper::Convert(LocalRefMapType* localRefs, JniMethodInfo* t,
                            const char* x) {
-  jstring ret =JniHelper::SringToJstring(t.env, x);
-  localRefs[t.env].push_back(ret);
+  jstring ret = JniHelper::SringToJstring(t->env, x);
+  (*localRefs)[t->env].push_back(ret);
   return ret;
 }
 
-jstring JniHelper::Convert(LocalRefMapType& localRefs, JniMethodInfo& t,
+jstring JniHelper::Convert(LocalRefMapType* localRefs, JniMethodInfo* t,
                            const std::string& x) {
-  jstring ret =JniHelper::SringToJstring(t.env, x.c_str());
-  localRefs[t.env].push_back(ret);
+  jstring ret = JniHelper::SringToJstring(t->env, x.c_str());
+  (*localRefs)[t->env].push_back(ret);
   return ret;
 }
 
@@ -127,7 +130,7 @@ void JniHelper::ReportError(const std::string& className,
   std::string errorMsg = "Failed to call java method. Class name: ";
   errorMsg = errorMsg + className + ", method name: " + methodName +
       ", signature: " + signature;
-  std::cout<<errorMsg<<std::endl;
+  std::cout << errorMsg << std::endl;
   throw errorMsg;
 }
 
@@ -166,13 +169,14 @@ jclass ClassCache::getJclass(const char* className) {
     std::string tempStr(className);
     jclass cls = env->FindClass(className);
     // Handles inner class
-    if(tempStr.find("$")){
+    if (tempStr.find("$")) {
       return cls;
     }
     // Finds in env, first create a global reference (otherwise, the reference
     // will be can be dangling), then update cache
     globalCls = (jclass)env->NewGlobalRef(cls);
-    env->DeleteLocalRef(cls); // delete local reference
+    // delete local reference
+    env->DeleteLocalRef(cls);
     classNameToJclassMap.insert(std::make_pair(className, globalCls));
     return cls;
   } catch (...) {

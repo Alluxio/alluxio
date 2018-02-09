@@ -9,12 +9,12 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-#ifndef FILEINSTREAM_H
-#define FILEINSTREAM_H
+#ifndef CPP_INCLUDE_FILEINSTREAM_H_
+#define CPP_INCLUDE_FILEINSTREAM_H_
 
-#include "JNIHelper.h"
+#include "jniHelper.h"
 
-using namespace jnihelper;
+using ::jnihelper::JniHelper;
 
 namespace alluxio {
 
@@ -22,9 +22,8 @@ namespace alluxio {
 // bytes and provides a collection of read methods to access this stream of
 // bytes.
 class FileInStream {
-
  public:
-  FileInStream(jobject alluxioInStream);
+  explicit FileInStream(jobject alluxioInStream);
   ~FileInStream();
   // Reads one byte to b
   Status Read(char* b);
@@ -44,6 +43,6 @@ class FileInStream {
   jobject inStream;
 };
 
-} // namespace alluxio
+}  // namespace alluxio
 
-#endif // FILEINSTREAM_H
+#endif  // CPP_INCLUDE_FILEINSTREAM_H_

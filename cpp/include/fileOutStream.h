@@ -9,20 +9,18 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-#ifndef FILEOUTSTREAM_H
-#define FILEOUTSTREAM_H
+#ifndef CPP_INCLUDE_FILEOUTSTREAM_H_
+#define CPP_INCLUDE_FILEOUTSTREAM_H_
 
-#include "JNIHelper.h"
+#include "jniHelper.h"
 
-using namespace jnihelper;
+using ::jnihelper::JniHelper;
 
 namespace alluxio {
-
 // Provides a streaming API to write a file
 class FileOutStream {
-
  public:
-  FileOutStream(jobject AlluxioOutStream);
+  explicit FileOutStream(jobject AlluxioOutStream);
   ~FileOutStream();
   // Writes the specified byte to this output stream
   Status Write(char b);
@@ -30,7 +28,7 @@ class FileOutStream {
   // starting at offset to this output stream.
   Status Write(const char* buf, size_t off, size_t len);
   // Flushes this output stream and forces any buffered output bytes
-   // to be written out.
+  // to be written out.
   Status Flush();
   // Cancels write operation, closing current stream
   Status Cancel();
@@ -41,6 +39,6 @@ class FileOutStream {
   jobject outStream;
 };
 
-}  // namespace alluxio
+}   // namespace alluxio
 
-#endif // FILEOUTSTREAM_H
+#endif  // CPP_INCLUDE_FILEOUTSTREAM_H_

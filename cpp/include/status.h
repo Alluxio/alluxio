@@ -9,16 +9,15 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-#ifndef STATUS_H
-#define STATUS_H
+#ifndef CPP_INCLUDE_STATUS_H_
+#define CPP_INCLUDE_STATUS_H_
 
-#include <string>
-#include <cstring>
 #include <assert.h>
+#include <cstring>
+#include <string>
 
 // The returned Status of FileSystem operation
 class Status {
-
  public:
   // Creates a success status
   Status() : state_(NULL) { }
@@ -123,7 +122,7 @@ class Status {
     ABORTED = 1,
     ALREADY_EXISTS = 2,
     CANCELED = 3,
-    DATA_LOSS =4,
+    DATA_LOSS = 4,
     DEADLINE_EXCEEDED = 5,
     FAILED_PRECONDITION = 6,
     INTERNAL = 7,
@@ -134,7 +133,7 @@ class Status {
     PERMISSION_DENIED = 12,
     RESOURCE_EXHAUSTED = 13,
     UNAUTHENTICATED = 14,
-    UNAVAILABLE =15,
+    UNAVAILABLE = 15,
     UNIMPLEMENTED = 16,
     UNKNOWN = 17
   };
@@ -147,4 +146,4 @@ class Status {
   static const char* CopyState(const char* s);
 };
 
-#endif // STATUS_H
+#endif  // CPP_INCLUDE_STATUS_H_

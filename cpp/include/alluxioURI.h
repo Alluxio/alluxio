@@ -9,28 +9,26 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-#ifndef ALLUXIOURI_H
-#define ALLUXIOURI_H
+#ifndef CPP_INCLUDE_ALLUXIOURI_H_
+#define CPP_INCLUDE_ALLUXIOURI_H_
 
-#include <string>
+#include "jniHelper.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <cstring>
+#include <string>
 
-#include "JNIHelper.h"
-
-using namespace jnihelper;
+using ::jnihelper::JniHelper;
 
 namespace alluxio {
-
 class AlluxioURI {
-
  public:
-  AlluxioURI(const std::string& path) {
+  explicit AlluxioURI(const std::string& path) {
     uri = JniHelper::CreateObjectMethod("alluxio/AlluxioURI", path);
   }
 
-  AlluxioURI(jobject localObj) {
+  explicit AlluxioURI(jobject localObj) {
     uri = localObj;
   }
 
@@ -46,6 +44,6 @@ class AlluxioURI {
   jobject uri;
 };
 
-} // namespace alluxio
+}  // namespace alluxio
 
-#endif //ALLUXIOURI_H
+#endif  // CPP_INCLUDE_ALLUXIOURI_H_

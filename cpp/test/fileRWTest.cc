@@ -11,60 +11,70 @@
 
 #include <assert.h>
 
-#include "FileSystem.h"
-#include "LocalAlluxioCluster.h"
+#include "fileSystem.h"
+#include "localAlluxioCluster.h"
 
+using ::alluxio::FileSystem;
+using ::alluxio::LocalAlluxioCluster;
 
-using namespace alluxio;
-
-void ReadFileTest(FileSystem* fileSystem, const char* path) {
+void ReadFileTest(FileSystem* fileSystem, const char* path,
+                  std::string write_data) {
   FileInStream* in;
   AlluxioURI* uri = new AlluxioURI(path);
   Status s = fileSystem->OpenFile(*uri, &in);
   delete uri;
   assert(s.ok());
 
-  int bufferSize =100;
-  char* inputBuffer = (char*)calloc(bufferSize, 1);
+  int bufferSize = 100;
+  char* inputBuffer =  reinterpret_cast<char*>(calloc(bufferSize, 1));
   size_t bytesRead = bufferSize;
+  int pos = 0;
   while (bytesRead == bufferSize) {
+    memset(inputBuffer, 0, sizeof(inputBuffer));
     Status res = in->Read(inputBuffer, 0, bufferSize, &bytesRead);
-    if(! res.ok()) {
-      in->Close();
-      assert(res.ok());
-      return;
+    if (bytesRead > 0) {
+      if (!res.ok()) {
+        in->Close();
+        assert(res.ok());
+        return;
+      }
+      assert(std::string(inputBuffer) == write_data.substr(pos, bufferSize));
+      pos += bytesRead;
     }
   }
+  assert(pos == write_data.length());
   in->Close();
 }
 
 std::string randomString(int length) {
   std::string res = "";
   srand((unsigned)time(NULL));
-  int temp = rand() % 3;
+  unsigned int base;
+  int temp = rand_r(&base) % 3;
   for (int i = 0 ; i < length; i ++) {
     if (temp == 0) {
-      res += ('A' + rand() % ('Z' - 'A' + 1));
+      res += ('A' + rand_r(&base) % ('Z' - 'A' + 1));
     } else if (temp == 1) {
-      res += ('a' + rand() % ('z' - 'a' + 1));
+      res += ('a' + rand_r(&base) % ('z' - 'a' + 1));
     } else {
-      res += ('0' + rand() % ('9' - '0' + 1));
+      res += ('0' + rand_r(&base) % ('9' - '0' + 1));
     }
   }
   return res;
 }
 
-void WriteFileTest(FileSystem* fileSystem, const char* path) {
+void WriteFileTest(FileSystem* fileSystem, const char* path, std::string* res) {
   FileOutStream* out;
   AlluxioURI* uri = new AlluxioURI(path);
   Status s = fileSystem->CreateFile(*uri, &out);
   delete uri;
   assert(s.ok());
   std::string writeData;
-  for(int i = 0; i < 1000; i ++) {
+  for (int i = 0; i < 10; i ++) {
     writeData = randomString(100);
     s = out->Write(writeData.c_str(), 0, 100);
-    if(!s.ok()) {
+    (*res) += writeData;
+    if (!s.ok()) {
       assert(s.ok());
       return;
     }
@@ -78,10 +88,11 @@ int main(void) {
   LocalAlluxioCluster* miniCluster = new LocalAlluxioCluster();
   miniCluster->start();
   miniCluster->getClient(&fileSystem);
+  std::string res;
   // Tests read
-  WriteFileTest(fileSystem, "/RW");
+  WriteFileTest(fileSystem, "/RW", &res);
   // Tests write
-  ReadFileTest(fileSystem, "/RW");
+  ReadFileTest(fileSystem, "/RW", res);
   delete miniCluster;
 
   Status status = JniHelper::AlluxioExceptionCheck();

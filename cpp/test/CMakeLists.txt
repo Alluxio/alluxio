@@ -17,16 +17,16 @@ ${CMAKE_CURRENT_SOURCE_DIR}/../include
 )
 
 ADD_LIBRARY(FILESYSTEM
-    ${CMAKE_CURRENT_SOURCE_DIR}/../src/FileSystem.cc
-    ${CMAKE_CURRENT_SOURCE_DIR}/../src/JNIHelper.cc
-    ${CMAKE_CURRENT_SOURCE_DIR}/../src/Status.cc
-    ${CMAKE_CURRENT_SOURCE_DIR}/../src/FileInStream.cc
-    ${CMAKE_CURRENT_SOURCE_DIR}/../src/FileOutStream.cc
+    ${CMAKE_CURRENT_SOURCE_DIR}/../src/fileSystem.cc
+    ${CMAKE_CURRENT_SOURCE_DIR}/../src/jniHelper.cc
+    ${CMAKE_CURRENT_SOURCE_DIR}/../src/status.cc
+    ${CMAKE_CURRENT_SOURCE_DIR}/../src/fileInStream.cc
+    ${CMAKE_CURRENT_SOURCE_DIR}/../src/fileOutStream.cc
 )
 
-ADD_EXECUTABLE(JNIHelper_Test JNIHelperTest.cc)
-ADD_EXECUTABLE(filesystem_test FileSystemTest.cc)
-ADD_EXECUTABLE(fileRW_test FileRWTest.cc)
+ADD_EXECUTABLE(JNIHelper_Test jniHelperTest.cc)
+ADD_EXECUTABLE(filesystem_test fileSystemTest.cc)
+ADD_EXECUTABLE(fileRW_test fileRWTest.cc)
 
 TARGET_LINK_LIBRARIES(fileRW_test FILESYSTEM ${JNI_LIBRARIES} -lpthread)
 TARGET_LINK_LIBRARIES(filesystem_test FILESYSTEM ${JNI_LIBRARIES} -lpthread)

@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-#include "Status.h"
+#include <status.h>
 
 Status::Status(const Status& s) {
   state_ = (s.state_ == NULL) ? NULL : CopyState(s.state_);
@@ -25,7 +25,7 @@ void Status::operator=(const Status& s) {
 const char* Status::CopyState(const char* state) {
   uint32_t size;
   memcpy(&size, state, sizeof(size));
-  uint32_t len = size + sizeof(size) + 1 ;
+  uint32_t len = size + sizeof(size) + 1;
   char* result = new char[len];
   memcpy(result, state, len);
   return result;
@@ -38,7 +38,7 @@ Status::Status(Code code, const std::string& msg) {
   char* result = new char[size + 6];
   memcpy(result, &size, sizeof(size));
   result[4] = static_cast<char>(code);
-  //memcpy(result + 5, msg.data(), len1);
+  // memcpy(result + 5, msg.data(), len1);
   memcpy(result + sizeof(size) + 1, msg.data(), len);
   state_ = result;
 }

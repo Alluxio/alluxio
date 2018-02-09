@@ -9,24 +9,28 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-#ifndef FILESYSTEM_H
-#define FILESYSTEM_H
+#ifndef CPP_INCLUDE_FILESYSTEM_H_
+#define CPP_INCLUDE_FILESYSTEM_H_
+
+#include "alluxioURI.h"
+#include "fileOutStream.h"
+#include "fileInStream.h"
+#include "jniHelper.h"
+#include <options.h>
+#include <wire.h>
 
 #include <list>
-#include <map>
 #include <vector>
+#include <map>
+#include <string>
 
-#include "AlluxioURI.h"
-#include "FileOutStream.h"
-#include "FileInStream.h"
-#include "JNIHelper.h"
-#include "Options.h"
-#include "Wire.h"
-
-using namespace alluxio;
+using ::alluxio::AlluxioURI;
+using ::alluxio::MountPointInfo;
+using ::alluxio::URIStatus;
+using ::alluxio::FileInStream;
+using ::alluxio::FileOutStream;
 
 namespace alluxio {
-
 // Basic file system interface supporting metadata operations and data
 // operations
 // Example:
@@ -34,11 +38,10 @@ namespace alluxio {
 //   fileSystem->CreateDirectory("/foo");
 //   delete fileSystem;
 class FileSystem {
-
  public:
   // Constructor of FileSystem
   FileSystem();
-  FileSystem(jobject localObj);
+  explicit FileSystem(jobject localObj);
   // Creates a directory with default option
   Status CreateDirectory(const AlluxioURI& path);
   // Creates a directory
@@ -131,6 +134,6 @@ class FileSystem {
                          const std::string& methodName, const jobject option);
 };
 
-} // namespace alluxio
+}  // namespace alluxio
 
-#endif // FILESYSTEM_H
+#endif  // CPP_INCLUDE_FILESYSTEM_H_

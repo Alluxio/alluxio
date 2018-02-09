@@ -11,10 +11,11 @@
 
 #include <assert.h>
 
-#include "FileSystem.h"
-#include "LocalAlluxioCluster.h"
+#include "fileSystem.h"
+#include "localAlluxioCluster.h"
 
-using namespace alluxio;
+using ::alluxio::FileSystem;
+using ::alluxio::LocalAlluxioCluster;
 
 void CreateDirectoryTest(FileSystem* fileSystem, const char* dirPath) {
   AlluxioURI* uri = new AlluxioURI(dirPath);
@@ -99,8 +100,8 @@ void GetMountTableTest(FileSystem* fileSystem) {
   assert(status.ok());
   std::map<std::string, MountPointInfo>::iterator it;
   for (it = result.begin(); it != result.end(); it ++) {
-	std::string key = (std::string)it->first;
-	MountPointInfo value = (MountPointInfo)it->second;
+    std::string key = (std::string)it->first;
+    MountPointInfo value = (MountPointInfo)it->second;
   }
 }
 
@@ -119,6 +120,14 @@ void SetAttributeTest(FileSystem* fileSystem, const char* path)  {
   Status status = fileSystem->SetAttribute(*uri);
   delete uri;
   assert(status.ok());
+}
+
+void checkDirectoryEmpty(FileSystem* fileSystem, const char* path) {
+  std::vector<URIStatus> result;
+  AlluxioURI* uri = new AlluxioURI(path);
+  Status status = fileSystem->ListStatus(*uri, &result);
+  delete uri;
+  assert(result.size() == 0);
 }
 
 // Tests fileSystem operations without reading and writing
@@ -146,10 +155,10 @@ int main(void) {
   // Tests rename
   CreateDirectoryTest(fileSystem, "/foo0");
   RenameTest(fileSystem, "/foo0", "/foo1");
+  ExistTest(fileSystem, "/foo1");
 
   // Tests list status
-  CreateFileTest(fileSystem, "/foo/foo2");
-  ListStatusTest(fileSystem, "/foo");
+  ListStatusTest(fileSystem, "/");
 
   // Tests mount
   MountTest(fileSystem, "/1", "/usr");
@@ -161,11 +170,13 @@ int main(void) {
 
   // Tests delete
   DeletePathTest(fileSystem, "/foo/foo1");
-  DeletePathTest(fileSystem, "/foo/foo2");
   DeletePathTest(fileSystem, "/foo");
   DeletePathTest(fileSystem, "/foo1");
 
-  //delete miniCluster;
+  // Tests root directory is empty
+  checkDirectoryEmpty(fileSystem, "/");
+
+  // deletes miniCluster;
   delete miniCluster;
 
   Status status = JniHelper::AlluxioExceptionCheck();

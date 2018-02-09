@@ -8,23 +8,23 @@
  *
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
+#ifndef CPP_INCLUDE_OPTIONS_H_
+#define CPP_INCLUDE_OPTIONS_H_
 
-#include <string>
+#include "jniHelper.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <cstring>
+#include <string>
 
-#include "JNIHelper.h"
-
-using namespace jnihelper;
+using ::jnihelper::JniHelper;
 
 namespace alluxio {
-
 // The base options class of filesystem options
 class JniObjectBase {
-
  public:
-  JniObjectBase(jobject localObj) {
+  explicit JniObjectBase(jobject localObj) {
     options = localObj;
   }
 
@@ -51,7 +51,6 @@ class JniObjectBase {
 };
 
 class CreateDirectoryOptions : public JniObjectBase {
-
  public:
   static CreateDirectoryOptions* getDefaultOptions() {
     jobject createDirectoryOpt = JniHelper::CallStaticObjectMethod(
@@ -61,12 +60,11 @@ class CreateDirectoryOptions : public JniObjectBase {
   }
 
  private:
-  CreateDirectoryOptions(jobject createDirectoryOptions) :
+  explicit CreateDirectoryOptions(jobject createDirectoryOptions) :
     JniObjectBase(createDirectoryOptions) {}
 };
 
 class CreateFileOptions : public JniObjectBase {
-
  public:
   static CreateFileOptions* getDefaultOptions() {
     jobject createFileOpt = JniHelper::CallStaticObjectMethod(
@@ -76,12 +74,11 @@ class CreateFileOptions : public JniObjectBase {
   }
 
  private:
-  CreateFileOptions(jobject createFileOptions) :
+  explicit CreateFileOptions(jobject createFileOptions) :
     JniObjectBase(createFileOptions) {}
 };
 
 class DeleteOptions : public JniObjectBase {
-
  public:
   static DeleteOptions* getDefaultOptions() {
     jobject deleteOpt = JniHelper::CallStaticObjectMethod(
@@ -91,12 +88,11 @@ class DeleteOptions : public JniObjectBase {
   }
 
  private:
-  DeleteOptions(jobject deleteOptions) :
+  explicit DeleteOptions(jobject deleteOptions) :
     JniObjectBase(deleteOptions) {}
 };
 
 class ExistsOptions : public JniObjectBase {
-
  public :
   static ExistsOptions* getDefaultOptions() {
     jobject existsOpt = JniHelper::CallStaticObjectMethod(
@@ -106,12 +102,11 @@ class ExistsOptions : public JniObjectBase {
   }
 
  private:
-  ExistsOptions(jobject existsOptions) :
+  explicit ExistsOptions(jobject existsOptions) :
     JniObjectBase(existsOptions) {}
 };
 
 class FreeOptions : public JniObjectBase {
-
  public:
   static FreeOptions* getDefaultOptions() {
     jobject freeOpt = JniHelper::CallStaticObjectMethod(
@@ -121,12 +116,11 @@ class FreeOptions : public JniObjectBase {
   }
 
  private:
-  FreeOptions(jobject existsOptions) :
+  explicit FreeOptions(jobject existsOptions) :
     JniObjectBase(existsOptions) {}
 };
 
 class ListStatusOptions : public JniObjectBase {
-
  public:
   static ListStatusOptions* getDefaultOptions() {
     jobject ListStatusOpt = JniHelper::CallStaticObjectMethod(
@@ -136,12 +130,11 @@ class ListStatusOptions : public JniObjectBase {
   }
 
  private:
-  ListStatusOptions(jobject ListStatusOptions) :
+  explicit ListStatusOptions(jobject ListStatusOptions) :
     JniObjectBase(ListStatusOptions) {}
 };
 
 class MountOptions : public JniObjectBase {
-
  public:
   static MountOptions* getDefaultOptions() {
     jobject mountOpt = JniHelper::CallStaticObjectMethod(
@@ -151,12 +144,11 @@ class MountOptions : public JniObjectBase {
   }
 
  private:
-  MountOptions(jobject mountOptions) :
+  explicit MountOptions(jobject mountOptions) :
     JniObjectBase(mountOptions) {}
 };
 
 class OpenFileOptions : public JniObjectBase {
-
  public:
   static OpenFileOptions* getDefaultOptions() {
     jobject openFileOpt = JniHelper::CallStaticObjectMethod(
@@ -166,12 +158,11 @@ class OpenFileOptions : public JniObjectBase {
   }
 
  private:
-  OpenFileOptions(jobject openFileOptions) :
+  explicit OpenFileOptions(jobject openFileOptions) :
     JniObjectBase(openFileOptions) {}
 };
 
 class RenameOptions : public JniObjectBase {
-
  public:
   static RenameOptions* getDefaultOptions() {
     jobject renameOpt = JniHelper::CallStaticObjectMethod(
@@ -181,12 +172,11 @@ class RenameOptions : public JniObjectBase {
   }
 
  private:
-  RenameOptions(jobject renameOptions ) :
+  explicit RenameOptions(jobject renameOptions) :
     JniObjectBase(renameOptions) {}
 };
 
 class SetAttributeOptions : public JniObjectBase {
-
  public:
   static SetAttributeOptions* getDefaultOptions() {
     jobject setAttributeOpt = JniHelper::CallStaticObjectMethod(
@@ -196,12 +186,11 @@ class SetAttributeOptions : public JniObjectBase {
   }
 
  private:
-  SetAttributeOptions(jobject setAttributeOptions) :
+  explicit SetAttributeOptions(jobject setAttributeOptions) :
     JniObjectBase(setAttributeOptions) {}
 };
 
 class UnmountOptions : public JniObjectBase {
-
  public:
   static UnmountOptions* getDefaultOptions() {
     jobject unmountOpt = JniHelper::CallStaticObjectMethod(
@@ -211,12 +200,11 @@ class UnmountOptions : public JniObjectBase {
   }
 
  private:
-  UnmountOptions(jobject unmountOptions) :
+  explicit UnmountOptions(jobject unmountOptions) :
     JniObjectBase(unmountOptions) {}
 };
 
 class GetStatusOptions : public JniObjectBase {
-
  public:
   static GetStatusOptions* getDefaultOptions() {
     jobject getStatusOpt = JniHelper::CallStaticObjectMethod(
@@ -226,8 +214,10 @@ class GetStatusOptions : public JniObjectBase {
   }
 
  private:
-  GetStatusOptions(jobject getStatusOptions) :
+  explicit GetStatusOptions(jobject getStatusOptions) :
     JniObjectBase(getStatusOptions) {}
 };
 
-} // namespace alluxio
+}  // namespace alluxio
+
+#endif  // CPP_INCLUDE_OPTIONS_H_

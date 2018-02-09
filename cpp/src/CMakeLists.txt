@@ -12,19 +12,24 @@
 cmake_minimum_required(VERSION 3.0.1 FATAL_ERROR)
 
 SET(SOURCE_FILES
-    FileSystem.cc
-    JNIHelper.cc
-    Status.cc
-    FileInStream.cc
-    FileOutStream.cc
+    fileSystem.cc
+    jniHelper.cc
+    status.cc
+    fileInStream.cc
+    fileOutStream.cc
 )
+
+SET(CPP_LIBRAIY_NAME "alluxio${ALLUXIO_CPP_VERSION}")
 
 INCLUDE_DIRECTORIES(
 ${JNI_INCLUDE_DIRS}
 ${CMAKE_CURRENT_SOURCE_DIR}/../include
 )
 
-ADD_LIBRARY(filesystem STATIC ${SOURCE_FILES})
-ADD_LIBRARY(sharedfilesystem SHARED ${SOURCE_FILES})
+ADD_LIBRARY(alluxio SHARED  ${SOURCE_FILES})
+ADD_LIBRARY(alluxio_static STATIC  ${SOURCE_FILES})
 
-TARGET_LINK_LIBRARIES(filesystem ${JNI_LIBRARIES} -lpthread)
+SET_TARGET_PROPERTIES(alluxio_static PROPERTIES OUTPUT_NAME ${CPP_LIBRAIY_NAME})
+SET_TARGET_PROPERTIES(alluxio PROPERTIES OUTPUT_NAME ${CPP_LIBRAIY_NAME})
+
+#TARGET_LINK_LIBRARIES(alluxio ${JNI_LIBRARIES} -lpthread)

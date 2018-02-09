@@ -9,7 +9,9 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-#include "FileSystem.h"
+#include "fileSystem.h"
+
+using ::alluxio::FileSystem;
 
 FileSystem::FileSystem() {
   JniHelper::Start();
@@ -23,7 +25,7 @@ FileSystem::FileSystem(jobject localObj) {
 }
 
 void FileSystem::closeFileSystem() {
-  JniHelper::DeleteLocalRefs(JniHelper::GetEnv(), localRefs);
+  JniHelper::DeleteLocalRefs(JniHelper::GetEnv(), &localRefs);
   JniHelper::DeleteObjectRef(FileSystem::filesystem);
 }
 
@@ -63,8 +65,8 @@ Status FileSystem::CreateFile(const AlluxioURI& path,
   try {
     jobject fileOutStream = JniHelper::CallObjectMethod(FileSystem::filesystem,
         "alluxio/client/file/FileSystem", "createFile",
-		"alluxio/client/file/FileOutStream", path.getObj(),
-		options.getOptions());
+        "alluxio/client/file/FileOutStream", path.getObj(),
+         options.getOptions());
     Status status = JniHelper::AlluxioExceptionCheck();
     if (status.ok()) {
       *outStream = new FileOutStream(fileOutStream);
@@ -122,7 +124,7 @@ Status FileSystem::Free(const AlluxioURI& path, const FreeOptions& options) {
 Status FileSystem::GetStatus(const AlluxioURI& path, URIStatus** result) {
   try {
     jobject uriStatus = JniHelper::CallObjectMethod(FileSystem::filesystem,
-        "alluxio/client/file/FileSystem","getStatus",
+        "alluxio/client/file/FileSystem", "getStatus",
         "alluxio/client/file/URIStatus", path.getObj());
     *result = new URIStatus(uriStatus);
     return JniHelper::AlluxioExceptionCheck();
@@ -136,7 +138,7 @@ Status FileSystem::GetStatus(const AlluxioURI& path,
                              URIStatus** result) {
   try {
     jobject uriStatus = JniHelper::CallObjectMethod(FileSystem::filesystem,
-        "alluxio/client/file/FileSystem","getStatus",
+        "alluxio/client/file/FileSystem", "getStatus",
         "alluxio/client/file/URIStatus", path.getObj(), options.getOptions());
     *result = new URIStatus(uriStatus);
     return JniHelper::AlluxioExceptionCheck();
@@ -161,10 +163,10 @@ Status FileSystem::ListStatus(const AlluxioURI& path,
           uriStatusList, "java/util/List", "get", "java/lang/Object", i);
       result->push_back(URIStatus(alluxioUriStatus));
     }
-    JniHelper::DeleteLocalRefs(JniHelper::GetEnv(), localRefs);
+    JniHelper::DeleteLocalRefs(JniHelper::GetEnv(), &localRefs);
     return JniHelper::AlluxioExceptionCheck();
   } catch(std::string e) {
-    JniHelper::DeleteLocalRefs(JniHelper::GetEnv(), localRefs);
+    JniHelper::DeleteLocalRefs(JniHelper::GetEnv(), &localRefs);
     return Status::jniError(e);
   }
 }
@@ -184,10 +186,10 @@ Status FileSystem::ListStatus(const AlluxioURI& path,
           uriStatusList, "java/util/List", "get", "java/lang/Object", i);
       result->push_back(URIStatus(alluxioUriStatus));
     }
-    JniHelper::DeleteLocalRefs(JniHelper::GetEnv(), localRefs);
+    JniHelper::DeleteLocalRefs(JniHelper::GetEnv(), &localRefs);
     return JniHelper::AlluxioExceptionCheck();
   } catch(std::string e) {
-    JniHelper::DeleteLocalRefs(JniHelper::GetEnv(), localRefs);
+    JniHelper::DeleteLocalRefs(JniHelper::GetEnv(), &localRefs);
     return Status::jniError(e);
   }
 }
@@ -204,7 +206,7 @@ Status FileSystem::Mount(const AlluxioURI& alluxioPath,
 }
 
 Status FileSystem::GetMountTable(
-	  std::map<std::string, MountPointInfo>* result) {
+                       std::map<std::string, MountPointInfo>* result) {
   try {
     jobject jMountTable =  JniHelper::CallObjectMethod(FileSystem::filesystem,
         "alluxio/client/file/FileSystem", "getMountTable", "java/util/Map");
@@ -219,7 +221,7 @@ Status FileSystem::GetMountTable(
                                                    "toArray",
                                                    "[Ljava/lang/Object");
     localRefs[JniHelper::GetEnv()].push_back(keyArray);
-    for(int i = 0; i < mapSize; i ++) {
+    for (int i = 0; i < mapSize; i ++) {
       jobject keyItem = JniHelper::GetEnv()->
           GetObjectArrayElement((jobjectArray) keyArray, i);
       JniHelper::CacheClassName(keyItem, "java/lang/Object");
@@ -229,12 +231,12 @@ Status FileSystem::GetMountTable(
                                                       "java/lang/Object",
                                                       (jobject)keyItem);
       result->insert(std::make_pair(key, MountPointInfo(valueItem)));
-	  JniHelper::DeleteObjectRef(keyItem);
+      JniHelper::DeleteObjectRef(keyItem);
     }
-    JniHelper::DeleteLocalRefs(JniHelper::GetEnv(), localRefs);
+    JniHelper::DeleteLocalRefs(JniHelper::GetEnv(), &localRefs);
     return JniHelper::AlluxioExceptionCheck();
   } catch(std::string e) {
-    JniHelper::DeleteLocalRefs(JniHelper::GetEnv(), localRefs);
+    JniHelper::DeleteLocalRefs(JniHelper::GetEnv(), &localRefs);
     return Status::jniError(e);
   }
 }
@@ -243,17 +245,17 @@ Status FileSystem::OpenFile(const AlluxioURI& path, FileInStream** inStream) {
   jobject fileInStream;
   try {
     fileInStream = JniHelper::CallObjectMethod(FileSystem::filesystem,
-        "alluxio/client/file/FileSystem","openFile",
+        "alluxio/client/file/FileSystem", "openFile",
         "alluxio/client/file/FileInStream", path.getObj());
-    JniHelper::DeleteLocalRefs(JniHelper::GetEnv(), localRefs);
+    JniHelper::DeleteLocalRefs(JniHelper::GetEnv(), &localRefs);
     Status stus = JniHelper::AlluxioExceptionCheck();
     if (stus.ok()) {
       *inStream = new FileInStream(fileInStream);
     }
     return stus;
   } catch (std::string e) {
-    JniHelper::DeleteLocalRefs(JniHelper::GetEnv(), localRefs);
-  	return Status::jniError(e);
+    JniHelper::DeleteLocalRefs(JniHelper::GetEnv(), &localRefs);
+    return Status::jniError(e);
   }
 }
 
@@ -263,17 +265,18 @@ Status FileSystem::OpenFile(const AlluxioURI& path,
   jobject fileInStream;
   try {
     fileInStream = JniHelper::CallObjectMethod(
-        FileSystem::filesystem, "alluxio/client/file/FileSystem","openFile",
-        "alluxio/client/file/FileInStream", path.getObj(), options.getOptions());
-    JniHelper::DeleteLocalRefs(JniHelper::GetEnv(), localRefs);
+        FileSystem::filesystem, "alluxio/client/file/FileSystem", "openFile",
+        "alluxio/client/file/FileInStream", path.getObj(),
+        options.getOptions());
+    JniHelper::DeleteLocalRefs(JniHelper::GetEnv(), &localRefs);
     Status stus = JniHelper::AlluxioExceptionCheck();
     if (stus.ok()) {
       *inStream = new FileInStream(fileInStream);
     }
     return stus;
   } catch (std::string e) {
-    JniHelper::DeleteLocalRefs(JniHelper::GetEnv(), localRefs);
-  	return Status::jniError(e);
+    JniHelper::DeleteLocalRefs(JniHelper::GetEnv(), &localRefs);
+    return Status::jniError(e);
   }
 }
 
@@ -306,7 +309,7 @@ Status FileSystem::Unmount(const AlluxioURI& path,
 
 Status FileSystem::callJniBydefaultOption(const AlluxioURI& path,
                                           const std::string& methodName) {
-  try {    
+  try {
     JniHelper::CallVoidMethod(FileSystem::filesystem,
                               "alluxio/client/file/FileSystem", methodName,
                               path.getObj());
@@ -346,7 +349,7 @@ Status FileSystem::callJniByOption(const AlluxioURI& src,
                                    const AlluxioURI& dst,
                                    const std::string& methodName,
                                    const jobject option) {
-  try {   
+  try {
     JniHelper::CallVoidMethod(FileSystem::filesystem,
                               "alluxio/client/file/FileSystem", methodName,
                               src.getObj(), dst.getObj(), option);

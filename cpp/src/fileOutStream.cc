@@ -9,9 +9,12 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-#include "FileOutStream.h"
+#include "fileOutStream.h"
 
-using namespace alluxio;
+#include <stdio.h>
+#include <cstring>
+
+using ::alluxio::FileOutStream;
 
 FileOutStream::FileOutStream(jobject alluxioOutStream) {
   FileOutStream::outStream = alluxioOutStream;
@@ -29,10 +32,13 @@ Status FileOutStream::Write(const char* buf, size_t off, size_t len) {
     int byteLen = strlen(buf);
     JNIEnv* env = JniHelper::GetEnv();
     jbyteArray jByteArrays = env->NewByteArray(byteLen);
-    env->SetByteArrayRegion(jByteArrays, 0, byteLen, (jbyte*)buf);
+    char* tmpBuf = const_cast<char*>(buf);
+    env->SetByteArrayRegion(jByteArrays, 0, byteLen,
+                            reinterpret_cast<jbyte*>(tmpBuf));
     JniHelper::CallVoidMethod(FileOutStream::outStream,
                               "alluxio/client/file/FileOutStream", "write",
-                              jByteArrays, (int)off, (int)len);
+                              jByteArrays, static_cast<int>(off),
+                              static_cast<int>(len));
     env->DeleteLocalRef(jByteArrays);
     return JniHelper::AlluxioExceptionCheck();
   } catch (std::string e) {

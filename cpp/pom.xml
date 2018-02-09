@@ -83,7 +83,7 @@
                   <target>
                     <exec executable="ctest" failonerror="true" dir="${project.build.directory}/native/test">
                       <env key="CLASSPATH"
-                           value="${env.CLASSPATH}:${basedir}/../minicluster/target/alluxio-minicluster-1.7.0-SNAPSHOT-jar-with-dependencies.jar"/>
+                           value="${basedir}/../minicluster/target/alluxio-minicluster-${project.version}-jar-with-dependencies.jar"/>
                         <arg line="." />
                     </exec>
                   </target>

@@ -13,9 +13,9 @@
 #include <string.h>
 #include <iostream>
 
-#include "JNIHelper.h"
+#include "jniHelper.h"
 
-using namespace jnihelper;
+using ::jnihelper::JniHelper;
 
 void TestJniStart() {
   JniHelper::Start();
@@ -25,39 +25,39 @@ void TestJniStart() {
 
 jobject TestCreateObjectMethod() {
   jobject res = JniHelper::CreateObjectMethod("java/lang/Object");
-  if (!res){
+  if (!res) {
     throw std::runtime_error("error when testing CreateObjectMethod()");
   }
   return res;
 }
 
-void TestCallIntMethod(jobject& obj) {
+void TestCallIntMethod(jobject obj) {
   int res = JniHelper::CallIntMethod(obj, "java/lang/Object", "hashCode");
   assert(res >= 0);
 }
 
-void TestCallBooleanMethod(jobject& obj) {
+void TestCallBooleanMethod(jobject obj) {
   bool res = JniHelper::CallBooleanMethod(obj, "java/lang/Object", "equals",
                                           obj);
   assert(res);
 }
 
-void TestCallStringMethod(jobject& obj) {
-  std::string res = JniHelper::CallStringMethod(obj,"java/lang/Object",
+void TestCallStringMethod(jobject obj) {
+  std::string res = JniHelper::CallStringMethod(obj, "java/lang/Object",
                                                 "toString");
   assert(res.compare("") != 0);
 }
 
-void TestCallObjectMethod(jobject& obj) {
+void TestCallObjectMethod(jobject obj) {
   jobject classObj = JniHelper::CallObjectMethod(obj, "java/lang/Object",
                                                  "getClass",
                                                  "java/lang/Class");
-  if (! classObj){
+  if (!classObj) {
     throw std::runtime_error("error when testing CallObjectMethod()");
   }
 }
 
-void TestCallVoidMethod(jobject& obj) {
+void TestCallVoidMethod(jobject obj) {
   JniHelper::CallVoidMethod(obj, "java/lang/Object", "finalize");
   Status status = JniHelper::AlluxioExceptionCheck();
   assert(status.ok());
@@ -67,12 +67,12 @@ void TestCallStaticObjectMethod() {
   jobject createFileOpt = JniHelper::CallStaticObjectMethod(
       "alluxio/client/file/options/CreateFileOptions", "defaults",
       "alluxio/client/file/options/CreateFileOptions");
-  if (! createFileOpt){
+  if (!createFileOpt) {
     throw std::runtime_error("error when testing CallStaticObjectMethod()");
   }
 }
 
-void TestGetClassName(jobject& obj){
+void TestGetClassName(jobject obj) {
   std::string name = JniHelper::GetObjectClassName(obj);
   assert(name.compare("java/lang/Object") == 0);
 }

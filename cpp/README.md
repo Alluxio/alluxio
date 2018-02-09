@@ -1,15 +1,23 @@
 # Alluxio C++ API
 
-### environment variables configuration
+### Introduction
+ the C++ client is implemented through JNI to native Java client. The 
+ performance of calling c++ client is similar with using java client directly,
+ even better in some situation that JVM performance is not high. because JNI 
+ calling type doesn't depend on JVM.
+  
+### Environment variables configuration
 - $JAVA_HOME must be set
 - Java 8 is needed.
--  Append $ALLUXIO_CLIENT_CLASSPATH to CLASSPATH in libexec/alluxio-config.sh.
+- Add path "$JAVA_HOME/jre/lib/i386/server"(32bit) or "$JAVA_HOME/jre/lib/amd64/server"(64bit)or 
+"$JAVA_HOME/jre/lib/server"(Darwin) to "LD_LIBRARY_PATH" depending on your OS platform version
+- Append $ALLUXIO_CLIENT_CLASSPATH to CLASSPATH in libexec/alluxio-config.sh.
 ```
 . alluxio-config.sh
 export CLASSPATH=$CLASSPATH:$ALLUXIO_CLIENT_CLASSPATH
 ```
 
-### A simple example to build the cpp project to dist dir
+### Example
 - Use cmake to build library
 ```
 cd $ALLUXIO_HOME/cpp
@@ -18,30 +26,61 @@ cd build
 cmake ../
 make
 ```
-  You will get a static link library `libfilesystem.a`, a shared link library 
-`libsharedfilesystem.so` in cpp/build/src and execuable files in
-cpp/bin, you can link .a or .so file to your own cpp project.
+  You will get a static library `liballuxio.a`, a shared link library 
+`libsharedalluxio.so` in cpp/build/src.
  
-- Build library by mvn
+- Build library of cpp module by mvn
  ```
+ cd ${ALLUXIO_HOME}/cpp
  mvn clean install
  ```
- the link librarys are in cpp/target/native/src.
+ Both the static library and the shared library are generated at cpp/target/native/src.
  
-- Calling alluxio cpp API
+- Compile and run your application 
 ```
-#include <FileSystem.h>
+g++ -std=c++11 test.cpp liballuxio.a  
+-I${ALLUXIO_HOME}/cpp/include -I${JAVA_HOME}/include -I${JAVA_HOME/include/linux 
+-L${JRE_HOME}/lib/amd64/server -lpthread -ljvm -o test
+# run the application
+./test
+```
+ This is a simple example to link library to your program `test.cpp`. Notice 
+ that JNI included paths are needed . Or you can use CMake or autotools to build 
+ your project. the executable file `test` will be generated. 
+
+- Coding example
+```
+#include <fileSystem.h>
+
+using namespace alluxio;
+
+int main(void){
+  FileSystem* fileSystem = new FileSystem();
+  AlluxioURI* uri = new AlluxioURI("/foo");
+  FileOutStream* out;
+  Status stus = fileSystem->CreateFile(*uri, &out);
+  if (stus.ok) {
+    out->Write("test write", 0, 10);
+    out->Close();
+  }
+  delete uri;
+  delete out;
+  delete fileSystem;
+  return 0;
+}
+
 ```
 
-### Run the test case function in FileSystemTest
+### Test
 
 - You can run execuable files mapping to different test cases directly 
 ```
 cd $ALLUXIO_HOME/cpp/build/test
-./FileSystemTest
-./FileRWTest
+./fileSystemTest
+./fileRWTest
 ```
-- Or use mvn tools to test all cases
+- Or use mvn tools to test all cases included in cpp module
 ```
+cd ${ALLUXIO_HOME}/cpp
 mvn test
 ```
