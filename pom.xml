@@ -1108,7 +1108,8 @@
             <exclude>**/src/proto/**</exclude>
             <exclude>**/src/deb/**/*</exclude>
             <exclude>**/src/test/resources/**</exclude>
-            <exclude>**/vagrant/**/*</exclude>
+	    <exclude>**/vagrant/**/*</exclude>
+	    <exclude>**/cpplint.py</exclude>
 
             <!-- Build and Packaging Exclusions -->
             <exclude>build/**/*</exclude>

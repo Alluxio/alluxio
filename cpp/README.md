@@ -1,7 +1,7 @@
 # Alluxio C++ API
 
 ### Introduction
- the C++ client is implemented through JNI to native Java client. The 
+ The C++ client is implemented through JNI to native Java client. The 
  performance of calling c++ client is similar with using java client directly,
  even better in some situation that JVM performance is not high. because JNI 
  calling type doesn't depend on JVM.
@@ -26,27 +26,27 @@ cd build
 cmake ../
 make
 ```
-  You will get a static library `liballuxio.a`, a shared link library 
-`libsharedalluxio.so` in cpp/build/src.
+  You will get a static library `liballuxio1.0.a`, a shared link library 
+`liballuxio1.0.so` in cpp/build/src
  
 - Build library of cpp module by mvn
  ```
  cd ${ALLUXIO_HOME}/cpp
  mvn clean install
  ```
- Both the static library and the shared library are generated at cpp/target/native/src.
+ Both the static library and the shared library are generated at cpp/target/native/src
  
 - Compile and run your application 
 ```
-g++ -std=c++11 test.cpp liballuxio.a  
+g++ test.cpp liballuxio.a  
 -I${ALLUXIO_HOME}/cpp/include -I${JAVA_HOME}/include -I${JAVA_HOME/include/linux 
 -L${JRE_HOME}/lib/amd64/server -lpthread -ljvm -o test
 # run the application
 ./test
 ```
  This is a simple example to link library to your program `test.cpp`. Notice 
- that JNI included paths are needed . Or you can use CMake or autotools to build 
- your project. the executable file `test` will be generated. 
+ that JNI included paths are needed. Or you can use CMake or autotools to build 
+ your project. The executable file `test` will be generated. 
 
 - Coding example
 ```
@@ -73,7 +73,7 @@ int main(void){
 
 ### Test
 
-- You can run execuable files mapping to different test cases directly 
+- You can run executable files mapping to different test cases directly 
 ```
 cd $ALLUXIO_HOME/cpp/build/test
 ./fileSystemTest
