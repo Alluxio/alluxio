@@ -14,6 +14,7 @@ package alluxio.client.block.stream;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.client.file.FileSystemContext;
+import alluxio.exception.status.AbortedException;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.CanceledException;
 import alluxio.exception.status.DeadlineExceededException;
@@ -311,7 +312,7 @@ public final class NettyPacketReader implements PacketReader {
       // Make sure to set mPacketReaderException before pushing THROWABLE to mPackets.
       if (mPacketReaderException == null) {
         mPacketReaderException =
-            new IOException(String.format("Channel %s is closed.", mChannel.toString()));
+            new AbortedException(String.format("Channel %s is closed.", mChannel.toString()));
         mPackets.offer(THROWABLE);
       }
       ctx.fireChannelUnregistered();

@@ -21,6 +21,8 @@ import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.block.stream.BlockInStream;
 import alluxio.client.file.options.InStreamOptions;
 import alluxio.exception.PreconditionMessage;
+import alluxio.exception.status.AbortedException;
+import alluxio.exception.status.DeadlineExceededException;
 import alluxio.network.netty.NettyRPC;
 import alluxio.network.netty.NettyRPCContext;
 import alluxio.proto.dataserver.Protocol;
@@ -34,6 +36,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.ConnectException;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -112,7 +115,7 @@ public class FileInStream extends InputStream implements BoundedStream, Position
           mPosition++;
         }
         return result;
-      } catch (IOException e) {
+      } catch (AbortedException | DeadlineExceededException | ConnectException e) {
         prepareForRetry(mBlockInStream, 0, mPosition, e, lostWorkers);
         mBlockInStream = null;
       }
@@ -148,7 +151,7 @@ public class FileInStream extends InputStream implements BoundedStream, Position
           currentOffset += bytesRead;
           mPosition += bytesRead;
         }
-      } catch (IOException e) {
+      } catch (AbortedException | DeadlineExceededException | ConnectException e) {
         long bytesReadInCurrentBlock = prepareForRetry(mBlockInStream, len - bytesLeft,
             mPosition, e, lostWorkers);
         // rollback bytes read in current block
@@ -212,7 +215,7 @@ public class FileInStream extends InputStream implements BoundedStream, Position
           pos += bytesRead;
           off += bytesRead;
           len -= bytesRead;
-        } catch (IOException e) {
+        } catch (AbortedException | DeadlineExceededException | ConnectException e) {
           long bytesReadInCurrentBlock = prepareForRetry(stream, lenCopy - len, pos, e,
               lostWorkers);
           // rollback bytes read in current block
@@ -335,9 +338,10 @@ public class FileInStream extends InputStream implements BoundedStream, Position
     LOG.warn("Failed to read block {} from worker {}, will retry from another worker: {}",
         stream.getId(), workerAddress, e.getMessage());
     try {
-      closeBlockInStream(stream);
+      stream.close();
     } catch (Exception ex) {
       // Do not throw doing a best effort close
+      LOG.warn("Failed to close input stream for block {}: {}", stream.getId(), ex.getMessage());
     }
     lostWorkers.add(workerAddress);
     long positionInBlock = position % mBlockSize;
