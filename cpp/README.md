@@ -27,7 +27,7 @@ cmake ../
 make
 ```
   You will get a static library `liballuxio1.0.a`, a shared link library 
-`liballuxio1.0.so` in cpp/build/src
+`liballuxio1.0.so`(linux) or `liballuxio1.0.dylib`(macOS) in cpp/build/src
  
 - Build library of cpp module by mvn
  ```
