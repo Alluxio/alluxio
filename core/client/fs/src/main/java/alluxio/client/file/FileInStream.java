@@ -107,6 +107,7 @@ public class FileInStream extends InputStream implements BoundedStream, Position
       return -1;
     }
     Set<WorkerNetAddress> lostWorkers = new HashSet<>();
+    int retryLeft = Configuration.getInt(PropertyKey.USER_BLOCK_WORKER_CLIENT_READ_RETRY);
     while (true) {
       updateStream(lostWorkers);
       try {
@@ -116,6 +117,10 @@ public class FileInStream extends InputStream implements BoundedStream, Position
         }
         return result;
       } catch (AbortedException | DeadlineExceededException | ConnectException e) {
+        if (retryLeft <= 0) {
+          throw e;
+        }
+        retryLeft--;
         prepareForRetry(mBlockInStream, 0, mPosition, e, lostWorkers);
         mBlockInStream = null;
       }
@@ -141,6 +146,8 @@ public class FileInStream extends InputStream implements BoundedStream, Position
 
     int bytesLeft = len;
     int currentOffset = off;
+    int maxRetry = Configuration.getInt(PropertyKey.USER_BLOCK_WORKER_CLIENT_READ_RETRY);
+    int retryLeft = maxRetry;
     Set<WorkerNetAddress> lostWorkers = new HashSet<>();
     while (bytesLeft > 0 && mPosition != mLength) {
       updateStream(lostWorkers);
@@ -151,7 +158,12 @@ public class FileInStream extends InputStream implements BoundedStream, Position
           currentOffset += bytesRead;
           mPosition += bytesRead;
         }
+        retryLeft = maxRetry;
       } catch (AbortedException | DeadlineExceededException | ConnectException e) {
+        if (retryLeft <= 0) {
+          throw e;
+        }
+        retryLeft--;
         long bytesReadInCurrentBlock = prepareForRetry(mBlockInStream, len - bytesLeft,
             mPosition, e, lostWorkers);
         // rollback bytes read in current block
@@ -198,6 +210,8 @@ public class FileInStream extends InputStream implements BoundedStream, Position
     }
 
     int lenCopy = len;
+    int maxRetry = Configuration.getInt(PropertyKey.USER_BLOCK_WORKER_CLIENT_READ_RETRY);
+    int retryLeft = maxRetry;
     Set<WorkerNetAddress> lostWorkers = new HashSet<>();
     while (len > 0) {
       if (pos >= mLength) {
@@ -215,7 +229,12 @@ public class FileInStream extends InputStream implements BoundedStream, Position
           pos += bytesRead;
           off += bytesRead;
           len -= bytesRead;
+          retryLeft = maxRetry;
         } catch (AbortedException | DeadlineExceededException | ConnectException e) {
+          if (retryLeft <= 0) {
+            throw e;
+          }
+          retryLeft--;
           long bytesReadInCurrentBlock = prepareForRetry(stream, lenCopy - len, pos, e,
               lostWorkers);
           // rollback bytes read in current block

@@ -107,12 +107,12 @@ public final class MultiWorkerIntegrationTest extends BaseIntegrationTest {
 
   @Test(timeout = 300000)
   @LocalAlluxioClusterResource.Config(confParams = {PropertyKey.Name.USER_SHORT_CIRCUIT_ENABLED,
-      "false", PropertyKey.Name.USER_BLOCK_SIZE_BYTES_DEFAULT, "2MB",
+      "false", PropertyKey.Name.USER_BLOCK_SIZE_BYTES_DEFAULT, "4MB",
       PropertyKey.Name.USER_NETWORK_NETTY_READER_PACKET_SIZE_BYTES, "64KB",
       PropertyKey.Name.WORKER_MEMORY_SIZE, "1GB"})
   public void readOneRecoverFromLostWorker() throws Exception {
-    int offset = 3 * Constants.MB;
-    int length = 3 * Constants.MB;
+    int offset = 1 * Constants.MB;
+    int length = 5 * Constants.MB;
     int total = offset + length;
     // creates a test file on one worker
     AlluxioURI filePath = new AlluxioURI("/test");
@@ -132,12 +132,12 @@ public final class MultiWorkerIntegrationTest extends BaseIntegrationTest {
 
   @Test(timeout = 300000)
   @LocalAlluxioClusterResource.Config(confParams = {PropertyKey.Name.USER_SHORT_CIRCUIT_ENABLED,
-      "false", PropertyKey.Name.USER_BLOCK_SIZE_BYTES_DEFAULT, "16MB",
+      "false", PropertyKey.Name.USER_BLOCK_SIZE_BYTES_DEFAULT, "4MB",
       PropertyKey.Name.USER_NETWORK_NETTY_READER_PACKET_SIZE_BYTES, "64KB",
       PropertyKey.Name.WORKER_MEMORY_SIZE, "1GB"})
   public void positionReadRecoverFromLostWorker() throws Exception {
-    int offset = 17 * Constants.MB;
-    int length = 33 * Constants.MB;
+    int offset = 1 * Constants.MB;
+    int length = 7 * Constants.MB;
     int total = offset + length;
     // creates a test file on one worker
     AlluxioURI filePath = new AlluxioURI("/test");
