@@ -1529,6 +1529,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("A block worker client is closed if it has been idle for more than "
               + "this threshold.")
           .build();
+  public static final PropertyKey USER_BLOCK_WORKER_CLIENT_READ_RETRY =
+      new Builder(Name.USER_BLOCK_WORKER_CLIENT_READ_RETRY)
+          .setDefaultValue(5)
+          .setDescription("The maximum number of workers to retry before client gives up on" +
+              " reading a block")
+          .build();
   public static final PropertyKey USER_DATE_FORMAT_PATTERN =
       new Builder(Name.USER_DATE_FORMAT_PATTERN)
           .setDefaultValue("MM-dd-yyyy HH:mm:ss:SSS")
@@ -2437,6 +2443,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.block.worker.client.pool.size.max";
     public static final String USER_BLOCK_WORKER_CLIENT_POOL_GC_THRESHOLD_MS =
         "alluxio.user.block.worker.client.pool.gc.threshold";
+    public static final String USER_BLOCK_WORKER_CLIENT_READ_RETRY =
+        "alluxio.user.block.worker.client.read.retry";
     public static final String USER_DATE_FORMAT_PATTERN = "alluxio.user.date.format.pattern";
     public static final String USER_FAILED_SPACE_REQUEST_LIMITS =
         "alluxio.user.failed.space.request.limits";
