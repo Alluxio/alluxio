@@ -45,6 +45,7 @@ MOPT (Mount Option) is one of:
 -f  format Journal, UnderFS Data and Workers Folder on master
 -N  do not try to kill prior running masters and/or workers in all or local
 -w  wait for processes to end before returning
+-m  launch monitor process to ensure both masters and workers come up, applies only for the all mode.
 -h  display this help."
 
 ensure_dirs() {
@@ -250,6 +251,39 @@ run_safe() {
   done
 }
 
+run_monitors() {
+    local workers=$(cat ${ALLUXIO_CONF_DIR}/workers | sed  "s/#.*$//;/^$/d")
+    local masters=$(cat "${ALLUXIO_CONF_DIR}/masters" | sed  "s/#.*$//;/^$/d")
+
+    local node_type=$1
+    local nodes=
+    local monitor_exec=
+    if [[ "${node_type}" == "master" ]] ; then
+      nodes=${masters}
+      monitor_exec=alluxio.master.AlluxioMasterMonitor
+    fi
+    if [[ "${node_type}" == "worker" ]] ; then
+      nodes=${workers}
+      monitor_exec=alluxio.worker.AlluxioWorkerMonitor
+    fi
+
+    mkdir -p "${ALLUXIO_LOGS_DIR}"
+    ALLUXIO_TASK_LOG="${ALLUXIO_LOGS_DIR}/task.log"
+    echo "Starting ${node_type} monitor @ $(hostname -f)."
+    for node in $(echo ${nodes}); do
+      echo "Monitoring ${node_type} [${node}] as ${USER}..."
+      ssh -o ConnectTimeout=5 -o StrictHostKeyChecking=no -tt ${node} \
+      "${JAVA}" -cp ${CLASSPATH} ${ALLUXIO_JAVA_OPTS} ${monitor_exec}
+      if [[ $? -ne 0 ]]; then
+        echo "The ${node_type} ${node} is not serving requests."
+        ssh ${node} tail -30 "${ALLUXIO_LOGS_DIR}/${node_type}.log"
+      fi
+      if [[ "${node_type}" == "master" ]] ; then
+        break
+      fi
+    done
+}
+
 main() {
   # get environment
   get_env
@@ -257,7 +291,7 @@ main() {
   # ensure log/data dirs
   ensure_dirs
 
-  while getopts "hNw" o; do
+  while getopts "hNwm" o; do
     case "${o}" in
       h)
         echo -e "${USAGE}"
@@ -268,6 +302,9 @@ main() {
         ;;
       w)
         wait="true"
+        ;;
+      m)
+        monitor="true"
         ;;
       *)
         echo -e "${USAGE}" >&2
@@ -318,6 +355,14 @@ main() {
       sleep 2
       start_workers "${MOPT}"
       start_proxies
+
+      if [[ "${monitor}" ]]; then
+        echo "Waiting for the services to come up..."
+        sleep 2
+        echo "Starting to monitoring"
+        run_monitors "master"
+        run_monitors "worker"
+      fi
       ;;
     local)
       if [[ "${killonstart}" != "no" ]]; then
