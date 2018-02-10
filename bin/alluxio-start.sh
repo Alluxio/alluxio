@@ -45,7 +45,7 @@ MOPT (Mount Option) is one of:
 -f  format Journal, UnderFS Data and Workers Folder on master
 -N  do not try to kill prior running masters and/or workers in all or local
 -w  wait for processes to end before returning
--m  launch monitor process to ensure both masters and workers come up, applies only for the all mode.
+-m  launch monitor process to ensure both masters and workers come up, only in all mode.
 -h  display this help."
 
 ensure_dirs() {
