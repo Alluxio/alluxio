@@ -26,31 +26,36 @@ where INPUT_SPLITS is an optional argument which defines the number of input fil
 
 -h  display this help."
 
+ALLUXIO_PATH=$(cd "${BIN}/../../"; pwd)
+ALLUXIO_JAR_PATH=""
 HADOOP_LOCATION=""
 INPUT_SPLITS="${1:-10}";
 
 # Find the location of hadoop in order to trigger Hadoop job
 function find_hadoop_path() {
   { # Try HADOOP_HOME
-    [ -f "${HADOOP_HOME}/hadoop" ] && HADOOP_LOCATION="${HADOOP_HOME}"
+    [ -f "${HADOOP_HOME}/hadoop" ] && HADOOP_LOCATION="${HADOOP_HOME}/hadoop"
   } ||   {
-    [ -f "${HADOOP_HOME}/bin/hadoop" ] && HADOOP_LOCATION="${HADOOP_HOME}/bin"
+    [ -f "${HADOOP_HOME}/bin/hadoop" ] && HADOOP_LOCATION="${HADOOP_HOME}/bin/hadoop"
   } || {
-    [ -f "${HADOOP_HOME}/libexec/bin/hadoop" ] && HADOOP_LOCATION="${HADOOP_HOME}/libexec/bin"
-  } || { # Try PATH
-    IFS=':' read -ra PATHARR <<< "$PATH"
-    for p in "${PATHARR[@]}"; do
-      if [ -f "$p/hadoop" ]; then
-        HADOOP_LOCATION="$p"
+    [ -f "${HADOOP_HOME}/libexec/bin/hadoop" ] && HADOOP_LOCATION="${HADOOP_HOME}/libexec/bin/hadoop"
+  } || { # Try to find hadoop executable file in HADOOP_HOME
+    if [[ "${HADOOP_LOCATION}" == "" ]]; then
+      array=(`find "${HADOOP_HOME}" -type f -name 'hadoop'`)
+      for i in "${array[@]}"; do
+        HADOOP_LOCATION="$i"
         break;
-      elif [ -f "$p/bin/hadoop" ]; then
-        HADOOP_LOCATION="$p/bin"
-        break;
-      elif [ -f "$p/libexec/bin/hadoop" ]; then
-        HADOOP_LOCATION="$p/libexec/bin"
-        break;
-      fi
-    done
+      done
+    fi
+    if [[ "${HADOOP_LOCATION}" == "" ]]; then
+      IFS=':' read -ra PATHARR <<< "$PATH"
+      for p in "${PATHARR[@]}"; do
+        if [ -f "$p/hadoop" ]; then
+          HADOOP_LOCATION="$p"/hadoop
+          break;
+        fi
+      done
+    fi
     if [[ "${HADOOP_LOCATION}" == "" ]]; then
       echo -e "Please set HADOOP_HOME before running MapReduce integration checker." >&2
       exit 1
@@ -59,27 +64,45 @@ function find_hadoop_path() {
 }
 
 function trigger_mapreduce() {
-  # Without -libjars, we assumes that the Alluxio client jar has already distributed on the classpath of all Hadoop nodes
-  ${LAUNCHER} "${HADOOP_LOCATION}/hadoop" jar "${BIN}/../target/alluxio-checker-${VERSION}-jar-with-dependencies.jar" \
+  # Without -libjars, we assume that the Alluxio client jar has already been distributed on the classpath of all Hadoop nodes
+  ${LAUNCHER} "${HADOOP_LOCATION}" jar "${BIN}/../target/alluxio-checker-${VERSION}-jar-with-dependencies.jar" \
     alluxio.checker.MapReduceIntegrationChecker "${INPUT_SPLITS}"
 
-  # Use -libjars if the previous attempt failed and add remind information
-  if [[ "$?" != 0 ]]; then
-    ${LAUNCHER} "${HADOOP_LOCATION}/hadoop" jar "${BIN}/../target/alluxio-checker-${VERSION}-jar-with-dependencies.jar" \
-      alluxio.checker.MapReduceIntegrationChecker -libjars "${BIN}/../../client/alluxio-${VERSION}-client.jar" "${INPUT_SPLITS}"
+  # Use -libjars if the previous attempt failed because of unable to find Alluxio classes and add remind information
+  if [[ "$?" == 2 ]]; then
+    ${LAUNCHER} "${HADOOP_LOCATION}" jar "${BIN}/../target/alluxio-checker-${VERSION}-jar-with-dependencies.jar" \
+      alluxio.checker.MapReduceIntegrationChecker -libjars "${ALLUXIO_JAR_PATH}" "${INPUT_SPLITS}"
 
-    echo "Please use the -libjars command line option when using hadoop jar ..., specifying /<PATH_TO_ALLUXIO>/client/alluxio-${VERSION}-client.jar as the argument of -libjars." \
+    echo "Please use the -libjars command line option when using hadoop jar ..., specifying "${ALLUXIO_JAR_PATH}" as the argument of -libjars." \
       >> "./MapReduceIntegrationReport.txt"
   fi
 }
 
 function main {
+  # Check if an input argument is -h
+  for i in "$@"; do
+    if [[ "$i" == "-h" ]]; then
+      echo -e "${USAGE}" >&2
+      exit 0
+    fi
+  done
+
+  # Check if too many arguments has been passed in
+  if [ "$#" -gt 1 ]; then
+    echo -e "${USAGE}" >&2
+    echo "Too many arguments passed in"
+    exit 1
+  fi
+
   # Check if INPUT_SPLITS is valid
   if [[ -n ${INPUT_SPLITS//[0-9]/} ]]; then
     echo -e "${USAGE}" >&2
     exit 1
   fi
+
   source "${BIN}/../../libexec/alluxio-config.sh"
+  ALLUXIO_JAR_PATH="${ALLUXIO_PATH}/client/alluxio-${VERSION}-client.jar"
+
   [ -f "./MapReduceIntegrationReport.txt" ] && rm "./MapReduceIntegrationReport.txt"
   find_hadoop_path
   trigger_mapreduce

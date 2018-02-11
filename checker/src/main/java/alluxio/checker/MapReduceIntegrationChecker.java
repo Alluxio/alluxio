@@ -11,23 +11,20 @@
 
 package alluxio.checker;
 
-import org.apache.hadoop.conf.Configuration;
+import alluxio.checker.CommonCheckerUtils.Status;
 
+import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.Path;
-
 import org.apache.hadoop.io.Text;
-
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.Reducer;
-
 import org.apache.hadoop.util.GenericOptionsParser;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,18 +33,12 @@ import java.io.File;
 import java.io.InputStreamReader;
 import java.io.IOException;
 import java.io.PrintWriter;
-
-import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.net.URI;
-
 import java.text.SimpleDateFormat;
-
 import java.util.Date;
 
 /**
- * The MapReduce integration checker includes a MapReduce job
- * to test the integration of MapReduce with Alluxio.
+ * A MapReduce job to test the integration of MapReduce with Alluxio.
  * This class will be triggered through hadoop jar.
  *
  * This checker requires a running Hadoop cluster, but does not require a running Alluxio cluster.
@@ -56,29 +47,21 @@ import java.util.Date;
  */
 public class MapReduceIntegrationChecker {
   private static final Logger LOG = LoggerFactory.getLogger(MapReduceIntegrationChecker.class);
-
   private static final String FAIL_TO_FIND_CLASS_MESSAGE = "Please distribute "
       + "the Alluxio client jar on the classpath of the application across different nodes.\n\n"
       + "For details, please refer to: "
       + "https://www.alluxio.org/docs/master/en/Running-Hadoop-MapReduce-on-Alluxio.html\n";
   private static final String FAIL_TO_FIND_FS_MESSAGE = "Please check the fs.alluxio.impl "
-      + "and fs.AbstractFileSystem.alluxio.impl property "
+      + "and fs.AbstractFileSystem.alluxio.impl properties "
       + "in core-site.xml file of your Hadoop installation.\n\n"
       + "For details, please refer to: "
       + "https://www.alluxio.org/docs/master/en/Running-Hadoop-MapReduce-on-Alluxio.html\n";
   private static final String TEST_FAILED_MESSAGE = "***** Integration test failed. *****\n";
   private static final String TEST_PASSED_MESSAGE = "***** Integration test passed. *****\n";
 
-  private static Path sInputFilePath;
-  private static Path sOutputFilePath;
-  private static FileSystem sFileSystem;
-
-  /** The MapReduce task nodes performIntegrationChecks results. */
-  protected enum Status {
-    FAIL_TO_FIND_CLASS, // MapReduce task nodes cannot recognize Alluxio classes
-    FAIL_TO_FIND_FS, // MapReduce task nodes cannot recognize Alluxio filesystem
-    SUCCESS;
-  }
+  private Path mInputFilePath;
+  private Path mOutputFilePath;
+  private FileSystem mFileSystem;
 
   /**
    * In each mapper node, we will check whether this node can recognize
@@ -86,11 +69,12 @@ public class MapReduceIntegrationChecker {
    */
   protected static class CheckStatusMapper extends Mapper<Object, Text, Text, Text> {
     /**
-     * Gets the Status and IP address of each mapper task node.
+     * Records the Status and IP address of each mapper task node.
      */
     protected void map(Object key, Text value, Context context)
         throws IOException, InterruptedException {
-      context.write(new Text(performIntegrationChecks().toString()), new Text(getAddress()));
+      context.write(new Text(CommonCheckerUtils.performIntegrationChecks().toString()),
+          new Text(CommonCheckerUtils.getAddress()));
     }
   }
 
@@ -118,105 +102,56 @@ public class MapReduceIntegrationChecker {
   }
 
   /**
-   * @return if this current task node can recognize Alluxio classes and filesystem
-   */
-  private static Status performIntegrationChecks() {
-    // Checks if MapReduce nodes can recognize Alluxio classes
-    try {
-      // Checks if MapReduce task nodes can recognize Alluxio common classes
-      Class.forName("alluxio.AlluxioURI");
-      // Checks if MapReduce task nodes can recognize Alluxio core client classes
-      Class.forName("alluxio.client.file.BaseFileSystem");
-      Class.forName("alluxio.hadoop.AlluxioFileSystem");
-    } catch (ClassNotFoundException e) {
-      LOG.error("Failed to find Alluxio classes on classpath ", e);
-      return Status.FAIL_TO_FIND_CLASS;
-    }
-
-    // Checks if MapReduce task nodes can recognize Alluxio filesystem
-    try {
-      FileSystem.getFileSystemClass("alluxio", new Configuration());
-    } catch (Exception e) {
-      LOG.error("Failed to find Alluxio filesystem ", e);
-      return Status.FAIL_TO_FIND_FS;
-    }
-
-    return Status.SUCCESS;
-  }
-
-  /**
-   * @return the current task node IP address
-   */
-  private static String getAddress() {
-    String address;
-    try {
-      address = InetAddress.getLocalHost().getHostAddress();
-    } catch (UnknownHostException e) {
-      LOG.debug("MapReduce cannot get host address of current MapReduce node.");
-      address = "unknown address";
-    }
-    return address;
-  }
-
-  /**
-   * Creates the Hdfs filesystem to generate input and output files.
+   * Creates the HDFS filesystem to generate input and output files.
    *
    * @param conf Hadoop configuration
    */
-  private static void createHdfsFilesystem(Configuration conf) throws Exception {
+  private void createHdfsFilesystem(Configuration conf) throws Exception {
     // Inits HDFS File System Object
     String systemUserName = System.getProperty("user.name");
     System.setProperty("HADOOP_USER_NAME", systemUserName);
     System.setProperty("hadoop.home.dir", "/");
-    sFileSystem = FileSystem.get(URI.create(conf.get("fs.defaultFS")), conf);
+    mFileSystem = FileSystem.get(URI.create(conf.get("fs.defaultFS")), conf);
 
     String stringPath = "/user/" + systemUserName + "/";
     Path userPath = new Path(stringPath);
 
     // Creates user folder if not exists
-    if (!sFileSystem.exists(userPath)) {
-      sFileSystem.mkdirs(userPath);
+    if (!mFileSystem.exists(userPath)) {
+      mFileSystem.mkdirs(userPath);
       LOG.info("User Path " + stringPath + " created.");
     }
-    sInputFilePath = new Path(userPath + "/MapReduceInputFile");
-    sOutputFilePath = new Path(userPath + "/MapReduceOutputFile");
+    mInputFilePath = new Path(userPath + "/MapReduceInputFile");
+    mOutputFilePath = new Path(userPath + "/MapReduceOutputFile");
   }
 
   /**
    * Creates the MapReduce input file and delete previous output file if exists.
    */
-  private static void createInputFile(int inputSplits) throws Exception {
-    if (!sFileSystem.exists(new Path(sInputFilePath + "/1.txt"))) {
-      LOG.info("Begin Write MapReduce input file into hdfs");
+  private void createInputFile(int inputSplits) throws Exception {
+    if (!mFileSystem.exists(new Path(mInputFilePath + "/1.txt"))) {
+      LOG.info("Begin Write MapReduce input file into HDFS");
       for (int i = 1; i <= inputSplits; i++) {
-        FSDataOutputStream inputFileStream = sFileSystem
-            .create(new Path(sInputFilePath + "/" + i + ".txt"));
+        FSDataOutputStream inputFileStream = mFileSystem
+            .create(new Path(mInputFilePath + "/" + i + ".txt"));
         inputFileStream.writeByte(1);
         inputFileStream.close();
       }
-      LOG.info("End Write MapReduce input file into hdfs");
+      LOG.info("End Write MapReduce input file into HDFS");
     }
 
-    if (sFileSystem.exists(sOutputFilePath)) {
-      sFileSystem.delete(sOutputFilePath, true);
+    if (mFileSystem.exists(mOutputFilePath)) {
+      mFileSystem.delete(mOutputFilePath, true);
     }
   }
 
   /**
-   * @return whether MapReduce can find Alluxio classes and filesystem
+   * @return perform integration check result Status
    */
-  private static boolean generateReport() throws Exception {
-    // if we do not have output file or MapReduce job is not success, we do not generate report
-    if (!sFileSystem.exists(sOutputFilePath)) {
-      return false;
-    }
-    if (!sFileSystem.exists(new Path(sOutputFilePath + "/_SUCCESS"))) {
-      return false;
-    }
-
+  private Status generateReport() throws Exception {
     // Reads all the part-r-* files in MapReduceOutPutFile folder
-    sFileSystem.delete(new Path(sOutputFilePath + "/_SUCCESS"), true);
-    FileStatus[] outputFileStatus = sFileSystem.listStatus(sOutputFilePath);
+    mFileSystem.delete(new Path(mOutputFilePath + "/_SUCCESS"), true);
+    FileStatus[] outputFileStatus = mFileSystem.listStatus(mOutputFilePath);
 
     boolean canFindClass = true;
     boolean canFindFS = true;
@@ -227,9 +162,8 @@ public class MapReduceIntegrationChecker {
 
     for (int i = 0; i < outputFileStatus.length; i++) {
       Path curOutputFilePath = outputFileStatus[i].getPath();
-      BufferedReader curOutputFileReader = new BufferedReader(
-          new InputStreamReader(sFileSystem.open(curOutputFilePath)));
-      try {
+      try (BufferedReader curOutputFileReader = new BufferedReader(
+          new InputStreamReader(mFileSystem.open(curOutputFilePath)))) {
         String nextLine = "";
         while ((nextLine = curOutputFileReader.readLine()) != null) {
           Status curOutputStatus = Status.valueOf(nextLine
@@ -248,10 +182,6 @@ public class MapReduceIntegrationChecker {
               successBuilder.append(" ").append(curOutputAddresses);
           }
         }
-      } catch (IOException e) {
-        LOG.error("Cannot read content from output file: " + e);
-      } finally {
-        curOutputFileReader.close();
       }
     }
 
@@ -261,8 +191,7 @@ public class MapReduceIntegrationChecker {
 
     // Creates a file to save user-facing messages
     File reportFile = new File("./MapReduceIntegrationReport.txt");
-    PrintWriter reportWriter = new PrintWriter(reportFile);
-    try {
+    try (PrintWriter reportWriter = new PrintWriter(reportFile)) {
       SimpleDateFormat df = new SimpleDateFormat("dd/MM/yy HH:mm:ss");
       Date date = new Date();
       reportWriter.printf("%n%n%n***** The integration checker ran at %s. *****%n%n",
@@ -290,22 +219,31 @@ public class MapReduceIntegrationChecker {
       } else {
         reportWriter.println(TEST_PASSED_MESSAGE);
       }
-    } catch (Exception e) {
-      LOG.error("Cannot generate report: " + e);
-    } finally {
-      reportWriter.flush();
-      reportWriter.close();
     }
 
-    return canFindClass && canFindFS;
+    return canFindClass ? (canFindFS ? Status.SUCCESS : Status.FAIL_TO_FIND_FS)
+        : Status.FAIL_TO_FIND_CLASS;
+  }
+
+  /**
+   * Cleans the HDFS input and output files.
+   */
+  private void cleanFileSystem() throws Exception {
+    if (mFileSystem.exists(mInputFilePath)) {
+      mFileSystem.delete(mInputFilePath, true);
+    }
+    if (mFileSystem.exists(mOutputFilePath)) {
+      mFileSystem.delete(mOutputFilePath, true);
+    }
+    mFileSystem.close();
   }
 
   /**
    * Implements MapReduce with Alluxio integration checker.
    *
-   * @return 0 for success, 1 otherwise
+   * @return 0 for success, 2 for unable to find Alluxio classes, 1 otherwise
    */
-  private static int run(String[] args) throws Exception {
+  private int run(String[] args) throws Exception {
     Configuration conf = new Configuration();
     String[] otherArgs =  new GenericOptionsParser(conf, args).getRemainingArgs();
 
@@ -321,25 +259,18 @@ public class MapReduceIntegrationChecker {
     job.setOutputKeyClass(Text.class);
     job.setOutputValueClass(Text.class);
 
-    FileInputFormat.addInputPath(job, sInputFilePath);
-    FileOutputFormat.setOutputPath(job, sOutputFilePath);
+    FileInputFormat.addInputPath(job, mInputFilePath);
+    FileOutputFormat.setOutputPath(job, mOutputFilePath);
 
-    boolean jobFinished = job.waitForCompletion(true);
-
-    boolean resultIsSuccess = false;
-    if (jobFinished) {
-      resultIsSuccess = generateReport();
+    if (!job.waitForCompletion(true)) {
+      cleanFileSystem();
+      return 1;
     }
 
-    if (sFileSystem.exists(sInputFilePath)) {
-      sFileSystem.delete(sInputFilePath, true);
-    }
-    if (sFileSystem.exists(sOutputFilePath)) {
-      sFileSystem.delete(sOutputFilePath, true);
-    }
-    sFileSystem.close();
-
-    return (jobFinished && resultIsSuccess) ? 0 : 1;
+    Status resultStatus = generateReport();
+    cleanFileSystem();
+    return resultStatus.equals(Status.SUCCESS) ? 0
+        : (resultStatus.equals(Status.FAIL_TO_FIND_CLASS) ? 2 : 1);
   }
 
   /**
@@ -348,6 +279,7 @@ public class MapReduceIntegrationChecker {
    * @param args inputSplits will be passed in
    */
   public static void main(String[] args) throws Exception {
-    System.exit(run(args));
+    MapReduceIntegrationChecker checker = new MapReduceIntegrationChecker();
+    System.exit(checker.run(args));
   }
 }

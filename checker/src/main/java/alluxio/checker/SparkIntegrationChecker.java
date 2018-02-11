@@ -12,33 +12,23 @@
 package alluxio.checker;
 
 import alluxio.PropertyKey;
+import alluxio.checker.CommonCheckerUtils.Status;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
-
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FileSystem;
-
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.SparkConf;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import scala.Serializable;
 import scala.Tuple2;
 
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.PrintWriter;
-
-import java.net.InetAddress;
-import java.net.UnknownHostException;
-
 import java.text.SimpleDateFormat;
-
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -81,14 +71,6 @@ public class SparkIntegrationChecker implements Serializable{
   private boolean mAlluxioHAMode = false;
   private String mZookeeperAddress = "";
 
-  /** The Spark driver and executors performIntegrationChecks results. */
-  private enum Status {
-    FAIL_TO_FIND_CLASS, // Spark driver or executors cannot recognize Alluxio classes
-    FAIL_TO_FIND_FS, // Spark driver or executors cannot recognize Alluxio filesystem
-    FAIL_TO_SUPPORT_HA, // Spark driver cannot support Alluxio-HA mode
-    SUCCESS;
-  }
-
   /**
    * Implements Spark with Alluxio integration checker.
    *
@@ -98,7 +80,7 @@ public class SparkIntegrationChecker implements Serializable{
    */
   private Status run(JavaSparkContext sc, PrintWriter reportWriter) {
     // Checks whether Spark driver can recognize Alluxio classes and filesystem
-    Status driverStatus = performIntegrationChecks();
+    Status driverStatus = CommonCheckerUtils.performIntegrationChecks();
     String driverAddress = sc.getConf().get("spark.driver.host");
     switch (driverStatus) {
       case FAIL_TO_FIND_CLASS:
@@ -144,7 +126,8 @@ public class SparkIntegrationChecker implements Serializable{
 
     // Runs a Spark job to check whether Spark executors can recognize Alluxio
     JavaPairRDD<Status, String> extractedStatus = dataSet
-        .mapToPair(s -> new Tuple2<>(performIntegrationChecks(), getAddress()));
+        .mapToPair(s -> new Tuple2<>(CommonCheckerUtils.performIntegrationChecks(),
+            CommonCheckerUtils.getAddress()));
 
     // Merges the IP addresses that can/cannot recognize Alluxio
     JavaPairRDD<Status, String> mergeStatus = extractedStatus.reduceByKey((a, b)
@@ -167,47 +150,6 @@ public class SparkIntegrationChecker implements Serializable{
 
     return canRecognizeClass ? (canRecognizeFS ? Status.SUCCESS
         : Status.FAIL_TO_FIND_FS) : Status.FAIL_TO_FIND_CLASS;
-  }
-
-  /**
-   * @return if this Spark driver or executors can recognize Alluxio classes and filesystem
-   */
-  private Status performIntegrationChecks() {
-    // Checks if Spark driver or executors can recognize Alluxio classes
-    try {
-      // Checks if Spark driver or executors can recognize Alluxio common classes
-      Class.forName("alluxio.AlluxioURI");
-      // Checks if Spark driver or executors can recognize Alluxio core client classes
-      Class.forName("alluxio.client.file.BaseFileSystem");
-      Class.forName("alluxio.hadoop.AlluxioFileSystem");
-    } catch (ClassNotFoundException e) {
-      LOG.error("Failed to find Alluxio classes on classpath ", e);
-      return Status.FAIL_TO_FIND_CLASS;
-    }
-
-    // Checks if Spark driver or executors can recognize Alluxio filesystem
-    try {
-      FileSystem.getFileSystemClass("alluxio", new Configuration());
-    } catch (Exception e) {
-      LOG.error("Failed to find Alluxio filesystem ", e);
-      return Status.FAIL_TO_FIND_FS;
-    }
-
-    return Status.SUCCESS;
-  }
-
-  /**
-   * @return the current Spark executor IP address
-   */
-  private String getAddress() {
-    String address;
-    try {
-      address = InetAddress.getLocalHost().getHostAddress();
-    } catch (UnknownHostException e) {
-      LOG.debug("Integration Checker cannot get the host address of current Spark executor.");
-      address = "unknown address";
-    }
-    return address;
   }
 
   /**
