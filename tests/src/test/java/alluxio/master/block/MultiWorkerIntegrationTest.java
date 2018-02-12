@@ -80,7 +80,7 @@ public final class MultiWorkerIntegrationTest extends BaseIntegrationTest {
     }
   }
 
-  @Test(timeout = 300000)
+  @Test
   @LocalAlluxioClusterResource.Config(confParams = {PropertyKey.Name.USER_SHORT_CIRCUIT_ENABLED,
       "false", PropertyKey.Name.USER_BLOCK_SIZE_BYTES_DEFAULT, "16MB",
       PropertyKey.Name.USER_NETWORK_NETTY_READER_PACKET_SIZE_BYTES, "64KB",
@@ -105,7 +105,7 @@ public final class MultiWorkerIntegrationTest extends BaseIntegrationTest {
     }
   }
 
-  @Test(timeout = 300000)
+  @Test
   @LocalAlluxioClusterResource.Config(confParams = {PropertyKey.Name.USER_SHORT_CIRCUIT_ENABLED,
       "false", PropertyKey.Name.USER_BLOCK_SIZE_BYTES_DEFAULT, "4MB",
       PropertyKey.Name.USER_NETWORK_NETTY_READER_PACKET_SIZE_BYTES, "64KB",
@@ -130,7 +130,7 @@ public final class MultiWorkerIntegrationTest extends BaseIntegrationTest {
     }
   }
 
-  @Test(timeout = 300000)
+  @Test
   @LocalAlluxioClusterResource.Config(confParams = {PropertyKey.Name.USER_SHORT_CIRCUIT_ENABLED,
       "false", PropertyKey.Name.USER_BLOCK_SIZE_BYTES_DEFAULT, "4MB",
       PropertyKey.Name.USER_NETWORK_NETTY_READER_PACKET_SIZE_BYTES, "64KB",
