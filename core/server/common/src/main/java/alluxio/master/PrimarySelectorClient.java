@@ -190,9 +190,6 @@ public final class PrimarySelectorClient
       } finally {
         mStateLock.unlock();
       }
-    } catch (InterruptedException e) {
-      LOG.info("{} was interrupted.", mName);
-      Thread.currentThread().interrupt();
     } finally {
       LOG.warn("{} relinquishing leadership.", mName);
       LOG.info("The current leader is {}", mLeaderSelector.getLeader().getId());
