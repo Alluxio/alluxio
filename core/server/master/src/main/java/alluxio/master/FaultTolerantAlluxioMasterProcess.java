@@ -11,10 +11,12 @@
 
 package alluxio.master;
 
+import alluxio.Constants;
 import alluxio.master.PrimarySelector.State;
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.JournalSystem.Mode;
 import alluxio.util.CommonUtils;
+import alluxio.util.ThreadUtils;
 
 import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
@@ -32,6 +34,9 @@ import javax.annotation.concurrent.NotThreadSafe;
 final class FaultTolerantAlluxioMasterProcess extends AlluxioMasterProcess {
   private static final Logger LOG =
       LoggerFactory.getLogger(FaultTolerantAlluxioMasterProcess.class);
+
+  // Fail if it takes more than 5 minutes to stop the serving thread.
+  private static final int SERVING_THREAD_TIMEOUT_S = 300;
 
   private PrimarySelector mLeaderSelector;
   private Thread mServingThread;
@@ -70,11 +75,8 @@ final class FaultTolerantAlluxioMasterProcess extends AlluxioMasterProcess {
         stopMasters();
         LOG.info("Secondary stopped");
         startMasters(true);
-        mServingThread = new Thread(new Runnable() {
-          @Override
-          public void run() {
-            startServing(" (gained leadership)", " (lost leadership)");
-          }
+        mServingThread = new Thread(() -> {
+          startServing(" (gained leadership)", " (lost leadership)");
         }, "MasterServingThread");
         mServingThread.start();
         LOG.info("Primary started");
@@ -83,7 +85,14 @@ final class FaultTolerantAlluxioMasterProcess extends AlluxioMasterProcess {
         mLeaderSelector.waitForState(State.SECONDARY);
         LOG.info("Transitioning from primary to secondary");
         stopServing();
-        mServingThread.join();
+        mServingThread.join(SERVING_THREAD_TIMEOUT_S * Constants.SECOND_MS);
+        if (mServingThread.isAlive()) {
+          LOG.error(
+              "Failed to stop serving thread after {} seconds. Printing serving thread stack trace "
+                  + "and exiting.\n{}",
+              SERVING_THREAD_TIMEOUT_S, ThreadUtils.formatStackTrace(mServingThread));
+          System.exit(-1);
+        }
         mServingThread = null;
         stopMasters();
         mJournalSystem.setMode(Mode.SECONDARY);
