@@ -191,7 +191,7 @@ public final class PrimarySelectorClient
         mStateLock.unlock();
       }
     } catch (InterruptedException e) {
-      LOG.error(mName + " was interrupted.", e);
+      LOG.info("{} was interrupted.", mName);
       Thread.currentThread().interrupt();
     } finally {
       LOG.warn("{} relinquishing leadership.", mName);
