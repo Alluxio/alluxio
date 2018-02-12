@@ -122,9 +122,8 @@ public class FileInStream extends InputStream implements BoundedStream, Position
           }
           retryLeft--;
         }
-        prepareForRetry(mBlockInStream, e, lostWorkers, retryCurrentWorker);
+        mBlockInStream = prepareForRetry(mBlockInStream, e, lostWorkers, retryCurrentWorker);
         retryCurrentWorker = false;
-        mBlockInStream = null;
       }
     }
   }
@@ -170,9 +169,8 @@ public class FileInStream extends InputStream implements BoundedStream, Position
           }
           retryLeft--;
         }
-        prepareForRetry(mBlockInStream, e, lostWorkers, retryCurrentWorker);
+        mBlockInStream = prepareForRetry(mBlockInStream, e, lostWorkers, retryCurrentWorker);
         retryCurrentWorker = false;
-        mBlockInStream = null;
       }
     }
     return len - bytesLeft;
@@ -241,9 +239,8 @@ public class FileInStream extends InputStream implements BoundedStream, Position
             }
             retryLeft--;
           }
-          prepareForRetry(stream, e, lostWorkers, retryCurrentWorker);
+          stream = prepareForRetry(stream, e, lostWorkers, retryCurrentWorker);
           retryCurrentWorker = false;
-          stream = null;
         }
       } finally {
         closeBlockInStream(stream);
@@ -354,8 +351,8 @@ public class FileInStream extends InputStream implements BoundedStream, Position
     }
   }
 
-  private void prepareForRetry(BlockInStream stream, Exception e, Set<WorkerNetAddress> lostWorkers,
-      boolean retryCurrentWorker) {
+  private BlockInStream prepareForRetry(BlockInStream stream, Exception e,
+      Set<WorkerNetAddress> lostWorkers, boolean retryCurrentWorker) {
     WorkerNetAddress workerAddress = stream.getAddress();
     LOG.warn("Failed to read block {} from worker {}, attempt to retry: {}",
         stream.getId(), workerAddress, e.getMessage());
@@ -365,8 +362,23 @@ public class FileInStream extends InputStream implements BoundedStream, Position
       // Do not throw doing a best effort close
       LOG.warn("Failed to close input stream for block {}: {}", stream.getId(), ex.getMessage());
     }
+
+    if (retryCurrentWorker) {
+      try {
+        stream = BlockInStream.create(mContext, mOptions.getBlockInfo(stream.getId()),
+            workerAddress, stream.getSource(), mOptions);
+      } catch (IOException ex) {
+        retryCurrentWorker = false;
+        LOG.warn("Failed to retry block {} on the same worker {}: {}",
+            stream.getId(), workerAddress, ex.getMessage());
+      }
+    }
+
     if (!retryCurrentWorker) {
       lostWorkers.add(workerAddress);
+      return null;
     }
+
+    return stream;
   }
 }
