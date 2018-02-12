@@ -33,34 +33,40 @@ INPUT_SPLITS="${1:-10}";
 
 # Find the location of hadoop in order to trigger Hadoop job
 function find_hadoop_path() {
-  { # Try HADOOP_HOME
-    [ -f "${HADOOP_HOME}/hadoop" ] && HADOOP_LOCATION="${HADOOP_HOME}/hadoop"
-  } ||   {
-    [ -f "${HADOOP_HOME}/bin/hadoop" ] && HADOOP_LOCATION="${HADOOP_HOME}/bin/hadoop"
-  } || {
-    [ -f "${HADOOP_HOME}/libexec/bin/hadoop" ] && HADOOP_LOCATION="${HADOOP_HOME}/libexec/bin/hadoop"
-  } || { # Try to find hadoop executable file in HADOOP_HOME
-    if [[ "${HADOOP_LOCATION}" == "" ]]; then
-      array=(`find "${HADOOP_HOME}" -type f -name 'hadoop'`)
-      for i in "${array[@]}"; do
-        HADOOP_LOCATION="$i"
-        break;
-      done
-    fi
-    if [[ "${HADOOP_LOCATION}" == "" ]]; then
-      IFS=':' read -ra PATHARR <<< "$PATH"
-      for p in "${PATHARR[@]}"; do
-        if [ -f "$p/hadoop" ]; then
-          HADOOP_LOCATION="$p"/hadoop
+  # If ${HADOOP_HOME} has been set
+  if [[ "${HADOOP_HOME}" != "" ]]; then
+    {
+      [ -f "${HADOOP_HOME}/hadoop" ] && HADOOP_LOCATION="${HADOOP_HOME}/hadoop"
+    } ||   {
+      [ -f "${HADOOP_HOME}/bin/hadoop" ] && HADOOP_LOCATION="${HADOOP_HOME}/bin/hadoop"
+    } || {
+      [ -f "${HADOOP_HOME}/libexec/bin/hadoop" ] && HADOOP_LOCATION="${HADOOP_HOME}/libexec/bin/hadoop"
+    } || { # Try to find hadoop executable file in HADOOP_HOME
+      if [[ "${HADOOP_LOCATION}" == "" ]]; then
+        array=(`find "${HADOOP_HOME}" -type f -name 'hadoop'`)
+        for i in "${array[@]}"; do
+          HADOOP_LOCATION="$i"
           break;
-        fi
-      done
-    fi
-    if [[ "${HADOOP_LOCATION}" == "" ]]; then
-      echo -e "Please set HADOOP_HOME before running MapReduce integration checker." >&2
-      exit 1
-    fi
-  }
+        done
+      fi
+    }
+  fi
+
+  # If ${PATH} has been set
+  if [[ "${HADOOP_LOCATION}" == "" ]]  &&  [[ "${PATH}" != "" ]]; then
+    IFS=':' read -ra PATHARR <<< "$PATH"
+    for p in "${PATHARR[@]}"; do
+      if [ -f "$p/hadoop" ]; then
+        HADOOP_LOCATION="$p"/hadoop
+        break;
+      fi
+    done
+  fi
+
+  if [[ "${HADOOP_LOCATION}" == "" ]]; then
+    echo -e "Please set HADOOP_HOME before running MapReduce integration checker." >&2
+    exit 1
+  fi
 }
 
 function trigger_mapreduce() {

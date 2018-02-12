@@ -146,7 +146,7 @@ public class MapReduceIntegrationChecker {
   }
 
   /**
-   * @return perform integration check result Status
+   * @return result Status summarization
    */
   private Status generateReport() throws Exception {
     // Reads all the part-r-* files in MapReduceOutPutFile folder

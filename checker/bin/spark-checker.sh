@@ -40,33 +40,51 @@ SPARK_SUBMIT="";
 
 # Find the location of spark-submit in order to run the Spark job
 function find_spark_path() {
-  { # Try SPARK_HOME
-    [ -f "${SPARK_HOME}/bin/spark-submit" ] && SPARK_SUBMIT="${SPARK_HOME}/bin/spark-submit"
-  } || { # Try SPARKPATH
-    [ -f "${SPARKPATH}/spark-submit" ] && SPARK_SUBMIT="${SPARKPATH}/spark-submit"
-  } || {
-    if [[ "${SPARK_SUBMIT}" == "" ]]; then
-      array=(`find "${SPARK_HOME}" -type f -name 'spark-submit'`)
-      for i in "${array[@]}"; do
-        SPARK_SUBMIT="$i"
-        break;
-      done
-    fi
-    # Try PATH
-    if [[ "${SPARK_SUBMIT}" == "" ]]; then
-      IFS=':' read -ra PATHARR <<< "$PATH"
-      for p in "${PATHARR[@]}"; do
-        if [ -f "$p/spark-submit" ]; then
-          SPARK_SUBMIT="$p/spark-submit"
+  # Try to find spark_submit in ${SPARK_HOME}
+  if [[ "${SPARK_HOME}" != "" ]]; then
+    {
+      [ -f "${SPARK_HOME}/bin/spark-submit" ] && SPARK_SUBMIT="${SPARK_HOME}/bin/spark-submit"
+    } || {
+      if [[ "${SPARK_SUBMIT}" == "" ]]; then
+        array=(`find "${SPARK_HOME}" -type f -name 'spark-submit'`)
+        for i in "${array[@]}"; do
+          SPARK_SUBMIT="$i"
           break;
-        fi
-      done
-    fi
-    if [[ "${SPARK_SUBMIT}" == "" ]]; then
-      echo -e "Please set SPARK_HOME or SPARKPATH before running Spark integration checker." >&2
-      exit 1
-    fi
-  } 
+        done
+      fi
+    }
+  fi
+
+  # Try to find spark_submit in ${SPARKPATH}
+  if [[ "${SPARK_SUBMIT}" == "" ]]  &&  [[ "${SPARKPATH}" != "" ]]; then
+    {
+      [ -f "${SPARKPATH}/spark-submit" ] && SPARK_SUBMIT="${SPARKPATH}/spark-submit"
+    } || {
+      if [[ "${SPARK_SUBMIT}" == "" ]]; then
+        array=(`find "${SPARKPATH}" -type f -name 'spark-submit'`)
+        for i in "${array[@]}"; do
+          SPARK_SUBMIT="$i"
+          break;
+        done
+      fi
+    }
+  fi
+
+  # Try to find spark_submit in ${PATH}
+  if [[ "${SPARK_SUBMIT}" == "" ]]  &&  [[ "${PATH}" != "" ]]; then
+    IFS=':' read -ra PATHARR <<< "$PATH"
+    for p in "${PATHARR[@]}"; do
+      if [ -f "$p/spark-submit" ]; then
+        SPARK_SUBMIT="$p/spark-submit"
+        break;
+      fi
+    done
+  fi
+
+  if [[ "${SPARK_SUBMIT}" == "" ]]; then
+    echo -e "Please set SPARK_HOME before running Spark integration checker." >&2
+    exit 1
+  fi
 }
 
 function trigger_spark_cluster() {
