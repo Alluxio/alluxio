@@ -11,7 +11,8 @@
 
 package alluxio.master;
 
-import alluxio.Constants;
+import alluxio.Configuration;
+import alluxio.PropertyKey;
 import alluxio.master.PrimarySelector.State;
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.JournalSystem.Mode;
@@ -35,8 +36,8 @@ final class FaultTolerantAlluxioMasterProcess extends AlluxioMasterProcess {
   private static final Logger LOG =
       LoggerFactory.getLogger(FaultTolerantAlluxioMasterProcess.class);
 
-  // Fail if it takes more than 5 minutes to stop the serving thread.
-  private static final int SERVING_THREAD_TIMEOUT_S = 300;
+  private final long mServingThreadTimeoutMs =
+      Configuration.getMs(PropertyKey.MASTER_SERVING_THREAD_TIMEOUT);
 
   private PrimarySelector mLeaderSelector;
   private Thread mServingThread;
@@ -85,12 +86,12 @@ final class FaultTolerantAlluxioMasterProcess extends AlluxioMasterProcess {
         mLeaderSelector.waitForState(State.SECONDARY);
         LOG.info("Transitioning from primary to secondary");
         stopServing();
-        mServingThread.join(SERVING_THREAD_TIMEOUT_S * Constants.SECOND_MS);
+        mServingThread.join(mServingThreadTimeoutMs);
         if (mServingThread.isAlive()) {
           LOG.error(
-              "Failed to stop serving thread after {} seconds. Printing serving thread stack trace "
+              "Failed to stop serving thread after {}ms. Printing serving thread stack trace "
                   + "and exiting.\n{}",
-              SERVING_THREAD_TIMEOUT_S, ThreadUtils.formatStackTrace(mServingThread));
+              mServingThreadTimeoutMs, ThreadUtils.formatStackTrace(mServingThread));
           System.exit(-1);
         }
         mServingThread = null;
