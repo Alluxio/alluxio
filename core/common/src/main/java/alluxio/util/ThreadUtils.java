@@ -20,7 +20,7 @@ import java.io.StringWriter;
 public final class ThreadUtils {
   /**
    * @param thread a thread
-   * @return a human-readable representation of the thread's stack trace.
+   * @return a human-readable representation of the thread's stack trace
    */
   public static String formatStackTrace(Thread thread) {
     Throwable t = new Throwable(String.format("Stack trace for thread %s:", thread.getName()));
