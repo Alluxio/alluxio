@@ -168,8 +168,10 @@ public final class AlluxioBlockStore {
       BlockLocationPolicy policy =
           Preconditions.checkNotNull(options.getOptions().getUfsReadLocationPolicy(),
               PreconditionMessage.UFS_READ_LOCATION_POLICY_UNSPECIFIED);
+      List<BlockWorkerInfo> availableWorkers = getEligibleWorkers().stream().filter(
+          location -> !lostWorkers.contains(location.getNetAddress())).collect(Collectors.toList());
       GetWorkerOptions getWorkerOptions = GetWorkerOptions.defaults().setBlockId(info.getBlockId())
-          .setBlockSize(info.getLength()).setBlockWorkerInfos(getEligibleWorkers());
+          .setBlockSize(info.getLength()).setBlockWorkerInfos(availableWorkers);
       dataSource = policy.getWorker(getWorkerOptions);
     } else { // Data will be read from Alluxio, determine which worker and if it is local
       // TODO(calvin): Get location via a policy
