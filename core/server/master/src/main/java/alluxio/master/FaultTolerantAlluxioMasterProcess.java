@@ -21,6 +21,7 @@ import alluxio.util.ThreadUtils;
 
 import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
+import org.apache.commons.lang.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -77,7 +78,16 @@ final class FaultTolerantAlluxioMasterProcess extends AlluxioMasterProcess {
         LOG.info("Secondary stopped");
         startMasters(true);
         mServingThread = new Thread(() -> {
-          startServing(" (gained leadership)", " (lost leadership)");
+          try {
+            startServing(" (gained leadership)", " (lost leadership)");
+          } catch (Throwable t) {
+            Throwable root = ExceptionUtils.getRootCause(t);
+            if ((root != null && (root instanceof InterruptedException)) || Thread.interrupted()) {
+              return;
+            }
+            LOG.error("Exception thrown in main serving thread. System exiting.", t);
+            System.exit(-1);
+          }
         }, "MasterServingThread");
         mServingThread.start();
         LOG.info("Primary started");
