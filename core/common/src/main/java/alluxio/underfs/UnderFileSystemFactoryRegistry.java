@@ -133,8 +133,8 @@ public final class UnderFileSystemFactoryRegistry {
       String path, @Nullable UnderFileSystemConfiguration ufsConf) {
     Preconditions.checkArgument(path != null, "path may not be null");
 
-    scanLibs();
-    scanExtensions();
+    scanLibs(LOADED_LIB_JARS, FACTORIES);
+    scanExtensions(LOADED_EXTENSION_JARS, FACTORIES);
 
     for (UnderFileSystemFactory factory : FACTORIES) {
       if (factory.supportsPath(path, ufsConf)) {
@@ -154,17 +154,26 @@ public final class UnderFileSystemFactoryRegistry {
    *
    * @param path path
    * @param ufsConf configuration of the UFS
+   * @param useCache if true, will cache and reuse factory instances
    * @return list of factories that support the given path which may be an empty list
    */
   public static List<UnderFileSystemFactory> findAll(
-      String path, UnderFileSystemConfiguration ufsConf) {
+      String path, UnderFileSystemConfiguration ufsConf, boolean useCache) {
     Preconditions.checkArgument(path != null, "path may not be null");
 
-    scanLibs();
-    scanExtensions();
+    Set<String> loadedLibs = LOADED_LIB_JARS;
+    Set<String> loadedExtensions =LOADED_EXTENSION_JARS;
+    List<UnderFileSystemFactory> factories = FACTORIES;
+    if (!useCache) {
+      loadedLibs = new HashSet<>();
+      loadedExtensions = new HashSet<>();
+      factories = new CopyOnWriteArrayList<>();
+    }
+    scanLibs(loadedLibs, factories);
+    scanExtensions(loadedExtensions, factories);
 
     List<UnderFileSystemFactory> eligibleFactories = new ArrayList<>();
-    for (UnderFileSystemFactory factory : FACTORIES) {
+    for (UnderFileSystemFactory factory : factories) {
       if (factory.supportsPath(path, ufsConf)) {
         LOG.debug("Under File System Factory implementation {} is eligible for path {}",
             factory.getClass(), path);
@@ -180,16 +189,23 @@ public final class UnderFileSystemFactoryRegistry {
 
   /**
    * Finds all {@link UnderFileSystemFactory} from the extensions directory and caches.
+   *
+   * @param loadedJars jars already loaded
+   * @param factories list of factories to add to
    */
-  private static void scanExtensions() {
+  private static void scanExtensions(Set<String> loadedJars,
+      List<UnderFileSystemFactory> factories) {
     LOG.info("Loading extension UFS jars from {}", Configuration.get(PropertyKey.EXTENSIONS_DIR));
-    scan(Arrays.asList(ExtensionUtils.listExtensions()), LOADED_EXTENSION_JARS);
+    scan(Arrays.asList(ExtensionUtils.listExtensions()), loadedJars, factories);
   }
 
   /**
    * Finds all {@link UnderFileSystemFactory} from the lib directory and caches.
+   *
+   * @param loadedJars jars already loaded
+   * @param factories list of factories to add to
    */
-  private static void scanLibs() {
+  private static void scanLibs(Set<String> loadedJars, List<UnderFileSystemFactory> factories) {
     LOG.info("Loading core UFS jars from {}", RuntimeConstants.LIB_DIR);
     List<File> files = new ArrayList<>();
     try (DirectoryStream<Path> stream = Files.newDirectoryStream(
@@ -202,7 +218,7 @@ public final class UnderFileSystemFactoryRegistry {
     } catch (IOException e) {
       LOG.warn("Failed to load UFS libs: {}", e.getMessage());
     }
-    scan(files, LOADED_LIB_JARS);
+    scan(files, loadedJars, factories);
   }
 
   /**
@@ -210,8 +226,10 @@ public final class UnderFileSystemFactoryRegistry {
    *
    * @param files jar files to class-load
    * @param loadedJars jars already loaded under this dir
+   * @param factories list of factories to add to
    */
-  private static void scan(List<File> files, Set<String> loadedJars) {
+  private static void scan(List<File> files, Set<String> loadedJars,
+      List<UnderFileSystemFactory> factories) {
     for (File jar : files) {
       try {
         URL extensionURL = jar.toURI().toURL();
@@ -225,7 +243,7 @@ public final class UnderFileSystemFactoryRegistry {
             LOG.debug("Discovered an Under File System Factory implementation {} - {} in jar {}",
                 factory.getClass(), factory.toString(), jarPath);
             // Cache
-            register(factory);
+            register(factory, factories);
             loadedJars.add(jarPath);
           }
         }
@@ -250,8 +268,8 @@ public final class UnderFileSystemFactoryRegistry {
       register(factory);
     }
 
-    scanLibs();
-    scanExtensions();
+    scanLibs(LOADED_LIB_JARS, FACTORIES);
+    scanExtensions(LOADED_EXTENSION_JARS, FACTORIES);
 
     sInit = true;
   }
@@ -269,6 +287,11 @@ public final class UnderFileSystemFactoryRegistry {
    * @param factory factory to register
    */
   public static void register(UnderFileSystemFactory factory) {
+    register(factory, FACTORIES);
+  }
+
+  private static void register(UnderFileSystemFactory factory,
+      List<UnderFileSystemFactory> factories) {
     if (factory == null) {
       return;
     }
@@ -278,7 +301,7 @@ public final class UnderFileSystemFactoryRegistry {
 
     // Insert at start of list so it will take precedence over automatically discovered and
     // previously registered factories
-    FACTORIES.add(0, factory);
+    factories.add(0, factory);
   }
 
   /**
@@ -306,12 +329,17 @@ public final class UnderFileSystemFactoryRegistry {
    * @param factory factory to unregister
    */
   public static void unregister(UnderFileSystemFactory factory) {
+    unregister(factory, FACTORIES);
+  }
+
+  private static void unregister(UnderFileSystemFactory factory,
+      List<UnderFileSystemFactory> factories) {
     if (factory == null) {
       return;
     }
 
     LOG.debug("Unregistered Under File System Factory implementation {} - {}", factory.getClass(),
         factory.toString());
-    FACTORIES.remove(factory);
+    factories.remove(factory);
   }
 }
