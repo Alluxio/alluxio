@@ -62,8 +62,6 @@ public final class Constants {
   public static final String SCHEME_FT = "alluxio-ft";
   public static final String HEADER_FT = SCHEME_FT + "://";
 
-  public static final String HEADER_OBS = "obs://";
-
   public static final String HEADER_OSS = "oss://";
 
   public static final String HEADER_S3 = "s3://";
