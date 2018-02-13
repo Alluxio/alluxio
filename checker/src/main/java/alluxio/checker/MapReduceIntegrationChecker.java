@@ -17,11 +17,8 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.io.IntWritable;
-import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.io.Writable;
-import org.apache.hadoop.io.WritableUtils;
 import org.apache.hadoop.mapreduce.InputFormat;
 import org.apache.hadoop.mapreduce.InputSplit;
 import org.apache.hadoop.mapreduce.Job;
@@ -33,8 +30,6 @@ import org.apache.hadoop.mapreduce.RecordReader;
 import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
 import org.apache.hadoop.util.GenericOptionsParser;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.BufferedReader;
 import java.io.DataInput;
@@ -47,8 +42,10 @@ import java.net.URI;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -60,7 +57,6 @@ import java.util.Set;
  * in Hadoop task nodes.
  */
 public class MapReduceIntegrationChecker {
-  private static final Logger LOG = LoggerFactory.getLogger(MapReduceIntegrationChecker.class);
   private static final String FAIL_TO_FIND_CLASS_MESSAGE = "Please distribute "
       + "the Alluxio client jar on the classpath of the application across different nodes.\n\n"
       + "For details, please refer to: "
@@ -77,23 +73,17 @@ public class MapReduceIntegrationChecker {
   private FileSystem mFileSystem;
 
   /**
-   * An input format that assigns an integer to each mapper.
+   * An empty input format that can generate input splits to affect the number of mapper nodes.
    */
-  static class CheckerInputFormat
-      extends InputFormat<IntWritable, NullWritable> {
+  static class EmptyInputFormat extends InputFormat<Object, Object> {
     public static boolean sCreateDone = false;
 
     /**
-     * An input split consisting of an integer 1.
+     * An empty input split.
      */
-    static class CheckerInputSplit extends InputSplit implements Writable {
-      int mValue;
+    static class EmptyInputSplit extends InputSplit implements Writable {
 
-      public CheckerInputSplit() { }
-
-      public CheckerInputSplit(int inputValue) {
-        mValue = inputValue;
-      }
+      public EmptyInputSplit() { }
 
       @Override
       public long getLength() throws IOException {
@@ -107,44 +97,37 @@ public class MapReduceIntegrationChecker {
 
       @Override
       public void readFields(DataInput in) throws IOException {
-        mValue = WritableUtils.readVInt(in);
       }
 
       @Override
       public void write(DataOutput out) throws IOException {
-        WritableUtils.writeVInt(out, mValue);
       }
     }
 
     /**
      * A record reader converting input to record-oriented view.
      */
-    static class CheckerRecordReader
-        extends RecordReader<IntWritable, NullWritable> {
-      int mIntegerVal;
-      IntWritable mKey = null;
+    static class EmptyRecordReader extends RecordReader<Object, Object> {
 
-      public CheckerRecordReader() {
+      public EmptyRecordReader() {
       }
 
       @Override
       public void initialize(InputSplit split, TaskAttemptContext context) {
-        mIntegerVal = ((CheckerInputSplit) split).mValue;
       }
 
       @Override
       public void close() {
-        // NOTHING
       }
 
       @Override
-      public IntWritable getCurrentKey() {
-        return mKey;
+      public Object getCurrentKey() {
+        return new Object();
       }
 
       @Override
-      public NullWritable getCurrentValue() {
-        return NullWritable.get();
+      public Object getCurrentValue() {
+        return new Object();
       }
 
       @Override
@@ -158,9 +141,6 @@ public class MapReduceIntegrationChecker {
 
       @Override
       public boolean nextKeyValue() {
-        if (mKey == null) {
-          mKey = new IntWritable(mIntegerVal);
-        }
         if (sCreateDone) {
           return false;
         } else {
@@ -171,9 +151,9 @@ public class MapReduceIntegrationChecker {
     }
 
     @Override
-    public RecordReader<IntWritable, NullWritable> createRecordReader(InputSplit split,
+    public RecordReader<Object, Object> createRecordReader(InputSplit split,
         TaskAttemptContext context) {
-      return new CheckerRecordReader();
+      return new EmptyRecordReader();
     }
 
     /**
@@ -184,7 +164,7 @@ public class MapReduceIntegrationChecker {
       int numSplits = job.getConfiguration().getInt(MRJobConfig.NUM_MAPS, 1);
       List<InputSplit> splits = new ArrayList<>();
       for (int split = 0; split < numSplits; split++) {
-        splits.add(new CheckerInputSplit(1));
+        splits.add(new EmptyInputSplit());
       }
       return splits;
     }
@@ -194,12 +174,12 @@ public class MapReduceIntegrationChecker {
    * In each mapper node, we will check whether this node can recognize
    * Alluxio classes and filesystem.
    */
-  protected static class CheckStatusMapper extends Mapper<IntWritable, NullWritable, Text, Text> {
+  protected static class FooMapper extends Mapper<Object, Object, Text, Text> {
     /**
      * Records the Status and IP address of each mapper task node.
      */
     @Override
-    protected void map(IntWritable key, NullWritable value, Context context)
+    protected void map(Object ignoredKey, Object ignoredValue, Context context)
         throws IOException, InterruptedException {
       context.write(new Text(CheckerUtils.performIntegrationChecks().toString()),
           new Text(CheckerUtils.getLocalAddress()));
@@ -209,7 +189,7 @@ public class MapReduceIntegrationChecker {
   /**
    * In each reducer node, we will combine the IP addresses that have the same Status.
    */
-  protected static class MergeStatusReducer extends Reducer<Text, Text, Text, Text> {
+  protected static class FooReducer extends Reducer<Text, Text, Text, Text> {
     /**
      * Merges the IP addresses of same Status.
      */
@@ -218,10 +198,7 @@ public class MapReduceIntegrationChecker {
         throws IOException, InterruptedException {
       Set<String> addressSet = new HashSet<>();
       for (Text val : values) {
-        String curAddress = val.toString();
-        if (!addressSet.contains(curAddress)) {
-          addressSet.add(curAddress);
-        }
+        addressSet.add(val.toString());
       }
       context.write(key, new Text(String.join(" ", addressSet)));
     }
@@ -249,76 +226,45 @@ public class MapReduceIntegrationChecker {
     FileStatus[] outputFileStatus = mFileSystem.listStatus(mOutputFilePath,
         path -> path.getName().startsWith(("part-")));
 
-    boolean canFindClass = true;
-    boolean canFindFS = true;
-
-    StringBuilder cannotFindClassBuilder = new StringBuilder();
-    StringBuilder cannotFindFSBuilder = new StringBuilder();
-    StringBuilder successBuilder = new StringBuilder();
-
+    Map<Status, List<String>> resultMap = new HashMap<>();
     for (int i = 0; i < outputFileStatus.length; i++) {
       Path curOutputFilePath = outputFileStatus[i].getPath();
       try (BufferedReader curOutputFileReader = new BufferedReader(
           new InputStreamReader(mFileSystem.open(curOutputFilePath)))) {
         String nextLine = "";
         while ((nextLine = curOutputFileReader.readLine()) != null) {
-          Status curOutputStatus = Status.valueOf(nextLine
-              .substring(0, nextLine.indexOf(";")).trim());
-          String curOutputAddresses = nextLine.substring(nextLine.indexOf(";") + 1).trim();
-          switch (curOutputStatus) {
-            case FAIL_TO_FIND_CLASS:
-              canFindClass = false;
-              cannotFindClassBuilder.append(" ").append(curOutputAddresses);
-              break;
-            case FAIL_TO_FIND_FS:
-              canFindFS = false;
-              cannotFindFSBuilder.append(" ").append(curOutputAddresses);
-              break;
-            default:
-              successBuilder.append(" ").append(curOutputAddresses);
-          }
+          int sep = nextLine.indexOf("\t");
+          Status curStatus = Status.valueOf(nextLine.substring(0, sep).trim());
+          String curAddresses = nextLine.substring(sep + 1).trim();
+          List<String> addresses = resultMap.getOrDefault(curStatus, new ArrayList<>());
+          addresses.add(curAddresses);
+          resultMap.put(curStatus, addresses);
         }
       }
     }
 
-    String cannotFindClassAddresses = cannotFindClassBuilder.toString();
-    String cannotFindFSAddresses = cannotFindFSBuilder.toString();
-    String successAddresses = successBuilder.toString();
-
-    // Creates a file to save user-facing messages
     File reportFile = new File("./MapReduceIntegrationReport.txt");
     try (PrintWriter reportWriter = new PrintWriter(reportFile)) {
+      // Prints the current time to separate integration checker results
       SimpleDateFormat df = new SimpleDateFormat("dd/MM/yy HH:mm:ss");
       Date date = new Date();
       reportWriter.printf("%n%n%n***** The integration checker ran at %s. *****%n%n",
           df.format(date));
-
-      if (!cannotFindClassAddresses.equals("")) {
-        reportWriter.printf("Hadoop nodes of IP addresses: %s "
-            + "cannot recognize Alluxio classes.%n%n", cannotFindClassAddresses);
+      Status resultStatus = CheckerUtils.printNodesResults(resultMap, reportWriter);
+      switch (resultStatus) {
+        case FAIL_TO_FIND_CLASS:
+          reportWriter.println(FAIL_TO_FIND_CLASS_MESSAGE);
+          reportWriter.println(TEST_FAILED_MESSAGE);
+          break;
+        case FAIL_TO_FIND_FS:
+          reportWriter.println(FAIL_TO_FIND_FS_MESSAGE);
+          reportWriter.println(TEST_FAILED_MESSAGE);
+          break;
+        default:
+          reportWriter.println(TEST_PASSED_MESSAGE);
       }
-      if (!cannotFindFSAddresses.equals("")) {
-        reportWriter.printf("Hadoop nodes of IP addresses: %s "
-            + "cannot recognize Alluxio filesystem.%n%n", cannotFindFSAddresses);
-      }
-      if (!successAddresses.equals("")) {
-        reportWriter.printf("Hadoop nodes of IP addresses: %s "
-            + "can recognize Alluxio filesystem.%n%n", successAddresses);
-      }
-
-      if (!canFindClass) {
-        reportWriter.println(FAIL_TO_FIND_CLASS_MESSAGE);
-        reportWriter.println(TEST_FAILED_MESSAGE);
-      } else if (!canFindFS) {
-        reportWriter.println(FAIL_TO_FIND_FS_MESSAGE);
-        reportWriter.println(TEST_FAILED_MESSAGE);
-      } else {
-        reportWriter.println(TEST_PASSED_MESSAGE);
-      }
+      return resultStatus;
     }
-
-    return canFindClass ? (canFindFS ? Status.SUCCESS : Status.FAIL_TO_FIND_FS)
-        : Status.FAIL_TO_FIND_CLASS;
   }
 
   /**
@@ -330,18 +276,16 @@ public class MapReduceIntegrationChecker {
     Configuration conf = new Configuration();
     String[] otherArgs =  new GenericOptionsParser(conf, args).getRemainingArgs();
     conf.set(MRJobConfig.NUM_MAPS, otherArgs[0]);
-    conf.set("mapred.textoutputformat.separator", ";"); // Supports Hadoop 1.x
-    conf.set("mapreduce.textoutputformat.separator", ";"); // Supports Hadoop 2.x
     createHdfsFilesystem(conf);
 
     Job job = Job.getInstance(conf, "MapReduceIntegrationChecker");
     job.setJarByClass(MapReduceIntegrationChecker.class);
-    job.setMapperClass(CheckStatusMapper.class);
-    job.setCombinerClass(MergeStatusReducer.class);
-    job.setReducerClass(MergeStatusReducer.class);
+    job.setMapperClass(FooMapper.class);
+    job.setCombinerClass(FooReducer.class);
+    job.setReducerClass(FooReducer.class);
     job.setOutputKeyClass(Text.class);
     job.setOutputValueClass(Text.class);
-    job.setInputFormatClass(CheckerInputFormat.class);
+    job.setInputFormatClass(EmptyInputFormat.class);
     FileOutputFormat.setOutputPath(job, mOutputFilePath);
 
     try {

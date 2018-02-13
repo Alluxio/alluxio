@@ -20,8 +20,6 @@ import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.SparkConf;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import scala.Serializable;
 import scala.Tuple2;
 
@@ -29,8 +27,11 @@ import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -43,7 +44,6 @@ import java.util.stream.IntStream;
  * driver and executors.
  */
 public class SparkIntegrationChecker implements Serializable{
-  private static final Logger LOG = LoggerFactory.getLogger(SparkIntegrationChecker.class);
   private static final long serialVersionUID = 1106074873546987859L;
   private static final String FAIL_TO_FIND_CLASS_MESSAGE = "Please check the "
       + "spark.driver.extraClassPath and spark.executor.extraClassPath properties in "
@@ -109,7 +109,7 @@ public class SparkIntegrationChecker implements Serializable{
       }
     }
 
-    return runSparkJob(sc);
+    return runSparkJob(sc, reportWriter);
   }
 
   /**
@@ -118,7 +118,7 @@ public class SparkIntegrationChecker implements Serializable{
    * @param sc current JavaSparkContext
    * @return Spark job result
    */
-  private Status runSparkJob(JavaSparkContext sc) {
+  private Status runSparkJob(JavaSparkContext sc, PrintWriter reportWrtier) {
     // Generates a list of integer for testing
     List<Integer> nums = IntStream.rangeClosed(1, mPartitions).boxed().collect(Collectors.toList());
 
@@ -136,20 +136,14 @@ public class SparkIntegrationChecker implements Serializable{
 
     mSparkJobResult = mergeStatus.collect();
 
-    // If one executor cannot recognize Alluxio, something wrong has happened
-    boolean canRecognizeClass = true;
-    boolean canRecognizeFS = true;
+    Map<Status, List<String>> resultMap = new HashMap<>();
     for (Tuple2<Status, String> op : mSparkJobResult) {
-      if (op._1().equals(Status.FAIL_TO_FIND_CLASS)) {
-        canRecognizeClass = false;
-      }
-      if (op._1().equals(Status.FAIL_TO_FIND_FS)) {
-        canRecognizeFS = false;
-      }
+      List<String> addresses = resultMap.getOrDefault(op._1, new ArrayList<>());
+      addresses.add(op._2);
+      resultMap.put(op._1, addresses);
     }
 
-    return canRecognizeClass ? (canRecognizeFS ? Status.SUCCESS
-        : Status.FAIL_TO_FIND_FS) : Status.FAIL_TO_FIND_CLASS;
+    return CheckerUtils.printNodesResults(resultMap, reportWrtier);
   }
 
   /**
@@ -194,25 +188,6 @@ public class SparkIntegrationChecker implements Serializable{
       reportWriter.println("Alluixo is running in high availbility mode.");
       if (!mZookeeperAddress.isEmpty()) {
         reportWriter.printf("alluxio.zookeeper.address is %s.%n%n", mZookeeperAddress);
-      }
-    }
-
-    if (mSparkJobResult != null) {
-      for (Tuple2<Status, String> sjr : mSparkJobResult) {
-        switch (sjr._1()) {
-          case FAIL_TO_FIND_CLASS:
-            reportWriter.printf("Spark executors of IP addresses: %s "
-                + "cannot recognize Alluxio classes.%n%n", sjr._2);
-            break;
-          case FAIL_TO_FIND_FS:
-            reportWriter.printf("Spark executors of IP addresses %s "
-                + "cannot recognize Alluxio filesystem.%n%n", sjr._2);
-            break;
-          default:
-            reportWriter.printf("Spark executors of IP addresses %s "
-                + "can recognize Alluxio filesystem.%n%n", sjr._2);
-            break;
-        }
       }
     }
 

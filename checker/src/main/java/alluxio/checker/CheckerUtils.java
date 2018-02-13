@@ -16,8 +16,11 @@ import org.apache.hadoop.fs.FileSystem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.PrintWriter;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Class for common methods used by integration checkers.
@@ -74,5 +77,38 @@ public final class CheckerUtils {
       address = "unknown address";
     }
     return address;
+  }
+
+  /**
+   * Collects and saves the Status of checked nodes.
+   *
+   * @param map the transformed integration checker results
+   * @param reportWriter save the result to corresponding checker report
+   * @return the result information of the checked nodes
+   */
+  public static Status printNodesResults(Map<Status, List<String>> map, PrintWriter reportWriter) {
+    boolean canFindClass = true;
+    boolean canFindFS = true;
+
+    for (Map.Entry<Status, List<String>> entry : map.entrySet()) {
+      String nodeAddresses = String.join(" ", entry.getValue());
+      switch (entry.getKey()) {
+        case FAIL_TO_FIND_CLASS:
+          canFindClass = false;
+          reportWriter.printf("Nodes of IP addresses: %s "
+              + "cannot recognize Alluxio classes.%n%n", nodeAddresses);
+          break;
+        case FAIL_TO_FIND_FS:
+          canFindFS = false;
+          reportWriter.printf("Nodes of IP addresses: %s "
+              + "cannot recognize Alluxio filesystem.%n%n", nodeAddresses);
+          break;
+        default:
+          reportWriter.printf("Nodes of IP addresses: %s "
+              + "can recognize Alluxio filesystem.%n%n", nodeAddresses);
+      }
+    }
+    return canFindClass ? (canFindFS ? Status.SUCCESS : Status.FAIL_TO_FIND_FS)
+        : Status.FAIL_TO_FIND_CLASS;
   }
 }
