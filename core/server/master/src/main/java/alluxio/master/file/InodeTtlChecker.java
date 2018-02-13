@@ -63,7 +63,7 @@ final class InodeTtlChecker implements HeartbeatExecutor {
           path = inodePath.getUri();
         } catch (FileDoesNotExistException e) {
           // The inode has already been deleted, nothing needs to be done.
-          return;
+          continue;
         } catch (Exception e) {
           LOG.error("Exception trying to clean up {} for ttl check: {}", inode.toString(),
               e.toString());
