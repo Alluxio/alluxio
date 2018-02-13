@@ -70,7 +70,7 @@ public final class CheckerUtils {
     try {
       address = InetAddress.getLocalHost().getHostAddress();
     } catch (UnknownHostException e) {
-      LOG.warn("Cannot get host address of current node.");
+      LOG.warn("Cannot get local address of current node.");
       address = "unknown address";
     }
     return address;

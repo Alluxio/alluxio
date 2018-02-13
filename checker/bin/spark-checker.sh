@@ -82,7 +82,11 @@ function find_spark_path() {
   fi
 
   if [[ "${SPARK_SUBMIT}" == "" ]]; then
-    echo -e "Please set SPARK_HOME before running Spark integration checker." >&2
+    if [[ "${SPARK_HOME}" != "" ]]; then
+      echo -e "Cannot find spark-submit in your SPARK_HOME: ${SPARK_HOME}, please check your SPARK_HOME." >&2
+    else
+      echo -e "Please set SPARK_HOME before running Spark integration checker." >&2
+    fi
     exit 1
   fi
 }

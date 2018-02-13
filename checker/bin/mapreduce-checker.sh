@@ -28,7 +28,7 @@ where NUM_MAPS is an optional argument which affects the number of map tasks in 
 ALLUXIO_PATH=$(cd "${BIN}/../../"; pwd)
 ALLUXIO_JAR_PATH=""
 HADOOP_LOCATION=""
-INPUT_SPLITS="${1:-10}";
+NUM_MAPS="${1:-10}";
 
 # Find the location of hadoop in order to trigger Hadoop job
 function find_hadoop_path() {
@@ -63,7 +63,11 @@ function find_hadoop_path() {
   fi
 
   if [[ "${HADOOP_LOCATION}" == "" ]]; then
-    echo -e "Please set HADOOP_HOME before running MapReduce integration checker." >&2
+    if [[ "${HADOOP_HOME}" != "" ]]; then
+      echo -e "Cannot find executable file hadoop in your HADOOP_HOME: ${HADOOP_HOME}, please check your HADOOP_HOME." >&2
+    else
+      echo -e "Please set HADOOP_HOME before running MapReduce integration checker." >&2
+    fi
     exit 1
   fi
 }
@@ -71,14 +75,14 @@ function find_hadoop_path() {
 function trigger_mapreduce() {
   # Without -libjars, we assume that the Alluxio client jar has already been distributed on the classpath of all Hadoop nodes
   ${LAUNCHER} "${HADOOP_LOCATION}" jar "${BIN}/../target/alluxio-checker-${VERSION}-jar-with-dependencies.jar" \
-    alluxio.checker.MapReduceIntegrationChecker "${INPUT_SPLITS}"
+    alluxio.checker.MapReduceIntegrationChecker "${NUM_MAPS}"
 
   # Use -libjars if the previous attempt failed because of unable to find Alluxio classes and add remind information
   if [[ "$?" == 2 ]]; then
     ${LAUNCHER} "${HADOOP_LOCATION}" jar "${BIN}/../target/alluxio-checker-${VERSION}-jar-with-dependencies.jar" \
-      alluxio.checker.MapReduceIntegrationChecker -libjars "${ALLUXIO_JAR_PATH}" "${INPUT_SPLITS}"
+      alluxio.checker.MapReduceIntegrationChecker -libjars "${ALLUXIO_JAR_PATH}" "${NUM_MAPS}"
 
-    echo "Please use the -libjars command line option when using hadoop jar ..., specifying "${ALLUXIO_JAR_PATH}" as the argument of -libjars." \
+    echo "Please use the -libjars command line option when using hadoop jar ..., specifying ${ALLUXIO_JAR_PATH} as the argument of -libjars." \
       >> "./MapReduceIntegrationReport.txt"
   fi
 }

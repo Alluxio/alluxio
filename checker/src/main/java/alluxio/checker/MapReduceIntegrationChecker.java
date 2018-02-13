@@ -16,9 +16,9 @@ import alluxio.checker.CheckerUtils.Status;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.NullWritable;
-import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.io.Writable;
 import org.apache.hadoop.io.WritableUtils;
@@ -82,6 +82,7 @@ public class MapReduceIntegrationChecker {
   static class CheckerInputFormat
       extends InputFormat<IntWritable, NullWritable> {
     public static boolean sCreateDone = false;
+
     /**
      * An input split consisting of an integer 1.
      */
@@ -116,7 +117,7 @@ public class MapReduceIntegrationChecker {
     }
 
     /**
-     * A record reader that will generate an integer.
+     * A record reader converting input to record-oriented view.
      */
     static class CheckerRecordReader
         extends RecordReader<IntWritable, NullWritable> {
@@ -147,7 +148,7 @@ public class MapReduceIntegrationChecker {
       }
 
       @Override
-      public float getProgress() throws IOException {
+      public float getProgress() {
         if (sCreateDone) {
           return 1.0f;
         } else {
@@ -232,7 +233,7 @@ public class MapReduceIntegrationChecker {
    * @param conf Hadoop configuration
    */
   private void createHdfsFilesystem(Configuration conf) throws Exception {
-    // Inits HDFS File System Object
+    // Inits HDFS file system object
     mFileSystem = FileSystem.get(URI.create(conf.get("fs.defaultFS")), conf);
     mOutputFilePath = new Path("./MapReduceOutputFile");
     if (mFileSystem.exists(mOutputFilePath)) {
