@@ -17,9 +17,8 @@ if [[ "$-" == *x* ]]; then
 fi
 BIN=$(cd "$( dirname "$( readlink "$0" || echo "$0" )" )"; pwd)
 
-USAGE="Usage: alluxio-checker.sh mapreduce [INPUT_SPLITS]
-where INPUT_SPLITS is an optional argument which defines the number of input files
-  and affects the number of map tasks in MapReduce job of integration checker.
+USAGE="Usage: alluxio-checker.sh mapreduce [NUM_MAPS]
+where NUM_MAPS is an optional argument which affects the number of map tasks in MapReduce job of integration checker.
   We recommend users to set this number according to your Hadoop cluster size,
   so that MapReduce integration checker can check more Hadoop nodes.
   By default, the INPUT_SPLITS is 10.

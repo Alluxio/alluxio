@@ -20,42 +20,42 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 
 /**
- * Class for convenience methods used by {@link MapReduceIntegrationChecker}
- * and {@link SparkIntegrationChecker}.
+ * Class for common methods used by integration checkers.
  */
-public final class CommonCheckerUtils {
-  private static final Logger LOG = LoggerFactory.getLogger(CommonCheckerUtils.class);
+public final class CheckerUtils {
+  private static final Logger LOG = LoggerFactory.getLogger(CheckerUtils.class);
 
-  private CommonCheckerUtils() {} // prevent instantiation
+  private CheckerUtils() {} // prevent instantiation
 
-  protected enum Status {
+  /** The performIntegrationChecks results. */
+  public enum Status {
     FAIL_TO_FIND_CLASS, // Current node cannot recognize Alluxio classes
     FAIL_TO_FIND_FS, // Current node cannot recognize Alluxio filesystem
-    FAIL_TO_SUPPORT_HA, // Spark driver cannot support Alluxio-HA mode
+    FAIL_TO_SUPPORT_HA, // Alluxio HA configuration is invalid
     SUCCESS;
   }
 
   /**
-   * @return if this current node can recognize Alluxio classes and filesystem
+   * @return if the current node can recognize Alluxio classes and filesystem
    */
-  protected static Status performIntegrationChecks() {
-    // Checks if current node can recognize Alluxio classes
+  public static Status performIntegrationChecks() {
+    // Checks if the current node can recognize Alluxio classes
     try {
-      // Checks if current node can recognize Alluxio common classes
+      // Checks if the current node can recognize Alluxio common classes
       Class.forName("alluxio.AlluxioURI");
       // Checks if current node can recognize Alluxio core client classes
       Class.forName("alluxio.client.file.BaseFileSystem");
       Class.forName("alluxio.hadoop.AlluxioFileSystem");
     } catch (ClassNotFoundException e) {
-      LOG.error("Failed to find Alluxio classes on classpath ", e);
+      LOG.error("Failed to find Alluxio classes on classpath", e);
       return Status.FAIL_TO_FIND_CLASS;
     }
 
-    // Checks if current node can recognize Alluxio filesystem
+    // Checks if the current node can recognize Alluxio filesystem
     try {
       FileSystem.getFileSystemClass("alluxio", new Configuration());
     } catch (Exception e) {
-      LOG.error("Failed to find Alluxio filesystem ", e);
+      LOG.error("Failed to find Alluxio filesystem", e);
       return Status.FAIL_TO_FIND_FS;
     }
 
@@ -65,12 +65,12 @@ public final class CommonCheckerUtils {
   /**
    * @return the current node IP address
    */
-  protected static String getAddress() {
+  public static String getLocalAddress() {
     String address;
     try {
       address = InetAddress.getLocalHost().getHostAddress();
     } catch (UnknownHostException e) {
-      LOG.debug("Cannot get host address of current node.");
+      LOG.warn("Cannot get host address of current node.");
       address = "unknown address";
     }
     return address;

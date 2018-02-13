@@ -11,31 +11,45 @@
 
 package alluxio.checker;
 
-import alluxio.checker.CommonCheckerUtils.Status;
+import alluxio.checker.CheckerUtils.Status;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.FSDataOutputStream;
+import org.apache.hadoop.io.IntWritable;
+import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.Text;
+import org.apache.hadoop.io.Writable;
+import org.apache.hadoop.io.WritableUtils;
+import org.apache.hadoop.mapreduce.InputFormat;
+import org.apache.hadoop.mapreduce.InputSplit;
 import org.apache.hadoop.mapreduce.Job;
-import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
+import org.apache.hadoop.mapreduce.JobContext;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.Mapper;
+import org.apache.hadoop.mapreduce.MRJobConfig;
+import org.apache.hadoop.mapreduce.RecordReader;
 import org.apache.hadoop.mapreduce.Reducer;
+import org.apache.hadoop.mapreduce.TaskAttemptContext;
 import org.apache.hadoop.util.GenericOptionsParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.BufferedReader;
+import java.io.DataInput;
+import java.io.DataOutput;
 import java.io.File;
-import java.io.InputStreamReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.URI;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 /**
  * A MapReduce job to test the integration of MapReduce with Alluxio.
@@ -59,22 +73,135 @@ public class MapReduceIntegrationChecker {
   private static final String TEST_FAILED_MESSAGE = "***** Integration test failed. *****\n";
   private static final String TEST_PASSED_MESSAGE = "***** Integration test passed. *****\n";
 
-  private Path mInputFilePath;
   private Path mOutputFilePath;
   private FileSystem mFileSystem;
+
+  /**
+   * An input format that assigns an integer to each mapper.
+   */
+  static class CheckerInputFormat
+      extends InputFormat<IntWritable, NullWritable> {
+    public static boolean sCreateDone = false;
+    /**
+     * An input split consisting of an integer 1.
+     */
+    static class CheckerInputSplit extends InputSplit implements Writable {
+      int mValue;
+
+      public CheckerInputSplit() { }
+
+      public CheckerInputSplit(int inputValue) {
+        mValue = inputValue;
+      }
+
+      @Override
+      public long getLength() throws IOException {
+        return 0;
+      }
+
+      @Override
+      public String[] getLocations() throws IOException {
+        return new String[]{};
+      }
+
+      @Override
+      public void readFields(DataInput in) throws IOException {
+        mValue = WritableUtils.readVInt(in);
+      }
+
+      @Override
+      public void write(DataOutput out) throws IOException {
+        WritableUtils.writeVInt(out, mValue);
+      }
+    }
+
+    /**
+     * A record reader that will generate an integer.
+     */
+    static class CheckerRecordReader
+        extends RecordReader<IntWritable, NullWritable> {
+      int mIntegerVal;
+      IntWritable mKey = null;
+
+      public CheckerRecordReader() {
+      }
+
+      @Override
+      public void initialize(InputSplit split, TaskAttemptContext context) {
+        mIntegerVal = ((CheckerInputSplit) split).mValue;
+      }
+
+      @Override
+      public void close() {
+        // NOTHING
+      }
+
+      @Override
+      public IntWritable getCurrentKey() {
+        return mKey;
+      }
+
+      @Override
+      public NullWritable getCurrentValue() {
+        return NullWritable.get();
+      }
+
+      @Override
+      public float getProgress() throws IOException {
+        if (sCreateDone) {
+          return 1.0f;
+        } else {
+          return 0.0f;
+        }
+      }
+
+      @Override
+      public boolean nextKeyValue() {
+        if (mKey == null) {
+          mKey = new IntWritable(mIntegerVal);
+        }
+        if (sCreateDone) {
+          return false;
+        } else {
+          sCreateDone = true;
+          return true;
+        }
+      }
+    }
+
+    @Override
+    public RecordReader<IntWritable, NullWritable> createRecordReader(InputSplit split,
+        TaskAttemptContext context) {
+      return new CheckerRecordReader();
+    }
+
+    /**
+     * Creates the desired number of splits.
+     */
+    @Override
+    public List<InputSplit> getSplits(JobContext job) {
+      int numSplits = job.getConfiguration().getInt(MRJobConfig.NUM_MAPS, 1);
+      List<InputSplit> splits = new ArrayList<>();
+      for (int split = 0; split < numSplits; split++) {
+        splits.add(new CheckerInputSplit(1));
+      }
+      return splits;
+    }
+  }
 
   /**
    * In each mapper node, we will check whether this node can recognize
    * Alluxio classes and filesystem.
    */
-  protected static class CheckStatusMapper extends Mapper<Object, Text, Text, Text> {
+  protected static class CheckStatusMapper extends Mapper<IntWritable, NullWritable, Text, Text> {
     /**
      * Records the Status and IP address of each mapper task node.
      */
-    protected void map(Object key, Text value, Context context)
+    @Override
+    protected void map(IntWritable key, NullWritable value, Context context)
         throws IOException, InterruptedException {
-      context.write(new Text(CommonCheckerUtils.performIntegrationChecks().toString()),
-          new Text(CommonCheckerUtils.getAddress()));
+      context.write(new Text(CheckerUtils.performIntegrationChecks().toString()),
+          new Text(CheckerUtils.getLocalAddress()));
     }
   }
 
@@ -82,64 +209,32 @@ public class MapReduceIntegrationChecker {
    * In each reducer node, we will combine the IP addresses that have the same Status.
    */
   protected static class MergeStatusReducer extends Reducer<Text, Text, Text, Text> {
-    private Text mMergedAddress = new Text();
-
     /**
      * Merges the IP addresses of same Status.
      */
+    @Override
     protected void reduce(Text key, Iterable<Text> values, Context context)
         throws IOException, InterruptedException {
-      String mergedAddress = "";
+      Set<String> addressSet = new HashSet<>();
       for (Text val : values) {
-        String nodeAddress = val.toString();
-        if (!mergedAddress.contains(nodeAddress)) {
-          mergedAddress = mergedAddress + " " + nodeAddress;
+        String curAddress = val.toString();
+        if (!addressSet.contains(curAddress)) {
+          addressSet.add(curAddress);
         }
       }
-      mMergedAddress.set(mergedAddress);
-      context.write(key, mMergedAddress);
+      context.write(key, new Text(String.join(" ", addressSet)));
     }
   }
 
   /**
-   * Creates the HDFS filesystem to generate input and output files.
+   * Creates the HDFS filesystem to store output files.
    *
    * @param conf Hadoop configuration
    */
   private void createHdfsFilesystem(Configuration conf) throws Exception {
     // Inits HDFS File System Object
-    String systemUserName = System.getProperty("user.name");
-    System.setProperty("HADOOP_USER_NAME", systemUserName);
-    System.setProperty("hadoop.home.dir", "/");
     mFileSystem = FileSystem.get(URI.create(conf.get("fs.defaultFS")), conf);
-
-    String stringPath = "/user/" + systemUserName + "/";
-    Path userPath = new Path(stringPath);
-
-    // Creates user folder if not exists
-    if (!mFileSystem.exists(userPath)) {
-      mFileSystem.mkdirs(userPath);
-      LOG.info("User Path " + stringPath + " created.");
-    }
-    mInputFilePath = new Path(userPath + "/MapReduceInputFile");
-    mOutputFilePath = new Path(userPath + "/MapReduceOutputFile");
-  }
-
-  /**
-   * Creates the MapReduce input file and delete previous output file if exists.
-   */
-  private void createInputFile(int inputSplits) throws Exception {
-    if (!mFileSystem.exists(new Path(mInputFilePath + "/1.txt"))) {
-      LOG.info("Begin Write MapReduce input file into HDFS");
-      for (int i = 1; i <= inputSplits; i++) {
-        FSDataOutputStream inputFileStream = mFileSystem
-            .create(new Path(mInputFilePath + "/" + i + ".txt"));
-        inputFileStream.writeByte(1);
-        inputFileStream.close();
-      }
-      LOG.info("End Write MapReduce input file into HDFS");
-    }
-
+    mOutputFilePath = new Path("./MapReduceOutputFile");
     if (mFileSystem.exists(mOutputFilePath)) {
       mFileSystem.delete(mOutputFilePath, true);
     }
@@ -150,8 +245,8 @@ public class MapReduceIntegrationChecker {
    */
   private Status generateReport() throws Exception {
     // Reads all the part-r-* files in MapReduceOutPutFile folder
-    mFileSystem.delete(new Path(mOutputFilePath + "/_SUCCESS"), true);
-    FileStatus[] outputFileStatus = mFileSystem.listStatus(mOutputFilePath);
+    FileStatus[] outputFileStatus = mFileSystem.listStatus(mOutputFilePath,
+        path -> path.getName().startsWith(("part-")));
 
     boolean canFindClass = true;
     boolean canFindFS = true;
@@ -167,8 +262,8 @@ public class MapReduceIntegrationChecker {
         String nextLine = "";
         while ((nextLine = curOutputFileReader.readLine()) != null) {
           Status curOutputStatus = Status.valueOf(nextLine
-              .substring(0, nextLine.indexOf(' ')).trim());
-          String curOutputAddresses = nextLine.substring(nextLine.indexOf(' ') + 1).trim();
+              .substring(0, nextLine.indexOf(";")).trim());
+          String curOutputAddresses = nextLine.substring(nextLine.indexOf(";") + 1).trim();
           switch (curOutputStatus) {
             case FAIL_TO_FIND_CLASS:
               canFindClass = false;
@@ -226,19 +321,6 @@ public class MapReduceIntegrationChecker {
   }
 
   /**
-   * Cleans the HDFS input and output files.
-   */
-  private void cleanFileSystem() throws Exception {
-    if (mFileSystem.exists(mInputFilePath)) {
-      mFileSystem.delete(mInputFilePath, true);
-    }
-    if (mFileSystem.exists(mOutputFilePath)) {
-      mFileSystem.delete(mOutputFilePath, true);
-    }
-    mFileSystem.close();
-  }
-
-  /**
    * Implements MapReduce with Alluxio integration checker.
    *
    * @return 0 for success, 2 for unable to find Alluxio classes, 1 otherwise
@@ -246,10 +328,10 @@ public class MapReduceIntegrationChecker {
   private int run(String[] args) throws Exception {
     Configuration conf = new Configuration();
     String[] otherArgs =  new GenericOptionsParser(conf, args).getRemainingArgs();
-
+    conf.set(MRJobConfig.NUM_MAPS, otherArgs[0]);
+    conf.set("mapred.textoutputformat.separator", ";"); // Supports Hadoop 1.x
+    conf.set("mapreduce.textoutputformat.separator", ";"); // Supports Hadoop 2.x
     createHdfsFilesystem(conf);
-    int inputSplits = Integer.parseInt(otherArgs[0]);
-    createInputFile(inputSplits);
 
     Job job = Job.getInstance(conf, "MapReduceIntegrationChecker");
     job.setJarByClass(MapReduceIntegrationChecker.class);
@@ -258,19 +340,22 @@ public class MapReduceIntegrationChecker {
     job.setReducerClass(MergeStatusReducer.class);
     job.setOutputKeyClass(Text.class);
     job.setOutputValueClass(Text.class);
-
-    FileInputFormat.addInputPath(job, mInputFilePath);
+    job.setInputFormatClass(CheckerInputFormat.class);
     FileOutputFormat.setOutputPath(job, mOutputFilePath);
 
-    if (!job.waitForCompletion(true)) {
-      cleanFileSystem();
-      return 1;
+    try {
+      if (!job.waitForCompletion(true)) {
+        return 1;
+      }
+      Status resultStatus = generateReport();
+      return resultStatus.equals(Status.SUCCESS) ? 0
+          : (resultStatus.equals(Status.FAIL_TO_FIND_CLASS) ? 2 : 1);
+    } finally {
+      if (mFileSystem.exists(mOutputFilePath)) {
+        mFileSystem.delete(mOutputFilePath, true);
+      }
+      mFileSystem.close();
     }
-
-    Status resultStatus = generateReport();
-    cleanFileSystem();
-    return resultStatus.equals(Status.SUCCESS) ? 0
-        : (resultStatus.equals(Status.FAIL_TO_FIND_CLASS) ? 2 : 1);
   }
 
   /**

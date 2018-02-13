@@ -12,7 +12,7 @@
 package alluxio.checker;
 
 import alluxio.PropertyKey;
-import alluxio.checker.CommonCheckerUtils.Status;
+import alluxio.checker.CheckerUtils.Status;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
@@ -80,7 +80,7 @@ public class SparkIntegrationChecker implements Serializable{
    */
   private Status run(JavaSparkContext sc, PrintWriter reportWriter) {
     // Checks whether Spark driver can recognize Alluxio classes and filesystem
-    Status driverStatus = CommonCheckerUtils.performIntegrationChecks();
+    Status driverStatus = CheckerUtils.performIntegrationChecks();
     String driverAddress = sc.getConf().get("spark.driver.host");
     switch (driverStatus) {
       case FAIL_TO_FIND_CLASS:
@@ -126,8 +126,8 @@ public class SparkIntegrationChecker implements Serializable{
 
     // Runs a Spark job to check whether Spark executors can recognize Alluxio
     JavaPairRDD<Status, String> extractedStatus = dataSet
-        .mapToPair(s -> new Tuple2<>(CommonCheckerUtils.performIntegrationChecks(),
-            CommonCheckerUtils.getAddress()));
+        .mapToPair(s -> new Tuple2<>(CheckerUtils.performIntegrationChecks(),
+            CheckerUtils.getLocalAddress()));
 
     // Merges the IP addresses that can/cannot recognize Alluxio
     JavaPairRDD<Status, String> mergeStatus = extractedStatus.reduceByKey((a, b)
