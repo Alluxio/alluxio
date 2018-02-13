@@ -1911,6 +1911,49 @@ public final class FileSystemMasterTest {
             .getUfsFingerprint());
   }
 
+  @Test
+  public void propagatePersisted() throws Exception {
+    AlluxioURI nestedFile = new AlluxioURI("/nested1/nested2/file");
+    AlluxioURI parent1 = new AlluxioURI("/nested1/");
+    AlluxioURI parent2 = new AlluxioURI("/nested1/nested2/");
+
+    createFileWithSingleBlock(nestedFile);
+
+    // Nothing is persisted yet.
+    assertEquals(PersistenceState.NOT_PERSISTED.toString(),
+        mFileSystemMaster.getFileInfo(nestedFile, GetStatusOptions.defaults())
+            .getPersistenceState());
+    assertEquals(PersistenceState.NOT_PERSISTED.toString(),
+        mFileSystemMaster.getFileInfo(parent1, GetStatusOptions.defaults()).getPersistenceState());
+    assertEquals(PersistenceState.NOT_PERSISTED.toString(),
+        mFileSystemMaster.getFileInfo(parent2, GetStatusOptions.defaults()).getPersistenceState());
+
+    // Persist the file.
+    mFileSystemMaster.setAttribute(nestedFile, SetAttributeOptions.defaults().setPersisted(true));
+
+    // Everything component should be persisted.
+    assertEquals(PersistenceState.PERSISTED.toString(),
+        mFileSystemMaster.getFileInfo(nestedFile, GetStatusOptions.defaults())
+            .getPersistenceState());
+    assertEquals(PersistenceState.PERSISTED.toString(),
+        mFileSystemMaster.getFileInfo(parent1, GetStatusOptions.defaults()).getPersistenceState());
+    assertEquals(PersistenceState.PERSISTED.toString(),
+        mFileSystemMaster.getFileInfo(parent2, GetStatusOptions.defaults()).getPersistenceState());
+
+    // Simulate restart.
+    stopServices();
+    startServices();
+
+    // Everything component should be persisted.
+    assertEquals(PersistenceState.PERSISTED.toString(),
+        mFileSystemMaster.getFileInfo(nestedFile, GetStatusOptions.defaults())
+            .getPersistenceState());
+    assertEquals(PersistenceState.PERSISTED.toString(),
+        mFileSystemMaster.getFileInfo(parent1, GetStatusOptions.defaults()).getPersistenceState());
+    assertEquals(PersistenceState.PERSISTED.toString(),
+        mFileSystemMaster.getFileInfo(parent2, GetStatusOptions.defaults()).getPersistenceState());
+  }
+
   private long createFileWithSingleBlock(AlluxioURI uri) throws Exception {
     mFileSystemMaster.createFile(uri, mNestedFileOptions);
     long blockId = mFileSystemMaster.getNewBlockIdForFile(uri);
