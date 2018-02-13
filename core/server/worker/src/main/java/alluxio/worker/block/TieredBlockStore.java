@@ -31,6 +31,7 @@ import alluxio.worker.block.allocator.Allocator;
 import alluxio.worker.block.evictor.BlockTransferInfo;
 import alluxio.worker.block.evictor.EvictionPlan;
 import alluxio.worker.block.evictor.Evictor;
+import alluxio.worker.block.evictor.Evictor.Mode;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.BlockWriter;
 import alluxio.worker.block.io.LocalFileBlockReader;
@@ -236,7 +237,7 @@ public class TieredBlockStore implements BlockStore {
         // Failed to create a temp block, so trigger Evictor to make some space.
         // NOTE: a successful {@link freeSpaceInternal} here does not ensure the subsequent
         // allocation also successful, because these two operations are not atomic.
-        freeSpaceInternal(sessionId, initialBlockSize, location);
+        freeSpaceInternal(sessionId, initialBlockSize, location, Mode.GUUARANTEED);
       }
       // TODO(bin): We are probably seeing a rare transient failure, maybe define and throw some
       // other types of exception to indicate this case.
@@ -317,7 +318,7 @@ public class TieredBlockStore implements BlockStore {
         // Failed to create a temp block, so trigger Evictor to make some space.
         // NOTE: a successful {@link freeSpaceInternal} here does not ensure the subsequent
         // allocation also successful, because these two operations are not atomic.
-        freeSpaceInternal(sessionId, additionalBytes, requestResult.getSecond());
+        freeSpaceInternal(sessionId, additionalBytes, requestResult.getSecond(), Mode.GUUARANTEED);
       }
       // TODO(bin): We are probably seeing a rare transient failure, maybe define and throw some
       // other types of exception to indicate this case.
@@ -371,7 +372,7 @@ public class TieredBlockStore implements BlockStore {
         // Failed to create a temp block, so trigger Evictor to make some space.
         // NOTE: a successful {@link freeSpaceInternal} here does not ensure the subsequent
         // allocation also successful, because these two operations are not atomic.
-        freeSpaceInternal(sessionId, result.getBlockSize(), newLocation);
+        freeSpaceInternal(sessionId, result.getBlockSize(), newLocation, Mode.GUUARANTEED);
       }
       // TODO(bin): We are probably seeing a rare transient failure, maybe define and throw some
       // other types of exception to indicate this case.
@@ -416,8 +417,7 @@ public class TieredBlockStore implements BlockStore {
   @Override
   public void freeSpace(long sessionId, long availableBytes, BlockStoreLocation location)
       throws BlockDoesNotExistException, WorkerOutOfSpaceException, IOException {
-    // TODO(bin): Consider whether to retry here.
-    freeSpaceInternal(sessionId, availableBytes, location);
+    freeSpaceInternal(sessionId, availableBytes, location, Mode.BEST_EFFORT);
   }
 
   @Override
@@ -671,13 +671,14 @@ public class TieredBlockStore implements BlockStore {
    * @param sessionId the session id
    * @param availableBytes amount of space in bytes to free
    * @param location location of space
+   * @param mode the eviction mode
    * @throws WorkerOutOfSpaceException if it is impossible to achieve the free requirement
    */
-  private void freeSpaceInternal(long sessionId, long availableBytes, BlockStoreLocation location)
-      throws WorkerOutOfSpaceException, IOException {
+  private void freeSpaceInternal(long sessionId, long availableBytes, BlockStoreLocation location,
+      Evictor.Mode mode) throws WorkerOutOfSpaceException, IOException {
     EvictionPlan plan;
     try (LockResource r = new LockResource(mMetadataReadLock)) {
-      plan = mEvictor.freeSpaceWithView(availableBytes, location, getUpdatedView());
+      plan = mEvictor.freeSpaceWithView(availableBytes, location, getUpdatedView(), mode);
       // Absent plan means failed to evict enough space.
       if (plan == null) {
         throw new WorkerOutOfSpaceException(ExceptionMessage.NO_EVICTION_PLAN_TO_FREE_SPACE);

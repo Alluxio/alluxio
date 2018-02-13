@@ -120,7 +120,7 @@ public interface BlockWorker extends Worker, SessionCleanable {
       throws BlockAlreadyExistsException, WorkerOutOfSpaceException, IOException;
 
   /**
-   * Frees space to make a specific amount of bytes available in the tier.
+   * Frees space to make a specific amount of bytes available in a best-effort way in the tier.
    *
    * @param sessionId the session id
    * @param availableBytes the amount of free space in bytes

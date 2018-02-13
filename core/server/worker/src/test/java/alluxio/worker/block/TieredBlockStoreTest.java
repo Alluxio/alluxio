@@ -12,9 +12,9 @@
 package alluxio.worker.block;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.assertFalse;
 
 import alluxio.exception.BlockAlreadyExistsException;
 import alluxio.exception.BlockDoesNotExistException;
@@ -294,6 +294,22 @@ public final class TieredBlockStoreTest {
     TieredBlockStoreTestUtils.cache(SESSION_ID1, BLOCK_ID1, BLOCK_SIZE, mTestDir1, mMetaManager,
         mEvictor);
     mBlockStore.freeSpace(SESSION_ID1, mTestDir1.getCapacityBytes(),
+        mTestDir1.toBlockStoreLocation());
+    // Expect BLOCK_ID1 to be moved out of mTestDir1
+    assertEquals(mTestDir1.getCapacityBytes(), mTestDir1.getAvailableBytes());
+    assertFalse(mTestDir1.hasBlockMeta(BLOCK_ID1));
+    assertFalse(FileUtils.exists(BlockMeta.commitPath(mTestDir1, BLOCK_ID1)));
+  }
+
+  /**
+   * Tests the {@link TieredBlockStore#freeSpace(long, long, BlockStoreLocation)} method.
+   */
+  @Test
+  public void freeSpaceMoreThanCapacity() throws Exception {
+    TieredBlockStoreTestUtils.cache(SESSION_ID1, BLOCK_ID1, BLOCK_SIZE, mTestDir1, mMetaManager,
+        mEvictor);
+    // this call works because the space is freed in a best-effort way to move BLOCK_ID1 out
+    mBlockStore.freeSpace(SESSION_ID1, mTestDir1.getCapacityBytes() * 2,
         mTestDir1.toBlockStoreLocation());
     // Expect BLOCK_ID1 to be moved out of mTestDir1
     assertEquals(mTestDir1.getCapacityBytes(), mTestDir1.getAvailableBytes());

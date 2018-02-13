@@ -68,11 +68,12 @@ public abstract class AbstractEvictor extends AbstractBlockStoreEventListener im
    * @param location target location to evict blocks from
    * @param plan the plan to be recursively updated, is empty when first called in
    *        {@link #freeSpaceWithView(long, BlockStoreLocation, BlockMetadataManagerView)}
+   * @param mode the eviction mode
    * @return the first {@link StorageDirView} in the range of location to evict/move bytes from, or
    *         null if there is no plan
    */
   protected StorageDirView cascadingEvict(long bytesToBeAvailable, BlockStoreLocation location,
-      EvictionPlan plan) {
+      EvictionPlan plan, Mode mode) {
     location = updateBlockStoreLocation(bytesToBeAvailable, location);
 
     // 1. If bytesToBeAvailable can already be satisfied without eviction, return the eligible
@@ -107,7 +108,7 @@ public abstract class AbstractEvictor extends AbstractBlockStoreEventListener im
     }
 
     // 3. If there is no eligible StorageDirView, return null
-    if (dirCandidates.candidateSize() < bytesToBeAvailable) {
+    if (mode == Mode.GUUARANTEED && dirCandidates.candidateSize() < bytesToBeAvailable) {
       return null;
     }
 
@@ -142,7 +143,7 @@ public abstract class AbstractEvictor extends AbstractBlockStoreEventListener im
               BlockStoreLocation.anyDirInTier(nextTierView.getTierViewAlias()), mManagerView);
           if (nextDirView == null) {
             nextDirView = cascadingEvict(block.getBlockSize(),
-                BlockStoreLocation.anyDirInTier(nextTierView.getTierViewAlias()), plan);
+                BlockStoreLocation.anyDirInTier(nextTierView.getTierViewAlias()), plan, mode);
           }
           if (nextDirView == null) {
             // If we failed to find a dir in the next tier to move this block, evict it and
@@ -167,12 +168,18 @@ public abstract class AbstractEvictor extends AbstractBlockStoreEventListener im
   @Override
   public EvictionPlan freeSpaceWithView(long bytesToBeAvailable, BlockStoreLocation location,
       BlockMetadataManagerView view) {
+    return freeSpaceWithView(bytesToBeAvailable, location, view, Mode.GUUARANTEED);
+  }
+
+  @Override
+  public EvictionPlan freeSpaceWithView(long bytesToBeAvailable, BlockStoreLocation location,
+      BlockMetadataManagerView view, Mode mode) {
     mManagerView = view;
 
     List<BlockTransferInfo> toMove = new ArrayList<>();
     List<Pair<Long, BlockStoreLocation>> toEvict = new ArrayList<>();
     EvictionPlan plan = new EvictionPlan(toMove, toEvict);
-    StorageDirView candidateDir = cascadingEvict(bytesToBeAvailable, location, plan);
+    StorageDirView candidateDir = cascadingEvict(bytesToBeAvailable, location, plan, mode);
 
     mManagerView.clearBlockMarks();
     if (candidateDir == null) {
