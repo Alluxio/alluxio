@@ -11,21 +11,16 @@
 
 package alluxio.worker;
 
-import alluxio.exception.status.UnavailableException;
-
 import javax.annotation.concurrent.ThreadSafe;
-
-import java.net.InetSocketAddress;
 
 /**
  * Client for determining a worker is serving RPCs.
  */
 @ThreadSafe
-public interface WorkerInquireClient {
+public interface WorkerHealthCheck {
   /**
-   * @return the rpc address of the worker. The implementation should perform retries if
-   *         appropriate
-   * @throws UnavailableException if the rpc address cannot be determined
+   * @return true if the worker is serving RPC, otherwise false. The implementation should
+   *         perform retries if appropriate
    */
-  InetSocketAddress getRpcAddress() throws UnavailableException;
+  boolean isServing();
 }

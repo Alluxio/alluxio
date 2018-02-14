@@ -11,7 +11,6 @@
 
 package alluxio.worker;
 
-import alluxio.exception.status.UnavailableException;
 import alluxio.retry.ExponentialBackoffRetry;
 import alluxio.util.network.NetworkAddressUtils;
 
@@ -30,16 +29,13 @@ public final class AlluxioWorkerMonitor {
    * @param args command line arguments, should be empty
    */
   public static void main(String[] args) {
-    WorkerInquireClient inquireClient = new PollingWorkerInquireClient(
+    WorkerHealthCheck inquireClient = new PollingWorkerHealthCheck(
             NetworkAddressUtils.getConnectAddress(NetworkAddressUtils.ServiceType.WORKER_RPC), () ->
             new ExponentialBackoffRetry(50, 100, 2));
-    try {
-      inquireClient.getRpcAddress();
-    } catch (UnavailableException e) {
-      System.err.println("The worker is not currently serving requests.");
-      System.exit(1);
-    }
-    System.exit(0);
+      if(!inquireClient.isServing()) {
+        System.exit(1);
+      }
+      System.exit(0);
   }
 
   private AlluxioWorkerMonitor() {} // prevent instantiation

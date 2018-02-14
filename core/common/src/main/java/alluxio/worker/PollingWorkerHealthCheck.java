@@ -13,7 +13,6 @@ package alluxio.worker;
 
 import alluxio.Constants;
 import alluxio.exception.status.UnauthenticatedException;
-import alluxio.exception.status.UnavailableException;
 import alluxio.retry.RetryPolicy;
 import alluxio.security.authentication.TransportProvider;
 
@@ -25,17 +24,15 @@ import org.apache.thrift.transport.TTransportException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nullable;
-
 import java.net.InetSocketAddress;
 import java.util.function.Supplier;
 
 /**
- * PollingWorkerInquireClient finds the address of the worker by checking if the address is
+ * PollingWorkerHealthCheck finds the address of the worker by checking if the address is
  * serving RPC.
  */
-public class PollingWorkerInquireClient implements WorkerInquireClient {
-  private static final Logger LOG = LoggerFactory.getLogger(PollingWorkerInquireClient.class);
+public class PollingWorkerHealthCheck implements WorkerHealthCheck {
+  private static final Logger LOG = LoggerFactory.getLogger(PollingWorkerHealthCheck.class);
 
   private final InetSocketAddress mWorkerAddress;
   private final Supplier<RetryPolicy> mRetryPolicySupplier;
@@ -44,31 +41,28 @@ public class PollingWorkerInquireClient implements WorkerInquireClient {
    * @param workerAddress The potential worker address
    * @param retryPolicySupplier the retry policy supplier
    */
-  public PollingWorkerInquireClient(InetSocketAddress workerAddress,
-                                    Supplier<RetryPolicy> retryPolicySupplier) {
+  public PollingWorkerHealthCheck(InetSocketAddress workerAddress,
+                                  Supplier<RetryPolicy> retryPolicySupplier) {
     mWorkerAddress = workerAddress;
     mRetryPolicySupplier = retryPolicySupplier;
   }
 
   @Override
-  @Nullable
-  public InetSocketAddress getRpcAddress() throws UnavailableException {
+  public boolean isServing() {
     RetryPolicy retry = mRetryPolicySupplier.get();
     do {
       try {
         LOG.debug("Checking whether {} is listening for RPCs", mWorkerAddress);
         pingWorkerService(mWorkerAddress);
         LOG.debug("Successfully connected to {}", mWorkerAddress);
-        return mWorkerAddress;
+        return true;
       } catch (TTransportException e) {
         LOG.debug("Failed to connect to {}", mWorkerAddress);
       } catch (UnauthenticatedException e) {
         throw new RuntimeException(e);
       }
     } while (retry.attemptRetry());
-    throw new UnavailableException(String.format(
-            "Failed to determine worker rpc address after polling %s %d times",
-            mWorkerAddress, retry.getRetryCount()));
+    return false;
   }
 
   private void pingWorkerService(InetSocketAddress address)
