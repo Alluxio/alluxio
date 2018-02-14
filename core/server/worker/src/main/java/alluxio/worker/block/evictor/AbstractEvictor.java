@@ -108,7 +108,7 @@ public abstract class AbstractEvictor extends AbstractBlockStoreEventListener im
     }
 
     // 3. If there is no eligible StorageDirView, return null
-    if (mode == Mode.GUUARANTEED && dirCandidates.candidateSize() < bytesToBeAvailable) {
+    if (mode == Mode.GUARANTEED && dirCandidates.candidateSize() < bytesToBeAvailable) {
       return null;
     }
 
@@ -116,6 +116,9 @@ public abstract class AbstractEvictor extends AbstractBlockStoreEventListener im
     // there. If allocation fails, the next tier will continue to evict its blocks to free space.
     // Blocks are only evicted from the last tier or it can not be moved to the next tier.
     candidateDirView = dirCandidates.candidateDir();
+    if (candidateDirView == null) {
+      return null;
+    }
     List<Long> candidateBlocks = dirCandidates.candidateBlocks();
     StorageTierView nextTierView = mManagerView.getNextTier(candidateDirView.getParentTierView());
     if (nextTierView == null) {
@@ -168,7 +171,7 @@ public abstract class AbstractEvictor extends AbstractBlockStoreEventListener im
   @Override
   public EvictionPlan freeSpaceWithView(long bytesToBeAvailable, BlockStoreLocation location,
       BlockMetadataManagerView view) {
-    return freeSpaceWithView(bytesToBeAvailable, location, view, Mode.GUUARANTEED);
+    return freeSpaceWithView(bytesToBeAvailable, location, view, Mode.GUARANTEED);
   }
 
   @Override

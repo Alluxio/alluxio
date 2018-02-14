@@ -237,7 +237,7 @@ public class TieredBlockStore implements BlockStore {
         // Failed to create a temp block, so trigger Evictor to make some space.
         // NOTE: a successful {@link freeSpaceInternal} here does not ensure the subsequent
         // allocation also successful, because these two operations are not atomic.
-        freeSpaceInternal(sessionId, initialBlockSize, location, Mode.GUUARANTEED);
+        freeSpaceInternal(sessionId, initialBlockSize, location, Mode.GUARANTEED);
       }
       // TODO(bin): We are probably seeing a rare transient failure, maybe define and throw some
       // other types of exception to indicate this case.
@@ -318,7 +318,7 @@ public class TieredBlockStore implements BlockStore {
         // Failed to create a temp block, so trigger Evictor to make some space.
         // NOTE: a successful {@link freeSpaceInternal} here does not ensure the subsequent
         // allocation also successful, because these two operations are not atomic.
-        freeSpaceInternal(sessionId, additionalBytes, requestResult.getSecond(), Mode.GUUARANTEED);
+        freeSpaceInternal(sessionId, additionalBytes, requestResult.getSecond(), Mode.GUARANTEED);
       }
       // TODO(bin): We are probably seeing a rare transient failure, maybe define and throw some
       // other types of exception to indicate this case.
@@ -372,7 +372,7 @@ public class TieredBlockStore implements BlockStore {
         // Failed to create a temp block, so trigger Evictor to make some space.
         // NOTE: a successful {@link freeSpaceInternal} here does not ensure the subsequent
         // allocation also successful, because these two operations are not atomic.
-        freeSpaceInternal(sessionId, result.getBlockSize(), newLocation, Mode.GUUARANTEED);
+        freeSpaceInternal(sessionId, result.getBlockSize(), newLocation, Mode.GUARANTEED);
       }
       // TODO(bin): We are probably seeing a rare transient failure, maybe define and throw some
       // other types of exception to indicate this case.

@@ -31,7 +31,7 @@ public interface Evictor {
    * The eviction mode.
    */
   enum Mode {
-    BEST_EFFORT, GUUARANTEED
+    BEST_EFFORT, GUARANTEED
   }
 
   /**

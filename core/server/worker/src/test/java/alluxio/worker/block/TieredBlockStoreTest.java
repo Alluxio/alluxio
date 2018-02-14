@@ -426,7 +426,7 @@ public final class TieredBlockStoreTest {
     // session1 locks a block first
     long lockId = mBlockStore.lockBlock(SESSION_ID1, BLOCK_ID1);
 
-    // Expect an exception as no eviction plan is feasible
+    // Expect an empty eviction plan is feasible
     mThrown.expect(WorkerOutOfSpaceException.class);
     mThrown.expectMessage(ExceptionMessage.NO_EVICTION_PLAN_TO_FREE_SPACE.getMessage());
     mBlockStore.freeSpace(SESSION_ID1, mTestDir1.getCapacityBytes(),
