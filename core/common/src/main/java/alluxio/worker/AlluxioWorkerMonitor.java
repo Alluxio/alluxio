@@ -30,12 +30,12 @@ public final class AlluxioWorkerMonitor {
    */
   public static void main(String[] args) {
     WorkerHealthCheck inquireClient = new PollingWorkerHealthCheck(
-            NetworkAddressUtils.getConnectAddress(NetworkAddressUtils.ServiceType.WORKER_RPC), () ->
-            new ExponentialBackoffRetry(50, 100, 2));
-      if(!inquireClient.isServing()) {
-        System.exit(1);
-      }
-      System.exit(0);
+        NetworkAddressUtils.getConnectAddress(NetworkAddressUtils.ServiceType.WORKER_RPC),
+        () -> new ExponentialBackoffRetry(50, 100, 2));
+    if (!inquireClient.isServing()) {
+      System.exit(1);
+    }
+    System.exit(0);
   }
 
   private AlluxioWorkerMonitor() {} // prevent instantiation
