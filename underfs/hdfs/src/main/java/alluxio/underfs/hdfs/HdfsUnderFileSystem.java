@@ -409,7 +409,7 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
           // Alluxio server-side user is required to be a HDFS superuser. If it fails to set owner,
           // proceeds with mkdirs and print out an warning message.
           try {
-            if (!options.getOwner().isEmpty() || !options.getGroup().isEmpty()) {
+            if (options.getOwner() != null || options.getGroup() != null) {
               setOwner(dirToMake.toString(), options.getOwner(), options.getGroup());
             }
           } catch (IOException e) {
