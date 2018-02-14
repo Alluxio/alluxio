@@ -174,7 +174,7 @@ public class MapReduceIntegrationChecker {
    * In each mapper node, we will check whether this node can recognize
    * Alluxio classes and filesystem.
    */
-  protected static class FooMapper extends Mapper<Object, Object, Text, Text> {
+  protected static class CheckerMapper extends Mapper<Object, Object, Text, Text> {
     /**
      * Records the Status and IP address of each mapper task node.
      */
@@ -189,7 +189,7 @@ public class MapReduceIntegrationChecker {
   /**
    * In each reducer node, we will combine the IP addresses that have the same Status.
    */
-  protected static class FooReducer extends Reducer<Text, Text, Text, Text> {
+  protected static class CheckerReducer extends Reducer<Text, Text, Text, Text> {
     /**
      * Merges the IP addresses of same Status.
      */
@@ -280,9 +280,9 @@ public class MapReduceIntegrationChecker {
 
     Job job = Job.getInstance(conf, "MapReduceIntegrationChecker");
     job.setJarByClass(MapReduceIntegrationChecker.class);
-    job.setMapperClass(FooMapper.class);
-    job.setCombinerClass(FooReducer.class);
-    job.setReducerClass(FooReducer.class);
+    job.setMapperClass(CheckerMapper.class);
+    job.setCombinerClass(CheckerReducer.class);
+    job.setReducerClass(CheckerReducer.class);
     job.setOutputKeyClass(Text.class);
     job.setOutputValueClass(Text.class);
     job.setInputFormatClass(EmptyInputFormat.class);

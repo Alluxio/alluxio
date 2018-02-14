@@ -88,6 +88,20 @@ to ensure this jar is on the classpath.
 Note that the jars must be installed again for each update to a new release. On the other hand,
 when the jar is already on every node, then the `-libjars` command line option is not needed.
 
+## Check MapReduce with Alluxio integration (Support MapReduce 2.X so far)
+
+Before running MapReduce on Alluxio, you might want to make sure that your configurations has been 
+setup correctly for integrating with Alluxio. The MapReduce integration checker can help you achieve this. 
+
+When you have a running Hadoop cluster (or standalone), you can run the following command in the Alluxio project directory:
+
+```bash
+$ checker/bin/alluxio-checker.sh mapreduce <num maps> 
+```
+
+You can use `-h` to display the helpful information of this command.
+This command will report potential problems that might prevent you from running MapReduce on Alluxio. 
+
 ## Running Hadoop wordcount with Alluxio Locally
 
 For simplicity, we will assume a pseudo-distributed Hadoop cluster, started by running (depends on
