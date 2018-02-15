@@ -540,8 +540,9 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         if (SecurityUtils.isSecurityEnabled() && !root.getOwner().isEmpty()
             && !root.getOwner().equals(serverOwner)) {
           // user is not the previous owner
-          throw new PermissionDeniedException(
-              ExceptionMessage.PERMISSION_DENIED.getMessage("Unauthorized user on root"));
+          throw new PermissionDeniedException(ExceptionMessage.PERMISSION_DENIED.getMessage(String
+              .format("Unauthorized user on root. inode owner: %s current user: %s",
+                  root.getOwner(), serverOwner)));
         }
       }
 
