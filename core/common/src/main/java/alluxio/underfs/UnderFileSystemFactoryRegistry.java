@@ -84,7 +84,12 @@ import javax.annotation.concurrent.NotThreadSafe;
 public final class UnderFileSystemFactoryRegistry {
   private static final Logger LOG = LoggerFactory.getLogger(UnderFileSystemFactoryRegistry.class);
 
-  /** The base list of factories, which does not include any lib or extension factories. */
+  /**
+   * The base list of factories, which does not include any lib or extension factories. The only
+   * factories in the base list will be the LocalUFS factory, and any additional factories
+   * registered by tests. All other UFS factories will be discovered and service loaded when ufs
+   * creation occurs.
+   */
   private static final List<UnderFileSystemFactory> FACTORIES = new CopyOnWriteArrayList<>();
 
   private static boolean sInit = false;
