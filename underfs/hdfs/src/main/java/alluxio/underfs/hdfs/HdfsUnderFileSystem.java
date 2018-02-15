@@ -496,6 +496,9 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
 
   @Override
   public void setOwner(String path, String user, String group) throws IOException {
+    if (user == null && group == null) {
+      return;
+    }
     try {
       FileStatus fileStatus = mFileSystem.getFileStatus(new Path(path));
       mFileSystem.setOwner(fileStatus.getPath(), user, group);
