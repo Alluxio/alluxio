@@ -138,6 +138,12 @@
                     <exclude>alluxio/underfs/hdfs/HdfsUnderFileSystemFactory.*</exclude>
                   </excludes>
                 </filter>
+                <filter>
+                  <artifact>org.alluxio:alluxio-underfs-hdfs</artifact>
+                  <excludes>
+                    <exclude>META-INF/services/alluxio.underfs.UnderFileSystemFactory</exclude>
+                  </excludes>
+                </filter>
               </filters>
             </configuration>
           </execution>
