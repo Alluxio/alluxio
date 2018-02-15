@@ -81,7 +81,7 @@ Sometimes, you also need to set the `HADOOP_CLASSPATH` environment variable to m
 jar available to the client JVM which is created when you run the hadoop jar command:
 
 ```bash
-$  export HADOOP_CLASSPATH={{site.ALLUXIO_CLIENT_JAR_PATH}}
+$  export HADOOP_CLASSPATH={{site.ALLUXIO_CLIENT_JAR_PATH}}:${HADOOP_CLASSPATH}
 ```
 
 2.**Distributing the client jars to all nodes manually.**

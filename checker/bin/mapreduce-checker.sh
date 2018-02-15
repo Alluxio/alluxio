@@ -70,9 +70,11 @@ function trigger_mapreduce() {
 
   # Use -libjars if the previous attempt failed because of unable to find Alluxio classes and add remind information
   if [[ "$?" == 2 ]]; then
-    echo "Try to use -libjars command line option to help distribute Alluxio client jar." \
-      >> "./MapReduceIntegrationReport.txt"
-    ${LAUNCHER} export HADOOP_CLASSPATH="${ALLUXIO_JAR_PATH}"
+    echo "Re-running integration checker with:"  >> "./MapReduceIntegrationReport.txt"
+    echo "    export HADOOP_CLASSPATH=${ALLUXIO_JAR_PATH}:\${HADOOP_CLASSPATH}"  >> "./MapReduceIntegrationReport.txt"
+    echo "    and add -libjar ${ALLUXIO_JAR_PATH} command line option when using hadoop jar command."  >> "./MapReduceIntegrationReport.txt"
+
+    ${LAUNCHER} export HADOOP_CLASSPATH="${ALLUXIO_JAR_PATH}":${HADOOP_CLASSPATH}
     ${LAUNCHER} "${HADOOP_LOCATION}" jar "${BIN}/../target/alluxio-checker-${VERSION}-jar-with-dependencies.jar" \
       alluxio.checker.MapReduceIntegrationChecker -libjars "${ALLUXIO_JAR_PATH}" "${NUM_MAPS}"
 
