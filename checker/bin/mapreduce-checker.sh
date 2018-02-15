@@ -53,17 +53,6 @@ function find_hadoop_path() {
     }
   fi
 
-  # If ${PATH} has been set
-  if [[ "${HADOOP_LOCATION}" == "" ]] && [[ "${PATH}" != "" ]]; then
-    IFS=':' read -ra PATHARR <<< "$PATH"
-    for p in "${PATHARR[@]}"; do
-      if [ -f "$p/hadoop" ]; then
-        HADOOP_LOCATION="$p"/hadoop
-        break;
-      fi
-    done
-  fi
-
   if [[ "${HADOOP_LOCATION}" == "" ]]; then
     if [[ "${HADOOP_HOME}" != "" ]]; then
       echo -e "Cannot find executable file hadoop in your HADOOP_HOME: ${HADOOP_HOME}, please check your HADOOP_HOME." >&2
