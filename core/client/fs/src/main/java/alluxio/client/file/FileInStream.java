@@ -21,11 +21,12 @@ import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.block.stream.BlockInStream;
 import alluxio.client.file.options.InStreamOptions;
 import alluxio.exception.PreconditionMessage;
-import alluxio.exception.status.AbortedException;
 import alluxio.exception.status.DeadlineExceededException;
+import alluxio.exception.status.UnavailableException;
 import alluxio.network.netty.NettyRPC;
 import alluxio.network.netty.NettyRPCContext;
 import alluxio.proto.dataserver.Protocol;
+import alluxio.retry.CountingRetry;
 import alluxio.util.proto.ProtoMessage;
 import alluxio.wire.WorkerNetAddress;
 
@@ -85,6 +86,16 @@ public class FileInStream extends InputStream implements BoundedStream, Position
   /** Underlying block stream, null if a position change has invalidated the previous stream. */
   private BlockInStream mBlockInStream;
 
+  /** Whether next retry should occur on the same worker or not. */
+  private boolean mRetryCurrentWorker = true;
+
+  /** A set of workers the client fails to read from. */
+  private Set<WorkerNetAddress> mLostWorkers = new HashSet<>();
+
+  /** Policy to determine if we should continue retry. */
+  private CountingRetry mRetry = new CountingRetry(
+      Configuration.getInt(PropertyKey.USER_BLOCK_WORKER_CLIENT_READ_RETRY));
+
   protected FileInStream(URIStatus status, InStreamOptions options, FileSystemContext context) {
     mStatus = status;
     mOptions = options;
@@ -104,26 +115,18 @@ public class FileInStream extends InputStream implements BoundedStream, Position
     if (mPosition == mLength) { // at end of file
       return -1;
     }
-    Set<WorkerNetAddress> lostWorkers = new HashSet<>();
-    int retryLeft = Configuration.getInt(PropertyKey.USER_BLOCK_WORKER_CLIENT_READ_RETRY);
-    boolean retryCurrentWorker = true;
+
+    resetRetry();
     while (true) {
-      updateStream(lostWorkers);
+      updateStream();
       try {
         int result = mBlockInStream.read();
         if (result != -1) {
           mPosition++;
         }
         return result;
-      } catch (AbortedException | DeadlineExceededException | ConnectException e) {
-        if (!retryCurrentWorker) {
-          if (retryLeft <= 0) {
-            throw e;
-          }
-          retryLeft--;
-        }
-        mBlockInStream = prepareForRetry(mBlockInStream, e, lostWorkers, retryCurrentWorker);
-        retryCurrentWorker = false;
+      } catch (UnavailableException | DeadlineExceededException | ConnectException e) {
+        mBlockInStream = prepareForRetry(mBlockInStream, e);
       }
     }
   }
@@ -147,12 +150,9 @@ public class FileInStream extends InputStream implements BoundedStream, Position
 
     int bytesLeft = len;
     int currentOffset = off;
-    int maxRetry = Configuration.getInt(PropertyKey.USER_BLOCK_WORKER_CLIENT_READ_RETRY);
-    int retryLeft = maxRetry;
-    boolean retryCurrentWorker = true;
-    Set<WorkerNetAddress> lostWorkers = new HashSet<>();
+    resetRetry();
     while (bytesLeft > 0 && mPosition != mLength) {
-      updateStream(lostWorkers);
+      updateStream();
       try {
         int bytesRead = mBlockInStream.read(b, currentOffset, bytesLeft);
         if (bytesRead > 0) {
@@ -160,17 +160,9 @@ public class FileInStream extends InputStream implements BoundedStream, Position
           currentOffset += bytesRead;
           mPosition += bytesRead;
         }
-        retryLeft = maxRetry;
-        retryCurrentWorker = true;
-      } catch (AbortedException | ConnectException | DeadlineExceededException e) {
-        if (!retryCurrentWorker) {
-          if (retryLeft <= 0) {
-            throw e;
-          }
-          retryLeft--;
-        }
-        mBlockInStream = prepareForRetry(mBlockInStream, e, lostWorkers, retryCurrentWorker);
-        retryCurrentWorker = false;
+        resetRetry();
+      } catch (UnavailableException | ConnectException | DeadlineExceededException e) {
+        mBlockInStream = prepareForRetry(mBlockInStream, e);
       }
     }
     return len - bytesLeft;
@@ -210,37 +202,33 @@ public class FileInStream extends InputStream implements BoundedStream, Position
     }
 
     int lenCopy = len;
-    int maxRetry = Configuration.getInt(PropertyKey.USER_BLOCK_WORKER_CLIENT_READ_RETRY);
-    int retryLeft = maxRetry;
-    boolean retryCurrentWorker = true;
-    Set<WorkerNetAddress> lostWorkers = new HashSet<>();
+    resetRetry();
     while (len > 0) {
       if (pos >= mLength) {
         break;
       }
       long blockId = mStatus.getBlockIds().get(Math.toIntExact(pos / mBlockSize));
       BlockInStream stream = null;
+      boolean readSucceeded = false;
       try {
-        stream = mBlockStore.getInStream(blockId, mOptions, lostWorkers);
-        long offset = pos % mBlockSize;
-        try {
-          int bytesRead =
-              stream.positionedRead(offset, b, off, (int) Math.min(mBlockSize - offset, len));
-          Preconditions.checkState(bytesRead > 0, "No data is read before EOF");
-          pos += bytesRead;
-          off += bytesRead;
-          len -= bytesRead;
-          retryLeft = maxRetry;
-          retryCurrentWorker = true;
-        } catch (AbortedException | DeadlineExceededException | ConnectException e) {
-          if (!retryCurrentWorker) {
-            if (retryLeft <= 0) {
-              throw e;
-            }
-            retryLeft--;
+        while (!readSucceeded) {
+          if (stream == null) {
+            stream = mBlockStore.getInStream(blockId, mOptions, mLostWorkers);
           }
-          stream = prepareForRetry(stream, e, lostWorkers, retryCurrentWorker);
-          retryCurrentWorker = false;
+          try {
+            long offset = pos % mBlockSize;
+            int bytesRead =
+                stream.positionedRead(offset, b, off, (int) Math.min(mBlockSize - offset, len));
+            Preconditions.checkState(bytesRead > 0, "No data is read before EOF");
+            pos += bytesRead;
+            off += bytesRead;
+            len -= bytesRead;
+            resetRetry();
+            readSucceeded = true;
+          } catch (UnavailableException | DeadlineExceededException | ConnectException e) {
+            stream = prepareForRetry(stream, e);
+            readSucceeded = false;
+          }
         }
       } finally {
         closeBlockInStream(stream);
@@ -282,7 +270,7 @@ public class FileInStream extends InputStream implements BoundedStream, Position
    * Initializes the underlying block stream if necessary. This method must be called before
    * reading from mBlockInStream.
    */
-  private void updateStream(Set<WorkerNetAddress> lostWorkers) throws IOException {
+  private void updateStream() throws IOException {
     if (mBlockInStream != null && mBlockInStream.remaining() > 0) { // can still read from stream
       return;
     }
@@ -295,7 +283,7 @@ public class FileInStream extends InputStream implements BoundedStream, Position
     // Calculate block id.
     long blockId = mStatus.getBlockIds().get(Math.toIntExact(mPosition / mBlockSize));
     // Create stream
-    mBlockInStream = mBlockStore.getInStream(blockId, mOptions, lostWorkers);
+    mBlockInStream = mBlockStore.getInStream(blockId, mOptions, mLostWorkers);
     // Set the stream to the correct position.
     long offset = mPosition % mBlockSize;
     mBlockInStream.seek(offset);
@@ -351,8 +339,17 @@ public class FileInStream extends InputStream implements BoundedStream, Position
     }
   }
 
-  private BlockInStream prepareForRetry(BlockInStream stream, Exception e,
-      Set<WorkerNetAddress> lostWorkers, boolean retryCurrentWorker) {
+  private void resetRetry() {
+    mRetry.reset();
+    mRetryCurrentWorker = true;
+  }
+
+  private BlockInStream prepareForRetry(BlockInStream stream, IOException e)
+      throws IOException {
+    if (!(mRetryCurrentWorker || mRetry.attemptRetry())) {
+      throw e;
+    }
+
     WorkerNetAddress workerAddress = stream.getAddress();
     LOG.warn("Failed to read block {} from worker {}, attempt to retry: {}",
         stream.getId(), workerAddress, e.getMessage());
@@ -363,22 +360,19 @@ public class FileInStream extends InputStream implements BoundedStream, Position
       LOG.warn("Failed to close input stream for block {}: {}", stream.getId(), ex.getMessage());
     }
 
-    if (retryCurrentWorker) {
+    if (mRetryCurrentWorker) {
       try {
         stream = BlockInStream.create(mContext, mOptions.getBlockInfo(stream.getId()),
             workerAddress, stream.getSource(), mOptions);
+        mRetryCurrentWorker = false;
+        return stream;
       } catch (IOException ex) {
-        retryCurrentWorker = false;
         LOG.warn("Failed to retry block {} on the same worker {}: {}",
             stream.getId(), workerAddress, ex.getMessage());
       }
     }
 
-    if (!retryCurrentWorker) {
-      lostWorkers.add(workerAddress);
-      return null;
-    }
-
-    return stream;
+    mLostWorkers.add(workerAddress);
+    return null;
   }
 }
