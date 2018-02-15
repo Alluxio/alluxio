@@ -32,11 +32,13 @@ import org.apache.hadoop.mapreduce.TaskAttemptContext;
 import org.apache.hadoop.util.GenericOptionsParser;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.File;
-import java.io.IOException;
+import java.io.FileWriter;
 import java.io.InputStreamReader;
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.URI;
 import java.text.SimpleDateFormat;
@@ -243,8 +245,14 @@ public class MapReduceIntegrationChecker {
       }
     }
 
-    File reportFile = new File("./MapReduceIntegrationReport.txt");
-    try (PrintWriter reportWriter = new PrintWriter(reportFile)) {
+    // Creates a file to save user-facing messages
+    File file = new File("./MapReduceIntegrationReport.txt");
+    if (!file.exists()) {
+      file.createNewFile();
+    }
+    try (FileWriter fileWriter = new FileWriter(file.getAbsoluteFile(), true);
+         BufferedWriter bufferedWriter = new BufferedWriter(fileWriter);
+         PrintWriter reportWriter = new PrintWriter(bufferedWriter);) {
       // Prints the current time to separate integration checker results
       SimpleDateFormat df = new SimpleDateFormat("dd/MM/yy HH:mm:ss");
       Date date = new Date();
@@ -263,6 +271,7 @@ public class MapReduceIntegrationChecker {
         default:
           reportWriter.println(TEST_PASSED_MESSAGE);
       }
+      reportWriter.flush();
       return resultStatus;
     }
   }

@@ -79,7 +79,7 @@ Alternatively you can add the properties to the previously created Hadoop config
 
 ## Check Spark with Alluxio integration (Supports Spark 2.X)
 
-Before running Spark on Alluxio, you might want to make sure that your Spark configurations has been 
+Before running Spark on Alluxio, you might want to make sure that your Spark configuration has been 
 setup correctly for integrating with Alluxio. The Spark integration checker can help you achieve this. 
 
 When you have a running Spark cluster (or Spark standalone), you can run the following command in the Alluxio project directory:
