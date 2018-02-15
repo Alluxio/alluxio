@@ -40,8 +40,10 @@ SPARK_SUBMIT="";
 
 # Find the location of spark-submit in order to run the Spark job
 function find_spark_path() {
+  [ -f "$(which spark-submit)" ] && SPARK_SUBMIT="$(which spark-submit)"
+
   # Try to find spark_submit in ${SPARK_HOME}
-  if [[ "${SPARK_HOME}" != "" ]]; then
+  if [[ "${SPARK_SUBMIT}" == "" ]] && [[ "${SPARK_HOME}" != "" ]]; then
     {
       [ -f "${SPARK_HOME}/bin/spark-submit" ] && SPARK_SUBMIT="${SPARK_HOME}/bin/spark-submit"
     } || {
@@ -56,7 +58,7 @@ function find_spark_path() {
   fi
 
   # Try to find spark_submit in ${SPARKPATH}
-  if [[ "${SPARK_SUBMIT}" == "" ]]  &&  [[ "${SPARKPATH}" != "" ]]; then
+  if [[ "${SPARK_SUBMIT}" == "" ]] && [[ "${SPARKPATH}" != "" ]]; then
     {
       [ -f "${SPARKPATH}/spark-submit" ] && SPARK_SUBMIT="${SPARKPATH}/spark-submit"
     } || {
@@ -68,17 +70,6 @@ function find_spark_path() {
         done
       fi
     }
-  fi
-
-  # Try to find spark_submit in ${PATH}
-  if [[ "${SPARK_SUBMIT}" == "" ]]  &&  [[ "${PATH}" != "" ]]; then
-    IFS=':' read -ra PATHARR <<< "$PATH"
-    for p in "${PATHARR[@]}"; do
-      if [ -f "$p/spark-submit" ]; then
-        SPARK_SUBMIT="$p/spark-submit"
-        break;
-      fi
-    done
   fi
 
   if [[ "${SPARK_SUBMIT}" == "" ]]; then
