@@ -15,13 +15,18 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.fail;
 
 import alluxio.exception.BlockAlreadyExistsException;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidWorkerStateException;
 import alluxio.exception.WorkerOutOfSpaceException;
+import alluxio.retry.CountingRetry;
+import alluxio.retry.RetryPolicy;
+import alluxio.test.util.ConcurrencyUtils;
 import alluxio.util.io.FileUtils;
+import alluxio.worker.block.evictor.EvictionPlan;
 import alluxio.worker.block.evictor.Evictor;
 import alluxio.worker.block.meta.BlockMeta;
 import alluxio.worker.block.meta.StorageDir;
@@ -33,9 +38,15 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
+import org.mockito.Mockito;
+import org.mockito.invocation.InvocationOnMock;
 
 import java.io.File;
 import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 /**
  * Unit tests for {@link TieredBlockStore}.
@@ -299,6 +310,45 @@ public final class TieredBlockStoreTest {
     assertEquals(mTestDir1.getCapacityBytes(), mTestDir1.getAvailableBytes());
     assertFalse(mTestDir1.hasBlockMeta(BLOCK_ID1));
     assertFalse(FileUtils.exists(BlockMeta.commitPath(mTestDir1, BLOCK_ID1)));
+  }
+
+  /**
+   * Tests the {@link TieredBlockStore#freeSpace(long, long, BlockStoreLocation)} method.
+   */
+  @Test
+  public void freeSpaceThreadSafe() throws Exception {
+    int threadAmount = 10;
+    int count = 100_000;
+    List<Runnable> runnables = new ArrayList<>();
+    Evictor evictor = Mockito.mock(Evictor.class);
+    Set<Long> set = new HashSet<>();
+    Mockito.when(evictor
+        .freeSpaceWithView(Mockito.any(Long.class), Mockito.any(BlockStoreLocation.class),
+            Mockito.any(BlockMetadataManagerView.class)))
+        .thenAnswer((InvocationOnMock invocation) -> {
+              for (int i = 0; i < count; i++) {
+                set.add(System.nanoTime());
+              }
+              return new EvictionPlan(new ArrayList<>(), new ArrayList<>());
+            }
+      );
+    Field field = mBlockStore.getClass().getDeclaredField("mEvictor");
+    field.setAccessible(true);
+    field.set(mBlockStore,
+        evictor);
+    for (int i = 0; i < threadAmount; i++) {
+      runnables.add(() -> {
+        try {
+          mBlockStore.freeSpace(SESSION_ID1, 0, new BlockStoreLocation("MEM", 0));
+        } catch (Exception e) {
+          fail();
+        }
+      });
+    }
+    RetryPolicy retry = new CountingRetry(threadAmount);
+    while (retry.attemptRetry()) {
+      ConcurrencyUtils.assertConcurrent(runnables, threadAmount);
+    }
   }
 
   /**
