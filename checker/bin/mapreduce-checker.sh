@@ -32,8 +32,10 @@ NUM_MAPS="${1:-10}";
 
 # Find the location of hadoop in order to trigger Hadoop job
 function find_hadoop_path() {
+  [ -f "$(which hadoop)" ] && HADOOP_LOCATION="$(which hadoop)"
+
   # If ${HADOOP_HOME} has been set
-  if [[ "${HADOOP_HOME}" != "" ]]; then
+  if [[ "${HADOOP_LOCATION}" == "" ]] && [[ "${HADOOP_HOME}" != "" ]]; then
     {
       [ -f "${HADOOP_HOME}/hadoop" ] && HADOOP_LOCATION="${HADOOP_HOME}/hadoop"
     } ||   {
@@ -52,7 +54,7 @@ function find_hadoop_path() {
   fi
 
   # If ${PATH} has been set
-  if [[ "${HADOOP_LOCATION}" == "" ]]  &&  [[ "${PATH}" != "" ]]; then
+  if [[ "${HADOOP_LOCATION}" == "" ]] && [[ "${PATH}" != "" ]]; then
     IFS=':' read -ra PATHARR <<< "$PATH"
     for p in "${PATHARR[@]}"; do
       if [ -f "$p/hadoop" ]; then
