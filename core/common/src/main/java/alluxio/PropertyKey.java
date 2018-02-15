@@ -1094,6 +1094,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.ALL)
           .build();
+  public static final PropertyKey MASTER_SERVING_THREAD_TIMEOUT =
+      new Builder(Name.MASTER_SERVING_THREAD_TIMEOUT)
+          .setDefaultValue("5m")
+          .setDescription("When stepping down from being the primary, the master will wait this "
+              + "long for the thrift serving thread to stop before giving up and shutting down "
+              + "the server")
+          .setIsHidden(true)
+          .build();
   public static final PropertyKey MASTER_STARTUP_CONSISTENCY_CHECK_ENABLED =
       new Builder(Name.MASTER_STARTUP_CONSISTENCY_CHECK_ENABLED)
           .setDefaultValue(true)
@@ -2920,6 +2928,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String MASTER_PRINCIPAL = "alluxio.master.principal";
     public static final String MASTER_RETRY = "alluxio.master.retry";
     public static final String MASTER_RPC_PORT = "alluxio.master.port";
+    public static final String MASTER_SERVING_THREAD_TIMEOUT =
+        "alluxio.master.serving.thread.timeout";
     public static final String MASTER_STARTUP_CONSISTENCY_CHECK_ENABLED =
         "alluxio.master.startup.consistency.check.enabled";
     public static final String MASTER_THRIFT_SHUTDOWN_TIMEOUT =
