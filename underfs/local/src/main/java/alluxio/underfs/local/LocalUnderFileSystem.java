@@ -293,9 +293,7 @@ public class LocalUnderFileSystem extends BaseUnderFileSystem
         setMode(file.getPath(), options.getMode().toShort());
         FileUtils.setLocalDirStickyBit(file.getPath());
         try {
-          if (options.getOwner() != null || options.getGroup() != null) {
-            setOwner(file.getPath(), options.getOwner(), options.getGroup());
-          }
+          setOwner(file.getPath(), options.getOwner(), options.getGroup());
         } catch (IOException e) {
           LOG.warn("Failed to update the ufs dir ownership, default values will be used: {}",
               e.getMessage());
@@ -321,9 +319,7 @@ public class LocalUnderFileSystem extends BaseUnderFileSystem
         // Alluxio server-side user is required to be a superuser. If it fails to set owner,
         // proceeds with mkdirs and print out an warning message.
         try {
-          if (options.getOwner() != null || options.getGroup() != null) {
-            setOwner(dirToMake.getAbsolutePath(), options.getOwner(), options.getGroup());
-          }
+          setOwner(dirToMake.getAbsolutePath(), options.getOwner(), options.getGroup());
         } catch (IOException e) {
           LOG.warn("Failed to update the ufs dir ownership, default values will be used: {}",
               e.getMessage());
