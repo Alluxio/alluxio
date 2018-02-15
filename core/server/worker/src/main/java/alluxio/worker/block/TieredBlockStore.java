@@ -676,7 +676,8 @@ public class TieredBlockStore implements BlockStore {
   private void freeSpaceInternal(long sessionId, long availableBytes, BlockStoreLocation location)
       throws WorkerOutOfSpaceException, IOException {
     EvictionPlan plan;
-    try (LockResource r = new LockResource(mMetadataReadLock)) {
+    //NOTE:change the read lock to the write lock due to the endless-loop issue [ALLUXIO-3089]
+    try (LockResource r = new LockResource(mMetadataWriteLock)) {
       plan = mEvictor.freeSpaceWithView(availableBytes, location, getUpdatedView());
       // Absent plan means failed to evict enough space.
       if (plan == null) {
