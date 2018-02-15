@@ -11,42 +11,93 @@
 
 package alluxio.master;
 
-import alluxio.exception.status.UnavailableException;
-import alluxio.retry.ExponentialBackoffRetry;
-import alluxio.util.network.NetworkAddressUtils;
+import alluxio.AlluxioURI;
+import alluxio.client.file.FileSystem;
+import alluxio.util.ShellUtils;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.InetSocketAddress;
-import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Alluxio master monitor for inquiring RPC service availability.
  */
-public final class AlluxioMasterMonitor {
+public final class AlluxioMasterMonitor implements Runnable {
   private static final Logger LOG = LoggerFactory.getLogger(AlluxioMasterMonitor.class);
+
+  private Thread mMasterServingCheckThread;
+  private Thread mMastersHealthCheckThread;
+
+  /**
+   *
+   */
+  public AlluxioMasterMonitor() {
+
+    mMasterServingCheckThread = new Thread(() -> {
+      try {
+        FileSystem fs = FileSystem.Factory.get();
+        fs.exists(new AlluxioURI("/"));
+      } catch (Throwable e) {
+        throw new RuntimeException(e);
+      }
+    }, "MasterServingCheckThread");
+
+    mMastersHealthCheckThread = new Thread(() -> {
+      MasterInquireClient client = MasterInquireClient.Factory.create();
+      try {
+        List<InetSocketAddress> addresses = client.getMasterRpcAddresses();
+        for (InetSocketAddress address : addresses) {
+          String hostname = address.getHostName();
+          String cmd = "ps -ef | grep \"alluxio.master.AlluxioMaster\" | grep \"java\" | "
+                  + "awk '{ print $1; }'";
+          String output = ShellUtils.execCommand(
+                  String.format("ssh {} {} {}", ShellUtils.COMMON_SSH_OPTS, hostname, cmd));
+          if (output.isEmpty()) {
+            throw new RuntimeException(
+                    String.format("Master process is not running on the host {}", hostname));
+          }
+        }
+      } catch (Throwable e) {
+        throw new RuntimeException(e);
+      }
+    }, "MastersHealthCheckThread");
+
+  }
+
+  @Override
+  public void run() {
+    ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
+    try {
+      executor.schedule(mMastersHealthCheckThread, 2, TimeUnit.SECONDS);
+      mMasterServingCheckThread.start();
+      executor.shutdown();
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    } finally {
+      if (!executor.isShutdown()) {
+        executor.shutdownNow();
+      }
+    }
+  }
+
   /**
    * Starts the Alluxio master monitor.
    *
    * @param args command line arguments, should be empty
    */
   public static void main(String[] args) {
-    InetSocketAddress address = NetworkAddressUtils.getConnectAddress(
-            NetworkAddressUtils.ServiceType.MASTER_RPC);
-    List<InetSocketAddress> addresses = Arrays.asList(address);
-    MasterInquireClient inquireClient = new PollingMasterInquireClient(addresses, () ->
-            new ExponentialBackoffRetry(50, 100, 2)
-    );
+    AlluxioMasterMonitor monitor = new AlluxioMasterMonitor();
     try {
-      inquireClient.getPrimaryRpcAddress();
-    } catch (UnavailableException e) {
-      System.err.println("The leader is not currently serving requests.");
+      monitor.run();
+    } catch (Throwable t) {
+      LOG.error("Exception thrown in master monitor ", t);
       System.exit(1);
     }
     System.exit(0);
   }
-
-  private AlluxioMasterMonitor() {} // prevent instantiation
 }

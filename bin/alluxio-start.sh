@@ -19,7 +19,7 @@ BIN=$(cd "$( dirname "$( readlink "$0" || echo "$0" )" )"; pwd)
 
 #start up alluxio
 
-USAGE="Usage: alluxio-start.sh [-hNw] ACTION [MOPT] [-f]
+USAGE="Usage: alluxio-start.sh [-hNwm] ACTION [MOPT] [-f]
 Where ACTION is one of:
   all [MOPT]         \tStart all masters, proxies, and workers.
   local [MOPT]       \tStart all processes locally.
@@ -269,17 +269,16 @@ run_monitors() {
 
     mkdir -p "${ALLUXIO_LOGS_DIR}"
     ALLUXIO_TASK_LOG="${ALLUXIO_LOGS_DIR}/task.log"
-    echo "Starting ${node_type} monitor @ $(hostname -f)."
+    echo "Starting ${node_type} monitor."
     for node in $(echo ${nodes}); do
-      echo "Monitoring ${node_type} [${node}] as ${USER}..."
+      echo "Monitoring ${node_type} [${node}]."
       ssh -o ConnectTimeout=5 -o StrictHostKeyChecking=no -tt ${node} \
-      "${JAVA}" -cp ${CLASSPATH} ${ALLUXIO_JAVA_OPTS} ${monitor_exec}
+        "${JAVA}" -cp ${CLASSPATH} ${ALLUXIO_JAVA_OPTS} ${monitor_exec}
       if [[ $? -ne 0 ]]; then
         echo "The ${node_type} ${node} is not serving requests."
+        # TODO(pavel): Check if log files exists
         ssh ${node} tail -30 "${ALLUXIO_LOGS_DIR}/${node_type}.log"
-      fi
-      if [[ "${node_type}" == "master" ]] ; then
-        break
+        ssh ${node} tail -30 "${ALLUXIO_LOGS_DIR}/${node_type}.out"
       fi
     done
 }
