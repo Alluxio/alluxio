@@ -154,10 +154,13 @@ public final class AlluxioBlockStore {
              mContext.acquireBlockMasterClientResource()) {
       info = masterClientResource.get().getBlockInfo(blockId);
     }
-    List<BlockLocation> locations = info.getLocations();
-    locations.removeIf(location -> lostWorkers.contains(location.getWorkerAddress()));
+    List<BlockLocation> allLocations = info.getLocations();
+    List<BlockLocation> locations = allLocations.stream().filter(
+        location -> !lostWorkers.contains(location.getWorkerAddress()))
+        .collect(Collectors.toList());
     if (locations.isEmpty() && !options.getStatus().isPersisted()) {
-      throw new NotFoundException(ExceptionMessage.BLOCK_UNAVAILABLE.getMessage(info.getBlockId()));
+      throw new NotFoundException((allLocations.isEmpty() ? ExceptionMessage.BLOCK_UNAVAILABLE
+          : ExceptionMessage.BLOCK_UNREACHABLE).getMessage(info.getBlockId()));
     }
     // Determine the data source and the type of data source
     // TODO(calvin): Consider containing these two variables in one object
@@ -181,7 +184,7 @@ public final class AlluxioBlockStore {
       Collections.shuffle(tieredLocations);
       Optional<TieredIdentity> nearest = mTieredIdentity.nearest(tieredLocations);
       if (nearest.isPresent()) {
-        dataSource = info.getLocations().stream()
+        dataSource = locations.stream()
             .map(BlockLocation::getWorkerAddress)
             .filter(a -> a.getTieredIdentity().equals(nearest.get()))
             .findFirst().get();
@@ -194,7 +197,8 @@ public final class AlluxioBlockStore {
       }
     }
     if (dataSource == null) {
-      throw new UnavailableException(ExceptionMessage.NO_WORKER_AVAILABLE.getMessage());
+      throw new UnavailableException((allLocations.isEmpty() ? ExceptionMessage.NO_WORKER_AVAILABLE
+          : ExceptionMessage.NO_WORKER_REACHABLE).getMessage());
     }
 
     return BlockInStream.create(mContext, info, dataSource, dataSourceType, options);
