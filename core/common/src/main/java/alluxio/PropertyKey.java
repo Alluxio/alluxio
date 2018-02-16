@@ -751,6 +751,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
       .setScope(Scope.SERVER)
       .build();
+  public static final PropertyKey OBS_ACCESS_KEY = new Builder(Name.OBS_ACCESS_KEY)
+      .setDescription("The access key of OBS bucket.").build();
+  public static final PropertyKey OBS_ENDPOINT = new Builder(Name.OBS_ENDPOINT)
+      .setDefaultValue("obs.myhwclouds.com")
+      .setDescription("The endpoint of OBS bucket.").build();
+  public static final PropertyKey OBS_SECRET_KEY = new Builder(Name.OBS_SECRET_KEY)
+      .setDescription("The secret key of OBS bucket.").build();
   public static final PropertyKey OSS_ACCESS_KEY = new Builder(Name.OSS_ACCESS_KEY)
       .setDescription("The access key of OSS bucket.")
       .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
@@ -2871,6 +2878,9 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     //
     public static final String GCS_ACCESS_KEY = "fs.gcs.accessKeyId";
     public static final String GCS_SECRET_KEY = "fs.gcs.secretAccessKey";
+    public static final String OBS_ACCESS_KEY = "fs.obs.accessKey";
+    public static final String OBS_ENDPOINT = "fs.obs.endpoint";
+    public static final String OBS_SECRET_KEY = "fs.obs.secretKey";
     public static final String OSS_ACCESS_KEY = "fs.oss.accessKeyId";
     public static final String OSS_ENDPOINT_KEY = "fs.oss.endpoint";
     public static final String OSS_SECRET_KEY = "fs.oss.accessKeySecret";
