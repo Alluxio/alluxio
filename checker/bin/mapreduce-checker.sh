@@ -82,7 +82,7 @@ function trigger_mapreduce() {
       echo "Please use the -libjars ${ALLUXIO_JAR_PATH} command line option when using hadoop jar." \
         >> "./MapReduceIntegrationReport.txt"
       echo "" >> "./MapReduceIntegrationReport.txt"
-      echo "Please export HADOOP_CLASSPATH=${ALLUXIO_JAR_PATH} to make Alluxio client jar available to client JVM created by hadoop jar command " \
+      echo "Please export HADOOP_CLASSPATH=${ALLUXIO_JAR_PATH}:\${HADOOP_CLASSPATH} to make Alluxio client jar available to client JVM created by hadoop jar command " \
         >> "./MapReduceIntegrationReport.txt"
     fi
   fi
