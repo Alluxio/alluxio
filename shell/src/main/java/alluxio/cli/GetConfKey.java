@@ -32,6 +32,8 @@ public final class GetConfKey {
       .put("AWS_SECRETKEY", "aws.secretKey")
       .put("FS_GCS_ACCESSKEYID", "fs.gcs.accessKeyId")
       .put("FS_GCS_SECRETACCESSKEY", "fs.gcs.secretAccessKey")
+      .put("FS_OBS_ACCESSKEY", "fs.obs.accessKey")
+      .put("FS_OBS_SECRETKEY", "fs.obs.secretKey")
       .put("FS_OSS_ACCESSKEYID", "fs.oss.accessKeyId")
       .put("FS_OSS_ACCESSKEYSECRET", "fs.oss.accessKeySecret")
       .build();
