@@ -79,17 +79,19 @@ public final class ConfigurationDocGenerator {
       List<PropertyKey> dfkeys = new ArrayList<>(defaultKeys);
       Collections.sort(dfkeys);
 
-      for (PropertyKey iteratorPK : dfkeys) {
-        String pKey = iteratorPK.toString();
-        String value;
-        if (iteratorPK.getDefaultValue() == null) {
-          value = "";
+      for (PropertyKey propertyKey : dfkeys) {
+        String pKey = propertyKey.toString();
+        String defaultDescription;
+        if (propertyKey.getDefaultSupplier().get() == null) {
+          defaultDescription = "";
         } else {
-          value = iteratorPK.getDefaultValue();
+          defaultDescription = propertyKey.getDefaultSupplier().getDescription();
         }
+        // Quote the whole description to escape characters such as commas.
+        defaultDescription = String.format("\"%s\"", defaultDescription);
 
         // Write property key and default value to CSV
-        String keyValueStr = pKey + "," + value + "\n";
+        String keyValueStr = pKey + "," + defaultDescription + "\n";
         if (pKey.startsWith("alluxio.user.")) {
           fileWriter = fileWriterMap.get("user");
         } else if (pKey.startsWith("alluxio.master.")) {

@@ -16,6 +16,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
+import alluxio.Configuration.Source;
 import alluxio.PropertyKey.Template;
 
 import com.google.common.collect.ImmutableMap;
@@ -33,6 +34,7 @@ import java.io.FileOutputStream;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Unit tests for the {@link Configuration} class.
@@ -62,7 +64,7 @@ public class ConfigurationTest {
   @Test
   public void alias() {
     Configuration.merge(ImmutableMap.of("alluxio.master.worker.timeout.ms", "100"),
-        Configuration.Source.SYSTEM_PROPERTY);
+        Source.SYSTEM_PROPERTY);
     assertEquals(100, Configuration.getMs(PropertyKey.MASTER_WORKER_TIMEOUT_MS));
   }
 
@@ -437,7 +439,7 @@ public class ConfigurationTest {
     Configuration.merge(ImmutableMap.of(
         PropertyKey.WORK_DIR, "value",
         PropertyKey.LOGS_DIR, "${alluxio.work.dir}/logs"),
-        Configuration.Source.SYSTEM_PROPERTY);
+        Source.SYSTEM_PROPERTY);
     String substitution = Configuration.get(PropertyKey.LOGS_DIR);
     assertEquals("value/logs", substitution);
   }
@@ -448,7 +450,7 @@ public class ConfigurationTest {
         PropertyKey.MASTER_HOSTNAME, "value1",
         PropertyKey.MASTER_RPC_PORT, "value2",
         PropertyKey.MASTER_JOURNAL_FOLDER, "${alluxio.master.hostname}-${alluxio.master.port}"),
-        Configuration.Source.SYSTEM_PROPERTY);
+        Source.SYSTEM_PROPERTY);
     String substitution = Configuration.get(PropertyKey.MASTER_JOURNAL_FOLDER);
     assertEquals("value1-value2", substitution);
   }
@@ -459,7 +461,7 @@ public class ConfigurationTest {
         PropertyKey.WORK_DIR, "value",
         PropertyKey.LOGS_DIR, "${alluxio.work.dir}/logs",
         PropertyKey.SITE_CONF_DIR, "${alluxio.logs.dir}/conf"),
-        Configuration.Source.SYSTEM_PROPERTY);
+        Source.SYSTEM_PROPERTY);
     String substitution2 = Configuration.get(PropertyKey.SITE_CONF_DIR);
     assertEquals("value/logs/conf", substitution2);
   }
@@ -471,6 +473,26 @@ public class ConfigurationTest {
       Configuration.init();
       assertEquals("new_master", Configuration.get(PropertyKey.MASTER_HOSTNAME));
     }
+  }
+
+  @Test
+  public void systemPropertySubstitution() throws Exception {
+    try (Closeable p = new SystemPropertyRule("user.home", "/home").toResource()) {
+      Configuration.init();
+      Configuration.merge(ImmutableMap.of(PropertyKey.WORK_DIR, "${user.home}/work"),
+          Source.SITE_PROPERTY);
+      assertEquals("/home/work", Configuration.get(PropertyKey.WORK_DIR));
+    }
+  }
+
+  @Test
+  public void circularSubstitution() throws Exception {
+    Configuration.merge(
+        ImmutableMap.of(PropertyKey.HOME, String.format("${%s}", PropertyKey.HOME.toString())),
+        Source.SITE_PROPERTY);
+    mThrown.expect(RuntimeException.class);
+    mThrown.expectMessage(PropertyKey.HOME.toString());
+    Configuration.get(PropertyKey.HOME);
   }
 
   @Test
@@ -502,13 +524,6 @@ public class ConfigurationTest {
     assertTrue(Configuration.containsKey(PropertyKey.SECURITY_LOGIN_USERNAME));
     Configuration.unset(PropertyKey.SECURITY_LOGIN_USERNAME);
     assertFalse(Configuration.containsKey(PropertyKey.SECURITY_LOGIN_USERNAME));
-  }
-
-  @Test
-  public void unsetDefaultValue() {
-    assertTrue(Configuration.containsKey(PropertyKey.USER_FILE_BUFFER_BYTES));
-    Configuration.unset(PropertyKey.USER_FILE_BUFFER_BYTES);
-    assertFalse(Configuration.containsKey(PropertyKey.USER_FILE_BUFFER_BYTES));
   }
 
   @Test
@@ -597,7 +612,7 @@ public class ConfigurationTest {
     try (Closeable p = new SystemPropertyRule(sysProps).toResource()) {
       Configuration.init();
       assertEquals(
-          Configuration.Source.SYSTEM_PROPERTY, Configuration.getSource(PropertyKey.LOGS_DIR));
+          Source.SYSTEM_PROPERTY, Configuration.getSource(PropertyKey.LOGS_DIR));
       assertEquals("/tmp/logs1", Configuration.get(PropertyKey.LOGS_DIR));
     }
   }
@@ -636,17 +651,28 @@ public class ConfigurationTest {
     try (Closeable p = new SystemPropertyRule(sysProps).toResource()) {
       Configuration.init();
       // set only in site prop
-      assertEquals(Configuration.Source.SITE_PROPERTY,
+      assertEquals(Source.SITE_PROPERTY,
           Configuration.getSource(PropertyKey.MASTER_HOSTNAME));
       // set both in site and system prop
-      assertEquals(Configuration.Source.SYSTEM_PROPERTY,
+      assertEquals(Source.SYSTEM_PROPERTY,
           Configuration.getSource(PropertyKey.MASTER_WEB_PORT));
       // set only in system prop
-      assertEquals(Configuration.Source.SYSTEM_PROPERTY,
+      assertEquals(Source.SYSTEM_PROPERTY,
           Configuration.getSource(PropertyKey.LOGS_DIR));
       // set neither in system prop
-      assertEquals(Configuration.Source.DEFAULT,
+      assertEquals(Source.DEFAULT,
           Configuration.getSource(PropertyKey.MASTER_RPC_PORT));
     }
+  }
+
+  @Test
+  public void getRuntimeDefault() throws Exception {
+    AtomicInteger x = new AtomicInteger(100);
+    PropertyKey key = new PropertyKey.Builder("testKey")
+        .setDefaultSupplier(new DefaultSupplier(() -> x.get(), "finds x"))
+        .build();
+    assertEquals(100, Configuration.getInt(key));
+    x.set(20);
+    assertEquals(20, Configuration.getInt(key));
   }
 }

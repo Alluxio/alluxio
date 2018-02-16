@@ -48,6 +48,7 @@ import java.io.Closeable;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.lang.ProcessBuilder.Redirect;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -126,6 +127,7 @@ public final class MultiProcessCluster implements TestRule {
     mState = State.STARTED;
 
     mMasterAddresses = generateMasterAddresses(mNumMasters);
+    LOG.info("Master addresses: {}", mMasterAddresses);
     switch (mDeployMode) {
       case NON_HA:
         MasterNetAddress masterAddress = mMasterAddresses.get(0);
@@ -241,8 +243,8 @@ public final class MultiProcessCluster implements TestRule {
     ProcessBuilder pb =
         new ProcessBuilder("tar", "-czf", tarball.getName(), mWorkDir.getName());
     pb.directory(mWorkDir.getParentFile());
-    pb.redirectOutput(TESTS_LOG);
-    pb.redirectError(TESTS_LOG);
+    pb.redirectOutput(Redirect.appendTo(TESTS_LOG));
+    pb.redirectError(Redirect.appendTo(TESTS_LOG));
     Process p = pb.start();
     try {
       p.waitFor();

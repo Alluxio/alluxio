@@ -139,28 +139,28 @@ public final class LocalAlluxioClusterResource implements TestRule {
 
   @Override
   public Statement apply(final Statement statement, Description description) {
-    try {
-      boolean startCluster = mStartCluster;
-      Annotation configAnnotation = description.getAnnotation(Config.class);
-      if (configAnnotation != null) {
-        Config config = (Config) configAnnotation;
-        // Override the configuration parameters with any configuration params
-        for (int i = 0; i < config.confParams().length; i += 2) {
-          mConfiguration.put(PropertyKey.fromString(config.confParams()[i]),
-              config.confParams()[i + 1]);
-        }
-        // Override startCluster
-        startCluster = config.startCluster();
-      }
-      if (startCluster) {
-        start();
-      }
-    } catch (Exception e) {
-      throw new RuntimeException(e);
-    }
     return new Statement() {
       @Override
       public void evaluate() throws Throwable {
+        try {
+          boolean startCluster = mStartCluster;
+          Annotation configAnnotation = description.getAnnotation(Config.class);
+          if (configAnnotation != null) {
+            Config config = (Config) configAnnotation;
+            // Override the configuration parameters with any configuration params
+            for (int i = 0; i < config.confParams().length; i += 2) {
+              mConfiguration.put(PropertyKey.fromString(config.confParams()[i]),
+                  config.confParams()[i + 1]);
+            }
+            // Override startCluster
+            startCluster = config.startCluster();
+          }
+          if (startCluster) {
+            start();
+          }
+        } catch (Exception e) {
+          throw new RuntimeException(e);
+        }
         try {
           statement.evaluate();
         } finally {

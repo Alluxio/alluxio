@@ -11,13 +11,17 @@
 
 package alluxio.master;
 
+import alluxio.Configuration;
+import alluxio.PropertyKey;
 import alluxio.master.PrimarySelector.State;
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.JournalSystem.Mode;
 import alluxio.util.CommonUtils;
+import alluxio.util.ThreadUtils;
 
 import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
+import org.apache.commons.lang.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,6 +36,9 @@ import javax.annotation.concurrent.NotThreadSafe;
 final class FaultTolerantAlluxioMasterProcess extends AlluxioMasterProcess {
   private static final Logger LOG =
       LoggerFactory.getLogger(FaultTolerantAlluxioMasterProcess.class);
+
+  private final long mServingThreadTimeoutMs =
+      Configuration.getMs(PropertyKey.MASTER_SERVING_THREAD_TIMEOUT);
 
   private PrimarySelector mLeaderSelector;
   private Thread mServingThread;
@@ -70,10 +77,16 @@ final class FaultTolerantAlluxioMasterProcess extends AlluxioMasterProcess {
         stopMasters();
         LOG.info("Secondary stopped");
         startMasters(true);
-        mServingThread = new Thread(new Runnable() {
-          @Override
-          public void run() {
+        mServingThread = new Thread(() -> {
+          try {
             startServing(" (gained leadership)", " (lost leadership)");
+          } catch (Throwable t) {
+            Throwable root = ExceptionUtils.getRootCause(t);
+            if ((root != null && (root instanceof InterruptedException)) || Thread.interrupted()) {
+              return;
+            }
+            LOG.error("Exception thrown in main serving thread. System exiting.", t);
+            System.exit(-1);
           }
         }, "MasterServingThread");
         mServingThread.start();
@@ -83,7 +96,14 @@ final class FaultTolerantAlluxioMasterProcess extends AlluxioMasterProcess {
         mLeaderSelector.waitForState(State.SECONDARY);
         LOG.info("Transitioning from primary to secondary");
         stopServing();
-        mServingThread.join();
+        mServingThread.join(mServingThreadTimeoutMs);
+        if (mServingThread.isAlive()) {
+          LOG.error(
+              "Failed to stop serving thread after {}ms. Printing serving thread stack trace "
+                  + "and exiting.\n{}",
+              mServingThreadTimeoutMs, ThreadUtils.formatStackTrace(mServingThread));
+          System.exit(-1);
+        }
         mServingThread = null;
         stopMasters();
         mJournalSystem.setMode(Mode.SECONDARY);

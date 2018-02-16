@@ -47,9 +47,7 @@ public final class NoSaslTransportProvider implements TransportProvider {
 
   @Override
   public TTransport getClientTransport(InetSocketAddress serverAddress) {
-    TTransport tTransport =
-        TransportProviderUtils.createThriftSocket(serverAddress, mSocketTimeoutMs);
-    return new TFramedTransport(tTransport, mThriftFrameSizeMax);
+    return getClientTransport(null, serverAddress);
   }
 
   @Override
