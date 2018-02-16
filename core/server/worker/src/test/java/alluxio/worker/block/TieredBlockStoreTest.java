@@ -28,6 +28,7 @@ import alluxio.test.util.ConcurrencyUtils;
 import alluxio.util.io.FileUtils;
 import alluxio.worker.block.evictor.EvictionPlan;
 import alluxio.worker.block.evictor.Evictor;
+import alluxio.worker.block.evictor.Evictor.Mode;
 import alluxio.worker.block.meta.BlockMeta;
 import alluxio.worker.block.meta.StorageDir;
 import alluxio.worker.block.meta.TempBlockMeta;
@@ -338,9 +339,9 @@ public final class TieredBlockStoreTest {
     List<Runnable> runnables = new ArrayList<>();
     Evictor evictor = Mockito.mock(Evictor.class);
     Set<Long> set = new HashSet<>();
-    Mockito.when(evictor
-        .freeSpaceWithView(Mockito.any(Long.class), Mockito.any(BlockStoreLocation.class),
-            Mockito.any(BlockMetadataManagerView.class)))
+    Mockito.when(
+        evictor.freeSpaceWithView(Mockito.any(Long.class), Mockito.any(BlockStoreLocation.class),
+            Mockito.any(BlockMetadataManagerView.class), Mockito.any(Mode.class)))
         .thenAnswer((InvocationOnMock invocation) -> {
               for (int i = 0; i < count; i++) {
                 set.add(System.nanoTime());
