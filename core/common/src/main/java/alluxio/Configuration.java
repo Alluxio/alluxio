@@ -144,6 +144,13 @@ public final class Configuration {
           // Get the true name for the property key in case it is an alias.
           PROPERTIES.put(propertyKey.getName(), value);
           SOURCES.put(propertyKey, source);
+        } else {
+          // Add unrecognized properties
+          LOG.debug("Property {} from source {} is unrecognized", key, source);
+          // Workaround for issue https://alluxio.atlassian.net/browse/ALLUXIO-3108
+          // TODO(adit): Do not add properties unrecognized by Ufs extensions
+          PROPERTIES.put(key, value);
+          SOURCES.put(new PropertyKey.Builder(key).build(), source);
         }
       }
     }
