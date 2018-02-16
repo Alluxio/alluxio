@@ -172,15 +172,16 @@ public abstract class AbstractClient implements Client {
       if (mClosed) {
         throw new FailedPreconditionException("Failed to connect: client has been closed");
       }
-      // Re-query the address in each loop iteration in case it has changed (e.g. master failover).
-      mAddress = getAddress();
-      LOG.info("Alluxio client (version {}) is trying to connect with {} @ {}",
+      try {
+        // Re-query the address in each loop iteration in case it has changed (e.g. master
+        // failover). This must happen inside the try since querying the master address can fail.
+        mAddress = getAddress();
+        LOG.info("Alluxio client (version {}) is trying to connect with {} @ {}",
           RuntimeConstants.VERSION, getServiceName(), mAddress);
 
-      TProtocol binaryProtocol =
+        TProtocol binaryProtocol =
           new TBinaryProtocol(mTransportProvider.getClientTransport(mParentSubject, mAddress));
-      mProtocol = new TMultiplexedProtocol(binaryProtocol, getServiceName());
-      try {
+        mProtocol = new TMultiplexedProtocol(binaryProtocol, getServiceName());
         mProtocol.getTransport().open();
         LOG.info("Client registered with {} @ {}", getServiceName(), mAddress);
         mConnected = true;
