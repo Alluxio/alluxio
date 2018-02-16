@@ -21,6 +21,7 @@ import org.slf4j.LoggerFactory;
 import java.net.InetSocketAddress;
 import java.util.List;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
@@ -30,57 +31,67 @@ import java.util.concurrent.TimeUnit;
 public final class AlluxioMasterMonitor implements Runnable {
   private static final Logger LOG = LoggerFactory.getLogger(AlluxioMasterMonitor.class);
 
-  private Thread mMasterServingCheckThread;
+  private Thread mMasterServingThread;
   private Thread mMastersHealthCheckThread;
+  private ScheduledExecutorService mExecutorService = Executors.newScheduledThreadPool(2);
 
   /**
-   *
+   * Creates a new Alluxio master monitor.
    */
   public AlluxioMasterMonitor() {
-
-    mMasterServingCheckThread = new Thread(() -> {
+    mMasterServingThread = new Thread(() -> {
       try {
+        LOG.debug("Checking master is serving requests");
         FileSystem fs = FileSystem.Factory.get();
         fs.exists(new AlluxioURI("/"));
+        LOG.debug("Master is serving requests");
       } catch (Throwable e) {
         throw new RuntimeException(e);
       }
-    }, "MasterServingCheckThread");
+    }, "MasterServingThread");
 
     mMastersHealthCheckThread = new Thread(() -> {
       MasterInquireClient client = MasterInquireClient.Factory.create();
       try {
         List<InetSocketAddress> addresses = client.getMasterRpcAddresses();
         for (InetSocketAddress address : addresses) {
-          String hostname = address.getHostName();
-          String cmd = "ps -ef | grep \"alluxio.master.AlluxioMaster\" | grep \"java\" | "
-                  + "awk '{ print $1; }'";
-          String output = ShellUtils.execCommand(
-                  String.format("ssh {} {} {}", ShellUtils.COMMON_SSH_OPTS, hostname, cmd));
+          String host = address.getHostName();
+          LOG.debug("Master health check on node {}", host);
+          String cmd = String.format("ssh %s %s %s", ShellUtils.COMMON_SSH_OPTS, host,
+              "ps -ef | "
+              + "grep -v \"alluxio.master.AlluxioMasterMonitor\" | "
+              + "grep \"alluxio.master.AlluxioMaster\" | "
+              + "grep \"java\" | "
+              + "awk '{ print $2; }'");
+          LOG.debug("Executing: {}", cmd);
+          String output = ShellUtils.execCommand("bash", "-c", cmd);
           if (output.isEmpty()) {
-            throw new RuntimeException(
-                    String.format("Master process is not running on the host {}", hostname));
+            throw new IllegalStateException(
+                    String.format("Master process is not running on the host %s", host));
           }
+          LOG.debug("Master running on node {} with pid={}", host, output);
         }
       } catch (Throwable e) {
+        if (!mExecutorService.isShutdown()) {
+          mExecutorService.shutdownNow();
+        }
         throw new RuntimeException(e);
       }
     }, "MastersHealthCheckThread");
-
   }
 
   @Override
   public void run() {
-    ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
     try {
-      executor.schedule(mMastersHealthCheckThread, 2, TimeUnit.SECONDS);
-      mMasterServingCheckThread.start();
-      executor.shutdown();
+      mExecutorService.scheduleAtFixedRate(mMastersHealthCheckThread, 0, 5,
+              TimeUnit.SECONDS);
+      Future<?> future = mExecutorService.submit(mMasterServingThread);
+      future.get();
     } catch (Exception e) {
       throw new RuntimeException(e);
     } finally {
-      if (!executor.isShutdown()) {
-        executor.shutdownNow();
+      if (!mExecutorService.isShutdown()) {
+        mExecutorService.shutdown();
       }
     }
   }
@@ -94,8 +105,8 @@ public final class AlluxioMasterMonitor implements Runnable {
     AlluxioMasterMonitor monitor = new AlluxioMasterMonitor();
     try {
       monitor.run();
-    } catch (Throwable t) {
-      LOG.error("Exception thrown in master monitor ", t);
+    } catch (Exception e) {
+      LOG.error("Exception thrown in master monitor {}", e);
       System.exit(1);
     }
     System.exit(0);
