@@ -14,10 +14,9 @@ package alluxio.worker;
 import alluxio.Constants;
 import alluxio.exception.status.UnauthenticatedException;
 import alluxio.retry.RetryPolicy;
+import alluxio.security.authentication.TProtocols;
 import alluxio.security.authentication.TransportProvider;
 
-import org.apache.thrift.protocol.TBinaryProtocol;
-import org.apache.thrift.protocol.TMultiplexedProtocol;
 import org.apache.thrift.protocol.TProtocol;
 import org.apache.thrift.transport.TTransportException;
 
@@ -68,10 +67,8 @@ public class PollingWorkerHealthCheck implements WorkerHealthCheck {
   private void pingWorkerService(InetSocketAddress address)
           throws UnauthenticatedException, TTransportException {
     TransportProvider transportProvider = TransportProvider.Factory.create();
-    TProtocol binaryProtocol = new TBinaryProtocol(transportProvider.getClientTransport(address));
-    TMultiplexedProtocol protocol =
-            new TMultiplexedProtocol(binaryProtocol,
-                    Constants.FILE_SYSTEM_WORKER_CLIENT_SERVICE_NAME);
+    TProtocol protocol = TProtocols.createProtocol(transportProvider.getClientTransport(address),
+            Constants.FILE_SYSTEM_WORKER_CLIENT_SERVICE_NAME);
     protocol.getTransport().open();
     protocol.getTransport().close();
   }
