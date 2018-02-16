@@ -34,7 +34,7 @@ public enum ExceptionMessage {
 
   // general block
   BLOCK_UNAVAILABLE("Block {0} is unavailable in both Alluxio and UFS."),
-  BLOCK_UNREACHABLE("Failed to reach all workers contain block {0}."),
+  BLOCK_UNREACHABLE("Failed to reach any worker containing block {0}: {1}."),
   CANNOT_REQUEST_SPACE("Not enough space left on worker {0} to store blockId {1,number,#}."),
   NO_LOCAL_WORKER("Local address {0} requested but there is no local worker"),
   NO_SPACE_FOR_BLOCK_ON_WORKER("There is no worker with enough space for a new block of size {0}"),
