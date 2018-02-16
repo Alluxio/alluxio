@@ -33,48 +33,89 @@ PARTITIONS
 
 -h  display this help."
 
+ALLUXIO_CHECKER_JAR=""
 PARTITIONS="${2:-10}";
 SPARK_MASTER="$1";
 SPARK_SUBMIT="";
 
 # Find the location of spark-submit in order to run the Spark job
 function find_spark_path() {
-  { # Try SPARK_HOME
-    [ -f "${SPARK_HOME}/bin/spark-submit" ] && SPARK_SUBMIT="${SPARK_HOME}/bin"
-  } || { # Try SPARKPATH
-    [ -f "${SPARKPATH}/spark-submit" ] && SPARK_SUBMIT="${SPARKPATH}"
-  } || { # Try PATH
-    IFS=':' read -ra PATHARR <<< "$PATH"
-    for p in "${PATHARR[@]}"; do
-      if [ -f "$p/spark-submit" ]; then
-        SPARK_SUBMIT="$p"
-        break;
+  [ -f "$(which spark-submit)" ] && SPARK_SUBMIT="$(which spark-submit)"
+
+  # Try to find spark_submit in ${SPARK_HOME}
+  if [[ "${SPARK_SUBMIT}" == "" ]] && [[ "${SPARK_HOME}" != "" ]]; then
+    {
+      [ -f "${SPARK_HOME}/bin/spark-submit" ] && SPARK_SUBMIT="${SPARK_HOME}/bin/spark-submit"
+    } || {
+      if [[ "${SPARK_SUBMIT}" == "" ]]; then
+        array=(`find "${SPARK_HOME}" -type f -name 'spark-submit'`)
+        for i in "${array[@]}"; do
+          SPARK_SUBMIT="$i"
+          break;
+        done
       fi
-    done
-    if [[ "${SPARK_SUBMIT}" == "" ]]; then
-      echo -e "Please set SPARK_HOME or SPARKPATH before running Spark integration checker." >&2
-      exit 1
+    }
+  fi
+
+  # Try to find spark_submit in ${SPARKPATH}
+  if [[ "${SPARK_SUBMIT}" == "" ]] && [[ "${SPARKPATH}" != "" ]]; then
+    {
+      [ -f "${SPARKPATH}/spark-submit" ] && SPARK_SUBMIT="${SPARKPATH}/spark-submit"
+    } || {
+      if [[ "${SPARK_SUBMIT}" == "" ]]; then
+        array=(`find "${SPARKPATH}" -type f -name 'spark-submit'`)
+        for i in "${array[@]}"; do
+          SPARK_SUBMIT="$i"
+          break;
+        done
+      fi
+    }
+  fi
+
+  if [[ "${SPARK_SUBMIT}" == "" ]]; then
+    if [[ "${SPARK_HOME}" != "" ]]; then
+      echo -e "Cannot find spark-submit in your SPARK_HOME: ${SPARK_HOME}, please check your SPARK_HOME." >&2
+    else
+      echo -e "Please set SPARK_HOME before running Spark integration checker." >&2
     fi
-  } 
+    exit 1
+  fi
 }
 
 function trigger_spark_cluster() {
   # Client mode
-  ${LAUNCHER} "${SPARK_SUBMIT}/spark-submit" --class alluxio.checker.SparkIntegrationChecker --master "${SPARK_MASTER}" \
-    --deploy-mode client "${BIN}/../target/alluxio-checker-${VERSION}-jar-with-dependencies.jar" --partitions "${PARTITIONS}"
+  ${LAUNCHER} "${SPARK_SUBMIT}" --class alluxio.checker.SparkIntegrationChecker --master "${SPARK_MASTER}" \
+    --deploy-mode client "${ALLUXIO_CHECKER_JAR}" --partitions "${PARTITIONS}"
 
   # Cluster mode
-  ${LAUNCHER} "${SPARK_SUBMIT}/spark-submit" --class alluxio.checker.SparkIntegrationChecker --master "${SPARK_MASTER}" \
-    --deploy-mode cluster "${BIN}/../target/alluxio-checker-${VERSION}-jar-with-dependencies.jar" --partitions "${PARTITIONS}"
+  ${LAUNCHER} "${SPARK_SUBMIT}" --class alluxio.checker.SparkIntegrationChecker --master "${SPARK_MASTER}" \
+    --deploy-mode cluster "${ALLUXIO_CHECKER_JAR}" --partitions "${PARTITIONS}"
 }
 
 function trigger_spark_local() {
-  ${LAUNCHER} "${SPARK_SUBMIT}/spark-submit" --class alluxio.checker.SparkIntegrationChecker --master "${SPARK_MASTER}" \
-    "${BIN}/../target/alluxio-checker-${VERSION}-jar-with-dependencies.jar" --partitions "${PARTITIONS}"
+  ${LAUNCHER} "${SPARK_SUBMIT}" --class alluxio.checker.SparkIntegrationChecker --master "${SPARK_MASTER}" \
+    "${ALLUXIO_CHECKER_JAR}" --partitions "${PARTITIONS}"
 }
 
 function main {
+  # Check if an input argument is -h
+  for i in "$@"; do
+    if [[ "$i" == "-h" ]]; then
+      echo -e "${USAGE}" >&2
+      exit 0
+    fi
+  done
+
+  # Check if too many arguments has been passed in
+  if [ "$#" -gt 2 ]; then
+    echo -e "${USAGE}" >&2
+    echo "Too many arguments passed in."
+    exit 1
+  fi
+
   source "${BIN}/../../libexec/alluxio-config.sh"
+  ALLUXIO_CHECKER_JAR="${BIN}/../target/alluxio-checker-${VERSION}-jar-with-dependencies.jar"
+
   [ -f "./SparkIntegrationReport.txt" ] && rm "./SparkIntegrationReport.txt"
   case "${SPARK_MASTER}" in
     local*) 

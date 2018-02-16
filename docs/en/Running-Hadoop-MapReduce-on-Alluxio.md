@@ -77,6 +77,13 @@ available to all the nodes. For example, the following command adds the Alluxio 
 $ bin/hadoop jar share/hadoop/mapreduce/hadoop-mapreduce-examples-2.7.3.jar wordcount -libjars {{site.ALLUXIO_CLIENT_JAR_PATH}} <INPUT FILES> <OUTPUT DIRECTORY>
 ```
 
+Sometimes, you also need to set the `HADOOP_CLASSPATH` environment variable to make Alluxio client
+jar available to the client JVM which is created when you run the hadoop jar command:
+
+```bash
+$  export HADOOP_CLASSPATH={{site.ALLUXIO_CLIENT_JAR_PATH}}:${HADOOP_CLASSPATH}
+```
+
 2.**Distributing the client jars to all nodes manually.**
 
 To install Alluxio on each node, place the client jar
@@ -87,6 +94,20 @@ MapReduce node, and then restart Hadoop. Alternatively, add this jar to
 to ensure this jar is on the classpath.
 Note that the jars must be installed again for each update to a new release. On the other hand,
 when the jar is already on every node, then the `-libjars` command line option is not needed.
+
+## Check MapReduce with Alluxio integration (Supports Hadoop 2.X)
+
+Before running MapReduce on Alluxio, you might want to make sure that your configuration has been 
+setup correctly for integrating with Alluxio. The MapReduce integration checker can help you achieve this. 
+
+When you have a running Hadoop cluster (or standalone), you can run the following command in the Alluxio project directory:
+
+```bash
+$ checker/bin/alluxio-checker.sh mapreduce 
+```
+
+You can use `-h` to display helpful information about the command.
+This command will report potential problems that might prevent you from running MapReduce on Alluxio. 
 
 ## Running Hadoop wordcount with Alluxio Locally
 
