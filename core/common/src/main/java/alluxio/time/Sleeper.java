@@ -19,7 +19,7 @@ import java.time.Duration;
 public interface Sleeper {
 
   /**
-   * Sleeps for the given duration
+   * Sleeps for the given duration.
    *
    * @param duration the duration to sleep for
    * @throws InterruptedException if the sleep is interrupted

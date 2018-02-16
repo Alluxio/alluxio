@@ -22,6 +22,10 @@ public final class TimeContext {
   private final Clock mClock;
   private final Sleeper mSleeper;
 
+  /**
+   * @param clock the clock for this context
+   * @param sleeper the sleeper for this context
+   */
   public TimeContext(Clock clock, Sleeper sleeper) {
     mClock = clock;
     mSleeper = sleeper;

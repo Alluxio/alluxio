@@ -25,7 +25,7 @@ import java.time.Duration;
  * no time. The 50 at the end is because the previous times add up to 450, so the mechanism sleeps
  * for only 50ms before the final attempt.
  */
-public class TimeBoundedExponentialRetry extends TimeBoundedRetry {
+public final class TimeBoundedExponentialRetry extends TimeBoundedRetry {
   private final Duration mMaxSleep;
   private Duration mNextSleep;
 

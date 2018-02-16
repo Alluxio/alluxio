@@ -181,10 +181,10 @@ public abstract class AbstractClient implements Client {
         // failover). This must happen inside the try since querying the master address can fail.
         mAddress = getAddress();
         LOG.info("Alluxio client (version {}) is trying to connect with {} @ {}",
-          RuntimeConstants.VERSION, getServiceName(), mAddress);
+            RuntimeConstants.VERSION, getServiceName(), mAddress);
 
         TProtocol binaryProtocol =
-          new TBinaryProtocol(mTransportProvider.getClientTransport(mParentSubject, mAddress));
+            new TBinaryProtocol(mTransportProvider.getClientTransport(mParentSubject, mAddress));
         mProtocol = new TMultiplexedProtocol(binaryProtocol, getServiceName());
         mProtocol.getTransport().open();
         LOG.info("Client registered with {} @ {}", getServiceName(), mAddress);

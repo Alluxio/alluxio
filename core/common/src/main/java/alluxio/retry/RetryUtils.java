@@ -24,7 +24,6 @@ public final class RetryUtils {
    *
    * @param f the function to retry
    * @param policy the retry policy to use
-   * @return the value returned by the function
    */
   public static void retry(RunnableThrowsIOException f, RetryPolicy policy) throws IOException {
     while (true) {
@@ -44,8 +43,11 @@ public final class RetryUtils {
    */
   @FunctionalInterface
   public interface RunnableThrowsIOException {
+    /**
+     * Runs the runnable.
+     */
     void run() throws IOException;
   }
 
-  public RetryUtils() {} // prevent instantiation
+  private RetryUtils() {} // prevent instantiation
 }

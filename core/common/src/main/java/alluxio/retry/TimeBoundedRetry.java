@@ -52,7 +52,7 @@ public abstract class TimeBoundedRetry implements RetryPolicy {
 
   @Override
   public boolean attemptRetry() {
-    if (mDone){
+    if (mDone) {
       return false;
     }
     if (!mClock.instant().isBefore(mEndTime)) {
