@@ -41,6 +41,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -159,8 +160,10 @@ public final class AlluxioBlockStore {
         location -> !lostWorkers.contains(location.getWorkerAddress()))
         .collect(Collectors.toList());
     if (locations.isEmpty() && !options.getStatus().isPersisted()) {
-      throw new NotFoundException((allLocations.isEmpty() ? ExceptionMessage.BLOCK_UNAVAILABLE
-          : ExceptionMessage.BLOCK_UNREACHABLE).getMessage(info.getBlockId()));
+      throw new NotFoundException(allLocations.isEmpty()
+          ? ExceptionMessage.BLOCK_UNAVAILABLE.getMessage(info.getBlockId())
+          : ExceptionMessage.BLOCK_UNREACHABLE.getMessage(info.getBlockId(),
+          Arrays.toString(allLocations.toArray())));
     }
     // Determine the data source and the type of data source
     // TODO(calvin): Consider containing these two variables in one object

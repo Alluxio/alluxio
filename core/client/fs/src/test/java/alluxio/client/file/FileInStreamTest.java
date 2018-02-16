@@ -14,7 +14,11 @@ package alluxio.client.file;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
+import static org.mockito.Matchers.anyInt;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.anyLong;
@@ -62,7 +66,7 @@ import java.util.List;
  * different locations.
  */
 @RunWith(Parameterized.class)
-@PrepareForTest({FileSystemContext.class, AlluxioBlockStore.class})
+@PrepareForTest({FileSystemContext.class, AlluxioBlockStore.class, BlockInStream.class})
 public final class FileInStreamTest {
   @Rule
   public PowerMockRule mPowerMockRule = new PowerMockRule();
@@ -604,6 +608,81 @@ public final class FileInStreamTest {
   public void multiBlockPositionedRead() throws IOException {
     byte[] b = new byte[(int) BLOCK_LENGTH * 2];
     mTestStream.positionedRead(BLOCK_LENGTH / 2, b, 0, b.length);
+    assertArrayEquals(BufferUtils.getIncreasingByteArray((int) BLOCK_LENGTH / 2, (int)
+        BLOCK_LENGTH * 2), b);
+  }
+
+  @Test
+  public void readOneRetryCurrentWorker() throws Exception {
+    long offset = 37;
+    // Setups a broken stream for the first block to throw an exception.
+    TestBlockInStream workingStream = mInStreams.get(0);
+    TestBlockInStream brokenStream = mock(TestBlockInStream.class);
+    PowerMockito.mockStatic(BlockInStream.class);
+    PowerMockito
+        .when(BlockInStream.create(eq(mContext), any(BlockInfo.class),
+            any(WorkerNetAddress.class), any(BlockInStream.BlockInStreamSource.class),
+            any(InStreamOptions.class)))
+        .thenReturn(workingStream);
+    mInStreams.set(0, brokenStream);
+    when(brokenStream.read()).thenThrow(new UnavailableException("test exception"));
+    when(brokenStream.getPos()).thenReturn(offset);
+
+    mTestStream.seek(offset);
+    int b = mTestStream.read();
+
+    doReturn(0).when(brokenStream).read();
+    verify(brokenStream, times(1))
+        .read();
+    assertEquals(offset, b);
+  }
+
+  @Test
+  public void readBufferRetryCurrentWorker() throws Exception {
+    TestBlockInStream workingStream = mInStreams.get(0);
+    TestBlockInStream brokenStream = mock(TestBlockInStream.class);
+    PowerMockito.mockStatic(BlockInStream.class);
+    PowerMockito
+        .when(BlockInStream.create(eq(mContext), any(BlockInfo.class),
+            any(WorkerNetAddress.class), any(BlockInStream.BlockInStreamSource.class),
+            any(InStreamOptions.class)))
+        .thenReturn(workingStream);
+    mInStreams.set(0, brokenStream);
+    when(brokenStream.read(any(byte[].class), anyInt(), anyInt()))
+        .thenThrow(new UnavailableException("test exception"));
+    when(brokenStream.getPos()).thenReturn(BLOCK_LENGTH / 2);
+
+    mTestStream.seek(BLOCK_LENGTH / 2);
+    byte[] b = new byte[(int) BLOCK_LENGTH * 2];
+    mTestStream.read(b, 0, b.length);
+
+    doReturn(0).when(brokenStream).read(any(byte[].class), anyInt(), anyInt());
+    verify(brokenStream, times(1))
+        .read(any(byte[].class), anyInt(), anyInt());
+    assertArrayEquals(BufferUtils.getIncreasingByteArray((int) BLOCK_LENGTH / 2, (int)
+        BLOCK_LENGTH * 2), b);
+  }
+
+  @Test
+  public void positionedReadRetryCurrentWorker() throws Exception {
+    TestBlockInStream workingStream = mInStreams.get(0);
+    TestBlockInStream brokenStream = mock(TestBlockInStream.class);
+    PowerMockito.mockStatic(BlockInStream.class);
+    PowerMockito
+        .when(BlockInStream.create(eq(mContext), any(BlockInfo.class),
+            any(WorkerNetAddress.class), any(BlockInStream.BlockInStreamSource.class),
+            any(InStreamOptions.class)))
+        .thenReturn(workingStream);
+    mInStreams.set(0, brokenStream);
+    when(brokenStream.positionedRead(anyLong(), any(byte[].class), anyInt(), anyInt()))
+        .thenThrow(new UnavailableException("test exception"));
+
+    byte[] b = new byte[(int) BLOCK_LENGTH * 2];
+    mTestStream.positionedRead(BLOCK_LENGTH / 2, b, 0, b.length);
+
+    doReturn(0).when(brokenStream).positionedRead(anyLong(), any(byte[].class), anyInt(), anyInt());
+    verify(brokenStream, times(1))
+        .positionedRead(anyLong(), any(byte[].class), anyInt(), anyInt());
     assertArrayEquals(BufferUtils.getIncreasingByteArray((int) BLOCK_LENGTH / 2, (int)
         BLOCK_LENGTH * 2), b);
   }
