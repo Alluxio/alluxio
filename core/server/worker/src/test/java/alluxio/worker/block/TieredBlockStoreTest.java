@@ -12,9 +12,9 @@
 package alluxio.worker.block;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.fail;
 
 import alluxio.exception.BlockAlreadyExistsException;
@@ -28,6 +28,7 @@ import alluxio.test.util.ConcurrencyUtils;
 import alluxio.util.io.FileUtils;
 import alluxio.worker.block.evictor.EvictionPlan;
 import alluxio.worker.block.evictor.Evictor;
+import alluxio.worker.block.evictor.Evictor.Mode;
 import alluxio.worker.block.meta.BlockMeta;
 import alluxio.worker.block.meta.StorageDir;
 import alluxio.worker.block.meta.TempBlockMeta;
@@ -316,15 +317,31 @@ public final class TieredBlockStoreTest {
    * Tests the {@link TieredBlockStore#freeSpace(long, long, BlockStoreLocation)} method.
    */
   @Test
+  public void freeSpaceMoreThanCapacity() throws Exception {
+    TieredBlockStoreTestUtils.cache(SESSION_ID1, BLOCK_ID1, BLOCK_SIZE, mTestDir1, mMetaManager,
+        mEvictor);
+    // this call works because the space is freed in a best-effort way to move BLOCK_ID1 out
+    mBlockStore.freeSpace(SESSION_ID1, mTestDir1.getCapacityBytes() * 2,
+        mTestDir1.toBlockStoreLocation());
+    // Expect BLOCK_ID1 to be moved out of mTestDir1
+    assertEquals(mTestDir1.getCapacityBytes(), mTestDir1.getAvailableBytes());
+    assertFalse(mTestDir1.hasBlockMeta(BLOCK_ID1));
+    assertFalse(FileUtils.exists(BlockMeta.commitPath(mTestDir1, BLOCK_ID1)));
+  }
+
+  /**
+   * Tests the {@link TieredBlockStore#freeSpace(long, long, BlockStoreLocation)} method.
+   */
+  @Test
   public void freeSpaceThreadSafe() throws Exception {
     int threadAmount = 10;
     int count = 100_000;
     List<Runnable> runnables = new ArrayList<>();
     Evictor evictor = Mockito.mock(Evictor.class);
     Set<Long> set = new HashSet<>();
-    Mockito.when(evictor
-        .freeSpaceWithView(Mockito.any(Long.class), Mockito.any(BlockStoreLocation.class),
-            Mockito.any(BlockMetadataManagerView.class)))
+    Mockito.when(
+        evictor.freeSpaceWithView(Mockito.any(Long.class), Mockito.any(BlockStoreLocation.class),
+            Mockito.any(BlockMetadataManagerView.class), Mockito.any(Mode.class)))
         .thenAnswer((InvocationOnMock invocation) -> {
               for (int i = 0; i < count; i++) {
                 set.add(System.nanoTime());
@@ -460,7 +477,7 @@ public final class TieredBlockStoreTest {
     // session1 locks a block first
     long lockId = mBlockStore.lockBlock(SESSION_ID1, BLOCK_ID1);
 
-    // Expect an exception as no eviction plan is feasible
+    // Expect an empty eviction plan is feasible
     mThrown.expect(WorkerOutOfSpaceException.class);
     mThrown.expectMessage(ExceptionMessage.NO_EVICTION_PLAN_TO_FREE_SPACE.getMessage());
     mBlockStore.freeSpace(SESSION_ID1, mTestDir1.getCapacityBytes(),
