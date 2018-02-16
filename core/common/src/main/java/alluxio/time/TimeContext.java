@@ -11,18 +11,33 @@
 
 package alluxio.time;
 
-import java.time.Duration;
+import java.time.Clock;
 
 /**
- * An interface for a utility which provides a sleep method.
+ * Context for managing time.
  */
-public interface Sleeper {
+public final class TimeContext {
+  public static final TimeContext SYSTEM = new TimeContext(Clock.systemUTC(), new ThreadSleeper());
+
+  private final Clock mClock;
+  private final Sleeper mSleeper;
+
+  public TimeContext(Clock clock, Sleeper sleeper) {
+    mClock = clock;
+    mSleeper = sleeper;
+  }
 
   /**
-   * Sleeps for the given duration
-   *
-   * @param duration the duration to sleep for
-   * @throws InterruptedException if the sleep is interrupted
+   * @return the clock for this context
    */
-  void sleep(Duration duration) throws InterruptedException;
+  public Clock clock() {
+    return mClock;
+  }
+
+  /**
+   * @return the sleeper for thix context
+   */
+  public Sleeper sleeper() {
+    return mSleeper;
+  }
 }

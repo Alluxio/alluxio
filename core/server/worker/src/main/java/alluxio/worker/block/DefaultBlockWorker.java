@@ -27,6 +27,8 @@ import alluxio.heartbeat.HeartbeatThread;
 import alluxio.master.MasterClientConfig;
 import alluxio.metrics.MetricsSystem;
 import alluxio.proto.dataserver.Protocol;
+import alluxio.retry.RetryUtils;
+import alluxio.retry.TimeBoundedExponentialRetry;
 import alluxio.thrift.BlockWorkerClientService;
 import alluxio.underfs.UfsManager;
 import alluxio.util.CommonUtils;
@@ -50,6 +52,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.time.Duration;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -197,7 +200,13 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
   public void start(WorkerNetAddress address) throws IOException {
     mAddress = address;
     try {
-      mWorkerId.set(mBlockMasterClient.getId(address));
+      RetryUtils.retry(() -> mWorkerId.set(mBlockMasterClient.getId(address)),
+          TimeBoundedExponentialRetry.builder()
+              .withMaxDuration(
+                  Duration.ofMillis(Configuration.getMs(PropertyKey.WORKER_MASTER_CONNECT_TIMEOUT)))
+              .withInitialSleep(Duration.ofMillis(100))
+              .withMaxSleep(Duration.ofSeconds(5))
+              .build());
     } catch (Exception e) {
       throw new RuntimeException("Failed to get a worker id from block master: " + e.getMessage());
     }

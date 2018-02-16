@@ -29,6 +29,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.management.ManagementFactory;
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -393,6 +394,10 @@ public final class Configuration {
     } catch (Exception e) {
       throw new RuntimeException(ExceptionMessage.KEY_NOT_MS.getMessage(key));
     }
+  }
+
+  public static Duration getDuration(PropertyKey key) {
+    return Duration.ofMillis(getMs(key));
   }
 
   /**

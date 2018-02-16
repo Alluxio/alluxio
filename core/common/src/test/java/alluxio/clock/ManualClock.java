@@ -14,6 +14,7 @@ package alluxio.clock;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneId;
+import java.time.ZoneOffset;
 
 /**
  * A manually set clock useful for testing.
@@ -62,16 +63,16 @@ public final class ManualClock extends Clock {
 
   @Override
   public ZoneId getZone() {
-    return null;
+    return ZoneOffset.UTC;
   }
 
   @Override
   public Clock withZone(ZoneId zone) {
-    return null;
+    throw new UnsupportedOperationException("ManualClock only uses UTC");
   }
 
   @Override
   public Instant instant() {
-    return null;
+    return Instant.ofEpochMilli(millis());
   }
 }
