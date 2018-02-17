@@ -29,6 +29,8 @@ public class ProxyHealthCheckClient implements HealthCheckClient {
   private final Supplier<RetryPolicy> mRetryPolicySupplier;
 
   /**
+   * Creates a proxy health check client.
+   *
    * @param proxyAddress The potential proxy address
    * @param retryPolicySupplier the retry policy supplier
    */
@@ -45,11 +47,11 @@ public class ProxyHealthCheckClient implements HealthCheckClient {
       LOG.debug("Checking whether {} is listening", mProxyAddress);
       boolean connected = NetworkAddressUtils.isServing(mProxyAddress.getHostName(),
               mProxyAddress.getPort());
-      LOG.debug("Successfully connected to {}", mProxyAddress);
       if (!connected) {
         LOG.debug("Failed to connect to {}", mProxyAddress);
         continue;
       }
+      LOG.debug("Successfully connected to {}", mProxyAddress);
       return true;
     } while (retry.attemptRetry());
     return false;

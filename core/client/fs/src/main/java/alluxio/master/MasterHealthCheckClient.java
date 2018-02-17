@@ -28,7 +28,7 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * MasterHealthCheckClient check whether Alluxio master is serving RPC request and
- * the AlluxioMaster process is running in all master servers.
+ * if the AlluxioMaster process is running in all master hosts.
  */
 public class MasterHealthCheckClient implements HealthCheckClient {
 
@@ -39,7 +39,7 @@ public class MasterHealthCheckClient implements HealthCheckClient {
   private ScheduledExecutorService mExecutorService = Executors.newScheduledThreadPool(2);
 
   /**
-   * Creates a new Master health check client.
+   * Creates a master health check client.
    */
   public MasterHealthCheckClient() {
     mMasterServingThread = new Thread(() -> {

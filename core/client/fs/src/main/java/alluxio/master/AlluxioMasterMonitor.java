@@ -18,7 +18,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Alluxio master monitor for inquiring AlluxioMaster service availability.
+ * Alluxio master monitor for inquiring the AlluxioMaster service availability.
  */
 public final class AlluxioMasterMonitor {
   private static final Logger LOG = LoggerFactory.getLogger(AlluxioMasterMonitor.class);

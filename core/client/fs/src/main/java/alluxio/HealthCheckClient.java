@@ -14,12 +14,12 @@ package alluxio;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * Client for determining a service is serving RPCs.
+ * Client for checking service availability.
  */
 @ThreadSafe
 public interface HealthCheckClient {
   /**
-   * @return true if the service is serving RPC, otherwise false. The implementation should
+   * @return true if the service is serving requests, otherwise false. The implementation should
    *         perform retries if appropriate
    */
   boolean isServing();

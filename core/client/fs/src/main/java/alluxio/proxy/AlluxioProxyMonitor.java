@@ -21,7 +21,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Alluxio proxy monitor for inquiring service availability.
+ * Alluxio proxy monitor for inquiring the AlluxioProxy service availability.
  */
 public final class AlluxioProxyMonitor {
   private static final Logger LOG = LoggerFactory.getLogger(AlluxioWorkerMonitor.class);

@@ -20,7 +20,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Alluxio worker monitor for inquiring service availability.
+ * Alluxio worker monitor for inquiring AlluxioWorker service availability.
  */
 public final class AlluxioWorkerMonitor {
   private static final Logger LOG = LoggerFactory.getLogger(AlluxioWorkerMonitor.class);

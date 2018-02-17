@@ -15,11 +15,8 @@ import alluxio.Constants;
 import alluxio.HealthCheckClient;
 import alluxio.exception.status.UnauthenticatedException;
 import alluxio.retry.RetryPolicy;
-import alluxio.security.authentication.TProtocols;
-import alluxio.security.authentication.TransportProvider;
 import alluxio.util.network.NetworkAddressUtils;
 
-import org.apache.thrift.protocol.TProtocol;
 import org.apache.thrift.transport.TTransportException;
 
 import org.slf4j.Logger;
@@ -38,6 +35,8 @@ public class WorkerHealthCheckClient implements HealthCheckClient {
   private final Supplier<RetryPolicy> mRetryPolicySupplier;
 
   /**
+   * Creates a worker health check client.
+   *
    * @param workerAddress The potential worker address
    * @param retryPolicySupplier the retry policy supplier
    */
