@@ -11,21 +11,27 @@
 
 package alluxio.retry;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 
 /**
  * Utilities for performing retries.
  */
 public final class RetryUtils {
+  private static final Logger LOG = LoggerFactory.getLogger(RetryUtils.class);
 
   /**
    * Retries the given method until it doesn't throw an IO exception or the retry policy expires. If
    * the retry policy expires, the last exception generated will be rethrown.
    *
+   * @param action a description of the action that fits the phrase "Failed to ${action}"
    * @param f the function to retry
    * @param policy the retry policy to use
    */
-  public static void retry(RunnableThrowsIOException f, RetryPolicy policy) throws IOException {
+  public static void retry(String action, RunnableThrowsIOException f, RetryPolicy policy)
+      throws IOException {
     while (true) {
       try {
         f.run();
@@ -34,6 +40,7 @@ public final class RetryUtils {
         if (!policy.attemptRetry()) {
           throw e;
         }
+        LOG.warn("Failed to {} ({}): {}. Retrying.", action, policy.getRetryCount(), e.toString());
       }
     }
   }

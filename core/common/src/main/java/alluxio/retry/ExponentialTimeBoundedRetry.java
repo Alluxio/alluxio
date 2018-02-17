@@ -14,6 +14,7 @@ package alluxio.retry;
 import alluxio.time.TimeContext;
 
 import java.time.Duration;
+import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * A retry policy which uses exponential backoff and a maximum duration time bound.
@@ -24,29 +25,34 @@ import java.time.Duration;
  * timings would be [10, 20, 40, 80, 100, 100, 100, 50], assuming the operation being retries takes
  * no time. The 50 at the end is because the previous times add up to 450, so the mechanism sleeps
  * for only 50ms before the final attempt.
+ *
+ * However, those are just the base sleep timings. For each sleep time, we multiply by a random
+ * number from 1 to 1.1 to add jitter to avoid hotspotting.
  */
-public final class TimeBoundedExponentialRetry extends TimeBoundedRetry {
+public final class ExponentialTimeBoundedRetry extends TimeBoundedRetry {
   private final Duration mMaxSleep;
   private Duration mNextSleep;
 
   /**
    * See {@link Builder}.
    */
-  private TimeBoundedExponentialRetry(TimeContext timeCtx, Duration maxDuration,
-      Duration initialSleep, Duration maxSleep) {
+  private ExponentialTimeBoundedRetry(TimeContext timeCtx, Duration maxDuration,
+                                      Duration initialSleep, Duration maxSleep) {
     super(timeCtx, maxDuration);
     mMaxSleep = maxSleep;
     mNextSleep = initialSleep;
   }
 
   @Override
-  protected Duration nextWaitTime() {
+  protected Duration computeNextWaitTime() {
     Duration next = mNextSleep;
     mNextSleep = mNextSleep.multipliedBy(2);
     if (mNextSleep.compareTo(mMaxSleep) > 0) {
       mNextSleep = mMaxSleep;
     }
-    return next;
+    // Add jitter.
+    long jitter = Math.round(ThreadLocalRandom.current().nextDouble(0.1) * next.toMillis());
+    return next.plusMillis(jitter);
   }
 
   /**
@@ -104,8 +110,8 @@ public final class TimeBoundedExponentialRetry extends TimeBoundedRetry {
     /**
      * @return the built retry mechanism
      */
-    public TimeBoundedExponentialRetry build() {
-      return new TimeBoundedExponentialRetry(mTimeCtx, mMaxDuration, mInitialSleep, mMaxSleep);
+    public ExponentialTimeBoundedRetry build() {
+      return new ExponentialTimeBoundedRetry(mTimeCtx, mMaxDuration, mInitialSleep, mMaxSleep);
     }
   }
 }

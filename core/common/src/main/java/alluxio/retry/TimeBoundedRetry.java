@@ -37,8 +37,8 @@ public abstract class TimeBoundedRetry implements RetryPolicy {
    * @param maxDuration the maximum duration
    */
   public TimeBoundedRetry(TimeContext timeCtx, Duration maxDuration) {
-    mClock = timeCtx.clock();
-    mSleeper = timeCtx.sleeper();
+    mClock = timeCtx.getClock();
+    mSleeper = timeCtx.getSleeper();
     mMaxDuration = maxDuration;
     mRetryCount = 0;
     mStartTime = mClock.instant();
@@ -55,14 +55,13 @@ public abstract class TimeBoundedRetry implements RetryPolicy {
     if (mDone) {
       return false;
     }
-    if (!mClock.instant().isBefore(mEndTime)) {
+    Instant now = mClock.instant();
+    if (!now.isBefore(mEndTime)) {
       mDone = true;
       return false;
     }
-    mRetryCount++;
     try {
-      Duration nextWaitTime = nextWaitTime();
-      Instant now = mClock.instant();
+      Duration nextWaitTime = computeNextWaitTime();
       if (now.plus(nextWaitTime).isAfter(mEndTime)) {
         nextWaitTime = Duration.between(now, mEndTime);
         mDone = true;
@@ -72,11 +71,12 @@ public abstract class TimeBoundedRetry implements RetryPolicy {
       Thread.currentThread().interrupt();
       return false;
     }
+    mRetryCount++;
     return true;
   }
 
   /**
    * @return how long to wait before the next retry
    */
-  protected abstract Duration nextWaitTime();
+  protected abstract Duration computeNextWaitTime();
 }

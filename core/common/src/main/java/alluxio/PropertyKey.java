@@ -1060,7 +1060,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("Netty socket option for SO_SNDBUF: the proposed buffer size that will "
               + "be used for sends.")
           .build();
-  public static final PropertyKey WORKER_MASTER_CONNECT_TIMEOUT =
+  public static final PropertyKey WORKER_MASTER_CONNECT_RETRY_TIMEOUT =
       new Builder(Name.WORKER_MASTER_CONNECT_RETRY_TIMEOUT)
           .setDescription("Retry period before workers give up on connecting to master")
           .setDefaultValue("1hour")
@@ -1768,7 +1768,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey USER_RPC_RETRY_MAX_DURATION =
       new Builder(Name.USER_RPC_RETRY_MAX_DURATION)
-          .setAlias(new String[]{"alluxio.user.rpc.retry.max.duration"})
           .setDefaultValue("2min")
           .setDescription("Alluxio client RPCs automatically retry for transient errors with "
               + "an exponential backoff. This property determines the maximum duration to retry for"

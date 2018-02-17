@@ -34,14 +34,14 @@ public final class TimeContext {
   /**
    * @return the clock for this context
    */
-  public Clock clock() {
+  public Clock getClock() {
     return mClock;
   }
 
   /**
    * @return the sleeper for thix context
    */
-  public Sleeper sleeper() {
+  public Sleeper getSleeper() {
     return mSleeper;
   }
 }

@@ -26,7 +26,7 @@ public class RetryUtilsTest {
   @Test
   public void success() throws IOException {
     AtomicInteger count = new AtomicInteger(0);
-    RetryUtils.retry(() -> {
+    RetryUtils.retry("success test", () -> {
       count.incrementAndGet();
       if (count.get() == 5) {
         return;
@@ -40,7 +40,7 @@ public class RetryUtilsTest {
   public void failure() throws IOException {
     AtomicInteger count = new AtomicInteger(0);
     try {
-      RetryUtils.retry(() -> {
+      RetryUtils.retry("failure test", () -> {
         count.incrementAndGet();
         throw new IOException(Integer.toString(count.get()));
       }, new CountingRetry(10));

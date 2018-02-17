@@ -28,7 +28,7 @@ import alluxio.master.MasterClientConfig;
 import alluxio.metrics.MetricsSystem;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.retry.RetryUtils;
-import alluxio.retry.TimeBoundedExponentialRetry;
+import alluxio.retry.ExponentialTimeBoundedRetry;
 import alluxio.thrift.BlockWorkerClientService;
 import alluxio.underfs.UfsManager;
 import alluxio.util.CommonUtils;
@@ -200,10 +200,10 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
   public void start(WorkerNetAddress address) throws IOException {
     mAddress = address;
     try {
-      RetryUtils.retry(() -> mWorkerId.set(mBlockMasterClient.getId(address)),
-          TimeBoundedExponentialRetry.builder()
-              .withMaxDuration(
-                  Duration.ofMillis(Configuration.getMs(PropertyKey.WORKER_MASTER_CONNECT_TIMEOUT)))
+      RetryUtils.retry("get worker id", () -> mWorkerId.set(mBlockMasterClient.getId(address)),
+          ExponentialTimeBoundedRetry.builder()
+              .withMaxDuration(Duration
+                  .ofMillis(Configuration.getMs(PropertyKey.WORKER_MASTER_CONNECT_RETRY_TIMEOUT)))
               .withInitialSleep(Duration.ofMillis(100))
               .withMaxSleep(Duration.ofSeconds(5))
               .build());

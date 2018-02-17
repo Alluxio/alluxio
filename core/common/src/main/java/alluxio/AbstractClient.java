@@ -19,7 +19,7 @@ import alluxio.exception.status.Status;
 import alluxio.exception.status.UnavailableException;
 import alluxio.exception.status.UnimplementedException;
 import alluxio.retry.RetryPolicy;
-import alluxio.retry.TimeBoundedExponentialRetry;
+import alluxio.retry.ExponentialTimeBoundedRetry;
 import alluxio.security.authentication.TransportProvider;
 import alluxio.thrift.AlluxioService;
 import alluxio.thrift.AlluxioTException;
@@ -170,22 +170,28 @@ public abstract class AbstractClient implements Client {
     Preconditions.checkState(!mClosed, "Client is closed, will not try to connect.");
 
     RetryPolicy retryPolicy =
-        TimeBoundedExponentialRetry.builder().withMaxDuration(MAX_RETRY_DURATION)
+        ExponentialTimeBoundedRetry.builder().withMaxDuration(MAX_RETRY_DURATION)
             .withInitialSleep(BASE_SLEEP_MS).withMaxSleep(MAX_SLEEP_MS).build();
     while (true) {
       if (mClosed) {
         throw new FailedPreconditionException("Failed to connect: client has been closed");
       }
+      // Re-query the address in each loop iteration in case it has changed (e.g. master
+      // failover).
       try {
-        // Re-query the address in each loop iteration in case it has changed (e.g. master
-        // failover). This must happen inside the try since querying the master address can fail.
         mAddress = getAddress();
-        LOG.info("Alluxio client (version {}) is trying to connect with {} @ {}",
-            RuntimeConstants.VERSION, getServiceName(), mAddress);
-
-        TProtocol binaryProtocol =
-            new TBinaryProtocol(mTransportProvider.getClientTransport(mParentSubject, mAddress));
-        mProtocol = new TMultiplexedProtocol(binaryProtocol, getServiceName());
+      } catch (UnavailableException e) {
+        if (!retryPolicy.attemptRetry()) {
+          break;
+        }
+        continue;
+      }
+      LOG.info("Alluxio client (version {}) is trying to connect with {} @ {}",
+          RuntimeConstants.VERSION, getServiceName(), mAddress);
+      TProtocol binaryProtocol =
+          new TBinaryProtocol(mTransportProvider.getClientTransport(mParentSubject, mAddress));
+      mProtocol = new TMultiplexedProtocol(binaryProtocol, getServiceName());
+      try {
         mProtocol.getTransport().open();
         LOG.info("Client registered with {} @ {}", getServiceName(), mAddress);
         mConnected = true;
@@ -287,7 +293,7 @@ public abstract class AbstractClient implements Client {
    */
   protected synchronized <V> V retryRPC(RpcCallable<V> rpc) throws AlluxioStatusException {
     RetryPolicy retryPolicy =
-        TimeBoundedExponentialRetry.builder().withMaxDuration(MAX_RETRY_DURATION)
+        ExponentialTimeBoundedRetry.builder().withMaxDuration(MAX_RETRY_DURATION)
             .withInitialSleep(BASE_SLEEP_MS).withMaxSleep(MAX_SLEEP_MS).build();
     while (!mClosed) {
       Exception ex;

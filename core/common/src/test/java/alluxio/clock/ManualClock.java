@@ -12,6 +12,7 @@
 package alluxio.clock;
 
 import java.time.Clock;
+import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
@@ -54,6 +55,15 @@ public final class ManualClock extends Clock {
    */
   public synchronized void addTimeMs(long timeMs) {
     mTimeMs += timeMs;
+  }
+
+  /**
+   * Moves the clock forward the specified duration.
+   *
+   * @param time the duration to add
+   */
+  public synchronized void addTime(Duration time) {
+    mTimeMs += time.toMillis();
   }
 
   @Override
