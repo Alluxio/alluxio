@@ -37,7 +37,7 @@ public final class ExponentialTimeBoundedRetry extends TimeBoundedRetry {
    * See {@link Builder}.
    */
   private ExponentialTimeBoundedRetry(TimeContext timeCtx, Duration maxDuration,
-                                      Duration initialSleep, Duration maxSleep) {
+      Duration initialSleep, Duration maxSleep) {
     super(timeCtx, maxDuration);
     mMaxSleep = maxSleep;
     mNextSleep = initialSleep;

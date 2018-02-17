@@ -56,6 +56,8 @@ public abstract class TimeBoundedRetry implements RetryPolicy {
       return false;
     }
     Instant now = mClock.instant();
+    // We should not do a retry if now == mEndTime. The final retry is timed to land at mEndTime,
+    // so if now == mEndTime, the operation may have taken less than 1ms.
     if (!now.isBefore(mEndTime)) {
       mDone = true;
       return false;
