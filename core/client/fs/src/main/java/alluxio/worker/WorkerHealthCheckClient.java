@@ -12,10 +12,12 @@
 package alluxio.worker;
 
 import alluxio.Constants;
+import alluxio.HealthCheckClient;
 import alluxio.exception.status.UnauthenticatedException;
 import alluxio.retry.RetryPolicy;
 import alluxio.security.authentication.TProtocols;
 import alluxio.security.authentication.TransportProvider;
+import alluxio.util.network.NetworkAddressUtils;
 
 import org.apache.thrift.protocol.TProtocol;
 import org.apache.thrift.transport.TTransportException;
@@ -27,11 +29,10 @@ import java.net.InetSocketAddress;
 import java.util.function.Supplier;
 
 /**
- * PollingWorkerHealthCheck finds the address of the worker by checking if the address is
- * serving RPC.
+ * WorkerHealthCheckClient check if worker is serving RPC.
  */
-public class PollingWorkerHealthCheck implements WorkerHealthCheck {
-  private static final Logger LOG = LoggerFactory.getLogger(PollingWorkerHealthCheck.class);
+public class WorkerHealthCheckClient implements HealthCheckClient {
+  private static final Logger LOG = LoggerFactory.getLogger(WorkerHealthCheckClient.class);
 
   private final InetSocketAddress mWorkerAddress;
   private final Supplier<RetryPolicy> mRetryPolicySupplier;
@@ -40,8 +41,8 @@ public class PollingWorkerHealthCheck implements WorkerHealthCheck {
    * @param workerAddress The potential worker address
    * @param retryPolicySupplier the retry policy supplier
    */
-  public PollingWorkerHealthCheck(InetSocketAddress workerAddress,
-                                  Supplier<RetryPolicy> retryPolicySupplier) {
+  public WorkerHealthCheckClient(InetSocketAddress workerAddress,
+                                 Supplier<RetryPolicy> retryPolicySupplier) {
     mWorkerAddress = workerAddress;
     mRetryPolicySupplier = retryPolicySupplier;
   }
@@ -52,7 +53,8 @@ public class PollingWorkerHealthCheck implements WorkerHealthCheck {
     do {
       try {
         LOG.debug("Checking whether {} is listening for RPCs", mWorkerAddress);
-        pingWorkerService(mWorkerAddress);
+        NetworkAddressUtils.pingService(mWorkerAddress,
+                Constants.FILE_SYSTEM_WORKER_CLIENT_SERVICE_NAME);
         LOG.debug("Successfully connected to {}", mWorkerAddress);
         return true;
       } catch (TTransportException e) {
@@ -63,14 +65,4 @@ public class PollingWorkerHealthCheck implements WorkerHealthCheck {
     } while (retry.attemptRetry());
     return false;
   }
-
-  private void pingWorkerService(InetSocketAddress address)
-          throws UnauthenticatedException, TTransportException {
-    TransportProvider transportProvider = TransportProvider.Factory.create();
-    TProtocol protocol = TProtocols.createProtocol(transportProvider.getClientTransport(address),
-            Constants.FILE_SYSTEM_WORKER_CLIENT_SERVICE_NAME);
-    protocol.getTransport().open();
-    protocol.getTransport().close();
-  }
-
 }

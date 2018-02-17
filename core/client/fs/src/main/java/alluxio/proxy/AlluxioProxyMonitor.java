@@ -9,36 +9,37 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.worker;
+package alluxio.proxy;
 
 import alluxio.HealthCheckClient;
 import alluxio.RuntimeConstants;
 import alluxio.retry.ExponentialBackoffRetry;
 import alluxio.util.network.NetworkAddressUtils;
+import alluxio.worker.AlluxioWorkerMonitor;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Alluxio worker monitor for inquiring service availability.
+ * Alluxio proxy monitor for inquiring service availability.
  */
-public final class AlluxioWorkerMonitor {
+public final class AlluxioProxyMonitor {
   private static final Logger LOG = LoggerFactory.getLogger(AlluxioWorkerMonitor.class);
 
   /**
-   * Starts the Alluxio worker monitor.
+   * Starts the Alluxio proxy monitor.
    *
    * @param args command line arguments, should be empty
    */
   public static void main(String[] args) {
     if (args.length != 0) {
       LOG.info("java -cp {} {}", RuntimeConstants.ALLUXIO_JAR,
-              AlluxioWorkerMonitor.class.getCanonicalName());
+              AlluxioProxyMonitor.class.getCanonicalName());
       System.exit(-1);
     }
 
-    HealthCheckClient client = new WorkerHealthCheckClient(
-        NetworkAddressUtils.getConnectAddress(NetworkAddressUtils.ServiceType.WORKER_RPC),
+    HealthCheckClient client = new ProxyHealthCheckClient(
+        NetworkAddressUtils.getBindAddress(NetworkAddressUtils.ServiceType.PROXY_WEB),
         () -> new ExponentialBackoffRetry(50, 100, 2));
     if (!client.isServing()) {
       System.exit(1);
@@ -46,5 +47,5 @@ public final class AlluxioWorkerMonitor {
     System.exit(0);
   }
 
-  private AlluxioWorkerMonitor() {} // prevent instantiation
+  private AlluxioProxyMonitor() {} // prevent instantiation
 }

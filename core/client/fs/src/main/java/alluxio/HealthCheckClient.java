@@ -9,17 +9,17 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.worker;
+package alluxio;
 
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * Client for determining a worker is serving RPCs.
+ * Client for determining a service is serving RPCs.
  */
 @ThreadSafe
-public interface WorkerHealthCheck {
+public interface HealthCheckClient {
   /**
-   * @return true if the worker is serving RPC, otherwise false. The implementation should
+   * @return true if the service is serving RPC, otherwise false. The implementation should
    *         perform retries if appropriate
    */
   boolean isServing();
