@@ -22,6 +22,9 @@ import org.slf4j.LoggerFactory;
 import java.net.InetSocketAddress;
 import java.util.function.Supplier;
 
+/**
+ * ProxyHealthCheckClient check if the proxy server is serving requests.
+ */
 public class ProxyHealthCheckClient implements HealthCheckClient {
   private static final Logger LOG = LoggerFactory.getLogger(WorkerHealthCheckClient.class);
 
