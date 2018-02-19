@@ -11,6 +11,8 @@
 
 package alluxio.time;
 
+import java.time.Duration;
+
 /**
  * A sleeping utility which delegates to Thread.sleep().
  */
@@ -22,7 +24,7 @@ public class ThreadSleeper implements Sleeper {
   public ThreadSleeper() {}
 
   @Override
-  public void sleep(long millis) throws InterruptedException {
-    Thread.sleep(millis);
+  public void sleep(Duration duration) throws InterruptedException {
+    Thread.sleep(duration.toMillis());
   }
 }
