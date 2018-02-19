@@ -18,9 +18,10 @@ import alluxio.time.ThreadSleeper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.concurrent.NotThreadSafe;
-
 import java.time.Clock;
+import java.time.Duration;
+
+import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * This class can be used for executing heartbeats periodically.
@@ -75,7 +76,7 @@ public final class SleepingTimer implements HeartbeatTimer {
         mLogger.warn("{} last execution took {} ms. Longer than the interval {}", mThreadName,
             executionTimeMs, mIntervalMs);
       } else {
-        mSleeper.sleep(mIntervalMs - executionTimeMs);
+        mSleeper.sleep(Duration.ofMillis(mIntervalMs - executionTimeMs));
       }
     }
     mPreviousTickMs = mClock.millis();
