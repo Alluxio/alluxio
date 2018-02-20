@@ -289,45 +289,45 @@ public final class AlluxioBlockStoreTest {
   @Test
   public void getInStreamInAlluxioOnlyFallbackToAvailableWorker() throws Exception {
     int workerCount = 4;
-    boolean isPersisted = false;
+    boolean persisted = false;
     int[] blockLocations = new int[]{2, 3};
     Map<Integer, Long> failedWorkers = ImmutableMap.of(
         0, 3L,
         1, 1L,
         3, 2L);
     int expectedWorker = 2;
-    testGetInStreamFallback(workerCount, isPersisted, blockLocations, failedWorkers, expectedWorker);
+    testGetInStreamFallback(workerCount, persisted, blockLocations, failedWorkers, expectedWorker);
   }
 
   @Test
   public void getInStreamPersistedAndInAlluxioFallbackToUFS() throws Exception {
     int workerCount = 3;
-    boolean isPersisted = true;
+    boolean persisted = true;
     int[] blockLocations = new int[]{0, 2};
     Map<Integer, Long> failedWorkers = ImmutableMap.of(
         0, 5L,
         2, 2L);
     int expectedWorker = 1;
-    testGetInStreamFallback(workerCount, isPersisted, blockLocations, failedWorkers, expectedWorker);
+    testGetInStreamFallback(workerCount, persisted, blockLocations, failedWorkers, expectedWorker);
   }
 
   @Test
   public void getInStreamPersistedFallbackToLeastRecentlyFailed() throws Exception {
     int workerCount = 3;
-    boolean isPersisted = true;
+    boolean persisted = true;
     int[] blockLocations = new int[0];
     Map<Integer, Long> failedWorkers = ImmutableMap.of(
         0, 5L,
         1, 1L,
         2, 2L);
     int expectedWorker = 1;
-    testGetInStreamFallback(workerCount, isPersisted, blockLocations, failedWorkers, expectedWorker);
+    testGetInStreamFallback(workerCount, persisted, blockLocations, failedWorkers, expectedWorker);
   }
 
   @Test
   public void getInStreamInAlluxioOnlyFallbackToLeastRecentlyFailed() throws Exception {
     int workerCount = 5;
-    boolean isPersisted = false;
+    boolean persisted = false;
     int[] blockLocations = new int[]{1, 2, 3};
     Map<Integer, Long> failedWorkers = ImmutableMap.of(
         0, 5L,
@@ -336,7 +336,7 @@ public final class AlluxioBlockStoreTest {
         3, 4L,
         4, 1L);
     int expectedWorker = 2;
-    testGetInStreamFallback(workerCount, isPersisted, blockLocations, failedWorkers, expectedWorker);
+    testGetInStreamFallback(workerCount, persisted, blockLocations, failedWorkers, expectedWorker);
   }
 
   private void testGetInStreamFallback(int workerCount, boolean isPersisted, int[] blockLocations,

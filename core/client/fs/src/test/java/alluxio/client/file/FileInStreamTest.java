@@ -614,18 +614,14 @@ public final class FileInStreamTest {
   }
 
   @Test
-  public void readOneRetryCurrentWorker() throws Exception {
+  public void readOneRetry() throws Exception {
     long offset = 37;
     // Setups a broken stream for the first block to throw an exception.
     TestBlockInStream workingStream = mInStreams.get(0);
     TestBlockInStream brokenStream = mock(TestBlockInStream.class);
-    PowerMockito.mockStatic(BlockInStream.class);
-    PowerMockito
-        .when(BlockInStream.create(eq(mContext), any(BlockInfo.class),
-            any(WorkerNetAddress.class), any(BlockInStream.BlockInStreamSource.class),
-            any(InStreamOptions.class)))
-        .thenReturn(workingStream);
-    mInStreams.set(0, brokenStream);
+    when(mBlockStore
+        .getInStream(eq(0L), any(InStreamOptions.class), any()))
+        .thenReturn(brokenStream).thenReturn(workingStream);
     when(brokenStream.read()).thenThrow(new UnavailableException("test exception"));
     when(brokenStream.getPos()).thenReturn(offset);
 
@@ -639,16 +635,12 @@ public final class FileInStreamTest {
   }
 
   @Test
-  public void readBufferRetryCurrentWorker() throws Exception {
+  public void readBufferRetry() throws Exception {
     TestBlockInStream workingStream = mInStreams.get(0);
     TestBlockInStream brokenStream = mock(TestBlockInStream.class);
-    PowerMockito.mockStatic(BlockInStream.class);
-    PowerMockito
-        .when(BlockInStream.create(eq(mContext), any(BlockInfo.class),
-            any(WorkerNetAddress.class), any(BlockInStream.BlockInStreamSource.class),
-            any(InStreamOptions.class)))
-        .thenReturn(workingStream);
-    mInStreams.set(0, brokenStream);
+    when(mBlockStore
+        .getInStream(eq(0L), any(InStreamOptions.class), any()))
+        .thenReturn(brokenStream).thenReturn(workingStream);
     when(brokenStream.read(any(byte[].class), anyInt(), anyInt()))
         .thenThrow(new UnavailableException("test exception"));
     when(brokenStream.getPos()).thenReturn(BLOCK_LENGTH / 2);
@@ -665,23 +657,20 @@ public final class FileInStreamTest {
   }
 
   @Test
-  public void positionedReadRetryCurrentWorker() throws Exception {
+  public void positionedReadRetry() throws Exception {
     TestBlockInStream workingStream = mInStreams.get(0);
     TestBlockInStream brokenStream = mock(TestBlockInStream.class);
-    PowerMockito.mockStatic(BlockInStream.class);
-    PowerMockito
-        .when(BlockInStream.create(eq(mContext), any(BlockInfo.class),
-            any(WorkerNetAddress.class), any(BlockInStream.BlockInStreamSource.class),
-            any(InStreamOptions.class)))
-        .thenReturn(workingStream);
-    mInStreams.set(0, brokenStream);
+    when(mBlockStore
+        .getInStream(eq(0L), any(InStreamOptions.class), any()))
+        .thenReturn(brokenStream).thenReturn(workingStream);
     when(brokenStream.positionedRead(anyLong(), any(byte[].class), anyInt(), anyInt()))
         .thenThrow(new UnavailableException("test exception"));
 
     byte[] b = new byte[(int) BLOCK_LENGTH * 2];
     mTestStream.positionedRead(BLOCK_LENGTH / 2, b, 0, b.length);
 
-    doReturn(0).when(brokenStream).positionedRead(anyLong(), any(byte[].class), anyInt(), anyInt());
+    doReturn(0)
+        .when(brokenStream).positionedRead(anyLong(), any(byte[].class), anyInt(), anyInt());
     verify(brokenStream, times(1))
         .positionedRead(anyLong(), any(byte[].class), anyInt(), anyInt());
     assertArrayEquals(BufferUtils.getIncreasingByteArray((int) BLOCK_LENGTH / 2, (int)
