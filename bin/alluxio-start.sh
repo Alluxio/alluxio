@@ -238,6 +238,10 @@ restart_workers() {
   ${LAUNCHER} "${BIN}/alluxio-workers.sh" "${BIN}/alluxio-start.sh" "restart_worker"
 }
 
+start_monitor() {
+  ${LAUNCHER} "${BIN}/alluxio-monitor.sh" $1
+}
+
 run_safe() {
   while [ 1 ]
   do
@@ -249,111 +253,6 @@ run_safe() {
     echo "Alluxio is running... "
     sleep 2
   done
-}
-
-prepare_monitor() {
-  local message=$1
-  echo "*****************************************"
-  echo "${message}"
-  echo "*****************************************"
-  echo "Waiting for the services to come up..."
-  sleep 2
-}
-
-run_monitor() {
-  local node_type=$1
-  local node_logs=( "${ALLUXIO_LOGS_DIR}/${node_type}.log" "${ALLUXIO_LOGS_DIR}/${node_type}.out" )
-
-  if [[ "${node_type}" == "master" ]] ; then
-    monitor_exec=alluxio.master.AlluxioMasterMonitor
-  fi
-  if [[ "${node_type}" == "worker" ]] ; then
-    monitor_exec=alluxio.worker.AlluxioWorkerMonitor
-  fi
-  if [[ "${node_type}" == "proxy" ]] ; then
-    monitor_exec=alluxio.proxy.AlluxioProxyMonitor
-  fi
-
-  local RED='\033[0;31m'
-  local GREEN='\033[0;32m'
-  local NC='\033[0m'
-  echo " - Running ${node_type} monitor @ $(hostname -f)."
-  "${JAVA}" -cp ${CLASSPATH} ${ALLUXIO_JAVA_OPTS} ${monitor_exec}
-  if [[ $? -ne 0 ]]; then
-    echo -e " - ${RED}[ FAILED ] The ${node_type} @ $(hostname -f) is not serving requests.${NC}"
-    for node_log in "${node_logs[@]}"; do
-      echo " - Printing the log tail for ${node_log}"
-      echo ">> BEGIN"
-      test -f "${node_log}" && tail -30 "${node_log}"
-      echo "<< EOF"
-    done
-  else
-    echo -e "   ${GREEN}[ OK ] The ${node_type} service @ $(hostname -f) is in an healthy state.${NC}"
-  fi
-}
-
-run_monitors() {
-  local workers=$(cat "${ALLUXIO_CONF_DIR}/workers" | sed  "s/#.*$//;/^$/d")
-  local masters=$(cat "${ALLUXIO_CONF_DIR}/masters" | sed  "s/#.*$//;/^$/d")
-  local proxies=$(cat "${ALLUXIO_CONF_DIR}/masters" "${ALLUXIO_CONF_DIR}/workers" | sed  "s/#.*$//;/^$/d")
-  local node_type=$1
-  local node_logs=( "${ALLUXIO_LOGS_DIR}/${node_type}.log" "${ALLUXIO_LOGS_DIR}/${node_type}.out" )
-  local nodes=
-  local monitor_exec=
-  if [[ "${node_type}" == "master" ]] ; then
-    nodes=${masters}
-    monitor_exec=alluxio.master.AlluxioMasterMonitor
-  fi
-  if [[ "${node_type}" == "worker" ]] ; then
-    nodes=${workers}
-    monitor_exec=alluxio.worker.AlluxioWorkerMonitor
-  fi
-  if [[ "${node_type}" == "proxy" ]] ; then
-    nodes=${proxies}
-    monitor_exec=alluxio.proxy.AlluxioProxyMonitor
-  fi
-
-  local RED='\033[0;31m'
-  local GREEN='\033[0;32m'
-  local NC='\033[0m'
-  mkdir -p "${ALLUXIO_LOGS_DIR}"
-  echo "* Starting ${node_type} monitors."
-  if [[ "${node_type}" == "master" ]] ; then
-    echo " - Running ${node_type} monitor."
-    "${JAVA}" -cp ${CLASSPATH} ${ALLUXIO_JAVA_OPTS} ${monitor_exec}
-    if [[ $? -ne 0 ]]; then
-      echo -e " - ${RED}[ FAILED ] The ${node_type} is not serving requests.${NC}"
-      for node in $(echo ${nodes}); do
-        for node_log in "${node_logs[@]}"; do
-          echo " - Printing the log tail for ${node_log}"
-          echo ">> BEGIN"
-          ssh -o ConnectTimeout=5 -o StrictHostKeyChecking=no -tt ${node} \
-            test -f "${node_log}" && tail -30 "${node_log}"
-          echo "<< EOF"
-        done
-      done
-    else
-      echo -e "   ${GREEN}[ OK ] The ${node_type} service is in an healthy state.${NC}"
-    fi
-  else
-    for node in $(echo ${nodes}); do
-      echo " - Running ${node_type} monitor @ ${node}."
-      ssh -o ConnectTimeout=5 -o StrictHostKeyChecking=no -tt ${node} \
-        "${JAVA}" -cp ${CLASSPATH} ${ALLUXIO_JAVA_OPTS} ${monitor_exec}
-      if [[ $? -ne 0 ]]; then
-        echo -e " - ${RED}[ FAILED ] The ${node_type} @ ${node} is not serving requests.${NC}"
-        for node_log in "${node_logs[@]}"; do
-          echo " - Printing the log tail for ${node_log}"
-          echo ">> BEGIN"
-          ssh -o ConnectTimeout=5 -o StrictHostKeyChecking=no -tt ${node} \
-            test -f "${node_log}" && tail -30 "${node_log}"
-          echo "<< EOF"
-        done
-      else
-        echo -e "   ${GREEN}[ OK ] The ${node_type} @ ${node} service is in an healthy state.${NC}"
-      fi
-    done
-  fi
 }
 
 main() {
@@ -429,10 +328,7 @@ main() {
       start_proxies
 
       if [[ "${monitor}" ]]; then
-        prepare_monitor "Starting to monitor the services."
-        run_monitors "master"
-        run_monitors "worker"
-        run_monitors "proxy"
+        start_monitor "all"
       fi
       ;;
     local)
@@ -449,58 +345,49 @@ main() {
       start_proxy
 
       if [[ "${monitor}" ]]; then
-        prepare_monitor "Starting to monitor the services."
-        run_monitor "master"
-        run_monitor "worker"
-        run_monitor "proxy"
+        start_monitor "local"
       fi
       ;;
     master)
       start_master "${FORMAT}"
 
       if [[ "${monitor}" ]]; then
-        prepare_monitor "Starting to monitor the master service."
-        run_monitor "master"
+        start_monitor "master"
       fi
       ;;
     masters)
       start_masters
 
       if [[ "${monitor}" ]]; then
-        prepare_monitor "Starting to monitor the masters services."
-        run_monitors "master"
+        start_monitor "masters"
       fi
       ;;
     proxy)
       start_proxy
 
       if [[ "${monitor}" ]]; then
-        prepare_monitor "Starting to monitor the proxy service."
-        run_monitor "proxy"
+        start_monitor "proxy"
       fi
       ;;
     proxies)
       start_proxies
 
       if [[ "${monitor}" ]]; then
-        prepare_monitor "Starting to monitor the proxies services."
-        run_monitors "proxy"
+        start_monitor "proxies"
       fi
       ;;
     restart_worker)
       restart_worker
 
       if [[ "${monitor}" ]]; then
-        prepare_monitor "Starting to monitor the worker service."
-        run_monitor "worker"
+        start_monitor "worker"
       fi
       ;;
     restart_workers)
       restart_workers
 
       if [[ "${monitor}" ]]; then
-        prepare_monitor "Starting to monitor the workers services."
-        run_monitors "worker"
+        start_monitor "workers"
       fi
       ;;
     safe)
@@ -510,16 +397,14 @@ main() {
       start_worker "${MOPT}"
 
       if [[ "${monitor}" ]]; then
-        prepare_monitor "Starting to monitor the worker service."
-        run_monitor "worker"
+        start_monitor "worker"
       fi
       ;;
     workers)
       start_workers "${MOPT}"
 
       if [[ "${monitor}" ]]; then
-        prepare_monitor "Starting to monitor the workers services."
-        run_monitors "worker"
+        start_monitor "workers"
       fi
       ;;
     logserver)
