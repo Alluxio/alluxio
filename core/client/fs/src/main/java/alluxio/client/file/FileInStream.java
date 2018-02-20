@@ -86,15 +86,8 @@ public class FileInStream extends InputStream implements BoundedStream, Position
   /** Underlying block stream, null if a position change has invalidated the previous stream. */
   private BlockInStream mBlockInStream;
 
-  /** Whether next retry should occur on the same worker or not. */
-  private boolean mRetryCurrentWorker = true;
-
   /** A map of worker address to the most recent time when client fails to read from it. */
   private Map<WorkerNetAddress, Long> mFailedWorkers = new HashMap<>();
-
-  /** Policy to determine if we should continue retry. */
-  private CountingRetry mRetry = new CountingRetry(
-      Configuration.getInt(PropertyKey.USER_BLOCK_WORKER_CLIENT_READ_RETRY));
 
   protected FileInStream(URIStatus status, InStreamOptions options, FileSystemContext context) {
     mStatus = status;
@@ -116,7 +109,8 @@ public class FileInStream extends InputStream implements BoundedStream, Position
       return -1;
     }
 
-    resetRetry();
+    CountingRetry retry = new CountingRetry(
+        Configuration.getInt(PropertyKey.USER_BLOCK_WORKER_CLIENT_READ_RETRY));
     while (true) {
       updateStream();
       try {
@@ -126,7 +120,8 @@ public class FileInStream extends InputStream implements BoundedStream, Position
         }
         return result;
       } catch (UnavailableException | DeadlineExceededException | ConnectException e) {
-        mBlockInStream = handleRetryableException(mBlockInStream, e);
+        handleRetryableException(mBlockInStream, e, retry);
+        mBlockInStream = null;
       }
     }
   }
@@ -150,7 +145,8 @@ public class FileInStream extends InputStream implements BoundedStream, Position
 
     int bytesLeft = len;
     int currentOffset = off;
-    resetRetry();
+    CountingRetry retry = new CountingRetry(
+        Configuration.getInt(PropertyKey.USER_BLOCK_WORKER_CLIENT_READ_RETRY));
     while (bytesLeft > 0 && mPosition != mLength) {
       updateStream();
       try {
@@ -160,9 +156,10 @@ public class FileInStream extends InputStream implements BoundedStream, Position
           currentOffset += bytesRead;
           mPosition += bytesRead;
         }
-        resetRetry();
+        retry.reset();
       } catch (UnavailableException | ConnectException | DeadlineExceededException e) {
-        mBlockInStream = handleRetryableException(mBlockInStream, e);
+        handleRetryableException(mBlockInStream, e, retry);
+        mBlockInStream = null;
       }
     }
     return len - bytesLeft;
@@ -202,34 +199,27 @@ public class FileInStream extends InputStream implements BoundedStream, Position
     }
 
     int lenCopy = len;
-    resetRetry();
+    CountingRetry retry = new CountingRetry(
+        Configuration.getInt(PropertyKey.USER_BLOCK_WORKER_CLIENT_READ_RETRY));
     while (len > 0) {
       if (pos >= mLength) {
         break;
       }
       long blockId = mStatus.getBlockIds().get(Math.toIntExact(pos / mBlockSize));
       BlockInStream stream = null;
-      boolean readSucceeded = false;
+      stream = mBlockStore.getInStream(blockId, mOptions, mFailedWorkers);
       try {
-        while (!readSucceeded) {
-          if (stream == null) {
-            stream = mBlockStore.getInStream(blockId, mOptions, mFailedWorkers);
-          }
-          try {
-            long offset = pos % mBlockSize;
-            int bytesRead =
-                stream.positionedRead(offset, b, off, (int) Math.min(mBlockSize - offset, len));
-            Preconditions.checkState(bytesRead > 0, "No data is read before EOF");
-            pos += bytesRead;
-            off += bytesRead;
-            len -= bytesRead;
-            resetRetry();
-            readSucceeded = true;
-          } catch (UnavailableException | DeadlineExceededException | ConnectException e) {
-            stream = handleRetryableException(stream, e);
-            readSucceeded = false;
-          }
-        }
+        long offset = pos % mBlockSize;
+        int bytesRead =
+            stream.positionedRead(offset, b, off, (int) Math.min(mBlockSize - offset, len));
+        Preconditions.checkState(bytesRead > 0, "No data is read before EOF");
+        pos += bytesRead;
+        off += bytesRead;
+        len -= bytesRead;
+        retry.reset();
+      } catch (UnavailableException | DeadlineExceededException | ConnectException e) {
+        handleRetryableException(stream, e, retry);
+        stream = null;
       } finally {
         closeBlockInStream(stream);
       }
@@ -339,14 +329,9 @@ public class FileInStream extends InputStream implements BoundedStream, Position
     }
   }
 
-  private void resetRetry() {
-    mRetry.reset();
-    mRetryCurrentWorker = true;
-  }
-
-  private BlockInStream handleRetryableException(BlockInStream stream, IOException e)
+  private void handleRetryableException(BlockInStream stream, IOException e, CountingRetry retry)
       throws IOException {
-    if (!(mRetryCurrentWorker || mRetry.attemptRetry())) {
+    if (!retry.attemptRetry()) {
       throw e;
     }
 
@@ -360,21 +345,6 @@ public class FileInStream extends InputStream implements BoundedStream, Position
       LOG.warn("Failed to close input stream for block {}: {}", stream.getId(), ex.getMessage());
     }
 
-    if (mRetryCurrentWorker) {
-      try {
-        long pos = stream.getPos();
-        stream = BlockInStream.create(mContext, mOptions.getBlockInfo(stream.getId()),
-            workerAddress, stream.getSource(), mOptions);
-        stream.seek(pos);
-        mRetryCurrentWorker = false;
-        return stream;
-      } catch (IOException ex) {
-        LOG.warn("Failed 2 times trying to read block {} from worker {}: {}",
-            stream.getId(), workerAddress, ex.getMessage());
-      }
-    }
-
     mFailedWorkers.put(workerAddress, System.currentTimeMillis());
-    return null;
   }
 }
