@@ -38,8 +38,8 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.ConnectException;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -89,8 +89,8 @@ public class FileInStream extends InputStream implements BoundedStream, Position
   /** Whether next retry should occur on the same worker or not. */
   private boolean mRetryCurrentWorker = true;
 
-  /** A set of workers the client fails to read from. */
-  private Set<WorkerNetAddress> mLostWorkers = new HashSet<>();
+  /** A map of worker address to the most recent time when client fails to read from it. */
+  private Map<WorkerNetAddress, Long> mFailedWorkers = new HashMap<>();
 
   /** Policy to determine if we should continue retry. */
   private CountingRetry mRetry = new CountingRetry(
@@ -213,7 +213,7 @@ public class FileInStream extends InputStream implements BoundedStream, Position
       try {
         while (!readSucceeded) {
           if (stream == null) {
-            stream = mBlockStore.getInStream(blockId, mOptions, mLostWorkers);
+            stream = mBlockStore.getInStream(blockId, mOptions, mFailedWorkers);
           }
           try {
             long offset = pos % mBlockSize;
@@ -283,7 +283,7 @@ public class FileInStream extends InputStream implements BoundedStream, Position
     // Calculate block id.
     long blockId = mStatus.getBlockIds().get(Math.toIntExact(mPosition / mBlockSize));
     // Create stream
-    mBlockInStream = mBlockStore.getInStream(blockId, mOptions, mLostWorkers);
+    mBlockInStream = mBlockStore.getInStream(blockId, mOptions, mFailedWorkers);
     // Set the stream to the correct position.
     long offset = mPosition % mBlockSize;
     mBlockInStream.seek(offset);
@@ -374,7 +374,7 @@ public class FileInStream extends InputStream implements BoundedStream, Position
       }
     }
 
-    mLostWorkers.add(workerAddress);
+    mFailedWorkers.put(workerAddress, System.currentTimeMillis());
     return null;
   }
 }
