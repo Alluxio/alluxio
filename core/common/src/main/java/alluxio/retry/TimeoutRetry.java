@@ -47,7 +47,7 @@ public class TimeoutRetry implements RetryPolicy {
   }
 
   @Override
-  public boolean attemptRetry() {
+  public boolean attempt() {
     if (mCount == 0) {
       // first attempt
       mStartMs = CommonUtils.getCurrentMs();

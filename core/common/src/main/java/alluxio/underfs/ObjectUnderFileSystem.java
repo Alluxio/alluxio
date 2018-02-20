@@ -543,7 +543,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
         (int) Configuration.getMs(PropertyKey.UNDERFS_OBJECT_STORE_READ_RETRY_BASE_SLEEP_MS),
         (int) Configuration.getMs(PropertyKey.UNDERFS_OBJECT_STORE_READ_RETRY_MAX_SLEEP_MS),
         Configuration.getInt(PropertyKey.UNDERFS_OBJECT_STORE_READ_RETRY_MAX_NUM));
-    while (retryPolicy.attemptRetry()) {
+    while (retryPolicy.attempt()) {
       try {
         return openObject(stripPrefixIfPresent(path), options);
       } catch (IOException e) {

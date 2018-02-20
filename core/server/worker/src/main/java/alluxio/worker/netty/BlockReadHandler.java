@@ -198,7 +198,7 @@ public final class BlockReadHandler extends AbstractReadHandler<BlockReadRequest
         // Sends an empty buffer to the client to make sure that the client does not timeout when
         // the server is waiting for the UFS block access.
         channel.writeAndFlush(new RPCProtoMessage(heartbeat));
-      } while (retryPolicy.attemptRetry());
+      } while (retryPolicy.attempt());
       throw new UnavailableException(ExceptionMessage.UFS_BLOCK_ACCESS_TOKEN_UNAVAILABLE
           .getMessage(request.getId(), request.getOpenUfsBlockOptions().getUfsPath()));
     }

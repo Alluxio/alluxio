@@ -66,7 +66,7 @@ public final class MasterJournalContext implements JournalContext {
     }
 
     RetryPolicy retry = new TimeoutRetry(JOURNAL_FLUSH_RETRY_TIMEOUT_MS, Constants.SECOND_MS);
-    while (retry.attemptRetry()) {
+    while (retry.attempt()) {
       try {
         mAsyncJournalWriter.flush(mFlushCounter);
         return;

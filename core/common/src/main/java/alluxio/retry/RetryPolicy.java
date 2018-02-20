@@ -14,9 +14,8 @@ package alluxio.retry;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * Attempts to retry code from a do/while loop. The way that this interface works is that the logic
- * for delayed retries (retries that sleep) can delay the caller of {@link #attemptRetry()}. Because
- * of this, its best to put retries in do/while loops to avoid the first wait.
+ * Attempts to retry code in a loop. The way that this interface works is that the logic
+ * for delayed retries (retries that sleep) can delay the caller of {@link #attempt()}.
  */
 @NotThreadSafe
 public interface RetryPolicy {
@@ -30,8 +29,10 @@ public interface RetryPolicy {
 
   /**
    * Attempts to run the given operation, returning false if unable to (max retries have happened).
+   * The first call to this method should never delay the caller, this allow users of the
+   * policy to use it in the context of a while-loop.
    *
    * @return whether the operation have succeeded or failed (max retries have happened)
    */
-  boolean attemptRetry();
+  boolean attempt();
 }

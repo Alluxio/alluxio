@@ -36,8 +36,13 @@ public abstract class SleepingRetry implements RetryPolicy {
   }
 
   @Override
-  public boolean attemptRetry() {
+  public boolean attempt() {
     if (mMaxRetries > mCount) {
+      if (mCount == 0) {
+        // first attempt, do not sleep
+        mCount++;
+        return true;
+      }
       try {
         getSleepUnit().sleep(getSleepTime());
         mCount++;

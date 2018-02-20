@@ -30,7 +30,7 @@ public final class TimeoutRetryTest {
     TimeoutRetry timeoutRetry = new TimeoutRetry(timeoutMs, sleepMs);
     Assert.assertEquals(0, timeoutRetry.getRetryCount());
     long startMs = System.currentTimeMillis();
-    while (timeoutRetry.attemptRetry()) {
+    while (timeoutRetry.attempt()) {
       attempts++;
     }
     long endMs = System.currentTimeMillis();

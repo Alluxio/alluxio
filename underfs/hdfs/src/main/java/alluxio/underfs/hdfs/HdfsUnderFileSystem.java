@@ -178,7 +178,7 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
   public OutputStream createDirect(String path, CreateOptions options) throws IOException {
     IOException te = null;
     RetryPolicy retryPolicy = new CountingRetry(MAX_TRY);
-    while (retryPolicy.attemptRetry()) {
+    while (retryPolicy.attempt()) {
       try {
         // TODO(chaomin): support creating HDFS files with specified block size and replication.
         return new HdfsUnderFileOutputStream(FileSystem.create(mFileSystem, new Path(path),
@@ -383,7 +383,7 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
   public boolean mkdirs(String path, MkdirsOptions options) throws IOException {
     IOException te = null;
     RetryPolicy retryPolicy = new CountingRetry(MAX_TRY);
-    while (retryPolicy.attemptRetry()) {
+    while (retryPolicy.attempt()) {
       try {
         Path hdfsPath = new Path(path);
         if (mFileSystem.exists(hdfsPath)) {
@@ -428,7 +428,7 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
   public InputStream open(String path, OpenOptions options) throws IOException {
     IOException te = null;
     RetryPolicy retryPolicy = new CountingRetry(MAX_TRY);
-    while (retryPolicy.attemptRetry()) {
+    while (retryPolicy.attempt()) {
       try {
         FSDataInputStream inputStream = mFileSystem.open(new Path(path));
         try {
@@ -513,7 +513,7 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
   private boolean delete(String path, boolean recursive) throws IOException {
     IOException te = null;
     RetryPolicy retryPolicy = new CountingRetry(MAX_TRY);
-    while (retryPolicy.attemptRetry()) {
+    while (retryPolicy.attempt()) {
       try {
         return mFileSystem.delete(new Path(path), recursive);
       } catch (IOException e) {
@@ -556,7 +556,7 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
   private boolean rename(String src, String dst) throws IOException {
     IOException te = null;
     RetryPolicy retryPolicy = new CountingRetry(MAX_TRY);
-    while (retryPolicy.attemptRetry()) {
+    while (retryPolicy.attempt()) {
       try {
         return mFileSystem.rename(new Path(src), new Path(dst));
       } catch (IOException e) {

@@ -167,7 +167,7 @@ public abstract class AbstractClient implements Client {
 
     RetryPolicy retryPolicy =
         new ExponentialBackoffRetry(BASE_SLEEP_MS, MAX_SLEEP_MS, RPC_MAX_NUM_RETRY);
-    while (true) {
+    while (retryPolicy.attempt()) {
       if (mClosed) {
         throw new FailedPreconditionException("Failed to connect: client has been closed");
       }
@@ -207,9 +207,6 @@ public abstract class AbstractClient implements Client {
         }
       }
       // TODO(peis): Consider closing the connection here as well.
-      if (!retryPolicy.attemptRetry()) {
-        break;
-      }
     }
     // Reaching here indicates that we did not successfully connect.
     throw new UnavailableException(String.format("Failed to connect to %s @ %s after %s attempts",
@@ -297,7 +294,7 @@ public abstract class AbstractClient implements Client {
         ex = e;
       }
       disconnect();
-      if (retryPolicy.attemptRetry()) {
+      if (retryPolicy.attempt()) {
         LOG.warn("RPC failed with {}. Retrying.", ex.toString());
       } else {
         throw new UnavailableException(

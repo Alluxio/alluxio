@@ -1020,7 +1020,7 @@ public class InodeTree implements JournalEntryIterable {
           }
         }
       } else {
-        if (!retry.attemptRetry()) {
+        if (!retry.attempt()) {
           throw new IOException(ExceptionMessage.FAILED_UFS_CREATE.getMessage(dir.getName()));
         }
       }
