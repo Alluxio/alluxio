@@ -30,6 +30,10 @@ function run_mapreduce() {
   ${LAUNCHER} "${BIN}/mapreduce-checker.sh" "$@"
 }
 
+function run_hive() {
+  ${LAUNCHER} "${BIN}/hive-checker.sh" "$@"
+}
+
 function main {
   FRAMEWORK=$(echo "$1" | tr '[:upper:]' '[:lower:]')
   shift
@@ -39,6 +43,9 @@ function main {
       ;;
     mapreduce)
       run_mapreduce "$@"
+      ;;
+    hive)
+      run_hive "$@"
       ;;
     *)
       echo -e "${USAGE}" >&2

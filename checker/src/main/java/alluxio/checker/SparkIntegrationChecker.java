@@ -11,7 +11,6 @@
 
 package alluxio.checker;
 
-import alluxio.PropertyKey;
 import alluxio.checker.CheckerUtils.Status;
 
 import com.beust.jcommander.JCommander;
@@ -23,12 +22,8 @@ import org.apache.spark.SparkConf;
 import scala.Serializable;
 import scala.Tuple2;
 
-import java.io.BufferedWriter;
-import java.io.FileWriter;
 import java.io.PrintWriter;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -68,8 +63,6 @@ public class SparkIntegrationChecker implements Serializable{
   private int mPartitions = 10;
 
   private List<Tuple2<Status, String>> mSparkJobResult = null;
-  private boolean mAlluxioHAMode = false;
-  private String mZookeeperAddress = "";
 
   /**
    * Implements Spark with Alluxio integration checker.
@@ -97,16 +90,8 @@ public class SparkIntegrationChecker implements Serializable{
         break;
     }
 
-    // Supports Alluxio high availability mode
-    if (alluxio.Configuration.getBoolean(PropertyKey.ZOOKEEPER_ENABLED)) {
-      mAlluxioHAMode = true;
-      if (!alluxio.Configuration.containsKey(PropertyKey.ZOOKEEPER_ADDRESS)) {
-        reportWriter.println("Alluxio is in high availability mode, "
-            + "but Zookeeper address has not been set.\n");
-        return Status.FAIL_TO_SUPPORT_HA;
-      } else {
-        mZookeeperAddress = alluxio.Configuration.get(PropertyKey.ZOOKEEPER_ADDRESS);
-      }
+    if (!CheckerUtils.supportAlluxioHA(reportWriter)) {
+      return Status.FAIL_TO_SUPPORT_HA;
     }
 
     return runSparkJob(sc, reportWriter);
@@ -153,12 +138,6 @@ public class SparkIntegrationChecker implements Serializable{
    * @param reportWriter save user-facing messages to a generated file
    */
   private void printConfigInfo(SparkConf conf, PrintWriter reportWriter) {
-    // Prints the current time to separate integration checker results
-    SimpleDateFormat df = new SimpleDateFormat("dd/MM/yy HH:mm:ss");
-    Date date = new Date();
-    reportWriter.printf("%n%n%n***** The integration checker ran at %s. *****%n%n",
-        df.format(date));
-
     // Gets Spark configurations
     if (conf.contains("spark.master")) {
       reportWriter.printf("Spark master is: %s.%n%n", conf.get("spark.master"));
@@ -184,13 +163,6 @@ public class SparkIntegrationChecker implements Serializable{
    * @param reportWriter save user-facing messages to a generated file
    */
   private void printResultInfo(Status resultStatus, PrintWriter reportWriter) {
-    if (mAlluxioHAMode) {
-      reportWriter.println("Alluixo is running in high availbility mode.");
-      if (!mZookeeperAddress.isEmpty()) {
-        reportWriter.printf("alluxio.zookeeper.address is %s.%n%n", mZookeeperAddress);
-      }
-    }
-
     switch (resultStatus) {
       case FAIL_TO_FIND_CLASS:
         reportWriter.println(FAIL_TO_FIND_CLASS_MESSAGE);
@@ -211,7 +183,7 @@ public class SparkIntegrationChecker implements Serializable{
   }
 
   /**
-   * Main function will be triggered via spark-submit.
+   * The main function will be triggered via spark-submit.
    *
    * @param args optional argument mPartitions may be passed in
    */
@@ -221,9 +193,7 @@ public class SparkIntegrationChecker implements Serializable{
     jCommander.setProgramName("SparkIntegrationChecker");
 
     // Creates a file to save user-facing messages
-    FileWriter fileWriter = new FileWriter("./SparkIntegrationReport.txt", true);
-    BufferedWriter bufferedWriter = new BufferedWriter(fileWriter);
-    PrintWriter reportWriter = new PrintWriter(bufferedWriter);
+    PrintWriter reportWriter = CheckerUtils.initReportFile();
 
     // Starts the Java Spark Context
     SparkConf conf = new SparkConf().setAppName(SparkIntegrationChecker.class.getName());
@@ -233,7 +203,6 @@ public class SparkIntegrationChecker implements Serializable{
     Status resultStatus = checker.run(sc, reportWriter);
     checker.printResultInfo(resultStatus, reportWriter);
 
-    reportWriter.flush();
     reportWriter.close();
 
     System.exit(resultStatus.equals(Status.SUCCESS) ? 0 : 1);

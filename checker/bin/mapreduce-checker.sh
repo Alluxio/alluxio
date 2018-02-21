@@ -70,9 +70,9 @@ function trigger_mapreduce() {
 
   # Use -libjars if the previous attempt failed because of unable to find Alluxio classes and add remind information
   if [[ "$?" == 2 ]]; then
-    echo "Re-running integration checker with:"  >> "./MapReduceIntegrationReport.txt"
-    echo "    export HADOOP_CLASSPATH=${ALLUXIO_JAR_PATH}:\${HADOOP_CLASSPATH}"  >> "./MapReduceIntegrationReport.txt"
-    echo "    and add -libjar ${ALLUXIO_JAR_PATH} command line option when using hadoop jar command."  >> "./MapReduceIntegrationReport.txt"
+    echo "Re-running integration checker with:"  >> "./IntegrationReport.txt"
+    echo "    export HADOOP_CLASSPATH=${ALLUXIO_JAR_PATH}:\${HADOOP_CLASSPATH}"  >> "./IntegrationReport.txt"
+    echo "    and add -libjar ${ALLUXIO_JAR_PATH} command line option when using hadoop jar command."  >> "./IntegrationReport.txt"
 
     ${LAUNCHER} export HADOOP_CLASSPATH="${ALLUXIO_JAR_PATH}":${HADOOP_CLASSPATH}
     ${LAUNCHER} "${HADOOP_LOCATION}" jar "${BIN}/../target/alluxio-checker-${VERSION}-jar-with-dependencies.jar" \
@@ -80,10 +80,10 @@ function trigger_mapreduce() {
 
     if [[ "$?" == 0 ]]; then
       echo "Please use the -libjars ${ALLUXIO_JAR_PATH} command line option when using hadoop jar." \
-        >> "./MapReduceIntegrationReport.txt"
-      echo "" >> "./MapReduceIntegrationReport.txt"
+        >> "./IntegrationReport.txt"
+      echo "" >> "./IntegrationReport.txt"
       echo "Please export HADOOP_CLASSPATH=${ALLUXIO_JAR_PATH}:\${HADOOP_CLASSPATH} to make Alluxio client jar available to client JVM created by hadoop jar command " \
-        >> "./MapReduceIntegrationReport.txt"
+        >> "./IntegrationReport.txt"
     fi
   fi
 }
@@ -113,10 +113,10 @@ function main {
   source "${BIN}/../../libexec/alluxio-config.sh"
   ALLUXIO_JAR_PATH="${ALLUXIO_PATH}/client/alluxio-${VERSION}-client.jar"
 
-  [ -f "./MapReduceIntegrationReport.txt" ] && rm "./MapReduceIntegrationReport.txt"
+  [ -f "./IntegrationReport.txt" ] && rm "./IntegrationReport.txt"
   find_hadoop_path
   trigger_mapreduce
-  [ -f "./MapReduceIntegrationReport.txt" ] && cat "./MapReduceIntegrationReport.txt" && rm "./MapReduceIntegrationReport.txt"
+  [ -f "./IntegrationReport.txt" ] && cat "./IntegrationReport.txt" && rm "./IntegrationReport.txt"
 }
 
 main "$@"
