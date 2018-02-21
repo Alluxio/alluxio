@@ -216,7 +216,7 @@ public final class AlluxioBlockStore {
   }
 
   private Set<WorkerNetAddress> handleFailedWorkers(Set<WorkerNetAddress> workers,
-                                                    Map<WorkerNetAddress, Long> failedWorkers) {
+      Map<WorkerNetAddress, Long> failedWorkers) {
     if (workers.isEmpty()) {
       return Collections.EMPTY_SET;
     }
