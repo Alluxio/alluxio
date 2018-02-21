@@ -23,6 +23,7 @@ public class CountingRetry implements RetryPolicy {
 
   private final int mMaxRetries;
   private int mCount = 0;
+  private boolean mFirstAttempt = true;
 
   /**
    * Constructs a retry facility which allows max number of retries.
@@ -42,6 +43,10 @@ public class CountingRetry implements RetryPolicy {
   @Override
   public boolean attempt() {
     if (mMaxRetries > mCount) {
+      if (mFirstAttempt) {
+        mFirstAttempt = false;
+        return true;
+      }
       mCount++;
       return true;
     }
