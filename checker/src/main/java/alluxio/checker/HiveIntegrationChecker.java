@@ -70,12 +70,6 @@ public class HiveIntegrationChecker {
    * @return 0 means success, 2 means input not valid, 1 means have other errors
    */
   private int run(PrintWriter reportWriter) throws Exception {
-    // Supports Alluxio HA mode
-    if (!CheckerUtils.supportAlluxioHA(reportWriter)) {
-      reportWriter.println(TEST_FAILED_MESSAGE);
-      return 1;
-    }
-
     // Try to connect to Hive through JDBC
     Connection con;
     try {
@@ -158,7 +152,7 @@ public class HiveIntegrationChecker {
       createTablePS.setString(1, tableName);
       createTablePS.execute();
     }
-    final String LOADDATA = "LOAD DATA LOCAL INPATH './hiveTestTable' "
+    final String LOADDATA = "LOAD DATA LOCAL INPATH '~/hiveTestTable' "
         + "OVERWRITE INTO TABLE ?";
     try (PreparedStatement loadTablePS = con.prepareStatement(LOADDATA)) {
       loadTablePS.setString(1, tableName);

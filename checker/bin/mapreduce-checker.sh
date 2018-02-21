@@ -110,7 +110,7 @@ function main {
     exit 1
   fi
 
-  source "${BIN}/../../libexec/alluxio-config.sh"
+  source "${ALLUXIO_PATH}/libexec/alluxio-config.sh"
   ALLUXIO_JAR_PATH="${ALLUXIO_PATH}/client/alluxio-${VERSION}-client.jar"
 
   [ -f "./IntegrationReport.txt" ] && rm "./IntegrationReport.txt"

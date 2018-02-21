@@ -37,19 +37,19 @@ Optional arguments:
 
 ALLUXIO_BIN_PATH=""
 ALLUXIO_CHECKER_JAR=""
-ALLUXIO_HOME=""
+ALLUXIO_PATH=$(cd "${BIN}/../../"; pwd)
 ALLUXIO_URL=""
 HIVE_USER_MODE=""
 
 function generate_input() {
   [ -f "./IntegrationReport.txt" ] && rm "./IntegrationReport.txt"
   # Generate the input file for Hive integration checker
-  echo "You|Pass" > "${HIVE_HOME}/hiveTestTable"
-  echo "Hive|Test" >> "${HIVE_HOME}/hiveTestTable"
+  echo "You|Pass" > "~/hiveTestTable"
+  echo "Hive|Test" >> "~/hiveTestTable"
   if [[ "${HIVE_USER_MODE}" == "1" ]]; then
     # If we want to use Alluxio as one option to store hive tables, we need input file exists in the Alluxio filesystem
     ${LAUNCHER} "${ALLUXIO_BIN_PATH}" fs mkdir "${ALLUXIO_URL}/alluxioTestFolder" > /dev/null
-    ${LAUNCHER} "${ALLUXIO_BIN_PATH}" fs copyFromLocal "${HIVE_HOME}/hiveTestTable" "${ALLUXIO_URL}/alluxioTestFolder" > /dev/null
+    ${LAUNCHER} "${ALLUXIO_BIN_PATH}" fs copyFromLocal "~/hiveTestTable" "${ALLUXIO_URL}/alluxioTestFolder" > /dev/null
   fi
 }
 
@@ -67,7 +67,7 @@ function clean_output() {
   if [[ "${HIVE_USER_MODE}" == "1" ]]; then
     ${LAUNCHER} "${ALLUXIO_BIN_PATH}" fs rm -R "${ALLUXIO_URL}/alluxioTestFolder" > /dev/null
   fi
-  [ -f "${HIVE_HOME}/hiveTestTable" ] && rm "${HIVE_HOME}/hiveTestTable"
+  [ -f "~/hiveTestTable" ] && rm "~/hiveTestTable"
 
 }
 
@@ -80,13 +80,6 @@ function main {
     fi
   done
 
-  # Check if HIVE_HOME has been set
-  if [[ "${HIVE_HOME}" == "" ]]; then
-    echo -e "${USAGE}" >&2
-    echo "Please set the HIVE_HOME before running Hive integration checker."
-    exit 1
-  fi
-
   for i in "$@"; do
     if [[ "$i" == "-mode" ]]; then
       HIVE_USER_MODE="${i+1}"
@@ -97,10 +90,9 @@ function main {
     HIVE_USER_MODE=1
   fi
 
-  ALLUXIO_HOME="${CHECKER_BIN_PATH}/../../"
-  source "${ALLUXIO_HOME}/libexec/alluxio-config.sh"
-  ALLUXIO_CHECKER_JAR="${ALLUXIO_HOME}/target/alluxio-checker-${VERSION}-jar-with-dependencies.jar"
-  ALLUXIO_BIN_PATH="${ALLUXIO_HOME}/bin/alluxio"
+  source "${ALLUXIO_PATH}/libexec/alluxio-config.sh"
+  ALLUXIO_CHECKER_JAR="${ALLUXIO_PATH}/target/alluxio-checker-${VERSION}-jar-with-dependencies.jar"
+  ALLUXIO_BIN_PATH="${ALLUXIO_PATH}/bin/alluxio"
 
   if [[ "${HIVE_USER_MODE}" == "1" ]]; then
     ALLUXIO_MASTER_HOSTNAME=$(${LAUNCHER} "${ALLUXIO_BIN_PATH}" getConf alluxio.master.hostname)
@@ -108,7 +100,7 @@ function main {
     ALLUXIO_URL="alluxio://${ALLUXIO_MASTER_HOSTNAME}:${ALLUXIO_MASTER_PORT}"
     if [[ "${ALLUXIO_MASTER_HOSTNAME}" == "" ]] || [[ "${ALLUXIO_MASTER_PORT}" == "" ]]; then
       echo -e "${USAGE}" >&2
-      echo "Please set the alluxio.master.hostname and alluxio.master.port in your ${ALLUXIO_HOME}/conf/alluxio-site.properties."
+      echo "Please set the alluxio.master.hostname and alluxio.master.port in your ${ALLUXIO_PATH}/conf/alluxio-site.properties."
       exit 1
     fi
   fi
