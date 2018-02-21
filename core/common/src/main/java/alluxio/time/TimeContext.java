@@ -17,7 +17,8 @@ import java.time.Clock;
  * Context for managing time.
  */
 public final class TimeContext {
-  public static final TimeContext SYSTEM = new TimeContext(Clock.systemUTC(), new ThreadSleeper());
+  public static final TimeContext SYSTEM =
+      new TimeContext(Clock.systemUTC(), ThreadSleeper.INSTANCE);
 
   private final Clock mClock;
   private final Sleeper mSleeper;
