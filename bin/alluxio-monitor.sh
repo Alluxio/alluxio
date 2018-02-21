@@ -76,19 +76,16 @@ run_monitor() {
 
 run_monitors() {
   local node_type=$1
-  local workers=$(cat "${ALLUXIO_CONF_DIR}/workers" | sed  "s/#.*$//;/^$/d")
-  local masters=$(cat "${ALLUXIO_CONF_DIR}/masters" | sed  "s/#.*$//;/^$/d")
-  local proxies=$(cat "${ALLUXIO_CONF_DIR}/masters" "${ALLUXIO_CONF_DIR}/workers" | sed  "s/#.*$//;/^$/d" | sort | uniq)
   local nodes=
   case "${node_type}" in
     master)
-      nodes=${masters}
+      nodes=$(cat "${ALLUXIO_CONF_DIR}/masters" | sed  "s/#.*$//;/^$/d")
       ;;
     worker)
-      nodes=${workers}
+      nodes=$(cat "${ALLUXIO_CONF_DIR}/workers" | sed  "s/#.*$//;/^$/d")
       ;;
     proxy)
-      nodes=${proxies}
+      nodes=$(cat "${ALLUXIO_CONF_DIR}/masters" "${ALLUXIO_CONF_DIR}/workers" | sed  "s/#.*$//;/^$/d" | sort | uniq)
       ;;
     *)
       echo "Error: Invalid NODE_TYPE: ${node_type}" >&2
