@@ -19,7 +19,6 @@ import alluxio.master.LocalAlluxioCluster;
 import alluxio.retry.CountingRetry;
 import alluxio.util.network.NetworkAddressUtils;
 
-import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -41,11 +40,6 @@ public class ProxyHealthCheckClientIntegrationTest extends BaseIntegrationTest {
     mHealthCheckClient = new ProxyHealthCheckClient(
         NetworkAddressUtils.getBindAddress(NetworkAddressUtils.ServiceType.PROXY_WEB),
         () -> new CountingRetry(1));
-  }
-
-  @After
-  public final void after() throws Exception {
-    mLocalAlluxioCluster.stop();
   }
 
   @Test

@@ -27,22 +27,22 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 /**
- * MasterHealthCheckClient check whether Alluxio master is serving RPC request and
+ * MasterHealthCheckClient check whether Alluxio master is serving RPC requests and
  * if the AlluxioMaster process is running in all master hosts.
  */
 public class MasterHealthCheckClient implements HealthCheckClient {
 
   private static final Logger LOG = LoggerFactory.getLogger(MasterHealthCheckClient.class);
 
-  private Thread mMasterServingThread;
-  private Thread mMastersProcessCheckThread;
+  private Runnable mMasterServingThread;
+  private Runnable mMastersProcessCheckThread;
   private ScheduledExecutorService mExecutorService = Executors.newScheduledThreadPool(2);
 
   /**
    * Creates a master health check client.
    */
   public MasterHealthCheckClient() {
-    mMasterServingThread = new Thread(() -> {
+    mMasterServingThread = () -> {
       try {
         LOG.debug("Checking master is serving requests");
         FileSystem fs = FileSystem.Factory.get();
@@ -51,9 +51,9 @@ public class MasterHealthCheckClient implements HealthCheckClient {
       } catch (Throwable e) {
         throw new RuntimeException(e);
       }
-    }, "MasterServingThread");
+    };
 
-    mMastersProcessCheckThread = new Thread(() -> {
+    mMastersProcessCheckThread = () -> {
       MasterInquireClient client = MasterInquireClient.Factory.create();
       try {
         List<InetSocketAddress> addresses = client.getMasterRpcAddresses();
@@ -80,7 +80,7 @@ public class MasterHealthCheckClient implements HealthCheckClient {
         }
         throw new RuntimeException(e);
       }
-    }, "MastersProcessCheckThread");
+    };
   }
 
   @Override

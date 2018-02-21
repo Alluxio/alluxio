@@ -35,7 +35,7 @@ public final class AlluxioProxyMonitor {
     if (args.length != 0) {
       LOG.info("java -cp {} {}", RuntimeConstants.ALLUXIO_JAR,
               AlluxioProxyMonitor.class.getCanonicalName());
-      System.exit(-1);
+      LOG.warn("ignoring arguments");
     }
 
     HealthCheckClient client = new ProxyHealthCheckClient(

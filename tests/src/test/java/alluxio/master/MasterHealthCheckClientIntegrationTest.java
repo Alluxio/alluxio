@@ -16,7 +16,6 @@ import alluxio.HealthCheckClient;
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.PropertyKey;
 
-import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -36,11 +35,6 @@ public class MasterHealthCheckClientIntegrationTest extends BaseIntegrationTest 
   public final void before() throws Exception {
     mLocalAlluxioCluster = mLocalAlluxioClusterResource.get();
     mHealthCheckClient = new MasterHealthCheckClient();
-  }
-
-  @After
-  public final void after() throws Exception {
-    mLocalAlluxioCluster.stop();
   }
 
   @Test

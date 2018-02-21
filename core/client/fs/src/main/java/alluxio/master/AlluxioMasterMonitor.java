@@ -30,9 +30,9 @@ public final class AlluxioMasterMonitor {
    */
   public static void main(String[] args) {
     if (args.length != 0) {
-      LOG.info("java -cp {} {}", RuntimeConstants.ALLUXIO_JAR,
+      LOG.warn("java -cp {} {}", RuntimeConstants.ALLUXIO_JAR,
               AlluxioMasterMonitor.class.getCanonicalName());
-      System.exit(-1);
+      LOG.warn("ignoring arguments");
     }
 
     HealthCheckClient client = new MasterHealthCheckClient();

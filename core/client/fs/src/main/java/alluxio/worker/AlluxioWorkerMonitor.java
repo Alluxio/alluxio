@@ -34,7 +34,7 @@ public final class AlluxioWorkerMonitor {
     if (args.length != 0) {
       LOG.info("java -cp {} {}", RuntimeConstants.ALLUXIO_JAR,
               AlluxioWorkerMonitor.class.getCanonicalName());
-      System.exit(-1);
+      LOG.warn("ignoring arguments");
     }
 
     HealthCheckClient client = new WorkerHealthCheckClient(
