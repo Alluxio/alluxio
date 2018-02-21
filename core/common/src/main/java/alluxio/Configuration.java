@@ -25,6 +25,7 @@ import com.google.common.collect.Sets;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
@@ -352,6 +353,16 @@ public final class Configuration {
     } catch (Exception e) {
       throw new RuntimeException(ExceptionMessage.KEY_NOT_MS.getMessage(key));
     }
+  }
+
+  /**
+   * Gets the time of the key as a duration.
+   *
+   * @param key the key to get the value for
+   * @return the value of the key represented as a duration
+   */
+  public static Duration getDuration(PropertyKey key) {
+    return Duration.ofMillis(getMs(key));
   }
 
   /**
