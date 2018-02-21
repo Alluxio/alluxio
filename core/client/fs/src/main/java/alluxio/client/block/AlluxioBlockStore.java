@@ -208,7 +208,6 @@ public final class AlluxioBlockStore {
           .setBlockSize(info.getLength()).setBlockWorkerInfos(blockWorkerInfo);
       dataSource = policy.getWorker(getWorkerOptions);
     }
-
     if (dataSource == null) {
       throw new UnavailableException(ExceptionMessage.NO_WORKER_AVAILABLE.getMessage());
     }
