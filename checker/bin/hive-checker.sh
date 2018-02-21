@@ -23,7 +23,7 @@ Prerequisites:
     Please use ${HIVE_HOME}/bin/hiveserver2 to start hiveserver2.
     Please set the alluxio.master.hostname in your <ALLUXIO_HOME>/conf/alluxio-site.properties.
 
-Necessary argument:
+Argument:
     -hiveurl HIVE_URL is a database url of form jdbc:subprotocol:subname.
 
 Optional arguments:
@@ -41,7 +41,7 @@ ALLUXIO_HOME=""
 ALLUXIO_URL=""
 HIVE_USER_MODE=""
 
-function generate_input_environment() {
+function generate_input() {
   [ -f "./IntegrationReport.txt" ] && rm "./IntegrationReport.txt"
   # Generate the input file for Hive integration checker
   echo "You|Pass" > "${HIVE_HOME}/hiveTestTable"
@@ -54,7 +54,7 @@ function generate_input_environment() {
 }
 
 function trigger_hive() {
-  ${LAUNCHER} java -cp ${ALLUXIO_CHECKER_JAR} alluxio.checker.HiveIntegrationChecker "$@" -alluxiourl "${ALLUXIO_URL}"
+  ${LAUNCHER} java -cp "${ALLUXIO_CHECKER_JAR}" alluxio.checker.HiveIntegrationChecker "$@" -alluxiourl "${ALLUXIO_URL}"
   # return code 2 means the input is not valid
   if [[ "$?" == "2" ]]; then
     echo -e "${USAGE}" >&2
@@ -62,7 +62,7 @@ function trigger_hive() {
   fi
 }
 
-function clean_output_environment() {
+function clean_output() {
   [ -f "./IntegrationReport.txt" ] && cat "./IntegrationReport.txt" && rm "./IntegrationReport.txt"
   if [[ "${HIVE_USER_MODE}" == "1" ]]; then
     ${LAUNCHER} "${ALLUXIO_BIN_PATH}" fs rm -R "${ALLUXIO_URL}/alluxioTestFolder" > /dev/null
@@ -113,9 +113,9 @@ function main {
     fi
   fi
 
-  generate_input_environment
+  generate_input
   trigger_hive "$@"
-  clean_output_environment
+  clean_output
 
 }
 

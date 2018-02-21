@@ -20,7 +20,6 @@ import java.io.PrintWriter;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
-import java.sql.Statement;
 
 /**
  * Some Hive queries to test the integration of Hive with Alluxio.
@@ -45,7 +44,13 @@ public class HiveIntegrationChecker {
   private static final String TEST_FAILED_MESSAGE = "***** Integration test failed. *****\n";
   private static final String TEST_PASSED_MESSAGE = "***** Integration test passed. *****\n";
 
-  private static String sDriverName = "org.apache.hive.jdbc.HiveDriver";
+  @Parameter(names = {"-alluxiourl"}, description = "the alluxio cluster url of form "
+      + "alluxio://master_hostname:port")
+  private String mAlluxioURL = "";
+
+  @Parameter(names = {"-mode"}, description = "1 means use Alluxio as one option "
+      + "to store Hive tables, 2 means use Alluxio as the Hive default filesystem")
+  private int mUserMode = 1;
 
   @Parameter(names = {"-hiveurl"}, description = "a database url "
       + "of the form jdbc:subprotocol:subname")
@@ -57,14 +62,6 @@ public class HiveIntegrationChecker {
 
   @Parameter(names = {"-password"}, description = "the user's password")
   private String mHiveUserPassword = "";
-
-  @Parameter(names = {"-mode"}, description = "1 means use Alluxio as one option "
-      + "to store Hive tables, 2 means use Alluxio as the Hive default filesystem")
-  private int mUserMode = 1;
-
-  @Parameter(names = {"-alluxiourl"}, description = "the alluxio cluster url of form "
-      + "alluxio://master_hostname:port")
-  private String mAlluxioURL = "";
 
   /**
    * Implements Hive with Alluxio integration checker.
@@ -79,10 +76,21 @@ public class HiveIntegrationChecker {
       return 1;
     }
 
-    Class.forName(sDriverName);
-    try (Connection con = DriverManager.getConnection(mHiveURL, mHiveUserName, mHiveUserPassword);
-         Statement stmt = con.createStatement()) {
+    // Try to connect to Hive through JDBC
+    Connection con;
+    try {
+      con = DriverManager.getConnection(mHiveURL, mHiveUserName, mHiveUserPassword);
+    } catch (Exception e) {
+      reportWriter.println("Unable to connect to Hive, please check "
+          + "your Hive URL, username and password.\n");
+      reportWriter.println(TEST_FAILED_MESSAGE);
+      return 2;
+    }
+
+    // Hive statements to check the integration
+    try {
       String tableName = "hiveTestTable";
+
       final String DROPTABLE = "drop table if exists ?";
       try (PreparedStatement dropTablePS = con.prepareStatement(DROPTABLE)) {
         dropTablePS.setString(1, tableName);
@@ -93,17 +101,15 @@ public class HiveIntegrationChecker {
       if (mUserMode == 1) {
         useAsSource(con, tableName);
       } else {
-        useAsUnderFS(con, stmt, tableName);
+        useAsUnderFS(con, tableName);
       }
 
-      // Describes the created table
       final String DESCRIBETABLE = "describe ?";
       try (PreparedStatement describeTablePS = con.prepareStatement(DESCRIBETABLE)) {
         describeTablePS.setString(1, tableName);
         describeTablePS.execute();
       }
 
-      // Shows data inside the table
       final String SHOWTABLE = "select * from ?";
       try (PreparedStatement showTablePS = con.prepareStatement(SHOWTABLE)) {
         showTablePS.setString(1, tableName);
@@ -112,6 +118,8 @@ public class HiveIntegrationChecker {
     } catch (Exception e) {
       printExceptionReport(e, reportWriter);
       return 1;
+    } finally {
+      con.close();
     }
 
     reportWriter.println("Congratulations, you have configured Hive with Alluxio correctly!\n");
@@ -122,6 +130,7 @@ public class HiveIntegrationChecker {
   /**
    * Supports the first integration way: use Alluxio as one option to store Hive tables.
    *
+   * @param con the Hive connection
    * @param tableName the name of the test table
    */
   private void useAsSource(Connection con, String tableName) throws Exception {
@@ -138,10 +147,10 @@ public class HiveIntegrationChecker {
   /**
    * Supports the second integration way: use Alluxio as the default filesystem.
    *
-   * @param stmt the java sql statement
+   * @param con the Hive connection
    * @param tableName the name of the test table
    */
-  private void useAsUnderFS(Connection con, Statement stmt, String tableName) throws Exception {
+  private void useAsUnderFS(Connection con, String tableName) throws Exception {
     final String CREATETABLE = "CREATE TABLE ? (ROW1 STRING, ROW2 STRING) "
         + "ROW FORMAT DELIMITED FIELDS TERMINATED BY '|'"
         + "STORED AS TEXTFILE";
@@ -160,11 +169,11 @@ public class HiveIntegrationChecker {
   /**
    * Translates the exception message to user-facing message.
    *
-   * @param e the thrown exception when running Hive queries
+   * @param exception the thrown exception when running Hive queries
    * @param reportWriter save user-facing messages to a generated file
    */
-  private void printExceptionReport(Exception e, PrintWriter reportWriter) {
-    String exceptionStr = e.toString();
+  private void printExceptionReport(Exception exception, PrintWriter reportWriter) {
+    String exceptionStr = exception.toString();
     if (exceptionStr.contains("Class alluxio.hadoop.FileSystem not found")) {
       reportWriter.println(FAIL_TO_FIND_CLASS_MESSAGE);
       reportWriter.println(TEST_FAILED_MESSAGE);
@@ -174,7 +183,7 @@ public class HiveIntegrationChecker {
     } else {
       reportWriter.println("Other errors occur, please fix it and "
           + "rerun the Hive Integration Checker. \n");
-      e.printStackTrace(reportWriter);
+      exception.printStackTrace(reportWriter);
       reportWriter.println(TEST_FAILED_MESSAGE);
     }
   }
@@ -182,10 +191,9 @@ public class HiveIntegrationChecker {
   /**
    * Checks if the input arguments are valid.
    *
-   * @param reportWriter save user-facing messages to a generated file
    * @return true if input is valid, false otherwise
    */
-  private boolean checkIfInputValid(PrintWriter reportWriter) {
+  private boolean checkIfInputValid() {
     if (mUserMode != 1 && mUserMode != 2) {
       System.out.println("Please set the correct user mode.");
       return false;
@@ -193,12 +201,6 @@ public class HiveIntegrationChecker {
     if (!mHiveURL.startsWith("jdbc")) {
       System.out.println("Please set the correct Hive URL.");
       return false;
-    }
-    if (mUserMode == 1) {
-      if (!mAlluxioURL.startsWith("alluxio://")) {
-        System.out.println("Please set the correct Alluxio URL.");
-        return false;
-      }
     }
     return true;
   }
@@ -213,12 +215,11 @@ public class HiveIntegrationChecker {
     JCommander jCommander = new JCommander(checker, args);
     jCommander.setProgramName("HiveIntegrationChecker");
 
-    PrintWriter reportWriter = CheckerUtils.initReportFile();
-
-    if (!checker.checkIfInputValid(reportWriter)) {
-      reportWriter.close();
+    if (!checker.checkIfInputValid()) {
       System.exit(2);
     }
+
+    PrintWriter reportWriter = CheckerUtils.initReportFile();
 
     int result = checker.run(reportWriter);
 

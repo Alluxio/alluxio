@@ -183,7 +183,7 @@ public class SparkIntegrationChecker implements Serializable{
   }
 
   /**
-   * The main function will be triggered via spark-submit.
+   * Main function will be triggered via spark-submit.
    *
    * @param args optional argument mPartitions may be passed in
    */
