@@ -172,12 +172,12 @@ public final class AlluxioBlockStore {
       throw new NotFoundException(ExceptionMessage.BLOCK_UNAVAILABLE.getMessage(info.getBlockId()));
     }
     // Workers to read the block, after considering failed workers.
-    final Set<WorkerNetAddress> workers = handleFailedWorkers(workerPool, failedWorkers);
+    Set<WorkerNetAddress> workers = handleFailedWorkers(workerPool, failedWorkers);
     // TODO(calvin): Consider containing these two variables in one object
     BlockInStreamSource dataSourceType = null;
     WorkerNetAddress dataSource = null;
     locations = locations.stream()
-        .filter(x -> workers.contains(x.getWorkerAddress())).collect(toList());
+        .filter(location -> workers.contains(location.getWorkerAddress())).collect(toList());
     if (!locations.isEmpty()) {
       // Case 1: we still have at least one worker containing the block.
       // TODO(calvin): Get location via a policy
@@ -188,7 +188,7 @@ public final class AlluxioBlockStore {
       Optional<TieredIdentity> nearest = mTieredIdentity.nearest(tieredLocations);
       if (nearest.isPresent()) {
         dataSource = locations.stream().map(BlockLocation::getWorkerAddress)
-            .filter(a -> a.getTieredIdentity().equals(nearest.get())).findFirst().get();
+            .filter(addr -> addr.getTieredIdentity().equals(nearest.get())).findFirst().get();
         if (mTieredIdentity.getTier(0).getTierName().equals(Constants.LOCALITY_NODE)
             && mTieredIdentity.topTiersMatch(nearest.get())) {
           dataSourceType = BlockInStreamSource.LOCAL;
@@ -203,7 +203,7 @@ public final class AlluxioBlockStore {
           Preconditions.checkNotNull(options.getOptions().getUfsReadLocationPolicy(),
               PreconditionMessage.UFS_READ_LOCATION_POLICY_UNSPECIFIED);
       blockWorkerInfo = blockWorkerInfo.stream()
-          .filter(x -> workers.contains(x.getNetAddress())).collect(toList());
+          .filter(workerInfo -> workers.contains(workerInfo.getNetAddress())).collect(toList());
       GetWorkerOptions getWorkerOptions = GetWorkerOptions.defaults().setBlockId(info.getBlockId())
           .setBlockSize(info.getLength()).setBlockWorkerInfos(blockWorkerInfo);
       dataSource = policy.getWorker(getWorkerOptions);
@@ -220,7 +220,7 @@ public final class AlluxioBlockStore {
       return Collections.EMPTY_SET;
     }
     Set<WorkerNetAddress> nonFailed =
-        workers.stream().filter(x -> !failedWorkers.containsKey(x)).collect(toSet());
+        workers.stream().filter(worker -> !failedWorkers.containsKey(worker)).collect(toSet());
     if (nonFailed.isEmpty()) {
       return Collections.singleton(workers.stream()
           .min((x, y) -> Long.compare(failedWorkers.get(x), failedWorkers.get(y))).get());
