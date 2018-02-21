@@ -18,9 +18,13 @@ import alluxio.exception.status.FailedPreconditionException;
 import alluxio.exception.status.Status;
 import alluxio.exception.status.UnavailableException;
 import alluxio.exception.status.UnimplementedException;
-import alluxio.retry.ExponentialBackoffRetry;
 import alluxio.retry.RetryPolicy;
+<<<<<<< HEAD
 import alluxio.security.authentication.TProtocols;
+||||||| merged common ancestors
+=======
+import alluxio.retry.ExponentialTimeBoundedRetry;
+>>>>>>> upstream/branch-1.7
 import alluxio.security.authentication.TransportProvider;
 import alluxio.thrift.AlluxioService;
 import alluxio.thrift.AlluxioTException;
@@ -35,6 +39,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.time.Duration;
 import java.util.regex.Pattern;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -52,10 +57,12 @@ public abstract class AbstractClient implements Client {
   private static final Pattern FRAME_SIZE_EXCEPTION_PATTERN =
       Pattern.compile("Frame size \\((\\d+)\\) larger than max length");
 
-  private static final int BASE_SLEEP_MS =
-      (int) Configuration.getMs(PropertyKey.USER_RPC_RETRY_BASE_SLEEP_MS);
-  private static final int MAX_SLEEP_MS =
-      (int) Configuration.getMs(PropertyKey.USER_RPC_RETRY_MAX_SLEEP_MS);
+  private static final Duration MAX_RETRY_DURATION =
+      Configuration.getDuration(PropertyKey.USER_RPC_RETRY_MAX_DURATION);
+  private static final Duration BASE_SLEEP_MS =
+      Configuration.getDuration(PropertyKey.USER_RPC_RETRY_BASE_SLEEP_MS);
+  private static final Duration MAX_SLEEP_MS =
+      Configuration.getDuration(PropertyKey.USER_RPC_RETRY_MAX_SLEEP_MS);
 
   /** The number of times to retry a particular RPC. */
   protected static final int RPC_MAX_NUM_RETRY =
@@ -166,18 +173,38 @@ public abstract class AbstractClient implements Client {
     Preconditions.checkState(!mClosed, "Client is closed, will not try to connect.");
 
     RetryPolicy retryPolicy =
-        new ExponentialBackoffRetry(BASE_SLEEP_MS, MAX_SLEEP_MS, RPC_MAX_NUM_RETRY);
+        ExponentialTimeBoundedRetry.builder().withMaxDuration(MAX_RETRY_DURATION)
+            .withInitialSleep(BASE_SLEEP_MS).withMaxSleep(MAX_SLEEP_MS).build();
     while (true) {
       if (mClosed) {
         throw new FailedPreconditionException("Failed to connect: client has been closed");
       }
-      // Re-query the address in each loop iteration in case it has changed (e.g. master failover).
-      mAddress = getAddress();
+      // Re-query the address in each loop iteration in case it has changed (e.g. master
+      // failover).
+      try {
+        mAddress = getAddress();
+      } catch (UnavailableException e) {
+        if (!retryPolicy.attemptRetry()) {
+          break;
+        }
+        continue;
+      }
       LOG.info("Alluxio client (version {}) is trying to connect with {} @ {}",
           RuntimeConstants.VERSION, getServiceName(), mAddress);
+<<<<<<< HEAD
 
       mProtocol = TProtocols.createProtocol(
           mTransportProvider.getClientTransport(mParentSubject, mAddress), getServiceName());
+||||||| merged common ancestors
+
+      TProtocol binaryProtocol =
+          new TBinaryProtocol(mTransportProvider.getClientTransport(mParentSubject, mAddress));
+      mProtocol = new TMultiplexedProtocol(binaryProtocol, getServiceName());
+=======
+      TProtocol binaryProtocol =
+          new TBinaryProtocol(mTransportProvider.getClientTransport(mParentSubject, mAddress));
+      mProtocol = new TMultiplexedProtocol(binaryProtocol, getServiceName());
+>>>>>>> upstream/branch-1.7
       try {
         mProtocol.getTransport().open();
         LOG.info("Client registered with {} @ {}", getServiceName(), mAddress);
@@ -280,7 +307,8 @@ public abstract class AbstractClient implements Client {
    */
   protected synchronized <V> V retryRPC(RpcCallable<V> rpc) throws AlluxioStatusException {
     RetryPolicy retryPolicy =
-        new ExponentialBackoffRetry(BASE_SLEEP_MS, MAX_SLEEP_MS, RPC_MAX_NUM_RETRY);
+        ExponentialTimeBoundedRetry.builder().withMaxDuration(MAX_RETRY_DURATION)
+            .withInitialSleep(BASE_SLEEP_MS).withMaxSleep(MAX_SLEEP_MS).build();
     while (!mClosed) {
       Exception ex;
       connect();

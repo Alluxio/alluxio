@@ -19,6 +19,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.time.Clock;
+import java.time.Duration;
+
+import javax.annotation.concurrent.NotThreadSafe;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -75,7 +78,7 @@ public final class SleepingTimer implements HeartbeatTimer {
         mLogger.warn("{} last execution took {} ms. Longer than the interval {}", mThreadName,
             executionTimeMs, mIntervalMs);
       } else {
-        mSleeper.sleep(mIntervalMs - executionTimeMs);
+        mSleeper.sleep(Duration.ofMillis(mIntervalMs - executionTimeMs));
       }
     }
     mPreviousTickMs = mClock.millis();
