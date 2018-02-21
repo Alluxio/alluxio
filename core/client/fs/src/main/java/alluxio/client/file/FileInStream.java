@@ -88,7 +88,10 @@ public class FileInStream extends InputStream implements BoundedStream, Position
   /** Underlying block stream, null if a position change has invalidated the previous stream. */
   private BlockInStream mBlockInStream;
 
-  /** A map of worker address to the most recent time when client fails to read from it. */
+  /**
+   * A map of worker addresses to the most recent time in ms in UTC when client fails to read
+   * from it.
+   */
   private Map<WorkerNetAddress, Long> mFailedWorkers = new HashMap<>();
 
   protected FileInStream(URIStatus status, InStreamOptions options, FileSystemContext context) {
@@ -112,7 +115,8 @@ public class FileInStream extends InputStream implements BoundedStream, Position
     }
 
     CountingRetry retry = new CountingRetry(MAX_WORKERS_TO_RETRY);
-    while (true) {
+    IOException lastException = null;
+    do {
       updateStream();
       try {
         int result = mBlockInStream.read();
@@ -121,13 +125,12 @@ public class FileInStream extends InputStream implements BoundedStream, Position
         }
         return result;
       } catch (UnavailableException | DeadlineExceededException | ConnectException e) {
-        if (!retry.attemptRetry()) {
-          throw e;
-        }
+        lastException = e;
         handleRetryableException(mBlockInStream, e);
         mBlockInStream = null;
       }
-    }
+    } while (retry.attemptRetry());
+    throw lastException;
   }
 
   @Override
