@@ -36,7 +36,7 @@ public final class TimeoutRetryTest {
     long endMs = System.currentTimeMillis();
     Assert.assertTrue(attempts > 0);
     Assert.assertTrue((endMs - startMs) >= timeoutMs);
-    Assert.assertEquals(attempts, timeoutRetry.getRetryCount());
+    Assert.assertEquals(attempts - 1, timeoutRetry.getRetryCount());
     Assert.assertTrue(attempts <= (timeoutMs / sleepMs) + 1);
   }
 }
