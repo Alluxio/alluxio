@@ -251,7 +251,7 @@ public final class CpCommand extends AbstractFileSystemCommand {
   private void copyFile(AlluxioURI srcPath, AlluxioURI dstPath)
       throws AlluxioException, IOException {
     try (Closer closer = Closer.create()) {
-      OpenFileOptions openFileOptions = OpenFileOptions.defaults().setReadType(ReadType.NO_CACHE);
+      OpenFileOptions openFileOptions = OpenFileOptions.defaults();
       FileInStream is = closer.register(mFileSystem.openFile(srcPath, openFileOptions));
       CreateFileOptions createFileOptions = CreateFileOptions.defaults();
       FileOutStream os = closer.register(mFileSystem.createFile(dstPath, createFileOptions));
@@ -560,7 +560,7 @@ public final class CpCommand extends AbstractFileSystemCommand {
     File tmpDst = new File(outputFile.getPath() + randomSuffix);
 
     try (Closer closer = Closer.create()) {
-      OpenFileOptions options = OpenFileOptions.defaults().setReadType(ReadType.NO_CACHE);
+      OpenFileOptions options = OpenFileOptions.defaults();
       FileInStream is = closer.register(mFileSystem.openFile(srcPath, options));
       FileOutputStream out = closer.register(new FileOutputStream(tmpDst));
       byte[] buf = new byte[64 * Constants.MB];
