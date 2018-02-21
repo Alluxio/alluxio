@@ -11,16 +11,18 @@
 
 package alluxio.time;
 
+import java.time.Duration;
+
 /**
  * An interface for a utility which provides a sleep method.
  */
 public interface Sleeper {
 
   /**
-   * Sleeps for the given number of milliseconds.
+   * Sleeps for the given duration.
    *
-   * @param millis the number of milliseconds to sleep for
+   * @param duration the duration to sleep for
    * @throws InterruptedException if the sleep is interrupted
    */
-  void sleep(long millis) throws InterruptedException;
+  void sleep(Duration duration) throws InterruptedException;
 }
