@@ -78,23 +78,11 @@ public final class ManualClock extends Clock {
 
   @Override
   public Clock withZone(ZoneId zone) {
-<<<<<<< HEAD
-    throw new UnsupportedOperationException();
-||||||| merged common ancestors
-    return null;
-=======
     throw new UnsupportedOperationException("ManualClock only uses UTC");
->>>>>>> upstream/branch-1.7
   }
 
   @Override
   public Instant instant() {
-<<<<<<< HEAD
     return Instant.ofEpochMilli(mTimeMs);
-||||||| merged common ancestors
-    return null;
-=======
-    return Instant.ofEpochMilli(millis());
->>>>>>> upstream/branch-1.7
   }
 }

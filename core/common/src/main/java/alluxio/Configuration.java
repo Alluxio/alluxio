@@ -25,13 +25,7 @@ import com.google.common.collect.Sets;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-<<<<<<< HEAD
-||||||| merged common ancestors
-import java.lang.management.ManagementFactory;
-=======
-import java.lang.management.ManagementFactory;
 import java.time.Duration;
->>>>>>> upstream/branch-1.7
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
