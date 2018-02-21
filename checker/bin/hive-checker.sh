@@ -37,19 +37,19 @@ Optional arguments:
 
 ALLUXIO_BIN_PATH=""
 ALLUXIO_CHECKER_JAR=""
-ALLUXIO_PATH=$(cd "${BIN}/../../"; pwd)
+ALLUXIO_PATH=$(cd "${CHECKER_BIN_PATH}/../../"; pwd)
 ALLUXIO_URL=""
 HIVE_USER_MODE=""
 
 function generate_input() {
   [ -f "./IntegrationReport.txt" ] && rm "./IntegrationReport.txt"
   # Generate the input file for Hive integration checker
-  echo "You|Pass" > "~/hiveTestTable"
-  echo "Hive|Test" >> "~/hiveTestTable"
+  echo "You|Pass" > ~/hiveTestTable
+  echo "Hive|Test" >> ~/hiveTestTable
   if [[ "${HIVE_USER_MODE}" == "1" ]]; then
     # If we want to use Alluxio as one option to store hive tables, we need input file exists in the Alluxio filesystem
-    ${LAUNCHER} "${ALLUXIO_BIN_PATH}" fs mkdir "${ALLUXIO_URL}/alluxioTestFolder" > /dev/null
-    ${LAUNCHER} "${ALLUXIO_BIN_PATH}" fs copyFromLocal "~/hiveTestTable" "${ALLUXIO_URL}/alluxioTestFolder" > /dev/null
+    ${LAUNCHER} "${ALLUXIO_BIN_PATH}" fs mkdir /alluxioTestFolder >/dev/null
+    ${LAUNCHER} "${ALLUXIO_BIN_PATH}" fs copyFromLocal ~/hiveTestTable /alluxioTestFolder/ >/dev/null
   fi
 }
 
@@ -65,7 +65,7 @@ function trigger_hive() {
 function clean_output() {
   [ -f "./IntegrationReport.txt" ] && cat "./IntegrationReport.txt" && rm "./IntegrationReport.txt"
   if [[ "${HIVE_USER_MODE}" == "1" ]]; then
-    ${LAUNCHER} "${ALLUXIO_BIN_PATH}" fs rm -R "${ALLUXIO_URL}/alluxioTestFolder" > /dev/null
+    ${LAUNCHER} "${ALLUXIO_BIN_PATH}" fs rm -R "${ALLUXIO_URL}/alluxioTestFolder" >/dev/null
   fi
   [ -f "~/hiveTestTable" ] && rm "~/hiveTestTable"
 
@@ -91,7 +91,7 @@ function main {
   fi
 
   source "${ALLUXIO_PATH}/libexec/alluxio-config.sh"
-  ALLUXIO_CHECKER_JAR="${ALLUXIO_PATH}/target/alluxio-checker-${VERSION}-jar-with-dependencies.jar"
+  ALLUXIO_CHECKER_JAR="${ALLUXIO_PATH}/checker/target/alluxio-checker-${VERSION}-jar-with-dependencies.jar"
   ALLUXIO_BIN_PATH="${ALLUXIO_PATH}/bin/alluxio"
 
   if [[ "${HIVE_USER_MODE}" == "1" ]]; then

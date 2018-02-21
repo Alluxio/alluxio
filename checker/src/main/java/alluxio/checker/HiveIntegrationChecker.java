@@ -13,6 +13,7 @@ package alluxio.checker;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,6 +31,7 @@ import java.sql.PreparedStatement;
  * It will check whether Alluxio classes and Alluxio filesystem can be recognized
  * in Hadoop task nodes.
  */
+@SuppressFBWarnings("SQL_PREPARED_STATEMENT_GENERATED_FROM_NONCONSTANT_STRING")
 public class HiveIntegrationChecker {
   private static final Logger LOG = LoggerFactory.getLogger(HiveIntegrationChecker.class);
   private static final String FAIL_TO_FIND_CLASS_MESSAGE = "Please distribute "
@@ -84,10 +86,8 @@ public class HiveIntegrationChecker {
     // Hive statements to check the integration
     try {
       String tableName = "hiveTestTable";
-
-      final String DROPTABLE = "drop table if exists ?";
-      try (PreparedStatement dropTablePS = con.prepareStatement(DROPTABLE)) {
-        dropTablePS.setString(1, tableName);
+      String sql = "drop table if exists " + tableName;
+      try (PreparedStatement dropTablePS = con.prepareStatement(sql)) {
         dropTablePS.execute();
       }
 
@@ -98,15 +98,13 @@ public class HiveIntegrationChecker {
         useAsUnderFS(con, tableName);
       }
 
-      final String DESCRIBETABLE = "describe ?";
-      try (PreparedStatement describeTablePS = con.prepareStatement(DESCRIBETABLE)) {
-        describeTablePS.setString(1, tableName);
+      sql = "describe " + tableName;
+      try (PreparedStatement describeTablePS = con.prepareStatement(sql)) {
         describeTablePS.execute();
       }
 
-      final String SHOWTABLE = "select * from ?";
-      try (PreparedStatement showTablePS = con.prepareStatement(SHOWTABLE)) {
-        showTablePS.setString(1, tableName);
+      sql = "select * from " + tableName;
+      try (PreparedStatement showTablePS = con.prepareStatement(sql)) {
         showTablePS.execute();
       }
     } catch (Exception e) {
@@ -128,12 +126,10 @@ public class HiveIntegrationChecker {
    * @param tableName the name of the test table
    */
   private void useAsSource(Connection con, String tableName) throws Exception {
-    final String CREATETABLE = "CREATE TABLE ? (ROW1 STRING, ROW2 STRING) "
-        + "ROW FORMAT DELIMITED FIELDS TERMINATED BY '|'"
-        + "LOCATION '?/alluxioTestFolder/'";
-    try (PreparedStatement createTablePS = con.prepareStatement(CREATETABLE)) {
-      createTablePS.setString(1, tableName);
-      createTablePS.setString(2, mAlluxioURL);
+    String sql = "CREATE TABLE " + tableName + " (ROW1 STRING, ROW2 STRING) "
+        + "ROW FORMAT DELIMITED FIELDS TERMINATED BY '|' "
+        + "LOCATION '" + mAlluxioURL + "/alluxioTestFolder/'";
+    try (PreparedStatement createTablePS = con.prepareStatement(sql)) {
       createTablePS.execute();
     }
   }
@@ -145,17 +141,15 @@ public class HiveIntegrationChecker {
    * @param tableName the name of the test table
    */
   private void useAsUnderFS(Connection con, String tableName) throws Exception {
-    final String CREATETABLE = "CREATE TABLE ? (ROW1 STRING, ROW2 STRING) "
-        + "ROW FORMAT DELIMITED FIELDS TERMINATED BY '|'"
+    String sql = "CREATE TABLE " + tableName + " (ROW1 STRING, ROW2 STRING) "
+        + "ROW FORMAT DELIMITED FIELDS TERMINATED BY '|' "
         + "STORED AS TEXTFILE";
-    try (PreparedStatement createTablePS = con.prepareStatement(CREATETABLE)) {
-      createTablePS.setString(1, tableName);
+    try (PreparedStatement createTablePS = con.prepareStatement(sql)) {
       createTablePS.execute();
     }
-    final String LOADDATA = "LOAD DATA LOCAL INPATH '~/hiveTestTable' "
-        + "OVERWRITE INTO TABLE ?";
-    try (PreparedStatement loadTablePS = con.prepareStatement(LOADDATA)) {
-      loadTablePS.setString(1, tableName);
+    sql = "LOAD DATA LOCAL INPATH '~/hiveTestTable' "
+        + "OVERWRITE INTO TABLE " + tableName;
+    try (PreparedStatement loadTablePS = con.prepareStatement(sql)) {
       loadTablePS.execute();
     }
   }
@@ -171,7 +165,8 @@ public class HiveIntegrationChecker {
     if (exceptionStr.contains("Class alluxio.hadoop.FileSystem not found")) {
       reportWriter.println(FAIL_TO_FIND_CLASS_MESSAGE);
       reportWriter.println(TEST_FAILED_MESSAGE);
-    } else if (exceptionStr.contains("No FileSystem for scheme \"alluxio\"")) {
+    } else if (exceptionStr.contains("No FileSystem for scheme \"alluxio\"") ||
+        exceptionStr.contains("No FileSystem for scheme: alluxio")) {
       reportWriter.println(FAIL_TO_FIND_FS_MESSAGE);
       reportWriter.println(TEST_FAILED_MESSAGE);
     } else {
