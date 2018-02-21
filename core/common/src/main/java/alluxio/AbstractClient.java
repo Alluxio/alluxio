@@ -19,12 +19,8 @@ import alluxio.exception.status.Status;
 import alluxio.exception.status.UnavailableException;
 import alluxio.exception.status.UnimplementedException;
 import alluxio.retry.RetryPolicy;
-<<<<<<< HEAD
-import alluxio.security.authentication.TProtocols;
-||||||| merged common ancestors
-=======
 import alluxio.retry.ExponentialTimeBoundedRetry;
->>>>>>> upstream/branch-1.7
+import alluxio.security.authentication.TProtocols;
 import alluxio.security.authentication.TransportProvider;
 import alluxio.thrift.AlluxioService;
 import alluxio.thrift.AlluxioTException;
@@ -191,20 +187,9 @@ public abstract class AbstractClient implements Client {
       }
       LOG.info("Alluxio client (version {}) is trying to connect with {} @ {}",
           RuntimeConstants.VERSION, getServiceName(), mAddress);
-<<<<<<< HEAD
 
       mProtocol = TProtocols.createProtocol(
           mTransportProvider.getClientTransport(mParentSubject, mAddress), getServiceName());
-||||||| merged common ancestors
-
-      TProtocol binaryProtocol =
-          new TBinaryProtocol(mTransportProvider.getClientTransport(mParentSubject, mAddress));
-      mProtocol = new TMultiplexedProtocol(binaryProtocol, getServiceName());
-=======
-      TProtocol binaryProtocol =
-          new TBinaryProtocol(mTransportProvider.getClientTransport(mParentSubject, mAddress));
-      mProtocol = new TMultiplexedProtocol(binaryProtocol, getServiceName());
->>>>>>> upstream/branch-1.7
       try {
         mProtocol.getTransport().open();
         LOG.info("Client registered with {} @ {}", getServiceName(), mAddress);
