@@ -90,10 +90,11 @@ alluxio.worker.tieredstore.level0.watermark.high.ratio=0.9 # 216GB * 0.9 ~ 200GB
 alluxio.worker.tieredstore.level0.watermark.low.ratio=0.75 # 216GB * 0.75 ~ 160GB
 ```
 
+In write or read-cache heavy workloads, asynchronous eviction can improve performance.
+
 Synchronous eviction waits for a client to request more space than is currently available on the worker 
-and then kicks off the eviction process to free up enough space to serve that request. This leads to many
- small eviction attempts, which is less efficient but maximizes the utilization of available Alluxio space.
- In write or read-cache heavy workloads, asynchronous eviction can improve performance.
+and then kicks off the eviction process to free up enough space to serve that request. This leads to many 
+small eviction attempts, which is less efficient but maximizes the utilization of available Alluxio space.
 
 ### Evictors
 

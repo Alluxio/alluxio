@@ -37,6 +37,7 @@ public final class MultiWorkerIntegrationTest extends BaseIntegrationTest {
   private static final int NUM_WORKERS = 4;
   private static final int WORKER_MEMORY_SIZE_BYTES = Constants.MB;
   private static final int BLOCK_SIZE_BYTES = WORKER_MEMORY_SIZE_BYTES / 2;
+  private static final double HIGH_WATERMARK = 0.8;
 
   @Rule
   public LocalAlluxioClusterResource mResource =
@@ -44,12 +45,13 @@ public final class MultiWorkerIntegrationTest extends BaseIntegrationTest {
           .setProperty(PropertyKey.WORKER_MEMORY_SIZE, WORKER_MEMORY_SIZE_BYTES)
           .setProperty(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, BLOCK_SIZE_BYTES)
           .setProperty(PropertyKey.USER_FILE_BUFFER_BYTES, BLOCK_SIZE_BYTES)
+          .setProperty(PropertyKey.WORKER_TIERED_STORE_LEVEL0_HIGH_WATERMARK_RATIO, HIGH_WATERMARK)
           .setNumWorkers(NUM_WORKERS)
           .build();
 
   @Test
   public void writeLargeFile() throws Exception {
-    int fileSize = NUM_WORKERS * WORKER_MEMORY_SIZE_BYTES;
+    int fileSize = (int) (NUM_WORKERS * (WORKER_MEMORY_SIZE_BYTES - 1) * HIGH_WATERMARK);
     AlluxioURI file = new AlluxioURI("/test");
     FileSystem fs = mResource.get().getClient();
     // Write a file large enough to fill all the memory of all the workers.
