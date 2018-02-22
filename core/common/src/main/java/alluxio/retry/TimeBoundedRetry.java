@@ -29,7 +29,7 @@ public abstract class TimeBoundedRetry implements RetryPolicy {
   private final Instant mStartTime;
   private final Instant mEndTime;
 
-  private int mRetryCount = 0;
+  private int mAttemptCount = 0;
   private boolean mDone = false;
 
   /**
@@ -46,7 +46,7 @@ public abstract class TimeBoundedRetry implements RetryPolicy {
 
   @Override
   public int getAttemptCount() {
-    return mRetryCount;
+    return mAttemptCount;
   }
 
   @Override
@@ -54,8 +54,8 @@ public abstract class TimeBoundedRetry implements RetryPolicy {
     if (mDone) {
       return false;
     }
-    if (mRetryCount == 0) {
-      mRetryCount++;
+    if (mAttemptCount == 0) {
+      mAttemptCount++;
       return true;
     }
     Instant now = mClock.instant();
@@ -76,7 +76,7 @@ public abstract class TimeBoundedRetry implements RetryPolicy {
       Thread.currentThread().interrupt();
       return false;
     }
-    mRetryCount++;
+    mAttemptCount++;
     return true;
   }
 

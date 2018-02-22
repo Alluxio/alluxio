@@ -23,7 +23,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public abstract class SleepingRetry implements RetryPolicy {
   private final int mMaxRetries;
-  private int mRetryCount = 0;
+  private int mAttemptCount = 0;
 
   protected SleepingRetry(int maxRetries) {
     Preconditions.checkArgument(maxRetries > 0, "Max retries must be a positive number");
@@ -32,20 +32,20 @@ public abstract class SleepingRetry implements RetryPolicy {
 
   @Override
   public int getAttemptCount() {
-    return mRetryCount;
+    return mAttemptCount;
   }
 
   @Override
   public boolean attempt() {
-    if (mRetryCount <= mMaxRetries) {
-      if (mRetryCount == 0) {
+    if (mAttemptCount <= mMaxRetries) {
+      if (mAttemptCount == 0) {
         // first attempt, do not sleep
-        mRetryCount++;
+        mAttemptCount++;
         return true;
       }
       try {
         getSleepUnit().sleep(getSleepTime());
-        mRetryCount++;
+        mAttemptCount++;
         return true;
       } catch (InterruptedException e) {
         Thread.currentThread().interrupt();
