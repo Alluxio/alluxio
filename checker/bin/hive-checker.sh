@@ -43,10 +43,11 @@ HIVE_USER_MODE=""
 
 function generate_input() {
   [ -f "./IntegrationReport.txt" ] && rm "./IntegrationReport.txt"
-  # Generate the input file for Hive integration checker
-  echo "You|Pass" > ~/hiveTestTable
-  echo "Hive|Test" >> ~/hiveTestTable
   if [[ "${HIVE_USER_MODE}" == "1" ]]; then
+    # Generate the input file for Hive integration checker
+    echo "You|Pass" > ~/hiveTestTable
+    echo "Hive|Test" >> ~/hiveTestTable
+
     # If we want to use Alluxio as one option to store hive tables, we need input file exists in the Alluxio filesystem
     ${LAUNCHER} "${ALLUXIO_BIN_PATH}" fs mkdir /alluxioTestFolder >/dev/null
     ${LAUNCHER} "${ALLUXIO_BIN_PATH}" fs copyFromLocal ~/hiveTestTable /alluxioTestFolder/ >/dev/null
@@ -68,7 +69,6 @@ function clean_output() {
     ${LAUNCHER} "${ALLUXIO_BIN_PATH}" fs rm -R "${ALLUXIO_URL}/alluxioTestFolder" >/dev/null
   fi
   [ -f "~/hiveTestTable" ] && rm "~/hiveTestTable"
-
 }
 
 function main {

@@ -104,9 +104,10 @@ public class HiveIntegrationChecker {
       }
 
       sql = "select * from " + tableName;
-      try (PreparedStatement showTablePS = con.prepareStatement(sql)) {
-        showTablePS.execute();
+      try (PreparedStatement selectTablePS = con.prepareStatement(sql)) {
+        selectTablePS.execute();
       }
+
     } catch (Exception e) {
       printExceptionReport(e, reportWriter);
       return 1;
@@ -147,10 +148,10 @@ public class HiveIntegrationChecker {
     try (PreparedStatement createTablePS = con.prepareStatement(sql)) {
       createTablePS.execute();
     }
-    sql = "LOAD DATA LOCAL INPATH '~/hiveTestTable' "
-        + "OVERWRITE INTO TABLE " + tableName;
+
+    sql = "INSERT INTO " + tableName + " VALUES ('Hive', 'Test')";
     try (PreparedStatement loadTablePS = con.prepareStatement(sql)) {
-      loadTablePS.execute();
+      loadTablePS.executeUpdate();
     }
   }
 
@@ -165,8 +166,8 @@ public class HiveIntegrationChecker {
     if (exceptionStr.contains("Class alluxio.hadoop.FileSystem not found")) {
       reportWriter.println(FAIL_TO_FIND_CLASS_MESSAGE);
       reportWriter.println(TEST_FAILED_MESSAGE);
-    } else if (exceptionStr.contains("No FileSystem for scheme \"alluxio\"") ||
-        exceptionStr.contains("No FileSystem for scheme: alluxio")) {
+    } else if (exceptionStr.contains("No FileSystem for scheme \"alluxio\"")
+        || exceptionStr.contains("No FileSystem for scheme: alluxio")) {
       reportWriter.println(FAIL_TO_FIND_FS_MESSAGE);
       reportWriter.println(TEST_FAILED_MESSAGE);
     } else {
