@@ -193,18 +193,16 @@ public class SparkIntegrationChecker implements Serializable{
     jCommander.setProgramName("SparkIntegrationChecker");
 
     // Creates a file to save user-facing messages
-    PrintWriter reportWriter = CheckerUtils.initReportFile();
+    try (PrintWriter reportWriter = CheckerUtils.initReportFile()) {
+      // Starts the Java Spark Context
+      SparkConf conf = new SparkConf().setAppName(SparkIntegrationChecker.class.getName());
+      JavaSparkContext sc = new JavaSparkContext(conf);
 
-    // Starts the Java Spark Context
-    SparkConf conf = new SparkConf().setAppName(SparkIntegrationChecker.class.getName());
-    JavaSparkContext sc = new JavaSparkContext(conf);
-
-    checker.printConfigInfo(conf, reportWriter);
-    Status resultStatus = checker.run(sc, reportWriter);
-    checker.printResultInfo(resultStatus, reportWriter);
-
-    reportWriter.close();
-
-    System.exit(resultStatus.equals(Status.SUCCESS) ? 0 : 1);
+      checker.printConfigInfo(conf, reportWriter);
+      Status resultStatus = checker.run(sc, reportWriter);
+      checker.printResultInfo(resultStatus, reportWriter);
+      reportWriter.flush();
+      System.exit(resultStatus.equals(Status.SUCCESS) ? 0 : 1);
+    }
   }
 }

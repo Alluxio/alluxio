@@ -240,22 +240,23 @@ public class MapReduceIntegrationChecker {
       }
     }
 
-    PrintWriter reportWriter = CheckerUtils.initReportFile();
-    Status resultStatus = CheckerUtils.printNodesResults(resultMap, reportWriter);
-    switch (resultStatus) {
-      case FAIL_TO_FIND_CLASS:
-        reportWriter.println(FAIL_TO_FIND_CLASS_MESSAGE);
-        reportWriter.println(TEST_FAILED_MESSAGE);
-        break;
-      case FAIL_TO_FIND_FS:
-        reportWriter.println(FAIL_TO_FIND_FS_MESSAGE);
-        reportWriter.println(TEST_FAILED_MESSAGE);
-        break;
-      default:
-        reportWriter.println(TEST_PASSED_MESSAGE);
+    try (PrintWriter reportWriter = CheckerUtils.initReportFile()) {
+      Status resultStatus = CheckerUtils.printNodesResults(resultMap, reportWriter);
+      switch (resultStatus) {
+        case FAIL_TO_FIND_CLASS:
+          reportWriter.println(FAIL_TO_FIND_CLASS_MESSAGE);
+          reportWriter.println(TEST_FAILED_MESSAGE);
+          break;
+        case FAIL_TO_FIND_FS:
+          reportWriter.println(FAIL_TO_FIND_FS_MESSAGE);
+          reportWriter.println(TEST_FAILED_MESSAGE);
+          break;
+        default:
+          reportWriter.println(TEST_PASSED_MESSAGE);
+      }
+      reportWriter.flush();
+      return resultStatus;
     }
-    reportWriter.close();
-    return resultStatus;
   }
 
   /**
