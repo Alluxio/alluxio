@@ -34,9 +34,11 @@ import java.sql.PreparedStatement;
 @SuppressFBWarnings("SQL_PREPARED_STATEMENT_GENERATED_FROM_NONCONSTANT_STRING")
 public class HiveIntegrationChecker {
   private static final Logger LOG = LoggerFactory.getLogger(HiveIntegrationChecker.class);
+  private static final String FAIL_TO_CONNECT_TO_HIVE_MESSAGE = "Unable to connect to Hive, "
+      + "please check your Hive URL, username and password.\n";
   private static final String FAIL_TO_FIND_CLASS_MESSAGE = "Please distribute "
       + "the Alluxio client jar on the classpath of the application across different nodes.\n\n"
-      + "Please set HIVE_AUX_JARS_PATH either in shell or conf/hive-env.sh."
+      + "Please set HIVE_AUX_JARS_PATH either in shell or conf/hive-env.sh.\n"
       + "For details, please refer to: "
       + "https://www.alluxio.org/docs/master/en/Running-Hive-with-Alluxio.html\n";
   private static final String FAIL_TO_FIND_FS_MESSAGE = "Please check the fs.alluxio.impl property "
@@ -69,22 +71,12 @@ public class HiveIntegrationChecker {
    * Implements Hive with Alluxio integration checker.
    *
    * @param reportWriter save user-facing messages to a generated file
-   * @return 0 means success, 2 means input not valid, 1 means have other errors
+   * @return 0 is success, 1 otherwise
    */
   private int run(PrintWriter reportWriter) throws Exception {
     // Try to connect to Hive through JDBC
-    Connection con;
-    try {
-      con = DriverManager.getConnection(mHiveURL, mHiveUserName, mHiveUserPassword);
-    } catch (Exception e) {
-      reportWriter.println("Unable to connect to Hive, please check "
-          + "your Hive URL, username and password.\n");
-      reportWriter.println(TEST_FAILED_MESSAGE);
-      return 2;
-    }
-
-    // Hive statements to check the integration
-    try {
+    try (Connection con = DriverManager.getConnection(mHiveURL, mHiveUserName, mHiveUserPassword)) {
+      // Hive statements to check the integration
       String tableName = "hiveTestTable";
       String sql = "drop table if exists " + tableName;
       try (PreparedStatement dropTablePS = con.prepareStatement(sql)) {
@@ -111,8 +103,6 @@ public class HiveIntegrationChecker {
     } catch (Exception e) {
       printExceptionReport(e, reportWriter);
       return 1;
-    } finally {
-      con.close();
     }
 
     reportWriter.println("Congratulations, you have configured Hive with Alluxio correctly!\n");
@@ -161,9 +151,12 @@ public class HiveIntegrationChecker {
    * @param exception the thrown exception when running Hive queries
    * @param reportWriter save user-facing messages to a generated file
    */
-  private void printExceptionReport(Exception exception, PrintWriter reportWriter) {
+  private void printExceptionReport(Exception exception, PrintWriter reportWriter)
+      throws IllegalArgumentException {
     String exceptionStr = exception.toString();
-    if (exceptionStr.contains("Class alluxio.hadoop.FileSystem not found")) {
+    if (exceptionStr.contains("HiveConnection - Failed to connect to")) {
+      throw new IllegalArgumentException(FAIL_TO_CONNECT_TO_HIVE_MESSAGE);
+    } else if (exceptionStr.contains("Class alluxio.hadoop.FileSystem not found")) {
       reportWriter.println(FAIL_TO_FIND_CLASS_MESSAGE);
       reportWriter.println(TEST_FAILED_MESSAGE);
     } else if (exceptionStr.contains("No FileSystem for scheme \"alluxio\"")
@@ -180,19 +173,14 @@ public class HiveIntegrationChecker {
 
   /**
    * Checks if the input arguments are valid.
-   *
-   * @return true if input is valid, false otherwise
    */
-  private boolean checkIfInputValid() {
+  private void checkIfInputValid() throws IllegalArgumentException {
     if (mUserMode != 1 && mUserMode != 2) {
-      System.out.println("Please set the correct user mode.");
-      return false;
+      throw new IllegalArgumentException("Hive integration checker user mode is invalid.");
     }
     if (!mHiveURL.startsWith("jdbc")) {
-      System.out.println("Please set the correct Hive URL.");
-      return false;
+      throw new IllegalArgumentException("Hive URL is invalid.");
     }
-    return true;
   }
 
   /**
@@ -205,15 +193,12 @@ public class HiveIntegrationChecker {
     JCommander jCommander = new JCommander(checker, args);
     jCommander.setProgramName("HiveIntegrationChecker");
 
-    if (!checker.checkIfInputValid()) {
+    try (PrintWriter reportWriter = CheckerUtils.initReportFile();) {
+      checker.checkIfInputValid();
+      System.exit(checker.run(reportWriter));
+    } catch (IllegalArgumentException e) {
+      System.out.println(e);
       System.exit(2);
     }
-
-    PrintWriter reportWriter = CheckerUtils.initReportFile();
-
-    int result = checker.run(reportWriter);
-
-    reportWriter.close();
-    System.exit(result);
   }
 }
