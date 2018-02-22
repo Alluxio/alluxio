@@ -547,7 +547,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
       try {
         return openObject(stripPrefixIfPresent(path), options);
       } catch (IOException e) {
-        LOG.warn("{} attempt to open {} failed with exception : {}", retryPolicy.getRetryCount(),
+        LOG.warn("{} attempt to open {} failed with exception : {}", retryPolicy.getAttemptCount(),
             path, e.getMessage());
         thrownException = e;
       }

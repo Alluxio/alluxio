@@ -26,7 +26,7 @@ public interface RetryPolicy {
    *
    * @return number of retries performed
    */
-  int getRetryCount();
+  int getAttemptCount();
 
   /**
    * Waits until it is time to perform the next retry, then returns. Returns false if no further

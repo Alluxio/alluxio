@@ -208,7 +208,7 @@ public abstract class AbstractClient implements Client {
           throw new UnimplementedException(message, e);
         }
       } catch (TTransportException e) {
-        LOG.warn("Failed to connect ({}) with {} @ {}: {}", retryPolicy.getRetryCount(),
+        LOG.warn("Failed to connect ({}) with {} @ {}: {}", retryPolicy.getAttemptCount(),
             getServiceName(), mAddress, e.getMessage());
         if (e.getCause() instanceof java.net.SocketTimeoutException) {
           // Do not retry if socket timeout.
@@ -225,7 +225,7 @@ public abstract class AbstractClient implements Client {
     }
     // Reaching here indicates that we did not successfully connect.
     throw new UnavailableException(String.format("Failed to connect to %s @ %s after %s attempts",
-        getServiceName(), mAddress, retryPolicy.getRetryCount()));
+        getServiceName(), mAddress, retryPolicy.getAttemptCount()));
   }
 
   /**
@@ -314,7 +314,7 @@ public abstract class AbstractClient implements Client {
         LOG.warn("RPC failed with {}. Retrying.", ex.toString());
       } else {
         throw new UnavailableException(
-            "Failed after " + retryPolicy.getRetryCount() + " retries: " + ex.toString(), ex);
+            "Failed after " + retryPolicy.getAttemptCount() + " attempts: " + ex.toString(), ex);
       }
     }
     throw new FailedPreconditionException("Client is closed");

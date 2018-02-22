@@ -26,8 +26,7 @@ public class TimeoutRetry implements RetryPolicy {
   private final long mRetryTimeoutMs;
   private final long mSleepMs;
   private long mStartMs = 0;
-  private int mCount = 0;
-  private boolean mFirstAttempt = true;
+  private int mRetryCount = 0;
 
   /**
    * Constructs a retry facility which allows retrying until a specified timeout is reached.
@@ -43,23 +42,23 @@ public class TimeoutRetry implements RetryPolicy {
   }
 
   @Override
-  public int getRetryCount() {
-    return mCount;
+  public int getAttemptCount() {
+    return mRetryCount;
   }
 
   @Override
   public boolean attempt() {
-    if (mFirstAttempt) {
+    if (mRetryCount == 0) {
       // first attempt, set the start time
-      mFirstAttempt = false;
       mStartMs = CommonUtils.getCurrentMs();
+      mRetryCount++;
       return true;
     }
     if (mSleepMs > 0) {
       CommonUtils.sleepMs(mSleepMs);
     }
     if ((CommonUtils.getCurrentMs() - mStartMs) <= mRetryTimeoutMs) {
-      mCount++;
+      mRetryCount++;
       return true;
     }
     return false;

@@ -184,7 +184,7 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
         return new HdfsUnderFileOutputStream(FileSystem.create(mFileSystem, new Path(path),
             new FsPermission(options.getMode().toShort())));
       } catch (IOException e) {
-        LOG.warn("Retry count {} : {} ", retryPolicy.getRetryCount(), e.getMessage());
+        LOG.warn("Attempt count {} : {} ", retryPolicy.getAttemptCount(), e.getMessage());
         te = e;
       }
     }
@@ -416,7 +416,7 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
         }
         return true;
       } catch (IOException e) {
-        LOG.warn("{} try to make directory for {} : {}", retryPolicy.getRetryCount(), path,
+        LOG.warn("{} try to make directory for {} : {}", retryPolicy.getAttemptCount(), path,
             e.getMessage());
         te = e;
       }
@@ -439,7 +439,7 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
         }
         return new HdfsUnderFileInputStream(inputStream);
       } catch (IOException e) {
-        LOG.warn("{} try to open {} : {}", retryPolicy.getRetryCount(), path, e.getMessage());
+        LOG.warn("{} try to open {} : {}", retryPolicy.getAttemptCount(), path, e.getMessage());
         te = e;
       }
     }
@@ -517,7 +517,7 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
       try {
         return mFileSystem.delete(new Path(path), recursive);
       } catch (IOException e) {
-        LOG.warn("Retry count {} : {}", retryPolicy.getRetryCount(), e.getMessage());
+        LOG.warn("Attempt count {} : {}", retryPolicy.getAttemptCount(), e.getMessage());
         te = e;
       }
     }
@@ -560,7 +560,7 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
       try {
         return mFileSystem.rename(new Path(src), new Path(dst));
       } catch (IOException e) {
-        LOG.warn("{} try to rename {} to {} : {}", retryPolicy.getRetryCount(), src, dst,
+        LOG.warn("{} try to rename {} to {} : {}", retryPolicy.getAttemptCount(), src, dst,
             e.getMessage());
         te = e;
       }

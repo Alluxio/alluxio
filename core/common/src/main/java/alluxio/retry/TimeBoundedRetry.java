@@ -31,7 +31,6 @@ public abstract class TimeBoundedRetry implements RetryPolicy {
 
   private int mRetryCount = 0;
   private boolean mDone = false;
-  private boolean mFirstAttempt = true;
 
   /**
    * @param timeCtx the time context to use for time-based operations
@@ -41,13 +40,12 @@ public abstract class TimeBoundedRetry implements RetryPolicy {
     mClock = timeCtx.getClock();
     mSleeper = timeCtx.getSleeper();
     mMaxDuration = maxDuration;
-    mRetryCount = 0;
     mStartTime = mClock.instant();
     mEndTime = mStartTime.plus(mMaxDuration);
   }
 
   @Override
-  public int getRetryCount() {
+  public int getAttemptCount() {
     return mRetryCount;
   }
 
@@ -56,8 +54,8 @@ public abstract class TimeBoundedRetry implements RetryPolicy {
     if (mDone) {
       return false;
     }
-    if (mFirstAttempt) {
-      mFirstAttempt = false;
+    if (mRetryCount == 0) {
+      mRetryCount++;
       return true;
     }
     Instant now = mClock.instant();
