@@ -34,8 +34,8 @@ public final class AlluxioMasterMonitor {
               AlluxioMasterMonitor.class.getCanonicalName());
       LOG.warn("ignoring arguments");
     }
-
-    HealthCheckClient client = new MasterHealthCheckClient();
+    
+    HealthCheckClient client = new MasterHealthCheckClient.Builder().build();
     if (!client.isServing()) {
       System.exit(1);
     }

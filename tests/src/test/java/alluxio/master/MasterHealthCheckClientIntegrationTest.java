@@ -26,15 +26,16 @@ public class MasterHealthCheckClientIntegrationTest extends BaseIntegrationTest 
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
           new LocalAlluxioClusterResource.Builder()
-                  .setProperty(PropertyKey.USER_RPC_RETRY_MAX_NUM_RETRY, 30).build();
+                  .setProperty(PropertyKey.USER_RPC_RETRY_MAX_NUM_RETRY, 5).build();
 
   private LocalAlluxioCluster mLocalAlluxioCluster = null;
   private HealthCheckClient mHealthCheckClient;
 
   @Before
-  public final void before() throws Exception {
+  public final void before() {
     mLocalAlluxioCluster = mLocalAlluxioClusterResource.get();
-    mHealthCheckClient = new MasterHealthCheckClient();
+    mHealthCheckClient = new MasterHealthCheckClient.Builder()
+            .withProcessCheck(false).build();
   }
 
   @Test
