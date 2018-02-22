@@ -35,6 +35,5 @@ public final class LeaderCommandIntegrationTest extends AbstractAlluxioShellTest
     mFsShell.run("leader");
     String expected = "The leader is not currently serving requests.\n";
     Assert.assertEquals(expected, mErrOutput.toString());
-    mLocalAlluxioCluster.startMasters();
   }
 }

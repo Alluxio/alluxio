@@ -168,9 +168,9 @@ public abstract class AbstractClient implements Client {
     disconnect();
     Preconditions.checkState(!mClosed, "Client is closed, will not try to connect.");
 
-    RetryPolicy retryPolicy = ExponentialTimeBoundedRetry.builder()
-            .withMaxDuration(MAX_RETRY_DURATION).withInitialSleep(BASE_SLEEP_MS)
-            .withMaxSleep(MAX_SLEEP_MS).build();
+    RetryPolicy retryPolicy =
+        ExponentialTimeBoundedRetry.builder().withMaxDuration(MAX_RETRY_DURATION)
+            .withInitialSleep(BASE_SLEEP_MS).withMaxSleep(MAX_SLEEP_MS).build();
     while (true) {
       if (mClosed) {
         throw new FailedPreconditionException("Failed to connect: client has been closed");
@@ -219,6 +219,9 @@ public abstract class AbstractClient implements Client {
         }
       }
       // TODO(peis): Consider closing the connection here as well.
+      if (!retryPolicy.attempt()) {
+        break;
+      }
     }
     // Reaching here indicates that we did not successfully connect.
     throw new UnavailableException(String.format("Failed to connect to %s @ %s after %s attempts",
