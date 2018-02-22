@@ -13,7 +13,6 @@ package alluxio.cli.fs.command;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
-import alluxio.client.ReadType;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
@@ -61,7 +60,7 @@ public final class TailCommand extends WithWildCardPathCommand {
     if (status.isFolder()) {
       throw new IOException(ExceptionMessage.PATH_MUST_BE_FILE.getMessage(path));
     }
-    OpenFileOptions options = OpenFileOptions.defaults().setReadType(ReadType.NO_CACHE);
+    OpenFileOptions options = OpenFileOptions.defaults();
     try (FileInStream is = mFileSystem.openFile(path, options)) {
       byte[] buf = new byte[numOfBytes];
       long bytesToRead;
