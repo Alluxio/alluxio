@@ -56,7 +56,7 @@ function generate_input() {
 
 function trigger_hive() {
   ${LAUNCHER} java -cp "${ALLUXIO_CHECKER_JAR}" alluxio.checker.HiveIntegrationChecker "$@" -alluxiourl "${ALLUXIO_URL}"
-  # return code 2 means the input is not valid
+  # If input is not valid, we print helpful message
   if [[ "$?" == "2" ]]; then
     echo -e "${USAGE}" >&2
     exit 1
