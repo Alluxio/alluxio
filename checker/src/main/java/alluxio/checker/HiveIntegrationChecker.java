@@ -151,12 +151,9 @@ public class HiveIntegrationChecker {
    * @param exception the thrown exception when running Hive queries
    * @param reportWriter save user-facing messages to a generated file
    */
-  private void printExceptionReport(Exception exception, PrintWriter reportWriter)
-      throws IllegalArgumentException {
+  private void printExceptionReport(Exception exception, PrintWriter reportWriter) {
     String exceptionStr = exception.toString();
-    if (exceptionStr.contains("HiveConnection - Failed to connect to")) {
-      throw new IllegalArgumentException(FAIL_TO_CONNECT_TO_HIVE_MESSAGE);
-    } else if (exceptionStr.contains("Class alluxio.hadoop.FileSystem not found")) {
+    if (exceptionStr.contains("Class alluxio.hadoop.FileSystem not found")) {
       reportWriter.println(FAIL_TO_FIND_CLASS_MESSAGE);
       reportWriter.println(TEST_FAILED_MESSAGE);
     } else if (exceptionStr.contains("No FileSystem for scheme \"alluxio\"")
@@ -192,13 +189,16 @@ public class HiveIntegrationChecker {
     HiveIntegrationChecker checker = new HiveIntegrationChecker();
     JCommander jCommander = new JCommander(checker, args);
     jCommander.setProgramName("HiveIntegrationChecker");
-
-    try (PrintWriter reportWriter = CheckerUtils.initReportFile();) {
+    try {
       checker.checkIfInputValid();
-      System.exit(checker.run(reportWriter));
     } catch (IllegalArgumentException e) {
       System.out.println(e);
       System.exit(2);
+    }
+    try (PrintWriter reportWriter = CheckerUtils.initReportFile()) {
+      int result = checker.run(reportWriter);
+      reportWriter.flush();
+      System.exit(result);
     }
   }
 }
