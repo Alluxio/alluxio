@@ -138,7 +138,7 @@ public final class FileInStreamTest {
       Mockito.when(mBlockStore.getEligibleWorkers())
           .thenReturn(Arrays.asList(new BlockWorkerInfo(new WorkerNetAddress(), 0, 0)));
       Mockito.when(mBlockStore.getInStream(Mockito.eq((long) i), Mockito.any(InStreamOptions
-          .class)))
+          .class), any()))
           .thenAnswer(new Answer<BlockInStream>() {
             @Override
             public BlockInStream answer(InvocationOnMock invocation) throws Throwable {
@@ -527,7 +527,7 @@ public final class FileInStreamTest {
   @Test
   public void failGetInStream() throws IOException {
     Mockito.when(mBlockStore
-        .getInStream(Mockito.anyLong(), Mockito.any(InStreamOptions.class)))
+        .getInStream(Mockito.anyLong(), Mockito.any(InStreamOptions.class), any()))
         .thenThrow(new UnavailableException("test exception"));
     try {
       mTestStream.read();
@@ -685,7 +685,7 @@ public final class FileInStreamTest {
   @Test
   public void blockInStreamOutOfSync() throws Exception {
     Mockito.when(
-        mBlockStore.getInStream(Mockito.anyLong(), Mockito.any(InStreamOptions.class)))
+        mBlockStore.getInStream(Mockito.anyLong(), Mockito.any(InStreamOptions.class), any()))
         .thenAnswer(new Answer<BlockInStream>() {
           @Override
           public BlockInStream answer(InvocationOnMock invocation) throws Throwable {
