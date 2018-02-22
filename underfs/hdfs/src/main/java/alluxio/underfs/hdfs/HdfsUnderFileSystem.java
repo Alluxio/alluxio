@@ -12,6 +12,7 @@
 package alluxio.underfs.hdfs;
 
 import alluxio.AlluxioURI;
+import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.retry.CountingRetry;
 import alluxio.retry.RetryPolicy;
@@ -28,6 +29,7 @@ import alluxio.underfs.options.DeleteOptions;
 import alluxio.underfs.options.FileLocationOptions;
 import alluxio.underfs.options.MkdirsOptions;
 import alluxio.underfs.options.OpenOptions;
+import alluxio.util.CommonUtils;
 import alluxio.util.UnderFileSystemUtils;
 
 import com.google.common.base.Preconditions;
@@ -428,6 +430,10 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
   public InputStream open(String path, OpenOptions options) throws IOException {
     IOException te = null;
     RetryPolicy retryPolicy = new CountingRetry(MAX_TRY);
+    DistributedFileSystem dfs = null;
+    if (mFileSystem instanceof DistributedFileSystem) {
+      dfs = (DistributedFileSystem) mFileSystem;
+    }
     while (retryPolicy.attemptRetry()) {
       try {
         FSDataInputStream inputStream = mFileSystem.open(new Path(path));
@@ -441,6 +447,25 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
       } catch (IOException e) {
         LOG.warn("{} try to open {} : {}", retryPolicy.getRetryCount(), path, e.getMessage());
         te = e;
+        if (options.getRecoverFailedOpen() && dfs != null && e.getMessage().toLowerCase()
+            .startsWith("cannot obtain block length for")) {
+          try {
+            if (dfs.recoverLease(new Path(path))) {
+              LOG.warn("recoverLease-1 success for: {}", path);
+            } else {
+              // try one more time, after waiting
+              CommonUtils.sleepMs(5 * Constants.SECOND_MS);
+              if (dfs.recoverLease(new Path(path))) {
+                LOG.warn("recoverLease-2 success for: {}", path);
+              } else {
+                LOG.warn("recoverLease returned false for: {}", path);
+              }
+            }
+          } catch (IOException e1) {
+            // ignore exception
+            LOG.warn("recoverLease failed for: {} error: {}", path, e1.getMessage());
+          }
+        }
       }
     }
     throw te;

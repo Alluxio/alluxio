@@ -18,6 +18,7 @@ import alluxio.master.journal.JournalReader;
 import alluxio.proto.journal.Journal;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.options.OpenOptions;
 
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
@@ -69,7 +70,8 @@ public final class UfsJournalReader implements JournalReader {
     JournalInputStream(UfsJournalFile file) throws IOException {
       mFile = file;
       LOG.info("Reading journal file {}.", file.getLocation());
-      mReader = new JournalEntryStreamReader(mUfs.open(file.getLocation().toString()));
+      mReader = new JournalEntryStreamReader(mUfs.open(file.getLocation().toString(),
+          OpenOptions.defaults().setRecoverFailedOpen(true)));
     }
 
     /**
