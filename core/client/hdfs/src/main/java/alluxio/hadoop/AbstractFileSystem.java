@@ -292,7 +292,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
             .stream().map(alluxio.wire.BlockLocation::getWorkerAddress).collect(toList());
         if (locations.isEmpty()) {
           // No in-Alluxio location, fallback to use under file system locations with
-          // co-located workers
+          // co-located workers.
           if (workerHosts == null) {
             // lazy initialization for rpc call
             workerHosts = getHostToWorkerMap();
@@ -303,7 +303,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
               .filter(Objects::nonNull).collect(toList());
         }
         if (locations.isEmpty()) {
-          // Fallback to add all workers to the location so some apps (Impala) won't panic
+          // Fallback to add all workers to the location so some apps (Impala) won't panic.
           locations = workerHosts.values();
         }
         List<HostAndPort> addresses = locations.stream()
