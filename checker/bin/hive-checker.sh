@@ -20,7 +20,7 @@ CHECKER_BIN_PATH=$(cd "$( dirname "$( readlink "$0" || echo "$0" )" )"; pwd)
 USAGE="Usage: alluxio-checker.sh hive [-mode USER_MODE] [-hiveurl HIVE_URL] [-name HIVE_USER_NAME] [-password HIVE_USER_PASSWORD]
 
 Prerequisites:
-    Please use ${HIVE_HOME}/bin/hiveserver2 to start hiveserver2.
+    Please start hive-server2.
     Please set the alluxio.master.hostname in your <ALLUXIO_HOME>/conf/alluxio-site.properties.
 
 Argument:
@@ -108,7 +108,6 @@ function main {
   generate_input
   trigger_hive "$@"
   clean_output
-
 }
 
 main "$@"
