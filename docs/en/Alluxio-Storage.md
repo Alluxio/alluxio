@@ -71,30 +71,30 @@ of the memory size if devices other than the default Alluxio provisioned ramdisk
 Because Alluxio storage is designed to be volatile, there must be a mechanism to make space for new
 data when Alluxio storage is full. This is termed eviction.
 
-There are two modes of eviction in Alluxio, asynchronous and synchronous (default). You can switch
+There are two modes of eviction in Alluxio, asynchronous (default) and synchronous. You can switch
 between the two by enabling and disabling the space reserver which handles asynchronous eviction.
-For example, to turn on asynchronous eviction:
+For example, to turn off asynchronous eviction:
 
 ```
-alluxio.worker.tieredstore.reserver.enabled=true
+alluxio.worker.tieredstore.reserver.enabled=false
 ```
 
-Synchronous eviction is the initial and default implementation of eviction. It waits for a client to
-request more space than is currently available on the worker and then kicks off the eviction process
-to free up enough space to serve that request. This leads to many small eviction attempts, which is
-less efficient but maximizes the utilization of available Alluxio space. In write or read-cache
-heavy workloads, asynchronous eviction can improve performance.
-
-Asynchronous eviction relies on a periodic space reserver thread in each worker to evict data. It
-waits until the worker storage utilization reaches a configurable high watermark. Then it evicts
-data based on the eviction policy until it reaches the configurable low watermark. For example, if
-we had the same 16+100+100=216GB storage configured, we can set eviction to kick in at around 200GB
-and stop at around 160GB:
+Asynchronous eviction is the default implementation of eviction. It relies on a periodic space reserver 
+thread in each worker to evict data. It waits until the worker storage utilization reaches a configurable
+ high watermark. Then it evicts data based on the eviction policy until it reaches the configurable low
+  watermark. For example, if we had the same 16+100+100=216GB storage configured, we can set eviction to
+  kick in at around 200GB and stop at around 160GB:
 
 ```
 alluxio.worker.tieredstore.level0.watermark.high.ratio=0.9 # 216GB * 0.9 ~ 200GB
 alluxio.worker.tieredstore.level0.watermark.low.ratio=0.75 # 216GB * 0.75 ~ 160GB
 ```
+
+In write or read-cache heavy workloads, asynchronous eviction can improve performance.
+
+Synchronous eviction waits for a client to request more space than is currently available on the worker 
+and then kicks off the eviction process to free up enough space to serve that request. This leads to many 
+small eviction attempts, which is less efficient but maximizes the utilization of available Alluxio space.
 
 ### Evictors
 
