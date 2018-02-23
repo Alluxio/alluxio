@@ -132,9 +132,6 @@ public final class BlockReadHandler extends AbstractReadHandler<BlockReadRequest
         return;
       }
       BlockReadRequest request = context.getRequest();
-      int retryInterval = Constants.SECOND_MS;
-      RetryPolicy retryPolicy = new TimeoutRetry(UFS_BLOCK_OPEN_TIMEOUT_MS, retryInterval);
-
       // TODO(calvin): Update the locking logic so this can be done better
       if (request.isPromote()) {
         try {
@@ -147,7 +144,9 @@ public final class BlockReadHandler extends AbstractReadHandler<BlockReadRequest
         }
       }
 
-      do {
+      int retryInterval = Constants.SECOND_MS;
+      RetryPolicy retryPolicy = new TimeoutRetry(UFS_BLOCK_OPEN_TIMEOUT_MS, retryInterval);
+      while (retryPolicy.attempt()) {
         long lockId;
         if (request.isPersisted()) {
           lockId = mWorker.lockBlockNoException(request.getSessionId(), request.getId());
@@ -198,7 +197,7 @@ public final class BlockReadHandler extends AbstractReadHandler<BlockReadRequest
         // Sends an empty buffer to the client to make sure that the client does not timeout when
         // the server is waiting for the UFS block access.
         channel.writeAndFlush(new RPCProtoMessage(heartbeat));
-      } while (retryPolicy.attempt());
+      }
       throw new UnavailableException(ExceptionMessage.UFS_BLOCK_ACCESS_TOKEN_UNAVAILABLE
           .getMessage(request.getId(), request.getOpenUfsBlockOptions().getUfsPath()));
     }
