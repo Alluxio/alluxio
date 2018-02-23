@@ -125,7 +125,6 @@ public class MasterHealthCheckClient implements HealthCheckClient {
                     + "grep \"java\" | "
                     + "awk '{ print $2; }'");
             LOG.debug("Executing: {}", cmd);
-            System.out.println(cmd);
             String output = ShellUtils.execCommand("bash", "-c", cmd);
             if (output.isEmpty()) {
               throw new IllegalStateException(
