@@ -47,4 +47,11 @@ public class CountingRetry implements RetryPolicy {
     }
     return false;
   }
+
+  /**
+   * Reset the count of retries.
+   */
+  public void reset() {
+    mCount = 0;
+  }
 }

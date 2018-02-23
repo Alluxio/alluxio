@@ -19,16 +19,33 @@ import alluxio.Constants;
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.PropertyKey;
 import alluxio.client.WriteType;
+import alluxio.client.block.AlluxioBlockStore;
+import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.CreateFileOptions;
+import alluxio.client.file.options.InStreamOptions;
+import alluxio.client.file.options.OpenFileOptions;
+import alluxio.client.file.options.OutStreamOptions;
 import alluxio.client.file.policy.RoundRobinPolicy;
+import alluxio.util.io.BufferUtils;
+import alluxio.wire.BlockInfo;
+import alluxio.wire.FileBlockInfo;
+import alluxio.wire.WorkerNetAddress;
 
+import com.google.common.io.ByteStreams;
 import org.apache.commons.io.IOUtils;
+import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.List;
+import java.util.stream.StreamSupport;
 
 /**
  * Tests a cluster containing multiple workers.
@@ -60,6 +77,118 @@ public final class MultiWorkerIntegrationTest extends BaseIntegrationTest {
     assertEquals(100, status.getInAlluxioPercentage());
     try (FileInStream inStream = fs.openFile(file)) {
       assertEquals(fileSize, IOUtils.toByteArray(inStream).length);
+    }
+  }
+
+  @Test
+  @LocalAlluxioClusterResource.Config(confParams = {PropertyKey.Name.USER_SHORT_CIRCUIT_ENABLED,
+      "false", PropertyKey.Name.USER_BLOCK_SIZE_BYTES_DEFAULT, "16MB",
+      PropertyKey.Name.USER_NETWORK_NETTY_READER_PACKET_SIZE_BYTES, "64KB",
+      PropertyKey.Name.WORKER_MEMORY_SIZE, "1GB"})
+  public void readRecoverFromLostWorker() throws Exception {
+    int offset = 17 * Constants.MB;
+    int length = 33 * Constants.MB;
+    int total = offset + length;
+    // creates a test file on one worker
+    AlluxioURI filePath = new AlluxioURI("/test");
+    createFileOnWorker(total, filePath, mResource.get().getWorkerAddress());
+    FileSystem fs = mResource.get().getClient();
+    try (FileInStream in = fs.openFile(filePath, OpenFileOptions.defaults())) {
+      byte[] buf = new byte[total];
+      int size = in.read(buf, 0, offset);
+      replicateFileBlocks(filePath);
+      mResource.get().getWorkerProcess().stop();
+      size += in.read(buf, offset, length);
+
+      Assert.assertEquals(total, size);
+      Assert.assertTrue(BufferUtils.equalIncreasingByteArray(offset, size, buf));
+    }
+  }
+
+  @Test
+  @LocalAlluxioClusterResource.Config(confParams = {PropertyKey.Name.USER_SHORT_CIRCUIT_ENABLED,
+      "false", PropertyKey.Name.USER_BLOCK_SIZE_BYTES_DEFAULT, "4MB",
+      PropertyKey.Name.USER_NETWORK_NETTY_READER_PACKET_SIZE_BYTES, "64KB",
+      PropertyKey.Name.WORKER_MEMORY_SIZE, "1GB"})
+  public void readOneRecoverFromLostWorker() throws Exception {
+    int offset = 1 * Constants.MB;
+    int length = 5 * Constants.MB;
+    int total = offset + length;
+    // creates a test file on one worker
+    AlluxioURI filePath = new AlluxioURI("/test");
+    FileSystem fs = mResource.get().getClient();
+    createFileOnWorker(total, filePath, mResource.get().getWorkerAddress());
+    try (FileInStream in = fs.openFile(filePath, OpenFileOptions.defaults())) {
+      byte[] buf = new byte[total];
+      int size = in.read(buf, 0, offset);
+      replicateFileBlocks(filePath);
+      mResource.get().getWorkerProcess().stop();
+      for (int i = 0; i < length; i++) {
+        int result = in.read();
+        Assert.assertEquals(result, (i + size) & 0xff);
+      }
+    }
+  }
+
+  @Test
+  @LocalAlluxioClusterResource.Config(confParams = {PropertyKey.Name.USER_SHORT_CIRCUIT_ENABLED,
+      "false", PropertyKey.Name.USER_BLOCK_SIZE_BYTES_DEFAULT, "4MB",
+      PropertyKey.Name.USER_NETWORK_NETTY_READER_PACKET_SIZE_BYTES, "64KB",
+      PropertyKey.Name.WORKER_MEMORY_SIZE, "1GB"})
+  public void positionReadRecoverFromLostWorker() throws Exception {
+    int offset = 1 * Constants.MB;
+    int length = 7 * Constants.MB;
+    int total = offset + length;
+    // creates a test file on one worker
+    AlluxioURI filePath = new AlluxioURI("/test");
+    FileSystem fs = mResource.get().getClient();
+    createFileOnWorker(total, filePath, mResource.get().getWorkerAddress());
+    try (FileInStream in = fs.openFile(filePath, OpenFileOptions.defaults())) {
+      byte[] buf = new byte[length];
+      replicateFileBlocks(filePath);
+      mResource.get().getWorkerProcess().stop();
+      int size = in.positionedRead(offset, buf, 0, length);
+
+      Assert.assertEquals(length, size);
+      Assert.assertTrue(BufferUtils.equalIncreasingByteArray(offset, size, buf));
+    }
+  }
+
+  private void createFileOnWorker(int total, AlluxioURI filePath, WorkerNetAddress address)
+      throws IOException {
+    FileSystemTestUtils.createByteFile(mResource.get().getClient(), filePath,
+        CreateFileOptions.defaults()
+            .setWriteType(WriteType.MUST_CACHE)
+            .setLocationPolicy((workerInfoList, blockSizeBytes) ->
+                StreamSupport.stream(workerInfoList.spliterator(), false)
+                    .filter(x -> x.getNetAddress().equals(address))
+                    .findFirst()
+                    .get()
+                    .getNetAddress()), total);
+  }
+
+  private void replicateFileBlocks(AlluxioURI filePath) throws Exception {
+    AlluxioBlockStore store = AlluxioBlockStore.create();
+    URIStatus status =  mResource.get().getClient().getStatus(filePath);
+    List<FileBlockInfo> blocks = status.getFileBlockInfos();
+    List<BlockWorkerInfo> workers = store.getAllWorkers();
+
+    for (FileBlockInfo block : blocks) {
+      BlockInfo blockInfo = block.getBlockInfo();
+      WorkerNetAddress src = blockInfo.getLocations().get(0).getWorkerAddress();
+      WorkerNetAddress dest = workers.stream()
+          .filter(candidate -> !candidate.getNetAddress().equals(src))
+          .findFirst()
+          .get()
+          .getNetAddress();
+      try (OutputStream outStream = store.getOutStream(blockInfo.getBlockId(),
+          blockInfo.getLength(), dest, OutStreamOptions.defaults()
+              .setBlockSizeBytes(8 * Constants.MB).setWriteType(WriteType.MUST_CACHE))) {
+        try (InputStream inStream = store.getInStream(blockInfo.getBlockId(),
+            new InStreamOptions(status))) {
+          ByteStreams.copy(inStream, outStream);
+        }
+      }
     }
   }
 }
