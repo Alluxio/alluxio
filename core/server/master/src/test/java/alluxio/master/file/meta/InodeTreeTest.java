@@ -784,7 +784,7 @@ public final class InodeTreeTest {
   }
 
   // Helper to create a path.
-  InodeTree.CreatePathResult createPath(InodeTree root, AlluxioURI path,
+  private InodeTree.CreatePathResult createPath(InodeTree root, AlluxioURI path,
       CreatePathOptions<?> options) throws FileAlreadyExistsException, BlockInfoException,
       InvalidPathException, IOException, FileDoesNotExistException {
     try (LockedInodePath inodePath = root.lockInodePath(path, InodeTree.LockMode.WRITE)) {
