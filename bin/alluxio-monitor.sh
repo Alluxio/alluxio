@@ -17,7 +17,7 @@ if [[ "$-" == *x* ]]; then
 fi
 BIN=$(cd "$( dirname "$( readlink "$0" || echo "$0" )" )"; pwd)
 
-USAGE="Usage: alluxio-monitor.sh ACTION
+USAGE="Usage: alluxio-monitor.sh [-h] ACTION
 Where ACTION is one of:
   all                \tStart monitors for all masters, proxies, and workers nodes.
   local              \tStart monitors for all process locally.
@@ -26,7 +26,9 @@ Where ACTION is one of:
   worker             \tStart a worker monitor on this node.
   workers            \tStart monitors for all workers nodes.
   proxy              \tStart the proxy monitor on this node.
-  proxies            \tStart monitors for all proxies nodes."
+  proxies            \tStart monitors for all proxies nodes.
+
+-h  display this help."
 
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -111,6 +113,21 @@ main() {
   ALLUXIO_LIBEXEC_DIR=${ALLUXIO_LIBEXEC_DIR:-${DEFAULT_LIBEXEC_DIR}}
   . ${ALLUXIO_LIBEXEC_DIR}/alluxio-config.sh
   CLASSPATH=${ALLUXIO_SERVER_CLASSPATH}
+
+  while getopts "h" o; do
+    case "${o}" in
+      h)
+        echo -e "${USAGE}"
+        exit 0
+        ;;
+      *)
+        echo -e "${USAGE}" >&2
+        exit 1
+        ;;
+    esac
+  done
+
+  shift $((${OPTIND} - 1))
 
   local ACTION=$1
   case "${ACTION}" in

@@ -239,7 +239,16 @@ restart_workers() {
 }
 
 start_monitor() {
-  ${LAUNCHER} "${BIN}/alluxio-monitor.sh" $1
+  local ACTION=$1
+  if [[ "${ACTION}" == "restart_worker" ]]; then
+    ACTION="worker"
+  elif [[ "${ACTION}" == "restart_workers" ]]; then
+    ACTION="workers"
+  elif [[ "${ACTION}" == "logserver" || "${ACTION}" == "run_safe" ]]; then
+    echo -e "Error: Invalid Monitor ACTION: ${ACTION}" >&2
+    exit 1
+  fi
+  ${LAUNCHER} "${BIN}/alluxio-monitor.sh" "${ACTION}"
 }
 
 run_safe() {
@@ -326,10 +335,6 @@ main() {
       sleep 2
       start_workers "${MOPT}"
       start_proxies
-
-      if [[ "${monitor}" ]]; then
-        start_monitor "all"
-      fi
       ;;
     local)
       if [[ "${killonstart}" != "no" ]]; then
@@ -343,69 +348,33 @@ main() {
       sleep 2
       start_worker "${MOPT}"
       start_proxy
-
-      if [[ "${monitor}" ]]; then
-        start_monitor "local"
-      fi
       ;;
     master)
       start_master "${FORMAT}"
-
-      if [[ "${monitor}" ]]; then
-        start_monitor "master"
-      fi
       ;;
     masters)
       start_masters
-
-      if [[ "${monitor}" ]]; then
-        start_monitor "masters"
-      fi
       ;;
     proxy)
       start_proxy
-
-      if [[ "${monitor}" ]]; then
-        start_monitor "proxy"
-      fi
       ;;
     proxies)
       start_proxies
-
-      if [[ "${monitor}" ]]; then
-        start_monitor "proxies"
-      fi
       ;;
     restart_worker)
       restart_worker
-
-      if [[ "${monitor}" ]]; then
-        start_monitor "worker"
-      fi
       ;;
     restart_workers)
       restart_workers
-
-      if [[ "${monitor}" ]]; then
-        start_monitor "workers"
-      fi
       ;;
     safe)
       run_safe
       ;;
     worker)
       start_worker "${MOPT}"
-
-      if [[ "${monitor}" ]]; then
-        start_monitor "worker"
-      fi
       ;;
     workers)
       start_workers "${MOPT}"
-
-      if [[ "${monitor}" ]]; then
-        start_monitor "workers"
-      fi
       ;;
     logserver)
       start_logserver
@@ -419,6 +388,10 @@ main() {
 
   if [[ "${wait}" ]]; then
     wait
+  fi
+
+  if [[ "${monitor}" ]]; then
+    start_monitor "${ACTION}"
   fi
 }
 
