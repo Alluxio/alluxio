@@ -99,7 +99,6 @@ public class HiveIntegrationChecker {
       try (PreparedStatement selectTablePS = con.prepareStatement(sql)) {
         selectTablePS.execute();
       }
-
     } catch (Exception e) {
       printExceptionReport(e, reportWriter);
       return 1;
