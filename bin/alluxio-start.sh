@@ -262,11 +262,12 @@ get_offline_nodes() {
   esac
   local i=0
   local result=""
+  local run=
   for node in $(echo ${nodes}); do
     if [[ ${i} -gt 0 ]]; then
       result+=","
     fi
-    local run=$(ssh -o ConnectTimeout=5 -o StrictHostKeyChecking=no -tt ${node} \
+    run=$(ssh -o ConnectTimeout=5 -o StrictHostKeyChecking=no -tt ${node} \
         ps -ef | grep "${target_process}" | grep "java" | wc | awk '{ print $1; }')
     if [[ ${run} -eq 0 ]]; then
       result+="${node}"
@@ -279,8 +280,7 @@ get_offline_nodes() {
 start_monitor() {
   local action=$1
   local nodes=$2
-  local run="true"
-
+  local run=
   if [[ "${action}" == "restart_worker" ]]; then
     action="worker"
     if [[ -z "${nodes}" ]]; then
@@ -295,8 +295,7 @@ start_monitor() {
     echo -e "Error: Invalid Monitor ACTION: ${action}" >&2
     exit 1
   fi
-
-  if [[ "${run}" == "true" ]]; then
+  if [[ -z "${run}" ]]; then
     ${LAUNCHER} "${BIN}/alluxio-monitor.sh" "${action}" "${nodes}"
   else
     echo "Skipping the monitor checks..."
