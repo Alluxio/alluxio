@@ -238,17 +238,69 @@ restart_workers() {
   ${LAUNCHER} "${BIN}/alluxio-workers.sh" "${BIN}/alluxio-start.sh" "restart_worker"
 }
 
+get_offline_nodes() {
+  local node_type=$1
+  local target_process=
+  local nodes=
+  case "${node_type}" in
+    master)
+      target_process="alluxio.master.AlluxioMaster"
+      nodes=$(cat "${ALLUXIO_CONF_DIR}/masters" | sed  "s/#.*$//;/^$/d")
+      ;;
+    worker)
+      target_process="alluxio.worker.AlluxioWorker"
+      nodes=$(cat "${ALLUXIO_CONF_DIR}/workers" | sed  "s/#.*$//;/^$/d")
+      ;;
+    proxy)
+      target_process="alluxio.proxy.AlluxioProxy"
+      nodes=$(cat "${ALLUXIO_CONF_DIR}/masters" "${ALLUXIO_CONF_DIR}/workers" | sed  "s/#.*$//;/^$/d" | sort | uniq)
+      ;;
+    *)
+      echo "Error: Invalid NODE_TYPE: ${node_type}" >&2
+      exit 1
+      ;;
+  esac
+  local i=0
+  local result=""
+  for node in $(echo ${nodes}); do
+    if [[ ${i} -gt 0 ]]; then
+      result+=","
+    fi
+    local run=$(ssh -o ConnectTimeout=5 -o StrictHostKeyChecking=no -tt ${node} \
+        ps -ef | grep "${target_process}" | grep "java" | wc | awk '{ print $1; }')
+    if [[ ${run} -eq 0 ]]; then
+      result+="${node}"
+    fi
+    i=$((i+1))
+  done
+  echo "${result}"
+}
+
 start_monitor() {
-  local ACTION=$1
-  if [[ "${ACTION}" == "restart_worker" ]]; then
-    ACTION="worker"
-  elif [[ "${ACTION}" == "restart_workers" ]]; then
-    ACTION="workers"
-  elif [[ "${ACTION}" == "logserver" || "${ACTION}" == "run_safe" ]]; then
-    echo -e "Error: Invalid Monitor ACTION: ${ACTION}" >&2
+  local action=$1
+  local nodes=$2
+  local run="true"
+
+  if [[ "${action}" == "restart_worker" ]]; then
+    action="worker"
+    if [[ -z "${nodes}" ]]; then
+      run="false"
+    fi
+  elif [[ "${action}" == "restart_workers" ]]; then
+    action="workers"
+    if [[ -z "${nodes}" ]]; then
+      run="false"
+    fi
+  elif [[ "${action}" == "logserver" || "${action}" == "run_safe" ]]; then
+    echo -e "Error: Invalid Monitor ACTION: ${action}" >&2
     exit 1
   fi
-  ${LAUNCHER} "${BIN}/alluxio-monitor.sh" "${ACTION}"
+
+  if [[ "${run}" == "true" ]]; then
+    ${LAUNCHER} "${BIN}/alluxio-monitor.sh" "${action}" "${nodes}"
+  else
+    echo "Skipping the monitor checks..."
+  fi
 }
 
 run_safe() {
@@ -325,6 +377,7 @@ main() {
     exit 1
   fi
 
+  MONITOR_NODES=
   case "${ACTION}" in
     all)
       if [[ "${killonstart}" != "no" ]]; then
@@ -362,9 +415,22 @@ main() {
       start_proxies
       ;;
     restart_worker)
+      if [[ "${monitor}" ]]; then
+        # skip running worker
+        RUN=$(ps -ef | grep "alluxio.worker.AlluxioWorker" | grep "java" | wc | awk '{ print $1; }')
+        if [[ ${RUN} -eq 0 ]]; then
+          MONITOR_NODES=localhost
+        fi
+      fi
+
       restart_worker
       ;;
     restart_workers)
+      if [[ "${monitor}" ]]; then
+        # skip running workers
+        MONITOR_NODES=$(get_offline_nodes "worker")
+      fi
+
       restart_workers
       ;;
     safe)
@@ -391,7 +457,7 @@ main() {
   fi
 
   if [[ "${monitor}" ]]; then
-    start_monitor "${ACTION}"
+    start_monitor "${ACTION}" "${MONITOR_NODES}"
   fi
 }
 

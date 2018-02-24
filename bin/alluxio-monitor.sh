@@ -17,7 +17,7 @@ if [[ "$-" == *x* ]]; then
 fi
 BIN=$(cd "$( dirname "$( readlink "$0" || echo "$0" )" )"; pwd)
 
-USAGE="Usage: alluxio-monitor.sh [-h] ACTION
+USAGE="Usage: alluxio-monitor.sh [-h] ACTION [HOSTS]
 Where ACTION is one of:
   all                \tStart monitors for all masters, proxies, and workers nodes.
   local              \tStart monitors for all process locally.
@@ -33,6 +33,13 @@ Where ACTION is one of:
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 NC='\033[0m'
+
+get_env() {
+  DEFAULT_LIBEXEC_DIR="${BIN}"/../libexec
+  ALLUXIO_LIBEXEC_DIR=${ALLUXIO_LIBEXEC_DIR:-${DEFAULT_LIBEXEC_DIR}}
+  . ${ALLUXIO_LIBEXEC_DIR}/alluxio-config.sh
+  CLASSPATH=${ALLUXIO_SERVER_CLASSPATH}
+}
 
 prepare_monitor() {
   local msg=$1
@@ -78,22 +85,24 @@ run_monitor() {
 
 run_monitors() {
   local node_type=$1
-  local nodes=
-  case "${node_type}" in
-    master)
-      nodes=$(cat "${ALLUXIO_CONF_DIR}/masters" | sed  "s/#.*$//;/^$/d")
-      ;;
-    worker)
-      nodes=$(cat "${ALLUXIO_CONF_DIR}/workers" | sed  "s/#.*$//;/^$/d")
-      ;;
-    proxy)
-      nodes=$(cat "${ALLUXIO_CONF_DIR}/masters" "${ALLUXIO_CONF_DIR}/workers" | sed  "s/#.*$//;/^$/d" | sort | uniq)
-      ;;
-    *)
-      echo "Error: Invalid NODE_TYPE: ${node_type}" >&2
-      exit 1
-      ;;
-  esac
+  local nodes=$2
+  if [[ -z "${nodes}" ]]; then
+    case "${node_type}" in
+      master)
+        nodes=$(cat "${ALLUXIO_CONF_DIR}/masters" | sed  "s/#.*$//;/^$/d")
+        ;;
+      worker)
+        nodes=$(cat "${ALLUXIO_CONF_DIR}/workers" | sed  "s/#.*$//;/^$/d")
+        ;;
+      proxy)
+        nodes=$(cat "${ALLUXIO_CONF_DIR}/masters" "${ALLUXIO_CONF_DIR}/workers" | sed  "s/#.*$//;/^$/d" | sort | uniq)
+        ;;
+      *)
+        echo "Error: Invalid NODE_TYPE: ${node_type}" >&2
+        exit 1
+        ;;
+    esac
+  fi
 
   for node in $(echo ${nodes}); do
     ssh -o ConnectTimeout=5 -o StrictHostKeyChecking=no -tt ${node} ${LAUNCHER} \
@@ -102,17 +111,15 @@ run_monitors() {
 }
 
 main() {
-  
-  # if no args specified, show usage
-  if [[ $# -ne 1 ]]; then
+
+  # exceed the max number of args, show usage
+  if [[ $# -ge 3 ]]; then
+    echo "Error: Invalid number of arguments" >&2
     echo -e "${USAGE}" >&2
     exit 1
   fi
 
-  DEFAULT_LIBEXEC_DIR="${BIN}"/../libexec
-  ALLUXIO_LIBEXEC_DIR=${ALLUXIO_LIBEXEC_DIR:-${DEFAULT_LIBEXEC_DIR}}
-  . ${ALLUXIO_LIBEXEC_DIR}/alluxio-config.sh
-  CLASSPATH=${ALLUXIO_SERVER_CLASSPATH}
+  get_env
 
   while getopts "h" o; do
     case "${o}" in
@@ -129,13 +136,20 @@ main() {
 
   shift $((${OPTIND} - 1))
 
-  local ACTION=$1
+  ACTION=$1
+  shift
+
+  HOSTS=$1
+  if [[ ! -z "${HOSTS}" ]]; then
+    HOSTS=$(echo "${HOSTS}" | tr ',' '\n')
+  fi
+
   case "${ACTION}" in
     all)
       prepare_monitor "Starting to monitor all the services."
-      run_monitors "master"
-      run_monitors "worker"
-      run_monitors "proxy"
+      run_monitors "master" "${HOSTS}"
+      run_monitors "worker" "${HOSTS}"
+      run_monitors "proxy" "${HOSTS}"
       ;;
     local)
       prepare_monitor "Starting to monitor the local services."
@@ -149,7 +163,7 @@ main() {
       ;;
     masters)
       prepare_monitor "Starting to monitor all the masters services."
-      run_monitors "master"
+      run_monitors "master" "${HOSTS}"
       ;;
     proxy)
       prepare_monitor "Starting to monitor the proxy service."
@@ -157,7 +171,7 @@ main() {
       ;;
     proxies)
       prepare_monitor "Starting to monitor the proxies services."
-      run_monitors "proxy"
+      run_monitors "proxy" "${HOSTS}"
       ;;
     worker)
       prepare_monitor "Starting to monitor the worker service."
@@ -165,7 +179,7 @@ main() {
       ;;
     workers)
       prepare_monitor "Starting to monitor the workers services."
-      run_monitors "worker"
+      run_monitors "worker" "${HOSTS}"
       ;;
     *)
     echo "Error: Invalid ACTION: ${ACTION}" >&2
