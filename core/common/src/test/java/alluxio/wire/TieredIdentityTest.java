@@ -80,14 +80,14 @@ public class TieredIdentityTest {
   public void matchByStringEquality() {
     Configuration.set(PropertyKey.LOCALITY_COMPARE_NODE_IP, "true");
 
-    LocalityTier lt1 = new LocalityTier("node", "A");
-    LocalityTier lt2 = new LocalityTier("node", "A");
-    LocalityTier lt3 = new LocalityTier("node", "B");
-    LocalityTier lt4 = new LocalityTier("rack", "A");
-    LocalityTier lt5 = new LocalityTier("rack", "B");
-    LocalityTier lt6 = new LocalityTier("rack", "B");
+    LocalityTier lt1 = new LocalityTier("node", "NonResolvableHostname-A");
+    LocalityTier lt2 = new LocalityTier("node", "NonResolvableHostname-A");
+    LocalityTier lt3 = new LocalityTier("node", "NonResolvableHostname-B");
+    LocalityTier lt4 = new LocalityTier("rack", "NonResolvableHostname-A");
+    LocalityTier lt5 = new LocalityTier("rack", "NonResolvableHostname-B");
+    LocalityTier lt6 = new LocalityTier("rack", "NonResolvableHostname-B");
     LocalityTier lt7 = new LocalityTier("rack", "");
-    LocalityTier lt8 = new LocalityTier("node", "A");
+    LocalityTier lt8 = new LocalityTier("node", "NonResolvableHostname-A");
     LocalityTier lt9 = new LocalityTier("node", "");
     assertTrue(lt1.matches(lt1));
     assertTrue(lt1.matches(lt2));
