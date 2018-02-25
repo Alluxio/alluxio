@@ -238,39 +238,29 @@ restart_workers() {
   ${LAUNCHER} "${BIN}/alluxio-workers.sh" "${BIN}/alluxio-start.sh" "restart_worker"
 }
 
-get_offline_nodes() {
-  local node_type=$1
-  local target_process=
-  local nodes=
-  case "${node_type}" in
-    master)
-      target_process="alluxio.master.AlluxioMaster"
-      nodes=$(cat "${ALLUXIO_CONF_DIR}/masters" | sed  "s/#.*$//;/^$/d")
-      ;;
-    worker)
-      target_process="alluxio.worker.AlluxioWorker"
-      nodes=$(cat "${ALLUXIO_CONF_DIR}/workers" | sed  "s/#.*$//;/^$/d")
-      ;;
-    proxy)
-      target_process="alluxio.proxy.AlluxioProxy"
-      nodes=$(cat "${ALLUXIO_CONF_DIR}/masters" "${ALLUXIO_CONF_DIR}/workers" | sed  "s/#.*$//;/^$/d" | sort | uniq)
-      ;;
-    *)
-      echo "Error: Invalid NODE_TYPE: ${node_type}" >&2
-      exit 1
-      ;;
-  esac
-  local i=0
+get_offline_worker() {
+  local run=
+  local result=""
+  run=$(ps -ef | grep "alluxio.worker.AlluxioWorker" | grep "java" | wc | awk '{ print $1; }')
+  if [[ ${run} -eq 0 ]]; then
+    result=$(hostname -f)
+  fi
+  echo "${result}"
+}
+
+get_offline_workers() {
   local result=""
   local run=
-  for node in $(echo ${nodes}); do
+  local i=0
+  local workers=$(cat "${ALLUXIO_CONF_DIR}/workers" | sed  "s/#.*$//;/^$/d")
+  for worker in $(echo ${workers}); do
     if [[ ${i} -gt 0 ]]; then
       result+=","
     fi
-    run=$(ssh -o ConnectTimeout=5 -o StrictHostKeyChecking=no -tt ${node} \
-        ps -ef | grep "${target_process}" | grep "java" | wc | awk '{ print $1; }')
+    run=$(ssh -o ConnectTimeout=5 -o StrictHostKeyChecking=no -tt ${worker} \
+        ps -ef | grep "alluxio.worker.AlluxioWorker" | grep "java" | wc | awk '{ print $1; }')
     if [[ ${run} -eq 0 ]]; then
-      result+="${node}"
+      result+="${worker}"
     fi
     i=$((i+1))
   done
@@ -377,6 +367,20 @@ main() {
   fi
 
   MONITOR_NODES=
+  if [[ "${monitor}" ]]; then
+    case "${ACTION}" in
+      restart_worker)
+        MONITOR_NODES=$(get_offline_worker)
+        ;;
+      restart_workers)
+        MONITOR_NODES=$(get_offline_workers)
+        ;;
+      *)
+        MONITOR_NODES=""
+      ;;
+    esac
+  fi
+
   case "${ACTION}" in
     all)
       if [[ "${killonstart}" != "no" ]]; then
@@ -414,22 +418,9 @@ main() {
       start_proxies
       ;;
     restart_worker)
-      if [[ "${monitor}" ]]; then
-        # skip running worker
-        RUN=$(ps -ef | grep "alluxio.worker.AlluxioWorker" | grep "java" | wc | awk '{ print $1; }')
-        if [[ ${RUN} -eq 0 ]]; then
-          MONITOR_NODES=localhost
-        fi
-      fi
-
       restart_worker
       ;;
     restart_workers)
-      if [[ "${monitor}" ]]; then
-        # skip running workers
-        MONITOR_NODES=$(get_offline_nodes "worker")
-      fi
-
       restart_workers
       ;;
     safe)
