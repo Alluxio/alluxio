@@ -29,6 +29,12 @@ public final class OpenOptions {
   private long mLength;
 
   /**
+   * If true, attempt to recover after failed opened attempts. Extra effort may be required in
+   * order to recover from a failed open.
+   */
+  private boolean mRecoverFailedOpen;
+
+  /**
    * @return the default {@link OpenOptions}
    */
   public static OpenOptions defaults() {
@@ -41,6 +47,7 @@ public final class OpenOptions {
   private OpenOptions() {
     mOffset = 0;
     mLength = Long.MAX_VALUE;
+    mRecoverFailedOpen = false;
   }
 
   /**
@@ -55,6 +62,13 @@ public final class OpenOptions {
    */
   public long getLength() {
     return mLength;
+  }
+
+  /**
+   * @return true if failed open attempts should be recovered
+   */
+  public boolean getRecoverFailedOpen() {
+    return mRecoverFailedOpen;
   }
 
   /**
@@ -77,6 +91,15 @@ public final class OpenOptions {
     return this;
   }
 
+  /**
+   * @param recover true if failed open attempts should be recovered
+   * @return the updated option object
+   */
+  public OpenOptions setRecoverFailedOpen(boolean recover) {
+    mRecoverFailedOpen = recover;
+    return this;
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) {
@@ -86,12 +109,13 @@ public final class OpenOptions {
       return false;
     }
     OpenOptions that = (OpenOptions) o;
-    return Objects.equal(mOffset, that.mOffset) && Objects.equal(mLength, that.mLength);
+    return Objects.equal(mOffset, that.mOffset) && Objects.equal(mLength, that.mLength)
+        && Objects.equal(mRecoverFailedOpen, that.mRecoverFailedOpen);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mOffset, mLength);
+    return Objects.hashCode(mOffset, mLength, mRecoverFailedOpen);
   }
 
   @Override
@@ -99,6 +123,7 @@ public final class OpenOptions {
     return Objects.toStringHelper(this)
         .add("offset", mOffset)
         .add("length", mLength)
+        .add("recoverFailedOpen", mRecoverFailedOpen)
         .toString();
   }
 }
