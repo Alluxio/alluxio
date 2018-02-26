@@ -430,17 +430,11 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
   public InputStream open(String path, OpenOptions options) throws IOException {
     IOException te = null;
     RetryPolicy retryPolicy = new CountingRetry(MAX_TRY);
-<<<<<<< HEAD
-    while (retryPolicy.attempt()) {
-||||||| merged common ancestors
-    while (retryPolicy.attemptRetry()) {
-=======
     DistributedFileSystem dfs = null;
     if (mFileSystem instanceof DistributedFileSystem) {
       dfs = (DistributedFileSystem) mFileSystem;
     }
-    while (retryPolicy.attemptRetry()) {
->>>>>>> upstream/branch-1.7
+    while (retryPolicy.attempt()) {
       try {
         FSDataInputStream inputStream = mFileSystem.open(new Path(path));
         try {
