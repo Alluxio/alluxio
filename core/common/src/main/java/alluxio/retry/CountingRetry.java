@@ -52,6 +52,6 @@ public class CountingRetry implements RetryPolicy {
    * Reset the count of retries.
    */
   public void reset() {
-    mCount = 0;
+    mAttemptCount = 0;
   }
 }

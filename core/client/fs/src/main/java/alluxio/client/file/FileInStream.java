@@ -112,7 +112,7 @@ public class FileInStream extends InputStream implements BoundedStream, Position
     }
     CountingRetry retry = new CountingRetry(MAX_WORKERS_TO_RETRY);
     IOException lastException = null;
-    do {
+    while (retry.attempt()) {
       updateStream();
       try {
         int result = mBlockInStream.read();
@@ -125,7 +125,7 @@ public class FileInStream extends InputStream implements BoundedStream, Position
         handleRetryableException(mBlockInStream, e);
         mBlockInStream = null;
       }
-    } while (retry.attemptRetry());
+    }
     throw lastException;
   }
 
@@ -160,7 +160,7 @@ public class FileInStream extends InputStream implements BoundedStream, Position
         }
         retry.reset();
       } catch (UnavailableException | ConnectException | DeadlineExceededException e) {
-        if (!retry.attemptRetry()) {
+        if (!retry.attempt()) {
           throw e;
         }
         handleRetryableException(mBlockInStream, e);
@@ -222,7 +222,7 @@ public class FileInStream extends InputStream implements BoundedStream, Position
         len -= bytesRead;
         retry.reset();
       } catch (UnavailableException | DeadlineExceededException | ConnectException e) {
-        if (!retry.attemptRetry()) {
+        if (!retry.attempt()) {
           throw e;
         }
         handleRetryableException(stream, e);
