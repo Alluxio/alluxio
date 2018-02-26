@@ -12,7 +12,6 @@
 package alluxio.hadoop;
 
 import static java.util.stream.Collectors.toList;
-import static org.apache.commons.lang3.ArrayUtils.toArray;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertEquals;
@@ -68,7 +67,6 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import javax.security.auth.Subject;
 
