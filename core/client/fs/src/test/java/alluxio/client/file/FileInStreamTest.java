@@ -14,14 +14,6 @@ package alluxio.client.file;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
-<<<<<<< HEAD
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.eq;
-import static org.mockito.Mockito.anyLong;
-import static org.mockito.Mockito.any;
-||||||| merged common ancestors
-=======
 import static org.mockito.Matchers.anyInt;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
@@ -31,7 +23,6 @@ import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.anyLong;
 import static org.mockito.Mockito.any;
->>>>>>> upstream/branch-1.7
 
 import alluxio.client.ReadType;
 import alluxio.client.block.AlluxioBlockStore;
@@ -145,16 +136,8 @@ public final class FileInStreamTest {
       mInStreams.add(new TestBlockInStream(input, i, input.length, false, mBlockSource));
       when(mBlockStore.getEligibleWorkers())
           .thenReturn(Arrays.asList(new BlockWorkerInfo(new WorkerNetAddress(), 0, 0)));
-<<<<<<< HEAD
       when(mBlockStore.getInStream(eq((long) i), any(InStreamOptions
-          .class)))
-||||||| merged common ancestors
-      Mockito.when(mBlockStore.getInStream(Mockito.eq((long) i), Mockito.any(InStreamOptions
-          .class)))
-=======
-      Mockito.when(mBlockStore.getInStream(Mockito.eq((long) i), Mockito.any(InStreamOptions
           .class), any()))
->>>>>>> upstream/branch-1.7
           .thenAnswer(new Answer<BlockInStream>() {
             @Override
             public BlockInStream answer(InvocationOnMock invocation) throws Throwable {
@@ -542,16 +525,8 @@ public final class FileInStreamTest {
    */
   @Test
   public void failGetInStream() throws IOException {
-<<<<<<< HEAD
     when(mBlockStore
-        .getInStream(anyLong(), any(InStreamOptions.class)))
-||||||| merged common ancestors
-    Mockito.when(mBlockStore
-        .getInStream(Mockito.anyLong(), Mockito.any(InStreamOptions.class)))
-=======
-    Mockito.when(mBlockStore
-        .getInStream(Mockito.anyLong(), Mockito.any(InStreamOptions.class), any()))
->>>>>>> upstream/branch-1.7
+        .getInStream(anyLong(), any(InStreamOptions.class), any()))
         .thenThrow(new UnavailableException("test exception"));
     try {
       mTestStream.read();
@@ -708,16 +683,8 @@ public final class FileInStreamTest {
    */
   @Test
   public void blockInStreamOutOfSync() throws Exception {
-<<<<<<< HEAD
     when(
-        mBlockStore.getInStream(anyLong(), any(InStreamOptions.class)))
-||||||| merged common ancestors
-    Mockito.when(
-        mBlockStore.getInStream(Mockito.anyLong(), Mockito.any(InStreamOptions.class)))
-=======
-    Mockito.when(
-        mBlockStore.getInStream(Mockito.anyLong(), Mockito.any(InStreamOptions.class), any()))
->>>>>>> upstream/branch-1.7
+        mBlockStore.getInStream(anyLong(), any(InStreamOptions.class), any()))
         .thenAnswer(new Answer<BlockInStream>() {
           @Override
           public BlockInStream answer(InvocationOnMock invocation) throws Throwable {

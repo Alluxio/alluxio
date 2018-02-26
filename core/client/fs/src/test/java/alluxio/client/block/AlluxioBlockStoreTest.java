@@ -12,13 +12,8 @@
 package alluxio.client.block;
 
 import static org.junit.Assert.assertEquals;
-<<<<<<< HEAD
-import static org.mockito.Mockito.any;
-||||||| merged common ancestors
-=======
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.mock;
->>>>>>> upstream/branch-1.7
 import static org.mockito.Mockito.when;
 
 import alluxio.client.WriteType;
