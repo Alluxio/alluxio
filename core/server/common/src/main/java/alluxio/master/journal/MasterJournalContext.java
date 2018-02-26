@@ -66,7 +66,7 @@ public final class MasterJournalContext implements JournalContext {
     }
 
     RetryPolicy retry = new TimeoutRetry(JOURNAL_FLUSH_RETRY_TIMEOUT_MS, Constants.SECOND_MS);
-    while (retry.attemptRetry()) {
+    while (retry.attempt()) {
       try {
         mAsyncJournalWriter.flush(mFlushCounter);
         return;
@@ -82,9 +82,9 @@ public final class MasterJournalContext implements JournalContext {
     }
     LOG.error(
         "Journal flush failed after {} attempts. Terminating process to prevent inconsistency.",
-        retry.getRetryCount());
+        retry.getAttemptCount());
     if (Configuration.getBoolean(PropertyKey.TEST_MODE)) {
-      throw new RuntimeException("Journal flush failed after " + retry.getRetryCount()
+      throw new RuntimeException("Journal flush failed after " + retry.getAttemptCount()
           + " attempts. Terminating process to prevent inconsistency.");
     }
     System.exit(-1);

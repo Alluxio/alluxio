@@ -52,7 +52,7 @@ public final class ExponentialBackoffRetryTest {
     }
 
     @Override
-    public int getRetryCount() {
+    public int getAttemptCount() {
       return mRetryCount;
     }
 

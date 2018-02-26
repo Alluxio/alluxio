@@ -32,16 +32,16 @@ public final class RetryUtils {
    */
   public static void retry(String action, RunnableThrowsIOException f, RetryPolicy policy)
       throws IOException {
-    IOException e;
-    do {
+    IOException e = null;
+    while (policy.attempt()) {
       try {
         f.run();
         return;
       } catch (IOException ioe) {
         e = ioe;
-        LOG.warn("Failed to {} (attempt {}): {}", action, policy.getRetryCount() + 1, e.toString());
+        LOG.warn("Failed to {} (attempt {}): {}", action, policy.getAttemptCount(), e.toString());
       }
-    } while (policy.attemptRetry());
+    }
     throw e;
   }
 

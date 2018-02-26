@@ -215,7 +215,7 @@ public class TieredBlockStore implements BlockStore {
           throws BlockAlreadyExistsException, WorkerOutOfSpaceException, IOException {
     if (RESERVER_ENABLED) {
       RetryPolicy retryPolicy = new TimeoutRetry(FREE_SPACE_TIMEOUT_MS, EVICTION_INTERVAL_MS);
-      while (retryPolicy.attemptRetry()) {
+      while (retryPolicy.attempt()) {
         TempBlockMeta tempBlockMeta =
             createBlockMetaInternal(sessionId, blockId, location, initialBlockSize, true);
         if (tempBlockMeta != null) {
@@ -227,7 +227,7 @@ public class TieredBlockStore implements BlockStore {
           initialBlockSize, FREE_SPACE_TIMEOUT_MS, blockId);
     } else {
       RetryPolicy retryPolicy = new CountingRetry(MAX_RETRIES);
-      while (retryPolicy.attemptRetry()) {
+      while (retryPolicy.attempt()) {
         TempBlockMeta tempBlockMeta =
             createBlockMetaInternal(sessionId, blockId, location, initialBlockSize, true);
         if (tempBlockMeta != null) {
@@ -298,7 +298,7 @@ public class TieredBlockStore implements BlockStore {
       throws BlockDoesNotExistException, WorkerOutOfSpaceException, IOException {
     if (RESERVER_ENABLED) {
       RetryPolicy retryPolicy = new TimeoutRetry(FREE_SPACE_TIMEOUT_MS, EVICTION_INTERVAL_MS);
-      while (retryPolicy.attemptRetry()) {
+      while (retryPolicy.attempt()) {
         Pair<Boolean, BlockStoreLocation> requestResult =
             requestSpaceInternal(blockId, additionalBytes);
         if (requestResult.getFirst()) {
@@ -309,7 +309,7 @@ public class TieredBlockStore implements BlockStore {
           additionalBytes, FREE_SPACE_TIMEOUT_MS, blockId);
     } else {
       RetryPolicy retryPolicy = new CountingRetry(MAX_RETRIES);
-      while (retryPolicy.attemptRetry()) {
+      while (retryPolicy.attempt()) {
         Pair<Boolean, BlockStoreLocation> requestResult =
             requestSpaceInternal(blockId, additionalBytes);
         if (requestResult.getFirst()) {
@@ -342,7 +342,7 @@ public class TieredBlockStore implements BlockStore {
           InvalidWorkerStateException, WorkerOutOfSpaceException, IOException {
     if (RESERVER_ENABLED) {
       RetryPolicy retryPolicy = new TimeoutRetry(FREE_SPACE_TIMEOUT_MS, EVICTION_INTERVAL_MS);
-      while (retryPolicy.attemptRetry()) {
+      while (retryPolicy.attempt()) {
         MoveBlockResult result = moveBlockInternal(sessionId, blockId, oldLocation, newLocation);
         if (result.getSuccess()) {
           synchronized (mBlockStoreEventListeners) {
@@ -358,7 +358,7 @@ public class TieredBlockStore implements BlockStore {
           newLocation, blockId, FREE_SPACE_TIMEOUT_MS);
     } else {
       RetryPolicy retryPolicy = new CountingRetry(MAX_RETRIES);
-      while (retryPolicy.attemptRetry()) {
+      while (retryPolicy.attempt()) {
         MoveBlockResult result = moveBlockInternal(sessionId, blockId, oldLocation, newLocation);
         if (result.getSuccess()) {
           synchronized (mBlockStoreEventListeners) {

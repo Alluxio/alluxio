@@ -363,7 +363,7 @@ public final class TieredBlockStoreTest {
       });
     }
     RetryPolicy retry = new CountingRetry(threadAmount);
-    while (retry.attemptRetry()) {
+    while (retry.attempt()) {
       ConcurrencyUtils.assertConcurrent(runnables, threadAmount);
     }
   }
