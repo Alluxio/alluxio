@@ -66,6 +66,8 @@ import java.net.InetSocketAddress;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 import javax.security.auth.Subject;
@@ -483,10 +485,15 @@ public class AbstractFileSystemTest {
     long len = 100;
     BlockLocation[] locations = alluxioHadoopFs.getFileBlockLocations(file, start, len);
     assertEquals(1, locations.length);
+    Collections.sort(expectedWorkerNames, (x, y) -> x.toString().compareTo(y.toString()));
+    String[] actualNames = locations[0].getNames();
+    String[] actualHosts = locations[0].getHosts();
+    Arrays.sort(actualNames);
+    Arrays.sort(actualHosts);
     assertArrayEquals(expectedWorkerNames.stream().map(HostAndPort::toString).toArray(),
-        locations[0].getNames());
+        actualNames);
     assertArrayEquals(expectedWorkerNames.stream().map(HostAndPort::getHostText).toArray(),
-        locations[0].getHosts());
+        actualHosts);
     alluxioHadoopFs.close();
   }
 

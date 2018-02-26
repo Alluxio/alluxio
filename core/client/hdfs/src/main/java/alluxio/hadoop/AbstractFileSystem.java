@@ -61,6 +61,7 @@ import java.net.URI;
 import java.security.Principal;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -309,6 +310,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
         List<HostAndPort> addresses = locations.stream()
             .map(worker -> HostAndPort.fromParts(worker.getHost(), worker.getDataPort()))
             .collect(toList());
+        Collections.shuffle(addresses);
         String[] names = addresses.stream().map(HostAndPort::toString).toArray(String[]::new);
         String[] hosts = addresses.stream().map(HostAndPort::getHostText).toArray(String[]::new);
         blockLocations.add(
