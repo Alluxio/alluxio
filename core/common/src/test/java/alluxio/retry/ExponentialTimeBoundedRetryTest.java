@@ -48,10 +48,10 @@ public final class ExponentialTimeBoundedRetryTest {
           .build();
 
       Thread thread = new Thread(() -> {
-        do {
+        while (retry.attempt()) {
           CommonUtils.sleepMs(taskTimeMs);
           clock.addTimeMs(taskTimeMs);
-        } while (retry.attemptRetry());
+        }
       });
       thread.setDaemon(true);
       thread.start();

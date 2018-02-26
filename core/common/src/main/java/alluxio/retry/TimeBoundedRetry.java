@@ -29,7 +29,7 @@ public abstract class TimeBoundedRetry implements RetryPolicy {
   private final Instant mStartTime;
   private final Instant mEndTime;
 
-  private int mRetryCount = 0;
+  private int mAttemptCount = 0;
   private boolean mDone = false;
 
   /**
@@ -40,20 +40,23 @@ public abstract class TimeBoundedRetry implements RetryPolicy {
     mClock = timeCtx.getClock();
     mSleeper = timeCtx.getSleeper();
     mMaxDuration = maxDuration;
-    mRetryCount = 0;
     mStartTime = mClock.instant();
     mEndTime = mStartTime.plus(mMaxDuration);
   }
 
   @Override
-  public int getRetryCount() {
-    return mRetryCount;
+  public int getAttemptCount() {
+    return mAttemptCount;
   }
 
   @Override
-  public boolean attemptRetry() {
+  public boolean attempt() {
     if (mDone) {
       return false;
+    }
+    if (mAttemptCount == 0) {
+      mAttemptCount++;
+      return true;
     }
     Instant now = mClock.instant();
     // We should not do a retry if now == mEndTime. The final retry is timed to land at mEndTime,
@@ -73,7 +76,7 @@ public abstract class TimeBoundedRetry implements RetryPolicy {
       Thread.currentThread().interrupt();
       return false;
     }
-    mRetryCount++;
+    mAttemptCount++;
     return true;
   }
 

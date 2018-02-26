@@ -171,7 +171,7 @@ public abstract class AbstractClient implements Client {
     RetryPolicy retryPolicy =
         ExponentialTimeBoundedRetry.builder().withMaxDuration(MAX_RETRY_DURATION)
             .withInitialSleep(BASE_SLEEP_MS).withMaxSleep(MAX_SLEEP_MS).build();
-    while (true) {
+    while (retryPolicy.attempt()) {
       if (mClosed) {
         throw new FailedPreconditionException("Failed to connect: client has been closed");
       }
@@ -180,9 +180,6 @@ public abstract class AbstractClient implements Client {
       try {
         mAddress = getAddress();
       } catch (UnavailableException e) {
-        if (!retryPolicy.attemptRetry()) {
-          break;
-        }
         continue;
       }
       LOG.info("Alluxio client (version {}) is trying to connect with {} @ {}",
@@ -208,7 +205,7 @@ public abstract class AbstractClient implements Client {
           throw new UnimplementedException(message, e);
         }
       } catch (TTransportException e) {
-        LOG.warn("Failed to connect ({}) with {} @ {}: {}", retryPolicy.getRetryCount(),
+        LOG.warn("Failed to connect ({}) with {} @ {}: {}", retryPolicy.getAttemptCount(),
             getServiceName(), mAddress, e.getMessage());
         if (e.getCause() instanceof java.net.SocketTimeoutException) {
           // Do not retry if socket timeout.
@@ -219,13 +216,10 @@ public abstract class AbstractClient implements Client {
         }
       }
       // TODO(peis): Consider closing the connection here as well.
-      if (!retryPolicy.attemptRetry()) {
-        break;
-      }
     }
     // Reaching here indicates that we did not successfully connect.
     throw new UnavailableException(String.format("Failed to connect to %s @ %s after %s attempts",
-        getServiceName(), mAddress, retryPolicy.getRetryCount()));
+        getServiceName(), mAddress, retryPolicy.getAttemptCount()));
   }
 
   /**
@@ -294,8 +288,11 @@ public abstract class AbstractClient implements Client {
     RetryPolicy retryPolicy =
         ExponentialTimeBoundedRetry.builder().withMaxDuration(MAX_RETRY_DURATION)
             .withInitialSleep(BASE_SLEEP_MS).withMaxSleep(MAX_SLEEP_MS).build();
-    while (!mClosed) {
-      Exception ex;
+    Exception ex = null;
+    while (retryPolicy.attempt()) {
+      if (mClosed) {
+        throw new FailedPreconditionException("Client is closed");
+      }
       connect();
       try {
         return rpc.call();
@@ -310,13 +307,8 @@ public abstract class AbstractClient implements Client {
         ex = e;
       }
       disconnect();
-      if (retryPolicy.attemptRetry()) {
-        LOG.warn("RPC failed with {}. Retrying.", ex.toString());
-      } else {
-        throw new UnavailableException(
-            "Failed after " + retryPolicy.getRetryCount() + " retries: " + ex.toString(), ex);
-      }
     }
-    throw new FailedPreconditionException("Client is closed");
+    throw new UnavailableException("Failed after " + retryPolicy.getAttemptCount()
+            + " attempts: " + ex.toString(), ex);
   }
 }
