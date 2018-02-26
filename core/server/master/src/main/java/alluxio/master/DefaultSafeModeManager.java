@@ -85,7 +85,9 @@ public class DefaultSafeModeManager implements SafeModeManager {
       return true;
     }
 
-    mWorkerConnectWaitStartTimeMs.compareAndSet(startTime, null, true, false);
+    if (mWorkerConnectWaitStartTimeMs.compareAndSet(startTime, null, true, false)) {
+      LOG.info("Exiting safe mode.");
+    }
 
     return mWorkerConnectWaitStartTimeMs.isMarked();
   }

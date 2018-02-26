@@ -12,7 +12,6 @@
 package alluxio.cli.fs.command;
 
 import alluxio.AlluxioURI;
-import alluxio.client.ReadType;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
@@ -53,7 +52,7 @@ public final class CatCommand extends WithWildCardPathCommand {
     if (status.isFolder()) {
       throw new FileDoesNotExistException(ExceptionMessage.PATH_MUST_BE_FILE.getMessage(path));
     }
-    OpenFileOptions options = OpenFileOptions.defaults().setReadType(ReadType.NO_CACHE);
+    OpenFileOptions options = OpenFileOptions.defaults();
     byte[] buf = new byte[512];
     try (FileInStream is = mFileSystem.openFile(path, options)) {
       int read = is.read(buf);
