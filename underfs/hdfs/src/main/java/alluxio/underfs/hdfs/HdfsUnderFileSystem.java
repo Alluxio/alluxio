@@ -449,6 +449,10 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
         te = e;
         if (options.getRecoverFailedOpen() && dfs != null && e.getMessage().toLowerCase()
             .startsWith("cannot obtain block length for")) {
+          // This error can occur when an Alluxio journal file was not properly closed by Alluxio.
+          // In this scenario, the HDFS lease must be recovered in order for the file to be
+          // readable again. The 'recoverLease' API usually needs to be invoked multiple times
+          // to complete the lease recovery process.
           try {
             if (dfs.recoverLease(new Path(path))) {
               LOG.warn("recoverLease-1 success for: {}", path);
@@ -458,7 +462,7 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
               if (dfs.recoverLease(new Path(path))) {
                 LOG.warn("recoverLease-2 success for: {}", path);
               } else {
-                LOG.warn("recoverLease returned false for: {}", path);
+                LOG.warn("recoverLease: path not closed: {}", path);
               }
             }
           } catch (IOException e1) {
