@@ -41,13 +41,24 @@ function generate_input() {
   [ -f "./IntegrationReport.txt" ] && rm "./IntegrationReport.txt"
 
   if [[ "${HIVE_USER_MODE}" == "storage" ]]; then
-    echo "For testing the first Hive and Alluxio integration way: Alluxio is used as storage of Hive tables, we need to generate an input file and put it on to Alluxio filesystem"
+    echo "For testing the first Hive and Alluxio integration way: Alluxio is used as storage of Hive tables, we need to generate an input file and put it on to Alluxio filesystem."
+    echo ""
     # Generate the input file for Hive integration checker
     echo "You|Pass" > ~/hiveTestTable
     echo "Hive|Test" >> ~/hiveTestTable
+
     # If we want to use Alluxio as one option to store hive tables, we need input file exists in the Alluxio filesystem
-    ${LAUNCHER} "${ALLUXIO_BIN_PATH}" fs mkdir /alluxioTestFolder
-    ${LAUNCHER} "${ALLUXIO_BIN_PATH}" fs copyFromLocal ~/hiveTestTable /alluxioTestFolder/
+    echo ""
+    echo "Running <ALLUXIO_HOME>/bin/alluxio fs mkdir /alluxioTest/alluxioTestFolder"
+    ${LAUNCHER} "${ALLUXIO_BIN_PATH}" fs mkdir /alluxioTest/alluxioTestFolder
+    echo ""
+    echo "Running <ALLUXIO_HOME>/bin/alluxio fs copyFromLocal ~/hiveTestTable /alluxioTest/alluxioTestFolder"
+    ${LAUNCHER} "${ALLUXIO_BIN_PATH}" fs copyFromLocal ~/hiveTestTable /alluxioTest/alluxioTestFolder
+    if [[ "$?" != 0 ]]; then
+      echo "Please fix the above error and rerun the checker."
+      echo "If Alluxio permission denied, please create the /alluxioTest folder in Alluxio file system and change its permission to 777 before reruning Hive checker."
+      exit 1
+    fi
     echo "Finishing preparing the Alluxio input file."
   fi
 }
@@ -64,7 +75,7 @@ function clean_output() {
   [ -f "./IntegrationReport.txt" ] && rm "./IntegrationReport.txt"
   if [[ "${HIVE_USER_MODE}" == "storage" ]]; then
     echo "Removing the input file on Alluxio."
-    ${LAUNCHER} "${ALLUXIO_BIN_PATH}" fs rm -R "${ALLUXIO_URL}/alluxioTestFolder"
+    ${LAUNCHER} "${ALLUXIO_BIN_PATH}" fs rm -R "${ALLUXIO_URL}/alluxioTest/alluxioTestFolder"
   fi
   [ -f "~/hiveTestTable" ] && rm "~/hiveTestTable"
 }

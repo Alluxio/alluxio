@@ -38,7 +38,7 @@ public class HiveIntegrationChecker {
   private static final String FAIL_TO_FIND_CLASS_MESSAGE = "Please distribute "
       + "the Alluxio client jar on the classpath of the application across different nodes.\n\n"
       + "Please set HIVE_AUX_JARS_PATH either in shell or in conf/hive-env.sh "
-      + "before starting hiveserver2.\n"
+      + "before starting hiveserver2.\n\n"
       + "For details, please refer to: "
       + "https://www.alluxio.org/docs/master/en/Running-Hive-with-Alluxio.html\n";
   private static final String FAIL_TO_FIND_FS_MESSAGE = "Please check the fs.alluxio.impl property "
