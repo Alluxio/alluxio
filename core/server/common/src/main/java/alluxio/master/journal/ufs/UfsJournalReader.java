@@ -149,8 +149,8 @@ public final class UfsJournalReader implements JournalReader {
         LOG.debug("Skipping duplicate log entry {} (next sequence number: {}).", entry,
             mNextSequenceNumber);
       } else {
-        throw new InvalidJournalEntryException(ExceptionMessage.JOURNAL_ENTRY_MISSING,
-            mNextSequenceNumber, entry.getSequenceNumber());
+        throw new IllegalStateException(ExceptionMessage.JOURNAL_ENTRY_MISSING.getMessage(
+            mNextSequenceNumber, entry.getSequenceNumber()));
       }
     }
   }
