@@ -149,7 +149,8 @@ public class FileInStream extends InputStream implements BoundedStream, Position
     int bytesLeft = len;
     int currentOffset = off;
     CountingRetry retry = new CountingRetry(MAX_WORKERS_TO_RETRY);
-    while (bytesLeft > 0 && mPosition != mLength) {
+    IOException lastException = null;
+    while (bytesLeft > 0 && mPosition != mLength && retry.attempt()) {
       updateStream();
       try {
         int bytesRead = mBlockInStream.read(b, currentOffset, bytesLeft);
@@ -159,13 +160,15 @@ public class FileInStream extends InputStream implements BoundedStream, Position
           mPosition += bytesRead;
         }
         retry.reset();
+        lastException = null;
       } catch (UnavailableException | ConnectException | DeadlineExceededException e) {
-        if (!retry.attempt()) {
-          throw e;
-        }
+        lastException = e;
         handleRetryableException(mBlockInStream, e);
         mBlockInStream = null;
       }
+    }
+    if (lastException != null) {
+      throw lastException;
     }
     return len - bytesLeft;
   }
@@ -205,13 +208,13 @@ public class FileInStream extends InputStream implements BoundedStream, Position
 
     int lenCopy = len;
     CountingRetry retry = new CountingRetry(MAX_WORKERS_TO_RETRY);
-    while (len > 0) {
+    IOException lastException = null;
+    while (len > 0 && retry.attempt()) {
       if (pos >= mLength) {
         break;
       }
       long blockId = mStatus.getBlockIds().get(Math.toIntExact(pos / mBlockSize));
-      BlockInStream stream = null;
-      stream = mBlockStore.getInStream(blockId, mOptions, mFailedWorkers);
+      BlockInStream stream = mBlockStore.getInStream(blockId, mOptions, mFailedWorkers);
       try {
         long offset = pos % mBlockSize;
         int bytesRead =
@@ -221,15 +224,17 @@ public class FileInStream extends InputStream implements BoundedStream, Position
         off += bytesRead;
         len -= bytesRead;
         retry.reset();
+        lastException = null;
       } catch (UnavailableException | DeadlineExceededException | ConnectException e) {
-        if (!retry.attempt()) {
-          throw e;
-        }
+        lastException = e;
         handleRetryableException(stream, e);
         stream = null;
       } finally {
         closeBlockInStream(stream);
       }
+    }
+    if (lastException != null) {
+      throw lastException;
     }
     return lenCopy - len;
   }
