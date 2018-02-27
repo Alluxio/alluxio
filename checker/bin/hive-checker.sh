@@ -48,7 +48,6 @@ function generate_input() {
     echo "Hive|Test" >> ~/hiveTestTable
 
     # If we want to use Alluxio as one option to store hive tables, we need input file exists in the Alluxio filesystem
-    echo ""
     echo "Running <ALLUXIO_HOME>/bin/alluxio fs mkdir /alluxioTestFolder"
     ${LAUNCHER} "${ALLUXIO_BIN_PATH}" fs mkdir /alluxioTestFolder
     echo ""
