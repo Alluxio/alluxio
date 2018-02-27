@@ -13,6 +13,7 @@ package alluxio.checker;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
+import com.google.common.base.Preconditions;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -56,7 +57,7 @@ public class HiveIntegrationChecker {
       + "Hive tables, dfs means Alluxio is configured as Hive default filesytem.")
   private String mUserMode = "storage";
 
-  @Parameter(names = {"-hiveurl"}, description = "a Hive connection url "
+  @Parameter(names = {"-hiveUrl", "-hiveurl"}, description = "a Hive connection url "
       + "of the form jdbc:subprotocol:subname", required = true)
   private String mHiveURL;
 
@@ -164,6 +165,19 @@ public class HiveIntegrationChecker {
     reportWriter.println(TEST_FAILED_MESSAGE);
   }
 
+  /** Checks if input arguments are valid. */
+  private void checkIfInputValid() {
+    String modeInvalidMessage = "\n-mode <USER_MODE>  USER_MODE should be \"storage\" or \"dfs\".\n"
+        + "Please check your USER_MODE and rerun the checker.";
+    Preconditions.checkArgument(mUserMode.equals("storage") || mUserMode.equals("dfs"),
+        modeInvalidMessage);
+
+    String hiveUrlInvalidMessage = "\n-hiveurl <HIVE_URL> is a Hive Url of form "
+        + "jdbc:subprotocol:subname.\nPlease check your HIVE_URL and rerun the checker.";
+    Preconditions.checkArgument(mHiveURL.startsWith("jdbc:"),
+        hiveUrlInvalidMessage);
+  }
+
   /**
    * Main function will be triggered by hive-checker.sh.
    *
@@ -173,6 +187,15 @@ public class HiveIntegrationChecker {
     HiveIntegrationChecker checker = new HiveIntegrationChecker();
     JCommander jCommander = new JCommander(checker, args);
     jCommander.setProgramName("HiveIntegrationChecker");
+
+    try {
+      checker.checkIfInputValid();
+    } catch (Exception e) {
+      jCommander.usage();
+      System.out.println(e);
+      System.exit(1);
+    }
+
     try (PrintWriter reportWriter = CheckerUtils.initReportFile()) {
       int result = checker.run(reportWriter);
       reportWriter.flush();
