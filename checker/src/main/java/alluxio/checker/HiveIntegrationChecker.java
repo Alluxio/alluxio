@@ -24,8 +24,8 @@ import java.sql.PreparedStatement;
 
 /**
  * Some Hive queries to test the integration of Hive with Alluxio.
- * Supports two options: use Alluxio as an option to store Hive tables
- * and use Alluxio as the Hive default filesystem.
+ * Supports two options: Alluxio is used as storage of Hive tables
+ * and Alluxio is configured as Hive default filesytem.
  *
  * This checker requires a running Hive cluster and a running Alluxio cluster.
  * It will check whether Alluxio classes and Alluxio filesystem can be recognized

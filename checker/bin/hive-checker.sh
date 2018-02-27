@@ -35,11 +35,7 @@ Optional arguments:
 
 -h  display this help."
 
-ALLUXIO_BIN_PATH=""
-ALLUXIO_CHECKER_JAR=""
 ALLUXIO_PATH=$(cd "${CHECKER_BIN_PATH}/../../"; pwd)
-ALLUXIO_URL=""
-HIVE_USER_MODE=""
 
 function generate_input() {
   [ -f "./IntegrationReport.txt" ] && rm "./IntegrationReport.txt"
@@ -82,7 +78,7 @@ function main {
     fi
   done
 
-  # Find out the user_mode value
+  # Find out the HIVE_USER_MODE value
   for (( i=1; i<="$#"; i++)); do
     j="$((i+1))"
     if [[ "${!i}" == -mode ]]; then
@@ -111,7 +107,10 @@ function main {
 
   generate_input
   trigger_hive "$@"
+
+  # View the checker result
   [ -f "./IntegrationReport.txt" ] && cat "./IntegrationReport.txt"
+
   clean_output
 }
 

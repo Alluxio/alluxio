@@ -33,7 +33,6 @@ PARTITIONS
 
 -h  display this help."
 
-ALLUXIO_CHECKER_JAR=""
 PARTITIONS="${2:-10}";
 SPARK_MASTER="$1";
 SPARK_SUBMIT="";
