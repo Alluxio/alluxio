@@ -49,14 +49,15 @@ function generate_input() {
 
     # If we want to use Alluxio as one option to store hive tables, we need input file exists in the Alluxio filesystem
     echo ""
-    echo "Running <ALLUXIO_HOME>/bin/alluxio fs mkdir /alluxioTest/alluxioTestFolder"
-    ${LAUNCHER} "${ALLUXIO_BIN_PATH}" fs mkdir /alluxioTest/alluxioTestFolder
+    echo "Running <ALLUXIO_HOME>/bin/alluxio fs mkdir /alluxioTestFolder"
+    ${LAUNCHER} "${ALLUXIO_BIN_PATH}" fs mkdir /alluxioTestFolder
     echo ""
-    echo "Running <ALLUXIO_HOME>/bin/alluxio fs copyFromLocal ~/hiveTestTable /alluxioTest/alluxioTestFolder"
-    ${LAUNCHER} "${ALLUXIO_BIN_PATH}" fs copyFromLocal ~/hiveTestTable /alluxioTest/alluxioTestFolder
+    echo "Running <ALLUXIO_HOME>/bin/alluxio fs copyFromLocal ~/hiveTestTable /alluxioTestFolder"
+    ${LAUNCHER} "${ALLUXIO_BIN_PATH}" fs copyFromLocal ~/hiveTestTable /alluxioTestFolder
     if [[ "$?" != 0 ]]; then
+      echo ""
       echo "Please fix the above error and rerun the checker."
-      echo "If Alluxio permission denied, please create the /alluxioTest folder in Alluxio file system and change its permission to 777 before reruning Hive checker."
+      echo "If Alluxio permission denied, please create the /alluxioTestFolder folder in Alluxio file system and change its permission to 777 before reruning Hive checker."
       exit 1
     fi
     echo "Finishing preparing the Alluxio input file."
