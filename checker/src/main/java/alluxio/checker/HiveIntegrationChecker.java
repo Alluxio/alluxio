@@ -27,18 +27,17 @@ import java.sql.PreparedStatement;
  * Supports two options: use Alluxio as an option to store Hive tables
  * and use Alluxio as the Hive default filesystem.
  *
- * This checker requires a running Hadoop cluster, but does not require a running Alluxio cluster.
+ * This checker requires a running Hive cluster and a running Alluxio cluster.
  * It will check whether Alluxio classes and Alluxio filesystem can be recognized
- * in Hadoop task nodes.
+ * in Hive queries.
  */
 @SuppressFBWarnings("SQL_PREPARED_STATEMENT_GENERATED_FROM_NONCONSTANT_STRING")
 public class HiveIntegrationChecker {
   private static final Logger LOG = LoggerFactory.getLogger(HiveIntegrationChecker.class);
-  private static final String FAIL_TO_CONNECT_TO_HIVE_MESSAGE = "Unable to connect to Hive, "
-      + "please check your Hive URL, username and password.\n";
   private static final String FAIL_TO_FIND_CLASS_MESSAGE = "Please distribute "
       + "the Alluxio client jar on the classpath of the application across different nodes.\n\n"
-      + "Please set HIVE_AUX_JARS_PATH either in shell or conf/hive-env.sh.\n"
+      + "Please set HIVE_AUX_JARS_PATH either in shell or in conf/hive-env.sh "
+      + "before starting hiveserver2.\n"
       + "For details, please refer to: "
       + "https://www.alluxio.org/docs/master/en/Running-Hive-with-Alluxio.html\n";
   private static final String FAIL_TO_FIND_FS_MESSAGE = "Please check the fs.alluxio.impl property "
@@ -48,23 +47,24 @@ public class HiveIntegrationChecker {
   private static final String TEST_FAILED_MESSAGE = "***** Integration test failed. *****\n";
   private static final String TEST_PASSED_MESSAGE = "***** Integration test passed. *****\n";
 
-  @Parameter(names = {"-alluxiourl"}, description = "the alluxio cluster url of form "
-      + "alluxio://master_hostname:port")
+  @Parameter(names = {"-alluxioUrl"}, description = "the alluxio cluster url of form "
+      + "alluxio://master_hostname:port, which is converted from "
+      + "the alluxio.master.hostname property in alluxio-site.properties")
   private String mAlluxioURL = "";
 
-  @Parameter(names = {"-mode"}, description = "1 means use Alluxio as one option "
-      + "to store Hive tables, 2 means use Alluxio as the Hive default filesystem")
-  private int mUserMode = 1;
+  @Parameter(names = {"-mode"}, description = "storage means Alluxio is used as storage of "
+      + "Hive tables, dfs means Alluxio is configured as Hive default filesytem.")
+  private String mUserMode = "storage";
 
-  @Parameter(names = {"-hiveurl"}, description = "a database url "
-      + "of the form jdbc:subprotocol:subname")
-  private String mHiveURL = "";
+  @Parameter(names = {"-hiveurl"}, description = "a Hive connection url "
+      + "of the form jdbc:subprotocol:subname", required = true)
+  private String mHiveURL;
 
-  @Parameter(names = {"-user"}, description = "the database user on whose behalf "
+  @Parameter(names = {"-user"}, description = "the Hive user on whose behalf "
       + "the connection is being made")
   private String mHiveUserName = System.getProperty("user.name");
 
-  @Parameter(names = {"-password"}, description = "the user's password")
+  @Parameter(names = {"-password"}, description = "the Hive user's password")
   private String mHiveUserPassword = "";
 
   /**
@@ -73,29 +73,29 @@ public class HiveIntegrationChecker {
    * @param reportWriter save user-facing messages to a generated file
    * @return 0 is success, 1 otherwise
    */
-  private int run(PrintWriter reportWriter) throws Exception {
+  private int run(PrintWriter reportWriter) {
     // Try to connect to Hive through JDBC
     try (Connection con = DriverManager.getConnection(mHiveURL, mHiveUserName, mHiveUserPassword)) {
       // Hive statements to check the integration
       String tableName = "hiveTestTable";
-      String sql = "drop table if exists " + tableName;
+      String sql = String.format("drop table if exists %s", tableName);
       try (PreparedStatement dropTablePS = con.prepareStatement(sql)) {
         dropTablePS.execute();
       }
 
       // Creates test table based on different integration ways
-      if (mUserMode == 1) {
+      if (mUserMode.equals("storage")) {
         useAsSource(con, tableName);
       } else {
         useAsUnderFS(con, tableName);
       }
 
-      sql = "describe " + tableName;
+      sql = String.format("describe %s", tableName);
       try (PreparedStatement describeTablePS = con.prepareStatement(sql)) {
         describeTablePS.execute();
       }
 
-      sql = "select * from " + tableName;
+      sql = String.format("select * from %s", tableName);
       try (PreparedStatement selectTablePS = con.prepareStatement(sql)) {
         selectTablePS.execute();
       }
@@ -115,9 +115,9 @@ public class HiveIntegrationChecker {
    * @param tableName the name of the test table
    */
   private void useAsSource(Connection con, String tableName) throws Exception {
-    String sql = "CREATE TABLE " + tableName + " (ROW1 STRING, ROW2 STRING) "
+    String sql = String.format("CREATE TABLE %s (ROW1 STRING, ROW2 STRING) "
         + "ROW FORMAT DELIMITED FIELDS TERMINATED BY '|' "
-        + "LOCATION '" + mAlluxioURL + "/alluxioTestFolder/'";
+        + "LOCATION '%s/alluxioTestFolder/'", tableName, mAlluxioURL);
     try (PreparedStatement createTablePS = con.prepareStatement(sql)) {
       createTablePS.execute();
     }
@@ -130,14 +130,14 @@ public class HiveIntegrationChecker {
    * @param tableName the name of the test table
    */
   private void useAsUnderFS(Connection con, String tableName) throws Exception {
-    String sql = "CREATE TABLE " + tableName + " (ROW1 STRING, ROW2 STRING) "
+    String sql = String.format("CREATE TABLE %s (ROW1 STRING, ROW2 STRING) "
         + "ROW FORMAT DELIMITED FIELDS TERMINATED BY '|' "
-        + "STORED AS TEXTFILE";
+        + "STORED AS TEXTFILE", tableName);
     try (PreparedStatement createTablePS = con.prepareStatement(sql)) {
       createTablePS.execute();
     }
 
-    sql = "INSERT INTO " + tableName + " VALUES ('Hive', 'Test')";
+    sql = String.format("INSERT INTO %s VALUES ('Hive', 'Test')", tableName);
     try (PreparedStatement loadTablePS = con.prepareStatement(sql)) {
       loadTablePS.executeUpdate();
     }
@@ -153,29 +153,15 @@ public class HiveIntegrationChecker {
     String exceptionStr = exception.toString();
     if (exceptionStr.contains("Class alluxio.hadoop.FileSystem not found")) {
       reportWriter.println(FAIL_TO_FIND_CLASS_MESSAGE);
-      reportWriter.println(TEST_FAILED_MESSAGE);
     } else if (exceptionStr.contains("No FileSystem for scheme \"alluxio\"")
         || exceptionStr.contains("No FileSystem for scheme: alluxio")) {
       reportWriter.println(FAIL_TO_FIND_FS_MESSAGE);
-      reportWriter.println(TEST_FAILED_MESSAGE);
     } else {
-      reportWriter.println("Other errors occur, please fix it and "
+      reportWriter.println("Please fix the following error and "
           + "rerun the Hive Integration Checker. \n");
       exception.printStackTrace(reportWriter);
-      reportWriter.println(TEST_FAILED_MESSAGE);
     }
-  }
-
-  /**
-   * Checks if the input arguments are valid.
-   */
-  private void checkIfInputValid() throws IllegalArgumentException {
-    if (mUserMode != 1 && mUserMode != 2) {
-      throw new IllegalArgumentException("Hive integration checker user mode is invalid.");
-    }
-    if (!mHiveURL.startsWith("jdbc")) {
-      throw new IllegalArgumentException("Hive URL is invalid.");
-    }
+    reportWriter.println(TEST_FAILED_MESSAGE);
   }
 
   /**
@@ -187,12 +173,6 @@ public class HiveIntegrationChecker {
     HiveIntegrationChecker checker = new HiveIntegrationChecker();
     JCommander jCommander = new JCommander(checker, args);
     jCommander.setProgramName("HiveIntegrationChecker");
-    try {
-      checker.checkIfInputValid();
-    } catch (IllegalArgumentException e) {
-      System.out.println(e);
-      System.exit(2);
-    }
     try (PrintWriter reportWriter = CheckerUtils.initReportFile()) {
       int result = checker.run(reportWriter);
       reportWriter.flush();

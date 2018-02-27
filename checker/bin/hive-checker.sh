@@ -24,14 +24,14 @@ Prerequisites:
     Please set the alluxio.master.hostname in your <ALLUXIO_HOME>/conf/alluxio-site.properties.
 
 Argument:
-    -hiveurl HIVE_URL is a database url of form jdbc:subprotocol:subname.
+    -hiveurl HIVE_URL is a Hive url of form jdbc:subprotocol:subname.
 
 Optional arguments:
-    -mode USER_MODE is one of the following integer, by default the value is 1.
-        1   use Alluxio as one option to store Hive tables.
-        2   use Alluxio as the Hive default filesystem.
-    -user HIVE_USER_NAME is the database user on whose behalf the connection is being made, by default is the system username.
-    -password HIVE_USER_PASSWORD is the user's password, if it is an empty string, you do not need to pass in anything.
+    -mode USER_MODE is one of the following value, by default the value is storage.
+        storage   Alluxio is used as storage of Hive tables.
+        dfs  Alluxio is configured as Hive default filesytem.
+    -user HIVE_USER_NAME is the Hive user on whose behalf the connection is being made, by default is the system username.
+    -password HIVE_USER_PASSWORD is the Hive user's password, if it is an empty string, you do not need to pass in anything.
 
 -h  display this help."
 
@@ -44,29 +44,31 @@ HIVE_USER_MODE=""
 function generate_input() {
   [ -f "./IntegrationReport.txt" ] && rm "./IntegrationReport.txt"
 
-  if [[ "${HIVE_USER_MODE}" == "1" ]]; then
+  if [[ "${HIVE_USER_MODE}" == "storage" ]]; then
+    echo "For testing the first Hive and Alluxio integration way: Alluxio is used as storage of Hive tables, we need to generate an input file and put it on to Alluxio filesystem"
     # Generate the input file for Hive integration checker
     echo "You|Pass" > ~/hiveTestTable
     echo "Hive|Test" >> ~/hiveTestTable
     # If we want to use Alluxio as one option to store hive tables, we need input file exists in the Alluxio filesystem
-    ${LAUNCHER} "${ALLUXIO_BIN_PATH}" fs mkdir /alluxioTestFolder >/dev/null
-    ${LAUNCHER} "${ALLUXIO_BIN_PATH}" fs copyFromLocal ~/hiveTestTable /alluxioTestFolder/ >/dev/null
+    ${LAUNCHER} "${ALLUXIO_BIN_PATH}" fs mkdir /alluxioTestFolder
+    ${LAUNCHER} "${ALLUXIO_BIN_PATH}" fs copyFromLocal ~/hiveTestTable /alluxioTestFolder/
+    echo "Finishing preparing the Alluxio input file."
   fi
 }
 
 function trigger_hive() {
-  ${LAUNCHER} java -cp "${ALLUXIO_CHECKER_JAR}" alluxio.checker.HiveIntegrationChecker "$@" -alluxiourl "${ALLUXIO_URL}"
-  # If input is not valid, we print helpful message
-  if [[ "$?" == "2" ]]; then
-    echo -e "${USAGE}" >&2
-    exit 1
+  if [[ "${ALLUXIO_URL}" == "" ]]; then
+    ${LAUNCHER} java -cp "${ALLUXIO_CHECKER_JAR}" alluxio.checker.HiveIntegrationChecker "$@"
+  else
+    ${LAUNCHER} java -cp "${ALLUXIO_CHECKER_JAR}" alluxio.checker.HiveIntegrationChecker "$@" -alluxioUrl "${ALLUXIO_URL}"
   fi
 }
 
 function clean_output() {
-  [ -f "./IntegrationReport.txt" ] && cat "./IntegrationReport.txt" && rm "./IntegrationReport.txt"
-  if [[ "${HIVE_USER_MODE}" == "1" ]]; then
-    ${LAUNCHER} "${ALLUXIO_BIN_PATH}" fs rm -R "${ALLUXIO_URL}/alluxioTestFolder" >/dev/null
+  [ -f "./IntegrationReport.txt" ] && rm "./IntegrationReport.txt"
+  if [[ "${HIVE_USER_MODE}" == "storage" ]]; then
+    echo "Removing the input file on Alluxio."
+    ${LAUNCHER} "${ALLUXIO_BIN_PATH}" fs rm -R "${ALLUXIO_URL}/alluxioTestFolder"
   fi
   [ -f "~/hiveTestTable" ] && rm "~/hiveTestTable"
 }
@@ -80,21 +82,23 @@ function main {
     fi
   done
 
-  for i in "$@"; do
-    if [[ "$i" == "-mode" ]]; then
-      HIVE_USER_MODE="${i+1}"
+  # Find out the user_mode value
+  for (( i=1; i<="$#"; i++)); do
+    j="$((i+1))"
+    if [[ "${!i}" == -mode ]]; then
+      HIVE_USER_MODE="${!j}"
     fi
   done
 
   if [[ "${HIVE_USER_MODE}" == "" ]]; then
-    HIVE_USER_MODE=1
+    HIVE_USER_MODE="storage"
   fi
 
   source "${ALLUXIO_PATH}/libexec/alluxio-config.sh"
   ALLUXIO_CHECKER_JAR="${ALLUXIO_PATH}/checker/target/alluxio-checker-${VERSION}-jar-with-dependencies.jar"
   ALLUXIO_BIN_PATH="${ALLUXIO_PATH}/bin/alluxio"
 
-  if [[ "${HIVE_USER_MODE}" == "1" ]]; then
+  if [[ "${HIVE_USER_MODE}" == "storage" ]]; then
     ALLUXIO_MASTER_HOSTNAME=$(${LAUNCHER} "${ALLUXIO_BIN_PATH}" getConf alluxio.master.hostname)
     ALLUXIO_MASTER_PORT=$(${LAUNCHER} "${ALLUXIO_BIN_PATH}" getConf alluxio.master.port)
     ALLUXIO_URL="alluxio://${ALLUXIO_MASTER_HOSTNAME}:${ALLUXIO_MASTER_PORT}"
@@ -107,6 +111,7 @@ function main {
 
   generate_input
   trigger_hive "$@"
+  [ -f "./IntegrationReport.txt" ] && cat "./IntegrationReport.txt"
   clean_output
 }
 
