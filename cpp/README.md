@@ -48,7 +48,7 @@ g++ test.cpp liballuxio.a
  that JNI included paths are needed. Or you can use CMake or autotools to build 
  your project. The executable file `test` will be generated. 
 
-- Coding example
+- C++ example
 ```
 #include <fileSystem.h>
 
