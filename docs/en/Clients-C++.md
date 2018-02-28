@@ -1,18 +1,15 @@
 ---
 layout: global
 title: C++ Client
-nickname: C++ Java
+nickname: C++ Client
 group: Clients
-priority: 1
+priority: 7
 ---
-
-* Table of Contents
-{:toc}
 
 Alluxio has a C++ Client module in branch `cpp` for  interacting with Alluxio through JNI. The 
 C++ client exposes an API similar to  the [native Java API](Clients-Java-Native.html).
 
-# Environment variables configuration
+### Environment variables configuration
 
 $JAVA_HOME must be set. Java 8 is needed in this version.
 
@@ -25,7 +22,7 @@ Append $ALLUXIO_CLIENT_CLASSPATH to CLASSPATH in libexec/alluxio-config.sh.
 export CLASSPATH=$CLASSPATH:$ALLUXIO_CLIENT_CLASSPATH
 ```
 
-# Install Cpp module
+### Install Cpp module
 
 Use cmake to build library. After running below commands, You will get a static library `liballuxio1.0.a`, 
 a shared link library `liballuxio1.0.so`(linux) or `liballuxio1.0.dylib` (macOS) in `cpp/build/src`.                   
@@ -55,7 +52,7 @@ g++ test.cpp liballuxio.a
 ./test
 ```
 
-# Example Usage
+### Example Usage
 ```
 #include <fileSystem.h>
 
