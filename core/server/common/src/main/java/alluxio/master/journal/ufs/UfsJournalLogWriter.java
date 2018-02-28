@@ -152,7 +152,6 @@ final class UfsJournalLogWriter implements JournalWriter {
         // do rename again.
         if (!mUfs.deleteFile(dst)) {
           LOG.warn("Failed to delete duplicate journal log file {}", dst);
-          return;
         }
       }
       if (!mUfs.renameFile(src, dst)) {
@@ -261,7 +260,7 @@ final class UfsJournalLogWriter implements JournalWriter {
   }
 
   /**
-   * Examine the UFS to determine the more recent journal entry, and return its sequence number.
+   * Examine the UFS to determine the most recent journal entry, and return its sequence number.
    *
    * 1. Locate the most recent incomplete journal file, i.e. journal file that starts with
    *    a valid sequence number S (hex), and ends with 0x7fffffffffffffff. The journal file
