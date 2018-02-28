@@ -22,14 +22,16 @@ import alluxio.master.MasterInquireClient;
 import alluxio.metrics.MetricsSystem;
 import alluxio.network.netty.NettyChannelPool;
 import alluxio.resource.CloseableResource;
+import alluxio.util.CommonUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
 
 import com.codahale.metrics.Gauge;
-import com.google.common.base.Preconditions;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -56,6 +58,8 @@ import javax.security.auth.Subject;
  */
 @ThreadSafe
 public final class FileSystemContext implements Closeable {
+  private static final Logger LOG = LoggerFactory.getLogger(FileSystemContext.class);
+
   public static final FileSystemContext INSTANCE = create();
 
   static {
@@ -267,8 +271,12 @@ public final class FileSystemContext implements Closeable {
    */
   public void releaseNettyChannel(WorkerNetAddress workerNetAddress, Channel channel) {
     SocketAddress address = NetworkAddressUtils.getDataPortSocketAddress(workerNetAddress);
-    Preconditions.checkArgument(mNettyChannelPools.containsKey(address));
-    mNettyChannelPools.get(address).release(channel);
+    if (mNettyChannelPools.containsKey(address)) {
+      mNettyChannelPools.get(address).release(channel);
+    } else {
+      LOG.warn("No channel pool for address {}, closing channel instead.", address);
+      CommonUtils.closeChannel(channel);
+    }
   }
 
   /**
