@@ -1,10 +1,9 @@
 # Alluxio C++ API
 
 ### Introduction
- The C++ client is implemented through JNI to native Java client. The 
- performance of calling c++ client is similar with using java client directly,
- even better in some situation that JVM performance is not high. because JNI 
- calling type doesn't depend on JVM.
+ The C++ client is implemented through JNI to native Java client. Generally the 
+ performance of using java client directly is better than calling c++ client,   
+ because JNI calling type needs to cross programming language barrier.
   
 ### Environment variables configuration
 - $JAVA_HOME must be set
@@ -39,7 +38,7 @@ make
 - Compile and run your application 
 ```
 g++ test.cpp liballuxio.a  
--I${ALLUXIO_HOME}/cpp/include -I${JAVA_HOME}/include -I${JAVA_HOME/include/linux 
+-I${ALLUXIO_HOME}/cpp/include -I${JAVA_HOME}/include -I${JAVA_HOME}/include/linux 
 -L${JRE_HOME}/lib/amd64/server -lpthread -ljvm -o test
 # run the application
 ./test
