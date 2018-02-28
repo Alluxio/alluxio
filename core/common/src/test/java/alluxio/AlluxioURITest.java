@@ -167,6 +167,30 @@ public class AlluxioURITest {
   }
 
   /**
+   * Tests the {@link AlluxioURI#AlluxioURI(String)} constructor for URI with spaces.
+   */
+  @Test
+  public void pathWithWhiteSpaces() {
+    String[] paths = new String[]{
+        "/ ",
+        "/  ",
+        "/ path",
+        "/path ",
+        "/pa th",
+        "/ pa th ",
+        "/pa/ th",
+        "/pa / th",
+        "/ pa / th ",
+    };
+    for (String path : paths) {
+      AlluxioURI uri = new AlluxioURI(path);
+      assertEquals(path, uri.getPath());
+      assertEquals(path, uri.toString());
+      assertTrue(uri.isPathAbsolute());
+    }
+  }
+
+  /**
    * Tests the {@link AlluxioURI#AlluxioURI(String, String, String)} constructor to build a URI
    * from its different components.
    */
