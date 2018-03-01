@@ -29,12 +29,7 @@ public abstract class TimeBoundedRetry implements RetryPolicy {
   private final Instant mStartTime;
   private final Instant mEndTime;
 
-<<<<<<< HEAD
   private int mAttemptCount = 0;
-  private boolean mDone = false;
-=======
-  private int mRetryCount = 0;
->>>>>>> upstream/branch-1.7
 
   /**
    * @param timeCtx the time context to use for time-based operations
@@ -54,18 +49,11 @@ public abstract class TimeBoundedRetry implements RetryPolicy {
   }
 
   @Override
-<<<<<<< HEAD
   public boolean attempt() {
-    if (mDone) {
-      return false;
-    }
     if (mAttemptCount == 0) {
       mAttemptCount++;
       return true;
     }
-=======
-  public boolean attemptRetry() {
->>>>>>> upstream/branch-1.7
     Instant now = mClock.instant();
     if (now.isAfter(mEndTime) || now.equals(mEndTime)) {
       return false;
