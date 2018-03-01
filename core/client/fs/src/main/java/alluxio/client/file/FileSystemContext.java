@@ -73,7 +73,7 @@ public final class FileSystemContext implements Closeable {
   private volatile BlockMasterClientPool mBlockMasterClientPool;
 
   // Closed flag for debugging information.
-  private AtomicBoolean mClosed;
+  private final AtomicBoolean mClosed;
 
   // The netty data server channel pools.
   private final ConcurrentHashMap<SocketAddress, NettyChannelPool>
@@ -133,6 +133,7 @@ public final class FileSystemContext implements Closeable {
    */
   private FileSystemContext(Subject subject) {
     mParentSubject = subject;
+    mClosed = new AtomicBoolean(false);
   }
 
   /**
