@@ -29,8 +29,12 @@ public abstract class TimeBoundedRetry implements RetryPolicy {
   private final Instant mStartTime;
   private final Instant mEndTime;
 
+<<<<<<< HEAD
   private int mAttemptCount = 0;
   private boolean mDone = false;
+=======
+  private int mRetryCount = 0;
+>>>>>>> upstream/branch-1.7
 
   /**
    * @param timeCtx the time context to use for time-based operations
@@ -50,6 +54,7 @@ public abstract class TimeBoundedRetry implements RetryPolicy {
   }
 
   @Override
+<<<<<<< HEAD
   public boolean attempt() {
     if (mDone) {
       return false;
@@ -58,19 +63,18 @@ public abstract class TimeBoundedRetry implements RetryPolicy {
       mAttemptCount++;
       return true;
     }
+=======
+  public boolean attemptRetry() {
+>>>>>>> upstream/branch-1.7
     Instant now = mClock.instant();
-    // We should not do a retry if now == mEndTime. The final retry is timed to land at mEndTime,
-    // so if now == mEndTime, the operation may have taken less than 1ms.
-    if (!now.isBefore(mEndTime)) {
-      mDone = true;
+    if (now.isAfter(mEndTime) || now.equals(mEndTime)) {
       return false;
     }
+    Duration nextWaitTime = computeNextWaitTime();
+    if (now.plus(nextWaitTime).isAfter(mEndTime)) {
+      nextWaitTime = Duration.between(now, mEndTime);
+    }
     try {
-      Duration nextWaitTime = computeNextWaitTime();
-      if (now.plus(nextWaitTime).isAfter(mEndTime)) {
-        nextWaitTime = Duration.between(now, mEndTime);
-        mDone = true;
-      }
       mSleeper.sleep(nextWaitTime);
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();

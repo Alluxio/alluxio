@@ -56,8 +56,21 @@ public final class MkdirCommandIntegrationTest extends AbstractAlluxioShellTest 
   }
 
   @Test
+  public void mkdirPathWithWhiteSpaces() {
+    String[] paths = new String[]{
+        "/ ",
+        "/x y z",
+        "/ x y z",
+        "/ x y z / a b c"
+    };
+    for (String path : paths) {
+      Assert.assertEquals(0, mFsShell.run("mkdir", path));
+    }
+  }
+
+  @Test
   public void mkdirInvalidPath() throws IOException {
-    Assert.assertEquals(-1, mFsShell.run("mkdir", "/test File Invalid Path"));
+    Assert.assertEquals(-1, mFsShell.run("mkdir", ""));
   }
 
   @Test

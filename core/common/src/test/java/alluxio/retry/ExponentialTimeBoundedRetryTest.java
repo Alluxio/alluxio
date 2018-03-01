@@ -13,13 +13,13 @@ package alluxio.retry;
 
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.hamcrest.Matchers.lessThanOrEqualTo;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
 
 import alluxio.Constants;
 import alluxio.clock.ManualClock;
 import alluxio.time.ManualSleeper;
 import alluxio.time.TimeContext;
-import alluxio.util.CommonUtils;
 
 import org.junit.Test;
 
@@ -33,9 +33,8 @@ import java.util.Iterator;
 public final class ExponentialTimeBoundedRetryTest {
   @Test
   public void exponentialBackoff() throws InterruptedException {
-    // Run the test multiple times to cover more cases due to randomness of jitter. This can be
-    // cranked up for debugging purposes. We keep it low to avoid taking too much test time.
-    for (int i = 0; i < 2; i++) {
+    // Run the test multiple times to cover more cases due to randomness of jitter.
+    for (int i = 0; i < 100; i++) {
       ManualClock clock = new ManualClock();
       ManualSleeper sleeper = new ManualSleeper();
       long maxDurationMs = 500;
@@ -48,14 +47,18 @@ public final class ExponentialTimeBoundedRetryTest {
           .build();
 
       Thread thread = new Thread(() -> {
+<<<<<<< HEAD
         while (retry.attempt()) {
           CommonUtils.sleepMs(taskTimeMs);
+=======
+        do {
+>>>>>>> upstream/branch-1.7
           clock.addTimeMs(taskTimeMs);
         }
       });
       thread.setDaemon(true);
-      thread.start();
       thread.setName("time-bounded-exponential-backoff-test");
+      thread.start();
 
       long timeRemainingMs = maxDurationMs - taskTimeMs;
       Iterator<Long> expectedBaseTimes = Arrays.asList(10L, 20L, 40L, 80L, 100L).iterator();
@@ -76,6 +79,7 @@ public final class ExponentialTimeBoundedRetryTest {
       }
       thread.interrupt();
       thread.join(10 * Constants.SECOND_MS);
+      assertFalse(retry.attemptRetry());
     }
   }
 

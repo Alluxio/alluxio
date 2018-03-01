@@ -22,6 +22,7 @@ import alluxio.cli.validation.SecureHdfsValidationTask;
 import alluxio.cli.validation.StorageSpaceValidationTask;
 import alluxio.cli.validation.SshValidationTask;
 import alluxio.cli.validation.UfsDirectoryValidationTask;
+import alluxio.cli.validation.UfsSuperUserValidationTask;
 import alluxio.cli.validation.UserLimitValidationTask;
 import alluxio.cli.validation.Utils;
 import alluxio.cli.validation.ValidationTask;
@@ -136,6 +137,9 @@ public final class ValidateEnv {
     registerTask("ufs.root.accessible",
         "validate root under file system location is accessible",
         new UfsDirectoryValidationTask(), COMMON_TASKS);
+    registerTask("ufs.root.superuser",
+        "validate Alluxio has super user privilege on root under file system",
+        new UfsSuperUserValidationTask(), COMMON_TASKS);
 
     // RAM disk validations
     registerTask("worker.ramdisk.mount.privilege",
