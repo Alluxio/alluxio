@@ -25,6 +25,7 @@ import com.google.common.collect.Sets;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
@@ -144,6 +145,14 @@ public final class Configuration {
           // Get the true name for the property key in case it is an alias.
           PROPERTIES.put(propertyKey.getName(), value);
           SOURCES.put(propertyKey, source);
+        } else {
+          // Add unrecognized properties
+          LOG.debug("Property {} from source {} is unrecognized", key, source);
+          // Workaround for issue https://alluxio.atlassian.net/browse/ALLUXIO-3108
+          // TODO(adit): Do not add properties unrecognized by Ufs extensions when Configuraton
+          // is made dynamic
+          PROPERTIES.put(key, value);
+          SOURCES.put(new PropertyKey.Builder(key).build(), source);
         }
       }
     }
@@ -344,6 +353,16 @@ public final class Configuration {
     } catch (Exception e) {
       throw new RuntimeException(ExceptionMessage.KEY_NOT_MS.getMessage(key));
     }
+  }
+
+  /**
+   * Gets the time of the key as a duration.
+   *
+   * @param key the key to get the value for
+   * @return the value of the key represented as a duration
+   */
+  public static Duration getDuration(PropertyKey key) {
+    return Duration.ofMillis(getMs(key));
   }
 
   /**

@@ -12,6 +12,7 @@
 package alluxio.underfs.hdfs;
 
 import alluxio.AlluxioURI;
+import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.retry.CountingRetry;
 import alluxio.retry.RetryPolicy;
@@ -28,6 +29,7 @@ import alluxio.underfs.options.DeleteOptions;
 import alluxio.underfs.options.FileLocationOptions;
 import alluxio.underfs.options.MkdirsOptions;
 import alluxio.underfs.options.OpenOptions;
+import alluxio.util.CommonUtils;
 import alluxio.util.UnderFileSystemUtils;
 
 import com.google.common.base.Preconditions;
@@ -178,13 +180,13 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
   public OutputStream createDirect(String path, CreateOptions options) throws IOException {
     IOException te = null;
     RetryPolicy retryPolicy = new CountingRetry(MAX_TRY);
-    while (retryPolicy.attemptRetry()) {
+    while (retryPolicy.attempt()) {
       try {
         // TODO(chaomin): support creating HDFS files with specified block size and replication.
         return new HdfsUnderFileOutputStream(FileSystem.create(mFileSystem, new Path(path),
             new FsPermission(options.getMode().toShort())));
       } catch (IOException e) {
-        LOG.warn("Retry count {} : {} ", retryPolicy.getRetryCount(), e.getMessage());
+        LOG.warn("Attempt count {} : {} ", retryPolicy.getAttemptCount(), e.getMessage());
         te = e;
       }
     }
@@ -383,7 +385,7 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
   public boolean mkdirs(String path, MkdirsOptions options) throws IOException {
     IOException te = null;
     RetryPolicy retryPolicy = new CountingRetry(MAX_TRY);
-    while (retryPolicy.attemptRetry()) {
+    while (retryPolicy.attempt()) {
       try {
         Path hdfsPath = new Path(path);
         if (mFileSystem.exists(hdfsPath)) {
@@ -416,7 +418,7 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
         }
         return true;
       } catch (IOException e) {
-        LOG.warn("{} try to make directory for {} : {}", retryPolicy.getRetryCount(), path,
+        LOG.warn("{} try to make directory for {} : {}", retryPolicy.getAttemptCount(), path,
             e.getMessage());
         te = e;
       }
@@ -428,7 +430,11 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
   public InputStream open(String path, OpenOptions options) throws IOException {
     IOException te = null;
     RetryPolicy retryPolicy = new CountingRetry(MAX_TRY);
-    while (retryPolicy.attemptRetry()) {
+    DistributedFileSystem dfs = null;
+    if (mFileSystem instanceof DistributedFileSystem) {
+      dfs = (DistributedFileSystem) mFileSystem;
+    }
+    while (retryPolicy.attempt()) {
       try {
         FSDataInputStream inputStream = mFileSystem.open(new Path(path));
         try {
@@ -439,8 +445,31 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
         }
         return new HdfsUnderFileInputStream(inputStream);
       } catch (IOException e) {
-        LOG.warn("{} try to open {} : {}", retryPolicy.getRetryCount(), path, e.getMessage());
+        LOG.warn("{} try to open {} : {}", retryPolicy.getAttemptCount(), path, e.getMessage());
         te = e;
+        if (options.getRecoverFailedOpen() && dfs != null && e.getMessage().toLowerCase()
+            .startsWith("cannot obtain block length for")) {
+          // This error can occur when an Alluxio journal file was not properly closed by Alluxio.
+          // In this scenario, the HDFS lease must be recovered in order for the file to be
+          // readable again. The 'recoverLease' API usually needs to be invoked multiple times
+          // to complete the lease recovery process.
+          try {
+            if (dfs.recoverLease(new Path(path))) {
+              LOG.warn("recoverLease-1 success for: {}", path);
+            } else {
+              // try one more time, after waiting
+              CommonUtils.sleepMs(5 * Constants.SECOND_MS);
+              if (dfs.recoverLease(new Path(path))) {
+                LOG.warn("recoverLease-2 success for: {}", path);
+              } else {
+                LOG.warn("recoverLease: path not closed: {}", path);
+              }
+            }
+          } catch (IOException e1) {
+            // ignore exception
+            LOG.warn("recoverLease failed for: {} error: {}", path, e1.getMessage());
+          }
+        }
       }
     }
     throw te;
@@ -513,11 +542,11 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
   private boolean delete(String path, boolean recursive) throws IOException {
     IOException te = null;
     RetryPolicy retryPolicy = new CountingRetry(MAX_TRY);
-    while (retryPolicy.attemptRetry()) {
+    while (retryPolicy.attempt()) {
       try {
         return mFileSystem.delete(new Path(path), recursive);
       } catch (IOException e) {
-        LOG.warn("Retry count {} : {}", retryPolicy.getRetryCount(), e.getMessage());
+        LOG.warn("Attempt count {} : {}", retryPolicy.getAttemptCount(), e.getMessage());
         te = e;
       }
     }
@@ -556,11 +585,11 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
   private boolean rename(String src, String dst) throws IOException {
     IOException te = null;
     RetryPolicy retryPolicy = new CountingRetry(MAX_TRY);
-    while (retryPolicy.attemptRetry()) {
+    while (retryPolicy.attempt()) {
       try {
         return mFileSystem.rename(new Path(src), new Path(dst));
       } catch (IOException e) {
-        LOG.warn("{} try to rename {} to {} : {}", retryPolicy.getRetryCount(), src, dst,
+        LOG.warn("{} try to rename {} to {} : {}", retryPolicy.getAttemptCount(), src, dst,
             e.getMessage());
         te = e;
       }

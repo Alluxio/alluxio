@@ -54,15 +54,15 @@ public class PollingMasterInquireClient implements MasterInquireClient {
   @Override
   public InetSocketAddress getPrimaryRpcAddress() throws UnavailableException {
     RetryPolicy retry = mRetryPolicySupplier.get();
-    do {
+    while (retry.attempt()) {
       InetSocketAddress address = getAddress();
       if (address != null) {
         return address;
       }
-    } while (retry.attemptRetry());
+    }
     throw new UnavailableException(String.format(
         "Failed to determine primary master rpc address after polling each of %s %d times",
-        mMasterAddresses, retry.getRetryCount()));
+        mMasterAddresses, retry.getAttemptCount()));
   }
 
   @Nullable

@@ -20,17 +20,12 @@ machines. You can either
 [compile the binaries from Alluxio source code](http://alluxio.org/documentation/master/Building-Alluxio-Master-Branch.html),
 or [download the precompiled binaries directly](http://alluxio.org/documentation/master/Running-Alluxio-Locally.html).
 
-OBS under storage is implemented as an under storage extension, execute the following command on master to download the extension:
-
-```
-mvn dependency:get -DremoteRepositories=http://repo1.maven.org/maven2/ -DgroupId=org.alluxio \
- -DartifactId=alluxio-underfs-obs -Dversion=<alluxio version> -Dtransitive=false -Ddest=<download destination>.jar
-```
+OBS under storage is implemented as an under storage extension. A precompiled OBS under storage jar can be downloaded from [here](https://github.com/Alluxio/alluxio-extensions/tree/master/underfs/obs/target).
 
 Then execute the following command on master to install the extension to all masters and workers defined in `conf/masters` and `conf/workers`:
 
-```
-bin/alluxio extensions install <download destination>.jar
+```bash
+$ bin/alluxio extensions install /PATH/TO/DOWNLOADED/OBS/jar
 ```
 
 See [this doc](UFSExtensions.html) for more details on Alluxio extension management.

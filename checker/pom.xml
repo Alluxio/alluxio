@@ -88,6 +88,9 @@
                   </excludes>
                 </filter>
               </filters>
+              <transformers>
+                <transformer implementation="org.apache.maven.plugins.shade.resource.ApacheLicenseResourceTransformer"></transformer>
+              </transformers>
             </configuration>
           </execution>
         </executions>

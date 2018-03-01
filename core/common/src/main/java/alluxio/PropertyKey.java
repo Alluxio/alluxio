@@ -1499,6 +1499,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
+  public static final PropertyKey WORKER_MASTER_CONNECT_RETRY_TIMEOUT =
+      new Builder(Name.WORKER_MASTER_CONNECT_RETRY_TIMEOUT)
+          .setDescription("Retry period before workers give up on connecting to master")
+          .setDefaultValue("1hour")
+          // Leaving this hidden for now until we sort out how it should interact with
+          // WORKER_BLOCK_HEARTBEAT_TIMEOUT_MS.
+          .setIsHidden(true)
+          .build();
   public static final PropertyKey WORKER_NETWORK_NETTY_CHANNEL =
       new Builder(Name.WORKER_NETWORK_NETTY_CHANNEL)
           .setDescription("Netty channel type: NIO or EPOLL.")
@@ -2089,6 +2097,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
+  public static final PropertyKey USER_BLOCK_WORKER_CLIENT_READ_RETRY =
+      new Builder(Name.USER_BLOCK_WORKER_CLIENT_READ_RETRY)
+          .setDefaultValue(5)
+          .setDescription("The maximum number of workers to retry before the client gives up on "
+              + " reading a block")
+          .build();
   public static final PropertyKey USER_DATE_FORMAT_PATTERN =
       new Builder(Name.USER_DATE_FORMAT_PATTERN)
           .setDefaultValue("MM-dd-yyyy HH:mm:ss:SSS")
@@ -2392,6 +2406,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "in the exponential backoff.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
+          .build();
+  public static final PropertyKey USER_RPC_RETRY_MAX_DURATION =
+      new Builder(Name.USER_RPC_RETRY_MAX_DURATION)
+          .setDefaultValue("2min")
+          .setDescription("Alluxio client RPCs automatically retry for transient errors with "
+              + "an exponential backoff. This property determines the maximum duration to retry for"
+              + " before giving up.")
           .build();
   public static final PropertyKey USER_RPC_RETRY_MAX_NUM_RETRY =
       new Builder(Name.USER_RPC_RETRY_MAX_NUM_RETRY)
@@ -3013,6 +3034,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.worker.network.netty.buffer.receive";
     public static final String WORKER_NETWORK_NETTY_BUFFER_SEND =
         "alluxio.worker.network.netty.buffer.send";
+    public static final String WORKER_MASTER_CONNECT_RETRY_TIMEOUT =
+        "alluxio.worker.master.connect.retry.timeout";
     public static final String WORKER_NETWORK_NETTY_CHANNEL =
         "alluxio.worker.network.netty.channel";
     public static final String WORKER_NETWORK_NETTY_FILE_TRANSFER_TYPE =
@@ -3118,6 +3141,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.block.worker.client.pool.size.max";
     public static final String USER_BLOCK_WORKER_CLIENT_POOL_GC_THRESHOLD_MS =
         "alluxio.user.block.worker.client.pool.gc.threshold";
+    public static final String USER_BLOCK_WORKER_CLIENT_READ_RETRY =
+        "alluxio.user.block.worker.client.read.retry";
     public static final String USER_DATE_FORMAT_PATTERN = "alluxio.user.date.format.pattern";
     public static final String USER_FAILED_SPACE_REQUEST_LIMITS =
         "alluxio.user.failed.space.request.limits";
@@ -3182,6 +3207,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.network.netty.reader.packet.size.bytes";
     public static final String USER_RPC_RETRY_BASE_SLEEP_MS =
         "alluxio.user.rpc.retry.base.sleep";
+    public static final String USER_RPC_RETRY_MAX_DURATION =
+        "alluxio.user.rpc.retry.max.duration";
     public static final String USER_RPC_RETRY_MAX_NUM_RETRY =
         "alluxio.user.rpc.retry.max.num.retry";
     public static final String USER_RPC_RETRY_MAX_SLEEP_MS = "alluxio.user.rpc.retry.max.sleep";
