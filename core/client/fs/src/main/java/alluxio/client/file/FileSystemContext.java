@@ -22,14 +22,16 @@ import alluxio.metrics.MetricsSystem;
 import alluxio.network.netty.NettyChannelPool;
 import alluxio.network.netty.NettyClient;
 import alluxio.resource.CloseableResource;
+import alluxio.util.CommonUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
 
 import com.codahale.metrics.Gauge;
-import com.google.common.base.Preconditions;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -38,6 +40,7 @@ import java.net.SocketAddress;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.ThreadSafe;
@@ -56,6 +59,8 @@ import javax.security.auth.Subject;
  */
 @ThreadSafe
 public final class FileSystemContext implements Closeable {
+  private static final Logger LOG = LoggerFactory.getLogger(FileSystemContext.class);
+
   public static final FileSystemContext INSTANCE = create();
 
   static {
@@ -66,6 +71,9 @@ public final class FileSystemContext implements Closeable {
   // Master client pools.
   private volatile FileSystemMasterClientPool mFileSystemMasterClientPool;
   private volatile BlockMasterClientPool mBlockMasterClientPool;
+
+  // Closed flag for debugging information.
+  private final AtomicBoolean mClosed;
 
   // The netty data server channel pools.
   private final ConcurrentHashMap<SocketAddress, NettyChannelPool>
@@ -125,6 +133,7 @@ public final class FileSystemContext implements Closeable {
    */
   private FileSystemContext(Subject subject) {
     mParentSubject = subject;
+    mClosed = new AtomicBoolean(false);
   }
 
   /**
@@ -137,6 +146,7 @@ public final class FileSystemContext implements Closeable {
     mFileSystemMasterClientPool =
         new FileSystemMasterClientPool(mParentSubject, mMasterInquireClient);
     mBlockMasterClientPool = new BlockMasterClientPool(mParentSubject, mMasterInquireClient);
+    mClosed.set(false);
   }
 
   /**
@@ -161,6 +171,7 @@ public final class FileSystemContext implements Closeable {
     synchronized (this) {
       mLocalWorkerInitialized = false;
       mLocalWorker = null;
+      mClosed.set(true);
     }
   }
 
@@ -268,8 +279,13 @@ public final class FileSystemContext implements Closeable {
    */
   public void releaseNettyChannel(WorkerNetAddress workerNetAddress, Channel channel) {
     SocketAddress address = NetworkAddressUtils.getDataPortSocketAddress(workerNetAddress);
-    Preconditions.checkArgument(mNettyChannelPools.containsKey(address));
-    mNettyChannelPools.get(address).release(channel);
+    if (mNettyChannelPools.containsKey(address)) {
+      mNettyChannelPools.get(address).release(channel);
+    } else {
+      LOG.warn("No channel pool for address {}, closing channel instead. Context is closed: {}",
+          address, mClosed.get());
+      CommonUtils.closeChannel(channel);
+    }
   }
 
   /**

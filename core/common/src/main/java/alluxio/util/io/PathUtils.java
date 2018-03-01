@@ -200,7 +200,7 @@ public final class PathUtils {
    * @throws InvalidPathException If the path is not properly formed
    */
   public static void validatePath(String path) throws InvalidPathException {
-    boolean invalid = (path == null || path.isEmpty() || path.contains(" "));
+    boolean invalid = (path == null || path.isEmpty());
     if (!OSUtils.isWindows()) {
       invalid = (invalid || !path.startsWith(AlluxioURI.SEPARATOR));
     }
