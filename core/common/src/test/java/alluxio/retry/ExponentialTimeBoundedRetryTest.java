@@ -47,12 +47,7 @@ public final class ExponentialTimeBoundedRetryTest {
           .build();
 
       Thread thread = new Thread(() -> {
-<<<<<<< HEAD
         while (retry.attempt()) {
-          CommonUtils.sleepMs(taskTimeMs);
-=======
-        do {
->>>>>>> upstream/branch-1.7
           clock.addTimeMs(taskTimeMs);
         }
       });
