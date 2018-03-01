@@ -49,7 +49,7 @@ public class WorkerHealthCheckClient implements HealthCheckClient {
   @Override
   public boolean isServing() {
     RetryPolicy retry = mRetryPolicySupplier.get();
-    do {
+    while (retry.attempt()) {
       try {
         LOG.debug("Checking whether {} is listening for RPCs", mWorkerAddress);
         NetworkAddressUtils.pingService(mWorkerAddress,
@@ -61,7 +61,7 @@ public class WorkerHealthCheckClient implements HealthCheckClient {
       } catch (UnauthenticatedException e) {
         throw new RuntimeException(e);
       }
-    } while (retry.attemptRetry());
+    }
     return false;
   }
 }

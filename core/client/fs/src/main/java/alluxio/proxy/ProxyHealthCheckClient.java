@@ -46,7 +46,7 @@ public class ProxyHealthCheckClient implements HealthCheckClient {
   @Override
   public boolean isServing() {
     RetryPolicy retry = mRetryPolicySupplier.get();
-    do {
+    while (retry.attempt()) {
       LOG.debug("Checking whether {} is listening", mProxyAddress);
       boolean connected = NetworkAddressUtils.isServing(mProxyAddress.getHostName(),
               mProxyAddress.getPort());
@@ -56,7 +56,7 @@ public class ProxyHealthCheckClient implements HealthCheckClient {
       }
       LOG.debug("Successfully connected to {}", mProxyAddress);
       return true;
-    } while (retry.attemptRetry());
+    }
     return false;
   }
 }
