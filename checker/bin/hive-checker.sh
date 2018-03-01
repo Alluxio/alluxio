@@ -29,8 +29,8 @@ Argument:
 
 Optional arguments:
     -mode USER_MODE is one of the following value, by default the value is location.
-        dfs                      Alluxio is configured as Hive default filesytem.
-        location                 Alluxio is used as a location of Hive tables other than Hive default filesystem.
+          dfs                    Alluxio is configured as Hive default filesytem.
+          location               Alluxio is used as a location of Hive tables other than Hive default filesystem.
     -user HIVE_USER_NAME         is the Hive user on whose behalf the connection is being made, by default is the system username.
     -password HIVE_USER_PASSWORD is the Hive user's password, by default is an empty string.
 

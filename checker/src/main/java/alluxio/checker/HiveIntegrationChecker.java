@@ -11,9 +11,10 @@
 
 package alluxio.checker;
 
+import com.beust.jcommander.IStringConverter;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
-import com.google.common.base.Preconditions;
+import com.beust.jcommander.ParameterException;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,13 +50,30 @@ public class HiveIntegrationChecker {
   private static final String TEST_FAILED_MESSAGE = "***** Integration test failed. *****\n";
   private static final String TEST_PASSED_MESSAGE = "***** Integration test passed. *****\n";
 
-  @Parameter(names = {"-alluxioUrl"}, description = "the alluxio cluster url of form "
+  /** Converts input string USER_MODE to enum Mode.*/
+  public static class ModeConverter implements IStringConverter<Mode> {
+    @Override
+    public Mode convert(String value) {
+      if (value.equalsIgnoreCase("dfs")) {
+        return Mode.dfs;
+      } else if (value.equalsIgnoreCase("location")) {
+        return Mode.location;
+      } else {
+        throw new ParameterException("-mode USER_MODE, USER_MODE is dfs or location, "
+            + "your USER_MODE is invalid");
+      }
+    }
+  }
+
+  @Parameter(names = {"-alluxioUrl"}, description = "the alluxio cluster url in the form "
       + "alluxio://master_hostname:port")
   private String mAlluxioURL = "";
 
-  @Parameter(names = {"-mode"}, description = "dfs means Alluxio is configured as Hive default filesytem,"
-      + "location means Alluxio is used as a location of Hive tables other than default filesystem.")
-  private String mUserMode = "location";
+  @Parameter(names = {"-mode"}, description = "dfs means Alluxio is configured as "
+      + "Hive default filesytem, location means Alluxio is used as "
+      + "a location of Hive tables other than Hive default filesystem.",
+      converter = ModeConverter.class)
+  private Mode mUserMode = Mode.location;
 
   @Parameter(names = {"-hiveUrl", "-hiveurl"}, description = "a Hive connection url "
       + "in the form jdbc:subprotocol:subname", required = true)
@@ -67,6 +85,12 @@ public class HiveIntegrationChecker {
 
   @Parameter(names = {"-password"}, description = "the Hive user's password")
   private String mHiveUserPassword = "";
+
+  /** Hive and Alluxio integration mode.*/
+  public enum Mode {
+    dfs, // Alluxio is configured as Hive default filesytem
+    location; // Alluxio is used as a location of Hive tables other than Hive default filesystem
+  }
 
   /**
    * Implements Hive with Alluxio integration checker.
@@ -85,8 +109,8 @@ public class HiveIntegrationChecker {
       }
 
       // Creates test table based on different integration ways
-      if (mUserMode.equals("dfs")) {
-        createTableInHiveUFS(con, tableName);
+      if (mUserMode.equals(Mode.dfs)) {
+        createTableInHiveDFS(con, tableName);
       } else {
         createTableInAlluxio(con, tableName);
       }
@@ -104,7 +128,7 @@ public class HiveIntegrationChecker {
       sql = String.format("select * from %s", tableName);
       reportWriter.println("Running " + sql);
       try (PreparedStatement selectTablePS = con.prepareStatement(sql);
-           ResultSet resultSet = selectTablePS.executeQuery();) {
+           ResultSet resultSet = selectTablePS.executeQuery()) {
         reportWriter.println("Result should be \"You passed Hive test!\" ");
         reportWriter.println("Checker result is: ");
         while (resultSet.next()) {
@@ -121,12 +145,12 @@ public class HiveIntegrationChecker {
   }
 
   /**
-   * Creates a test table stored in Alluxio filesystem (Hive ufs).
+   * Creates a test table stored in Alluxio filesystem (Hive dfs).
    *
    * @param con the Hive connection
    * @param tableName the name of the test table
    */
-  private void createTableInHiveUFS(Connection con, String tableName) throws Exception {
+  private void createTableInHiveDFS(Connection con, String tableName) throws Exception {
     String sql = String.format("CREATE TABLE %s (ROW1 STRING, ROW2 STRING) "
         + "ROW FORMAT DELIMITED FIELDS TERMINATED BY '|' "
         + "STORED AS TEXTFILE", tableName);
@@ -136,7 +160,7 @@ public class HiveIntegrationChecker {
   }
 
   /**
-   * Creates a test table stored in Alluxio filesystem (not Hive ufs).
+   * Creates a test table stored in Alluxio filesystem (not Hive dfs).
    *
    * @param con the Hive connection
    * @param tableName the name of the test table
@@ -175,14 +199,6 @@ public class HiveIntegrationChecker {
     reportWriter.println(TEST_FAILED_MESSAGE);
   }
 
-  /** Checks if input arguments are valid. */
-  private void checkIfInputValid() {
-    Preconditions.checkArgument(mUserMode.equals("location") || mUserMode.equals("dfs"));
-
-    Preconditions.checkArgument(mHiveURL.startsWith("jdbc:"),
-        "\nYour HIVE_URL is not start with \"jdbc:\".");
-  }
-
   /**
    * Main function will be triggered by hive-checker.sh.
    *
@@ -192,14 +208,6 @@ public class HiveIntegrationChecker {
     HiveIntegrationChecker checker = new HiveIntegrationChecker();
     JCommander jCommander = new JCommander(checker, args);
     jCommander.setProgramName("HiveIntegrationChecker");
-
-    try {
-      checker.checkIfInputValid();
-    } catch (Exception e) {
-      jCommander.usage();
-      System.out.println(e);
-      System.exit(1);
-    }
 
     try (PrintWriter reportWriter = CheckerUtils.initReportFile()) {
       int result = checker.run(reportWriter);
