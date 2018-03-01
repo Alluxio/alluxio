@@ -46,7 +46,7 @@ function generate_input() {
     echo "Running <ALLUXIO_HOME>/bin/alluxio fs mkdir /alluxioTestFolder"
     output=$(${LAUNCHER} "${ALLUXIO_BIN_PATH}" fs mkdir /alluxioTestFolder)
     echo $output
-    # If current user is not allowed to create folder in Alluxio cluster, we ask user to create it manually.
+    # If the current user is not allowed to create folder in Alluxio cluster, we ask user to create it manually.
     if [[ "${output}" == Permission* ]]; then
       echo "Create folder failed because of Alluxio permission denied."
       echo "Please use \"<ALLUXIO_HOME>/bin/alluxio mkdir /alluxioTestFolder\" to create the test folder "
