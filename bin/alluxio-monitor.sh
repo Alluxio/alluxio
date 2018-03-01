@@ -17,7 +17,7 @@ if [[ "$-" == *x* ]]; then
 fi
 BIN=$(cd "$( dirname "$( readlink "$0" || echo "$0" )" )"; pwd)
 
-USAGE="Usage: alluxio-monitor.sh [-h] ACTION [HOSTS]
+USAGE="Usage: alluxio-monitor.sh [-hL] ACTION [host1,host2,...]
 Where ACTION is one of:
   all                \tStart monitors for all masters, proxies, and workers nodes.
   local              \tStart monitors for all process locally.
@@ -28,11 +28,17 @@ Where ACTION is one of:
   proxy              \tStart the proxy monitor on this node.
   proxies            \tStart monitors for all proxies nodes.
 
--h  display this help."
+-L  enables the log mode, this option disable the monitor checks and causes alluxio-monitor to only print the node log tail.
+-h  display this help.
+"
 
-RED='\033[0;31m'
-GREEN='\033[0;32m'
+RED='\033[1;31m'
+GREEN='\033[1;32m'
+PURPLE='\033[0;35m'
+CYAN='\033[1;36m'
 NC='\033[0m'
+BOLD='\e[1m'
+END_BOLD='\e[21m'
 
 get_env() {
   DEFAULT_LIBEXEC_DIR="${BIN}"/../libexec
@@ -43,15 +49,33 @@ get_env() {
 
 prepare_monitor() {
   local msg=$1
-  echo "*****************************************"
-  echo "${msg}"
-  echo "*****************************************"
+  echo -e "${BOLD}-----------------------------------------${END_BOLD}"
+  echo -e "${msg}"
+  echo -e "${BOLD}-----------------------------------------${END_BOLD}"
   sleep 2
+}
+
+print_node_logs() {
+  local node_type=$1
+  local node_logs=( "${ALLUXIO_LOGS_DIR}/${node_type}.log" "${ALLUXIO_LOGS_DIR}/${node_type}.out" )
+  for node_log in "${node_logs[@]}"; do
+    echo -e "${CYAN}--- Printing the log tail for ${node_log}${NC}"
+    if [[ -f "${node_log}" ]]; then
+      local lines_count=$(cat "${node_log}" | wc -l)
+      if [[ lines_count -gt 0 ]]; then
+        echo -e "${CYAN}>>> BEGIN${NC}"
+        tail -30 "${node_log}"
+        echo -e "${CYAN}<<< EOF${NC}"
+      else
+        echo -e "    --- EMPTY ---"
+      fi
+    fi
+  done
 }
 
 run_monitor() {
   local node_type=$1
-  local node_logs=( "${ALLUXIO_LOGS_DIR}/${node_type}.log" "${ALLUXIO_LOGS_DIR}/${node_type}.out" )
+  local mode=$2
   case "${node_type}" in
     master)
       monitor_exec=alluxio.master.AlluxioMasterMonitor
@@ -64,28 +88,30 @@ run_monitor() {
       ;;
     *)
       echo "Error: Invalid NODE_TYPE: ${node_type}" >&2
-      exit 1
+      return 1
       ;;
   esac
 
-  echo " - Running ${node_type} monitor @ $(hostname -f)."
-  "${JAVA}" -cp ${CLASSPATH} ${ALLUXIO_JAVA_OPTS} ${monitor_exec}
-  if [[ $? -ne 0 ]]; then
-    echo -e " - ${RED}[ FAILED ] The ${node_type} @ $(hostname -f) is not serving requests.${NC}"
-    for node_log in "${node_logs[@]}"; do
-      echo " - Printing the log tail for ${node_log}"
-      echo ">> BEGIN"
-      test -f "${node_log}" && tail -30 "${node_log}"
-      echo "<< EOF"
-    done
+  if [[ "${mode}" == "-L" ]]; then
+    print_node_logs "${node_type}"
+    return 0
   else
-    echo -e "   ${GREEN}[ OK ] The ${node_type} service @ $(hostname -f) is in an healthy state.${NC}"
+    echo -e "${BOLD}---${END_BOLD} Running ${CYAN}${node_type}${NC} monitor ${BOLD}@ $(hostname -f)${END_BOLD}."
+    "${JAVA}" -cp ${CLASSPATH} ${ALLUXIO_JAVA_OPTS} ${monitor_exec}
+    if [[ $? -ne 0 ]]; then
+      echo -e "${BOLD}---${END_BOLD} ${RED}[ FAILED ] The ${node_type} @ $(hostname -f) is not serving requests.${NC}"
+      print_node_logs "${node_type}"
+      return 1
+    fi
   fi
+  echo -e "${BOLD}---${END_BOLD} ${GREEN}[ OK ] The ${node_type} service @ $(hostname -f) is in an healthy state.${NC}"
+  return 0
 }
 
 run_monitors() {
   local node_type=$1
   local nodes=$2
+  local mode=$3
   if [[ -z "${nodes}" ]]; then
     case "${node_type}" in
       master)
@@ -104,10 +130,25 @@ run_monitors() {
     esac
   fi
 
-  for node in $(echo ${nodes}); do
-    ssh -o ConnectTimeout=5 -o StrictHostKeyChecking=no -tt ${node} ${LAUNCHER} \
-        "${BIN}/alluxio-monitor.sh" "${node_type}"
-  done
+  if [[ "${node_type}" == "master" ]]; then
+    # master check should only run once...
+    local master=$(echo -e "${nodes}" | head -n1)
+    ssh -o ConnectTimeout=5 -o StrictHostKeyChecking=no -tt ${master} ${LAUNCHER} \
+        "${BIN}/alluxio-monitor.sh" ${mode} "${node_type}"
+    if [[ $? -ne 0 ]]; then
+      # if there is an error, print the log tail for the remaining master nodes.
+      nodes=$(echo -e "${nodes}" | tail -n+2)
+      for node in $(echo ${nodes}); do
+        ssh -o ConnectTimeout=5 -o StrictHostKeyChecking=no -tt ${node} ${LAUNCHER} \
+            "${BIN}/alluxio-monitor.sh" -L "${node_type}"
+      done
+    fi
+  else
+    for node in $(echo ${nodes}); do
+      ssh -o ConnectTimeout=5 -o StrictHostKeyChecking=no -tt ${node} ${LAUNCHER} \
+          "${BIN}/alluxio-monitor.sh" ${mode} "${node_type}"
+    done
+  fi
 }
 
 main() {
@@ -121,11 +162,14 @@ main() {
 
   get_env
 
-  while getopts "h" o; do
+  while getopts "hL" o; do
     case "${o}" in
       h)
         echo -e "${USAGE}"
         exit 0
+        ;;
+      L)
+        MODE="-L"
         ;;
       *)
         echo -e "${USAGE}" >&2
@@ -146,40 +190,40 @@ main() {
 
   case "${ACTION}" in
     all)
-      prepare_monitor "Starting to monitor all the services."
-      run_monitors "master" "${HOSTS}"
-      run_monitors "worker" "${HOSTS}"
-      run_monitors "proxy" "${HOSTS}"
+      prepare_monitor "Starting to monitor ${CYAN}all remote${NC} services."
+      run_monitors "master" "${HOSTS}" "${MODE}"
+      run_monitors "worker" "${HOSTS}" "${MODE}"
+      run_monitors "proxy" "${HOSTS}" "${MODE}"
       ;;
     local)
-      prepare_monitor "Starting to monitor the local services."
-      run_monitor "master"
-      run_monitor "worker"
-      run_monitor "proxy"
+      prepare_monitor "Starting to monitor ${CYAN}all local${NC} services."
+      run_monitor "master" "${MODE}"
+      run_monitor "worker" "${MODE}"
+      run_monitor "proxy"  "${MODE}"
       ;;
     master)
-      prepare_monitor "Starting to monitor the master service."
-      run_monitor "master"
+      prepare_monitor "Starting to monitor the ${CYAN}master${NC} service."
+      run_monitor "master" "${MODE}"
       ;;
     masters)
-      prepare_monitor "Starting to monitor all the masters services."
+      prepare_monitor "Starting to monitor all the ${CYAN}masters${NC} services."
       run_monitors "master" "${HOSTS}"
       ;;
     proxy)
-      prepare_monitor "Starting to monitor the proxy service."
-      run_monitor "proxy"
+      prepare_monitor "Starting to monitor the ${CYAN}proxy${NC} service."
+      run_monitor "proxy" "${MODE}"
       ;;
     proxies)
-      prepare_monitor "Starting to monitor the proxies services."
-      run_monitors "proxy" "${HOSTS}"
+      prepare_monitor "Starting to monitor the ${CYAN}proxies${NC} services."
+      run_monitors "proxy" "${HOSTS}" "${MODE}"
       ;;
     worker)
-      prepare_monitor "Starting to monitor the worker service."
-      run_monitor "worker"
+      prepare_monitor "Starting to monitor the ${CYAN}worker${NC} service."
+      run_monitor "worker" "${MODE}"
       ;;
     workers)
-      prepare_monitor "Starting to monitor the workers services."
-      run_monitors "worker" "${HOSTS}"
+      prepare_monitor "Starting to monitor the ${CYAN}workers${NC} services."
+      run_monitors "worker" "${HOSTS}" "${MODE}"
       ;;
     *)
     echo "Error: Invalid ACTION: ${ACTION}" >&2
