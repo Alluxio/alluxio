@@ -74,7 +74,7 @@ public final class ExponentialTimeBoundedRetryTest {
       }
       thread.interrupt();
       thread.join(10 * Constants.SECOND_MS);
-      assertFalse(retry.attemptRetry());
+      assertFalse(retry.attempt());
     }
   }
 
