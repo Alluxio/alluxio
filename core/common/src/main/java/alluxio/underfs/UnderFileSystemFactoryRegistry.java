@@ -17,6 +17,7 @@ import alluxio.RuntimeConstants;
 import alluxio.extensions.ExtensionsClassLoader;
 import alluxio.util.ExtensionUtils;
 
+import alluxio.util.ThreadUtils;
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -212,6 +213,9 @@ public final class UnderFileSystemFactoryRegistry {
    * @param loadedJars jars already loaded under this dir
    */
   private static void scan(List<File> files, Set<String> loadedJars) {
+    // added by Bin
+    LOG.info("scan ts: {}", ThreadUtils.formatStackTrace(Thread.currentThread()));
+    // added by Bin, end
     for (File jar : files) {
       try {
         URL extensionURL = jar.toURI().toURL();
