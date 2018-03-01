@@ -60,7 +60,6 @@ import java.net.InetSocketAddress;
 import java.net.URI;
 import java.security.Principal;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -289,7 +288,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
       // Check if there is any overlapping between [start, start+len] and [offset, end]
       if (end >= start && offset <= start + len) {
         // add the existing in-Alluxio block locations
-        Collection<WorkerNetAddress> locations = fileBlockInfo.getBlockInfo().getLocations()
+        List<WorkerNetAddress> locations = fileBlockInfo.getBlockInfo().getLocations()
             .stream().map(alluxio.wire.BlockLocation::getWorkerAddress).collect(toList());
         if (locations.isEmpty()) {
           // No in-Alluxio location, fallback to use under file system locations with
@@ -305,12 +304,12 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
         }
         if (locations.isEmpty()) {
           // Fallback to add all workers to the location so some apps (Impala) won't panic.
-          locations = workerHosts.values();
+          locations.addAll(workerHosts.values());
+          Collections.shuffle(locations);
         }
         List<HostAndPort> addresses = locations.stream()
             .map(worker -> HostAndPort.fromParts(worker.getHost(), worker.getDataPort()))
             .collect(toList());
-        Collections.shuffle(addresses);
         String[] names = addresses.stream().map(HostAndPort::toString).toArray(String[]::new);
         String[] hosts = addresses.stream().map(HostAndPort::getHostText).toArray(String[]::new);
         blockLocations.add(
