@@ -40,6 +40,7 @@ import java.net.SocketAddress;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.ThreadSafe;
@@ -70,6 +71,9 @@ public final class FileSystemContext implements Closeable {
   // Master client pools.
   private volatile FileSystemMasterClientPool mFileSystemMasterClientPool;
   private volatile BlockMasterClientPool mBlockMasterClientPool;
+
+  // Closed flag for debugging information.
+  private AtomicBoolean mClosed;
 
   // The netty data server channel pools.
   private final ConcurrentHashMap<SocketAddress, NettyChannelPool>
@@ -141,6 +145,7 @@ public final class FileSystemContext implements Closeable {
     mFileSystemMasterClientPool =
         new FileSystemMasterClientPool(mParentSubject, mMasterInquireClient);
     mBlockMasterClientPool = new BlockMasterClientPool(mParentSubject, mMasterInquireClient);
+    mClosed.set(false);
   }
 
   /**
@@ -164,6 +169,7 @@ public final class FileSystemContext implements Closeable {
     synchronized (this) {
       mLocalWorkerInitialized = false;
       mLocalWorker = null;
+      mClosed.set(true);
     }
   }
 
@@ -274,7 +280,8 @@ public final class FileSystemContext implements Closeable {
     if (mNettyChannelPools.containsKey(address)) {
       mNettyChannelPools.get(address).release(channel);
     } else {
-      LOG.warn("No channel pool for address {}, closing channel instead.", address);
+      LOG.warn("No channel pool for address {}, closing channel instead. Context is closed: {}",
+          address, mClosed.get());
       CommonUtils.closeChannel(channel);
     }
   }
