@@ -22,11 +22,12 @@ import java.io.PrintWriter;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 
 /**
  * Some Hive queries to test the integration of Hive with Alluxio.
- * Supports two options: Alluxio is used as storage of Hive tables
- * and Alluxio is configured as Hive default filesytem.
+ * Supports two options: Alluxio is configured as Hive default filesytem
+ * and Alluxio is used as a location of Hive tables other than Hive default filesystem.
  *
  * This checker requires a running Hive cluster and a running Alluxio cluster.
  * It will check whether Alluxio classes and Alluxio filesystem can be recognized
@@ -49,16 +50,15 @@ public class HiveIntegrationChecker {
   private static final String TEST_PASSED_MESSAGE = "***** Integration test passed. *****\n";
 
   @Parameter(names = {"-alluxioUrl"}, description = "the alluxio cluster url of form "
-      + "alluxio://master_hostname:port, which is converted from "
-      + "the alluxio.master.hostname property in alluxio-site.properties")
+      + "alluxio://master_hostname:port")
   private String mAlluxioURL = "";
 
-  @Parameter(names = {"-mode"}, description = "storage means Alluxio is used as storage of "
-      + "Hive tables, dfs means Alluxio is configured as Hive default filesytem.")
-  private String mUserMode = "storage";
+  @Parameter(names = {"-mode"}, description = "dfs means Alluxio is configured as Hive default filesytem,"
+      + "location means Alluxio is used as a location of Hive tables other than default filesystem.")
+  private String mUserMode = "location";
 
   @Parameter(names = {"-hiveUrl", "-hiveurl"}, description = "a Hive connection url "
-      + "of the form jdbc:subprotocol:subname", required = true)
+      + "in the form jdbc:subprotocol:subname", required = true)
   private String mHiveURL;
 
   @Parameter(names = {"-user"}, description = "the Hive user on whose behalf "
@@ -78,17 +78,22 @@ public class HiveIntegrationChecker {
     // Try to connect to Hive through JDBC
     try (Connection con = DriverManager.getConnection(mHiveURL, mHiveUserName, mHiveUserPassword)) {
       // Hive statements to check the integration
-      String tableName = "hiveTestTable";
+      String tableName = "AlluxioTestTable";
       String sql = String.format("drop table if exists %s", tableName);
       try (PreparedStatement dropTablePS = con.prepareStatement(sql)) {
         dropTablePS.execute();
       }
 
       // Creates test table based on different integration ways
-      if (mUserMode.equals("storage")) {
-        useAsSource(con, tableName);
+      if (mUserMode.equals("dfs")) {
+        createTableInHiveUFS(con, tableName);
       } else {
-        useAsUnderFS(con, tableName);
+        createTableInAlluxio(con, tableName);
+      }
+
+      sql = String.format("INSERT INTO %s VALUES ('You passed ', 'Hive Test!')", tableName);
+      try (PreparedStatement loadTablePS = con.prepareStatement(sql)) {
+        loadTablePS.executeUpdate();
       }
 
       sql = String.format("describe %s", tableName);
@@ -97,50 +102,51 @@ public class HiveIntegrationChecker {
       }
 
       sql = String.format("select * from %s", tableName);
-      try (PreparedStatement selectTablePS = con.prepareStatement(sql)) {
-        selectTablePS.execute();
+      reportWriter.println("Running " + sql);
+      try (PreparedStatement selectTablePS = con.prepareStatement(sql);
+           ResultSet resultSet = selectTablePS.executeQuery();) {
+        reportWriter.println("Result should be \"You passed Hive test!\" ");
+        reportWriter.println("Checker result is: ");
+        while (resultSet.next()) {
+          reportWriter.println(resultSet.getString(1) + resultSet.getString(2));
+        }
       }
     } catch (Exception e) {
       printExceptionReport(e, reportWriter);
       return 1;
     }
-    reportWriter.println("Congratulations, you have configured Hive with Alluxio correctly!\n");
+    reportWriter.println("\nCongratulations, you have configured Hive with Alluxio correctly!\n");
     reportWriter.println(TEST_PASSED_MESSAGE);
     return 0;
   }
 
   /**
-   * Supports the first integration way: use Alluxio as one option to store Hive tables.
+   * Creates a test table stored in Alluxio filesystem (Hive ufs).
    *
    * @param con the Hive connection
    * @param tableName the name of the test table
    */
-  private void useAsSource(Connection con, String tableName) throws Exception {
-    String sql = String.format("CREATE TABLE %s (ROW1 STRING, ROW2 STRING) "
-        + "ROW FORMAT DELIMITED FIELDS TERMINATED BY '|' "
-        + "LOCATION '%s/alluxioTestFolder/'", tableName, mAlluxioURL);
-    try (PreparedStatement createTablePS = con.prepareStatement(sql)) {
-      createTablePS.execute();
-    }
-  }
-
-  /**
-   * Supports the second integration way: use Alluxio as the default filesystem.
-   *
-   * @param con the Hive connection
-   * @param tableName the name of the test table
-   */
-  private void useAsUnderFS(Connection con, String tableName) throws Exception {
+  private void createTableInHiveUFS(Connection con, String tableName) throws Exception {
     String sql = String.format("CREATE TABLE %s (ROW1 STRING, ROW2 STRING) "
         + "ROW FORMAT DELIMITED FIELDS TERMINATED BY '|' "
         + "STORED AS TEXTFILE", tableName);
     try (PreparedStatement createTablePS = con.prepareStatement(sql)) {
       createTablePS.execute();
     }
+  }
 
-    sql = String.format("INSERT INTO %s VALUES ('Hive', 'Test')", tableName);
-    try (PreparedStatement loadTablePS = con.prepareStatement(sql)) {
-      loadTablePS.executeUpdate();
+  /**
+   * Creates a test table stored in Alluxio filesystem (not Hive ufs).
+   *
+   * @param con the Hive connection
+   * @param tableName the name of the test table
+   */
+  private void createTableInAlluxio(Connection con, String tableName) throws Exception {
+    String sql = String.format("CREATE TABLE %s (ROW1 STRING, ROW2 STRING) "
+        + "ROW FORMAT DELIMITED FIELDS TERMINATED BY '|' "
+        + "LOCATION '%s/alluxioTestFolder/'", tableName, mAlluxioURL);
+    try (PreparedStatement createTablePS = con.prepareStatement(sql)) {
+      createTablePS.execute();
     }
   }
 
@@ -152,14 +158,18 @@ public class HiveIntegrationChecker {
    */
   private void printExceptionReport(Exception exception, PrintWriter reportWriter) {
     String exceptionStr = exception.toString();
-    if (exceptionStr.contains("Class alluxio.hadoop.FileSystem not found")) {
+    if (exceptionStr.contains("Could not open client transport with JDBC Uri")) {
+      exception.printStackTrace(reportWriter);
+      reportWriter.printf("Could not open client transport with JDBC Uri: %s%n", mHiveURL);
+      reportWriter.println("Please modify your Hive Url and rerun the checker.");
+    } else if (exceptionStr.contains("Class alluxio.hadoop.FileSystem not found")) {
       reportWriter.println(FAIL_TO_FIND_CLASS_MESSAGE);
     } else if (exceptionStr.contains("No FileSystem for scheme \"alluxio\"")
         || exceptionStr.contains("No FileSystem for scheme: alluxio")) {
       reportWriter.println(FAIL_TO_FIND_FS_MESSAGE);
     } else {
       reportWriter.println("Please fix the following error and "
-          + "rerun the Hive Integration Checker. \n");
+          + "rerun the Hive Integration Checker.\n");
       exception.printStackTrace(reportWriter);
     }
     reportWriter.println(TEST_FAILED_MESSAGE);
@@ -167,15 +177,10 @@ public class HiveIntegrationChecker {
 
   /** Checks if input arguments are valid. */
   private void checkIfInputValid() {
-    String modeInvalidMessage = "\n-mode <USER_MODE>  USER_MODE should be \"storage\" or \"dfs\".\n"
-        + "Please check your USER_MODE and rerun the checker.";
-    Preconditions.checkArgument(mUserMode.equals("storage") || mUserMode.equals("dfs"),
-        modeInvalidMessage);
+    Preconditions.checkArgument(mUserMode.equals("location") || mUserMode.equals("dfs"));
 
-    String hiveUrlInvalidMessage = "\n-hiveurl <HIVE_URL> is a Hive Url of form "
-        + "jdbc:subprotocol:subname.\nPlease check your HIVE_URL and rerun the checker.";
     Preconditions.checkArgument(mHiveURL.startsWith("jdbc:"),
-        hiveUrlInvalidMessage);
+        "\nYour HIVE_URL is not start with \"jdbc:\".");
   }
 
   /**
