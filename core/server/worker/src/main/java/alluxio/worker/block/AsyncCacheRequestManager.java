@@ -18,6 +18,7 @@ import alluxio.exception.AlluxioException;
 import alluxio.exception.BlockAlreadyExistsException;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.proto.dataserver.Protocol;
+import alluxio.util.ThreadUtils;
 import alluxio.util.io.BufferUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.worker.block.io.BlockReader;
@@ -51,6 +52,8 @@ public class AsyncCacheRequestManager {
   private final String mLocalWorkerHostname;
   // added by Bin
   private AtomicLong mNum = new AtomicLong(0);
+  // added by Bin
+  private static AtomicLong mNumTotal = new AtomicLong(0);
 
   /**
    * @param service thread pool to run the background caching work
@@ -61,6 +64,9 @@ public class AsyncCacheRequestManager {
     mBlockWorker = blockWorker;
     mPendingRequests = new ConcurrentHashMap<>();
     mLocalWorkerHostname = NetworkAddressUtils.getLocalHostName();
+    // added by Bin
+    LOG.info("new acrm: {}", ThreadUtils.formatStackTrace(Thread.currentThread()));
+    // added by Bin, end
   }
 
   /**
@@ -73,7 +79,8 @@ public class AsyncCacheRequestManager {
     long blockId = request.getBlockId();
     long blockLength = request.getLength();
     // Added by Bin
-    LOG.info("blockID {}, len {}, current size {}", blockId, blockLength, mPendingRequests.size());
+    LOG.info("blockID {}, len {}, current size {}, {},{}",
+        blockId, blockLength, mPendingRequests.size(), this, ((Object) mNum));
     // Added by Bin end
     if (mPendingRequests.putIfAbsent(blockId, request) != null) {
       // This block is already planned.
@@ -96,6 +103,7 @@ public class AsyncCacheRequestManager {
         boolean isSourceLocal = mLocalWorkerHostname.equals(request.getSourceHost());
         // Depends on the request, cache the target block from different sources
         boolean result;
+        long startMs = System.currentTimeMillis();
         if (isSourceLocal) {
           result = cacheBlockFromUfs(blockId, blockLength, openUfsBlockOptions);
         } else {
@@ -104,7 +112,10 @@ public class AsyncCacheRequestManager {
           result =
               cacheBlockFromRemoteWorker(blockId, blockLength, sourceAddress, openUfsBlockOptions);
         }
-        LOG.info("Result of async caching block {} ({}): {}", blockId, mNum.getAndIncrement(), result);
+        long endMs = System.currentTimeMillis();
+        LOG.info("Result of async caching block {} ({}, {}, {} ms, {}): {}",
+            blockId, mNum.getAndIncrement(), mNumTotal.getAndIncrement(), endMs - startMs,
+            this, result);
         mPendingRequests.remove(blockId);
       });
     } catch (Exception e) {
