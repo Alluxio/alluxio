@@ -38,10 +38,11 @@ function build_docker_image {
 
 function main {
   cd "${SCRIPT_DIR}"
-  "${GENERATE_TARBALLS_SCRIPT}" single
-  local tarball="${PWD}/alluxio-${VERSION}.tar.gz"
+  local tmp_dir="$(mktemp -d)"
+  "${GENERATE_TARBALLS_SCRIPT}" single -target "${tmp_dir}/alluxio-\${VERSION}.tar.gz"
+  local tarball="${tmp_dir}/$(ls -tr ${tmp_dir} | tail -1)"
   build_docker_image "${tarball}"
-  rm "${tarball}"
+  rm -rf ${tmp_dir}
 }
 
 main "$@"
