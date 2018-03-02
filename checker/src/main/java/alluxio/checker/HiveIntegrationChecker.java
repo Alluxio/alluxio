@@ -65,6 +65,12 @@ public class HiveIntegrationChecker {
     }
   }
 
+  /** Hive and Alluxio integration mode.*/
+  public enum Mode {
+    dfs, // Alluxio is configured as Hive default filesytem
+    location; // Alluxio is used as a location of Hive tables other than Hive default filesystem
+  }
+
   @Parameter(names = {"-alluxioUrl"}, description = "the alluxio cluster url in the form "
       + "alluxio://master_hostname:port")
   private String mAlluxioURL = "";
@@ -85,12 +91,6 @@ public class HiveIntegrationChecker {
 
   @Parameter(names = {"-password"}, description = "the Hive user's password")
   private String mHiveUserPassword = "";
-
-  /** Hive and Alluxio integration mode.*/
-  public enum Mode {
-    dfs, // Alluxio is configured as Hive default filesytem
-    location; // Alluxio is used as a location of Hive tables other than Hive default filesystem
-  }
 
   /**
    * Implements Hive with Alluxio integration checker.
