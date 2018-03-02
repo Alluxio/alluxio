@@ -27,6 +27,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.List;
+import java.util.Map;
 
 /**
  * UFS which delegates to another UFS. Extend this class to override method behavior.
@@ -115,6 +116,16 @@ public class DelegatingUnderFileSystem implements UnderFileSystem {
   @Override
   public String getFingerprint(String path) {
     return mUfs.getFingerprint(path);
+  }
+
+  @Override
+  public UfsMode getOperationMode(Map<String, UfsMode> physicalUfsState) {
+    return mUfs.getOperationMode(physicalUfsState);
+  }
+
+  @Override
+  public List<String> getPhysicalStores() {
+    return mUfs.getPhysicalStores();
   }
 
   @Override
