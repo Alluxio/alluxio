@@ -942,6 +942,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
+  public static final PropertyKey MASTER_JOURNAL_FLUSH_RETRY_INTERVAL =
+      new Builder(Name.MASTER_JOURNAL_FLUSH_RETRY_INTERVAL)
+          .setDefaultValue("1sec")
+          .setDescription("The amount of time to sleep between retrying journal flushes")
+          .setIsHidden(true)
+          .build();
   public static final PropertyKey MASTER_JOURNAL_FOLDER =
       new Builder(Name.MASTER_JOURNAL_FOLDER)
           .setDefaultValue(String.format("${%s}/journal", Name.WORK_DIR))
@@ -2927,6 +2933,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.journal.flush.batch.time";
     public static final String MASTER_JOURNAL_FLUSH_TIMEOUT_MS =
         "alluxio.master.journal.flush.timeout";
+    public static final String MASTER_JOURNAL_FLUSH_RETRY_INTERVAL =
+        "alluxio.master.journal.retry.interval";
     public static final String MASTER_JOURNAL_FOLDER = "alluxio.master.journal.folder";
     public static final String MASTER_JOURNAL_TYPE = "alluxio.master.journal.type";
     public static final String MASTER_JOURNAL_FORMATTER_CLASS =
