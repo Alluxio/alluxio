@@ -35,6 +35,8 @@ import java.util.concurrent.ConcurrentHashMap;
 public abstract class AbstractUfsManager implements UfsManager {
   private static final Logger LOG = LoggerFactory.getLogger(AbstractUfsManager.class);
 
+  private final Object mLock = new Object();
+
   /**
    * The key of the UFS cache.
    */
@@ -116,20 +118,17 @@ public abstract class AbstractUfsManager implements UfsManager {
     if (cachedFs != null) {
       return cachedFs;
     }
-    UnderFileSystem fs = UnderFileSystem.Factory.create(ufsUri.toString(), ufsConf);
-    cachedFs = mUnderFileSystemMap.putIfAbsent(key, fs);
-    if (cachedFs == null) {
-      // above insert is successful
+    // On cache miss, synchronize the creation to ensure ufs is only created once
+    synchronized (mLock) {
+      cachedFs = mUnderFileSystemMap.get(key);
+      if (cachedFs != null) {
+        return cachedFs;
+      }
+      UnderFileSystem fs = UnderFileSystem.Factory.create(ufsUri.toString(), ufsConf);
+      mUnderFileSystemMap.putIfAbsent(key, fs);
       mCloser.register(fs);
       return fs;
     }
-    try {
-      fs.close();
-    } catch (IOException e) {
-      // Cannot close the created ufs which fails the race.
-      LOG.error("Failed to close UFS {}", fs, e);
-    }
-    return cachedFs;
   }
 
   @Override
