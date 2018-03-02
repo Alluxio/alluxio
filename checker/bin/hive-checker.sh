@@ -29,12 +29,20 @@ Argument:
 
 Optional arguments:
     -mode USER_MODE is one of the following value, by default the value is location.
-          dfs                    Alluxio is configured as Hive default filesytem.
+          dfs                    Alluxio is configured as Hive default filesystem.
           location               Alluxio is used as a location of Hive tables other than Hive default filesystem.
     -user HIVE_USER_NAME         is the Hive user on whose behalf the connection is being made, by default is the system username.
     -password HIVE_USER_PASSWORD is the Hive user's password, by default is an empty string.
 
 -h  display this help."
+
+PERMISSION_DENIED_MESSAGE="
+Create folder failed because of Alluxio permission denied.
+
+Please use \"<ALLUXIO_HOME>/bin/alluxio mkdir /alluxioTestFolder\" to create the test folder
+and use \"<ALLUXIO_HOME>/bin/alluxio chmod 777 /alluxioTestFolder\" to change the folder permission.
+
+Please rerun the Hive integration checker."
 
 ALLUXIO_PATH=$(cd "${CHECKER_BIN_PATH}/../../"; pwd)
 
@@ -42,23 +50,21 @@ function generate_input() {
   [ -f "./IntegrationReport.txt" ] && rm "./IntegrationReport.txt"
 
   if [[ "${HIVE_USER_MODE}" == "location" ]]; then
-    echo "Generating Alluxio test folder."
-    echo "Running <ALLUXIO_HOME>/bin/alluxio fs mkdir /alluxioTestFolder"
-    output=$(${LAUNCHER} "${ALLUXIO_BIN_PATH}" fs mkdir /alluxioTestFolder)
-    echo $output
-    # If the current user is not allowed to create folder in Alluxio cluster, we ask user to create it manually.
-    if [[ "${output}" == Permission* ]]; then
-      echo "Create folder failed because of Alluxio permission denied."
-      echo "Please use \"<ALLUXIO_HOME>/bin/alluxio mkdir /alluxioTestFolder\" to create the test folder "
-      echo "and use \"<ALLUXIO_HOME>/bin/alluxio chmod 777 /alluxioTestFolder\" to change the folder permission."
-      echo ""
-      echo "Please rerun the Hive integration checker."
-      exit 1
+    CREATE_FOLDER_MESSAGE=$(${LAUNCHER} "${ALLUXIO_BIN_PATH}" fs mkdir /alluxioTestFolder)
+    if [[ "$?" != 0 ]]; then
+      echo "Generating Alluxio test folder."
+      echo "Running <ALLUXIO_HOME>/bin/alluxio fs mkdir /alluxioTestFolder"
+      echo "${CREATE_FOLDER_MESSAGE}"
+      if [[ "${CREATE_FOLDER_MESSAGE}" == Permission* ]]; then
+        echo -e "${PERMISSION_DENIED_MESSAGE}" >&2
+        exit 1
+      fi
     fi
   fi
 }
 
 function trigger_hive() {
+  echo "Hive integration checker is running."
   if [[ "${ALLUXIO_URL}" == "" ]]; then
     ${LAUNCHER} java -cp "${ALLUXIO_CHECKER_JAR}" alluxio.checker.HiveIntegrationChecker "$@"
   else
@@ -69,9 +75,12 @@ function trigger_hive() {
 function clean_output() {
   [ -f "./IntegrationReport.txt" ] && rm "./IntegrationReport.txt"
   if [[ "${HIVE_USER_MODE}" == "location" ]]; then
+    DELETE_FOLDER_MESSAGE=$(${LAUNCHER} "${ALLUXIO_BIN_PATH}" fs rm -R /alluxioTestFolder)
+    if [[ "$?" != 0 ]]; then
     echo "Removing Alluxio test folder."
-    echo "Running <ALLUXIO_HOME>/bin/alluxio fs rm -R /alluxioTestFolder"
-    ${LAUNCHER} "${ALLUXIO_BIN_PATH}" fs rm -R /alluxioTestFolder
+      echo "Running <ALLUXIO_HOME>/bin/alluxio fs rm -R /alluxioTestFolder"
+      echo "${DELETE_FOLDER_MESSAGE}"
+    fi
   fi
 }
 

@@ -27,7 +27,7 @@ import java.sql.ResultSet;
 
 /**
  * Some Hive queries to test the integration of Hive with Alluxio.
- * Supports two options: Alluxio is configured as Hive default filesytem
+ * Supports two options: Alluxio is configured as Hive default filesystem
  * and Alluxio is used as a location of Hive tables other than Hive default filesystem.
  *
  * This checker requires a running Hive cluster and a running Alluxio cluster.
@@ -55,9 +55,9 @@ public class HiveIntegrationChecker {
     @Override
     public Mode convert(String value) {
       if (value.equalsIgnoreCase("dfs")) {
-        return Mode.dfs;
+        return Mode.DEFAULT_FILESYSTEM;
       } else if (value.equalsIgnoreCase("location")) {
-        return Mode.location;
+        return Mode.LOCATION;
       } else {
         throw new ParameterException("-mode USER_MODE, USER_MODE is dfs or location, "
             + "your USER_MODE is invalid");
@@ -67,8 +67,8 @@ public class HiveIntegrationChecker {
 
   /** Hive and Alluxio integration mode.*/
   public enum Mode {
-    dfs, // Alluxio is configured as Hive default filesytem
-    location; // Alluxio is used as a location of Hive tables other than Hive default filesystem
+    DEFAULT_FILESYSTEM, // Alluxio is configured as Hive default filesystem
+    LOCATION; // Alluxio is used as a location of Hive tables other than Hive default filesystem
   }
 
   @Parameter(names = {"-alluxioUrl"}, description = "the alluxio cluster url in the form "
@@ -76,10 +76,10 @@ public class HiveIntegrationChecker {
   private String mAlluxioURL = "";
 
   @Parameter(names = {"-mode"}, description = "dfs means Alluxio is configured as "
-      + "Hive default filesytem, location means Alluxio is used as "
+      + "Hive default filesystem, location means Alluxio is used as "
       + "a location of Hive tables other than Hive default filesystem.",
       converter = ModeConverter.class)
-  private Mode mUserMode = Mode.location;
+  private Mode mUserMode = Mode.LOCATION;
 
   @Parameter(names = {"-hiveUrl", "-hiveurl"}, description = "a Hive connection url "
       + "in the form jdbc:subprotocol:subname", required = true)
@@ -109,7 +109,7 @@ public class HiveIntegrationChecker {
       }
 
       // Creates test table based on different integration ways
-      if (mUserMode.equals(Mode.dfs)) {
+      if (mUserMode.equals(Mode.DEFAULT_FILESYSTEM)) {
         createTableInHiveDFS(con, tableName);
       } else {
         createTableInAlluxio(con, tableName);
@@ -145,7 +145,7 @@ public class HiveIntegrationChecker {
   }
 
   /**
-   * Creates a test table stored in Alluxio filesystem (Hive dfs).
+   * Creates a test table stored in Alluxio filesystem (Hive default filesystem).
    *
    * @param con the Hive connection
    * @param tableName the name of the test table
@@ -160,7 +160,7 @@ public class HiveIntegrationChecker {
   }
 
   /**
-   * Creates a test table stored in Alluxio filesystem (not Hive dfs).
+   * Creates a test table stored in Alluxio filesystem (not Hive default filesystem).
    *
    * @param con the Hive connection
    * @param tableName the name of the test table
