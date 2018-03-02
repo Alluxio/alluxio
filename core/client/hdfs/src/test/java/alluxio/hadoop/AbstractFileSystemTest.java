@@ -478,8 +478,7 @@ public class AbstractFileSystemTest {
     List<HostAndPort> expectedWorkerNames = expectedWorkers.stream()
         .map(addr -> HostAndPort.fromParts(addr.getHost(), addr.getDataPort())).collect(toList());
     FileSystem alluxioHadoopFs = new FileSystem(alluxioFs);
-    FileStatus file = new FileStatus();
-    file.setPath(path);
+    FileStatus file = new FileStatus(0, false, 0, 0, 0, 0, null, null, null, path);
     long start = 0;
     long len = 100;
     BlockLocation[] locations = alluxioHadoopFs.getFileBlockLocations(file, start, len);
