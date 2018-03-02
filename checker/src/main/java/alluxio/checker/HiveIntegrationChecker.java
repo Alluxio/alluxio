@@ -54,9 +54,9 @@ public class HiveIntegrationChecker {
   public static class ModeConverter implements IStringConverter<Mode> {
     @Override
     public Mode convert(String value) {
-      if (value.equalsIgnoreCase("dfs")) {
+      if (value.equals("dfs")) {
         return Mode.DEFAULT_FILESYSTEM;
-      } else if (value.equalsIgnoreCase("location")) {
+      } else if (value.equals("location")) {
         return Mode.LOCATION;
       } else {
         throw new ParameterException("-mode USER_MODE, USER_MODE is dfs or location, "
