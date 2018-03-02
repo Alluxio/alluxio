@@ -102,7 +102,7 @@ public class UfsJournalSystem extends AbstractJournalSystem {
         .withMaxSleep(Duration.ofSeconds(3))
         .build();
     IOException exception = null;
-    while (retry.attemptRetry()) {
+    while (retry.attempt()) {
       try {
         closer.close();
         return;
