@@ -28,6 +28,8 @@ Where ACTION is one of:
   proxy              \tStart the proxy monitor on this node.
   proxies            \tStart monitors for all proxies nodes.
 
+[host1,host2,...] is a comma separated list of host to monitor, if not given the default config for the target is used.
+
 -L  enables the log mode, this option disable the monitor checks and causes alluxio-monitor to only print the node log tail.
 -h  display this help.
 "
@@ -37,8 +39,8 @@ GREEN='\033[1;32m'
 PURPLE='\033[0;35m'
 CYAN='\033[1;36m'
 NC='\033[0m'
-BOLD='\e[1m'
-END_BOLD='\e[21m'
+BOLD=$(tput bold)
+END_BOLD=$(tput sgr0)
 
 get_env() {
   DEFAULT_LIBEXEC_DIR="${BIN}"/../libexec
