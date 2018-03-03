@@ -90,6 +90,9 @@ func getCommonMvnArgs(hadoopDistribution string) []string {
 	if hadoopDistribution != "" {
 		hadoopVersion := hadoopDistributions[hadoopDistribution]
 		args = append(args, fmt.Sprintf("-Dhadoop.version=%v", hadoopVersion), fmt.Sprintf("-P%v", hadoopVersion.hadoopProfile()))
+		if hadoopVersion.major >= 2 && hadoopVersion.minor >= 4 {
+			args = append(args, "-Pyarn")
+		}
 	}
 	return args
 }
