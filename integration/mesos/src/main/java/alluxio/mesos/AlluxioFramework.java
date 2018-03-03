@@ -72,6 +72,14 @@ public class AlluxioFramework {
       frameworkInfo.setPrincipal(Configuration.get(PropertyKey.INTEGRATION_MESOS_PRINCIPAL));
     }
 
+    // Publish WebUI url to mesos master.
+    String masterHostName = Configuration.containsKey(PropertyKey.MASTER_WEB_HOSTNAME)
+        ? Configuration.get(PropertyKey.MASTER_WEB_HOSTNAME)
+        : Configuration.get(PropertyKey.MASTER_HOSTNAME);
+    String webUrl = "http://" + masterHostName + ":"
+        + Configuration.get(PropertyKey.MASTER_WEB_PORT) + "/";
+    frameworkInfo.setWebuiUrl(webUrl);
+
     Scheduler scheduler = new AlluxioScheduler(mAlluxioMasterHostname);
 
     Protos.Credential cred = createCredential();
