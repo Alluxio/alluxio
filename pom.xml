@@ -139,6 +139,7 @@
     <aws.amazonaws.version>1.11.215</aws.amazonaws.version>
     <build.path>build</build.path>
     <checkstyle.path>build/checkstyle/</checkstyle.path>
+    <checker.framework.version>2.4.0</checker.framework.version>
     <cxf.version>2.7.0</cxf.version>
     <findbugs.path>build/findbugs</findbugs.path>
     <glusterfs-hadoop.version>2.3.13</glusterfs-hadoop.version>
@@ -714,6 +715,22 @@
   <!-- Dependencies to add to all projects. -->
   <dependencies>
     <!-- Dependencies in the compile scope. -->
+    <!-- Checker Framework. -->
+    <dependency>
+      <groupId>org.checkerframework</groupId>
+      <artifactId>checker</artifactId>
+      <version>${checker.framework.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.checkerframework</groupId>
+      <artifactId>checker-qual</artifactId>
+      <version>${checker.framework.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.checkerframework</groupId>
+      <artifactId>jdk8</artifactId>
+      <version>${checker.framework.version}</version>
+    </dependency>
     <!-- FindBugs and concurrency annotations. -->
     <dependency>
       <groupId>com.google.code.findbugs</groupId>
@@ -873,8 +890,17 @@
             <target>${java.version}</target>
             <encoding>UTF-8</encoding>
             <maxmem>1024m</maxmem>
+            <compilerArguments>
+              <Xmaxerrs>10000</Xmaxerrs>
+              <Xmaxwarns>10000</Xmaxwarns>
+            </compilerArguments>
+            <annotationProcessors>
+              <annotationProcessor>org.checkerframework.checker.nullness.NullnessChecker</annotationProcessor>
+            </annotationProcessors>
             <compilerArgs>
               <arg>-Xlint:none</arg>
+              <arg>-Xbootclasspath/p:${org.checkerframework:jdk8:jar}</arg>
+              <arg>-AskipDefs=^alluxio\.proto\.|alluxio\.thrift\.</arg>
             </compilerArgs>
           </configuration>
         </plugin>
@@ -882,6 +908,13 @@
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-dependency-plugin</artifactId>
           <version>3.0.1</version>
+          <executions>
+            <execution>
+              <goals>
+                <goal>properties</goal>
+              </goals>
+            </execution>
+          </executions>
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
