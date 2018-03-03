@@ -50,14 +50,17 @@ function generate_input() {
   [ -f "./IntegrationReport.txt" ] && rm "./IntegrationReport.txt"
 
   if [[ "${HIVE_USER_MODE}" == "location" ]]; then
-    CREATE_FOLDER_MESSAGE=$(${LAUNCHER} "${ALLUXIO_BIN_PATH}" fs mkdir /alluxioTestFolder)
+    ${LAUNCHER} "${ALLUXIO_BIN_PATH}" fs test -e /alluxioTestFolder > /dev/null
     if [[ "$?" != 0 ]]; then
-      echo "Generating Alluxio test folder."
-      echo "Running <ALLUXIO_HOME>/bin/alluxio fs mkdir /alluxioTestFolder"
-      echo "${CREATE_FOLDER_MESSAGE}"
-      if [[ "${CREATE_FOLDER_MESSAGE}" == Permission* ]]; then
-        echo -e "${PERMISSION_DENIED_MESSAGE}" >&2
-        exit 1
+      CREATE_FOLDER_MESSAGE=$(${LAUNCHER} "${ALLUXIO_BIN_PATH}" fs mkdir /alluxioTestFolder)
+      if [[ "$?" != 0 ]]; then
+        echo "Generating Alluxio test folder."
+        echo "Running <ALLUXIO_HOME>/bin/alluxio fs mkdir /alluxioTestFolder"
+        echo "${CREATE_FOLDER_MESSAGE}"
+        if [[ "${CREATE_FOLDER_MESSAGE}" == Permission* ]]; then
+          echo -e "${PERMISSION_DENIED_MESSAGE}" >&2
+          exit 1
+        fi
       fi
     fi
   fi
