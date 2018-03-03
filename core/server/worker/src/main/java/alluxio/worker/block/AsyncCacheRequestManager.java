@@ -11,6 +11,7 @@
 
 package alluxio.worker.block;
 
+import alluxio.Constants;
 import alluxio.Sessions;
 import alluxio.StorageTierAssoc;
 import alluxio.WorkerStorageTierAssoc;
@@ -113,8 +114,8 @@ public class AsyncCacheRequestManager {
           LOG.info("Result of async caching block {} ({}, {} MB/s): {}",
               blockId, mNum.getAndIncrement(), blockLength / 1000.0 / (endMs - startMs), result);
           mPendingRequests.remove(blockId);
-        } catch (Throwable t) {
-          LOG.error("Failed to download block from UFS", t);
+        } catch (Exception e) {
+          LOG.warn("Failed to complete async cache request {} from UFS", request, e.getMessage());
         }
       });
     } catch (Exception e) {
@@ -149,7 +150,14 @@ public class AsyncCacheRequestManager {
     try (BlockReader reader = mBlockWorker
         .readUfsBlock(Sessions.ASYNC_CACHE_SESSION_ID, blockId, 0)) {
       // Read the entire block, caching to block store will be handled internally in UFS block store
-      reader.read(0, blockSize);
+      // Note that, we read from UFS with a smaller buffer to avoid high pressure on heap
+      // memory when concurrent async requests are received and thus trigger GC.
+      long offset = 0;
+      while (offset < blockSize) {
+        long bufferSize = Math.min(8 * Constants.MB, blockSize - offset);
+        reader.read(offset, bufferSize);
+        offset = bufferSize;
+      }
     } catch (AlluxioException | IOException e) {
       // This is only best effort
       LOG.warn("Failed to async cache block {} from UFS on copying the block: {}", blockId,
