@@ -147,6 +147,12 @@ func addAdditionalFiles(srcPath, dstPath, version string) {
 		"integration/kubernetes/conf/alluxio.properties.template",
 		// FUSE
 		"integration/fuse/bin/alluxio-fuse",
+		"integration/mesos/bin/alluxio-env-mesos.sh",
+		"integration/mesos/bin/alluxio-mesos-start.sh",
+		"integration/mesos/bin/alluxio-master-mesos.sh",
+		"integration/mesos/bin/alluxio-mesos-stop.sh",
+		"integration/mesos/bin/alluxio-worker-mesos.sh",
+		"integration/mesos/bin/common.sh",
 	}
 	for _, path := range pathsToCopy {
 		mkdir(filepath.Join(dstPath, filepath.Dir(path)))
