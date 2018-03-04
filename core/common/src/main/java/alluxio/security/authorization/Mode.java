@@ -79,6 +79,7 @@ public final class Mode {
    * @param otherBits the other {@link Bits}
    */
   public Mode(Bits ownerBits, Bits groupBits, Bits otherBits) {
+    this();
     set(ownerBits, groupBits, otherBits);
   }
 
@@ -89,6 +90,7 @@ public final class Mode {
    * @see #toShort()
    */
   public Mode(short mode) {
+    this();
     fromShort(mode);
   }
 
@@ -98,6 +100,7 @@ public final class Mode {
    * @param mode another {@link Mode}
    */
   public Mode(Mode mode) {
+    this();
     set(mode.mOwnerBits, mode.mGroupBits, mode.mOtherBits);
   }
 

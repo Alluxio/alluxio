@@ -18,6 +18,7 @@ import alluxio.underfs.options.DeleteOptions;
 import java.io.IOException;
 import java.io.OutputStream;
 
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -133,6 +134,7 @@ public final class UnderFileSystemUtils {
    * @param uri the UFS path
    * @return the bucket or container name of the object storage
    */
+  @Nullable
   public static String getBucketName(AlluxioURI uri) {
     return uri.getAuthority();
   }

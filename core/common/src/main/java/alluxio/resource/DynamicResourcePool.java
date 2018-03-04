@@ -233,6 +233,7 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
    *
    * @param options the options
    */
+  @SuppressWarnings("nullness")
   public DynamicResourcePool(Options options) {
     mExecutor = Preconditions.checkNotNull(options.getGcExecutor(), "executor");
 

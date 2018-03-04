@@ -13,6 +13,7 @@ package alluxio.cli;
 
 import alluxio.util.CommonUtils;
 
+import org.checkerframework.checker.initialization.qual.Initialized;
 import org.reflections.Reflections;
 
 import java.lang.reflect.Modifier;
@@ -47,8 +48,10 @@ public final class CommandUtils {
       if (cls.getPackage().getName().equals(pkgName + ".command")
           && !Modifier.isAbstract(cls.getModifiers())) {
         // Only instantiate a concrete class
-        Command cmd = CommonUtils.createNewClassInstance(cls, classArgs, objectArgs);
-        commandsMap.put(cmd.getCommandName(), cmd);
+        @Initialized Command cmd = CommonUtils.createNewClassInstance(cls, classArgs, objectArgs);
+        if (cmd != null) {
+          commandsMap.put(cmd.getCommandName(), cmd);
+        }
       }
     }
     return commandsMap;

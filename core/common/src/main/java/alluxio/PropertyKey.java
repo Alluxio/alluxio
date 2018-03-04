@@ -3473,6 +3473,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   /**
    * @param name String of this property
    */
+  @SuppressWarnings("nullness")
   private PropertyKey(String name) {
     this(name, null, new DefaultSupplier(() -> null, "null"), null, false, false,
         ConsistencyCheckLevel.IGNORE, Scope.ALL);

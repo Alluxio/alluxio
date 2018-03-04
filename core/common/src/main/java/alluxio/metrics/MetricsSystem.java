@@ -25,6 +25,7 @@ import com.codahale.metrics.jvm.GarbageCollectorMetricSet;
 import com.codahale.metrics.jvm.MemoryUsageGaugeSet;
 import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -62,7 +63,7 @@ public final class MetricsSystem {
   }
 
   @GuardedBy("MetricsSystem")
-  private static List<Sink> sSinks;
+  @Nullable private static List<Sink> sSinks;
 
   public static final String SINK_REGEX = "^sink\\.(.+)\\.(.+)";
   private static final TimeUnit MINIMAL_POLL_UNIT = TimeUnit.SECONDS;
@@ -94,6 +95,7 @@ public final class MetricsSystem {
    *
    * @param config the metrics config
    */
+  @SuppressWarnings("nullness")
   public static synchronized void startSinksFromConfig(MetricsConfig config) {
     if (sSinks != null) {
       LOG.info("Sinks have already been started.");
@@ -205,6 +207,7 @@ public final class MetricsSystem {
    * @param metricsName the long metrics name with instance and host name
    * @return the metrics name without instance and host name
    */
+  @SuppressWarnings("nullness")
   public static String stripInstanceAndHost(String metricsName) {
     String[] pieces = metricsName.split("\\.");
     Preconditions.checkArgument(pieces.length > 1, "Incorrect metrics name: %s.", metricsName);

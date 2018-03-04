@@ -24,6 +24,7 @@ import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import com.google.common.primitives.Ints;
 import io.netty.buffer.ByteBuf;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 import java.util.Arrays;
 
@@ -205,7 +206,8 @@ public final class RPCProtoMessage extends RPCMessage {
    * @param data the data buffer
    * @return the created {@link RPCProtoMessage}
    */
-  public static RPCProtoMessage createResponse(Status status, String message, DataBuffer data) {
+  public static RPCProtoMessage createResponse(Status status, String message,
+      @Nullable DataBuffer data) {
     Response response = Protocol.Response.newBuilder().setStatus(Status.toProto(status))
         .setMessage(message).build();
     return new RPCProtoMessage(new ProtoMessage(response), data);

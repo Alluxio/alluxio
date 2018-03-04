@@ -15,6 +15,7 @@ import alluxio.annotation.PublicApi;
 import alluxio.security.authorization.Mode;
 
 import com.google.common.base.Objects;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -31,8 +32,8 @@ public final class CreateOptions {
   // Ensure writes are not readable till close.
   private boolean mEnsureAtomic;
 
-  private String mOwner;
-  private String mGroup;
+  @Nullable private String mOwner;
+  @Nullable private String mGroup;
   private Mode mMode;
 
   /**
@@ -64,6 +65,7 @@ public final class CreateOptions {
   /**
    * @return the owner
    */
+  @Nullable
   public String getOwner() {
     return mOwner;
   }
@@ -71,6 +73,7 @@ public final class CreateOptions {
   /**
    * @return the group
    */
+  @Nullable
   public String getGroup() {
     return mGroup;
   }
