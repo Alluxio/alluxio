@@ -63,6 +63,18 @@ spark.driver.extraJavaOptions -Dalluxio.zookeeper.address=zookeeperHost1:2181,zo
 spark.executor.extraJavaOptions -Dalluxio.zookeeper.address=zookeeperHost1:2181,zookeeperHost2:2181 -Dalluxio.zookeeper.enabled=true
 ```
 
+## 检查Spark和Alluxio的一体化（支持Spark 2.x）
+
+在Alluxio上运行Spark前，你可能想确定你的Spark与Alluxio一体化的配置已经正确设置了。Spark一体化检查器可以帮你实现这一点。
+
+当你拥有一个正在运行的Spark集群（或者Spark单机），你可以在Alluxio项目目录下运行以下的命令：
+
+```bash
+$ checker/bin/alluxio-checker.sh spark <spark master uri> <spark partition number(optional)>
+```
+
+这将会报告可能阻止你在Alluxio上运行Spark的潜在问题。
+
 ## 使用Alluxio作为输入输出
 
 这一部分说明如何将Alluxio作为Spark应用的输入输出源。
