@@ -11,6 +11,8 @@
 
 package alluxio.resource;
 
+import org.checkerframework.checker.nullness.qual.Nullable;
+
 import java.io.Closeable;
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
@@ -27,6 +29,7 @@ public interface Pool<T> extends Closeable {
    *
    * @return the acquired resource which should not be null
    */
+  @Nullable
   T acquire() throws IOException;
 
   /**
@@ -36,7 +39,8 @@ public interface Pool<T> extends Closeable {
    * @param unit the unit of the time
    * @return the acquired resource which should not be null
    */
-  T acquire(long time, TimeUnit unit) throws TimeoutException, IOException;
+  @Nullable
+  T acquire(long time, @Nullable TimeUnit unit) throws TimeoutException, IOException;
 
   /**
    * Releases the resource to the pool.

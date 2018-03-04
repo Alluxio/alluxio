@@ -118,7 +118,7 @@ public interface URI extends Comparable<URI>, Serializable {
      * @return the created {@link URI}
      */
     public static URI create(@Nullable String scheme, @Nullable String authority, String path,
-                             @Nullable String query) {
+        @Nullable String query) {
       Preconditions.checkArgument(path != null, "Can not create a uri with a null path.");
 
       // Handle schemes with two components.

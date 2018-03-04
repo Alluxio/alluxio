@@ -15,6 +15,7 @@ import alluxio.Constants;
 import alluxio.clock.SystemClock;
 
 import com.google.common.base.Preconditions;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -283,6 +284,7 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
    * @return the acquired resource
    */
   @Override
+  @Nullable
   public T acquire() throws IOException {
     try {
       return acquire(100  /* no timeout */, TimeUnit.DAYS);
@@ -304,7 +306,8 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
    * @throws TimeoutException if it fails to acquire because of time out
    */
   @Override
-  public T acquire(long time, TimeUnit unit) throws TimeoutException, IOException {
+  @Nullable
+  public T acquire(long time, @Nullable TimeUnit unit) throws TimeoutException, IOException {
     long endTimeMs = mClock.millis() + unit.toMillis(time);
 
     // Try to take a resource without blocking

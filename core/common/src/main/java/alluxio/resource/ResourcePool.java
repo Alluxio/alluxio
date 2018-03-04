@@ -12,6 +12,7 @@
 package alluxio.resource;
 
 import com.google.common.base.Preconditions;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 import java.io.IOException;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -20,7 +21,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
-import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -73,6 +73,7 @@ public abstract class ResourcePool<T> implements Pool<T> {
    * @return a resource taken from the pool
    */
   @Override
+  @Nullable
   public T acquire() {
     return acquire(WAIT_INDEFINITELY, null);
   }
@@ -89,7 +90,7 @@ public abstract class ResourcePool<T> implements Pool<T> {
    */
   @Override
   @Nullable
-  public T acquire(long time, TimeUnit unit) {
+  public T acquire(long time, @Nullable TimeUnit unit) {
     // If either time or unit are null, the other should also be null.
     Preconditions.checkState((time <= 0) == (unit == null));
     long endTimeMs = 0;

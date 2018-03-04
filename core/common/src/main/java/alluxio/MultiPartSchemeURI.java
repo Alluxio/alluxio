@@ -38,7 +38,7 @@ public final class MultiPartSchemeURI extends StandardURI {
    * @param query the query component of the URI
    */
   public MultiPartSchemeURI(String schemePrefix, String scheme, @Nullable String authority,
-                            String path, @Nullable String query) {
+      String path, @Nullable String query) {
     super(scheme, authority, path, query);
     mFullScheme = getFullScheme(schemePrefix, mUri.getScheme());
   }

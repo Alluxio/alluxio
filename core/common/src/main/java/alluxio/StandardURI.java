@@ -37,7 +37,7 @@ public class StandardURI implements URI {
    * @param query the query component of the URI
    */
   public StandardURI(@Nullable String scheme, @Nullable String authority, String path,
-                     @Nullable String query) {
+      @Nullable String query) {
     try {
       if (AlluxioURI.CUR_DIR.equals(path)) {
         mUri = new java.net.URI(scheme, authority, AlluxioURI.normalizePath(path), query, null);
