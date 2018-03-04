@@ -20,12 +20,14 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Pattern;
 
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * Fingerprint for a UFS file or directory.
  */
 @NotThreadSafe
+@Nullable
 public final class Fingerprint {
   /** These tags are required in all fingerprints. */
   private static final Tag[] REQUIRED_TAGS = {Tag.TYPE, Tag.UFS, Tag.OWNER, Tag.GROUP, Tag.MODE};

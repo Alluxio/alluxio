@@ -11,25 +11,28 @@
 
 package alluxio;
 
+import org.checkerframework.checker.nullness.qual.Nullable;
+
 import java.util.function.Supplier;
 
 /**
  * Supplier for a configuration property default.
  */
 public class DefaultSupplier implements Supplier<Object> {
-  private final Supplier<Object> mSupplier;
+  private final Supplier<@Nullable Object> mSupplier;
   private final String mDescription;
 
   /**
    * @param supplier the value
    * @param description a description of the default value
    */
-  public DefaultSupplier(Supplier<Object> supplier, String description) {
+  public DefaultSupplier(Supplier<@Nullable Object> supplier, String description) {
     mSupplier = supplier;
     mDescription = description;
   }
 
   @Override
+  @SuppressWarnings("nullness")
   public Object get() {
     return mSupplier.get();
   }

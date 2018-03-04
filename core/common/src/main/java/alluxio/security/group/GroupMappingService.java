@@ -16,6 +16,7 @@ import alluxio.PropertyKey;
 import alluxio.annotation.PublicApi;
 import alluxio.util.CommonUtils;
 
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,7 +41,7 @@ public interface GroupMappingService {
     // TODO(chaomin): maintain a map from SECURITY_GROUP_MAPPING_CLASS name to cachedGroupMapping.
     // Currently the single global cached GroupMappingService assumes that there is no dynamic
     // configuration change for {@link Constants#SECURITY_GROUP_MAPPING_CLASS}.
-    private static CachedGroupMapping sCachedGroupMapping = null;
+    @Nullable private static CachedGroupMapping sCachedGroupMapping = null;
 
     // prevent instantiation
     private Factory() {}
@@ -50,6 +51,7 @@ public interface GroupMappingService {
      *
      * @return the groups mapping service being used to map user-to-groups
      */
+    @SuppressWarnings("nullness")
     public static GroupMappingService get() {
       if (sCachedGroupMapping == null) {
         synchronized (Factory.class) {

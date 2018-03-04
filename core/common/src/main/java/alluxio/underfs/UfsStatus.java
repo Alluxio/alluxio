@@ -12,8 +12,8 @@
 package alluxio.underfs;
 
 import com.google.common.base.Objects;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
-import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -74,8 +74,9 @@ public abstract class UfsStatus {
    * @param children array of listing statuses
    * @return array of file or directory names, or null if the input is null
    */
+  @SuppressWarnings("nullness")
   @Nullable
-  public static String[] convertToNames(UfsStatus[] children) {
+  public static String[] convertToNames(@Nullable UfsStatus[] children) {
     if (children == null) {
       return null;
     }
@@ -156,7 +157,7 @@ public abstract class UfsStatus {
   }
 
   @Override
-  public boolean equals(Object o) {
+  public boolean equals(@Nullable Object o) {
     if (this == o) {
       return true;
     }

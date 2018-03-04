@@ -11,6 +11,7 @@
 
 package alluxio;
 
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -36,8 +37,8 @@ public final class MultiPartSchemeURI extends StandardURI {
    * @param path the path component of the URI
    * @param query the query component of the URI
    */
-  public MultiPartSchemeURI(String schemePrefix, String scheme, String authority, String path,
-      String query) {
+  public MultiPartSchemeURI(String schemePrefix, String scheme, @Nullable String authority,
+                            String path, @Nullable String query) {
     super(scheme, authority, path, query);
     mFullScheme = getFullScheme(schemePrefix, mUri.getScheme());
   }

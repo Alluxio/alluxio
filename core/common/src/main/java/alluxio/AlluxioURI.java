@@ -84,7 +84,8 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
    * @param path the path component of the URI. e.g. /abc/c.txt, /a b/c/c.txt
    * @param queryMap the (nullable) map of key/value pairs for the query component of the URI
    */
-  public AlluxioURI(String scheme, String authority, String path, Map<String, String> queryMap) {
+  public AlluxioURI(@Nullable String scheme, @Nullable String authority, String path,
+                    Map<String, String> queryMap) {
     mUri = URI.Factory.create(scheme, authority, path, URIUtils.generateQueryString(queryMap));
   }
 
@@ -106,7 +107,8 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
    * @param path the path component of the URI. e.g. /abc/c.txt, /a b/c/c.txt
    * @param query the query component of the URI
    */
-  private AlluxioURI(String scheme, String authority, String path, String query) {
+  private AlluxioURI(@Nullable String scheme, @Nullable String authority, String path,
+                     String query) {
     mUri = URI.Factory.create(scheme, authority, path, query);
   }
 
@@ -397,8 +399,8 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
    * @return the new {@link AlluxioURI}
    */
   public AlluxioURI join(String suffix) {
-    return new AlluxioURI(getScheme(), getAuthority(), getPath() + AlluxioURI.SEPARATOR + suffix,
-        mUri.getQuery());
+    return new AlluxioURI(getScheme(), getAuthority(),
+            getPath() + AlluxioURI.SEPARATOR + suffix, mUri.getQuery());
   }
 
   /**

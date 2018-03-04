@@ -17,6 +17,7 @@ import alluxio.exception.status.UnauthenticatedException;
 
 import org.apache.thrift.transport.TTransport;
 import org.apache.thrift.transport.TTransportFactory;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 import java.net.InetSocketAddress;
 
@@ -84,7 +85,7 @@ public interface TransportProvider {
    * @param serverAddress the server address which clients will connect to
    * @return a TTransport for client
    */
-  TTransport getClientTransport(Subject subject, InetSocketAddress serverAddress)
+  TTransport getClientTransport(Subject subject, @Nullable InetSocketAddress serverAddress)
       throws UnauthenticatedException;
 
   /**

@@ -20,6 +20,9 @@ import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.google.common.collect.Sets;
 import com.sun.management.OperatingSystemMXBean;
+import org.checkerframework.checker.initialization.qual.Initialized;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 import java.lang.annotation.Annotation;
 import java.lang.management.ManagementFactory;
@@ -119,8 +122,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
    */
   public static final class Builder {
     private String[] mAlias;
-    private DefaultSupplier mDefaultSupplier;
-    private Object mDefaultValue;
+    @Nullable private DefaultSupplier mDefaultSupplier;
+    @Nullable private Object mDefaultValue;
     private String mDescription;
     private final String mName;
     private boolean mIgnoredSiteProperty;
@@ -166,7 +169,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
      * @param description description of the default value
      * @return the updated builder instance
      */
-    public Builder setDefaultSupplier(Supplier<Object> supplier, String description) {
+    public Builder setDefaultSupplier(Supplier<@Nullable Object> supplier, String description) {
       mDefaultSupplier = new DefaultSupplier(supplier, description);
       return this;
     }
@@ -229,9 +232,9 @@ public final class PropertyKey implements Comparable<PropertyKey> {
      * @return the created property key instance
      */
     public PropertyKey build() {
-      DefaultSupplier defaultSupplier = mDefaultSupplier;
+      @Nullable DefaultSupplier defaultSupplier = mDefaultSupplier;
       if (defaultSupplier == null) {
-        String defaultString = String.valueOf(mDefaultValue);
+        @Initialized String defaultString = String.valueOf(mDefaultValue);
         defaultSupplier = (mDefaultValue == null)
             ? new DefaultSupplier(() -> null, "null")
             : new DefaultSupplier(() -> defaultString, defaultString);
@@ -3426,10 +3429,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   private final String mDescription;
 
   /** Supplies the Property Key default value. */
-  private final DefaultSupplier mDefaultSupplier;
+  @Nullable private final DefaultSupplier mDefaultSupplier;
 
   /** Property Key alias. */
-  private final String[] mAliases;
+  @Nullable private final String[] mAliases;
 
   /** Whether to ignore as a site property. */
   private final boolean mIgnoredSiteProperty;
@@ -3453,12 +3456,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
    * @param consistencyCheckLevel the consistency check level to apply to this property
    * @param scope the scope this property applies to
    */
-  private PropertyKey(String name, String description, DefaultSupplier defaultSupplier,
-      String[] aliases, boolean ignoredSiteProperty, boolean isHidden,
+  private PropertyKey(String name, @Nullable String description,
+                      @Nullable DefaultSupplier defaultSupplier, @Nullable String[] aliases,
+                      boolean ignoredSiteProperty, boolean isHidden,
       ConsistencyCheckLevel consistencyCheckLevel, Scope scope) {
     mName = Preconditions.checkNotNull(name, "name");
-    // TODO(binfan): null check after we add description for each property key
-    mDescription = Strings.isNullOrEmpty(description) ? "N/A" : description;
+    mDescription = Strings.isNullOrEmpty(description) ? "N/A" : (@NonNull String) description;
     mDefaultSupplier = defaultSupplier;
     mAliases = aliases;
     mIgnoredSiteProperty = ignoredSiteProperty;
@@ -3552,6 +3555,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   /**
    * @return the alias of a property
    */
+  @Nullable
   public String[] getAliases() {
     return mAliases;
   }
@@ -3566,14 +3570,16 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   /**
    * @return the default value of a property key
    */
+  @Nullable
   public String getDefaultValue() {
-    Object defaultValue = mDefaultSupplier.get();
+    @Nullable Object defaultValue = (mDefaultSupplier != null) ? mDefaultSupplier.get() : null;
     return defaultValue == null ? null : defaultValue.toString();
   }
 
   /**
    * @return the default supplier of a property key
    */
+  @Nullable
   public DefaultSupplier getDefaultSupplier() {
     return mDefaultSupplier;
   }

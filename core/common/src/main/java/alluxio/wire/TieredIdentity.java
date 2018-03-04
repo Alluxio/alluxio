@@ -23,14 +23,13 @@ import com.google.common.base.Joiner;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 import java.io.Serializable;
 import java.net.UnknownHostException;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
-
-import javax.annotation.Nullable;
 
 /**
  * Class representing a node's tier identity. A tier identity is a list of locality tiers
@@ -78,6 +77,7 @@ public final class TieredIdentity implements Serializable {
    * @param tieredIdentity a Thrift tiered identity
    * @return the corresponding wire type tiered identity
    */
+  @Nullable
   public static TieredIdentity fromThrift(alluxio.thrift.TieredIdentity tieredIdentity) {
     if (tieredIdentity == null) {
       return null;
@@ -98,7 +98,7 @@ public final class TieredIdentity implements Serializable {
     for (LocalityTier tier : mTiers) {
       for (TieredIdentity identity : identities) {
         for (LocalityTier otherTier : identity.mTiers) {
-          if (tier != null && tier.matches(otherTier)) {
+          if (tier.matches(otherTier)) {
             return Optional.of(identity);
           }
         }
@@ -116,7 +116,7 @@ public final class TieredIdentity implements Serializable {
   }
 
   @Override
-  public boolean equals(Object o) {
+  public boolean equals(@Nullable Object o) {
     if (this == o) {
       return true;
     }
@@ -147,7 +147,7 @@ public final class TieredIdentity implements Serializable {
     private static final long serialVersionUID = 7078638137905293841L;
 
     private final String mTierName;
-    private final String mValue;
+    @Nullable private final String mValue;
 
     /**
      * @param tierName the name of the tier
@@ -198,6 +198,7 @@ public final class TieredIdentity implements Serializable {
      * @param otherTier a wire type locality tier to compare to
      * @return true if the wire type locality tier matches the given tier
      */
+    @SuppressWarnings("nullness")
     public boolean matches(LocalityTier otherTier) {
       String otherTierName = otherTier.getTierName();
       if (!mTierName.equals(otherTierName)) {
@@ -227,7 +228,7 @@ public final class TieredIdentity implements Serializable {
     }
 
     @Override
-    public boolean equals(Object o) {
+    public boolean equals(@Nullable Object o) {
       if (this == o) {
         return true;
       }

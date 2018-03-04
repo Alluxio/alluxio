@@ -30,6 +30,7 @@ import com.google.common.base.Preconditions;
 import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TProtocol;
 import org.apache.thrift.transport.TTransportException;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -64,8 +65,8 @@ public abstract class AbstractClient implements Client {
   protected static final int RPC_MAX_NUM_RETRY =
       Configuration.getInt(PropertyKey.USER_RPC_RETRY_MAX_NUM_RETRY);
 
-  protected InetSocketAddress mAddress = null;
-  protected TProtocol mProtocol = null;
+  @Nullable protected InetSocketAddress mAddress = null;
+  @Nullable protected TProtocol mProtocol = null;
 
   /** Is true if this client is currently connected. */
   protected boolean mConnected = false;
@@ -92,7 +93,7 @@ public abstract class AbstractClient implements Client {
    * @param subject the parent subject, set to null if not present
    * @param address the address
    */
-  public AbstractClient(Subject subject, InetSocketAddress address) {
+  public AbstractClient(Subject subject, @Nullable InetSocketAddress address) {
     mAddress = address;
     mServiceVersion = Constants.UNKNOWN_SERVICE_VERSION;
     mTransportProvider = TransportProvider.Factory.create();
@@ -228,6 +229,7 @@ public abstract class AbstractClient implements Client {
    * Closes the connection with the Alluxio remote and does the necessary cleanup. It should be used
    * if the client has not connected with the remote for a while, for example.
    */
+  @SuppressWarnings("nullness")
   public synchronized void disconnect() {
     if (mConnected) {
       Preconditions.checkNotNull(mProtocol, PreconditionMessage.PROTOCOL_NULL_WHEN_CONNECTED);
@@ -257,6 +259,7 @@ public abstract class AbstractClient implements Client {
   }
 
   @Override
+  @SuppressWarnings("nullness")
   public synchronized InetSocketAddress getAddress() throws UnavailableException {
     return mAddress;
   }
@@ -290,7 +293,7 @@ public abstract class AbstractClient implements Client {
     RetryPolicy retryPolicy =
         ExponentialTimeBoundedRetry.builder().withMaxDuration(MAX_RETRY_DURATION)
             .withInitialSleep(BASE_SLEEP_MS).withMaxSleep(MAX_SLEEP_MS).build();
-    Exception ex = null;
+    Exception ex = new Exception();
     while (retryPolicy.attempt()) {
       if (mClosed) {
         throw new FailedPreconditionException("Client is closed");

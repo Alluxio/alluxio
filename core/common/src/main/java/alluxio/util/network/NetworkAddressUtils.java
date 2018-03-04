@@ -492,7 +492,7 @@ public final class NetworkAddressUtils {
    * @throws UnknownHostException if the hostname cannot be resolved
    */
   @Nullable
-  public static AlluxioURI replaceHostName(AlluxioURI path) throws UnknownHostException {
+  public static AlluxioURI replaceHostName(@Nullable AlluxioURI path) throws UnknownHostException {
     if (path == null) {
       return null;
     }
@@ -502,6 +502,7 @@ public final class NetworkAddressUtils {
       if (path.getPort() != -1) {
         authority += ":" + path.getPort();
       }
+
       return new AlluxioURI(path.getScheme(), authority, path.getPath(), path.getQueryMap());
     }
     return path;
@@ -517,7 +518,7 @@ public final class NetworkAddressUtils {
    * @throws UnknownHostException if the given hostname cannot be resolved
    */
   @Nullable
-  public static String resolveHostName(String hostname) throws UnknownHostException {
+  public static String resolveHostName(@Nullable String hostname) throws UnknownHostException {
     if (hostname == null || hostname.isEmpty()) {
       return null;
     }
@@ -559,6 +560,7 @@ public final class NetworkAddressUtils {
    * @return the resolved FQDN host name
    * @throws UnknownHostException if the host is not known
    */
+  @Nullable
   public static String getFqdnHost(WorkerNetAddress addr) throws UnknownHostException {
     return resolveHostName(addr.getHost());
   }

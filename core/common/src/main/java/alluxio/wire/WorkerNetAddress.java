@@ -17,6 +17,7 @@ import alluxio.wire.TieredIdentity.LocalityTier;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 import java.io.Serializable;
 import java.util.Arrays;
@@ -36,7 +37,7 @@ public final class WorkerNetAddress implements Serializable {
   private int mDataPort;
   private int mWebPort;
   private String mDomainSocketPath = "";
-  private TieredIdentity mTieredIdentity;
+  @Nullable private TieredIdentity mTieredIdentity;
 
   /**
    * Creates a new instance of {@link WorkerNetAddress}.

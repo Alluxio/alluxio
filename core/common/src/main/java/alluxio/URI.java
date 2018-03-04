@@ -14,6 +14,7 @@ package alluxio;
 import alluxio.collections.Pair;
 
 import com.google.common.base.Preconditions;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 import java.io.Serializable;
 import java.net.URISyntaxException;
@@ -116,15 +117,16 @@ public interface URI extends Comparable<URI>, Serializable {
      * @param query the query component of the URI
      * @return the created {@link URI}
      */
-    public static URI create(String scheme, String authority, String path, String query) {
+    public static URI create(@Nullable String scheme, @Nullable String authority, String path,
+                             @Nullable String query) {
       Preconditions.checkArgument(path != null, "Can not create a uri with a null path.");
 
       // Handle schemes with two components.
-      Pair<String, String> schemeComponents = getSchemeComponents(scheme);
+      Pair<@Nullable String, @Nullable String> schemeComponents = getSchemeComponents(scheme);
       String schemePrefix = schemeComponents.getFirst();
       scheme = schemeComponents.getSecond();
 
-      if (scheme == null || schemePrefix.isEmpty()) {
+      if (scheme == null || schemePrefix == null || schemePrefix.isEmpty()) {
         // This is a standard URI.
         return new StandardURI(scheme, authority, path, query);
       } else {
@@ -182,7 +184,8 @@ public interface URI extends Comparable<URI>, Serializable {
      * @param scheme the scheme string
      * @return a {@link Pair} with the scheme components
      */
-    private static Pair<String, String> getSchemeComponents(String scheme) {
+    private static Pair<@Nullable String, @Nullable String> getSchemeComponents(
+            @Nullable String scheme) {
       if (scheme == null) {
         return new Pair<>(null, null);
       }

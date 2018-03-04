@@ -14,6 +14,7 @@ package alluxio;
 import java.net.URISyntaxException;
 import java.util.Objects;
 
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -35,7 +36,8 @@ public class StandardURI implements URI {
    * @param path the path component of the URI
    * @param query the query component of the URI
    */
-  public StandardURI(String scheme, String authority, String path, String query) {
+  public StandardURI(@Nullable String scheme, @Nullable String authority, String path,
+                     @Nullable String query) {
     try {
       if (AlluxioURI.CUR_DIR.equals(path)) {
         mUri = new java.net.URI(scheme, authority, AlluxioURI.normalizePath(path), query, null);
