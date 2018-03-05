@@ -31,7 +31,6 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.atomic.AtomicLong;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -65,8 +64,7 @@ public class AsyncCacheRequestManager {
   /**
    * Handles a request to cache a block asynchronously. This is a non-blocking call.
    *
-   * @param request the async cache request
-   * fields will be available
+   * @param request the async cache request fields will be available
    */
   public void submitRequest(Protocol.AsyncCacheRequest request) {
     long blockId = request.getBlockId();
@@ -97,8 +95,8 @@ public class AsyncCacheRequestManager {
           } else {
             InetSocketAddress sourceAddress =
                 new InetSocketAddress(request.getSourceHost(), request.getSourcePort());
-            result =
-                cacheBlockFromRemoteWorker(blockId, blockLength, sourceAddress, openUfsBlockOptions);
+            result = cacheBlockFromRemoteWorker(
+                    blockId, blockLength, sourceAddress, openUfsBlockOptions);
           }
           LOG.debug("Result of async caching block {}: {}", blockId, result);
           mPendingRequests.remove(blockId);
