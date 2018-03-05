@@ -54,6 +54,14 @@ ensure_dirs() {
   fi
 }
 
+# returns 1 if "$1" contains "$2", 0 otherwise.
+contains() {
+  if [[ "$1" = *"$2"* ]]; then
+    return 1
+  fi
+  return 0
+}
+
 get_env() {
   DEFAULT_LIBEXEC_DIR="${BIN}"/../libexec
   ALLUXIO_LIBEXEC_DIR=${ALLUXIO_LIBEXEC_DIR:-${DEFAULT_LIBEXEC_DIR}}
@@ -162,6 +170,12 @@ start_master() {
       ALLUXIO_SECONDARY_MASTER_JAVA_OPTS=${ALLUXIO_JAVA_OPTS}
     fi
 
+    # use a default Xmx value for the master
+    contains "${ALLUXIO_SECONDARY_MASTER_JAVA_OPTS}" "Xmx"
+    if [[ $? -eq 0 ]]; then
+      ALLUXIO_SECONDARY_MASTER_JAVA_OPTS+=" -Xmx8g "
+    fi
+
     echo "Starting secondary master @ $(hostname -f). Logging to ${ALLUXIO_LOGS_DIR}"
     (nohup "${JAVA}" -cp ${CLASSPATH} \
      ${ALLUXIO_SECONDARY_MASTER_JAVA_OPTS} \
@@ -169,6 +183,12 @@ start_master() {
   else
     if [[ -z ${ALLUXIO_MASTER_JAVA_OPTS} ]]; then
       ALLUXIO_MASTER_JAVA_OPTS=${ALLUXIO_JAVA_OPTS}
+    fi
+
+    # use a default Xmx value for the master
+    contains "${ALLUXIO_MASTER_JAVA_OPTS}" "Xmx"
+    if [[ $? -eq 0 ]]; then
+      ALLUXIO_MASTER_JAVA_OPTS+=" -Xmx8g "
     fi
 
     echo "Starting master @ $(hostname -f). Logging to ${ALLUXIO_LOGS_DIR}"
@@ -207,6 +227,18 @@ start_worker() {
 
   if [[ -z ${ALLUXIO_WORKER_JAVA_OPTS} ]]; then
     ALLUXIO_WORKER_JAVA_OPTS=${ALLUXIO_JAVA_OPTS}
+  fi
+
+  # use a default Xmx value for the worker
+  contains "${ALLUXIO_WORKER_JAVA_OPTS}" "Xmx"
+  if [[ $? -eq 0 ]]; then
+    ALLUXIO_WORKER_JAVA_OPTS+=" -Xmx4g "
+  fi
+
+  # use a default Xmx value for the worker
+  contains "${ALLUXIO_WORKER_JAVA_OPTS}" "XX:MaxDirectMemorySize"
+  if [[ $? -eq 0 ]]; then
+    ALLUXIO_WORKER_JAVA_OPTS+=" -XX:MaxDirectMemorySize=4g "
   fi
 
   echo "Starting worker @ $(hostname -f). Logging to ${ALLUXIO_LOGS_DIR}"
