@@ -76,6 +76,7 @@ public class StandardURI implements URI {
   }
 
   @Override
+  @Nullable
   public String getScheme() {
     return mUri.getScheme();
   }

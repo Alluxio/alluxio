@@ -41,6 +41,7 @@ public final class ConfigurationUtils {
    * @param resourceName filename of the properties file
    * @return a set of properties on success, or null if failed
    */
+  @Nullable
   public static Properties loadPropertiesFromResource(String resourceName) {
     Properties properties = new Properties();
 

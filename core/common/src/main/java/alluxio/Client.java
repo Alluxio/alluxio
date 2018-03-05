@@ -13,6 +13,8 @@ package alluxio;
 
 import alluxio.exception.status.UnavailableException;
 
+import org.checkerframework.checker.nullness.qual.Nullable;
+
 import java.io.Closeable;
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -37,6 +39,7 @@ public interface Client extends Closeable {
    * @return the {@link InetSocketAddress} of the remote,
    * @throws UnavailableException if the primary address cannot be determined
    */
+  @Nullable
   InetSocketAddress getAddress() throws UnavailableException;
 
   /**

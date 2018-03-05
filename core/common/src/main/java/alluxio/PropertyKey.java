@@ -21,7 +21,6 @@ import com.google.common.base.Strings;
 import com.google.common.collect.Sets;
 import com.sun.management.OperatingSystemMXBean;
 import org.checkerframework.checker.initialization.qual.Initialized;
-import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
 import java.lang.annotation.Annotation;
@@ -3461,7 +3460,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
                       boolean ignoredSiteProperty, boolean isHidden,
       ConsistencyCheckLevel consistencyCheckLevel, Scope scope) {
     mName = Preconditions.checkNotNull(name, "name");
-    mDescription = Strings.isNullOrEmpty(description) ? "N/A" : (@NonNull String) description;
+    assert description != null : "@AssumeAssertion(nullness)";
+    mDescription = Strings.isNullOrEmpty(description) ? "N/A" : description;
     mDefaultSupplier = defaultSupplier;
     mAliases = aliases;
     mIgnoredSiteProperty = ignoredSiteProperty;

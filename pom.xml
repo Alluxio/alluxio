@@ -903,6 +903,7 @@
               <arg>-AskipUses=^alluxio\.proto\.|alluxio\.thrift\.|org\.slf4j\.|java\.lang\.|java\.util\.|java\.net\.</arg>
               <arg>-AskipDefs=^alluxio\.proto\.|alluxio\.thrift\.</arg>
               <arg>-AsuppressWarnings=uninitialized</arg>
+              <arg>-AassumeAssertionsAreEnabled</arg>
             </compilerArgs>
           </configuration>
         </plugin>

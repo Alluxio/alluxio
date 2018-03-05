@@ -11,7 +11,8 @@
 
 package alluxio;
 
-import javax.annotation.Nullable;
+import org.checkerframework.checker.nullness.qual.Nullable;
+
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -28,7 +29,7 @@ public final class MultiPartSchemeURI extends StandardURI {
    * variable will hold 'scheme:part1:part2', because {@link java.net.URI} will only handle the
    * URI starting from 'part2'.
    */
-  private final String mFullScheme;
+  @Nullable private final String mFullScheme;
 
   /**
    * @param schemePrefix the prefix of the scheme string of the URI
@@ -44,6 +45,7 @@ public final class MultiPartSchemeURI extends StandardURI {
   }
 
   @Override
+  @Nullable
   public String getScheme() {
     return mFullScheme;
   }
@@ -53,7 +55,8 @@ public final class MultiPartSchemeURI extends StandardURI {
    * @param uriScheme the scheme of the URI
    * @return the combined scheme
    */
-  private String getFullScheme(String schemePrefix, String uriScheme) {
+  @Nullable
+  private String getFullScheme(@Nullable String schemePrefix, @Nullable String uriScheme) {
     if (uriScheme == null) {
       return null;
     }

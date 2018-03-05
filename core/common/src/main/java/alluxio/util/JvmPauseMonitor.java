@@ -22,6 +22,7 @@ import com.google.common.base.Stopwatch;
 import com.google.common.collect.Sets;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 import javax.annotation.concurrent.NotThreadSafe;
 import java.lang.management.GarbageCollectorMXBean;
@@ -57,7 +58,7 @@ public final class JvmPauseMonitor {
   /** Total extra sleep time. */
   private long mTotalExtraTimeMs = 0;
 
-  private Thread mJvmMonitorThread;
+  @Nullable private Thread mJvmMonitorThread;
 
   /**
    * Constructs JvmPauseMonitor.

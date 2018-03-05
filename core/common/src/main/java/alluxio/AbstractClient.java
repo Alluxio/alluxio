@@ -188,6 +188,7 @@ public abstract class AbstractClient implements Client {
       LOG.info("Alluxio client (version {}) is trying to connect with {} @ {}",
           RuntimeConstants.VERSION, getServiceName(), mAddress);
 
+      assert mAddress != null : "@AssumeAssertion(nullness)";
       mProtocol = TProtocols.createProtocol(
           mTransportProvider.getClientTransport(mParentSubject, mAddress), getServiceName());
       try {
@@ -229,12 +230,12 @@ public abstract class AbstractClient implements Client {
    * Closes the connection with the Alluxio remote and does the necessary cleanup. It should be used
    * if the client has not connected with the remote for a while, for example.
    */
-  @SuppressWarnings("nullness")
   public synchronized void disconnect() {
     if (mConnected) {
       Preconditions.checkNotNull(mProtocol, PreconditionMessage.PROTOCOL_NULL_WHEN_CONNECTED);
       LOG.debug("Disconnecting from the {} @ {}", getServiceName(), mAddress);
       beforeDisconnect();
+      assert mProtocol != null : "@AssumeAssertion(nullness)";
       mProtocol.getTransport().close();
       mConnected = false;
       afterDisconnect();
@@ -259,7 +260,7 @@ public abstract class AbstractClient implements Client {
   }
 
   @Override
-  @SuppressWarnings("nullness")
+  @Nullable
   public synchronized InetSocketAddress getAddress() throws UnavailableException {
     return mAddress;
   }

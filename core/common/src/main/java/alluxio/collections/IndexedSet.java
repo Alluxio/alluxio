@@ -13,6 +13,7 @@ package alluxio.collections;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Iterables;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 import java.util.AbstractSet;
 import java.util.Arrays;
@@ -104,7 +105,7 @@ public class IndexedSet<T> extends AbstractSet<T> {
    * The first index of the indexed set. This index is used to guarantee uniqueness of objects,
    * support iterator and provide quick lookup.
    */
-  private final FieldIndex<T> mPrimaryIndex;
+  @Nullable private final FieldIndex<T> mPrimaryIndex;
   /**
    * Map from index definition to the index. An index is a map from index value to one or a set of
    * objects with that index value.
@@ -119,6 +120,7 @@ public class IndexedSet<T> extends AbstractSet<T> {
    *        recommended to be unique in consideration of performance.
    * @param otherIndexDefinitions other index definitions to index the set
    */
+  @SuppressWarnings("nullness")
   @SafeVarargs
   public IndexedSet(IndexDefinition<T> primaryIndexDefinition,
       IndexDefinition<T>... otherIndexDefinitions) {
@@ -166,6 +168,7 @@ public class IndexedSet<T> extends AbstractSet<T> {
   @Override
   public boolean add(T object) {
     Preconditions.checkNotNull(object, "object");
+    assert object != null : "@AssumeAssertion(nullness)";
 
     // Locking this object protects against removing the exact object, but does not protect against
     // removing a distinct, but equivalent object.

@@ -11,7 +11,6 @@
 
 package alluxio.resource;
 
-import com.google.common.base.Preconditions;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
 import java.io.IOException;
@@ -75,7 +74,7 @@ public abstract class ResourcePool<T> implements Pool<T> {
   @Override
   @Nullable
   public T acquire() {
-    return acquire(WAIT_INDEFINITELY, null);
+    return acquire(WAIT_INDEFINITELY, TimeUnit.MILLISECONDS);
   }
 
   /**
@@ -90,9 +89,7 @@ public abstract class ResourcePool<T> implements Pool<T> {
    */
   @Override
   @Nullable
-  public T acquire(long time, @Nullable TimeUnit unit) {
-    // If either time or unit are null, the other should also be null.
-    Preconditions.checkState((time <= 0) == (unit == null));
+  public T acquire(long time, TimeUnit unit) {
     long endTimeMs = 0;
     if (time > 0) {
       endTimeMs = System.currentTimeMillis() + unit.toMillis(time);

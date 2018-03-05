@@ -40,7 +40,7 @@ public interface Pool<T> extends Closeable {
    * @return the acquired resource which should not be null
    */
   @Nullable
-  T acquire(long time, @Nullable TimeUnit unit) throws TimeoutException, IOException;
+  T acquire(long time, TimeUnit unit) throws TimeoutException, IOException;
 
   /**
    * Releases the resource to the pool.

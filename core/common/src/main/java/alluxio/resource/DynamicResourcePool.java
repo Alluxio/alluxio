@@ -307,7 +307,7 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
    */
   @Override
   @Nullable
-  public T acquire(long time, @Nullable TimeUnit unit) throws TimeoutException, IOException {
+  public T acquire(long time, TimeUnit unit) throws TimeoutException, IOException {
     long endTimeMs = mClock.millis() + unit.toMillis(time);
 
     // Try to take a resource without blocking
@@ -469,6 +469,7 @@ public abstract class DynamicResourcePool<T> implements Pool<T> {
    * @return the resource
    * @throws TimeoutException if it times out to wait for a resource
    */
+  @Nullable
   private T checkHealthyAndRetry(T resource, long endTimeMs) throws TimeoutException, IOException {
     if (isHealthy(resource)) {
       return resource;

@@ -226,6 +226,7 @@ public interface URI extends Comparable<URI>, Serializable {
   /**
    * @return the scheme of the {@link URI}, null if there is no scheme
    */
+  @Nullable
   String getScheme();
 
   /**

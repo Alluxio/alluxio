@@ -15,6 +15,7 @@ import alluxio.annotation.PublicApi;
 import alluxio.security.authorization.Mode;
 
 import com.google.common.base.Objects;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -27,8 +28,8 @@ public final class MkdirsOptions {
   // Determine whether to create any necessary but nonexistent parent directories.
   private boolean mCreateParent;
 
-  private String mOwner;
-  private String mGroup;
+  @Nullable private String mOwner;
+  @Nullable private String mGroup;
   private Mode mMode;
 
   /**
@@ -60,6 +61,7 @@ public final class MkdirsOptions {
   /**
    * @return the owner
    */
+  @Nullable
   public String getOwner() {
     return mOwner;
   }
@@ -67,6 +69,7 @@ public final class MkdirsOptions {
   /**
    * @return the group
    */
+  @Nullable
   public String getGroup() {
     return mGroup;
   }
@@ -117,7 +120,7 @@ public final class MkdirsOptions {
   }
 
   @Override
-  public boolean equals(Object o) {
+  public boolean equals(@Nullable Object o) {
     if (this == o) {
       return true;
     }
