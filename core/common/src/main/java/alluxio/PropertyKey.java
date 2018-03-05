@@ -1131,7 +1131,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey WORKER_NETWORK_NETTY_ASYNC_CACHE_MANAGER_THREADS_MAX =
       new Builder(Name.WORKER_NETWORK_NETTY_ASYNC_CACHE_MANAGER_THREADS_MAX)
-          .setDefaultValue(512)
+          .setDefaultValue(8)
           .setDescription("The maximum number of threads used to cache blocks asynchronously in "
               + "the netty data server.")
           .build();

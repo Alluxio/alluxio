@@ -19,7 +19,6 @@ import alluxio.exception.AlluxioException;
 import alluxio.exception.BlockAlreadyExistsException;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.proto.dataserver.Protocol;
-import alluxio.util.ThreadUtils;
 import alluxio.util.io.BufferUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.worker.block.io.BlockReader;
@@ -51,9 +50,6 @@ public class AsyncCacheRequestManager {
   private final BlockWorker mBlockWorker;
   private final ConcurrentHashMap<Long, Protocol.AsyncCacheRequest> mPendingRequests;
   private final String mLocalWorkerHostname;
-  // added by Bin
-  private AtomicLong mNum = new AtomicLong(0);
-  // added by Bin
 
   /**
    * @param service thread pool to run the background caching work
@@ -75,13 +71,8 @@ public class AsyncCacheRequestManager {
   public void submitRequest(Protocol.AsyncCacheRequest request) {
     long blockId = request.getBlockId();
     long blockLength = request.getLength();
-    // Added by Bin
-    LOG.info("blockID {}, len {}, current size {}, {}", blockId, blockLength,
-        mPendingRequests.size(), mNum);
-    // Added by Bin end
     if (mPendingRequests.putIfAbsent(blockId, request) != null) {
       // This block is already planned.
-      LOG.info("blockID {} already planned, return", blockId);
       return;
     }
     try {
@@ -101,7 +92,6 @@ public class AsyncCacheRequestManager {
           boolean isSourceLocal = mLocalWorkerHostname.equals(request.getSourceHost());
           // Depends on the request, cache the target block from different sources
           boolean result;
-          long startMs = System.currentTimeMillis();
           if (isSourceLocal) {
             result = cacheBlockFromUfs(blockId, blockLength, openUfsBlockOptions);
           } else {
@@ -110,9 +100,7 @@ public class AsyncCacheRequestManager {
             result =
                 cacheBlockFromRemoteWorker(blockId, blockLength, sourceAddress, openUfsBlockOptions);
           }
-          long endMs = System.currentTimeMillis();
-          LOG.info("Result of async caching block {} ({}, {} MB/s): {}",
-              blockId, mNum.getAndIncrement(), blockLength / 1000.0 / (endMs - startMs), result);
+          LOG.debug("Result of async caching block {}: {}", blockId, result);
           mPendingRequests.remove(blockId);
         } catch (Exception e) {
           LOG.warn("Failed to complete async cache request {} from UFS", request, e.getMessage());
@@ -156,7 +144,7 @@ public class AsyncCacheRequestManager {
       while (offset < blockSize) {
         long bufferSize = Math.min(8 * Constants.MB, blockSize - offset);
         reader.read(offset, bufferSize);
-        offset = bufferSize;
+        offset += bufferSize;
       }
     } catch (AlluxioException | IOException e) {
       // This is only best effort

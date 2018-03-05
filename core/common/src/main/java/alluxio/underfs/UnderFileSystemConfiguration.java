@@ -13,7 +13,6 @@ package alluxio.underfs;
 
 import alluxio.Configuration;
 import alluxio.PropertyKey;
-import com.google.common.base.Objects;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -130,28 +129,5 @@ public final class UnderFileSystemConfiguration {
   public UnderFileSystemConfiguration setUserSpecifiedConf(Map<String, String> ufsConf) {
     mUfsConf = ufsConf;
     return this;
-  }
-
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (!(o instanceof UnderFileSystemConfiguration)) {
-      return false;
-    }
-    UnderFileSystemConfiguration that = (UnderFileSystemConfiguration) o;
-    return Objects.equal(mReadOnly, that.mReadOnly)
-        && Objects.equal(mShared, that.mShared)
-        && Objects.equal(mUfsConf, that.mUfsConf);
-  }
-
-  @Override
-  public String toString() {
-    return Objects.toStringHelper(this)
-        .add("readOnly", mReadOnly)
-        .add("shared", mShared)
-        .add("ufsConf", mUfsConf)
-        .toString();
   }
 }

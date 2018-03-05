@@ -17,7 +17,6 @@ import alluxio.RuntimeConstants;
 import alluxio.extensions.ExtensionsClassLoader;
 import alluxio.util.ExtensionUtils;
 
-import alluxio.util.ThreadUtils;
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
