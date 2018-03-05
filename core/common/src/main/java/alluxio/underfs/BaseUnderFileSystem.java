@@ -81,7 +81,8 @@ public abstract class BaseUnderFileSystem implements UnderFileSystem {
       UfsStatus status = getStatus(path);
       return Fingerprint.create(getUnderFSType(), status).serialize();
     } catch (Exception e) {
-      LOG.warn("Failed fingerprint. path: {} error: {}", path, e.toString());
+      // In certain scenarios, it is expected that the UFS path does not exist.
+      LOG.debug("Failed fingerprint. path: {} error: {}", path, e.toString());
       return Constants.INVALID_UFS_FINGERPRINT;
     }
   }
