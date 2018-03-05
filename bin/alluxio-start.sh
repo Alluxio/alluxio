@@ -235,7 +235,7 @@ start_worker() {
     ALLUXIO_WORKER_JAVA_OPTS+=" -Xmx4g "
   fi
 
-  # use a default Xmx value for the worker
+  # use a default MaxDirectMemorySize value for the worker
   contains "${ALLUXIO_WORKER_JAVA_OPTS}" "XX:MaxDirectMemorySize"
   if [[ $? -eq 0 ]]; then
     ALLUXIO_WORKER_JAVA_OPTS+=" -XX:MaxDirectMemorySize=4g "
