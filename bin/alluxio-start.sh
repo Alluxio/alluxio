@@ -281,7 +281,7 @@ start_monitor() {
     if [[ -z "${nodes}" ]]; then
       run="false"
     fi
-  elif [[ "${action}" == "logserver" || "${action}" == "run_safe" ]]; then
+  elif [[ "${action}" == "logserver" || "${action}" == "safe" ]]; then
     echo -e "Error: Invalid Monitor ACTION: ${action}" >&2
     exit 1
   fi
