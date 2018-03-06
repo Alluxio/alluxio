@@ -289,3 +289,18 @@ hive> select * from u_user;
 And you can see the query results from console:
 
 ![HiveQueryResult]({{site.data.img.screenshot_hive_query_result}})
+
+## Check Hive with Alluxio integration (Supports Hive 2.X)
+
+Before running Hive on Alluxio, you might want to make sure that your configuration has been 
+setup correctly for integrating with Alluxio. The Hive integration checker can help you achieve this. 
+
+You can run the following command in the Alluxio project directory:
+
+```bash
+$ checker/bin/alluxio-checker.sh hive -hiveurl [HIVE_URL]
+```
+
+You can use `-h` to display helpful information about the command.
+This command will report potential problems that might prevent you from running Hive on Alluxio. 
+
