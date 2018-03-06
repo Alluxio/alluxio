@@ -153,7 +153,7 @@ abstract class AbstractWriteHandler<T extends WriteRequestContext<?>>
         if (msg.getPayloadDataBuffer() != null) {
           msg.getPayloadDataBuffer().release();
         }
-        LOG.warn("Ignore the request {} dueo the error {} on context", mContext.getRequest(),
+        LOG.warn("Ignore the request {} due to the error {} on context", mContext.getRequest(),
             mContext.getError());
         return;
       } else {
