@@ -61,6 +61,7 @@ public final class MultiWorkerIntegrationTest extends BaseIntegrationTest {
           .setProperty(PropertyKey.WORKER_MEMORY_SIZE, WORKER_MEMORY_SIZE_BYTES)
           .setProperty(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, BLOCK_SIZE_BYTES)
           .setProperty(PropertyKey.USER_FILE_BUFFER_BYTES, BLOCK_SIZE_BYTES)
+          .setProperty(PropertyKey.WORKER_TIERED_STORE_RESERVER_ENABLED, false)
           .setNumWorkers(NUM_WORKERS)
           .build();
 
@@ -69,7 +70,6 @@ public final class MultiWorkerIntegrationTest extends BaseIntegrationTest {
     int fileSize = NUM_WORKERS * WORKER_MEMORY_SIZE_BYTES;
     AlluxioURI file = new AlluxioURI("/test");
     FileSystem fs = mResource.get().getClient();
-    // Write a file large enough to fill all the memory of all the workers.
     FileSystemTestUtils.createByteFile(fs, file.getPath(), fileSize,
         CreateFileOptions.defaults().setWriteType(WriteType.MUST_CACHE)
             .setLocationPolicy(new RoundRobinPolicy()));

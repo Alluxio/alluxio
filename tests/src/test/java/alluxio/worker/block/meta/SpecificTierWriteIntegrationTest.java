@@ -12,10 +12,10 @@
 package alluxio.worker.block.meta;
 
 import alluxio.AlluxioURI;
+import alluxio.BaseIntegrationTest;
 import alluxio.Constants;
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.PropertyKey;
-import alluxio.BaseIntegrationTest;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
@@ -57,6 +57,7 @@ public class SpecificTierWriteIntegrationTest extends BaseIntegrationTest {
           .setProperty(PropertyKey.USER_FILE_BUFFER_BYTES, BLOCK_SIZE_BYTES)
           .setProperty(PropertyKey.WORKER_MEMORY_SIZE, CAPACITY_BYTES)
           .setProperty(PropertyKey.WORKER_TIERED_STORE_LEVELS, "3")
+          .setProperty(PropertyKey.WORKER_TIERED_STORE_RESERVER_ENABLED, false)
           .setProperty(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_ALIAS.format(1), "SSD")
           .setProperty(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_ALIAS.format(2), "HDD")
           .setProperty(PropertyKey.Template.WORKER_TIERED_STORE_LEVEL_DIRS_PATH.format(0),
