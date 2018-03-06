@@ -34,6 +34,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -93,6 +94,7 @@ public final class ZkMasterInquireClient implements MasterInquireClient, Closeab
   }
 
   @Override
+  @Nullable
   public synchronized InetSocketAddress getPrimaryRpcAddress() throws UnavailableException {
     long startTime = System.currentTimeMillis();
     int tried = 0;

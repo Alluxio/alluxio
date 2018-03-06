@@ -65,7 +65,7 @@ public final class Fingerprint {
    * @param status the {@link UfsStatus} to create the fingerprint from
    * @return the fingerprint object
    */
-  public static Fingerprint create(String ufsName, UfsStatus status) {
+  public static Fingerprint create(String ufsName, @Nullable UfsStatus status) {
     if (status == null) {
       return new Fingerprint(Collections.emptyMap());
     }
@@ -89,6 +89,7 @@ public final class Fingerprint {
    * @param input the string to parse
    * @return the parsed fingerprint object, or null if parsing failed
    */
+  @Nullable
   public static Fingerprint parse(String input) {
     if (input == null) {
       return null;

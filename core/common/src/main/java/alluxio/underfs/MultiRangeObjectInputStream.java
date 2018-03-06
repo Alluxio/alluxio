@@ -14,6 +14,9 @@ package alluxio.underfs;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
 
+import org.checkerframework.checker.nullness.qual.EnsuresNonNull;
+import org.checkerframework.checker.nullness.qual.Nullable;
+
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -28,7 +31,7 @@ public abstract class MultiRangeObjectInputStream extends InputStream {
   /** Has the stream been closed. */
   protected boolean mClosed;
   /** The backing input stream. */
-  protected InputStream mStream;
+  @Nullable protected InputStream mStream;
   /** The current position of the stream. */
   protected long mPos;
   /** Position the current stream was open till (exclusive). */
@@ -126,6 +129,7 @@ public abstract class MultiRangeObjectInputStream extends InputStream {
   /**
    * Opens a new stream at mPos if the wrapped stream mStream is null.
    */
+  @EnsuresNonNull("mStream")
   private void openStream() throws IOException {
     if (mClosed) {
       throw new IOException("Stream closed");

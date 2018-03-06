@@ -12,10 +12,10 @@
 package alluxio.security.authentication;
 
 import com.google.common.base.Preconditions;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 import java.util.Map;
 
-import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.annotation.concurrent.ThreadSafe;
 import javax.security.auth.callback.Callback;
@@ -43,10 +43,10 @@ public final class PlainSaslServer implements SaslServer {
    * This ID represent the authorized client user, who has been authenticated successfully. It is
    * associated with the client connection thread for following action authorization usage.
    */
-  private String mAuthorizationId;
+  @Nullable private String mAuthorizationId;
   /** Whether an authentication is complete or not. */
   private boolean mCompleted;
-  private CallbackHandler mHandler;
+  @Nullable private CallbackHandler mHandler;
 
   PlainSaslServer(CallbackHandler handler) throws SaslException {
     mCompleted = false;

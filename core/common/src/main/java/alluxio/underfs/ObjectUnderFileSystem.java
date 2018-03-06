@@ -27,6 +27,7 @@ import alluxio.util.CommonUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.util.io.PathUtils;
 
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,7 +46,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 
-import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -248,7 +248,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
   @Override
   public boolean deleteDirectory(String path, DeleteOptions options) throws IOException {
     if (!options.isRecursive()) {
-      UfsStatus[] children = listInternal(path, ListOptions.defaults());
+      @Nullable UfsStatus[] children = listInternal(path, ListOptions.defaults());
       if (children == null) {
         LOG.error("Unable to delete path because {} is not a directory ", path);
         return false;
@@ -264,12 +264,14 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
 
     // Delete children
     DeleteBuffer deleteBuffer = new DeleteBuffer();
-    UfsStatus[] pathsToDelete = listInternal(path, ListOptions.defaults().setRecursive(true));
+    @Nullable UfsStatus[] pathsToDelete = listInternal(path,
+        ListOptions.defaults().setRecursive(true));
     if (pathsToDelete == null) {
       LOG.warn("Unable to delete {} because listInternal returns null", path);
       return false;
     }
     for (UfsStatus pathToDelete : pathsToDelete) {
+      assert pathToDelete != null : "@AssumeAssertion(nullness)";
       String pathKey = stripPrefixIfPresent(PathUtils.concatPath(path, pathToDelete.getName()));
       if (pathToDelete.isDirectory()) {
         deleteBuffer.add(convertToFolderName(pathKey));
@@ -419,7 +421,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
 
   // Not supported
   @Override
-  @Nullable
+  @SuppressWarnings("nullness")
   public List<String> getFileLocations(String path) throws IOException {
     LOG.debug("getFileLocations is not supported when using default ObjectUnderFileSystem.");
     return null;
@@ -427,7 +429,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
 
   // Not supported
   @Override
-  @Nullable
+  @SuppressWarnings("nullness")
   public List<String> getFileLocations(String path, FileLocationOptions options)
       throws IOException {
     LOG.debug("getFileLocations is not supported when using default ObjectUnderFileSystem.");
@@ -494,18 +496,20 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
   }
 
   @Override
+  @SuppressWarnings("nullness")
   public UfsStatus[] listStatus(String path) throws IOException {
     return listInternal(path, ListOptions.defaults());
   }
 
   @Override
+  @SuppressWarnings("nullness")
   public UfsStatus[] listStatus(String path, ListOptions options)
       throws IOException {
     return listInternal(path, options);
   }
 
   @Override
-  public boolean mkdirs(String path, MkdirsOptions options) throws IOException {
+  public boolean mkdirs(@Nullable String path, MkdirsOptions options) throws IOException {
     if (path == null) {
       return false;
     }
@@ -538,7 +542,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
 
   @Override
   public InputStream open(String path, OpenOptions options) throws IOException {
-    IOException thrownException = null;
+    IOException thrownException = new IOException();
     RetryPolicy retryPolicy = new ExponentialBackoffRetry(
         (int) Configuration.getMs(PropertyKey.UNDERFS_OBJECT_STORE_READ_RETRY_BASE_SLEEP_MS),
         (int) Configuration.getMs(PropertyKey.UNDERFS_OBJECT_STORE_READ_RETRY_MAX_SLEEP_MS),
@@ -557,6 +561,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
 
   @Override
   public boolean renameDirectory(String src, String dst) throws IOException {
+    @SuppressWarnings("nullness")
     UfsStatus[] children = listInternal(src, ListOptions.defaults());
     if (children == null) {
       LOG.error("Failed to list directory {}, aborting rename.", src);
@@ -816,8 +821,9 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
    * @param options for listing
    * @return an array of the file and folder names in this directory
    */
-  @Nullable
-  protected UfsStatus[] listInternal(String path, ListOptions options) throws IOException {
+  @SuppressWarnings("nullness")
+  protected UfsStatus[] listInternal(String path, ListOptions options)
+      throws IOException {
     ObjectListingChunk chunk = getObjectListingChunkForPath(path, options.isRecursive());
     if (chunk == null) {
       String keyAsFolder = convertToFolderName(stripPrefixIfPresent(path));

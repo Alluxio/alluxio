@@ -15,6 +15,8 @@ import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.security.User;
 
+import org.checkerframework.checker.nullness.qual.Nullable;
+
 import java.io.IOException;
 import java.util.Map;
 
@@ -37,7 +39,7 @@ import javax.security.auth.spi.LoginModule;
 @NotThreadSafe
 public final class AppLoginModule implements LoginModule {
   private Subject mSubject;
-  private User mUser;
+  @Nullable private User mUser;
   private CallbackHandler mCallbackHandler;
 
   /**

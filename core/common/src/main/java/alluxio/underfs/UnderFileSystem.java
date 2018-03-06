@@ -21,6 +21,7 @@ import alluxio.underfs.options.ListOptions;
 import alluxio.underfs.options.MkdirsOptions;
 import alluxio.underfs.options.OpenOptions;
 
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -441,7 +442,7 @@ public interface UnderFileSystem extends Closeable {
    * @param path the folder to create
    * @return {@code true} if and only if the directory was created; {@code false} otherwise
    */
-  boolean mkdirs(String path) throws IOException;
+  boolean mkdirs(@Nullable String path) throws IOException;
 
   /**
    * Creates the directory named by this abstract pathname, with specified
@@ -451,7 +452,7 @@ public interface UnderFileSystem extends Closeable {
    * @param options the options for mkdirs
    * @return {@code true} if and only if the directory was created; {@code false} otherwise
    */
-  boolean mkdirs(String path, MkdirsOptions options) throws IOException;
+  boolean mkdirs(@Nullable String path, MkdirsOptions options) throws IOException;
 
   /**
    * Opens an {@link InputStream} for a file in under filesystem at the indicated path.

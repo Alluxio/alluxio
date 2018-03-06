@@ -22,6 +22,7 @@ import alluxio.underfs.options.OpenOptions;
 import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Preconditions;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,7 +36,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 
-import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -78,6 +78,7 @@ public abstract class BaseUnderFileSystem implements UnderFileSystem {
   }
 
   @Override
+  @SuppressWarnings("nullness")
   public String getFingerprint(String path) {
     try {
       UfsStatus status = getStatus(path);
@@ -113,7 +114,7 @@ public abstract class BaseUnderFileSystem implements UnderFileSystem {
   }
 
   @Override
-  @Nullable
+  @SuppressWarnings("nullness")
   public UfsStatus[] listStatus(String path, ListOptions options) throws IOException {
     if (!options.isRecursive()) {
       return listStatus(path);
@@ -157,7 +158,7 @@ public abstract class BaseUnderFileSystem implements UnderFileSystem {
   }
 
   @Override
-  public boolean mkdirs(String path) throws IOException {
+  public boolean mkdirs(@Nullable String path) throws IOException {
     return mkdirs(path, MkdirsOptions.defaults());
   }
 

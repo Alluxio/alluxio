@@ -27,6 +27,7 @@ import java.security.Security;
 import java.util.HashMap;
 import java.util.Set;
 
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 import javax.security.auth.Subject;
 import javax.security.sasl.SaslException;
@@ -59,7 +60,7 @@ public final class PlainSaslTransportProvider implements TransportProvider {
   }
 
   @Override
-  public TTransport getClientTransport(Subject subject, InetSocketAddress serverAddress)
+  public TTransport getClientTransport(@Nullable Subject subject, InetSocketAddress serverAddress)
       throws UnauthenticatedException {
     String username = null;
     String password = "noPassword";

@@ -52,6 +52,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Supplier;
 
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -169,7 +170,7 @@ public final class CommonUtils {
    * @param logger logger for reporting interruptions; no reporting is done if the logger is null
    * @param timeMs sleep duration in milliseconds
    */
-  public static void sleepMs(Logger logger, long timeMs) {
+  public static void sleepMs(@Nullable Logger logger, long timeMs) {
     try {
       Thread.sleep(timeMs);
     } catch (InterruptedException e) {
@@ -266,6 +267,7 @@ public final class CommonUtils {
    * @param condition the condition to wait on
    * @param options the options to use
    */
+  @SuppressWarnings("nullness")
   public static void waitFor(String description, Function<Void, Boolean> condition,
       WaitForOptions options) {
     long start = System.currentTimeMillis();

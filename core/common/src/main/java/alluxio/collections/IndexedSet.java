@@ -152,8 +152,10 @@ public class IndexedSet<T> extends AbstractSet<T> {
    * This is an expensive operation, and concurrent adds are permitted.
    */
   public void clear() {
-    for (T obj : mPrimaryIndex) {
-      remove(obj);
+    if (mPrimaryIndex != null) {
+      for (T obj : mPrimaryIndex) {
+        remove(obj);
+      }
     }
   }
 
@@ -174,7 +176,7 @@ public class IndexedSet<T> extends AbstractSet<T> {
     // removing a distinct, but equivalent object.
     synchronized (object) {
       // add() will atomically add the object to the index, if it doesn't exist.
-      if (!mPrimaryIndex.add(object)) {
+      if (mPrimaryIndex != null && !mPrimaryIndex.add(object)) {
         // This object is already added, possibly by another concurrent thread.
         return false;
       }
@@ -207,22 +209,26 @@ public class IndexedSet<T> extends AbstractSet<T> {
    * This is needed to support consistent removal from the set and the indices.
    */
   private class IndexedSetIterator implements Iterator<T> {
-    private final Iterator<T> mSetIterator;
-    private T mObject;
+    @Nullable private final Iterator<T> mSetIterator;
+    @Nullable private T mObject;
 
     public IndexedSetIterator() {
-      mSetIterator = mPrimaryIndex.iterator();
+      mSetIterator = mPrimaryIndex != null ? mPrimaryIndex.iterator() : null;
       mObject = null;
     }
 
     @Override
     public boolean hasNext() {
+      if (mSetIterator == null) {
+        return false;
+      }
       return mSetIterator.hasNext();
     }
 
     @Override
+    @SuppressWarnings("nullness")
     public T next() {
-      final T next = mSetIterator.next();
+      final T next = mSetIterator != null ? mSetIterator.next() : null;
       mObject = next;
       return next;
     }
@@ -291,15 +297,16 @@ public class IndexedSet<T> extends AbstractSet<T> {
    * @return true if the object is in the set and removed successfully, otherwise false
    */
   @Override
-  public boolean remove(Object object) {
+  public boolean remove(@Nullable Object object) {
     if (object == null) {
       return false;
     }
+    assert object != null : "@AssumeAssertion(nullness)";
     // Locking this object protects against removing the exact object that might be in the
     // process of being added, but does not protect against removing a distinct, but equivalent
     // object.
     synchronized (object) {
-      if (mPrimaryIndex.containsObject((T) object)) {
+      if (mPrimaryIndex != null && mPrimaryIndex.containsObject((T) object)) {
         // This isn't technically typesafe. However, given that success is true, it's very unlikely
         // that the object passed to remove is not of type <T>.
         @SuppressWarnings("unchecked")
@@ -347,6 +354,6 @@ public class IndexedSet<T> extends AbstractSet<T> {
    */
   @Override
   public int size() {
-    return mPrimaryIndex.size();
+    return mPrimaryIndex != null ? mPrimaryIndex.size() : 0;
   }
 }

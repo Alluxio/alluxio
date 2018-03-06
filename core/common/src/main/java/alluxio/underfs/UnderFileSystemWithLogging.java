@@ -398,6 +398,7 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
   }
 
   @Override
+  @SuppressWarnings("nullness")
   public boolean mkdirs(final String path) throws IOException {
     return call(new UfsCallable<Boolean>() {
       @Override
@@ -413,6 +414,7 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
   }
 
   @Override
+  @SuppressWarnings("nullness")
   public boolean mkdirs(final String path, final MkdirsOptions options) throws IOException {
     return call(new UfsCallable<Boolean>() {
       @Override

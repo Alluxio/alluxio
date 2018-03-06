@@ -15,6 +15,8 @@ import alluxio.exception.status.UnavailableException;
 import alluxio.master.MasterClientConfig;
 import alluxio.master.MasterInquireClient;
 
+import org.checkerframework.checker.nullness.qual.Nullable;
+
 import java.net.InetSocketAddress;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -38,6 +40,7 @@ public abstract class AbstractMasterClient extends AbstractClient {
   }
 
   @Override
+  @Nullable
   public synchronized InetSocketAddress getAddress() throws UnavailableException {
     return mMasterInquireClient.getPrimaryRpcAddress();
   }
