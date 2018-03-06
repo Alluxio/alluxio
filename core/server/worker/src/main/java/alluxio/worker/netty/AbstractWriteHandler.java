@@ -145,9 +145,6 @@ abstract class AbstractWriteHandler<T extends WriteRequestContext<?>>
         initRequestContext(mContext);
       }
 
-      // Validate the write request.
-      validateWriteRequest(writeRequest, msg.getPayloadDataBuffer());
-
       // If we have seen an error, return early and release the data. This can only
       // happen for those mis-behaving clients who first sends some invalid requests, then
       // then some random data. It can leak memory if we do not release buffers here.
@@ -156,6 +153,9 @@ abstract class AbstractWriteHandler<T extends WriteRequestContext<?>>
           msg.getPayloadDataBuffer().release();
         }
         return;
+      } else {
+        // Validate the write request.
+        validateWriteRequest(writeRequest, msg.getPayloadDataBuffer());
       }
 
       ByteBuf buf;
@@ -287,7 +287,7 @@ abstract class AbstractWriteHandler<T extends WriteRequestContext<?>>
           writeBuf(mContext, mChannel, buf, mContext.getPosToWrite());
           incrementMetrics(readableBytes);
         } catch (Exception e) {
-          LOG.warn("Failed to write packet: {}", e.getMessage());
+          LOG.error("Failed to write packet for request {}", mContext.getRequest(), e);
           Throwables.propagateIfPossible(e);
           pushAbortPacket(mChannel,
               new Error(AlluxioStatusException.fromCheckedException(e), true));
