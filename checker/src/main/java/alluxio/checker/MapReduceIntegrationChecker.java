@@ -32,18 +32,13 @@ import org.apache.hadoop.mapreduce.TaskAttemptContext;
 import org.apache.hadoop.util.GenericOptionsParser;
 
 import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.DataInput;
 import java.io.DataOutput;
-import java.io.File;
-import java.io.FileWriter;
 import java.io.InputStreamReader;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.URI;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -221,7 +216,7 @@ public class MapReduceIntegrationChecker {
   }
 
   /**
-   * @return result Status summarization
+   * @return result Status from MapReduce output
    */
   private Status generateReport() throws Exception {
     // Reads all the part-r-* files in MapReduceOutPutFile folder
@@ -245,19 +240,7 @@ public class MapReduceIntegrationChecker {
       }
     }
 
-    // Creates a file to save user-facing messages
-    File file = new File("./MapReduceIntegrationReport.txt");
-    if (!file.exists()) {
-      file.createNewFile();
-    }
-    try (FileWriter fileWriter = new FileWriter(file.getAbsoluteFile(), true);
-         BufferedWriter bufferedWriter = new BufferedWriter(fileWriter);
-         PrintWriter reportWriter = new PrintWriter(bufferedWriter);) {
-      // Prints the current time to separate integration checker results
-      SimpleDateFormat df = new SimpleDateFormat("dd/MM/yy HH:mm:ss");
-      Date date = new Date();
-      reportWriter.printf("%n%n%n***** The integration checker ran at %s. *****%n%n",
-          df.format(date));
+    try (PrintWriter reportWriter = CheckerUtils.initReportFile()) {
       Status resultStatus = CheckerUtils.printNodesResults(resultMap, reportWriter);
       switch (resultStatus) {
         case FAIL_TO_FIND_CLASS:

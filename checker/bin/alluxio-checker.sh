@@ -18,9 +18,13 @@ fi
 BIN=$(cd "$( dirname "$( readlink "$0" || echo "$0" )" )"; pwd)
 
 USAGE="Usage: alluxio-checker.sh FRAMEWORK [FRAMEWORK_ARGS]
-Where FRAMEWORK is spark and mapreduce so far.
+Where FRAMEWORK is one of the following:
+    spark
+    mapreduce
+    hive
 
--h  display this help."
+-h  display this help.
+FRAMEWORK -h display the FRAMEWORK detailed help."
 
 function run_spark() {
   ${LAUNCHER} "${BIN}/spark-checker.sh" "$@"
@@ -28,6 +32,10 @@ function run_spark() {
 
 function run_mapreduce() {
   ${LAUNCHER} "${BIN}/mapreduce-checker.sh" "$@"
+}
+
+function run_hive() {
+  ${LAUNCHER} "${BIN}/hive-checker.sh" "$@"
 }
 
 function main {
@@ -39,6 +47,9 @@ function main {
       ;;
     mapreduce)
       run_mapreduce "$@"
+      ;;
+    hive)
+      run_hive "$@"
       ;;
     *)
       echo -e "${USAGE}" >&2
