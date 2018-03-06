@@ -32,7 +32,7 @@ public final class RetryUtils {
    */
   public static void retry(String action, RunnableThrowsIOException f, RetryPolicy policy)
       throws IOException {
-    IOException e = null;
+    IOException e = new IOException();
     while (policy.attempt()) {
       try {
         f.run();

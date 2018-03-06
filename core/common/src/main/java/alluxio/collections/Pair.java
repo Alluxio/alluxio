@@ -11,7 +11,11 @@
 
 package alluxio.collections;
 
+import org.checkerframework.checker.nullness.qual.Nullable;
+
 import javax.annotation.concurrent.NotThreadSafe;
+
+import java.util.Objects;
 
 /**
  * A pair representation defined by two elements (of type First and type Second).
@@ -21,8 +25,8 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public class Pair<T1, T2> {
-  private T1 mFirst;
-  private T2 mSecond;
+  @Nullable private T1 mFirst;
+  @Nullable private T2 mSecond;
 
   /**
    * Constructs and initializes a Pair specified by the two input elements.
@@ -30,7 +34,7 @@ public class Pair<T1, T2> {
    * @param first the first element of the pair (of type First)
    * @param second the second element of the pair (of type Second)
    */
-  public Pair(T1 first, T2 second) {
+  public Pair(@Nullable T1 first, @Nullable T2 second) {
     mFirst = first;
     mSecond = second;
   }
@@ -38,8 +42,8 @@ public class Pair<T1, T2> {
   @Override
   public boolean equals(Object o) {
     if (o instanceof Pair<?, ?>) {
-      return ((Pair<?, ?>) o).getFirst().equals(mFirst)
-          && ((Pair<?, ?>) o).getSecond().equals(mSecond);
+      return Objects.equals(((Pair<?, ?>) o).getFirst(), mFirst)
+          && Objects.equals(((Pair<?, ?>) o).getSecond(), mSecond);
     }
     return false;
   }
@@ -47,6 +51,7 @@ public class Pair<T1, T2> {
   /**
    * @return the first element of the pair
    */
+  @Nullable
   public T1 getFirst() {
     return mFirst;
   }
@@ -54,13 +59,21 @@ public class Pair<T1, T2> {
   /**
    * @return the second element of the pair
    */
+  @Nullable
   public T2 getSecond() {
     return mSecond;
   }
 
   @Override
   public int hashCode() {
-    return 31 * mFirst.hashCode() + mSecond.hashCode();
+    int result = 0;
+    if (mFirst != null) {
+      result += 31 * mFirst.hashCode();
+    }
+    if (mSecond != null) {
+      result += mSecond.hashCode();
+    }
+    return result;
   }
 
   /**
@@ -68,7 +81,7 @@ public class Pair<T1, T2> {
    *
    * @param first the value to be set
    */
-  public void setFirst(T1 first) {
+  public void setFirst(@Nullable T1 first) {
     mFirst = first;
   }
 
@@ -77,7 +90,7 @@ public class Pair<T1, T2> {
    *
    * @param second the value to be set
    */
-  public void setSecond(T2 second) {
+  public void setSecond(@Nullable T2 second) {
     mSecond = second;
   }
 

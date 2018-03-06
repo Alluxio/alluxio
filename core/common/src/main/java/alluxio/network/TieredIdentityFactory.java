@@ -23,6 +23,7 @@ import alluxio.wire.TieredIdentity.LocalityTier;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Sets;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,7 +37,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import javax.annotation.Nullable;
 import javax.annotation.concurrent.GuardedBy;
 
 /**
@@ -48,7 +48,7 @@ public final class TieredIdentityFactory {
   // Synchronize on this lock to modify sInstance.
   private static final Object LOCK = new Object();
   @GuardedBy("LOCK")
-  private static volatile TieredIdentity sInstance = null;
+  @Nullable private static volatile TieredIdentity sInstance = null;
 
   /**
    * @return the singleton tiered identity instance for this JVM

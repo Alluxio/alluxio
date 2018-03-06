@@ -47,7 +47,9 @@ public final class RPCMessageEncoder extends MessageToMessageEncoder<RPCMessage>
 
     if (in.hasPayload()) {
       payload = in.getPayloadDataBuffer();
-      bodyBytes = payload.getLength();
+      if (payload != null) {
+        bodyBytes = payload.getLength();
+      }
     }
 
     int lengthBytes = Longs.BYTES;

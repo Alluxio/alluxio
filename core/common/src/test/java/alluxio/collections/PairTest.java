@@ -48,4 +48,6 @@ public final class PairTest {
       }
     }
   }
+
+  // TODO(pavelsimo) Add tests cases for the null cases
 }

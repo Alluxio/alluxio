@@ -200,6 +200,7 @@ public final class CommonUtils {
    * @return new class object
    * @throws RuntimeException if the class cannot be instantiated
    */
+  @SuppressWarnings("nullness")
   public static <T> T createNewClassInstance(Class<T> cls, Class<?>[] ctorClassArgs,
       Object[] ctorArgs) {
     try {

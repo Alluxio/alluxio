@@ -47,6 +47,7 @@ public class GraphiteSink implements Sink {
    * @param registry the metric registry to register
    * @throws IllegalArgumentException if the {@code host} or {@code port} property is missing
    */
+  @SuppressWarnings("nullness")
   public GraphiteSink(Properties properties, MetricRegistry registry)
       throws IllegalArgumentException {
     mProperties = properties;

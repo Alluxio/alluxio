@@ -900,7 +900,7 @@
             <compilerArgs>
               <arg>-Xlint:none</arg>
               <arg>-Xbootclasspath/p:${org.checkerframework:jdk8:jar}</arg>
-              <arg>-AskipUses=^alluxio\.proto\.|alluxio\.thrift\.|org\.slf4j\.|java\.lang\.|java\.util\.|java\.net\.|java\.time\.|org\.apache\.zookeeper\.</arg>
+              <arg>-AskipUses=^alluxio\.proto\.|alluxio\.thrift\.|org\.slf4j\.|java\.lang\.|java\.util\.|java\.net\.|java\.time\.|javax\.security\.|org\.apache\.zookeeper\.</arg>
               <arg>-AskipDefs=^alluxio\.proto\.|alluxio\.thrift\.</arg>
               <arg>-AsuppressWarnings=uninitialized</arg>
               <arg>-AassumeAssertionsAreEnabled</arg>

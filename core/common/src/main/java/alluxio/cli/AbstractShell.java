@@ -16,6 +16,7 @@ import alluxio.exception.status.InvalidArgumentException;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
+import org.checkerframework.checker.initialization.qual.Initialized;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,6 +44,7 @@ public abstract class AbstractShell implements Closeable {
    *
    * @param commandAlias replacements for commands
    */
+  @SuppressWarnings("nullness")
   public AbstractShell(Map<String, String[]> commandAlias) {
     mCommands = loadCommands();
     mCommandAlias = commandAlias;
@@ -65,6 +67,7 @@ public abstract class AbstractShell implements Closeable {
     Command command = mCommands.get(cmd);
 
     if (command == null) {
+      @Initialized
       String[] replacementCmd = getReplacementCmd(cmd);
       if (replacementCmd == null) {
         // Unknown command (we didn't find the cmd in our dict)
@@ -113,6 +116,7 @@ public abstract class AbstractShell implements Closeable {
    * @param cmd the name of the command
    * @return replacement command if cmd is an alias
    */
+  @SuppressWarnings("nullness")
   private String[] getReplacementCmd(String cmd) {
     if (mCommandAlias == null || !mCommandAlias.containsKey(cmd)) {
       return null;
