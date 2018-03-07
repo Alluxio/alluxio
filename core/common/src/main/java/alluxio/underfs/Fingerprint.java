@@ -146,6 +146,18 @@ public final class Fingerprint {
     }
   }
 
+  /**
+   * @param tag the tag to get
+   * @return the value of the tag
+   */
+  public String getTag(Tag tag) {
+    String value = mValues.get(tag);
+    if (value == null) {
+      return "_";
+    }
+    return value;
+  }
+
   private Fingerprint(Map<Tag, String> values) {
     mValues = new HashMap<>();
     for (Map.Entry<Tag, String> entry : values.entrySet()) {
@@ -155,14 +167,6 @@ public final class Fingerprint {
 
   private void putTag(Tag tag, String value) {
     mValues.put(tag, sanitizeString(value));
-  }
-
-  private String getTag(Tag tag) {
-    String value = mValues.get(tag);
-    if (value == null) {
-      return "_";
-    }
-    return value;
   }
 
   private String sanitizeString(String input) {
