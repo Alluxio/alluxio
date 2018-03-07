@@ -124,3 +124,18 @@ From the master pod, execute the following:
 $ cd /opt/alluxio
 $ ./bin/alluxio runTests
 ```
+
+## Uninstall
+
+Uninstall Alluxio:
+```bash
+kubectl delete -f alluxio-worker.yaml
+kubectl delete -f alluxio-master.yaml
+kubectl delete configmaps alluxio-config
+```
+
+Execute the following to remove the persistent volume storing the Alluxio journal. Note: Alluxio metadata
+will be lost.
+```bash
+kubectl delete -f alluxio-journal-volume.yaml
+```
