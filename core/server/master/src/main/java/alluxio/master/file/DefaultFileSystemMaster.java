@@ -3077,10 +3077,11 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     // The high-level process for the syncing is:
     // 1. Find all Alluxio paths which are not consistent with the corresponding UFS path.
     //    This means the UFS path does not exist, or is different from the Alluxio metadata.
-    // 2. Delete those Alluxio paths which are not consistent with Alluxio. After this step, all
+    // 2. If possible, update an Alluxio directory with the corresponding UFS directory.
+    // 3. Delete any Alluxio path not consistent with UFS, or not in UFS. After this step, all
     //    the paths in Alluxio are consistent with UFS, and there may be additional UFS paths to
     //    load.
-    // 3. Load metadata from UFS.
+    // 4. Load metadata from UFS.
 
     // Set to true if ufs metadata must be loaded.
     boolean loadMetadata = false;
@@ -3112,10 +3113,20 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         MountTable.Resolution resolution = mMountTable.resolve(inodePath.getUri());
         AlluxioURI ufsUri = resolution.getUri();
         UnderFileSystem ufs = resolution.getUfs();
+        String ufsFingerprint = ufs.getFingerprint(ufsUri.toString());
+        boolean isMountPoint = mMountTable.isMountPoint(inodePath.getUri());
 
         UfsSyncUtils.SyncPlan syncPlan =
-            UfsSyncUtils.computeSyncPlan(inode, ufs.getFingerprint(ufsUri.toString()));
+            UfsSyncUtils.computeSyncPlan(inode, ufsFingerprint, isMountPoint);
 
+        if (syncPlan.toUpdateDirectory()) {
+          // Fingerprints only consider permissions for directory inodes.
+          UfsStatus ufsStatus = ufs.getStatus(ufsUri.toString());
+          inode.setOwner(ufsStatus.getOwner());
+          inode.setGroup(ufsStatus.getGroup());
+          inode.setMode(ufsStatus.getMode());
+          inode.setUfsFingerprint(ufsFingerprint);
+        }
         if (syncPlan.toDelete()) {
           try {
             deleteInternal(inodePath, false, System.currentTimeMillis(), syncDeleteOptions,
@@ -3126,13 +3137,11 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
             LOG.error("Unexpected error for unchecked delete. error: {}", e.toString());
           }
         }
-
         if (syncPlan.toLoadMetadata()) {
           loadMetadata = true;
         }
-
         if (syncPlan.toSyncChildren()) {
-          loadMetadata = syncDirMetadata(journalContext, inodePath, syncDescendantType);
+          loadMetadata = syncChildrenMetadata(journalContext, inodePath, syncDescendantType);
         }
       }
     } catch (Exception e) {
@@ -3166,7 +3175,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     return true;
   }
 
-  private boolean syncDirMetadata(JournalContext journalContext, LockedInodePath inodePath,
+  private boolean syncChildrenMetadata(JournalContext journalContext, LockedInodePath inodePath,
       DescendantType syncDescendantType)
       throws FileDoesNotExistException, InvalidPathException, IOException,
       DirectoryNotEmptyException {
@@ -3239,7 +3248,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
 
           if (syncDescendantType == DescendantType.ALL) {
             // Recursively sync children
-            loadMetadata |= syncDirMetadata(journalContext, tempInodePath, DescendantType.ALL);
+            loadMetadata |= syncChildrenMetadata(journalContext, tempInodePath, DescendantType.ALL);
           }
         }
       }
@@ -3365,9 +3374,9 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
           if (!existingFingerprint.equals(Constants.INVALID_UFS_FINGERPRINT)) {
             // Update existing fingerprint, since contents did not change
             Fingerprint fp = Fingerprint.parse(existingFingerprint);
-            fp.updateTag(Fingerprint.Tag.OWNER, owner);
-            fp.updateTag(Fingerprint.Tag.GROUP, group);
-            fp.updateTag(Fingerprint.Tag.MODE, mode);
+            fp.putTag(Fingerprint.Tag.OWNER, owner);
+            fp.putTag(Fingerprint.Tag.GROUP, group);
+            fp.putTag(Fingerprint.Tag.MODE, mode);
             options.setUfsFingerprint(fp.serialize());
           } else {
             // Need to retrieve the fingerprint from ufs.
