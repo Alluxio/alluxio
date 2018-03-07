@@ -22,6 +22,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class ClusterInfo implements Serializable {
+  private static final long serialVersionUID = -4151145809689718450L;
 
   private String mMasterAddress;
   private String mStartTime;

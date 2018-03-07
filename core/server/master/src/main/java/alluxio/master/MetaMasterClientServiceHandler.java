@@ -11,8 +11,8 @@
 
 package alluxio.master;
 
-import alluxio.exception.AlluxioException;
 import alluxio.Constants;
+import alluxio.exception.AlluxioException;
 import alluxio.RpcUtils;
 import alluxio.thrift.GetClusterInfoTOptions;
 import alluxio.thrift.GetClusterInfoTResponse;

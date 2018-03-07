@@ -182,8 +182,7 @@ public class AlluxioMasterProcess implements MasterProcess {
   public ClusterInfo getClusterInfo() {
     return new ClusterInfo().setMasterAddress(getRpcAddress().toString())
         .setStartTime(CommonUtils.convertMsToDate(getStartTimeMs()))
-        .setUpTime(CommonUtils
-            .convertMsToClockTime(getUptimeMs()))
+        .setUpTime(CommonUtils.convertMsToClockTime(getUptimeMs()))
         .setVersion(RuntimeConstants.VERSION)
         .setSafeMode(mSafeModeManager.isInSafeMode());
   }

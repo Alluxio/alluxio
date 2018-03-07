@@ -166,8 +166,8 @@ public final class ThriftUtils {
   /**
    * Converts a wire type to a thrift type.
    *
-   * @param clusterInfo the wire representation of a block information
-   * @return thrift representation of the block information
+   * @param clusterInfo the wire representation of the cluster information
+   * @return thrift representation of the cluster information
    */
   public static alluxio.thrift.ClusterInfo toThrift(ClusterInfo clusterInfo) {
     return clusterInfo.toThrift();
