@@ -3077,8 +3077,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     // The high-level process for the syncing is:
     // 1. Find all Alluxio paths which are not consistent with the corresponding UFS path.
     //    This means the UFS path does not exist, or is different from the Alluxio metadata.
-    // 2. If a directory is not consistent, update the directory inode permissions from UFS.
-    // 3. Delete those Alluxio files which are not consistent with UFS. After this step, all
+    // 2. If possible, update an Alluxio directory with the corresponding UFS directory.
+    // 3. Delete any Alluxio path not consistent with UFS, or not in UFS. After this step, all
     //    the paths in Alluxio are consistent with UFS, and there may be additional UFS paths to
     //    load.
     // 4. Load metadata from UFS.
@@ -3367,9 +3367,9 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
           if (!existingFingerprint.equals(Constants.INVALID_UFS_FINGERPRINT)) {
             // Update existing fingerprint, since contents did not change
             Fingerprint fp = Fingerprint.parse(existingFingerprint);
-            fp.updateTag(Fingerprint.Tag.OWNER, owner);
-            fp.updateTag(Fingerprint.Tag.GROUP, group);
-            fp.updateTag(Fingerprint.Tag.MODE, mode);
+            fp.putTag(Fingerprint.Tag.OWNER, owner);
+            fp.putTag(Fingerprint.Tag.GROUP, group);
+            fp.putTag(Fingerprint.Tag.MODE, mode);
             options.setUfsFingerprint(fp.serialize());
           } else {
             // Need to retrieve the fingerprint from ufs.
