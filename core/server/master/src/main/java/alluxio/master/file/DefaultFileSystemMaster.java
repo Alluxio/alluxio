@@ -1504,7 +1504,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
               failedToDelete = !ufsDeleter.delete(alluxioUriToDel, delInode);
             }
           } catch (InvalidPathException e) {
-            LOG.warn(e.getMessage());
+            LOG.warn("Failed to delete path from UFS: {}", e.getMessage());
           }
         }
         if (!failedToDelete) {
