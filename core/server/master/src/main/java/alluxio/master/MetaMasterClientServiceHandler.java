@@ -11,9 +11,11 @@
 
 package alluxio.master;
 
+import alluxio.exception.AlluxioException;
 import alluxio.Constants;
 import alluxio.RpcUtils;
-import alluxio.exception.AlluxioException;
+import alluxio.thrift.GetClusterInfoTOptions;
+import alluxio.thrift.GetClusterInfoTResponse;
 import alluxio.thrift.GetMasterInfoTOptions;
 import alluxio.thrift.GetMasterInfoTResponse;
 import alluxio.thrift.GetServiceVersionTOptions;
@@ -21,6 +23,7 @@ import alluxio.thrift.GetServiceVersionTResponse;
 import alluxio.thrift.MasterInfo;
 import alluxio.thrift.MasterInfoField;
 import alluxio.thrift.MetaMasterClientService;
+import alluxio.wire.ThriftUtils;
 
 import org.apache.thrift.TException;
 import org.slf4j.Logger;
@@ -66,6 +69,17 @@ public final class MetaMasterClientServiceHandler implements MetaMasterClientSer
           }
         }
         return new GetMasterInfoTResponse(info);
+      }
+    });
+  }
+
+  @Override
+  public GetClusterInfoTResponse getClusterInfo(final GetClusterInfoTOptions options)
+      throws TException {
+    return RpcUtils.call(LOG, new RpcUtils.RpcCallable<GetClusterInfoTResponse>() {
+      @Override
+      public GetClusterInfoTResponse call() throws AlluxioException {
+        return new GetClusterInfoTResponse(ThriftUtils.toThrift(mMasterProcess.getClusterInfo()));
       }
     });
   }

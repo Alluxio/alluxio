@@ -28,6 +28,7 @@ import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 import alluxio.web.MasterWebServer;
 import alluxio.web.WebServer;
+import alluxio.wire.ClusterInfo;
 
 import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
@@ -175,6 +176,16 @@ public class AlluxioMasterProcess implements MasterProcess {
   @Override
   public long getUptimeMs() {
     return System.currentTimeMillis() - mStartTimeMs;
+  }
+
+  @Override
+  public ClusterInfo getClusterInfo() {
+    return new ClusterInfo().setMasterAddress(getRpcAddress().toString())
+        .setStartTime(CommonUtils.convertMsToDate(getStartTimeMs()))
+        .setUpTime(CommonUtils
+            .convertMsToClockTime(getUptimeMs()))
+        .setVersion(RuntimeConstants.VERSION)
+        .setSafeMode(mSafeModeManager.isInSafeMode());
   }
 
   @Override
@@ -385,4 +396,5 @@ public class AlluxioMasterProcess implements MasterProcess {
   public String toString() {
     return "Alluxio master @" + mRpcConnectAddress;
   }
+
 }

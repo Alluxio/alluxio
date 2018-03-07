@@ -12,6 +12,7 @@
 package alluxio.client;
 
 import alluxio.wire.MasterInfo;
+import alluxio.wire.ClusterInfo;
 import alluxio.wire.MasterInfo.MasterInfoField;
 
 import java.io.Closeable;
@@ -19,7 +20,7 @@ import java.io.IOException;
 import java.util.Set;
 
 /**
- * Interface for a client to the meta master.
+ * Interface for a meta master client.
  */
 public interface MetaMasterClient extends Closeable {
   /**
@@ -27,4 +28,9 @@ public interface MetaMasterClient extends Closeable {
    * @return the requested master info
    */
   MasterInfo getInfo(Set<MasterInfoField> masterInfoFields) throws IOException;
+
+  /**
+   * @return the requested cluster info
+   */
+  ClusterInfo getClusterInfo() throws IOException;
 }

@@ -15,10 +15,13 @@ import alluxio.AbstractMasterClient;
 import alluxio.Constants;
 import alluxio.master.MasterClientConfig;
 import alluxio.thrift.AlluxioService;
+import alluxio.thrift.GetClusterInfoTOptions;
 import alluxio.thrift.GetMasterInfoTOptions;
 import alluxio.thrift.MetaMasterClientService;
+import alluxio.wire.ClusterInfo;
 import alluxio.wire.MasterInfo;
 import alluxio.wire.MasterInfo.MasterInfoField;
+import alluxio.wire.ThriftUtils;
 
 import java.io.IOException;
 import java.util.HashSet;
@@ -80,6 +83,14 @@ public final class RetryHandlingMetaMasterClient extends AbstractMasterClient
       }
       return MasterInfo.fromThrift(
           mClient.getMasterInfo(new GetMasterInfoTOptions(thriftFields)).getMasterInfo());
+    });
+  }
+
+  @Override
+  public synchronized ClusterInfo getClusterInfo() throws IOException {
+    return retryRPC(() -> {
+      return ThriftUtils
+          .fromThrift(mClient.getClusterInfo(new GetClusterInfoTOptions()).getClusterInfo());
     });
   }
 }

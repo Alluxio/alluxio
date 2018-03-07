@@ -24,6 +24,7 @@ function printUsage {
   echo -e "  getConf [key] \t Look up a configuration key, or print all configuration."
   echo -e "  loadufs       \t Load existing files in underlayer filesystem into Alluxio."
   echo -e "  logLevel      \t Set or get log level of Alluxio servers."
+  echo -e "  report        \t Report the Alluxio running cluster information."
   echo -e "  runClass      \t Run the main method of an Alluxio class."
   echo -e "  runTest       \t Run an end-to-end test on an Alluxio cluster."
   echo -e "  runKVTest     \t Run a test of key-value store operations."
@@ -284,6 +285,11 @@ function main {
   ;;
   "logLevel")
     CLASS="alluxio.cli.LogLevel"
+    CLASSPATH=${ALLUXIO_CLIENT_CLASSPATH}
+    runJavaClass "$@"
+  ;;
+  "report")
+    CLASS="alluxio.cli.Report"
     CLASSPATH=${ALLUXIO_CLIENT_CLASSPATH}
     runJavaClass "$@"
   ;;

@@ -179,7 +179,7 @@ public final class WebInterfaceGeneralServlet extends HttpServlet {
 
     request.setAttribute("masterNodeAddress", mMasterProcess.getRpcAddress().toString());
 
-    request.setAttribute("uptime", WebUtils
+    request.setAttribute("uptime", CommonUtils
         .convertMsToClockTime(System.currentTimeMillis() - mMasterProcess.getStartTimeMs()));
 
     request.setAttribute("startTime", CommonUtils.convertMsToDate(mMasterProcess.getStartTimeMs()));

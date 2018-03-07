@@ -16,6 +16,7 @@ import alluxio.Process;
 import alluxio.PropertyKey;
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.JournalUtils;
+import alluxio.wire.ClusterInfo;
 
 import java.net.InetSocketAddress;
 import java.net.URI;
@@ -75,6 +76,11 @@ public interface MasterProcess extends Process {
    * @return the master's web address, or null if the web server hasn't been started yet
    */
   InetSocketAddress getWebAddress();
+
+  /**
+   * @return the Alluxio running cluster information
+   */
+  ClusterInfo getClusterInfo();
 
   /**
    * @return true if the system is the leader (serving the rpc server), false otherwise
