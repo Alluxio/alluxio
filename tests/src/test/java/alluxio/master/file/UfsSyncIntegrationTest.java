@@ -32,6 +32,7 @@ import alluxio.exception.FileDoesNotExistException;
 import alluxio.security.authorization.Mode;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.CommonUtils;
+import alluxio.util.io.FileUtils;
 import alluxio.wire.CommonOptions;
 import alluxio.wire.LoadMetadataType;
 
@@ -46,6 +47,7 @@ import org.junit.Test;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.file.attribute.PosixFilePermissions;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -346,6 +348,37 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
 
     // Verify the fingerprints are different.
     Assert.assertNotEquals(startFingerprint, endFingerprint);
+  }
+
+  @Test
+  public void UfsDirUpdatePermissions() throws Exception {
+    new File(ufsPath("/dir1")).mkdirs();
+    new File(ufsPath("/dir1/dir2")).mkdirs();
+    String fileA = "/dir1/dir2/fileA";
+    writeUfsFile(ufsPath(fileA), 1);
+
+    // Set the mode for the directory
+    FileUtils.changeLocalFilePermission(ufsPath("/dir1"), "rwxrwxrwx");
+
+    GetStatusOptions options =
+        GetStatusOptions.defaults().setLoadMetadataType(LoadMetadataType.Never)
+            .setCommonOptions(SYNC_ALWAYS);
+    URIStatus status = mFileSystem.getStatus(new AlluxioURI(alluxioPath("/dir1")), options);
+    Assert.assertNotNull(status);
+
+    Assert.assertEquals(
+        FileUtils.translatePosixPermissionToMode(PosixFilePermissions.fromString("rwxrwxrwx")),
+        status.getMode());
+
+    // Change the mode for the directory
+    FileUtils.changeLocalFilePermission(ufsPath("/dir1"), "rwxr-xr-x");
+
+    status = mFileSystem.getStatus(new AlluxioURI(alluxioPath("/dir1")), options);
+    Assert.assertNotNull(status);
+
+    Assert.assertEquals(
+        FileUtils.translatePosixPermissionToMode(PosixFilePermissions.fromString("rwxr-xr-x")),
+        status.getMode());
   }
 
   @Test
