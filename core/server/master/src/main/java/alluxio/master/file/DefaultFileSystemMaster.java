@@ -3171,21 +3171,22 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
 
         MountTable.Resolution resolution = mMountTable.resolve(inodePath.getUri());
         AlluxioURI ufsUri = resolution.getUri();
-<<<<<<< HEAD
         try (CloseableResource<UnderFileSystem> ufsResource = resolution.acquireUfsResource()) {
           UnderFileSystem ufs = ufsResource.get();
-||||||| merged common ancestors
-        UnderFileSystem ufs = resolution.getUfs();
-=======
-        UnderFileSystem ufs = resolution.getUfs();
-        String ufsFingerprint = ufs.getFingerprint(ufsUri.toString());
-        boolean isMountPoint = mMountTable.isMountPoint(inodePath.getUri());
->>>>>>> upstream/branch-1.7
+          String ufsFingerprint = ufs.getFingerprint(ufsUri.toString());
+          boolean isMountPoint = mMountTable.isMountPoint(inodePath.getUri());
 
-<<<<<<< HEAD
           UfsSyncUtils.SyncPlan syncPlan =
-              UfsSyncUtils.computeSyncPlan(inode, ufs.getFingerprint(ufsUri.toString()));
+              UfsSyncUtils.computeSyncPlan(inode, ufsFingerprint, isMountPoint);
 
+          if (syncPlan.toUpdateDirectory()) {
+            // Fingerprints only consider permissions for directory inodes.
+            UfsStatus ufsStatus = ufs.getStatus(ufsUri.toString());
+            inode.setOwner(ufsStatus.getOwner());
+            inode.setGroup(ufsStatus.getGroup());
+            inode.setMode(ufsStatus.getMode());
+            inode.setUfsFingerprint(ufsFingerprint);
+          }
           if (syncPlan.toDelete()) {
             try {
               deleteInternal(inodePath, false, System.currentTimeMillis(), syncDeleteOptions,
@@ -3195,66 +3196,15 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
               // Should not happen, since it is an unchecked delete.
               LOG.error("Unexpected error for unchecked delete. error: {}", e.toString());
             }
-||||||| merged common ancestors
-        UfsSyncUtils.SyncPlan syncPlan =
-            UfsSyncUtils.computeSyncPlan(inode, ufs.getFingerprint(ufsUri.toString()));
-
-        if (syncPlan.toDelete()) {
-          try {
-            deleteInternal(inodePath, false, System.currentTimeMillis(), syncDeleteOptions,
-                journalContext);
-            deletedInode = true;
-          } catch (DirectoryNotEmptyException | IOException e) {
-            // Should not happen, since it is an unchecked delete.
-            LOG.error("Unexpected error for unchecked delete. error: {}", e.toString());
-=======
-        UfsSyncUtils.SyncPlan syncPlan =
-            UfsSyncUtils.computeSyncPlan(inode, ufsFingerprint, isMountPoint);
-
-        if (syncPlan.toUpdateDirectory()) {
-          // Fingerprints only consider permissions for directory inodes.
-          UfsStatus ufsStatus = ufs.getStatus(ufsUri.toString());
-          inode.setOwner(ufsStatus.getOwner());
-          inode.setGroup(ufsStatus.getGroup());
-          inode.setMode(ufsStatus.getMode());
-          inode.setUfsFingerprint(ufsFingerprint);
-        }
-        if (syncPlan.toDelete()) {
-          try {
-            deleteInternal(inodePath, false, System.currentTimeMillis(), syncDeleteOptions,
-                journalContext);
-            deletedInode = true;
-          } catch (DirectoryNotEmptyException | IOException e) {
-            // Should not happen, since it is an unchecked delete.
-            LOG.error("Unexpected error for unchecked delete. error: {}", e.toString());
->>>>>>> upstream/branch-1.7
           }
-<<<<<<< HEAD
 
           if (syncPlan.toLoadMetadata()) {
             loadMetadata = true;
           }
 
           if (syncPlan.toSyncChildren()) {
-            loadMetadata = syncDirMetadata(journalContext, inodePath, syncDescendantType);
+            loadMetadata = syncChildrenMetadata(journalContext, inodePath, syncDescendantType);
           }
-||||||| merged common ancestors
-        }
-
-        if (syncPlan.toLoadMetadata()) {
-          loadMetadata = true;
-        }
-
-        if (syncPlan.toSyncChildren()) {
-          loadMetadata = syncDirMetadata(journalContext, inodePath, syncDescendantType);
-=======
-        }
-        if (syncPlan.toLoadMetadata()) {
-          loadMetadata = true;
-        }
-        if (syncPlan.toSyncChildren()) {
-          loadMetadata = syncChildrenMetadata(journalContext, inodePath, syncDescendantType);
->>>>>>> upstream/branch-1.7
         }
       }
     } catch (Exception e) {
@@ -3332,7 +3282,6 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
           }
         }
 
-<<<<<<< HEAD
         // Iterate over Alluxio children and process persisted children.
         for (Map.Entry<String, Inode<?>> inodeEntry : inodeChildren.entrySet()) {
           if (!inodeEntry.getValue().isPersisted()) {
@@ -3363,59 +3312,9 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
 
             if (syncDescendantType == DescendantType.ALL) {
               // Recursively sync children
-              loadMetadata |= syncDirMetadata(journalContext, tempInodePath, DescendantType.ALL);
+              loadMetadata |=
+                  syncChildrenMetadata(journalContext, tempInodePath, DescendantType.ALL);
             }
-||||||| merged common ancestors
-        String ufsFingerprint = ufsChildFingerprints.get(inodeEntry.getKey());
-        boolean deleteChild =
-            !UfsSyncUtils.inodeUfsIsSynced(inodeEntry.getValue(), ufsFingerprint);
-
-        if (deleteChild) {
-          TempInodePathForDescendant tempInodePath =
-              new TempInodePathForDescendant(inodePath);
-          tempInodePath.setDescendant(inodeEntry.getValue(),
-              inodePath.getUri().join(inodeEntry.getKey()));
-
-          deleteInternal(tempInodePath, false, System.currentTimeMillis(), syncDeleteOptions,
-              journalContext);
-          // Must load metadata afterwards.
-          loadMetadata = true;
-        } else if (inodeEntry.getValue().isDirectory()) {
-          // Recursively sync for this directory.
-          TempInodePathForDescendant tempInodePath =
-              new TempInodePathForDescendant(inodePath);
-          tempInodePath.setDescendant(inodeEntry.getValue(),
-              inodePath.getUri().join(inodeEntry.getKey()));
-
-          if (syncDescendantType == DescendantType.ALL) {
-            // Recursively sync children
-            loadMetadata |= syncDirMetadata(journalContext, tempInodePath, DescendantType.ALL);
-=======
-        String ufsFingerprint = ufsChildFingerprints.get(inodeEntry.getKey());
-        boolean deleteChild =
-            !UfsSyncUtils.inodeUfsIsSynced(inodeEntry.getValue(), ufsFingerprint);
-
-        if (deleteChild) {
-          TempInodePathForDescendant tempInodePath =
-              new TempInodePathForDescendant(inodePath);
-          tempInodePath.setDescendant(inodeEntry.getValue(),
-              inodePath.getUri().join(inodeEntry.getKey()));
-
-          deleteInternal(tempInodePath, false, System.currentTimeMillis(), syncDeleteOptions,
-              journalContext);
-          // Must load metadata afterwards.
-          loadMetadata = true;
-        } else if (inodeEntry.getValue().isDirectory()) {
-          // Recursively sync for this directory.
-          TempInodePathForDescendant tempInodePath =
-              new TempInodePathForDescendant(inodePath);
-          tempInodePath.setDescendant(inodeEntry.getValue(),
-              inodePath.getUri().join(inodeEntry.getKey()));
-
-          if (syncDescendantType == DescendantType.ALL) {
-            // Recursively sync children
-            loadMetadata |= syncChildrenMetadata(journalContext, tempInodePath, DescendantType.ALL);
->>>>>>> upstream/branch-1.7
           }
         }
       }
@@ -3543,44 +3442,14 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
             if (!existingFingerprint.equals(Constants.INVALID_UFS_FINGERPRINT)) {
               // Update existing fingerprint, since contents did not change
               Fingerprint fp = Fingerprint.parse(existingFingerprint);
-              fp.updateTag(Fingerprint.Tag.OWNER, owner);
-              fp.updateTag(Fingerprint.Tag.GROUP, group);
-              fp.updateTag(Fingerprint.Tag.MODE, mode);
+              fp.putTag(Fingerprint.Tag.OWNER, owner);
+              fp.putTag(Fingerprint.Tag.GROUP, group);
+              fp.putTag(Fingerprint.Tag.MODE, mode);
               options.setUfsFingerprint(fp.serialize());
             } else {
               // Need to retrieve the fingerprint from ufs.
               options.setUfsFingerprint(ufs.getFingerprint(ufsUri));
             }
-<<<<<<< HEAD
-||||||| merged common ancestors
-          }
-          // Retrieve the ufs fingerprint after the ufs changes.
-          String existingFingerprint = inode.getUfsFingerprint();
-          if (!existingFingerprint.equals(Constants.INVALID_UFS_FINGERPRINT)) {
-            // Update existing fingerprint, since contents did not change
-            Fingerprint fp = Fingerprint.parse(existingFingerprint);
-            fp.updateTag(Fingerprint.Tag.OWNER, owner);
-            fp.updateTag(Fingerprint.Tag.GROUP, group);
-            fp.updateTag(Fingerprint.Tag.MODE, mode);
-            options.setUfsFingerprint(fp.serialize());
-          } else {
-            // Need to retrieve the fingerprint from ufs.
-            options.setUfsFingerprint(ufs.getFingerprint(ufsUri));
-=======
-          }
-          // Retrieve the ufs fingerprint after the ufs changes.
-          String existingFingerprint = inode.getUfsFingerprint();
-          if (!existingFingerprint.equals(Constants.INVALID_UFS_FINGERPRINT)) {
-            // Update existing fingerprint, since contents did not change
-            Fingerprint fp = Fingerprint.parse(existingFingerprint);
-            fp.putTag(Fingerprint.Tag.OWNER, owner);
-            fp.putTag(Fingerprint.Tag.GROUP, group);
-            fp.putTag(Fingerprint.Tag.MODE, mode);
-            options.setUfsFingerprint(fp.serialize());
-          } else {
-            // Need to retrieve the fingerprint from ufs.
-            options.setUfsFingerprint(ufs.getFingerprint(ufsUri));
->>>>>>> upstream/branch-1.7
           }
         }
       }
