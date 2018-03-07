@@ -17,6 +17,7 @@ import alluxio.PropertyKey;
 import alluxio.util.ThreadFactoryUtils;
 
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -34,7 +35,7 @@ final class NettyExecutors {
   public static final ExecutorService ASYNC_CACHE_MANAGER_EXECUTOR =
       new ThreadPoolExecutor(THREADS_MIN,
           Configuration.getInt(PropertyKey.WORKER_NETWORK_NETTY_ASYNC_CACHE_MANAGER_THREADS_MAX),
-          THREAD_STOP_MS, TimeUnit.MILLISECONDS, new SynchronousQueue<>(),
+          THREAD_STOP_MS, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>(512),
           ThreadFactoryUtils.build("AsyncCacheManagerExecutor-%d", true));
 
   public static final ExecutorService BLOCK_READER_EXECUTOR =
