@@ -77,7 +77,6 @@ spark.executor.extraJavaOptions -Dalluxio.zookeeper.address=zookeeperHost1:2181,
 $ checker/bin/alluxio-checker.sh spark <spark master uri> <spark partition number(optional)>
 ```
 
-<<<<<<< HEAD
 ## 检查Spark和Alluxio的一体化（支持Spark 2.x）
 
 在Alluxio上运行Spark前，你可能想确定你的Spark与Alluxio一体化的配置已经正确设置了。Spark一体化检查器可以帮你实现这一点。
@@ -90,11 +89,9 @@ $ checker/bin/alluxio-checker.sh spark <spark master uri> <spark partition numbe
 
 这将会报告可能阻止你在Alluxio上运行Spark的潜在问题。
 
-||||||| merged common ancestors
-=======
 你可以使用`-h`来显示关于这个命令的有用信息。这条命令将报告潜在的问题，可能会阻碍你在Alluxio上运行Spark。 
 
->>>>>>> upstream/branch-1.7
+
 ## 使用Alluxio作为输入输出
 
 这一部分说明如何将Alluxio作为Spark应用的输入输出源。
