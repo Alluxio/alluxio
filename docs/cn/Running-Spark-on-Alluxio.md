@@ -46,21 +46,35 @@ spark.executor.extraClassPath {{site.ALLUXIO_CLIENT_JAR_PATH}}
 </configuration>
 ```
 
-
-* 如果你使用zookeeper让Alluxio运行在容错模式并且Hadoop集群是1.x，添加如下内容到先前创建的`spark/conf/core-site.xml`:
-
-```xml
-<property>
-  <name>fs.alluxio-ft.impl</name>
-  <value>alluxio.hadoop.FaultTolerantFileSystem</value>
-</property>
-```
-
-以及如下内容到`spark/conf/spark-defaults.conf`:
+* 如果你使用zookeeper让Alluxio运行在容错模式，添加如下内容到`${SPARK_HOME}/conf/spark-defaults.conf`:
 
 ```bash
 spark.driver.extraJavaOptions -Dalluxio.zookeeper.address=zookeeperHost1:2181,zookeeperHost2:2181 -Dalluxio.zookeeper.enabled=true
 spark.executor.extraJavaOptions -Dalluxio.zookeeper.address=zookeeperHost1:2181,zookeeperHost2:2181 -Dalluxio.zookeeper.enabled=true
+```
+或者你可以添加内容到先前创建的Hadoop配置文件中`${SPARK_HOME}/conf/core-site.xml`:
+
+```xml
+<configuration>
+  <property>
+    <name>alluxio.zookeeper.enabled</name>
+    <value>true</value>
+  </property>
+  <property>
+    <name>alluxio.zookeeper.address</name>
+    <value>[zookeeper_hostname]:2181</value>
+  </property>
+</configuration>
+```
+
+## 检查Spark与Alluxio的集成性 (支持Spark 2.X)
+
+在Alluxio上运行Spark之前，你需要确认你的Spark配置已经正确设置集成了Alluxio。Spark集成检查器可以帮助你确认。 
+
+当你运行Saprk集群(或单机运行)时,你可以在Alluxio项目目录运行以下命令:
+
+```bash
+$ checker/bin/alluxio-checker.sh spark <spark master uri> <spark partition number(optional)>
 ```
 
 ## 检查Spark和Alluxio的一体化（支持Spark 2.x）
@@ -74,6 +88,9 @@ $ checker/bin/alluxio-checker.sh spark <spark master uri> <spark partition numbe
 ```
 
 这将会报告可能阻止你在Alluxio上运行Spark的潜在问题。
+
+你可以使用`-h`来显示关于这个命令的有用信息。这条命令将报告潜在的问题，可能会阻碍你在Alluxio上运行Spark。 
+
 
 ## 使用Alluxio作为输入输出
 

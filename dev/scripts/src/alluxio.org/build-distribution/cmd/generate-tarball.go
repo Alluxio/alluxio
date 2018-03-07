@@ -153,7 +153,7 @@ func addAdditionalFiles(srcPath, dstPath, version string) {
 	for _, jar := range []string{"client", "server"} {
 		oldLocation := filepath.Join(dstPath, "assembly/client/target", fmt.Sprintf("alluxio-assembly-%v-%v-jar-with-dependencies.jar", jar, version))
 		mkdir(filepath.Dir(oldLocation))
-		symlink(fmt.Sprintf("../../alluxio-%v-1.7.1-SNAPSHOT.jar", jar), oldLocation)
+		symlink(fmt.Sprintf("../../alluxio-%v-%v.jar", jar, version), oldLocation)
 	}
 	mkdir(filepath.Join(dstPath, "assembly/server/target"))
 }
