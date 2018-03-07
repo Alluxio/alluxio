@@ -30,7 +30,6 @@ or let us know by email (project.alluxio@gmail.com) or
 * [Intel](http://www.intel.com/)
 * [JD](http://www.jd.com/)
 * [Juniper Networks](http://www.juniper.net/)
-* []
 * [Lenovo](https://www3.lenovo.com/us/en/)
 * [Microsoft](https://www.microsoft.com/en-us/)
 * [Momo](https://www.immomo.com/)
@@ -49,8 +48,6 @@ or let us know by email (project.alluxio@gmail.com) or
 * [Walmart](https://www.walmart.com/)
 * [ZTE](http://www.zte.com.cn)
 * [Kyligence](http://en.kyligence.io/)
-Here is a list that tracks external software projects that supplement Alluxio and add to its ecosystem.
-
 * [Alibaba OSS](http://www.aliyun.com/product/oss/?lang=en)
 * [Amazon S3](https://aws.amazon.com/s3/)
 * [Alluxio C++ Client](https://github.com/stormspirit/libtachyon)
