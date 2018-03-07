@@ -1538,7 +1538,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
               }
             }
           } catch (InvalidPathException e) {
-            LOG.warn(e.getMessage());
+            LOG.warn("Failed to delete path from UFS: {}", e.getMessage());
           }
         }
         if (!failedToDelete) {
@@ -3162,6 +3162,11 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
           // Do not sync an incomplete file, since the UFS file is expected to not exist.
           return false;
         }
+        if (inode.getPersistenceState() == PersistenceState.TO_BE_PERSISTED) {
+          // Do not sync a file in the process of being persisted, since the UFS file is being
+          // written.
+          return false;
+        }
 
         MountTable.Resolution resolution = mMountTable.resolve(inodePath.getUri());
         AlluxioURI ufsUri = resolution.getUri();
@@ -3210,7 +3215,9 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         loadMetadataAndJournal(inodePath, LoadMetadataOptions.defaults().setCreateAncestors(true)
             .setLoadDescendantType(syncDescendantType), journalContext);
       } catch (Exception e) {
-        LOG.error("Failed to load metadata for path: {} error: {}", inodePath.getUri(),
+        // This may be expected. For example, when creating a new file, the UFS file is not
+        // expected to exist.
+        LOG.debug("Failed to load metadata for path: {} error: {}", inodePath.getUri(),
             e.toString());
         return false;
       }
