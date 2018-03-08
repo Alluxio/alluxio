@@ -175,6 +175,7 @@
     <module>shell</module>
     <module>tests</module>
     <module>underfs</module>
+    <module>cpp</module>
   </modules>
 
   <dependencyManagement>
@@ -1116,6 +1117,7 @@
             <exclude>dev/scripts/workdir/**/*</exclude>
             <exclude>**/.checkstyle</exclude>
             <exclude>**/src/main/assembly/*</exclude>
+            <exclude>**/CMakeLists.txt</exclude>
 
             <!-- Documentation Exclusions -->
             <exclude>docs/**/*</exclude>
