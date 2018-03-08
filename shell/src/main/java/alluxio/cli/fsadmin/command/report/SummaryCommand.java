@@ -43,8 +43,8 @@ public class SummaryCommand {
     try (RetryHandlingBlockMasterClient client =
         new RetryHandlingBlockMasterClient(MasterClientConfig.defaults())) {
       BlockMasterInfo blockMasterInfo = client.getBlockMasterInfo();
-      System.out.println("    Running workers: " + blockMasterInfo.getWorkerNum());
-
+      System.out.println("    Running workers: " + blockMasterInfo.getLiveWorkerNum());
+      System.out.println("    Dead workers: " + blockMasterInfo.getDeadWorkerNum());
       System.out.println("    Total Capacity: " + blockMasterInfo.getTotalCapacity());
       Map<String, String> totalCapacityOnTiers = blockMasterInfo.getTotalCapacityOnTiers();
       for (Map.Entry<String, String> capacityTier : totalCapacityOnTiers.entrySet()) {

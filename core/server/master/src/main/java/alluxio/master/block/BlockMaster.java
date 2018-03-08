@@ -32,9 +32,14 @@ import java.util.Set;
  */
 public interface BlockMaster extends Master, ContainerIdGenerable {
   /**
-   * @return the number of workers
+   * @return the number of live workers
    */
   int getWorkerCount();
+
+  /**
+   * @return the number of lost workers
+   */
+  int getLostWorkerCount();
 
   /**
    * @return a list of {@link WorkerInfo} objects representing the workers in Alluxio

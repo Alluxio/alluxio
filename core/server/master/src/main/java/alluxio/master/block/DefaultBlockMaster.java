@@ -283,6 +283,11 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
   }
 
   @Override
+  public int getLostWorkerCount() {
+    return mLostWorkers.size();
+  }
+
+  @Override
   public List<WorkerInfo> getWorkerInfoList() throws UnavailableException {
     if (mSafeModeManager.isInSafeMode()) {
       throw new UnavailableException(ExceptionMessage.MASTER_IN_SAFEMODE.getMessage());
@@ -526,7 +531,8 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
 
   @Override
   public BlockMasterInfo getBlockMasterInfo() {
-    return new BlockMasterInfo().setWorkerNum(getWorkerCount())
+    return new BlockMasterInfo().setLiveWorkerNum(getWorkerCount())
+        .setDeadWorkerNum(getLostWorkerCount())
         .setTotalCapacity(getCapacityBytes())
         .setUsedCapacity(getUsedBytes())
         .setFreeCapacity(getCapacityBytes() - getUsedBytes())

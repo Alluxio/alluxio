@@ -33,7 +33,9 @@ public final class ReportCommand extends AbstractCommand {
     SUMMARY, // Reports the Alluxio cluster information
   }
 
-  /** Initialize report command.**/
+  /**
+   * Creates a new instance of {@link ReportCommand}.
+   */
   public ReportCommand() {}
 
   @Override

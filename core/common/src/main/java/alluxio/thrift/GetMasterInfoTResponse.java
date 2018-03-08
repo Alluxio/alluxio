@@ -111,7 +111,7 @@ public class GetMasterInfoTResponse implements org.apache.thrift.TBase<GetMaster
   static {
     Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
     tmpMap.put(_Fields.MASTER_INFO, new org.apache.thrift.meta_data.FieldMetaData("masterInfo", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT        , "MasterInfo")));
+        new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, MasterInfo.class)));
     metaDataMap = Collections.unmodifiableMap(tmpMap);
     org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(GetMasterInfoTResponse.class, metaDataMap);
   }
@@ -131,7 +131,7 @@ public class GetMasterInfoTResponse implements org.apache.thrift.TBase<GetMaster
    */
   public GetMasterInfoTResponse(GetMasterInfoTResponse other) {
     if (other.isSetMasterInfo()) {
-      this.masterInfo = other.masterInfo;
+      this.masterInfo = new MasterInfo(other.masterInfo);
     }
   }
 
@@ -292,6 +292,9 @@ public class GetMasterInfoTResponse implements org.apache.thrift.TBase<GetMaster
   public void validate() throws org.apache.thrift.TException {
     // check for required fields
     // check for sub-struct validity
+    if (masterInfo != null) {
+      masterInfo.validate();
+    }
   }
 
   private void writeObject(java.io.ObjectOutputStream out) throws java.io.IOException {

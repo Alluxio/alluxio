@@ -17,10 +17,10 @@ import alluxio.master.MasterClientConfig;
 import alluxio.thrift.AlluxioService;
 import alluxio.thrift.BlockMasterClientService;
 import alluxio.thrift.GetBlockInfoTOptions;
+import alluxio.thrift.GetBlockMasterInfoTOptions;
 import alluxio.thrift.GetCapacityBytesTOptions;
 import alluxio.thrift.GetUsedBytesTOptions;
 import alluxio.thrift.GetWorkerInfoListTOptions;
-import alluxio.thrift.GetBlockMasterInfoTOptions;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.BlockMasterInfo;
 import alluxio.wire.ThriftUtils;
@@ -110,9 +110,9 @@ public final class RetryHandlingBlockMasterClient extends AbstractMasterClient
   }
 
   /**
-   * Returns the {@link BlockMasterInfo} .
+   * Returns the {@link BlockMasterInfo} block master information.
    *
-   * @return the {@link BlockMasterInfo}
+   * @return the {@link BlockMasterInfo} block master information
    */
   public synchronized BlockMasterInfo getBlockMasterInfo() throws IOException {
     return retryRPC(new RpcCallable<BlockMasterInfo>() {

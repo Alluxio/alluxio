@@ -44,7 +44,9 @@ public final class UfsCommand extends AbstractCommand {
           .desc("Set maintenance mode for a ufs path under one or more Alluxio mount points.")
           .build();
 
-  /** Initialize the Ufs command.*/
+  /**
+   * Creates a new instance of {@link UfsCommand}.
+   */
   public UfsCommand() {
     mMasterClient = FileSystemMasterClient.Factory.create(MasterClientConfig.defaults());
   }

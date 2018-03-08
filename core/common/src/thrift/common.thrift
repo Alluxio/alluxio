@@ -21,11 +21,6 @@ struct BlockLocation {
   3: string tierAlias
 }
 
-struct Capacity {
-  1: i64 total
-  2: i64 used
-}
-
 enum CommandType {
   Unknown = 0,
   Nothing = 1,

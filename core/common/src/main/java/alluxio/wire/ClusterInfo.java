@@ -38,7 +38,7 @@ public final class ClusterInfo implements Serializable {
   /**
    * Creates a new instance of {@link ClusterInfo} from a thrift representation.
    *
-   * @param clusterInfo the thrift representation of a worker information
+   * @param clusterInfo the thrift representation of a alluxio cluster information
    */
   protected ClusterInfo(alluxio.thrift.ClusterInfo clusterInfo) {
     mMasterAddress = clusterInfo.getMasterAddress();
@@ -56,7 +56,14 @@ public final class ClusterInfo implements Serializable {
   }
 
   /**
-   * @return the cluster last time (in milliseconds)
+   * @return the cluster start time
+   */
+  public String getStartTime() {
+    return mStartTime;
+  }
+
+  /**
+   * @return the cluster last time
    */
   public String getUpTime() {
     return mUpTime;
@@ -77,27 +84,20 @@ public final class ClusterInfo implements Serializable {
   }
 
   /**
-   * @return the cluster start time
-   */
-  public String getStartTime() {
-    return mStartTime;
-  }
-
-  /**
-   * @param version the version to use
-   * @return the cluster information
-   */
-  public ClusterInfo setVersion(String version) {
-    mVersion = version;
-    return this;
-  }
-
-  /**
    * @param masterAddress the master address to use
    * @return the cluster information
    */
   public ClusterInfo setMasterAddress(String masterAddress) {
     mMasterAddress = masterAddress;
+    return this;
+  }
+
+  /**
+   * @param startTime the startTime to use
+   * @return the cluster information
+   */
+  public ClusterInfo setStartTime(String startTime) {
+    mStartTime = startTime;
     return this;
   }
 
@@ -111,11 +111,11 @@ public final class ClusterInfo implements Serializable {
   }
 
   /**
-   * @param startTime the startTime to use
+   * @param version the version to use
    * @return the cluster information
    */
-  public ClusterInfo setStartTime(String startTime) {
-    mStartTime = startTime;
+  public ClusterInfo setVersion(String version) {
+    mVersion = version;
     return this;
   }
 

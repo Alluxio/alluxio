@@ -4,12 +4,13 @@ include "common.thrift"
 include "exception.thrift"
 
 struct BlockMasterInfo {
- 1: i64 workerNum
- 2: string TotalCapacity
- 3: string usedCapacity
- 4: string FreeCapacity
- 5: map<string, string> totalCapacityOnTiers
- 6: map<string, string> usedCapacityOnTiers
+ 1: i64 liveWorkerNum
+ 2: i64 deadWorkerNum
+ 3: string TotalCapacity
+ 4: string usedCapacity
+ 5: string FreeCapacity
+ 6: map<string, string> totalCapacityOnTiers
+ 7: map<string, string> usedCapacityOnTiers
 }
 
 struct WorkerInfo {
