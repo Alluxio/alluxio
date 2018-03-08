@@ -37,8 +37,13 @@ import alluxio.master.file.options.CreateFileOptions;
 import alluxio.master.file.options.DeleteOptions;
 import alluxio.master.file.options.FreeOptions;
 import alluxio.master.file.options.ListStatusOptions;
+import alluxio.master.file.options.MountOptions;
 import alluxio.master.file.options.RenameOptions;
 import alluxio.security.authentication.AuthenticatedClientUser;
+import alluxio.underfs.UfsDirectoryStatus;
+import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.UnderFileSystemFactory;
+import alluxio.underfs.UnderFileSystemFactoryRegistry;
 import alluxio.util.CommonUtils;
 import alluxio.util.IdUtils;
 import alluxio.wire.CommonOptions;
@@ -54,6 +59,8 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.Timeout;
+import org.mockito.Matchers;
+import org.mockito.Mockito;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -763,6 +770,79 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
     filenames = files.stream().map(FileInfo::getName).collect(Collectors.toSet());
     Assert.assertTrue(filenames.contains("ufs_dir"));
     Assert.assertTrue(filenames.contains("ufs_file"));
+  }
+
+  @Test
+  public void unavailableUfsRecursiveCreate() throws Exception {
+    String ufsBase = "test://test";
+
+    UnderFileSystemFactory mockUfsFactory = Mockito.mock(UnderFileSystemFactory.class);
+    Mockito.when(mockUfsFactory.supportsPath(Matchers.anyString(), Matchers.any()))
+        .thenReturn(Boolean.FALSE);
+    Mockito.when(mockUfsFactory.supportsPath(Matchers.eq(ufsBase), Matchers.any()))
+        .thenReturn(Boolean.TRUE);
+
+    UnderFileSystem mockUfs = Mockito.mock(UnderFileSystem.class);
+    Mockito.when(mockUfsFactory.create(Matchers.eq(ufsBase), Matchers.any())).thenReturn(mockUfs);
+    Mockito.when(mockUfs.isDirectory(ufsBase)).thenReturn(true);
+    Mockito.when(mockUfs.resolveUri(new AlluxioURI(ufsBase), ""))
+        .thenReturn(new AlluxioURI(ufsBase));
+    Mockito.when(mockUfs.resolveUri(new AlluxioURI(ufsBase), "/dir1"))
+        .thenReturn(new AlluxioURI(ufsBase + "/dir1"));
+    Mockito.when(mockUfs.getDirectoryStatus(ufsBase))
+        .thenReturn(new UfsDirectoryStatus("test", "owner", "group", (short) 511));
+    Mockito.when(mockUfs.getOperationMode(Matchers.any()))
+        .thenReturn(UnderFileSystem.UfsMode.READ_WRITE);
+    Mockito.when(mockUfs.mkdirs(Matchers.eq(ufsBase + "/dir1"), Matchers.any()))
+        .thenThrow(new IOException("ufs unavailable"));
+
+    UnderFileSystemFactoryRegistry.register(mockUfsFactory);
+
+    mFsMaster.mount(new AlluxioURI("/mnt"), new AlluxioURI(ufsBase), MountOptions.defaults());
+
+    AlluxioURI root = new AlluxioURI("/mnt/");
+    AlluxioURI alluxioFile = new AlluxioURI("/mnt/dir1/dir2/file");
+
+    // Create a persisted Alluxio file (but no ufs file).
+    try {
+      mFsMaster.createFile(alluxioFile,
+          CreateFileOptions.defaults().setPersisted(true).setRecursive(true));
+      Assert.fail("persisted create should fail, when UFS is unavailable");
+    } catch (Exception e) {
+      // expected, ignore
+    }
+
+    List<FileInfo> files = mFsMaster.listStatus(root, ListStatusOptions.defaults());
+    Assert.assertTrue(files.isEmpty());
+
+    try {
+      // should not exist
+      files = mFsMaster.listStatus(new AlluxioURI("/mnt/dir1/"), ListStatusOptions.defaults());
+      Assert.fail("dir should not exist, when UFS is unavailable");
+    } catch (Exception e) {
+      // expected, ignore
+    }
+
+    try {
+      // should not exist
+      mFsMaster.delete(new AlluxioURI("/mnt/dir1/"), DeleteOptions.defaults().setRecursive(true));
+      Assert.fail("cannot delete non-existing directory, when UFS is unavailable");
+    } catch (Exception e) {
+      // expected, ignore
+      files = null;
+    }
+
+    files = mFsMaster.listStatus(new AlluxioURI("/mnt/"), ListStatusOptions.defaults());
+    Assert.assertTrue(files.isEmpty());
+
+    // Stop Alluxio.
+    mLocalAlluxioClusterResource.get().stopFS();
+    // Create the master using the existing journal.
+    MasterRegistry registry = MasterTestUtils.createLeaderFileSystemMasterFromJournal();
+    FileSystemMaster newFsMaster = registry.get(FileSystemMaster.class);
+
+    files = newFsMaster.listStatus(new AlluxioURI("/mnt/"), ListStatusOptions.defaults());
+    Assert.assertTrue(files.isEmpty());
   }
 
   // TODO(gene): Journal format has changed, maybe add Version to the format and add this test back
