@@ -351,14 +351,14 @@ public class GetWorkerInfoListTResponse implements org.apache.thrift.TBase<GetWo
           case 1: // WORKER_INFO_LIST
             if (schemeField.type == org.apache.thrift.protocol.TType.LIST) {
               {
-                org.apache.thrift.protocol.TList _list0 = iprot.readListBegin();
-                struct.workerInfoList = new ArrayList<WorkerInfo>(_list0.size);
-                WorkerInfo _elem1;
-                for (int _i2 = 0; _i2 < _list0.size; ++_i2)
+                org.apache.thrift.protocol.TList _list20 = iprot.readListBegin();
+                struct.workerInfoList = new ArrayList<WorkerInfo>(_list20.size);
+                WorkerInfo _elem21;
+                for (int _i22 = 0; _i22 < _list20.size; ++_i22)
                 {
-                  _elem1 = new WorkerInfo();
-                  _elem1.read(iprot);
-                  struct.workerInfoList.add(_elem1);
+                  _elem21 = new WorkerInfo();
+                  _elem21.read(iprot);
+                  struct.workerInfoList.add(_elem21);
                 }
                 iprot.readListEnd();
               }
@@ -386,9 +386,9 @@ public class GetWorkerInfoListTResponse implements org.apache.thrift.TBase<GetWo
         oprot.writeFieldBegin(WORKER_INFO_LIST_FIELD_DESC);
         {
           oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, struct.workerInfoList.size()));
-          for (WorkerInfo _iter3 : struct.workerInfoList)
+          for (WorkerInfo _iter23 : struct.workerInfoList)
           {
-            _iter3.write(oprot);
+            _iter23.write(oprot);
           }
           oprot.writeListEnd();
         }
@@ -419,9 +419,9 @@ public class GetWorkerInfoListTResponse implements org.apache.thrift.TBase<GetWo
       if (struct.isSetWorkerInfoList()) {
         {
           oprot.writeI32(struct.workerInfoList.size());
-          for (WorkerInfo _iter4 : struct.workerInfoList)
+          for (WorkerInfo _iter24 : struct.workerInfoList)
           {
-            _iter4.write(oprot);
+            _iter24.write(oprot);
           }
         }
       }
@@ -433,14 +433,14 @@ public class GetWorkerInfoListTResponse implements org.apache.thrift.TBase<GetWo
       BitSet incoming = iprot.readBitSet(1);
       if (incoming.get(0)) {
         {
-          org.apache.thrift.protocol.TList _list5 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
-          struct.workerInfoList = new ArrayList<WorkerInfo>(_list5.size);
-          WorkerInfo _elem6;
-          for (int _i7 = 0; _i7 < _list5.size; ++_i7)
+          org.apache.thrift.protocol.TList _list25 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
+          struct.workerInfoList = new ArrayList<WorkerInfo>(_list25.size);
+          WorkerInfo _elem26;
+          for (int _i27 = 0; _i27 < _list25.size; ++_i27)
           {
-            _elem6 = new WorkerInfo();
-            _elem6.read(iprot);
-            struct.workerInfoList.add(_elem6);
+            _elem26 = new WorkerInfo();
+            _elem26.read(iprot);
+            struct.workerInfoList.add(_elem26);
           }
         }
         struct.setWorkerInfoListIsSet(true);

@@ -48,6 +48,7 @@ import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.util.executor.ExecutorServiceFactory;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.BlockLocation;
+import alluxio.wire.BlockMasterInfo;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
 
@@ -521,6 +522,16 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
     synchronized (block) {
       return generateBlockInfo(block);
     }
+  }
+
+  @Override
+  public BlockMasterInfo getBlockMasterInfo() {
+    return new BlockMasterInfo().setWorkerNum(getWorkerCount())
+        .setTotalCapacity(getCapacityBytes())
+        .setUsedCapacity(getUsedBytes())
+        .setFreeCapacity(getCapacityBytes() - getUsedBytes())
+        .setTotalCapcityOnTiers(getTotalBytesOnTiers())
+        .setUsedCapacityOnTiers(getUsedBytesOnTiers());
   }
 
   @Override

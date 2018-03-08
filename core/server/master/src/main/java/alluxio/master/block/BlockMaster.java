@@ -18,6 +18,7 @@ import alluxio.exception.status.UnavailableException;
 import alluxio.master.Master;
 import alluxio.thrift.Command;
 import alluxio.wire.BlockInfo;
+import alluxio.wire.BlockMasterInfo;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
 
@@ -96,6 +97,11 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
    * @throws BlockInfoException if the block info is not found
    */
   BlockInfo getBlockInfo(long blockId) throws BlockInfoException, UnavailableException;
+
+  /**
+   * @return block master information
+   */
+  BlockMasterInfo getBlockMasterInfo();
 
   /**
    * Retrieves information for the given list of block ids.

@@ -20,7 +20,9 @@ import alluxio.thrift.GetBlockInfoTOptions;
 import alluxio.thrift.GetCapacityBytesTOptions;
 import alluxio.thrift.GetUsedBytesTOptions;
 import alluxio.thrift.GetWorkerInfoListTOptions;
+import alluxio.thrift.GetBlockMasterInfoTOptions;
 import alluxio.wire.BlockInfo;
+import alluxio.wire.BlockMasterInfo;
 import alluxio.wire.ThriftUtils;
 import alluxio.wire.WorkerInfo;
 
@@ -103,6 +105,21 @@ public final class RetryHandlingBlockMasterClient extends AbstractMasterClient
       public BlockInfo call() throws TException {
         return ThriftUtils
             .fromThrift(mClient.getBlockInfo(blockId, new GetBlockInfoTOptions()).getBlockInfo());
+      }
+    });
+  }
+
+  /**
+   * Returns the {@link BlockMasterInfo} .
+   *
+   * @return the {@link BlockMasterInfo}
+   */
+  public synchronized BlockMasterInfo getBlockMasterInfo() throws IOException {
+    return retryRPC(new RpcCallable<BlockMasterInfo>() {
+      @Override
+      public BlockMasterInfo call() throws TException {
+        return ThriftUtils.fromThrift(mClient
+            .getBlockMasterInfo(new GetBlockMasterInfoTOptions()).getBlockMasterInfo());
       }
     });
   }

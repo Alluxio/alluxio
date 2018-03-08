@@ -3,6 +3,15 @@ namespace java alluxio.thrift
 include "common.thrift"
 include "exception.thrift"
 
+struct BlockMasterInfo {
+ 1: i64 workerNum
+ 2: string TotalCapacity
+ 3: string usedCapacity
+ 4: string FreeCapacity
+ 5: map<string, string> totalCapacityOnTiers
+ 6: map<string, string> usedCapacityOnTiers
+}
+
 struct WorkerInfo {
   1: i64 id
   2: common.WorkerNetAddress address
@@ -16,6 +25,11 @@ struct WorkerInfo {
 struct GetBlockInfoTOptions {}
 struct GetBlockInfoTResponse {
   1: common.BlockInfo blockInfo
+}
+
+struct GetBlockMasterInfoTOptions {}
+struct GetBlockMasterInfoTResponse {
+ 1: BlockMasterInfo blockMasterInfo
 }
 
 struct GetCapacityBytesTOptions {}
@@ -46,6 +60,13 @@ service BlockMasterClientService extends common.AlluxioService {
     /** the method options */ 2: GetBlockInfoTOptions options,
     )
     throws (1: exception.AlluxioTException e)
+
+  /**
+    * Returns block master information.
+    */
+  GetBlockMasterInfoTResponse getBlockMasterInfo(
+    /** the method options */ 1: GetBlockMasterInfoTOptions options,
+  ) throws (1: exception.AlluxioTException e)
 
   /**
    * Returns the capacity (in bytes).

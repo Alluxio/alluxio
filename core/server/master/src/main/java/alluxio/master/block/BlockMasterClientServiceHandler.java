@@ -21,10 +21,12 @@ import alluxio.thrift.AlluxioTException;
 import alluxio.thrift.BlockMasterClientService;
 import alluxio.thrift.GetBlockInfoTOptions;
 import alluxio.thrift.GetBlockInfoTResponse;
+import alluxio.thrift.GetBlockMasterInfoTOptions;
+import alluxio.thrift.GetBlockMasterInfoTResponse;
 import alluxio.thrift.GetCapacityBytesTOptions;
 import alluxio.thrift.GetCapacityBytesTResponse;
-import alluxio.thrift.GetServiceVersionTOptions;
 import alluxio.thrift.GetServiceVersionTResponse;
+import alluxio.thrift.GetServiceVersionTOptions;
 import alluxio.thrift.GetUsedBytesTOptions;
 import alluxio.thrift.GetUsedBytesTResponse;
 import alluxio.thrift.GetWorkerInfoListTOptions;
@@ -128,6 +130,18 @@ public final class BlockMasterClientServiceHandler implements BlockMasterClientS
       @Override
       public String toString() {
         return String.format("getBlockInfo: blockId=%s, options=%s", blockId, options);
+      }
+    });
+  }
+
+  @Override
+  public GetBlockMasterInfoTResponse getBlockMasterInfo(final GetBlockMasterInfoTOptions options)
+      throws AlluxioTException {
+    return RpcUtils.call(LOG, new RpcUtils.RpcCallable<GetBlockMasterInfoTResponse>() {
+      @Override
+      public GetBlockMasterInfoTResponse call() throws AlluxioException {
+        return new GetBlockMasterInfoTResponse(ThriftUtils
+            .toThrift(mBlockMaster.getBlockMasterInfo()));
       }
     });
   }
