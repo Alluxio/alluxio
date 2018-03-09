@@ -28,7 +28,7 @@ import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 import alluxio.web.MasterWebServer;
 import alluxio.web.WebServer;
-import alluxio.wire.ClusterInfo;
+import alluxio.wire.MasterInfo;
 
 import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
@@ -179,14 +179,14 @@ public class AlluxioMasterProcess implements MasterProcess {
   }
 
   @Override
-  public ClusterInfo getClusterInfo() {
+  public MasterInfo getMasterInfo() {
     int webPort = 0;
     try {
       webPort = getWebAddress().getPort();
     } catch (NullPointerException e) {
       // do nothing
     }
-    ClusterInfo clusterInfo = new ClusterInfo().setMasterAddress(getRpcAddress().toString())
+    return new MasterInfo().setMasterAddress(getRpcAddress().toString())
         .setWebPort(webPort)
         .setRpcPort(mPort)
         .setStartTime(CommonUtils.convertMsToDate(getStartTimeMs()))
@@ -194,8 +194,6 @@ public class AlluxioMasterProcess implements MasterProcess {
         .setVersion(RuntimeConstants.VERSION)
         .setHAMode(Configuration.getBoolean(PropertyKey.ZOOKEEPER_ENABLED))
         .setSafeMode(mSafeModeManager.isInSafeMode());
-    return clusterInfo;
-
   }
 
   @Override

@@ -46,11 +46,11 @@ public final class ThriftUtils {
   /**
    * Converts a thrift type to a wire type.
    *
-   * @param clusterInfo the thrift representation of the Alluxio cluster information
-   * @return wire representation of the Alluxio cluster information
+   * @param masterInfo the thrift representation of the Alluxio master information
+   * @return wire representation of the Alluxio master information
    */
-  public static ClusterInfo fromThrift(alluxio.thrift.ClusterInfo clusterInfo) {
-    return new ClusterInfo(clusterInfo);
+  public static MasterInfo fromThrift(alluxio.thrift.MasterInfo masterInfo) {
+    return new MasterInfo(masterInfo);
   }
 
   /**
@@ -186,11 +186,11 @@ public final class ThriftUtils {
   /**
    * Converts a wire type to a thrift type.
    *
-   * @param clusterInfo the wire representation of the cluster information
-   * @return thrift representation of the cluster information
+   * @param masterInfo the wire representation of the master information
+   * @return thrift representation of the master information
    */
-  public static alluxio.thrift.ClusterInfo toThrift(ClusterInfo clusterInfo) {
-    return clusterInfo.toThrift();
+  public static alluxio.thrift.MasterInfo toThrift(MasterInfo masterInfo) {
+    return masterInfo.toThrift();
   }
 
   /**

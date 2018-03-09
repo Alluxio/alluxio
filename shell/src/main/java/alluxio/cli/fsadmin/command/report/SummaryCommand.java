@@ -16,7 +16,7 @@ import alluxio.client.MetaMasterClient;
 import alluxio.client.RetryHandlingMetaMasterClient;
 import alluxio.master.MasterClientConfig;
 import alluxio.wire.BlockMasterInfo;
-import alluxio.wire.ClusterInfo;
+import alluxio.wire.MasterInfo;
 
 import java.util.Map;
 
@@ -29,20 +29,20 @@ public class SummaryCommand {
     System.out.println("Alluxio Cluster Summary: ");
     try (MetaMasterClient client =
         new RetryHandlingMetaMasterClient(MasterClientConfig.defaults())) {
-      ClusterInfo clusterInfo = client.getClusterInfo();
-      System.out.println("    Master Address: " + clusterInfo.getMasterAddress());
+      MasterInfo masterInfo = client.getMasterInfo();
+      System.out.println("    Master Address: " + masterInfo.getMasterAddress());
 
-      int webPort = clusterInfo.getWebPort();
+      int webPort = masterInfo.getWebPort();
       if (webPort != 0) { // Alluxio web services are running
         System.out.println("    Web Port: " + webPort);
       }
 
-      System.out.println("    Rpc Port: " + clusterInfo.getRpcPort());
-      System.out.println("    Started: " + clusterInfo.getStartTime());
-      System.out.println("    Uptime: " + clusterInfo.getUpTime());
-      System.out.println("    Version: " + clusterInfo.getVersion());
-      System.out.println("    High Availability Mode: " + clusterInfo.isHAMode());
-      System.out.println("    Safe Mode: " + clusterInfo.isSafeMode());
+      System.out.println("    Rpc Port: " + masterInfo.getRpcPort());
+      System.out.println("    Started: " + masterInfo.getStartTime());
+      System.out.println("    Uptime: " + masterInfo.getUpTime());
+      System.out.println("    Version: " + masterInfo.getVersion());
+      System.out.println("    High Availability Mode: " + masterInfo.isHAMode());
+      System.out.println("    Safe Mode: " + masterInfo.isSafeMode());
     } catch (Exception e) {
       e.printStackTrace();
     }

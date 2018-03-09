@@ -38,7 +38,14 @@ import org.slf4j.LoggerFactory;
 public class MasterInfo implements org.apache.thrift.TBase<MasterInfo, MasterInfo._Fields>, java.io.Serializable, Cloneable, Comparable<MasterInfo> {
   private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("MasterInfo");
 
-  private static final org.apache.thrift.protocol.TField WEB_PORT_FIELD_DESC = new org.apache.thrift.protocol.TField("webPort", org.apache.thrift.protocol.TType.I32, (short)1);
+  private static final org.apache.thrift.protocol.TField MASTER_ADDRESS_FIELD_DESC = new org.apache.thrift.protocol.TField("masterAddress", org.apache.thrift.protocol.TType.STRING, (short)1);
+  private static final org.apache.thrift.protocol.TField WEB_PORT_FIELD_DESC = new org.apache.thrift.protocol.TField("webPort", org.apache.thrift.protocol.TType.I32, (short)2);
+  private static final org.apache.thrift.protocol.TField RPC_PORT_FIELD_DESC = new org.apache.thrift.protocol.TField("rpcPort", org.apache.thrift.protocol.TType.I32, (short)3);
+  private static final org.apache.thrift.protocol.TField START_TIME_FIELD_DESC = new org.apache.thrift.protocol.TField("startTime", org.apache.thrift.protocol.TType.STRING, (short)4);
+  private static final org.apache.thrift.protocol.TField UP_TIME_FIELD_DESC = new org.apache.thrift.protocol.TField("upTime", org.apache.thrift.protocol.TType.STRING, (short)5);
+  private static final org.apache.thrift.protocol.TField VERSION_FIELD_DESC = new org.apache.thrift.protocol.TField("version", org.apache.thrift.protocol.TType.STRING, (short)6);
+  private static final org.apache.thrift.protocol.TField HAMODE_FIELD_DESC = new org.apache.thrift.protocol.TField("HAMode", org.apache.thrift.protocol.TType.BOOL, (short)7);
+  private static final org.apache.thrift.protocol.TField SAFE_MODE_FIELD_DESC = new org.apache.thrift.protocol.TField("safeMode", org.apache.thrift.protocol.TType.BOOL, (short)8);
 
   private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
   static {
@@ -46,11 +53,25 @@ public class MasterInfo implements org.apache.thrift.TBase<MasterInfo, MasterInf
     schemes.put(TupleScheme.class, new MasterInfoTupleSchemeFactory());
   }
 
+  private String masterAddress; // required
   private int webPort; // required
+  private int rpcPort; // required
+  private String startTime; // required
+  private String upTime; // required
+  private String version; // required
+  private boolean HAMode; // required
+  private boolean safeMode; // required
 
   /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
   public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-    WEB_PORT((short)1, "webPort");
+    MASTER_ADDRESS((short)1, "masterAddress"),
+    WEB_PORT((short)2, "webPort"),
+    RPC_PORT((short)3, "rpcPort"),
+    START_TIME((short)4, "startTime"),
+    UP_TIME((short)5, "upTime"),
+    VERSION((short)6, "version"),
+    HAMODE((short)7, "HAMode"),
+    SAFE_MODE((short)8, "safeMode");
 
     private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -65,8 +86,22 @@ public class MasterInfo implements org.apache.thrift.TBase<MasterInfo, MasterInf
      */
     public static _Fields findByThriftId(int fieldId) {
       switch(fieldId) {
-        case 1: // WEB_PORT
+        case 1: // MASTER_ADDRESS
+          return MASTER_ADDRESS;
+        case 2: // WEB_PORT
           return WEB_PORT;
+        case 3: // RPC_PORT
+          return RPC_PORT;
+        case 4: // START_TIME
+          return START_TIME;
+        case 5: // UP_TIME
+          return UP_TIME;
+        case 6: // VERSION
+          return VERSION;
+        case 7: // HAMODE
+          return HAMODE;
+        case 8: // SAFE_MODE
+          return SAFE_MODE;
         default:
           return null;
       }
@@ -108,12 +143,29 @@ public class MasterInfo implements org.apache.thrift.TBase<MasterInfo, MasterInf
 
   // isset id assignments
   private static final int __WEBPORT_ISSET_ID = 0;
+  private static final int __RPCPORT_ISSET_ID = 1;
+  private static final int __HAMODE_ISSET_ID = 2;
+  private static final int __SAFEMODE_ISSET_ID = 3;
   private byte __isset_bitfield = 0;
   public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
   static {
     Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
+    tmpMap.put(_Fields.MASTER_ADDRESS, new org.apache.thrift.meta_data.FieldMetaData("masterAddress", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
     tmpMap.put(_Fields.WEB_PORT, new org.apache.thrift.meta_data.FieldMetaData("webPort", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I32)));
+    tmpMap.put(_Fields.RPC_PORT, new org.apache.thrift.meta_data.FieldMetaData("rpcPort", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I32)));
+    tmpMap.put(_Fields.START_TIME, new org.apache.thrift.meta_data.FieldMetaData("startTime", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
+    tmpMap.put(_Fields.UP_TIME, new org.apache.thrift.meta_data.FieldMetaData("upTime", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
+    tmpMap.put(_Fields.VERSION, new org.apache.thrift.meta_data.FieldMetaData("version", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
+    tmpMap.put(_Fields.HAMODE, new org.apache.thrift.meta_data.FieldMetaData("HAMode", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.BOOL)));
+    tmpMap.put(_Fields.SAFE_MODE, new org.apache.thrift.meta_data.FieldMetaData("safeMode", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.BOOL)));
     metaDataMap = Collections.unmodifiableMap(tmpMap);
     org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(MasterInfo.class, metaDataMap);
   }
@@ -122,11 +174,28 @@ public class MasterInfo implements org.apache.thrift.TBase<MasterInfo, MasterInf
   }
 
   public MasterInfo(
-    int webPort)
+    String masterAddress,
+    int webPort,
+    int rpcPort,
+    String startTime,
+    String upTime,
+    String version,
+    boolean HAMode,
+    boolean safeMode)
   {
     this();
+    this.masterAddress = masterAddress;
     this.webPort = webPort;
     setWebPortIsSet(true);
+    this.rpcPort = rpcPort;
+    setRpcPortIsSet(true);
+    this.startTime = startTime;
+    this.upTime = upTime;
+    this.version = version;
+    this.HAMode = HAMode;
+    setHAModeIsSet(true);
+    this.safeMode = safeMode;
+    setSafeModeIsSet(true);
   }
 
   /**
@@ -134,7 +203,22 @@ public class MasterInfo implements org.apache.thrift.TBase<MasterInfo, MasterInf
    */
   public MasterInfo(MasterInfo other) {
     __isset_bitfield = other.__isset_bitfield;
+    if (other.isSetMasterAddress()) {
+      this.masterAddress = other.masterAddress;
+    }
     this.webPort = other.webPort;
+    this.rpcPort = other.rpcPort;
+    if (other.isSetStartTime()) {
+      this.startTime = other.startTime;
+    }
+    if (other.isSetUpTime()) {
+      this.upTime = other.upTime;
+    }
+    if (other.isSetVersion()) {
+      this.version = other.version;
+    }
+    this.HAMode = other.HAMode;
+    this.safeMode = other.safeMode;
   }
 
   public MasterInfo deepCopy() {
@@ -143,8 +227,42 @@ public class MasterInfo implements org.apache.thrift.TBase<MasterInfo, MasterInf
 
   @Override
   public void clear() {
+    this.masterAddress = null;
     setWebPortIsSet(false);
     this.webPort = 0;
+    setRpcPortIsSet(false);
+    this.rpcPort = 0;
+    this.startTime = null;
+    this.upTime = null;
+    this.version = null;
+    setHAModeIsSet(false);
+    this.HAMode = false;
+    setSafeModeIsSet(false);
+    this.safeMode = false;
+  }
+
+  public String getMasterAddress() {
+    return this.masterAddress;
+  }
+
+  public MasterInfo setMasterAddress(String masterAddress) {
+    this.masterAddress = masterAddress;
+    return this;
+  }
+
+  public void unsetMasterAddress() {
+    this.masterAddress = null;
+  }
+
+  /** Returns true if field masterAddress is set (has been assigned a value) and false otherwise */
+  public boolean isSetMasterAddress() {
+    return this.masterAddress != null;
+  }
+
+  public void setMasterAddressIsSet(boolean value) {
+    if (!value) {
+      this.masterAddress = null;
+    }
   }
 
   public int getWebPort() {
@@ -170,8 +288,157 @@ public class MasterInfo implements org.apache.thrift.TBase<MasterInfo, MasterInf
     __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __WEBPORT_ISSET_ID, value);
   }
 
+  public int getRpcPort() {
+    return this.rpcPort;
+  }
+
+  public MasterInfo setRpcPort(int rpcPort) {
+    this.rpcPort = rpcPort;
+    setRpcPortIsSet(true);
+    return this;
+  }
+
+  public void unsetRpcPort() {
+    __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __RPCPORT_ISSET_ID);
+  }
+
+  /** Returns true if field rpcPort is set (has been assigned a value) and false otherwise */
+  public boolean isSetRpcPort() {
+    return EncodingUtils.testBit(__isset_bitfield, __RPCPORT_ISSET_ID);
+  }
+
+  public void setRpcPortIsSet(boolean value) {
+    __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __RPCPORT_ISSET_ID, value);
+  }
+
+  public String getStartTime() {
+    return this.startTime;
+  }
+
+  public MasterInfo setStartTime(String startTime) {
+    this.startTime = startTime;
+    return this;
+  }
+
+  public void unsetStartTime() {
+    this.startTime = null;
+  }
+
+  /** Returns true if field startTime is set (has been assigned a value) and false otherwise */
+  public boolean isSetStartTime() {
+    return this.startTime != null;
+  }
+
+  public void setStartTimeIsSet(boolean value) {
+    if (!value) {
+      this.startTime = null;
+    }
+  }
+
+  public String getUpTime() {
+    return this.upTime;
+  }
+
+  public MasterInfo setUpTime(String upTime) {
+    this.upTime = upTime;
+    return this;
+  }
+
+  public void unsetUpTime() {
+    this.upTime = null;
+  }
+
+  /** Returns true if field upTime is set (has been assigned a value) and false otherwise */
+  public boolean isSetUpTime() {
+    return this.upTime != null;
+  }
+
+  public void setUpTimeIsSet(boolean value) {
+    if (!value) {
+      this.upTime = null;
+    }
+  }
+
+  public String getVersion() {
+    return this.version;
+  }
+
+  public MasterInfo setVersion(String version) {
+    this.version = version;
+    return this;
+  }
+
+  public void unsetVersion() {
+    this.version = null;
+  }
+
+  /** Returns true if field version is set (has been assigned a value) and false otherwise */
+  public boolean isSetVersion() {
+    return this.version != null;
+  }
+
+  public void setVersionIsSet(boolean value) {
+    if (!value) {
+      this.version = null;
+    }
+  }
+
+  public boolean isHAMode() {
+    return this.HAMode;
+  }
+
+  public MasterInfo setHAMode(boolean HAMode) {
+    this.HAMode = HAMode;
+    setHAModeIsSet(true);
+    return this;
+  }
+
+  public void unsetHAMode() {
+    __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __HAMODE_ISSET_ID);
+  }
+
+  /** Returns true if field HAMode is set (has been assigned a value) and false otherwise */
+  public boolean isSetHAMode() {
+    return EncodingUtils.testBit(__isset_bitfield, __HAMODE_ISSET_ID);
+  }
+
+  public void setHAModeIsSet(boolean value) {
+    __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __HAMODE_ISSET_ID, value);
+  }
+
+  public boolean isSafeMode() {
+    return this.safeMode;
+  }
+
+  public MasterInfo setSafeMode(boolean safeMode) {
+    this.safeMode = safeMode;
+    setSafeModeIsSet(true);
+    return this;
+  }
+
+  public void unsetSafeMode() {
+    __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __SAFEMODE_ISSET_ID);
+  }
+
+  /** Returns true if field safeMode is set (has been assigned a value) and false otherwise */
+  public boolean isSetSafeMode() {
+    return EncodingUtils.testBit(__isset_bitfield, __SAFEMODE_ISSET_ID);
+  }
+
+  public void setSafeModeIsSet(boolean value) {
+    __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __SAFEMODE_ISSET_ID, value);
+  }
+
   public void setFieldValue(_Fields field, Object value) {
     switch (field) {
+    case MASTER_ADDRESS:
+      if (value == null) {
+        unsetMasterAddress();
+      } else {
+        setMasterAddress((String)value);
+      }
+      break;
+
     case WEB_PORT:
       if (value == null) {
         unsetWebPort();
@@ -180,13 +447,82 @@ public class MasterInfo implements org.apache.thrift.TBase<MasterInfo, MasterInf
       }
       break;
 
+    case RPC_PORT:
+      if (value == null) {
+        unsetRpcPort();
+      } else {
+        setRpcPort((Integer)value);
+      }
+      break;
+
+    case START_TIME:
+      if (value == null) {
+        unsetStartTime();
+      } else {
+        setStartTime((String)value);
+      }
+      break;
+
+    case UP_TIME:
+      if (value == null) {
+        unsetUpTime();
+      } else {
+        setUpTime((String)value);
+      }
+      break;
+
+    case VERSION:
+      if (value == null) {
+        unsetVersion();
+      } else {
+        setVersion((String)value);
+      }
+      break;
+
+    case HAMODE:
+      if (value == null) {
+        unsetHAMode();
+      } else {
+        setHAMode((Boolean)value);
+      }
+      break;
+
+    case SAFE_MODE:
+      if (value == null) {
+        unsetSafeMode();
+      } else {
+        setSafeMode((Boolean)value);
+      }
+      break;
+
     }
   }
 
   public Object getFieldValue(_Fields field) {
     switch (field) {
+    case MASTER_ADDRESS:
+      return getMasterAddress();
+
     case WEB_PORT:
       return getWebPort();
+
+    case RPC_PORT:
+      return getRpcPort();
+
+    case START_TIME:
+      return getStartTime();
+
+    case UP_TIME:
+      return getUpTime();
+
+    case VERSION:
+      return getVersion();
+
+    case HAMODE:
+      return isHAMode();
+
+    case SAFE_MODE:
+      return isSafeMode();
 
     }
     throw new IllegalStateException();
@@ -199,8 +535,22 @@ public class MasterInfo implements org.apache.thrift.TBase<MasterInfo, MasterInf
     }
 
     switch (field) {
+    case MASTER_ADDRESS:
+      return isSetMasterAddress();
     case WEB_PORT:
       return isSetWebPort();
+    case RPC_PORT:
+      return isSetRpcPort();
+    case START_TIME:
+      return isSetStartTime();
+    case UP_TIME:
+      return isSetUpTime();
+    case VERSION:
+      return isSetVersion();
+    case HAMODE:
+      return isSetHAMode();
+    case SAFE_MODE:
+      return isSetSafeMode();
     }
     throw new IllegalStateException();
   }
@@ -218,12 +568,75 @@ public class MasterInfo implements org.apache.thrift.TBase<MasterInfo, MasterInf
     if (that == null)
       return false;
 
+    boolean this_present_masterAddress = true && this.isSetMasterAddress();
+    boolean that_present_masterAddress = true && that.isSetMasterAddress();
+    if (this_present_masterAddress || that_present_masterAddress) {
+      if (!(this_present_masterAddress && that_present_masterAddress))
+        return false;
+      if (!this.masterAddress.equals(that.masterAddress))
+        return false;
+    }
+
     boolean this_present_webPort = true;
     boolean that_present_webPort = true;
     if (this_present_webPort || that_present_webPort) {
       if (!(this_present_webPort && that_present_webPort))
         return false;
       if (this.webPort != that.webPort)
+        return false;
+    }
+
+    boolean this_present_rpcPort = true;
+    boolean that_present_rpcPort = true;
+    if (this_present_rpcPort || that_present_rpcPort) {
+      if (!(this_present_rpcPort && that_present_rpcPort))
+        return false;
+      if (this.rpcPort != that.rpcPort)
+        return false;
+    }
+
+    boolean this_present_startTime = true && this.isSetStartTime();
+    boolean that_present_startTime = true && that.isSetStartTime();
+    if (this_present_startTime || that_present_startTime) {
+      if (!(this_present_startTime && that_present_startTime))
+        return false;
+      if (!this.startTime.equals(that.startTime))
+        return false;
+    }
+
+    boolean this_present_upTime = true && this.isSetUpTime();
+    boolean that_present_upTime = true && that.isSetUpTime();
+    if (this_present_upTime || that_present_upTime) {
+      if (!(this_present_upTime && that_present_upTime))
+        return false;
+      if (!this.upTime.equals(that.upTime))
+        return false;
+    }
+
+    boolean this_present_version = true && this.isSetVersion();
+    boolean that_present_version = true && that.isSetVersion();
+    if (this_present_version || that_present_version) {
+      if (!(this_present_version && that_present_version))
+        return false;
+      if (!this.version.equals(that.version))
+        return false;
+    }
+
+    boolean this_present_HAMode = true;
+    boolean that_present_HAMode = true;
+    if (this_present_HAMode || that_present_HAMode) {
+      if (!(this_present_HAMode && that_present_HAMode))
+        return false;
+      if (this.HAMode != that.HAMode)
+        return false;
+    }
+
+    boolean this_present_safeMode = true;
+    boolean that_present_safeMode = true;
+    if (this_present_safeMode || that_present_safeMode) {
+      if (!(this_present_safeMode && that_present_safeMode))
+        return false;
+      if (this.safeMode != that.safeMode)
         return false;
     }
 
@@ -234,10 +647,45 @@ public class MasterInfo implements org.apache.thrift.TBase<MasterInfo, MasterInf
   public int hashCode() {
     List<Object> list = new ArrayList<Object>();
 
+    boolean present_masterAddress = true && (isSetMasterAddress());
+    list.add(present_masterAddress);
+    if (present_masterAddress)
+      list.add(masterAddress);
+
     boolean present_webPort = true;
     list.add(present_webPort);
     if (present_webPort)
       list.add(webPort);
+
+    boolean present_rpcPort = true;
+    list.add(present_rpcPort);
+    if (present_rpcPort)
+      list.add(rpcPort);
+
+    boolean present_startTime = true && (isSetStartTime());
+    list.add(present_startTime);
+    if (present_startTime)
+      list.add(startTime);
+
+    boolean present_upTime = true && (isSetUpTime());
+    list.add(present_upTime);
+    if (present_upTime)
+      list.add(upTime);
+
+    boolean present_version = true && (isSetVersion());
+    list.add(present_version);
+    if (present_version)
+      list.add(version);
+
+    boolean present_HAMode = true;
+    list.add(present_HAMode);
+    if (present_HAMode)
+      list.add(HAMode);
+
+    boolean present_safeMode = true;
+    list.add(present_safeMode);
+    if (present_safeMode)
+      list.add(safeMode);
 
     return list.hashCode();
   }
@@ -250,12 +698,82 @@ public class MasterInfo implements org.apache.thrift.TBase<MasterInfo, MasterInf
 
     int lastComparison = 0;
 
+    lastComparison = Boolean.valueOf(isSetMasterAddress()).compareTo(other.isSetMasterAddress());
+    if (lastComparison != 0) {
+      return lastComparison;
+    }
+    if (isSetMasterAddress()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.masterAddress, other.masterAddress);
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+    }
     lastComparison = Boolean.valueOf(isSetWebPort()).compareTo(other.isSetWebPort());
     if (lastComparison != 0) {
       return lastComparison;
     }
     if (isSetWebPort()) {
       lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.webPort, other.webPort);
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+    }
+    lastComparison = Boolean.valueOf(isSetRpcPort()).compareTo(other.isSetRpcPort());
+    if (lastComparison != 0) {
+      return lastComparison;
+    }
+    if (isSetRpcPort()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.rpcPort, other.rpcPort);
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+    }
+    lastComparison = Boolean.valueOf(isSetStartTime()).compareTo(other.isSetStartTime());
+    if (lastComparison != 0) {
+      return lastComparison;
+    }
+    if (isSetStartTime()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.startTime, other.startTime);
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+    }
+    lastComparison = Boolean.valueOf(isSetUpTime()).compareTo(other.isSetUpTime());
+    if (lastComparison != 0) {
+      return lastComparison;
+    }
+    if (isSetUpTime()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.upTime, other.upTime);
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+    }
+    lastComparison = Boolean.valueOf(isSetVersion()).compareTo(other.isSetVersion());
+    if (lastComparison != 0) {
+      return lastComparison;
+    }
+    if (isSetVersion()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.version, other.version);
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+    }
+    lastComparison = Boolean.valueOf(isSetHAMode()).compareTo(other.isSetHAMode());
+    if (lastComparison != 0) {
+      return lastComparison;
+    }
+    if (isSetHAMode()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.HAMode, other.HAMode);
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+    }
+    lastComparison = Boolean.valueOf(isSetSafeMode()).compareTo(other.isSetSafeMode());
+    if (lastComparison != 0) {
+      return lastComparison;
+    }
+    if (isSetSafeMode()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.safeMode, other.safeMode);
       if (lastComparison != 0) {
         return lastComparison;
       }
@@ -280,8 +798,52 @@ public class MasterInfo implements org.apache.thrift.TBase<MasterInfo, MasterInf
     StringBuilder sb = new StringBuilder("MasterInfo(");
     boolean first = true;
 
+    sb.append("masterAddress:");
+    if (this.masterAddress == null) {
+      sb.append("null");
+    } else {
+      sb.append(this.masterAddress);
+    }
+    first = false;
+    if (!first) sb.append(", ");
     sb.append("webPort:");
     sb.append(this.webPort);
+    first = false;
+    if (!first) sb.append(", ");
+    sb.append("rpcPort:");
+    sb.append(this.rpcPort);
+    first = false;
+    if (!first) sb.append(", ");
+    sb.append("startTime:");
+    if (this.startTime == null) {
+      sb.append("null");
+    } else {
+      sb.append(this.startTime);
+    }
+    first = false;
+    if (!first) sb.append(", ");
+    sb.append("upTime:");
+    if (this.upTime == null) {
+      sb.append("null");
+    } else {
+      sb.append(this.upTime);
+    }
+    first = false;
+    if (!first) sb.append(", ");
+    sb.append("version:");
+    if (this.version == null) {
+      sb.append("null");
+    } else {
+      sb.append(this.version);
+    }
+    first = false;
+    if (!first) sb.append(", ");
+    sb.append("HAMode:");
+    sb.append(this.HAMode);
+    first = false;
+    if (!first) sb.append(", ");
+    sb.append("safeMode:");
+    sb.append(this.safeMode);
     first = false;
     sb.append(")");
     return sb.toString();
@@ -328,10 +890,66 @@ public class MasterInfo implements org.apache.thrift.TBase<MasterInfo, MasterInf
           break;
         }
         switch (schemeField.id) {
-          case 1: // WEB_PORT
+          case 1: // MASTER_ADDRESS
+            if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
+              struct.masterAddress = iprot.readString();
+              struct.setMasterAddressIsSet(true);
+            } else { 
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+            }
+            break;
+          case 2: // WEB_PORT
             if (schemeField.type == org.apache.thrift.protocol.TType.I32) {
               struct.webPort = iprot.readI32();
               struct.setWebPortIsSet(true);
+            } else { 
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+            }
+            break;
+          case 3: // RPC_PORT
+            if (schemeField.type == org.apache.thrift.protocol.TType.I32) {
+              struct.rpcPort = iprot.readI32();
+              struct.setRpcPortIsSet(true);
+            } else { 
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+            }
+            break;
+          case 4: // START_TIME
+            if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
+              struct.startTime = iprot.readString();
+              struct.setStartTimeIsSet(true);
+            } else { 
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+            }
+            break;
+          case 5: // UP_TIME
+            if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
+              struct.upTime = iprot.readString();
+              struct.setUpTimeIsSet(true);
+            } else { 
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+            }
+            break;
+          case 6: // VERSION
+            if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
+              struct.version = iprot.readString();
+              struct.setVersionIsSet(true);
+            } else { 
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+            }
+            break;
+          case 7: // HAMODE
+            if (schemeField.type == org.apache.thrift.protocol.TType.BOOL) {
+              struct.HAMode = iprot.readBool();
+              struct.setHAModeIsSet(true);
+            } else { 
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+            }
+            break;
+          case 8: // SAFE_MODE
+            if (schemeField.type == org.apache.thrift.protocol.TType.BOOL) {
+              struct.safeMode = iprot.readBool();
+              struct.setSafeModeIsSet(true);
             } else { 
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
@@ -351,8 +969,37 @@ public class MasterInfo implements org.apache.thrift.TBase<MasterInfo, MasterInf
       struct.validate();
 
       oprot.writeStructBegin(STRUCT_DESC);
+      if (struct.masterAddress != null) {
+        oprot.writeFieldBegin(MASTER_ADDRESS_FIELD_DESC);
+        oprot.writeString(struct.masterAddress);
+        oprot.writeFieldEnd();
+      }
       oprot.writeFieldBegin(WEB_PORT_FIELD_DESC);
       oprot.writeI32(struct.webPort);
+      oprot.writeFieldEnd();
+      oprot.writeFieldBegin(RPC_PORT_FIELD_DESC);
+      oprot.writeI32(struct.rpcPort);
+      oprot.writeFieldEnd();
+      if (struct.startTime != null) {
+        oprot.writeFieldBegin(START_TIME_FIELD_DESC);
+        oprot.writeString(struct.startTime);
+        oprot.writeFieldEnd();
+      }
+      if (struct.upTime != null) {
+        oprot.writeFieldBegin(UP_TIME_FIELD_DESC);
+        oprot.writeString(struct.upTime);
+        oprot.writeFieldEnd();
+      }
+      if (struct.version != null) {
+        oprot.writeFieldBegin(VERSION_FIELD_DESC);
+        oprot.writeString(struct.version);
+        oprot.writeFieldEnd();
+      }
+      oprot.writeFieldBegin(HAMODE_FIELD_DESC);
+      oprot.writeBool(struct.HAMode);
+      oprot.writeFieldEnd();
+      oprot.writeFieldBegin(SAFE_MODE_FIELD_DESC);
+      oprot.writeBool(struct.safeMode);
       oprot.writeFieldEnd();
       oprot.writeFieldStop();
       oprot.writeStructEnd();
@@ -372,22 +1019,92 @@ public class MasterInfo implements org.apache.thrift.TBase<MasterInfo, MasterInf
     public void write(org.apache.thrift.protocol.TProtocol prot, MasterInfo struct) throws org.apache.thrift.TException {
       TTupleProtocol oprot = (TTupleProtocol) prot;
       BitSet optionals = new BitSet();
-      if (struct.isSetWebPort()) {
+      if (struct.isSetMasterAddress()) {
         optionals.set(0);
       }
-      oprot.writeBitSet(optionals, 1);
+      if (struct.isSetWebPort()) {
+        optionals.set(1);
+      }
+      if (struct.isSetRpcPort()) {
+        optionals.set(2);
+      }
+      if (struct.isSetStartTime()) {
+        optionals.set(3);
+      }
+      if (struct.isSetUpTime()) {
+        optionals.set(4);
+      }
+      if (struct.isSetVersion()) {
+        optionals.set(5);
+      }
+      if (struct.isSetHAMode()) {
+        optionals.set(6);
+      }
+      if (struct.isSetSafeMode()) {
+        optionals.set(7);
+      }
+      oprot.writeBitSet(optionals, 8);
+      if (struct.isSetMasterAddress()) {
+        oprot.writeString(struct.masterAddress);
+      }
       if (struct.isSetWebPort()) {
         oprot.writeI32(struct.webPort);
+      }
+      if (struct.isSetRpcPort()) {
+        oprot.writeI32(struct.rpcPort);
+      }
+      if (struct.isSetStartTime()) {
+        oprot.writeString(struct.startTime);
+      }
+      if (struct.isSetUpTime()) {
+        oprot.writeString(struct.upTime);
+      }
+      if (struct.isSetVersion()) {
+        oprot.writeString(struct.version);
+      }
+      if (struct.isSetHAMode()) {
+        oprot.writeBool(struct.HAMode);
+      }
+      if (struct.isSetSafeMode()) {
+        oprot.writeBool(struct.safeMode);
       }
     }
 
     @Override
     public void read(org.apache.thrift.protocol.TProtocol prot, MasterInfo struct) throws org.apache.thrift.TException {
       TTupleProtocol iprot = (TTupleProtocol) prot;
-      BitSet incoming = iprot.readBitSet(1);
+      BitSet incoming = iprot.readBitSet(8);
       if (incoming.get(0)) {
+        struct.masterAddress = iprot.readString();
+        struct.setMasterAddressIsSet(true);
+      }
+      if (incoming.get(1)) {
         struct.webPort = iprot.readI32();
         struct.setWebPortIsSet(true);
+      }
+      if (incoming.get(2)) {
+        struct.rpcPort = iprot.readI32();
+        struct.setRpcPortIsSet(true);
+      }
+      if (incoming.get(3)) {
+        struct.startTime = iprot.readString();
+        struct.setStartTimeIsSet(true);
+      }
+      if (incoming.get(4)) {
+        struct.upTime = iprot.readString();
+        struct.setUpTimeIsSet(true);
+      }
+      if (incoming.get(5)) {
+        struct.version = iprot.readString();
+        struct.setVersionIsSet(true);
+      }
+      if (incoming.get(6)) {
+        struct.HAMode = iprot.readBool();
+        struct.setHAModeIsSet(true);
+      }
+      if (incoming.get(7)) {
+        struct.safeMode = iprot.readBool();
+        struct.setSafeModeIsSet(true);
       }
     }
   }

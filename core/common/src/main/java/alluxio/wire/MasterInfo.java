@@ -18,29 +18,110 @@ import java.io.Serializable;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * Information about the Alluxio master.
+ * The Alluxio master information.
  */
 @NotThreadSafe
 public final class MasterInfo implements Serializable {
-  private static final long serialVersionUID = 5846173765139223974L;
+  private static final long serialVersionUID = -4151145809689718450L;
 
+  private String mMasterAddress;
   private int mWebPort;
+  private int mRpcPort;
+  private String mStartTime;
+  private String mUpTime;
+  private String mVersion;
+  private boolean mHAMode;
+  private boolean mSafeMode;
 
   /**
-   * Creates a {@link MasterInfo} with all fields set to default values.
+   * Creates a new instance of {@link MasterInfo}.
    */
   public MasterInfo() {}
 
   /**
-   * @return the master web port
+   * Creates a new instance of {@link MasterInfo} from a thrift representation.
+   *
+   * @param clusterInfo the thrift representation of a alluxio cluster information
+   */
+  protected MasterInfo(alluxio.thrift.MasterInfo clusterInfo) {
+    mMasterAddress = clusterInfo.getMasterAddress();
+    mWebPort = clusterInfo.getWebPort();
+    mRpcPort = clusterInfo.getRpcPort();
+    mStartTime = clusterInfo.getStartTime();
+    mUpTime = clusterInfo.getUpTime();
+    mVersion = clusterInfo.getVersion();
+    mHAMode = clusterInfo.isHAMode();
+    mSafeMode = clusterInfo.isSafeMode();
+  }
+
+  /**
+   * @return the master address
+   */
+  public String getMasterAddress() {
+    return mMasterAddress;
+  }
+
+  /**
+   * @return the web port
    */
   public int getWebPort() {
     return mWebPort;
   }
 
   /**
-   * @param webPort the web port to set
-   * @return the updated master info object
+   * @return the Rpc port
+   */
+  public int getRpcPort() {
+    return mRpcPort;
+  }
+
+  /**
+   * @return the cluster start time
+   */
+  public String getStartTime() {
+    return mStartTime;
+  }
+
+  /**
+   * @return the cluster last time
+   */
+  public String getUpTime() {
+    return mUpTime;
+  }
+
+  /**
+   * @return the runtime version
+   */
+  public String getVersion() {
+    return mVersion;
+  }
+
+  /**
+   * @return if the cluster is running in high availability mode
+   */
+  public boolean isHAMode() {
+    return mHAMode;
+  }
+
+  /**
+   * @return if the cluster is running in safe mode
+   */
+  public boolean isSafeMode() {
+    return mSafeMode;
+  }
+
+  /**
+   * @param masterAddress the master address to use
+   * @return the cluster information
+   */
+  public MasterInfo setMasterAddress(String masterAddress) {
+    mMasterAddress = masterAddress;
+    return this;
+  }
+
+  /**
+   * @param webPort the web port to use
+   * @return the cluster information
    */
   public MasterInfo setWebPort(int webPort) {
     mWebPort = webPort;
@@ -48,18 +129,65 @@ public final class MasterInfo implements Serializable {
   }
 
   /**
-   * @return thrift representation of the master information
+   * @param rpcPort the master address to use
+   * @return the cluster information
    */
-  public alluxio.thrift.MasterInfo toThrift() {
-    return new alluxio.thrift.MasterInfo().setWebPort(mWebPort);
+  public MasterInfo setRpcPort(int rpcPort) {
+    mRpcPort = rpcPort;
+    return this;
   }
 
   /**
-   * @param info the thrift master info to create a wire master info from
-   * @return the wire type version of the master info
+   * @param startTime the startTime to use
+   * @return the cluster information
    */
-  public static MasterInfo fromThrift(alluxio.thrift.MasterInfo info) {
-    return new MasterInfo().setWebPort(info.getWebPort());
+  public MasterInfo setStartTime(String startTime) {
+    mStartTime = startTime;
+    return this;
+  }
+
+  /**
+   * @param upTime the upTime to use
+   * @return the cluster information
+   */
+  public MasterInfo setUpTime(String upTime) {
+    mUpTime = upTime;
+    return this;
+  }
+
+  /**
+   * @param version the version to use
+   * @return the cluster information
+   */
+  public MasterInfo setVersion(String version) {
+    mVersion = version;
+    return this;
+  }
+
+  /**
+   * @param HAMode whether Alluxio is in high availability mode or not
+   * @return the cluster information
+   */
+  public MasterInfo setHAMode(boolean HAMode) {
+    mHAMode = HAMode;
+    return this;
+  }
+
+  /**
+   * @param safeMode whether Alluxio is in safe mode or not
+   * @return the cluster information
+   */
+  public MasterInfo setSafeMode(boolean safeMode) {
+    mSafeMode = safeMode;
+    return this;
+  }
+
+  /**
+   * @return thrift representation of the cluster information
+   */
+  protected alluxio.thrift.MasterInfo toThrift() {
+    return new alluxio.thrift.MasterInfo(mMasterAddress, mWebPort, mRpcPort,
+        mStartTime, mUpTime, mVersion, mHAMode, mSafeMode);
   }
 
   @Override
@@ -71,40 +199,24 @@ public final class MasterInfo implements Serializable {
       return false;
     }
     MasterInfo that = (MasterInfo) o;
-    return Objects.equal(mWebPort, that.mWebPort);
+    return mMasterAddress.equals(that.mMasterAddress) && mWebPort == that.mWebPort
+        && mRpcPort == that.mRpcPort && mStartTime.equals(that.mStartTime)
+        && mUpTime.equals(that.mUpTime) && mVersion.equals(that.mVersion)
+        && mHAMode == that.mHAMode && mSafeMode == that.mSafeMode;
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mWebPort);
+    return Objects.hashCode(mMasterAddress, mWebPort,
+        mRpcPort, mStartTime, mUpTime, mVersion, mHAMode, mSafeMode);
   }
 
   @Override
   public String toString() {
-    return Objects.toStringHelper(this)
-        .add("webPort", mWebPort)
-        .toString();
-  }
-
-  /**
-   * Enum representing the fields of the master info.
-   */
-  public static enum MasterInfoField {
-    WEB_PORT;
-
-    /**
-     * @return the thrift representation of this master info field
-     */
-    public alluxio.thrift.MasterInfoField toThrift() {
-      return alluxio.thrift.MasterInfoField.valueOf(name());
-    }
-
-    /**
-     * @param field the thrift representation of the master info field to create
-     * @return the wire type version of the master info field
-     */
-    public static MasterInfoField fromThrift(alluxio.thrift.MasterInfoField field) {
-      return MasterInfoField.valueOf(field.name());
-    }
+    return Objects.toStringHelper(this).add("masterAddress", mMasterAddress)
+        .add("webPort", mWebPort).add("rpcPort", mRpcPort)
+        .add("startTime", mStartTime).add("upTimeMs", mUpTime)
+        .add("version", mVersion).add("HAMode", mHAMode)
+        .add("safeMode", mSafeMode).toString();
   }
 }
