@@ -134,7 +134,12 @@ func addAdditionalFiles(srcPath, dstPath, version string) {
 		"integration/kubernetes/alluxio-master.yaml.template",
 		"integration/kubernetes/alluxio-worker.yaml.template",
 		"integration/kubernetes/conf/alluxio.properties.template",
-<<<<<<< HEAD
+		"integration/mesos/bin/alluxio-env-mesos.sh",
+		"integration/mesos/bin/alluxio-mesos-start.sh",
+		"integration/mesos/bin/alluxio-master-mesos.sh",
+		"integration/mesos/bin/alluxio-mesos-stop.sh",
+		"integration/mesos/bin/alluxio-worker-mesos.sh",
+		"integration/mesos/bin/common.sh",
 		fmt.Sprintf("lib/alluxio-underfs-gcs-%v.jar", version),
 		fmt.Sprintf("lib/alluxio-underfs-hdfs-%v.jar", version),
 		fmt.Sprintf("lib/alluxio-underfs-local-%v.jar", version),
@@ -143,20 +148,6 @@ func addAdditionalFiles(srcPath, dstPath, version string) {
 		fmt.Sprintf("lib/alluxio-underfs-swift-%v.jar", version),
 		fmt.Sprintf("lib/alluxio-underfs-wasb-%v.jar", version),
 		"libexec/alluxio-config.sh",
-||||||| merged common ancestors
-		// FUSE
-		"integration/fuse/bin/alluxio-fuse",
-=======
-		// FUSE
-		"integration/fuse/bin/alluxio-fuse",
-		// MESOS
-		"integration/mesos/bin/alluxio-env-mesos.sh",
-		"integration/mesos/bin/alluxio-mesos-start.sh",
-		"integration/mesos/bin/alluxio-master-mesos.sh",
-		"integration/mesos/bin/alluxio-mesos-stop.sh",
-		"integration/mesos/bin/alluxio-worker-mesos.sh",
-		"integration/mesos/bin/common.sh",
->>>>>>> upstream/branch-1.7
 	}
 	for _, path := range pathsToCopy {
 		mkdir(filepath.Join(dstPath, filepath.Dir(path)))

@@ -43,15 +43,10 @@ import alluxio.master.file.options.MountOptions;
 import alluxio.master.file.options.RenameOptions;
 import alluxio.master.file.options.SetAttributeOptions;
 import alluxio.security.authentication.AuthenticatedClientUser;
-<<<<<<< HEAD
-import alluxio.underfs.UnderFileSystem;
-||||||| merged common ancestors
-=======
 import alluxio.underfs.UfsDirectoryStatus;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemFactory;
 import alluxio.underfs.UnderFileSystemFactoryRegistry;
->>>>>>> upstream/branch-1.7
 import alluxio.util.CommonUtils;
 import alluxio.util.IdUtils;
 import alluxio.wire.CommonOptions;
