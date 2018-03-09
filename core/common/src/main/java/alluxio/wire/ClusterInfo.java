@@ -30,6 +30,7 @@ public final class ClusterInfo implements Serializable {
   private String mStartTime;
   private String mUpTime;
   private String mVersion;
+  private boolean mHAMode;
   private boolean mSafeMode;
 
   /**
@@ -49,6 +50,7 @@ public final class ClusterInfo implements Serializable {
     mStartTime = clusterInfo.getStartTime();
     mUpTime = clusterInfo.getUpTime();
     mVersion = clusterInfo.getVersion();
+    mHAMode = clusterInfo.isHaMode();
     mSafeMode = clusterInfo.isSafeMode();
   }
 
@@ -92,6 +94,13 @@ public final class ClusterInfo implements Serializable {
    */
   public String getVersion() {
     return mVersion;
+  }
+
+  /**
+   * @return if the cluster is running in safe mode
+   */
+  public boolean isHAMode() {
+    return mHAMode;
   }
 
   /**
@@ -156,6 +165,15 @@ public final class ClusterInfo implements Serializable {
   }
 
   /**
+   * @param haMode the haMode to use
+   * @return the cluster information
+   */
+  public ClusterInfo setHAMode(boolean haMode) {
+    mHAMode = haMode;
+    return this;
+  }
+
+  /**
    * @param safeMode the safeMode to use
    * @return the cluster information
    */
@@ -169,7 +187,7 @@ public final class ClusterInfo implements Serializable {
    */
   protected alluxio.thrift.ClusterInfo toThrift() {
     return new alluxio.thrift.ClusterInfo(mMasterAddress, mWebPort, mRpcPort,
-        mStartTime, mUpTime, mVersion, mSafeMode);
+        mStartTime, mUpTime, mVersion, mHAMode, mSafeMode);
   }
 
   @Override
@@ -184,13 +202,13 @@ public final class ClusterInfo implements Serializable {
     return mMasterAddress.equals(that.mMasterAddress) && mWebPort == that.mWebPort
         && mRpcPort == that.mRpcPort && mStartTime.equals(that.mStartTime)
         && mUpTime.equals(that.mUpTime) && mVersion.equals(that.mVersion)
-        && mSafeMode == that.mSafeMode;
+        && mHAMode == that.mHAMode && mSafeMode == that.mSafeMode;
   }
 
   @Override
   public int hashCode() {
     return Objects.hashCode(mMasterAddress, mWebPort,
-        mRpcPort, mStartTime, mUpTime, mVersion, mSafeMode);
+        mRpcPort, mStartTime, mUpTime, mVersion, mHAMode, mSafeMode);
   }
 
   @Override
@@ -198,7 +216,7 @@ public final class ClusterInfo implements Serializable {
     return Objects.toStringHelper(this).add("masterAddress", mMasterAddress)
         .add("webPort", mWebPort).add("rpcPort", mRpcPort)
         .add("startTime", mStartTime).add("upTimeMs", mUpTime)
-        .add("version", mVersion)
+        .add("version", mVersion).add("haMode", mHAMode)
         .add("safeMode", mSafeMode).toString();
   }
 }

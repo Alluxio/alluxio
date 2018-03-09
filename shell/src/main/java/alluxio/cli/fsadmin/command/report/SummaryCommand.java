@@ -37,6 +37,7 @@ public class SummaryCommand {
       System.out.println("    Started: " + clusterInfo.getStartTime());
       System.out.println("    Uptime: " + clusterInfo.getUpTime());
       System.out.println("    Version: " + clusterInfo.getVersion());
+      System.out.println("    HA Mode: " + clusterInfo.isHAMode());
       System.out.println("    Safe Mode: " + clusterInfo.isSafeMode());
     } catch (Exception e) {
       e.printStackTrace();
