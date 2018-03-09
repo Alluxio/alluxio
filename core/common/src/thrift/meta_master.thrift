@@ -5,10 +5,12 @@ include "exception.thrift"
 
 struct ClusterInfo {
  1: string masterAddress
- 2: string startTime
- 3: string upTime
- 4: string version
- 5: bool safeMode
+ 2: i32 webPort
+ 3: i32 rpcPort
+ 4: string startTime
+ 5: string upTime
+ 6: string version
+ 7: bool safeMode
 }
 
 struct MasterInfo {

@@ -28,8 +28,8 @@ import javax.annotation.concurrent.NotThreadSafe;
 public final class BlockMasterInfo implements Serializable {
   private static final long serialVersionUID = -7436215337909224255L;
 
-  private long mLiveWorkerNum;
-  private long mDeadWorkerNum;
+  private int mLiveWorkerNum;
+  private int mDeadWorkerNum;
   private String mTotalCapacity;
   private String mUsedCapacity;
   private String mFreeCapacity;
@@ -59,14 +59,14 @@ public final class BlockMasterInfo implements Serializable {
   /**
    * @return the live worker number
    */
-  public long getLiveWorkerNum() {
+  public int getLiveWorkerNum() {
     return mLiveWorkerNum;
   }
 
   /**
    * @return the dead worker number
    */
-  public long getDeadWorkerNum() {
+  public int getDeadWorkerNum() {
     return mDeadWorkerNum;
   }
 
@@ -109,7 +109,7 @@ public final class BlockMasterInfo implements Serializable {
    * @param liveWorkerNum the live worker number
    * @return the block master information
    */
-  public BlockMasterInfo setLiveWorkerNum(long liveWorkerNum) {
+  public BlockMasterInfo setLiveWorkerNum(int liveWorkerNum) {
     mLiveWorkerNum = liveWorkerNum;
     return this;
   }
@@ -118,7 +118,7 @@ public final class BlockMasterInfo implements Serializable {
    * @param deadWorkerNum the live worker number
    * @return the block master information
    */
-  public BlockMasterInfo setDeadWorkerNum(long deadWorkerNum) {
+  public BlockMasterInfo setDeadWorkerNum(int deadWorkerNum) {
     mDeadWorkerNum = deadWorkerNum;
     return this;
   }

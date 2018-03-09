@@ -32,6 +32,8 @@ public class SummaryCommand {
         new RetryHandlingMetaMasterClient(MasterClientConfig.defaults())) {
       ClusterInfo clusterInfo = client.getClusterInfo();
       System.out.println("    Master Address: " + clusterInfo.getMasterAddress());
+      System.out.println("    Web Port: " + clusterInfo.getWebPort());
+      System.out.println("    Rpc Port: " + clusterInfo.getRpcPort());
       System.out.println("    Started: " + clusterInfo.getStartTime());
       System.out.println("    Uptime: " + clusterInfo.getUpTime());
       System.out.println("    Version: " + clusterInfo.getVersion());
@@ -43,7 +45,7 @@ public class SummaryCommand {
     try (RetryHandlingBlockMasterClient client =
         new RetryHandlingBlockMasterClient(MasterClientConfig.defaults())) {
       BlockMasterInfo blockMasterInfo = client.getBlockMasterInfo();
-      System.out.println("    Running workers: " + blockMasterInfo.getLiveWorkerNum());
+      System.out.println("    Live workers: " + blockMasterInfo.getLiveWorkerNum());
       System.out.println("    Dead workers: " + blockMasterInfo.getDeadWorkerNum());
       System.out.println("    Total Capacity: " + blockMasterInfo.getTotalCapacity());
       Map<String, String> totalCapacityOnTiers = blockMasterInfo.getTotalCapacityOnTiers();

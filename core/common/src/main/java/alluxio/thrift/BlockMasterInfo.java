@@ -38,8 +38,8 @@ import org.slf4j.LoggerFactory;
 public class BlockMasterInfo implements org.apache.thrift.TBase<BlockMasterInfo, BlockMasterInfo._Fields>, java.io.Serializable, Cloneable, Comparable<BlockMasterInfo> {
   private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("BlockMasterInfo");
 
-  private static final org.apache.thrift.protocol.TField LIVE_WORKER_NUM_FIELD_DESC = new org.apache.thrift.protocol.TField("liveWorkerNum", org.apache.thrift.protocol.TType.I64, (short)1);
-  private static final org.apache.thrift.protocol.TField DEAD_WORKER_NUM_FIELD_DESC = new org.apache.thrift.protocol.TField("deadWorkerNum", org.apache.thrift.protocol.TType.I64, (short)2);
+  private static final org.apache.thrift.protocol.TField LIVE_WORKER_NUM_FIELD_DESC = new org.apache.thrift.protocol.TField("liveWorkerNum", org.apache.thrift.protocol.TType.I32, (short)1);
+  private static final org.apache.thrift.protocol.TField DEAD_WORKER_NUM_FIELD_DESC = new org.apache.thrift.protocol.TField("deadWorkerNum", org.apache.thrift.protocol.TType.I32, (short)2);
   private static final org.apache.thrift.protocol.TField TOTAL_CAPACITY_FIELD_DESC = new org.apache.thrift.protocol.TField("TotalCapacity", org.apache.thrift.protocol.TType.STRING, (short)3);
   private static final org.apache.thrift.protocol.TField USED_CAPACITY_FIELD_DESC = new org.apache.thrift.protocol.TField("usedCapacity", org.apache.thrift.protocol.TType.STRING, (short)4);
   private static final org.apache.thrift.protocol.TField FREE_CAPACITY_FIELD_DESC = new org.apache.thrift.protocol.TField("FreeCapacity", org.apache.thrift.protocol.TType.STRING, (short)5);
@@ -52,8 +52,8 @@ public class BlockMasterInfo implements org.apache.thrift.TBase<BlockMasterInfo,
     schemes.put(TupleScheme.class, new BlockMasterInfoTupleSchemeFactory());
   }
 
-  private long liveWorkerNum; // required
-  private long deadWorkerNum; // required
+  private int liveWorkerNum; // required
+  private int deadWorkerNum; // required
   private String TotalCapacity; // required
   private String usedCapacity; // required
   private String FreeCapacity; // required
@@ -144,9 +144,9 @@ public class BlockMasterInfo implements org.apache.thrift.TBase<BlockMasterInfo,
   static {
     Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
     tmpMap.put(_Fields.LIVE_WORKER_NUM, new org.apache.thrift.meta_data.FieldMetaData("liveWorkerNum", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
+        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I32)));
     tmpMap.put(_Fields.DEAD_WORKER_NUM, new org.apache.thrift.meta_data.FieldMetaData("deadWorkerNum", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
+        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I32)));
     tmpMap.put(_Fields.TOTAL_CAPACITY, new org.apache.thrift.meta_data.FieldMetaData("TotalCapacity", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
     tmpMap.put(_Fields.USED_CAPACITY, new org.apache.thrift.meta_data.FieldMetaData("usedCapacity", org.apache.thrift.TFieldRequirementType.DEFAULT, 
@@ -169,8 +169,8 @@ public class BlockMasterInfo implements org.apache.thrift.TBase<BlockMasterInfo,
   }
 
   public BlockMasterInfo(
-    long liveWorkerNum,
-    long deadWorkerNum,
+    int liveWorkerNum,
+    int deadWorkerNum,
     String TotalCapacity,
     String usedCapacity,
     String FreeCapacity,
@@ -232,11 +232,11 @@ public class BlockMasterInfo implements org.apache.thrift.TBase<BlockMasterInfo,
     this.usedCapacityOnTiers = null;
   }
 
-  public long getLiveWorkerNum() {
+  public int getLiveWorkerNum() {
     return this.liveWorkerNum;
   }
 
-  public BlockMasterInfo setLiveWorkerNum(long liveWorkerNum) {
+  public BlockMasterInfo setLiveWorkerNum(int liveWorkerNum) {
     this.liveWorkerNum = liveWorkerNum;
     setLiveWorkerNumIsSet(true);
     return this;
@@ -255,11 +255,11 @@ public class BlockMasterInfo implements org.apache.thrift.TBase<BlockMasterInfo,
     __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __LIVEWORKERNUM_ISSET_ID, value);
   }
 
-  public long getDeadWorkerNum() {
+  public int getDeadWorkerNum() {
     return this.deadWorkerNum;
   }
 
-  public BlockMasterInfo setDeadWorkerNum(long deadWorkerNum) {
+  public BlockMasterInfo setDeadWorkerNum(int deadWorkerNum) {
     this.deadWorkerNum = deadWorkerNum;
     setDeadWorkerNumIsSet(true);
     return this;
@@ -426,7 +426,7 @@ public class BlockMasterInfo implements org.apache.thrift.TBase<BlockMasterInfo,
       if (value == null) {
         unsetLiveWorkerNum();
       } else {
-        setLiveWorkerNum((Long)value);
+        setLiveWorkerNum((Integer)value);
       }
       break;
 
@@ -434,7 +434,7 @@ public class BlockMasterInfo implements org.apache.thrift.TBase<BlockMasterInfo,
       if (value == null) {
         unsetDeadWorkerNum();
       } else {
-        setDeadWorkerNum((Long)value);
+        setDeadWorkerNum((Integer)value);
       }
       break;
 
@@ -845,16 +845,16 @@ public class BlockMasterInfo implements org.apache.thrift.TBase<BlockMasterInfo,
         }
         switch (schemeField.id) {
           case 1: // LIVE_WORKER_NUM
-            if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
-              struct.liveWorkerNum = iprot.readI64();
+            if (schemeField.type == org.apache.thrift.protocol.TType.I32) {
+              struct.liveWorkerNum = iprot.readI32();
               struct.setLiveWorkerNumIsSet(true);
             } else { 
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
           case 2: // DEAD_WORKER_NUM
-            if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
-              struct.deadWorkerNum = iprot.readI64();
+            if (schemeField.type == org.apache.thrift.protocol.TType.I32) {
+              struct.deadWorkerNum = iprot.readI32();
               struct.setDeadWorkerNumIsSet(true);
             } else { 
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
@@ -940,10 +940,10 @@ public class BlockMasterInfo implements org.apache.thrift.TBase<BlockMasterInfo,
 
       oprot.writeStructBegin(STRUCT_DESC);
       oprot.writeFieldBegin(LIVE_WORKER_NUM_FIELD_DESC);
-      oprot.writeI64(struct.liveWorkerNum);
+      oprot.writeI32(struct.liveWorkerNum);
       oprot.writeFieldEnd();
       oprot.writeFieldBegin(DEAD_WORKER_NUM_FIELD_DESC);
-      oprot.writeI64(struct.deadWorkerNum);
+      oprot.writeI32(struct.deadWorkerNum);
       oprot.writeFieldEnd();
       if (struct.TotalCapacity != null) {
         oprot.writeFieldBegin(TOTAL_CAPACITY_FIELD_DESC);
@@ -1027,10 +1027,10 @@ public class BlockMasterInfo implements org.apache.thrift.TBase<BlockMasterInfo,
       }
       oprot.writeBitSet(optionals, 7);
       if (struct.isSetLiveWorkerNum()) {
-        oprot.writeI64(struct.liveWorkerNum);
+        oprot.writeI32(struct.liveWorkerNum);
       }
       if (struct.isSetDeadWorkerNum()) {
-        oprot.writeI64(struct.deadWorkerNum);
+        oprot.writeI32(struct.deadWorkerNum);
       }
       if (struct.isSetTotalCapacity()) {
         oprot.writeString(struct.TotalCapacity);
@@ -1068,11 +1068,11 @@ public class BlockMasterInfo implements org.apache.thrift.TBase<BlockMasterInfo,
       TTupleProtocol iprot = (TTupleProtocol) prot;
       BitSet incoming = iprot.readBitSet(7);
       if (incoming.get(0)) {
-        struct.liveWorkerNum = iprot.readI64();
+        struct.liveWorkerNum = iprot.readI32();
         struct.setLiveWorkerNumIsSet(true);
       }
       if (incoming.get(1)) {
-        struct.deadWorkerNum = iprot.readI64();
+        struct.deadWorkerNum = iprot.readI32();
         struct.setDeadWorkerNumIsSet(true);
       }
       if (incoming.get(2)) {

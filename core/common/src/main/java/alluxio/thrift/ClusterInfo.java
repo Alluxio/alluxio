@@ -39,10 +39,12 @@ public class ClusterInfo implements org.apache.thrift.TBase<ClusterInfo, Cluster
   private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("ClusterInfo");
 
   private static final org.apache.thrift.protocol.TField MASTER_ADDRESS_FIELD_DESC = new org.apache.thrift.protocol.TField("masterAddress", org.apache.thrift.protocol.TType.STRING, (short)1);
-  private static final org.apache.thrift.protocol.TField START_TIME_FIELD_DESC = new org.apache.thrift.protocol.TField("startTime", org.apache.thrift.protocol.TType.STRING, (short)2);
-  private static final org.apache.thrift.protocol.TField UP_TIME_FIELD_DESC = new org.apache.thrift.protocol.TField("upTime", org.apache.thrift.protocol.TType.STRING, (short)3);
-  private static final org.apache.thrift.protocol.TField VERSION_FIELD_DESC = new org.apache.thrift.protocol.TField("version", org.apache.thrift.protocol.TType.STRING, (short)4);
-  private static final org.apache.thrift.protocol.TField SAFE_MODE_FIELD_DESC = new org.apache.thrift.protocol.TField("safeMode", org.apache.thrift.protocol.TType.BOOL, (short)5);
+  private static final org.apache.thrift.protocol.TField WEB_PORT_FIELD_DESC = new org.apache.thrift.protocol.TField("webPort", org.apache.thrift.protocol.TType.I32, (short)2);
+  private static final org.apache.thrift.protocol.TField RPC_PORT_FIELD_DESC = new org.apache.thrift.protocol.TField("rpcPort", org.apache.thrift.protocol.TType.I32, (short)3);
+  private static final org.apache.thrift.protocol.TField START_TIME_FIELD_DESC = new org.apache.thrift.protocol.TField("startTime", org.apache.thrift.protocol.TType.STRING, (short)4);
+  private static final org.apache.thrift.protocol.TField UP_TIME_FIELD_DESC = new org.apache.thrift.protocol.TField("upTime", org.apache.thrift.protocol.TType.STRING, (short)5);
+  private static final org.apache.thrift.protocol.TField VERSION_FIELD_DESC = new org.apache.thrift.protocol.TField("version", org.apache.thrift.protocol.TType.STRING, (short)6);
+  private static final org.apache.thrift.protocol.TField SAFE_MODE_FIELD_DESC = new org.apache.thrift.protocol.TField("safeMode", org.apache.thrift.protocol.TType.BOOL, (short)7);
 
   private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
   static {
@@ -51,6 +53,8 @@ public class ClusterInfo implements org.apache.thrift.TBase<ClusterInfo, Cluster
   }
 
   private String masterAddress; // required
+  private int webPort; // required
+  private int rpcPort; // required
   private String startTime; // required
   private String upTime; // required
   private String version; // required
@@ -59,10 +63,12 @@ public class ClusterInfo implements org.apache.thrift.TBase<ClusterInfo, Cluster
   /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
   public enum _Fields implements org.apache.thrift.TFieldIdEnum {
     MASTER_ADDRESS((short)1, "masterAddress"),
-    START_TIME((short)2, "startTime"),
-    UP_TIME((short)3, "upTime"),
-    VERSION((short)4, "version"),
-    SAFE_MODE((short)5, "safeMode");
+    WEB_PORT((short)2, "webPort"),
+    RPC_PORT((short)3, "rpcPort"),
+    START_TIME((short)4, "startTime"),
+    UP_TIME((short)5, "upTime"),
+    VERSION((short)6, "version"),
+    SAFE_MODE((short)7, "safeMode");
 
     private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -79,13 +85,17 @@ public class ClusterInfo implements org.apache.thrift.TBase<ClusterInfo, Cluster
       switch(fieldId) {
         case 1: // MASTER_ADDRESS
           return MASTER_ADDRESS;
-        case 2: // START_TIME
+        case 2: // WEB_PORT
+          return WEB_PORT;
+        case 3: // RPC_PORT
+          return RPC_PORT;
+        case 4: // START_TIME
           return START_TIME;
-        case 3: // UP_TIME
+        case 5: // UP_TIME
           return UP_TIME;
-        case 4: // VERSION
+        case 6: // VERSION
           return VERSION;
-        case 5: // SAFE_MODE
+        case 7: // SAFE_MODE
           return SAFE_MODE;
         default:
           return null;
@@ -127,13 +137,19 @@ public class ClusterInfo implements org.apache.thrift.TBase<ClusterInfo, Cluster
   }
 
   // isset id assignments
-  private static final int __SAFEMODE_ISSET_ID = 0;
+  private static final int __WEBPORT_ISSET_ID = 0;
+  private static final int __RPCPORT_ISSET_ID = 1;
+  private static final int __SAFEMODE_ISSET_ID = 2;
   private byte __isset_bitfield = 0;
   public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
   static {
     Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
     tmpMap.put(_Fields.MASTER_ADDRESS, new org.apache.thrift.meta_data.FieldMetaData("masterAddress", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
+    tmpMap.put(_Fields.WEB_PORT, new org.apache.thrift.meta_data.FieldMetaData("webPort", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I32)));
+    tmpMap.put(_Fields.RPC_PORT, new org.apache.thrift.meta_data.FieldMetaData("rpcPort", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I32)));
     tmpMap.put(_Fields.START_TIME, new org.apache.thrift.meta_data.FieldMetaData("startTime", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
     tmpMap.put(_Fields.UP_TIME, new org.apache.thrift.meta_data.FieldMetaData("upTime", org.apache.thrift.TFieldRequirementType.DEFAULT, 
@@ -151,6 +167,8 @@ public class ClusterInfo implements org.apache.thrift.TBase<ClusterInfo, Cluster
 
   public ClusterInfo(
     String masterAddress,
+    int webPort,
+    int rpcPort,
     String startTime,
     String upTime,
     String version,
@@ -158,6 +176,10 @@ public class ClusterInfo implements org.apache.thrift.TBase<ClusterInfo, Cluster
   {
     this();
     this.masterAddress = masterAddress;
+    this.webPort = webPort;
+    setWebPortIsSet(true);
+    this.rpcPort = rpcPort;
+    setRpcPortIsSet(true);
     this.startTime = startTime;
     this.upTime = upTime;
     this.version = version;
@@ -173,6 +195,8 @@ public class ClusterInfo implements org.apache.thrift.TBase<ClusterInfo, Cluster
     if (other.isSetMasterAddress()) {
       this.masterAddress = other.masterAddress;
     }
+    this.webPort = other.webPort;
+    this.rpcPort = other.rpcPort;
     if (other.isSetStartTime()) {
       this.startTime = other.startTime;
     }
@@ -192,6 +216,10 @@ public class ClusterInfo implements org.apache.thrift.TBase<ClusterInfo, Cluster
   @Override
   public void clear() {
     this.masterAddress = null;
+    setWebPortIsSet(false);
+    this.webPort = 0;
+    setRpcPortIsSet(false);
+    this.rpcPort = 0;
     this.startTime = null;
     this.upTime = null;
     this.version = null;
@@ -221,6 +249,52 @@ public class ClusterInfo implements org.apache.thrift.TBase<ClusterInfo, Cluster
     if (!value) {
       this.masterAddress = null;
     }
+  }
+
+  public int getWebPort() {
+    return this.webPort;
+  }
+
+  public ClusterInfo setWebPort(int webPort) {
+    this.webPort = webPort;
+    setWebPortIsSet(true);
+    return this;
+  }
+
+  public void unsetWebPort() {
+    __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __WEBPORT_ISSET_ID);
+  }
+
+  /** Returns true if field webPort is set (has been assigned a value) and false otherwise */
+  public boolean isSetWebPort() {
+    return EncodingUtils.testBit(__isset_bitfield, __WEBPORT_ISSET_ID);
+  }
+
+  public void setWebPortIsSet(boolean value) {
+    __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __WEBPORT_ISSET_ID, value);
+  }
+
+  public int getRpcPort() {
+    return this.rpcPort;
+  }
+
+  public ClusterInfo setRpcPort(int rpcPort) {
+    this.rpcPort = rpcPort;
+    setRpcPortIsSet(true);
+    return this;
+  }
+
+  public void unsetRpcPort() {
+    __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __RPCPORT_ISSET_ID);
+  }
+
+  /** Returns true if field rpcPort is set (has been assigned a value) and false otherwise */
+  public boolean isSetRpcPort() {
+    return EncodingUtils.testBit(__isset_bitfield, __RPCPORT_ISSET_ID);
+  }
+
+  public void setRpcPortIsSet(boolean value) {
+    __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __RPCPORT_ISSET_ID, value);
   }
 
   public String getStartTime() {
@@ -328,6 +402,22 @@ public class ClusterInfo implements org.apache.thrift.TBase<ClusterInfo, Cluster
       }
       break;
 
+    case WEB_PORT:
+      if (value == null) {
+        unsetWebPort();
+      } else {
+        setWebPort((Integer)value);
+      }
+      break;
+
+    case RPC_PORT:
+      if (value == null) {
+        unsetRpcPort();
+      } else {
+        setRpcPort((Integer)value);
+      }
+      break;
+
     case START_TIME:
       if (value == null) {
         unsetStartTime();
@@ -368,6 +458,12 @@ public class ClusterInfo implements org.apache.thrift.TBase<ClusterInfo, Cluster
     case MASTER_ADDRESS:
       return getMasterAddress();
 
+    case WEB_PORT:
+      return getWebPort();
+
+    case RPC_PORT:
+      return getRpcPort();
+
     case START_TIME:
       return getStartTime();
 
@@ -393,6 +489,10 @@ public class ClusterInfo implements org.apache.thrift.TBase<ClusterInfo, Cluster
     switch (field) {
     case MASTER_ADDRESS:
       return isSetMasterAddress();
+    case WEB_PORT:
+      return isSetWebPort();
+    case RPC_PORT:
+      return isSetRpcPort();
     case START_TIME:
       return isSetStartTime();
     case UP_TIME:
@@ -424,6 +524,24 @@ public class ClusterInfo implements org.apache.thrift.TBase<ClusterInfo, Cluster
       if (!(this_present_masterAddress && that_present_masterAddress))
         return false;
       if (!this.masterAddress.equals(that.masterAddress))
+        return false;
+    }
+
+    boolean this_present_webPort = true;
+    boolean that_present_webPort = true;
+    if (this_present_webPort || that_present_webPort) {
+      if (!(this_present_webPort && that_present_webPort))
+        return false;
+      if (this.webPort != that.webPort)
+        return false;
+    }
+
+    boolean this_present_rpcPort = true;
+    boolean that_present_rpcPort = true;
+    if (this_present_rpcPort || that_present_rpcPort) {
+      if (!(this_present_rpcPort && that_present_rpcPort))
+        return false;
+      if (this.rpcPort != that.rpcPort)
         return false;
     }
 
@@ -475,6 +593,16 @@ public class ClusterInfo implements org.apache.thrift.TBase<ClusterInfo, Cluster
     if (present_masterAddress)
       list.add(masterAddress);
 
+    boolean present_webPort = true;
+    list.add(present_webPort);
+    if (present_webPort)
+      list.add(webPort);
+
+    boolean present_rpcPort = true;
+    list.add(present_rpcPort);
+    if (present_rpcPort)
+      list.add(rpcPort);
+
     boolean present_startTime = true && (isSetStartTime());
     list.add(present_startTime);
     if (present_startTime)
@@ -512,6 +640,26 @@ public class ClusterInfo implements org.apache.thrift.TBase<ClusterInfo, Cluster
     }
     if (isSetMasterAddress()) {
       lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.masterAddress, other.masterAddress);
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+    }
+    lastComparison = Boolean.valueOf(isSetWebPort()).compareTo(other.isSetWebPort());
+    if (lastComparison != 0) {
+      return lastComparison;
+    }
+    if (isSetWebPort()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.webPort, other.webPort);
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+    }
+    lastComparison = Boolean.valueOf(isSetRpcPort()).compareTo(other.isSetRpcPort());
+    if (lastComparison != 0) {
+      return lastComparison;
+    }
+    if (isSetRpcPort()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.rpcPort, other.rpcPort);
       if (lastComparison != 0) {
         return lastComparison;
       }
@@ -582,6 +730,14 @@ public class ClusterInfo implements org.apache.thrift.TBase<ClusterInfo, Cluster
     } else {
       sb.append(this.masterAddress);
     }
+    first = false;
+    if (!first) sb.append(", ");
+    sb.append("webPort:");
+    sb.append(this.webPort);
+    first = false;
+    if (!first) sb.append(", ");
+    sb.append("rpcPort:");
+    sb.append(this.rpcPort);
     first = false;
     if (!first) sb.append(", ");
     sb.append("startTime:");
@@ -664,7 +820,23 @@ public class ClusterInfo implements org.apache.thrift.TBase<ClusterInfo, Cluster
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
-          case 2: // START_TIME
+          case 2: // WEB_PORT
+            if (schemeField.type == org.apache.thrift.protocol.TType.I32) {
+              struct.webPort = iprot.readI32();
+              struct.setWebPortIsSet(true);
+            } else { 
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+            }
+            break;
+          case 3: // RPC_PORT
+            if (schemeField.type == org.apache.thrift.protocol.TType.I32) {
+              struct.rpcPort = iprot.readI32();
+              struct.setRpcPortIsSet(true);
+            } else { 
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+            }
+            break;
+          case 4: // START_TIME
             if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
               struct.startTime = iprot.readString();
               struct.setStartTimeIsSet(true);
@@ -672,7 +844,7 @@ public class ClusterInfo implements org.apache.thrift.TBase<ClusterInfo, Cluster
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
-          case 3: // UP_TIME
+          case 5: // UP_TIME
             if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
               struct.upTime = iprot.readString();
               struct.setUpTimeIsSet(true);
@@ -680,7 +852,7 @@ public class ClusterInfo implements org.apache.thrift.TBase<ClusterInfo, Cluster
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
-          case 4: // VERSION
+          case 6: // VERSION
             if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
               struct.version = iprot.readString();
               struct.setVersionIsSet(true);
@@ -688,7 +860,7 @@ public class ClusterInfo implements org.apache.thrift.TBase<ClusterInfo, Cluster
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
-          case 5: // SAFE_MODE
+          case 7: // SAFE_MODE
             if (schemeField.type == org.apache.thrift.protocol.TType.BOOL) {
               struct.safeMode = iprot.readBool();
               struct.setSafeModeIsSet(true);
@@ -716,6 +888,12 @@ public class ClusterInfo implements org.apache.thrift.TBase<ClusterInfo, Cluster
         oprot.writeString(struct.masterAddress);
         oprot.writeFieldEnd();
       }
+      oprot.writeFieldBegin(WEB_PORT_FIELD_DESC);
+      oprot.writeI32(struct.webPort);
+      oprot.writeFieldEnd();
+      oprot.writeFieldBegin(RPC_PORT_FIELD_DESC);
+      oprot.writeI32(struct.rpcPort);
+      oprot.writeFieldEnd();
       if (struct.startTime != null) {
         oprot.writeFieldBegin(START_TIME_FIELD_DESC);
         oprot.writeString(struct.startTime);
@@ -755,21 +933,33 @@ public class ClusterInfo implements org.apache.thrift.TBase<ClusterInfo, Cluster
       if (struct.isSetMasterAddress()) {
         optionals.set(0);
       }
-      if (struct.isSetStartTime()) {
+      if (struct.isSetWebPort()) {
         optionals.set(1);
       }
-      if (struct.isSetUpTime()) {
+      if (struct.isSetRpcPort()) {
         optionals.set(2);
       }
-      if (struct.isSetVersion()) {
+      if (struct.isSetStartTime()) {
         optionals.set(3);
       }
-      if (struct.isSetSafeMode()) {
+      if (struct.isSetUpTime()) {
         optionals.set(4);
       }
-      oprot.writeBitSet(optionals, 5);
+      if (struct.isSetVersion()) {
+        optionals.set(5);
+      }
+      if (struct.isSetSafeMode()) {
+        optionals.set(6);
+      }
+      oprot.writeBitSet(optionals, 7);
       if (struct.isSetMasterAddress()) {
         oprot.writeString(struct.masterAddress);
+      }
+      if (struct.isSetWebPort()) {
+        oprot.writeI32(struct.webPort);
+      }
+      if (struct.isSetRpcPort()) {
+        oprot.writeI32(struct.rpcPort);
       }
       if (struct.isSetStartTime()) {
         oprot.writeString(struct.startTime);
@@ -788,24 +978,32 @@ public class ClusterInfo implements org.apache.thrift.TBase<ClusterInfo, Cluster
     @Override
     public void read(org.apache.thrift.protocol.TProtocol prot, ClusterInfo struct) throws org.apache.thrift.TException {
       TTupleProtocol iprot = (TTupleProtocol) prot;
-      BitSet incoming = iprot.readBitSet(5);
+      BitSet incoming = iprot.readBitSet(7);
       if (incoming.get(0)) {
         struct.masterAddress = iprot.readString();
         struct.setMasterAddressIsSet(true);
       }
       if (incoming.get(1)) {
+        struct.webPort = iprot.readI32();
+        struct.setWebPortIsSet(true);
+      }
+      if (incoming.get(2)) {
+        struct.rpcPort = iprot.readI32();
+        struct.setRpcPortIsSet(true);
+      }
+      if (incoming.get(3)) {
         struct.startTime = iprot.readString();
         struct.setStartTimeIsSet(true);
       }
-      if (incoming.get(2)) {
+      if (incoming.get(4)) {
         struct.upTime = iprot.readString();
         struct.setUpTimeIsSet(true);
       }
-      if (incoming.get(3)) {
+      if (incoming.get(5)) {
         struct.version = iprot.readString();
         struct.setVersionIsSet(true);
       }
-      if (incoming.get(4)) {
+      if (incoming.get(6)) {
         struct.safeMode = iprot.readBool();
         struct.setSafeModeIsSet(true);
       }

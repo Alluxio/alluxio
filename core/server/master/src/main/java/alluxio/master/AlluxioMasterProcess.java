@@ -181,6 +181,8 @@ public class AlluxioMasterProcess implements MasterProcess {
   @Override
   public ClusterInfo getClusterInfo() {
     return new ClusterInfo().setMasterAddress(getRpcAddress().toString())
+        .setWebPort(getWebAddress().getPort())
+        .setRpcPort(mPort)
         .setStartTime(CommonUtils.convertMsToDate(getStartTimeMs()))
         .setUpTime(CommonUtils.convertMsToClockTime(getUptimeMs()))
         .setVersion(RuntimeConstants.VERSION)
