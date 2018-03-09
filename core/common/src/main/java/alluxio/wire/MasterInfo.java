@@ -41,17 +41,17 @@ public final class MasterInfo implements Serializable {
   /**
    * Creates a new instance of {@link MasterInfo} from a thrift representation.
    *
-   * @param clusterInfo the thrift representation of a alluxio cluster information
+   * @param masterInfo the thrift representation of alluxio master information
    */
-  protected MasterInfo(alluxio.thrift.MasterInfo clusterInfo) {
-    mMasterAddress = clusterInfo.getMasterAddress();
-    mWebPort = clusterInfo.getWebPort();
-    mRpcPort = clusterInfo.getRpcPort();
-    mStartTime = clusterInfo.getStartTime();
-    mUpTime = clusterInfo.getUpTime();
-    mVersion = clusterInfo.getVersion();
-    mHAMode = clusterInfo.isHAMode();
-    mSafeMode = clusterInfo.isSafeMode();
+  protected MasterInfo(alluxio.thrift.MasterInfo masterInfo) {
+    mMasterAddress = masterInfo.getMasterAddress();
+    mWebPort = masterInfo.getWebPort();
+    mRpcPort = masterInfo.getRpcPort();
+    mStartTime = masterInfo.getStartTime();
+    mUpTime = masterInfo.getUpTime();
+    mVersion = masterInfo.getVersion();
+    mHAMode = masterInfo.isHAMode();
+    mSafeMode = masterInfo.isSafeMode();
   }
 
   /**
@@ -112,7 +112,7 @@ public final class MasterInfo implements Serializable {
 
   /**
    * @param masterAddress the master address to use
-   * @return the cluster information
+   * @return the master information
    */
   public MasterInfo setMasterAddress(String masterAddress) {
     mMasterAddress = masterAddress;
@@ -121,7 +121,7 @@ public final class MasterInfo implements Serializable {
 
   /**
    * @param webPort the web port to use
-   * @return the cluster information
+   * @return the master information
    */
   public MasterInfo setWebPort(int webPort) {
     mWebPort = webPort;
@@ -130,7 +130,7 @@ public final class MasterInfo implements Serializable {
 
   /**
    * @param rpcPort the master address to use
-   * @return the cluster information
+   * @return the master information
    */
   public MasterInfo setRpcPort(int rpcPort) {
     mRpcPort = rpcPort;
@@ -139,7 +139,7 @@ public final class MasterInfo implements Serializable {
 
   /**
    * @param startTime the startTime to use
-   * @return the cluster information
+   * @return the master information
    */
   public MasterInfo setStartTime(String startTime) {
     mStartTime = startTime;
@@ -148,7 +148,7 @@ public final class MasterInfo implements Serializable {
 
   /**
    * @param upTime the upTime to use
-   * @return the cluster information
+   * @return the master information
    */
   public MasterInfo setUpTime(String upTime) {
     mUpTime = upTime;
@@ -157,7 +157,7 @@ public final class MasterInfo implements Serializable {
 
   /**
    * @param version the version to use
-   * @return the cluster information
+   * @return the master information
    */
   public MasterInfo setVersion(String version) {
     mVersion = version;
@@ -166,7 +166,7 @@ public final class MasterInfo implements Serializable {
 
   /**
    * @param HAMode whether Alluxio is in high availability mode or not
-   * @return the cluster information
+   * @return the master information
    */
   public MasterInfo setHAMode(boolean HAMode) {
     mHAMode = HAMode;
@@ -175,7 +175,7 @@ public final class MasterInfo implements Serializable {
 
   /**
    * @param safeMode whether Alluxio is in safe mode or not
-   * @return the cluster information
+   * @return the master information
    */
   public MasterInfo setSafeMode(boolean safeMode) {
     mSafeMode = safeMode;
@@ -183,7 +183,7 @@ public final class MasterInfo implements Serializable {
   }
 
   /**
-   * @return thrift representation of the cluster information
+   * @return thrift representation of the master information
    */
   protected alluxio.thrift.MasterInfo toThrift() {
     return new alluxio.thrift.MasterInfo(mMasterAddress, mWebPort, mRpcPort,
