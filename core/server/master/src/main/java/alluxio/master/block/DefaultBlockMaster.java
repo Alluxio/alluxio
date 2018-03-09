@@ -624,6 +624,7 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
           totalBytesOnTiers, usedBytesOnTiers, blocks);
       processWorkerRemovedBlocks(worker, removedBlocks);
       processWorkerAddedBlocks(worker, currentBlocksOnTiers);
+      processWorkerOrphanedBlocks(worker);
     }
 
     LOG.info("registerWorker(): {}", worker);
@@ -707,9 +708,18 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
             block.addWorker(workerInfo.getId(), entry.getKey());
             mLostBlocks.remove(blockId);
           }
-        } else {
-          LOG.warn("Failed to register workerId: {} to blockId: {}", workerInfo.getId(), blockId);
         }
+      }
+    }
+  }
+
+  @GuardedBy("workerInfo")
+  private void processWorkerOrphanedBlocks(MasterWorkerInfo workerInfo) {
+    for (long block: workerInfo.getBlocks()) {
+      if (!mBlocks.containsKey(block)) {
+        LOG.warn("Requesting delete for orphaned block: {} from worker {}.", block,
+            workerInfo.getWorkerAddress().getHost());
+        workerInfo.updateToRemovedBlock(true, block);
       }
     }
   }
