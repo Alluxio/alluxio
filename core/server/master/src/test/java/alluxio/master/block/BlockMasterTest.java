@@ -204,8 +204,8 @@ public class BlockMasterTest {
     // Create a worker with a unknown blocks.
     long worker = mBlockMaster.getWorkerId(NET_ADDRESS_1);
     List<Long> orphanedBlocks = Arrays.asList(1L, 2L);
-      Map<String, Long> memUsage = ImmutableMap.of("MEM", 10L);
-      mBlockMaster.workerRegister(worker, Arrays.asList("MEM"), ImmutableMap.of("MEM", 100L),
+    Map<String, Long> memUsage = ImmutableMap.of("MEM", 10L);
+    mBlockMaster.workerRegister(worker, Arrays.asList("MEM"), ImmutableMap.of("MEM", 100L),
         memUsage, ImmutableMap.of("MEM", orphanedBlocks));
 
     // Check that the worker heartbeat tells the worker to remove the blocks.
