@@ -84,14 +84,14 @@ public final class ReportCommand extends AbstractCommand {
   public String getDescription() {
     return "Report Alluxio running cluster information.\n"
         + "Where Category is an optional argument, if no arguments passed in, "
-        + "summary and cluster capacity information will be printed out."
+        + "summary information will be printed out."
         + "Category can be one of the following:\n"
         + "    summary          Alluxio cluster summarized information\n"
         + "    capacity         capacity usage\n"
         + "    operation        number of operations performed\n"
-        + "    rpcinvocation    number of RPC invocations per operation\n"
+        + "    rpc              number of RPC invocations per operation\n"
         + "    configuration    runtime related configuration properties and their set values\n"
-        + "    underfilesystem  Under file system information\n";
+        + "    ufs              under file system information\n";
   }
 
   @Override

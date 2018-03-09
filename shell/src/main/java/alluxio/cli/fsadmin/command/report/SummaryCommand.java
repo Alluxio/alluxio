@@ -37,7 +37,7 @@ public class SummaryCommand {
       System.out.println("    Started: " + clusterInfo.getStartTime());
       System.out.println("    Uptime: " + clusterInfo.getUpTime());
       System.out.println("    Version: " + clusterInfo.getVersion());
-      System.out.println("    HA Mode: " + clusterInfo.isHAMode());
+      System.out.println("    High Availability Mode: " + clusterInfo.isHAMode());
       System.out.println("    Safe Mode: " + clusterInfo.isSafeMode());
     } catch (Exception e) {
       e.printStackTrace();
@@ -52,14 +52,14 @@ public class SummaryCommand {
       Map<String, String> totalCapacityOnTiers = blockMasterInfo.getTotalCapacityOnTiers();
       for (Map.Entry<String, String> capacityTier : totalCapacityOnTiers.entrySet()) {
         System.out.println("        Tier: " + capacityTier.getKey()
-            + "  Value: " + capacityTier.getValue());
+            + "  Size: " + capacityTier.getValue());
       }
 
       System.out.println("    Used Capacity: " + blockMasterInfo.getUsedCapacity());
       Map<String, String> usedCapacityOnTiers = blockMasterInfo.getUsedCapacityOnTiers();
       for (Map.Entry<String, String> usedCapacityTier : usedCapacityOnTiers.entrySet()) {
         System.out.println("        Tier: " + usedCapacityTier.getKey()
-            + "  Value: " + usedCapacityTier.getValue());
+            + "  Size: " + usedCapacityTier.getValue());
       }
 
       System.out.println("    Free Capacity: " + blockMasterInfo.getFreeCapacity());
