@@ -600,11 +600,17 @@ public class InodeTree implements JournalEntryIterable {
             continue;
           }
         } else {
-          // Successfully added the child, while holding the write lock.
-          dir.setPinned(currentInodeDirectory.isPinned());
-          if (options.isPersisted()) {
-            // Do not journal the persist entry, since a creation entry will be journaled instead.
-            syncPersistDirectory(dir, NoopJournalContext.INSTANCE);
+          try {
+            // Successfully added the child, while holding the write lock.
+            dir.setPinned(currentInodeDirectory.isPinned());
+            if (options.isPersisted()) {
+              // Do not journal the persist entry, since a creation entry will be journaled instead.
+              syncPersistDirectory(dir, NoopJournalContext.INSTANCE);
+            }
+          } catch (Exception e) {
+            // Failed to persist the directory, so remove it from the parent.
+            currentInodeDirectory.removeChild(dir);
+            throw e;
           }
           // Journal the new inode.
           journalContext.append(dir.toJournalEntry());
