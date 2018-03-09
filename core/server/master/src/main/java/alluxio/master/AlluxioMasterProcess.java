@@ -180,14 +180,22 @@ public class AlluxioMasterProcess implements MasterProcess {
 
   @Override
   public ClusterInfo getClusterInfo() {
-    return new ClusterInfo().setMasterAddress(getRpcAddress().toString())
-        .setWebPort(getWebAddress().getPort())
+    int webPort = 0;
+    try {
+      webPort = getWebAddress().getPort();
+    } catch (NullPointerException e) {
+      // do nothing
+    }
+    ClusterInfo clusterInfo = new ClusterInfo().setMasterAddress(getRpcAddress().toString())
+        .setWebPort(webPort)
         .setRpcPort(mPort)
         .setStartTime(CommonUtils.convertMsToDate(getStartTimeMs()))
         .setUpTime(CommonUtils.convertMsToClockTime(getUptimeMs()))
         .setVersion(RuntimeConstants.VERSION)
         .setHAMode(Configuration.getBoolean(PropertyKey.ZOOKEEPER_ENABLED))
         .setSafeMode(mSafeModeManager.isInSafeMode());
+    return clusterInfo;
+
   }
 
   @Override

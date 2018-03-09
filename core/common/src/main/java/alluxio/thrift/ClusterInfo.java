@@ -44,7 +44,7 @@ public class ClusterInfo implements org.apache.thrift.TBase<ClusterInfo, Cluster
   private static final org.apache.thrift.protocol.TField START_TIME_FIELD_DESC = new org.apache.thrift.protocol.TField("startTime", org.apache.thrift.protocol.TType.STRING, (short)4);
   private static final org.apache.thrift.protocol.TField UP_TIME_FIELD_DESC = new org.apache.thrift.protocol.TField("upTime", org.apache.thrift.protocol.TType.STRING, (short)5);
   private static final org.apache.thrift.protocol.TField VERSION_FIELD_DESC = new org.apache.thrift.protocol.TField("version", org.apache.thrift.protocol.TType.STRING, (short)6);
-  private static final org.apache.thrift.protocol.TField HA_MODE_FIELD_DESC = new org.apache.thrift.protocol.TField("haMode", org.apache.thrift.protocol.TType.BOOL, (short)7);
+  private static final org.apache.thrift.protocol.TField HAMODE_FIELD_DESC = new org.apache.thrift.protocol.TField("HAMode", org.apache.thrift.protocol.TType.BOOL, (short)7);
   private static final org.apache.thrift.protocol.TField SAFE_MODE_FIELD_DESC = new org.apache.thrift.protocol.TField("safeMode", org.apache.thrift.protocol.TType.BOOL, (short)8);
 
   private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
@@ -59,7 +59,7 @@ public class ClusterInfo implements org.apache.thrift.TBase<ClusterInfo, Cluster
   private String startTime; // required
   private String upTime; // required
   private String version; // required
-  private boolean haMode; // required
+  private boolean HAMode; // required
   private boolean safeMode; // required
 
   /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
@@ -70,7 +70,7 @@ public class ClusterInfo implements org.apache.thrift.TBase<ClusterInfo, Cluster
     START_TIME((short)4, "startTime"),
     UP_TIME((short)5, "upTime"),
     VERSION((short)6, "version"),
-    HA_MODE((short)7, "haMode"),
+    HAMODE((short)7, "HAMode"),
     SAFE_MODE((short)8, "safeMode");
 
     private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
@@ -98,8 +98,8 @@ public class ClusterInfo implements org.apache.thrift.TBase<ClusterInfo, Cluster
           return UP_TIME;
         case 6: // VERSION
           return VERSION;
-        case 7: // HA_MODE
-          return HA_MODE;
+        case 7: // HAMODE
+          return HAMODE;
         case 8: // SAFE_MODE
           return SAFE_MODE;
         default:
@@ -162,7 +162,7 @@ public class ClusterInfo implements org.apache.thrift.TBase<ClusterInfo, Cluster
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
     tmpMap.put(_Fields.VERSION, new org.apache.thrift.meta_data.FieldMetaData("version", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
-    tmpMap.put(_Fields.HA_MODE, new org.apache.thrift.meta_data.FieldMetaData("haMode", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+    tmpMap.put(_Fields.HAMODE, new org.apache.thrift.meta_data.FieldMetaData("HAMode", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.BOOL)));
     tmpMap.put(_Fields.SAFE_MODE, new org.apache.thrift.meta_data.FieldMetaData("safeMode", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.BOOL)));
@@ -180,7 +180,7 @@ public class ClusterInfo implements org.apache.thrift.TBase<ClusterInfo, Cluster
     String startTime,
     String upTime,
     String version,
-    boolean haMode,
+    boolean HAMode,
     boolean safeMode)
   {
     this();
@@ -192,8 +192,8 @@ public class ClusterInfo implements org.apache.thrift.TBase<ClusterInfo, Cluster
     this.startTime = startTime;
     this.upTime = upTime;
     this.version = version;
-    this.haMode = haMode;
-    setHaModeIsSet(true);
+    this.HAMode = HAMode;
+    setHAModeIsSet(true);
     this.safeMode = safeMode;
     setSafeModeIsSet(true);
   }
@@ -217,7 +217,7 @@ public class ClusterInfo implements org.apache.thrift.TBase<ClusterInfo, Cluster
     if (other.isSetVersion()) {
       this.version = other.version;
     }
-    this.haMode = other.haMode;
+    this.HAMode = other.HAMode;
     this.safeMode = other.safeMode;
   }
 
@@ -235,8 +235,8 @@ public class ClusterInfo implements org.apache.thrift.TBase<ClusterInfo, Cluster
     this.startTime = null;
     this.upTime = null;
     this.version = null;
-    setHaModeIsSet(false);
-    this.haMode = false;
+    setHAModeIsSet(false);
+    this.HAMode = false;
     setSafeModeIsSet(false);
     this.safeMode = false;
   }
@@ -383,26 +383,26 @@ public class ClusterInfo implements org.apache.thrift.TBase<ClusterInfo, Cluster
     }
   }
 
-  public boolean isHaMode() {
-    return this.haMode;
+  public boolean isHAMode() {
+    return this.HAMode;
   }
 
-  public ClusterInfo setHaMode(boolean haMode) {
-    this.haMode = haMode;
-    setHaModeIsSet(true);
+  public ClusterInfo setHAMode(boolean HAMode) {
+    this.HAMode = HAMode;
+    setHAModeIsSet(true);
     return this;
   }
 
-  public void unsetHaMode() {
+  public void unsetHAMode() {
     __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __HAMODE_ISSET_ID);
   }
 
-  /** Returns true if field haMode is set (has been assigned a value) and false otherwise */
-  public boolean isSetHaMode() {
+  /** Returns true if field HAMode is set (has been assigned a value) and false otherwise */
+  public boolean isSetHAMode() {
     return EncodingUtils.testBit(__isset_bitfield, __HAMODE_ISSET_ID);
   }
 
-  public void setHaModeIsSet(boolean value) {
+  public void setHAModeIsSet(boolean value) {
     __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __HAMODE_ISSET_ID, value);
   }
 
@@ -479,11 +479,11 @@ public class ClusterInfo implements org.apache.thrift.TBase<ClusterInfo, Cluster
       }
       break;
 
-    case HA_MODE:
+    case HAMODE:
       if (value == null) {
-        unsetHaMode();
+        unsetHAMode();
       } else {
-        setHaMode((Boolean)value);
+        setHAMode((Boolean)value);
       }
       break;
 
@@ -518,8 +518,8 @@ public class ClusterInfo implements org.apache.thrift.TBase<ClusterInfo, Cluster
     case VERSION:
       return getVersion();
 
-    case HA_MODE:
-      return isHaMode();
+    case HAMODE:
+      return isHAMode();
 
     case SAFE_MODE:
       return isSafeMode();
@@ -547,8 +547,8 @@ public class ClusterInfo implements org.apache.thrift.TBase<ClusterInfo, Cluster
       return isSetUpTime();
     case VERSION:
       return isSetVersion();
-    case HA_MODE:
-      return isSetHaMode();
+    case HAMODE:
+      return isSetHAMode();
     case SAFE_MODE:
       return isSetSafeMode();
     }
@@ -622,12 +622,12 @@ public class ClusterInfo implements org.apache.thrift.TBase<ClusterInfo, Cluster
         return false;
     }
 
-    boolean this_present_haMode = true;
-    boolean that_present_haMode = true;
-    if (this_present_haMode || that_present_haMode) {
-      if (!(this_present_haMode && that_present_haMode))
+    boolean this_present_HAMode = true;
+    boolean that_present_HAMode = true;
+    if (this_present_HAMode || that_present_HAMode) {
+      if (!(this_present_HAMode && that_present_HAMode))
         return false;
-      if (this.haMode != that.haMode)
+      if (this.HAMode != that.HAMode)
         return false;
     }
 
@@ -677,10 +677,10 @@ public class ClusterInfo implements org.apache.thrift.TBase<ClusterInfo, Cluster
     if (present_version)
       list.add(version);
 
-    boolean present_haMode = true;
-    list.add(present_haMode);
-    if (present_haMode)
-      list.add(haMode);
+    boolean present_HAMode = true;
+    list.add(present_HAMode);
+    if (present_HAMode)
+      list.add(HAMode);
 
     boolean present_safeMode = true;
     list.add(present_safeMode);
@@ -758,12 +758,12 @@ public class ClusterInfo implements org.apache.thrift.TBase<ClusterInfo, Cluster
         return lastComparison;
       }
     }
-    lastComparison = Boolean.valueOf(isSetHaMode()).compareTo(other.isSetHaMode());
+    lastComparison = Boolean.valueOf(isSetHAMode()).compareTo(other.isSetHAMode());
     if (lastComparison != 0) {
       return lastComparison;
     }
-    if (isSetHaMode()) {
-      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.haMode, other.haMode);
+    if (isSetHAMode()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.HAMode, other.HAMode);
       if (lastComparison != 0) {
         return lastComparison;
       }
@@ -838,8 +838,8 @@ public class ClusterInfo implements org.apache.thrift.TBase<ClusterInfo, Cluster
     }
     first = false;
     if (!first) sb.append(", ");
-    sb.append("haMode:");
-    sb.append(this.haMode);
+    sb.append("HAMode:");
+    sb.append(this.HAMode);
     first = false;
     if (!first) sb.append(", ");
     sb.append("safeMode:");
@@ -938,10 +938,10 @@ public class ClusterInfo implements org.apache.thrift.TBase<ClusterInfo, Cluster
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
-          case 7: // HA_MODE
+          case 7: // HAMODE
             if (schemeField.type == org.apache.thrift.protocol.TType.BOOL) {
-              struct.haMode = iprot.readBool();
-              struct.setHaModeIsSet(true);
+              struct.HAMode = iprot.readBool();
+              struct.setHAModeIsSet(true);
             } else { 
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
@@ -995,8 +995,8 @@ public class ClusterInfo implements org.apache.thrift.TBase<ClusterInfo, Cluster
         oprot.writeString(struct.version);
         oprot.writeFieldEnd();
       }
-      oprot.writeFieldBegin(HA_MODE_FIELD_DESC);
-      oprot.writeBool(struct.haMode);
+      oprot.writeFieldBegin(HAMODE_FIELD_DESC);
+      oprot.writeBool(struct.HAMode);
       oprot.writeFieldEnd();
       oprot.writeFieldBegin(SAFE_MODE_FIELD_DESC);
       oprot.writeBool(struct.safeMode);
@@ -1037,7 +1037,7 @@ public class ClusterInfo implements org.apache.thrift.TBase<ClusterInfo, Cluster
       if (struct.isSetVersion()) {
         optionals.set(5);
       }
-      if (struct.isSetHaMode()) {
+      if (struct.isSetHAMode()) {
         optionals.set(6);
       }
       if (struct.isSetSafeMode()) {
@@ -1062,8 +1062,8 @@ public class ClusterInfo implements org.apache.thrift.TBase<ClusterInfo, Cluster
       if (struct.isSetVersion()) {
         oprot.writeString(struct.version);
       }
-      if (struct.isSetHaMode()) {
-        oprot.writeBool(struct.haMode);
+      if (struct.isSetHAMode()) {
+        oprot.writeBool(struct.HAMode);
       }
       if (struct.isSetSafeMode()) {
         oprot.writeBool(struct.safeMode);
@@ -1099,8 +1099,8 @@ public class ClusterInfo implements org.apache.thrift.TBase<ClusterInfo, Cluster
         struct.setVersionIsSet(true);
       }
       if (incoming.get(6)) {
-        struct.haMode = iprot.readBool();
-        struct.setHaModeIsSet(true);
+        struct.HAMode = iprot.readBool();
+        struct.setHAModeIsSet(true);
       }
       if (incoming.get(7)) {
         struct.safeMode = iprot.readBool();

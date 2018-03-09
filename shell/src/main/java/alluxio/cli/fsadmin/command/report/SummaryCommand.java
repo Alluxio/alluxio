@@ -24,7 +24,6 @@ import java.util.Map;
  * Print Alluxio cluster summarized information.
  */
 public class SummaryCommand {
-
   /** Print Alluxio cluster summarized information.*/
   public static void printSummary() {
     System.out.println("Alluxio Cluster Summary: ");
@@ -32,7 +31,12 @@ public class SummaryCommand {
         new RetryHandlingMetaMasterClient(MasterClientConfig.defaults())) {
       ClusterInfo clusterInfo = client.getClusterInfo();
       System.out.println("    Master Address: " + clusterInfo.getMasterAddress());
-      System.out.println("    Web Port: " + clusterInfo.getWebPort());
+
+      int webPort = clusterInfo.getWebPort();
+      if (webPort != 0) { // Alluxio web services are running
+        System.out.println("    Web Port: " + webPort);
+      }
+
       System.out.println("    Rpc Port: " + clusterInfo.getRpcPort());
       System.out.println("    Started: " + clusterInfo.getStartTime());
       System.out.println("    Uptime: " + clusterInfo.getUpTime());
@@ -48,6 +52,7 @@ public class SummaryCommand {
       BlockMasterInfo blockMasterInfo = client.getBlockMasterInfo();
       System.out.println("    Live workers: " + blockMasterInfo.getLiveWorkerNum());
       System.out.println("    Dead workers: " + blockMasterInfo.getDeadWorkerNum());
+
       System.out.println("    Total Capacity: " + blockMasterInfo.getTotalCapacity());
       Map<String, String> totalCapacityOnTiers = blockMasterInfo.getTotalCapacityOnTiers();
       for (Map.Entry<String, String> capacityTier : totalCapacityOnTiers.entrySet()) {
@@ -66,6 +71,5 @@ public class SummaryCommand {
     } catch (Exception e) {
       e.printStackTrace();
     }
-
   }
 }

@@ -51,6 +51,7 @@ public final class ReportCommand extends AbstractCommand {
   @Override
   public int run(CommandLine cl) throws AlluxioException, IOException {
     String[] args = cl.getArgs();
+
     if (args.length == 0) {
       SummaryCommand.printSummary();
       return 0;
@@ -86,17 +87,12 @@ public final class ReportCommand extends AbstractCommand {
         + "Where Category is an optional argument, if no arguments passed in, "
         + "summary information will be printed out."
         + "Category can be one of the following:\n"
-        + "    summary          Alluxio cluster summarized information\n"
-        + "    capacity         capacity usage\n"
-        + "    operation        number of operations performed\n"
-        + "    rpc              number of RPC invocations per operation\n"
-        + "    configuration    runtime related configuration properties and their set values\n"
-        + "    ufs              under file system information\n";
+        + "    summary          Alluxio cluster summarized information\n";
   }
 
   @Override
   public void validateArgs(String... args) throws InvalidArgumentException {
-    if (args.length > 3) {
+    if (args.length > 1) {
       throw new InvalidArgumentException(
           ExceptionMessage.INVALID_ARGS_GENERIC.getMessage(getCommandName()));
     }

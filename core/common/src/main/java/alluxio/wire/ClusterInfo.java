@@ -50,7 +50,7 @@ public final class ClusterInfo implements Serializable {
     mStartTime = clusterInfo.getStartTime();
     mUpTime = clusterInfo.getUpTime();
     mVersion = clusterInfo.getVersion();
-    mHAMode = clusterInfo.isHaMode();
+    mHAMode = clusterInfo.isHAMode();
     mSafeMode = clusterInfo.isSafeMode();
   }
 
@@ -97,7 +97,7 @@ public final class ClusterInfo implements Serializable {
   }
 
   /**
-   * @return if the cluster is running in safe mode
+   * @return if the cluster is running in high availability mode
    */
   public boolean isHAMode() {
     return mHAMode;
@@ -165,16 +165,16 @@ public final class ClusterInfo implements Serializable {
   }
 
   /**
-   * @param haMode the haMode to use
+   * @param HAMode whether Alluxio is in high availability mode or not
    * @return the cluster information
    */
-  public ClusterInfo setHAMode(boolean haMode) {
-    mHAMode = haMode;
+  public ClusterInfo setHAMode(boolean HAMode) {
+    mHAMode = HAMode;
     return this;
   }
 
   /**
-   * @param safeMode the safeMode to use
+   * @param safeMode whether Alluxio is in safe mode or not
    * @return the cluster information
    */
   public ClusterInfo setSafeMode(boolean safeMode) {
@@ -216,7 +216,7 @@ public final class ClusterInfo implements Serializable {
     return Objects.toStringHelper(this).add("masterAddress", mMasterAddress)
         .add("webPort", mWebPort).add("rpcPort", mRpcPort)
         .add("startTime", mStartTime).add("upTimeMs", mUpTime)
-        .add("version", mVersion).add("haMode", mHAMode)
+        .add("version", mVersion).add("HAMode", mHAMode)
         .add("safeMode", mSafeMode).toString();
   }
 }

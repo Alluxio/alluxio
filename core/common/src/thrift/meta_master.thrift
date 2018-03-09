@@ -10,7 +10,7 @@ struct ClusterInfo {
  4: string startTime
  5: string upTime
  6: string version
- 7: bool haMode
+ 7: bool HAMode
  8: bool safeMode
 }
 

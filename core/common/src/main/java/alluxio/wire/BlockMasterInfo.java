@@ -115,7 +115,7 @@ public final class BlockMasterInfo implements Serializable {
   }
 
   /**
-   * @param deadWorkerNum the live worker number
+   * @param deadWorkerNum the dead worker number
    * @return the block master information
    */
   public BlockMasterInfo setDeadWorkerNum(int deadWorkerNum) {
@@ -198,8 +198,8 @@ public final class BlockMasterInfo implements Serializable {
     }
     BlockMasterInfo that = (BlockMasterInfo) o;
     return mLiveWorkerNum == that.mLiveWorkerNum && mDeadWorkerNum == that.mDeadWorkerNum
-        && mTotalCapacity.equals(that.mTotalCapacity)
-        && mUsedCapacity.equals(that.mUsedCapacity) && mFreeCapacity.equals(that.mFreeCapacity)
+        && mTotalCapacity.equals(that.mTotalCapacity) && mUsedCapacity.equals(that.mUsedCapacity)
+        && mFreeCapacity.equals(that.mFreeCapacity)
         && mTotalCapacityOnTiers.equals(that.mTotalCapacityOnTiers)
         && mUsedCapacityOnTiers.equals(that.mUsedCapacityOnTiers);
   }
