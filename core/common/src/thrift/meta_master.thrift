@@ -10,8 +10,7 @@ struct MasterInfo {
  4: string startTime
  5: string upTime
  6: string version
- 7: bool HAMode
- 8: bool safeMode
+ 7: bool safeMode
 }
 
 struct GetMasterInfoTOptions {}

@@ -192,7 +192,6 @@ public class AlluxioMasterProcess implements MasterProcess {
         .setStartTime(CommonUtils.convertMsToDate(getStartTimeMs()))
         .setUpTime(CommonUtils.convertMsToClockTime(getUptimeMs()))
         .setVersion(RuntimeConstants.VERSION)
-        .setHAMode(Configuration.getBoolean(PropertyKey.ZOOKEEPER_ENABLED))
         .setSafeMode(mSafeModeManager.isInSafeMode());
   }
 

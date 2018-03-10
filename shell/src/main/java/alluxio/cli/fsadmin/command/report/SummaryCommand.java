@@ -41,7 +41,6 @@ public class SummaryCommand {
       System.out.println("    Started: " + masterInfo.getStartTime());
       System.out.println("    Uptime: " + masterInfo.getUpTime());
       System.out.println("    Version: " + masterInfo.getVersion());
-      System.out.println("    High Availability Mode: " + masterInfo.isHAMode());
       System.out.println("    Safe Mode: " + masterInfo.isSafeMode());
     } catch (Exception e) {
       e.printStackTrace();
@@ -51,7 +50,7 @@ public class SummaryCommand {
         new RetryHandlingBlockMasterClient(MasterClientConfig.defaults())) {
       BlockMasterInfo blockMasterInfo = client.getBlockMasterInfo();
       System.out.println("    Live workers: " + blockMasterInfo.getLiveWorkerNum());
-      System.out.println("    Dead workers: " + blockMasterInfo.getDeadWorkerNum());
+      System.out.println("    Dead workers: " + blockMasterInfo.getLostWorkerNum());
 
       System.out.println("    Total Capacity: " + blockMasterInfo.getTotalCapacity());
       Map<String, String> totalCapacityOnTiers = blockMasterInfo.getTotalCapacityOnTiers();

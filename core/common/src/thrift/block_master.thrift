@@ -5,7 +5,7 @@ include "exception.thrift"
 
 struct BlockMasterInfo {
  1: i32 liveWorkerNum
- 2: i32 deadWorkerNum
+ 2: i32 lostWorkerNum
  3: string TotalCapacity
  4: string usedCapacity
  5: string FreeCapacity

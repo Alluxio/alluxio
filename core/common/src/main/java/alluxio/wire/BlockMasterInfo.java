@@ -29,11 +29,11 @@ public final class BlockMasterInfo implements Serializable {
   private static final long serialVersionUID = -7436215337909224255L;
 
   private int mLiveWorkerNum;
-  private int mDeadWorkerNum;
+  private int mLostWorkerNum;
   private String mTotalCapacity;
   private String mUsedCapacity;
   private String mFreeCapacity;
-  private Map<String, String>  mTotalCapacityOnTiers;
+  private Map<String, String> mTotalCapacityOnTiers;
   private Map<String, String> mUsedCapacityOnTiers;
 
   /**
@@ -48,7 +48,7 @@ public final class BlockMasterInfo implements Serializable {
    */
   protected BlockMasterInfo(alluxio.thrift.BlockMasterInfo blockMasterInfo) {
     mLiveWorkerNum = blockMasterInfo.getLiveWorkerNum();
-    mDeadWorkerNum = blockMasterInfo.getDeadWorkerNum();
+    mLostWorkerNum = blockMasterInfo.getLostWorkerNum();
     mTotalCapacity = blockMasterInfo.getTotalCapacity();
     mUsedCapacity = blockMasterInfo.getUsedCapacity();
     mFreeCapacity = blockMasterInfo.getFreeCapacity();
@@ -64,10 +64,10 @@ public final class BlockMasterInfo implements Serializable {
   }
 
   /**
-   * @return the dead worker number
+   * @return the lost worker number
    */
-  public int getDeadWorkerNum() {
-    return mDeadWorkerNum;
+  public int getLostWorkerNum() {
+    return mLostWorkerNum;
   }
 
   /**
@@ -115,11 +115,11 @@ public final class BlockMasterInfo implements Serializable {
   }
 
   /**
-   * @param deadWorkerNum the dead worker number
+   * @param lostWorkerNum the lost worker number
    * @return the block master information
    */
-  public BlockMasterInfo setDeadWorkerNum(int deadWorkerNum) {
-    mDeadWorkerNum = deadWorkerNum;
+  public BlockMasterInfo setLostWorkerNum(int lostWorkerNum) {
+    mLostWorkerNum = lostWorkerNum;
     return this;
   }
 
@@ -184,7 +184,7 @@ public final class BlockMasterInfo implements Serializable {
    * @return thrift representation of the block master information
    */
   protected alluxio.thrift.BlockMasterInfo toThrift() {
-    return new alluxio.thrift.BlockMasterInfo(mLiveWorkerNum, mDeadWorkerNum, mTotalCapacity,
+    return new alluxio.thrift.BlockMasterInfo(mLiveWorkerNum, mLostWorkerNum, mTotalCapacity,
         mUsedCapacity, mFreeCapacity, mTotalCapacityOnTiers, mUsedCapacityOnTiers);
   }
 
@@ -197,7 +197,7 @@ public final class BlockMasterInfo implements Serializable {
       return false;
     }
     BlockMasterInfo that = (BlockMasterInfo) o;
-    return mLiveWorkerNum == that.mLiveWorkerNum && mDeadWorkerNum == that.mDeadWorkerNum
+    return mLiveWorkerNum == that.mLiveWorkerNum && mLostWorkerNum == that.mLostWorkerNum
         && mTotalCapacity.equals(that.mTotalCapacity) && mUsedCapacity.equals(that.mUsedCapacity)
         && mFreeCapacity.equals(that.mFreeCapacity)
         && mTotalCapacityOnTiers.equals(that.mTotalCapacityOnTiers)
@@ -206,14 +206,14 @@ public final class BlockMasterInfo implements Serializable {
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mLiveWorkerNum, mDeadWorkerNum, mTotalCapacity, mUsedCapacity,
+    return Objects.hashCode(mLiveWorkerNum, mLostWorkerNum, mTotalCapacity, mUsedCapacity,
         mFreeCapacity, mTotalCapacityOnTiers, mUsedCapacityOnTiers);
   }
 
   @Override
   public String toString() {
     return Objects.toStringHelper(this).add("liveWorkerNum", mLiveWorkerNum)
-        .add("deadWorkerNum", mDeadWorkerNum).add("totalCapacity", mTotalCapacity)
+        .add("lostWorkerNum", mLostWorkerNum).add("totalCapacity", mTotalCapacity)
         .add("usedCapacity", mUsedCapacity).add("freeCapacity", mFreeCapacity)
         .add("totalCapacityOnTiers", mTotalCapacityOnTiers)
         .add("usedCapacityOnTiers", mUsedCapacityOnTiers).toString();

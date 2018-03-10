@@ -39,7 +39,7 @@ public class BlockMasterInfo implements org.apache.thrift.TBase<BlockMasterInfo,
   private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("BlockMasterInfo");
 
   private static final org.apache.thrift.protocol.TField LIVE_WORKER_NUM_FIELD_DESC = new org.apache.thrift.protocol.TField("liveWorkerNum", org.apache.thrift.protocol.TType.I32, (short)1);
-  private static final org.apache.thrift.protocol.TField DEAD_WORKER_NUM_FIELD_DESC = new org.apache.thrift.protocol.TField("deadWorkerNum", org.apache.thrift.protocol.TType.I32, (short)2);
+  private static final org.apache.thrift.protocol.TField LOST_WORKER_NUM_FIELD_DESC = new org.apache.thrift.protocol.TField("lostWorkerNum", org.apache.thrift.protocol.TType.I32, (short)2);
   private static final org.apache.thrift.protocol.TField TOTAL_CAPACITY_FIELD_DESC = new org.apache.thrift.protocol.TField("TotalCapacity", org.apache.thrift.protocol.TType.STRING, (short)3);
   private static final org.apache.thrift.protocol.TField USED_CAPACITY_FIELD_DESC = new org.apache.thrift.protocol.TField("usedCapacity", org.apache.thrift.protocol.TType.STRING, (short)4);
   private static final org.apache.thrift.protocol.TField FREE_CAPACITY_FIELD_DESC = new org.apache.thrift.protocol.TField("FreeCapacity", org.apache.thrift.protocol.TType.STRING, (short)5);
@@ -53,7 +53,7 @@ public class BlockMasterInfo implements org.apache.thrift.TBase<BlockMasterInfo,
   }
 
   private int liveWorkerNum; // required
-  private int deadWorkerNum; // required
+  private int lostWorkerNum; // required
   private String TotalCapacity; // required
   private String usedCapacity; // required
   private String FreeCapacity; // required
@@ -63,7 +63,7 @@ public class BlockMasterInfo implements org.apache.thrift.TBase<BlockMasterInfo,
   /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
   public enum _Fields implements org.apache.thrift.TFieldIdEnum {
     LIVE_WORKER_NUM((short)1, "liveWorkerNum"),
-    DEAD_WORKER_NUM((short)2, "deadWorkerNum"),
+    LOST_WORKER_NUM((short)2, "lostWorkerNum"),
     TOTAL_CAPACITY((short)3, "TotalCapacity"),
     USED_CAPACITY((short)4, "usedCapacity"),
     FREE_CAPACITY((short)5, "FreeCapacity"),
@@ -85,8 +85,8 @@ public class BlockMasterInfo implements org.apache.thrift.TBase<BlockMasterInfo,
       switch(fieldId) {
         case 1: // LIVE_WORKER_NUM
           return LIVE_WORKER_NUM;
-        case 2: // DEAD_WORKER_NUM
-          return DEAD_WORKER_NUM;
+        case 2: // LOST_WORKER_NUM
+          return LOST_WORKER_NUM;
         case 3: // TOTAL_CAPACITY
           return TOTAL_CAPACITY;
         case 4: // USED_CAPACITY
@@ -138,14 +138,14 @@ public class BlockMasterInfo implements org.apache.thrift.TBase<BlockMasterInfo,
 
   // isset id assignments
   private static final int __LIVEWORKERNUM_ISSET_ID = 0;
-  private static final int __DEADWORKERNUM_ISSET_ID = 1;
+  private static final int __LOSTWORKERNUM_ISSET_ID = 1;
   private byte __isset_bitfield = 0;
   public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
   static {
     Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
     tmpMap.put(_Fields.LIVE_WORKER_NUM, new org.apache.thrift.meta_data.FieldMetaData("liveWorkerNum", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I32)));
-    tmpMap.put(_Fields.DEAD_WORKER_NUM, new org.apache.thrift.meta_data.FieldMetaData("deadWorkerNum", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+    tmpMap.put(_Fields.LOST_WORKER_NUM, new org.apache.thrift.meta_data.FieldMetaData("lostWorkerNum", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I32)));
     tmpMap.put(_Fields.TOTAL_CAPACITY, new org.apache.thrift.meta_data.FieldMetaData("TotalCapacity", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
@@ -170,7 +170,7 @@ public class BlockMasterInfo implements org.apache.thrift.TBase<BlockMasterInfo,
 
   public BlockMasterInfo(
     int liveWorkerNum,
-    int deadWorkerNum,
+    int lostWorkerNum,
     String TotalCapacity,
     String usedCapacity,
     String FreeCapacity,
@@ -180,8 +180,8 @@ public class BlockMasterInfo implements org.apache.thrift.TBase<BlockMasterInfo,
     this();
     this.liveWorkerNum = liveWorkerNum;
     setLiveWorkerNumIsSet(true);
-    this.deadWorkerNum = deadWorkerNum;
-    setDeadWorkerNumIsSet(true);
+    this.lostWorkerNum = lostWorkerNum;
+    setLostWorkerNumIsSet(true);
     this.TotalCapacity = TotalCapacity;
     this.usedCapacity = usedCapacity;
     this.FreeCapacity = FreeCapacity;
@@ -195,7 +195,7 @@ public class BlockMasterInfo implements org.apache.thrift.TBase<BlockMasterInfo,
   public BlockMasterInfo(BlockMasterInfo other) {
     __isset_bitfield = other.__isset_bitfield;
     this.liveWorkerNum = other.liveWorkerNum;
-    this.deadWorkerNum = other.deadWorkerNum;
+    this.lostWorkerNum = other.lostWorkerNum;
     if (other.isSetTotalCapacity()) {
       this.TotalCapacity = other.TotalCapacity;
     }
@@ -223,8 +223,8 @@ public class BlockMasterInfo implements org.apache.thrift.TBase<BlockMasterInfo,
   public void clear() {
     setLiveWorkerNumIsSet(false);
     this.liveWorkerNum = 0;
-    setDeadWorkerNumIsSet(false);
-    this.deadWorkerNum = 0;
+    setLostWorkerNumIsSet(false);
+    this.lostWorkerNum = 0;
     this.TotalCapacity = null;
     this.usedCapacity = null;
     this.FreeCapacity = null;
@@ -255,27 +255,27 @@ public class BlockMasterInfo implements org.apache.thrift.TBase<BlockMasterInfo,
     __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __LIVEWORKERNUM_ISSET_ID, value);
   }
 
-  public int getDeadWorkerNum() {
-    return this.deadWorkerNum;
+  public int getLostWorkerNum() {
+    return this.lostWorkerNum;
   }
 
-  public BlockMasterInfo setDeadWorkerNum(int deadWorkerNum) {
-    this.deadWorkerNum = deadWorkerNum;
-    setDeadWorkerNumIsSet(true);
+  public BlockMasterInfo setLostWorkerNum(int lostWorkerNum) {
+    this.lostWorkerNum = lostWorkerNum;
+    setLostWorkerNumIsSet(true);
     return this;
   }
 
-  public void unsetDeadWorkerNum() {
-    __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __DEADWORKERNUM_ISSET_ID);
+  public void unsetLostWorkerNum() {
+    __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __LOSTWORKERNUM_ISSET_ID);
   }
 
-  /** Returns true if field deadWorkerNum is set (has been assigned a value) and false otherwise */
-  public boolean isSetDeadWorkerNum() {
-    return EncodingUtils.testBit(__isset_bitfield, __DEADWORKERNUM_ISSET_ID);
+  /** Returns true if field lostWorkerNum is set (has been assigned a value) and false otherwise */
+  public boolean isSetLostWorkerNum() {
+    return EncodingUtils.testBit(__isset_bitfield, __LOSTWORKERNUM_ISSET_ID);
   }
 
-  public void setDeadWorkerNumIsSet(boolean value) {
-    __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __DEADWORKERNUM_ISSET_ID, value);
+  public void setLostWorkerNumIsSet(boolean value) {
+    __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __LOSTWORKERNUM_ISSET_ID, value);
   }
 
   public String getTotalCapacity() {
@@ -430,11 +430,11 @@ public class BlockMasterInfo implements org.apache.thrift.TBase<BlockMasterInfo,
       }
       break;
 
-    case DEAD_WORKER_NUM:
+    case LOST_WORKER_NUM:
       if (value == null) {
-        unsetDeadWorkerNum();
+        unsetLostWorkerNum();
       } else {
-        setDeadWorkerNum((Integer)value);
+        setLostWorkerNum((Integer)value);
       }
       break;
 
@@ -486,8 +486,8 @@ public class BlockMasterInfo implements org.apache.thrift.TBase<BlockMasterInfo,
     case LIVE_WORKER_NUM:
       return getLiveWorkerNum();
 
-    case DEAD_WORKER_NUM:
-      return getDeadWorkerNum();
+    case LOST_WORKER_NUM:
+      return getLostWorkerNum();
 
     case TOTAL_CAPACITY:
       return getTotalCapacity();
@@ -517,8 +517,8 @@ public class BlockMasterInfo implements org.apache.thrift.TBase<BlockMasterInfo,
     switch (field) {
     case LIVE_WORKER_NUM:
       return isSetLiveWorkerNum();
-    case DEAD_WORKER_NUM:
-      return isSetDeadWorkerNum();
+    case LOST_WORKER_NUM:
+      return isSetLostWorkerNum();
     case TOTAL_CAPACITY:
       return isSetTotalCapacity();
     case USED_CAPACITY:
@@ -555,12 +555,12 @@ public class BlockMasterInfo implements org.apache.thrift.TBase<BlockMasterInfo,
         return false;
     }
 
-    boolean this_present_deadWorkerNum = true;
-    boolean that_present_deadWorkerNum = true;
-    if (this_present_deadWorkerNum || that_present_deadWorkerNum) {
-      if (!(this_present_deadWorkerNum && that_present_deadWorkerNum))
+    boolean this_present_lostWorkerNum = true;
+    boolean that_present_lostWorkerNum = true;
+    if (this_present_lostWorkerNum || that_present_lostWorkerNum) {
+      if (!(this_present_lostWorkerNum && that_present_lostWorkerNum))
         return false;
-      if (this.deadWorkerNum != that.deadWorkerNum)
+      if (this.lostWorkerNum != that.lostWorkerNum)
         return false;
     }
 
@@ -621,10 +621,10 @@ public class BlockMasterInfo implements org.apache.thrift.TBase<BlockMasterInfo,
     if (present_liveWorkerNum)
       list.add(liveWorkerNum);
 
-    boolean present_deadWorkerNum = true;
-    list.add(present_deadWorkerNum);
-    if (present_deadWorkerNum)
-      list.add(deadWorkerNum);
+    boolean present_lostWorkerNum = true;
+    list.add(present_lostWorkerNum);
+    if (present_lostWorkerNum)
+      list.add(lostWorkerNum);
 
     boolean present_TotalCapacity = true && (isSetTotalCapacity());
     list.add(present_TotalCapacity);
@@ -672,12 +672,12 @@ public class BlockMasterInfo implements org.apache.thrift.TBase<BlockMasterInfo,
         return lastComparison;
       }
     }
-    lastComparison = Boolean.valueOf(isSetDeadWorkerNum()).compareTo(other.isSetDeadWorkerNum());
+    lastComparison = Boolean.valueOf(isSetLostWorkerNum()).compareTo(other.isSetLostWorkerNum());
     if (lastComparison != 0) {
       return lastComparison;
     }
-    if (isSetDeadWorkerNum()) {
-      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.deadWorkerNum, other.deadWorkerNum);
+    if (isSetLostWorkerNum()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.lostWorkerNum, other.lostWorkerNum);
       if (lastComparison != 0) {
         return lastComparison;
       }
@@ -756,8 +756,8 @@ public class BlockMasterInfo implements org.apache.thrift.TBase<BlockMasterInfo,
     sb.append(this.liveWorkerNum);
     first = false;
     if (!first) sb.append(", ");
-    sb.append("deadWorkerNum:");
-    sb.append(this.deadWorkerNum);
+    sb.append("lostWorkerNum:");
+    sb.append(this.lostWorkerNum);
     first = false;
     if (!first) sb.append(", ");
     sb.append("TotalCapacity:");
@@ -852,10 +852,10 @@ public class BlockMasterInfo implements org.apache.thrift.TBase<BlockMasterInfo,
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
-          case 2: // DEAD_WORKER_NUM
+          case 2: // LOST_WORKER_NUM
             if (schemeField.type == org.apache.thrift.protocol.TType.I32) {
-              struct.deadWorkerNum = iprot.readI32();
-              struct.setDeadWorkerNumIsSet(true);
+              struct.lostWorkerNum = iprot.readI32();
+              struct.setLostWorkerNumIsSet(true);
             } else { 
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
@@ -942,8 +942,8 @@ public class BlockMasterInfo implements org.apache.thrift.TBase<BlockMasterInfo,
       oprot.writeFieldBegin(LIVE_WORKER_NUM_FIELD_DESC);
       oprot.writeI32(struct.liveWorkerNum);
       oprot.writeFieldEnd();
-      oprot.writeFieldBegin(DEAD_WORKER_NUM_FIELD_DESC);
-      oprot.writeI32(struct.deadWorkerNum);
+      oprot.writeFieldBegin(LOST_WORKER_NUM_FIELD_DESC);
+      oprot.writeI32(struct.lostWorkerNum);
       oprot.writeFieldEnd();
       if (struct.TotalCapacity != null) {
         oprot.writeFieldBegin(TOTAL_CAPACITY_FIELD_DESC);
@@ -1007,7 +1007,7 @@ public class BlockMasterInfo implements org.apache.thrift.TBase<BlockMasterInfo,
       if (struct.isSetLiveWorkerNum()) {
         optionals.set(0);
       }
-      if (struct.isSetDeadWorkerNum()) {
+      if (struct.isSetLostWorkerNum()) {
         optionals.set(1);
       }
       if (struct.isSetTotalCapacity()) {
@@ -1029,8 +1029,8 @@ public class BlockMasterInfo implements org.apache.thrift.TBase<BlockMasterInfo,
       if (struct.isSetLiveWorkerNum()) {
         oprot.writeI32(struct.liveWorkerNum);
       }
-      if (struct.isSetDeadWorkerNum()) {
-        oprot.writeI32(struct.deadWorkerNum);
+      if (struct.isSetLostWorkerNum()) {
+        oprot.writeI32(struct.lostWorkerNum);
       }
       if (struct.isSetTotalCapacity()) {
         oprot.writeString(struct.TotalCapacity);
@@ -1072,8 +1072,8 @@ public class BlockMasterInfo implements org.apache.thrift.TBase<BlockMasterInfo,
         struct.setLiveWorkerNumIsSet(true);
       }
       if (incoming.get(1)) {
-        struct.deadWorkerNum = iprot.readI32();
-        struct.setDeadWorkerNumIsSet(true);
+        struct.lostWorkerNum = iprot.readI32();
+        struct.setLostWorkerNumIsSet(true);
       }
       if (incoming.get(2)) {
         struct.TotalCapacity = iprot.readString();

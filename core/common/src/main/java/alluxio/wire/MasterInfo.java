@@ -30,7 +30,6 @@ public final class MasterInfo implements Serializable {
   private String mStartTime;
   private String mUpTime;
   private String mVersion;
-  private boolean mHAMode;
   private boolean mSafeMode;
 
   /**
@@ -50,7 +49,6 @@ public final class MasterInfo implements Serializable {
     mStartTime = masterInfo.getStartTime();
     mUpTime = masterInfo.getUpTime();
     mVersion = masterInfo.getVersion();
-    mHAMode = masterInfo.isHAMode();
     mSafeMode = masterInfo.isSafeMode();
   }
 
@@ -94,13 +92,6 @@ public final class MasterInfo implements Serializable {
    */
   public String getVersion() {
     return mVersion;
-  }
-
-  /**
-   * @return if the cluster is running in high availability mode
-   */
-  public boolean isHAMode() {
-    return mHAMode;
   }
 
   /**
@@ -165,15 +156,6 @@ public final class MasterInfo implements Serializable {
   }
 
   /**
-   * @param HAMode whether Alluxio is in high availability mode or not
-   * @return the master information
-   */
-  public MasterInfo setHAMode(boolean HAMode) {
-    mHAMode = HAMode;
-    return this;
-  }
-
-  /**
    * @param safeMode whether Alluxio is in safe mode or not
    * @return the master information
    */
@@ -187,7 +169,7 @@ public final class MasterInfo implements Serializable {
    */
   protected alluxio.thrift.MasterInfo toThrift() {
     return new alluxio.thrift.MasterInfo(mMasterAddress, mWebPort, mRpcPort,
-        mStartTime, mUpTime, mVersion, mHAMode, mSafeMode);
+        mStartTime, mUpTime, mVersion, mSafeMode);
   }
 
   @Override
@@ -202,13 +184,13 @@ public final class MasterInfo implements Serializable {
     return mMasterAddress.equals(that.mMasterAddress) && mWebPort == that.mWebPort
         && mRpcPort == that.mRpcPort && mStartTime.equals(that.mStartTime)
         && mUpTime.equals(that.mUpTime) && mVersion.equals(that.mVersion)
-        && mHAMode == that.mHAMode && mSafeMode == that.mSafeMode;
+        && mSafeMode == that.mSafeMode;
   }
 
   @Override
   public int hashCode() {
     return Objects.hashCode(mMasterAddress, mWebPort,
-        mRpcPort, mStartTime, mUpTime, mVersion, mHAMode, mSafeMode);
+        mRpcPort, mStartTime, mUpTime, mVersion, mSafeMode);
   }
 
   @Override
@@ -216,7 +198,6 @@ public final class MasterInfo implements Serializable {
     return Objects.toStringHelper(this).add("masterAddress", mMasterAddress)
         .add("webPort", mWebPort).add("rpcPort", mRpcPort)
         .add("startTime", mStartTime).add("upTimeMs", mUpTime)
-        .add("version", mVersion).add("HAMode", mHAMode)
-        .add("safeMode", mSafeMode).toString();
+        .add("version", mVersion).add("safeMode", mSafeMode).toString();
   }
 }

@@ -21,7 +21,7 @@ import java.io.IOException;
  */
 public interface MetaMasterClient extends Closeable {
   /**
-   * @return the requested cluster information
+   * @return the requested master information
    */
   MasterInfo getMasterInfo() throws IOException;
 }

@@ -532,7 +532,7 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
   @Override
   public BlockMasterInfo getBlockMasterInfo() {
     return new BlockMasterInfo().setLiveWorkerNum(getWorkerCount())
-        .setDeadWorkerNum(getLostWorkerCount())
+        .setLostWorkerNum(getLostWorkerCount())
         .setTotalCapacity(getCapacityBytes())
         .setUsedCapacity(getUsedBytes())
         .setFreeCapacity(getCapacityBytes() - getUsedBytes())

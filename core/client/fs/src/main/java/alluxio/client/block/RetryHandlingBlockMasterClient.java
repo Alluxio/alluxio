@@ -110,8 +110,6 @@ public final class RetryHandlingBlockMasterClient extends AbstractMasterClient
   }
 
   /**
-   * Returns the {@link BlockMasterInfo} block master information.
-   *
    * @return the {@link BlockMasterInfo} block master information
    */
   public synchronized BlockMasterInfo getBlockMasterInfo() throws IOException {

@@ -44,8 +44,7 @@ public class MasterInfo implements org.apache.thrift.TBase<MasterInfo, MasterInf
   private static final org.apache.thrift.protocol.TField START_TIME_FIELD_DESC = new org.apache.thrift.protocol.TField("startTime", org.apache.thrift.protocol.TType.STRING, (short)4);
   private static final org.apache.thrift.protocol.TField UP_TIME_FIELD_DESC = new org.apache.thrift.protocol.TField("upTime", org.apache.thrift.protocol.TType.STRING, (short)5);
   private static final org.apache.thrift.protocol.TField VERSION_FIELD_DESC = new org.apache.thrift.protocol.TField("version", org.apache.thrift.protocol.TType.STRING, (short)6);
-  private static final org.apache.thrift.protocol.TField HAMODE_FIELD_DESC = new org.apache.thrift.protocol.TField("HAMode", org.apache.thrift.protocol.TType.BOOL, (short)7);
-  private static final org.apache.thrift.protocol.TField SAFE_MODE_FIELD_DESC = new org.apache.thrift.protocol.TField("safeMode", org.apache.thrift.protocol.TType.BOOL, (short)8);
+  private static final org.apache.thrift.protocol.TField SAFE_MODE_FIELD_DESC = new org.apache.thrift.protocol.TField("safeMode", org.apache.thrift.protocol.TType.BOOL, (short)7);
 
   private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
   static {
@@ -59,7 +58,6 @@ public class MasterInfo implements org.apache.thrift.TBase<MasterInfo, MasterInf
   private String startTime; // required
   private String upTime; // required
   private String version; // required
-  private boolean HAMode; // required
   private boolean safeMode; // required
 
   /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
@@ -70,8 +68,7 @@ public class MasterInfo implements org.apache.thrift.TBase<MasterInfo, MasterInf
     START_TIME((short)4, "startTime"),
     UP_TIME((short)5, "upTime"),
     VERSION((short)6, "version"),
-    HAMODE((short)7, "HAMode"),
-    SAFE_MODE((short)8, "safeMode");
+    SAFE_MODE((short)7, "safeMode");
 
     private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -98,9 +95,7 @@ public class MasterInfo implements org.apache.thrift.TBase<MasterInfo, MasterInf
           return UP_TIME;
         case 6: // VERSION
           return VERSION;
-        case 7: // HAMODE
-          return HAMODE;
-        case 8: // SAFE_MODE
+        case 7: // SAFE_MODE
           return SAFE_MODE;
         default:
           return null;
@@ -144,8 +139,7 @@ public class MasterInfo implements org.apache.thrift.TBase<MasterInfo, MasterInf
   // isset id assignments
   private static final int __WEBPORT_ISSET_ID = 0;
   private static final int __RPCPORT_ISSET_ID = 1;
-  private static final int __HAMODE_ISSET_ID = 2;
-  private static final int __SAFEMODE_ISSET_ID = 3;
+  private static final int __SAFEMODE_ISSET_ID = 2;
   private byte __isset_bitfield = 0;
   public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
   static {
@@ -162,8 +156,6 @@ public class MasterInfo implements org.apache.thrift.TBase<MasterInfo, MasterInf
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
     tmpMap.put(_Fields.VERSION, new org.apache.thrift.meta_data.FieldMetaData("version", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
-    tmpMap.put(_Fields.HAMODE, new org.apache.thrift.meta_data.FieldMetaData("HAMode", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.BOOL)));
     tmpMap.put(_Fields.SAFE_MODE, new org.apache.thrift.meta_data.FieldMetaData("safeMode", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.BOOL)));
     metaDataMap = Collections.unmodifiableMap(tmpMap);
@@ -180,7 +172,6 @@ public class MasterInfo implements org.apache.thrift.TBase<MasterInfo, MasterInf
     String startTime,
     String upTime,
     String version,
-    boolean HAMode,
     boolean safeMode)
   {
     this();
@@ -192,8 +183,6 @@ public class MasterInfo implements org.apache.thrift.TBase<MasterInfo, MasterInf
     this.startTime = startTime;
     this.upTime = upTime;
     this.version = version;
-    this.HAMode = HAMode;
-    setHAModeIsSet(true);
     this.safeMode = safeMode;
     setSafeModeIsSet(true);
   }
@@ -217,7 +206,6 @@ public class MasterInfo implements org.apache.thrift.TBase<MasterInfo, MasterInf
     if (other.isSetVersion()) {
       this.version = other.version;
     }
-    this.HAMode = other.HAMode;
     this.safeMode = other.safeMode;
   }
 
@@ -235,8 +223,6 @@ public class MasterInfo implements org.apache.thrift.TBase<MasterInfo, MasterInf
     this.startTime = null;
     this.upTime = null;
     this.version = null;
-    setHAModeIsSet(false);
-    this.HAMode = false;
     setSafeModeIsSet(false);
     this.safeMode = false;
   }
@@ -383,29 +369,6 @@ public class MasterInfo implements org.apache.thrift.TBase<MasterInfo, MasterInf
     }
   }
 
-  public boolean isHAMode() {
-    return this.HAMode;
-  }
-
-  public MasterInfo setHAMode(boolean HAMode) {
-    this.HAMode = HAMode;
-    setHAModeIsSet(true);
-    return this;
-  }
-
-  public void unsetHAMode() {
-    __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __HAMODE_ISSET_ID);
-  }
-
-  /** Returns true if field HAMode is set (has been assigned a value) and false otherwise */
-  public boolean isSetHAMode() {
-    return EncodingUtils.testBit(__isset_bitfield, __HAMODE_ISSET_ID);
-  }
-
-  public void setHAModeIsSet(boolean value) {
-    __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __HAMODE_ISSET_ID, value);
-  }
-
   public boolean isSafeMode() {
     return this.safeMode;
   }
@@ -479,14 +442,6 @@ public class MasterInfo implements org.apache.thrift.TBase<MasterInfo, MasterInf
       }
       break;
 
-    case HAMODE:
-      if (value == null) {
-        unsetHAMode();
-      } else {
-        setHAMode((Boolean)value);
-      }
-      break;
-
     case SAFE_MODE:
       if (value == null) {
         unsetSafeMode();
@@ -518,9 +473,6 @@ public class MasterInfo implements org.apache.thrift.TBase<MasterInfo, MasterInf
     case VERSION:
       return getVersion();
 
-    case HAMODE:
-      return isHAMode();
-
     case SAFE_MODE:
       return isSafeMode();
 
@@ -547,8 +499,6 @@ public class MasterInfo implements org.apache.thrift.TBase<MasterInfo, MasterInf
       return isSetUpTime();
     case VERSION:
       return isSetVersion();
-    case HAMODE:
-      return isSetHAMode();
     case SAFE_MODE:
       return isSetSafeMode();
     }
@@ -622,15 +572,6 @@ public class MasterInfo implements org.apache.thrift.TBase<MasterInfo, MasterInf
         return false;
     }
 
-    boolean this_present_HAMode = true;
-    boolean that_present_HAMode = true;
-    if (this_present_HAMode || that_present_HAMode) {
-      if (!(this_present_HAMode && that_present_HAMode))
-        return false;
-      if (this.HAMode != that.HAMode)
-        return false;
-    }
-
     boolean this_present_safeMode = true;
     boolean that_present_safeMode = true;
     if (this_present_safeMode || that_present_safeMode) {
@@ -676,11 +617,6 @@ public class MasterInfo implements org.apache.thrift.TBase<MasterInfo, MasterInf
     list.add(present_version);
     if (present_version)
       list.add(version);
-
-    boolean present_HAMode = true;
-    list.add(present_HAMode);
-    if (present_HAMode)
-      list.add(HAMode);
 
     boolean present_safeMode = true;
     list.add(present_safeMode);
@@ -758,16 +694,6 @@ public class MasterInfo implements org.apache.thrift.TBase<MasterInfo, MasterInf
         return lastComparison;
       }
     }
-    lastComparison = Boolean.valueOf(isSetHAMode()).compareTo(other.isSetHAMode());
-    if (lastComparison != 0) {
-      return lastComparison;
-    }
-    if (isSetHAMode()) {
-      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.HAMode, other.HAMode);
-      if (lastComparison != 0) {
-        return lastComparison;
-      }
-    }
     lastComparison = Boolean.valueOf(isSetSafeMode()).compareTo(other.isSetSafeMode());
     if (lastComparison != 0) {
       return lastComparison;
@@ -836,10 +762,6 @@ public class MasterInfo implements org.apache.thrift.TBase<MasterInfo, MasterInf
     } else {
       sb.append(this.version);
     }
-    first = false;
-    if (!first) sb.append(", ");
-    sb.append("HAMode:");
-    sb.append(this.HAMode);
     first = false;
     if (!first) sb.append(", ");
     sb.append("safeMode:");
@@ -938,15 +860,7 @@ public class MasterInfo implements org.apache.thrift.TBase<MasterInfo, MasterInf
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
-          case 7: // HAMODE
-            if (schemeField.type == org.apache.thrift.protocol.TType.BOOL) {
-              struct.HAMode = iprot.readBool();
-              struct.setHAModeIsSet(true);
-            } else { 
-              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-            }
-            break;
-          case 8: // SAFE_MODE
+          case 7: // SAFE_MODE
             if (schemeField.type == org.apache.thrift.protocol.TType.BOOL) {
               struct.safeMode = iprot.readBool();
               struct.setSafeModeIsSet(true);
@@ -995,9 +909,6 @@ public class MasterInfo implements org.apache.thrift.TBase<MasterInfo, MasterInf
         oprot.writeString(struct.version);
         oprot.writeFieldEnd();
       }
-      oprot.writeFieldBegin(HAMODE_FIELD_DESC);
-      oprot.writeBool(struct.HAMode);
-      oprot.writeFieldEnd();
       oprot.writeFieldBegin(SAFE_MODE_FIELD_DESC);
       oprot.writeBool(struct.safeMode);
       oprot.writeFieldEnd();
@@ -1037,13 +948,10 @@ public class MasterInfo implements org.apache.thrift.TBase<MasterInfo, MasterInf
       if (struct.isSetVersion()) {
         optionals.set(5);
       }
-      if (struct.isSetHAMode()) {
+      if (struct.isSetSafeMode()) {
         optionals.set(6);
       }
-      if (struct.isSetSafeMode()) {
-        optionals.set(7);
-      }
-      oprot.writeBitSet(optionals, 8);
+      oprot.writeBitSet(optionals, 7);
       if (struct.isSetMasterAddress()) {
         oprot.writeString(struct.masterAddress);
       }
@@ -1062,9 +970,6 @@ public class MasterInfo implements org.apache.thrift.TBase<MasterInfo, MasterInf
       if (struct.isSetVersion()) {
         oprot.writeString(struct.version);
       }
-      if (struct.isSetHAMode()) {
-        oprot.writeBool(struct.HAMode);
-      }
       if (struct.isSetSafeMode()) {
         oprot.writeBool(struct.safeMode);
       }
@@ -1073,7 +978,7 @@ public class MasterInfo implements org.apache.thrift.TBase<MasterInfo, MasterInf
     @Override
     public void read(org.apache.thrift.protocol.TProtocol prot, MasterInfo struct) throws org.apache.thrift.TException {
       TTupleProtocol iprot = (TTupleProtocol) prot;
-      BitSet incoming = iprot.readBitSet(8);
+      BitSet incoming = iprot.readBitSet(7);
       if (incoming.get(0)) {
         struct.masterAddress = iprot.readString();
         struct.setMasterAddressIsSet(true);
@@ -1099,10 +1004,6 @@ public class MasterInfo implements org.apache.thrift.TBase<MasterInfo, MasterInf
         struct.setVersionIsSet(true);
       }
       if (incoming.get(6)) {
-        struct.HAMode = iprot.readBool();
-        struct.setHAModeIsSet(true);
-      }
-      if (incoming.get(7)) {
         struct.safeMode = iprot.readBool();
         struct.setSafeModeIsSet(true);
       }
