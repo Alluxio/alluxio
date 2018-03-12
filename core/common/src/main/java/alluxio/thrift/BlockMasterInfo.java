@@ -40,11 +40,11 @@ public class BlockMasterInfo implements org.apache.thrift.TBase<BlockMasterInfo,
 
   private static final org.apache.thrift.protocol.TField LIVE_WORKER_NUM_FIELD_DESC = new org.apache.thrift.protocol.TField("liveWorkerNum", org.apache.thrift.protocol.TType.I32, (short)1);
   private static final org.apache.thrift.protocol.TField LOST_WORKER_NUM_FIELD_DESC = new org.apache.thrift.protocol.TField("lostWorkerNum", org.apache.thrift.protocol.TType.I32, (short)2);
-  private static final org.apache.thrift.protocol.TField TOTAL_CAPACITY_FIELD_DESC = new org.apache.thrift.protocol.TField("TotalCapacity", org.apache.thrift.protocol.TType.STRING, (short)3);
-  private static final org.apache.thrift.protocol.TField USED_CAPACITY_FIELD_DESC = new org.apache.thrift.protocol.TField("usedCapacity", org.apache.thrift.protocol.TType.STRING, (short)4);
-  private static final org.apache.thrift.protocol.TField FREE_CAPACITY_FIELD_DESC = new org.apache.thrift.protocol.TField("FreeCapacity", org.apache.thrift.protocol.TType.STRING, (short)5);
-  private static final org.apache.thrift.protocol.TField TOTAL_CAPACITY_ON_TIERS_FIELD_DESC = new org.apache.thrift.protocol.TField("totalCapacityOnTiers", org.apache.thrift.protocol.TType.MAP, (short)6);
-  private static final org.apache.thrift.protocol.TField USED_CAPACITY_ON_TIERS_FIELD_DESC = new org.apache.thrift.protocol.TField("usedCapacityOnTiers", org.apache.thrift.protocol.TType.MAP, (short)7);
+  private static final org.apache.thrift.protocol.TField CAPACITY_BYTES_FIELD_DESC = new org.apache.thrift.protocol.TField("capacityBytes", org.apache.thrift.protocol.TType.I64, (short)3);
+  private static final org.apache.thrift.protocol.TField USED_BYTES_FIELD_DESC = new org.apache.thrift.protocol.TField("usedBytes", org.apache.thrift.protocol.TType.I64, (short)4);
+  private static final org.apache.thrift.protocol.TField FREE_BYTES_FIELD_DESC = new org.apache.thrift.protocol.TField("freeBytes", org.apache.thrift.protocol.TType.I64, (short)5);
+  private static final org.apache.thrift.protocol.TField CAPACITY_BYTES_ON_TIERS_FIELD_DESC = new org.apache.thrift.protocol.TField("capacityBytesOnTiers", org.apache.thrift.protocol.TType.MAP, (short)6);
+  private static final org.apache.thrift.protocol.TField USED_BYTES_ON_TIERS_FIELD_DESC = new org.apache.thrift.protocol.TField("usedBytesOnTiers", org.apache.thrift.protocol.TType.MAP, (short)7);
 
   private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
   static {
@@ -54,21 +54,21 @@ public class BlockMasterInfo implements org.apache.thrift.TBase<BlockMasterInfo,
 
   private int liveWorkerNum; // required
   private int lostWorkerNum; // required
-  private String TotalCapacity; // required
-  private String usedCapacity; // required
-  private String FreeCapacity; // required
-  private Map<String,String> totalCapacityOnTiers; // required
-  private Map<String,String> usedCapacityOnTiers; // required
+  private long capacityBytes; // required
+  private long usedBytes; // required
+  private long freeBytes; // required
+  private Map<String,Long> capacityBytesOnTiers; // required
+  private Map<String,Long> usedBytesOnTiers; // required
 
   /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
   public enum _Fields implements org.apache.thrift.TFieldIdEnum {
     LIVE_WORKER_NUM((short)1, "liveWorkerNum"),
     LOST_WORKER_NUM((short)2, "lostWorkerNum"),
-    TOTAL_CAPACITY((short)3, "TotalCapacity"),
-    USED_CAPACITY((short)4, "usedCapacity"),
-    FREE_CAPACITY((short)5, "FreeCapacity"),
-    TOTAL_CAPACITY_ON_TIERS((short)6, "totalCapacityOnTiers"),
-    USED_CAPACITY_ON_TIERS((short)7, "usedCapacityOnTiers");
+    CAPACITY_BYTES((short)3, "capacityBytes"),
+    USED_BYTES((short)4, "usedBytes"),
+    FREE_BYTES((short)5, "freeBytes"),
+    CAPACITY_BYTES_ON_TIERS((short)6, "capacityBytesOnTiers"),
+    USED_BYTES_ON_TIERS((short)7, "usedBytesOnTiers");
 
     private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -87,16 +87,16 @@ public class BlockMasterInfo implements org.apache.thrift.TBase<BlockMasterInfo,
           return LIVE_WORKER_NUM;
         case 2: // LOST_WORKER_NUM
           return LOST_WORKER_NUM;
-        case 3: // TOTAL_CAPACITY
-          return TOTAL_CAPACITY;
-        case 4: // USED_CAPACITY
-          return USED_CAPACITY;
-        case 5: // FREE_CAPACITY
-          return FREE_CAPACITY;
-        case 6: // TOTAL_CAPACITY_ON_TIERS
-          return TOTAL_CAPACITY_ON_TIERS;
-        case 7: // USED_CAPACITY_ON_TIERS
-          return USED_CAPACITY_ON_TIERS;
+        case 3: // CAPACITY_BYTES
+          return CAPACITY_BYTES;
+        case 4: // USED_BYTES
+          return USED_BYTES;
+        case 5: // FREE_BYTES
+          return FREE_BYTES;
+        case 6: // CAPACITY_BYTES_ON_TIERS
+          return CAPACITY_BYTES_ON_TIERS;
+        case 7: // USED_BYTES_ON_TIERS
+          return USED_BYTES_ON_TIERS;
         default:
           return null;
       }
@@ -139,6 +139,9 @@ public class BlockMasterInfo implements org.apache.thrift.TBase<BlockMasterInfo,
   // isset id assignments
   private static final int __LIVEWORKERNUM_ISSET_ID = 0;
   private static final int __LOSTWORKERNUM_ISSET_ID = 1;
+  private static final int __CAPACITYBYTES_ISSET_ID = 2;
+  private static final int __USEDBYTES_ISSET_ID = 3;
+  private static final int __FREEBYTES_ISSET_ID = 4;
   private byte __isset_bitfield = 0;
   public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
   static {
@@ -147,20 +150,20 @@ public class BlockMasterInfo implements org.apache.thrift.TBase<BlockMasterInfo,
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I32)));
     tmpMap.put(_Fields.LOST_WORKER_NUM, new org.apache.thrift.meta_data.FieldMetaData("lostWorkerNum", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I32)));
-    tmpMap.put(_Fields.TOTAL_CAPACITY, new org.apache.thrift.meta_data.FieldMetaData("TotalCapacity", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
-    tmpMap.put(_Fields.USED_CAPACITY, new org.apache.thrift.meta_data.FieldMetaData("usedCapacity", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
-    tmpMap.put(_Fields.FREE_CAPACITY, new org.apache.thrift.meta_data.FieldMetaData("FreeCapacity", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
-    tmpMap.put(_Fields.TOTAL_CAPACITY_ON_TIERS, new org.apache.thrift.meta_data.FieldMetaData("totalCapacityOnTiers", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+    tmpMap.put(_Fields.CAPACITY_BYTES, new org.apache.thrift.meta_data.FieldMetaData("capacityBytes", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
+    tmpMap.put(_Fields.USED_BYTES, new org.apache.thrift.meta_data.FieldMetaData("usedBytes", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
+    tmpMap.put(_Fields.FREE_BYTES, new org.apache.thrift.meta_data.FieldMetaData("freeBytes", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
+    tmpMap.put(_Fields.CAPACITY_BYTES_ON_TIERS, new org.apache.thrift.meta_data.FieldMetaData("capacityBytesOnTiers", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.MapMetaData(org.apache.thrift.protocol.TType.MAP, 
             new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING), 
-            new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING))));
-    tmpMap.put(_Fields.USED_CAPACITY_ON_TIERS, new org.apache.thrift.meta_data.FieldMetaData("usedCapacityOnTiers", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+            new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64))));
+    tmpMap.put(_Fields.USED_BYTES_ON_TIERS, new org.apache.thrift.meta_data.FieldMetaData("usedBytesOnTiers", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.MapMetaData(org.apache.thrift.protocol.TType.MAP, 
             new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING), 
-            new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING))));
+            new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64))));
     metaDataMap = Collections.unmodifiableMap(tmpMap);
     org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(BlockMasterInfo.class, metaDataMap);
   }
@@ -171,22 +174,25 @@ public class BlockMasterInfo implements org.apache.thrift.TBase<BlockMasterInfo,
   public BlockMasterInfo(
     int liveWorkerNum,
     int lostWorkerNum,
-    String TotalCapacity,
-    String usedCapacity,
-    String FreeCapacity,
-    Map<String,String> totalCapacityOnTiers,
-    Map<String,String> usedCapacityOnTiers)
+    long capacityBytes,
+    long usedBytes,
+    long freeBytes,
+    Map<String,Long> capacityBytesOnTiers,
+    Map<String,Long> usedBytesOnTiers)
   {
     this();
     this.liveWorkerNum = liveWorkerNum;
     setLiveWorkerNumIsSet(true);
     this.lostWorkerNum = lostWorkerNum;
     setLostWorkerNumIsSet(true);
-    this.TotalCapacity = TotalCapacity;
-    this.usedCapacity = usedCapacity;
-    this.FreeCapacity = FreeCapacity;
-    this.totalCapacityOnTiers = totalCapacityOnTiers;
-    this.usedCapacityOnTiers = usedCapacityOnTiers;
+    this.capacityBytes = capacityBytes;
+    setCapacityBytesIsSet(true);
+    this.usedBytes = usedBytes;
+    setUsedBytesIsSet(true);
+    this.freeBytes = freeBytes;
+    setFreeBytesIsSet(true);
+    this.capacityBytesOnTiers = capacityBytesOnTiers;
+    this.usedBytesOnTiers = usedBytesOnTiers;
   }
 
   /**
@@ -196,22 +202,16 @@ public class BlockMasterInfo implements org.apache.thrift.TBase<BlockMasterInfo,
     __isset_bitfield = other.__isset_bitfield;
     this.liveWorkerNum = other.liveWorkerNum;
     this.lostWorkerNum = other.lostWorkerNum;
-    if (other.isSetTotalCapacity()) {
-      this.TotalCapacity = other.TotalCapacity;
+    this.capacityBytes = other.capacityBytes;
+    this.usedBytes = other.usedBytes;
+    this.freeBytes = other.freeBytes;
+    if (other.isSetCapacityBytesOnTiers()) {
+      Map<String,Long> __this__capacityBytesOnTiers = new HashMap<String,Long>(other.capacityBytesOnTiers);
+      this.capacityBytesOnTiers = __this__capacityBytesOnTiers;
     }
-    if (other.isSetUsedCapacity()) {
-      this.usedCapacity = other.usedCapacity;
-    }
-    if (other.isSetFreeCapacity()) {
-      this.FreeCapacity = other.FreeCapacity;
-    }
-    if (other.isSetTotalCapacityOnTiers()) {
-      Map<String,String> __this__totalCapacityOnTiers = new HashMap<String,String>(other.totalCapacityOnTiers);
-      this.totalCapacityOnTiers = __this__totalCapacityOnTiers;
-    }
-    if (other.isSetUsedCapacityOnTiers()) {
-      Map<String,String> __this__usedCapacityOnTiers = new HashMap<String,String>(other.usedCapacityOnTiers);
-      this.usedCapacityOnTiers = __this__usedCapacityOnTiers;
+    if (other.isSetUsedBytesOnTiers()) {
+      Map<String,Long> __this__usedBytesOnTiers = new HashMap<String,Long>(other.usedBytesOnTiers);
+      this.usedBytesOnTiers = __this__usedBytesOnTiers;
     }
   }
 
@@ -225,11 +225,14 @@ public class BlockMasterInfo implements org.apache.thrift.TBase<BlockMasterInfo,
     this.liveWorkerNum = 0;
     setLostWorkerNumIsSet(false);
     this.lostWorkerNum = 0;
-    this.TotalCapacity = null;
-    this.usedCapacity = null;
-    this.FreeCapacity = null;
-    this.totalCapacityOnTiers = null;
-    this.usedCapacityOnTiers = null;
+    setCapacityBytesIsSet(false);
+    this.capacityBytes = 0;
+    setUsedBytesIsSet(false);
+    this.usedBytes = 0;
+    setFreeBytesIsSet(false);
+    this.freeBytes = 0;
+    this.capacityBytesOnTiers = null;
+    this.usedBytesOnTiers = null;
   }
 
   public int getLiveWorkerNum() {
@@ -278,145 +281,142 @@ public class BlockMasterInfo implements org.apache.thrift.TBase<BlockMasterInfo,
     __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __LOSTWORKERNUM_ISSET_ID, value);
   }
 
-  public String getTotalCapacity() {
-    return this.TotalCapacity;
+  public long getCapacityBytes() {
+    return this.capacityBytes;
   }
 
-  public BlockMasterInfo setTotalCapacity(String TotalCapacity) {
-    this.TotalCapacity = TotalCapacity;
+  public BlockMasterInfo setCapacityBytes(long capacityBytes) {
+    this.capacityBytes = capacityBytes;
+    setCapacityBytesIsSet(true);
     return this;
   }
 
-  public void unsetTotalCapacity() {
-    this.TotalCapacity = null;
+  public void unsetCapacityBytes() {
+    __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __CAPACITYBYTES_ISSET_ID);
   }
 
-  /** Returns true if field TotalCapacity is set (has been assigned a value) and false otherwise */
-  public boolean isSetTotalCapacity() {
-    return this.TotalCapacity != null;
+  /** Returns true if field capacityBytes is set (has been assigned a value) and false otherwise */
+  public boolean isSetCapacityBytes() {
+    return EncodingUtils.testBit(__isset_bitfield, __CAPACITYBYTES_ISSET_ID);
   }
 
-  public void setTotalCapacityIsSet(boolean value) {
-    if (!value) {
-      this.TotalCapacity = null;
-    }
+  public void setCapacityBytesIsSet(boolean value) {
+    __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __CAPACITYBYTES_ISSET_ID, value);
   }
 
-  public String getUsedCapacity() {
-    return this.usedCapacity;
+  public long getUsedBytes() {
+    return this.usedBytes;
   }
 
-  public BlockMasterInfo setUsedCapacity(String usedCapacity) {
-    this.usedCapacity = usedCapacity;
+  public BlockMasterInfo setUsedBytes(long usedBytes) {
+    this.usedBytes = usedBytes;
+    setUsedBytesIsSet(true);
     return this;
   }
 
-  public void unsetUsedCapacity() {
-    this.usedCapacity = null;
+  public void unsetUsedBytes() {
+    __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __USEDBYTES_ISSET_ID);
   }
 
-  /** Returns true if field usedCapacity is set (has been assigned a value) and false otherwise */
-  public boolean isSetUsedCapacity() {
-    return this.usedCapacity != null;
+  /** Returns true if field usedBytes is set (has been assigned a value) and false otherwise */
+  public boolean isSetUsedBytes() {
+    return EncodingUtils.testBit(__isset_bitfield, __USEDBYTES_ISSET_ID);
   }
 
-  public void setUsedCapacityIsSet(boolean value) {
-    if (!value) {
-      this.usedCapacity = null;
-    }
+  public void setUsedBytesIsSet(boolean value) {
+    __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __USEDBYTES_ISSET_ID, value);
   }
 
-  public String getFreeCapacity() {
-    return this.FreeCapacity;
+  public long getFreeBytes() {
+    return this.freeBytes;
   }
 
-  public BlockMasterInfo setFreeCapacity(String FreeCapacity) {
-    this.FreeCapacity = FreeCapacity;
+  public BlockMasterInfo setFreeBytes(long freeBytes) {
+    this.freeBytes = freeBytes;
+    setFreeBytesIsSet(true);
     return this;
   }
 
-  public void unsetFreeCapacity() {
-    this.FreeCapacity = null;
+  public void unsetFreeBytes() {
+    __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __FREEBYTES_ISSET_ID);
   }
 
-  /** Returns true if field FreeCapacity is set (has been assigned a value) and false otherwise */
-  public boolean isSetFreeCapacity() {
-    return this.FreeCapacity != null;
+  /** Returns true if field freeBytes is set (has been assigned a value) and false otherwise */
+  public boolean isSetFreeBytes() {
+    return EncodingUtils.testBit(__isset_bitfield, __FREEBYTES_ISSET_ID);
   }
 
-  public void setFreeCapacityIsSet(boolean value) {
-    if (!value) {
-      this.FreeCapacity = null;
+  public void setFreeBytesIsSet(boolean value) {
+    __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __FREEBYTES_ISSET_ID, value);
+  }
+
+  public int getCapacityBytesOnTiersSize() {
+    return (this.capacityBytesOnTiers == null) ? 0 : this.capacityBytesOnTiers.size();
+  }
+
+  public void putToCapacityBytesOnTiers(String key, long val) {
+    if (this.capacityBytesOnTiers == null) {
+      this.capacityBytesOnTiers = new HashMap<String,Long>();
     }
+    this.capacityBytesOnTiers.put(key, val);
   }
 
-  public int getTotalCapacityOnTiersSize() {
-    return (this.totalCapacityOnTiers == null) ? 0 : this.totalCapacityOnTiers.size();
+  public Map<String,Long> getCapacityBytesOnTiers() {
+    return this.capacityBytesOnTiers;
   }
 
-  public void putToTotalCapacityOnTiers(String key, String val) {
-    if (this.totalCapacityOnTiers == null) {
-      this.totalCapacityOnTiers = new HashMap<String,String>();
-    }
-    this.totalCapacityOnTiers.put(key, val);
-  }
-
-  public Map<String,String> getTotalCapacityOnTiers() {
-    return this.totalCapacityOnTiers;
-  }
-
-  public BlockMasterInfo setTotalCapacityOnTiers(Map<String,String> totalCapacityOnTiers) {
-    this.totalCapacityOnTiers = totalCapacityOnTiers;
+  public BlockMasterInfo setCapacityBytesOnTiers(Map<String,Long> capacityBytesOnTiers) {
+    this.capacityBytesOnTiers = capacityBytesOnTiers;
     return this;
   }
 
-  public void unsetTotalCapacityOnTiers() {
-    this.totalCapacityOnTiers = null;
+  public void unsetCapacityBytesOnTiers() {
+    this.capacityBytesOnTiers = null;
   }
 
-  /** Returns true if field totalCapacityOnTiers is set (has been assigned a value) and false otherwise */
-  public boolean isSetTotalCapacityOnTiers() {
-    return this.totalCapacityOnTiers != null;
+  /** Returns true if field capacityBytesOnTiers is set (has been assigned a value) and false otherwise */
+  public boolean isSetCapacityBytesOnTiers() {
+    return this.capacityBytesOnTiers != null;
   }
 
-  public void setTotalCapacityOnTiersIsSet(boolean value) {
+  public void setCapacityBytesOnTiersIsSet(boolean value) {
     if (!value) {
-      this.totalCapacityOnTiers = null;
+      this.capacityBytesOnTiers = null;
     }
   }
 
-  public int getUsedCapacityOnTiersSize() {
-    return (this.usedCapacityOnTiers == null) ? 0 : this.usedCapacityOnTiers.size();
+  public int getUsedBytesOnTiersSize() {
+    return (this.usedBytesOnTiers == null) ? 0 : this.usedBytesOnTiers.size();
   }
 
-  public void putToUsedCapacityOnTiers(String key, String val) {
-    if (this.usedCapacityOnTiers == null) {
-      this.usedCapacityOnTiers = new HashMap<String,String>();
+  public void putToUsedBytesOnTiers(String key, long val) {
+    if (this.usedBytesOnTiers == null) {
+      this.usedBytesOnTiers = new HashMap<String,Long>();
     }
-    this.usedCapacityOnTiers.put(key, val);
+    this.usedBytesOnTiers.put(key, val);
   }
 
-  public Map<String,String> getUsedCapacityOnTiers() {
-    return this.usedCapacityOnTiers;
+  public Map<String,Long> getUsedBytesOnTiers() {
+    return this.usedBytesOnTiers;
   }
 
-  public BlockMasterInfo setUsedCapacityOnTiers(Map<String,String> usedCapacityOnTiers) {
-    this.usedCapacityOnTiers = usedCapacityOnTiers;
+  public BlockMasterInfo setUsedBytesOnTiers(Map<String,Long> usedBytesOnTiers) {
+    this.usedBytesOnTiers = usedBytesOnTiers;
     return this;
   }
 
-  public void unsetUsedCapacityOnTiers() {
-    this.usedCapacityOnTiers = null;
+  public void unsetUsedBytesOnTiers() {
+    this.usedBytesOnTiers = null;
   }
 
-  /** Returns true if field usedCapacityOnTiers is set (has been assigned a value) and false otherwise */
-  public boolean isSetUsedCapacityOnTiers() {
-    return this.usedCapacityOnTiers != null;
+  /** Returns true if field usedBytesOnTiers is set (has been assigned a value) and false otherwise */
+  public boolean isSetUsedBytesOnTiers() {
+    return this.usedBytesOnTiers != null;
   }
 
-  public void setUsedCapacityOnTiersIsSet(boolean value) {
+  public void setUsedBytesOnTiersIsSet(boolean value) {
     if (!value) {
-      this.usedCapacityOnTiers = null;
+      this.usedBytesOnTiers = null;
     }
   }
 
@@ -438,43 +438,43 @@ public class BlockMasterInfo implements org.apache.thrift.TBase<BlockMasterInfo,
       }
       break;
 
-    case TOTAL_CAPACITY:
+    case CAPACITY_BYTES:
       if (value == null) {
-        unsetTotalCapacity();
+        unsetCapacityBytes();
       } else {
-        setTotalCapacity((String)value);
+        setCapacityBytes((Long)value);
       }
       break;
 
-    case USED_CAPACITY:
+    case USED_BYTES:
       if (value == null) {
-        unsetUsedCapacity();
+        unsetUsedBytes();
       } else {
-        setUsedCapacity((String)value);
+        setUsedBytes((Long)value);
       }
       break;
 
-    case FREE_CAPACITY:
+    case FREE_BYTES:
       if (value == null) {
-        unsetFreeCapacity();
+        unsetFreeBytes();
       } else {
-        setFreeCapacity((String)value);
+        setFreeBytes((Long)value);
       }
       break;
 
-    case TOTAL_CAPACITY_ON_TIERS:
+    case CAPACITY_BYTES_ON_TIERS:
       if (value == null) {
-        unsetTotalCapacityOnTiers();
+        unsetCapacityBytesOnTiers();
       } else {
-        setTotalCapacityOnTiers((Map<String,String>)value);
+        setCapacityBytesOnTiers((Map<String,Long>)value);
       }
       break;
 
-    case USED_CAPACITY_ON_TIERS:
+    case USED_BYTES_ON_TIERS:
       if (value == null) {
-        unsetUsedCapacityOnTiers();
+        unsetUsedBytesOnTiers();
       } else {
-        setUsedCapacityOnTiers((Map<String,String>)value);
+        setUsedBytesOnTiers((Map<String,Long>)value);
       }
       break;
 
@@ -489,20 +489,20 @@ public class BlockMasterInfo implements org.apache.thrift.TBase<BlockMasterInfo,
     case LOST_WORKER_NUM:
       return getLostWorkerNum();
 
-    case TOTAL_CAPACITY:
-      return getTotalCapacity();
+    case CAPACITY_BYTES:
+      return getCapacityBytes();
 
-    case USED_CAPACITY:
-      return getUsedCapacity();
+    case USED_BYTES:
+      return getUsedBytes();
 
-    case FREE_CAPACITY:
-      return getFreeCapacity();
+    case FREE_BYTES:
+      return getFreeBytes();
 
-    case TOTAL_CAPACITY_ON_TIERS:
-      return getTotalCapacityOnTiers();
+    case CAPACITY_BYTES_ON_TIERS:
+      return getCapacityBytesOnTiers();
 
-    case USED_CAPACITY_ON_TIERS:
-      return getUsedCapacityOnTiers();
+    case USED_BYTES_ON_TIERS:
+      return getUsedBytesOnTiers();
 
     }
     throw new IllegalStateException();
@@ -519,16 +519,16 @@ public class BlockMasterInfo implements org.apache.thrift.TBase<BlockMasterInfo,
       return isSetLiveWorkerNum();
     case LOST_WORKER_NUM:
       return isSetLostWorkerNum();
-    case TOTAL_CAPACITY:
-      return isSetTotalCapacity();
-    case USED_CAPACITY:
-      return isSetUsedCapacity();
-    case FREE_CAPACITY:
-      return isSetFreeCapacity();
-    case TOTAL_CAPACITY_ON_TIERS:
-      return isSetTotalCapacityOnTiers();
-    case USED_CAPACITY_ON_TIERS:
-      return isSetUsedCapacityOnTiers();
+    case CAPACITY_BYTES:
+      return isSetCapacityBytes();
+    case USED_BYTES:
+      return isSetUsedBytes();
+    case FREE_BYTES:
+      return isSetFreeBytes();
+    case CAPACITY_BYTES_ON_TIERS:
+      return isSetCapacityBytesOnTiers();
+    case USED_BYTES_ON_TIERS:
+      return isSetUsedBytesOnTiers();
     }
     throw new IllegalStateException();
   }
@@ -564,48 +564,48 @@ public class BlockMasterInfo implements org.apache.thrift.TBase<BlockMasterInfo,
         return false;
     }
 
-    boolean this_present_TotalCapacity = true && this.isSetTotalCapacity();
-    boolean that_present_TotalCapacity = true && that.isSetTotalCapacity();
-    if (this_present_TotalCapacity || that_present_TotalCapacity) {
-      if (!(this_present_TotalCapacity && that_present_TotalCapacity))
+    boolean this_present_capacityBytes = true;
+    boolean that_present_capacityBytes = true;
+    if (this_present_capacityBytes || that_present_capacityBytes) {
+      if (!(this_present_capacityBytes && that_present_capacityBytes))
         return false;
-      if (!this.TotalCapacity.equals(that.TotalCapacity))
-        return false;
-    }
-
-    boolean this_present_usedCapacity = true && this.isSetUsedCapacity();
-    boolean that_present_usedCapacity = true && that.isSetUsedCapacity();
-    if (this_present_usedCapacity || that_present_usedCapacity) {
-      if (!(this_present_usedCapacity && that_present_usedCapacity))
-        return false;
-      if (!this.usedCapacity.equals(that.usedCapacity))
+      if (this.capacityBytes != that.capacityBytes)
         return false;
     }
 
-    boolean this_present_FreeCapacity = true && this.isSetFreeCapacity();
-    boolean that_present_FreeCapacity = true && that.isSetFreeCapacity();
-    if (this_present_FreeCapacity || that_present_FreeCapacity) {
-      if (!(this_present_FreeCapacity && that_present_FreeCapacity))
+    boolean this_present_usedBytes = true;
+    boolean that_present_usedBytes = true;
+    if (this_present_usedBytes || that_present_usedBytes) {
+      if (!(this_present_usedBytes && that_present_usedBytes))
         return false;
-      if (!this.FreeCapacity.equals(that.FreeCapacity))
-        return false;
-    }
-
-    boolean this_present_totalCapacityOnTiers = true && this.isSetTotalCapacityOnTiers();
-    boolean that_present_totalCapacityOnTiers = true && that.isSetTotalCapacityOnTiers();
-    if (this_present_totalCapacityOnTiers || that_present_totalCapacityOnTiers) {
-      if (!(this_present_totalCapacityOnTiers && that_present_totalCapacityOnTiers))
-        return false;
-      if (!this.totalCapacityOnTiers.equals(that.totalCapacityOnTiers))
+      if (this.usedBytes != that.usedBytes)
         return false;
     }
 
-    boolean this_present_usedCapacityOnTiers = true && this.isSetUsedCapacityOnTiers();
-    boolean that_present_usedCapacityOnTiers = true && that.isSetUsedCapacityOnTiers();
-    if (this_present_usedCapacityOnTiers || that_present_usedCapacityOnTiers) {
-      if (!(this_present_usedCapacityOnTiers && that_present_usedCapacityOnTiers))
+    boolean this_present_freeBytes = true;
+    boolean that_present_freeBytes = true;
+    if (this_present_freeBytes || that_present_freeBytes) {
+      if (!(this_present_freeBytes && that_present_freeBytes))
         return false;
-      if (!this.usedCapacityOnTiers.equals(that.usedCapacityOnTiers))
+      if (this.freeBytes != that.freeBytes)
+        return false;
+    }
+
+    boolean this_present_capacityBytesOnTiers = true && this.isSetCapacityBytesOnTiers();
+    boolean that_present_capacityBytesOnTiers = true && that.isSetCapacityBytesOnTiers();
+    if (this_present_capacityBytesOnTiers || that_present_capacityBytesOnTiers) {
+      if (!(this_present_capacityBytesOnTiers && that_present_capacityBytesOnTiers))
+        return false;
+      if (!this.capacityBytesOnTiers.equals(that.capacityBytesOnTiers))
+        return false;
+    }
+
+    boolean this_present_usedBytesOnTiers = true && this.isSetUsedBytesOnTiers();
+    boolean that_present_usedBytesOnTiers = true && that.isSetUsedBytesOnTiers();
+    if (this_present_usedBytesOnTiers || that_present_usedBytesOnTiers) {
+      if (!(this_present_usedBytesOnTiers && that_present_usedBytesOnTiers))
+        return false;
+      if (!this.usedBytesOnTiers.equals(that.usedBytesOnTiers))
         return false;
     }
 
@@ -626,30 +626,30 @@ public class BlockMasterInfo implements org.apache.thrift.TBase<BlockMasterInfo,
     if (present_lostWorkerNum)
       list.add(lostWorkerNum);
 
-    boolean present_TotalCapacity = true && (isSetTotalCapacity());
-    list.add(present_TotalCapacity);
-    if (present_TotalCapacity)
-      list.add(TotalCapacity);
+    boolean present_capacityBytes = true;
+    list.add(present_capacityBytes);
+    if (present_capacityBytes)
+      list.add(capacityBytes);
 
-    boolean present_usedCapacity = true && (isSetUsedCapacity());
-    list.add(present_usedCapacity);
-    if (present_usedCapacity)
-      list.add(usedCapacity);
+    boolean present_usedBytes = true;
+    list.add(present_usedBytes);
+    if (present_usedBytes)
+      list.add(usedBytes);
 
-    boolean present_FreeCapacity = true && (isSetFreeCapacity());
-    list.add(present_FreeCapacity);
-    if (present_FreeCapacity)
-      list.add(FreeCapacity);
+    boolean present_freeBytes = true;
+    list.add(present_freeBytes);
+    if (present_freeBytes)
+      list.add(freeBytes);
 
-    boolean present_totalCapacityOnTiers = true && (isSetTotalCapacityOnTiers());
-    list.add(present_totalCapacityOnTiers);
-    if (present_totalCapacityOnTiers)
-      list.add(totalCapacityOnTiers);
+    boolean present_capacityBytesOnTiers = true && (isSetCapacityBytesOnTiers());
+    list.add(present_capacityBytesOnTiers);
+    if (present_capacityBytesOnTiers)
+      list.add(capacityBytesOnTiers);
 
-    boolean present_usedCapacityOnTiers = true && (isSetUsedCapacityOnTiers());
-    list.add(present_usedCapacityOnTiers);
-    if (present_usedCapacityOnTiers)
-      list.add(usedCapacityOnTiers);
+    boolean present_usedBytesOnTiers = true && (isSetUsedBytesOnTiers());
+    list.add(present_usedBytesOnTiers);
+    if (present_usedBytesOnTiers)
+      list.add(usedBytesOnTiers);
 
     return list.hashCode();
   }
@@ -682,52 +682,52 @@ public class BlockMasterInfo implements org.apache.thrift.TBase<BlockMasterInfo,
         return lastComparison;
       }
     }
-    lastComparison = Boolean.valueOf(isSetTotalCapacity()).compareTo(other.isSetTotalCapacity());
+    lastComparison = Boolean.valueOf(isSetCapacityBytes()).compareTo(other.isSetCapacityBytes());
     if (lastComparison != 0) {
       return lastComparison;
     }
-    if (isSetTotalCapacity()) {
-      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.TotalCapacity, other.TotalCapacity);
+    if (isSetCapacityBytes()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.capacityBytes, other.capacityBytes);
       if (lastComparison != 0) {
         return lastComparison;
       }
     }
-    lastComparison = Boolean.valueOf(isSetUsedCapacity()).compareTo(other.isSetUsedCapacity());
+    lastComparison = Boolean.valueOf(isSetUsedBytes()).compareTo(other.isSetUsedBytes());
     if (lastComparison != 0) {
       return lastComparison;
     }
-    if (isSetUsedCapacity()) {
-      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.usedCapacity, other.usedCapacity);
+    if (isSetUsedBytes()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.usedBytes, other.usedBytes);
       if (lastComparison != 0) {
         return lastComparison;
       }
     }
-    lastComparison = Boolean.valueOf(isSetFreeCapacity()).compareTo(other.isSetFreeCapacity());
+    lastComparison = Boolean.valueOf(isSetFreeBytes()).compareTo(other.isSetFreeBytes());
     if (lastComparison != 0) {
       return lastComparison;
     }
-    if (isSetFreeCapacity()) {
-      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.FreeCapacity, other.FreeCapacity);
+    if (isSetFreeBytes()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.freeBytes, other.freeBytes);
       if (lastComparison != 0) {
         return lastComparison;
       }
     }
-    lastComparison = Boolean.valueOf(isSetTotalCapacityOnTiers()).compareTo(other.isSetTotalCapacityOnTiers());
+    lastComparison = Boolean.valueOf(isSetCapacityBytesOnTiers()).compareTo(other.isSetCapacityBytesOnTiers());
     if (lastComparison != 0) {
       return lastComparison;
     }
-    if (isSetTotalCapacityOnTiers()) {
-      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.totalCapacityOnTiers, other.totalCapacityOnTiers);
+    if (isSetCapacityBytesOnTiers()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.capacityBytesOnTiers, other.capacityBytesOnTiers);
       if (lastComparison != 0) {
         return lastComparison;
       }
     }
-    lastComparison = Boolean.valueOf(isSetUsedCapacityOnTiers()).compareTo(other.isSetUsedCapacityOnTiers());
+    lastComparison = Boolean.valueOf(isSetUsedBytesOnTiers()).compareTo(other.isSetUsedBytesOnTiers());
     if (lastComparison != 0) {
       return lastComparison;
     }
-    if (isSetUsedCapacityOnTiers()) {
-      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.usedCapacityOnTiers, other.usedCapacityOnTiers);
+    if (isSetUsedBytesOnTiers()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.usedBytesOnTiers, other.usedBytesOnTiers);
       if (lastComparison != 0) {
         return lastComparison;
       }
@@ -760,43 +760,31 @@ public class BlockMasterInfo implements org.apache.thrift.TBase<BlockMasterInfo,
     sb.append(this.lostWorkerNum);
     first = false;
     if (!first) sb.append(", ");
-    sb.append("TotalCapacity:");
-    if (this.TotalCapacity == null) {
+    sb.append("capacityBytes:");
+    sb.append(this.capacityBytes);
+    first = false;
+    if (!first) sb.append(", ");
+    sb.append("usedBytes:");
+    sb.append(this.usedBytes);
+    first = false;
+    if (!first) sb.append(", ");
+    sb.append("freeBytes:");
+    sb.append(this.freeBytes);
+    first = false;
+    if (!first) sb.append(", ");
+    sb.append("capacityBytesOnTiers:");
+    if (this.capacityBytesOnTiers == null) {
       sb.append("null");
     } else {
-      sb.append(this.TotalCapacity);
+      sb.append(this.capacityBytesOnTiers);
     }
     first = false;
     if (!first) sb.append(", ");
-    sb.append("usedCapacity:");
-    if (this.usedCapacity == null) {
+    sb.append("usedBytesOnTiers:");
+    if (this.usedBytesOnTiers == null) {
       sb.append("null");
     } else {
-      sb.append(this.usedCapacity);
-    }
-    first = false;
-    if (!first) sb.append(", ");
-    sb.append("FreeCapacity:");
-    if (this.FreeCapacity == null) {
-      sb.append("null");
-    } else {
-      sb.append(this.FreeCapacity);
-    }
-    first = false;
-    if (!first) sb.append(", ");
-    sb.append("totalCapacityOnTiers:");
-    if (this.totalCapacityOnTiers == null) {
-      sb.append("null");
-    } else {
-      sb.append(this.totalCapacityOnTiers);
-    }
-    first = false;
-    if (!first) sb.append(", ");
-    sb.append("usedCapacityOnTiers:");
-    if (this.usedCapacityOnTiers == null) {
-      sb.append("null");
-    } else {
-      sb.append(this.usedCapacityOnTiers);
+      sb.append(this.usedBytesOnTiers);
     }
     first = false;
     sb.append(")");
@@ -860,66 +848,66 @@ public class BlockMasterInfo implements org.apache.thrift.TBase<BlockMasterInfo,
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
-          case 3: // TOTAL_CAPACITY
-            if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
-              struct.TotalCapacity = iprot.readString();
-              struct.setTotalCapacityIsSet(true);
+          case 3: // CAPACITY_BYTES
+            if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
+              struct.capacityBytes = iprot.readI64();
+              struct.setCapacityBytesIsSet(true);
             } else { 
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
-          case 4: // USED_CAPACITY
-            if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
-              struct.usedCapacity = iprot.readString();
-              struct.setUsedCapacityIsSet(true);
+          case 4: // USED_BYTES
+            if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
+              struct.usedBytes = iprot.readI64();
+              struct.setUsedBytesIsSet(true);
             } else { 
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
-          case 5: // FREE_CAPACITY
-            if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
-              struct.FreeCapacity = iprot.readString();
-              struct.setFreeCapacityIsSet(true);
+          case 5: // FREE_BYTES
+            if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
+              struct.freeBytes = iprot.readI64();
+              struct.setFreeBytesIsSet(true);
             } else { 
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
-          case 6: // TOTAL_CAPACITY_ON_TIERS
+          case 6: // CAPACITY_BYTES_ON_TIERS
             if (schemeField.type == org.apache.thrift.protocol.TType.MAP) {
               {
                 org.apache.thrift.protocol.TMap _map0 = iprot.readMapBegin();
-                struct.totalCapacityOnTiers = new HashMap<String,String>(2*_map0.size);
+                struct.capacityBytesOnTiers = new HashMap<String,Long>(2*_map0.size);
                 String _key1;
-                String _val2;
+                long _val2;
                 for (int _i3 = 0; _i3 < _map0.size; ++_i3)
                 {
                   _key1 = iprot.readString();
-                  _val2 = iprot.readString();
-                  struct.totalCapacityOnTiers.put(_key1, _val2);
+                  _val2 = iprot.readI64();
+                  struct.capacityBytesOnTiers.put(_key1, _val2);
                 }
                 iprot.readMapEnd();
               }
-              struct.setTotalCapacityOnTiersIsSet(true);
+              struct.setCapacityBytesOnTiersIsSet(true);
             } else { 
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
-          case 7: // USED_CAPACITY_ON_TIERS
+          case 7: // USED_BYTES_ON_TIERS
             if (schemeField.type == org.apache.thrift.protocol.TType.MAP) {
               {
                 org.apache.thrift.protocol.TMap _map4 = iprot.readMapBegin();
-                struct.usedCapacityOnTiers = new HashMap<String,String>(2*_map4.size);
+                struct.usedBytesOnTiers = new HashMap<String,Long>(2*_map4.size);
                 String _key5;
-                String _val6;
+                long _val6;
                 for (int _i7 = 0; _i7 < _map4.size; ++_i7)
                 {
                   _key5 = iprot.readString();
-                  _val6 = iprot.readString();
-                  struct.usedCapacityOnTiers.put(_key5, _val6);
+                  _val6 = iprot.readI64();
+                  struct.usedBytesOnTiers.put(_key5, _val6);
                 }
                 iprot.readMapEnd();
               }
-              struct.setUsedCapacityOnTiersIsSet(true);
+              struct.setUsedBytesOnTiersIsSet(true);
             } else { 
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
@@ -945,42 +933,36 @@ public class BlockMasterInfo implements org.apache.thrift.TBase<BlockMasterInfo,
       oprot.writeFieldBegin(LOST_WORKER_NUM_FIELD_DESC);
       oprot.writeI32(struct.lostWorkerNum);
       oprot.writeFieldEnd();
-      if (struct.TotalCapacity != null) {
-        oprot.writeFieldBegin(TOTAL_CAPACITY_FIELD_DESC);
-        oprot.writeString(struct.TotalCapacity);
-        oprot.writeFieldEnd();
-      }
-      if (struct.usedCapacity != null) {
-        oprot.writeFieldBegin(USED_CAPACITY_FIELD_DESC);
-        oprot.writeString(struct.usedCapacity);
-        oprot.writeFieldEnd();
-      }
-      if (struct.FreeCapacity != null) {
-        oprot.writeFieldBegin(FREE_CAPACITY_FIELD_DESC);
-        oprot.writeString(struct.FreeCapacity);
-        oprot.writeFieldEnd();
-      }
-      if (struct.totalCapacityOnTiers != null) {
-        oprot.writeFieldBegin(TOTAL_CAPACITY_ON_TIERS_FIELD_DESC);
+      oprot.writeFieldBegin(CAPACITY_BYTES_FIELD_DESC);
+      oprot.writeI64(struct.capacityBytes);
+      oprot.writeFieldEnd();
+      oprot.writeFieldBegin(USED_BYTES_FIELD_DESC);
+      oprot.writeI64(struct.usedBytes);
+      oprot.writeFieldEnd();
+      oprot.writeFieldBegin(FREE_BYTES_FIELD_DESC);
+      oprot.writeI64(struct.freeBytes);
+      oprot.writeFieldEnd();
+      if (struct.capacityBytesOnTiers != null) {
+        oprot.writeFieldBegin(CAPACITY_BYTES_ON_TIERS_FIELD_DESC);
         {
-          oprot.writeMapBegin(new org.apache.thrift.protocol.TMap(org.apache.thrift.protocol.TType.STRING, org.apache.thrift.protocol.TType.STRING, struct.totalCapacityOnTiers.size()));
-          for (Map.Entry<String, String> _iter8 : struct.totalCapacityOnTiers.entrySet())
+          oprot.writeMapBegin(new org.apache.thrift.protocol.TMap(org.apache.thrift.protocol.TType.STRING, org.apache.thrift.protocol.TType.I64, struct.capacityBytesOnTiers.size()));
+          for (Map.Entry<String, Long> _iter8 : struct.capacityBytesOnTiers.entrySet())
           {
             oprot.writeString(_iter8.getKey());
-            oprot.writeString(_iter8.getValue());
+            oprot.writeI64(_iter8.getValue());
           }
           oprot.writeMapEnd();
         }
         oprot.writeFieldEnd();
       }
-      if (struct.usedCapacityOnTiers != null) {
-        oprot.writeFieldBegin(USED_CAPACITY_ON_TIERS_FIELD_DESC);
+      if (struct.usedBytesOnTiers != null) {
+        oprot.writeFieldBegin(USED_BYTES_ON_TIERS_FIELD_DESC);
         {
-          oprot.writeMapBegin(new org.apache.thrift.protocol.TMap(org.apache.thrift.protocol.TType.STRING, org.apache.thrift.protocol.TType.STRING, struct.usedCapacityOnTiers.size()));
-          for (Map.Entry<String, String> _iter9 : struct.usedCapacityOnTiers.entrySet())
+          oprot.writeMapBegin(new org.apache.thrift.protocol.TMap(org.apache.thrift.protocol.TType.STRING, org.apache.thrift.protocol.TType.I64, struct.usedBytesOnTiers.size()));
+          for (Map.Entry<String, Long> _iter9 : struct.usedBytesOnTiers.entrySet())
           {
             oprot.writeString(_iter9.getKey());
-            oprot.writeString(_iter9.getValue());
+            oprot.writeI64(_iter9.getValue());
           }
           oprot.writeMapEnd();
         }
@@ -1010,19 +992,19 @@ public class BlockMasterInfo implements org.apache.thrift.TBase<BlockMasterInfo,
       if (struct.isSetLostWorkerNum()) {
         optionals.set(1);
       }
-      if (struct.isSetTotalCapacity()) {
+      if (struct.isSetCapacityBytes()) {
         optionals.set(2);
       }
-      if (struct.isSetUsedCapacity()) {
+      if (struct.isSetUsedBytes()) {
         optionals.set(3);
       }
-      if (struct.isSetFreeCapacity()) {
+      if (struct.isSetFreeBytes()) {
         optionals.set(4);
       }
-      if (struct.isSetTotalCapacityOnTiers()) {
+      if (struct.isSetCapacityBytesOnTiers()) {
         optionals.set(5);
       }
-      if (struct.isSetUsedCapacityOnTiers()) {
+      if (struct.isSetUsedBytesOnTiers()) {
         optionals.set(6);
       }
       oprot.writeBitSet(optionals, 7);
@@ -1032,32 +1014,32 @@ public class BlockMasterInfo implements org.apache.thrift.TBase<BlockMasterInfo,
       if (struct.isSetLostWorkerNum()) {
         oprot.writeI32(struct.lostWorkerNum);
       }
-      if (struct.isSetTotalCapacity()) {
-        oprot.writeString(struct.TotalCapacity);
+      if (struct.isSetCapacityBytes()) {
+        oprot.writeI64(struct.capacityBytes);
       }
-      if (struct.isSetUsedCapacity()) {
-        oprot.writeString(struct.usedCapacity);
+      if (struct.isSetUsedBytes()) {
+        oprot.writeI64(struct.usedBytes);
       }
-      if (struct.isSetFreeCapacity()) {
-        oprot.writeString(struct.FreeCapacity);
+      if (struct.isSetFreeBytes()) {
+        oprot.writeI64(struct.freeBytes);
       }
-      if (struct.isSetTotalCapacityOnTiers()) {
+      if (struct.isSetCapacityBytesOnTiers()) {
         {
-          oprot.writeI32(struct.totalCapacityOnTiers.size());
-          for (Map.Entry<String, String> _iter10 : struct.totalCapacityOnTiers.entrySet())
+          oprot.writeI32(struct.capacityBytesOnTiers.size());
+          for (Map.Entry<String, Long> _iter10 : struct.capacityBytesOnTiers.entrySet())
           {
             oprot.writeString(_iter10.getKey());
-            oprot.writeString(_iter10.getValue());
+            oprot.writeI64(_iter10.getValue());
           }
         }
       }
-      if (struct.isSetUsedCapacityOnTiers()) {
+      if (struct.isSetUsedBytesOnTiers()) {
         {
-          oprot.writeI32(struct.usedCapacityOnTiers.size());
-          for (Map.Entry<String, String> _iter11 : struct.usedCapacityOnTiers.entrySet())
+          oprot.writeI32(struct.usedBytesOnTiers.size());
+          for (Map.Entry<String, Long> _iter11 : struct.usedBytesOnTiers.entrySet())
           {
             oprot.writeString(_iter11.getKey());
-            oprot.writeString(_iter11.getValue());
+            oprot.writeI64(_iter11.getValue());
           }
         }
       }
@@ -1076,46 +1058,46 @@ public class BlockMasterInfo implements org.apache.thrift.TBase<BlockMasterInfo,
         struct.setLostWorkerNumIsSet(true);
       }
       if (incoming.get(2)) {
-        struct.TotalCapacity = iprot.readString();
-        struct.setTotalCapacityIsSet(true);
+        struct.capacityBytes = iprot.readI64();
+        struct.setCapacityBytesIsSet(true);
       }
       if (incoming.get(3)) {
-        struct.usedCapacity = iprot.readString();
-        struct.setUsedCapacityIsSet(true);
+        struct.usedBytes = iprot.readI64();
+        struct.setUsedBytesIsSet(true);
       }
       if (incoming.get(4)) {
-        struct.FreeCapacity = iprot.readString();
-        struct.setFreeCapacityIsSet(true);
+        struct.freeBytes = iprot.readI64();
+        struct.setFreeBytesIsSet(true);
       }
       if (incoming.get(5)) {
         {
-          org.apache.thrift.protocol.TMap _map12 = new org.apache.thrift.protocol.TMap(org.apache.thrift.protocol.TType.STRING, org.apache.thrift.protocol.TType.STRING, iprot.readI32());
-          struct.totalCapacityOnTiers = new HashMap<String,String>(2*_map12.size);
+          org.apache.thrift.protocol.TMap _map12 = new org.apache.thrift.protocol.TMap(org.apache.thrift.protocol.TType.STRING, org.apache.thrift.protocol.TType.I64, iprot.readI32());
+          struct.capacityBytesOnTiers = new HashMap<String,Long>(2*_map12.size);
           String _key13;
-          String _val14;
+          long _val14;
           for (int _i15 = 0; _i15 < _map12.size; ++_i15)
           {
             _key13 = iprot.readString();
-            _val14 = iprot.readString();
-            struct.totalCapacityOnTiers.put(_key13, _val14);
+            _val14 = iprot.readI64();
+            struct.capacityBytesOnTiers.put(_key13, _val14);
           }
         }
-        struct.setTotalCapacityOnTiersIsSet(true);
+        struct.setCapacityBytesOnTiersIsSet(true);
       }
       if (incoming.get(6)) {
         {
-          org.apache.thrift.protocol.TMap _map16 = new org.apache.thrift.protocol.TMap(org.apache.thrift.protocol.TType.STRING, org.apache.thrift.protocol.TType.STRING, iprot.readI32());
-          struct.usedCapacityOnTiers = new HashMap<String,String>(2*_map16.size);
+          org.apache.thrift.protocol.TMap _map16 = new org.apache.thrift.protocol.TMap(org.apache.thrift.protocol.TType.STRING, org.apache.thrift.protocol.TType.I64, iprot.readI32());
+          struct.usedBytesOnTiers = new HashMap<String,Long>(2*_map16.size);
           String _key17;
-          String _val18;
+          long _val18;
           for (int _i19 = 0; _i19 < _map16.size; ++_i19)
           {
             _key17 = iprot.readString();
-            _val18 = iprot.readString();
-            struct.usedCapacityOnTiers.put(_key17, _val18);
+            _val18 = iprot.readI64();
+            struct.usedBytesOnTiers.put(_key17, _val18);
           }
         }
-        struct.setUsedCapacityOnTiersIsSet(true);
+        struct.setUsedBytesOnTiersIsSet(true);
       }
     }
   }

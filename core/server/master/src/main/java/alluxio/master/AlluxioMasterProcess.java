@@ -189,8 +189,8 @@ public class AlluxioMasterProcess implements MasterProcess {
     return new MasterInfo().setMasterAddress(getRpcAddress().toString())
         .setWebPort(webPort)
         .setRpcPort(mPort)
-        .setStartTime(CommonUtils.convertMsToDate(getStartTimeMs()))
-        .setUpTime(CommonUtils.convertMsToClockTime(getUptimeMs()))
+        .setStartTimeMs(getStartTimeMs())
+        .setUpTimeMs(getUptimeMs())
         .setVersion(RuntimeConstants.VERSION)
         .setSafeMode(mSafeModeManager.isInSafeMode());
   }

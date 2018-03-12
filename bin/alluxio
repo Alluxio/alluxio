@@ -20,7 +20,7 @@ function printUsage {
   echo -e "  formatWorker  \t Format Alluxio worker storage"
   echo -e "  bootstrapConf \t Generate a config file if one doesn't exist"
   echo -e "  fs            \t Command line tool for interacting with the Alluxio filesystem."
-  echo -e "  fsadmin       \t Command line tool for interacting with the Alluxio filesystem admins."
+  echo -e "  fsadmin       \t Command line tool for use by Alluxio filesystem admins."
   echo -e "  getConf [key] \t Look up a configuration key, or print all configuration."
   echo -e "  loadufs       \t Load existing files in underlayer filesystem into Alluxio."
   echo -e "  logLevel      \t Set or get log level of Alluxio servers."

@@ -15,6 +15,8 @@ import alluxio.client.block.RetryHandlingBlockMasterClient;
 import alluxio.client.MetaMasterClient;
 import alluxio.client.RetryHandlingMetaMasterClient;
 import alluxio.master.MasterClientConfig;
+import alluxio.util.CommonUtils;
+import alluxio.util.FormatUtils;
 import alluxio.wire.BlockMasterInfo;
 import alluxio.wire.MasterInfo;
 
@@ -27,6 +29,7 @@ public class SummaryCommand {
   /** Print Alluxio cluster summarized information.*/
   public static void printSummary() {
     System.out.println("Alluxio Cluster Summary: ");
+
     try (MetaMasterClient client =
         new RetryHandlingMetaMasterClient(MasterClientConfig.defaults())) {
       MasterInfo masterInfo = client.getMasterInfo();
@@ -38,8 +41,10 @@ public class SummaryCommand {
       }
 
       System.out.println("    Rpc Port: " + masterInfo.getRpcPort());
-      System.out.println("    Started: " + masterInfo.getStartTime());
-      System.out.println("    Uptime: " + masterInfo.getUpTime());
+      System.out.println("    Started: "
+          + CommonUtils.convertMsToDate(masterInfo.getStartTimeMs()));
+      System.out.println("    Uptime: "
+          + CommonUtils.convertMsToClockTime(masterInfo.getUpTimeMs()));
       System.out.println("    Version: " + masterInfo.getVersion());
       System.out.println("    Safe Mode: " + masterInfo.isSafeMode());
     } catch (Exception e) {
@@ -50,23 +55,26 @@ public class SummaryCommand {
         new RetryHandlingBlockMasterClient(MasterClientConfig.defaults())) {
       BlockMasterInfo blockMasterInfo = client.getBlockMasterInfo();
       System.out.println("    Live workers: " + blockMasterInfo.getLiveWorkerNum());
-      System.out.println("    Dead workers: " + blockMasterInfo.getLostWorkerNum());
+      System.out.println("    Lost workers: " + blockMasterInfo.getLostWorkerNum());
 
-      System.out.println("    Total Capacity: " + blockMasterInfo.getTotalCapacity());
-      Map<String, String> totalCapacityOnTiers = blockMasterInfo.getTotalCapacityOnTiers();
-      for (Map.Entry<String, String> capacityTier : totalCapacityOnTiers.entrySet()) {
-        System.out.println("        Tier: " + capacityTier.getKey()
-            + "  Size: " + capacityTier.getValue());
+      System.out.println("    Total Capacity: "
+          + FormatUtils.getSizeFromBytes(blockMasterInfo.getCapacityBytes()));
+      Map<String, Long> totalCapacityOnTiers = blockMasterInfo.getCapacityBytesOnTiers();
+      for (Map.Entry<String, Long> capacityBytesTier : totalCapacityOnTiers.entrySet()) {
+        System.out.println("        Tier: " + capacityBytesTier.getKey()
+            + "  Size: " + FormatUtils.getSizeFromBytes(capacityBytesTier.getValue()));
       }
 
-      System.out.println("    Used Capacity: " + blockMasterInfo.getUsedCapacity());
-      Map<String, String> usedCapacityOnTiers = blockMasterInfo.getUsedCapacityOnTiers();
-      for (Map.Entry<String, String> usedCapacityTier : usedCapacityOnTiers.entrySet()) {
-        System.out.println("        Tier: " + usedCapacityTier.getKey()
-            + "  Size: " + usedCapacityTier.getValue());
+      System.out.println("    Used Capacity: "
+          + FormatUtils.getSizeFromBytes(blockMasterInfo.getUsedBytes()));
+      Map<String, Long> usedCapacityOnTiers = blockMasterInfo.getUsedBytesOnTiers();
+      for (Map.Entry<String, Long> usedBytesTier: usedCapacityOnTiers.entrySet()) {
+        System.out.println("        Tier: " + usedBytesTier.getKey()
+            + "  Size: " + FormatUtils.getSizeFromBytes(usedBytesTier.getValue()));
       }
 
-      System.out.println("    Free Capacity: " + blockMasterInfo.getFreeCapacity());
+      System.out.println("    Free Capacity: "
+          + FormatUtils.getSizeFromBytes(blockMasterInfo.getFreeBytes()));
     } catch (Exception e) {
       e.printStackTrace();
     }

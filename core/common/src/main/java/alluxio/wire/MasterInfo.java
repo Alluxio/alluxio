@@ -27,8 +27,8 @@ public final class MasterInfo implements Serializable {
   private String mMasterAddress;
   private int mWebPort;
   private int mRpcPort;
-  private String mStartTime;
-  private String mUpTime;
+  private long mStartTimeMs;
+  private long mUpTimeMs;
   private String mVersion;
   private boolean mSafeMode;
 
@@ -46,8 +46,8 @@ public final class MasterInfo implements Serializable {
     mMasterAddress = masterInfo.getMasterAddress();
     mWebPort = masterInfo.getWebPort();
     mRpcPort = masterInfo.getRpcPort();
-    mStartTime = masterInfo.getStartTime();
-    mUpTime = masterInfo.getUpTime();
+    mStartTimeMs = masterInfo.getStartTimeMs();
+    mUpTimeMs = masterInfo.getUpTimeMs();
     mVersion = masterInfo.getVersion();
     mSafeMode = masterInfo.isSafeMode();
   }
@@ -74,17 +74,17 @@ public final class MasterInfo implements Serializable {
   }
 
   /**
-   * @return the cluster start time
+   * @return the cluster start time (in milliseconds)
    */
-  public String getStartTime() {
-    return mStartTime;
+  public long getStartTimeMs() {
+    return mStartTimeMs;
   }
 
   /**
-   * @return the cluster last time
+   * @return the cluster last time (in milliseconds)
    */
-  public String getUpTime() {
-    return mUpTime;
+  public long getUpTimeMs() {
+    return mUpTimeMs;
   }
 
   /**
@@ -129,20 +129,20 @@ public final class MasterInfo implements Serializable {
   }
 
   /**
-   * @param startTime the startTime to use
+   * @param startTimeMs the startTime to use (in milliseconds)
    * @return the master information
    */
-  public MasterInfo setStartTime(String startTime) {
-    mStartTime = startTime;
+  public MasterInfo setStartTimeMs(long startTimeMs) {
+    mStartTimeMs = startTimeMs;
     return this;
   }
 
   /**
-   * @param upTime the upTime to use
+   * @param upTimeMs the upTime to use (in milliseconds)
    * @return the master information
    */
-  public MasterInfo setUpTime(String upTime) {
-    mUpTime = upTime;
+  public MasterInfo setUpTimeMs(long upTimeMs) {
+    mUpTimeMs = upTimeMs;
     return this;
   }
 
@@ -169,7 +169,7 @@ public final class MasterInfo implements Serializable {
    */
   protected alluxio.thrift.MasterInfo toThrift() {
     return new alluxio.thrift.MasterInfo(mMasterAddress, mWebPort, mRpcPort,
-        mStartTime, mUpTime, mVersion, mSafeMode);
+        mStartTimeMs, mUpTimeMs, mVersion, mSafeMode);
   }
 
   @Override
@@ -182,22 +182,22 @@ public final class MasterInfo implements Serializable {
     }
     MasterInfo that = (MasterInfo) o;
     return mMasterAddress.equals(that.mMasterAddress) && mWebPort == that.mWebPort
-        && mRpcPort == that.mRpcPort && mStartTime.equals(that.mStartTime)
-        && mUpTime.equals(that.mUpTime) && mVersion.equals(that.mVersion)
+        && mRpcPort == that.mRpcPort && mStartTimeMs == that.mStartTimeMs
+        && mUpTimeMs == that.mUpTimeMs && mVersion.equals(that.mVersion)
         && mSafeMode == that.mSafeMode;
   }
 
   @Override
   public int hashCode() {
     return Objects.hashCode(mMasterAddress, mWebPort,
-        mRpcPort, mStartTime, mUpTime, mVersion, mSafeMode);
+        mRpcPort, mStartTimeMs, mUpTimeMs, mVersion, mSafeMode);
   }
 
   @Override
   public String toString() {
     return Objects.toStringHelper(this).add("masterAddress", mMasterAddress)
         .add("webPort", mWebPort).add("rpcPort", mRpcPort)
-        .add("startTime", mStartTime).add("upTimeMs", mUpTime)
+        .add("startTimeMs", mStartTimeMs).add("upTimeMs", mUpTimeMs)
         .add("version", mVersion).add("safeMode", mSafeMode).toString();
   }
 }
