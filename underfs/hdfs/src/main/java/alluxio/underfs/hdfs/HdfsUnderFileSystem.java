@@ -455,19 +455,19 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
           // to complete the lease recovery process.
           try {
             if (dfs.recoverLease(new Path(path))) {
-              LOG.warn("recoverLease-1 success for: {}", path);
+              LOG.warn("HDFS recoverLease-1 success for: {}", path);
             } else {
               // try one more time, after waiting
               CommonUtils.sleepMs(5 * Constants.SECOND_MS);
               if (dfs.recoverLease(new Path(path))) {
-                LOG.warn("recoverLease-2 success for: {}", path);
+                LOG.warn("HDFS recoverLease-2 success for: {}", path);
               } else {
-                LOG.warn("recoverLease: path not closed: {}", path);
+                LOG.warn("HDFS recoverLease: path not closed: {}", path);
               }
             }
           } catch (IOException e1) {
             // ignore exception
-            LOG.warn("recoverLease failed for: {} error: {}", path, e1.getMessage());
+            LOG.warn("HDFS recoverLease failed for: {} error: {}", path, e1.getMessage());
           }
         }
       }
