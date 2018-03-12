@@ -43,6 +43,7 @@ group: Resources
 * [Verizon](https://www.verizonwireless.com/)
 * [Walmart](https://www.walmart.com/)
 * [ZTE](http://www.zte.com.cn)
+* [Kyligence](http://en.kyligence.io/)
 
 以下是一些将Alluxio加入到自身的生态系统以增强功能的第三方软件项目。
 
