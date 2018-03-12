@@ -88,6 +88,11 @@ Alternatively, you can also append the conf path (i.e. `/<PATH_TO_ALLUXIO>/conf`
 Also, it's recommended to increase `alluxio.user.network.netty.timeout` to a bigger value (e.g. `10min`) to avoid the timeout
  failure when reading large files from remote worker.
 
+#### Enable `hive.force-local-scheduling`
+
+It is recommended to collocate Presto with Alluxio so that Presto workers can read data locally. An important option to enable in Presto is `hive.force-local-scheduling`, which forces splits to be 
+scheduled on the same node as the Alluxio worker serving the split data. By default, `hive.force-local-scheduling` in Presto is set to false, and Presto will not attempt to schedule the work on the same machine as the Alluxio worker node.
+
 #### Increase `hive.max-split-size`
 
 Presto's Hive integration uses the config [`hive.max-split-size`](https://teradata.github.io/presto/docs/141t/connector/hive.html) to control the parallelism of the query. It's recommended to set this size no less than Alluxio's block size to avoid the read contention within the same block.
