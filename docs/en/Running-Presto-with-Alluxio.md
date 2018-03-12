@@ -90,8 +90,8 @@ Also, it's recommended to increase `alluxio.user.network.netty.timeout` to a big
 
 #### Enable `hive.force-local-scheduling`
 
-It's recommended to collocate Presto with Alluxio so that Presto workers can read data locally. An important option to enable is `hive.force-local-scheduling`, which force splits to be 
-scheduled on the same node as the Alluxio worker serving the split data. By default, `hive.force-local-scheduling` in Presto is set to false, and Presto may not schedule the work on the same machine as the Alluxio worker node.
+It is recommended to collocate Presto with Alluxio so that Presto workers can read data locally. An important option to enable in Presto is `hive.force-local-scheduling`, which forces splits to be 
+scheduled on the same node as the Alluxio worker serving the split data. By default, `hive.force-local-scheduling` in Presto is set to false, and Presto will not attempt to schedule the work on the same machine as the Alluxio worker node.
 
 #### Increase `hive.max-split-size`
 
