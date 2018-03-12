@@ -14,6 +14,7 @@ package alluxio.cli.fsadmin.command.report;
 import alluxio.client.block.RetryHandlingBlockMasterClient;
 import alluxio.client.MetaMasterClient;
 import alluxio.client.RetryHandlingMetaMasterClient;
+import alluxio.exception.status.UnavailableException;
 import alluxio.master.MasterClientConfig;
 import alluxio.util.CommonUtils;
 import alluxio.util.FormatUtils;
@@ -47,6 +48,9 @@ public class SummaryCommand {
           + CommonUtils.convertMsToClockTime(masterInfo.getUpTimeMs()));
       System.out.println("    Version: " + masterInfo.getVersion());
       System.out.println("    Safe Mode: " + masterInfo.isSafeMode());
+    } catch (UnavailableException e) {
+      e.printStackTrace();
+      System.out.println("Please check the Alluxio master status.");
     } catch (Exception e) {
       e.printStackTrace();
     }

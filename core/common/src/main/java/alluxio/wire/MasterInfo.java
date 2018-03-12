@@ -18,7 +18,7 @@ import java.io.Serializable;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * The Alluxio master information.
+ * The information of the Alluxio leader master.
  */
 @NotThreadSafe
 public final class MasterInfo implements Serializable {

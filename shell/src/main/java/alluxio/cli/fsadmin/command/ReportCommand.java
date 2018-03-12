@@ -30,7 +30,7 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class ReportCommand extends AbstractCommand {
 
   enum Command {
-    SUMMARY, // Reports the Alluxio cluster information
+    SUMMARY // Reports the Alluxio cluster information
   }
 
   /**
@@ -70,6 +70,7 @@ public final class ReportCommand extends AbstractCommand {
       case SUMMARY:
         SummaryCommand.printSummary();
         break;
+      // CAPACITY, CONFIGURATION, RPC, OPERATION, and UFS commands will be supported in the future
       default:
         break;
     }
@@ -78,16 +79,16 @@ public final class ReportCommand extends AbstractCommand {
 
   @Override
   public String getUsage() {
-    return "report [Category] [Category_Arguments]";
+    return "report [category] [category_args]";
   }
 
   @Override
   public String getDescription() {
     return "Report Alluxio running cluster information.\n"
-        + "Where Category is an optional argument, if no arguments passed in, "
+        + "Where category is an optional argument, if no arguments passed in, "
         + "summary information will be printed out."
-        + "Category can be one of the following:\n"
-        + "    summary          Alluxio cluster summarized information\n";
+        + "category can be one of the following:\n"
+        + "    summary          Summarized Alluxio cluster information\n";
   }
 
   @Override
