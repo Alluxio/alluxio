@@ -13,6 +13,8 @@ package alluxio.mesos;
 
 import alluxio.Configuration;
 import alluxio.PropertyKey;
+import alluxio.util.network.NetworkAddressUtils;
+import alluxio.util.network.NetworkAddressUtils.ServiceType;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
@@ -24,6 +26,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.UnsupportedEncodingException;
+import java.net.InetSocketAddress;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -72,6 +75,10 @@ public class AlluxioFramework {
       frameworkInfo.setPrincipal(Configuration.get(PropertyKey.INTEGRATION_MESOS_PRINCIPAL));
     }
 
+    // Publish WebUI url to mesos master.
+    String masterWebUrl = createMasterWebUrl();
+    frameworkInfo.setWebuiUrl(masterWebUrl);
+
     Scheduler scheduler = new AlluxioScheduler(mAlluxioMasterHostname);
 
     Protos.Credential cred = createCredential();
@@ -85,6 +92,15 @@ public class AlluxioFramework {
     int status = driver.run() == Protos.Status.DRIVER_STOPPED ? 0 : 1;
 
     System.exit(status);
+  }
+
+  /**
+   * Create AlluxioMaster web url.
+   */
+  private static String createMasterWebUrl() {
+    InetSocketAddress masterWeb = NetworkAddressUtils.getConnectAddress(
+        ServiceType.MASTER_WEB);
+    return "http://" + masterWeb.getHostString() + ":" + masterWeb.getPort();
   }
 
   private static Protos.Credential createCredential() {
