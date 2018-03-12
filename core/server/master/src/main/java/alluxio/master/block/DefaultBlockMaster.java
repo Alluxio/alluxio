@@ -709,8 +709,8 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
             mLostBlocks.remove(blockId);
           }
         } else {
-          LOG.warn("Invalid block: {} from worker {}.", workerInfo.getWorkerAddress().getHost(),
-              blockId);
+          LOG.warn("Invalid block: {} from worker {}.", blockId,
+              workerInfo.getWorkerAddress().getHost());
         }
       }
     }

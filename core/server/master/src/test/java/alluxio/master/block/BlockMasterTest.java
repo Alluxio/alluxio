@@ -201,7 +201,7 @@ public class BlockMasterTest {
 
   @Test
   public void registerCleansUpOrphanedBlocks() throws Exception {
-    // Create a worker with a unknown blocks.
+    // Create a worker with unknown blocks.
     long worker = mBlockMaster.getWorkerId(NET_ADDRESS_1);
     List<Long> orphanedBlocks = Arrays.asList(1L, 2L);
     Map<String, Long> memUsage = ImmutableMap.of("MEM", 10L);
