@@ -129,7 +129,7 @@ public final class MasterInfo implements Serializable {
   }
 
   /**
-   * @param startTimeMs the startTime to use (in milliseconds)
+   * @param startTimeMs the start time in milliseconds to use
    * @return the master information
    */
   public MasterInfo setStartTimeMs(long startTimeMs) {
@@ -138,7 +138,7 @@ public final class MasterInfo implements Serializable {
   }
 
   /**
-   * @param upTimeMs the upTime to use (in milliseconds)
+   * @param upTimeMs the up time in milliseconds to use
    * @return the master information
    */
   public MasterInfo setUpTimeMs(long upTimeMs) {
