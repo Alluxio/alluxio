@@ -720,7 +720,7 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
   private void processWorkerOrphanedBlocks(MasterWorkerInfo workerInfo) {
     for (long block : workerInfo.getBlocks()) {
       if (!mBlocks.containsKey(block)) {
-        LOG.warn("Requesting delete for orphaned block: {} from worker {}.", block,
+        LOG.info("Requesting delete for orphaned block: {} from worker {}.", block,
             workerInfo.getWorkerAddress().getHost());
         workerInfo.updateToRemovedBlock(true, block);
       }
