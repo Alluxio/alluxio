@@ -218,6 +218,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDefaultValue(false)
           .setDescription("Flag used only during tests to allow special behavior.")
           .build();
+  public static final PropertyKey TMP_DIRS =
+      new Builder(Name.TMP_DIRS)
+          .setDefaultValue("/tmp")
+          .setDescription("The path(s) to store Alluxio temporary files, such as files to be "
+              + "uploaded to object stores, use commas as delimiters. If multiple paths are "
+              + "specified, one will be selected at random per temporary file.")
+          .build();
   public static final PropertyKey VERSION =
       new Builder(Name.VERSION)
           .setDefaultValue(ProjectConstants.VERSION)
@@ -2121,6 +2128,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.network.thrift.frame.size.bytes.max";
     public static final String SITE_CONF_DIR = "alluxio.site.conf.dir";
     public static final String TEST_MODE = "alluxio.test.mode";
+    public static final String TMP_DIRS = "alluxio.tmp.dirs";
     public static final String VERSION = "alluxio.version";
     public static final String WEB_RESOURCES = "alluxio.web.resources";
     public static final String WEB_THREADS = "alluxio.web.threads";

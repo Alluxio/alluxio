@@ -17,7 +17,10 @@ import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import alluxio.Configuration;
+import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.security.group.CachedGroupMapping;
 import alluxio.security.group.GroupMappingService;
 
@@ -33,7 +36,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.TimeUnit;
@@ -60,6 +65,25 @@ public class CommonUtilsTest {
     /* Check that currentTime falls into the interval [startTime + delta; startTime + 2*delta] */
     assertTrue(startTime + delta <= currentTime);
     assertTrue(currentTime <= 2 * delta + startTime);
+  }
+
+  @Test
+  public void getTmpDirSingleDirectory() {
+    Configuration.set(PropertyKey.TMP_DIRS, "/tmp");
+    assertEquals(Configuration.get(PropertyKey.TMP_DIRS), CommonUtils.getTmpDir());
+    ConfigurationTestUtils.resetConfiguration();
+  }
+
+  @Test(timeout = 1000L)
+  public void getTmpDirMultipleDirectories() {
+    Configuration.set(PropertyKey.TMP_DIRS, "/tmp,/tmp2,/tmp3");
+    List<String> correctDirs = Configuration.getList(PropertyKey.TMP_DIRS, ",");
+    Set<String> results = new HashSet<>();
+    while (results.size() != correctDirs.size()) {
+      results.add(CommonUtils.getTmpDir());
+    }
+    assertEquals(new HashSet<>(correctDirs), results);
+    ConfigurationTestUtils.resetConfiguration();
   }
 
   /**
