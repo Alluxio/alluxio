@@ -1022,7 +1022,9 @@ public class InodeTree implements JournalEntryIterable {
                   .setGroup(status.getGroup())
                   .setMode(status.getMode());
             } catch (FileNotFoundException e) {
-              // Ignore exception if file is not found
+              // Retry creation given that the directory might have just been removed.
+              LOG.warn("Directory {} no longer exists on UFS. Retry creation.", ufsUri);
+              continue;
             }
           }
           dir.setPersistenceState(PersistenceState.PERSISTED);
