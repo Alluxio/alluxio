@@ -74,12 +74,12 @@ public class CommonUtilsTest {
     ConfigurationTestUtils.resetConfiguration();
   }
 
-  @Test(timeout = 1000L)
+  @Test
   public void getTmpDirMultipleDirectories() {
     Configuration.set(PropertyKey.TMP_DIRS, "/tmp,/tmp2,/tmp3");
     List<String> correctDirs = Configuration.getList(PropertyKey.TMP_DIRS, ",");
     Set<String> results = new HashSet<>();
-    while (results.size() != correctDirs.size()) {
+    for (int i = 0; i < 100 || results.size() == correctDirs.size(); i++) {
       results.add(CommonUtils.getTmpDir());
     }
     assertEquals(new HashSet<>(correctDirs), results);
