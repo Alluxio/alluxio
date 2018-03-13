@@ -16,7 +16,6 @@ import alluxio.Process;
 import alluxio.PropertyKey;
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.JournalUtils;
-import alluxio.wire.MasterInfo;
 
 import java.net.InetSocketAddress;
 import java.net.URI;
@@ -78,9 +77,9 @@ public interface MasterProcess extends Process {
   InetSocketAddress getWebAddress();
 
   /**
-   * @return the Alluxio master information
+   * @return true if Alluxio is running in safe mode, false otherwise
    */
-  MasterInfo getMasterInfo();
+  boolean isSafeMode();
 
   /**
    * @return true if the system is the leader (serving the rpc server), false otherwise

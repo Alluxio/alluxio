@@ -12,16 +12,19 @@
 package alluxio.client;
 
 import alluxio.wire.MasterInfo;
+import alluxio.wire.MasterInfo.MasterInfoField;
 
 import java.io.Closeable;
 import java.io.IOException;
+import java.util.Set;
 
 /**
  * Interface for a meta master client.
  */
 public interface MetaMasterClient extends Closeable {
   /**
-   * @return the requested master information
+   * @param masterInfoFields optional list of fields to query; if null all fields will be queried
+   * @return the requested master info
    */
-  MasterInfo getMasterInfo() throws IOException;
+  MasterInfo getMasterInfo(Set<MasterInfoField> masterInfoFields) throws IOException;
 }

@@ -3,6 +3,16 @@ namespace java alluxio.thrift
 include "common.thrift"
 include "exception.thrift"
 
+enum BlockMasterInfoField {
+  LIVE_WORKER_NUM,
+  LOST_WORKER_NUM,
+  CAPACITY_BYTES,
+  USED_BYTES,
+  FREE_BYTES,
+  CAPACITY_BYTES_ON_TIERS,
+  USED_BYTES_ON_TIERS
+}
+
 struct BlockMasterInfo {
  1: i32 liveWorkerNum
  2: i32 lostWorkerNum
@@ -28,7 +38,10 @@ struct GetBlockInfoTResponse {
   1: common.BlockInfo blockInfo
 }
 
-struct GetBlockMasterInfoTOptions {}
+struct GetBlockMasterInfoTOptions {
+ 1: set<BlockMasterInfoField> filter
+}
+
 struct GetBlockMasterInfoTResponse {
  1: BlockMasterInfo blockMasterInfo
 }

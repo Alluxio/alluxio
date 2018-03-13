@@ -67,7 +67,7 @@ public final class MasterInfo implements Serializable {
   }
 
   /**
-   * @return the Rpc port
+   * @return the rpc port
    */
   public int getRpcPort() {
     return mRpcPort;
@@ -81,7 +81,7 @@ public final class MasterInfo implements Serializable {
   }
 
   /**
-   * @return the cluster last time (in milliseconds)
+   * @return the cluster uptime (in milliseconds)
    */
   public long getUpTimeMs() {
     return mUpTimeMs;
@@ -172,6 +172,20 @@ public final class MasterInfo implements Serializable {
         mStartTimeMs, mUpTimeMs, mVersion, mSafeMode);
   }
 
+  /**
+   * @param info the thrift master info to create a wire master info from
+   * @return the wire type version of the master info
+   */
+  public static MasterInfo fromThrift(alluxio.thrift.MasterInfo info) {
+    return new MasterInfo().setMasterAddress(info.getMasterAddress())
+        .setWebPort(info.getWebPort())
+        .setRpcPort(info.getRpcPort())
+        .setStartTimeMs(info.getStartTimeMs())
+        .setUpTimeMs(info.getUpTimeMs())
+        .setVersion(info.getVersion())
+        .setSafeMode(info.isSafeMode());
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) {
@@ -199,5 +213,33 @@ public final class MasterInfo implements Serializable {
         .add("webPort", mWebPort).add("rpcPort", mRpcPort)
         .add("startTimeMs", mStartTimeMs).add("upTimeMs", mUpTimeMs)
         .add("version", mVersion).add("safeMode", mSafeMode).toString();
+  }
+
+  /**
+   * Enum representing the fields of the master info.
+   */
+  public static enum MasterInfoField {
+    MASTER_ADDRESS,
+    WEB_PORT,
+    RPC_PORT,
+    START_TIME_MS,
+    UP_TIME_MS,
+    VERSION,
+    SAFE_MODE;
+
+    /**
+     * @return the thrift representation of this master info field
+     */
+    public alluxio.thrift.MasterInfoField toThrift() {
+      return alluxio.thrift.MasterInfoField.valueOf(name());
+    }
+
+    /**
+     * @param field the thrift representation of the master info field to create
+     * @return the wire type version of the master info field
+     */
+    public static MasterInfoField fromThrift(alluxio.thrift.MasterInfoField field) {
+      return MasterInfoField.valueOf(field.name());
+    }
   }
 }

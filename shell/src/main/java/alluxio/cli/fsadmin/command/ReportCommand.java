@@ -59,7 +59,8 @@ public final class ReportCommand extends AbstractCommand {
 
     Command command;
     try {
-      command = Command.valueOf(args[0].toUpperCase());
+      String commandName = args[0].toUpperCase();
+      command = Command.valueOf(commandName);
     } catch (IllegalArgumentException e) {
       System.out.println(getUsage());
       System.out.println(getDescription());

@@ -23,6 +23,7 @@ import alluxio.thrift.GetUsedBytesTOptions;
 import alluxio.thrift.GetWorkerInfoListTOptions;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.BlockMasterInfo;
+import alluxio.wire.BlockMasterInfo.BlockMasterInfoField;
 import alluxio.wire.ThriftUtils;
 import alluxio.wire.WorkerInfo;
 
@@ -30,7 +31,9 @@ import org.apache.thrift.TException;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -110,15 +113,23 @@ public final class RetryHandlingBlockMasterClient extends AbstractMasterClient
   }
 
   /**
+   * @param fields optional list of fields to query; if null all fields will be queried
    * @return the {@link BlockMasterInfo} block master information
    */
-  public synchronized BlockMasterInfo getBlockMasterInfo() throws IOException {
-    return retryRPC(new RpcCallable<BlockMasterInfo>() {
-      @Override
-      public BlockMasterInfo call() throws TException {
-        return ThriftUtils.fromThrift(mClient
-            .getBlockMasterInfo(new GetBlockMasterInfoTOptions()).getBlockMasterInfo());
+  public synchronized BlockMasterInfo getBlockMasterInfo(final Set<BlockMasterInfoField> fields)
+      throws IOException {
+    return retryRPC(() -> {
+      Set<alluxio.thrift.BlockMasterInfoField> thriftFields = new HashSet<>();
+      if (fields == null) {
+        thriftFields = null;
+      } else {
+        for (BlockMasterInfoField field : fields) {
+          thriftFields.add(field.toThrift());
+        }
       }
+      return BlockMasterInfo.fromThrift(
+          mClient.getBlockMasterInfo(new GetBlockMasterInfoTOptions(thriftFields))
+              .getBlockMasterInfo());
     });
   }
 

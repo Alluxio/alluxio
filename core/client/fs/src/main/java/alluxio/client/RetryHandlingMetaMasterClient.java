@@ -18,9 +18,11 @@ import alluxio.thrift.AlluxioService;
 import alluxio.thrift.GetMasterInfoTOptions;
 import alluxio.thrift.MetaMasterClientService;
 import alluxio.wire.MasterInfo;
-import alluxio.wire.ThriftUtils;
+import alluxio.wire.MasterInfo.MasterInfoField;
 
 import java.io.IOException;
+import java.util.HashSet;
+import java.util.Set;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -66,10 +68,19 @@ public final class RetryHandlingMetaMasterClient extends AbstractMasterClient
   }
 
   @Override
-  public synchronized MasterInfo getMasterInfo() throws IOException {
+  public synchronized MasterInfo getMasterInfo(final Set<MasterInfoField> fields)
+      throws IOException {
     return retryRPC(() -> {
-      return ThriftUtils
-          .fromThrift(mClient.getMasterInfo(new GetMasterInfoTOptions()).getMasterInfo());
+      Set<alluxio.thrift.MasterInfoField> thriftFields = new HashSet<>();
+      if (fields == null) {
+        thriftFields = null;
+      } else {
+        for (MasterInfo.MasterInfoField field : fields) {
+          thriftFields.add(field.toThrift());
+        }
+      }
+      return MasterInfo.fromThrift(
+          mClient.getMasterInfo(new GetMasterInfoTOptions(thriftFields)).getMasterInfo());
     });
   }
 }

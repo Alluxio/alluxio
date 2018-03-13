@@ -19,28 +19,35 @@ import alluxio.master.MasterClientConfig;
 import alluxio.util.CommonUtils;
 import alluxio.util.FormatUtils;
 import alluxio.wire.BlockMasterInfo;
+import alluxio.wire.BlockMasterInfo.BlockMasterInfoField;
 import alluxio.wire.MasterInfo;
+import alluxio.wire.MasterInfo.MasterInfoField;
 
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Print Alluxio cluster summarized information.
+ * This class depends on meta master client and block master client.
  */
 public class SummaryCommand {
-  /** Print Alluxio cluster summarized information.*/
+  /** Print Alluxio cluster summarized information. */
   public static void printSummary() {
     System.out.println("Alluxio Cluster Summary: ");
 
     try (MetaMasterClient client =
         new RetryHandlingMetaMasterClient(MasterClientConfig.defaults())) {
-      MasterInfo masterInfo = client.getMasterInfo();
+      Set<MasterInfoField> masterInfoFilter = new HashSet<>((Arrays
+          .asList(MasterInfoField.MASTER_ADDRESS, MasterInfoField.WEB_PORT,
+              MasterInfoField.RPC_PORT, MasterInfoField.START_TIME_MS,
+              MasterInfoField.UP_TIME_MS, MasterInfoField.VERSION,
+              MasterInfoField.SAFE_MODE)));
+      MasterInfo masterInfo = client.getMasterInfo(masterInfoFilter);
+
       System.out.println("    Master Address: " + masterInfo.getMasterAddress());
-
-      int webPort = masterInfo.getWebPort();
-      if (webPort != 0) { // Alluxio web services are running
-        System.out.println("    Web Port: " + webPort);
-      }
-
+      System.out.println("    Web Port: " + masterInfo.getWebPort());
       System.out.println("    Rpc Port: " + masterInfo.getRpcPort());
       System.out.println("    Started: "
           + CommonUtils.convertMsToDate(masterInfo.getStartTimeMs()));
@@ -57,7 +64,13 @@ public class SummaryCommand {
 
     try (RetryHandlingBlockMasterClient client =
         new RetryHandlingBlockMasterClient(MasterClientConfig.defaults())) {
-      BlockMasterInfo blockMasterInfo = client.getBlockMasterInfo();
+      Set<BlockMasterInfoField> blockMasterInfoFilter = new HashSet<>(Arrays
+          .asList(BlockMasterInfoField.LIVE_WORKER_NUM, BlockMasterInfoField.LOST_WORKER_NUM,
+              BlockMasterInfoField.CAPACITY_BYTES, BlockMasterInfoField.USED_BYTES,
+              BlockMasterInfoField.FREE_BYTES, BlockMasterInfoField.CAPACITY_BYTES_ON_TIERS,
+              BlockMasterInfoField.USED_BYTES_ON_TIERS));
+      BlockMasterInfo blockMasterInfo = client.getBlockMasterInfo(blockMasterInfoFilter);
+
       System.out.println("    Live workers: " + blockMasterInfo.getLiveWorkerNum());
       System.out.println("    Lost workers: " + blockMasterInfo.getLostWorkerNum());
 

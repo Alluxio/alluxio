@@ -12,18 +12,22 @@
 package alluxio.master;
 
 import alluxio.Constants;
+import alluxio.RuntimeConstants;
 import alluxio.exception.AlluxioException;
 import alluxio.RpcUtils;
 import alluxio.thrift.GetMasterInfoTOptions;
 import alluxio.thrift.GetMasterInfoTResponse;
 import alluxio.thrift.GetServiceVersionTOptions;
 import alluxio.thrift.GetServiceVersionTResponse;
+import alluxio.thrift.MasterInfo;
+import alluxio.thrift.MasterInfoField;
 import alluxio.thrift.MetaMasterClientService;
-import alluxio.wire.ThriftUtils;
 
 import org.apache.thrift.TException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.Arrays;
 
 /**
  * This class is a Thrift handler for meta master RPCs.
@@ -51,7 +55,36 @@ public final class MetaMasterClientServiceHandler implements MetaMasterClientSer
     return RpcUtils.call(LOG, new RpcUtils.RpcCallable<GetMasterInfoTResponse>() {
       @Override
       public GetMasterInfoTResponse call() throws AlluxioException {
-        return new GetMasterInfoTResponse(ThriftUtils.toThrift(mMasterProcess.getMasterInfo()));
+        MasterInfo info = new alluxio.thrift.MasterInfo();
+        for (MasterInfoField field : options.getFilter() != null ? options.getFilter()
+            : Arrays.asList(MasterInfoField.values())) {
+          switch (field) {
+            case MASTER_ADDRESS:
+              info.setMasterAddress(mMasterProcess.getRpcAddress().toString());
+              break;
+            case WEB_PORT:
+              info.setWebPort(mMasterProcess.getWebAddress().getPort());
+              break;
+            case RPC_PORT:
+              info.setRpcPort(mMasterProcess.getRpcAddress().getPort());
+              break;
+            case START_TIME_MS:
+              info.setStartTimeMs(mMasterProcess.getStartTimeMs());
+              break;
+            case UP_TIME_MS:
+              info.setUpTimeMs(mMasterProcess.getUptimeMs());
+              break;
+            case VERSION:
+              info.setVersion(RuntimeConstants.VERSION);
+              break;
+            case SAFE_MODE:
+              info.setSafeMode(mMasterProcess.isSafeMode());
+              break;
+            default:
+              LOG.warn("Unrecognized master info field: " + field);
+          }
+        }
+        return new GetMasterInfoTResponse(info);
       }
     });
   }

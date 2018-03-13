@@ -19,6 +19,8 @@ import alluxio.exception.AlluxioException;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.thrift.AlluxioTException;
 import alluxio.thrift.BlockMasterClientService;
+import alluxio.thrift.BlockMasterInfo;
+import alluxio.thrift.BlockMasterInfoField;
 import alluxio.thrift.GetBlockInfoTOptions;
 import alluxio.thrift.GetBlockInfoTResponse;
 import alluxio.thrift.GetBlockMasterInfoTOptions;
@@ -35,10 +37,12 @@ import alluxio.thrift.WorkerInfo;
 import alluxio.wire.ThriftUtils;
 
 import com.google.common.base.Preconditions;
+import org.apache.thrift.TException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -136,12 +140,40 @@ public final class BlockMasterClientServiceHandler implements BlockMasterClientS
 
   @Override
   public GetBlockMasterInfoTResponse getBlockMasterInfo(final GetBlockMasterInfoTOptions options)
-      throws AlluxioTException {
+      throws TException {
     return RpcUtils.call(LOG, new RpcUtils.RpcCallable<GetBlockMasterInfoTResponse>() {
       @Override
       public GetBlockMasterInfoTResponse call() throws AlluxioException {
-        return new GetBlockMasterInfoTResponse(ThriftUtils
-            .toThrift(mBlockMaster.getBlockMasterInfo()));
+        BlockMasterInfo info = new alluxio.thrift.BlockMasterInfo();
+        for (BlockMasterInfoField field : options.getFilter() != null ? options.getFilter()
+            : Arrays.asList(BlockMasterInfoField.values())) {
+          switch (field) {
+            case LIVE_WORKER_NUM:
+              info.setLiveWorkerNum(mBlockMaster.getWorkerCount());
+              break;
+            case LOST_WORKER_NUM:
+              info.setLostWorkerNum(mBlockMaster.getLostWorkerCount());
+              break;
+            case CAPACITY_BYTES:
+              info.setCapacityBytes(mBlockMaster.getCapacityBytes());
+              break;
+            case USED_BYTES:
+              info.setUsedBytes(mBlockMaster.getUsedBytes());
+              break;
+            case FREE_BYTES:
+              info.setUsedBytes(mBlockMaster.getCapacityBytes() - mBlockMaster.getUsedBytes());
+              break;
+            case CAPACITY_BYTES_ON_TIERS:
+              info.setCapacityBytesOnTiers(mBlockMaster.getTotalBytesOnTiers());
+              break;
+            case USED_BYTES_ON_TIERS:
+              info.setUsedBytesOnTiers(mBlockMaster.getUsedBytesOnTiers());
+              break;
+            default:
+              LOG.warn("Unrecognized master info field: " + field);
+          }
+        }
+        return new GetBlockMasterInfoTResponse(info);
       }
     });
   }

@@ -3,6 +3,16 @@ namespace java alluxio.thrift
 include "common.thrift"
 include "exception.thrift"
 
+enum MasterInfoField {
+  MASTER_ADDRESS,
+  WEB_PORT,
+  RPC_PORT,
+  START_TIME_MS,
+  UP_TIME_MS,
+  VERSION,
+  SAFE_MODE
+}
+
 struct MasterInfo {
  1: string masterAddress
  2: i32 webPort
@@ -13,7 +23,9 @@ struct MasterInfo {
  7: bool safeMode
 }
 
-struct GetMasterInfoTOptions {}
+struct GetMasterInfoTOptions {
+  1: set<MasterInfoField> filter
+}
 
 struct GetMasterInfoTResponse {
   1: MasterInfo masterInfo

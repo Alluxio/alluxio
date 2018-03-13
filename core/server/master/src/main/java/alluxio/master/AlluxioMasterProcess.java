@@ -28,7 +28,6 @@ import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 import alluxio.web.MasterWebServer;
 import alluxio.web.WebServer;
-import alluxio.wire.MasterInfo;
 
 import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
@@ -179,29 +178,17 @@ public class AlluxioMasterProcess implements MasterProcess {
   }
 
   @Override
-  public MasterInfo getMasterInfo() {
-    int webPort = 0;
-    try {
-      webPort = getWebAddress().getPort();
-    } catch (NullPointerException e) {
-      // do nothing
-    }
-    return new MasterInfo().setMasterAddress(getRpcAddress().toString())
-        .setWebPort(webPort)
-        .setRpcPort(mPort)
-        .setStartTimeMs(getStartTimeMs())
-        .setUpTimeMs(getUptimeMs())
-        .setVersion(RuntimeConstants.VERSION)
-        .setSafeMode(mSafeModeManager.isInSafeMode());
-  }
-
-  @Override
   @Nullable
   public InetSocketAddress getWebAddress() {
     if (mWebServer != null) {
       return new InetSocketAddress(mWebServer.getBindHost(), mWebServer.getLocalPort());
     }
     return null;
+  }
+
+  @Override
+  public boolean isSafeMode() {
+    return mSafeModeManager.isInSafeMode();
   }
 
   @Override
@@ -403,5 +390,4 @@ public class AlluxioMasterProcess implements MasterProcess {
   public String toString() {
     return "Alluxio master @" + mRpcConnectAddress;
   }
-
 }

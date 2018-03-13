@@ -38,6 +38,7 @@ import org.slf4j.LoggerFactory;
 public class GetBlockMasterInfoTOptions implements org.apache.thrift.TBase<GetBlockMasterInfoTOptions, GetBlockMasterInfoTOptions._Fields>, java.io.Serializable, Cloneable, Comparable<GetBlockMasterInfoTOptions> {
   private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("GetBlockMasterInfoTOptions");
 
+  private static final org.apache.thrift.protocol.TField FILTER_FIELD_DESC = new org.apache.thrift.protocol.TField("filter", org.apache.thrift.protocol.TType.SET, (short)1);
 
   private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
   static {
@@ -45,10 +46,11 @@ public class GetBlockMasterInfoTOptions implements org.apache.thrift.TBase<GetBl
     schemes.put(TupleScheme.class, new GetBlockMasterInfoTOptionsTupleSchemeFactory());
   }
 
+  private Set<BlockMasterInfoField> filter; // required
 
   /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
   public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-;
+    FILTER((short)1, "filter");
 
     private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -63,6 +65,8 @@ public class GetBlockMasterInfoTOptions implements org.apache.thrift.TBase<GetBl
      */
     public static _Fields findByThriftId(int fieldId) {
       switch(fieldId) {
+        case 1: // FILTER
+          return FILTER;
         default:
           return null;
       }
@@ -101,9 +105,14 @@ public class GetBlockMasterInfoTOptions implements org.apache.thrift.TBase<GetBl
       return _fieldName;
     }
   }
+
+  // isset id assignments
   public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
   static {
     Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
+    tmpMap.put(_Fields.FILTER, new org.apache.thrift.meta_data.FieldMetaData("filter", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+        new org.apache.thrift.meta_data.SetMetaData(org.apache.thrift.protocol.TType.SET, 
+            new org.apache.thrift.meta_data.EnumMetaData(org.apache.thrift.protocol.TType.ENUM, BlockMasterInfoField.class))));
     metaDataMap = Collections.unmodifiableMap(tmpMap);
     org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(GetBlockMasterInfoTOptions.class, metaDataMap);
   }
@@ -111,10 +120,24 @@ public class GetBlockMasterInfoTOptions implements org.apache.thrift.TBase<GetBl
   public GetBlockMasterInfoTOptions() {
   }
 
+  public GetBlockMasterInfoTOptions(
+    Set<BlockMasterInfoField> filter)
+  {
+    this();
+    this.filter = filter;
+  }
+
   /**
    * Performs a deep copy on <i>other</i>.
    */
   public GetBlockMasterInfoTOptions(GetBlockMasterInfoTOptions other) {
+    if (other.isSetFilter()) {
+      Set<BlockMasterInfoField> __this__filter = new HashSet<BlockMasterInfoField>(other.filter.size());
+      for (BlockMasterInfoField other_element : other.filter) {
+        __this__filter.add(other_element);
+      }
+      this.filter = __this__filter;
+    }
   }
 
   public GetBlockMasterInfoTOptions deepCopy() {
@@ -123,15 +146,66 @@ public class GetBlockMasterInfoTOptions implements org.apache.thrift.TBase<GetBl
 
   @Override
   public void clear() {
+    this.filter = null;
+  }
+
+  public int getFilterSize() {
+    return (this.filter == null) ? 0 : this.filter.size();
+  }
+
+  public java.util.Iterator<BlockMasterInfoField> getFilterIterator() {
+    return (this.filter == null) ? null : this.filter.iterator();
+  }
+
+  public void addToFilter(BlockMasterInfoField elem) {
+    if (this.filter == null) {
+      this.filter = new HashSet<BlockMasterInfoField>();
+    }
+    this.filter.add(elem);
+  }
+
+  public Set<BlockMasterInfoField> getFilter() {
+    return this.filter;
+  }
+
+  public GetBlockMasterInfoTOptions setFilter(Set<BlockMasterInfoField> filter) {
+    this.filter = filter;
+    return this;
+  }
+
+  public void unsetFilter() {
+    this.filter = null;
+  }
+
+  /** Returns true if field filter is set (has been assigned a value) and false otherwise */
+  public boolean isSetFilter() {
+    return this.filter != null;
+  }
+
+  public void setFilterIsSet(boolean value) {
+    if (!value) {
+      this.filter = null;
+    }
   }
 
   public void setFieldValue(_Fields field, Object value) {
     switch (field) {
+    case FILTER:
+      if (value == null) {
+        unsetFilter();
+      } else {
+        setFilter((Set<BlockMasterInfoField>)value);
+      }
+      break;
+
     }
   }
 
   public Object getFieldValue(_Fields field) {
     switch (field) {
+    case FILTER:
+      return getFilter();
+
     }
     throw new IllegalStateException();
   }
@@ -143,6 +217,8 @@ public class GetBlockMasterInfoTOptions implements org.apache.thrift.TBase<GetBl
     }
 
     switch (field) {
+    case FILTER:
+      return isSetFilter();
     }
     throw new IllegalStateException();
   }
@@ -160,12 +236,26 @@ public class GetBlockMasterInfoTOptions implements org.apache.thrift.TBase<GetBl
     if (that == null)
       return false;
 
+    boolean this_present_filter = true && this.isSetFilter();
+    boolean that_present_filter = true && that.isSetFilter();
+    if (this_present_filter || that_present_filter) {
+      if (!(this_present_filter && that_present_filter))
+        return false;
+      if (!this.filter.equals(that.filter))
+        return false;
+    }
+
     return true;
   }
 
   @Override
   public int hashCode() {
     List<Object> list = new ArrayList<Object>();
+
+    boolean present_filter = true && (isSetFilter());
+    list.add(present_filter);
+    if (present_filter)
+      list.add(filter);
 
     return list.hashCode();
   }
@@ -178,6 +268,16 @@ public class GetBlockMasterInfoTOptions implements org.apache.thrift.TBase<GetBl
 
     int lastComparison = 0;
 
+    lastComparison = Boolean.valueOf(isSetFilter()).compareTo(other.isSetFilter());
+    if (lastComparison != 0) {
+      return lastComparison;
+    }
+    if (isSetFilter()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.filter, other.filter);
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+    }
     return 0;
   }
 
@@ -198,6 +298,13 @@ public class GetBlockMasterInfoTOptions implements org.apache.thrift.TBase<GetBl
     StringBuilder sb = new StringBuilder("GetBlockMasterInfoTOptions(");
     boolean first = true;
 
+    sb.append("filter:");
+    if (this.filter == null) {
+      sb.append("null");
+    } else {
+      sb.append(this.filter);
+    }
+    first = false;
     sb.append(")");
     return sb.toString();
   }
@@ -241,6 +348,24 @@ public class GetBlockMasterInfoTOptions implements org.apache.thrift.TBase<GetBl
           break;
         }
         switch (schemeField.id) {
+          case 1: // FILTER
+            if (schemeField.type == org.apache.thrift.protocol.TType.SET) {
+              {
+                org.apache.thrift.protocol.TSet _set20 = iprot.readSetBegin();
+                struct.filter = new HashSet<BlockMasterInfoField>(2*_set20.size);
+                BlockMasterInfoField _elem21;
+                for (int _i22 = 0; _i22 < _set20.size; ++_i22)
+                {
+                  _elem21 = alluxio.thrift.BlockMasterInfoField.findByValue(iprot.readI32());
+                  struct.filter.add(_elem21);
+                }
+                iprot.readSetEnd();
+              }
+              struct.setFilterIsSet(true);
+            } else { 
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+            }
+            break;
           default:
             org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
         }
@@ -256,6 +381,18 @@ public class GetBlockMasterInfoTOptions implements org.apache.thrift.TBase<GetBl
       struct.validate();
 
       oprot.writeStructBegin(STRUCT_DESC);
+      if (struct.filter != null) {
+        oprot.writeFieldBegin(FILTER_FIELD_DESC);
+        {
+          oprot.writeSetBegin(new org.apache.thrift.protocol.TSet(org.apache.thrift.protocol.TType.I32, struct.filter.size()));
+          for (BlockMasterInfoField _iter23 : struct.filter)
+          {
+            oprot.writeI32(_iter23.getValue());
+          }
+          oprot.writeSetEnd();
+        }
+        oprot.writeFieldEnd();
+      }
       oprot.writeFieldStop();
       oprot.writeStructEnd();
     }
@@ -273,11 +410,39 @@ public class GetBlockMasterInfoTOptions implements org.apache.thrift.TBase<GetBl
     @Override
     public void write(org.apache.thrift.protocol.TProtocol prot, GetBlockMasterInfoTOptions struct) throws org.apache.thrift.TException {
       TTupleProtocol oprot = (TTupleProtocol) prot;
+      BitSet optionals = new BitSet();
+      if (struct.isSetFilter()) {
+        optionals.set(0);
+      }
+      oprot.writeBitSet(optionals, 1);
+      if (struct.isSetFilter()) {
+        {
+          oprot.writeI32(struct.filter.size());
+          for (BlockMasterInfoField _iter24 : struct.filter)
+          {
+            oprot.writeI32(_iter24.getValue());
+          }
+        }
+      }
     }
 
     @Override
     public void read(org.apache.thrift.protocol.TProtocol prot, GetBlockMasterInfoTOptions struct) throws org.apache.thrift.TException {
       TTupleProtocol iprot = (TTupleProtocol) prot;
+      BitSet incoming = iprot.readBitSet(1);
+      if (incoming.get(0)) {
+        {
+          org.apache.thrift.protocol.TSet _set25 = new org.apache.thrift.protocol.TSet(org.apache.thrift.protocol.TType.I32, iprot.readI32());
+          struct.filter = new HashSet<BlockMasterInfoField>(2*_set25.size);
+          BlockMasterInfoField _elem26;
+          for (int _i27 = 0; _i27 < _set25.size; ++_i27)
+          {
+            _elem26 = alluxio.thrift.BlockMasterInfoField.findByValue(iprot.readI32());
+            struct.filter.add(_elem26);
+          }
+        }
+        struct.setFilterIsSet(true);
+      }
     }
   }
 
