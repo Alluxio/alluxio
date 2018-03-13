@@ -340,22 +340,22 @@ main() {
     exit 1
   fi
 
+  if [[ "${killonstart}" != "no" ]]; then
+      case "${ACTION}" in
+        all | local | master | masters | proxy | proxies | worker | workers | logserver)
+          stop ${ACTION}
+          sleep 1
+          ;;
+      esac
+  fi
   case "${ACTION}" in
     all)
-      if [[ "${killonstart}" != "no" ]]; then
-        stop all
-        sleep 1
-      fi
       start_masters "${FORMAT}"
       sleep 2
       start_workers "${MOPT}"
       start_proxies
       ;;
     local)
-      if [[ "${killonstart}" != "no" ]]; then
-        stop local
-        sleep 1
-      fi
       start_master "${FORMAT}"
       ALLUXIO_MASTER_SECONDARY=true
       start_master
