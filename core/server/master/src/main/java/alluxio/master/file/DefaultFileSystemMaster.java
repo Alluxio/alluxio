@@ -540,8 +540,9 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         if (SecurityUtils.isSecurityEnabled() && !root.getOwner().isEmpty()
             && !root.getOwner().equals(serverOwner)) {
           // user is not the previous owner
-          throw new PermissionDeniedException(
-              ExceptionMessage.PERMISSION_DENIED.getMessage("Unauthorized user on root"));
+          throw new PermissionDeniedException(ExceptionMessage.PERMISSION_DENIED.getMessage(String
+              .format("Unauthorized user on root. inode owner: %s current user: %s",
+                  root.getOwner(), serverOwner)));
         }
       }
 
@@ -3122,10 +3123,14 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         if (syncPlan.toUpdateDirectory()) {
           // Fingerprints only consider permissions for directory inodes.
           UfsStatus ufsStatus = ufs.getStatus(ufsUri.toString());
-          inode.setOwner(ufsStatus.getOwner());
-          inode.setGroup(ufsStatus.getGroup());
-          inode.setMode(ufsStatus.getMode());
-          inode.setUfsFingerprint(ufsFingerprint);
+          SetAttributeOptions options =
+              SetAttributeOptions.defaults().setOwner(ufsStatus.getOwner())
+                  .setGroup(ufsStatus.getGroup()).setMode(ufsStatus.getMode())
+                  .setUfsFingerprint(ufsFingerprint);
+          long opTimeMs = System.currentTimeMillis();
+          // use replayed, since updating UFS is not desired.
+          setAttributeInternal(inodePath, true, opTimeMs, options);
+          journalSetAttribute(inodePath, opTimeMs, options, journalContext);
         }
         if (syncPlan.toDelete()) {
           try {
