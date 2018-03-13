@@ -56,7 +56,6 @@ Today, Alluxio is deployed in production by 100s organizations, and runs on clus
 [Issue Tracking](https://alluxio.atlassian.net/browse/ALLUXIO) |
 [User Mailing List](https://groups.google.com/forum/?fromgroups#!forum/alluxio-users) |
 [Videos](https://www.youtube.com/channel/UCpibQsajhwqYPLYhke4RigA) |
-[Powered By](Powered-By-Alluxio.html) |
 [Github](https://github.com/alluxio/alluxio/) |
 [Releases](http://alluxio.org/releases/)
 
@@ -99,7 +98,7 @@ information of each file, including locations, checkpoint path, etc. Users can a
 
 To quickly get Alluxio up and running, take a look at our [Getting Started](Getting-Started.html)
 page which will go through how to deploy Alluxio and run some basic examples in a local environment.
-See a list of [companies](Powered-By-Alluxio.html) that are using Alluxio.
+See a list of [companies](https://alluxio.org/community/powered-by-alluxio) that are using Alluxio.
 
 ## Downloads and More
 
