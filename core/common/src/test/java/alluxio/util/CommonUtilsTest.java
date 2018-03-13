@@ -68,14 +68,12 @@ public class CommonUtilsTest {
   }
 
   @Test
-  public void getTmpDirSingleDirectory() {
+  public void getTmpDir() {
+    // Test case of 1 directory
     Configuration.set(PropertyKey.TMP_DIRS, "/tmp");
     assertEquals(Configuration.get(PropertyKey.TMP_DIRS), CommonUtils.getTmpDir());
     ConfigurationTestUtils.resetConfiguration();
-  }
-
-  @Test
-  public void getTmpDirMultipleDirectories() {
+    // Test case of multiple directories
     Configuration.set(PropertyKey.TMP_DIRS, "/tmp,/tmp2,/tmp3");
     List<String> correctDirs = Configuration.getList(PropertyKey.TMP_DIRS, ",");
     Set<String> results = new HashSet<>();
