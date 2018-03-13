@@ -320,6 +320,18 @@ final class UfsJournalLogWriter implements JournalWriter {
     LOG.info("Created current log file: {}", currentLog);
   }
 
+  /**
+   * Completes the given log.
+   *
+   * If the log is empty, it will be deleted.
+   *
+   * This method must be safe to run by multiple masters at the same time. This could happen if a
+   * primary master loses leadership and takes a while to close its journal. By the time it
+   * completes the current log, the new primary might be trying to close it as well.
+   *
+   * @param currentLog the log to complete
+   * @param nextSequenceNumber the next sequence number for the log to complete
+   */
   private void completeLog(UfsJournalFile currentLog, long nextSequenceNumber) throws IOException {
     String current = currentLog.getLocation().toString();
     if (nextSequenceNumber <= currentLog.getStart()) {
@@ -334,7 +346,7 @@ final class UfsJournalLogWriter implements JournalWriter {
         .encodeLogFileLocation(mJournal, currentLog.getStart(), nextSequenceNumber).toString();
 
     if (!mUfs.renameFile(current, completed)) {
-      // Renames could happen concurrently.
+      // Completes could happen concurrently, check whether another master already did the rename.
       if (!mUfs.exists(completed)) {
         throw new IOException(
             String.format("Failed to rename journal log from %s to %s", current, completed));
