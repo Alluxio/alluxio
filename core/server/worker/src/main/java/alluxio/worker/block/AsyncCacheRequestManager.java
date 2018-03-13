@@ -99,9 +99,10 @@ public class AsyncCacheRequestManager {
                     blockId, blockLength, sourceAddress, openUfsBlockOptions);
           }
           LOG.debug("Result of async caching block {}: {}", blockId, result);
-          mPendingRequests.remove(blockId);
         } catch (Exception e) {
           LOG.warn("Failed to complete async cache request {} from UFS", request, e.getMessage());
+        } finally {
+          mPendingRequests.remove(blockId);
         }
       });
     } catch (Exception e) {
@@ -109,6 +110,7 @@ public class AsyncCacheRequestManager {
       // netty thread pool is drained due to highly concurrent caching workloads. In these cases,
       // return as async caching is at best effort.
       LOG.warn("Failed to submit async cache request {}: {}", request, e.getMessage());
+      mPendingRequests.remove(blockId);
     }
   }
 
