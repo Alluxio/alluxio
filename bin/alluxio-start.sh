@@ -341,12 +341,12 @@ main() {
   fi
 
   if [[ "${killonstart}" != "no" ]]; then
-      case "${ACTION}" in
-        all | local | master | masters | proxy | proxies | worker | workers | logserver)
-          stop ${ACTION}
-          sleep 1
-          ;;
-      esac
+    case "${ACTION}" in
+      all | local | master | masters | proxy | proxies | worker | workers | logserver)
+        stop ${ACTION}
+        sleep 1
+        ;;
+    esac
   fi
   case "${ACTION}" in
     all)
