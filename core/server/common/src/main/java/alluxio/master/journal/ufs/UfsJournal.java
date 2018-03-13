@@ -12,7 +12,6 @@
 package alluxio.master.journal.ufs;
 
 import alluxio.Configuration;
-import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.exception.InvalidJournalEntryException;
 import alluxio.exception.status.UnavailableException;
