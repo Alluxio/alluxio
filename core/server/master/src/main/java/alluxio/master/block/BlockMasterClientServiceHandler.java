@@ -161,7 +161,7 @@ public final class BlockMasterClientServiceHandler implements BlockMasterClientS
               info.setUsedBytes(mBlockMaster.getUsedBytes());
               break;
             case FREE_BYTES:
-              info.setUsedBytes(mBlockMaster.getCapacityBytes() - mBlockMaster.getUsedBytes());
+              info.setFreeBytes(mBlockMaster.getCapacityBytes() - mBlockMaster.getUsedBytes());
               break;
             case CAPACITY_BYTES_ON_TIERS:
               info.setCapacityBytesOnTiers(mBlockMaster.getTotalBytesOnTiers());
