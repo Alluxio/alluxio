@@ -952,7 +952,9 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
   @Test
   public void createDirectoryInNestedDirectories() throws Exception {
     String ufs = Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
-    FileUtils.createDir(Paths.get(ufs, "d1", "d2", "d3").toString());
+    String targetPath = Paths.get(ufs, "d1", "d2", "d3").toString();
+    FileUtils.createDir(targetPath);
+    FileUtils.changeLocalFilePermission(targetPath, new Mode((short) 0755).toString());
     String parentPath = Paths.get(ufs, "d1").toString();
     FileUtils.changeLocalFilePermission(parentPath, new Mode((short) 0700).toString());
     AlluxioURI path = new AlluxioURI(Paths.get("/d1", "d2", "d3", "d4").toString());
@@ -974,7 +976,9 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
   @Test
   public void loadMetadataInNestedDirectories() throws Exception {
     String ufs = Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
-    FileUtils.createDir(Paths.get(ufs, "d1", "d2", "d3").toString());
+    String targetPath = Paths.get(ufs, "d1", "d2", "d3").toString();
+    FileUtils.createDir(targetPath);
+    FileUtils.changeLocalFilePermission(targetPath, new Mode((short) 0755).toString());
     String parentPath = Paths.get(ufs, "d1").toString();
     FileUtils.changeLocalFilePermission(parentPath, new Mode((short) 0700).toString());
     AlluxioURI path = new AlluxioURI(Paths.get("/d1", "d2", "d3").toString());
