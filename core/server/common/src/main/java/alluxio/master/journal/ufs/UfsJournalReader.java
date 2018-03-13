@@ -131,7 +131,14 @@ public final class UfsJournalReader implements JournalReader {
   @Override
   public Journal.JournalEntry read() throws IOException, InvalidJournalEntryException {
     while (true) {
-      Journal.JournalEntry entry = readInternal();
+      Journal.JournalEntry entry;
+      try {
+        entry = readInternal();
+      } catch (IOException e) {
+        throw new IOException(String
+            .format("Failed to read from journal: %s error: %s", mJournal.getLocation(),
+                e.getMessage()), e);
+      }
       if (entry == null) {
         return null;
       }
@@ -159,9 +166,8 @@ public final class UfsJournalReader implements JournalReader {
    * Reads the next journal entry.
    *
    * @return the journal entry, null if no journal entry is found
-   * @throws InvalidJournalEntryException if the journal entry found is invalid
    */
-  private Journal.JournalEntry readInternal() throws IOException, InvalidJournalEntryException {
+  private Journal.JournalEntry readInternal() throws IOException {
     updateInputStream();
     if (mInputStream == null) {
       return null;
