@@ -41,12 +41,14 @@ import alluxio.master.file.options.ListStatusOptions;
 import alluxio.master.file.options.MountOptions;
 import alluxio.master.file.options.RenameOptions;
 import alluxio.security.authentication.AuthenticatedClientUser;
+import alluxio.security.authorization.Mode;
 import alluxio.underfs.UfsDirectoryStatus;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemFactory;
 import alluxio.underfs.UnderFileSystemFactoryRegistry;
 import alluxio.util.CommonUtils;
 import alluxio.util.IdUtils;
+import alluxio.util.io.FileUtils;
 import alluxio.wire.CommonOptions;
 import alluxio.wire.FileInfo;
 import alluxio.wire.LoadMetadataType;
@@ -943,6 +945,50 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
   // Assert.assertEquals(0, checkpoint.getInt("editTransactionCounter").intValue());
   // Assert.assertEquals(0, checkpoint.getInt("dependencyCounter").intValue());
   // }
+
+  /**
+   * Tests creating a directory in a nested directory load the UFS status of Inodes on the path.
+   */
+  @Test
+  public void createDirectoryInNestedDirectories() throws Exception {
+    String ufs = Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
+    FileUtils.createDir(Paths.get(ufs, "d1", "d2", "d3").toString());
+    String parentPath = Paths.get(ufs, "d1").toString();
+    FileUtils.changeLocalFilePermission(parentPath, new Mode((short) 0700).toString());
+    AlluxioURI path = new AlluxioURI(Paths.get("/d1", "d2", "d3", "d4").toString());
+
+    mFsMaster.createDirectory(path, CreateDirectoryOptions.defaults()
+        .setPersisted(true).setRecursive(true).setMode(new Mode((short) 0755)));
+
+    long fileId = mFsMaster.getFileId(new AlluxioURI("/d1"));
+    FileInfo fileInfo = mFsMaster.getFileInfo(fileId);
+    Assert.assertEquals("d1", fileInfo.getName());
+    Assert.assertTrue(fileInfo.isFolder());
+    Assert.assertTrue(fileInfo.isPersisted());
+    Assert.assertEquals(0700, (short) fileInfo.getMode());
+  }
+
+  /**
+   * Tests listing a directory in a nested directory load the UFS status of Inodes on the path.
+   */
+  @Test
+  public void loadMetadataInNestedDirectories() throws Exception {
+    String ufs = Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
+    FileUtils.createDir(Paths.get(ufs, "d1", "d2", "d3").toString());
+    String parentPath = Paths.get(ufs, "d1").toString();
+    FileUtils.changeLocalFilePermission(parentPath, new Mode((short) 0700).toString());
+    AlluxioURI path = new AlluxioURI(Paths.get("/d1", "d2", "d3").toString());
+
+    mFsMaster.listStatus(path, ListStatusOptions.defaults()
+        .setLoadMetadataType(LoadMetadataType.Once));
+
+    long fileId = mFsMaster.getFileId(new AlluxioURI("/d1"));
+    FileInfo fileInfo = mFsMaster.getFileInfo(fileId);
+    Assert.assertEquals("d1", fileInfo.getName());
+    Assert.assertTrue(fileInfo.isFolder());
+    Assert.assertTrue(fileInfo.isPersisted());
+    Assert.assertEquals(0700, (short) fileInfo.getMode());
+  }
 
   /**
    * This class provides multiple concurrent threads to create all files in one directory.
