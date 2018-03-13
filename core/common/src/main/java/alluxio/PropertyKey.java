@@ -221,9 +221,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey TMP_DIRS =
       new Builder(Name.TMP_DIRS)
           .setDefaultValue("/tmp")
-          .setDescription("The path(s) to store Alluxio temporary files, such as files to be "
-              + "uploaded to object stores, use commas as delimiters. If multiple paths are "
-              + "specified, one will be selected at random per temporary file.")
+          .setDescription("The path(s) to store Alluxio temporary files, use commas as delimiters. "
+              + "If multiple paths are specified, one will be selected at random per temporary "
+              + "file. Currently, only files to be uploaded to object stores are stored in these "
+              + "paths.")
           .build();
   public static final PropertyKey VERSION =
       new Builder(Name.VERSION)
