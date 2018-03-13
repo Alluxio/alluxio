@@ -22,7 +22,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class MasterInfo implements Serializable {
-  private static final long serialVersionUID = -4151145809689718450L;
+  private static final long serialVersionUID = 5846173765139223974L;
 
   private String mMasterAddress;
   private int mWebPort;
@@ -170,20 +170,6 @@ public final class MasterInfo implements Serializable {
   protected alluxio.thrift.MasterInfo toThrift() {
     return new alluxio.thrift.MasterInfo(mMasterAddress, mWebPort, mRpcPort,
         mStartTimeMs, mUpTimeMs, mVersion, mSafeMode);
-  }
-
-  /**
-   * @param info the thrift master info to create a wire master info from
-   * @return the wire type version of the master info
-   */
-  public static MasterInfo fromThrift(alluxio.thrift.MasterInfo info) {
-    return new MasterInfo().setMasterAddress(info.getMasterAddress())
-        .setWebPort(info.getWebPort())
-        .setRpcPort(info.getRpcPort())
-        .setStartTimeMs(info.getStartTimeMs())
-        .setUpTimeMs(info.getUpTimeMs())
-        .setVersion(info.getVersion())
-        .setSafeMode(info.isSafeMode());
   }
 
   @Override

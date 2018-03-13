@@ -19,6 +19,7 @@ import alluxio.thrift.GetMasterInfoTOptions;
 import alluxio.thrift.MetaMasterClientService;
 import alluxio.wire.MasterInfo;
 import alluxio.wire.MasterInfo.MasterInfoField;
+import alluxio.wire.ThriftUtils;
 
 import java.io.IOException;
 import java.util.HashSet;
@@ -79,7 +80,7 @@ public final class RetryHandlingMetaMasterClient extends AbstractMasterClient
           thriftFields.add(field.toThrift());
         }
       }
-      return MasterInfo.fromThrift(
+      return ThriftUtils.fromThrift(
           mClient.getMasterInfo(new GetMasterInfoTOptions(thriftFields)).getMasterInfo());
     });
   }

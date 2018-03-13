@@ -174,19 +174,6 @@ public final class BlockMasterInfo implements Serializable {
         mUsedBytes, mFreeBytes, mCapacityBytesOnTiers, mUsedBytesOnTiers);
   }
 
-  /**
-   * @param info the thrift block master info to create a wire block master info from
-   * @return the wire type version of the block master info
-   */
-  public static BlockMasterInfo fromThrift(alluxio.thrift.BlockMasterInfo info) {
-    return new BlockMasterInfo().setLiveWorkerNum(info.getLiveWorkerNum())
-        .setLostWorkerNum(info.getLostWorkerNum())
-        .setCapacityBytes(info.getCapacityBytes())
-        .setUsedBytes(info.getUsedBytes())
-        .setCapacityBytesOnTiers(info.getCapacityBytesOnTiers())
-        .setUsedBytesOnTiers(info.getUsedBytesOnTiers());
-  }
-
   @Override
   public boolean equals(Object o) {
     if (this == o) {
@@ -245,5 +232,4 @@ public final class BlockMasterInfo implements Serializable {
       return BlockMasterInfoField.valueOf(field.name());
     }
   }
-
 }

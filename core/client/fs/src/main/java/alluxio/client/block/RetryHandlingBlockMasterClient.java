@@ -55,6 +55,7 @@ public final class RetryHandlingBlockMasterClient extends AbstractMasterClient
    */
   public RetryHandlingBlockMasterClient(MasterClientConfig conf) {
     super(conf);
+    mClient = null;
   }
 
   @Override
@@ -127,7 +128,7 @@ public final class RetryHandlingBlockMasterClient extends AbstractMasterClient
           thriftFields.add(field.toThrift());
         }
       }
-      return BlockMasterInfo.fromThrift(
+      return ThriftUtils.fromThrift(
           mClient.getBlockMasterInfo(new GetBlockMasterInfoTOptions(thriftFields))
               .getBlockMasterInfo());
     });

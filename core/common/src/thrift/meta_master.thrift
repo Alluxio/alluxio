@@ -4,12 +4,12 @@ include "common.thrift"
 include "exception.thrift"
 
 enum MasterInfoField {
-  MASTER_ADDRESS,
-  WEB_PORT,
-  RPC_PORT,
-  START_TIME_MS,
-  UP_TIME_MS,
-  VERSION,
+  MASTER_ADDRESS
+  WEB_PORT
+  RPC_PORT
+  START_TIME_MS
+  UP_TIME_MS
+  VERSION
   SAFE_MODE
 }
 
