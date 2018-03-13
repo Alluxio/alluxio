@@ -36,6 +36,7 @@ import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
 import alluxio.master.file.options.DeleteOptions;
 import alluxio.master.file.options.FreeOptions;
+import alluxio.master.file.options.GetStatusOptions;
 import alluxio.master.file.options.ListStatusOptions;
 import alluxio.master.file.options.MountOptions;
 import alluxio.master.file.options.RenameOptions;
@@ -62,6 +63,7 @@ import org.junit.rules.Timeout;
 import org.mockito.Matchers;
 import org.mockito.Mockito;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -770,6 +772,57 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
     filenames = files.stream().map(FileInfo::getName).collect(Collectors.toSet());
     Assert.assertTrue(filenames.contains("ufs_dir"));
     Assert.assertTrue(filenames.contains("ufs_file"));
+  }
+
+  @Test
+  public void syncDirReplay() throws Exception {
+    AlluxioURI dir = new AlluxioURI("/dir/");
+
+    // Add ufs nested file.
+    String ufs = Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
+    Files.createDirectory(Paths.get(ufs, "dir"));
+    Files.createFile(Paths.get(ufs, "dir", "file"));
+
+    File ufsDir = new File(Paths.get(ufs, "dir").toString());
+    Assert.assertTrue(ufsDir.setReadable(true, false));
+    Assert.assertTrue(ufsDir.setWritable(true, false));
+    Assert.assertTrue(ufsDir.setExecutable(true, false));
+
+    // List dir with syncing
+    FileInfo info = mFsMaster.getFileInfo(dir,
+        GetStatusOptions.defaults().setLoadMetadataType(LoadMetadataType.Never)
+            .setCommonOptions(CommonOptions.defaults().setSyncIntervalMs(0)));
+    Assert.assertNotNull(info);
+    Assert.assertEquals("dir", info.getName());
+    // Retrieve the mode
+    int mode = info.getMode();
+
+    // Update mode of the ufs dir
+    Assert.assertTrue(ufsDir.setExecutable(false, false));
+
+    // List dir with syncing, should update the mode
+    info = mFsMaster.getFileInfo(dir,
+        GetStatusOptions.defaults().setLoadMetadataType(LoadMetadataType.Never)
+            .setCommonOptions(CommonOptions.defaults().setSyncIntervalMs(0)));
+    Assert.assertNotNull(info);
+    Assert.assertEquals("dir", info.getName());
+    Assert.assertNotEquals(mode, info.getMode());
+    // update the expected mode
+    mode = info.getMode();
+
+    // Stop Alluxio.
+    mLocalAlluxioClusterResource.get().stopFS();
+    // Create the master using the existing journal.
+    MasterRegistry registry = createFileSystemMasterFromJournal();
+    FileSystemMaster fsMaster = registry.get(FileSystemMaster.class);
+
+    // List what is in Alluxio, without syncing.
+    info = fsMaster.getFileInfo(dir,
+        GetStatusOptions.defaults().setLoadMetadataType(LoadMetadataType.Never)
+            .setCommonOptions(CommonOptions.defaults().setSyncIntervalMs(-1)));
+    Assert.assertNotNull(info);
+    Assert.assertEquals("dir", info.getName());
+    Assert.assertEquals(mode, info.getMode());
   }
 
   @Test
