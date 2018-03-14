@@ -37,8 +37,21 @@ public class SummaryCommand {
   public static void printSummary() {
     System.out.println("Alluxio Cluster Summary: ");
 
+    int numOfSpaces = 4;
+    String spaces = String.format("%" + numOfSpaces + "s", "");
+
+    printMetaMasterInfo(spaces);
+    printBlockMasterInfo(spaces);
+  }
+
+  /**
+   * Prints the meta master info.
+   *
+   * @param spaces for better print out message indentations
+   */
+  private static void printMetaMasterInfo(String spaces) {
     try (MetaMasterClient client =
-        new RetryHandlingMetaMasterClient(MasterClientConfig.defaults())) {
+             new RetryHandlingMetaMasterClient(MasterClientConfig.defaults())) {
       Set<MasterInfoField> masterInfoFilter = new HashSet<>(Arrays
           .asList(MasterInfoField.MASTER_ADDRESS, MasterInfoField.WEB_PORT,
               MasterInfoField.RPC_PORT, MasterInfoField.START_TIME_MS,
@@ -46,24 +59,31 @@ public class SummaryCommand {
               MasterInfoField.SAFE_MODE));
       MasterInfo masterInfo = client.getMasterInfo(masterInfoFilter);
 
-      System.out.println("    Master Address: " + masterInfo.getMasterAddress());
-      System.out.println("    Web Port: " + masterInfo.getWebPort());
-      System.out.println("    Rpc Port: " + masterInfo.getRpcPort());
-      System.out.println("    Started: "
+      System.out.println(spaces + "Master Address: " + masterInfo.getMasterAddress());
+      System.out.println(spaces + "Web Port: " + masterInfo.getWebPort());
+      System.out.println(spaces + "Rpc Port: " + masterInfo.getRpcPort());
+      System.out.println(spaces + "Started: "
           + CommonUtils.convertMsToDate(masterInfo.getStartTimeMs()));
-      System.out.println("    Uptime: "
+      System.out.println(spaces + "Uptime: "
           + CommonUtils.convertMsToClockTime(masterInfo.getUpTimeMs()));
-      System.out.println("    Version: " + masterInfo.getVersion());
-      System.out.println("    Safe Mode: " + masterInfo.isSafeMode());
+      System.out.println(spaces + "Version: " + masterInfo.getVersion());
+      System.out.println(spaces + "Safe Mode: " + masterInfo.isSafeMode());
     } catch (UnavailableException e) {
       e.printStackTrace();
       System.out.println("Please check the Alluxio master status.");
     } catch (Exception e) {
       e.printStackTrace();
     }
+  }
 
+  /**
+   * Prints the block master info.
+   *
+   * @param spaces for better print out message indentations
+   */
+  private static void printBlockMasterInfo(String spaces) {
     try (RetryHandlingBlockMasterClient client =
-        new RetryHandlingBlockMasterClient(MasterClientConfig.defaults())) {
+             new RetryHandlingBlockMasterClient(MasterClientConfig.defaults())) {
       Set<BlockMasterInfoField> blockMasterInfoFilter = new HashSet<>(Arrays
           .asList(BlockMasterInfoField.LIVE_WORKER_NUM, BlockMasterInfoField.LOST_WORKER_NUM,
               BlockMasterInfoField.CAPACITY_BYTES, BlockMasterInfoField.USED_BYTES,
@@ -71,26 +91,32 @@ public class SummaryCommand {
               BlockMasterInfoField.USED_BYTES_ON_TIERS));
       BlockMasterInfo blockMasterInfo = client.getBlockMasterInfo(blockMasterInfoFilter);
 
-      System.out.println("    Live workers: " + blockMasterInfo.getLiveWorkerNum());
-      System.out.println("    Lost workers: " + blockMasterInfo.getLostWorkerNum());
+      System.out.println(spaces + "Live workers: " + blockMasterInfo.getLiveWorkerNum());
+      System.out.println(spaces + "Lost workers: " + blockMasterInfo.getLostWorkerNum());
 
-      System.out.println("    Total Capacity: "
+      System.out.println(spaces + "Total Capacity: "
           + FormatUtils.getSizeFromBytes(blockMasterInfo.getCapacityBytes()));
       Map<String, Long> totalCapacityOnTiers = blockMasterInfo.getCapacityBytesOnTiers();
       for (Map.Entry<String, Long> capacityBytesTier : totalCapacityOnTiers.entrySet()) {
-        System.out.println("        Tier: " + capacityBytesTier.getKey()
-            + "  Size: " + FormatUtils.getSizeFromBytes(capacityBytesTier.getValue()));
+        long value = capacityBytesTier.getValue();
+        if (value > 0) {
+          System.out.println(spaces + spaces + "Tier: " + capacityBytesTier.getKey()
+              + "  Size: " + FormatUtils.getSizeFromBytes(value));
+        }
       }
 
-      System.out.println("    Used Capacity: "
+      System.out.println(spaces + "Used Capacity: "
           + FormatUtils.getSizeFromBytes(blockMasterInfo.getUsedBytes()));
       Map<String, Long> usedCapacityOnTiers = blockMasterInfo.getUsedBytesOnTiers();
       for (Map.Entry<String, Long> usedBytesTier: usedCapacityOnTiers.entrySet()) {
-        System.out.println("        Tier: " + usedBytesTier.getKey()
-            + "  Size: " + FormatUtils.getSizeFromBytes(usedBytesTier.getValue()));
+        long value = usedBytesTier.getValue();
+        if (value > 0) {
+          System.out.println(spaces + spaces + "Tier: " + usedBytesTier.getKey()
+              + "  Size: " + FormatUtils.getSizeFromBytes(value));
+        }
       }
 
-      System.out.println("    Free Capacity: "
+      System.out.println(spaces + "Free Capacity: "
           + FormatUtils.getSizeFromBytes(blockMasterInfo.getFreeBytes()));
     } catch (Exception e) {
       e.printStackTrace();
