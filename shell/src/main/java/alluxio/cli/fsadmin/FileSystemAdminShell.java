@@ -25,7 +25,7 @@ public final class FileSystemAdminShell extends AbstractShell {
   /**
    * Construct a new instance of {@link FileSystemAdminShell}.
    */
-  FileSystemAdminShell() {
+  public FileSystemAdminShell() {
     super(null);
   }
 
