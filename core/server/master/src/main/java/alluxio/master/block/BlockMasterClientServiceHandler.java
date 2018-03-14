@@ -148,23 +148,23 @@ public final class BlockMasterClientServiceHandler implements BlockMasterClientS
         for (BlockMasterInfoField field : options.getFilter() != null ? options.getFilter()
             : Arrays.asList(BlockMasterInfoField.values())) {
           switch (field) {
+            case CAPACITY_BYTES:
+              info.setCapacityBytes(mBlockMaster.getCapacityBytes());
+              break;
+            case CAPACITY_BYTES_ON_TIERS:
+              info.setCapacityBytesOnTiers(mBlockMaster.getTotalBytesOnTiers());
+              break;
+            case FREE_BYTES:
+              info.setFreeBytes(mBlockMaster.getCapacityBytes() - mBlockMaster.getUsedBytes());
+              break;
             case LIVE_WORKER_NUM:
               info.setLiveWorkerNum(mBlockMaster.getWorkerCount());
               break;
             case LOST_WORKER_NUM:
               info.setLostWorkerNum(mBlockMaster.getLostWorkerCount());
               break;
-            case CAPACITY_BYTES:
-              info.setCapacityBytes(mBlockMaster.getCapacityBytes());
-              break;
             case USED_BYTES:
               info.setUsedBytes(mBlockMaster.getUsedBytes());
-              break;
-            case FREE_BYTES:
-              info.setFreeBytes(mBlockMaster.getCapacityBytes() - mBlockMaster.getUsedBytes());
-              break;
-            case CAPACITY_BYTES_ON_TIERS:
-              info.setCapacityBytesOnTiers(mBlockMaster.getTotalBytesOnTiers());
               break;
             case USED_BYTES_ON_TIERS:
               info.setUsedBytesOnTiers(mBlockMaster.getUsedBytesOnTiers());

@@ -62,11 +62,11 @@ public final class MetaMasterClientServiceHandler implements MetaMasterClientSer
             case MASTER_ADDRESS:
               info.setMasterAddress(mMasterProcess.getRpcAddress().toString());
               break;
-            case WEB_PORT:
-              info.setWebPort(mMasterProcess.getWebAddress().getPort());
-              break;
             case RPC_PORT:
               info.setRpcPort(mMasterProcess.getRpcAddress().getPort());
+              break;
+            case SAFE_MODE:
+              info.setSafeMode(mMasterProcess.isSafeMode());
               break;
             case START_TIME_MS:
               info.setStartTimeMs(mMasterProcess.getStartTimeMs());
@@ -77,8 +77,8 @@ public final class MetaMasterClientServiceHandler implements MetaMasterClientSer
             case VERSION:
               info.setVersion(RuntimeConstants.VERSION);
               break;
-            case SAFE_MODE:
-              info.setSafeMode(mMasterProcess.isSafeMode());
+            case WEB_PORT:
+              info.setWebPort(mMasterProcess.getWebAddress().getPort());
               break;
             default:
               LOG.warn("Unrecognized meta master info field: " + field);

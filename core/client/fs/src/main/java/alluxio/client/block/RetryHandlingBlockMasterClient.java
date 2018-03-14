@@ -46,7 +46,7 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public final class RetryHandlingBlockMasterClient extends AbstractMasterClient
     implements BlockMasterClient {
-  private BlockMasterClientService.Client mClient;
+  private BlockMasterClientService.Client mClient = null;
 
   /**
    * Creates a new block master client.
@@ -55,7 +55,6 @@ public final class RetryHandlingBlockMasterClient extends AbstractMasterClient
    */
   public RetryHandlingBlockMasterClient(MasterClientConfig conf) {
     super(conf);
-    mClient = null;
   }
 
   @Override
@@ -120,10 +119,9 @@ public final class RetryHandlingBlockMasterClient extends AbstractMasterClient
   public synchronized BlockMasterInfo getBlockMasterInfo(final Set<BlockMasterInfoField> fields)
       throws IOException {
     return retryRPC(() -> {
-      Set<alluxio.thrift.BlockMasterInfoField> thriftFields = new HashSet<>();
-      if (fields == null) {
-        thriftFields = null;
-      } else {
+      Set<alluxio.thrift.BlockMasterInfoField> thriftFields = null;
+      if (fields != null) {
+        thriftFields = new HashSet<>();
         for (BlockMasterInfoField field : fields) {
           thriftFields.add(field.toThrift());
         }
