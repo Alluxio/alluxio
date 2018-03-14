@@ -81,7 +81,7 @@ public final class MetaMasterClientServiceHandler implements MetaMasterClientSer
               info.setSafeMode(mMasterProcess.isSafeMode());
               break;
             default:
-              LOG.warn("Unrecognized master info field: " + field);
+              LOG.warn("Unrecognized meta master info field: " + field);
           }
         }
         return new GetMasterInfoTResponse(info);

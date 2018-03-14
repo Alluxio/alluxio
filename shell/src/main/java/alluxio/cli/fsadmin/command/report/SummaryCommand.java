@@ -39,11 +39,11 @@ public class SummaryCommand {
 
     try (MetaMasterClient client =
         new RetryHandlingMetaMasterClient(MasterClientConfig.defaults())) {
-      Set<MasterInfoField> masterInfoFilter = new HashSet<>((Arrays
+      Set<MasterInfoField> masterInfoFilter = new HashSet<>(Arrays
           .asList(MasterInfoField.MASTER_ADDRESS, MasterInfoField.WEB_PORT,
               MasterInfoField.RPC_PORT, MasterInfoField.START_TIME_MS,
               MasterInfoField.UP_TIME_MS, MasterInfoField.VERSION,
-              MasterInfoField.SAFE_MODE)));
+              MasterInfoField.SAFE_MODE));
       MasterInfo masterInfo = client.getMasterInfo(masterInfoFilter);
 
       System.out.println("    Master Address: " + masterInfo.getMasterAddress());

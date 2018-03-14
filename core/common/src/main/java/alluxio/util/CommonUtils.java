@@ -645,7 +645,8 @@ public final class CommonUtils {
    * @return input encoded as clock time
    */
   public static String convertMsToClockTime(long millis) {
-    Preconditions.checkArgument(millis >= 0, "Negative values are not supported");
+    Preconditions.checkArgument(millis >= 0,
+        "Negative values %s are not supported to convert to clock time.", millis);
 
     long days = millis / Constants.DAY_MS;
     long hours = (millis % Constants.DAY_MS) / Constants.HOUR_MS;

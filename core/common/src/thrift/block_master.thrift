@@ -14,13 +14,13 @@ enum BlockMasterInfoField {
 }
 
 struct BlockMasterInfo {
- 1: i32 liveWorkerNum
- 2: i32 lostWorkerNum
- 3: i64 capacityBytes
- 4: i64 usedBytes
- 5: i64 freeBytes
- 6: map<string, i64> capacityBytesOnTiers
- 7: map<string, i64> usedBytesOnTiers
+  1: i64 capacityBytes
+  2: map<string, i64> capacityBytesOnTiers
+  3: i64 freeBytes
+  4: i32 liveWorkerNum
+  5: i32 lostWorkerNum
+  6: i64 usedBytes
+  7: map<string, i64> usedBytesOnTiers
 }
 
 struct WorkerInfo {

@@ -5,22 +5,22 @@ include "exception.thrift"
 
 enum MasterInfoField {
   MASTER_ADDRESS
-  WEB_PORT
   RPC_PORT
+  SAFE_MODE
   START_TIME_MS
   UP_TIME_MS
   VERSION
-  SAFE_MODE
+  WEB_PORT
 }
 
 struct MasterInfo {
  1: string masterAddress
- 2: i32 webPort
- 3: i32 rpcPort
+ 2: i32 rpcPort
+ 3: bool safeMode
  4: i64 startTimeMs
  5: i64 upTimeMs
  6: string version
- 7: bool safeMode
+ 7: i32 webPort
 }
 
 struct GetMasterInfoTOptions {

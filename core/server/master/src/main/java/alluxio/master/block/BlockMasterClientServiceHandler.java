@@ -170,7 +170,7 @@ public final class BlockMasterClientServiceHandler implements BlockMasterClientS
               info.setUsedBytesOnTiers(mBlockMaster.getUsedBytesOnTiers());
               break;
             default:
-              LOG.warn("Unrecognized master info field: " + field);
+              LOG.warn("Unrecognized block master info field: " + field);
           }
         }
         return new GetBlockMasterInfoTResponse(info);

@@ -38,12 +38,12 @@ import org.slf4j.LoggerFactory;
 public class BlockMasterInfo implements org.apache.thrift.TBase<BlockMasterInfo, BlockMasterInfo._Fields>, java.io.Serializable, Cloneable, Comparable<BlockMasterInfo> {
   private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("BlockMasterInfo");
 
-  private static final org.apache.thrift.protocol.TField LIVE_WORKER_NUM_FIELD_DESC = new org.apache.thrift.protocol.TField("liveWorkerNum", org.apache.thrift.protocol.TType.I32, (short)1);
-  private static final org.apache.thrift.protocol.TField LOST_WORKER_NUM_FIELD_DESC = new org.apache.thrift.protocol.TField("lostWorkerNum", org.apache.thrift.protocol.TType.I32, (short)2);
-  private static final org.apache.thrift.protocol.TField CAPACITY_BYTES_FIELD_DESC = new org.apache.thrift.protocol.TField("capacityBytes", org.apache.thrift.protocol.TType.I64, (short)3);
-  private static final org.apache.thrift.protocol.TField USED_BYTES_FIELD_DESC = new org.apache.thrift.protocol.TField("usedBytes", org.apache.thrift.protocol.TType.I64, (short)4);
-  private static final org.apache.thrift.protocol.TField FREE_BYTES_FIELD_DESC = new org.apache.thrift.protocol.TField("freeBytes", org.apache.thrift.protocol.TType.I64, (short)5);
-  private static final org.apache.thrift.protocol.TField CAPACITY_BYTES_ON_TIERS_FIELD_DESC = new org.apache.thrift.protocol.TField("capacityBytesOnTiers", org.apache.thrift.protocol.TType.MAP, (short)6);
+  private static final org.apache.thrift.protocol.TField CAPACITY_BYTES_FIELD_DESC = new org.apache.thrift.protocol.TField("capacityBytes", org.apache.thrift.protocol.TType.I64, (short)1);
+  private static final org.apache.thrift.protocol.TField CAPACITY_BYTES_ON_TIERS_FIELD_DESC = new org.apache.thrift.protocol.TField("capacityBytesOnTiers", org.apache.thrift.protocol.TType.MAP, (short)2);
+  private static final org.apache.thrift.protocol.TField FREE_BYTES_FIELD_DESC = new org.apache.thrift.protocol.TField("freeBytes", org.apache.thrift.protocol.TType.I64, (short)3);
+  private static final org.apache.thrift.protocol.TField LIVE_WORKER_NUM_FIELD_DESC = new org.apache.thrift.protocol.TField("liveWorkerNum", org.apache.thrift.protocol.TType.I32, (short)4);
+  private static final org.apache.thrift.protocol.TField LOST_WORKER_NUM_FIELD_DESC = new org.apache.thrift.protocol.TField("lostWorkerNum", org.apache.thrift.protocol.TType.I32, (short)5);
+  private static final org.apache.thrift.protocol.TField USED_BYTES_FIELD_DESC = new org.apache.thrift.protocol.TField("usedBytes", org.apache.thrift.protocol.TType.I64, (short)6);
   private static final org.apache.thrift.protocol.TField USED_BYTES_ON_TIERS_FIELD_DESC = new org.apache.thrift.protocol.TField("usedBytesOnTiers", org.apache.thrift.protocol.TType.MAP, (short)7);
 
   private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
@@ -52,22 +52,22 @@ public class BlockMasterInfo implements org.apache.thrift.TBase<BlockMasterInfo,
     schemes.put(TupleScheme.class, new BlockMasterInfoTupleSchemeFactory());
   }
 
+  private long capacityBytes; // required
+  private Map<String,Long> capacityBytesOnTiers; // required
+  private long freeBytes; // required
   private int liveWorkerNum; // required
   private int lostWorkerNum; // required
-  private long capacityBytes; // required
   private long usedBytes; // required
-  private long freeBytes; // required
-  private Map<String,Long> capacityBytesOnTiers; // required
   private Map<String,Long> usedBytesOnTiers; // required
 
   /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
   public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-    LIVE_WORKER_NUM((short)1, "liveWorkerNum"),
-    LOST_WORKER_NUM((short)2, "lostWorkerNum"),
-    CAPACITY_BYTES((short)3, "capacityBytes"),
-    USED_BYTES((short)4, "usedBytes"),
-    FREE_BYTES((short)5, "freeBytes"),
-    CAPACITY_BYTES_ON_TIERS((short)6, "capacityBytesOnTiers"),
+    CAPACITY_BYTES((short)1, "capacityBytes"),
+    CAPACITY_BYTES_ON_TIERS((short)2, "capacityBytesOnTiers"),
+    FREE_BYTES((short)3, "freeBytes"),
+    LIVE_WORKER_NUM((short)4, "liveWorkerNum"),
+    LOST_WORKER_NUM((short)5, "lostWorkerNum"),
+    USED_BYTES((short)6, "usedBytes"),
     USED_BYTES_ON_TIERS((short)7, "usedBytesOnTiers");
 
     private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
@@ -83,18 +83,18 @@ public class BlockMasterInfo implements org.apache.thrift.TBase<BlockMasterInfo,
      */
     public static _Fields findByThriftId(int fieldId) {
       switch(fieldId) {
-        case 1: // LIVE_WORKER_NUM
-          return LIVE_WORKER_NUM;
-        case 2: // LOST_WORKER_NUM
-          return LOST_WORKER_NUM;
-        case 3: // CAPACITY_BYTES
+        case 1: // CAPACITY_BYTES
           return CAPACITY_BYTES;
-        case 4: // USED_BYTES
-          return USED_BYTES;
-        case 5: // FREE_BYTES
-          return FREE_BYTES;
-        case 6: // CAPACITY_BYTES_ON_TIERS
+        case 2: // CAPACITY_BYTES_ON_TIERS
           return CAPACITY_BYTES_ON_TIERS;
+        case 3: // FREE_BYTES
+          return FREE_BYTES;
+        case 4: // LIVE_WORKER_NUM
+          return LIVE_WORKER_NUM;
+        case 5: // LOST_WORKER_NUM
+          return LOST_WORKER_NUM;
+        case 6: // USED_BYTES
+          return USED_BYTES;
         case 7: // USED_BYTES_ON_TIERS
           return USED_BYTES_ON_TIERS;
         default:
@@ -137,29 +137,29 @@ public class BlockMasterInfo implements org.apache.thrift.TBase<BlockMasterInfo,
   }
 
   // isset id assignments
-  private static final int __LIVEWORKERNUM_ISSET_ID = 0;
-  private static final int __LOSTWORKERNUM_ISSET_ID = 1;
-  private static final int __CAPACITYBYTES_ISSET_ID = 2;
-  private static final int __USEDBYTES_ISSET_ID = 3;
-  private static final int __FREEBYTES_ISSET_ID = 4;
+  private static final int __CAPACITYBYTES_ISSET_ID = 0;
+  private static final int __FREEBYTES_ISSET_ID = 1;
+  private static final int __LIVEWORKERNUM_ISSET_ID = 2;
+  private static final int __LOSTWORKERNUM_ISSET_ID = 3;
+  private static final int __USEDBYTES_ISSET_ID = 4;
   private byte __isset_bitfield = 0;
   public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
   static {
     Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
-    tmpMap.put(_Fields.LIVE_WORKER_NUM, new org.apache.thrift.meta_data.FieldMetaData("liveWorkerNum", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I32)));
-    tmpMap.put(_Fields.LOST_WORKER_NUM, new org.apache.thrift.meta_data.FieldMetaData("lostWorkerNum", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I32)));
     tmpMap.put(_Fields.CAPACITY_BYTES, new org.apache.thrift.meta_data.FieldMetaData("capacityBytes", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
-    tmpMap.put(_Fields.USED_BYTES, new org.apache.thrift.meta_data.FieldMetaData("usedBytes", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
-    tmpMap.put(_Fields.FREE_BYTES, new org.apache.thrift.meta_data.FieldMetaData("freeBytes", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
     tmpMap.put(_Fields.CAPACITY_BYTES_ON_TIERS, new org.apache.thrift.meta_data.FieldMetaData("capacityBytesOnTiers", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.MapMetaData(org.apache.thrift.protocol.TType.MAP, 
             new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING), 
             new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64))));
+    tmpMap.put(_Fields.FREE_BYTES, new org.apache.thrift.meta_data.FieldMetaData("freeBytes", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
+    tmpMap.put(_Fields.LIVE_WORKER_NUM, new org.apache.thrift.meta_data.FieldMetaData("liveWorkerNum", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I32)));
+    tmpMap.put(_Fields.LOST_WORKER_NUM, new org.apache.thrift.meta_data.FieldMetaData("lostWorkerNum", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I32)));
+    tmpMap.put(_Fields.USED_BYTES, new org.apache.thrift.meta_data.FieldMetaData("usedBytes", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
     tmpMap.put(_Fields.USED_BYTES_ON_TIERS, new org.apache.thrift.meta_data.FieldMetaData("usedBytesOnTiers", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.MapMetaData(org.apache.thrift.protocol.TType.MAP, 
             new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING), 
@@ -172,26 +172,26 @@ public class BlockMasterInfo implements org.apache.thrift.TBase<BlockMasterInfo,
   }
 
   public BlockMasterInfo(
+    long capacityBytes,
+    Map<String,Long> capacityBytesOnTiers,
+    long freeBytes,
     int liveWorkerNum,
     int lostWorkerNum,
-    long capacityBytes,
     long usedBytes,
-    long freeBytes,
-    Map<String,Long> capacityBytesOnTiers,
     Map<String,Long> usedBytesOnTiers)
   {
     this();
+    this.capacityBytes = capacityBytes;
+    setCapacityBytesIsSet(true);
+    this.capacityBytesOnTiers = capacityBytesOnTiers;
+    this.freeBytes = freeBytes;
+    setFreeBytesIsSet(true);
     this.liveWorkerNum = liveWorkerNum;
     setLiveWorkerNumIsSet(true);
     this.lostWorkerNum = lostWorkerNum;
     setLostWorkerNumIsSet(true);
-    this.capacityBytes = capacityBytes;
-    setCapacityBytesIsSet(true);
     this.usedBytes = usedBytes;
     setUsedBytesIsSet(true);
-    this.freeBytes = freeBytes;
-    setFreeBytesIsSet(true);
-    this.capacityBytesOnTiers = capacityBytesOnTiers;
     this.usedBytesOnTiers = usedBytesOnTiers;
   }
 
@@ -200,15 +200,15 @@ public class BlockMasterInfo implements org.apache.thrift.TBase<BlockMasterInfo,
    */
   public BlockMasterInfo(BlockMasterInfo other) {
     __isset_bitfield = other.__isset_bitfield;
-    this.liveWorkerNum = other.liveWorkerNum;
-    this.lostWorkerNum = other.lostWorkerNum;
     this.capacityBytes = other.capacityBytes;
-    this.usedBytes = other.usedBytes;
-    this.freeBytes = other.freeBytes;
     if (other.isSetCapacityBytesOnTiers()) {
       Map<String,Long> __this__capacityBytesOnTiers = new HashMap<String,Long>(other.capacityBytesOnTiers);
       this.capacityBytesOnTiers = __this__capacityBytesOnTiers;
     }
+    this.freeBytes = other.freeBytes;
+    this.liveWorkerNum = other.liveWorkerNum;
+    this.lostWorkerNum = other.lostWorkerNum;
+    this.usedBytes = other.usedBytes;
     if (other.isSetUsedBytesOnTiers()) {
       Map<String,Long> __this__usedBytesOnTiers = new HashMap<String,Long>(other.usedBytesOnTiers);
       this.usedBytesOnTiers = __this__usedBytesOnTiers;
@@ -221,18 +221,99 @@ public class BlockMasterInfo implements org.apache.thrift.TBase<BlockMasterInfo,
 
   @Override
   public void clear() {
+    setCapacityBytesIsSet(false);
+    this.capacityBytes = 0;
+    this.capacityBytesOnTiers = null;
+    setFreeBytesIsSet(false);
+    this.freeBytes = 0;
     setLiveWorkerNumIsSet(false);
     this.liveWorkerNum = 0;
     setLostWorkerNumIsSet(false);
     this.lostWorkerNum = 0;
-    setCapacityBytesIsSet(false);
-    this.capacityBytes = 0;
     setUsedBytesIsSet(false);
     this.usedBytes = 0;
-    setFreeBytesIsSet(false);
-    this.freeBytes = 0;
-    this.capacityBytesOnTiers = null;
     this.usedBytesOnTiers = null;
+  }
+
+  public long getCapacityBytes() {
+    return this.capacityBytes;
+  }
+
+  public BlockMasterInfo setCapacityBytes(long capacityBytes) {
+    this.capacityBytes = capacityBytes;
+    setCapacityBytesIsSet(true);
+    return this;
+  }
+
+  public void unsetCapacityBytes() {
+    __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __CAPACITYBYTES_ISSET_ID);
+  }
+
+  /** Returns true if field capacityBytes is set (has been assigned a value) and false otherwise */
+  public boolean isSetCapacityBytes() {
+    return EncodingUtils.testBit(__isset_bitfield, __CAPACITYBYTES_ISSET_ID);
+  }
+
+  public void setCapacityBytesIsSet(boolean value) {
+    __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __CAPACITYBYTES_ISSET_ID, value);
+  }
+
+  public int getCapacityBytesOnTiersSize() {
+    return (this.capacityBytesOnTiers == null) ? 0 : this.capacityBytesOnTiers.size();
+  }
+
+  public void putToCapacityBytesOnTiers(String key, long val) {
+    if (this.capacityBytesOnTiers == null) {
+      this.capacityBytesOnTiers = new HashMap<String,Long>();
+    }
+    this.capacityBytesOnTiers.put(key, val);
+  }
+
+  public Map<String,Long> getCapacityBytesOnTiers() {
+    return this.capacityBytesOnTiers;
+  }
+
+  public BlockMasterInfo setCapacityBytesOnTiers(Map<String,Long> capacityBytesOnTiers) {
+    this.capacityBytesOnTiers = capacityBytesOnTiers;
+    return this;
+  }
+
+  public void unsetCapacityBytesOnTiers() {
+    this.capacityBytesOnTiers = null;
+  }
+
+  /** Returns true if field capacityBytesOnTiers is set (has been assigned a value) and false otherwise */
+  public boolean isSetCapacityBytesOnTiers() {
+    return this.capacityBytesOnTiers != null;
+  }
+
+  public void setCapacityBytesOnTiersIsSet(boolean value) {
+    if (!value) {
+      this.capacityBytesOnTiers = null;
+    }
+  }
+
+  public long getFreeBytes() {
+    return this.freeBytes;
+  }
+
+  public BlockMasterInfo setFreeBytes(long freeBytes) {
+    this.freeBytes = freeBytes;
+    setFreeBytesIsSet(true);
+    return this;
+  }
+
+  public void unsetFreeBytes() {
+    __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __FREEBYTES_ISSET_ID);
+  }
+
+  /** Returns true if field freeBytes is set (has been assigned a value) and false otherwise */
+  public boolean isSetFreeBytes() {
+    return EncodingUtils.testBit(__isset_bitfield, __FREEBYTES_ISSET_ID);
+  }
+
+  public void setFreeBytesIsSet(boolean value) {
+    __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __FREEBYTES_ISSET_ID, value);
   }
 
   public int getLiveWorkerNum() {
@@ -281,29 +362,6 @@ public class BlockMasterInfo implements org.apache.thrift.TBase<BlockMasterInfo,
     __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __LOSTWORKERNUM_ISSET_ID, value);
   }
 
-  public long getCapacityBytes() {
-    return this.capacityBytes;
-  }
-
-  public BlockMasterInfo setCapacityBytes(long capacityBytes) {
-    this.capacityBytes = capacityBytes;
-    setCapacityBytesIsSet(true);
-    return this;
-  }
-
-  public void unsetCapacityBytes() {
-    __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __CAPACITYBYTES_ISSET_ID);
-  }
-
-  /** Returns true if field capacityBytes is set (has been assigned a value) and false otherwise */
-  public boolean isSetCapacityBytes() {
-    return EncodingUtils.testBit(__isset_bitfield, __CAPACITYBYTES_ISSET_ID);
-  }
-
-  public void setCapacityBytesIsSet(boolean value) {
-    __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __CAPACITYBYTES_ISSET_ID, value);
-  }
-
   public long getUsedBytes() {
     return this.usedBytes;
   }
@@ -325,64 +383,6 @@ public class BlockMasterInfo implements org.apache.thrift.TBase<BlockMasterInfo,
 
   public void setUsedBytesIsSet(boolean value) {
     __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __USEDBYTES_ISSET_ID, value);
-  }
-
-  public long getFreeBytes() {
-    return this.freeBytes;
-  }
-
-  public BlockMasterInfo setFreeBytes(long freeBytes) {
-    this.freeBytes = freeBytes;
-    setFreeBytesIsSet(true);
-    return this;
-  }
-
-  public void unsetFreeBytes() {
-    __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __FREEBYTES_ISSET_ID);
-  }
-
-  /** Returns true if field freeBytes is set (has been assigned a value) and false otherwise */
-  public boolean isSetFreeBytes() {
-    return EncodingUtils.testBit(__isset_bitfield, __FREEBYTES_ISSET_ID);
-  }
-
-  public void setFreeBytesIsSet(boolean value) {
-    __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __FREEBYTES_ISSET_ID, value);
-  }
-
-  public int getCapacityBytesOnTiersSize() {
-    return (this.capacityBytesOnTiers == null) ? 0 : this.capacityBytesOnTiers.size();
-  }
-
-  public void putToCapacityBytesOnTiers(String key, long val) {
-    if (this.capacityBytesOnTiers == null) {
-      this.capacityBytesOnTiers = new HashMap<String,Long>();
-    }
-    this.capacityBytesOnTiers.put(key, val);
-  }
-
-  public Map<String,Long> getCapacityBytesOnTiers() {
-    return this.capacityBytesOnTiers;
-  }
-
-  public BlockMasterInfo setCapacityBytesOnTiers(Map<String,Long> capacityBytesOnTiers) {
-    this.capacityBytesOnTiers = capacityBytesOnTiers;
-    return this;
-  }
-
-  public void unsetCapacityBytesOnTiers() {
-    this.capacityBytesOnTiers = null;
-  }
-
-  /** Returns true if field capacityBytesOnTiers is set (has been assigned a value) and false otherwise */
-  public boolean isSetCapacityBytesOnTiers() {
-    return this.capacityBytesOnTiers != null;
-  }
-
-  public void setCapacityBytesOnTiersIsSet(boolean value) {
-    if (!value) {
-      this.capacityBytesOnTiers = null;
-    }
   }
 
   public int getUsedBytesOnTiersSize() {
@@ -422,6 +422,30 @@ public class BlockMasterInfo implements org.apache.thrift.TBase<BlockMasterInfo,
 
   public void setFieldValue(_Fields field, Object value) {
     switch (field) {
+    case CAPACITY_BYTES:
+      if (value == null) {
+        unsetCapacityBytes();
+      } else {
+        setCapacityBytes((Long)value);
+      }
+      break;
+
+    case CAPACITY_BYTES_ON_TIERS:
+      if (value == null) {
+        unsetCapacityBytesOnTiers();
+      } else {
+        setCapacityBytesOnTiers((Map<String,Long>)value);
+      }
+      break;
+
+    case FREE_BYTES:
+      if (value == null) {
+        unsetFreeBytes();
+      } else {
+        setFreeBytes((Long)value);
+      }
+      break;
+
     case LIVE_WORKER_NUM:
       if (value == null) {
         unsetLiveWorkerNum();
@@ -438,35 +462,11 @@ public class BlockMasterInfo implements org.apache.thrift.TBase<BlockMasterInfo,
       }
       break;
 
-    case CAPACITY_BYTES:
-      if (value == null) {
-        unsetCapacityBytes();
-      } else {
-        setCapacityBytes((Long)value);
-      }
-      break;
-
     case USED_BYTES:
       if (value == null) {
         unsetUsedBytes();
       } else {
         setUsedBytes((Long)value);
-      }
-      break;
-
-    case FREE_BYTES:
-      if (value == null) {
-        unsetFreeBytes();
-      } else {
-        setFreeBytes((Long)value);
-      }
-      break;
-
-    case CAPACITY_BYTES_ON_TIERS:
-      if (value == null) {
-        unsetCapacityBytesOnTiers();
-      } else {
-        setCapacityBytesOnTiers((Map<String,Long>)value);
       }
       break;
 
@@ -483,23 +483,23 @@ public class BlockMasterInfo implements org.apache.thrift.TBase<BlockMasterInfo,
 
   public Object getFieldValue(_Fields field) {
     switch (field) {
+    case CAPACITY_BYTES:
+      return getCapacityBytes();
+
+    case CAPACITY_BYTES_ON_TIERS:
+      return getCapacityBytesOnTiers();
+
+    case FREE_BYTES:
+      return getFreeBytes();
+
     case LIVE_WORKER_NUM:
       return getLiveWorkerNum();
 
     case LOST_WORKER_NUM:
       return getLostWorkerNum();
 
-    case CAPACITY_BYTES:
-      return getCapacityBytes();
-
     case USED_BYTES:
       return getUsedBytes();
-
-    case FREE_BYTES:
-      return getFreeBytes();
-
-    case CAPACITY_BYTES_ON_TIERS:
-      return getCapacityBytesOnTiers();
 
     case USED_BYTES_ON_TIERS:
       return getUsedBytesOnTiers();
@@ -515,18 +515,18 @@ public class BlockMasterInfo implements org.apache.thrift.TBase<BlockMasterInfo,
     }
 
     switch (field) {
+    case CAPACITY_BYTES:
+      return isSetCapacityBytes();
+    case CAPACITY_BYTES_ON_TIERS:
+      return isSetCapacityBytesOnTiers();
+    case FREE_BYTES:
+      return isSetFreeBytes();
     case LIVE_WORKER_NUM:
       return isSetLiveWorkerNum();
     case LOST_WORKER_NUM:
       return isSetLostWorkerNum();
-    case CAPACITY_BYTES:
-      return isSetCapacityBytes();
     case USED_BYTES:
       return isSetUsedBytes();
-    case FREE_BYTES:
-      return isSetFreeBytes();
-    case CAPACITY_BYTES_ON_TIERS:
-      return isSetCapacityBytesOnTiers();
     case USED_BYTES_ON_TIERS:
       return isSetUsedBytesOnTiers();
     }
@@ -546,6 +546,33 @@ public class BlockMasterInfo implements org.apache.thrift.TBase<BlockMasterInfo,
     if (that == null)
       return false;
 
+    boolean this_present_capacityBytes = true;
+    boolean that_present_capacityBytes = true;
+    if (this_present_capacityBytes || that_present_capacityBytes) {
+      if (!(this_present_capacityBytes && that_present_capacityBytes))
+        return false;
+      if (this.capacityBytes != that.capacityBytes)
+        return false;
+    }
+
+    boolean this_present_capacityBytesOnTiers = true && this.isSetCapacityBytesOnTiers();
+    boolean that_present_capacityBytesOnTiers = true && that.isSetCapacityBytesOnTiers();
+    if (this_present_capacityBytesOnTiers || that_present_capacityBytesOnTiers) {
+      if (!(this_present_capacityBytesOnTiers && that_present_capacityBytesOnTiers))
+        return false;
+      if (!this.capacityBytesOnTiers.equals(that.capacityBytesOnTiers))
+        return false;
+    }
+
+    boolean this_present_freeBytes = true;
+    boolean that_present_freeBytes = true;
+    if (this_present_freeBytes || that_present_freeBytes) {
+      if (!(this_present_freeBytes && that_present_freeBytes))
+        return false;
+      if (this.freeBytes != that.freeBytes)
+        return false;
+    }
+
     boolean this_present_liveWorkerNum = true;
     boolean that_present_liveWorkerNum = true;
     if (this_present_liveWorkerNum || that_present_liveWorkerNum) {
@@ -564,39 +591,12 @@ public class BlockMasterInfo implements org.apache.thrift.TBase<BlockMasterInfo,
         return false;
     }
 
-    boolean this_present_capacityBytes = true;
-    boolean that_present_capacityBytes = true;
-    if (this_present_capacityBytes || that_present_capacityBytes) {
-      if (!(this_present_capacityBytes && that_present_capacityBytes))
-        return false;
-      if (this.capacityBytes != that.capacityBytes)
-        return false;
-    }
-
     boolean this_present_usedBytes = true;
     boolean that_present_usedBytes = true;
     if (this_present_usedBytes || that_present_usedBytes) {
       if (!(this_present_usedBytes && that_present_usedBytes))
         return false;
       if (this.usedBytes != that.usedBytes)
-        return false;
-    }
-
-    boolean this_present_freeBytes = true;
-    boolean that_present_freeBytes = true;
-    if (this_present_freeBytes || that_present_freeBytes) {
-      if (!(this_present_freeBytes && that_present_freeBytes))
-        return false;
-      if (this.freeBytes != that.freeBytes)
-        return false;
-    }
-
-    boolean this_present_capacityBytesOnTiers = true && this.isSetCapacityBytesOnTiers();
-    boolean that_present_capacityBytesOnTiers = true && that.isSetCapacityBytesOnTiers();
-    if (this_present_capacityBytesOnTiers || that_present_capacityBytesOnTiers) {
-      if (!(this_present_capacityBytesOnTiers && that_present_capacityBytesOnTiers))
-        return false;
-      if (!this.capacityBytesOnTiers.equals(that.capacityBytesOnTiers))
         return false;
     }
 
@@ -616,6 +616,21 @@ public class BlockMasterInfo implements org.apache.thrift.TBase<BlockMasterInfo,
   public int hashCode() {
     List<Object> list = new ArrayList<Object>();
 
+    boolean present_capacityBytes = true;
+    list.add(present_capacityBytes);
+    if (present_capacityBytes)
+      list.add(capacityBytes);
+
+    boolean present_capacityBytesOnTiers = true && (isSetCapacityBytesOnTiers());
+    list.add(present_capacityBytesOnTiers);
+    if (present_capacityBytesOnTiers)
+      list.add(capacityBytesOnTiers);
+
+    boolean present_freeBytes = true;
+    list.add(present_freeBytes);
+    if (present_freeBytes)
+      list.add(freeBytes);
+
     boolean present_liveWorkerNum = true;
     list.add(present_liveWorkerNum);
     if (present_liveWorkerNum)
@@ -626,25 +641,10 @@ public class BlockMasterInfo implements org.apache.thrift.TBase<BlockMasterInfo,
     if (present_lostWorkerNum)
       list.add(lostWorkerNum);
 
-    boolean present_capacityBytes = true;
-    list.add(present_capacityBytes);
-    if (present_capacityBytes)
-      list.add(capacityBytes);
-
     boolean present_usedBytes = true;
     list.add(present_usedBytes);
     if (present_usedBytes)
       list.add(usedBytes);
-
-    boolean present_freeBytes = true;
-    list.add(present_freeBytes);
-    if (present_freeBytes)
-      list.add(freeBytes);
-
-    boolean present_capacityBytesOnTiers = true && (isSetCapacityBytesOnTiers());
-    list.add(present_capacityBytesOnTiers);
-    if (present_capacityBytesOnTiers)
-      list.add(capacityBytesOnTiers);
 
     boolean present_usedBytesOnTiers = true && (isSetUsedBytesOnTiers());
     list.add(present_usedBytesOnTiers);
@@ -662,6 +662,36 @@ public class BlockMasterInfo implements org.apache.thrift.TBase<BlockMasterInfo,
 
     int lastComparison = 0;
 
+    lastComparison = Boolean.valueOf(isSetCapacityBytes()).compareTo(other.isSetCapacityBytes());
+    if (lastComparison != 0) {
+      return lastComparison;
+    }
+    if (isSetCapacityBytes()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.capacityBytes, other.capacityBytes);
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+    }
+    lastComparison = Boolean.valueOf(isSetCapacityBytesOnTiers()).compareTo(other.isSetCapacityBytesOnTiers());
+    if (lastComparison != 0) {
+      return lastComparison;
+    }
+    if (isSetCapacityBytesOnTiers()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.capacityBytesOnTiers, other.capacityBytesOnTiers);
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+    }
+    lastComparison = Boolean.valueOf(isSetFreeBytes()).compareTo(other.isSetFreeBytes());
+    if (lastComparison != 0) {
+      return lastComparison;
+    }
+    if (isSetFreeBytes()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.freeBytes, other.freeBytes);
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+    }
     lastComparison = Boolean.valueOf(isSetLiveWorkerNum()).compareTo(other.isSetLiveWorkerNum());
     if (lastComparison != 0) {
       return lastComparison;
@@ -682,42 +712,12 @@ public class BlockMasterInfo implements org.apache.thrift.TBase<BlockMasterInfo,
         return lastComparison;
       }
     }
-    lastComparison = Boolean.valueOf(isSetCapacityBytes()).compareTo(other.isSetCapacityBytes());
-    if (lastComparison != 0) {
-      return lastComparison;
-    }
-    if (isSetCapacityBytes()) {
-      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.capacityBytes, other.capacityBytes);
-      if (lastComparison != 0) {
-        return lastComparison;
-      }
-    }
     lastComparison = Boolean.valueOf(isSetUsedBytes()).compareTo(other.isSetUsedBytes());
     if (lastComparison != 0) {
       return lastComparison;
     }
     if (isSetUsedBytes()) {
       lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.usedBytes, other.usedBytes);
-      if (lastComparison != 0) {
-        return lastComparison;
-      }
-    }
-    lastComparison = Boolean.valueOf(isSetFreeBytes()).compareTo(other.isSetFreeBytes());
-    if (lastComparison != 0) {
-      return lastComparison;
-    }
-    if (isSetFreeBytes()) {
-      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.freeBytes, other.freeBytes);
-      if (lastComparison != 0) {
-        return lastComparison;
-      }
-    }
-    lastComparison = Boolean.valueOf(isSetCapacityBytesOnTiers()).compareTo(other.isSetCapacityBytesOnTiers());
-    if (lastComparison != 0) {
-      return lastComparison;
-    }
-    if (isSetCapacityBytesOnTiers()) {
-      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.capacityBytesOnTiers, other.capacityBytesOnTiers);
       if (lastComparison != 0) {
         return lastComparison;
       }
@@ -752,24 +752,8 @@ public class BlockMasterInfo implements org.apache.thrift.TBase<BlockMasterInfo,
     StringBuilder sb = new StringBuilder("BlockMasterInfo(");
     boolean first = true;
 
-    sb.append("liveWorkerNum:");
-    sb.append(this.liveWorkerNum);
-    first = false;
-    if (!first) sb.append(", ");
-    sb.append("lostWorkerNum:");
-    sb.append(this.lostWorkerNum);
-    first = false;
-    if (!first) sb.append(", ");
     sb.append("capacityBytes:");
     sb.append(this.capacityBytes);
-    first = false;
-    if (!first) sb.append(", ");
-    sb.append("usedBytes:");
-    sb.append(this.usedBytes);
-    first = false;
-    if (!first) sb.append(", ");
-    sb.append("freeBytes:");
-    sb.append(this.freeBytes);
     first = false;
     if (!first) sb.append(", ");
     sb.append("capacityBytesOnTiers:");
@@ -778,6 +762,22 @@ public class BlockMasterInfo implements org.apache.thrift.TBase<BlockMasterInfo,
     } else {
       sb.append(this.capacityBytesOnTiers);
     }
+    first = false;
+    if (!first) sb.append(", ");
+    sb.append("freeBytes:");
+    sb.append(this.freeBytes);
+    first = false;
+    if (!first) sb.append(", ");
+    sb.append("liveWorkerNum:");
+    sb.append(this.liveWorkerNum);
+    first = false;
+    if (!first) sb.append(", ");
+    sb.append("lostWorkerNum:");
+    sb.append(this.lostWorkerNum);
+    first = false;
+    if (!first) sb.append(", ");
+    sb.append("usedBytes:");
+    sb.append(this.usedBytes);
     first = false;
     if (!first) sb.append(", ");
     sb.append("usedBytesOnTiers:");
@@ -832,23 +832,7 @@ public class BlockMasterInfo implements org.apache.thrift.TBase<BlockMasterInfo,
           break;
         }
         switch (schemeField.id) {
-          case 1: // LIVE_WORKER_NUM
-            if (schemeField.type == org.apache.thrift.protocol.TType.I32) {
-              struct.liveWorkerNum = iprot.readI32();
-              struct.setLiveWorkerNumIsSet(true);
-            } else { 
-              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-            }
-            break;
-          case 2: // LOST_WORKER_NUM
-            if (schemeField.type == org.apache.thrift.protocol.TType.I32) {
-              struct.lostWorkerNum = iprot.readI32();
-              struct.setLostWorkerNumIsSet(true);
-            } else { 
-              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-            }
-            break;
-          case 3: // CAPACITY_BYTES
+          case 1: // CAPACITY_BYTES
             if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
               struct.capacityBytes = iprot.readI64();
               struct.setCapacityBytesIsSet(true);
@@ -856,23 +840,7 @@ public class BlockMasterInfo implements org.apache.thrift.TBase<BlockMasterInfo,
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
-          case 4: // USED_BYTES
-            if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
-              struct.usedBytes = iprot.readI64();
-              struct.setUsedBytesIsSet(true);
-            } else { 
-              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-            }
-            break;
-          case 5: // FREE_BYTES
-            if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
-              struct.freeBytes = iprot.readI64();
-              struct.setFreeBytesIsSet(true);
-            } else { 
-              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-            }
-            break;
-          case 6: // CAPACITY_BYTES_ON_TIERS
+          case 2: // CAPACITY_BYTES_ON_TIERS
             if (schemeField.type == org.apache.thrift.protocol.TType.MAP) {
               {
                 org.apache.thrift.protocol.TMap _map0 = iprot.readMapBegin();
@@ -888,6 +856,38 @@ public class BlockMasterInfo implements org.apache.thrift.TBase<BlockMasterInfo,
                 iprot.readMapEnd();
               }
               struct.setCapacityBytesOnTiersIsSet(true);
+            } else { 
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+            }
+            break;
+          case 3: // FREE_BYTES
+            if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
+              struct.freeBytes = iprot.readI64();
+              struct.setFreeBytesIsSet(true);
+            } else { 
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+            }
+            break;
+          case 4: // LIVE_WORKER_NUM
+            if (schemeField.type == org.apache.thrift.protocol.TType.I32) {
+              struct.liveWorkerNum = iprot.readI32();
+              struct.setLiveWorkerNumIsSet(true);
+            } else { 
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+            }
+            break;
+          case 5: // LOST_WORKER_NUM
+            if (schemeField.type == org.apache.thrift.protocol.TType.I32) {
+              struct.lostWorkerNum = iprot.readI32();
+              struct.setLostWorkerNumIsSet(true);
+            } else { 
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+            }
+            break;
+          case 6: // USED_BYTES
+            if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
+              struct.usedBytes = iprot.readI64();
+              struct.setUsedBytesIsSet(true);
             } else { 
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
@@ -927,20 +927,8 @@ public class BlockMasterInfo implements org.apache.thrift.TBase<BlockMasterInfo,
       struct.validate();
 
       oprot.writeStructBegin(STRUCT_DESC);
-      oprot.writeFieldBegin(LIVE_WORKER_NUM_FIELD_DESC);
-      oprot.writeI32(struct.liveWorkerNum);
-      oprot.writeFieldEnd();
-      oprot.writeFieldBegin(LOST_WORKER_NUM_FIELD_DESC);
-      oprot.writeI32(struct.lostWorkerNum);
-      oprot.writeFieldEnd();
       oprot.writeFieldBegin(CAPACITY_BYTES_FIELD_DESC);
       oprot.writeI64(struct.capacityBytes);
-      oprot.writeFieldEnd();
-      oprot.writeFieldBegin(USED_BYTES_FIELD_DESC);
-      oprot.writeI64(struct.usedBytes);
-      oprot.writeFieldEnd();
-      oprot.writeFieldBegin(FREE_BYTES_FIELD_DESC);
-      oprot.writeI64(struct.freeBytes);
       oprot.writeFieldEnd();
       if (struct.capacityBytesOnTiers != null) {
         oprot.writeFieldBegin(CAPACITY_BYTES_ON_TIERS_FIELD_DESC);
@@ -955,6 +943,18 @@ public class BlockMasterInfo implements org.apache.thrift.TBase<BlockMasterInfo,
         }
         oprot.writeFieldEnd();
       }
+      oprot.writeFieldBegin(FREE_BYTES_FIELD_DESC);
+      oprot.writeI64(struct.freeBytes);
+      oprot.writeFieldEnd();
+      oprot.writeFieldBegin(LIVE_WORKER_NUM_FIELD_DESC);
+      oprot.writeI32(struct.liveWorkerNum);
+      oprot.writeFieldEnd();
+      oprot.writeFieldBegin(LOST_WORKER_NUM_FIELD_DESC);
+      oprot.writeI32(struct.lostWorkerNum);
+      oprot.writeFieldEnd();
+      oprot.writeFieldBegin(USED_BYTES_FIELD_DESC);
+      oprot.writeI64(struct.usedBytes);
+      oprot.writeFieldEnd();
       if (struct.usedBytesOnTiers != null) {
         oprot.writeFieldBegin(USED_BYTES_ON_TIERS_FIELD_DESC);
         {
@@ -986,42 +986,30 @@ public class BlockMasterInfo implements org.apache.thrift.TBase<BlockMasterInfo,
     public void write(org.apache.thrift.protocol.TProtocol prot, BlockMasterInfo struct) throws org.apache.thrift.TException {
       TTupleProtocol oprot = (TTupleProtocol) prot;
       BitSet optionals = new BitSet();
-      if (struct.isSetLiveWorkerNum()) {
+      if (struct.isSetCapacityBytes()) {
         optionals.set(0);
       }
-      if (struct.isSetLostWorkerNum()) {
+      if (struct.isSetCapacityBytesOnTiers()) {
         optionals.set(1);
       }
-      if (struct.isSetCapacityBytes()) {
+      if (struct.isSetFreeBytes()) {
         optionals.set(2);
       }
-      if (struct.isSetUsedBytes()) {
+      if (struct.isSetLiveWorkerNum()) {
         optionals.set(3);
       }
-      if (struct.isSetFreeBytes()) {
+      if (struct.isSetLostWorkerNum()) {
         optionals.set(4);
       }
-      if (struct.isSetCapacityBytesOnTiers()) {
+      if (struct.isSetUsedBytes()) {
         optionals.set(5);
       }
       if (struct.isSetUsedBytesOnTiers()) {
         optionals.set(6);
       }
       oprot.writeBitSet(optionals, 7);
-      if (struct.isSetLiveWorkerNum()) {
-        oprot.writeI32(struct.liveWorkerNum);
-      }
-      if (struct.isSetLostWorkerNum()) {
-        oprot.writeI32(struct.lostWorkerNum);
-      }
       if (struct.isSetCapacityBytes()) {
         oprot.writeI64(struct.capacityBytes);
-      }
-      if (struct.isSetUsedBytes()) {
-        oprot.writeI64(struct.usedBytes);
-      }
-      if (struct.isSetFreeBytes()) {
-        oprot.writeI64(struct.freeBytes);
       }
       if (struct.isSetCapacityBytesOnTiers()) {
         {
@@ -1032,6 +1020,18 @@ public class BlockMasterInfo implements org.apache.thrift.TBase<BlockMasterInfo,
             oprot.writeI64(_iter10.getValue());
           }
         }
+      }
+      if (struct.isSetFreeBytes()) {
+        oprot.writeI64(struct.freeBytes);
+      }
+      if (struct.isSetLiveWorkerNum()) {
+        oprot.writeI32(struct.liveWorkerNum);
+      }
+      if (struct.isSetLostWorkerNum()) {
+        oprot.writeI32(struct.lostWorkerNum);
+      }
+      if (struct.isSetUsedBytes()) {
+        oprot.writeI64(struct.usedBytes);
       }
       if (struct.isSetUsedBytesOnTiers()) {
         {
@@ -1050,26 +1050,10 @@ public class BlockMasterInfo implements org.apache.thrift.TBase<BlockMasterInfo,
       TTupleProtocol iprot = (TTupleProtocol) prot;
       BitSet incoming = iprot.readBitSet(7);
       if (incoming.get(0)) {
-        struct.liveWorkerNum = iprot.readI32();
-        struct.setLiveWorkerNumIsSet(true);
-      }
-      if (incoming.get(1)) {
-        struct.lostWorkerNum = iprot.readI32();
-        struct.setLostWorkerNumIsSet(true);
-      }
-      if (incoming.get(2)) {
         struct.capacityBytes = iprot.readI64();
         struct.setCapacityBytesIsSet(true);
       }
-      if (incoming.get(3)) {
-        struct.usedBytes = iprot.readI64();
-        struct.setUsedBytesIsSet(true);
-      }
-      if (incoming.get(4)) {
-        struct.freeBytes = iprot.readI64();
-        struct.setFreeBytesIsSet(true);
-      }
-      if (incoming.get(5)) {
+      if (incoming.get(1)) {
         {
           org.apache.thrift.protocol.TMap _map12 = new org.apache.thrift.protocol.TMap(org.apache.thrift.protocol.TType.STRING, org.apache.thrift.protocol.TType.I64, iprot.readI32());
           struct.capacityBytesOnTiers = new HashMap<String,Long>(2*_map12.size);
@@ -1083,6 +1067,22 @@ public class BlockMasterInfo implements org.apache.thrift.TBase<BlockMasterInfo,
           }
         }
         struct.setCapacityBytesOnTiersIsSet(true);
+      }
+      if (incoming.get(2)) {
+        struct.freeBytes = iprot.readI64();
+        struct.setFreeBytesIsSet(true);
+      }
+      if (incoming.get(3)) {
+        struct.liveWorkerNum = iprot.readI32();
+        struct.setLiveWorkerNumIsSet(true);
+      }
+      if (incoming.get(4)) {
+        struct.lostWorkerNum = iprot.readI32();
+        struct.setLostWorkerNumIsSet(true);
+      }
+      if (incoming.get(5)) {
+        struct.usedBytes = iprot.readI64();
+        struct.setUsedBytesIsSet(true);
       }
       if (incoming.get(6)) {
         {

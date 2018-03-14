@@ -13,12 +13,12 @@ import org.apache.thrift.TEnum;
 
 public enum MasterInfoField implements org.apache.thrift.TEnum {
   MASTER_ADDRESS(0),
-  WEB_PORT(1),
-  RPC_PORT(2),
+  RPC_PORT(1),
+  SAFE_MODE(2),
   START_TIME_MS(3),
   UP_TIME_MS(4),
   VERSION(5),
-  SAFE_MODE(6);
+  WEB_PORT(6);
 
   private final int value;
 
@@ -42,9 +42,9 @@ public enum MasterInfoField implements org.apache.thrift.TEnum {
       case 0:
         return MASTER_ADDRESS;
       case 1:
-        return WEB_PORT;
-      case 2:
         return RPC_PORT;
+      case 2:
+        return SAFE_MODE;
       case 3:
         return START_TIME_MS;
       case 4:
@@ -52,7 +52,7 @@ public enum MasterInfoField implements org.apache.thrift.TEnum {
       case 5:
         return VERSION;
       case 6:
-        return SAFE_MODE;
+        return WEB_PORT;
       default:
         return null;
     }

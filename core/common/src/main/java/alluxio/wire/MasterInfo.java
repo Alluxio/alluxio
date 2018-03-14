@@ -25,12 +25,12 @@ public final class MasterInfo implements Serializable {
   private static final long serialVersionUID = 5846173765139223974L;
 
   private String mMasterAddress;
-  private int mWebPort;
   private int mRpcPort;
+  private boolean mSafeMode;
   private long mStartTimeMs;
   private long mUpTimeMs;
   private String mVersion;
-  private boolean mSafeMode;
+  private int mWebPort;
 
   /**
    * Creates a new instance of {@link MasterInfo}.
@@ -44,12 +44,12 @@ public final class MasterInfo implements Serializable {
    */
   protected MasterInfo(alluxio.thrift.MasterInfo masterInfo) {
     mMasterAddress = masterInfo.getMasterAddress();
-    mWebPort = masterInfo.getWebPort();
     mRpcPort = masterInfo.getRpcPort();
+    mSafeMode = masterInfo.isSafeMode();
     mStartTimeMs = masterInfo.getStartTimeMs();
     mUpTimeMs = masterInfo.getUpTimeMs();
     mVersion = masterInfo.getVersion();
-    mSafeMode = masterInfo.isSafeMode();
+    mWebPort = masterInfo.getWebPort();
   }
 
   /**
@@ -60,17 +60,17 @@ public final class MasterInfo implements Serializable {
   }
 
   /**
-   * @return the web port
-   */
-  public int getWebPort() {
-    return mWebPort;
-  }
-
-  /**
    * @return the rpc port
    */
   public int getRpcPort() {
     return mRpcPort;
+  }
+
+  /**
+   * @return if the cluster is running in safe mode
+   */
+  public boolean isSafeMode() {
+    return mSafeMode;
   }
 
   /**
@@ -95,10 +95,10 @@ public final class MasterInfo implements Serializable {
   }
 
   /**
-   * @return if the cluster is running in safe mode
+   * @return the web port
    */
-  public boolean isSafeMode() {
-    return mSafeMode;
+  public int getWebPort() {
+    return mWebPort;
   }
 
   /**
@@ -111,20 +111,20 @@ public final class MasterInfo implements Serializable {
   }
 
   /**
-   * @param webPort the web port to use
-   * @return the master information
-   */
-  public MasterInfo setWebPort(int webPort) {
-    mWebPort = webPort;
-    return this;
-  }
-
-  /**
    * @param rpcPort the master address to use
    * @return the master information
    */
   public MasterInfo setRpcPort(int rpcPort) {
     mRpcPort = rpcPort;
+    return this;
+  }
+
+  /**
+   * @param safeMode whether Alluxio is in safe mode or not
+   * @return the master information
+   */
+  public MasterInfo setSafeMode(boolean safeMode) {
+    mSafeMode = safeMode;
     return this;
   }
 
@@ -156,11 +156,11 @@ public final class MasterInfo implements Serializable {
   }
 
   /**
-   * @param safeMode whether Alluxio is in safe mode or not
+   * @param webPort the web port to use
    * @return the master information
    */
-  public MasterInfo setSafeMode(boolean safeMode) {
-    mSafeMode = safeMode;
+  public MasterInfo setWebPort(int webPort) {
+    mWebPort = webPort;
     return this;
   }
 
@@ -168,8 +168,8 @@ public final class MasterInfo implements Serializable {
    * @return thrift representation of the master information
    */
   protected alluxio.thrift.MasterInfo toThrift() {
-    return new alluxio.thrift.MasterInfo(mMasterAddress, mWebPort, mRpcPort,
-        mStartTimeMs, mUpTimeMs, mVersion, mSafeMode);
+    return new alluxio.thrift.MasterInfo(mMasterAddress, mRpcPort, mSafeMode,
+        mStartTimeMs, mUpTimeMs, mVersion, mWebPort);
   }
 
   @Override
@@ -181,24 +181,24 @@ public final class MasterInfo implements Serializable {
       return false;
     }
     MasterInfo that = (MasterInfo) o;
-    return mMasterAddress.equals(that.mMasterAddress) && mWebPort == that.mWebPort
-        && mRpcPort == that.mRpcPort && mStartTimeMs == that.mStartTimeMs
+    return mMasterAddress.equals(that.mMasterAddress) && mRpcPort == that.mRpcPort
+        && mSafeMode == that.mSafeMode && mStartTimeMs == that.mStartTimeMs
         && mUpTimeMs == that.mUpTimeMs && mVersion.equals(that.mVersion)
-        && mSafeMode == that.mSafeMode;
+        && mWebPort == that.mWebPort;
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mMasterAddress, mWebPort,
-        mRpcPort, mStartTimeMs, mUpTimeMs, mVersion, mSafeMode);
+    return Objects.hashCode(mMasterAddress, mRpcPort, mSafeMode,
+        mStartTimeMs, mUpTimeMs, mVersion, mWebPort);
   }
 
   @Override
   public String toString() {
     return Objects.toStringHelper(this).add("masterAddress", mMasterAddress)
-        .add("webPort", mWebPort).add("rpcPort", mRpcPort)
+        .add("rpcPort", mRpcPort).add("safeMode", mSafeMode)
         .add("startTimeMs", mStartTimeMs).add("upTimeMs", mUpTimeMs)
-        .add("version", mVersion).add("safeMode", mSafeMode).toString();
+        .add("version", mVersion).add("webPort", mWebPort).toString();
   }
 
   /**
@@ -206,12 +206,12 @@ public final class MasterInfo implements Serializable {
    */
   public static enum MasterInfoField {
     MASTER_ADDRESS,
-    WEB_PORT,
     RPC_PORT,
+    SAFE_MODE,
     START_TIME_MS,
     UP_TIME_MS,
     VERSION,
-    SAFE_MODE;
+    WEB_PORT;
 
     /**
      * @return the thrift representation of this master info field

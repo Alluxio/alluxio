@@ -26,12 +26,12 @@ import javax.annotation.concurrent.NotThreadSafe;
 public final class BlockMasterInfo implements Serializable {
   private static final long serialVersionUID = -7436215337909224255L;
 
+  private long mCapacityBytes;
+  private Map<String, Long> mCapacityBytesOnTiers;
+  private long mFreeBytes;
   private int mLiveWorkerNum;
   private int mLostWorkerNum;
-  private long mCapacityBytes;
   private long mUsedBytes;
-  private long mFreeBytes;
-  private Map<String, Long> mCapacityBytesOnTiers;
   private Map<String, Long> mUsedBytesOnTiers;
 
   /**
@@ -45,13 +45,34 @@ public final class BlockMasterInfo implements Serializable {
    * @param blockMasterInfo the thrift representation of a block master information
    */
   protected BlockMasterInfo(alluxio.thrift.BlockMasterInfo blockMasterInfo) {
+    mCapacityBytes = blockMasterInfo.getCapacityBytes();
+    mCapacityBytesOnTiers = blockMasterInfo.getCapacityBytesOnTiers();
+    mFreeBytes = blockMasterInfo.getFreeBytes();
     mLiveWorkerNum = blockMasterInfo.getLiveWorkerNum();
     mLostWorkerNum = blockMasterInfo.getLostWorkerNum();
-    mCapacityBytes = blockMasterInfo.getCapacityBytes();
     mUsedBytes = blockMasterInfo.getUsedBytes();
-    mFreeBytes = blockMasterInfo.getFreeBytes();
-    mCapacityBytesOnTiers = blockMasterInfo.getCapacityBytesOnTiers();
     mUsedBytesOnTiers = blockMasterInfo.getUsedBytesOnTiers();
+  }
+
+  /**
+   * @return the total capacity bytes
+   */
+  public long getCapacityBytes() {
+    return mCapacityBytes;
+  }
+
+  /**
+   * @return the total capacity bytes on tiers
+   */
+  public Map<String, Long> getCapacityBytesOnTiers() {
+    return mCapacityBytesOnTiers;
+  }
+
+  /**
+   * @return the free capacity in bytes
+   */
+  public long getFreeBytes() {
+    return mFreeBytes;
   }
 
   /**
@@ -69,13 +90,6 @@ public final class BlockMasterInfo implements Serializable {
   }
 
   /**
-   * @return the total capacity bytes
-   */
-  public long getCapacityBytes() {
-    return mCapacityBytes;
-  }
-
-  /**
    * @return the used capacity bytes
    */
   public long getUsedBytes() {
@@ -83,24 +97,37 @@ public final class BlockMasterInfo implements Serializable {
   }
 
   /**
-   * @return the free capacity in bytes
-   */
-  public long getFreeBytes() {
-    return mFreeBytes;
-  }
-
-  /**
-   * @return the total capacity bytes on tiers
-   */
-  public Map<String, Long> getCapacityBytesOnTiers() {
-    return mCapacityBytesOnTiers;
-  }
-
-  /**
    * @return the used capacity bytes on tiers
    */
   public Map<String, Long> getUsedBytesOnTiers() {
     return mUsedBytesOnTiers;
+  }
+
+  /**
+   * @param capacityBytes the total capacity bytes to use
+   * @return the block master information
+   */
+  public BlockMasterInfo setCapacityBytes(long capacityBytes) {
+    mCapacityBytes = capacityBytes;
+    return this;
+  }
+
+  /**
+   * @param capacityBytesOnTiers the total capacity bytes on tiers to use
+   * @return the block master information
+   */
+  public BlockMasterInfo setCapacityBytesOnTiers(Map<String, Long> capacityBytesOnTiers) {
+    mCapacityBytesOnTiers = new HashMap<>(capacityBytesOnTiers);
+    return this;
+  }
+
+  /**
+   * @param freeBytes the free capacity bytes to use
+   * @return the block master information
+   */
+  public BlockMasterInfo setFreeBytes(long freeBytes) {
+    mFreeBytes = freeBytes;
+    return this;
   }
 
   /**
@@ -122,38 +149,11 @@ public final class BlockMasterInfo implements Serializable {
   }
 
   /**
-   * @param capacityBytes the total capacity bytes to use
-   * @return the block master information
-   */
-  public BlockMasterInfo setCapacityBytes(long capacityBytes) {
-    mCapacityBytes = capacityBytes;
-    return this;
-  }
-
-  /**
    * @param usedBytes the used capacity bytes to use
    * @return the block master information
    */
   public BlockMasterInfo setUsedBytes(long usedBytes) {
     mUsedBytes = usedBytes;
-    return this;
-  }
-
-  /**
-   * @param freeBytes the free capacity bytes to use
-   * @return the block master information
-   */
-  public BlockMasterInfo setFreeBytes(long freeBytes) {
-    mFreeBytes = freeBytes;
-    return this;
-  }
-
-  /**
-   * @param capacityBytesOnTiers the total capacity bytes on tiers to use
-   * @return the block master information
-   */
-  public BlockMasterInfo setCapacityBytesOnTiers(Map<String, Long> capacityBytesOnTiers) {
-    mCapacityBytesOnTiers = new HashMap<>(capacityBytesOnTiers);
     return this;
   }
 
@@ -170,8 +170,8 @@ public final class BlockMasterInfo implements Serializable {
    * @return thrift representation of the block master information
    */
   protected alluxio.thrift.BlockMasterInfo toThrift() {
-    return new alluxio.thrift.BlockMasterInfo(mLiveWorkerNum, mLostWorkerNum, mCapacityBytes,
-        mUsedBytes, mFreeBytes, mCapacityBytesOnTiers, mUsedBytesOnTiers);
+    return new alluxio.thrift.BlockMasterInfo(mCapacityBytes, mCapacityBytesOnTiers,
+        mFreeBytes, mLiveWorkerNum, mLostWorkerNum, mUsedBytes, mUsedBytesOnTiers);
   }
 
   @Override
@@ -183,25 +183,27 @@ public final class BlockMasterInfo implements Serializable {
       return false;
     }
     BlockMasterInfo that = (BlockMasterInfo) o;
-    return mLiveWorkerNum == that.mLiveWorkerNum && mLostWorkerNum == that.mLostWorkerNum
-        && mCapacityBytes == that.mCapacityBytes && mUsedBytes == that.mUsedBytes
-        && mFreeBytes == that.mFreeBytes
+    return mCapacityBytes == that.mCapacityBytes
         && mCapacityBytesOnTiers.equals(that.mCapacityBytesOnTiers)
+        && mFreeBytes == that.mFreeBytes && mLiveWorkerNum == that.mLiveWorkerNum
+        && mLostWorkerNum == that.mLostWorkerNum && mUsedBytes == that.mUsedBytes
         && mUsedBytesOnTiers.equals(that.mUsedBytesOnTiers);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mLiveWorkerNum, mLostWorkerNum, mCapacityBytes, mUsedBytes,
-        mFreeBytes, mCapacityBytesOnTiers, mUsedBytesOnTiers);
+    return Objects.hashCode(mCapacityBytes, mCapacityBytesOnTiers, mFreeBytes,
+        mLiveWorkerNum, mLostWorkerNum, mUsedBytes, mUsedBytesOnTiers);
   }
 
   @Override
   public String toString() {
-    return Objects.toStringHelper(this).add("liveWorkerNum", mLiveWorkerNum)
-        .add("lostWorkerNum", mLostWorkerNum).add("capacityBytes", mCapacityBytes)
-        .add("usedBytes", mUsedBytes).add("freeBytes", mFreeBytes)
+    return Objects.toStringHelper(this).add("capacityBytes", mCapacityBytes)
         .add("capacityBytesOnTiers", mCapacityBytesOnTiers)
+        .add("freeBytes", mFreeBytes)
+        .add("liveWorkerNum", mLiveWorkerNum)
+        .add("lostWorkerNum", mLostWorkerNum)
+        .add("usedBytes", mUsedBytes)
         .add("usedBytesOnTiers", mUsedBytesOnTiers).toString();
   }
 
@@ -209,12 +211,12 @@ public final class BlockMasterInfo implements Serializable {
    * Enum representing the fields of the block master info.
    */
   public static enum BlockMasterInfoField {
+    CAPACITY_BYTES,
+    CAPACITY_BYTES_ON_TIERS,
+    FREE_BYTES,
     LIVE_WORKER_NUM,
     LOST_WORKER_NUM,
-    CAPACITY_BYTES,
     USED_BYTES,
-    FREE_BYTES,
-    CAPACITY_BYTES_ON_TIERS,
     USED_BYTES_ON_TIERS;
 
     /**
