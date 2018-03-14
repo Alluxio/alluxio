@@ -1021,10 +1021,9 @@ public class InodeTree implements JournalEntryIterable {
               dir.setOwner(status.getOwner())
                   .setGroup(status.getGroup())
                   .setMode(status.getMode());
-            } catch (FileNotFoundException e) {
-              // Retry creation given that the directory might have just been removed.
-              LOG.warn("Directory {} no longer exists on UFS. Retry creation.", ufsUri);
-              continue;
+            } catch (Exception e) {
+              throw new IOException(String.format("Cannot create or sync UFS directory %s: %s.",
+                  ufsUri, e.getMessage()));
             }
           }
           dir.setPersistenceState(PersistenceState.PERSISTED);
