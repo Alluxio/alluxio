@@ -43,6 +43,7 @@ import alluxio.master.file.options.RenameOptions;
 import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.security.authorization.Mode;
 import alluxio.underfs.UfsDirectoryStatus;
+import alluxio.underfs.UfsStatus;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemFactory;
 import alluxio.underfs.UnderFileSystemFactoryRegistry;
@@ -848,6 +849,8 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
         .thenReturn(new UfsDirectoryStatus("test", "owner", "group", (short) 511));
     Mockito.when(mockUfs.mkdirs(Matchers.eq(ufsBase + "/dir1"), Matchers.any()))
         .thenThrow(new IOException("ufs unavailable"));
+    Mockito.when(mockUfs.getStatus(Matchers.any()))
+        .thenReturn(new UfsDirectoryStatus("test", "test", "test", (short) 0755));
 
     UnderFileSystemFactoryRegistry.register(mockUfsFactory);
 
