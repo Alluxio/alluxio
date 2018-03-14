@@ -39,13 +39,23 @@ import java.util.Set;
 public class SummaryCommand extends AbstractCommand {
 
   @Override
-  public int run(CommandLine cl) throws IOException {
+  public int run(CommandLine cl) throws UnavailableException, IOException {
     System.out.println("Alluxio Cluster Summary: ");
 
     int numOfSpaces = 4;
     String spaces = String.format("%" + numOfSpaces + "s", "");
 
-    // Prints Alluxio meta master information
+    printMetaMasterInfo(spaces);
+    printBlockMasterInfo(spaces);
+    return 0;
+  }
+
+  /**
+   * Prints Alluxio meta master information.
+   *
+   * @param spaces for better indentation
+   */
+  private void printMetaMasterInfo(String spaces) throws UnavailableException, IOException{
     try (MetaMasterClient client =
              new RetryHandlingMetaMasterClient(MasterClientConfig.defaults())) {
       Set<MasterInfoField> masterInfoFilter = new HashSet<>(Arrays
@@ -66,13 +76,15 @@ public class SummaryCommand extends AbstractCommand {
           + CommonUtils.convertMsToClockTime(masterInfo.getUpTimeMs()));
       System.out.println(spaces + "Version: " + masterInfo.getVersion());
       System.out.println(spaces + "Safe Mode: " + masterInfo.isSafeMode());
-    } catch (UnavailableException e) {
-      e.printStackTrace();
-      System.out.println("Please check your Alluxio master status.");
-      return 1;
     }
+  }
 
-    // Prints Alluxio block master information
+  /**
+   * Prints Alluxio block master information.
+   *
+   * @param spaces for better indentation
+   */
+  private void printBlockMasterInfo(String spaces) throws UnavailableException, IOException{
     try (RetryHandlingBlockMasterClient client =
              new RetryHandlingBlockMasterClient(MasterClientConfig.defaults())) {
       Set<BlockMasterInfoField> blockMasterInfoFilter = new HashSet<>(Arrays
@@ -90,6 +102,7 @@ public class SummaryCommand extends AbstractCommand {
 
       System.out.println(spaces + "Total Capacity: "
           + FormatUtils.getSizeFromBytes(blockMasterInfo.getCapacityBytes()));
+
       Map<String, Long> totalCapacityOnTiers = blockMasterInfo.getCapacityBytesOnTiers();
       if (totalCapacityOnTiers != null) {
         for (Map.Entry<String, Long> capacityBytesTier : totalCapacityOnTiers.entrySet()) {
@@ -103,6 +116,7 @@ public class SummaryCommand extends AbstractCommand {
 
       System.out.println(spaces + "Used Capacity: "
           + FormatUtils.getSizeFromBytes(blockMasterInfo.getUsedBytes()));
+
       Map<String, Long> usedCapacityOnTiers = blockMasterInfo.getUsedBytesOnTiers();
       if (usedCapacityOnTiers != null) {
         for (Map.Entry<String, Long> usedBytesTier: usedCapacityOnTiers.entrySet()) {
@@ -116,12 +130,7 @@ public class SummaryCommand extends AbstractCommand {
 
       System.out.println(spaces + "Free Capacity: "
           + FormatUtils.getSizeFromBytes(blockMasterInfo.getFreeBytes()));
-    } catch (UnavailableException e) {
-      e.printStackTrace();
-      System.out.println("Please check your Alluxio master status.");
-      return 1;
     }
-    return 0;
   }
 
   @Override
