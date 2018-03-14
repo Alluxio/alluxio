@@ -1011,19 +1011,20 @@ public class InodeTree implements JournalEntryIterable {
                   .setGroup(dir.getGroup()).setMode(new Mode(dir.getMode()));
           if (!ufs.mkdirs(ufsUri, mkdirsOptions)) {
             // Directory might already exist. Try loading the status from ufs.
+            UfsStatus status;
             try {
-              UfsStatus status = ufs.getStatus(ufsUri);
-              if (status.isFile()) {
-                throw new InvalidPathException(String.format(
-                    "Error persisting directory. A file exists at the UFS location %s.", ufsUri));
-              }
-              dir.setOwner(status.getOwner())
-                  .setGroup(status.getGroup())
-                  .setMode(status.getMode());
+              status = ufs.getStatus(ufsUri);
             } catch (Exception e) {
-              throw new IOException(String.format("Cannot create or sync UFS directory %s.",
-                  ufsUri), e);
+              throw new IOException(String.format("Cannot sync UFS directory %s: %s.", ufsUri,
+                  e.getMessage()), e);
             }
+            if (status.isFile()) {
+              throw new InvalidPathException(String.format(
+                  "Error persisting directory. A file exists at the UFS location %s.", ufsUri));
+            }
+            dir.setOwner(status.getOwner())
+                .setGroup(status.getGroup())
+                .setMode(status.getMode());
           }
           dir.setPersistenceState(PersistenceState.PERSISTED);
 
