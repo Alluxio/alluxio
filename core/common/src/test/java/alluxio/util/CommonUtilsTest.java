@@ -18,7 +18,6 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import alluxio.Configuration;
-import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.security.group.CachedGroupMapping;
@@ -31,6 +30,7 @@ import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
+import org.powermock.reflect.Whitebox;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -49,7 +49,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * Tests the {@link CommonUtils} class.
  */
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({ShellUtils.class, GroupMappingService.Factory.class})
+@PrepareForTest({CommonUtils.class, ShellUtils.class, GroupMappingService.Factory.class})
 public class CommonUtilsTest {
 
   /**
@@ -69,19 +69,20 @@ public class CommonUtilsTest {
 
   @Test
   public void getTmpDir() {
-    // Test case of 1 directory
-    Configuration.set(PropertyKey.TMP_DIRS, "/tmp");
-    assertEquals(Configuration.get(PropertyKey.TMP_DIRS), CommonUtils.getTmpDir());
-    ConfigurationTestUtils.resetConfiguration();
-    // Test case of multiple directories
-    Configuration.set(PropertyKey.TMP_DIRS, "/tmp,/tmp2,/tmp3");
-    List<String> correctDirs = Configuration.getList(PropertyKey.TMP_DIRS, ",");
+    // Test single tmp dir
+    String singleDir = "/tmp";
+    Whitebox.setInternalState(CommonUtils.class, "TMP_DIRS", Collections.singletonList(singleDir));
+    assertEquals(singleDir, CommonUtils.getTmpDir());
+    // Test multiple tmp dir
+    List<String> multiDirs = Arrays.asList("/tmp1", "/tmp2", "/tmp3");
+    Whitebox.setInternalState(CommonUtils.class, "TMP_DIRS", multiDirs);
     Set<String> results = new HashSet<>();
-    for (int i = 0; i < 100 || results.size() == correctDirs.size(); i++) {
+    for (int i = 0; i < 100 || results.size() != multiDirs.size(); i++) {
       results.add(CommonUtils.getTmpDir());
     }
-    assertEquals(new HashSet<>(correctDirs), results);
-    ConfigurationTestUtils.resetConfiguration();
+    assertEquals(new HashSet<>(multiDirs), results);
+    Whitebox.setInternalState(CommonUtils.class, "TMP_DIRS",
+        Configuration.getList(PropertyKey.TMP_DIRS, ","));
   }
 
   /**
