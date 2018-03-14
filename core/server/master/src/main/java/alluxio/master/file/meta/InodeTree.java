@@ -1021,8 +1021,8 @@ public class InodeTree implements JournalEntryIterable {
                   .setGroup(status.getGroup())
                   .setMode(status.getMode());
             } catch (Exception e) {
-              throw new IOException(String.format("Cannot create or sync UFS directory %s: %s.",
-                  ufsUri, e.getMessage()));
+              throw new IOException(String.format("Cannot create or sync UFS directory %s.",
+                  ufsUri), e);
             }
           }
           dir.setPersistenceState(PersistenceState.PERSISTED);
