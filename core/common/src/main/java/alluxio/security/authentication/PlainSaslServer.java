@@ -59,7 +59,7 @@ public final class PlainSaslServer implements SaslServer {
   }
 
   @Override
-  @Nullable
+  @SuppressWarnings("nullness")
   public byte[] evaluateResponse(byte[] response) throws SaslException {
     Preconditions.checkState(!mCompleted, "PLAIN authentication has completed");
     Preconditions.checkArgument(response != null, "Received null response");
@@ -118,6 +118,7 @@ public final class PlainSaslServer implements SaslServer {
   }
 
   @Override
+  @Nullable
   public String getAuthorizationID() {
     checkNotComplete();
     return mAuthorizationId;

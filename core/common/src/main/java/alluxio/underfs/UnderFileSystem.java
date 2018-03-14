@@ -518,7 +518,7 @@ public interface UnderFileSystem extends Closeable {
    * @param owner the new owner to set, unchanged if null
    * @param group the new group to set, unchanged if null
    */
-  void setOwner(String path, String owner, String group) throws IOException;
+  void setOwner(String path, @Nullable String owner, @Nullable String group) throws IOException;
 
   /**
    * Whether this type of UFS supports flush.

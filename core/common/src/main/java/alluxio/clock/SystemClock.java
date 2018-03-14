@@ -11,6 +11,8 @@
 
 package alluxio.clock;
 
+import javax.annotation.Nullable;
+
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneId;
@@ -30,16 +32,19 @@ public final class SystemClock extends Clock {
   }
 
   @Override
+  @Nullable
   public ZoneId getZone() {
     return null;
   }
 
   @Override
+  @Nullable
   public Clock withZone(ZoneId zone) {
     return null;
   }
 
   @Override
+  @Nullable
   public Instant instant() {
     return null;
   }

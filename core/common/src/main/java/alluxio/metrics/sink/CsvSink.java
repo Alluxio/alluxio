@@ -46,6 +46,7 @@ public class CsvSink implements Sink {
    *                   properties.
    * @param registry the metric registry to register
    */
+  @SuppressWarnings("nullness")
   public CsvSink(Properties properties, MetricRegistry registry) {
     mProperties = properties;
     mReporter =

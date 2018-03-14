@@ -11,6 +11,7 @@
 
 package alluxio.security.authentication;
 
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 import javax.security.sasl.AuthenticationException;
 
@@ -27,7 +28,8 @@ public final class SimpleAuthenticationProvider implements AuthenticationProvide
   public SimpleAuthenticationProvider() {}
 
   @Override
-  public void authenticate(String user, String password) throws AuthenticationException {
+  public void authenticate(@Nullable String user, @Nullable String password)
+      throws AuthenticationException {
     // no-op authentication
   }
 }

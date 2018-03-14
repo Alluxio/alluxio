@@ -14,6 +14,7 @@ package alluxio.security.authentication;
 import alluxio.Configuration;
 import alluxio.util.CommonUtils;
 
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.security.sasl.AuthenticationException;
 
@@ -34,6 +35,7 @@ public final class CustomAuthenticationProvider implements AuthenticationProvide
    *
    * @param providerName the name of the provider
    */
+  @SuppressWarnings("nullness")
   public CustomAuthenticationProvider(String providerName) {
     Class<?> customProviderClass;
     try {
@@ -54,7 +56,8 @@ public final class CustomAuthenticationProvider implements AuthenticationProvide
   }
 
   @Override
-  public void authenticate(String user, String password) throws AuthenticationException {
+  public void authenticate(@Nullable String user, @Nullable String password)
+      throws AuthenticationException {
     mCustomProvider.authenticate(user, password);
   }
 }

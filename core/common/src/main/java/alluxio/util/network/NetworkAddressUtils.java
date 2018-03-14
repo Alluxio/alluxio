@@ -293,6 +293,7 @@ public final class NetworkAddressUtils {
    * @param service the service name
    * @return the bind hostname
    */
+  @SuppressWarnings("nullness")
   public static String getBindHost(ServiceType service) {
     if (Configuration.containsKey(service.mBindHostKey) && !Configuration.get(service.mBindHostKey)
         .isEmpty()) {

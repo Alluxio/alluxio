@@ -12,6 +12,7 @@
 package alluxio.collections;
 
 import com.google.common.collect.Iterables;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 import java.util.Collections;
 import java.util.Iterator;
@@ -68,6 +69,7 @@ public class NonUniqueFieldIndex<T> implements FieldIndex<T> {
   }
 
   @Override
+  @SuppressWarnings("nullness")
   public boolean remove(T object) {
     boolean res = false;
     Object fieldValue = mIndexDefinition.getFieldValue(object);
@@ -97,6 +99,7 @@ public class NonUniqueFieldIndex<T> implements FieldIndex<T> {
   }
 
   @Override
+  @SuppressWarnings("nullness")
   public boolean containsObject(T object) {
     Object fieldValue = mIndexDefinition.getFieldValue(object);
     ConcurrentHashSet<T> set = mIndexMap.get(fieldValue);
@@ -114,6 +117,7 @@ public class NonUniqueFieldIndex<T> implements FieldIndex<T> {
   }
 
   @Override
+  @SuppressWarnings("nullness")
   public T getFirst(Object value) {
     Set<T> all = mIndexMap.get(value);
     return all == null ? null : Iterables.getFirst(all, null);
@@ -147,11 +151,11 @@ public class NonUniqueFieldIndex<T> implements FieldIndex<T> {
     /**
      * Iterator inside each inner set. This iterator keeps track of the objects.
      */
-    private Iterator<T> mObjectIterator;
+    @Nullable private Iterator<T> mObjectIterator;
     /**
      * Keeps track of current object. It is used to do the remove.
      */
-    private T mObject;
+    @Nullable private T mObject;
 
     public NonUniqueFieldIndexIterator() {
       mIndexIterator = mIndexMap.values().iterator();

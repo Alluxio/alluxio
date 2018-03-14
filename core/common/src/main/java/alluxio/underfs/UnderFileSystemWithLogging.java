@@ -23,6 +23,8 @@ import alluxio.underfs.options.OpenOptions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -495,7 +497,8 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
   }
 
   @Override
-  public void setOwner(final String path, final String owner, final String group)
+  public void setOwner(final String path, @Nullable final String owner,
+      @Nullable final String group)
       throws IOException {
     call(new UfsCallable<Void>() {
       @Override

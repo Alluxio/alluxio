@@ -18,6 +18,7 @@ import alluxio.extensions.ExtensionsClassLoader;
 import alluxio.util.ExtensionUtils;
 
 import com.google.common.base.Preconditions;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,7 +36,6 @@ import java.util.List;
 import java.util.ServiceLoader;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -151,7 +151,7 @@ public final class UnderFileSystemFactoryRegistry {
    * @return list of factories that support the given path which may be an empty list
    */
   public static List<UnderFileSystemFactory> findAll(String path,
-      UnderFileSystemConfiguration ufsConf) {
+      @Nullable UnderFileSystemConfiguration ufsConf) {
     Preconditions.checkArgument(path != null, "path may not be null");
 
     List<UnderFileSystemFactory> factories = new ArrayList<>(FACTORIES);

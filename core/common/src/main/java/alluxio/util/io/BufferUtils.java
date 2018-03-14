@@ -12,6 +12,7 @@
 package alluxio.util.io;
 
 import com.google.common.base.Preconditions;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -60,8 +61,9 @@ public final class BufferUtils {
    *
    * @param buffer the byte buffer to be unmapped, this must be a direct buffer
    */
-  public static synchronized void cleanDirectBuffer(ByteBuffer buffer) {
+  public static synchronized void cleanDirectBuffer(@Nullable ByteBuffer buffer) {
     Preconditions.checkNotNull(buffer, "buffer");
+    assert buffer != null : "@AssumeAssertion(nullness)";
     Preconditions.checkArgument(buffer.isDirect(), "buffer isn't a DirectByteBuffer");
     try {
       if (sByteBufferCleanerMethod == null) {

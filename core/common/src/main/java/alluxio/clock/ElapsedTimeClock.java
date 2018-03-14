@@ -11,6 +11,8 @@
 
 package alluxio.clock;
 
+import org.checkerframework.checker.nullness.qual.Nullable;
+
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneId;
@@ -29,16 +31,19 @@ public final class ElapsedTimeClock extends Clock {
   }
 
   @Override
+  @Nullable
   public ZoneId getZone() {
     return null;
   }
 
   @Override
+  @Nullable
   public Clock withZone(ZoneId zone) {
     return null;
   }
 
   @Override
+  @Nullable
   public Instant instant() {
     return null;
   }

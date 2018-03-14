@@ -84,6 +84,7 @@ public final class JvmPauseMonitor {
   public void stop() {
     Preconditions.checkState(mJvmMonitorThread != null,
         "JVM monitor thread does not start");
+    assert mJvmMonitorThread != null : "@AssumeAssertion(nullness)";
     mJvmMonitorThread.interrupt();
     try {
       mJvmMonitorThread.join();

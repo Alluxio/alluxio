@@ -93,6 +93,7 @@ public final class Configuration {
    * The order of preference is (1) system properties, (2) properties in the specified file, (3)
    * default property values.
    */
+  @SuppressWarnings("nullness")
   static void init() {
     // Load system properties
     Properties systemProps = new Properties();
@@ -138,8 +139,9 @@ public final class Configuration {
     if (properties != null) {
       // merge the properties
       for (Map.Entry<?, ?> entry : properties.entrySet()) {
-        String key = entry.getKey().toString().trim();
-        String value = entry.getValue().toString().trim();
+
+        String key = String.valueOf(entry.getKey()).trim();
+        String value = String.valueOf(entry.getValue()).trim();
         if (PropertyKey.isValid(key)) {
           PropertyKey propertyKey = PropertyKey.fromString(key);
           // Get the true name for the property key in case it is an alias.
@@ -188,6 +190,7 @@ public final class Configuration {
    * @param key the key to get the value for
    * @return the value for the given key
    */
+  @SuppressWarnings("nullness")
   public static String get(PropertyKey key) {
     String rawValue = lookupNonRecursively(key.toString());
     if (rawValue == null) {
@@ -418,6 +421,7 @@ public final class Configuration {
    * @param base the String to look for
    * @return resolved String value
    */
+  @Nullable
   private static String lookup(final String base) {
     return lookupRecursively(base, new HashSet<>());
   }
@@ -429,7 +433,8 @@ public final class Configuration {
    * @param seen strings already seen during this lookup, used to prevent unbound recursion
    * @return the resolved string
    */
-  private static String lookupRecursively(String base, Set<String> seen) {
+  @Nullable
+  private static String lookupRecursively(@Nullable String base, Set<String> seen) {
     // check argument
     if (base == null) {
       return null;
@@ -460,6 +465,7 @@ public final class Configuration {
    *
    * @param property the property name
    */
+  @Nullable
   private static String lookupNonRecursively(String property) {
     if (PROPERTIES.containsKey(property)) {
       return PROPERTIES.get(property);

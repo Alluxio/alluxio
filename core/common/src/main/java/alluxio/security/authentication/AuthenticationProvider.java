@@ -14,6 +14,8 @@ package alluxio.security.authentication;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
 
+import org.checkerframework.checker.nullness.qual.Nullable;
+
 import javax.security.sasl.AuthenticationException;
 
 /**
@@ -61,5 +63,6 @@ public interface AuthenticationProvider {
    *
    * @throws AuthenticationException when a user is found to be invalid by the implementation
    */
-  void authenticate(String user, String password) throws AuthenticationException;
+  void authenticate(@Nullable String user, @Nullable String password)
+      throws AuthenticationException;
 }

@@ -91,7 +91,7 @@ public final class ConfigurationUtils {
    * @return the site properties file on success search, or null if failed
    */
   @Nullable
-  public static String searchPropertiesFile(String propertiesFile,
+  public static String searchPropertiesFile(@Nullable String propertiesFile,
       String[] confPathList) {
     if (propertiesFile == null || confPathList == null) {
       return null;

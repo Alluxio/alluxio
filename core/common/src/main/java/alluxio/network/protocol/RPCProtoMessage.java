@@ -50,7 +50,7 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class RPCProtoMessage extends RPCMessage {
   private final ProtoMessage mMessage;
   private final byte[] mMessageEncoded;
-  private final DataBuffer mData;
+  @Nullable private final DataBuffer mData;
 
   /**
    * Creates an instance of {@link RPCProtoMessage}.
@@ -58,7 +58,7 @@ public final class RPCProtoMessage extends RPCMessage {
    * @param message the message
    * @param data the data which can be null. Ownership is taken by this class
    */
-  public RPCProtoMessage(ProtoMessage message, DataBuffer data) {
+  public RPCProtoMessage(ProtoMessage message, @Nullable DataBuffer data) {
     if (data != null) {
       Preconditions
           .checkArgument((data instanceof DataNettyBufferV2) || (data instanceof DataFileChannel),
@@ -176,6 +176,7 @@ public final class RPCProtoMessage extends RPCMessage {
   }
 
   @Override
+  @Nullable
   public DataBuffer getPayloadDataBuffer() {
     return mData;
   }

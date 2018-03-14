@@ -13,6 +13,8 @@ package alluxio.security.login;
 
 import alluxio.security.User;
 
+import org.checkerframework.checker.nullness.qual.Nullable;
+
 import java.security.Principal;
 import java.util.Map;
 import java.util.Set;
@@ -30,7 +32,7 @@ import javax.security.auth.spi.LoginModule;
 @NotThreadSafe
 public final class AlluxioLoginModule implements LoginModule {
   private Subject mSubject;
-  private User mUser;
+  @Nullable private User mUser;
 
   /**
    * Constructs a new {@link AlluxioLoginModule}.
@@ -135,6 +137,7 @@ public final class AlluxioLoginModule implements LoginModule {
    * @throws LoginException if the specified class can not be found,
    * or there are are more than one instance of Principal
    */
+  @Nullable
   private Principal getPrincipalUser(String className) throws LoginException {
     // load the principal class
     ClassLoader loader = Thread.currentThread().getContextClassLoader();
