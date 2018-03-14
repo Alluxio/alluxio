@@ -838,6 +838,8 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
         .thenReturn(Boolean.TRUE);
 
     UnderFileSystem mockUfs = Mockito.mock(UnderFileSystem.class);
+    UfsDirectoryStatus ufsStatus = new
+        UfsDirectoryStatus("test", "owner", "group", (short) 511);
     Mockito.when(mockUfsFactory.create(Matchers.eq(ufsBase), Matchers.any())).thenReturn(mockUfs);
     Mockito.when(mockUfs.isDirectory(ufsBase)).thenReturn(true);
     Mockito.when(mockUfs.resolveUri(new AlluxioURI(ufsBase), ""))
@@ -845,11 +847,11 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
     Mockito.when(mockUfs.resolveUri(new AlluxioURI(ufsBase), "/dir1"))
         .thenReturn(new AlluxioURI(ufsBase + "/dir1"));
     Mockito.when(mockUfs.getDirectoryStatus(ufsBase))
-        .thenReturn(new UfsDirectoryStatus("test", "owner", "group", (short) 511));
+        .thenReturn(ufsStatus);
     Mockito.when(mockUfs.mkdirs(Matchers.eq(ufsBase + "/dir1"), Matchers.any()))
         .thenThrow(new IOException("ufs unavailable"));
-    Mockito.when(mockUfs.getStatus(Matchers.any()))
-        .thenReturn(new UfsDirectoryStatus("test", "test", "test", (short) 0755));
+    Mockito.when(mockUfs.getStatus(ufsBase))
+        .thenReturn(ufsStatus);
 
     UnderFileSystemFactoryRegistry.register(mockUfsFactory);
 

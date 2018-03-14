@@ -1011,7 +1011,7 @@ public class InodeTree implements JournalEntryIterable {
               MkdirsOptions.defaults().setCreateParent(false).setOwner(dir.getOwner())
                   .setGroup(dir.getGroup()).setMode(new Mode(dir.getMode()));
           if (!ufs.mkdirs(ufsUri, mkdirsOptions)) {
-            // Directory already exists. Try loading the status from ufs.
+            // Directory might already exist. Try loading the status from ufs.
             try {
               UfsStatus status = ufs.getStatus(ufsUri);
               if (status.isFile()) {
