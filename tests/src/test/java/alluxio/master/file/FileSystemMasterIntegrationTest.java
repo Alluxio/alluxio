@@ -41,12 +41,14 @@ import alluxio.master.file.options.ListStatusOptions;
 import alluxio.master.file.options.MountOptions;
 import alluxio.master.file.options.RenameOptions;
 import alluxio.security.authentication.AuthenticatedClientUser;
+import alluxio.security.authorization.Mode;
 import alluxio.underfs.UfsDirectoryStatus;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemFactory;
 import alluxio.underfs.UnderFileSystemFactoryRegistry;
 import alluxio.util.CommonUtils;
 import alluxio.util.IdUtils;
+import alluxio.util.io.FileUtils;
 import alluxio.wire.CommonOptions;
 import alluxio.wire.FileInfo;
 import alluxio.wire.LoadMetadataType;
@@ -836,6 +838,8 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
         .thenReturn(Boolean.TRUE);
 
     UnderFileSystem mockUfs = Mockito.mock(UnderFileSystem.class);
+    UfsDirectoryStatus ufsStatus = new
+        UfsDirectoryStatus("test", "owner", "group", (short) 511);
     Mockito.when(mockUfsFactory.create(Matchers.eq(ufsBase), Matchers.any())).thenReturn(mockUfs);
     Mockito.when(mockUfs.isDirectory(ufsBase)).thenReturn(true);
     Mockito.when(mockUfs.resolveUri(new AlluxioURI(ufsBase), ""))
@@ -843,9 +847,11 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
     Mockito.when(mockUfs.resolveUri(new AlluxioURI(ufsBase), "/dir1"))
         .thenReturn(new AlluxioURI(ufsBase + "/dir1"));
     Mockito.when(mockUfs.getDirectoryStatus(ufsBase))
-        .thenReturn(new UfsDirectoryStatus("test", "owner", "group", (short) 511));
+        .thenReturn(ufsStatus);
     Mockito.when(mockUfs.mkdirs(Matchers.eq(ufsBase + "/dir1"), Matchers.any()))
         .thenThrow(new IOException("ufs unavailable"));
+    Mockito.when(mockUfs.getStatus(ufsBase))
+        .thenReturn(ufsStatus);
 
     UnderFileSystemFactoryRegistry.register(mockUfsFactory);
 
@@ -943,6 +949,54 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
   // Assert.assertEquals(0, checkpoint.getInt("editTransactionCounter").intValue());
   // Assert.assertEquals(0, checkpoint.getInt("dependencyCounter").intValue());
   // }
+
+  /**
+   * Tests creating a directory in a nested directory load the UFS status of Inodes on the path.
+   */
+  @Test
+  public void createDirectoryInNestedDirectories() throws Exception {
+    String ufs = Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
+    String targetPath = Paths.get(ufs, "d1", "d2", "d3").toString();
+    FileUtils.createDir(targetPath);
+    FileUtils.changeLocalFilePermission(targetPath, new Mode((short) 0755).toString());
+    String parentPath = Paths.get(ufs, "d1").toString();
+    FileUtils.changeLocalFilePermission(parentPath, new Mode((short) 0700).toString());
+    AlluxioURI path = new AlluxioURI(Paths.get("/d1", "d2", "d3", "d4").toString());
+
+    mFsMaster.createDirectory(path, CreateDirectoryOptions.defaults()
+        .setPersisted(true).setRecursive(true).setMode(new Mode((short) 0755)));
+
+    long fileId = mFsMaster.getFileId(new AlluxioURI("/d1"));
+    FileInfo fileInfo = mFsMaster.getFileInfo(fileId);
+    Assert.assertEquals("d1", fileInfo.getName());
+    Assert.assertTrue(fileInfo.isFolder());
+    Assert.assertTrue(fileInfo.isPersisted());
+    Assert.assertEquals(0700, (short) fileInfo.getMode());
+  }
+
+  /**
+   * Tests listing a directory in a nested directory load the UFS status of Inodes on the path.
+   */
+  @Test
+  public void loadMetadataInNestedDirectories() throws Exception {
+    String ufs = Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
+    String targetPath = Paths.get(ufs, "d1", "d2", "d3").toString();
+    FileUtils.createDir(targetPath);
+    FileUtils.changeLocalFilePermission(targetPath, new Mode((short) 0755).toString());
+    String parentPath = Paths.get(ufs, "d1").toString();
+    FileUtils.changeLocalFilePermission(parentPath, new Mode((short) 0700).toString());
+    AlluxioURI path = new AlluxioURI(Paths.get("/d1", "d2", "d3").toString());
+
+    mFsMaster.listStatus(path, ListStatusOptions.defaults()
+        .setLoadMetadataType(LoadMetadataType.Once));
+
+    long fileId = mFsMaster.getFileId(new AlluxioURI("/d1"));
+    FileInfo fileInfo = mFsMaster.getFileInfo(fileId);
+    Assert.assertEquals("d1", fileInfo.getName());
+    Assert.assertTrue(fileInfo.isFolder());
+    Assert.assertTrue(fileInfo.isPersisted());
+    Assert.assertEquals(0700, (short) fileInfo.getMode());
+  }
 
   /**
    * This class provides multiple concurrent threads to create all files in one directory.
