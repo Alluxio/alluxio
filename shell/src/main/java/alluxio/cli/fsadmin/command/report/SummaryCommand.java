@@ -37,6 +37,8 @@ import java.util.Set;
 public class SummaryCommand {
   private static final int INDENT_SIZE = 4;
 
+  private int mIndentationLevel = 1;
+
   /**
    * Runs report summary command.
    *
@@ -65,13 +67,13 @@ public class SummaryCommand {
       if (masterInfo == null) {
         throw new IOException("Cannot get meta master info from meta master client");
       }
-      print("Master Address: " + masterInfo.getMasterAddress(), 1);
-      print("Web Port: " + masterInfo.getWebPort(), 1);
-      print("Rpc Port: " + masterInfo.getRpcPort(), 1);
-      print("Started: " + CommonUtils.convertMsToDate(masterInfo.getStartTimeMs()), 1);
-      print("Uptime: " + CommonUtils.convertMsToClockTime(masterInfo.getUpTimeMs()), 1);
-      print("Version: " + masterInfo.getVersion(), 1);
-      print("Safe Mode: " + masterInfo.isSafeMode(), 1);
+      print("Master Address: " + masterInfo.getMasterAddress());
+      print("Web Port: " + masterInfo.getWebPort());
+      print("Rpc Port: " + masterInfo.getRpcPort());
+      print("Started: " + CommonUtils.convertMsToDate(masterInfo.getStartTimeMs()));
+      print("Uptime: " + CommonUtils.convertMsToClockTime(masterInfo.getUpTimeMs()));
+      print("Version: " + masterInfo.getVersion());
+      print("Safe Mode: " + masterInfo.isSafeMode());
     }
   }
 
@@ -91,35 +93,39 @@ public class SummaryCommand {
         throw new IOException("Cannot get block master info from block master client");
       }
 
-      print("Live Workers: " + blockMasterInfo.getLiveWorkerNum(), 1);
-      print("Lost Workers: " + blockMasterInfo.getLostWorkerNum(), 1);
+      print("Live Workers: " + blockMasterInfo.getLiveWorkerNum());
+      print("Lost Workers: " + blockMasterInfo.getLostWorkerNum());
 
       print("Total Capacity: "
-          + FormatUtils.getSizeFromBytes(blockMasterInfo.getCapacityBytes()), 1);
+          + FormatUtils.getSizeFromBytes(blockMasterInfo.getCapacityBytes()));
 
       Map<String, Long> totalCapacityOnTiers = blockMasterInfo.getCapacityBytesOnTiers();
       if (totalCapacityOnTiers != null) {
+        mIndentationLevel = 2;
         for (Map.Entry<String, Long> capacityBytesTier : totalCapacityOnTiers.entrySet()) {
           long value = capacityBytesTier.getValue();
           print("Tier: " + capacityBytesTier.getKey()
-              + "  Size: " + FormatUtils.getSizeFromBytes(value), 2);
+              + "  Size: " + FormatUtils.getSizeFromBytes(value));
         }
       }
 
+      mIndentationLevel = 1;
       print("Used Capacity: "
-          + FormatUtils.getSizeFromBytes(blockMasterInfo.getUsedBytes()), 1);
+          + FormatUtils.getSizeFromBytes(blockMasterInfo.getUsedBytes()));
 
       Map<String, Long> usedCapacityOnTiers = blockMasterInfo.getUsedBytesOnTiers();
       if (usedCapacityOnTiers != null) {
+        mIndentationLevel = 2;
         for (Map.Entry<String, Long> usedBytesTier: usedCapacityOnTiers.entrySet()) {
           long value = usedBytesTier.getValue();
           print("Tier: " + usedBytesTier.getKey()
-              + "  Size: " + FormatUtils.getSizeFromBytes(value), 2);
+              + "  Size: " + FormatUtils.getSizeFromBytes(value));
         }
       }
 
+      mIndentationLevel = 1;
       print("Free Capacity: "
-          + FormatUtils.getSizeFromBytes(blockMasterInfo.getFreeBytes()), 1);
+          + FormatUtils.getSizeFromBytes(blockMasterInfo.getFreeBytes()));
     }
   }
 
@@ -127,10 +133,9 @@ public class SummaryCommand {
    * Prints indented information.
    *
    * @param text information to print
-   * @param indentLevel indentation level to use
    */
-  private void print(String text, int indentLevel) {
-    String indent = Strings.repeat(" ", indentLevel * INDENT_SIZE);
+  private void print(String text) {
+    String indent = Strings.repeat(" ", mIndentationLevel * INDENT_SIZE);
     System.out.println(indent + text);
   }
 }

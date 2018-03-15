@@ -62,11 +62,17 @@ public final class ReportCommand extends AbstractCommand {
     // Checks if Alluxio master and client services are running
     try (CloseableResource<FileSystemMasterClient> client =
              FileSystemContext.INSTANCE.acquireMasterClientResource()) {
-      InetSocketAddress address = client.get().getAddress();
-      List<InetSocketAddress> addresses = Arrays.asList(address);
-      MasterInquireClient inquireClient = new PollingMasterInquireClient(addresses, () ->
-          new ExponentialBackoffRetry(50, 100, 2)
-      );
+      MasterInquireClient inquireClient = null;
+      try {
+        InetSocketAddress address = client.get().getAddress();
+        List<InetSocketAddress> addresses = Arrays.asList(address);
+        inquireClient = new PollingMasterInquireClient(addresses, () ->
+            new ExponentialBackoffRetry(50, 100, 2));
+      } catch (UnavailableException e) {
+        System.err.println("Failed to get the leader master.");
+        System.err.println("Please check your Alluxio master status");
+        return 1;
+      }
       try {
         inquireClient.getPrimaryRpcAddress();
       } catch (UnavailableException e) {
@@ -74,10 +80,6 @@ public final class ReportCommand extends AbstractCommand {
         System.err.println("Please check your Alluxio master status");
         return 1;
       }
-    } catch (UnavailableException e) {
-      System.err.println("Failed to get the leader master.");
-      System.err.println("Please check your Alluxio master status");
-      return 1;
     }
 
     String[] args = cl.getArgs();
