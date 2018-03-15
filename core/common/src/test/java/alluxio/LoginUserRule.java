@@ -15,6 +15,8 @@ import alluxio.security.LoginUser;
 import alluxio.security.LoginUserTestUtils;
 import alluxio.security.User;
 
+import org.checkerframework.checker.nullness.qual.Nullable;
+
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -28,7 +30,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public final class LoginUserRule extends AbstractResourceRule {
   private final String mUser;
-  private User mPreviousLoginUser = null;
+  @Nullable private User mPreviousLoginUser = null;
 
   /**
    * @param user the user name to set as authenticated user

@@ -718,11 +718,6 @@
     <!-- Checker Framework. -->
     <dependency>
       <groupId>org.checkerframework</groupId>
-      <artifactId>checker</artifactId>
-      <version>${checker.framework.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.checkerframework</groupId>
       <artifactId>checker-qual</artifactId>
       <version>${checker.framework.version}</version>
     </dependency>
@@ -901,7 +896,7 @@
               <arg>-Xlint:none</arg>
               <arg>-Xbootclasspath/p:${org.checkerframework:jdk8:jar}</arg>
               <arg>-AskipUses=^alluxio\.proto\.|alluxio\.thrift\.|org\.slf4j\.|java\.lang\.|java\.util\.|java\.net\.|java\.time\.|javax\.security\.|org\.apache\.zookeeper\.|org\.apache\.thrift\.</arg>
-              <arg>-AskipDefs=^alluxio\.proto\.|alluxio\.thrift\.</arg>
+              <arg>-AskipDefs=^alluxio\.proto\.|alluxio\.thrift\.|Test$|TestUtils$</arg>
               <arg>-AsuppressWarnings=uninitialized</arg>
               <arg>-AassumeAssertionsAreEnabled</arg>
             </compilerArgs>

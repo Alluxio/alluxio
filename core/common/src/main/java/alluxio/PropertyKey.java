@@ -3455,12 +3455,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
    * @param consistencyCheckLevel the consistency check level to apply to this property
    * @param scope the scope this property applies to
    */
+  @SuppressWarnings("nullness")
   private PropertyKey(String name, @Nullable String description,
                       @Nullable DefaultSupplier defaultSupplier, @Nullable String[] aliases,
                       boolean ignoredSiteProperty, boolean isHidden,
       ConsistencyCheckLevel consistencyCheckLevel, Scope scope) {
     mName = Preconditions.checkNotNull(name, "name");
-    assert description != null : "@AssumeAssertion(nullness)";
     mDescription = Strings.isNullOrEmpty(description) ? "N/A" : description;
     mDefaultSupplier = defaultSupplier;
     mAliases = aliases;
