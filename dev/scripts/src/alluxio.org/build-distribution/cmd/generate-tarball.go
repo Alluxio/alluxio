@@ -110,16 +110,13 @@ func getVersion() (string, error) {
 func addAdditionalFiles(srcPath, dstPath, version string) {
 	chdir(srcPath)
 	pathsToCopy := []string{
-		// BIN
 		"bin/alluxio",
 		"bin/alluxio-masters.sh",
 		"bin/alluxio-mount.sh",
 		"bin/alluxio-start.sh",
 		"bin/alluxio-stop.sh",
 		"bin/alluxio-workers.sh",
-		// CLIENT
 		fmt.Sprintf("client/alluxio-%v-client.jar", version),
-		// CONF
 		"conf/alluxio-env.sh.template",
 		"conf/alluxio-site.properties.template",
 		"conf/core-site.xml.template",
@@ -127,7 +124,22 @@ func addAdditionalFiles(srcPath, dstPath, version string) {
 		"conf/masters",
 		"conf/metrics.properties.template",
 		"conf/workers",
-		// LIB
+		"integration/docker/Dockerfile",
+		"integration/docker/entrypoint.sh",
+		"integration/docker/bin/alluxio-master.sh",
+		"integration/docker/bin/alluxio-proxy.sh",
+		"integration/docker/bin/alluxio-worker.sh",
+		"integration/fuse/bin/alluxio-fuse",
+		"integration/kubernetes/alluxio-journal-volume.yaml.template",
+		"integration/kubernetes/alluxio-master.yaml.template",
+		"integration/kubernetes/alluxio-worker.yaml.template",
+		"integration/kubernetes/conf/alluxio.properties.template",
+		"integration/mesos/bin/alluxio-env-mesos.sh",
+		"integration/mesos/bin/alluxio-mesos-start.sh",
+		"integration/mesos/bin/alluxio-master-mesos.sh",
+		"integration/mesos/bin/alluxio-mesos-stop.sh",
+		"integration/mesos/bin/alluxio-worker-mesos.sh",
+		"integration/mesos/bin/common.sh",
 		fmt.Sprintf("lib/alluxio-underfs-gcs-%v.jar", version),
 		fmt.Sprintf("lib/alluxio-underfs-hdfs-%v.jar", version),
 		fmt.Sprintf("lib/alluxio-underfs-local-%v.jar", version),
@@ -135,28 +147,7 @@ func addAdditionalFiles(srcPath, dstPath, version string) {
 		fmt.Sprintf("lib/alluxio-underfs-s3a-%v.jar", version),
 		fmt.Sprintf("lib/alluxio-underfs-swift-%v.jar", version),
 		fmt.Sprintf("lib/alluxio-underfs-wasb-%v.jar", version),
-		// LIBEXEC
 		"libexec/alluxio-config.sh",
-		// DOCKER
-		"integration/docker/Dockerfile",
-		"integration/docker/entrypoint.sh",
-		"integration/docker/bin/alluxio-master.sh",
-		"integration/docker/bin/alluxio-proxy.sh",
-		"integration/docker/bin/alluxio-worker.sh",
-		// KUBERNETES
-		"integration/kubernetes/alluxio-journal-volume.yaml.template",
-		"integration/kubernetes/alluxio-master.yaml.template",
-		"integration/kubernetes/alluxio-worker.yaml.template",
-		"integration/kubernetes/conf/alluxio.properties.template",
-		// FUSE
-		"integration/fuse/bin/alluxio-fuse",
-		// MESOS
-		"integration/mesos/bin/alluxio-env-mesos.sh",
-		"integration/mesos/bin/alluxio-mesos-start.sh",
-		"integration/mesos/bin/alluxio-master-mesos.sh",
-		"integration/mesos/bin/alluxio-mesos-stop.sh",
-		"integration/mesos/bin/alluxio-worker-mesos.sh",
-		"integration/mesos/bin/common.sh",
 	}
 	for _, path := range pathsToCopy {
 		mkdir(filepath.Join(dstPath, filepath.Dir(path)))
@@ -198,7 +189,11 @@ func generateTarball(hadoopDistribution string) error {
 	chdir(srcPath)
 	run("running git clean -fdx", "git", "clean", "-fdx")
 
-	// OVERRIDE DEFAULT SETTINGS
+	version, err := getVersion()
+	if err != nil {
+		return err
+	}
+
 	// Update the web app location.
 	replace("core/common/src/main/java/alluxio/PropertyKey.java", webappDir, webappWar)
 	// Update the assembly jar paths.
@@ -207,22 +202,15 @@ func generateTarball(hadoopDistribution string) error {
 	// Update the FUSE jar path
 	replace("integration/fuse/bin/alluxio-fuse", "target/alluxio-integration-fuse-${VERSION}-jar-with-dependencies.jar", "alluxio-fuse-${VERSION}.jar")
 
-	// COMPILE
-	version, err := getVersion()
-	if err != nil {
-		return err
-	}
 	mvnArgs := getCommonMvnArgs(hadoopDistribution)
 	run("compiling repo", "mvn", mvnArgs...)
 
-	// SET DESTINATION PATHS
 	tarball := strings.Replace(targetFlag, versionMarker, version, 1)
 	dstDir := strings.TrimSuffix(filepath.Base(tarball), ".tar.gz")
 	dstPath := filepath.Join(cwd, dstDir)
 	run(fmt.Sprintf("removing any existing %v", dstPath), "rm", "-rf", dstPath)
 	fmt.Printf("Creating %s:\n", tarball)
 
-	// CREATE NEEDED DIRECTORIES
 	// Create the directory for the server jar.
 	mkdir(filepath.Join(dstPath, "assembly"))
 	// Create directories for the client jar.
@@ -231,20 +219,17 @@ func generateTarball(hadoopDistribution string) error {
 	// Create directories for the fuse connector
 	mkdir(filepath.Join(dstPath, "integration", "fuse"))
 
-	// ADD ALLUXIO ASSEMBLY JARS TO DISTRIBUTION
 	run("adding Alluxio client assembly jar", "mv", fmt.Sprintf("assembly/client/target/alluxio-assembly-client-%v-jar-with-dependencies.jar", version), filepath.Join(dstPath, "assembly", fmt.Sprintf("alluxio-client-%v.jar", version)))
 	run("adding Alluxio server assembly jar", "mv", fmt.Sprintf("assembly/server/target/alluxio-assembly-server-%v-jar-with-dependencies.jar", version), filepath.Join(dstPath, "assembly", fmt.Sprintf("alluxio-server-%v.jar", version)))
 	run("adding Alluxio FUSE jar", "mv", fmt.Sprintf("integration/fuse/target/alluxio-integration-fuse-%v-jar-with-dependencies.jar", version), filepath.Join(dstPath, "integration", "fuse", fmt.Sprintf("alluxio-fuse-%v.jar", version)))
 	// Condense the webapp into a single .war file.
 	run("jarring up webapp", "jar", "-cf", filepath.Join(dstPath, webappWar), "-C", webappDir, ".")
 
-	// ADD ADDITIONAL CONTENT TO DISTRIBUTION
 	addAdditionalFiles(srcPath, dstPath, version)
 
-	// CREATE DISTRIBUTION TARBALL AND CLEANUP
 	chdir(cwd)
 	run("creating the distribution tarball", "tar", "-czvf", tarball, dstDir)
-	run("removing the repository", "rm", "-rf", srcPath, dstPath)
+	run("removing the temporary repositories", "rm", "-rf", srcPath, dstPath)
 
 	return nil
 }

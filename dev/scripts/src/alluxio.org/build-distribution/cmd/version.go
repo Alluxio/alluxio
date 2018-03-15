@@ -51,4 +51,3 @@ func (v version) hadoopProfile() string {
 		panic(fmt.Sprintf("unexpected hadoop major version %v", v.major))
 	}
 }
-
