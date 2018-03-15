@@ -50,7 +50,6 @@ import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -1012,20 +1011,20 @@ public class InodeTree implements JournalEntryIterable {
                   .setGroup(dir.getGroup()).setMode(new Mode(dir.getMode()));
           if (!ufs.mkdirs(ufsUri, mkdirsOptions)) {
             // Directory might already exist. Try loading the status from ufs.
+            UfsStatus status;
             try {
-              UfsStatus status = ufs.getStatus(ufsUri);
-              if (status.isFile()) {
-                throw new InvalidPathException(String.format(
-                    "Error persisting directory. A file exists at the UFS location %s.", ufsUri));
-              }
-              dir.setOwner(status.getOwner())
-                  .setGroup(status.getGroup())
-                  .setMode(status.getMode());
-            } catch (FileNotFoundException e) {
-              // Retry creation given that the directory might have just been removed.
-              LOG.warn("Directory {} no longer exists on UFS. Retry creation.", ufsUri);
-              continue;
+              status = ufs.getStatus(ufsUri);
+            } catch (Exception e) {
+              throw new IOException(String.format("Cannot sync UFS directory %s: %s.", ufsUri,
+                  e.getMessage()), e);
             }
+            if (status.isFile()) {
+              throw new InvalidPathException(String.format(
+                  "Error persisting directory. A file exists at the UFS location %s.", ufsUri));
+            }
+            dir.setOwner(status.getOwner())
+                .setGroup(status.getGroup())
+                .setMode(status.getMode());
           }
           dir.setPersistenceState(PersistenceState.PERSISTED);
 
