@@ -13,6 +13,7 @@ package alluxio.master.journal;
 
 import alluxio.Configuration;
 import alluxio.PropertyKey;
+import alluxio.exception.JournalClosedException;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.resource.LockResource;
 
@@ -103,7 +104,8 @@ public final class AsyncJournalWriter {
    *
    * @param targetCounter the counter to flush
    */
-  public void flush(final long targetCounter) throws IOException {
+  @SuppressWarnings("Duplicates")
+  public void flush(final long targetCounter) throws IOException, JournalClosedException {
     if (targetCounter <= mFlushCounter.get()) {
       return;
     }
