@@ -999,6 +999,45 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
   }
 
   /**
+   * Tests creating nested directories.
+   */
+  @Test
+  public void createNestedDirectories() throws Exception {
+    String ufs = Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
+    String parentPath = Paths.get(ufs, "d1").toString();
+    FileUtils.createDir(parentPath);
+    FileUtils.changeLocalFilePermission(parentPath, new Mode((short) 0755).toString());
+    AlluxioURI path = new AlluxioURI(Paths.get("/d1", "d2", "d3", "d4").toString());
+    String ufsPath = Paths.get(ufs, "d1", "d2", "d3", "d4").toString();
+    mFsMaster.createDirectory(path, CreateDirectoryOptions.defaults()
+        .setPersisted(true).setRecursive(true).setMode(new Mode((short) 0700)));
+    long fileId = mFsMaster.getFileId(path);
+    FileInfo fileInfo = mFsMaster.getFileInfo(fileId);
+    Assert.assertEquals("d4", fileInfo.getName());
+    Assert.assertTrue(fileInfo.isFolder());
+    Assert.assertTrue(fileInfo.isPersisted());
+    Assert.assertEquals(0700, (short) fileInfo.getMode());
+    Assert.assertTrue(FileUtils.exists(ufsPath));
+    Assert.assertEquals(0700, FileUtils.getLocalFileMode(ufsPath));
+  }
+
+  /**
+   * Tests creating a directory in a nested directory without execute permission.
+   */
+  @Test(expected = IOException.class)
+  public void createDirectoryInNestedDirectoriesWithoutExecutePermission() throws Exception {
+    String ufs = Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
+    String parentPath = Paths.get(ufs, "d1").toString();
+    FileUtils.createDir(parentPath);
+    FileUtils.changeLocalFilePermission(parentPath, new Mode((short) 600).toString());
+    AlluxioURI path = new AlluxioURI(Paths.get("/d1", "d2", "d3", "d4").toString());
+
+    // this should fail
+    mFsMaster.createDirectory(path, CreateDirectoryOptions.defaults()
+        .setPersisted(true).setRecursive(true).setMode(new Mode((short) 0755)));
+  }
+
+  /**
    * This class provides multiple concurrent threads to create all files in one directory.
    */
   class ConcurrentCreator implements Callable<Void> {
