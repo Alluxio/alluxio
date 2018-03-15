@@ -23,7 +23,6 @@ import alluxio.wire.MasterInfo;
 import alluxio.wire.MasterInfo.MasterInfoField;
 
 import com.google.common.base.Strings;
-import org.apache.commons.cli.CommandLine;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -38,7 +37,12 @@ import java.util.Set;
 public class SummaryCommand {
   private static final int INDENT_SIZE = 4;
 
-  public int run(CommandLine cl) throws IOException {
+  /**
+   * Runs report summary command.
+   *
+   * @return 0 on success, 1 otherwise
+   */
+  public int run() throws IOException {
     System.out.println("Alluxio Cluster Summary: ");
 
     printMetaMasterInfo();
@@ -49,7 +53,7 @@ public class SummaryCommand {
   /**
    * Prints Alluxio meta master information.
    */
-  private void printMetaMasterInfo() throws IOException{
+  private void printMetaMasterInfo() throws IOException {
     try (MetaMasterClient client =
              new RetryHandlingMetaMasterClient(MasterClientConfig.defaults())) {
       Set<MasterInfoField> masterInfoFilter = new HashSet<>(Arrays
@@ -74,7 +78,7 @@ public class SummaryCommand {
   /**
    * Prints Alluxio block master information.
    */
-  private void printBlockMasterInfo() throws IOException{
+  private void printBlockMasterInfo() throws IOException {
     try (RetryHandlingBlockMasterClient client =
              new RetryHandlingBlockMasterClient(MasterClientConfig.defaults())) {
       Set<BlockMasterInfoField> blockMasterInfoFilter = new HashSet<>(Arrays

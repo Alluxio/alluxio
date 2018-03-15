@@ -91,10 +91,13 @@ public class ReportCommandIntegrationTest extends BaseIntegrationTest{
     String output = mOutput.toString();
 
     // Checks if meta master values are available
-    String expectedMasterAddress = NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC).toString();
+    String expectedMasterAddress = NetworkAddressUtils
+        .getConnectAddress(ServiceType.MASTER_RPC).toString();
     Assert.assertTrue(output.contains("Master Address: " + expectedMasterAddress));
-    Assert.assertTrue(output.contains("Web Port: " + Configuration.get(PropertyKey.MASTER_WEB_PORT)));
-    Assert.assertTrue(output.contains("Rpc Port: " + Configuration.get(PropertyKey.MASTER_RPC_PORT)));
+    Assert.assertTrue(output.contains("Web Port: "
+        + Configuration.get(PropertyKey.MASTER_WEB_PORT)));
+    Assert.assertTrue(output.contains("Rpc Port: "
+        + Configuration.get(PropertyKey.MASTER_RPC_PORT)));
     Assert.assertFalse(output.contains("Started: 12-31-1969 16:00:00:000"));
     Assert.assertTrue(output.contains("Version: " + ProjectConstants.VERSION));
 

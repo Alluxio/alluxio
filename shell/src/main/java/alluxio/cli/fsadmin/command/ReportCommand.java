@@ -84,7 +84,7 @@ public final class ReportCommand extends AbstractCommand {
 
     if (args.length == 0) {
       SummaryCommand summaryCommand = new SummaryCommand();
-      summaryCommand.run(cl);
+      summaryCommand.run();
       return 0;
     }
 
@@ -102,7 +102,7 @@ public final class ReportCommand extends AbstractCommand {
     switch (command) {
       case SUMMARY:
         SummaryCommand summaryCommand = new SummaryCommand();
-        summaryCommand.run(cl);
+        summaryCommand.run();
         break;
       // CAPACITY, CONFIGURATION, RPC, OPERATION, and UFS commands will be supported in the future
       default:
