@@ -4,12 +4,12 @@ include "common.thrift"
 include "exception.thrift"
 
 enum BlockMasterInfoField {
+  CAPACITY_BYTES
+  CAPACITY_BYTES_ON_TIERS
+  FREE_BYTES
   LIVE_WORKER_NUM
   LOST_WORKER_NUM
-  CAPACITY_BYTES
   USED_BYTES
-  FREE_BYTES
-  CAPACITY_BYTES_ON_TIERS
   USED_BYTES_ON_TIERS
 }
 

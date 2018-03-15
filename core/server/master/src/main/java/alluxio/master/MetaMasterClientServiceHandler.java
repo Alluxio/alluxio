@@ -12,9 +12,9 @@
 package alluxio.master;
 
 import alluxio.Constants;
-import alluxio.RuntimeConstants;
 import alluxio.exception.AlluxioException;
 import alluxio.RpcUtils;
+import alluxio.RuntimeConstants;
 import alluxio.thrift.GetMasterInfoTOptions;
 import alluxio.thrift.GetMasterInfoTResponse;
 import alluxio.thrift.GetServiceVersionTOptions;

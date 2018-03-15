@@ -220,15 +220,15 @@ public final class BlockMasterInfo implements Serializable {
     USED_BYTES_ON_TIERS;
 
     /**
-     * @return the thrift representation of this master info field
+     * @return the thrift representation of this block master info field
      */
     public alluxio.thrift.BlockMasterInfoField toThrift() {
       return alluxio.thrift.BlockMasterInfoField.valueOf(name());
     }
 
     /**
-     * @param field the thrift representation of the master info field to create
-     * @return the wire type version of the master info field
+     * @param field the thrift representation of the block master info field to create
+     * @return the wire type version of the block master info field
      */
     public static BlockMasterInfoField fromThrift(alluxio.thrift.BlockMasterInfoField field) {
       return BlockMasterInfoField.valueOf(field.name());

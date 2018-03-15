@@ -14,10 +14,10 @@ package alluxio.cli.fsadmin;
 import alluxio.BaseIntegrationTest;
 import alluxio.Constants;
 import alluxio.LocalAlluxioClusterResource;
+import alluxio.master.LocalAlluxioCluster;
 import alluxio.PropertyKey;
 import alluxio.SystemErrRule;
 import alluxio.SystemOutRule;
-import alluxio.master.LocalAlluxioCluster;
 
 import org.junit.After;
 import org.junit.Before;

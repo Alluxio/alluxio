@@ -13,11 +13,11 @@ package alluxio.cli.fsadmin.command;
 
 import alluxio.cli.AbstractCommand;
 import alluxio.cli.fsadmin.report.SummaryCommand;
-import alluxio.client.MetaMasterClient;
-import alluxio.client.RetryHandlingMetaMasterClient;
 import alluxio.client.block.RetryHandlingBlockMasterClient;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.FileSystemMasterClient;
+import alluxio.client.MetaMasterClient;
+import alluxio.client.RetryHandlingMetaMasterClient;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.exception.status.UnavailableException;
@@ -34,12 +34,9 @@ import java.net.InetSocketAddress;
 import java.util.Arrays;
 import java.util.List;
 
-import javax.annotation.concurrent.ThreadSafe;
-
 /**
- * Report Alluxio runtime information.
+ * Reports Alluxio runtime information.
  */
-@ThreadSafe
 public final class ReportCommand extends AbstractCommand {
   private MetaMasterClient mMetaMasterClient;
   private RetryHandlingBlockMasterClient mBlockMasterClient;
@@ -110,7 +107,7 @@ public final class ReportCommand extends AbstractCommand {
       } catch (IllegalArgumentException e) {
         System.out.println(getUsage());
         System.out.println(getDescription());
-        return -1;
+        return 1;
       }
 
       switch (command) {

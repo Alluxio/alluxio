@@ -17,7 +17,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 /**
- * Tests for cat command.
+ * Tests for report command.
  */
 public final class ReportCommandIntegrationTest extends AbstractFsadminShellTest {
   @Test
@@ -33,7 +33,7 @@ public final class ReportCommandIntegrationTest extends AbstractFsadminShellTest
   @Test
   public void reportCategoryInvalid() {
     int ret = mFsAdminShell.run("report", "invalidCategory");
-    Assert.assertEquals(-1, ret);
+    Assert.assertEquals(1, ret);
     ReportCommand reportCommand = new ReportCommand();
     String expected = reportCommand.getUsage() + "\n" + reportCommand.getDescription() + "\n";
     Assert.assertEquals(expected, mOutput.toString());

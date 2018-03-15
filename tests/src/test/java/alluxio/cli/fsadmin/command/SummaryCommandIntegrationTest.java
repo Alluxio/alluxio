@@ -11,15 +11,15 @@
 
 package alluxio.cli.fsadmin.command;
 
-import alluxio.Configuration;
-import alluxio.ProjectConstants;
-import alluxio.PropertyKey;
 import alluxio.cli.fsadmin.AbstractFsadminShellTest;
 import alluxio.cli.fsadmin.report.SummaryCommand;
+import alluxio.client.block.RetryHandlingBlockMasterClient;
 import alluxio.client.MetaMasterClient;
 import alluxio.client.RetryHandlingMetaMasterClient;
-import alluxio.client.block.RetryHandlingBlockMasterClient;
+import alluxio.Configuration;
 import alluxio.master.MasterClientConfig;
+import alluxio.ProjectConstants;
+import alluxio.PropertyKey;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 
@@ -28,7 +28,10 @@ import org.junit.Test;
 
 import java.io.IOException;
 
-public class SummaryCommandIntegrationTest extends AbstractFsadminShellTest {
+/**
+ * Tests for report summary command.
+ */
+public final class SummaryCommandIntegrationTest extends AbstractFsadminShellTest {
   @Test
   public void runSummaryShell() {
     int ret = mFsAdminShell.run("report", "summary");
@@ -51,9 +54,9 @@ public class SummaryCommandIntegrationTest extends AbstractFsadminShellTest {
   }
 
   /**
-   * Checks if the command output is valid.
+   * Checks if the summary command output is valid.
    *
-   * @param output the command output
+   * @param output the summary command output
    */
   private void checkSummaryResults(String output) {
     // Checks if meta master values are available

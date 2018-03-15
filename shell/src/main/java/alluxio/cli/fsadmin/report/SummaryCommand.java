@@ -29,18 +29,18 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * Print Alluxio cluster summarized information.
- * This class depends on meta master client and block master client.
+ * Prints Alluxio cluster summarized information.
  */
 public class SummaryCommand {
   private static final int INDENT_SIZE = 4;
+
   private MetaMasterClient mMetaMasterClient;
   private RetryHandlingBlockMasterClient mBlockMasterClient;
-
   private int mIndentationLevel = 1;
 
   /**
-   * Prints summarized Alluxio cluster information.
+   /**
+   * Creates a new instance of {@link SummaryCommand}.
    *
    * @param metaMasterClient client to connect to meta master
    * @param blockMasterClient client to connect to block master
@@ -104,9 +104,8 @@ public class SummaryCommand {
     if (totalCapacityOnTiers != null) {
       mIndentationLevel = 2;
       for (Map.Entry<String, Long> capacityBytesTier : totalCapacityOnTiers.entrySet()) {
-        long value = capacityBytesTier.getValue();
         print("Tier: " + capacityBytesTier.getKey()
-            + "  Size: " + FormatUtils.getSizeFromBytes(value));
+            + "  Size: " + FormatUtils.getSizeFromBytes(capacityBytesTier.getValue()));
       }
     }
 
@@ -118,9 +117,8 @@ public class SummaryCommand {
     if (usedCapacityOnTiers != null) {
       mIndentationLevel = 2;
       for (Map.Entry<String, Long> usedBytesTier: usedCapacityOnTiers.entrySet()) {
-        long value = usedBytesTier.getValue();
         print("Tier: " + usedBytesTier.getKey()
-            + "  Size: " + FormatUtils.getSizeFromBytes(value));
+            + "  Size: " + FormatUtils.getSizeFromBytes(usedBytesTier.getValue()));
       }
     }
 
