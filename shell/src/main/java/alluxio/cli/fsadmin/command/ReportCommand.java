@@ -42,7 +42,7 @@ public final class ReportCommand extends AbstractCommand {
   private RetryHandlingBlockMasterClient mBlockMasterClient;
 
   enum Command {
-    SUMMARY // Reports the Alluxio cluster information
+    SUMMARY // Report the Alluxio cluster information
   }
 
   /**
@@ -66,7 +66,7 @@ public final class ReportCommand extends AbstractCommand {
   @Override
   public int run(CommandLine cl) throws IOException {
     try {
-      // Checks if Alluxio master and client services are running
+      // Check if Alluxio master and client services are running
       try (CloseableResource<FileSystemMasterClient> client =
                FileSystemContext.INSTANCE.acquireMasterClientResource()) {
         MasterInquireClient inquireClient = null;
@@ -91,7 +91,7 @@ public final class ReportCommand extends AbstractCommand {
 
       String[] args = cl.getArgs();
 
-      // Prints the summarized information in default situation
+      // Print the summarized information in default situation
       if (args.length == 0) {
         SummaryCommand summaryCommand = new SummaryCommand(mMetaMasterClient,
             mBlockMasterClient);
@@ -99,7 +99,7 @@ public final class ReportCommand extends AbstractCommand {
         return 0;
       }
 
-      // Gets the report category
+      // Get the report category
       Command command;
       try {
         String commandName = args[0].toUpperCase();

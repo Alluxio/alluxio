@@ -59,7 +59,7 @@ public final class SummaryCommandIntegrationTest extends AbstractFsadminShellTes
    * @param output the summary command output
    */
   private void checkSummaryResults(String output) {
-    // Checks if meta master values are available
+    // Check if meta master values are available
     String expectedMasterAddress = NetworkAddressUtils
         .getConnectAddress(ServiceType.MASTER_RPC).toString();
     Assert.assertTrue(output.contains("Master Address: " + expectedMasterAddress));
@@ -70,7 +70,7 @@ public final class SummaryCommandIntegrationTest extends AbstractFsadminShellTes
     Assert.assertTrue(!output.contains("Started: 12-31-1969 16:00:00:000"));
     Assert.assertTrue(output.contains("Version: " + ProjectConstants.VERSION));
 
-    // Checks if block master values are available
+    // Check if block master values are available
     Assert.assertTrue(!output.contains("Live Workers: 0")
         || !output.contains("Lost Workers: 0"));
     Assert.assertTrue(!output.contains("Total Capacity: 0B"));
