@@ -346,7 +346,7 @@ public final class UfsJournalLogWriterTest extends BaseIntegrationTest {
    * @return next journal entry sequence number after writing these entries
    */
   private long writeJournalEntries(UfsJournalLogWriter writer, long startSN,
-      int numberOfEntries) throws IOException {
+      int numberOfEntries) throws Exception {
     long nextSN = startSN;
     for (int i = 0; i < numberOfEntries; i++) {
       writer.write(newEntry(nextSN));
@@ -375,7 +375,7 @@ public final class UfsJournalLogWriterTest extends BaseIntegrationTest {
    * @param writer {@link UfsJournalLogWriter} that attempts the write
    * @param nextSN the sequence number that the entry is expected to have
    */
-  private void tryWriteAndExpectToFail(UfsJournalLogWriter writer, long nextSN) {
+  private void tryWriteAndExpectToFail(UfsJournalLogWriter writer, long nextSN) throws Exception {
     try {
       writer.write(newEntry(nextSN));
       Assert.fail("Should not reach here.");

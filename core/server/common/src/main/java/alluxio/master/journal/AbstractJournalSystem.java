@@ -14,6 +14,7 @@ package alluxio.master.journal;
 import com.google.common.base.Preconditions;
 
 import java.io.IOException;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Base implementation for journal systems.
@@ -21,6 +22,8 @@ import java.io.IOException;
 public abstract class AbstractJournalSystem implements JournalSystem {
   private volatile Mode mMode = Mode.SECONDARY;
   private boolean mRunning = false;
+
+  public static final AtomicBoolean ALLOW_JOURNAL_MODIFY = new AtomicBoolean(true);
 
   @Override
   public void start() throws InterruptedException, IOException {
