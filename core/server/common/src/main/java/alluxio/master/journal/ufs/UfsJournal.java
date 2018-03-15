@@ -14,6 +14,7 @@ package alluxio.master.journal.ufs;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.exception.InvalidJournalEntryException;
+import alluxio.exception.JournalClosedException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.master.journal.AsyncJournalWriter;
 import alluxio.master.journal.Journal;
@@ -158,7 +159,7 @@ public class UfsJournal implements Journal {
    * @param entry an entry to write to the journal
    */
   @VisibleForTesting
-  synchronized void write(JournalEntry entry) throws IOException {
+  synchronized void write(JournalEntry entry) throws IOException, JournalClosedException {
     writer().write(entry);
   }
 
@@ -166,7 +167,7 @@ public class UfsJournal implements Journal {
    * Flushes the journal.
    */
   @VisibleForTesting
-  synchronized void flush() throws IOException {
+  synchronized void flush() throws IOException, JournalClosedException {
     writer().flush();
   }
 
