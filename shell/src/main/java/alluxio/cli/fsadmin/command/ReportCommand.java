@@ -62,24 +62,22 @@ public final class ReportCommand extends AbstractCommand {
     // Checks if Alluxio master and client services are running
     try (CloseableResource<FileSystemMasterClient> client =
              FileSystemContext.INSTANCE.acquireMasterClientResource()) {
+      InetSocketAddress address = client.get().getAddress();
+      List<InetSocketAddress> addresses = Arrays.asList(address);
+      MasterInquireClient inquireClient = new PollingMasterInquireClient(addresses, () ->
+          new ExponentialBackoffRetry(50, 100, 2)
+      );
       try {
-        InetSocketAddress address = client.get().getAddress();
-        List<InetSocketAddress> addresses = Arrays.asList(address);
-        MasterInquireClient inquireClient = new PollingMasterInquireClient(addresses, () ->
-            new ExponentialBackoffRetry(50, 100, 2)
-        );
-        try {
-          inquireClient.getPrimaryRpcAddress();
-        } catch (UnavailableException e) {
-          System.err.println("The Alluxio leader master is not currently serving requests.");
-          System.err.println("Please check your Alluxio master status");
-          return 1;
-        }
+        inquireClient.getPrimaryRpcAddress();
       } catch (UnavailableException e) {
-        System.err.println("Failed to get the leader master.");
+        System.err.println("The Alluxio leader master is not currently serving requests.");
         System.err.println("Please check your Alluxio master status");
         return 1;
       }
+    } catch (UnavailableException e) {
+      System.err.println("Failed to get the leader master.");
+      System.err.println("Please check your Alluxio master status");
+      return 1;
     }
 
     String[] args = cl.getArgs();
@@ -115,13 +113,13 @@ public final class ReportCommand extends AbstractCommand {
 
   @Override
   public String getUsage() {
-    return "report <category> <category args>";
+    return "report [category] [category args]";
   }
 
   @Override
   public String getDescription() {
     return "Report Alluxio running cluster information.\n"
-        + "Where category is an optional argument, if no arguments passed in, "
+        + "Where category is an optional argument, if no arguments are passed in, "
         + "summary information will be printed out."
         + "category can be one of the following:\n"
         + "    summary          Summarized Alluxio cluster information";
@@ -129,7 +127,7 @@ public final class ReportCommand extends AbstractCommand {
 
   @Override
   public void validateArgs(String... args) throws InvalidArgumentException {
-    if (args.length > 2) {
+    if (args.length > 1) {
       throw new InvalidArgumentException(
           ExceptionMessage.INVALID_ARGS_GENERIC.getMessage(getCommandName()));
     }

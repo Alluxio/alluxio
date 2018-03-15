@@ -11,11 +11,9 @@
 
 package alluxio.cli.fsadmin.command.report;
 
-import alluxio.cli.AbstractCommand;
 import alluxio.client.block.RetryHandlingBlockMasterClient;
 import alluxio.client.MetaMasterClient;
 import alluxio.client.RetryHandlingMetaMasterClient;
-import alluxio.exception.status.UnavailableException;
 import alluxio.master.MasterClientConfig;
 import alluxio.util.CommonUtils;
 import alluxio.util.FormatUtils;
@@ -24,6 +22,7 @@ import alluxio.wire.BlockMasterInfo.BlockMasterInfoField;
 import alluxio.wire.MasterInfo;
 import alluxio.wire.MasterInfo.MasterInfoField;
 
+import com.google.common.base.Strings;
 import org.apache.commons.cli.CommandLine;
 
 import java.io.IOException;
@@ -36,26 +35,21 @@ import java.util.Set;
  * Print Alluxio cluster summarized information.
  * This class depends on meta master client and block master client.
  */
-public class SummaryCommand extends AbstractCommand {
+public class SummaryCommand {
+  private static final int INDENT_SIZE = 4;
 
-  @Override
-  public int run(CommandLine cl) throws UnavailableException, IOException {
+  public int run(CommandLine cl) throws IOException {
     System.out.println("Alluxio Cluster Summary: ");
 
-    int numOfSpaces = 4;
-    String spaces = String.format("%" + numOfSpaces + "s", "");
-
-    printMetaMasterInfo(spaces);
-    printBlockMasterInfo(spaces);
+    printMetaMasterInfo();
+    printBlockMasterInfo();
     return 0;
   }
 
   /**
    * Prints Alluxio meta master information.
-   *
-   * @param spaces for better indentation
    */
-  private void printMetaMasterInfo(String spaces) throws UnavailableException, IOException{
+  private void printMetaMasterInfo() throws IOException{
     try (MetaMasterClient client =
              new RetryHandlingMetaMasterClient(MasterClientConfig.defaults())) {
       Set<MasterInfoField> masterInfoFilter = new HashSet<>(Arrays
@@ -67,24 +61,20 @@ public class SummaryCommand extends AbstractCommand {
       if (masterInfo == null) {
         throw new IOException("Cannot get meta master info from meta master client");
       }
-      System.out.println(spaces + "Master Address: " + masterInfo.getMasterAddress());
-      System.out.println(spaces + "Web Port: " + masterInfo.getWebPort());
-      System.out.println(spaces + "Rpc Port: " + masterInfo.getRpcPort());
-      System.out.println(spaces + "Started: "
-          + CommonUtils.convertMsToDate(masterInfo.getStartTimeMs()));
-      System.out.println(spaces + "Uptime: "
-          + CommonUtils.convertMsToClockTime(masterInfo.getUpTimeMs()));
-      System.out.println(spaces + "Version: " + masterInfo.getVersion());
-      System.out.println(spaces + "Safe Mode: " + masterInfo.isSafeMode());
+      print("Master Address: " + masterInfo.getMasterAddress(), 1);
+      print("Web Port: " + masterInfo.getWebPort(), 1);
+      print("Rpc Port: " + masterInfo.getRpcPort(), 1);
+      print("Started: " + CommonUtils.convertMsToDate(masterInfo.getStartTimeMs()), 1);
+      print("Uptime: " + CommonUtils.convertMsToClockTime(masterInfo.getUpTimeMs()), 1);
+      print("Version: " + masterInfo.getVersion(), 1);
+      print("Safe Mode: " + masterInfo.isSafeMode(), 1);
     }
   }
 
   /**
    * Prints Alluxio block master information.
-   *
-   * @param spaces for better indentation
    */
-  private void printBlockMasterInfo(String spaces) throws UnavailableException, IOException{
+  private void printBlockMasterInfo() throws IOException{
     try (RetryHandlingBlockMasterClient client =
              new RetryHandlingBlockMasterClient(MasterClientConfig.defaults())) {
       Set<BlockMasterInfoField> blockMasterInfoFilter = new HashSet<>(Arrays
@@ -97,59 +87,46 @@ public class SummaryCommand extends AbstractCommand {
         throw new IOException("Cannot get block master info from block master client");
       }
 
-      System.out.println(spaces + "Live Workers: " + blockMasterInfo.getLiveWorkerNum());
-      System.out.println(spaces + "Lost Workers: " + blockMasterInfo.getLostWorkerNum());
+      print("Live Workers: " + blockMasterInfo.getLiveWorkerNum(), 1);
+      print("Lost Workers: " + blockMasterInfo.getLostWorkerNum(), 1);
 
-      System.out.println(spaces + "Total Capacity: "
-          + FormatUtils.getSizeFromBytes(blockMasterInfo.getCapacityBytes()));
+      print("Total Capacity: "
+          + FormatUtils.getSizeFromBytes(blockMasterInfo.getCapacityBytes()), 1);
 
       Map<String, Long> totalCapacityOnTiers = blockMasterInfo.getCapacityBytesOnTiers();
       if (totalCapacityOnTiers != null) {
         for (Map.Entry<String, Long> capacityBytesTier : totalCapacityOnTiers.entrySet()) {
           long value = capacityBytesTier.getValue();
-          if (value > 0) {
-            System.out.println(spaces + spaces + "Tier: " + capacityBytesTier.getKey()
-                + "  Size: " + FormatUtils.getSizeFromBytes(value));
-          }
+          print("Tier: " + capacityBytesTier.getKey()
+              + "  Size: " + FormatUtils.getSizeFromBytes(value), 2);
         }
       }
 
-      System.out.println(spaces + "Used Capacity: "
-          + FormatUtils.getSizeFromBytes(blockMasterInfo.getUsedBytes()));
+      print("Used Capacity: "
+          + FormatUtils.getSizeFromBytes(blockMasterInfo.getUsedBytes()), 1);
 
       Map<String, Long> usedCapacityOnTiers = blockMasterInfo.getUsedBytesOnTiers();
       if (usedCapacityOnTiers != null) {
         for (Map.Entry<String, Long> usedBytesTier: usedCapacityOnTiers.entrySet()) {
           long value = usedBytesTier.getValue();
-          if (value > 0) {
-            System.out.println(spaces + spaces + "Tier: " + usedBytesTier.getKey()
-                + "  Size: " + FormatUtils.getSizeFromBytes(value));
-          }
+          print("Tier: " + usedBytesTier.getKey()
+              + "  Size: " + FormatUtils.getSizeFromBytes(value), 2);
         }
       }
 
-      System.out.println(spaces + "Free Capacity: "
-          + FormatUtils.getSizeFromBytes(blockMasterInfo.getFreeBytes()));
+      print("Free Capacity: "
+          + FormatUtils.getSizeFromBytes(blockMasterInfo.getFreeBytes()), 1);
     }
   }
 
-  @Override
-  public String getCommandName() {
-    return "reportSummary";
-  }
-
-  @Override
-  protected int getNumOfArgs() {
-    return 0;
-  }
-
-  @Override
-  public String getUsage() {
-    return "report summary";
-  }
-
-  @Override
-  public String getDescription() {
-    return "Report summarized Alluxio cluster information";
+  /**
+   * Prints indented information.
+   *
+   * @param text information to print
+   * @param indentLevel indentation level to use
+   */
+  private void print(String text, int indentLevel) {
+    String indent = Strings.repeat(" ", indentLevel * INDENT_SIZE);
+    System.out.println(indent + text);
   }
 }
