@@ -3,6 +3,7 @@ package cmd
 import (
 	"bytes"
 	"fmt"
+	"io"
 	"os"
 	"os/exec"
 	"sort"
@@ -39,13 +40,31 @@ func run(desc, cmd string, args ...string) string {
 		fmt.Printf("\n    command: %s %s ... ", cmd, strings.Join(args, " "))
 	}
 	c := exec.Command(cmd, args...)
-	stderr := &bytes.Buffer{}
 	stdout := &bytes.Buffer{}
-	c.Stderr = stderr
-	c.Stdout = stdout
-	if err := c.Run(); err != nil {
-		fmt.Printf("\"%v %v\" failed: %v\nstderr: <%v>\nstdout: <%v>\n", cmd, strings.Join(args, " "), err, stderr.String(), stdout.String())
-		os.Exit(1)
+	if debugFlag {
+		// Stream the cmd's output (stdout and stderr) to os.Stdout, so that users can see the output while cmd is running.
+		stdoutR, stdoutW := io.Pipe()
+		stderrR, stderrW := io.Pipe()
+		c.Stdout = stdoutW
+		c.Stderr = stderrW
+		stdouts := io.MultiWriter(stdout, os.Stdout)
+		go func() {
+			io.Copy(stdouts, stdoutR)
+		}()
+		go func() {
+			io.Copy(os.Stderr, stderrR)
+		}()
+		if c.Run() != nil {
+			os.Exit(1)
+		}
+	} else {
+		c.Stdout = stdout
+		stderr := &bytes.Buffer{}
+		c.Stderr = stderr
+		if err := c.Run(); err != nil {
+			fmt.Printf("\"%v %v\" failed: %v\nstderr: <%v>\nstdout: <%v>\n", cmd, strings.Join(args, " "), err, stderr.String(), stdout.String())
+			os.Exit(1)
+		}
 	}
 	fmt.Println("done")
 	return stdout.String()
