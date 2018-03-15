@@ -161,7 +161,7 @@ public final class UnderFileSystemBlockReader implements BlockReader {
     }
     byte[] data = new byte[(int) bytesToRead];
     int bytesRead = 0;
-    Preconditions.checkNotNull(mUnderFileSystemInputStream);
+    Preconditions.checkNotNull(mUnderFileSystemInputStream, "mUnderFileSystemInputStream");
     while (bytesRead < bytesToRead) {
       int read;
       try {
