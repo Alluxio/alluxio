@@ -363,7 +363,7 @@ public class UfsJournal implements Journal {
         entry = journalReader.read();
       } catch (IOException e) {
         LOG.warn("{}: Failed to read from journal: {}", mMaster.getName(), e);
-        if (retry.attemptRetry()) {
+        if (retry.attempt()) {
           continue;
         }
         throw new RuntimeException(e);
