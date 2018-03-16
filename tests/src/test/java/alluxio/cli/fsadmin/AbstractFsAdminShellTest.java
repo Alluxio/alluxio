@@ -11,15 +11,14 @@
 
 package alluxio.cli.fsadmin;
 
-import alluxio.Constants;
 import alluxio.cli.AbstractShellIntegrationTest;
+import alluxio.Constants;
 
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 
-public class AbstractFsadminShellTest extends AbstractShellIntegrationTest {
-  private static final int SIZE_BYTES = Constants.MB * 16;
+public class AbstractFsAdminShellTest extends AbstractShellIntegrationTest {
   @Rule
   protected FileSystemAdminShell mFsAdminShell = null;
 

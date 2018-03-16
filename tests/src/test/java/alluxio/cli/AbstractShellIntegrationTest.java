@@ -29,8 +29,8 @@ import java.io.ByteArrayOutputStream;
  * The base class for all the shell integration test.
  */
 public abstract class AbstractShellIntegrationTest extends BaseIntegrationTest {
-
   protected static final int SIZE_BYTES = Constants.MB * 16;
+
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
       new LocalAlluxioClusterResource.Builder()

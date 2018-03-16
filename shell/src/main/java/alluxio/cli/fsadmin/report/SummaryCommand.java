@@ -35,10 +35,10 @@ import java.util.Set;
 public class SummaryCommand {
   private static final int INDENT_SIZE = 4;
 
+  private int mIndentationLevel = 0;
   private MetaMasterClient mMetaMasterClient;
   private BlockMasterClient mBlockMasterClient;
   private PrintStream mPrintStream;
-  private int mIndentationLevel = 0;
 
   /**
    /**

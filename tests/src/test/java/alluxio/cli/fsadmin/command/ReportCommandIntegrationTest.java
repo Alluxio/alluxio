@@ -11,7 +11,7 @@
 
 package alluxio.cli.fsadmin.command;
 
-import alluxio.cli.fsadmin.AbstractFsadminShellTest;
+import alluxio.cli.fsadmin.AbstractFsAdminShellTest;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -19,7 +19,7 @@ import org.junit.Test;
 /**
  * Tests for report command.
  */
-public final class ReportCommandIntegrationTest extends AbstractFsadminShellTest {
+public final class ReportCommandIntegrationTest extends AbstractFsAdminShellTest {
   @Test
   public void masterNotRunning() throws Exception {
     mLocalAlluxioCluster.stopMasters();

@@ -11,7 +11,7 @@
 
 package alluxio.cli.fsadmin.command;
 
-import alluxio.cli.fsadmin.AbstractFsadminShellTest;
+import alluxio.cli.fsadmin.AbstractFsAdminShellTest;
 import alluxio.Configuration;
 import alluxio.ProjectConstants;
 import alluxio.PropertyKey;
@@ -25,7 +25,7 @@ import org.junit.Test;
 /**
  * Tests for report summary command.
  */
-public final class SummaryCommandIntegrationTest extends AbstractFsadminShellTest {
+public final class SummaryCommandIntegrationTest extends AbstractFsAdminShellTest {
   @Test
   public void runSummaryShell() {
     int ret = mFsAdminShell.run("report", "summary");

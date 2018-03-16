@@ -118,7 +118,6 @@ public class SummaryCommandTest {
         mBlockMasterClient, mPrintStream);
     summaryCommand.run();
     mPrintStream.flush();
-    mPrintStream.close();
 
     BufferedReader reader = new BufferedReader(new FileReader(mFile));
     checkIfOutputValid(reader);
@@ -156,22 +155,21 @@ public class SummaryCommandTest {
     Assert.assertThat(output, CoreMatchers.containsString("Lost Workers: " + mLostWorkerNum));
     Assert.assertThat(output, CoreMatchers.containsString("Total Capacity: "
         + FormatUtils.getSizeFromBytes(mCapacityBytes)));
-    Assert.assertThat(output, CoreMatchers.containsString("Total Capacity: "
-        + FormatUtils.getSizeFromBytes(mCapacityBytes)));
-    Assert.assertThat(output, CoreMatchers.containsString("Used Capacity: "
-        + FormatUtils.getSizeFromBytes(mUsedBytes)));
-    Assert.assertThat(output, CoreMatchers.containsString("Free Capacity: "
-        + FormatUtils.getSizeFromBytes(mFreeBytes)));
     Assert.assertThat(output, CoreMatchers.containsString("Tier: MEM"
         + "  Size: " + FormatUtils.getSizeFromBytes(mCapacityBytesOnTiers.get("MEM"))));
+    Assert.assertThat(output, CoreMatchers.containsString("Used Capacity: "
+        + FormatUtils.getSizeFromBytes(mUsedBytes)));
     Assert.assertThat(output, CoreMatchers.containsString("Tier: MEM"
         + "  Size: " + FormatUtils.getSizeFromBytes(mUsedBytesOnTiers.get("MEM"))));
+    Assert.assertThat(output, CoreMatchers.containsString("Free Capacity: "
+        + FormatUtils.getSizeFromBytes(mFreeBytes)));
   }
 
   /**
-   * Sets the info values so that we can do explicitly check.
+   * Sets the client info values so that we can do explicitly check.
    */
   private void setInfoValues() {
+    // Set meta master info values
     mAddress = NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC).toString();
     mWebPort = Integer.valueOf(Configuration.get(PropertyKey.MASTER_WEB_PORT));
     mRpcPort = Integer.valueOf(Configuration.get(PropertyKey.MASTER_RPC_PORT));
@@ -180,6 +178,7 @@ public class SummaryCommandTest {
     mVersion = ProjectConstants.VERSION;
     mSafeMode = false;
 
+    // Set block master info values
     mLiveWorkerNum = 1;
     mLostWorkerNum = 0;
     mCapacityBytes = 1000000L;
