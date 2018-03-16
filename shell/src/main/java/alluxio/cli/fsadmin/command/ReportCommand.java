@@ -37,7 +37,7 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * Reports Alluxio runtime information.
+ * Reports Alluxio running cluster information.
  */
 public final class ReportCommand extends AbstractCommand {
   private MetaMasterClient mMetaMasterClient;
