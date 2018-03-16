@@ -178,8 +178,8 @@ public final class AlluxioBlockStore {
     WorkerNetAddress dataSource = null;
     locations = locations.stream()
         .filter(location -> workers.contains(location.getWorkerAddress())).collect(toList());
+    // First try to read data from Alluxio
     if (!locations.isEmpty()) {
-      // Case 1: we still have at least one worker containing the block.
       // TODO(calvin): Get location via a policy
       List<TieredIdentity> tieredLocations =
           locations.stream().map(location -> location.getWorkerAddress().getTieredIdentity())
@@ -196,8 +196,9 @@ public final class AlluxioBlockStore {
           dataSourceType = BlockInStreamSource.REMOTE;
         }
       }
-    } else {
-      // Case 2: no worker contains the block; we must read from the UFS.
+    }
+    // Can't get data from Alluxio, get it from the UFS instead
+    if (dataSource == null) {
       dataSourceType = BlockInStreamSource.UFS;
       BlockLocationPolicy policy =
           Preconditions.checkNotNull(options.getOptions().getUfsReadLocationPolicy(),

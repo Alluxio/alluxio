@@ -49,7 +49,12 @@ public final class UfsSyncUtils {
         // Instead of deleting and then loading metadata to update, try to update directly
         // - mount points should not be deleted
         // - directory permissions can be updated without removing the inode
-        syncPlan.setUpdateDirectory();
+        if (inode.getParentId() != InodeTree.NO_PARENT) {
+          // Only update the inode if it is not the root directory. The root directory is a special
+          // case, since it is expected to be owned by the process that starts the master, and not
+          // the owner on UFS.
+          syncPlan.setUpdateDirectory();
+        }
         syncPlan.setSyncChildren();
       } else {
         // update inode, by deleting and then optionally loading metadata
