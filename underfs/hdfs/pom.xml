@@ -76,7 +76,6 @@
               <globalVars>
                 <property>
                   <name>HADOOP1</name>
-                  <value>1</value>
                 </property>
               </globalVars>
             </configuration>
@@ -97,7 +96,6 @@
           <artifactId>hadoop-common</artifactId>
           <version>${ufs.hadoop.version}</version>
         </dependency>
-
         <dependency>
           <groupId>org.apache.hadoop</groupId>
           <artifactId>hadoop-hdfs</artifactId>
@@ -115,7 +113,6 @@
           <artifactId>hadoop-common</artifactId>
           <version>${ufs.hadoop.version}</version>
         </dependency>
-
         <dependency>
           <groupId>org.apache.hadoop</groupId>
           <artifactId>hadoop-hdfs-client</artifactId>

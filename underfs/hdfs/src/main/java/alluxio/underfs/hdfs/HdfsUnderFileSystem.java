@@ -276,11 +276,11 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
     // as Alluxio can load/store data out of entire HDFS cluster
     long space = -1;
     if (mFileSystem instanceof DistributedFileSystem) {
+      // Note that, getDiskStatus() is an API from Hadoop 1, deprecated by getStatus() from
+      // Hadoop 2 and removed in Hadoop 3
       switch (type) {
         case SPACE_TOTAL:
           //#ifdef HADOOP1
-          // Due to Hadoop 1 support we stick with the deprecated version. If we drop support for it
-          // FileSystem.getStatus().getCapacity() will be the new one.
           space = ((DistributedFileSystem) mFileSystem).getDiskStatus().getCapacity();
           //#else
           space = mFileSystem.getStatus().getCapacity();
@@ -288,8 +288,6 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
           break;
         case SPACE_USED:
           //#ifdef HADOOP1
-          // Due to Hadoop 1 support we stick with the deprecated version. If we drop support for it
-          // FileSystem.getStatus().getUsed() will be the new one.
           space = ((DistributedFileSystem) mFileSystem).getDiskStatus().getDfsUsed();
           //#else
           space = mFileSystem.getStatus().getUsed();
@@ -297,8 +295,6 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
           break;
         case SPACE_FREE:
           //#ifdef HADOOP1
-          // Due to Hadoop 1 support we stick with the deprecated version. If we drop support for it
-          // FileSystem.getStatus().getRemaining() will be the new one.
           space = ((DistributedFileSystem) mFileSystem).getDiskStatus().getRemaining();
           //#else
           space = mFileSystem.getStatus().getRemaining();
