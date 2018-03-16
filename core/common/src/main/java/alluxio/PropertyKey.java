@@ -2826,12 +2826,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.network.thrift.frame.size.bytes.max";
     public static final String SITE_CONF_DIR = "alluxio.site.conf.dir";
     public static final String TEST_MODE = "alluxio.test.mode";
-<<<<<<< HEAD
     public static final String USER_HOME = "user.home";
-||||||| merged common ancestors
-=======
     public static final String TMP_DIRS = "alluxio.tmp.dirs";
->>>>>>> upstream/branch-1.7
     public static final String VERSION = "alluxio.version";
     public static final String WEB_RESOURCES = "alluxio.web.resources";
     public static final String WEB_THREADS = "alluxio.web.threads";

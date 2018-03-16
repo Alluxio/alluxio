@@ -3171,7 +3171,6 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
 
         MountTable.Resolution resolution = mMountTable.resolve(inodePath.getUri());
         AlluxioURI ufsUri = resolution.getUri();
-<<<<<<< HEAD
         try (CloseableResource<UnderFileSystem> ufsResource = resolution.acquireUfsResource()) {
           UnderFileSystem ufs = ufsResource.get();
           String ufsFingerprint = ufs.getFingerprint(ufsUri.toString());
@@ -3183,10 +3182,14 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
           if (syncPlan.toUpdateDirectory()) {
             // Fingerprints only consider permissions for directory inodes.
             UfsStatus ufsStatus = ufs.getStatus(ufsUri.toString());
-            inode.setOwner(ufsStatus.getOwner());
-            inode.setGroup(ufsStatus.getGroup());
-            inode.setMode(ufsStatus.getMode());
-            inode.setUfsFingerprint(ufsFingerprint);
+            SetAttributeOptions options =
+                SetAttributeOptions.defaults().setOwner(ufsStatus.getOwner())
+                    .setGroup(ufsStatus.getGroup()).setMode(ufsStatus.getMode())
+                    .setUfsFingerprint(ufsFingerprint);
+            long opTimeMs = System.currentTimeMillis();
+            // use replayed, since updating UFS is not desired.
+            setAttributeInternal(inodePath, true, opTimeMs, options);
+            journalSetAttribute(inodePath, opTimeMs, options, journalContext);
           }
           if (syncPlan.toDelete()) {
             try {
@@ -3205,59 +3208,6 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
 
           if (syncPlan.toSyncChildren()) {
             loadMetadata = syncChildrenMetadata(journalContext, inodePath, syncDescendantType);
-||||||| merged common ancestors
-        UnderFileSystem ufs = resolution.getUfs();
-        String ufsFingerprint = ufs.getFingerprint(ufsUri.toString());
-        boolean isMountPoint = mMountTable.isMountPoint(inodePath.getUri());
-
-        UfsSyncUtils.SyncPlan syncPlan =
-            UfsSyncUtils.computeSyncPlan(inode, ufsFingerprint, isMountPoint);
-
-        if (syncPlan.toUpdateDirectory()) {
-          // Fingerprints only consider permissions for directory inodes.
-          UfsStatus ufsStatus = ufs.getStatus(ufsUri.toString());
-          inode.setOwner(ufsStatus.getOwner());
-          inode.setGroup(ufsStatus.getGroup());
-          inode.setMode(ufsStatus.getMode());
-          inode.setUfsFingerprint(ufsFingerprint);
-        }
-        if (syncPlan.toDelete()) {
-          try {
-            deleteInternal(inodePath, false, System.currentTimeMillis(), syncDeleteOptions,
-                journalContext);
-            deletedInode = true;
-          } catch (DirectoryNotEmptyException | IOException e) {
-            // Should not happen, since it is an unchecked delete.
-            LOG.error("Unexpected error for unchecked delete. error: {}", e.toString());
-=======
-        UnderFileSystem ufs = resolution.getUfs();
-        String ufsFingerprint = ufs.getFingerprint(ufsUri.toString());
-        boolean isMountPoint = mMountTable.isMountPoint(inodePath.getUri());
-
-        UfsSyncUtils.SyncPlan syncPlan =
-            UfsSyncUtils.computeSyncPlan(inode, ufsFingerprint, isMountPoint);
-
-        if (syncPlan.toUpdateDirectory()) {
-          // Fingerprints only consider permissions for directory inodes.
-          UfsStatus ufsStatus = ufs.getStatus(ufsUri.toString());
-          SetAttributeOptions options =
-              SetAttributeOptions.defaults().setOwner(ufsStatus.getOwner())
-                  .setGroup(ufsStatus.getGroup()).setMode(ufsStatus.getMode())
-                  .setUfsFingerprint(ufsFingerprint);
-          long opTimeMs = System.currentTimeMillis();
-          // use replayed, since updating UFS is not desired.
-          setAttributeInternal(inodePath, true, opTimeMs, options);
-          journalSetAttribute(inodePath, opTimeMs, options, journalContext);
-        }
-        if (syncPlan.toDelete()) {
-          try {
-            deleteInternal(inodePath, false, System.currentTimeMillis(), syncDeleteOptions,
-                journalContext);
-            deletedInode = true;
-          } catch (DirectoryNotEmptyException | IOException e) {
-            // Should not happen, since it is an unchecked delete.
-            LOG.error("Unexpected error for unchecked delete. error: {}", e.toString());
->>>>>>> upstream/branch-1.7
           }
         }
       }
