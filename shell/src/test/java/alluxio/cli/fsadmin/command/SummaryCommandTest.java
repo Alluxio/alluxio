@@ -14,94 +14,80 @@ package alluxio.cli.fsadmin.command;
 import alluxio.cli.fsadmin.report.SummaryCommand;
 import alluxio.client.MetaMasterClient;
 import alluxio.client.block.BlockMasterClient;
-import alluxio.Configuration;
-import alluxio.ProjectConstants;
-import alluxio.PropertyKey;
 import alluxio.util.CommonUtils;
 import alluxio.util.FormatUtils;
-import alluxio.util.network.NetworkAddressUtils;
-import alluxio.util.network.NetworkAddressUtils.ServiceType;
 import alluxio.wire.BlockMasterInfo;
-import alluxio.wire.BlockMasterInfo.BlockMasterInfoField;
 import alluxio.wire.MasterInfo;
-import alluxio.wire.MasterInfo.MasterInfoField;
 
-import org.hamcrest.CoreMatchers;
+import com.google.common.base.Strings;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.FileReader;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
-import java.util.Arrays;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 
 public class SummaryCommandTest {
+  private static final int INDENT_SIZE = 4;
+  private static final String ADDRESS = "testAddress";
+  private static final int WEB_PORT = 1231;
+  private static final int RPC_PORT = 8462;
+  private static final long START_TIME_MS = 213124234312231L;
+  private static final long UPTIME_MS = 12412412312L;
+  private static final String VERSION = "testVersion";
+  private static final boolean SAFE_MODE = false;
+  private static final int LIVE_WORKER_NUM = 12;
+  private static final int LOST_WORKER_NUM = 4;
+  private static final long CAPACITY_BYTES = 1341353L;
+  private static final long USED_BYTES = 62434L;
+  private static final long FREE_BYTES = 1278919L;
+
   private MetaMasterClient mMetaMasterClient;
-  private String mAddress;
-  private int mWebPort;
-  private int mRpcPort;
-  private long mStartTimeMs;
-  private long mUpTimeMs;
-  private String mVersion;
-  private boolean mSafeMode;
-
   private BlockMasterClient mBlockMasterClient;
-  private int mLiveWorkerNum;
-  private int mLostWorkerNum;
-  private long mCapacityBytes;
-  private Map<String, Long> mCapacityBytesOnTiers;
-  private long mUsedBytes;
-  private Map<String, Long> mUsedBytesOnTiers;
-  private long mFreeBytes;
-
-  private File mFile;
+  private ByteArrayOutputStream mOutputStream;
   private PrintStream mPrintStream;
+  private int mIndentationLevel = 1;
+  private Map<String, Long> mCapacityBytesOnTiers = new HashMap<>();
+  private Map<String, Long> mUsedBytesOnTiers = new HashMap<>();
 
   @Before
   public void prepareDependencies() throws IOException {
-    setInfoValues();
-
     // Prepare mock meta master client
     mMetaMasterClient = Mockito.mock(MetaMasterClient.class);
-    MasterInfo masterInfo = new MasterInfo().setMasterAddress(mAddress)
-        .setWebPort(mWebPort).setRpcPort(mRpcPort).setStartTimeMs(mStartTimeMs)
-        .setUpTimeMs(mUpTimeMs).setVersion(mVersion).setSafeMode(mSafeMode);
-    Set<MasterInfoField> masterInfoFilter = new HashSet<>(Arrays
-        .asList(MasterInfoField.MASTER_ADDRESS, MasterInfoField.WEB_PORT,
-            MasterInfoField.RPC_PORT, MasterInfoField.START_TIME_MS,
-            MasterInfoField.UP_TIME_MS, MasterInfoField.VERSION,
-            MasterInfoField.SAFE_MODE));
-    Mockito.when(mMetaMasterClient.getMasterInfo(masterInfoFilter)).thenReturn(masterInfo);
+    MasterInfo masterInfo = new MasterInfo()
+        .setMasterAddress(ADDRESS)
+        .setWebPort(WEB_PORT)
+        .setRpcPort(RPC_PORT)
+        .setStartTimeMs(START_TIME_MS)
+        .setUpTimeMs(UPTIME_MS)
+        .setVersion(VERSION)
+        .setSafeMode(SAFE_MODE);
+    Mockito.when(mMetaMasterClient.getMasterInfo(Mockito.any())).thenReturn(masterInfo);
 
     // Prepare mock block master client
     mBlockMasterClient = Mockito.mock(BlockMasterClient.class);
+    mCapacityBytesOnTiers.put("MEM", CAPACITY_BYTES);
+    mUsedBytesOnTiers.put("MEM", USED_BYTES);
     BlockMasterInfo blockMasterInfo = new BlockMasterInfo()
-        .setLiveWorkerNum(mLiveWorkerNum).setLostWorkerNum(mLostWorkerNum)
-        .setCapacityBytes(mCapacityBytes).setCapacityBytesOnTiers(mCapacityBytesOnTiers)
-        .setUsedBytes(mUsedBytes).setUsedBytesOnTiers(mUsedBytesOnTiers)
-        .setFreeBytes(mFreeBytes);
-    Set<BlockMasterInfoField> blockMasterInfoFilter = new HashSet<>(Arrays
-        .asList(BlockMasterInfoField.LIVE_WORKER_NUM, BlockMasterInfoField.LOST_WORKER_NUM,
-            BlockMasterInfoField.CAPACITY_BYTES, BlockMasterInfoField.CAPACITY_BYTES_ON_TIERS,
-            BlockMasterInfoField.USED_BYTES, BlockMasterInfoField.USED_BYTES_ON_TIERS,
-            BlockMasterInfoField.FREE_BYTES));
-    Mockito.when(mBlockMasterClient.getBlockMasterInfo(blockMasterInfoFilter))
+        .setLiveWorkerNum(LIVE_WORKER_NUM)
+        .setLostWorkerNum(LOST_WORKER_NUM)
+        .setCapacityBytes(CAPACITY_BYTES)
+        .setCapacityBytesOnTiers(mCapacityBytesOnTiers)
+        .setUsedBytes(USED_BYTES)
+        .setUsedBytesOnTiers(mUsedBytesOnTiers)
+        .setFreeBytes(FREE_BYTES);
+    Mockito.when(mBlockMasterClient.getBlockMasterInfo(Mockito.any()))
         .thenReturn(blockMasterInfo);
 
     // Prepare print stream
-    mFile = new File("./MockSummaryResult.txt");
-    FileOutputStream fileOutputStream = new FileOutputStream(mFile);
-    mPrintStream = new PrintStream(fileOutputStream);
+    mOutputStream = new ByteArrayOutputStream();
+    mPrintStream = new PrintStream(mOutputStream, true, "utf-8");
   }
 
   @After
@@ -109,7 +95,6 @@ public class SummaryCommandTest {
     mMetaMasterClient.close();
     mBlockMasterClient.close();
     mPrintStream.close();
-    mFile.delete();
   }
 
   @Test
@@ -117,76 +102,86 @@ public class SummaryCommandTest {
     SummaryCommand summaryCommand = new SummaryCommand(mMetaMasterClient,
         mBlockMasterClient, mPrintStream);
     summaryCommand.run();
-    mPrintStream.flush();
-
-    BufferedReader reader = new BufferedReader(new FileReader(mFile));
-    checkIfOutputValid(reader);
+    checkIfOutputValid();
   }
 
   /**
-   * Checks if the output contains expected values.
-   *
-   * @param reader reader to read SummaryCommand output
+   * Checks if the output is expected.
    */
-  private void checkIfOutputValid(BufferedReader reader) throws IOException {
-    StringBuilder outputBuilder = new StringBuilder();
-    String line;
-    while ((line = reader.readLine()) != null) {
-      outputBuilder.append(line);
+  private void checkIfOutputValid() throws IOException {
+    String output = new String(mOutputStream.toByteArray(), StandardCharsets.UTF_8);
+    String[] outputLines = output.split("\n");
+    for (int lineNum = 0; lineNum < outputLines.length; lineNum++) {
+      switch (lineNum) {
+        case 0:
+          Assert.assertEquals("Alluxio Cluster Summary: ", outputLines[lineNum]);
+          break;
+        case 1:
+          Assert.assertEquals(indent("Master Address: " + ADDRESS), outputLines[lineNum]);
+          break;
+        case 2:
+          Assert.assertEquals(indent("Web Port: " + WEB_PORT), outputLines[lineNum]);
+          break;
+        case 3:
+          Assert.assertEquals(indent("Rpc Port: " + RPC_PORT), outputLines[lineNum]);
+          break;
+        case 4:
+          Assert.assertEquals(indent("Started: "
+              + CommonUtils.convertMsToDate(START_TIME_MS)), outputLines[lineNum]);
+          break;
+        case 5:
+          Assert.assertEquals(indent("Uptime: "
+              + CommonUtils.convertMsToClockTime(UPTIME_MS)), outputLines[lineNum]);
+          break;
+        case 6:
+          Assert.assertEquals(indent("Version: " + VERSION), outputLines[lineNum]);
+          break;
+        case 7:
+          Assert.assertEquals(indent("Safe Mode: " + SAFE_MODE), outputLines[lineNum]);
+          break;
+        case 8:
+          Assert.assertEquals(indent("Live Workers: " + LIVE_WORKER_NUM), outputLines[lineNum]);
+          break;
+        case 9:
+          Assert.assertEquals(indent("Lost Workers: " + LOST_WORKER_NUM), outputLines[lineNum]);
+          break;
+        case 10:
+          Assert.assertEquals(indent("Total Capacity: "
+              + FormatUtils.getSizeFromBytes(CAPACITY_BYTES)), outputLines[lineNum]);
+          break;
+        case 11:
+          mIndentationLevel++;
+          Assert.assertEquals(indent("Tier: MEM  Size: "
+              + FormatUtils.getSizeFromBytes(CAPACITY_BYTES)), outputLines[lineNum]);
+          break;
+        case 12:
+          mIndentationLevel--;
+          Assert.assertEquals(indent("Used Capacity: "
+              + FormatUtils.getSizeFromBytes(USED_BYTES)), outputLines[lineNum]);
+          break;
+        case 13:
+          mIndentationLevel++;
+          Assert.assertEquals(indent("Tier: MEM  Size: "
+              + FormatUtils.getSizeFromBytes(USED_BYTES)), outputLines[lineNum]);
+          break;
+        case 14:
+          mIndentationLevel--;
+          Assert.assertEquals(indent("Free Capacity: "
+              + FormatUtils.getSizeFromBytes(FREE_BYTES)), outputLines[lineNum]);
+          break;
+        default:
+          break;
+      }
     }
-    String output = outputBuilder.toString();
-
-    Assert.assertThat(output, CoreMatchers.containsString(
-        "Master Address: " + mAddress));
-    Assert.assertThat(output, CoreMatchers.containsString(
-        "Web Port: " + mWebPort));
-    Assert.assertThat(output, CoreMatchers.containsString(
-        "Rpc Port: " + mRpcPort));
-    Assert.assertThat(output, CoreMatchers.containsString(
-        "Started: " + CommonUtils.convertMsToDate(mStartTimeMs)));
-    Assert.assertThat(output, CoreMatchers.containsString(
-        "Uptime: " + CommonUtils.convertMsToClockTime(mUpTimeMs)));
-    Assert.assertThat(output, CoreMatchers.containsString(
-        "Version: " + mVersion));
-    Assert.assertThat(output, CoreMatchers.containsString(
-        "Safe Mode: " + mSafeMode));
-
-    Assert.assertThat(output, CoreMatchers.containsString("Live Workers: " + mLiveWorkerNum));
-    Assert.assertThat(output, CoreMatchers.containsString("Lost Workers: " + mLostWorkerNum));
-    Assert.assertThat(output, CoreMatchers.containsString("Total Capacity: "
-        + FormatUtils.getSizeFromBytes(mCapacityBytes)));
-    Assert.assertThat(output, CoreMatchers.containsString("Tier: MEM"
-        + "  Size: " + FormatUtils.getSizeFromBytes(mCapacityBytesOnTiers.get("MEM"))));
-    Assert.assertThat(output, CoreMatchers.containsString("Used Capacity: "
-        + FormatUtils.getSizeFromBytes(mUsedBytes)));
-    Assert.assertThat(output, CoreMatchers.containsString("Tier: MEM"
-        + "  Size: " + FormatUtils.getSizeFromBytes(mUsedBytesOnTiers.get("MEM"))));
-    Assert.assertThat(output, CoreMatchers.containsString("Free Capacity: "
-        + FormatUtils.getSizeFromBytes(mFreeBytes)));
   }
 
   /**
-   * Sets the client info values so that we can do explicitly check.
+   * Converts original string to indented string.
+   *
+   * @param text information to convert
    */
-  private void setInfoValues() {
-    // Set meta master info values
-    mAddress = NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC).toString();
-    mWebPort = Integer.valueOf(Configuration.get(PropertyKey.MASTER_WEB_PORT));
-    mRpcPort = Integer.valueOf(Configuration.get(PropertyKey.MASTER_RPC_PORT));
-    mStartTimeMs = System.currentTimeMillis();
-    mUpTimeMs = 60000;
-    mVersion = ProjectConstants.VERSION;
-    mSafeMode = false;
-
-    // Set block master info values
-    mLiveWorkerNum = 1;
-    mLostWorkerNum = 0;
-    mCapacityBytes = 1000000L;
-    mUsedBytes = 500000L;
-    mFreeBytes = 500000L;
-    mCapacityBytesOnTiers = new HashMap<>();
-    mCapacityBytesOnTiers.put("MEM", 1000000L);
-    mUsedBytesOnTiers = new HashMap<>();
-    mUsedBytesOnTiers.put("MEM", 500000L);
+  private String indent(String text) {
+    String indent = Strings.repeat(" ", mIndentationLevel * INDENT_SIZE);
+    return indent + text;
   }
 }

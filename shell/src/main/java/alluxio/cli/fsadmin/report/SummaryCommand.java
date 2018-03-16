@@ -46,7 +46,7 @@ public class SummaryCommand {
    *
    * @param metaMasterClient client to connect to meta master
    * @param blockMasterClient client to connect to block master
-   * @param printStream print information to console
+   * @param printStream stream to print summary information to
    */
   public SummaryCommand(MetaMasterClient metaMasterClient,
       BlockMasterClient blockMasterClient,
@@ -72,7 +72,7 @@ public class SummaryCommand {
    * Prints Alluxio meta master information.
    */
   private void printMetaMasterInfo() throws IOException {
-    mIndentationLevel = 1;
+    mIndentationLevel++;
     Set<MasterInfoField> masterInfoFilter = new HashSet<>(Arrays
         .asList(MasterInfoField.MASTER_ADDRESS, MasterInfoField.WEB_PORT,
             MasterInfoField.RPC_PORT, MasterInfoField.START_TIME_MS,
@@ -93,7 +93,6 @@ public class SummaryCommand {
    * Prints Alluxio block master information.
    */
   private void printBlockMasterInfo() throws IOException {
-    mIndentationLevel = 1;
     Set<BlockMasterInfoField> blockMasterInfoFilter = new HashSet<>(Arrays
         .asList(BlockMasterInfoField.LIVE_WORKER_NUM, BlockMasterInfoField.LOST_WORKER_NUM,
             BlockMasterInfoField.CAPACITY_BYTES, BlockMasterInfoField.USED_BYTES,
@@ -107,29 +106,29 @@ public class SummaryCommand {
     print("Total Capacity: "
         + FormatUtils.getSizeFromBytes(blockMasterInfo.getCapacityBytes()));
 
+    mIndentationLevel++;
     Map<String, Long> totalCapacityOnTiers = blockMasterInfo.getCapacityBytesOnTiers();
     if (totalCapacityOnTiers != null) {
-      mIndentationLevel = 2;
       for (Map.Entry<String, Long> capacityBytesTier : totalCapacityOnTiers.entrySet()) {
         print("Tier: " + capacityBytesTier.getKey()
             + "  Size: " + FormatUtils.getSizeFromBytes(capacityBytesTier.getValue()));
       }
     }
 
-    mIndentationLevel = 1;
+    mIndentationLevel--;
     print("Used Capacity: "
         + FormatUtils.getSizeFromBytes(blockMasterInfo.getUsedBytes()));
 
+    mIndentationLevel++;
     Map<String, Long> usedCapacityOnTiers = blockMasterInfo.getUsedBytesOnTiers();
     if (usedCapacityOnTiers != null) {
-      mIndentationLevel = 2;
       for (Map.Entry<String, Long> usedBytesTier: usedCapacityOnTiers.entrySet()) {
         print("Tier: " + usedBytesTier.getKey()
             + "  Size: " + FormatUtils.getSizeFromBytes(usedBytesTier.getValue()));
       }
     }
 
-    mIndentationLevel = 1;
+    mIndentationLevel--;
     print("Free Capacity: "
         + FormatUtils.getSizeFromBytes(blockMasterInfo.getFreeBytes()));
   }

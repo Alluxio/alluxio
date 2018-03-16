@@ -54,7 +54,7 @@ public final class ReportCommand extends AbstractCommand {
   public ReportCommand() {
     mMetaMasterClient = new RetryHandlingMetaMasterClient(MasterClientConfig.defaults());
     mBlockMasterClient = new RetryHandlingBlockMasterClient(MasterClientConfig.defaults());
-    mPrintStream = new PrintStream(System.out);
+    mPrintStream = System.out;
   }
 
   @Override
@@ -127,8 +127,6 @@ public final class ReportCommand extends AbstractCommand {
     } finally {
       mMetaMasterClient.close();
       mBlockMasterClient.close();
-      mPrintStream.flush();
-      mPrintStream.close();
     }
     return 0;
   }

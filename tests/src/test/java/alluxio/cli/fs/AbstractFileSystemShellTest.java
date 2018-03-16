@@ -24,13 +24,13 @@ import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.client.file.options.OpenFileOptions;
 import alluxio.exception.AlluxioException;
+import alluxio.master.LocalAlluxioCluster;
 import alluxio.security.LoginUserTestUtils;
 import alluxio.util.io.BufferUtils;
 import alluxio.util.io.PathUtils;
 
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Rule;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -44,19 +44,20 @@ import javax.annotation.Nullable;
  * The base class for all the {@link FileSystemShell} test classes.
  */
 public abstract class AbstractFileSystemShellTest extends AbstractShellIntegrationTest {
-  @Rule
+  public LocalAlluxioCluster mLocalAlluxioCluster = null;
   public FileSystem mFileSystem = null;
   public FileSystemShell mFsShell = null;
+
+  @Before
+  public final void before() throws Exception {
+    mLocalAlluxioCluster = mLocalAlluxioClusterResource.get();
+    mFileSystem = mLocalAlluxioCluster.getClient();
+    mFsShell = new FileSystemShell();
+  }
 
   @After
   public final void after() throws Exception {
     mFsShell.close();
-  }
-
-  @Before
-  public final void before() throws Exception {
-    mFileSystem = mLocalAlluxioCluster.getClient();
-    mFsShell = new FileSystemShell();
   }
 
   /**

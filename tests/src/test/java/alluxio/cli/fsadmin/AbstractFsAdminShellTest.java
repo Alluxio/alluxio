@@ -12,18 +12,18 @@
 package alluxio.cli.fsadmin;
 
 import alluxio.cli.AbstractShellIntegrationTest;
-import alluxio.Constants;
+import alluxio.master.LocalAlluxioCluster;
 
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Rule;
 
 public class AbstractFsAdminShellTest extends AbstractShellIntegrationTest {
-  @Rule
+  public LocalAlluxioCluster mLocalAlluxioCluster = null;
   public FileSystemAdminShell mFsAdminShell = null;
 
   @Before
   public final void before() throws Exception {
+    mLocalAlluxioCluster = mLocalAlluxioClusterResource.get();
     mFsAdminShell = new FileSystemAdminShell();
   }
 
