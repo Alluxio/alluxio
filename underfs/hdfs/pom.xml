@@ -106,7 +106,7 @@
       </dependencies>
     </profile>
 
-    <!-- Profile to build this UFS module connecting to hdfs 3, this is the default profile -->
+    <!-- Profile to build this UFS module connecting to hdfs 3 -->
     <profile>
       <id>hadoop-3</id>
       <dependencies>
