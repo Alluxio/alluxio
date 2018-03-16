@@ -36,6 +36,18 @@ UFS URI like `hdfs://<name-service>/`, and not `hdfs://<name-service>/<folder>`.
 
 ## Example Use Cases
 
+### report
+
+The `report` command provides runtime information of Alluxio cluster. 
+
+For example, `report` can be used to get runtime cluster state (leader master address and port, live and lost worker numbers)
+and cluster capacity information.
+
+```bash
+$ ./bin/alluxio fsadmin report
+```
+
+
 ### ufs
 
 The `ufs` command provides options to update attributes of a mounted under storage. The option `mode` can be used

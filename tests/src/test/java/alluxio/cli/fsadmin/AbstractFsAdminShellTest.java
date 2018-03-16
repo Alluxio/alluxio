@@ -20,7 +20,7 @@ import org.junit.Rule;
 
 public class AbstractFsAdminShellTest extends AbstractShellIntegrationTest {
   @Rule
-  protected FileSystemAdminShell mFsAdminShell = null;
+  public FileSystemAdminShell mFsAdminShell = null;
 
   @Before
   public final void before() throws Exception {

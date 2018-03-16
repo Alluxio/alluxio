@@ -37,9 +37,9 @@ public abstract class AbstractShellIntegrationTest extends BaseIntegrationTest {
           .setProperty(PropertyKey.WORKER_MEMORY_SIZE, SIZE_BYTES)
           .setProperty(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, SIZE_BYTES)
           .setProperty(PropertyKey.MASTER_TTL_CHECKER_INTERVAL_MS, Integer.MAX_VALUE).build();
-  protected LocalAlluxioCluster mLocalAlluxioCluster = null;
-  protected ByteArrayOutputStream mOutput = new ByteArrayOutputStream();
-  protected ByteArrayOutputStream mErrOutput = new ByteArrayOutputStream();
+  public LocalAlluxioCluster mLocalAlluxioCluster = null;
+  public ByteArrayOutputStream mOutput = new ByteArrayOutputStream();
+  public ByteArrayOutputStream mErrOutput = new ByteArrayOutputStream();
 
   @Rule
   public ExpectedException mException = ExpectedException.none();

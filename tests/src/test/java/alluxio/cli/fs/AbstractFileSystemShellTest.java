@@ -45,8 +45,8 @@ import javax.annotation.Nullable;
  */
 public abstract class AbstractFileSystemShellTest extends AbstractShellIntegrationTest {
   @Rule
-  protected FileSystem mFileSystem = null;
-  protected FileSystemShell mFsShell = null;
+  public FileSystem mFileSystem = null;
+  public FileSystemShell mFsShell = null;
 
   @After
   public final void after() throws Exception {
