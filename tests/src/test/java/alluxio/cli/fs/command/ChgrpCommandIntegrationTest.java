@@ -15,7 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.exception.AlluxioException;
-import alluxio.cli.fs.AbstractAlluxioShellTest;
+import alluxio.cli.fs.AbstractFileSystemShellTest;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -25,7 +25,7 @@ import java.io.IOException;
 /**
  * Tests for chgrp command.
  */
-public final class ChgrpCommandIntegrationTest extends AbstractAlluxioShellTest {
+public final class ChgrpCommandIntegrationTest extends AbstractFileSystemShellTest {
   @Test
   public void chgrp() throws IOException, AlluxioException {
     clearLoginUser();

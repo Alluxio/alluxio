@@ -11,7 +11,7 @@
 
 package alluxio.cli.fsadmin.report;
 
-import alluxio.client.block.RetryHandlingBlockMasterClient;
+import alluxio.client.block.BlockMasterClient;
 import alluxio.client.MetaMasterClient;
 import alluxio.util.CommonUtils;
 import alluxio.util.FormatUtils;
@@ -23,6 +23,7 @@ import alluxio.wire.MasterInfo.MasterInfoField;
 import com.google.common.base.Strings;
 
 import java.io.IOException;
+import java.io.PrintStream;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Map;
@@ -35,8 +36,9 @@ public class SummaryCommand {
   private static final int INDENT_SIZE = 4;
 
   private MetaMasterClient mMetaMasterClient;
-  private RetryHandlingBlockMasterClient mBlockMasterClient;
-  private int mIndentationLevel = 1;
+  private BlockMasterClient mBlockMasterClient;
+  private PrintStream mPrintStream;
+  private int mIndentationLevel = 0;
 
   /**
    /**
@@ -44,11 +46,14 @@ public class SummaryCommand {
    *
    * @param metaMasterClient client to connect to meta master
    * @param blockMasterClient client to connect to block master
+   * @param printStream print information to console
    */
   public SummaryCommand(MetaMasterClient metaMasterClient,
-      RetryHandlingBlockMasterClient blockMasterClient) {
+      BlockMasterClient blockMasterClient,
+      PrintStream printStream) {
     mMetaMasterClient = metaMasterClient;
     mBlockMasterClient = blockMasterClient;
+    mPrintStream = printStream;
   }
 
   /**
@@ -57,7 +62,7 @@ public class SummaryCommand {
    * @return 0 on success, 1 otherwise
    */
   public int run() throws IOException {
-    System.out.println("Alluxio Cluster Summary: ");
+    print("Alluxio Cluster Summary: ");
     printMetaMasterInfo();
     printBlockMasterInfo();
     return 0;
@@ -67,6 +72,7 @@ public class SummaryCommand {
    * Prints Alluxio meta master information.
    */
   private void printMetaMasterInfo() throws IOException {
+    mIndentationLevel = 1;
     Set<MasterInfoField> masterInfoFilter = new HashSet<>(Arrays
         .asList(MasterInfoField.MASTER_ADDRESS, MasterInfoField.WEB_PORT,
             MasterInfoField.RPC_PORT, MasterInfoField.START_TIME_MS,
@@ -87,6 +93,7 @@ public class SummaryCommand {
    * Prints Alluxio block master information.
    */
   private void printBlockMasterInfo() throws IOException {
+    mIndentationLevel = 1;
     Set<BlockMasterInfoField> blockMasterInfoFilter = new HashSet<>(Arrays
         .asList(BlockMasterInfoField.LIVE_WORKER_NUM, BlockMasterInfoField.LOST_WORKER_NUM,
             BlockMasterInfoField.CAPACITY_BYTES, BlockMasterInfoField.USED_BYTES,
@@ -134,6 +141,6 @@ public class SummaryCommand {
    */
   private void print(String text) {
     String indent = Strings.repeat(" ", mIndentationLevel * INDENT_SIZE);
-    System.out.println(indent + text);
+    mPrintStream.println(indent + text);
   }
 }

@@ -11,44 +11,20 @@
 
 package alluxio.cli.fsadmin;
 
-import alluxio.BaseIntegrationTest;
 import alluxio.Constants;
-import alluxio.LocalAlluxioClusterResource;
-import alluxio.master.LocalAlluxioCluster;
-import alluxio.PropertyKey;
-import alluxio.SystemErrRule;
-import alluxio.SystemOutRule;
+import alluxio.cli.AbstractShellIntegrationTest;
 
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
-import org.junit.rules.ExpectedException;
 
-import java.io.ByteArrayOutputStream;
-
-public class AbstractFsadminShellTest extends BaseIntegrationTest{
+public class AbstractFsadminShellTest extends AbstractShellIntegrationTest {
   private static final int SIZE_BYTES = Constants.MB * 16;
   @Rule
-  public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
-      new LocalAlluxioClusterResource.Builder()
-          .setProperty(PropertyKey.WORKER_MEMORY_SIZE, SIZE_BYTES)
-          .setProperty(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, SIZE_BYTES)
-          .setProperty(PropertyKey.MASTER_TTL_CHECKER_INTERVAL_MS, Integer.MAX_VALUE).build();
-  protected LocalAlluxioCluster mLocalAlluxioCluster = null;
   protected FileSystemAdminShell mFsAdminShell = null;
-  protected ByteArrayOutputStream mOutput = new ByteArrayOutputStream();
-  protected ByteArrayOutputStream mErrOutput = new ByteArrayOutputStream();
-
-  @Rule
-  public ExpectedException mException = ExpectedException.none();
-  @Rule
-  public SystemOutRule mOutRule = new SystemOutRule(mOutput);
-  @Rule
-  public SystemErrRule mErrRule = new SystemErrRule(mErrOutput);
 
   @Before
   public final void before() throws Exception {
-    mLocalAlluxioCluster = mLocalAlluxioClusterResource.get();
     mFsAdminShell = new FileSystemAdminShell();
   }
 

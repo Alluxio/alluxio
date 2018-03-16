@@ -66,7 +66,7 @@ public final class MetaMasterClientServiceHandler implements MetaMasterClientSer
               info.setRpcPort(mMasterProcess.getRpcAddress().getPort());
               break;
             case SAFE_MODE:
-              info.setSafeMode(mMasterProcess.isSafeMode());
+              info.setSafeMode(mMasterProcess.isInSafeMode());
               break;
             case START_TIME_MS:
               info.setStartTimeMs(mMasterProcess.getStartTimeMs());

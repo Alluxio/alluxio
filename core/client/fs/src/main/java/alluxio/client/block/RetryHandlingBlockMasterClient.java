@@ -112,10 +112,7 @@ public final class RetryHandlingBlockMasterClient extends AbstractMasterClient
     });
   }
 
-  /**
-   * @param fields optional list of fields to query; if null all fields will be queried
-   * @return the {@link BlockMasterInfo} block master information
-   */
+  @Override
   public synchronized BlockMasterInfo getBlockMasterInfo(final Set<BlockMasterInfoField> fields)
       throws IOException {
     return retryRPC(() -> {

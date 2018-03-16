@@ -14,7 +14,7 @@ package alluxio.cli.fs.command;
 import alluxio.AlluxioURI;
 import alluxio.client.file.URIStatus;
 import alluxio.exception.AlluxioException;
-import alluxio.cli.fs.AbstractAlluxioShellTest;
+import alluxio.cli.fs.AbstractFileSystemShellTest;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -24,7 +24,7 @@ import java.io.IOException;
 /**
  * Tests for mkdir command.
  */
-public final class MkdirCommandIntegrationTest extends AbstractAlluxioShellTest {
+public final class MkdirCommandIntegrationTest extends AbstractFileSystemShellTest {
   @Test
   public void mkdir() throws IOException, AlluxioException {
     String qualifiedPath =

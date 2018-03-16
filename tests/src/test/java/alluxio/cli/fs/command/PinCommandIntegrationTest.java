@@ -21,7 +21,7 @@ import alluxio.client.file.FileSystemTestUtils;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatScheduler;
 import alluxio.heartbeat.ManuallyScheduleHeartbeat;
-import alluxio.cli.fs.AbstractAlluxioShellTest;
+import alluxio.cli.fs.AbstractFileSystemShellTest;
 
 import org.junit.ClassRule;
 import org.junit.Test;
@@ -29,7 +29,7 @@ import org.junit.Test;
 /**
  * Tests the "pin" and "unpin" commands.
  */
-public final class PinCommandIntegrationTest extends AbstractAlluxioShellTest {
+public final class PinCommandIntegrationTest extends AbstractFileSystemShellTest {
   @ClassRule
   public static ManuallyScheduleHeartbeat sManuallyScheduleRule = new ManuallyScheduleHeartbeat(
       HeartbeatContext.MASTER_TTL_CHECK,

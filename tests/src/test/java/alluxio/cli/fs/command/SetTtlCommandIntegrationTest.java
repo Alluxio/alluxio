@@ -13,7 +13,7 @@ package alluxio.cli.fs.command;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
-import alluxio.cli.fs.AbstractAlluxioShellTest;
+import alluxio.cli.fs.AbstractFileSystemShellTest;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.client.file.URIStatus;
@@ -28,7 +28,7 @@ import java.util.Map;
 /**
  * Tests for setTtl command.
  */
-public final class SetTtlCommandIntegrationTest extends AbstractAlluxioShellTest {
+public final class SetTtlCommandIntegrationTest extends AbstractFileSystemShellTest {
   @Test
   public void setTtl() throws Exception {
     String filePath = "/testFile";

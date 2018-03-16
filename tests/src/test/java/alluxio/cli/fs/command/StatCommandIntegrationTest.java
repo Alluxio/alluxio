@@ -17,7 +17,7 @@ import static org.junit.Assert.assertFalse;
 
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
-import alluxio.cli.fs.AbstractAlluxioShellTest;
+import alluxio.cli.fs.AbstractFileSystemShellTest;
 import alluxio.cli.fs.FileSystemShellUtilsTest;
 
 import org.junit.Test;
@@ -27,7 +27,7 @@ import java.io.IOException;
 /**
  * Tests for stat command.
  */
-public final class StatCommandIntegrationTest extends AbstractAlluxioShellTest {
+public final class StatCommandIntegrationTest extends AbstractFileSystemShellTest {
   @Test
   public void statFileNotExist() throws IOException {
     int ret = mFsShell.run("stat", "/NotExistFile");

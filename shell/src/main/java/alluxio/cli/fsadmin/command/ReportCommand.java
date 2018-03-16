@@ -13,6 +13,7 @@ package alluxio.cli.fsadmin.command;
 
 import alluxio.cli.AbstractCommand;
 import alluxio.cli.fsadmin.report.SummaryCommand;
+import alluxio.client.block.BlockMasterClient;
 import alluxio.client.block.RetryHandlingBlockMasterClient;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.FileSystemMasterClient;
@@ -30,6 +31,7 @@ import alluxio.retry.ExponentialBackoffRetry;
 import org.apache.commons.cli.CommandLine;
 
 import java.io.IOException;
+import java.io.PrintStream;
 import java.net.InetSocketAddress;
 import java.util.Arrays;
 import java.util.List;
@@ -39,7 +41,8 @@ import java.util.List;
  */
 public final class ReportCommand extends AbstractCommand {
   private MetaMasterClient mMetaMasterClient;
-  private RetryHandlingBlockMasterClient mBlockMasterClient;
+  private BlockMasterClient mBlockMasterClient;
+  private PrintStream mPrintStream;
 
   enum Command {
     SUMMARY // Report the Alluxio cluster information
@@ -51,6 +54,7 @@ public final class ReportCommand extends AbstractCommand {
   public ReportCommand() {
     mMetaMasterClient = new RetryHandlingMetaMasterClient(MasterClientConfig.defaults());
     mBlockMasterClient = new RetryHandlingBlockMasterClient(MasterClientConfig.defaults());
+    mPrintStream = new PrintStream(System.out);
   }
 
   @Override
@@ -94,7 +98,7 @@ public final class ReportCommand extends AbstractCommand {
       // Print the summarized information in default situation
       if (args.length == 0) {
         SummaryCommand summaryCommand = new SummaryCommand(mMetaMasterClient,
-            mBlockMasterClient);
+            mBlockMasterClient, mPrintStream);
         summaryCommand.run();
         return 0;
       }
@@ -113,7 +117,7 @@ public final class ReportCommand extends AbstractCommand {
       switch (command) {
         case SUMMARY:
           SummaryCommand summaryCommand = new SummaryCommand(mMetaMasterClient,
-              mBlockMasterClient);
+              mBlockMasterClient, mPrintStream);
           summaryCommand.run();
           break;
         // CAPACITY, CONFIGURATION, RPC, OPERATION, and UFS commands will be supported in the future
@@ -123,6 +127,8 @@ public final class ReportCommand extends AbstractCommand {
     } finally {
       mMetaMasterClient.close();
       mBlockMasterClient.close();
+      mPrintStream.flush();
+      mPrintStream.close();
     }
     return 0;
   }

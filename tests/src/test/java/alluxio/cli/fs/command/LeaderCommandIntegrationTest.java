@@ -11,7 +11,7 @@
 
 package alluxio.cli.fs.command;
 
-import alluxio.cli.fs.AbstractAlluxioShellTest;
+import alluxio.cli.fs.AbstractFileSystemShellTest;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -19,7 +19,7 @@ import org.junit.Test;
 /**
  * Tests for leader command.
  */
-public final class LeaderCommandIntegrationTest extends AbstractAlluxioShellTest {
+public final class LeaderCommandIntegrationTest extends AbstractFileSystemShellTest {
 
   @Test
   public void leader() {

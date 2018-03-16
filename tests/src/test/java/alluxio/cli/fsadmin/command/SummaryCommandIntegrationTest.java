@@ -12,21 +12,15 @@
 package alluxio.cli.fsadmin.command;
 
 import alluxio.cli.fsadmin.AbstractFsadminShellTest;
-import alluxio.cli.fsadmin.report.SummaryCommand;
-import alluxio.client.block.RetryHandlingBlockMasterClient;
-import alluxio.client.MetaMasterClient;
-import alluxio.client.RetryHandlingMetaMasterClient;
 import alluxio.Configuration;
-import alluxio.master.MasterClientConfig;
 import alluxio.ProjectConstants;
 import alluxio.PropertyKey;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 
+import org.hamcrest.CoreMatchers;
 import org.junit.Assert;
 import org.junit.Test;
-
-import java.io.IOException;
 
 /**
  * Tests for report summary command.
@@ -40,19 +34,6 @@ public final class SummaryCommandIntegrationTest extends AbstractFsadminShellTes
     checkSummaryResults(output);
   }
 
-  @Test
-  public void callSummaryWithDependencies() throws IOException {
-    try (MetaMasterClient mMetaMasterClient
-        = new RetryHandlingMetaMasterClient(MasterClientConfig.defaults());
-        RetryHandlingBlockMasterClient mBlockMasterClient = new RetryHandlingBlockMasterClient(
-        MasterClientConfig.defaults())) {
-      SummaryCommand summaryCommand = new SummaryCommand(mMetaMasterClient, mBlockMasterClient);
-      summaryCommand.run();
-      String output = mOutput.toString();
-      checkSummaryResults(output);
-    }
-  }
-
   /**
    * Checks if the summary command output is valid.
    *
@@ -62,17 +43,18 @@ public final class SummaryCommandIntegrationTest extends AbstractFsadminShellTes
     // Check if meta master values are available
     String expectedMasterAddress = NetworkAddressUtils
         .getConnectAddress(ServiceType.MASTER_RPC).toString();
-    Assert.assertTrue(output.contains("Master Address: " + expectedMasterAddress));
-    Assert.assertTrue(output.contains("Web Port: "
-        + Configuration.get(PropertyKey.MASTER_WEB_PORT)));
-    Assert.assertTrue(output.contains("Rpc Port: "
-        + Configuration.get(PropertyKey.MASTER_RPC_PORT)));
-    Assert.assertTrue(!output.contains("Started: 12-31-1969 16:00:00:000"));
-    Assert.assertTrue(output.contains("Version: " + ProjectConstants.VERSION));
+    Assert.assertThat(output, CoreMatchers.containsString(
+        "Master Address: " + expectedMasterAddress));
+    Assert.assertThat(output, CoreMatchers.containsString(
+        "Web Port: " + Configuration.get(PropertyKey.MASTER_WEB_PORT)));
+    Assert.assertThat(output, CoreMatchers.containsString(
+        "Rpc Port: " + Configuration.get(PropertyKey.MASTER_RPC_PORT)));
+    Assert.assertFalse(output.contains("Started: 12-31-1969 16:00:00:000"));
+    Assert.assertThat(output, CoreMatchers.containsString(
+        "Version: " + ProjectConstants.VERSION));
 
     // Check if block master values are available
-    Assert.assertTrue(!output.contains("Live Workers: 0")
-        || !output.contains("Lost Workers: 0"));
-    Assert.assertTrue(!output.contains("Total Capacity: 0B"));
+    Assert.assertThat(output, CoreMatchers.containsString("Live Workers: 1"));
+    Assert.assertFalse(output.contains("Total Capacity: 0B"));
   }
 }

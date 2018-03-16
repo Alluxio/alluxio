@@ -12,7 +12,7 @@
 package alluxio.cli.fs.command;
 
 import alluxio.AlluxioURI;
-import alluxio.cli.fs.AbstractAlluxioShellTest;
+import alluxio.cli.fs.AbstractFileSystemShellTest;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -22,7 +22,7 @@ import java.io.IOException;
 /**
  * Tests for mv command.
  */
-public final class MvCommandIntegrationTest extends AbstractAlluxioShellTest {
+public final class MvCommandIntegrationTest extends AbstractFileSystemShellTest {
   @Test
   public void rename() throws IOException {
     StringBuilder toCompare = new StringBuilder();

@@ -14,7 +14,7 @@ package alluxio.cli.fs.command;
 import alluxio.AlluxioURI;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
-import alluxio.cli.fs.AbstractAlluxioShellTest;
+import alluxio.cli.fs.AbstractFileSystemShellTest;
 import alluxio.cli.fs.FileSystemShellUtilsTest;
 
 import org.junit.Assert;
@@ -25,7 +25,7 @@ import java.io.IOException;
 /**
  * Tests for rm command.
  */
-public final class RmCommandIntegrationTest extends AbstractAlluxioShellTest {
+public final class RmCommandIntegrationTest extends AbstractFileSystemShellTest {
   @Test
   public void rmNotExistingDir() throws IOException {
     StringBuilder toCompare = new StringBuilder();

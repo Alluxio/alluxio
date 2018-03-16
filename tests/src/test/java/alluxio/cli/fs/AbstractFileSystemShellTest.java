@@ -16,12 +16,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import alluxio.AlluxioURI;
-import alluxio.BaseIntegrationTest;
-import alluxio.Constants;
-import alluxio.LocalAlluxioClusterResource;
-import alluxio.PropertyKey;
-import alluxio.SystemErrRule;
-import alluxio.SystemOutRule;
+import alluxio.cli.AbstractShellIntegrationTest;
 import alluxio.client.ReadType;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileInStream;
@@ -29,7 +24,6 @@ import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.client.file.options.OpenFileOptions;
 import alluxio.exception.AlluxioException;
-import alluxio.master.LocalAlluxioCluster;
 import alluxio.security.LoginUserTestUtils;
 import alluxio.util.io.BufferUtils;
 import alluxio.util.io.PathUtils;
@@ -37,9 +31,7 @@ import alluxio.util.io.PathUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
-import org.junit.rules.ExpectedException;
 
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -51,28 +43,10 @@ import javax.annotation.Nullable;
 /**
  * The base class for all the {@link FileSystemShell} test classes.
  */
-public abstract class AbstractAlluxioShellTest extends BaseIntegrationTest {
-  protected static final int SIZE_BYTES = Constants.MB * 16;
+public abstract class AbstractFileSystemShellTest extends AbstractShellIntegrationTest {
   @Rule
-  public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
-      new LocalAlluxioClusterResource.Builder()
-          .setProperty(PropertyKey.WORKER_MEMORY_SIZE, SIZE_BYTES)
-          .setProperty(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, SIZE_BYTES)
-          .setProperty(PropertyKey.MASTER_TTL_CHECKER_INTERVAL_MS, Integer.MAX_VALUE).build();
-  protected LocalAlluxioCluster mLocalAlluxioCluster = null;
   protected FileSystem mFileSystem = null;
   protected FileSystemShell mFsShell = null;
-  protected ByteArrayOutputStream mOutput = new ByteArrayOutputStream();
-  protected ByteArrayOutputStream mErrOutput = new ByteArrayOutputStream();
-
-  @Rule
-  public ExpectedException mException = ExpectedException.none();
-
-  @Rule
-  public SystemOutRule mOutRule = new SystemOutRule(mOutput);
-
-  @Rule
-  public SystemErrRule mErrRule = new SystemErrRule(mErrOutput);
 
   @After
   public final void after() throws Exception {
@@ -81,8 +55,6 @@ public abstract class AbstractAlluxioShellTest extends BaseIntegrationTest {
 
   @Before
   public final void before() throws Exception {
-    clearLoginUser();
-    mLocalAlluxioCluster = mLocalAlluxioClusterResource.get();
     mFileSystem = mLocalAlluxioCluster.getClient();
     mFsShell = new FileSystemShell();
   }
