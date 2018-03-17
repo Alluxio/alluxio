@@ -32,11 +32,11 @@ Where component is one of:
 -h  display this help."
 
 stop_master() {
-  ${LAUNCHER} "${BIN}/alluxio" "killAll" "alluxio.master.AlluxioMaster"
-}
-
-stop_secondary_master() {
-  ${LAUNCHER} "${BIN}/alluxio" "killAll" "alluxio.master.AlluxioSecondaryMaster"
+  if [[ ${ALLUXIO_MASTER_SECONDARY} == "true" ]]; then
+    ${LAUNCHER} "${BIN}/alluxio" "killAll" "alluxio.master.AlluxioSecondaryMaster"
+  else
+    ${LAUNCHER} "${BIN}/alluxio" "killAll" "alluxio.master.AlluxioMaster"
+  fi
 }
 
 stop_masters() {
@@ -76,14 +76,18 @@ case "${WHAT}" in
   local)
     stop_proxy
     stop_worker
-    stop_secondary_master
+    ALLUXIO_MASTER_SECONDARY=true
+    stop_master
+    ALLUXIO_MASTER_SECONDARY=false
     stop_master
     ;;
   master)
     stop_master
     ;;
   secodnary_master)
-    stop_secondary_master
+    ALLUXIO_MASTER_SECONDARY=true
+    stop_master
+    ALLUXIO_MASTER_SECONDARY=false
     ;;
   masters)
     stop_masters
