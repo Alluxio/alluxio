@@ -23,6 +23,7 @@ import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.base.Function;
+import com.google.common.base.Preconditions;
 import com.google.common.base.Splitter;
 import com.google.common.base.Throwables;
 import com.google.common.io.Closer;
@@ -65,6 +66,7 @@ public final class CommonUtils {
       "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
   private static final String DATE_FORMAT_PATTERN =
       Configuration.get(PropertyKey.USER_DATE_FORMAT_PATTERN);
+  private static final List<String> TMP_DIRS = Configuration.getList(PropertyKey.TMP_DIRS, ",");
   private static final Random RANDOM = new Random();
 
   /**
@@ -72,6 +74,18 @@ public final class CommonUtils {
    */
   public static long getCurrentMs() {
     return System.currentTimeMillis();
+  }
+
+  /**
+   * @return a path to a temporary directory based on the user configuration
+   */
+  public static String getTmpDir() {
+    Preconditions.checkState(!TMP_DIRS.isEmpty(), "No temporary directories configured");
+    if (TMP_DIRS.size() == 1) {
+      return TMP_DIRS.get(0);
+    }
+    // Use existing random instead of ThreadLocal because contention is not expected to be high.
+    return TMP_DIRS.get(RANDOM.nextInt(TMP_DIRS.size()));
   }
 
   /**
