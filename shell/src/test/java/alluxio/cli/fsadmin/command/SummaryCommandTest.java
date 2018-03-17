@@ -77,7 +77,7 @@ public class SummaryCommandTest {
   }
 
   @After
-  public void after() throws IOException {
+  public void after() {
     mPrintStream.close();
   }
 
@@ -92,7 +92,7 @@ public class SummaryCommandTest {
   /**
    * Checks if the output is expected.
    */
-  private void checkIfOutputValid() throws IOException {
+  private void checkIfOutputValid() {
     String output = new String(mOutputStream.toByteArray(), StandardCharsets.UTF_8);
     List<String> expectedOutput = Arrays.asList("Alluxio Cluster Summary: ",
         "    Master Address: testAddress",
