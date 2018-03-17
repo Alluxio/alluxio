@@ -21,7 +21,8 @@ USAGE="Usage: alluxio-stop.sh [-h] [component]
 Where component is one of:
   all               \tStop all masters, proxies, and workers.
   local             \tStop all processes locally.
-  master            \tStop local master.
+  master            \tStop local primary master.
+  secondary_master  \tStop local secondary master.
   masters           \tStop masters on master nodes.
   proxy             \tStop local proxy.
   proxies           \tStop proxies on master and worker nodes.
@@ -31,11 +32,11 @@ Where component is one of:
 -h  display this help."
 
 stop_master() {
-  if [[ ${ALLUXIO_MASTER_SECONDARY} == "true" ]]; then
-    ${LAUNCHER} "${BIN}/alluxio" "killAll" "alluxio.master.AlluxioSecondaryMaster"
-  else
-    ${LAUNCHER} "${BIN}/alluxio" "killAll" "alluxio.master.AlluxioMaster"
-  fi
+  ${LAUNCHER} "${BIN}/alluxio" "killAll" "alluxio.master.AlluxioMaster"
+}
+
+stop_secondary_master() {
+  ${LAUNCHER} "${BIN}/alluxio" "killAll" "alluxio.master.AlluxioSecondaryMaster"
 }
 
 stop_masters() {
@@ -75,13 +76,14 @@ case "${WHAT}" in
   local)
     stop_proxy
     stop_worker
-    ALLUXIO_MASTER_SECONDARY=true
-    stop_master
-    ALLUXIO_MASTER_SECONDARY=false
+    stop_secondary_master
     stop_master
     ;;
   master)
     stop_master
+    ;;
+  secodnary_master)
+    stop_secondary_master
     ;;
   masters)
     stop_masters
