@@ -17,7 +17,9 @@ import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import alluxio.Configuration;
 import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.security.group.CachedGroupMapping;
 import alluxio.security.group.GroupMappingService;
 
@@ -28,12 +30,15 @@ import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
+import org.powermock.reflect.Whitebox;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.TimeUnit;
@@ -44,7 +49,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * Tests the {@link CommonUtils} class.
  */
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({ShellUtils.class, GroupMappingService.Factory.class})
+@PrepareForTest({CommonUtils.class, ShellUtils.class, GroupMappingService.Factory.class})
 public class CommonUtilsTest {
 
   /**
@@ -60,6 +65,24 @@ public class CommonUtilsTest {
     /* Check that currentTime falls into the interval [startTime + delta; startTime + 2*delta] */
     assertTrue(startTime + delta <= currentTime);
     assertTrue(currentTime <= 2 * delta + startTime);
+  }
+
+  @Test
+  public void getTmpDir() {
+    // Test single tmp dir
+    String singleDir = "/tmp";
+    Whitebox.setInternalState(CommonUtils.class, "TMP_DIRS", Collections.singletonList(singleDir));
+    assertEquals(singleDir, CommonUtils.getTmpDir());
+    // Test multiple tmp dir
+    List<String> multiDirs = Arrays.asList("/tmp1", "/tmp2", "/tmp3");
+    Whitebox.setInternalState(CommonUtils.class, "TMP_DIRS", multiDirs);
+    Set<String> results = new HashSet<>();
+    for (int i = 0; i < 100 || results.size() != multiDirs.size(); i++) {
+      results.add(CommonUtils.getTmpDir());
+    }
+    assertEquals(new HashSet<>(multiDirs), results);
+    Whitebox.setInternalState(CommonUtils.class, "TMP_DIRS",
+        Configuration.getList(PropertyKey.TMP_DIRS, ","));
   }
 
   /**

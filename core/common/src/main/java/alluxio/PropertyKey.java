@@ -366,6 +366,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("Flag used only during tests to allow special behavior.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .build();
+  public static final PropertyKey TMP_DIRS =
+      new Builder(Name.TMP_DIRS)
+          .setDefaultValue("/tmp")
+          .setDescription("The path(s) to store Alluxio temporary files, use commas as delimiters. "
+              + "If multiple paths are specified, one will be selected at random per temporary "
+              + "file. Currently, only files to be uploaded to object stores are stored in these "
+              + "paths.")
+          .build();
   public static final PropertyKey VERSION =
       new Builder(Name.VERSION)
           .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
@@ -2383,7 +2391,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey USER_NETWORK_NETTY_WRITER_CLOSE_TIMEOUT_MS =
       new Builder(Name.USER_NETWORK_NETTY_WRITER_CLOSE_TIMEOUT_MS)
           .setAlias(new String[]{"alluxio.user.network.netty.writer.close.timeout.ms"})
-          .setDefaultValue("5min")
+          .setDefaultValue("30min")
           .setDescription("The timeout to close a netty writer client.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
@@ -2819,6 +2827,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String SITE_CONF_DIR = "alluxio.site.conf.dir";
     public static final String TEST_MODE = "alluxio.test.mode";
     public static final String USER_HOME = "user.home";
+    public static final String TMP_DIRS = "alluxio.tmp.dirs";
     public static final String VERSION = "alluxio.version";
     public static final String WEB_RESOURCES = "alluxio.web.resources";
     public static final String WEB_THREADS = "alluxio.web.threads";
