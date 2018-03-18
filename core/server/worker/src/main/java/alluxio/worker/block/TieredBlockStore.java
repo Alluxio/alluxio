@@ -477,7 +477,6 @@ public class TieredBlockStore implements BlockStore {
 
   @Override
   public BlockStoreMeta getBlockStoreMeta() {
-    LOG.debug("getBlockStoreMeta:");
     BlockStoreMeta storeMeta;
     try (LockResource r = new LockResource(mMetadataReadLock)) {
       storeMeta = mMetaManager.getBlockStoreMeta();
@@ -487,7 +486,6 @@ public class TieredBlockStore implements BlockStore {
 
   @Override
   public BlockStoreMeta getBlockStoreMetaFull() {
-    LOG.debug("getBlockStoreMetaFull:");
     BlockStoreMeta storeMeta;
     try (LockResource r = new LockResource(mMetadataReadLock)) {
       storeMeta = mMetaManager.getBlockStoreMetaFull();
