@@ -347,8 +347,6 @@ public class TieredBlockStore implements BlockStore {
   public void moveBlock(long sessionId, long blockId, BlockStoreLocation newLocation)
       throws BlockDoesNotExistException, BlockAlreadyExistsException, InvalidWorkerStateException,
       WorkerOutOfSpaceException, IOException {
-    LOG.debug("moveBlock: sessionId={}, blockId={}, newLocation={}",
-        sessionId, blockId, newLocation);
     moveBlock(sessionId, blockId, BlockStoreLocation.anyTier(), newLocation);
   }
 
@@ -403,14 +401,13 @@ public class TieredBlockStore implements BlockStore {
   @Override
   public void removeBlock(long sessionId, long blockId)
       throws InvalidWorkerStateException, BlockDoesNotExistException, IOException {
-    LOG.debug("removeBlock: sessionId={}, blockId={}", sessionId, blockId);
     removeBlock(sessionId, blockId, BlockStoreLocation.anyTier());
   }
 
   @Override
   public void removeBlock(long sessionId, long blockId, BlockStoreLocation location)
       throws InvalidWorkerStateException, BlockDoesNotExistException, IOException {
-    LOG.debug("moveBlock: sessionId={}, blockId={}, location={}", sessionId, blockId, location);
+    LOG.debug("removeBlock: sessionId={}, blockId={}, location={}", sessionId, blockId, location);
     removeBlockInternal(sessionId, blockId, location);
     synchronized (mBlockStoreEventListeners) {
       for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
