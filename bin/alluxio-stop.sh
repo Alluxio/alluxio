@@ -84,7 +84,7 @@ case "${WHAT}" in
   master)
     stop_master
     ;;
-  secodnary_master)
+  secondary_master)
     ALLUXIO_MASTER_SECONDARY=true
     stop_master
     ALLUXIO_MASTER_SECONDARY=false
