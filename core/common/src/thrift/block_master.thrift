@@ -61,6 +61,47 @@ struct GetWorkerInfoListTResponse {
   1: list<WorkerInfo> workerInfoList
 }
 
+enum WorkerRange {
+  ALL
+  LIVE
+  LOST
+  SPECIFIED
+}
+
+enum ReportWorkerInfoField {
+  ADDRESS
+  CAPACITY_BYTES
+  CAPACITY_BYTES_ON_TIERS
+  ID
+  LAST_CONTACT_SEC
+  START_TIME_MS
+  STATE
+  USED_BYTES
+  USED_BYTES_ON_TIERS
+}
+
+struct  ReportWorkerInfo {
+  1: common.WorkerNetAddress address
+  2: i64 capacityBytes
+  3: map<string, i64> capacityBytesOnTiers;
+  4: i64 id
+  5: i32 lastContactSec
+  6: i64 startTimeMs
+  7: string state
+  8: i64 usedBytes
+  9: map<string, i64> usedBytesOnTiers;
+}
+
+struct GetReportWorkerInfoListTOptions {
+  1: optional set<string> addresses
+  2: optional set<ReportWorkerInfoField>  fieldRange
+  3: optional WorkerRange workerRange
+}
+
+struct GetReportWorkerInfoListTResponse {
+  1: list<ReportWorkerInfo> reportWorkerInfoList
+}
+
 /**
  * This interface contains block master service endpoints for Alluxio clients.
  */
@@ -101,6 +142,13 @@ service BlockMasterClientService extends common.AlluxioService {
    */
   GetWorkerInfoListTResponse getWorkerInfoList(
     /** the method options */ 1: GetWorkerInfoListTOptions options,
+  ) throws (1: exception.AlluxioTException e)
+
+  /**
+   * Returns a list of report workers information.
+   */
+  GetReportWorkerInfoListTResponse getReportWorkerInfoList(
+    /** the method options */ 1: GetReportWorkerInfoListTOptions options,
   ) throws (1: exception.AlluxioTException e)
 }
 

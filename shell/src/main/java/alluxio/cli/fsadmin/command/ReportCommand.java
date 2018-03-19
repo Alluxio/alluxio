@@ -12,6 +12,7 @@
 package alluxio.cli.fsadmin.command;
 
 import alluxio.cli.AbstractCommand;
+import alluxio.cli.fsadmin.report.CapacityCommand;
 import alluxio.cli.fsadmin.report.SummaryCommand;
 import alluxio.client.block.BlockMasterClient;
 import alluxio.client.block.RetryHandlingBlockMasterClient;
@@ -29,6 +30,8 @@ import alluxio.resource.CloseableResource;
 import alluxio.retry.ExponentialBackoffRetry;
 
 import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.Option;
+import org.apache.commons.cli.Options;
 
 import java.io.IOException;
 import java.io.PrintStream;
@@ -44,8 +47,30 @@ public final class ReportCommand extends AbstractCommand {
   private BlockMasterClient mBlockMasterClient;
   private PrintStream mPrintStream;
 
+  private static final Option LIVE_OPTION =
+      Option.builder("live")
+          .required(false)
+          .hasArg(false)
+          .desc("show capacity information of live workers.")
+          .build();
+
+  private static final Option LOST_OPTION =
+      Option.builder("lost")
+          .required(false)
+          .hasArg(false)
+          .desc("show capacity information of lost workers.")
+          .build();
+
+  private static final Option SPECIFIED_OPTION =
+      Option.builder("worker")
+          .required(false)
+          .hasArg(true)
+          .desc("show capacity information of specified workers.")
+          .build();
+
   enum Command {
-    SUMMARY // Report the Alluxio cluster information
+    SUMMARY, // Report the Alluxio cluster information
+    CAPACITY // Report the capacity information
   }
 
   /**
@@ -120,6 +145,11 @@ public final class ReportCommand extends AbstractCommand {
               mBlockMasterClient, mPrintStream);
           summaryCommand.run();
           break;
+        case CAPACITY:
+          CapacityCommand capacityCommand = new CapacityCommand(
+              mBlockMasterClient, mPrintStream);
+          capacityCommand.run(cl);
+          break;
         // CAPACITY, CONFIGURATION, RPC, OPERATION, and UFS commands will be supported in the future
         default:
           break;
@@ -129,6 +159,14 @@ public final class ReportCommand extends AbstractCommand {
       mBlockMasterClient.close();
     }
     return 0;
+  }
+
+  @Override
+  public Options getOptions() {
+    return new Options()
+        .addOption(LIVE_OPTION)
+        .addOption(LOST_OPTION)
+        .addOption(SPECIFIED_OPTION);
   }
 
   @Override
@@ -142,12 +180,13 @@ public final class ReportCommand extends AbstractCommand {
         + "Where category is an optional argument, if no arguments are passed in, "
         + "summary information will be printed out."
         + "category can be one of the following:\n"
-        + "    summary          Summarized Alluxio cluster information";
+        + "    summary          Summarized Alluxio cluster information\n"
+        + "    capacity         Capacity usage information";
   }
 
   @Override
   public void validateArgs(String... args) throws InvalidArgumentException {
-    if (args.length > 1) {
+    if (args.length > 2) {
       throw new InvalidArgumentException(
           ExceptionMessage.INVALID_ARGS_GENERIC.getMessage(getCommandName()));
     }

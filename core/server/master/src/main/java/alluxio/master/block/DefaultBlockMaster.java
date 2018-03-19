@@ -42,12 +42,15 @@ import alluxio.thrift.BlockMasterClientService;
 import alluxio.thrift.BlockMasterWorkerService;
 import alluxio.thrift.Command;
 import alluxio.thrift.CommandType;
+import alluxio.thrift.ReportWorkerInfoField;
+import alluxio.thrift.WorkerRange;
 import alluxio.util.CommonUtils;
 import alluxio.util.IdUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.util.executor.ExecutorServiceFactory;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.BlockLocation;
+import alluxio.wire.ReportWorkerInfo;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
 
@@ -298,6 +301,50 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
       }
     }
     return workerInfoList;
+  }
+
+  @Override
+  public List<ReportWorkerInfo> getReportWorkerInfoList(WorkerRange workerRange,
+      Set<ReportWorkerInfoField> fieldRange, Set<String> addresses) throws UnavailableException {
+    if (mSafeModeManager.isInSafeMode()) {
+      throw new UnavailableException(ExceptionMessage.MASTER_IN_SAFEMODE.getMessage());
+    }
+    IndexedSet<MasterWorkerInfo> selectedWorkers = null;
+    switch (workerRange) {
+      case ALL:
+        selectedWorkers = mWorkers;
+        selectedWorkers.addAll(mLostWorkers);
+        break;
+      case LIVE:
+        selectedWorkers = mWorkers;
+        break;
+      case LOST:
+        selectedWorkers = mLostWorkers;
+        break;
+      case SPECIFIED:
+        selectedWorkers = new IndexedSet<>(ID_INDEX, ADDRESS_INDEX);
+        for (MasterWorkerInfo info : mWorkers) {
+          if (addresses.contains(info.getWorkerAddress().getHost())) {
+            selectedWorkers.add(info);
+          }
+        }
+        for (MasterWorkerInfo info : mLostWorkers) {
+          if (addresses.contains(info.getWorkerAddress().getHost())) {
+            selectedWorkers.add(info);
+          }
+        }
+        break;
+      default:
+        LOG.warn("Unrecognized report worker range: " + workerRange);
+    }
+
+    List<ReportWorkerInfo> reportWorkerInfoList = new ArrayList<>(selectedWorkers.size());
+    for (MasterWorkerInfo worker : selectedWorkers) {
+      synchronized (worker) {
+        reportWorkerInfoList.add(worker.generateClientReportWorkerInfo(fieldRange));
+      }
+    }
+    return reportWorkerInfoList;
   }
 
   @Override

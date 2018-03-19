@@ -41,7 +41,6 @@ public class SummaryCommand {
   private PrintStream mPrintStream;
 
   /**
-   /**
    * Creates a new instance of {@link SummaryCommand}.
    *
    * @param metaMasterClient client to connect to meta master

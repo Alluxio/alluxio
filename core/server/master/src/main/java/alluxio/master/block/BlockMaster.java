@@ -11,13 +11,16 @@
 
 package alluxio.master.block;
 
-import alluxio.StorageTierAssoc;
 import alluxio.exception.BlockInfoException;
 import alluxio.exception.NoWorkerException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.master.Master;
+import alluxio.StorageTierAssoc;
 import alluxio.thrift.Command;
+import alluxio.thrift.ReportWorkerInfoField;
+import alluxio.thrift.WorkerRange;
 import alluxio.wire.BlockInfo;
+import alluxio.wire.ReportWorkerInfo;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
 
@@ -44,6 +47,17 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
    * @return a list of {@link WorkerInfo} objects representing the workers in Alluxio
    */
   List<WorkerInfo> getWorkerInfoList() throws UnavailableException;
+
+  /**
+   * Gets the report worker information list.
+   *
+   * @param workerRange the client selected worker range
+   * @param fieldRange the client selected fields
+   * @param addresses the specified worker addresses if workerRange is SPECIFIED
+   * @return a list of {@link ReportWorkerInfo} objects representing the workers in Alluxio
+   */
+  List<ReportWorkerInfo> getReportWorkerInfoList(WorkerRange workerRange,
+      Set<ReportWorkerInfoField> fieldRange, Set<String> addresses) throws UnavailableException;
 
   /**
    * @return the total capacity (in bytes) on all tiers, on all workers of Alluxio

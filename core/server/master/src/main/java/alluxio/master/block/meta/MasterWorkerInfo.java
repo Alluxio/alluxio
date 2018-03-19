@@ -14,7 +14,9 @@ package alluxio.master.block.meta;
 import alluxio.Constants;
 import alluxio.StorageTierAssoc;
 import alluxio.WorkerStorageTierAssoc;
+import alluxio.thrift.ReportWorkerInfoField;
 import alluxio.util.CommonUtils;
+import alluxio.wire.ReportWorkerInfo;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
 
@@ -25,6 +27,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -182,6 +185,53 @@ public final class MasterWorkerInfo {
             (int) ((CommonUtils.getCurrentMs() - mLastUpdatedTimeMs) / Constants.SECOND_MS))
         .setState("In Service").setCapacityBytes(mCapacityBytes).setUsedBytes(mUsedBytes)
         .setStartTimeMs(mStartTimeMs);
+  }
+
+  /**
+   * Gets the selected field information for this worker.
+   *
+   * @param fieldRange the client selected fields
+   * @return generated report worker information
+   */
+  public ReportWorkerInfo generateClientReportWorkerInfo(
+      Set<ReportWorkerInfoField> fieldRange) {
+    ReportWorkerInfo info = new ReportWorkerInfo();
+    for (ReportWorkerInfoField field : fieldRange != null ? fieldRange
+        : Arrays.asList(ReportWorkerInfoField.values())) {
+      switch (field) {
+        case ADDRESS:
+          info.setAddress(mWorkerAddress);
+          break;
+        case CAPACITY_BYTES:
+          info.setCapacityBytes(mCapacityBytes);
+          break;
+        case CAPACITY_BYTES_ON_TIERS:
+          info.setCapacityBytesOnTiers(mTotalBytesOnTiers);
+          break;
+        case ID:
+          info.setId(mId);
+          break;
+        case LAST_CONTACT_SEC:
+          info.setLastContactSec(
+              (int) ((CommonUtils.getCurrentMs() - mLastUpdatedTimeMs) / Constants.SECOND_MS));
+          break;
+        case START_TIME_MS:
+          info.setStartTimeMs(mStartTimeMs);
+          break;
+        case STATE:
+          info.setState("In Service");
+          break;
+        case USED_BYTES:
+          info.setUsedBytes(mUsedBytes);
+          break;
+        case USED_BYTES_ON_TIERS:
+          info.setUsedBytesOnTiers(mUsedBytesOnTiers);
+          break;
+        default:
+          LOG.warn("Unrecognized report worker info field: " + field);
+      }
+    }
+    return info;
   }
 
   /**

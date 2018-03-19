@@ -13,6 +13,7 @@ package alluxio.client.block;
 
 import alluxio.AbstractMasterClient;
 import alluxio.Constants;
+import alluxio.client.block.options.ReportWorkerOptions;
 import alluxio.master.MasterClientConfig;
 import alluxio.thrift.AlluxioService;
 import alluxio.thrift.BlockMasterClientService;
@@ -24,6 +25,7 @@ import alluxio.thrift.GetWorkerInfoListTOptions;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.BlockMasterInfo;
 import alluxio.wire.BlockMasterInfo.BlockMasterInfoField;
+import alluxio.wire.ReportWorkerInfo;
 import alluxio.wire.ThriftUtils;
 import alluxio.wire.WorkerInfo;
 
@@ -90,6 +92,22 @@ public final class RetryHandlingBlockMasterClient extends AbstractMasterClient
         for (alluxio.thrift.WorkerInfo workerInfo : mClient
             .getWorkerInfoList(new GetWorkerInfoListTOptions()).getWorkerInfoList()) {
           result.add(ThriftUtils.fromThrift(workerInfo));
+        }
+        return result;
+      }
+    });
+  }
+
+  @Override
+  public synchronized List<ReportWorkerInfo> getReportWorkerInfoList(
+      final ReportWorkerOptions options) throws IOException {
+    return retryRPC(new RpcCallable<List<ReportWorkerInfo>>() {
+      @Override
+      public List<ReportWorkerInfo> call() throws TException {
+        List<ReportWorkerInfo> result = new ArrayList<>();
+        for (alluxio.thrift.ReportWorkerInfo reportWorkerInfo : mClient
+            .getReportWorkerInfoList(options.toThrift()).getReportWorkerInfoList()) {
+          result.add(ThriftUtils.fromThrift(reportWorkerInfo));
         }
         return result;
       }
