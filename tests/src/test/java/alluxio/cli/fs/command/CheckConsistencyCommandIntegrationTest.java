@@ -15,7 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.client.file.options.ExistsOptions;
-import alluxio.cli.fs.AbstractAlluxioShellTest;
+import alluxio.cli.fs.AbstractFileSystemShellTest;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.DeleteOptions;
 import alluxio.wire.LoadMetadataType;
@@ -28,7 +28,7 @@ import java.io.OutputStream;
 /**
  * Integration tests for checkConsistency command.
  */
-public class CheckConsistencyCommandIntegrationTest extends AbstractAlluxioShellTest {
+public class CheckConsistencyCommandIntegrationTest extends AbstractFileSystemShellTest {
   /**
    * Tests the check consistency shell command correctly identifies a consistent subtree.
    */

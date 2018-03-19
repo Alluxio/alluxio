@@ -21,7 +21,7 @@ import alluxio.client.file.FileInStream;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.OpenFileOptions;
 import alluxio.exception.AlluxioException;
-import alluxio.cli.fs.AbstractAlluxioShellTest;
+import alluxio.cli.fs.AbstractFileSystemShellTest;
 import alluxio.cli.fs.FileSystemShellUtilsTest;
 import alluxio.util.io.BufferUtils;
 
@@ -40,7 +40,7 @@ import java.util.HashMap;
 /**
  * Tests for copyFromLocal command.
  */
-public final class CopyFromLocalCommandIntegrationTest extends AbstractAlluxioShellTest {
+public final class CopyFromLocalCommandIntegrationTest extends AbstractFileSystemShellTest {
   /** Rule to create a new temporary folder during each test. */
   @Rule
   public TemporaryFolder mTestFolder = new TemporaryFolder();
