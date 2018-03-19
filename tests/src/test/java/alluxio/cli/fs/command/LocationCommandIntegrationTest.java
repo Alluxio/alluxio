@@ -12,7 +12,7 @@
 package alluxio.cli.fs.command;
 
 import alluxio.exception.ExceptionMessage;
-import alluxio.cli.fs.AbstractAlluxioShellTest;
+import alluxio.cli.fs.AbstractFileSystemShellTest;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -22,7 +22,7 @@ import java.io.IOException;
 /**
  * Test for location command.
  */
-public final class LocationCommandIntegrationTest extends AbstractAlluxioShellTest {
+public final class LocationCommandIntegrationTest extends AbstractFileSystemShellTest {
   @Test
   public void locationNotExist() throws IOException {
     int ret = mFsShell.run("location", "/NotExistFile");

@@ -12,11 +12,13 @@
 package alluxio.cli.fsadmin.command;
 
 import alluxio.AlluxioURI;
+import alluxio.cli.AbstractCommand;
 import alluxio.client.file.FileSystemMasterClient;
 import alluxio.client.file.options.UpdateUfsModeOptions;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.InvalidArgumentException;
+import alluxio.master.MasterClientConfig;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.io.PathUtils;
 
@@ -32,8 +34,8 @@ import javax.annotation.concurrent.ThreadSafe;
  * Update attributes for an existing mount point.
  */
 @ThreadSafe
-public final class UfsCommand extends AbstractFileSystemAdminCommand {
-
+public final class UfsCommand extends AbstractCommand {
+  private FileSystemMasterClient mMasterClient;
   private static final Option MODE_OPTION =
       Option.builder()
           .longOpt("mode")
@@ -43,10 +45,10 @@ public final class UfsCommand extends AbstractFileSystemAdminCommand {
           .build();
 
   /**
-   * @param masterClient the filesystem master client
+   * Creates a new instance of {@link UfsCommand}.
    */
-  public UfsCommand(FileSystemMasterClient masterClient) {
-    super(masterClient);
+  public UfsCommand() {
+    mMasterClient = FileSystemMasterClient.Factory.create(MasterClientConfig.defaults());
   }
 
   @Override

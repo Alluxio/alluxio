@@ -14,10 +14,13 @@ package alluxio.client.block;
 import alluxio.Client;
 import alluxio.master.MasterClientConfig;
 import alluxio.wire.BlockInfo;
+import alluxio.wire.BlockMasterInfo;
+import alluxio.wire.BlockMasterInfo.BlockMasterInfoField;
 import alluxio.wire.WorkerInfo;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Set;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -59,6 +62,12 @@ public interface BlockMasterClient extends Client {
    * @return the {@link BlockInfo}
    */
   BlockInfo getBlockInfo(final long blockId) throws IOException;
+
+  /**
+   * @param fields optional list of fields to query; if null all fields will be queried
+   * @return the {@link BlockMasterInfo} block master information
+   */
+  BlockMasterInfo getBlockMasterInfo(final Set<BlockMasterInfoField> fields) throws IOException;
 
   /**
    * Gets the total Alluxio capacity in bytes, on all the tiers of all the workers.

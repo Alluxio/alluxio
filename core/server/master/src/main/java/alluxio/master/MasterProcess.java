@@ -77,6 +77,11 @@ public interface MasterProcess extends Process {
   InetSocketAddress getWebAddress();
 
   /**
+   * @return true if Alluxio is running in safe mode, false otherwise
+   */
+  boolean isInSafeMode();
+
+  /**
    * @return true if the system is the leader (serving the rpc server), false otherwise
    */
   boolean isServing();

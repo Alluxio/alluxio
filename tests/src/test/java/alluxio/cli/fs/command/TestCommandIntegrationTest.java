@@ -14,7 +14,7 @@ package alluxio.cli.fs.command;
 import alluxio.AlluxioURI;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileSystemTestUtils;
-import alluxio.cli.fs.AbstractAlluxioShellTest;
+import alluxio.cli.fs.AbstractFileSystemShellTest;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -22,7 +22,7 @@ import org.junit.Test;
 /**
  * Tests for test command.
  */
-public final class TestCommandIntegrationTest extends AbstractAlluxioShellTest {
+public final class TestCommandIntegrationTest extends AbstractFileSystemShellTest {
   @Test
   public void testPathIsDirectoryWhenPathNotExist() throws Exception {
     int ret = mFsShell.run("test", "-d", "/testPath");

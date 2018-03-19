@@ -14,7 +14,7 @@ package alluxio.cli.fs.command;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.exception.ExceptionMessage;
-import alluxio.cli.fs.AbstractAlluxioShellTest;
+import alluxio.cli.fs.AbstractFileSystemShellTest;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -22,7 +22,7 @@ import org.junit.Test;
 /**
  * Test for du command.
  */
-public final class DuCommandIntegrationTest extends AbstractAlluxioShellTest {
+public final class DuCommandIntegrationTest extends AbstractFileSystemShellTest {
   @Test
   public void du() throws Exception {
     FileSystemTestUtils

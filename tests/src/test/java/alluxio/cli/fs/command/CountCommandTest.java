@@ -16,14 +16,14 @@ import static org.junit.Assert.assertEquals;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.exception.ExceptionMessage;
-import alluxio.cli.fs.AbstractAlluxioShellTest;
+import alluxio.cli.fs.AbstractFileSystemShellTest;
 
 import org.junit.Test;
 
 /**
  * Tests for count command.
  */
-public final class CountCommandTest extends AbstractAlluxioShellTest {
+public final class CountCommandTest extends AbstractFileSystemShellTest {
   @Test
   public void countNotExist() throws Exception {
     int ret = mFsShell.run("count", "/NotExistFile");

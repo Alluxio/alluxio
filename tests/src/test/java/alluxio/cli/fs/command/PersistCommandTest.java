@@ -21,7 +21,7 @@ import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.SetAttributeOptions;
 import alluxio.exception.ExceptionMessage;
 import alluxio.security.authorization.Mode;
-import alluxio.cli.fs.AbstractAlluxioShellTest;
+import alluxio.cli.fs.AbstractFileSystemShellTest;
 import alluxio.cli.fs.FileSystemShellUtilsTest;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.UnderFileSystemUtils;
@@ -34,7 +34,7 @@ import org.junit.Test;
 /**
  * Tests for persist command.
  */
-public final class PersistCommandTest extends AbstractAlluxioShellTest {
+public final class PersistCommandTest extends AbstractFileSystemShellTest {
   @Test
   public void persist() throws Exception {
     String testFilePath = "/testPersist/testFile";
