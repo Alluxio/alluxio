@@ -97,7 +97,7 @@ public class SpaceReserver implements HeartbeatExecutor {
       long reservedSpace = mReservedSpaces.get(tierAlias);
       if (mHighWatermarks.containsKey(tierAlias)) {
         long highWatermark = mHighWatermarks.get(tierAlias);
-        if (highWatermark > reservedSpace && usedBytesOnTiers.get(tierAlias) >= highWatermark) {
+        if (usedBytesOnTiers.get(tierAlias) >= highWatermark) {
           try {
             mBlockWorker.freeSpace(Sessions.MIGRATE_DATA_SESSION_ID, reservedSpace, tierAlias);
           } catch (WorkerOutOfSpaceException | BlockDoesNotExistException
@@ -106,7 +106,7 @@ public class SpaceReserver implements HeartbeatExecutor {
                 + "{}", tierAlias, reservedSpace, e.getMessage());
           }
         }
-      } else {
+      } else if (usedBytesOnTiers.get(tierAlias) >= reservedSpace) {
         try {
           mBlockWorker.freeSpace(Sessions.MIGRATE_DATA_SESSION_ID, reservedSpace, tierAlias);
         } catch (WorkerOutOfSpaceException | BlockDoesNotExistException
