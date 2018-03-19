@@ -13,6 +13,8 @@ package alluxio.master.journal;
 
 import alluxio.Configuration;
 import alluxio.PropertyKey;
+import alluxio.exception.JournalClosedException;
+import alluxio.exception.status.UnavailableException;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.retry.RetryPolicy;
 import alluxio.retry.TimeoutRetry;
@@ -60,7 +62,7 @@ public final class MasterJournalContext implements JournalContext {
    * Waits for the flush counter to be flushed to the journal. If the counter is
    * {@link #INVALID_FLUSH_COUNTER}, this is a noop.
    */
-  private void waitForJournalFlush() {
+  private void waitForJournalFlush() throws UnavailableException {
     if (mFlushCounter == INVALID_FLUSH_COUNTER) {
       // Check this before the precondition.
       return;
@@ -73,6 +75,9 @@ public final class MasterJournalContext implements JournalContext {
         return;
       } catch (IOException e) {
         LOG.warn("Journal flush failed. retrying...", e);
+      } catch (JournalClosedException e) {
+        throw new UnavailableException(String.format("Failed to complete request: %s",
+            e.getMessage()), e);
       } catch (Throwable e) {
         LOG.error("Journal flush failed. Terminating process to prevent inconsistency.", e);
         if (Configuration.getBoolean(PropertyKey.TEST_MODE)) {
@@ -92,7 +97,7 @@ public final class MasterJournalContext implements JournalContext {
   }
 
   @Override
-  public void close() {
+  public void close() throws UnavailableException {
     waitForJournalFlush();
   }
 }
