@@ -474,6 +474,8 @@ public class TieredBlockStore implements BlockStore {
 
   @Override
   public BlockStoreMeta getBlockStoreMeta() {
+    // Removed DEBUG logging because this is very noisy
+    // LOG.debug("getBlockStoreMeta:");
     BlockStoreMeta storeMeta;
     try (LockResource r = new LockResource(mMetadataReadLock)) {
       storeMeta = mMetaManager.getBlockStoreMeta();
@@ -483,6 +485,8 @@ public class TieredBlockStore implements BlockStore {
 
   @Override
   public BlockStoreMeta getBlockStoreMetaFull() {
+    // Removed DEBUG logging because this is very noisy
+    // LOG.debug("getBlockStoreMetaFull:");
     BlockStoreMeta storeMeta;
     try (LockResource r = new LockResource(mMetadataReadLock)) {
       storeMeta = mMetaManager.getBlockStoreMetaFull();
@@ -492,6 +496,7 @@ public class TieredBlockStore implements BlockStore {
 
   @Override
   public void registerBlockStoreEventListener(BlockStoreEventListener listener) {
+    LOG.debug("registerBlockStoreEventListener: listener={}", listener);
     synchronized (mBlockStoreEventListeners) {
       mBlockStoreEventListeners.add(listener);
     }
@@ -931,6 +936,7 @@ public class TieredBlockStore implements BlockStore {
    */
   @Override
   public void updatePinnedInodes(Set<Long> inodes) {
+    LOG.debug("updatePinnedInodes: inodes={}", inodes);
     synchronized (mPinnedInodes) {
       mPinnedInodes.clear();
       mPinnedInodes.addAll(Preconditions.checkNotNull(inodes));
