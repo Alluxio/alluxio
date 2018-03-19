@@ -39,7 +39,7 @@ public abstract class UfsStatus {
    * @param owner of the file
    * @param group of the file
    * @param mode of the file
-   * @param lastModifiedTimeMs UTC time
+   * @param lastModifiedTimeMs last modified epoch time in ms
    */
   protected UfsStatus(String name, boolean isDirectory, String owner, String group, short mode,
       Long lastModifiedTimeMs) {
