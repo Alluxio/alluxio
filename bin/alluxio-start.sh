@@ -23,7 +23,8 @@ USAGE="Usage: alluxio-start.sh [-hNw] ACTION [MOPT] [-f]
 Where ACTION is one of:
   all [MOPT]         \tStart all masters, proxies, and workers.
   local [MOPT]       \tStart all processes locally.
-  master             \tStart the master on this node.
+  master             \tStart the local master on this node.
+  secondary_master   \tStart the local secondary master on this node.
   masters            \tStart masters on master nodes.
   proxy              \tStart the proxy on this node.
   proxies            \tStart proxies on master and worker nodes.
@@ -366,6 +367,11 @@ main() {
       ;;
     master)
       start_master "${FORMAT}"
+      ;;
+    secondary_master)
+      ALLUXIO_MASTER_SECONDARY=true
+      start_master
+      ALLUXIO_MASTER_SECONDARY=false
       ;;
     masters)
       start_masters
