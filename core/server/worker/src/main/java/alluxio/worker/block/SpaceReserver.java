@@ -100,8 +100,11 @@ public class SpaceReserver implements HeartbeatExecutor {
         reservedSpace =
             (long) (tierCapacity - tierCapacity * Configuration.getDouble(tierLowWatermarkProp));
       }
-      mReservedSpaces.put(tierAlias, reservedSpace + lastTierReservedBytes);
       lastTierReservedBytes += reservedSpace;
+      // On each tier, we reserve no more than its capacity
+      lastTierReservedBytes =
+          (lastTierReservedBytes <= tierCapacity) ? lastTierReservedBytes : tierCapacity;
+      mReservedSpaces.put(tierAlias, lastTierReservedBytes);
     }
   }
 
@@ -112,7 +115,7 @@ public class SpaceReserver implements HeartbeatExecutor {
       long reservedSpace = mReservedSpaces.get(tierAlias);
       if (mHighWatermarks.containsKey(tierAlias)) {
         long highWatermark = mHighWatermarks.get(tierAlias);
-        if (highWatermark > reservedSpace && usedBytesOnTiers.get(tierAlias) >= highWatermark) {
+        if (usedBytesOnTiers.get(tierAlias) >= highWatermark) {
           try {
             mBlockWorker.freeSpace(Sessions.MIGRATE_DATA_SESSION_ID, reservedSpace, tierAlias);
           } catch (WorkerOutOfSpaceException | BlockDoesNotExistException
