@@ -120,6 +120,7 @@ public abstract class UfsStatus {
    *
    * @return modification time in milliseconds
    */
+  @Nullable
   public Long getLastModifiedTime() {
     return mLastModifiedTimeMs;
   }
