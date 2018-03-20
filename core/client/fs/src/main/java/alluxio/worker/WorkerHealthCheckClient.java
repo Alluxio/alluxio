@@ -13,11 +13,10 @@ package alluxio.worker;
 
 import alluxio.Constants;
 import alluxio.HealthCheckClient;
+import alluxio.exception.ConnectionFailedException;
 import alluxio.exception.status.UnauthenticatedException;
 import alluxio.retry.RetryPolicy;
 import alluxio.util.network.NetworkAddressUtils;
-
-import org.apache.thrift.transport.TTransportException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,7 +40,7 @@ public class WorkerHealthCheckClient implements HealthCheckClient {
    * @param retryPolicySupplier the retry policy supplier
    */
   public WorkerHealthCheckClient(InetSocketAddress workerAddress,
-                                 Supplier<RetryPolicy> retryPolicySupplier) {
+      Supplier<RetryPolicy> retryPolicySupplier) {
     mWorkerAddress = workerAddress;
     mRetryPolicySupplier = retryPolicySupplier;
   }
@@ -53,10 +52,10 @@ public class WorkerHealthCheckClient implements HealthCheckClient {
       try {
         LOG.debug("Checking whether {} is listening for RPCs", mWorkerAddress);
         NetworkAddressUtils.pingService(mWorkerAddress,
-                Constants.FILE_SYSTEM_WORKER_CLIENT_SERVICE_NAME);
+            Constants.FILE_SYSTEM_WORKER_CLIENT_SERVICE_NAME);
         LOG.debug("Successfully connected to {}", mWorkerAddress);
         return true;
-      } catch (TTransportException e) {
+      } catch (ConnectionFailedException e) {
         LOG.debug("Failed to connect to {}", mWorkerAddress);
       } catch (UnauthenticatedException e) {
         throw new RuntimeException(e);

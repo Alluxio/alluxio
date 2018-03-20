@@ -31,7 +31,7 @@ public final class AlluxioMasterMonitor {
   public static void main(String[] args) {
     if (args.length != 0) {
       LOG.warn("java -cp {} {}", RuntimeConstants.ALLUXIO_JAR,
-              AlluxioMasterMonitor.class.getCanonicalName());
+          AlluxioMasterMonitor.class.getCanonicalName());
       LOG.warn("ignoring arguments");
     }
 

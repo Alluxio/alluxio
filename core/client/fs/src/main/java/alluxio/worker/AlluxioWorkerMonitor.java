@@ -33,7 +33,7 @@ public final class AlluxioWorkerMonitor {
   public static void main(String[] args) {
     if (args.length != 0) {
       LOG.info("java -cp {} {}", RuntimeConstants.ALLUXIO_JAR,
-              AlluxioWorkerMonitor.class.getCanonicalName());
+          AlluxioWorkerMonitor.class.getCanonicalName());
       LOG.warn("ignoring arguments");
     }
 

@@ -38,7 +38,7 @@ public class ProxyHealthCheckClient implements HealthCheckClient {
    * @param retryPolicySupplier the retry policy supplier
    */
   public ProxyHealthCheckClient(InetSocketAddress proxyAddress,
-                                 Supplier<RetryPolicy> retryPolicySupplier) {
+      Supplier<RetryPolicy> retryPolicySupplier) {
     mProxyAddress = proxyAddress;
     mRetryPolicySupplier = retryPolicySupplier;
   }
