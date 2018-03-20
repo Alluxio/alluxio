@@ -14,7 +14,6 @@ package alluxio.proxy;
 import alluxio.HealthCheckClient;
 import alluxio.retry.RetryPolicy;
 import alluxio.util.network.NetworkAddressUtils;
-import alluxio.worker.WorkerHealthCheckClient;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

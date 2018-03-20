@@ -15,7 +15,6 @@ import alluxio.HealthCheckClient;
 import alluxio.RuntimeConstants;
 import alluxio.retry.ExponentialBackoffRetry;
 import alluxio.util.network.NetworkAddressUtils;
-import alluxio.worker.AlluxioWorkerMonitor;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
