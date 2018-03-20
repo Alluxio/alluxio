@@ -74,7 +74,7 @@ public final class ReportWorkerInfo implements Serializable {
   }
 
   /**
-   * @return the worker start time (in milliseconds)
+   * @return the worker total capacity (in bytes) on tiers
    */
   public Map<String, Long> getCapacityBytesOnTiers() {
     return mCapacityBytesOnTiers;
@@ -116,7 +116,7 @@ public final class ReportWorkerInfo implements Serializable {
   }
 
   /**
-   * @return the worker start time (in milliseconds)
+   * @return the worker used capacity (in bytes) on tiers
    */
   public Map<String, Long> getUsedBytesOnTiers() {
     return mUsedBytesOnTiers;
@@ -234,9 +234,9 @@ public final class ReportWorkerInfo implements Serializable {
   /**
    * Determine order from most recently contacted to least recently contacted.
    */
-  public static final class LastContactSecComparator implements Comparator<WorkerInfo> {
+  public static final class LastContactSecComparator implements Comparator<ReportWorkerInfo> {
     @Override
-    public int compare(WorkerInfo o1, WorkerInfo o2) {
+    public int compare(ReportWorkerInfo o1, ReportWorkerInfo o2) {
       return o1.getLastContactSec() - o2.getLastContactSec();
     }
 

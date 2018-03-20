@@ -188,12 +188,12 @@ public final class ReportWorkerOptions implements Serializable {
     }
 
     /**
-     * @param variableRange the thrift representation of the report worker info fields
+     * @param fieldRange the thrift representation of the report worker info fields
      * @return the wire type version of the report worker info field
      */
     public static ReportWorkerInfoField fromThrift(
-        alluxio.thrift.ReportWorkerInfoField variableRange) {
-      return ReportWorkerInfoField.valueOf(variableRange.name());
+        alluxio.thrift.ReportWorkerInfoField fieldRange) {
+      return ReportWorkerInfoField.valueOf(fieldRange.name());
     }
   }
 }

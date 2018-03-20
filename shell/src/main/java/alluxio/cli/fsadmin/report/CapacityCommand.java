@@ -38,12 +38,12 @@ public class CapacityCommand {
   private static final int INDENT_SIZE = 4;
   private static final String USAGE = "alluxio fsadmin report capacity [filter arg]\n"
       + "Report Alluxio capacity information.\n"
-      + "Where filter arg is an optional argument, if no arguments passed in, "
-      + "cluster capacity information will be printed out."
-      + "filter_arg can be one of the following:\n"
+      + "Where [filter arg] is an optional argument, if no arguments passed in, "
+      + "capacity information of all workers will be printed out.\n"
+      + "[filter arg] can be one of the following:\n"
       + "    -live                         Live workers\n"
       + "    -lost                         Lost workers\n"
-      + "    -worker <worker_ip_addresses> Specified workers, IP addresses separated by \",\"";
+      + "    -worker <worker_ip_addresses> Specified workers, IP addresses separated by \",\"\n";
 
   private BlockMasterClient mBlockMasterClient;
   private PrintStream mPrintStream;
@@ -69,6 +69,10 @@ public class CapacityCommand {
    * @return 0 on success, 1 otherwise
    */
   public int run(CommandLine cl) throws IOException {
+    if (cl.hasOption("h")) {
+      System.out.println(USAGE);
+      return 0;
+    }
     ReportWorkerOptions options = getOptions(cl);
     printWorkerCapacityInfo(options);
     return 0;
@@ -81,10 +85,9 @@ public class CapacityCommand {
    */
   public void printWorkerCapacityInfo(ReportWorkerOptions options) throws IOException {
     mIndentationLevel = 0;
-    print(String.format("Capacity Information for %s Workers: ", options.getWorkerRange()));
     List<ReportWorkerInfo> list = mBlockMasterClient.getReportWorkerInfoList(options);
 
-    // Collect the worker information for integration
+    // Summarize the worker capacity information
     long sumCapacityBytes = 0;
     long sumUsedBytes = 0;
     Map<String, Long> sumTotalBytesOnTiersMap = initializeTierMap();
@@ -145,14 +148,16 @@ public class CapacityCommand {
       }
     }
 
-    // Prints the information of Alluxio worker integration
+    // Print summarized worker capacity information
     if (options.getWorkerRange().equals(WorkerRange.SPECIFIED)
         && sumCapacityBytes + sumUsedBytes == 0) {
       System.out.println(USAGE);
       throw new InvalidArgumentException("Worker IP addresses are invalid.");
     }
+    mIndentationLevel = 0;
+    print(String.format("Capacity Information for %s Workers: ", options.getWorkerRange()));
 
-    mIndentationLevel = 1;
+    mIndentationLevel++;
     print("Total Capacity: " + FormatUtils.getSizeFromBytes(sumCapacityBytes));
     mIndentationLevel++;
     for (Map.Entry<String, Long> totalBytesTier : sumTotalBytesOnTiersMap.entrySet()) {
@@ -208,9 +213,6 @@ public class CapacityCommand {
       String addressString = cl.getOptionValue("worker");
       String[] addressArray = addressString.split(",");
       options.setAddresses(new HashSet<>(Arrays.asList(addressArray)));
-    } else if (cl.getOptions().length != 0) {
-      System.out.println(USAGE);
-      throw new InvalidArgumentException("report capacity filter tag is not valid.");
     }
     return options;
   }
@@ -242,7 +244,7 @@ public class CapacityCommand {
    * @param text information to cache
    */
   private void cache(String text) {
-    String indentedString = String.format("%s%s\n",
+    String indentedString = String.format("%s%s%n",
         Strings.repeat(" ", mIndentationLevel * INDENT_SIZE), text);
     mStringBuilder.append(indentedString);
   }

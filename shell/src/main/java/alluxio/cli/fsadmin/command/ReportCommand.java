@@ -68,6 +68,13 @@ public final class ReportCommand extends AbstractCommand {
           .desc("show capacity information of specified workers.")
           .build();
 
+  private static final Option HELP_OPTION =
+      Option.builder("h")
+          .required(false)
+          .hasArg(false)
+          .desc("print help information.")
+          .build();
+
   enum Command {
     SUMMARY, // Report the Alluxio cluster information
     CAPACITY // Report the capacity information
@@ -94,6 +101,14 @@ public final class ReportCommand extends AbstractCommand {
 
   @Override
   public int run(CommandLine cl) throws IOException {
+    String[] args = cl.getArgs();
+    if (cl.hasOption("h")
+        && !(args.length > 0 && args[0].equalsIgnoreCase("CAPACITY"))) {
+      System.out.println(getUsage());
+      System.out.println(getDescription());
+      return 0;
+    }
+
     try {
       // Check if Alluxio master and client services are running
       try (CloseableResource<FileSystemMasterClient> client =
@@ -117,8 +132,6 @@ public final class ReportCommand extends AbstractCommand {
           return 1;
         }
       }
-
-      String[] args = cl.getArgs();
 
       // Print the summarized information in default situation
       if (args.length == 0) {
@@ -150,7 +163,6 @@ public final class ReportCommand extends AbstractCommand {
               mBlockMasterClient, mPrintStream);
           capacityCommand.run(cl);
           break;
-        // CAPACITY, CONFIGURATION, RPC, OPERATION, and UFS commands will be supported in the future
         default:
           break;
       }
@@ -166,7 +178,8 @@ public final class ReportCommand extends AbstractCommand {
     return new Options()
         .addOption(LIVE_OPTION)
         .addOption(LOST_OPTION)
-        .addOption(SPECIFIED_OPTION);
+        .addOption(SPECIFIED_OPTION)
+        .addOption(HELP_OPTION);
   }
 
   @Override
@@ -186,7 +199,7 @@ public final class ReportCommand extends AbstractCommand {
 
   @Override
   public void validateArgs(String... args) throws InvalidArgumentException {
-    if (args.length > 2) {
+    if (args.length > 1) {
       throw new InvalidArgumentException(
           ExceptionMessage.INVALID_ARGS_GENERIC.getMessage(getCommandName()));
     }

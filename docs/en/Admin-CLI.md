@@ -44,7 +44,11 @@ The `report` command provides Alluxio running cluster information.
 For example, `report` can be used to get runing cluster state and capacity information.
 
 ```bash
+# Report summarized Alluxio cluster information
 $ ./bin/alluxio fsadmin report
+#
+# Report worker capacity information
+$ ./bin/alluxio fsadmin report capacity -live/-lost/-worker <worker_ip_addresses>
 ```
 
 ### ufs

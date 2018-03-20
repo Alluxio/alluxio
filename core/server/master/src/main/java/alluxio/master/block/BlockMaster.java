@@ -11,11 +11,11 @@
 
 package alluxio.master.block;
 
+import alluxio.StorageTierAssoc;
 import alluxio.exception.BlockInfoException;
 import alluxio.exception.NoWorkerException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.master.Master;
-import alluxio.StorageTierAssoc;
 import alluxio.thrift.Command;
 import alluxio.thrift.ReportWorkerInfoField;
 import alluxio.thrift.WorkerRange;
