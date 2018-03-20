@@ -64,34 +64,15 @@ public class CapacityCommandTest {
           "        Tier: HDD  Size: 2384.19MB",
           "    Used Percentage: 34%",
           "    Free Percentage: 66%",
-          "",
-          "----------- Node 64.68.90.1 -----------",
-          "    Start Time: 03-08-2012 10:25:21:212",
-          "    Last Contact Second: 3123",
-          "    Total Capacity: 11.18GB",
-          "        Tier: MEM  Size: 3814.70MB",
-          "        Tier: SSD  Size: 5.59GB",
-          "        Tier: HDD  Size: 1907.35MB",
-          "    Used Capacity: 9.31GB",
-          "        Tier: MEM  Size: 2861.02MB",
-          "        Tier: SSD  Size: 4768.37MB",
-          "        Tier: HDD  Size: 1907.35MB",
-          "    Used Percentage: 83%",
-          "    Free Percentage: 17%",
-          "",
-          "----------- Node 216.239.33.96 -----------",
-          "    Start Time: 11-05-2005 14:52:01:212",
-          "    Last Contact Second: 542",
-          "    Total Capacity: 18.63GB",
-          "        Tier: MEM  Size: 4768.37MB",
-          "        Tier: SSD  Size: 4768.37MB",
-          "        Tier: HDD  Size: 9.31GB",
-          "    Used Capacity: 953.67MB",
-          "        Tier: MEM  Size: 190.73MB",
-          "        Tier: SSD  Size: 286.10MB",
-          "        Tier: HDD  Size: 476.84MB",
-          "    Used Percentage: 5%",
-          "    Free Percentage: 95%");
+          "    ",
+          "Node Name            Last Heartbeat       Workers Capacity     "
+              + "Space Used           Used Percentage     ",
+          "64.68.90.1           3123                 11.18GB              "
+              + "9.31GB               83%                 ",
+          "Node Name            Last Heartbeat       Workers Capacity     "
+              + "Space Used           Used Percentage     ",
+          "216.239.33.96        542                  18.63GB              "
+              + "953.67MB             5%                  ");
       List<String> testOutput = Arrays.asList(output.split("\n"));
       Assert.assertThat(testOutput,
           IsIterableContainingInOrder.contains(expectedOutput.toArray()));
@@ -140,6 +121,7 @@ public class CapacityCommandTest {
         .setState("In Service")
         .setUsedBytes(1000000000L)
         .setUsedBytesOnTiers(usedBytesOnTiersSec);
+
     infoList.add(firstInfo);
     infoList.add(secondInfo);
     return infoList;

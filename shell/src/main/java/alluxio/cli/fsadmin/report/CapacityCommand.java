@@ -16,7 +16,6 @@ import alluxio.client.block.options.ReportWorkerOptions;
 import alluxio.client.block.options.ReportWorkerOptions.ReportWorkerInfoField;
 import alluxio.client.block.options.ReportWorkerOptions.WorkerRange;
 import alluxio.exception.status.InvalidArgumentException;
-import alluxio.util.CommonUtils;
 import alluxio.util.FormatUtils;
 import alluxio.wire.ReportWorkerInfo;
 
@@ -84,8 +83,7 @@ public class CapacityCommand {
    * @param options ReportWorkerOptions to define the report worker info range
    */
   public void printWorkerCapacityInfo(ReportWorkerOptions options) throws IOException {
-    mIndentationLevel = 0;
-    List<ReportWorkerInfo> list = mBlockMasterClient.getReportWorkerInfoList(options);
+    List<ReportWorkerInfo> workerInfolist = mBlockMasterClient.getReportWorkerInfoList(options);
 
     // Summarize the worker capacity information
     long sumCapacityBytes = 0;
@@ -94,57 +92,44 @@ public class CapacityCommand {
     Map<String, Long> sumUsedBytesOnTiersMap = initializeTierMap();
 
     // Cache the worker capacity information
-    for (ReportWorkerInfo workerInfo : list) {
-      mIndentationLevel = 0;
-      String sepLineInfo = String.format("%n----------- Node %s -----------",
-          workerInfo.getAddress().getHost());
-      cache(sepLineInfo);
-      mIndentationLevel++;
-      cache("Start Time: "
-          + CommonUtils.convertMsToDate(workerInfo.getStartTimeMs()));
-      cache("Last Contact Second: " + workerInfo.getLastContactSec());
 
-      long capacityBytes = workerInfo.getCapacityBytes();
+    for (ReportWorkerInfo workerInfo : workerInfolist) {
+      mStringBuilder.append(String.format("%-20s %-20s %-20s %-20s %-20s\n",
+          "Node Name", "Last Heartbeat", "Workers Capacity", "Space Used", "Used Percentage"));
+
       long usedBytes = workerInfo.getUsedBytes();
+      long capacityBytes = workerInfo.getCapacityBytes();
+      String usedPercentageInfo = "Unavailable";
+      if (capacityBytes != 0) {
+        int usedPercentage = (int) (100L * usedBytes / capacityBytes);
+        usedPercentageInfo = String.format("%s%%", usedPercentage);
+      }
+      mStringBuilder.append(String.format("%-20s %-20s %-20s %-20s %-20s\n",
+          workerInfo.getAddress().getHost(),
+          workerInfo.getLastContactSec(),
+          FormatUtils.getSizeFromBytes(capacityBytes),
+          FormatUtils.getSizeFromBytes(usedBytes),
+          usedPercentageInfo));
+
       sumCapacityBytes += capacityBytes;
       sumUsedBytes += usedBytes;
 
-      cache("Total Capacity: "
-          + FormatUtils.getSizeFromBytes(capacityBytes));
-
       Map<String, Long> totalBytesOnTiers = workerInfo.getCapacityBytesOnTiers();
-      mIndentationLevel++;
       if (totalBytesOnTiers != null) {
         for (Map.Entry<String, Long> totalBytesTier : totalBytesOnTiers.entrySet()) {
           String tier = totalBytesTier.getKey();
           long value = totalBytesTier.getValue();
           sumTotalBytesOnTiersMap.put(tier, value + sumTotalBytesOnTiersMap.get(tier));
-          cache("Tier: " + tier + "  Size: "
-              + FormatUtils.getSizeFromBytes(value));
         }
       }
 
-      mIndentationLevel--;
-      cache("Used Capacity: "
-          + FormatUtils.getSizeFromBytes(usedBytes));
-
       Map<String, Long> usedBytesOnTiers = workerInfo.getUsedBytesOnTiers();
-      mIndentationLevel++;
       if (usedBytesOnTiers != null) {
         for (Map.Entry<String, Long> usedBytesTier: usedBytesOnTiers.entrySet()) {
           String tier = usedBytesTier.getKey();
           long value = usedBytesTier.getValue();
           sumUsedBytesOnTiersMap.put(tier, value + sumUsedBytesOnTiersMap.get(tier));
-          cache("Tier: " + tier + "  Size: "
-              + FormatUtils.getSizeFromBytes(value));
         }
-      }
-
-      mIndentationLevel--;
-      if (capacityBytes != 0) {
-        int usedPercentage = (int) (100L * usedBytes / capacityBytes);
-        cache(String.format("Used Percentage: " + "%s%%", usedPercentage));
-        cache(String.format("Free Percentage: " + "%s%%", 100 - usedPercentage));
       }
     }
 
@@ -154,6 +139,7 @@ public class CapacityCommand {
       System.out.println(USAGE);
       throw new InvalidArgumentException("Worker IP addresses are invalid.");
     }
+
     mIndentationLevel = 0;
     print(String.format("Capacity Information for %s Workers: ", options.getWorkerRange()));
 
@@ -186,6 +172,7 @@ public class CapacityCommand {
       print(String.format("Used Percentage: " + "%s%%", usedPercentage));
       print(String.format("Free Percentage: " + "%s%%", 100 - usedPercentage));
     }
+    print("");
 
     // Print cached worker information
     mPrintStream.println(mStringBuilder.toString());
@@ -236,16 +223,5 @@ public class CapacityCommand {
   private void print(String text) {
     String indent = Strings.repeat(" ", mIndentationLevel * INDENT_SIZE);
     mPrintStream.println(indent + text);
-  }
-
-  /**
-   * Caches indented information.
-   *
-   * @param text information to cache
-   */
-  private void cache(String text) {
-    String indentedString = String.format("%s%s%n",
-        Strings.repeat(" ", mIndentationLevel * INDENT_SIZE), text);
-    mStringBuilder.append(indentedString);
   }
 }

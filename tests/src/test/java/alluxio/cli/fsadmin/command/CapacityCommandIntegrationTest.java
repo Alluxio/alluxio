@@ -35,12 +35,11 @@ public final class CapacityCommandIntegrationTest extends AbstractFsAdminShellTe
         + "    Used Percentage: 0%\n"
         + "    Free Percentage: 100%\n"));
     Assert.assertThat(output, CoreMatchers.containsString(
-        "    Total Capacity: " + size + "\n"
-        + "        Tier: MEM  Size: " + size + "\n"
-        + "    Used Capacity: 0B\n"
-        + "        Tier: MEM  Size: 0B\n"
-        + "    Used Percentage: 0%\n"
-        + "    Free Percentage: 100%\n"));
+        "Node Name            Last Heartbeat       Workers Capacity     "
+        + "Space Used           Used Percentage"));
+    Assert.assertThat(output, CoreMatchers.containsString(
+        "0                    " + size
+        + "              0B                   0%"));
   }
 
   @Test
@@ -68,11 +67,10 @@ public final class CapacityCommandIntegrationTest extends AbstractFsAdminShellTe
         + "    Used Percentage: 0%\n"
         + "    Free Percentage: 100%\n"));
     Assert.assertThat(output, CoreMatchers.containsString(
-        "    Total Capacity: " + size + "\n"
-        + "        Tier: MEM  Size: " + size + "\n"
-        + "    Used Capacity: 0B\n"
-        + "        Tier: MEM  Size: 0B\n"
-        + "    Used Percentage: 0%\n"
-        + "    Free Percentage: 100%\n"));
+        "Node Name            Last Heartbeat       Workers Capacity     "
+        + "Space Used           Used Percentage"));
+    Assert.assertThat(output, CoreMatchers.containsString(
+        "0                    " + size
+        + "              0B                   0%"));
   }
 }
