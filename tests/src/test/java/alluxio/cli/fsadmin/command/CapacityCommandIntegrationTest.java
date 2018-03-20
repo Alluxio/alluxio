@@ -12,6 +12,7 @@
 package alluxio.cli.fsadmin.command;
 
 import alluxio.cli.fsadmin.AbstractFsAdminShellTest;
+import alluxio.cli.fsadmin.report.CapacityCommand;
 import alluxio.util.FormatUtils;
 
 import org.hamcrest.CoreMatchers;
@@ -72,5 +73,13 @@ public final class CapacityCommandIntegrationTest extends AbstractFsAdminShellTe
     Assert.assertThat(output, CoreMatchers.containsString(
         "0                    " + size
         + "              0B                   0%"));
+  }
+
+  @Test
+  public void capacityWithInvalidAddress() {
+    int ret = mFsAdminShell.run("report", "capacity", "-worker", "0.0.0.0");
+    Assert.assertEquals(-1, ret);
+    String output = mOutput.toString();
+    Assert.assertThat(output, CoreMatchers.containsString(CapacityCommand.getUsage()));
   }
 }

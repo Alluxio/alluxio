@@ -224,4 +224,11 @@ public class CapacityCommand {
     String indent = Strings.repeat(" ", mIndentationLevel * INDENT_SIZE);
     mPrintStream.println(indent + text);
   }
+
+  /**
+   * @return capacity command usage
+   */
+  public static String getUsage() {
+    return USAGE;
+  }
 }

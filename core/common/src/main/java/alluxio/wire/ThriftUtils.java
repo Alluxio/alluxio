@@ -46,16 +46,6 @@ public final class ThriftUtils {
   /**
    * Converts a thrift type to a wire type.
    *
-   * @param masterInfo the thrift representation of the Alluxio master information
-   * @return wire representation of the Alluxio master information
-   */
-  public static MasterInfo fromThrift(alluxio.thrift.MasterInfo masterInfo) {
-    return new MasterInfo(masterInfo);
-  }
-
-  /**
-   * Converts a thrift type to a wire type.
-   *
    * @param blockLocation the thrift representation of a block location
    * @return wire representation of the block location
    */
@@ -116,11 +106,41 @@ public final class ThriftUtils {
   /**
    * Converts a thrift type to a wire type.
    *
+   * @param masterInfo the thrift representation of the Alluxio master information
+   * @return wire representation of the Alluxio master information
+   */
+  public static MasterInfo fromThrift(alluxio.thrift.MasterInfo masterInfo) {
+    return new MasterInfo(masterInfo);
+  }
+
+  /**
+   * Converts a thrift type to a wire type.
+   *
    * @param mountPointInfo the thrift representation of a lineage information
    * @return wire representation of the lineage information
    */
   public static MountPointInfo fromThrift(alluxio.thrift.MountPointInfo mountPointInfo) {
     return new MountPointInfo(mountPointInfo);
+  }
+
+  /**
+   * Converts a thrift type to a wire type.
+   *
+   * @param reportWorkerInfo the thrift representation of a report worker information
+   * @return wire representation of the report worker information
+   */
+  public static ReportWorkerInfo fromThrift(alluxio.thrift.ReportWorkerInfo reportWorkerInfo) {
+    return new ReportWorkerInfo(reportWorkerInfo);
+  }
+
+  /**
+   * Converts thrift type to wire type.
+   *
+   * @param tTtlAction {@link TTtlAction}
+   * @return {@link TtlAction} equivalent
+   */
+  public static TtlAction fromThrift(TTtlAction tTtlAction) {
+    return TtlAction.fromThrift(tTtlAction);
   }
 
   /**
@@ -136,31 +156,11 @@ public final class ThriftUtils {
   /**
    * Converts a thrift type to a wire type.
    *
-   * @param reportWorkerInfo the thrift representation of a report worker information
-   * @return wire representation of the report worker information
-   */
-  public static ReportWorkerInfo fromThrift(alluxio.thrift.ReportWorkerInfo reportWorkerInfo) {
-    return new ReportWorkerInfo(reportWorkerInfo);
-  }
-
-  /**
-   * Converts a thrift type to a wire type.
-   *
    * @param workerNetAddress the thrift representation of a worker net address
    * @return wire representation of the worker net address
    */
   public static WorkerNetAddress fromThrift(alluxio.thrift.WorkerNetAddress workerNetAddress) {
     return new WorkerNetAddress(workerNetAddress);
-  }
-
-  /**
-   * Converts thrift type to wire type.
-   *
-   * @param tTtlAction {@link TTtlAction}
-   * @return {@link TtlAction} equivalent
-   */
-  public static TtlAction fromThrift(TTtlAction tTtlAction) {
-    return TtlAction.fromThrift(tTtlAction);
   }
 
   /**
@@ -191,16 +191,6 @@ public final class ThriftUtils {
    */
   public static alluxio.thrift.BlockMasterInfo toThrift(BlockMasterInfo blockMasterInfo) {
     return blockMasterInfo.toThrift();
-  }
-
-  /**
-   * Converts a wire type to a thrift type.
-   *
-   * @param masterInfo the wire representation of the master information
-   * @return thrift representation of the master information
-   */
-  public static alluxio.thrift.MasterInfo toThrift(MasterInfo masterInfo) {
-    return masterInfo.toThrift();
   }
 
   /**
@@ -256,21 +246,21 @@ public final class ThriftUtils {
   /**
    * Converts a wire type to a thrift type.
    *
-   * @param mountPointInfo the wire representation of a mount point information
-   * @return thrift representation of the mount point information
+   * @param masterInfo the wire representation of the master information
+   * @return thrift representation of the master information
    */
-  public static alluxio.thrift.MountPointInfo toThrift(MountPointInfo mountPointInfo) {
-    return mountPointInfo.toThrift();
+  public static alluxio.thrift.MasterInfo toThrift(MasterInfo masterInfo) {
+    return masterInfo.toThrift();
   }
 
   /**
    * Converts a wire type to a thrift type.
    *
-   * @param workerInfo the wire representation of a worker information
-   * @return thrift representation of the worker information
+   * @param mountPointInfo the wire representation of a mount point information
+   * @return thrift representation of the mount point information
    */
-  public static alluxio.thrift.WorkerInfo toThrift(WorkerInfo workerInfo) {
-    return workerInfo.toThrift();
+  public static alluxio.thrift.MountPointInfo toThrift(MountPointInfo mountPointInfo) {
+    return mountPointInfo.toThrift();
   }
 
   /**
@@ -286,11 +276,11 @@ public final class ThriftUtils {
   /**
    * Converts a wire type to a thrift type.
    *
-   * @param workerNetAddress the wire representation of a worker net address
-   * @return thrift representation of the worker net address
+   * @param workerInfo the wire representation of a worker information
+   * @return thrift representation of the worker information
    */
-  public static alluxio.thrift.WorkerNetAddress toThrift(WorkerNetAddress workerNetAddress) {
-    return workerNetAddress.toThrift();
+  public static alluxio.thrift.WorkerInfo toThrift(WorkerInfo workerInfo) {
+    return workerInfo.toThrift();
   }
 
   /**
@@ -301,6 +291,16 @@ public final class ThriftUtils {
    */
   public static TTtlAction toThrift(TtlAction ttlAction) {
     return TtlAction.toThrift(ttlAction);
+  }
+
+  /**
+   * Converts a wire type to a thrift type.
+   *
+   * @param workerNetAddress the wire representation of a worker net address
+   * @return thrift representation of the worker net address
+   */
+  public static alluxio.thrift.WorkerNetAddress toThrift(WorkerNetAddress workerNetAddress) {
+    return workerNetAddress.toThrift();
   }
 }
 
