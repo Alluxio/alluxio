@@ -94,7 +94,7 @@ public class CapacityCommand {
     // Cache the worker capacity information
 
     for (ReportWorkerInfo workerInfo : workerInfolist) {
-      mStringBuilder.append(String.format("%-20s %-20s %-20s %-20s %-20s\n",
+      mStringBuilder.append(String.format("%-20s %-20s %-20s %-20s %-20s%n",
           "Node Name", "Last Heartbeat", "Workers Capacity", "Space Used", "Used Percentage"));
 
       long usedBytes = workerInfo.getUsedBytes();
@@ -104,7 +104,7 @@ public class CapacityCommand {
         int usedPercentage = (int) (100L * usedBytes / capacityBytes);
         usedPercentageInfo = String.format("%s%%", usedPercentage);
       }
-      mStringBuilder.append(String.format("%-20s %-20s %-20s %-20s %-20s\n",
+      mStringBuilder.append(String.format("%-20s %-20s %-20s %-20s %-20s%n",
           workerInfo.getAddress().getHost(),
           workerInfo.getLastContactSec(),
           FormatUtils.getSizeFromBytes(capacityBytes),
