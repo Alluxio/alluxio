@@ -14,6 +14,7 @@ package alluxio.util.network;
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
+import alluxio.exception.ConnectionFailedException;
 import alluxio.exception.status.UnauthenticatedException;
 import alluxio.security.authentication.TProtocols;
 import alluxio.security.authentication.TransportProvider;
@@ -656,17 +657,20 @@ public final class NetworkAddressUtils {
    * @throws TTransportException If there is a protocol transport error
    */
   public static void pingService(InetSocketAddress address, String serviceName)
-          throws UnauthenticatedException, TTransportException {
+          throws UnauthenticatedException, ConnectionFailedException {
     Preconditions.checkNotNull(address, "address");
     Preconditions.checkNotNull(serviceName, "serviceName");
     Preconditions.checkArgument(!serviceName.isEmpty(),
             "Cannot resolve for empty service name");
-
-    TransportProvider transportProvider = TransportProvider.Factory.create();
-    TProtocol protocol = TProtocols.createProtocol(transportProvider.getClientTransport(address),
-            serviceName);
-    protocol.getTransport().open();
-    protocol.getTransport().close();
+    try {
+      TransportProvider transportProvider = TransportProvider.Factory.create();
+      TProtocol protocol = TProtocols.createProtocol(transportProvider.getClientTransport(address),
+          serviceName);
+      protocol.getTransport().open();
+      protocol.getTransport().close();
+    } catch (TTransportException e) {
+      throw new ConnectionFailedException(e.getMessage());
+    }
   }
 
 }
