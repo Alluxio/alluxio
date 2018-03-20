@@ -35,6 +35,7 @@ public class MasterHealthCheckClient implements HealthCheckClient {
   private static final Logger LOG = LoggerFactory.getLogger(MasterHealthCheckClient.class);
   private String mAlluxioMasterName;
   private boolean mProcessCheck;
+  private ExecutorService mExecutorService;
 
   /**
    * Builder for a {@link MasterHealthCheckClient}.
@@ -150,11 +151,11 @@ public class MasterHealthCheckClient implements HealthCheckClient {
   public MasterHealthCheckClient(String alluxioMasterName, boolean processCheck) {
     mAlluxioMasterName = alluxioMasterName;
     mProcessCheck = processCheck;
+    mExecutorService = Executors.newFixedThreadPool(2);
   }
 
   @Override
   public boolean isServing() {
-    ExecutorService mExecutorService = Executors.newFixedThreadPool(2);
     try {
       Future<?> masterServingCheckFuture = mExecutorService.submit(
               new MasterServingCheckRunnable());

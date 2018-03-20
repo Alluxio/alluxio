@@ -11,12 +11,9 @@
 
 package alluxio;
 
-import javax.annotation.concurrent.ThreadSafe;
-
 /**
  * Client for checking service availability.
  */
-@ThreadSafe
 public interface HealthCheckClient {
   /**
    * @return true if the service is serving requests, otherwise false. The implementation should

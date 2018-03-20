@@ -24,7 +24,7 @@ import org.slf4j.LoggerFactory;
  * Alluxio proxy monitor for inquiring the AlluxioProxy service availability.
  */
 public final class AlluxioProxyMonitor {
-  private static final Logger LOG = LoggerFactory.getLogger(AlluxioWorkerMonitor.class);
+  private static final Logger LOG = LoggerFactory.getLogger(AlluxioProxyMonitor.class);
 
   /**
    * Starts the Alluxio proxy monitor.
@@ -34,7 +34,7 @@ public final class AlluxioProxyMonitor {
   public static void main(String[] args) {
     if (args.length != 0) {
       LOG.info("java -cp {} {}", RuntimeConstants.ALLUXIO_JAR,
-              AlluxioProxyMonitor.class.getCanonicalName());
+          AlluxioProxyMonitor.class.getCanonicalName());
       LOG.warn("ignoring arguments");
     }
 

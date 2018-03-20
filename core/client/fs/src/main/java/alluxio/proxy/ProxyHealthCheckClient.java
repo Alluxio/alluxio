@@ -26,7 +26,7 @@ import java.util.function.Supplier;
  * ProxyHealthCheckClient check if the proxy server is serving requests.
  */
 public class ProxyHealthCheckClient implements HealthCheckClient {
-  private static final Logger LOG = LoggerFactory.getLogger(WorkerHealthCheckClient.class);
+  private static final Logger LOG = LoggerFactory.getLogger(ProxyHealthCheckClient.class);
 
   private final InetSocketAddress mProxyAddress;
   private final Supplier<RetryPolicy> mRetryPolicySupplier;
