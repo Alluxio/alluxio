@@ -46,8 +46,7 @@ public final class CapacityCommandIntegrationTest extends AbstractFsAdminShellTe
   public void lostCapacity() {
     int ret = mFsAdminShell.run("report", "capacity", "-lost");
     Assert.assertEquals(0, ret);
-    String output = mOutput.toString();
-    Assert.assertThat(output, CoreMatchers.containsString(
+    Assert.assertThat(mOutput.toString(), CoreMatchers.containsString(
         "Capacity information for lost workers: \n"
         + "    Total Capacity: 0B\n"
         + "    Used Capacity: 0B\n"));
@@ -74,10 +73,18 @@ public final class CapacityCommandIntegrationTest extends AbstractFsAdminShellTe
   }
 
   @Test
+  public void tooManyOptions() {
+    int ret = mFsAdminShell.run("report", "capacity", "-live", "-lost");
+    Assert.assertEquals(-1, ret);
+    String expected = CapacityCommand.getUsage()
+        + "\nToo many arguments passed in.\n";
+    Assert.assertEquals(expected, mOutput.toString());
+  }
+
+  @Test
   public void capacityWithInvalidAddress() {
     int ret = mFsAdminShell.run("report", "capacity", "-worker", "0.0.0.0");
     Assert.assertEquals(-1, ret);
-    String output = mOutput.toString();
-    Assert.assertThat(output, CoreMatchers.containsString(CapacityCommand.getUsage()));
+    Assert.assertThat(mOutput.toString(), CoreMatchers.containsString(CapacityCommand.getUsage()));
   }
 }
