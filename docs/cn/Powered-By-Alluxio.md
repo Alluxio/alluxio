@@ -44,9 +44,6 @@ group: Resources
 * [Walmart](https://www.walmart.com/)
 * [ZTE](http://www.zte.com.cn)
 * [Kyligence](http://en.kyligence.io/)
-
-以下是一些将Alluxio加入到自身的生态系统以增强功能的第三方软件项目。
-
 * [Alibaba OSS](http://www.aliyun.com/product/oss/?lang=en)
 * [Amazon S3](https://aws.amazon.com/s3/)
 * [Alluxio C++ Client](https://github.com/stormspirit/libtachyon)
