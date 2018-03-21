@@ -1131,6 +1131,9 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       FileAlreadyCompletedException, UnavailableException {
     InodeFile inode = inodePath.getInodeFile();
     inode.setBlockIds(blockIds);
+    // Inode last modification time are initialized as currentTimeMillis() when they are created.
+    // When we load metadata from UFS we might need to update it to a smaller timestamp which
+    // requires setting override argument to true here.
     inode.setLastModificationTimeMs(opTimeMs, true);
     inode.setUfsFingerprint(ufsFingerprint);
     inode.complete(length);
