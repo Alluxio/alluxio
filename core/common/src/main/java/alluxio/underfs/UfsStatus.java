@@ -23,6 +23,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public abstract class UfsStatus {
   protected final boolean mIsDirectory;
+  /** Last modified epoch time in ms, or null if it is not available. */
   protected final Long mLastModifiedTimeMs;
   protected String mName;
 
@@ -39,7 +40,7 @@ public abstract class UfsStatus {
    * @param owner of the file
    * @param group of the file
    * @param mode of the file
-   * @param lastModifiedTimeMs last modified epoch time in ms
+   * @param lastModifiedTimeMs last modified epoch time in ms, or null if it is not available
    */
   protected UfsStatus(String name, boolean isDirectory, String owner, String group, short mode,
       Long lastModifiedTimeMs) {
