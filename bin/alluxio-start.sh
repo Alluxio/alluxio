@@ -398,7 +398,6 @@ main() {
     exit 1
   fi
 
-<<<<<<< HEAD
   MONITOR_NODES=
   if [[ "${monitor}" ]]; then
     case "${ACTION}" in
@@ -414,7 +413,6 @@ main() {
     esac
   fi
 
-=======
   if [[ "${killonstart}" != "no" ]]; then
     case "${ACTION}" in
       all | local | master | masters | proxy | proxies | worker | workers | logserver)
@@ -423,7 +421,7 @@ main() {
         ;;
     esac
   fi
->>>>>>> master
+
   case "${ACTION}" in
     all)
       start_masters "${FORMAT}"
