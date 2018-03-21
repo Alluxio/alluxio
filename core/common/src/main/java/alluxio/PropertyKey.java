@@ -366,6 +366,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("Flag used only during tests to allow special behavior.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .build();
+  public static final PropertyKey TMP_DIRS =
+      new Builder(Name.TMP_DIRS)
+          .setDefaultValue("/tmp")
+          .setDescription("The path(s) to store Alluxio temporary files, use commas as delimiters. "
+              + "If multiple paths are specified, one will be selected at random per temporary "
+              + "file. Currently, only files to be uploaded to object stores are stored in these "
+              + "paths.")
+          .build();
   public static final PropertyKey VERSION =
       new Builder(Name.VERSION)
           .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
@@ -941,6 +949,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "writes before giving up and shutting down the master.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
+          .build();
+  public static final PropertyKey MASTER_JOURNAL_FLUSH_RETRY_INTERVAL =
+      new Builder(Name.MASTER_JOURNAL_FLUSH_RETRY_INTERVAL)
+          .setDefaultValue("1sec")
+          .setDescription("The amount of time to sleep between retrying journal flushes")
+          .setIsHidden(true)
           .build();
   public static final PropertyKey MASTER_JOURNAL_FOLDER =
       new Builder(Name.MASTER_JOURNAL_FOLDER)
@@ -1583,7 +1597,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey WORKER_NETWORK_NETTY_ASYNC_CACHE_MANAGER_THREADS_MAX =
       new Builder(Name.WORKER_NETWORK_NETTY_ASYNC_CACHE_MANAGER_THREADS_MAX)
-          .setDefaultValue(512)
+          .setDefaultValue(8)
           .setDescription("The maximum number of threads used to cache blocks asynchronously in "
               + "the netty data server.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -1821,7 +1835,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey WORKER_TIERED_STORE_RESERVER_ENABLED =
       new Builder(Name.WORKER_TIERED_STORE_RESERVER_ENABLED)
-          .setDefaultValue(false)
+          .setDefaultValue(true)
           .setDescription("Whether to enable tiered store reserver service or not.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
@@ -2377,7 +2391,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey USER_NETWORK_NETTY_WRITER_CLOSE_TIMEOUT_MS =
       new Builder(Name.USER_NETWORK_NETTY_WRITER_CLOSE_TIMEOUT_MS)
           .setAlias(new String[]{"alluxio.user.network.netty.writer.close.timeout.ms"})
-          .setDefaultValue("5min")
+          .setDefaultValue("30min")
           .setDescription("The timeout to close a netty writer client.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
@@ -2813,6 +2827,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String SITE_CONF_DIR = "alluxio.site.conf.dir";
     public static final String TEST_MODE = "alluxio.test.mode";
     public static final String USER_HOME = "user.home";
+    public static final String TMP_DIRS = "alluxio.tmp.dirs";
     public static final String VERSION = "alluxio.version";
     public static final String WEB_RESOURCES = "alluxio.web.resources";
     public static final String WEB_THREADS = "alluxio.web.threads";
@@ -2927,6 +2942,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.journal.flush.batch.time";
     public static final String MASTER_JOURNAL_FLUSH_TIMEOUT_MS =
         "alluxio.master.journal.flush.timeout";
+    public static final String MASTER_JOURNAL_FLUSH_RETRY_INTERVAL =
+        "alluxio.master.journal.retry.interval";
     public static final String MASTER_JOURNAL_FOLDER = "alluxio.master.journal.folder";
     public static final String MASTER_JOURNAL_TYPE = "alluxio.master.journal.type";
     public static final String MASTER_JOURNAL_FORMATTER_CLASS =

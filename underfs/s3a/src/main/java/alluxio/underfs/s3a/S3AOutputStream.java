@@ -13,6 +13,7 @@ package alluxio.underfs.s3a;
 
 import alluxio.Configuration;
 import alluxio.PropertyKey;
+import alluxio.util.CommonUtils;
 import alluxio.util.io.PathUtils;
 
 import com.amazonaws.services.s3.internal.Mimetypes;
@@ -92,7 +93,7 @@ public class S3AOutputStream extends OutputStream {
     mBucketName = bucketName;
     mKey = key;
     mManager = manager;
-    mFile = new File(PathUtils.concatPath("/tmp", UUID.randomUUID()));
+    mFile = new File(PathUtils.concatPath(CommonUtils.getTmpDir(), UUID.randomUUID()));
     try {
       mHash = MessageDigest.getInstance("MD5");
       mLocalOutputStream =

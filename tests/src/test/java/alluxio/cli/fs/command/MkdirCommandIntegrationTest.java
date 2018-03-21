@@ -14,7 +14,7 @@ package alluxio.cli.fs.command;
 import alluxio.AlluxioURI;
 import alluxio.client.file.URIStatus;
 import alluxio.exception.AlluxioException;
-import alluxio.cli.fs.AbstractAlluxioShellTest;
+import alluxio.cli.fs.AbstractFileSystemShellTest;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -24,7 +24,7 @@ import java.io.IOException;
 /**
  * Tests for mkdir command.
  */
-public final class MkdirCommandIntegrationTest extends AbstractAlluxioShellTest {
+public final class MkdirCommandIntegrationTest extends AbstractFileSystemShellTest {
   @Test
   public void mkdir() throws IOException, AlluxioException {
     String qualifiedPath =
@@ -56,8 +56,21 @@ public final class MkdirCommandIntegrationTest extends AbstractAlluxioShellTest 
   }
 
   @Test
+  public void mkdirPathWithWhiteSpaces() {
+    String[] paths = new String[]{
+        "/ ",
+        "/x y z",
+        "/ x y z",
+        "/ x y z / a b c"
+    };
+    for (String path : paths) {
+      Assert.assertEquals(0, mFsShell.run("mkdir", path));
+    }
+  }
+
+  @Test
   public void mkdirInvalidPath() throws IOException {
-    Assert.assertEquals(-1, mFsShell.run("mkdir", "/test File Invalid Path"));
+    Assert.assertEquals(-1, mFsShell.run("mkdir", ""));
   }
 
   @Test

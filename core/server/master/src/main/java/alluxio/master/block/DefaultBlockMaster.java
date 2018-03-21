@@ -282,6 +282,11 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
   }
 
   @Override
+  public int getLostWorkerCount() {
+    return mLostWorkers.size();
+  }
+
+  @Override
   public List<WorkerInfo> getWorkerInfoList() throws UnavailableException {
     if (mSafeModeManager.isInSafeMode()) {
       throw new UnavailableException(ExceptionMessage.MASTER_IN_SAFEMODE.getMessage());
@@ -624,6 +629,7 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
           totalBytesOnTiers, usedBytesOnTiers, blocks);
       processWorkerRemovedBlocks(worker, removedBlocks);
       processWorkerAddedBlocks(worker, currentBlocksOnTiers);
+      processWorkerOrphanedBlocks(worker);
     }
 
     LOG.info("registerWorker(): {}", worker);
@@ -708,8 +714,20 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
             mLostBlocks.remove(blockId);
           }
         } else {
-          LOG.warn("Failed to register workerId: {} to blockId: {}", workerInfo.getId(), blockId);
+          LOG.warn("Invalid block: {} from worker {}.", blockId,
+              workerInfo.getWorkerAddress().getHost());
         }
+      }
+    }
+  }
+
+  @GuardedBy("workerInfo")
+  private void processWorkerOrphanedBlocks(MasterWorkerInfo workerInfo) {
+    for (long block : workerInfo.getBlocks()) {
+      if (!mBlocks.containsKey(block)) {
+        LOG.info("Requesting delete for orphaned block: {} from worker {}.", block,
+            workerInfo.getWorkerAddress().getHost());
+        workerInfo.updateToRemovedBlock(true, block);
       }
     }
   }

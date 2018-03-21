@@ -193,6 +193,31 @@ public final class FileSystemMasterTest {
   }
 
   @Test
+  public void createPathWithWhiteSpaces() throws Exception {
+    String[] paths = new String[]{
+        "/ ",
+        "/  ",
+        "/ path",
+        "/path ",
+        "/pa th",
+        "/ pa th ",
+        "/pa/ th",
+        "/pa / th",
+        "/ pa / th ",
+    };
+    for (String path : paths) {
+      AlluxioURI uri = new AlluxioURI(path);
+      long id = mFileSystemMaster.createFile(uri,
+          CreateFileOptions.defaults().setRecursive(true));
+      Assert.assertEquals(id, mFileSystemMaster.getFileId(uri));
+      mFileSystemMaster.delete(uri, DeleteOptions.defaults());
+      id = mFileSystemMaster.createDirectory(uri,
+          CreateDirectoryOptions.defaults().setRecursive(true));
+      Assert.assertEquals(id, mFileSystemMaster.getFileId(uri));
+    }
+  }
+
+  @Test
   public void createFileMustCacheThenCacheThrough() throws Exception {
     File file = mTestFolder.newFile();
     AlluxioURI path = new AlluxioURI("/test");

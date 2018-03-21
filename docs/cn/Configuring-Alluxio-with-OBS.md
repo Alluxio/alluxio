@@ -15,17 +15,12 @@ priority: 5
 
 要在许多机器上运行Alluxio集群，需要在这些机器上部署二进制包。你可以自己[编译Alluxio](http://alluxio.org/documentation/master/Building-Alluxio-Master-Branch.html)，或者[下载二进制包](http://alluxio.org/documentation/master/Running-Alluxio-Locally.html)。
 
-OBS底层存储系统可作为扩展实现，在master节点上执行以下命令下载扩展版本：
-
-```
-mvn dependency:get -DremoteRepositories=http://repo1.maven.org/maven2/ -DgroupId=org.alluxio \
- -DartifactId=alluxio-underfs-obs -Dversion=<alluxio version> -Dtransitive=false -Ddest=<download destination>.jar
-```
+OBS底层存储系统可作为扩展实现。预编译的OBS底层存储jar包可以从[这里](https://github.com/Alluxio/alluxio-extensions/tree/master/underfs/obs/target)下载。
 
 然后在master节点上执行以下命令在`conf/masters`和`conf/workers`中定义的所有master节点和worker节点上安装扩展版本：
 
-```
-bin/alluxio extensions install <download destination>.jar
+```bash
+$ bin/alluxio extensions install /PATH/TO/DOWNLOADED/OBS/jar
 ```
 
 了解更多Alluxio扩展管理信息请参考[这里](UFSExtensions.html) 

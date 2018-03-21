@@ -12,6 +12,7 @@
 package alluxio.util;
 
 import alluxio.Configuration;
+import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.exception.status.Status;
@@ -23,6 +24,7 @@ import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.base.Function;
+import com.google.common.base.Preconditions;
 import com.google.common.base.Splitter;
 import com.google.common.base.Throwables;
 import com.google.common.io.Closer;
@@ -65,6 +67,7 @@ public final class CommonUtils {
       "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
   private static final String DATE_FORMAT_PATTERN =
       Configuration.get(PropertyKey.USER_DATE_FORMAT_PATTERN);
+  private static final List<String> TMP_DIRS = Configuration.getList(PropertyKey.TMP_DIRS, ",");
   private static final Random RANDOM = new Random();
 
   /**
@@ -72,6 +75,18 @@ public final class CommonUtils {
    */
   public static long getCurrentMs() {
     return System.currentTimeMillis();
+  }
+
+  /**
+   * @return a path to a temporary directory based on the user configuration
+   */
+  public static String getTmpDir() {
+    Preconditions.checkState(!TMP_DIRS.isEmpty(), "No temporary directories configured");
+    if (TMP_DIRS.size() == 1) {
+      return TMP_DIRS.get(0);
+    }
+    // Use existing random instead of ThreadLocal because contention is not expected to be high.
+    return TMP_DIRS.get(RANDOM.nextInt(TMP_DIRS.size()));
   }
 
   /**
@@ -634,6 +649,25 @@ public final class CommonUtils {
   public static String convertMsToDate(long millis) {
     DateFormat dateFormat = new SimpleDateFormat(DATE_FORMAT_PATTERN);
     return dateFormat.format(new Date(millis));
+  }
+
+  /**
+   * Converts milliseconds to clock time.
+   *
+   * @param millis milliseconds
+   * @return input encoded as clock time
+   */
+  public static String convertMsToClockTime(long millis) {
+    Preconditions.checkArgument(millis >= 0,
+        "Negative values %s are not supported to convert to clock time.", millis);
+
+    long days = millis / Constants.DAY_MS;
+    long hours = (millis % Constants.DAY_MS) / Constants.HOUR_MS;
+    long mins = (millis % Constants.HOUR_MS) / Constants.MINUTE_MS;
+    long secs = (millis % Constants.MINUTE_MS) / Constants.SECOND_MS;
+
+    return String.format("%d day(s), %d hour(s), %d minute(s), and %d second(s)", days, hours,
+        mins, secs);
   }
 
   private CommonUtils() {} // prevent instantiation

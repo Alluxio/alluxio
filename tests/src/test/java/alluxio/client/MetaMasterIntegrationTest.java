@@ -38,7 +38,7 @@ public final class MetaMasterIntegrationTest extends BaseIntegrationTest {
         new RetryHandlingMetaMasterClient(MasterClientConfig.defaults())) {
       int webPort =
           mResource.get().getLocalAlluxioMaster().getMasterProcess().getWebAddress().getPort();
-      MasterInfo info = client.getInfo(null);
+      MasterInfo info = client.getMasterInfo(null);
       assertEquals(webPort, info.getWebPort());
     }
   }
@@ -49,7 +49,8 @@ public final class MetaMasterIntegrationTest extends BaseIntegrationTest {
         new RetryHandlingMetaMasterClient(MasterClientConfig.defaults())) {
       int webPort =
           mResource.get().getLocalAlluxioMaster().getMasterProcess().getWebAddress().getPort();
-      MasterInfo info = client.getInfo(new HashSet<>(Arrays.asList(MasterInfoField.WEB_PORT)));
+      MasterInfo info = client.getMasterInfo(new HashSet<>(Arrays
+          .asList(MasterInfoField.WEB_PORT)));
       assertEquals(webPort, info.getWebPort());
     }
   }

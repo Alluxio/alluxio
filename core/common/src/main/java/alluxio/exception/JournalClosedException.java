@@ -9,23 +9,28 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.cli.fsadmin.command;
-
-import alluxio.cli.AbstractCommand;
-import alluxio.client.file.FileSystemMasterClient;
+package alluxio.exception;
 
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * The base class for all the FileSystemAdmin {@link alluxio.cli.Command} classes.
- * It provides a place to hold the {@link FileSystemMasterClient} client.
+ * Exception thrown to indicate that an operation failed because the journal has been closed.
  */
 @ThreadSafe
-public abstract class AbstractFileSystemAdminCommand extends AbstractCommand {
+public class JournalClosedException extends Exception {
+  /**
+   * Constructs a <code>JournalClosedException</code> with no detail message.
+   */
+  public JournalClosedException() {
+    super();
+  }
 
-  protected FileSystemMasterClient mMasterClient;
-
-  protected AbstractFileSystemAdminCommand(FileSystemMasterClient masterClient) {
-    mMasterClient = masterClient;
+  /**
+   * Constructs a <code>JournalClosedException</code> with the specified detail message.
+   *
+   * @param s the detail message
+   */
+  public JournalClosedException(String s) {
+    super(s);
   }
 }

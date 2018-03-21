@@ -14,6 +14,7 @@ package alluxio.master.journal.ufs;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.exception.InvalidJournalEntryException;
+import alluxio.exception.JournalClosedException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.master.journal.AsyncJournalWriter;
 import alluxio.master.journal.Journal;
@@ -22,6 +23,8 @@ import alluxio.master.journal.JournalEntryStateMachine;
 import alluxio.master.journal.JournalReader;
 import alluxio.master.journal.MasterJournalContext;
 import alluxio.proto.journal.Journal.JournalEntry;
+import alluxio.retry.ExponentialTimeBoundedRetry;
+import alluxio.retry.RetryPolicy;
 import alluxio.underfs.UfsStatus;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
@@ -36,6 +39,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.URI;
+import java.time.Duration;
 import java.util.Map;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -155,7 +159,7 @@ public class UfsJournal implements Journal {
    * @param entry an entry to write to the journal
    */
   @VisibleForTesting
-  synchronized void write(JournalEntry entry) throws IOException {
+  synchronized void write(JournalEntry entry) throws IOException, JournalClosedException {
     writer().write(entry);
   }
 
@@ -163,7 +167,7 @@ public class UfsJournal implements Journal {
    * Flushes the journal.
    */
   @VisibleForTesting
-  synchronized void flush() throws IOException {
+  synchronized void flush() throws IOException, JournalClosedException {
     writer().flush();
   }
 
@@ -334,19 +338,48 @@ public class UfsJournal implements Journal {
    * @return the next sequence number after the final sequence number read
    */
   private synchronized long catchUp(long nextSequenceNumber) {
-    try (JournalReader journalReader = new UfsJournalReader(this, nextSequenceNumber, true)) {
-      JournalEntry entry;
-      while ((entry = journalReader.read()) != null) {
-        mMaster.processJournalEntry(entry);
+    JournalReader journalReader = new UfsJournalReader(this, nextSequenceNumber, true);
+    try {
+      return catchUp(journalReader);
+    } finally {
+      try {
+        journalReader.close();
+      } catch (IOException e) {
+        LOG.warn("Failed to close journal reader: {}", e.toString());
       }
-      return journalReader.getNextSequenceNumber();
-    } catch (IOException e) {
-      LOG.error("{}: Failed to read from journal", mMaster.getName(), e);
-      throw new RuntimeException(e);
-    } catch (InvalidJournalEntryException e) {
-      LOG.error("{}: Invalid journal entry detected.", mMaster.getName(), e);
-      // We found an invalid journal entry, nothing we can do but crash.
-      throw new RuntimeException(e);
+    }
+  }
+
+  private long catchUp(JournalReader journalReader) {
+    RetryPolicy retry =
+        ExponentialTimeBoundedRetry.builder()
+            .withInitialSleep(Duration.ofSeconds(1))
+            .withMaxSleep(Duration.ofSeconds(10))
+            .withMaxDuration(Duration.ofDays(365))
+            .build();
+    while (true) {
+      JournalEntry entry;
+      try {
+        entry = journalReader.read();
+      } catch (IOException e) {
+        LOG.warn("{}: Failed to read from journal: {}", mMaster.getName(), e);
+        if (retry.attempt()) {
+          continue;
+        }
+        throw new RuntimeException(e);
+      } catch (InvalidJournalEntryException e) {
+        LOG.error("{}: Invalid journal entry detected.", mMaster.getName(), e);
+        // We found an invalid journal entry, nothing we can do but crash.
+        throw new RuntimeException(e);
+      }
+      if (entry == null) {
+        return journalReader.getNextSequenceNumber();
+      }
+      try {
+        mMaster.processJournalEntry(entry);
+      } catch (IOException e) {
+        throw new RuntimeException(String.format("Failed to process journal entry %s", entry), e);
+      }
     }
   }
 

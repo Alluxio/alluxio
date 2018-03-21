@@ -17,6 +17,9 @@ import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import alluxio.Configuration;
+import alluxio.ConfigurationTestUtils;
+import alluxio.PropertyKey;
 import alluxio.exception.BlockAlreadyExistsException;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.ExceptionMessage;
@@ -82,6 +85,8 @@ public final class TieredBlockStoreTest {
    */
   @Before
   public void before() throws Exception {
+    ConfigurationTestUtils.resetConfiguration();
+    Configuration.set(PropertyKey.WORKER_TIERED_STORE_RESERVER_ENABLED, "false");
     File tempFolder = mTestFolder.newFolder();
     TieredBlockStoreTestUtils.setupDefaultConf(tempFolder.getAbsolutePath());
     mBlockStore = new TieredBlockStore();

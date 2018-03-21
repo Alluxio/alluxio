@@ -187,6 +187,11 @@ public class AlluxioMasterProcess implements MasterProcess {
   }
 
   @Override
+  public boolean isInSafeMode() {
+    return mSafeModeManager.isInSafeMode();
+  }
+
+  @Override
   public boolean isServing() {
     return mIsServing;
   }

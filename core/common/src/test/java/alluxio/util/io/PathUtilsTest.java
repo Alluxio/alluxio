@@ -75,7 +75,7 @@ public final class PathUtilsTest {
   @Test
   public void cleanPathException() throws InvalidPathException {
     mException.expect(InvalidPathException.class);
-    assertEquals("/foo/bar", PathUtils.cleanPath("/\\   foo / bar"));
+    PathUtils.cleanPath("");
   }
 
   /**
@@ -102,11 +102,6 @@ public final class PathUtilsTest {
     assertEquals("/foo/bar", PathUtils.concatPath("/foo/", "bar/"));
     assertEquals("/foo/bar", PathUtils.concatPath("/foo/", "/bar"));
     assertEquals("/foo/bar", PathUtils.concatPath("/foo/", "/bar/"));
-
-    // Whitespace must be trimmed.
-    assertEquals("/foo/bar", PathUtils.concatPath("/foo ", "bar  "));
-    assertEquals("/foo/bar", PathUtils.concatPath("/foo ", "  bar"));
-    assertEquals("/foo/bar", PathUtils.concatPath("/foo ", "  bar  "));
 
     // Redundant separator must be trimmed.
     assertEquals("/foo/bar", PathUtils.concatPath("/foo/", "bar//"));
@@ -170,7 +165,7 @@ public final class PathUtilsTest {
   @Test
   public void getPathComponentsException() throws InvalidPathException {
     mException.expect(InvalidPathException.class);
-    PathUtils.getPathComponents("/\\   foo / bar");
+    PathUtils.getPathComponents("");
   }
 
   /**
@@ -326,8 +321,6 @@ public final class PathUtilsTest {
     ArrayList<String> invalidPaths = new ArrayList<>();
     invalidPaths.add(null);
     invalidPaths.add("");
-    invalidPaths.add(" /");
-    invalidPaths.add("/ ");
     for (String invalidPath : invalidPaths) {
       try {
         PathUtils.validatePath(invalidPath);

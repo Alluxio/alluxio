@@ -14,7 +14,7 @@ package alluxio.cli.fs.command;
 import alluxio.AlluxioURI;
 import alluxio.client.file.URIStatus;
 import alluxio.exception.AlluxioException;
-import alluxio.cli.fs.AbstractAlluxioShellTest;
+import alluxio.cli.fs.AbstractFileSystemShellTest;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -24,7 +24,7 @@ import java.io.IOException;
 /**
  * Tests for touch command.
  */
-public final class TouchCommandIntegrationTest extends AbstractAlluxioShellTest {
+public final class TouchCommandIntegrationTest extends AbstractFileSystemShellTest {
   @Test
   public void touch() throws IOException, AlluxioException {
     String[] argv = new String[] {"touch", "/testFile"};

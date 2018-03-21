@@ -40,6 +40,7 @@ import alluxio.resource.CloseableResource;
 import alluxio.retry.ExponentialBackoffRetry;
 import alluxio.retry.RetryPolicy;
 import alluxio.security.authorization.Mode;
+import alluxio.underfs.UfsStatus;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.MkdirsOptions;
 import alluxio.util.io.PathUtils;
@@ -601,11 +602,17 @@ public class InodeTree implements JournalEntryIterable {
             continue;
           }
         } else {
-          // Successfully added the child, while holding the write lock.
-          dir.setPinned(currentInodeDirectory.isPinned());
-          if (options.isPersisted()) {
-            // Do not journal the persist entry, since a creation entry will be journaled instead.
-            syncPersistDirectory(dir, NoopJournalContext.INSTANCE);
+          try {
+            // Successfully added the child, while holding the write lock.
+            dir.setPinned(currentInodeDirectory.isPinned());
+            if (options.isPersisted()) {
+              // Do not journal the persist entry, since a creation entry will be journaled instead.
+              syncPersistDirectory(dir, NoopJournalContext.INSTANCE);
+            }
+          } catch (Exception e) {
+            // Failed to persist the directory, so remove it from the parent.
+            currentInodeDirectory.removeChild(dir);
+            throw e;
           }
           // Journal the new inode.
           journalContext.append(dir.toJournalEntry());
@@ -1007,7 +1014,23 @@ public class InodeTree implements JournalEntryIterable {
             UnderFileSystem ufs = ufsResource.get();
             MkdirsOptions mkdirsOptions = MkdirsOptions.defaults().setCreateParent(false)
                 .setOwner(dir.getOwner()).setGroup(dir.getGroup()).setMode(new Mode(dir.getMode()));
-            ufs.mkdirs(ufsUri, mkdirsOptions);
+            if (!ufs.mkdirs(ufsUri, mkdirsOptions)) {
+              // Directory might already exist. Try loading the status from ufs.
+              UfsStatus status;
+              try {
+                status = ufs.getStatus(ufsUri);
+              } catch (Exception e) {
+                throw new IOException(String.format("Cannot sync UFS directory %s: %s.", ufsUri,
+                    e.getMessage()), e);
+              }
+              if (status.isFile()) {
+                throw new InvalidPathException(String.format(
+                    "Error persisting directory. A file exists at the UFS location %s.", ufsUri));
+              }
+              dir.setOwner(status.getOwner())
+                  .setGroup(status.getGroup())
+                  .setMode(status.getMode());
+            }
           }
           dir.setPersistenceState(PersistenceState.PERSISTED);
 

@@ -16,6 +16,8 @@ import alluxio.PropertyKey;
 import alluxio.RuntimeConstants;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidJournalEntryException;
+import alluxio.exception.JournalClosedException;
+import alluxio.master.journal.AbstractJournalSystem;
 import alluxio.master.journal.JournalReader;
 import alluxio.master.journal.JournalWriter;
 import alluxio.proto.journal.Journal.JournalEntry;
@@ -135,22 +137,9 @@ final class UfsJournalLogWriter implements JournalWriter {
         return;
       }
 
-      // Delete the current log if it contains nothing.
-      if (mNextSequenceNumber == mCurrentLog.getStart()) {
-        mUfs.deleteFile(src);
-        return;
+      if (AbstractJournalSystem.ALLOW_JOURNAL_MODIFY.get()) {
+        completeLog(mCurrentLog, mNextSequenceNumber);
       }
-
-      String dst = UfsJournalFile
-          .encodeLogFileLocation(mJournal, mCurrentLog.getStart(), mNextSequenceNumber).toString();
-      if (mUfs.exists(dst)) {
-        LOG.warn("Deleting duplicate completed log {}.", dst);
-        // The dst can exist because of a master failure during commit. This can only happen
-        // when the primary master starts. We can delete either the src or dst. We delete dst and
-        // do rename again.
-        mUfs.deleteFile(dst);
-      }
-      mUfs.renameFile(src, dst);
     }
   }
 
@@ -175,9 +164,12 @@ final class UfsJournalLogWriter implements JournalWriter {
     mEntriesToFlush = new ArrayDeque<>();
   }
 
-  public synchronized void write(JournalEntry entry) throws IOException {
+  public synchronized void write(JournalEntry entry) throws IOException, JournalClosedException {
     if (mClosed) {
       throw new IOException(ExceptionMessage.JOURNAL_WRITE_AFTER_CLOSE.getMessage());
+    }
+    if (!AbstractJournalSystem.ALLOW_JOURNAL_MODIFY.get()) {
+      throw new JournalClosedException("Master lost leadership. Cannot write to journal");
     }
     maybeRecoverFromUfsFailures();
     maybeRotateLog();
@@ -221,7 +213,7 @@ final class UfsJournalLogWriter implements JournalWriter {
       return;
     }
 
-    long lastPersistSeq = getLastPersistedJournalEntrySequence();
+    long lastPersistSeq = recoverLastPersistedJournalEntry();
 
     createNewLogFile();
     if (!mEntriesToFlush.isEmpty()) {
@@ -253,7 +245,7 @@ final class UfsJournalLogWriter implements JournalWriter {
   }
 
   /**
-   * Find out the sequence number of the last persisted journal entry.
+   * Examine the UFS to determine the most recent journal entry, and return its sequence number.
    *
    * 1. Locate the most recent incomplete journal file, i.e. journal file that starts with
    *    a valid sequence number S (hex), and ends with 0x7fffffffffffffff. The journal file
@@ -264,9 +256,10 @@ final class UfsJournalLogWriter implements JournalWriter {
    *    a new file named <X+1>-0x7fffffffffffffff.
    * 4. If the incomplete journal does not exist or no entry can be found in the incomplete
    *    journal, check the last complete journal file for the last persisted journal entry.
+   *
    * @return sequence number of the last persisted journal entry, or -1 if no entry can be found
    */
-  private long getLastPersistedJournalEntrySequence() throws IOException {
+  private long recoverLastPersistedJournalEntry() throws IOException {
     UfsJournalSnapshot snapshot = UfsJournalSnapshot.getSnapshot(mJournal);
     long lastPersistSeq = -1;
     UfsJournalFile currentLog = snapshot.getCurrentLog(mJournal);
@@ -286,25 +279,7 @@ final class UfsJournalLogWriter implements JournalWriter {
       } catch (IOException e) {
         throw e;
       }
-      String src = currentLog.getLocation().toString();
-      if (lastPersistSeq >= 0) {
-        LOG.info("Last persisted journal entry sequence number in {} is {}",
-            src, lastPersistSeq);
-        String dst = UfsJournalFile
-            .encodeLogFileLocation(mJournal, currentLog.getStart(), lastPersistSeq + 1).toString();
-        if (mUfs.exists(dst)) {
-          LOG.warn("Deleting duplicate completed log {}.", dst);
-          // The dst can exist because of a master failure during commit. This can only happen
-          // when the primary master starts. We can delete either the src or dst. We delete dst and
-          // do rename again.
-          mUfs.deleteFile(dst);
-        }
-        LOG.info("Renaming the previous incomplete journal file from {} to {}.", src, dst);
-        mUfs.renameFile(src, dst);
-      } else {
-        LOG.info("No journal entry found in current journal file {}. Deleting it", src);
-        mUfs.deleteFile(src);
-      }
+      completeLog(currentLog, lastPersistSeq + 1);
     }
     // Search for and scan the latest COMPLETE journal and find out the sequence number of the
     // last persisted journal entry, in case no entry has been found in the INCOMPLETE journal.
@@ -312,12 +287,7 @@ final class UfsJournalLogWriter implements JournalWriter {
       // Re-evaluate snapshot because the incomplete journal will be destroyed if
       // it does not contain any valid entry.
       snapshot = UfsJournalSnapshot.getSnapshot(mJournal);
-      // journalFiles[journalFiles.size()-1] is the latest journal file. If we have reached this
-      // point, we must have already deleted the previous empty incomplete journal file.
-      // Therefore, journalFiles[journalFiles.size()-1] must be a valid complete journal file
-      // assuming the Ufs was functioning correctly before journal file rotation.
-      // As a result, we don't have to read the journal file to find out the last journal entry
-      // sequence. We can get this information from the file name. <startSeq>-<endSeq>.
+      // journalFiles[journalFiles.size()-1] is the latest complete journal file.
       List<UfsJournalFile> journalFiles = snapshot.getLogs();
       if (!journalFiles.isEmpty()) {
         UfsJournalFile journal = journalFiles.get(journalFiles.size() - 1);
@@ -357,7 +327,51 @@ final class UfsJournalLogWriter implements JournalWriter {
     LOG.info("Created current log file: {}", currentLog);
   }
 
-  public synchronized void flush() throws IOException {
+  /**
+   * Completes the given log.
+   *
+   * If the log is empty, it will be deleted.
+   *
+   * This method must be safe to run by multiple masters at the same time. This could happen if a
+   * primary master loses leadership and takes a while to close its journal. By the time it
+   * completes the current log, the new primary might be trying to close it as well.
+   *
+   * @param currentLog the log to complete
+   * @param nextSequenceNumber the next sequence number for the log to complete
+   */
+  private void completeLog(UfsJournalFile currentLog, long nextSequenceNumber) throws IOException {
+    String current = currentLog.getLocation().toString();
+    if (nextSequenceNumber <= currentLog.getStart()) {
+      LOG.info("No journal entry found in current journal file {}. Deleting it", current);
+      if (!mUfs.deleteFile(current)) {
+        LOG.warn("Failed to delete empty journal file {}", current);
+      }
+      return;
+    }
+    LOG.info("Completing log {} with next sequence number {}", current, nextSequenceNumber);
+    String completed = UfsJournalFile
+        .encodeLogFileLocation(mJournal, currentLog.getStart(), nextSequenceNumber).toString();
+
+    if (!mUfs.renameFile(current, completed)) {
+      // Completes could happen concurrently, check whether another master already did the rename.
+      if (!mUfs.exists(completed)) {
+        throw new IOException(
+            String.format("Failed to rename journal log from %s to %s", current, completed));
+      }
+      if (mUfs.exists(current)) {
+        // Rename is not atomic, so this could happen if we failed partway through a rename.
+        LOG.info("Deleting current log {}", current);
+        if (!mUfs.deleteFile(current)) {
+          LOG.warn("Failed to delete current log file {}", current);
+        }
+      }
+    }
+  }
+
+  public synchronized void flush() throws IOException, JournalClosedException {
+    if (!AbstractJournalSystem.ALLOW_JOURNAL_MODIFY.get()) {
+      throw new JournalClosedException("Master lost leadership. Cannot write to journal");
+    }
     maybeRecoverFromUfsFailures();
 
     if (mClosed || mJournalOutputStream == null || mJournalOutputStream.bytesWritten() == 0) {

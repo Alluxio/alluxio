@@ -14,7 +14,7 @@ package alluxio.cli.fs.command;
 import alluxio.SystemPropertyRule;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileSystemTestUtils;
-import alluxio.cli.fs.AbstractAlluxioShellTest;
+import alluxio.cli.fs.AbstractFileSystemShellTest;
 import alluxio.cli.fs.FileSystemShellUtilsTest;
 
 import org.junit.Assert;
@@ -29,7 +29,7 @@ import java.util.HashMap;
 /**
  * Tests for copyToLocal command.
  */
-public final class CopyToLocalCommandIntegrationTest extends AbstractAlluxioShellTest {
+public final class CopyToLocalCommandIntegrationTest extends AbstractFileSystemShellTest {
   /** Rule to create a new temporary folder during each test. */
   @Rule
   public TemporaryFolder mTestFolder = new TemporaryFolder();

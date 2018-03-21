@@ -187,10 +187,6 @@ public abstract class AbstractLocalAlluxioCluster {
       }
     }
 
-    // Sets the journal folder
-    Configuration.set(PropertyKey.MASTER_JOURNAL_FOLDER,
-        AlluxioTestDirectory.createTemporaryDirectory("journal").getAbsolutePath());
-
     // Formats the journal
     Format.format(Format.Mode.MASTER);
   }

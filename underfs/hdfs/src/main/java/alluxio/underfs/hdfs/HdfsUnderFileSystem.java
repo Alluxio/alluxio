@@ -274,25 +274,37 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
   public long getSpace(String path, SpaceType type) throws IOException {
     // Ignoring the path given, will give information for entire cluster
     // as Alluxio can load/store data out of entire HDFS cluster
+    long space = -1;
     if (mFileSystem instanceof DistributedFileSystem) {
+      // Note that, getDiskStatus() is an API from Hadoop 1, deprecated by getStatus() from
+      // Hadoop 2 and removed in Hadoop 3
       switch (type) {
         case SPACE_TOTAL:
-          // Due to Hadoop 1 support we stick with the deprecated version. If we drop support for it
-          // FileSystem.getStatus().getCapacity() will be the new one.
-          return ((DistributedFileSystem) mFileSystem).getDiskStatus().getCapacity();
+          //#ifdef HADOOP1
+          space = ((DistributedFileSystem) mFileSystem).getDiskStatus().getCapacity();
+          //#else
+          space = mFileSystem.getStatus().getCapacity();
+          //#endif
+          break;
         case SPACE_USED:
-          // Due to Hadoop 1 support we stick with the deprecated version. If we drop support for it
-          // FileSystem.getStatus().getUsed() will be the new one.
-          return ((DistributedFileSystem) mFileSystem).getDiskStatus().getDfsUsed();
+          //#ifdef HADOOP1
+          space = ((DistributedFileSystem) mFileSystem).getDiskStatus().getDfsUsed();
+          //#else
+          space = mFileSystem.getStatus().getUsed();
+          //#endif
+          break;
         case SPACE_FREE:
-          // Due to Hadoop 1 support we stick with the deprecated version. If we drop support for it
-          // FileSystem.getStatus().getRemaining() will be the new one.
-          return ((DistributedFileSystem) mFileSystem).getDiskStatus().getRemaining();
+          //#ifdef HADOOP1
+          space = ((DistributedFileSystem) mFileSystem).getDiskStatus().getRemaining();
+          //#else
+          space = mFileSystem.getStatus().getRemaining();
+          //#endif
+          break;
         default:
           throw new IOException("Unknown space type: " + type);
       }
     }
-    return -1;
+    return space;
   }
 
   @Override
@@ -455,19 +467,19 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
           // to complete the lease recovery process.
           try {
             if (dfs.recoverLease(new Path(path))) {
-              LOG.warn("recoverLease-1 success for: {}", path);
+              LOG.warn("HDFS recoverLease-1 success for: {}", path);
             } else {
               // try one more time, after waiting
               CommonUtils.sleepMs(5 * Constants.SECOND_MS);
               if (dfs.recoverLease(new Path(path))) {
-                LOG.warn("recoverLease-2 success for: {}", path);
+                LOG.warn("HDFS recoverLease-2 success for: {}", path);
               } else {
-                LOG.warn("recoverLease: path not closed: {}", path);
+                LOG.warn("HDFS recoverLease: path not closed: {}", path);
               }
             }
           } catch (IOException e1) {
             // ignore exception
-            LOG.warn("recoverLease failed for: {} error: {}", path, e1.getMessage());
+            LOG.warn("HDFS recoverLease failed for: {} error: {}", path, e1.getMessage());
           }
         }
       }

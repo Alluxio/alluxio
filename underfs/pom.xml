@@ -116,6 +116,19 @@
             </execution>
           </executions>
         </plugin>
+        <plugin>
+          <artifactId>maven-clean-plugin</artifactId>
+          <configuration>
+            <filesets>
+              <fileset>
+                <directory>${basedir}/../../lib</directory>
+                <includes>
+                  <include>**/${project.artifactId}-*.jar</include>
+                </includes>
+              </fileset>
+            </filesets>
+          </configuration>
+        </plugin>
       </plugins>
     </pluginManagement>
   </build>
