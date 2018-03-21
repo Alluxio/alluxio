@@ -23,6 +23,7 @@ import alluxio.collections.IndexedSet;
 import alluxio.exception.BlockInfoException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.NoWorkerException;
+import alluxio.exception.status.InvalidArgumentException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatExecutor;
@@ -304,15 +305,17 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
   }
 
   @Override
-  public List<ReportWorkerInfo> getReportWorkerInfoList(WorkerRange workerRange,
-      Set<ReportWorkerInfoField> fieldRange, Set<String> addresses) throws UnavailableException {
+  public List<ReportWorkerInfo> getWorkerReport(WorkerRange workerRange,
+      Set<ReportWorkerInfoField> fieldRange, Set<String> addresses)
+      throws UnavailableException, InvalidArgumentException {
     if (mSafeModeManager.isInSafeMode()) {
       throw new UnavailableException(ExceptionMessage.MASTER_IN_SAFEMODE.getMessage());
     }
-    IndexedSet<MasterWorkerInfo> selectedWorkers = null;
+    Set<MasterWorkerInfo> selectedWorkers = null;
     switch (workerRange) {
       case ALL:
-        selectedWorkers = mWorkers;
+        selectedWorkers = new IndexedSet<>(ID_INDEX, ADDRESS_INDEX);
+        selectedWorkers.addAll(mWorkers);
         selectedWorkers.addAll(mLostWorkers);
         break;
       case LIVE:
@@ -335,13 +338,13 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
         }
         break;
       default:
-        LOG.warn("Unrecognized report worker range: " + workerRange);
+        throw new InvalidArgumentException("Unrecognized report worker range: " + workerRange);
     }
 
     List<ReportWorkerInfo> reportWorkerInfoList = new ArrayList<>(selectedWorkers.size());
     for (MasterWorkerInfo worker : selectedWorkers) {
       synchronized (worker) {
-        reportWorkerInfoList.add(worker.generateClientReportWorkerInfo(fieldRange));
+        reportWorkerInfoList.add(worker.generateWorkerReport(fieldRange));
       }
     }
     return reportWorkerInfoList;

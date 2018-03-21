@@ -29,18 +29,17 @@ public final class CapacityCommandIntegrationTest extends AbstractFsAdminShellTe
     Assert.assertEquals(0, ret);
     String output = mOutput.toString();
     String size = FormatUtils.getSizeFromBytes(SIZE_BYTES);
-    Assert.assertThat(output, CoreMatchers.containsString("Capacity Information for ALL Workers: \n"
+    Assert.assertThat(output, CoreMatchers.containsString("Capacity information for all workers: \n"
         + "    Total Capacity: " + size + "\n"
         + "        Tier: MEM  Size: " + size + "\n"
         + "    Used Capacity: 0B\n"
+        + "        Tier: MEM  Size: 0B\n"
         + "    Used Percentage: 0%\n"
         + "    Free Percentage: 100%\n"));
     Assert.assertThat(output, CoreMatchers.containsString(
-        "Node Name            Last Heartbeat       Workers Capacity     "
-        + "Space Used           Used Percentage"));
+        "Worker Name       Type          Total            MEM           SSD           HDD"));
     Assert.assertThat(output, CoreMatchers.containsString(
-        "0                    " + size
-        + "              0B                   0%"));
+        "                  Used          0B (0%)          0B            0B            0B"));
   }
 
   @Test
@@ -49,7 +48,7 @@ public final class CapacityCommandIntegrationTest extends AbstractFsAdminShellTe
     Assert.assertEquals(0, ret);
     String output = mOutput.toString();
     Assert.assertThat(output, CoreMatchers.containsString(
-        "Capacity Information for LOST Workers: \n"
+        "Capacity information for lost workers: \n"
         + "    Total Capacity: 0B\n"
         + "    Used Capacity: 0B\n"));
   }
@@ -61,18 +60,17 @@ public final class CapacityCommandIntegrationTest extends AbstractFsAdminShellTe
     String output = mOutput.toString();
     String size = FormatUtils.getSizeFromBytes(SIZE_BYTES);
     Assert.assertThat(output, CoreMatchers.containsString(
-        "Capacity Information for LIVE Workers: \n"
+        "Capacity information for live workers: \n"
         + "    Total Capacity: " + size + "\n"
         + "        Tier: MEM  Size: " + size + "\n"
         + "    Used Capacity: 0B\n"
+        + "        Tier: MEM  Size: 0B\n"
         + "    Used Percentage: 0%\n"
         + "    Free Percentage: 100%\n"));
     Assert.assertThat(output, CoreMatchers.containsString(
-        "Node Name            Last Heartbeat       Workers Capacity     "
-        + "Space Used           Used Percentage"));
+        "Worker Name       Type          Total            MEM           SSD           HDD"));
     Assert.assertThat(output, CoreMatchers.containsString(
-        "0                    " + size
-        + "              0B                   0%"));
+        "                  Used          0B (0%)          0B            0B            0B"));
   }
 
   @Test

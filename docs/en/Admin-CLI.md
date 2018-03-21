@@ -41,10 +41,8 @@ UFS URI like `hdfs://<name-service>/`, and not `hdfs://<name-service>/<folder>`.
 
 The `report` command provides Alluxio running cluster information. 
 
-For example, `report` can be used to get summarized cluster information and capacity information.
-
 ```bash
-# Report summarized Alluxio cluster information
+# Report cluster summary
 $ ./bin/alluxio fsadmin report
 #
 # Report worker capacity information

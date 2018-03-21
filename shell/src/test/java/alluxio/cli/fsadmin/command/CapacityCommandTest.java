@@ -41,7 +41,7 @@ public class CapacityCommandTest {
     // Prepare mock block master client
     mBlockMasterClient = Mockito.mock(BlockMasterClient.class);
     List<ReportWorkerInfo> infoList = prepareInfoList();
-    Mockito.when(mBlockMasterClient.getReportWorkerInfoList(Mockito.any()))
+    Mockito.when(mBlockMasterClient.getWorkerReport(Mockito.any()))
         .thenReturn(infoList);
   }
 
@@ -51,9 +51,9 @@ public class CapacityCommandTest {
          PrintStream printStream = new PrintStream(outputStream, true, "utf-8")) {
       CapacityCommand capacityCommand = new CapacityCommand(mBlockMasterClient,
           printStream);
-      capacityCommand.printWorkerCapacityInfo(ReportWorkerOptions.defaults());
+      capacityCommand.generateCapacityReport(ReportWorkerOptions.defaults());
       String output = new String(outputStream.toByteArray(), StandardCharsets.UTF_8);
-      List<String> expectedOutput = Arrays.asList("Capacity Information for ALL Workers: ",
+      List<String> expectedOutput = Arrays.asList("Capacity information for all workers: ",
           "    Total Capacity: 29.80GB",
           "        Tier: MEM  Size: 8.38GB",
           "        Tier: SSD  Size: 10.24GB",
@@ -64,15 +64,17 @@ public class CapacityCommandTest {
           "        Tier: HDD  Size: 2384.19MB",
           "    Used Percentage: 34%",
           "    Free Percentage: 66%",
-          "    ",
-          "Node Name            Last Heartbeat       Workers Capacity     "
-              + "Space Used           Used Percentage     ",
-          "64.68.90.1           3123                 11.18GB              "
-              + "9.31GB               83%                 ",
-          "Node Name            Last Heartbeat       Workers Capacity     "
-              + "Space Used           Used Percentage     ",
-          "216.239.33.96        542                  18.63GB              "
-              + "953.67MB             5%                  ");
+          "",
+          "Worker Name       Type          Total            "
+              + "MEM           SSD           HDD          ",
+          "64.68.90.1        Capacity      11.18GB          "
+              + "3814.70MB     5.59GB        1907.35MB    ",
+          "                  Used          9.31GB (83%)     "
+              + "2861.02MB     4768.37MB     1907.35MB    ",
+          "216.239.33.96     Capacity      18.63GB          "
+              + "4768.37MB     4768.37MB     9.31GB       ",
+          "                  Used          953.67MB (5%)    "
+              + "190.73MB      286.10MB      476.84MB     ");
       List<String> testOutput = Arrays.asList(output.split("\n"));
       Assert.assertThat(testOutput,
           IsIterableContainingInOrder.contains(expectedOutput.toArray()));
@@ -99,7 +101,6 @@ public class CapacityCommandTest {
         .setId(1)
         .setLastContactSec(3123)
         .setStartTimeMs(1331231121212L)
-        .setState("In Service")
         .setUsedBytes(10000000000L)
         .setUsedBytesOnTiers(usedBytesOnTiersOne);
 
@@ -118,7 +119,6 @@ public class CapacityCommandTest {
         .setId(2)
         .setLastContactSec(542)
         .setStartTimeMs(1131231121212L)
-        .setState("In Service")
         .setUsedBytes(1000000000L)
         .setUsedBytesOnTiers(usedBytesOnTiersSec);
 

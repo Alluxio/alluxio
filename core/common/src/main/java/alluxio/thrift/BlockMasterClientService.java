@@ -84,7 +84,7 @@ public class BlockMasterClientService {
      * 
      * @param options the method options
      */
-    public GetReportWorkerInfoListTResponse getReportWorkerInfoList(GetReportWorkerInfoListTOptions options) throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException;
+    public GetWorkerReportTResponse getWorkerReport(GetWorkerReportTOptions options) throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException;
 
   }
 
@@ -100,7 +100,7 @@ public class BlockMasterClientService {
 
     public void getWorkerInfoList(GetWorkerInfoListTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
-    public void getReportWorkerInfoList(GetReportWorkerInfoListTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
+    public void getWorkerReport(GetWorkerReportTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
   }
 
@@ -255,30 +255,30 @@ public class BlockMasterClientService {
       throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "getWorkerInfoList failed: unknown result");
     }
 
-    public GetReportWorkerInfoListTResponse getReportWorkerInfoList(GetReportWorkerInfoListTOptions options) throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException
+    public GetWorkerReportTResponse getWorkerReport(GetWorkerReportTOptions options) throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException
     {
-      send_getReportWorkerInfoList(options);
-      return recv_getReportWorkerInfoList();
+      send_getWorkerReport(options);
+      return recv_getWorkerReport();
     }
 
-    public void send_getReportWorkerInfoList(GetReportWorkerInfoListTOptions options) throws org.apache.thrift.TException
+    public void send_getWorkerReport(GetWorkerReportTOptions options) throws org.apache.thrift.TException
     {
-      getReportWorkerInfoList_args args = new getReportWorkerInfoList_args();
+      getWorkerReport_args args = new getWorkerReport_args();
       args.setOptions(options);
-      sendBase("getReportWorkerInfoList", args);
+      sendBase("getWorkerReport", args);
     }
 
-    public GetReportWorkerInfoListTResponse recv_getReportWorkerInfoList() throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException
+    public GetWorkerReportTResponse recv_getWorkerReport() throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException
     {
-      getReportWorkerInfoList_result result = new getReportWorkerInfoList_result();
-      receiveBase(result, "getReportWorkerInfoList");
+      getWorkerReport_result result = new getWorkerReport_result();
+      receiveBase(result, "getWorkerReport");
       if (result.isSetSuccess()) {
         return result.success;
       }
       if (result.e != null) {
         throw result.e;
       }
-      throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "getReportWorkerInfoList failed: unknown result");
+      throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "getWorkerReport failed: unknown result");
     }
 
   }
@@ -462,35 +462,35 @@ public class BlockMasterClientService {
       }
     }
 
-    public void getReportWorkerInfoList(GetReportWorkerInfoListTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
+    public void getWorkerReport(GetWorkerReportTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
       checkReady();
-      getReportWorkerInfoList_call method_call = new getReportWorkerInfoList_call(options, resultHandler, this, ___protocolFactory, ___transport);
+      getWorkerReport_call method_call = new getWorkerReport_call(options, resultHandler, this, ___protocolFactory, ___transport);
       this.___currentMethod = method_call;
       ___manager.call(method_call);
     }
 
-    public static class getReportWorkerInfoList_call extends org.apache.thrift.async.TAsyncMethodCall {
-      private GetReportWorkerInfoListTOptions options;
-      public getReportWorkerInfoList_call(GetReportWorkerInfoListTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
+    public static class getWorkerReport_call extends org.apache.thrift.async.TAsyncMethodCall {
+      private GetWorkerReportTOptions options;
+      public getWorkerReport_call(GetWorkerReportTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
         super(client, protocolFactory, transport, resultHandler, false);
         this.options = options;
       }
 
       public void write_args(org.apache.thrift.protocol.TProtocol prot) throws org.apache.thrift.TException {
-        prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("getReportWorkerInfoList", org.apache.thrift.protocol.TMessageType.CALL, 0));
-        getReportWorkerInfoList_args args = new getReportWorkerInfoList_args();
+        prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("getWorkerReport", org.apache.thrift.protocol.TMessageType.CALL, 0));
+        getWorkerReport_args args = new getWorkerReport_args();
         args.setOptions(options);
         args.write(prot);
         prot.writeMessageEnd();
       }
 
-      public GetReportWorkerInfoListTResponse getResult() throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException {
+      public GetWorkerReportTResponse getResult() throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException {
         if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
         org.apache.thrift.transport.TMemoryInputTransport memoryTransport = new org.apache.thrift.transport.TMemoryInputTransport(getFrameBuffer().array());
         org.apache.thrift.protocol.TProtocol prot = client.getProtocolFactory().getProtocol(memoryTransport);
-        return (new Client(prot)).recv_getReportWorkerInfoList();
+        return (new Client(prot)).recv_getWorkerReport();
       }
     }
 
@@ -512,7 +512,7 @@ public class BlockMasterClientService {
       processMap.put("getCapacityBytes", new getCapacityBytes());
       processMap.put("getUsedBytes", new getUsedBytes());
       processMap.put("getWorkerInfoList", new getWorkerInfoList());
-      processMap.put("getReportWorkerInfoList", new getReportWorkerInfoList());
+      processMap.put("getWorkerReport", new getWorkerReport());
       return processMap;
     }
 
@@ -636,23 +636,23 @@ public class BlockMasterClientService {
       }
     }
 
-    public static class getReportWorkerInfoList<I extends Iface> extends org.apache.thrift.ProcessFunction<I, getReportWorkerInfoList_args> {
-      public getReportWorkerInfoList() {
-        super("getReportWorkerInfoList");
+    public static class getWorkerReport<I extends Iface> extends org.apache.thrift.ProcessFunction<I, getWorkerReport_args> {
+      public getWorkerReport() {
+        super("getWorkerReport");
       }
 
-      public getReportWorkerInfoList_args getEmptyArgsInstance() {
-        return new getReportWorkerInfoList_args();
+      public getWorkerReport_args getEmptyArgsInstance() {
+        return new getWorkerReport_args();
       }
 
       protected boolean isOneway() {
         return false;
       }
 
-      public getReportWorkerInfoList_result getResult(I iface, getReportWorkerInfoList_args args) throws org.apache.thrift.TException {
-        getReportWorkerInfoList_result result = new getReportWorkerInfoList_result();
+      public getWorkerReport_result getResult(I iface, getWorkerReport_args args) throws org.apache.thrift.TException {
+        getWorkerReport_result result = new getWorkerReport_result();
         try {
-          result.success = iface.getReportWorkerInfoList(args.options);
+          result.success = iface.getWorkerReport(args.options);
         } catch (alluxio.thrift.AlluxioTException e) {
           result.e = e;
         }
@@ -678,7 +678,7 @@ public class BlockMasterClientService {
       processMap.put("getCapacityBytes", new getCapacityBytes());
       processMap.put("getUsedBytes", new getUsedBytes());
       processMap.put("getWorkerInfoList", new getWorkerInfoList());
-      processMap.put("getReportWorkerInfoList", new getReportWorkerInfoList());
+      processMap.put("getWorkerReport", new getWorkerReport());
       return processMap;
     }
 
@@ -967,20 +967,20 @@ public class BlockMasterClientService {
       }
     }
 
-    public static class getReportWorkerInfoList<I extends AsyncIface> extends org.apache.thrift.AsyncProcessFunction<I, getReportWorkerInfoList_args, GetReportWorkerInfoListTResponse> {
-      public getReportWorkerInfoList() {
-        super("getReportWorkerInfoList");
+    public static class getWorkerReport<I extends AsyncIface> extends org.apache.thrift.AsyncProcessFunction<I, getWorkerReport_args, GetWorkerReportTResponse> {
+      public getWorkerReport() {
+        super("getWorkerReport");
       }
 
-      public getReportWorkerInfoList_args getEmptyArgsInstance() {
-        return new getReportWorkerInfoList_args();
+      public getWorkerReport_args getEmptyArgsInstance() {
+        return new getWorkerReport_args();
       }
 
-      public AsyncMethodCallback<GetReportWorkerInfoListTResponse> getResultHandler(final AsyncFrameBuffer fb, final int seqid) {
+      public AsyncMethodCallback<GetWorkerReportTResponse> getResultHandler(final AsyncFrameBuffer fb, final int seqid) {
         final org.apache.thrift.AsyncProcessFunction fcall = this;
-        return new AsyncMethodCallback<GetReportWorkerInfoListTResponse>() { 
-          public void onComplete(GetReportWorkerInfoListTResponse o) {
-            getReportWorkerInfoList_result result = new getReportWorkerInfoList_result();
+        return new AsyncMethodCallback<GetWorkerReportTResponse>() { 
+          public void onComplete(GetWorkerReportTResponse o) {
+            getWorkerReport_result result = new getWorkerReport_result();
             result.success = o;
             try {
               fcall.sendResponse(fb,result, org.apache.thrift.protocol.TMessageType.REPLY,seqid);
@@ -993,7 +993,7 @@ public class BlockMasterClientService {
           public void onError(Exception e) {
             byte msgType = org.apache.thrift.protocol.TMessageType.REPLY;
             org.apache.thrift.TBase msg;
-            getReportWorkerInfoList_result result = new getReportWorkerInfoList_result();
+            getWorkerReport_result result = new getWorkerReport_result();
             if (e instanceof alluxio.thrift.AlluxioTException) {
                         result.e = (alluxio.thrift.AlluxioTException) e;
                         result.setEIsSet(true);
@@ -1019,8 +1019,8 @@ public class BlockMasterClientService {
         return false;
       }
 
-      public void start(I iface, getReportWorkerInfoList_args args, org.apache.thrift.async.AsyncMethodCallback<GetReportWorkerInfoListTResponse> resultHandler) throws TException {
-        iface.getReportWorkerInfoList(args.options,resultHandler);
+      public void start(I iface, getWorkerReport_args args, org.apache.thrift.async.AsyncMethodCallback<GetWorkerReportTResponse> resultHandler) throws TException {
+        iface.getWorkerReport(args.options,resultHandler);
       }
     }
 
@@ -5378,18 +5378,18 @@ public class BlockMasterClientService {
 
   }
 
-  public static class getReportWorkerInfoList_args implements org.apache.thrift.TBase<getReportWorkerInfoList_args, getReportWorkerInfoList_args._Fields>, java.io.Serializable, Cloneable, Comparable<getReportWorkerInfoList_args>   {
-    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("getReportWorkerInfoList_args");
+  public static class getWorkerReport_args implements org.apache.thrift.TBase<getWorkerReport_args, getWorkerReport_args._Fields>, java.io.Serializable, Cloneable, Comparable<getWorkerReport_args>   {
+    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("getWorkerReport_args");
 
     private static final org.apache.thrift.protocol.TField OPTIONS_FIELD_DESC = new org.apache.thrift.protocol.TField("options", org.apache.thrift.protocol.TType.STRUCT, (short)1);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
-      schemes.put(StandardScheme.class, new getReportWorkerInfoList_argsStandardSchemeFactory());
-      schemes.put(TupleScheme.class, new getReportWorkerInfoList_argsTupleSchemeFactory());
+      schemes.put(StandardScheme.class, new getWorkerReport_argsStandardSchemeFactory());
+      schemes.put(TupleScheme.class, new getWorkerReport_argsTupleSchemeFactory());
     }
 
-    private GetReportWorkerInfoListTOptions options; // required
+    private GetWorkerReportTOptions options; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
@@ -5457,16 +5457,16 @@ public class BlockMasterClientService {
     static {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
       tmpMap.put(_Fields.OPTIONS, new org.apache.thrift.meta_data.FieldMetaData("options", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, GetReportWorkerInfoListTOptions.class)));
+          new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, GetWorkerReportTOptions.class)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
-      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(getReportWorkerInfoList_args.class, metaDataMap);
+      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(getWorkerReport_args.class, metaDataMap);
     }
 
-    public getReportWorkerInfoList_args() {
+    public getWorkerReport_args() {
     }
 
-    public getReportWorkerInfoList_args(
-      GetReportWorkerInfoListTOptions options)
+    public getWorkerReport_args(
+      GetWorkerReportTOptions options)
     {
       this();
       this.options = options;
@@ -5475,14 +5475,14 @@ public class BlockMasterClientService {
     /**
      * Performs a deep copy on <i>other</i>.
      */
-    public getReportWorkerInfoList_args(getReportWorkerInfoList_args other) {
+    public getWorkerReport_args(getWorkerReport_args other) {
       if (other.isSetOptions()) {
-        this.options = new GetReportWorkerInfoListTOptions(other.options);
+        this.options = new GetWorkerReportTOptions(other.options);
       }
     }
 
-    public getReportWorkerInfoList_args deepCopy() {
-      return new getReportWorkerInfoList_args(this);
+    public getWorkerReport_args deepCopy() {
+      return new getWorkerReport_args(this);
     }
 
     @Override
@@ -5493,14 +5493,14 @@ public class BlockMasterClientService {
     /**
      * the method options
      */
-    public GetReportWorkerInfoListTOptions getOptions() {
+    public GetWorkerReportTOptions getOptions() {
       return this.options;
     }
 
     /**
      * the method options
      */
-    public getReportWorkerInfoList_args setOptions(GetReportWorkerInfoListTOptions options) {
+    public getWorkerReport_args setOptions(GetWorkerReportTOptions options) {
       this.options = options;
       return this;
     }
@@ -5526,7 +5526,7 @@ public class BlockMasterClientService {
         if (value == null) {
           unsetOptions();
         } else {
-          setOptions((GetReportWorkerInfoListTOptions)value);
+          setOptions((GetWorkerReportTOptions)value);
         }
         break;
 
@@ -5559,12 +5559,12 @@ public class BlockMasterClientService {
     public boolean equals(Object that) {
       if (that == null)
         return false;
-      if (that instanceof getReportWorkerInfoList_args)
-        return this.equals((getReportWorkerInfoList_args)that);
+      if (that instanceof getWorkerReport_args)
+        return this.equals((getWorkerReport_args)that);
       return false;
     }
 
-    public boolean equals(getReportWorkerInfoList_args that) {
+    public boolean equals(getWorkerReport_args that) {
       if (that == null)
         return false;
 
@@ -5593,7 +5593,7 @@ public class BlockMasterClientService {
     }
 
     @Override
-    public int compareTo(getReportWorkerInfoList_args other) {
+    public int compareTo(getWorkerReport_args other) {
       if (!getClass().equals(other.getClass())) {
         return getClass().getName().compareTo(other.getClass().getName());
       }
@@ -5627,7 +5627,7 @@ public class BlockMasterClientService {
 
     @Override
     public String toString() {
-      StringBuilder sb = new StringBuilder("getReportWorkerInfoList_args(");
+      StringBuilder sb = new StringBuilder("getWorkerReport_args(");
       boolean first = true;
 
       sb.append("options:");
@@ -5665,15 +5665,15 @@ public class BlockMasterClientService {
       }
     }
 
-    private static class getReportWorkerInfoList_argsStandardSchemeFactory implements SchemeFactory {
-      public getReportWorkerInfoList_argsStandardScheme getScheme() {
-        return new getReportWorkerInfoList_argsStandardScheme();
+    private static class getWorkerReport_argsStandardSchemeFactory implements SchemeFactory {
+      public getWorkerReport_argsStandardScheme getScheme() {
+        return new getWorkerReport_argsStandardScheme();
       }
     }
 
-    private static class getReportWorkerInfoList_argsStandardScheme extends StandardScheme<getReportWorkerInfoList_args> {
+    private static class getWorkerReport_argsStandardScheme extends StandardScheme<getWorkerReport_args> {
 
-      public void read(org.apache.thrift.protocol.TProtocol iprot, getReportWorkerInfoList_args struct) throws org.apache.thrift.TException {
+      public void read(org.apache.thrift.protocol.TProtocol iprot, getWorkerReport_args struct) throws org.apache.thrift.TException {
         org.apache.thrift.protocol.TField schemeField;
         iprot.readStructBegin();
         while (true)
@@ -5685,7 +5685,7 @@ public class BlockMasterClientService {
           switch (schemeField.id) {
             case 1: // OPTIONS
               if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                struct.options = new GetReportWorkerInfoListTOptions();
+                struct.options = new GetWorkerReportTOptions();
                 struct.options.read(iprot);
                 struct.setOptionsIsSet(true);
               } else { 
@@ -5703,7 +5703,7 @@ public class BlockMasterClientService {
         struct.validate();
       }
 
-      public void write(org.apache.thrift.protocol.TProtocol oprot, getReportWorkerInfoList_args struct) throws org.apache.thrift.TException {
+      public void write(org.apache.thrift.protocol.TProtocol oprot, getWorkerReport_args struct) throws org.apache.thrift.TException {
         struct.validate();
 
         oprot.writeStructBegin(STRUCT_DESC);
@@ -5718,16 +5718,16 @@ public class BlockMasterClientService {
 
     }
 
-    private static class getReportWorkerInfoList_argsTupleSchemeFactory implements SchemeFactory {
-      public getReportWorkerInfoList_argsTupleScheme getScheme() {
-        return new getReportWorkerInfoList_argsTupleScheme();
+    private static class getWorkerReport_argsTupleSchemeFactory implements SchemeFactory {
+      public getWorkerReport_argsTupleScheme getScheme() {
+        return new getWorkerReport_argsTupleScheme();
       }
     }
 
-    private static class getReportWorkerInfoList_argsTupleScheme extends TupleScheme<getReportWorkerInfoList_args> {
+    private static class getWorkerReport_argsTupleScheme extends TupleScheme<getWorkerReport_args> {
 
       @Override
-      public void write(org.apache.thrift.protocol.TProtocol prot, getReportWorkerInfoList_args struct) throws org.apache.thrift.TException {
+      public void write(org.apache.thrift.protocol.TProtocol prot, getWorkerReport_args struct) throws org.apache.thrift.TException {
         TTupleProtocol oprot = (TTupleProtocol) prot;
         BitSet optionals = new BitSet();
         if (struct.isSetOptions()) {
@@ -5740,11 +5740,11 @@ public class BlockMasterClientService {
       }
 
       @Override
-      public void read(org.apache.thrift.protocol.TProtocol prot, getReportWorkerInfoList_args struct) throws org.apache.thrift.TException {
+      public void read(org.apache.thrift.protocol.TProtocol prot, getWorkerReport_args struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
         BitSet incoming = iprot.readBitSet(1);
         if (incoming.get(0)) {
-          struct.options = new GetReportWorkerInfoListTOptions();
+          struct.options = new GetWorkerReportTOptions();
           struct.options.read(iprot);
           struct.setOptionsIsSet(true);
         }
@@ -5753,19 +5753,19 @@ public class BlockMasterClientService {
 
   }
 
-  public static class getReportWorkerInfoList_result implements org.apache.thrift.TBase<getReportWorkerInfoList_result, getReportWorkerInfoList_result._Fields>, java.io.Serializable, Cloneable, Comparable<getReportWorkerInfoList_result>   {
-    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("getReportWorkerInfoList_result");
+  public static class getWorkerReport_result implements org.apache.thrift.TBase<getWorkerReport_result, getWorkerReport_result._Fields>, java.io.Serializable, Cloneable, Comparable<getWorkerReport_result>   {
+    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("getWorkerReport_result");
 
     private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.STRUCT, (short)0);
     private static final org.apache.thrift.protocol.TField E_FIELD_DESC = new org.apache.thrift.protocol.TField("e", org.apache.thrift.protocol.TType.STRUCT, (short)1);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
-      schemes.put(StandardScheme.class, new getReportWorkerInfoList_resultStandardSchemeFactory());
-      schemes.put(TupleScheme.class, new getReportWorkerInfoList_resultTupleSchemeFactory());
+      schemes.put(StandardScheme.class, new getWorkerReport_resultStandardSchemeFactory());
+      schemes.put(TupleScheme.class, new getWorkerReport_resultTupleSchemeFactory());
     }
 
-    private GetReportWorkerInfoListTResponse success; // required
+    private GetWorkerReportTResponse success; // required
     private alluxio.thrift.AlluxioTException e; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
@@ -5834,18 +5834,18 @@ public class BlockMasterClientService {
     static {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
       tmpMap.put(_Fields.SUCCESS, new org.apache.thrift.meta_data.FieldMetaData("success", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, GetReportWorkerInfoListTResponse.class)));
+          new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, GetWorkerReportTResponse.class)));
       tmpMap.put(_Fields.E, new org.apache.thrift.meta_data.FieldMetaData("e", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
-      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(getReportWorkerInfoList_result.class, metaDataMap);
+      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(getWorkerReport_result.class, metaDataMap);
     }
 
-    public getReportWorkerInfoList_result() {
+    public getWorkerReport_result() {
     }
 
-    public getReportWorkerInfoList_result(
-      GetReportWorkerInfoListTResponse success,
+    public getWorkerReport_result(
+      GetWorkerReportTResponse success,
       alluxio.thrift.AlluxioTException e)
     {
       this();
@@ -5856,17 +5856,17 @@ public class BlockMasterClientService {
     /**
      * Performs a deep copy on <i>other</i>.
      */
-    public getReportWorkerInfoList_result(getReportWorkerInfoList_result other) {
+    public getWorkerReport_result(getWorkerReport_result other) {
       if (other.isSetSuccess()) {
-        this.success = new GetReportWorkerInfoListTResponse(other.success);
+        this.success = new GetWorkerReportTResponse(other.success);
       }
       if (other.isSetE()) {
         this.e = new alluxio.thrift.AlluxioTException(other.e);
       }
     }
 
-    public getReportWorkerInfoList_result deepCopy() {
-      return new getReportWorkerInfoList_result(this);
+    public getWorkerReport_result deepCopy() {
+      return new getWorkerReport_result(this);
     }
 
     @Override
@@ -5875,11 +5875,11 @@ public class BlockMasterClientService {
       this.e = null;
     }
 
-    public GetReportWorkerInfoListTResponse getSuccess() {
+    public GetWorkerReportTResponse getSuccess() {
       return this.success;
     }
 
-    public getReportWorkerInfoList_result setSuccess(GetReportWorkerInfoListTResponse success) {
+    public getWorkerReport_result setSuccess(GetWorkerReportTResponse success) {
       this.success = success;
       return this;
     }
@@ -5903,7 +5903,7 @@ public class BlockMasterClientService {
       return this.e;
     }
 
-    public getReportWorkerInfoList_result setE(alluxio.thrift.AlluxioTException e) {
+    public getWorkerReport_result setE(alluxio.thrift.AlluxioTException e) {
       this.e = e;
       return this;
     }
@@ -5929,7 +5929,7 @@ public class BlockMasterClientService {
         if (value == null) {
           unsetSuccess();
         } else {
-          setSuccess((GetReportWorkerInfoListTResponse)value);
+          setSuccess((GetWorkerReportTResponse)value);
         }
         break;
 
@@ -5975,12 +5975,12 @@ public class BlockMasterClientService {
     public boolean equals(Object that) {
       if (that == null)
         return false;
-      if (that instanceof getReportWorkerInfoList_result)
-        return this.equals((getReportWorkerInfoList_result)that);
+      if (that instanceof getWorkerReport_result)
+        return this.equals((getWorkerReport_result)that);
       return false;
     }
 
-    public boolean equals(getReportWorkerInfoList_result that) {
+    public boolean equals(getWorkerReport_result that) {
       if (that == null)
         return false;
 
@@ -6023,7 +6023,7 @@ public class BlockMasterClientService {
     }
 
     @Override
-    public int compareTo(getReportWorkerInfoList_result other) {
+    public int compareTo(getWorkerReport_result other) {
       if (!getClass().equals(other.getClass())) {
         return getClass().getName().compareTo(other.getClass().getName());
       }
@@ -6067,7 +6067,7 @@ public class BlockMasterClientService {
 
     @Override
     public String toString() {
-      StringBuilder sb = new StringBuilder("getReportWorkerInfoList_result(");
+      StringBuilder sb = new StringBuilder("getWorkerReport_result(");
       boolean first = true;
 
       sb.append("success:");
@@ -6113,15 +6113,15 @@ public class BlockMasterClientService {
       }
     }
 
-    private static class getReportWorkerInfoList_resultStandardSchemeFactory implements SchemeFactory {
-      public getReportWorkerInfoList_resultStandardScheme getScheme() {
-        return new getReportWorkerInfoList_resultStandardScheme();
+    private static class getWorkerReport_resultStandardSchemeFactory implements SchemeFactory {
+      public getWorkerReport_resultStandardScheme getScheme() {
+        return new getWorkerReport_resultStandardScheme();
       }
     }
 
-    private static class getReportWorkerInfoList_resultStandardScheme extends StandardScheme<getReportWorkerInfoList_result> {
+    private static class getWorkerReport_resultStandardScheme extends StandardScheme<getWorkerReport_result> {
 
-      public void read(org.apache.thrift.protocol.TProtocol iprot, getReportWorkerInfoList_result struct) throws org.apache.thrift.TException {
+      public void read(org.apache.thrift.protocol.TProtocol iprot, getWorkerReport_result struct) throws org.apache.thrift.TException {
         org.apache.thrift.protocol.TField schemeField;
         iprot.readStructBegin();
         while (true)
@@ -6133,7 +6133,7 @@ public class BlockMasterClientService {
           switch (schemeField.id) {
             case 0: // SUCCESS
               if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                struct.success = new GetReportWorkerInfoListTResponse();
+                struct.success = new GetWorkerReportTResponse();
                 struct.success.read(iprot);
                 struct.setSuccessIsSet(true);
               } else { 
@@ -6160,7 +6160,7 @@ public class BlockMasterClientService {
         struct.validate();
       }
 
-      public void write(org.apache.thrift.protocol.TProtocol oprot, getReportWorkerInfoList_result struct) throws org.apache.thrift.TException {
+      public void write(org.apache.thrift.protocol.TProtocol oprot, getWorkerReport_result struct) throws org.apache.thrift.TException {
         struct.validate();
 
         oprot.writeStructBegin(STRUCT_DESC);
@@ -6180,16 +6180,16 @@ public class BlockMasterClientService {
 
     }
 
-    private static class getReportWorkerInfoList_resultTupleSchemeFactory implements SchemeFactory {
-      public getReportWorkerInfoList_resultTupleScheme getScheme() {
-        return new getReportWorkerInfoList_resultTupleScheme();
+    private static class getWorkerReport_resultTupleSchemeFactory implements SchemeFactory {
+      public getWorkerReport_resultTupleScheme getScheme() {
+        return new getWorkerReport_resultTupleScheme();
       }
     }
 
-    private static class getReportWorkerInfoList_resultTupleScheme extends TupleScheme<getReportWorkerInfoList_result> {
+    private static class getWorkerReport_resultTupleScheme extends TupleScheme<getWorkerReport_result> {
 
       @Override
-      public void write(org.apache.thrift.protocol.TProtocol prot, getReportWorkerInfoList_result struct) throws org.apache.thrift.TException {
+      public void write(org.apache.thrift.protocol.TProtocol prot, getWorkerReport_result struct) throws org.apache.thrift.TException {
         TTupleProtocol oprot = (TTupleProtocol) prot;
         BitSet optionals = new BitSet();
         if (struct.isSetSuccess()) {
@@ -6208,11 +6208,11 @@ public class BlockMasterClientService {
       }
 
       @Override
-      public void read(org.apache.thrift.protocol.TProtocol prot, getReportWorkerInfoList_result struct) throws org.apache.thrift.TException {
+      public void read(org.apache.thrift.protocol.TProtocol prot, getWorkerReport_result struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
         BitSet incoming = iprot.readBitSet(2);
         if (incoming.get(0)) {
-          struct.success = new GetReportWorkerInfoListTResponse();
+          struct.success = new GetWorkerReportTResponse();
           struct.success.read(iprot);
           struct.setSuccessIsSet(true);
         }

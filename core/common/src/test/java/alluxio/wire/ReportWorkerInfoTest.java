@@ -11,8 +11,6 @@
 
 package alluxio.wire;
 
-import alluxio.util.CommonUtils;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Assert;
 import org.junit.Test;
@@ -52,7 +50,6 @@ public class ReportWorkerInfoTest {
     Assert.assertEquals(a.getId(), b.getId());
     Assert.assertEquals(a.getAddress(), b.getAddress());
     Assert.assertEquals(a.getLastContactSec(), b.getLastContactSec());
-    Assert.assertEquals(a.getState(), b.getState());
     Assert.assertEquals(a.getCapacityBytes(), b.getCapacityBytes());
     Assert.assertEquals(a.getUsedBytes(), b.getUsedBytes());
     Assert.assertEquals(a.getStartTimeMs(), b.getStartTimeMs());
@@ -78,7 +75,6 @@ public class ReportWorkerInfoTest {
     long id = random.nextLong();
     WorkerNetAddress address = WorkerNetAddressTest.createRandom();
     int lastContactSec = random.nextInt();
-    String state = CommonUtils.randomAlphaNumString(random.nextInt(10));
     long capacityBytes = random.nextLong();
     long usedBytes = random.nextLong();
     long startTimeMs = random.nextLong();
@@ -89,7 +85,6 @@ public class ReportWorkerInfoTest {
     result.setId(id);
     result.setAddress(address);
     result.setLastContactSec(lastContactSec);
-    result.setState(state);
     result.setCapacityBytes(capacityBytes);
     result.setUsedBytes(usedBytes);
     result.setStartTimeMs(startTimeMs);

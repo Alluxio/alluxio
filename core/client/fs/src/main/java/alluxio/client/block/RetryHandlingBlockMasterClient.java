@@ -99,14 +99,14 @@ public final class RetryHandlingBlockMasterClient extends AbstractMasterClient
   }
 
   @Override
-  public synchronized List<ReportWorkerInfo> getReportWorkerInfoList(
+  public synchronized List<ReportWorkerInfo> getWorkerReport(
       final ReportWorkerOptions options) throws IOException {
     return retryRPC(new RpcCallable<List<ReportWorkerInfo>>() {
       @Override
       public List<ReportWorkerInfo> call() throws TException {
         List<ReportWorkerInfo> result = new ArrayList<>();
         for (alluxio.thrift.ReportWorkerInfo reportWorkerInfo : mClient
-            .getReportWorkerInfoList(options.toThrift()).getReportWorkerInfoList()) {
+            .getWorkerReport(options.toThrift()).getReportWorkerInfoList()) {
           result.add(ThriftUtils.fromThrift(reportWorkerInfo));
         }
         return result;

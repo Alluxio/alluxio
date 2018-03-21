@@ -193,7 +193,7 @@ public final class MasterWorkerInfo {
    * @param fieldRange the client selected fields
    * @return generated report worker information
    */
-  public ReportWorkerInfo generateClientReportWorkerInfo(
+  public ReportWorkerInfo generateWorkerReport(
       Set<ReportWorkerInfoField> fieldRange) {
     ReportWorkerInfo info = new ReportWorkerInfo();
     for (ReportWorkerInfoField field : fieldRange != null ? fieldRange
@@ -217,9 +217,6 @@ public final class MasterWorkerInfo {
           break;
         case START_TIME_MS:
           info.setStartTimeMs(mStartTimeMs);
-          break;
-        case STATE:
-          info.setState("In Service");
           break;
         case USED_BYTES:
           info.setUsedBytes(mUsedBytes);

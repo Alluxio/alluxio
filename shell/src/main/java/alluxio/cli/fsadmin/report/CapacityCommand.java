@@ -35,19 +35,15 @@ import java.util.Map;
  */
 public class CapacityCommand {
   private static final int INDENT_SIZE = 4;
-  private static final String USAGE = "alluxio fsadmin report capacity [filter arg]\n"
-      + "Report Alluxio capacity information.\n"
-      + "Where [filter arg] is an optional argument, if no arguments passed in, "
-      + "capacity information of all workers will be printed out.\n"
-      + "[filter arg] can be one of the following:\n"
-      + "    -live                         Live workers\n"
-      + "    -lost                         Lost workers\n"
-      + "    -worker <worker_ip_addresses> Specified workers, IP addresses separated by \",\"\n";
 
   private BlockMasterClient mBlockMasterClient;
   private PrintStream mPrintStream;
-  private int mIndentationLevel = 0;
   private StringBuilder mStringBuilder;
+  private int mIndentationLevel = 0;
+  private long mSumCapacityBytes = 0;
+  private long mSumUsedBytes = 0;
+  private Map<String, Long> mSumCapacityBytesOnTierMap = new HashMap<>();
+  private Map<String, Long> mSumUsedBytesOnTierMap = new HashMap<>();
 
    /**
    * Creates a new instance of {@link CapacityCommand}.
@@ -69,113 +65,125 @@ public class CapacityCommand {
    */
   public int run(CommandLine cl) throws IOException {
     if (cl.hasOption("h")) {
-      System.out.println(USAGE);
+      System.out.println(getUsage());
       return 0;
     }
+
     ReportWorkerOptions options = getOptions(cl);
-    printWorkerCapacityInfo(options);
+    generateCapacityReport(options);
     return 0;
   }
 
   /**
-   * Prints Alluxio capacity information.
+   * Generates capacity report.
    *
-   * @param options ReportWorkerOptions to define the report worker info range
+   * @param options ReportWorkerOptions to get worker report
    */
-  public void printWorkerCapacityInfo(ReportWorkerOptions options) throws IOException {
-    List<ReportWorkerInfo> workerInfolist = mBlockMasterClient.getReportWorkerInfoList(options);
+  public void generateCapacityReport(ReportWorkerOptions options) throws IOException {
+    collectWorkerInfo(options);
+    printAggregatedInfo(options);
+    mPrintStream.println(mStringBuilder.toString());
+  }
 
-    // Summarize the worker capacity information
-    long sumCapacityBytes = 0;
-    long sumUsedBytes = 0;
-    Map<String, Long> sumTotalBytesOnTiersMap = initializeTierMap();
-    Map<String, Long> sumUsedBytesOnTiersMap = initializeTierMap();
+  /**
+   * Collects worker capacity information.
+   *
+   * @param options ReportWorkerOptions to get worker report
+   */
+  private void collectWorkerInfo(ReportWorkerOptions options) throws IOException {
+    List<ReportWorkerInfo> workerInfoList = mBlockMasterClient.getWorkerReport(options);
+    if (workerInfoList.size() == 0) {
+      return;
+    }
+    mStringBuilder.append(String.format("%n%-17s %-13s %-16s %-13s %-13s %-13s%n",
+        "Worker Name", "Type", "Total", "MEM", "SSD", "HDD"));
 
-    // Cache the worker capacity information
-
-    for (ReportWorkerInfo workerInfo : workerInfolist) {
-      mStringBuilder.append(String.format("%-20s %-20s %-20s %-20s %-20s%n",
-          "Node Name", "Last Heartbeat", "Workers Capacity", "Space Used", "Used Percentage"));
-
+    for (ReportWorkerInfo workerInfo : workerInfoList) {
       long usedBytes = workerInfo.getUsedBytes();
       long capacityBytes = workerInfo.getCapacityBytes();
-      String usedPercentageInfo = "Unavailable";
+      mSumCapacityBytes += capacityBytes;
+      mSumUsedBytes += usedBytes;
+
+      String usedPercentageInfo = "";
       if (capacityBytes != 0) {
         int usedPercentage = (int) (100L * usedBytes / capacityBytes);
-        usedPercentageInfo = String.format("%s%%", usedPercentage);
+        usedPercentageInfo = String.format(" (%s%%)", usedPercentage);
       }
-      mStringBuilder.append(String.format("%-20s %-20s %-20s %-20s %-20s%n",
-          workerInfo.getAddress().getHost(),
-          workerInfo.getLastContactSec(),
-          FormatUtils.getSizeFromBytes(capacityBytes),
-          FormatUtils.getSizeFromBytes(usedBytes),
-          usedPercentageInfo));
-
-      sumCapacityBytes += capacityBytes;
-      sumUsedBytes += usedBytes;
 
       Map<String, Long> totalBytesOnTiers = workerInfo.getCapacityBytesOnTiers();
-      if (totalBytesOnTiers != null) {
-        for (Map.Entry<String, Long> totalBytesTier : totalBytesOnTiers.entrySet()) {
-          String tier = totalBytesTier.getKey();
-          long value = totalBytesTier.getValue();
-          sumTotalBytesOnTiersMap.put(tier, value + sumTotalBytesOnTiersMap.get(tier));
-        }
+      for (Map.Entry<String, Long> totalBytesTier : totalBytesOnTiers.entrySet()) {
+        String tier = totalBytesTier.getKey();
+        long value = totalBytesTier.getValue();
+        mSumCapacityBytesOnTierMap.put(tier,
+            value + mSumCapacityBytesOnTierMap.getOrDefault(tier, 0L));
       }
 
       Map<String, Long> usedBytesOnTiers = workerInfo.getUsedBytesOnTiers();
-      if (usedBytesOnTiers != null) {
-        for (Map.Entry<String, Long> usedBytesTier: usedBytesOnTiers.entrySet()) {
-          String tier = usedBytesTier.getKey();
-          long value = usedBytesTier.getValue();
-          sumUsedBytesOnTiersMap.put(tier, value + sumUsedBytesOnTiersMap.get(tier));
-        }
+      for (Map.Entry<String, Long> usedBytesTier: usedBytesOnTiers.entrySet()) {
+        String tier = usedBytesTier.getKey();
+        long value = usedBytesTier.getValue();
+        mSumUsedBytesOnTierMap.put(tier,
+            value + mSumUsedBytesOnTierMap.getOrDefault(tier, 0L));
       }
-    }
 
-    // Print summarized worker capacity information
+      mStringBuilder.append(String.format("%-17s %-13s %-16s %-13s %-13s %-13s%n",
+          workerInfo.getAddress().getHost(),
+          "Capacity",
+          FormatUtils.getSizeFromBytes(capacityBytes),
+          FormatUtils.getSizeFromBytes(totalBytesOnTiers.getOrDefault("MEM", 0L)),
+          FormatUtils.getSizeFromBytes(totalBytesOnTiers.getOrDefault("SSD", 0L)),
+          FormatUtils.getSizeFromBytes(totalBytesOnTiers.getOrDefault("HDD", 0L))));
+      mStringBuilder.append(String.format("%-17s %-13s %-16s %-13s %-13s %-13s%n",
+          "",
+          "Used",
+          FormatUtils.getSizeFromBytes(usedBytes) + usedPercentageInfo,
+          FormatUtils.getSizeFromBytes(usedBytesOnTiers.getOrDefault("MEM", 0L)),
+          FormatUtils.getSizeFromBytes(usedBytesOnTiers.getOrDefault("SSD", 0L)),
+          FormatUtils.getSizeFromBytes(usedBytesOnTiers.getOrDefault("HDD", 0L))));
+    }
+  }
+
+  /**
+   * Prints aggregated worker capacity information.
+   *
+   * @param options ReportWorkerOptions to check if input is invalid
+   */
+  private void printAggregatedInfo(ReportWorkerOptions options) throws InvalidArgumentException {
     if (options.getWorkerRange().equals(WorkerRange.SPECIFIED)
-        && sumCapacityBytes + sumUsedBytes == 0) {
-      System.out.println(USAGE);
+        && mSumCapacityBytes + mSumUsedBytes == 0) {
+      System.out.println(getUsage());
       throw new InvalidArgumentException("Worker IP addresses are invalid.");
     }
 
     mIndentationLevel = 0;
-    print(String.format("Capacity Information for %s Workers: ", options.getWorkerRange()));
+    print(String.format("Capacity information for %s workers: ",
+        options.getWorkerRange().toString().toLowerCase()));
 
     mIndentationLevel++;
-    print("Total Capacity: " + FormatUtils.getSizeFromBytes(sumCapacityBytes));
+    print("Total Capacity: " + FormatUtils.getSizeFromBytes(mSumCapacityBytes));
     mIndentationLevel++;
-    for (Map.Entry<String, Long> totalBytesTier : sumTotalBytesOnTiersMap.entrySet()) {
+    for (Map.Entry<String, Long> totalBytesTier : mSumCapacityBytesOnTierMap.entrySet()) {
       long value = totalBytesTier.getValue();
-      if (value != 0) {
-        print("Tier: " + totalBytesTier.getKey()
-            + "  Size: " + FormatUtils.getSizeFromBytes(value));
-      }
+      print("Tier: " + totalBytesTier.getKey()
+          + "  Size: " + FormatUtils.getSizeFromBytes(value));
     }
-
     mIndentationLevel--;
+
     print("Used Capacity: "
-        + FormatUtils.getSizeFromBytes(sumUsedBytes));
+        + FormatUtils.getSizeFromBytes(mSumUsedBytes));
     mIndentationLevel++;
-    for (Map.Entry<String, Long> usedBytesTier : sumUsedBytesOnTiersMap.entrySet()) {
+    for (Map.Entry<String, Long> usedBytesTier : mSumUsedBytesOnTierMap.entrySet()) {
       long value = usedBytesTier.getValue();
-      if (value != 0) {
-        print("Tier: " + usedBytesTier.getKey()
-            + "  Size: " + FormatUtils.getSizeFromBytes(value));
-      }
+      print("Tier: " + usedBytesTier.getKey()
+          + "  Size: " + FormatUtils.getSizeFromBytes(value));
     }
-
     mIndentationLevel--;
-    if (sumCapacityBytes != 0) {
-      int usedPercentage = (int) (100L * sumUsedBytes / sumCapacityBytes);
+
+    if (mSumCapacityBytes != 0) {
+      int usedPercentage = (int) (100L * mSumUsedBytes / mSumCapacityBytes);
       print(String.format("Used Percentage: " + "%s%%", usedPercentage));
       print(String.format("Free Percentage: " + "%s%%", 100 - usedPercentage));
     }
-    print("");
-
-    // Print cached worker information
-    mPrintStream.println(mStringBuilder.toString());
   }
 
   /**
@@ -185,34 +193,26 @@ public class CapacityCommand {
    * @return ReportWorkerOptions to get report worker information
    */
   private ReportWorkerOptions getOptions(CommandLine cl) throws IOException {
-    ReportWorkerOptions options = ReportWorkerOptions.defaults();
-    options.setFieldRange(new HashSet<>(Arrays.asList(ReportWorkerInfoField.ADDRESS,
+    if (cl.getOptions().length > 1) {
+      System.out.println(getUsage());
+      throw new InvalidArgumentException("Too many arguments passed in.");
+    }
+    ReportWorkerOptions reportWorkerOptions = ReportWorkerOptions.defaults();
+    reportWorkerOptions.setFieldRange(new HashSet<>(Arrays.asList(ReportWorkerInfoField.ADDRESS,
         ReportWorkerInfoField.CAPACITY_BYTES, ReportWorkerInfoField.CAPACITY_BYTES_ON_TIERS,
-        ReportWorkerInfoField.ID, ReportWorkerInfoField.LAST_CONTACT_SEC,
-        ReportWorkerInfoField.START_TIME_MS, ReportWorkerInfoField.USED_BYTES,
-        ReportWorkerInfoField.USED_BYTES_ON_TIERS)));
+        ReportWorkerInfoField.USED_BYTES, ReportWorkerInfoField.USED_BYTES_ON_TIERS)));
     if (cl.hasOption("live")) {
-      options.setWorkerRange(WorkerRange.LIVE);
+      reportWorkerOptions.setWorkerRange(WorkerRange.LIVE);
     } else if (cl.hasOption("lost")) {
-      options.setWorkerRange(WorkerRange.LOST);
+      reportWorkerOptions.setWorkerRange(WorkerRange.LOST);
     } else if (cl.hasOption("worker")) {
-      options.setWorkerRange(WorkerRange.SPECIFIED);
+      reportWorkerOptions.setWorkerRange(WorkerRange.SPECIFIED);
       String addressString = cl.getOptionValue("worker");
       String[] addressArray = addressString.split(",");
-      options.setAddresses(new HashSet<>(Arrays.asList(addressArray)));
+      // Addresses in ReportWorkerOptions is only used when WorkerRange is SPECIFIED
+      reportWorkerOptions.setAddresses(new HashSet<>(Arrays.asList(addressArray)));
     }
-    return options;
-  }
-
-  /**
-   * @return initialized tier map
-   */
-  private Map<String, Long> initializeTierMap() {
-    Map<String, Long> map = new HashMap<>();
-    map.put("MEM", 0L);
-    map.put("SSD", 0L);
-    map.put("HDD", 0L);
-    return map;
+    return reportWorkerOptions;
   }
 
   /**
@@ -229,6 +229,13 @@ public class CapacityCommand {
    * @return capacity command usage
    */
   public static String getUsage() {
-    return USAGE;
+    return "alluxio fsadmin report capacity [filter arg]\n"
+        + "Report Alluxio capacity information.\n"
+        + "Where [filter arg] is an optional argument. If no arguments passed in, "
+        + "capacity information of all workers will be printed out.\n"
+        + "[filter arg] can be one of the following:\n"
+        + "    -live                         Live workers\n"
+        + "    -lost                         Lost workers\n"
+        + "    -worker <worker_ip_addresses> Specified workers, IP addresses separated by \",\"\n";
   }
 }

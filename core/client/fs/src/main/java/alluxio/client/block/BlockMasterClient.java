@@ -63,7 +63,7 @@ public interface BlockMasterClient extends Client {
    * @param options the client defined worker and field ranges
    * @return a list of report worker information
    */
-  List<ReportWorkerInfo> getReportWorkerInfoList(final ReportWorkerOptions options)
+  List<ReportWorkerInfo> getWorkerReport(final ReportWorkerOptions options)
       throws IOException;
 
   /**

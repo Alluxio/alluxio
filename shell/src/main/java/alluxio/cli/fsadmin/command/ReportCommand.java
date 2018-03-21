@@ -102,15 +102,43 @@ public final class ReportCommand extends AbstractCommand {
   @Override
   public int run(CommandLine cl) throws IOException {
     String[] args = cl.getArgs();
+
     if (cl.hasOption("h")
-        && !(args.length > 0 && args[0].equalsIgnoreCase("CAPACITY"))) {
+        && !(args.length > 0 && args[0].equals("capacity"))) {
+      // if category is capacity, we print report capacity usage inside CapacityCommand.
       System.out.println(getUsage());
       System.out.println(getDescription());
       return 0;
     }
 
+    // Get the report category
+    Command command = Command.SUMMARY;
+    if (args.length == 1) {
+      switch (args[0]) {
+        case "summary":
+          command = Command.SUMMARY;
+          break;
+        case "capacity":
+          command = Command.CAPACITY;
+          break;
+        default:
+          System.out.println(getUsage());
+          System.out.println(getDescription());
+          throw new InvalidArgumentException("report category is invalid.");
+      }
+    }
+
+    // Only capacity category has [category args]
+    if (!command.equals(Command.CAPACITY)) {
+      if (cl.getOptions().length > 0) {
+        throw new InvalidArgumentException(
+            String.format("report %s do not support arguments: %s",
+                command.toString().toLowerCase(), cl.getOptions()[0].getOpt()));
+      }
+    }
+
+    // Check if Alluxio master and client services are running
     try {
-      // Check if Alluxio master and client services are running
       try (CloseableResource<FileSystemMasterClient> client =
                FileSystemContext.INSTANCE.acquireMasterClientResource()) {
         MasterInquireClient inquireClient = null;
@@ -131,25 +159,6 @@ public final class ReportCommand extends AbstractCommand {
           System.err.println("Please check your Alluxio master status");
           return 1;
         }
-      }
-
-      // Print the summarized information in default situation
-      if (args.length == 0) {
-        SummaryCommand summaryCommand = new SummaryCommand(mMetaMasterClient,
-            mBlockMasterClient, mPrintStream);
-        summaryCommand.run();
-        return 0;
-      }
-
-      // Get the report category
-      Command command;
-      try {
-        String commandName = args[0].toUpperCase();
-        command = Command.valueOf(commandName);
-      } catch (IllegalArgumentException e) {
-        System.out.println(getUsage());
-        System.out.println(getDescription());
-        return 1;
       }
 
       switch (command) {
@@ -190,9 +199,9 @@ public final class ReportCommand extends AbstractCommand {
   @Override
   public String getDescription() {
     return "Report Alluxio running cluster information.\n"
-        + "Where category is an optional argument, if no arguments are passed in, "
-        + "summary information will be printed out."
-        + "category can be one of the following:\n"
+        + "Where [category] is an optional argument. If no arguments are passed in, "
+        + "summary information will be printed out.\n"
+        + "[category] can be one of the following:\n"
         + "    summary          Summarized Alluxio cluster information\n"
         + "    capacity         Capacity usage information";
   }

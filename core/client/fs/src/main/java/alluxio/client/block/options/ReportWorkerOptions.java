@@ -11,7 +11,7 @@
 
 package alluxio.client.block.options;
 
-import alluxio.thrift.GetReportWorkerInfoListTOptions;
+import alluxio.thrift.GetWorkerReportTOptions;
 
 import com.google.common.base.Objects;
 
@@ -127,8 +127,8 @@ public final class ReportWorkerOptions implements Serializable {
   /**
    * @return Thrift representation of the options
    */
-  public GetReportWorkerInfoListTOptions toThrift() {
-    GetReportWorkerInfoListTOptions options = new GetReportWorkerInfoListTOptions();
+  public GetWorkerReportTOptions toThrift() {
+    GetWorkerReportTOptions options = new GetWorkerReportTOptions();
     options.setAddresses(mAddresses);
     if (mFieldRange != null) {
       Set<alluxio.thrift.ReportWorkerInfoField> thriftFieldRange = new HashSet<>();
@@ -176,7 +176,6 @@ public final class ReportWorkerOptions implements Serializable {
     ID,
     LAST_CONTACT_SEC,
     START_TIME_MS,
-    STATE,
     USED_BYTES,
     USED_BYTES_ON_TIERS;
 

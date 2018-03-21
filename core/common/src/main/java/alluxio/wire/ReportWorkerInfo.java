@@ -16,6 +16,7 @@ import com.google.common.base.Preconditions;
 
 import java.io.Serializable;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.Map;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -33,7 +34,6 @@ public final class ReportWorkerInfo implements Serializable {
   private long mId;
   private int mLastContactSec;
   private long mStartTimeMs;
-  private String mState = "";
   private long mUsedBytes;
   private Map<String, Long> mUsedBytesOnTiers;
 
@@ -54,7 +54,6 @@ public final class ReportWorkerInfo implements Serializable {
     mId = reportWorkerInfo.getId();
     mLastContactSec = reportWorkerInfo.getLastContactSec();
     mStartTimeMs = reportWorkerInfo.getStartTimeMs();
-    mState = reportWorkerInfo.getState();
     mUsedBytes = reportWorkerInfo.getUsedBytes();
     mUsedBytesOnTiers = reportWorkerInfo.getUsedBytesOnTiers();
   }
@@ -102,13 +101,6 @@ public final class ReportWorkerInfo implements Serializable {
   }
 
   /**
-   * @return the worker state
-   */
-  public String getState() {
-    return mState;
-  }
-
-  /**
    * @return the worker used capacity (in bytes)
    */
   public long getUsedBytes() {
@@ -146,7 +138,7 @@ public final class ReportWorkerInfo implements Serializable {
    * @return the report worker information
    */
   public ReportWorkerInfo setCapacityBytesOnTiers(Map<String, Long> capacityBytesOnTiers) {
-    mCapacityBytesOnTiers = capacityBytesOnTiers;
+    mCapacityBytesOnTiers = new HashMap<>(capacityBytesOnTiers);
     return this;
   }
 
@@ -178,16 +170,6 @@ public final class ReportWorkerInfo implements Serializable {
   }
 
   /**
-   * @param state the worker state to use
-   * @return the report worker information
-   */
-  public ReportWorkerInfo setState(String state) {
-    Preconditions.checkNotNull(state, "state");
-    mState = state;
-    return this;
-  }
-
-  /**
    * @param usedBytes the worker used capacity (in bytes) to use
    * @return the report worker information
    */
@@ -201,7 +183,7 @@ public final class ReportWorkerInfo implements Serializable {
    * @return the report worker information
    */
   public ReportWorkerInfo setUsedBytesOnTiers(Map<String, Long> usedBytesOnTiers) {
-    mUsedBytesOnTiers = usedBytesOnTiers;
+    mUsedBytesOnTiers = new HashMap<>(usedBytesOnTiers);
     return this;
   }
 
@@ -210,7 +192,7 @@ public final class ReportWorkerInfo implements Serializable {
    */
   protected alluxio.thrift.ReportWorkerInfo toThrift() {
     return new alluxio.thrift.ReportWorkerInfo(mAddress.toThrift(), mCapacityBytes,
-        mCapacityBytesOnTiers, mId, mLastContactSec, mStartTimeMs, mState, mUsedBytes,
+        mCapacityBytesOnTiers, mId, mLastContactSec, mStartTimeMs, mUsedBytes,
         mUsedBytesOnTiers);
   }
 
@@ -226,8 +208,7 @@ public final class ReportWorkerInfo implements Serializable {
     return mAddress.equals(that.mAddress) && mCapacityBytes == that.mCapacityBytes
         && mCapacityBytesOnTiers.equals(that.mCapacityBytesOnTiers)
         && mId == that.mId && mLastContactSec == that.mLastContactSec
-        && mStartTimeMs == that.mStartTimeMs && mState.equals(that.mState)
-        && mUsedBytes == that.mUsedBytes
+        && mStartTimeMs == that.mStartTimeMs && mUsedBytes == that.mUsedBytes
         && mUsedBytesOnTiers.equals(that.mUsedBytesOnTiers);
   }
 
@@ -249,7 +230,7 @@ public final class ReportWorkerInfo implements Serializable {
   @Override
   public int hashCode() {
     return Objects.hashCode(mAddress, mCapacityBytes, mCapacityBytesOnTiers, mId,
-        mLastContactSec, mStartTimeMs, mState, mUsedBytes, mUsedBytesOnTiers);
+        mLastContactSec, mStartTimeMs, mUsedBytes, mUsedBytesOnTiers);
   }
 
   @Override
@@ -260,7 +241,6 @@ public final class ReportWorkerInfo implements Serializable {
         .add("id", mId)
         .add("lastContactSec", mLastContactSec)
         .add("startTimeMs", mStartTimeMs)
-        .add("state", mState)
         .add("usedBytes", mUsedBytes)
         .add("usedBytesOnTiers", mUsedBytesOnTiers).toString();
   }

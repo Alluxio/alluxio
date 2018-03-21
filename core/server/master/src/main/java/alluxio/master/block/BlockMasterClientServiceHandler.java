@@ -27,14 +27,14 @@ import alluxio.thrift.GetBlockMasterInfoTOptions;
 import alluxio.thrift.GetBlockMasterInfoTResponse;
 import alluxio.thrift.GetCapacityBytesTOptions;
 import alluxio.thrift.GetCapacityBytesTResponse;
-import alluxio.thrift.GetReportWorkerInfoListTOptions;
-import alluxio.thrift.GetReportWorkerInfoListTResponse;
 import alluxio.thrift.GetServiceVersionTOptions;
 import alluxio.thrift.GetServiceVersionTResponse;
 import alluxio.thrift.GetUsedBytesTOptions;
 import alluxio.thrift.GetUsedBytesTResponse;
 import alluxio.thrift.GetWorkerInfoListTOptions;
 import alluxio.thrift.GetWorkerInfoListTResponse;
+import alluxio.thrift.GetWorkerReportTOptions;
+import alluxio.thrift.GetWorkerReportTResponse;
 import alluxio.thrift.ReportWorkerInfo;
 import alluxio.thrift.WorkerInfo;
 import alluxio.wire.ThriftUtils;
@@ -182,19 +182,19 @@ public final class BlockMasterClientServiceHandler implements BlockMasterClientS
   }
 
   @Override
-  public GetReportWorkerInfoListTResponse getReportWorkerInfoList(
-      GetReportWorkerInfoListTOptions options) throws AlluxioTException {
-    return RpcUtils.call(LOG, new RpcCallableThrowsIOException<GetReportWorkerInfoListTResponse>() {
+  public GetWorkerReportTResponse getWorkerReport(
+      GetWorkerReportTOptions options) throws AlluxioTException {
+    return RpcUtils.call(LOG, new RpcCallableThrowsIOException<GetWorkerReportTResponse>() {
       @Override
-      public GetReportWorkerInfoListTResponse call()
+      public GetWorkerReportTResponse call()
           throws AlluxioException, AlluxioStatusException {
         List<ReportWorkerInfo> reportWorkerInfos = new ArrayList<>();
         for (alluxio.wire.ReportWorkerInfo reportWorkerInfo : mBlockMaster
-            .getReportWorkerInfoList(options.getWorkerRange(),
+            .getWorkerReport(options.getWorkerRange(),
                 options.getFieldRange(), options.getAddresses())) {
           reportWorkerInfos.add(ThriftUtils.toThrift(reportWorkerInfo));
         }
-        return new GetReportWorkerInfoListTResponse(reportWorkerInfos);
+        return new GetWorkerReportTResponse(reportWorkerInfos);
       }
 
       @Override
