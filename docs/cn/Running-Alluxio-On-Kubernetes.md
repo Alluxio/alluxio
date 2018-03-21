@@ -105,3 +105,17 @@ $ kubectl exec -ti alluxio-master-0 /bin/bash
 $ cd /opt/alluxio
 $ ./bin/alluxio runTests
 ```
+
+## 卸载
+
+卸载Alluxio：
+```bash
+kubectl delete -f alluxio-worker.yaml
+kubectl delete -f alluxio-master.yaml
+kubectl delete configmaps alluxio-config
+```
+
+执行以下命令来清理储存Alluxio journal数据的持久化卷。注意：Alluxio的元数据会丢失！
+```bash
+kubectl delete -f alluxio-journal-volume.yaml
+```
