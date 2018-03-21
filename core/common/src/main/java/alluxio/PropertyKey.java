@@ -781,6 +781,11 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "the server")
           .setIsHidden(true)
           .build();
+  public static final PropertyKey MASTER_STARTUP_BLOCK_CHECK_ENABLED =
+      new Builder(Name.MASTER_STARTUP_BLOCK_CHECK_ENABLED)
+          .setDefaultValue(false)
+          .setDescription("Whether the system should be checked for orphaned blocks on startup.")
+          .build();
   public static final PropertyKey MASTER_STARTUP_CONSISTENCY_CHECK_ENABLED =
       new Builder(Name.MASTER_STARTUP_CONSISTENCY_CHECK_ENABLED)
           .setDefaultValue(true)
@@ -2270,6 +2275,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String MASTER_RPC_PORT = "alluxio.master.port";
     public static final String MASTER_SERVING_THREAD_TIMEOUT =
         "alluxio.master.serving.thread.timeout";
+    public static final String MASTER_STARTUP_BLOCK_CHECK_ENABLED =
+        "alluxio.master.startup.block.check.enabled";
     public static final String MASTER_STARTUP_CONSISTENCY_CHECK_ENABLED =
         "alluxio.master.startup.consistency.check.enabled";
     public static final String MASTER_THRIFT_SHUTDOWN_TIMEOUT =

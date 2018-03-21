@@ -13,10 +13,16 @@ package alluxio.master.block;
 
 import alluxio.AlluxioURI;
 import alluxio.LocalAlluxioClusterResource;
+import alluxio.PropertyKey;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.master.LocalAlluxioCluster;
+import alluxio.master.file.FileSystemMaster;
+import alluxio.master.file.meta.InodeTree;
+import alluxio.master.file.meta.LockedInodePath;
+import alluxio.master.file.options.DeleteOptions;
+import alluxio.master.journal.JournalContext;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 import alluxio.worker.block.BlockWorker;
@@ -25,11 +31,14 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.powermock.reflect.Whitebox;
 
-public class BlockMasterHeartbeatIntegrationTest {
+public class BlockMasterIntegrityIntegrationTest {
   @Rule
   public LocalAlluxioClusterResource mClusterResource =
-      new LocalAlluxioClusterResource.Builder().build();
+      new LocalAlluxioClusterResource.Builder()
+          .setProperty(PropertyKey.MASTER_STARTUP_BLOCK_CHECK_ENABLED, true)
+          .build();
   private LocalAlluxioCluster mCluster;
 
   @Before
@@ -51,6 +60,31 @@ public class BlockMasterHeartbeatIntegrationTest {
     mCluster.startWorkers(); // creates a new worker, so need to get the new BlockWorker
     BlockWorker newWorker = mCluster.getWorkerProcess().getWorker(BlockWorker.class);
     CommonUtils.waitFor("orphan blocks to be deleted",
+        (v) -> newWorker.getStoreMetaFull().getNumberOfBlocks() == 0,
+        WaitForOptions.defaults().setTimeoutMs(2000));
+  }
+
+  @Test
+  public void deleteInvalidBlocks() throws Exception {
+    AlluxioURI uri = new AlluxioURI("/test");
+    int len = 10;
+    FileSystem fs = mCluster.getClient();
+    BlockWorker worker = mCluster.getWorkerProcess().getWorker(BlockWorker.class);
+    FileSystemTestUtils.createByteFile(fs, uri, WriteType.MUST_CACHE, len);
+    Assert.assertEquals(1, worker.getStoreMetaFull().getNumberOfBlocks());
+    FileSystemMaster fsm =
+        mCluster.getLocalAlluxioMaster().getMasterProcess().getMaster(FileSystemMaster.class);
+    InodeTree tree = Whitebox.getInternalState(fsm, "mInodeTree");
+    LockedInodePath path = tree.lockInodePath(uri, InodeTree.LockMode.WRITE);
+    DeleteOptions options = DeleteOptions.defaults();
+    JournalContext ctx = Whitebox.invokeMethod(fsm, "createJournalContext");
+    Whitebox.invokeMethod(fsm, "deleteAndJournal", path, options, ctx);
+    ctx.close();
+    mCluster.stopWorkers();
+    mCluster.restartMasters();
+    mCluster.startWorkers(); // creates a new worker, so need to get the new BlockWorker
+    BlockWorker newWorker = mCluster.getWorkerProcess().getWorker(BlockWorker.class);
+    CommonUtils.waitFor("invalid blocks to be deleted",
         (v) -> newWorker.getStoreMetaFull().getNumberOfBlocks() == 0,
         WaitForOptions.defaults().setTimeoutMs(2000));
   }

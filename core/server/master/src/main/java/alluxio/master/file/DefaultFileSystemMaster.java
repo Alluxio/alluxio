@@ -546,6 +546,14 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         }
       }
 
+      // File System Master and Block Master Integrity Check
+      if (Configuration.getBoolean(PropertyKey.MASTER_STARTUP_BLOCK_CHECK_ENABLED)) {
+        mBlockMaster.validateBlocks((blockId) -> {
+          long fileId = IdUtils.fileIdFromBlockId(blockId);
+          return mInodeTree.inodeIdExists(fileId);
+        });
+      }
+
       mTtlCheckerService = getExecutorService().submit(
           new HeartbeatThread(HeartbeatContext.MASTER_TTL_CHECK,
               new InodeTtlChecker(this, mInodeTree, mTtlBuckets),

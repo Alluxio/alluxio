@@ -24,6 +24,7 @@ import alluxio.wire.WorkerNetAddress;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 
 /**
  * Interface of the block master that manages the metadata for all the blocks and block workers in
@@ -67,6 +68,15 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
    * @param delete whether to delete blocks' metadata in Master
    */
   void removeBlocks(List<Long> blockIds, boolean delete) throws UnavailableException;
+
+  /**
+   * Validates if the integrity of blocks with respect to the validator. Invalid blocks will be
+   * deleted.
+   *
+   * @param validator a function returns true if the given block id is valid
+   * @throws UnavailableException if the invalid blocks cannot be deleted
+   */
+  void validateBlocks(Function<Long, Boolean> validator) throws UnavailableException;
 
   /**
    * Marks a block as committed on a specific worker.
