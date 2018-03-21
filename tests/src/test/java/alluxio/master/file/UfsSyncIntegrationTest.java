@@ -11,6 +11,8 @@
 
 package alluxio.master.file;
 
+import static org.junit.Assert.assertFalse;
+
 import alluxio.AlluxioURI;
 import alluxio.AuthenticatedUserRule;
 import alluxio.BaseIntegrationTest;
@@ -19,16 +21,21 @@ import alluxio.ConfigurationTestUtils;
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.PropertyKey;
 import alluxio.client.WriteType;
+import alluxio.client.block.BlockMasterClient;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
+import alluxio.client.file.FileSystemTestUtils;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.CreateFileOptions;
 import alluxio.client.file.options.DeleteOptions;
+import alluxio.client.file.options.ExistsOptions;
+import alluxio.client.file.options.FreeOptions;
 import alluxio.client.file.options.GetStatusOptions;
 import alluxio.client.file.options.ListStatusOptions;
 import alluxio.client.file.options.RenameOptions;
 import alluxio.client.file.options.SetAttributeOptions;
 import alluxio.exception.FileDoesNotExistException;
+import alluxio.master.MasterClientConfig;
 import alluxio.security.authorization.Mode;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.CommonUtils;
@@ -351,7 +358,7 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
   }
 
   @Test
-  public void UfsDirUpdatePermissions() throws Exception {
+  public void ufsDirUpdatePermissions() throws Exception {
     new File(ufsPath("/dir1")).mkdirs();
     new File(ufsPath("/dir1/dir2")).mkdirs();
     String fileA = "/dir1/dir2/fileA";
@@ -382,6 +389,23 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
   }
 
   @Test
+  public void ufsDeleteSync() throws Exception {
+    FileSystemTestUtils.loadFile(mFileSystem, alluxioPath(EXISTING_FILE));
+    new File(ufsPath(EXISTING_FILE)).delete();
+    assertFalse(mFileSystem.exists(new AlluxioURI(alluxioPath(EXISTING_FILE)),
+        ExistsOptions.defaults().setCommonOptions(SYNC_ALWAYS)));
+    mFileSystem.free(new AlluxioURI("/"), FreeOptions.defaults().setRecursive(true));
+    BlockMasterClient blockClient = BlockMasterClient.Factory.create(MasterClientConfig.defaults());
+    CommonUtils.waitFor("data to be freed", (x) -> {
+      try {
+        return blockClient.getUsedBytes() == 0;
+      } catch (Exception e) {
+        throw new RuntimeException(e);
+      }
+    });
+  }
+
+  @Test
   public void createNestedFileSync() throws Exception {
     Configuration.set(PropertyKey.USER_FILE_METADATA_SYNC_INTERVAL, "0");
 
@@ -409,7 +433,7 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
     writeUfsFile(ufsPath(fileB), 1);
 
     // Should not exist, since no loading or syncing
-    Assert.assertFalse(mFileSystem.exists(new AlluxioURI(alluxioPath(fileA))));
+    assertFalse(mFileSystem.exists(new AlluxioURI(alluxioPath(fileA))));
 
     try {
       mFileSystem.setAttribute(new AlluxioURI(alluxioPath("/dir1")),
@@ -445,7 +469,7 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
     Assert.assertEquals(ttl, status.getTtl());
 
     // deleted UFS file should not exist.
-    Assert.assertFalse(mFileSystem.exists(new AlluxioURI(alluxioPath(fileA))));
+    assertFalse(mFileSystem.exists(new AlluxioURI(alluxioPath(fileA))));
   }
 
   private String ufsPath(String path) {
