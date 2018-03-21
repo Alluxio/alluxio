@@ -654,7 +654,7 @@ public final class NetworkAddressUtils {
    * @param address the network address to ping
    * @param serviceName the Alluxio service name
    * @throws UnauthenticatedException If the user is not authenticated
-   * @throws TTransportException If there is a protocol transport error
+   * @throws ConnectionFailedException If there is a protocol transport error
    */
   public static void pingService(InetSocketAddress address, String serviceName)
           throws UnauthenticatedException, ConnectionFailedException {
