@@ -1368,17 +1368,11 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         throw new FileDoesNotExistException(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(path));
       }
 
-      deletedInodes = deleteAndJournal(inodePath, options, journalContext, blockDeletionContext);
+      deleteAndJournal(inodePath, options, journalContext, blockDeletionContext);
       auditContext.setSucceeded(true);
 
-      if (!options.isAlluxioOnly()) {
-        for (Inode<?> inode : deletedInodes) {
-          if (inode.isFile() && inode.isPersisted()) {
-            for (long blockId : ((InodeFile) inode).getBlockIds()) {
-              mUfsBlockLocationCache.invalidate(blockId);
-            }
-          }
-        }
+      for (long blockId : blockDeletionContext.getBlocks()) {
+        mUfsBlockLocationCache.invalidate(blockId);
       }
     }
   }
@@ -1388,27 +1382,25 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    * <p>
    * Writes to the journal.
    *
-   * This method does not delete blocks. Instead, it returns deleted inodes so that their blocks can
-   * be deleted after the inode deletion journal entry has been written. We cannot delete blocks
-   * earlier because the inode deletion may fail, leaving us with inode containing deleted blocks.
+   * This method does not delete blocks. Instead, it adds blocks to the blockDeletionContext so that
+   * they can be deleted after the inode deletion journal entry has been written. We cannot delete
+   * blocks earlier because the inode deletion may fail, leaving us with inode containing deleted
+   * blocks.
    *
    * @param inodePath the path to delete
    * @param deleteOptions the method options
    * @param journalContext the journal context
-   * @param blockDeletionContext the block deleter
-   * @return a list of all deleted inodes
+   * @param blockDeletionContext the block deletion context
    * @throws InvalidPathException if the path is invalid
    * @throws FileDoesNotExistException if the file does not exist
    * @throws DirectoryNotEmptyException if recursive is false and the file is a nonempty directory
    */
-  private List<Inode<?>> deleteAndJournal(LockedInodePath inodePath, DeleteOptions deleteOptions,
+  private void deleteAndJournal(LockedInodePath inodePath, DeleteOptions deleteOptions,
       JournalContext journalContext, BlockDeletionContext blockDeletionContext)
       throws InvalidPathException, FileDoesNotExistException, IOException,
       DirectoryNotEmptyException {
     long opTimeMs = System.currentTimeMillis();
-    // TODO(gpang): Report deleted files via context so that we can still delete blocks when delete
-    // throws an exception partway through.
-    return deleteInternal(inodePath, false, opTimeMs, deleteOptions, journalContext,
+    deleteInternal(inodePath, false, opTimeMs, deleteOptions, journalContext,
         blockDeletionContext);
   }
 
@@ -1440,24 +1432,23 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    * @param opTimeMs the time of the operation
    * @param deleteOptions the method optitions
    * @param journalContext the journal context
-   * @param blockDeletionContext the block deleter
-   * @return a list of all deleted inodes
+   * @param blockDeletionContext the block deletion context
    * @throws FileDoesNotExistException if a non-existent file is encountered
    * @throws InvalidPathException if the specified path is the root
    * @throws DirectoryNotEmptyException if recursive is false and the file is a nonempty directory
    */
-  private List<Inode<?>> deleteInternal(LockedInodePath inodePath, boolean replayed, long opTimeMs,
+  private void deleteInternal(LockedInodePath inodePath, boolean replayed, long opTimeMs,
       DeleteOptions deleteOptions, JournalContext journalContext,
       BlockDeletionContext blockDeletionContext) throws FileDoesNotExistException, IOException,
       DirectoryNotEmptyException, InvalidPathException {
     // TODO(jiri): A crash after any UFS object is deleted and before the delete operation is
     // journaled will result in an inconsistency between Alluxio and UFS.
     if (!inodePath.fullPathExists()) {
-      return Collections.EMPTY_LIST;
+      return;
     }
     Inode<?> inode = inodePath.getInode();
     if (inode == null) {
-      return Collections.EMPTY_LIST;
+      return;
     }
 
     boolean recursive = deleteOptions.isRecursive();
@@ -1473,7 +1464,6 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     }
 
     List<Pair<AlluxioURI, Inode>> delInodes = new ArrayList<>();
-    List<Inode<?>> deletedInodes = new ArrayList<>();
 
     Pair<AlluxioURI, Inode> inodePair = new Pair<>(inodePath.getUri(), inode);
     delInodes.add(inodePair);
@@ -1521,7 +1511,6 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
           }
         }
         if (!failedToDelete) {
-          deletedInodes.add(delInode);
           inodesToDelete.add(new Pair<>(alluxioUriToDel, delInode));
         } else {
           unsafeInodes.add(delInode.getId());
@@ -1536,13 +1525,11 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         tempInodePath.setDescendant(delInode, delInodePair.getFirst());
         // Do not journal entries covered recursively for performance
         if (delInode.getId() == inode.getId() || unsafeInodes.contains(delInode.getParentId())) {
-          mInodeTree.deleteInode(tempInodePath, opTimeMs, deleteOptions, journalContext);
-          if (delInode.isFile()) {
-            blockDeletionContext.registerBlocksForDeletion(((InodeFile) delInode).getBlockIds());
-          }
+          mInodeTree.deleteInode(tempInodePath, opTimeMs, deleteOptions, journalContext,
+              blockDeletionContext);
         } else {
           mInodeTree.deleteInode(tempInodePath, opTimeMs, deleteOptions,
-              NoopJournalContext.INSTANCE);
+              NoopJournalContext.INSTANCE, blockDeletionContext);
         }
       }
       if (!failedUris.isEmpty()) {
@@ -1553,7 +1540,6 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     }
 
     Metrics.PATHS_DELETED.inc(delInodes.size());
-    return deletedInodes;
   }
 
   @Override
@@ -2813,14 +2799,14 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    * <p>
    * Writes to the journal.
    *
-   * This method does not delete blocks. Instead, it adds the to the passed-in block deleter so
-   * that the blocks can be deleted after the inode deletion journal entry has been written. We
-   * cannot delete blocks earlier because the inode deletion may fail, leaving us with inode
-   * containing deleted blocks.
+   * This method does not delete blocks. Instead, it adds the to the passed-in block deletion
+   * context so that the blocks can be deleted after the inode deletion journal entry has been
+   * written. We cannot delete blocks earlier because the inode deletion may fail, leaving us with
+   * inode containing deleted blocks.
    *
    * @param inodePath the Alluxio path to unmount, must be a mount point
    * @param journalContext the journal context
-   * @param blockDeletionContext the block deleter
+   * @param blockDeletionContext the block deletion context
    * @throws InvalidPathException if the given path is not a mount point
    * @throws FileDoesNotExistException if the path to be mounted does not exist
    */
@@ -3080,7 +3066,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    * @param inodePath the Alluxio inode path to sync with UFS
    * @param lockingScheme the locking scheme used to lock the inode path
    * @param syncDescendantType how to sync descendants
-   * @param blockDeletionContext the block deleter
+   * @param blockDeletionContext the block deletion context
    * @return true if the sync was performed successfully, false otherwise (including errors)
    */
   private boolean syncMetadata(JournalContext journalContext, LockedInodePath inodePath,

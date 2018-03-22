@@ -139,7 +139,8 @@ public final class FileSystemTestUtils {
    * @param fileName the name of the file to load
    */
   public static void loadFile(FileSystem fs, String fileName) {
-    try (FileInStream is = fs.openFile(new AlluxioURI(fileName))) {
+    try (FileInStream is = fs.openFile(new AlluxioURI(fileName),
+        OpenFileOptions.defaults().setReadType(ReadType.CACHE))) {
       IOUtils.copy(is, ByteStreams.nullOutputStream());
     } catch (IOException | AlluxioException e) {
       throw new RuntimeException(e);

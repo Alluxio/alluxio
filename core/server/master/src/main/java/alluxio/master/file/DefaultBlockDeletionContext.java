@@ -14,6 +14,8 @@ package alluxio.master.file;
 import alluxio.exception.status.UnavailableException;
 import alluxio.master.block.BlockMaster;
 
+import com.google.common.collect.ImmutableList;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -33,24 +35,25 @@ public final class DefaultBlockDeletionContext implements BlockDeletionContext {
     mBlocks = new ArrayList<>();
   }
 
-  /**
-   * @param blockIds the blocks to be deleted when the context closes
-   */
   @Override
   public void registerBlocksForDeletion(Collection<Long> blockIds) {
     mBlocks.addAll(blockIds);
   }
 
-  /**
-   * @param blockId the block to be deleted when the context closes
-   */
   @Override
   public void registerBlockForDeletion(long blockId) {
     mBlocks.add(blockId);
   }
 
   @Override
+  public List<Long> getBlocks() {
+    return ImmutableList.copyOf(mBlocks);
+  }
+
+  @Override
   public void close() throws UnavailableException {
     mBlockMaster.removeBlocks(mBlocks, true);
+    // In case close gets called multiple times for some reason.
+    mBlocks.clear();
   }
 }

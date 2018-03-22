@@ -15,6 +15,7 @@ import alluxio.exception.status.UnavailableException;
 
 import java.io.Closeable;
 import java.util.Collection;
+import java.util.List;
 
 /**
  * Interface for a class which gathers block deletion requests, then handles them during close.
@@ -31,6 +32,11 @@ public interface BlockDeletionContext extends Closeable {
    * @param blockId the block to be deleted when the context closes
    */
   void registerBlockForDeletion(long blockId);
+
+  /**
+   * @return a list of the blocks scheduled for deletion
+   */
+  List<Long> getBlocks();
 
   @Override
   void close() throws UnavailableException;
