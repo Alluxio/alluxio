@@ -11,9 +11,6 @@
 
 package alluxio.master.file;
 
-import java.util.Collections;
-import java.util.List;
-
 /**
  * Implementation of {@link DefaultBlockDeletionContext} which does nothing.
  */
@@ -23,11 +20,6 @@ public final class NoopBlockDeletionContext implements BlockDeletionContext {
   @Override
   public void registerBlockForDeletion(long blockId) {
     return;
-  }
-
-  @Override
-  public List<Long> getBlocks() {
-    return Collections.emptyList();
   }
 
   @Override

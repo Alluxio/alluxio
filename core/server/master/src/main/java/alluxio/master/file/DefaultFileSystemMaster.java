@@ -96,6 +96,8 @@ import alluxio.proto.journal.File.RenameEntry;
 import alluxio.proto.journal.File.SetAttributeEntry;
 import alluxio.proto.journal.File.StringPairEntry;
 import alluxio.proto.journal.Journal.JournalEntry;
+import alluxio.retry.CountingRetry;
+import alluxio.retry.RetryPolicy;
 import alluxio.security.authentication.AuthType;
 import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.security.authorization.Mode;
@@ -735,11 +737,11 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
   @Override
   public FileInfo getFileInfo(AlluxioURI path, GetStatusOptions options)
       throws FileDoesNotExistException, InvalidPathException, AccessControlException,
-      UnavailableException {
+      UnavailableException, IOException {
     Metrics.GET_FILE_INFO_OPS.inc();
     LockingScheme lockingScheme =
         createLockingScheme(path, options.getCommonOptions(), InodeTree.LockMode.READ);
-    try (BlockDeletionContext blockDeletionContext = new DefaultBlockDeletionContext(mBlockMaster);
+    try (BlockDeletionContext blockDeletionContext = createBlockDeletionContext();
          JournalContext journalContext = createJournalContext();
          LockedInodePath inodePath = mInodeTree
              .lockInodePath(lockingScheme.getPath(), lockingScheme.getMode());
@@ -816,11 +818,11 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
   @Override
   public List<FileInfo> listStatus(AlluxioURI path, ListStatusOptions listStatusOptions)
       throws AccessControlException, FileDoesNotExistException, InvalidPathException,
-      UnavailableException {
+      UnavailableException, IOException {
     Metrics.GET_FILE_INFO_OPS.inc();
     LockingScheme lockingScheme =
         createLockingScheme(path, listStatusOptions.getCommonOptions(), InodeTree.LockMode.READ);
-    try (BlockDeletionContext blockDeletionContext = new DefaultBlockDeletionContext(mBlockMaster);
+    try (BlockDeletionContext blockDeletionContext = createBlockDeletionContext();
          JournalContext journalContext = createJournalContext();
          LockedInodePath inodePath = mInodeTree
              .lockInodePath(lockingScheme.getPath(), lockingScheme.getMode());
@@ -941,7 +943,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     LockingScheme lockingScheme =
         createLockingScheme(path, options.getCommonOptions(), InodeTree.LockMode.READ);
     List<AlluxioURI> inconsistentUris = new ArrayList<>();
-    try (BlockDeletionContext blockDeletionContext = new DefaultBlockDeletionContext(mBlockMaster);
+    try (BlockDeletionContext blockDeletionContext = createBlockDeletionContext();
          JournalContext journalContext = createJournalContext();
          LockedInodePath parent =
              mInodeTree.lockInodePath(lockingScheme.getPath(), lockingScheme.getMode());
@@ -1164,7 +1166,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     Metrics.CREATE_FILES_OPS.inc();
     LockingScheme lockingScheme =
         createLockingScheme(path, options.getCommonOptions(), InodeTree.LockMode.WRITE);
-    try (BlockDeletionContext blockDeletionContext = new DefaultBlockDeletionContext(mBlockMaster);
+    try (BlockDeletionContext blockDeletionContext = createBlockDeletionContext();
          JournalContext journalContext = createJournalContext();
          LockedInodePath inodePath = mInodeTree
              .lockInodePath(lockingScheme.getPath(), lockingScheme.getMode());
@@ -1346,7 +1348,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     Metrics.DELETE_PATHS_OPS.inc();
     LockingScheme lockingScheme =
         createLockingScheme(path, options.getCommonOptions(), InodeTree.LockMode.WRITE);
-    try (BlockDeletionContext blockDeletionContext = new DefaultBlockDeletionContext(mBlockMaster);
+    try (BlockDeletionContext blockDeletionContext = createBlockDeletionContext();
          JournalContext journalContext = createJournalContext();
          LockedInodePath inodePath = mInodeTree
              .lockInodePath(lockingScheme.getPath(), lockingScheme.getMode());
@@ -1370,10 +1372,6 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
 
       deleteAndJournal(inodePath, options, journalContext, blockDeletionContext);
       auditContext.setSucceeded(true);
-
-      for (long blockId : blockDeletionContext.getBlocks()) {
-        mUfsBlockLocationCache.invalidate(blockId);
-      }
     }
   }
 
@@ -1803,7 +1801,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     Metrics.CREATE_DIRECTORIES_OPS.inc();
     LockingScheme lockingScheme =
         createLockingScheme(path, options.getCommonOptions(), InodeTree.LockMode.WRITE);
-    try (BlockDeletionContext blockDeletionContext = new DefaultBlockDeletionContext(mBlockMaster);
+    try (BlockDeletionContext blockDeletionContext = createBlockDeletionContext();
          JournalContext journalContext = createJournalContext();
          LockedInodePath inodePath = mInodeTree
              .lockInodePath(lockingScheme.getPath(), lockingScheme.getMode());
@@ -1901,7 +1899,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     // Require a WRITE lock on the source but only a READ lock on the destination. Since the
     // destination should not exist, we will only obtain a READ lock on the destination parent. The
     // modify operations on the parent inodes are thread safe so WRITE locks are not required.
-    try (BlockDeletionContext blockDeletionContext = new DefaultBlockDeletionContext(mBlockMaster);
+    try (BlockDeletionContext blockDeletionContext = createBlockDeletionContext();
          JournalContext journalContext = createJournalContext();
          InodePathPair inodePathPair = mInodeTree
              .lockInodePathPair(srcLockingScheme.getPath(), srcLockingScheme.getMode(),
@@ -2628,7 +2626,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     Metrics.MOUNT_OPS.inc();
     LockingScheme lockingScheme =
         createLockingScheme(alluxioPath, options.getCommonOptions(), InodeTree.LockMode.WRITE);
-    try (BlockDeletionContext blockDeletionContext = new DefaultBlockDeletionContext(mBlockMaster);
+    try (BlockDeletionContext blockDeletionContext = createBlockDeletionContext();
          JournalContext journalContext = createJournalContext();
          LockedInodePath inodePath = mInodeTree
              .lockInodePath(lockingScheme.getPath(), lockingScheme.getMode());
@@ -2776,7 +2774,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     Metrics.UNMOUNT_OPS.inc();
     List<Inode<?>> deletedInodes;
     // Unmount should lock the parent to remove the child inode.
-    try (BlockDeletionContext blockDeletionContext = new DefaultBlockDeletionContext(mBlockMaster);
+    try (BlockDeletionContext blockDeletionContext = createBlockDeletionContext();
          JournalContext journalContext = createJournalContext();
          LockedInodePath inodePath = mInodeTree
             .lockFullInodePath(alluxioPath, InodeTree.LockMode.WRITE_PARENT);
@@ -2897,7 +2895,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     }
     LockingScheme lockingScheme =
         createLockingScheme(path, options.getCommonOptions(), InodeTree.LockMode.WRITE);
-    try (BlockDeletionContext blockDeletionContext = new DefaultBlockDeletionContext(mBlockMaster);
+    try (BlockDeletionContext blockDeletionContext = createBlockDeletionContext();
          JournalContext journalContext = createJournalContext();
          LockedInodePath inodePath = mInodeTree
              .lockInodePath(lockingScheme.getPath(), lockingScheme.getMode());
@@ -3586,6 +3584,25 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
           .setSrcInode(srcInode).setAllowed(true);
     }
     return auditContext;
+  }
+
+  private BlockDeletionContext createBlockDeletionContext() {
+    return new DefaultBlockDeletionContext(this::removeBlocks,
+        blocks -> blocks.forEach(mUfsBlockLocationCache::invalidate));
+  }
+
+  private void removeBlocks(List<Long> blocks) throws IOException {
+    RetryPolicy retry = new CountingRetry(3);
+    while (true) {
+      try {
+        mBlockMaster.removeBlocks(blocks, true);
+        return;
+      } catch (UnavailableException e) {
+        if (!retry.attemptRetry()) {
+          throw new IOException("Failed to remove deleted blocks from block master", e);
+        }
+      }
+    }
   }
 
   private LockingScheme createLockingScheme(AlluxioURI path, CommonOptions options,

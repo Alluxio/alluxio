@@ -100,7 +100,7 @@ public interface FileSystemMaster extends Master {
    */
   FileInfo getFileInfo(AlluxioURI path, GetStatusOptions options)
       throws FileDoesNotExistException, InvalidPathException, AccessControlException,
-      UnavailableException;
+      UnavailableException, IOException;
 
   /**
    * Returns the persistence state for a file id. This method is used by the lineage master.
@@ -129,7 +129,7 @@ public interface FileSystemMaster extends Master {
    */
   List<FileInfo> listStatus(AlluxioURI path, ListStatusOptions listStatusOptions)
       throws AccessControlException, FileDoesNotExistException, InvalidPathException,
-      UnavailableException;
+      UnavailableException, IOException;
 
   /**
    * @return a read-only view of the file system master
