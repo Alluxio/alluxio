@@ -327,13 +327,13 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
         throw new InvalidArgumentException("Unrecognized report worker range: " + workerRange);
     }
 
-    List<WorkerInfo> reportWorkerInfoList = new ArrayList<>(selectedWorkers.size());
+    List<WorkerInfo> workerInfoList = new ArrayList<>(selectedWorkers.size());
     for (MasterWorkerInfo worker : selectedWorkers) {
       synchronized (worker) {
-        reportWorkerInfoList.add(worker.generateWorkerInfo(options.getFieldRange()));
+        workerInfoList.add(worker.generateWorkerInfo(options.getFieldRange()));
       }
     }
-    return reportWorkerInfoList;
+    return workerInfoList;
   }
 
   @Override

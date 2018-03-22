@@ -37,9 +37,11 @@ public final class CapacityCommandIntegrationTest extends AbstractFsAdminShellTe
         + "    Used Percentage: 0%\n"
         + "    Free Percentage: 100%\n"));
     Assert.assertThat(output, CoreMatchers.containsString(
-        "Worker Name       Type          Total            MEM           SSD           HDD"));
+        "Worker Name      Last Heartbeat   Type          Total            "
+            + "MEM           SSD           HDD"));
     Assert.assertThat(output, CoreMatchers.containsString(
-        "                  Used          0B (0%)          0B            0B            0B"));
+        "                                  Used          0B (0%)          "
+            + "0B            0B            0B"));
   }
 
   @Test
@@ -67,9 +69,11 @@ public final class CapacityCommandIntegrationTest extends AbstractFsAdminShellTe
         + "    Used Percentage: 0%\n"
         + "    Free Percentage: 100%\n"));
     Assert.assertThat(output, CoreMatchers.containsString(
-        "Worker Name       Type          Total            MEM           SSD           HDD"));
+        "Worker Name      Last Heartbeat   Type          Total            "
+            + "MEM           SSD           HDD"));
     Assert.assertThat(output, CoreMatchers.containsString(
-        "                  Used          0B (0%)          0B            0B            0B"));
+        "                                  Used          0B (0%)          "
+            + "0B            0B            0B"));
   }
 
   @Test

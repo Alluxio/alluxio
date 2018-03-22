@@ -17,6 +17,7 @@ import alluxio.client.block.BlockMasterClient;
 import alluxio.client.block.BlockMasterClientPool;
 import alluxio.client.block.options.WorkerInfoOptions;
 import alluxio.client.block.options.WorkerInfoOptions.WorkerInfoField;
+import alluxio.client.block.options.WorkerInfoOptions.WorkerRange;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.UnavailableException;
 import alluxio.master.MasterInquireClient;
@@ -331,6 +332,7 @@ public final class FileSystemContext implements Closeable {
     BlockMasterClient blockMasterClient = mBlockMasterClientPool.acquire();
     try {
       infos = blockMasterClient.getWorkerInfoList(WorkerInfoOptions.defaults()
+          .setWorkerRange(WorkerRange.LIVE)
           .setFieldRange(new HashSet<>(Arrays.asList(WorkerInfoField.ADDRESS))));
     } finally {
       mBlockMasterClientPool.release(blockMasterClient);

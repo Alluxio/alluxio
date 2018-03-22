@@ -95,8 +95,8 @@ public class CapacityCommand {
     if (workerInfoList.size() == 0) {
       return;
     }
-    mStringBuilder.append(String.format("%n%-17s %-13s %-16s %-13s %-13s %-13s%n",
-        "Worker Name", "Type", "Total", "MEM", "SSD", "HDD"));
+    mStringBuilder.append(String.format("%n%-16s %-16s %-13s %-16s %-13s %-13s %-13s%n",
+        "Worker Name", "Last Heartbeat", "Type", "Total", "MEM", "SSD", "HDD"));
 
     for (WorkerInfo workerInfo : workerInfoList) {
       long usedBytes = workerInfo.getUsedBytes();
@@ -126,14 +126,16 @@ public class CapacityCommand {
             value + mSumUsedBytesOnTierMap.getOrDefault(tier, 0L));
       }
 
-      mStringBuilder.append(String.format("%-17s %-13s %-16s %-13s %-13s %-13s%n",
+      mStringBuilder.append(String.format("%-16s %-16s %-13s %-16s %-13s %-13s %-13s%n",
           workerInfo.getAddress().getHost(),
+          workerInfo.getLastContactSec(),
           "Capacity",
           FormatUtils.getSizeFromBytes(capacityBytes),
           FormatUtils.getSizeFromBytes(totalBytesOnTiers.getOrDefault("MEM", 0L)),
           FormatUtils.getSizeFromBytes(totalBytesOnTiers.getOrDefault("SSD", 0L)),
           FormatUtils.getSizeFromBytes(totalBytesOnTiers.getOrDefault("HDD", 0L))));
-      mStringBuilder.append(String.format("%-17s %-13s %-16s %-13s %-13s %-13s%n",
+      mStringBuilder.append(String.format("%-16s %-16s %-13s %-16s %-13s %-13s %-13s%n",
+          "",
           "",
           "Used",
           FormatUtils.getSizeFromBytes(usedBytes) + usedPercentageInfo,
@@ -187,32 +189,33 @@ public class CapacityCommand {
   }
 
   /**
-   * Gets the report worker options.
+   * Gets the worker info options.
    *
    * @param cl CommandLine that contains the client options
-   * @return WorkerInfoOptions to get report worker information
+   * @return WorkerInfoOptions to get worker information
    */
   private WorkerInfoOptions getOptions(CommandLine cl) throws IOException {
     if (cl.getOptions().length > 1) {
       System.out.println(getUsage());
       throw new InvalidArgumentException("Too many arguments passed in.");
     }
-    WorkerInfoOptions reportWorkerOptions = WorkerInfoOptions.defaults();
-    reportWorkerOptions.setFieldRange(new HashSet<>(Arrays.asList(WorkerInfoField.ADDRESS,
+    WorkerInfoOptions workerOptions = WorkerInfoOptions.defaults();
+    workerOptions.setFieldRange(new HashSet<>(Arrays.asList(WorkerInfoField.ADDRESS,
         WorkerInfoField.CAPACITY_BYTES, WorkerInfoField.CAPACITY_BYTES_ON_TIERS,
-        WorkerInfoField.USED_BYTES, WorkerInfoField.USED_BYTES_ON_TIERS)));
+        WorkerInfoField.LAST_CONTACT_SEC, WorkerInfoField.USED_BYTES,
+        WorkerInfoField.USED_BYTES_ON_TIERS)));
     if (cl.hasOption("live")) {
-      reportWorkerOptions.setWorkerRange(WorkerRange.LIVE);
+      workerOptions.setWorkerRange(WorkerRange.LIVE);
     } else if (cl.hasOption("lost")) {
-      reportWorkerOptions.setWorkerRange(WorkerRange.LOST);
+      workerOptions.setWorkerRange(WorkerRange.LOST);
     } else if (cl.hasOption("worker")) {
-      reportWorkerOptions.setWorkerRange(WorkerRange.SPECIFIED);
+      workerOptions.setWorkerRange(WorkerRange.SPECIFIED);
       String addressString = cl.getOptionValue("worker");
       String[] addressArray = addressString.split(",");
       // Addresses in WorkerInfoOptions is only used when WorkerRange is SPECIFIED
-      reportWorkerOptions.setAddresses(new HashSet<>(Arrays.asList(addressArray)));
+      workerOptions.setAddresses(new HashSet<>(Arrays.asList(addressArray)));
     }
-    return reportWorkerOptions;
+    return workerOptions;
   }
 
   /**

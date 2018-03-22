@@ -84,9 +84,9 @@ public final class RetryHandlingBlockMasterClient extends AbstractMasterClient
       @Override
       public List<WorkerInfo> call() throws TException {
         List<WorkerInfo> result = new ArrayList<>();
-        for (alluxio.thrift.WorkerInfo reportWorkerInfo : mClient
+        for (alluxio.thrift.WorkerInfo workerInfo : mClient
             .getWorkerInfoList(options.toThrift()).getWorkerInfoList()) {
-          result.add(ThriftUtils.fromThrift(reportWorkerInfo));
+          result.add(ThriftUtils.fromThrift(workerInfo));
         }
         return result;
       }

@@ -159,10 +159,10 @@ public final class WorkerInfoOptions implements Serializable {
    * Enum representing the range of workers that we want to show capacity information for.
    */
   public static enum WorkerRange {
-    ALL,
-    LIVE,
-    LOST,
-    SPECIFIED;
+    ALL, // All workers
+    LIVE, // Live workers
+    LOST, // Lost workers
+    SPECIFIED; // Combine with mAddresses to define worker range
 
     /**
      * @return the thrift representation of this worker info filter type

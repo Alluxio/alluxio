@@ -65,15 +65,15 @@ public class CapacityCommandTest {
           "    Used Percentage: 34%",
           "    Free Percentage: 66%",
           "",
-          "Worker Name       Type          Total            "
+          "Worker Name      Last Heartbeat   Type          Total            "
               + "MEM           SSD           HDD          ",
-          "64.68.90.1        Capacity      11.18GB          "
+          "64.68.90.1       3123             Capacity      11.18GB          "
               + "3814.70MB     5.59GB        1907.35MB    ",
-          "                  Used          9.31GB (83%)     "
+          "                                  Used          9.31GB (83%)     "
               + "2861.02MB     4768.37MB     1907.35MB    ",
-          "216.239.33.96     Capacity      18.63GB          "
+          "216.239.33.96    542              Capacity      18.63GB          "
               + "4768.37MB     4768.37MB     9.31GB       ",
-          "                  Used          953.67MB (5%)    "
+          "                                  Used          953.67MB (5%)    "
               + "190.73MB      286.10MB      476.84MB     ");
       List<String> testOutput = Arrays.asList(output.split("\n"));
       Assert.assertThat(testOutput,
@@ -82,7 +82,7 @@ public class CapacityCommandTest {
   }
 
   /**
-   * @return Report worker info list to test
+   * @return worker info list to test
    */
   private List<WorkerInfo> prepareInfoList() {
     List<WorkerInfo> infoList = new ArrayList<>();

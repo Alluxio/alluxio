@@ -76,8 +76,8 @@ public final class ReportCommand extends AbstractCommand {
           .build();
 
   enum Command {
-    SUMMARY, // Report the Alluxio cluster information
-    CAPACITY // Report the capacity information
+    SUMMARY, // Report cluster summary
+    CAPACITY // Report worker capacity information
   }
 
   /**
@@ -202,8 +202,8 @@ public final class ReportCommand extends AbstractCommand {
         + "Where [category] is an optional argument. If no arguments are passed in, "
         + "summary information will be printed out.\n"
         + "[category] can be one of the following:\n"
-        + "    summary          Summarized Alluxio cluster information\n"
-        + "    capacity         Capacity usage information";
+        + "    summary          cluster summary\n"
+        + "    capacity         worker capacity information\n";
   }
 
   @Override

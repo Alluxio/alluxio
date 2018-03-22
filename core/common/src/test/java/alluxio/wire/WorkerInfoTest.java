@@ -23,18 +23,18 @@ public class WorkerInfoTest {
 
   @Test
   public void json() throws Exception {
-    WorkerInfo reportWorkerInfo = createRandom();
+    WorkerInfo workerInfo = createRandom();
     ObjectMapper mapper = new ObjectMapper();
     WorkerInfo other =
-        mapper.readValue(mapper.writeValueAsBytes(reportWorkerInfo), WorkerInfo.class);
-    checkEquality(reportWorkerInfo, other);
+        mapper.readValue(mapper.writeValueAsBytes(workerInfo), WorkerInfo.class);
+    checkEquality(workerInfo, other);
   }
 
   @Test
   public void thrift() {
-    WorkerInfo reportWorkerInfo = createRandom();
-    WorkerInfo other = ThriftUtils.fromThrift(ThriftUtils.toThrift(reportWorkerInfo));
-    checkEquality(reportWorkerInfo, other);
+    WorkerInfo workerInfo = createRandom();
+    WorkerInfo other = ThriftUtils.fromThrift(ThriftUtils.toThrift(workerInfo));
+    checkEquality(workerInfo, other);
   }
 
   @Test
@@ -82,6 +82,7 @@ public class WorkerInfoTest {
     capacityBytesOnTiers.put("MEM", capacityBytes);
     Map<String, Long> usedBytesOnTiers = new HashMap<>();
     usedBytesOnTiers.put("MEM", usedBytes);
+
     result.setId(id);
     result.setAddress(address);
     result.setLastContactSec(lastContactSec);

@@ -179,8 +179,7 @@ public final class MasterWorkerInfo {
    * @param fieldRange the client selected fields
    * @return generated worker information
    */
-  public WorkerInfo generateWorkerInfo(
-      Set<WorkerInfoField> fieldRange) {
+  public WorkerInfo generateWorkerInfo(Set<WorkerInfoField> fieldRange) {
     WorkerInfo info = new WorkerInfo();
     for (WorkerInfoField field : fieldRange != null ? fieldRange
         : Arrays.asList(WorkerInfoField.values())) {
