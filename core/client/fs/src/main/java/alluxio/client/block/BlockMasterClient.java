@@ -12,12 +12,11 @@
 package alluxio.client.block;
 
 import alluxio.Client;
-import alluxio.client.block.options.ReportWorkerOptions;
+import alluxio.client.block.options.WorkerInfoOptions;
 import alluxio.master.MasterClientConfig;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.BlockMasterInfo;
 import alluxio.wire.BlockMasterInfo.BlockMasterInfoField;
-import alluxio.wire.ReportWorkerInfo;
 import alluxio.wire.WorkerInfo;
 
 import java.io.IOException;
@@ -51,19 +50,12 @@ public interface BlockMasterClient extends Client {
   }
 
   /**
-   * Gets the info of a list of workers.
-   *
-   * @return A list of worker info returned by master
-   */
-  List<WorkerInfo> getWorkerInfoList() throws IOException;
-
-  /**
-   * Gets the report information of selected workers and selected fields.
+   * Gets the worker information of selected workers and selected fields.
    *
    * @param options the client defined worker and field ranges
-   * @return a list of report worker information
+   * @return a list of worker information
    */
-  List<ReportWorkerInfo> getWorkerReport(final ReportWorkerOptions options)
+  List<WorkerInfo> getWorkerInfoList(final WorkerInfoOptions options)
       throws IOException;
 
   /**

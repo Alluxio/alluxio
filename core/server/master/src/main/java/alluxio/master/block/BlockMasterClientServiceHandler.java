@@ -15,6 +15,7 @@ import alluxio.Constants;
 import alluxio.RpcUtils;
 import alluxio.RpcUtils.RpcCallable;
 import alluxio.RpcUtils.RpcCallableThrowsIOException;
+import alluxio.client.block.options.WorkerInfoOptions;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.thrift.AlluxioTException;
@@ -33,9 +34,6 @@ import alluxio.thrift.GetUsedBytesTOptions;
 import alluxio.thrift.GetUsedBytesTResponse;
 import alluxio.thrift.GetWorkerInfoListTOptions;
 import alluxio.thrift.GetWorkerInfoListTResponse;
-import alluxio.thrift.GetWorkerReportTOptions;
-import alluxio.thrift.GetWorkerReportTResponse;
-import alluxio.thrift.ReportWorkerInfo;
 import alluxio.thrift.WorkerInfo;
 import alluxio.wire.ThriftUtils;
 
@@ -72,26 +70,6 @@ public final class BlockMasterClientServiceHandler implements BlockMasterClientS
   @Override
   public GetServiceVersionTResponse getServiceVersion(GetServiceVersionTOptions options) {
     return new GetServiceVersionTResponse(Constants.BLOCK_MASTER_CLIENT_SERVICE_VERSION);
-  }
-
-  @Override
-  public GetWorkerInfoListTResponse getWorkerInfoList(GetWorkerInfoListTOptions options)
-      throws AlluxioTException {
-    return RpcUtils.call(LOG, new RpcCallableThrowsIOException<GetWorkerInfoListTResponse>() {
-      @Override
-      public GetWorkerInfoListTResponse call() throws AlluxioException, AlluxioStatusException {
-        List<WorkerInfo> workerInfos = new ArrayList<>();
-        for (alluxio.wire.WorkerInfo workerInfo : mBlockMaster.getWorkerInfoList()) {
-          workerInfos.add(ThriftUtils.toThrift(workerInfo));
-        }
-        return new GetWorkerInfoListTResponse(workerInfos);
-      }
-
-      @Override
-      public String toString() {
-        return String.format("getWorkerInfoList: options=%s", options);
-      }
-    });
   }
 
   @Override
@@ -182,24 +160,23 @@ public final class BlockMasterClientServiceHandler implements BlockMasterClientS
   }
 
   @Override
-  public GetWorkerReportTResponse getWorkerReport(
-      GetWorkerReportTOptions options) throws AlluxioTException {
-    return RpcUtils.call(LOG, new RpcCallableThrowsIOException<GetWorkerReportTResponse>() {
+  public GetWorkerInfoListTResponse getWorkerInfoList(
+      GetWorkerInfoListTOptions options) throws AlluxioTException {
+    return RpcUtils.call(LOG, new RpcCallableThrowsIOException<GetWorkerInfoListTResponse>() {
       @Override
-      public GetWorkerReportTResponse call()
+      public GetWorkerInfoListTResponse call()
           throws AlluxioException, AlluxioStatusException {
-        List<ReportWorkerInfo> reportWorkerInfos = new ArrayList<>();
-        for (alluxio.wire.ReportWorkerInfo reportWorkerInfo : mBlockMaster
-            .getWorkerReport(options.getWorkerRange(),
-                options.getFieldRange(), options.getAddresses())) {
-          reportWorkerInfos.add(ThriftUtils.toThrift(reportWorkerInfo));
+        List<WorkerInfo> reportWorkerInfos = new ArrayList<>();
+        for (alluxio.wire.WorkerInfo workerInfo :
+            mBlockMaster.getWorkerInfoList(new WorkerInfoOptions(options))) {
+          reportWorkerInfos.add(ThriftUtils.toThrift(workerInfo));
         }
-        return new GetWorkerReportTResponse(reportWorkerInfos);
+        return new GetWorkerInfoListTResponse(reportWorkerInfos);
       }
 
       @Override
       public String toString() {
-        return String.format("getReportWorkerInfoList: options=%s", options);
+        return String.format("getWorkerInfoList: options=%s", options);
       }
     });
   }

@@ -11,7 +11,7 @@
 
 package alluxio.client.block.options;
 
-import alluxio.thrift.GetWorkerReportTOptions;
+import alluxio.thrift.GetWorkerInfoListTOptions;
 
 import com.google.common.base.Objects;
 
@@ -22,30 +22,44 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * Report worker options.
+ * Worker information options.
  */
 @NotThreadSafe
-public final class ReportWorkerOptions implements Serializable {
+public final class WorkerInfoOptions implements Serializable {
   private static final long serialVersionUID = -7604526631057562523L;
 
   private Set<String> mAddresses;
-  private Set<ReportWorkerInfoField> mFieldRange;
+  private Set<WorkerInfoField> mFieldRange;
   private WorkerRange mWorkerRange;
 
   /**
-   * @return the default {@link ReportWorkerOptions}
+   * @return the default {@link WorkerInfoOptions}
    */
-  public static ReportWorkerOptions defaults() {
-    return new ReportWorkerOptions();
+  public static WorkerInfoOptions defaults() {
+    return new WorkerInfoOptions();
   }
 
   /**
    * Creates a new instance with default values.
    */
-  private ReportWorkerOptions() {
-    mAddresses = null;
-    mFieldRange = new HashSet<>(Arrays.asList(ReportWorkerInfoField.values()));
+  private WorkerInfoOptions() {
+    mAddresses = new HashSet<>();
+    mFieldRange = new HashSet<>(Arrays.asList(WorkerInfoField.values()));
     mWorkerRange = WorkerRange.ALL;
+  }
+
+  /**
+   * Creates a new instance of {@link WorkerInfoOptions} from a thrift representation.
+   *
+   * @param options the thrift representation of a WorkerInfoOptions
+   */
+  public WorkerInfoOptions(alluxio.thrift.GetWorkerInfoListTOptions options) {
+    mAddresses = options.getAddresses();
+    mFieldRange = new HashSet<>();
+    for (alluxio.thrift.WorkerInfoField field: options.getFieldRange()) {
+      mFieldRange.add(WorkerInfoField.fromThrift(field));
+    }
+    mWorkerRange = WorkerRange.fromThrift(options.getWorkerRange());
   }
 
   /**
@@ -56,9 +70,9 @@ public final class ReportWorkerOptions implements Serializable {
   }
 
   /**
-   * @return the field range of report worker info
+   * @return the field range of worker info
    */
-  public Set<ReportWorkerInfoField> getFieldRange() {
+  public Set<WorkerInfoField> getFieldRange() {
     return mFieldRange;
   }
 
@@ -73,16 +87,16 @@ public final class ReportWorkerOptions implements Serializable {
    * @param addresses the client selected worker addresses
    * @return the updated options object
    */
-  public ReportWorkerOptions setAddresses(Set<String> addresses) {
+  public WorkerInfoOptions setAddresses(Set<String> addresses) {
     mAddresses = addresses;
     return this;
   }
 
   /**
-   * @param fieldRange the field range of report worker info
+   * @param fieldRange the field range of worker info
    * @return the updated options object
    */
-  public ReportWorkerOptions setFieldRange(Set<ReportWorkerInfoField> fieldRange) {
+  public WorkerInfoOptions setFieldRange(Set<WorkerInfoField> fieldRange) {
     mFieldRange = fieldRange;
     return this;
   }
@@ -91,7 +105,7 @@ public final class ReportWorkerOptions implements Serializable {
    * @param workerRange the client selected worker range
    * @return the updated options object
    */
-  public ReportWorkerOptions setWorkerRange(WorkerRange workerRange) {
+  public WorkerInfoOptions setWorkerRange(WorkerRange workerRange) {
     mWorkerRange = workerRange;
     return this;
   }
@@ -101,10 +115,10 @@ public final class ReportWorkerOptions implements Serializable {
     if (this == o) {
       return true;
     }
-    if (!(o instanceof ReportWorkerOptions)) {
+    if (!(o instanceof WorkerInfoOptions)) {
       return false;
     }
-    ReportWorkerOptions that = (ReportWorkerOptions) o;
+    WorkerInfoOptions that = (WorkerInfoOptions) o;
     return mAddresses.equals(that.mAddresses)
         && mFieldRange.equals(that.mFieldRange)
         && mWorkerRange.equals(that.mWorkerRange);
@@ -127,12 +141,12 @@ public final class ReportWorkerOptions implements Serializable {
   /**
    * @return Thrift representation of the options
    */
-  public GetWorkerReportTOptions toThrift() {
-    GetWorkerReportTOptions options = new GetWorkerReportTOptions();
+  public GetWorkerInfoListTOptions toThrift() {
+    GetWorkerInfoListTOptions options = new GetWorkerInfoListTOptions();
     options.setAddresses(mAddresses);
     if (mFieldRange != null) {
-      Set<alluxio.thrift.ReportWorkerInfoField> thriftFieldRange = new HashSet<>();
-      for (ReportWorkerInfoField field : mFieldRange) {
+      Set<alluxio.thrift.WorkerInfoField> thriftFieldRange = new HashSet<>();
+      for (WorkerInfoField field : mFieldRange) {
         thriftFieldRange.add(field.toThrift());
       }
       options.setFieldRange(thriftFieldRange);
@@ -167,9 +181,9 @@ public final class ReportWorkerOptions implements Serializable {
   }
 
   /**
-   * Enum representing the fields of the report worker information.
+   * Enum representing the fields of the worker information.
    */
-  public static enum ReportWorkerInfoField {
+  public static enum WorkerInfoField {
     ADDRESS,
     CAPACITY_BYTES,
     CAPACITY_BYTES_ON_TIERS,
@@ -180,19 +194,19 @@ public final class ReportWorkerOptions implements Serializable {
     USED_BYTES_ON_TIERS;
 
     /**
-     * @return the thrift representation of this report worker info fields
+     * @return the thrift representation of this worker info fields
      */
-    public alluxio.thrift.ReportWorkerInfoField toThrift() {
-      return alluxio.thrift.ReportWorkerInfoField.valueOf(name());
+    public alluxio.thrift.WorkerInfoField toThrift() {
+      return alluxio.thrift.WorkerInfoField.valueOf(name());
     }
 
     /**
-     * @param fieldRange the thrift representation of the report worker info fields
-     * @return the wire type version of the report worker info field
+     * @param fieldRange the thrift representation of the worker info fields
+     * @return the wire type version of the worker info field
      */
-    public static ReportWorkerInfoField fromThrift(
-        alluxio.thrift.ReportWorkerInfoField fieldRange) {
-      return ReportWorkerInfoField.valueOf(fieldRange.name());
+    public static WorkerInfoField fromThrift(
+        alluxio.thrift.WorkerInfoField fieldRange) {
+      return WorkerInfoField.valueOf(fieldRange.name());
     }
   }
 }

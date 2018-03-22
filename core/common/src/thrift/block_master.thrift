@@ -23,16 +23,6 @@ struct BlockMasterInfo {
   7: map<string, i64> usedBytesOnTiers
 }
 
-struct WorkerInfo {
-  1: i64 id
-  2: common.WorkerNetAddress address
-  3: i32 lastContactSec
-  4: string state
-  5: i64 capacityBytes
-  6: i64 usedBytes
-  7: i64 startTimeMs
-}
-
 struct GetBlockInfoTOptions {}
 struct GetBlockInfoTResponse {
   1: common.BlockInfo blockInfo
@@ -56,11 +46,6 @@ struct GetUsedBytesTResponse {
   1: i64 bytes
 }
 
-struct GetWorkerInfoListTOptions {}
-struct GetWorkerInfoListTResponse {
-  1: list<WorkerInfo> workerInfoList
-}
-
 enum WorkerRange {
   ALL
   LIVE
@@ -68,7 +53,7 @@ enum WorkerRange {
   SPECIFIED
 }
 
-enum ReportWorkerInfoField {
+enum WorkerInfoField {
   ADDRESS
   CAPACITY_BYTES
   CAPACITY_BYTES_ON_TIERS
@@ -79,7 +64,7 @@ enum ReportWorkerInfoField {
   USED_BYTES_ON_TIERS
 }
 
-struct  ReportWorkerInfo {
+struct WorkerInfo {
   1: common.WorkerNetAddress address
   2: i64 capacityBytes
   3: map<string, i64> capacityBytesOnTiers;
@@ -90,15 +75,15 @@ struct  ReportWorkerInfo {
   8: map<string, i64> usedBytesOnTiers;
 }
 
-struct GetWorkerReportTOptions {
+struct GetWorkerInfoListTOptions {
   /** addresses are only valid when workerRange is specified */
   1: optional set<string> addresses
-  2: optional set<ReportWorkerInfoField>  fieldRange
+  2: optional set<WorkerInfoField>  fieldRange
   3: optional WorkerRange workerRange
 }
 
-struct GetWorkerReportTResponse {
-  1: list<ReportWorkerInfo> reportWorkerInfoList
+struct GetWorkerInfoListTResponse {
+  1: list<WorkerInfo> workerInfoList
 }
 
 /**
@@ -141,13 +126,6 @@ service BlockMasterClientService extends common.AlluxioService {
    */
   GetWorkerInfoListTResponse getWorkerInfoList(
     /** the method options */ 1: GetWorkerInfoListTOptions options,
-  ) throws (1: exception.AlluxioTException e)
-
-  /**
-   * Returns a list of report workers information.
-   */
-  GetWorkerReportTResponse getWorkerReport(
-    /** the method options */ 1: GetWorkerReportTOptions options,
   ) throws (1: exception.AlluxioTException e)
 }
 

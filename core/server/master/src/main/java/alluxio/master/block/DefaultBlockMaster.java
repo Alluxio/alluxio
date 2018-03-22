@@ -16,6 +16,8 @@ import alluxio.Constants;
 import alluxio.MasterStorageTierAssoc;
 import alluxio.PropertyKey;
 import alluxio.StorageTierAssoc;
+import alluxio.client.block.options.WorkerInfoOptions;
+import alluxio.client.block.options.WorkerInfoOptions.WorkerRange;
 import alluxio.clock.SystemClock;
 import alluxio.collections.ConcurrentHashSet;
 import alluxio.collections.IndexDefinition;
@@ -43,15 +45,12 @@ import alluxio.thrift.BlockMasterClientService;
 import alluxio.thrift.BlockMasterWorkerService;
 import alluxio.thrift.Command;
 import alluxio.thrift.CommandType;
-import alluxio.thrift.ReportWorkerInfoField;
-import alluxio.thrift.WorkerRange;
 import alluxio.util.CommonUtils;
 import alluxio.util.IdUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.util.executor.ExecutorServiceFactory;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.BlockLocation;
-import alluxio.wire.ReportWorkerInfo;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
 
@@ -291,27 +290,13 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
   }
 
   @Override
-  public List<WorkerInfo> getWorkerInfoList() throws UnavailableException {
-    if (mSafeModeManager.isInSafeMode()) {
-      throw new UnavailableException(ExceptionMessage.MASTER_IN_SAFEMODE.getMessage());
-    }
-    List<WorkerInfo> workerInfoList = new ArrayList<>(mWorkers.size());
-    for (MasterWorkerInfo worker : mWorkers) {
-      synchronized (worker) {
-        workerInfoList.add(worker.generateClientWorkerInfo());
-      }
-    }
-    return workerInfoList;
-  }
-
-  @Override
-  public List<ReportWorkerInfo> getWorkerReport(WorkerRange workerRange,
-      Set<ReportWorkerInfoField> fieldRange, Set<String> addresses)
+  public List<WorkerInfo> getWorkerInfoList(WorkerInfoOptions options)
       throws UnavailableException, InvalidArgumentException {
     if (mSafeModeManager.isInSafeMode()) {
       throw new UnavailableException(ExceptionMessage.MASTER_IN_SAFEMODE.getMessage());
     }
     Set<MasterWorkerInfo> selectedWorkers = null;
+    WorkerRange workerRange = options.getWorkerRange();
     switch (workerRange) {
       case ALL:
         selectedWorkers = new IndexedSet<>(ID_INDEX, ADDRESS_INDEX);
@@ -326,6 +311,7 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
         break;
       case SPECIFIED:
         selectedWorkers = new IndexedSet<>(ID_INDEX, ADDRESS_INDEX);
+        Set<String> addresses = options.getAddresses();
         for (MasterWorkerInfo info : mWorkers) {
           if (addresses.contains(info.getWorkerAddress().getHost())) {
             selectedWorkers.add(info);
@@ -341,10 +327,10 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
         throw new InvalidArgumentException("Unrecognized report worker range: " + workerRange);
     }
 
-    List<ReportWorkerInfo> reportWorkerInfoList = new ArrayList<>(selectedWorkers.size());
+    List<WorkerInfo> reportWorkerInfoList = new ArrayList<>(selectedWorkers.size());
     for (MasterWorkerInfo worker : selectedWorkers) {
       synchronized (worker) {
-        reportWorkerInfoList.add(worker.generateWorkerReport(fieldRange));
+        reportWorkerInfoList.add(worker.generateWorkerInfo(options.getFieldRange()));
       }
     }
     return reportWorkerInfoList;
@@ -378,15 +364,32 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
   }
 
   @Override
-  public List<WorkerInfo> getLostWorkersInfoList() {
-    List<WorkerInfo> ret = new ArrayList<>(mLostWorkers.size());
-    for (MasterWorkerInfo worker : mLostWorkers) {
+  public List<WorkerInfo> getLiveWorkersInfoList() throws UnavailableException {
+    if (mSafeModeManager.isInSafeMode()) {
+      throw new UnavailableException(ExceptionMessage.MASTER_IN_SAFEMODE.getMessage());
+    }
+    List<WorkerInfo> workerInfoList = new ArrayList<>(mWorkers.size());
+    for (MasterWorkerInfo worker : mWorkers) {
       synchronized (worker) {
-        ret.add(worker.generateClientWorkerInfo());
+        workerInfoList.add(worker.generateWorkerInfo(null));
       }
     }
-    Collections.sort(ret, new WorkerInfo.LastContactSecComparator());
-    return ret;
+    return workerInfoList;
+  }
+
+  @Override
+  public List<WorkerInfo> getLostWorkersInfoList() throws UnavailableException {
+    if (mSafeModeManager.isInSafeMode()) {
+      throw new UnavailableException(ExceptionMessage.MASTER_IN_SAFEMODE.getMessage());
+    }
+    List<WorkerInfo> workerInfoList = new ArrayList<>(mLostWorkers.size());
+    for (MasterWorkerInfo worker : mLostWorkers) {
+      synchronized (worker) {
+        workerInfoList.add(worker.generateWorkerInfo(null));
+      }
+    }
+    Collections.sort(workerInfoList, new WorkerInfo.LastContactSecComparator());
+    return workerInfoList;
   }
 
   @Override

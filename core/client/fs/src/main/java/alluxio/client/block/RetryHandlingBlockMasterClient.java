@@ -13,7 +13,7 @@ package alluxio.client.block;
 
 import alluxio.AbstractMasterClient;
 import alluxio.Constants;
-import alluxio.client.block.options.ReportWorkerOptions;
+import alluxio.client.block.options.WorkerInfoOptions;
 import alluxio.master.MasterClientConfig;
 import alluxio.thrift.AlluxioService;
 import alluxio.thrift.BlockMasterClientService;
@@ -21,11 +21,9 @@ import alluxio.thrift.GetBlockInfoTOptions;
 import alluxio.thrift.GetBlockMasterInfoTOptions;
 import alluxio.thrift.GetCapacityBytesTOptions;
 import alluxio.thrift.GetUsedBytesTOptions;
-import alluxio.thrift.GetWorkerInfoListTOptions;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.BlockMasterInfo;
 import alluxio.wire.BlockMasterInfo.BlockMasterInfoField;
-import alluxio.wire.ReportWorkerInfo;
 import alluxio.wire.ThriftUtils;
 import alluxio.wire.WorkerInfo;
 
@@ -79,34 +77,15 @@ public final class RetryHandlingBlockMasterClient extends AbstractMasterClient
     mClient = new BlockMasterClientService.Client(mProtocol);
   }
 
-  /**
-   * Gets the info of a list of workers.
-   *
-   * @return A list of worker info returned by master
-   */
-  public synchronized List<WorkerInfo> getWorkerInfoList() throws IOException {
+  @Override
+  public synchronized List<WorkerInfo> getWorkerInfoList(
+      final WorkerInfoOptions options) throws IOException {
     return retryRPC(new RpcCallable<List<WorkerInfo>>() {
       @Override
       public List<WorkerInfo> call() throws TException {
         List<WorkerInfo> result = new ArrayList<>();
-        for (alluxio.thrift.WorkerInfo workerInfo : mClient
-            .getWorkerInfoList(new GetWorkerInfoListTOptions()).getWorkerInfoList()) {
-          result.add(ThriftUtils.fromThrift(workerInfo));
-        }
-        return result;
-      }
-    });
-  }
-
-  @Override
-  public synchronized List<ReportWorkerInfo> getWorkerReport(
-      final ReportWorkerOptions options) throws IOException {
-    return retryRPC(new RpcCallable<List<ReportWorkerInfo>>() {
-      @Override
-      public List<ReportWorkerInfo> call() throws TException {
-        List<ReportWorkerInfo> result = new ArrayList<>();
-        for (alluxio.thrift.ReportWorkerInfo reportWorkerInfo : mClient
-            .getWorkerReport(options.toThrift()).getReportWorkerInfoList()) {
+        for (alluxio.thrift.WorkerInfo reportWorkerInfo : mClient
+            .getWorkerInfoList(options.toThrift()).getWorkerInfoList()) {
           result.add(ThriftUtils.fromThrift(reportWorkerInfo));
         }
         return result;

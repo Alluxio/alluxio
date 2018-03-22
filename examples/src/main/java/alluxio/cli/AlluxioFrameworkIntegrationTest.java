@@ -16,6 +16,7 @@ import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.client.block.BlockMasterClient;
+import alluxio.client.block.options.WorkerInfoOptions;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
@@ -106,7 +107,7 @@ public final class AlluxioFrameworkIntegrationTest {
               public Boolean apply(Void input) {
                 try {
                   try {
-                    return !client.getWorkerInfoList().isEmpty();
+                    return !client.getWorkerInfoList(WorkerInfoOptions.defaults()).isEmpty();
                   } catch (UnavailableException e) {
                     // block master isn't up yet, keep waiting
                     return false;

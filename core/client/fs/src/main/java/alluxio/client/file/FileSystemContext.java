@@ -15,6 +15,8 @@ import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.client.block.BlockMasterClient;
 import alluxio.client.block.BlockMasterClientPool;
+import alluxio.client.block.options.WorkerInfoOptions;
+import alluxio.client.block.options.WorkerInfoOptions.WorkerInfoField;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.UnavailableException;
 import alluxio.master.MasterInquireClient;
@@ -38,6 +40,8 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -326,7 +330,8 @@ public final class FileSystemContext implements Closeable {
     List<WorkerInfo> infos;
     BlockMasterClient blockMasterClient = mBlockMasterClientPool.acquire();
     try {
-      infos = blockMasterClient.getWorkerInfoList();
+      infos = blockMasterClient.getWorkerInfoList(WorkerInfoOptions.defaults()
+          .setFieldRange(new HashSet<>(Arrays.asList(WorkerInfoField.ADDRESS))));
     } finally {
       mBlockMasterClientPool.release(blockMasterClient);
     }

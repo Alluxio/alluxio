@@ -34,7 +34,6 @@ public class ThriftUtilsTest {
     assertEquals("info.log", ThriftUtils.toThrift(getJobConfInfo()).getOutputFile());
     assertEquals(100L, ThriftUtils.toThrift(getLineageInfo()).getId());
     assertEquals(19998, ThriftUtils.toThrift(getMasterInfo()).getRpcPort());
-    assertEquals(100L, ThriftUtils.toThrift(getReportWorkerInfo()).getUsedBytes());
     assertEquals(TTtlAction.Free.name().toLowerCase(), ThriftUtils.toThrift(TtlAction.FREE).name()
         .toLowerCase());
     assertEquals(100L, ThriftUtils.toThrift(getWorkerInfo()).getUsedBytes());
@@ -52,7 +51,6 @@ public class ThriftUtilsTest {
     assertEquals("info.log", ThriftUtils.fromThrift(getJobConfInfoThrift()).getOutputFile());
     assertEquals(100L, ThriftUtils.fromThrift(getLineageInfoThrift()).getId());
     assertEquals(19998, ThriftUtils.fromThrift(getMasterInfoThrift()).getRpcPort());
-    assertEquals(100L, ThriftUtils.fromThrift(getReportWorkerInfoThrift()).getUsedBytes());
     assertEquals(TtlAction.FREE.name().toLowerCase(), ThriftUtils.fromThrift(TTtlAction.Free)
         .name().toLowerCase());
     assertEquals(100L, ThriftUtils.fromThrift(getWorkerInfoThrift()).getUsedBytes());
@@ -164,18 +162,6 @@ public class ThriftUtilsTest {
 
   private alluxio.thrift.MasterInfo getMasterInfoThrift() {
     return new alluxio.thrift.MasterInfo().setRpcPort(19998);
-  }
-
-  private ReportWorkerInfo getReportWorkerInfo() {
-    ReportWorkerInfo w = new ReportWorkerInfo();
-    w.setUsedBytes(100L);
-    w.setAddress(getWorkerNetAddress());
-    return w;
-  }
-
-  private alluxio.thrift.ReportWorkerInfo getReportWorkerInfoThrift() {
-    return new alluxio.thrift.ReportWorkerInfo().setUsedBytes(100L).setAddress(
-        getWorkerNetAddressThrift());
   }
 
   private WorkerInfo getWorkerInfo() {

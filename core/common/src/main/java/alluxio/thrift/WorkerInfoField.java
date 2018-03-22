@@ -11,7 +11,7 @@ import java.util.Map;
 import java.util.HashMap;
 import org.apache.thrift.TEnum;
 
-public enum ReportWorkerInfoField implements org.apache.thrift.TEnum {
+public enum WorkerInfoField implements org.apache.thrift.TEnum {
   ADDRESS(0),
   CAPACITY_BYTES(1),
   CAPACITY_BYTES_ON_TIERS(2),
@@ -23,7 +23,7 @@ public enum ReportWorkerInfoField implements org.apache.thrift.TEnum {
 
   private final int value;
 
-  private ReportWorkerInfoField(int value) {
+  private WorkerInfoField(int value) {
     this.value = value;
   }
 
@@ -38,7 +38,7 @@ public enum ReportWorkerInfoField implements org.apache.thrift.TEnum {
    * Find a the enum type by its integer value, as defined in the Thrift IDL.
    * @return null if the value is not found.
    */
-  public static ReportWorkerInfoField findByValue(int value) { 
+  public static WorkerInfoField findByValue(int value) { 
     switch (value) {
       case 0:
         return ADDRESS;

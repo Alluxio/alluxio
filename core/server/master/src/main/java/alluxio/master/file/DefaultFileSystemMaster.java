@@ -3514,7 +3514,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
 
   @Override
   public List<WorkerInfo> getWorkerInfoList() throws UnavailableException {
-    return mBlockMaster.getWorkerInfoList();
+    return mBlockMaster.getLiveWorkersInfoList();
   }
 
   @Override

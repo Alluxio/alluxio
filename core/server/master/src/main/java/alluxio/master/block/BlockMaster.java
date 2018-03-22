@@ -12,16 +12,14 @@
 package alluxio.master.block;
 
 import alluxio.StorageTierAssoc;
+import alluxio.client.block.options.WorkerInfoOptions;
 import alluxio.exception.BlockInfoException;
 import alluxio.exception.NoWorkerException;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.master.Master;
 import alluxio.thrift.Command;
-import alluxio.thrift.ReportWorkerInfoField;
-import alluxio.thrift.WorkerRange;
 import alluxio.wire.BlockInfo;
-import alluxio.wire.ReportWorkerInfo;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
 
@@ -45,20 +43,12 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
   int getLostWorkerCount();
 
   /**
+   * Gets the worker information list.
+   *
+   * @param options the WorkerInfoOptions defines the info range
    * @return a list of {@link WorkerInfo} objects representing the workers in Alluxio
    */
-  List<WorkerInfo> getWorkerInfoList() throws UnavailableException;
-
-  /**
-   * Gets the report worker information list.
-   *
-   * @param workerRange the client selected worker range
-   * @param fieldRange the client selected fields
-   * @param addresses the specified worker addresses if workerRange is SPECIFIED
-   * @return a list of {@link ReportWorkerInfo} objects representing the workers in Alluxio
-   */
-  List<ReportWorkerInfo> getWorkerReport(WorkerRange workerRange,
-      Set<ReportWorkerInfoField> fieldRange, Set<String> addresses)
+  List<WorkerInfo> getWorkerInfoList(WorkerInfoOptions options)
       throws UnavailableException, InvalidArgumentException;
 
   /**
@@ -77,9 +67,14 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
   long getUsedBytes();
 
   /**
+   * @return a list of {@link WorkerInfo}s of live workers
+   */
+  List<WorkerInfo> getLiveWorkersInfoList() throws UnavailableException;
+
+  /**
    * @return a list of {@link WorkerInfo}s of lost workers
    */
-  List<WorkerInfo> getLostWorkersInfoList();
+  List<WorkerInfo> getLostWorkersInfoList() throws UnavailableException;
 
   /**
    * Removes blocks from workers.

@@ -14,9 +14,8 @@ package alluxio.master.block.meta;
 import alluxio.Constants;
 import alluxio.StorageTierAssoc;
 import alluxio.WorkerStorageTierAssoc;
-import alluxio.thrift.ReportWorkerInfoField;
+import alluxio.client.block.options.WorkerInfoOptions.WorkerInfoField;
 import alluxio.util.CommonUtils;
-import alluxio.wire.ReportWorkerInfo;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
 
@@ -175,29 +174,16 @@ public final class MasterWorkerInfo {
   }
 
   /**
-   * @return generated {@link WorkerInfo} for this worker
-   */
-  public WorkerInfo generateClientWorkerInfo() {
-    return new WorkerInfo()
-        .setId(mId)
-        .setAddress(mWorkerAddress)
-        .setLastContactSec(
-            (int) ((CommonUtils.getCurrentMs() - mLastUpdatedTimeMs) / Constants.SECOND_MS))
-        .setState("In Service").setCapacityBytes(mCapacityBytes).setUsedBytes(mUsedBytes)
-        .setStartTimeMs(mStartTimeMs);
-  }
-
-  /**
    * Gets the selected field information for this worker.
    *
    * @param fieldRange the client selected fields
-   * @return generated report worker information
+   * @return generated worker information
    */
-  public ReportWorkerInfo generateWorkerReport(
-      Set<ReportWorkerInfoField> fieldRange) {
-    ReportWorkerInfo info = new ReportWorkerInfo();
-    for (ReportWorkerInfoField field : fieldRange != null ? fieldRange
-        : Arrays.asList(ReportWorkerInfoField.values())) {
+  public WorkerInfo generateWorkerInfo(
+      Set<WorkerInfoField> fieldRange) {
+    WorkerInfo info = new WorkerInfo();
+    for (WorkerInfoField field : fieldRange != null ? fieldRange
+        : Arrays.asList(WorkerInfoField.values())) {
       switch (field) {
         case ADDRESS:
           info.setAddress(mWorkerAddress);
