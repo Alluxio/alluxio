@@ -553,7 +553,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       }
 
       // Startup Checks and Periodic Threads.
-      if (Configuration.getBoolean(PropertyKey.MASTER_STARTUP_BLOCK_CHECK_ENABLED)) {
+      if (Configuration.getBoolean(PropertyKey.MASTER_STARTUP_BLOCK_INTEGRITY_CHECK_ENABLED)) {
         validateInodeBlocks(true);
       }
       if (Configuration.getBoolean(PropertyKey.MASTER_PERIODIC_BLOCK_INTEGRITY_CHECK_ENABLED)) {

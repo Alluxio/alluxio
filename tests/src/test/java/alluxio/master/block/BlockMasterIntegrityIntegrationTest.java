@@ -37,7 +37,7 @@ public class BlockMasterIntegrityIntegrationTest {
   @Rule
   public LocalAlluxioClusterResource mClusterResource =
       new LocalAlluxioClusterResource.Builder()
-          .setProperty(PropertyKey.MASTER_STARTUP_BLOCK_CHECK_ENABLED, true)
+          .setProperty(PropertyKey.MASTER_STARTUP_BLOCK_INTEGRITY_CHECK_ENABLED, true)
           .build();
   private LocalAlluxioCluster mCluster;
 
