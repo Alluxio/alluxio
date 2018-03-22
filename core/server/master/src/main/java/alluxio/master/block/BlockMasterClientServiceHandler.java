@@ -166,12 +166,12 @@ public final class BlockMasterClientServiceHandler implements BlockMasterClientS
       @Override
       public GetWorkerInfoListTResponse call()
           throws AlluxioException, AlluxioStatusException {
-        List<WorkerInfo> reportWorkerInfos = new ArrayList<>();
+        List<WorkerInfo> workerInfos = new ArrayList<>();
         for (alluxio.wire.WorkerInfo workerInfo :
             mBlockMaster.getWorkerInfoList(new WorkerInfoOptions(options))) {
-          reportWorkerInfos.add(ThriftUtils.toThrift(workerInfo));
+          workerInfos.add(ThriftUtils.toThrift(workerInfo));
         }
-        return new GetWorkerInfoListTResponse(reportWorkerInfos);
+        return new GetWorkerInfoListTResponse(workerInfos);
       }
 
       @Override

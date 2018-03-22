@@ -210,7 +210,7 @@ public final class MasterWorkerInfo {
           info.setUsedBytesOnTiers(mUsedBytesOnTiers);
           break;
         default:
-          LOG.warn("Unrecognized report worker info field: " + field);
+          LOG.warn("Unrecognized worker info field: " + field);
       }
     }
     return info;
