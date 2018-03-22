@@ -101,10 +101,10 @@ public final class FlakyUfsIntegrationTest extends BaseIntegrationTest {
         deleted++;
       }
     }
-    // It's a coin flip whether each delete succeeds. With high likelihood, between 20 and 80
-    // deletes should succeed.
-    assertThat(deleted, Matchers.greaterThan(20));
-    assertThat(deleted, Matchers.lessThan(80));
+    // It's a coin flip whether each delete succeeds. With extremely high likelihood, between 10 and
+    // 90 deletes should succeed.
+    assertThat(deleted, Matchers.greaterThan(10));
+    assertThat(deleted, Matchers.lessThan(90));
     mFs.free(new AlluxioURI("/"), FreeOptions.defaults().setRecursive(true));
     BlockMasterClient blockClient = BlockMasterClient.Factory.create(MasterClientConfig.defaults());
     CommonUtils.waitFor("data to be freed", (x) -> {
