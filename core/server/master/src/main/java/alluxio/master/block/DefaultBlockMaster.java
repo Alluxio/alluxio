@@ -387,14 +387,13 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
     List<Long> invalidBlocks = new ArrayList<>();
     for (long blockId : mBlocks.keySet()) {
       if (!validator.apply(blockId)) {
-        LOG.debug("Block {} has no corresponding file metadata, marked as invalid.", blockId);
+        LOG.warn("Block {} has no corresponding file metadata. Restart Alluxio with the startup "
+            + "block integrity check enabled to delete the block and repair the system.", blockId);
         invalidBlocks.add(blockId);
       }
     }
-    if (!invalidBlocks.isEmpty()) {
-      LOG.warn("Discovered {} invalid blocks. Deleting them: {}", invalidBlocks.size(), repair);
-    }
-    if (repair) {
+    if (repair && !invalidBlocks.isEmpty()) {
+      LOG.warn("Deleting {} invalid blocks.", invalidBlocks.size());
       removeBlocks(invalidBlocks, true);
     }
   }
