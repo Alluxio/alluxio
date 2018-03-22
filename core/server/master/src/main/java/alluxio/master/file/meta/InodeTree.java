@@ -25,7 +25,7 @@ import alluxio.exception.InvalidPathException;
 import alluxio.exception.PreconditionMessage;
 import alluxio.exception.status.UnavailableException;
 import alluxio.master.block.ContainerIdGenerable;
-import alluxio.master.file.BlockDeletionContext;
+import alluxio.master.file.RpcContext;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
 import alluxio.master.file.options.CreatePathOptions;
@@ -785,16 +785,14 @@ public class InodeTree implements JournalEntryIterable {
   /**
    * Deletes a single inode from the inode tree by removing it from the parent inode.
    *
-   * @param inodePath The {@link LockedInodePath} to delete
-   * @param opTimeMs The operation time
+   * @param rpcContext the rpc context
+   * @param inodePath the {@link LockedInodePath} to delete
+   * @param opTimeMs the operation time
    * @param deleteOptions the delete options
-   * @param journalContext the journal context
-   * @param blockDeletionContext the block deletion context
    * @throws FileDoesNotExistException if the Inode cannot be retrieved
    */
-  public void deleteInode(LockedInodePath inodePath, long opTimeMs, DeleteOptions deleteOptions,
-      JournalContext journalContext, BlockDeletionContext blockDeletionContext)
-      throws FileDoesNotExistException {
+  public void deleteInode(RpcContext rpcContext, LockedInodePath inodePath, long opTimeMs,
+      DeleteOptions deleteOptions) throws FileDoesNotExistException {
     Inode<?> inode = inodePath.getInode();
     InodeDirectory parent = (InodeDirectory) mInodes.getFirst(inode.getParentId());
     if (parent == null) {
@@ -808,10 +806,12 @@ public class InodeTree implements JournalEntryIterable {
         .setAlluxioOnly(deleteOptions.isAlluxioOnly())
         .setRecursive(deleteOptions.isRecursive())
         .setOpTimeMs(opTimeMs).build();
-    journalContext.append(Journal.JournalEntry.newBuilder().setDeleteFile(deleteFile).build());
+    rpcContext.getJournalContext()
+        .append(Journal.JournalEntry.newBuilder().setDeleteFile(deleteFile).build());
 
     if (inode.isFile()) {
-      blockDeletionContext.registerBlocksForDeletion(((InodeFile) inode).getBlockIds());
+      rpcContext.getBlockDeletionContext()
+          .registerBlocksForDeletion(((InodeFile) inode).getBlockIds());
     }
 
     parent.removeChild(inode);
