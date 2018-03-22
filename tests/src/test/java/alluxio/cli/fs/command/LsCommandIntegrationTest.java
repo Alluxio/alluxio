@@ -19,7 +19,7 @@ import alluxio.client.file.FileSystemTestUtils;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.SetAttributeOptions;
 import alluxio.exception.AlluxioException;
-import alluxio.cli.fs.AbstractAlluxioShellTest;
+import alluxio.cli.fs.AbstractFileSystemShellTest;
 import alluxio.cli.fs.FileSystemShellUtilsTest;
 import alluxio.master.file.meta.PersistenceState;
 import alluxio.util.CommonUtils;
@@ -33,7 +33,7 @@ import java.io.IOException;
 /**
  * Tests for ls command.
  */
-public final class LsCommandIntegrationTest extends AbstractAlluxioShellTest {
+public final class LsCommandIntegrationTest extends AbstractFileSystemShellTest {
   private static final String STATE_FILE_IN_ALLUXIO = "100%";
   private static final String STATE_FILE_NOT_IN_ALLUXIO = "0%";
 

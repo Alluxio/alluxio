@@ -18,7 +18,7 @@ import alluxio.client.WriteType;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.exception.AlluxioException;
 import alluxio.security.group.GroupMappingService;
-import alluxio.cli.fs.AbstractAlluxioShellTest;
+import alluxio.cli.fs.AbstractFileSystemShellTest;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
@@ -34,7 +34,7 @@ import java.util.List;
 /**
  * Tests for chown command.
  */
-public final class ChownCommandIntegrationTest extends AbstractAlluxioShellTest {
+public final class ChownCommandIntegrationTest extends AbstractFileSystemShellTest {
   /*
    * The user and group mappings for testing are:
    *    alice -> alice,staff

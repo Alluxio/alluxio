@@ -13,7 +13,7 @@ package alluxio.cli.fs.command;
 
 import alluxio.client.WriteType;
 import alluxio.client.file.FileSystemTestUtils;
-import alluxio.cli.fs.AbstractAlluxioShellTest;
+import alluxio.cli.fs.AbstractFileSystemShellTest;
 import alluxio.cli.fs.FileSystemShellUtilsTest;
 import alluxio.util.io.BufferUtils;
 
@@ -25,7 +25,7 @@ import java.io.IOException;
 /**
  * Tests for tail command.
  */
-public final class TailCommandIntegrationTest extends AbstractAlluxioShellTest {
+public final class TailCommandIntegrationTest extends AbstractFileSystemShellTest {
   @Test
   public void tailEmptyFile() throws Exception {
     FileSystemTestUtils.createByteFile(mFileSystem, "/emptyFile", WriteType.MUST_CACHE, 0);

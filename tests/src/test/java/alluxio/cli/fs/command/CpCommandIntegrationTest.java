@@ -18,7 +18,7 @@ import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.OpenFileOptions;
-import alluxio.cli.fs.AbstractAlluxioShellTest;
+import alluxio.cli.fs.AbstractFileSystemShellTest;
 import alluxio.cli.fs.FileSystemShellUtilsTest;
 import alluxio.util.io.BufferUtils;
 
@@ -33,7 +33,7 @@ import java.io.FileOutputStream;
 /**
  * Tests for cp command.
  */
-public final class CpCommandIntegrationTest extends AbstractAlluxioShellTest {
+public final class CpCommandIntegrationTest extends AbstractFileSystemShellTest {
 
   /**
    * Tests copying a file to a new location.

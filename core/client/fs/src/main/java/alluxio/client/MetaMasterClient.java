@@ -19,12 +19,12 @@ import java.io.IOException;
 import java.util.Set;
 
 /**
- * Interface for a client to the meta master.
+ * Interface for a meta master client.
  */
 public interface MetaMasterClient extends Closeable {
   /**
    * @param masterInfoFields optional list of fields to query; if null all fields will be queried
    * @return the requested master info
    */
-  MasterInfo getInfo(Set<MasterInfoField> masterInfoFields) throws IOException;
+  MasterInfo getMasterInfo(Set<MasterInfoField> masterInfoFields) throws IOException;
 }

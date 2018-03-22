@@ -17,7 +17,7 @@ import alluxio.client.WriteType;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.CreateDirectoryOptions;
-import alluxio.cli.fs.AbstractAlluxioShellTest;
+import alluxio.cli.fs.AbstractFileSystemShellTest;
 import alluxio.underfs.ConfExpectingUnderFileSystemFactory;
 import alluxio.util.io.BufferUtils;
 import alluxio.util.io.PathUtils;
@@ -35,7 +35,7 @@ import java.nio.file.Paths;
 /**
  * Tests for mount command.
  */
-public final class MountCommandTest extends AbstractAlluxioShellTest {
+public final class MountCommandTest extends AbstractFileSystemShellTest {
   @Rule
   public TemporaryFolder mFolder = new TemporaryFolder();
 

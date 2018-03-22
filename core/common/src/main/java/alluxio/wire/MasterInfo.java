@@ -18,29 +18,146 @@ import java.io.Serializable;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * Information about the Alluxio master.
+ * The information of the Alluxio leader master.
  */
 @NotThreadSafe
 public final class MasterInfo implements Serializable {
   private static final long serialVersionUID = 5846173765139223974L;
 
+  private String mMasterAddress;
+  private int mRpcPort;
+  private boolean mSafeMode;
+  private long mStartTimeMs;
+  private long mUpTimeMs;
+  private String mVersion;
   private int mWebPort;
 
   /**
-   * Creates a {@link MasterInfo} with all fields set to default values.
+   * Creates a new instance of {@link MasterInfo}.
    */
   public MasterInfo() {}
 
   /**
-   * @return the master web port
+   * Creates a new instance of {@link MasterInfo} from a thrift representation.
+   *
+   * @param masterInfo the thrift representation of alluxio master information
+   */
+  protected MasterInfo(alluxio.thrift.MasterInfo masterInfo) {
+    mMasterAddress = masterInfo.getMasterAddress();
+    mRpcPort = masterInfo.getRpcPort();
+    mSafeMode = masterInfo.isSafeMode();
+    mStartTimeMs = masterInfo.getStartTimeMs();
+    mUpTimeMs = masterInfo.getUpTimeMs();
+    mVersion = masterInfo.getVersion();
+    mWebPort = masterInfo.getWebPort();
+  }
+
+  /**
+   * @return the master address
+   */
+  public String getMasterAddress() {
+    return mMasterAddress;
+  }
+
+  /**
+   * @return the rpc port
+   */
+  public int getRpcPort() {
+    return mRpcPort;
+  }
+
+  /**
+   * @return if the cluster is running in safe mode
+   */
+  public boolean isSafeMode() {
+    return mSafeMode;
+  }
+
+  /**
+   * @return the cluster start time (in milliseconds)
+   */
+  public long getStartTimeMs() {
+    return mStartTimeMs;
+  }
+
+  /**
+   * @return the cluster uptime (in milliseconds)
+   */
+  public long getUpTimeMs() {
+    return mUpTimeMs;
+  }
+
+  /**
+   * @return the runtime version
+   */
+  public String getVersion() {
+    return mVersion;
+  }
+
+  /**
+   * @return the web port
    */
   public int getWebPort() {
     return mWebPort;
   }
 
   /**
-   * @param webPort the web port to set
-   * @return the updated master info object
+   * @param masterAddress the master address to use
+   * @return the master information
+   */
+  public MasterInfo setMasterAddress(String masterAddress) {
+    mMasterAddress = masterAddress;
+    return this;
+  }
+
+  /**
+   * @param rpcPort the master address to use
+   * @return the master information
+   */
+  public MasterInfo setRpcPort(int rpcPort) {
+    mRpcPort = rpcPort;
+    return this;
+  }
+
+  /**
+   * @param safeMode whether Alluxio is in safe mode or not
+   * @return the master information
+   */
+  public MasterInfo setSafeMode(boolean safeMode) {
+    mSafeMode = safeMode;
+    return this;
+  }
+
+  /**
+   * @param startTimeMs the start time in milliseconds to use
+   * @return the master information
+   */
+  public MasterInfo setStartTimeMs(long startTimeMs) {
+    mStartTimeMs = startTimeMs;
+    return this;
+  }
+
+  /**
+   * @param upTimeMs the up time in milliseconds to use
+   * @return the master information
+   */
+  public MasterInfo setUpTimeMs(long upTimeMs) {
+    mUpTimeMs = upTimeMs;
+    return this;
+  }
+
+  /**
+   * @param version the version to use
+   * @return the master information
+   */
+  public MasterInfo setVersion(String version) {
+    mVersion = version;
+    return this;
+  }
+
+  /**
+   * @param webPort the web port to use
+   * @return the master information
    */
   public MasterInfo setWebPort(int webPort) {
     mWebPort = webPort;
@@ -50,16 +167,9 @@ public final class MasterInfo implements Serializable {
   /**
    * @return thrift representation of the master information
    */
-  public alluxio.thrift.MasterInfo toThrift() {
-    return new alluxio.thrift.MasterInfo().setWebPort(mWebPort);
-  }
-
-  /**
-   * @param info the thrift master info to create a wire master info from
-   * @return the wire type version of the master info
-   */
-  public static MasterInfo fromThrift(alluxio.thrift.MasterInfo info) {
-    return new MasterInfo().setWebPort(info.getWebPort());
+  protected alluxio.thrift.MasterInfo toThrift() {
+    return new alluxio.thrift.MasterInfo(mMasterAddress, mRpcPort, mSafeMode,
+        mStartTimeMs, mUpTimeMs, mVersion, mWebPort);
   }
 
   @Override
@@ -71,25 +181,36 @@ public final class MasterInfo implements Serializable {
       return false;
     }
     MasterInfo that = (MasterInfo) o;
-    return Objects.equal(mWebPort, that.mWebPort);
+    return mMasterAddress.equals(that.mMasterAddress) && mRpcPort == that.mRpcPort
+        && mSafeMode == that.mSafeMode && mStartTimeMs == that.mStartTimeMs
+        && mUpTimeMs == that.mUpTimeMs && mVersion.equals(that.mVersion)
+        && mWebPort == that.mWebPort;
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mWebPort);
+    return Objects.hashCode(mMasterAddress, mRpcPort, mSafeMode,
+        mStartTimeMs, mUpTimeMs, mVersion, mWebPort);
   }
 
   @Override
   public String toString() {
-    return Objects.toStringHelper(this)
-        .add("webPort", mWebPort)
-        .toString();
+    return Objects.toStringHelper(this).add("masterAddress", mMasterAddress)
+        .add("rpcPort", mRpcPort).add("safeMode", mSafeMode)
+        .add("startTimeMs", mStartTimeMs).add("upTimeMs", mUpTimeMs)
+        .add("version", mVersion).add("webPort", mWebPort).toString();
   }
 
   /**
    * Enum representing the fields of the master info.
    */
   public static enum MasterInfoField {
+    MASTER_ADDRESS,
+    RPC_PORT,
+    SAFE_MODE,
+    START_TIME_MS,
+    UP_TIME_MS,
+    VERSION,
     WEB_PORT;
 
     /**

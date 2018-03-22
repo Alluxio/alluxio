@@ -19,7 +19,7 @@ import alluxio.client.WriteType;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.client.file.URIStatus;
 import alluxio.exception.AlluxioException;
-import alluxio.cli.fs.AbstractAlluxioShellTest;
+import alluxio.cli.fs.AbstractFileSystemShellTest;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -29,7 +29,7 @@ import java.io.IOException;
 /**
  * Tests for load command.
  */
-public final class LoadCommandIntegrationTest extends AbstractAlluxioShellTest {
+public final class LoadCommandIntegrationTest extends AbstractFileSystemShellTest {
   @Test
   public void loadDir() throws IOException, AlluxioException {
     FileSystemTestUtils.createByteFile(mFileSystem, "/testRoot/testFileA", WriteType.THROUGH, 10);

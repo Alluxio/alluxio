@@ -17,14 +17,14 @@ import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileSystemTestUtils;
-import alluxio.cli.fs.AbstractAlluxioShellTest;
+import alluxio.cli.fs.AbstractFileSystemShellTest;
 
 import org.junit.Test;
 
 /**
  * Test for unsetTtl command.
  */
-public final class UnsetTtlTest extends AbstractAlluxioShellTest {
+public final class UnsetTtlTest extends AbstractFileSystemShellTest {
   @Test
   public void unsetTtl() throws Exception {
     String filePath = "/testFile";

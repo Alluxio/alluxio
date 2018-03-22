@@ -14,7 +14,7 @@ package alluxio.cli.fs.command;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.exception.ExceptionMessage;
-import alluxio.cli.fs.AbstractAlluxioShellTest;
+import alluxio.cli.fs.AbstractFileSystemShellTest;
 import alluxio.util.io.BufferUtils;
 
 import org.apache.commons.codec.digest.DigestUtils;
@@ -24,7 +24,7 @@ import org.junit.Test;
 /**
  * Tests checksum command.
  */
-public final class ChecksumCommandIntegrationTest extends AbstractAlluxioShellTest {
+public final class ChecksumCommandIntegrationTest extends AbstractFileSystemShellTest {
 
   /**
    * Tests md5 checksum calculation.
