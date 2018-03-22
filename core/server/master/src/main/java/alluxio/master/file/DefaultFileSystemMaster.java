@@ -138,7 +138,6 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterators;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.thrift.TProcessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -476,7 +475,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       } catch (AlluxioException e) {
         // It's possible that rescheduling the async persist calls fails, because the blocks may no
         // longer be in the memory
-        LOG.error(e.getMessage());
+        LOG.error("Failed to process async persist request.", e);
       }
     } else {
       throw new IOException(ExceptionMessage.UNEXPECTED_JOURNAL_ENTRY.getMessage(entry));
@@ -1301,7 +1300,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         ufs = mUfsManager.get(mountInfo.getMountId()).getUfs();
       } catch (UnavailableException | NotFoundException e) {
         // We should never reach here
-        LOG.error(String.format("No UFS cached for %s", info), e);
+        LOG.error("No UFS cached for {}", info, e);
         continue;
       }
       info.setUfsType(ufs.getUnderFSType());
@@ -2474,7 +2473,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         }
       }
     } catch (IOException e) {
-      LOG.error(ExceptionUtils.getStackTrace(e));
+      LOG.error("Failed to loadMetadataAndJournal: inodePath={}, options={}.", inodePath.getUri(),
+          options, e);
       throw e;
     }
   }
@@ -3139,7 +3139,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
             deletedInode = true;
           } catch (DirectoryNotEmptyException | IOException e) {
             // Should not happen, since it is an unchecked delete.
-            LOG.error("Unexpected error for unchecked delete. error: {}", e.toString());
+            LOG.error("Unexpected error for unchecked delete.", e);
           }
         }
         if (syncPlan.toLoadMetadata()) {
@@ -3150,8 +3150,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         }
       }
     } catch (Exception e) {
-      LOG.error("Failed to remove out-of-sync metadata for path: {} error: {}", inodePath.getUri(),
-          e.toString());
+      LOG.error("Failed to remove out-of-sync metadata for path: {}", inodePath.getUri(), e);
       return false;
     } finally {
       if (deletedInode) {
@@ -3170,8 +3169,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       } catch (Exception e) {
         // This may be expected. For example, when creating a new file, the UFS file is not
         // expected to exist.
-        LOG.debug("Failed to load metadata for path: {} error: {}", inodePath.getUri(),
-            e.toString());
+        LOG.debug("Failed to load metadata for path: {}", inodePath.getUri(), e);
         return false;
       }
     }
