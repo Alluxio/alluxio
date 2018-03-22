@@ -329,6 +329,12 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
   @SuppressFBWarnings("URF_UNREAD_FIELD")
   private Future<?> mLostFilesDetectionService;
 
+  /**
+   * The service that checks for blocks which no longer correspond to existing inodes.
+   */
+  @SuppressFBWarnings("URF_UNREAD_FIELD")
+  private Future<?> mBlockIntegrityCheck;
+
   private Future<List<AlluxioURI>> mStartupConsistencyCheck;
 
   /**
@@ -344,7 +350,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    */
   DefaultFileSystemMaster(BlockMaster blockMaster, MasterContext masterContext) {
     this(blockMaster, masterContext, ExecutorServiceFactories
-        .fixedThreadPoolExecutorServiceFactory(Constants.FILE_SYSTEM_MASTER_NAME, 3));
+        .fixedThreadPoolExecutorServiceFactory(Constants.FILE_SYSTEM_MASTER_NAME, 4));
   }
 
   /**
@@ -546,6 +552,18 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         }
       }
 
+      // Startup Checks and Periodic Threads.
+      if (Configuration.getBoolean(PropertyKey.MASTER_STARTUP_BLOCK_INTEGRITY_CHECK_ENABLED)) {
+        validateInodeBlocks(true);
+      }
+
+      int blockIntegrityCheckInterval =
+          (int) Configuration.getMs(PropertyKey.MASTER_PERIODIC_BLOCK_INTEGRITY_CHECK_INTERVAL);
+      if (blockIntegrityCheckInterval > 0) { // negative or zero interval implies disabled
+        mBlockIntegrityCheck = getExecutorService().submit(
+            new HeartbeatThread(HeartbeatContext.MASTER_BLOCK_INTEGRITY_CHECK,
+                new BlockIntegrityChecker(this), blockIntegrityCheckInterval));
+      }
       mTtlCheckerService = getExecutorService().submit(
           new HeartbeatThread(HeartbeatContext.MASTER_TTL_CHECK,
               new InodeTtlChecker(this, mInodeTree, mTtlBuckets),
@@ -573,6 +591,24 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       mAsyncAuditLogWriter = null;
     }
     super.stop();
+  }
+
+  @Override
+  public void validateInodeBlocks(boolean repair) throws UnavailableException {
+    mBlockMaster.validateBlocks((blockId) -> {
+      long fileId = IdUtils.fileIdFromBlockId(blockId);
+      boolean exists = mInodeTree.inodeIdExists(fileId);
+      if (!exists) {
+        if (repair) {
+          LOG.warn("Block {} has no corresponding file metadata. Attempting to repair.", blockId);
+        } else {
+          LOG.warn("Block {} has no corresponding file metadata. Restart Alluxio master with "
+              + "{}=true to delete the block and repair the system.",
+              blockId, PropertyKey.Name.MASTER_STARTUP_BLOCK_INTEGRITY_CHECK_ENABLED);
+        }
+      }
+      return exists;
+    }, repair);
   }
 
   /**

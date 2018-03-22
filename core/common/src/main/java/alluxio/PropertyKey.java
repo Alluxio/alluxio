@@ -753,6 +753,17 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("The path to the log that the recompute executor redirects the "
               + "job's stdout into.")
           .build();
+  public static final PropertyKey MASTER_PERIODIC_BLOCK_INTEGRITY_CHECK_REPAIR =
+      new Builder(Name.MASTER_PERIODIC_BLOCK_INTEGRITY_CHECK_REPAIR)
+          .setDefaultValue(false)
+          .setDescription("Whether the system should delete orphaned blocks found during the "
+              + "periodic integrity check. This is an experimental feature.")
+          .build();
+  public static final PropertyKey MASTER_PERIODIC_BLOCK_INTEGRITY_CHECK_INTERVAL =
+      new Builder(Name.MASTER_PERIODIC_BLOCK_INTEGRITY_CHECK_INTERVAL)
+          .setDefaultValue("1hr")
+          .setDescription("The period for the block integrity check, disabled if <= 0.")
+          .build();
   public static final PropertyKey MASTER_PRINCIPAL = new Builder(Name.MASTER_PRINCIPAL)
       .setDescription("Kerberos principal for Alluxio master.")
       .build();
@@ -780,6 +791,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "long for the thrift serving thread to stop before giving up and shutting down "
               + "the server")
           .setIsHidden(true)
+          .build();
+  public static final PropertyKey MASTER_STARTUP_BLOCK_INTEGRITY_CHECK_ENABLED =
+      new Builder(Name.MASTER_STARTUP_BLOCK_INTEGRITY_CHECK_ENABLED)
+          .setDefaultValue(false)
+          .setDescription("Whether the system should be checked for orphaned blocks on startup. "
+              + "Orphaned blocks will be deleted.")
           .build();
   public static final PropertyKey MASTER_STARTUP_CONSISTENCY_CHECK_ENABLED =
       new Builder(Name.MASTER_STARTUP_CONSISTENCY_CHECK_ENABLED)
@@ -2265,11 +2282,17 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.lineage.recompute.interval";
     public static final String MASTER_LINEAGE_RECOMPUTE_LOG_PATH =
         "alluxio.master.lineage.recompute.log.path";
+    public static final String MASTER_PERIODIC_BLOCK_INTEGRITY_CHECK_REPAIR =
+        "alluxio.master.periodic.block.integrity.check.repair";
+    public static final String MASTER_PERIODIC_BLOCK_INTEGRITY_CHECK_INTERVAL =
+        "alluxio.master.periodic.block.integrity.check.interval";
     public static final String MASTER_PRINCIPAL = "alluxio.master.principal";
     public static final String MASTER_RETRY = "alluxio.master.retry";
     public static final String MASTER_RPC_PORT = "alluxio.master.port";
     public static final String MASTER_SERVING_THREAD_TIMEOUT =
         "alluxio.master.serving.thread.timeout";
+    public static final String MASTER_STARTUP_BLOCK_INTEGRITY_CHECK_ENABLED =
+        "alluxio.master.startup.block.integrity.check.enabled";
     public static final String MASTER_STARTUP_CONSISTENCY_CHECK_ENABLED =
         "alluxio.master.startup.consistency.check.enabled";
     public static final String MASTER_THRIFT_SHUTDOWN_TIMEOUT =
