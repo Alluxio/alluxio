@@ -16,6 +16,7 @@ import static java.util.stream.Collectors.toSet;
 
 import alluxio.Constants;
 import alluxio.client.block.options.GetWorkerInfoListOptions;
+import alluxio.client.block.options.GetWorkerInfoListOptions.WorkerRange;
 import alluxio.client.block.policy.BlockLocationPolicy;
 import alluxio.client.block.policy.options.GetWorkerOptions;
 import alluxio.client.block.stream.BlockInStream;
@@ -121,8 +122,8 @@ public final class AlluxioBlockStore {
   public List<BlockWorkerInfo> getAllWorkers() throws IOException {
     try (CloseableResource<BlockMasterClient> masterClientResource =
         mContext.acquireBlockMasterClientResource()) {
-      return masterClientResource.get()
-          .getWorkerInfoList(GetWorkerInfoListOptions.defaults()).stream()
+      return masterClientResource.get().getWorkerInfoList(GetWorkerInfoListOptions.defaults()
+          .setWorkerRange(WorkerRange.LIVE)).stream()
           .map(w -> new BlockWorkerInfo(w.getAddress(), w.getCapacityBytes(), w.getUsedBytes()))
           .collect(toList());
     }
