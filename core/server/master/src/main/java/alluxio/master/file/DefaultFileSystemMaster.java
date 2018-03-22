@@ -2586,6 +2586,12 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
 
     try {
       createDirectoryAndJournal(inodePath, createDirectoryOptions, journalContext);
+      if (inodePath.getLockMode() == InodeTree.LockMode.READ) {
+        // If the directory is successfully created, createDirectoryAndJournal will add a write lock
+        // to the inodePath's lock list. We are done modifying the directory, so we downgrade it to
+        // a read lock.
+        inodePath.downgradeLast();
+      }
     } catch (FileAlreadyExistsException e) {
       // This may occur if there are concurrent load metadata requests. To allow loading metadata
       // to be idempotent, ensure the full path exists when this happens.
