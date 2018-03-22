@@ -387,8 +387,6 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
     List<Long> invalidBlocks = new ArrayList<>();
     for (long blockId : mBlocks.keySet()) {
       if (!validator.apply(blockId)) {
-        LOG.warn("Block {} has no corresponding file metadata. Restart Alluxio with the startup "
-            + "block integrity check enabled to delete the block and repair the system.", blockId);
         invalidBlocks.add(blockId);
       }
     }

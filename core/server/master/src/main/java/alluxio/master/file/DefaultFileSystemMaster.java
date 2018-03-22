@@ -597,7 +597,17 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
   public void validateInodeBlocks(boolean repair) throws UnavailableException {
     mBlockMaster.validateBlocks((blockId) -> {
       long fileId = IdUtils.fileIdFromBlockId(blockId);
-      return mInodeTree.inodeIdExists(fileId);
+      boolean exists = mInodeTree.inodeIdExists(fileId);
+      if (!exists) {
+        if (repair) {
+          LOG.warn("Block {} has no corresponding file metadata. Attempting to repair.", blockId);
+        } else {
+          LOG.warn("Block {} has no corresponding file metadata. Restart Alluxio master with "
+              + "{}=true to delete the block and repair the system.",
+              blockId, PropertyKey.Name.MASTER_STARTUP_BLOCK_INTEGRITY_CHECK_ENABLED);
+        }
+      }
+      return exists;
     }, repair);
   }
 
