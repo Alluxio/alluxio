@@ -36,9 +36,7 @@ import org.powermock.reflect.Whitebox;
 public class BlockMasterIntegrityIntegrationTest {
   @Rule
   public LocalAlluxioClusterResource mClusterResource =
-      new LocalAlluxioClusterResource.Builder()
-          .setProperty(PropertyKey.MASTER_STARTUP_BLOCK_INTEGRITY_CHECK_ENABLED, true)
-          .build();
+      new LocalAlluxioClusterResource.Builder().build();
   private LocalAlluxioCluster mCluster;
 
   @Before
@@ -65,6 +63,9 @@ public class BlockMasterIntegrityIntegrationTest {
   }
 
   @Test
+  @LocalAlluxioClusterResource.Config(confParams = {
+      PropertyKey.Name.MASTER_STARTUP_BLOCK_INTEGRITY_CHECK_ENABLED, "true"
+      })
   public void deleteInvalidBlocks() throws Exception {
     AlluxioURI uri = new AlluxioURI("/test");
     int len = 10;
@@ -86,6 +87,31 @@ public class BlockMasterIntegrityIntegrationTest {
     BlockWorker newWorker = mCluster.getWorkerProcess().getWorker(BlockWorker.class);
     CommonUtils.waitFor("invalid blocks to be deleted",
         (v) -> newWorker.getStoreMetaFull().getNumberOfBlocks() == 0,
+        WaitForOptions.defaults().setTimeoutMs(2000));
+  }
+
+  @Test
+  @LocalAlluxioClusterResource.Config(confParams = {
+      PropertyKey.Name.MASTER_PERIODIC_BLOCK_INTEGRITY_CHECK_INTERVAL, "1sec",
+      PropertyKey.Name.MASTER_PERIODIC_BLOCK_INTEGRITY_CHECK_REPAIR, "true"
+      })
+  public void deleteInvalidBlocksPeriodically() throws Exception {
+    AlluxioURI uri = new AlluxioURI("/test");
+    int len = 10;
+    FileSystem fs = mCluster.getClient();
+    BlockWorker worker = mCluster.getWorkerProcess().getWorker(BlockWorker.class);
+    FileSystemTestUtils.createByteFile(fs, uri, WriteType.MUST_CACHE, len);
+    Assert.assertEquals(1, worker.getStoreMetaFull().getNumberOfBlocks());
+    FileSystemMaster fsm =
+        mCluster.getLocalAlluxioMaster().getMasterProcess().getMaster(FileSystemMaster.class);
+    InodeTree tree = Whitebox.getInternalState(fsm, "mInodeTree");
+    LockedInodePath path = tree.lockInodePath(uri, InodeTree.LockMode.WRITE);
+    DeleteOptions options = DeleteOptions.defaults();
+    JournalContext ctx = Whitebox.invokeMethod(fsm, "createJournalContext");
+    Whitebox.invokeMethod(fsm, "deleteAndJournal", path, options, ctx);
+    ctx.close();
+    CommonUtils.waitFor("invalid blocks to be deleted",
+        (v) -> worker.getStoreMetaFull().getNumberOfBlocks() == 0,
         WaitForOptions.defaults().setTimeoutMs(2000));
   }
 }

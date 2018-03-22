@@ -11,6 +11,8 @@
 
 package alluxio.master.file;
 
+import alluxio.Configuration;
+import alluxio.PropertyKey;
 import alluxio.heartbeat.HeartbeatExecutor;
 
 import org.slf4j.Logger;
@@ -23,6 +25,7 @@ public final class BlockIntegrityChecker implements HeartbeatExecutor {
   private static final Logger LOG = LoggerFactory.getLogger(BlockIntegrityChecker.class);
 
   private final FileSystemMaster mFileSystemMaster;
+  private final boolean mRepair;
 
   /**
    * Constructs a block integrity checker based on the given {@link FileSystemMaster}.
@@ -31,12 +34,13 @@ public final class BlockIntegrityChecker implements HeartbeatExecutor {
    */
   public BlockIntegrityChecker(FileSystemMaster fsm) {
     mFileSystemMaster = fsm;
+    mRepair = Configuration.getBoolean(PropertyKey.MASTER_PERIODIC_BLOCK_INTEGRITY_CHECK_REPAIR);
   }
 
   @Override
   public void heartbeat() {
     try {
-      mFileSystemMaster.validateInodeBlocks(false);
+      mFileSystemMaster.validateInodeBlocks(mRepair);
     } catch (Exception e) {
       LOG.error("Failed to run periodic block integrity check.", e.toString());
     }

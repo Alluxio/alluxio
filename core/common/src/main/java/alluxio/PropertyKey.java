@@ -753,16 +753,16 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("The path to the log that the recompute executor redirects the "
               + "job's stdout into.")
           .build();
-  public static final PropertyKey MASTER_PERIODIC_BLOCK_INTEGRITY_CHECK_ENABLED =
-      new Builder(Name.MASTER_PERIODIC_BLOCK_INTEGRITY_CHECK_ENABLED)
-          .setDefaultValue(true)
-          .setDescription("Whether the system should periodically check for orphaned blocks. A "
-              + "warning will be printed in the master log if an orphaned block is detected.")
+  public static final PropertyKey MASTER_PERIODIC_BLOCK_INTEGRITY_CHECK_REPAIR =
+      new Builder(Name.MASTER_PERIODIC_BLOCK_INTEGRITY_CHECK_REPAIR)
+          .setDefaultValue(false)
+          .setDescription("Whether the system should delete orphaned blocks found during the "
+              + "periodic integrity check. This is an experimental feature.")
           .build();
   public static final PropertyKey MASTER_PERIODIC_BLOCK_INTEGRITY_CHECK_INTERVAL =
       new Builder(Name.MASTER_PERIODIC_BLOCK_INTEGRITY_CHECK_INTERVAL)
           .setDefaultValue("1hr")
-          .setDescription("The period for the block integrity check, if enabled.")
+          .setDescription("The period for the block integrity check, disabled if <= 0.")
           .build();
   public static final PropertyKey MASTER_PRINCIPAL = new Builder(Name.MASTER_PRINCIPAL)
       .setDescription("Kerberos principal for Alluxio master.")
@@ -2282,8 +2282,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.lineage.recompute.interval";
     public static final String MASTER_LINEAGE_RECOMPUTE_LOG_PATH =
         "alluxio.master.lineage.recompute.log.path";
-    public static final String MASTER_PERIODIC_BLOCK_INTEGRITY_CHECK_ENABLED =
-        "alluxio.master.periodic.block.integrity.check.enabled";
+    public static final String MASTER_PERIODIC_BLOCK_INTEGRITY_CHECK_REPAIR =
+        "alluxio.master.periodic.block.integrity.check.repair";
     public static final String MASTER_PERIODIC_BLOCK_INTEGRITY_CHECK_INTERVAL =
         "alluxio.master.periodic.block.integrity.check.interval";
     public static final String MASTER_PRINCIPAL = "alluxio.master.principal";

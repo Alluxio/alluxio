@@ -556,11 +556,13 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       if (Configuration.getBoolean(PropertyKey.MASTER_STARTUP_BLOCK_INTEGRITY_CHECK_ENABLED)) {
         validateInodeBlocks(true);
       }
-      if (Configuration.getBoolean(PropertyKey.MASTER_PERIODIC_BLOCK_INTEGRITY_CHECK_ENABLED)) {
+
+      int blockIntegrityCheckInterval =
+          (int) Configuration.getMs(PropertyKey.MASTER_PERIODIC_BLOCK_INTEGRITY_CHECK_INTERVAL);
+      if (blockIntegrityCheckInterval > 0) { // negative or zero interval implies disabled
         mBlockIntegrityCheck = getExecutorService().submit(
             new HeartbeatThread(HeartbeatContext.MASTER_BLOCK_INTEGRITY_CHECK,
-                new BlockIntegrityChecker(this), (int) Configuration.getMs(
-                    PropertyKey.MASTER_PERIODIC_BLOCK_INTEGRITY_CHECK_INTERVAL)));
+                new BlockIntegrityChecker(this), blockIntegrityCheckInterval));
       }
       mTtlCheckerService = getExecutorService().submit(
           new HeartbeatThread(HeartbeatContext.MASTER_TTL_CHECK,
