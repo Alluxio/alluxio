@@ -11,6 +11,7 @@
 
 package alluxio.master.file;
 
+import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableList;
 
 import java.io.IOException;
@@ -46,8 +47,23 @@ public final class DefaultBlockDeletionContext implements BlockDeletionContext {
 
   @Override
   public void close() throws IOException {
+    // Make sure every listener gets called, even if some throw exceptions.
+    Throwable thrown = null;
+    List<Long> blocksCopy = ImmutableList.copyOf(mBlocks);
     for (BlockDeletionListener listener : mListeners) {
-      listener.process(ImmutableList.copyOf(mBlocks));
+      try {
+        listener.process(blocksCopy);
+      } catch (Throwable t) {
+        if (thrown != null) {
+          thrown.addSuppressed(t);
+        } else {
+          thrown = t;
+        }
+      }
+    }
+    if (thrown != null) {
+      Throwables.propagateIfPossible(thrown, IOException.class);
+      throw new RuntimeException(thrown);
     }
   }
 }
