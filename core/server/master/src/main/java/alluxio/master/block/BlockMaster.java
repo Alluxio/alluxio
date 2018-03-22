@@ -70,13 +70,15 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
   void removeBlocks(List<Long> blockIds, boolean delete) throws UnavailableException;
 
   /**
-   * Validates if the integrity of blocks with respect to the validator. Invalid blocks will be
-   * deleted.
+   * Validates the integrity of blocks with respect to the validator. A warning will be printed if
+   * blocks are invalid.
    *
    * @param validator a function returns true if the given block id is valid
+   * @param repair if true, deletes the invalid blocks
    * @throws UnavailableException if the invalid blocks cannot be deleted
    */
-  void validateBlocks(Function<Long, Boolean> validator) throws UnavailableException;
+  void validateBlocks(Function<Long, Boolean> validator, boolean repair)
+      throws UnavailableException;
 
   /**
    * Marks a block as committed on a specific worker.

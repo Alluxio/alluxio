@@ -382,7 +382,8 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
   }
 
   @Override
-  public void validateBlocks(Function<Long, Boolean> validator) throws UnavailableException {
+  public void validateBlocks(Function<Long, Boolean> validator, boolean repair)
+      throws UnavailableException {
     List<Long> invalidBlocks = new ArrayList<>();
     for (long blockId : mBlocks.keySet()) {
       if (!validator.apply(blockId)) {
@@ -391,9 +392,11 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
       }
     }
     if (!invalidBlocks.isEmpty()) {
-      LOG.warn("Deleting {} invalid blocks from the Block Master.", invalidBlocks.size());
+      LOG.warn("Discovered {} invalid blocks. Deleting them: {}", invalidBlocks.size(), repair);
     }
-    removeBlocks(invalidBlocks, true);
+    if (repair) {
+      removeBlocks(invalidBlocks, true);
+    }
   }
 
   /**

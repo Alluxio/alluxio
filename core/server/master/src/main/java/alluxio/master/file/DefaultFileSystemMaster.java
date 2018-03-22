@@ -329,6 +329,12 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
   @SuppressFBWarnings("URF_UNREAD_FIELD")
   private Future<?> mLostFilesDetectionService;
 
+  /**
+   * The service that checks for blocks which no longer correspond to existing inodes.
+   */
+  @SuppressFBWarnings("URF_UNREAD_FIELD")
+  private Future<?> mBlockIntegrityCheck;
+
   private Future<List<AlluxioURI>> mStartupConsistencyCheck;
 
   /**
@@ -344,7 +350,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    */
   DefaultFileSystemMaster(BlockMaster blockMaster, MasterContext masterContext) {
     this(blockMaster, masterContext, ExecutorServiceFactories
-        .fixedThreadPoolExecutorServiceFactory(Constants.FILE_SYSTEM_MASTER_NAME, 3));
+        .fixedThreadPoolExecutorServiceFactory(Constants.FILE_SYSTEM_MASTER_NAME, 4));
   }
 
   /**
@@ -546,14 +552,16 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         }
       }
 
-      // File System Master and Block Master Integrity Check
+      // Startup Checks and Periodic Threads.
       if (Configuration.getBoolean(PropertyKey.MASTER_STARTUP_BLOCK_CHECK_ENABLED)) {
-        mBlockMaster.validateBlocks((blockId) -> {
-          long fileId = IdUtils.fileIdFromBlockId(blockId);
-          return mInodeTree.inodeIdExists(fileId);
-        });
+        validateInodeBlocks(true);
       }
-
+      if (Configuration.getBoolean(PropertyKey.MASTER_PERIODIC_BLOCK_INTEGRITY_CHECK_ENABLED)) {
+        mBlockIntegrityCheck = getExecutorService().submit(
+            new HeartbeatThread(HeartbeatContext.MASTER_BLOCK_INTEGRITY_CHECK,
+                new BlockIntegrityChecker(this), (int) Configuration.getMs(
+                    PropertyKey.MASTER_PERIODIC_BLOCK_INTEGRITY_CHECK_INTERVAL)));
+      }
       mTtlCheckerService = getExecutorService().submit(
           new HeartbeatThread(HeartbeatContext.MASTER_TTL_CHECK,
               new InodeTtlChecker(this, mInodeTree, mTtlBuckets),
@@ -581,6 +589,14 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       mAsyncAuditLogWriter = null;
     }
     super.stop();
+  }
+
+  @Override
+  public void validateInodeBlocks(boolean repair) throws UnavailableException {
+    mBlockMaster.validateBlocks((blockId) -> {
+      long fileId = IdUtils.fileIdFromBlockId(blockId);
+      return mInodeTree.inodeIdExists(fileId);
+    }, repair);
   }
 
   /**
