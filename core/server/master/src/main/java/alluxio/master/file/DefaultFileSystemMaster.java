@@ -475,7 +475,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       } catch (AlluxioException e) {
         // It's possible that rescheduling the async persist calls fails, because the blocks may no
         // longer be in the memory
-        LOG.error("Failed to process async persist request.", e);
+        LOG.error("Failed to process journal entry of async persist request.", e.toString());
       }
     } else {
       throw new IOException(ExceptionMessage.UNEXPECTED_JOURNAL_ENTRY.getMessage(entry));
@@ -2473,7 +2473,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         }
       }
     } catch (IOException e) {
-      LOG.error("Failed to loadMetadataAndJournal: inodePath={}, options={}.", inodePath.getUri(),
+      LOG.debug("Failed to loadMetadataAndJournal: inodePath={}, options={}.", inodePath.getUri(),
           options, e);
       throw e;
     }
