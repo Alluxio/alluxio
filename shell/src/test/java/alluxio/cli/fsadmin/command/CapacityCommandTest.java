@@ -13,7 +13,7 @@ package alluxio.cli.fsadmin.command;
 
 import alluxio.cli.fsadmin.report.CapacityCommand;
 import alluxio.client.block.BlockMasterClient;
-import alluxio.client.block.options.WorkerInfoOptions;
+import alluxio.client.block.options.GetWorkerInfoListOptions;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
 
@@ -51,7 +51,7 @@ public class CapacityCommandTest {
          PrintStream printStream = new PrintStream(outputStream, true, "utf-8")) {
       CapacityCommand capacityCommand = new CapacityCommand(mBlockMasterClient,
           printStream);
-      capacityCommand.generateCapacityReport(WorkerInfoOptions.defaults());
+      capacityCommand.generateCapacityReport(GetWorkerInfoListOptions.defaults());
       String output = new String(outputStream.toByteArray(), StandardCharsets.UTF_8);
       List<String> expectedOutput = Arrays.asList("Capacity information for all workers: ",
           "    Total Capacity: 29.80GB",
@@ -67,14 +67,14 @@ public class CapacityCommandTest {
           "",
           "Worker Name      Last Heartbeat   Type          Total            "
               + "MEM           SSD           HDD          ",
-          "64.68.90.1       3123             Capacity      11.18GB          "
-              + "3814.70MB     5.59GB        1907.35MB    ",
-          "                                  Used          9.31GB (83%)     "
-              + "2861.02MB     4768.37MB     1907.35MB    ",
           "216.239.33.96    542              Capacity      18.63GB          "
               + "4768.37MB     4768.37MB     9.31GB       ",
           "                                  Used          953.67MB (5%)    "
-              + "190.73MB      286.10MB      476.84MB     ");
+              + "190.73MB      286.10MB      476.84MB     ",
+          "64.68.90.1       3123             Capacity      11.18GB          "
+              + "3814.70MB     5.59GB        1907.35MB    ",
+          "                                  Used          9.31GB (83%)     "
+              + "2861.02MB     4768.37MB     1907.35MB    ");
       List<String> testOutput = Arrays.asList(output.split("\n"));
       Assert.assertThat(testOutput,
           IsIterableContainingInOrder.contains(expectedOutput.toArray()));

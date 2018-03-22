@@ -16,8 +16,8 @@ import alluxio.Constants;
 import alluxio.MasterStorageTierAssoc;
 import alluxio.PropertyKey;
 import alluxio.StorageTierAssoc;
-import alluxio.client.block.options.WorkerInfoOptions;
-import alluxio.client.block.options.WorkerInfoOptions.WorkerRange;
+import alluxio.client.block.options.GetWorkerInfoListOptions;
+import alluxio.client.block.options.GetWorkerInfoListOptions.WorkerRange;
 import alluxio.clock.SystemClock;
 import alluxio.collections.ConcurrentHashSet;
 import alluxio.collections.IndexDefinition;
@@ -290,7 +290,34 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
   }
 
   @Override
-  public List<WorkerInfo> getWorkerInfoList(WorkerInfoOptions options)
+  public long getCapacityBytes() {
+    long ret = 0;
+    for (MasterWorkerInfo worker : mWorkers) {
+      synchronized (worker) {
+        ret += worker.getCapacityBytes();
+      }
+    }
+    return ret;
+  }
+
+  @Override
+  public StorageTierAssoc getGlobalStorageTierAssoc() {
+    return mGlobalStorageTierAssoc;
+  }
+
+  @Override
+  public long getUsedBytes() {
+    long ret = 0;
+    for (MasterWorkerInfo worker : mWorkers) {
+      synchronized (worker) {
+        ret += worker.getUsedBytes();
+      }
+    }
+    return ret;
+  }
+
+  @Override
+  public List<WorkerInfo> getWorkerInfoList(GetWorkerInfoListOptions options)
       throws UnavailableException, InvalidArgumentException {
     if (mSafeModeManager.isInSafeMode()) {
       throw new UnavailableException(ExceptionMessage.MASTER_IN_SAFEMODE.getMessage());
@@ -334,33 +361,6 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
       }
     }
     return workerInfoList;
-  }
-
-  @Override
-  public long getCapacityBytes() {
-    long ret = 0;
-    for (MasterWorkerInfo worker : mWorkers) {
-      synchronized (worker) {
-        ret += worker.getCapacityBytes();
-      }
-    }
-    return ret;
-  }
-
-  @Override
-  public StorageTierAssoc getGlobalStorageTierAssoc() {
-    return mGlobalStorageTierAssoc;
-  }
-
-  @Override
-  public long getUsedBytes() {
-    long ret = 0;
-    for (MasterWorkerInfo worker : mWorkers) {
-      synchronized (worker) {
-        ret += worker.getUsedBytes();
-      }
-    }
-    return ret;
   }
 
   @Override

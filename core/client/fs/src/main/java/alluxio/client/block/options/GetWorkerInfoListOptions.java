@@ -25,7 +25,7 @@ import java.util.Set;
  * Worker information options.
  */
 @NotThreadSafe
-public final class WorkerInfoOptions implements Serializable {
+public final class GetWorkerInfoListOptions implements Serializable {
   private static final long serialVersionUID = -7604526631057562523L;
 
   private Set<String> mAddresses;
@@ -33,27 +33,27 @@ public final class WorkerInfoOptions implements Serializable {
   private WorkerRange mWorkerRange;
 
   /**
-   * @return the default {@link WorkerInfoOptions}
+   * @return the default {@link GetWorkerInfoListOptions}
    */
-  public static WorkerInfoOptions defaults() {
-    return new WorkerInfoOptions();
+  public static GetWorkerInfoListOptions defaults() {
+    return new GetWorkerInfoListOptions();
   }
 
   /**
    * Creates a new instance with default values.
    */
-  private WorkerInfoOptions() {
+  private GetWorkerInfoListOptions() {
     mAddresses = new HashSet<>();
     mFieldRange = new HashSet<>(Arrays.asList(WorkerInfoField.values()));
     mWorkerRange = WorkerRange.ALL;
   }
 
   /**
-   * Creates a new instance of {@link WorkerInfoOptions} from a thrift representation.
+   * Creates a new instance of {@link GetWorkerInfoListOptions} from a thrift representation.
    *
-   * @param options the thrift representation of a WorkerInfoOptions
+   * @param options the thrift representation of a GetWorkerInfoListOptions
    */
-  public WorkerInfoOptions(alluxio.thrift.GetWorkerInfoListTOptions options) {
+  public GetWorkerInfoListOptions(alluxio.thrift.GetWorkerInfoListTOptions options) {
     mAddresses = options.getAddresses();
     mFieldRange = new HashSet<>();
     for (alluxio.thrift.WorkerInfoField field: options.getFieldRange()) {
@@ -87,7 +87,7 @@ public final class WorkerInfoOptions implements Serializable {
    * @param addresses the client selected worker addresses
    * @return the updated options object
    */
-  public WorkerInfoOptions setAddresses(Set<String> addresses) {
+  public GetWorkerInfoListOptions setAddresses(Set<String> addresses) {
     mAddresses = addresses;
     return this;
   }
@@ -96,7 +96,7 @@ public final class WorkerInfoOptions implements Serializable {
    * @param fieldRange the field range of worker info
    * @return the updated options object
    */
-  public WorkerInfoOptions setFieldRange(Set<WorkerInfoField> fieldRange) {
+  public GetWorkerInfoListOptions setFieldRange(Set<WorkerInfoField> fieldRange) {
     mFieldRange = fieldRange;
     return this;
   }
@@ -105,7 +105,7 @@ public final class WorkerInfoOptions implements Serializable {
    * @param workerRange the client selected worker range
    * @return the updated options object
    */
-  public WorkerInfoOptions setWorkerRange(WorkerRange workerRange) {
+  public GetWorkerInfoListOptions setWorkerRange(WorkerRange workerRange) {
     mWorkerRange = workerRange;
     return this;
   }
@@ -115,10 +115,10 @@ public final class WorkerInfoOptions implements Serializable {
     if (this == o) {
       return true;
     }
-    if (!(o instanceof WorkerInfoOptions)) {
+    if (!(o instanceof GetWorkerInfoListOptions)) {
       return false;
     }
-    WorkerInfoOptions that = (WorkerInfoOptions) o;
+    GetWorkerInfoListOptions that = (GetWorkerInfoListOptions) o;
     return mAddresses.equals(that.mAddresses)
         && mFieldRange.equals(that.mFieldRange)
         && mWorkerRange.equals(that.mWorkerRange);

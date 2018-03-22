@@ -13,7 +13,7 @@ package alluxio.client.block;
 
 import alluxio.AbstractMasterClient;
 import alluxio.Constants;
-import alluxio.client.block.options.WorkerInfoOptions;
+import alluxio.client.block.options.GetWorkerInfoListOptions;
 import alluxio.master.MasterClientConfig;
 import alluxio.thrift.AlluxioService;
 import alluxio.thrift.BlockMasterClientService;
@@ -79,7 +79,7 @@ public final class RetryHandlingBlockMasterClient extends AbstractMasterClient
 
   @Override
   public synchronized List<WorkerInfo> getWorkerInfoList(
-      final WorkerInfoOptions options) throws IOException {
+      final GetWorkerInfoListOptions options) throws IOException {
     return retryRPC(new RpcCallable<List<WorkerInfo>>() {
       @Override
       public List<WorkerInfo> call() throws TException {

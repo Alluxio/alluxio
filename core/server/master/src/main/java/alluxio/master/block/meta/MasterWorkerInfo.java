@@ -14,7 +14,7 @@ package alluxio.master.block.meta;
 import alluxio.Constants;
 import alluxio.StorageTierAssoc;
 import alluxio.WorkerStorageTierAssoc;
-import alluxio.client.block.options.WorkerInfoOptions.WorkerInfoField;
+import alluxio.client.block.options.GetWorkerInfoListOptions.WorkerInfoField;
 import alluxio.util.CommonUtils;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;

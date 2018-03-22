@@ -76,7 +76,7 @@ struct WorkerInfo {
 }
 
 struct GetWorkerInfoListTOptions {
-  /** addresses are only valid when workerRange is specified */
+  /** addresses are only valid when workerRange is SPECIFIED */
   1: optional set<string> addresses
   2: optional set<WorkerInfoField>  fieldRange
   3: optional WorkerRange workerRange

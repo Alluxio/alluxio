@@ -12,7 +12,7 @@
 package alluxio.client.block;
 
 import alluxio.Client;
-import alluxio.client.block.options.WorkerInfoOptions;
+import alluxio.client.block.options.GetWorkerInfoListOptions;
 import alluxio.master.MasterClientConfig;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.BlockMasterInfo;
@@ -55,7 +55,7 @@ public interface BlockMasterClient extends Client {
    * @param options the client defined worker and field ranges
    * @return a list of worker information
    */
-  List<WorkerInfo> getWorkerInfoList(final WorkerInfoOptions options)
+  List<WorkerInfo> getWorkerInfoList(final GetWorkerInfoListOptions options)
       throws IOException;
 
   /**

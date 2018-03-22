@@ -15,7 +15,7 @@ import alluxio.Constants;
 import alluxio.RpcUtils;
 import alluxio.RpcUtils.RpcCallable;
 import alluxio.RpcUtils.RpcCallableThrowsIOException;
-import alluxio.client.block.options.WorkerInfoOptions;
+import alluxio.client.block.options.GetWorkerInfoListOptions;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.thrift.AlluxioTException;
@@ -168,7 +168,7 @@ public final class BlockMasterClientServiceHandler implements BlockMasterClientS
           throws AlluxioException, AlluxioStatusException {
         List<WorkerInfo> workerInfos = new ArrayList<>();
         for (alluxio.wire.WorkerInfo workerInfo :
-            mBlockMaster.getWorkerInfoList(new WorkerInfoOptions(options))) {
+            mBlockMaster.getWorkerInfoList(new GetWorkerInfoListOptions(options))) {
           workerInfos.add(ThriftUtils.toThrift(workerInfo));
         }
         return new GetWorkerInfoListTResponse(workerInfos);

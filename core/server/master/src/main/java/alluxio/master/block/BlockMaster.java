@@ -12,7 +12,7 @@
 package alluxio.master.block;
 
 import alluxio.StorageTierAssoc;
-import alluxio.client.block.options.WorkerInfoOptions;
+import alluxio.client.block.options.GetWorkerInfoListOptions;
 import alluxio.exception.BlockInfoException;
 import alluxio.exception.NoWorkerException;
 import alluxio.exception.status.InvalidArgumentException;
@@ -43,15 +43,6 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
   int getLostWorkerCount();
 
   /**
-   * Gets the worker information list.
-   *
-   * @param options the WorkerInfoOptions defines the info range
-   * @return a list of {@link WorkerInfo} objects representing the workers in Alluxio
-   */
-  List<WorkerInfo> getWorkerInfoList(WorkerInfoOptions options)
-      throws UnavailableException, InvalidArgumentException;
-
-  /**
    * @return the total capacity (in bytes) on all tiers, on all workers of Alluxio
    */
   long getCapacityBytes();
@@ -65,6 +56,15 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
    * @return the total used bytes on all tiers, on all workers of Alluxio
    */
   long getUsedBytes();
+
+  /**
+   * Gets the worker information list.
+   *
+   * @param options the GetWorkerInfoListOptions defines the info range
+   * @return a list of {@link WorkerInfo} objects representing the workers in Alluxio
+   */
+  List<WorkerInfo> getWorkerInfoList(GetWorkerInfoListOptions options)
+      throws UnavailableException, InvalidArgumentException;
 
   /**
    * @return a list of {@link WorkerInfo}s of live workers
