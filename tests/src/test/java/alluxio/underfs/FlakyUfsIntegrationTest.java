@@ -1,3 +1,14 @@
+/*
+ * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
+ * (the "License"). You may not use this work except in compliance with the License, which is
+ * available at www.apache.org/licenses/LICENSE-2.0
+ *
+ * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+ * either express or implied, as more fully set forth in the License.
+ *
+ * See the NOTICE file distributed with this work for information regarding copyright ownership.
+ */
+
 package alluxio.underfs;
 
 import static org.junit.Assert.assertThat;
@@ -90,9 +101,10 @@ public final class FlakyUfsIntegrationTest extends BaseIntegrationTest {
         deleted++;
       }
     }
-    // It's a coin flip whether each delete succeeded. If less than 20 out of 100 succeed, something
-    // is probably wrong.
+    // It's a coin flip whether each delete succeeds. With high likelihood, between 20 and 80
+    // deletes should succeed.
     assertThat(deleted, Matchers.greaterThan(20));
+    assertThat(deleted, Matchers.lessThan(80));
     mFs.free(new AlluxioURI("/"), FreeOptions.defaults().setRecursive(true));
     BlockMasterClient blockClient = BlockMasterClient.Factory.create(MasterClientConfig.defaults());
     CommonUtils.waitFor("data to be freed", (x) -> {
