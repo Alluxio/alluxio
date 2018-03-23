@@ -67,7 +67,6 @@ public class MasterInfoTest {
     result.setUpTimeMs(uptimeMs);
     result.setVersion(version);
     result.setWebPort(webPort);
-
     return result;
   }
 }

@@ -103,6 +103,7 @@ public class CapacityCommandTest {
         .setId(1)
         .setLastContactSec(3123)
         .setStartTimeMs(1331231121212L)
+        .setState("In Service")
         .setUsedBytes(10000000000L)
         .setUsedBytesOnTiers(usedBytesOnTiersOne);
 
@@ -121,6 +122,7 @@ public class CapacityCommandTest {
         .setId(2)
         .setLastContactSec(542)
         .setStartTimeMs(1131231121212L)
+        .setState("In Service")
         .setUsedBytes(1000000000L)
         .setUsedBytesOnTiers(usedBytesOnTiersSec);
 

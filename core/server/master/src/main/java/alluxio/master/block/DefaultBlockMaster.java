@@ -326,9 +326,7 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
     List<WorkerInfo> workerInfoList = new ArrayList<>(mWorkers.size());
     for (MasterWorkerInfo worker : mWorkers) {
       synchronized (worker) {
-        WorkerInfo info = worker.generateWorkerInfo(null, true);
-        info.setState("In Service");
-        workerInfoList.add(info);
+        workerInfoList.add(worker.generateWorkerInfo(null, true));
       }
     }
     return workerInfoList;
@@ -342,9 +340,7 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
     List<WorkerInfo> workerInfoList = new ArrayList<>(mLostWorkers.size());
     for (MasterWorkerInfo worker : mLostWorkers) {
       synchronized (worker) {
-        WorkerInfo info = worker.generateWorkerInfo(null, false);
-        info.setState("Out of Service");
-        workerInfoList.add(info);
+        workerInfoList.add(worker.generateWorkerInfo(null, false));
       }
     }
     Collections.sort(workerInfoList, new WorkerInfo.LastContactSecComparator());
