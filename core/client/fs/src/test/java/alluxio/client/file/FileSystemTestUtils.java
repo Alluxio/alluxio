@@ -18,6 +18,9 @@ import alluxio.client.file.options.CreateFileOptions;
 import alluxio.client.file.options.OpenFileOptions;
 import alluxio.exception.AlluxioException;
 
+import com.google.common.io.ByteStreams;
+import org.apache.commons.io.IOUtils;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -124,6 +127,21 @@ public final class FileSystemTestUtils {
         }
       }
       return res;
+    } catch (IOException | AlluxioException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  /**
+   * Loads a file into Alluxio by reading it.
+   *
+   * @param fs a {@link FileSystem}
+   * @param fileName the name of the file to load
+   */
+  public static void loadFile(FileSystem fs, String fileName) {
+    try (FileInStream is = fs.openFile(new AlluxioURI(fileName),
+        OpenFileOptions.defaults().setReadType(ReadType.CACHE))) {
+      IOUtils.copy(is, ByteStreams.nullOutputStream());
     } catch (IOException | AlluxioException e) {
       throw new RuntimeException(e);
     }
