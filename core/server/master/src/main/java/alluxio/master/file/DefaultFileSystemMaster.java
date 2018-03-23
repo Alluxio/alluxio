@@ -1131,7 +1131,10 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       FileAlreadyCompletedException, UnavailableException {
     InodeFile inode = inodePath.getInodeFile();
     inode.setBlockIds(blockIds);
-    inode.setLastModificationTimeMs(opTimeMs);
+    // Inode last modification time are initialized as currentTimeMillis() when they are created.
+    // When we load metadata from UFS we might need to update it to a smaller timestamp which
+    // requires setting override argument to true here.
+    inode.setLastModificationTimeMs(opTimeMs, true);
     inode.setUfsFingerprint(ufsFingerprint);
     inode.complete(length);
 
@@ -2563,14 +2566,21 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     String ufsGroup = ufsStatus.getGroup();
     short ufsMode = ufsStatus.getMode();
     Mode mode = new Mode(ufsMode);
+    Long ufsLastModified = ufsStatus.getLastModifiedTime();
     if (resolution.getShared()) {
       mode.setOtherBits(mode.getOtherBits().or(mode.getOwnerBits()));
     }
     createFileOptions = createFileOptions.setOwner(ufsOwner).setGroup(ufsGroup).setMode(mode);
+    if (ufsLastModified != null) {
+      createFileOptions.setOperationTimeMs(ufsLastModified);
+    }
 
     try {
       createFileAndJournal(inodePath, createFileOptions, journalContext);
       CompleteFileOptions completeOptions = CompleteFileOptions.defaults().setUfsLength(ufsLength);
+      if (ufsLastModified != null) {
+        completeOptions.setOperationTimeMs(ufsLastModified);
+      }
       completeFileAndJournal(inodePath, completeOptions, journalContext);
       if (inodePath.getLockMode() == InodeTree.LockMode.READ) {
         // After completing the inode, the lock on the last inode which stands for the created file
@@ -2625,12 +2635,16 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     String ufsOwner = ufsStatus.getOwner();
     String ufsGroup = ufsStatus.getGroup();
     short ufsMode = ufsStatus.getMode();
+    Long lastModifiedTime = ufsStatus.getLastModifiedTime();
     Mode mode = new Mode(ufsMode);
     if (resolution.getShared()) {
       mode.setOtherBits(mode.getOtherBits().or(mode.getOwnerBits()));
     }
     createDirectoryOptions =
         createDirectoryOptions.setOwner(ufsOwner).setGroup(ufsGroup).setMode(mode);
+    if (lastModifiedTime != null) {
+      createDirectoryOptions.setOperationTimeMs(lastModifiedTime);
+    }
 
     try {
       createDirectoryAndJournal(inodePath, createDirectoryOptions, journalContext);
