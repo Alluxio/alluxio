@@ -809,8 +809,8 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
         synchronized (worker) {
           final long lastUpdate = mClock.millis() - worker.getLastUpdatedTimeMs();
           if (lastUpdate > masterWorkerTimeoutMs) {
-            LOG.error("The worker {} timed out after {}ms without a heartbeat!", worker,
-                lastUpdate);
+            LOG.error("The worker {}({}) timed out after {}ms without a heartbeat!", worker.getId(),
+                worker.getWorkerAddress(), lastUpdate);
             mLostWorkers.add(worker);
             mWorkers.remove(worker);
             processWorkerRemovedBlocks(worker, worker.getBlocks());
