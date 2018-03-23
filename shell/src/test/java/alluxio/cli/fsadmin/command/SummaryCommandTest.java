@@ -94,7 +94,7 @@ public class SummaryCommandTest {
    */
   private void checkIfOutputValid() {
     String output = new String(mOutputStream.toByteArray(), StandardCharsets.UTF_8);
-    List<String> expectedOutput = Arrays.asList("Alluxio Cluster Summary: ",
+    List<String> expectedOutput = Arrays.asList("Alluxio cluster summary: ",
         "    Master Address: testAddress",
         "    Web Port: 1231",
         "    Rpc Port: 8462",

@@ -132,7 +132,7 @@ public final class ReportCommand extends AbstractCommand {
     if (!command.equals(Command.CAPACITY)) {
       if (cl.getOptions().length > 0) {
         throw new InvalidArgumentException(
-            String.format("report %s do not support arguments: %s",
+            String.format("report %s does not support arguments: %s",
                 command.toString().toLowerCase(), cl.getOptions()[0].getOpt()));
       }
     }

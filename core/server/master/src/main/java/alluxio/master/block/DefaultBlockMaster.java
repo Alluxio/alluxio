@@ -49,6 +49,7 @@ import alluxio.util.CommonUtils;
 import alluxio.util.IdUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.util.executor.ExecutorServiceFactory;
+import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.BlockLocation;
 import alluxio.wire.WorkerInfo;
@@ -63,6 +64,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.net.UnknownHostException;
 import java.time.Clock;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -326,28 +328,30 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
     WorkerRange workerRange = options.getWorkerRange();
     switch (workerRange) {
       case ALL:
-        selectedWorkers = new IndexedSet<>(ID_INDEX, ADDRESS_INDEX);
+        selectedWorkers = new HashSet<>();
         selectedWorkers.addAll(mWorkers);
         selectedWorkers.addAll(mLostWorkers);
         break;
       case LIVE:
-        selectedWorkers = mWorkers;
+        selectedWorkers = new HashSet<>(mWorkers);
         break;
       case LOST:
-        selectedWorkers = mLostWorkers;
+        selectedWorkers = new HashSet<>(mLostWorkers);
         break;
       case SPECIFIED:
-        selectedWorkers = new IndexedSet<>(ID_INDEX, ADDRESS_INDEX);
+        selectedWorkers = new HashSet<>();
         Set<String> addresses = options.getAddresses();
-        for (MasterWorkerInfo info : mWorkers) {
-          if (addresses.contains(info.getWorkerAddress().getHost())) {
-            selectedWorkers.add(info);
-          }
-        }
-        for (MasterWorkerInfo info : mLostWorkers) {
-          if (addresses.contains(info.getWorkerAddress().getHost())) {
-            selectedWorkers.add(info);
-          }
+        Set<String> ips = new HashSet<>();
+        Set<String> hosts = new HashSet<>();
+
+        selectInfoByAddress(addresses, mWorkers, selectedWorkers, ips, hosts);
+        selectInfoByAddress(addresses, mLostWorkers, selectedWorkers, ips, hosts);
+
+        if (!addresses.isEmpty()) {
+          String info = String.format("Unrecognized worker name: %s%n"
+              + "Supported worker hostnames: %s%nSupported worker ip addresses: %s%n",
+              addresses.toString(), hosts.toString(), ips.toString());
+          throw new InvalidArgumentException(info);
         }
         break;
       default:
@@ -864,6 +868,48 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
     @Override
     public void close() {
       // Nothing to clean up
+    }
+  }
+
+  /**
+   * Selects the MasterWorkerInfo according to addresses from report capacity command input.
+   *
+   * @param addresses the address set that user passed in
+   * @param workerInfoSet the MasterWorkerInfo set to select info from
+   * @param selectedWorkers the set that contains selected MasterWorkerInfo
+   * @param ips ip addressed that are supported by report capacity command
+   * @param hosts host names that are supported by report capacity command
+   */
+  private void selectInfoByAddress(Set<String> addresses, Set<MasterWorkerInfo> workerInfoSet,
+      Set<MasterWorkerInfo> selectedWorkers, Set<String> ips, Set<String> hosts) {
+    for (MasterWorkerInfo info : workerInfoSet) {
+      if (addresses.isEmpty()) {
+        break;
+      }
+
+      String host = info.getWorkerAddress().getHost();
+      hosts.add(host);
+
+      String ip = null;
+      try {
+        ip = NetworkAddressUtils.resolveIpAddress(host);
+        ips.add(ip);
+      } catch (UnknownHostException e) {
+        // If not find, do not support ip of that host
+      }
+
+      if (addresses.contains(host)) {
+        selectedWorkers.add(info);
+        addresses.remove(host);
+        continue;
+      }
+
+      if (ip != null) {
+        if (addresses.contains(ip)) {
+          selectedWorkers.add(info);
+          addresses.remove(ip);
+        }
+      }
     }
   }
 

@@ -246,8 +246,9 @@ public class CapacityCommand {
         + "Where [filter arg] is an optional argument. If no arguments passed in, "
         + "capacity information of all workers will be printed out.\n"
         + "[filter arg] can be one of the following:\n"
-        + "    -live                         Live workers\n"
-        + "    -lost                         Lost workers\n"
-        + "    -worker <worker_hostnames> Specified workers, worker hostnames separated by \",\"\n";
+        + "    -live                   Live workers\n"
+        + "    -lost                   Lost workers\n"
+        + "    -worker <worker_names>  Specified workers, "
+        + "host names or ip addresses separated by \",\"\n";
   }
 }
