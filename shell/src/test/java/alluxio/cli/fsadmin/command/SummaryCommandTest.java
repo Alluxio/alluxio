@@ -14,6 +14,7 @@ package alluxio.cli.fsadmin.command;
 import alluxio.cli.fsadmin.report.SummaryCommand;
 import alluxio.client.MetaMasterClient;
 import alluxio.client.block.BlockMasterClient;
+import alluxio.util.CommonUtils;
 import alluxio.wire.BlockMasterInfo;
 import alluxio.wire.MasterInfo;
 
@@ -41,14 +42,14 @@ public class SummaryCommandTest {
 
   @Before
   public void prepareDependencies() throws IOException {
-    // We generate random values for MasterInfo and BlockMasterInfo
+    // Generate random values for MasterInfo and BlockMasterInfo
     // Prepare mock meta master client
     mMetaMasterClient = Mockito.mock(MetaMasterClient.class);
     MasterInfo masterInfo = new MasterInfo()
         .setMasterAddress("testAddress")
         .setWebPort(1231)
         .setRpcPort(8462)
-        .setStartTimeMs(213124234312231L)
+        .setStartTimeMs(1131242343122L)
         .setUpTimeMs(12412412312L)
         .setVersion("testVersion")
         .setSafeMode(false);
@@ -94,11 +95,13 @@ public class SummaryCommandTest {
    */
   private void checkIfOutputValid() {
     String output = new String(mOutputStream.toByteArray(), StandardCharsets.UTF_8);
+    // Skip checking startTime which relies on system time zone
+    String startTime =  CommonUtils.convertMsToDate(1131242343122L);
     List<String> expectedOutput = Arrays.asList("Alluxio Cluster Summary: ",
         "    Master Address: testAddress",
         "    Web Port: 1231",
         "    Rpc Port: 8462",
-        "    Started: 08-22-8723 09:11:52:231",
+        "    Started: " + startTime,
         "    Uptime: 143 day(s), 15 hour(s), 53 minute(s), and 32 second(s)",
         "    Version: testVersion",
         "    Safe Mode: false",
