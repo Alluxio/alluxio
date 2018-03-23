@@ -18,6 +18,7 @@ import alluxio.client.WriteType;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.master.LocalAlluxioCluster;
+import alluxio.master.file.BlockDeletionContext;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.meta.InodeTree;
 import alluxio.master.file.meta.LockedInodePath;
@@ -78,9 +79,12 @@ public class BlockMasterIntegrityIntegrationTest {
     InodeTree tree = Whitebox.getInternalState(fsm, "mInodeTree");
     LockedInodePath path = tree.lockInodePath(uri, InodeTree.LockMode.WRITE);
     DeleteOptions options = DeleteOptions.defaults();
-    JournalContext ctx = Whitebox.invokeMethod(fsm, "createJournalContext");
-    Whitebox.invokeMethod(fsm, "deleteAndJournal", path, options, ctx);
-    ctx.close();
+    BlockDeletionContext bctx = Whitebox.invokeMethod(fsm, "createBlockDeletionContext");
+    JournalContext jctx = Whitebox.invokeMethod(fsm, "createJournalContext");
+    Whitebox.invokeMethod(fsm, "deleteAndJournal", path, options, jctx, bctx);
+    path.close();
+    jctx.close(); // Journal Context is closed before Block Context
+    bctx.close();
     mCluster.stopWorkers();
     mCluster.restartMasters();
     mCluster.startWorkers(); // creates a new worker, so need to get the new BlockWorker
@@ -107,9 +111,12 @@ public class BlockMasterIntegrityIntegrationTest {
     InodeTree tree = Whitebox.getInternalState(fsm, "mInodeTree");
     LockedInodePath path = tree.lockInodePath(uri, InodeTree.LockMode.WRITE);
     DeleteOptions options = DeleteOptions.defaults();
-    JournalContext ctx = Whitebox.invokeMethod(fsm, "createJournalContext");
-    Whitebox.invokeMethod(fsm, "deleteAndJournal", path, options, ctx);
-    ctx.close();
+    BlockDeletionContext bctx = Whitebox.invokeMethod(fsm, "createBlockDeletionContext");
+    JournalContext jctx = Whitebox.invokeMethod(fsm, "createJournalContext");
+    Whitebox.invokeMethod(fsm, "deleteAndJournal", path, options, jctx, bctx);
+    path.close();
+    jctx.close(); // Journal Context is closed before Block Context
+    bctx.close();
     CommonUtils.waitFor("invalid blocks to be deleted",
         (v) -> worker.getStoreMetaFull().getNumberOfBlocks() == 0,
         WaitForOptions.defaults().setTimeoutMs(2000));
