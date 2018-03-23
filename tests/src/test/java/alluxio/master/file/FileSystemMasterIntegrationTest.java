@@ -1181,6 +1181,86 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
   }
 
   /**
+   * Tests loading ufs last modified time for directories.
+   */
+  @Test
+  public void loadDirectoryTimestamps() throws Exception {
+    String name = "d1";
+    String ufs = Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
+    String ufsPath = Paths.get(ufs, name).toString();
+    FileUtils.createDir(ufsPath);
+    File file = new File(ufsPath);
+    long ufsTime = file.lastModified();
+    Thread.sleep(100);
+    AlluxioURI path = new AlluxioURI("/" + name);
+
+    long fileId = mFsMaster.getFileId(path);
+    FileInfo fileInfo = mFsMaster.getFileInfo(fileId);
+    long alluxioTime = fileInfo.getLastModificationTimeMs();
+
+    Assert.assertEquals(name, fileInfo.getName());
+    Assert.assertTrue(fileInfo.isFolder());
+    Assert.assertTrue(fileInfo.isPersisted());
+    Assert.assertEquals(ufsTime, alluxioTime);
+  }
+
+  /**
+   * Tests loading ufs last modified time for files.
+   */
+  @Test
+  public void loadFileTimestamps() throws Exception {
+    String name = "f1";
+    String ufs = Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
+    String ufsPath = Paths.get(ufs, name).toString();
+    FileUtils.createFile(ufsPath);
+    File file = new File(ufsPath);
+    long actualTime = file.lastModified();
+    Thread.sleep(100);
+    AlluxioURI path = new AlluxioURI("/" + name);
+
+    long fileId = mFsMaster.getFileId(path);
+    FileInfo fileInfo = mFsMaster.getFileInfo(fileId);
+    long alluxioTime = fileInfo.getLastModificationTimeMs();
+
+    Assert.assertEquals(name, fileInfo.getName());
+    Assert.assertFalse(fileInfo.isFolder());
+    Assert.assertTrue(fileInfo.isPersisted());
+    Assert.assertEquals(actualTime, alluxioTime);
+  }
+
+  /**
+   * Tests loading ufs last modified time for parent directories.
+   */
+  @Test
+  public void loadParentDirectoryTimestamps() throws Exception {
+    String parentName = "d1";
+    String childName = "d2";
+    String ufs = Configuration.get(PropertyKey.MASTER_MOUNT_TABLE_ROOT_UFS);
+    String parentUfsPath = Paths.get(ufs, parentName).toString();
+    FileUtils.createDir(parentUfsPath);
+    File file = new File(parentUfsPath);
+    long actualTime = file.lastModified();
+    Thread.sleep(100);
+    AlluxioURI parentPath = new AlluxioURI("/" + parentName);
+    AlluxioURI path = new AlluxioURI("/" + Paths.get(parentName, childName));
+    mFsMaster.createDirectory(path, CreateDirectoryOptions.defaults()
+        .setPersisted(true).setRecursive(true).setMode(new Mode((short) 0700)));
+    long fileId = mFsMaster.getFileId(path);
+
+    // calls getFileInfo on child to load metadata of parent
+    mFsMaster.getFileInfo(fileId);
+    long parentId = mFsMaster.getFileId(parentPath);
+    FileInfo parentInfo = mFsMaster.getFileInfo(parentId);
+    long alluxioTime = parentInfo.getLastModificationTimeMs();
+
+    Assert.assertEquals(parentName, parentInfo.getName());
+    Assert.assertTrue(parentInfo.isFolder());
+    Assert.assertTrue(parentInfo.isPersisted());
+    Assert.assertEquals(actualTime, alluxioTime);
+    Assert.assertTrue(FileUtils.exists(parentUfsPath));
+  }
+
+  /**
    * This class provides multiple concurrent threads to create all files in one directory.
    */
   class ConcurrentCreator implements Callable<Void> {

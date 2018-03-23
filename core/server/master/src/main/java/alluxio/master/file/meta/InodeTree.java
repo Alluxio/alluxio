@@ -558,10 +558,12 @@ public class InodeTree implements JournalEntryIterable {
         syncPersistDirectory((InodeDirectory) inode, journalContext);
       }
     }
-    if (pathIndex < (pathComponents.length - 1) || currentInodeDirectory.getChild(name) == null) {
+    if ((pathIndex < (pathComponents.length - 1) || currentInodeDirectory.getChild(name) == null)
+        && options.getOperationTimeMs() > currentInodeDirectory.getLastModificationTimeMs()) {
       // (1) There are components in parent paths that need to be created. Or
       // (2) The last component of the path needs to be created.
-      // In these two cases, the last traversed Inode will be modified.
+      // In these two cases, the last traversed Inode will be modified if the new timestamp is after
+      // the existing last modified time.
       currentInodeDirectory.setLastModificationTimeMs(options.getOperationTimeMs());
       modifiedInodes.add(currentInodeDirectory);
 
@@ -1030,6 +1032,10 @@ public class InodeTree implements JournalEntryIterable {
               dir.setOwner(status.getOwner())
                   .setGroup(status.getGroup())
                   .setMode(status.getMode());
+              Long lastModificationTime = status.getLastModifiedTime();
+              if (lastModificationTime != null) {
+                dir.setLastModificationTimeMs(status.getLastModifiedTime(), true);
+              }
             }
           }
           dir.setPersistenceState(PersistenceState.PERSISTED);
