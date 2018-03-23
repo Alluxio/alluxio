@@ -13,10 +13,11 @@ package alluxio.cli.fsadmin.command;
 
 import alluxio.cli.fsadmin.report.CapacityCommand;
 import alluxio.client.block.BlockMasterClient;
-import alluxio.client.block.options.GetWorkerInfoListOptions;
+import alluxio.client.block.options.GetWorkerReportOptions;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
 
+import org.hamcrest.CoreMatchers;
 import org.hamcrest.collection.IsIterableContainingInOrder;
 import org.junit.Assert;
 import org.junit.Before;
@@ -41,7 +42,7 @@ public class CapacityCommandTest {
     // Prepare mock block master client
     mBlockMasterClient = Mockito.mock(BlockMasterClient.class);
     List<WorkerInfo> infoList = prepareInfoList();
-    Mockito.when(mBlockMasterClient.getWorkerInfoList(Mockito.any()))
+    Mockito.when(mBlockMasterClient.getWorkerReport(Mockito.any()))
         .thenReturn(infoList);
   }
 
@@ -51,8 +52,9 @@ public class CapacityCommandTest {
          PrintStream printStream = new PrintStream(outputStream, true, "utf-8")) {
       CapacityCommand capacityCommand = new CapacityCommand(mBlockMasterClient,
           printStream);
-      capacityCommand.generateCapacityReport(GetWorkerInfoListOptions.defaults());
+      capacityCommand.generateCapacityReport(GetWorkerReportOptions.defaults());
       String output = new String(outputStream.toByteArray(), StandardCharsets.UTF_8);
+      Assert.assertThat(output, CoreMatchers.containsString("asdasda"));
       List<String> expectedOutput = Arrays.asList("Capacity information for all workers: ",
           "    Total Capacity: 29.80GB",
           "        Tier: MEM  Size: 8.38GB",
@@ -65,7 +67,7 @@ public class CapacityCommandTest {
           "    Used Percentage: 34%",
           "    Free Percentage: 66%",
           "",
-          "Worker Name      Last Heartbeat   Type          Total            "
+          "Worker Name      Last Heartbeat   Storage       Total            "
               + "MEM           SSD           HDD          ",
           "216.239.33.96    542              Capacity      18.63GB          "
               + "4768.37MB     4768.37MB     9.31GB       ",

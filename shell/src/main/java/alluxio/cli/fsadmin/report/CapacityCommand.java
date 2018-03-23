@@ -11,10 +11,11 @@
 
 package alluxio.cli.fsadmin.report;
 
+import alluxio.cli.fsadmin.command.ReportCommand;
 import alluxio.client.block.BlockMasterClient;
-import alluxio.client.block.options.GetWorkerInfoListOptions;
-import alluxio.client.block.options.GetWorkerInfoListOptions.WorkerInfoField;
-import alluxio.client.block.options.GetWorkerInfoListOptions.WorkerRange;
+import alluxio.client.block.options.GetWorkerReportOptions;
+import alluxio.client.block.options.GetWorkerReportOptions.WorkerInfoField;
+import alluxio.client.block.options.GetWorkerReportOptions.WorkerRange;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.util.FormatUtils;
 import alluxio.wire.WorkerInfo;
@@ -37,6 +38,7 @@ import java.util.Set;
  */
 public class CapacityCommand {
   private static final int INDENT_SIZE = 4;
+  private static final String WORKER_INFO_FORMAT = "%-16s %-16s %-13s %-16s %-13s %-13s %-13s%n";
 
   private BlockMasterClient mBlockMasterClient;
   private PrintStream mPrintStream;
@@ -71,7 +73,7 @@ public class CapacityCommand {
       return 0;
     }
 
-    GetWorkerInfoListOptions options = getOptions(cl);
+    GetWorkerReportOptions options = getOptions(cl);
     generateCapacityReport(options);
     return 0;
   }
@@ -79,9 +81,9 @@ public class CapacityCommand {
   /**
    * Generates capacity report.
    *
-   * @param options GetWorkerInfoListOptions to get worker report
+   * @param options GetWorkerReportOptions to get worker report
    */
-  public void generateCapacityReport(GetWorkerInfoListOptions options) throws IOException {
+  public void generateCapacityReport(GetWorkerReportOptions options) throws IOException {
     collectWorkerInfo(options);
     printAggregatedInfo(options);
     mPrintStream.println(mStringBuilder.toString());
@@ -90,18 +92,18 @@ public class CapacityCommand {
   /**
    * Collects worker capacity information.
    *
-   * @param options GetWorkerInfoListOptions to get worker report
+   * @param options GetWorkerReportOptions to get worker report
    */
-  private void collectWorkerInfo(GetWorkerInfoListOptions options) throws IOException {
-    List<WorkerInfo> workerInfoList = mBlockMasterClient.getWorkerInfoList(options);
+  private void collectWorkerInfo(GetWorkerReportOptions options) throws IOException {
+    List<WorkerInfo> workerInfoList = mBlockMasterClient.getWorkerReport(options);
     if (workerInfoList.size() == 0) {
       return;
     }
 
     Collections.sort(workerInfoList, new WorkerInfo.LastContactSecComparator());
 
-    mStringBuilder.append(String.format("%n%-16s %-16s %-13s %-16s %-13s %-13s %-13s%n",
-        "Worker Name", "Last Heartbeat", "Type", "Total", "MEM", "SSD", "HDD"));
+    mStringBuilder.append(String.format("%n" + WORKER_INFO_FORMAT,
+        "Worker Name", "Last Heartbeat", "Storage", "Total", "MEM", "SSD", "HDD"));
 
     for (WorkerInfo workerInfo : workerInfoList) {
       long usedBytes = workerInfo.getUsedBytes();
@@ -131,7 +133,7 @@ public class CapacityCommand {
             value + mSumUsedBytesOnTierMap.getOrDefault(tier, 0L));
       }
 
-      mStringBuilder.append(String.format("%-16s %-16s %-13s %-16s %-13s %-13s %-13s%n",
+      mStringBuilder.append(String.format(WORKER_INFO_FORMAT,
           workerInfo.getAddress().getHost(),
           workerInfo.getLastContactSec(),
           "Capacity",
@@ -139,7 +141,7 @@ public class CapacityCommand {
           FormatUtils.getSizeFromBytes(totalBytesOnTiers.getOrDefault("MEM", 0L)),
           FormatUtils.getSizeFromBytes(totalBytesOnTiers.getOrDefault("SSD", 0L)),
           FormatUtils.getSizeFromBytes(totalBytesOnTiers.getOrDefault("HDD", 0L))));
-      mStringBuilder.append(String.format("%-16s %-16s %-13s %-16s %-13s %-13s %-13s%n",
+      mStringBuilder.append(String.format(WORKER_INFO_FORMAT,
           "",
           "",
           "Used",
@@ -153,9 +155,9 @@ public class CapacityCommand {
   /**
    * Prints aggregated worker capacity information.
    *
-   * @param options GetWorkerInfoListOptions to check if input is invalid
+   * @param options GetWorkerReportOptions to check if input is invalid
    */
-  private void printAggregatedInfo(GetWorkerInfoListOptions options)
+  private void printAggregatedInfo(GetWorkerReportOptions options)
       throws InvalidArgumentException {
     if (options.getWorkerRange().equals(WorkerRange.SPECIFIED)
         && mSumCapacityBytes + mSumUsedBytes == 0) {
@@ -198,14 +200,14 @@ public class CapacityCommand {
    * Gets the worker info options.
    *
    * @param cl CommandLine that contains the client options
-   * @return GetWorkerInfoListOptions to get worker information
+   * @return GetWorkerReportOptions to get worker information
    */
-  private GetWorkerInfoListOptions getOptions(CommandLine cl) throws IOException {
+  private GetWorkerReportOptions getOptions(CommandLine cl) throws IOException {
     if (cl.getOptions().length > 1) {
       System.out.println(getUsage());
       throw new InvalidArgumentException("Too many arguments passed in.");
     }
-    GetWorkerInfoListOptions workerOptions = GetWorkerInfoListOptions.defaults();
+    GetWorkerReportOptions workerOptions = GetWorkerReportOptions.defaults();
 
     Set<WorkerInfoField> fieldRange = new HashSet<>(Arrays.asList(WorkerInfoField.ADDRESS,
         WorkerInfoField.CAPACITY_BYTES, WorkerInfoField.CAPACITY_BYTES_ON_TIERS,
@@ -213,15 +215,15 @@ public class CapacityCommand {
         WorkerInfoField.USED_BYTES_ON_TIERS));
     workerOptions.setFieldRange(fieldRange);
 
-    if (cl.hasOption("live")) {
+    if (cl.hasOption(ReportCommand.LIVE_OPTION_NAME)) {
       workerOptions.setWorkerRange(WorkerRange.LIVE);
-    } else if (cl.hasOption("lost")) {
+    } else if (cl.hasOption(ReportCommand.LOST_OPTION_NAME)) {
       workerOptions.setWorkerRange(WorkerRange.LOST);
-    } else if (cl.hasOption("worker")) {
+    } else if (cl.hasOption(ReportCommand.SPECIFIED_OPTION_NAME)) {
       workerOptions.setWorkerRange(WorkerRange.SPECIFIED);
-      String addressString = cl.getOptionValue("worker");
+      String addressString = cl.getOptionValue(ReportCommand.SPECIFIED_OPTION_NAME);
       String[] addressArray = addressString.split(",");
-      // Addresses in GetWorkerInfoListOptions is only used when WorkerRange is SPECIFIED
+      // Addresses in GetWorkerReportOptions is only used when WorkerRange is SPECIFIED
       workerOptions.setAddresses(new HashSet<>(Arrays.asList(addressArray)));
     }
     return workerOptions;
@@ -248,7 +250,7 @@ public class CapacityCommand {
         + "[filter arg] can be one of the following:\n"
         + "    -live                   Live workers\n"
         + "    -lost                   Lost workers\n"
-        + "    -worker <worker_names>  Specified workers, "
+        + "    -workers <worker_names>  Specified workers, "
         + "host names or ip addresses separated by \",\"\n";
   }
 }

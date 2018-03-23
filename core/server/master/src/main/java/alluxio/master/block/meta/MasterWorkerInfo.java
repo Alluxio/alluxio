@@ -14,7 +14,7 @@ package alluxio.master.block.meta;
 import alluxio.Constants;
 import alluxio.StorageTierAssoc;
 import alluxio.WorkerStorageTierAssoc;
-import alluxio.client.block.options.GetWorkerInfoListOptions.WorkerInfoField;
+import alluxio.client.block.options.GetWorkerReportOptions.WorkerInfoField;
 import alluxio.util.CommonUtils;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
@@ -177,9 +177,10 @@ public final class MasterWorkerInfo {
    * Gets the selected field information for this worker.
    *
    * @param fieldRange the client selected fields
+   * @param isLiveWorker the worker is live or not
    * @return generated worker information
    */
-  public WorkerInfo generateWorkerInfo(Set<WorkerInfoField> fieldRange) {
+  public WorkerInfo generateWorkerInfo(Set<WorkerInfoField> fieldRange, boolean isLiveWorker) {
     WorkerInfo info = new WorkerInfo();
     for (WorkerInfoField field : fieldRange != null ? fieldRange
         : Arrays.asList(WorkerInfoField.values())) {
@@ -202,6 +203,13 @@ public final class MasterWorkerInfo {
           break;
         case START_TIME_MS:
           info.setStartTimeMs(mStartTimeMs);
+          break;
+        case STATE:
+          if (isLiveWorker) {
+            info.setState("In Service");
+          } else {
+            info.setState("Out of Service");
+          }
           break;
         case USED_BYTES:
           info.setUsedBytes(mUsedBytes);

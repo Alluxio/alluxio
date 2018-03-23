@@ -18,8 +18,9 @@ public enum WorkerInfoField implements org.apache.thrift.TEnum {
   ID(3),
   LAST_CONTACT_SEC(4),
   START_TIME_MS(5),
-  USED_BYTES(6),
-  USED_BYTES_ON_TIERS(7);
+  STATE(6),
+  USED_BYTES(7),
+  USED_BYTES_ON_TIERS(8);
 
   private final int value;
 
@@ -53,8 +54,10 @@ public enum WorkerInfoField implements org.apache.thrift.TEnum {
       case 5:
         return START_TIME_MS;
       case 6:
-        return USED_BYTES;
+        return STATE;
       case 7:
+        return USED_BYTES;
+      case 8:
         return USED_BYTES_ON_TIERS;
       default:
         return null;

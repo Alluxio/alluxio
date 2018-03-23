@@ -12,7 +12,7 @@
 package alluxio.master.block;
 
 import alluxio.StorageTierAssoc;
-import alluxio.client.block.options.GetWorkerInfoListOptions;
+import alluxio.client.block.options.GetWorkerReportOptions;
 import alluxio.exception.BlockInfoException;
 import alluxio.exception.NoWorkerException;
 import alluxio.exception.status.InvalidArgumentException;
@@ -58,23 +58,23 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
   long getUsedBytes();
 
   /**
-   * Gets the worker information list.
-   *
-   * @param options the GetWorkerInfoListOptions defines the info range
-   * @return a list of {@link WorkerInfo} objects representing the workers in Alluxio
+   * @return a list of {@link WorkerInfo} objects representing the live workers in Alluxio
    */
-  List<WorkerInfo> getWorkerInfoList(GetWorkerInfoListOptions options)
-      throws UnavailableException, InvalidArgumentException;
-
-  /**
-   * @return a list of {@link WorkerInfo}s of live workers
-   */
-  List<WorkerInfo> getLiveWorkersInfoList() throws UnavailableException;
+  List<WorkerInfo> getWorkerInfoList() throws UnavailableException;
 
   /**
    * @return a list of {@link WorkerInfo}s of lost workers
    */
   List<WorkerInfo> getLostWorkersInfoList() throws UnavailableException;
+
+  /**
+   * Gets the worker information list for report CLI.
+   *
+   * @param options the GetWorkerReportOptions defines the info range
+   * @return a list of {@link WorkerInfo} objects representing the workers in Alluxio
+   */
+  List<WorkerInfo> getWorkerReport(GetWorkerReportOptions options)
+      throws UnavailableException, InvalidArgumentException;
 
   /**
    * Removes blocks from workers.

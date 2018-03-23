@@ -34,6 +34,7 @@ public final class WorkerInfo implements Serializable {
   private long mId;
   private int mLastContactSec;
   private long mStartTimeMs;
+  private String mState;
   private long mUsedBytes;
   private Map<String, Long> mUsedBytesOnTiers;
 
@@ -54,6 +55,7 @@ public final class WorkerInfo implements Serializable {
     mId = workerInfo.getId();
     mLastContactSec = workerInfo.getLastContactSec();
     mStartTimeMs = workerInfo.getStartTimeMs();
+    mState = workerInfo.getState();
     mUsedBytes = workerInfo.getUsedBytes();
     mUsedBytesOnTiers = workerInfo.getUsedBytesOnTiers();
   }
@@ -98,6 +100,13 @@ public final class WorkerInfo implements Serializable {
    */
   public long getStartTimeMs() {
     return mStartTimeMs;
+  }
+
+  /**
+   * @return the worker state
+   */
+  public String getState() {
+    return mState;
   }
 
   /**
@@ -170,6 +179,15 @@ public final class WorkerInfo implements Serializable {
   }
 
   /**
+   * @param state the state to use
+   * @return the worker information
+   */
+  public WorkerInfo setState(String state) {
+    mState = state;
+    return this;
+  }
+
+  /**
    * @param usedBytes the worker used capacity (in bytes) to use
    * @return the worker information
    */
@@ -192,8 +210,8 @@ public final class WorkerInfo implements Serializable {
    */
   protected alluxio.thrift.WorkerInfo toThrift() {
     return new alluxio.thrift.WorkerInfo(mAddress.toThrift(), mCapacityBytes,
-        mCapacityBytesOnTiers, mId, mLastContactSec, mStartTimeMs, mUsedBytes,
-        mUsedBytesOnTiers);
+        mCapacityBytesOnTiers, mId, mLastContactSec, mStartTimeMs, mState,
+        mUsedBytes, mUsedBytesOnTiers);
   }
 
   @Override
@@ -208,7 +226,8 @@ public final class WorkerInfo implements Serializable {
     return mAddress.equals(that.mAddress) && mCapacityBytes == that.mCapacityBytes
         && mCapacityBytesOnTiers.equals(that.mCapacityBytesOnTiers)
         && mId == that.mId && mLastContactSec == that.mLastContactSec
-        && mStartTimeMs == that.mStartTimeMs && mUsedBytes == that.mUsedBytes
+        && mStartTimeMs == that.mStartTimeMs && mState.equals(that.mState)
+        && mUsedBytes == that.mUsedBytes
         && mUsedBytesOnTiers.equals(that.mUsedBytesOnTiers);
   }
 
@@ -230,7 +249,7 @@ public final class WorkerInfo implements Serializable {
   @Override
   public int hashCode() {
     return Objects.hashCode(mAddress, mCapacityBytes, mCapacityBytesOnTiers, mId,
-        mLastContactSec, mStartTimeMs, mUsedBytes, mUsedBytesOnTiers);
+        mLastContactSec, mStartTimeMs, mState, mUsedBytes, mUsedBytesOnTiers);
   }
 
   @Override
@@ -241,6 +260,7 @@ public final class WorkerInfo implements Serializable {
         .add("id", mId)
         .add("lastContactSec", mLastContactSec)
         .add("startTimeMs", mStartTimeMs)
+        .add("state", mState)
         .add("usedBytes", mUsedBytes)
         .add("usedBytesOnTiers", mUsedBytesOnTiers).toString();
   }

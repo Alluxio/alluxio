@@ -15,7 +15,7 @@ import alluxio.Constants;
 import alluxio.RpcUtils;
 import alluxio.RpcUtils.RpcCallable;
 import alluxio.RpcUtils.RpcCallableThrowsIOException;
-import alluxio.client.block.options.GetWorkerInfoListOptions;
+import alluxio.client.block.options.GetWorkerReportOptions;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.AlluxioStatusException;
 import alluxio.thrift.AlluxioTException;
@@ -34,6 +34,7 @@ import alluxio.thrift.GetUsedBytesTOptions;
 import alluxio.thrift.GetUsedBytesTResponse;
 import alluxio.thrift.GetWorkerInfoListTOptions;
 import alluxio.thrift.GetWorkerInfoListTResponse;
+import alluxio.thrift.GetWorkerReportTOptions;
 import alluxio.thrift.WorkerInfo;
 import alluxio.wire.ThriftUtils;
 
@@ -160,15 +161,30 @@ public final class BlockMasterClientServiceHandler implements BlockMasterClientS
   }
 
   @Override
-  public GetWorkerInfoListTResponse getWorkerInfoList(
-      GetWorkerInfoListTOptions options) throws AlluxioTException {
+  public GetWorkerInfoListTResponse getWorkerInfoList(GetWorkerInfoListTOptions options)
+      throws AlluxioTException {
+    return RpcUtils.call(LOG, new RpcCallableThrowsIOException<GetWorkerInfoListTResponse>() {
+      @Override
+      public GetWorkerInfoListTResponse call() throws AlluxioException, AlluxioStatusException {
+        List<WorkerInfo> workerInfos = new ArrayList<>();
+        for (alluxio.wire.WorkerInfo workerInfo : mBlockMaster.getWorkerInfoList()) {
+          workerInfos.add(ThriftUtils.toThrift(workerInfo));
+        }
+        return new GetWorkerInfoListTResponse(workerInfos);
+      }
+    });
+  }
+
+  @Override
+  public GetWorkerInfoListTResponse getWorkerReport(
+      GetWorkerReportTOptions options) throws AlluxioTException {
     return RpcUtils.call(LOG, new RpcCallableThrowsIOException<GetWorkerInfoListTResponse>() {
       @Override
       public GetWorkerInfoListTResponse call()
           throws AlluxioException, AlluxioStatusException {
         List<WorkerInfo> workerInfos = new ArrayList<>();
         for (alluxio.wire.WorkerInfo workerInfo :
-            mBlockMaster.getWorkerInfoList(new GetWorkerInfoListOptions(options))) {
+            mBlockMaster.getWorkerReport(new GetWorkerReportOptions(options))) {
           workerInfos.add(ThriftUtils.toThrift(workerInfo));
         }
         return new GetWorkerInfoListTResponse(workerInfos);
@@ -176,7 +192,7 @@ public final class BlockMasterClientServiceHandler implements BlockMasterClientS
 
       @Override
       public String toString() {
-        return String.format("getWorkerInfoList: options=%s", options);
+        return String.format("getWorkerReport: options=%s", options);
       }
     });
   }

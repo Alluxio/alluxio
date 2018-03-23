@@ -147,7 +147,7 @@ public final class AlluxioMasterRestServiceHandler {
                 .setUfsCapacity(getUfsCapacityInternal())
                 .setUptimeMs(mMasterProcess.getUptimeMs())
                 .setVersion(RuntimeConstants.VERSION)
-                .setWorkers(mBlockMaster.getLiveWorkersInfoList());
+                .setWorkers(mBlockMaster.getWorkerInfoList());
         return result;
       }
     });
@@ -481,7 +481,7 @@ public final class AlluxioMasterRestServiceHandler {
     return RestUtils.call(new RestUtils.RestCallable<List<WorkerInfo>>() {
       @Override
       public List<WorkerInfo> call() throws Exception {
-        return mBlockMaster.getLiveWorkersInfoList();
+        return mBlockMaster.getWorkerInfoList();
       }
     });
   }

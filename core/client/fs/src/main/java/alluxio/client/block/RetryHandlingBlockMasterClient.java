@@ -13,7 +13,7 @@ package alluxio.client.block;
 
 import alluxio.AbstractMasterClient;
 import alluxio.Constants;
-import alluxio.client.block.options.GetWorkerInfoListOptions;
+import alluxio.client.block.options.GetWorkerReportOptions;
 import alluxio.master.MasterClientConfig;
 import alluxio.thrift.AlluxioService;
 import alluxio.thrift.BlockMasterClientService;
@@ -21,6 +21,7 @@ import alluxio.thrift.GetBlockInfoTOptions;
 import alluxio.thrift.GetBlockMasterInfoTOptions;
 import alluxio.thrift.GetCapacityBytesTOptions;
 import alluxio.thrift.GetUsedBytesTOptions;
+import alluxio.thrift.GetWorkerInfoListTOptions;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.BlockMasterInfo;
 import alluxio.wire.BlockMasterInfo.BlockMasterInfoField;
@@ -78,14 +79,29 @@ public final class RetryHandlingBlockMasterClient extends AbstractMasterClient
   }
 
   @Override
-  public synchronized List<WorkerInfo> getWorkerInfoList(
-      final GetWorkerInfoListOptions options) throws IOException {
+  public synchronized List<WorkerInfo> getWorkerInfoList() throws IOException {
     return retryRPC(new RpcCallable<List<WorkerInfo>>() {
       @Override
       public List<WorkerInfo> call() throws TException {
         List<WorkerInfo> result = new ArrayList<>();
         for (alluxio.thrift.WorkerInfo workerInfo : mClient
-            .getWorkerInfoList(options.toThrift()).getWorkerInfoList()) {
+            .getWorkerInfoList(new GetWorkerInfoListTOptions()).getWorkerInfoList()) {
+          result.add(ThriftUtils.fromThrift(workerInfo));
+        }
+        return result;
+      }
+    });
+  }
+
+  @Override
+  public synchronized List<WorkerInfo> getWorkerReport(
+      final GetWorkerReportOptions options) throws IOException {
+    return retryRPC(new RpcCallable<List<WorkerInfo>>() {
+      @Override
+      public List<WorkerInfo> call() throws TException {
+        List<WorkerInfo> result = new ArrayList<>();
+        for (alluxio.thrift.WorkerInfo workerInfo : mClient
+            .getWorkerReport(options.toThrift()).getWorkerInfoList()) {
           result.add(ThriftUtils.fromThrift(workerInfo));
         }
         return result;

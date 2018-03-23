@@ -43,33 +43,38 @@ import java.util.List;
  * Reports Alluxio running cluster information.
  */
 public final class ReportCommand extends AbstractCommand {
+  public static final String LIVE_OPTION_NAME = "live";
+  public static final String LOST_OPTION_NAME = "lost";
+  public static final String SPECIFIED_OPTION_NAME = "workers";
+  public static final String HELP_OPTION_NAME = "h";
+
   private MetaMasterClient mMetaMasterClient;
   private BlockMasterClient mBlockMasterClient;
   private PrintStream mPrintStream;
 
   private static final Option LIVE_OPTION =
-      Option.builder("live")
+      Option.builder(LIVE_OPTION_NAME)
           .required(false)
           .hasArg(false)
           .desc("show capacity information of live workers.")
           .build();
 
   private static final Option LOST_OPTION =
-      Option.builder("lost")
+      Option.builder(LOST_OPTION_NAME)
           .required(false)
           .hasArg(false)
           .desc("show capacity information of lost workers.")
           .build();
 
   private static final Option SPECIFIED_OPTION =
-      Option.builder("worker")
+      Option.builder(SPECIFIED_OPTION_NAME)
           .required(false)
           .hasArg(true)
           .desc("show capacity information of specified workers.")
           .build();
 
   private static final Option HELP_OPTION =
-      Option.builder("h")
+      Option.builder(HELP_OPTION_NAME)
           .required(false)
           .hasArg(false)
           .desc("print help information.")
@@ -103,7 +108,7 @@ public final class ReportCommand extends AbstractCommand {
   public int run(CommandLine cl) throws IOException {
     String[] args = cl.getArgs();
 
-    if (cl.hasOption("h")
+    if (cl.hasOption(HELP_OPTION_NAME)
         && !(args.length > 0 && args[0].equals("capacity"))) {
       // if category is capacity, we print report capacity usage inside CapacityCommand.
       System.out.println(getUsage());

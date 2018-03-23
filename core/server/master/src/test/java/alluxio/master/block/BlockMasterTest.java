@@ -226,7 +226,7 @@ public class BlockMasterTest {
     Map<String, Long> newUsedBytesOnTiers = ImmutableMap.of("MEM", 50L);
     mBlockMaster.workerHeartbeat(worker, newUsedBytesOnTiers, NO_BLOCKS, NO_BLOCKS_ON_TIERS);
 
-    WorkerInfo workerInfo = Iterables.getOnlyElement(mBlockMaster.getLiveWorkersInfoList());
+    WorkerInfo workerInfo = Iterables.getOnlyElement(mBlockMaster.getWorkerInfoList());
     assertEquals(50, workerInfo.getUsedBytes());
   }
 

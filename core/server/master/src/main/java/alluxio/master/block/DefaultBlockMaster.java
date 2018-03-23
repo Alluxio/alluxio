@@ -16,8 +16,8 @@ import alluxio.Constants;
 import alluxio.MasterStorageTierAssoc;
 import alluxio.PropertyKey;
 import alluxio.StorageTierAssoc;
-import alluxio.client.block.options.GetWorkerInfoListOptions;
-import alluxio.client.block.options.GetWorkerInfoListOptions.WorkerRange;
+import alluxio.client.block.options.GetWorkerReportOptions;
+import alluxio.client.block.options.GetWorkerReportOptions.WorkerRange;
 import alluxio.clock.SystemClock;
 import alluxio.collections.ConcurrentHashSet;
 import alluxio.collections.IndexDefinition;
@@ -319,63 +319,16 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
   }
 
   @Override
-  public List<WorkerInfo> getWorkerInfoList(GetWorkerInfoListOptions options)
-      throws UnavailableException, InvalidArgumentException {
-    if (mSafeModeManager.isInSafeMode()) {
-      throw new UnavailableException(ExceptionMessage.MASTER_IN_SAFEMODE.getMessage());
-    }
-    Set<MasterWorkerInfo> selectedWorkers = null;
-    WorkerRange workerRange = options.getWorkerRange();
-    switch (workerRange) {
-      case ALL:
-        selectedWorkers = new HashSet<>();
-        selectedWorkers.addAll(mWorkers);
-        selectedWorkers.addAll(mLostWorkers);
-        break;
-      case LIVE:
-        selectedWorkers = new HashSet<>(mWorkers);
-        break;
-      case LOST:
-        selectedWorkers = new HashSet<>(mLostWorkers);
-        break;
-      case SPECIFIED:
-        selectedWorkers = new HashSet<>();
-        Set<String> addresses = options.getAddresses();
-        Set<String> ips = new HashSet<>();
-        Set<String> hosts = new HashSet<>();
-
-        selectInfoByAddress(addresses, mWorkers, selectedWorkers, ips, hosts);
-        selectInfoByAddress(addresses, mLostWorkers, selectedWorkers, ips, hosts);
-
-        if (!addresses.isEmpty()) {
-          String info = String.format("Unrecognized worker name: %s%n"
-              + "Supported worker hostnames: %s%nSupported worker ip addresses: %s%n",
-              addresses.toString(), hosts.toString(), ips.toString());
-          throw new InvalidArgumentException(info);
-        }
-        break;
-      default:
-        throw new InvalidArgumentException("Unrecognized worker range: " + workerRange);
-    }
-
-    List<WorkerInfo> workerInfoList = new ArrayList<>(selectedWorkers.size());
-    for (MasterWorkerInfo worker : selectedWorkers) {
-      synchronized (worker) {
-        workerInfoList.add(worker.generateWorkerInfo(options.getFieldRange()));
-      }
-    }
-    return workerInfoList;
-  }
-
-  @Override
-  public List<WorkerInfo> getLiveWorkersInfoList() throws UnavailableException {
+  public List<WorkerInfo> getWorkerInfoList() throws UnavailableException {
     if (mSafeModeManager.isInSafeMode()) {
       throw new UnavailableException(ExceptionMessage.MASTER_IN_SAFEMODE.getMessage());
     }
     List<WorkerInfo> workerInfoList = new ArrayList<>(mWorkers.size());
     for (MasterWorkerInfo worker : mWorkers) {
       synchronized (worker) {
-        workerInfoList.add(worker.generateWorkerInfo(null));
+        WorkerInfo info = worker.generateWorkerInfo(null, true);
+        info.setState("In Service");
+        workerInfoList.add(info);
       }
     }
     return workerInfoList;
@@ -389,10 +342,69 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
     List<WorkerInfo> workerInfoList = new ArrayList<>(mLostWorkers.size());
     for (MasterWorkerInfo worker : mLostWorkers) {
       synchronized (worker) {
-        workerInfoList.add(worker.generateWorkerInfo(null));
+        WorkerInfo info = worker.generateWorkerInfo(null, false);
+        info.setState("Out of Service");
+        workerInfoList.add(info);
       }
     }
     Collections.sort(workerInfoList, new WorkerInfo.LastContactSecComparator());
+    return workerInfoList;
+  }
+
+  @Override
+  public List<WorkerInfo> getWorkerReport(GetWorkerReportOptions options)
+      throws UnavailableException, InvalidArgumentException {
+    if (mSafeModeManager.isInSafeMode()) {
+      throw new UnavailableException(ExceptionMessage.MASTER_IN_SAFEMODE.getMessage());
+    }
+
+    Set<MasterWorkerInfo> selectedLiveWorkers = null;
+    Set<MasterWorkerInfo> selectedLostWorkers = null;
+    WorkerRange workerRange = options.getWorkerRange();
+    switch (workerRange) {
+      case ALL:
+        selectedLiveWorkers = new HashSet<>(mWorkers);
+        selectedLostWorkers = new HashSet<>(mLostWorkers);
+        break;
+      case LIVE:
+        selectedLiveWorkers = new HashSet<>(mWorkers);
+        break;
+      case LOST:
+        selectedLostWorkers = new HashSet<>(mLostWorkers);
+        break;
+      case SPECIFIED:
+        Set<String> addresses = options.getAddresses();
+        Set<String> workerNames = new HashSet<>();
+
+        selectedLiveWorkers = selectInfoByAddress(addresses, mWorkers, workerNames);
+        selectedLostWorkers = selectInfoByAddress(addresses, mLostWorkers, workerNames);
+
+        if (!addresses.isEmpty()) {
+          String info = String.format("Unrecognized worker names: %s%n"
+                  + "Supported worker names: %s%n",
+              addresses.toString(), workerNames.toString());
+          throw new InvalidArgumentException(info);
+        }
+        break;
+      default:
+        throw new InvalidArgumentException("Unrecognized worker range: " + workerRange);
+    }
+
+    List<WorkerInfo> workerInfoList = new ArrayList<>();
+    if (selectedLiveWorkers != null) {
+      for (MasterWorkerInfo worker : selectedLiveWorkers) {
+        synchronized (worker) {
+          workerInfoList.add(worker.generateWorkerInfo(options.getFieldRange(), true));
+        }
+      }
+    }
+    if (selectedLostWorkers != null) {
+      for (MasterWorkerInfo worker : selectedLostWorkers) {
+        synchronized (worker) {
+          workerInfoList.add(worker.generateWorkerInfo(options.getFieldRange(), false));
+        }
+      }
+    }
     return workerInfoList;
   }
 
@@ -876,41 +888,42 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
    *
    * @param addresses the address set that user passed in
    * @param workerInfoSet the MasterWorkerInfo set to select info from
-   * @param selectedWorkers the set that contains selected MasterWorkerInfo
-   * @param ips ip addressed that are supported by report capacity command
-   * @param hosts host names that are supported by report capacity command
+   * @param workerNames the supported worker names
+   * @return the selected MasterWorkerInfo
    */
-  private void selectInfoByAddress(Set<String> addresses, Set<MasterWorkerInfo> workerInfoSet,
-      Set<MasterWorkerInfo> selectedWorkers, Set<String> ips, Set<String> hosts) {
+  private Set<MasterWorkerInfo>  selectInfoByAddress(Set<String> addresses,
+      Set<MasterWorkerInfo> workerInfoSet, Set<String> workerNames) {
+    Set<MasterWorkerInfo> selectedWorkerInfo = new HashSet<>();
     for (MasterWorkerInfo info : workerInfoSet) {
       if (addresses.isEmpty()) {
         break;
       }
 
       String host = info.getWorkerAddress().getHost();
-      hosts.add(host);
+      workerNames.add(host);
 
       String ip = null;
       try {
         ip = NetworkAddressUtils.resolveIpAddress(host);
-        ips.add(ip);
+        workerNames.add(ip);
       } catch (UnknownHostException e) {
-        // If not find, do not support ip of that host
+        // The host may already be an IP address
       }
 
       if (addresses.contains(host)) {
-        selectedWorkers.add(info);
+        selectedWorkerInfo.add(info);
         addresses.remove(host);
         continue;
       }
 
       if (ip != null) {
         if (addresses.contains(ip)) {
-          selectedWorkers.add(info);
+          selectedWorkerInfo.add(info);
           addresses.remove(ip);
         }
       }
     }
+    return selectedWorkerInfo;
   }
 
   /**

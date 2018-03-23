@@ -44,8 +44,9 @@ public class WorkerInfo implements org.apache.thrift.TBase<WorkerInfo, WorkerInf
   private static final org.apache.thrift.protocol.TField ID_FIELD_DESC = new org.apache.thrift.protocol.TField("id", org.apache.thrift.protocol.TType.I64, (short)4);
   private static final org.apache.thrift.protocol.TField LAST_CONTACT_SEC_FIELD_DESC = new org.apache.thrift.protocol.TField("lastContactSec", org.apache.thrift.protocol.TType.I32, (short)5);
   private static final org.apache.thrift.protocol.TField START_TIME_MS_FIELD_DESC = new org.apache.thrift.protocol.TField("startTimeMs", org.apache.thrift.protocol.TType.I64, (short)6);
-  private static final org.apache.thrift.protocol.TField USED_BYTES_FIELD_DESC = new org.apache.thrift.protocol.TField("usedBytes", org.apache.thrift.protocol.TType.I64, (short)7);
-  private static final org.apache.thrift.protocol.TField USED_BYTES_ON_TIERS_FIELD_DESC = new org.apache.thrift.protocol.TField("usedBytesOnTiers", org.apache.thrift.protocol.TType.MAP, (short)8);
+  private static final org.apache.thrift.protocol.TField STATE_FIELD_DESC = new org.apache.thrift.protocol.TField("state", org.apache.thrift.protocol.TType.STRING, (short)7);
+  private static final org.apache.thrift.protocol.TField USED_BYTES_FIELD_DESC = new org.apache.thrift.protocol.TField("usedBytes", org.apache.thrift.protocol.TType.I64, (short)8);
+  private static final org.apache.thrift.protocol.TField USED_BYTES_ON_TIERS_FIELD_DESC = new org.apache.thrift.protocol.TField("usedBytesOnTiers", org.apache.thrift.protocol.TType.MAP, (short)9);
 
   private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
   static {
@@ -59,6 +60,7 @@ public class WorkerInfo implements org.apache.thrift.TBase<WorkerInfo, WorkerInf
   private long id; // required
   private int lastContactSec; // required
   private long startTimeMs; // required
+  private String state; // required
   private long usedBytes; // required
   private Map<String,Long> usedBytesOnTiers; // required
 
@@ -70,8 +72,9 @@ public class WorkerInfo implements org.apache.thrift.TBase<WorkerInfo, WorkerInf
     ID((short)4, "id"),
     LAST_CONTACT_SEC((short)5, "lastContactSec"),
     START_TIME_MS((short)6, "startTimeMs"),
-    USED_BYTES((short)7, "usedBytes"),
-    USED_BYTES_ON_TIERS((short)8, "usedBytesOnTiers");
+    STATE((short)7, "state"),
+    USED_BYTES((short)8, "usedBytes"),
+    USED_BYTES_ON_TIERS((short)9, "usedBytesOnTiers");
 
     private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -98,9 +101,11 @@ public class WorkerInfo implements org.apache.thrift.TBase<WorkerInfo, WorkerInf
           return LAST_CONTACT_SEC;
         case 6: // START_TIME_MS
           return START_TIME_MS;
-        case 7: // USED_BYTES
+        case 7: // STATE
+          return STATE;
+        case 8: // USED_BYTES
           return USED_BYTES;
-        case 8: // USED_BYTES_ON_TIERS
+        case 9: // USED_BYTES_ON_TIERS
           return USED_BYTES_ON_TIERS;
         default:
           return null;
@@ -165,6 +170,8 @@ public class WorkerInfo implements org.apache.thrift.TBase<WorkerInfo, WorkerInf
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I32)));
     tmpMap.put(_Fields.START_TIME_MS, new org.apache.thrift.meta_data.FieldMetaData("startTimeMs", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
+    tmpMap.put(_Fields.STATE, new org.apache.thrift.meta_data.FieldMetaData("state", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
     tmpMap.put(_Fields.USED_BYTES, new org.apache.thrift.meta_data.FieldMetaData("usedBytes", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
     tmpMap.put(_Fields.USED_BYTES_ON_TIERS, new org.apache.thrift.meta_data.FieldMetaData("usedBytesOnTiers", org.apache.thrift.TFieldRequirementType.DEFAULT, 
@@ -185,6 +192,7 @@ public class WorkerInfo implements org.apache.thrift.TBase<WorkerInfo, WorkerInf
     long id,
     int lastContactSec,
     long startTimeMs,
+    String state,
     long usedBytes,
     Map<String,Long> usedBytesOnTiers)
   {
@@ -199,6 +207,7 @@ public class WorkerInfo implements org.apache.thrift.TBase<WorkerInfo, WorkerInf
     setLastContactSecIsSet(true);
     this.startTimeMs = startTimeMs;
     setStartTimeMsIsSet(true);
+    this.state = state;
     this.usedBytes = usedBytes;
     setUsedBytesIsSet(true);
     this.usedBytesOnTiers = usedBytesOnTiers;
@@ -220,6 +229,9 @@ public class WorkerInfo implements org.apache.thrift.TBase<WorkerInfo, WorkerInf
     this.id = other.id;
     this.lastContactSec = other.lastContactSec;
     this.startTimeMs = other.startTimeMs;
+    if (other.isSetState()) {
+      this.state = other.state;
+    }
     this.usedBytes = other.usedBytes;
     if (other.isSetUsedBytesOnTiers()) {
       Map<String,Long> __this__usedBytesOnTiers = new HashMap<String,Long>(other.usedBytesOnTiers);
@@ -243,6 +255,7 @@ public class WorkerInfo implements org.apache.thrift.TBase<WorkerInfo, WorkerInf
     this.lastContactSec = 0;
     setStartTimeMsIsSet(false);
     this.startTimeMs = 0;
+    this.state = null;
     setUsedBytesIsSet(false);
     this.usedBytes = 0;
     this.usedBytesOnTiers = null;
@@ -399,6 +412,30 @@ public class WorkerInfo implements org.apache.thrift.TBase<WorkerInfo, WorkerInf
     __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __STARTTIMEMS_ISSET_ID, value);
   }
 
+  public String getState() {
+    return this.state;
+  }
+
+  public WorkerInfo setState(String state) {
+    this.state = state;
+    return this;
+  }
+
+  public void unsetState() {
+    this.state = null;
+  }
+
+  /** Returns true if field state is set (has been assigned a value) and false otherwise */
+  public boolean isSetState() {
+    return this.state != null;
+  }
+
+  public void setStateIsSet(boolean value) {
+    if (!value) {
+      this.state = null;
+    }
+  }
+
   public long getUsedBytes() {
     return this.usedBytes;
   }
@@ -507,6 +544,14 @@ public class WorkerInfo implements org.apache.thrift.TBase<WorkerInfo, WorkerInf
       }
       break;
 
+    case STATE:
+      if (value == null) {
+        unsetState();
+      } else {
+        setState((String)value);
+      }
+      break;
+
     case USED_BYTES:
       if (value == null) {
         unsetUsedBytes();
@@ -546,6 +591,9 @@ public class WorkerInfo implements org.apache.thrift.TBase<WorkerInfo, WorkerInf
     case START_TIME_MS:
       return getStartTimeMs();
 
+    case STATE:
+      return getState();
+
     case USED_BYTES:
       return getUsedBytes();
 
@@ -575,6 +623,8 @@ public class WorkerInfo implements org.apache.thrift.TBase<WorkerInfo, WorkerInf
       return isSetLastContactSec();
     case START_TIME_MS:
       return isSetStartTimeMs();
+    case STATE:
+      return isSetState();
     case USED_BYTES:
       return isSetUsedBytes();
     case USED_BYTES_ON_TIERS:
@@ -650,6 +700,15 @@ public class WorkerInfo implements org.apache.thrift.TBase<WorkerInfo, WorkerInf
         return false;
     }
 
+    boolean this_present_state = true && this.isSetState();
+    boolean that_present_state = true && that.isSetState();
+    if (this_present_state || that_present_state) {
+      if (!(this_present_state && that_present_state))
+        return false;
+      if (!this.state.equals(that.state))
+        return false;
+    }
+
     boolean this_present_usedBytes = true;
     boolean that_present_usedBytes = true;
     if (this_present_usedBytes || that_present_usedBytes) {
@@ -704,6 +763,11 @@ public class WorkerInfo implements org.apache.thrift.TBase<WorkerInfo, WorkerInf
     list.add(present_startTimeMs);
     if (present_startTimeMs)
       list.add(startTimeMs);
+
+    boolean present_state = true && (isSetState());
+    list.add(present_state);
+    if (present_state)
+      list.add(state);
 
     boolean present_usedBytes = true;
     list.add(present_usedBytes);
@@ -786,6 +850,16 @@ public class WorkerInfo implements org.apache.thrift.TBase<WorkerInfo, WorkerInf
         return lastComparison;
       }
     }
+    lastComparison = Boolean.valueOf(isSetState()).compareTo(other.isSetState());
+    if (lastComparison != 0) {
+      return lastComparison;
+    }
+    if (isSetState()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.state, other.state);
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+    }
     lastComparison = Boolean.valueOf(isSetUsedBytes()).compareTo(other.isSetUsedBytes());
     if (lastComparison != 0) {
       return lastComparison;
@@ -856,6 +930,14 @@ public class WorkerInfo implements org.apache.thrift.TBase<WorkerInfo, WorkerInf
     if (!first) sb.append(", ");
     sb.append("startTimeMs:");
     sb.append(this.startTimeMs);
+    first = false;
+    if (!first) sb.append(", ");
+    sb.append("state:");
+    if (this.state == null) {
+      sb.append("null");
+    } else {
+      sb.append(this.state);
+    }
     first = false;
     if (!first) sb.append(", ");
     sb.append("usedBytes:");
@@ -978,7 +1060,15 @@ public class WorkerInfo implements org.apache.thrift.TBase<WorkerInfo, WorkerInf
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
-          case 7: // USED_BYTES
+          case 7: // STATE
+            if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
+              struct.state = iprot.readString();
+              struct.setStateIsSet(true);
+            } else { 
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+            }
+            break;
+          case 8: // USED_BYTES
             if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
               struct.usedBytes = iprot.readI64();
               struct.setUsedBytesIsSet(true);
@@ -986,7 +1076,7 @@ public class WorkerInfo implements org.apache.thrift.TBase<WorkerInfo, WorkerInf
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
-          case 8: // USED_BYTES_ON_TIERS
+          case 9: // USED_BYTES_ON_TIERS
             if (schemeField.type == org.apache.thrift.protocol.TType.MAP) {
               {
                 org.apache.thrift.protocol.TMap _map32 = iprot.readMapBegin();
@@ -1051,6 +1141,11 @@ public class WorkerInfo implements org.apache.thrift.TBase<WorkerInfo, WorkerInf
       oprot.writeFieldBegin(START_TIME_MS_FIELD_DESC);
       oprot.writeI64(struct.startTimeMs);
       oprot.writeFieldEnd();
+      if (struct.state != null) {
+        oprot.writeFieldBegin(STATE_FIELD_DESC);
+        oprot.writeString(struct.state);
+        oprot.writeFieldEnd();
+      }
       oprot.writeFieldBegin(USED_BYTES_FIELD_DESC);
       oprot.writeI64(struct.usedBytes);
       oprot.writeFieldEnd();
@@ -1103,13 +1198,16 @@ public class WorkerInfo implements org.apache.thrift.TBase<WorkerInfo, WorkerInf
       if (struct.isSetStartTimeMs()) {
         optionals.set(5);
       }
-      if (struct.isSetUsedBytes()) {
+      if (struct.isSetState()) {
         optionals.set(6);
       }
-      if (struct.isSetUsedBytesOnTiers()) {
+      if (struct.isSetUsedBytes()) {
         optionals.set(7);
       }
-      oprot.writeBitSet(optionals, 8);
+      if (struct.isSetUsedBytesOnTiers()) {
+        optionals.set(8);
+      }
+      oprot.writeBitSet(optionals, 9);
       if (struct.isSetAddress()) {
         struct.address.write(oprot);
       }
@@ -1135,6 +1233,9 @@ public class WorkerInfo implements org.apache.thrift.TBase<WorkerInfo, WorkerInf
       if (struct.isSetStartTimeMs()) {
         oprot.writeI64(struct.startTimeMs);
       }
+      if (struct.isSetState()) {
+        oprot.writeString(struct.state);
+      }
       if (struct.isSetUsedBytes()) {
         oprot.writeI64(struct.usedBytes);
       }
@@ -1153,7 +1254,7 @@ public class WorkerInfo implements org.apache.thrift.TBase<WorkerInfo, WorkerInf
     @Override
     public void read(org.apache.thrift.protocol.TProtocol prot, WorkerInfo struct) throws org.apache.thrift.TException {
       TTupleProtocol iprot = (TTupleProtocol) prot;
-      BitSet incoming = iprot.readBitSet(8);
+      BitSet incoming = iprot.readBitSet(9);
       if (incoming.get(0)) {
         struct.address = new alluxio.thrift.WorkerNetAddress();
         struct.address.read(iprot);
@@ -1191,10 +1292,14 @@ public class WorkerInfo implements org.apache.thrift.TBase<WorkerInfo, WorkerInf
         struct.setStartTimeMsIsSet(true);
       }
       if (incoming.get(6)) {
+        struct.state = iprot.readString();
+        struct.setStateIsSet(true);
+      }
+      if (incoming.get(7)) {
         struct.usedBytes = iprot.readI64();
         struct.setUsedBytesIsSet(true);
       }
-      if (incoming.get(7)) {
+      if (incoming.get(8)) {
         {
           org.apache.thrift.protocol.TMap _map44 = new org.apache.thrift.protocol.TMap(org.apache.thrift.protocol.TType.STRING, org.apache.thrift.protocol.TType.I64, iprot.readI32());
           struct.usedBytesOnTiers = new HashMap<String,Long>(2*_map44.size);

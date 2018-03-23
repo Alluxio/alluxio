@@ -53,6 +53,7 @@ public class WorkerInfoTest {
     Assert.assertEquals(a.getCapacityBytes(), b.getCapacityBytes());
     Assert.assertEquals(a.getUsedBytes(), b.getUsedBytes());
     Assert.assertEquals(a.getStartTimeMs(), b.getStartTimeMs());
+    Assert.assertEquals(a.getState(), b.getState());
     Assert.assertEquals(a.getCapacityBytesOnTiers(), b.getCapacityBytesOnTiers());
     Assert.assertEquals(a.getUsedBytesOnTiers(), b.getUsedBytesOnTiers());
     Assert.assertEquals(a, b);
@@ -82,6 +83,7 @@ public class WorkerInfoTest {
     capacityBytesOnTiers.put("MEM", capacityBytes);
     Map<String, Long> usedBytesOnTiers = new HashMap<>();
     usedBytesOnTiers.put("MEM", usedBytes);
+    String state = random.nextInt(1) == 1 ? "In Service" : "Out of Service";
 
     result.setId(id);
     result.setAddress(address);
@@ -89,6 +91,7 @@ public class WorkerInfoTest {
     result.setCapacityBytes(capacityBytes);
     result.setUsedBytes(usedBytes);
     result.setStartTimeMs(startTimeMs);
+    result.setState(state);
     result.setCapacityBytesOnTiers(capacityBytesOnTiers);
     result.setUsedBytesOnTiers(usedBytesOnTiers);
     return result;

@@ -37,7 +37,7 @@ public final class CapacityCommandIntegrationTest extends AbstractFsAdminShellTe
         + "    Used Percentage: 0%\n"
         + "    Free Percentage: 100%\n"));
     Assert.assertThat(output, CoreMatchers.containsString(
-        "Worker Name      Last Heartbeat   Type          Total            "
+        "Worker Name      Last Heartbeat   Storage       Total            "
             + "MEM           SSD           HDD"));
     Assert.assertThat(output, CoreMatchers.containsString(
         "                                  Used          0B (0%)          "
@@ -69,7 +69,7 @@ public final class CapacityCommandIntegrationTest extends AbstractFsAdminShellTe
         + "    Used Percentage: 0%\n"
         + "    Free Percentage: 100%\n"));
     Assert.assertThat(output, CoreMatchers.containsString(
-        "Worker Name      Last Heartbeat   Type          Total            "
+        "Worker Name      Last Heartbeat   Storage       Total            "
             + "MEM           SSD           HDD"));
     Assert.assertThat(output, CoreMatchers.containsString(
         "                                  Used          0B (0%)          "
@@ -83,12 +83,5 @@ public final class CapacityCommandIntegrationTest extends AbstractFsAdminShellTe
     String expected = CapacityCommand.getUsage()
         + "\nToo many arguments passed in.\n";
     Assert.assertEquals(expected, mOutput.toString());
-  }
-
-  @Test
-  public void capacityWithInvalidAddress() {
-    int ret = mFsAdminShell.run("report", "capacity", "-worker", "0.0.0.0");
-    Assert.assertEquals(-1, ret);
-    Assert.assertThat(mOutput.toString(), CoreMatchers.containsString(CapacityCommand.getUsage()));
   }
 }

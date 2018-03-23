@@ -55,7 +55,7 @@ public final class WebInterfaceWorkersServlet extends HttpServlet {
       mHost = workerInfo.getAddress().getHost();
       mWebPort = workerInfo.getAddress().getWebPort();
       mLastContactSec = Integer.toString(workerInfo.getLastContactSec());
-      mWorkerState = "In Service";
+      mWorkerState = workerInfo.getState();
       mCapacityBytes = workerInfo.getCapacityBytes();
       mUsedBytes = workerInfo.getUsedBytes();
       if (mCapacityBytes != 0) {
@@ -225,7 +225,7 @@ public final class WebInterfaceWorkersServlet extends HttpServlet {
   private void populateValues(HttpServletRequest request) throws IOException {
     request.setAttribute("debug", Configuration.getBoolean(PropertyKey.DEBUG));
 
-    List<WorkerInfo> workerInfos = mBlockMaster.getLiveWorkersInfoList();
+    List<WorkerInfo> workerInfos = mBlockMaster.getWorkerInfoList();
     NodeInfo[] normalNodeInfos = generateOrderedNodeInfos(workerInfos);
     request.setAttribute("normalNodeInfos", normalNodeInfos);
 

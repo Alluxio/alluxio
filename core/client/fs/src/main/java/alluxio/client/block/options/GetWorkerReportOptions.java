@@ -11,21 +11,22 @@
 
 package alluxio.client.block.options;
 
-import alluxio.thrift.GetWorkerInfoListTOptions;
+import alluxio.thrift.GetWorkerReportTOptions;
 
 import com.google.common.base.Objects;
 
-import javax.annotation.concurrent.NotThreadSafe;
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 /**
  * Worker information options.
  */
 @NotThreadSafe
-public final class GetWorkerInfoListOptions implements Serializable {
+public final class GetWorkerReportOptions implements Serializable {
   private static final long serialVersionUID = -7604526631057562523L;
 
   private Set<String> mAddresses;
@@ -33,27 +34,27 @@ public final class GetWorkerInfoListOptions implements Serializable {
   private WorkerRange mWorkerRange;
 
   /**
-   * @return the default {@link GetWorkerInfoListOptions}
+   * @return the default {@link GetWorkerReportOptions}
    */
-  public static GetWorkerInfoListOptions defaults() {
-    return new GetWorkerInfoListOptions();
+  public static GetWorkerReportOptions defaults() {
+    return new GetWorkerReportOptions();
   }
 
   /**
    * Creates a new instance with default values.
    */
-  private GetWorkerInfoListOptions() {
+  private GetWorkerReportOptions() {
     mAddresses = new HashSet<>();
     mFieldRange = new HashSet<>(Arrays.asList(WorkerInfoField.values()));
     mWorkerRange = WorkerRange.ALL;
   }
 
   /**
-   * Creates a new instance of {@link GetWorkerInfoListOptions} from a thrift representation.
+   * Creates a new instance of {@link GetWorkerReportOptions} from a thrift representation.
    *
-   * @param options the thrift representation of a GetWorkerInfoListOptions
+   * @param options the thrift representation of a GetWorkerReportOptions
    */
-  public GetWorkerInfoListOptions(alluxio.thrift.GetWorkerInfoListTOptions options) {
+  public GetWorkerReportOptions(alluxio.thrift.GetWorkerReportTOptions options) {
     mAddresses = options.getAddresses();
     mFieldRange = new HashSet<>();
     for (alluxio.thrift.WorkerInfoField field: options.getFieldRange()) {
@@ -87,7 +88,7 @@ public final class GetWorkerInfoListOptions implements Serializable {
    * @param addresses the client selected worker addresses
    * @return the updated options object
    */
-  public GetWorkerInfoListOptions setAddresses(Set<String> addresses) {
+  public GetWorkerReportOptions setAddresses(Set<String> addresses) {
     mAddresses = addresses;
     return this;
   }
@@ -96,7 +97,7 @@ public final class GetWorkerInfoListOptions implements Serializable {
    * @param fieldRange the field range of worker info
    * @return the updated options object
    */
-  public GetWorkerInfoListOptions setFieldRange(Set<WorkerInfoField> fieldRange) {
+  public GetWorkerReportOptions setFieldRange(Set<WorkerInfoField> fieldRange) {
     mFieldRange = fieldRange;
     return this;
   }
@@ -105,7 +106,7 @@ public final class GetWorkerInfoListOptions implements Serializable {
    * @param workerRange the client selected worker range
    * @return the updated options object
    */
-  public GetWorkerInfoListOptions setWorkerRange(WorkerRange workerRange) {
+  public GetWorkerReportOptions setWorkerRange(WorkerRange workerRange) {
     mWorkerRange = workerRange;
     return this;
   }
@@ -115,10 +116,10 @@ public final class GetWorkerInfoListOptions implements Serializable {
     if (this == o) {
       return true;
     }
-    if (!(o instanceof GetWorkerInfoListOptions)) {
+    if (!(o instanceof GetWorkerReportOptions)) {
       return false;
     }
-    GetWorkerInfoListOptions that = (GetWorkerInfoListOptions) o;
+    GetWorkerReportOptions that = (GetWorkerReportOptions) o;
     return mAddresses.equals(that.mAddresses)
         && mFieldRange.equals(that.mFieldRange)
         && mWorkerRange.equals(that.mWorkerRange);
@@ -141,8 +142,8 @@ public final class GetWorkerInfoListOptions implements Serializable {
   /**
    * @return Thrift representation of the options
    */
-  public GetWorkerInfoListTOptions toThrift() {
-    GetWorkerInfoListTOptions options = new GetWorkerInfoListTOptions();
+  public GetWorkerReportTOptions toThrift() {
+    GetWorkerReportTOptions options = new GetWorkerReportTOptions();
     options.setAddresses(mAddresses);
     if (mFieldRange != null) {
       Set<alluxio.thrift.WorkerInfoField> thriftFieldRange = new HashSet<>();
@@ -190,6 +191,7 @@ public final class GetWorkerInfoListOptions implements Serializable {
     ID,
     LAST_CONTACT_SEC,
     START_TIME_MS,
+    STATE,
     USED_BYTES,
     USED_BYTES_ON_TIERS;
 

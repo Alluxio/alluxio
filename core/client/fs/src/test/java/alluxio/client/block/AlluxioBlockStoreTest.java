@@ -17,8 +17,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import alluxio.client.WriteType;
-import alluxio.client.block.options.GetWorkerInfoListOptions;
-import alluxio.client.block.options.GetWorkerInfoListOptions.WorkerRange;
 import alluxio.client.block.policy.BlockLocationPolicy;
 import alluxio.client.block.policy.options.GetWorkerOptions;
 import alluxio.client.block.stream.BlockInStream;
@@ -237,9 +235,7 @@ public final class AlluxioBlockStoreTest {
             new MockFileWriteLocationPolicy(Arrays.asList(worker1, worker2)));
     InStreamOptions options = new InStreamOptions(dummyStatus, readOptions);
     when(mMasterClient.getBlockInfo(BLOCK_ID)).thenReturn(new BlockInfo());
-    GetWorkerInfoListOptions getWorkerInfoListOptions =
-        GetWorkerInfoListOptions.defaults().setWorkerRange(WorkerRange.LIVE);
-    when(mMasterClient.getWorkerInfoList(getWorkerInfoListOptions)).thenReturn(
+    when(mMasterClient.getWorkerInfoList()).thenReturn(
         Arrays.asList(new WorkerInfo().setAddress(worker1), new WorkerInfo().setAddress(worker2)));
 
     // Location policy chooses worker1 first.
@@ -361,11 +357,7 @@ public final class AlluxioBlockStoreTest {
         OpenFileOptions.defaults().setUfsReadLocationPolicy(mockPolicy);
     InStreamOptions options = new InStreamOptions(dummyStatus, readOptions);
     when(mMasterClient.getBlockInfo(BLOCK_ID)).thenReturn(info);
-    GetWorkerInfoListOptions getWorkerInfoListOptions =
-        GetWorkerInfoListOptions.defaults()
-        .setWorkerRange(GetWorkerInfoListOptions.WorkerRange.LIVE);
-    when(mMasterClient.getWorkerInfoList(getWorkerInfoListOptions))
-        .thenReturn(Arrays.stream(workers)
+    when(mMasterClient.getWorkerInfoList()).thenReturn(Arrays.stream(workers)
         .map(x -> new WorkerInfo().setAddress(x)).collect((Collectors.toList())));
     Map<WorkerNetAddress, Long> failedWorkerAddresses = failedWorkers.entrySet().stream()
         .map(x -> new AbstractMap.SimpleImmutableEntry<>(workers[x.getKey()], x.getValue()))

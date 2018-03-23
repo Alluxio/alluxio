@@ -60,6 +60,7 @@ enum WorkerInfoField {
   ID
   LAST_CONTACT_SEC
   START_TIME_MS
+  STATE
   USED_BYTES
   USED_BYTES_ON_TIERS
 }
@@ -71,16 +72,19 @@ struct WorkerInfo {
   4: i64 id
   5: i32 lastContactSec
   6: i64 startTimeMs
-  7: i64 usedBytes
-  8: map<string, i64> usedBytesOnTiers;
+  7: string state
+  8: i64 usedBytes
+  9: map<string, i64> usedBytesOnTiers;
 }
 
-struct GetWorkerInfoListTOptions {
+struct GetWorkerReportTOptions {
   /** addresses are only valid when workerRange is SPECIFIED */
   1: optional set<string> addresses
   2: optional set<WorkerInfoField>  fieldRange
   3: optional WorkerRange workerRange
 }
+
+struct GetWorkerInfoListTOptions {}
 
 struct GetWorkerInfoListTResponse {
   1: list<WorkerInfo> workerInfoList
@@ -126,6 +130,13 @@ service BlockMasterClientService extends common.AlluxioService {
    */
   GetWorkerInfoListTResponse getWorkerInfoList(
     /** the method options */ 1: GetWorkerInfoListTOptions options,
+  ) throws (1: exception.AlluxioTException e)
+
+  /**
+   * Returns a list of workers information for report CLI.
+   */
+  GetWorkerInfoListTResponse getWorkerReport(
+    /** the method options */ 1: GetWorkerReportTOptions options,
   ) throws (1: exception.AlluxioTException e)
 }
 

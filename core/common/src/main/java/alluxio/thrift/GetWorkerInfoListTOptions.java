@@ -38,9 +38,6 @@ import org.slf4j.LoggerFactory;
 public class GetWorkerInfoListTOptions implements org.apache.thrift.TBase<GetWorkerInfoListTOptions, GetWorkerInfoListTOptions._Fields>, java.io.Serializable, Cloneable, Comparable<GetWorkerInfoListTOptions> {
   private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("GetWorkerInfoListTOptions");
 
-  private static final org.apache.thrift.protocol.TField ADDRESSES_FIELD_DESC = new org.apache.thrift.protocol.TField("addresses", org.apache.thrift.protocol.TType.SET, (short)1);
-  private static final org.apache.thrift.protocol.TField FIELD_RANGE_FIELD_DESC = new org.apache.thrift.protocol.TField("fieldRange", org.apache.thrift.protocol.TType.SET, (short)2);
-  private static final org.apache.thrift.protocol.TField WORKER_RANGE_FIELD_DESC = new org.apache.thrift.protocol.TField("workerRange", org.apache.thrift.protocol.TType.I32, (short)3);
 
   private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
   static {
@@ -48,22 +45,10 @@ public class GetWorkerInfoListTOptions implements org.apache.thrift.TBase<GetWor
     schemes.put(TupleScheme.class, new GetWorkerInfoListTOptionsTupleSchemeFactory());
   }
 
-  private Set<String> addresses; // optional
-  private Set<WorkerInfoField> fieldRange; // optional
-  private WorkerRange workerRange; // optional
 
   /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
   public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-    /**
-     * addresses are only valid when workerRange is specified
-     */
-    ADDRESSES((short)1, "addresses"),
-    FIELD_RANGE((short)2, "fieldRange"),
-    /**
-     * 
-     * @see WorkerRange
-     */
-    WORKER_RANGE((short)3, "workerRange");
+;
 
     private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -78,12 +63,6 @@ public class GetWorkerInfoListTOptions implements org.apache.thrift.TBase<GetWor
      */
     public static _Fields findByThriftId(int fieldId) {
       switch(fieldId) {
-        case 1: // ADDRESSES
-          return ADDRESSES;
-        case 2: // FIELD_RANGE
-          return FIELD_RANGE;
-        case 3: // WORKER_RANGE
-          return WORKER_RANGE;
         default:
           return null;
       }
@@ -122,20 +101,9 @@ public class GetWorkerInfoListTOptions implements org.apache.thrift.TBase<GetWor
       return _fieldName;
     }
   }
-
-  // isset id assignments
-  private static final _Fields optionals[] = {_Fields.ADDRESSES,_Fields.FIELD_RANGE,_Fields.WORKER_RANGE};
   public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
   static {
     Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
-    tmpMap.put(_Fields.ADDRESSES, new org.apache.thrift.meta_data.FieldMetaData("addresses", org.apache.thrift.TFieldRequirementType.OPTIONAL, 
-        new org.apache.thrift.meta_data.SetMetaData(org.apache.thrift.protocol.TType.SET, 
-            new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING))));
-    tmpMap.put(_Fields.FIELD_RANGE, new org.apache.thrift.meta_data.FieldMetaData("fieldRange", org.apache.thrift.TFieldRequirementType.OPTIONAL, 
-        new org.apache.thrift.meta_data.SetMetaData(org.apache.thrift.protocol.TType.SET, 
-            new org.apache.thrift.meta_data.EnumMetaData(org.apache.thrift.protocol.TType.ENUM, WorkerInfoField.class))));
-    tmpMap.put(_Fields.WORKER_RANGE, new org.apache.thrift.meta_data.FieldMetaData("workerRange", org.apache.thrift.TFieldRequirementType.OPTIONAL, 
-        new org.apache.thrift.meta_data.EnumMetaData(org.apache.thrift.protocol.TType.ENUM, WorkerRange.class)));
     metaDataMap = Collections.unmodifiableMap(tmpMap);
     org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(GetWorkerInfoListTOptions.class, metaDataMap);
   }
@@ -147,20 +115,6 @@ public class GetWorkerInfoListTOptions implements org.apache.thrift.TBase<GetWor
    * Performs a deep copy on <i>other</i>.
    */
   public GetWorkerInfoListTOptions(GetWorkerInfoListTOptions other) {
-    if (other.isSetAddresses()) {
-      Set<String> __this__addresses = new HashSet<String>(other.addresses);
-      this.addresses = __this__addresses;
-    }
-    if (other.isSetFieldRange()) {
-      Set<WorkerInfoField> __this__fieldRange = new HashSet<WorkerInfoField>(other.fieldRange.size());
-      for (WorkerInfoField other_element : other.fieldRange) {
-        __this__fieldRange.add(other_element);
-      }
-      this.fieldRange = __this__fieldRange;
-    }
-    if (other.isSetWorkerRange()) {
-      this.workerRange = other.workerRange;
-    }
   }
 
   public GetWorkerInfoListTOptions deepCopy() {
@@ -169,167 +123,15 @@ public class GetWorkerInfoListTOptions implements org.apache.thrift.TBase<GetWor
 
   @Override
   public void clear() {
-    this.addresses = null;
-    this.fieldRange = null;
-    this.workerRange = null;
-  }
-
-  public int getAddressesSize() {
-    return (this.addresses == null) ? 0 : this.addresses.size();
-  }
-
-  public java.util.Iterator<String> getAddressesIterator() {
-    return (this.addresses == null) ? null : this.addresses.iterator();
-  }
-
-  public void addToAddresses(String elem) {
-    if (this.addresses == null) {
-      this.addresses = new HashSet<String>();
-    }
-    this.addresses.add(elem);
-  }
-
-  /**
-   * addresses are only valid when workerRange is specified
-   */
-  public Set<String> getAddresses() {
-    return this.addresses;
-  }
-
-  /**
-   * addresses are only valid when workerRange is specified
-   */
-  public GetWorkerInfoListTOptions setAddresses(Set<String> addresses) {
-    this.addresses = addresses;
-    return this;
-  }
-
-  public void unsetAddresses() {
-    this.addresses = null;
-  }
-
-  /** Returns true if field addresses is set (has been assigned a value) and false otherwise */
-  public boolean isSetAddresses() {
-    return this.addresses != null;
-  }
-
-  public void setAddressesIsSet(boolean value) {
-    if (!value) {
-      this.addresses = null;
-    }
-  }
-
-  public int getFieldRangeSize() {
-    return (this.fieldRange == null) ? 0 : this.fieldRange.size();
-  }
-
-  public java.util.Iterator<WorkerInfoField> getFieldRangeIterator() {
-    return (this.fieldRange == null) ? null : this.fieldRange.iterator();
-  }
-
-  public void addToFieldRange(WorkerInfoField elem) {
-    if (this.fieldRange == null) {
-      this.fieldRange = new HashSet<WorkerInfoField>();
-    }
-    this.fieldRange.add(elem);
-  }
-
-  public Set<WorkerInfoField> getFieldRange() {
-    return this.fieldRange;
-  }
-
-  public GetWorkerInfoListTOptions setFieldRange(Set<WorkerInfoField> fieldRange) {
-    this.fieldRange = fieldRange;
-    return this;
-  }
-
-  public void unsetFieldRange() {
-    this.fieldRange = null;
-  }
-
-  /** Returns true if field fieldRange is set (has been assigned a value) and false otherwise */
-  public boolean isSetFieldRange() {
-    return this.fieldRange != null;
-  }
-
-  public void setFieldRangeIsSet(boolean value) {
-    if (!value) {
-      this.fieldRange = null;
-    }
-  }
-
-  /**
-   * 
-   * @see WorkerRange
-   */
-  public WorkerRange getWorkerRange() {
-    return this.workerRange;
-  }
-
-  /**
-   * 
-   * @see WorkerRange
-   */
-  public GetWorkerInfoListTOptions setWorkerRange(WorkerRange workerRange) {
-    this.workerRange = workerRange;
-    return this;
-  }
-
-  public void unsetWorkerRange() {
-    this.workerRange = null;
-  }
-
-  /** Returns true if field workerRange is set (has been assigned a value) and false otherwise */
-  public boolean isSetWorkerRange() {
-    return this.workerRange != null;
-  }
-
-  public void setWorkerRangeIsSet(boolean value) {
-    if (!value) {
-      this.workerRange = null;
-    }
   }
 
   public void setFieldValue(_Fields field, Object value) {
     switch (field) {
-    case ADDRESSES:
-      if (value == null) {
-        unsetAddresses();
-      } else {
-        setAddresses((Set<String>)value);
-      }
-      break;
-
-    case FIELD_RANGE:
-      if (value == null) {
-        unsetFieldRange();
-      } else {
-        setFieldRange((Set<WorkerInfoField>)value);
-      }
-      break;
-
-    case WORKER_RANGE:
-      if (value == null) {
-        unsetWorkerRange();
-      } else {
-        setWorkerRange((WorkerRange)value);
-      }
-      break;
-
     }
   }
 
   public Object getFieldValue(_Fields field) {
     switch (field) {
-    case ADDRESSES:
-      return getAddresses();
-
-    case FIELD_RANGE:
-      return getFieldRange();
-
-    case WORKER_RANGE:
-      return getWorkerRange();
-
     }
     throw new IllegalStateException();
   }
@@ -341,12 +143,6 @@ public class GetWorkerInfoListTOptions implements org.apache.thrift.TBase<GetWor
     }
 
     switch (field) {
-    case ADDRESSES:
-      return isSetAddresses();
-    case FIELD_RANGE:
-      return isSetFieldRange();
-    case WORKER_RANGE:
-      return isSetWorkerRange();
     }
     throw new IllegalStateException();
   }
@@ -364,54 +160,12 @@ public class GetWorkerInfoListTOptions implements org.apache.thrift.TBase<GetWor
     if (that == null)
       return false;
 
-    boolean this_present_addresses = true && this.isSetAddresses();
-    boolean that_present_addresses = true && that.isSetAddresses();
-    if (this_present_addresses || that_present_addresses) {
-      if (!(this_present_addresses && that_present_addresses))
-        return false;
-      if (!this.addresses.equals(that.addresses))
-        return false;
-    }
-
-    boolean this_present_fieldRange = true && this.isSetFieldRange();
-    boolean that_present_fieldRange = true && that.isSetFieldRange();
-    if (this_present_fieldRange || that_present_fieldRange) {
-      if (!(this_present_fieldRange && that_present_fieldRange))
-        return false;
-      if (!this.fieldRange.equals(that.fieldRange))
-        return false;
-    }
-
-    boolean this_present_workerRange = true && this.isSetWorkerRange();
-    boolean that_present_workerRange = true && that.isSetWorkerRange();
-    if (this_present_workerRange || that_present_workerRange) {
-      if (!(this_present_workerRange && that_present_workerRange))
-        return false;
-      if (!this.workerRange.equals(that.workerRange))
-        return false;
-    }
-
     return true;
   }
 
   @Override
   public int hashCode() {
     List<Object> list = new ArrayList<Object>();
-
-    boolean present_addresses = true && (isSetAddresses());
-    list.add(present_addresses);
-    if (present_addresses)
-      list.add(addresses);
-
-    boolean present_fieldRange = true && (isSetFieldRange());
-    list.add(present_fieldRange);
-    if (present_fieldRange)
-      list.add(fieldRange);
-
-    boolean present_workerRange = true && (isSetWorkerRange());
-    list.add(present_workerRange);
-    if (present_workerRange)
-      list.add(workerRange.getValue());
 
     return list.hashCode();
   }
@@ -424,36 +178,6 @@ public class GetWorkerInfoListTOptions implements org.apache.thrift.TBase<GetWor
 
     int lastComparison = 0;
 
-    lastComparison = Boolean.valueOf(isSetAddresses()).compareTo(other.isSetAddresses());
-    if (lastComparison != 0) {
-      return lastComparison;
-    }
-    if (isSetAddresses()) {
-      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.addresses, other.addresses);
-      if (lastComparison != 0) {
-        return lastComparison;
-      }
-    }
-    lastComparison = Boolean.valueOf(isSetFieldRange()).compareTo(other.isSetFieldRange());
-    if (lastComparison != 0) {
-      return lastComparison;
-    }
-    if (isSetFieldRange()) {
-      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.fieldRange, other.fieldRange);
-      if (lastComparison != 0) {
-        return lastComparison;
-      }
-    }
-    lastComparison = Boolean.valueOf(isSetWorkerRange()).compareTo(other.isSetWorkerRange());
-    if (lastComparison != 0) {
-      return lastComparison;
-    }
-    if (isSetWorkerRange()) {
-      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.workerRange, other.workerRange);
-      if (lastComparison != 0) {
-        return lastComparison;
-      }
-    }
     return 0;
   }
 
@@ -474,35 +198,6 @@ public class GetWorkerInfoListTOptions implements org.apache.thrift.TBase<GetWor
     StringBuilder sb = new StringBuilder("GetWorkerInfoListTOptions(");
     boolean first = true;
 
-    if (isSetAddresses()) {
-      sb.append("addresses:");
-      if (this.addresses == null) {
-        sb.append("null");
-      } else {
-        sb.append(this.addresses);
-      }
-      first = false;
-    }
-    if (isSetFieldRange()) {
-      if (!first) sb.append(", ");
-      sb.append("fieldRange:");
-      if (this.fieldRange == null) {
-        sb.append("null");
-      } else {
-        sb.append(this.fieldRange);
-      }
-      first = false;
-    }
-    if (isSetWorkerRange()) {
-      if (!first) sb.append(", ");
-      sb.append("workerRange:");
-      if (this.workerRange == null) {
-        sb.append("null");
-      } else {
-        sb.append(this.workerRange);
-      }
-      first = false;
-    }
     sb.append(")");
     return sb.toString();
   }
@@ -546,50 +241,6 @@ public class GetWorkerInfoListTOptions implements org.apache.thrift.TBase<GetWor
           break;
         }
         switch (schemeField.id) {
-          case 1: // ADDRESSES
-            if (schemeField.type == org.apache.thrift.protocol.TType.SET) {
-              {
-                org.apache.thrift.protocol.TSet _set48 = iprot.readSetBegin();
-                struct.addresses = new HashSet<String>(2*_set48.size);
-                String _elem49;
-                for (int _i50 = 0; _i50 < _set48.size; ++_i50)
-                {
-                  _elem49 = iprot.readString();
-                  struct.addresses.add(_elem49);
-                }
-                iprot.readSetEnd();
-              }
-              struct.setAddressesIsSet(true);
-            } else { 
-              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-            }
-            break;
-          case 2: // FIELD_RANGE
-            if (schemeField.type == org.apache.thrift.protocol.TType.SET) {
-              {
-                org.apache.thrift.protocol.TSet _set51 = iprot.readSetBegin();
-                struct.fieldRange = new HashSet<WorkerInfoField>(2*_set51.size);
-                WorkerInfoField _elem52;
-                for (int _i53 = 0; _i53 < _set51.size; ++_i53)
-                {
-                  _elem52 = alluxio.thrift.WorkerInfoField.findByValue(iprot.readI32());
-                  struct.fieldRange.add(_elem52);
-                }
-                iprot.readSetEnd();
-              }
-              struct.setFieldRangeIsSet(true);
-            } else { 
-              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-            }
-            break;
-          case 3: // WORKER_RANGE
-            if (schemeField.type == org.apache.thrift.protocol.TType.I32) {
-              struct.workerRange = alluxio.thrift.WorkerRange.findByValue(iprot.readI32());
-              struct.setWorkerRangeIsSet(true);
-            } else { 
-              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-            }
-            break;
           default:
             org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
         }
@@ -605,41 +256,6 @@ public class GetWorkerInfoListTOptions implements org.apache.thrift.TBase<GetWor
       struct.validate();
 
       oprot.writeStructBegin(STRUCT_DESC);
-      if (struct.addresses != null) {
-        if (struct.isSetAddresses()) {
-          oprot.writeFieldBegin(ADDRESSES_FIELD_DESC);
-          {
-            oprot.writeSetBegin(new org.apache.thrift.protocol.TSet(org.apache.thrift.protocol.TType.STRING, struct.addresses.size()));
-            for (String _iter54 : struct.addresses)
-            {
-              oprot.writeString(_iter54);
-            }
-            oprot.writeSetEnd();
-          }
-          oprot.writeFieldEnd();
-        }
-      }
-      if (struct.fieldRange != null) {
-        if (struct.isSetFieldRange()) {
-          oprot.writeFieldBegin(FIELD_RANGE_FIELD_DESC);
-          {
-            oprot.writeSetBegin(new org.apache.thrift.protocol.TSet(org.apache.thrift.protocol.TType.I32, struct.fieldRange.size()));
-            for (WorkerInfoField _iter55 : struct.fieldRange)
-            {
-              oprot.writeI32(_iter55.getValue());
-            }
-            oprot.writeSetEnd();
-          }
-          oprot.writeFieldEnd();
-        }
-      }
-      if (struct.workerRange != null) {
-        if (struct.isSetWorkerRange()) {
-          oprot.writeFieldBegin(WORKER_RANGE_FIELD_DESC);
-          oprot.writeI32(struct.workerRange.getValue());
-          oprot.writeFieldEnd();
-        }
-      }
       oprot.writeFieldStop();
       oprot.writeStructEnd();
     }
@@ -657,74 +273,11 @@ public class GetWorkerInfoListTOptions implements org.apache.thrift.TBase<GetWor
     @Override
     public void write(org.apache.thrift.protocol.TProtocol prot, GetWorkerInfoListTOptions struct) throws org.apache.thrift.TException {
       TTupleProtocol oprot = (TTupleProtocol) prot;
-      BitSet optionals = new BitSet();
-      if (struct.isSetAddresses()) {
-        optionals.set(0);
-      }
-      if (struct.isSetFieldRange()) {
-        optionals.set(1);
-      }
-      if (struct.isSetWorkerRange()) {
-        optionals.set(2);
-      }
-      oprot.writeBitSet(optionals, 3);
-      if (struct.isSetAddresses()) {
-        {
-          oprot.writeI32(struct.addresses.size());
-          for (String _iter56 : struct.addresses)
-          {
-            oprot.writeString(_iter56);
-          }
-        }
-      }
-      if (struct.isSetFieldRange()) {
-        {
-          oprot.writeI32(struct.fieldRange.size());
-          for (WorkerInfoField _iter57 : struct.fieldRange)
-          {
-            oprot.writeI32(_iter57.getValue());
-          }
-        }
-      }
-      if (struct.isSetWorkerRange()) {
-        oprot.writeI32(struct.workerRange.getValue());
-      }
     }
 
     @Override
     public void read(org.apache.thrift.protocol.TProtocol prot, GetWorkerInfoListTOptions struct) throws org.apache.thrift.TException {
       TTupleProtocol iprot = (TTupleProtocol) prot;
-      BitSet incoming = iprot.readBitSet(3);
-      if (incoming.get(0)) {
-        {
-          org.apache.thrift.protocol.TSet _set58 = new org.apache.thrift.protocol.TSet(org.apache.thrift.protocol.TType.STRING, iprot.readI32());
-          struct.addresses = new HashSet<String>(2*_set58.size);
-          String _elem59;
-          for (int _i60 = 0; _i60 < _set58.size; ++_i60)
-          {
-            _elem59 = iprot.readString();
-            struct.addresses.add(_elem59);
-          }
-        }
-        struct.setAddressesIsSet(true);
-      }
-      if (incoming.get(1)) {
-        {
-          org.apache.thrift.protocol.TSet _set61 = new org.apache.thrift.protocol.TSet(org.apache.thrift.protocol.TType.I32, iprot.readI32());
-          struct.fieldRange = new HashSet<WorkerInfoField>(2*_set61.size);
-          WorkerInfoField _elem62;
-          for (int _i63 = 0; _i63 < _set61.size; ++_i63)
-          {
-            _elem62 = alluxio.thrift.WorkerInfoField.findByValue(iprot.readI32());
-            struct.fieldRange.add(_elem62);
-          }
-        }
-        struct.setFieldRangeIsSet(true);
-      }
-      if (incoming.get(2)) {
-        struct.workerRange = alluxio.thrift.WorkerRange.findByValue(iprot.readI32());
-        struct.setWorkerRangeIsSet(true);
-      }
     }
   }
 
