@@ -228,7 +228,7 @@ public final class FileSystemMasterClientServiceHandler implements
       throws AlluxioTException {
     return RpcUtils.call(LOG, new RpcCallableThrowsIOException<GetStatusTResponse>() {
       @Override
-      public GetStatusTResponse call() throws AlluxioException, AlluxioStatusException {
+      public GetStatusTResponse call() throws AlluxioException, IOException {
         return new GetStatusTResponse(ThriftUtils.toThrift(
             mFileSystemMaster.getFileInfo(new AlluxioURI(path), new GetStatusOptions(options))));
       }
@@ -246,7 +246,7 @@ public final class FileSystemMasterClientServiceHandler implements
       throws AlluxioTException {
     return RpcUtils.call(LOG, new RpcCallableThrowsIOException<ListStatusTResponse>() {
       @Override
-      public ListStatusTResponse call() throws AlluxioException, AlluxioStatusException {
+      public ListStatusTResponse call() throws AlluxioException, IOException {
         List<FileInfo> result = new ArrayList<>();
         for (alluxio.wire.FileInfo fileInfo : mFileSystemMaster
             .listStatus(new AlluxioURI(path), new ListStatusOptions(options))) {

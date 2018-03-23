@@ -25,6 +25,7 @@ import alluxio.exception.InvalidPathException;
 import alluxio.exception.PreconditionMessage;
 import alluxio.exception.status.UnavailableException;
 import alluxio.master.block.ContainerIdGenerable;
+import alluxio.master.file.BlockDeletionContext;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
 import alluxio.master.file.options.CreatePathOptions;
@@ -785,10 +786,11 @@ public class InodeTree implements JournalEntryIterable {
    * @param opTimeMs The operation time
    * @param deleteOptions the delete options
    * @param journalContext the journal context
+   * @param blockDeletionContext the block deletion context
    * @throws FileDoesNotExistException if the Inode cannot be retrieved
    */
   public void deleteInode(LockedInodePath inodePath, long opTimeMs, DeleteOptions deleteOptions,
-      JournalContext journalContext)
+      JournalContext journalContext, BlockDeletionContext blockDeletionContext)
       throws FileDoesNotExistException {
     Inode<?> inode = inodePath.getInode();
     InodeDirectory parent = (InodeDirectory) mInodes.getFirst(inode.getParentId());
@@ -804,6 +806,10 @@ public class InodeTree implements JournalEntryIterable {
         .setRecursive(deleteOptions.isRecursive())
         .setOpTimeMs(opTimeMs).build();
     journalContext.append(Journal.JournalEntry.newBuilder().setDeleteFile(deleteFile).build());
+
+    if (inode.isFile()) {
+      blockDeletionContext.registerBlocksForDeletion(((InodeFile) inode).getBlockIds());
+    }
 
     parent.removeChild(inode);
     parent.setLastModificationTimeMs(opTimeMs);
