@@ -61,7 +61,7 @@ public class SummaryCommand {
    * @return 0 on success, 1 otherwise
    */
   public int run() throws IOException {
-    print("Alluxio Cluster Summary: ");
+    print("Alluxio cluster summary: ");
     printMetaMasterInfo();
     printBlockMasterInfo();
     return 0;

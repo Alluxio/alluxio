@@ -17,7 +17,6 @@ import alluxio.client.block.options.GetWorkerReportOptions;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
 
-import org.hamcrest.CoreMatchers;
 import org.hamcrest.collection.IsIterableContainingInOrder;
 import org.junit.Assert;
 import org.junit.Before;
@@ -54,7 +53,6 @@ public class CapacityCommandTest {
           printStream);
       capacityCommand.generateCapacityReport(GetWorkerReportOptions.defaults());
       String output = new String(outputStream.toByteArray(), StandardCharsets.UTF_8);
-      Assert.assertThat(output, CoreMatchers.containsString("asdasda"));
       List<String> expectedOutput = Arrays.asList("Capacity information for all workers: ",
           "    Total Capacity: 29.80GB",
           "        Tier: MEM  Size: 8.38GB",
