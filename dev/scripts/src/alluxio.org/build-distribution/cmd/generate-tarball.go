@@ -79,7 +79,7 @@ func symlink(oldname, newname string) {
 	}
 }
 
-func getCommonMvnArgs(hadoopDistribution string) []string {
+func getCommonMvnArgs(hadoopVersion version) []string {
 	args := []string{"clean", "install", "-DskipTests", "-Dfindbugs.skip", "-Dmaven.javadoc.skip", "-Dcheckstyle.skip", "-Pmesos"}
 	if mvnArgsFlag != "" {
 		for _, arg := range strings.Split(mvnArgsFlag, ",") {
@@ -87,14 +87,15 @@ func getCommonMvnArgs(hadoopDistribution string) []string {
 		}
 	}
 
-	if hadoopDistribution != "" {
-		hadoopVersion := hadoopDistributions[hadoopDistribution]
-		args = append(args, fmt.Sprintf("-Dhadoop.version=%v", hadoopVersion), fmt.Sprintf("-P%v", hadoopVersion.hadoopProfile()))
-		if hadoopVersion.major >= 2 && hadoopVersion.minor >= 4 {
-			args = append(args, "-Pyarn")
-		}
+	args = append(args, fmt.Sprintf("-Dhadoop.version=%v", hadoopVersion), fmt.Sprintf("-P%v", hadoopVersion.hadoopProfile()))
+	if includeYarnIntegration(hadoopVersion) {
+		args = append(args, "-Pyarn")
 	}
 	return args
+}
+
+func includeYarnIntegration(hadoopVersion version) bool {
+	return hadoopVersion.major >= 2 && hadoopVersion.minor >= 4;
 }
 
 func getVersion() (string, error) {
@@ -107,7 +108,7 @@ func getVersion() (string, error) {
 	return match[1], nil
 }
 
-func addAdditionalFiles(srcPath, dstPath, version string) {
+func addAdditionalFiles(srcPath, dstPath string, hadoopVersion version, version string) {
 	chdir(srcPath)
 	pathsToCopy := []string{
 		"bin/alluxio",
@@ -149,6 +150,16 @@ func addAdditionalFiles(srcPath, dstPath, version string) {
 		fmt.Sprintf("lib/alluxio-underfs-wasb-%v.jar", version),
 		"libexec/alluxio-config.sh",
 	}
+	if includeYarnIntegration(hadoopVersion) {
+		pathsToCopy = append(pathsToCopy, []string{
+			"integration/yarn/bin/alluxio-application-master.sh",
+			"integration/yarn/bin/alluxio-master-yarn.sh",
+			"integration/yarn/bin/alluxio-worker-yarn.sh",
+			"integration/yarn/bin/alluxio-yarn.sh",
+			"integration/yarn/bin/alluxio-yarn-setup.sh",
+			"integration/yarn/bin/common.sh",
+		}...)
+	}
 	for _, path := range pathsToCopy {
 		mkdir(filepath.Join(dstPath, filepath.Dir(path)))
 		run(fmt.Sprintf("adding %v", path), "mv", path, filepath.Join(dstPath, path))
@@ -160,7 +171,7 @@ func addAdditionalFiles(srcPath, dstPath, version string) {
 
 	// Add links for previous jar locations for backwards compatibility
 	for _, jar := range []string{"client", "server"} {
-		oldLocation := filepath.Join(dstPath, "assembly/client/target", fmt.Sprintf("alluxio-assembly-%v-%v-jar-with-dependencies.jar", jar, version))
+		oldLocation := filepath.Join(dstPath, fmt.Sprintf("assembly/%v/target/alluxio-assembly-%v-%v-jar-with-dependencies.jar", jar, jar, version))
 		mkdir(filepath.Dir(oldLocation))
 		symlink(fmt.Sprintf("../../alluxio-%v-%v.jar", jar, version), oldLocation)
 	}
@@ -168,6 +179,7 @@ func addAdditionalFiles(srcPath, dstPath, version string) {
 }
 
 func generateTarball(hadoopDistribution string) error {
+	hadoopVersion := hadoopDistributions[hadoopDistribution]
 	cwd, err := os.Getwd()
 	if err != nil {
 		return err
@@ -202,7 +214,7 @@ func generateTarball(hadoopDistribution string) error {
 	// Update the FUSE jar path
 	replace("integration/fuse/bin/alluxio-fuse", "target/alluxio-integration-fuse-${VERSION}-jar-with-dependencies.jar", "alluxio-fuse-${VERSION}.jar")
 
-	mvnArgs := getCommonMvnArgs(hadoopDistribution)
+	mvnArgs := getCommonMvnArgs(hadoopVersion)
 	run("compiling repo", "mvn", mvnArgs...)
 
 	tarball := strings.Replace(targetFlag, versionMarker, version, 1)
@@ -225,7 +237,15 @@ func generateTarball(hadoopDistribution string) error {
 	// Condense the webapp into a single .war file.
 	run("jarring up webapp", "jar", "-cf", filepath.Join(dstPath, webappWar), "-C", webappDir, ".")
 
-	addAdditionalFiles(srcPath, dstPath, version)
+	if includeYarnIntegration(hadoopVersion) {
+		// Update the YARN jar path
+		replace("integration/yarn/bin/alluxio-yarn.sh", "target/alluxio-integration-yarn-${VERSION}-jar-with-dependencies.jar", "alluxio-yarn-${VERSION}.jar")
+		// Create directories for the yarn integration
+		mkdir(filepath.Join(dstPath, "integration", "yarn"))
+		run("adding Alluxio YARN jar", "mv", fmt.Sprintf("integration/yarn/target/alluxio-integration-yarn-%v-jar-with-dependencies.jar", version), filepath.Join(dstPath, "integration", "yarn", fmt.Sprintf("alluxio-yarn-%v.jar", version)))
+	}
+
+	addAdditionalFiles(srcPath, dstPath, hadoopVersion, version)
 
 	chdir(cwd)
 	run("creating the distribution tarball", "tar", "-czvf", tarball, dstDir)
