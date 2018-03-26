@@ -28,8 +28,6 @@ import alluxio.wire.BlockMasterInfo.BlockMasterInfoField;
 import alluxio.wire.ThriftUtils;
 import alluxio.wire.WorkerInfo;
 
-import org.apache.thrift.TException;
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -80,32 +78,26 @@ public final class RetryHandlingBlockMasterClient extends AbstractMasterClient
 
   @Override
   public synchronized List<WorkerInfo> getWorkerInfoList() throws IOException {
-    return retryRPC(new RpcCallable<List<WorkerInfo>>() {
-      @Override
-      public List<WorkerInfo> call() throws TException {
-        List<WorkerInfo> result = new ArrayList<>();
-        for (alluxio.thrift.WorkerInfo workerInfo : mClient
-            .getWorkerInfoList(new GetWorkerInfoListTOptions()).getWorkerInfoList()) {
-          result.add(ThriftUtils.fromThrift(workerInfo));
-        }
-        return result;
+    return retryRPC(() -> {
+      List<WorkerInfo> result = new ArrayList<>();
+      for (alluxio.thrift.WorkerInfo workerInfo : mClient
+          .getWorkerInfoList(new GetWorkerInfoListTOptions()).getWorkerInfoList()) {
+        result.add(ThriftUtils.fromThrift(workerInfo));
       }
+      return result;
     });
   }
 
   @Override
   public synchronized List<WorkerInfo> getWorkerReport(
       final GetWorkerReportOptions options) throws IOException {
-    return retryRPC(new RpcCallable<List<WorkerInfo>>() {
-      @Override
-      public List<WorkerInfo> call() throws TException {
-        List<WorkerInfo> result = new ArrayList<>();
-        for (alluxio.thrift.WorkerInfo workerInfo : mClient
-            .getWorkerReport(options.toThrift()).getWorkerInfoList()) {
-          result.add(ThriftUtils.fromThrift(workerInfo));
-        }
-        return result;
+    return retryRPC(() -> {
+      List<WorkerInfo> result = new ArrayList<>();
+      for (alluxio.thrift.WorkerInfo workerInfo : mClient
+          .getWorkerReport(options.toThrift()).getWorkerInfoList()) {
+        result.add(ThriftUtils.fromThrift(workerInfo));
       }
+      return result;
     });
   }
 
@@ -116,13 +108,10 @@ public final class RetryHandlingBlockMasterClient extends AbstractMasterClient
    * @return the {@link BlockInfo}
    */
   public synchronized BlockInfo getBlockInfo(final long blockId) throws IOException {
-    return retryRPC(new RpcCallable<BlockInfo>() {
-      @Override
-      public BlockInfo call() throws TException {
-        return ThriftUtils
-            .fromThrift(mClient.getBlockInfo(blockId, new GetBlockInfoTOptions()).getBlockInfo());
-      }
-    });
+    return retryRPC(() ->
+      ThriftUtils
+          .fromThrift(mClient.getBlockInfo(blockId, new GetBlockInfoTOptions()).getBlockInfo())
+    );
   }
 
   @Override
@@ -148,12 +137,9 @@ public final class RetryHandlingBlockMasterClient extends AbstractMasterClient
    * @return total capacity in bytes
    */
   public synchronized long getCapacityBytes() throws IOException {
-    return retryRPC(new RpcCallable<Long>() {
-      @Override
-      public Long call() throws TException {
-        return mClient.getCapacityBytes(new GetCapacityBytesTOptions()).getBytes();
-      }
-    });
+    return retryRPC(() ->
+      mClient.getCapacityBytes(new GetCapacityBytesTOptions()).getBytes()
+    );
   }
 
   /**
@@ -162,11 +148,8 @@ public final class RetryHandlingBlockMasterClient extends AbstractMasterClient
    * @return amount of used space in bytes
    */
   public synchronized long getUsedBytes() throws IOException {
-    return retryRPC(new RpcCallable<Long>() {
-      @Override
-      public Long call() throws TException {
-        return mClient.getUsedBytes(new GetUsedBytesTOptions()).getBytes();
-      }
-    });
+    return retryRPC(() ->
+      mClient.getUsedBytes(new GetUsedBytesTOptions()).getBytes()
+    );
   }
 }

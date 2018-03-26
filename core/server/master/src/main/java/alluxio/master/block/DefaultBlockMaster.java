@@ -354,26 +354,26 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
       throw new UnavailableException(ExceptionMessage.MASTER_IN_SAFEMODE.getMessage());
     }
 
-    Set<MasterWorkerInfo> selectedLiveWorkers = null;
-    Set<MasterWorkerInfo> selectedLostWorkers = null;
+    Set<MasterWorkerInfo> selectedLiveWorkers = new HashSet<>();
+    Set<MasterWorkerInfo> selectedLostWorkers = new HashSet<>();
     WorkerRange workerRange = options.getWorkerRange();
     switch (workerRange) {
       case ALL:
-        selectedLiveWorkers = new HashSet<>(mWorkers);
-        selectedLostWorkers = new HashSet<>(mLostWorkers);
+        selectedLiveWorkers.addAll(mWorkers);
+        selectedLostWorkers.addAll(mLostWorkers);
         break;
       case LIVE:
-        selectedLiveWorkers = new HashSet<>(mWorkers);
+        selectedLiveWorkers.addAll(mWorkers);
         break;
       case LOST:
-        selectedLostWorkers = new HashSet<>(mLostWorkers);
+        selectedLostWorkers.addAll(mLostWorkers);
         break;
       case SPECIFIED:
         Set<String> addresses = options.getAddresses();
         Set<String> workerNames = new HashSet<>();
 
-        selectedLiveWorkers = selectInfoByAddress(addresses, mWorkers, workerNames);
-        selectedLostWorkers = selectInfoByAddress(addresses, mLostWorkers, workerNames);
+        selectInfoByAddress(addresses, mWorkers, selectedLiveWorkers, workerNames);
+        selectInfoByAddress(addresses, mLostWorkers, selectedLostWorkers, workerNames);
 
         if (!addresses.isEmpty()) {
           String info = String.format("Unrecognized worker names: %s%n"
@@ -387,18 +387,14 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
     }
 
     List<WorkerInfo> workerInfoList = new ArrayList<>();
-    if (selectedLiveWorkers != null) {
-      for (MasterWorkerInfo worker : selectedLiveWorkers) {
-        synchronized (worker) {
-          workerInfoList.add(worker.generateWorkerInfo(options.getFieldRange(), true));
-        }
+    for (MasterWorkerInfo worker : selectedLiveWorkers) {
+      synchronized (worker) {
+        workerInfoList.add(worker.generateWorkerInfo(options.getFieldRange(), true));
       }
     }
-    if (selectedLostWorkers != null) {
-      for (MasterWorkerInfo worker : selectedLostWorkers) {
-        synchronized (worker) {
-          workerInfoList.add(worker.generateWorkerInfo(options.getFieldRange(), false));
-        }
+    for (MasterWorkerInfo worker : selectedLostWorkers) {
+      synchronized (worker) {
+        workerInfoList.add(worker.generateWorkerInfo(options.getFieldRange(), false));
       }
     }
     return workerInfoList;
@@ -880,16 +876,15 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
   }
 
   /**
-   * Selects the MasterWorkerInfo according to addresses from report capacity command input.
+   * Selects the MasterWorkerInfo whose host or related IP address exists in addresses.
    *
    * @param addresses the address set that user passed in
    * @param workerInfoSet the MasterWorkerInfo set to select info from
+   * @param selectedWorkers the selected MasterWorkerInfo
    * @param workerNames the supported worker names
-   * @return the selected MasterWorkerInfo
    */
-  private Set<MasterWorkerInfo>  selectInfoByAddress(Set<String> addresses,
-      Set<MasterWorkerInfo> workerInfoSet, Set<String> workerNames) {
-    Set<MasterWorkerInfo> selectedWorkerInfo = new HashSet<>();
+  private void selectInfoByAddress(Set<String> addresses, Set<MasterWorkerInfo> workerInfoSet,
+      Set<MasterWorkerInfo> selectedWorkers, Set<String> workerNames) {
     for (MasterWorkerInfo info : workerInfoSet) {
       if (addresses.isEmpty()) {
         break;
@@ -907,19 +902,18 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
       }
 
       if (addresses.contains(host)) {
-        selectedWorkerInfo.add(info);
+        selectedWorkers.add(info);
         addresses.remove(host);
         continue;
       }
 
       if (ip != null) {
         if (addresses.contains(ip)) {
-          selectedWorkerInfo.add(info);
+          selectedWorkers.add(info);
           addresses.remove(ip);
         }
       }
     }
-    return selectedWorkerInfo;
   }
 
   /**

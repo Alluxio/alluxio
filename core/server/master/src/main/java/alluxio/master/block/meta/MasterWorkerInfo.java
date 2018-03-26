@@ -42,6 +42,8 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public final class MasterWorkerInfo {
   private static final Logger LOG = LoggerFactory.getLogger(MasterWorkerInfo.class);
+  private static final String LIVE_WORKER_STATE = "In Service";
+  private static final String LOST_WORKER_STATE = "Out of Service";
 
   /** Worker's address. */
   private final WorkerNetAddress mWorkerAddress;
@@ -182,8 +184,9 @@ public final class MasterWorkerInfo {
    */
   public WorkerInfo generateWorkerInfo(Set<WorkerInfoField> fieldRange, boolean isLiveWorker) {
     WorkerInfo info = new WorkerInfo();
-    for (WorkerInfoField field : fieldRange != null ? fieldRange
-        : Arrays.asList(WorkerInfoField.values())) {
+    Set<WorkerInfoField> checkedFieldRange = fieldRange != null ? fieldRange :
+        new HashSet<>(Arrays.asList(WorkerInfoField.values()));
+    for (WorkerInfoField field : checkedFieldRange) {
       switch (field) {
         case ADDRESS:
           info.setAddress(mWorkerAddress);
@@ -206,9 +209,9 @@ public final class MasterWorkerInfo {
           break;
         case STATE:
           if (isLiveWorker) {
-            info.setState("In Service");
+            info.setState(LIVE_WORKER_STATE);
           } else {
-            info.setState("Out of Service");
+            info.setState(LOST_WORKER_STATE);
           }
           break;
         case USED_BYTES:

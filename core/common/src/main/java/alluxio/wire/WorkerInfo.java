@@ -26,7 +26,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class WorkerInfo implements Serializable {
-  private static final long serialVersionUID = 1176094131827228462L;
+  private static final long serialVersionUID = -454711814438216780L;
 
   private WorkerNetAddress mAddress = new WorkerNetAddress();
   private long mCapacityBytes;

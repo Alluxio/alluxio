@@ -68,7 +68,7 @@ public class CapacityCommand {
    * @return 0 on success, 1 otherwise
    */
   public int run(CommandLine cl) throws IOException {
-    if (cl.hasOption("h")) {
+    if (cl.hasOption(ReportCommand.HELP_OPTION_NAME)) {
       System.out.println(getUsage());
       return 0;
     }

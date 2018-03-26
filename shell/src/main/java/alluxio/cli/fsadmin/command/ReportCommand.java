@@ -43,14 +43,21 @@ import java.util.List;
  * Reports Alluxio running cluster information.
  */
 public final class ReportCommand extends AbstractCommand {
+  public static final String HELP_OPTION_NAME = "h";
   public static final String LIVE_OPTION_NAME = "live";
   public static final String LOST_OPTION_NAME = "lost";
   public static final String SPECIFIED_OPTION_NAME = "workers";
-  public static final String HELP_OPTION_NAME = "h";
 
   private MetaMasterClient mMetaMasterClient;
   private BlockMasterClient mBlockMasterClient;
   private PrintStream mPrintStream;
+
+  private static final Option HELP_OPTION =
+      Option.builder(HELP_OPTION_NAME)
+          .required(false)
+          .hasArg(false)
+          .desc("print help information.")
+          .build();
 
   private static final Option LIVE_OPTION =
       Option.builder(LIVE_OPTION_NAME)
@@ -73,16 +80,9 @@ public final class ReportCommand extends AbstractCommand {
           .desc("show capacity information of specified workers.")
           .build();
 
-  private static final Option HELP_OPTION =
-      Option.builder(HELP_OPTION_NAME)
-          .required(false)
-          .hasArg(false)
-          .desc("print help information.")
-          .build();
-
   enum Command {
-    SUMMARY, // Report cluster summary
-    CAPACITY // Report worker capacity information
+    CAPACITY, // Report worker capacity information
+    SUMMARY // Report cluster summary
   }
 
   /**
@@ -120,11 +120,11 @@ public final class ReportCommand extends AbstractCommand {
     Command command = Command.SUMMARY;
     if (args.length == 1) {
       switch (args[0]) {
-        case "summary":
-          command = Command.SUMMARY;
-          break;
         case "capacity":
           command = Command.CAPACITY;
+          break;
+        case "summary":
+          command = Command.SUMMARY;
           break;
         default:
           System.out.println(getUsage());
@@ -167,15 +167,15 @@ public final class ReportCommand extends AbstractCommand {
       }
 
       switch (command) {
-        case SUMMARY:
-          SummaryCommand summaryCommand = new SummaryCommand(mMetaMasterClient,
-              mBlockMasterClient, mPrintStream);
-          summaryCommand.run();
-          break;
         case CAPACITY:
           CapacityCommand capacityCommand = new CapacityCommand(
               mBlockMasterClient, mPrintStream);
           capacityCommand.run(cl);
+          break;
+        case SUMMARY:
+          SummaryCommand summaryCommand = new SummaryCommand(mMetaMasterClient,
+              mBlockMasterClient, mPrintStream);
+          summaryCommand.run();
           break;
         default:
           break;
@@ -190,10 +190,10 @@ public final class ReportCommand extends AbstractCommand {
   @Override
   public Options getOptions() {
     return new Options()
+        .addOption(HELP_OPTION)
         .addOption(LIVE_OPTION)
         .addOption(LOST_OPTION)
-        .addOption(SPECIFIED_OPTION)
-        .addOption(HELP_OPTION);
+        .addOption(SPECIFIED_OPTION);
   }
 
   @Override
@@ -207,8 +207,8 @@ public final class ReportCommand extends AbstractCommand {
         + "Where [category] is an optional argument. If no arguments are passed in, "
         + "summary information will be printed out.\n"
         + "[category] can be one of the following:\n"
-        + "    summary          cluster summary\n"
-        + "    capacity         worker capacity information\n";
+        + "    capacity         worker capacity information\n"
+        + "    summary          cluster summary\n";
   }
 
   @Override
