@@ -14,6 +14,7 @@ Alluxio的管理员命令行接口为管理员提供了管理Alluxio文件系统
 ```bash
 $ ./bin/alluxio fsadmin
 Usage: alluxio fsadmin [generic options]
+       [report]
        [ufs --mode <noAccess/readOnly/readWrite> <ufsPath>]
        ...
 ```
@@ -34,6 +35,16 @@ Usage: alluxio fsadmin [generic options]
 </table>
  
 ##示例用例
+
+### report
+
+`report`命令提供了Alluxio运行中的集群信息。
+
+例如，`report`可以用来获取运行中的集群状态和容量信息。
+
+```bash
+$ ./bin/alluxio fsadmin report
+```
  
 ### ufs
  
