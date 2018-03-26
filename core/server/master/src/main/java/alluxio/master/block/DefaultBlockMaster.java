@@ -79,6 +79,7 @@ import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
+import java.util.stream.Collectors;
 
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.NotThreadSafe;
@@ -372,8 +373,8 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
         Set<String> addresses = options.getAddresses();
         Set<String> workerNames = new HashSet<>();
 
-        selectInfoByAddress(addresses, mWorkers, selectedLiveWorkers, workerNames);
-        selectInfoByAddress(addresses, mLostWorkers, selectedLostWorkers, workerNames);
+        selectedLiveWorkers = selectInfoByAddress(addresses, mWorkers, workerNames);
+        selectedLostWorkers = selectInfoByAddress(addresses, mLostWorkers, workerNames);
 
         if (!addresses.isEmpty()) {
           String info = String.format("Unrecognized worker names: %s%n"
@@ -876,20 +877,16 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
   }
 
   /**
-   * Selects the MasterWorkerInfo whose host or related IP address exists in addresses.
+   * Selects the MasterWorkerInfo from workerInfoSet whose host or related IP address
+   * exists in addresses.
    *
    * @param addresses the address set that user passed in
    * @param workerInfoSet the MasterWorkerInfo set to select info from
-   * @param selectedWorkers the selected MasterWorkerInfo
    * @param workerNames the supported worker names
    */
-  private void selectInfoByAddress(Set<String> addresses, Set<MasterWorkerInfo> workerInfoSet,
-      Set<MasterWorkerInfo> selectedWorkers, Set<String> workerNames) {
-    for (MasterWorkerInfo info : workerInfoSet) {
-      if (addresses.isEmpty()) {
-        break;
-      }
-
+  private Set<MasterWorkerInfo> selectInfoByAddress(Set<String> addresses,
+      Set<MasterWorkerInfo> workerInfoSet, Set<String> workerNames) {
+    return workerInfoSet.stream().filter(info -> {
       String host = info.getWorkerAddress().getHost();
       workerNames.add(host);
 
@@ -902,18 +899,18 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
       }
 
       if (addresses.contains(host)) {
-        selectedWorkers.add(info);
         addresses.remove(host);
-        continue;
+        return true;
       }
 
       if (ip != null) {
         if (addresses.contains(ip)) {
-          selectedWorkers.add(info);
           addresses.remove(ip);
+          return true;
         }
       }
-    }
+      return false;
+    }).collect(Collectors.toSet());
   }
 
   /**
