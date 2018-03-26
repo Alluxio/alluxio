@@ -21,7 +21,7 @@ priority: 4
 $ curl http://downloads.alluxio.org/downloads/files/{{site.ALLUXIO_RELEASED_VERSION}}/alluxio-{{site.ALLUXIO_RELEASED_VERSION}}-bin.tar.gz | tar xz
 ```
 
-YARN的整合只支持Hadoop 2.4.0及其后续版本。
+YARN的整合只支持Hadoop2.4.0及其后续版本。
 
 ## 配置
 通过一些特定的属性来定制Alluxio master和worker(比如，在各个worker节点上设置分层存储)，查阅[Configuration settings](Configuration-Settings.html)
