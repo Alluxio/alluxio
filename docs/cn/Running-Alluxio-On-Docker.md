@@ -194,7 +194,7 @@ $ ALLUXIO_WORKER_CONTAINER_ID=$(docker run -d --net=host --shm-size=1G \
              alluxio worker)
 ```
 
-## FUSE
+# FUSE
 为了使用FUSE,你需要在FUSE激活状态下创建一个docker镜像。
 
 ```bash
