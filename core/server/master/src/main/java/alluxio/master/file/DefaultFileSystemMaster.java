@@ -3170,14 +3170,16 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
   }
 
   /**
-   * This class represents the result for a sync.
+   * This class represents the result for a sync. The following are returned:
+   * - deleted: if true, the inode was already deleted as part of the syncing process
+   * - loadMetadata: if true, load metadata must be called (the last step of the full sync process)
    */
   private static class SyncResult {
     private boolean mLoadMetadata;
     private boolean mDeletedInode;
 
-    SyncResult() {
-      this(false, false);
+    static SyncResult defaults() {
+      return new SyncResult(false, false);
     }
 
     SyncResult(boolean loadMetadata, boolean deletedInode) {
@@ -3194,6 +3196,16 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     }
   }
 
+  /**
+   * Syncs an inode with the UFS.
+   *
+   * @param journalContext the journal context
+   * @param inodePath the Alluxio inode path to sync with UFS
+   * @param syncDescendantType how to sync descendants
+   * @param blockDeletionContext the block deletion context
+   * @return the result of the sync, including if the inode was deleted, and if further load
+   *         metadata is required
+   */
   private SyncResult syncInodeMetadata(JournalContext journalContext, LockedInodePath inodePath,
       DescendantType syncDescendantType, BlockDeletionContext blockDeletionContext)
       throws FileDoesNotExistException, InvalidPathException, IOException, AccessControlException {
@@ -3210,12 +3222,12 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
 
     if (inode instanceof InodeFile && !((InodeFile) inode).isCompleted()) {
       // Do not sync an incomplete file, since the UFS file is expected to not exist.
-      return new SyncResult();
+      return SyncResult.defaults();
     }
     if (inode.getPersistenceState() == PersistenceState.TO_BE_PERSISTED) {
       // Do not sync a file in the process of being persisted, since the UFS file is being
       // written.
-      return new SyncResult();
+      return SyncResult.defaults();
     }
 
     MountTable.Resolution resolution = mMountTable.resolve(inodePath.getUri());
