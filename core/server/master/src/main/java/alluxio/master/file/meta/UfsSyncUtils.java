@@ -48,7 +48,7 @@ public final class UfsSyncUtils {
 
       if (inode.isDirectory() && (containsMountPoint || ufsIsDir)) {
         // Instead of deleting and then loading metadata to update, try to update directly
-        // - mount points should not be deleted
+        // - mount points (or paths with mount point descendants) should not be deleted
         // - directory permissions can be updated without removing the inode
         if (inode.getParentId() != InodeTree.NO_PARENT) {
           // Only update the inode if it is not the root directory. The root directory is a special

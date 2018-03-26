@@ -3229,15 +3229,22 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
 
     if (syncPlan.toUpdateDirectory()) {
       // Fingerprints only consider permissions for directory inodes.
-      UfsStatus ufsStatus = ufs.getStatus(ufsUri.toString());
-      SetAttributeOptions options =
-          SetAttributeOptions.defaults().setOwner(ufsStatus.getOwner())
-              .setGroup(ufsStatus.getGroup()).setMode(ufsStatus.getMode())
-              .setUfsFingerprint(ufsFingerprint);
-      long opTimeMs = System.currentTimeMillis();
-      // use replayed, since updating UFS is not desired.
-      setAttributeInternal(inodePath, true, opTimeMs, options);
-      journalSetAttribute(inodePath, opTimeMs, options, journalContext);
+      UfsStatus ufsStatus = null;
+      try {
+        ufsStatus = ufs.getStatus(ufsUri.toString());
+      } catch (IOException e) {
+        // Ignore, since this directory inode could be out of sync (contains a mount point)
+      }
+      if (ufsStatus != null) {
+        SetAttributeOptions options =
+            SetAttributeOptions.defaults().setOwner(ufsStatus.getOwner())
+                .setGroup(ufsStatus.getGroup()).setMode(ufsStatus.getMode())
+                .setUfsFingerprint(ufsFingerprint);
+        long opTimeMs = System.currentTimeMillis();
+        // use replayed, since updating UFS is not desired.
+        setAttributeInternal(inodePath, true, opTimeMs, options);
+        journalSetAttribute(inodePath, opTimeMs, options, journalContext);
+      }
     }
     if (syncPlan.toDelete()) {
       try {
