@@ -307,6 +307,46 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
   }
 
   @Test
+  public void mountPoint() throws Exception {
+    ListStatusOptions options =
+        ListStatusOptions.defaults().setLoadMetadataType(LoadMetadataType.Never)
+            .setCommonOptions(SYNC_NEVER);
+    List<String> rootListing =
+        mFileSystem.listStatus(new AlluxioURI("/"), options).stream().map(URIStatus::getName)
+            .collect(Collectors.toList());
+    Assert.assertEquals(1, rootListing.size());
+    Assert.assertEquals("mnt", rootListing.get(0));
+
+    options = ListStatusOptions.defaults().setLoadMetadataType(LoadMetadataType.Never)
+        .setCommonOptions(SYNC_ALWAYS);
+    rootListing =
+        mFileSystem.listStatus(new AlluxioURI("/"), options).stream().map(URIStatus::getName)
+            .collect(Collectors.toList());
+    Assert.assertEquals(1, rootListing.size());
+    Assert.assertEquals("mnt", rootListing.get(0));
+  }
+
+  @Test
+  public void mountPointConflict() throws Exception {
+    GetStatusOptions getStatusOptions =
+        GetStatusOptions.defaults().setLoadMetadataType(LoadMetadataType.Never)
+            .setCommonOptions(SYNC_ALWAYS);
+    URIStatus status = mFileSystem.getStatus(new AlluxioURI("/"), getStatusOptions);
+
+    // add a UFS dir which conflicts with a mount point.
+    String fromRootUfs = status.getUfsPath() + "/mnt";
+    Assert.assertTrue(new File(fromRootUfs).mkdirs());
+
+    ListStatusOptions options =
+        ListStatusOptions.defaults().setLoadMetadataType(LoadMetadataType.Never)
+            .setCommonOptions(SYNC_ALWAYS);
+    List<URIStatus> rootListing = mFileSystem.listStatus(new AlluxioURI("/"), options);
+    Assert.assertEquals(1, rootListing.size());
+    Assert.assertEquals("mnt", rootListing.get(0).getName());
+    Assert.assertNotEquals(fromRootUfs, rootListing.get(0).getUfsPath());
+  }
+
+  @Test
   public void ufsModeSync() throws Exception {
     GetStatusOptions options =
         GetStatusOptions.defaults().setLoadMetadataType(LoadMetadataType.Never)
