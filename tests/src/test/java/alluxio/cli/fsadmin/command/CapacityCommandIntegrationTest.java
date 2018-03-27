@@ -78,8 +78,7 @@ public final class CapacityCommandIntegrationTest extends AbstractFsAdminShellTe
 
   @Test
   public void tooManyOptions() {
-    int ret = mFsAdminShell.run("report", "capacity", "-live", "-lost");
-    Assert.assertEquals(1, ret);
+    mFsAdminShell.run("report", "capacity", "-live", "-lost");
     String expected = CapacityCommand.getUsage()
         + "\nToo many arguments passed in.\n";
     Assert.assertEquals(expected, mOutput.toString());
