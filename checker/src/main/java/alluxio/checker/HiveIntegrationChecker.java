@@ -108,7 +108,7 @@ public class HiveIntegrationChecker {
         dropTablePS.execute();
       }
 
-      // Creates test table based on different integration ways
+      // Create test table based on different integration ways
       if (mUserMode.equals(Mode.DEFAULT_FILESYSTEM)) {
         createTableInHiveDFS(con, tableName);
       } else {
