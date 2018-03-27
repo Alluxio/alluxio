@@ -20,16 +20,12 @@ import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.PropertyKey;
-<<<<<<< HEAD
-import alluxio.exception.AccessControlException;
-||||||| merged common ancestors
-=======
 import alluxio.PropertyKey.Name;
 import alluxio.client.WriteType;
 import alluxio.client.block.BlockMasterClient;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemTestUtils;
->>>>>>> d4985d10fbf502dd42966adc51e4f2ceac1c73d4
+import alluxio.exception.AccessControlException;
 import alluxio.exception.DirectoryNotEmptyException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileAlreadyCompletedException;
