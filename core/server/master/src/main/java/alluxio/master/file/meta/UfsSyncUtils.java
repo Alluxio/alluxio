@@ -31,10 +31,11 @@ public final class UfsSyncUtils {
    *
    * @param inode the inode to sync
    * @param ufsFingerprint the ufs fingerprint to check for the sync
-   * @param isMountPoint true if this inode is a mount point, false otherwise
+   * @param containsMountPoint true if this inode contains a mount point, false otherwise
    * @return a {@link SyncPlan} describing how to sync the inode with the ufs
    */
-  public static SyncPlan computeSyncPlan(Inode inode, String ufsFingerprint, boolean isMountPoint) {
+  public static SyncPlan computeSyncPlan(Inode inode, String ufsFingerprint,
+      boolean containsMountPoint) {
     boolean isSynced = inodeUfsIsSynced(inode, ufsFingerprint);
     boolean ufsExists = !Constants.INVALID_UFS_FINGERPRINT.equals(ufsFingerprint);
     boolean ufsIsDir = ufsFingerprint != null && Fingerprint.Type.DIRECTORY.name()
@@ -45,9 +46,9 @@ public final class UfsSyncUtils {
       // Alluxio inode is not synced with UFS, so update the inode metadata
       // Updating an inode is achieved by deleting the inode, and then loading metadata.
 
-      if (inode.isDirectory() && (isMountPoint || ufsIsDir)) {
+      if (inode.isDirectory() && (containsMountPoint || ufsIsDir)) {
         // Instead of deleting and then loading metadata to update, try to update directly
-        // - mount points should not be deleted
+        // - mount points (or paths with mount point descendants) should not be deleted
         // - directory permissions can be updated without removing the inode
         if (inode.getParentId() != InodeTree.NO_PARENT) {
           // Only update the inode if it is not the root directory. The root directory is a special
