@@ -11,6 +11,8 @@
 
 package alluxio.master.file;
 
+import static org.junit.Assert.assertFalse;
+
 import alluxio.AlluxioURI;
 import alluxio.AuthenticatedUserRule;
 import alluxio.BaseIntegrationTest;
@@ -18,6 +20,11 @@ import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.PropertyKey;
+import alluxio.PropertyKey.Name;
+import alluxio.client.WriteType;
+import alluxio.client.block.BlockMasterClient;
+import alluxio.client.file.FileSystem;
+import alluxio.client.file.FileSystemTestUtils;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.DirectoryNotEmptyException;
 import alluxio.exception.ExceptionMessage;
@@ -29,6 +36,7 @@ import alluxio.exception.status.FailedPreconditionException;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatScheduler;
 import alluxio.heartbeat.ManuallyScheduleHeartbeat;
+import alluxio.master.MasterClientConfig;
 import alluxio.master.MasterRegistry;
 import alluxio.master.MasterTestUtils;
 import alluxio.master.block.BlockMaster;
@@ -51,7 +59,9 @@ import alluxio.underfs.UnderFileSystemFactory;
 import alluxio.underfs.UnderFileSystemFactoryRegistry;
 import alluxio.util.CommonUtils;
 import alluxio.util.IdUtils;
+import alluxio.util.WaitForOptions;
 import alluxio.util.io.FileUtils;
+import alluxio.util.io.PathUtils;
 import alluxio.wire.CommonOptions;
 import alluxio.wire.FileInfo;
 import alluxio.wire.LoadMetadataType;
@@ -151,11 +161,11 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
     Assert.assertEquals("testFolder", fileInfo.getName());
     Assert.assertEquals(1, fileInfo.getFileId());
     Assert.assertEquals(0, fileInfo.getLength());
-    Assert.assertFalse(fileInfo.isCacheable());
+    assertFalse(fileInfo.isCacheable());
     Assert.assertTrue(fileInfo.isCompleted());
     Assert.assertTrue(fileInfo.isFolder());
-    Assert.assertFalse(fileInfo.isPersisted());
-    Assert.assertFalse(fileInfo.isPinned());
+    assertFalse(fileInfo.isPersisted());
+    assertFalse(fileInfo.isPinned());
     Assert.assertEquals("", fileInfo.getOwner());
     Assert.assertEquals(0755, (short) fileInfo.getMode());
   }
@@ -171,10 +181,10 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
     Assert.assertEquals(fileId, fileInfo.getFileId());
     Assert.assertEquals(0, fileInfo.getLength());
     Assert.assertTrue(fileInfo.isCacheable());
-    Assert.assertFalse(fileInfo.isCompleted());
-    Assert.assertFalse(fileInfo.isFolder());
-    Assert.assertFalse(fileInfo.isPersisted());
-    Assert.assertFalse(fileInfo.isPinned());
+    assertFalse(fileInfo.isCompleted());
+    assertFalse(fileInfo.isFolder());
+    assertFalse(fileInfo.isPersisted());
+    assertFalse(fileInfo.isPinned());
     Assert.assertEquals(Constants.NO_TTL, fileInfo.getTtl());
     Assert.assertEquals(TtlAction.DELETE, fileInfo.getTtlAction());
     Assert.assertEquals("", fileInfo.getOwner());
@@ -328,7 +338,7 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
   public void createFile() throws Exception {
     mFsMaster.createFile(new AlluxioURI("/testFile"), CreateFileOptions.defaults());
     FileInfo fileInfo = mFsMaster.getFileInfo(mFsMaster.getFileId(new AlluxioURI("/testFile")));
-    Assert.assertFalse(fileInfo.isFolder());
+    assertFalse(fileInfo.isFolder());
     Assert.assertEquals("", fileInfo.getOwner());
     Assert.assertEquals(0644, (short) fileInfo.getMode());
   }
@@ -464,6 +474,31 @@ public class FileSystemMasterIntegrationTest extends BaseIntegrationTest {
         .setRecursive(true));
     Assert.assertEquals(IdUtils.INVALID_FILE_ID,
         mFsMaster.getFileId(new AlluxioURI("/testFolder")));
+  }
+
+  @Test
+  @LocalAlluxioClusterResource.Config(
+      confParams = {Name.WORKER_MEMORY_SIZE, "10mb", Name.USER_BLOCK_SIZE_BYTES_DEFAULT, "1k"})
+  public void deleteDirectoryRecursive() throws Exception {
+    AlluxioURI dir = new AlluxioURI("/testFolder");
+    mFsMaster.createDirectory(dir, CreateDirectoryOptions.defaults());
+    FileSystem fs = mLocalAlluxioClusterResource.get().getClient();
+    for (int i = 0; i < 3; i++) {
+      FileSystemTestUtils.createByteFile(fs, PathUtils.concatPath(dir, "file" + i), 100,
+          alluxio.client.file.options.CreateFileOptions.defaults()
+              .setWriteType(WriteType.MUST_CACHE));
+    }
+    fs.delete(dir, alluxio.client.file.options.DeleteOptions.defaults().setRecursive(true));
+    assertFalse(fs.exists(dir));
+    // Make sure that the blocks are cleaned up
+    BlockMasterClient blockClient = BlockMasterClient.Factory.create(MasterClientConfig.defaults());
+    CommonUtils.waitFor("data to be deleted", (x) -> {
+      try {
+        return blockClient.getUsedBytes() == 0;
+      } catch (Exception e) {
+        throw new RuntimeException(e);
+      }
+    }, WaitForOptions.defaults().setTimeoutMs(10 * Constants.SECOND_MS));
   }
 
   @Test

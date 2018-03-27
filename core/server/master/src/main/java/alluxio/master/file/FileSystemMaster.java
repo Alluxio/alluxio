@@ -102,7 +102,7 @@ public interface FileSystemMaster extends Master {
    */
   FileInfo getFileInfo(AlluxioURI path, GetStatusOptions options)
       throws FileDoesNotExistException, InvalidPathException, AccessControlException,
-      UnavailableException;
+      UnavailableException, IOException;
 
   /**
    * Returns the persistence state for a file id. This method is used by the lineage master.
@@ -131,7 +131,7 @@ public interface FileSystemMaster extends Master {
    */
   List<FileInfo> listStatus(AlluxioURI path, ListStatusOptions listStatusOptions)
       throws AccessControlException, FileDoesNotExistException, InvalidPathException,
-      UnavailableException;
+      UnavailableException, IOException;
 
   /**
    * @return a read-only view of the file system master
@@ -483,6 +483,15 @@ public interface FileSystemMaster extends Master {
   void updateUfsMode(AlluxioURI ufsPath, UnderFileSystem.UfsMode ufsMode)
       throws InvalidPathException, InvalidArgumentException, UnavailableException,
       AccessControlException;
+
+  /**
+   * Checks the integrity of the inodes with respect to the blocks of the system.
+   *
+   * @param repair if true, will attempt to repair the state of the system when inconsistencies are
+   *               discovered
+   * @throws UnavailableException if the repair attempt fails
+   */
+  void validateInodeBlocks(boolean repair) throws UnavailableException;
 
   /**
    * Instructs a worker to persist the files.

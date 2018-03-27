@@ -30,6 +30,7 @@ import alluxio.master.MasterRegistry;
 import alluxio.master.SafeModeManager;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.block.BlockMasterFactory;
+import alluxio.master.file.NoopBlockDeletionContext;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
 import alluxio.master.file.options.CreatePathOptions;
@@ -803,7 +804,7 @@ public final class InodeTreeTest {
   private static void deleteInodeByPath(InodeTree root, AlluxioURI path) throws Exception {
     try (LockedInodePath inodePath = root.lockFullInodePath(path, InodeTree.LockMode.WRITE)) {
       root.deleteInode(inodePath, System.currentTimeMillis(), DeleteOptions.defaults(),
-          NoopJournalContext.INSTANCE);
+          NoopJournalContext.INSTANCE, NoopBlockDeletionContext.INSTANCE);
     }
   }
 

@@ -74,6 +74,7 @@ import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
+import java.util.function.Function;
 
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.NotThreadSafe;
@@ -382,6 +383,21 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
           }
         }
       }
+    }
+  }
+
+  @Override
+  public void validateBlocks(Function<Long, Boolean> validator, boolean repair)
+      throws UnavailableException {
+    List<Long> invalidBlocks = new ArrayList<>();
+    for (long blockId : mBlocks.keySet()) {
+      if (!validator.apply(blockId)) {
+        invalidBlocks.add(blockId);
+      }
+    }
+    if (repair && !invalidBlocks.isEmpty()) {
+      LOG.warn("Deleting {} invalid blocks.", invalidBlocks.size());
+      removeBlocks(invalidBlocks, true);
     }
   }
 
@@ -798,8 +814,8 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
         synchronized (worker) {
           final long lastUpdate = mClock.millis() - worker.getLastUpdatedTimeMs();
           if (lastUpdate > masterWorkerTimeoutMs) {
-            LOG.error("The worker {} timed out after {}ms without a heartbeat!", worker,
-                lastUpdate);
+            LOG.error("The worker {}({}) timed out after {}ms without a heartbeat!", worker.getId(),
+                worker.getWorkerAddress(), lastUpdate);
             mLostWorkers.add(worker);
             mWorkers.remove(worker);
             processWorkerRemovedBlocks(worker, worker.getBlocks());
