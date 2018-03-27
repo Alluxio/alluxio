@@ -473,7 +473,6 @@ public interface FileSystemMaster extends Master {
   void scheduleAsyncPersistence(AlluxioURI path) throws AlluxioException, UnavailableException;
 
   /**
-<<<<<<< HEAD
    * Update the operation mode for the given ufs path under one or more mount points.
    *
    * @param ufsPath the physical ufs path
@@ -486,8 +485,6 @@ public interface FileSystemMaster extends Master {
       AccessControlException;
 
   /**
-||||||| merged common ancestors
-=======
    * Checks the integrity of the inodes with respect to the blocks of the system.
    *
    * @param repair if true, will attempt to repair the state of the system when inconsistencies are
@@ -497,7 +494,6 @@ public interface FileSystemMaster extends Master {
   void validateInodeBlocks(boolean repair) throws UnavailableException;
 
   /**
->>>>>>> d4985d10fbf502dd42966adc51e4f2ceac1c73d4
    * Instructs a worker to persist the files.
    * <p>
    * Needs WRITE permission on the list of files.
