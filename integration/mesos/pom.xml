@@ -16,7 +16,7 @@
   <parent>
     <artifactId>alluxio-integration</artifactId>
     <groupId>org.alluxio</groupId>
-    <version>1.7.1-SNAPSHOT</version>
+    <version>1.7.1</version>
   </parent>
   <name>Alluxio Integration - Mesos</name>
   <artifactId>alluxio-integration-mesos</artifactId>
