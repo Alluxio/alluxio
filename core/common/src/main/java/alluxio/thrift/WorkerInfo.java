@@ -38,14 +38,14 @@ import org.slf4j.LoggerFactory;
 public class WorkerInfo implements org.apache.thrift.TBase<WorkerInfo, WorkerInfo._Fields>, java.io.Serializable, Cloneable, Comparable<WorkerInfo> {
   private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("WorkerInfo");
 
-  private static final org.apache.thrift.protocol.TField ADDRESS_FIELD_DESC = new org.apache.thrift.protocol.TField("address", org.apache.thrift.protocol.TType.STRUCT, (short)1);
-  private static final org.apache.thrift.protocol.TField CAPACITY_BYTES_FIELD_DESC = new org.apache.thrift.protocol.TField("capacityBytes", org.apache.thrift.protocol.TType.I64, (short)2);
-  private static final org.apache.thrift.protocol.TField CAPACITY_BYTES_ON_TIERS_FIELD_DESC = new org.apache.thrift.protocol.TField("capacityBytesOnTiers", org.apache.thrift.protocol.TType.MAP, (short)3);
-  private static final org.apache.thrift.protocol.TField ID_FIELD_DESC = new org.apache.thrift.protocol.TField("id", org.apache.thrift.protocol.TType.I64, (short)4);
-  private static final org.apache.thrift.protocol.TField LAST_CONTACT_SEC_FIELD_DESC = new org.apache.thrift.protocol.TField("lastContactSec", org.apache.thrift.protocol.TType.I32, (short)5);
-  private static final org.apache.thrift.protocol.TField START_TIME_MS_FIELD_DESC = new org.apache.thrift.protocol.TField("startTimeMs", org.apache.thrift.protocol.TType.I64, (short)6);
-  private static final org.apache.thrift.protocol.TField STATE_FIELD_DESC = new org.apache.thrift.protocol.TField("state", org.apache.thrift.protocol.TType.STRING, (short)7);
-  private static final org.apache.thrift.protocol.TField USED_BYTES_FIELD_DESC = new org.apache.thrift.protocol.TField("usedBytes", org.apache.thrift.protocol.TType.I64, (short)8);
+  private static final org.apache.thrift.protocol.TField ID_FIELD_DESC = new org.apache.thrift.protocol.TField("id", org.apache.thrift.protocol.TType.I64, (short)1);
+  private static final org.apache.thrift.protocol.TField ADDRESS_FIELD_DESC = new org.apache.thrift.protocol.TField("address", org.apache.thrift.protocol.TType.STRUCT, (short)2);
+  private static final org.apache.thrift.protocol.TField LAST_CONTACT_SEC_FIELD_DESC = new org.apache.thrift.protocol.TField("lastContactSec", org.apache.thrift.protocol.TType.I32, (short)3);
+  private static final org.apache.thrift.protocol.TField STATE_FIELD_DESC = new org.apache.thrift.protocol.TField("state", org.apache.thrift.protocol.TType.STRING, (short)4);
+  private static final org.apache.thrift.protocol.TField CAPACITY_BYTES_FIELD_DESC = new org.apache.thrift.protocol.TField("capacityBytes", org.apache.thrift.protocol.TType.I64, (short)5);
+  private static final org.apache.thrift.protocol.TField USED_BYTES_FIELD_DESC = new org.apache.thrift.protocol.TField("usedBytes", org.apache.thrift.protocol.TType.I64, (short)6);
+  private static final org.apache.thrift.protocol.TField START_TIME_MS_FIELD_DESC = new org.apache.thrift.protocol.TField("startTimeMs", org.apache.thrift.protocol.TType.I64, (short)7);
+  private static final org.apache.thrift.protocol.TField CAPACITY_BYTES_ON_TIERS_FIELD_DESC = new org.apache.thrift.protocol.TField("capacityBytesOnTiers", org.apache.thrift.protocol.TType.MAP, (short)8);
   private static final org.apache.thrift.protocol.TField USED_BYTES_ON_TIERS_FIELD_DESC = new org.apache.thrift.protocol.TField("usedBytesOnTiers", org.apache.thrift.protocol.TType.MAP, (short)9);
 
   private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
@@ -54,26 +54,26 @@ public class WorkerInfo implements org.apache.thrift.TBase<WorkerInfo, WorkerInf
     schemes.put(TupleScheme.class, new WorkerInfoTupleSchemeFactory());
   }
 
-  private alluxio.thrift.WorkerNetAddress address; // required
-  private long capacityBytes; // required
-  private Map<String,Long> capacityBytesOnTiers; // required
   private long id; // required
+  private alluxio.thrift.WorkerNetAddress address; // required
   private int lastContactSec; // required
-  private long startTimeMs; // required
   private String state; // required
+  private long capacityBytes; // required
   private long usedBytes; // required
+  private long startTimeMs; // required
+  private Map<String,Long> capacityBytesOnTiers; // required
   private Map<String,Long> usedBytesOnTiers; // required
 
   /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
   public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-    ADDRESS((short)1, "address"),
-    CAPACITY_BYTES((short)2, "capacityBytes"),
-    CAPACITY_BYTES_ON_TIERS((short)3, "capacityBytesOnTiers"),
-    ID((short)4, "id"),
-    LAST_CONTACT_SEC((short)5, "lastContactSec"),
-    START_TIME_MS((short)6, "startTimeMs"),
-    STATE((short)7, "state"),
-    USED_BYTES((short)8, "usedBytes"),
+    ID((short)1, "id"),
+    ADDRESS((short)2, "address"),
+    LAST_CONTACT_SEC((short)3, "lastContactSec"),
+    STATE((short)4, "state"),
+    CAPACITY_BYTES((short)5, "capacityBytes"),
+    USED_BYTES((short)6, "usedBytes"),
+    START_TIME_MS((short)7, "startTimeMs"),
+    CAPACITY_BYTES_ON_TIERS((short)8, "capacityBytesOnTiers"),
     USED_BYTES_ON_TIERS((short)9, "usedBytesOnTiers");
 
     private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
@@ -89,22 +89,22 @@ public class WorkerInfo implements org.apache.thrift.TBase<WorkerInfo, WorkerInf
      */
     public static _Fields findByThriftId(int fieldId) {
       switch(fieldId) {
-        case 1: // ADDRESS
-          return ADDRESS;
-        case 2: // CAPACITY_BYTES
-          return CAPACITY_BYTES;
-        case 3: // CAPACITY_BYTES_ON_TIERS
-          return CAPACITY_BYTES_ON_TIERS;
-        case 4: // ID
+        case 1: // ID
           return ID;
-        case 5: // LAST_CONTACT_SEC
+        case 2: // ADDRESS
+          return ADDRESS;
+        case 3: // LAST_CONTACT_SEC
           return LAST_CONTACT_SEC;
-        case 6: // START_TIME_MS
-          return START_TIME_MS;
-        case 7: // STATE
+        case 4: // STATE
           return STATE;
-        case 8: // USED_BYTES
+        case 5: // CAPACITY_BYTES
+          return CAPACITY_BYTES;
+        case 6: // USED_BYTES
           return USED_BYTES;
+        case 7: // START_TIME_MS
+          return START_TIME_MS;
+        case 8: // CAPACITY_BYTES_ON_TIERS
+          return CAPACITY_BYTES_ON_TIERS;
         case 9: // USED_BYTES_ON_TIERS
           return USED_BYTES_ON_TIERS;
         default:
@@ -147,33 +147,33 @@ public class WorkerInfo implements org.apache.thrift.TBase<WorkerInfo, WorkerInf
   }
 
   // isset id assignments
-  private static final int __CAPACITYBYTES_ISSET_ID = 0;
-  private static final int __ID_ISSET_ID = 1;
-  private static final int __LASTCONTACTSEC_ISSET_ID = 2;
-  private static final int __STARTTIMEMS_ISSET_ID = 3;
-  private static final int __USEDBYTES_ISSET_ID = 4;
+  private static final int __ID_ISSET_ID = 0;
+  private static final int __LASTCONTACTSEC_ISSET_ID = 1;
+  private static final int __CAPACITYBYTES_ISSET_ID = 2;
+  private static final int __USEDBYTES_ISSET_ID = 3;
+  private static final int __STARTTIMEMS_ISSET_ID = 4;
   private byte __isset_bitfield = 0;
   public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
   static {
     Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
+    tmpMap.put(_Fields.ID, new org.apache.thrift.meta_data.FieldMetaData("id", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
     tmpMap.put(_Fields.ADDRESS, new org.apache.thrift.meta_data.FieldMetaData("address", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, alluxio.thrift.WorkerNetAddress.class)));
+    tmpMap.put(_Fields.LAST_CONTACT_SEC, new org.apache.thrift.meta_data.FieldMetaData("lastContactSec", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I32)));
+    tmpMap.put(_Fields.STATE, new org.apache.thrift.meta_data.FieldMetaData("state", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
     tmpMap.put(_Fields.CAPACITY_BYTES, new org.apache.thrift.meta_data.FieldMetaData("capacityBytes", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
+    tmpMap.put(_Fields.USED_BYTES, new org.apache.thrift.meta_data.FieldMetaData("usedBytes", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
+    tmpMap.put(_Fields.START_TIME_MS, new org.apache.thrift.meta_data.FieldMetaData("startTimeMs", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
     tmpMap.put(_Fields.CAPACITY_BYTES_ON_TIERS, new org.apache.thrift.meta_data.FieldMetaData("capacityBytesOnTiers", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.MapMetaData(org.apache.thrift.protocol.TType.MAP, 
             new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING), 
             new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64))));
-    tmpMap.put(_Fields.ID, new org.apache.thrift.meta_data.FieldMetaData("id", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
-    tmpMap.put(_Fields.LAST_CONTACT_SEC, new org.apache.thrift.meta_data.FieldMetaData("lastContactSec", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I32)));
-    tmpMap.put(_Fields.START_TIME_MS, new org.apache.thrift.meta_data.FieldMetaData("startTimeMs", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
-    tmpMap.put(_Fields.STATE, new org.apache.thrift.meta_data.FieldMetaData("state", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
-    tmpMap.put(_Fields.USED_BYTES, new org.apache.thrift.meta_data.FieldMetaData("usedBytes", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
     tmpMap.put(_Fields.USED_BYTES_ON_TIERS, new org.apache.thrift.meta_data.FieldMetaData("usedBytesOnTiers", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.MapMetaData(org.apache.thrift.protocol.TType.MAP, 
             new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING), 
@@ -186,30 +186,30 @@ public class WorkerInfo implements org.apache.thrift.TBase<WorkerInfo, WorkerInf
   }
 
   public WorkerInfo(
-    alluxio.thrift.WorkerNetAddress address,
-    long capacityBytes,
-    Map<String,Long> capacityBytesOnTiers,
     long id,
+    alluxio.thrift.WorkerNetAddress address,
     int lastContactSec,
-    long startTimeMs,
     String state,
+    long capacityBytes,
     long usedBytes,
+    long startTimeMs,
+    Map<String,Long> capacityBytesOnTiers,
     Map<String,Long> usedBytesOnTiers)
   {
     this();
-    this.address = address;
-    this.capacityBytes = capacityBytes;
-    setCapacityBytesIsSet(true);
-    this.capacityBytesOnTiers = capacityBytesOnTiers;
     this.id = id;
     setIdIsSet(true);
+    this.address = address;
     this.lastContactSec = lastContactSec;
     setLastContactSecIsSet(true);
-    this.startTimeMs = startTimeMs;
-    setStartTimeMsIsSet(true);
     this.state = state;
+    this.capacityBytes = capacityBytes;
+    setCapacityBytesIsSet(true);
     this.usedBytes = usedBytes;
     setUsedBytesIsSet(true);
+    this.startTimeMs = startTimeMs;
+    setStartTimeMsIsSet(true);
+    this.capacityBytesOnTiers = capacityBytesOnTiers;
     this.usedBytesOnTiers = usedBytesOnTiers;
   }
 
@@ -218,21 +218,21 @@ public class WorkerInfo implements org.apache.thrift.TBase<WorkerInfo, WorkerInf
    */
   public WorkerInfo(WorkerInfo other) {
     __isset_bitfield = other.__isset_bitfield;
+    this.id = other.id;
     if (other.isSetAddress()) {
       this.address = new alluxio.thrift.WorkerNetAddress(other.address);
     }
+    this.lastContactSec = other.lastContactSec;
+    if (other.isSetState()) {
+      this.state = other.state;
+    }
     this.capacityBytes = other.capacityBytes;
+    this.usedBytes = other.usedBytes;
+    this.startTimeMs = other.startTimeMs;
     if (other.isSetCapacityBytesOnTiers()) {
       Map<String,Long> __this__capacityBytesOnTiers = new HashMap<String,Long>(other.capacityBytesOnTiers);
       this.capacityBytesOnTiers = __this__capacityBytesOnTiers;
     }
-    this.id = other.id;
-    this.lastContactSec = other.lastContactSec;
-    this.startTimeMs = other.startTimeMs;
-    if (other.isSetState()) {
-      this.state = other.state;
-    }
-    this.usedBytes = other.usedBytes;
     if (other.isSetUsedBytesOnTiers()) {
       Map<String,Long> __this__usedBytesOnTiers = new HashMap<String,Long>(other.usedBytesOnTiers);
       this.usedBytesOnTiers = __this__usedBytesOnTiers;
@@ -245,20 +245,43 @@ public class WorkerInfo implements org.apache.thrift.TBase<WorkerInfo, WorkerInf
 
   @Override
   public void clear() {
-    this.address = null;
-    setCapacityBytesIsSet(false);
-    this.capacityBytes = 0;
-    this.capacityBytesOnTiers = null;
     setIdIsSet(false);
     this.id = 0;
+    this.address = null;
     setLastContactSecIsSet(false);
     this.lastContactSec = 0;
-    setStartTimeMsIsSet(false);
-    this.startTimeMs = 0;
     this.state = null;
+    setCapacityBytesIsSet(false);
+    this.capacityBytes = 0;
     setUsedBytesIsSet(false);
     this.usedBytes = 0;
+    setStartTimeMsIsSet(false);
+    this.startTimeMs = 0;
+    this.capacityBytesOnTiers = null;
     this.usedBytesOnTiers = null;
+  }
+
+  public long getId() {
+    return this.id;
+  }
+
+  public WorkerInfo setId(long id) {
+    this.id = id;
+    setIdIsSet(true);
+    return this;
+  }
+
+  public void unsetId() {
+    __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __ID_ISSET_ID);
+  }
+
+  /** Returns true if field id is set (has been assigned a value) and false otherwise */
+  public boolean isSetId() {
+    return EncodingUtils.testBit(__isset_bitfield, __ID_ISSET_ID);
+  }
+
+  public void setIdIsSet(boolean value) {
+    __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __ID_ISSET_ID, value);
   }
 
   public alluxio.thrift.WorkerNetAddress getAddress() {
@@ -285,6 +308,53 @@ public class WorkerInfo implements org.apache.thrift.TBase<WorkerInfo, WorkerInf
     }
   }
 
+  public int getLastContactSec() {
+    return this.lastContactSec;
+  }
+
+  public WorkerInfo setLastContactSec(int lastContactSec) {
+    this.lastContactSec = lastContactSec;
+    setLastContactSecIsSet(true);
+    return this;
+  }
+
+  public void unsetLastContactSec() {
+    __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __LASTCONTACTSEC_ISSET_ID);
+  }
+
+  /** Returns true if field lastContactSec is set (has been assigned a value) and false otherwise */
+  public boolean isSetLastContactSec() {
+    return EncodingUtils.testBit(__isset_bitfield, __LASTCONTACTSEC_ISSET_ID);
+  }
+
+  public void setLastContactSecIsSet(boolean value) {
+    __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __LASTCONTACTSEC_ISSET_ID, value);
+  }
+
+  public String getState() {
+    return this.state;
+  }
+
+  public WorkerInfo setState(String state) {
+    this.state = state;
+    return this;
+  }
+
+  public void unsetState() {
+    this.state = null;
+  }
+
+  /** Returns true if field state is set (has been assigned a value) and false otherwise */
+  public boolean isSetState() {
+    return this.state != null;
+  }
+
+  public void setStateIsSet(boolean value) {
+    if (!value) {
+      this.state = null;
+    }
+  }
+
   public long getCapacityBytes() {
     return this.capacityBytes;
   }
@@ -306,6 +376,52 @@ public class WorkerInfo implements org.apache.thrift.TBase<WorkerInfo, WorkerInf
 
   public void setCapacityBytesIsSet(boolean value) {
     __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __CAPACITYBYTES_ISSET_ID, value);
+  }
+
+  public long getUsedBytes() {
+    return this.usedBytes;
+  }
+
+  public WorkerInfo setUsedBytes(long usedBytes) {
+    this.usedBytes = usedBytes;
+    setUsedBytesIsSet(true);
+    return this;
+  }
+
+  public void unsetUsedBytes() {
+    __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __USEDBYTES_ISSET_ID);
+  }
+
+  /** Returns true if field usedBytes is set (has been assigned a value) and false otherwise */
+  public boolean isSetUsedBytes() {
+    return EncodingUtils.testBit(__isset_bitfield, __USEDBYTES_ISSET_ID);
+  }
+
+  public void setUsedBytesIsSet(boolean value) {
+    __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __USEDBYTES_ISSET_ID, value);
+  }
+
+  public long getStartTimeMs() {
+    return this.startTimeMs;
+  }
+
+  public WorkerInfo setStartTimeMs(long startTimeMs) {
+    this.startTimeMs = startTimeMs;
+    setStartTimeMsIsSet(true);
+    return this;
+  }
+
+  public void unsetStartTimeMs() {
+    __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __STARTTIMEMS_ISSET_ID);
+  }
+
+  /** Returns true if field startTimeMs is set (has been assigned a value) and false otherwise */
+  public boolean isSetStartTimeMs() {
+    return EncodingUtils.testBit(__isset_bitfield, __STARTTIMEMS_ISSET_ID);
+  }
+
+  public void setStartTimeMsIsSet(boolean value) {
+    __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __STARTTIMEMS_ISSET_ID, value);
   }
 
   public int getCapacityBytesOnTiersSize() {
@@ -341,122 +457,6 @@ public class WorkerInfo implements org.apache.thrift.TBase<WorkerInfo, WorkerInf
     if (!value) {
       this.capacityBytesOnTiers = null;
     }
-  }
-
-  public long getId() {
-    return this.id;
-  }
-
-  public WorkerInfo setId(long id) {
-    this.id = id;
-    setIdIsSet(true);
-    return this;
-  }
-
-  public void unsetId() {
-    __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __ID_ISSET_ID);
-  }
-
-  /** Returns true if field id is set (has been assigned a value) and false otherwise */
-  public boolean isSetId() {
-    return EncodingUtils.testBit(__isset_bitfield, __ID_ISSET_ID);
-  }
-
-  public void setIdIsSet(boolean value) {
-    __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __ID_ISSET_ID, value);
-  }
-
-  public int getLastContactSec() {
-    return this.lastContactSec;
-  }
-
-  public WorkerInfo setLastContactSec(int lastContactSec) {
-    this.lastContactSec = lastContactSec;
-    setLastContactSecIsSet(true);
-    return this;
-  }
-
-  public void unsetLastContactSec() {
-    __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __LASTCONTACTSEC_ISSET_ID);
-  }
-
-  /** Returns true if field lastContactSec is set (has been assigned a value) and false otherwise */
-  public boolean isSetLastContactSec() {
-    return EncodingUtils.testBit(__isset_bitfield, __LASTCONTACTSEC_ISSET_ID);
-  }
-
-  public void setLastContactSecIsSet(boolean value) {
-    __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __LASTCONTACTSEC_ISSET_ID, value);
-  }
-
-  public long getStartTimeMs() {
-    return this.startTimeMs;
-  }
-
-  public WorkerInfo setStartTimeMs(long startTimeMs) {
-    this.startTimeMs = startTimeMs;
-    setStartTimeMsIsSet(true);
-    return this;
-  }
-
-  public void unsetStartTimeMs() {
-    __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __STARTTIMEMS_ISSET_ID);
-  }
-
-  /** Returns true if field startTimeMs is set (has been assigned a value) and false otherwise */
-  public boolean isSetStartTimeMs() {
-    return EncodingUtils.testBit(__isset_bitfield, __STARTTIMEMS_ISSET_ID);
-  }
-
-  public void setStartTimeMsIsSet(boolean value) {
-    __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __STARTTIMEMS_ISSET_ID, value);
-  }
-
-  public String getState() {
-    return this.state;
-  }
-
-  public WorkerInfo setState(String state) {
-    this.state = state;
-    return this;
-  }
-
-  public void unsetState() {
-    this.state = null;
-  }
-
-  /** Returns true if field state is set (has been assigned a value) and false otherwise */
-  public boolean isSetState() {
-    return this.state != null;
-  }
-
-  public void setStateIsSet(boolean value) {
-    if (!value) {
-      this.state = null;
-    }
-  }
-
-  public long getUsedBytes() {
-    return this.usedBytes;
-  }
-
-  public WorkerInfo setUsedBytes(long usedBytes) {
-    this.usedBytes = usedBytes;
-    setUsedBytesIsSet(true);
-    return this;
-  }
-
-  public void unsetUsedBytes() {
-    __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __USEDBYTES_ISSET_ID);
-  }
-
-  /** Returns true if field usedBytes is set (has been assigned a value) and false otherwise */
-  public boolean isSetUsedBytes() {
-    return EncodingUtils.testBit(__isset_bitfield, __USEDBYTES_ISSET_ID);
-  }
-
-  public void setUsedBytesIsSet(boolean value) {
-    __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __USEDBYTES_ISSET_ID, value);
   }
 
   public int getUsedBytesOnTiersSize() {
@@ -496,35 +496,19 @@ public class WorkerInfo implements org.apache.thrift.TBase<WorkerInfo, WorkerInf
 
   public void setFieldValue(_Fields field, Object value) {
     switch (field) {
-    case ADDRESS:
-      if (value == null) {
-        unsetAddress();
-      } else {
-        setAddress((alluxio.thrift.WorkerNetAddress)value);
-      }
-      break;
-
-    case CAPACITY_BYTES:
-      if (value == null) {
-        unsetCapacityBytes();
-      } else {
-        setCapacityBytes((Long)value);
-      }
-      break;
-
-    case CAPACITY_BYTES_ON_TIERS:
-      if (value == null) {
-        unsetCapacityBytesOnTiers();
-      } else {
-        setCapacityBytesOnTiers((Map<String,Long>)value);
-      }
-      break;
-
     case ID:
       if (value == null) {
         unsetId();
       } else {
         setId((Long)value);
+      }
+      break;
+
+    case ADDRESS:
+      if (value == null) {
+        unsetAddress();
+      } else {
+        setAddress((alluxio.thrift.WorkerNetAddress)value);
       }
       break;
 
@@ -536,14 +520,6 @@ public class WorkerInfo implements org.apache.thrift.TBase<WorkerInfo, WorkerInf
       }
       break;
 
-    case START_TIME_MS:
-      if (value == null) {
-        unsetStartTimeMs();
-      } else {
-        setStartTimeMs((Long)value);
-      }
-      break;
-
     case STATE:
       if (value == null) {
         unsetState();
@@ -552,11 +528,35 @@ public class WorkerInfo implements org.apache.thrift.TBase<WorkerInfo, WorkerInf
       }
       break;
 
+    case CAPACITY_BYTES:
+      if (value == null) {
+        unsetCapacityBytes();
+      } else {
+        setCapacityBytes((Long)value);
+      }
+      break;
+
     case USED_BYTES:
       if (value == null) {
         unsetUsedBytes();
       } else {
         setUsedBytes((Long)value);
+      }
+      break;
+
+    case START_TIME_MS:
+      if (value == null) {
+        unsetStartTimeMs();
+      } else {
+        setStartTimeMs((Long)value);
+      }
+      break;
+
+    case CAPACITY_BYTES_ON_TIERS:
+      if (value == null) {
+        unsetCapacityBytesOnTiers();
+      } else {
+        setCapacityBytesOnTiers((Map<String,Long>)value);
       }
       break;
 
@@ -573,29 +573,29 @@ public class WorkerInfo implements org.apache.thrift.TBase<WorkerInfo, WorkerInf
 
   public Object getFieldValue(_Fields field) {
     switch (field) {
-    case ADDRESS:
-      return getAddress();
-
-    case CAPACITY_BYTES:
-      return getCapacityBytes();
-
-    case CAPACITY_BYTES_ON_TIERS:
-      return getCapacityBytesOnTiers();
-
     case ID:
       return getId();
+
+    case ADDRESS:
+      return getAddress();
 
     case LAST_CONTACT_SEC:
       return getLastContactSec();
 
-    case START_TIME_MS:
-      return getStartTimeMs();
-
     case STATE:
       return getState();
 
+    case CAPACITY_BYTES:
+      return getCapacityBytes();
+
     case USED_BYTES:
       return getUsedBytes();
+
+    case START_TIME_MS:
+      return getStartTimeMs();
+
+    case CAPACITY_BYTES_ON_TIERS:
+      return getCapacityBytesOnTiers();
 
     case USED_BYTES_ON_TIERS:
       return getUsedBytesOnTiers();
@@ -611,22 +611,22 @@ public class WorkerInfo implements org.apache.thrift.TBase<WorkerInfo, WorkerInf
     }
 
     switch (field) {
-    case ADDRESS:
-      return isSetAddress();
-    case CAPACITY_BYTES:
-      return isSetCapacityBytes();
-    case CAPACITY_BYTES_ON_TIERS:
-      return isSetCapacityBytesOnTiers();
     case ID:
       return isSetId();
+    case ADDRESS:
+      return isSetAddress();
     case LAST_CONTACT_SEC:
       return isSetLastContactSec();
-    case START_TIME_MS:
-      return isSetStartTimeMs();
     case STATE:
       return isSetState();
+    case CAPACITY_BYTES:
+      return isSetCapacityBytes();
     case USED_BYTES:
       return isSetUsedBytes();
+    case START_TIME_MS:
+      return isSetStartTimeMs();
+    case CAPACITY_BYTES_ON_TIERS:
+      return isSetCapacityBytesOnTiers();
     case USED_BYTES_ON_TIERS:
       return isSetUsedBytesOnTiers();
     }
@@ -646,39 +646,21 @@ public class WorkerInfo implements org.apache.thrift.TBase<WorkerInfo, WorkerInf
     if (that == null)
       return false;
 
-    boolean this_present_address = true && this.isSetAddress();
-    boolean that_present_address = true && that.isSetAddress();
-    if (this_present_address || that_present_address) {
-      if (!(this_present_address && that_present_address))
-        return false;
-      if (!this.address.equals(that.address))
-        return false;
-    }
-
-    boolean this_present_capacityBytes = true;
-    boolean that_present_capacityBytes = true;
-    if (this_present_capacityBytes || that_present_capacityBytes) {
-      if (!(this_present_capacityBytes && that_present_capacityBytes))
-        return false;
-      if (this.capacityBytes != that.capacityBytes)
-        return false;
-    }
-
-    boolean this_present_capacityBytesOnTiers = true && this.isSetCapacityBytesOnTiers();
-    boolean that_present_capacityBytesOnTiers = true && that.isSetCapacityBytesOnTiers();
-    if (this_present_capacityBytesOnTiers || that_present_capacityBytesOnTiers) {
-      if (!(this_present_capacityBytesOnTiers && that_present_capacityBytesOnTiers))
-        return false;
-      if (!this.capacityBytesOnTiers.equals(that.capacityBytesOnTiers))
-        return false;
-    }
-
     boolean this_present_id = true;
     boolean that_present_id = true;
     if (this_present_id || that_present_id) {
       if (!(this_present_id && that_present_id))
         return false;
       if (this.id != that.id)
+        return false;
+    }
+
+    boolean this_present_address = true && this.isSetAddress();
+    boolean that_present_address = true && that.isSetAddress();
+    if (this_present_address || that_present_address) {
+      if (!(this_present_address && that_present_address))
+        return false;
+      if (!this.address.equals(that.address))
         return false;
     }
 
@@ -691,15 +673,6 @@ public class WorkerInfo implements org.apache.thrift.TBase<WorkerInfo, WorkerInf
         return false;
     }
 
-    boolean this_present_startTimeMs = true;
-    boolean that_present_startTimeMs = true;
-    if (this_present_startTimeMs || that_present_startTimeMs) {
-      if (!(this_present_startTimeMs && that_present_startTimeMs))
-        return false;
-      if (this.startTimeMs != that.startTimeMs)
-        return false;
-    }
-
     boolean this_present_state = true && this.isSetState();
     boolean that_present_state = true && that.isSetState();
     if (this_present_state || that_present_state) {
@@ -709,12 +682,39 @@ public class WorkerInfo implements org.apache.thrift.TBase<WorkerInfo, WorkerInf
         return false;
     }
 
+    boolean this_present_capacityBytes = true;
+    boolean that_present_capacityBytes = true;
+    if (this_present_capacityBytes || that_present_capacityBytes) {
+      if (!(this_present_capacityBytes && that_present_capacityBytes))
+        return false;
+      if (this.capacityBytes != that.capacityBytes)
+        return false;
+    }
+
     boolean this_present_usedBytes = true;
     boolean that_present_usedBytes = true;
     if (this_present_usedBytes || that_present_usedBytes) {
       if (!(this_present_usedBytes && that_present_usedBytes))
         return false;
       if (this.usedBytes != that.usedBytes)
+        return false;
+    }
+
+    boolean this_present_startTimeMs = true;
+    boolean that_present_startTimeMs = true;
+    if (this_present_startTimeMs || that_present_startTimeMs) {
+      if (!(this_present_startTimeMs && that_present_startTimeMs))
+        return false;
+      if (this.startTimeMs != that.startTimeMs)
+        return false;
+    }
+
+    boolean this_present_capacityBytesOnTiers = true && this.isSetCapacityBytesOnTiers();
+    boolean that_present_capacityBytesOnTiers = true && that.isSetCapacityBytesOnTiers();
+    if (this_present_capacityBytesOnTiers || that_present_capacityBytesOnTiers) {
+      if (!(this_present_capacityBytesOnTiers && that_present_capacityBytesOnTiers))
+        return false;
+      if (!this.capacityBytesOnTiers.equals(that.capacityBytesOnTiers))
         return false;
     }
 
@@ -734,45 +734,45 @@ public class WorkerInfo implements org.apache.thrift.TBase<WorkerInfo, WorkerInf
   public int hashCode() {
     List<Object> list = new ArrayList<Object>();
 
-    boolean present_address = true && (isSetAddress());
-    list.add(present_address);
-    if (present_address)
-      list.add(address);
-
-    boolean present_capacityBytes = true;
-    list.add(present_capacityBytes);
-    if (present_capacityBytes)
-      list.add(capacityBytes);
-
-    boolean present_capacityBytesOnTiers = true && (isSetCapacityBytesOnTiers());
-    list.add(present_capacityBytesOnTiers);
-    if (present_capacityBytesOnTiers)
-      list.add(capacityBytesOnTiers);
-
     boolean present_id = true;
     list.add(present_id);
     if (present_id)
       list.add(id);
+
+    boolean present_address = true && (isSetAddress());
+    list.add(present_address);
+    if (present_address)
+      list.add(address);
 
     boolean present_lastContactSec = true;
     list.add(present_lastContactSec);
     if (present_lastContactSec)
       list.add(lastContactSec);
 
-    boolean present_startTimeMs = true;
-    list.add(present_startTimeMs);
-    if (present_startTimeMs)
-      list.add(startTimeMs);
-
     boolean present_state = true && (isSetState());
     list.add(present_state);
     if (present_state)
       list.add(state);
 
+    boolean present_capacityBytes = true;
+    list.add(present_capacityBytes);
+    if (present_capacityBytes)
+      list.add(capacityBytes);
+
     boolean present_usedBytes = true;
     list.add(present_usedBytes);
     if (present_usedBytes)
       list.add(usedBytes);
+
+    boolean present_startTimeMs = true;
+    list.add(present_startTimeMs);
+    if (present_startTimeMs)
+      list.add(startTimeMs);
+
+    boolean present_capacityBytesOnTiers = true && (isSetCapacityBytesOnTiers());
+    list.add(present_capacityBytesOnTiers);
+    if (present_capacityBytesOnTiers)
+      list.add(capacityBytesOnTiers);
 
     boolean present_usedBytesOnTiers = true && (isSetUsedBytesOnTiers());
     list.add(present_usedBytesOnTiers);
@@ -790,42 +790,22 @@ public class WorkerInfo implements org.apache.thrift.TBase<WorkerInfo, WorkerInf
 
     int lastComparison = 0;
 
-    lastComparison = Boolean.valueOf(isSetAddress()).compareTo(other.isSetAddress());
-    if (lastComparison != 0) {
-      return lastComparison;
-    }
-    if (isSetAddress()) {
-      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.address, other.address);
-      if (lastComparison != 0) {
-        return lastComparison;
-      }
-    }
-    lastComparison = Boolean.valueOf(isSetCapacityBytes()).compareTo(other.isSetCapacityBytes());
-    if (lastComparison != 0) {
-      return lastComparison;
-    }
-    if (isSetCapacityBytes()) {
-      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.capacityBytes, other.capacityBytes);
-      if (lastComparison != 0) {
-        return lastComparison;
-      }
-    }
-    lastComparison = Boolean.valueOf(isSetCapacityBytesOnTiers()).compareTo(other.isSetCapacityBytesOnTiers());
-    if (lastComparison != 0) {
-      return lastComparison;
-    }
-    if (isSetCapacityBytesOnTiers()) {
-      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.capacityBytesOnTiers, other.capacityBytesOnTiers);
-      if (lastComparison != 0) {
-        return lastComparison;
-      }
-    }
     lastComparison = Boolean.valueOf(isSetId()).compareTo(other.isSetId());
     if (lastComparison != 0) {
       return lastComparison;
     }
     if (isSetId()) {
       lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.id, other.id);
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+    }
+    lastComparison = Boolean.valueOf(isSetAddress()).compareTo(other.isSetAddress());
+    if (lastComparison != 0) {
+      return lastComparison;
+    }
+    if (isSetAddress()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.address, other.address);
       if (lastComparison != 0) {
         return lastComparison;
       }
@@ -840,16 +820,6 @@ public class WorkerInfo implements org.apache.thrift.TBase<WorkerInfo, WorkerInf
         return lastComparison;
       }
     }
-    lastComparison = Boolean.valueOf(isSetStartTimeMs()).compareTo(other.isSetStartTimeMs());
-    if (lastComparison != 0) {
-      return lastComparison;
-    }
-    if (isSetStartTimeMs()) {
-      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.startTimeMs, other.startTimeMs);
-      if (lastComparison != 0) {
-        return lastComparison;
-      }
-    }
     lastComparison = Boolean.valueOf(isSetState()).compareTo(other.isSetState());
     if (lastComparison != 0) {
       return lastComparison;
@@ -860,12 +830,42 @@ public class WorkerInfo implements org.apache.thrift.TBase<WorkerInfo, WorkerInf
         return lastComparison;
       }
     }
+    lastComparison = Boolean.valueOf(isSetCapacityBytes()).compareTo(other.isSetCapacityBytes());
+    if (lastComparison != 0) {
+      return lastComparison;
+    }
+    if (isSetCapacityBytes()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.capacityBytes, other.capacityBytes);
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+    }
     lastComparison = Boolean.valueOf(isSetUsedBytes()).compareTo(other.isSetUsedBytes());
     if (lastComparison != 0) {
       return lastComparison;
     }
     if (isSetUsedBytes()) {
       lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.usedBytes, other.usedBytes);
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+    }
+    lastComparison = Boolean.valueOf(isSetStartTimeMs()).compareTo(other.isSetStartTimeMs());
+    if (lastComparison != 0) {
+      return lastComparison;
+    }
+    if (isSetStartTimeMs()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.startTimeMs, other.startTimeMs);
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+    }
+    lastComparison = Boolean.valueOf(isSetCapacityBytesOnTiers()).compareTo(other.isSetCapacityBytesOnTiers());
+    if (lastComparison != 0) {
+      return lastComparison;
+    }
+    if (isSetCapacityBytesOnTiers()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.capacityBytesOnTiers, other.capacityBytesOnTiers);
       if (lastComparison != 0) {
         return lastComparison;
       }
@@ -900,6 +900,10 @@ public class WorkerInfo implements org.apache.thrift.TBase<WorkerInfo, WorkerInf
     StringBuilder sb = new StringBuilder("WorkerInfo(");
     boolean first = true;
 
+    sb.append("id:");
+    sb.append(this.id);
+    first = false;
+    if (!first) sb.append(", ");
     sb.append("address:");
     if (this.address == null) {
       sb.append("null");
@@ -908,28 +912,8 @@ public class WorkerInfo implements org.apache.thrift.TBase<WorkerInfo, WorkerInf
     }
     first = false;
     if (!first) sb.append(", ");
-    sb.append("capacityBytes:");
-    sb.append(this.capacityBytes);
-    first = false;
-    if (!first) sb.append(", ");
-    sb.append("capacityBytesOnTiers:");
-    if (this.capacityBytesOnTiers == null) {
-      sb.append("null");
-    } else {
-      sb.append(this.capacityBytesOnTiers);
-    }
-    first = false;
-    if (!first) sb.append(", ");
-    sb.append("id:");
-    sb.append(this.id);
-    first = false;
-    if (!first) sb.append(", ");
     sb.append("lastContactSec:");
     sb.append(this.lastContactSec);
-    first = false;
-    if (!first) sb.append(", ");
-    sb.append("startTimeMs:");
-    sb.append(this.startTimeMs);
     first = false;
     if (!first) sb.append(", ");
     sb.append("state:");
@@ -940,8 +924,24 @@ public class WorkerInfo implements org.apache.thrift.TBase<WorkerInfo, WorkerInf
     }
     first = false;
     if (!first) sb.append(", ");
+    sb.append("capacityBytes:");
+    sb.append(this.capacityBytes);
+    first = false;
+    if (!first) sb.append(", ");
     sb.append("usedBytes:");
     sb.append(this.usedBytes);
+    first = false;
+    if (!first) sb.append(", ");
+    sb.append("startTimeMs:");
+    sb.append(this.startTimeMs);
+    first = false;
+    if (!first) sb.append(", ");
+    sb.append("capacityBytesOnTiers:");
+    if (this.capacityBytesOnTiers == null) {
+      sb.append("null");
+    } else {
+      sb.append(this.capacityBytesOnTiers);
+    }
     first = false;
     if (!first) sb.append(", ");
     sb.append("usedBytesOnTiers:");
@@ -999,7 +999,15 @@ public class WorkerInfo implements org.apache.thrift.TBase<WorkerInfo, WorkerInf
           break;
         }
         switch (schemeField.id) {
-          case 1: // ADDRESS
+          case 1: // ID
+            if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
+              struct.id = iprot.readI64();
+              struct.setIdIsSet(true);
+            } else { 
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+            }
+            break;
+          case 2: // ADDRESS
             if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
               struct.address = new alluxio.thrift.WorkerNetAddress();
               struct.address.read(iprot);
@@ -1008,7 +1016,23 @@ public class WorkerInfo implements org.apache.thrift.TBase<WorkerInfo, WorkerInf
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
-          case 2: // CAPACITY_BYTES
+          case 3: // LAST_CONTACT_SEC
+            if (schemeField.type == org.apache.thrift.protocol.TType.I32) {
+              struct.lastContactSec = iprot.readI32();
+              struct.setLastContactSecIsSet(true);
+            } else { 
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+            }
+            break;
+          case 4: // STATE
+            if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
+              struct.state = iprot.readString();
+              struct.setStateIsSet(true);
+            } else { 
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+            }
+            break;
+          case 5: // CAPACITY_BYTES
             if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
               struct.capacityBytes = iprot.readI64();
               struct.setCapacityBytesIsSet(true);
@@ -1016,7 +1040,23 @@ public class WorkerInfo implements org.apache.thrift.TBase<WorkerInfo, WorkerInf
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
-          case 3: // CAPACITY_BYTES_ON_TIERS
+          case 6: // USED_BYTES
+            if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
+              struct.usedBytes = iprot.readI64();
+              struct.setUsedBytesIsSet(true);
+            } else { 
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+            }
+            break;
+          case 7: // START_TIME_MS
+            if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
+              struct.startTimeMs = iprot.readI64();
+              struct.setStartTimeMsIsSet(true);
+            } else { 
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+            }
+            break;
+          case 8: // CAPACITY_BYTES_ON_TIERS
             if (schemeField.type == org.apache.thrift.protocol.TType.MAP) {
               {
                 org.apache.thrift.protocol.TMap _map28 = iprot.readMapBegin();
@@ -1032,46 +1072,6 @@ public class WorkerInfo implements org.apache.thrift.TBase<WorkerInfo, WorkerInf
                 iprot.readMapEnd();
               }
               struct.setCapacityBytesOnTiersIsSet(true);
-            } else { 
-              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-            }
-            break;
-          case 4: // ID
-            if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
-              struct.id = iprot.readI64();
-              struct.setIdIsSet(true);
-            } else { 
-              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-            }
-            break;
-          case 5: // LAST_CONTACT_SEC
-            if (schemeField.type == org.apache.thrift.protocol.TType.I32) {
-              struct.lastContactSec = iprot.readI32();
-              struct.setLastContactSecIsSet(true);
-            } else { 
-              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-            }
-            break;
-          case 6: // START_TIME_MS
-            if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
-              struct.startTimeMs = iprot.readI64();
-              struct.setStartTimeMsIsSet(true);
-            } else { 
-              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-            }
-            break;
-          case 7: // STATE
-            if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
-              struct.state = iprot.readString();
-              struct.setStateIsSet(true);
-            } else { 
-              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-            }
-            break;
-          case 8: // USED_BYTES
-            if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
-              struct.usedBytes = iprot.readI64();
-              struct.setUsedBytesIsSet(true);
             } else { 
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
@@ -1111,13 +1111,30 @@ public class WorkerInfo implements org.apache.thrift.TBase<WorkerInfo, WorkerInf
       struct.validate();
 
       oprot.writeStructBegin(STRUCT_DESC);
+      oprot.writeFieldBegin(ID_FIELD_DESC);
+      oprot.writeI64(struct.id);
+      oprot.writeFieldEnd();
       if (struct.address != null) {
         oprot.writeFieldBegin(ADDRESS_FIELD_DESC);
         struct.address.write(oprot);
         oprot.writeFieldEnd();
       }
+      oprot.writeFieldBegin(LAST_CONTACT_SEC_FIELD_DESC);
+      oprot.writeI32(struct.lastContactSec);
+      oprot.writeFieldEnd();
+      if (struct.state != null) {
+        oprot.writeFieldBegin(STATE_FIELD_DESC);
+        oprot.writeString(struct.state);
+        oprot.writeFieldEnd();
+      }
       oprot.writeFieldBegin(CAPACITY_BYTES_FIELD_DESC);
       oprot.writeI64(struct.capacityBytes);
+      oprot.writeFieldEnd();
+      oprot.writeFieldBegin(USED_BYTES_FIELD_DESC);
+      oprot.writeI64(struct.usedBytes);
+      oprot.writeFieldEnd();
+      oprot.writeFieldBegin(START_TIME_MS_FIELD_DESC);
+      oprot.writeI64(struct.startTimeMs);
       oprot.writeFieldEnd();
       if (struct.capacityBytesOnTiers != null) {
         oprot.writeFieldBegin(CAPACITY_BYTES_ON_TIERS_FIELD_DESC);
@@ -1132,23 +1149,6 @@ public class WorkerInfo implements org.apache.thrift.TBase<WorkerInfo, WorkerInf
         }
         oprot.writeFieldEnd();
       }
-      oprot.writeFieldBegin(ID_FIELD_DESC);
-      oprot.writeI64(struct.id);
-      oprot.writeFieldEnd();
-      oprot.writeFieldBegin(LAST_CONTACT_SEC_FIELD_DESC);
-      oprot.writeI32(struct.lastContactSec);
-      oprot.writeFieldEnd();
-      oprot.writeFieldBegin(START_TIME_MS_FIELD_DESC);
-      oprot.writeI64(struct.startTimeMs);
-      oprot.writeFieldEnd();
-      if (struct.state != null) {
-        oprot.writeFieldBegin(STATE_FIELD_DESC);
-        oprot.writeString(struct.state);
-        oprot.writeFieldEnd();
-      }
-      oprot.writeFieldBegin(USED_BYTES_FIELD_DESC);
-      oprot.writeI64(struct.usedBytes);
-      oprot.writeFieldEnd();
       if (struct.usedBytesOnTiers != null) {
         oprot.writeFieldBegin(USED_BYTES_ON_TIERS_FIELD_DESC);
         {
@@ -1180,39 +1180,54 @@ public class WorkerInfo implements org.apache.thrift.TBase<WorkerInfo, WorkerInf
     public void write(org.apache.thrift.protocol.TProtocol prot, WorkerInfo struct) throws org.apache.thrift.TException {
       TTupleProtocol oprot = (TTupleProtocol) prot;
       BitSet optionals = new BitSet();
-      if (struct.isSetAddress()) {
+      if (struct.isSetId()) {
         optionals.set(0);
       }
-      if (struct.isSetCapacityBytes()) {
+      if (struct.isSetAddress()) {
         optionals.set(1);
       }
-      if (struct.isSetCapacityBytesOnTiers()) {
+      if (struct.isSetLastContactSec()) {
         optionals.set(2);
       }
-      if (struct.isSetId()) {
+      if (struct.isSetState()) {
         optionals.set(3);
       }
-      if (struct.isSetLastContactSec()) {
+      if (struct.isSetCapacityBytes()) {
         optionals.set(4);
       }
-      if (struct.isSetStartTimeMs()) {
+      if (struct.isSetUsedBytes()) {
         optionals.set(5);
       }
-      if (struct.isSetState()) {
+      if (struct.isSetStartTimeMs()) {
         optionals.set(6);
       }
-      if (struct.isSetUsedBytes()) {
+      if (struct.isSetCapacityBytesOnTiers()) {
         optionals.set(7);
       }
       if (struct.isSetUsedBytesOnTiers()) {
         optionals.set(8);
       }
       oprot.writeBitSet(optionals, 9);
+      if (struct.isSetId()) {
+        oprot.writeI64(struct.id);
+      }
       if (struct.isSetAddress()) {
         struct.address.write(oprot);
       }
+      if (struct.isSetLastContactSec()) {
+        oprot.writeI32(struct.lastContactSec);
+      }
+      if (struct.isSetState()) {
+        oprot.writeString(struct.state);
+      }
       if (struct.isSetCapacityBytes()) {
         oprot.writeI64(struct.capacityBytes);
+      }
+      if (struct.isSetUsedBytes()) {
+        oprot.writeI64(struct.usedBytes);
+      }
+      if (struct.isSetStartTimeMs()) {
+        oprot.writeI64(struct.startTimeMs);
       }
       if (struct.isSetCapacityBytesOnTiers()) {
         {
@@ -1223,21 +1238,6 @@ public class WorkerInfo implements org.apache.thrift.TBase<WorkerInfo, WorkerInf
             oprot.writeI64(_iter38.getValue());
           }
         }
-      }
-      if (struct.isSetId()) {
-        oprot.writeI64(struct.id);
-      }
-      if (struct.isSetLastContactSec()) {
-        oprot.writeI32(struct.lastContactSec);
-      }
-      if (struct.isSetStartTimeMs()) {
-        oprot.writeI64(struct.startTimeMs);
-      }
-      if (struct.isSetState()) {
-        oprot.writeString(struct.state);
-      }
-      if (struct.isSetUsedBytes()) {
-        oprot.writeI64(struct.usedBytes);
       }
       if (struct.isSetUsedBytesOnTiers()) {
         {
@@ -1256,15 +1256,35 @@ public class WorkerInfo implements org.apache.thrift.TBase<WorkerInfo, WorkerInf
       TTupleProtocol iprot = (TTupleProtocol) prot;
       BitSet incoming = iprot.readBitSet(9);
       if (incoming.get(0)) {
+        struct.id = iprot.readI64();
+        struct.setIdIsSet(true);
+      }
+      if (incoming.get(1)) {
         struct.address = new alluxio.thrift.WorkerNetAddress();
         struct.address.read(iprot);
         struct.setAddressIsSet(true);
       }
-      if (incoming.get(1)) {
+      if (incoming.get(2)) {
+        struct.lastContactSec = iprot.readI32();
+        struct.setLastContactSecIsSet(true);
+      }
+      if (incoming.get(3)) {
+        struct.state = iprot.readString();
+        struct.setStateIsSet(true);
+      }
+      if (incoming.get(4)) {
         struct.capacityBytes = iprot.readI64();
         struct.setCapacityBytesIsSet(true);
       }
-      if (incoming.get(2)) {
+      if (incoming.get(5)) {
+        struct.usedBytes = iprot.readI64();
+        struct.setUsedBytesIsSet(true);
+      }
+      if (incoming.get(6)) {
+        struct.startTimeMs = iprot.readI64();
+        struct.setStartTimeMsIsSet(true);
+      }
+      if (incoming.get(7)) {
         {
           org.apache.thrift.protocol.TMap _map40 = new org.apache.thrift.protocol.TMap(org.apache.thrift.protocol.TType.STRING, org.apache.thrift.protocol.TType.I64, iprot.readI32());
           struct.capacityBytesOnTiers = new HashMap<String,Long>(2*_map40.size);
@@ -1278,26 +1298,6 @@ public class WorkerInfo implements org.apache.thrift.TBase<WorkerInfo, WorkerInf
           }
         }
         struct.setCapacityBytesOnTiersIsSet(true);
-      }
-      if (incoming.get(3)) {
-        struct.id = iprot.readI64();
-        struct.setIdIsSet(true);
-      }
-      if (incoming.get(4)) {
-        struct.lastContactSec = iprot.readI32();
-        struct.setLastContactSecIsSet(true);
-      }
-      if (incoming.get(5)) {
-        struct.startTimeMs = iprot.readI64();
-        struct.setStartTimeMsIsSet(true);
-      }
-      if (incoming.get(6)) {
-        struct.state = iprot.readString();
-        struct.setStateIsSet(true);
-      }
-      if (incoming.get(7)) {
-        struct.usedBytes = iprot.readI64();
-        struct.setUsedBytesIsSet(true);
       }
       if (incoming.get(8)) {
         {

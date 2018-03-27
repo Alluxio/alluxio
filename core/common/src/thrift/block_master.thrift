@@ -66,14 +66,14 @@ enum WorkerInfoField {
 }
 
 struct WorkerInfo {
-  1: common.WorkerNetAddress address
-  2: i64 capacityBytes
-  3: map<string, i64> capacityBytesOnTiers;
-  4: i64 id
-  5: i32 lastContactSec
-  6: i64 startTimeMs
-  7: string state
-  8: i64 usedBytes
+  1: i64 id
+  2: common.WorkerNetAddress address
+  3: i32 lastContactSec
+  4: string state
+  5: i64 capacityBytes
+  6: i64 usedBytes
+  7: i64 startTimeMs
+  8: map<string, i64> capacityBytesOnTiers;
   9: map<string, i64> usedBytesOnTiers;
 }
 

@@ -28,14 +28,14 @@ import javax.annotation.concurrent.NotThreadSafe;
 public final class WorkerInfo implements Serializable {
   private static final long serialVersionUID = -454711814438216780L;
 
-  private WorkerNetAddress mAddress = new WorkerNetAddress();
-  private long mCapacityBytes;
-  private Map<String, Long> mCapacityBytesOnTiers;
   private long mId;
+  private WorkerNetAddress mAddress = new WorkerNetAddress();
   private int mLastContactSec;
-  private long mStartTimeMs;
-  private String mState;
+  private String mState = "";
+  private long mCapacityBytes;
   private long mUsedBytes;
+  private long mStartTimeMs;
+  private Map<String, Long> mCapacityBytesOnTiers;
   private Map<String, Long> mUsedBytesOnTiers;
 
   /**
@@ -49,36 +49,15 @@ public final class WorkerInfo implements Serializable {
    * @param workerInfo the thrift representation of a worker information
    */
   protected WorkerInfo(alluxio.thrift.WorkerInfo workerInfo) {
-    mAddress = new WorkerNetAddress(workerInfo.getAddress());
-    mCapacityBytes = workerInfo.getCapacityBytes();
-    mCapacityBytesOnTiers = workerInfo.getCapacityBytesOnTiers();
     mId = workerInfo.getId();
+    mAddress = new WorkerNetAddress(workerInfo.getAddress());
     mLastContactSec = workerInfo.getLastContactSec();
-    mStartTimeMs = workerInfo.getStartTimeMs();
     mState = workerInfo.getState();
+    mCapacityBytes = workerInfo.getCapacityBytes();
     mUsedBytes = workerInfo.getUsedBytes();
+    mStartTimeMs = workerInfo.getStartTimeMs();
+    mCapacityBytesOnTiers = workerInfo.getCapacityBytesOnTiers();
     mUsedBytesOnTiers = workerInfo.getUsedBytesOnTiers();
-  }
-
-  /**
-   * @return the worker address
-   */
-  public WorkerNetAddress getAddress() {
-    return mAddress;
-  }
-
-  /**
-   * @return the worker total capacity (in bytes)
-   */
-  public long getCapacityBytes() {
-    return mCapacityBytes;
-  }
-
-  /**
-   * @return the worker total capacity (in bytes) on tiers
-   */
-  public Map<String, Long> getCapacityBytesOnTiers() {
-    return mCapacityBytesOnTiers;
   }
 
   /**
@@ -89,17 +68,17 @@ public final class WorkerInfo implements Serializable {
   }
 
   /**
+   * @return the worker address
+   */
+  public WorkerNetAddress getAddress() {
+    return mAddress;
+  }
+
+  /**
    * @return the worker last contact (in seconds)
    */
   public int getLastContactSec() {
     return mLastContactSec;
-  }
-
-  /**
-   * @return the worker start time (in milliseconds)
-   */
-  public long getStartTimeMs() {
-    return mStartTimeMs;
   }
 
   /**
@@ -110,6 +89,13 @@ public final class WorkerInfo implements Serializable {
   }
 
   /**
+   * @return the worker total capacity (in bytes)
+   */
+  public long getCapacityBytes() {
+    return mCapacityBytes;
+  }
+
+  /**
    * @return the worker used capacity (in bytes)
    */
   public long getUsedBytes() {
@@ -117,10 +103,33 @@ public final class WorkerInfo implements Serializable {
   }
 
   /**
+   * @return the worker start time (in milliseconds)
+   */
+  public long getStartTimeMs() {
+    return mStartTimeMs;
+  }
+
+  /**
+   * @return the worker total capacity (in bytes) on tiers
+   */
+  public Map<String, Long> getCapacityBytesOnTiers() {
+    return mCapacityBytesOnTiers;
+  }
+
+  /**
    * @return the worker used capacity (in bytes) on tiers
    */
   public Map<String, Long> getUsedBytesOnTiers() {
     return mUsedBytesOnTiers;
+  }
+
+  /**
+   * @param id the worker id to use
+   * @return the worker information
+   */
+  public WorkerInfo setId(long id) {
+    mId = id;
+    return this;
   }
 
   /**
@@ -134,6 +143,25 @@ public final class WorkerInfo implements Serializable {
   }
 
   /**
+   * @param lastContactSec the worker last contact (in seconds) to use
+   * @return the worker information
+   */
+  public WorkerInfo setLastContactSec(int lastContactSec) {
+    mLastContactSec = lastContactSec;
+    return this;
+  }
+
+  /**
+   * @param state the worker state to use
+   * @return the worker information
+   */
+  public WorkerInfo setState(String state) {
+    Preconditions.checkNotNull(state, "state");
+    mState = state;
+    return this;
+  }
+
+  /**
    * @param capacityBytes the worker total capacity (in bytes) to use
    * @return the worker information
    */
@@ -143,29 +171,11 @@ public final class WorkerInfo implements Serializable {
   }
 
   /**
-   * @param capacityBytesOnTiers the total worker capacity (in bytes) to use
+   * @param usedBytes the worker used capacity (in bytes) to use
    * @return the worker information
    */
-  public WorkerInfo setCapacityBytesOnTiers(Map<String, Long> capacityBytesOnTiers) {
-    mCapacityBytesOnTiers = new HashMap<>(capacityBytesOnTiers);
-    return this;
-  }
-
-  /**
-   * @param id the worker id to use
-   * @return the worker information
-   */
-  public WorkerInfo setId(long id) {
-    mId = id;
-    return this;
-  }
-
-  /**
-   * @param lastContactSec the worker last contact (in seconds) to use
-   * @return the worker information
-   */
-  public WorkerInfo setLastContactSec(int lastContactSec) {
-    mLastContactSec = lastContactSec;
+  public WorkerInfo setUsedBytes(long usedBytes) {
+    mUsedBytes = usedBytes;
     return this;
   }
 
@@ -179,20 +189,11 @@ public final class WorkerInfo implements Serializable {
   }
 
   /**
-   * @param state the state to use
+   * @param capacityBytesOnTiers the total worker capacity (in bytes) to use
    * @return the worker information
    */
-  public WorkerInfo setState(String state) {
-    mState = state;
-    return this;
-  }
-
-  /**
-   * @param usedBytes the worker used capacity (in bytes) to use
-   * @return the worker information
-   */
-  public WorkerInfo setUsedBytes(long usedBytes) {
-    mUsedBytes = usedBytes;
+  public WorkerInfo setCapacityBytesOnTiers(Map<String, Long> capacityBytesOnTiers) {
+    mCapacityBytesOnTiers = new HashMap<>(capacityBytesOnTiers);
     return this;
   }
 
@@ -209,9 +210,8 @@ public final class WorkerInfo implements Serializable {
    * @return thrift representation of the worker information
    */
   protected alluxio.thrift.WorkerInfo toThrift() {
-    return new alluxio.thrift.WorkerInfo(mAddress.toThrift(), mCapacityBytes,
-        mCapacityBytesOnTiers, mId, mLastContactSec, mStartTimeMs, mState,
-        mUsedBytes, mUsedBytesOnTiers);
+    return new alluxio.thrift.WorkerInfo(mId, mAddress.toThrift(), mLastContactSec,
+        mState, mCapacityBytes, mUsedBytes, mStartTimeMs, mCapacityBytesOnTiers, mUsedBytesOnTiers);
   }
 
   @Override
@@ -223,11 +223,11 @@ public final class WorkerInfo implements Serializable {
       return false;
     }
     WorkerInfo that = (WorkerInfo) o;
-    return mAddress.equals(that.mAddress) && mCapacityBytes == that.mCapacityBytes
+    return mId == that.mId && mAddress.equals(that.mAddress)
+        && mLastContactSec == that.mLastContactSec && mState.equals(that.mState)
+        && mCapacityBytes == that.mCapacityBytes && mUsedBytes == that.mUsedBytes
+        && mStartTimeMs == that.mStartTimeMs
         && mCapacityBytesOnTiers.equals(that.mCapacityBytesOnTiers)
-        && mId == that.mId && mLastContactSec == that.mLastContactSec
-        && mStartTimeMs == that.mStartTimeMs && mState.equals(that.mState)
-        && mUsedBytes == that.mUsedBytes
         && mUsedBytesOnTiers.equals(that.mUsedBytesOnTiers);
   }
 
@@ -248,20 +248,16 @@ public final class WorkerInfo implements Serializable {
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mAddress, mCapacityBytes, mCapacityBytesOnTiers, mId,
-        mLastContactSec, mStartTimeMs, mState, mUsedBytes, mUsedBytesOnTiers);
+    return Objects.hashCode(mId, mAddress, mLastContactSec, mState, mCapacityBytes, mUsedBytes,
+        mStartTimeMs, mCapacityBytesOnTiers, mUsedBytesOnTiers);
   }
 
   @Override
   public String toString() {
-    return Objects.toStringHelper(this).add("address", mAddress)
-        .add("capacityBytes", mCapacityBytes)
-        .add("capacityBytesOnTiers", mCapacityBytesOnTiers)
-        .add("id", mId)
-        .add("lastContactSec", mLastContactSec)
-        .add("startTimeMs", mStartTimeMs)
-        .add("state", mState)
-        .add("usedBytes", mUsedBytes)
+    return Objects.toStringHelper(this).add("id", mId).add("address", mAddress)
+        .add("lastContactSec", mLastContactSec).add("state", mState)
+        .add("capacityBytes", mCapacityBytes).add("usedBytes", mUsedBytes)
+        .add("startTimeMs", mStartTimeMs).add("capacityBytesOnTiers", mCapacityBytesOnTiers)
         .add("usedBytesOnTiers", mUsedBytesOnTiers).toString();
   }
 }
