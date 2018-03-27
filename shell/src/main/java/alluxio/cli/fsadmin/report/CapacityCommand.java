@@ -157,14 +157,7 @@ public class CapacityCommand {
    *
    * @param options GetWorkerReportOptions to check if input is invalid
    */
-  private void printAggregatedInfo(GetWorkerReportOptions options)
-      throws InvalidArgumentException {
-    if (options.getWorkerRange().equals(WorkerRange.SPECIFIED)
-        && mSumCapacityBytes + mSumUsedBytes == 0) {
-      System.out.println(getUsage());
-      throw new InvalidArgumentException("Worker IP addresses are invalid.");
-    }
-
+  private void printAggregatedInfo(GetWorkerReportOptions options) {
     mIndentationLevel = 0;
     print(String.format("Capacity information for %s workers: ",
         options.getWorkerRange().toString().toLowerCase()));

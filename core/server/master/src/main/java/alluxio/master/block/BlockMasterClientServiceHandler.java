@@ -123,55 +123,49 @@ public final class BlockMasterClientServiceHandler implements BlockMasterClientS
   @Override
   public GetBlockMasterInfoTResponse getBlockMasterInfo(final GetBlockMasterInfoTOptions options)
       throws TException {
-    return RpcUtils.call(LOG, new RpcUtils.RpcCallable<GetBlockMasterInfoTResponse>() {
-      @Override
-      public GetBlockMasterInfoTResponse call() throws AlluxioException {
-        BlockMasterInfo info = new alluxio.thrift.BlockMasterInfo();
-        for (BlockMasterInfoField field : options.getFilter() != null ? options.getFilter()
-            : Arrays.asList(BlockMasterInfoField.values())) {
-          switch (field) {
-            case CAPACITY_BYTES:
-              info.setCapacityBytes(mBlockMaster.getCapacityBytes());
-              break;
-            case CAPACITY_BYTES_ON_TIERS:
-              info.setCapacityBytesOnTiers(mBlockMaster.getTotalBytesOnTiers());
-              break;
-            case FREE_BYTES:
-              info.setFreeBytes(mBlockMaster.getCapacityBytes() - mBlockMaster.getUsedBytes());
-              break;
-            case LIVE_WORKER_NUM:
-              info.setLiveWorkerNum(mBlockMaster.getWorkerCount());
-              break;
-            case LOST_WORKER_NUM:
-              info.setLostWorkerNum(mBlockMaster.getLostWorkerCount());
-              break;
-            case USED_BYTES:
-              info.setUsedBytes(mBlockMaster.getUsedBytes());
-              break;
-            case USED_BYTES_ON_TIERS:
-              info.setUsedBytesOnTiers(mBlockMaster.getUsedBytesOnTiers());
-              break;
-            default:
-              LOG.warn("Unrecognized block master info field: " + field);
-          }
+    return RpcUtils.call(LOG, (RpcUtils.RpcCallable<GetBlockMasterInfoTResponse>) () -> {
+      BlockMasterInfo info = new alluxio.thrift.BlockMasterInfo();
+      for (BlockMasterInfoField field : options.getFilter() != null ? options.getFilter()
+          : Arrays.asList(BlockMasterInfoField.values())) {
+        switch (field) {
+          case CAPACITY_BYTES:
+            info.setCapacityBytes(mBlockMaster.getCapacityBytes());
+            break;
+          case CAPACITY_BYTES_ON_TIERS:
+            info.setCapacityBytesOnTiers(mBlockMaster.getTotalBytesOnTiers());
+            break;
+          case FREE_BYTES:
+            info.setFreeBytes(mBlockMaster.getCapacityBytes() - mBlockMaster.getUsedBytes());
+            break;
+          case LIVE_WORKER_NUM:
+            info.setLiveWorkerNum(mBlockMaster.getWorkerCount());
+            break;
+          case LOST_WORKER_NUM:
+            info.setLostWorkerNum(mBlockMaster.getLostWorkerCount());
+            break;
+          case USED_BYTES:
+            info.setUsedBytes(mBlockMaster.getUsedBytes());
+            break;
+          case USED_BYTES_ON_TIERS:
+            info.setUsedBytesOnTiers(mBlockMaster.getUsedBytesOnTiers());
+            break;
+          default:
+            LOG.warn("Unrecognized block master info field: " + field);
         }
-        return new GetBlockMasterInfoTResponse(info);
       }
+      return new GetBlockMasterInfoTResponse(info);
     });
   }
 
   @Override
   public GetWorkerInfoListTResponse getWorkerInfoList(GetWorkerInfoListTOptions options)
       throws AlluxioTException {
-    return RpcUtils.call(LOG, new RpcCallableThrowsIOException<GetWorkerInfoListTResponse>() {
-      @Override
-      public GetWorkerInfoListTResponse call() throws AlluxioException, AlluxioStatusException {
-        List<WorkerInfo> workerInfos = new ArrayList<>();
-        for (alluxio.wire.WorkerInfo workerInfo : mBlockMaster.getWorkerInfoList()) {
-          workerInfos.add(ThriftUtils.toThrift(workerInfo));
-        }
-        return new GetWorkerInfoListTResponse(workerInfos);
+    return RpcUtils.call(LOG, (RpcCallableThrowsIOException<GetWorkerInfoListTResponse>) () -> {
+      List<WorkerInfo> workerInfos = new ArrayList<>();
+      for (alluxio.wire.WorkerInfo workerInfo : mBlockMaster.getWorkerInfoList()) {
+        workerInfos.add(ThriftUtils.toThrift(workerInfo));
       }
+      return new GetWorkerInfoListTResponse(workerInfos);
     });
   }
 
