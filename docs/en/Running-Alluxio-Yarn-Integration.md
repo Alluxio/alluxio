@@ -14,19 +14,7 @@ alongside YARN instead of as an application within YARN.
 
 **A running YARN cluster**
 
-**Alluxio downloaded locally**
-
-```bash
-$ curl http://downloads.alluxio.org/downloads/files/{{site.ALLUXIO_RELEASED_VERSION}}/alluxio-{{site.ALLUXIO_RELEASED_VERSION}}-bin.tar.gz | tar xz
-```
-
-## Build YARN Integration
-
-```bash
-$ mvn clean install -Dhadoop.version=<your hadoop version> -Pyarn -Dlicense.skip -DskipTests -Dfindbugs.skip -Dmaven.javadoc.skip -Dcheckstyle.skip
-```
-
-Make sure to replace <your hadoop version> with the version of Hadoop that you are using.
+**[Alluxio downloaded locally](https://www.alluxio.org/download)**
 
 ## Configuration
 
