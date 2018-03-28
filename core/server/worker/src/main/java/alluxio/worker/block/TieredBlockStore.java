@@ -147,6 +147,7 @@ public class TieredBlockStore implements BlockStore {
 
   @Override
   public long lockBlock(long sessionId, long blockId) throws BlockDoesNotExistException {
+    LOG.debug("lockBlock: sessionId={}, blockId={}", sessionId, blockId);
     long lockId = mLockManager.lockBlock(sessionId, blockId, BlockLockType.READ);
     boolean hasBlock;
     try (LockResource r = new LockResource(mMetadataReadLock)) {
@@ -162,6 +163,7 @@ public class TieredBlockStore implements BlockStore {
 
   @Override
   public long lockBlockNoException(long sessionId, long blockId) {
+    LOG.debug("lockBlockNoException: sessionId={}, blockId={}", sessionId, blockId);
     long lockId = mLockManager.lockBlock(sessionId, blockId, BlockLockType.READ);
     boolean hasBlock;
     try (LockResource r = new LockResource(mMetadataReadLock)) {
@@ -177,11 +179,13 @@ public class TieredBlockStore implements BlockStore {
 
   @Override
   public void unlockBlock(long lockId) throws BlockDoesNotExistException {
+    LOG.debug("unlockBlock: lockId={}", lockId);
     mLockManager.unlockBlock(lockId);
   }
 
   @Override
   public boolean unlockBlock(long sessionId, long blockId) {
+    LOG.debug("unlockBlock: sessionId={}, blockId={}", sessionId, blockId);
     return mLockManager.unlockBlock(sessionId, blockId);
   }
 
@@ -189,6 +193,7 @@ public class TieredBlockStore implements BlockStore {
   public BlockWriter getBlockWriter(long sessionId, long blockId)
       throws BlockDoesNotExistException, BlockAlreadyExistsException, InvalidWorkerStateException,
       IOException {
+    LOG.debug("getBlockWriter: sessionId={}, blockId={}", sessionId, blockId);
     // NOTE: a temp block is supposed to only be visible by its own writer, unnecessary to acquire
     // block lock here since no sharing
     // TODO(bin): Handle the case where multiple writers compete for the same block.
@@ -202,6 +207,7 @@ public class TieredBlockStore implements BlockStore {
   @Override
   public BlockReader getBlockReader(long sessionId, long blockId, long lockId)
       throws BlockDoesNotExistException, InvalidWorkerStateException, IOException {
+    LOG.debug("getBlockReader: sessionId={}, blockId={}, lockId={}", sessionId, blockId, lockId);
     mLockManager.validateLock(sessionId, blockId, lockId);
     try (LockResource r = new LockResource(mMetadataReadLock)) {
       BlockMeta blockMeta = mMetaManager.getBlockMeta(blockId);
@@ -213,6 +219,8 @@ public class TieredBlockStore implements BlockStore {
   public TempBlockMeta createBlock(long sessionId, long blockId, BlockStoreLocation location,
       long initialBlockSize)
           throws BlockAlreadyExistsException, WorkerOutOfSpaceException, IOException {
+    LOG.debug("createBlock: sessionId={}, blockId={}, location={}, initialBlockSize={}",
+        sessionId, blockId, location, initialBlockSize);
     if (RESERVER_ENABLED) {
       RetryPolicy retryPolicy = new TimeoutRetry(FREE_SPACE_TIMEOUT_MS, EVICTION_INTERVAL_MS);
       while (retryPolicy.attempt()) {
@@ -250,6 +258,7 @@ public class TieredBlockStore implements BlockStore {
   // TODO(bin): Make this method to return a snapshot.
   @Override
   public BlockMeta getVolatileBlockMeta(long blockId) throws BlockDoesNotExistException {
+    LOG.debug("getVolatileBlockMeta: blockId={}", blockId);
     try (LockResource r = new LockResource(mMetadataReadLock)) {
       return mMetaManager.getBlockMeta(blockId);
     }
@@ -258,6 +267,7 @@ public class TieredBlockStore implements BlockStore {
   @Override
   public BlockMeta getBlockMeta(long sessionId, long blockId, long lockId)
       throws BlockDoesNotExistException, InvalidWorkerStateException {
+    LOG.debug("getBlockMeta: sessionId={}, blockId={}, lockId={}", sessionId, blockId, lockId);
     mLockManager.validateLock(sessionId, blockId, lockId);
     try (LockResource r = new LockResource(mMetadataReadLock)) {
       return mMetaManager.getBlockMeta(blockId);
@@ -266,6 +276,7 @@ public class TieredBlockStore implements BlockStore {
 
   @Override
   public TempBlockMeta getTempBlockMeta(long sessionId, long blockId) {
+    LOG.debug("getTempBlockMeta: sessionId={}, blockId={}", sessionId, blockId);
     try (LockResource r = new LockResource(mMetadataReadLock)) {
       return mMetaManager.getTempBlockMetaOrNull(blockId);
     }
@@ -274,6 +285,7 @@ public class TieredBlockStore implements BlockStore {
   @Override
   public void commitBlock(long sessionId, long blockId) throws BlockAlreadyExistsException,
       InvalidWorkerStateException, BlockDoesNotExistException, IOException {
+    LOG.debug("commitBlock: sessionId={}, blockId={}", sessionId, blockId);
     BlockStoreLocation loc = commitBlockInternal(sessionId, blockId);
     synchronized (mBlockStoreEventListeners) {
       for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
@@ -285,6 +297,7 @@ public class TieredBlockStore implements BlockStore {
   @Override
   public void abortBlock(long sessionId, long blockId) throws BlockAlreadyExistsException,
       BlockDoesNotExistException, InvalidWorkerStateException, IOException {
+    LOG.debug("abortBlock: sessionId={}, blockId={}", sessionId, blockId);
     abortBlockInternal(sessionId, blockId);
     synchronized (mBlockStoreEventListeners) {
       for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
@@ -296,6 +309,8 @@ public class TieredBlockStore implements BlockStore {
   @Override
   public void requestSpace(long sessionId, long blockId, long additionalBytes)
       throws BlockDoesNotExistException, WorkerOutOfSpaceException, IOException {
+    LOG.debug("requestSpace: sessionId={}, blockId={}, additionalBytes={}",
+        sessionId, blockId, additionalBytes);
     if (RESERVER_ENABLED) {
       RetryPolicy retryPolicy = new TimeoutRetry(FREE_SPACE_TIMEOUT_MS, EVICTION_INTERVAL_MS);
       while (retryPolicy.attempt()) {
@@ -340,6 +355,8 @@ public class TieredBlockStore implements BlockStore {
       BlockStoreLocation newLocation)
           throws BlockDoesNotExistException, BlockAlreadyExistsException,
           InvalidWorkerStateException, WorkerOutOfSpaceException, IOException {
+    LOG.debug("moveBlock: sessionId={}, blockId={}, oldLocation={}, newLocation={}",
+        sessionId, blockId, oldLocation, newLocation);
     if (RESERVER_ENABLED) {
       RetryPolicy retryPolicy = new TimeoutRetry(FREE_SPACE_TIMEOUT_MS, EVICTION_INTERVAL_MS);
       while (retryPolicy.attempt()) {
@@ -390,6 +407,7 @@ public class TieredBlockStore implements BlockStore {
   @Override
   public void removeBlock(long sessionId, long blockId, BlockStoreLocation location)
       throws InvalidWorkerStateException, BlockDoesNotExistException, IOException {
+    LOG.debug("removeBlock: sessionId={}, blockId={}, location={}", sessionId, blockId, location);
     removeBlockInternal(sessionId, blockId, location);
     synchronized (mBlockStoreEventListeners) {
       for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
@@ -400,6 +418,7 @@ public class TieredBlockStore implements BlockStore {
 
   @Override
   public void accessBlock(long sessionId, long blockId) throws BlockDoesNotExistException {
+    LOG.debug("accessBlock: sessionId={}, blockId={}", sessionId, blockId);
     boolean hasBlock;
     try (LockResource r = new LockResource(mMetadataReadLock)) {
       hasBlock = mMetaManager.hasBlockMeta(blockId);
@@ -417,11 +436,14 @@ public class TieredBlockStore implements BlockStore {
   @Override
   public void freeSpace(long sessionId, long availableBytes, BlockStoreLocation location)
       throws BlockDoesNotExistException, WorkerOutOfSpaceException, IOException {
+    LOG.debug("freeSpace: sessionId={}, availableBytes={}, location={}",
+        sessionId, availableBytes, location);
     freeSpaceInternal(sessionId, availableBytes, location, Mode.BEST_EFFORT);
   }
 
   @Override
   public void cleanupSession(long sessionId) {
+    LOG.debug("cleanupSession: sessionId={}", sessionId);
     // Release all locks the session is holding.
     mLockManager.cleanupSession(sessionId);
 
@@ -444,6 +466,7 @@ public class TieredBlockStore implements BlockStore {
 
   @Override
   public boolean hasBlockMeta(long blockId) {
+    LOG.debug("hasBlockMeta: blockId={}", blockId);
     try (LockResource r = new LockResource(mMetadataReadLock)) {
       return mMetaManager.hasBlockMeta(blockId);
     }
@@ -451,6 +474,8 @@ public class TieredBlockStore implements BlockStore {
 
   @Override
   public BlockStoreMeta getBlockStoreMeta() {
+    // Removed DEBUG logging because this is very noisy
+    // LOG.debug("getBlockStoreMeta:");
     BlockStoreMeta storeMeta;
     try (LockResource r = new LockResource(mMetadataReadLock)) {
       storeMeta = mMetaManager.getBlockStoreMeta();
@@ -460,6 +485,8 @@ public class TieredBlockStore implements BlockStore {
 
   @Override
   public BlockStoreMeta getBlockStoreMetaFull() {
+    // Removed DEBUG logging because this is very noisy
+    // LOG.debug("getBlockStoreMetaFull:");
     BlockStoreMeta storeMeta;
     try (LockResource r = new LockResource(mMetadataReadLock)) {
       storeMeta = mMetaManager.getBlockStoreMetaFull();
@@ -469,6 +496,7 @@ public class TieredBlockStore implements BlockStore {
 
   @Override
   public void registerBlockStoreEventListener(BlockStoreEventListener listener) {
+    LOG.debug("registerBlockStoreEventListener: listener={}", listener);
     synchronized (mBlockStoreEventListeners) {
       mBlockStoreEventListeners.add(listener);
     }
@@ -908,6 +936,7 @@ public class TieredBlockStore implements BlockStore {
    */
   @Override
   public void updatePinnedInodes(Set<Long> inodes) {
+    LOG.debug("updatePinnedInodes: inodes={}", inodes);
     synchronized (mPinnedInodes) {
       mPinnedInodes.clear();
       mPinnedInodes.addAll(Preconditions.checkNotNull(inodes));
