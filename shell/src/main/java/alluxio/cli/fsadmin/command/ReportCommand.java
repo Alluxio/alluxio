@@ -19,7 +19,6 @@ import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.FileSystemMasterClient;
 import alluxio.client.MetaMasterClient;
 import alluxio.client.RetryHandlingMetaMasterClient;
-import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.master.MasterClientConfig;

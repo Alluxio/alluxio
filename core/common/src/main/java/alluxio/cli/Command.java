@@ -37,6 +37,16 @@ public interface Command {
   Options getOptions();
 
   /**
+   * Checks if the arguments are valid. The implementations of this method may also throw
+   * InvalidArgumentException if they want to return a more specific error message.
+   *
+   * @param args the arguments for the command, excluding the command name and options
+   * @throws InvalidArgumentException when arguments are not valid
+   * @return whether the list of arguments is expected
+   */
+  boolean checkArgs(String... args) throws InvalidArgumentException;
+
+  /**
    * Parses and validates the arguments.
    *
    * @param args the arguments for the command, excluding the command name

@@ -113,6 +113,7 @@ public final class RmCommand extends WithWildCardPathCommand {
         + " Specify -alluxioOnly to remove data and metadata from alluxio space only.";
   }
 
+  @Override
   public boolean checkArgs(String... args) throws InvalidArgumentException {
     if (args.length < 1) {
       throw new InvalidArgumentException(ExceptionMessage.INVALID_ARGS_NUM_INSUFFICIENT

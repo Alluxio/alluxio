@@ -30,18 +30,10 @@ public abstract class AbstractCommand implements Command {
 
   protected AbstractCommand() {}
 
-  /**
-   * Checks if the arguments are valid.
-   *
-   * @param args the arguments for the command, excluding the command name and options
-   * @throws InvalidArgumentException when arguments are not valid
-   */
-  protected abstract boolean checkArgs(String... args) throws InvalidArgumentException;
-
-  @Override
-  public Options getOptions() {
-    return new Options();
-  }
+//  @Override
+//  public Options getOptions() {
+//    return new Options();
+//  }
 
   @Override
   public CommandLine parseAndValidateArgs(String... args) throws InvalidArgumentException {

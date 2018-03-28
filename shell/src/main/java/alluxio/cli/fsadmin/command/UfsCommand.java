@@ -16,8 +16,6 @@ import alluxio.cli.AbstractCommand;
 import alluxio.client.file.FileSystemMasterClient;
 import alluxio.client.file.options.UpdateUfsModeOptions;
 import alluxio.exception.AlluxioException;
-import alluxio.exception.ExceptionMessage;
-import alluxio.exception.status.InvalidArgumentException;
 import alluxio.master.MasterClientConfig;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.io.PathUtils;

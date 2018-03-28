@@ -21,9 +21,11 @@ import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Loads metadata for the given Alluxio path from UFS.
+ *
+ * @deprecated since version 1.1
  */
-@Deprecated
 @ThreadSafe
+@Deprecated
 public final class LoadMetadataCommand extends AbstractFileSystemCommand {
 
   /**
