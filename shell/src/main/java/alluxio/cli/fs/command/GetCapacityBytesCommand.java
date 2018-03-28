@@ -40,8 +40,8 @@ public final class GetCapacityBytesCommand extends AbstractFileSystemCommand {
   }
 
   @Override
-  protected int getNumOfArgs() {
-    return 0;
+  protected boolean checkArgs(String... args) {
+    return args.length == 0;
   }
 
   @Override

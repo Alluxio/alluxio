@@ -88,6 +88,11 @@ public final class TailCommand extends WithWildCardPathCommand {
   }
 
   @Override
+  public boolean checkArgs(String... args) {
+    return args.length == 1;
+  }
+
+  @Override
   public Options getOptions() {
     Option bytesOption =
         Option.builder("c").required(false).numberOfArgs(1).desc("user specified option").build();

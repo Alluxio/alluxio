@@ -57,8 +57,8 @@ public final class UfsCommand extends AbstractCommand {
   }
 
   @Override
-  protected int getNumOfArgs() {
-    return 1;
+  protected boolean checkArgs(String... args) {
+    return args.length == 1;
   }
 
   @Override
@@ -108,13 +108,5 @@ public final class UfsCommand extends AbstractCommand {
   @Override
   public String getDescription() {
     return "Update attributes for a ufs path.";
-  }
-
-  @Override
-  public void validateArgs(String... args) throws InvalidArgumentException {
-    if (args.length != 1) {
-      throw new InvalidArgumentException(
-          ExceptionMessage.INVALID_ARGS_GENERIC.getMessage(getCommandName()));
-    }
   }
 }

@@ -56,8 +56,8 @@ public final class ChmodCommand extends AbstractFileSystemCommand {
   }
 
   @Override
-  protected int getNumOfArgs() {
-    return 2;
+  protected boolean checkArgs(String... args) {
+    return args.length == 2;
   }
 
   @Override

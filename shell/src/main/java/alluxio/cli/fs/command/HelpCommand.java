@@ -12,10 +12,9 @@
 package alluxio.cli.fs.command;
 
 import alluxio.cli.Command;
+import alluxio.cli.fs.FileSystemShellUtils;
 import alluxio.client.file.FileSystem;
 import alluxio.exception.AlluxioException;
-import alluxio.cli.fs.FileSystemShellUtils;
-import alluxio.exception.status.InvalidArgumentException;
 
 import jline.TerminalFactory;
 import org.apache.commons.cli.CommandLine;
@@ -26,6 +25,7 @@ import java.io.PrintWriter;
 import java.util.Map;
 import java.util.SortedSet;
 import java.util.TreeSet;
+
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -104,11 +104,7 @@ public final class HelpCommand extends AbstractFileSystemCommand {
   }
 
   @Override
-  public void validateArgs(String... args) throws InvalidArgumentException {
-  }
-
-  @Override
-  protected int getNumOfArgs() {
-    return 1;
+  protected boolean checkArgs(String... args) {
+    return args.length <= 1;
   }
 }

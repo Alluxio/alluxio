@@ -106,6 +106,11 @@ public final class StatCommand extends WithWildCardPathCommand {
         + "   \"%b\": Number of blocks allocated for file";
   }
 
+  @Override
+  public boolean checkArgs(String... args) {
+    return args.length == 1;
+  }
+
   private static final String FORMAT_REGEX = "%([bguyzNY])";
   private static final Pattern FORMAT_PATTERN = Pattern.compile(FORMAT_REGEX);
 

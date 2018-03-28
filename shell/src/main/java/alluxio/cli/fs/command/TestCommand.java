@@ -74,8 +74,8 @@ public final class TestCommand extends AbstractFileSystemCommand {
   }
 
   @Override
-  public int getNumOfArgs() {
-    return 1;
+  public boolean checkArgs(String... args) {
+    return args.length == 1;
   }
 
   @Override
@@ -172,11 +172,6 @@ public final class TestCommand extends AbstractFileSystemCommand {
 
   @Override
   public String getDescription() {
-    return "Test a property of a path, returning 0 if the property is true, or 1 otherwise."
-        + " Specify -d to test whether the path is a directory,"
-        + " Specify -f to test whether the path is a file,"
-        + " Specify -e to test whether the path exists,"
-        + " Specify -s to test whether the directory is not empty,"
-        + " Specify -z to test whether the file is zero length,";
+    return "Test a property of a path, returning 0 if the property is true, or 1 otherwise.";
   }
 }

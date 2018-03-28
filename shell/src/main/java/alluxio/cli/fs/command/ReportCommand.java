@@ -57,4 +57,9 @@ public final class ReportCommand extends WithWildCardPathCommand {
   public String getDescription() {
     return "Reports to the master that a file is lost.";
   }
+
+  @Override
+  public boolean checkArgs(String... args) {
+    return args.length == 1;
+  }
 }

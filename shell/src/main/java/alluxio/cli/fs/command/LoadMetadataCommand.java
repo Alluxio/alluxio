@@ -22,6 +22,7 @@ import javax.annotation.concurrent.ThreadSafe;
 /**
  * Loads metadata for the given Alluxio path from UFS.
  */
+@Deprecated
 @ThreadSafe
 public final class LoadMetadataCommand extends AbstractFileSystemCommand {
 
@@ -40,8 +41,8 @@ public final class LoadMetadataCommand extends AbstractFileSystemCommand {
   }
 
   @Override
-  protected int getNumOfArgs() {
-    return 1;
+  protected boolean checkArgs(String... args) {
+    return args.length == 1;
   }
 
   @Override

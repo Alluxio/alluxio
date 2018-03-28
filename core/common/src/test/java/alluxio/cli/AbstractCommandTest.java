@@ -47,8 +47,8 @@ public final class AbstractCommandTest {
     }
 
     @Override
-    protected int getNumOfArgs() {
-      return 1;
+    protected boolean checkArgs(String... args) {
+      return args.length == 1;
     }
 
     @Override
@@ -74,7 +74,7 @@ public final class AbstractCommandTest {
     TestCommand cmd = new TestCommand();
 
     mExpectedException.expect(InvalidArgumentException.class);
-    mExpectedException.expectMessage(INVALID_ARGS_NUM.getMessage(cmd.getCommandName(), 1, 2));
+    mExpectedException.expectMessage(INVALID_ARGS_NUM.getMessage(cmd.getCommandName(), 2));
     cmd.parseAndValidateArgs("arg1", "arg2");
   }
 }

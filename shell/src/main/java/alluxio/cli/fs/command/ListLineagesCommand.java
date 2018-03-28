@@ -44,8 +44,8 @@ public final class ListLineagesCommand extends AbstractFileSystemCommand {
   }
 
   @Override
-  protected int getNumOfArgs() {
-    return 0;
+  protected boolean checkArgs(String... args) {
+    return args.length == 0;
   }
 
   @Override

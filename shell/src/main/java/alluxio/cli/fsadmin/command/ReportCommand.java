@@ -63,11 +63,6 @@ public final class ReportCommand extends AbstractCommand {
   }
 
   @Override
-  protected int getNumOfArgs() {
-    return 1;
-  }
-
-  @Override
   public int run(CommandLine cl) throws IOException {
     try {
       // Check if Alluxio master and client services are running
@@ -146,10 +141,7 @@ public final class ReportCommand extends AbstractCommand {
   }
 
   @Override
-  public void validateArgs(String... args) throws InvalidArgumentException {
-    if (args.length > 1) {
-      throw new InvalidArgumentException(
-          ExceptionMessage.INVALID_ARGS_GENERIC.getMessage(getCommandName()));
-    }
+  public boolean checkArgs(String... args) throws InvalidArgumentException {
+    return args.length <= 1;
   }
 }

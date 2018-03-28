@@ -66,4 +66,9 @@ public final class LocationCommand extends WithWildCardPathCommand {
   public String getDescription() {
     return "Displays the list of hosts storing the specified file.";
   }
+
+  @Override
+  public boolean checkArgs(String... args) {
+    return args.length == 1;
+  }
 }

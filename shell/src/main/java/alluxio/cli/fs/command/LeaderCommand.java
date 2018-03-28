@@ -47,8 +47,8 @@ public final class LeaderCommand extends AbstractFileSystemCommand {
   }
 
   @Override
-  public int getNumOfArgs() {
-    return 0;
+  public boolean checkArgs(String... args) {
+    return args.length == 0;
   }
 
   @Override

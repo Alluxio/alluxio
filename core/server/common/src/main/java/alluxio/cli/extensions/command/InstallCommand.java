@@ -48,10 +48,6 @@ public final class InstallCommand extends AbstractCommand {
     return "install";
   }
 
-  protected int getNumOfArgs() {
-    return 1;
-  }
-
   @Override
   public String getUsage() {
     return "install <URI>";
@@ -100,8 +96,10 @@ public final class InstallCommand extends AbstractCommand {
   }
 
   @Override
-  protected void validateArgs(String... args) throws InvalidArgumentException {
-    super.validateArgs(args);
+  protected boolean checkArgs(String... args) throws InvalidArgumentException {
+    if (args.length != 1) {
+      return false;
+    }
 
     if (args[0] == null) {
       throw new InvalidArgumentException(
@@ -111,5 +109,6 @@ public final class InstallCommand extends AbstractCommand {
       throw new InvalidArgumentException(
           ExceptionMessage.INVALID_EXTENSION_NOT_JAR.getMessage(args[0]));
     }
+    return true;
   }
 }

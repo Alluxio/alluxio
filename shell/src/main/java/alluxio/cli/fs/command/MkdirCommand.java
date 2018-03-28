@@ -46,11 +46,6 @@ public final class MkdirCommand extends AbstractFileSystemCommand {
   }
 
   @Override
-  protected int getNumOfArgs() {
-    return 1;
-  }
-
-  @Override
   public int run(CommandLine cl) throws AlluxioException, IOException {
     String[] args = cl.getArgs();
     for (String path : args) {
@@ -74,10 +69,11 @@ public final class MkdirCommand extends AbstractFileSystemCommand {
   }
 
   @Override
-  public void validateArgs(String... args) throws InvalidArgumentException {
-    if (args.length < getNumOfArgs()) {
+  public boolean checkArgs(String... args) throws InvalidArgumentException {
+    if (args.length < 1) {
       throw new InvalidArgumentException(ExceptionMessage.INVALID_ARGS_NUM_INSUFFICIENT
-          .getMessage(getCommandName(), getNumOfArgs(), args.length));
+          .getMessage(getCommandName(), 1, args.length));
     }
+    return true;
   }
 }

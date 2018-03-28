@@ -39,8 +39,8 @@ public final class LsCommand extends AbstractCommand {
     return "ls";
   }
 
-  protected int getNumOfArgs() {
-    return 0;
+  protected boolean checkArgs(String... args) {
+    return args.length == 0;
   }
 
   @Override

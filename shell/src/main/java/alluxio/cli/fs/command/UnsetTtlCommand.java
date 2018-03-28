@@ -42,8 +42,8 @@ public final class UnsetTtlCommand extends AbstractFileSystemCommand {
   }
 
   @Override
-  protected int getNumOfArgs() {
-    return 1;
+  protected boolean checkArgs(String... args) {
+    return args.length == 1;
   }
 
   @Override

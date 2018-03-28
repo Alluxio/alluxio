@@ -189,11 +189,6 @@ public final class LsCommand extends WithWildCardPathCommand {
   }
 
   @Override
-  protected int getNumOfArgs() {
-    return 1;
-  }
-
-  @Override
   public Options getOptions() {
     return new Options()
         .addOption(FORCE_OPTION)
@@ -282,10 +277,11 @@ public final class LsCommand extends WithWildCardPathCommand {
   }
 
   @Override
-  public void validateArgs(String... args) throws InvalidArgumentException {
+  public boolean checkArgs(String... args) throws InvalidArgumentException {
     if (args.length < 1) {
       throw new InvalidArgumentException(ExceptionMessage.INVALID_ARGS_NUM_INSUFFICIENT
           .getMessage(getCommandName(), 1, args.length));
     }
+    return true;
   }
 }

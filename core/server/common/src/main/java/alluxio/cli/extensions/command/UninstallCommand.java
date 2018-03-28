@@ -48,10 +48,6 @@ public final class UninstallCommand extends AbstractCommand {
     return "uninstall";
   }
 
-  protected int getNumOfArgs() {
-    return 1;
-  }
-
   @Override
   public String getUsage() {
     return "uninstall <JAR>";
@@ -92,9 +88,10 @@ public final class UninstallCommand extends AbstractCommand {
   }
 
   @Override
-  protected void validateArgs(String... args) throws InvalidArgumentException {
-    super.validateArgs(args);
-
+  protected boolean checkArgs(String... args) throws InvalidArgumentException {
+    if (args.length != 1) {
+      return false;
+    }
     if (args[0] == null) {
       throw new InvalidArgumentException(
           ExceptionMessage.INVALID_ARGS_NULL.getMessage(getCommandName()));
@@ -103,5 +100,6 @@ public final class UninstallCommand extends AbstractCommand {
       throw new InvalidArgumentException(
           ExceptionMessage.INVALID_EXTENSION_NOT_JAR.getMessage(args[0]));
     }
+    return true;
   }
 }

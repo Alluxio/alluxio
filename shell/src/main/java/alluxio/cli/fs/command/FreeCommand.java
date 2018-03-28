@@ -78,10 +78,11 @@ public final class FreeCommand extends WithWildCardPathCommand {
   }
 
   @Override
-  public void validateArgs(String... args) throws InvalidArgumentException {
+  public boolean checkArgs(String... args) throws InvalidArgumentException {
     if (args.length < 1) {
       throw new InvalidArgumentException(ExceptionMessage.INVALID_ARGS_NUM_INSUFFICIENT
           .getMessage(getCommandName(), 1, args.length));
     }
+    return true;
   }
 }

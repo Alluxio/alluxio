@@ -50,16 +50,8 @@ public final class CreateLineageCommand extends AbstractFileSystemCommand {
   }
 
   @Override
-  protected int getNumOfArgs() {
-    return 3;
-  }
-
-  @Override
-  public void validateArgs(String... args) throws InvalidArgumentException {
-    if (args.length < getNumOfArgs()) {
-      throw new InvalidArgumentException(ExceptionMessage.INVALID_ARGS_NUM_INSUFFICIENT
-          .getMessage(getCommandName(), getNumOfArgs(), args.length));
-    }
+  protected boolean checkArgs(String... args) {
+    return args.length >= 3;
   }
 
   @Override

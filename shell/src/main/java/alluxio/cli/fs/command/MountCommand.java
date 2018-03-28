@@ -15,8 +15,6 @@ import alluxio.AlluxioURI;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.options.MountOptions;
 import alluxio.exception.AlluxioException;
-import alluxio.exception.ExceptionMessage;
-import alluxio.exception.status.InvalidArgumentException;
 import alluxio.wire.MountPointInfo;
 
 import com.google.common.collect.Maps;
@@ -76,11 +74,6 @@ public final class MountCommand extends AbstractFileSystemCommand {
   }
 
   @Override
-  protected int getNumOfArgs() {
-    return 2;
-  }
-
-  @Override
   public Options getOptions() {
     return new Options().addOption(READONLY_OPTION).addOption(SHARED_OPTION)
         .addOption(OPTION_OPTION);
@@ -133,10 +126,7 @@ public final class MountCommand extends AbstractFileSystemCommand {
   }
 
   @Override
-  public void validateArgs(String... args) throws InvalidArgumentException {
-    if (args.length != 2 && args.length != 0) {
-      throw new InvalidArgumentException(
-          ExceptionMessage.INVALID_ARGS_GENERIC.getMessage(getCommandName()));
-    }
+  public boolean checkArgs(String... args) {
+    return args.length == 2 || args.length == 0;
   }
 }
