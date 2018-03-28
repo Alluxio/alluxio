@@ -12,6 +12,7 @@
 package alluxio.client.block;
 
 import alluxio.Client;
+import alluxio.client.block.options.GetWorkerReportOptions;
 import alluxio.master.MasterClientConfig;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.BlockMasterInfo;
@@ -49,11 +50,20 @@ public interface BlockMasterClient extends Client {
   }
 
   /**
-   * Gets the info of a list of workers.
+   * Gets the worker information of live workers(support older version Alluxio server).
    *
-   * @return A list of worker info returned by master
+   * @return a list of worker information
    */
   List<WorkerInfo> getWorkerInfoList() throws IOException;
+
+  /**
+   * Gets the worker information of selected workers and selected fields for report CLI.
+   *
+   * @param options the client defined worker and field ranges
+   * @return a list of worker information
+   */
+  List<WorkerInfo> getWorkerReport(final GetWorkerReportOptions options)
+      throws IOException;
 
   /**
    * Returns the {@link BlockInfo} for a block id.

@@ -45,6 +45,8 @@ public class WorkerInfo implements org.apache.thrift.TBase<WorkerInfo, WorkerInf
   private static final org.apache.thrift.protocol.TField CAPACITY_BYTES_FIELD_DESC = new org.apache.thrift.protocol.TField("capacityBytes", org.apache.thrift.protocol.TType.I64, (short)5);
   private static final org.apache.thrift.protocol.TField USED_BYTES_FIELD_DESC = new org.apache.thrift.protocol.TField("usedBytes", org.apache.thrift.protocol.TType.I64, (short)6);
   private static final org.apache.thrift.protocol.TField START_TIME_MS_FIELD_DESC = new org.apache.thrift.protocol.TField("startTimeMs", org.apache.thrift.protocol.TType.I64, (short)7);
+  private static final org.apache.thrift.protocol.TField CAPACITY_BYTES_ON_TIERS_FIELD_DESC = new org.apache.thrift.protocol.TField("capacityBytesOnTiers", org.apache.thrift.protocol.TType.MAP, (short)8);
+  private static final org.apache.thrift.protocol.TField USED_BYTES_ON_TIERS_FIELD_DESC = new org.apache.thrift.protocol.TField("usedBytesOnTiers", org.apache.thrift.protocol.TType.MAP, (short)9);
 
   private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
   static {
@@ -59,6 +61,8 @@ public class WorkerInfo implements org.apache.thrift.TBase<WorkerInfo, WorkerInf
   private long capacityBytes; // required
   private long usedBytes; // required
   private long startTimeMs; // required
+  private Map<String,Long> capacityBytesOnTiers; // required
+  private Map<String,Long> usedBytesOnTiers; // required
 
   /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
   public enum _Fields implements org.apache.thrift.TFieldIdEnum {
@@ -68,7 +72,9 @@ public class WorkerInfo implements org.apache.thrift.TBase<WorkerInfo, WorkerInf
     STATE((short)4, "state"),
     CAPACITY_BYTES((short)5, "capacityBytes"),
     USED_BYTES((short)6, "usedBytes"),
-    START_TIME_MS((short)7, "startTimeMs");
+    START_TIME_MS((short)7, "startTimeMs"),
+    CAPACITY_BYTES_ON_TIERS((short)8, "capacityBytesOnTiers"),
+    USED_BYTES_ON_TIERS((short)9, "usedBytesOnTiers");
 
     private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -97,6 +103,10 @@ public class WorkerInfo implements org.apache.thrift.TBase<WorkerInfo, WorkerInf
           return USED_BYTES;
         case 7: // START_TIME_MS
           return START_TIME_MS;
+        case 8: // CAPACITY_BYTES_ON_TIERS
+          return CAPACITY_BYTES_ON_TIERS;
+        case 9: // USED_BYTES_ON_TIERS
+          return USED_BYTES_ON_TIERS;
         default:
           return null;
       }
@@ -160,6 +170,14 @@ public class WorkerInfo implements org.apache.thrift.TBase<WorkerInfo, WorkerInf
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
     tmpMap.put(_Fields.START_TIME_MS, new org.apache.thrift.meta_data.FieldMetaData("startTimeMs", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
+    tmpMap.put(_Fields.CAPACITY_BYTES_ON_TIERS, new org.apache.thrift.meta_data.FieldMetaData("capacityBytesOnTiers", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+        new org.apache.thrift.meta_data.MapMetaData(org.apache.thrift.protocol.TType.MAP, 
+            new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING), 
+            new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64))));
+    tmpMap.put(_Fields.USED_BYTES_ON_TIERS, new org.apache.thrift.meta_data.FieldMetaData("usedBytesOnTiers", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+        new org.apache.thrift.meta_data.MapMetaData(org.apache.thrift.protocol.TType.MAP, 
+            new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING), 
+            new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64))));
     metaDataMap = Collections.unmodifiableMap(tmpMap);
     org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(WorkerInfo.class, metaDataMap);
   }
@@ -174,7 +192,9 @@ public class WorkerInfo implements org.apache.thrift.TBase<WorkerInfo, WorkerInf
     String state,
     long capacityBytes,
     long usedBytes,
-    long startTimeMs)
+    long startTimeMs,
+    Map<String,Long> capacityBytesOnTiers,
+    Map<String,Long> usedBytesOnTiers)
   {
     this();
     this.id = id;
@@ -189,6 +209,8 @@ public class WorkerInfo implements org.apache.thrift.TBase<WorkerInfo, WorkerInf
     setUsedBytesIsSet(true);
     this.startTimeMs = startTimeMs;
     setStartTimeMsIsSet(true);
+    this.capacityBytesOnTiers = capacityBytesOnTiers;
+    this.usedBytesOnTiers = usedBytesOnTiers;
   }
 
   /**
@@ -207,6 +229,14 @@ public class WorkerInfo implements org.apache.thrift.TBase<WorkerInfo, WorkerInf
     this.capacityBytes = other.capacityBytes;
     this.usedBytes = other.usedBytes;
     this.startTimeMs = other.startTimeMs;
+    if (other.isSetCapacityBytesOnTiers()) {
+      Map<String,Long> __this__capacityBytesOnTiers = new HashMap<String,Long>(other.capacityBytesOnTiers);
+      this.capacityBytesOnTiers = __this__capacityBytesOnTiers;
+    }
+    if (other.isSetUsedBytesOnTiers()) {
+      Map<String,Long> __this__usedBytesOnTiers = new HashMap<String,Long>(other.usedBytesOnTiers);
+      this.usedBytesOnTiers = __this__usedBytesOnTiers;
+    }
   }
 
   public WorkerInfo deepCopy() {
@@ -227,6 +257,8 @@ public class WorkerInfo implements org.apache.thrift.TBase<WorkerInfo, WorkerInf
     this.usedBytes = 0;
     setStartTimeMsIsSet(false);
     this.startTimeMs = 0;
+    this.capacityBytesOnTiers = null;
+    this.usedBytesOnTiers = null;
   }
 
   public long getId() {
@@ -392,6 +424,76 @@ public class WorkerInfo implements org.apache.thrift.TBase<WorkerInfo, WorkerInf
     __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __STARTTIMEMS_ISSET_ID, value);
   }
 
+  public int getCapacityBytesOnTiersSize() {
+    return (this.capacityBytesOnTiers == null) ? 0 : this.capacityBytesOnTiers.size();
+  }
+
+  public void putToCapacityBytesOnTiers(String key, long val) {
+    if (this.capacityBytesOnTiers == null) {
+      this.capacityBytesOnTiers = new HashMap<String,Long>();
+    }
+    this.capacityBytesOnTiers.put(key, val);
+  }
+
+  public Map<String,Long> getCapacityBytesOnTiers() {
+    return this.capacityBytesOnTiers;
+  }
+
+  public WorkerInfo setCapacityBytesOnTiers(Map<String,Long> capacityBytesOnTiers) {
+    this.capacityBytesOnTiers = capacityBytesOnTiers;
+    return this;
+  }
+
+  public void unsetCapacityBytesOnTiers() {
+    this.capacityBytesOnTiers = null;
+  }
+
+  /** Returns true if field capacityBytesOnTiers is set (has been assigned a value) and false otherwise */
+  public boolean isSetCapacityBytesOnTiers() {
+    return this.capacityBytesOnTiers != null;
+  }
+
+  public void setCapacityBytesOnTiersIsSet(boolean value) {
+    if (!value) {
+      this.capacityBytesOnTiers = null;
+    }
+  }
+
+  public int getUsedBytesOnTiersSize() {
+    return (this.usedBytesOnTiers == null) ? 0 : this.usedBytesOnTiers.size();
+  }
+
+  public void putToUsedBytesOnTiers(String key, long val) {
+    if (this.usedBytesOnTiers == null) {
+      this.usedBytesOnTiers = new HashMap<String,Long>();
+    }
+    this.usedBytesOnTiers.put(key, val);
+  }
+
+  public Map<String,Long> getUsedBytesOnTiers() {
+    return this.usedBytesOnTiers;
+  }
+
+  public WorkerInfo setUsedBytesOnTiers(Map<String,Long> usedBytesOnTiers) {
+    this.usedBytesOnTiers = usedBytesOnTiers;
+    return this;
+  }
+
+  public void unsetUsedBytesOnTiers() {
+    this.usedBytesOnTiers = null;
+  }
+
+  /** Returns true if field usedBytesOnTiers is set (has been assigned a value) and false otherwise */
+  public boolean isSetUsedBytesOnTiers() {
+    return this.usedBytesOnTiers != null;
+  }
+
+  public void setUsedBytesOnTiersIsSet(boolean value) {
+    if (!value) {
+      this.usedBytesOnTiers = null;
+    }
+  }
+
   public void setFieldValue(_Fields field, Object value) {
     switch (field) {
     case ID:
@@ -450,6 +552,22 @@ public class WorkerInfo implements org.apache.thrift.TBase<WorkerInfo, WorkerInf
       }
       break;
 
+    case CAPACITY_BYTES_ON_TIERS:
+      if (value == null) {
+        unsetCapacityBytesOnTiers();
+      } else {
+        setCapacityBytesOnTiers((Map<String,Long>)value);
+      }
+      break;
+
+    case USED_BYTES_ON_TIERS:
+      if (value == null) {
+        unsetUsedBytesOnTiers();
+      } else {
+        setUsedBytesOnTiers((Map<String,Long>)value);
+      }
+      break;
+
     }
   }
 
@@ -476,6 +594,12 @@ public class WorkerInfo implements org.apache.thrift.TBase<WorkerInfo, WorkerInf
     case START_TIME_MS:
       return getStartTimeMs();
 
+    case CAPACITY_BYTES_ON_TIERS:
+      return getCapacityBytesOnTiers();
+
+    case USED_BYTES_ON_TIERS:
+      return getUsedBytesOnTiers();
+
     }
     throw new IllegalStateException();
   }
@@ -501,6 +625,10 @@ public class WorkerInfo implements org.apache.thrift.TBase<WorkerInfo, WorkerInf
       return isSetUsedBytes();
     case START_TIME_MS:
       return isSetStartTimeMs();
+    case CAPACITY_BYTES_ON_TIERS:
+      return isSetCapacityBytesOnTiers();
+    case USED_BYTES_ON_TIERS:
+      return isSetUsedBytesOnTiers();
     }
     throw new IllegalStateException();
   }
@@ -581,6 +709,24 @@ public class WorkerInfo implements org.apache.thrift.TBase<WorkerInfo, WorkerInf
         return false;
     }
 
+    boolean this_present_capacityBytesOnTiers = true && this.isSetCapacityBytesOnTiers();
+    boolean that_present_capacityBytesOnTiers = true && that.isSetCapacityBytesOnTiers();
+    if (this_present_capacityBytesOnTiers || that_present_capacityBytesOnTiers) {
+      if (!(this_present_capacityBytesOnTiers && that_present_capacityBytesOnTiers))
+        return false;
+      if (!this.capacityBytesOnTiers.equals(that.capacityBytesOnTiers))
+        return false;
+    }
+
+    boolean this_present_usedBytesOnTiers = true && this.isSetUsedBytesOnTiers();
+    boolean that_present_usedBytesOnTiers = true && that.isSetUsedBytesOnTiers();
+    if (this_present_usedBytesOnTiers || that_present_usedBytesOnTiers) {
+      if (!(this_present_usedBytesOnTiers && that_present_usedBytesOnTiers))
+        return false;
+      if (!this.usedBytesOnTiers.equals(that.usedBytesOnTiers))
+        return false;
+    }
+
     return true;
   }
 
@@ -622,6 +768,16 @@ public class WorkerInfo implements org.apache.thrift.TBase<WorkerInfo, WorkerInf
     list.add(present_startTimeMs);
     if (present_startTimeMs)
       list.add(startTimeMs);
+
+    boolean present_capacityBytesOnTiers = true && (isSetCapacityBytesOnTiers());
+    list.add(present_capacityBytesOnTiers);
+    if (present_capacityBytesOnTiers)
+      list.add(capacityBytesOnTiers);
+
+    boolean present_usedBytesOnTiers = true && (isSetUsedBytesOnTiers());
+    list.add(present_usedBytesOnTiers);
+    if (present_usedBytesOnTiers)
+      list.add(usedBytesOnTiers);
 
     return list.hashCode();
   }
@@ -704,6 +860,26 @@ public class WorkerInfo implements org.apache.thrift.TBase<WorkerInfo, WorkerInf
         return lastComparison;
       }
     }
+    lastComparison = Boolean.valueOf(isSetCapacityBytesOnTiers()).compareTo(other.isSetCapacityBytesOnTiers());
+    if (lastComparison != 0) {
+      return lastComparison;
+    }
+    if (isSetCapacityBytesOnTiers()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.capacityBytesOnTiers, other.capacityBytesOnTiers);
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+    }
+    lastComparison = Boolean.valueOf(isSetUsedBytesOnTiers()).compareTo(other.isSetUsedBytesOnTiers());
+    if (lastComparison != 0) {
+      return lastComparison;
+    }
+    if (isSetUsedBytesOnTiers()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.usedBytesOnTiers, other.usedBytesOnTiers);
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+    }
     return 0;
   }
 
@@ -758,6 +934,22 @@ public class WorkerInfo implements org.apache.thrift.TBase<WorkerInfo, WorkerInf
     if (!first) sb.append(", ");
     sb.append("startTimeMs:");
     sb.append(this.startTimeMs);
+    first = false;
+    if (!first) sb.append(", ");
+    sb.append("capacityBytesOnTiers:");
+    if (this.capacityBytesOnTiers == null) {
+      sb.append("null");
+    } else {
+      sb.append(this.capacityBytesOnTiers);
+    }
+    first = false;
+    if (!first) sb.append(", ");
+    sb.append("usedBytesOnTiers:");
+    if (this.usedBytesOnTiers == null) {
+      sb.append("null");
+    } else {
+      sb.append(this.usedBytesOnTiers);
+    }
     first = false;
     sb.append(")");
     return sb.toString();
@@ -864,6 +1056,46 @@ public class WorkerInfo implements org.apache.thrift.TBase<WorkerInfo, WorkerInf
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
+          case 8: // CAPACITY_BYTES_ON_TIERS
+            if (schemeField.type == org.apache.thrift.protocol.TType.MAP) {
+              {
+                org.apache.thrift.protocol.TMap _map28 = iprot.readMapBegin();
+                struct.capacityBytesOnTiers = new HashMap<String,Long>(2*_map28.size);
+                String _key29;
+                long _val30;
+                for (int _i31 = 0; _i31 < _map28.size; ++_i31)
+                {
+                  _key29 = iprot.readString();
+                  _val30 = iprot.readI64();
+                  struct.capacityBytesOnTiers.put(_key29, _val30);
+                }
+                iprot.readMapEnd();
+              }
+              struct.setCapacityBytesOnTiersIsSet(true);
+            } else { 
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+            }
+            break;
+          case 9: // USED_BYTES_ON_TIERS
+            if (schemeField.type == org.apache.thrift.protocol.TType.MAP) {
+              {
+                org.apache.thrift.protocol.TMap _map32 = iprot.readMapBegin();
+                struct.usedBytesOnTiers = new HashMap<String,Long>(2*_map32.size);
+                String _key33;
+                long _val34;
+                for (int _i35 = 0; _i35 < _map32.size; ++_i35)
+                {
+                  _key33 = iprot.readString();
+                  _val34 = iprot.readI64();
+                  struct.usedBytesOnTiers.put(_key33, _val34);
+                }
+                iprot.readMapEnd();
+              }
+              struct.setUsedBytesOnTiersIsSet(true);
+            } else { 
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+            }
+            break;
           default:
             org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
         }
@@ -904,6 +1136,32 @@ public class WorkerInfo implements org.apache.thrift.TBase<WorkerInfo, WorkerInf
       oprot.writeFieldBegin(START_TIME_MS_FIELD_DESC);
       oprot.writeI64(struct.startTimeMs);
       oprot.writeFieldEnd();
+      if (struct.capacityBytesOnTiers != null) {
+        oprot.writeFieldBegin(CAPACITY_BYTES_ON_TIERS_FIELD_DESC);
+        {
+          oprot.writeMapBegin(new org.apache.thrift.protocol.TMap(org.apache.thrift.protocol.TType.STRING, org.apache.thrift.protocol.TType.I64, struct.capacityBytesOnTiers.size()));
+          for (Map.Entry<String, Long> _iter36 : struct.capacityBytesOnTiers.entrySet())
+          {
+            oprot.writeString(_iter36.getKey());
+            oprot.writeI64(_iter36.getValue());
+          }
+          oprot.writeMapEnd();
+        }
+        oprot.writeFieldEnd();
+      }
+      if (struct.usedBytesOnTiers != null) {
+        oprot.writeFieldBegin(USED_BYTES_ON_TIERS_FIELD_DESC);
+        {
+          oprot.writeMapBegin(new org.apache.thrift.protocol.TMap(org.apache.thrift.protocol.TType.STRING, org.apache.thrift.protocol.TType.I64, struct.usedBytesOnTiers.size()));
+          for (Map.Entry<String, Long> _iter37 : struct.usedBytesOnTiers.entrySet())
+          {
+            oprot.writeString(_iter37.getKey());
+            oprot.writeI64(_iter37.getValue());
+          }
+          oprot.writeMapEnd();
+        }
+        oprot.writeFieldEnd();
+      }
       oprot.writeFieldStop();
       oprot.writeStructEnd();
     }
@@ -943,7 +1201,13 @@ public class WorkerInfo implements org.apache.thrift.TBase<WorkerInfo, WorkerInf
       if (struct.isSetStartTimeMs()) {
         optionals.set(6);
       }
-      oprot.writeBitSet(optionals, 7);
+      if (struct.isSetCapacityBytesOnTiers()) {
+        optionals.set(7);
+      }
+      if (struct.isSetUsedBytesOnTiers()) {
+        optionals.set(8);
+      }
+      oprot.writeBitSet(optionals, 9);
       if (struct.isSetId()) {
         oprot.writeI64(struct.id);
       }
@@ -965,12 +1229,32 @@ public class WorkerInfo implements org.apache.thrift.TBase<WorkerInfo, WorkerInf
       if (struct.isSetStartTimeMs()) {
         oprot.writeI64(struct.startTimeMs);
       }
+      if (struct.isSetCapacityBytesOnTiers()) {
+        {
+          oprot.writeI32(struct.capacityBytesOnTiers.size());
+          for (Map.Entry<String, Long> _iter38 : struct.capacityBytesOnTiers.entrySet())
+          {
+            oprot.writeString(_iter38.getKey());
+            oprot.writeI64(_iter38.getValue());
+          }
+        }
+      }
+      if (struct.isSetUsedBytesOnTiers()) {
+        {
+          oprot.writeI32(struct.usedBytesOnTiers.size());
+          for (Map.Entry<String, Long> _iter39 : struct.usedBytesOnTiers.entrySet())
+          {
+            oprot.writeString(_iter39.getKey());
+            oprot.writeI64(_iter39.getValue());
+          }
+        }
+      }
     }
 
     @Override
     public void read(org.apache.thrift.protocol.TProtocol prot, WorkerInfo struct) throws org.apache.thrift.TException {
       TTupleProtocol iprot = (TTupleProtocol) prot;
-      BitSet incoming = iprot.readBitSet(7);
+      BitSet incoming = iprot.readBitSet(9);
       if (incoming.get(0)) {
         struct.id = iprot.readI64();
         struct.setIdIsSet(true);
@@ -999,6 +1283,36 @@ public class WorkerInfo implements org.apache.thrift.TBase<WorkerInfo, WorkerInf
       if (incoming.get(6)) {
         struct.startTimeMs = iprot.readI64();
         struct.setStartTimeMsIsSet(true);
+      }
+      if (incoming.get(7)) {
+        {
+          org.apache.thrift.protocol.TMap _map40 = new org.apache.thrift.protocol.TMap(org.apache.thrift.protocol.TType.STRING, org.apache.thrift.protocol.TType.I64, iprot.readI32());
+          struct.capacityBytesOnTiers = new HashMap<String,Long>(2*_map40.size);
+          String _key41;
+          long _val42;
+          for (int _i43 = 0; _i43 < _map40.size; ++_i43)
+          {
+            _key41 = iprot.readString();
+            _val42 = iprot.readI64();
+            struct.capacityBytesOnTiers.put(_key41, _val42);
+          }
+        }
+        struct.setCapacityBytesOnTiersIsSet(true);
+      }
+      if (incoming.get(8)) {
+        {
+          org.apache.thrift.protocol.TMap _map44 = new org.apache.thrift.protocol.TMap(org.apache.thrift.protocol.TType.STRING, org.apache.thrift.protocol.TType.I64, iprot.readI32());
+          struct.usedBytesOnTiers = new HashMap<String,Long>(2*_map44.size);
+          String _key45;
+          long _val46;
+          for (int _i47 = 0; _i47 < _map44.size; ++_i47)
+          {
+            _key45 = iprot.readString();
+            _val46 = iprot.readI64();
+            struct.usedBytesOnTiers.put(_key45, _val46);
+          }
+        }
+        struct.setUsedBytesOnTiersIsSet(true);
       }
     }
   }

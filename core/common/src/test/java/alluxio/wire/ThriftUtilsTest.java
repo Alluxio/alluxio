@@ -25,32 +25,36 @@ import java.util.Collections;
 public class ThriftUtilsTest {
   @Test
   public void toThrift() {
-    assertEquals("host1", ThriftUtils.toThrift(getWorkerNetAddress()).getHost());
+    assertEquals(100L, ThriftUtils.toThrift(getBlockInfo()).getBlockId());
+    assertEquals(100L, ThriftUtils.toThrift(getBlockLocation()).getWorkerId());
+    assertEquals(5, ThriftUtils.toThrift(getBlockMasterInfo()).getLiveWorkerNum());
+    assertEquals("time", ThriftUtils.toThrift(getCommandLineJobInfo()).getCommand());
+    assertEquals(100L, ThriftUtils.toThrift(getFileBlockInfo()).getOffset());
+    assertEquals("rambo", ThriftUtils.toThrift(getFileInfo()).getName());
+    assertEquals("info.log", ThriftUtils.toThrift(getJobConfInfo()).getOutputFile());
+    assertEquals(100L, ThriftUtils.toThrift(getLineageInfo()).getId());
+    assertEquals(19998, ThriftUtils.toThrift(getMasterInfo()).getRpcPort());
     assertEquals(TTtlAction.Free.name().toLowerCase(), ThriftUtils.toThrift(TtlAction.FREE).name()
         .toLowerCase());
     assertEquals(100L, ThriftUtils.toThrift(getWorkerInfo()).getUsedBytes());
-    assertEquals(100L, ThriftUtils.toThrift(getLineageInfo()).getId());
-    assertEquals("info.log", ThriftUtils.toThrift(getJobConfInfo()).getOutputFile());
-    assertEquals("rambo", ThriftUtils.toThrift(getFileInfo()).getName());
-    assertEquals(100L, ThriftUtils.toThrift(getFileBlockInfo()).getOffset());
-    assertEquals("time", ThriftUtils.toThrift(getCommandLineJobInfo()).getCommand());
-    assertEquals(100L, ThriftUtils.toThrift(getBlockLocation()).getWorkerId());
-    assertEquals(100L, ThriftUtils.toThrift(getBlockInfo()).getBlockId());
+    assertEquals("host1", ThriftUtils.toThrift(getWorkerNetAddress()).getHost());
   }
 
   @Test
   public void fromThrift() {
-    assertEquals("host1", ThriftUtils.fromThrift(getWorkerNetAddressThrift()).getHost());
+    assertEquals(100L, ThriftUtils.fromThrift(getBlockInfoThrift()).getBlockId());
+    assertEquals(100L, ThriftUtils.fromThrift(getBlockLocationThrift()).getWorkerId());
+    assertEquals(5, ThriftUtils.fromThrift(getBlockMasterInfoThrift()).getLiveWorkerNum());
+    assertEquals("time", ThriftUtils.fromThrift(getCommandLineJobInfoThrift()).getCommand());
+    assertEquals(100L, ThriftUtils.fromThrift(getFileBlockInfoThrift()).getOffset());
+    assertEquals("rambo", ThriftUtils.fromThrift(getFileInfoThrift()).getName());
+    assertEquals("info.log", ThriftUtils.fromThrift(getJobConfInfoThrift()).getOutputFile());
+    assertEquals(100L, ThriftUtils.fromThrift(getLineageInfoThrift()).getId());
+    assertEquals(19998, ThriftUtils.fromThrift(getMasterInfoThrift()).getRpcPort());
     assertEquals(TtlAction.FREE.name().toLowerCase(), ThriftUtils.fromThrift(TTtlAction.Free)
         .name().toLowerCase());
     assertEquals(100L, ThriftUtils.fromThrift(getWorkerInfoThrift()).getUsedBytes());
-    assertEquals(100L, ThriftUtils.fromThrift(getLineageInfoThrift()).getId());
-    assertEquals("info.log", ThriftUtils.fromThrift(getJobConfInfoThrift()).getOutputFile());
-    assertEquals("rambo", ThriftUtils.fromThrift(getFileInfoThrift()).getName());
-    assertEquals(100L, ThriftUtils.fromThrift(getFileBlockInfoThrift()).getOffset());
-    assertEquals("time", ThriftUtils.fromThrift(getCommandLineJobInfoThrift()).getCommand());
-    assertEquals(100L, ThriftUtils.fromThrift(getBlockLocationThrift()).getWorkerId());
-    assertEquals(100L, ThriftUtils.fromThrift(getBlockInfoThrift()).getBlockId());
+    assertEquals("host1", ThriftUtils.fromThrift(getWorkerNetAddressThrift()).getHost());
   }
 
   private BlockInfo getBlockInfo() {
@@ -73,6 +77,16 @@ public class ThriftUtilsTest {
   private alluxio.thrift.BlockLocation getBlockLocationThrift() {
     return new alluxio.thrift.BlockLocation(100L, new alluxio.thrift.WorkerNetAddress("host", 0, 0,
         0, "", null), "tierAlias");
+  }
+
+  private BlockMasterInfo getBlockMasterInfo() {
+    BlockMasterInfo b = new BlockMasterInfo();
+    b.setLiveWorkerNum(5);
+    return b;
+  }
+
+  private alluxio.thrift.BlockMasterInfo getBlockMasterInfoThrift() {
+    return new alluxio.thrift.BlockMasterInfo().setLiveWorkerNum(5);
   }
 
   private CommandLineJobInfo getCommandLineJobInfo() {
@@ -138,7 +152,16 @@ public class ThriftUtilsTest {
         .setJob(
             new alluxio.thrift.CommandLineJobInfo("command", new alluxio.thrift.JobConfInfo(
                 "outputFile")));
+  }
 
+  private MasterInfo getMasterInfo() {
+    MasterInfo m = new MasterInfo();
+    m.setRpcPort(19998);
+    return m;
+  }
+
+  private alluxio.thrift.MasterInfo getMasterInfoThrift() {
+    return new alluxio.thrift.MasterInfo().setRpcPort(19998);
   }
 
   private WorkerInfo getWorkerInfo() {

@@ -11,18 +11,20 @@ import java.util.Map;
 import java.util.HashMap;
 import org.apache.thrift.TEnum;
 
-public enum BlockMasterInfoField implements org.apache.thrift.TEnum {
-  CAPACITY_BYTES(0),
-  CAPACITY_BYTES_ON_TIERS(1),
-  FREE_BYTES(2),
-  LIVE_WORKER_NUM(3),
-  LOST_WORKER_NUM(4),
-  USED_BYTES(5),
-  USED_BYTES_ON_TIERS(6);
+public enum WorkerInfoField implements org.apache.thrift.TEnum {
+  ADDRESS(0),
+  CAPACITY_BYTES(1),
+  CAPACITY_BYTES_ON_TIERS(2),
+  ID(3),
+  LAST_CONTACT_SEC(4),
+  START_TIME_MS(5),
+  STATE(6),
+  USED_BYTES(7),
+  USED_BYTES_ON_TIERS(8);
 
   private final int value;
 
-  private BlockMasterInfoField(int value) {
+  private WorkerInfoField(int value) {
     this.value = value;
   }
 
@@ -37,21 +39,25 @@ public enum BlockMasterInfoField implements org.apache.thrift.TEnum {
    * Find a the enum type by its integer value, as defined in the Thrift IDL.
    * @return null if the value is not found.
    */
-  public static BlockMasterInfoField findByValue(int value) { 
+  public static WorkerInfoField findByValue(int value) { 
     switch (value) {
       case 0:
-        return CAPACITY_BYTES;
+        return ADDRESS;
       case 1:
-        return CAPACITY_BYTES_ON_TIERS;
+        return CAPACITY_BYTES;
       case 2:
-        return FREE_BYTES;
+        return CAPACITY_BYTES_ON_TIERS;
       case 3:
-        return LIVE_WORKER_NUM;
+        return ID;
       case 4:
-        return LOST_WORKER_NUM;
+        return LAST_CONTACT_SEC;
       case 5:
-        return USED_BYTES;
+        return START_TIME_MS;
       case 6:
+        return STATE;
+      case 7:
+        return USED_BYTES;
+      case 8:
         return USED_BYTES_ON_TIERS;
       default:
         return null;

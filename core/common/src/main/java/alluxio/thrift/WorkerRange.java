@@ -11,18 +11,15 @@ import java.util.Map;
 import java.util.HashMap;
 import org.apache.thrift.TEnum;
 
-public enum BlockMasterInfoField implements org.apache.thrift.TEnum {
-  CAPACITY_BYTES(0),
-  CAPACITY_BYTES_ON_TIERS(1),
-  FREE_BYTES(2),
-  LIVE_WORKER_NUM(3),
-  LOST_WORKER_NUM(4),
-  USED_BYTES(5),
-  USED_BYTES_ON_TIERS(6);
+public enum WorkerRange implements org.apache.thrift.TEnum {
+  ALL(0),
+  LIVE(1),
+  LOST(2),
+  SPECIFIED(3);
 
   private final int value;
 
-  private BlockMasterInfoField(int value) {
+  private WorkerRange(int value) {
     this.value = value;
   }
 
@@ -37,22 +34,16 @@ public enum BlockMasterInfoField implements org.apache.thrift.TEnum {
    * Find a the enum type by its integer value, as defined in the Thrift IDL.
    * @return null if the value is not found.
    */
-  public static BlockMasterInfoField findByValue(int value) { 
+  public static WorkerRange findByValue(int value) { 
     switch (value) {
       case 0:
-        return CAPACITY_BYTES;
+        return ALL;
       case 1:
-        return CAPACITY_BYTES_ON_TIERS;
+        return LIVE;
       case 2:
-        return FREE_BYTES;
+        return LOST;
       case 3:
-        return LIVE_WORKER_NUM;
-      case 4:
-        return LOST_WORKER_NUM;
-      case 5:
-        return USED_BYTES;
-      case 6:
-        return USED_BYTES_ON_TIERS;
+        return SPECIFIED;
       default:
         return null;
     }
