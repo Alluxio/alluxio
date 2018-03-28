@@ -11,9 +11,7 @@ priority: 2
 
 ## Download Alluxio
 
-First download the Alluxio tar file, and extract it.
-
-{% include Running-Alluxio-on-a-Cluster/download-extract-Alluxio-tar.md %}
+First [download](https://alluxio.org/download) the Alluxio tar file, and extract it.
 
 ## Configure Alluxio
 

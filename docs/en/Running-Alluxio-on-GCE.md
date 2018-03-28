@@ -25,9 +25,7 @@ Install Google Vagrant plugin:
 
 **Install Alluxio**
 
-Download Alluxio to your local machine, and unzip it:
-
-{% include Common-Commands/download-alluxio.md %}
+[Download Alluxio](https://alluxio.org/download) to your local machine, and unzip it:
 
 **Install python library dependencies**
 
