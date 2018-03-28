@@ -34,27 +34,19 @@ public interface Command {
   /**
    * @return the supported {@link Options} of the command
    */
-  Options getOptions();
+  default Options getOptions() {
+    return new Options();
+  }
 
   /**
-   * Checks if the arguments are valid. The implementations of this method may also throw
-   * InvalidArgumentException if they want to return a more specific error message.
+   * Checks if the arguments are valid or throw InvalidArgumentException.
    *
-   * @param args the arguments for the command, excluding the command name and options
+   * @param cl the parsed command line for the arguments
    * @throws InvalidArgumentException when arguments are not valid
-   * @return whether the list of arguments is expected
    */
-  boolean checkArgs(String... args) throws InvalidArgumentException;
+  default void checkArgs(CommandLine cl) throws InvalidArgumentException {}
 
-  /**
-   * Parses and validates the arguments.
-   *
-   * @param args the arguments for the command, excluding the command name
-   * @return the parsed command line object. If the arguments are invalid, return null
-   */
-  CommandLine parseAndValidateArgs(String... args) throws InvalidArgumentException;
-
-  /**
+   /**
    * Runs the command.
    *
    * @param cl the parsed command line for the arguments

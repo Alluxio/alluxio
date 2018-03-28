@@ -76,7 +76,7 @@ public class ChownCommandTest {
       int expectedReturnValue, String expectedOutput, String... args)
     throws AlluxioException, IOException {
     mOutput.reset();
-    CommandLine cl = command.parseAndValidateArgs(args);
+    CommandLine cl = command.parseOptions(args);
     int ret = command.run(cl);
     Assert.assertEquals(expectedReturnValue, ret);
     Assert.assertEquals(expectedOutput, mOutput.toString());

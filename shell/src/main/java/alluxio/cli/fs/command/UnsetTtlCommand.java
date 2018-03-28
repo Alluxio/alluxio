@@ -13,8 +13,10 @@ package alluxio.cli.fs.command;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
+import alluxio.cli.CommandUtils;
 import alluxio.client.file.FileSystem;
 import alluxio.exception.AlluxioException;
+import alluxio.exception.status.InvalidArgumentException;
 import alluxio.wire.TtlAction;
 
 import org.apache.commons.cli.CommandLine;
@@ -42,8 +44,8 @@ public final class UnsetTtlCommand extends AbstractFileSystemCommand {
   }
 
   @Override
-  protected boolean checkArgs(String... args) {
-    return args.length == 1;
+  public void checkArgs(CommandLine cl) throws InvalidArgumentException {
+    CommandUtils.checkNumOfArgsEquals(this, cl, 1);
   }
 
   @Override

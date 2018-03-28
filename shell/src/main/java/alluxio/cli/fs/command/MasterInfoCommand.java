@@ -11,7 +11,9 @@
 
 package alluxio.cli.fs.command;
 
+import alluxio.cli.CommandUtils;
 import alluxio.client.file.FileSystem;
+import alluxio.exception.status.InvalidArgumentException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.master.MasterInquireClient;
 
@@ -41,8 +43,8 @@ public final class MasterInfoCommand extends AbstractFileSystemCommand {
   }
 
   @Override
-  public boolean checkArgs(String... args) {
-    return args.length == 0;
+  public void checkArgs(CommandLine cl) throws InvalidArgumentException {
+    CommandUtils.checkNumOfArgsEquals(this, cl, 0);
   }
 
   @Override

@@ -13,12 +13,14 @@ package alluxio.cli.fs.command;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
+import alluxio.cli.CommandUtils;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.OpenFileOptions;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
+import alluxio.exception.status.InvalidArgumentException;
 import alluxio.util.FormatUtils;
 
 import com.google.common.base.Preconditions;
@@ -49,8 +51,8 @@ public final class HeadCommand extends WithWildCardPathCommand {
   }
 
   @Override
-  protected boolean checkArgs(String... args) {
-    return args.length == 1;
+  public void checkArgs(CommandLine cl) throws InvalidArgumentException {
+    CommandUtils.checkNumOfArgsEquals(this, cl, 1);
   }
 
   @Override

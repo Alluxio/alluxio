@@ -22,16 +22,16 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
 /**
- * Unit tests for {@link AbstractCommand}.
+ * Unit tests for {@link Command}.
  */
-public final class AbstractCommandTest {
+public final class CommandTest {
 
   private static final String COMMAND_NAME = "TestCommand";
 
   @Rule
   public ExpectedException mExpectedException = ExpectedException.none();
 
-  private final class TestCommand extends AbstractCommand {
+  private final class TestCommand implements Command {
 
     public TestCommand() {
     }
@@ -47,8 +47,8 @@ public final class AbstractCommandTest {
     }
 
     @Override
-    protected boolean checkArgs(String... args) {
-      return args.length == 1;
+    public void checkArgs(CommandLine cl) throws InvalidArgumentException {
+      CommandUtils.checkNumOfArgsEquals(this, cl, 1);
     }
 
     @Override
@@ -65,7 +65,7 @@ public final class AbstractCommandTest {
   @Test
   public void expectedNumArgs() throws Exception {
     TestCommand cmd = new TestCommand();
-    CommandLine commandLine = cmd.parseAndValidateArgs("arg1");
+    CommandLine commandLine = CommandUtils.parseOptions(cmd, "arg1");
     Assert.assertEquals(1, commandLine.getArgs().length);
   }
 
@@ -75,6 +75,6 @@ public final class AbstractCommandTest {
 
     mExpectedException.expect(InvalidArgumentException.class);
     mExpectedException.expectMessage(INVALID_ARGS_NUM.getMessage(cmd.getCommandName(), 2));
-    cmd.parseAndValidateArgs("arg1", "arg2");
+    CommandUtils.parseOptions(cmd, "arg1", "arg2");
   }
 }

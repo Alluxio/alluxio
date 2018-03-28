@@ -15,6 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
+import alluxio.cli.CommandUtils;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
@@ -28,6 +29,7 @@ import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 import alluxio.cli.fs.FileSystemShellUtils;
+import alluxio.exception.status.InvalidArgumentException;
 import alluxio.util.CommonUtils;
 import alluxio.util.io.PathUtils;
 
@@ -76,8 +78,8 @@ public final class CpCommand extends AbstractFileSystemCommand {
   }
 
   @Override
-  protected boolean checkArgs(String... args) {
-    return args.length == 2;
+  public void checkArgs(CommandLine cl) throws InvalidArgumentException {
+    CommandUtils.checkNumOfArgsEquals(this, cl, 2);
   }
 
   @Override

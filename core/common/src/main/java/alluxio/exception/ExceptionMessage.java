@@ -171,8 +171,9 @@ public enum ExceptionMessage {
   // cli
   INVALID_ARGS_GENERIC("Invalid args for command {0}"),
   INVALID_ARGS_NULL("Null args for command {0}"),
-  INVALID_ARGS_NUM("Command {0} does not takes {1} arguments"),
+  INVALID_ARGS_NUM("Command {0} takes {1} arguments, not {2}"),
   INVALID_ARGS_NUM_INSUFFICIENT("Command {0} requires at least {1} arguments ({2} provided)"),
+  INVALID_ARGS_NUM_TOO_MANY("Command {0} requires at most {1} arguments ({2} provided)"),
   INVALID_ARGS_SORT_FIELD("Invalid sort option ‘{0}’ for --sort"),
 
   // extension shell

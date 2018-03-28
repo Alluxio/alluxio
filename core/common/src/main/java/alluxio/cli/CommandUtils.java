@@ -11,8 +11,15 @@
 
 package alluxio.cli;
 
+import alluxio.exception.ExceptionMessage;
+import alluxio.exception.status.InvalidArgumentException;
 import alluxio.util.CommonUtils;
 
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.DefaultParser;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
 import org.reflections.Reflections;
 
 import java.lang.reflect.Modifier;
@@ -52,5 +59,72 @@ public final class CommandUtils {
       }
     }
     return commandsMap;
+  }
+
+  /**
+   * @param cmd command instance
+   * @param args the arguments for the command, excluding the command name
+   * @return the parsed command line object.
+   */
+  public static CommandLine parseOptions(Command cmd, String... args)
+      throws InvalidArgumentException {
+    CommandLine cmdline;
+    Options opts = cmd.getOptions();
+    CommandLineParser parser = new DefaultParser();
+    try {
+      cmdline = parser.parse(opts, args);
+    } catch (ParseException e) {
+      throw new InvalidArgumentException(
+          String.format("Failed to parse args for %s", cmd.getCommandName()), e);
+    }
+    return cmdline;
+  }
+
+  /**
+   * Checks the number of non-option arguments equals n for command.
+   *
+   * @param cmd command instance
+   * @param cl parsed commandline arguments
+   * @param n an integer
+   * @throws InvalidArgumentException if the number does not equal n
+   */
+  public static void checkNumOfArgsEquals(Command cmd, CommandLine cl, int n) throws
+      InvalidArgumentException {
+    if (cl.getArgs().length != n) {
+      throw new InvalidArgumentException(ExceptionMessage.INVALID_ARGS_NUM
+          .getMessage(cmd.getCommandName(), cl.getArgs().length));
+    }
+  }
+
+  /**
+   * Checks the number of non-option arguments is no less than n for command.
+   *
+   * @param cmd command instance
+   * @param cl parsed commandline arguments
+   * @param n an integer
+   * @throws InvalidArgumentException if the number is smaller than n
+   */
+  public static void checkNumOfArgsNoLessThan(Command cmd, CommandLine cl, int n) throws
+      InvalidArgumentException {
+    if (cl.getArgs().length < n) {
+      throw new InvalidArgumentException(ExceptionMessage.INVALID_ARGS_NUM_INSUFFICIENT
+          .getMessage(cmd.getCommandName(), n, cl.getArgs().length));
+    }
+  }
+
+  /**
+   * Checks the number of non-option arguments is no more than n for command.
+   *
+   * @param cmd command instance
+   * @param cl parsed commandline arguments
+   * @param n an integer
+   * @throws InvalidArgumentException if the number is greater than n
+   */
+  public static void checkNumOfArgsNoMoreThan(Command cmd, CommandLine cl, int n) throws
+      InvalidArgumentException {
+    if (cl.getArgs().length > n) {
+      throw new InvalidArgumentException(ExceptionMessage.INVALID_ARGS_NUM_TOO_MANY
+          .getMessage(cmd.getCommandName(), n, cl.getArgs().length));
+    }
   }
 }

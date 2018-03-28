@@ -11,14 +11,15 @@
 
 package alluxio.cli.fsadmin.command;
 
-import alluxio.cli.AbstractCommand;
+import alluxio.cli.Command;
+import alluxio.cli.CommandUtils;
 import alluxio.cli.fsadmin.report.SummaryCommand;
+import alluxio.client.MetaMasterClient;
+import alluxio.client.RetryHandlingMetaMasterClient;
 import alluxio.client.block.BlockMasterClient;
 import alluxio.client.block.RetryHandlingBlockMasterClient;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.FileSystemMasterClient;
-import alluxio.client.MetaMasterClient;
-import alluxio.client.RetryHandlingMetaMasterClient;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.master.MasterClientConfig;
@@ -38,7 +39,7 @@ import java.util.List;
 /**
  * Reports Alluxio running cluster information.
  */
-public final class ReportCommand extends AbstractCommand {
+public final class ReportCommand implements Command {
   private MetaMasterClient mMetaMasterClient;
   private BlockMasterClient mBlockMasterClient;
   private PrintStream mPrintStream;
@@ -140,7 +141,7 @@ public final class ReportCommand extends AbstractCommand {
   }
 
   @Override
-  public boolean checkArgs(String... args) throws InvalidArgumentException {
-    return args.length <= 1;
+  public void checkArgs(CommandLine cl) throws InvalidArgumentException {
+    CommandUtils.checkNumOfArgsNoMoreThan(this, cl, 1);
   }
 }

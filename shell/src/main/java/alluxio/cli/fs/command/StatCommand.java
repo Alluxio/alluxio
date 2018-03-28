@@ -12,10 +12,12 @@
 package alluxio.cli.fs.command;
 
 import alluxio.AlluxioURI;
+import alluxio.cli.CommandUtils;
 import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.exception.AlluxioException;
+import alluxio.exception.status.InvalidArgumentException;
 
 import com.google.common.base.Preconditions;
 import org.apache.commons.cli.CommandLine;
@@ -107,8 +109,8 @@ public final class StatCommand extends WithWildCardPathCommand {
   }
 
   @Override
-  public boolean checkArgs(String... args) {
-    return args.length == 1;
+  public void checkArgs(CommandLine cl) throws InvalidArgumentException {
+    CommandUtils.checkNumOfArgsEquals(this, cl, 1);
   }
 
   private static final String FORMAT_REGEX = "%([bguyzNY])";

@@ -14,10 +14,12 @@ package alluxio.cli.fs.command;
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
+import alluxio.cli.CommandUtils;
 import alluxio.client.file.FileSystem;
 import alluxio.client.lineage.AlluxioLineage;
 import alluxio.client.lineage.LineageContext;
 import alluxio.exception.AlluxioException;
+import alluxio.exception.status.InvalidArgumentException;
 import alluxio.job.CommandLineJob;
 import alluxio.job.JobConf;
 
@@ -48,8 +50,8 @@ public final class CreateLineageCommand extends AbstractFileSystemCommand {
   }
 
   @Override
-  protected boolean checkArgs(String... args) {
-    return args.length >= 3;
+  public void checkArgs(CommandLine cl) throws InvalidArgumentException {
+    CommandUtils.checkNumOfArgsNoLessThan(this, cl, 3);
   }
 
   @Override

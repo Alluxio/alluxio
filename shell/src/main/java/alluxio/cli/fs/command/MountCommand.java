@@ -15,6 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.options.MountOptions;
 import alluxio.exception.AlluxioException;
+import alluxio.exception.status.InvalidArgumentException;
 import alluxio.wire.MountPointInfo;
 
 import com.google.common.collect.Maps;
@@ -126,7 +127,10 @@ public final class MountCommand extends AbstractFileSystemCommand {
   }
 
   @Override
-  public boolean checkArgs(String... args) {
-    return args.length == 2 || args.length == 0;
+  public void checkArgs(CommandLine cl) throws InvalidArgumentException {
+    if (cl.getArgs().length != 2 && cl.getArgs().length != 0) {
+      throw new InvalidArgumentException("Command mount takes 0 or 2 arguments, not " + cl
+          .getArgs().length);
+    }
   }
 }

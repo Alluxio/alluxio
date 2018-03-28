@@ -11,7 +11,9 @@
 
 package alluxio.cli.fs.command;
 
+import alluxio.cli.CommandUtils;
 import alluxio.client.file.FileSystem;
+import alluxio.exception.status.InvalidArgumentException;
 
 import org.apache.commons.cli.CommandLine;
 
@@ -43,8 +45,8 @@ public final class LoadMetadataCommand extends AbstractFileSystemCommand {
   }
 
   @Override
-  protected boolean checkArgs(String... args) {
-    return args.length == 1;
+  public void checkArgs(CommandLine cl) throws InvalidArgumentException {
+    CommandUtils.checkNumOfArgsEquals(this, cl, 1);
   }
 
   @Override
