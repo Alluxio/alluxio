@@ -12,8 +12,10 @@
 package alluxio.master.block;
 
 import alluxio.StorageTierAssoc;
+import alluxio.client.block.options.GetWorkerReportOptions;
 import alluxio.exception.BlockInfoException;
 import alluxio.exception.NoWorkerException;
+import alluxio.exception.status.InvalidArgumentException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.master.Master;
 import alluxio.thrift.Command;
@@ -42,11 +44,6 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
   int getLostWorkerCount();
 
   /**
-   * @return a list of {@link WorkerInfo} objects representing the workers in Alluxio
-   */
-  List<WorkerInfo> getWorkerInfoList() throws UnavailableException;
-
-  /**
    * @return the total capacity (in bytes) on all tiers, on all workers of Alluxio
    */
   long getCapacityBytes();
@@ -62,9 +59,23 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
   long getUsedBytes();
 
   /**
+   * @return a list of {@link WorkerInfo} objects representing the live workers in Alluxio
+   */
+  List<WorkerInfo> getWorkerInfoList() throws UnavailableException;
+
+  /**
    * @return a list of {@link WorkerInfo}s of lost workers
    */
-  List<WorkerInfo> getLostWorkersInfoList();
+  List<WorkerInfo> getLostWorkersInfoList() throws UnavailableException;
+
+  /**
+   * Gets the worker information list for report CLI.
+   *
+   * @param options the GetWorkerReportOptions defines the info range
+   * @return a list of {@link WorkerInfo} objects representing the workers in Alluxio
+   */
+  List<WorkerInfo> getWorkerReport(GetWorkerReportOptions options)
+      throws UnavailableException, InvalidArgumentException;
 
   /**
    * Removes blocks from workers.

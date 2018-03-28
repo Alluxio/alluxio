@@ -41,7 +41,6 @@ public class SummaryCommand {
   private PrintStream mPrintStream;
 
   /**
-   /**
    * Creates a new instance of {@link SummaryCommand}.
    *
    * @param metaMasterClient client to connect to meta master
@@ -62,7 +61,7 @@ public class SummaryCommand {
    * @return 0 on success, 1 otherwise
    */
   public int run() throws IOException {
-    print("Alluxio Cluster Summary: ");
+    print("Alluxio cluster summary: ");
     printMetaMasterInfo();
     printBlockMasterInfo();
     return 0;

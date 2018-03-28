@@ -12,6 +12,7 @@
 package alluxio.cli.fsadmin.command;
 
 import alluxio.cli.AbstractCommand;
+import alluxio.cli.fsadmin.report.CapacityCommand;
 import alluxio.cli.fsadmin.report.SummaryCommand;
 import alluxio.client.block.BlockMasterClient;
 import alluxio.client.block.RetryHandlingBlockMasterClient;
@@ -29,6 +30,8 @@ import alluxio.resource.CloseableResource;
 import alluxio.retry.ExponentialBackoffRetry;
 
 import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.Option;
+import org.apache.commons.cli.Options;
 
 import java.io.IOException;
 import java.io.PrintStream;
@@ -40,12 +43,46 @@ import java.util.List;
  * Reports Alluxio running cluster information.
  */
 public final class ReportCommand extends AbstractCommand {
+  public static final String HELP_OPTION_NAME = "h";
+  public static final String LIVE_OPTION_NAME = "live";
+  public static final String LOST_OPTION_NAME = "lost";
+  public static final String SPECIFIED_OPTION_NAME = "workers";
+
   private MetaMasterClient mMetaMasterClient;
   private BlockMasterClient mBlockMasterClient;
   private PrintStream mPrintStream;
 
+  private static final Option HELP_OPTION =
+      Option.builder(HELP_OPTION_NAME)
+          .required(false)
+          .hasArg(false)
+          .desc("print help information.")
+          .build();
+
+  private static final Option LIVE_OPTION =
+      Option.builder(LIVE_OPTION_NAME)
+          .required(false)
+          .hasArg(false)
+          .desc("show capacity information of live workers.")
+          .build();
+
+  private static final Option LOST_OPTION =
+      Option.builder(LOST_OPTION_NAME)
+          .required(false)
+          .hasArg(false)
+          .desc("show capacity information of lost workers.")
+          .build();
+
+  private static final Option SPECIFIED_OPTION =
+      Option.builder(SPECIFIED_OPTION_NAME)
+          .required(false)
+          .hasArg(true)
+          .desc("show capacity information of specified workers.")
+          .build();
+
   enum Command {
-    SUMMARY // Report the Alluxio cluster information
+    CAPACITY, // Report worker capacity information
+    SUMMARY // Report cluster summary
   }
 
   /**
@@ -69,8 +106,44 @@ public final class ReportCommand extends AbstractCommand {
 
   @Override
   public int run(CommandLine cl) throws IOException {
+    String[] args = cl.getArgs();
+
+    if (cl.hasOption(HELP_OPTION_NAME)
+        && !(args.length > 0 && args[0].equals("capacity"))) {
+      // if category is capacity, we print report capacity usage inside CapacityCommand.
+      System.out.println(getUsage());
+      System.out.println(getDescription());
+      return 0;
+    }
+
+    // Get the report category
+    Command command = Command.SUMMARY;
+    if (args.length == 1) {
+      switch (args[0]) {
+        case "capacity":
+          command = Command.CAPACITY;
+          break;
+        case "summary":
+          command = Command.SUMMARY;
+          break;
+        default:
+          System.out.println(getUsage());
+          System.out.println(getDescription());
+          throw new InvalidArgumentException("report category is invalid.");
+      }
+    }
+
+    // Only capacity category has [category args]
+    if (!command.equals(Command.CAPACITY)) {
+      if (cl.getOptions().length > 0) {
+        throw new InvalidArgumentException(
+            String.format("report %s does not support arguments: %s",
+                command.toString().toLowerCase(), cl.getOptions()[0].getOpt()));
+      }
+    }
+
+    // Check if Alluxio master and client services are running
     try {
-      // Check if Alluxio master and client services are running
       try (CloseableResource<FileSystemMasterClient> client =
                FileSystemContext.INSTANCE.acquireMasterClientResource()) {
         MasterInquireClient inquireClient = null;
@@ -93,34 +166,17 @@ public final class ReportCommand extends AbstractCommand {
         }
       }
 
-      String[] args = cl.getArgs();
-
-      // Print the summarized information in default situation
-      if (args.length == 0) {
-        SummaryCommand summaryCommand = new SummaryCommand(mMetaMasterClient,
-            mBlockMasterClient, mPrintStream);
-        summaryCommand.run();
-        return 0;
-      }
-
-      // Get the report category
-      Command command;
-      try {
-        String commandName = args[0].toUpperCase();
-        command = Command.valueOf(commandName);
-      } catch (IllegalArgumentException e) {
-        System.out.println(getUsage());
-        System.out.println(getDescription());
-        return 1;
-      }
-
       switch (command) {
+        case CAPACITY:
+          CapacityCommand capacityCommand = new CapacityCommand(
+              mBlockMasterClient, mPrintStream);
+          capacityCommand.run(cl);
+          break;
         case SUMMARY:
           SummaryCommand summaryCommand = new SummaryCommand(mMetaMasterClient,
               mBlockMasterClient, mPrintStream);
           summaryCommand.run();
           break;
-        // CAPACITY, CONFIGURATION, RPC, OPERATION, and UFS commands will be supported in the future
         default:
           break;
       }
@@ -132,6 +188,15 @@ public final class ReportCommand extends AbstractCommand {
   }
 
   @Override
+  public Options getOptions() {
+    return new Options()
+        .addOption(HELP_OPTION)
+        .addOption(LIVE_OPTION)
+        .addOption(LOST_OPTION)
+        .addOption(SPECIFIED_OPTION);
+  }
+
+  @Override
   public String getUsage() {
     return "report [category] [category args]";
   }
@@ -139,10 +204,11 @@ public final class ReportCommand extends AbstractCommand {
   @Override
   public String getDescription() {
     return "Report Alluxio running cluster information.\n"
-        + "Where category is an optional argument, if no arguments are passed in, "
-        + "summary information will be printed out."
-        + "category can be one of the following:\n"
-        + "    summary          Summarized Alluxio cluster information";
+        + "Where [category] is an optional argument. If no arguments are passed in, "
+        + "summary information will be printed out.\n"
+        + "[category] can be one of the following:\n"
+        + "    capacity         worker capacity information\n"
+        + "    summary          cluster summary\n";
   }
 
   @Override
