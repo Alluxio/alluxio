@@ -18,9 +18,14 @@ enum LoadMetadataType {
   ALWAYS = 2;  // Always load metadata.
 }
 
-message GetStatusRequest {
+message GetStatusOptions {
   optional LoadMetadataType loadMetadataType = 1;
   optional FileSystemMasterCommonOptions commonOptions = 2;
+}
+
+message GetStatusRequest {
+  optional string path = 1;
+  optional GetStatusOptions options = 2;
 }
 
 message GetStatusResponse {
@@ -67,5 +72,5 @@ message FileInfo {
 }
 
 service FileSystemMasterService {
-  rpc GetStatus(GetStatusRequest) returns (GetStatusResponse);
+  rpc GetStatus (GetStatusOptions) returns (GetStatusResponse);
 }
