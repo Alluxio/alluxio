@@ -14,13 +14,7 @@ alongside YARN instead of as an application within YARN.
 
 **A running YARN cluster**
 
-**Alluxio downloaded locally**
-
-```bash
-$ curl http://downloads.alluxio.org/downloads/files/{{site.ALLUXIO_RELEASED_VERSION}}/alluxio-{{site.ALLUXIO_RELEASED_VERSION}}-bin.tar.gz | tar xz
-```
-
-The YARN integration is only supported for Hadoop versions 2.4.0 and later.
+**[Alluxio downloaded locally](https://www.alluxio.org/download)**
 
 ## Configuration
 
