@@ -27,7 +27,7 @@ alluxio.worker.hostname,
 alluxio.worker.jvm.monitor.enabled,false
 alluxio.worker.keytab.file,
 alluxio.worker.memory.size,1GB
-alluxio.worker.network.netty.async.cache.manager.threads.max,512
+alluxio.worker.network.netty.async.cache.manager.threads.max,8
 alluxio.worker.network.netty.backlog,
 alluxio.worker.network.netty.block.reader.threads.max,2048
 alluxio.worker.network.netty.block.writer.threads.max,1024
