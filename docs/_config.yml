@@ -8,25 +8,13 @@ kramdown:
 # For master branch, this should be the latest released version, e.g. "1.5.0"
 ALLUXIO_RELEASED_VERSION: 1.7.1
 # This should be the same as ALLUXIO_RELEASED_VERSION, except on master branch, where it should be "master"
-<<<<<<< HEAD
 ALLUXIO_MASTER_VERSION_SHORT: master
-||||||| merged common ancestors
-ALLUXIO_MASTER_VERSION_SHORT: 1.7.0
-=======
-ALLUXIO_MASTER_VERSION_SHORT: 1.7.1
->>>>>>> upstream/branch-1.7
 # For release candidates and release branches, this should be the major Alluxio version, e.g. both 1.5.0 and 1.5.0-RC1 should use "1.5"
 # For master branch, this should be "master"
 ALLUXIO_MAJOR_VERSION: master
 # We must inline the version string (e.g., "1.4.0-SNAPSHOT") rather than using the macro of Alluxio version.
 # Otherwise the macro name remains in the output.
-<<<<<<< HEAD
 ALLUXIO_CLIENT_JAR_PATH: /<PATH_TO_ALLUXIO>/client/alluxio-1.8.0-SNAPSHOT-client.jar
-||||||| merged common ancestors
-ALLUXIO_CLIENT_JAR_PATH: /<PATH_TO_ALLUXIO>/client/alluxio-1.7.0-client.jar
-=======
-ALLUXIO_CLIENT_JAR_PATH: /<PATH_TO_ALLUXIO>/client/alluxio-1.7.1-client.jar
->>>>>>> upstream/branch-1.7
 
 # These attach the pages of different languages with different 'lang' attributes
 defaults:
