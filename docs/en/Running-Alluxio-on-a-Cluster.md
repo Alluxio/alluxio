@@ -11,6 +11,7 @@ priority: 2
 
 ## Running Alluxio with a Single Master
 
+<<<<<<< HEAD
 The simplest way to deploy Alluxio on a cluster is to use one master. However, this single master becomes
 the single point of failure (SPOF) in an Alluxio cluster: if that machine or process became unavailable, 
 the cluster as a whole would be unavailable. We highly recommend running Alluxio masters in 
@@ -21,6 +22,13 @@ the cluster as a whole would be unavailable. We highly recommend running Alluxio
 To deploy Alluxio in a cluster, first download the Alluxio tar file, and extract it in every node.
 
 {% include Running-Alluxio-on-a-Cluster/download-extract-Alluxio-tar.md %}
+||||||| merged common ancestors
+First download the Alluxio tar file, and extract it.
+
+{% include Running-Alluxio-on-a-Cluster/download-extract-Alluxio-tar.md %}
+=======
+First [download](https://alluxio.org/download) the Alluxio tar file, and extract it.
+>>>>>>> upstream/branch-1.7
 
 ### Configure Alluxio
 
