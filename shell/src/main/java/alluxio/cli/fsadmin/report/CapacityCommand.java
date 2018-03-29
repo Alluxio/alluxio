@@ -133,22 +133,27 @@ public class CapacityCommand {
             value + mSumUsedBytesOnTierMap.getOrDefault(tier, 0L));
       }
 
+      String capacityMemInfo = totalBytesOnTiers.containsKey("MEM")
+          ? FormatUtils.getSizeFromBytes(totalBytesOnTiers.get("MEM")) : "-";
+      String capacitySsdInfo = totalBytesOnTiers.containsKey("SSD")
+          ? FormatUtils.getSizeFromBytes(totalBytesOnTiers.get("SSD")) : "-";
+      String capacityHddInfo = totalBytesOnTiers.containsKey("HDD")
+          ? FormatUtils.getSizeFromBytes(totalBytesOnTiers.get("HDD")) : "-";
+      String usedMemInfo = usedBytesOnTiers.containsKey("MEM")
+          ? FormatUtils.getSizeFromBytes(usedBytesOnTiers.get("MEM")) : "-";
+      String usedSsdInfo = usedBytesOnTiers.containsKey("SSD")
+          ? FormatUtils.getSizeFromBytes(usedBytesOnTiers.get("SSD")) : "-";
+      String usedHddInfo = usedBytesOnTiers.containsKey("HDD")
+          ? FormatUtils.getSizeFromBytes(usedBytesOnTiers.get("HDD")) : "-";
+
       mStringBuilder.append(String.format(WORKER_INFO_FORMAT,
-          workerInfo.getAddress().getHost(),
-          workerInfo.getLastContactSec(),
-          "Capacity",
-          FormatUtils.getSizeFromBytes(capacityBytes),
-          FormatUtils.getSizeFromBytes(totalBytesOnTiers.getOrDefault("MEM", 0L)),
-          FormatUtils.getSizeFromBytes(totalBytesOnTiers.getOrDefault("SSD", 0L)),
-          FormatUtils.getSizeFromBytes(totalBytesOnTiers.getOrDefault("HDD", 0L))));
+          workerInfo.getAddress().getHost(), workerInfo.getLastContactSec(),
+          "Capacity", FormatUtils.getSizeFromBytes(capacityBytes),
+          capacityMemInfo, capacitySsdInfo, capacityHddInfo));
       mStringBuilder.append(String.format(WORKER_INFO_FORMAT,
-          "",
-          "",
-          "Used",
+          "", "", "Used",
           FormatUtils.getSizeFromBytes(usedBytes) + usedPercentageInfo,
-          FormatUtils.getSizeFromBytes(usedBytesOnTiers.getOrDefault("MEM", 0L)),
-          FormatUtils.getSizeFromBytes(usedBytesOnTiers.getOrDefault("SSD", 0L)),
-          FormatUtils.getSizeFromBytes(usedBytesOnTiers.getOrDefault("HDD", 0L))));
+          usedMemInfo, usedSsdInfo, usedHddInfo));
     }
   }
 

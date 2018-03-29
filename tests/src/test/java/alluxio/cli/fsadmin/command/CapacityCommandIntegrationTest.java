@@ -41,7 +41,7 @@ public final class CapacityCommandIntegrationTest extends AbstractFsAdminShellTe
             + "MEM           SSD           HDD"));
     Assert.assertThat(output, CoreMatchers.containsString(
         "                                  Used          0B (0%)          "
-            + "0B            0B            0B"));
+            + "0B            -             -"));
   }
 
   @Test
@@ -73,7 +73,7 @@ public final class CapacityCommandIntegrationTest extends AbstractFsAdminShellTe
             + "MEM           SSD           HDD"));
     Assert.assertThat(output, CoreMatchers.containsString(
         "                                  Used          0B (0%)          "
-            + "0B            0B            0B"));
+            + "0B            -             -"));
   }
 
   @Test
