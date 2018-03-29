@@ -61,6 +61,6 @@ public final class PinCommand extends WithWildCardPathCommand {
 
   @Override
   public void checkArgs(CommandLine cl) throws InvalidArgumentException {
-    CommandUtils.checkNumOfArgsNoLessThan(this, cl, 0);
+    CommandUtils.checkNumOfArgsNoLessThan(this, cl, 1);
   }
 }

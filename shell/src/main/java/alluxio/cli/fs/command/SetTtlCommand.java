@@ -57,7 +57,7 @@ public final class SetTtlCommand extends AbstractFileSystemCommand {
   @Override
   public void checkArgs(CommandLine cl) throws InvalidArgumentException {
     CommandUtils.checkNumOfArgsEquals(this, cl, 2);
-    String operation = cl.getOptionValue(TTL_ACTION);;
+    String operation = cl.getOptionValue(TTL_ACTION);
     if (operation != null) {
       try {
         mAction = TtlAction.valueOf(operation.toUpperCase());
