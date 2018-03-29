@@ -63,19 +63,29 @@ enum LoadMetadataTType {
   Always = 2,  // Always load metadata.
 }
 
+struct GetNewBlockIdForFileTOptions {
+  1: optional FileSystemMasterCommonTOptions commonOptions
+}
+struct GetNewBlockIdForFileTResponse {
+  1: i64 id
+}
+
+struct GetOperationInfoTOptions {}
+struct GetOperationInfoTResponse {
+  1: map<string, i64> operationInfoMap
+}
+
+struct GetRpcInvocationInfoTOptions {}
+struct GetRpcInvocationInfoTResponse {
+  1: map<string, i64> rpcInvocationInfoMap
+}
+
 struct GetStatusTOptions {
   1: optional LoadMetadataTType loadMetadataType
   2: optional FileSystemMasterCommonTOptions commonOptions
 }
 struct GetStatusTResponse {
   1: FileInfo fileInfo
-}
-
-struct GetNewBlockIdForFileTOptions {
-  1: optional FileSystemMasterCommonTOptions commonOptions
-}
-struct GetNewBlockIdForFileTResponse {
-  1: i64 id
 }
 
 struct ListStatusTOptions {
@@ -395,6 +405,20 @@ service FileSystemMasterClientService extends common.AlluxioService {
     /** the method options */ 2: UpdateUfsModeTOptions options,
     )
     throws (1: exception.AlluxioTException e)
+
+  /**
+   * Returns operation information
+   */
+  GetOperationInfoTResponse getOperationInfo(
+    /** the method options */ 1: GetOperationInfoTOptions options,
+  ) throws (1: exception.AlluxioTException e)
+
+  /**
+   * Returns rpcInvocation information
+   */
+  GetRpcInvocationInfoTResponse getRpcInvocationInfo(
+    /** the method options */ 1: GetRpcInvocationInfoTOptions options,
+  ) throws (1: exception.AlluxioTException e)
 }
 
 struct FileSystemHeartbeatTOptions {

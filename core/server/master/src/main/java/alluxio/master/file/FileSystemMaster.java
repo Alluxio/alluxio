@@ -514,4 +514,14 @@ public interface FileSystemMaster extends Master {
    * @return a list of {@link WorkerInfo} objects representing the workers in Alluxio
    */
   List<WorkerInfo> getWorkerInfoList() throws UnavailableException;
+
+  /**
+   * @return a map of operation information
+   */
+  Map<String, Long> getOperationInfo();
+
+  /**
+   * @return a map of rpc invocation information
+   */
+  Map<String, Long> getRpcInvocationInfo();
 }

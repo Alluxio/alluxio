@@ -114,6 +114,20 @@ public interface FileSystemMasterClient extends Client {
   void free(AlluxioURI path, FreeOptions options) throws AlluxioStatusException;
 
   /**
+   * Gets a map of operation information from metrics system.
+   *
+   * @return a map of operation information
+   */
+  Map<String, Long> getOperationInfo() throws AlluxioStatusException;
+
+  /**
+   * Gets a map of rpc invocation information from metrics system.
+   *
+   * @return a map of rpc invocation information
+   */
+  Map<String, Long> getRpcInvocationInfo() throws AlluxioStatusException;
+
+  /**
    * @param path the file path
    * @param options the getStatus options
    * @return the file info for the given file id

@@ -138,6 +138,9 @@ import alluxio.wire.WorkerInfo;
 
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Gauge;
+import com.codahale.metrics.Metric;
+import com.codahale.metrics.MetricFilter;
+import com.codahale.metrics.MetricRegistry;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterators;
@@ -3573,6 +3576,46 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
   }
 
   @Override
+  public Map<String, Long> getOperationInfo() {
+    MetricRegistry mr = MetricsSystem.METRIC_REGISTRY;
+    Map<String, Counter> counters = mr.getCounters(new MetricFilter() {
+      @Override
+      public boolean matches(String name, Metric metric) {
+        return !(name.endsWith("Ops"));
+      }
+    });
+
+    Map<String, Long> operations = new TreeMap<>();
+    for (Map.Entry<String, Counter> entry : counters.entrySet()) {
+      operations.put(MetricsSystem.stripInstanceAndHost(entry.getKey()),
+          entry.getValue().getCount());
+    }
+    String filesPinnedProperty =
+        MetricsSystem.getMasterMetricName(DefaultFileSystemMaster.Metrics.FILES_PINNED);
+    operations.put(MetricsSystem.stripInstanceAndHost(filesPinnedProperty),
+        mr.getCounters().get(filesPinnedProperty).getCount());
+    return operations;
+  }
+
+  @Override
+  public Map<String, Long> getRpcInvocationInfo() {
+    MetricRegistry mr = MetricsSystem.METRIC_REGISTRY;
+    Map<String, Counter> counters = mr.getCounters(new MetricFilter() {
+      @Override
+      public boolean matches(String name, Metric metric) {
+        return (name.endsWith("Ops"));
+      }
+    });
+
+    Map<String, Long> rpcInvocations = new TreeMap<>();
+    for (Map.Entry<String, Counter> entry : counters.entrySet()) {
+      rpcInvocations
+          .put(MetricsSystem.stripInstanceAndHost(entry.getKey()), entry.getValue().getCount());
+    }
+    return rpcInvocations;
+  }
+
+  @Override
   public void updateUfsMode(AlluxioURI ufsPath, UnderFileSystem.UfsMode ufsMode)
       throws InvalidPathException, InvalidArgumentException, UnavailableException,
       AccessControlException {
@@ -3857,4 +3900,5 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         mUfsSyncPathCache.shouldSyncPath(path.getPath(), options.getSyncIntervalMs());
     return new LockingScheme(path, desiredLockMode, shouldSync);
   }
+
 }
