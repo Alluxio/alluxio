@@ -3,6 +3,17 @@ namespace java alluxio.thrift
 include "common.thrift"
 include "exception.thrift"
 
+struct ConfigInfo {
+  1: string name
+  2: string value
+  3: string source
+}
+
+struct GetConfigInfoListTOptions{}
+struct GetConfigInfoListTResponse{
+  1: list<ConfigInfo> configInfoList
+}
+
 enum MasterInfoField {
   MASTER_ADDRESS
   RPC_PORT
@@ -42,4 +53,11 @@ service MetaMasterClientService extends common.AlluxioService {
     /** the method options */ 1: GetMasterInfoTOptions options,
     )
     throws (1: exception.AlluxioTException e)
+
+  /**
+   * Returns a list of Alluxio runtime configuration information.
+   */
+  GetConfigInfoListTResponse getConfigInfoList(
+    /** the method options */ 1: GetConfigInfoListTOptions options,
+  ) throws (1: exception.AlluxioTException e)
 }

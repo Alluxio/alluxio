@@ -13,13 +13,16 @@ package alluxio.cli.fsadmin.command;
 
 import alluxio.cli.AbstractCommand;
 import alluxio.cli.fsadmin.report.CapacityCommand;
+import alluxio.cli.fsadmin.report.ConfigurationCommand;
 import alluxio.cli.fsadmin.report.SummaryCommand;
+import alluxio.cli.fsadmin.report.UfsCommand;
 import alluxio.client.block.BlockMasterClient;
 import alluxio.client.block.RetryHandlingBlockMasterClient;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.FileSystemMasterClient;
 import alluxio.client.MetaMasterClient;
 import alluxio.client.RetryHandlingMetaMasterClient;
+import alluxio.client.file.RetryHandlingFileSystemMasterClient;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.exception.status.UnavailableException;
@@ -48,8 +51,9 @@ public final class ReportCommand extends AbstractCommand {
   public static final String LOST_OPTION_NAME = "lost";
   public static final String SPECIFIED_OPTION_NAME = "workers";
 
-  private MetaMasterClient mMetaMasterClient;
   private BlockMasterClient mBlockMasterClient;
+  private FileSystemMasterClient mFileSystemMasterClient;
+  private MetaMasterClient mMetaMasterClient;
   private PrintStream mPrintStream;
 
   private static final Option HELP_OPTION =
@@ -82,15 +86,19 @@ public final class ReportCommand extends AbstractCommand {
 
   enum Command {
     CAPACITY, // Report worker capacity information
-    SUMMARY // Report cluster summary
+    CONFIGURATION, // Report runtime configuration
+    SUMMARY, // Report cluster summary
+    UFS // Report under filesystem information
   }
 
   /**
    * Creates a new instance of {@link ReportCommand}.
    */
   public ReportCommand() {
-    mMetaMasterClient = new RetryHandlingMetaMasterClient(MasterClientConfig.defaults());
-    mBlockMasterClient = new RetryHandlingBlockMasterClient(MasterClientConfig.defaults());
+    MasterClientConfig config = MasterClientConfig.defaults();
+    mBlockMasterClient = new RetryHandlingBlockMasterClient(config);
+    mFileSystemMasterClient = new RetryHandlingFileSystemMasterClient(config);
+    mMetaMasterClient = new RetryHandlingMetaMasterClient(config);
     mPrintStream = System.out;
   }
 
@@ -123,8 +131,14 @@ public final class ReportCommand extends AbstractCommand {
         case "capacity":
           command = Command.CAPACITY;
           break;
+        case "configuration":
+          command = Command.CONFIGURATION;
+          break;
         case "summary":
           command = Command.SUMMARY;
+          break;
+        case "ufs":
+          command = Command.UFS;
           break;
         default:
           System.out.println(getUsage());
@@ -172,17 +186,27 @@ public final class ReportCommand extends AbstractCommand {
               mBlockMasterClient, mPrintStream);
           capacityCommand.run(cl);
           break;
+        case CONFIGURATION:
+          ConfigurationCommand configurationCommand = new ConfigurationCommand(
+              mMetaMasterClient, mPrintStream);
+          configurationCommand.run();
+          break;
         case SUMMARY:
-          SummaryCommand summaryCommand = new SummaryCommand(mMetaMasterClient,
-              mBlockMasterClient, mPrintStream);
+          SummaryCommand summaryCommand = new SummaryCommand(
+              mMetaMasterClient, mBlockMasterClient, mPrintStream);
           summaryCommand.run();
+          break;
+        case UFS:
+          UfsCommand ufsCommand = new UfsCommand(mFileSystemMasterClient);
+          ufsCommand.run();
           break;
         default:
           break;
       }
     } finally {
-      mMetaMasterClient.close();
       mBlockMasterClient.close();
+      mFileSystemMasterClient.close();
+      mMetaMasterClient.close();
     }
     return 0;
   }
@@ -208,7 +232,9 @@ public final class ReportCommand extends AbstractCommand {
         + "summary information will be printed out.\n"
         + "[category] can be one of the following:\n"
         + "    capacity         worker capacity information\n"
-        + "    summary          cluster summary\n";
+        + "    configuration    runtime configuration\n"
+        + "    summary          cluster summary\n"
+        + "    ufs              under filesystem information\n";
   }
 
   @Override

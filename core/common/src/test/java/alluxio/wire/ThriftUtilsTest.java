@@ -28,6 +28,7 @@ public class ThriftUtilsTest {
     assertEquals(100L, ThriftUtils.toThrift(getBlockInfo()).getBlockId());
     assertEquals(100L, ThriftUtils.toThrift(getBlockLocation()).getWorkerId());
     assertEquals(5, ThriftUtils.toThrift(getBlockMasterInfo()).getLiveWorkerNum());
+    assertEquals("TestName", ThriftUtils.toThrift(getConfigInfo()).getName());
     assertEquals("time", ThriftUtils.toThrift(getCommandLineJobInfo()).getCommand());
     assertEquals(100L, ThriftUtils.toThrift(getFileBlockInfo()).getOffset());
     assertEquals("rambo", ThriftUtils.toThrift(getFileInfo()).getName());
@@ -45,6 +46,7 @@ public class ThriftUtilsTest {
     assertEquals(100L, ThriftUtils.fromThrift(getBlockInfoThrift()).getBlockId());
     assertEquals(100L, ThriftUtils.fromThrift(getBlockLocationThrift()).getWorkerId());
     assertEquals(5, ThriftUtils.fromThrift(getBlockMasterInfoThrift()).getLiveWorkerNum());
+    assertEquals("TestName", ThriftUtils.fromThrift(getConfigInfoThrift()).getName());
     assertEquals("time", ThriftUtils.fromThrift(getCommandLineJobInfoThrift()).getCommand());
     assertEquals(100L, ThriftUtils.fromThrift(getFileBlockInfoThrift()).getOffset());
     assertEquals("rambo", ThriftUtils.fromThrift(getFileInfoThrift()).getName());
@@ -87,6 +89,16 @@ public class ThriftUtilsTest {
 
   private alluxio.thrift.BlockMasterInfo getBlockMasterInfoThrift() {
     return new alluxio.thrift.BlockMasterInfo().setLiveWorkerNum(5);
+  }
+
+  private ConfigInfo getConfigInfo() {
+    return new ConfigInfo().setName("TestName").setValue("TestValue")
+        .setSource("TestSource");
+  }
+
+  private alluxio.thrift.ConfigInfo getConfigInfoThrift() {
+    return new alluxio.thrift.ConfigInfo().setName("TestName").setValue("TestValue")
+        .setSource("TestSource");
   }
 
   private CommandLineJobInfo getCommandLineJobInfo() {

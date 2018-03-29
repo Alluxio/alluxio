@@ -12,8 +12,13 @@
 package alluxio.master;
 
 import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.RpcUtils;
 import alluxio.RuntimeConstants;
+import alluxio.thrift.AlluxioTException;
+import alluxio.thrift.ConfigInfo;
+import alluxio.thrift.GetConfigInfoListTOptions;
+import alluxio.thrift.GetConfigInfoListTResponse;
 import alluxio.thrift.GetMasterInfoTOptions;
 import alluxio.thrift.GetMasterInfoTResponse;
 import alluxio.thrift.GetServiceVersionTOptions;
@@ -21,18 +26,26 @@ import alluxio.thrift.GetServiceVersionTResponse;
 import alluxio.thrift.MasterInfo;
 import alluxio.thrift.MasterInfoField;
 import alluxio.thrift.MetaMasterClientService;
+import alluxio.wire.ThriftUtils;
 
+import com.google.common.collect.Sets;
 import org.apache.thrift.TException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
+import java.util.Set;
 
 /**
  * This class is a Thrift handler for meta master RPCs.
  */
 public final class MetaMasterClientServiceHandler implements MetaMasterClientService.Iface {
   private static final Logger LOG = LoggerFactory.getLogger(MetaMasterClientServiceHandler.class);
+  private static final String ALLUXIO_CONF_PREFIX = "alluxio";
+  private static final Set<String> ALLUXIO_CONF_EXCLUDES = Sets.newHashSet(
+      PropertyKey.MASTER_WHITELIST.toString());
 
   private final MasterProcess mMasterProcess;
 
@@ -46,6 +59,18 @@ public final class MetaMasterClientServiceHandler implements MetaMasterClientSer
   @Override
   public GetServiceVersionTResponse getServiceVersion(GetServiceVersionTOptions options) {
     return new GetServiceVersionTResponse(Constants.META_MASTER_CLIENT_SERVICE_VERSION);
+  }
+
+  @Override
+  public GetConfigInfoListTResponse getConfigInfoList(GetConfigInfoListTOptions options)
+      throws AlluxioTException {
+    return RpcUtils.call(LOG, (RpcUtils.RpcCallable<GetConfigInfoListTResponse>) () -> {
+      List<ConfigInfo> configInfoList = new ArrayList<>();
+      for (alluxio.wire.ConfigInfo configInfo : mMasterProcess.getConfigInfoList()) {
+        configInfoList.add(ThriftUtils.toThrift(configInfo));
+      }
+      return new GetConfigInfoListTResponse(configInfoList);
+    });
   }
 
   @Override

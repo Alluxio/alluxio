@@ -61,7 +61,7 @@ public final class MountCommand extends AbstractFileSystemCommand {
           .desc("options associated with this mount point")
           .build();
   private static final String LEFT_ALIGN_FORMAT = "%-60s %-3s %-20s (%s, capacity=%d,"
-          + " used bytes=%d, %sread-only, %sshared, ";
+      + " used bytes=%d, %sread-only, %sshared, ";
 
   /**
    * @param fs the filesystem of Alluxio
@@ -91,16 +91,7 @@ public final class MountCommand extends AbstractFileSystemCommand {
     String[] args = cl.getArgs();
     if (args.length == 0) {
       Map<String, MountPointInfo> mountTable = mFileSystem.getMountTable();
-      for (Map.Entry<String, MountPointInfo> entry :
-              mountTable.entrySet()) {
-        String mMountPoint = entry.getKey();
-        MountPointInfo mountPointInfo = entry.getValue();
-        System.out.format(LEFT_ALIGN_FORMAT, mountPointInfo.getUfsUri(), "on", mMountPoint,
-                mountPointInfo.getUfsType(), mountPointInfo.getUfsCapacityBytes(),
-                mountPointInfo.getUfsUsedBytes(), mountPointInfo.getReadOnly() ? "" : "not ",
-                mountPointInfo.getShared() ? "" : "not ");
-        System.out.println("properties=" + mountPointInfo.getProperties() + ")");
-      }
+      printMountInfo(mountTable);
       return 0;
     }
     AlluxioURI alluxioPath = new AlluxioURI(args[0]);
@@ -120,6 +111,24 @@ public final class MountCommand extends AbstractFileSystemCommand {
     mFileSystem.mount(alluxioPath, ufsPath, options);
     System.out.println("Mounted " + ufsPath + " at " + alluxioPath);
     return 0;
+  }
+
+  /**
+   * Prints mount information for mount table.
+   *
+   * @param mountTable the mount table to get information from
+   */
+  public static void printMountInfo(Map<String, MountPointInfo> mountTable) {
+    for (Map.Entry<String, MountPointInfo> entry :
+        mountTable.entrySet()) {
+      String mMountPoint = entry.getKey();
+      MountPointInfo mountPointInfo = entry.getValue();
+      System.out.format(LEFT_ALIGN_FORMAT, mountPointInfo.getUfsUri(), "on", mMountPoint,
+          mountPointInfo.getUfsType(), mountPointInfo.getUfsCapacityBytes(),
+          mountPointInfo.getUfsUsedBytes(), mountPointInfo.getReadOnly() ? "" : "not ",
+          mountPointInfo.getShared() ? "" : "not ");
+      System.out.println("properties=" + mountPointInfo.getProperties() + ")");
+    }
   }
 
   @Override
