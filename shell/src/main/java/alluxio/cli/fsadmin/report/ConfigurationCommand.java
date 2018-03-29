@@ -47,6 +47,7 @@ public class ConfigurationCommand {
   public int run() throws IOException {
     List<ConfigInfo> configInfoList = mMetaMasterClient.getConfigInfoList();
     Collections.sort(configInfoList, (a, b) -> (a.getSource().compareTo(b.getSource())));
+
     mPrintStream.print("Alluxio configuration information: \n");
     mPrintStream.print(String.format(CONFIG_INFO_FORMAT,
         "Property", "Value", "Source"));

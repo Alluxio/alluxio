@@ -24,8 +24,10 @@ public final class UfsCommandIntegrationTest extends AbstractFsAdminShellTest {
   @Test
   public void ufs() {
     mFsAdminShell.run("report", "ufs");
-    Assert.assertThat(mOutput.toString(),
-        CoreMatchers.containsString("Alluxio configuration information:"));
-
+    String output = mOutput.toString();
+    Assert.assertThat(output,
+        CoreMatchers.containsString("Alluxio under filesystem information: "));
+    Assert.assertThat(output,
+        CoreMatchers.containsString("not read-only, not shared, properties={})"));
   }
 }

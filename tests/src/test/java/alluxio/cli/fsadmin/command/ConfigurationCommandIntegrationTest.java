@@ -24,14 +24,14 @@ public final class ConfigurationCommandIntegrationTest extends AbstractFsAdminSh
   @Test
   public void configuration() {
     mFsAdminShell.run("report", "configuration");
-    Assert.assertThat(mOutput.toString(),
+    String output = mOutput.toString();
+    Assert.assertThat(output,
         CoreMatchers.containsString("Alluxio configuration information:"));
-    Assert.assertThat(mOutput.toString(),
+    Assert.assertThat(output,
         CoreMatchers.containsString("Property                                 "
             + "Value                                              Source"));
-    Assert.assertThat(mOutput.toString(),
+    Assert.assertThat(output,
         CoreMatchers.containsString("alluxio.test.mode                        "
             + "true                                               SYSTEM_PROPERTY"));
-
   }
 }

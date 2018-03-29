@@ -92,13 +92,11 @@ public class ThriftUtilsTest {
   }
 
   private ConfigInfo getConfigInfo() {
-    return new ConfigInfo().setName("TestName").setValue("TestValue")
-        .setSource("TestSource");
+    return new ConfigInfo().setName("TestName");
   }
 
   private alluxio.thrift.ConfigInfo getConfigInfoThrift() {
-    return new alluxio.thrift.ConfigInfo().setName("TestName").setValue("TestValue")
-        .setSource("TestSource");
+    return new alluxio.thrift.ConfigInfo().setName("TestName");
   }
 
   private CommandLineJobInfo getCommandLineJobInfo() {
