@@ -207,7 +207,7 @@ public final class ReportCommand implements Command {
   }
 
   @Override
-  public void checkArgs(CommandLine cl) throws InvalidArgumentException {
+  public void validateArgs(CommandLine cl) throws InvalidArgumentException {
     CommandUtils.checkNumOfArgsNoMoreThan(this, cl, 1);
   }
 }

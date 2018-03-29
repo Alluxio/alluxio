@@ -97,7 +97,7 @@ public final class InstallCommand implements Command {
   }
 
   @Override
-  public void checkArgs(CommandLine cl) throws InvalidArgumentException {
+  public void validateArgs(CommandLine cl) throws InvalidArgumentException {
     String[] args = cl.getArgs();
     CommandUtils.checkNumOfArgsEquals(this, cl, 1);
     if (args[0] == null) {

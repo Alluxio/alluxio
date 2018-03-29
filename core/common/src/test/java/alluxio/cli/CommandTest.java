@@ -47,7 +47,7 @@ public final class CommandTest {
     }
 
     @Override
-    public void checkArgs(CommandLine cl) throws InvalidArgumentException {
+    public void validateArgs(CommandLine cl) throws InvalidArgumentException {
       CommandUtils.checkNumOfArgsEquals(this, cl, 1);
     }
 
@@ -65,7 +65,7 @@ public final class CommandTest {
   @Test
   public void expectedNumArgs() throws Exception {
     TestCommand cmd = new TestCommand();
-    CommandLine commandLine = cmd.parseOptions("arg1");
+    CommandLine commandLine = cmd.parseAndValidateArgs("arg1");
     Assert.assertEquals(1, commandLine.getArgs().length);
   }
 
@@ -75,6 +75,6 @@ public final class CommandTest {
 
     mExpectedException.expect(InvalidArgumentException.class);
     mExpectedException.expectMessage(INVALID_ARGS_NUM.getMessage(cmd.getCommandName(), 2));
-    cmd.parseOptions("arg1", "arg2");
+    cmd.parseAndValidateArgs("arg1", "arg2");
   }
 }

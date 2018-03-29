@@ -47,7 +47,7 @@ public final class PersistCommand extends AbstractFileSystemCommand {
   }
 
   @Override
-  public void checkArgs(CommandLine cl) throws InvalidArgumentException {
+  public void validateArgs(CommandLine cl) throws InvalidArgumentException {
     CommandUtils.checkNumOfArgsNoLessThan(this, cl, 1);
   }
 

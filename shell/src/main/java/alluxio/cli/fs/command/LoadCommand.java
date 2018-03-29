@@ -126,7 +126,7 @@ public final class LoadCommand extends WithWildCardPathCommand {
   }
 
   @Override
-  public void checkArgs(CommandLine cl) throws InvalidArgumentException {
+  public void validateArgs(CommandLine cl) throws InvalidArgumentException {
     CommandUtils.checkNumOfArgsNoLessThan(this, cl, 1);
   }
 }

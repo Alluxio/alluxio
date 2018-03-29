@@ -52,7 +52,7 @@ public final class AbstractShellTest {
       final Command cmd = mock(Command.class);
       try {
         when(cmd.run(any(CommandLine.class))).thenReturn(0);
-        when(cmd.parseOptions(any(String[].class)))
+        when(cmd.parseAndValidateArgs(any(String[].class)))
             .thenReturn(mock(CommandLine.class));
       } catch (Exception e) {
         throw new RuntimeException(e);

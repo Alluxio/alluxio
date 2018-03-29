@@ -42,7 +42,7 @@ public final class UnmountCommand extends AbstractFileSystemCommand {
   }
 
   @Override
-  public void checkArgs(CommandLine cl) throws InvalidArgumentException {
+  public void validateArgs(CommandLine cl) throws InvalidArgumentException {
     CommandUtils.checkNumOfArgsEquals(this, cl, 1);
   }
 

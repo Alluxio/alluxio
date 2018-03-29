@@ -42,11 +42,13 @@ public interface Command {
   }
 
   /**
+   * Parses and validates the arguments.
+   *
    * @param args the arguments for the command, excluding the command name
    * @return the parsed command line object
    * @throws InvalidArgumentException when arguments are not valid
    */
-  default CommandLine parseOptions(String... args) throws InvalidArgumentException {
+  default CommandLine parseAndValidateArgs(String... args) throws InvalidArgumentException {
     CommandLine cmdline;
     Options opts = getOptions();
     CommandLineParser parser = new DefaultParser();
@@ -56,6 +58,7 @@ public interface Command {
       throw new InvalidArgumentException(
           String.format("Failed to parse args for %s", getCommandName()), e);
     }
+    validateArgs(cmdline);
     return cmdline;
   }
 
@@ -65,7 +68,7 @@ public interface Command {
    * @param cl the parsed command line for the arguments
    * @throws InvalidArgumentException when arguments are not valid
    */
-  default void checkArgs(CommandLine cl) throws InvalidArgumentException {}
+  default void validateArgs(CommandLine cl) throws InvalidArgumentException {}
 
   /**
    * Runs the command.
