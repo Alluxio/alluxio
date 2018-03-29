@@ -1,0 +1,52 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "alluxio.grpc";
+option java_outer_classname = "CommonProto";
+
+package alluxio.grpc.proto;
+
+/**
+ * Contains the information of a block in Alluxio. It maintains the worker nodes where the replicas
+ * of the blocks are stored.
+ */
+message BlockInfo {
+  int64 blockId = 1;
+  int64 length = 2;
+  repeated BlockLocation locations = 3;
+}
+
+/**
+ * Information about blocks.
+ */
+message BlockLocation {
+  int64 workerId = 1;
+  WorkerNetAddress workerAddress = 2;
+  string tierAlias = 3;
+}
+
+enum TtlAction {
+  DELETE = 0; // Delete the file after TTL expires.
+  FREE = 1;   // Free the file after TTL expires.
+}
+
+message LocalityTier {
+  string tierName = 1;
+  string value = 2;
+}
+
+message TieredIdentity {
+  repeated LocalityTier tiers = 1;
+}
+
+/**
+ * Address information about workers.
+ */
+message WorkerNetAddress {
+  string host = 1;
+  int32 rpcPort = 2;
+  int32 dataPort = 3;
+  int32 webPort = 4;
+  string domainSocketPath = 5;
+  TieredIdentity tieredIdentity = 6;
+}

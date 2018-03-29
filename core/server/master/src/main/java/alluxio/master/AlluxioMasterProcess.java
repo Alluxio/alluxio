@@ -279,6 +279,8 @@ public class AlluxioMasterProcess implements MasterProcess {
         NetworkAddressUtils.getPort(ServiceType.MASTER_RPC),
         NetworkAddressUtils.getPort(ServiceType.MASTER_WEB));
     startServingRPCServer();
+    // TODO(adit): This should replace the thrift server
+    startServingRPCServerNew();
     LOG.info("Alluxio master ended{}", stopMessage);
   }
 
@@ -311,6 +313,14 @@ public class AlluxioMasterProcess implements MasterProcess {
     for (Map.Entry<String, TProcessor> service : services.entrySet()) {
       processor.registerProcessor(service.getKey(), service.getValue());
     }
+  }
+
+  /**
+   * Starts the gRPC server. The AlluxioMaster registers the Services of registered
+   * {@link Master}s and meta services.
+   */
+  protected void startServingRPCServerNew() {
+
   }
 
   /**
