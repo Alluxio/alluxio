@@ -156,7 +156,7 @@
     <maven.version>3.3.9</maven.version>
     <metrics.version>3.1.2</metrics.version>
     <powermock.version>1.6.1</powermock.version>
-    <protobuf.version>2.5.0</protobuf.version>
+    <protobuf.version>3.5.1</protobuf.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <slf4j.version>1.7.2</slf4j.version>
     <surefire.forkCount>2</surefire.forkCount>
@@ -313,6 +313,11 @@
         <groupId>io.dropwizard.metrics</groupId>
         <artifactId>metrics-jvm</artifactId>
         <version>${metrics.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.grpc</groupId>
+        <artifactId>grpc-core</artifactId>
+        <version>${grpc.version}</version>
       </dependency>
       <dependency>
         <groupId>io.grpc</groupId>
