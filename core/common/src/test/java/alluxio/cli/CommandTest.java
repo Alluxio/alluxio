@@ -65,7 +65,7 @@ public final class CommandTest {
   @Test
   public void expectedNumArgs() throws Exception {
     TestCommand cmd = new TestCommand();
-    CommandLine commandLine = CommandUtils.parseOptions(cmd, "arg1");
+    CommandLine commandLine = cmd.parseOptions("arg1");
     Assert.assertEquals(1, commandLine.getArgs().length);
   }
 
@@ -75,6 +75,6 @@ public final class CommandTest {
 
     mExpectedException.expect(InvalidArgumentException.class);
     mExpectedException.expectMessage(INVALID_ARGS_NUM.getMessage(cmd.getCommandName(), 2));
-    CommandUtils.parseOptions(cmd, "arg1", "arg2");
+    cmd.parseOptions("arg1", "arg2");
   }
 }

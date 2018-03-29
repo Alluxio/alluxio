@@ -15,7 +15,10 @@ import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
 
 import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
 
 import java.io.IOException;
 
@@ -39,6 +42,24 @@ public interface Command {
   }
 
   /**
+   * @param args the arguments for the command, excluding the command name
+   * @return the parsed command line object
+   * @throws InvalidArgumentException when arguments are not valid
+   */
+  default CommandLine parseOptions(String... args) throws InvalidArgumentException {
+    CommandLine cmdline;
+    Options opts = getOptions();
+    CommandLineParser parser = new DefaultParser();
+    try {
+      cmdline = parser.parse(opts, args);
+    } catch (ParseException e) {
+      throw new InvalidArgumentException(
+          String.format("Failed to parse args for %s", getCommandName()), e);
+    }
+    return cmdline;
+  }
+
+  /**
    * Checks if the arguments are valid or throw InvalidArgumentException.
    *
    * @param cl the parsed command line for the arguments
@@ -46,7 +67,7 @@ public interface Command {
    */
   default void checkArgs(CommandLine cl) throws InvalidArgumentException {}
 
-   /**
+  /**
    * Runs the command.
    *
    * @param cl the parsed command line for the arguments

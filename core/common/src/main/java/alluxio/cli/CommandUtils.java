@@ -16,10 +16,6 @@ import alluxio.exception.status.InvalidArgumentException;
 import alluxio.util.CommonUtils;
 
 import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.CommandLineParser;
-import org.apache.commons.cli.DefaultParser;
-import org.apache.commons.cli.Options;
-import org.apache.commons.cli.ParseException;
 import org.reflections.Reflections;
 
 import java.lang.reflect.Modifier;
@@ -59,25 +55,6 @@ public final class CommandUtils {
       }
     }
     return commandsMap;
-  }
-
-  /**
-   * @param cmd command instance
-   * @param args the arguments for the command, excluding the command name
-   * @return the parsed command line object.
-   */
-  public static CommandLine parseOptions(Command cmd, String... args)
-      throws InvalidArgumentException {
-    CommandLine cmdline;
-    Options opts = cmd.getOptions();
-    CommandLineParser parser = new DefaultParser();
-    try {
-      cmdline = parser.parse(opts, args);
-    } catch (ParseException e) {
-      throw new InvalidArgumentException(
-          String.format("Failed to parse args for %s", cmd.getCommandName()), e);
-    }
-    return cmdline;
   }
 
   /**

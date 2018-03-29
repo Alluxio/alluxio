@@ -88,7 +88,7 @@ public abstract class AbstractShell implements Closeable {
     String[] args = Arrays.copyOfRange(argv, 1, argv.length);
     CommandLine cmdline;
     try {
-      cmdline = CommandUtils.parseOptions(command, args);
+      cmdline = command.parseOptions(args);
       command.checkArgs(cmdline);
     } catch (InvalidArgumentException e) {
       System.out.println("Usage: " + command.getUsage());
@@ -107,7 +107,7 @@ public abstract class AbstractShell implements Closeable {
   }
 
   /**
-   * @return all commands provided by this shall
+   * @return all commands provided by this shell
    */
   public Collection<Command> getCommands() {
     return mCommands.values();
