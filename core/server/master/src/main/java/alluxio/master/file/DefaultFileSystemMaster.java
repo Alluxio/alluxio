@@ -3590,10 +3590,6 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       operations.put(MetricsSystem.stripInstanceAndHost(entry.getKey()),
           entry.getValue().getCount());
     }
-    String filesPinnedProperty =
-        MetricsSystem.getMasterMetricName(DefaultFileSystemMaster.Metrics.FILES_PINNED);
-    operations.put(MetricsSystem.stripInstanceAndHost(filesPinnedProperty),
-        mr.getCounters().get(filesPinnedProperty).getCount());
     return operations;
   }
 

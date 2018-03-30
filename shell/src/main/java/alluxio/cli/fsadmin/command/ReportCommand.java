@@ -13,6 +13,7 @@ package alluxio.cli.fsadmin.command;
 
 import alluxio.cli.AbstractCommand;
 import alluxio.cli.fsadmin.report.CapacityCommand;
+import alluxio.cli.fsadmin.report.OperationCommand;
 import alluxio.cli.fsadmin.report.SummaryCommand;
 import alluxio.client.block.BlockMasterClient;
 import alluxio.client.block.RetryHandlingBlockMasterClient;
@@ -20,6 +21,7 @@ import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.FileSystemMasterClient;
 import alluxio.client.MetaMasterClient;
 import alluxio.client.RetryHandlingMetaMasterClient;
+import alluxio.client.file.RetryHandlingFileSystemMasterClient;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.exception.status.UnavailableException;
@@ -50,6 +52,7 @@ public final class ReportCommand extends AbstractCommand {
 
   private MetaMasterClient mMetaMasterClient;
   private BlockMasterClient mBlockMasterClient;
+  private FileSystemMasterClient mFileSystemMasterClient;
   private PrintStream mPrintStream;
 
   private static final Option HELP_OPTION =
@@ -82,6 +85,7 @@ public final class ReportCommand extends AbstractCommand {
 
   enum Command {
     CAPACITY, // Report worker capacity information
+    OPERATION, // Report operation metrics information
     SUMMARY // Report cluster summary
   }
 
@@ -89,8 +93,10 @@ public final class ReportCommand extends AbstractCommand {
    * Creates a new instance of {@link ReportCommand}.
    */
   public ReportCommand() {
-    mMetaMasterClient = new RetryHandlingMetaMasterClient(MasterClientConfig.defaults());
-    mBlockMasterClient = new RetryHandlingBlockMasterClient(MasterClientConfig.defaults());
+    MasterClientConfig config = MasterClientConfig.defaults();
+    mMetaMasterClient = new RetryHandlingMetaMasterClient(config);
+    mBlockMasterClient = new RetryHandlingBlockMasterClient(config);
+    mFileSystemMasterClient = new RetryHandlingFileSystemMasterClient(config);
     mPrintStream = System.out;
   }
 
@@ -122,6 +128,9 @@ public final class ReportCommand extends AbstractCommand {
       switch (args[0]) {
         case "capacity":
           command = Command.CAPACITY;
+          break;
+        case "operation":
+          command = Command.OPERATION;
           break;
         case "summary":
           command = Command.SUMMARY;
@@ -172,6 +181,11 @@ public final class ReportCommand extends AbstractCommand {
               mBlockMasterClient, mPrintStream);
           capacityCommand.run(cl);
           break;
+        case OPERATION:
+          OperationCommand operationCommand = new OperationCommand(
+              mFileSystemMasterClient, mPrintStream);
+          operationCommand.run();
+          break;
         case SUMMARY:
           SummaryCommand summaryCommand = new SummaryCommand(mMetaMasterClient,
               mBlockMasterClient, mPrintStream);
@@ -208,6 +222,7 @@ public final class ReportCommand extends AbstractCommand {
         + "summary information will be printed out.\n"
         + "[category] can be one of the following:\n"
         + "    capacity         worker capacity information\n"
+        + "    operation        operation metrics information\n"
         + "    summary          cluster summary\n";
   }
 
