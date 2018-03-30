@@ -85,7 +85,7 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
    * @param queryMap the (nullable) map of key/value pairs for the query component of the URI
    */
   public AlluxioURI(@Nullable String scheme, @Nullable String authority, String path,
-                    Map<String, String> queryMap) {
+      Map<String, String> queryMap) {
     mUri = URI.Factory.create(scheme, authority, path, URIUtils.generateQueryString(queryMap));
   }
 
@@ -108,7 +108,7 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
    * @param query the query component of the URI
    */
   private AlluxioURI(@Nullable String scheme, @Nullable String authority, String path,
-                     String query) {
+      String query) {
     mUri = URI.Factory.create(scheme, authority, path, query);
   }
 

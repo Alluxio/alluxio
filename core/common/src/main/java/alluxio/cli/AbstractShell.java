@@ -44,7 +44,7 @@ public abstract class AbstractShell implements Closeable {
    *
    * @param commandAlias replacements for commands
    */
-  @SuppressWarnings("nullness")
+//  @SuppressWarnings("nullness")
   public AbstractShell(Map<String, String[]> commandAlias) {
     mCommands = loadCommands();
     mCommandAlias = commandAlias;

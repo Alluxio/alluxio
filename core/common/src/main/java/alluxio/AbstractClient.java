@@ -294,7 +294,7 @@ public abstract class AbstractClient implements Client {
     RetryPolicy retryPolicy =
         ExponentialTimeBoundedRetry.builder().withMaxDuration(MAX_RETRY_DURATION)
             .withInitialSleep(BASE_SLEEP_MS).withMaxSleep(MAX_SLEEP_MS).build();
-    Exception ex = new Exception();
+    Exception ex = null;
     while (retryPolicy.attempt()) {
       if (mClosed) {
         throw new FailedPreconditionException("Client is closed");
@@ -314,6 +314,7 @@ public abstract class AbstractClient implements Client {
       }
       disconnect();
     }
+    assert ex != null : "@AssumeAssertion(nullness)";
     throw new UnavailableException("Failed after " + retryPolicy.getAttemptCount()
             + " attempts: " + ex.toString(), ex);
   }

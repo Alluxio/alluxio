@@ -32,7 +32,7 @@ public class DefaultSupplier implements Supplier<Object> {
   }
 
   @Override
-  @SuppressWarnings("nullness")
+  @Nullable
   public Object get() {
     return mSupplier.get();
   }

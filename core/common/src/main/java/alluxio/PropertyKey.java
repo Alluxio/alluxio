@@ -21,6 +21,7 @@ import com.google.common.base.Strings;
 import com.google.common.collect.Sets;
 import com.sun.management.OperatingSystemMXBean;
 import org.checkerframework.checker.initialization.qual.Initialized;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
 import java.lang.annotation.Annotation;
@@ -3425,13 +3426,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   private final String mName;
 
   /** Property Key description. */
-  private final String mDescription;
+  @Nullable private final String mDescription;
 
   /** Supplies the Property Key default value. */
   @Nullable private final DefaultSupplier mDefaultSupplier;
 
   /** Property Key alias. */
-  @Nullable private final String[] mAliases;
+  private final String[] mAliases;
 
   /** Whether to ignore as a site property. */
   private final boolean mIgnoredSiteProperty;
@@ -3455,15 +3456,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
    * @param consistencyCheckLevel the consistency check level to apply to this property
    * @param scope the scope this property applies to
    */
-  @SuppressWarnings("nullness")
   private PropertyKey(String name, @Nullable String description,
-                      @Nullable DefaultSupplier defaultSupplier, @Nullable String[] aliases,
-                      boolean ignoredSiteProperty, boolean isHidden,
+      @Nullable DefaultSupplier defaultSupplier, String[] aliases,
+      boolean ignoredSiteProperty, boolean isHidden,
       ConsistencyCheckLevel consistencyCheckLevel, Scope scope) {
     mName = Preconditions.checkNotNull(name, "name");
     mDescription = Strings.isNullOrEmpty(description) ? "N/A" : description;
     mDefaultSupplier = defaultSupplier;
-    mAliases = aliases;
+    mAliases = (aliases != null) ? (@NonNull String[]) aliases : new String[0];
     mIgnoredSiteProperty = ignoredSiteProperty;
     mIsHidden = isHidden;
     mConsistencyCheckLevel = consistencyCheckLevel;
@@ -3473,9 +3473,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   /**
    * @param name String of this property
    */
-  @SuppressWarnings("nullness")
   private PropertyKey(String name) {
-    this(name, null, new DefaultSupplier(() -> null, "null"), null, false, false,
+    this(name, null, new DefaultSupplier(() -> null, "null"), new String[0], false, false,
         ConsistencyCheckLevel.IGNORE, Scope.ALL);
   }
 
@@ -3556,7 +3555,6 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   /**
    * @return the alias of a property
    */
-  @Nullable
   public String[] getAliases() {
     return mAliases;
   }
@@ -3564,6 +3562,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   /**
    * @return the description of a property
    */
+  @Nullable
   public String getDescription() {
     return mDescription;
   }
@@ -3573,7 +3572,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
    */
   @Nullable
   public String getDefaultValue() {
-    @Nullable Object defaultValue = (mDefaultSupplier != null) ? mDefaultSupplier.get() : null;
+    Object defaultValue = (mDefaultSupplier != null) ? mDefaultSupplier.get() : null;
     return defaultValue == null ? null : defaultValue.toString();
   }
 

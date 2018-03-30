@@ -185,7 +185,7 @@ public interface URI extends Comparable<URI>, Serializable {
      * @return a {@link Pair} with the scheme components
      */
     private static Pair<@Nullable String, @Nullable String> getSchemeComponents(
-            @Nullable String scheme) {
+        @Nullable String scheme) {
       if (scheme == null) {
         return new Pair<>(null, null);
       }

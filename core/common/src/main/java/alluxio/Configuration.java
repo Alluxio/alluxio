@@ -22,6 +22,7 @@ import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,7 +39,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -81,7 +81,7 @@ public final class Configuration {
   private static final ConcurrentHashMap<String, String> PROPERTIES = new ConcurrentHashMap<>();
   /** Map of property sources. */
   private static final ConcurrentHashMap<PropertyKey, Source> SOURCES = new ConcurrentHashMap<>();
-  private static String sSitePropertyFile;
+  @Nullable private static String sSitePropertyFile;
 
   static {
     init();
@@ -93,7 +93,6 @@ public final class Configuration {
    * The order of preference is (1) system properties, (2) properties in the specified file, (3)
    * default property values.
    */
-  @SuppressWarnings("nullness")
   static void init() {
     // Load system properties
     Properties systemProps = new Properties();
@@ -139,7 +138,6 @@ public final class Configuration {
     if (properties != null) {
       // merge the properties
       for (Map.Entry<?, ?> entry : properties.entrySet()) {
-
         String key = String.valueOf(entry.getKey()).trim();
         String value = String.valueOf(entry.getValue()).trim();
         if (PropertyKey.isValid(key)) {
@@ -190,14 +188,15 @@ public final class Configuration {
    * @param key the key to get the value for
    * @return the value for the given key
    */
-  @SuppressWarnings("nullness")
   public static String get(PropertyKey key) {
     String rawValue = lookupNonRecursively(key.toString());
     if (rawValue == null) {
       // if key is not found among the default properties
       throw new RuntimeException(ExceptionMessage.UNDEFINED_CONFIGURATION_KEY.getMessage(key));
     }
-    return lookup(rawValue);
+    String value = lookup(rawValue);
+    assert value != null : "@AssumeAssertion(nullness)";
+    return value;
   }
 
   /**
