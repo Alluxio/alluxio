@@ -228,6 +228,17 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    *    }
    * </pre></blockquote>
    *
+   * When used in conjunction with {@link LockedInodePath} and {@link AuditContext}, the usage
+   * should look like
+   *
+   * <p><blockquote><pre>
+   *    try (RpcContext rpcContext = createRpcContext();
+   *         LockedInodePath inodePath = mInodeTree.lockInodePath(...);
+   *         FileSystemMasterAuditContext auditContext = createAuditContext(...)) {
+   *      ...
+   *    }
+   * </pre></blockquote>
+   *
    * NOTE: Because resources are released in the opposite order they are acquired, the
    * {@link JournalContext}, {@link BlockDeletionContext}, or {@link RpcContext} resources should be
    * always created before any {@link LockedInodePath} resources to avoid holding an inode path lock

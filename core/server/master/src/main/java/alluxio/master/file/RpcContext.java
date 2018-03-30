@@ -25,6 +25,9 @@ import javax.annotation.concurrent.NotThreadSafe;
 /**
  * Context passed through the span of a file system master RPC to manage actions that need to be
  * taken when the body of the RPC is finished.
+ *
+ * Note that we cannot use Guava's {@link com.google.common.io.Closer} because it doesn't make
+ * guarantees about the order in which resources are closed.
  */
 @NotThreadSafe
 public final class RpcContext implements Closeable {
