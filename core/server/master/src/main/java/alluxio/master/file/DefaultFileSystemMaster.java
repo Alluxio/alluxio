@@ -138,6 +138,7 @@ import alluxio.wire.WorkerInfo;
 
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Gauge;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterators;
@@ -1446,7 +1447,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    * @throws FileDoesNotExistException if the file does not exist
    * @throws DirectoryNotEmptyException if recursive is false and the file is a nonempty directory
    */
-  private void deleteAndJournal(RpcContext rpcContext, LockedInodePath inodePath,
+  @VisibleForTesting
+  public void deleteAndJournal(RpcContext rpcContext, LockedInodePath inodePath,
       DeleteOptions deleteOptions)
       throws InvalidPathException, FileDoesNotExistException, IOException,
       DirectoryNotEmptyException {
@@ -3832,7 +3834,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     throw new IOException("Failed to remove deleted blocks from block master", lastThrown);
   }
 
-  private RpcContext createRpcContext() throws UnavailableException {
+  @VisibleForTesting
+  public RpcContext createRpcContext() throws UnavailableException {
     return new RpcContext(createBlockDeletionContext(), createJournalContext());
   }
 
