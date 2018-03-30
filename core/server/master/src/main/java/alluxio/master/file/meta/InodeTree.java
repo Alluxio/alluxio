@@ -568,7 +568,7 @@ public class InodeTree implements JournalEntryIterable {
       File.InodeLastModificationTimeEntry inodeLastModificationTime =
           File.InodeLastModificationTimeEntry.newBuilder().setId(currentInodeDirectory.getId())
               .setLastModificationTimeMs(options.getOperationTimeMs()).build();
-      rpcContext.getJournalContext().append(Journal.JournalEntry.newBuilder()
+      rpcContext.journal(Journal.JournalEntry.newBuilder()
           .setInodeLastModificationTime(inodeLastModificationTime).build());
     }
 
@@ -803,8 +803,7 @@ public class InodeTree implements JournalEntryIterable {
         .setAlluxioOnly(deleteOptions.isAlluxioOnly())
         .setRecursive(deleteOptions.isRecursive())
         .setOpTimeMs(opTimeMs).build();
-    rpcContext.getJournalContext()
-        .append(Journal.JournalEntry.newBuilder().setDeleteFile(deleteFile).build());
+    rpcContext.journal(Journal.JournalEntry.newBuilder().setDeleteFile(deleteFile).build());
 
     if (inode.isFile()) {
       rpcContext.getBlockDeletionContext()
@@ -1046,7 +1045,7 @@ public class InodeTree implements JournalEntryIterable {
           // Append the persist entry to the journal.
           File.PersistDirectoryEntry persistDirectory =
               File.PersistDirectoryEntry.newBuilder().setId(dir.getId()).build();
-          rpcContext.getJournalContext().append(
+          rpcContext.journal(
               Journal.JournalEntry.newBuilder().setPersistDirectory(persistDirectory).build());
           success = true;
         } finally {

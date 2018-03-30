@@ -14,6 +14,7 @@ package alluxio.master.file;
 import alluxio.exception.status.UnavailableException;
 import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.NoopJournalContext;
+import alluxio.proto.journal.Journal.JournalEntry;
 
 import com.google.common.base.Throwables;
 
@@ -58,6 +59,15 @@ public final class RpcContext implements Closeable {
    */
   public JournalContext getJournalContext() {
     return mJournalContext;
+  }
+
+  /**
+   * Syntax sugar for getJournalContext().append(entry).
+   *
+   * @param entry the {@link JournalEntry} to append to the journal
+   */
+  public void journal(JournalEntry entry) {
+    mJournalContext.append(entry);
   }
 
   /**

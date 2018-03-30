@@ -1166,8 +1166,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         CompleteFileEntry.newBuilder().addAllBlockIds(fileInode.getBlockIds()).setId(inode.getId())
             .setLength(length).setOpTimeMs(options.getOperationTimeMs())
             .setUfsFingerprint(ufsFingerprint).build();
-    rpcContext.getJournalContext()
-        .append(JournalEntry.newBuilder().setCompleteFile(completeFileEntry).build());
+    rpcContext.journal(JournalEntry.newBuilder().setCompleteFile(completeFileEntry).build());
   }
 
   /**
@@ -1330,8 +1329,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
           ReinitializeFileEntry.newBuilder().setPath(path.getPath())
               .setBlockSizeBytes(blockSizeBytes).setTtl(ttl)
               .setTtlAction(ProtobufUtils.toProtobuf(ttlAction)).build();
-      rpcContext.getJournalContext()
-          .append(JournalEntry.newBuilder().setReinitializeFile(reinitializeFile).build());
+      rpcContext.journal(JournalEntry.newBuilder().setReinitializeFile(reinitializeFile).build());
       return id;
     }
   }
@@ -2080,7 +2078,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     RenameEntry rename =
         RenameEntry.newBuilder().setId(srcInode.getId()).setDstPath(dstInodePath.getUri().getPath())
             .setOpTimeMs(options.getOperationTimeMs()).build();
-    rpcContext.getJournalContext().append(JournalEntry.newBuilder().setRename(rename).build());
+    rpcContext.journal(JournalEntry.newBuilder().setRename(rename).build());
   }
 
   /**
@@ -2799,8 +2797,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
             .setUfsPath(ufsPath.toString()).setMountId(mountId)
             .setReadOnly(options.isReadOnly())
             .addAllProperties(protoProperties).setShared(options.isShared()).build();
-    rpcContext.getJournalContext()
-        .append(JournalEntry.newBuilder().setAddMountPoint(addMountPoint).build());
+    rpcContext.journal(JournalEntry.newBuilder().setAddMountPoint(addMountPoint).build());
   }
 
   /**
@@ -2929,8 +2926,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     }
     DeleteMountPointEntry deleteMountPoint =
         DeleteMountPointEntry.newBuilder().setAlluxioPath(inodePath.getUri().toString()).build();
-    rpcContext.getJournalContext()
-        .append(JournalEntry.newBuilder().setDeleteMountPoint(deleteMountPoint).build());
+    rpcContext.journal(JournalEntry.newBuilder().setDeleteMountPoint(deleteMountPoint).build());
   }
 
   /**
@@ -3146,8 +3142,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     // write to journal
     AsyncPersistRequestEntry asyncPersistRequestEntry =
         AsyncPersistRequestEntry.newBuilder().setFileId(fileId).build();
-    rpcContext.getJournalContext()
-        .append(JournalEntry.newBuilder().setAsyncPersistRequest(asyncPersistRequestEntry).build());
+    rpcContext.journal(
+        JournalEntry.newBuilder().setAsyncPersistRequest(asyncPersistRequestEntry).build());
   }
 
   /**
@@ -3604,8 +3600,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     }
     File.UpdateUfsModeEntry ufsEntry = File.UpdateUfsModeEntry.newBuilder()
         .setUfsPath(ufsPath.getRootPath()).setUfsMode(ufsModeEntry).build();
-    rpcContext.getJournalContext()
-        .append(JournalEntry.newBuilder().setUpdateUfsMode(ufsEntry).build());
+    rpcContext.journal(JournalEntry.newBuilder().setUpdateUfsMode(ufsEntry).build());
   }
 
   /**
