@@ -46,7 +46,7 @@ public final class CapacityCommandIntegrationTest extends AbstractFsAdminShellTe
   public void lostCapacity() {
     int ret = mFsAdminShell.run("report", "capacity", "-lost");
     Assert.assertEquals(0, ret);
-    Assert.assertEquals(mOutput.toString(), "No worker exists.\n");
+    Assert.assertEquals(mOutput.toString(), "No workers found.\n");
   }
 
   @Test

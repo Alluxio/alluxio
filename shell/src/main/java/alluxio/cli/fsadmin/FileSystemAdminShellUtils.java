@@ -11,6 +11,9 @@
 
 package alluxio.cli.fsadmin;
 
+import java.util.Arrays;
+import java.util.List;
+
 /**
  * Class for convenience methods used by {@link FileSystemAdminShell}.
  */
@@ -31,7 +34,7 @@ public final class FileSystemAdminShellUtils {
     if (aValue == bValue) {
       return a.compareTo(b);
     }
-    return bValue - aValue;
+    return aValue - bValue;
   }
 
   /**
@@ -43,16 +46,12 @@ public final class FileSystemAdminShellUtils {
   private static int getTierRankValue(String input) {
     // MEM, SSD, and HDD are the most commonly used Alluxio tier alias,
     // so we want them to show before other tier names
-    // MEM, SSD, and HDD are sorted according to speed of access
-    switch (input) {
-      case "MEM":
-        return 4;
-      case "SSD":
-        return 3;
-      case "HDD":
-        return 2;
-      default:
-        return 0;
+    // MEM, SSD, and HDD are sorted according to the speed of access
+    List<String> tierOrder = Arrays.asList("MEM", "SSD", "HDD");
+    int rank = tierOrder.indexOf(input);
+    if (rank == -1) {
+      return Integer.MAX_VALUE;
     }
+    return rank;
   }
 }

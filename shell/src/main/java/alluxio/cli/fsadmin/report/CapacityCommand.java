@@ -287,8 +287,8 @@ public class CapacityCommand {
    */
   private static String getWorkerFormattedTierValues(Map<String, Map<String, String>> map,
       String workerName) {
-    return map.entrySet().stream().map((entry)
-        -> (String.format("%-14s", entry.getValue().getOrDefault(workerName, "-"))))
+    return map.values().stream().map((tierMap)
+        -> (String.format("%-14s", tierMap.getOrDefault(workerName, "-"))))
         .collect(Collectors.joining(""));
   }
 
