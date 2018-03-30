@@ -3834,6 +3834,9 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     throw new IOException("Failed to remove deleted blocks from block master", lastThrown);
   }
 
+  /**
+   * @return a context for executing an RPC
+   */
   @VisibleForTesting
   public RpcContext createRpcContext() throws UnavailableException {
     return new RpcContext(createBlockDeletionContext(), createJournalContext());
