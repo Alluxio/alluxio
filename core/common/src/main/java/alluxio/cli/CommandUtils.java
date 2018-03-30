@@ -69,7 +69,7 @@ public final class CommandUtils {
       InvalidArgumentException {
     if (cl.getArgs().length != n) {
       throw new InvalidArgumentException(ExceptionMessage.INVALID_ARGS_NUM
-          .getMessage(cmd.getCommandName(), cl.getArgs().length));
+          .getMessage(cmd.getCommandName(), n, cl.getArgs().length));
     }
   }
 

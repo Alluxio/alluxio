@@ -74,7 +74,7 @@ public final class CommandTest {
     TestCommand cmd = new TestCommand();
 
     mExpectedException.expect(InvalidArgumentException.class);
-    mExpectedException.expectMessage(INVALID_ARGS_NUM.getMessage(cmd.getCommandName(), 2));
+    mExpectedException.expectMessage(INVALID_ARGS_NUM.getMessage(cmd.getCommandName(), 1, 2));
     cmd.parseAndValidateArgs("arg1", "arg2");
   }
 }
