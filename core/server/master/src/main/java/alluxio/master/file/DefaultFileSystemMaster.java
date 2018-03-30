@@ -205,26 +205,33 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    * methods which iterate over child nodes can safely ignore the exception and treat the inode
    * as no longer a child.
    *
-   * Journaling in the FileSystemMaster
+   * JournalContext, BlockDeletionContext, and RpcContext
    *
-   * Any changes to file system metadata that need to survive system restarts and / or failures
-   * should be journaled. The intent to journal and the actual writing of the journal is decoupled
-   * so that operations are not holding metadata locks waiting on the journal IO. In particular,
-   * file system operations are expected to create a {@link JournalContext} resource, use it
-   * throughout the lifetime of an operation to collect journal events through
-   * {@link JournalContext#append(JournalEntry)}, and then close the resource, which
-   * will persist the journal events. In order to ensure the journal events are always persisted,
-   * the following paradigm is recommended:
+   * RpcContext is an aggregator for various contexts which get passed around through file system
+   * master methods.
+   *
+   * Currently there are two types of contexts that get passed around: {@link JournalContext} and
+   * {@link BlockDeletionContext}. These contexts are used to register work that should be done when
+   * the context closes. The journal context tracks journal entries which need to be flushed, while
+   * the block deletion context tracks which blocks need to be deleted in the {@link BlockMaster}.
+   *
+   * File system master journal entries should be written before blocks are deleted in the block
+   * master, so journal context should always be closed before block deletion context. In order to
+   * ensure that contexts are closed and closed in the right order, the following paradign is
+   * recommended:
    *
    * <p><blockquote><pre>
-   *    try (JournalContext journalContext = createJournalContext()) {
+   *    try (RpcContext rpcContext = createRpcContext()) {
+   *      // access journal context with rpcContext.getJournalContext()
+   *      // access block deletion context with rpcContext.getBlockDeletionContext()
    *      ...
    *    }
    * </pre></blockquote>
    *
    * NOTE: Because resources are released in the opposite order they are acquired, the
-   * {@link JournalContext} resources should be always created before any {@link LockedInodePath}
-   * resources to avoid holding an inode path lock while waiting for journal IO.
+   * {@link JournalContext}, {@link BlockDeletionContext}, or {@link RpcContext} resources should be
+   * always created before any {@link LockedInodePath} resources to avoid holding an inode path lock
+   * while waiting for journal IO.
    *
    * User access audit logging in the FileSystemMaster
    *

@@ -66,7 +66,9 @@ public final class RpcContext implements Closeable {
 
   @Override
   public void close() throws UnavailableException {
-    // Order is important
+    // JournalContext is closed before block deletion context so that file system master changes
+    // get written before block master changes. If a failure occurs between deleting an inode and
+    // remove its blocks, it's better to have an orphaned block than an inode with a missing block.
     closeQuietly(mJournalContext);
     closeQuietly(mBlockDeletionContext);
 
