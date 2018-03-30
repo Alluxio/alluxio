@@ -201,7 +201,7 @@ public final class Configuration {
           // TODO(adit): Do not add properties unrecognized by Ufs extensions when Configuraton
           // is made dynamic
           PROPERTIES.put(key, value);
-          SOURCES.put(new PropertyKey.Builder(key).build(), source);
+          SOURCES.put(new PropertyKey.Builder(key).setIsHidden(true).build(), source);
         }
       }
     }

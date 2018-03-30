@@ -206,6 +206,9 @@ public final class ConfigurationDocGenerator {
    * @param args arguments for command line
    */
   public static void main(String[] args) throws IOException {
+    // Trigger classloading of Configuration so that PropertyKey defaults are filled out.
+    // TODO(adit): Remove this when we stop adding default property keys from Configuration.
+    Configuration.containsKey(PropertyKey.CONF_DIR);
     Collection<? extends PropertyKey> defaultKeys = PropertyKey.defaultKeys();
     defaultKeys.removeIf(key -> key.isHidden());
     String homeDir = Configuration.get(PropertyKey.HOME);
