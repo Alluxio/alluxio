@@ -25,8 +25,10 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -209,7 +211,7 @@ public final class ConfigurationDocGenerator {
     // Trigger classloading of Configuration so that PropertyKey defaults are filled out.
     // TODO(adit): Remove this when we stop adding default property keys from Configuration.
     Configuration.containsKey(PropertyKey.CONF_DIR);
-    Collection<? extends PropertyKey> defaultKeys = PropertyKey.defaultKeys();
+    Set<PropertyKey> defaultKeys = new HashSet<>(PropertyKey.defaultKeys());
     defaultKeys.removeIf(key -> key.isHidden());
     String homeDir = Configuration.get(PropertyKey.HOME);
     // generate CSV files
