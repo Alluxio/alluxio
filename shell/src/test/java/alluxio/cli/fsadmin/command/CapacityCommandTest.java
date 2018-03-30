@@ -46,7 +46,7 @@ public class CapacityCommandTest {
   }
 
   @Test
-  public void longapacity() throws IOException {
+  public void capacity() throws IOException {
     try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
          PrintStream printStream = new PrintStream(outputStream, true, "utf-8")) {
       CapacityCommand capacityCommand = new CapacityCommand(mBlockMasterClient,
