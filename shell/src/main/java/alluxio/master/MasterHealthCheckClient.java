@@ -120,16 +120,21 @@ public class MasterHealthCheckClient implements HealthCheckClient {
           List<InetSocketAddress> addresses = client.getMasterRpcAddresses();
           for (InetSocketAddress address : addresses) {
             String host = address.getHostName();
+            int port = address.getPort();
             LOG.debug("Master health check on node {}", host);
             String cmd = String.format("ssh %s %s %s", ShellUtils.COMMON_SSH_OPTS, host,
-                    "ps -ef | grep \"" + mAlluxioMasterName + "$\" | "
-                    + "grep \"java\" | "
-                    + "awk '{ print $2; }'");
+                "ps -ef | grep \"" + mAlluxioMasterName + "$\" | "
+                + "grep \"java\" | "
+                + "awk '{ print $2; }'");
             LOG.debug("Executing: {}", cmd);
             String output = ShellUtils.execCommand("bash", "-c", cmd);
             if (output.isEmpty()) {
               throw new IllegalStateException(
-                      String.format("Master process is not running on the host %s", host));
+                  String.format("Master process is not running on the host %s", host));
+            } else if (output.contains("Connection refused")) {
+              throw new IllegalStateException(
+                  String.format("Connection refused while connecting to the host %s on port %d",
+                      host, port));
             }
             LOG.debug("Master running on node {} with pid={}", host, output);
           }
@@ -162,6 +167,7 @@ public class MasterHealthCheckClient implements HealthCheckClient {
       if (mProcessCheck) {
         Future<?> processCheckFuture = mExecutorService.submit(
                 new ProcessCheckRunnable(mAlluxioMasterName));
+        CommonUtils.sleepMs(Constants.SECOND_MS);
         while (!masterServingCheckFuture.isDone()) {
           if (processCheckFuture.isDone()) {
             throw new IllegalStateException("One or more master processes are not running");
