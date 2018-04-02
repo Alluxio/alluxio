@@ -20,6 +20,7 @@ import alluxio.wire.ConfigInfo;
 import alluxio.wire.MasterInfo;
 import alluxio.wire.MasterInfo.MasterInfoField;
 
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -34,14 +35,19 @@ public final class MetaMasterIntegrationTest extends BaseIntegrationTest {
   @Rule
   public LocalAlluxioClusterResource mResource = new LocalAlluxioClusterResource.Builder().build();
 
+  private int mWebPort;
+
+  @Before
+  public void prepareWebPort() throws Exception {
+    mWebPort = mResource.get().getLocalAlluxioMaster().getMasterProcess().getWebAddress().getPort();
+  }
+
   @Test
   public void getInfoAllFields() throws Exception {
     try (MetaMasterClient client =
         new RetryHandlingMetaMasterClient(MasterClientConfig.defaults())) {
-      int webPort =
-          mResource.get().getLocalAlluxioMaster().getMasterProcess().getWebAddress().getPort();
       MasterInfo info = client.getMasterInfo(null);
-      assertEquals(webPort, info.getWebPort());
+      assertEquals(mWebPort, info.getWebPort());
     }
   }
 
@@ -49,11 +55,9 @@ public final class MetaMasterIntegrationTest extends BaseIntegrationTest {
   public void getMasterInfoWebPort() throws Exception {
     try (MetaMasterClient client =
         new RetryHandlingMetaMasterClient(MasterClientConfig.defaults())) {
-      int webPort =
-          mResource.get().getLocalAlluxioMaster().getMasterProcess().getWebAddress().getPort();
       MasterInfo info = client.getMasterInfo(new HashSet<>(Arrays
           .asList(MasterInfoField.WEB_PORT)));
-      assertEquals(webPort, info.getWebPort());
+      assertEquals(mWebPort, info.getWebPort());
     }
   }
 
@@ -61,8 +65,6 @@ public final class MetaMasterIntegrationTest extends BaseIntegrationTest {
   public void getConfigInfoWebPort() throws Exception {
     try (MetaMasterClient client =
              new RetryHandlingMetaMasterClient(MasterClientConfig.defaults())) {
-      int webPort =
-          mResource.get().getLocalAlluxioMaster().getMasterProcess().getWebAddress().getPort();
       List<ConfigInfo> configInfoList = client.getConfigInfoList();
       int configWebPort = -1;
       for (ConfigInfo info : configInfoList) {
@@ -70,7 +72,7 @@ public final class MetaMasterIntegrationTest extends BaseIntegrationTest {
           configWebPort = Integer.valueOf(info.getValue());
         }
       }
-      assertEquals(webPort, configWebPort);
+      assertEquals(mWebPort, configWebPort);
     }
   }
 }
