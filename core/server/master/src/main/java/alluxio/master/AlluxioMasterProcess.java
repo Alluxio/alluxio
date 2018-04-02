@@ -28,7 +28,7 @@ import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 import alluxio.web.MasterWebServer;
 import alluxio.web.WebServer;
-import alluxio.wire.ConfigInfo;
+import alluxio.wire.ConfigProperty;
 
 import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
@@ -202,8 +202,8 @@ public class AlluxioMasterProcess implements MasterProcess {
   }
 
   @Override
-  public List<ConfigInfo> getConfigInfoList() {
-    List<ConfigInfo> configInfoList = new ArrayList<>();
+  public List<ConfigProperty> getConfiguration() {
+    List<ConfigProperty> configInfoList = new ArrayList<>();
     String alluxioConfPrefix = "alluxio";
     Set<String> alluxioConfExcludes = Sets.newHashSet(
         PropertyKey.MASTER_WHITELIST.toString());
@@ -219,8 +219,8 @@ public class AlluxioMasterProcess implements MasterProcess {
         } else {
           sourceStr = source.name();
         }
-        configInfoList.add(new ConfigInfo()
-            .setName(key).setValue(Configuration.get(propertyKey)).setSource(sourceStr));
+        configInfoList.add(new ConfigProperty()
+            .setName(key).setValue(entry.getValue()).setSource(sourceStr));
       }
     }
     return configInfoList;

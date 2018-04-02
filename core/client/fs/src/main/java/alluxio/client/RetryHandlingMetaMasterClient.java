@@ -15,10 +15,10 @@ import alluxio.AbstractMasterClient;
 import alluxio.Constants;
 import alluxio.master.MasterClientConfig;
 import alluxio.thrift.AlluxioService;
-import alluxio.thrift.GetConfigInfoListTOptions;
+import alluxio.thrift.GetConfigurationTOptions;
 import alluxio.thrift.GetMasterInfoTOptions;
 import alluxio.thrift.MetaMasterClientService;
-import alluxio.wire.ConfigInfo;
+import alluxio.wire.ConfigProperty;
 import alluxio.wire.MasterInfo;
 import alluxio.wire.MasterInfo.MasterInfoField;
 import alluxio.wire.ThriftUtils;
@@ -73,14 +73,14 @@ public final class RetryHandlingMetaMasterClient extends AbstractMasterClient
   }
 
   @Override
-  public synchronized List<ConfigInfo> getConfigInfoList() throws IOException {
+  public synchronized List<ConfigProperty> getConfiguration() throws IOException {
     return retryRPC(() -> {
-      List<ConfigInfo> result = new ArrayList<>();
-      for (alluxio.thrift.ConfigInfo configInfo : mClient
-          .getConfigInfoList(new GetConfigInfoListTOptions()).getConfigInfoList()) {
-        result.add(ThriftUtils.fromThrift(configInfo));
+      List<ConfigProperty> configList = new ArrayList<>();
+      for (alluxio.thrift.ConfigProperty configInfo : mClient
+          .getConfiguration(new GetConfigurationTOptions()).getConfigList()) {
+        configList.add(ConfigProperty.fromThrift(configInfo));
       }
-      return result;
+      return configList;
     });
   }
 

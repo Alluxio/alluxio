@@ -13,7 +13,7 @@ package alluxio.web;
 
 import alluxio.master.MasterProcess;
 import alluxio.master.file.FileSystemMaster;
-import alluxio.wire.ConfigInfo;
+import alluxio.wire.ConfigProperty;
 
 import com.google.common.base.Preconditions;
 import org.apache.commons.lang3.tuple.ImmutableTriple;
@@ -42,8 +42,8 @@ public final class WebInterfaceConfigurationServlet extends HttpServlet {
   /**
    * Creates a new instance of {@link WebInterfaceConfigurationServlet}.
    *
-   * @param fsMaster file system master
-   * @param masterProcess the Alluxio master process
+   * @param fsMaster file system master to get white list
+   * @param masterProcess the Alluxio master process to get configuration
    */
   public WebInterfaceConfigurationServlet(FileSystemMaster fsMaster, MasterProcess masterProcess) {
     mFsMaster = fsMaster;
@@ -68,9 +68,9 @@ public final class WebInterfaceConfigurationServlet extends HttpServlet {
 
   private SortedSet<Triple<String, String, String>> getSortedProperties() {
     TreeSet<Triple<String, String, String>> rtn = new TreeSet<>();
-    for (ConfigInfo configInfo : mMasterProcess.getConfigInfoList()) {
-      rtn.add(new ImmutableTriple<>(configInfo.getName(),
-          configInfo.getValue(), configInfo.getSource()));
+    for (ConfigProperty configProperty : mMasterProcess.getConfiguration()) {
+      rtn.add(new ImmutableTriple<>(configProperty.getName(),
+          configProperty.getValue(), configProperty.getSource()));
     }
     return rtn;
   }

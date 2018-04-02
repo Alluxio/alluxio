@@ -32,6 +32,7 @@ import alluxio.master.PollingMasterInquireClient;
 import alluxio.resource.CloseableResource;
 import alluxio.retry.ExponentialBackoffRetry;
 
+import com.google.common.io.Closer;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
@@ -51,10 +52,11 @@ public final class ReportCommand extends AbstractCommand {
   public static final String LOST_OPTION_NAME = "lost";
   public static final String SPECIFIED_OPTION_NAME = "workers";
 
-  private BlockMasterClient mBlockMasterClient;
-  private FileSystemMasterClient mFileSystemMasterClient;
-  private MetaMasterClient mMetaMasterClient;
-  private PrintStream mPrintStream;
+  private final BlockMasterClient mBlockMasterClient;
+  private final Closer mCloser;
+  private final FileSystemMasterClient mFileSystemMasterClient;
+  private final MetaMasterClient mMetaMasterClient;
+  private final PrintStream mPrintStream;
 
   private static final Option HELP_OPTION =
       Option.builder(HELP_OPTION_NAME)
@@ -95,10 +97,11 @@ public final class ReportCommand extends AbstractCommand {
    * Creates a new instance of {@link ReportCommand}.
    */
   public ReportCommand() {
+    mCloser = Closer.create();
     MasterClientConfig config = MasterClientConfig.defaults();
-    mBlockMasterClient = new RetryHandlingBlockMasterClient(config);
-    mFileSystemMasterClient = new RetryHandlingFileSystemMasterClient(config);
-    mMetaMasterClient = new RetryHandlingMetaMasterClient(config);
+    mBlockMasterClient = mCloser.register(new RetryHandlingBlockMasterClient(config));
+    mFileSystemMasterClient = mCloser.register(new RetryHandlingFileSystemMasterClient(config));
+    mMetaMasterClient = mCloser.register(new RetryHandlingMetaMasterClient(config));
     mPrintStream = System.out;
   }
 
@@ -114,50 +117,50 @@ public final class ReportCommand extends AbstractCommand {
 
   @Override
   public int run(CommandLine cl) throws IOException {
-    String[] args = cl.getArgs();
-
-    if (cl.hasOption(HELP_OPTION_NAME)
-        && !(args.length > 0 && args[0].equals("capacity"))) {
-      // if category is capacity, we print report capacity usage inside CapacityCommand.
-      System.out.println(getUsage());
-      System.out.println(getDescription());
-      return 0;
-    }
-
-    // Get the report category
-    Command command = Command.SUMMARY;
-    if (args.length == 1) {
-      switch (args[0]) {
-        case "capacity":
-          command = Command.CAPACITY;
-          break;
-        case "configuration":
-          command = Command.CONFIGURATION;
-          break;
-        case "summary":
-          command = Command.SUMMARY;
-          break;
-        case "ufs":
-          command = Command.UFS;
-          break;
-        default:
-          System.out.println(getUsage());
-          System.out.println(getDescription());
-          throw new InvalidArgumentException("report category is invalid.");
-      }
-    }
-
-    // Only capacity category has [category args]
-    if (!command.equals(Command.CAPACITY)) {
-      if (cl.getOptions().length > 0) {
-        throw new InvalidArgumentException(
-            String.format("report %s does not support arguments: %s",
-                command.toString().toLowerCase(), cl.getOptions()[0].getOpt()));
-      }
-    }
-
-    // Check if Alluxio master and client services are running
     try {
+      String[] args = cl.getArgs();
+
+      if (cl.hasOption(HELP_OPTION_NAME)
+          && !(args.length > 0 && args[0].equals("capacity"))) {
+        // if category is capacity, we print report capacity usage inside CapacityCommand.
+        System.out.println(getUsage());
+        System.out.println(getDescription());
+        return 0;
+      }
+
+      // Get the report category
+      Command command = Command.SUMMARY;
+      if (args.length == 1) {
+        switch (args[0]) {
+          case "capacity":
+            command = Command.CAPACITY;
+            break;
+          case "configuration":
+            command = Command.CONFIGURATION;
+            break;
+          case "summary":
+            command = Command.SUMMARY;
+            break;
+          case "ufs":
+            command = Command.UFS;
+            break;
+          default:
+            System.out.println(getUsage());
+            System.out.println(getDescription());
+            throw new InvalidArgumentException("report category is invalid.");
+        }
+      }
+
+      // Only capacity category has [category args]
+      if (!command.equals(Command.CAPACITY)) {
+        if (cl.getOptions().length > 0) {
+          throw new InvalidArgumentException(
+              String.format("report %s does not support arguments: %s",
+                  command.toString().toLowerCase(), cl.getOptions()[0].getOpt()));
+        }
+      }
+
+      // Check if Alluxio master and client services are running
       try (CloseableResource<FileSystemMasterClient> client =
                FileSystemContext.INSTANCE.acquireMasterClientResource()) {
         MasterInquireClient inquireClient = null;
@@ -204,9 +207,7 @@ public final class ReportCommand extends AbstractCommand {
           break;
       }
     } finally {
-      mBlockMasterClient.close();
-      mFileSystemMasterClient.close();
-      mMetaMasterClient.close();
+      mCloser.close();
     }
     return 0;
   }

@@ -3,15 +3,15 @@ namespace java alluxio.thrift
 include "common.thrift"
 include "exception.thrift"
 
-struct ConfigInfo {
+struct ConfigProperty {
   1: string name
-  2: string value
-  3: string source
+  2: string source
+  3: string value
 }
 
-struct GetConfigInfoListTOptions{}
-struct GetConfigInfoListTResponse{
-  1: list<ConfigInfo> configInfoList
+struct GetConfigurationTOptions{}
+struct GetConfigurationTResponse{
+  1: list<ConfigProperty> configList
 }
 
 enum MasterInfoField {
@@ -57,7 +57,7 @@ service MetaMasterClientService extends common.AlluxioService {
   /**
    * Returns a list of Alluxio runtime configuration information.
    */
-  GetConfigInfoListTResponse getConfigInfoList(
-    /** the method options */ 1: GetConfigInfoListTOptions options,
+  GetConfigurationTResponse getConfiguration(
+    /** the method options */ 1: GetConfigurationTOptions options,
   ) throws (1: exception.AlluxioTException e)
 }

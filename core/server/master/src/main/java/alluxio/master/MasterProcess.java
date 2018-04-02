@@ -16,7 +16,7 @@ import alluxio.Process;
 import alluxio.PropertyKey;
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.JournalUtils;
-import alluxio.wire.ConfigInfo;
+import alluxio.wire.ConfigProperty;
 
 import java.net.InetSocketAddress;
 import java.net.URI;
@@ -91,5 +91,5 @@ public interface MasterProcess extends Process {
   /**
    * @return configuration information list
    */
-  List<ConfigInfo> getConfigInfoList();
+  List<ConfigProperty> getConfiguration();
 }

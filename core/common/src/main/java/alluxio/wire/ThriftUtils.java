@@ -56,16 +56,6 @@ public final class ThriftUtils {
   /**
    * Converts a thrift type to a wire type.
    *
-   * @param configInfo the thrift representation of a configuration information
-   * @return wire representation of the configuration information
-   */
-  public static ConfigInfo fromThrift(alluxio.thrift.ConfigInfo configInfo) {
-    return new ConfigInfo(configInfo);
-  }
-
-  /**
-   * Converts a thrift type to a wire type.
-   *
    * @param jobInfo the thrift representation of a command-line job information
    * @return wire representation of the command-line job information
    */
@@ -191,16 +181,6 @@ public final class ThriftUtils {
    */
   public static alluxio.thrift.BlockMasterInfo toThrift(BlockMasterInfo blockMasterInfo) {
     return blockMasterInfo.toThrift();
-  }
-
-  /**
-   * Converts a wire type to a thrift type.
-   *
-   * @param configInfo the wire representation of the configuration information
-   * @return thrift representation of the configuration information
-   */
-  public static alluxio.thrift.ConfigInfo toThrift(ConfigInfo configInfo) {
-    return configInfo.toThrift();
   }
 
   /**

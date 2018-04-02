@@ -12,11 +12,12 @@
 package alluxio.cli.fsadmin.report;
 
 import alluxio.client.MetaMasterClient;
-import alluxio.wire.ConfigInfo;
+import alluxio.wire.ConfigProperty;
 
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 /**
@@ -45,13 +46,13 @@ public class ConfigurationCommand {
    * @return 0 on success, 1 otherwise
    */
   public int run() throws IOException {
-    List<ConfigInfo> configInfoList = mMetaMasterClient.getConfigInfoList();
-    Collections.sort(configInfoList, (a, b) -> (a.getSource().compareTo(b.getSource())));
+    List<ConfigProperty> configList = mMetaMasterClient.getConfiguration();
+    Collections.sort(configList, Comparator.comparing(ConfigProperty::getSource));
 
     mPrintStream.print("Alluxio configuration information: \n");
     mPrintStream.print(String.format(CONFIG_INFO_FORMAT,
         "Property", "Value", "Source"));
-    for (ConfigInfo info : configInfoList) {
+    for (ConfigProperty info : configList) {
       mPrintStream.print(String.format(CONFIG_INFO_FORMAT,
           info.getName(), info.getValue(), info.getSource()));
     }

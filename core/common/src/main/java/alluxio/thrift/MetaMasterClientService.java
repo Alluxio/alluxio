@@ -54,7 +54,7 @@ public class MetaMasterClientService {
      * 
      * @param options the method options
      */
-    public GetConfigInfoListTResponse getConfigInfoList(GetConfigInfoListTOptions options) throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException;
+    public GetConfigurationTResponse getConfiguration(GetConfigurationTOptions options) throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException;
 
   }
 
@@ -62,7 +62,7 @@ public class MetaMasterClientService {
 
     public void getMasterInfo(GetMasterInfoTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
-    public void getConfigInfoList(GetConfigInfoListTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
+    public void getConfiguration(GetConfigurationTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
   }
 
@@ -112,30 +112,30 @@ public class MetaMasterClientService {
       throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "getMasterInfo failed: unknown result");
     }
 
-    public GetConfigInfoListTResponse getConfigInfoList(GetConfigInfoListTOptions options) throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException
+    public GetConfigurationTResponse getConfiguration(GetConfigurationTOptions options) throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException
     {
-      send_getConfigInfoList(options);
-      return recv_getConfigInfoList();
+      send_getConfiguration(options);
+      return recv_getConfiguration();
     }
 
-    public void send_getConfigInfoList(GetConfigInfoListTOptions options) throws org.apache.thrift.TException
+    public void send_getConfiguration(GetConfigurationTOptions options) throws org.apache.thrift.TException
     {
-      getConfigInfoList_args args = new getConfigInfoList_args();
+      getConfiguration_args args = new getConfiguration_args();
       args.setOptions(options);
-      sendBase("getConfigInfoList", args);
+      sendBase("getConfiguration", args);
     }
 
-    public GetConfigInfoListTResponse recv_getConfigInfoList() throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException
+    public GetConfigurationTResponse recv_getConfiguration() throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException
     {
-      getConfigInfoList_result result = new getConfigInfoList_result();
-      receiveBase(result, "getConfigInfoList");
+      getConfiguration_result result = new getConfiguration_result();
+      receiveBase(result, "getConfiguration");
       if (result.isSetSuccess()) {
         return result.success;
       }
       if (result.e != null) {
         throw result.e;
       }
-      throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "getConfigInfoList failed: unknown result");
+      throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "getConfiguration failed: unknown result");
     }
 
   }
@@ -188,35 +188,35 @@ public class MetaMasterClientService {
       }
     }
 
-    public void getConfigInfoList(GetConfigInfoListTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
+    public void getConfiguration(GetConfigurationTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
       checkReady();
-      getConfigInfoList_call method_call = new getConfigInfoList_call(options, resultHandler, this, ___protocolFactory, ___transport);
+      getConfiguration_call method_call = new getConfiguration_call(options, resultHandler, this, ___protocolFactory, ___transport);
       this.___currentMethod = method_call;
       ___manager.call(method_call);
     }
 
-    public static class getConfigInfoList_call extends org.apache.thrift.async.TAsyncMethodCall {
-      private GetConfigInfoListTOptions options;
-      public getConfigInfoList_call(GetConfigInfoListTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
+    public static class getConfiguration_call extends org.apache.thrift.async.TAsyncMethodCall {
+      private GetConfigurationTOptions options;
+      public getConfiguration_call(GetConfigurationTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
         super(client, protocolFactory, transport, resultHandler, false);
         this.options = options;
       }
 
       public void write_args(org.apache.thrift.protocol.TProtocol prot) throws org.apache.thrift.TException {
-        prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("getConfigInfoList", org.apache.thrift.protocol.TMessageType.CALL, 0));
-        getConfigInfoList_args args = new getConfigInfoList_args();
+        prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("getConfiguration", org.apache.thrift.protocol.TMessageType.CALL, 0));
+        getConfiguration_args args = new getConfiguration_args();
         args.setOptions(options);
         args.write(prot);
         prot.writeMessageEnd();
       }
 
-      public GetConfigInfoListTResponse getResult() throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException {
+      public GetConfigurationTResponse getResult() throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException {
         if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
         org.apache.thrift.transport.TMemoryInputTransport memoryTransport = new org.apache.thrift.transport.TMemoryInputTransport(getFrameBuffer().array());
         org.apache.thrift.protocol.TProtocol prot = client.getProtocolFactory().getProtocol(memoryTransport);
-        return (new Client(prot)).recv_getConfigInfoList();
+        return (new Client(prot)).recv_getConfiguration();
       }
     }
 
@@ -234,7 +234,7 @@ public class MetaMasterClientService {
 
     private static <I extends Iface> Map<String,  org.apache.thrift.ProcessFunction<I, ? extends  org.apache.thrift.TBase>> getProcessMap(Map<String,  org.apache.thrift.ProcessFunction<I, ? extends  org.apache.thrift.TBase>> processMap) {
       processMap.put("getMasterInfo", new getMasterInfo());
-      processMap.put("getConfigInfoList", new getConfigInfoList());
+      processMap.put("getConfiguration", new getConfiguration());
       return processMap;
     }
 
@@ -262,23 +262,23 @@ public class MetaMasterClientService {
       }
     }
 
-    public static class getConfigInfoList<I extends Iface> extends org.apache.thrift.ProcessFunction<I, getConfigInfoList_args> {
-      public getConfigInfoList() {
-        super("getConfigInfoList");
+    public static class getConfiguration<I extends Iface> extends org.apache.thrift.ProcessFunction<I, getConfiguration_args> {
+      public getConfiguration() {
+        super("getConfiguration");
       }
 
-      public getConfigInfoList_args getEmptyArgsInstance() {
-        return new getConfigInfoList_args();
+      public getConfiguration_args getEmptyArgsInstance() {
+        return new getConfiguration_args();
       }
 
       protected boolean isOneway() {
         return false;
       }
 
-      public getConfigInfoList_result getResult(I iface, getConfigInfoList_args args) throws org.apache.thrift.TException {
-        getConfigInfoList_result result = new getConfigInfoList_result();
+      public getConfiguration_result getResult(I iface, getConfiguration_args args) throws org.apache.thrift.TException {
+        getConfiguration_result result = new getConfiguration_result();
         try {
-          result.success = iface.getConfigInfoList(args.options);
+          result.success = iface.getConfiguration(args.options);
         } catch (alluxio.thrift.AlluxioTException e) {
           result.e = e;
         }
@@ -300,7 +300,7 @@ public class MetaMasterClientService {
 
     private static <I extends AsyncIface> Map<String,  org.apache.thrift.AsyncProcessFunction<I, ? extends  org.apache.thrift.TBase,?>> getProcessMap(Map<String,  org.apache.thrift.AsyncProcessFunction<I, ? extends  org.apache.thrift.TBase, ?>> processMap) {
       processMap.put("getMasterInfo", new getMasterInfo());
-      processMap.put("getConfigInfoList", new getConfigInfoList());
+      processMap.put("getConfiguration", new getConfiguration());
       return processMap;
     }
 
@@ -361,20 +361,20 @@ public class MetaMasterClientService {
       }
     }
 
-    public static class getConfigInfoList<I extends AsyncIface> extends org.apache.thrift.AsyncProcessFunction<I, getConfigInfoList_args, GetConfigInfoListTResponse> {
-      public getConfigInfoList() {
-        super("getConfigInfoList");
+    public static class getConfiguration<I extends AsyncIface> extends org.apache.thrift.AsyncProcessFunction<I, getConfiguration_args, GetConfigurationTResponse> {
+      public getConfiguration() {
+        super("getConfiguration");
       }
 
-      public getConfigInfoList_args getEmptyArgsInstance() {
-        return new getConfigInfoList_args();
+      public getConfiguration_args getEmptyArgsInstance() {
+        return new getConfiguration_args();
       }
 
-      public AsyncMethodCallback<GetConfigInfoListTResponse> getResultHandler(final AsyncFrameBuffer fb, final int seqid) {
+      public AsyncMethodCallback<GetConfigurationTResponse> getResultHandler(final AsyncFrameBuffer fb, final int seqid) {
         final org.apache.thrift.AsyncProcessFunction fcall = this;
-        return new AsyncMethodCallback<GetConfigInfoListTResponse>() { 
-          public void onComplete(GetConfigInfoListTResponse o) {
-            getConfigInfoList_result result = new getConfigInfoList_result();
+        return new AsyncMethodCallback<GetConfigurationTResponse>() { 
+          public void onComplete(GetConfigurationTResponse o) {
+            getConfiguration_result result = new getConfiguration_result();
             result.success = o;
             try {
               fcall.sendResponse(fb,result, org.apache.thrift.protocol.TMessageType.REPLY,seqid);
@@ -387,7 +387,7 @@ public class MetaMasterClientService {
           public void onError(Exception e) {
             byte msgType = org.apache.thrift.protocol.TMessageType.REPLY;
             org.apache.thrift.TBase msg;
-            getConfigInfoList_result result = new getConfigInfoList_result();
+            getConfiguration_result result = new getConfiguration_result();
             if (e instanceof alluxio.thrift.AlluxioTException) {
                         result.e = (alluxio.thrift.AlluxioTException) e;
                         result.setEIsSet(true);
@@ -413,8 +413,8 @@ public class MetaMasterClientService {
         return false;
       }
 
-      public void start(I iface, getConfigInfoList_args args, org.apache.thrift.async.AsyncMethodCallback<GetConfigInfoListTResponse> resultHandler) throws TException {
-        iface.getConfigInfoList(args.options,resultHandler);
+      public void start(I iface, getConfiguration_args args, org.apache.thrift.async.AsyncMethodCallback<GetConfigurationTResponse> resultHandler) throws TException {
+        iface.getConfiguration(args.options,resultHandler);
       }
     }
 
@@ -1268,18 +1268,18 @@ public class MetaMasterClientService {
 
   }
 
-  public static class getConfigInfoList_args implements org.apache.thrift.TBase<getConfigInfoList_args, getConfigInfoList_args._Fields>, java.io.Serializable, Cloneable, Comparable<getConfigInfoList_args>   {
-    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("getConfigInfoList_args");
+  public static class getConfiguration_args implements org.apache.thrift.TBase<getConfiguration_args, getConfiguration_args._Fields>, java.io.Serializable, Cloneable, Comparable<getConfiguration_args>   {
+    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("getConfiguration_args");
 
     private static final org.apache.thrift.protocol.TField OPTIONS_FIELD_DESC = new org.apache.thrift.protocol.TField("options", org.apache.thrift.protocol.TType.STRUCT, (short)1);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
-      schemes.put(StandardScheme.class, new getConfigInfoList_argsStandardSchemeFactory());
-      schemes.put(TupleScheme.class, new getConfigInfoList_argsTupleSchemeFactory());
+      schemes.put(StandardScheme.class, new getConfiguration_argsStandardSchemeFactory());
+      schemes.put(TupleScheme.class, new getConfiguration_argsTupleSchemeFactory());
     }
 
-    private GetConfigInfoListTOptions options; // required
+    private GetConfigurationTOptions options; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
@@ -1347,16 +1347,16 @@ public class MetaMasterClientService {
     static {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
       tmpMap.put(_Fields.OPTIONS, new org.apache.thrift.meta_data.FieldMetaData("options", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, GetConfigInfoListTOptions.class)));
+          new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, GetConfigurationTOptions.class)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
-      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(getConfigInfoList_args.class, metaDataMap);
+      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(getConfiguration_args.class, metaDataMap);
     }
 
-    public getConfigInfoList_args() {
+    public getConfiguration_args() {
     }
 
-    public getConfigInfoList_args(
-      GetConfigInfoListTOptions options)
+    public getConfiguration_args(
+      GetConfigurationTOptions options)
     {
       this();
       this.options = options;
@@ -1365,14 +1365,14 @@ public class MetaMasterClientService {
     /**
      * Performs a deep copy on <i>other</i>.
      */
-    public getConfigInfoList_args(getConfigInfoList_args other) {
+    public getConfiguration_args(getConfiguration_args other) {
       if (other.isSetOptions()) {
-        this.options = new GetConfigInfoListTOptions(other.options);
+        this.options = new GetConfigurationTOptions(other.options);
       }
     }
 
-    public getConfigInfoList_args deepCopy() {
-      return new getConfigInfoList_args(this);
+    public getConfiguration_args deepCopy() {
+      return new getConfiguration_args(this);
     }
 
     @Override
@@ -1383,14 +1383,14 @@ public class MetaMasterClientService {
     /**
      * the method options
      */
-    public GetConfigInfoListTOptions getOptions() {
+    public GetConfigurationTOptions getOptions() {
       return this.options;
     }
 
     /**
      * the method options
      */
-    public getConfigInfoList_args setOptions(GetConfigInfoListTOptions options) {
+    public getConfiguration_args setOptions(GetConfigurationTOptions options) {
       this.options = options;
       return this;
     }
@@ -1416,7 +1416,7 @@ public class MetaMasterClientService {
         if (value == null) {
           unsetOptions();
         } else {
-          setOptions((GetConfigInfoListTOptions)value);
+          setOptions((GetConfigurationTOptions)value);
         }
         break;
 
@@ -1449,12 +1449,12 @@ public class MetaMasterClientService {
     public boolean equals(Object that) {
       if (that == null)
         return false;
-      if (that instanceof getConfigInfoList_args)
-        return this.equals((getConfigInfoList_args)that);
+      if (that instanceof getConfiguration_args)
+        return this.equals((getConfiguration_args)that);
       return false;
     }
 
-    public boolean equals(getConfigInfoList_args that) {
+    public boolean equals(getConfiguration_args that) {
       if (that == null)
         return false;
 
@@ -1483,7 +1483,7 @@ public class MetaMasterClientService {
     }
 
     @Override
-    public int compareTo(getConfigInfoList_args other) {
+    public int compareTo(getConfiguration_args other) {
       if (!getClass().equals(other.getClass())) {
         return getClass().getName().compareTo(other.getClass().getName());
       }
@@ -1517,7 +1517,7 @@ public class MetaMasterClientService {
 
     @Override
     public String toString() {
-      StringBuilder sb = new StringBuilder("getConfigInfoList_args(");
+      StringBuilder sb = new StringBuilder("getConfiguration_args(");
       boolean first = true;
 
       sb.append("options:");
@@ -1555,15 +1555,15 @@ public class MetaMasterClientService {
       }
     }
 
-    private static class getConfigInfoList_argsStandardSchemeFactory implements SchemeFactory {
-      public getConfigInfoList_argsStandardScheme getScheme() {
-        return new getConfigInfoList_argsStandardScheme();
+    private static class getConfiguration_argsStandardSchemeFactory implements SchemeFactory {
+      public getConfiguration_argsStandardScheme getScheme() {
+        return new getConfiguration_argsStandardScheme();
       }
     }
 
-    private static class getConfigInfoList_argsStandardScheme extends StandardScheme<getConfigInfoList_args> {
+    private static class getConfiguration_argsStandardScheme extends StandardScheme<getConfiguration_args> {
 
-      public void read(org.apache.thrift.protocol.TProtocol iprot, getConfigInfoList_args struct) throws org.apache.thrift.TException {
+      public void read(org.apache.thrift.protocol.TProtocol iprot, getConfiguration_args struct) throws org.apache.thrift.TException {
         org.apache.thrift.protocol.TField schemeField;
         iprot.readStructBegin();
         while (true)
@@ -1575,7 +1575,7 @@ public class MetaMasterClientService {
           switch (schemeField.id) {
             case 1: // OPTIONS
               if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                struct.options = new GetConfigInfoListTOptions();
+                struct.options = new GetConfigurationTOptions();
                 struct.options.read(iprot);
                 struct.setOptionsIsSet(true);
               } else { 
@@ -1593,7 +1593,7 @@ public class MetaMasterClientService {
         struct.validate();
       }
 
-      public void write(org.apache.thrift.protocol.TProtocol oprot, getConfigInfoList_args struct) throws org.apache.thrift.TException {
+      public void write(org.apache.thrift.protocol.TProtocol oprot, getConfiguration_args struct) throws org.apache.thrift.TException {
         struct.validate();
 
         oprot.writeStructBegin(STRUCT_DESC);
@@ -1608,16 +1608,16 @@ public class MetaMasterClientService {
 
     }
 
-    private static class getConfigInfoList_argsTupleSchemeFactory implements SchemeFactory {
-      public getConfigInfoList_argsTupleScheme getScheme() {
-        return new getConfigInfoList_argsTupleScheme();
+    private static class getConfiguration_argsTupleSchemeFactory implements SchemeFactory {
+      public getConfiguration_argsTupleScheme getScheme() {
+        return new getConfiguration_argsTupleScheme();
       }
     }
 
-    private static class getConfigInfoList_argsTupleScheme extends TupleScheme<getConfigInfoList_args> {
+    private static class getConfiguration_argsTupleScheme extends TupleScheme<getConfiguration_args> {
 
       @Override
-      public void write(org.apache.thrift.protocol.TProtocol prot, getConfigInfoList_args struct) throws org.apache.thrift.TException {
+      public void write(org.apache.thrift.protocol.TProtocol prot, getConfiguration_args struct) throws org.apache.thrift.TException {
         TTupleProtocol oprot = (TTupleProtocol) prot;
         BitSet optionals = new BitSet();
         if (struct.isSetOptions()) {
@@ -1630,11 +1630,11 @@ public class MetaMasterClientService {
       }
 
       @Override
-      public void read(org.apache.thrift.protocol.TProtocol prot, getConfigInfoList_args struct) throws org.apache.thrift.TException {
+      public void read(org.apache.thrift.protocol.TProtocol prot, getConfiguration_args struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
         BitSet incoming = iprot.readBitSet(1);
         if (incoming.get(0)) {
-          struct.options = new GetConfigInfoListTOptions();
+          struct.options = new GetConfigurationTOptions();
           struct.options.read(iprot);
           struct.setOptionsIsSet(true);
         }
@@ -1643,19 +1643,19 @@ public class MetaMasterClientService {
 
   }
 
-  public static class getConfigInfoList_result implements org.apache.thrift.TBase<getConfigInfoList_result, getConfigInfoList_result._Fields>, java.io.Serializable, Cloneable, Comparable<getConfigInfoList_result>   {
-    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("getConfigInfoList_result");
+  public static class getConfiguration_result implements org.apache.thrift.TBase<getConfiguration_result, getConfiguration_result._Fields>, java.io.Serializable, Cloneable, Comparable<getConfiguration_result>   {
+    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("getConfiguration_result");
 
     private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.STRUCT, (short)0);
     private static final org.apache.thrift.protocol.TField E_FIELD_DESC = new org.apache.thrift.protocol.TField("e", org.apache.thrift.protocol.TType.STRUCT, (short)1);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
-      schemes.put(StandardScheme.class, new getConfigInfoList_resultStandardSchemeFactory());
-      schemes.put(TupleScheme.class, new getConfigInfoList_resultTupleSchemeFactory());
+      schemes.put(StandardScheme.class, new getConfiguration_resultStandardSchemeFactory());
+      schemes.put(TupleScheme.class, new getConfiguration_resultTupleSchemeFactory());
     }
 
-    private GetConfigInfoListTResponse success; // required
+    private GetConfigurationTResponse success; // required
     private alluxio.thrift.AlluxioTException e; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
@@ -1724,18 +1724,18 @@ public class MetaMasterClientService {
     static {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
       tmpMap.put(_Fields.SUCCESS, new org.apache.thrift.meta_data.FieldMetaData("success", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, GetConfigInfoListTResponse.class)));
+          new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, GetConfigurationTResponse.class)));
       tmpMap.put(_Fields.E, new org.apache.thrift.meta_data.FieldMetaData("e", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
-      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(getConfigInfoList_result.class, metaDataMap);
+      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(getConfiguration_result.class, metaDataMap);
     }
 
-    public getConfigInfoList_result() {
+    public getConfiguration_result() {
     }
 
-    public getConfigInfoList_result(
-      GetConfigInfoListTResponse success,
+    public getConfiguration_result(
+      GetConfigurationTResponse success,
       alluxio.thrift.AlluxioTException e)
     {
       this();
@@ -1746,17 +1746,17 @@ public class MetaMasterClientService {
     /**
      * Performs a deep copy on <i>other</i>.
      */
-    public getConfigInfoList_result(getConfigInfoList_result other) {
+    public getConfiguration_result(getConfiguration_result other) {
       if (other.isSetSuccess()) {
-        this.success = new GetConfigInfoListTResponse(other.success);
+        this.success = new GetConfigurationTResponse(other.success);
       }
       if (other.isSetE()) {
         this.e = new alluxio.thrift.AlluxioTException(other.e);
       }
     }
 
-    public getConfigInfoList_result deepCopy() {
-      return new getConfigInfoList_result(this);
+    public getConfiguration_result deepCopy() {
+      return new getConfiguration_result(this);
     }
 
     @Override
@@ -1765,11 +1765,11 @@ public class MetaMasterClientService {
       this.e = null;
     }
 
-    public GetConfigInfoListTResponse getSuccess() {
+    public GetConfigurationTResponse getSuccess() {
       return this.success;
     }
 
-    public getConfigInfoList_result setSuccess(GetConfigInfoListTResponse success) {
+    public getConfiguration_result setSuccess(GetConfigurationTResponse success) {
       this.success = success;
       return this;
     }
@@ -1793,7 +1793,7 @@ public class MetaMasterClientService {
       return this.e;
     }
 
-    public getConfigInfoList_result setE(alluxio.thrift.AlluxioTException e) {
+    public getConfiguration_result setE(alluxio.thrift.AlluxioTException e) {
       this.e = e;
       return this;
     }
@@ -1819,7 +1819,7 @@ public class MetaMasterClientService {
         if (value == null) {
           unsetSuccess();
         } else {
-          setSuccess((GetConfigInfoListTResponse)value);
+          setSuccess((GetConfigurationTResponse)value);
         }
         break;
 
@@ -1865,12 +1865,12 @@ public class MetaMasterClientService {
     public boolean equals(Object that) {
       if (that == null)
         return false;
-      if (that instanceof getConfigInfoList_result)
-        return this.equals((getConfigInfoList_result)that);
+      if (that instanceof getConfiguration_result)
+        return this.equals((getConfiguration_result)that);
       return false;
     }
 
-    public boolean equals(getConfigInfoList_result that) {
+    public boolean equals(getConfiguration_result that) {
       if (that == null)
         return false;
 
@@ -1913,7 +1913,7 @@ public class MetaMasterClientService {
     }
 
     @Override
-    public int compareTo(getConfigInfoList_result other) {
+    public int compareTo(getConfiguration_result other) {
       if (!getClass().equals(other.getClass())) {
         return getClass().getName().compareTo(other.getClass().getName());
       }
@@ -1957,7 +1957,7 @@ public class MetaMasterClientService {
 
     @Override
     public String toString() {
-      StringBuilder sb = new StringBuilder("getConfigInfoList_result(");
+      StringBuilder sb = new StringBuilder("getConfiguration_result(");
       boolean first = true;
 
       sb.append("success:");
@@ -2003,15 +2003,15 @@ public class MetaMasterClientService {
       }
     }
 
-    private static class getConfigInfoList_resultStandardSchemeFactory implements SchemeFactory {
-      public getConfigInfoList_resultStandardScheme getScheme() {
-        return new getConfigInfoList_resultStandardScheme();
+    private static class getConfiguration_resultStandardSchemeFactory implements SchemeFactory {
+      public getConfiguration_resultStandardScheme getScheme() {
+        return new getConfiguration_resultStandardScheme();
       }
     }
 
-    private static class getConfigInfoList_resultStandardScheme extends StandardScheme<getConfigInfoList_result> {
+    private static class getConfiguration_resultStandardScheme extends StandardScheme<getConfiguration_result> {
 
-      public void read(org.apache.thrift.protocol.TProtocol iprot, getConfigInfoList_result struct) throws org.apache.thrift.TException {
+      public void read(org.apache.thrift.protocol.TProtocol iprot, getConfiguration_result struct) throws org.apache.thrift.TException {
         org.apache.thrift.protocol.TField schemeField;
         iprot.readStructBegin();
         while (true)
@@ -2023,7 +2023,7 @@ public class MetaMasterClientService {
           switch (schemeField.id) {
             case 0: // SUCCESS
               if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                struct.success = new GetConfigInfoListTResponse();
+                struct.success = new GetConfigurationTResponse();
                 struct.success.read(iprot);
                 struct.setSuccessIsSet(true);
               } else { 
@@ -2050,7 +2050,7 @@ public class MetaMasterClientService {
         struct.validate();
       }
 
-      public void write(org.apache.thrift.protocol.TProtocol oprot, getConfigInfoList_result struct) throws org.apache.thrift.TException {
+      public void write(org.apache.thrift.protocol.TProtocol oprot, getConfiguration_result struct) throws org.apache.thrift.TException {
         struct.validate();
 
         oprot.writeStructBegin(STRUCT_DESC);
@@ -2070,16 +2070,16 @@ public class MetaMasterClientService {
 
     }
 
-    private static class getConfigInfoList_resultTupleSchemeFactory implements SchemeFactory {
-      public getConfigInfoList_resultTupleScheme getScheme() {
-        return new getConfigInfoList_resultTupleScheme();
+    private static class getConfiguration_resultTupleSchemeFactory implements SchemeFactory {
+      public getConfiguration_resultTupleScheme getScheme() {
+        return new getConfiguration_resultTupleScheme();
       }
     }
 
-    private static class getConfigInfoList_resultTupleScheme extends TupleScheme<getConfigInfoList_result> {
+    private static class getConfiguration_resultTupleScheme extends TupleScheme<getConfiguration_result> {
 
       @Override
-      public void write(org.apache.thrift.protocol.TProtocol prot, getConfigInfoList_result struct) throws org.apache.thrift.TException {
+      public void write(org.apache.thrift.protocol.TProtocol prot, getConfiguration_result struct) throws org.apache.thrift.TException {
         TTupleProtocol oprot = (TTupleProtocol) prot;
         BitSet optionals = new BitSet();
         if (struct.isSetSuccess()) {
@@ -2098,11 +2098,11 @@ public class MetaMasterClientService {
       }
 
       @Override
-      public void read(org.apache.thrift.protocol.TProtocol prot, getConfigInfoList_result struct) throws org.apache.thrift.TException {
+      public void read(org.apache.thrift.protocol.TProtocol prot, getConfiguration_result struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
         BitSet incoming = iprot.readBitSet(2);
         if (incoming.get(0)) {
-          struct.success = new GetConfigInfoListTResponse();
+          struct.success = new GetConfigurationTResponse();
           struct.success.read(iprot);
           struct.setSuccessIsSet(true);
         }

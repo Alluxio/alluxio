@@ -15,9 +15,9 @@ import alluxio.Constants;
 import alluxio.RpcUtils;
 import alluxio.RuntimeConstants;
 import alluxio.thrift.AlluxioTException;
-import alluxio.thrift.ConfigInfo;
-import alluxio.thrift.GetConfigInfoListTOptions;
-import alluxio.thrift.GetConfigInfoListTResponse;
+import alluxio.thrift.ConfigProperty;
+import alluxio.thrift.GetConfigurationTOptions;
+import alluxio.thrift.GetConfigurationTResponse;
 import alluxio.thrift.GetMasterInfoTOptions;
 import alluxio.thrift.GetMasterInfoTResponse;
 import alluxio.thrift.GetServiceVersionTOptions;
@@ -25,7 +25,6 @@ import alluxio.thrift.GetServiceVersionTResponse;
 import alluxio.thrift.MasterInfo;
 import alluxio.thrift.MasterInfoField;
 import alluxio.thrift.MetaMasterClientService;
-import alluxio.wire.ThriftUtils;
 
 import org.apache.thrift.TException;
 import org.slf4j.Logger;
@@ -56,14 +55,14 @@ public final class MetaMasterClientServiceHandler implements MetaMasterClientSer
   }
 
   @Override
-  public GetConfigInfoListTResponse getConfigInfoList(GetConfigInfoListTOptions options)
+  public GetConfigurationTResponse getConfiguration(GetConfigurationTOptions options)
       throws AlluxioTException {
-    return RpcUtils.call(LOG, (RpcUtils.RpcCallable<GetConfigInfoListTResponse>) () -> {
-      List<ConfigInfo> configInfoList = new ArrayList<>();
-      for (alluxio.wire.ConfigInfo configInfo : mMasterProcess.getConfigInfoList()) {
-        configInfoList.add(ThriftUtils.toThrift(configInfo));
+    return RpcUtils.call(LOG, (RpcUtils.RpcCallable<GetConfigurationTResponse>) () -> {
+      List<ConfigProperty> configList = new ArrayList<>();
+      for (alluxio.wire.ConfigProperty configProperty : mMasterProcess.getConfiguration()) {
+        configList.add(configProperty.toThrift());
       }
-      return new GetConfigInfoListTResponse(configInfoList);
+      return new GetConfigurationTResponse(configList);
     });
   }
 

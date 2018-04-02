@@ -11,8 +11,8 @@
 
 package alluxio.cli.fsadmin.report;
 
-import alluxio.cli.fs.command.MountCommand;
 import alluxio.client.file.FileSystemMasterClient;
+import alluxio.util.FormatUtils;
 import alluxio.wire.MountPointInfo;
 
 import java.io.IOException;
@@ -22,6 +22,9 @@ import java.util.Map;
  * Prints under filesystem information.
  */
 public class UfsCommand {
+  private static final String LEFT_ALIGN_FORMAT = "%-60s  on  %-20s (%s, capacity=%s,"
+      + " used=%s, %sread-only, %sshared, ";
+
   private FileSystemMasterClient mFileSystemMasterClient;
 
   /**
@@ -41,7 +44,35 @@ public class UfsCommand {
   public int run() throws IOException {
     Map<String, MountPointInfo> mountTable = mFileSystemMasterClient.getMountTable();
     System.out.println("Alluxio under filesystem information: ");
-    MountCommand.printMountInfo(mountTable);
+    printMountInfo(mountTable);
     return 0;
+  }
+
+  /**
+   * Prints mount information for a mount table.
+   *
+   * @param mountTable the mount table to get information from
+   */
+  public static void printMountInfo(Map<String, MountPointInfo> mountTable) {
+    for (Map.Entry<String, MountPointInfo> entry : mountTable.entrySet()) {
+      String mMountPoint = entry.getKey();
+      MountPointInfo mountPointInfo = entry.getValue();
+
+      long capacityBytes = mountPointInfo.getUfsCapacityBytes();
+      long usedBytes = mountPointInfo.getUfsUsedBytes();
+
+      String usedPercentageInfo = "";
+      if (capacityBytes > 0) {
+        int usedPercentage = (int) (100L * usedBytes / capacityBytes);
+        usedPercentageInfo = String.format("(%s%%)", usedPercentage);
+      }
+
+      System.out.format(LEFT_ALIGN_FORMAT, mountPointInfo.getUfsUri(), mMountPoint,
+          mountPointInfo.getUfsType(), FormatUtils.getSizeFromBytes(capacityBytes),
+          FormatUtils.getSizeFromBytes(usedBytes) + usedPercentageInfo,
+          mountPointInfo.getReadOnly() ? "" : "not ",
+          mountPointInfo.getShared() ? "" : "not ");
+      System.out.println("properties=" + mountPointInfo.getProperties() + ")");
+    }
   }
 }

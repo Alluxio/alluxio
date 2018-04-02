@@ -13,7 +13,7 @@ package alluxio.cli.fsadmin.command;
 
 import alluxio.cli.fsadmin.report.ConfigurationCommand;
 import alluxio.client.MetaMasterClient;
-import alluxio.wire.ConfigInfo;
+import alluxio.wire.ConfigProperty;
 
 import org.hamcrest.collection.IsIterableContainingInOrder;
 import org.junit.Assert;
@@ -36,9 +36,9 @@ public class ConfigurationCommandTest {
   public void prepareDependencies() throws IOException {
     // Prepare mock meta master client
     mMetaMasterClient = Mockito.mock(MetaMasterClient.class);
-    List<ConfigInfo> infoList = prepareInfoList();
-    Mockito.when(mMetaMasterClient.getConfigInfoList())
-        .thenReturn(infoList);
+    List<ConfigProperty> configList = prepareConfigList();
+    Mockito.when(mMetaMasterClient.getConfiguration())
+        .thenReturn(configList);
   }
 
   @Test
@@ -73,29 +73,31 @@ public class ConfigurationCommandTest {
   /**
    * @return configuration info list to test
    */
-  private List<ConfigInfo> prepareInfoList() {
-    List<ConfigInfo> infoList = new ArrayList<>();
+  private List<ConfigProperty> prepareConfigList() {
+    List<ConfigProperty> configList = new ArrayList<>();
 
-    ConfigInfo firstInfo = new ConfigInfo().setName("alluxio.master.port")
+    ConfigProperty firstConfigProperty = new ConfigProperty().setName("alluxio.master.port")
         .setValue("19998").setSource("DEFAULT");
-    ConfigInfo secondInfo = new ConfigInfo().setName("alluxio.master.web.port")
+    ConfigProperty secondConfigProperty = new ConfigProperty().setName("alluxio.master.web.port")
         .setValue("19999").setSource("DEFAULT");
-    ConfigInfo thirdInfo = new ConfigInfo().setName("alluxio.master.hostname").setValue("localhost")
+    ConfigProperty thirdConfigProperty = new ConfigProperty()
+        .setName("alluxio.master.hostname").setValue("localhost")
         .setSource("SITE_PROPERTY (/alluxio/conf/alluxio-site.properties)");
-    ConfigInfo fourthInfo = new ConfigInfo().setName("alluxio.underfs.address")
+    ConfigProperty fourthConfigProperty = new ConfigProperty().setName("alluxio.underfs.address")
         .setValue("hdfs://localhost:9000")
         .setSource("SITE_PROPERTY (/alluxio/conf/alluxio-site.properties)");
-    ConfigInfo fifthInfo = new ConfigInfo().setName("alluxio.logger.type").setValue("MASTER_LOGGER")
-        .setSource("SYSTEM_PROPERTY");
-    ConfigInfo sixthInfo = new ConfigInfo().setName("alluxio.master.audit.logger.type")
+    ConfigProperty fifthConfigProperty = new ConfigProperty().setName("alluxio.logger.type")
+        .setValue("MASTER_LOGGER").setSource("SYSTEM_PROPERTY");
+    ConfigProperty sixthConfigProperty = new ConfigProperty()
+        .setName("alluxio.master.audit.logger.type")
         .setValue("MASTER_AUDIT_LOGGER").setSource("SYSTEM_PROPERTY");
 
-    infoList.add(firstInfo);
-    infoList.add(secondInfo);
-    infoList.add(thirdInfo);
-    infoList.add(fourthInfo);
-    infoList.add(fifthInfo);
-    infoList.add(sixthInfo);
-    return infoList;
+    configList.add(firstConfigProperty);
+    configList.add(secondConfigProperty);
+    configList.add(thirdConfigProperty);
+    configList.add(fourthConfigProperty);
+    configList.add(fifthConfigProperty);
+    configList.add(sixthConfigProperty);
+    return configList;
   }
 }

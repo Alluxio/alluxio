@@ -11,7 +11,7 @@
 
 package alluxio.client;
 
-import alluxio.wire.ConfigInfo;
+import alluxio.wire.ConfigProperty;
 import alluxio.wire.MasterInfo;
 import alluxio.wire.MasterInfo.MasterInfoField;
 
@@ -29,7 +29,7 @@ public interface MetaMasterClient extends Closeable {
    *
    * @return a list of configuration information
    */
-  List<ConfigInfo> getConfigInfoList() throws IOException;
+  List<ConfigProperty> getConfiguration() throws IOException;
 
   /**
    * @param masterInfoFields optional list of fields to query; if null all fields will be queried

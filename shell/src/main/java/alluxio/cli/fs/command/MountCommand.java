@@ -12,12 +12,12 @@
 package alluxio.cli.fs.command;
 
 import alluxio.AlluxioURI;
+import alluxio.cli.fsadmin.report.UfsCommand;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.options.MountOptions;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.InvalidArgumentException;
-import alluxio.util.FormatUtils;
 import alluxio.wire.MountPointInfo;
 
 import com.google.common.collect.Maps;
@@ -61,8 +61,6 @@ public final class MountCommand extends AbstractFileSystemCommand {
           .valueSeparator('=')
           .desc("options associated with this mount point")
           .build();
-  private static final String LEFT_ALIGN_FORMAT = "%-60s  on  %-20s (%s, capacity=%s,"
-      + " used=%s, %sread-only, %sshared, ";
 
   /**
    * @param fs the filesystem of Alluxio
@@ -92,7 +90,7 @@ public final class MountCommand extends AbstractFileSystemCommand {
     String[] args = cl.getArgs();
     if (args.length == 0) {
       Map<String, MountPointInfo> mountTable = mFileSystem.getMountTable();
-      printMountInfo(mountTable);
+      UfsCommand.printMountInfo(mountTable);
       return 0;
     }
     AlluxioURI alluxioPath = new AlluxioURI(args[0]);
@@ -112,34 +110,6 @@ public final class MountCommand extends AbstractFileSystemCommand {
     mFileSystem.mount(alluxioPath, ufsPath, options);
     System.out.println("Mounted " + ufsPath + " at " + alluxioPath);
     return 0;
-  }
-
-  /**
-   * Prints mount information for a mount table.
-   *
-   * @param mountTable the mount table to get information from
-   */
-  public static void printMountInfo(Map<String, MountPointInfo> mountTable) {
-    for (Map.Entry<String, MountPointInfo> entry : mountTable.entrySet()) {
-      String mMountPoint = entry.getKey();
-      MountPointInfo mountPointInfo = entry.getValue();
-
-      long capacityBytes = mountPointInfo.getUfsCapacityBytes();
-      long usedBytes = mountPointInfo.getUfsUsedBytes();
-
-      String usedPercentageInfo = "";
-      if (capacityBytes > 0) {
-        int usedPercentage = (int) (100L * usedBytes / capacityBytes);
-        usedPercentageInfo = String.format("(%s%%)", usedPercentage);
-      }
-
-      System.out.format(LEFT_ALIGN_FORMAT, mountPointInfo.getUfsUri(), mMountPoint,
-          mountPointInfo.getUfsType(), FormatUtils.getSizeFromBytes(capacityBytes),
-          FormatUtils.getSizeFromBytes(usedBytes) + usedPercentageInfo,
-          mountPointInfo.getReadOnly() ? "" : "not ",
-          mountPointInfo.getShared() ? "" : "not ");
-      System.out.println("properties=" + mountPointInfo.getProperties() + ")");
-    }
   }
 
   @Override
