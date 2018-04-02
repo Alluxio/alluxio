@@ -28,7 +28,6 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -299,22 +298,12 @@ public class CapacityCommand {
   private void initVariables() {
     mSumCapacityBytes = 0;
     mSumUsedBytes = 0;
-    mSumCapacityBytesOnTierMap = new TreeMap<>(new TierNameComparator());
-    mSumUsedBytesOnTierMap = new TreeMap<>(new TierNameComparator());
+    mSumCapacityBytesOnTierMap = new TreeMap<>(FileSystemAdminShellUtils::compareTierNames);
+    mSumUsedBytesOnTierMap = new TreeMap<>(FileSystemAdminShellUtils::compareTierNames);
 
     // TierInfoMap is of form Map<Tier_Name, Map<Worker_Name, Worker_Tier_Value>>
-    mCapacityTierInfoMap = new TreeMap<>(new TierNameComparator());
-    mUsedTierInfoMap = new TreeMap<>(new TierNameComparator());
-  }
-
-  /**
-   * Comparator to compare tier names.
-   */
-  public class TierNameComparator implements Comparator<String> {
-    @Override
-    public int compare(String a, String b) {
-      return FileSystemAdminShellUtils.compareTierNames(a, b);
-    }
+    mCapacityTierInfoMap = new TreeMap<>(FileSystemAdminShellUtils::compareTierNames);
+    mUsedTierInfoMap = new TreeMap<>(FileSystemAdminShellUtils::compareTierNames);
   }
 
   /**
