@@ -60,7 +60,11 @@ public class SummaryCommandTest {
     Map<String, Long> capacityBytesOnTiers = new HashMap<>();
     Map<String, Long> usedBytesOnTiers = new HashMap<>();
     capacityBytesOnTiers.put("MEM", 1341353L);
+    capacityBytesOnTiers.put("RAM", 23112L);
+    capacityBytesOnTiers.put("DOM", 236501L);
     usedBytesOnTiers.put("MEM", 62434L);
+    usedBytesOnTiers.put("RAM", 6243L);
+    usedBytesOnTiers.put("DOM", 74235L);
     BlockMasterInfo blockMasterInfo = new BlockMasterInfo()
         .setLiveWorkerNum(12)
         .setLostWorkerNum(4)
@@ -109,8 +113,12 @@ public class SummaryCommandTest {
         "    Lost Workers: 4",
         "    Total Capacity: 1309.92KB",
         "        Tier: MEM  Size: 1309.92KB",
+        "        Tier: DOM  Size: 230.96KB",
+        "        Tier: RAM  Size: 22.57KB",
         "    Used Capacity: 60.97KB",
         "        Tier: MEM  Size: 60.97KB",
+        "        Tier: DOM  Size: 72.50KB",
+        "        Tier: RAM  Size: 6.10KB",
         "    Free Capacity: 1248.94KB");
     List<String> testOutput = Arrays.asList(output.split("\n"));
     Assert.assertThat(testOutput,
