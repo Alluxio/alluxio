@@ -28,6 +28,7 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -41,8 +42,8 @@ import java.util.stream.Collectors;
  */
 public class CapacityCommand {
   private static final int INDENT_SIZE = 4;
-  public static final String LONG_INFO_FORMAT = "%-16s %-16s %-13s %-16s %s";
-  public static final String SHORT_INFO_FORMAT = "%-16s %-16s %-13s %s";
+  private static final String LONG_INFO_FORMAT = "%-16s %-16s %-13s %-16s %s";
+  private static final String SHORT_INFO_FORMAT = "%-16s %-16s %-13s %s";
 
   private BlockMasterClient mBlockMasterClient;
   private PrintStream mPrintStream;
@@ -298,16 +299,22 @@ public class CapacityCommand {
   private void initVariables() {
     mSumCapacityBytes = 0;
     mSumUsedBytes = 0;
-    mSumCapacityBytesOnTierMap = new TreeMap<>((a, b)
-        -> (FileSystemAdminShellUtils.compareTierNames(a, b)));
-    mSumUsedBytesOnTierMap = new TreeMap<>((a, b)
-        -> (FileSystemAdminShellUtils.compareTierNames(a, b)));
+    mSumCapacityBytesOnTierMap = new TreeMap<>(new TierNameComparator());
+    mSumUsedBytesOnTierMap = new TreeMap<>(new TierNameComparator());
 
     // TierInfoMap is of form Map<Tier_Name, Map<Worker_Name, Worker_Tier_Value>>
-    mCapacityTierInfoMap = new TreeMap<>((a, b)
-        -> (FileSystemAdminShellUtils.compareTierNames(a, b)));
-    mUsedTierInfoMap = new TreeMap<>((a, b)
-        -> (FileSystemAdminShellUtils.compareTierNames(a, b)));
+    mCapacityTierInfoMap = new TreeMap<>(new TierNameComparator());
+    mUsedTierInfoMap = new TreeMap<>(new TierNameComparator());
+  }
+
+  /**
+   * Comparator to compare tier names.
+   */
+  public class TierNameComparator implements Comparator<String> {
+    @Override
+    public int compare(String a, String b) {
+      return FileSystemAdminShellUtils.compareTierNames(a, b);
+    }
   }
 
   /**
