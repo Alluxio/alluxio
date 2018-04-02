@@ -3578,35 +3578,31 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
   @Override
   public Map<String, Long> getOperationInfo() {
     MetricRegistry mr = MetricsSystem.METRIC_REGISTRY;
-    Map<String, Counter> counters = mr.getCounters(new MetricFilter() {
-      @Override
-      public boolean matches(String name, Metric metric) {
-        return !(name.endsWith("Ops"));
-      }
-    });
+    Map<String, Counter> counters = mr.getCounters((name, metric) -> !(name.endsWith("Ops")));
 
     Map<String, Long> operations = new TreeMap<>();
     for (Map.Entry<String, Counter> entry : counters.entrySet()) {
       operations.put(MetricsSystem.stripInstanceAndHost(entry.getKey()),
           entry.getValue().getCount());
     }
+
+    String filesPinnedProperty =
+        MetricsSystem.getMasterMetricName(DefaultFileSystemMaster.Metrics.FILES_PINNED);
+    int filesPinnedCount = (int) mr.getGauges().get(filesPinnedProperty).getValue();
+    operations.put(MetricsSystem.stripInstanceAndHost(filesPinnedProperty),
+        Long.valueOf(filesPinnedCount));
     return operations;
   }
 
   @Override
   public Map<String, Long> getRpcInvocationInfo() {
     MetricRegistry mr = MetricsSystem.METRIC_REGISTRY;
-    Map<String, Counter> counters = mr.getCounters(new MetricFilter() {
-      @Override
-      public boolean matches(String name, Metric metric) {
-        return (name.endsWith("Ops"));
-      }
-    });
+    Map<String, Counter> counters = mr.getCounters((name, metric) -> (name.endsWith("Ops")));
 
     Map<String, Long> rpcInvocations = new TreeMap<>();
     for (Map.Entry<String, Counter> entry : counters.entrySet()) {
-      rpcInvocations
-          .put(MetricsSystem.stripInstanceAndHost(entry.getKey()), entry.getValue().getCount());
+      rpcInvocations.put(MetricsSystem.stripInstanceAndHost(entry.getKey()),
+          entry.getValue().getCount());
     }
     return rpcInvocations;
   }

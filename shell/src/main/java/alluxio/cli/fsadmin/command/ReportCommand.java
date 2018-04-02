@@ -50,9 +50,9 @@ public final class ReportCommand extends AbstractCommand {
   public static final String LOST_OPTION_NAME = "lost";
   public static final String SPECIFIED_OPTION_NAME = "workers";
 
-  private MetaMasterClient mMetaMasterClient;
   private BlockMasterClient mBlockMasterClient;
   private FileSystemMasterClient mFileSystemMasterClient;
+  private MetaMasterClient mMetaMasterClient;
   private PrintStream mPrintStream;
 
   private static final Option HELP_OPTION =
@@ -94,9 +94,9 @@ public final class ReportCommand extends AbstractCommand {
    */
   public ReportCommand() {
     MasterClientConfig config = MasterClientConfig.defaults();
-    mMetaMasterClient = new RetryHandlingMetaMasterClient(config);
     mBlockMasterClient = new RetryHandlingBlockMasterClient(config);
     mFileSystemMasterClient = new RetryHandlingFileSystemMasterClient(config);
+    mMetaMasterClient = new RetryHandlingMetaMasterClient(config);
     mPrintStream = System.out;
   }
 

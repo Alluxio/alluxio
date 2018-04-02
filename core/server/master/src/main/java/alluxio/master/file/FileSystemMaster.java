@@ -516,12 +516,12 @@ public interface FileSystemMaster extends Master {
   List<WorkerInfo> getWorkerInfoList() throws UnavailableException;
 
   /**
-   * @return a map of operation information
+   * @return a map of operation information from metrics system
    */
   Map<String, Long> getOperationInfo();
 
   /**
-   * @return a map of rpc invocation information
+   * @return a map of rpc invocation information from metrics system
    */
   Map<String, Long> getRpcInvocationInfo();
 }

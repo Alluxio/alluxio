@@ -70,7 +70,8 @@ public final class MasterWebServer extends WebServer {
         .addServlet(new ServletHolder(new WebInterfaceBrowseLogsServlet(true)), "/browseLogs");
     mWebAppContext.addServlet(new ServletHolder(new WebInterfaceHeaderServlet()), "/header");
     mWebAppContext
-        .addServlet(new ServletHolder(new WebInterfaceMasterMetricsServlet()), "/metricsui");
+        .addServlet(new ServletHolder(
+            new WebInterfaceMasterMetricsServlet(masterProcess.getMaster(FileSystemMaster.class))), "/metricsui");
     // REST configuration
     ResourceConfig config = new ResourceConfig().packages("alluxio.master", "alluxio.master.block",
         "alluxio.master.file", "alluxio.master.lineage");

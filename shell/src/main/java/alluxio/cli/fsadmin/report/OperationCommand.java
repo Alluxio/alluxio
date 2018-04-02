@@ -18,13 +18,14 @@ import com.google.common.base.Strings;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.Map;
+import java.util.TreeMap;
 
 /**
  * Prints Alluxio operation metrics information.
  */
 public class OperationCommand {
-  private static final String INFO_FORMAT = "%-30s %10s";
   private static final int INDENT_SIZE = 4;
+  private static final String INFO_FORMAT = "%-30s %10s";
 
   private int mIndentationLevel = 0;
   private FileSystemMasterClient mFileSystemMasterClient;
@@ -34,7 +35,7 @@ public class OperationCommand {
    * Creates a new instance of {@link OperationCommand}.
    *
    * @param fileSystemMasterClient client to connect to filesystem master client
-   * @param printStream stream to print summary information to
+   * @param printStream stream to print operation metrics information to
    */
   public OperationCommand(FileSystemMasterClient fileSystemMasterClient, PrintStream printStream) {
     mFileSystemMasterClient = fileSystemMasterClient;
@@ -49,19 +50,35 @@ public class OperationCommand {
   public int run() throws IOException {
     print("Alluxio logical operations: ");
     mIndentationLevel++;
-    Map<String, Long> operationInfo = mFileSystemMasterClient.getOperationInfo();
+    Map<String, Long> operationInfo = new TreeMap<>(mFileSystemMasterClient.getOperationInfo());
     for (Map.Entry<String, Long> entry : operationInfo.entrySet()) {
-      print(String.format(INFO_FORMAT, entry.getKey(), entry.getValue()));
+      String operationName = entry.getKey();
+      if (!operationName.startsWith("UfsSessionCount-Ufs")) {
+        // TODO(lu) add ufs session count info in report ufs command
+        print(String.format(INFO_FORMAT, getReadableName(operationName), entry.getValue()));
+      }
     }
     mIndentationLevel--;
+
     print("\nAlluxio RPC invocations: ");
     mIndentationLevel++;
-    Map<String, Long> rpcInvocationInfo = mFileSystemMasterClient.getRpcInvocationInfo();
+    Map<String, Long> rpcInvocationInfo = new TreeMap<>(mFileSystemMasterClient.getRpcInvocationInfo());
     for (Map.Entry<String, Long> entry : rpcInvocationInfo.entrySet()) {
-      print(String.format(INFO_FORMAT, entry.getKey(), entry.getValue()));
+      print(String.format(INFO_FORMAT, getReadableName(entry.getKey()), entry.getValue()));
     }
-    mIndentationLevel++;
+    mIndentationLevel--;
     return 0;
+  }
+
+  /**
+   * Transforms the key name to a readable name
+   *
+   * @param keyName the key name to transform
+   * @return a readable name from the input key
+   */
+  private String getReadableName(String keyName) {
+    return keyName.replaceAll("(.)([A-Z])", "$1 $2")
+        .replaceAll("Ops", "Operations");
   }
 
   /**
