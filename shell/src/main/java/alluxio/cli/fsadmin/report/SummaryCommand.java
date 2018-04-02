@@ -11,6 +11,7 @@
 
 package alluxio.cli.fsadmin.report;
 
+import alluxio.cli.fsadmin.FileSystemAdminShellUtils;
 import alluxio.client.block.BlockMasterClient;
 import alluxio.client.MetaMasterClient;
 import alluxio.util.CommonUtils;
@@ -28,6 +29,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 
 /**
  * Prints Alluxio cluster summarized information.
@@ -106,12 +108,12 @@ public class SummaryCommand {
         + FormatUtils.getSizeFromBytes(blockMasterInfo.getCapacityBytes()));
 
     mIndentationLevel++;
-    Map<String, Long> totalCapacityOnTiers = blockMasterInfo.getCapacityBytesOnTiers();
-    if (totalCapacityOnTiers != null) {
-      for (Map.Entry<String, Long> capacityBytesTier : totalCapacityOnTiers.entrySet()) {
-        print("Tier: " + capacityBytesTier.getKey()
-            + "  Size: " + FormatUtils.getSizeFromBytes(capacityBytesTier.getValue()));
-      }
+    Map<String, Long> totalCapacityOnTiers = new TreeMap<>((a, b)
+        -> (FileSystemAdminShellUtils.compareTierNames(a, b)));
+    totalCapacityOnTiers.putAll(blockMasterInfo.getCapacityBytesOnTiers());
+    for (Map.Entry<String, Long> capacityBytesTier : totalCapacityOnTiers.entrySet()) {
+      print("Tier: " + capacityBytesTier.getKey()
+          + "  Size: " + FormatUtils.getSizeFromBytes(capacityBytesTier.getValue()));
     }
 
     mIndentationLevel--;
@@ -119,12 +121,12 @@ public class SummaryCommand {
         + FormatUtils.getSizeFromBytes(blockMasterInfo.getUsedBytes()));
 
     mIndentationLevel++;
-    Map<String, Long> usedCapacityOnTiers = blockMasterInfo.getUsedBytesOnTiers();
-    if (usedCapacityOnTiers != null) {
-      for (Map.Entry<String, Long> usedBytesTier: usedCapacityOnTiers.entrySet()) {
-        print("Tier: " + usedBytesTier.getKey()
-            + "  Size: " + FormatUtils.getSizeFromBytes(usedBytesTier.getValue()));
-      }
+    Map<String, Long> usedCapacityOnTiers = new TreeMap<>((a, b)
+        -> (FileSystemAdminShellUtils.compareTierNames(a, b)));
+    usedCapacityOnTiers.putAll(blockMasterInfo.getUsedBytesOnTiers());
+    for (Map.Entry<String, Long> usedBytesTier: usedCapacityOnTiers.entrySet()) {
+      print("Tier: " + usedBytesTier.getKey()
+          + "  Size: " + FormatUtils.getSizeFromBytes(usedBytesTier.getValue()));
     }
 
     mIndentationLevel--;
