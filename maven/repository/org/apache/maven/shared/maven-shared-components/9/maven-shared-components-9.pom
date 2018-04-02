@@ -1,0 +1,85 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!--
+
+    The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
+    (the "License"). You may not use this work except in compliance with the License, which is
+    available at www.apache.org/licenses/LICENSE-2.0
+
+    This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+    either express or implied, as more fully set forth in the License.
+
+    See the NOTICE file distributed with this work for information regarding copyright ownership.
+
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd" xsi:noNamespaceSchemaLocation="http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>org.apache.maven</groupId>
+    <artifactId>maven-parent</artifactId>
+    <version>8</version>
+    <relativePath>../pom/maven/pom.xml</relativePath>
+  </parent>
+
+  <groupId>org.apache.maven.shared</groupId>
+  <artifactId>maven-shared-components</artifactId>
+  <version>9</version>
+  <packaging>pom</packaging>
+  <name>Maven Shared Components</name>
+  <description>Maven shared components</description>
+  <url>http://maven.apache.org/shared/</url>
+
+  <issueManagement>
+    <system>jira</system>
+    <url>http://jira.codehaus.org/browse/MNG</url>
+  </issueManagement>
+
+  <distributionManagement>
+    <site>
+      <id>apache.website</id>
+      <url>scp://people.apache.org/www/maven.apache.org/shared/</url>
+    </site>
+  </distributionManagement>
+
+  <modules>
+    <module>file-management</module>
+    <module>maven-ant</module>
+    <module>maven-app-configuration</module>
+    <module>maven-archiver</module>
+    <module>maven-common-artifact-filters</module>
+    <module>maven-dependency-analyzer</module>
+    <module>maven-dependency-tree</module>
+    <module>maven-downloader</module>
+    <module>maven-doxia-tools</module>
+    <module>maven-invoker</module>
+    <module>maven-model-converter</module>
+    <module>maven-osgi</module>
+    <module>maven-reporting-impl</module>
+    <module>maven-repository-builder</module>
+    <module>maven-script</module>
+    <module>maven-shared-io</module>
+    <module>maven-shared-jar</module>
+    <module>maven-shared-monitor</module>
+    <module>maven-verifier</module>
+    <module>maven-web-ui-tests</module>
+  </modules>
+
+  <scm>
+    <connection>scm:svn:http://svn.apache.org/repos/asf/maven/shared/tags/maven-shared-components-9</connection>
+    <developerConnection>scm:svn:https://svn.apache.org/repos/asf/maven/shared/tags/maven-shared-components-9</developerConnection>
+    <url>http://svn.apache.org/viewcvs.cgi/maven/shared/tags/maven-shared-components-9</url>
+  </scm>
+
+  <build>
+    <pluginManagement>
+      <plugins>
+        <plugin>
+          <artifactId>maven-release-plugin</artifactId>
+          <configuration>
+            <tagBase>https://svn.apache.org/repos/asf/maven/shared/tags</tagBase>
+          </configuration>
+        </plugin>
+      </plugins>
+    </pluginManagement>
+  </build>
+</project>

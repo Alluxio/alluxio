@@ -1,0 +1,35 @@
+<!--
+
+    The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
+    (the "License"). You may not use this work except in compliance with the License, which is
+    available at www.apache.org/licenses/LICENSE-2.0
+
+    This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+    either express or implied, as more fully set forth in the License.
+
+    See the NOTICE file distributed with this work for information regarding copyright ownership.
+
+-->
+
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>com.google.code.findbugs</groupId>
+	<artifactId>jsr305</artifactId>
+	<version>2.0.1</version>
+	<packaging>jar</packaging>
+	<url>http://findbugs.sourceforge.net/</url>
+	<name>FindBugs-jsr305</name>
+	<description>JSR305 Annotations for Findbugs</description>
+	<licenses>
+		<license>
+			<name>The Apache Software License, Version 2.0</name>
+			<url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+			<distribution>repo</distribution>
+		</license>
+	</licenses>
+	<scm>
+		<connection>scm:svn:http://findbugs.googlecode.com/svn/trunk/</connection>
+		<developerConnection>scm:svn:https://findbugs.googlecode.com/svn/trunk/</developerConnection>
+		<url>http://findbugs.googlecode.com/svn/trunk/</url>
+	</scm>
+</project>
