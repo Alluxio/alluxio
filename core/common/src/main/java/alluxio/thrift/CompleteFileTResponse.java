@@ -30,6 +30,7 @@ import java.util.BitSet;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import javax.annotation.Generated;
+import javax.annotation.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -61,6 +62,7 @@ public class CompleteFileTResponse implements org.apache.thrift.TBase<CompleteFi
     /**
      * Find the _Fields constant that matches fieldId, or null if its not found.
      */
+    @Nullable
     public static _Fields findByThriftId(int fieldId) {
       switch(fieldId) {
         default:
