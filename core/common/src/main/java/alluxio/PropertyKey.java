@@ -229,6 +229,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey VERSION =
       new Builder(Name.VERSION)
           .setDefaultValue(ProjectConstants.VERSION)
+          .setIsHidden(true)
           .setDescription("Version of Alluxio. User should never modify this property.")
           .build();
   public static final PropertyKey WEB_RESOURCES =
