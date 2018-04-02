@@ -13,12 +13,14 @@ package alluxio.cli.fs.command;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
+import alluxio.cli.CommandUtils;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.OpenFileOptions;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
+import alluxio.exception.status.InvalidArgumentException;
 import alluxio.util.FormatUtils;
 
 import com.google.common.base.Preconditions;
@@ -85,6 +87,11 @@ public final class TailCommand extends WithWildCardPathCommand {
   @Override
   public String getDescription() {
     return "Prints the file's last n bytes (by default, 1KB) to the console.";
+  }
+
+  @Override
+  public void validateArgs(CommandLine cl) throws InvalidArgumentException {
+    CommandUtils.checkNumOfArgsEquals(this, cl, 1);
   }
 
   @Override

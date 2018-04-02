@@ -11,7 +11,7 @@
 
 package alluxio.cli.fs.command;
 
-import alluxio.cli.AbstractCommand;
+import alluxio.cli.Command;
 import alluxio.client.file.FileSystem;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -21,7 +21,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * It provides a place to hold the {@link FileSystem} client.
  */
 @ThreadSafe
-public abstract class AbstractFileSystemCommand extends AbstractCommand {
+public abstract class AbstractFileSystemCommand implements Command {
 
   protected FileSystem mFileSystem;
 
