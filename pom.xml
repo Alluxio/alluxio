@@ -947,7 +947,8 @@
               <alluxio.test.mode>true</alluxio.test.mode>
             </systemPropertyVariables>
             <useSystemClassLoader>${surefire.useSystemClassLoader}</useSystemClassLoader>
-          </configuration>
+          <skipTests>true</skipTests>  
+	</configuration>
         </plugin>
         <plugin>
           <groupId>org.codehaus.mojo</groupId>
