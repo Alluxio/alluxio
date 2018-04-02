@@ -16,15 +16,11 @@ import alluxio.master.file.DefaultFileSystemMaster;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.metrics.MetricsSystem;
 
-import com.codahale.metrics.Counter;
-import com.codahale.metrics.Metric;
-import com.codahale.metrics.MetricFilter;
 import com.codahale.metrics.MetricRegistry;
 import com.google.common.base.Preconditions;
 
 import java.io.IOException;
 import java.util.Map;
-import java.util.TreeMap;
 
 import javax.annotation.concurrent.ThreadSafe;
 import javax.servlet.ServletException;
@@ -42,6 +38,8 @@ public final class WebInterfaceMasterMetricsServlet extends WebInterfaceAbstract
 
   /**
    * Create a {@link WebInterfaceMasterMetricsServlet} instance.
+   *
+   * @param fsMaster file system master
    */
   public WebInterfaceMasterMetricsServlet(FileSystemMaster fsMaster) {
     mFsMaster = Preconditions.checkNotNull(fsMaster, "fsMaster");

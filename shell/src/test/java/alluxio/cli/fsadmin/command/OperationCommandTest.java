@@ -94,14 +94,14 @@ public class OperationCommandTest {
     String output = new String(mOutputStream.toByteArray(), StandardCharsets.UTF_8);
     List<String> expectedOutput = Arrays.asList("Alluxio logical operations: ",
         "    Alluxio Operation                      12",
-        "    Command Test                     31243412",
+        "    Command Test                   31,243,412",
         "    File Infos Got                        121",
         "    File Pinned                             0",
         "",
         "Alluxio RPC invocations: ",
-        "    File Created Operations              2141",
+        "    File Created Operations             2,141",
         "    Mount Operations                      534",
-        "    Unmount Operations                3123124");
+        "    Unmount Operations              3,123,124");
     List<String> testOutput = Arrays.asList(output.split("\n"));
     Assert.assertThat(testOutput,
         IsIterableContainingInOrder.contains(expectedOutput.toArray()));

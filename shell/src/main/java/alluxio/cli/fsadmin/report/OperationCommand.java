@@ -17,6 +17,9 @@ import com.google.common.base.Strings;
 
 import java.io.IOException;
 import java.io.PrintStream;
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
+import java.util.Locale;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -48,6 +51,8 @@ public class OperationCommand {
    * @return 0 on success, 1 otherwise
    */
   public int run() throws IOException {
+    DecimalFormat decimalFormat = new DecimalFormat("###,###", new DecimalFormatSymbols(Locale.US));
+
     print("Alluxio logical operations: ");
     mIndentationLevel++;
     Map<String, Long> operationInfo = new TreeMap<>(mFileSystemMasterClient.getOperationInfo());
@@ -55,23 +60,26 @@ public class OperationCommand {
       String operationName = entry.getKey();
       if (!operationName.startsWith("UfsSessionCount-Ufs")) {
         // TODO(lu) add ufs session count info in report ufs command
-        print(String.format(INFO_FORMAT, getReadableName(operationName), entry.getValue()));
+        print(String.format(INFO_FORMAT, getReadableName(operationName),
+            decimalFormat.format(entry.getValue())));
       }
     }
     mIndentationLevel--;
 
     print("\nAlluxio RPC invocations: ");
     mIndentationLevel++;
-    Map<String, Long> rpcInvocationInfo = new TreeMap<>(mFileSystemMasterClient.getRpcInvocationInfo());
+    Map<String, Long> rpcInvocationInfo =
+        new TreeMap<>(mFileSystemMasterClient.getRpcInvocationInfo());
     for (Map.Entry<String, Long> entry : rpcInvocationInfo.entrySet()) {
-      print(String.format(INFO_FORMAT, getReadableName(entry.getKey()), entry.getValue()));
+      print(String.format(INFO_FORMAT, getReadableName(entry.getKey()),
+          decimalFormat.format(entry.getValue())));
     }
     mIndentationLevel--;
     return 0;
   }
 
   /**
-   * Transforms the key name to a readable name
+   * Transforms the key name to a readable name.
    *
    * @param keyName the key name to transform
    * @return a readable name from the input key
