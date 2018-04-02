@@ -11,9 +11,11 @@
 
 package alluxio.cli.fs.command;
 
+import alluxio.cli.CommandUtils;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.FileSystemMasterClient;
+import alluxio.exception.status.InvalidArgumentException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.master.MasterInquireClient;
 import alluxio.master.PollingMasterInquireClient;
@@ -47,8 +49,8 @@ public final class LeaderCommand extends AbstractFileSystemCommand {
   }
 
   @Override
-  public int getNumOfArgs() {
-    return 0;
+  public void validateArgs(CommandLine cl) throws InvalidArgumentException {
+    CommandUtils.checkNumOfArgsEquals(this, cl, 0);
   }
 
   @Override

@@ -22,16 +22,16 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
 /**
- * Unit tests for {@link AbstractCommand}.
+ * Unit tests for {@link Command}.
  */
-public final class AbstractCommandTest {
+public final class CommandTest {
 
   private static final String COMMAND_NAME = "TestCommand";
 
   @Rule
   public ExpectedException mExpectedException = ExpectedException.none();
 
-  private final class TestCommand extends AbstractCommand {
+  private final class TestCommand implements Command {
 
     public TestCommand() {
     }
@@ -47,8 +47,8 @@ public final class AbstractCommandTest {
     }
 
     @Override
-    protected int getNumOfArgs() {
-      return 1;
+    public void validateArgs(CommandLine cl) throws InvalidArgumentException {
+      CommandUtils.checkNumOfArgsEquals(this, cl, 1);
     }
 
     @Override
