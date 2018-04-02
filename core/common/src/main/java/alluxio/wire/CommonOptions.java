@@ -14,6 +14,7 @@ package alluxio.wire;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.annotation.PublicApi;
+import alluxio.grpc.FileSystemMasterCommonPOptions;
 import alluxio.thrift.FileSystemMasterCommonTOptions;
 
 import com.google.common.base.Objects;
@@ -54,6 +55,19 @@ public final class CommonOptions implements Serializable {
       if (options.isSetSyncIntervalMs()) {
         mSyncIntervalMs = options.getSyncIntervalMs();
       }
+    }
+  }
+
+  /**
+   * Creates a new instance of {@link CommonOptions} from {@link FileSystemMasterCommonPOptions}.
+   *
+   * @param options Thrift options
+   */
+  public CommonOptions(FileSystemMasterCommonPOptions options) {
+    this();
+    if (options != null) {
+      // TODO(adit) check if not set
+      mSyncIntervalMs = options.getSyncIntervalMs();
     }
   }
 

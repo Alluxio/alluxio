@@ -11,18 +11,27 @@
 
 package alluxio.master.file;
 
-import javax.annotation.concurrent.NotThreadSafe;
+import alluxio.AlluxioURI;
+import alluxio.RpcUtilsNew;
+import alluxio.exception.AlluxioException;
+import alluxio.grpc.FileSystemMasterServiceGrpc;
+import alluxio.grpc.GetStatusPOptions;
+import alluxio.grpc.GetStatusPResponse;
+import alluxio.master.file.options.GetStatusOptions;
+import alluxio.wire.ProtoUtils;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
 
+import java.io.IOException;
+
 /**
  * This class is a gRPC handler for file system master RPCs invoked by an Alluxio client.
  */
-@NotThreadSafe
-public final class FileSystemMasterClientServiceHandlerNew {
+public final class FileSystemMasterClientServiceHandlerNew
+    extends FileSystemMasterServiceGrpc.FileSystemMasterServiceImplBase {
   private static final Logger LOG =
       LoggerFactory.getLogger(FileSystemMasterClientServiceHandlerNew.class);
   private final FileSystemMaster mFileSystemMaster;
@@ -35,5 +44,28 @@ public final class FileSystemMasterClientServiceHandlerNew {
   FileSystemMasterClientServiceHandlerNew(FileSystemMaster fileSystemMaster) {
     Preconditions.checkNotNull(fileSystemMaster, "fileSystemMaster");
     mFileSystemMaster = fileSystemMaster;
+  }
+
+  @Override
+  public void getStatus(alluxio.grpc.GetStatusPRequest request,
+                        io.grpc.stub.StreamObserver<alluxio.grpc.GetStatusPResponse> responseObserver) {
+   String path = request.getPath();
+   GetStatusPOptions options = request.getOptions();
+   RpcUtilsNew.call(LOG, new RpcUtilsNew.RpcCallableThrowsIOException<GetStatusPResponse>() {
+      @Override
+      public GetStatusPResponse call() throws AlluxioException, IOException {
+        return GetStatusPResponse.newBuilder()
+            .setFileInfo(ProtoUtils.toProto(
+                mFileSystemMaster.getFileInfo(new AlluxioURI(path), new GetStatusOptions(options))))
+            .build();
+      }
+
+      @Override
+      public String toString() {
+        return String.format("GetStatus: path=%s, options=%s", path, options);
+      }
+      // getStatus is often used to check file existence, so we avoid logging all of its failures
+    }, responseObserver, false);
+
   }
 }

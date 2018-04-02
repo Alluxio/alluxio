@@ -59,6 +59,24 @@ public final class FileBlockInfo implements Serializable {
   }
 
   /**
+   * Creates a new instance of {@link FileBlockInfo} from a proto representation.
+   *
+   * @param fileBlockInfo the proto representation of a file block information
+   */
+  protected FileBlockInfo(alluxio.grpc.FileBlockInfo fileBlockInfo) {
+    mBlockInfo = new BlockInfo(fileBlockInfo.getBlockInfo());
+    mOffset = fileBlockInfo.getOffset();
+    if (fileBlockInfo.getUfsStringLocationsCount() != 0) {
+      mUfsLocations = new ArrayList<>(fileBlockInfo.getUfsStringLocationsList());
+    } else if (fileBlockInfo.getUfsLocationsCount() != 0) {
+      for (alluxio.grpc.WorkerNetAddress address : fileBlockInfo.getUfsLocationsList()) {
+        mUfsLocations
+            .add(HostAndPort.fromParts(address.getHost(), address.getDataPort()).toString());
+      }
+    }
+  }
+
+  /**
    * @return the block info
    */
   public BlockInfo getBlockInfo() {
@@ -120,6 +138,24 @@ public final class FileBlockInfo implements Serializable {
     }
     return new alluxio.thrift.FileBlockInfo(mBlockInfo.toThrift(), mOffset, ufsLocations,
         mUfsLocations);
+  }
+
+  /**
+   * @return proto representation of the file block information
+   */
+  protected alluxio.grpc.FileBlockInfo toProto() {
+    List<alluxio.grpc.WorkerNetAddress> ufsLocations = new ArrayList<>();
+    for (String ufsLocation : mUfsLocations) {
+      HostAndPort address = HostAndPort.fromString(ufsLocation);
+      ufsLocations.add(alluxio.grpc.WorkerNetAddress.newBuilder().setHost(address.getHostText())
+          .setDataPort(address.getPortOrDefault(-1)).build());
+    }
+    return alluxio.grpc.FileBlockInfo.newBuilder()
+        .setBlockInfo(mBlockInfo.toProto())
+        .setOffset(mOffset)
+        .addAllUfsLocations(ufsLocations)
+        .addAllUfsStringLocations(mUfsLocations)
+        .build();
   }
 
   @Override

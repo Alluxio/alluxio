@@ -11,6 +11,7 @@
 
 package alluxio.master.file.options;
 
+import alluxio.grpc.GetStatusPOptions;
 import alluxio.thrift.GetStatusTOptions;
 import alluxio.wire.CommonOptions;
 import alluxio.wire.LoadMetadataType;
@@ -53,6 +54,23 @@ public final class GetStatusOptions {
       }
       if (options.isSetLoadMetadataType()) {
         mLoadMetadataType = LoadMetadataType.fromThrift(options.getLoadMetadataType());
+      }
+    }
+  }
+
+  /**
+   * Create an instance of {@link GetStatusOptions} from a {@link GetStatusPOptions}.
+   *
+   * @param options the thrift representation of getFileInfo options
+   */
+  public GetStatusOptions(GetStatusPOptions options) {
+    this();
+    if (options != null) {
+      if (options.hasCommonOptions()) {
+        mCommonOptions = new CommonOptions(options.getCommonOptions());
+      }
+      if (options.getLoadMetadataType() != alluxio.grpc.LoadMetadataPType.UNRECOGNIZED) {
+        mLoadMetadataType = LoadMetadataType.fromProto(options.getLoadMetadataType());
       }
     }
   }

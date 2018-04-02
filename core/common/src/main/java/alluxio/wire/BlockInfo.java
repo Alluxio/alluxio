@@ -54,6 +54,20 @@ public final class BlockInfo implements Serializable {
   }
 
   /**
+   * Creates a new instance of {@link BlockInfo} from a proto representation.
+   *
+   * @param blockInfo the proto representation of a block information
+   */
+  protected BlockInfo(alluxio.grpc.BlockInfo blockInfo) {
+    mBlockId = blockInfo.getBlockId();
+    mLength = blockInfo.getLength();
+    mLocations = new ArrayList<>();
+    for (alluxio.grpc.BlockLocation location : blockInfo.getLocationsList()) {
+      mLocations.add(new BlockLocation(location));
+    }
+  }
+
+  /**
    * @return the block id
    */
   public long getBlockId() {
@@ -110,6 +124,18 @@ public final class BlockInfo implements Serializable {
       locations.add(location.toThrift());
     }
     return new alluxio.thrift.BlockInfo(mBlockId, mLength, locations);
+  }
+  
+  /**
+   * @return proto representation of the block information
+   */
+  protected alluxio.grpc.BlockInfo toProto() {
+    List<alluxio.grpc.BlockLocation> locations = new ArrayList<>();
+    for (BlockLocation location : mLocations) {
+      locations.add(location.toProto());
+    }
+    return alluxio.grpc.BlockInfo.newBuilder().setBlockId(mBlockId).setLength(mLength)
+        .addAllLocations(locations).build();
   }
 
   @Override

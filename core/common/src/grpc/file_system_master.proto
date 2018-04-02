@@ -8,27 +8,29 @@ package alluxio.grpc;
 
 import "common.proto";
 
-message FileSystemMasterCommonOptions {
-  optional int64 syncIntervalMs = 1;
+message FileSystemMasterCommonPOptions {
+  oneof optional_syncIntervalMs {
+    int64 syncIntervalMs = 1;
+  }
 }
 
-enum LoadMetadataType {
+enum LoadMetadataPType {
   NEVER = 0;  // Never load metadata.
   ONCE = 1;  // Load metadata only once.
   ALWAYS = 2;  // Always load metadata.
 }
 
-message GetStatusOptions {
-  optional LoadMetadataType loadMetadataType = 1;
-  optional FileSystemMasterCommonOptions commonOptions = 2;
+message GetStatusPOptions {
+  optional LoadMetadataPType loadMetadataType = 1;
+  optional FileSystemMasterCommonPOptions commonOptions = 2;
 }
 
-message GetStatusRequest {
+message GetStatusPRequest {
   optional string path = 1;
-  optional GetStatusOptions options = 2;
+  optional GetStatusPOptions options = 2;
 }
 
-message GetStatusResponse {
+message GetStatusPResponse {
   optional FileInfo fileInfo = 1;
 }
 
@@ -72,5 +74,5 @@ message FileInfo {
 }
 
 service FileSystemMasterService {
-  rpc GetStatus (GetStatusOptions) returns (GetStatusResponse);
+  rpc GetStatus (GetStatusPRequest) returns (GetStatusPResponse);
 }

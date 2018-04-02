@@ -12,6 +12,7 @@
 package alluxio.wire;
 
 import alluxio.annotation.PublicApi;
+import alluxio.grpc.LoadMetadataPType;
 import alluxio.thrift.LoadMetadataTType;
 
 import javax.annotation.Nullable;
@@ -70,6 +71,24 @@ public enum LoadMetadataType {
       case 1:
         return Once;
       case 2:
+        return Always;
+      default:
+        return null;
+    }
+  }
+
+  /**
+   * @param loadMetadataTType the proto representation of loadMetadataType
+   * @return the {@link LoadMetadataType}
+   */
+  @Nullable
+  public static LoadMetadataType fromProto(LoadMetadataPType loadMetadataTType) {
+    switch (loadMetadataTType) {
+      case NEVER:
+        return Never;
+      case ONCE:
+        return Once;
+      case ALWAYS:
         return Always;
       default:
         return null;
