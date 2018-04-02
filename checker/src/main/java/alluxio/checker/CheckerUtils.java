@@ -57,7 +57,7 @@ public final class CheckerUtils {
     BufferedWriter bufferedWriter = new BufferedWriter(fileWriter);
     PrintWriter reportWriter = new PrintWriter(bufferedWriter);
 
-    // Prints the current time to separate integration checker results
+    // Print the current time to separate integration checker results
     SimpleDateFormat df = new SimpleDateFormat("dd/MM/yy HH:mm:ss");
     Date date = new Date();
     reportWriter.printf("%n%n%n***** The integration checker ran at %s. *****%n%n",
@@ -70,11 +70,11 @@ public final class CheckerUtils {
    * @return if the current node can recognize Alluxio classes and filesystem
    */
   public static Status performIntegrationChecks() {
-    // Checks if the current node can recognize Alluxio classes
+    // Check if the current node can recognize Alluxio classes
     try {
-      // Checks if the current node can recognize Alluxio common classes
+      // Check if the current node can recognize Alluxio common classes
       Class.forName("alluxio.AlluxioURI");
-      // Checks if current node can recognize Alluxio core client classes
+      // Check if current node can recognize Alluxio core client classes
       Class.forName("alluxio.client.file.BaseFileSystem");
       Class.forName("alluxio.hadoop.AlluxioFileSystem");
     } catch (ClassNotFoundException e) {
@@ -82,7 +82,7 @@ public final class CheckerUtils {
       return Status.FAIL_TO_FIND_CLASS;
     }
 
-    // Checks if the current node can recognize Alluxio filesystem
+    // Check if the current node can recognize Alluxio filesystem
     try {
       FileSystem.getFileSystemClass("alluxio", new Configuration());
     } catch (Exception e) {
@@ -100,7 +100,6 @@ public final class CheckerUtils {
    * @return true if Alluxio HA mode is supported, false otherwise
    */
   public static boolean supportAlluxioHA(PrintWriter reportWriter) {
-    // Supports Alluxio high availability mode
     if (alluxio.Configuration.getBoolean(PropertyKey.ZOOKEEPER_ENABLED)) {
       reportWriter.println("Alluixo is running in high availability mode.\n");
       if (!alluxio.Configuration.containsKey(PropertyKey.ZOOKEEPER_ADDRESS)) {

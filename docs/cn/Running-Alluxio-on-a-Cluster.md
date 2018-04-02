@@ -17,7 +17,7 @@ priority: 2
 
 为了在集群上部署Alluxio，首先要在每个节点下载Alluxio tar文件并解压：
 
-{% include Running-Alluxio-on-a-Cluster/download-extract-Alluxio-tar.md %}
+为了在集群上部署Alluxio，首先 [下载](https://alluxio.org/download) Alluxio文件(.tar),然后在每个节点上解压它。
 
 ### 配置Alluxio
 

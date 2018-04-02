@@ -158,7 +158,7 @@ public class MapReduceIntegrationChecker {
      */
     @Override
     public List<InputSplit> getSplits(JobContext job) {
-      int numSplits = job.getConfiguration().getInt(MRJobConfig.NUM_MAPS, 1);
+      int numSplits = job.getConfiguration().getInt(MRJobConfig.NUM_MAPS, 10);
       List<InputSplit> splits = new ArrayList<>();
       for (int split = 0; split < numSplits; split++) {
         splits.add(new EmptyInputSplit());
@@ -219,7 +219,7 @@ public class MapReduceIntegrationChecker {
    * @return result Status from MapReduce output
    */
   private Status generateReport() throws Exception {
-    // Reads all the part-r-* files in MapReduceOutPutFile folder
+    // Read all the part-r-* files in MapReduceOutPutFile folder
     FileStatus[] outputFileStatus = mFileSystem.listStatus(mOutputFilePath,
         path -> path.getName().startsWith(("part-")));
 
@@ -266,8 +266,8 @@ public class MapReduceIntegrationChecker {
    */
   private int run(String[] args) throws Exception {
     Configuration conf = new Configuration();
-    String[] otherArgs =  new GenericOptionsParser(conf, args).getRemainingArgs();
-    conf.set(MRJobConfig.NUM_MAPS, otherArgs[0]);
+    String numMaps =  new GenericOptionsParser(conf, args).getRemainingArgs()[0];
+    conf.set(MRJobConfig.NUM_MAPS, numMaps);
     createHdfsFilesystem(conf);
 
     Job job = Job.getInstance(conf, "MapReduceIntegrationChecker");
@@ -298,7 +298,7 @@ public class MapReduceIntegrationChecker {
   /**
    * Main function will be triggered via hadoop jar.
    *
-   * @param args inputSplits will be passed in
+   * @param args numMaps will be passed in
    */
   public static void main(String[] args) throws Exception {
     MapReduceIntegrationChecker checker = new MapReduceIntegrationChecker();

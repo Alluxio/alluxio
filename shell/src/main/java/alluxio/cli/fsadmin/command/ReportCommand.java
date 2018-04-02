@@ -11,19 +11,19 @@
 
 package alluxio.cli.fsadmin.command;
 
-import alluxio.cli.AbstractCommand;
+import alluxio.cli.Command;
+import alluxio.cli.CommandUtils;
 import alluxio.cli.fsadmin.report.CapacityCommand;
 import alluxio.cli.fsadmin.report.ConfigurationCommand;
 import alluxio.cli.fsadmin.report.SummaryCommand;
 import alluxio.cli.fsadmin.report.UfsCommand;
+import alluxio.client.MetaMasterClient;
+import alluxio.client.RetryHandlingMetaMasterClient;
 import alluxio.client.block.BlockMasterClient;
 import alluxio.client.block.RetryHandlingBlockMasterClient;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.FileSystemMasterClient;
-import alluxio.client.MetaMasterClient;
-import alluxio.client.RetryHandlingMetaMasterClient;
 import alluxio.client.file.RetryHandlingFileSystemMasterClient;
-import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.master.MasterClientConfig;
@@ -46,7 +46,7 @@ import java.util.List;
 /**
  * Reports Alluxio running cluster information.
  */
-public final class ReportCommand extends AbstractCommand {
+public final class ReportCommand implements Command {
   public static final String HELP_OPTION_NAME = "h";
   public static final String LIVE_OPTION_NAME = "live";
   public static final String LOST_OPTION_NAME = "lost";
@@ -108,11 +108,6 @@ public final class ReportCommand extends AbstractCommand {
   @Override
   public String getCommandName() {
     return "report";
-  }
-
-  @Override
-  protected int getNumOfArgs() {
-    return 1;
   }
 
   @Override
@@ -239,10 +234,7 @@ public final class ReportCommand extends AbstractCommand {
   }
 
   @Override
-  public void validateArgs(String... args) throws InvalidArgumentException {
-    if (args.length > 1) {
-      throw new InvalidArgumentException(
-          ExceptionMessage.INVALID_ARGS_GENERIC.getMessage(getCommandName()));
-    }
+  public void validateArgs(CommandLine cl) throws InvalidArgumentException {
+    CommandUtils.checkNumOfArgsNoMoreThan(this, cl, 1);
   }
 }

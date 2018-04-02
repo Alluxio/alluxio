@@ -12,6 +12,7 @@
 package alluxio.cli.fs.command;
 
 import alluxio.AlluxioURI;
+import alluxio.cli.CommandUtils;
 import alluxio.cli.fs.FileSystemShellUtils;
 import alluxio.client.file.FileSystem;
 import alluxio.exception.AlluxioException;
@@ -54,33 +55,22 @@ public final class SetTtlCommand extends AbstractFileSystemCommand {
   }
 
   @Override
-  protected int getNumOfArgs() {
-    return 2;
+  public void validateArgs(CommandLine cl) throws InvalidArgumentException {
+    CommandUtils.checkNumOfArgsEquals(this, cl, 2);
+    String operation = cl.getOptionValue(TTL_ACTION);
+    if (operation != null) {
+      try {
+        mAction = TtlAction.valueOf(operation.toUpperCase());
+      } catch (Exception e) {
+        throw new InvalidArgumentException(String.format("TTL action should be %s OR %s, not %s",
+            TtlAction.DELETE, TtlAction.FREE, operation));
+      }
+    }
   }
 
   @Override
   public Options getOptions() {
     return new Options().addOption(TTL_ACTION_OPTION);
-  }
-
-  @Override
-  public CommandLine parseAndValidateArgs(String... args) throws InvalidArgumentException {
-
-    CommandLine cmd = super.parseAndValidateArgs(args);
-    if (cmd == null) {
-      return null;
-    }
-
-    try {
-      String operation = cmd.getOptionValue(TTL_ACTION);
-      if (operation != null) {
-        mAction = TtlAction.valueOf(operation.toUpperCase());
-      }
-    } catch (Exception e) {
-      System.err.println("action should be delete OR free");
-      cmd = null;
-    }
-    return cmd;
   }
 
   @Override

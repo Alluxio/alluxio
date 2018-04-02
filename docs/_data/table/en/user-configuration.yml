@@ -12,6 +12,8 @@ alluxio.user.block.worker.client.pool.gc.threshold:
   'A block worker client is closed if it has been idle for more than this threshold.'
 alluxio.user.block.worker.client.pool.size.max:
   'The maximum number of block worker clients cached in the block worker client pool.'
+alluxio.user.block.worker.client.read.retry:
+  'The maximum number of workers to retry before the client gives up on  reading a block'
 alluxio.user.block.worker.client.threads:
   'The number of threads used by a block worker client pool for heartbeating to a worker. Increase this value if worker failures affect client connections to healthy workers.'
 alluxio.user.date.format.pattern:
@@ -84,6 +86,8 @@ alluxio.user.network.netty.writer.packet.size.bytes:
   'When a client writes to a remote worker, the maximum packet size.'
 alluxio.user.rpc.retry.base.sleep:
   'Alluxio client RPCs automatically retry for transient errors with an exponential backoff. This property determines the base time in the exponential backoff.'
+alluxio.user.rpc.retry.max.duration:
+  'Alluxio client RPCs automatically retry for transient errors with an exponential backoff. This property determines the maximum duration to retry for before giving up.'
 alluxio.user.rpc.retry.max.num.retry:
   'Alluxio client RPCs automatically retry for transient errors with an exponential backoff. This property determines the maximum number of retries.'
 alluxio.user.rpc.retry.max.sleep:

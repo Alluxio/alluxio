@@ -37,10 +37,10 @@ import java.sql.ResultSet;
 @SuppressFBWarnings("SQL_PREPARED_STATEMENT_GENERATED_FROM_NONCONSTANT_STRING")
 public class HiveIntegrationChecker {
   private static final Logger LOG = LoggerFactory.getLogger(HiveIntegrationChecker.class);
-  private static final String FAIL_TO_FIND_CLASS_MESSAGE = "Please distribute "
-      + "the Alluxio client jar on the classpath of the application across different nodes.\n\n"
-      + "Please set HIVE_AUX_JARS_PATH either in shell or in conf/hive-env.sh "
-      + "before starting hiveserver2.\n\n"
+  private static final String FAIL_TO_FIND_CLASS_MESSAGE = "Please set HIVE_AUX_JARS_PATH "
+      + "either in shell or in conf/hive-env.sh before starting hiveserver2.\n\n"
+      + "Please distribute the Alluxio client jar on the HIVE_AUX_JARS_PATH "
+      + "of all Hive nodes.\n\n"
       + "For details, please refer to: "
       + "https://www.alluxio.org/docs/master/en/Running-Hive-with-Alluxio.html\n";
   private static final String FAIL_TO_FIND_FS_MESSAGE = "Please check the fs.alluxio.impl property "
@@ -108,7 +108,7 @@ public class HiveIntegrationChecker {
         dropTablePS.execute();
       }
 
-      // Creates test table based on different integration ways
+      // Create test table based on different integration ways
       if (mUserMode.equals(Mode.DEFAULT_FILESYSTEM)) {
         createTableInHiveDFS(con, tableName);
       } else {
