@@ -66,8 +66,9 @@ public final class CommonOptions implements Serializable {
   public CommonOptions(FileSystemMasterCommonPOptions options) {
     this();
     if (options != null) {
-      // TODO(adit) check if not set
-      mSyncIntervalMs = options.getSyncIntervalMs();
+      if (options.hasSyncIntervalMs()) {
+        mSyncIntervalMs = options.getSyncIntervalMs();
+      }
     }
   }
 
