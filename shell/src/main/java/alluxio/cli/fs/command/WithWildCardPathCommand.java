@@ -50,11 +50,6 @@ public abstract class WithWildCardPathCommand extends AbstractFileSystemCommand 
       throws AlluxioException, IOException;
 
   @Override
-  protected int getNumOfArgs() {
-    return 1;
-  }
-
-  @Override
   public int run(CommandLine cl) throws AlluxioException, IOException {
     String[] args = cl.getArgs();
     for (String arg : args) {

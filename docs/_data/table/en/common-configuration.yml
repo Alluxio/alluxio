@@ -70,6 +70,8 @@ alluxio.site.conf.dir:
   'Comma-separated search path for alluxio-site.properties. Note: This property must be specified as a JVM property; it is not accepted in alluxio-site.properties.'
 alluxio.test.mode:
   'Flag used only during tests to allow special behavior.'
+alluxio.tmp.dirs:
+  'The path(s) to store Alluxio temporary files, use commas as delimiters. If multiple paths are specified, one will be selected at random per temporary file. Currently, only files to be uploaded to object stores are stored in these paths.'
 alluxio.underfs.address:
   'Alluxio directory in the under file system.'
 alluxio.underfs.allow.set.owner.failure:
@@ -138,8 +140,6 @@ alluxio.underfs.s3a.signer.algorithm:
   'The signature algorithm which should be used to sign requests to the s3 service. This is optional, and if not set, the client will automatically determine it. For interacting with an S3 endpoint which only supports v2 signatures, set this to "S3SignerType".'
 alluxio.underfs.s3a.socket.timeout:
   'Length of the socket timeout when communicating with S3.'
-alluxio.version:
-  'Version of Alluxio. User should never modify this property.'
 alluxio.web.resources:
   'Path to the web application resources.'
 alluxio.web.threads:

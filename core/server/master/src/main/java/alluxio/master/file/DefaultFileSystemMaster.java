@@ -3871,6 +3871,9 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
   }
 
   private void removeBlocks(List<Long> blocks) throws IOException {
+    if (blocks.isEmpty()) {
+      return;
+    }
     RetryPolicy retry = new CountingRetry(3);
     IOException lastThrown = null;
     while (retry.attempt()) {

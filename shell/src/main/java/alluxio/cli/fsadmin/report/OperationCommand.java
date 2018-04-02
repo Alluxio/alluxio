@@ -82,7 +82,7 @@ public class OperationCommand {
    * Transforms the key name to a readable name.
    *
    * @param keyName the key name to transform
-   * @return a readable name from the input key
+   * @return a readable name
    */
   private String getReadableName(String keyName) {
     return keyName.replaceAll("(.)([A-Z])", "$1 $2")

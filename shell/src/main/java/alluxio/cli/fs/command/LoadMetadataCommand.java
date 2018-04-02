@@ -11,7 +11,9 @@
 
 package alluxio.cli.fs.command;
 
+import alluxio.cli.CommandUtils;
 import alluxio.client.file.FileSystem;
+import alluxio.exception.status.InvalidArgumentException;
 
 import org.apache.commons.cli.CommandLine;
 
@@ -21,8 +23,11 @@ import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Loads metadata for the given Alluxio path from UFS.
+ *
+ * @deprecated since version 1.1
  */
 @ThreadSafe
+@Deprecated
 public final class LoadMetadataCommand extends AbstractFileSystemCommand {
 
   /**
@@ -40,8 +45,8 @@ public final class LoadMetadataCommand extends AbstractFileSystemCommand {
   }
 
   @Override
-  protected int getNumOfArgs() {
-    return 1;
+  public void validateArgs(CommandLine cl) throws InvalidArgumentException {
+    CommandUtils.checkNumOfArgsEquals(this, cl, 1);
   }
 
   @Override
