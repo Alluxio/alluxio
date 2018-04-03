@@ -11,15 +11,18 @@
 
 package alluxio.web;
 
+import alluxio.PropertyKey;
 import alluxio.master.MasterProcess;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.wire.ConfigProperty;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Sets;
 import org.apache.commons.lang3.tuple.ImmutableTriple;
 import org.apache.commons.lang3.tuple.Triple;
 
 import java.io.IOException;
+import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
@@ -68,9 +71,14 @@ public final class WebInterfaceConfigurationServlet extends HttpServlet {
 
   private SortedSet<Triple<String, String, String>> getSortedProperties() {
     TreeSet<Triple<String, String, String>> rtn = new TreeSet<>();
+    Set<String> alluxioConfExcludes = Sets.newHashSet(
+        PropertyKey.MASTER_WHITELIST.toString());
     for (ConfigProperty configProperty : mMasterProcess.getConfiguration()) {
-      rtn.add(new ImmutableTriple<>(configProperty.getName(),
-          configProperty.getValue(), configProperty.getSource()));
+      String confName = configProperty.getName();
+      if (!alluxioConfExcludes.contains(confName)) {
+        rtn.add(new ImmutableTriple<>(confName,
+            configProperty.getValue(), configProperty.getSource()));
+      }
     }
     return rtn;
   }

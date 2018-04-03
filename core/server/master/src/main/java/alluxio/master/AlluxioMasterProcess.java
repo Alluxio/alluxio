@@ -33,7 +33,6 @@ import alluxio.wire.ConfigProperty;
 import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
-import com.google.common.collect.Sets;
 import org.apache.thrift.TMultiplexedProcessor;
 import org.apache.thrift.TProcessor;
 import org.apache.thrift.protocol.TBinaryProtocol;
@@ -51,7 +50,6 @@ import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
@@ -205,11 +203,9 @@ public class AlluxioMasterProcess implements MasterProcess {
   public List<ConfigProperty> getConfiguration() {
     List<ConfigProperty> configInfoList = new ArrayList<>();
     String alluxioConfPrefix = "alluxio";
-    Set<String> alluxioConfExcludes = Sets.newHashSet(
-        PropertyKey.MASTER_WHITELIST.toString());
     for (Map.Entry<String, String> entry : Configuration.toMap().entrySet()) {
       String key = entry.getKey();
-      if (key.startsWith(alluxioConfPrefix) && !alluxioConfExcludes.contains(key)) {
+      if (key.startsWith(alluxioConfPrefix)) {
         PropertyKey propertyKey = PropertyKey.fromString(key);
         Configuration.Source source = Configuration.getSource(propertyKey);
         String sourceStr;
