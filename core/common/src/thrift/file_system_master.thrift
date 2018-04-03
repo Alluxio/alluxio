@@ -284,12 +284,17 @@ service FileSystemMasterClientService extends common.AlluxioService {
     throws (1: exception.AlluxioTException e)
 
   /**
-   * Returns the status of the file or directory.
+   * Returns a map of metrics property name and its count from Alluxio metrics system.
    */
-  GetStatusTResponse getStatus(
-    /** the path of the file or directory */ 1: string path,
-    /** the method options */ 2: GetStatusTOptions options,
+  GetMetricsTResponse getMetrics(
+    /** the method options */ 1: GetMetricsTOptions options,
     )
+    throws (1: exception.AlluxioTException e)
+
+  /**
+  * Returns a map from each Alluxio path to information of corresponding mount point
+  */
+  GetMountTableTResponse getMountTable()
     throws (1: exception.AlluxioTException e)
 
   /**
@@ -298,6 +303,15 @@ service FileSystemMasterClientService extends common.AlluxioService {
   GetNewBlockIdForFileTResponse getNewBlockIdForFile(
     /** the path of the file */ 1: string path,
     /** the method options */ 2: GetNewBlockIdForFileTOptions options,
+    )
+    throws (1: exception.AlluxioTException e)
+
+  /**
+   * Returns the status of the file or directory.
+   */
+  GetStatusTResponse getStatus(
+    /** the path of the file or directory */ 1: string path,
+    /** the method options */ 2: GetStatusTOptions options,
     )
     throws (1: exception.AlluxioTException e)
 
@@ -336,20 +350,6 @@ service FileSystemMasterClientService extends common.AlluxioService {
     throws (1: exception.AlluxioTException e)
 
   /**
-   * Returns a map of metrics property name and its count from Alluxio metrics system.
-   */
-  GetMetricsTResponse getMetrics(
-    /** the method options */ 1: GetMetricsTOptions options,
-    )
-    throws (1: exception.AlluxioTException e)
-
-  /**
-  * Returns a map from each Alluxio path to information of corresponding mount point
-  */
-  GetMountTableTResponse getMountTable()
-    throws (1: exception.AlluxioTException e)
-
-  /**
    * Deletes a file or a directory and returns whether the remove operation succeeded.
    * NOTE: Unfortunately, the method cannot be called "delete" as that is a reserved Thrift keyword.
    */
@@ -372,20 +372,20 @@ service FileSystemMasterClientService extends common.AlluxioService {
     throws (1: exception.AlluxioTException e)
 
   /**
-   * Sets file or directory attributes.
-   */
-  SetAttributeTResponse setAttribute(
-    /** the path of the file or directory */ 1: string path,
-    /** the method options */ 2: SetAttributeTOptions options,
-    )
-    throws (1: exception.AlluxioTException e)
-
-  /**
    * Schedules async persistence.
    */
   ScheduleAsyncPersistenceTResponse scheduleAsyncPersistence(
     /** the path of the file */ 1: string path,
     /** the method options */ 2: ScheduleAsyncPersistenceTOptions options,
+    )
+    throws (1: exception.AlluxioTException e)
+
+  /**
+   * Sets file or directory attributes.
+   */
+  SetAttributeTResponse setAttribute(
+    /** the path of the file or directory */ 1: string path,
+    /** the method options */ 2: SetAttributeTOptions options,
     )
     throws (1: exception.AlluxioTException e)
 
