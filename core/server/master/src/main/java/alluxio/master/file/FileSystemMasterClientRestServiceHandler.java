@@ -251,12 +251,9 @@ public final class FileSystemMasterClientRestServiceHandler {
   @Path(GET_STATUS)
   @ReturnType("alluxio.wire.FileInfo")
   public Response getStatus(@QueryParam("path") final String path) {
-    return RestUtils.call(new RestUtils.RestCallable<FileInfo>() {
-      @Override
-      public FileInfo call() throws Exception {
+    return RestUtils.call(() ->  {
         Preconditions.checkNotNull(path, "required 'path' parameter is missing");
         return mFileSystemMaster.getFileInfo(new AlluxioURI(path), GetStatusOptions.defaults());
-      }
     });
   }
 
