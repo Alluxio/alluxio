@@ -25,14 +25,12 @@ import alluxio.exception.InvalidPathException;
 import alluxio.exception.PreconditionMessage;
 import alluxio.exception.status.UnavailableException;
 import alluxio.master.block.ContainerIdGenerable;
-import alluxio.master.file.BlockDeletionContext;
+import alluxio.master.file.RpcContext;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
 import alluxio.master.file.options.CreatePathOptions;
 import alluxio.master.file.options.DeleteOptions;
-import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.JournalEntryIterable;
-import alluxio.master.journal.NoopJournalContext;
 import alluxio.proto.journal.File;
 import alluxio.proto.journal.File.InodeDirectoryEntry;
 import alluxio.proto.journal.File.InodeFileEntry;
@@ -473,9 +471,9 @@ public class InodeTree implements JournalEntryIterable {
   /**
    * Creates a file or directory at path.
    *
+   * @param rpcContext the rpc context
    * @param inodePath the path
    * @param options method options
-   * @param journalContext the journal context
    * @return a {@link CreatePathResult} representing the modified inodes and created inodes during
    *         path creation
    * @throws FileAlreadyExistsException when there is already a file at path if we want to create a
@@ -487,10 +485,9 @@ public class InodeTree implements JournalEntryIterable {
    * @throws FileDoesNotExistException if the parent of the path does not exist and the recursive
    *         option is false
    */
-  public CreatePathResult createPath(LockedInodePath inodePath, CreatePathOptions<?> options,
-      JournalContext journalContext)
-      throws FileAlreadyExistsException, BlockInfoException, InvalidPathException, IOException,
-      FileDoesNotExistException {
+  public CreatePathResult createPath(RpcContext rpcContext, LockedInodePath inodePath,
+      CreatePathOptions<?> options) throws FileAlreadyExistsException, BlockInfoException,
+      InvalidPathException, IOException, FileDoesNotExistException {
     // TODO(gpang): consider splitting this into createFilePath and createDirectoryPath, with a
     // helper method for the shared logic.
     AlluxioURI path = inodePath.getUri();
@@ -556,7 +553,7 @@ public class InodeTree implements JournalEntryIterable {
       // Synchronously persist directories. These inodes are already READ locked.
       for (Inode inode : traversalResult.getNonPersisted()) {
         // This cast is safe because we've already verified that the file inode doesn't exist.
-        syncPersistDirectory((InodeDirectory) inode, journalContext);
+        syncPersistDirectory(rpcContext, (InodeDirectory) inode);
       }
     }
     if ((pathIndex < (pathComponents.length - 1) || currentInodeDirectory.getChild(name) == null)
@@ -571,9 +568,8 @@ public class InodeTree implements JournalEntryIterable {
       File.InodeLastModificationTimeEntry inodeLastModificationTime =
           File.InodeLastModificationTimeEntry.newBuilder().setId(currentInodeDirectory.getId())
               .setLastModificationTimeMs(options.getOperationTimeMs()).build();
-      journalContext.append(
-          Journal.JournalEntry.newBuilder().setInodeLastModificationTime(inodeLastModificationTime)
-              .build());
+      rpcContext.journal(Journal.JournalEntry.newBuilder()
+          .setInodeLastModificationTime(inodeLastModificationTime).build());
     }
 
     // Fill in the ancestor directories that were missing.
@@ -589,7 +585,8 @@ public class InodeTree implements JournalEntryIterable {
     for (int k = pathIndex; k < (pathComponents.length - 1); k++) {
       InodeDirectory dir = null;
       while (dir == null) {
-        dir = InodeDirectory.create(mDirectoryIdGenerator.getNewDirectoryId(journalContext),
+        dir = InodeDirectory.create(
+            mDirectoryIdGenerator.getNewDirectoryId(rpcContext.getJournalContext()),
             currentInodeDirectory.getId(), pathComponents[k], missingDirOptions);
         // Lock the newly created inode before subsequent operations, and add it to the lock group.
         lockList.lockWriteAndCheckNameAndParent(dir, currentInodeDirectory, pathComponents[k]);
@@ -610,7 +607,7 @@ public class InodeTree implements JournalEntryIterable {
             dir.setPinned(currentInodeDirectory.isPinned());
             if (options.isPersisted()) {
               // Do not journal the persist entry, since a creation entry will be journaled instead.
-              syncPersistDirectory(dir, NoopJournalContext.INSTANCE);
+              syncPersistDirectory(RpcContext.NOOP, dir);
             }
           } catch (Exception e) {
             // Failed to persist the directory, so remove it from the parent.
@@ -618,7 +615,7 @@ public class InodeTree implements JournalEntryIterable {
             throw e;
           }
           // Journal the new inode.
-          journalContext.append(dir.toJournalEntry());
+          rpcContext.getJournalContext().append(dir.toJournalEntry());
           mInodes.add(dir);
 
           // After creation and journaling, downgrade to a read lock.
@@ -656,7 +653,7 @@ public class InodeTree implements JournalEntryIterable {
             .isPersisted() && options.isPersisted()) {
           // The final path component already exists and is not persisted, so it should be added
           // to the non-persisted Inodes of traversalResult.
-          syncPersistDirectory((InodeDirectory) lastInode, journalContext);
+          syncPersistDirectory(rpcContext, (InodeDirectory) lastInode);
         } else if (!lastInode.isDirectory() || !(options instanceof CreateDirectoryOptions
             && ((CreateDirectoryOptions) options).isAllowExists())) {
           String errorMessage = ExceptionMessage.FILE_ALREADY_EXISTS.getMessage(path);
@@ -667,13 +664,14 @@ public class InodeTree implements JournalEntryIterable {
         // create the new inode, with a write lock
         if (options instanceof CreateDirectoryOptions) {
           CreateDirectoryOptions directoryOptions = (CreateDirectoryOptions) options;
-          lastInode = InodeDirectory.create(mDirectoryIdGenerator.getNewDirectoryId(journalContext),
+          lastInode = InodeDirectory.create(
+              mDirectoryIdGenerator.getNewDirectoryId(rpcContext.getJournalContext()),
               currentInodeDirectory.getId(), name, directoryOptions);
           // Lock the created inode before subsequent operations, and add it to the lock group.
           lockList.lockWriteAndCheckNameAndParent(lastInode, currentInodeDirectory, name);
           if (directoryOptions.isPersisted()) {
             // Do not journal the persist entry, since a creation entry will be journaled instead.
-            syncPersistDirectory((InodeDirectory) lastInode, NoopJournalContext.INSTANCE);
+            syncPersistDirectory(RpcContext.NOOP, (InodeDirectory) lastInode);
           }
         } else if (options instanceof CreateFileOptions) {
           CreateFileOptions fileOptions = (CreateFileOptions) options;
@@ -703,7 +701,7 @@ public class InodeTree implements JournalEntryIterable {
         }
 
         // Journal the new inode.
-        journalContext.append(lastInode.toJournalEntry());
+        rpcContext.getJournalContext().append(lastInode.toJournalEntry());
 
         // Update state while holding the write lock.
         mInodes.add(lastInode);
@@ -729,8 +727,7 @@ public class InodeTree implements JournalEntryIterable {
    * @throws FileDoesNotExistException if the path does not exist
    */
   public long reinitializeFile(LockedInodePath inodePath, long blockSizeBytes, long ttl,
-      TtlAction ttlAction)
-      throws InvalidPathException, FileDoesNotExistException {
+      TtlAction ttlAction) throws InvalidPathException, FileDoesNotExistException {
     InodeFile file = inodePath.getInodeFile();
     file.setBlockSizeBytes(blockSizeBytes);
     file.setTtl(ttl);
@@ -785,16 +782,14 @@ public class InodeTree implements JournalEntryIterable {
   /**
    * Deletes a single inode from the inode tree by removing it from the parent inode.
    *
-   * @param inodePath The {@link LockedInodePath} to delete
-   * @param opTimeMs The operation time
+   * @param rpcContext the rpc context
+   * @param inodePath the {@link LockedInodePath} to delete
+   * @param opTimeMs the operation time
    * @param deleteOptions the delete options
-   * @param journalContext the journal context
-   * @param blockDeletionContext the block deletion context
    * @throws FileDoesNotExistException if the Inode cannot be retrieved
    */
-  public void deleteInode(LockedInodePath inodePath, long opTimeMs, DeleteOptions deleteOptions,
-      JournalContext journalContext, BlockDeletionContext blockDeletionContext)
-      throws FileDoesNotExistException {
+  public void deleteInode(RpcContext rpcContext, LockedInodePath inodePath, long opTimeMs,
+      DeleteOptions deleteOptions) throws FileDoesNotExistException {
     Inode<?> inode = inodePath.getInode();
     InodeDirectory parent = (InodeDirectory) mInodes.getFirst(inode.getParentId());
     if (parent == null) {
@@ -808,10 +803,11 @@ public class InodeTree implements JournalEntryIterable {
         .setAlluxioOnly(deleteOptions.isAlluxioOnly())
         .setRecursive(deleteOptions.isRecursive())
         .setOpTimeMs(opTimeMs).build();
-    journalContext.append(Journal.JournalEntry.newBuilder().setDeleteFile(deleteFile).build());
+    rpcContext.journal(Journal.JournalEntry.newBuilder().setDeleteFile(deleteFile).build());
 
     if (inode.isFile()) {
-      blockDeletionContext.registerBlocksForDeletion(((InodeFile) inode).getBlockIds());
+      rpcContext.getBlockDeletionContext()
+          .registerBlocksForDeletion(((InodeFile) inode).getBlockIds());
     }
 
     parent.removeChild(inode);
@@ -996,12 +992,12 @@ public class InodeTree implements JournalEntryIterable {
    * Synchronously persists an {@link InodeDirectory} to the UFS. If concurrent calls are made, only
    * one thread will persist to UFS, and the others will wait until it is persisted.
    *
+   * @param rpcContext the rpc context
    * @param dir the {@link InodeDirectory} to persist
-   * @param journalContext the journal context
    * @throws InvalidPathException if the path for the inode is invalid
    * @throws FileDoesNotExistException if the path for the inode is invalid
    */
-  public void syncPersistDirectory(InodeDirectory dir, JournalContext journalContext)
+  public void syncPersistDirectory(RpcContext rpcContext, InodeDirectory dir)
       throws IOException, InvalidPathException, FileDoesNotExistException {
     RetryPolicy retry =
         new ExponentialBackoffRetry(PERSIST_WAIT_BASE_SLEEP_MS, PERSIST_WAIT_MAX_SLEEP_MS,
@@ -1049,7 +1045,7 @@ public class InodeTree implements JournalEntryIterable {
           // Append the persist entry to the journal.
           File.PersistDirectoryEntry persistDirectory =
               File.PersistDirectoryEntry.newBuilder().setId(dir.getId()).build();
-          journalContext.append(
+          rpcContext.journal(
               Journal.JournalEntry.newBuilder().setPersistDirectory(persistDirectory).build());
           success = true;
         } finally {

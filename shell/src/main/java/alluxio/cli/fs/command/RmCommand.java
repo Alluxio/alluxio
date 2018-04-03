@@ -50,7 +50,8 @@ public final class RmCommand extends WithWildCardPathCommand {
           .build();
 
   private static final Option REMOVE_ALLUXIO_ONLY =
-      Option.builder("alluxioOnly")
+      Option.builder()
+          .longOpt("alluxioOnly")
           .required(false)
           .hasArg(false)
           .desc("remove data and metadata from Alluxio space only")
@@ -92,7 +93,7 @@ public final class RmCommand extends WithWildCardPathCommand {
     if (cl.hasOption(REMOVE_UNCHECKED_OPTION_CHAR)) {
       options.setUnchecked(true);
     }
-    boolean isAlluxioOnly = cl.hasOption(REMOVE_ALLUXIO_ONLY.getOpt());
+    boolean isAlluxioOnly = cl.hasOption(REMOVE_ALLUXIO_ONLY.getLongOpt());
     options.setAlluxioOnly(isAlluxioOnly);
     mFileSystem.delete(path, options);
     if (!isAlluxioOnly) {
@@ -104,7 +105,7 @@ public final class RmCommand extends WithWildCardPathCommand {
 
   @Override
   public String getUsage() {
-    return "rm [-R] [-U] [-alluxioOnly] <path>";
+    return "rm [-R] [-U] [--alluxioOnly] <path>";
   }
 
   @Override

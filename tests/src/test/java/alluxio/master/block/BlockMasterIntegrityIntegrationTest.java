@@ -18,12 +18,12 @@ import alluxio.client.WriteType;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.master.LocalAlluxioCluster;
-import alluxio.master.file.BlockDeletionContext;
+import alluxio.master.file.DefaultFileSystemMaster;
 import alluxio.master.file.FileSystemMaster;
+import alluxio.master.file.RpcContext;
 import alluxio.master.file.meta.InodeTree;
 import alluxio.master.file.meta.LockedInodePath;
 import alluxio.master.file.options.DeleteOptions;
-import alluxio.master.journal.JournalContext;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 import alluxio.worker.block.BlockWorker;
@@ -74,17 +74,7 @@ public class BlockMasterIntegrityIntegrationTest {
     BlockWorker worker = mCluster.getWorkerProcess().getWorker(BlockWorker.class);
     FileSystemTestUtils.createByteFile(fs, uri, WriteType.MUST_CACHE, len);
     Assert.assertEquals(1, worker.getStoreMetaFull().getNumberOfBlocks());
-    FileSystemMaster fsm =
-        mCluster.getLocalAlluxioMaster().getMasterProcess().getMaster(FileSystemMaster.class);
-    InodeTree tree = Whitebox.getInternalState(fsm, "mInodeTree");
-    LockedInodePath path = tree.lockInodePath(uri, InodeTree.LockMode.WRITE);
-    DeleteOptions options = DeleteOptions.defaults();
-    BlockDeletionContext bctx = Whitebox.invokeMethod(fsm, "createBlockDeletionContext");
-    JournalContext jctx = Whitebox.invokeMethod(fsm, "createJournalContext");
-    Whitebox.invokeMethod(fsm, "deleteAndJournal", path, options, jctx, bctx);
-    path.close();
-    jctx.close(); // Journal Context is closed before Block Context
-    bctx.close();
+    removeFileMetadata(uri);
     mCluster.stopWorkers();
     mCluster.restartMasters();
     mCluster.startWorkers(); // creates a new worker, so need to get the new BlockWorker
@@ -106,19 +96,21 @@ public class BlockMasterIntegrityIntegrationTest {
     BlockWorker worker = mCluster.getWorkerProcess().getWorker(BlockWorker.class);
     FileSystemTestUtils.createByteFile(fs, uri, WriteType.MUST_CACHE, len);
     Assert.assertEquals(1, worker.getStoreMetaFull().getNumberOfBlocks());
+    removeFileMetadata(uri);
+    CommonUtils.waitFor("invalid blocks to be deleted",
+        (v) -> worker.getStoreMetaFull().getNumberOfBlocks() == 0,
+        WaitForOptions.defaults().setTimeoutMs(2000));
+  }
+
+  private void removeFileMetadata(AlluxioURI uri) throws Exception {
     FileSystemMaster fsm =
         mCluster.getLocalAlluxioMaster().getMasterProcess().getMaster(FileSystemMaster.class);
     InodeTree tree = Whitebox.getInternalState(fsm, "mInodeTree");
     LockedInodePath path = tree.lockInodePath(uri, InodeTree.LockMode.WRITE);
     DeleteOptions options = DeleteOptions.defaults();
-    BlockDeletionContext bctx = Whitebox.invokeMethod(fsm, "createBlockDeletionContext");
-    JournalContext jctx = Whitebox.invokeMethod(fsm, "createJournalContext");
-    Whitebox.invokeMethod(fsm, "deleteAndJournal", path, options, jctx, bctx);
+    RpcContext rpcContext = ((DefaultFileSystemMaster) fsm).createRpcContext();
+    ((DefaultFileSystemMaster) fsm).deleteAndJournal(rpcContext, path, options);
     path.close();
-    jctx.close(); // Journal Context is closed before Block Context
-    bctx.close();
-    CommonUtils.waitFor("invalid blocks to be deleted",
-        (v) -> worker.getStoreMetaFull().getNumberOfBlocks() == 0,
-        WaitForOptions.defaults().setTimeoutMs(2000));
+    rpcContext.close();
   }
 }

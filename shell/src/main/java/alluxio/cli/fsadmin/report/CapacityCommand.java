@@ -12,6 +12,7 @@
 package alluxio.cli.fsadmin.report;
 
 import alluxio.cli.fsadmin.command.ReportCommand;
+import alluxio.cli.fsadmin.FileSystemAdminShellUtils;
 import alluxio.client.block.BlockMasterClient;
 import alluxio.client.block.options.GetWorkerReportOptions;
 import alluxio.client.block.options.GetWorkerReportOptions.WorkerInfoField;
@@ -32,22 +33,26 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
+import java.util.stream.Collectors;
 
 /**
  * Prints Alluxio capacity information.
  */
 public class CapacityCommand {
   private static final int INDENT_SIZE = 4;
-  private static final String WORKER_INFO_FORMAT = "%-16s %-16s %-13s %-16s %-13s %-13s %-13s%n";
+  private static final String LONG_INFO_FORMAT = "%-16s %-16s %-13s %-16s %s";
+  private static final String SHORT_INFO_FORMAT = "%-16s %-16s %-13s %s";
 
   private BlockMasterClient mBlockMasterClient;
   private PrintStream mPrintStream;
-  private StringBuilder mStringBuilder;
   private int mIndentationLevel = 0;
-  private long mSumCapacityBytes = 0;
-  private long mSumUsedBytes = 0;
-  private Map<String, Long> mSumCapacityBytesOnTierMap = new HashMap<>();
-  private Map<String, Long> mSumUsedBytesOnTierMap = new HashMap<>();
+  private long mSumCapacityBytes;
+  private long mSumUsedBytes;
+  private Map<String, Long> mSumCapacityBytesOnTierMap;
+  private Map<String, Long> mSumUsedBytesOnTierMap;
+  private TreeMap<String, Map<String, String>> mCapacityTierInfoMap;
+  private Map<String, Map<String, String>> mUsedTierInfoMap;
 
    /**
    * Creates a new instance of {@link CapacityCommand}.
@@ -58,7 +63,6 @@ public class CapacityCommand {
   public CapacityCommand(BlockMasterClient blockMasterClient, PrintStream printStream) {
     mBlockMasterClient = blockMasterClient;
     mPrintStream = printStream;
-    mStringBuilder = new StringBuilder();
   }
 
   /**
@@ -84,38 +88,32 @@ public class CapacityCommand {
    * @param options GetWorkerReportOptions to get worker report
    */
   public void generateCapacityReport(GetWorkerReportOptions options) throws IOException {
-    collectWorkerInfo(options);
+    List<WorkerInfo> workerInfoList = mBlockMasterClient.getWorkerReport(options);
+    if (workerInfoList.size() == 0) {
+      print("No workers found.");
+      return;
+    }
+    Collections.sort(workerInfoList, new WorkerInfo.LastContactSecComparator());
+
+    collectWorkerInfo(workerInfoList);
     printAggregatedInfo(options);
-    mPrintStream.println(mStringBuilder.toString());
+    printWorkerInfo(workerInfoList);
   }
 
   /**
    * Collects worker capacity information.
    *
-   * @param options GetWorkerReportOptions to get worker report
+   * @param workerInfoList the worker info list to collect info from
    */
-  private void collectWorkerInfo(GetWorkerReportOptions options) throws IOException {
-    List<WorkerInfo> workerInfoList = mBlockMasterClient.getWorkerReport(options);
-    if (workerInfoList.size() == 0) {
-      return;
-    }
-
-    Collections.sort(workerInfoList, new WorkerInfo.LastContactSecComparator());
-
-    mStringBuilder.append(String.format("%n" + WORKER_INFO_FORMAT,
-        "Worker Name", "Last Heartbeat", "Storage", "Total", "MEM", "SSD", "HDD"));
-
+  private void collectWorkerInfo(List<WorkerInfo> workerInfoList) {
+    initVariables();
     for (WorkerInfo workerInfo : workerInfoList) {
       long usedBytes = workerInfo.getUsedBytes();
       long capacityBytes = workerInfo.getCapacityBytes();
       mSumCapacityBytes += capacityBytes;
       mSumUsedBytes += usedBytes;
 
-      String usedPercentageInfo = "";
-      if (capacityBytes != 0) {
-        int usedPercentage = (int) (100L * usedBytes / capacityBytes);
-        usedPercentageInfo = String.format(" (%s%%)", usedPercentage);
-      }
+      String workerName = workerInfo.getAddress().getHost();
 
       Map<String, Long> totalBytesOnTiers = workerInfo.getCapacityBytesOnTiers();
       for (Map.Entry<String, Long> totalBytesTier : totalBytesOnTiers.entrySet()) {
@@ -123,6 +121,10 @@ public class CapacityCommand {
         long value = totalBytesTier.getValue();
         mSumCapacityBytesOnTierMap.put(tier,
             value + mSumCapacityBytesOnTierMap.getOrDefault(tier, 0L));
+
+        Map<String, String> map = mCapacityTierInfoMap.getOrDefault(tier, new HashMap<>());
+        map.put(workerName, FormatUtils.getSizeFromBytes(value));
+        mCapacityTierInfoMap.put(tier, map);
       }
 
       Map<String, Long> usedBytesOnTiers = workerInfo.getUsedBytesOnTiers();
@@ -131,24 +133,11 @@ public class CapacityCommand {
         long value = usedBytesTier.getValue();
         mSumUsedBytesOnTierMap.put(tier,
             value + mSumUsedBytesOnTierMap.getOrDefault(tier, 0L));
-      }
 
-      mStringBuilder.append(String.format(WORKER_INFO_FORMAT,
-          workerInfo.getAddress().getHost(),
-          workerInfo.getLastContactSec(),
-          "Capacity",
-          FormatUtils.getSizeFromBytes(capacityBytes),
-          FormatUtils.getSizeFromBytes(totalBytesOnTiers.getOrDefault("MEM", 0L)),
-          FormatUtils.getSizeFromBytes(totalBytesOnTiers.getOrDefault("SSD", 0L)),
-          FormatUtils.getSizeFromBytes(totalBytesOnTiers.getOrDefault("HDD", 0L))));
-      mStringBuilder.append(String.format(WORKER_INFO_FORMAT,
-          "",
-          "",
-          "Used",
-          FormatUtils.getSizeFromBytes(usedBytes) + usedPercentageInfo,
-          FormatUtils.getSizeFromBytes(usedBytesOnTiers.getOrDefault("MEM", 0L)),
-          FormatUtils.getSizeFromBytes(usedBytesOnTiers.getOrDefault("SSD", 0L)),
-          FormatUtils.getSizeFromBytes(usedBytesOnTiers.getOrDefault("HDD", 0L))));
+        Map<String, String> map = mUsedTierInfoMap.getOrDefault(tier, new HashMap<>());
+        map.put(workerName, FormatUtils.getSizeFromBytes(value));
+        mUsedTierInfoMap.put(tier, map);
+      }
     }
   }
 
@@ -190,6 +179,73 @@ public class CapacityCommand {
   }
 
   /**
+   * Prints worker capacity information.
+   *
+   * @param workerInfoList the worker info list to get info from
+   */
+  private void printWorkerInfo(List<WorkerInfo> workerInfoList) {
+    mIndentationLevel = 0;
+    if (mCapacityTierInfoMap.size() == 0) {
+      return;
+    } else if (mCapacityTierInfoMap.size() == 1) {
+      // Do not print Total value when only one tier exists
+      printShortWorkerInfo(workerInfoList);
+      return;
+    }
+    Set<String> tiers = mCapacityTierInfoMap.keySet();
+    String tiersInfo = String.format(Strings.repeat("%-14s", tiers.size()), tiers.toArray());
+    print(String.format("%n" + LONG_INFO_FORMAT,
+        "Worker Name", "Last Heartbeat", "Storage", "Total", tiersInfo));
+
+    for (WorkerInfo info : workerInfoList) {
+      String workerName = info.getAddress().getHost();
+
+      long usedBytes = info.getUsedBytes();
+      long capacityBytes = info.getCapacityBytes();
+
+      String usedPercentageInfo = "";
+      if (capacityBytes != 0) {
+        int usedPercentage = (int) (100L * usedBytes / capacityBytes);
+        usedPercentageInfo = String.format(" (%s%%)", usedPercentage);
+      }
+
+      String capacityTierInfo = getWorkerFormattedTierValues(mCapacityTierInfoMap, workerName);
+      String usedTierInfo = getWorkerFormattedTierValues(mUsedTierInfoMap, workerName);
+
+      print(String.format(LONG_INFO_FORMAT, workerName, info.getLastContactSec(), "capacity",
+          FormatUtils.getSizeFromBytes(capacityBytes), capacityTierInfo));
+      print(String.format(LONG_INFO_FORMAT, "", "", "used",
+          FormatUtils.getSizeFromBytes(usedBytes) + usedPercentageInfo, usedTierInfo));
+    }
+  }
+
+  /**
+   * Prints worker information when only one tier exists.
+   *
+   * @param workerInfoList the worker info list to get info from
+   */
+  private void printShortWorkerInfo(List<WorkerInfo> workerInfoList) {
+    String tier = mCapacityTierInfoMap.firstKey();
+    print(String.format("%n" + SHORT_INFO_FORMAT,
+        "Worker Name", "Last Heartbeat", "Storage", tier));
+
+    for (WorkerInfo info : workerInfoList) {
+      long capacityBytes = info.getCapacityBytes();
+      long usedBytes = info.getUsedBytes();
+
+      String usedPercentageInfo = "";
+      if (capacityBytes != 0) {
+        int usedPercentage = (int) (100L * usedBytes / capacityBytes);
+        usedPercentageInfo = String.format(" (%s%%)", usedPercentage);
+      }
+      print(String.format(SHORT_INFO_FORMAT, info.getAddress().getHost(),
+          info.getLastContactSec(), "capacity", FormatUtils.getSizeFromBytes(capacityBytes)));
+      print(String.format(SHORT_INFO_FORMAT, "", "", "used",
+          FormatUtils.getSizeFromBytes(usedBytes) + usedPercentageInfo));
+    }
+  }
+
+  /**
    * Gets the worker info options.
    *
    * @param cl CommandLine that contains the client options
@@ -223,6 +279,34 @@ public class CapacityCommand {
   }
 
   /**
+   * Gets the formatted tier values of a worker.
+   *
+   * @param map the map to get worker tier values from
+   * @param workerName name of the worker
+   * @return the formatted tier values of the input worker name
+   */
+  private static String getWorkerFormattedTierValues(Map<String, Map<String, String>> map,
+      String workerName) {
+    return map.values().stream().map((tierMap)
+        -> (String.format("%-14s", tierMap.getOrDefault(workerName, "-"))))
+        .collect(Collectors.joining(""));
+  }
+
+  /**
+   * Initializes member variables used to collect worker info.
+   */
+  private void initVariables() {
+    mSumCapacityBytes = 0;
+    mSumUsedBytes = 0;
+    mSumCapacityBytesOnTierMap = new TreeMap<>(FileSystemAdminShellUtils::compareTierNames);
+    mSumUsedBytesOnTierMap = new TreeMap<>(FileSystemAdminShellUtils::compareTierNames);
+
+    // TierInfoMap is of form Map<Tier_Name, Map<Worker_Name, Worker_Tier_Value>>
+    mCapacityTierInfoMap = new TreeMap<>(FileSystemAdminShellUtils::compareTierNames);
+    mUsedTierInfoMap = new TreeMap<>(FileSystemAdminShellUtils::compareTierNames);
+  }
+
+  /**
    * Prints indented information.
    *
    * @param text information to print
@@ -233,7 +317,7 @@ public class CapacityCommand {
   }
 
   /**
-   * @return capacity command usage
+   * @return report capacity command usage
    */
   public static String getUsage() {
     return "alluxio fsadmin report capacity [filter arg]\n"
