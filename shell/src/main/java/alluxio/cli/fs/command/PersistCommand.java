@@ -92,7 +92,7 @@ public final class PersistCommand extends AbstractFileSystemCommand {
 
   @Override
   public String getUsage() {
-    return "persist <alluxioPath1> [alluxioPath2] ... [alluxioPathn]";
+    return "persist <path> [<path> ...]";
   }
 
   @Override

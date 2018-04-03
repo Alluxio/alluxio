@@ -37,6 +37,11 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class TailCommand extends WithWildCardPathCommand {
+  private static final Option BYTES_OPTION = Option.builder("c")
+      .required(false)
+      .numberOfArgs(1)
+      .desc("number of bytes (e.g., 1024, 4KB)")
+      .build();
 
   /**
    * @param fs the filesystem of Alluxio
@@ -81,7 +86,7 @@ public final class TailCommand extends WithWildCardPathCommand {
 
   @Override
   public String getUsage() {
-    return "tail -c <number of bytes> <path>";
+    return "tail [-c <bytes>] <path>";
   }
 
   @Override
@@ -96,8 +101,6 @@ public final class TailCommand extends WithWildCardPathCommand {
 
   @Override
   public Options getOptions() {
-    Option bytesOption =
-        Option.builder("c").required(false).numberOfArgs(1).desc("user specified option").build();
-    return new Options().addOption(bytesOption);
+    return new Options().addOption(BYTES_OPTION);
   }
 }

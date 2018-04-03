@@ -50,7 +50,8 @@ public final class RmCommand extends WithWildCardPathCommand {
           .build();
 
   private static final Option REMOVE_ALLUXIO_ONLY =
-      Option.builder("alluxioOnly")
+      Option.builder()
+          .longOpt("alluxioOnly")
           .required(false)
           .hasArg(false)
           .desc("remove data and metadata from Alluxio space only")
@@ -104,7 +105,7 @@ public final class RmCommand extends WithWildCardPathCommand {
 
   @Override
   public String getUsage() {
-    return "rm [-R] [-U] [-alluxioOnly] <path>";
+    return "rm [-R] [-U] [--alluxioOnly] <path>";
   }
 
   @Override
