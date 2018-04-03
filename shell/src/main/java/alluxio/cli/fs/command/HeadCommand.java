@@ -91,7 +91,7 @@ public final class HeadCommand extends WithWildCardPathCommand {
 
   @Override
   public String getUsage() {
-    return "head -c <bytes> <path>";
+    return "head [-c <bytes>] <path>";
   }
 
   @Override

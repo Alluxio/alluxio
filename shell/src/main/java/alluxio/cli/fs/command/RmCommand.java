@@ -93,7 +93,7 @@ public final class RmCommand extends WithWildCardPathCommand {
     if (cl.hasOption(REMOVE_UNCHECKED_OPTION_CHAR)) {
       options.setUnchecked(true);
     }
-    boolean isAlluxioOnly = cl.hasOption(REMOVE_ALLUXIO_ONLY.getOpt());
+    boolean isAlluxioOnly = cl.hasOption(REMOVE_ALLUXIO_ONLY.getLongOpt());
     options.setAlluxioOnly(isAlluxioOnly);
     mFileSystem.delete(path, options);
     if (!isAlluxioOnly) {
