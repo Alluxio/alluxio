@@ -42,7 +42,7 @@ public final class SetTtlCommand extends AbstractFileSystemCommand {
           .longOpt(TTL_ACTION)
           .required(false)
           .numberOfArgs(1)
-          .desc("Action to take after Ttl expiry. Delete (default) or free the target")
+          .desc("Action to take after TTL expiry. Delete (default) or free the target")
           .build();
 
   private TtlAction mAction = TtlAction.DELETE;
@@ -98,7 +98,7 @@ public final class SetTtlCommand extends AbstractFileSystemCommand {
   @Override
   public String getDescription() {
     return "Sets a new TTL value for the file at path, "
-        + "performing an action, delete(Default)/free after Ttl expiry. "
+        + "performing an action, delete(Default)/free after TTL expiry. "
         + "The TTL to set can be in one of the unit: ms, millisecond, s, second, m, min, minute, "
         + "h, hour, d, day, default to ms";
   }
