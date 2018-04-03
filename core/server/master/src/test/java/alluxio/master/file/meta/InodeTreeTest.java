@@ -15,6 +15,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
 
 import alluxio.AlluxioURI;
 import alluxio.ConfigurationRule;
@@ -54,7 +55,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
-import org.mockito.Mockito;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -108,7 +108,7 @@ public final class InodeTreeTest {
     BlockMaster blockMaster = new BlockMasterFactory().create(mRegistry, journalSystem,
         mSafeModeManager);
     InodeDirectoryIdGenerator directoryIdGenerator = new InodeDirectoryIdGenerator(blockMaster);
-    UfsManager ufsManager = Mockito.mock(UfsManager.class);
+    UfsManager ufsManager = mock(UfsManager.class);
     MountTable mountTable = new MountTable(ufsManager);
     mTree = new InodeTree(blockMaster, directoryIdGenerator, mountTable);
 
