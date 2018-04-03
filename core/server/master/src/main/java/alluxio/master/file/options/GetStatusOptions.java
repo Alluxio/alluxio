@@ -69,7 +69,7 @@ public final class GetStatusOptions {
       if (options.hasCommonOptions()) {
         mCommonOptions = new CommonOptions(options.getCommonOptions());
       }
-      if (options.getLoadMetadataType() != alluxio.grpc.LoadMetadataPType.UNRECOGNIZED) {
+      if (options.hasLoadMetadataType()) {
         mLoadMetadataType = LoadMetadataType.fromProto(options.getLoadMetadataType());
       }
     }
