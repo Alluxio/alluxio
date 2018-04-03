@@ -1113,7 +1113,7 @@
             <sourceDirectory>${project.build.testSourceDirectory}</sourceDirectory>
           </sourceDirectories>
           <includeTestSourceDirectory>true</includeTestSourceDirectory>
-          <excludes>**/org/apache/jsp/**,**/alluxio/thrift/**,**/alluxio/proto/**</excludes>
+          <excludes>**/org/apache/jsp/**,**/alluxio/thrift/**,**/alluxio/proto/**,**/alluxio/grpc/**</excludes>
           <encoding>UTF-8</encoding>
           <consoleOutput>true</consoleOutput>
           <failsOnError>true</failsOnError>
@@ -1143,6 +1143,7 @@
             <!-- Code Exclusions -->
             <exclude>**/src/main/java/alluxio/thrift/*</exclude>
             <exclude>**/src/main/java/alluxio/proto/**</exclude>
+            <exclude>**/src/main/java/alluxio/grpc/**</exclude>
             <exclude>**/src/main/java/alluxio/perf/thrift/*</exclude>
             <exclude>**/src/main/resources/*</exclude>
             <exclude>**/src/main/webapp/css/*</exclude>
