@@ -96,7 +96,7 @@ public final class HelpCommand extends AbstractFileSystemCommand {
 
   @Override
   public String getUsage() {
-    return "help <command>";
+    return "help [<command>]";
   }
 
   @Override
