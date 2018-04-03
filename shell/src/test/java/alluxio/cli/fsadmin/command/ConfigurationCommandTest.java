@@ -25,7 +25,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -49,21 +48,16 @@ public class ConfigurationCommandTest {
           printStream);
       configurationCommand.run();
       String output = new String(outputStream.toByteArray(), StandardCharsets.UTF_8);
+      // CHECKSTYLE.OFF: LineLengthExceed - Much more readable
       List<String> expectedOutput = Arrays.asList("Alluxio configuration information: ",
-          "Property                                 Value                                     "
-              + "         Source                        ",
-          "alluxio.master.port                      19998                                     "
-              + "         DEFAULT                       ",
-          "alluxio.master.web.port                  19999                                     "
-              + "         DEFAULT                       ",
-          "alluxio.master.hostname                  localhost                                 "
-              + "         SITE_PROPERTY (/alluxio/conf/alluxio-site.properties)",
-          "alluxio.underfs.address                  hdfs://localhost:9000                     "
-              + "         SITE_PROPERTY (/alluxio/conf/alluxio-site.properties)",
-          "alluxio.logger.type                      MASTER_LOGGER                             "
-              + "         SYSTEM_PROPERTY               ",
-          "alluxio.master.audit.logger.type         MASTER_AUDIT_LOGGER                       "
-              + "         SYSTEM_PROPERTY               ");
+          "Property                          Value                  Source                                               ",
+          "alluxio.master.port               19998                  DEFAULT                                              ",
+          "alluxio.master.web.port           19999                  DEFAULT                                              ",
+          "alluxio.master.hostname           localhost              SITE_PROPERTY (/alluxio/conf/alluxio-site.properties)",
+          "alluxio.underfs.address           hdfs://localhost:9000  SITE_PROPERTY (/alluxio/conf/alluxio-site.properties)",
+          "alluxio.logger.type               MASTER_LOGGER          SYSTEM_PROPERTY                                      ",
+          "alluxio.master.audit.logger.type  MASTER_AUDIT_LOGGER    SYSTEM_PROPERTY                                      ");
+      // CHECKSTYLE.ON: LineLengthExceed
       List<String> testOutput = Arrays.asList(output.split("\n"));
       Assert.assertThat(testOutput,
           IsIterableContainingInOrder.contains(expectedOutput.toArray()));
@@ -74,30 +68,20 @@ public class ConfigurationCommandTest {
    * @return configuration info list to test
    */
   private List<ConfigProperty> prepareConfigList() {
-    List<ConfigProperty> configList = new ArrayList<>();
-
-    ConfigProperty firstConfigProperty = new ConfigProperty().setName("alluxio.master.port")
-        .setValue("19998").setSource("DEFAULT");
-    ConfigProperty secondConfigProperty = new ConfigProperty().setName("alluxio.master.web.port")
-        .setValue("19999").setSource("DEFAULT");
-    ConfigProperty thirdConfigProperty = new ConfigProperty()
-        .setName("alluxio.master.hostname").setValue("localhost")
-        .setSource("SITE_PROPERTY (/alluxio/conf/alluxio-site.properties)");
-    ConfigProperty fourthConfigProperty = new ConfigProperty().setName("alluxio.underfs.address")
-        .setValue("hdfs://localhost:9000")
-        .setSource("SITE_PROPERTY (/alluxio/conf/alluxio-site.properties)");
-    ConfigProperty fifthConfigProperty = new ConfigProperty().setName("alluxio.logger.type")
-        .setValue("MASTER_LOGGER").setSource("SYSTEM_PROPERTY");
-    ConfigProperty sixthConfigProperty = new ConfigProperty()
-        .setName("alluxio.master.audit.logger.type")
-        .setValue("MASTER_AUDIT_LOGGER").setSource("SYSTEM_PROPERTY");
-
-    configList.add(firstConfigProperty);
-    configList.add(secondConfigProperty);
-    configList.add(thirdConfigProperty);
-    configList.add(fourthConfigProperty);
-    configList.add(fifthConfigProperty);
-    configList.add(sixthConfigProperty);
-    return configList;
+    return Arrays.asList(
+        new ConfigProperty().setName("alluxio.master.port")
+            .setValue("19998").setSource("DEFAULT"),
+        new ConfigProperty().setName("alluxio.master.web.port")
+            .setValue("19999").setSource("DEFAULT"),
+        new ConfigProperty().setName("alluxio.master.hostname").setValue("localhost")
+            .setSource("SITE_PROPERTY (/alluxio/conf/alluxio-site.properties)"),
+        new ConfigProperty().setName("alluxio.underfs.address")
+            .setValue("hdfs://localhost:9000")
+            .setSource("SITE_PROPERTY (/alluxio/conf/alluxio-site.properties)"),
+        new ConfigProperty().setName("alluxio.logger.type")
+            .setValue("MASTER_LOGGER").setSource("SYSTEM_PROPERTY"),
+        new ConfigProperty().setName("alluxio.master.audit.logger.type")
+            .setValue("MASTER_AUDIT_LOGGER").setSource("SYSTEM_PROPERTY")
+    );
   }
 }

@@ -39,7 +39,7 @@ import javax.servlet.http.HttpServletResponse;
 public final class WebInterfaceConfigurationServlet extends HttpServlet {
   private static final long serialVersionUID = 2134205675393443914L;
 
-  private final FileSystemMaster mFsMaster;
+  private final transient FileSystemMaster mFsMaster;
   private final transient MasterProcess mMasterProcess;
 
   /**
