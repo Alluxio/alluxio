@@ -30,14 +30,12 @@ import alluxio.master.MasterRegistry;
 import alluxio.master.SafeModeManager;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.block.BlockMasterFactory;
-import alluxio.master.file.NoopBlockDeletionContext;
+import alluxio.master.file.RpcContext;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
 import alluxio.master.file.options.CreatePathOptions;
 import alluxio.master.file.options.DeleteOptions;
-import alluxio.master.journal.JournalContext;
 import alluxio.master.journal.JournalSystem;
-import alluxio.master.journal.NoopJournalContext;
 import alluxio.master.journal.noop.NoopJournalSystem;
 import alluxio.security.authorization.Mode;
 import alluxio.underfs.UfsManager;
@@ -151,7 +149,7 @@ public final class InodeTreeTest {
   }
 
   /**
-   * Tests the {@link InodeTree#createPath(LockedInodePath, CreatePathOptions, JournalContext)}
+   * Tests the {@link InodeTree#createPath(RpcContext, LockedInodePath, CreatePathOptions)}
    * method for creating directories.
    */
   @Test
@@ -218,7 +216,7 @@ public final class InodeTreeTest {
   }
 
   /**
-   * Tests the {@link InodeTree#createPath(LockedInodePath, CreatePathOptions, JournalContext)}
+   * Tests the {@link InodeTree#createPath(RpcContext, LockedInodePath, CreatePathOptions)}
    * method for creating a file.
    */
   @Test
@@ -235,7 +233,7 @@ public final class InodeTreeTest {
   }
 
   /**
-   * Tests the {@link InodeTree#createPath(LockedInodePath, CreatePathOptions, JournalContext)}
+   * Tests the {@link InodeTree#createPath(RpcContext, LockedInodePath, CreatePathOptions)}
    * method.
    */
   @Test
@@ -789,7 +787,7 @@ public final class InodeTreeTest {
       CreatePathOptions<?> options) throws FileAlreadyExistsException, BlockInfoException,
       InvalidPathException, IOException, FileDoesNotExistException {
     try (LockedInodePath inodePath = root.lockInodePath(path, InodeTree.LockMode.WRITE)) {
-      return root.createPath(inodePath, options, new NoopJournalContext());
+      return root.createPath(RpcContext.NOOP, inodePath, options);
     }
   }
 
@@ -803,8 +801,8 @@ public final class InodeTreeTest {
   // Helper to delete an inode by path.
   private static void deleteInodeByPath(InodeTree root, AlluxioURI path) throws Exception {
     try (LockedInodePath inodePath = root.lockFullInodePath(path, InodeTree.LockMode.WRITE)) {
-      root.deleteInode(inodePath, System.currentTimeMillis(), DeleteOptions.defaults(),
-          NoopJournalContext.INSTANCE, NoopBlockDeletionContext.INSTANCE);
+      root.deleteInode(RpcContext.NOOP, inodePath, System.currentTimeMillis(),
+          DeleteOptions.defaults());
     }
   }
 
