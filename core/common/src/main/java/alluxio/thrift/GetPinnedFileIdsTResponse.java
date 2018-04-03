@@ -348,13 +348,13 @@ public class GetPinnedFileIdsTResponse implements org.apache.thrift.TBase<GetPin
           case 1: // PINNED_FILE_IDS
             if (schemeField.type == org.apache.thrift.protocol.TType.SET) {
               {
-                org.apache.thrift.protocol.TSet _set122 = iprot.readSetBegin();
-                struct.pinnedFileIds = new HashSet<Long>(2*_set122.size);
-                long _elem123;
-                for (int _i124 = 0; _i124 < _set122.size; ++_i124)
+                org.apache.thrift.protocol.TSet _set112 = iprot.readSetBegin();
+                struct.pinnedFileIds = new HashSet<Long>(2*_set112.size);
+                long _elem113;
+                for (int _i114 = 0; _i114 < _set112.size; ++_i114)
                 {
-                  _elem123 = iprot.readI64();
-                  struct.pinnedFileIds.add(_elem123);
+                  _elem113 = iprot.readI64();
+                  struct.pinnedFileIds.add(_elem113);
                 }
                 iprot.readSetEnd();
               }
@@ -382,9 +382,9 @@ public class GetPinnedFileIdsTResponse implements org.apache.thrift.TBase<GetPin
         oprot.writeFieldBegin(PINNED_FILE_IDS_FIELD_DESC);
         {
           oprot.writeSetBegin(new org.apache.thrift.protocol.TSet(org.apache.thrift.protocol.TType.I64, struct.pinnedFileIds.size()));
-          for (long _iter125 : struct.pinnedFileIds)
+          for (long _iter115 : struct.pinnedFileIds)
           {
-            oprot.writeI64(_iter125);
+            oprot.writeI64(_iter115);
           }
           oprot.writeSetEnd();
         }
@@ -415,9 +415,9 @@ public class GetPinnedFileIdsTResponse implements org.apache.thrift.TBase<GetPin
       if (struct.isSetPinnedFileIds()) {
         {
           oprot.writeI32(struct.pinnedFileIds.size());
-          for (long _iter126 : struct.pinnedFileIds)
+          for (long _iter116 : struct.pinnedFileIds)
           {
-            oprot.writeI64(_iter126);
+            oprot.writeI64(_iter116);
           }
         }
       }
@@ -429,13 +429,13 @@ public class GetPinnedFileIdsTResponse implements org.apache.thrift.TBase<GetPin
       BitSet incoming = iprot.readBitSet(1);
       if (incoming.get(0)) {
         {
-          org.apache.thrift.protocol.TSet _set127 = new org.apache.thrift.protocol.TSet(org.apache.thrift.protocol.TType.I64, iprot.readI32());
-          struct.pinnedFileIds = new HashSet<Long>(2*_set127.size);
-          long _elem128;
-          for (int _i129 = 0; _i129 < _set127.size; ++_i129)
+          org.apache.thrift.protocol.TSet _set117 = new org.apache.thrift.protocol.TSet(org.apache.thrift.protocol.TType.I64, iprot.readI32());
+          struct.pinnedFileIds = new HashSet<Long>(2*_set117.size);
+          long _elem118;
+          for (int _i119 = 0; _i119 < _set117.size; ++_i119)
           {
-            _elem128 = iprot.readI64();
-            struct.pinnedFileIds.add(_elem128);
+            _elem118 = iprot.readI64();
+            struct.pinnedFileIds.add(_elem118);
           }
         }
         struct.setPinnedFileIdsIsSet(true);

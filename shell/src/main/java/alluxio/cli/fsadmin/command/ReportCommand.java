@@ -14,7 +14,7 @@ package alluxio.cli.fsadmin.command;
 import alluxio.cli.Command;
 import alluxio.cli.CommandUtils;
 import alluxio.cli.fsadmin.report.CapacityCommand;
-import alluxio.cli.fsadmin.report.OperationCommand;
+import alluxio.cli.fsadmin.report.MetricsCommand;
 import alluxio.cli.fsadmin.report.SummaryCommand;
 import alluxio.client.MetaMasterClient;
 import alluxio.client.RetryHandlingMetaMasterClient;
@@ -85,7 +85,7 @@ public final class ReportCommand implements Command {
 
   enum Command {
     CAPACITY, // Report worker capacity information
-    OPERATION, // Report operation metrics information
+    METRICS, // Report metrics information
     SUMMARY // Report cluster summary
   }
 
@@ -124,8 +124,8 @@ public final class ReportCommand implements Command {
         case "capacity":
           command = Command.CAPACITY;
           break;
-        case "operation":
-          command = Command.OPERATION;
+        case "metrics":
+          command = Command.METRICS;
           break;
         case "summary":
           command = Command.SUMMARY;
@@ -176,10 +176,10 @@ public final class ReportCommand implements Command {
               mBlockMasterClient, mPrintStream);
           capacityCommand.run(cl);
           break;
-        case OPERATION:
-          OperationCommand operationCommand = new OperationCommand(
+        case METRICS:
+          MetricsCommand metricsCommand = new MetricsCommand(
               mFileSystemMasterClient, mPrintStream);
-          operationCommand.run();
+          metricsCommand.run();
           break;
         case SUMMARY:
           SummaryCommand summaryCommand = new SummaryCommand(mMetaMasterClient,
@@ -217,7 +217,7 @@ public final class ReportCommand implements Command {
         + "summary information will be printed out.\n"
         + "[category] can be one of the following:\n"
         + "    capacity         worker capacity information\n"
-        + "    operation        operation metrics information\n"
+        + "    metrics          metrics information\n"
         + "    summary          cluster summary\n";
   }
 

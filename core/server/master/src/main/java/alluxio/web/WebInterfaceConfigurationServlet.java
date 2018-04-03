@@ -41,7 +41,7 @@ public final class WebInterfaceConfigurationServlet extends HttpServlet {
   private static final Set<String> ALLUXIO_CONF_EXCLUDES = Sets.newHashSet(
       PropertyKey.MASTER_WHITELIST.toString());
 
-  private final FileSystemMaster mFsMaster;
+  private final transient FileSystemMaster mFsMaster;
 
   /**
    * Creates a new instance of {@link WebInterfaceConfigurationServlet}.

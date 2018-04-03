@@ -31,10 +31,9 @@ import alluxio.exception.status.AlluxioStatusException;
 import alluxio.master.MasterClientConfig;
 import alluxio.thrift.AlluxioService;
 import alluxio.thrift.FileSystemMasterClientService;
+import alluxio.thrift.GetMetricsTOptions;
 import alluxio.thrift.GetMountTableTResponse;
 import alluxio.thrift.GetNewBlockIdForFileTOptions;
-import alluxio.thrift.GetOperationInfoTOptions;
-import alluxio.thrift.GetRpcInvocationInfoTOptions;
 import alluxio.thrift.LoadMetadataTOptions;
 import alluxio.thrift.ScheduleAsyncPersistenceTOptions;
 import alluxio.thrift.UnmountTOptions;
@@ -152,15 +151,9 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
   }
 
   @Override
-  public synchronized Map<String, Long> getOperationInfo() throws AlluxioStatusException {
+  public synchronized Map<String, Long> getMetrics() throws AlluxioStatusException {
     return retryRPC(()
-        -> mClient.getOperationInfo(new GetOperationInfoTOptions()).getOperationInfoMap());
-  }
-
-  @Override
-  public synchronized Map<String, Long> getRpcInvocationInfo() throws AlluxioStatusException {
-    return retryRPC(() -> mClient.getRpcInvocationInfo(new GetRpcInvocationInfoTOptions())
-        .getRpcInvocationInfoMap());
+        -> mClient.getMetrics(new GetMetricsTOptions()).getMetricsMap());
   }
 
   @Override

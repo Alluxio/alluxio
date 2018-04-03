@@ -46,13 +46,11 @@ import alluxio.thrift.FileInfo;
 import alluxio.thrift.FileSystemMasterClientService;
 import alluxio.thrift.FreeTOptions;
 import alluxio.thrift.FreeTResponse;
+import alluxio.thrift.GetMetricsTOptions;
+import alluxio.thrift.GetMetricsTResponse;
 import alluxio.thrift.GetMountTableTResponse;
 import alluxio.thrift.GetNewBlockIdForFileTOptions;
 import alluxio.thrift.GetNewBlockIdForFileTResponse;
-import alluxio.thrift.GetOperationInfoTOptions;
-import alluxio.thrift.GetOperationInfoTResponse;
-import alluxio.thrift.GetRpcInvocationInfoTOptions;
-import alluxio.thrift.GetRpcInvocationInfoTResponse;
 import alluxio.thrift.GetServiceVersionTOptions;
 import alluxio.thrift.GetServiceVersionTResponse;
 import alluxio.thrift.GetStatusTOptions;
@@ -231,17 +229,10 @@ public final class FileSystemMasterClientServiceHandler implements
   }
 
   @Override
-  public GetOperationInfoTResponse getOperationInfo(final GetOperationInfoTOptions options)
+  public GetMetricsTResponse getMetrics(final GetMetricsTOptions options)
       throws AlluxioTException {
-    return RpcUtils.call(LOG, (RpcCallableThrowsIOException<GetOperationInfoTResponse>) ()
-        -> new GetOperationInfoTResponse(mFileSystemMaster.getOperationInfo()));
-  }
-
-  @Override
-  public GetRpcInvocationInfoTResponse getRpcInvocationInfo(
-      final GetRpcInvocationInfoTOptions options) throws AlluxioTException {
-    return RpcUtils.call(LOG, (RpcCallableThrowsIOException<GetRpcInvocationInfoTResponse>) ()
-        -> new GetRpcInvocationInfoTResponse(mFileSystemMaster.getRpcInvocationInfo()));
+    return RpcUtils.call(LOG, (RpcCallableThrowsIOException<GetMetricsTResponse>) ()
+        -> new GetMetricsTResponse(mFileSystemMaster.getMetrics()));
   }
 
   @Override

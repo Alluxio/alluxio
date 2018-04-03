@@ -13,14 +13,16 @@ package alluxio.web;
 
 import alluxio.master.block.DefaultBlockMaster;
 import alluxio.master.file.DefaultFileSystemMaster;
-import alluxio.master.file.FileSystemMaster;
 import alluxio.metrics.MetricsSystem;
 
+import com.codahale.metrics.Counter;
+import com.codahale.metrics.Metric;
+import com.codahale.metrics.MetricFilter;
 import com.codahale.metrics.MetricRegistry;
-import com.google.common.base.Preconditions;
 
 import java.io.IOException;
 import java.util.Map;
+import java.util.TreeMap;
 
 import javax.annotation.concurrent.ThreadSafe;
 import javax.servlet.ServletException;
@@ -34,15 +36,11 @@ import javax.servlet.http.HttpServletResponse;
 public final class WebInterfaceMasterMetricsServlet extends WebInterfaceAbstractMetricsServlet {
   private static final long serialVersionUID = -1481253168100363787L;
 
-  private final transient FileSystemMaster mFsMaster;
-
   /**
    * Create a {@link WebInterfaceMasterMetricsServlet} instance.
-   *
-   * @param fsMaster file system master
    */
-  public WebInterfaceMasterMetricsServlet(FileSystemMaster fsMaster) {
-    mFsMaster = Preconditions.checkNotNull(fsMaster, "fsMaster");
+  public WebInterfaceMasterMetricsServlet() {
+    super();
   }
 
   /**
@@ -100,14 +98,36 @@ public final class WebInterfaceMasterMetricsServlet extends WebInterfaceAbstract
     request.setAttribute("masterUnderfsCapacityFreePercentage",
         100 - masterUnderfsCapacityUsedPercentage);
 
-    Map<String, Long> operations = mFsMaster.getOperationInfo();
-    for (Map.Entry<String, Long> entry : operations.entrySet()) {
-      request.setAttribute(entry.getKey(), entry.getValue());
+    Map<String, Counter> counters = mr.getCounters(new MetricFilter() {
+      @Override
+      public boolean matches(String name, Metric metric) {
+        return !(name.endsWith("Ops"));
+      }
+    });
+
+    Map<String, Counter> rpcInvocations = mr.getCounters(new MetricFilter() {
+      @Override
+      public boolean matches(String name, Metric metric) {
+        return name.endsWith("Ops");
+      }
+    });
+
+    Map<String, Metric> operations = new TreeMap<>();
+    // Remove the instance name from the metrics.
+    for (Map.Entry<String, Counter> entry : counters.entrySet()) {
+      operations.put(MetricsSystem.stripInstanceAndHost(entry.getKey()), entry.getValue());
+    }
+    String filesPinnedProperty =
+        MetricsSystem.getMasterMetricName(DefaultFileSystemMaster.Metrics.FILES_PINNED);
+    operations.put(MetricsSystem.stripInstanceAndHost(filesPinnedProperty),
+        mr.getGauges().get(filesPinnedProperty));
+
+    Map<String, Counter> rpcInvocationsUpdated = new TreeMap<>();
+    for (Map.Entry<String, Counter> entry : rpcInvocations.entrySet()) {
+      rpcInvocationsUpdated
+          .put(MetricsSystem.stripInstanceAndHost(entry.getKey()), entry.getValue());
     }
 
-    Map<String, Long> rpcInvocations = mFsMaster.getRpcInvocationInfo();
-    for (Map.Entry<String, Long> entry : rpcInvocations.entrySet()) {
-      request.setAttribute(entry.getKey(), entry.getValue());
-    }
+    populateCounterValues(operations, rpcInvocationsUpdated, request);
   }
 }

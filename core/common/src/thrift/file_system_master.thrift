@@ -63,21 +63,16 @@ enum LoadMetadataTType {
   Always = 2,  // Always load metadata.
 }
 
+struct GetMetricsTOptions {}
+struct GetMetricsTResponse {
+  1: map<string, i64> metricsMap
+}
+
 struct GetNewBlockIdForFileTOptions {
   1: optional FileSystemMasterCommonTOptions commonOptions
 }
 struct GetNewBlockIdForFileTResponse {
   1: i64 id
-}
-
-struct GetOperationInfoTOptions {}
-struct GetOperationInfoTResponse {
-  1: map<string, i64> operationInfoMap
-}
-
-struct GetRpcInvocationInfoTOptions {}
-struct GetRpcInvocationInfoTResponse {
-  1: map<string, i64> rpcInvocationInfoMap
 }
 
 struct GetStatusTOptions {
@@ -341,6 +336,14 @@ service FileSystemMasterClientService extends common.AlluxioService {
     throws (1: exception.AlluxioTException e)
 
   /**
+   * Returns a map of metrics property name and its count from Alluxio metrics system.
+   */
+  GetMetricsTResponse getMetrics(
+    /** the method options */ 1: GetMetricsTOptions options,
+    )
+    throws (1: exception.AlluxioTException e)
+
+  /**
   * Returns a map from each Alluxio path to information of corresponding mount point
   */
   GetMountTableTResponse getMountTable()
@@ -405,20 +408,6 @@ service FileSystemMasterClientService extends common.AlluxioService {
     /** the method options */ 2: UpdateUfsModeTOptions options,
     )
     throws (1: exception.AlluxioTException e)
-
-  /**
-   * Returns operation information
-   */
-  GetOperationInfoTResponse getOperationInfo(
-    /** the method options */ 1: GetOperationInfoTOptions options,
-  ) throws (1: exception.AlluxioTException e)
-
-  /**
-   * Returns rpcInvocation information
-   */
-  GetRpcInvocationInfoTResponse getRpcInvocationInfo(
-    /** the method options */ 1: GetRpcInvocationInfoTOptions options,
-  ) throws (1: exception.AlluxioTException e)
 }
 
 struct FileSystemHeartbeatTOptions {
