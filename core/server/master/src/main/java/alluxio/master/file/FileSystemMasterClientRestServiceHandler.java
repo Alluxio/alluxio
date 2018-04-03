@@ -115,12 +115,7 @@ public final class FileSystemMasterClientRestServiceHandler {
   @Path(SERVICE_VERSION)
   @ReturnType("java.lang.Long")
   public Response getServiceVersion() {
-    return RestUtils.call(new RestUtils.RestCallable<Long>() {
-      @Override
-      public Long call() throws Exception {
-        return Constants.FILE_SYSTEM_MASTER_CLIENT_SERVICE_VERSION;
-      }
-    });
+    return RestUtils.call(() -> Constants.FILE_SYSTEM_MASTER_CLIENT_SERVICE_VERSION);
   }
 
   /**
@@ -420,13 +415,10 @@ public final class FileSystemMasterClientRestServiceHandler {
   @Path(SCHEDULE_ASYNC_PERSIST)
   @ReturnType("java.lang.Void")
   public Response scheduleAsyncPersist(@QueryParam("path") final String path) {
-    return RestUtils.call(new RestUtils.RestCallable<Void>() {
-      @Override
-      public Void call() throws Exception {
-        Preconditions.checkNotNull(path, "required 'path' parameter is missing");
-        mFileSystemMaster.scheduleAsyncPersistence(new AlluxioURI(path));
-        return null;
-      }
+    return RestUtils.call((RestUtils.RestCallable<Void>) () -> {
+      Preconditions.checkNotNull(path, "required 'path' parameter is missing");
+      mFileSystemMaster.scheduleAsyncPersistence(new AlluxioURI(path));
+      return null;
     });
   }
 

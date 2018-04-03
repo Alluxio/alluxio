@@ -283,12 +283,7 @@ public final class AlluxioWorkerRestServiceHandler {
   @ReturnType("java.lang.String")
   @Deprecated
   public Response getVersion() {
-    return RestUtils.call(new RestUtils.RestCallable<String>() {
-      @Override
-      public String call() throws Exception {
-        return RuntimeConstants.VERSION;
-      }
-    });
+    return RestUtils.call(() -> RuntimeConstants.VERSION);
   }
 
   /**

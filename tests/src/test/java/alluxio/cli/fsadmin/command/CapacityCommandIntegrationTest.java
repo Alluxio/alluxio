@@ -37,21 +37,16 @@ public final class CapacityCommandIntegrationTest extends AbstractFsAdminShellTe
         + "    Used Percentage: 0%\n"
         + "    Free Percentage: 100%\n"));
     Assert.assertThat(output, CoreMatchers.containsString(
-        "Worker Name      Last Heartbeat   Storage       Total            "
-            + "MEM           SSD           HDD"));
+        "Worker Name      Last Heartbeat   Storage       MEM"));
     Assert.assertThat(output, CoreMatchers.containsString(
-        "                                  Used          0B (0%)          "
-            + "0B            0B            0B"));
+        "                                  used          0B (0%)"));
   }
 
   @Test
   public void lostCapacity() {
     int ret = mFsAdminShell.run("report", "capacity", "-lost");
     Assert.assertEquals(0, ret);
-    Assert.assertThat(mOutput.toString(), CoreMatchers.containsString(
-        "Capacity information for lost workers: \n"
-        + "    Total Capacity: 0B\n"
-        + "    Used Capacity: 0B\n"));
+    Assert.assertEquals(mOutput.toString(), "No workers found.\n");
   }
 
   @Test
@@ -69,11 +64,9 @@ public final class CapacityCommandIntegrationTest extends AbstractFsAdminShellTe
         + "    Used Percentage: 0%\n"
         + "    Free Percentage: 100%\n"));
     Assert.assertThat(output, CoreMatchers.containsString(
-        "Worker Name      Last Heartbeat   Storage       Total            "
-            + "MEM           SSD           HDD"));
+        "Worker Name      Last Heartbeat   Storage       MEM"));
     Assert.assertThat(output, CoreMatchers.containsString(
-        "                                  Used          0B (0%)          "
-            + "0B            0B            0B"));
+        "                                  used          0B (0%)"));
   }
 
   @Test

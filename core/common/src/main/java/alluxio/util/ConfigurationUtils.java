@@ -67,6 +67,7 @@ public final class ConfigurationUtils {
    * @param filePath the absolute path of the file to load properties
    * @return a set of properties on success, or null if failed
    */
+  @Nullable
   public static Properties loadPropertiesFromFile(String filePath) {
     Properties properties = new Properties();
 
