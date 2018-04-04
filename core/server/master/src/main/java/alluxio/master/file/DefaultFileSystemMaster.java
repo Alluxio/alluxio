@@ -3560,21 +3560,24 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
   }
 
   @Override
-  public Map<String, Long> getMetrics() {
+  public Map<String, Long> getMetrics() throws IOException {
     MetricRegistry mr = MetricsSystem.METRIC_REGISTRY;
-    Map<String, Counter> counters = mr.getCounters();
-
     Map<String, Long> metricsMap = new HashMap<>();
+
+    Map<String, Counter> counters = mr.getCounters();
     for (Map.Entry<String, Counter> entry : counters.entrySet()) {
       metricsMap.put(MetricsSystem.stripInstanceAndHost(entry.getKey()),
           entry.getValue().getCount());
     }
 
-    String filesPinnedProperty =
-        MetricsSystem.getMasterMetricName(DefaultFileSystemMaster.Metrics.FILES_PINNED);
-    int filesPinnedCount = (int) mr.getGauges().get(filesPinnedProperty).getValue();
-    metricsMap.put(MetricsSystem.stripInstanceAndHost(filesPinnedProperty),
-        Long.valueOf(filesPinnedCount));
+    for (Map.Entry<String, Gauge> entry : mr.getGauges().entrySet()) {
+      Object value = entry.getValue().getValue();
+      if (value instanceof Integer) {
+        metricsMap.put(entry.getKey(), Long.valueOf((Integer) entry.getValue().getValue()));
+      } else if (value instanceof Long) {
+        metricsMap.put(entry.getKey(), (Long) entry.getValue().getValue());
+      }
+    }
     return  metricsMap;
   }
 

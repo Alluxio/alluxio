@@ -13,14 +13,18 @@ package alluxio.cli.fsadmin.report;
 
 import alluxio.client.file.FileSystemMasterClient;
 
+import alluxio.master.file.DefaultFileSystemMaster;
+import alluxio.metrics.MetricsSystem;
 import com.google.common.base.Strings;
 
 import java.io.IOException;
 import java.io.PrintStream;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
+import java.util.HashSet;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
 
 /**
@@ -35,7 +39,7 @@ public class MetricsCommand {
   private int mIndentationLevel = 1;
   private FileSystemMasterClient mFileSystemMasterClient;
   private PrintStream mPrintStream;
-  private Map<String, Long> mMetricsMap;
+  private StringBuilder mCachedRpcInvocation;
 
   /**
    * Creates a new instance of {@link MetricsCommand}.
@@ -46,6 +50,7 @@ public class MetricsCommand {
   public MetricsCommand(FileSystemMasterClient fileSystemMasterClient, PrintStream printStream) {
     mFileSystemMasterClient = fileSystemMasterClient;
     mPrintStream = printStream;
+    mCachedRpcInvocation = new StringBuilder();
   }
 
   /**
@@ -54,50 +59,72 @@ public class MetricsCommand {
    * @return 0 on success, 1 otherwise
    */
   public int run() throws IOException {
-    mMetricsMap = mFileSystemMasterClient.getMetrics();
+    Map<String, Long> metricsMap = new TreeMap<>(mFileSystemMasterClient.getMetrics());
+    metricsMap.put("FilesPinned", metricsMap.get("master.FilesPinned"));
+
+    Set<String> operations = new HashSet<>();
+    operations.add("DirectoriesCreated");
+    operations.add("FileBlockInfosGot");
+    operations.add("FileInfosGot");
+    operations.add("FilesCompleted");
+    operations.add("FilesCreated");
+    operations.add("FilesFreed");
+    operations.add("FilesPersisted");
+    operations.add("FilesPinned");
+    operations.add("NewBlocksGot");
+    operations.add("PathsDeleted");
+    operations.add("PathsMounted");
+    operations.add("PathsRenamed");
+    operations.add("PathsUnmounted");
+
+    Set<String> rpcInvocations = new HashSet<>();
+    rpcInvocations.add("CompleteFileOps");
+    rpcInvocations.add("CreateDirectoryOps");
+    rpcInvocations.add("CreateFileOps");
+    rpcInvocations.add("DeletePathOps");
+    rpcInvocations.add("FreeFileOps");
+    rpcInvocations.add("GetFileBlockInfoOps");
+    rpcInvocations.add("GetFileInfoOps");
+    rpcInvocations.add("GetNewBlockOps");
+    rpcInvocations.add("MountOps");
+    rpcInvocations.add("RenamePathOps");
+    rpcInvocations.add("SetAttributeOps");
+    rpcInvocations.add("UnmountOps");
 
     mPrintStream.println("Alluxio logical operations: ");
-    printMetricsInfo("DirectoriesCreated");
-    printMetricsInfo("FileBlockInfosGot");
-    printMetricsInfo("FileInfosGot");
-    printMetricsInfo("FilesCompleted");
-    printMetricsInfo("FilesCreated");
-    printMetricsInfo("FilesFreed");
-    printMetricsInfo("FilesPersisted");
-    printMetricsInfo("FilesPinned");
-    printMetricsInfo("NewBlocksGot");
-    printMetricsInfo("PathsDeleted");
-    printMetricsInfo("PathsMounted");
-    printMetricsInfo("PathsRenamed");
-    printMetricsInfo("PathsUnmounted");
+    for (Map.Entry<String, Long> entry : metricsMap.entrySet()) {
+      String key = entry.getKey();
+      if (operations.contains(key)) {
+        // Print operation info first
+        printOrCache(key, entry.getValue(), false);
+      } else if (rpcInvocations.contains(key)) {
+        // Cache rpc invocation info and print later
+        printOrCache(key, entry.getValue(), true);
+      }
+    }
 
     mPrintStream.println("\nAlluxio RPC invocations: ");
-    printMetricsInfo("CompleteFileOps");
-    printMetricsInfo("CreateDirectoryOps");
-    printMetricsInfo("CreateFileOps");
-    printMetricsInfo("DeletePathOps");
-    printMetricsInfo("FreeFileOps");
-    printMetricsInfo("GetFileBlockInfoOps");
-    printMetricsInfo("GetFileInfoOps");
-    printMetricsInfo("GetNewBlockOps");
-    printMetricsInfo("MountOps");
-    printMetricsInfo("RenamePathOps");
-    printMetricsInfo("SetAttributeOps");
-    printMetricsInfo("UnmountOps");
+    mPrintStream.println(mCachedRpcInvocation.toString());
     return 0;
   }
 
   /**
-   * Prints indented metrics information of a certain metrics property.
+   * Prints or caches indented metrics information of a certain metrics property.
    *
-   * @param key the key of the metrics property to print info of
+   * @param key the key of the metrics property
+   * @param value the value of the metrics property
+   * @param cache true to cache and print later, false to print directly
    */
-  private void printMetricsInfo(String key) {
+  private void printOrCache(String key, Long value, boolean cache) {
     String readableName = key.replaceAll("(.)([A-Z])", "$1 $2")
         .replaceAll("Ops", "Operations");
     String indent = Strings.repeat(" ", mIndentationLevel * INDENT_SIZE);
     String metricsInfo = String.format(INFO_FORMAT,
-        readableName, DECIMAL_FORMAT.format(mMetricsMap.get(key)));
-    mPrintStream.println(indent + metricsInfo);
+        readableName, DECIMAL_FORMAT.format(value));
+    if (cache) {
+      mCachedRpcInvocation.append(indent).append(metricsInfo).append("\n");
+    } else {
+      mPrintStream.println(indent + metricsInfo);
+    }
   }
 }

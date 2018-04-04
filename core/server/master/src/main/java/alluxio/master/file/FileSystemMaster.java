@@ -516,7 +516,7 @@ public interface FileSystemMaster extends Master {
   List<WorkerInfo> getWorkerInfoList() throws UnavailableException;
 
   /**
-   * @return a map of metrics property names and their counts from Alluxio metrics system
+   * @return a map of metrics property names and their values from Alluxio metrics system
    */
-  Map<String, Long> getMetrics();
+  Map<String, Long> getMetrics() throws IOException;
 }

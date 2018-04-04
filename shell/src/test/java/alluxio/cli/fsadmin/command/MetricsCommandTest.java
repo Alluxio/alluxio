@@ -72,7 +72,7 @@ public class MetricsCommandTest {
     map.put("FilesCreated", 534L);
     map.put("FilesFreed", 2141L);
     map.put("FilesPersisted", 4171L);
-    map.put("FilesPinned", 2354239L);
+    map.put("master.FilesPinned", 2354239L);
     map.put("NewBlocksGot", 4L);
     map.put("PathsDeleted", 583L);
     map.put("PathsMounted", 3635L);
