@@ -412,13 +412,13 @@ public final class AlluxioMasterRestServiceHandler {
   @ReturnType("java.util.SortedMap<java.lang.String, java.lang.Long>")
   @Deprecated
   public Response getCapacityBytesOnTiers() {
-	return RestUtils.call((RestUtils.RestCallable<Map<String, Long>>) () -> {
-	  SortedMap<String, Long> capacityBytesOnTiers = new TreeMap<>(getTierAliasComparator());
-	  for (Map.Entry<String, Long> tierBytes : mBlockMaster.getTotalBytesOnTiers().entrySet()) {
-	    capacityBytesOnTiers.put(tierBytes.getKey(), tierBytes.getValue());
-	  }
-	  return capacityBytesOnTiers;
-	});
+    return RestUtils.call((RestUtils.RestCallable<Map<String, Long>>) () -> {
+      SortedMap<String, Long> capacityBytesOnTiers = new TreeMap<>(getTierAliasComparator());
+      for (Map.Entry<String, Long> tierBytes : mBlockMaster.getTotalBytesOnTiers().entrySet()) {
+        capacityBytesOnTiers.put(tierBytes.getKey(), tierBytes.getValue());
+      }
+      return capacityBytesOnTiers;
+    });
   }
 
   /**
