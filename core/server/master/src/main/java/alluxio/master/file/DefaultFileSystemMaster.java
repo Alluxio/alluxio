@@ -3380,14 +3380,18 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       Preconditions.checkArgument(((InodeFile) inode).isCompleted(),
           PreconditionMessage.FILE_TO_PERSIST_MUST_BE_COMPLETE);
       InodeFile file = (InodeFile) inode;
-      // TODO(manugoyal) figure out valid behavior in the un-persist case
-      Preconditions
-          .checkArgument(options.getPersisted(), PreconditionMessage.ERR_SET_STATE_UNPERSIST);
-      if (!file.isPersisted()) {
-        file.setPersistenceState(PersistenceState.PERSISTED);
-        persistedInodes = propagatePersistedInternal(inodePath, false);
-        file.setLastModificationTimeMs(opTimeMs);
-        Metrics.FILES_PERSISTED.inc();
+      if (options.getPersisted()) {
+        if (!file.isPersisted()) {
+          file.setPersistenceState(PersistenceState.PERSISTED);
+          persistedInodes = propagatePersistedInternal(inodePath, false);
+          file.setLastModificationTimeMs(opTimeMs);
+          Metrics.FILES_PERSISTED.inc();
+        }
+      } else {
+        // Make sure we don't un-persist file once it is persisted
+        Preconditions.checkArgument(file.getPersistenceState() == PersistenceState.TO_BE_PERSISTED,
+            PreconditionMessage.ERR_SET_STATE_UNPERSIST);
+        file.setPersistenceState(PersistenceState.NOT_PERSISTED);
       }
     }
     boolean ownerGroupChanged = (options.getOwner() != null) || (options.getGroup() != null);
