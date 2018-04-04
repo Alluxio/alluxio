@@ -13,8 +13,6 @@ package alluxio.cli.fsadmin.report;
 
 import alluxio.client.file.FileSystemMasterClient;
 
-import alluxio.master.file.DefaultFileSystemMaster;
-import alluxio.metrics.MetricsSystem;
 import com.google.common.base.Strings;
 
 import java.io.IOException;
@@ -36,10 +34,10 @@ public class MetricsCommand {
   private static final int INDENT_SIZE = 4;
   private static final String INFO_FORMAT = "%-30s %20s";
 
+  private StringBuilder mCachedRpcInvocation;
   private int mIndentationLevel = 1;
   private FileSystemMasterClient mFileSystemMasterClient;
   private PrintStream mPrintStream;
-  private StringBuilder mCachedRpcInvocation;
 
   /**
    * Creates a new instance of {@link MetricsCommand}.
@@ -98,13 +96,14 @@ public class MetricsCommand {
         // Print operation info first
         printOrCache(key, entry.getValue(), false);
       } else if (rpcInvocations.contains(key)) {
-        // Cache rpc invocation info and print later
+        // Cache RPC invocation info and print later
         printOrCache(key, entry.getValue(), true);
       }
     }
 
     mPrintStream.println("\nAlluxio RPC invocations: ");
     mPrintStream.println(mCachedRpcInvocation.toString());
+    // TODO(lu) provide other kind metrics information
     return 0;
   }
 
@@ -119,8 +118,8 @@ public class MetricsCommand {
     String readableName = key.replaceAll("(.)([A-Z])", "$1 $2")
         .replaceAll("Ops", "Operations");
     String indent = Strings.repeat(" ", mIndentationLevel * INDENT_SIZE);
-    String metricsInfo = String.format(INFO_FORMAT,
-        readableName, DECIMAL_FORMAT.format(value));
+    String metricsInfo = String.format(INFO_FORMAT, readableName, DECIMAL_FORMAT.format(value));
+
     if (cache) {
       mCachedRpcInvocation.append(indent).append(metricsInfo).append("\n");
     } else {

@@ -518,5 +518,5 @@ public interface FileSystemMaster extends Master {
   /**
    * @return a map of metrics property names and their values from Alluxio metrics system
    */
-  Map<String, Long> getMetrics() throws IOException;
+  Map<String, Long> getMetrics();
 }

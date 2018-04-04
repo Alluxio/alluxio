@@ -93,6 +93,7 @@ public class MetricsCommandTest {
     map.put("UnmountOps", 1L);
 
     map.put("UfsSessionCount-Ufs:/alluxio", 5312L);
+    map.put("RandomGeneratedProperty", 212L);
     return map;
   }
 

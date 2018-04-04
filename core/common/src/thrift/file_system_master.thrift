@@ -284,7 +284,7 @@ service FileSystemMasterClientService extends common.AlluxioService {
     throws (1: exception.AlluxioTException e)
 
   /**
-   * Returns a map of metrics property name and its count from Alluxio metrics system.
+   * Returns a map of metrics property names and their values from Alluxio metrics system.
    */
   GetMetricsTResponse getMetrics(
     /** the method options */ 1: GetMetricsTOptions options,

@@ -152,8 +152,7 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
 
   @Override
   public synchronized Map<String, Long> getMetrics() throws AlluxioStatusException {
-    return retryRPC(()
-        -> mClient.getMetrics(new GetMetricsTOptions()).getMetricsMap());
+    return retryRPC(() -> mClient.getMetrics(new GetMetricsTOptions()).getMetricsMap());
   }
 
   @Override
