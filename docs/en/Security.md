@@ -182,6 +182,6 @@ disk encryption.
 ## Deployment
 
 It is recommended to start Alluxio master and workers by one same user. Alluxio cluster service
-composes of master and workers. Every worker needs to RPC with master for some file operations.
+composes of master and workers. Every worker needs to communicate with the master via RPC to perform some file operations.
 If the user of a worker is not the same as the master's, the file operations may fail because of
 permission check.
