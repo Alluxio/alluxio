@@ -24,10 +24,10 @@ import alluxio.wire.MasterInfo.MasterInfoField;
 import alluxio.wire.ThriftUtils;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -74,14 +74,10 @@ public final class RetryHandlingMetaMasterClient extends AbstractMasterClient
 
   @Override
   public synchronized List<ConfigProperty> getConfiguration() throws IOException {
-    return retryRPC(() -> {
-      List<ConfigProperty> configList = new ArrayList<>();
-      for (alluxio.thrift.ConfigProperty configInfo : mClient
-          .getConfiguration(new GetConfigurationTOptions()).getConfigList()) {
-        configList.add(ConfigProperty.fromThrift(configInfo));
-      }
-      return configList;
-    });
+    return retryRPC(() -> (mClient.getConfiguration(new GetConfigurationTOptions())
+          .getConfigList().stream()
+          .map(ConfigProperty::fromThrift)
+          .collect(Collectors.toList())));
   }
 
   @Override

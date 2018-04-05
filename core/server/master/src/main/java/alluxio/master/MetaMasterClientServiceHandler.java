@@ -15,7 +15,6 @@ import alluxio.Constants;
 import alluxio.RpcUtils;
 import alluxio.RuntimeConstants;
 import alluxio.thrift.AlluxioTException;
-import alluxio.thrift.ConfigProperty;
 import alluxio.thrift.GetConfigurationTOptions;
 import alluxio.thrift.GetConfigurationTResponse;
 import alluxio.thrift.GetMasterInfoTOptions;
@@ -30,9 +29,8 @@ import org.apache.thrift.TException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * This class is a Thrift handler for meta master RPCs.
@@ -57,13 +55,11 @@ public final class MetaMasterClientServiceHandler implements MetaMasterClientSer
   @Override
   public GetConfigurationTResponse getConfiguration(GetConfigurationTOptions options)
       throws AlluxioTException {
-    return RpcUtils.call(LOG, (RpcUtils.RpcCallable<GetConfigurationTResponse>) () -> {
-      List<ConfigProperty> configList = new ArrayList<>();
-      for (alluxio.wire.ConfigProperty configProperty : mMasterProcess.getConfiguration()) {
-        configList.add(configProperty.toThrift());
-      }
-      return new GetConfigurationTResponse(configList);
-    });
+    return RpcUtils.call(LOG, (RpcUtils.RpcCallable<GetConfigurationTResponse>) ()
+        -> (new GetConfigurationTResponse(mMasterProcess.getConfiguration()
+        .stream()
+        .map(configProperty -> (configProperty.toThrift()))
+        .collect(Collectors.toList()))));
   }
 
   @Override
