@@ -3853,5 +3853,4 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         mUfsSyncPathCache.shouldSyncPath(path.getPath(), options.getSyncIntervalMs());
     return new LockingScheme(path, desiredLockMode, shouldSync);
   }
-
 }
