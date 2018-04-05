@@ -140,12 +140,9 @@ public final class LineageMasterClientServiceHandler implements LineageMasterCli
   @Override
   public ReportLostFileTResponse reportLostFile(final String path, ReportLostFileTOptions options)
       throws AlluxioTException {
-    return RpcUtils.call(LOG, new RpcCallableThrowsIOException<ReportLostFileTResponse>() {
-      @Override
-      public ReportLostFileTResponse call() throws AlluxioException, AlluxioStatusException {
-        mLineageMaster.reportLostFile(path);
-        return new ReportLostFileTResponse();
-      }
+    return RpcUtils.call(LOG, (RpcCallableThrowsIOException<ReportLostFileTResponse>) () -> {
+      mLineageMaster.reportLostFile(path);
+      return new ReportLostFileTResponse();
     });
   }
 }
