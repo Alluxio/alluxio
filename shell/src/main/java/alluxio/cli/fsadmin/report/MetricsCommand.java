@@ -11,7 +11,8 @@
 
 package alluxio.cli.fsadmin.report;
 
-import alluxio.client.file.FileSystemMasterClient;
+import alluxio.client.MetaMasterClient;
+import alluxio.wire.MetricValue;
 
 import com.google.common.base.Strings;
 
@@ -31,24 +32,22 @@ import java.util.TreeMap;
 public class MetricsCommand {
   private static final DecimalFormat DECIMAL_FORMAT
       = new DecimalFormat("###,###", new DecimalFormatSymbols(Locale.US));
+  private static final int INDENT_LEVEL = 1;
   private static final int INDENT_SIZE = 4;
   private static final String INFO_FORMAT = "%-30s %20s";
 
-  private StringBuilder mCachedRpcInvocation;
-  private int mIndentationLevel = 1;
-  private FileSystemMasterClient mFileSystemMasterClient;
-  private PrintStream mPrintStream;
+  private final MetaMasterClient mMetaMasterClient;
+  private final PrintStream mPrintStream;
 
   /**
    * Creates a new instance of {@link MetricsCommand}.
    *
-   * @param fileSystemMasterClient client to connect to filesystem master client
+   * @param metaMasterClient client to connect to meta master client
    * @param printStream stream to print operation metrics information to
    */
-  public MetricsCommand(FileSystemMasterClient fileSystemMasterClient, PrintStream printStream) {
-    mFileSystemMasterClient = fileSystemMasterClient;
+  public MetricsCommand(MetaMasterClient metaMasterClient, PrintStream printStream) {
+    mMetaMasterClient = metaMasterClient;
     mPrintStream = printStream;
-    mCachedRpcInvocation = new StringBuilder();
   }
 
   /**
@@ -57,8 +56,7 @@ public class MetricsCommand {
    * @return 0 on success, 1 otherwise
    */
   public int run() throws IOException {
-    Map<String, Long> metricsMap = new TreeMap<>(mFileSystemMasterClient.getMetrics());
-    metricsMap.put("FilesPinned", metricsMap.get("master.FilesPinned"));
+    Map<String, MetricValue> metricsMap = new TreeMap<>(mMetaMasterClient.getMetrics());
 
     Set<String> operations = new HashSet<>();
     operations.add("DirectoriesCreated");
@@ -75,6 +73,15 @@ public class MetricsCommand {
     operations.add("PathsRenamed");
     operations.add("PathsUnmounted");
 
+    mPrintStream.println("Alluxio logical operations: ");
+    metricsMap.put("FilesPinned", metricsMap.get("master.FilesPinned"));
+    for (Map.Entry<String, MetricValue> entry : metricsMap.entrySet()) {
+      String key = entry.getKey();
+      if (operations.contains(key)) {
+        printIndentedMetrics(key, entry.getValue().getLongValue());
+      }
+    }
+
     Set<String> rpcInvocations = new HashSet<>();
     rpcInvocations.add("CompleteFileOps");
     rpcInvocations.add("CreateDirectoryOps");
@@ -89,41 +96,27 @@ public class MetricsCommand {
     rpcInvocations.add("SetAttributeOps");
     rpcInvocations.add("UnmountOps");
 
-    mPrintStream.println("Alluxio logical operations: ");
-    for (Map.Entry<String, Long> entry : metricsMap.entrySet()) {
+    mPrintStream.println("\nAlluxio RPC invocations: ");
+    for (Map.Entry<String, MetricValue> entry : metricsMap.entrySet()) {
       String key = entry.getKey();
-      if (operations.contains(key)) {
-        // Print operation info first
-        printOrCache(key, entry.getValue(), false);
-      } else if (rpcInvocations.contains(key)) {
-        // Cache RPC invocation info and print later
-        printOrCache(key, entry.getValue(), true);
+      if (rpcInvocations.contains(key)) {
+        printIndentedMetrics(key, entry.getValue().getLongValue());
       }
     }
-
-    mPrintStream.println("\nAlluxio RPC invocations: ");
-    mPrintStream.println(mCachedRpcInvocation.toString());
-    // TODO(lu) provide other kind metrics information
     return 0;
   }
 
   /**
-   * Prints or caches indented metrics information of a certain metrics property.
+   * Prints indented metrics information.
    *
-   * @param key the key of the metrics property
-   * @param value the value of the metrics property
-   * @param cache true to cache and print later, false to print directly
+   * @param key the key of the metrics property to print
+   * @param value the value of the metrics property to print
    */
-  private void printOrCache(String key, Long value, boolean cache) {
+  private void printIndentedMetrics(String key, Long value) {
     String readableName = key.replaceAll("(.)([A-Z])", "$1 $2")
         .replaceAll("Ops", "Operations");
-    String indent = Strings.repeat(" ", mIndentationLevel * INDENT_SIZE);
+    String indent = Strings.repeat(" ", INDENT_LEVEL * INDENT_SIZE);
     String metricsInfo = String.format(INFO_FORMAT, readableName, DECIMAL_FORMAT.format(value));
-
-    if (cache) {
-      mCachedRpcInvocation.append(indent).append(metricsInfo).append("\n");
-    } else {
-      mPrintStream.println(indent + metricsInfo);
-    }
+    mPrintStream.println(indent + metricsInfo);
   }
 }

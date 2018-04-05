@@ -351,14 +351,14 @@ public class ListStatusTResponse implements org.apache.thrift.TBase<ListStatusTR
           case 1: // FILE_INFO_LIST
             if (schemeField.type == org.apache.thrift.protocol.TType.LIST) {
               {
-                org.apache.thrift.protocol.TList _list18 = iprot.readListBegin();
-                struct.fileInfoList = new ArrayList<FileInfo>(_list18.size);
-                FileInfo _elem19;
-                for (int _i20 = 0; _i20 < _list18.size; ++_i20)
+                org.apache.thrift.protocol.TList _list8 = iprot.readListBegin();
+                struct.fileInfoList = new ArrayList<FileInfo>(_list8.size);
+                FileInfo _elem9;
+                for (int _i10 = 0; _i10 < _list8.size; ++_i10)
                 {
-                  _elem19 = new FileInfo();
-                  _elem19.read(iprot);
-                  struct.fileInfoList.add(_elem19);
+                  _elem9 = new FileInfo();
+                  _elem9.read(iprot);
+                  struct.fileInfoList.add(_elem9);
                 }
                 iprot.readListEnd();
               }
@@ -386,9 +386,9 @@ public class ListStatusTResponse implements org.apache.thrift.TBase<ListStatusTR
         oprot.writeFieldBegin(FILE_INFO_LIST_FIELD_DESC);
         {
           oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, struct.fileInfoList.size()));
-          for (FileInfo _iter21 : struct.fileInfoList)
+          for (FileInfo _iter11 : struct.fileInfoList)
           {
-            _iter21.write(oprot);
+            _iter11.write(oprot);
           }
           oprot.writeListEnd();
         }
@@ -419,9 +419,9 @@ public class ListStatusTResponse implements org.apache.thrift.TBase<ListStatusTR
       if (struct.isSetFileInfoList()) {
         {
           oprot.writeI32(struct.fileInfoList.size());
-          for (FileInfo _iter22 : struct.fileInfoList)
+          for (FileInfo _iter12 : struct.fileInfoList)
           {
-            _iter22.write(oprot);
+            _iter12.write(oprot);
           }
         }
       }
@@ -433,14 +433,14 @@ public class ListStatusTResponse implements org.apache.thrift.TBase<ListStatusTR
       BitSet incoming = iprot.readBitSet(1);
       if (incoming.get(0)) {
         {
-          org.apache.thrift.protocol.TList _list23 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
-          struct.fileInfoList = new ArrayList<FileInfo>(_list23.size);
-          FileInfo _elem24;
-          for (int _i25 = 0; _i25 < _list23.size; ++_i25)
+          org.apache.thrift.protocol.TList _list13 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
+          struct.fileInfoList = new ArrayList<FileInfo>(_list13.size);
+          FileInfo _elem14;
+          for (int _i15 = 0; _i15 < _list13.size; ++_i15)
           {
-            _elem24 = new FileInfo();
-            _elem24.read(iprot);
-            struct.fileInfoList.add(_elem24);
+            _elem14 = new FileInfo();
+            _elem14.read(iprot);
+            struct.fileInfoList.add(_elem14);
           }
         }
         struct.setFileInfoListIsSet(true);

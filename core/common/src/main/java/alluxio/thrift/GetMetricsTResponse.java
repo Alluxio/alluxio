@@ -46,7 +46,7 @@ public class GetMetricsTResponse implements org.apache.thrift.TBase<GetMetricsTR
     schemes.put(TupleScheme.class, new GetMetricsTResponseTupleSchemeFactory());
   }
 
-  private Map<String,Long> metricsMap; // required
+  private Map<String,MetricValue> metricsMap; // required
 
   /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
   public enum _Fields implements org.apache.thrift.TFieldIdEnum {
@@ -113,7 +113,7 @@ public class GetMetricsTResponse implements org.apache.thrift.TBase<GetMetricsTR
     tmpMap.put(_Fields.METRICS_MAP, new org.apache.thrift.meta_data.FieldMetaData("metricsMap", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.MapMetaData(org.apache.thrift.protocol.TType.MAP, 
             new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING), 
-            new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64))));
+            new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT            , "MetricValue"))));
     metaDataMap = Collections.unmodifiableMap(tmpMap);
     org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(GetMetricsTResponse.class, metaDataMap);
   }
@@ -122,7 +122,7 @@ public class GetMetricsTResponse implements org.apache.thrift.TBase<GetMetricsTR
   }
 
   public GetMetricsTResponse(
-    Map<String,Long> metricsMap)
+    Map<String,MetricValue> metricsMap)
   {
     this();
     this.metricsMap = metricsMap;
@@ -133,7 +133,18 @@ public class GetMetricsTResponse implements org.apache.thrift.TBase<GetMetricsTR
    */
   public GetMetricsTResponse(GetMetricsTResponse other) {
     if (other.isSetMetricsMap()) {
-      Map<String,Long> __this__metricsMap = new HashMap<String,Long>(other.metricsMap);
+      Map<String,MetricValue> __this__metricsMap = new HashMap<String,MetricValue>(other.metricsMap.size());
+      for (Map.Entry<String, MetricValue> other_element : other.metricsMap.entrySet()) {
+
+        String other_element_key = other_element.getKey();
+        MetricValue other_element_value = other_element.getValue();
+
+        String __this__metricsMap_copy_key = other_element_key;
+
+        MetricValue __this__metricsMap_copy_value = other_element_value;
+
+        __this__metricsMap.put(__this__metricsMap_copy_key, __this__metricsMap_copy_value);
+      }
       this.metricsMap = __this__metricsMap;
     }
   }
@@ -151,18 +162,18 @@ public class GetMetricsTResponse implements org.apache.thrift.TBase<GetMetricsTR
     return (this.metricsMap == null) ? 0 : this.metricsMap.size();
   }
 
-  public void putToMetricsMap(String key, long val) {
+  public void putToMetricsMap(String key, MetricValue val) {
     if (this.metricsMap == null) {
-      this.metricsMap = new HashMap<String,Long>();
+      this.metricsMap = new HashMap<String,MetricValue>();
     }
     this.metricsMap.put(key, val);
   }
 
-  public Map<String,Long> getMetricsMap() {
+  public Map<String,MetricValue> getMetricsMap() {
     return this.metricsMap;
   }
 
-  public GetMetricsTResponse setMetricsMap(Map<String,Long> metricsMap) {
+  public GetMetricsTResponse setMetricsMap(Map<String,MetricValue> metricsMap) {
     this.metricsMap = metricsMap;
     return this;
   }
@@ -188,7 +199,7 @@ public class GetMetricsTResponse implements org.apache.thrift.TBase<GetMetricsTR
       if (value == null) {
         unsetMetricsMap();
       } else {
-        setMetricsMap((Map<String,Long>)value);
+        setMetricsMap((Map<String,MetricValue>)value);
       }
       break;
 
@@ -346,13 +357,14 @@ public class GetMetricsTResponse implements org.apache.thrift.TBase<GetMetricsTR
             if (schemeField.type == org.apache.thrift.protocol.TType.MAP) {
               {
                 org.apache.thrift.protocol.TMap _map8 = iprot.readMapBegin();
-                struct.metricsMap = new HashMap<String,Long>(2*_map8.size);
+                struct.metricsMap = new HashMap<String,MetricValue>(2*_map8.size);
                 String _key9;
-                long _val10;
+                MetricValue _val10;
                 for (int _i11 = 0; _i11 < _map8.size; ++_i11)
                 {
                   _key9 = iprot.readString();
-                  _val10 = iprot.readI64();
+                  _val10 = new MetricValue();
+                  _val10.read(iprot);
                   struct.metricsMap.put(_key9, _val10);
                 }
                 iprot.readMapEnd();
@@ -380,11 +392,11 @@ public class GetMetricsTResponse implements org.apache.thrift.TBase<GetMetricsTR
       if (struct.metricsMap != null) {
         oprot.writeFieldBegin(METRICS_MAP_FIELD_DESC);
         {
-          oprot.writeMapBegin(new org.apache.thrift.protocol.TMap(org.apache.thrift.protocol.TType.STRING, org.apache.thrift.protocol.TType.I64, struct.metricsMap.size()));
-          for (Map.Entry<String, Long> _iter12 : struct.metricsMap.entrySet())
+          oprot.writeMapBegin(new org.apache.thrift.protocol.TMap(org.apache.thrift.protocol.TType.STRING, org.apache.thrift.protocol.TType.STRUCT, struct.metricsMap.size()));
+          for (Map.Entry<String, MetricValue> _iter12 : struct.metricsMap.entrySet())
           {
             oprot.writeString(_iter12.getKey());
-            oprot.writeI64(_iter12.getValue());
+            _iter12.getValue().write(oprot);
           }
           oprot.writeMapEnd();
         }
@@ -415,10 +427,10 @@ public class GetMetricsTResponse implements org.apache.thrift.TBase<GetMetricsTR
       if (struct.isSetMetricsMap()) {
         {
           oprot.writeI32(struct.metricsMap.size());
-          for (Map.Entry<String, Long> _iter13 : struct.metricsMap.entrySet())
+          for (Map.Entry<String, MetricValue> _iter13 : struct.metricsMap.entrySet())
           {
             oprot.writeString(_iter13.getKey());
-            oprot.writeI64(_iter13.getValue());
+            _iter13.getValue().write(oprot);
           }
         }
       }
@@ -430,14 +442,15 @@ public class GetMetricsTResponse implements org.apache.thrift.TBase<GetMetricsTR
       BitSet incoming = iprot.readBitSet(1);
       if (incoming.get(0)) {
         {
-          org.apache.thrift.protocol.TMap _map14 = new org.apache.thrift.protocol.TMap(org.apache.thrift.protocol.TType.STRING, org.apache.thrift.protocol.TType.I64, iprot.readI32());
-          struct.metricsMap = new HashMap<String,Long>(2*_map14.size);
+          org.apache.thrift.protocol.TMap _map14 = new org.apache.thrift.protocol.TMap(org.apache.thrift.protocol.TType.STRING, org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
+          struct.metricsMap = new HashMap<String,MetricValue>(2*_map14.size);
           String _key15;
-          long _val16;
+          MetricValue _val16;
           for (int _i17 = 0; _i17 < _map14.size; ++_i17)
           {
             _key15 = iprot.readString();
-            _val16 = iprot.readI64();
+            _val16 = new MetricValue();
+            _val16.read(iprot);
             struct.metricsMap.put(_key15, _val16);
           }
         }

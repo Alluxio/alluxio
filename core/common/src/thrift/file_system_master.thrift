@@ -63,11 +63,6 @@ enum LoadMetadataTType {
   Always = 2,  // Always load metadata.
 }
 
-struct GetMetricsTOptions {}
-struct GetMetricsTResponse {
-  1: map<string, i64> metricsMap
-}
-
 struct GetNewBlockIdForFileTOptions {
   1: optional FileSystemMasterCommonTOptions commonOptions
 }
@@ -280,14 +275,6 @@ service FileSystemMasterClientService extends common.AlluxioService {
     // This is deprecated since 1.5 and will be removed in 2.0. Use FreeTOptions.
     /** whether to free recursively */ 2: bool recursive,
     /** the options for freeing a path */ 3: FreeTOptions options,
-    )
-    throws (1: exception.AlluxioTException e)
-
-  /**
-   * Returns a map of metrics property names and their values from Alluxio metrics system.
-   */
-  GetMetricsTResponse getMetrics(
-    /** the method options */ 1: GetMetricsTOptions options,
     )
     throws (1: exception.AlluxioTException e)
 

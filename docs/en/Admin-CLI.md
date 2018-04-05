@@ -46,7 +46,10 @@ The `report` command provides Alluxio running cluster information.
 $ ./bin/alluxio fsadmin report
 #
 # Report worker capacity information
-$ ./bin/alluxio fsadmin report capacity 
+$ ./bin/alluxio fsadmin report capacity
+#
+# Report metrics information
+$ ./bin/alluxio fsadmin report metrics
 ```
 
 You can use `-h` to display helpful information about the command.

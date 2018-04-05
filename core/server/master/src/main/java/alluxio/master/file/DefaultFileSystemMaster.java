@@ -138,7 +138,6 @@ import alluxio.wire.WorkerInfo;
 
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Gauge;
-import com.codahale.metrics.MetricRegistry;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSet;
@@ -3557,28 +3556,6 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
   @Override
   public List<WorkerInfo> getWorkerInfoList() throws UnavailableException {
     return mBlockMaster.getWorkerInfoList();
-  }
-
-  @Override
-  public Map<String, Long> getMetrics() {
-    MetricRegistry mr = MetricsSystem.METRIC_REGISTRY;
-    Map<String, Long> metricsMap = new HashMap<>();
-
-    for (Map.Entry<String, Counter> entry : mr.getCounters().entrySet()) {
-      metricsMap.put(MetricsSystem.stripInstanceAndHost(entry.getKey()),
-          entry.getValue().getCount());
-    }
-
-    for (Map.Entry<String, Gauge> entry : mr.getGauges().entrySet()) {
-      Object value = entry.getValue().getValue();
-      if (value instanceof Integer) {
-        metricsMap.put(entry.getKey(), Long.valueOf((Integer) value));
-      } else if (value instanceof Long) {
-        metricsMap.put(entry.getKey(), (Long) value);
-      }
-      // TODO(lu) consider Double values
-    }
-    return  metricsMap;
   }
 
   @Override

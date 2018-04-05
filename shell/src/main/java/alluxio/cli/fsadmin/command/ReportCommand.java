@@ -22,7 +22,6 @@ import alluxio.client.block.BlockMasterClient;
 import alluxio.client.block.RetryHandlingBlockMasterClient;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.FileSystemMasterClient;
-import alluxio.client.file.RetryHandlingFileSystemMasterClient;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.master.MasterClientConfig;
@@ -50,10 +49,9 @@ public final class ReportCommand implements Command {
   public static final String LOST_OPTION_NAME = "lost";
   public static final String SPECIFIED_OPTION_NAME = "workers";
 
-  private BlockMasterClient mBlockMasterClient;
-  private FileSystemMasterClient mFileSystemMasterClient;
-  private MetaMasterClient mMetaMasterClient;
-  private PrintStream mPrintStream;
+  private final BlockMasterClient mBlockMasterClient;
+  private final MetaMasterClient mMetaMasterClient;
+  private final PrintStream mPrintStream;
 
   private static final Option HELP_OPTION =
       Option.builder(HELP_OPTION_NAME)
@@ -95,7 +93,6 @@ public final class ReportCommand implements Command {
   public ReportCommand() {
     MasterClientConfig config = MasterClientConfig.defaults();
     mBlockMasterClient = new RetryHandlingBlockMasterClient(config);
-    mFileSystemMasterClient = new RetryHandlingFileSystemMasterClient(config);
     mMetaMasterClient = new RetryHandlingMetaMasterClient(config);
     mPrintStream = System.out;
   }
@@ -178,7 +175,7 @@ public final class ReportCommand implements Command {
           break;
         case METRICS:
           MetricsCommand metricsCommand = new MetricsCommand(
-              mFileSystemMasterClient, mPrintStream);
+              mMetaMasterClient, mPrintStream);
           metricsCommand.run();
           break;
         case SUMMARY:

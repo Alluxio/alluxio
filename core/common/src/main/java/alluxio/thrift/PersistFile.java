@@ -438,13 +438,13 @@ public class PersistFile implements org.apache.thrift.TBase<PersistFile, Persist
           case 2: // BLOCK_IDS
             if (schemeField.type == org.apache.thrift.protocol.TType.LIST) {
               {
-                org.apache.thrift.protocol.TList _list96 = iprot.readListBegin();
-                struct.blockIds = new ArrayList<Long>(_list96.size);
-                long _elem97;
-                for (int _i98 = 0; _i98 < _list96.size; ++_i98)
+                org.apache.thrift.protocol.TList _list86 = iprot.readListBegin();
+                struct.blockIds = new ArrayList<Long>(_list86.size);
+                long _elem87;
+                for (int _i88 = 0; _i88 < _list86.size; ++_i88)
                 {
-                  _elem97 = iprot.readI64();
-                  struct.blockIds.add(_elem97);
+                  _elem87 = iprot.readI64();
+                  struct.blockIds.add(_elem87);
                 }
                 iprot.readListEnd();
               }
@@ -475,9 +475,9 @@ public class PersistFile implements org.apache.thrift.TBase<PersistFile, Persist
         oprot.writeFieldBegin(BLOCK_IDS_FIELD_DESC);
         {
           oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.I64, struct.blockIds.size()));
-          for (long _iter99 : struct.blockIds)
+          for (long _iter89 : struct.blockIds)
           {
-            oprot.writeI64(_iter99);
+            oprot.writeI64(_iter89);
           }
           oprot.writeListEnd();
         }
@@ -514,9 +514,9 @@ public class PersistFile implements org.apache.thrift.TBase<PersistFile, Persist
       if (struct.isSetBlockIds()) {
         {
           oprot.writeI32(struct.blockIds.size());
-          for (long _iter100 : struct.blockIds)
+          for (long _iter90 : struct.blockIds)
           {
-            oprot.writeI64(_iter100);
+            oprot.writeI64(_iter90);
           }
         }
       }
@@ -532,13 +532,13 @@ public class PersistFile implements org.apache.thrift.TBase<PersistFile, Persist
       }
       if (incoming.get(1)) {
         {
-          org.apache.thrift.protocol.TList _list101 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.I64, iprot.readI32());
-          struct.blockIds = new ArrayList<Long>(_list101.size);
-          long _elem102;
-          for (int _i103 = 0; _i103 < _list101.size; ++_i103)
+          org.apache.thrift.protocol.TList _list91 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.I64, iprot.readI32());
+          struct.blockIds = new ArrayList<Long>(_list91.size);
+          long _elem92;
+          for (int _i93 = 0; _i93 < _list91.size; ++_i93)
           {
-            _elem102 = iprot.readI64();
-            struct.blockIds.add(_elem102);
+            _elem92 = iprot.readI64();
+            struct.blockIds.add(_elem92);
           }
         }
         struct.setBlockIdsIsSet(true);

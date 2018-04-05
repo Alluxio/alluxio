@@ -46,8 +46,6 @@ import alluxio.thrift.FileInfo;
 import alluxio.thrift.FileSystemMasterClientService;
 import alluxio.thrift.FreeTOptions;
 import alluxio.thrift.FreeTResponse;
-import alluxio.thrift.GetMetricsTOptions;
-import alluxio.thrift.GetMetricsTResponse;
 import alluxio.thrift.GetMountTableTResponse;
 import alluxio.thrift.GetNewBlockIdForFileTOptions;
 import alluxio.thrift.GetNewBlockIdForFileTResponse;
@@ -226,13 +224,6 @@ public final class FileSystemMasterClientServiceHandler implements
         return String.format("GetNewBlockIdForFile: path=%s, options=%s", path, options);
       }
     });
-  }
-
-  @Override
-  public GetMetricsTResponse getMetrics(final GetMetricsTOptions options)
-      throws AlluxioTException {
-    return RpcUtils.call(LOG, (RpcCallableThrowsIOException<GetMetricsTResponse>) ()
-        -> new GetMetricsTResponse(mFileSystemMaster.getMetrics()));
   }
 
   @Override

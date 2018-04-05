@@ -31,7 +31,6 @@ import alluxio.exception.status.AlluxioStatusException;
 import alluxio.master.MasterClientConfig;
 import alluxio.thrift.AlluxioService;
 import alluxio.thrift.FileSystemMasterClientService;
-import alluxio.thrift.GetMetricsTOptions;
 import alluxio.thrift.GetMountTableTResponse;
 import alluxio.thrift.GetNewBlockIdForFileTOptions;
 import alluxio.thrift.LoadMetadataTOptions;
@@ -148,11 +147,6 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
       mClient.free(path.getPath(), options.isRecursive(), options.toThrift());
       return null;
     });
-  }
-
-  @Override
-  public synchronized Map<String, Long> getMetrics() throws AlluxioStatusException {
-    return retryRPC(() -> mClient.getMetrics(new GetMetricsTOptions()).getMetricsMap());
   }
 
   @Override

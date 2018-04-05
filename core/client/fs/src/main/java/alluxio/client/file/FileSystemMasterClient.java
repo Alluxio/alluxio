@@ -114,13 +114,6 @@ public interface FileSystemMasterClient extends Client {
   void free(AlluxioURI path, FreeOptions options) throws AlluxioStatusException;
 
   /**
-   * Gets a map of metrics property names and their values from metrics system.
-   *
-   * @return a map of operation information
-   */
-  Map<String, Long> getMetrics() throws AlluxioStatusException;
-
-  /**
    * @param path the file path
    * @param options the getStatus options
    * @return the file info for the given file id

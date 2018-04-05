@@ -12,7 +12,8 @@
 package alluxio.cli.fsadmin.command;
 
 import alluxio.cli.fsadmin.report.MetricsCommand;
-import alluxio.client.file.FileSystemMasterClient;
+import alluxio.client.MetaMasterClient;
+import alluxio.wire.MetricValue;
 
 import org.hamcrest.collection.IsIterableContainingInOrder;
 import org.junit.After;
@@ -31,17 +32,17 @@ import java.util.List;
 import java.util.Map;
 
 public class MetricsCommandTest {
-  private FileSystemMasterClient mFileSystemMasterClient;
+  private MetaMasterClient mMetaMasterClient;
   private ByteArrayOutputStream mOutputStream;
   private PrintStream mPrintStream;
 
   @Before
-  public void prepareDependencies() throws IOException {
-    Map<String, Long> metricsMap = generateMetricsMap();
+  public void before() throws IOException {
+    Map<String, MetricValue> metricsMap = generateMetricsMap();
 
-    // Prepare mock file system master client
-    mFileSystemMasterClient = Mockito.mock(FileSystemMasterClient.class);
-    Mockito.when(mFileSystemMasterClient.getMetrics()).thenReturn(metricsMap);
+    // Prepare mock meta master client
+    mMetaMasterClient = Mockito.mock(MetaMasterClient.class);
+    Mockito.when(mMetaMasterClient.getMetrics()).thenReturn(metricsMap);
 
     // Prepare print stream
     mOutputStream = new ByteArrayOutputStream();
@@ -54,8 +55,8 @@ public class MetricsCommandTest {
   }
 
   @Test
-  public void operation() throws IOException {
-    MetricsCommand metricsCommand = new MetricsCommand(mFileSystemMasterClient, mPrintStream);
+  public void metrics() throws IOException {
+    MetricsCommand metricsCommand = new MetricsCommand(mMetaMasterClient, mPrintStream);
     metricsCommand.run();
     checkIfOutputValid();
   }
@@ -63,37 +64,37 @@ public class MetricsCommandTest {
   /**
    * @return a generated metrics map
    */
-  private Map<String, Long> generateMetricsMap() {
-    Map<String, Long> map = new HashMap<>();
-    map.put("DirectoriesCreated", 121L);
-    map.put("FileBlockInfosGot", 31243412L);
-    map.put("FileInfosGot", 12L);
-    map.put("FilesCompleted", 0L);
-    map.put("FilesCreated", 534L);
-    map.put("FilesFreed", 2141L);
-    map.put("FilesPersisted", 4171L);
-    map.put("master.FilesPinned", 2354239L);
-    map.put("NewBlocksGot", 4L);
-    map.put("PathsDeleted", 583L);
-    map.put("PathsMounted", 3635L);
-    map.put("PathsRenamed", 382L);
-    map.put("PathsUnmounted", 975L);
+  private Map<String, MetricValue> generateMetricsMap() {
+    Map<String, MetricValue> map = new HashMap<>();
+    map.put("DirectoriesCreated", new MetricValue().setLongValue(121L));
+    map.put("FileBlockInfosGot", new MetricValue().setLongValue(31243412L));
+    map.put("FileInfosGot", new MetricValue().setLongValue(12L));
+    map.put("FilesCompleted", new MetricValue().setLongValue(0L));
+    map.put("FilesCreated", new MetricValue().setLongValue(534L));
+    map.put("FilesFreed", new MetricValue().setLongValue(2141L));
+    map.put("FilesPersisted", new MetricValue().setLongValue(4171L));
+    map.put("master.FilesPinned", new MetricValue().setLongValue(2354239L));
+    map.put("NewBlocksGot", new MetricValue().setLongValue(4L));
+    map.put("PathsDeleted", new MetricValue().setLongValue(583L));
+    map.put("PathsMounted", new MetricValue().setLongValue(3635L));
+    map.put("PathsRenamed", new MetricValue().setLongValue(382L));
+    map.put("PathsUnmounted", new MetricValue().setLongValue(975L));
 
-    map.put("CompleteFileOps", 813L);
-    map.put("CreateDirectoryOps", 325728397L);
-    map.put("CreateFileOps", 89L);
-    map.put("DeletePathOps", 21L);
-    map.put("FreeFileOps", 5213L);
-    map.put("GetFileBlockInfoOps", 798L);
-    map.put("GetFileInfoOps", 32L);
-    map.put("GetNewBlockOps", 912572136653L);
-    map.put("MountOps", 953795L);
-    map.put("RenamePathOps", 29L);
-    map.put("SetAttributeOps", 0L);
-    map.put("UnmountOps", 1L);
+    map.put("CompleteFileOps", new MetricValue().setLongValue(813L));
+    map.put("CreateDirectoryOps", new MetricValue().setLongValue(325728397L));
+    map.put("CreateFileOps", new MetricValue().setLongValue(89L));
+    map.put("DeletePathOps", new MetricValue().setLongValue(21L));
+    map.put("FreeFileOps", new MetricValue().setLongValue(5213L));
+    map.put("GetFileBlockInfoOps", new MetricValue().setLongValue(798L));
+    map.put("GetFileInfoOps", new MetricValue().setLongValue(32L));
+    map.put("GetNewBlockOps", new MetricValue().setLongValue(912572136653L));
+    map.put("MountOps", new MetricValue().setLongValue(953795L));
+    map.put("RenamePathOps", new MetricValue().setLongValue(29L));
+    map.put("SetAttributeOps", new MetricValue().setLongValue(0L));
+    map.put("UnmountOps", new MetricValue().setLongValue(1L));
 
-    map.put("UfsSessionCount-Ufs:/alluxio", 5312L);
-    map.put("RandomGeneratedProperty", 212L);
+    map.put("UfsSessionCount-Ufs:/alluxio", new MetricValue().setLongValue(8535L));
+    map.put("RandomGeneratedProperty", new MetricValue().setDoubleValue(0.001321));
     return map;
   }
 

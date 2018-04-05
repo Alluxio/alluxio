@@ -351,14 +351,14 @@ public class PersistCommandOptions implements org.apache.thrift.TBase<PersistCom
           case 1: // PERSIST_FILES
             if (schemeField.type == org.apache.thrift.protocol.TType.LIST) {
               {
-                org.apache.thrift.protocol.TList _list88 = iprot.readListBegin();
-                struct.persistFiles = new ArrayList<PersistFile>(_list88.size);
-                PersistFile _elem89;
-                for (int _i90 = 0; _i90 < _list88.size; ++_i90)
+                org.apache.thrift.protocol.TList _list78 = iprot.readListBegin();
+                struct.persistFiles = new ArrayList<PersistFile>(_list78.size);
+                PersistFile _elem79;
+                for (int _i80 = 0; _i80 < _list78.size; ++_i80)
                 {
-                  _elem89 = new PersistFile();
-                  _elem89.read(iprot);
-                  struct.persistFiles.add(_elem89);
+                  _elem79 = new PersistFile();
+                  _elem79.read(iprot);
+                  struct.persistFiles.add(_elem79);
                 }
                 iprot.readListEnd();
               }
@@ -386,9 +386,9 @@ public class PersistCommandOptions implements org.apache.thrift.TBase<PersistCom
         oprot.writeFieldBegin(PERSIST_FILES_FIELD_DESC);
         {
           oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, struct.persistFiles.size()));
-          for (PersistFile _iter91 : struct.persistFiles)
+          for (PersistFile _iter81 : struct.persistFiles)
           {
-            _iter91.write(oprot);
+            _iter81.write(oprot);
           }
           oprot.writeListEnd();
         }
@@ -419,9 +419,9 @@ public class PersistCommandOptions implements org.apache.thrift.TBase<PersistCom
       if (struct.isSetPersistFiles()) {
         {
           oprot.writeI32(struct.persistFiles.size());
-          for (PersistFile _iter92 : struct.persistFiles)
+          for (PersistFile _iter82 : struct.persistFiles)
           {
-            _iter92.write(oprot);
+            _iter82.write(oprot);
           }
         }
       }
@@ -433,14 +433,14 @@ public class PersistCommandOptions implements org.apache.thrift.TBase<PersistCom
       BitSet incoming = iprot.readBitSet(1);
       if (incoming.get(0)) {
         {
-          org.apache.thrift.protocol.TList _list93 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
-          struct.persistFiles = new ArrayList<PersistFile>(_list93.size);
-          PersistFile _elem94;
-          for (int _i95 = 0; _i95 < _list93.size; ++_i95)
+          org.apache.thrift.protocol.TList _list83 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
+          struct.persistFiles = new ArrayList<PersistFile>(_list83.size);
+          PersistFile _elem84;
+          for (int _i85 = 0; _i85 < _list83.size; ++_i85)
           {
-            _elem94 = new PersistFile();
-            _elem94.read(iprot);
-            struct.persistFiles.add(_elem94);
+            _elem84 = new PersistFile();
+            _elem84.read(iprot);
+            struct.persistFiles.add(_elem84);
           }
         }
         struct.setPersistFilesIsSet(true);
