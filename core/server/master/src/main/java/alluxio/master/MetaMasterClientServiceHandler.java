@@ -14,6 +14,9 @@ package alluxio.master;
 import alluxio.Constants;
 import alluxio.RpcUtils;
 import alluxio.RuntimeConstants;
+import alluxio.thrift.AlluxioTException;
+import alluxio.thrift.GetConfigurationTOptions;
+import alluxio.thrift.GetConfigurationTResponse;
 import alluxio.thrift.GetMasterInfoTOptions;
 import alluxio.thrift.GetMasterInfoTResponse;
 import alluxio.thrift.GetServiceVersionTOptions;
@@ -27,6 +30,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
+import java.util.stream.Collectors;
 
 /**
  * This class is a Thrift handler for meta master RPCs.
@@ -46,6 +50,16 @@ public final class MetaMasterClientServiceHandler implements MetaMasterClientSer
   @Override
   public GetServiceVersionTResponse getServiceVersion(GetServiceVersionTOptions options) {
     return new GetServiceVersionTResponse(Constants.META_MASTER_CLIENT_SERVICE_VERSION);
+  }
+
+  @Override
+  public GetConfigurationTResponse getConfiguration(GetConfigurationTOptions options)
+      throws AlluxioTException {
+    return RpcUtils.call(LOG, (RpcUtils.RpcCallable<GetConfigurationTResponse>) ()
+        -> (new GetConfigurationTResponse(mMasterProcess.getConfiguration()
+        .stream()
+        .map(configProperty -> (configProperty.toThrift()))
+        .collect(Collectors.toList()))));
   }
 
   @Override

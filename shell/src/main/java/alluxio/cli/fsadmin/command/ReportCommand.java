@@ -14,13 +14,16 @@ package alluxio.cli.fsadmin.command;
 import alluxio.cli.Command;
 import alluxio.cli.CommandUtils;
 import alluxio.cli.fsadmin.report.CapacityCommand;
+import alluxio.cli.fsadmin.report.ConfigurationCommand;
 import alluxio.cli.fsadmin.report.SummaryCommand;
+import alluxio.cli.fsadmin.report.UfsCommand;
 import alluxio.client.MetaMasterClient;
 import alluxio.client.RetryHandlingMetaMasterClient;
 import alluxio.client.block.BlockMasterClient;
 import alluxio.client.block.RetryHandlingBlockMasterClient;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.FileSystemMasterClient;
+import alluxio.client.file.RetryHandlingFileSystemMasterClient;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.master.MasterClientConfig;
@@ -29,6 +32,7 @@ import alluxio.master.PollingMasterInquireClient;
 import alluxio.resource.CloseableResource;
 import alluxio.retry.ExponentialBackoffRetry;
 
+import com.google.common.io.Closer;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
@@ -48,9 +52,11 @@ public final class ReportCommand implements Command {
   public static final String LOST_OPTION_NAME = "lost";
   public static final String SPECIFIED_OPTION_NAME = "workers";
 
-  private MetaMasterClient mMetaMasterClient;
-  private BlockMasterClient mBlockMasterClient;
-  private PrintStream mPrintStream;
+  private final BlockMasterClient mBlockMasterClient;
+  private final Closer mCloser;
+  private final FileSystemMasterClient mFileSystemMasterClient;
+  private final MetaMasterClient mMetaMasterClient;
+  private final PrintStream mPrintStream;
 
   private static final Option HELP_OPTION =
       Option.builder(HELP_OPTION_NAME)
@@ -82,15 +88,20 @@ public final class ReportCommand implements Command {
 
   enum Command {
     CAPACITY, // Report worker capacity information
-    SUMMARY // Report cluster summary
+    CONFIGURATION, // Report runtime configuration
+    SUMMARY, // Report cluster summary
+    UFS // Report under filesystem information
   }
 
   /**
    * Creates a new instance of {@link ReportCommand}.
    */
   public ReportCommand() {
-    mMetaMasterClient = new RetryHandlingMetaMasterClient(MasterClientConfig.defaults());
-    mBlockMasterClient = new RetryHandlingBlockMasterClient(MasterClientConfig.defaults());
+    mCloser = Closer.create();
+    MasterClientConfig config = MasterClientConfig.defaults();
+    mBlockMasterClient = mCloser.register(new RetryHandlingBlockMasterClient(config));
+    mFileSystemMasterClient = mCloser.register(new RetryHandlingFileSystemMasterClient(config));
+    mMetaMasterClient = mCloser.register(new RetryHandlingMetaMasterClient(config));
     mPrintStream = System.out;
   }
 
@@ -101,44 +112,50 @@ public final class ReportCommand implements Command {
 
   @Override
   public int run(CommandLine cl) throws IOException {
-    String[] args = cl.getArgs();
-
-    if (cl.hasOption(HELP_OPTION_NAME)
-        && !(args.length > 0 && args[0].equals("capacity"))) {
-      // if category is capacity, we print report capacity usage inside CapacityCommand.
-      System.out.println(getUsage());
-      System.out.println(getDescription());
-      return 0;
-    }
-
-    // Get the report category
-    Command command = Command.SUMMARY;
-    if (args.length == 1) {
-      switch (args[0]) {
-        case "capacity":
-          command = Command.CAPACITY;
-          break;
-        case "summary":
-          command = Command.SUMMARY;
-          break;
-        default:
-          System.out.println(getUsage());
-          System.out.println(getDescription());
-          throw new InvalidArgumentException("report category is invalid.");
-      }
-    }
-
-    // Only capacity category has [category args]
-    if (!command.equals(Command.CAPACITY)) {
-      if (cl.getOptions().length > 0) {
-        throw new InvalidArgumentException(
-            String.format("report %s does not support arguments: %s",
-                command.toString().toLowerCase(), cl.getOptions()[0].getOpt()));
-      }
-    }
-
-    // Check if Alluxio master and client services are running
     try {
+      String[] args = cl.getArgs();
+
+      if (cl.hasOption(HELP_OPTION_NAME)
+          && !(args.length > 0 && args[0].equals("capacity"))) {
+        // if category is capacity, we print report capacity usage inside CapacityCommand.
+        System.out.println(getUsage());
+        System.out.println(getDescription());
+        return 0;
+      }
+
+      // Get the report category
+      Command command = Command.SUMMARY;
+      if (args.length == 1) {
+        switch (args[0]) {
+          case "capacity":
+            command = Command.CAPACITY;
+            break;
+          case "configuration":
+            command = Command.CONFIGURATION;
+            break;
+          case "summary":
+            command = Command.SUMMARY;
+            break;
+          case "ufs":
+            command = Command.UFS;
+            break;
+          default:
+            System.out.println(getUsage());
+            System.out.println(getDescription());
+            throw new InvalidArgumentException("report category is invalid.");
+        }
+      }
+
+      // Only capacity category has [category args]
+      if (!command.equals(Command.CAPACITY)) {
+        if (cl.getOptions().length > 0) {
+          throw new InvalidArgumentException(
+              String.format("report %s does not support arguments: %s",
+                  command.toString().toLowerCase(), cl.getOptions()[0].getOpt()));
+        }
+      }
+
+      // Check if Alluxio master and client services are running
       try (CloseableResource<FileSystemMasterClient> client =
                FileSystemContext.INSTANCE.acquireMasterClientResource()) {
         MasterInquireClient inquireClient = null;
@@ -167,17 +184,25 @@ public final class ReportCommand implements Command {
               mBlockMasterClient, mPrintStream);
           capacityCommand.run(cl);
           break;
+        case CONFIGURATION:
+          ConfigurationCommand configurationCommand = new ConfigurationCommand(
+              mMetaMasterClient, mPrintStream);
+          configurationCommand.run();
+          break;
         case SUMMARY:
-          SummaryCommand summaryCommand = new SummaryCommand(mMetaMasterClient,
-              mBlockMasterClient, mPrintStream);
+          SummaryCommand summaryCommand = new SummaryCommand(
+              mMetaMasterClient, mBlockMasterClient, mPrintStream);
           summaryCommand.run();
+          break;
+        case UFS:
+          UfsCommand ufsCommand = new UfsCommand(mFileSystemMasterClient);
+          ufsCommand.run();
           break;
         default:
           break;
       }
     } finally {
-      mMetaMasterClient.close();
-      mBlockMasterClient.close();
+      mCloser.close();
     }
     return 0;
   }
@@ -203,7 +228,9 @@ public final class ReportCommand implements Command {
         + "summary information will be printed out.\n"
         + "[category] can be one of the following:\n"
         + "    capacity         worker capacity information\n"
-        + "    summary          cluster summary\n";
+        + "    configuration    runtime configuration\n"
+        + "    summary          cluster summary\n"
+        + "    ufs              under filesystem information\n";
   }
 
   @Override

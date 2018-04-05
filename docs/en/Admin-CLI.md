@@ -47,6 +47,12 @@ $ ./bin/alluxio fsadmin report
 #
 # Report worker capacity information
 $ ./bin/alluxio fsadmin report capacity 
+#
+# Report runtime configuration information
+$ ./bin/alluxio fsadmin report configuration
+#
+# Report under file system information
+$ ./bin/alluxio fsadmin report ufs 
 ```
 
 You can use `-h` to display helpful information about the command.
