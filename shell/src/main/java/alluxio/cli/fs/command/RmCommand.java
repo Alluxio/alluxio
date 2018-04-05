@@ -32,7 +32,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * Removes the file specified by argv.
  */
 @ThreadSafe
-public final class RmCommand extends WithWildCardPathCommand {
+public final class RmCommand extends AbstractFileSystemCommand {
 
   private static final Option RECURSIVE_OPTION =
       Option.builder("R")
@@ -57,6 +57,8 @@ public final class RmCommand extends WithWildCardPathCommand {
           .desc("remove data and metadata from Alluxio space only")
           .build();
 
+  private CommandLine mCl = null;
+
   /**
    * @param fs the filesystem of Alluxio
    */
@@ -78,9 +80,9 @@ public final class RmCommand extends WithWildCardPathCommand {
   }
 
   @Override
-  protected void runCommand(AlluxioURI path, CommandLine cl) throws AlluxioException, IOException {
+  protected void runPath(AlluxioURI path) throws AlluxioException, IOException {
     // TODO(calvin): Remove explicit state checking.
-    boolean recursive = cl.hasOption("R");
+    boolean recursive = mCl.hasOption("R");
     if (!mFileSystem.exists(path)) {
       throw new FileDoesNotExistException(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(path));
     }
@@ -90,10 +92,11 @@ public final class RmCommand extends WithWildCardPathCommand {
     }
 
     DeleteOptions options = DeleteOptions.defaults().setRecursive(recursive);
-    if (cl.hasOption(REMOVE_UNCHECKED_OPTION_CHAR)) {
+    if (mCl.hasOption(REMOVE_UNCHECKED_OPTION_CHAR)) {
       options.setUnchecked(true);
     }
-    boolean isAlluxioOnly = cl.hasOption(REMOVE_ALLUXIO_ONLY.getLongOpt());
+
+    boolean isAlluxioOnly = mCl.hasOption(REMOVE_ALLUXIO_ONLY.getLongOpt());
     options.setAlluxioOnly(isAlluxioOnly);
     mFileSystem.delete(path, options);
     if (!isAlluxioOnly) {
@@ -101,6 +104,16 @@ public final class RmCommand extends WithWildCardPathCommand {
     } else {
       System.out.println(path + " has been removed from Alluxio space");
     }
+  }
+
+  @Override
+  public int run(CommandLine cl) throws AlluxioException, IOException {
+    mCl = cl;
+    String[] args = cl.getArgs();
+    AlluxioURI path = new AlluxioURI(args[0]);
+    runWildCardCmd(path);
+
+    return 0;
   }
 
   @Override

@@ -32,8 +32,10 @@ import javax.annotation.concurrent.ThreadSafe;
  * characters.
  *
  * It will first do a glob against the input pattern then run the command for each expanded path.
+ * @deprecated since version 1.7
  */
 @ThreadSafe
+@Deprecated
 public abstract class WithWildCardPathCommand extends AbstractFileSystemCommand {
 
   protected WithWildCardPathCommand(FileSystem fs) {

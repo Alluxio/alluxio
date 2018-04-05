@@ -44,6 +44,18 @@ public final class ChecksumCommand extends AbstractFileSystemCommand {
   }
 
   @Override
+  protected void runPath(AlluxioURI plainPath) throws AlluxioException, IOException {
+    URIStatus status = mFileSystem.getStatus(plainPath);
+    if (status.isFolder()) {
+      throw new FileDoesNotExistException(
+              ExceptionMessage.PATH_MUST_BE_FILE.getMessage(plainPath.getPath()));
+    }
+
+    String str = calculateChecksum(plainPath);
+    System.out.println("md5sum: " + str + "\n");
+  }
+
+  @Override
   public String getCommandName() {
     return "checksum";
   }
@@ -56,13 +68,7 @@ public final class ChecksumCommand extends AbstractFileSystemCommand {
   @Override
   public int run(CommandLine cl) throws AlluxioException, IOException {
     String[] args = cl.getArgs();
-    AlluxioURI loc = new AlluxioURI(args[0]);
-    URIStatus status = mFileSystem.getStatus(loc);
-    if (status.isFolder()) {
-      throw new FileDoesNotExistException(ExceptionMessage.PATH_MUST_BE_FILE.getMessage(args[0]));
-    }
-    String str = calculateChecksum(loc);
-    System.out.println("md5sum: " + str);
+    runWildCardCmd(new AlluxioURI(args[0]));
     return 0;
   }
 

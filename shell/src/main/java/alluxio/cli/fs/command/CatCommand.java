@@ -32,7 +32,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * Prints the file's contents to the console.
  */
 @ThreadSafe
-public final class CatCommand extends WithWildCardPathCommand {
+public final class CatCommand extends AbstractFileSystemCommand {
 
   /**
    * @param fs the filesystem of Alluxio
@@ -47,7 +47,7 @@ public final class CatCommand extends WithWildCardPathCommand {
   }
 
   @Override
-  protected void runCommand(AlluxioURI path, CommandLine cl) throws AlluxioException, IOException {
+  protected void runPath(AlluxioURI path) throws AlluxioException, IOException {
     URIStatus status = mFileSystem.getStatus(path);
 
     if (status.isFolder()) {
@@ -77,5 +77,13 @@ public final class CatCommand extends WithWildCardPathCommand {
   @Override
   public void validateArgs(CommandLine cl) throws InvalidArgumentException {
     CommandUtils.checkNumOfArgsNoLessThan(this, cl, 1);
+  }
+
+  @Override
+  public int run(CommandLine cl) throws IOException {
+    String[] args = cl.getArgs();
+    runWildCardCmd(new AlluxioURI(args[0]));
+
+    return 0;
   }
 }

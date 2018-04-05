@@ -42,6 +42,8 @@ public final class ChmodCommand extends AbstractFileSystemCommand {
           .build();
 
   private final ModeParser mParser = new ModeParser();
+  private boolean mIsRecursive = false;
+  private String mModeString = "";
 
   /**
    * Creates a new instance of {@link ChmodCommand}.
@@ -50,6 +52,11 @@ public final class ChmodCommand extends AbstractFileSystemCommand {
    */
   public ChmodCommand(FileSystem fs) {
     super(fs);
+  }
+
+  @Override
+  protected void runPath(AlluxioURI plainPath) throws AlluxioException, IOException {
+    chmod(plainPath, mModeString, mIsRecursive);
   }
 
   @Override
@@ -87,9 +94,11 @@ public final class ChmodCommand extends AbstractFileSystemCommand {
   @Override
   public int run(CommandLine cl) throws AlluxioException, IOException {
     String[] args = cl.getArgs();
-    String modeStr = args[0];
+    mModeString = args[0];
+    mIsRecursive = cl.hasOption("R");
+
     AlluxioURI path = new AlluxioURI(args[1]);
-    chmod(path, modeStr, cl.hasOption("R"));
+    runWildCardCmd(path);
     return 0;
   }
 

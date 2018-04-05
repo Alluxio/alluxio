@@ -43,7 +43,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * can also display the information for all directly children under the path, or recursively.
  */
 @ThreadSafe
-public final class LsCommand extends WithWildCardPathCommand {
+public final class LsCommand extends AbstractFileSystemCommand {
   public static final String IN_ALLUXIO_STATE_DIR = "DIR";
   public static final String IN_ALLUXIO_STATE_FILE_FORMAT = "%d%%";
   public static final String LS_FORMAT_PERMISSION = "%-11s";
@@ -112,6 +112,8 @@ public final class LsCommand extends WithWildCardPathCommand {
               .build();
 
   private static final Map<String, Comparator<URIStatus>> SORT_FIELD_COMPARATORS = new HashMap<>();
+
+  private CommandLine mCl = null;
 
   static {
     SORT_FIELD_COMPARATORS.put("creationTime",
@@ -258,10 +260,20 @@ public final class LsCommand extends WithWildCardPathCommand {
   }
 
   @Override
-  public void runCommand(AlluxioURI path, CommandLine cl) throws AlluxioException, IOException {
-    ls(path, cl.hasOption("R"), cl.hasOption("f"), cl.hasOption("d"), cl.hasOption("h"),
-        cl.hasOption("p"), cl.getOptionValue("sort", "name"),
-            cl.hasOption("r"));
+  protected void runPath(AlluxioURI path) throws AlluxioException, IOException {
+    ls(path, mCl.hasOption("R"), mCl.hasOption("f"), mCl.hasOption("d"), mCl.hasOption("h"),
+            mCl.hasOption("p"), mCl.getOptionValue("sort", "name"),
+            mCl.hasOption("r"));
+  }
+
+  @Override
+  public int run(CommandLine cl) throws AlluxioException, IOException {
+    mCl = cl;
+    String[] args = cl.getArgs();
+    AlluxioURI path = new AlluxioURI(args[0]);
+    runWildCardCmd(path);
+
+    return 0;
   }
 
   @Override

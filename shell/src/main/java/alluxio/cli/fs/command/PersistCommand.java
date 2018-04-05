@@ -52,11 +52,16 @@ public final class PersistCommand extends AbstractFileSystemCommand {
   }
 
   @Override
+  protected void runPath(AlluxioURI plainPath) throws AlluxioException, IOException {
+    persist(plainPath);
+  }
+
+  @Override
   public int run(CommandLine cl) throws AlluxioException, IOException {
     String[] args = cl.getArgs();
     for (String path : args) {
       AlluxioURI inputPath = new AlluxioURI(path);
-      persist(inputPath);
+      runWildCardCmd(inputPath);
     }
     return 0;
   }

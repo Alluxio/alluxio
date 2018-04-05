@@ -28,7 +28,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * never evicted from memory.
  */
 @ThreadSafe
-public final class PinCommand extends WithWildCardPathCommand {
+public final class PinCommand extends AbstractFileSystemCommand {
 
   /**
    * @param fs the filesystem of Alluxio
@@ -43,9 +43,17 @@ public final class PinCommand extends WithWildCardPathCommand {
   }
 
   @Override
-  protected void runCommand(AlluxioURI path, CommandLine cl) throws AlluxioException, IOException {
+  protected void runPath(AlluxioURI path) throws AlluxioException, IOException {
     FileSystemCommandUtils.setPinned(mFileSystem, path, true);
     System.out.println("File '" + path + "' was successfully pinned.");
+  }
+
+  @Override
+  public int run(CommandLine cl) throws AlluxioException, IOException {
+    String[] args = cl.getArgs();
+    AlluxioURI path = new AlluxioURI(args[0]);
+    runWildCardCmd(path);
+    return 0;
   }
 
   @Override

@@ -30,7 +30,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * Reports to the master that a file is lost.
  */
 @ThreadSafe
-public final class ReportCommand extends WithWildCardPathCommand {
+public final class ReportCommand extends AbstractFileSystemCommand {
 
   /**
    * @param fs the filesystem of Alluxio
@@ -45,9 +45,17 @@ public final class ReportCommand extends WithWildCardPathCommand {
   }
 
   @Override
-  protected void runCommand(AlluxioURI path, CommandLine cl) throws AlluxioException, IOException {
+  protected void runPath(AlluxioURI path) throws AlluxioException, IOException {
     LineageFileSystem.get(FileSystemContext.INSTANCE, LineageContext.INSTANCE).reportLostFile(path);
     System.out.println(path + " has been reported as lost.");
+  }
+
+  @Override
+  public int run(CommandLine cl) throws AlluxioException, IOException {
+    String[] args = cl.getArgs();
+    AlluxioURI path = new AlluxioURI(args[0]);
+    runWildCardCmd(path);
+    return 0;
   }
 
   @Override

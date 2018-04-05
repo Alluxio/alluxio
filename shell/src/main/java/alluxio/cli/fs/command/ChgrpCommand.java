@@ -39,6 +39,9 @@ public final class ChgrpCommand extends AbstractFileSystemCommand {
           .desc("change group recursively")
           .build();
 
+  private String mGroup;
+  private boolean mIsRecursive;
+
   /**
    * Creates a new instance of {@link ChgrpCommand}.
    *
@@ -79,11 +82,18 @@ public final class ChgrpCommand extends AbstractFileSystemCommand {
   }
 
   @Override
+  protected void runPath(AlluxioURI path) throws IOException, AlluxioException {
+    chgrp(path, mGroup, mIsRecursive);
+  }
+
+  @Override
   public int run(CommandLine cl) throws AlluxioException, IOException {
     String[] args = cl.getArgs();
-    String group = args[0];
+    mGroup = args[0];
+    mIsRecursive = cl.hasOption("R");
     AlluxioURI path = new AlluxioURI(args[1]);
-    chgrp(path, group, cl.hasOption("R"));
+    runWildCardCmd(path);
+
     return 0;
   }
 

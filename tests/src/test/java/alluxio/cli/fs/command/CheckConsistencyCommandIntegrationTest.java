@@ -92,4 +92,23 @@ public class CheckConsistencyCommandIntegrationTest extends AbstractFileSystemSh
     Assert.assertTrue(3 == mFileSystem.getStatus(new AlluxioURI("/testRoot/testDir/testFileB"))
         .getLength());
   }
+
+  /**
+   * Tests the check consistency shell command correctly identifies a consistent subtree.
+   */
+  @Test
+  public void wildcard() throws Exception {
+    FileSystemTestUtils
+            .createByteFile(mFileSystem, "/testRoot/testDir2/testFileA",
+                    WriteType.CACHE_THROUGH, 10);
+
+    FileSystemTestUtils.createByteFile(mFileSystem, "/testRoot/testDir/testFileB",
+            WriteType.CACHE_THROUGH, 20);
+    mFsShell.run("checkConsistency", "/testRoot/*/testFile*");
+    String expected = "/testRoot/testDir/testFileB is consistent with the under storage system.\n"
+            + "/testRoot/testDir2/testFileA is consistent "
+            + "with the under storage system.\n";
+    Assert.assertEquals(expected, mOutput.toString());
+  }
+
 }

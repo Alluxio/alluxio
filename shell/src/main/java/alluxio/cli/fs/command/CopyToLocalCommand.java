@@ -11,6 +11,7 @@
 
 package alluxio.cli.fs.command;
 
+import alluxio.AlluxioURI;
 import alluxio.cli.CommandUtils;
 import alluxio.client.file.FileSystem;
 import alluxio.exception.AlluxioException;
@@ -37,6 +38,11 @@ public final class CopyToLocalCommand extends AbstractFileSystemCommand {
   public CopyToLocalCommand(FileSystem fs) {
     super(fs);
     mCpCommand = new CpCommand(fs);
+  }
+
+  @Override
+  protected void runPath(AlluxioURI plainURI) throws AlluxioException, IOException {
+
   }
 
   @Override

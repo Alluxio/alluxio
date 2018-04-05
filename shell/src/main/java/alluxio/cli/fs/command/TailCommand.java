@@ -36,12 +36,14 @@ import javax.annotation.concurrent.ThreadSafe;
  * Prints the file's last n bytes (by default, 1KB) to the console.
  */
 @ThreadSafe
-public final class TailCommand extends WithWildCardPathCommand {
+public final class TailCommand extends AbstractFileSystemCommand {
   private static final Option BYTES_OPTION = Option.builder("c")
-      .required(false)
-      .numberOfArgs(1)
-      .desc("number of bytes (e.g., 1024, 4KB)")
-      .build();
+          .required(false)
+          .numberOfArgs(1)
+          .desc("number of bytes (e.g., 1024, 4KB)")
+          .build();
+
+  private CommandLine mCl = null;
 
   /**
    * @param fs the filesystem of Alluxio
@@ -56,11 +58,11 @@ public final class TailCommand extends WithWildCardPathCommand {
   }
 
   @Override
-  protected void runCommand(AlluxioURI path, CommandLine cl) throws AlluxioException, IOException {
+  protected void runPath(AlluxioURI path) throws AlluxioException, IOException {
     URIStatus status = mFileSystem.getStatus(path);
     int numOfBytes = Constants.KB;
-    if (cl.hasOption('c')) {
-      numOfBytes = (int) FormatUtils.parseSpaceSize(cl.getOptionValue('c'));
+    if (mCl.hasOption('c')) {
+      numOfBytes = (int) FormatUtils.parseSpaceSize(mCl.getOptionValue('c'));
       Preconditions.checkArgument(numOfBytes > 0, "specified bytes must be > 0");
     }
 
@@ -82,6 +84,15 @@ public final class TailCommand extends WithWildCardPathCommand {
         System.out.write(buf, 0, read);
       }
     }
+  }
+
+  @Override
+  public int run(CommandLine cl) throws AlluxioException, IOException {
+    mCl = cl;
+    String[] args = cl.getArgs();
+    AlluxioURI path = new AlluxioURI(args[0]);
+    runWildCardCmd(path);
+    return 0;
   }
 
   @Override
