@@ -11,8 +11,13 @@
 
 package alluxio.cli.fsadmin.command;
 
+import alluxio.Configuration;
+import alluxio.ProjectConstants;
+import alluxio.PropertyKey;
 import alluxio.cli.fsadmin.AbstractFsAdminShellTest;
+import alluxio.util.network.NetworkAddressUtils;
 
+import org.hamcrest.CoreMatchers;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -38,5 +43,51 @@ public final class ReportCommandIntegrationTest extends AbstractFsAdminShellTest
         reportCommand.getDescription(),
         "report category is invalid.");
     Assert.assertEquals(expected, mOutput.toString());
+  }
+
+  @Test
+  public void reportConfiguration() {
+    int ret = mFsAdminShell.run("report", "configuration");
+    Assert.assertEquals(0, ret);
+    String output = mOutput.toString();
+    Assert.assertThat(output,
+        CoreMatchers.containsString("Alluxio configuration information:"));
+    Assert.assertThat(output,
+        CoreMatchers.containsString("alluxio.test.mode"));
+  }
+
+  @Test
+  public void reportSummary() {
+    int ret = mFsAdminShell.run("report", "summary");
+    Assert.assertEquals(0, ret);
+    String output = mOutput.toString();
+
+    // Check if meta master values are available
+    String expectedMasterAddress = NetworkAddressUtils
+        .getConnectAddress(NetworkAddressUtils.ServiceType.MASTER_RPC).toString();
+    Assert.assertThat(output, CoreMatchers.containsString(
+        "Master Address: " + expectedMasterAddress));
+    Assert.assertThat(output, CoreMatchers.containsString(
+        "Web Port: " + Configuration.get(PropertyKey.MASTER_WEB_PORT)));
+    Assert.assertThat(output, CoreMatchers.containsString(
+        "Rpc Port: " + Configuration.get(PropertyKey.MASTER_RPC_PORT)));
+    Assert.assertFalse(output.contains("Started: 12-31-1969 16:00:00:000"));
+    Assert.assertThat(output, CoreMatchers.containsString(
+        "Version: " + ProjectConstants.VERSION));
+
+    // Check if block master values are available
+    Assert.assertThat(output, CoreMatchers.containsString("Live Workers: 1"));
+    Assert.assertFalse(output.contains("Total Capacity: 0B"));
+  }
+
+  @Test
+  public void reportUfs() {
+    int ret = mFsAdminShell.run("report", "ufs");
+    Assert.assertEquals(0, ret);
+    String output = mOutput.toString();
+    Assert.assertThat(output,
+        CoreMatchers.containsString("Alluxio under filesystem information: "));
+    Assert.assertThat(output,
+        CoreMatchers.containsString("not read-only, not shared, properties={})"));
   }
 }
