@@ -15,15 +15,19 @@ import alluxio.AbstractMasterClient;
 import alluxio.Constants;
 import alluxio.master.MasterClientConfig;
 import alluxio.thrift.AlluxioService;
+import alluxio.thrift.GetConfigurationTOptions;
 import alluxio.thrift.GetMasterInfoTOptions;
 import alluxio.thrift.MetaMasterClientService;
+import alluxio.wire.ConfigProperty;
 import alluxio.wire.MasterInfo;
 import alluxio.wire.MasterInfo.MasterInfoField;
 import alluxio.wire.ThriftUtils;
 
 import java.io.IOException;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -66,6 +70,14 @@ public final class RetryHandlingMetaMasterClient extends AbstractMasterClient
   @Override
   protected void afterConnect() {
     mClient = new MetaMasterClientService.Client(mProtocol);
+  }
+
+  @Override
+  public synchronized List<ConfigProperty> getConfiguration() throws IOException {
+    return retryRPC(() -> (mClient.getConfiguration(new GetConfigurationTOptions())
+          .getConfigList().stream()
+          .map(ConfigProperty::fromThrift)
+          .collect(Collectors.toList())));
   }
 
   @Override
