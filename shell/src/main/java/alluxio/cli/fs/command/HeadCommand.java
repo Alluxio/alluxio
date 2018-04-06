@@ -38,10 +38,10 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public final class HeadCommand extends AbstractFileSystemCommand {
   private static final Option BYTES_OPTION = Option.builder("c")
-          .required(false)
-          .numberOfArgs(1)
-          .desc("number of bytes (e.g., 1024, 4KB)")
-          .build();
+      .required(false)
+      .numberOfArgs(1)
+      .desc("number of bytes (e.g., 1024, 4KB)")
+      .build();
 
   private int mNumOfBytes;
 
@@ -63,7 +63,7 @@ public final class HeadCommand extends AbstractFileSystemCommand {
   }
 
   @Override
-  protected void runPath(AlluxioURI plainPath) throws AlluxioException, IOException {
+  protected void runPlainPath(AlluxioURI plainPath) throws AlluxioException, IOException {
     URIStatus status = mFileSystem.getStatus(plainPath);
 
     if (status.isFolder()) {

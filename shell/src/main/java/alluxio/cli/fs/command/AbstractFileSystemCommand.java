@@ -22,7 +22,7 @@ import com.google.common.base.Joiner;
 import javax.annotation.concurrent.ThreadSafe;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 /**
@@ -38,7 +38,7 @@ public abstract class AbstractFileSystemCommand implements Command {
     mFileSystem = fs;
   }
 
-  protected void runPath(AlluxioURI plainPath) throws AlluxioException, IOException{
+  protected void runPlainPath(AlluxioURI plainPath) throws AlluxioException, IOException{
   }
 
   protected void runWildCardCmd(AlluxioURI wildCardPath) throws IOException {
@@ -46,12 +46,12 @@ public abstract class AbstractFileSystemCommand implements Command {
     if (paths.size() == 0) { // A unified sanity check on the paths
       throw new IOException(wildCardPath + " does not exist.");
     }
-    Collections.sort(paths, FileSystemShellUtils.createAlluxioURIComparator());
+    paths.sort(Comparator.comparing(AlluxioURI::getPath));
 
     List<String> errorMessages = new ArrayList<>();
     for (AlluxioURI path : paths) {
       try {
-        runPath(path);
+        runPlainPath(path);
       } catch (AlluxioException | IOException e) {
         errorMessages.add(e.getMessage() != null ? e.getMessage() : e.toString());
       }

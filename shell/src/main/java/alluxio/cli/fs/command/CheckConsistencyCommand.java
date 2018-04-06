@@ -52,7 +52,7 @@ public class CheckConsistencyCommand extends AbstractFileSystemCommand {
   }
 
   @Override
-  protected void runPath(AlluxioURI plainPath) throws AlluxioException, IOException {
+  protected void runPlainPath(AlluxioURI plainPath) throws AlluxioException, IOException {
     checkConsistency(plainPath, mIsRecursive);
   }
 

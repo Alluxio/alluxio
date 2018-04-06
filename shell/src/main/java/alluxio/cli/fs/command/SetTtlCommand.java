@@ -80,7 +80,7 @@ public final class SetTtlCommand extends AbstractFileSystemCommand {
   }
 
   @Override
-  protected void runPath(AlluxioURI path) throws AlluxioException, IOException {
+  protected void runPlainPath(AlluxioURI path) throws AlluxioException, IOException {
     FileSystemCommandUtils.setTtl(mFileSystem, path, mTtlMs, mAction);
     System.out.println("TTL of path '" + path + "' was successfully set to " + mTtlMs
             + " milliseconds, with expiry action set to " + mAction);

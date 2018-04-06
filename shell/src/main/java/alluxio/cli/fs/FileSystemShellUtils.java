@@ -283,19 +283,5 @@ public final class FileSystemShellUtils {
   protected static boolean match(String filePath, String patternPath) {
     return match(new AlluxioURI(filePath), new AlluxioURI(patternPath));
   }
-
-  /**
-   * Get a comparator for sorting purposes.
-   *
-   * @return returns a comparator in teh ascending order for AlluxioURI
-   */
-  public static Comparator<AlluxioURI> createAlluxioURIComparator() {
-    return new Comparator<AlluxioURI>() {
-      @Override
-      public int compare(AlluxioURI tUri1, AlluxioURI tUri2) {
-        // ascending order
-        return tUri1.getPath().compareTo(tUri2.getPath());
-      }
-    };
-  }
+  
 }

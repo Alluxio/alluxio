@@ -55,7 +55,7 @@ public final class ChownCommand extends AbstractFileSystemCommand {
   }
 
   @Override
-  protected void runPath(AlluxioURI path) throws AlluxioException, IOException {
+  protected void runPlainPath(AlluxioURI path) throws AlluxioException, IOException {
     if (mGroup == null) {
       chown(path, mOwner, mIsRecursive);
     } else {

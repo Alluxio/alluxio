@@ -44,7 +44,7 @@ public final class DuCommand extends AbstractFileSystemCommand {
   }
 
   @Override
-  protected void runPath(AlluxioURI path) throws AlluxioException, IOException {
+  protected void runPlainPath(AlluxioURI path) throws AlluxioException, IOException {
     long sizeInBytes = getFileOrFolderSize(mFileSystem, path);
     System.out.println(path + " is " + sizeInBytes + " bytes");
   }

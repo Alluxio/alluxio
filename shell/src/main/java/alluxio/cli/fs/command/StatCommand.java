@@ -66,7 +66,7 @@ public final class StatCommand extends AbstractFileSystemCommand {
   }
 
   @Override
-  protected void runPath(AlluxioURI path) throws AlluxioException, IOException {
+  protected void runPlainPath(AlluxioURI path) throws AlluxioException, IOException {
     URIStatus status = mFileSystem.getStatus(path);
     if (mCl.hasOption('f')) {
       System.out.println(formatOutput(mCl, status));

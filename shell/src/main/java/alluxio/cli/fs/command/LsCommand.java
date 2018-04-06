@@ -260,7 +260,7 @@ public final class LsCommand extends AbstractFileSystemCommand {
   }
 
   @Override
-  protected void runPath(AlluxioURI path) throws AlluxioException, IOException {
+  protected void runPlainPath(AlluxioURI path) throws AlluxioException, IOException {
     ls(path, mCl.hasOption("R"), mCl.hasOption("f"), mCl.hasOption("d"), mCl.hasOption("h"),
             mCl.hasOption("p"), mCl.getOptionValue("sort", "name"),
             mCl.hasOption("r"));

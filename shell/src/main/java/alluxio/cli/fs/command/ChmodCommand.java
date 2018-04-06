@@ -55,7 +55,7 @@ public final class ChmodCommand extends AbstractFileSystemCommand {
   }
 
   @Override
-  protected void runPath(AlluxioURI plainPath) throws AlluxioException, IOException {
+  protected void runPlainPath(AlluxioURI plainPath) throws AlluxioException, IOException {
     chmod(plainPath, mModeString, mIsRecursive);
   }
 

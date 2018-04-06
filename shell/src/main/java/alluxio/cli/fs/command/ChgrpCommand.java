@@ -82,7 +82,7 @@ public final class ChgrpCommand extends AbstractFileSystemCommand {
   }
 
   @Override
-  protected void runPath(AlluxioURI path) throws IOException, AlluxioException {
+  protected void runPlainPath(AlluxioURI path) throws IOException, AlluxioException {
     chgrp(path, mGroup, mIsRecursive);
   }
 

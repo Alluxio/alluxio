@@ -80,7 +80,7 @@ public final class RmCommand extends AbstractFileSystemCommand {
   }
 
   @Override
-  protected void runPath(AlluxioURI path) throws AlluxioException, IOException {
+  protected void runPlainPath(AlluxioURI path) throws AlluxioException, IOException {
     // TODO(calvin): Remove explicit state checking.
     boolean recursive = mCl.hasOption("R");
     if (!mFileSystem.exists(path)) {

@@ -70,7 +70,7 @@ public final class LoadCommand extends AbstractFileSystemCommand {
   }
 
   @Override
-  protected void runPath(AlluxioURI plainPath) throws AlluxioException, IOException {
+  protected void runPlainPath(AlluxioURI plainPath) throws AlluxioException, IOException {
     load(plainPath, mHasLocalOption);
   }
 

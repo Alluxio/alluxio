@@ -47,7 +47,7 @@ public final class UnmountCommand extends AbstractFileSystemCommand {
   }
 
   @Override
-  protected void runPath(AlluxioURI inputPath) throws AlluxioException, IOException {
+  protected void runPlainPath(AlluxioURI inputPath) throws AlluxioException, IOException {
     mFileSystem.unmount(inputPath);
     System.out.println("Unmounted " + inputPath);
   }

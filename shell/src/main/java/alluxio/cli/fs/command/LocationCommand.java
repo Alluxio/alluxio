@@ -47,7 +47,7 @@ public final class LocationCommand extends AbstractFileSystemCommand {
   }
 
   @Override
-  protected void runPath(AlluxioURI plainPath) throws AlluxioException, IOException {
+  protected void runPlainPath(AlluxioURI plainPath) throws AlluxioException, IOException {
     URIStatus status = mFileSystem.getStatus(plainPath);
 
     System.out.println(plainPath + " with file id " + status.getFileId() + " is on nodes: ");

@@ -41,11 +41,6 @@ public final class CopyToLocalCommand extends AbstractFileSystemCommand {
   }
 
   @Override
-  protected void runPath(AlluxioURI plainURI) throws AlluxioException, IOException {
-
-  }
-
-  @Override
   public String getCommandName() {
     return "copyToLocal";
   }

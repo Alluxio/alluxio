@@ -44,7 +44,7 @@ public final class ChecksumCommand extends AbstractFileSystemCommand {
   }
 
   @Override
-  protected void runPath(AlluxioURI plainPath) throws AlluxioException, IOException {
+  protected void runPlainPath(AlluxioURI plainPath) throws AlluxioException, IOException {
     URIStatus status = mFileSystem.getStatus(plainPath);
     if (status.isFolder()) {
       throw new FileDoesNotExistException(

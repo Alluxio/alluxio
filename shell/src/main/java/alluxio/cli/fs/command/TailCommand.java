@@ -38,10 +38,10 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public final class TailCommand extends AbstractFileSystemCommand {
   private static final Option BYTES_OPTION = Option.builder("c")
-          .required(false)
-          .numberOfArgs(1)
-          .desc("number of bytes (e.g., 1024, 4KB)")
-          .build();
+      .required(false)
+      .numberOfArgs(1)
+      .desc("number of bytes (e.g., 1024, 4KB)")
+      .build();
 
   private CommandLine mCl = null;
 
@@ -58,7 +58,7 @@ public final class TailCommand extends AbstractFileSystemCommand {
   }
 
   @Override
-  protected void runPath(AlluxioURI path) throws AlluxioException, IOException {
+  protected void runPlainPath(AlluxioURI path) throws AlluxioException, IOException {
     URIStatus status = mFileSystem.getStatus(path);
     int numOfBytes = Constants.KB;
     if (mCl.hasOption('c')) {
