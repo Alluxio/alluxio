@@ -562,7 +562,6 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
 
   @Override
   public boolean renameDirectory(String src, String dst) throws IOException {
-    @SuppressWarnings("nullness")
     UfsStatus[] children = listInternal(src, ListOptions.defaults());
     if (children == null) {
       LOG.error("Failed to list directory {}, aborting rename.", src);
@@ -578,6 +577,8 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
         stripPrefixIfPresent(convertToFolderName(dst)))) {
       return false;
     }
+
+    assert children != null : "@AssumeAssertion(nullness)";
     // Rename each child in the src folder to destination/child
     for (UfsStatus child : children) {
       String childSrcPath = PathUtils.concatPath(src, child);
