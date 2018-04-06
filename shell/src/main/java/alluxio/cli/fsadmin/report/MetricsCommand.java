@@ -14,8 +14,6 @@ package alluxio.cli.fsadmin.report;
 import alluxio.client.MetaMasterClient;
 import alluxio.wire.MetricValue;
 
-import com.google.common.base.Strings;
-
 import java.io.IOException;
 import java.io.PrintStream;
 import java.text.DecimalFormat;
@@ -31,13 +29,12 @@ import java.util.TreeMap;
  */
 public class MetricsCommand {
   private static final DecimalFormat DECIMAL_FORMAT
-      = new DecimalFormat("###,###", new DecimalFormatSymbols(Locale.US));
-  private static final int INDENT_LEVEL = 1;
-  private static final int INDENT_SIZE = 4;
-  private static final String INFO_FORMAT = "%-30s %20s";
+      = new DecimalFormat("###,###.#####", new DecimalFormatSymbols(Locale.US));
+  private static final String INDENT = "    ";
 
   private final MetaMasterClient mMetaMasterClient;
   private final PrintStream mPrintStream;
+  private String mInfoFormat = "%-30s %25s";
 
   /**
    * Creates a new instance of {@link MetricsCommand}.
@@ -78,7 +75,7 @@ public class MetricsCommand {
     for (Map.Entry<String, MetricValue> entry : metricsMap.entrySet()) {
       String key = entry.getKey();
       if (operations.contains(key)) {
-        printIndentedMetrics(key, entry.getValue().getLongValue());
+        printIndentedMetrics(key, entry.getValue());
       }
     }
 
@@ -100,7 +97,16 @@ public class MetricsCommand {
     for (Map.Entry<String, MetricValue> entry : metricsMap.entrySet()) {
       String key = entry.getKey();
       if (rpcInvocations.contains(key)) {
-        printIndentedMetrics(key, entry.getValue().getLongValue());
+        printIndentedMetrics(key, entry.getValue());
+      }
+    }
+
+    mPrintStream.println("\nOther metrics information: ");
+    mInfoFormat = "%s  (%s)"; // Some property names are too long to fit in previous info format
+    for (Map.Entry<String, MetricValue> entry : metricsMap.entrySet()) {
+      String key = entry.getKey();
+      if (!operations.contains(key) && !rpcInvocations.contains(key)) {
+        printIndentedMetrics(key, entry.getValue());
       }
     }
     return 0;
@@ -110,13 +116,18 @@ public class MetricsCommand {
    * Prints indented metrics information.
    *
    * @param key the key of the metrics property to print
-   * @param value the value of the metrics property to print
+   * @param metricValue the metric value to print
    */
-  private void printIndentedMetrics(String key, Long value) {
+  private void printIndentedMetrics(String key, MetricValue metricValue) {
+    Double doubleValue = metricValue.getDoubleValue();
+    Long longValue = metricValue.getLongValue();
+
     String readableName = key.replaceAll("(.)([A-Z])", "$1 $2")
         .replaceAll("Ops", "Operations");
-    String indent = Strings.repeat(" ", INDENT_LEVEL * INDENT_SIZE);
-    String metricsInfo = String.format(INFO_FORMAT, readableName, DECIMAL_FORMAT.format(value));
-    mPrintStream.println(indent + metricsInfo);
+    String metricsInfo = String.format(mInfoFormat, readableName,
+        doubleValue == null ? DECIMAL_FORMAT.format(longValue) :
+            DECIMAL_FORMAT.format(doubleValue));
+
+    mPrintStream.println(INDENT + metricsInfo);
   }
 }

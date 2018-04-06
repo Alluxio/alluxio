@@ -24,8 +24,8 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public final class MetricValue {
 
-  private Double mDoubleValue;
-  private Long mLongValue;
+  private Double mDoubleValue = null;
+  private Long mLongValue = null;
 
   /**
    * Creates a new instance of {@link MetricValue} from a thrift representation.
@@ -33,8 +33,13 @@ public final class MetricValue {
    * @param metricValue the thrift representation of a metric value
    */
   private MetricValue(alluxio.thrift.MetricValue metricValue) {
-    mDoubleValue = metricValue.getDoubleValue();
-    mLongValue = metricValue.getLongValue();
+    Preconditions.checkState(metricValue.isSetDoubleValue() || metricValue.isSetLongValue(),
+        "only one of longValue and doubleValue can be set");
+    if (metricValue.isSetDoubleValue()) {
+      mDoubleValue = metricValue.getDoubleValue();
+    } else if (metricValue.isSetLongValue()) {
+      mLongValue = metricValue.getLongValue();
+    }
   }
 
   @JsonCreator
