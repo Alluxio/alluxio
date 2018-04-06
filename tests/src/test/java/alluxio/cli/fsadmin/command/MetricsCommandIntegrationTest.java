@@ -68,7 +68,7 @@ public final class MetricsCommandIntegrationTest extends AbstractFsAdminShellTes
         "    Unmount Operations                                     0",
         "",
         "Other metrics information: ",
-        "    Blocks Accessed  (0)");
+        "    BlocksAccessed  (0)");
     List<String> testOutput = Arrays.asList(output.split("\n")).subList(0, expectedOutput.size());
     Assert.assertThat(testOutput,
         IsIterableContainingInOrder.contains(expectedOutput.toArray()));

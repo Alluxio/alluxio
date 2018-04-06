@@ -93,14 +93,14 @@ public class MetricsCommandTest {
     map.put("SetAttributeOps", MetricValue.forLong(0L));
     map.put("UnmountOps", MetricValue.forLong(1L));
 
-    map.put("Ufs Session Count- Ufs:file:___ Users_alluxio_desktop",
+    map.put("UfsSessionCount-Ufs:_alluxio_underFSStorage",
         MetricValue.forLong(8535L));
-    map.put("Ufs Session Count- Ufs:_ Users_alluxio_desktop_alluxio_under FS Storage",
+    map.put("UfsSessionCount-Ufs:file:___Users_alluxio_alluxioMountedFolder",
         MetricValue.forLong(1231L));
-    map.put("master. Capacity Total", MetricValue.forLong(1154531246129122L));
+    map.put("master.CapacityTotal", MetricValue.forLong(1154531246129122L));
     map.put("heap.used", MetricValue.forDouble(0.0028321312));
-    map.put("pools. Metaspace.usage", MetricValue.forDouble(0.95728));
-    map.put("pools. Metaspace.max", MetricValue.forLong(-1));
+    map.put("pools.Metaspace.usage", MetricValue.forDouble(0.95728));
+    map.put("pools.Metaspace.max", MetricValue.forLong(-1));
     return map;
   }
 
@@ -140,13 +140,12 @@ public class MetricsCommandTest {
         "    Unmount Operations                                     1",
         "",
         "Other metrics information: ",
-        "    Ufs  Session  Count-  Ufs:_  Users_alluxio_desktop_alluxio_under  FS  Storage  (1,231)",
-        "    Ufs  Session  Count-  Ufs:file:___  Users_alluxio_desktop  (8,535)",
+        "    UfsSessionCount-Ufs:_alluxio_underFSStorage  (8,535)",
+        "    UfsSessionCount-Ufs:file:___Users_alluxio_alluxioMountedFolder  (1,231)",
         "    heap.used  (0.00283)",
-        "    master.  Capacity  Total  (1,154,531,246,129,122)",
-        "    master. Files Pinned  (2,354,239)",
-        "    pools.  Metaspace.max  (-1)",
-        "    pools.  Metaspace.usage  (0.95728)");
+        "    master.CapacityTotal  (1,154,531,246,129,122)",
+        "    pools.Metaspace.max  (-1)",
+        "    pools.Metaspace.usage  (0.95728)");
     // CHECKSTYLE.ON: LineLengthExceed
     List<String> testOutput = Arrays.asList(output.split("\n"));
     Assert.assertThat(testOutput,

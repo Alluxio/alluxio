@@ -72,10 +72,11 @@ public class MetricsCommand {
 
     mPrintStream.println("Alluxio logical operations: ");
     metricsMap.put("FilesPinned", metricsMap.get("master.FilesPinned"));
+    metricsMap.remove("master.FilesPinned");
     for (Map.Entry<String, MetricValue> entry : metricsMap.entrySet()) {
       String key = entry.getKey();
       if (operations.contains(key)) {
-        printIndentedMetrics(key, entry.getValue());
+        printIndentedMetrics(getReadableName(key), entry.getValue());
       }
     }
 
@@ -97,7 +98,7 @@ public class MetricsCommand {
     for (Map.Entry<String, MetricValue> entry : metricsMap.entrySet()) {
       String key = entry.getKey();
       if (rpcInvocations.contains(key)) {
-        printIndentedMetrics(key, entry.getValue());
+        printIndentedMetrics(getReadableName(key), entry.getValue());
       }
     }
 
@@ -113,18 +114,27 @@ public class MetricsCommand {
   }
 
   /**
+   * Gets readable name from property name.
+   *
+   * @param key the property key to transfer
+   * @return a readable name
+   */
+  private String getReadableName(String key) {
+    return key.replaceAll("(.)([A-Z])", "$1 $2")
+        .replaceAll("Ops", "Operations");
+  }
+
+  /**
    * Prints indented metrics information.
    *
-   * @param key the key of the metrics property to print
+   * @param name the property name to print
    * @param metricValue the metric value to print
    */
-  private void printIndentedMetrics(String key, MetricValue metricValue) {
+  private void printIndentedMetrics(String name, MetricValue metricValue) {
     Double doubleValue = metricValue.getDoubleValue();
     Long longValue = metricValue.getLongValue();
 
-    String readableName = key.replaceAll("(.)([A-Z])", "$1 $2")
-        .replaceAll("Ops", "Operations");
-    String metricsInfo = String.format(mInfoFormat, readableName,
+    String metricsInfo = String.format(mInfoFormat, name,
         doubleValue == null ? DECIMAL_FORMAT.format(longValue) :
             DECIMAL_FORMAT.format(doubleValue));
 
