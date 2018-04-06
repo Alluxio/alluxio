@@ -51,12 +51,12 @@ public interface GroupMappingService {
      *
      * @return the groups mapping service being used to map user-to-groups
      */
-    @SuppressWarnings("nullness")
     public static GroupMappingService get() {
       if (sCachedGroupMapping == null) {
         synchronized (Factory.class) {
           if (sCachedGroupMapping == null) {
             LOG.debug("Creating new Groups object");
+            @SuppressWarnings("nullness")
             GroupMappingService groupMappingService =
                 CommonUtils.createNewClassInstance(Configuration.<GroupMappingService>getClass(
                     PropertyKey.SECURITY_GROUP_MAPPING_CLASS), null, null);

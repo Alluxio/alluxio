@@ -17,8 +17,6 @@ import alluxio.exception.status.UnavailableException;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 
-import org.checkerframework.checker.nullness.qual.Nullable;
-
 import java.net.InetSocketAddress;
 import java.util.List;
 
@@ -34,14 +32,12 @@ public interface MasterInquireClient {
    *         appropriate
    * @throws UnavailableException if the primary rpc address cannot be determined
    */
-  @Nullable
   InetSocketAddress getPrimaryRpcAddress() throws UnavailableException;
 
   /**
    * @return a list of all masters' RPC addresses
    * @throws UnavailableException if the master rpc addresses cannot be determined
    */
-  @Nullable
   List<InetSocketAddress> getMasterRpcAddresses() throws UnavailableException;
 
   /**

@@ -542,7 +542,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
 
   @Override
   public InputStream open(String path, OpenOptions options) throws IOException {
-    IOException thrownException = new IOException();
+    IOException thrownException = null;
     RetryPolicy retryPolicy = new ExponentialBackoffRetry(
         (int) Configuration.getMs(PropertyKey.UNDERFS_OBJECT_STORE_READ_RETRY_BASE_SLEEP_MS),
         (int) Configuration.getMs(PropertyKey.UNDERFS_OBJECT_STORE_READ_RETRY_MAX_SLEEP_MS),
@@ -556,6 +556,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
         thrownException = e;
       }
     }
+    assert thrownException != null : "@AssumeAssertion(nullness)";
     throw thrownException;
   }
 

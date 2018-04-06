@@ -105,7 +105,7 @@ public class IndexedSet<T> extends AbstractSet<T> {
    * The first index of the indexed set. This index is used to guarantee uniqueness of objects,
    * support iterator and provide quick lookup.
    */
-  @Nullable private final FieldIndex<T> mPrimaryIndex;
+  private final FieldIndex<T> mPrimaryIndex;
   /**
    * Map from index definition to the index. An index is a map from index value to one or a set of
    * objects with that index value.
@@ -120,7 +120,6 @@ public class IndexedSet<T> extends AbstractSet<T> {
    *        recommended to be unique in consideration of performance.
    * @param otherIndexDefinitions other index definitions to index the set
    */
-  @SuppressWarnings("nullness")
   @SafeVarargs
   public IndexedSet(IndexDefinition<T> primaryIndexDefinition,
       IndexDefinition<T>... otherIndexDefinitions) {
@@ -152,10 +151,8 @@ public class IndexedSet<T> extends AbstractSet<T> {
    * This is an expensive operation, and concurrent adds are permitted.
    */
   public void clear() {
-    if (mPrimaryIndex != null) {
-      for (T obj : mPrimaryIndex) {
-        remove(obj);
-      }
+    for (T obj : mPrimaryIndex) {
+      remove(obj);
     }
   }
 
@@ -176,7 +173,7 @@ public class IndexedSet<T> extends AbstractSet<T> {
     // removing a distinct, but equivalent object.
     synchronized (object) {
       // add() will atomically add the object to the index, if it doesn't exist.
-      if (mPrimaryIndex != null && !mPrimaryIndex.add(object)) {
+      if (!mPrimaryIndex.add(object)) {
         // This object is already added, possibly by another concurrent thread.
         return false;
       }
@@ -209,26 +206,23 @@ public class IndexedSet<T> extends AbstractSet<T> {
    * This is needed to support consistent removal from the set and the indices.
    */
   private class IndexedSetIterator implements Iterator<T> {
-    @Nullable private final Iterator<T> mSetIterator;
+    private final Iterator<T> mSetIterator;
     @Nullable private T mObject;
 
     public IndexedSetIterator() {
-      mSetIterator = mPrimaryIndex != null ? mPrimaryIndex.iterator() : null;
+      mSetIterator = mPrimaryIndex.iterator();
       mObject = null;
     }
 
     @Override
     public boolean hasNext() {
-      if (mSetIterator == null) {
-        return false;
-      }
       return mSetIterator.hasNext();
     }
 
     @Override
     @SuppressWarnings("nullness")
     public T next() {
-      final T next = mSetIterator != null ? mSetIterator.next() : null;
+      final T next = mSetIterator.next();
       mObject = next;
       return next;
     }
@@ -301,12 +295,11 @@ public class IndexedSet<T> extends AbstractSet<T> {
     if (object == null) {
       return false;
     }
-    assert object != null : "@AssumeAssertion(nullness)";
     // Locking this object protects against removing the exact object that might be in the
     // process of being added, but does not protect against removing a distinct, but equivalent
     // object.
     synchronized (object) {
-      if (mPrimaryIndex != null && mPrimaryIndex.containsObject((T) object)) {
+      if (mPrimaryIndex.containsObject((T) object)) {
         // This isn't technically typesafe. However, given that success is true, it's very unlikely
         // that the object passed to remove is not of type <T>.
         @SuppressWarnings("unchecked")
@@ -354,6 +347,6 @@ public class IndexedSet<T> extends AbstractSet<T> {
    */
   @Override
   public int size() {
-    return mPrimaryIndex != null ? mPrimaryIndex.size() : 0;
+    return mPrimaryIndex.size();
   }
 }

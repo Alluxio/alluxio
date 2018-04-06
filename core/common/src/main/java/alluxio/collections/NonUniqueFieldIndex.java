@@ -69,7 +69,6 @@ public class NonUniqueFieldIndex<T> implements FieldIndex<T> {
   }
 
   @Override
-  @SuppressWarnings("nullness")
   public boolean remove(T object) {
     boolean res = false;
     Object fieldValue = mIndexDefinition.getFieldValue(object);
@@ -79,6 +78,7 @@ public class NonUniqueFieldIndex<T> implements FieldIndex<T> {
         if (objSet != mIndexMap.get(fieldValue)) {
           return false;
         }
+        assert object != null : "@AssumeAssertion(nullness)";
         res = objSet.remove(object);
         if (objSet.isEmpty()) {
           mIndexMap.remove(fieldValue, objSet);
@@ -99,14 +99,13 @@ public class NonUniqueFieldIndex<T> implements FieldIndex<T> {
   }
 
   @Override
-  @SuppressWarnings("nullness")
   public boolean containsObject(T object) {
     Object fieldValue = mIndexDefinition.getFieldValue(object);
     ConcurrentHashSet<T> set = mIndexMap.get(fieldValue);
-
     if (set == null) {
       return false;
     }
+    assert object != null : "@AssumeAssertion(nullness)";
     return set.contains(object);
   }
 

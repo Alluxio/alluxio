@@ -49,9 +49,8 @@ public final class CommandUtils {
           && !Modifier.isAbstract(cls.getModifiers())) {
         // Only instantiate a concrete class
         @Initialized Command cmd = CommonUtils.createNewClassInstance(cls, classArgs, objectArgs);
-        if (cmd != null) {
-          commandsMap.put(cmd.getCommandName(), cmd);
-        }
+        assert cmd != null : "@AssumeAssertion(nullness)";
+        commandsMap.put(cmd.getCommandName(), cmd);
       }
     }
     return commandsMap;

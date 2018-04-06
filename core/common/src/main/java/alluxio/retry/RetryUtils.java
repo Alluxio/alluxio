@@ -32,7 +32,7 @@ public final class RetryUtils {
    */
   public static void retry(String action, RunnableThrowsIOException f, RetryPolicy policy)
       throws IOException {
-    IOException e = new IOException();
+    IOException e = null;
     while (policy.attempt()) {
       try {
         f.run();
@@ -42,6 +42,7 @@ public final class RetryUtils {
         LOG.warn("Failed to {} (attempt {}): {}", action, policy.getAttemptCount(), e.toString());
       }
     }
+    assert e != null : "@AssumeAssertion(nullness)";
     throw e;
   }
 

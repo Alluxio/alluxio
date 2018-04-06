@@ -232,14 +232,13 @@ public final class PropertyKey implements Comparable<PropertyKey> {
      * @return the created property key instance
      */
     public PropertyKey build() {
-      @Nullable DefaultSupplier defaultSupplier = mDefaultSupplier;
+      DefaultSupplier defaultSupplier = mDefaultSupplier;
       if (defaultSupplier == null) {
         @Initialized String defaultString = String.valueOf(mDefaultValue);
         defaultSupplier = (mDefaultValue == null)
             ? new DefaultSupplier(() -> null, "null")
             : new DefaultSupplier(() -> defaultString, defaultString);
       }
-
       return PropertyKey.create(mName, defaultSupplier, mAlias, mDescription, mIgnoredSiteProperty,
           mIsHidden, mConsistencyCheckLevel, mScope);
     }

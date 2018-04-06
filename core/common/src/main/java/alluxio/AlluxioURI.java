@@ -82,7 +82,7 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
    * @param scheme the scheme of the path. e.g. alluxio, hdfs, s3, file, null, etc
    * @param authority the authority of the path. e.g. localhost:19998, 203.1.2.5:8080
    * @param path the path component of the URI. e.g. /abc/c.txt, /a b/c/c.txt
-   * @param queryMap the (nullable) map of key/value pairs for the query component of the URI
+   * @param queryMap the map of key/value pairs for the query component of the URI
    */
   public AlluxioURI(@Nullable String scheme, @Nullable String authority, String path,
       Map<String, String> queryMap) {
@@ -400,7 +400,7 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
    */
   public AlluxioURI join(String suffix) {
     return new AlluxioURI(getScheme(), getAuthority(),
-            getPath() + AlluxioURI.SEPARATOR + suffix, mUri.getQuery());
+        getPath() + AlluxioURI.SEPARATOR + suffix, mUri.getQuery());
   }
 
   /**

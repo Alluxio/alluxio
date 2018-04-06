@@ -602,11 +602,8 @@ public final class NetworkAddressUtils {
    * @param address socket address to parse
    * @return InetSocketAddress of the String
    */
-  @Nullable
   public static InetSocketAddress parseInetSocketAddress(String address) throws IOException {
-    if (address == null) {
-      return null;
-    }
+    Preconditions.checkNotNull(address, "address");
     String[] strArr = address.split(":");
     if (strArr.length != 2) {
       throw new IOException("Invalid InetSocketAddress " + address);
