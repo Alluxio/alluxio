@@ -311,7 +311,7 @@ public final class AlluxioWorkerRestServiceHandler {
   @ReturnType("java.lang.Long")
   @Deprecated
   public Response getUptimeMs() {
-    return RestUtils.call(() -> mWorkerProcess.getUptimeMs());
+    return RestUtils.call(()-> mWorkerProcess.getStartTimeMs());
   }
 
   /**
