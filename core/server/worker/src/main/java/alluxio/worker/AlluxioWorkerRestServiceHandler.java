@@ -287,12 +287,7 @@ public final class AlluxioWorkerRestServiceHandler {
   @ReturnType("java.lang.Long")
   @Deprecated
   public Response getStartTimeMs() {
-    return RestUtils.call(new RestUtils.RestCallable<Long>() {
-      @Override
-      public Long call() throws Exception {
-        return mWorkerProcess.getStartTimeMs();
-      }
-    });
+    return RestUtils.call(() -> mWorkerProcess.getStartTimeMs());
   }
 
   /**
