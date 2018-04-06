@@ -117,20 +117,20 @@ public final class MetaMasterClientServiceHandler implements MetaMasterClientSer
 
       for (Map.Entry<String, Counter> entry : mr.getCounters().entrySet()) {
         metricsMap.put(MetricsSystem.stripInstanceAndHost(entry.getKey()),
-            new MetricValue().setLongValue(entry.getValue().getCount()).toThrift());
+            MetricValue.forLong(entry.getValue().getCount()).toThrift());
       }
 
       for (Map.Entry<String, Gauge> entry : mr.getGauges().entrySet()) {
         Object value = entry.getValue().getValue();
         if (value instanceof Integer) {
           metricsMap.put(entry.getKey(),
-              new MetricValue().setLongValue(Long.valueOf((Integer) value)).toThrift());
+              MetricValue.forLong(Long.valueOf((Integer) value)).toThrift());
         } else if (value instanceof Long) {
           metricsMap.put(entry.getKey(),
-              new MetricValue().setLongValue((Long) value).toThrift());
+              MetricValue.forLong((Long) value).toThrift());
         } else if (value instanceof Double) {
           metricsMap.put(entry.getKey(),
-              new MetricValue().setDoubleValue((Double) value).toThrift());
+              MetricValue.forDouble((Double) value).toThrift());
         }
       }
       return new GetMetricsTResponse(metricsMap);

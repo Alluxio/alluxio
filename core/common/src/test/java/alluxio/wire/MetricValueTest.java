@@ -21,7 +21,7 @@ public class MetricValueTest {
 
   @Test
   public void json() throws Exception {
-    MetricValue metricValue = new MetricValue().setLongValue(new Random().nextLong());
+    MetricValue metricValue = MetricValue.forLong(new Random().nextLong());
     ObjectMapper mapper = new ObjectMapper();
     MetricValue other =
         mapper.readValue(mapper.writeValueAsBytes(metricValue), MetricValue.class);
@@ -30,7 +30,7 @@ public class MetricValueTest {
 
   @Test
   public void thrift() {
-    MetricValue metricValue = new MetricValue().setLongValue(new Random().nextLong());
+    MetricValue metricValue = MetricValue.forLong(new Random().nextLong());
     MetricValue other = MetricValue.fromThrift(metricValue.toThrift());
     Assert.assertEquals(metricValue.getLongValue(), other.getLongValue());
   }

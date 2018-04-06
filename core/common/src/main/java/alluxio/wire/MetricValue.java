@@ -11,7 +11,10 @@
 
 package alluxio.wire;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Objects;
+import com.google.common.base.Preconditions;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -21,8 +24,8 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public final class MetricValue {
 
-  private double mDoubleValue;
-  private long mLongValue;
+  private Double mDoubleValue;
+  private Long mLongValue;
 
   /**
    * Creates a new instance of {@link MetricValue}.
@@ -39,43 +42,55 @@ public final class MetricValue {
     mLongValue = metricValue.getLongValue();
   }
 
-  /**
-   * @return the double value
-   */
-  public double getDoubleValue() {
-    return mDoubleValue;
-  }
-
-  /**
-   * @return the long value
-   */
-  public long getLongValue() {
-    return mLongValue;
+  @JsonCreator
+  private MetricValue(
+      @JsonProperty("doubleValue") Double doubleValue,
+      @JsonProperty("longValue") Long longValue) {
+    Preconditions.checkState(doubleValue == null || longValue == null,
+        "only one of longValue and doubleValue can be set");
+    mDoubleValue = doubleValue;
+    mLongValue = longValue;
   }
 
   /**
    * @param doubleValue the double value to set
-   * @return the updated metric value
+   * @return a new metric value with double value
    */
-  public MetricValue setDoubleValue(double doubleValue) {
-    mDoubleValue = doubleValue;
-    return this;
+  public static MetricValue forDouble(double doubleValue) {
+    return new MetricValue(doubleValue, null);
   }
 
   /**
    * @param longValue the long value to set
-   * @return the updated metric value
+   * @return a new metric value with long value
    */
-  public MetricValue setLongValue(long longValue) {
-    mLongValue = longValue;
-    return this;
+  public static MetricValue forLong(long longValue) {
+    return new MetricValue(null, longValue);
+  }
+
+  /**
+   * @return the Double value
+   */
+  public Double getDoubleValue() {
+    return mDoubleValue;
+  }
+
+  /**
+   * @return the Long value
+   */
+  public Long getLongValue() {
+    return mLongValue;
   }
 
   /**
    * @return thrift representation of the metric value
    */
   public alluxio.thrift.MetricValue toThrift() {
-    return new alluxio.thrift.MetricValue().setDoubleValue(mDoubleValue).setLongValue(mLongValue);
+    if (mDoubleValue != null) {
+      return new alluxio.thrift.MetricValue().setDoubleValue(mDoubleValue);
+    } else {
+      return new alluxio.thrift.MetricValue().setLongValue(mLongValue);
+    }
   }
 
   /**
