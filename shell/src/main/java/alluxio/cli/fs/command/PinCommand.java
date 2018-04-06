@@ -43,7 +43,8 @@ public final class PinCommand extends AbstractFileSystemCommand {
   }
 
   @Override
-  protected void runPlainPath(AlluxioURI path) throws AlluxioException, IOException {
+  protected void runPlainPath(AlluxioURI path, CommandLine cl)
+      throws AlluxioException, IOException {
     FileSystemCommandUtils.setPinned(mFileSystem, path, true);
     System.out.println("File '" + path + "' was successfully pinned.");
   }
@@ -52,7 +53,7 @@ public final class PinCommand extends AbstractFileSystemCommand {
   public int run(CommandLine cl) throws AlluxioException, IOException {
     String[] args = cl.getArgs();
     AlluxioURI path = new AlluxioURI(args[0]);
-    runWildCardCmd(path);
+    runWildCardCmd(path, cl);
     return 0;
   }
 

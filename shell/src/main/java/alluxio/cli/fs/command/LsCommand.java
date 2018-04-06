@@ -113,8 +113,6 @@ public final class LsCommand extends AbstractFileSystemCommand {
 
   private static final Map<String, Comparator<URIStatus>> SORT_FIELD_COMPARATORS = new HashMap<>();
 
-  private CommandLine mCl = null;
-
   static {
     SORT_FIELD_COMPARATORS.put("creationTime",
         Comparator.comparingLong(URIStatus::getCreationTimeMs));
@@ -260,18 +258,19 @@ public final class LsCommand extends AbstractFileSystemCommand {
   }
 
   @Override
-  protected void runPlainPath(AlluxioURI path) throws AlluxioException, IOException {
-    ls(path, mCl.hasOption("R"), mCl.hasOption("f"), mCl.hasOption("d"), mCl.hasOption("h"),
-            mCl.hasOption("p"), mCl.getOptionValue("sort", "name"),
-            mCl.hasOption("r"));
+  protected void runPlainPath(AlluxioURI path, CommandLine cl)
+
+      throws AlluxioException, IOException {
+    ls(path, cl.hasOption("R"), cl.hasOption("f"), cl.hasOption("d"), cl.hasOption("h"),
+            cl.hasOption("p"), cl.getOptionValue("sort", "name"),
+            cl.hasOption("r"));
   }
 
   @Override
   public int run(CommandLine cl) throws AlluxioException, IOException {
-    mCl = cl;
     String[] args = cl.getArgs();
     AlluxioURI path = new AlluxioURI(args[0]);
-    runWildCardCmd(path);
+    runWildCardCmd(path, cl);
 
     return 0;
   }

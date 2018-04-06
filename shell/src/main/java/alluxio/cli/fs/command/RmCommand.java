@@ -57,8 +57,6 @@ public final class RmCommand extends AbstractFileSystemCommand {
           .desc("remove data and metadata from Alluxio space only")
           .build();
 
-  private CommandLine mCl = null;
-
   /**
    * @param fs the filesystem of Alluxio
    */
@@ -80,9 +78,10 @@ public final class RmCommand extends AbstractFileSystemCommand {
   }
 
   @Override
-  protected void runPlainPath(AlluxioURI path) throws AlluxioException, IOException {
+  protected void runPlainPath(AlluxioURI path, CommandLine cl)
+      throws AlluxioException, IOException {
     // TODO(calvin): Remove explicit state checking.
-    boolean recursive = mCl.hasOption("R");
+    boolean recursive = cl.hasOption("R");
     if (!mFileSystem.exists(path)) {
       throw new FileDoesNotExistException(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(path));
     }
@@ -92,11 +91,11 @@ public final class RmCommand extends AbstractFileSystemCommand {
     }
 
     DeleteOptions options = DeleteOptions.defaults().setRecursive(recursive);
-    if (mCl.hasOption(REMOVE_UNCHECKED_OPTION_CHAR)) {
+    if (cl.hasOption(REMOVE_UNCHECKED_OPTION_CHAR)) {
       options.setUnchecked(true);
     }
 
-    boolean isAlluxioOnly = mCl.hasOption(REMOVE_ALLUXIO_ONLY.getLongOpt());
+    boolean isAlluxioOnly = cl.hasOption(REMOVE_ALLUXIO_ONLY.getLongOpt());
     options.setAlluxioOnly(isAlluxioOnly);
     mFileSystem.delete(path, options);
     if (!isAlluxioOnly) {
@@ -108,10 +107,9 @@ public final class RmCommand extends AbstractFileSystemCommand {
 
   @Override
   public int run(CommandLine cl) throws AlluxioException, IOException {
-    mCl = cl;
     String[] args = cl.getArgs();
     AlluxioURI path = new AlluxioURI(args[0]);
-    runWildCardCmd(path);
+    runWildCardCmd(path, cl);
 
     return 0;
   }

@@ -61,7 +61,8 @@ public final class FreeCommand extends AbstractFileSystemCommand {
   }
 
   @Override
-  protected void runPlainPath(AlluxioURI path) throws AlluxioException, IOException {
+  protected void runPlainPath(AlluxioURI path, CommandLine cl)
+      throws AlluxioException, IOException {
     FreeOptions options = FreeOptions.defaults().setRecursive(true).setForced(mIsForced);
     mFileSystem.free(path, options);
     System.out.println(path + " was successfully freed from memory.");
@@ -83,7 +84,7 @@ public final class FreeCommand extends AbstractFileSystemCommand {
     String[] args = cl.getArgs();
     AlluxioURI path = new AlluxioURI(args[0]);
     mIsForced = cl.hasOption("f");
-    runWildCardCmd(path);
+    runWildCardCmd(path, cl);
 
     return 0;
   }

@@ -47,8 +47,6 @@ public final class StatCommand extends AbstractFileSystemCommand {
     super(fs);
   }
 
-  private CommandLine mCl = null;
-
   @Override
   public String getCommandName() {
     return "stat";
@@ -66,10 +64,11 @@ public final class StatCommand extends AbstractFileSystemCommand {
   }
 
   @Override
-  protected void runPlainPath(AlluxioURI path) throws AlluxioException, IOException {
+  protected void runPlainPath(AlluxioURI path, CommandLine cl)
+      throws AlluxioException, IOException {
     URIStatus status = mFileSystem.getStatus(path);
-    if (mCl.hasOption('f')) {
-      System.out.println(formatOutput(mCl, status));
+    if (cl.hasOption('f')) {
+      System.out.println(formatOutput(cl, status));
     } else {
       if (status.isFolder()) {
         System.out.println(path + " is a directory path.");
@@ -93,10 +92,9 @@ public final class StatCommand extends AbstractFileSystemCommand {
 
   @Override
   public int run(CommandLine cl) throws AlluxioException, IOException {
-    mCl = cl;
     String[] args = cl.getArgs();
     AlluxioURI path = new AlluxioURI(args[0]);
-    runWildCardCmd(path);
+    runWildCardCmd(path, cl);
 
     return 0;
   }

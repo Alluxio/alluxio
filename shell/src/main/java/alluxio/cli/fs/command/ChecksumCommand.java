@@ -44,11 +44,12 @@ public final class ChecksumCommand extends AbstractFileSystemCommand {
   }
 
   @Override
-  protected void runPlainPath(AlluxioURI plainPath) throws AlluxioException, IOException {
+  protected void runPlainPath(AlluxioURI plainPath, CommandLine cl)
+      throws AlluxioException, IOException {
     URIStatus status = mFileSystem.getStatus(plainPath);
     if (status.isFolder()) {
       throw new FileDoesNotExistException(
-              ExceptionMessage.PATH_MUST_BE_FILE.getMessage(plainPath.getPath()));
+          ExceptionMessage.PATH_MUST_BE_FILE.getMessage(plainPath.getPath()));
     }
 
     String str = calculateChecksum(plainPath);
@@ -68,7 +69,7 @@ public final class ChecksumCommand extends AbstractFileSystemCommand {
   @Override
   public int run(CommandLine cl) throws AlluxioException, IOException {
     String[] args = cl.getArgs();
-    runWildCardCmd(new AlluxioURI(args[0]));
+    runWildCardCmd(new AlluxioURI(args[0]), cl);
     return 0;
   }
 

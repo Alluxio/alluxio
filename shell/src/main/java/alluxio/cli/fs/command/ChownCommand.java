@@ -41,7 +41,6 @@ public final class ChownCommand extends AbstractFileSystemCommand {
           .desc("change owner recursively")
           .build();
 
-  private boolean mIsRecursive;
   private String mGroup;
   private String mOwner;
 
@@ -55,11 +54,12 @@ public final class ChownCommand extends AbstractFileSystemCommand {
   }
 
   @Override
-  protected void runPlainPath(AlluxioURI path) throws AlluxioException, IOException {
+  protected void runPlainPath(AlluxioURI path, CommandLine cl)
+      throws AlluxioException, IOException {
     if (mGroup == null) {
-      chown(path, mOwner, mIsRecursive);
+      chown(path, mOwner, cl.hasOption("R"));
     } else {
-      chown(path, mOwner, mGroup, mIsRecursive);
+      chown(path, mOwner, mGroup, cl.hasOption("R"));
     }
   }
 
@@ -121,12 +121,11 @@ public final class ChownCommand extends AbstractFileSystemCommand {
   public int run(CommandLine cl) throws AlluxioException, IOException {
     String[] args = cl.getArgs();
     AlluxioURI path = new AlluxioURI(args[1]);
-    mIsRecursive = cl.hasOption("R");
     Matcher matchUserGroup = USER_GROUP_PATTERN.matcher(args[0]);
     if (matchUserGroup.matches()) {
       mOwner = matchUserGroup.group("user");
       mGroup = matchUserGroup.group("group");
-      runWildCardCmd(path);
+      runWildCardCmd(path, cl);
       return 0;
     }
     System.out.println("Failed to parse " + args[0] + " as user or user:group");

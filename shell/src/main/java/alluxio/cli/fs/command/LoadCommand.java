@@ -47,8 +47,6 @@ public final class LoadCommand extends AbstractFileSystemCommand {
           .desc("load the file to local worker.")
           .build();
 
-  private boolean mHasLocalOption;
-
   /**
    * Constructs a new instance to load a file or directory in Alluxio space.
    *
@@ -70,16 +68,16 @@ public final class LoadCommand extends AbstractFileSystemCommand {
   }
 
   @Override
-  protected void runPlainPath(AlluxioURI plainPath) throws AlluxioException, IOException {
-    load(plainPath, mHasLocalOption);
+  protected void runPlainPath(AlluxioURI plainPath, CommandLine cl)
+      throws AlluxioException, IOException {
+    load(plainPath, cl.hasOption(LOCAL_OPTION.getLongOpt()));
   }
 
   @Override
   public int run(CommandLine cl) throws AlluxioException, IOException {
     String[] args = cl.getArgs();
-    mHasLocalOption = cl.hasOption(LOCAL_OPTION.getLongOpt());
     AlluxioURI path = new AlluxioURI(args[0]);
-    runWildCardCmd(path);
+    runWildCardCmd(path, cl);
 
     return 0;
   }

@@ -47,7 +47,8 @@ public final class CatCommand extends AbstractFileSystemCommand {
   }
 
   @Override
-  protected void runPlainPath(AlluxioURI path) throws AlluxioException, IOException {
+  protected void runPlainPath(AlluxioURI path, CommandLine cl)
+      throws AlluxioException, IOException {
     URIStatus status = mFileSystem.getStatus(path);
 
     if (status.isFolder()) {
@@ -82,7 +83,7 @@ public final class CatCommand extends AbstractFileSystemCommand {
   @Override
   public int run(CommandLine cl) throws IOException {
     String[] args = cl.getArgs();
-    runWildCardCmd(new AlluxioURI(args[0]));
+    runWildCardCmd(new AlluxioURI(args[0]), cl);
 
     return 0;
   }

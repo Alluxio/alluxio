@@ -31,7 +31,6 @@ import com.google.common.collect.Lists;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
@@ -283,5 +282,4 @@ public final class FileSystemShellUtils {
   protected static boolean match(String filePath, String patternPath) {
     return match(new AlluxioURI(filePath), new AlluxioURI(patternPath));
   }
-  
 }

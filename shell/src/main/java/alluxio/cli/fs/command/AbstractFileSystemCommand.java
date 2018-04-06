@@ -18,6 +18,7 @@ import alluxio.client.file.FileSystem;
 import alluxio.exception.AlluxioException;
 
 import com.google.common.base.Joiner;
+import org.apache.commons.cli.CommandLine;
 
 import javax.annotation.concurrent.ThreadSafe;
 import java.io.IOException;
@@ -38,10 +39,27 @@ public abstract class AbstractFileSystemCommand implements Command {
     mFileSystem = fs;
   }
 
-  protected void runPlainPath(AlluxioURI plainPath) throws AlluxioException, IOException{
+  /**
+   * Run the command for a particular URI that does not contain wildcard in its path.
+   *
+   * @param plainPath an AlluxioURI that does not contain wildcard
+   * @param cl object containing the original commandLine
+   * @throws AlluxioException
+   * @throws IOException
+   */
+  protected void runPlainPath(AlluxioURI plainPath, CommandLine cl)
+      throws AlluxioException, IOException {
   }
 
-  protected void runWildCardCmd(AlluxioURI wildCardPath) throws IOException {
+  /**
+   * Run the command for a particular URI that may contain wildcard in its path.
+   *
+   * @param wildCardPath an AlluxioURI that may or may not contain a wildcard
+   * @param cl object containing the original commandLine
+   * @throws AlluxioException
+   * @throws IOException
+   */
+  protected void runWildCardCmd(AlluxioURI wildCardPath, CommandLine cl) throws IOException {
     List<AlluxioURI> paths = FileSystemShellUtils.getAlluxioURIs(mFileSystem, wildCardPath);
     if (paths.size() == 0) { // A unified sanity check on the paths
       throw new IOException(wildCardPath + " does not exist.");
@@ -51,7 +69,7 @@ public abstract class AbstractFileSystemCommand implements Command {
     List<String> errorMessages = new ArrayList<>();
     for (AlluxioURI path : paths) {
       try {
-        runPlainPath(path);
+        runPlainPath(path, cl);
       } catch (AlluxioException | IOException e) {
         errorMessages.add(e.getMessage() != null ? e.getMessage() : e.toString());
       }

@@ -63,7 +63,8 @@ public final class HeadCommand extends AbstractFileSystemCommand {
   }
 
   @Override
-  protected void runPlainPath(AlluxioURI plainPath) throws AlluxioException, IOException {
+  protected void runPlainPath(AlluxioURI plainPath, CommandLine cl)
+      throws AlluxioException, IOException {
     URIStatus status = mFileSystem.getStatus(plainPath);
 
     if (status.isFolder()) {
@@ -95,7 +96,7 @@ public final class HeadCommand extends AbstractFileSystemCommand {
       Preconditions.checkArgument(mNumOfBytes > 0, "specified bytes must be > 0");
     }
     AlluxioURI path = new AlluxioURI(args[0]);
-    runWildCardCmd(path);
+    runWildCardCmd(path, cl);
 
     return 0;
   }

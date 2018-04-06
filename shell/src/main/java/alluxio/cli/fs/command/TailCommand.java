@@ -43,8 +43,6 @@ public final class TailCommand extends AbstractFileSystemCommand {
       .desc("number of bytes (e.g., 1024, 4KB)")
       .build();
 
-  private CommandLine mCl = null;
-
   /**
    * @param fs the filesystem of Alluxio
    */
@@ -58,11 +56,12 @@ public final class TailCommand extends AbstractFileSystemCommand {
   }
 
   @Override
-  protected void runPlainPath(AlluxioURI path) throws AlluxioException, IOException {
+  protected void runPlainPath(AlluxioURI path, CommandLine cl)
+      throws AlluxioException, IOException {
     URIStatus status = mFileSystem.getStatus(path);
     int numOfBytes = Constants.KB;
-    if (mCl.hasOption('c')) {
-      numOfBytes = (int) FormatUtils.parseSpaceSize(mCl.getOptionValue('c'));
+    if (cl.hasOption('c')) {
+      numOfBytes = (int) FormatUtils.parseSpaceSize(cl.getOptionValue('c'));
       Preconditions.checkArgument(numOfBytes > 0, "specified bytes must be > 0");
     }
 
@@ -88,10 +87,9 @@ public final class TailCommand extends AbstractFileSystemCommand {
 
   @Override
   public int run(CommandLine cl) throws AlluxioException, IOException {
-    mCl = cl;
     String[] args = cl.getArgs();
     AlluxioURI path = new AlluxioURI(args[0]);
-    runWildCardCmd(path);
+    runWildCardCmd(path, cl);
     return 0;
   }
 

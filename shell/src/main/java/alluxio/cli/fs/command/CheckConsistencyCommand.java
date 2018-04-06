@@ -42,8 +42,6 @@ public class CheckConsistencyCommand extends AbstractFileSystemCommand {
           .desc("repair inconsistent files")
           .build();
 
-  private boolean mIsRecursive = false;
-
   /**
    * @param fs the filesystem of Alluxio
    */
@@ -52,8 +50,9 @@ public class CheckConsistencyCommand extends AbstractFileSystemCommand {
   }
 
   @Override
-  protected void runPlainPath(AlluxioURI plainPath) throws AlluxioException, IOException {
-    checkConsistency(plainPath, mIsRecursive);
+  protected void runPlainPath(AlluxioURI plainPath, CommandLine cl)
+      throws AlluxioException, IOException {
+    checkConsistency(plainPath, cl.hasOption("r"));
   }
 
   @Override
@@ -75,8 +74,8 @@ public class CheckConsistencyCommand extends AbstractFileSystemCommand {
   public int run(CommandLine cl) throws AlluxioException, IOException {
     String[] args = cl.getArgs();
     AlluxioURI root = new AlluxioURI(args[0]);
-    mIsRecursive = cl.hasOption("r");
-    runWildCardCmd(root);
+
+    runWildCardCmd(root, cl);
     return 0;
   }
 
