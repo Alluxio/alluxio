@@ -28,11 +28,6 @@ public final class MetricValue {
   private Long mLongValue;
 
   /**
-   * Creates a new instance of {@link MetricValue}.
-   */
-  public MetricValue() {}
-
-  /**
    * Creates a new instance of {@link MetricValue} from a thrift representation.
    *
    * @param metricValue the thrift representation of a metric value
