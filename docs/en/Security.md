@@ -57,7 +57,7 @@ This mode is currently experimental and should only be used in tests.
 
 ## Authorization
 
-Alluxio file system implements a permissions model for directories and files similar as the POSIX
+Alluxio file system implements a permissions model for directories and files similar to the POSIX
  permission model.
 
 Each file and directory is associated with:
