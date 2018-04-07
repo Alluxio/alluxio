@@ -9,13 +9,9 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-import static org.mockito.Mockito;
-
-
-
 package alluxio.client.lineage;
 
-
+import static org.mockito.Mockito;
 
 import alluxio.AlluxioURI;
 import alluxio.ConfigurationRule;
@@ -25,15 +21,12 @@ import alluxio.client.util.ClientTestUtils;
 import alluxio.job.CommandLineJob;
 import alluxio.job.JobConf;
 
-
 import com.google.common.collect.Lists;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
-
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
