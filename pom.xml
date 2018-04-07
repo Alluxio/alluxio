@@ -884,7 +884,7 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-checkstyle-plugin</artifactId>
-          <version>2.17</version>
+          <version>3.0.0</version>
         </plugin>
         <plugin>
           <artifactId>maven-clean-plugin</artifactId>
@@ -1119,8 +1119,8 @@
           <suppressionsFileExpression>checkstyle.suppressions.file</suppressionsFileExpression>
           <!-- Ensure generated source files are not style-checked -->
           <sourceDirectories>
-            <sourceDirectory>${project.build.sourceDirectory}</sourceDirectory>
-            <sourceDirectory>${project.build.testSourceDirectory}</sourceDirectory>
+            <sourceDirectories>${project.build.sourceDirectory}</sourceDirectories>
+            <sourceDirectories>${project.build.testSourceDirectory}</sourceDirectories>
           </sourceDirectories>
           <includeTestSourceDirectory>true</includeTestSourceDirectory>
           <excludes>**/org/apache/jsp/**,**/alluxio/thrift/**,**/alluxio/proto/**</excludes>
