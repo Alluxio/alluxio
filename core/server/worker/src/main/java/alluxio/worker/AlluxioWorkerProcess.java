@@ -18,6 +18,7 @@ import alluxio.RuntimeConstants;
 import alluxio.ServiceUtils;
 import alluxio.metrics.MetricsSystem;
 import alluxio.metrics.sink.MetricsServlet;
+import alluxio.metrics.sink.PrometheusMetricsServlet;
 import alluxio.network.ChannelType;
 import alluxio.security.authentication.TransportProvider;
 import alluxio.underfs.UfsManager;
@@ -76,6 +77,8 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
   private boolean mIsServingRPC = false;
 
   private final MetricsServlet mMetricsServlet = new MetricsServlet(MetricsSystem.METRIC_REGISTRY);
+  private final PrometheusMetricsServlet mPMetricsServlet = new PrometheusMetricsServlet(
+      MetricsSystem.METRIC_REGISTRY);
 
   /** The worker registry. */
   private WorkerRegistry mRegistry;
@@ -233,6 +236,7 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
 
     // Start serving the web server, this will not block.
     mWebServer.addHandler(mMetricsServlet.getHandler());
+    mWebServer.addHandler(mPMetricsServlet.getHandler());
     mWebServer.start();
 
     // Start monitor jvm
