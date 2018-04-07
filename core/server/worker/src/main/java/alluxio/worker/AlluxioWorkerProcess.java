@@ -26,6 +26,7 @@ import alluxio.util.CommonUtils;
 import alluxio.util.JvmPauseMonitor;
 import alluxio.util.WaitForOptions;
 import alluxio.util.io.FileUtils;
+import alluxio.util.io.PathUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 import alluxio.web.WebServer;
@@ -150,16 +151,6 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
       // Setup Data server
       mDataServer = DataServer.Factory
           .create(NetworkAddressUtils.getBindAddress(ServiceType.WORKER_DATA), this);
-
-      if (isDomainSocketEnabled()) {
-        String domainSocketPath =
-            Configuration.get(PropertyKey.WORKER_DATA_SERVER_DOMAIN_SOCKET_ADDRESS);
-        LOG.info("Domain socket data server is enabled at {}.", domainSocketPath);
-        mDomainSocketDataServer =
-            DataServer.Factory.create(new DomainSocketAddress(domainSocketPath), this);
-        // Share domain socket so that clients can access it.
-        FileUtils.changeLocalFileToFullPermission(domainSocketPath);
-      }
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
@@ -230,6 +221,21 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
     // Consequence: worker id is granted
     startWorkers();
     LOG.info("Started {} with id {}", this, mRegistry.get(BlockWorker.class).getWorkerId());
+
+    // Setup domain socket data server
+    if (isDomainSocketEnabled()) {
+      String domainSocketPath =
+          Configuration.get(PropertyKey.WORKER_DATA_SERVER_DOMAIN_SOCKET_ADDRESS);
+      if (Configuration.getBoolean(PropertyKey.WORKER_DATA_SERVER_DOMAIN_SOCKET_AS_WORKER_ID)) {
+        domainSocketPath =
+            PathUtils.concatPath(domainSocketPath, mRegistry.get(BlockWorker.class).getWorkerId());
+      }
+      LOG.info("Domain socket data server is enabled at {}.", domainSocketPath);
+      mDomainSocketDataServer =
+          DataServer.Factory.create(new DomainSocketAddress(domainSocketPath), this);
+      // Share domain socket so that clients can access it.
+      FileUtils.changeLocalFileToFullPermission(domainSocketPath);
+    }
 
     // Start serving the web server, this will not block.
     mWebServer.addHandler(mMetricsServlet.getHandler());
