@@ -22,7 +22,7 @@ import alluxio.client.file.FileSystemTestUtils;
 import alluxio.exception.AlluxioException;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.ManuallyScheduleHeartbeat;
-import alluxio.cli.fs.AbstractAlluxioShellTest;
+import alluxio.cli.fs.AbstractFileSystemShellTest;
 import alluxio.cli.fs.FileSystemShellUtilsTest;
 import alluxio.worker.block.BlockWorker;
 
@@ -34,7 +34,7 @@ import java.io.IOException;
 /**
  * Tests for free command.
  */
-public final class FreeCommandIntegrationTest extends AbstractAlluxioShellTest {
+public final class FreeCommandIntegrationTest extends AbstractFileSystemShellTest {
   @ClassRule
   public static ManuallyScheduleHeartbeat sManuallySchedule =
       new ManuallyScheduleHeartbeat(HeartbeatContext.WORKER_BLOCK_SYNC);

@@ -43,7 +43,6 @@ Alluxio是发展最快的开源大数据项目之一。自2013年4月开源以�
 [ JIRA  ](https://alluxio.atlassian.net/browse/ALLUXIO) |
 [ 用户邮件列表  ](https://groups.google.com/forum/?fromgroups#!forum/alluxio-users) |
 [ 视频 ](https://www.youtube.com/channel/UCpibQsajhwqYPLYhke4RigA) |
-[ Powered By  ](Powered-By-Alluxio.html)
 
 <style>
 #current-features + ul li {height:210px;}
@@ -78,6 +77,7 @@ HDFS，MaprFS，Ceph，NFS，Alibaba OSS，Minio以及单节点本地文件系�
 
 如果要快速地架设alluxio并运行，请阅读[快速入门](Getting-Started.html)页面，该页面描述了如何部署Alluxio并
 在本地环境下运行几个基本的样例。
+查看Alluxio的使用者名单[公司](https://alluxio.org/community/powered-by-alluxio)
 
 ## 下载
 

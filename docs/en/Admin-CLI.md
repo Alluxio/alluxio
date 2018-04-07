@@ -14,6 +14,7 @@ You can invoke the following command line utility to get all the subcommands:
 ```bash
 $ ./bin/alluxio fsadmin
 Usage: alluxio fsadmin [generic options]
+       [report]
        [ufs --mode <noAccess/readOnly/readWrite> <ufsPath>]
        ...
 ```
@@ -35,6 +36,26 @@ UFS URI like `hdfs://<name-service>/`, and not `hdfs://<name-service>/<folder>`.
 </table>
 
 ## Example Use Cases
+
+### report
+
+The `report` command provides Alluxio running cluster information. 
+
+```bash
+# Report cluster summary
+$ ./bin/alluxio fsadmin report
+#
+# Report worker capacity information
+$ ./bin/alluxio fsadmin report capacity 
+#
+# Report runtime configuration information
+$ ./bin/alluxio fsadmin report configuration
+#
+# Report under file system information
+$ ./bin/alluxio fsadmin report ufs 
+```
+
+You can use `-h` to display helpful information about the command.
 
 ### ufs
 

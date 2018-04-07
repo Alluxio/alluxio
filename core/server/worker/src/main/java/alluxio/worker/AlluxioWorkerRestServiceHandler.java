@@ -178,12 +178,7 @@ public final class AlluxioWorkerRestServiceHandler {
   @ReturnType("java.lang.Long")
   @Deprecated
   public Response getCapacityBytes() {
-    return RestUtils.call(new RestUtils.RestCallable<Long>() {
-      @Override
-      public Long call() throws Exception {
-        return mStoreMeta.getCapacityBytes();
-      }
-    });
+    return RestUtils.call(() -> mStoreMeta.getCapacityBytes());
   }
 
   /**
@@ -264,12 +259,7 @@ public final class AlluxioWorkerRestServiceHandler {
   @ReturnType("java.util.SortedMap<java.lang.String, java.util.List<java.lang.String>>")
   @Deprecated
   public Response getDirectoryPathsOnTiers() {
-    return RestUtils.call(new RestUtils.RestCallable<Map<String, List<String>>>() {
-      @Override
-      public Map<String, List<String>> call() throws Exception {
-        return getTierPathsInternal();
-      }
-    });
+    return RestUtils.call(() -> getTierPathsInternal());
   }
 
   /**
@@ -283,12 +273,7 @@ public final class AlluxioWorkerRestServiceHandler {
   @ReturnType("java.lang.String")
   @Deprecated
   public Response getVersion() {
-    return RestUtils.call(new RestUtils.RestCallable<String>() {
-      @Override
-      public String call() throws Exception {
-        return RuntimeConstants.VERSION;
-      }
-    });
+    return RestUtils.call(() -> RuntimeConstants.VERSION);
   }
 
   /**
@@ -302,12 +287,7 @@ public final class AlluxioWorkerRestServiceHandler {
   @ReturnType("java.lang.Long")
   @Deprecated
   public Response getStartTimeMs() {
-    return RestUtils.call(new RestUtils.RestCallable<Long>() {
-      @Override
-      public Long call() throws Exception {
-        return mWorkerProcess.getStartTimeMs();
-      }
-    });
+    return RestUtils.call(() -> mWorkerProcess.getStartTimeMs());
   }
 
   /**
@@ -321,12 +301,7 @@ public final class AlluxioWorkerRestServiceHandler {
   @ReturnType("java.lang.Long")
   @Deprecated
   public Response getUptimeMs() {
-    return RestUtils.call(new RestUtils.RestCallable<Long>() {
-      @Override
-      public Long call() throws Exception {
-        return mWorkerProcess.getUptimeMs();
-      }
-    });
+    return RestUtils.call(() -> mWorkerProcess.getUptimeMs());
   }
 
   /**

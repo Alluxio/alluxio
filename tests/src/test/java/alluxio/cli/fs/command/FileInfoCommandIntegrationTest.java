@@ -12,7 +12,7 @@
 package alluxio.cli.fs.command;
 
 import alluxio.exception.AlluxioException;
-import alluxio.cli.fs.AbstractAlluxioShellTest;
+import alluxio.cli.fs.AbstractFileSystemShellTest;
 import alluxio.cli.fs.FileSystemShellUtilsTest;
 
 import org.junit.Assert;
@@ -23,7 +23,7 @@ import java.io.IOException;
 /**
  * Tests for fileInfo command.
  */
-public final class FileInfoCommandIntegrationTest extends AbstractAlluxioShellTest {
+public final class FileInfoCommandIntegrationTest extends AbstractFileSystemShellTest {
   @Test
   public void fileInfoNotExist() throws IOException {
     mFsShell.run("fileInfo", "/NotExistFile");

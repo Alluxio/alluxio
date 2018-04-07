@@ -80,6 +80,10 @@ alluxio.zookeeper.address=[zookeeper_hostname]:2181
 
 此外，我们建议提高`alluxio.user.network.netty.timeout`的值（比如10分钟），来防止读远程worker中的大文件时的超时问题。
 
+#### 使能 `hive.force-local-scheduling`
+
+推荐您组合使用Presto和Alluxio，这样Presto工作节点能够从本地获取数据。Presto中一个重要的需要使能的选项是`hive.force-local-scheduling`,使能该选项能使得数据分片被调度到恰好处理该分片的Alluxio工作节点上。默认情况下，Presto中`hive.force-local-scheduling`设置为false，并且Presto也不会尝试将工作调度到Alluxio节点上。
+
 #### 提高`hive.max-split-size`值
 
 Presto的Hive集成里使用了配置[`hive.max-split-size`](https://teradata.github.io/presto/docs/141t/connector/hive.html)来控制一个查询的分布式并行粒度。我们建议将这个值提高到你的Alluxio的块大小以上，以防止Presto在同一个块上进行多个并行的查找带来的相互阻塞。

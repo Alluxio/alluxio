@@ -29,12 +29,14 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 @Nullable
 public final class Fingerprint {
+  // TODO(gpang): partition fingerprint for metadata and content, for more efficient updates.
   /** These tags are required in all fingerprints. */
   private static final Tag[] REQUIRED_TAGS = {Tag.TYPE, Tag.UFS, Tag.OWNER, Tag.GROUP, Tag.MODE};
   /** These tags are optional, and are serialized after the required tags. */
   private static final Tag[] OPTIONAL_TAGS = {Tag.CONTENT_HASH};
 
   private static final Pattern SANITIZE_REGEX = Pattern.compile("[ :]");
+  private static final String UNDERSCORE = "_";
 
   private final Map<Tag, String> mValues;
 
@@ -143,10 +145,22 @@ public final class Fingerprint {
    * @param tag the tag to update
    * @param value the new value of the tag
    */
-  public void updateTag(Tag tag, String value) {
+  public void putTag(Tag tag, String value) {
     if (value != null) {
       mValues.put(tag, sanitizeString(value));
     }
+  }
+
+  /**
+   * @param tag the tag to get
+   * @return the value of the tag
+   */
+  public String getTag(Tag tag) {
+    String value = mValues.get(tag);
+    if (value == null) {
+      return UNDERSCORE;
+    }
+    return value;
   }
 
   private Fingerprint(Map<Tag, String> values) {
@@ -156,22 +170,10 @@ public final class Fingerprint {
     }
   }
 
-  private void putTag(Tag tag, String value) {
-    mValues.put(tag, sanitizeString(value));
-  }
-
-  private String getTag(Tag tag) {
-    String value = mValues.get(tag);
-    if (value == null) {
-      return "_";
-    }
-    return value;
-  }
-
   private String sanitizeString(String input) {
     if (input == null || input.isEmpty()) {
-      return "_";
+      return UNDERSCORE;
     }
-    return SANITIZE_REGEX.matcher(input).replaceAll("_");
+    return SANITIZE_REGEX.matcher(input).replaceAll(UNDERSCORE);
   }
 }

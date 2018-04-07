@@ -13,7 +13,7 @@ package alluxio.cli.fs.command;
 
 import alluxio.AlluxioURI;
 import alluxio.exception.AlluxioException;
-import alluxio.cli.fs.AbstractAlluxioShellTest;
+import alluxio.cli.fs.AbstractFileSystemShellTest;
 import alluxio.cli.fs.FileSystemShellUtilsTest;
 
 import org.junit.Assert;
@@ -24,7 +24,7 @@ import java.io.IOException;
 /**
  * Tests for rmr command.
  */
-public final class RmrCommandIntegrationTest extends AbstractAlluxioShellTest {
+public final class RmrCommandIntegrationTest extends AbstractFileSystemShellTest {
   @Test
   public void rmr() throws IOException {
     StringBuilder toCompare = new StringBuilder();

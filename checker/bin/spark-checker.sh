@@ -33,7 +33,6 @@ PARTITIONS
 
 -h  display this help."
 
-ALLUXIO_CHECKER_JAR=""
 PARTITIONS="${2:-10}";
 SPARK_MASTER="$1";
 SPARK_SUBMIT="";
@@ -116,7 +115,7 @@ function main {
   source "${BIN}/../../libexec/alluxio-config.sh"
   ALLUXIO_CHECKER_JAR="${BIN}/../target/alluxio-checker-${VERSION}-jar-with-dependencies.jar"
 
-  [ -f "./SparkIntegrationReport.txt" ] && rm "./SparkIntegrationReport.txt"
+  [ -f "./IntegrationReport.txt" ] && rm "./IntegrationReport.txt"
   case "${SPARK_MASTER}" in
     local*) 
       find_spark_path
@@ -130,7 +129,7 @@ function main {
       echo -e "${USAGE}" >&2
       exit 1
   esac
-  [ -f "./SparkIntegrationReport.txt" ] && cat "./SparkIntegrationReport.txt" && rm "./SparkIntegrationReport.txt"
+  [ -f "./IntegrationReport.txt" ] && cat "./IntegrationReport.txt" && rm "./IntegrationReport.txt"
 }
 
 main "$@"

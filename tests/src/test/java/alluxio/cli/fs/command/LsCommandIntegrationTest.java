@@ -19,7 +19,7 @@ import alluxio.client.file.FileSystemTestUtils;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.SetAttributeOptions;
 import alluxio.exception.AlluxioException;
-import alluxio.cli.fs.AbstractAlluxioShellTest;
+import alluxio.cli.fs.AbstractFileSystemShellTest;
 import alluxio.cli.fs.FileSystemShellUtilsTest;
 import alluxio.master.file.meta.PersistenceState;
 import alluxio.util.CommonUtils;
@@ -33,7 +33,7 @@ import java.io.IOException;
 /**
  * Tests for ls command.
  */
-public final class LsCommandIntegrationTest extends AbstractAlluxioShellTest {
+public final class LsCommandIntegrationTest extends AbstractFileSystemShellTest {
   private static final String STATE_FILE_IN_ALLUXIO = "100%";
   private static final String STATE_FILE_NOT_IN_ALLUXIO = "0%";
 
@@ -41,9 +41,9 @@ public final class LsCommandIntegrationTest extends AbstractAlluxioShellTest {
   private String getLsResultStr(AlluxioURI uri, int size, String testUser, String testGroup)
       throws IOException, AlluxioException {
     URIStatus status = mFileSystem.getStatus(uri);
-    return getLsResultStr(uri.getPath(), status.getCreationTimeMs(), size, STATE_FILE_IN_ALLUXIO,
-        testUser, testGroup, status.getMode(),
-        status.isFolder(), PersistenceState.NOT_PERSISTED.name());
+    return getLsResultStr(uri.getPath(), status.getLastModificationTimeMs(), size,
+        STATE_FILE_IN_ALLUXIO, testUser, testGroup, status.getMode(), status.isFolder(),
+        PersistenceState.NOT_PERSISTED.name());
   }
 
   // Helper function to format ls result.
@@ -61,14 +61,15 @@ public final class LsCommandIntegrationTest extends AbstractAlluxioShellTest {
   private String getLsNoAclResultStr(AlluxioURI uri, int size, String inAlluxioState,
       String persistenceState) throws IOException, AlluxioException {
     URIStatus status = mFileSystem.getStatus(uri);
-    return getLsNoAclResultStr(uri.getPath(), status.getCreationTimeMs(), size, inAlluxioState,
-        persistenceState);
+    return getLsNoAclResultStr(uri.getPath(), status.getLastModificationTimeMs(), size,
+        inAlluxioState, persistenceState);
   }
 
   // Helper function to format ls result without acl enabled.
   private String getLsNoAclResultStr(String path, long createTime, int size, String inAlluxioState,
       String persistenceState) throws IOException, AlluxioException {
-    return getLsNoAclResultStr(path, createTime, false, size, inAlluxioState, persistenceState);
+    return getLsNoAclResultStr(path, createTime, false, size, inAlluxioState,
+        persistenceState);
   }
 
   // Helper function to format ls result without acl enabled.
@@ -112,11 +113,11 @@ public final class LsCommandIntegrationTest extends AbstractAlluxioShellTest {
     URIStatus[] files = createFiles();
     mFsShell.run("ls", "/testRoot");
     String expected = "";
-    expected += getLsNoAclResultStr("/testRoot/testFileA", files[0].getCreationTimeMs(), 10,
-        STATE_FILE_IN_ALLUXIO, files[0].getPersistenceState());
-    expected += getLsNoAclResultStr("/testRoot/testDir", files[1].getCreationTimeMs(), 1,
+    expected += getLsNoAclResultStr("/testRoot/testDir", files[1].getLastModificationTimeMs(), 1,
         LsCommand.IN_ALLUXIO_STATE_DIR, files[1].getPersistenceState());
-    expected += getLsNoAclResultStr("/testRoot/testFileC", files[3].getCreationTimeMs(), 30,
+    expected += getLsNoAclResultStr("/testRoot/testFileA", files[0].getLastModificationTimeMs(), 10,
+        STATE_FILE_IN_ALLUXIO, files[0].getPersistenceState());
+    expected += getLsNoAclResultStr("/testRoot/testFileC", files[3].getLastModificationTimeMs(), 30,
         STATE_FILE_NOT_IN_ALLUXIO, files[3].getPersistenceState());
     Assert.assertEquals(expected, mOutput.toString());
   }
@@ -133,12 +134,12 @@ public final class LsCommandIntegrationTest extends AbstractAlluxioShellTest {
     mFsShell.run("ls", "-h", "/testRoot");
     boolean hSize = true;
     String expected = "";
-    expected += getLsNoAclResultStr("/testRoot/testFileA", files[0].getCreationTimeMs(), hSize, 10,
-        STATE_FILE_IN_ALLUXIO, files[0].getPersistenceState());
-    expected += getLsNoAclResultStr("/testRoot/testDir", files[1].getCreationTimeMs(), hSize, 1,
-        LsCommand.IN_ALLUXIO_STATE_DIR, files[1].getPersistenceState());
-    expected += getLsNoAclResultStr("/testRoot/testFileC", files[3].getCreationTimeMs(), hSize, 30,
-        STATE_FILE_NOT_IN_ALLUXIO, files[3].getPersistenceState());
+    expected += getLsNoAclResultStr("/testRoot/testDir", files[1].getLastModificationTimeMs(),
+        hSize, 1, LsCommand.IN_ALLUXIO_STATE_DIR, files[1].getPersistenceState());
+    expected += getLsNoAclResultStr("/testRoot/testFileA", files[0].getLastModificationTimeMs(),
+        hSize, 10, STATE_FILE_IN_ALLUXIO, files[0].getPersistenceState());
+    expected += getLsNoAclResultStr("/testRoot/testFileC", files[3].getLastModificationTimeMs(),
+        hSize, 30, STATE_FILE_NOT_IN_ALLUXIO, files[3].getPersistenceState());
     Assert.assertEquals(expected, mOutput.toString());
   }
 
@@ -151,16 +152,20 @@ public final class LsCommandIntegrationTest extends AbstractAlluxioShellTest {
           PropertyKey.Name.SECURITY_AUTHENTICATION_TYPE, "NOSASL"})
   public void lsPinned() throws IOException, AlluxioException {
     URIStatus[] files = createFiles();
-    mFileSystem.setAttribute(new AlluxioURI("/testRoot/testFileA"),
+    AlluxioURI fileURI1 = new AlluxioURI("/testRoot/testDir/testFileB");
+    AlluxioURI fileURI2 = new AlluxioURI("/testRoot/testFileA");
+    mFileSystem.setAttribute(fileURI1,
         SetAttributeOptions.defaults().setPinned(true));
-    mFileSystem.setAttribute(new AlluxioURI("/testRoot/testDir/testFileB"),
+    mFileSystem.setAttribute(fileURI2,
         SetAttributeOptions.defaults().setPinned(true));
+    URIStatus file1 = mFileSystem.getStatus(fileURI1);
+    URIStatus file2 = mFileSystem.getStatus(fileURI2);
     mFsShell.run("ls", "-pR",  "/testRoot");
     String expected = "";
-    expected += getLsNoAclResultStr("/testRoot/testFileA", files[0].getCreationTimeMs(), 10,
-        STATE_FILE_IN_ALLUXIO, files[0].getPersistenceState());
-    expected += getLsNoAclResultStr("/testRoot/testDir/testFileB", files[2].getCreationTimeMs(), 20,
-        STATE_FILE_IN_ALLUXIO, files[2].getPersistenceState());
+    expected += getLsNoAclResultStr(fileURI1.toString(), file1.getLastModificationTimeMs(), 20,
+        STATE_FILE_IN_ALLUXIO, file1.getPersistenceState());
+    expected += getLsNoAclResultStr(fileURI2.toString(), file2.getLastModificationTimeMs(), 10,
+        STATE_FILE_IN_ALLUXIO, file2.getPersistenceState());
     Assert.assertEquals(expected, mOutput.toString());
   }
 
@@ -176,7 +181,7 @@ public final class LsCommandIntegrationTest extends AbstractAlluxioShellTest {
     mFsShell.run("ls", "-d", "/testRoot");
     URIStatus dirStatus = mFileSystem.getStatus(new AlluxioURI("/testRoot/"));
     String expected = "";
-    expected += getLsNoAclResultStr("/testRoot", dirStatus.getCreationTimeMs(),
+    expected += getLsNoAclResultStr("/testRoot", dirStatus.getLastModificationTimeMs(),
         3 /* number of direct children under /testRoot/ dir */, LsCommand.IN_ALLUXIO_STATE_DIR,
         dirStatus.getPersistenceState());
     Assert.assertEquals(expected, mOutput.toString());
@@ -194,7 +199,7 @@ public final class LsCommandIntegrationTest extends AbstractAlluxioShellTest {
     URIStatus dirStatus = mFileSystem.getStatus(new AlluxioURI("/"));
     String expected = "";
     expected +=
-        getLsNoAclResultStr("/", dirStatus.getCreationTimeMs(), 0,
+        getLsNoAclResultStr("/", dirStatus.getLastModificationTimeMs(), 0,
             LsCommand.IN_ALLUXIO_STATE_DIR, dirStatus.getPersistenceState());
     Assert.assertEquals(expected, mOutput.toString());
   }
@@ -215,14 +220,14 @@ public final class LsCommandIntegrationTest extends AbstractAlluxioShellTest {
     URIStatus[] files = createFiles();
     mFsShell.run("ls", "/testRoot");
     String expected = "";
-    expected += getLsResultStr("/testRoot/testFileA", files[0].getCreationTimeMs(), 10,
-        STATE_FILE_IN_ALLUXIO, testUser, testUser, files[0].getMode(),
-        files[0].isFolder(), files[0].getPersistenceState());
     expected +=
-        getLsResultStr("/testRoot/testDir", files[1].getCreationTimeMs(), 1,
+        getLsResultStr("/testRoot/testDir", files[1].getLastModificationTimeMs(), 1,
             LsCommand.IN_ALLUXIO_STATE_DIR, testUser, testUser, files[1].getMode(),
             files[1].isFolder(), files[1].getPersistenceState());
-    expected += getLsResultStr("/testRoot/testFileC", files[3].getCreationTimeMs(), 30,
+    expected += getLsResultStr("/testRoot/testFileA", files[0].getLastModificationTimeMs(), 10,
+        STATE_FILE_IN_ALLUXIO, testUser, testUser, files[0].getMode(),
+        files[0].isFolder(), files[0].getPersistenceState());
+    expected += getLsResultStr("/testRoot/testFileC", files[3].getLastModificationTimeMs(), 30,
         STATE_FILE_NOT_IN_ALLUXIO, testUser, testUser, files[3].getMode(),
         files[3].isFolder(), files[3].getPersistenceState());
     Assert.assertEquals(expected, mOutput.toString());
@@ -304,14 +309,15 @@ public final class LsCommandIntegrationTest extends AbstractAlluxioShellTest {
     mFsShell.run("lsr", "/testRoot");
     String expected = "";
     expected += "WARNING: lsr is deprecated. Please use ls -R instead.\n";
-    expected += getLsNoAclResultStr("/testRoot/testFileA", files[0].getCreationTimeMs(), 10,
-        STATE_FILE_IN_ALLUXIO, files[0].getPersistenceState());
-    expected += getLsNoAclResultStr("/testRoot/testDir", files[1].getCreationTimeMs(), 1,
-        LsCommand.IN_ALLUXIO_STATE_DIR, files[1].getPersistenceState());
-    expected += getLsNoAclResultStr("/testRoot/testDir/testFileB", files[2].getCreationTimeMs(), 20,
-        STATE_FILE_IN_ALLUXIO, files[2].getPersistenceState());
-    expected += getLsNoAclResultStr("/testRoot/testFileC", files[3].getCreationTimeMs(), 30,
-        STATE_FILE_NOT_IN_ALLUXIO, files[3].getPersistenceState());
+    expected += getLsNoAclResultStr("/testRoot/testDir", files[1].getLastModificationTimeMs(),
+        1, LsCommand.IN_ALLUXIO_STATE_DIR, files[1].getPersistenceState());
+    expected += getLsNoAclResultStr("/testRoot/testDir/testFileB",
+        files[2].getLastModificationTimeMs(), 20, STATE_FILE_IN_ALLUXIO,
+        files[2].getPersistenceState());
+    expected += getLsNoAclResultStr("/testRoot/testFileA", files[0].getLastModificationTimeMs(),
+        10, STATE_FILE_IN_ALLUXIO, files[0].getPersistenceState());
+    expected += getLsNoAclResultStr("/testRoot/testFileC", files[3].getLastModificationTimeMs(),
+        30, STATE_FILE_NOT_IN_ALLUXIO, files[3].getPersistenceState());
     Assert.assertEquals(expected, mOutput.toString());
   }
 
@@ -334,17 +340,17 @@ public final class LsCommandIntegrationTest extends AbstractAlluxioShellTest {
     mFsShell.run("lsr", "/testRoot");
     String expected = "";
     expected += "WARNING: lsr is deprecated. Please use ls -R instead.\n";
-    expected += getLsResultStr("/testRoot/testFileA", files[0].getCreationTimeMs(), 10,
-        STATE_FILE_IN_ALLUXIO, testUser, testUser, files[0].getMode(),
-        files[0].isFolder(), files[1].getPersistenceState());
     expected +=
-        getLsResultStr("/testRoot/testDir", files[1].getCreationTimeMs(), 1,
+        getLsResultStr("/testRoot/testDir", files[1].getLastModificationTimeMs(), 1,
             LsCommand.IN_ALLUXIO_STATE_DIR, testUser, testUser, files[1].getMode(),
             files[1].isFolder(), files[1].getPersistenceState());
-    expected += getLsResultStr("/testRoot/testDir/testFileB", files[2].getCreationTimeMs(), 20,
-        STATE_FILE_IN_ALLUXIO, testUser, testUser, files[2].getMode(),
-        files[2].isFolder(), files[2].getPersistenceState());
-    expected += getLsResultStr("/testRoot/testFileC", files[3].getCreationTimeMs(), 30,
+    expected += getLsResultStr("/testRoot/testDir/testFileB", files[2].getLastModificationTimeMs(),
+        20, STATE_FILE_IN_ALLUXIO, testUser, testUser, files[2].getMode(), files[2].isFolder(),
+        files[2].getPersistenceState());
+    expected += getLsResultStr("/testRoot/testFileA", files[0].getLastModificationTimeMs(), 10,
+        STATE_FILE_IN_ALLUXIO, testUser, testUser, files[0].getMode(),
+        files[0].isFolder(), files[1].getPersistenceState());
+    expected += getLsResultStr("/testRoot/testFileC", files[3].getLastModificationTimeMs(), 30,
         STATE_FILE_NOT_IN_ALLUXIO, testUser, testUser, files[3].getMode(),
         files[3].isFolder(), files[3].getPersistenceState());
     Assert.assertEquals(expected, mOutput.toString());
@@ -362,7 +368,7 @@ public final class LsCommandIntegrationTest extends AbstractAlluxioShellTest {
     FileSystemTestUtils.createByteFile(mFileSystem, fileName, WriteType.MUST_CACHE, 10);
     URIStatus file = mFileSystem.getStatus(new AlluxioURI(fileName));
     mFsShell.run("ls", "/");
-    String expected = getLsNoAclResultStr(fileName, file.getCreationTimeMs(), 10,
+    String expected = getLsNoAclResultStr(fileName, file.getLastModificationTimeMs(), 10,
         STATE_FILE_IN_ALLUXIO, file.getPersistenceState());
     Assert.assertEquals(expected, mOutput.toString());
   }
@@ -386,12 +392,12 @@ public final class LsCommandIntegrationTest extends AbstractAlluxioShellTest {
     URIStatus testLongFile = mFileSystem.getStatus(new AlluxioURI("/testRoot/testLongFile"));
     mFsShell.run("ls", "--sort", "path", "/testRoot");
     String expected = "";
-    expected += getLsNoAclResultStr("/testRoot/testFileA", testFileA.getCreationTimeMs(), 50,
-            STATE_FILE_IN_ALLUXIO, testFileA.getPersistenceState());
-    expected += getLsNoAclResultStr("/testRoot/testFileZ", testFileZ.getCreationTimeMs(), 10,
-            STATE_FILE_IN_ALLUXIO, testFileZ.getPersistenceState());
+    expected += getLsNoAclResultStr("/testRoot/testFileA", testFileA.getLastModificationTimeMs(),
+        50, STATE_FILE_IN_ALLUXIO, testFileA.getPersistenceState());
+    expected += getLsNoAclResultStr("/testRoot/testFileZ", testFileZ.getLastModificationTimeMs(),
+        10, STATE_FILE_IN_ALLUXIO, testFileZ.getPersistenceState());
     expected += getLsNoAclResultStr("/testRoot/testLongFile",
-            testLongFile.getCreationTimeMs(), 100,
+            testLongFile.getLastModificationTimeMs(), 100,
             STATE_FILE_IN_ALLUXIO, testLongFile.getPersistenceState());
     Assert.assertEquals(expected, mOutput.toString());
   }
@@ -415,12 +421,12 @@ public final class LsCommandIntegrationTest extends AbstractAlluxioShellTest {
     URIStatus testLongFile = mFileSystem.getStatus(new AlluxioURI("/testRoot/testLongFile"));
     mFsShell.run("ls", "--sort", "size", "/testRoot");
     String expected = "";
-    expected += getLsNoAclResultStr("/testRoot/testFileZ", testFileZ.getCreationTimeMs(), 10,
-            STATE_FILE_IN_ALLUXIO, testFileZ.getPersistenceState());
-    expected += getLsNoAclResultStr("/testRoot/testFileA", testFileA.getCreationTimeMs(), 50,
-            STATE_FILE_IN_ALLUXIO, testFileA.getPersistenceState());
+    expected += getLsNoAclResultStr("/testRoot/testFileZ", testFileZ.getLastModificationTimeMs(),
+        10, STATE_FILE_IN_ALLUXIO, testFileZ.getPersistenceState());
+    expected += getLsNoAclResultStr("/testRoot/testFileA", testFileA.getLastModificationTimeMs(),
+        50, STATE_FILE_IN_ALLUXIO, testFileA.getPersistenceState());
     expected += getLsNoAclResultStr("/testRoot/testLongFile",
-            testLongFile.getCreationTimeMs(), 100,
+            testLongFile.getLastModificationTimeMs(), 100,
             STATE_FILE_IN_ALLUXIO, testLongFile.getPersistenceState());
     Assert.assertEquals(expected, mOutput.toString());
   }
@@ -444,12 +450,13 @@ public final class LsCommandIntegrationTest extends AbstractAlluxioShellTest {
     URIStatus testLongFile = mFileSystem.getStatus(new AlluxioURI("/testRoot/testLongFile"));
     mFsShell.run("ls", "--sort", "size", "-r", "/testRoot");
     String expected = "";
-    expected += getLsNoAclResultStr("/testRoot/testLongFile", testLongFile.getCreationTimeMs(), 100,
-            STATE_FILE_IN_ALLUXIO, testLongFile.getPersistenceState());
-    expected += getLsNoAclResultStr("/testRoot/testFileA", testFileA.getCreationTimeMs(), 50,
-            STATE_FILE_IN_ALLUXIO, testFileA.getPersistenceState());
-    expected += getLsNoAclResultStr("/testRoot/testFileZ", testFileZ.getCreationTimeMs(), 10,
-            STATE_FILE_IN_ALLUXIO, testFileZ.getPersistenceState());
+    expected += getLsNoAclResultStr("/testRoot/testLongFile",
+        testLongFile.getLastModificationTimeMs(), 100, STATE_FILE_IN_ALLUXIO,
+        testLongFile.getPersistenceState());
+    expected += getLsNoAclResultStr("/testRoot/testFileA", testFileA.getLastModificationTimeMs(),
+        50, STATE_FILE_IN_ALLUXIO, testFileA.getPersistenceState());
+    expected += getLsNoAclResultStr("/testRoot/testFileZ", testFileZ.getLastModificationTimeMs(),
+        10, STATE_FILE_IN_ALLUXIO, testFileZ.getPersistenceState());
     Assert.assertEquals(expected, mOutput.toString());
   }
 
@@ -487,12 +494,13 @@ public final class LsCommandIntegrationTest extends AbstractAlluxioShellTest {
     URIStatus testLongFile = mFileSystem.getStatus(new AlluxioURI("/testRoot/testLongFile"));
     mFsShell.run("ls", "-r", "/testRoot");
     String expected = "";
-    expected += getLsNoAclResultStr("/testRoot/testLongFile", testLongFile.getCreationTimeMs(), 100,
-            STATE_FILE_IN_ALLUXIO, testLongFile.getPersistenceState());
-    expected += getLsNoAclResultStr("/testRoot/testFileZ", testFileZ.getCreationTimeMs(), 10,
-            STATE_FILE_IN_ALLUXIO, testFileZ.getPersistenceState());
-    expected += getLsNoAclResultStr("/testRoot/testFileA", testFileA.getCreationTimeMs(), 50,
-            STATE_FILE_IN_ALLUXIO, testFileA.getPersistenceState());
+    expected += getLsNoAclResultStr("/testRoot/testLongFile",
+        testLongFile.getLastModificationTimeMs(), 100, STATE_FILE_IN_ALLUXIO,
+        testLongFile.getPersistenceState());
+    expected += getLsNoAclResultStr("/testRoot/testFileZ", testFileZ.getLastModificationTimeMs(),
+        10, STATE_FILE_IN_ALLUXIO, testFileZ.getPersistenceState());
+    expected += getLsNoAclResultStr("/testRoot/testFileA", testFileA.getLastModificationTimeMs(),
+        50, STATE_FILE_IN_ALLUXIO, testFileA.getPersistenceState());
     Assert.assertEquals(expected, mOutput.toString());
   }
 }

@@ -58,7 +58,6 @@ public final class Sessions {
    * @return the list of session ids of sessions that timed out
    */
   public List<Long> getTimedOutSessions() {
-    LOG.debug("Worker is checking all sessions' status for timeouts.");
     List<Long> ret = new ArrayList<>();
     synchronized (mSessions) {
       for (Entry<Long, SessionInfo> entry : mSessions.entrySet()) {

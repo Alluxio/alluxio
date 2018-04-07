@@ -12,7 +12,7 @@
 package alluxio.cli.fs.command;
 
 import alluxio.cli.Command;
-import alluxio.cli.fs.AbstractAlluxioShellTest;
+import alluxio.cli.fs.AbstractFileSystemShellTest;
 import alluxio.cli.fs.FileSystemShellUtils;
 
 import org.junit.Assert;
@@ -28,7 +28,7 @@ import java.util.TreeSet;
 /**
  * Integration tests for help command.
  */
-public final class HelpCommandIntegrationTest extends AbstractAlluxioShellTest {
+public final class HelpCommandIntegrationTest extends AbstractFileSystemShellTest {
 
   /**
    * Tests help which given command doesn't exist.

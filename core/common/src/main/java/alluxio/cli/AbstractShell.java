@@ -22,10 +22,12 @@ import org.slf4j.LoggerFactory;
 import java.io.Closeable;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Map;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -36,7 +38,7 @@ public abstract class AbstractShell implements Closeable {
   private static final Logger LOG = LoggerFactory.getLogger(AbstractShell.class);
 
   private Map<String, String[]> mCommandAlias;
-  private Map<String, ? extends Command> mCommands;
+  private Map<String, Command> mCommands;
 
   /**
    * Creates a new instance of {@link AbstractShell}.
@@ -104,6 +106,13 @@ public abstract class AbstractShell implements Closeable {
     }
   }
 
+  /**
+   * @return all commands provided by this shell
+   */
+  public Collection<Command> getCommands() {
+    return mCommands.values();
+  }
+
   @Override
   public void close() throws IOException {
   }
@@ -114,7 +123,11 @@ public abstract class AbstractShell implements Closeable {
    * @param cmd the name of the command
    * @return replacement command if cmd is an alias
    */
+<<<<<<< HEAD
   @SuppressWarnings("nullness")
+=======
+  @Nullable
+>>>>>>> master
   private String[] getReplacementCmd(String cmd) {
     if (mCommandAlias == null || !mCommandAlias.containsKey(cmd)) {
       return null;
@@ -132,7 +145,7 @@ public abstract class AbstractShell implements Closeable {
    *
    * @return a set of commands which can be executed under this shell
    */
-  protected abstract Map<String, ? extends Command> loadCommands();
+  protected abstract Map<String, Command> loadCommands();
 
   /**
    * Prints usage for all commands.

@@ -208,7 +208,7 @@ $ ALLUXIO_WORKER_CONTAINER_ID=$(docker run -d --net=host --shm-size=1G \
              alluxio worker)
 ```
 
-## FUSE
+# FUSE
 
 To use FUSE, you need to build a docker image with FUSE enabled:
 

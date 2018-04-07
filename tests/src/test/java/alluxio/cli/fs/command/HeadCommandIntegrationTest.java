@@ -13,7 +13,7 @@ package alluxio.cli.fs.command;
 
 import alluxio.client.WriteType;
 import alluxio.client.file.FileSystemTestUtils;
-import alluxio.cli.fs.AbstractAlluxioShellTest;
+import alluxio.cli.fs.AbstractFileSystemShellTest;
 import alluxio.cli.fs.FileSystemShellUtilsTest;
 import alluxio.util.io.BufferUtils;
 
@@ -23,7 +23,7 @@ import org.junit.Test;
 /**
  * Tests for head command.
  */
-public final class HeadCommandIntegrationTest extends AbstractAlluxioShellTest {
+public final class HeadCommandIntegrationTest extends AbstractFileSystemShellTest {
 
   @Test
   public void headEmptyFile() throws Exception {

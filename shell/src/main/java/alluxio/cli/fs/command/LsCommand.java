@@ -12,6 +12,7 @@
 package alluxio.cli.fs.command;
 
 import alluxio.AlluxioURI;
+import alluxio.cli.CommandUtils;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.ListStatusOptions;
@@ -47,17 +48,17 @@ public final class LsCommand extends WithWildCardPathCommand {
   public static final String IN_ALLUXIO_STATE_FILE_FORMAT = "%d%%";
   public static final String LS_FORMAT_PERMISSION = "%-11s";
   public static final String LS_FORMAT_FILE_SIZE = "%15s";
-  public static final String LS_FORMAT_CREATE_TIME = "%24s";
+  public static final String LS_FORMAT_LAST_MODIFIED_TIME = "%24s";
   public static final String LS_FORMAT_ALLUXIO_STATE = "%5s";
   public static final String LS_FORMAT_PERSISTENCE_STATE = "%16s";
   public static final String LS_FORMAT_USER_NAME = "%-15s";
   public static final String LS_FORMAT_GROUP_NAME = "%-15s";
   public static final String LS_FORMAT_FILE_PATH = "%-5s";
   public static final String LS_FORMAT_NO_ACL = LS_FORMAT_FILE_SIZE + LS_FORMAT_PERSISTENCE_STATE
-      + LS_FORMAT_CREATE_TIME + LS_FORMAT_ALLUXIO_STATE + " " + LS_FORMAT_FILE_PATH + "%n";
+      + LS_FORMAT_LAST_MODIFIED_TIME + LS_FORMAT_ALLUXIO_STATE + " " + LS_FORMAT_FILE_PATH + "%n";
   public static final String LS_FORMAT = LS_FORMAT_PERMISSION + LS_FORMAT_USER_NAME
       + LS_FORMAT_GROUP_NAME + LS_FORMAT_FILE_SIZE + LS_FORMAT_PERSISTENCE_STATE
-      + LS_FORMAT_CREATE_TIME + LS_FORMAT_ALLUXIO_STATE + " " + LS_FORMAT_FILE_PATH + "%n";
+      + LS_FORMAT_LAST_MODIFIED_TIME + LS_FORMAT_ALLUXIO_STATE + " " + LS_FORMAT_FILE_PATH + "%n";
 
   private static final Option FORCE_OPTION =
       Option.builder("f")
@@ -100,7 +101,7 @@ public final class LsCommand extends WithWildCardPathCommand {
           .longOpt("sort")
           .hasArg(true)
           .desc("sort statuses by the given field "
-                  + "{size|creationTime|inMemoryPercentage|lastModificationTime|path}")
+                  + "{size|creationTime|inMemoryPercentage|lastModificationTime|name|path}")
           .build();
 
   private static final Option REVERSE_SORT_OPTION =
@@ -114,11 +115,13 @@ public final class LsCommand extends WithWildCardPathCommand {
 
   static {
     SORT_FIELD_COMPARATORS.put("creationTime",
-            Comparator.comparingLong(URIStatus::getCreationTimeMs));
+        Comparator.comparingLong(URIStatus::getCreationTimeMs));
     SORT_FIELD_COMPARATORS.put("inMemoryPercentage",
-            Comparator.comparingLong(URIStatus::getInMemoryPercentage));
+        Comparator.comparingLong(URIStatus::getInMemoryPercentage));
     SORT_FIELD_COMPARATORS.put("lastModificationTime",
-            Comparator.comparingLong(URIStatus::getLastModificationTimeMs));
+        Comparator.comparingLong(URIStatus::getLastModificationTimeMs));
+    SORT_FIELD_COMPARATORS.put("name",
+        Comparator.comparing(URIStatus::getName, String.CASE_INSENSITIVE_ORDER));
     SORT_FIELD_COMPARATORS.put("path", Comparator.comparing(URIStatus::getPath));
     SORT_FIELD_COMPARATORS.put("size", Comparator.comparingLong(URIStatus::getBlockSizeBytes));
   }
@@ -133,7 +136,7 @@ public final class LsCommand extends WithWildCardPathCommand {
    * @param userName user name
    * @param groupName group name
    * @param size size of the file in bytes
-   * @param createTimeMs the epoch time in ms when the path is created
+   * @param lastModifiedTime the epoch time in ms when the path is last modified
    * @param inAlluxioPercentage whether the file is in Alluxio
    * @param persistenceState the persistence state of the file
    * @param path path of the file or folder
@@ -141,7 +144,7 @@ public final class LsCommand extends WithWildCardPathCommand {
    */
   public static String formatLsString(boolean hSize, boolean acl, boolean isFolder, String
       permission,
-      String userName, String groupName, long size, long createTimeMs, int inAlluxioPercentage,
+      String userName, String groupName, long size, long lastModifiedTime, int inAlluxioPercentage,
       String persistenceState, String path) {
     String inAlluxioState;
     String sizeStr;
@@ -155,19 +158,20 @@ public final class LsCommand extends WithWildCardPathCommand {
 
     if (acl) {
       return String.format(LS_FORMAT, permission, userName, groupName,
-          sizeStr, persistenceState, CommonUtils.convertMsToDate(createTimeMs),
+          sizeStr, persistenceState, CommonUtils.convertMsToDate(lastModifiedTime),
           inAlluxioState, path);
     } else {
       return String.format(LS_FORMAT_NO_ACL, sizeStr,
-          persistenceState, CommonUtils.convertMsToDate(createTimeMs), inAlluxioState, path);
+          persistenceState, CommonUtils.convertMsToDate(lastModifiedTime), inAlluxioState, path);
     }
   }
 
   private void printLsString(URIStatus status, boolean hSize) {
     System.out.print(formatLsString(hSize, SecurityUtils.isSecurityEnabled(),
         status.isFolder(), FormatUtils.formatMode((short) status.getMode(), status.isFolder()),
-        status.getOwner(), status.getGroup(), status.getLength(), status.getCreationTimeMs(),
-        status.getInAlluxioPercentage(), status.getPersistenceState(), status.getPath()));
+        status.getOwner(), status.getGroup(), status.getLength(),
+        status.getLastModificationTimeMs(), status.getInAlluxioPercentage(),
+        status.getPersistenceState(), status.getPath()));
   }
 
   /**
@@ -183,11 +187,6 @@ public final class LsCommand extends WithWildCardPathCommand {
   @Override
   public String getCommandName() {
     return "ls";
-  }
-
-  @Override
-  protected int getNumOfArgs() {
-    return 1;
   }
 
   @Override
@@ -261,7 +260,7 @@ public final class LsCommand extends WithWildCardPathCommand {
   @Override
   public void runCommand(AlluxioURI path, CommandLine cl) throws AlluxioException, IOException {
     ls(path, cl.hasOption("R"), cl.hasOption("f"), cl.hasOption("d"), cl.hasOption("h"),
-        cl.hasOption("p"), cl.getOptionValue("sort", "creationTime"),
+        cl.hasOption("p"), cl.getOptionValue("sort", "name"),
             cl.hasOption("r"));
   }
 
@@ -274,15 +273,12 @@ public final class LsCommand extends WithWildCardPathCommand {
   public String getDescription() {
     return "Displays information for all files and directories directly under the specified path, "
         + "including permission, owner, group, size (bytes for files or the number of children "
-        + "for directories, persistence state, creation time, the percentage of content already "
-        + "in Alluxio and the path in order.";
+        + "for directories, persistence state, last modified time, the percentage of content"
+        + " already in Alluxio and the path in order.";
   }
 
   @Override
-  public void validateArgs(String... args) throws InvalidArgumentException {
-    if (args.length < 1) {
-      throw new InvalidArgumentException(ExceptionMessage.INVALID_ARGS_NUM_INSUFFICIENT
-          .getMessage(getCommandName(), 1, args.length));
-    }
+  public void validateArgs(CommandLine cl) throws InvalidArgumentException {
+    CommandUtils.checkNumOfArgsNoLessThan(this, cl, 1);
   }
 }

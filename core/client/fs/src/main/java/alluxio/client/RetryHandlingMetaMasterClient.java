@@ -15,14 +15,19 @@ import alluxio.AbstractMasterClient;
 import alluxio.Constants;
 import alluxio.master.MasterClientConfig;
 import alluxio.thrift.AlluxioService;
+import alluxio.thrift.GetConfigurationTOptions;
 import alluxio.thrift.GetMasterInfoTOptions;
 import alluxio.thrift.MetaMasterClientService;
+import alluxio.wire.ConfigProperty;
 import alluxio.wire.MasterInfo;
 import alluxio.wire.MasterInfo.MasterInfoField;
+import alluxio.wire.ThriftUtils;
 
 import java.io.IOException;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -68,17 +73,26 @@ public final class RetryHandlingMetaMasterClient extends AbstractMasterClient
   }
 
   @Override
-  public synchronized MasterInfo getInfo(final Set<MasterInfoField> fields) throws IOException {
+  public synchronized List<ConfigProperty> getConfiguration() throws IOException {
+    return retryRPC(() -> (mClient.getConfiguration(new GetConfigurationTOptions())
+          .getConfigList().stream()
+          .map(ConfigProperty::fromThrift)
+          .collect(Collectors.toList())));
+  }
+
+  @Override
+  public synchronized MasterInfo getMasterInfo(final Set<MasterInfoField> fields)
+      throws IOException {
     return retryRPC(() -> {
       Set<alluxio.thrift.MasterInfoField> thriftFields = new HashSet<>();
       if (fields == null) {
         thriftFields = null;
       } else {
-        for (MasterInfoField field : fields) {
+        for (MasterInfo.MasterInfoField field : fields) {
           thriftFields.add(field.toThrift());
         }
       }
-      return MasterInfo.fromThrift(
+      return ThriftUtils.fromThrift(
           mClient.getMasterInfo(new GetMasterInfoTOptions(thriftFields)).getMasterInfo());
     });
   }

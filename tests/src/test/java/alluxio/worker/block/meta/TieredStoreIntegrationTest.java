@@ -12,9 +12,9 @@
 package alluxio.worker.block.meta;
 
 import alluxio.AlluxioURI;
+import alluxio.BaseIntegrationTest;
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.PropertyKey;
-import alluxio.BaseIntegrationTest;
 import alluxio.client.ReadType;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileInStream;
@@ -63,6 +63,7 @@ public class TieredStoreIntegrationTest extends BaseIntegrationTest {
           .setProperty(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, 1000)
           .setProperty(PropertyKey.USER_FILE_BUFFER_BYTES, String.valueOf(100))
           .setProperty(PropertyKey.WORKER_FILE_BUFFER_SIZE, String.valueOf(100))
+          .setProperty(PropertyKey.WORKER_TIERED_STORE_LEVEL0_HIGH_WATERMARK_RATIO, 0.8)
           .build();
 
   @Before
@@ -182,7 +183,7 @@ public class TieredStoreIntegrationTest extends BaseIntegrationTest {
     AlluxioURI uri2 = new AlluxioURI("/file2");
     AlluxioURI uri3 = new AlluxioURI("/file3");
     FileSystemTestUtils.createByteFile(mFileSystem, uri1, WriteType.CACHE_THROUGH,
-        MEM_CAPACITY_BYTES / 6);
+        MEM_CAPACITY_BYTES / 3);
     FileSystemTestUtils.createByteFile(mFileSystem, uri2, WriteType.CACHE_THROUGH,
         MEM_CAPACITY_BYTES / 2);
     FileSystemTestUtils.createByteFile(mFileSystem, uri3, WriteType.CACHE_THROUGH,

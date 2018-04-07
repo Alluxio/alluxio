@@ -11,14 +11,21 @@
 
 package alluxio.checker;
 
+import alluxio.PropertyKey;
+
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -39,14 +46,35 @@ public final class CheckerUtils {
   }
 
   /**
+   * @return the report file to save user-facing messages
+   */
+  public static PrintWriter initReportFile() throws Exception {
+    File file = new File("./IntegrationReport.txt");
+    if (!file.exists()) {
+      file.createNewFile();
+    }
+    FileWriter fileWriter = new FileWriter(file.getAbsoluteFile(), true);
+    BufferedWriter bufferedWriter = new BufferedWriter(fileWriter);
+    PrintWriter reportWriter = new PrintWriter(bufferedWriter);
+
+    // Print the current time to separate integration checker results
+    SimpleDateFormat df = new SimpleDateFormat("dd/MM/yy HH:mm:ss");
+    Date date = new Date();
+    reportWriter.printf("%n%n%n***** The integration checker ran at %s. *****%n%n",
+        df.format(date));
+
+    return reportWriter;
+  }
+
+  /**
    * @return if the current node can recognize Alluxio classes and filesystem
    */
   public static Status performIntegrationChecks() {
-    // Checks if the current node can recognize Alluxio classes
+    // Check if the current node can recognize Alluxio classes
     try {
-      // Checks if the current node can recognize Alluxio common classes
+      // Check if the current node can recognize Alluxio common classes
       Class.forName("alluxio.AlluxioURI");
-      // Checks if current node can recognize Alluxio core client classes
+      // Check if current node can recognize Alluxio core client classes
       Class.forName("alluxio.client.file.BaseFileSystem");
       Class.forName("alluxio.hadoop.AlluxioFileSystem");
     } catch (ClassNotFoundException e) {
@@ -54,7 +82,7 @@ public final class CheckerUtils {
       return Status.FAIL_TO_FIND_CLASS;
     }
 
-    // Checks if the current node can recognize Alluxio filesystem
+    // Check if the current node can recognize Alluxio filesystem
     try {
       FileSystem.getFileSystemClass("alluxio", new Configuration());
     } catch (Exception e) {
@@ -63,6 +91,27 @@ public final class CheckerUtils {
     }
 
     return Status.SUCCESS;
+  }
+
+  /**
+   * Checks if the Zookeeper address has been set when running the Alluxio HA mode.
+   *
+   * @param reportWriter save user-facing messages to a generated file
+   * @return true if Alluxio HA mode is supported, false otherwise
+   */
+  public static boolean supportAlluxioHA(PrintWriter reportWriter) {
+    if (alluxio.Configuration.getBoolean(PropertyKey.ZOOKEEPER_ENABLED)) {
+      reportWriter.println("Alluixo is running in high availability mode.\n");
+      if (!alluxio.Configuration.containsKey(PropertyKey.ZOOKEEPER_ADDRESS)) {
+        reportWriter.println("Please set Zookeeper address to support "
+            + "Alluxio high availability mode.\n");
+        return false;
+      } else {
+        reportWriter.printf("Zookeeper address is: %s.%n",
+            alluxio.Configuration.get(PropertyKey.ZOOKEEPER_ADDRESS));
+      }
+    }
+    return true;
   }
 
   /**

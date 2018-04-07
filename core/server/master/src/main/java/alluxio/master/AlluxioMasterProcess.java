@@ -28,6 +28,7 @@ import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 import alluxio.web.MasterWebServer;
 import alluxio.web.WebServer;
+import alluxio.wire.ConfigProperty;
 
 import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
@@ -46,6 +47,8 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 import javax.annotation.Nullable;
@@ -187,8 +190,36 @@ public class AlluxioMasterProcess implements MasterProcess {
   }
 
   @Override
+  public boolean isInSafeMode() {
+    return mSafeModeManager.isInSafeMode();
+  }
+
+  @Override
   public boolean isServing() {
     return mIsServing;
+  }
+
+  @Override
+  public List<ConfigProperty> getConfiguration() {
+    List<ConfigProperty> configInfoList = new ArrayList<>();
+    String alluxioConfPrefix = "alluxio";
+    for (Map.Entry<String, String> entry : Configuration.toMap().entrySet()) {
+      String key = entry.getKey();
+      if (key.startsWith(alluxioConfPrefix)) {
+        PropertyKey propertyKey = PropertyKey.fromString(key);
+        Configuration.Source source = Configuration.getSource(propertyKey);
+        String sourceStr;
+        if (source == Configuration.Source.SITE_PROPERTY) {
+          sourceStr =
+              String.format("%s (%s)", source.name(), Configuration.getSitePropertiesFile());
+        } else {
+          sourceStr = source.name();
+        }
+        configInfoList.add(new ConfigProperty()
+            .setName(key).setValue(entry.getValue()).setSource(sourceStr));
+      }
+    }
+    return configInfoList;
   }
 
   @Override

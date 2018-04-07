@@ -12,8 +12,10 @@
 package alluxio.master.block;
 
 import alluxio.StorageTierAssoc;
+import alluxio.client.block.options.GetWorkerReportOptions;
 import alluxio.exception.BlockInfoException;
 import alluxio.exception.NoWorkerException;
+import alluxio.exception.status.InvalidArgumentException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.master.Master;
 import alluxio.thrift.Command;
@@ -24,6 +26,7 @@ import alluxio.wire.WorkerNetAddress;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 
 /**
  * Interface of the block master that manages the metadata for all the blocks and block workers in
@@ -31,14 +34,14 @@ import java.util.Set;
  */
 public interface BlockMaster extends Master, ContainerIdGenerable {
   /**
-   * @return the number of workers
+   * @return the number of live workers
    */
   int getWorkerCount();
 
   /**
-   * @return a list of {@link WorkerInfo} objects representing the workers in Alluxio
+   * @return the number of lost workers
    */
-  List<WorkerInfo> getWorkerInfoList() throws UnavailableException;
+  int getLostWorkerCount();
 
   /**
    * @return the total capacity (in bytes) on all tiers, on all workers of Alluxio
@@ -56,9 +59,23 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
   long getUsedBytes();
 
   /**
+   * @return a list of {@link WorkerInfo} objects representing the live workers in Alluxio
+   */
+  List<WorkerInfo> getWorkerInfoList() throws UnavailableException;
+
+  /**
    * @return a list of {@link WorkerInfo}s of lost workers
    */
-  List<WorkerInfo> getLostWorkersInfoList();
+  List<WorkerInfo> getLostWorkersInfoList() throws UnavailableException;
+
+  /**
+   * Gets the worker information list for report CLI.
+   *
+   * @param options the GetWorkerReportOptions defines the info range
+   * @return a list of {@link WorkerInfo} objects representing the workers in Alluxio
+   */
+  List<WorkerInfo> getWorkerReport(GetWorkerReportOptions options)
+      throws UnavailableException, InvalidArgumentException;
 
   /**
    * Removes blocks from workers.
@@ -67,6 +84,17 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
    * @param delete whether to delete blocks' metadata in Master
    */
   void removeBlocks(List<Long> blockIds, boolean delete) throws UnavailableException;
+
+  /**
+   * Validates the integrity of blocks with respect to the validator. A warning will be printed if
+   * blocks are invalid.
+   *
+   * @param validator a function returns true if the given block id is valid
+   * @param repair if true, deletes the invalid blocks
+   * @throws UnavailableException if the invalid blocks cannot be deleted
+   */
+  void validateBlocks(Function<Long, Boolean> validator, boolean repair)
+      throws UnavailableException;
 
   /**
    * Marks a block as committed on a specific worker.

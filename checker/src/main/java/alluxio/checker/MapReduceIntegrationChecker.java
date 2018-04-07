@@ -32,18 +32,13 @@ import org.apache.hadoop.mapreduce.TaskAttemptContext;
 import org.apache.hadoop.util.GenericOptionsParser;
 
 import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.DataInput;
 import java.io.DataOutput;
-import java.io.File;
-import java.io.FileWriter;
 import java.io.InputStreamReader;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.URI;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -163,7 +158,7 @@ public class MapReduceIntegrationChecker {
      */
     @Override
     public List<InputSplit> getSplits(JobContext job) {
-      int numSplits = job.getConfiguration().getInt(MRJobConfig.NUM_MAPS, 1);
+      int numSplits = job.getConfiguration().getInt(MRJobConfig.NUM_MAPS, 10);
       List<InputSplit> splits = new ArrayList<>();
       for (int split = 0; split < numSplits; split++) {
         splits.add(new EmptyInputSplit());
@@ -221,10 +216,10 @@ public class MapReduceIntegrationChecker {
   }
 
   /**
-   * @return result Status summarization
+   * @return result Status from MapReduce output
    */
   private Status generateReport() throws Exception {
-    // Reads all the part-r-* files in MapReduceOutPutFile folder
+    // Read all the part-r-* files in MapReduceOutPutFile folder
     FileStatus[] outputFileStatus = mFileSystem.listStatus(mOutputFilePath,
         path -> path.getName().startsWith(("part-")));
 
@@ -245,19 +240,7 @@ public class MapReduceIntegrationChecker {
       }
     }
 
-    // Creates a file to save user-facing messages
-    File file = new File("./MapReduceIntegrationReport.txt");
-    if (!file.exists()) {
-      file.createNewFile();
-    }
-    try (FileWriter fileWriter = new FileWriter(file.getAbsoluteFile(), true);
-         BufferedWriter bufferedWriter = new BufferedWriter(fileWriter);
-         PrintWriter reportWriter = new PrintWriter(bufferedWriter);) {
-      // Prints the current time to separate integration checker results
-      SimpleDateFormat df = new SimpleDateFormat("dd/MM/yy HH:mm:ss");
-      Date date = new Date();
-      reportWriter.printf("%n%n%n***** The integration checker ran at %s. *****%n%n",
-          df.format(date));
+    try (PrintWriter reportWriter = CheckerUtils.initReportFile()) {
       Status resultStatus = CheckerUtils.printNodesResults(resultMap, reportWriter);
       switch (resultStatus) {
         case FAIL_TO_FIND_CLASS:
@@ -283,8 +266,8 @@ public class MapReduceIntegrationChecker {
    */
   private int run(String[] args) throws Exception {
     Configuration conf = new Configuration();
-    String[] otherArgs =  new GenericOptionsParser(conf, args).getRemainingArgs();
-    conf.set(MRJobConfig.NUM_MAPS, otherArgs[0]);
+    String numMaps =  new GenericOptionsParser(conf, args).getRemainingArgs()[0];
+    conf.set(MRJobConfig.NUM_MAPS, numMaps);
     createHdfsFilesystem(conf);
 
     Job job = Job.getInstance(conf, "MapReduceIntegrationChecker");
@@ -315,7 +298,7 @@ public class MapReduceIntegrationChecker {
   /**
    * Main function will be triggered via hadoop jar.
    *
-   * @param args inputSplits will be passed in
+   * @param args numMaps will be passed in
    */
   public static void main(String[] args) throws Exception {
     MapReduceIntegrationChecker checker = new MapReduceIntegrationChecker();

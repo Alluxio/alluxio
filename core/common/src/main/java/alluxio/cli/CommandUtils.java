@@ -11,9 +11,15 @@
 
 package alluxio.cli;
 
+import alluxio.exception.ExceptionMessage;
+import alluxio.exception.status.InvalidArgumentException;
 import alluxio.util.CommonUtils;
 
+<<<<<<< HEAD
 import org.checkerframework.checker.initialization.qual.Initialized;
+=======
+import org.apache.commons.cli.CommandLine;
+>>>>>>> master
 import org.reflections.Reflections;
 
 import java.lang.reflect.Modifier;
@@ -54,5 +60,53 @@ public final class CommandUtils {
       }
     }
     return commandsMap;
+  }
+
+  /**
+   * Checks the number of non-option arguments equals n for command.
+   *
+   * @param cmd command instance
+   * @param cl parsed commandline arguments
+   * @param n an integer
+   * @throws InvalidArgumentException if the number does not equal n
+   */
+  public static void checkNumOfArgsEquals(Command cmd, CommandLine cl, int n) throws
+      InvalidArgumentException {
+    if (cl.getArgs().length != n) {
+      throw new InvalidArgumentException(ExceptionMessage.INVALID_ARGS_NUM
+          .getMessage(cmd.getCommandName(), n, cl.getArgs().length));
+    }
+  }
+
+  /**
+   * Checks the number of non-option arguments is no less than n for command.
+   *
+   * @param cmd command instance
+   * @param cl parsed commandline arguments
+   * @param n an integer
+   * @throws InvalidArgumentException if the number is smaller than n
+   */
+  public static void checkNumOfArgsNoLessThan(Command cmd, CommandLine cl, int n) throws
+      InvalidArgumentException {
+    if (cl.getArgs().length < n) {
+      throw new InvalidArgumentException(ExceptionMessage.INVALID_ARGS_NUM_INSUFFICIENT
+          .getMessage(cmd.getCommandName(), n, cl.getArgs().length));
+    }
+  }
+
+  /**
+   * Checks the number of non-option arguments is no more than n for command.
+   *
+   * @param cmd command instance
+   * @param cl parsed commandline arguments
+   * @param n an integer
+   * @throws InvalidArgumentException if the number is greater than n
+   */
+  public static void checkNumOfArgsNoMoreThan(Command cmd, CommandLine cl, int n) throws
+      InvalidArgumentException {
+    if (cl.getArgs().length > n) {
+      throw new InvalidArgumentException(ExceptionMessage.INVALID_ARGS_NUM_TOO_MANY
+          .getMessage(cmd.getCommandName(), n, cl.getArgs().length));
+    }
   }
 }

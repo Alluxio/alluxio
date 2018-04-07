@@ -12,6 +12,7 @@
 package alluxio.master.file.meta;
 
 import alluxio.Constants;
+import alluxio.underfs.Fingerprint;
 import alluxio.underfs.UfsStatus;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -30,29 +31,47 @@ public final class UfsSyncUtils {
    *
    * @param inode the inode to sync
    * @param ufsFingerprint the ufs fingerprint to check for the sync
+   * @param containsMountPoint true if this inode contains a mount point, false otherwise
    * @return a {@link SyncPlan} describing how to sync the inode with the ufs
    */
-  public static SyncPlan computeSyncPlan(Inode inode, String ufsFingerprint) {
+  public static SyncPlan computeSyncPlan(Inode inode, String ufsFingerprint,
+      boolean containsMountPoint) {
     boolean isSynced = inodeUfsIsSynced(inode, ufsFingerprint);
+    boolean ufsExists = !Constants.INVALID_UFS_FINGERPRINT.equals(ufsFingerprint);
+    boolean ufsIsDir = ufsFingerprint != null && Fingerprint.Type.DIRECTORY.name()
+        .equals(Fingerprint.parse(ufsFingerprint).getTag(Fingerprint.Tag.TYPE));
 
     UfsSyncUtils.SyncPlan syncPlan = new UfsSyncUtils.SyncPlan();
     if (!isSynced) {
-      // Alluxio inode is not synced with UFS.
-      if (inode.getParentId() != InodeTree.NO_PARENT) {
-        // Do not delete the root.
+      // Alluxio inode is not synced with UFS, so update the inode metadata
+      // Updating an inode is achieved by deleting the inode, and then loading metadata.
+
+      if (inode.isDirectory() && (containsMountPoint || ufsIsDir)) {
+        // Instead of deleting and then loading metadata to update, try to update directly
+        // - mount points (or paths with mount point descendants) should not be deleted
+        // - directory permissions can be updated without removing the inode
+        if (inode.getParentId() != InodeTree.NO_PARENT) {
+          // Only update the inode if it is not the root directory. The root directory is a special
+          // case, since it is expected to be owned by the process that starts the master, and not
+          // the owner on UFS.
+          syncPlan.setUpdateDirectory();
+        }
+        syncPlan.setSyncChildren();
+      } else {
+        // update inode, by deleting and then optionally loading metadata
         syncPlan.setDelete();
+        if (ufsExists) {
+          // UFS exists, so load metadata later.
+          syncPlan.setLoadMetadata();
+        }
       }
-      if (!Constants.INVALID_UFS_FINGERPRINT.equals(ufsFingerprint)) {
-        // UFS exists, so load metadata later.
-        syncPlan.setLoadMetadata();
+    } else {
+      // Inode is already synced.
+      if (inode.isDirectory() && inode.isPersisted()) {
+        // Both Alluxio and UFS are directories, so sync the children of the directory.
+        syncPlan.setSyncChildren();
       }
     }
-
-    if (inode.isDirectory() && inode.isPersisted() && isSynced) {
-      // Both Alluxio and UFS are directories, so sync the children of the directory.
-      syncPlan.setSyncChildren();
-    }
-
     return syncPlan;
   }
 
@@ -76,11 +95,7 @@ public final class UfsSyncUtils {
           && inodeFile.getUfsFingerprint().equals(ufsFingerprint)
           && !inodeFile.getUfsFingerprint().equals(Constants.INVALID_UFS_FINGERPRINT);
     } else {
-      // ufs fingerprint must exist.
-      // TODO(gpang): Currently, directory fingerprints are not considered, because directories are
-      // created/modified more frequently than files.
-      isSyncedPersisted =
-          inode.isPersisted() && !Constants.INVALID_UFS_FINGERPRINT.equals(ufsFingerprint);
+      isSyncedPersisted = inode.isPersisted() && inode.getUfsFingerprint().equals(ufsFingerprint);
     }
     return isSyncedPersisted || isSyncedUnpersisted;
   }
@@ -88,19 +103,26 @@ public final class UfsSyncUtils {
   /**
    * A class describing how to sync an inode with the ufs.
    * A sync plan has several steps:
-   * 1. delete: the inode should be deleted
-   * 2. syncChildren: the inode is a directory, and the children should be synced
-   * 3. loadMetadata: the inode metadata should be loaded from UFS
+   * 1. updateDirectory: the directory inode should update permissions from UFS directory
+   * 2. delete: the inode should be deleted
+   * 3. syncChildren: the inode is a directory, and the children should be synced
+   * 4. loadMetadata: the inode metadata should be loaded from UFS
    */
   public static final class SyncPlan {
+    private boolean mUpdateDirectory;
     private boolean mDelete;
     private boolean mLoadMetadata;
     private boolean mSyncChildren;
 
     SyncPlan() {
+      mUpdateDirectory = false;
       mDelete = false;
       mLoadMetadata = false;
       mSyncChildren = false;
+    }
+
+    void setUpdateDirectory() {
+      mUpdateDirectory = true;
     }
 
     void setDelete() {
@@ -113,6 +135,13 @@ public final class UfsSyncUtils {
 
     void setSyncChildren() {
       mSyncChildren = true;
+    }
+
+    /**
+     * @return true if the direcotry inode permissions should be updated from UFS directory
+     */
+    public boolean toUpdateDirectory() {
+      return mUpdateDirectory;
     }
 
     /**

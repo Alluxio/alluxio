@@ -368,6 +368,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setDescription("Flag used only during tests to allow special behavior.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .build();
+  public static final PropertyKey TMP_DIRS =
+      new Builder(Name.TMP_DIRS)
+          .setDefaultValue("/tmp")
+          .setDescription("The path(s) to store Alluxio temporary files, use commas as delimiters. "
+              + "If multiple paths are specified, one will be selected at random per temporary "
+              + "file. Currently, only files to be uploaded to object stores are stored in these "
+              + "paths.")
+          .build();
   public static final PropertyKey VERSION =
       new Builder(Name.VERSION)
           .setConsistencyCheckLevel(ConsistencyCheckLevel.IGNORE)
@@ -944,6 +952,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
+  public static final PropertyKey MASTER_JOURNAL_FLUSH_RETRY_INTERVAL =
+      new Builder(Name.MASTER_JOURNAL_FLUSH_RETRY_INTERVAL)
+          .setDefaultValue("1sec")
+          .setDescription("The amount of time to sleep between retrying journal flushes")
+          .setIsHidden(true)
+          .build();
   public static final PropertyKey MASTER_JOURNAL_FOLDER =
       new Builder(Name.MASTER_JOURNAL_FOLDER)
           .setDefaultValue(String.format("${%s}/journal", Name.WORK_DIR))
@@ -1070,6 +1084,17 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
+  public static final PropertyKey MASTER_PERIODIC_BLOCK_INTEGRITY_CHECK_REPAIR =
+      new Builder(Name.MASTER_PERIODIC_BLOCK_INTEGRITY_CHECK_REPAIR)
+          .setDefaultValue(false)
+          .setDescription("Whether the system should delete orphaned blocks found during the "
+              + "periodic integrity check. This is an experimental feature.")
+          .build();
+  public static final PropertyKey MASTER_PERIODIC_BLOCK_INTEGRITY_CHECK_INTERVAL =
+      new Builder(Name.MASTER_PERIODIC_BLOCK_INTEGRITY_CHECK_INTERVAL)
+          .setDefaultValue("1hr")
+          .setDescription("The period for the block integrity check, disabled if <= 0.")
+          .build();
   public static final PropertyKey MASTER_PRINCIPAL = new Builder(Name.MASTER_PRINCIPAL)
       .setDescription("Kerberos principal for Alluxio master.")
       .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
@@ -1103,6 +1128,12 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "long for the thrift serving thread to stop before giving up and shutting down "
               + "the server")
           .setIsHidden(true)
+          .build();
+  public static final PropertyKey MASTER_STARTUP_BLOCK_INTEGRITY_CHECK_ENABLED =
+      new Builder(Name.MASTER_STARTUP_BLOCK_INTEGRITY_CHECK_ENABLED)
+          .setDefaultValue(false)
+          .setDescription("Whether the system should be checked for orphaned blocks on startup. "
+              + "Orphaned blocks will be deleted.")
           .build();
   public static final PropertyKey MASTER_STARTUP_CONSISTENCY_CHECK_ENABLED =
       new Builder(Name.MASTER_STARTUP_CONSISTENCY_CHECK_ENABLED)
@@ -1585,7 +1616,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey WORKER_NETWORK_NETTY_ASYNC_CACHE_MANAGER_THREADS_MAX =
       new Builder(Name.WORKER_NETWORK_NETTY_ASYNC_CACHE_MANAGER_THREADS_MAX)
-          .setDefaultValue(512)
+          .setDefaultValue(8)
           .setDescription("The maximum number of threads used to cache blocks asynchronously in "
               + "the netty data server.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
@@ -1823,7 +1854,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .build();
   public static final PropertyKey WORKER_TIERED_STORE_RESERVER_ENABLED =
       new Builder(Name.WORKER_TIERED_STORE_RESERVER_ENABLED)
-          .setDefaultValue(false)
+          .setDefaultValue(true)
           .setDescription("Whether to enable tiered store reserver service or not.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
@@ -2379,7 +2410,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey USER_NETWORK_NETTY_WRITER_CLOSE_TIMEOUT_MS =
       new Builder(Name.USER_NETWORK_NETTY_WRITER_CLOSE_TIMEOUT_MS)
           .setAlias(new String[]{"alluxio.user.network.netty.writer.close.timeout.ms"})
-          .setDefaultValue("5min")
+          .setDefaultValue("30min")
           .setDescription("The timeout to close a netty writer client.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
@@ -2815,6 +2846,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String SITE_CONF_DIR = "alluxio.site.conf.dir";
     public static final String TEST_MODE = "alluxio.test.mode";
     public static final String USER_HOME = "user.home";
+    public static final String TMP_DIRS = "alluxio.tmp.dirs";
     public static final String VERSION = "alluxio.version";
     public static final String WEB_RESOURCES = "alluxio.web.resources";
     public static final String WEB_THREADS = "alluxio.web.threads";
@@ -2929,6 +2961,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.journal.flush.batch.time";
     public static final String MASTER_JOURNAL_FLUSH_TIMEOUT_MS =
         "alluxio.master.journal.flush.timeout";
+    public static final String MASTER_JOURNAL_FLUSH_RETRY_INTERVAL =
+        "alluxio.master.journal.retry.interval";
     public static final String MASTER_JOURNAL_FOLDER = "alluxio.master.journal.folder";
     public static final String MASTER_JOURNAL_TYPE = "alluxio.master.journal.type";
     public static final String MASTER_JOURNAL_FORMATTER_CLASS =
@@ -2948,11 +2982,17 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.lineage.recompute.interval";
     public static final String MASTER_LINEAGE_RECOMPUTE_LOG_PATH =
         "alluxio.master.lineage.recompute.log.path";
+    public static final String MASTER_PERIODIC_BLOCK_INTEGRITY_CHECK_REPAIR =
+        "alluxio.master.periodic.block.integrity.check.repair";
+    public static final String MASTER_PERIODIC_BLOCK_INTEGRITY_CHECK_INTERVAL =
+        "alluxio.master.periodic.block.integrity.check.interval";
     public static final String MASTER_PRINCIPAL = "alluxio.master.principal";
     public static final String MASTER_RETRY = "alluxio.master.retry";
     public static final String MASTER_RPC_PORT = "alluxio.master.port";
     public static final String MASTER_SERVING_THREAD_TIMEOUT =
         "alluxio.master.serving.thread.timeout";
+    public static final String MASTER_STARTUP_BLOCK_INTEGRITY_CHECK_ENABLED =
+        "alluxio.master.startup.block.integrity.check.enabled";
     public static final String MASTER_STARTUP_CONSISTENCY_CHECK_ENABLED =
         "alluxio.master.startup.consistency.check.enabled";
     public static final String MASTER_THRIFT_SHUTDOWN_TIMEOUT =

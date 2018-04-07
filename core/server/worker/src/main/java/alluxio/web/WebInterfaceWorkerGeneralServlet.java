@@ -119,7 +119,7 @@ public final class WebInterfaceWorkerGeneralServlet extends HttpServlet {
      * @return the uptime
      */
     public String getUptime() {
-      return WebUtils.convertMsToClockTime(System.currentTimeMillis() - mStartTimeMs);
+      return CommonUtils.convertMsToClockTime(System.currentTimeMillis() - mStartTimeMs);
     }
 
     /**
