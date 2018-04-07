@@ -15,6 +15,7 @@ import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.network.ChannelType;
 import alluxio.util.ThreadFactoryUtils;
+import alluxio.util.io.FileUtils;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.base.Preconditions;
@@ -149,9 +150,15 @@ public final class NettyUtils {
    * @return true if the domain socket is enabled on this client
    */
   public static boolean isDomainSocketSupported(WorkerNetAddress workerNetAddress) {
-    return workerNetAddress.getHost().equals(NetworkAddressUtils.getClientHostName())
-        && !workerNetAddress.getDomainSocketPath().isEmpty()
-        && CHANNEL_TYPE == ChannelType.EPOLL;
+    boolean isDomainSocketSupported = !workerNetAddress.getDomainSocketPath().isEmpty();
+    if (isDomainSocketSupported) {
+      if (Configuration.getBoolean(PropertyKey.WORKER_DATA_SERVER_DOMAIN_SOCKET_AS_WORKER_ID)) {
+        isDomainSocketSupported = FileUtils.exists(workerNetAddress.getDomainSocketPath());
+      } else {
+        workerNetAddress.getHost().equals(NetworkAddressUtils.getClientHostName());
+      }
+    }
+    return isDomainSocketSupported && CHANNEL_TYPE == ChannelType.EPOLL;
   }
 
   /**

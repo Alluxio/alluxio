@@ -1385,9 +1385,19 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "UNIX domain socket when this is set (non-empty). This is a special path in "
               + "the file system that allows the client and the AlluxioWorker to communicate. "
               + "You will need to set a path to this socket. The AlluxioWorker needs to be "
-              + "able to create this path.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
-          .setScope(Scope.WORKER)
+              + "able to create the path. If " + Name.WORKER_DATA_SERVER_DOMAIN_SOCKET_AS_WORKER_ID
+              + " is set, the path should be the home directory for the domain socket. The full "
+              + "path for the domain socket with be <path>/<worker-id>.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN).setScope(Scope.WORKER)
+          .build();
+  public static final PropertyKey WORKER_DATA_SERVER_DOMAIN_SOCKET_AS_WORKER_ID =
+      new Builder(Name.WORKER_DATA_SERVER_DOMAIN_SOCKET_AS_WORKER_ID)
+          .setDefaultValue("false")
+          .setDescription("If true, the property " + Name.WORKER_DATA_SERVER_DOMAIN_SOCKET_ADDRESS
+              + "is the path to the home directory for the domain socket. In addition, clients "
+              + "will ignore " + Name.USER_HOSTNAME + " while detecting a local worker. If false, "
+              + "the property is the absolute path to the UNIX domain socket.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN).setScope(Scope.ALL)
           .build();
   public static final PropertyKey WORKER_DATA_TMP_FOLDER =
       new Builder(Name.WORKER_DATA_TMP_FOLDER)
@@ -3046,6 +3056,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String WORKER_DATA_SERVER_CLASS = "alluxio.worker.data.server.class";
     public static final String WORKER_DATA_SERVER_DOMAIN_SOCKET_ADDRESS =
         "alluxio.worker.data.server.domain.socket.address";
+    public static final String WORKER_DATA_SERVER_DOMAIN_SOCKET_AS_WORKER_ID =
+        "alluxio.worker.data.server.domain.socket.as.worker.id";
     public static final String WORKER_DATA_TMP_FOLDER = "alluxio.worker.data.folder.tmp";
     public static final String WORKER_DATA_TMP_SUBDIR_MAX = "alluxio.worker.data.tmp.subdir.max";
     public static final String WORKER_EVICTOR_CLASS = "alluxio.worker.evictor.class";
