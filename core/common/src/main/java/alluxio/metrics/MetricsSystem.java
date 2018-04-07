@@ -240,6 +240,7 @@ public final class MetricsSystem {
   public static Timer masterTimer(String name) {
     return METRIC_REGISTRY.timer(getMasterMetricName(name));
   }
+
   /**
    * @param name the metric name
    * @return the counter
@@ -255,6 +256,7 @@ public final class MetricsSystem {
   public static Timer workerTimer(String name) {
     return METRIC_REGISTRY.timer(getWorkerMetricName(name));
   }
+
   /**
    * @param name the metric name
    * @return the counter
@@ -270,6 +272,7 @@ public final class MetricsSystem {
   public static Timer clientTimer(String name) {
     return METRIC_REGISTRY.timer(getClientMetricName(name));
   }
+
   /**
    * @param name the metric name
    * @return the counter
