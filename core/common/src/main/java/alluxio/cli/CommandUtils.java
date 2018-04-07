@@ -15,11 +15,8 @@ import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.util.CommonUtils;
 
-<<<<<<< HEAD
 import org.checkerframework.checker.initialization.qual.Initialized;
-=======
 import org.apache.commons.cli.CommandLine;
->>>>>>> master
 import org.reflections.Reflections;
 
 import java.lang.reflect.Modifier;

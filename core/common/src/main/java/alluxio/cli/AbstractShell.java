@@ -16,6 +16,7 @@ import alluxio.exception.status.InvalidArgumentException;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,7 +28,6 @@ import java.util.Map;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
-import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -123,12 +123,7 @@ public abstract class AbstractShell implements Closeable {
    * @param cmd the name of the command
    * @return replacement command if cmd is an alias
    */
-<<<<<<< HEAD
-  @SuppressWarnings("nullness")
-=======
-  @Nullable
->>>>>>> master
-  private String[] getReplacementCmd(String cmd) {
+  private String @Nullable [] getReplacementCmd(String cmd) {
     if (mCommandAlias == null || !mCommandAlias.containsKey(cmd)) {
       return null;
     }
