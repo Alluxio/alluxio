@@ -12,11 +12,11 @@
 package alluxio.cli.fs.command;
 
 import alluxio.AlluxioURI;
+import alluxio.cli.CommandUtils;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemUtils;
 import alluxio.client.file.URIStatus;
 import alluxio.exception.AlluxioException;
-import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.InvalidArgumentException;
 
 import com.google.common.base.Joiner;
@@ -47,16 +47,8 @@ public final class PersistCommand extends AbstractFileSystemCommand {
   }
 
   @Override
-  protected int getNumOfArgs() {
-    return 1;
-  }
-
-  @Override
-  public void validateArgs(String... args) throws InvalidArgumentException {
-    if (args.length < getNumOfArgs()) {
-      throw new InvalidArgumentException(ExceptionMessage.INVALID_ARGS_NUM_INSUFFICIENT
-          .getMessage(getCommandName(), getNumOfArgs(), args.length));
-    }
+  public void validateArgs(CommandLine cl) throws InvalidArgumentException {
+    CommandUtils.checkNumOfArgsNoLessThan(this, cl, 1);
   }
 
   @Override
@@ -100,7 +92,7 @@ public final class PersistCommand extends AbstractFileSystemCommand {
 
   @Override
   public String getUsage() {
-    return "persist <alluxioPath1> [alluxioPath2] ... [alluxioPathn]";
+    return "persist <path> [<path> ...]";
   }
 
   @Override

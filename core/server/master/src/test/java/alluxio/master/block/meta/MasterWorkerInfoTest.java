@@ -129,11 +129,11 @@ public final class MasterWorkerInfoTest {
   }
 
   /**
-   * Tests the {@link MasterWorkerInfo#generateClientWorkerInfo()} method.
+   * Tests the {@link MasterWorkerInfo#generateWorkerInfo} method.
    */
   @Test
   public void workerInfoGeneration() {
-    WorkerInfo workerInfo = mInfo.generateClientWorkerInfo();
+    WorkerInfo workerInfo = mInfo.generateWorkerInfo(null, true);
     assertEquals(mInfo.getId(), workerInfo.getId());
     assertEquals(mInfo.getWorkerAddress(), workerInfo.getAddress());
     assertEquals("In Service", workerInfo.getState());

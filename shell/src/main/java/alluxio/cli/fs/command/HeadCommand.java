@@ -13,12 +13,14 @@ package alluxio.cli.fs.command;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
+import alluxio.cli.CommandUtils;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.OpenFileOptions;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
+import alluxio.exception.status.InvalidArgumentException;
 import alluxio.util.FormatUtils;
 
 import com.google.common.base.Preconditions;
@@ -35,6 +37,11 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class HeadCommand extends WithWildCardPathCommand {
+  private static final Option BYTES_OPTION = Option.builder("c")
+      .required(false)
+      .numberOfArgs(1)
+      .desc("number of bytes (e.g., 1024, 4KB)")
+      .build();
 
   /**
    * @param fs the filesystem of Alluxio
@@ -49,8 +56,8 @@ public final class HeadCommand extends WithWildCardPathCommand {
   }
 
   @Override
-  protected int getNumOfArgs() {
-    return 1;
+  public void validateArgs(CommandLine cl) throws InvalidArgumentException {
+    CommandUtils.checkNumOfArgsEquals(this, cl, 1);
   }
 
   @Override
@@ -84,7 +91,7 @@ public final class HeadCommand extends WithWildCardPathCommand {
 
   @Override
   public String getUsage() {
-    return "head -c <number of bytes> <path>";
+    return "head [-c <bytes>] <path>";
   }
 
   @Override
@@ -94,8 +101,6 @@ public final class HeadCommand extends WithWildCardPathCommand {
 
   @Override
   public Options getOptions() {
-    Option bytesOption =
-        Option.builder("c").required(false).numberOfArgs(1).desc("user specified option").build();
-    return new Options().addOption(bytesOption);
+    return new Options().addOption(BYTES_OPTION);
   }
 }

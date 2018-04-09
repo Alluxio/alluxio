@@ -12,10 +12,12 @@
 package alluxio.cli.fs.command;
 
 import alluxio.AlluxioURI;
+import alluxio.cli.CommandUtils;
 import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.exception.AlluxioException;
+import alluxio.exception.status.InvalidArgumentException;
 
 import com.google.common.base.Preconditions;
 import org.apache.commons.cli.CommandLine;
@@ -104,6 +106,11 @@ public final class StatCommand extends WithWildCardPathCommand {
         + " %y shows 'yyyy-MM-dd HH:mm:ss' (the UTC date),"
         + " %Y it shows milliseconds since January 1, 1970 UTC;"
         + "   \"%b\": Number of blocks allocated for file";
+  }
+
+  @Override
+  public void validateArgs(CommandLine cl) throws InvalidArgumentException {
+    CommandUtils.checkNumOfArgsEquals(this, cl, 1);
   }
 
   private static final String FORMAT_REGEX = "%([bguyzNY])";

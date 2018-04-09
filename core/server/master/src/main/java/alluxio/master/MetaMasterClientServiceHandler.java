@@ -12,9 +12,11 @@
 package alluxio.master;
 
 import alluxio.Constants;
-import alluxio.exception.AlluxioException;
 import alluxio.RpcUtils;
 import alluxio.RuntimeConstants;
+import alluxio.thrift.AlluxioTException;
+import alluxio.thrift.GetConfigurationTOptions;
+import alluxio.thrift.GetConfigurationTResponse;
 import alluxio.thrift.GetMasterInfoTOptions;
 import alluxio.thrift.GetMasterInfoTResponse;
 import alluxio.thrift.GetServiceVersionTOptions;
@@ -28,6 +30,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
+import java.util.stream.Collectors;
 
 /**
  * This class is a Thrift handler for meta master RPCs.
@@ -50,42 +53,49 @@ public final class MetaMasterClientServiceHandler implements MetaMasterClientSer
   }
 
   @Override
+  public GetConfigurationTResponse getConfiguration(GetConfigurationTOptions options)
+      throws AlluxioTException {
+    return RpcUtils.call(LOG, (RpcUtils.RpcCallable<GetConfigurationTResponse>) ()
+        -> (new GetConfigurationTResponse(mMasterProcess.getConfiguration()
+        .stream()
+        .map(configProperty -> (configProperty.toThrift()))
+        .collect(Collectors.toList()))));
+  }
+
+  @Override
   public GetMasterInfoTResponse getMasterInfo(final GetMasterInfoTOptions options)
       throws TException {
-    return RpcUtils.call(LOG, new RpcUtils.RpcCallable<GetMasterInfoTResponse>() {
-      @Override
-      public GetMasterInfoTResponse call() throws AlluxioException {
-        MasterInfo info = new alluxio.thrift.MasterInfo();
-        for (MasterInfoField field : options.getFilter() != null ? options.getFilter()
-            : Arrays.asList(MasterInfoField.values())) {
-          switch (field) {
-            case MASTER_ADDRESS:
-              info.setMasterAddress(mMasterProcess.getRpcAddress().toString());
-              break;
-            case RPC_PORT:
-              info.setRpcPort(mMasterProcess.getRpcAddress().getPort());
-              break;
-            case SAFE_MODE:
-              info.setSafeMode(mMasterProcess.isInSafeMode());
-              break;
-            case START_TIME_MS:
-              info.setStartTimeMs(mMasterProcess.getStartTimeMs());
-              break;
-            case UP_TIME_MS:
-              info.setUpTimeMs(mMasterProcess.getUptimeMs());
-              break;
-            case VERSION:
-              info.setVersion(RuntimeConstants.VERSION);
-              break;
-            case WEB_PORT:
-              info.setWebPort(mMasterProcess.getWebAddress().getPort());
-              break;
-            default:
-              LOG.warn("Unrecognized meta master info field: " + field);
-          }
+    return RpcUtils.call(LOG, (RpcUtils.RpcCallable<GetMasterInfoTResponse>) () -> {
+      MasterInfo info = new alluxio.thrift.MasterInfo();
+      for (MasterInfoField field : options.getFilter() != null ? options.getFilter()
+          : Arrays.asList(MasterInfoField.values())) {
+        switch (field) {
+          case MASTER_ADDRESS:
+            info.setMasterAddress(mMasterProcess.getRpcAddress().toString());
+            break;
+          case RPC_PORT:
+            info.setRpcPort(mMasterProcess.getRpcAddress().getPort());
+            break;
+          case SAFE_MODE:
+            info.setSafeMode(mMasterProcess.isInSafeMode());
+            break;
+          case START_TIME_MS:
+            info.setStartTimeMs(mMasterProcess.getStartTimeMs());
+            break;
+          case UP_TIME_MS:
+            info.setUpTimeMs(mMasterProcess.getUptimeMs());
+            break;
+          case VERSION:
+            info.setVersion(RuntimeConstants.VERSION);
+            break;
+          case WEB_PORT:
+            info.setWebPort(mMasterProcess.getWebAddress().getPort());
+            break;
+          default:
+            LOG.warn("Unrecognized meta master info field: " + field);
         }
-        return new GetMasterInfoTResponse(info);
       }
+      return new GetMasterInfoTResponse(info);
     });
   }
 }

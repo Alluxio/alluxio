@@ -12,6 +12,7 @@
 package alluxio.cli.fs.command;
 
 import alluxio.AlluxioURI;
+import alluxio.cli.CommandUtils;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.options.DeleteOptions;
 import alluxio.exception.AlluxioException;
@@ -49,7 +50,8 @@ public final class RmCommand extends WithWildCardPathCommand {
           .build();
 
   private static final Option REMOVE_ALLUXIO_ONLY =
-      Option.builder("alluxioOnly")
+      Option.builder()
+          .longOpt("alluxioOnly")
           .required(false)
           .hasArg(false)
           .desc("remove data and metadata from Alluxio space only")
@@ -65,11 +67,6 @@ public final class RmCommand extends WithWildCardPathCommand {
   @Override
   public String getCommandName() {
     return "rm";
-  }
-
-  @Override
-  protected int getNumOfArgs() {
-    return 1;
   }
 
   @Override
@@ -96,7 +93,7 @@ public final class RmCommand extends WithWildCardPathCommand {
     if (cl.hasOption(REMOVE_UNCHECKED_OPTION_CHAR)) {
       options.setUnchecked(true);
     }
-    boolean isAlluxioOnly = cl.hasOption(REMOVE_ALLUXIO_ONLY.getOpt());
+    boolean isAlluxioOnly = cl.hasOption(REMOVE_ALLUXIO_ONLY.getLongOpt());
     options.setAlluxioOnly(isAlluxioOnly);
     mFileSystem.delete(path, options);
     if (!isAlluxioOnly) {
@@ -108,7 +105,7 @@ public final class RmCommand extends WithWildCardPathCommand {
 
   @Override
   public String getUsage() {
-    return "rm [-R] [-U] [-alluxioOnly] <path>";
+    return "rm [-R] [-U] [--alluxioOnly] <path>";
   }
 
   @Override
@@ -119,10 +116,7 @@ public final class RmCommand extends WithWildCardPathCommand {
   }
 
   @Override
-  public void validateArgs(String... args) throws InvalidArgumentException {
-    if (args.length < 1) {
-      throw new InvalidArgumentException(ExceptionMessage.INVALID_ARGS_NUM_INSUFFICIENT
-          .getMessage(getCommandName(), 1, args.length));
-    }
+  public void validateArgs(CommandLine cl) throws InvalidArgumentException {
+    CommandUtils.checkNumOfArgsNoLessThan(this, cl, 1);
   }
 }
