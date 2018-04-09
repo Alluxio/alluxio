@@ -105,7 +105,7 @@ public final class MetricsConfig {
   }
 
   /**
-   * This method removes the instance prefix in the properties. This is to make the configuration
+   * Removes the instance prefix in the properties. This is to make the configuration
    * parsing logic backward compatible with old configuration format.
    */
   private void removeInstancePrefix() {
