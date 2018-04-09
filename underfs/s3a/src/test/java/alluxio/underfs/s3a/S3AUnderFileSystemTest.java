@@ -47,10 +47,6 @@ import java.util.Map;
  * Unit tests for the {@link S3AUnderFileSystem}.
  */
 public class S3AUnderFileSystemTest {
-  private S3AUnderFileSystem mS3UnderFileSystem;
-  private AmazonS3Client mClient;
-  private TransferManager mManager;
-
   private static final String PATH = "path";
   private static final String SRC = "src";
   private static final String DST = "dst";
@@ -58,6 +54,10 @@ public class S3AUnderFileSystemTest {
   private static final String BUCKET_NAME = "bucket";
   private static final String DEFAULT_OWNER = "";
   private static final short DEFAULT_MODE = 0700;
+
+  private S3AUnderFileSystem mS3UnderFileSystem;
+  private AmazonS3Client mClient;
+  private TransferManager mManager;
 
   @Rule
   public final ExpectedException mThrown = ExpectedException.none();
