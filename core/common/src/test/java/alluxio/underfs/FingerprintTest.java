@@ -55,4 +55,33 @@ public final class FingerprintTest {
     Assert.assertNotNull(expected);
     Assert.assertEquals(expected, Fingerprint.parse(expected).serialize());
   }
+
+  @Test
+  public void matchMetadataTest() {
+    String name = CommonUtils.randomAlphaNumString(10);
+    String contentHash = CommonUtils.randomAlphaNumString(10);
+    String contentHash2 = CommonUtils.randomAlphaNumString(11);
+    Long contentLength = mRandom.nextLong();
+    Long lastModifiedTimeMs = mRandom.nextLong();
+    String owner = CommonUtils.randomAlphaNumString(10);
+    String group = CommonUtils.randomAlphaNumString(10);
+    short mode = (short) mRandom.nextInt();
+    String ufsName = CommonUtils.randomAlphaNumString(10);
+
+    UfsFileStatus status = new UfsFileStatus(name, contentHash, contentLength, lastModifiedTimeMs,
+        owner, group, mode);
+    UfsFileStatus metadataChangedStatus = new UfsFileStatus(name, contentHash, contentLength,
+        lastModifiedTimeMs, CommonUtils.randomAlphaNumString(10),
+        CommonUtils.randomAlphaNumString(10), mode);
+    UfsFileStatus dataChangedStatus = new UfsFileStatus(name, contentHash2, contentLength,
+        lastModifiedTimeMs, owner, group, mode);
+    Fingerprint fp = Fingerprint.create(ufsName, status);
+    Fingerprint fpMetadataChanged = Fingerprint.create(ufsName, metadataChangedStatus);
+    Fingerprint fpDataChanged = Fingerprint.create(ufsName, dataChangedStatus);
+
+    Assert.assertTrue(fp.matchMetadata(fp.serialize()));
+    Assert.assertFalse(fp.matchMetadata(fpMetadataChanged.serialize()));
+    Assert.assertTrue(fp.matchContent(fpMetadataChanged.serialize()));
+    Assert.assertFalse(fp.matchContent(fpDataChanged.serialize()));
+  }
 }
