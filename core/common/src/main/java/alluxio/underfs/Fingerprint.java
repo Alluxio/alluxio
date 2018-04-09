@@ -33,6 +33,9 @@ public final class Fingerprint {
   /** These tags are optional, and are serialized after the required tags. */
   private static final Tag[] OPTIONAL_TAGS = {Tag.CONTENT_HASH};
 
+  /** These tags are all the metadata tags in the fingerprints. */
+  private static final Tag[] METADATA_TAGS = {Tag.TYPE, Tag.UFS, Tag.OWNER, Tag.GROUP, Tag.MODE};
+
   private static final Pattern SANITIZE_REGEX = Pattern.compile("[ :]");
   private static final String UNDERSCORE = "_";
 
@@ -133,6 +136,23 @@ public final class Fingerprint {
       }
     }
     return sb.toString();
+  }
+
+  /**
+   * Returns true if the serialized fingerprint matches the fingerprint in metadata.
+   *
+   * @param serializedFP a finger print in string representation
+   *
+   * @return true if the serialized fingerprint matches the current fingerprint in metadata
+   */
+  public boolean matchMetadata(String serializedFP) {
+    Fingerprint fp = Fingerprint.parse(serializedFP);
+    for (Tag tag : METADATA_TAGS) {
+      if (!this.getTag(tag).equals(fp.getTag(tag))) {
+        return false;
+      }
+    }
+    return true;
   }
 
   /**
