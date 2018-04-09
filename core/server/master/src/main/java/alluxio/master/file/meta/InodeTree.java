@@ -1295,8 +1295,8 @@ public class InodeTree implements JournalEntryIterable {
      * @param created a list of created inodes
      */
     CreatePathResult(List<Inode<?>> modified, List<Inode<?>> created) {
-      mModified = Preconditions.checkNotNull(modified);
-      mCreated = Preconditions.checkNotNull(created);
+      mModified = Preconditions.checkNotNull(modified, "modified");
+      mCreated = Preconditions.checkNotNull(created, "created");
     }
 
     /**
