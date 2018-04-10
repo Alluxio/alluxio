@@ -12,12 +12,16 @@
 package alluxio.cli.fs.command;
 
 import alluxio.AlluxioURI;
+import alluxio.Constants;
 import alluxio.cli.CommandUtils;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.options.FreeOptions;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.InvalidArgumentException;
+import alluxio.util.CommonUtils;
+import alluxio.util.WaitForOptions;
 
+import com.google.common.base.Throwables;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
@@ -64,6 +68,15 @@ public final class FreeCommand extends AbstractFileSystemCommand {
       throws AlluxioException, IOException {
     FreeOptions options = FreeOptions.defaults().setRecursive(true).setForced(cl.hasOption("f"));
     mFileSystem.free(path, options);
+    CommonUtils.waitFor("File to be freed.", (v) -> {
+      try {
+        return mFileSystem.getStatus(path).getInMemoryPercentage() == 0;
+      } catch (Exception e) {
+        Throwables.propagateIfPossible(e);
+        throw new RuntimeException(e);
+      }
+    }, WaitForOptions.defaults().setTimeoutMs(10 * Constants.SECOND_MS)
+        .setInterval(Constants.SECOND_MS));
     System.out.println(path + " was successfully freed from memory.");
   }
 
