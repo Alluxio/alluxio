@@ -22,6 +22,13 @@ import java.util.List;
  */
 public interface InodePermissionChecker {
   /**
+   * @return a new instance of {@link InodePermissionChecker}
+   */
+  static InodePermissionChecker create() {
+    return new DefaultInodePermissionChecker();
+  }
+
+  /**
    * Checks whether user has the specified permission on the file or directory at path.
    *
    * @param user the user

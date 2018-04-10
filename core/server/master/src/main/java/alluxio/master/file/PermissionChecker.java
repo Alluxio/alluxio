@@ -60,7 +60,7 @@ public final class PermissionChecker {
         Configuration.getBoolean(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED);
     mFileSystemSuperGroup =
         Configuration.get(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_SUPERGROUP);
-    mInodePermissionChecker = InodePermissionCheckerFactory.create();
+    mInodePermissionChecker = InodePermissionChecker.create();
   }
 
   /**
