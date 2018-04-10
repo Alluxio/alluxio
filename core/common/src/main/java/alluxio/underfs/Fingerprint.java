@@ -155,7 +155,7 @@ public final class Fingerprint {
   }
 
   /**
-   * Returns true if the serialized fingerprint matches the fingerprint in the data part.
+   * Returns true if the serialized fingerprint matches the fingerprint in the content part.
    *
    * @param fp a parsed fingerprint object
    * @return true if the given fingerprint matches the current fingerprint's content
