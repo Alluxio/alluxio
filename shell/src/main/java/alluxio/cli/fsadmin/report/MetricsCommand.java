@@ -34,7 +34,7 @@ public class MetricsCommand {
 
   private final MetaMasterClient mMetaMasterClient;
   private final PrintStream mPrintStream;
-  private String mInfoFormat = "%-30s %25s";
+  private String mInfoFormat = "%-25s %20s";
 
   /**
    * Creates a new instance of {@link MetricsCommand}.
@@ -76,7 +76,7 @@ public class MetricsCommand {
     for (Map.Entry<String, MetricValue> entry : metricsMap.entrySet()) {
       String key = entry.getKey();
       if (operations.contains(key)) {
-        printIndentedMetrics(getReadableName(key), entry.getValue());
+        printIndentedMetrics(key, entry.getValue());
       }
     }
 
@@ -98,7 +98,7 @@ public class MetricsCommand {
     for (Map.Entry<String, MetricValue> entry : metricsMap.entrySet()) {
       String key = entry.getKey();
       if (rpcInvocations.contains(key)) {
-        printIndentedMetrics(getReadableName(key), entry.getValue());
+        printIndentedMetrics(key, entry.getValue());
       }
     }
 
@@ -111,17 +111,6 @@ public class MetricsCommand {
       }
     }
     return 0;
-  }
-
-  /**
-   * Gets readable name from property name.
-   *
-   * @param key the property key to transfer
-   * @return a readable name
-   */
-  private String getReadableName(String key) {
-    return key.replaceAll("(.)([A-Z])", "$1 $2")
-        .replaceAll("Ops", "Operations");
   }
 
   /**

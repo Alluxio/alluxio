@@ -24,8 +24,8 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public final class MetricValue {
 
-  private Double mDoubleValue = null;
-  private Long mLongValue = null;
+  private Double mDoubleValue;
+  private Long mLongValue;
 
   /**
    * Creates a new instance of {@link MetricValue} from a thrift representation.
