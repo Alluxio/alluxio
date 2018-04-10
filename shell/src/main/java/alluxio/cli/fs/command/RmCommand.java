@@ -32,7 +32,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * Removes the file specified by argv.
  */
 @ThreadSafe
-public final class RmCommand extends WithWildCardPathCommand {
+public final class RmCommand extends AbstractFileSystemCommand {
 
   private static final Option RECURSIVE_OPTION =
       Option.builder("R")
@@ -78,7 +78,8 @@ public final class RmCommand extends WithWildCardPathCommand {
   }
 
   @Override
-  protected void runCommand(AlluxioURI path, CommandLine cl) throws AlluxioException, IOException {
+  protected void runPlainPath(AlluxioURI path, CommandLine cl)
+      throws AlluxioException, IOException {
     // TODO(calvin): Remove explicit state checking.
     boolean recursive = cl.hasOption("R");
     if (!mFileSystem.exists(path)) {
@@ -93,6 +94,7 @@ public final class RmCommand extends WithWildCardPathCommand {
     if (cl.hasOption(REMOVE_UNCHECKED_OPTION_CHAR)) {
       options.setUnchecked(true);
     }
+
     boolean isAlluxioOnly = cl.hasOption(REMOVE_ALLUXIO_ONLY.getLongOpt());
     options.setAlluxioOnly(isAlluxioOnly);
     mFileSystem.delete(path, options);
@@ -101,6 +103,15 @@ public final class RmCommand extends WithWildCardPathCommand {
     } else {
       System.out.println(path + " has been removed from Alluxio space");
     }
+  }
+
+  @Override
+  public int run(CommandLine cl) throws AlluxioException, IOException {
+    String[] args = cl.getArgs();
+    AlluxioURI path = new AlluxioURI(args[0]);
+    runWildCardCmd(path, cl);
+
+    return 0;
   }
 
   @Override

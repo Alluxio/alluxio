@@ -50,6 +50,12 @@ public class CheckConsistencyCommand extends AbstractFileSystemCommand {
   }
 
   @Override
+  protected void runPlainPath(AlluxioURI plainPath, CommandLine cl)
+      throws AlluxioException, IOException {
+    checkConsistency(plainPath, cl.hasOption("r"));
+  }
+
+  @Override
   public void validateArgs(CommandLine cl) throws InvalidArgumentException {
     CommandUtils.checkNumOfArgsEquals(this, cl, 1);
   }
@@ -68,7 +74,8 @@ public class CheckConsistencyCommand extends AbstractFileSystemCommand {
   public int run(CommandLine cl) throws AlluxioException, IOException {
     String[] args = cl.getArgs();
     AlluxioURI root = new AlluxioURI(args[0]);
-    checkConsistency(root, cl.hasOption("r"));
+
+    runWildCardCmd(root, cl);
     return 0;
   }
 

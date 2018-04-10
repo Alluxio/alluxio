@@ -197,12 +197,7 @@ public final class AlluxioMasterRestServiceHandler {
   @ReturnType("java.lang.String")
   @Deprecated
   public Response getRpcAddress() {
-    return RestUtils.call(new RestUtils.RestCallable<String>() {
-      @Override
-      public String call() throws Exception {
-        return mMasterProcess.getRpcAddress().toString();
-      }
-    });
+    return RestUtils.call(() -> mMasterProcess.getRpcAddress().toString());
   }
 
   /**
@@ -235,12 +230,7 @@ public final class AlluxioMasterRestServiceHandler {
   @ReturnType("java.lang.Long")
   @Deprecated
   public Response getUptimeMs() {
-    return RestUtils.call(new RestUtils.RestCallable<Long>() {
-      @Override
-      public Long call() throws Exception {
-        return mMasterProcess.getUptimeMs();
-      }
-    });
+    return RestUtils.call(() -> mMasterProcess.getUptimeMs());
   }
 
   /**

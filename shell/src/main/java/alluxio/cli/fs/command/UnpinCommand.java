@@ -28,7 +28,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * are never evicted from memory, so this method will allow such files to be evicted.
  */
 @ThreadSafe
-public final class UnpinCommand extends WithWildCardPathCommand {
+public final class UnpinCommand extends AbstractFileSystemCommand {
 
   /**
    * @param fs the filesystem of Alluxio
@@ -43,9 +43,18 @@ public final class UnpinCommand extends WithWildCardPathCommand {
   }
 
   @Override
-  protected void runCommand(AlluxioURI path, CommandLine cl) throws AlluxioException, IOException {
+  protected void runPlainPath(AlluxioURI path, CommandLine cl)
+      throws AlluxioException, IOException {
     FileSystemCommandUtils.setPinned(mFileSystem, path, false);
     System.out.println("File '" + path + "' was successfully unpinned.");
+  }
+
+  @Override
+  public int run(CommandLine cl) throws AlluxioException, IOException {
+    String[] args = cl.getArgs();
+    AlluxioURI path = new AlluxioURI(args[0]);
+    runWildCardCmd(path, cl);
+    return 0;
   }
 
   @Override

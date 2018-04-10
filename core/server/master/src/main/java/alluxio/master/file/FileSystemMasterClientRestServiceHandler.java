@@ -268,14 +268,11 @@ public final class FileSystemMasterClientRestServiceHandler {
   @ReturnType("java.lang.Void")
   public Response free(@QueryParam("path") final String path,
       @QueryParam("recursive") final boolean recursive) {
-    return RestUtils.call(new RestUtils.RestCallable<Void>() {
-      @Override
-      public Void call() throws Exception {
-        Preconditions.checkNotNull(path, "required 'path' parameter is missing");
-        mFileSystemMaster.free(new AlluxioURI(path), FreeOptions.defaults()
-            .setRecursive(recursive));
-        return null;
-      }
+    return RestUtils.call((RestUtils.RestCallable<Void>) () -> {
+      Preconditions.checkNotNull(path, "required 'path' parameter is missing");
+      mFileSystemMaster.free(new AlluxioURI(path), FreeOptions.defaults()
+          .setRecursive(recursive));
+      return null;
     });
   }
 

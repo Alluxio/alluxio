@@ -66,4 +66,26 @@ public final class ChmodCommandIntegrationTest extends AbstractFileSystemShellTe
     permission = mFileSystem.getStatus(new AlluxioURI("/testFile")).getMode();
     Assert.assertEquals((short) 0755, permission);
   }
+
+  /**
+   * Tests wildcard entries for chmod.
+   */
+  @Test
+  public void chmodWildCard() throws IOException, AlluxioException {
+    clearLoginUser();
+    FileSystemTestUtils.createByteFile(mFileSystem,
+            "/testDir/testFile1", WriteType.MUST_CACHE, 10);
+    FileSystemTestUtils.createByteFile(mFileSystem,
+            "/testDir2/testFile2", WriteType.MUST_CACHE, 10);
+    mFsShell.run("chmod", "a=rwx", "/testDir*/testFile*");
+    int permission = mFileSystem.getStatus(new AlluxioURI("/testDir/testFile1")).getMode();
+    Assert.assertEquals((short) 0777, permission);
+    permission = mFileSystem.getStatus(new AlluxioURI("/testDir2/testFile2")).getMode();
+    Assert.assertEquals((short) 0777, permission);
+    mFsShell.run("chmod", "u=rwx,go=rx", "/testDir*/testFile*");
+    permission = mFileSystem.getStatus(new AlluxioURI("/testDir/testFile1")).getMode();
+    Assert.assertEquals((short) 0755, permission);
+    permission = mFileSystem.getStatus(new AlluxioURI("/testDir2/testFile2")).getMode();
+    Assert.assertEquals((short) 0755, permission);
+  }
 }

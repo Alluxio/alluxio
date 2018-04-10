@@ -147,9 +147,15 @@ function copyDir {
     exit 1
   fi
 
+  ABS_PATH_COMMAND="readlink -f"
+  if [[ $(uname -s) = "Darwin" ]]
+  then
+    ABS_PATH_COMMAND="realpath"
+  fi
+
   WORKERS=$(cat ${ALLUXIO_CONF_DIR}/workers | grep -v '^#')
 
-  DIR=$(readlink -f "$1")
+  DIR=$(${ABS_PATH_COMMAND} $1)
   DIR=$(echo ${DIR}|sed 's@/$@@')
   DEST=$(dirname ${DIR})
 
