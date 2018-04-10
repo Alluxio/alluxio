@@ -86,5 +86,6 @@ public final class FingerprintTest {
     assertFalse(fp.matchMetadata(fpMetadataChanged));
     assertTrue(fp.matchContent(fpMetadataChanged));
     assertFalse(fp.matchContent(fpDataChanged));
+    assertTrue(fp.matchMetadata(fpDataChanged));
   }
 }
