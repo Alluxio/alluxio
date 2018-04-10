@@ -1388,7 +1388,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "able to create the path. If " + Name.WORKER_DATA_SERVER_DOMAIN_SOCKET_AS_WORKER_ID
               + " is set, the path should be the home directory for the domain socket. The full "
               + "path for the domain socket with be <path>/<worker-id>.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN).setScope(Scope.WORKER)
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.WORKER)
           .build();
   public static final PropertyKey WORKER_DATA_SERVER_DOMAIN_SOCKET_AS_WORKER_ID =
       new Builder(Name.WORKER_DATA_SERVER_DOMAIN_SOCKET_AS_WORKER_ID)
@@ -1397,7 +1398,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "is the path to the home directory for the domain socket. In addition, clients "
               + "will ignore " + Name.USER_HOSTNAME + " while detecting a local worker. If false, "
               + "the property is the absolute path to the UNIX domain socket.")
-          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN).setScope(Scope.ALL)
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.ALL)
           .build();
   public static final PropertyKey WORKER_DATA_TMP_FOLDER =
       new Builder(Name.WORKER_DATA_TMP_FOLDER)
