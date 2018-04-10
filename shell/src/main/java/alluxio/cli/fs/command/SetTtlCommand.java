@@ -46,6 +46,7 @@ public final class SetTtlCommand extends AbstractFileSystemCommand {
           .build();
 
   private TtlAction mAction = TtlAction.DELETE;
+  private long mTtlMs;
 
   /**
    * @param fs the filesystem of Alluxio
@@ -79,14 +80,21 @@ public final class SetTtlCommand extends AbstractFileSystemCommand {
   }
 
   @Override
+  protected void runPlainPath(AlluxioURI path, CommandLine cl)
+      throws AlluxioException, IOException {
+    FileSystemCommandUtils.setTtl(mFileSystem, path, mTtlMs, mAction);
+    System.out.println("TTL of path '" + path + "' was successfully set to " + mTtlMs
+            + " milliseconds, with expiry action set to " + mAction);
+  }
+
+  @Override
   public int run(CommandLine cl) throws AlluxioException, IOException {
     String[] args = cl.getArgs();
     String ttl = CommonUtils.stripLeadingAndTrailingQuotes(args[1]);
-    long ttlMs = FileSystemShellUtils.getMs(ttl);
+    mTtlMs = FileSystemShellUtils.getMs(ttl);
     AlluxioURI path = new AlluxioURI(args[0]);
-    FileSystemCommandUtils.setTtl(mFileSystem, path, ttlMs, mAction);
-    System.out.println("TTL of path '" + path + "' was successfully set to " + ttlMs
-        + " milliseconds, with expiry action set to " + mAction);
+    runWildCardCmd(path, cl);
+
     return 0;
   }
 

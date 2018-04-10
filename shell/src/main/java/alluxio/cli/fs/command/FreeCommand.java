@@ -31,7 +31,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * folder).
  */
 @ThreadSafe
-public final class FreeCommand extends WithWildCardPathCommand {
+public final class FreeCommand extends AbstractFileSystemCommand {
 
   private static final Option FORCE_OPTION =
       Option.builder("f")
@@ -60,7 +60,8 @@ public final class FreeCommand extends WithWildCardPathCommand {
   }
 
   @Override
-  protected void runCommand(AlluxioURI path, CommandLine cl) throws AlluxioException, IOException {
+  protected void runPlainPath(AlluxioURI path, CommandLine cl)
+      throws AlluxioException, IOException {
     FreeOptions options = FreeOptions.defaults().setRecursive(true).setForced(cl.hasOption("f"));
     mFileSystem.free(path, options);
     System.out.println(path + " was successfully freed from memory.");
@@ -75,6 +76,15 @@ public final class FreeCommand extends WithWildCardPathCommand {
   public String getDescription() {
     return "Frees the space occupied by a file or a directory in Alluxio."
         + " Specify -f to force freeing pinned files in the directory.";
+  }
+
+  @Override
+  public int run(CommandLine cl) throws AlluxioException, IOException {
+    String[] args = cl.getArgs();
+    AlluxioURI path = new AlluxioURI(args[0]);
+    runWildCardCmd(path, cl);
+
+    return 0;
   }
 
   @Override
