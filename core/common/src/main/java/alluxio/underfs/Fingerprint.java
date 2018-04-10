@@ -144,7 +144,6 @@ public final class Fingerprint {
    * Returns true if the serialized fingerprint matches the fingerprint in metadata.
    *
    * @param fp a parsed fingerprint object
-   *
    * @return true if the given fingerprint matches the current fingerprint in metadata
    */
   public boolean matchMetadata(Fingerprint fp) {
@@ -160,7 +159,6 @@ public final class Fingerprint {
    * Returns true if the serialized fingerprint matches the fingerprint in the data part.
    *
    * @param fp a parsed fingerprint object
-   *
    * @return true if the given fingerprint matches the current fingerprint's data
    */
   public boolean matchContent(Fingerprint fp) {
