@@ -11,7 +11,7 @@
 
 package alluxio.master.file;
 
-import static org.mockito.Mockito;
+import static org.mockito.Mockito.mock;
 
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
