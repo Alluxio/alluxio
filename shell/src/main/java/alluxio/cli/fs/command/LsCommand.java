@@ -246,7 +246,7 @@ public final class LsCommand extends AbstractFileSystemCommand {
 
     if (!sortToUse.isPresent()) {
       throw new InvalidArgumentException(ExceptionMessage.INVALID_ARGS_SORT_FIELD
-              .getMessage(sortField));
+          .getMessage(sortField));
     }
 
     Comparator<URIStatus> sortBy = sortToUse.get();
@@ -259,11 +259,9 @@ public final class LsCommand extends AbstractFileSystemCommand {
 
   @Override
   protected void runPlainPath(AlluxioURI path, CommandLine cl)
-
       throws AlluxioException, IOException {
     ls(path, cl.hasOption("R"), cl.hasOption("f"), cl.hasOption("d"), cl.hasOption("h"),
-            cl.hasOption("p"), cl.getOptionValue("sort", "name"),
-            cl.hasOption("r"));
+        cl.hasOption("p"), cl.getOptionValue("sort", "name"), cl.hasOption("r"));
   }
 
   @Override
