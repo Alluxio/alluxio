@@ -11,6 +11,9 @@
 
 package alluxio.underfs;
 
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertFalse;
+
 import alluxio.util.CommonUtils;
 
 import org.junit.Assert;
@@ -57,7 +60,7 @@ public final class FingerprintTest {
   }
 
   @Test
-  public void matchMetadataTest() {
+  public void matchMetadataOrContent() {
     String name = CommonUtils.randomAlphaNumString(10);
     String contentHash = CommonUtils.randomAlphaNumString(10);
     String contentHash2 = CommonUtils.randomAlphaNumString(11);
@@ -79,9 +82,9 @@ public final class FingerprintTest {
     Fingerprint fpMetadataChanged = Fingerprint.create(ufsName, metadataChangedStatus);
     Fingerprint fpDataChanged = Fingerprint.create(ufsName, dataChangedStatus);
 
-    Assert.assertTrue(fp.matchMetadata(fp.serialize()));
-    Assert.assertFalse(fp.matchMetadata(fpMetadataChanged.serialize()));
-    Assert.assertTrue(fp.matchContent(fpMetadataChanged.serialize()));
-    Assert.assertFalse(fp.matchContent(fpDataChanged.serialize()));
+    assertTrue(fp.matchMetadata(fp));
+    assertFalse(fp.matchMetadata(fpMetadataChanged));
+    assertTrue(fp.matchContent(fpMetadataChanged));
+    assertFalse(fp.matchContent(fpDataChanged));
   }
 }

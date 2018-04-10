@@ -34,9 +34,9 @@ public final class Fingerprint {
   private static final Tag[] OPTIONAL_TAGS = {Tag.CONTENT_HASH};
 
   /** These tags are all the metadata tags in the fingerprints. */
-  private static final Tag[] METADATA_TAGS = {Tag.TYPE, Tag.UFS, Tag.OWNER, Tag.GROUP, Tag.MODE};
+  private static final Tag[] METADATA_TAGS = {Tag.OWNER, Tag.GROUP, Tag.MODE};
   /** These tags are all the metadata tags in the fingerprints. */
-  private static final Tag[] CONTENT_TAGS = {Tag.CONTENT_HASH};
+  private static final Tag[] CONTENT_TAGS = {Tag.TYPE, Tag.UFS, Tag.CONTENT_HASH};
 
   private static final Pattern SANITIZE_REGEX = Pattern.compile("[ :]");
   private static final String UNDERSCORE = "_";
@@ -143,14 +143,13 @@ public final class Fingerprint {
   /**
    * Returns true if the serialized fingerprint matches the fingerprint in metadata.
    *
-   * @param serializedFP a finger print in string representation
+   * @param fp a parsed fingerprint object
    *
-   * @return true if the serialized fingerprint matches the current fingerprint in metadata
+   * @return true if the given fingerprint matches the current fingerprint in metadata
    */
-  public boolean matchMetadata(String serializedFP) {
-    Fingerprint fp = Fingerprint.parse(serializedFP);
+  public boolean matchMetadata(Fingerprint fp) {
     for (Tag tag : METADATA_TAGS) {
-      if (!this.getTag(tag).equals(fp.getTag(tag))) {
+      if (!getTag(tag).equals(fp.getTag(tag))) {
         return false;
       }
     }
@@ -160,14 +159,13 @@ public final class Fingerprint {
   /**
    * Returns true if the serialized fingerprint matches the fingerprint in the data part.
    *
-   * @param serializedFP a finger print in string representation
+   * @param fp a parsed fingerprint object
    *
-   * @return true if the serialized fingerprint matches the current fingerprint's data
+   * @return true if the given fingerprint matches the current fingerprint's data
    */
-  public boolean matchContent(String serializedFP) {
-    Fingerprint fp = Fingerprint.parse(serializedFP);
+  public boolean matchContent(Fingerprint fp) {
     for (Tag tag : CONTENT_TAGS) {
-      if (!this.getTag(tag).equals(fp.getTag(tag))) {
+      if (!getTag(tag).equals(fp.getTag(tag))) {
         return false;
       }
     }
