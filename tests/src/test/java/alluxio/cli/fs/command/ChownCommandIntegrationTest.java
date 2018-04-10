@@ -199,6 +199,24 @@ public final class ChownCommandIntegrationTest extends AbstractFileSystemShellTe
   }
 
   /**
+   * Tests chown with wildcard entries.
+   */
+  @Test
+  public void chownWildcard() throws IOException, AlluxioException {
+    clearLoginUser();
+    FileSystemTestUtils.createByteFile(mFileSystem,
+            "/testDir/testFile1", WriteType.MUST_CACHE, 10);
+    FileSystemTestUtils.createByteFile(mFileSystem,
+            "/testDir2/testFile2", WriteType.MUST_CACHE, 10);
+
+    mFsShell.run("chown", "-R", TEST_USER_1.getUser(), "/*/testFile*");
+    String owner = mFileSystem.getStatus(new AlluxioURI("/testDir/testFile1")).getOwner();
+    Assert.assertEquals(TEST_USER_1.getUser(), owner);
+    owner = mFileSystem.getStatus(new AlluxioURI("/testDir2/testFile2")).getOwner();
+    Assert.assertEquals(TEST_USER_1.getUser(), owner);
+  }
+
+  /**
    * Checks whether the owner and group of the path are expectedOwner and expectedGroup.
    *
    * @param path the path to check

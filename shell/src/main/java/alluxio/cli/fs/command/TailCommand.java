@@ -36,7 +36,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * Prints the file's last n bytes (by default, 1KB) to the console.
  */
 @ThreadSafe
-public final class TailCommand extends WithWildCardPathCommand {
+public final class TailCommand extends AbstractFileSystemCommand {
   private static final Option BYTES_OPTION = Option.builder("c")
       .required(false)
       .numberOfArgs(1)
@@ -56,7 +56,8 @@ public final class TailCommand extends WithWildCardPathCommand {
   }
 
   @Override
-  protected void runCommand(AlluxioURI path, CommandLine cl) throws AlluxioException, IOException {
+  protected void runPlainPath(AlluxioURI path, CommandLine cl)
+      throws AlluxioException, IOException {
     URIStatus status = mFileSystem.getStatus(path);
     int numOfBytes = Constants.KB;
     if (cl.hasOption('c')) {
@@ -82,6 +83,14 @@ public final class TailCommand extends WithWildCardPathCommand {
         System.out.write(buf, 0, read);
       }
     }
+  }
+
+  @Override
+  public int run(CommandLine cl) throws AlluxioException, IOException {
+    String[] args = cl.getArgs();
+    AlluxioURI path = new AlluxioURI(args[0]);
+    runWildCardCmd(path, cl);
+    return 0;
   }
 
   @Override

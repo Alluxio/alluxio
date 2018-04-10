@@ -36,12 +36,14 @@ import javax.annotation.concurrent.ThreadSafe;
  * Prints the file's first n bytes (by default, 1KB) to the console.
  */
 @ThreadSafe
-public final class HeadCommand extends WithWildCardPathCommand {
+public final class HeadCommand extends AbstractFileSystemCommand {
   private static final Option BYTES_OPTION = Option.builder("c")
       .required(false)
       .numberOfArgs(1)
       .desc("number of bytes (e.g., 1024, 4KB)")
       .build();
+
+  private int mNumOfBytes;
 
   /**
    * @param fs the filesystem of Alluxio
@@ -61,22 +63,18 @@ public final class HeadCommand extends WithWildCardPathCommand {
   }
 
   @Override
-  protected void runCommand(AlluxioURI path, CommandLine cl) throws AlluxioException, IOException {
-    URIStatus status = mFileSystem.getStatus(path);
-    int numOfBytes = Constants.KB;
-    if (cl.hasOption('c')) {
-      numOfBytes = (int) FormatUtils.parseSpaceSize(cl.getOptionValue('c'));
-      Preconditions.checkArgument(numOfBytes > 0, "specified bytes must be > 0");
-    }
+  protected void runPlainPath(AlluxioURI plainPath, CommandLine cl)
+      throws AlluxioException, IOException {
+    URIStatus status = mFileSystem.getStatus(plainPath);
 
     if (status.isFolder()) {
-      throw new IOException(ExceptionMessage.PATH_MUST_BE_FILE.getMessage(path));
+      throw new IOException(ExceptionMessage.PATH_MUST_BE_FILE.getMessage(plainPath));
     }
     OpenFileOptions options = OpenFileOptions.defaults();
-    try (FileInStream is = mFileSystem.openFile(path, options)) {
+    try (FileInStream is = mFileSystem.openFile(plainPath, options)) {
       long bytesToRead;
-      if (status.getLength() > numOfBytes) {
-        bytesToRead = numOfBytes;
+      if (status.getLength() > mNumOfBytes) {
+        bytesToRead = mNumOfBytes;
       } else {
         bytesToRead = status.getLength();
       }
@@ -87,6 +85,20 @@ public final class HeadCommand extends WithWildCardPathCommand {
         System.out.write(buf, 0, read);
       }
     }
+  }
+
+  @Override
+  public int run(CommandLine cl) throws AlluxioException, IOException {
+    String[] args = cl.getArgs();
+    mNumOfBytes = Constants.KB;
+    if (cl.hasOption('c')) {
+      mNumOfBytes = (int) FormatUtils.parseSpaceSize(cl.getOptionValue('c'));
+      Preconditions.checkArgument(mNumOfBytes > 0, "specified bytes must be > 0");
+    }
+    AlluxioURI path = new AlluxioURI(args[0]);
+    runWildCardCmd(path, cl);
+
+    return 0;
   }
 
   @Override
