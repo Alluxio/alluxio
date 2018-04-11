@@ -50,6 +50,8 @@ import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -262,7 +264,8 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
       if (!mFileSystem.exists(turi)) {
         return -ErrorCodes.ENOENT();
       }
-      final URIStatus status = mFileSystem.getStatus(turi);
+      URIStatus status = mFileSystem.getStatus(turi);
+
       stat.st_size.set(status.getLength());
 
       final long ctime_sec = status.getLastModificationTimeMs() / 1000;
@@ -742,6 +745,18 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
       }
 
       mFileSystem.delete(turi);
+      mPathResolverCache.invalidate(path);  // qiniu
+      LOG.error("==== rm path " + path);
+      Set<String> ks = mPathResolverCache.asMap().keySet();
+      for (String k: ks) {
+          LOG.error("==== p: " + k);
+      }
+      if (status.isFolder()) {
+          Set<String> keys = mPathResolverCache.asMap().keySet();
+          for (String k: keys) {
+              if (k.startsWith(path)) mPathResolverCache.invalidate(k);
+          }
+      }
     } catch (FileDoesNotExistException e) {
       LOG.debug("File does not exist {}", path, e);
       return -ErrorCodes.ENOENT();
