@@ -12,7 +12,8 @@
 package alluxio.cli.fs.command;
 
 import alluxio.AlluxioURI;
-import alluxio.Constants;
+import alluxio.Configuration;
+import alluxio.PropertyKey;
 import alluxio.cli.CommandUtils;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.options.FreeOptions;
@@ -66,17 +67,23 @@ public final class FreeCommand extends AbstractFileSystemCommand {
   @Override
   protected void runPlainPath(AlluxioURI path, CommandLine cl)
       throws AlluxioException, IOException {
+    int interval =
+        Math.toIntExact(Configuration.getMs(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS));
     FreeOptions options = FreeOptions.defaults().setRecursive(true).setForced(cl.hasOption("f"));
     mFileSystem.free(path, options);
-    CommonUtils.waitFor("File to be freed.", (v) -> {
+    CommonUtils.waitFor("file to be freed. Another user may be loading it.", (v) -> {
       try {
-        return mFileSystem.getStatus(path).getInMemoryPercentage() == 0;
+        boolean freed = mFileSystem.getStatus(path).getInAlluxioPercentage() == 0;
+        if (!freed) {
+          mFileSystem.free(path, options);
+        }
+        return freed;
       } catch (Exception e) {
         Throwables.propagateIfPossible(e);
         throw new RuntimeException(e);
       }
-    }, WaitForOptions.defaults().setTimeoutMs(10 * Constants.SECOND_MS)
-        .setInterval(Constants.SECOND_MS));
+    }, WaitForOptions.defaults().setTimeoutMs(10 * Math.toIntExact(interval))
+        .setInterval(interval));
     System.out.println(path + " was successfully freed from memory.");
   }
 
