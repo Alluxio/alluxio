@@ -63,19 +63,19 @@ enum LoadMetadataTType {
   Always = 2,  // Always load metadata.
 }
 
+struct GetNewBlockIdForFileTOptions {
+  1: optional FileSystemMasterCommonTOptions commonOptions
+}
+struct GetNewBlockIdForFileTResponse {
+  1: i64 id
+}
+
 struct GetStatusTOptions {
   1: optional LoadMetadataTType loadMetadataType
   2: optional FileSystemMasterCommonTOptions commonOptions
 }
 struct GetStatusTResponse {
   1: FileInfo fileInfo
-}
-
-struct GetNewBlockIdForFileTOptions {
-  1: optional FileSystemMasterCommonTOptions commonOptions
-}
-struct GetNewBlockIdForFileTResponse {
-  1: i64 id
 }
 
 struct ListStatusTOptions {
@@ -279,12 +279,9 @@ service FileSystemMasterClientService extends common.AlluxioService {
     throws (1: exception.AlluxioTException e)
 
   /**
-   * Returns the status of the file or directory.
-   */
-  GetStatusTResponse getStatus(
-    /** the path of the file or directory */ 1: string path,
-    /** the method options */ 2: GetStatusTOptions options,
-    )
+  * Returns a map from each Alluxio path to information of corresponding mount point
+  */
+  GetMountTableTResponse getMountTable()
     throws (1: exception.AlluxioTException e)
 
   /**
@@ -293,6 +290,15 @@ service FileSystemMasterClientService extends common.AlluxioService {
   GetNewBlockIdForFileTResponse getNewBlockIdForFile(
     /** the path of the file */ 1: string path,
     /** the method options */ 2: GetNewBlockIdForFileTOptions options,
+    )
+    throws (1: exception.AlluxioTException e)
+
+  /**
+   * Returns the status of the file or directory.
+   */
+  GetStatusTResponse getStatus(
+    /** the path of the file or directory */ 1: string path,
+    /** the method options */ 2: GetStatusTOptions options,
     )
     throws (1: exception.AlluxioTException e)
 
@@ -331,12 +337,6 @@ service FileSystemMasterClientService extends common.AlluxioService {
     throws (1: exception.AlluxioTException e)
 
   /**
-  * Returns a map from each Alluxio path to information of corresponding mount point
-  */
-  GetMountTableTResponse getMountTable()
-    throws (1: exception.AlluxioTException e)
-
-  /**
    * Deletes a file or a directory and returns whether the remove operation succeeded.
    * NOTE: Unfortunately, the method cannot be called "delete" as that is a reserved Thrift keyword.
    */
@@ -359,20 +359,20 @@ service FileSystemMasterClientService extends common.AlluxioService {
     throws (1: exception.AlluxioTException e)
 
   /**
-   * Sets file or directory attributes.
-   */
-  SetAttributeTResponse setAttribute(
-    /** the path of the file or directory */ 1: string path,
-    /** the method options */ 2: SetAttributeTOptions options,
-    )
-    throws (1: exception.AlluxioTException e)
-
-  /**
    * Schedules async persistence.
    */
   ScheduleAsyncPersistenceTResponse scheduleAsyncPersistence(
     /** the path of the file */ 1: string path,
     /** the method options */ 2: ScheduleAsyncPersistenceTOptions options,
+    )
+    throws (1: exception.AlluxioTException e)
+
+  /**
+   * Sets file or directory attributes.
+   */
+  SetAttributeTResponse setAttribute(
+    /** the path of the file or directory */ 1: string path,
+    /** the method options */ 2: SetAttributeTOptions options,
     )
     throws (1: exception.AlluxioTException e)
 
