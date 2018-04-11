@@ -67,7 +67,7 @@ Each file and directory is associated with:
 mapping](#user-group-mapping).
 3. permissions
 
-The permissions has three parts:
+The permissions have three parts:
 
 1. owner permission defines the access privileges of the file owner
 2. group permission defines the access privileges of the owning group
