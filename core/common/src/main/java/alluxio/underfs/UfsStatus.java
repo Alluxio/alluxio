@@ -11,7 +11,11 @@
 
 package alluxio.underfs;
 
+import alluxio.util.io.PathUtils;
+
 import com.google.common.base.Objects;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
@@ -22,6 +26,8 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public abstract class UfsStatus {
+  private static final Logger LOG = LoggerFactory.getLogger(UfsStatus.class);
+
   protected final boolean mIsDirectory;
   /** Last modified epoch time in ms, or null if it is not available. */
   protected final Long mLastModifiedTimeMs;
@@ -35,7 +41,7 @@ public abstract class UfsStatus {
   /**
    * Creates new instance of {@link UfsStatus}.
    *
-   * @param name relative path of file or directory
+   * @param name basename of file or directory
    * @param isDirectory whether the path is a directory
    * @param owner of the file
    * @param group of the file
@@ -45,7 +51,12 @@ public abstract class UfsStatus {
   protected UfsStatus(String name, boolean isDirectory, String owner, String group, short mode,
       Long lastModifiedTimeMs) {
     mIsDirectory = isDirectory;
-    mName = name;
+    String basename = PathUtils.basename(name);
+    if (!basename.equals(name)) {
+      LOG.debug("UfsStatus expected a basename, but got {}. Changing to {} and continuing.", name,
+          basename);
+    }
+    mName = basename;
     mOwner = owner;
     mGroup = group;
     mMode = mode;
@@ -136,7 +147,7 @@ public abstract class UfsStatus {
   }
 
   /**
-   * @return name of file or directory
+   * @return basename of file or directory
    */
   public String getName() {
     return mName;
@@ -157,7 +168,7 @@ public abstract class UfsStatus {
   }
 
   /**
-   * Set the name of file or directory.
+   * Set the basename of file or directory.
    *
    * @param name of entry
    * @return this object
