@@ -19,6 +19,7 @@ import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.JournalSystem.Mode;
 import alluxio.metrics.MetricsSystem;
 import alluxio.metrics.sink.MetricsServlet;
+import alluxio.metrics.sink.PrometheusMetricsServlet;
 import alluxio.security.authentication.TransportProvider;
 import alluxio.thrift.MetaMasterClientService;
 import alluxio.util.CommonUtils;
@@ -83,6 +84,8 @@ public class AlluxioMasterProcess implements MasterProcess {
   private final InetSocketAddress mRpcConnectAddress;
 
   private final MetricsServlet mMetricsServlet = new MetricsServlet(MetricsSystem.METRIC_REGISTRY);
+  private final PrometheusMetricsServlet mPMetricsServlet = new PrometheusMetricsServlet(
+      MetricsSystem.METRIC_REGISTRY);
 
   /** The master registry. */
   private final MasterRegistry mRegistry;
@@ -319,6 +322,8 @@ public class AlluxioMasterProcess implements MasterProcess {
     Configuration.set(PropertyKey.MASTER_WEB_PORT, Integer.toString(mWebServer.getLocalPort()));
     // Add the metrics servlet to the web server.
     mWebServer.addHandler(mMetricsServlet.getHandler());
+    // Add the prometheus metrics servlet to the web server.
+    mWebServer.addHandler(mPMetricsServlet.getHandler());
     // start web ui
     mWebServer.start();
   }
