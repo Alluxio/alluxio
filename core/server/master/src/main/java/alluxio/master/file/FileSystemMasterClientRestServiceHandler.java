@@ -99,12 +99,7 @@ public final class FileSystemMasterClientRestServiceHandler {
   @Path(SERVICE_NAME)
   @ReturnType("java.lang.String")
   public Response getServiceName() {
-    return RestUtils.call(new RestUtils.RestCallable<String>() {
-      @Override
-      public String call() throws Exception {
-        return Constants.FILE_SYSTEM_MASTER_CLIENT_SERVICE_NAME;
-      }
-    });
+    return RestUtils.call(() -> Constants.FILE_SYSTEM_MASTER_CLIENT_SERVICE_NAME);
   }
 
   /**
