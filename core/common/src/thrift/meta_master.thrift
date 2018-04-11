@@ -42,10 +42,28 @@ struct GetMasterInfoTResponse {
   1: MasterInfo masterInfo
 }
 
+struct GetMetricsTOptions {}
+struct GetMetricsTResponse {
+  1: map<string, MetricValue> metricsMap
+}
+
+// This type is used as a union, only one of doubleValue or longValue should be set
+struct MetricValue {
+  1: optional double doubleValue;
+  2: optional i64 longValue;
+}
+
 /**
   * This interface contains meta master service endpoints for Alluxio clients.
   */
 service MetaMasterClientService extends common.AlluxioService {
+  /**
+   * Returns a list of Alluxio runtime configuration information.
+   */
+  GetConfigurationTResponse getConfiguration(
+    /** the method options */ 1: GetConfigurationTOptions options,
+    ) throws (1: exception.AlluxioTException e)
+
   /**
    * Returns information about the master.
    */
@@ -55,9 +73,10 @@ service MetaMasterClientService extends common.AlluxioService {
     throws (1: exception.AlluxioTException e)
 
   /**
-   * Returns a list of Alluxio runtime configuration information.
+   * Returns a map of metrics property names and their values from Alluxio metrics system.
    */
-  GetConfigurationTResponse getConfiguration(
-    /** the method options */ 1: GetConfigurationTOptions options,
-  ) throws (1: exception.AlluxioTException e)
+  GetMetricsTResponse getMetrics(
+    /** the method options */ 1: GetMetricsTOptions options,
+    )
+    throws (1: exception.AlluxioTException e)
 }
