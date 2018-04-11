@@ -80,4 +80,25 @@ public final class LoadCommandIntegrationTest extends AbstractFileSystemShellTes
     status = mFileSystem.getStatus(uri);
     assertTrue(status.getInAlluxioPercentage() == 100);
   }
+
+  @Test
+  public void loadFileWithWildcard() throws IOException, AlluxioException {
+    FileSystemTestUtils.createByteFile(mFileSystem, "/testDir1/testFile1", WriteType.THROUGH, 10);
+    FileSystemTestUtils.createByteFile(mFileSystem, "/testDir2/testFile2", WriteType.THROUGH, 10);
+    AlluxioURI uri = new AlluxioURI("/testDir1/testFile1");
+    URIStatus status = mFileSystem.getStatus(uri);
+    assertFalse(status.getInAlluxioPercentage() == 100);
+    uri = new AlluxioURI("/testDir2/testFile2");
+    status = mFileSystem.getStatus(uri);
+    assertFalse(status.getInAlluxioPercentage() == 100);
+
+    // Testing loading with wild card
+    mFsShell.run("load", "/*/testFile*");
+    uri = new AlluxioURI("/testDir1/testFile1");
+    status = mFileSystem.getStatus(uri);
+    assertTrue(status.getInAlluxioPercentage() == 100);
+    uri = new AlluxioURI("/testDir2/testFile2");
+    status = mFileSystem.getStatus(uri);
+    assertTrue(status.getInAlluxioPercentage() == 100);
+  }
 }

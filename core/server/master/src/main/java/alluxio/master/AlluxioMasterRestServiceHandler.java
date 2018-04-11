@@ -164,12 +164,7 @@ public final class AlluxioMasterRestServiceHandler {
   @ReturnType("java.util.SortedMap<java.lang.String, java.lang.String>")
   @Deprecated
   public Response getConfiguration() {
-    return RestUtils.call(new RestUtils.RestCallable<Map<String, String>>() {
-      @Override
-      public Map<String, String> call() throws Exception {
-        return getConfigurationInternal(true);
-      }
-    });
+    return RestUtils.call(() -> getConfigurationInternal(true));
   }
 
   /**
@@ -202,12 +197,7 @@ public final class AlluxioMasterRestServiceHandler {
   @ReturnType("java.lang.String")
   @Deprecated
   public Response getRpcAddress() {
-    return RestUtils.call(new RestUtils.RestCallable<String>() {
-      @Override
-      public String call() throws Exception {
-        return mMasterProcess.getRpcAddress().toString();
-      }
-    });
+    return RestUtils.call(() -> mMasterProcess.getRpcAddress().toString());
   }
 
   /**
@@ -240,12 +230,7 @@ public final class AlluxioMasterRestServiceHandler {
   @ReturnType("java.lang.Long")
   @Deprecated
   public Response getUptimeMs() {
-    return RestUtils.call(new RestUtils.RestCallable<Long>() {
-      @Override
-      public Long call() throws Exception {
-        return mMasterProcess.getUptimeMs();
-      }
-    });
+    return RestUtils.call(() -> mMasterProcess.getUptimeMs());
   }
 
   /**
@@ -407,15 +392,12 @@ public final class AlluxioMasterRestServiceHandler {
   @ReturnType("java.util.SortedMap<java.lang.String, java.lang.Long>")
   @Deprecated
   public Response getCapacityBytesOnTiers() {
-    return RestUtils.call(new RestUtils.RestCallable<Map<String, Long>>() {
-      @Override
-      public Map<String, Long> call() throws Exception {
-        SortedMap<String, Long> capacityBytesOnTiers = new TreeMap<>(getTierAliasComparator());
-        for (Map.Entry<String, Long> tierBytes : mBlockMaster.getTotalBytesOnTiers().entrySet()) {
-          capacityBytesOnTiers.put(tierBytes.getKey(), tierBytes.getValue());
-        }
-        return capacityBytesOnTiers;
+    return RestUtils.call((RestUtils.RestCallable<Map<String, Long>>) () -> {
+      SortedMap<String, Long> capacityBytesOnTiers = new TreeMap<>(getTierAliasComparator());
+      for (Map.Entry<String, Long> tierBytes : mBlockMaster.getTotalBytesOnTiers().entrySet()) {
+        capacityBytesOnTiers.put(tierBytes.getKey(), tierBytes.getValue());
       }
+      return capacityBytesOnTiers;
     });
   }
 

@@ -44,4 +44,19 @@ public final class DuCommandIntegrationTest extends AbstractFileSystemShellTest 
     expected += "/testRoot/testDir is 50 bytes\n";
     Assert.assertEquals(expected, mOutput.toString());
   }
+
+  @Test
+  public void duWildcard() throws Exception {
+    FileSystemTestUtils
+            .createByteFile(mFileSystem, "/testRoot/testDir1/testFileA", WriteType.MUST_CACHE, 10);
+    FileSystemTestUtils.createByteFile(mFileSystem, "/testRoot/testDir2/testFileB",
+            WriteType.MUST_CACHE, 20);
+
+    String expected = "";
+    // du a file with wildcard
+    mFsShell.run("du", "/testRoot/*/testFile*");
+    expected += "/testRoot/testDir1/testFileA is 10 bytes\n";
+    expected += "/testRoot/testDir2/testFileB is 20 bytes\n";
+    Assert.assertEquals(expected, mOutput.toString());
+  }
 }
