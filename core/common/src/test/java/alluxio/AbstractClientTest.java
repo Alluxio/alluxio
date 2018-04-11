@@ -40,9 +40,8 @@ public final class AbstractClientTest {
   @Rule
   public ExpectedException mExpectedException = ExpectedException.none();
 
-  private class BaseTestClient extends AbstractClient {
-
-    private BaseTestClient() {
+  private static class BaseTestClient extends AbstractClient {
+    protected BaseTestClient() {
       super(null, null, () -> new CountingRetry(1));
     }
 
