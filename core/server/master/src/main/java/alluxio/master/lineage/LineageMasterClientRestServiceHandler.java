@@ -90,12 +90,7 @@ public final class LineageMasterClientRestServiceHandler {
   @Path(SERVICE_VERSION)
   @ReturnType("java.lang.Long")
   public Response getServiceVersion() {
-    return RestUtils.call(new RestUtils.RestCallable<Long>() {
-      @Override
-      public Long call() throws Exception {
-        return Constants.LINEAGE_MASTER_CLIENT_SERVICE_VERSION;
-      }
-    });
+    return RestUtils.call(() -> Constants.LINEAGE_MASTER_CLIENT_SERVICE_VERSION);
   }
 
   /**
