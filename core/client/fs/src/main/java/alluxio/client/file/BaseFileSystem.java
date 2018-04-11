@@ -179,10 +179,12 @@ public class BaseFileSystem implements FileSystem {
   @Override
   public boolean exists(AlluxioURI path, ExistsOptions options)
       throws InvalidPathException, IOException, AlluxioException {
+    if (null != path.getURIStatus()) return true; //qiniu
     FileSystemMasterClient masterClient = mFileSystemContext.acquireMasterClient();
     try {
       // TODO(calvin): Make this more efficient
-      masterClient.getStatus(path, options.toGetStatusOptions());
+      URIStatus s = masterClient.getStatus(path, options.toGetStatusOptions());
+      path.setURIStatus(s);  // qiniu
       return true;
     } catch (NotFoundException e) {
       return false;
@@ -232,9 +234,14 @@ public class BaseFileSystem implements FileSystem {
   @Override
   public URIStatus getStatus(AlluxioURI path, GetStatusOptions options)
       throws FileDoesNotExistException, IOException, AlluxioException {
+    URIStatus s = path.getURIStatus(); // qiniu
+    if (s != null) return s;
+
     FileSystemMasterClient masterClient = mFileSystemContext.acquireMasterClient();
     try {
-      return masterClient.getStatus(path, options);
+      s = masterClient.getStatus(path, options);  // qiniu
+      path.setURIStatus(s);
+      return s;
     } catch (NotFoundException e) {
       throw new FileDoesNotExistException(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(path));
     } catch (UnavailableException e) {
