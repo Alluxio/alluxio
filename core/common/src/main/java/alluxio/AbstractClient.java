@@ -180,8 +180,8 @@ public abstract class AbstractClient implements Client {
       try {
         mAddress = getAddress();
       } catch (UnavailableException e) {
-        LOG.warn("Failed to determine master RPC address ({}), retrying: {}",
-            retryPolicy.getAttemptCount(), e.toString());
+        LOG.warn("Failed to determine {} rpc address ({}), retrying: {}",
+            getServiceName(), retryPolicy.getAttemptCount(), e.toString());
         continue;
       }
       LOG.info("Alluxio client (version {}) is trying to connect with {} @ {}",
@@ -220,6 +220,11 @@ public abstract class AbstractClient implements Client {
       // TODO(peis): Consider closing the connection here as well.
     }
     // Reaching here indicates that we did not successfully connect.
+    if (mAddress == null) {
+      throw new UnavailableException(
+          String.format("Failed to determine address for %s after %s attempts", getServiceName(),
+              retryPolicy.getAttemptCount()));
+    }
     throw new UnavailableException(String.format("Failed to connect to %s @ %s after %s attempts",
         getServiceName(), mAddress, retryPolicy.getAttemptCount()));
   }
@@ -308,6 +313,7 @@ public abstract class AbstractClient implements Client {
       } catch (TException e) {
         ex = e;
       }
+      LOG.info("Rpc failed ({}): {}", retryPolicy.getAttemptCount(), ex.toString());
       disconnect();
     }
     throw new UnavailableException("Failed after " + retryPolicy.getAttemptCount()
