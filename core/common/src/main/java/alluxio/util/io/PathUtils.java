@@ -43,12 +43,14 @@ public final class PathUtils {
    * Examples:
    *
    * <pre>
-   *   basename("/") = "/"
-   *   basename("/abc") = "abc"
-   *   basename("///") = "/"
-   *   basename("abc/" = "abc"
-   *   basename("") = ""
-   *   basename("/a.txt") = "a.txt"
+   *   basename("/") => "/"
+   *   basename("/abc") => "abc"
+   *   basename("///") => "/"
+   *   basename("abc/)" => "abc"
+   *   basename("") => ""
+   *   basename("/a/b/c/d") => "d"
+   *   basename("//a///b/c//d//") => "d"
+   *   basename("/a.txt") => "a.txt"
    * </pre>
    *
    * @param path the path
