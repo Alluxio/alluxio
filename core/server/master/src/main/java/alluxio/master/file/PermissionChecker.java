@@ -47,6 +47,8 @@ public final class PermissionChecker {
   /** The super group of Alluxio file system. All users in this group have super permission. */
   private final String mFileSystemSuperGroup;
 
+  private final InodePermissionChecker mInodePermissionChecker;
+
   /**
    * Constructs a {@link PermissionChecker} instance for Alluxio file system.
    *
@@ -58,6 +60,7 @@ public final class PermissionChecker {
         Configuration.getBoolean(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED);
     mFileSystemSuperGroup =
         Configuration.get(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_SUPERGROUP);
+    mInodePermissionChecker = InodePermissionChecker.create();
   }
 
   /**
@@ -279,23 +282,7 @@ public final class PermissionChecker {
     if (inode == null) {
       return;
     }
-
-    short permission = inode.getMode();
-
-    if (user.equals(inode.getOwner()) && Mode.extractOwnerBits(permission).imply(bits)) {
-      return;
-    }
-
-    if (groups.contains(inode.getGroup()) && Mode.extractGroupBits(permission).imply(bits)) {
-      return;
-    }
-
-    if (Mode.extractOtherBits(permission).imply(bits)) {
-      return;
-    }
-
-    throw new AccessControlException(ExceptionMessage.PERMISSION_DENIED
-        .getMessage(toExceptionMessage(user, bits, path, inode)));
+    mInodePermissionChecker.checkPermission(user, groups, path, inode, bits);
   }
 
   /**
@@ -332,30 +319,11 @@ public final class PermissionChecker {
       return Mode.Bits.NONE;
     }
 
-    Mode.Bits mode = Mode.Bits.NONE;
-    short permission = inode.getMode();
-    if (user.equals(inode.getOwner())) {
-      mode = mode.or(Mode.extractOwnerBits(permission));
-    }
-    if (groups.contains(inode.getGroup())) {
-      mode = mode.or(Mode.extractGroupBits(permission));
-    }
-    mode = mode.or(Mode.extractOtherBits(permission));
-    return mode;
+    return mInodePermissionChecker.getPermission(user, groups, path, inode);
   }
 
   private boolean isPrivilegedUser(String user, List<String> groups) {
     return user.equals(mInodeTree.getRootUserName()) || groups.contains(mFileSystemSuperGroup);
   }
 
-  private static String toExceptionMessage(String user, Mode.Bits bits, String path,
-      Inode<?> inode) {
-    StringBuilder stringBuilder =
-        new StringBuilder().append("user=").append(user).append(", ").append("access=").append(bits)
-            .append(", ").append("path=").append(path).append(": ").append("failed at ")
-            .append(inode.getName().equals("") ? "/" : inode.getName()).append(", inode owner=")
-            .append(inode.getOwner()).append(", inode group=").append(inode.getGroup())
-            .append(", inode mode=").append(new Mode(inode.getMode()).toString());
-    return stringBuilder.toString();
-  }
 }
