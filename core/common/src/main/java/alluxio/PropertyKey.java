@@ -796,8 +796,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey MASTER_STARTUP_BLOCK_INTEGRITY_CHECK_ENABLED =
       new Builder(Name.MASTER_STARTUP_BLOCK_INTEGRITY_CHECK_ENABLED)
           .setDefaultValue(false)
-          .setDescription("Whether the system should be checked for orphaned blocks on startup. "
-              + "Orphaned blocks will be deleted.")
+          .setDescription("Whether the system should be checked on startup for orphaned blocks "
+              + "(blocks having no corresponding files but still taking system resource due to "
+              + "various system failures). Orphaned blocks will be deleted during master startup "
+              + "if this property is true. This property is available since 1.7.1")
           .build();
   public static final PropertyKey MASTER_STARTUP_CONSISTENCY_CHECK_ENABLED =
       new Builder(Name.MASTER_STARTUP_CONSISTENCY_CHECK_ENABLED)
