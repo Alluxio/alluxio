@@ -246,7 +246,13 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
     } else {
       LOG.debug("Not flushing: {} was not open for writing", path);
     }
-    mPathResolverCache.invalidate(path);  // qiniu - don't know how flush working , don't load now
+    mPathResolverCache.invalidate(path);  // qiniu multiple flush may be slow ...
+    AlluxioURI turi = mPathResolverCache.getUnchecked(path);
+    try {
+      URIStatus status = mFileSystem.getStatus(turi);
+    } catch (Exception e) {
+      LOG.error("fail to reget stat after flush:" + path);
+    }
     return 0;
   }
 
