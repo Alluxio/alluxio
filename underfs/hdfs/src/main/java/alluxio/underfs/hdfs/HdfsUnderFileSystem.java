@@ -31,6 +31,7 @@ import alluxio.underfs.options.MkdirsOptions;
 import alluxio.underfs.options.OpenOptions;
 import alluxio.util.CommonUtils;
 import alluxio.util.UnderFileSystemUtils;
+import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Preconditions;
 import org.apache.commons.lang3.StringUtils;
@@ -222,8 +223,8 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
   public UfsDirectoryStatus getDirectoryStatus(String path) throws IOException {
     Path tPath = new Path(path);
     FileStatus fs = mFileSystem.getFileStatus(tPath);
-    return new UfsDirectoryStatus(path, fs.getOwner(), fs.getGroup(), fs.getPermission().toShort(),
-        fs.getModificationTime());
+    return new UfsDirectoryStatus(PathUtils.basename(path), fs.getOwner(), fs.getGroup(),
+        fs.getPermission().toShort(), fs.getModificationTime());
   }
 
   @Override
@@ -267,7 +268,7 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
     FileStatus fs = mFileSystem.getFileStatus(tPath);
     String contentHash =
         UnderFileSystemUtils.approximateContentHash(fs.getLen(), fs.getModificationTime());
-    return new UfsFileStatus(path, contentHash, fs.getLen(),
+    return new UfsFileStatus(PathUtils.basename(path), contentHash, fs.getLen(),
         fs.getModificationTime(), fs.getOwner(), fs.getGroup(), fs.getPermission().toShort());
   }
 
@@ -316,12 +317,12 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
       // Return file status.
       String contentHash =
           UnderFileSystemUtils.approximateContentHash(fs.getLen(), fs.getModificationTime());
-      return new UfsFileStatus(path, contentHash, fs.getLen(), fs.getModificationTime(),
-          fs.getOwner(), fs.getGroup(), fs.getPermission().toShort());
+      return new UfsFileStatus(PathUtils.basename(path), contentHash, fs.getLen(),
+          fs.getModificationTime(), fs.getOwner(), fs.getGroup(), fs.getPermission().toShort());
     }
     // Return directory status.
-    return new UfsDirectoryStatus(path, fs.getOwner(), fs.getGroup(), fs.getPermission().toShort(),
-        fs.getModificationTime());
+    return new UfsDirectoryStatus(PathUtils.basename(path), fs.getOwner(), fs.getGroup(),
+        fs.getPermission().toShort(), fs.getModificationTime());
   }
 
   @Override

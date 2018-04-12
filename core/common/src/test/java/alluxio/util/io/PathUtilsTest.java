@@ -11,38 +11,52 @@
 
 package alluxio.util.io;
 
-import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertNotEquals;
 
 import alluxio.Constants;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidPathException;
 
+import com.google.common.collect.ImmutableMap;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
 import java.util.ArrayList;
+import java.util.Map;
 
 /**
  * Tests for the {@link PathUtils} class.
  */
 public final class PathUtilsTest {
 
-  /**
-   * The expected exception thrown during a test.
-   */
   @Rule
   public final ExpectedException mException = ExpectedException.none();
 
-  /**
-   * Tests the {@link PathUtils#cleanPath(String)} method.
-   */
+  @Test
+  public void basename() {
+    Map<String, String> tests = ImmutableMap.<String, String>builder()
+        .put("/", "/")
+        .put("/abc", "abc")
+        .put("///", "/")
+        .put("abc/", "abc")
+        .put("", "")
+        .put("/a/b/c/d", "d")
+        .put("//a///b/c//d//", "d")
+        .put("//a///b/c//d//////", "d")
+        .put("/a.txt", "a.txt")
+        .build();
+    for (String testCase : tests.keySet()) {
+      assertEquals(tests.get(testCase), PathUtils.basename(testCase));
+    }
+  }
+
   @Test
   public void cleanPathNoException() throws InvalidPathException {
     // test clean path
@@ -68,19 +82,12 @@ public final class PathUtilsTest {
     assertNull(PathUtils.cleanPath("/foo/bar/../../.."));
   }
 
-  /**
-   * Tests the {@link PathUtils#cleanPath(String)} method to thrown an exception in case an invalid
-   * path is provided.
-   */
   @Test
   public void cleanPathException() throws InvalidPathException {
     mException.expect(InvalidPathException.class);
     PathUtils.cleanPath("");
   }
 
-  /**
-   * Tests the {@link PathUtils#concatPath(Object, Object...)} method.
-   */
   @Test
   public void concatPath() {
     assertEquals("/", PathUtils.concatPath("/"));
@@ -119,9 +126,6 @@ public final class PathUtilsTest {
         PathUtils.concatPath(Constants.HEADER + "host:port", "/foo", "bar"));
   }
 
-  /**
-   * Tests the {@link PathUtils#getParent(String)} method.
-   */
   @Test
   public void getParent() throws InvalidPathException {
     // get a parent that is non-root
@@ -141,9 +145,6 @@ public final class PathUtilsTest {
     assertEquals("/", PathUtils.getParent("/foo/../bar/../"));
   }
 
-  /**
-   * Tests the {@link PathUtils#getPathComponents(String)} method.
-   */
   @Test
   public void getPathComponentsNoException() throws InvalidPathException {
     assertArrayEquals(new String[] {""}, PathUtils.getPathComponents("/"));
@@ -158,19 +159,12 @@ public final class PathUtilsTest {
         PathUtils.getPathComponents("/foo//bar/a/b/c"));
   }
 
-  /**
-   * Tests the {@link PathUtils#getPathComponents(String)} method to thrown an exception in case the
-   * path is invalid.
-   */
   @Test
   public void getPathComponentsException() throws InvalidPathException {
     mException.expect(InvalidPathException.class);
     PathUtils.getPathComponents("");
   }
 
-  /**
-   * Tests the {@link PathUtils#subtractPaths(String, String)} method.
-   */
   @Test
   public void subtractPaths() throws InvalidPathException {
     assertEquals("b/c", PathUtils.subtractPaths("/a/b/c", "/a"));
@@ -183,10 +177,6 @@ public final class PathUtilsTest {
     assertEquals("", PathUtils.subtractPaths("/a/b", "/a/b"));
   }
 
-  /**
-   * Tests {@link PathUtils#subtractPaths(String, String)} throws the right exception if an input
-   * path is invalid or the second argument isn't a prefix of the first.
-   */
   @Test
   public void subtractPathsException() throws InvalidPathException {
     try {
@@ -210,9 +200,6 @@ public final class PathUtilsTest {
     }
   }
 
-  /**
-   * Tests the {@link PathUtils#hasPrefix(String, String)} method.
-   */
   @Test
   public void hasPrefix() throws InvalidPathException {
     assertTrue(PathUtils.hasPrefix("/", "/"));
@@ -233,9 +220,6 @@ public final class PathUtilsTest {
     assertFalse(PathUtils.hasPrefix("/a/b/cc", "/a/b/c"));
   }
 
-  /**
-   * Tests the {@link PathUtils#isRoot(String)} method.
-   */
   @Test
   public void isRoot() throws InvalidPathException {
     // check a path that is non-root
@@ -255,9 +239,6 @@ public final class PathUtilsTest {
     assertTrue(PathUtils.isRoot("/foo/../"));
   }
 
-  /**
-   * Tests the {@link PathUtils#temporaryFileName(long, String)} method.
-   */
   @Test
   public void temporaryFileName() {
     assertEquals(PathUtils.temporaryFileName(1, "/"),
@@ -278,9 +259,6 @@ public final class PathUtilsTest {
             "/foo.alluxio.0x0123456789ABCDEF.tmp")));
   }
 
-  /**
-   * Test the {@link PathUtils#isTemporaryFileName(String)} method.
-   */
   @Test
   public void isTemporaryFileName() {
     assertTrue(PathUtils.isTemporaryFileName(PathUtils.temporaryFileName(0, "/")));
@@ -294,19 +272,11 @@ public final class PathUtilsTest {
     assertFalse(PathUtils.isTemporaryFileName("alluxio.0x0123456789ABCDEFG"));
   }
 
-  /**
-   * Tests the {@link PathUtils#uniqPath()} method.
-   */
   @Test
   public void uniqPath() {
     assertNotEquals(PathUtils.uniqPath(), PathUtils.uniqPath());
   }
 
-  /**
-   * Tests the {@link PathUtils#validatePath(String)} method.
-   *
-   * @throws InvalidPathException thrown if the path is invalid
-   */
   @Test
   public void validatePath() throws InvalidPathException {
     // check valid paths
@@ -331,9 +301,6 @@ public final class PathUtilsTest {
     }
   }
 
-  /**
-   * Tests the {@link PathUtils#normalizePath(String, String)} method.
-   */
   @Test
   public void normalizePath() throws Exception {
     assertEquals("/", PathUtils.normalizePath("", "/"));
