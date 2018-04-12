@@ -18,7 +18,7 @@ or generating a suite of release tarballs.
 		},
 	}
 
-	debugFlag  bool
+	debugFlag bool
 )
 
 func init() {
