@@ -174,8 +174,9 @@ public class LocalUnderFileSystem extends BaseUnderFileSystem
     File file = new File(tpath);
     PosixFileAttributes attr =
         Files.readAttributes(Paths.get(file.getPath()), PosixFileAttributes.class);
-    return new UfsDirectoryStatus(path, attr.owner().getName(), attr.group().getName(),
-        FileUtils.translatePosixPermissionToMode(attr.permissions()), file.lastModified());
+    return new UfsDirectoryStatus(PathUtils.basename(path), attr.owner().getName(),
+        attr.group().getName(), FileUtils.translatePosixPermissionToMode(attr.permissions()),
+        file.lastModified());
   }
 
   @Override
@@ -199,7 +200,7 @@ public class LocalUnderFileSystem extends BaseUnderFileSystem
         Files.readAttributes(Paths.get(file.getPath()), PosixFileAttributes.class);
     String contentHash =
         UnderFileSystemUtils.approximateContentHash(file.length(), file.lastModified());
-    return new UfsFileStatus(path, contentHash, file.length(),
+    return new UfsFileStatus(PathUtils.basename(path), contentHash, file.length(),
         file.lastModified(), attr.owner().getName(), attr.group().getName(),
         FileUtils.translatePosixPermissionToMode(attr.permissions()));
   }
@@ -230,13 +231,14 @@ public class LocalUnderFileSystem extends BaseUnderFileSystem
       // Return file status.
       String contentHash =
           UnderFileSystemUtils.approximateContentHash(file.length(), file.lastModified());
-      return new UfsFileStatus(path, contentHash, file.length(), file.lastModified(),
-          attr.owner().getName(), attr.group().getName(),
+      return new UfsFileStatus(PathUtils.basename(path), contentHash, file.length(),
+          file.lastModified(), attr.owner().getName(), attr.group().getName(),
           FileUtils.translatePosixPermissionToMode(attr.permissions()));
     }
     // Return directory status.
-    return new UfsDirectoryStatus(path, attr.owner().getName(), attr.group().getName(),
-        FileUtils.translatePosixPermissionToMode(attr.permissions()), file.lastModified());
+    return new UfsDirectoryStatus(PathUtils.basename(path), attr.owner().getName(),
+        attr.group().getName(), FileUtils.translatePosixPermissionToMode(attr.permissions()),
+        file.lastModified());
   }
 
   @Override
