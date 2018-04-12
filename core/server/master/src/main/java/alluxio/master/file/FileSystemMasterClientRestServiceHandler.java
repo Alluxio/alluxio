@@ -244,7 +244,7 @@ public final class FileSystemMasterClientRestServiceHandler {
       @Override
       public FileInfo call() throws Exception {
         Preconditions.checkNotNull(path, "required 'path' parameter is missing");
-        return mFileSystemMaster.getFileInfo(new Alluxio(path), GetStatusOptions.defaults());
+        return mFileSystemMaster.getFileInfo(new AlluxioURI(path), GetStatusOptions.defaults());
       }
     });
   }
