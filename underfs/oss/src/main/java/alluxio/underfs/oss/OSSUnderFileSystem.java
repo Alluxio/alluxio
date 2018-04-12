@@ -254,7 +254,7 @@ public class OSSUnderFileSystem extends ObjectUnderFileSystem {
   // No ACL integration currently, returns default empty value
   @Override
   protected ObjectPermissions getPermissions() {
-    return new ObjectPermissions("", "", Constants.DEFAULT_FILE_SYSTEM_MODE);
+    return new ObjectPermissions("root", "root", Constants.DEFAULT_FILE_SYSTEM_MODE);
   }
 
   @Override

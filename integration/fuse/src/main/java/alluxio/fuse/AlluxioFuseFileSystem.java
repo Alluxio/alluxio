@@ -246,6 +246,7 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
     } else {
       LOG.debug("Not flushing: {} was not open for writing", path);
     }
+    mPathResolverCache.invalidate(path);  // qiniu - don't know how flush working , don't load now
     return 0;
   }
 
@@ -746,11 +747,6 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
 
       mFileSystem.delete(turi);
       mPathResolverCache.invalidate(path);  // qiniu
-      LOG.error("==== rm path " + path);
-      Set<String> ks = mPathResolverCache.asMap().keySet();
-      for (String k: ks) {
-          LOG.error("==== p: " + k);
-      }
       if (status.isFolder()) {
           Set<String> keys = mPathResolverCache.asMap().keySet();
           for (String k: keys) {

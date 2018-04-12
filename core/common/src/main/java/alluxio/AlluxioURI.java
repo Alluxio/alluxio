@@ -56,7 +56,7 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
   private final URI mUri;
 
   //qiniu
-  private URIStatus uriStatus; 
+  private URIStatus uriStatus = null; 
 
   public void setURIStatus(URIStatus s) {
       this.uriStatus = s;

@@ -125,6 +125,7 @@ public class BaseFileSystem implements FileSystem {
       status = masterClient.getStatus(path,
           GetStatusOptions.defaults().setLoadMetadataType(LoadMetadataType.Never)
               .setCommonOptions(CommonOptions.defaults().setSyncIntervalMs(-1)));
+      path.setURIStatus(status);  // qiniu
       LOG.debug("Created file {}, options: {}", path.getPath(), options);
     } catch (AlreadyExistsException e) {
       throw new FileAlreadyExistsException(e.getMessage());
