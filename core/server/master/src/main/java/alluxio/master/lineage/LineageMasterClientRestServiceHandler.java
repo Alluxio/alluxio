@@ -140,12 +140,9 @@ public final class LineageMasterClientRestServiceHandler {
   @ReturnType("java.lang.Boolean")
   public Response deleteLineage(@QueryParam("lineageId") final Long lineageId,
       @QueryParam("cascade") final boolean cascade) {
-    return RestUtils.call(new RestUtils.RestCallable<Boolean>() {
-      @Override
-      public Boolean call() throws Exception {
-        Preconditions.checkNotNull(lineageId, "required 'lineageId' parameter is missing");
-        return mLineageMaster.deleteLineage(lineageId, cascade);
-      }
+    return RestUtils.call(() -> {
+      Preconditions.checkNotNull(lineageId, "required 'lineageId' parameter is missing");
+      return mLineageMaster.deleteLineage(lineageId, cascade);
     });
   }
 
