@@ -181,8 +181,7 @@ public abstract class AbstractClient implements Client {
     disconnect();
     Preconditions.checkState(!mClosed, "Client is closed, will not try to connect.");
 
-    RetryPolicy retryPolicy =
-        mRetryPolicySupplier.get();
+    RetryPolicy retryPolicy = mRetryPolicySupplier.get();
     while (retryPolicy.attempt()) {
       if (mClosed) {
         throw new FailedPreconditionException("Failed to connect: client has been closed");
@@ -192,7 +191,7 @@ public abstract class AbstractClient implements Client {
       try {
         mAddress = getAddress();
       } catch (UnavailableException e) {
-        LOG.warn("Failed to determine {} rpc address ({}), retrying: {}",
+        LOG.warn("Failed to determine {} rpc address ({}): {}",
             getServiceName(), retryPolicy.getAttemptCount(), e.toString());
         continue;
       }

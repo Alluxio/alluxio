@@ -12,9 +12,6 @@
 package alluxio;
 
 import static alluxio.exception.ExceptionMessage.INCOMPATIBLE_VERSION;
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.Assert.fail;
 
 import alluxio.exception.status.UnavailableException;
 import alluxio.retry.CountingRetry;
@@ -74,13 +71,9 @@ public final class AbstractClientTest {
         throw new UnavailableException("Failed to determine master address");
       }
     };
-    try {
-      client.connect();
-      fail("Expected an exception to be thrown when the master address cannot be determined");
-    } catch (UnavailableException e) {
-      assertThat(e.getMessage(),
-          containsString("Failed to determine address for Test Service Name"));
-    }
+    mExpectedException.expect(UnavailableException.class);
+    mExpectedException.expectMessage("Failed to determine address for Test Service Name");
+    client.connect();
   }
 
   @Test
@@ -93,7 +86,6 @@ public final class AbstractClientTest {
 
     try (AbstractClient client = new BaseTestClient()) {
       client.checkVersion(thriftClient, 0);
-      fail("checkVersion() should fail");
     }
   }
 
