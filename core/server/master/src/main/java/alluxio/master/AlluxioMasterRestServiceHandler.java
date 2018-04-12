@@ -62,8 +62,8 @@ import javax.ws.rs.core.Response;
 @NotThreadSafe
 @Path(AlluxioMasterRestServiceHandler.SERVICE_PREFIX)
 @Produces(MediaType.APPLICATION_JSON)
-public final class
-AlluxioMasterRestServiceHandler {
+public final class AlluxioMasterRestServiceHandler {
+
   public static final String SERVICE_PREFIX = "master";
 
   // endpoints
