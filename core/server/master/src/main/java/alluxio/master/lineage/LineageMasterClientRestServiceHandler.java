@@ -176,7 +176,6 @@ public final class LineageMasterClientRestServiceHandler {
               .checkNotNull(blockSizeBytes, "required 'blockSizeBytes' parameter is missing");
       Preconditions.checkNotNull(ttl, "required 'ttl' parameter is missing");
       return mLineageMaster.reinitializeFile(path, blockSizeBytes, ttl, ttlAction);
-      }
     });
   }
 
