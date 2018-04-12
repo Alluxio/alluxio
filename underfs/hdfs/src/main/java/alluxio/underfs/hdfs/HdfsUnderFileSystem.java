@@ -33,6 +33,9 @@ import alluxio.util.CommonUtils;
 import alluxio.util.UnderFileSystemUtils;
 
 import com.google.common.base.Preconditions;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.BlockLocation;
@@ -56,6 +59,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Stack;
+import java.util.concurrent.ExecutionException;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
@@ -68,8 +72,9 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
     implements AtomicFileOutputStreamCallback {
   private static final Logger LOG = LoggerFactory.getLogger(HdfsUnderFileSystem.class);
   private static final int MAX_TRY = 5;
+  private static final String HDFS_USER = "";
 
-  private FileSystem mFileSystem;
+  private final LoadingCache<String, FileSystem> mUserFs;
   private UnderFileSystemConfiguration mUfsConf;
 
   /**
@@ -106,13 +111,16 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
       // Set Hadoop UGI configuration to ensure UGI can be initialized by the shaded classes for
       // group service.
       UserGroupInformation.setConfiguration(hdfsConf);
-      mFileSystem = path.getFileSystem(hdfsConf);
-    } catch (IOException e) {
-      throw new RuntimeException(
-          String.format("Failed to get Hadoop FileSystem client for %s", ufsUri), e);
     } finally {
       Thread.currentThread().setContextClassLoader(previousClassLoader);
     }
+
+    mUserFs = CacheBuilder.newBuilder().build(new CacheLoader<String, FileSystem>() {
+      @Override
+      public FileSystem load(String userKey) throws Exception {
+        return path.getFileSystem(hdfsConf);
+      }
+    });
   }
 
   @Override
@@ -179,11 +187,12 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
   @Override
   public OutputStream createDirect(String path, CreateOptions options) throws IOException {
     IOException te = null;
+    FileSystem hdfs = getFs();
     RetryPolicy retryPolicy = new CountingRetry(MAX_TRY);
     while (retryPolicy.attemptRetry()) {
       try {
         // TODO(chaomin): support creating HDFS files with specified block size and replication.
-        return new HdfsUnderFileOutputStream(FileSystem.create(mFileSystem, new Path(path),
+        return new HdfsUnderFileOutputStream(FileSystem.create(hdfs, new Path(path),
             new FsPermission(options.getMode().toShort())));
       } catch (IOException e) {
         LOG.warn("Retry count {} : {} ", retryPolicy.getRetryCount(), e.getMessage());
@@ -205,23 +214,26 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
 
   @Override
   public boolean exists(String path) throws IOException {
-    return mFileSystem.exists(new Path(path));
+    FileSystem hdfs = getFs();
+    return hdfs.exists(new Path(path));
   }
 
   @Override
   public long getBlockSizeByte(String path) throws IOException {
     Path tPath = new Path(path);
-    if (!mFileSystem.exists(tPath)) {
+    FileSystem hdfs = getFs();
+    if (!hdfs.exists(tPath)) {
       throw new FileNotFoundException(path);
     }
-    FileStatus fs = mFileSystem.getFileStatus(tPath);
+    FileStatus fs = hdfs.getFileStatus(tPath);
     return fs.getBlockSize();
   }
 
   @Override
   public UfsDirectoryStatus getDirectoryStatus(String path) throws IOException {
     Path tPath = new Path(path);
-    FileStatus fs = mFileSystem.getFileStatus(tPath);
+    FileSystem hdfs = getFs();
+    FileStatus fs = hdfs.getFileStatus(tPath);
     return new UfsDirectoryStatus(path, fs.getOwner(), fs.getGroup(), fs.getPermission().toShort());
   }
 
@@ -239,6 +251,7 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
     if (Boolean.valueOf(mUfsConf.getValue(PropertyKey.UNDERFS_HDFS_REMOTE))) {
       return null;
     }
+    FileSystem hdfs = getFs();
     List<String> ret = new ArrayList<>();
     try {
       // The only usage of fileStatus is to get the path in getFileBlockLocations.
@@ -249,7 +262,7 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
       FileStatus fileStatus = new FileStatus(0L, false, 0, 0L,
           0L, 0L, null, null, null, new Path(path));
       BlockLocation[] bLocations =
-          mFileSystem.getFileBlockLocations(fileStatus, options.getOffset(), 1);
+          hdfs.getFileBlockLocations(fileStatus, options.getOffset(), 1);
       if (bLocations.length > 0) {
         String[] names = bLocations[0].getHosts();
         Collections.addAll(ret, names);
@@ -263,7 +276,8 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
   @Override
   public UfsFileStatus getFileStatus(String path) throws IOException {
     Path tPath = new Path(path);
-    FileStatus fs = mFileSystem.getFileStatus(tPath);
+    FileSystem hdfs = getFs();
+    FileStatus fs = hdfs.getFileStatus(tPath);
     String contentHash =
         UnderFileSystemUtils.approximateContentHash(fs.getLen(), fs.getModificationTime());
     return new UfsFileStatus(path, contentHash, fs.getLen(),
@@ -274,20 +288,21 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
   public long getSpace(String path, SpaceType type) throws IOException {
     // Ignoring the path given, will give information for entire cluster
     // as Alluxio can load/store data out of entire HDFS cluster
-    if (mFileSystem instanceof DistributedFileSystem) {
+    FileSystem hdfs = getFs();
+    if (hdfs instanceof DistributedFileSystem) {
       switch (type) {
         case SPACE_TOTAL:
           // Due to Hadoop 1 support we stick with the deprecated version. If we drop support for it
           // FileSystem.getStatus().getCapacity() will be the new one.
-          return ((DistributedFileSystem) mFileSystem).getDiskStatus().getCapacity();
+          return ((DistributedFileSystem) hdfs).getDiskStatus().getCapacity();
         case SPACE_USED:
           // Due to Hadoop 1 support we stick with the deprecated version. If we drop support for it
           // FileSystem.getStatus().getUsed() will be the new one.
-          return ((DistributedFileSystem) mFileSystem).getDiskStatus().getDfsUsed();
+          return ((DistributedFileSystem) hdfs).getDiskStatus().getDfsUsed();
         case SPACE_FREE:
           // Due to Hadoop 1 support we stick with the deprecated version. If we drop support for it
           // FileSystem.getStatus().getRemaining() will be the new one.
-          return ((DistributedFileSystem) mFileSystem).getDiskStatus().getRemaining();
+          return ((DistributedFileSystem) hdfs).getDiskStatus().getRemaining();
         default:
           throw new IOException("Unknown space type: " + type);
       }
@@ -298,7 +313,8 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
   @Override
   public UfsStatus getStatus(String path) throws IOException {
     Path tPath = new Path(path);
-    FileStatus fs = mFileSystem.getFileStatus(tPath);
+    FileSystem hdfs = getFs();
+    FileStatus fs = hdfs.getFileStatus(tPath);
     if (!fs.isDir()) {
       // Return file status.
       String contentHash =
@@ -312,12 +328,14 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
 
   @Override
   public boolean isDirectory(String path) throws IOException {
-    return mFileSystem.isDirectory(new Path(path));
+    FileSystem hdfs = getFs();
+    return hdfs.isDirectory(new Path(path));
   }
 
   @Override
   public boolean isFile(String path) throws IOException {
-    return mFileSystem.isFile(new Path(path));
+    FileSystem hdfs = getFs();
+    return hdfs.isFile(new Path(path));
   }
 
   @Override
@@ -384,11 +402,12 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
   @Override
   public boolean mkdirs(String path, MkdirsOptions options) throws IOException {
     IOException te = null;
+    FileSystem hdfs = getFs();
     RetryPolicy retryPolicy = new CountingRetry(MAX_TRY);
     while (retryPolicy.attemptRetry()) {
       try {
         Path hdfsPath = new Path(path);
-        if (mFileSystem.exists(hdfsPath)) {
+        if (hdfs.exists(hdfsPath)) {
           LOG.debug("Trying to create existing directory at {}", path);
           return false;
         }
@@ -397,13 +416,13 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
         Stack<Path> dirsToMake = new Stack<>();
         dirsToMake.push(hdfsPath);
         Path parent = hdfsPath.getParent();
-        while (!mFileSystem.exists(parent)) {
+        while (!hdfs.exists(parent)) {
           dirsToMake.push(parent);
           parent = parent.getParent();
         }
         while (!dirsToMake.empty()) {
           Path dirToMake = dirsToMake.pop();
-          if (!FileSystem.mkdirs(mFileSystem, dirToMake,
+          if (!FileSystem.mkdirs(hdfs, dirToMake,
               new FsPermission(options.getMode().toShort()))) {
             return false;
           }
@@ -429,14 +448,15 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
   @Override
   public InputStream open(String path, OpenOptions options) throws IOException {
     IOException te = null;
+    FileSystem hdfs = getFs();
     RetryPolicy retryPolicy = new CountingRetry(MAX_TRY);
     DistributedFileSystem dfs = null;
-    if (mFileSystem instanceof DistributedFileSystem) {
-      dfs = (DistributedFileSystem) mFileSystem;
+    if (hdfs instanceof DistributedFileSystem) {
+      dfs = (DistributedFileSystem) hdfs;
     }
     while (retryPolicy.attemptRetry()) {
       try {
-        FSDataInputStream inputStream = mFileSystem.open(new Path(path));
+        FSDataInputStream inputStream = hdfs.open(new Path(path));
         try {
           inputStream.seek(options.getOffset());
         } catch (IOException e) {
@@ -499,9 +519,10 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
     if (user == null && group == null) {
       return;
     }
+    FileSystem hdfs = getFs();
     try {
-      FileStatus fileStatus = mFileSystem.getFileStatus(new Path(path));
-      mFileSystem.setOwner(fileStatus.getPath(), user, group);
+      FileStatus fileStatus = hdfs.getFileStatus(new Path(path));
+      hdfs.setOwner(fileStatus.getPath(), user, group);
     } catch (IOException e) {
       LOG.warn("Failed to set owner for {} with user: {}, group: {}", path, user, group);
       LOG.debug("Exception : ", e);
@@ -518,9 +539,10 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
 
   @Override
   public void setMode(String path, short mode) throws IOException {
+    FileSystem hdfs = getFs();
     try {
-      FileStatus fileStatus = mFileSystem.getFileStatus(new Path(path));
-      mFileSystem.setPermission(fileStatus.getPath(), new FsPermission(mode));
+      FileStatus fileStatus = hdfs.getFileStatus(new Path(path));
+      hdfs.setPermission(fileStatus.getPath(), new FsPermission(mode));
     } catch (IOException e) {
       LOG.warn("Fail to set permission for {} with perm {} : {}", path, mode, e.getMessage());
       throw e;
@@ -541,10 +563,11 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
    */
   private boolean delete(String path, boolean recursive) throws IOException {
     IOException te = null;
+    FileSystem hdfs = getFs();
     RetryPolicy retryPolicy = new CountingRetry(MAX_TRY);
     while (retryPolicy.attemptRetry()) {
       try {
-        return mFileSystem.delete(new Path(path), recursive);
+        return hdfs.delete(new Path(path), recursive);
       } catch (IOException e) {
         LOG.warn("Retry count {} : {}", retryPolicy.getRetryCount(), e.getMessage());
         te = e;
@@ -563,8 +586,9 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
   @Nullable
   private FileStatus[] listStatusInternal(String path) throws IOException {
     FileStatus[] files;
+    FileSystem hdfs = getFs();
     try {
-      files = mFileSystem.listStatus(new Path(path));
+      files = hdfs.listStatus(new Path(path));
     } catch (FileNotFoundException e) {
       return null;
     }
@@ -584,10 +608,11 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
    */
   private boolean rename(String src, String dst) throws IOException {
     IOException te = null;
+    FileSystem hdfs = getFs();
     RetryPolicy retryPolicy = new CountingRetry(MAX_TRY);
     while (retryPolicy.attemptRetry()) {
       try {
-        return mFileSystem.rename(new Path(src), new Path(dst));
+        return hdfs.rename(new Path(src), new Path(dst));
       } catch (IOException e) {
         LOG.warn("{} try to rename {} to {} : {}", retryPolicy.getRetryCount(), src, dst,
             e.getMessage());
@@ -600,5 +625,17 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
   @Override
   public boolean isSeekable() {
     return true;
+  }
+
+  /**
+   * @return the underlying HDFS {@link FileSystem} object
+   */
+  private FileSystem getFs() throws IOException {
+    try {
+      // TODO(gpang): handle different users
+      return mUserFs.get(HDFS_USER);
+    } catch (ExecutionException e) {
+      throw new IOException("Failed get FileSystem for " + mUri, e.getCause());
+    }
   }
 }
