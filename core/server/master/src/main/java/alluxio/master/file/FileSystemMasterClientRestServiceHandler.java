@@ -254,7 +254,7 @@ public final class FileSystemMasterClientRestServiceHandler {
     return RestUtils.call(() -> {
       Preconditions.checkNotNull(path, "required 'path' parameter is missing");
       return mFileSystemMaster.getFileInfo(new AlluxioURI(path), GetStatusOptions.defaults());
-      });
+    });
   }
 
   /**
