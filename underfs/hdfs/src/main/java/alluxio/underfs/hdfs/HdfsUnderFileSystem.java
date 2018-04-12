@@ -34,6 +34,9 @@ import alluxio.util.UnderFileSystemUtils;
 import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Preconditions;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.BlockLocation;
@@ -57,6 +60,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Stack;
+import java.util.concurrent.ExecutionException;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
@@ -69,8 +73,9 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
     implements AtomicFileOutputStreamCallback {
   private static final Logger LOG = LoggerFactory.getLogger(HdfsUnderFileSystem.class);
   private static final int MAX_TRY = 5;
+  private static final String HDFS_USER = "";
 
-  private FileSystem mFileSystem;
+  private final LoadingCache<String, FileSystem> mUserFs;
   private UnderFileSystemConfiguration mUfsConf;
 
   /**
@@ -107,13 +112,16 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
       // Set Hadoop UGI configuration to ensure UGI can be initialized by the shaded classes for
       // group service.
       UserGroupInformation.setConfiguration(hdfsConf);
-      mFileSystem = path.getFileSystem(hdfsConf);
-    } catch (IOException e) {
-      throw new RuntimeException(
-          String.format("Failed to get Hadoop FileSystem client for %s", ufsUri), e);
     } finally {
       Thread.currentThread().setContextClassLoader(previousClassLoader);
     }
+
+    mUserFs = CacheBuilder.newBuilder().build(new CacheLoader<String, FileSystem>() {
+      @Override
+      public FileSystem load(String userKey) throws Exception {
+        return path.getFileSystem(hdfsConf);
+      }
+    });
   }
 
   @Override
@@ -638,6 +646,11 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
    * @return the underlying HDFS {@link FileSystem} object
    */
   private FileSystem getFs() throws IOException {
-    return mFileSystem;
+    try {
+      // TODO(gpang): handle different users
+      return mUserFs.get(HDFS_USER);
+    } catch (ExecutionException e) {
+      throw new IOException("Failed get FileSystem for " + mUri, e.getCause());
+    }
   }
 }
