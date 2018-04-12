@@ -119,6 +119,15 @@ public final class Fingerprint {
   }
 
   /**
+   * Checking if the fingerprint object was generated from an INVALID_UFS_FINGERPRINT.
+   *
+   * @return returns true if the fingerprint is valid
+   */
+  public boolean isValid() {
+    return !mValues.isEmpty();
+  }
+
+  /**
    * @return the serialized string of the fingerprint
    */
   public String serialize() {

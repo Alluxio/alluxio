@@ -3286,12 +3286,15 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     try (CloseableResource<UnderFileSystem> ufsResource = resolution.acquireUfsResource()) {
       UnderFileSystem ufs = ufsResource.get();
       String ufsFingerprint = ufs.getFingerprint(ufsUri.toString());
+      Fingerprint ufsFpParsed = Fingerprint.parse(ufsFingerprint);
       boolean containsMountPoint = mMountTable.containsMountPoint(inodePath.getUri());
 
       UfsSyncUtils.SyncPlan syncPlan =
-          UfsSyncUtils.computeSyncPlan(inode, ufsFingerprint, containsMountPoint);
+          UfsSyncUtils.computeSyncPlan(inode, ufsFpParsed, containsMountPoint);
 
-      if (syncPlan.toUpdateDirectory()) {
+      if (syncPlan.toUpdateDirectory() || syncPlan.toUpdateMetaData()) {
+        // Updating directory and updating metadata essentially does the same thing, updating
+        // Owner, Group, Mode
         // Fingerprints only consider permissions for directory inodes.
         UfsStatus ufsStatus = null;
         try {

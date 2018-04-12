@@ -11,7 +11,6 @@
 
 package alluxio.master.file.meta;
 
-import alluxio.Constants;
 import alluxio.underfs.Fingerprint;
 import alluxio.underfs.UfsStatus;
 
@@ -34,70 +33,91 @@ public final class UfsSyncUtils {
    * @param containsMountPoint true if this inode contains a mount point, false otherwise
    * @return a {@link SyncPlan} describing how to sync the inode with the ufs
    */
-  public static SyncPlan computeSyncPlan(Inode inode, String ufsFingerprint,
+  public static SyncPlan computeSyncPlan(Inode inode, Fingerprint ufsFingerprint,
       boolean containsMountPoint) {
-    boolean isSynced = inodeUfsIsSynced(inode, ufsFingerprint);
-    boolean ufsExists = !Constants.INVALID_UFS_FINGERPRINT.equals(ufsFingerprint);
-    boolean ufsIsDir = ufsFingerprint != null && Fingerprint.Type.DIRECTORY.name()
-        .equals(Fingerprint.parse(ufsFingerprint).getTag(Fingerprint.Tag.TYPE));
+    boolean isContentSynced = inodeUfsIsContentSynced(inode, ufsFingerprint);
+    boolean isMetadataSynced = inodeUfsIsMetadataSynced(inode, ufsFingerprint);
+    boolean ufsExists = ufsFingerprint.isValid();
+    boolean ufsIsDir = ufsFingerprint != null
+        && Fingerprint.Type.DIRECTORY.name().equals(ufsFingerprint.getTag(Fingerprint.Tag.TYPE));
 
     UfsSyncUtils.SyncPlan syncPlan = new UfsSyncUtils.SyncPlan();
-    if (!isSynced) {
-      // Alluxio inode is not synced with UFS, so update the inode metadata
-      // Updating an inode is achieved by deleting the inode, and then loading metadata.
 
-      if (inode.isDirectory() && (containsMountPoint || ufsIsDir)) {
-        // Instead of deleting and then loading metadata to update, try to update directly
-        // - mount points (or paths with mount point descendants) should not be deleted
-        // - directory permissions can be updated without removing the inode
-        if (inode.getParentId() != InodeTree.NO_PARENT) {
-          // Only update the inode if it is not the root directory. The root directory is a special
-          // case, since it is expected to be owned by the process that starts the master, and not
-          // the owner on UFS.
-          syncPlan.setUpdateDirectory();
-        }
-        syncPlan.setSyncChildren();
-      } else {
-        // update inode, by deleting and then optionally loading metadata
-        syncPlan.setDelete();
-        if (ufsExists) {
-          // UFS exists, so load metadata later.
-          syncPlan.setLoadMetadata();
-        }
-      }
-    } else {
+    if (isContentSynced && isMetadataSynced) {
       // Inode is already synced.
       if (inode.isDirectory() && inode.isPersisted()) {
         // Both Alluxio and UFS are directories, so sync the children of the directory.
         syncPlan.setSyncChildren();
       }
+      return syncPlan;
+    }
+
+    // One of the metadata or content is not in sync
+    if (inode.isDirectory() && (containsMountPoint || ufsIsDir)) {
+      // Instead of deleting and then loading metadata to update, try to update directly
+      // - mount points (or paths with mount point descendants) should not be deleted
+      // - directory permissions can be updated without removing the inode
+      if (inode.getParentId() != InodeTree.NO_PARENT) {
+        // Only update the inode if it is not the root directory. The root directory is a special
+        // case, since it is expected to be owned by the process that starts the master, and not
+        // the owner on UFS.
+        syncPlan.setUpdateDirectory();
+      }
+      syncPlan.setSyncChildren();
+      return syncPlan;
+    }
+
+    // One of metadata or content is not in sync and it is a file
+    if (!isContentSynced) {
+      // update inode, by deleting and then optionally loading metadata
+      syncPlan.setDelete();
+      if (ufsExists) {
+        // UFS exists, so load metadata later.
+        syncPlan.setLoadMetadata();
+      }
+    } else {
+      syncPlan.setUpdateMetadata();
     }
     return syncPlan;
   }
 
   /**
-   * Returns true if the given inode is synced with the ufs status. This is a single inode check,
-   * so for directory inodes, this does not consider the children inodes.
+   * Returns true if the given inode's content is synced with the ufs status. This is a single inode
+   * check, so for directory inodes, this does not consider the children inodes.
    *
    * @param inode the inode to check for sync
    * @param ufsFingerprint the ufs fingerprint to check for the sync
    * @return true of the inode is synced with the ufs status
    */
-  public static boolean inodeUfsIsSynced(Inode inode, String ufsFingerprint) {
+  public static boolean inodeUfsIsContentSynced(Inode inode, Fingerprint ufsFingerprint) {
     boolean isSyncedUnpersisted =
-        !inode.isPersisted() && Constants.INVALID_UFS_FINGERPRINT.equals(ufsFingerprint);
-
+        !inode.isPersisted() && !ufsFingerprint.isValid();
     boolean isSyncedPersisted;
+
     if (inode instanceof InodeFile) {
       // check the file fingerprint.
       InodeFile inodeFile = (InodeFile) inode;
+      Fingerprint cachedFingerprint =  Fingerprint.parse(inodeFile.getUfsFingerprint());
       isSyncedPersisted = inodeFile.isPersisted()
-          && inodeFile.getUfsFingerprint().equals(ufsFingerprint)
-          && !inodeFile.getUfsFingerprint().equals(Constants.INVALID_UFS_FINGERPRINT);
+          && cachedFingerprint.matchContent(ufsFingerprint)
+          && cachedFingerprint.isValid();
     } else {
-      isSyncedPersisted = inode.isPersisted() && inode.getUfsFingerprint().equals(ufsFingerprint);
+      Fingerprint cachedFingerprint =  Fingerprint.parse(inode.getUfsFingerprint());
+      isSyncedPersisted = inode.isPersisted() && cachedFingerprint.matchContent(ufsFingerprint);
     }
     return isSyncedPersisted || isSyncedUnpersisted;
+  }
+
+  /**
+   * Returns true if the given inode's metadata matches the ufs fingerprint.
+   *
+   * @param inode the inode to check for sync
+   * @param ufsFingerprint the ufs fingerprint to check for the sync
+   * @return true of the inode is synced with the ufs status
+   */
+  public static boolean inodeUfsIsMetadataSynced(Inode inode, Fingerprint ufsFingerprint) {
+    Fingerprint cachedFingerprint =  Fingerprint.parse(inode.getUfsFingerprint());
+    return cachedFingerprint.matchMetadata(ufsFingerprint);
   }
 
   /**
@@ -110,6 +130,7 @@ public final class UfsSyncUtils {
    */
   public static final class SyncPlan {
     private boolean mUpdateDirectory;
+    private boolean mUpdateMetadata;
     private boolean mDelete;
     private boolean mLoadMetadata;
     private boolean mSyncChildren;
@@ -117,12 +138,17 @@ public final class UfsSyncUtils {
     SyncPlan() {
       mUpdateDirectory = false;
       mDelete = false;
+      mUpdateMetadata = false;
       mLoadMetadata = false;
       mSyncChildren = false;
     }
 
     void setUpdateDirectory() {
       mUpdateDirectory = true;
+    }
+
+    void setUpdateMetadata() {
+      mUpdateMetadata = true;
     }
 
     void setDelete() {
@@ -149,6 +175,13 @@ public final class UfsSyncUtils {
      */
     public boolean toDelete() {
       return mDelete;
+    }
+
+    /**
+     * @return true if the inode should update metadata from ufs fingerprint
+     */
+    public boolean toUpdateMetaData() {
+      return mUpdateMetadata;
     }
 
     /**
