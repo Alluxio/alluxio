@@ -256,7 +256,6 @@ public final class FileSystemMasterClientRestServiceHandler {
       return mFileSystemMaster.getFileInfo(new AlluxioURI(path), GetStatusOptions.defaults());
     }); 
   }
-
   /**
    * @summary free a path
    * @param path the path
