@@ -26,7 +26,7 @@ public class UfsFileStatus extends UfsStatus {
   /**
    * Creates new instance of {@link UfsFileStatus}.
    *
-   * @param name relative path of file
+   * @param name basename of the file
    * @param contentHash hash of the file contents
    * @param contentLength in bytes
    * @param lastModifiedTimeMs UTC time
