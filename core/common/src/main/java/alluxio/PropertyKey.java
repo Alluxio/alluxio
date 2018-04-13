@@ -1395,9 +1395,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Name.WORKER_DATA_SERVER_DOMAIN_SOCKET_AS_WORKER_ID)
           .setDefaultValue("false")
           .setDescription("If true, the property " + Name.WORKER_DATA_SERVER_DOMAIN_SOCKET_ADDRESS
-              + "is the path to the home directory for the domain socket. In addition, clients "
-              + "will ignore " + Name.USER_HOSTNAME + " while detecting a local worker. If false, "
-              + "the property is the absolute path to the UNIX domain socket.")
+              + "is the path to the home directory for the domain socket and a unique identifier "
+              + "is used as the domain socket name. In addition, clients ignore "
+              + Name.USER_HOSTNAME + " while detecting a local worker for short circuit ops. "
+              + "If false, the property is the absolute path to the UNIX domain socket.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.ALL)
           .build();

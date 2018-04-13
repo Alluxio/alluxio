@@ -224,12 +224,9 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
 
     // Setup domain socket data server
     if (isDomainSocketEnabled()) {
+      // Set domain socket address after worker id is set as part of startWorkers
       String domainSocketPath =
-          Configuration.get(PropertyKey.WORKER_DATA_SERVER_DOMAIN_SOCKET_ADDRESS);
-      if (Configuration.getBoolean(PropertyKey.WORKER_DATA_SERVER_DOMAIN_SOCKET_AS_WORKER_ID)) {
-        domainSocketPath =
-            PathUtils.concatPath(domainSocketPath, mRegistry.get(BlockWorker.class).getWorkerId());
-      }
+          WorkerUtils.getDomainSocketAddress(mRegistry.get(BlockWorker.class).getWorkerId().get());
       LOG.info("Domain socket data server is enabled at {}.", domainSocketPath);
       mDomainSocketDataServer =
           DataServer.Factory.create(new DomainSocketAddress(domainSocketPath), this);

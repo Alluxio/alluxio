@@ -37,6 +37,7 @@ import alluxio.wire.FileInfo;
 import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.AbstractWorker;
 import alluxio.worker.SessionCleaner;
+import alluxio.worker.WorkerUtils;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.BlockWriter;
 import alluxio.worker.block.meta.BlockMeta;
@@ -198,7 +199,6 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
    */
   @Override
   public void start(WorkerNetAddress address) throws IOException {
-    mAddress = address;
     try {
       RetryUtils.retry("get worker id", () -> mWorkerId.set(mBlockMasterClient.getId(address)),
           ExponentialTimeBoundedRetry.builder()
@@ -210,6 +210,7 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
     } catch (Exception e) {
       throw new RuntimeException("Failed to get a worker id from block master: " + e.getMessage());
     }
+    mAddress = address.setDomainSocketPath(WorkerUtils.getDomainSocketAddress(mWorkerId.get()));
 
     Preconditions.checkNotNull(mWorkerId, "mWorkerId");
     Preconditions.checkNotNull(mAddress, "mAddress");
