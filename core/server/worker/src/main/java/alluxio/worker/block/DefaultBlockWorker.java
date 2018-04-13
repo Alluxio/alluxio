@@ -210,7 +210,6 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
     } catch (Exception e) {
       throw new RuntimeException("Failed to get a worker id from block master: " + e.getMessage());
     }
-    mAddress = address.setDomainSocketPath(WorkerUtils.getDomainSocketAddress(mWorkerId.get()));
 
     Preconditions.checkNotNull(mWorkerId, "mWorkerId");
     Preconditions.checkNotNull(mAddress, "mAddress");

@@ -152,7 +152,7 @@ public final class NettyUtils {
   public static boolean isDomainSocketSupported(WorkerNetAddress workerNetAddress) {
     boolean isDomainSocketSupported = !workerNetAddress.getDomainSocketPath().isEmpty();
     if (isDomainSocketSupported) {
-      if (Configuration.getBoolean(PropertyKey.WORKER_DATA_SERVER_DOMAIN_SOCKET_AS_WORKER_ID)) {
+      if (Configuration.getBoolean(PropertyKey.WORKER_DATA_SERVER_DOMAIN_SOCKET_AS_UUID)) {
         isDomainSocketSupported = FileUtils.exists(workerNetAddress.getDomainSocketPath());
       } else {
         isDomainSocketSupported = workerNetAddress.getHost().equals(NetworkAddressUtils.getClientHostName());

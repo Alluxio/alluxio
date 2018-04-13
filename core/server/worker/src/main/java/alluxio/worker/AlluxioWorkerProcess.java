@@ -23,6 +23,7 @@ import alluxio.security.authentication.TransportProvider;
 import alluxio.underfs.UfsManager;
 import alluxio.underfs.WorkerUfsManager;
 import alluxio.util.CommonUtils;
+import alluxio.util.IdUtils;
 import alluxio.util.JvmPauseMonitor;
 import alluxio.util.WaitForOptions;
 import alluxio.util.io.FileUtils;
@@ -151,6 +152,21 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
       // Setup Data server
       mDataServer = DataServer.Factory
           .create(NetworkAddressUtils.getBindAddress(ServiceType.WORKER_DATA), this);
+
+      // Setup domain socket data server
+      if (isDomainSocketEnabled()) {
+            String domainSocketPath =
+        Configuration.get(PropertyKey.WORKER_DATA_SERVER_DOMAIN_SOCKET_ADDRESS);
+        if (Configuration.getBoolean(PropertyKey.WORKER_DATA_SERVER_DOMAIN_SOCKET_AS_UUID)) {
+          domainSocketPath =
+              PathUtils.concatPath(domainSocketPath, IdUtils.getRandomNonNegativeLong());
+        }
+        LOG.info("Domain socket data server is enabled at {}.", domainSocketPath);
+        mDomainSocketDataServer =
+            DataServer.Factory.create(new DomainSocketAddress(domainSocketPath), this);
+        // Share domain socket so that clients can access it.
+        FileUtils.changeLocalFileToFullPermission(domainSocketPath);
+      }
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
@@ -221,18 +237,6 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
     // Consequence: worker id is granted
     startWorkers();
     LOG.info("Started {} with id {}", this, mRegistry.get(BlockWorker.class).getWorkerId());
-
-    // Setup domain socket data server
-    if (isDomainSocketEnabled()) {
-      // Set domain socket address after worker id is set as part of startWorkers
-      String domainSocketPath =
-          WorkerUtils.getDomainSocketAddress(mRegistry.get(BlockWorker.class).getWorkerId().get());
-      LOG.info("Domain socket data server is enabled at {}.", domainSocketPath);
-      mDomainSocketDataServer =
-          DataServer.Factory.create(new DomainSocketAddress(domainSocketPath), this);
-      // Share domain socket so that clients can access it.
-      FileUtils.changeLocalFileToFullPermission(domainSocketPath);
-    }
 
     // Start serving the web server, this will not block.
     mWebServer.addHandler(mMetricsServlet.getHandler());
