@@ -27,6 +27,7 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
@@ -78,8 +79,7 @@ public class SummaryCommand {
         .asList(MasterInfoField.MASTER_ADDRESS, MasterInfoField.WEB_PORT,
             MasterInfoField.RPC_PORT, MasterInfoField.START_TIME_MS,
             MasterInfoField.UP_TIME_MS, MasterInfoField.VERSION,
-            MasterInfoField.SAFE_MODE, MasterInfoField.ZOOKEEPER_ENABLED,
-            MasterInfoField.ZOOKEEPER_ADDRESS));
+            MasterInfoField.SAFE_MODE, MasterInfoField.ZOOKEEPER_ADDRESSES));
     MasterInfo masterInfo = mMetaMasterClient.getMasterInfo(masterInfoFilter);
 
     print("Master Address: " + masterInfo.getMasterAddress());
@@ -90,18 +90,16 @@ public class SummaryCommand {
     print("Version: " + masterInfo.getVersion());
     print("Safe Mode: " + masterInfo.isSafeMode());
 
-    boolean isZookeeperEnabled = masterInfo.isZookeeperEnabled();
-    print("Zookeeper Enabled: " + isZookeeperEnabled);
-    if (isZookeeperEnabled) {
-      String zookeeperAddress = masterInfo.getZookeeperAddress();
-      if (zookeeperAddress != null) {
-        String[] zkAddressesArray = zookeeperAddress.split(",");
-        mIndentationLevel++;
-        for (String zkAddress : zkAddressesArray) {
-          print(zkAddress);
-        }
-        mIndentationLevel--;
+    List<String> zookeeperAddresses = masterInfo.getZookeeperAddresses();
+    if (zookeeperAddresses == null || zookeeperAddresses.isEmpty()) {
+      print("Zookeeper Enabled: false");
+    } else {
+      print("Zookeeper Enabled: true");
+      mIndentationLevel++;
+      for (String zkAddress : zookeeperAddresses) {
+        print(zkAddress);
       }
+      mIndentationLevel--;
     }
 
   }

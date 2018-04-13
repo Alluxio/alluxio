@@ -19,8 +19,7 @@ public enum MasterInfoField implements org.apache.thrift.TEnum {
   UP_TIME_MS(4),
   VERSION(5),
   WEB_PORT(6),
-  ZOOKEEPER_ADDRESS(7),
-  ZOOKEEPER_ENABLED(8);
+  ZOOKEEPER_ADDRESSES(7);
 
   private final int value;
 
@@ -56,9 +55,7 @@ public enum MasterInfoField implements org.apache.thrift.TEnum {
       case 6:
         return WEB_PORT;
       case 7:
-        return ZOOKEEPER_ADDRESS;
-      case 8:
-        return ZOOKEEPER_ENABLED;
+        return ZOOKEEPER_ADDRESSES;
       default:
         return null;
     }

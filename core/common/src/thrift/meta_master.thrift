@@ -22,8 +22,7 @@ enum MasterInfoField {
   UP_TIME_MS
   VERSION
   WEB_PORT
-  ZOOKEEPER_ADDRESS
-  ZOOKEEPER_ENABLED
+  ZOOKEEPER_ADDRESSES
 }
 
 struct MasterInfo {
@@ -34,8 +33,7 @@ struct MasterInfo {
  5: i64 upTimeMs
  6: string version
  7: i32 webPort
- 8: optional string zookeeperAddress
- 9: bool zookeeperEnabled
+ 8: list<string> zookeeperAddresses // Null means zookeeper is not enabled
 }
 
 struct GetMasterInfoTOptions {

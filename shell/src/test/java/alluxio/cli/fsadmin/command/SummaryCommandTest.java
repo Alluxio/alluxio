@@ -53,9 +53,8 @@ public class SummaryCommandTest {
         .setUpTimeMs(12412412312L)
         .setVersion("testVersion")
         .setSafeMode(false)
-        .setZookeeperEnabled(true)
-        .setZookeeperAddress("[zookeeper_hostname1]:2181,[zookeeper_hostname2]:2181,"
-            + "[zookeeper_hostname3]:2181");
+        .setZookeeperAddresses(Arrays.asList("[zookeeper_hostname1]:2181",
+            "[zookeeper_hostname2]:2181", "[zookeeper_hostname3]:2181"));
     Mockito.when(mMetaMasterClient.getMasterInfo(Mockito.any())).thenReturn(masterInfo);
 
     // Prepare mock block master client

@@ -102,14 +102,11 @@ public final class MetaMasterClientServiceHandler implements MetaMasterClientSer
           case WEB_PORT:
             info.setWebPort(mMasterProcess.getWebAddress().getPort());
             break;
-          case ZOOKEEPER_ADDRESS:
-            if (Configuration.getBoolean(PropertyKey.ZOOKEEPER_ENABLED)
-                && Configuration.containsKey(PropertyKey.ZOOKEEPER_ADDRESS)) {
-              info.setZookeeperAddress(Configuration.get(PropertyKey.ZOOKEEPER_ADDRESS));
+          case ZOOKEEPER_ADDRESSES:
+            if (Configuration.containsKey(PropertyKey.ZOOKEEPER_ADDRESS)) {
+              info.setZookeeperAddresses(Arrays
+                  .asList(Configuration.get(PropertyKey.ZOOKEEPER_ADDRESS).split(",")));
             }
-            break;
-          case ZOOKEEPER_ENABLED:
-            info.setZookeeperEnabled(Configuration.getBoolean(PropertyKey.ZOOKEEPER_ENABLED));
             break;
           default:
             LOG.warn("Unrecognized meta master info field: " + field);
