@@ -28,14 +28,12 @@ import alluxio.master.file.options.SetAttributeOptions;
 import alluxio.web.MasterWebServer;
 import alluxio.wire.FileInfo;
 import alluxio.wire.LoadMetadataType;
-import alluxio.wire.MountPointInfo;
 import alluxio.wire.TtlAction;
 
 import com.google.common.base.Preconditions;
 import com.qmino.miredot.annotations.ReturnType;
 
 import java.util.List;
-import java.util.Map;
 
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.servlet.ServletContext;
