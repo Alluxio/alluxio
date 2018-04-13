@@ -309,7 +309,7 @@ public final class AlluxioMasterRestServiceHandler {
   @ReturnType("java.lang.Long")
   @Deprecated
   public Response getUfsCapacityBytes() {
-    return RestUtils.call(() -> mUfs.getSpace(mUfsRoot,UnderFileSystem.SpaceType.SPACE_USED));
+    return RestUtils.call(() -> mUfs.getSpace(mUfsRoot, UnderFileSystem.SpaceType.SPACE_USED));
   }
 
   /**
