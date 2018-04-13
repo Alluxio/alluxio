@@ -78,7 +78,8 @@ public class SummaryCommand {
         .asList(MasterInfoField.MASTER_ADDRESS, MasterInfoField.WEB_PORT,
             MasterInfoField.RPC_PORT, MasterInfoField.START_TIME_MS,
             MasterInfoField.UP_TIME_MS, MasterInfoField.VERSION,
-            MasterInfoField.SAFE_MODE));
+            MasterInfoField.SAFE_MODE, MasterInfoField.ZOOKEEPER_ENABLED,
+            MasterInfoField.ZOOKEEPER_ADDRESS));
     MasterInfo masterInfo = mMetaMasterClient.getMasterInfo(masterInfoFilter);
 
     print("Master Address: " + masterInfo.getMasterAddress());
@@ -88,6 +89,21 @@ public class SummaryCommand {
     print("Uptime: " + CommonUtils.convertMsToClockTime(masterInfo.getUpTimeMs()));
     print("Version: " + masterInfo.getVersion());
     print("Safe Mode: " + masterInfo.isSafeMode());
+
+    boolean isZookeeperEnabled = masterInfo.isZookeeperEnabled();
+    print("Zookeeper Enabled: " + isZookeeperEnabled);
+    if (isZookeeperEnabled) {
+      String zookeeperAddress = masterInfo.getZookeeperAddress();
+      if (zookeeperAddress != null) {
+        String[] zkAddressesArray = zookeeperAddress.split(",");
+        mIndentationLevel++;
+        for (String zkAddress : zkAddressesArray) {
+          print(zkAddress);
+        }
+        mIndentationLevel--;
+      }
+    }
+
   }
 
   /**

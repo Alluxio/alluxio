@@ -12,6 +12,7 @@
 package alluxio.wire;
 
 import com.google.common.base.Objects;
+import com.google.common.base.Preconditions;
 
 import java.io.Serializable;
 
@@ -31,6 +32,8 @@ public final class MasterInfo implements Serializable {
   private long mUpTimeMs;
   private String mVersion;
   private int mWebPort;
+  private String mZookeeperAddress;
+  private boolean mZookeeperEnabled;
 
   /**
    * Creates a new instance of {@link MasterInfo}.
@@ -43,6 +46,16 @@ public final class MasterInfo implements Serializable {
    * @param masterInfo the thrift representation of alluxio master information
    */
   protected MasterInfo(alluxio.thrift.MasterInfo masterInfo) {
+    mZookeeperEnabled = masterInfo.isZookeeperEnabled();
+    boolean isSetZooKeeperAddress = masterInfo.isSetZookeeperAddress();
+    Preconditions.checkState((mZookeeperEnabled && isSetZooKeeperAddress)
+        || (!mZookeeperEnabled && !isSetZooKeeperAddress),
+        "Zookeeper address should be set when Zookeeper is enabled, "
+            + "Zookeeper address should not be set when Zookeeper is not enabled");
+    if (isSetZooKeeperAddress) {
+      mZookeeperAddress = masterInfo.getZookeeperAddress();
+    }
+
     mMasterAddress = masterInfo.getMasterAddress();
     mRpcPort = masterInfo.getRpcPort();
     mSafeMode = masterInfo.isSafeMode();
@@ -99,6 +112,20 @@ public final class MasterInfo implements Serializable {
    */
   public int getWebPort() {
     return mWebPort;
+  }
+
+  /**
+   * @return the Zookeeper address
+   */
+  public String getZookeeperAddress() {
+    return mZookeeperAddress;
+  }
+
+  /**
+   * @return if the cluster is running with Zookeeper
+   */
+  public boolean isZookeeperEnabled() {
+    return mZookeeperEnabled;
   }
 
   /**
@@ -165,11 +192,35 @@ public final class MasterInfo implements Serializable {
   }
 
   /**
+   * @param zookeeperAddress the Zookeeper address to use
+   * @return the master information
+   */
+  public MasterInfo setZookeeperAddress(String zookeeperAddress) {
+    mZookeeperAddress = zookeeperAddress;
+    return this;
+  }
+
+  /**
+   * @param zookeeperEnabled if the Zookeeper is enabled in this cluster
+   * @return the master information
+   */
+  public MasterInfo setZookeeperEnabled(boolean zookeeperEnabled) {
+    mZookeeperEnabled = zookeeperEnabled;
+    return this;
+  }
+
+  /**
    * @return thrift representation of the master information
    */
   protected alluxio.thrift.MasterInfo toThrift() {
-    return new alluxio.thrift.MasterInfo(mMasterAddress, mRpcPort, mSafeMode,
-        mStartTimeMs, mUpTimeMs, mVersion, mWebPort);
+    alluxio.thrift.MasterInfo thriftMasterInfo =  new alluxio.thrift.MasterInfo()
+        .setMasterAddress(mMasterAddress).setRpcPort(mRpcPort).setSafeMode(mSafeMode)
+        .setStartTimeMs(mStartTimeMs).setUpTimeMs(mUpTimeMs).setVersion(mVersion)
+        .setWebPort(mWebPort).setZookeeperEnabled(mZookeeperEnabled);
+    if (mZookeeperEnabled && mZookeeperAddress != null) {
+      thriftMasterInfo.setZookeeperAddress(mZookeeperAddress);
+    }
+    return thriftMasterInfo;
   }
 
   @Override
@@ -184,13 +235,14 @@ public final class MasterInfo implements Serializable {
     return mMasterAddress.equals(that.mMasterAddress) && mRpcPort == that.mRpcPort
         && mSafeMode == that.mSafeMode && mStartTimeMs == that.mStartTimeMs
         && mUpTimeMs == that.mUpTimeMs && mVersion.equals(that.mVersion)
-        && mWebPort == that.mWebPort;
+        && mWebPort == that.mWebPort && mZookeeperAddress.equals(that.mZookeeperAddress)
+        && mZookeeperEnabled == that.mZookeeperEnabled;
   }
 
   @Override
   public int hashCode() {
     return Objects.hashCode(mMasterAddress, mRpcPort, mSafeMode,
-        mStartTimeMs, mUpTimeMs, mVersion, mWebPort);
+        mStartTimeMs, mUpTimeMs, mVersion, mWebPort, mZookeeperAddress, mZookeeperEnabled);
   }
 
   @Override
@@ -198,7 +250,9 @@ public final class MasterInfo implements Serializable {
     return Objects.toStringHelper(this).add("masterAddress", mMasterAddress)
         .add("rpcPort", mRpcPort).add("safeMode", mSafeMode)
         .add("startTimeMs", mStartTimeMs).add("upTimeMs", mUpTimeMs)
-        .add("version", mVersion).add("webPort", mWebPort).toString();
+        .add("version", mVersion).add("webPort", mWebPort)
+        .add("zookeeperAddress", mZookeeperAddress)
+        .add("zookeeperEnabled", mZookeeperEnabled).toString();
   }
 
   /**
@@ -211,7 +265,9 @@ public final class MasterInfo implements Serializable {
     START_TIME_MS,
     UP_TIME_MS,
     VERSION,
-    WEB_PORT;
+    WEB_PORT,
+    ZOOKEEPER_ADDRESS,
+    ZOOKEEPER_ENABLED;
 
     /**
      * @return the thrift representation of this master info field

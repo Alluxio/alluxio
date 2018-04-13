@@ -74,6 +74,8 @@ public final class ReportCommandIntegrationTest extends AbstractFsAdminShellTest
     Assert.assertFalse(output.contains("Started: 12-31-1969 16:00:00:000"));
     Assert.assertThat(output, CoreMatchers.containsString(
         "Version: " + ProjectConstants.VERSION));
+    Assert.assertThat(output, CoreMatchers.containsString(
+        "Zookeeper Enabled: false"));
 
     // Check if block master values are available
     Assert.assertThat(output, CoreMatchers.containsString("Live Workers: 1"));
