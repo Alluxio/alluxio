@@ -503,9 +503,9 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
     Assert.assertEquals(
         FileUtils.translatePosixPermissionToMode(PosixFilePermissions.fromString("rwxrwxrwx")),
         status.getMode());
-    long afterFileid = status.getFileId();
+
     // Change the permission of the file and the file id should not change
-    Assert.assertEquals(prevFileid, afterFileid);
+    Assert.assertEquals(prevFileid, status.getFileId());
 
     // Change the content of the file and the file id should change as a result because it is
     // deleted and reloaded.
@@ -513,8 +513,7 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
 
     status = mFileSystem.getStatus(new AlluxioURI(alluxioPath(EXISTING_FILE)), options);
     Assert.assertNotNull(status);
-    long afterContentChangeFileid = status.getFileId();
-    Assert.assertNotEquals(prevFileid, afterContentChangeFileid);
+    Assert.assertNotEquals(prevFileid, status.getFileId());
   }
 
   @Test

@@ -61,7 +61,7 @@ public final class UfsSyncUtils {
         // Only update the inode if it is not the root directory. The root directory is a special
         // case, since it is expected to be owned by the process that starts the master, and not
         // the owner on UFS.
-        syncPlan.setUpdateDirectory();
+        syncPlan.setUpdateMetadata();
       }
       syncPlan.setSyncChildren();
       return syncPlan;
@@ -94,17 +94,11 @@ public final class UfsSyncUtils {
         !inode.isPersisted() && !ufsFingerprint.isValid();
     boolean isSyncedPersisted;
 
-    if (inode instanceof InodeFile) {
-      // check the file fingerprint.
-      InodeFile inodeFile = (InodeFile) inode;
-      Fingerprint cachedFingerprint =  Fingerprint.parse(inodeFile.getUfsFingerprint());
-      isSyncedPersisted = inodeFile.isPersisted()
-          && cachedFingerprint.matchContent(ufsFingerprint)
-          && cachedFingerprint.isValid();
-    } else {
-      Fingerprint cachedFingerprint =  Fingerprint.parse(inode.getUfsFingerprint());
-      isSyncedPersisted = inode.isPersisted() && cachedFingerprint.matchContent(ufsFingerprint);
-    }
+    Fingerprint inodeFingerprint =  Fingerprint.parse(inode.getUfsFingerprint());
+    isSyncedPersisted = inode.isPersisted()
+        && inodeFingerprint.matchContent(ufsFingerprint)
+        && inodeFingerprint.isValid();
+
     return isSyncedPersisted || isSyncedUnpersisted;
   }
 
@@ -116,35 +110,29 @@ public final class UfsSyncUtils {
    * @return true of the inode is synced with the ufs status
    */
   public static boolean inodeUfsIsMetadataSynced(Inode inode, Fingerprint ufsFingerprint) {
-    Fingerprint cachedFingerprint =  Fingerprint.parse(inode.getUfsFingerprint());
-    return cachedFingerprint.matchMetadata(ufsFingerprint);
+    Fingerprint inodeFingerprint = Fingerprint.parse(inode.getUfsFingerprint());
+    return inodeFingerprint.matchMetadata(ufsFingerprint);
   }
 
   /**
    * A class describing how to sync an inode with the ufs.
    * A sync plan has several steps:
-   * 1. updateDirectory: the directory inode should update permissions from UFS directory
+   * 1. updateMetadata: the file or directory should update its metadata from UFS
    * 2. delete: the inode should be deleted
    * 3. syncChildren: the inode is a directory, and the children should be synced
    * 4. loadMetadata: the inode metadata should be loaded from UFS
    */
   public static final class SyncPlan {
-    private boolean mUpdateDirectory;
     private boolean mUpdateMetadata;
     private boolean mDelete;
     private boolean mLoadMetadata;
     private boolean mSyncChildren;
 
     SyncPlan() {
-      mUpdateDirectory = false;
       mDelete = false;
       mUpdateMetadata = false;
       mLoadMetadata = false;
       mSyncChildren = false;
-    }
-
-    void setUpdateDirectory() {
-      mUpdateDirectory = true;
     }
 
     void setUpdateMetadata() {
@@ -161,13 +149,6 @@ public final class UfsSyncUtils {
 
     void setSyncChildren() {
       mSyncChildren = true;
-    }
-
-    /**
-     * @return true if the direcotry inode permissions should be updated from UFS directory
-     */
-    public boolean toUpdateDirectory() {
-      return mUpdateDirectory;
     }
 
     /**

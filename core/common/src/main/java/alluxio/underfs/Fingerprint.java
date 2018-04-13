@@ -119,7 +119,7 @@ public final class Fingerprint {
   }
 
   /**
-   * Checking if the fingerprint object was generated from an INVALID_UFS_FINGERPRINT.
+   * Checks if the fingerprint object was generated from an INVALID_UFS_FINGERPRINT.
    *
    * @return returns true if the fingerprint is valid
    */

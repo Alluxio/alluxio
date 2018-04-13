@@ -3171,10 +3171,11 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     // The high-level process for the syncing is:
     // 1. Find all Alluxio paths which are not consistent with the corresponding UFS path.
     //    This means the UFS path does not exist, or is different from the Alluxio metadata.
-    // 2. If possible, update an Alluxio directory with the corresponding UFS directory.
-    // 3. Delete any Alluxio path not consistent with UFS, or not in UFS. After this step, all
-    //    the paths in Alluxio are consistent with UFS, and there may be additional UFS paths to
-    //    load.
+    // 2. If only the metadata changed for a file or a directory,, update the inode with
+    //    new metadata from the UFS.
+    // 3. Delete any Alluxio path whose content is not consistent with UFS, or not in UFS. After
+    //    this step, all the paths in Alluxio are consistent with UFS, and there may be additional
+    //    UFS paths to load.
     // 4. Load metadata from UFS.
 
     // Set to true if ufs metadata must be loaded.
@@ -3292,10 +3293,9 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       UfsSyncUtils.SyncPlan syncPlan =
           UfsSyncUtils.computeSyncPlan(inode, ufsFpParsed, containsMountPoint);
 
-      if (syncPlan.toUpdateDirectory() || syncPlan.toUpdateMetaData()) {
-        // Updating directory and updating metadata essentially does the same thing, updating
-        // Owner, Group, Mode
-        // Fingerprints only consider permissions for directory inodes.
+      if (syncPlan.toUpdateMetaData()) {
+        // UpdateMetadata is used when a file or a directory only had metadata change.
+        // It works by calling SetAttributeInternal on the inodePath.
         UfsStatus ufsStatus = null;
         try {
           ufsStatus = ufs.getStatus(ufsUri.toString());
