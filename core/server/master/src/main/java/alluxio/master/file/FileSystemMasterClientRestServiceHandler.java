@@ -28,14 +28,12 @@ import alluxio.master.file.options.SetAttributeOptions;
 import alluxio.web.MasterWebServer;
 import alluxio.wire.FileInfo;
 import alluxio.wire.LoadMetadataType;
-import alluxio.wire.MountPointInfo;
 import alluxio.wire.TtlAction;
 
 import com.google.common.base.Preconditions;
 import com.qmino.miredot.annotations.ReturnType;
 
 import java.util.List;
-import java.util.Map;
 
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.servlet.ServletContext;
@@ -339,12 +337,7 @@ public final class FileSystemMasterClientRestServiceHandler {
   @Path(GET_MOUNT_POINTS)
   @ReturnType("java.util.SortedMap<java.lang.String, alluxio.wire.MountPointInfo>")
   public Response getMountPoints() {
-    return RestUtils.call(new RestUtils.RestCallable<Map<String, MountPointInfo>>() {
-      @Override
-      public Map<String, MountPointInfo> call() throws Exception {
-        return mFileSystemMaster.getMountTable();
-      }
-    });
+    return RestUtils.call(() -> mFileSystemMaster.getMountTable());
   }
 
   /**
