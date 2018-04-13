@@ -95,6 +95,7 @@ public class SummaryCommand {
       print("Zookeeper Enabled: false");
     } else {
       print("Zookeeper Enabled: true");
+      print("Zookeeper Addresses: ");
       mIndentationLevel++;
       for (String zkAddress : zookeeperAddresses) {
         print(zkAddress);
