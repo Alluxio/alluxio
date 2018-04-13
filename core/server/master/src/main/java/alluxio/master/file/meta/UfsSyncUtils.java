@@ -68,6 +68,8 @@ public final class UfsSyncUtils {
     }
 
     // One of metadata or content is not in sync and it is a file
+    // The only way for a directory to reach this point, is that the ufs with the same path is not
+    // a directory. That requires a deletion and reload as well.
     if (!isContentSynced) {
       // update inode, by deleting and then optionally loading metadata
       syncPlan.setDelete();
@@ -111,7 +113,7 @@ public final class UfsSyncUtils {
    */
   public static boolean inodeUfsIsMetadataSynced(Inode inode, Fingerprint ufsFingerprint) {
     Fingerprint inodeFingerprint = Fingerprint.parse(inode.getUfsFingerprint());
-    return inodeFingerprint.matchMetadata(ufsFingerprint);
+    return inodeFingerprint.isValid() && inodeFingerprint.matchMetadata(ufsFingerprint);
   }
 
   /**
