@@ -198,6 +198,7 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
    */
   @Override
   public void start(WorkerNetAddress address) throws IOException {
+    mAddress = address;
     try {
       RetryUtils.retry("get worker id", () -> mWorkerId.set(mBlockMasterClient.getId(address)),
           ExponentialTimeBoundedRetry.builder()

@@ -155,8 +155,8 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
 
       // Setup domain socket data server
       if (isDomainSocketEnabled()) {
-            String domainSocketPath =
-        Configuration.get(PropertyKey.WORKER_DATA_SERVER_DOMAIN_SOCKET_ADDRESS);
+        String domainSocketPath =
+            Configuration.get(PropertyKey.WORKER_DATA_SERVER_DOMAIN_SOCKET_ADDRESS);
         if (Configuration.getBoolean(PropertyKey.WORKER_DATA_SERVER_DOMAIN_SOCKET_AS_UUID)) {
           domainSocketPath =
               PathUtils.concatPath(domainSocketPath, IdUtils.getRandomNonNegativeLong());
