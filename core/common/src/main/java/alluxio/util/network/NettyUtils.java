@@ -155,7 +155,8 @@ public final class NettyUtils {
       if (Configuration.getBoolean(PropertyKey.WORKER_DATA_SERVER_DOMAIN_SOCKET_AS_UUID)) {
         isDomainSocketSupported = FileUtils.exists(workerNetAddress.getDomainSocketPath());
       } else {
-        isDomainSocketSupported = workerNetAddress.getHost().equals(NetworkAddressUtils.getClientHostName());
+        isDomainSocketSupported =
+            workerNetAddress.getHost().equals(NetworkAddressUtils.getClientHostName());
       }
     }
     return isDomainSocketSupported && CHANNEL_TYPE == ChannelType.EPOLL;
