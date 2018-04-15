@@ -314,15 +314,6 @@ public final class PermissionCheckerTest {
   }
 
   @Test
-  public void checkFallThrough() throws Exception {
-    // user can not read, but group can
-    checkPermission(TEST_USER_1, Mode.Bits.READ, TEST_WEIRD_FILE_URI);
-
-    // user and group can not write, but other can
-    checkPermission(TEST_USER_1, Mode.Bits.WRITE, TEST_WEIRD_FILE_URI);
-  }
-
-  @Test
   public void parentCheckSuccess() throws Exception {
     checkParentOrAncestorPermission(TEST_USER_1, Mode.Bits.WRITE, TEST_DIR_FILE_URI);
   }
