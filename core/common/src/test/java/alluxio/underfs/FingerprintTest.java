@@ -11,6 +11,9 @@
 
 package alluxio.underfs;
 
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertFalse;
+
 import alluxio.util.CommonUtils;
 
 import org.junit.Assert;
@@ -54,5 +57,35 @@ public final class FingerprintTest {
     String expected = fp.serialize();
     Assert.assertNotNull(expected);
     Assert.assertEquals(expected, Fingerprint.parse(expected).serialize());
+  }
+
+  @Test
+  public void matchMetadataOrContent() {
+    String name = CommonUtils.randomAlphaNumString(10);
+    String contentHash = CommonUtils.randomAlphaNumString(10);
+    String contentHash2 = CommonUtils.randomAlphaNumString(11);
+    Long contentLength = mRandom.nextLong();
+    Long lastModifiedTimeMs = mRandom.nextLong();
+    String owner = CommonUtils.randomAlphaNumString(10);
+    String group = CommonUtils.randomAlphaNumString(10);
+    short mode = (short) mRandom.nextInt();
+    String ufsName = CommonUtils.randomAlphaNumString(10);
+
+    UfsFileStatus status = new UfsFileStatus(name, contentHash, contentLength, lastModifiedTimeMs,
+        owner, group, mode);
+    UfsFileStatus metadataChangedStatus = new UfsFileStatus(name, contentHash, contentLength,
+        lastModifiedTimeMs, CommonUtils.randomAlphaNumString(10),
+        CommonUtils.randomAlphaNumString(10), mode);
+    UfsFileStatus dataChangedStatus = new UfsFileStatus(name, contentHash2, contentLength,
+        lastModifiedTimeMs, owner, group, mode);
+    Fingerprint fp = Fingerprint.create(ufsName, status);
+    Fingerprint fpMetadataChanged = Fingerprint.create(ufsName, metadataChangedStatus);
+    Fingerprint fpDataChanged = Fingerprint.create(ufsName, dataChangedStatus);
+
+    assertTrue(fp.matchMetadata(fp));
+    assertFalse(fp.matchMetadata(fpMetadataChanged));
+    assertTrue(fp.matchContent(fpMetadataChanged));
+    assertFalse(fp.matchContent(fpDataChanged));
+    assertTrue(fp.matchMetadata(fpDataChanged));
   }
 }

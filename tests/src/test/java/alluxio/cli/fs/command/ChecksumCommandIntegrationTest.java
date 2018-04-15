@@ -46,6 +46,29 @@ public final class ChecksumCommandIntegrationTest extends AbstractFileSystemShel
   }
 
   /**
+   * Tests md5 checksum calculation with wildcard.
+   */
+  @Test
+  public void checksumWildCard() throws Exception {
+    FileSystemTestUtils.createByteFile(mFileSystem,
+            "/testDir/testFileA", WriteType.MUST_CACHE, 10);
+    FileSystemTestUtils.createByteFile(mFileSystem,
+            "/testDir2/testFileB", WriteType.MUST_CACHE, 10);
+    mFsShell.run("checksum", "/testDir*/testFile*");
+    String str = mOutput.toString();
+    String[] splitString = str.split("\\s+");
+
+    byte[] data = BufferUtils.getIncreasingByteArray(10);
+    try {
+      String expectedMd5 = DigestUtils.md5Hex(data);
+      Assert.assertEquals(splitString[1], expectedMd5);
+      Assert.assertEquals(splitString[3], expectedMd5);
+    } catch (Exception e) {
+      Assert.fail("md5cksum failure not expected: " + e.getMessage());
+    }
+  }
+
+  /**
    * Test invalid args.
    */
   @Test
@@ -53,9 +76,9 @@ public final class ChecksumCommandIntegrationTest extends AbstractFileSystemShel
     mFsShell.run("checksum", "/testFile");
     String expected = ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage("/testFile") + "\n";
     Assert.assertEquals(expected, mOutput.toString());
-
     mFsShell.run("mkdir", "/testFolder");
     int ret = mFsShell.run("checksum", "/testFolder");
     Assert.assertEquals(-1, ret);
   }
+
 }

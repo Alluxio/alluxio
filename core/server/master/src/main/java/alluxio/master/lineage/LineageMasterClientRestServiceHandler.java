@@ -79,12 +79,7 @@ public final class LineageMasterClientRestServiceHandler {
   @Path(SERVICE_NAME)
   @ReturnType("java.lang.String")
   public Response getServiceName() {
-    return RestUtils.call(new RestUtils.RestCallable<String>() {
-      @Override
-      public String call() throws Exception {
-        return Constants.LINEAGE_MASTER_CLIENT_SERVICE_NAME;
-      }
-    });
+    return RestUtils.call(() -> Constants.LINEAGE_MASTER_CLIENT_SERVICE_NAME);
   }
 
   /**
@@ -95,12 +90,7 @@ public final class LineageMasterClientRestServiceHandler {
   @Path(SERVICE_VERSION)
   @ReturnType("java.lang.Long")
   public Response getServiceVersion() {
-    return RestUtils.call(new RestUtils.RestCallable<Long>() {
-      @Override
-      public Long call() throws Exception {
-        return Constants.LINEAGE_MASTER_CLIENT_SERVICE_VERSION;
-      }
-    });
+    return RestUtils.call(() -> Constants.LINEAGE_MASTER_CLIENT_SERVICE_VERSION);
   }
 
   /**
@@ -150,12 +140,9 @@ public final class LineageMasterClientRestServiceHandler {
   @ReturnType("java.lang.Boolean")
   public Response deleteLineage(@QueryParam("lineageId") final Long lineageId,
       @QueryParam("cascade") final boolean cascade) {
-    return RestUtils.call(new RestUtils.RestCallable<Boolean>() {
-      @Override
-      public Boolean call() throws Exception {
-        Preconditions.checkNotNull(lineageId, "required 'lineageId' parameter is missing");
-        return mLineageMaster.deleteLineage(lineageId, cascade);
-      }
+    return RestUtils.call(() -> {
+      Preconditions.checkNotNull(lineageId, "required 'lineageId' parameter is missing");
+      return mLineageMaster.deleteLineage(lineageId, cascade);
     });
   }
 

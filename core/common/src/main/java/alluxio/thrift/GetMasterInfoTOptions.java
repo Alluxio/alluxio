@@ -351,13 +351,13 @@ public class GetMasterInfoTOptions implements org.apache.thrift.TBase<GetMasterI
           case 1: // FILTER
             if (schemeField.type == org.apache.thrift.protocol.TType.SET) {
               {
-                org.apache.thrift.protocol.TSet _set0 = iprot.readSetBegin();
-                struct.filter = new HashSet<MasterInfoField>(2*_set0.size);
-                MasterInfoField _elem1;
-                for (int _i2 = 0; _i2 < _set0.size; ++_i2)
+                org.apache.thrift.protocol.TSet _set8 = iprot.readSetBegin();
+                struct.filter = new HashSet<MasterInfoField>(2*_set8.size);
+                MasterInfoField _elem9;
+                for (int _i10 = 0; _i10 < _set8.size; ++_i10)
                 {
-                  _elem1 = alluxio.thrift.MasterInfoField.findByValue(iprot.readI32());
-                  struct.filter.add(_elem1);
+                  _elem9 = alluxio.thrift.MasterInfoField.findByValue(iprot.readI32());
+                  struct.filter.add(_elem9);
                 }
                 iprot.readSetEnd();
               }
@@ -385,9 +385,9 @@ public class GetMasterInfoTOptions implements org.apache.thrift.TBase<GetMasterI
         oprot.writeFieldBegin(FILTER_FIELD_DESC);
         {
           oprot.writeSetBegin(new org.apache.thrift.protocol.TSet(org.apache.thrift.protocol.TType.I32, struct.filter.size()));
-          for (MasterInfoField _iter3 : struct.filter)
+          for (MasterInfoField _iter11 : struct.filter)
           {
-            oprot.writeI32(_iter3.getValue());
+            oprot.writeI32(_iter11.getValue());
           }
           oprot.writeSetEnd();
         }
@@ -418,9 +418,9 @@ public class GetMasterInfoTOptions implements org.apache.thrift.TBase<GetMasterI
       if (struct.isSetFilter()) {
         {
           oprot.writeI32(struct.filter.size());
-          for (MasterInfoField _iter4 : struct.filter)
+          for (MasterInfoField _iter12 : struct.filter)
           {
-            oprot.writeI32(_iter4.getValue());
+            oprot.writeI32(_iter12.getValue());
           }
         }
       }
@@ -432,13 +432,13 @@ public class GetMasterInfoTOptions implements org.apache.thrift.TBase<GetMasterI
       BitSet incoming = iprot.readBitSet(1);
       if (incoming.get(0)) {
         {
-          org.apache.thrift.protocol.TSet _set5 = new org.apache.thrift.protocol.TSet(org.apache.thrift.protocol.TType.I32, iprot.readI32());
-          struct.filter = new HashSet<MasterInfoField>(2*_set5.size);
-          MasterInfoField _elem6;
-          for (int _i7 = 0; _i7 < _set5.size; ++_i7)
+          org.apache.thrift.protocol.TSet _set13 = new org.apache.thrift.protocol.TSet(org.apache.thrift.protocol.TType.I32, iprot.readI32());
+          struct.filter = new HashSet<MasterInfoField>(2*_set13.size);
+          MasterInfoField _elem14;
+          for (int _i15 = 0; _i15 < _set13.size; ++_i15)
           {
-            _elem6 = alluxio.thrift.MasterInfoField.findByValue(iprot.readI32());
-            struct.filter.add(_elem6);
+            _elem14 = alluxio.thrift.MasterInfoField.findByValue(iprot.readI32());
+            struct.filter.add(_elem14);
           }
         }
         struct.setFilterIsSet(true);

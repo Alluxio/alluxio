@@ -52,9 +52,8 @@ public final class MasterWebServer extends WebServer {
     mWebAppContext.addServlet(new ServletHolder(
         new WebInterfaceWorkersServlet(masterProcess.getMaster(BlockMaster.class))),
         "/workers");
-    mWebAppContext.addServlet(new ServletHolder(
-            new WebInterfaceConfigurationServlet(masterProcess.getMaster(FileSystemMaster.class))),
-        "/configuration");
+    mWebAppContext.addServlet(new ServletHolder(new WebInterfaceConfigurationServlet(
+        masterProcess.getMaster(FileSystemMaster.class), masterProcess)), "/configuration");
     mWebAppContext
         .addServlet(new ServletHolder(new WebInterfaceBrowseServlet(masterProcess)), "/browse");
     mWebAppContext

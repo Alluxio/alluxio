@@ -38,6 +38,43 @@ public final class PathUtils {
       String.format(TEMPORARY_SUFFIX_FORMAT, 0).length();
 
   /**
+   * Returns the basename of the path, consistent with the Unix basename command.
+   *
+   * Examples:
+   *
+   * <pre>
+   *   basename("/") => "/"
+   *   basename("/abc") => "abc"
+   *   basename("///") => "/"
+   *   basename("abc/)" => "abc"
+   *   basename("") => ""
+   *   basename("/a/b/c/d") => "d"
+   *   basename("//a///b/c//d//") => "d"
+   *   basename("/a.txt") => "a.txt"
+   * </pre>
+   *
+   * @param path the path
+   * @return the basename of the path
+   */
+  public static String basename(String path) {
+    if (path.isEmpty()) {
+      return "";
+    }
+    while (!path.isEmpty() && path.charAt(path.length() - 1) == '/') {
+      path = path.substring(0, path.length() - 1);
+    }
+    int lastSlash = path.lastIndexOf("/");
+    if (lastSlash >= 0) {
+      path = path.substring(lastSlash + 1);
+    }
+    if (path.isEmpty()) {
+      // Must have only had slashes in the path.
+      return "/";
+    }
+    return path;
+  }
+
+  /**
    * Checks and normalizes the given path.
    *
    * @param path The path to clean up

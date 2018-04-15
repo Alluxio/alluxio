@@ -305,11 +305,11 @@ sys	0m0.240s
 $ ./bin/alluxio-stop.sh local
 ```
 
-## 结论
+## 总结
 
 恭喜你完成了Alluxio的快速上手指南！你成功地在本地电脑上下载和安装Alluxio，并且通过Alluxio shell进行了基本的交互。这是一个如何上手Alluxio的简单例子。
 
-除此之外还有很多可以学习。你可以通过我们的文档学到Alluxio的各种特性。你可以在你的环境中安装Alluxio，挂载你已有的存储系统到Alluxio，配置你的应用和Alluxio一起工作。更多的资源在下面。
+除此之外还有很多可以学习。你可以通过我们的文档学到Alluxio的各种特性。你可以在你的环境中安装Alluxio，挂载你已有的存储系统到Alluxio，配置你的应用和Alluxio一起工作。浏览下方以获得更多信息。
 
 ### 部署Alluxio
 

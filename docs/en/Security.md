@@ -57,7 +57,7 @@ This mode is currently experimental and should only be used in tests.
 
 ## Authorization
 
-Alluxio file system implements a permissions model for directories and files similar as the POSIX
+Alluxio file system implements a permissions model for directories and files similar to the POSIX
  permission model.
 
 Each file and directory is associated with:
@@ -67,7 +67,7 @@ Each file and directory is associated with:
 mapping](#user-group-mapping).
 3. permissions
 
-The permissions has three parts:
+The permissions have three parts:
 
 1. owner permission defines the access privileges of the file owner
 2. group permission defines the access privileges of the owning group
@@ -182,6 +182,6 @@ disk encryption.
 ## Deployment
 
 It is recommended to start Alluxio master and workers by one same user. Alluxio cluster service
-composes of master and workers. Every worker needs to RPC with master for some file operations.
+composes of master and workers. Every worker needs to communicate with the master via RPC to perform some file operations.
 If the user of a worker is not the same as the master's, the file operations may fail because of
 permission check.

@@ -175,4 +175,24 @@ public final class PersistCommandTest extends AbstractFileSystemShellTest {
     Assert.assertEquals(grandParentMode,
         new Mode(ufs.getDirectoryStatus(PathUtils.concatPath(ufsRoot, grandParent)).getMode()));
   }
+
+  @Test
+  public void persistWithWildCard() throws Exception {
+    String filePath1 = "/testPersist1/testFile1";
+    String filePath2 = "/testPersist2/testFile2";
+    String filePath3 = "/testPersist2/testFile3";
+    FileSystemTestUtils.createByteFile(mFileSystem, filePath1, WriteType.MUST_CACHE, 10);
+    FileSystemTestUtils.createByteFile(mFileSystem, filePath2, WriteType.MUST_CACHE, 20);
+    FileSystemTestUtils.createByteFile(mFileSystem, filePath3, WriteType.MUST_CACHE, 30);
+
+    Assert.assertFalse(mFileSystem.getStatus(new AlluxioURI(filePath1)).isPersisted());
+    Assert.assertFalse(mFileSystem.getStatus(new AlluxioURI(filePath2)).isPersisted());
+    Assert.assertFalse(mFileSystem.getStatus(new AlluxioURI(filePath3)).isPersisted());
+
+    int ret = mFsShell.run("persist", "/*/testFile*");
+    Assert.assertEquals(0, ret);
+    checkFilePersisted(new AlluxioURI(filePath1), 10);
+    checkFilePersisted(new AlluxioURI(filePath2), 20);
+    checkFilePersisted(new AlluxioURI(filePath3), 30);
+  }
 }

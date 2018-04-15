@@ -64,7 +64,7 @@ public final class AlluxioBlockStore {
   private final TieredIdentity mTieredIdentity;
 
   /**
-   * Creates an Alluxio block store with default file system context and default local host name.
+   * Creates an Alluxio block store with default file system context and default local hostname.
    *
    * @return the {@link AlluxioBlockStore} created
    */

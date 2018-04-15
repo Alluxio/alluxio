@@ -14,6 +14,7 @@ package alluxio.worker.netty;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.resource.CloseableResource;
 import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.options.CreateOptions;
 
 import java.io.OutputStream;
 
@@ -26,10 +27,19 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public final class UfsFileWriteRequestContext extends WriteRequestContext<UfsFileWriteRequest> {
   private CloseableResource<UnderFileSystem> mUfsResource;
+  private CreateOptions mCreateOptions;
   private OutputStream mOutputStream;
 
   UfsFileWriteRequestContext(Protocol.WriteRequest request) {
     super(new UfsFileWriteRequest(request));
+  }
+
+  /**
+   * @return the create options
+   */
+  @Nullable
+  public CreateOptions getCreateOptions() {
+    return mCreateOptions;
   }
 
   /**
@@ -46,6 +56,13 @@ public final class UfsFileWriteRequestContext extends WriteRequestContext<UfsFil
   @Nullable
   public CloseableResource<UnderFileSystem> getUfsResource() {
     return mUfsResource;
+  }
+
+  /**
+   * @param createOptions the create options to set
+   */
+  public void setCreateOptions(CreateOptions createOptions) {
+    mCreateOptions = createOptions;
   }
 
   /**

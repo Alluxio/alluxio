@@ -13,16 +13,16 @@ package alluxio;
 
 import static alluxio.exception.ExceptionMessage.INCOMPATIBLE_VERSION;
 
+import alluxio.exception.status.UnavailableException;
+import alluxio.retry.CountingRetry;
 import alluxio.thrift.AlluxioService;
 import alluxio.thrift.AlluxioService.Client;
 import alluxio.thrift.GetServiceVersionTOptions;
 import alluxio.thrift.GetServiceVersionTResponse;
 
-import org.junit.Assert;
-import org.junit.Test;
 import org.junit.Rule;
+import org.junit.Test;
 import org.junit.rules.ExpectedException;
-
 import org.mockito.Mockito;
 
 import java.io.IOException;
@@ -37,10 +37,9 @@ public final class AbstractClientTest {
   @Rule
   public ExpectedException mExpectedException = ExpectedException.none();
 
-  private final class TestClient extends AbstractClient {
-
-    private TestClient() {
-      super(null, Mockito.mock(InetSocketAddress.class));
+  private static class BaseTestClient extends AbstractClient {
+    protected BaseTestClient() {
+      super(null, null, () -> new CountingRetry(1));
     }
 
     @Override
@@ -65,6 +64,19 @@ public final class AbstractClientTest {
   }
 
   @Test
+  public void connectFailToDetermineMasterAddress() throws Exception {
+    alluxio.Client client = new BaseTestClient() {
+      @Override
+      public synchronized InetSocketAddress getAddress() throws UnavailableException {
+        throw new UnavailableException("Failed to determine master address");
+      }
+    };
+    mExpectedException.expect(UnavailableException.class);
+    mExpectedException.expectMessage("Failed to determine address for Test Service Name");
+    client.connect();
+  }
+
+  @Test
   public void unsupportedVersion() throws Exception {
     final AlluxioService.Client thriftClient = Mockito.mock(AlluxioService.Client.class);
     Mockito.when(thriftClient.getServiceVersion(new GetServiceVersionTOptions()))
@@ -72,9 +84,8 @@ public final class AbstractClientTest {
     mExpectedException.expect(IOException.class);
     mExpectedException.expectMessage(INCOMPATIBLE_VERSION.getMessage(SERVICE_NAME, 0, 1));
 
-    try (TestClient client = new TestClient()) {
+    try (AbstractClient client = new BaseTestClient()) {
       client.checkVersion(thriftClient, 0);
-      Assert.fail("checkVersion() should fail");
     }
   }
 
@@ -84,7 +95,7 @@ public final class AbstractClientTest {
     Mockito.when(thriftClient.getServiceVersion(new GetServiceVersionTOptions()))
         .thenReturn(new GetServiceVersionTResponse().setVersion(1));
 
-    try (TestClient client = new TestClient()) {
+    try (AbstractClient client = new BaseTestClient()) {
       client.checkVersion(thriftClient, 1);
     }
   }
