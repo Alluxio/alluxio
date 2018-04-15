@@ -348,17 +348,10 @@ public final class FileSystemMasterClientRestServiceHandler {
   @ReturnType("java.lang.Void")
   public Response remove(@QueryParam("path") final String path,
       @QueryParam("recursive") final boolean recursive) {
-<<<<<<< HEAD
     return RestUtils.call((RestUtils.RestCallable<Void>) () -> {
       Preconditions.checkNotNull(path, "required 'path' parameter is missing");
       mFileSystemMaster.delete(new AlluxioURI(path), DeleteOptions.defaults()
           .setRecursive(recursive));
-=======
-    return RestUtils.call((RestUtils.RestCallable<Void>) () -> {
-      Preconditions.checkNotNull(path, "required 'path' parameter is missing");
-      mFileSystemMaster.delete(new AlluxioURI(path), DeleteOptions.defaults()
-            .setRecursive(recursive));
->>>>>>> store
       return null;
     });
   }
