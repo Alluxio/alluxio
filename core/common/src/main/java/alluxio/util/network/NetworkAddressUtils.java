@@ -672,5 +672,4 @@ public final class NetworkAddressUtils {
       throw new ConnectionFailedException(e.getMessage());
     }
   }
-
 }
