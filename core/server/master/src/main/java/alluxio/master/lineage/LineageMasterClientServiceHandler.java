@@ -128,7 +128,7 @@ public final class LineageMasterClientServiceHandler implements LineageMasterCli
       final long ttl, final TTtlAction ttlAction, ReinitializeFileTOptions options)
       throws AlluxioTException {
     return RpcUtils.call(LOG,
-    (RpcCallableThrowsIOException<ReinitializeFileTResponse>) () -> 
+    (RpcCallableThrowsIOException<ReinitializeFileTResponse>) () ->
     new ReinitializeFileTResponse(mLineageMaster
         .reinitializeFile(path, blockSizeBytes, ttl, ThriftUtils.fromThrift(ttlAction))));
   }
