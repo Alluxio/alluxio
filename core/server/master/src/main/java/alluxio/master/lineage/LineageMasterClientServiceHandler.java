@@ -124,10 +124,12 @@ public final class LineageMasterClientServiceHandler implements LineageMasterCli
     });
   }
   @Override
-  public ReinitializeFileTResponse reinitializeFile(final String path, final long blockSizeBytes, final long ttl, final TTtlAction ttlAction, ReinitializeFileTOptions options)
+  public ReinitializeFileTResponse reinitializeFile(final String path, final long blockSizeBytes,
+      final long ttl, final TTtlAction ttlAction, ReinitializeFileTOptions options)
       throws AlluxioTException {
     return RpcUtils.call(LOG, (RpcCallableThrowsIOException<ReinitializeFileTResponse>) () -> new ReinitializeFileTResponse(mLineageMaster.reinitializeFile(path, blockSizeBytes, ttl, ThriftUtils.fromThrift(ttlAction))));
   }
+
   @Override
   public ReportLostFileTResponse reportLostFile(final String path, ReportLostFileTOptions options)
       throws AlluxioTException {
