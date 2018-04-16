@@ -483,6 +483,40 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
   }
 
   @Test
+  public void ufsMetadataContentChange() throws Exception {
+    FileSystemTestUtils.loadFile(mFileSystem, alluxioPath(EXISTING_FILE));
+
+    GetStatusOptions options =
+        GetStatusOptions.defaults().setLoadMetadataType(LoadMetadataType.Never)
+            .setCommonOptions(SYNC_ALWAYS);
+    URIStatus status = mFileSystem.getStatus(new AlluxioURI(alluxioPath(EXISTING_FILE)), options);
+    Assert.assertNotNull(status);
+    long prevFileid = status.getFileId();
+
+    // Set the mode for the file
+    FileUtils.changeLocalFilePermission(ufsPath(EXISTING_FILE), "rwxrwxrwx");
+
+    status = mFileSystem.getStatus(new AlluxioURI(alluxioPath(EXISTING_FILE)), options);
+    Assert.assertNotNull(status);
+
+    // Make sure the mode is correctly updated with a metadata change only
+    Assert.assertEquals(
+        FileUtils.translatePosixPermissionToMode(PosixFilePermissions.fromString("rwxrwxrwx")),
+        status.getMode());
+
+    // Change the permission of the file and the file id should not change
+    Assert.assertEquals(prevFileid, status.getFileId());
+
+    // Change the content of the file and the file id should change as a result because it is
+    // deleted and reloaded.
+    writeUfsFile(ufsPath(EXISTING_FILE), 2);
+
+    status = mFileSystem.getStatus(new AlluxioURI(alluxioPath(EXISTING_FILE)), options);
+    Assert.assertNotNull(status);
+    Assert.assertNotEquals(prevFileid, status.getFileId());
+  }
+
+  @Test
   public void ufsDeleteSync() throws Exception {
     FileSystemTestUtils.loadFile(mFileSystem, alluxioPath(EXISTING_FILE));
     new File(ufsPath(EXISTING_FILE)).delete();
