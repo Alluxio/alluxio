@@ -100,6 +100,7 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
         .equals(Configuration.get(PropertyKey.SECURITY_GROUP_MAPPING_CLASS));
     mPathResolverCache = CacheBuilder.newBuilder()
         .maximumSize(maxCachedPaths)
+        .expireAfterAccess(10, TimeUnit.MINUTES)    //qiniu
         .build(new PathCacheLoader());
 
     Preconditions.checkArgument(mAlluxioRootPath.isAbsolute(),
@@ -243,15 +244,18 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
         LOG.error("IOException on  {}", path, e);
         return -ErrorCodes.EIO();
       }
+      LOG.info("---- invalidate path after flush " + path);
+      mPathResolverCache.invalidate(path); // qiniu
+      /*
+      AlluxioURI turi = mPathResolverCache.getUnchecked(path);
+      try {
+        mFileSystem.getStatus(turi);
+      } catch (Exception e) {
+        LOG.info("---- exception getStatus while flush " + path);
+      }
+      */
     } else {
       LOG.debug("Not flushing: {} was not open for writing", path);
-    }
-    mPathResolverCache.invalidate(path);  // qiniu multiple flush may be slow ...
-    AlluxioURI turi = mPathResolverCache.getUnchecked(path);
-    try {
-      URIStatus status = mFileSystem.getStatus(turi);
-    } catch (Exception e) {
-      LOG.error("fail to reget stat after flush:" + path);
     }
     return 0;
   }

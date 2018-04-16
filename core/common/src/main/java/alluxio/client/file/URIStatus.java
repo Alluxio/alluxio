@@ -166,7 +166,11 @@ public class URIStatus {
    * @return the owner of the entity referenced by this uri, mutable
    */
   public String getOwner() {
-    return mInfo.getOwner();
+      //qiniu
+    //return mInfo.getOwner();
+    String owner = mInfo.getOwner();
+    if (owner == null || owner.equals("")) owner = "root";
+    return owner;
   }
 
   /**
