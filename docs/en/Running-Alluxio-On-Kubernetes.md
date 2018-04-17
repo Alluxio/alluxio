@@ -51,10 +51,12 @@ in the configuration section below.
 
 By default, short-circuit operations between the Alluxio client and worker are enabled if the client
 hostname matches the worker hostname. This may not be true if the client is running as part of a container
-with virtual networking. In such a scenario, the following property must be set to use file system inspection
-instead to enable short-circuit.
+with virtual networking. In such a scenario, set the following property to use filesystem inspection
+to enable short-circuit. Short-circuit writes are then enabled if the worker UUID is located on the client
+filesystem.
 ```properties
 alluxio.worker.data.server.domain.socket.as.uuid=true
+alluxio.worker.data.server.domain.socket.address=/path/to/domain/socket/directory
 ```
 
 ## Provision a Persistent Volume
