@@ -150,16 +150,14 @@ public final class NettyUtils {
    * @return true if the domain socket is enabled on this client
    */
   public static boolean isDomainSocketSupported(WorkerNetAddress workerNetAddress) {
-    boolean isDomainSocketSupported = !workerNetAddress.getDomainSocketPath().isEmpty();
-    if (isDomainSocketSupported) {
-      if (Configuration.getBoolean(PropertyKey.WORKER_DATA_SERVER_DOMAIN_SOCKET_AS_UUID)) {
-        isDomainSocketSupported = FileUtils.exists(workerNetAddress.getDomainSocketPath());
-      } else {
-        isDomainSocketSupported =
-            workerNetAddress.getHost().equals(NetworkAddressUtils.getClientHostName());
-      }
+    if (workerNetAddress.getDomainSocketPath().isEmpty() || CHANNEL_TYPE != ChannelType.EPOLL) {
+      return false;
     }
-    return isDomainSocketSupported && CHANNEL_TYPE == ChannelType.EPOLL;
+    if (Configuration.getBoolean(PropertyKey.WORKER_DATA_SERVER_DOMAIN_SOCKET_AS_UUID)) {
+      return FileUtils.exists(workerNetAddress.getDomainSocketPath());
+    } else {
+      return workerNetAddress.getHost().equals(NetworkAddressUtils.getClientHostName());
+    }
   }
 
   /**
