@@ -128,7 +128,9 @@ public final class Fingerprint {
    * invalid
    */
   public UfsStatus getPartialStatus(String name) {
-    if (!isValid()) return null;
+    if (!isValid()) {
+      return null;
+    }
 
     String ufsType = mValues.get(Tag.TYPE);
     short mode = Short.parseShort(getTag(Tag.MODE));
@@ -150,8 +152,9 @@ public final class Fingerprint {
    * @return returns true if the fingerprint is valid
    */
   public boolean isValid() {
-    if (mValues.isEmpty())
+    if (mValues.isEmpty()) {
       return false;
+    }
 
     // Check required tags
     for (Tag tag : REQUIRED_TAGS) {
