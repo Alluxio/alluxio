@@ -23,7 +23,6 @@ import alluxio.security.authentication.TransportProvider;
 import alluxio.underfs.UfsManager;
 import alluxio.underfs.WorkerUfsManager;
 import alluxio.util.CommonUtils;
-import alluxio.util.IdUtils;
 import alluxio.util.JvmPauseMonitor;
 import alluxio.util.WaitForOptions;
 import alluxio.util.io.FileUtils;
@@ -54,6 +53,7 @@ import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 
@@ -159,7 +159,7 @@ public final class AlluxioWorkerProcess implements WorkerProcess {
             Configuration.get(PropertyKey.WORKER_DATA_SERVER_DOMAIN_SOCKET_ADDRESS);
         if (Configuration.getBoolean(PropertyKey.WORKER_DATA_SERVER_DOMAIN_SOCKET_AS_UUID)) {
           domainSocketPath =
-              PathUtils.concatPath(domainSocketPath, IdUtils.getRandomNonNegativeLong());
+              PathUtils.concatPath(domainSocketPath, UUID.randomUUID().toString());
         }
         LOG.info("Domain socket data server is enabled at {}.", domainSocketPath);
         mDomainSocketDataServer =
