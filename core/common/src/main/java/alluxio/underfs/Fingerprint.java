@@ -119,12 +119,48 @@ public final class Fingerprint {
   }
 
   /**
+   * Generates a partial UfsStatus object from the fingerprint.
+   * A few fields such as lastmodifiedtime, contentlength will be missing.
+   *
+   * @param name the name of the node which generates this fingerprint
+   *
+   * @return a ufs status object converted from the fingerprint. returns null if the object is
+   * invalid
+   */
+  public UfsStatus getPartialStatus(String name) {
+    if (!isValid()) return null;
+
+    String ufsType = mValues.get(Tag.TYPE);
+    short mode = Short.parseShort(getTag(Tag.MODE));
+    if (ufsType.equals(Type.DIRECTORY.name())) {
+      return new UfsDirectoryStatus(name, getTag(Tag.OWNER), getTag(Tag.GROUP), mode);
+    } else if (ufsType.equals(Type.FILE.name())) {
+      return new UfsFileStatus(name, getTag(Tag.CONTENT_HASH), -1, 0, getTag(Tag.OWNER),
+          getTag(Tag.GROUP), mode);
+    } else {
+      // Not a directory or a file
+      return null;
+    }
+
+  }
+
+  /**
    * Checks if the fingerprint object was generated from an INVALID_UFS_FINGERPRINT.
    *
    * @return returns true if the fingerprint is valid
    */
   public boolean isValid() {
-    return !mValues.isEmpty();
+    if (mValues.isEmpty())
+      return false;
+
+    // Check required tags
+    for (Tag tag : REQUIRED_TAGS) {
+      if (!mValues.containsKey(tag)) {
+        return false;
+      }
+    }
+
+    return true;
   }
 
   /**

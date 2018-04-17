@@ -3296,12 +3296,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       if (syncPlan.toUpdateMetaData()) {
         // UpdateMetadata is used when a file or a directory only had metadata change.
         // It works by calling SetAttributeInternal on the inodePath.
-        UfsStatus ufsStatus = null;
-        try {
-          ufsStatus = ufs.getStatus(ufsUri.toString());
-        } catch (IOException e) {
-          // Ignore, since this directory inode could be out of sync (contains a mount point)
-        }
+        UfsStatus ufsStatus = ufsFpParsed.getPartialStatus(inodePath.getUri().getName());
         if (ufsStatus != null) {
           SetAttributeOptions options =
               SetAttributeOptions.defaults().setOwner(ufsStatus.getOwner())
