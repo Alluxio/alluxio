@@ -35,15 +35,13 @@ public final class DefaultInodePermissionChecker implements InodePermissionCheck
 
   @Override
   public Mode.Bits getPermission(String user, List<String> groups, Inode<?> inode) {
-    Mode.Bits permission = Mode.Bits.NONE;
     short mode = inode.getMode();
     if (user.equals(inode.getOwner())) {
-      permission = permission.or(Mode.extractOwnerBits(mode));
+      return Mode.extractOwnerBits(mode);
     }
     if (groups.contains(inode.getGroup())) {
-      permission = permission.or(Mode.extractGroupBits(mode));
+      return Mode.extractGroupBits(mode);
     }
-    permission = permission.or(Mode.extractOtherBits(mode));
-    return permission;
+    return Mode.extractOtherBits(mode);
   }
 }
