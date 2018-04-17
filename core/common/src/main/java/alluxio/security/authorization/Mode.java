@@ -19,6 +19,9 @@ import alluxio.exception.ExceptionMessage;
 
 import com.google.common.base.Preconditions;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -359,6 +362,23 @@ public final class Mode {
      */
     public Bits not() {
       return SVALS[7 - ordinal()];
+    }
+
+    /**
+     * @return the set of {@link AclAction}s implied by this mode
+     */
+    public Set<AclAction> toAclActions() {
+      Set<AclAction> actions = new HashSet<>();
+      if (imply(READ)) {
+        actions.add(AclAction.READ);
+      }
+      if (imply(WRITE)) {
+        actions.add(AclAction.WRITE);
+      }
+      if (imply(EXECUTE)) {
+        actions.add(AclAction.EXECUTE);
+      }
+      return actions;
     }
   }
 }
