@@ -113,6 +113,7 @@ import alluxio.thrift.PersistCommandOptions;
 import alluxio.thrift.PersistFile;
 import alluxio.thrift.UfsInfo;
 import alluxio.underfs.Fingerprint;
+import alluxio.underfs.Fingerprint.Tag;
 import alluxio.underfs.MasterUfsManager;
 import alluxio.underfs.UfsFileStatus;
 import alluxio.underfs.UfsManager;
@@ -3296,11 +3297,12 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       if (syncPlan.toUpdateMetaData()) {
         // UpdateMetadata is used when a file or a directory only had metadata change.
         // It works by calling SetAttributeInternal on the inodePath.
-        UfsStatus ufsStatus = ufsFpParsed.getPartialStatus(inodePath.getUri().getName());
-        if (ufsStatus != null) {
+        if (ufsFpParsed.isValid()) {
+          short mode = Short.parseShort(ufsFpParsed.getTag(Tag.MODE));
           SetAttributeOptions options =
-              SetAttributeOptions.defaults().setOwner(ufsStatus.getOwner())
-                  .setGroup(ufsStatus.getGroup()).setMode(ufsStatus.getMode())
+              SetAttributeOptions.defaults().setOwner(ufsFpParsed.getTag(Tag.OWNER))
+                  .setGroup(ufsFpParsed.getTag(Tag.GROUP))
+                  .setMode(mode)
                   .setUfsFingerprint(ufsFingerprint);
           long opTimeMs = System.currentTimeMillis();
           // use replayed, since updating UFS is not desired.
