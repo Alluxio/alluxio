@@ -54,7 +54,6 @@ public final class FileSystemAclIntegrationTest extends BaseIntegrationTest {
   @Rule
   public final ExpectedException mThrown = ExpectedException.none();
 
-  private static final int BLOCK_SIZE = 1024;
   @ClassRule
   public static LocalAlluxioClusterResource sLocalAlluxioClusterResource =
       new LocalAlluxioClusterResource.Builder()
