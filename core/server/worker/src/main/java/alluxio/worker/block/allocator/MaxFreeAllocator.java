@@ -34,7 +34,7 @@ public final class MaxFreeAllocator implements Allocator {
    * @param view {@link BlockMetadataManagerView} to pass to the allocator
    */
   public MaxFreeAllocator(BlockMetadataManagerView view) {
-    mManagerView = Preconditions.checkNotNull(view);
+    mManagerView = Preconditions.checkNotNull(view, "view");
   }
 
   @Override
