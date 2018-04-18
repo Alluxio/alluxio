@@ -516,7 +516,7 @@ public final class FileSystemAclIntegrationTest extends BaseIntegrationTest {
     Assume.assumeTrue(UnderFileSystemUtils.isGcs(sUfs));
 
     alluxio.Configuration.set(PropertyKey.UNDERFS_GCS_OWNER_ID_TO_USERNAME_MAPPING, "");
-    Path fileA = new Path("/objectfileA");
+    Path fileA = new Path("/gcsGetPermissionFile");
     create(sTFS, fileA);
     Assert.assertTrue(sUfs.isFile(PathUtils.concatPath(sUfsRoot, fileA)));
 
