@@ -11,12 +11,12 @@
 
 package alluxio.worker.block;
 
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import alluxio.metrics.MetricsSystem;
 import alluxio.worker.block.DefaultBlockWorker.Metrics;
 
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
@@ -39,22 +39,20 @@ public final class BlockWorkerMetricsTest {
 
   @Test
   public void testMetricsCapacity() {
-    getGauge(Metrics.CAPACITY_TOTAL);
-    verify(mBlockStoreMeta).getCapacityBytes();
-    getGauge(Metrics.CAPACITY_USED);
-    verify(mBlockStoreMeta).getUsedBytes();
-    getGauge(Metrics.CAPACITY_FREE);
-    verify(mBlockStoreMeta, times(2)).getCapacityBytes();
-    verify(mBlockStoreMeta, times(2)).getUsedBytes();
+    when(mBlockStoreMeta.getCapacityBytes()).thenReturn(1000L);
+    Assert.assertEquals(1000L, getGauge(Metrics.CAPACITY_TOTAL));
+    when(mBlockStoreMeta.getUsedBytes()).thenReturn(200L);
+    Assert.assertEquals(200L, getGauge(Metrics.CAPACITY_USED));
+    Assert.assertEquals(800L, getGauge(Metrics.CAPACITY_FREE));
   }
 
   public void testMetricBocksCached() {
-    getGauge(Metrics.BLOCKS_CACHED);
-    verify(mBlockStoreMeta).getNumberOfBlocks();
+    when(mBlockStoreMeta.getNumberOfBlocks()).thenReturn(200);
+    Assert.assertEquals(200, getGauge(Metrics.BLOCKS_CACHED));
   }
 
-  void getGauge(String name) {
-    MetricsSystem.METRIC_REGISTRY.getGauges().get(MetricsSystem.getWorkerMetricName(name))
+  private Object getGauge(String name) {
+    return MetricsSystem.METRIC_REGISTRY.getGauges().get(MetricsSystem.getWorkerMetricName(name))
         .getValue();
   }
 }
