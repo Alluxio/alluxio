@@ -62,6 +62,7 @@ import javax.ws.rs.core.Response;
 @Path(AlluxioMasterRestServiceHandler.SERVICE_PREFIX)
 @Produces(MediaType.APPLICATION_JSON)
 public final class AlluxioMasterRestServiceHandler {
+
   public static final String SERVICE_PREFIX = "master";
 
   // endpoints
@@ -290,12 +291,7 @@ public final class AlluxioMasterRestServiceHandler {
   @ReturnType("java.lang.Long")
   @Deprecated
   public Response getFreeBytes() {
-    return RestUtils.call(new RestUtils.RestCallable<Long>() {
-      @Override
-      public Long call() throws Exception {
-        return mBlockMaster.getCapacityBytes() - mBlockMaster.getUsedBytes();
-      }
-    });
+    return RestUtils.call(() -> mBlockMaster.getCapacityBytes() - mBlockMaster.getUsedBytes());
   }
 
   /**
