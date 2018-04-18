@@ -48,7 +48,36 @@ message DeleteMountPointEntry {
   optional string alluxio_path = 1;
 }
 
-// next available id: 15
+// next available id: 3
+enum AclAction {
+  READ = 0;
+  WRITE = 1;
+  EXECUTE = 2;
+}
+
+// next available id: 2
+message AclActions {
+  repeated AclAction actions = 1;
+}
+
+// AclActions for a String name.
+// next available id: 3
+message NamedAclActions {
+  optional string name = 1;
+  optional AclActions actions = 2;
+}
+
+// next available id: 7
+message AccessControlList {
+  optional string owningUser = 1;
+  optional string owningGroup = 2;
+  repeated NamedAclActions userActions = 3;
+  repeated NamedAclActions groupActions = 4;
+  optional AclActions maskActions = 5;
+  optional AclActions otherActions = 6;
+}
+
+// next available id: 16
 message InodeDirectoryEntry {
   optional int64 id = 1;
   optional int64 parent_id = 2;
@@ -64,6 +93,7 @@ message InodeDirectoryEntry {
   optional bool direct_children_loaded = 12;
   optional int64 ttl = 13;
   optional PTtlAction ttlAction = 14 [default = DELETE];
+  optional AccessControlList acl = 15;
 }
 
 // next available id: 3
@@ -77,7 +107,7 @@ enum PTtlAction {
   FREE = 1;
 }
 
-// next available id: 19
+// next available id: 20
 message InodeFileEntry {
   optional int64 id = 1;
   optional int64 parent_id = 2;
@@ -97,6 +127,7 @@ message InodeFileEntry {
   optional int32 mode = 16;
   optional PTtlAction ttlAction = 17 [default = DELETE];
   optional string ufs_fingerprint = 18;
+  optional AccessControlList acl = 19;
 }
 
 // next available id: 3

@@ -15,6 +15,7 @@ import alluxio.Constants;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidPathException;
 import alluxio.master.journal.JournalEntryRepresentable;
+import alluxio.security.authorization.AccessControlList;
 import alluxio.wire.FileInfo;
 import alluxio.wire.TtlAction;
 
@@ -46,11 +47,7 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
   private long mParentId;
   private PersistenceState mPersistenceState;
   private boolean mPinned;
-
-  private String mOwner;
-  private String mGroup;
-  private short mMode;
-
+  protected AccessControlList mAcl;
   private String mUfsFingerprint;
 
   private final ReentrantReadWriteLock mLock;
@@ -59,17 +56,15 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
     mCreationTimeMs = System.currentTimeMillis();
     mDeleted = false;
     mDirectory = isDirectory;
-    mGroup = "";
     mId = id;
     mTtl = Constants.NO_TTL;
     mTtlAction = TtlAction.DELETE;
     mLastModificationTimeMs = mCreationTimeMs;
     mName = null;
     mParentId = InodeTree.NO_PARENT;
-    mMode = Constants.INVALID_MODE;
     mPersistenceState = PersistenceState.NOT_PERSISTED;
     mPinned = false;
-    mOwner = "";
+    mAcl = new AccessControlList();
     mUfsFingerprint = Constants.INVALID_UFS_FINGERPRINT;
     mLock = new ReentrantReadWriteLock();
   }
@@ -85,7 +80,7 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
    * @return the group of the inode
    */
   public String getGroup() {
-    return mGroup;
+    return mAcl.getOwningGroup();
   }
 
   /**
@@ -127,7 +122,7 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
    * @return the mode of the inode
    */
   public short getMode() {
-    return mMode;
+    return mAcl.getMode();
   }
 
   /**
@@ -165,7 +160,7 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
    * @return the owner of the inode
    */
   public String getOwner() {
-    return mOwner;
+    return mAcl.getOwningUser();
   }
 
   /**
@@ -233,7 +228,7 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
    * @return the updated object
    */
   public T setGroup(String group) {
-    mGroup = group;
+    mAcl.setOwningGroup(group);
     return getThis();
   }
 
@@ -322,7 +317,7 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
    * @return the updated object
    */
   public T setOwner(String owner) {
-    mOwner = owner;
+    mAcl.setOwningUser(owner);
     return getThis();
   }
 
@@ -331,7 +326,7 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
    * @return the updated object
    */
   public T setMode(short mode) {
-    mMode = mode;
+    mAcl.setMode(mode);
     return getThis();
   }
 
@@ -508,8 +503,10 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
         .add("creationTimeMs", mCreationTimeMs).add("pinned", mPinned).add("deleted", mDeleted)
         .add("ttl", mTtl).add("ttlAction", mTtlAction)
         .add("directory", mDirectory).add("persistenceState", mPersistenceState)
-        .add("lastModificationTimeMs", mLastModificationTimeMs).add("owner", mOwner)
-        .add("group", mGroup).add("permission", mMode)
+        .add("lastModificationTimeMs", mLastModificationTimeMs)
+        .add("owner", mAcl.getOwningUser())
+        .add("group", mAcl.getOwningGroup())
+        .add("permission", mAcl.getMode())
         .add("ufsFingerprint", mUfsFingerprint);
   }
 }
