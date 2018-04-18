@@ -25,7 +25,7 @@ import alluxio.master.lineage.meta.LineageStore;
 import com.google.common.collect.Lists;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Mockito;
+import static org.mockito.Mockito;
 
 import java.util.ArrayList;
 
