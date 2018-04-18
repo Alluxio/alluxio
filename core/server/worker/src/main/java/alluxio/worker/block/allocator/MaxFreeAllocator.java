@@ -57,7 +57,7 @@ public final class MaxFreeAllocator implements Allocator {
    */
   private StorageDirView allocateBlock(long sessionId, long blockSize,
       BlockStoreLocation location) {
-    Preconditions.checkNotNull(location);
+    Preconditions.checkNotNull(location, "location");
     StorageDirView candidateDirView = null;
 
     if (location.equals(BlockStoreLocation.anyTier())) {
