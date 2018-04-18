@@ -22,6 +22,7 @@ import java.util.Set;
  * Permitted actions of an entry in {@link AccessControlList}.
  */
 public final class AclActions {
+  // TODO(ohboring): have a static default AclActions object, and then copy on write.
   /**
    * Initial bits of the actions bitset.
    * Since most of the time, there are at most 3 actions: read, write, and execute,

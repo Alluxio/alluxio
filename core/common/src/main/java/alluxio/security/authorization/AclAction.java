@@ -21,9 +21,6 @@ public enum AclAction {
   WRITE,
   EXECUTE;
 
-  // TODO(cc): Obsolete PrivilegeMaster by supporting Privileges with ACL.
-  // Actions like FREE, PIN, SET_TTL, etc can be added to this enum.
-
   /** AclAction values. */
   private static final AclAction[] VALUES = AclAction.values();
 
