@@ -39,7 +39,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * If path is a file, it displays the file's all blocks info.
  */
 @ThreadSafe
-public final class StatCommand extends WithWildCardPathCommand {
+public final class StatCommand extends AbstractFileSystemCommand {
   /**
    * @param fs the filesystem of Alluxio
    */
@@ -64,7 +64,8 @@ public final class StatCommand extends WithWildCardPathCommand {
   }
 
   @Override
-  protected void runCommand(AlluxioURI path, CommandLine cl) throws AlluxioException, IOException {
+  protected void runPlainPath(AlluxioURI path, CommandLine cl)
+      throws AlluxioException, IOException {
     URIStatus status = mFileSystem.getStatus(path);
     if (cl.hasOption('f')) {
       System.out.println(formatOutput(cl, status));
@@ -87,6 +88,15 @@ public final class StatCommand extends WithWildCardPathCommand {
         }
       }
     }
+  }
+
+  @Override
+  public int run(CommandLine cl) throws AlluxioException, IOException {
+    String[] args = cl.getArgs();
+    AlluxioURI path = new AlluxioURI(args[0]);
+    runWildCardCmd(path, cl);
+
+    return 0;
   }
 
   @Override

@@ -37,10 +37,16 @@ public final class SetTtlCommand extends AbstractFileSystemCommand {
 
   private static final String TTL_ACTION = "action";
 
-  private static final Option TTL_ACTION_OPTION = Option.builder(TTL_ACTION).required(false)
-      .numberOfArgs(1).desc("Action to take after Ttl expiry").build();
+  private static final Option TTL_ACTION_OPTION =
+      Option.builder()
+          .longOpt(TTL_ACTION)
+          .required(false)
+          .numberOfArgs(1)
+          .desc("Action to take after TTL expiry. Delete (default) or free the target")
+          .build();
 
   private TtlAction mAction = TtlAction.DELETE;
+  private long mTtlMs;
 
   /**
    * @param fs the filesystem of Alluxio
@@ -74,26 +80,34 @@ public final class SetTtlCommand extends AbstractFileSystemCommand {
   }
 
   @Override
+  protected void runPlainPath(AlluxioURI path, CommandLine cl)
+      throws AlluxioException, IOException {
+    FileSystemCommandUtils.setTtl(mFileSystem, path, mTtlMs, mAction);
+    System.out.println("TTL of path '" + path + "' was successfully set to " + mTtlMs
+            + " milliseconds, with expiry action set to " + mAction);
+  }
+
+  @Override
   public int run(CommandLine cl) throws AlluxioException, IOException {
     String[] args = cl.getArgs();
     String ttl = CommonUtils.stripLeadingAndTrailingQuotes(args[1]);
-    long ttlMs = FileSystemShellUtils.getMs(ttl);
+    mTtlMs = FileSystemShellUtils.getMs(ttl);
     AlluxioURI path = new AlluxioURI(args[0]);
-    FileSystemCommandUtils.setTtl(mFileSystem, path, ttlMs, mAction);
-    System.out.println("TTL of path '" + path + "' was successfully set to " + ttlMs
-        + " milliseconds, with expiry action set to " + mAction);
+    runWildCardCmd(path, cl);
+
     return 0;
   }
 
   @Override
   public String getUsage() {
-    return "setTtl [-action delete|free] <path> <time to live>[ms|millisecond|s"
-      + "|second|m|min|minute|h|hour|d|day]";
+    return "setTtl [--action delete|free] <path> <time to live>";
   }
 
   @Override
   public String getDescription() {
     return "Sets a new TTL value for the file at path, "
-        + "performing an action, delete(Default)/free after Ttl expiry.";
+        + "performing an action, delete(default)/free after TTL expiry. "
+        + "The TTL to set can be in one of the unit: ms, millisecond, s, second, m, min, minute, "
+        + "h, hour, d, day, default to ms";
   }
 }

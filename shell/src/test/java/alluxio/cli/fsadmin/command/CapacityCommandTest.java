@@ -54,6 +54,7 @@ public class CapacityCommandTest {
           printStream);
       capacityCommand.generateCapacityReport(GetWorkerReportOptions.defaults());
       String output = new String(outputStream.toByteArray(), StandardCharsets.UTF_8);
+      // CHECKSTYLE.OFF: LineLengthExceed - Much more readable
       List<String> expectedOutput = Arrays.asList("Capacity information for all workers: ",
           "    Total Capacity: 29.80GB",
           "        Tier: MEM  Size: 8.38GB",
@@ -70,16 +71,12 @@ public class CapacityCommandTest {
           "    Used Percentage: 34%",
           "    Free Percentage: 66%",
           "",
-          "Worker Name      Last Heartbeat   Storage       Total            "
-              + "MEM           SSD           HDD           DOM           RAM           ",
-          "216.239.33.96    542              capacity      18.63GB          "
-              + "4768.37MB     4768.37MB     -             9.31GB        -             ",
-          "                                  used          953.67MB (5%)    "
-              + "190.73MB      286.10MB      -             476.84MB      -             ",
-          "64.68.90.1       3123             capacity      11.18GB          "
-              + "3814.70MB     -             1907.35MB     -             5.59GB        ",
-          "                                  used          9.31GB (83%)     "
-              + "2861.02MB     -             1907.35MB     -             4768.37MB     ");
+          "Worker Name      Last Heartbeat   Storage       Total            MEM           SSD           HDD           DOM           RAM           ",
+          "216.239.33.96    542              capacity      18.63GB          4768.37MB     4768.37MB     -             9.31GB        -             ",
+          "                                  used          953.67MB (5%)    190.73MB      286.10MB      -             476.84MB      -             ",
+          "64.68.90.1       3123             capacity      11.18GB          3814.70MB     -             1907.35MB     -             5.59GB        ",
+          "                                  used          9.31GB (83%)     2861.02MB     -             1907.35MB     -             4768.37MB     ");
+      // CHECKSTYLE.ON: LineLengthExceed
       List<String> testOutput = Arrays.asList(output.split("\n"));
       Assert.assertThat(testOutput,
           IsIterableContainingInOrder.contains(expectedOutput.toArray()));

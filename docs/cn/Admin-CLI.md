@@ -40,11 +40,24 @@ Usage: alluxio fsadmin [generic options]
 
 `report`命令提供了Alluxio运行中的集群信息。
 
-例如，`report`可以用来获取运行中的集群状态和容量信息。
-
 ```bash
+# Report cluster summary
 $ ./bin/alluxio fsadmin report
+#
+# Report worker capacity information
+$ ./bin/alluxio fsadmin report capacity
+#
+# Report runtime configuration information 
+$ ./bin/alluxio fsadmin report configuration 
+#
+# Report metrics information
+$ ./bin/alluxio fsadmin report metrics
+#
+# Report under file system information
+$ ./bin/alluxio fsadmin report ufs
 ```
+
+使用 `-h` 选项来获得更多信息。
  
 ### ufs
  

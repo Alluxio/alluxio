@@ -155,6 +155,7 @@
     <maven.version>3.3.9</maven.version>
     <metrics.version>3.1.2</metrics.version>
     <powermock.version>1.6.1</powermock.version>
+    <prometheus.version>0.3.0</prometheus.version>
     <protobuf.version>2.5.0</protobuf.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <slf4j.version>1.7.2</slf4j.version>
@@ -318,6 +319,21 @@
         <groupId>io.netty</groupId>
         <artifactId>netty-all</artifactId>
         <version>4.0.53.Final</version>
+      </dependency>
+      <dependency>
+        <groupId>io.prometheus</groupId>
+        <artifactId>simpleclient</artifactId>
+        <version>${prometheus.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.prometheus</groupId>
+        <artifactId>simpleclient_servlet</artifactId>
+        <version>${prometheus.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.prometheus</groupId>
+        <artifactId>simpleclient_dropwizard</artifactId>
+        <version>${prometheus.version}</version>
       </dependency>
       <dependency>
         <groupId>javax.ws.rs</groupId>
@@ -1257,14 +1273,21 @@
     <profile>
       <id>hadoop-2.7</id>
       <properties>
-        <hadoop.version>2.7.3</hadoop.version>
+        <hadoop.version>2.7.5</hadoop.version>
       </properties>
     </profile>
 
     <profile>
       <id>hadoop-2.8</id>
       <properties>
-        <hadoop.version>2.8.0</hadoop.version>
+        <hadoop.version>2.8.3</hadoop.version>
+      </properties>
+    </profile>
+
+    <profile>
+      <id>hadoop-2.9</id>
+      <properties>
+        <hadoop.version>2.9.0</hadoop.version>
       </properties>
     </profile>
 

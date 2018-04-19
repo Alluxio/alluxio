@@ -11,6 +11,12 @@
 
 package alluxio.worker.netty;
 
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.anyLong;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.when;
+
 import alluxio.EmbeddedNoExceptionChannel;
 import alluxio.network.protocol.RPCProtoMessage;
 import alluxio.proto.dataserver.Protocol;
@@ -25,7 +31,6 @@ import io.netty.util.ResourceLeakDetector;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
@@ -38,8 +43,8 @@ public final class BlockReadHandlerTest extends ReadHandlerTest {
   @Before
   public void before() throws Exception {
     ResourceLeakDetector.setLevel(ResourceLeakDetector.Level.ADVANCED);
-    mBlockWorker = Mockito.mock(BlockWorker.class);
-    Mockito.doNothing().when(mBlockWorker).accessBlock(Mockito.anyLong(), Mockito.anyLong());
+    mBlockWorker = mock(BlockWorker.class);
+    doNothing().when(mBlockWorker).accessBlock(anyLong(), anyLong());
     mChannel = new EmbeddedChannel(
         new BlockReadHandler(NettyExecutors.BLOCK_READER_EXECUTOR, mBlockWorker,
             FileTransferType.MAPPED));
@@ -60,11 +65,10 @@ public final class BlockReadHandlerTest extends ReadHandlerTest {
     long fileSize = PACKET_SIZE * 2;
     long checksumExpected = populateInputFile(fileSize, 0, fileSize - 1);
 
-    BlockReader blockReader = Mockito.spy(mBlockReader);
+    BlockReader blockReader = spy(mBlockReader);
     // Do not call close here so that we can check result. It will be closed explicitly.
-    Mockito.doNothing().when(blockReader).close();
-    Mockito
-        .when(mBlockWorker.readBlockRemote(Mockito.anyLong(), Mockito.anyLong(), Mockito.anyLong()))
+    doNothing().when(blockReader).close();
+    when(mBlockWorker.readBlockRemote(anyLong(), anyLong(), anyLong()))
         .thenReturn(blockReader);
     mChannel.writeInbound(buildReadRequest(0, fileSize));
     checkAllReadResponses(mChannel, checksumExpected);
@@ -87,8 +91,7 @@ public final class BlockReadHandlerTest extends ReadHandlerTest {
   @Override
   protected void mockReader(long start) throws Exception {
     mBlockReader = new LocalFileBlockReader(mFile);
-    Mockito
-        .when(mBlockWorker.readBlockRemote(Mockito.anyLong(), Mockito.anyLong(), Mockito.anyLong()))
+    when(mBlockWorker.readBlockRemote(anyLong(), anyLong(), anyLong()))
         .thenReturn(mBlockReader);
   }
 

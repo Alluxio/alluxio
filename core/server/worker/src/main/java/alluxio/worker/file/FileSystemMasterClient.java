@@ -78,13 +78,8 @@ public final class FileSystemMasterClient extends AbstractMasterClient {
    * @return the file info for the given file id
    */
   public synchronized FileInfo getFileInfo(final long fileId) throws IOException {
-    return retryRPC(new RpcCallable<FileInfo>() {
-      @Override
-      public FileInfo call() throws TException {
-        return ThriftUtils
-            .fromThrift(mClient.getFileInfo(fileId, new GetFileInfoTOptions()).getFileInfo());
-      }
-    });
+    return retryRPC(() -> ThriftUtils
+        .fromThrift(mClient.getFileInfo(fileId, new GetFileInfoTOptions()).getFileInfo()));
   }
 
   /**

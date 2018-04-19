@@ -19,6 +19,7 @@ import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.JournalSystem.Mode;
 import alluxio.metrics.MetricsSystem;
 import alluxio.metrics.sink.MetricsServlet;
+import alluxio.metrics.sink.PrometheusMetricsServlet;
 import alluxio.security.authentication.TransportProvider;
 import alluxio.thrift.MetaMasterClientService;
 import alluxio.util.CommonUtils;
@@ -28,6 +29,7 @@ import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 import alluxio.web.MasterWebServer;
 import alluxio.web.WebServer;
+import alluxio.wire.ConfigProperty;
 
 import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
@@ -46,6 +48,8 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 import javax.annotation.Nullable;
@@ -80,6 +84,8 @@ public class AlluxioMasterProcess implements MasterProcess {
   private final InetSocketAddress mRpcConnectAddress;
 
   private final MetricsServlet mMetricsServlet = new MetricsServlet(MetricsSystem.METRIC_REGISTRY);
+  private final PrometheusMetricsServlet mPMetricsServlet = new PrometheusMetricsServlet(
+      MetricsSystem.METRIC_REGISTRY);
 
   /** The master registry. */
   private final MasterRegistry mRegistry;
@@ -197,6 +203,29 @@ public class AlluxioMasterProcess implements MasterProcess {
   }
 
   @Override
+  public List<ConfigProperty> getConfiguration() {
+    List<ConfigProperty> configInfoList = new ArrayList<>();
+    String alluxioConfPrefix = "alluxio";
+    for (Map.Entry<String, String> entry : Configuration.toMap().entrySet()) {
+      String key = entry.getKey();
+      if (key.startsWith(alluxioConfPrefix)) {
+        PropertyKey propertyKey = PropertyKey.fromString(key);
+        Configuration.Source source = Configuration.getSource(propertyKey);
+        String sourceStr;
+        if (source == Configuration.Source.SITE_PROPERTY) {
+          sourceStr =
+              String.format("%s (%s)", source.name(), Configuration.getSitePropertiesFile());
+        } else {
+          sourceStr = source.name();
+        }
+        configInfoList.add(new ConfigProperty()
+            .setName(key).setValue(entry.getValue()).setSource(sourceStr));
+      }
+    }
+    return configInfoList;
+  }
+
+  @Override
   public void waitForReady() {
     CommonUtils.waitFor(this + " to start", new Function<Void, Boolean>() {
       @Override
@@ -293,6 +322,8 @@ public class AlluxioMasterProcess implements MasterProcess {
     Configuration.set(PropertyKey.MASTER_WEB_PORT, Integer.toString(mWebServer.getLocalPort()));
     // Add the metrics servlet to the web server.
     mWebServer.addHandler(mMetricsServlet.getHandler());
+    // Add the prometheus metrics servlet to the web server.
+    mWebServer.addHandler(mPMetricsServlet.getHandler());
     // start web ui
     mWebServer.start();
   }
