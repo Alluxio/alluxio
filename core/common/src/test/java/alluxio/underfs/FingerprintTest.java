@@ -11,6 +11,7 @@
 
 package alluxio.underfs;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertFalse;
 
@@ -87,5 +88,32 @@ public final class FingerprintTest {
     assertTrue(fp.matchContent(fpMetadataChanged));
     assertFalse(fp.matchContent(fpDataChanged));
     assertTrue(fp.matchMetadata(fpDataChanged));
+  }
+
+  @Test
+  public void createFingerprintFromUfsStatus() {
+    String name = CommonUtils.randomAlphaNumString(10);
+    String owner = CommonUtils.randomAlphaNumString(10);
+    String group = CommonUtils.randomAlphaNumString(10);
+    short mode = (short) mRandom.nextInt();
+    String ufsName = CommonUtils.randomAlphaNumString(10);
+
+    UfsDirectoryStatus dirStatus = new UfsDirectoryStatus(name, owner, group, mode);
+    Fingerprint fp = Fingerprint.create(ufsName, dirStatus);
+    assertEquals(owner, fp.getTag(Fingerprint.Tag.OWNER));
+    assertEquals(group, fp.getTag(Fingerprint.Tag.GROUP));
+    assertEquals(String.valueOf(mode), fp.getTag(Fingerprint.Tag.MODE));
+
+    String contentHash = CommonUtils.randomAlphaNumString(10);
+    Long contentLength = mRandom.nextLong();
+    Long lastModifiedTimeMs = mRandom.nextLong();
+
+    UfsFileStatus fileStatus = new UfsFileStatus(name, contentHash, contentLength,
+        lastModifiedTimeMs, owner, group, mode);
+    fp = Fingerprint.create(ufsName, fileStatus);
+
+    assertEquals(owner, fp.getTag(Fingerprint.Tag.OWNER));
+    assertEquals(group, fp.getTag(Fingerprint.Tag.GROUP));
+    assertEquals(String.valueOf(mode), fp.getTag(Fingerprint.Tag.MODE));
   }
 }

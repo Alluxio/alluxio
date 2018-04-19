@@ -124,7 +124,18 @@ public final class Fingerprint {
    * @return returns true if the fingerprint is valid
    */
   public boolean isValid() {
-    return !mValues.isEmpty();
+    if (mValues.isEmpty()) {
+      return false;
+    }
+
+    // Check required tags
+    for (Tag tag : REQUIRED_TAGS) {
+      if (!mValues.containsKey(tag)) {
+        return false;
+      }
+    }
+
+    return true;
   }
 
   /**
