@@ -269,7 +269,6 @@ public abstract class AbstractUnderFileSystemContractTest {
     mUfs.mkdirs(testDir);
 
     UfsStatus status = mUfs.getStatus(testDir);
-    assertEquals("testDir", status.getName());
     assertTrue(status instanceof UfsDirectoryStatus);
   }
 
@@ -289,7 +288,6 @@ public abstract class AbstractUnderFileSystemContractTest {
     createEmptyFile(testFile);
 
     UfsStatus status = mUfs.getStatus(testFile);
-    assertEquals("testFile", status.getName());
     assertTrue(status instanceof UfsFileStatus);
   }
 
