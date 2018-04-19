@@ -423,12 +423,6 @@ public final class AlluxioMasterRestServiceHandler {
   @Deprecated
   public Response getWorkerCount() {
     return RestUtils.call(()->mBlockMaster.getWorkerCount());
-   /*return RestUtils.call(new RestUtils.RestCallable<Integer>() {
-      @Override
-      public Integer call() throws Exception {
-        return mBlockMaster.getWorkerCount();
-      }
-    });*/
   }
 
   /**
