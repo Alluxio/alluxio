@@ -12,6 +12,7 @@
 package alluxio.client.hadoop;
 
 import alluxio.AlluxioURI;
+import alluxio.hadoop.HadoopClientTestUtils;
 import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.PropertyKey;
 import alluxio.testutils.BaseIntegrationTest;

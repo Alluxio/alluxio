@@ -23,6 +23,13 @@ import alluxio.master.file.options.CreateFileOptions;
 import alluxio.master.file.options.GetStatusOptions;
 import alluxio.master.file.options.ListStatusOptions;
 import alluxio.master.file.options.MountOptions;
+import alluxio.proxy.s3.CompleteMultipartUploadResult;
+import alluxio.proxy.s3.InitiateMultipartUploadResult;
+import alluxio.proxy.s3.ListBucketOptions;
+import alluxio.proxy.s3.ListBucketResult;
+import alluxio.proxy.s3.ListPartsResult;
+import alluxio.proxy.s3.S3Constants;
+import alluxio.proxy.s3.S3RestUtils;
 import alluxio.util.CommonUtils;
 import alluxio.wire.FileInfo;
 

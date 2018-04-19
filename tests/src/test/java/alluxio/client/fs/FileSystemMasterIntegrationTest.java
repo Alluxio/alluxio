@@ -15,6 +15,7 @@ import static org.junit.Assert.assertFalse;
 
 import alluxio.AlluxioURI;
 import alluxio.AuthenticatedUserRule;
+import alluxio.master.file.FileSystemMaster;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.Configuration;
 import alluxio.Constants;

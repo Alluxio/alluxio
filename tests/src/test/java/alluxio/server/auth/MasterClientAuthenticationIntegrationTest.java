@@ -12,6 +12,7 @@
 package alluxio.server.auth;
 
 import alluxio.AlluxioURI;
+import alluxio.security.LoginUserTestUtils;
 import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.PropertyKey;
 import alluxio.testutils.BaseIntegrationTest;

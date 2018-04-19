@@ -12,6 +12,7 @@
 package alluxio.client.fs;
 
 import alluxio.AlluxioURI;
+import alluxio.client.WriteType;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.Constants;
 import alluxio.testutils.LocalAlluxioClusterResource;
