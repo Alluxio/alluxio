@@ -3724,9 +3724,13 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
 
     /**
      * Register some file system master related gauges.
+     *
+     * @param master the file system master
+     * @param ufsManager the under filesystem manager
      */
-    private static void registerGauges(
-        final DefaultFileSystemMaster master, final UfsManager ufsManager) {
+    @VisibleForTesting
+    public static void registerGauges(
+        final FileSystemMaster master, final UfsManager ufsManager) {
       MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMasterMetricName(FILES_PINNED),
           new Gauge<Integer>() {
             @Override
