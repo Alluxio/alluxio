@@ -938,7 +938,12 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
     public static final String CAPACITY_FREE = "CapacityFree";
     public static final String WORKERS = "Workers";
 
-    private static void registerGauges(final BlockMaster master) {
+    /**
+     * Registers metric gauges.
+     *
+     * @param master the block master handle
+     */
+    public static void registerGauges(final BlockMaster master) {
       MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMasterMetricName(CAPACITY_TOTAL),
           new Gauge<Long>() {
             @Override
