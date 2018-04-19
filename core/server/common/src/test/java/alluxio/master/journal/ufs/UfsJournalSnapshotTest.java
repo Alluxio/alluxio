@@ -9,13 +9,9 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.server.ft.journal.ufs;
+package alluxio.master.journal.ufs;
 
-import alluxio.testutils.BaseIntegrationTest;
 import alluxio.master.NoopMaster;
-import alluxio.master.journal.ufs.UfsJournal;
-import alluxio.master.journal.ufs.UfsJournalFile;
-import alluxio.master.journal.ufs.UfsJournalSnapshot;
 import alluxio.util.URIUtils;
 
 import org.junit.Assert;
@@ -31,7 +27,7 @@ import java.util.Queue;
 /**
  * Unit tests for {@link UfsJournalSnapshot}.
  */
-public final class UfsJournalSnapshotTest extends BaseIntegrationTest {
+public final class UfsJournalSnapshotTest {
   @Rule
   public TemporaryFolder mFolder = new TemporaryFolder();
 

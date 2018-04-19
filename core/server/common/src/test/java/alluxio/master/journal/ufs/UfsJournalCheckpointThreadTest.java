@@ -9,19 +9,12 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.server.ft.journal.ufs;
+package alluxio.master.journal.ufs;
 
-import alluxio.testutils.BaseIntegrationTest;
 import alluxio.Configuration;
 import alluxio.ConfigurationTestUtils;
 import alluxio.PropertyKey;
-import alluxio.testutils.master.MockMaster;
 import alluxio.master.NoopMaster;
-import alluxio.master.journal.ufs.UfsJournal;
-import alluxio.master.journal.ufs.UfsJournalCheckpointThread;
-import alluxio.master.journal.ufs.UfsJournalFile;
-import alluxio.master.journal.ufs.UfsJournalLogWriter;
-import alluxio.master.journal.ufs.UfsJournalSnapshot;
 import alluxio.proto.journal.Journal;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.CommonUtils;
@@ -45,7 +38,7 @@ import java.util.Iterator;
 /**
  * Unit tests for {@link alluxio.master.journal.ufs.UfsJournalCheckpointThread}.
  */
-public final class UfsJournalCheckpointThreadTest extends BaseIntegrationTest {
+public final class UfsJournalCheckpointThreadTest {
   @Rule
   public TemporaryFolder mFolder = new TemporaryFolder();
 

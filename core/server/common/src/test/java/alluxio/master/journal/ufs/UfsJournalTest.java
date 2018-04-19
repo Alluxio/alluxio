@@ -11,39 +11,77 @@
 
 package alluxio.master.journal.ufs;
 
-import alluxio.Configuration;
-import alluxio.ConfigurationTestUtils;
-import alluxio.PropertyKey;
-import alluxio.underfs.UnderFileSystemConfiguration;
+import alluxio.exception.status.UnavailableException;
+import alluxio.master.NoopMaster;
+import alluxio.util.URIUtils;
 
-import org.junit.After;
 import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
+import org.junit.rules.TemporaryFolder;
+
+import java.net.URI;
 
 /**
- * Tests for {@link UfsJournal}.
+ * Unit tests for {@link UfsJournal}.
  */
-public class UfsJournalTest {
-  @After
-  public void after() {
-    ConfigurationTestUtils.resetConfiguration();
+public final class UfsJournalTest {
+  @Rule
+  public TemporaryFolder mFolder = new TemporaryFolder();
+
+  @Rule
+  public ExpectedException mThrown = ExpectedException.none();
+
+  private UfsJournal mJournal;
+
+  @Before
+  public void before() throws Exception {
+    mJournal =
+        new UfsJournal(URIUtils.appendPathOrDie(new URI(mFolder.newFolder().getAbsolutePath()),
+            "FileSystemMaster"), new NoopMaster(), 0);
+  }
+
+  /**
+   * Tests formatting journal.
+   */
+  @Test
+  public void format() throws Exception {
+    mJournal.getUfs().create(UfsJournalFile.encodeCheckpointFileLocation(mJournal, 0x12).toString())
+        .close();
+    mJournal.getUfs()
+        .create(UfsJournalFile.encodeTemporaryCheckpointFileLocation(mJournal).toString()).close();
+
+    long start = 0x11;
+    for (int i = 0; i < 10; i++) {
+      String l =
+          UfsJournalFile.encodeLogFileLocation(mJournal, start + i, start + i + 2).toString();
+      mJournal.getUfs().create(l).close();
+      start = start + i + 2;
+    }
+    String currentLog =
+        UfsJournalFile.encodeLogFileLocation(mJournal, start, UfsJournal.UNKNOWN_SEQUENCE_NUMBER)
+            .toString();
+    mJournal.getUfs().create(currentLog).close();
+    // Write a malformed log file which should be skipped.
+    mJournal.getUfs()
+        .create(UfsJournalFile.encodeLogFileLocation(mJournal, 0x10, 0x100).toString() + ".tmp")
+        .close();
+
+    mJournal.format();
+    Assert.assertTrue(mJournal.isFormatted());
+    UfsJournalSnapshot snapshot = UfsJournalSnapshot.getSnapshot(mJournal);
+    Assert.assertTrue(snapshot.getCheckpoints().isEmpty());
+    Assert.assertTrue(snapshot.getLogs().isEmpty());
+    Assert.assertTrue(snapshot.getTemporaryCheckpoints().isEmpty());
   }
 
   @Test
-  public void emptyConfiguration() throws Exception {
-    UnderFileSystemConfiguration conf = UfsJournal.getJournalUfsConf();
-    Assert.assertTrue(conf.getUserSpecifiedConf().isEmpty());
-  }
-
-  @Test
-  public void nonEmptyConfiguration() throws Exception {
-    PropertyKey key =
-        PropertyKey.Template.MASTER_JOURNAL_UFS_OPTION_PROPERTY
-            .format(PropertyKey.UNDERFS_LISTING_LENGTH.toString());
-    String value = "10000";
-    Configuration.set(key, value);
-    UnderFileSystemConfiguration conf = UfsJournal.getJournalUfsConf();
-    Assert.assertEquals(value, conf.getValue(PropertyKey.UNDERFS_LISTING_LENGTH));
-    Assert.assertEquals(1, conf.getUserSpecifiedConf().size());
+  public void unavailableAfterClose() throws Exception {
+    mJournal.start();
+    mJournal.close();
+    mThrown.expect(UnavailableException.class);
+    mJournal.createJournalContext();
   }
 }

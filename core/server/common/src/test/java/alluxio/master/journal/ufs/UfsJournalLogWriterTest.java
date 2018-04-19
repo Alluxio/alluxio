@@ -9,11 +9,10 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.server.ft.journal.ufs;
+package alluxio.master.journal.ufs;
 
 import static org.hamcrest.CoreMatchers.containsString;
 
-import alluxio.testutils.BaseIntegrationTest;
 import alluxio.Configuration;
 import alluxio.ConfigurationTestUtils;
 import alluxio.PropertyKey;
@@ -47,7 +46,7 @@ import java.nio.channels.FileChannel;
 /**
  * Unit tests for {@link UfsJournalLogWriter}.
  */
-public final class UfsJournalLogWriterTest extends BaseIntegrationTest {
+public final class UfsJournalLogWriterTest {
   private static final String INJECTED_IO_ERROR_MESSAGE = "injected I/O error";
 
   @Rule
