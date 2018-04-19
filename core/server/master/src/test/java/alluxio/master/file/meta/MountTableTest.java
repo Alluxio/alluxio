@@ -13,7 +13,7 @@ package alluxio.master.file.meta;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-
+import static org.mockito.Mockito.anyLong;
 import alluxio.AlluxioURI;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.ExceptionMessage;
@@ -50,7 +50,7 @@ public final class MountTableTest {
     UfsManager ufsManager = mock(UfsManager.class);
     UfsClient ufsClient =
         new UfsManager.UfsClient(Suppliers.ofInstance(mTestUfs), AlluxioURI.EMPTY_URI);
-    when(ufsManager.get(Mockito.anyLong())).thenReturn(ufsClient);
+    when(ufsManager.get(anyLong())).thenReturn(ufsClient);
     mMountTable = new MountTable(ufsManager);
   }
 
