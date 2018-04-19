@@ -11,7 +11,6 @@
 
 package alluxio.collections;
 
-import alluxio.BaseIntegrationTest;
 import alluxio.util.CommonUtils;
 
 import org.junit.After;
@@ -36,7 +35,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 /**
  * Test concurrent behavior of {@link IndexedSet}.
  */
-public class IndexedSetConcurrencyTest extends BaseIntegrationTest {
+public class IndexedSetConcurrencyTest {
   /** The maximum value for the size value for the test object. */
   private static final int MAX_SIZE = 30;
   /** The duration for each test. */
