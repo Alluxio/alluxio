@@ -112,8 +112,8 @@ public final class FingerprintTest {
         lastModifiedTimeMs, owner, group, mode);
     fp = Fingerprint.create(ufsName, fileStatus);
 
-    assertEquals(fp.getTag(Fingerprint.Tag.OWNER), owner);
-    assertEquals(fp.getTag(Fingerprint.Tag.GROUP), group);
-    assertEquals(fp.getTag(Fingerprint.Tag.MODE), Short.toString(mode));
+    assertEquals(owner, fp.getTag(Fingerprint.Tag.OWNER));
+    assertEquals(group, fp.getTag(Fingerprint.Tag.GROUP));
+    assertEquals(String.valueOf(mode), fp.getTag(Fingerprint.Tag.MODE));
   }
 }
