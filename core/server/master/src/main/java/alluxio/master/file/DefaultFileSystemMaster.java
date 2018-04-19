@@ -113,6 +113,7 @@ import alluxio.thrift.PersistCommandOptions;
 import alluxio.thrift.PersistFile;
 import alluxio.thrift.UfsInfo;
 import alluxio.underfs.Fingerprint;
+import alluxio.underfs.Fingerprint.Tag;
 import alluxio.underfs.MasterUfsManager;
 import alluxio.underfs.UfsFileStatus;
 import alluxio.underfs.UfsManager;
@@ -3296,16 +3297,12 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       if (syncPlan.toUpdateMetaData()) {
         // UpdateMetadata is used when a file or a directory only had metadata change.
         // It works by calling SetAttributeInternal on the inodePath.
-        UfsStatus ufsStatus = null;
-        try {
-          ufsStatus = ufs.getStatus(ufsUri.toString());
-        } catch (IOException e) {
-          // Ignore, since this directory inode could be out of sync (contains a mount point)
-        }
-        if (ufsStatus != null) {
+        if (ufsFpParsed.isValid()) {
+          short mode = Short.parseShort(ufsFpParsed.getTag(Tag.MODE));
           SetAttributeOptions options =
-              SetAttributeOptions.defaults().setOwner(ufsStatus.getOwner())
-                  .setGroup(ufsStatus.getGroup()).setMode(ufsStatus.getMode())
+              SetAttributeOptions.defaults().setOwner(ufsFpParsed.getTag(Tag.OWNER))
+                  .setGroup(ufsFpParsed.getTag(Tag.GROUP))
+                  .setMode(mode)
                   .setUfsFingerprint(ufsFingerprint);
           long opTimeMs = System.currentTimeMillis();
           // use replayed, since updating UFS is not desired.
@@ -3724,9 +3721,13 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
 
     /**
      * Register some file system master related gauges.
+     *
+     * @param master the file system master
+     * @param ufsManager the under filesystem manager
      */
-    private static void registerGauges(
-        final DefaultFileSystemMaster master, final UfsManager ufsManager) {
+    @VisibleForTesting
+    public static void registerGauges(
+        final FileSystemMaster master, final UfsManager ufsManager) {
       MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMasterMetricName(FILES_PINNED),
           new Gauge<Integer>() {
             @Override

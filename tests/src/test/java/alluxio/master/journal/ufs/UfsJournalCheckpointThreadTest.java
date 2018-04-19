@@ -11,11 +11,9 @@
 
 package alluxio.master.journal.ufs;
 
-import alluxio.BaseIntegrationTest;
 import alluxio.Configuration;
 import alluxio.ConfigurationTestUtils;
 import alluxio.PropertyKey;
-import alluxio.master.MockMaster;
 import alluxio.master.NoopMaster;
 import alluxio.proto.journal.Journal;
 import alluxio.underfs.UnderFileSystem;
@@ -40,7 +38,7 @@ import java.util.Iterator;
 /**
  * Unit tests for {@link alluxio.master.journal.ufs.UfsJournalCheckpointThread}.
  */
-public final class UfsJournalCheckpointThreadTest extends BaseIntegrationTest {
+public final class UfsJournalCheckpointThreadTest {
   @Rule
   public TemporaryFolder mFolder = new TemporaryFolder();
 

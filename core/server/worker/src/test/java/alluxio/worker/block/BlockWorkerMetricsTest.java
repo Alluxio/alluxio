@@ -9,12 +9,18 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.worker.block;
+package alluxio.worker.block
 
+import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.when;
 
+import alluxio.StorageTierAssoc;
+import alluxio.WorkerStorageTierAssoc;
 import alluxio.metrics.MetricsSystem;
 import alluxio.worker.block.DefaultBlockWorker.Metrics;
+
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -25,6 +31,9 @@ import org.mockito.Mockito;
  * Unit tests for {@link DefaultBlockWorker.Metrics}.
  */
 public final class BlockWorkerMetricsTest {
+  private static final String MEM = "MEM";
+  private static final String HDD = "HDD";
+
   private BlockWorker mBlockWorker;
   private BlockStoreMeta mBlockStoreMeta;
 
@@ -34,6 +43,8 @@ public final class BlockWorkerMetricsTest {
     mBlockWorker = Mockito.mock(BlockWorker.class);
     mBlockStoreMeta = Mockito.mock(BlockStoreMeta.class);
     Mockito.when(mBlockWorker.getStoreMeta()).thenReturn(mBlockStoreMeta);
+    StorageTierAssoc assoc = new WorkerStorageTierAssoc(Lists.newArrayList(MEM, HDD));
+    when(mBlockStoreMeta.getStorageTierAssoc()).thenReturn(assoc);
     Metrics.registerGauges(mBlockWorker);
   }
 
@@ -44,6 +55,20 @@ public final class BlockWorkerMetricsTest {
     when(mBlockStoreMeta.getUsedBytes()).thenReturn(200L);
     Assert.assertEquals(200L, getGauge(Metrics.CAPACITY_USED));
     Assert.assertEquals(800L, getGauge(Metrics.CAPACITY_FREE));
+  }
+
+
+  @Test
+  public void testMetricsTierCapacity() {
+    when(mBlockStoreMeta.getCapacityBytesOnTiers())
+        .thenReturn(ImmutableMap.of(MEM, 1000L, HDD, 2000L));
+    when(mBlockStoreMeta.getUsedBytesOnTiers()).thenReturn(ImmutableMap.of(MEM, 100L, HDD, 200L));
+    assertEquals(1000L, getGauge(Metrics.CAPACITY_TOTAL + Metrics.TIER + MEM));
+    assertEquals(2000L, getGauge(Metrics.CAPACITY_TOTAL + Metrics.TIER + HDD));
+    assertEquals(100L, getGauge(Metrics.CAPACITY_USED + Metrics.TIER + MEM));
+    assertEquals(200L, getGauge(Metrics.CAPACITY_USED + Metrics.TIER + HDD));
+    assertEquals(900L, getGauge(Metrics.CAPACITY_FREE + Metrics.TIER + MEM));
+    assertEquals(1800L, getGauge(Metrics.CAPACITY_FREE + Metrics.TIER + HDD));
   }
 
   public void testMetricBocksCached() {

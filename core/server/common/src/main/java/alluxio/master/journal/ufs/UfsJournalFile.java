@@ -13,6 +13,7 @@ package alluxio.master.journal.ufs;
 
 import alluxio.util.URIUtils;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
@@ -37,7 +38,8 @@ import javax.annotation.Nullable;
  * end SNs.
  */
 @ThreadSafe
-final class UfsJournalFile implements Comparable<UfsJournalFile> {
+@VisibleForTesting
+public final class UfsJournalFile implements Comparable<UfsJournalFile> {
   private static final Logger LOG = LoggerFactory.getLogger(UfsJournalFile.class);
 
   /** The location of the file. */
@@ -213,7 +215,8 @@ final class UfsJournalFile implements Comparable<UfsJournalFile> {
   /**
    * @return the file location
    */
-  URI getLocation() {
+  @VisibleForTesting
+  public URI getLocation() {
     return mLocation;
   }
 

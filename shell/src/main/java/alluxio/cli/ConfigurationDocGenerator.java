@@ -15,6 +15,7 @@ import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.util.io.PathUtils;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.io.Closer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,7 +49,8 @@ public final class ConfigurationDocGenerator {
    * @param defaultKeys Collection which is from PropertyKey DEFAULT_KEYS_MAP.values()
    * @param filePath    path for csv files
    */
-  static void writeCSVFile(Collection<? extends PropertyKey> defaultKeys, String filePath)
+  @VisibleForTesting
+  public static void writeCSVFile(Collection<? extends PropertyKey> defaultKeys, String filePath)
       throws IOException {
     if (defaultKeys.size() == 0) {
       return;
@@ -128,7 +130,8 @@ public final class ConfigurationDocGenerator {
    * @param defaultKeys Collection which is from PropertyKey DEFAULT_KEYS_MAP.values()
    * @param filePath path for csv files
    */
-  static void writeYMLFile(Collection<? extends PropertyKey> defaultKeys, String filePath)
+  @VisibleForTesting
+  public static void writeYMLFile(Collection<? extends PropertyKey> defaultKeys, String filePath)
       throws IOException {
     if (defaultKeys.size() == 0) {
       return;

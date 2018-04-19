@@ -12,11 +12,14 @@
 package alluxio.worker.block;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.anyLong;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.spy;
@@ -29,6 +32,7 @@ import alluxio.ConfigurationRule;
 import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.Sessions;
+import alluxio.WorkerStorageTierAssoc;
 import alluxio.exception.BlockAlreadyExistsException;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.underfs.UfsManager;
@@ -40,7 +44,6 @@ import alluxio.worker.block.meta.TempBlockMeta;
 import alluxio.worker.file.FileSystemMasterClient;
 
 import com.google.common.collect.ImmutableMap;
-
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -68,6 +71,7 @@ public class BlockWorkerTest {
   private BlockMasterClient mBlockMasterClient;
   private BlockMasterClientPool mBlockMasterClientPool;
   private BlockStore mBlockStore;
+  private BlockStoreMeta mBlockStoreMeta;
   private FileSystemMasterClient mFileSystemMasterClient;
   private Random mRandom;
   private Sessions mSessions;
@@ -99,6 +103,9 @@ public class BlockWorkerTest {
     mBlockMasterClientPool = spy(new BlockMasterClientPool());
     when(mBlockMasterClientPool.createNewResource()).thenReturn(mBlockMasterClient);
     mBlockStore = PowerMockito.mock(BlockStore.class);
+    mBlockStoreMeta = mock(BlockStoreMeta.class);
+    when(mBlockStore.getBlockStoreMeta()).thenReturn(mBlockStoreMeta);
+    when(mBlockStoreMeta.getStorageTierAssoc()).thenReturn(new WorkerStorageTierAssoc());
     mFileSystemMasterClient = PowerMockito.mock(FileSystemMasterClient.class);
     mSessions = PowerMockito.mock(Sessions.class);
     mUfsManager = mock(UfsManager.class);
@@ -324,7 +331,7 @@ public class BlockWorkerTest {
   public void getStoreMeta() {
     mBlockWorker.getStoreMeta();
     mBlockWorker.getStoreMetaFull();
-    verify(mBlockStore).getBlockStoreMeta();
+    verify(mBlockStore, times(2)).getBlockStoreMeta(); // 1 is called at metrics registration
     verify(mBlockStore).getBlockStoreMetaFull();
   }
 
