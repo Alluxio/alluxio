@@ -100,9 +100,9 @@ public final class FingerprintTest {
 
     UfsDirectoryStatus dirStatus = new UfsDirectoryStatus(name, owner, group, mode);
     Fingerprint fp = Fingerprint.create(ufsName, dirStatus);
-    assertEquals(fp.getTag(Fingerprint.Tag.OWNER), owner);
-    assertEquals(fp.getTag(Fingerprint.Tag.GROUP), group);
-    assertEquals(fp.getTag(Fingerprint.Tag.MODE), Short.toString(mode));
+    assertEquals(owner, fp.getTag(Fingerprint.Tag.OWNER));
+    assertEquals(group, fp.getTag(Fingerprint.Tag.GROUP));
+    assertEquals(String.valueOf(mode), fp.getTag(Fingerprint.Tag.MODE));
 
     String contentHash = CommonUtils.randomAlphaNumString(10);
     Long contentLength = mRandom.nextLong();
