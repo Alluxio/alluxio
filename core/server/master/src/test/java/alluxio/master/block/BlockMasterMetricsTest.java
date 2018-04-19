@@ -11,12 +11,12 @@
 
 package alluxio.master.block;
 
+import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.when;
 
 import alluxio.master.block.DefaultBlockMaster.Metrics;
 import alluxio.metrics.MetricsSystem;
 
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
@@ -37,15 +37,15 @@ public final class BlockMasterMetricsTest {
   @Test
   public void testMetricsCapacity() {
     when(mBlockMaster.getCapacityBytes()).thenReturn(1000L);
-    Assert.assertEquals(1000L, getGauge(Metrics.CAPACITY_TOTAL));
+    assertEquals(1000L, getGauge(Metrics.CAPACITY_TOTAL));
     when(mBlockMaster.getUsedBytes()).thenReturn(200L);
-    Assert.assertEquals(200L, getGauge(Metrics.CAPACITY_USED));
-    Assert.assertEquals(800L, getGauge(Metrics.CAPACITY_FREE));
+    assertEquals(200L, getGauge(Metrics.CAPACITY_USED));
+    assertEquals(800L, getGauge(Metrics.CAPACITY_FREE));
   }
 
   public void testMetricWorkers() {
     when(mBlockMaster.getWorkerCount()).thenReturn(200);
-    Assert.assertEquals(200, getGauge(Metrics.WORKERS));
+    assertEquals(200, getGauge(Metrics.WORKERS));
   }
 
   private Object getGauge(String name) {
