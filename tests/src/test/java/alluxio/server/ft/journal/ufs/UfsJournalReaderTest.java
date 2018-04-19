@@ -11,7 +11,7 @@
 
 package alluxio.server.ft.journal.ufs;
 
-import alluxio.BaseIntegrationTest;
+import alluxio.testutils.BaseIntegrationTest;
 import alluxio.ConfigurationTestUtils;
 import alluxio.master.NoopMaster;
 import alluxio.master.journal.JournalReader;

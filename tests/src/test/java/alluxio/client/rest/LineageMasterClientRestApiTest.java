@@ -13,7 +13,7 @@ package alluxio.client.rest;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
-import alluxio.LocalAlluxioClusterResource.Config;
+import alluxio.testutils.LocalAlluxioClusterResource.Config;
 import alluxio.PropertyKey;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.lineage.LineageContext;

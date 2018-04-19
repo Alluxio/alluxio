@@ -18,7 +18,7 @@ import alluxio.client.file.FileSystemTestUtils;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.CreateDirectoryOptions;
 import alluxio.client.cli.fs.AbstractFileSystemShellTest;
-import alluxio.underfs.ConfExpectingUnderFileSystemFactory;
+import alluxio.testutils.underfs.ConfExpectingUnderFileSystemFactory;
 import alluxio.util.io.BufferUtils;
 import alluxio.util.io.PathUtils;
 

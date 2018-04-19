@@ -15,10 +15,10 @@ import static org.junit.Assert.assertFalse;
 
 import alluxio.AlluxioURI;
 import alluxio.AuthenticatedUserRule;
-import alluxio.BaseIntegrationTest;
+import alluxio.testutils.BaseIntegrationTest;
 import alluxio.Configuration;
 import alluxio.ConfigurationTestUtils;
-import alluxio.LocalAlluxioClusterResource;
+import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.PropertyKey;
 import alluxio.client.WriteType;
 import alluxio.client.block.BlockMasterClient;

@@ -11,11 +11,11 @@
 
 package alluxio.server.ft.journal.ufs;
 
-import alluxio.BaseIntegrationTest;
+import alluxio.testutils.BaseIntegrationTest;
 import alluxio.Configuration;
 import alluxio.ConfigurationTestUtils;
 import alluxio.PropertyKey;
-import alluxio.master.MockMaster;
+import alluxio.testutils.master.MockMaster;
 import alluxio.master.NoopMaster;
 import alluxio.master.journal.ufs.UfsJournal;
 import alluxio.master.journal.ufs.UfsJournalCheckpointThread;

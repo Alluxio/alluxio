@@ -11,8 +11,8 @@
 
 package alluxio.server.web;
 
-import alluxio.BaseIntegrationTest;
-import alluxio.LocalAlluxioClusterResource;
+import alluxio.testutils.BaseIntegrationTest;
+import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.client.block.BlockMasterClient;
 import alluxio.exception.ConnectionFailedException;
 import alluxio.exception.status.UnavailableException;

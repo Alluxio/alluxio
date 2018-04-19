@@ -11,8 +11,8 @@
 
 package alluxio.client.hadoop;
 
-import alluxio.LocalAlluxioClusterResource;
-import alluxio.BaseIntegrationTest;
+import alluxio.testutils.LocalAlluxioClusterResource;
+import alluxio.testutils.BaseIntegrationTest;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileSystemTestUtils;
 

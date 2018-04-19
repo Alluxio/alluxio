@@ -11,9 +11,9 @@
 
 package alluxio.server.health;
 
-import alluxio.BaseIntegrationTest;
+import alluxio.testutils.BaseIntegrationTest;
 import alluxio.HealthCheckClient;
-import alluxio.LocalAlluxioClusterResource;
+import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.PropertyKey;
 
 import alluxio.master.LocalAlluxioCluster;

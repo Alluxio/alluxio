@@ -12,7 +12,7 @@
 package alluxio.server.health;
 
 import alluxio.AlluxioURI;
-import alluxio.LocalAlluxioClusterResource;
+import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.PropertyKey;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileSystem;

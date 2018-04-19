@@ -19,7 +19,7 @@ import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
-import alluxio.BaseIntegrationTest;
+import alluxio.testutils.BaseIntegrationTest;
 import alluxio.client.WriteType;
 import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.file.FileSystem;

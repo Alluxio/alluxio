@@ -12,7 +12,7 @@
 package alluxio.client.cli.fs.command;
 
 import alluxio.AlluxioURI;
-import alluxio.LocalAlluxioClusterResource;
+import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.PropertyKey;
 import alluxio.cli.fs.command.LsCommand;
 import alluxio.client.WriteType;

@@ -19,7 +19,7 @@ import static org.mockito.Mockito.spy;
 
 import alluxio.AlluxioURI;
 import alluxio.AuthenticatedUserRule;
-import alluxio.BaseIntegrationTest;
+import alluxio.testutils.BaseIntegrationTest;
 import alluxio.Configuration;
 import alluxio.ConfigurationRule;
 import alluxio.ConfigurationTestUtils;
@@ -34,9 +34,9 @@ import alluxio.multi.process.MultiProcessCluster.DeployMode;
 import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.UnderFileSystemFactory;
 import alluxio.underfs.UnderFileSystemFactoryRegistry;
-import alluxio.underfs.sleepfs.SleepingUnderFileSystem;
-import alluxio.underfs.sleepfs.SleepingUnderFileSystemFactory;
-import alluxio.underfs.sleepfs.SleepingUnderFileSystemOptions;
+import alluxio.testutils.underfs.sleeping.SleepingUnderFileSystem;
+import alluxio.testutils.underfs.sleeping.SleepingUnderFileSystemFactory;
+import alluxio.testutils.underfs.sleeping.SleepingUnderFileSystemOptions;
 import alluxio.util.CommonUtils;
 
 import com.google.common.collect.ImmutableMap;

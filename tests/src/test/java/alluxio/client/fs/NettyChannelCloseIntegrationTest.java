@@ -11,7 +11,7 @@
 
 package alluxio.client.fs;
 
-import alluxio.LocalAlluxioClusterResource;
+import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.client.file.FileSystemContext;
 import alluxio.util.CommonUtils;
 import alluxio.wire.WorkerNetAddress;

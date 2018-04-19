@@ -13,7 +13,7 @@ package alluxio.client.cli.fs;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
-import alluxio.LocalAlluxioClusterResource;
+import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.cli.Command;
 import alluxio.cli.fs.FileSystemShell;
 import alluxio.cli.fs.FileSystemShellUtils;

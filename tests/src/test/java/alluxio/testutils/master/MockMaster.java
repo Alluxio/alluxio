@@ -9,9 +9,10 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.master;
+package alluxio.testutils.master;
 
 import alluxio.Server;
+import alluxio.master.Master;
 import alluxio.proto.journal.Journal;
 import alluxio.proto.journal.Journal.JournalEntry;
 

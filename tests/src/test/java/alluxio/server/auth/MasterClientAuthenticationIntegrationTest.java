@@ -12,9 +12,9 @@
 package alluxio.server.auth;
 
 import alluxio.AlluxioURI;
-import alluxio.LocalAlluxioClusterResource;
+import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.PropertyKey;
-import alluxio.BaseIntegrationTest;
+import alluxio.testutils.BaseIntegrationTest;
 import alluxio.client.file.FileSystemMasterClient;
 import alluxio.client.file.options.CreateFileOptions;
 import alluxio.client.file.options.GetStatusOptions;

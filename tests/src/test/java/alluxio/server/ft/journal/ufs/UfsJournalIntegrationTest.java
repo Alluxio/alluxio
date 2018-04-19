@@ -12,10 +12,10 @@
 package alluxio.server.ft.journal.ufs;
 
 import alluxio.AlluxioURI;
-import alluxio.BaseIntegrationTest;
+import alluxio.testutils.BaseIntegrationTest;
 import alluxio.Configuration;
 import alluxio.Constants;
-import alluxio.LocalAlluxioClusterResource;
+import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.PropertyKey;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileOutStream;
@@ -27,7 +27,7 @@ import alluxio.client.file.options.DeleteOptions;
 import alluxio.client.file.options.SetAttributeOptions;
 import alluxio.master.LocalAlluxioCluster;
 import alluxio.master.MasterRegistry;
-import alluxio.master.MasterTestUtils;
+import alluxio.testutils.master.MasterTestUtils;
 import alluxio.master.NoopMaster;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.options.GetStatusOptions;

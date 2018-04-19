@@ -12,8 +12,8 @@
 package alluxio.client.hadoop;
 
 import alluxio.Constants;
-import alluxio.LocalAlluxioClusterResource;
-import alluxio.BaseIntegrationTest;
+import alluxio.testutils.LocalAlluxioClusterResource;
+import alluxio.testutils.BaseIntegrationTest;
 
 import alluxio.hadoop.FileSystem;
 import alluxio.hadoop.HadoopConfigurationUtils;

@@ -13,8 +13,8 @@ package alluxio.server.ft;
 
 import static org.junit.Assert.assertFalse;
 
-import alluxio.AlluxioOperationThread;
-import alluxio.BaseIntegrationTest;
+import alluxio.testutils.AlluxioOperationThread;
+import alluxio.testutils.BaseIntegrationTest;
 import alluxio.ConfigurationRule;
 import alluxio.Constants;
 import alluxio.PropertyKey;

@@ -14,7 +14,7 @@ package alluxio.client.fs;
 import static org.junit.Assert.assertEquals;
 
 import alluxio.AlluxioTestDirectory;
-import alluxio.BaseIntegrationTest;
+import alluxio.testutils.BaseIntegrationTest;
 import alluxio.ConfigurationRule;
 import alluxio.ConfigurationTestUtils;
 import alluxio.Process;

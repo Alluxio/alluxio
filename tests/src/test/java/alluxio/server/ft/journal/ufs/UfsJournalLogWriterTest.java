@@ -13,7 +13,7 @@ package alluxio.server.ft.journal.ufs;
 
 import static org.hamcrest.CoreMatchers.containsString;
 
-import alluxio.BaseIntegrationTest;
+import alluxio.testutils.BaseIntegrationTest;
 import alluxio.Configuration;
 import alluxio.ConfigurationTestUtils;
 import alluxio.PropertyKey;

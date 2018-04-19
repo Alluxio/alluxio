@@ -12,17 +12,17 @@
 package alluxio.client.fs;
 
 import alluxio.AlluxioURI;
-import alluxio.BaseIntegrationTest;
-import alluxio.LocalAlluxioClusterResource;
+import alluxio.testutils.BaseIntegrationTest;
+import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.options.CreateFileOptions;
 import alluxio.client.file.options.MountOptions;
 import alluxio.master.LocalAlluxioCluster;
 import alluxio.master.MasterRegistry;
-import alluxio.master.MasterTestUtils;
+import alluxio.testutils.master.MasterTestUtils;
 import alluxio.master.file.FileSystemMaster;
-import alluxio.underfs.ConfExpectingUnderFileSystemFactory;
+import alluxio.testutils.underfs.ConfExpectingUnderFileSystemFactory;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.UnderFileSystemFactoryRegistry;

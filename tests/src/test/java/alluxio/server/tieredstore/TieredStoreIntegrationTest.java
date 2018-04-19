@@ -12,8 +12,8 @@
 package alluxio.server.tieredstore;
 
 import alluxio.AlluxioURI;
-import alluxio.BaseIntegrationTest;
-import alluxio.LocalAlluxioClusterResource;
+import alluxio.testutils.BaseIntegrationTest;
+import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.PropertyKey;
 import alluxio.client.ReadType;
 import alluxio.client.WriteType;

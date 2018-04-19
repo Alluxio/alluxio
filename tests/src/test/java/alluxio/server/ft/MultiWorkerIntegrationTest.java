@@ -14,9 +14,9 @@ package alluxio.server.ft;
 import static org.junit.Assert.assertEquals;
 
 import alluxio.AlluxioURI;
-import alluxio.BaseIntegrationTest;
+import alluxio.testutils.BaseIntegrationTest;
 import alluxio.Constants;
-import alluxio.LocalAlluxioClusterResource;
+import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.PropertyKey;
 import alluxio.client.WriteType;
 import alluxio.client.block.AlluxioBlockStore;

@@ -12,7 +12,7 @@
 package alluxio.client.fs;
 
 import alluxio.AlluxioURI;
-import alluxio.IntegrationTestUtils;
+import alluxio.testutils.IntegrationTestUtils;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.URIStatus;

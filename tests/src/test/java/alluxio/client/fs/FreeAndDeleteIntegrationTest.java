@@ -16,10 +16,10 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertFalse;
 
 import alluxio.AlluxioURI;
-import alluxio.IntegrationTestUtils;
-import alluxio.LocalAlluxioClusterResource;
+import alluxio.testutils.IntegrationTestUtils;
+import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.PropertyKey;
-import alluxio.BaseIntegrationTest;
+import alluxio.testutils.BaseIntegrationTest;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;

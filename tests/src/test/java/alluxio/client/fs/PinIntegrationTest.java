@@ -12,8 +12,8 @@
 package alluxio.client.fs;
 
 import alluxio.AlluxioURI;
-import alluxio.BaseIntegrationTest;
-import alluxio.LocalAlluxioClusterResource;
+import alluxio.testutils.BaseIntegrationTest;
+import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;

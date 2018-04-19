@@ -13,11 +13,11 @@ package alluxio.client.fs;
 
 import alluxio.AlluxioURI;
 import alluxio.AuthenticatedUserRule;
-import alluxio.BaseIntegrationTest;
+import alluxio.testutils.BaseIntegrationTest;
 import alluxio.Configuration;
 import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
-import alluxio.LocalAlluxioClusterResource;
+import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.PropertyKey;
 import alluxio.UnderFileSystemFactoryRegistryRule;
 import alluxio.client.WriteType;
@@ -27,8 +27,8 @@ import alluxio.client.file.options.CreateDirectoryOptions;
 import alluxio.client.file.options.ListStatusOptions;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.meta.PersistenceState;
-import alluxio.underfs.sleepfs.SleepingUnderFileSystemFactory;
-import alluxio.underfs.sleepfs.SleepingUnderFileSystemOptions;
+import alluxio.testutils.underfs.sleeping.SleepingUnderFileSystemFactory;
+import alluxio.testutils.underfs.sleeping.SleepingUnderFileSystemOptions;
 import alluxio.wire.LoadMetadataType;
 
 import com.google.common.io.Files;

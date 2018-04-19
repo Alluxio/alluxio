@@ -11,8 +11,8 @@
 
 package alluxio.server.web;
 
-import alluxio.LocalAlluxioClusterResource;
-import alluxio.BaseIntegrationTest;
+import alluxio.testutils.LocalAlluxioClusterResource;
+import alluxio.testutils.BaseIntegrationTest;
 import alluxio.client.rest.TestCase;
 import alluxio.client.rest.TestCaseOptions;
 import alluxio.util.network.NetworkAddressUtils;

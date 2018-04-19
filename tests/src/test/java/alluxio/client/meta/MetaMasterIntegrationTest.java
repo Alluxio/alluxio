@@ -13,8 +13,8 @@ package alluxio.client.meta;
 
 import static org.junit.Assert.assertEquals;
 
-import alluxio.BaseIntegrationTest;
-import alluxio.LocalAlluxioClusterResource;
+import alluxio.testutils.BaseIntegrationTest;
+import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.master.MasterClientConfig;
 import alluxio.wire.ConfigProperty;
 import alluxio.wire.MasterInfo;

@@ -12,10 +12,10 @@
 package alluxio.client.fs;
 
 import alluxio.AlluxioURI;
-import alluxio.BaseIntegrationTest;
-import alluxio.IntegrationTestConstants;
-import alluxio.IntegrationTestUtils;
-import alluxio.LocalAlluxioClusterResource;
+import alluxio.testutils.BaseIntegrationTest;
+import alluxio.testutils.IntegrationTestConstants;
+import alluxio.testutils.IntegrationTestUtils;
+import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.PropertyKey;
 import alluxio.client.ReadType;
 import alluxio.client.WriteType;
