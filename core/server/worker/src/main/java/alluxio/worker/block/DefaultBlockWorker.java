@@ -18,7 +18,6 @@ import alluxio.RuntimeConstants;
 import alluxio.Server;
 import alluxio.Sessions;
 import alluxio.StorageTierAssoc;
-import alluxio.WorkerStorageTierAssoc;
 import alluxio.exception.BlockAlreadyExistsException;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.ExceptionMessage;
@@ -557,14 +556,14 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
             }
           });
 
-      StorageTierAssoc assoc = new WorkerStorageTierAssoc();
+      StorageTierAssoc assoc = blockWorker.getStoreMeta().getStorageTierAssoc();
       for (int i = 0; i < assoc.size(); i++) {
         String tier = assoc.getAlias(i);
         MetricsSystem.registerGaugeIfAbsent(
             MetricsSystem.getWorkerMetricName(CAPACITY_TOTAL + TIER + tier), new Gauge<Long>() {
               @Override
               public Long getValue() {
-                return blockWorker.getStoreMeta().getCapacityBytesOnTiers().get(tier);
+                return blockWorker.getStoreMeta().getCapacityBytesOnTiers().getOrDefault(tier, 0L);
               }
             });
 
@@ -572,7 +571,7 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
             MetricsSystem.getWorkerMetricName(CAPACITY_USED + TIER + tier), new Gauge<Long>() {
               @Override
               public Long getValue() {
-                return blockWorker.getStoreMeta().getUsedBytesOnTiers().get(tier);
+                return blockWorker.getStoreMeta().getUsedBytesOnTiers().getOrDefault(tier, 0L);
               }
             });
 
@@ -580,8 +579,8 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
             MetricsSystem.getWorkerMetricName(CAPACITY_FREE + TIER + tier), new Gauge<Long>() {
               @Override
               public Long getValue() {
-                return blockWorker.getStoreMeta().getCapacityBytesOnTiers().get(tier)
-                    - blockWorker.getStoreMeta().getUsedBytesOnTiers().get(tier);
+                return blockWorker.getStoreMeta().getCapacityBytesOnTiers().getOrDefault(tier, 0L)
+                    - blockWorker.getStoreMeta().getUsedBytesOnTiers().getOrDefault(tier, 0L);
               }
             });
       }

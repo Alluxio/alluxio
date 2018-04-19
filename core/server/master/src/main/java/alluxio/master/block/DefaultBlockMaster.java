@@ -152,7 +152,7 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
    * forms a total ordering on all storage level aliases in the system, and must be consistent
    * across masters.
    */
-  private StorageTierAssoc mGlobalStorageTierAssoc;
+  private final StorageTierAssoc mGlobalStorageTierAssoc;
 
   /** Keeps track of workers which are in communication with the master. */
   private final IndexedSet<MasterWorkerInfo> mWorkers =
