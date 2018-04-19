@@ -28,7 +28,6 @@ import alluxio.web.MasterWebServer;
 import alluxio.wire.AlluxioMasterInfo;
 import alluxio.wire.Capacity;
 import alluxio.wire.MountPointInfo;
-//import alluxio.wire.WorkerInfo;
 
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Gauge;
