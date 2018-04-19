@@ -17,6 +17,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Random;
 
 public class MasterInfoTest {
@@ -45,6 +47,7 @@ public class MasterInfoTest {
     Assert.assertEquals(a.getUpTimeMs(), b.getUpTimeMs());
     Assert.assertEquals(a.getVersion(), b.getVersion());
     Assert.assertEquals(a.getWebPort(), b.getWebPort());
+    Assert.assertEquals(a.getZookeeperAddresses(), b.getZookeeperAddresses());
     Assert.assertEquals(a, b);
   }
 
@@ -59,6 +62,10 @@ public class MasterInfoTest {
     String version = CommonUtils.randomAlphaNumString(random.nextInt(10));
     int webPort = random.nextInt(2000);
     boolean safeMode = random.nextBoolean();
+    List<String> zookeeperAddresses = Arrays.asList(
+        CommonUtils.randomAlphaNumString(random.nextInt(10)),
+        CommonUtils.randomAlphaNumString(random.nextInt(10)),
+        CommonUtils.randomAlphaNumString(random.nextInt(10)));
 
     result.setMasterAddress(masterAddress);
     result.setRpcPort(rpcPort);
@@ -67,6 +74,7 @@ public class MasterInfoTest {
     result.setUpTimeMs(uptimeMs);
     result.setVersion(version);
     result.setWebPort(webPort);
+    result.setZookeeperAddresses(zookeeperAddresses);
     return result;
   }
 }

@@ -14,6 +14,7 @@ package alluxio.wire;
 import com.google.common.base.Objects;
 
 import java.io.Serializable;
+import java.util.List;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -31,6 +32,7 @@ public final class MasterInfo implements Serializable {
   private long mUpTimeMs;
   private String mVersion;
   private int mWebPort;
+  private List<String> mZookeeperAddresses;
 
   /**
    * Creates a new instance of {@link MasterInfo}.
@@ -50,6 +52,7 @@ public final class MasterInfo implements Serializable {
     mUpTimeMs = masterInfo.getUpTimeMs();
     mVersion = masterInfo.getVersion();
     mWebPort = masterInfo.getWebPort();
+    mZookeeperAddresses = masterInfo.getZookeeperAddresses();
   }
 
   /**
@@ -99,6 +102,13 @@ public final class MasterInfo implements Serializable {
    */
   public int getWebPort() {
     return mWebPort;
+  }
+
+  /**
+   * @return the Zookeeper addresses
+   */
+  public List<String> getZookeeperAddresses() {
+    return mZookeeperAddresses;
   }
 
   /**
@@ -165,11 +175,22 @@ public final class MasterInfo implements Serializable {
   }
 
   /**
+   * @param zookeeperAddresses the Zookeeper addresses to use
+   * @return the master information
+   */
+  public MasterInfo setZookeeperAddresses(List<String> zookeeperAddresses) {
+    mZookeeperAddresses = zookeeperAddresses;
+    return this;
+  }
+
+  /**
    * @return thrift representation of the master information
    */
   protected alluxio.thrift.MasterInfo toThrift() {
-    return new alluxio.thrift.MasterInfo(mMasterAddress, mRpcPort, mSafeMode,
-        mStartTimeMs, mUpTimeMs, mVersion, mWebPort);
+    return new alluxio.thrift.MasterInfo().setMasterAddress(mMasterAddress)
+        .setRpcPort(mRpcPort).setSafeMode(mSafeMode).setStartTimeMs(mStartTimeMs)
+        .setUpTimeMs(mUpTimeMs).setVersion(mVersion).setWebPort(mWebPort)
+        .setZookeeperAddresses(mZookeeperAddresses);
   }
 
   @Override
@@ -184,13 +205,13 @@ public final class MasterInfo implements Serializable {
     return mMasterAddress.equals(that.mMasterAddress) && mRpcPort == that.mRpcPort
         && mSafeMode == that.mSafeMode && mStartTimeMs == that.mStartTimeMs
         && mUpTimeMs == that.mUpTimeMs && mVersion.equals(that.mVersion)
-        && mWebPort == that.mWebPort;
+        && mWebPort == that.mWebPort && mZookeeperAddresses.equals(that.mZookeeperAddresses);
   }
 
   @Override
   public int hashCode() {
     return Objects.hashCode(mMasterAddress, mRpcPort, mSafeMode,
-        mStartTimeMs, mUpTimeMs, mVersion, mWebPort);
+        mStartTimeMs, mUpTimeMs, mVersion, mWebPort, mZookeeperAddresses);
   }
 
   @Override
@@ -198,7 +219,8 @@ public final class MasterInfo implements Serializable {
     return Objects.toStringHelper(this).add("masterAddress", mMasterAddress)
         .add("rpcPort", mRpcPort).add("safeMode", mSafeMode)
         .add("startTimeMs", mStartTimeMs).add("upTimeMs", mUpTimeMs)
-        .add("version", mVersion).add("webPort", mWebPort).toString();
+        .add("version", mVersion).add("webPort", mWebPort)
+        .add("zookeeperAddress", mZookeeperAddresses).toString();
   }
 
   /**
@@ -211,7 +233,8 @@ public final class MasterInfo implements Serializable {
     START_TIME_MS,
     UP_TIME_MS,
     VERSION,
-    WEB_PORT;
+    WEB_PORT,
+    ZOOKEEPER_ADDRESSES;
 
     /**
      * @return the thrift representation of this master info field
