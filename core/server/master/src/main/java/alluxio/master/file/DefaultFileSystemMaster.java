@@ -3724,6 +3724,9 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
 
     /**
      * Register some file system master related gauges.
+     *
+     * @param master the file system master
+     * @param ufsManager the under filesystem manager
      */
     @VisibleForTesting
     public static void registerGauges(
