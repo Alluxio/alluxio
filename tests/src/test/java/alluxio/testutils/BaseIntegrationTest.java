@@ -12,6 +12,7 @@
 package alluxio.testutils;
 
 import alluxio.Constants;
+
 import org.junit.Rule;
 import org.junit.rules.RuleChain;
 import org.junit.rules.TestRule;

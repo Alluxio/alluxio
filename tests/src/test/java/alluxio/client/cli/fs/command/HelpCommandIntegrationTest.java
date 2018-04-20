@@ -14,8 +14,8 @@ package alluxio.client.cli.fs.command;
 import alluxio.cli.Command;
 import alluxio.client.cli.fs.AbstractFileSystemShellTest;
 import alluxio.cli.fs.FileSystemShellUtils;
-
 import alluxio.cli.fs.command.HelpCommand;
+
 import org.junit.Assert;
 import org.junit.Test;
 

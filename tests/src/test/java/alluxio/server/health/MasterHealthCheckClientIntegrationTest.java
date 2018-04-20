@@ -11,13 +11,13 @@
 
 package alluxio.server.health;
 
-import alluxio.testutils.BaseIntegrationTest;
 import alluxio.HealthCheckClient;
-import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.PropertyKey;
-
 import alluxio.master.LocalAlluxioCluster;
 import alluxio.master.MasterHealthCheckClient;
+import alluxio.testutils.BaseIntegrationTest;
+import alluxio.testutils.LocalAlluxioClusterResource;
+
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;

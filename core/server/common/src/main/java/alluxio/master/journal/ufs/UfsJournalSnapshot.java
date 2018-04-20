@@ -12,6 +12,7 @@
 package alluxio.master.journal.ufs;
 
 import alluxio.underfs.UfsStatus;
+
 import com.google.common.annotations.VisibleForTesting;
 
 import java.io.IOException;
@@ -124,6 +125,7 @@ public final class UfsJournalSnapshot {
   /**
    * Gets the current log (the incomplete log) that is being written to.
    *
+   * @param journal the journal
    * @return the current log
    */
   @VisibleForTesting

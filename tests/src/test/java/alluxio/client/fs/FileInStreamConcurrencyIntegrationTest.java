@@ -11,17 +11,8 @@
 
 package alluxio.client.fs;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.junit.BeforeClass;
-import org.junit.ClassRule;
-import org.junit.Test;
-
 import alluxio.AlluxioURI;
-import alluxio.testutils.BaseIntegrationTest;
 import alluxio.Configuration;
-import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.PropertyKey;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileInStream;
@@ -29,9 +20,17 @@ import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.client.file.options.CreateFileOptions;
 import alluxio.test.util.ConcurrencyUtils;
+import alluxio.testutils.BaseIntegrationTest;
+import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Throwables;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
+import org.junit.Test;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Tests the concurrency of {@link FileInStream}.

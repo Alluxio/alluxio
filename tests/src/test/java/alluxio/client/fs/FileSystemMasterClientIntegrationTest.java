@@ -12,17 +12,17 @@
 package alluxio.client.fs;
 
 import alluxio.AlluxioURI;
-import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.PropertyKey;
-import alluxio.testutils.BaseIntegrationTest;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemMasterClient;
 import alluxio.client.file.options.CreateFileOptions;
 import alluxio.client.file.options.GetStatusOptions;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.status.NotFoundException;
-
 import alluxio.master.MasterClientConfig;
+import alluxio.testutils.BaseIntegrationTest;
+import alluxio.testutils.LocalAlluxioClusterResource;
+
 import com.google.common.base.Throwables;
 import org.junit.Assert;
 import org.junit.Rule;

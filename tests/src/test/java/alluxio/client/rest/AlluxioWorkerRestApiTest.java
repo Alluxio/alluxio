@@ -17,8 +17,8 @@ import alluxio.RuntimeConstants;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.AlluxioWorkerInfo;
 import alluxio.wire.Capacity;
-
 import alluxio.worker.AlluxioWorkerRestServiceHandler;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Assert;
 import org.junit.Before;

@@ -16,8 +16,8 @@ import static org.junit.Assert.assertEquals;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.SystemOutRule;
-
 import alluxio.cli.GetConf;
+
 import org.junit.Rule;
 import org.junit.Test;
 

@@ -12,6 +12,7 @@
 package alluxio.testutils.network;
 
 import alluxio.network.protocol.RPCMessage;
+
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;

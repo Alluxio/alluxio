@@ -18,8 +18,8 @@ import alluxio.PropertyKey;
 import alluxio.master.LocalAlluxioCluster;
 import alluxio.retry.CountingRetry;
 import alluxio.util.network.NetworkAddressUtils;
-
 import alluxio.worker.WorkerHealthCheckClient;
+
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;

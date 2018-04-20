@@ -16,9 +16,9 @@ import static org.junit.Assert.assertEquals;
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
-import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.PropertyKey;
 import alluxio.client.file.FileSystem;
+import alluxio.testutils.LocalAlluxioClusterResource;
 
 import org.junit.Before;
 import org.junit.Rule;
@@ -55,8 +55,8 @@ public final class ConcurrentFileSystemMasterLoadMetadataTest {
     List<AlluxioURI> paths = Collections.nCopies(20, new AlluxioURI("/"));
 
     List<Throwable> errors = ConcurrentFileSystemMasterUtils
-        .unaryOperation(mFileSystem, ConcurrentFileSystemMasterUtils.UnaryOperation.LIST_STATUS, paths.toArray(new AlluxioURI[]{}),
-            60 * Constants.SECOND_MS);
+        .unaryOperation(mFileSystem, ConcurrentFileSystemMasterUtils.UnaryOperation.LIST_STATUS,
+            paths.toArray(new AlluxioURI[]{}), 60 * Constants.SECOND_MS);
     assertEquals(Collections.EMPTY_LIST, errors);
   }
 
@@ -71,8 +71,8 @@ public final class ConcurrentFileSystemMasterLoadMetadataTest {
     List<AlluxioURI> paths = Collections.nCopies(20, new AlluxioURI("/"));
 
     List<Throwable> errors = ConcurrentFileSystemMasterUtils
-        .unaryOperation(mFileSystem, ConcurrentFileSystemMasterUtils.UnaryOperation.LIST_STATUS, paths.toArray(new AlluxioURI[]{}),
-            60 * Constants.SECOND_MS);
+        .unaryOperation(mFileSystem, ConcurrentFileSystemMasterUtils.UnaryOperation.LIST_STATUS,
+            paths.toArray(new AlluxioURI[]{}), 60 * Constants.SECOND_MS);
     assertEquals(Collections.EMPTY_LIST, errors);
   }
 }

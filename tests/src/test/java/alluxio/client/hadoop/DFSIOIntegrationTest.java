@@ -12,11 +12,11 @@
 package alluxio.client.hadoop;
 
 import alluxio.Constants;
+import alluxio.hadoop.FileSystem;
+import alluxio.hadoop.HadoopConfigurationUtils;
 import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.testutils.BaseIntegrationTest;
 
-import alluxio.hadoop.FileSystem;
-import alluxio.hadoop.HadoopConfigurationUtils;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.PositionedReadable;
@@ -44,7 +44,6 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nullable;
 import java.io.BufferedReader;
 import java.io.Closeable;
 import java.io.DataInputStream;
@@ -59,6 +58,8 @@ import java.net.URI;
 import java.util.Date;
 import java.util.Random;
 import java.util.StringTokenizer;
+
+import javax.annotation.Nullable;
 
 /**
  * Distributed i/o benchmark.
