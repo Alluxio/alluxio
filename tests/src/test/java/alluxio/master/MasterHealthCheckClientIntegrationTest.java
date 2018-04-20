@@ -44,6 +44,8 @@ public class MasterHealthCheckClientIntegrationTest extends BaseIntegrationTest 
   }
 
   @Test
+  @LocalAlluxioClusterResource.Config(
+      confParams = {PropertyKey.Name.USER_RPC_RETRY_MAX_DURATION, "1s"})
   public void isServingStopFS() throws Exception {
     mLocalAlluxioCluster.stopFS();
     Assert.assertFalse(mHealthCheckClient.isServing());
