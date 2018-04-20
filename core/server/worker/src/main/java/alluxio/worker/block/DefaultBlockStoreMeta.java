@@ -11,6 +11,7 @@
 
 package alluxio.worker.block;
 
+import alluxio.StorageTierAssoc;
 import alluxio.collections.Pair;
 import alluxio.worker.block.meta.StorageDir;
 import alluxio.worker.block.meta.StorageTier;
@@ -18,9 +19,9 @@ import alluxio.worker.block.meta.StorageTier;
 import com.google.common.base.Preconditions;
 
 import java.util.ArrayList;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -50,6 +51,8 @@ public final class DefaultBlockStoreMeta implements BlockStoreMeta {
 
   /** Mapping from storage dir tier and path to used bytes. */
   private final Map<Pair<String, String>, Long> mUsedBytesOnDirs = new HashMap<>();
+
+  private final StorageTierAssoc mStorageTierAssoc;
 
   @Override
   public Map<String, List<Long>> getBlockList() {
@@ -127,6 +130,7 @@ public final class DefaultBlockStoreMeta implements BlockStoreMeta {
    */
   protected DefaultBlockStoreMeta(BlockMetadataManager manager, boolean shouldIncludeBlockIds) {
     Preconditions.checkNotNull(manager, "manager");
+    mStorageTierAssoc = manager.getStorageTierAssoc();
     for (StorageTier tier : manager.getTiers()) {
       Long capacityBytes = mCapacityBytesOnTiers.get(tier.getTierAlias());
       Long usedBytes = mUsedBytesOnTiers.get(tier.getTierAlias());
@@ -160,5 +164,10 @@ public final class DefaultBlockStoreMeta implements BlockStoreMeta {
     } else {
       mBlockIdsOnTiers = null;
     }
+  }
+
+  @Override
+  public StorageTierAssoc getStorageTierAssoc() {
+    return mStorageTierAssoc;
   }
 }

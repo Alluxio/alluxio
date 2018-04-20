@@ -17,6 +17,7 @@ import alluxio.PropertyKey;
 import alluxio.RuntimeConstants;
 import alluxio.Server;
 import alluxio.Sessions;
+import alluxio.StorageTierAssoc;
 import alluxio.exception.BlockAlreadyExistsException;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.ExceptionMessage;
@@ -27,8 +28,8 @@ import alluxio.heartbeat.HeartbeatThread;
 import alluxio.master.MasterClientConfig;
 import alluxio.metrics.MetricsSystem;
 import alluxio.proto.dataserver.Protocol;
-import alluxio.retry.RetryUtils;
 import alluxio.retry.ExponentialTimeBoundedRetry;
+import alluxio.retry.RetryUtils;
 import alluxio.thrift.BlockWorkerClientService;
 import alluxio.underfs.UfsManager;
 import alluxio.util.CommonUtils;
@@ -522,6 +523,7 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
     public static final String CAPACITY_USED = "CapacityUsed";
     public static final String CAPACITY_FREE = "CapacityFree";
     public static final String BLOCKS_CACHED = "BlocksCached";
+    public static final String TIER = "Tier";
 
     /**
      * Registers metric gauges.
@@ -553,6 +555,35 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
                   .getUsedBytes();
             }
           });
+
+      StorageTierAssoc assoc = blockWorker.getStoreMeta().getStorageTierAssoc();
+      for (int i = 0; i < assoc.size(); i++) {
+        String tier = assoc.getAlias(i);
+        MetricsSystem.registerGaugeIfAbsent(
+            MetricsSystem.getWorkerMetricName(CAPACITY_TOTAL + TIER + tier), new Gauge<Long>() {
+              @Override
+              public Long getValue() {
+                return blockWorker.getStoreMeta().getCapacityBytesOnTiers().getOrDefault(tier, 0L);
+              }
+            });
+
+        MetricsSystem.registerGaugeIfAbsent(
+            MetricsSystem.getWorkerMetricName(CAPACITY_USED + TIER + tier), new Gauge<Long>() {
+              @Override
+              public Long getValue() {
+                return blockWorker.getStoreMeta().getUsedBytesOnTiers().getOrDefault(tier, 0L);
+              }
+            });
+
+        MetricsSystem.registerGaugeIfAbsent(
+            MetricsSystem.getWorkerMetricName(CAPACITY_FREE + TIER + tier), new Gauge<Long>() {
+              @Override
+              public Long getValue() {
+                return blockWorker.getStoreMeta().getCapacityBytesOnTiers().getOrDefault(tier, 0L)
+                    - blockWorker.getStoreMeta().getUsedBytesOnTiers().getOrDefault(tier, 0L);
+              }
+            });
+      }
 
       MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getWorkerMetricName(BLOCKS_CACHED),
           new Gauge<Integer>() {
