@@ -11,7 +11,6 @@
 
 package alluxio.master.journal.ufs;
 
-import alluxio.BaseIntegrationTest;
 import alluxio.ConfigurationTestUtils;
 import alluxio.master.NoopMaster;
 import alluxio.proto.journal.Journal;
@@ -31,7 +30,7 @@ import java.net.URI;
 /**
  * Unit tests for {@link UfsJournalCheckpointWriter}.
  */
-public final class UfsJournalCheckpointWriterTest extends BaseIntegrationTest {
+public final class UfsJournalCheckpointWriterTest {
   @Rule
   public TemporaryFolder mFolder = new TemporaryFolder();
 
