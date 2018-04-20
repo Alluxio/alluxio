@@ -9,58 +9,53 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.worker.block;
+package alluxio.master.block;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.when;
 
+import alluxio.MasterStorageTierAssoc;
 import alluxio.StorageTierAssoc;
-import alluxio.WorkerStorageTierAssoc;
+import alluxio.master.block.DefaultBlockMaster.Metrics;
 import alluxio.metrics.MetricsSystem;
-import alluxio.worker.block.DefaultBlockWorker.Metrics;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 
 /**
- * Unit tests for {@link DefaultBlockWorker.Metrics}.
+ * Unit tests for {@link DefaultBlockMaster.Metrics}.
  */
-public final class BlockWorkerMetricsTest {
+public final class BlockMasterMetricsTest {
   private static final String MEM = "MEM";
   private static final String HDD = "HDD";
 
-  private BlockWorker mBlockWorker;
-  private BlockStoreMeta mBlockStoreMeta;
+  private BlockMaster mBlockMaster;
 
   @Before
   public void before() throws Exception {
     MetricsSystem.clearAllMetrics();
-    mBlockWorker = Mockito.mock(BlockWorker.class);
-    mBlockStoreMeta = Mockito.mock(BlockStoreMeta.class);
-    Mockito.when(mBlockWorker.getStoreMeta()).thenReturn(mBlockStoreMeta);
-    StorageTierAssoc assoc = new WorkerStorageTierAssoc(Lists.newArrayList(MEM, HDD));
-    when(mBlockStoreMeta.getStorageTierAssoc()).thenReturn(assoc);
-    Metrics.registerGauges(mBlockWorker);
+    mBlockMaster = Mockito.mock(BlockMaster.class);
+    StorageTierAssoc assoc = new MasterStorageTierAssoc(Lists.newArrayList(MEM, HDD));
+    when(mBlockMaster.getGlobalStorageTierAssoc()).thenReturn(assoc);
+    Metrics.registerGauges(mBlockMaster);
   }
 
   @Test
   public void testMetricsCapacity() {
-    when(mBlockStoreMeta.getCapacityBytes()).thenReturn(1000L);
-    Assert.assertEquals(1000L, getGauge(Metrics.CAPACITY_TOTAL));
-    when(mBlockStoreMeta.getUsedBytes()).thenReturn(200L);
-    Assert.assertEquals(200L, getGauge(Metrics.CAPACITY_USED));
-    Assert.assertEquals(800L, getGauge(Metrics.CAPACITY_FREE));
+    when(mBlockMaster.getCapacityBytes()).thenReturn(1000L);
+    assertEquals(1000L, getGauge(Metrics.CAPACITY_TOTAL));
+    when(mBlockMaster.getUsedBytes()).thenReturn(200L);
+    assertEquals(200L, getGauge(Metrics.CAPACITY_USED));
+    assertEquals(800L, getGauge(Metrics.CAPACITY_FREE));
   }
 
   @Test
   public void testMetricsTierCapacity() {
-    when(mBlockStoreMeta.getCapacityBytesOnTiers())
-        .thenReturn(ImmutableMap.of(MEM, 1000L, HDD, 2000L));
-    when(mBlockStoreMeta.getUsedBytesOnTiers()).thenReturn(ImmutableMap.of(MEM, 100L, HDD, 200L));
+    when(mBlockMaster.getTotalBytesOnTiers()).thenReturn(ImmutableMap.of(MEM, 1000L, HDD, 2000L));
+    when(mBlockMaster.getUsedBytesOnTiers()).thenReturn(ImmutableMap.of(MEM, 100L, HDD, 200L));
     assertEquals(1000L, getGauge(Metrics.CAPACITY_TOTAL + Metrics.TIER + MEM));
     assertEquals(2000L, getGauge(Metrics.CAPACITY_TOTAL + Metrics.TIER + HDD));
     assertEquals(100L, getGauge(Metrics.CAPACITY_USED + Metrics.TIER + MEM));
@@ -69,13 +64,13 @@ public final class BlockWorkerMetricsTest {
     assertEquals(1800L, getGauge(Metrics.CAPACITY_FREE + Metrics.TIER + HDD));
   }
 
-  public void testMetricBocksCached() {
-    when(mBlockStoreMeta.getNumberOfBlocks()).thenReturn(200);
-    Assert.assertEquals(200, getGauge(Metrics.BLOCKS_CACHED));
+  public void testMetricWorkers() {
+    when(mBlockMaster.getWorkerCount()).thenReturn(200);
+    assertEquals(200, getGauge(Metrics.WORKERS));
   }
 
   private Object getGauge(String name) {
-    return MetricsSystem.METRIC_REGISTRY.getGauges().get(MetricsSystem.getWorkerMetricName(name))
+    return MetricsSystem.METRIC_REGISTRY.getGauges().get(MetricsSystem.getMasterMetricName(name))
         .getValue();
   }
 }
