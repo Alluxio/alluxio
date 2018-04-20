@@ -272,12 +272,7 @@ public final class AlluxioMasterRestServiceHandler {
   @ReturnType("java.lang.Long")
   @Deprecated
   public Response getUsedBytes() {
-    return RestUtils.call(new RestUtils.RestCallable<Long>() {
-      @Override
-      public Long call() throws Exception {
-        return mBlockMaster.getUsedBytes();
-      }
-    });
+    return RestUtils.call(() -> mBlockMaster.getUsedBytes());
   }
 
   /**
