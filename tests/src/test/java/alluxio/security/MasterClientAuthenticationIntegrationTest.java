@@ -88,7 +88,8 @@ public final class MasterClientAuthenticationIntegrationTest extends BaseIntegra
       confParams = {PropertyKey.Name.SECURITY_AUTHENTICATION_TYPE, "CUSTOM",
           PropertyKey.Name.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER_CLASS,
           NameMatchAuthenticationProvider.FULL_CLASS_NAME,
-          PropertyKey.Name.SECURITY_LOGIN_USERNAME, "alluxio"})
+          PropertyKey.Name.SECURITY_LOGIN_USERNAME, "alluxio",
+          PropertyKey.Name.USER_RPC_RETRY_MAX_DURATION, "1s"})
   public void customAuthenticationDenyConnect() throws Exception {
     try (FileSystemMasterClient masterClient =
         FileSystemMasterClient.Factory.create(MasterClientConfig.defaults())) {
