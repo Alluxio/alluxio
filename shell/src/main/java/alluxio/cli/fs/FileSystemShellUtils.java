@@ -279,7 +279,7 @@ public final class FileSystemShellUtils {
    * @param patternPath path that can contain wildcards
    * @return true if matches; false if not
    */
-  protected static boolean match(String filePath, String patternPath) {
+  public static boolean match(String filePath, String patternPath) {
     return match(new AlluxioURI(filePath), new AlluxioURI(patternPath));
   }
 }
