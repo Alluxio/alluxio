@@ -155,7 +155,7 @@ public final class MasterClientAuthenticationIntegrationTest extends BaseIntegra
     // The fullly qualified class name of this authentication provider. This is needed to configure
     // the alluxio cluster
     public static final String FULL_CLASS_NAME =
-        "alluxio.security.MasterClientAuthenticationIntegrationTest$"
+        "alluxio.server.auth.MasterClientAuthenticationIntegrationTest$"
             + "NameMatchAuthenticationProvider";
 
     @Override
