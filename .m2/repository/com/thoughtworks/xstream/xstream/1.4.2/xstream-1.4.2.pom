@@ -1,0 +1,304 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <!--
+     Copyright (C) 2006 Joe Walnes.
+     Copyright (C) 2006, 2007, 2008, 2009, 2010, 2011 XStream committers.
+     All rights reserved.
+     
+     The software in this package is published under the terms of the BSD
+     style license a copy of which has been included with this distribution in
+     the LICENSE.txt file.
+     
+     Created on 29. July 2006 by Mauro Talevi
+     -->
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>com.thoughtworks.xstream</groupId>
+    <artifactId>xstream-parent</artifactId>
+    <version>1.4.2</version>
+  </parent>
+  <artifactId>xstream</artifactId>
+  <packaging>jar</packaging>
+  <name>XStream Core</name>
+
+  <dependencies>
+    <dependency>
+      <groupId>dom4j</groupId>
+      <artifactId>dom4j</artifactId>
+      <optional>true</optional>
+    </dependency>
+
+    <dependency>
+      <groupId>org.jdom</groupId>
+      <artifactId>jdom</artifactId>
+      <optional>true</optional>
+    </dependency>
+
+    <dependency>
+      <groupId>joda-time</groupId>
+      <artifactId>joda-time</artifactId>
+      <optional>true</optional>
+    </dependency>
+
+    <dependency>
+      <groupId>stax</groupId>
+      <artifactId>stax</artifactId>
+      <optional>true</optional>
+    </dependency>
+
+    <dependency>
+      <groupId>org.codehaus.woodstox</groupId>
+      <artifactId>wstx-asl</artifactId>
+      <optional>true</optional>
+    </dependency>
+
+    <dependency>
+      <groupId>stax</groupId>
+      <artifactId>stax-api</artifactId>
+      <optional>true</optional>
+    </dependency>
+
+    <dependency>
+      <groupId>xom</groupId>
+      <artifactId>xom</artifactId>
+      <optional>true</optional>
+    </dependency>
+
+    <dependency>
+      <groupId>xmlpull</groupId>
+      <artifactId>xmlpull</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>net.sf.kxml</groupId>
+      <artifactId>kxml2-min</artifactId>
+      <optional>true</optional>
+    </dependency>
+
+    <dependency>
+      <groupId>net.sf.kxml</groupId>
+      <artifactId>kxml2</artifactId>
+      <optional>true</optional>
+    </dependency>
+
+    <dependency>
+      <groupId>xpp3</groupId>
+      <artifactId>xpp3_min</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>cglib</groupId>
+      <artifactId>cglib-nodep</artifactId>
+      <optional>true</optional>
+    </dependency>
+
+    <dependency>
+      <groupId>org.json</groupId>
+      <artifactId>json</artifactId>
+      <optional>true</optional>
+    </dependency>
+
+    <dependency>
+      <groupId>org.codehaus.jettison</groupId>
+      <artifactId>jettison</artifactId>
+      <optional>true</optional>
+    </dependency>
+
+    <!-- test-scoped -->
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>jmock</groupId>
+      <artifactId>jmock</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>com.megginson.sax</groupId>
+      <artifactId>xml-writer</artifactId>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>oro</groupId>
+      <artifactId>oro</artifactId>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>commons-lang</groupId>
+      <artifactId>commons-lang</artifactId>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-dependency-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>complete-test-classpath</id>
+            <phase>process-test-resources</phase>
+            <goals>
+              <goal>copy</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>target/lib</outputDirectory>
+              <artifactItems>
+                <artifactItem>
+                  <groupId>proxytoys</groupId>
+                  <artifactId>proxytoys</artifactId>
+                  <version>0.2.1</version>
+                </artifactItem>
+              </artifactItems>
+            </configuration>
+          </execution>
+          <execution>
+            <id>collect-dependencies</id>
+            <phase>package</phase>
+            <goals>
+              <goal>copy-dependencies</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>target/dependencies</outputDirectory>
+              <includeScope>runtime</includeScope>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <executions>
+          <execution>
+            <goals>
+              <goal>test-jar</goal>
+            </goals>
+            <configuration>
+              <includes>
+                <include>**/AbstractAcceptanceTest.*</include>
+              </includes>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+
+  <profiles>
+    <profile>
+      <id>jdk15-ge</id>
+      <activation>
+        <jdk>[1.5,)</jdk>
+      </activation>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-compiler-plugin</artifactId>
+            <configuration>
+              <excludes>
+                <exclude>**/HarmonyReflectionProvider*</exclude>
+              </excludes>
+            </configuration>
+          </plugin>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-javadoc-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>attach-javadoc</id>
+                <phase>package</phase>
+                <goals>
+                  <goal>jar</goal>
+                </goals>
+                <configuration>
+                  <excludePackageNames>com.thoughtworks.xstream.core.util</excludePackageNames>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-source-plugin</artifactId>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+    <profile>
+      <id>jdk14</id>
+      <activation>
+        <jdk>1.4</jdk>
+      </activation>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-compiler-plugin</artifactId>
+            <configuration>
+              <excludes>
+                <exclude>**/annotations/*</exclude>
+                <exclude>**/AnnotationMapper*</exclude>
+                <exclude>**/EnumMapper*</exclude>
+                <exclude>**/enums/*</exclude>
+                <exclude>**/basic/StringBuilder*</exclude>
+                <exclude>**/basic/UUID*</exclude>
+                <exclude>**/HarmonyReflectionProvider*</exclude>
+              </excludes>
+              <testExcludes>
+                <exclude>**/annotations/*</exclude>
+                <exclude>**/enums/*</exclude>
+                <exclude>**/reflection/PureJavaReflectionProvider15Test*</exclude>
+                <exclude>**/acceptance/Basic15TypesTest*</exclude>
+              </testExcludes>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+      <dependencies>
+        <dependency>
+          <groupId>xml-apis</groupId>
+          <artifactId>xml-apis</artifactId>
+        </dependency>
+        <dependency>
+          <groupId>xerces</groupId>
+          <artifactId>xercesImpl</artifactId>
+        </dependency>
+      </dependencies>
+      <properties>
+        <version.org.codehaus.jettison>1.0.1</version.org.codehaus.jettison>
+      </properties>
+    </profile>
+  </profiles>
+
+  <reporting>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-javadoc-plugin</artifactId>
+        <version>${version.plugin.maven.javadoc}</version>
+        <configuration>
+          <excludePackageNames>com.thoughtworks.xstream.core.util</excludePackageNames>
+          <source>${version.java.source}</source>
+          <links>
+            <link>${link.javadoc.javase}</link>
+          </links>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-report-plugin</artifactId>
+        <version>${version.plugin.maven.surefire}</version>
+      </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>cobertura-maven-plugin</artifactId>
+        <version>${version.plugin.mojo.cobertura}</version>
+      </plugin>
+    </plugins>
+  </reporting>
+
+</project>

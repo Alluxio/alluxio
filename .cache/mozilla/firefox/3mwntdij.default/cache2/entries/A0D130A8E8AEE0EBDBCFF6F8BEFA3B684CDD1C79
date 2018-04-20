@@ -1,0 +1,371 @@
+<html>
+
+	<head>
+		<title>Welcome to Chang Xu's homepage</title>
+		<meta content="text/html;charset=UTF-8" http-equiv="Content-Type">
+	</head>
+
+	<body style="line-height:150%">
+		<table id="x" style="line-height:150%">
+			<tr>
+				<td>
+					<p><font size="5" face="Georgia"><b>XU, Chang (许畅)</b></font></p>
+					<p><font size="4" face="Georgia">Ph.D. (HKUST), ACM member, CCF/IEEE senior member</font></p>
+					<p><font size="4" face="Georgia">Professor (Ph.D. supervisor) with:</font></p>
+					<ul>
+						<li><font size="4" face="Georgia"><a href="http://keysoftlab.nju.edu.cn/">State Key Laboratory for Novel Software Technology</a></font></li>
+						<li><font size="4" face="Georgia"><a href="http://cs.nju.edu.cn/">Department of Computer Science and Technology</a></font></li>
+						<li><font size="4" face="Georgia"><a href="http://moon.nju.edu.cn/">Institute of Computer Software</a></font></li>
+					</ul>
+					<p><font size="4" face="Georgia">Mailing address:</font></p>
+					<ul>
+						<li><font size="4" face="Georgia">Room 807, Building of Computer Science and Technology</font></li>
+						<li><font size="4" face="Georgia">Nanjing University (Xianlin Campus)</font></li>
+						<li><font size="4" face="Georgia">163 Xianlin Avenue, Qixia District, Nanjing, Jiangsu, China (210023)</font></li>
+					</ul>
+					<p><font size="4" face="Georgia">E-mail: <img height="20" src="email.jpg"/></font></p>
+				</td>
+				<td>&nbsp</td>
+				<td>
+					<img src="portrait.jpg" width="350"/>
+				</td>
+			</tr>
+		</table>
+		<p><font size="4" face="Georgia">Quick questions:</font></p>
+		<ul>
+			<li><font size="4" face="Georgia">I am building big data software. How can I ensure its quality and efficiency?</font></li>
+			<li><font size="4" face="Georgia">My machine learning programs seem to work well. However, is it because of my novel algorithms or hidden bugs?</font></li>
+			<li><font size="4" face="Georgia">I do not want to inspect code and debug overnight. What should I do if not quiting this job?</font></li>
+		</ul>
+		<p><font size="4" face="Georgia">Quick comments:</font></p>
+		<ul>
+			<li><font size="4" face="Georgia">Software is the key to create your future of infinite possibilities. Software research can be analytical, empirical, or textual. The former two use human intelligence to improve software quality and coding productivity, while the last one uses machine intelligence (essentially still human intelligence) to support the former two.</font></li>
+			<li><font size="4" face="Georgia">Coding your future, do not let your life be coded by machine.</font></li>
+		</ul>
+		<p><font size="4" face="Georgia">[<a href="#n">News</a>] [<a href="#b">Bio</a>] [<a href="#r">Research Interests</a>] [<a href="#s">Students</a>] [<a href="#a">Academic Services</a>] [<a href="#t">Teaching Duties</a>] [<a href="#h">Hobbies and Thoughts</a>]</font></p>
+		<hr/>
+
+		<p id="n"><font size="5" face="Georgia"><b>News</b></font></p>
+		<ul>
+			<li><img src="new.gif"/><font size="4" face="Georgia"> Launch of a large collection of resource leak bugs in Android apps (feel free to download from <a href="http://sccpu2.cse.ust.hk/droidleaks/">here</a>)!</font></li>
+			<li><img src="new.gif"/><font size="4" face="Georgia"> Congratulations on Yi Liu's SCIS article "NavyDroid: An Efficient Tool of Energy Inefficiency Problems Diagnosis for Android Applications"!</font></li>
+			<li><img src="new.gif"/><font size="4" face="Georgia"> Congratulations on Jue Wang's SCP article "AATT+: Effectively Manifesting Concurrency Bugs in Android Apps"!</font></li>
+			<li><img src="new.gif"/><font size="4" face="Georgia"> Congratulations on Yanyan Jiang's ACM TURC 2018 (SIGCSE China) paper "Needle: Detecting Code Plagiarism on Student Submissions"!</font></li>
+		</ul>
+		<hr/>
+
+		<p id="b"><font size="5" face="Georgia"><b>Bio</b></font></p>
+		<p><font size="4" face="Georgia">I obtained my Ph.D. degree in computer science and engineering from <a href="http://www.ust.hk/">The Hong Kong University of Science and Technology (HKUST)</a> in 2008 (Ph.D. advisor: <a href="http://www.cs.ust.hk/~scc">Prof. S.C. Cheung</a>), M.Eng. degree in computer software and theory from <a href="http://www.ios.ac.cn/">Institute of Software, Chinese Academy of Sciences (ISCAS)</a> in 2003, and B.Eng. degree in computer science and technology from <a href="http://www.ustc.edu.cn/">University of Science and Technology of China (USTC)</a> in 2000.</font></p>
+		<p><font size="4" face="Georgia">I was a research assistant professor with <a href="http://www.ust.hk/">The Hong Kong University of Science and Technology (HKUST)</a> from Sep 2008 to Sep 2010. Since Sep 2010, I was an associate professor with <a href="http://www.nju.edu.cn/">Nanjing University</a>. I was promoted to Ph.D. supervisor in 2014 and full professor in 2016.</font></p>
+		<p><font size="4" face="Georgia">I received the following awards or honors (reversely chronological order):</font></p>
+		<ul>
+			<li><font size="4" face="Georgia">I received the "NJU CS Virtue Star Award" (南京大学计算机学科美德之星奖) in 2017.</font></li>
+			<li><font size="4" face="Georgia">I received the "NJU Du-Sha Teaching Award" (南京大学杜厦奖教金) in 2017.</font></li>
+			<li><font size="4" face="Georgia">I received "Jiangsu Computer Society Service Award" (江苏省计算机学会科技服务贡献奖) in 2016.</font></li>
+			<li><font size="4" face="Georgia">I was promoted to "IEEE senior member" and "CCF senior member" in 2016.</font></li>
+			<li><font size="4" face="Georgia">I received "Jiangsu Computer Society Service Award" (江苏省计算机学会科技服务贡献奖) in 2015.</font></li>
+			<li><font size="4" face="Georgia">I received the "CCF Young Computer Scientist Award" (中国计算机学会CCF青年科学家奖) in 2015.</font></li>
+			<li><font size="4" face="Georgia">I received the "ACM Nanjing Rising Star Award/Excellent Youth Scientist Award" (ACM南京新星奖/卓越青年科学家奖) in 2014.</font></li>
+			<li><font size="4" face="Georgia">I received the "Best Paper Award" (最佳论文奖) from APSEC 2014.</font></li>
+			<li><font size="4" face="Georgia">I received the "NJU BOB 'Jing'-Ying Teaching Award" (南京大学北京银行"京"英奖教金) in 2014.</font></li>
+			<li><font size="4" face="Georgia">I received the "ACM SIGSOFT Distinguished Paper Award" (杰出论文奖) from ICSE 2014.</font></li>
+			<li><font size="4" face="Georgia">I was selected into "Mountain-Climbing Talents" (南京大学登峰人才支持计划) (Level B) in 2013.</font></li>
+			<li><font size="4" face="Georgia">I was selected into "CVIC SE Talents" (中创软件人才奖) in 2012.</font></li>
+			<li><font size="4" face="Georgia">I received the "National Science and Technology Progress Award" (国家科学技术进步奖) (Second Class, 7/10) in 2011.</font></li>
+			<li><font size="4" face="Georgia">I was selected into "Outstanding Young Faculty of Nanjing University" (南京大学青年骨干教师) in 2011.</font></li>
+			<li><font size="4" face="Georgia">I was selected into "New Century Excellent Talents in University by the Ministry of Education" (教育部新世纪优秀人才) in 2010.</font></li>
+			<li><font size="4" face="Georgia">I am an ATC Certified ARM Engineer since 2007.</font></li>
+			<li><font size="4" face="Georgia">I received the IBM PhD Fellowship Award twice in 2005 and 2006, respectively.</font></li>
+		</ul>
+		<hr/>
+
+		<p id="r"><font size="5" face="Georgia"><b>Research Interests</b></font></p>
+		<p><font size="4" face="Georgia">My research interests include: big data software engineering, intelligent software testing and analysis, and adaptive and autonomous software systems. You are welcome to talk to me if you have common interests. Here is a list of my <a href="1_publications/index.html">publications</a>. You may also read my <a href="http://scholar.google.com/citations?hl=en&user=jlZOlxIAAAAJ">Google Scholar Citations</a> or <a href="http://www.informatik.uni-trier.de/~ley/db/indices/a-tree/x/Xu:Chang.html">DBLP page</a> (results always mixed with others).</font></p>
+		<ul>
+			<li><font size="4" face="Georgia">Associated research groups: <a href="http://moon.nju.edu.cn/spar/">SPAR</a> and <a href="http://sccpu2.cse.ust.hk/castle/index.html">CASTLE</a>.</font></li>
+			<li><font size="4" face="Georgia">Academic search engines: <a href="http://portal.acm.org/">ACM Portal</a> and <a href="http://ieeexplore.ieee.org/">IEEE Xplore</a>.</font></li>
+		</ul>
+		<p><font size="4" face="Georgia">Our research projects include CABOT and ADAM two series:</font></p>
+		<ol type="1">
+			<li><font size="4" face="Georgia"><b>CABOT project (on issues outside software):</b></font></li>
+			<ol type="a">
+				<li><font size="4" face="Georgia">CABOT is a middleware infrastructure supporting context management for adaptive applications. It offers inconsistency detection and resolution services for validating application contexts. [<a href="1_publications/BISON04.pdf">BISON04</a>, <a href="1_publications/ESECFSE05.pdf">ESECFSE05</a>, <a href="1_publications/SCIS15.pdf">SCIS15</a>]</font></li>
+				<li><font size="4" face="Georgia"><b>Inconsistency detection:</b></font></li>
+				<ul>
+					<li><font size="4" face="Georgia">ICC/PCC: ICC/PCC incrementally detects context inconsistency. It builds on partial constraint checking and is extremely efficient. It applies to general first-order logic based consistency constraints. [<a href="1_publications/ICSE06.pdf">ICSE06</a>, <a href="1_publications/TOSEM10.pdf">TOSEM10</a>, <a href="1_publications/TOSEM10a.pdf">TOSEM10a</a>]</font></li>
+					<li><font size="4" face="Georgia">OCC: OCC optimizes constraint checking by removing redundant link generation in inconsistency detection. [<a href="1_publications/SEAMS07.pdf">SEAMS07</a>]</font></li>
+					<li><font size="4" face="Georgia">DCC: DCC supports decentralized constraint checking and protects privacy of contexts. [<a href="1_publications/PERCOM08.pdf">PERCOM08</a>]</font></li>
+					<li><font size="4" face="Georgia">CON-C: CON-C supports parallel constraint checking by multiple CPU cores. [<a href="1_publications/SCIS13.pdf">SCIS13</a>]</font></li>
+					<li><font size="4" face="Georgia">GAIN: GAIN supports parallel onstraint checking by multiple GPU cores. It is extremely stable. [<a href="1_publications/APSEC14_03.pdf">APSEC14</a>, <a href="1_publications/IST16_02.pdf">IST16</a>]</font></li>
+					<li><font size="4" face="Georgia">GEAS: GEAS adaptively samples context changes for supporting sound and efficient context inconsistency detection. It generally supports a board range of constraint checking techniques (e.g., ECC, PCC, CON-C and GAIN). [<a href="1_publications/ICSME17.pdf">ICSME17</a>]</font></li>
+					<li><font size="4" face="Georgia">CINA: CINA suppresses the detection of unstable context inconsistency. It derives instability conditions from consistency constraints and makes smart inconsistency detection scheduling. [<a href="1_publications/TSE15.pdf">TSE15</a>, <a href="1_publications/TSE15a.pdf">TSE15a</a>, <a href="1_publications/TSE15_correction.pdf">correction for the formal version</a>]</font></li>
+					<li><font size="4" face="Georgia">SHAP: SHAP suppresses the detection of inconsistency hazard (or unstable context inconsistency) by learning patterns (or instability conditions) from historical detection results. [<a href="1_publications/APSEC14_01.pdf">APSEC14</a>, <a href="1_publications/IST16_01.pdf">IST16</a>]</font></li>
+				</ul>
+				<li><font size="4" face="Georgia"><b>Inconsistency resolution:</b></font></li>
+				<ul>
+					<li><font size="4" face="Georgia">D-BAD: D-BAD resolves detected context inconsistency by heuristics. It identifies contexts being most likely faulty. [<a href="1_publications/ICDCS08.pdf">ICDCS08</a>]</font></li>
+					<li><font size="4" face="Georgia">IMPACT/EFFECT: IMPACT/EFFECT resolves context inconsistency by minimizing side effect to applications. It is exhausitive but incremental, and thus efficient. [<a href="1_publications/ESECFSE07_01.pdf">ESECFSE07</a>, <a href="1_publications/MOBIQUITOUS11.pdf">MOBIQUITOUS11</a>]</font></li>
+					<li><font size="4" face="Georgia">CONSVIEW: CONSVIEW supports context inconsistency resolution among multiple applications. It uses consistent views to isolate applications from each other. [<a href="1_publications/COMPSAC12.pdf">COMPSAC12</a>]</font></li>
+				</ul>
+			</ol>
+			<li><font size="4" face="Georgia"><b>ADAM project (on issues inside software):</b></font></li>
+			<ol type="a">
+				<li><font size="4" face="Georgia">ADAM builds on CABOT to analyze faults for adaptive applications. [<a href="1_publications/INTERNETWARE12.pdf">INTERNETWARE12</a>, <a href="1_publications/JSS12.pdf">JSS12</a>, <a href="1_publications/IJSI13.pdf">IJSI13</a>, <a href="1_publications/SCIS15.pdf">SCIS15</a>]</font></li>
+				<li><font size="4" face="Georgia"><b>Fault and failure detection:</b></font></li>
+				<ul>
+					<li><font size="4" face="Georgia">AFCHECKER: AFCHECKER detects faults for model-based adaptive applications. It derives hidden features from adaptation rules and environmental data, and formulates deterministic and probabilistic constraints. Based on them, it prunes false positives in fault detection and prioritizes fault reports. [<a href="1_publications/JSS13.pdf">JSS13</a>][<a href="http://sccpu2.cse.ust.hk/afchecker/">website</a>]</font></li>
+					<li><font size="4" face="Georgia">VERSA: VERSA verifies model-based adaptive applications under uncertain environments. It reports and optimize probabilistic verification results on faults. [<a href="1_publications/ASE14.pdf">ASE14</a>, <a href="1_publications/JSS18.pdf">JSS18</a>, <a href="1_publications/TOIT18.pdf">TOIT18</a>]</font></li>
+					<li><font size="4" face="Georgia">SIT: SIT tests model-based adaptive applications under uncertain environments by adaptive sampling of sensory inputs. [<a href="1_publications/JSS16.pdf">JSS16</a>]</font></li>
+					<li><font size="4" face="Georgia">RESYNC/REMATCHING: RESYNC/REMATCHING supports systematic recovery from consistency failure for model-based adaptive applications. It decides recoverability statically and supports it dynamically. [<a href="1_publications/APSEC12_01.pdf">APSEC12</a>, <a href="1_publications/ASE13.pdf">ASE13</a>, <a href="1_publications/MIDDLEWARE13_02.pdf">MIDDLEWARE13</a>]</font></li>
+				</ul>
+				<li><font size="4" face="Georgia"><b>Smartphone apps:</b></font></li>
+				<ul>
+					<li><font size="4" face="Georgia">UGA: UGA tests Android apps. It combines user input traces and random testing, systematically improving test coverage. [<a href="1_publications/APSEC14_02.pdf">APSEC14</a>, <a href="1_publications/INTERNETWARE15.pdf">INTERNETWARE15</a>]</font></li>
+					<li><font size="4" face="Georgia">GAT: GAT tests Android apps. It derives gesture types from static analysis and conducts guided gesture testing. [<a href="1_publications/APSEC16_01.pdf">APSEC16</a>]</font></li>
+					<li><font size="4" face="Georgia">AATT/AATT+: AATT/AATT+ tests Android apps. It manifests concurrency bugs by active input and schedule generation. [<a href="1_publications/APSEC16_02.pdf">APSEC16</a>, <a href="1_publications/SCP18.pdf">SCP18</a>]</font></li>
+					<li><font size="4" face="Georgia">COSEDROID: COSEDROID supports both computation and sensing offloading for Android apps. It can borrow computation resources and battery power from other devices. [<a href="1_publications/COMPSAC15_02.pdf">COMPSAC15</a>]</font></li>
+					<li><font size="4" face="Georgia">GREENDROID/E-GREENDROID/CYANDROID/NAVYDROID: GREENDROID/E-GREENDROID/CYANDROID/NAVYDROID diagnoses energy inefficiency issues for Android apps. It builds on Android-specific event rules and tainting analysis. [<a href="1_publications/MIDDLEWARE13_03.pdf">MIDDLEWARE13</a>, <a href="1_publications/PERCOM13.pdf">PERCOM13</a>, <a href="1_publications/IJSI14.pdf">IJSI14</a>, <a href="1_publications/TSE14.pdf">TSE14</a>, <a href="1_publications/IEEESOFT15.pdf">IEEESOFT15</a>, <a href="1_publications/SCIS16.pdf">SCIS16</a>, <a href="1_publications/INTERNETWARE16.pdf">INTERNETWARE16</a>, <a href="1_publications/INTERNETWARE17.pdf">INTERNETWARE17</a>, <a href="1_publications/SCIS18.pdf">SCIS18</a>]</font></li>
+					<li><font size="4" face="Georgia">PERFCHECKER: PERFCHECKER diagnoses GUI lagging, energy leak and memory bloat issues for Android apps. [<a href="1_publications/ICSE14_02.pdf">ICSE14</a>][<a href="http://sccpu2.cse.ust.hk/perfchecker/">website</a>]</font></li>
+					<li><font size="4" face="Georgia">ELITE: ELITE diagnoses wake lock misuses for Android apps. [<a href="1_publications/FSE16_03.pdf">FSE16</a>]</font></li>
+				</ul>
+				<li><font size="4" face="Georgia"><b>Concurrency:</b></font></li>
+				<ul>
+					<li><font size="4" face="Georgia">CARE: CARE reduces synchronization and log overhead for recording and replaying concurrent Java programs. It supports value determinism. [<a href="1_publications/ICSE14_01.pdf">ICSE14</a>]</font></li>
+					<li><font size="4" face="Georgia">RWTRACE: RWTRACE combines wait-free notification in Stride and speculation-retry design in CARE for recording and replaying concurrent C programs. It is open-sourced. [<a href="1_publications/ASE15.pdf">ASE15</a>][<a href="http://github.com/jiangyy/rwtrace">website</a>]</font></li>
+					<li><font size="4" face="Georgia">BC: BC (Bisectional Coordination) uses spatial locality in shared memory accesses to significantly reduce access dependences in recording and replaying concurrent C programs. [<a href="1_publications/FSE16_01.pdf">FSE16</a>]</font></li>
+				</ul>
+				<li><font size="4" face="Georgia"><b>Spreadsheets:</b></font></li>
+				<ul>
+					<li><font size="4" face="Georgia">AMCHECK/CACHECKER: AMCHECK/CACHECKER detects spreadsheet smells by program synthesis for formula patterns. [<a href="1_publications/ICSE14_03.pdf">ICSE14</a>, <a href="1_publications/TSE17.pdf">TSE17</a>]</font></li>
+					<li><font size="4" face="Georgia">CUSTODES: CUSTODES detects spreadsheet smells by cell clustering with strong and weak features. [<a href="1_publications/ICSE16.pdf">ICSE16</a>][<a href="http://sccpu2.cse.ust.hk/custodes/">website</a>]</font></li>
+					<li><font size="4" face="Georgia">TABLECHECK: TABLECHECK detects table clones and embedded smells in spreadsheets by fingerprint-based code clone detection. [<a href="1_publications/FSE16_04.pdf">FSE16</a>]</font></li>
+					<li><font size="4" face="Georgia">ANOMALY: ANOMALY investigates how effectively spreadsheet anomalies can be detected by existing techniques. [<a href="1_publications/JSS17.pdf">JSS17</a>]</font></li>
+				</ul>
+				<li><font size="4" face="Georgia"><b>Tools:</b></font></li>
+				<ul>
+					<li><font size="4" face="Georgia">C3: C3 automatically validates crash consistency for software by a generic oracle on checking editing distance and systematic test amplification for execising interleaved behavior. It is open-sourced. [<a href="1_publications/FSE16_02.pdf">FSE16</a>]</font></li>
+					<li><font size="4" face="Georgia">DSU: DSU updates software systems at runtime. [<a href="1_publications/APSEC12_02.pdf">APSEC12</a>, <a href="1_publications/INTERNETWARE14.pdf">INTERNETWARE14</a>, <a href="1_publications/IST14.pdf">IST14</a>, <a href="1_publications/APSEC16_03.pdf">APSEC16</a>, <a href="1_publications/APSEC16_04.pdf">APSEC16</a>, <a href="1_publications/ICSE17.pdf">ICSE17</a>]</font></li>
+					<li><font size="4" face="Georgia">ENTER: ENTER synthesizes programs for performing user tasks by a domain-agnostic language and an efficient relation-aware entity transformation algorithm. [ICSE18]</font></li>
+					<li><font size="4" face="Georgia">CMD: CMD locates bugs in Java programs by metamorphic testing and concolic execution. [<a href="1_publications/COMPSAC15_01.pdf">COMPSAC15</a>]</font></li>
+					<li><font size="4" face="Georgia">ABC: ABC accelerates C/C++ project building by avoiding redundant recompilation. [<a href="1_publications/APSEC15.pdf">APSEC15</a>]</font></li>
+				</ul>
+				<li><font size="4" face="Georgia"><b>Studies:</b></font></li>
+				<ul>
+					<li><font size="4" face="Georgia">BCT: This study investigates how effective branch-based combinatorial testing can be in software testing. [<a href="1_publications/QRS16.pdf">QRS16</a>]</font></li>
+					<li><font size="4" face="Georgia">PAR: PAR generates Java program patches alike human-written ones. This study investigates how much such patches can help developers as debugging aids. [<a href="1_publications/FSE14.pdf">FSE14</a>]</font></li>
+				</ul>
+			</ol>
+		</ol>
+		<hr/>
+
+		<p id="s"><font size="5" face="Georgia"><b>Students</b></font></p>
+		<p><font size="4" face="Georgia">I'm looking for self-motivated students with commitment on software engineering and program analysis research.</font></p>
+		<p><font size="4" face="Georgia">My postgraduate students (I am happy to work with them!):</font></p>
+		<ul>
+			<li><font size="4" face="Georgia">Present (MSc track, followed by PhD track):</font></li>
+			<ul>
+				<li><font size="4" face="Georgia">Jiaxing Dong (MSc; Android app testing)</font></li>
+				<li><font size="4" face="Georgia">Bingying Guo (MSc; context inconsistency detection)</font></li>
+				<li><font size="4" face="Georgia">Zhanshuai Meng (MSc; with Prof. Xiaoxing Ma; Android app debugging)</font></li>
+				<li><font size="4" face="Georgia">Dongjie Chen (MSc; concurrency)</font></li>
+				<li><font size="4" face="Georgia">Yang Cao (MSc; symbolic execution)</font></li>
+				<li><font size="4" face="Georgia">Yuju Shen (MSc; security analysis)</font></li>
+				<li><font size="4" face="Georgia">Dawei Cheng (MSc; with Prof. Xiaoxing Ma; software testing)</font></li>
+				<li><font size="4" face="Georgia">Rui Qiu (MSc; compiler testing)</font></li>
+				<li><font size="4" face="Georgia">Qingwei Sun (MSc; with Dr. Jun Ma; Android app testing)</font></li>
+				<li><font size="4" face="Georgia">Yi Liu (MSc; with Prof. Xiaoxing Ma; Android app testing)</font></li>
+				<li><font size="4" face="Georgia">Jinci Chen (MSc; coming soon!)</font></li>
+				<li><font size="4" face="Georgia">Fengmin Shi (MSc; coming soon!)</font></li>
+				<li><font size="4" face="Georgia">Shaocong Liu (MSc; with Dr. Jun Ma; coming soon!)</font></li>
+				<li><font size="4" face="Georgia">Yi Qin (PhD; adaptive app testing and invariant inference)</font></li>
+				<li><font size="4" face="Georgia">Zelin Zhao (PhD; with Prof. Xiaoxing Ma; dynamic software updating)</font></li>
+				<li><font size="4" face="Georgia">Huiyan Wang (PhD; software testing and context inconsistency detection)</font></li>
+				<li><font size="4" face="Georgia">Wenjie Li (PhD; Android app analysis)</font></li>
+				<li><font size="4" face="Georgia">Da Li (PhD; spreadsheet analysis and defect detection)</font></li>
+				<li><font size="4" face="Georgia">Ying Zhang (PhD; with Prof. Xiaoxing Ma and Chun Cao; system engineering)</font></li>
+				<li><font size="4" face="Georgia">Jue Wang (PhD; with Prof. Xiaoxing Ma; Android app testing)</font></li>
+				<li><font size="4" face="Georgia">Chenxi Zhang (PhD; Android app testing)</font></li>
+				<li><font size="4" face="Georgia">Cong Li (PhD; coming soon!)</font></li>
+				<li><font size="4" face="Georgia">Xianfei Ou (PhD; coming soon!)</font></li>
+			</ul>
+			<li><font size="4" face="Georgia">Past (going for Microsoft, Huawei, Alibaba, Tencent, Baidu, and various research institutes and investment banks):</font></li>
+			<ul>
+				<li><font size="4" face="Georgia">2017: Yanyan Jiang (PhD; with Prof. Jian Lu and Xiaoxing Ma; thesis title: "Understanding Shared Memory Dependences")</font></li>
+				<li><font size="4" face="Georgia">2017: Wenhua Yang (PhD; with Prof. Xiaoxing Ma; thesis title: "Verification and Counterexample Validation for Self-adaptive Software Systems Suffering Uncertain Environmental Interactions")</font></li>
+				<li><font size="4" face="Georgia">2017: Xiangyu Wu (MSc; thesis title: "Testing Android Apps via Guided Gesture Event Generation")</font></li>
+				<li><font size="4" face="Georgia">2017: Qiwei Li (MSc; thesis title: "Test Case Generation for Energy and Concurrency Bugs in Android Apps")</font></li>
+				<li><font size="4" face="Georgia">2017: Ruiqing Zhang (MSc; thesis title: "Research on Spreadsheet Error Detection")</font></li>
+				<li><font size="4" face="Georgia">2017: Xiaofan Li (MSc; thesis title: "SimCity: An Experimental Platform for Processing Context Inconsistencies and Its Demonstration")</font></li>
+				<li><font size="4" face="Georgia">2017: Tianxiao Gu (PhD; with Prof. Xiaoxing Ma and Chun Cao; thesis title: "On Dynamic Updating of Java Programs")</font></li>
+				<li><font size="4" face="Georgia">2016: Jun Sui (MSc; thesis title: "Parallel Constraint Checking for Context Consistency")</font></li>
+				<li><font size="4" face="Georgia">2015: Xuezhi Hong (MSc; thesis title: "COBOT: A Software Framework for Collaborative Self-adaptive Systems")</font></li>
+				<li><font size="4" face="Georgia">2015: Wang Xi (MSc; thesis title: "Automated Suppression of Context Inconsistency Hazards with Pattern Learning")</font></li>
+				<li><font size="4" face="Georgia">2015: Hao Jin (MSc; with Prof. Xiaoxing Ma; thesis title: "Concolic Metamorphic Debugging for Programs without Oracle")</font></li>
+				<li><font size="4" face="Georgia">2015: Xiujiang Li (MSc; with Prof. Xiaoxing Ma; thesis title: "User Guided Automation for Testing Mobile Apps")</font></li>
+				<li><font size="4" face="Georgia">2014: Linghao Zhang (PhD; with Prof. Jian Lu and Xiaoxing Ma; thesis title: "Dealing with Faults in Self-adaptive Software System: An Explicit Environment Model-based Approach")</font></li>
+				<li><font size="4" face="Georgia">2014: Xiaokang Chen (MSc; thesis title: "Towards Dependable Fixing of Context Inconsistency in Pervasive Computing")</font></li>
+				<li><font size="4" face="Georgia">2014: Lei Jiang (MSc; thesis title: "Search-based Automated Resolution for Context Inconsistency")</font></li>
+				<li><font size="4" face="Georgia">2014: Hui Sun (MSc; with Prof. Xiaoxing Ma; thesis title: "MORO: A Self-Adaptive Software Framework for Heterogeneous Mobile Robots")</font></li>
+				<li><font size="4" face="Georgia">2012: Hailong Ge (MSc; with Prof. Xiaoxing Ma; thesis title: "Design and Implementation of a Software Framework for Self-adaptive Applications")</font></li>
+				<li><font size="4" face="Georgia">2012: Hao Chen (MSc; with Prof. Xiaoxing Ma; thesis title: "A Mobile Robot Middleware Supporting Self-adaptive Programming")</font></li>
+			</ul>
+		</ul>
+		<hr/>
+
+		<p id="a"><font size="5" face="Georgia"><b>Academic Services</b></font></p>
+		<p><font size="4" face="Georgia">Editing journals (alphabetic order):</font></p>
+		<ul>
+			<li><font size="4" face="Georgia">Youth Area Editor, <a href="http://journal.hep.com.cn/fcs/EN/2095-2228/current.shtml">Frontiers of Computer Science (FCS)</a></font></li>
+			<li><font size="4" face="Georgia">Guest Editor, <a href="http://jcst.ict.ac.cn:8080/jcst/EN/volumn/home.shtml">Journal of Computer Science and Technology (JCST)</a></font></li>
+		</ul>
+		<p><font size="4" face="Georgia">Reviewing journals/magzines (alphabetic order):</font></p>
+		<ul>
+			<li><font size="4" face="Georgia"><a href="http://www.hindawi.com/journals/ase/">Advances in Software Engineering (ASE)</a></font></li>
+			<li><font size="4" face="Georgia"><a href="http://cacm.acm.org/">Communications of the ACM (CACM)</a></font></li>
+			<li><font size="4" face="Georgia"><a href="http://crad.ict.ac.cn/">Journal of Computer Research and Development (CRAD)</a></font></li>
+			<li><font size="4" face="Georgia"><a href="http://www.electronicmarkets.org/">Electronic Markets - The International Journal on Networked Business (EM)</a></font></li>
+			<li><font size="4" face="Georgia"><a href="http://journal.hep.com.cn/computer/">Frontiers of Computer Science (FCS)</a></font></li>
+			<li><font size="4" face="Georgia"><a href="https://mc.manuscriptcentral.com/iet-sen/">IET Software (IETS)</a></font></li>
+			<li><font size="4" face="Georgia"><a href="http://www.ijac.net/">International Journal of Automation and Computing (IJAC)</a></font></li>
+			<li><font size="4" face="Georgia"><a href="http://www.ijsi.org/">International Journal of Software and Informatics (IJSI)</a></font></li>
+			<li><font size="4" face="Georgia"><a href="http://www.inderscience.com/browse/index.php?journalID=48">International Journal of Web Engineering and Technology (IJWET)</a></font></li>
+			<li><font size="4" face="Georgia"><a href="http://jcst.ict.ac.cn/">Journal of Computer Science and Technology (JCST)</a></font></li>
+			<li><font size="4" face="Georgia"><a href="http://www.jos.org.cn/">Journal of Software (JOS)</a></font></li>
+			<li><font size="4" face="Georgia"><a href="http://ees.elsevier.com/jpdc/">Journal of Parallel and Distributed Computing (JPDC)</a></font></li>
+			<li><font size="4" face="Georgia"><a href="http://ees.elsevier.com/jss/">The Journal of Systems and Software (JSS)</a></font></li>
+			<li><font size="4" face="Georgia"><a href="http://ees.elsevier.com/pmc/">Pervasive and Mobile Computing (PMC)</a></font></li>
+			<li><font size="4" face="Georgia"><a href="http://info.scichina.com:8083/sciFe/EN/volumn/home.shtml">Science China: Information Sciences (SCIS)</a></font></li>
+			<li><font size="4" face="Georgia"><a href="http://mc.manuscriptcentral.com/systems/">IEEE Transactions on Systems, Man and Cybernetics: Systems (SMCA)</a></font></li>
+			<li><font size="4" face="Georgia"><a href="http://www.editorialmanager.com/soca/">Service Oriented Computing and Applications (SOCA)</a></font></li>
+			<li><font size="4" face="Georgia"><a href="http://mc.manuscriptcentral.com/spe/">Software: Practice and Experience (SPE)</a></font></li>
+			<li><font size="4" face="Georgia"><a href="http://www3.interscience.wiley.com/journal/13635/home">Software Testing, Verification and Reliability (STVR)</a></font></li>
+			<li><font size="4" face="Georgia"><a href="http://www.computer.org/portal/web/computingnow/software">IEEE Software (SW)</a></font></li>
+			<li><font size="4" face="Georgia"><a href="http://taas.acm.org/">ACM Transactions on Autonomous and Adaptive Systems (TAAS)</a></font></li>
+			<li><font size="4" face="Georgia"><a href="https://mc.manuscriptcentral.com/tpds-cs/">IEEE Transactions on Parallel and Distributed Systems (TPDS)</a></font></li>
+			<li><font size="4" face="Georgia"><a href="http://rs.ieee.org/transactions-on-reliability.html">IEEE Transactions on Reliability (TR)</a></font></li>
+			<li><font size="4" face="Georgia"><a href="https://mc.manuscriptcentral.com/tsc-cs/">IEEE Transactions on Services Computing (TSC)</a></font></li>
+			<li><font size="4" face="Georgia"><a href="https://mc.manuscriptcentral.com/tse-cs/">IEEE Transactions on Software Engineering (TSE)</a></font></li>
+		</ul>
+		<p><font size="4" face="Georgia">Organizing conferences/symposiums (reversely chronological order):</font></p>
+		<ul>
+			<li><font size="4" face="Georgia">SETA Symposium Program Co-chair, <a href="https://www.computer.org/web/compsac2017">2017 41th Annual International Computers, Software and Applications Conference (COMPSAC 2017)</a></font></li>
+			<li><font size="4" face="Georgia">English Track Co-chair, <a href="nasac/index.html">2016 15th National Software Application Conference (NASAC 2016)</a></font></li>
+			<li><font size="4" face="Georgia">Co-chair, <a href="sees/index.html">2014 Software Engineering Educators Symposium (SEES 2014; with FSE 2014)</a></font></li>
+			<li><font size="4" face="Georgia">Doctoral Symposium Co-chair, <a href="http://2013.middleware-conference.org">2013 ACM/IFIP/USENIX International Middleware Conference (MIDDLEWARE 2013)</a></font></li>
+			<li><font size="4" face="Georgia">Secretary to Program Chair, <a href="http://i.cs.hku.hk/icebe2007/index.php">2007 4th IEEE International Conference on e-Business Engineering (ICEBE 2007)</a></font></li>
+		</ul>
+		<p><font size="4" face="Georgia">Serving conference/symposium/workshop program committees (reversely chronological order):</font></p>
+		<ul>
+			<li><font size="4" face="Georgia">2018 18th National Software Application Conference (NASAC 2018)</font></li>
+			<li><font size="4" face="Georgia"><a href="http://sei.pku.edu.cn/~xiongyf04/confs/sate18/index_en.html">2018 Annual Conference on Software Analysis, Testing and Evolution (SATE 2018)</a></font></li>
+			<li><font size="4" face="Georgia"><a href="http://paris.utdallas.edu/qrs18/">2018 IEEE International Conference on Software Quality, Reliability & Security (QRS 2018)</a></font></li>
+			<li><font size="4" face="Georgia"><a href="http://cist.buct.edu.cn/staff/zheng/nasac2017en/">2017 16th National Software Application Conference (NASAC 2017, English Track)</a></font></li>
+			<li><font size="4" face="Georgia"><a href="http://www.se.fudan.edu.cn/events/Internetware2017/">2017 9th Asia-Pacific Symposium on Internetware (INTERNETWARE 2017)</a></font></li>
+			<li><font size="4" face="Georgia"><a href="http://paris.utdallas.edu/qrs17/">2017 IEEE International Conference on Software Quality, Reliability & Security (QRS 2017)</a></font></li>
+			<li><font size="4" face="Georgia"><a href="http://icse2017.gatech.edu/">2017 39th International Conference on Software Engineering (ICSE 2017, Student Research Competition Track)</a></font></li>
+			<li><font size="4" face="Georgia"><a href="http://conferences.computer.org/icebe/">2016 13th IEEE International Conference on e-Business Engineering (ICEBE 2016)</a></font></li>
+			<li><font size="4" face="Georgia"><a href="http://software.nju.edu.cn/ise/SATE/">2016 National Software Analysis, Testing and Evolution Conference (SATE 2016)</a></font></li>
+			<li><font size="4" face="Georgia"><a href="http://paris.utdallas.edu/qrs16/">2016 IEEE International Conference on Software Quality, Reliability & Security (QRS 2016)</a></font></li>
+			<li><font size="4" face="Georgia"><a href="http://conferences.computer.org/icebe/">2015 12th IEEE International Conference on e-Business Engineering (ICEBE 2015)</a></font></li>
+			<li><font size="4" face="Georgia"><a href="http://paris.utdallas.edu/qrs15">2015 IEEE International Conference on Software Quality, Reliability & Security (QRS 2015)</a></font></li>
+			<li><font size="4" face="Georgia"><a href="http://issta2015.cs.uoregon.edu/">2015 ACM International Symposium on Software Testing and Analysis (ISSTA 2015, Demonstrations Track)</a></font></li>
+			<li><font size="4" face="Georgia"><a href="http://conferences.computer.org/icebe/">2014 11th IEEE International Conference on e-Business Engineering (ICEBE 2014)</a></font></li>
+			<li><font size="4" face="Georgia"><a href="http://ndc.sysu.edu.cn/sctam/">2014 1st Workshop on Smart Computing Technologies and Applications in Mobile Environments (SCTAM 2014)</a></font></li>
+			<li><font size="4" face="Georgia"><a href="http://sei.pku.edu.cn/conference/internetware2014/">2014 6th Asia-Pacific Symposium on Internetware (INTERNETWARE 2014)</a></font></li>
+			<li><font size="4" face="Georgia"><a href="http://grid.hust.edu.cn/apscc2014/">2014 8th IEEE Asia-Pacific Services Computing Conference (APSCC 2014)</a></font></li>
+			<li><font size="4" face="Georgia"><a href="http://conference.icess2014.studiocheik.fr/">2014 11th IEEE International Conference on Embedded Software and Systems (ICESS 2014)</a></font></li>
+			<li><font size="4" face="Georgia"><a href="http://paris.utdallas.edu/sere14/">2014 8th IEEE International Conference on Software Security and Reliability (SERE 2014)</a></font></li>
+			<li><font size="4" face="Georgia"><a href="http://conferences.computer.org/icebe/2013/">2013 10th IEEE International Conference on e-Business Engineering (ICEBE 2013)</a></font></li>
+			<li><font size="4" face="Georgia"><a href="http://paris.utdallas.edu/sere13/">2013 7th IEEE International Conference on Software Security and Reliability (SERE 2013)</a></font></li>
+			<li><font size="4" face="Georgia"><a href="http://conferences.computer.org/icebe/">2012 9th IEEE International Conference on e-Business Engineering (ICEBE 2012)</a></font></li>
+			<li><font size="4" face="Georgia"><a href="http://paris.utdallas.edu/sere12/">2012 6th IEEE International Conference on Software Security and Reliability (SERE 2012)</a></font></li>
+			<li><font size="4" face="Georgia"><a href="http://www.ifi.uzh.ch/icse2012/">2012 34th International Conference on Software Engineering (ICSE 2012, Formal Demonstrations Track)</a></font></li>
+			<li><font size="4" face="Georgia"><a href="http://conferences.computer.org/icebe/">2011 8th IEEE International Conference on e-Business Engineering (ICEBE 2011)</a></font></li>
+			<li><font size="4" face="Georgia"><a href="http://paris.utdallas.edu/ssiri11/">2011 5th IEEE International Conference on Secure Software Integration and Reliability Improvement (SSIRI 2011)</a></font></li>
+			<li><font size="4" face="Georgia"><a href="http://conferences.computer.org/soca/">2010 IEEE International Conference on Service-Oriented Computing and Applications (SOCA 2010)</a></font></li>
+			<li><font size="4" face="Georgia"><a href="http://conferences.computer.org/icebe/">2010 7th IEEE International Conference on e-Business Engineering (ICEBE 2010)</a></font></li>
+			<li><font size="4" face="Georgia"><a href="http://www.scim.brad.ac.uk/~ylwu/ICESS2010/">2010 7th IEEE International Conference on Embedded Software and Systems (ICESS 2010)</a></font></li>
+			<li><font size="4" face="Georgia"><a href="http://paris.utdallas.edu/ssiri10/">2010 4th IEEE International Conference on Secure Software Integration and Reliability Improvement (SSIRI 2010)</a></font></li>
+			<li><font size="4" face="Georgia"><a href="http://www.iasted.org/conferences/ipc-677.html">2010 IASTED International Conference on Software Engineering (SE 2010)</a></font></li>
+			<li><font size="4" face="Georgia"><a href="http://www.cs.iupui.edu/~ydai/DASC09/">2009 8th IEEE International Conference on Dependable, Autonomic, and Secure Computing (DASC 2009)</a></font></li>
+			<li><font size="4" face="Georgia"><a href="http://conferences.computer.org/icebe/">2009 6th IEEE International Conference on e-Business Engineering (ICEBE 2009)</a></font></li>
+			<li><font size="4" face="Georgia"><a href="http://cnhpc.dlut.edu.cn/sec09/">2009 8th IEEE International Conference on Embedded Computing (EmbeddedCom 2009)</a></font></li>
+			<li><font size="4" face="Georgia"><a href="http://www.icess.org/">2009 6th IEEE International Conference on Embedded Software and Systems (ICESS 2009)</a></font></li>
+			<li><font size="4" face="Georgia"><a href="http://cisedu.us/cis/cts/09/main/callForPapers.jsp">2009 International Symposium on Collaborative Technologies and Systems (CTS 2009)</a></font></li>
+			<li><font size="4" face="Georgia"><a href="http://www.iasted.org/conferences/home-642.html">2009 IASTED International Conference on Software Engineering (SE 2009)</a></font></li>
+			<li><font size="4" face="Georgia"><a href="http://jo.ecs.fullerton.edu/sac/sac2008/">2008 ACM International Symposium on Applied Computing (SAC 2008)</a></font></li>
+			<li><font size="4" face="Georgia"><a href="http://www.iasted.org/conferences/home-598.html">2008 IASTED International Conference on Software Engineering (SE 2008)</a></font></li>
+		</ul>
+		<hr/>
+
+		<p id="t"><font size="5" face="Georgia"><b>Teaching Duties</b></font></p>
+		<ul>
+			<li><font size="4" face="Georgia">2018 (Spring) Lecturer: <a href="2_compiler/index.html">Principles and Techniques of Compilers</a> (22010120)</font></li>
+			<ul>
+				<li><font size="4" face="Georgia">Mandatory course for attending enrollment exams of postgraduate study</font></li>
+				<li><font size="4" face="Georgia">Good marks for prioritized consideration to Institute of Computer Software</font></li>
+			</ul>
+			<li><font size="4" face="Georgia">2017 (Fall) Lecturer: <a href="2_seminar/index.html">Guidance to Software Engineering Research</a> (081200C05/085211C06)</font></li>
+			<ul>
+				<li><font size="4" face="Georgia">Mandatory course for postgraduate students in Institute of Computer Software</font></li>
+			</ul>
+			<li><font size="4" face="Georgia">2017 (Spring) Lecturer: Principles and Techniques of Compilers (22010120)</font></li>
+			<li><font size="4" face="Georgia">2016- Class advisor for undergraduate students enrolled in 2016 (Class 5)</font></li>
+			<li><font size="4" face="Georgia">2016 (Fall) Lecturer: Guidance to Software Engineering Research (081200C05/085211C06)</font></li>
+			<li><font size="4" face="Georgia">2016 (Spring) Lecturer: Principles and Techniques of Compilers (22010120)</font></li>
+			<li><font size="4" face="Georgia">2015 (Fall) Lecturer: Guidance to Software Engineering Research (081202D10)</font></li>
+			<li><font size="4" face="Georgia">2015 (Fall) Lecturer: Principles and Techniques of Compilers (22010120)</font></li>
+			<li><font size="4" face="Georgia">2015 (Spring) Lecturer: Principles and Techniques of Compilers (22010120)</font></li>
+			<li><font size="4" face="Georgia">2014 (Fall) Lecturer: Guidance to Software Engineering Research (081202D10)</font></li>
+			<li><font size="4" face="Georgia">2014 (Fall) Lecturer: Principles and Techniques of Compilers (22010120)</font></li>
+			<li><font size="4" face="Georgia">2014 (Spring) Lecturer: Principles and Techniques of Compilers (22010120)</font></li>
+			<li><font size="4" face="Georgia">2013 (Fall) Lecturer: Guidance to Software Engineering Research (081202D10)</font></li>
+			<li><font size="4" face="Georgia">2013 (Spring) Lecturer: Principles and Techniques of Compilers (221120)</font></li>
+			<li><font size="4" face="Georgia">2012 (Fall) Lecturer: Guidance to Software Engineering Research (081202D30)</font></li>
+			<li><font size="4" face="Georgia">2012 (Spring) Lecturer: Principles and Techniques of Compilers (221120)</font></li>
+			<li><font size="4" face="Georgia">2011 (Spring) Lecturer: Principles and Techniques of Compilers (221120)</font></li>
+			<li><font size="4" face="Georgia">2009 (Fall) Lecturer: Computer and Programming Fundamentals I (COMP102, HKUST)</font></li>
+			<li><font size="4" face="Georgia">2008 (Fall) Lecturer: Programming Fundamentals and Methodology (COMP104, HKUST)</font></li>
+			<li><font size="4" face="Georgia">2007 (Spring) Final Year Projects Grader (FYP, HKUST)</font></li>
+			<li><font size="4" face="Georgia">2004 (Spring and Summar) Teaching Assistant: Java Programming (COMP201, HKUST)</font></li>
+			<li><font size="4" face="Georgia">2003 (Fall) Teaching Assistant: Programming Fundamentals and Methodology (COMP104, HKUST)</font></li>
+		</ul>
+		<hr/>
+
+		<p id="h"><font size="5" face="Georgia"><b>Hobbies and Thoughts</b></font></p>
+		<p><font size="4" face="Georgia">I love playing computer games, watching movies, hiking, thinking and daydreaming (O_O).</font></p>
+		<p><font size="4" face="Georgia">I am interested in game development. In early years, I worked with friends on two RPG games: <a href="3_newpal/index.html">NewPal</a> and <a href="3_freerpg/index.html">FreeRPG</a>. We focused on a reusable game engine and supporting tools, and developed demo stories on them. Developing a complete game is different from just develping a demo. You may want to take a look at SDLPAL as a good example of complete game. Game development also requires passion. One positive example is Notch (刻痕) game series. Its first version was made by a non-cs student, who was also the main developer of later versions. All their pictures, music and stories are new, and all team members are students. SDLPAL and Notch are free games. You can find them from the Internet.</font></p>
+		<p><font size="4" face="Georgia">Some games made by my students: <a href="3_games/index.html">here</a>.</font></p>
+		<p><font size="4" face="Georgia">You may have experienced worries. Sometimes we care about how others think of us. Although we can learn from others' stories, we have to make our own decisions. Usually, following the way you have choosed by yourself, you will not feel regretful. When you feel worries, you may want to take a look at these <a href="3_remember/index.html">words</a>.</font></p>
+		<hr/>
+
+		<p><font size="4" face="Georgia">[<a href="#x">Back to Top</a>]</font></p>
+		<p><font size="4" face="Georgia">The homepage was last updated on <font color="#ff0000">Mar 31, 2018</font>.</font></p>
+
+		<!-- Start of StatCounter Code for Default Guide -->
+		<script type="text/javascript">
+var sc_project=6371420; 
+var sc_invisible=1; 
+var sc_security="2921ddaf"; 
+</script>
+		<script type="text/javascript"
+src="http://www.statcounter.com/counter/counter.js"></script>
+
+		<noscript><div class="statcounter"><a title="tumblr
+statistics" href="http://statcounter.com/tumblr/"
+target="_blank"><img class="statcounter"
+src="http://c.statcounter.com/6371420/0/2921ddaf/1/"
+alt="tumblr statistics"></a></div></noscript>
+
+		<!-- End of StatCounter Code for Default Guide -->
+
+	</body>
+
+</html>
+��X�           Z��>��b           :http://cs.nju.edu.cn/changxu/ request-method GET response-head HTTP/1.1 200 OK
+Date: Sun, 01 Apr 2018 13:52:44 GMT
+Server: Apache/2.2.22 (Unix) mod_jk/1.2.23
+Accept-Ranges: bytes
+Content-Length: 45394
+Content-Type: text/html; charset=UTF-8
+ charset UTF-8 uncompressed-len 0 predictor::resource-count 5 predictor::http://cs.nju.edu.cn/changxu/email.jpg 1,1,0,0 predictor::http://cs.nju.edu.cn/changxu/portrait.jpg 1,1,0,0 predictor::http://cs.nju.edu.cn/changxu/new.gif 1,1,0,0 predictor::http://www.statcounter.com/counter/counter.js 1,1,0,0 predictor::http://c.statcounter.com/t.php?sc_project=6371420&java=1&security=2921ddaf&u1=FB886A207CF54FA1F29A698C9AB1F5CF&sc_random=0.663702242301317&jg=516900&rr=2.2.2.2.2.2.2.2.1&resolution=1360&h=768&camefrom=http%3A//cs.nju.edu.cn/58/00/c2639a153600/page.htm&u=http%3A//cs.nju.edu.cn/changxu/&t=Welcome%20to%20Chang%20Xu%27s%20homepage&sc_snum=1&sess=7a9eb4&p=0&invisible=1 1,1,0,0   �R

@@ -1,0 +1,68 @@
+Dist: dapper
+Name: Dapper Drake
+Version: 6.06 LTS
+Date: Thu, 01 Jun 2006 9:00:00 UTC
+Supported: 0
+Description: This is the Dapper Drake release
+Release-File: http://old-releases.ubuntu.com/ubuntu/dists/dapper/Release
+ReleaseNotes: http://changelogs.ubuntu.com/EOLReleaseAnnouncement
+UpgradeTool: http://old-releases.ubuntu.com/ubuntu/dists/dapper/main/dist-upgrader-all/current/dapper.tar.gz
+UpgradeToolSignature: http://old-releases.ubuntu.com/ubuntu/dists/dapper/main/dist-upgrader-all/current/dapper.tar.gz.gpg
+
+Dist: hardy 
+Name: Hardy Heron
+Version: 8.04.1 LTS
+Date: Thu, 24 Apr 2008 12:00:00 UTC
+Supported: 0
+Description: This is the 8.04.1 LTS release
+Release-File: http://old-releases.ubuntu.com/ubuntu/dists/hardy/Release
+ReleaseNotes: http://changelogs.ubuntu.com/EOLReleaseAnnouncement
+UpgradeTool: http://old-releases.ubuntu.com/ubuntu/dists/hardy-proposed/main/dist-upgrader-all/0.87.31/hardy.tar.gz
+UpgradeToolSignature: http://old-releases.ubuntu.com/ubuntu/dists/hardy-proposed/main/dist-upgrader-all/0.87.31/hardy.tar.gz.gpg
+
+Dist: lucid
+Name: Lucid Lynx
+Version: 10.04.4 LTS
+Date: Thu, 29 Apr 2010 12:00:00 UTC
+Supported: 0
+Description: This is the 10.04.4 LTS release
+Release-File: http://old-releases.ubuntu.com/ubuntu/dists/lucid/Release
+ReleaseNotes: http://changelogs.ubuntu.com/EOLReleaseAnnouncement
+UpgradeTool: http://old-releases.ubuntu.com/ubuntu/dists/lucid-proposed/main/dist-upgrader-all/current/lucid.tar.gz
+UpgradeToolSignature: http://old-releases.ubuntu.com/ubuntu/dists/lucid-proposed/main/dist-upgrader-all/current/lucid.tar.gz.gpg
+
+Dist: precise
+Name: Precise Pangolin
+Version: 12.04.5 LTS
+Date: Thu, 26 Apr 2012 12:04:00 UTC
+Supported: 1
+Description: This is the 12.04.5 LTS release
+Release-File: http://archive.ubuntu.com/ubuntu/dists/precise/Release
+ReleaseNotes: http://archive.ubuntu.com/ubuntu/dists/precise-updates/main/dist-upgrader-all/current/ReleaseAnnouncement
+ReleaseNotesHtml: http://archive.ubuntu.com/ubuntu/dists/precise-updates/main/dist-upgrader-all/current/ReleaseAnnouncement.html
+UpgradeTool: http://archive.ubuntu.com/ubuntu/dists/precise-updates/main/dist-upgrader-all/current/precise.tar.gz
+UpgradeToolSignature: http://archive.ubuntu.com/ubuntu/dists/precise-updates/main/dist-upgrader-all/current/precise.tar.gz.gpg
+
+Dist: trusty
+Name: Trusty Tahr
+Version: 14.04.5 LTS
+Date: Thu, 17 Apr 2014 14:04:00 UTC
+Supported: 1
+Description: This is the 14.04.5 LTS release
+Release-File: http://archive.ubuntu.com/ubuntu/dists/trusty/Release
+ReleaseNotes: http://archive.ubuntu.com/ubuntu/dists/trusty-updates/main/dist-upgrader-all/current/ReleaseAnnouncement
+ReleaseNotesHtml: http://archive.ubuntu.com/ubuntu/dists/trusty-updates/main/dist-upgrader-all/current/ReleaseAnnouncement.html
+UpgradeTool: http://archive.ubuntu.com/ubuntu/dists/trusty-updates/main/dist-upgrader-all/current/trusty.tar.gz
+UpgradeToolSignature: http://archive.ubuntu.com/ubuntu/dists/trusty-updates/main/dist-upgrader-all/current/trusty.tar.gz.gpg
+
+Dist: xenial
+Name: Xenial Xerus
+Version: 16.04.4 LTS
+Date: Thu, 21 April 2016 16:04:00 UTC
+Supported: 1
+Description: This is the 16.04.4 LTS release
+Release-File: http://archive.ubuntu.com/ubuntu/dists/xenial/Release
+ReleaseNotes: http://archive.ubuntu.com/ubuntu/dists/xenial-updates/main/dist-upgrader-all/current/ReleaseAnnouncement
+ReleaseNotesHtml: http://archive.ubuntu.com/ubuntu/dists/xenial-updates/main/dist-upgrader-all/current/ReleaseAnnouncement.html
+UpgradeTool: http://archive.ubuntu.com/ubuntu/dists/xenial-updates/main/dist-upgrader-all/current/xenial.tar.gz
+UpgradeToolSignature: http://archive.ubuntu.com/ubuntu/dists/xenial-updates/main/dist-upgrader-all/current/xenial.tar.gz.gpg

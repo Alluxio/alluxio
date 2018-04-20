@@ -1,0 +1,518 @@
+@charset "utf-8";
+/* Base Reset */
+html, body, div, span, applet, object, iframe, h1, h2, h3, h4, h5, h6, p, blockquote, pre, a, abbr, acronym, address, big, cite, code,del, dfn, em, img, ins, kbd, q, s, samp,small,strike, strong, sub, sup, tt, var,b, u, i, center,dl, dt, dd, ol, ul, li,fieldset, form, label, legend,table, caption, tbody, tfoot, thead, tr, th, td,article, aside, canvas, details, embed, figure, figcaption, footer, header, hgroup, menu, nav, output, ruby, section, summary,time, mark, audio, video {margin: 0;padding: 0;border: 0;	font-size: 100%;font: inherit;}
+/* HTML5 display-role reset for older browsers */
+article, aside, details, figcap
+tion, figure, footer, header, hgroup, menu, nav, section {	display: block;}
+:focus { outline:0;}
+img { border:0;}
+body {line-height: 1;}
+ol, ul {list-style: none;}
+blockquote, q {	quotes: none;}
+blockquote:before, blockquote:after,q:before, q:after {	content: '';	content: none;}
+table {	border-collapse: collapse;	border-spacing: 0;}
+.clear { width:100%; height:0; line-height:0; font-size:0; overflow:hidden; clear:both; display:block; _display:inline;}
+.none { display:none;}
+.hidden { visibility:hidden;}
+.clearfix:after{clear: both;content: ".";display: block;height: 0;visibility: hidden;}
+.clearfix{display: block; *zoom:1;}
+
+
+
+/**布局开始**/
+body { background:#f0f0f0 url(../images/body_bg02.gif) top left repeat-x;}
+body,p { 
+	font:12px/1 "Microsoft YaHei", "\u5b8b\u4f53", Tahoma, Geneva, sans-serif; 
+	color:#3c3c3c;
+}
+a { 
+	color:#3c3c3c;
+	text-decoration:none;
+}
+a:link { 
+	color:#3c3c3c;
+}
+a:hover { 
+	color:#363535;
+}
+a:visited { 
+}
+.wrapper { 
+	width:100%; 
+	margin:0 auto;
+}
+.wrapper .inner {  /**页面全局宽度**/
+	width:1200px; 
+	margin:0 auto;
+}
+
+/**页头**/
+#header {
+}
+
+#header .inner { width: 1211px;
+ background:url(../images/body_bg.gif) top left no-repeat;
+}
+.head {
+	width:100%;
+	height: 158px;
+	position:relative;
+	background: url(../images/head_bg.png) center no-repeat;
+}
+.head_search {
+	float:right;
+	height: 30px;
+	margin: 63px 10px 22px 0px ;
+	width: 180px;
+	background:url(../images/btn_b.png) left center no-repeat;}
+.head_nav {
+	float:left;
+	width:100%; 
+z-index: 99;
+position: relative;
+}
+
+/**导航条**/
+#nav {
+}
+
+.nav { 
+	width:1200px; 
+	height:42px;
+	line-height: 42px;
+	margin: 0px auto;
+	background:#002d70;
+}
+
+/**导航样式：后台绑定时也可以定义配置**/ 
+.nav .wp_nav { height:42px;}  /**导航高度**/
+.nav .wp_nav li.nav-item {padding: 0 12px;}
+.nav .wp_nav li.nav-item a { font-weight:normal; color:#fff;  z-index:200;text-align: center;line-height: 47px;font-family: "Microsoft YaHei";font-size: 16px;}    /**导航字体样式**/
+.nav .wp_nav li.nav-item a:hover,.navbar .navbox .wp_nav li.nav-item a.parent{ color:#fff; background:url(../images/nav_li_bg.gif) bottom center no-repeat;}   	/**鼠标经过或当前选中时样式**/
+.nav .wp_nav li.nav-item a span.item-name { padding: 0 9px 0px 18px; height: 42px; line-height: 42px;}   /**导航栏目高度与边距**/
+.sub-nav {left: 15px !important; height:auto !important; top: 42px !important;}
+.nav .wp_nav .sub-nav li.nav-item {padding: 0px;}
+.nav .wp_nav .sub-nav li.nav-item i.mark { background:#1d3775;}  /**子菜单背景**/
+.nav .wp_nav .sub-nav li.nav-item a { font-size:12px; font-weight:normal;}		/**子菜单字体样式**/
+.nav .wp_nav .sub-nav li.nav-item a:hover,.navbar .navbox .wp_nav .sub-nav li.nav-item a.parent { background:#0a2055; color:#fff;}/**子菜单选中的背景色**/
+.nav .wp_nav .sub-nav li.nav-item a span.item-name { padding:0 5px; height:30px; line-height:30px;}		/**子菜单栏目高度与边距**/
+XA
+
+
+/**主体部分**/
+#container {
+	}
+
+#container .inner { 
+ width: 1211px;
+ margin: 0px auto;
+	}
+	
+.mod {
+	width: 1211px;
+	background:url(../images/mod_bg.png) center top repeat-y;
+	margin:0px auto;
+}
+.mod_top {
+	float:left;
+	margin: 20px 3px 10px 3px;
+	width:100%;}
+.mod_bot {
+	width:1180px;
+	margin: 0px 15px;
+	padding: 10px 0px 20px 0px;
+	float:left;
+	border-bottom: 5px solid #b4c4db;}
+.bot_line {
+	float:left;
+	width: 1150px;
+	margin: 10px 25px;
+	border-bottom: 5px solid #b4c4db;
+	}
+.mod_top_1 {
+	float:left;
+	width: 637px;
+	margin: 0px 20px;
+	z-index: 9;
+position: relative;
+	}
+	
+.mod_top_2 {
+	float:left;
+	width: 515px;
+	}
+.mod_bot_1 {
+	float: left;
+	width:425px;}
+.mod_bot_2 {
+	float: left;
+	width:445px;
+	margin: 0px 20px;}
+.mod_bot_3 {
+	float: left;
+	width:266px;}
+.top_3,.bot_1,.bot_3 {
+	float:left;
+	width:100%;}
+.top_4,.bot_2 {
+	float:left;
+	width:100%;}
+	
+/*左下角*/
+.post1 {}
+.post1 .subnav {width: 100%; height: 40px; }
+.post1 .subnav .title{ float: left; height: 20px; line-height: 20px; margin: 10px 0px 0px 10px; padding: 0px 10px;font-family: "Microsoft YaHei";font-size: 18px;color: #000; border-left:5px solid #87ab41;}
+.bot_1 .post1 .subnav .title{ border-left:5px solid #388b00;}
+.mod_bot_2 .post1 .subnav .title{ border-left:5px solid #759dd8;}
+.mod_bot_3 .post1 .subnav .title{ border-left:5px solid #115dce;}
+.post1 .con {color:#444;text-align:left; padding: 5px 20px 0px 10px;}
+.post1 .wp_article_list .list_item { border: none; color: #000;font-family: "Microsoft YaHei";font-size: 13px; height: 30px; line-height: 30px;}
+.post1 #wp_news_w32 .wp_article_list .list_item { border: none; color: #000;font-family: "Microsoft YaHei";font-size: 13px; height: 90px; line-height: 30px;}
+.post1 .wp_article_list .list_item .Article_Index { display: none;}
+.post1 .con-more { float: right;width:60px; height: 20px; display:block; margin: 8px 0px 0px 0px;color: #6f6f6f;}
+.post1 .con-more .more-btn{width: 44px; height: 20px; margin: 0px 10px 0px 0px;line-height: 20px;float: right; background: url(../images/more_btn.gif) center center no-repeat;}
+.post1 .con-more .more-btn A {width: 44px; height: 20px;  margin: 0px 10px 0px 0px;color: #6f6f6f; display:block;}
+.top_4 .post1 .wp_article_list .list_item.i1,.bot_2 .post1 .wp_article_list .list_item.i1{ display: none;}
+.top_3 .post1 .wp_article_list .list_item.i1 .Article_Title a {color: #002d70;font-family: "Microsoft YaHei";font-size: 17px;}
+.top_3 .post1 .wp_article_list .list_item.i1 .Article_Content a {color: #858585;font-family: "Microsoft YaHei";font-size: 13px; text-indent:2em;}
+.top_3 .wp_article_list .list_item .pr_fields {width: 100%;}
+.top_3 .wp_article_list .list_item .ex_fields {width: 100%;}
+.div_piccontenttitle_li .c_pt_12 .c_txt h3 a{color: #002d70;font-family: "Microsoft YaHei";font-size: 17px;}
+.div_piccontenttitle_li .c_pt_12 .c_txt p a{color: #858585;font-family: "Microsoft YaHei";font-size: 13px; line-height: 20px;}
+/*页脚*/
+#footer {
+}
+
+#footer .inner {
+	width: 1211px;
+}
+
+.foot {
+	width:1209px;
+	margin: 0px auto;
+	padding: 10px 0px;
+	background: url(../images/foot_bg.png) center top no-repeat;
+	height: 96px;
+}
+#copyright {
+	float:left;
+	width: 100%;
+}
+#copyright p {
+	width:100%;
+	font-size: 12px;
+	line-height: 25px;
+	float: left;
+	text-align: center;
+}
+
+		
+/*列表页*/
+#container .listpage-inner {width:1211px;}
+.col-menu { /**列表页左侧栏目**/
+	width:218px;
+	float:left;
+	display:inline;
+	margin: 0px 0px 20px 20px;
+	min-height: 200px;
+	background:#e9eef4 url(../images/list_left.png) center bottom no-repeat;
+} 
+.col-menu-head { /*列表头部*/
+	width: 100%;
+	height: 33px;
+	background:#4a76b5;
+	text-align: center;
+}
+.banner-200-blue { 
+  width: 218px;
+}
+.conl_name_box {
+	text-align: center;
+	
+	padding: 0px 10px 0px 15px ;
+  
+}
+.col-menu-con { min-height: 400px; padding: 0px 0px 20px 0px;}
+.col-menu-head h3.col-name { font-size:16px; font-style:normal;color:#fff; }		/**位置栏目字体**/
+.col-menu-head h3.col-name .col-name-text { display:block; line-height:33px; background:url(../images/title_bg.png) 15px center no-repeat; }  /**栏目名称图标**/
+/*多级栏目列表*/
+.wp_listcolumn {border:none; padding:0px 20px; width: 173px;}
+.col-list .wp_listcolumn .wp_column a { font-weight:normal; font-size: 13px;font-family: "Microsoft YaHei"; color:#343434; background: url(../images/arrow.png) 1px center no-repeat; border-top: none;  border-bottom:none;} 	/**一级子栏目及图标**/
+.col-list .wp_listcolumn .wp_column a:hover,.col-list .wp_listcolumn .wp_column a.selected {background: url(../images/arrow.png) 1px center no-repeat; border-bottom:none;} 	/**鼠标经过或选中一级子栏目**/
+.col-list .wp_listcolumn .wp_column a.selected span.column-name{}
+.col-list .wp_listcolumn .wp_subcolumn {border:none;}
+.col-list .wp_listcolumn .wp_subcolumn .wp_column a {  font-size: 13px;font-family: "Microsoft YaHei"; color:#343434; background: url(../images/arrow.png) 11px center no-repeat; } 	/**二级子栏目**/
+.col-list .wp_listcolumn .wp_subcolumn .wp_column a:hover,.col-list .wp_listcolumn .wp_subcolumn .wp_column a.selected {   font-size: 13px;font-family: "Microsoft YaHei"; color:#343434; background: url(../images/arrow.png) 11px center no-repeat;} 	/**鼠标经过或选中二级子栏目**/
+.col-list .wp_listcolumn .wp_subcolumn .wp_column a.selected span.column-name{ color:#343434;}
+
+.col-list .wp_listcolumn .wp_subcolumn .wp_subcolumn .wp_column a { background:none;} 	/**三级子栏目**/
+.col-list .wp_listcolumn .wp_subcolumn .wp_subcolumn .wp_column a:hover,.col_list .wp_listcolumn .wp_subcolumn .wp_subcolumn .wp_column a.selected {} 	/**鼠标经过或选中三级子栏目**/
+.col-list .wp_listcolumn .wp_subcolumn .wp_subcolumn .wp_column a.selected span.column-name{ color:#fff;}
+
+.col-list .wp_listcolumn .wp_subcolumn .wp_subcolumn .wp_subcolumn .wp_column a { background:none; } 	/**四级子栏目**/
+.col-list .wp_listcolumn .wp_subcolumn .wp_subcolumn .wp_subcolumn .wp_column a:hover,.col_list .wp_listcolumn .wp_subcolumn .wp_subcolumn .wp_subcolumn .wp_column a.selected { background:#9ad6e0;} 	/**鼠标经过或选中四级子栏目**/
+.col-list .wp_listcolumn .wp_subcolumn .wp_subcolumn .wp_subcolumn .wp_column a.selected span.column-name{ color:#3b3a3a;}
+
+.col-list .wp_listcolumn .wp_subcolumn .wp_subcolumn .wp_subcolumn .wp_subcolumn .wp_column a { background:none; } 	/**五级子栏目**/
+.col-list .wp_listcolumn .wp_subcolumn .wp_subcolumn .wp_subcolumn .wp_subcolumn .wp_column a:hover,.col_list .wp_listcolumn .wp_subcolumn .wp_subcolumn .wp_subcolumn .wp_subcolumn .wp_column a.selected { background:#9ad6e0;} 	/**鼠标经过或选中五级子栏目**/
+.col-list .wp_listcolumn .wp_subcolumn .wp_subcolumn .wp_subcolumn .wp_subcolumn .wp_column a.selected span.column-name{ color:#3b3a3a;}
+
+
+.col-news { /**列表页右侧新闻**/
+width: 930px;
+float: right;
+margin: 0px 20px 0px 0px;
+} 
+
+.col_img {
+	width: 968px;
+	margin: 0px auto;
+	padding: 20px 0px 0px 0px;
+}
+.col-image {
+	width: 684px;
+	height: 127px;
+	background:url(../images/listpage-image.jpg) center center no-repeat;
+	margin-bottom: 20px;
+}
+.col-news-head {
+	margin: 0px auto;
+	height: 40px;
+	background: url(../images/col_title.gif) center no-repeat;
+}
+.col-metas {
+}
+.col-metas .col-path { /**当前位置**/
+	display:inline-block;
+	white-space:nowrap; 
+	height:40px; 
+	line-height:40px; 
+	text-align: left;
+	color: #444444;
+	float:right;
+	margin: 0px 10px 10px 0px;
+} 
+.col-metas .col-path A {
+	color: #444444;
+}
+.possplit {
+	background: url(../images/possplit.png) center center no-repeat;
+	width: 15px;
+}
+.col-metas .col-title { /**当前栏目**/
+	display:inline-block; 
+	white-space:nowrap;
+	width:20%; 
+	height:20px; 
+	line-height:20px;
+	float:left;
+	margin: 10px 0px 0px 0px;
+	border-left: 5px solid #87ab40;
+} 
+.col-metas .col-title h2 { /**当前栏目名称**/
+	display:inline-block; 
+	font-size: 18px;
+	color: #000;
+	line-height: 20px;
+	font-weight:bold;
+	margin-left: 10px;
+	padding: 0px 5px;
+	font-family: "Microsoft YaHei";
+}   
+.col-news-con { 
+	padding:0px 0px 10px 0px ; 
+	margin:0px auto;
+	background: url(../images/col_right_bottom.gif) 0px bottom no-repeat;
+}
+.col-news-list {
+	padding:20px 10px 30px 10px;
+	background:url(../images/col_right_bg.gif) center repeat-y}
+.col-news-list .wp_article_list .list_item {height: 35px; line-height: 35px;}  /**栏目新闻列表**/
+.col-news-list .wp_article_list .list_item .Article_Index { width:2px; background:url(../images/li.png) left center no-repeat;margin:10px 7px 2px 2px;}  /**栏目新闻图标序号**/
+.col-news-list .wp_article_list .list_item .Article_Title {margin:0px;font-family:"宋体"; font-size:12px;}
+.col-news-list .wp_article_list .list_item .Article_PublishDate{font-family:"宋体"; font-size:12px;}
+.col-news-list .wp_entry,.col_news_list .wp_entry p { line-height:1.6; font-size:14px; color:#333;}
+.col-news-list .wp_entry img { max-width:680px; _width:expression(this.width > 680 ? "680px" : this.width); }   /**列表页文章图片大小限制**/
+
+
+/*文章页*/
+#container .dispage_inner { width:1211px;padding: 0px 0px;}
+
+.infobox {
+	width:1200px;
+	margin:0px auto;
+}
+
+
+.article h1.arti_title { /**文章标题**/
+	line-height:60px; 
+	font-family: "宋体"; 
+	font-weight: bold;
+	padding:10px 0px 0px 0px;
+	text-align:center; 
+	font-size:23px; 
+	color:#307abe;
+} 
+.article h2.arti_title2 { /**文章副标题**/
+	line-height:60px; 
+	font-family: "宋体"; 
+	font-weight: bold;
+	padding:10px 0px 0px 0px;
+	text-align:center; 
+	font-size:23px; 
+	color:#307abe;
+} 
+.article .arti_metas { 
+    width: 100%;
+	padding:10px;
+	text-align:center;
+	margin: 0px auto;
+}
+.article .arti_metas span { /**文章其他属性**/
+	margin:0 5px; 
+	font-size:14px; 
+	color:#787878;
+} 
+.article .entry { /**文章内容**/
+	margin: 0px auto;
+	width: 90%;
+	overflow:hidden;
+} 
+.article .entry .read,.article .entry .read p { /**阅读字体**/
+	line-height:2.5; 
+	font-size:12px; 
+	color:#333;
+	font-family: "宋体"; 
+}  
+.article .entry .read p { 
+	margin-bottom:20px;
+	text-indent:20px;
+}
+
+.article .entry .read img { /**文章阅读部分图片大小限制**/
+	max-width:730px; _width:expression(this.width > 730 ? "730px" : this.width); 
+}   
+
+.wp_search .search { background:url(../images/btn_search.gif) center no-repeat; width: 40px; height: 30px;}
+.sudy-links1 {
+	float: left;
+	width: 180px;
+	height: 28px;
+	margin:50px 5px 10px 0px;;}
+.sudy-links2 {
+	float: left;
+	width: 130px;
+	height: 28px;
+	margin: 50px 5px 10px 0px;}
+.sudy-links3 {
+	float: left;
+	width: 180px;
+	height: 28px;
+	margin: 0px 5px 10px 0px;}
+.sudy-links4 {
+	float: left;
+	width: 130px;
+	height: 28px;
+	margin: 0px 5px 10px 0px;}
+.sudy-links3 .wp_article_list .list_item .ex_fields{ display: none;}
+.sudy-links3 .wp_article_list .list_item .Article_Index { display:none;}
+.sudy-links3 .wp_article_list .list_item { border: 1px solid #ccc; margin: 2px 0px 0px 0px; height: 18px; line-height: 18px; width: 150px;}
+.sudy_2222 .wp_article_list .list_item .ex_fields{ display: none;}
+.sudy_2222 .wp_article_list .list_item .Article_Index { display:none;}
+.sudy_2222 .wp_article_list .list_item { border: 1px solid #ccc; margin: 2px 0px 0px 0px; height: 18px; line-height: 18px;width: 150px;}
+
+.col-news-list .news_list {
+	/* height: 150px; */}
+.col-news-list .news_img {
+	 margin: 10px;
+	 float: left;
+	 width: 15%;
+}
+.news_right { float: left; width: 80%;}
+.news_title_sub { float:left; height: 20px; margin: 13px 0px 0px 20px; color: #788083;}
+.col-news-list .news {height: 150px; float:left;background: #ebf6fc;margin: 0px 0px 10px 0px;width: 100%; border: 1px dashed #e2e9ef;}
+.news_right .news_title { float:left; /* margin: 0px 0px; */ height: 35px; line-height: 35px;}
+.news_right .news_title a { font-size: 18px; color:#307abe; height: 35px; line-height: 35px;}
+.news_right .news_title_sub a { font-size: 12px; color:#307abe; height: 35px; line-height: 35px;}
+.news_right .news_summary a{ font-size: 14px; color:#333; line-height: 20px; }
+.button{height:15px; width:15px; display:inline-block; background:url(../images/bottom1.gif) center center no-repeat;}
+.news_right p {width: 100%; float:left;}
+.news_title_mian {width: 100%; float:left; border-bottom: 1px solid #d5e2ea;margin: 0px 0px 5px 0px;}
+.wp_nav .on {
+z-index: 29;
+position: relative;
+}
+
+.ddjs {
+    width: 100%;
+   display: inline-block;
+    border-bottom: 2px dotted #999;
+    padding: 10px 0;
+}
+.ddjsbt {
+width: 100%;
+    display: inline-block;
+    line-height: 24px;
+}
+.djbt {
+    font-size: 16px;
+    float: left;
+}
+.djbt a {
+       color: #f00;
+}
+.djsj {
+    float: right;
+}
+.djjj {
+    width: 100%;
+    display: inline-block;
+    line-height: 2em;
+    color: #666;
+}
+.zy {color:#000;}
+.content img {
+    float: left;
+    padding-right: 10px;
+}
+.content {
+    border-bottom: 2px solid #e0e0e0;
+}
+.other {
+    float: right;
+}
+.wp_subcolumn_list .wp_sublist .sublist_title .morelink .moretext {
+    display: none;
+}
+.wp_subcolumn_list .wp_sublist .sublist_title a .subcolumn-name {
+    cursor: pointer;
+    font-size: 16px;
+}
+#wBox {
+    top: 0!important;
+    left: 0!important;
+}
+.wp_sitemap .sitemap_all .lv0 a {
+    font-size: 20px;
+    color: #000;
+}
+.wp_entry , .wp_entry p {
+    line-height: 1.6;
+    font-size: 14px;
+}
+#wp_nav_w11 .wp_nav .sub-nav { margin-left: 15px;}
+#wp_news_w1 .wp_article_list {
+    height: 35px;
+    line-height: 35px;
+}
+.lrld td {
+    border: 0px solid #DDD;
+}�Q0�q�      Z��}Z��w>�-Z�   E    :http://cs.nju.edu.cn/_upload/tpl/00/93/147/template147/css/style.css necko:classified 1 request-method GET response-head HTTP/1.1 200 OK
+Date: Sun, 01 Apr 2018 13:52:30 GMT
+Server: Apache/2.2.22 (Unix) mod_jk/1.2.23
+Last-Modified: Tue, 20 Mar 2018 07:39:38 GMT
+Etag: "f70709-447e-567d32d38a280"
+Accept-Ranges: bytes
+Content-Length: 17534
+Content-Type: text/css
+ uncompressed-len 0   D~

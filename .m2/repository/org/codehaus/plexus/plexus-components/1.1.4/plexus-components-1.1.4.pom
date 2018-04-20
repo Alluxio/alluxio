@@ -1,0 +1,66 @@
+<!--
+
+ !!!
+
+ NOTE: If you change this file, you MUST bump the version up from 1.0. That is the version of the POM, and was
+ used for releases of plexus-compiler and plexus-archiver in the past.
+
+ !!!
+
+-->
+
+<project>
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <artifactId>plexus</artifactId>
+    <groupId>org.codehaus.plexus</groupId>
+    <version>1.0.4</version>
+  </parent>
+  <groupId>org.codehaus.plexus</groupId>
+  <artifactId>plexus-components</artifactId>
+  <packaging>pom</packaging>
+  <version>1.1.4</version>
+  <name>Plexus Components Parent Project</name>
+  <!-- 
+    TODO: should this be pushed down to all the dependencies?
+      - a more stable API JAR may be useful, for the interfaces and classes such as AbstractLogEnabled
+  -->
+  <dependencies>
+    <dependency>
+      <groupId>org.codehaus.plexus</groupId>
+      <artifactId>plexus-container-default</artifactId>
+      <version>1.0-alpha-8</version>
+    </dependency>
+  </dependencies>
+  <modules>
+    <module>plexus-action</module>
+    <module>plexus-archiver</module>
+    <module>plexus-bayesian</module>  
+    <module>plexus-command</module>
+    <module>plexus-compiler</module>
+    <module>plexus-drools</module>        
+    <module>plexus-formica-web</module>
+    <module>plexus-formica</module>
+    <module>plexus-hibernate</module>
+    <module>plexus-i18n</module>            
+    <module>plexus-interactivity</module>        
+    <module>plexus-ircbot</module>    
+    <module>plexus-jdo</module>
+    <module>plexus-jetty</module>
+    <module>plexus-jetty-httpd</module>    
+    <module>plexus-mail-sender</module>
+    <module>plexus-mimetyper</module>    
+    <module>plexus-notification</module>
+    <!--
+    <module>plexus-password-store</module>
+    -->
+    <module>plexus-resource</module>
+    <module>plexus-security</module>
+    <module>plexus-site-renderer</module>    
+    <module>plexus-summit</module>
+    <module>plexus-taskqueue</module>    
+    <module>plexus-velocity</module>
+    <module>plexus-workflow</module>
+    <module>plexus-xmlrpc</module>
+  </modules>
+</project>

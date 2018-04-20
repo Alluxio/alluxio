@@ -1,0 +1,2260 @@
+
+
+
+
+
+
+
+
+<!doctype html>
+
+<html class="windows x86 no-js" lang="en" dir="ltr" data-latest-firefox="59.0.1" data-esr-versions="52.7.2" data-optimizely-project-id="246059135" data-gtm-container-id="GTM-MW3R8V"  data-stub-attribution-rate="1.0">
+  <head>
+    <meta charset="utf-8">
+
+    <script type="text/javascript" src="/media/js/site-bundle.5f2462a3ca26.js" charset="utf-8"></script>
+
+    <!--[if !lte IE 8]><!-->
+    
+    <!--<![endif]-->
+
+<!--
+             _.-~-.
+           7''  Q..\
+        _7         (_
+      _7  _/    _q.  /
+    _7 . ___  /VVvv-'_                                            .
+   7/ / /~- \_\\      '-._     .-'                      /       //
+  ./ ( /-~-/||'=.__  '::. '-~'' {             ___   /  //     ./{
+ V   V-~-~| ||   __''_   ':::.   ''~-~.___.-'' _/  // / {_   /  {  /
+  VV/-~-~-|/ \ .'__'. '.    '::                     _ _ _        ''.
+  / /~~~~||VVV/ /  \ )  \        _ __ ___   ___ ___(_) | | __ _   .::'
+ / (~-~-~\\.-' /    \'   \::::. | '_ ` _ \ / _ \_  / | | |/ _` | :::'
+/..\    /..\__/      '     '::: | | | | | | (_) / /| | | | (_| | ::'
+vVVv    vVVv                 ': |_| |_| |_|\___/___|_|_|_|\__,_| ''
+
+Hi there, nice to meet you!
+
+Interested in having a direct impact on hundreds of millions of users? Join
+Mozilla, and become part of a global community that’s helping to build a
+brighter future for the Web.
+
+Visit https://careers.mozilla.org to learn about our current job openings.
+Visit https://www.mozilla.org/contribute for more ways to get involved and
+help support Mozilla.
+-->
+
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    
+
+    <title>Protect your privacy and browse faster with Firefox features</title>
+    <meta name="description" content="You’re in control with Firefox’s easy-to-use features that protect your privacy and browsing speeds.">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Mozilla">
+    <meta property="og:locale" content="en_US">
+    <meta property="og:url" content="https://www.mozilla.org/en-US/firefox/features/">
+    <meta property="og:image" content="https://www.mozilla.org/media/img/firefox/template/page-image.4b108ed0b8d8.png">
+    <meta property="og:title" content="Protect your privacy and browse faster with Firefox features">
+    <meta property="og:description" content="You’re in control with Firefox’s easy-to-use features that protect your privacy and browsing speeds.">
+    <meta property="fb:page_id" content="14696440021">
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:site" content="@firefox">
+    <meta name="twitter:domain" content="mozilla.org">
+    <meta name="twitter:app:name:googleplay" content="Firefox">
+    <meta name="twitter:app:id:googleplay" content="org.mozilla.firefox">
+    <meta name="twitter:app:name:iphone" content="Firefox">
+    <meta name="twitter:app:id:iphone" content="989804926">
+    <meta name="twitter:app:name:ipad" content="Firefox">
+    <meta name="twitter:app:id:ipad" content="989804926">
+    <link rel="apple-touch-icon" type="image/png" sizes="180x180" href="/media/img/firefox/ios-icon-180.f7c89c6f4a0e.png">
+    <link rel="icon" type="image/png" sizes="196x196" href="/media/img/firefox/favicon-196.c6d9abffb769.png">
+    <link rel="shortcut icon" href="/media/img/firefox/favicon.e6bb0e59df3d.ico">
+        <link rel="canonical" href="https://www.mozilla.org/en-US/firefox/features/">
+    <link rel="alternate" hreflang="x-default" href="https://www.mozilla.org/en-US/firefox/features/">
+    <link rel="alternate" hreflang="an" href="https://www.mozilla.org/an/firefox/features/" title="aragonés">
+        <link rel="alternate" hreflang="ar" href="https://www.mozilla.org/ar/firefox/features/" title="عربي">
+        <link rel="alternate" hreflang="az" href="https://www.mozilla.org/az/firefox/features/" title="Azərbaycanca">
+        <link rel="alternate" hreflang="be" href="https://www.mozilla.org/be/firefox/features/" title="Беларуская">
+        <link rel="alternate" hreflang="bg" href="https://www.mozilla.org/bg/firefox/features/" title="Български">
+        <link rel="alternate" hreflang="bs" href="https://www.mozilla.org/bs/firefox/features/" title="Bosanski">
+        <link rel="alternate" hreflang="cs" href="https://www.mozilla.org/cs/firefox/features/" title="Čeština">
+        <link rel="alternate" hreflang="cy" href="https://www.mozilla.org/cy/firefox/features/" title="Cymraeg">
+        <link rel="alternate" hreflang="da" href="https://www.mozilla.org/da/firefox/features/" title="Dansk">
+        <link rel="alternate" hreflang="de" href="https://www.mozilla.org/de/firefox/features/" title="Deutsch">
+        <link rel="alternate" hreflang="el" href="https://www.mozilla.org/el/firefox/features/" title="Ελληνικά">
+        <link rel="alternate" hreflang="en-GB" href="https://www.mozilla.org/en-GB/firefox/features/" title="English (British)">
+        <link rel="alternate" hreflang="en" href="https://www.mozilla.org/en-US/firefox/features/" title="English">
+        <link rel="alternate" hreflang="en-US" href="https://www.mozilla.org/en-US/firefox/features/" title="English (USA)">
+        <link rel="alternate" hreflang="en-CA" href="https://www.mozilla.org/en-US/firefox/features/" title="English (Canada)">
+        <link rel="alternate" hreflang="eo" href="https://www.mozilla.org/eo/firefox/features/" title="Esperanto">
+        <link rel="alternate" hreflang="es-AR" href="https://www.mozilla.org/es-AR/firefox/features/" title="Español (de Argentina)">
+        <link rel="alternate" hreflang="es-CL" href="https://www.mozilla.org/es-CL/firefox/features/" title="Español (de Chile)">
+        <link rel="alternate" hreflang="es" href="https://www.mozilla.org/es-ES/firefox/features/" title="Español">
+        <link rel="alternate" hreflang="es-ES" href="https://www.mozilla.org/es-ES/firefox/features/" title="Español (de España)">
+        <link rel="alternate" hreflang="es-MX" href="https://www.mozilla.org/es-MX/firefox/features/" title="Español (de México)">
+        <link rel="alternate" hreflang="et" href="https://www.mozilla.org/et/firefox/features/" title="Eesti keel">
+        <link rel="alternate" hreflang="eu" href="https://www.mozilla.org/eu/firefox/features/" title="Euskara">
+        <link rel="alternate" hreflang="fa" href="https://www.mozilla.org/fa/firefox/features/" title="فارسی">
+        <link rel="alternate" hreflang="ff" href="https://www.mozilla.org/ff/firefox/features/" title="Pulaar-Fulfulde">
+        <link rel="alternate" hreflang="fr" href="https://www.mozilla.org/fr/firefox/features/" title="Français">
+        <link rel="alternate" hreflang="fy" href="https://www.mozilla.org/fy-NL/firefox/features/" title="Frysk">
+        <link rel="alternate" hreflang="fy-NL" href="https://www.mozilla.org/fy-NL/firefox/features/" title="Frysk">
+        <link rel="alternate" hreflang="ga-IE" href="https://www.mozilla.org/ga-IE/firefox/features/" title="Gaeilge">
+        <link rel="alternate" hreflang="gn" href="https://www.mozilla.org/gn/firefox/features/" title="Avañe'ẽ">
+        <link rel="alternate" hreflang="gu" href="https://www.mozilla.org/gu-IN/firefox/features/" title="ગુજરાતી">
+        <link rel="alternate" hreflang="gu-IN" href="https://www.mozilla.org/gu-IN/firefox/features/" title="ગુજરાતી (ભારત)">
+        <link rel="alternate" hreflang="he" href="https://www.mozilla.org/he/firefox/features/" title="עברית">
+        <link rel="alternate" hreflang="hi" href="https://www.mozilla.org/hi-IN/firefox/features/" title="हिन्दी">
+        <link rel="alternate" hreflang="hi-IN" href="https://www.mozilla.org/hi-IN/firefox/features/" title="हिन्दी (भारत)">
+        <link rel="alternate" hreflang="hr" href="https://www.mozilla.org/hr/firefox/features/" title="Hrvatski">
+        <link rel="alternate" hreflang="hu" href="https://www.mozilla.org/hu/firefox/features/" title="magyar">
+        <link rel="alternate" hreflang="hy" href="https://www.mozilla.org/hy-AM/firefox/features/" title="Հայերեն">
+        <link rel="alternate" hreflang="hy-AM" href="https://www.mozilla.org/hy-AM/firefox/features/" title="Հայերեն">
+        <link rel="alternate" hreflang="ia" href="https://www.mozilla.org/ia/firefox/features/" title="Interlingua">
+        <link rel="alternate" hreflang="id" href="https://www.mozilla.org/id/firefox/features/" title="Bahasa Indonesia">
+        <link rel="alternate" hreflang="it" href="https://www.mozilla.org/it/firefox/features/" title="Italiano">
+        <link rel="alternate" hreflang="ja" href="https://www.mozilla.org/ja/firefox/features/" title="日本語">
+        <link rel="alternate" hreflang="ka" href="https://www.mozilla.org/ka/firefox/features/" title="ქართული">
+        <link rel="alternate" hreflang="kk" href="https://www.mozilla.org/kk/firefox/features/" title="Қазақ">
+        <link rel="alternate" hreflang="ko" href="https://www.mozilla.org/ko/firefox/features/" title="한국어">
+        <link rel="alternate" hreflang="lt" href="https://www.mozilla.org/lt/firefox/features/" title="Lietuvių">
+        <link rel="alternate" hreflang="ml" href="https://www.mozilla.org/ml/firefox/features/" title="മലയാളം">
+        <link rel="alternate" hreflang="mr" href="https://www.mozilla.org/mr/firefox/features/" title="मराठी">
+        <link rel="alternate" hreflang="ms" href="https://www.mozilla.org/ms/firefox/features/" title="Melayu">
+        <link rel="alternate" hreflang="nb-NO" href="https://www.mozilla.org/nb-NO/firefox/features/" title="Norsk bokmål">
+        <link rel="alternate" hreflang="nl" href="https://www.mozilla.org/nl/firefox/features/" title="Nederlands">
+        <link rel="alternate" hreflang="nn-NO" href="https://www.mozilla.org/nn-NO/firefox/features/" title="Norsk nynorsk">
+        <link rel="alternate" hreflang="pl" href="https://www.mozilla.org/pl/firefox/features/" title="Polski">
+        <link rel="alternate" hreflang="pt-BR" href="https://www.mozilla.org/pt-BR/firefox/features/" title="Português (do Brasil)">
+        <link rel="alternate" hreflang="pt" href="https://www.mozilla.org/pt-PT/firefox/features/" title="Português">
+        <link rel="alternate" hreflang="pt-PT" href="https://www.mozilla.org/pt-PT/firefox/features/" title="Português (Europeu)">
+        <link rel="alternate" hreflang="rm" href="https://www.mozilla.org/rm/firefox/features/" title="rumantsch">
+        <link rel="alternate" hreflang="ro" href="https://www.mozilla.org/ro/firefox/features/" title="Română">
+        <link rel="alternate" hreflang="ru" href="https://www.mozilla.org/ru/firefox/features/" title="Русский">
+        <link rel="alternate" hreflang="sk" href="https://www.mozilla.org/sk/firefox/features/" title="slovenčina">
+        <link rel="alternate" hreflang="sl" href="https://www.mozilla.org/sl/firefox/features/" title="Slovenščina">
+        <link rel="alternate" hreflang="sq" href="https://www.mozilla.org/sq/firefox/features/" title="Shqip">
+        <link rel="alternate" hreflang="sr" href="https://www.mozilla.org/sr/firefox/features/" title="Српски">
+        <link rel="alternate" hreflang="sv" href="https://www.mozilla.org/sv-SE/firefox/features/" title="Svenska">
+        <link rel="alternate" hreflang="sv-SE" href="https://www.mozilla.org/sv-SE/firefox/features/" title="Svenska">
+        <link rel="alternate" hreflang="ta" href="https://www.mozilla.org/ta/firefox/features/" title="தமிழ்">
+        <link rel="alternate" hreflang="th" href="https://www.mozilla.org/th/firefox/features/" title="ไทย">
+        <link rel="alternate" hreflang="tr" href="https://www.mozilla.org/tr/firefox/features/" title="Türkçe">
+        <link rel="alternate" hreflang="uk" href="https://www.mozilla.org/uk/firefox/features/" title="Українська">
+        <link rel="alternate" hreflang="vi" href="https://www.mozilla.org/vi/firefox/features/" title="Tiếng Việt">
+        <link rel="alternate" hreflang="zh" href="https://www.mozilla.org/zh-CN/firefox/features/" title="中文">
+        <link rel="alternate" hreflang="zh-CN" href="https://www.mozilla.org/zh-CN/firefox/features/" title="中文 (简体)">
+        <link rel="alternate" hreflang="zh-TW" href="https://www.mozilla.org/zh-TW/firefox/features/" title="正體中文 (繁體)">
+        
+    
+
+    
+
+    <!--[if lte IE 8]>
+      
+      <script src="/media/js/libs/html5shiv.d580a4cd1cb4.js"></script>
+
+      
+      
+      <link href="/media/css/oldIE-pebbles-bundle.54dec933aeb6.css" rel="stylesheet" type="text/css" />
+      
+    <![endif]-->
+
+    <!--[if !lte IE 8]><!-->
+    
+    
+      <link href="/media/css/pebbles-bundle.c605f88c83f2.css" rel="stylesheet" type="text/css" />
+    
+
+    
+    
+  
+  <link href="/media/css/firefox-features-hub-common-bundle.fe17d0944cb3.css" rel="stylesheet" type="text/css" />
+
+  <link href="/media/css/firefox-features-index-bundle.faa6ccaa022d.css" rel="stylesheet" type="text/css" />
+
+    <!--<![endif]-->
+
+    
+      
+    
+
+    
+  
+
+
+    
+    
+      <!--
+Read more about our custom configuration and use of Google Analytics here:
+https://bugzilla.mozilla.org/show_bug.cgi?id=1122305#c8
+-->
+
+<!-- Google Tag Manager -->
+<!-- Customized for Mozilla.org-->
+<!-- Region Container: NONE -->
+<!-- Rollup Container: System Filtered -->
+<!-- Site Container: NONE -->
+
+
+  <script type="text/javascript" src="/media/js/gtm-snippet-bundle.e956015fe7f3.js" charset="utf-8"></script>
+
+<!-- End Google Tag Manager -->
+    
+  </head>
+
+  <body id="firefox-features-landing" class="html-ltr "  data-global-nav-current-link="firefox">
+    <div id="strings"
+      data-global-close="Close"
+      data-global-next="Next"
+      data-global-previous="Previous"
+      data-global-update-firefox="Update your Firefox"
+      data-global-fx-out-of-date-banner-heading="Your Firefox is out-of-date."
+      data-global-fx-out-of-date-banner-message="Get the most recent version to keep browsing securely."
+      data-global-fx-out-of-date-banner-confirm="Update Firefox"
+      ></div>
+
+  
+  
+    <nav role="navigation" class="moz-global-nav" id="moz-global-nav">
+    <div class="nav-horizontal-menu">
+
+      <button type="button" class="nav-button-menu nav-hidden" id="nav-button-menu" data-link-type="nav" data-link-position="open button" data-link-name="expand" data-link-group="nav element">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 25" width="12" height="25">
+          <title>Menu</title>
+            <rect class="p1" fill="#231f20" x="3" width="5" height="6"></rect>
+            <rect class="p2" fill="#231f20" x="3" y="9.5" width="5" height="6"></rect>
+            <rect class="p3" fill="#231f20" x="3" y="19" width="5" height="6"></rect>
+        </svg>
+      </button>
+
+      <h2 class="nav-logo">
+        <a href="/en-US/">
+          
+          
+            Mozilla
+          
+        </a>
+      </h2>
+
+      <ul class="nav-primary-links">
+        
+        <li class="item-firefox">
+          <a href="/en-US/firefox/" data-link-type="nav" data-link-position="top" data-link-name="Firefox">Firefox</a>
+        </li>
+        <li class="item-pocket">
+          <a href="https://getpocket.com/?utm_source=www.mozilla.org&amp;utm_medium=referral&amp;utm_campaign=global-nav&amp;utm_content=pocket" data-link-type="nav" data-link-position="top" data-link-name="Pocket">Pocket</a>
+        </li>
+        <li class="item-internet-health">
+          <a href="/en-US/internet-health/" data-link-type="nav" data-link-position="top" data-link-name="Internet Health">Internet Health</a>
+        </li>
+        <li class="item-technology">
+          <a href="/en-US/technology/" data-link-type="nav" data-link-position="top" data-link-name="Technology">Technology</a>
+        </li>
+        <li class="item-about-us">
+          <a href="/en-US/about/" data-link-type="nav" data-link-position="top" data-link-name="About Us">About Us</a>
+        </li>
+        <li class="item-get-involved">
+          <a href="/en-US/contribute/" data-link-type="nav" data-link-position="top" data-link-name="Get Involved">Get Involved</a>
+        </li>
+      </ul>
+
+      
+
+
+
+
+
+
+
+
+<div id="global-nav-download-firefox" class="download-button">
+  
+  <div class="nojs-download">
+    
+  <div class="download download-dumb">
+    <p role="heading" class="download-heading">
+      
+        Download Firefox
+        — English (US)
+    </p>
+    <ul>
+      <li><a href="https://download-sha1.allizom.org/?product=firefox-stub&amp;os=win&amp;lang=en-US"
+               class="download-link button button-green"
+               data-link-type="download"
+               data-download-version="winsha1"
+               data-download-os="Desktop">Windows (XP/Vista)</a>
+        </li><li><a href="https://download.mozilla.org/?product=firefox-stub&amp;os=win64&amp;lang=en-US"
+               class="download-link button button-green"
+               data-link-type="download"
+               data-download-version="win64"
+               data-download-os="Desktop">Windows 64-bit</a>
+        </li><li><a href="https://download.mozilla.org/?product=firefox-stub&amp;os=win&amp;lang=en-US"
+               class="download-link button button-green"
+               data-link-type="download"
+               data-download-version="win"
+               data-download-os="Desktop">Windows 32-bit</a>
+        </li><li><a href="https://download.mozilla.org/?product=firefox-latest-ssl&amp;os=osx&amp;lang=en-US"
+               class="download-link button button-green"
+               data-link-type="download"
+               data-download-version="osx"
+               data-download-os="Desktop">macOS</a>
+        </li><li><a href="https://download.mozilla.org/?product=firefox-latest-ssl&amp;os=linux64&amp;lang=en-US"
+               class="download-link button button-green"
+               data-link-type="download"
+               data-download-version="linux64"
+               data-download-os="Desktop">Linux 64-bit</a>
+        </li><li><a href="https://download.mozilla.org/?product=firefox-latest-ssl&amp;os=linux&amp;lang=en-US"
+               class="download-link button button-green"
+               data-link-type="download"
+               data-download-version="linux"
+               data-download-os="Desktop">Linux 32-bit</a>
+        </li><li><a href="https://play.google.com/store/apps/details?id=org.mozilla.firefox&amp;referrer=utm_source%3Dmozilla%26utm_medium%3DReferral%26utm_campaign%3Dmozilla-org"
+               class="download-link button button-green"
+               data-link-type="download"
+               data-download-version="android"
+               data-download-os="Android"
+               >Android</a>
+        </li><li><a href="https://itunes.apple.com/us/app/apple-store/id989804926?pt=373246&amp;mt=8"
+               class="download-link button button-green"
+               data-link-type="download"
+               data-download-version="ios"
+               data-download-os="iOS"
+               >iOS</a>
+        </li>
+    </ul>
+  </div>
+
+  </div>
+  
+    
+    <div class="unrecognized-download">
+      <p>Your system may not meet the requirements for Firefox, but you can try one of these versions:</p>
+      
+  <div class="download download-dumb">
+    <p role="heading" class="download-heading">
+      
+        Download Firefox
+        — English (US)
+    </p>
+    <ul>
+      <li><a href="https://download-sha1.allizom.org/?product=firefox-stub&amp;os=win&amp;lang=en-US"
+               class="download-link button button-green"
+               data-link-type="download"
+               data-download-version="winsha1"
+               data-download-os="Desktop">Windows (XP/Vista)</a>
+        </li><li><a href="https://download.mozilla.org/?product=firefox-stub&amp;os=win64&amp;lang=en-US"
+               class="download-link button button-green"
+               data-link-type="download"
+               data-download-version="win64"
+               data-download-os="Desktop">Windows 64-bit</a>
+        </li><li><a href="https://download.mozilla.org/?product=firefox-stub&amp;os=win&amp;lang=en-US"
+               class="download-link button button-green"
+               data-link-type="download"
+               data-download-version="win"
+               data-download-os="Desktop">Windows 32-bit</a>
+        </li><li><a href="https://download.mozilla.org/?product=firefox-latest-ssl&amp;os=osx&amp;lang=en-US"
+               class="download-link button button-green"
+               data-link-type="download"
+               data-download-version="osx"
+               data-download-os="Desktop">macOS</a>
+        </li><li><a href="https://download.mozilla.org/?product=firefox-latest-ssl&amp;os=linux64&amp;lang=en-US"
+               class="download-link button button-green"
+               data-link-type="download"
+               data-download-version="linux64"
+               data-download-os="Desktop">Linux 64-bit</a>
+        </li><li><a href="https://download.mozilla.org/?product=firefox-latest-ssl&amp;os=linux&amp;lang=en-US"
+               class="download-link button button-green"
+               data-link-type="download"
+               data-download-version="linux"
+               data-download-os="Desktop">Linux 32-bit</a>
+        </li><li><a href="https://play.google.com/store/apps/details?id=org.mozilla.firefox&amp;referrer=utm_source%3Dmozilla%26utm_medium%3DReferral%26utm_campaign%3Dmozilla-org"
+               class="download-link button button-green"
+               data-link-type="download"
+               data-download-version="android"
+               data-download-os="Android"
+               >Android</a>
+        </li><li><a href="https://itunes.apple.com/us/app/apple-store/id989804926?pt=373246&amp;mt=8"
+               class="download-link button button-green"
+               data-link-type="download"
+               data-download-version="ios"
+               data-download-os="iOS"
+               >iOS</a>
+        </li>
+    </ul>
+  </div>
+
+    </div>
+    <p class="unsupported-download">
+      Your system doesn't meet the <a href="/en-US/firefox/system-requirements/">requirements</a> to run Firefox.
+    </p>
+    <p class="unsupported-download-osx">
+      Your system doesn't meet the <a href="https://support.mozilla.org/kb/firefox-osx">requirements</a> to run Firefox.
+    </p>
+    <p class="linux-arm-download">
+      Please follow <a href="https://support.mozilla.org/kb/install-firefox-linux">these instructions</a> to install Firefox.
+    </p>
+  
+  <ul class="download-list">
+    
+      <li class="os_winsha1">
+        <a class="download-link button button-green"
+           href="/firefox/new/?scene=2"
+           data-direct-link="https://download-sha1.allizom.org/?product=firefox-stub&amp;os=win&amp;lang=en-US"
+           data-link-type="download"
+           data-display-name="Windows (XP/Vista)"
+           data-download-version="winsha1"
+           data-download-os="Desktop"
+           data-download-location="nav">
+          <strong class="download-title">
+            
+              Download Firefox
+            
+          </strong>
+        </a>
+      </li>
+    
+      <li class="os_win64">
+        <a class="download-link button button-green"
+           href="/firefox/new/?scene=2"
+           data-direct-link="https://download.mozilla.org/?product=firefox-stub&amp;os=win64&amp;lang=en-US"
+           data-link-type="download"
+           data-display-name="Windows 64-bit"
+           data-download-version="win64"
+           data-download-os="Desktop"
+           data-download-location="nav">
+          <strong class="download-title">
+            
+              Download Firefox
+            
+          </strong>
+        </a>
+      </li>
+    
+      <li class="os_win">
+        <a class="download-link button button-green"
+           href="/firefox/new/?scene=2"
+           data-direct-link="https://download.mozilla.org/?product=firefox-stub&amp;os=win&amp;lang=en-US"
+           data-link-type="download"
+           data-display-name="Windows 32-bit"
+           data-download-version="win"
+           data-download-os="Desktop"
+           data-download-location="nav">
+          <strong class="download-title">
+            
+              Download Firefox
+            
+          </strong>
+        </a>
+      </li>
+    
+      <li class="os_osx">
+        <a class="download-link button button-green"
+           href="/firefox/new/?scene=2"
+           data-direct-link="https://download.mozilla.org/?product=firefox-latest-ssl&amp;os=osx&amp;lang=en-US"
+           data-link-type="download"
+           data-display-name="macOS"
+           data-download-version="osx"
+           data-download-os="Desktop"
+           data-download-location="nav">
+          <strong class="download-title">
+            
+              Download Firefox
+            
+          </strong>
+        </a>
+      </li>
+    
+      <li class="os_linux64">
+        <a class="download-link button button-green"
+           href="/firefox/new/?scene=2"
+           data-direct-link="https://download.mozilla.org/?product=firefox-latest-ssl&amp;os=linux64&amp;lang=en-US"
+           data-link-type="download"
+           data-display-name="Linux 64-bit"
+           data-download-version="linux64"
+           data-download-os="Desktop"
+           data-download-location="nav">
+          <strong class="download-title">
+            
+              Download Firefox
+            
+          </strong>
+        </a>
+      </li>
+    
+      <li class="os_linux">
+        <a class="download-link button button-green"
+           href="/firefox/new/?scene=2"
+           data-direct-link="https://download.mozilla.org/?product=firefox-latest-ssl&amp;os=linux&amp;lang=en-US"
+           data-link-type="download"
+           data-display-name="Linux 32-bit"
+           data-download-version="linux"
+           data-download-os="Desktop"
+           data-download-location="nav">
+          <strong class="download-title">
+            
+              Download Firefox
+            
+          </strong>
+        </a>
+      </li>
+    
+      <li class="os_android">
+        <a class="download-link button button-green"
+           href="https://play.google.com/store/apps/details?id=org.mozilla.firefox&amp;referrer=utm_source%3Dmozilla%26utm_medium%3DReferral%26utm_campaign%3Dmozilla-org"
+           data-link-type="download"
+           data-display-name="Android"
+           data-download-version="android"
+           data-download-os="Android"
+           
+           data-download-location="nav">
+          <strong class="download-title">
+            
+              Download Firefox
+            
+          </strong>
+        </a>
+      </li>
+    
+      <li class="os_ios">
+        <a class="download-link button button-green"
+           href="https://itunes.apple.com/us/app/apple-store/id989804926?pt=373246&amp;mt=8"
+           data-link-type="download"
+           data-display-name="iOS"
+           data-download-version="ios"
+           data-download-os="iOS"
+           
+           data-download-location="nav">
+          <strong class="download-title">
+            
+              Download Firefox
+            
+          </strong>
+        </a>
+      </li>
+    
+  </ul>
+  <small class="fx-privacy-link">
+     
+      
+    
+    <a href="/en-US/privacy/firefox/">Firefox Privacy Notice</a>
+  </small>
+</div>
+  </div>
+</nav>
+
+<nav class="moz-global-nav-drawer" id="moz-global-nav-drawer">
+
+  <button type="button" class="nav-drawer-close-button" id="nav-drawer-close-button" data-link-type="nav" data-link-position="close button" data-link-name="collapse" data-link-group="nav element">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 23.3 23.3" width="23" height="23">
+      <title>Close</title>
+      <g fill="#fff">
+        <rect x="8.7" y="8.7" class="rect center" width="6" height="6"></rect>
+        <rect x="8.7" y="8.7" class="rect top-left" width="6" height="6"></rect>
+        <rect x="8.7" y="8.7" class="rect top-right" width="6" height="6"></rect>
+        <rect x="8.7" y="8.7" class="rect bottom-left" width="6" height="6"></rect>
+        <rect x="8.7" y="8.7" class="rect bottom-right" width="6" height="6"></rect>
+      </g>
+    </svg>
+  </button>
+
+  <div class="nav-menu-inner-container">
+    <div class="nav-menu-scroll-pane">
+      <ul class="nav-menu-primary-links">
+        <li class="item-firefox">
+          <h3 class="summary" data-id="firefox">
+            <a href="/en-US/firefox/" data-link-type="nav" data-link-position="side" data-link-name="expand" data-link-group="Firefox">Firefox</a>
+          </h3>
+          <div class="detail">
+            <div class="detail-container">
+              <p class="intro">
+                Get the only browser built for people, not profit.
+              </p>
+              <ul class="nav-menu-secondary-links">
+                <li>
+                  <a href="/en-US/firefox/" data-link-type="nav" data-link-name="Desktop" data-link-group="Firefox">
+                    Desktop
+                  </a>
+                </li>
+                <li>
+                  <a href="/en-US/firefox/mobile/" data-link-type="nav" data-link-name="Mobile" data-link-group="Firefox">
+                    Mobile
+                  </a>
+                </li>
+                <li>
+                  <a href="https://addons.mozilla.org/firefox/?utm_source=www.mozilla.org&amp;utm_medium=referral&amp;utm_campaign=global-nav&amp;utm_content=extensions" data-link-type="nav" data-link-name="Extensions" data-link-group="Firefox">
+                    Extensions
+                  </a>
+                </li>
+                <li>
+                  <a href="https://support.mozilla.org/?utm_source=www.mozilla.org&amp;utm_medium=referral&amp;utm_campaign=global-nav&amp;utm_content=support" data-link-type="nav" data-link-name="Support" data-link-group="Firefox">
+                    Support
+                  </a>
+                </li>
+                <li>
+                  <a href="https://blog.mozilla.org/firefox/?utm_source=www.mozilla.org&amp;utm_medium=referral&amp;utm_campaign=global-nav&amp;utm_content=blog" data-link-type="nav" data-link-name="Blog" data-link-group="Firefox">
+                    Blog
+                  </a>
+                </li>
+              </ul>
+
+              
+
+            </div>
+          </div>
+        </li>
+        <li class="item-pocket">
+          <h3 class="summary" data-id="pocket">
+            <a href="https://getpocket.com/?utm_source=www.mozilla.org&amp;utm_medium=referral&amp;utm_campaign=global-nav&amp;utm_content=pocket" data-link-type="nav" data-link-position="side" data-link-name="expand" data-link-group="Pocket">Pocket</a>
+          </h3>
+          <div class="detail">
+            <div class="detail-container">
+              <p class="intro">
+                When you find something you want to view later, put it in Pocket.
+              </p>
+
+              <ul class="nav-menu-secondary-links">
+                <li>
+                  <a href="https://getpocket.com/?utm_source=www.mozilla.org&amp;utm_medium=referral&amp;utm_campaign=global-nav&amp;utm_content=pocket" data-link-type="nav" data-link-name="Get Pocket" data-link-group="Pocket">
+                    Get Pocket
+                  </a>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </li>
+        <li class="item-internet-health">
+          <h3 class="summary" data-id="internet-health">
+            <a href="/en-US/internet-health/" data-link-type="nav" data-link-position="side" data-link-name="expand" data-link-group="Internet Health">Internet Health</a>
+          </h3>
+          <div class="detail">
+            <div class="detail-container">
+              <p class="intro">
+                Internet Health is crucial for the world to thrive. A healthy Internet is one that is private, inclusive, and collaborative.
+              </p>
+
+              <ul class="nav-menu-secondary-links">
+                <li>
+                  <a href="/en-US/internet-health/" data-link-type="nav" data-link-name="About" data-link-group="Internet Health">
+                    About
+                  </a>
+                </li>
+                <li>
+                  <a href="/en-US/internet-health/privacy-security/" data-link-type="nav" data-link-name="Privacy & Security" data-link-group="Internet Health">
+                    Privacy &amp; Security
+                  </a>
+                </li>
+                <li>
+                  <a href="/en-US/internet-health/open-innovation/" data-link-type="nav" data-link-name="Openness" data-link-group="Internet Health">
+                    Openness
+                  </a>
+                </li>
+                <li>
+                  <a href="/en-US/internet-health/decentralization/" data-link-type="nav" data-link-name="Decentralization" data-link-group="Internet Health">
+                    Decentralization
+                  </a>
+                </li>
+                <li>
+                  <a href="/en-US/internet-health/digital-inclusion/" data-link-type="nav" data-link-name="Digital Inclusion" data-link-group="Internet Health">
+                    Digital Inclusion
+                  </a>
+                </li>
+                <li>
+                  <a href="/en-US/internet-health/web-literacy/" data-link-type="nav" data-link-name="Web Literacy" data-link-group="Internet Health">
+                    Web Literacy
+                  </a>
+                </li>
+              </ul>
+
+              <aside class="nav-promo">
+                <span class="meta">Privacy</span>
+                <a class="thumbnail" href="https://blog.mozilla.org/internetcitizen/2017/01/25/facebook-privacy-tips/?utm_source=www.mozilla.org&amp;utm_medium=referral&amp;utm_campaign=global-nav&amp;utm_content=promo" data-link-type="nav" data-link-name="Nav Aritcle: Facebook privacy tips: How to share without oversharing" data-link-group="Nav Article">
+                  <figure>
+                    <img class="" src="/media/img/nav/promos/fb-share-tips.c00975453739.png" srcset="/media/img/nav/promos/fb-share-tips-high-res.7a8ae57456e7.png 1.5x" width="204" alt="" height="140">
+                    <figcaption>Facebook privacy tips: How to share without oversharing</figcaption>
+                  </figure>
+                </a>
+              </aside>
+
+              <aside class="nav-promo">
+                <span class="meta">Security</span>
+                <a class="thumbnail" href="https://blog.mozilla.org/internetcitizen/2017/01/25/better-password-security/?utm_source=www.mozilla.org&amp;utm_medium=referral&amp;utm_campaign=global-nav&amp;utm_content=promo" data-link-type="nav" data-link-name="Nav Aritcle: Don’t Get Pwned: A Guide to Safer Logins" data-link-group="Nav Article">
+                  <figure>
+                    <img class="" src="/media/img/nav/promos/safer-logins.a578d3224c76.png" srcset="/media/img/nav/promos/safer-logins-high-res.334164d6a2d1.png 1.5x" width="204" alt="" height="140">
+                    <figcaption>Don’t Get Pwned: A Guide to Safer Logins</figcaption>
+                  </figure>
+                </a>
+              </aside>
+            </div>
+          </div>
+        </li>
+        <li class="item-technology">
+          <h3 class="summary" data-id="technology">
+            <a href="/en-US/technology/" data-link-type="nav" data-link-position="side" data-link-name="expand" data-link-group="Technology">Technology</a>
+          </h3>
+          <div class="detail">
+            <div class="detail-container">
+              <p class="intro">
+                Participate and explore our latest innovations — technology built in the open and designed to help keep the Internet healthy.
+              </p>
+
+              <ul class="nav-menu-secondary-links">
+                <li>
+                  <a href="/en-US/technology/" data-link-type="nav" data-link-name="Web Innovations" data-link-group="Technology">
+                    Web Innovations
+                  </a>
+                </li>
+                <li>
+                    <a href="/en-US/developer/" data-link-type="nav" data-link-name="Developer Hub" data-link-group="Technology">Developer Hub</a>
+                </li>
+                <li>
+                  <a href="https://research.mozilla.org/?utm_source=www.mozilla.org&amp;utm_medium=referral&amp;utm_campaign=global-nav&amp;utm_content=Research" data-link-type="nav" data-link-name="Research" data-link-group="Technology">Research</a>
+                </li>
+                <li>
+                  <a href="https://vr.mozilla.org/?utm_source=www.mozilla.org&amp;utm_medium=referral&amp;utm_campaign=global-nav&amp;utm_content=VR" data-link-type="nav" data-link-name="Virtual Reality" data-link-group="Technology">Virtual Reality</a>
+                </li>
+                <li>
+                  <a href="https://games.mozilla.org/?utm_source=www.mozilla.org&amp;utm_medium=referral&amp;utm_campaign=global-nav&amp;utm_content=Games" data-link-type="nav" data-link-name="Games" data-link-group="Technology">Games</a>
+                </li>
+                <li>
+                  <a href="https://developer.mozilla.org/?utm_source=www.mozilla.org&amp;utm_medium=referral&amp;utm_campaign=global-nav&amp;utm_content=Documentation" data-link-type="nav" data-link-name="Documentation" data-link-group="Technology">Documentation</a>
+                </li>
+                <li>
+                  <a href="https://hacks.mozilla.org/?utm_source=www.mozilla.org&amp;utm_medium=referral&amp;utm_campaign=global-nav&amp;utm_content=HacksBlog" data-link-type="nav" data-link-name="Hacks Blog" data-link-group="Technology">Hacks blog</a>
+                </li>
+              </ul>
+
+              <aside class="nav-promo">
+                <span class="meta">Optimized for Design</span>
+                <a class="thumbnail" href="https://hacks.mozilla.org/2017/03/a-new-css-grid-demo-on-mozilla-org/?utm_source=www.mozilla.org&amp;utm_medium=referral&amp;utm_campaign=global-nav&amp;utm_content=promo" data-link-type="nav" data-link-name="Nav Aritcle: A new CSS Grid demo" data-link-group="Nav Article">
+                  <figure>
+                    <img class="" src="/media/img/nav/promos/css-grid-demo.519391163c6a.png" srcset="/media/img/nav/promos/css-grid-demo-high-res.88cb2739dd57.png 1.5x" width="204" alt="" height="140">
+                    <figcaption>A new CSS Grid demo</figcaption>
+                  </figure>
+                </a>
+              </aside>
+
+              <aside class="nav-promo">
+                <span class="meta">Game-changing Browser</span>
+                <a class="thumbnail web-assembly" href="https://blog.mozilla.org/blog/2017/03/07/lots-new-in-firefox-game-changing-webassembly-support/?utm_source=www.mozilla.org&amp;utm_medium=referral&amp;utm_campaign=global-nav&amp;utm_content=promo" data-link-type="nav" data-link-name="Nav Aritcle: Lots new in Firefox, including “game-changing” support for WebAssembly" data-link-group="Nav Article">
+                  <figure>
+                    <img class="" src="/media/img/nav/promos/web-assembly.899f5b709746.png" srcset="/media/img/nav/promos/web-assembly-high-res.0c9fb1dae497.png 1.5x" width="204" alt="" height="140">
+                    <figcaption>Lots new in Firefox, including support for WebAssembly</figcaption>
+                  </figure>
+                </a>
+              </aside>
+            </div>
+          </div>
+        </li>
+        <li class="item-about-us">
+          <h3 class="summary" data-id="about-us">
+            <a href="/en-US/about/" data-link-type="nav" data-link-position="side" data-link-name="expand" data-link-group="About Us">About Us</a>
+          </h3>
+          <div class="detail">
+            <div class="detail-container">
+              <p class="intro">
+                We’re Mozilla, the proudly non-profit champions of a healthy Internet – keeping it open and accessible to all.
+              </p>
+
+              <ul class="nav-menu-secondary-links">
+                <li>
+                  <a href="/en-US/mission/" data-link-type="nav" data-link-name="Our Mission" data-link-group="About Us">
+                    Our Mission
+                  </a>
+                </li>
+                <li>
+                  <a href="/en-US/about/history/" data-link-type="nav" data-link-name="Our History" data-link-group="About Us">
+                    Our History
+                  </a>
+                </li>
+                <li>
+                  <a href="/en-US/about/leadership/" data-link-type="nav" data-link-name="Our Leadership" data-link-group="About Us">
+                    Leadership
+                  </a>
+                </li>
+                <li>
+                  <a href="/en-US/foundation/" data-link-type="nav" data-link-name="Foundation" data-link-group="About Us">
+                    Foundation
+                  </a>
+                </li>
+                <li>
+                  <a href="https://blog.mozilla.org/?utm_source=www.mozilla.org&amp;utm_medium=referral&amp;utm_campaign=global-nav&amp;utm_content=blogs" data-link-type="nav" data-link-name="Blogs" data-link-group="About Us">
+                    Blogs
+                  </a>
+                </li>
+                <li>
+                  <a href="https://careers.mozilla.org/?utm_source=www.mozilla.org&amp;utm_medium=referral&amp;utm_campaign=global-nav&amp;utm_content=careers" data-link-type="nav" data-link-name="Careers" data-link-group="About Us">
+                    Careers
+                  </a>
+                </li>
+                <li>
+                  <a href="/en-US/contact/" data-link-type="nav" data-link-name="Contact Us" data-link-group="About Us">
+                    Contact Us
+                  </a>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </li>
+        <li class="item-get-involved">
+          <h3 class="summary" data-id="get-involved">
+            <a href="/en-US/contribute/" data-link-type="nav" data-link-position="side" data-link-name="expand" data-link-group="Get Involved">Get Involved</a>
+          </h3>
+          <div class="detail">
+            <div class="detail-container">
+              <p class="intro">
+                You can help Mozilla keep the Internet healthy – attend an event, volunteer, or make a donation.
+              </p>
+
+              <ul class="nav-menu-secondary-links">
+                <li>
+                  <a href="https://donate.mozilla.org/en-US/?presets=50,30,20,10&amp;amount=30&amp;utm_source=mozilla.org&amp;utm_medium=referral&amp;utm_content=global-nav&amp;currency=usd" data-link-type="nav" data-link-name="Give" data-link-group="Get Involved">
+                    Give
+                  </a>
+                </li>
+                <li>
+                  <a href="/en-US/contribute/" data-link-type="nav" data-link-name="Volunteer" data-link-group="Get Involved">
+                    Volunteer
+                  </a>
+                </li>
+                <li>
+                  <a href="/en-US/contribute/events/" data-link-type="nav" data-link-name="Events" data-link-group="Get Involved">
+                    Events
+                  </a>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </li>
+      </ul>
+    </div><!-- close .nav-menu-scroll-pane -->
+  </div><!-- close .nav-menu-inner-container -->
+</nav>
+  
+<div id="outer-wrapper">
+    
+  
+<nav class="moz-sub-nav firefox" role="navigation">
+  <div class="nav-horizontal-menu-container">
+    <div class="nav-horizontal-menu">
+      <div class="sub-nav-primary-links-container">
+        
+<a class="sub-nav-logo-link" href="/en-US/firefox/" data-link-name="Firefox" data-link-type="nav" data-link-position="subnav">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="26" height="26">
+    <title>Firefox</title>
+    <path class="sub-nav-logo-path" fill="context-fill" d="M31.91 14.63c0-.29-.09-.46-.09-.46s-.11.13-.3.38a10.8 10.8 0 0 0-.37-2 13.88 13.88 0 0 0-.94-2.42 10.08 10.08 0 0 0-.86-1.47L29 8.1c-.57-.93-1.23-1.5-2-2.58a7.83 7.83 0 0 1-1-2.69 10.88 10.88 0 0 0-.48 1.76c-.78-.79-1.46-1.35-1.87-1.73C21.65 1 21.88 0 21.88 0s-3.77 4.21-2.14 8.6a8.43 8.43 0 0 0 2.81 3.74c1.58 1.3 3.28 2.33 4.18 5A8.4 8.4 0 0 0 23.58 14a7.59 7.59 0 0 1 .6 3 7.14 7.14 0 0 1-8.74 7 6.58 6.58 0 0 1-1.77-.6 7.2 7.2 0 0 1-2.12-2h.13c.294.1.595.182.9.24a5.64 5.64 0 0 0 3.59-.42c1.13-.63 1.81-1.09 2.37-.91.54.17 1-.35.58-.9a3 3 0 0 0-2.86-1.11c-1.13.16-2.17 1-3.65.19l-.28-.16c-.1-.06.32.09.22 0a7.35 7.35 0 0 1-.93-.56s.22.07.2.05a3.59 3.59 0 0 1-1-1 1.75 1.75 0 0 1-.07-1.56 1.38 1.38 0 0 1 .6-.57l.31.17-.13-.24c.17.07.54.26.73.38a1 1 0 0 1 .34.3s.07 0 0-.17a.91.91 0 0 0-.35-.42 3 3 0 0 1 .43.27 2.09 2.09 0 0 0 .32-.88 1.18 1.18 0 0 0-.07-.5c-.05-.1 0-.14.12 0a1 1 0 0 0-.08-.24l.08-.09a1.43 1.43 0 0 1 .22-.18 10 10 0 0 1 1.47-.75l.83-.36c.103-.07.2-.146.29-.23a2 2 0 0 0 .66-1.14 1.59 1.59 0 0 0 0-.18c-.06-.23-.45-.39-2.48-.59a1.78 1.78 0 0 1-1.45-1.36l-.08.23.08-.23a5.15 5.15 0 0 1 2-2.47h-.16a5.18 5.18 0 0 1 .53-.23c.09 0-.39-.22-.82-.18a2.2 2.2 0 0 0-.76.18c.1-.09.4-.2.33-.2a4.88 4.88 0 0 0-1.57.42.31.31 0 0 1 0-.14 2.41 2.41 0 0 0-1 .75 1.29 1.29 0 0 0 0-.17 2.88 2.88 0 0 0-.47.45 6.3 6.3 0 0 0-3.53-.3 3 3 0 0 1-.63-.7c-.08-.11-.16-.24-.24-.39l-.18-.34s0 .11-.06.08a4.32 4.32 0 0 1-.28-1.69 1.89 1.89 0 0 0-.72.94c-.06.14-.1.21-.14.29-.04.08 0-.21 0-.2a1.74 1.74 0 0 0-.25.37 2.37 2.37 0 0 0-.15.38v-.17a9.53 9.53 0 0 0-.81 3 3 3 0 0 0 0 .54 6.64 6.64 0 0 0-.82 1.1 15.65 15.65 0 0 0-1.74 4.26A10.38 10.38 0 0 1 2 12.43a15 15 0 0 0-1 5.51 14.26 14.26 0 0 1 .45-1.63A13.85 13.85 0 0 0 2.7 22.8a15.08 15.08 0 0 0 6 6.77 13.06 13.06 0 0 0 3.48 1.67l.5.17-.15-.07A15.75 15.75 0 0 0 17 32c5.41 0 7.2-2.06 7.36-2.27a2.74 2.74 0 0 0 .64-.86l.32-.14h.07l.12-.06a11.35 11.35 0 0 0 2.28-1.43 5.51 5.51 0 0 0 2.13-3.11 1.94 1.94 0 0 0 0-1.43l.17-.28A12.74 12.74 0 0 0 32 16.2v-.18a7.76 7.76 0 0 0-.09-1.39z"/>
+  </svg>
+</a>
+
+        <ul class="sub-nav-primary-links">
+          
+  
+  <li><a  href="/en-US/firefox/" data-link-name="Desktop" data-link-type="nav" data-link-position="subnav">Desktop</a></li>
+  <li><a  href="/en-US/firefox/mobile/" data-link-name="Mobile" data-link-type="nav" data-link-position="subnav">Mobile</a></li>
+  <li><a href="https://addons.mozilla.org/firefox/?utm_source=www.mozilla.org&amp;utm_medium=referral&amp;utm_campaign=fx-sub-nav" data-link-name="Extensions" data-link-type="nav" data-link-position="subnav">Extensions</a></li>
+  <li><a href="https://support.mozilla.org/?utm_source=www.mozilla.org&amp;utm_medium=referral&amp;utm_campaign=fx-sub-nav" data-link-name="Support" data-link-type="nav" data-link-position="subnav">Support</a></li>
+  <li><a href="https://blog.mozilla.org/firefox/?utm_source=www.mozilla.org&amp;utm_medium=referral&amp;utm_campaign=fx-sub-nav" data-link-name="Blog" data-link-type="nav" data-link-position="subnav">Blog</a></li>
+
+        </ul>
+      </div>
+      <div class="sub-nav-download-wrapper">
+        
+
+
+
+
+
+
+
+
+<div id="sub-nav-download-firefox" class="download-button">
+  
+  <div class="nojs-download">
+    
+  <div class="download download-dumb">
+    <p role="heading" class="download-heading">
+      
+        Download Firefox
+        — English (US)
+    </p>
+    <ul>
+      <li><a href="https://download-sha1.allizom.org/?product=firefox-stub&amp;os=win&amp;lang=en-US"
+               class="download-link button button-green"
+               data-link-type="download"
+               data-download-version="winsha1"
+               data-download-os="Desktop">Windows (XP/Vista)</a>
+        </li><li><a href="https://download.mozilla.org/?product=firefox-stub&amp;os=win64&amp;lang=en-US"
+               class="download-link button button-green"
+               data-link-type="download"
+               data-download-version="win64"
+               data-download-os="Desktop">Windows 64-bit</a>
+        </li><li><a href="https://download.mozilla.org/?product=firefox-stub&amp;os=win&amp;lang=en-US"
+               class="download-link button button-green"
+               data-link-type="download"
+               data-download-version="win"
+               data-download-os="Desktop">Windows 32-bit</a>
+        </li><li><a href="https://download.mozilla.org/?product=firefox-latest-ssl&amp;os=osx&amp;lang=en-US"
+               class="download-link button button-green"
+               data-link-type="download"
+               data-download-version="osx"
+               data-download-os="Desktop">macOS</a>
+        </li><li><a href="https://download.mozilla.org/?product=firefox-latest-ssl&amp;os=linux64&amp;lang=en-US"
+               class="download-link button button-green"
+               data-link-type="download"
+               data-download-version="linux64"
+               data-download-os="Desktop">Linux 64-bit</a>
+        </li><li><a href="https://download.mozilla.org/?product=firefox-latest-ssl&amp;os=linux&amp;lang=en-US"
+               class="download-link button button-green"
+               data-link-type="download"
+               data-download-version="linux"
+               data-download-os="Desktop">Linux 32-bit</a>
+        </li><li><a href="https://play.google.com/store/apps/details?id=org.mozilla.firefox&amp;referrer=utm_source%3Dmozilla%26utm_medium%3DReferral%26utm_campaign%3Dmozilla-org"
+               class="download-link button button-green"
+               data-link-type="download"
+               data-download-version="android"
+               data-download-os="Android"
+               >Android</a>
+        </li><li><a href="https://itunes.apple.com/us/app/apple-store/id989804926?pt=373246&amp;mt=8"
+               class="download-link button button-green"
+               data-link-type="download"
+               data-download-version="ios"
+               data-download-os="iOS"
+               >iOS</a>
+        </li>
+    </ul>
+  </div>
+
+  </div>
+  
+    
+    <div class="unrecognized-download">
+      <p>Your system may not meet the requirements for Firefox, but you can try one of these versions:</p>
+      
+  <div class="download download-dumb">
+    <p role="heading" class="download-heading">
+      
+        Download Firefox
+        — English (US)
+    </p>
+    <ul>
+      <li><a href="https://download-sha1.allizom.org/?product=firefox-stub&amp;os=win&amp;lang=en-US"
+               class="download-link button button-green"
+               data-link-type="download"
+               data-download-version="winsha1"
+               data-download-os="Desktop">Windows (XP/Vista)</a>
+        </li><li><a href="https://download.mozilla.org/?product=firefox-stub&amp;os=win64&amp;lang=en-US"
+               class="download-link button button-green"
+               data-link-type="download"
+               data-download-version="win64"
+               data-download-os="Desktop">Windows 64-bit</a>
+        </li><li><a href="https://download.mozilla.org/?product=firefox-stub&amp;os=win&amp;lang=en-US"
+               class="download-link button button-green"
+               data-link-type="download"
+               data-download-version="win"
+               data-download-os="Desktop">Windows 32-bit</a>
+        </li><li><a href="https://download.mozilla.org/?product=firefox-latest-ssl&amp;os=osx&amp;lang=en-US"
+               class="download-link button button-green"
+               data-link-type="download"
+               data-download-version="osx"
+               data-download-os="Desktop">macOS</a>
+        </li><li><a href="https://download.mozilla.org/?product=firefox-latest-ssl&amp;os=linux64&amp;lang=en-US"
+               class="download-link button button-green"
+               data-link-type="download"
+               data-download-version="linux64"
+               data-download-os="Desktop">Linux 64-bit</a>
+        </li><li><a href="https://download.mozilla.org/?product=firefox-latest-ssl&amp;os=linux&amp;lang=en-US"
+               class="download-link button button-green"
+               data-link-type="download"
+               data-download-version="linux"
+               data-download-os="Desktop">Linux 32-bit</a>
+        </li><li><a href="https://play.google.com/store/apps/details?id=org.mozilla.firefox&amp;referrer=utm_source%3Dmozilla%26utm_medium%3DReferral%26utm_campaign%3Dmozilla-org"
+               class="download-link button button-green"
+               data-link-type="download"
+               data-download-version="android"
+               data-download-os="Android"
+               >Android</a>
+        </li><li><a href="https://itunes.apple.com/us/app/apple-store/id989804926?pt=373246&amp;mt=8"
+               class="download-link button button-green"
+               data-link-type="download"
+               data-download-version="ios"
+               data-download-os="iOS"
+               >iOS</a>
+        </li>
+    </ul>
+  </div>
+
+    </div>
+    <p class="unsupported-download">
+      Your system doesn't meet the <a href="/en-US/firefox/system-requirements/">requirements</a> to run Firefox.
+    </p>
+    <p class="unsupported-download-osx">
+      Your system doesn't meet the <a href="https://support.mozilla.org/kb/firefox-osx">requirements</a> to run Firefox.
+    </p>
+    <p class="linux-arm-download">
+      Please follow <a href="https://support.mozilla.org/kb/install-firefox-linux">these instructions</a> to install Firefox.
+    </p>
+  
+  <ul class="download-list">
+    
+      <li class="os_winsha1">
+        <a class="download-link button button-green"
+           href="/firefox/new/?scene=2"
+           data-direct-link="https://download-sha1.allizom.org/?product=firefox-stub&amp;os=win&amp;lang=en-US"
+           data-link-type="download"
+           data-display-name="Windows (XP/Vista)"
+           data-download-version="winsha1"
+           data-download-os="Desktop"
+           data-download-location="sub nav">
+          <strong class="download-title">
+            
+              Download Firefox
+            
+          </strong>
+        </a>
+      </li>
+    
+      <li class="os_win64">
+        <a class="download-link button button-green"
+           href="/firefox/new/?scene=2"
+           data-direct-link="https://download.mozilla.org/?product=firefox-stub&amp;os=win64&amp;lang=en-US"
+           data-link-type="download"
+           data-display-name="Windows 64-bit"
+           data-download-version="win64"
+           data-download-os="Desktop"
+           data-download-location="sub nav">
+          <strong class="download-title">
+            
+              Download Firefox
+            
+          </strong>
+        </a>
+      </li>
+    
+      <li class="os_win">
+        <a class="download-link button button-green"
+           href="/firefox/new/?scene=2"
+           data-direct-link="https://download.mozilla.org/?product=firefox-stub&amp;os=win&amp;lang=en-US"
+           data-link-type="download"
+           data-display-name="Windows 32-bit"
+           data-download-version="win"
+           data-download-os="Desktop"
+           data-download-location="sub nav">
+          <strong class="download-title">
+            
+              Download Firefox
+            
+          </strong>
+        </a>
+      </li>
+    
+      <li class="os_osx">
+        <a class="download-link button button-green"
+           href="/firefox/new/?scene=2"
+           data-direct-link="https://download.mozilla.org/?product=firefox-latest-ssl&amp;os=osx&amp;lang=en-US"
+           data-link-type="download"
+           data-display-name="macOS"
+           data-download-version="osx"
+           data-download-os="Desktop"
+           data-download-location="sub nav">
+          <strong class="download-title">
+            
+              Download Firefox
+            
+          </strong>
+        </a>
+      </li>
+    
+      <li class="os_linux64">
+        <a class="download-link button button-green"
+           href="/firefox/new/?scene=2"
+           data-direct-link="https://download.mozilla.org/?product=firefox-latest-ssl&amp;os=linux64&amp;lang=en-US"
+           data-link-type="download"
+           data-display-name="Linux 64-bit"
+           data-download-version="linux64"
+           data-download-os="Desktop"
+           data-download-location="sub nav">
+          <strong class="download-title">
+            
+              Download Firefox
+            
+          </strong>
+        </a>
+      </li>
+    
+      <li class="os_linux">
+        <a class="download-link button button-green"
+           href="/firefox/new/?scene=2"
+           data-direct-link="https://download.mozilla.org/?product=firefox-latest-ssl&amp;os=linux&amp;lang=en-US"
+           data-link-type="download"
+           data-display-name="Linux 32-bit"
+           data-download-version="linux"
+           data-download-os="Desktop"
+           data-download-location="sub nav">
+          <strong class="download-title">
+            
+              Download Firefox
+            
+          </strong>
+        </a>
+      </li>
+    
+      <li class="os_android">
+        <a class="download-link button button-green"
+           href="https://play.google.com/store/apps/details?id=org.mozilla.firefox&amp;referrer=utm_source%3Dmozilla%26utm_medium%3DReferral%26utm_campaign%3Dmozilla-org"
+           data-link-type="download"
+           data-display-name="Android"
+           data-download-version="android"
+           data-download-os="Android"
+           
+           data-download-location="sub nav">
+          <strong class="download-title">
+            
+              Download Firefox
+            
+          </strong>
+        </a>
+      </li>
+    
+      <li class="os_ios">
+        <a class="download-link button button-green"
+           href="https://itunes.apple.com/us/app/apple-store/id989804926?pt=373246&amp;mt=8"
+           data-link-type="download"
+           data-display-name="iOS"
+           data-download-version="ios"
+           data-download-os="iOS"
+           
+           data-download-location="sub nav">
+          <strong class="download-title">
+            
+              Download Firefox
+            
+          </strong>
+        </a>
+      </li>
+    
+  </ul>
+  <small class="fx-privacy-link">
+     
+      
+    
+    <a href="/en-US/privacy/firefox/">Firefox Privacy Notice</a>
+  </small>
+</div>
+      </div>
+    </div>
+  </div>
+</nav>
+
+  <main role="main">
+
+  
+<header class="main-header">
+  <div class="content">
+    <div class="header-image">
+      <img class="" src="/media/img/firefox/features/quantum/devices.8cdcba18eb2f.png" srcset="/media/img/firefox/features/quantum/devices-high-res.2e6f34f06057.png 1.5x" width="721" alt="" height="553">
+    </div><div class="header-content">
+      <h1><span>Firefox features</span></h1>
+    
+      <p>Explore the features of the all new Firefox browser</p>
+    
+      <div class="header-download">
+        
+
+
+
+
+
+
+
+
+<div id="features-header-download" class="download-button">
+  
+  <div class="nojs-download">
+    
+  <div class="download download-dumb">
+    <p role="heading" class="download-heading">
+      
+        Download Firefox
+        — English (US)
+    </p>
+    <ul>
+      <li><a href="https://download-sha1.allizom.org/?product=firefox-stub&amp;os=win&amp;lang=en-US"
+               class="download-link button button-green"
+               data-link-type="download"
+               data-download-version="winsha1"
+               data-download-os="Desktop">Windows (XP/Vista)</a>
+        </li><li><a href="https://download.mozilla.org/?product=firefox-stub&amp;os=win64&amp;lang=en-US"
+               class="download-link button button-green"
+               data-link-type="download"
+               data-download-version="win64"
+               data-download-os="Desktop">Windows 64-bit</a>
+        </li><li><a href="https://download.mozilla.org/?product=firefox-stub&amp;os=win&amp;lang=en-US"
+               class="download-link button button-green"
+               data-link-type="download"
+               data-download-version="win"
+               data-download-os="Desktop">Windows 32-bit</a>
+        </li><li><a href="https://download.mozilla.org/?product=firefox-latest-ssl&amp;os=osx&amp;lang=en-US"
+               class="download-link button button-green"
+               data-link-type="download"
+               data-download-version="osx"
+               data-download-os="Desktop">macOS</a>
+        </li><li><a href="https://download.mozilla.org/?product=firefox-latest-ssl&amp;os=linux64&amp;lang=en-US"
+               class="download-link button button-green"
+               data-link-type="download"
+               data-download-version="linux64"
+               data-download-os="Desktop">Linux 64-bit</a>
+        </li><li><a href="https://download.mozilla.org/?product=firefox-latest-ssl&amp;os=linux&amp;lang=en-US"
+               class="download-link button button-green"
+               data-link-type="download"
+               data-download-version="linux"
+               data-download-os="Desktop">Linux 32-bit</a>
+        </li><li><a href="https://play.google.com/store/apps/details?id=org.mozilla.firefox&amp;referrer=utm_source%3Dmozilla%26utm_medium%3DReferral%26utm_campaign%3Dmozilla-org"
+               class="download-link button button-green"
+               data-link-type="download"
+               data-download-version="android"
+               data-download-os="Android"
+               >Android</a>
+        </li><li><a href="https://itunes.apple.com/us/app/apple-store/id989804926?pt=373246&amp;mt=8"
+               class="download-link button button-green"
+               data-link-type="download"
+               data-download-version="ios"
+               data-download-os="iOS"
+               >iOS</a>
+        </li>
+    </ul>
+  </div>
+
+  </div>
+  
+    
+    <div class="unrecognized-download">
+      <p>Your system may not meet the requirements for Firefox, but you can try one of these versions:</p>
+      
+  <div class="download download-dumb">
+    <p role="heading" class="download-heading">
+      
+        Download Firefox
+        — English (US)
+    </p>
+    <ul>
+      <li><a href="https://download-sha1.allizom.org/?product=firefox-stub&amp;os=win&amp;lang=en-US"
+               class="download-link button button-green"
+               data-link-type="download"
+               data-download-version="winsha1"
+               data-download-os="Desktop">Windows (XP/Vista)</a>
+        </li><li><a href="https://download.mozilla.org/?product=firefox-stub&amp;os=win64&amp;lang=en-US"
+               class="download-link button button-green"
+               data-link-type="download"
+               data-download-version="win64"
+               data-download-os="Desktop">Windows 64-bit</a>
+        </li><li><a href="https://download.mozilla.org/?product=firefox-stub&amp;os=win&amp;lang=en-US"
+               class="download-link button button-green"
+               data-link-type="download"
+               data-download-version="win"
+               data-download-os="Desktop">Windows 32-bit</a>
+        </li><li><a href="https://download.mozilla.org/?product=firefox-latest-ssl&amp;os=osx&amp;lang=en-US"
+               class="download-link button button-green"
+               data-link-type="download"
+               data-download-version="osx"
+               data-download-os="Desktop">macOS</a>
+        </li><li><a href="https://download.mozilla.org/?product=firefox-latest-ssl&amp;os=linux64&amp;lang=en-US"
+               class="download-link button button-green"
+               data-link-type="download"
+               data-download-version="linux64"
+               data-download-os="Desktop">Linux 64-bit</a>
+        </li><li><a href="https://download.mozilla.org/?product=firefox-latest-ssl&amp;os=linux&amp;lang=en-US"
+               class="download-link button button-green"
+               data-link-type="download"
+               data-download-version="linux"
+               data-download-os="Desktop">Linux 32-bit</a>
+        </li><li><a href="https://play.google.com/store/apps/details?id=org.mozilla.firefox&amp;referrer=utm_source%3Dmozilla%26utm_medium%3DReferral%26utm_campaign%3Dmozilla-org"
+               class="download-link button button-green"
+               data-link-type="download"
+               data-download-version="android"
+               data-download-os="Android"
+               >Android</a>
+        </li><li><a href="https://itunes.apple.com/us/app/apple-store/id989804926?pt=373246&amp;mt=8"
+               class="download-link button button-green"
+               data-link-type="download"
+               data-download-version="ios"
+               data-download-os="iOS"
+               >iOS</a>
+        </li>
+    </ul>
+  </div>
+
+    </div>
+    <p class="unsupported-download">
+      Your system doesn't meet the <a href="/en-US/firefox/system-requirements/">requirements</a> to run Firefox.
+    </p>
+    <p class="unsupported-download-osx">
+      Your system doesn't meet the <a href="https://support.mozilla.org/kb/firefox-osx">requirements</a> to run Firefox.
+    </p>
+    <p class="linux-arm-download">
+      Please follow <a href="https://support.mozilla.org/kb/install-firefox-linux">these instructions</a> to install Firefox.
+    </p>
+  
+  <ul class="download-list">
+    
+      <li class="os_winsha1">
+        <a class="download-link button button-green"
+           href="/firefox/new/?scene=2"
+           data-direct-link="https://download-sha1.allizom.org/?product=firefox-stub&amp;os=win&amp;lang=en-US"
+           data-link-type="download"
+           data-display-name="Windows (XP/Vista)"
+           data-download-version="winsha1"
+           data-download-os="Desktop"
+           data-download-location="primary cta">
+          <strong class="download-title">
+            
+              
+                
+                  Download Firefox
+                
+              
+            
+          </strong>
+        </a>
+      </li>
+    
+      <li class="os_win64">
+        <a class="download-link button button-green"
+           href="/firefox/new/?scene=2"
+           data-direct-link="https://download.mozilla.org/?product=firefox-stub&amp;os=win64&amp;lang=en-US"
+           data-link-type="download"
+           data-display-name="Windows 64-bit"
+           data-download-version="win64"
+           data-download-os="Desktop"
+           data-download-location="primary cta">
+          <strong class="download-title">
+            
+              
+                
+                  Download Firefox
+                
+              
+            
+          </strong>
+        </a>
+      </li>
+    
+      <li class="os_win">
+        <a class="download-link button button-green"
+           href="/firefox/new/?scene=2"
+           data-direct-link="https://download.mozilla.org/?product=firefox-stub&amp;os=win&amp;lang=en-US"
+           data-link-type="download"
+           data-display-name="Windows 32-bit"
+           data-download-version="win"
+           data-download-os="Desktop"
+           data-download-location="primary cta">
+          <strong class="download-title">
+            
+              
+                
+                  Download Firefox
+                
+              
+            
+          </strong>
+        </a>
+      </li>
+    
+      <li class="os_osx">
+        <a class="download-link button button-green"
+           href="/firefox/new/?scene=2"
+           data-direct-link="https://download.mozilla.org/?product=firefox-latest-ssl&amp;os=osx&amp;lang=en-US"
+           data-link-type="download"
+           data-display-name="macOS"
+           data-download-version="osx"
+           data-download-os="Desktop"
+           data-download-location="primary cta">
+          <strong class="download-title">
+            
+              
+                
+                  Download Firefox
+                
+              
+            
+          </strong>
+        </a>
+      </li>
+    
+      <li class="os_linux64">
+        <a class="download-link button button-green"
+           href="/firefox/new/?scene=2"
+           data-direct-link="https://download.mozilla.org/?product=firefox-latest-ssl&amp;os=linux64&amp;lang=en-US"
+           data-link-type="download"
+           data-display-name="Linux 64-bit"
+           data-download-version="linux64"
+           data-download-os="Desktop"
+           data-download-location="primary cta">
+          <strong class="download-title">
+            
+              
+                
+                  Download Firefox
+                
+              
+            
+          </strong>
+        </a>
+      </li>
+    
+      <li class="os_linux">
+        <a class="download-link button button-green"
+           href="/firefox/new/?scene=2"
+           data-direct-link="https://download.mozilla.org/?product=firefox-latest-ssl&amp;os=linux&amp;lang=en-US"
+           data-link-type="download"
+           data-display-name="Linux 32-bit"
+           data-download-version="linux"
+           data-download-os="Desktop"
+           data-download-location="primary cta">
+          <strong class="download-title">
+            
+              
+                
+                  Download Firefox
+                
+              
+            
+          </strong>
+        </a>
+      </li>
+    
+      <li class="os_android">
+        <a class="download-link button button-green"
+           href="https://play.google.com/store/apps/details?id=org.mozilla.firefox&amp;referrer=utm_source%3Dmozilla%26utm_medium%3DReferral%26utm_campaign%3Dmozilla-org"
+           data-link-type="download"
+           data-display-name="Android"
+           data-download-version="android"
+           data-download-os="Android"
+           
+           data-download-location="primary cta">
+          <strong class="download-title">
+            
+              
+                
+                  <span>Firefox</span> for Android
+                
+              
+            
+          </strong>
+        </a>
+      </li>
+    
+      <li class="os_ios">
+        <a class="download-link button button-green"
+           href="https://itunes.apple.com/us/app/apple-store/id989804926?pt=373246&amp;mt=8"
+           data-link-type="download"
+           data-display-name="iOS"
+           data-download-version="ios"
+           data-download-os="iOS"
+           
+           data-download-location="primary cta">
+          <strong class="download-title">
+            
+              
+                <span>Firefox</span> for iOS
+              
+            
+          </strong>
+        </a>
+      </li>
+    
+  </ul>
+  <small class="fx-privacy-link">
+     
+      
+    
+    <a href="/en-US/privacy/firefox/">Firefox Privacy Notice</a>
+  </small>
+</div>
+      </div>
+    </div></div></header>
+
+
+  
+<section class="fx-product-features-section">
+  <div class="content">
+    <h2>Features</h2>
+
+    <ul class="fx-product-features-list">
+      <li class="features-list-item extensions">
+        <a href="https://addons.mozilla.org/firefox/?utm_source=www.mozilla.org&amp;utm_medium=referral&amp;utm_campaign=fx-content-hub" data-link-type="link" data-link-name="Your favorite add-ons and extensions">
+          <h3>Your favorite add-ons and extensions</h3>
+        </a>
+      </li>
+      <li class="features-list-item customize">
+        <a href="https://addons.mozilla.org/firefox/themes/?utm_source=www.mozilla.org&amp;utm_medium=referral&amp;utm_campaign=fx-content-hub" data-link-type="link" data-link-name="Customize your browser">
+          <h3>Customize your browser</h3>
+        </a>
+      </li>
+      <li class="features-list-item sync">
+        <a href="/en-US/firefox/features/sync/" data-link-type="link" data-link-name="Sync between devices">
+          <h3>Sync between devices</h3>
+        </a>
+      </li>
+      <li class="features-list-item test-pilot">
+        <a href="https://testpilot.firefox.com/?utm_source=www.mozilla.org&amp;utm_medium=referral&amp;utm_campaign=fx-content-hub" data-link-type="link" data-link-name="Firefox Test Pilot">
+          <h3>Firefox Test Pilot</h3>
+        </a>
+      </li>
+    
+      <li class="features-list-item send-tabs">
+        <a href="/en-US/firefox/features/send-tabs/" data-link-type="link" data-link-name="Tabs that travel">
+          <h3>Tabs that travel</h3>
+        </a>
+      </li>
+    
+      <li class="features-list-item bookmarks">
+        <a href="/en-US/firefox/features/bookmarks/" data-link-type="link" data-link-name="Better bookmarks">
+          <h3>Better bookmarks</h3>
+        </a>
+      </li>
+      <li class="features-list-item private">
+        <a href="/en-US/firefox/features/private-browsing/" data-link-type="link" data-link-name="More powerful Private Browsing">
+          <h3>More powerful Private Browsing</h3>
+        </a>
+      </li>
+      <li class="features-list-item ad-blocking">
+        <a href="/en-US/firefox/features/private-browsing/" data-link-type="link" data-link-name="Ad tracker blocking">
+          <h3>Ad tracker blocking</h3>
+        </a>
+      </li>
+      <li class="features-list-item password-manager">
+        <a href="/en-US/firefox/features/password-manager/" data-link-type="link" data-link-name="Password Manager">
+          <h3>Password Manager</h3>
+        </a>
+      </li>
+      <li class="features-list-item memory">
+        <a href="/en-US/firefox/features/memory/" data-link-type="link" data-link-name="Balanced memory usage">
+          <h3>Balanced memory usage</h3>
+        </a>
+      </li>
+      <li class="features-list-item fast">
+        <a href="/en-US/firefox/features/fast/" data-link-type="link" data-link-name="Browse faster">
+          <h3>Browse faster</h3>
+        </a>
+      </li>
+    </ul>
+  </div>
+</section>
+
+<section class="fx-product-benefits-section">
+  <div class="benefits-heading content">
+  
+    <h2>Firefox Product Benefits</h2>
+  
+  </div>
+
+  <div class="content">
+    <ul class="fx-product-benefits-list">
+      <li class="features-list-item open-source">
+        <h3>Open source</h3>
+        <p>We’re always transparent.</p>
+        <p>
+          <a href="/en-US/firefox/features/independent/" class="cta-link" data-link-type="link" data-link-name="Open source">
+            See what makes us different
+          </a>
+        </p>
+      </li>
+      <li class="features-list-item mozilla">
+        <h3>By non-profit, Mozilla</h3>
+        <p>Protecting the health of the internet.</p>
+        <p>
+          <a href="/en-US/mission/" class="cta-link" data-link-type="link" data-link-name="By non-profit, Mozilla">
+            Read Mozilla’s mission
+          </a>
+        </p>
+      </li>
+      <li class="features-list-item independent">
+        <h3>Protect your rights</h3>
+        <p>We help keep corporate powers in check.</p>
+        <p>
+          <a href="/en-US/firefox/features/independent/" class="cta-link" data-link-type="link" data-link-name="Protect your yights">
+            Choose independence
+          </a>
+        </p>
+      </li>
+      <li class="features-list-item limited-data-collection">
+        <h3>Limited data collection</h3>
+        <p>Opted-in to privacy, so you can browse freely.</p>
+        <p>
+          <a href="/en-US/privacy/" class="cta-link" data-link-type="link" data-link-name="Limited data collection">
+            Read our privacy policy
+          </a>
+        </p>
+      </li>
+      <li class="features-list-item privacy">
+        <h3>More private</h3>
+        <p>We don’t sell access to your online data. Period.</p>
+        <p>
+          <a href="/en-US/firefox/features/private-browsing/" class="cta-link" data-link-type="link" data-link-name="More private">
+            Get Firefox for privacy
+          </a>
+        </p>
+      </li>
+    </ul>
+  </div>
+</section>
+
+
+  
+
+  <aside class="newsletter-container">
+    <div class="content">
+      <div id="newsletter-subscribe">
+        <div class="newsletter-title">
+          <h3>Hungry for more?</h3>
+          <p class="tagline">Get the latest &amp; greatest from Firefox delivered straight to your inbox.</p>
+        </div>
+        <div class="newsletter-form-content">
+          
+
+
+
+
+
+
+  
+    <div id="footer-email-errors" class="hidden">
+      <ul class="errorlist"></ul>
+    </div>
+  
+
+  <form class="billboard newsletter-form footer-newsletter-form"
+        id="newsletter-form" action="/en-US/newsletter/" method="post" data-spinner-color="#fff">
+    <input id="id_newsletters" maxlength="100" name="newsletters" type="hidden" value="mozilla-and-you" />
+    <input type="hidden" name="source_url" value="https://www.mozilla.org/en-US/firefox/features/?utm_campaign=redirect&amp;utm_content=learnmore-tab&amp;utm_medium=firefox-browser&amp;utm_source=firefox-browser">
+
+    
+
+    <div class="form-contents">
+      <div class="field field-email ">
+        <input id="id_email" name="email" placeholder="YOUR EMAIL HERE" required="required" type="email" />
+      </div>
+
+      <div id="form-details">
+        
+          <div class="field field-country">
+            <select aria-required="true" id="id_country" name="country" required="required">
+<option value="af">Afghanistan</option>
+<option value="qz">Akrotiri</option>
+<option value="al">Albania</option>
+<option value="dz">Algeria</option>
+<option value="as">American Samoa</option>
+<option value="ad">Andorra</option>
+<option value="ao">Angola</option>
+<option value="ai">Anguilla</option>
+<option value="aq">Antarctica</option>
+<option value="ag">Antigua and Barbuda</option>
+<option value="ar">Argentina</option>
+<option value="am">Armenia</option>
+<option value="aw">Aruba</option>
+<option value="xa">Ashmore and Cartier Islands</option>
+<option value="au">Australia</option>
+<option value="at">Austria</option>
+<option value="az">Azerbaijan</option>
+<option value="bs">Bahamas, The</option>
+<option value="bh">Bahrain</option>
+<option value="xb">Baker Island</option>
+<option value="bd">Bangladesh</option>
+<option value="bb">Barbados</option>
+<option value="qs">Bassas da India</option>
+<option value="by">Belarus</option>
+<option value="be">Belgium</option>
+<option value="bz">Belize</option>
+<option value="bj">Benin</option>
+<option value="bm">Bermuda</option>
+<option value="bt">Bhutan</option>
+<option value="bo">Bolivia</option>
+<option value="bq">Bonaire, Sint Eustatius, and Saba</option>
+<option value="ba">Bosnia and Herzegovina</option>
+<option value="bw">Botswana</option>
+<option value="bv">Bouvet Island</option>
+<option value="br">Brazil</option>
+<option value="io">British Indian Ocean Territory</option>
+<option value="bn">Brunei</option>
+<option value="bg">Bulgaria</option>
+<option value="bf">Burkina Faso</option>
+<option value="mm">Burma</option>
+<option value="bi">Burundi</option>
+<option value="cv">Cabo Verde</option>
+<option value="kh">Cambodia</option>
+<option value="cm">Cameroon</option>
+<option value="ca">Canada</option>
+<option value="ky">Cayman Islands</option>
+<option value="cf">Central African Republic</option>
+<option value="td">Chad</option>
+<option value="cl">Chile</option>
+<option value="cn">China</option>
+<option value="cx">Christmas Island</option>
+<option value="cp">Clipperton Island</option>
+<option value="cc">Cocos (Keeling) Islands</option>
+<option value="co">Colombia</option>
+<option value="km">Comoros</option>
+<option value="cg">Congo (Brazzaville)</option>
+<option value="cd">Congo (Kinshasa)</option>
+<option value="ck">Cook Islands</option>
+<option value="xc">Coral Sea Islands</option>
+<option value="cr">Costa Rica</option>
+<option value="hr">Croatia</option>
+<option value="cu">Cuba</option>
+<option value="cw">Curaçao</option>
+<option value="cy">Cyprus</option>
+<option value="cz">Czech Republic</option>
+<option value="ci">Côte d’Ivoire</option>
+<option value="dk">Denmark</option>
+<option value="xd">Dhekelia</option>
+<option value="dg">Diego Garcia</option>
+<option value="dj">Djibouti</option>
+<option value="dm">Dominica</option>
+<option value="do">Dominican Republic</option>
+<option value="ec">Ecuador</option>
+<option value="eg">Egypt</option>
+<option value="sv">El Salvador</option>
+<option value="gq">Equatorial Guinea</option>
+<option value="er">Eritrea</option>
+<option value="ee">Estonia</option>
+<option value="et">Ethiopia</option>
+<option value="xe">Europa Island</option>
+<option value="fk">Falkland Islands (Islas Malvinas)</option>
+<option value="fo">Faroe Islands</option>
+<option value="fj">Fiji</option>
+<option value="fi">Finland</option>
+<option value="fr">France</option>
+<option value="gf">French Guiana</option>
+<option value="pf">French Polynesia</option>
+<option value="tf">French Southern and Antarctic Lands</option>
+<option value="ga">Gabon</option>
+<option value="gm">Gambia, The</option>
+<option value="xg">Gaza Strip</option>
+<option value="ge">Georgia</option>
+<option value="de">Germany</option>
+<option value="gh">Ghana</option>
+<option value="gi">Gibraltar</option>
+<option value="qx">Glorioso Islands</option>
+<option value="gr">Greece</option>
+<option value="gl">Greenland</option>
+<option value="gd">Grenada</option>
+<option value="gp">Guadeloupe</option>
+<option value="gu">Guam</option>
+<option value="gt">Guatemala</option>
+<option value="gg">Guernsey</option>
+<option value="gn">Guinea</option>
+<option value="gw">Guinea-Bissau</option>
+<option value="gy">Guyana</option>
+<option value="ht">Haiti</option>
+<option value="hm">Heard Island and McDonald Islands</option>
+<option value="hn">Honduras</option>
+<option value="hk">Hong Kong</option>
+<option value="xh">Howland Island</option>
+<option value="hu">Hungary</option>
+<option value="is">Iceland</option>
+<option value="in">India</option>
+<option value="id">Indonesia</option>
+<option value="ir">Iran</option>
+<option value="iq">Iraq</option>
+<option value="ie">Ireland</option>
+<option value="im">Isle of Man</option>
+<option value="il">Israel</option>
+<option value="it">Italy</option>
+<option value="jm">Jamaica</option>
+<option value="xj">Jan Mayen</option>
+<option value="jp">Japan</option>
+<option value="xq">Jarvis Island</option>
+<option value="je">Jersey</option>
+<option value="xu">Johnston Atoll</option>
+<option value="jo">Jordan</option>
+<option value="qu">Juan de Nova Island</option>
+<option value="kz">Kazakhstan</option>
+<option value="ke">Kenya</option>
+<option value="xm">Kingman Reef</option>
+<option value="ki">Kiribati</option>
+<option value="kp">Korea, North</option>
+<option value="kr">Korea, South</option>
+<option value="xk">Kosovo</option>
+<option value="kw">Kuwait</option>
+<option value="kg">Kyrgyzstan</option>
+<option value="la">Laos</option>
+<option value="lv">Latvia</option>
+<option value="lb">Lebanon</option>
+<option value="ls">Lesotho</option>
+<option value="lr">Liberia</option>
+<option value="ly">Libya</option>
+<option value="li">Liechtenstein</option>
+<option value="lt">Lithuania</option>
+<option value="lu">Luxembourg</option>
+<option value="mo">Macau</option>
+<option value="mk">Macedonia</option>
+<option value="mg">Madagascar</option>
+<option value="mw">Malawi</option>
+<option value="my">Malaysia</option>
+<option value="mv">Maldives</option>
+<option value="ml">Mali</option>
+<option value="mt">Malta</option>
+<option value="mh">Marshall Islands</option>
+<option value="mq">Martinique</option>
+<option value="mr">Mauritania</option>
+<option value="mu">Mauritius</option>
+<option value="yt">Mayotte</option>
+<option value="mx">Mexico</option>
+<option value="fm">Micronesia, Federated States of</option>
+<option value="qm">Midway Islands</option>
+<option value="md">Moldova</option>
+<option value="mc">Monaco</option>
+<option value="mn">Mongolia</option>
+<option value="me">Montenegro</option>
+<option value="ms">Montserrat</option>
+<option value="ma">Morocco</option>
+<option value="mz">Mozambique</option>
+<option value="na">Namibia</option>
+<option value="nr">Nauru</option>
+<option value="xv">Navassa Island</option>
+<option value="np">Nepal</option>
+<option value="nl">Netherlands</option>
+<option value="nc">New Caledonia</option>
+<option value="nz">New Zealand</option>
+<option value="ni">Nicaragua</option>
+<option value="ne">Niger</option>
+<option value="ng">Nigeria</option>
+<option value="nu">Niue</option>
+<option value="nf">Norfolk Island</option>
+<option value="mp">Northern Mariana Islands</option>
+<option value="no">Norway</option>
+<option value="om">Oman</option>
+<option value="pk">Pakistan</option>
+<option value="pw">Palau</option>
+<option value="xl">Palmyra Atoll</option>
+<option value="pa">Panama</option>
+<option value="pg">Papua New Guinea</option>
+<option value="xp">Paracel Islands</option>
+<option value="py">Paraguay</option>
+<option value="pe">Peru</option>
+<option value="ph">Philippines</option>
+<option value="pn">Pitcairn Islands</option>
+<option value="pl">Poland</option>
+<option value="pt">Portugal</option>
+<option value="pr">Puerto Rico</option>
+<option value="qa">Qatar</option>
+<option value="re">Reunion</option>
+<option value="ro">Romania</option>
+<option value="ru">Russia</option>
+<option value="rw">Rwanda</option>
+<option value="bl">Saint Barthelemy</option>
+<option value="sh">Saint Helena, Ascension, and Tristan da Cunha</option>
+<option value="kn">Saint Kitts and Nevis</option>
+<option value="lc">Saint Lucia</option>
+<option value="mf">Saint Martin</option>
+<option value="pm">Saint Pierre and Miquelon</option>
+<option value="vc">Saint Vincent and the Grenadines</option>
+<option value="ws">Samoa</option>
+<option value="sm">San Marino</option>
+<option value="st">Sao Tome and Principe</option>
+<option value="sa">Saudi Arabia</option>
+<option value="sn">Senegal</option>
+<option value="rs">Serbia</option>
+<option value="sc">Seychelles</option>
+<option value="sl">Sierra Leone</option>
+<option value="sg">Singapore</option>
+<option value="sx">Sint Maarten</option>
+<option value="sk">Slovakia</option>
+<option value="si">Slovenia</option>
+<option value="sb">Solomon Islands</option>
+<option value="so">Somalia</option>
+<option value="za">South Africa</option>
+<option value="gs">South Georgia and South Sandwich Islands</option>
+<option value="ss">South Sudan</option>
+<option value="es">Spain</option>
+<option value="xs">Spratly Islands</option>
+<option value="lk">Sri Lanka</option>
+<option value="sd">Sudan</option>
+<option value="sr">Suriname</option>
+<option value="xr">Svalbard</option>
+<option value="sz">Swaziland</option>
+<option value="se">Sweden</option>
+<option value="ch">Switzerland</option>
+<option value="sy">Syria</option>
+<option value="tw">Taiwan</option>
+<option value="tj">Tajikistan</option>
+<option value="tz">Tanzania</option>
+<option value="th">Thailand</option>
+<option value="tl">Timor-Leste</option>
+<option value="tg">Togo</option>
+<option value="tk">Tokelau</option>
+<option value="to">Tonga</option>
+<option value="tt">Trinidad and Tobago</option>
+<option value="xt">Tromelin Island</option>
+<option value="tn">Tunisia</option>
+<option value="tr">Turkey</option>
+<option value="tm">Turkmenistan</option>
+<option value="tc">Turks and Caicos Islands</option>
+<option value="tv">Tuvalu</option>
+<option value="ug">Uganda</option>
+<option value="ua">Ukraine</option>
+<option value="ae">United Arab Emirates</option>
+<option value="gb">United Kingdom</option>
+<option value="us" selected="selected">United States</option>
+<option value="uy">Uruguay</option>
+<option value="uz">Uzbekistan</option>
+<option value="vu">Vanuatu</option>
+<option value="va">Vatican City</option>
+<option value="ve">Venezuela</option>
+<option value="vn">Vietnam</option>
+<option value="vg">Virgin Islands, British</option>
+<option value="vi">Virgin Islands, U.S.</option>
+<option value="qw">Wake Island</option>
+<option value="wf">Wallis and Futuna</option>
+<option value="xw">West Bank</option>
+<option value="eh">Western Sahara</option>
+<option value="ye">Yemen</option>
+<option value="zm">Zambia</option>
+<option value="zw">Zimbabwe</option>
+</select>
+          </div>
+        
+        
+          <div class="field field-language ">
+            <select aria-required="true" id="id_lang" name="lang" required="required">
+<option value="id">Bahasa Indonesia</option>
+<option value="de">Deutsch</option>
+<option value="en" selected="selected">English</option>
+<option value="es">Español</option>
+<option value="fr">Français</option>
+<option value="pl">Polski</option>
+<option value="pt">Português</option>
+<option value="ru">Русский</option>
+<option value="zh-TW">正體中文</option>
+</select>
+          </div>
+        
+        <div class="field field-format">
+          <label for="id_fmt_0"><input checked="checked" id="id_fmt_0" name="fmt" type="radio" value="H" /> HTML</label><label for="id_fmt_1"><input id="id_fmt_1" name="fmt" type="radio" value="T" /> Text</label>
+        </div>
+        <div class="field field-privacy ">
+          <label for="id_privacy" class="privacy-check-label"><input id="id_privacy" name="privacy" required="required" type="checkbox" /> <span class="title">I’m okay with Mozilla handling my info as explained in <a href="/privacy/websites/">this Privacy Notice</a></span></label>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-submit">
+      <button type="submit" id="footer_email_submit" class="form-button button-hollow button-light">
+        
+          
+            Sign Up Now
+          
+        
+      </button>
+
+      
+        <p class="form-details">
+          <small>We will only send you Mozilla-related information.</small>
+        </p>
+      
+
+    </div>
+
+    <div id="newsletter-spinner" class="hidden"></div>
+  </form>
+  <div id="newsletter-form-thankyou" class="thank billboard newsletter-form hidden">
+    
+      
+  <h3>Thanks!</h3>
+  <p>
+  If you haven’t previously confirmed a subscription to a Mozilla-related newsletter you may have to do so. Please check your inbox or your spam filter for an email from us.
+  </p>
+
+    
+  </div>
+
+        </div>
+      </div>
+    </div>
+  </aside>
+
+</main>
+
+
+    
+      <footer id="colophon" class="">
+  <div class="content">
+    <nav class="primary">
+      <div class="logo">
+        <a href="/en-US/" data-link-type="footer" data-link-name="Mozilla">Mozilla</a>
+      </div>
+      <section class="mozilla">
+        <h5>
+          <a href="/en-US/" data-link-type="footer" data-link-name="Mozilla">Mozilla</a>
+        </h5>
+        <ul class="mozilla-links">
+          <li><a href="/en-US/about/" data-link-type="footer" data-link-name="About">About</a></li>
+          <li><a href="https://blog.mozilla.org/" data-link-type="footer" data-link-name="Blog">Blog</a></li>
+          <li><a href="/en-US/contact/" data-link-type="footer" data-link-name="Contact Us">Contact Us</a></li>
+          <li><a href="https://donate.mozilla.org/en-US/?presets=50,30,20,10&amp;amount=30&amp;utm_source=mozilla.org&amp;utm_medium=referral&amp;utm_content=footer&amp;currency=usd" class="donate" data-link-type="footer" data-link-name="Donate">Donate</a></li>
+          <li><a href="https://wiki.mozilla.org/Webdev/GetInvolved/mozilla.org" data-link-type="footer" rel="nofollow" data-link-name="Contribute to this site">Contribute to this site</a></li>
+          
+          
+            <li><a href="https://github.com/mozilla/bedrock/tree/master/bedrock/firefox/templates/firefox/features/index.html" data-link-type="footer" rel="nofollow" data-link-name="Source code for this page">Source code for this page</a></li>
+          
+          <li>
+            <ul class="social-links">
+              <li><a class="twitter" href="https://twitter.com/mozilla" data-link-type="footer" data-link-name="Twitter (@mozilla)">Twitter<span> (@mozilla)</span></a></li>
+              <li><a class="facebook" href="https://www.facebook.com/mozilla" data-link-type="footer" data-link-name="Facebook (Mozilla)">Facebook<span> (Mozilla)</span></a></li>
+              <li><a class="instagram" href="https://www.instagram.com/mozilla/" data-link-type="footer" data-link-name="Instagram (@mozilla)">Instagram<span> (@mozilla)</span></a></li>
+            </ul>
+          </li>
+        </ul>
+      </section>
+      <section class="firefox">
+        <h5>
+          <a href="/en-US/firefox/" data-link-type="footer" data-link-name="Firefox">Firefox</a>
+        </h5>
+        <ul class="firefox-links">
+          <li><a href="/en-US/firefox/new/" data-link-type="footer" data-link-name="Download Firefox">Download Firefox</a></li>
+          <li><a href="/en-US/firefox/" data-link-type="footer" data-link-name="Desktop">Desktop</a></li>
+          <li><a href="/en-US/firefox/mobile/" data-link-type="footer" data-link-name="Mobile">Mobile</a></li>
+          <li><a href="/en-US/firefox/features/" data-link-type="footer" data-link-name="Features">Features</a></li>
+          <li><a href="/en-US/firefox/channel/desktop/" data-link-type="footer" data-link-name="Beta, Nightly, Developer Edition">Beta, Nightly, Developer Edition</a></li>
+          <li>
+            <ul class="social-links">
+              <li><a class="twitter" href="https://twitter.com/firefox" data-link-type="footer" data-link-name="Twitter (@firefox)">Twitter<span> (@firefox)</span></a></li>
+              <li><a class="facebook" href="https://www.facebook.com/Firefox" data-link-type="footer" data-link-name="Facebook (Firefox)">Facebook<span> (Firefox)</span></a></li>
+              <li><a class="youtube" href="https://www.youtube.com/firefoxchannel" data-link-type="footer" data-link-name="YouTube (firefoxchannel)">YouTube<span> (firefoxchannel)</span></a></li>
+            </ul>
+          </li>
+        </ul>
+      </section>
+    </nav>
+
+    <nav class="secondary">
+        <div class="small-links">
+          <ul>
+            
+              
+            
+            <li><a rel="nofollow" href="/en-US/privacy/websites/" data-link-type="footer" data-link-name="Privacy">Website Privacy Notice</a></li>
+            <li><a rel="nofollow" href="/en-US/privacy/websites/#cookies" data-link-type="footer" data-link-name="Cookies">Cookies</a></li>
+            <li><a rel="nofollow" href="/en-US/about/legal/" data-link-type="footer" data-link-name="Legal">Legal</a></li>
+          </ul>
+          <p class="license">Portions of this content are ©1998–2018 by individual mozilla.org contributors. Content available under a <a rel="license" href="/en-US/foundation/licensing/website-content/">Creative Commons license</a>.</p>
+        </div>
+        <div class="lang-switcher">
+          
+<form id="lang_form" method="get" action="#">
+  <label for="page-language-select">Language</label>
+  <select id="page-language-select" name="lang" dir="ltr">
+    
+      <option lang="an" value="an">aragonés</option>
+    
+      <option lang="ar" value="ar">عربي</option>
+    
+      <option lang="ast" value="ast">Asturianu</option>
+    
+      <option lang="az" value="az">Azərbaycanca</option>
+    
+      <option lang="azz" value="azz">nahuatl sierra norte Puebla</option>
+    
+      <option lang="be" value="be">Беларуская</option>
+    
+      <option lang="bg" value="bg">Български</option>
+    
+      <option lang="bs" value="bs">Bosanski</option>
+    
+      <option lang="cak" value="cak">Maya Kaqchikel</option>
+    
+      <option lang="cs" value="cs">Čeština</option>
+    
+      <option lang="cy" value="cy">Cymraeg</option>
+    
+      <option lang="da" value="da">Dansk</option>
+    
+      <option lang="de" value="de">Deutsch</option>
+    
+      <option lang="dsb" value="dsb">Dolnoserbšćina</option>
+    
+      <option lang="el" value="el">Ελληνικά</option>
+    
+      <option lang="en-GB" value="en-GB">English (British)</option>
+    
+      <option lang="en-US" value="en-US" selected>English</option>
+    
+      <option lang="eo" value="eo">Esperanto</option>
+    
+      <option lang="es-AR" value="es-AR">Español (de Argentina)</option>
+    
+      <option lang="es-CL" value="es-CL">Español (de Chile)</option>
+    
+      <option lang="es-ES" value="es-ES">Español (de España)</option>
+    
+      <option lang="es-MX" value="es-MX">Español (de México)</option>
+    
+      <option lang="et" value="et">Eesti keel</option>
+    
+      <option lang="eu" value="eu">Euskara</option>
+    
+      <option lang="fa" value="fa">فارسی</option>
+    
+      <option lang="ff" value="ff">Pulaar-Fulfulde</option>
+    
+      <option lang="fr" value="fr">Français</option>
+    
+      <option lang="fy-NL" value="fy-NL">Frysk</option>
+    
+      <option lang="ga-IE" value="ga-IE">Gaeilge</option>
+    
+      <option lang="gn" value="gn">Avañe'ẽ</option>
+    
+      <option lang="gu-IN" value="gu-IN">ગુજરાતી (ભારત)</option>
+    
+      <option lang="he" value="he">עברית</option>
+    
+      <option lang="hi-IN" value="hi-IN">हिन्दी (भारत)</option>
+    
+      <option lang="hr" value="hr">Hrvatski</option>
+    
+      <option lang="hsb" value="hsb">Hornjoserbsce</option>
+    
+      <option lang="hu" value="hu">magyar</option>
+    
+      <option lang="hy-AM" value="hy-AM">Հայերեն</option>
+    
+      <option lang="ia" value="ia">Interlingua</option>
+    
+      <option lang="id" value="id">Bahasa Indonesia</option>
+    
+      <option lang="it" value="it">Italiano</option>
+    
+      <option lang="ja" value="ja">日本語</option>
+    
+      <option lang="ka" value="ka">ქართული</option>
+    
+      <option lang="kab" value="kab">Taqbaylit</option>
+    
+      <option lang="kk" value="kk">Қазақ</option>
+    
+      <option lang="ko" value="ko">한국어</option>
+    
+      <option lang="lij" value="lij">Ligure</option>
+    
+      <option lang="lt" value="lt">Lietuvių</option>
+    
+      <option lang="ml" value="ml">മലയാളം</option>
+    
+      <option lang="mr" value="mr">मराठी</option>
+    
+      <option lang="ms" value="ms">Melayu</option>
+    
+      <option lang="nb-NO" value="nb-NO">Norsk bokmål</option>
+    
+      <option lang="nl" value="nl">Nederlands</option>
+    
+      <option lang="nn-NO" value="nn-NO">Norsk nynorsk</option>
+    
+      <option lang="pl" value="pl">Polski</option>
+    
+      <option lang="pt-BR" value="pt-BR">Português (do Brasil)</option>
+    
+      <option lang="pt-PT" value="pt-PT">Português (Europeu)</option>
+    
+      <option lang="rm" value="rm">rumantsch</option>
+    
+      <option lang="ro" value="ro">Română</option>
+    
+      <option lang="ru" value="ru">Русский</option>
+    
+      <option lang="sk" value="sk">slovenčina</option>
+    
+      <option lang="sl" value="sl">Slovenščina</option>
+    
+      <option lang="sq" value="sq">Shqip</option>
+    
+      <option lang="sr" value="sr">Српски</option>
+    
+      <option lang="sv-SE" value="sv-SE">Svenska</option>
+    
+      <option lang="ta" value="ta">தமிழ்</option>
+    
+      <option lang="th" value="th">ไทย</option>
+    
+      <option lang="tr" value="tr">Türkçe</option>
+    
+      <option lang="trs" value="trs">Triqui</option>
+    
+      <option lang="uk" value="uk">Українська</option>
+    
+      <option lang="vi" value="vi">Tiếng Việt</option>
+    
+      <option lang="zh-CN" value="zh-CN">中文 (简体)</option>
+    
+      <option lang="zh-TW" value="zh-TW">正體中文 (繁體)</option>
+    
+  </select>
+  <button type="submit">Go</button>
+</form>
+
+        </div>
+    </nav>
+  </div>
+</footer>
+    
+  </div>
+
+  <!--[if IE 9]>
+    <script type="text/javascript" src="/media/js/matchmedia-bundle.4bd52fa6725f.js" charset="utf-8"></script>
+  <![endif]-->
+
+    
+      <!--[if !lte IE 8]><!-->
+        <script type="text/javascript" src="/media/js/common-bundle.2c35c93e9158.js" charset="utf-8"></script>
+      <!--<![endif]-->
+
+      <!--[if lte IE 8]>
+        <script type="text/javascript" src="/media/js/common-ie8-bundle.6fefc7e4de15.js" charset="utf-8"></script>
+      <![endif]-->
+    
+
+    
+    
+      
+        <script type="text/javascript" src="/media/js/stub-attribution-bundle.51373cd8a0ad.js" charset="utf-8"></script>
+      
+    
+
+    <!--[if !lte IE 8]><!-->
+    
+  <script type="text/javascript" src="/media/js/firefox-features-hub-bundle.85aa8d1b8c28.js" charset="utf-8"></script>
+
+
+    
+    
+      
+        <script type="text/javascript" src="/media/js/firefox-update-notification-bundle.8108b97691e6.js" charset="utf-8"></script>
+      
+    
+
+    
+    <!--<![endif]-->
+  </body>
+</html>&"�@A      Z���Z���>�U�Z��'   �    :https://www.mozilla.org/en-US/firefox/features/?utm_campaign=redirect&utm_medium=firefox-browser&utm_source=firefox-browser&utm_content=learnmore-tab necko:classified 1 security-info FnhllAKWRHGAlo+ESXykKAAAAAAAAAAAwAAAAAAAAEaphjojH6pBabDSgSnsfLHeAAQAAgAAAAAAAAAAAAAAAAAAAAAB4vFIJp5wRkeyPxAQ9RJGKPqbqVvKO0mKuIl8ec8o/uhmCjImkVxP+7sgiYWmMt8F+O2DZM7ZTG6GukivU8OT5gAAAAEAAAf9MIIH+TCCBuGgAwIBAgIQCLTVuQqUkB24PV+Clbic+TANBgkqhkiG9w0BAQsFADB1MQswCQYDVQQGEwJVUzEVMBMGA1UEChMMRGlnaUNlcnQgSW5jMRkwFwYDVQQLExB3d3cuZGlnaWNlcnQuY29tMTQwMgYDVQQDEytEaWdpQ2VydCBTSEEyIEV4dGVuZGVkIFZhbGlkYXRpb24gU2VydmVyIENBMB4XDTE2MTEwOTAwMDAwMFoXDTE4MTExNDEyMDAwMFowggECMR0wGwYDVQQPDBRQcml2YXRlIE9yZ2FuaXphdGlvbjETMBEGCysGAQQBgjc8AgEDEwJVUzEbMBkGCysGAQQBgjc8AgECEwpDYWxpZm9ybmlhMREwDwYDVQQFEwhDMjc1OTIwODEeMBwGA1UECRMVNjUwIENhc3RybyBTdCBTdGUgMzAwMQ4wDAYDVQQREwU5NDA0MTELMAkGA1UEBhMCVVMxEzARBgNVBAgTCkNhbGlmb3JuaWExFjAUBgNVBAcTDU1vdW50YWluIFZpZXcxHDAaBgNVBAoTE01vemlsbGEgQ29ycG9yYXRpb24xFDASBgNVBAMTC21vemlsbGEub3JnMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAojTWgYqURVDP291yrYhgqecAn++PQjzOesgJkZoPQdd4JuJMxg4Cxbfp00qpjJv9DNWCoQsYGGRNyXL6Xmxy7PVwD5m+2C27ogOa0xSBP5hBr07CaqQ1yAJw0RKwGilLbiiSzJoy21AUyY/uKxKogfMM9nnTfF4TQaYkahyeOCjhoIXW2/nhoRvmzQkKtCc3kdKE64j8PgmeImu3nV4uw6XNj48umyuhHG+6G5Svt7d/DhSoTNKoiyigf4lLZuVCY3fwLVQh2Rx1Xz+cMpXLU6OIqdnZbDa9hlEFgN2C6MoSmcfo6BX8Ruvyzqc2f+FNDGwjCGiAlxes3ZhcSwFjsQIDAQABo4ID9DCCA/AwHwYDVR0jBBgwFoAUPdNQpdagre7zSmAKZdMh1Pj41g8wHQYDVR0OBBYEFCqAuKQ3S0o1NBRkMZ7we/y2w6CTMCcGA1UdEQQgMB6CC21vemlsbGEub3Jngg93d3cubW96aWxsYS5vcmcwDgYDVR0PAQH/BAQDAgWgMB0GA1UdJQQWMBQGCCsGAQUFBwMBBggrBgEFBQcDAjB1BgNVHR8EbjBsMDSgMqAwhi5odHRwOi8vY3JsMy5kaWdpY2VydC5jb20vc2hhMi1ldi1zZXJ2ZXItZzEuY3JsMDSgMqAwhi5odHRwOi8vY3JsNC5kaWdpY2VydC5jb20vc2hhMi1ldi1zZXJ2ZXItZzEuY3JsMEsGA1UdIAREMEIwNwYJYIZIAYb9bAIBMCowKAYIKwYBBQUHAgEWHGh0dHBzOi8vd3d3LmRpZ2ljZXJ0LmNvbS9DUFMwBwYFZ4EMAQEwgYgGCCsGAQUFBwEBBHwwejAkBggrBgEFBQcwAYYYaHR0cDovL29jc3AuZGlnaWNlcnQuY29tMFIGCCsGAQUFBzAChkZodHRwOi8vY2FjZXJ0cy5kaWdpY2VydC5jb20vRGlnaUNlcnRTSEEyRXh0ZW5kZWRWYWxpZGF0aW9uU2VydmVyQ0EuY3J0MAwGA1UdEwEB/wQCMAAwggH3BgorBgEEAdZ5AgQCBIIB5wSCAeMB4QB1AKS5CZC0GFgUh7sTosxncAo8NZgE+RvfuON3zQ7IDdwQAAABWEtou44AAAQDAEYwRAIgadQvTaz8vG28WPPQyoD32Nfvekz/WfdMdTjc88YcYC4CIBncp5Yqet7J3JSiNWJnbaeWtBvTjoO6vudBurSFaqWmAHYAaPaY+B9kgr46jO65KB1M/HFRXWeT1ETRCmesu09P+8QAAAFYS2i7XQAABAMARzBFAiEAxbQYHhg6zA3Q7Y1hdXNVtd2yaOg1g4iIV38VeG2WBoMCIAT2azrUy9ndA3hZPPk2hV8YTEItIocJB81F/J4wf2NMAHcAVhQGmi/XwuzT9eG9RLI+x0Z2ubyZEVzA75SYVdaJ0N0AAAFYS2i7+gAABAMASDBGAiEA4/5viFhhenp07noR8YSkvuiHF+D+6fmDhqcH2shxiboCIQCyPAVUuxnyrWK3PPDbqGx4YPi5i5DIQUbyT/UiqaOVtwB3AO5Lvbd1zmC64UJpH6vhnmajD35fsHLYgwDEe4l6qP3LAAABWEtovaIAAAQDAEgwRgIhAJ1S5/U2TqjMRHM8WLpZ+SRroBRoFXqLLj0kEffVe9MtAiEAgxkb74Z6pNVKx898PkNtxICcVRDah4loTSFsftgMAjYwDQYJKoZIhvcNAQELBQADggEBAAAxqPv0YMMRvgwOIKr5s6DqE4fUdkntQZn2y8VkLyNPodUP5s64ZbnNcceubSPwgqbrXAEVdn2YLyFde1j/npTRfvQH4nPjN8zmIdZFQ/7FYp9bTUFQbouea6gf8/pVUgIFa0945hikojNzIXATFynDFFarpx+h957jOGlfhkXqFEK0cPrikLhxDrI5LWDv8tcJSW971gDngSY8N3htFgvDkCMVhBuQM02UTW++WuCe5rzWk8vQ3NfJoqy3Vm3YhRpOTF3UFbTXCpmzAb1hgt+iz4k1soCJo9YwOewwd5aS8Bk2+vjtOafBNN6UdLa4WjRX+JnX5wIANzL9azCzLUfALwADAAAAAQEBAAA= request-method GET request-Accept-Encoding gzip, deflate, br response-head HTTP/2.0 200 OK
+Date: Mon, 26 Mar 2018 13:59:43 GMT
+Content-Type: text/html; charset=utf-8
+Cache-Control: max-age=600
+content-security-policy: script-src 'self' *.mozilla.net *.mozilla.org *.mozilla.com 'unsafe-inline' 'unsafe-eval' *.optimizely.com optimizely.s3.amazonaws.com www.googletagmanager.com www.google-analytics.com tagmanager.google.com www.youtube.com s.ytimg.com; img-src 'self' *.mozilla.net *.mozilla.org *.mozilla.com data: *.optimizely.com www.googletagmanager.com www.google-analytics.com creativecommons.org ad.doubleclick.net; default-src 'self' *.mozilla.net *.mozilla.org *.mozilla.com; frame-src *.optimizely.com www.googletagmanager.com www.google-analytics.com www.youtube-nocookie.com trackertest.org www.surveygizmo.com accounts.firefox.com accounts.firefox.com.cn www.youtube.com; style-src 'self' *.mozilla.net *.mozilla.org *.mozilla.com 'unsafe-inline'; connect-src 'self' *.mozilla.net *.mozilla.org *.mozilla.com *.optimizely.com www.googletagmanager.com www.google-analytics.com; child-src *.optimizely.com www.googletagmanager.com www.google-analytics.com www.youtube-nocookie.com trackertest.org www.surveygizmo.com accounts.firefox.com accounts.firefox.com.cn www.youtube.com
+Etag: "30df4307ea27936a7a8f299bd8eec794"
+Expires: Fri, 23 Mar 2018 19:30:59 GMT
+Strict-Transport-Security: max-age=31536000
+x-backend-server: bedrock-prod-web-4101433953-vxwcw.bedrock-prod.tokyo.moz.works
+x-clacks-overhead: GNU Terry Pratchett
+x-content-type-options: nosniff
+x-frame-options: DENY
+x-robots-tag: noodp
+x-xss-protection: 1; mode=block
+cf-cache-status: HIT
+Vary: Accept-Encoding
+expect-ct: max-age=604800, report-uri="https://report-uri.cloudflare.com/cdn-cgi/beacon/expect-ct"
+Server: cloudflare
+cf-ray: 401a23ae2d46a308-HKG
+X-Firefox-Spdy: h2
+ charset UTF-8 uncompressed-len 0 predictor::resource-count 49 predictor::https://www.mozilla.org/media/js/site-bundle.5f2462a3ca26.js 1,1,1522072783,0 predictor::https://www.mozilla.org/media/css/pebbles-bundle.c605f88c83f2.css 1,1,1522072783,0 predictor::https://www.mozilla.org/media/css/firefox-features-hub-common-bundle.fe17d0944cb3.css 1,1,1522072783,0 predictor::https://www.mozilla.org/media/css/firefox-features-index-bundle.faa6ccaa022d.css 1,1,1522072783,0 predictor::https://www.mozilla.org/media/js/gtm-snippet-bundle.e956015fe7f3.js 1,1,1522072783,0 predictor::https://www.mozilla.org/media/img/nav/promos/fb-share-tips.c00975453739.png 1,1,1522072783,0 predictor::https://www.mozilla.org/media/img/nav/promos/safer-logins.a578d3224c76.png 1,1,1522072783,0 predictor::https://www.mozilla.org/media/img/nav/promos/css-grid-demo.519391163c6a.png 1,1,1522072783,0 predictor::https://www.mozilla.org/media/img/nav/promos/web-assembly.899f5b709746.png 1,1,1522072783,0 predictor::https://www.mozilla.org/media/img/firefox/features/quantum/devices.8cdcba18eb2f.png 1,1,1522072783,0 predictor::https://www.mozilla.org/media/js/common-bundle.2c35c93e9158.js 1,1,1522072783,0 predictor::https://www.mozilla.org/media/js/stub-attribution-bundle.51373cd8a0ad.js 1,1,1522072783,0 predictor::https://www.mozilla.org/media/js/firefox-features-hub-bundle.85aa8d1b8c28.js 1,1,1522072783,0 predictor::https://www.mozilla.org/media/js/firefox-update-notification-bundle.8108b97691e6.js 1,1,1522072783,0 predictor::https://www.googletagmanager.com/gtm.js?id=GTM-MW3R8V&l=dataLayer 1,1,1522072783,0 predictor::https://www.mozilla.org/media/img/favicon/favicon-196x196.c80e6abe0767.png 1,1,1522072783,0 predictor::https://www.mozilla.org/media/img/nav/subnav-expand.023729cb5b3a.svg 1,1,1522072783,0 predictor::https://www.mozilla.org/media/img/firefox/quantum/fox-tail-header.075d5293f79a.png 1,1,1522072783,0 predictor::https://www.mozilla.org/media/img/logos/firefox/logo-quantum.9c5e96634f92.png 1,1,1522072783,0 predictor::https://www.mozilla.org/media/img/firefox/features/quantum/wave.64b1c0963d4f.png 1,1,1522072783,0 predictor::https://www.mozilla.org/media/img/firefox/features/quantum/icons/extensions-blue.0d004834b838.svg 1,1,1522072783,0 predictor::https://www.mozilla.org/media/img/firefox/features/quantum/icons/customize-blue.c474d0cb25d5.svg 1,1,1522072783,0 predictor::https://www.mozilla.org/media/img/firefox/features/quantum/icons/sync-blue.80ec639e1093.svg 1,1,1522072783,0 predictor::https://www.mozilla.org/media/img/firefox/features/quantum/icons/test-pilot-blue.c5f05df68270.svg 1,1,1522072783,0 predictor::https://www.mozilla.org/media/img/firefox/features/quantum/icons/send-tabs-blue.bd78c78f5531.svg 1,1,1522072783,0 predictor::https://www.mozilla.org/media/img/firefox/features/quantum/icons/bookmarks-blue.6eafd9c6aa51.svg 1,1,1522072783,0 predictor::https://www.mozilla.org/media/img/firefox/features/quantum/icons/private-blue.53c35048e543.svg 1,1,1522072783,0 predictor::https://www.mozilla.org/media/img/firefox/features/quantum/icons/ad-blocking-blue.f9b28b7c3640.svg 1,1,1522072783,0 predictor::https://www.mozilla.org/media/img/firefox/features/quantum/icons/password-manager-blue.51d601b03227.svg 1,1,1522072783,0 predictor::https://www.mozilla.org/media/img/firefox/features/quantum/icons/memory-blue.ce8c1fa453bf.svg 1,1,1522072783,0 predictor::https://www.mozilla.org/media/img/firefox/features/quantum/icons/fast-blue.2a040549a533.svg 1,1,1522072783,0 predictor::https://www.mozilla.org/media/img/firefox/quantum/fox-tail-fresh-from-our-blog.94c60b790dac.png 1,1,1522072783,0 predictor::https://www.mozilla.org/media/img/firefox/features/quantum/icons/open-source-black.4d1a220cb1e9.svg 1,1,1522072783,0 predictor::https://www.mozilla.org/media/img/firefox/features/quantum/icons/independent-black.4340cda138ec.svg 1,1,1522072783,0 predictor::https://www.mozilla.org/media/img/firefox/features/quantum/icons/limited-data-collection-black.5b5dc3e09378.svg 1,1,1522072783,0 predictor::https://www.mozilla.org/media/img/firefox/features/quantum/icons/privacy-black.838f1236ded8.svg 1,1,1522072783,0 predictor::https://www.mozilla.org/media/img/firefox/quantum/fox-tail-newsletter.a258e46e2818.png 1,1,1522072783,0 predictor::https://www.mozilla.org/media/img/firefox/features/quantum/icons/newsletter-white.dffbcd462eca.svg 1,1,1522072783,0 predictor::https://www.mozilla.org/media/fonts/opensans-regular.668362de763a.woff2 1,1,1522072783,0 predictor::https://www.mozilla.org/media/fonts/opensans-bold.5cf854f3d1c0.woff2 1,1,1522072783,0 predictor::https://www.mozilla.org/media/fonts/ZillaSlab-Bold.8d7f01331d2b.woff2 1,1,1522072783,0 predictor::https://www.mozilla.org/media/fonts/ZillaSlab-Regular.f9de6143fdfa.woff2 1,1,1522072783,0 predictor::https://www.mozilla.org/media/img/notification/background.d05af05e08eb.png 1,1,1522072783,0 predictor::https://www.mozilla.org/media/img/notification/close.c65fe17185cd.svg 1,1,1522072783,0 predictor::https://www.mozilla.org/media/img/pebbles/moz-wordmark-light-reverse.cb1bdf6d1de6.svg 1,1,1522072783,0 predictor::https://www.mozilla.org/media/img/logos/social/social-icon-sprite.bf2ae0cd0f01.svg 1,1,1522072783,0 predictor::https://www.mozilla.org/media/fonts/ZillaSlab-RegularItalic.736a1ac1facc.woff2 1,1,1522072783,0 predictor::https://www.google-analytics.com/analytics.js 1,1,1522072783,0 predictor::https://www.google-analytics.com/plugins/ua/linkid.js 1,1,1522072783,0  ��

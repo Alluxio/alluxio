@@ -1,0 +1,333 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright 2011 the original author or authors.
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~ http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>org.sonatype.oss</groupId>
+        <artifactId>oss-parent</artifactId>
+        <version>5</version>
+    </parent>
+    <groupId>org.powermock</groupId>
+    <artifactId>powermock</artifactId>
+    <packaging>pom</packaging>
+    <version>1.6.1</version>
+    <name>powermock</name>
+    <url>http://www.powermock.org</url>
+    <description>
+        PowerMock allows you to unit test code normally regarded as untestable.
+        For instance it is
+        possible to mock static methods, remove static initializers,
+        allow mocking without dependency injection and more.
+        PowerMock works by bytecode manipulation.
+        PowerMock also contain some utilities that gives you easier access to
+        an objects internal state.
+        PowerMock can be used to test otherwise untestable code and also to achieve
+        a cleaner separation between test and production code.
+    </description>
+    <inceptionYear>2007</inceptionYear>
+    <licenses>
+        <license>
+            <name>The Apache Software License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+    <developers>
+        <developer>
+            <id>johanhaleby</id>
+            <name>Johan Haleby</name>
+            <organization>Jayway</organization>
+            <organizationUrl>http://www.jayway.com</organizationUrl>
+            <email>johan.haleby at jayway.com</email>
+            <timezone>+1</timezone>
+        </developer>
+        <developer>
+            <id>jakr</id>
+            <name>Jan Kronquist</name>
+            <organization>Jayway</organization>
+            <organizationUrl>http://www.jayway.com</organizationUrl>
+            <email>jan.kronquist at jayway.com</email>
+            <timezone>+1</timezone>
+        </developer>
+    </developers>
+
+    <scm>
+        <url>https://github.com/jayway/powermock/tree/master</url>
+        <connection>scm:git:git://github.com/jayway/powermock.git</connection>
+        <developerConnection>scm:git:ssh://git@github.com/jayway/powermock.git</developerConnection>
+    </scm>
+
+    <issueManagement>
+        <system>Google Code</system>
+        <url>http://code.google.com/p/powermock/issues/list</url>
+    </issueManagement>
+    <modules>
+        <module>core</module>
+        <module>api</module>
+        <module>examples</module>
+        <module>modules</module>
+        <module>tests</module>
+        <module>release</module>
+        <module>reflect</module>
+        <module>classloading</module>
+    </modules>
+    <properties>
+        <easymock.version>3.3</easymock.version>
+        <mockito.version>1.10.8</mockito.version>
+    </properties>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <source>1.6</source>
+                    <target>1.6</target>
+                    <!-- Added because the use of sun.misc.Unsafe cause a warning message.
+                               But for some reason this warning fails the build using 1.5 -->
+                    <compilerArgument>-nowarn</compilerArgument>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>attach-sources</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-site-plugin</artifactId>
+                <version>3.4</version>
+                <configuration>
+                    <reportPlugins>
+                        <plugin>
+                            <groupId>org.apache.maven.plugins</groupId>
+                            <artifactId>maven-javadoc-plugin</artifactId>
+                            <configuration>
+                                <additionalparam>-Xdoclint:none</additionalparam>
+                            </configuration>
+                        </plugin>
+                    </reportPlugins>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>2.9.1</version>
+                <executions>
+                    <execution>
+                        <id>attach-javadocs</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <failOnError>false</failOnError>
+                    <additionalparam>-Xdoclint:none</additionalparam>
+                </configuration>
+                <dependencies>
+                    <!-- To avoid "You have more than one version of 'org.apache.commons.logging.Log' visible, which is not allowed" -->
+                    <dependency>
+                        <groupId>commons-logging</groupId>
+                        <artifactId>commons-logging</artifactId>
+                        <version>1.1.1</version>
+                    </dependency>
+                </dependencies>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>rat-maven-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <artifactId>maven-jar-plugin</artifactId>
+                <configuration>
+                    <archive>
+                        <manifestFile>${project.build.outputDirectory}/META-INF/MANIFEST.MF</manifestFile>
+                    </archive>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.felix</groupId>
+                <artifactId>maven-bundle-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>bundle-manifest</id>
+                        <phase>process-classes</phase>
+                        <goals>
+                            <goal>manifest</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <instructions>
+                        <Export-Package>*</Export-Package>
+                        <Bundle-SymbolicName>${project.groupId}.${project.artifactId}</Bundle-SymbolicName>
+                        <!--Letting powermock bundles to see all exported packages anywhere. Eclipse specific manifest entry. See http://www.eclipsezone.com/articles/eclipse-vms/?source=archives -->
+                        <Eclipse-BuddyPolicy>global,app,ext,boot</Eclipse-BuddyPolicy>
+                        <!--Letting powermock bundles to see all exported packages anywhere. OSGI standard entry. See http://wiki.osgi.org/wiki/DynamicImport-Package -->
+                        <DynamicImport-Package>*</DynamicImport-Package>
+                        <Bundle-Description>${project.description}</Bundle-Description>
+                    </instructions>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+    <reporting>
+        <plugins>
+            <plugin>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <configuration>
+                    <aggregate>true</aggregate>
+                    <breakiterator>true</breakiterator>
+                    <links>
+                        <link>
+                            http://java.sun.com/j2se/1.5.0/docs/api
+                        </link>
+                    </links>
+                    <excludePackageNames>samples*:org.powermock.tests*:org.powermock.examples*</excludePackageNames>
+                    <failOnError>false</failOnError>
+                </configuration>
+            </plugin>
+            <plugin>
+                <artifactId>maven-surefire-report-plugin</artifactId>
+                <configuration>
+                    <aggregate>true</aggregate>
+                </configuration>
+            </plugin>
+            <plugin>
+                <artifactId>maven-pmd-plugin</artifactId>
+                <configuration>
+                    <targetJdk>1.6</targetJdk>
+                    <rulesets>
+                        <ruleset>/rulesets/basic.xml</ruleset>
+                    </rulesets>
+                    <format>xml</format>
+                    <linkXref>true</linkXref>
+                    <sourceEncoding>utf-8</sourceEncoding>
+                    <minimumTokens>100</minimumTokens>
+                </configuration>
+            </plugin>
+            <plugin>
+                <artifactId>maven-jxr-plugin</artifactId>
+                <configuration>
+                    <aggregate>true</aggregate>
+                </configuration>
+            </plugin>
+            <plugin>
+                <artifactId>
+                    maven-project-info-reports-plugin
+                </artifactId>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>findbugs-maven-plugin</artifactId>
+                <!-- <version>2.0-SNAPSHOT</version>-->
+                <configuration>
+                    <onlyAnalyze>org.powermock.*</onlyAnalyze>
+                </configuration>
+            </plugin>
+        </plugins>
+    </reporting>
+    <profiles>
+        <profile>
+            <id>implicitDelegateAnnotation</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-surefire-plugin</artifactId>
+                        <configuration>
+                            <systemProperties>
+                                <powermock.implicitDelegateAnnotation>true</powermock.implicitDelegateAnnotation>
+                            </systemProperties>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        <profile>
+            <id>defects</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-surefire-plugin</artifactId>
+                        <configuration>
+                            <includes>
+                                <include>**/*Defect.java</include>
+                            </includes>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        <profile>
+            <id>testng</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-surefire-plugin</artifactId>
+                        <configuration>
+                            <includes>
+                                <include>**/org/powermock/modules/testng**/*Test.java</include>
+                            </includes>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.easymock</groupId>
+                <artifactId>easymock</artifactId>
+                <version>${easymock.version}</version>
+                <scope>provided</scope>
+                <exclusions>
+                    <exclusion>
+                        <groupId>cglib</groupId>
+                        <artifactId>cglib-nodep</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+            <dependency>
+                <groupId>org.mockito</groupId>
+                <artifactId>mockito-all</artifactId>
+                <version>${mockito.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.objenesis</groupId>
+                <artifactId>objenesis</artifactId>
+                <version>2.1</version>
+            </dependency>
+            <dependency>
+                <groupId>cglib</groupId>
+                <artifactId>cglib-nodep</artifactId>
+                <version>2.2.2</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+</project>

@@ -1,0 +1,295 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <artifactId>maven-parent</artifactId>
+    <groupId>org.apache.maven</groupId>
+    <version>8</version>
+    <relativePath>../pom/maven/pom.xml</relativePath>
+  </parent>
+  <groupId>org.apache.maven.wagon</groupId>
+  <artifactId>wagon</artifactId>
+  <packaging>pom</packaging>
+  <name>Maven Wagon</name>
+  <version>1.0-beta-4</version>
+  <description>Tools to manage artifacts and deployment</description>
+  <url>http://maven.apache.org/wagon</url>
+
+  <issueManagement>
+    <system>jira</system>
+    <url>http://jira.codehaus.org/browse/WAGON</url>
+  </issueManagement>
+  <inceptionYear>2003</inceptionYear>
+  <mailingLists>
+    <mailingList>
+      <name>Wagon User List</name>
+      <post>wagon-users@maven.apache.org</post>
+      <subscribe>wagon-users-subscribe@maven.apache.org</subscribe>
+      <unsubscribe>wagon-users-unsubscribe@maven.apache.org</unsubscribe>
+      <archive>http://mail-archives.apache.org/mod_mbox/maven-wagon-users/</archive>
+      <otherArchives>
+        <otherArchive>http://www.mail-archive.com/wagon-users@maven.apache.org</otherArchive>
+        <otherArchive>http://www.nabble.com/Wagon---Users-f13870.html</otherArchive>
+        <otherArchive>http://maven.wagon.users.markmail.org/</otherArchive>
+      </otherArchives>
+    </mailingList>
+    <mailingList>
+      <name>Wagon Developer List</name>
+      <post>wagon-dev@maven.apache.org</post>
+      <subscribe>wagon-dev-subscribe@maven.apache.org</subscribe>
+      <unsubscribe>wagon-dev-unsubscribe@maven.apache.org</unsubscribe>
+      <archive>http://mail-archives.apache.org/mod_mbox/maven-wagon-dev/</archive>
+      <otherArchives>
+        <otherArchive>http://www.mail-archive.com/wagon-dev@maven.apache.org</otherArchive>
+        <otherArchive>http://www.nabble.com/Wagon---Dev-f13871.html</otherArchive>
+        <otherArchive>http://maven.wagon.dev.markmail.org/</otherArchive>
+      </otherArchives>
+    </mailingList>
+    <mailingList>
+      <name>Wagon Commits List</name>
+      <subscribe>wagon-commits-subscribe@maven.apache.org</subscribe>
+      <unsubscribe>wagon-commits-unsubscribe@maven.apache.org</unsubscribe>
+      <archive>http://mail-archives.apache.org/mod_mbox/maven-wagon-commits/</archive>
+      <otherArchives>
+        <otherArchive>http://maven.wagon.commits.markmail.org/</otherArchive>
+      </otherArchives>
+    </mailingList>
+  </mailingLists>
+  <developers>
+    <developer>
+      <id>michal</id>
+      <name>Michal Maczka</name>
+      <email>michal@codehaus.org</email>
+      <organization>Codehaus</organization>
+      <roles>
+        <role>Developer</role>
+      </roles>
+    </developer>
+  </developers>
+  <scm>
+    <connection>scm:svn:http://svn.apache.org/repos/asf/maven/wagon/tags/wagon-1.0-beta-4</connection>
+    <developerConnection>scm:svn:https://svn.apache.org/repos/asf/maven/wagon/tags/wagon-1.0-beta-4</developerConnection>
+    <url>http://svn.apache.org/viewvc/maven/wagon/tags/wagon-1.0-beta-4</url>
+  </scm>
+  <build>
+    <pluginManagement>
+      <plugins>
+        <plugin>
+          <artifactId>maven-javadoc-plugin</artifactId>
+          <version>2.4</version>
+        </plugin>
+        <plugin>
+          <artifactId>maven-release-plugin</artifactId>
+          <configuration>
+            <tagBase>https://svn.apache.org/repos/asf/maven/wagon/tags</tagBase>
+          </configuration>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-surefire-plugin</artifactId>
+          <version>2.4.2</version>
+          <configuration>
+            <redirectTestOutputToFile>true</redirectTestOutputToFile>
+          </configuration>
+        </plugin>
+      </plugins>
+    </pluginManagement>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <configuration>
+          <source>1.4</source>
+          <target>1.4</target>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.codehaus.plexus</groupId>
+        <artifactId>plexus-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>generate</id>
+            <goals>
+              <goal>descriptor</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+  <modules>
+    <module>wagon-provider-api</module>
+    <module>wagon-provider-test</module>
+    <module>wagon-providers</module>
+  </modules>
+  <dependencies>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>org.apache.maven.wagon</groupId>
+        <artifactId>wagon-provider-api</artifactId>
+        <version>1.0-beta-4</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.maven.wagon</groupId>
+        <artifactId>wagon-provider-test</artifactId>
+        <version>1.0-beta-4</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.maven.wagon</groupId>
+        <artifactId>wagon-ssh-common-test</artifactId>
+        <version>1.0-beta-4</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.maven.wagon</groupId>
+        <artifactId>wagon-ssh-common</artifactId>
+        <version>1.0-beta-4</version>
+      </dependency>
+      <dependency>
+        <groupId>junit</groupId>
+        <artifactId>junit</artifactId>
+        <version>3.8.1</version>
+      </dependency>
+      <dependency>
+        <groupId>org.codehaus.plexus</groupId>
+        <artifactId>plexus-interactivity-api</artifactId>
+        <version>1.0-alpha-6</version>
+        <exclusions>
+          <exclusion>
+            <groupId>plexus</groupId>
+            <artifactId>plexus-utils</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>org.codehaus.plexus</groupId>
+            <artifactId>plexus-container-default</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>classworlds</groupId>
+            <artifactId>classworlds</artifactId>
+          </exclusion>
+        </exclusions>
+      </dependency>
+      <dependency>
+        <groupId>org.codehaus.plexus</groupId>
+        <artifactId>plexus-container-default</artifactId>
+        <version>1.0-alpha-9</version>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.codehaus.plexus</groupId>
+        <artifactId>plexus-utils</artifactId>
+        <version>1.4.2</version>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+  <!-- TODO: point to ref location
+    <distributionManagement>
+      <site>
+        <id>apache.website</id>
+        <url>scp://people.apache.org/www/maven.apache.org/wagon/</url>
+      </site>
+    </distributionManagement>
+  -->
+
+  <contributors>
+    <contributor>
+      <name>James William Dumay</name>
+    </contributor>
+    <contributor>
+      <name>Nathan Beyer</name>
+    </contributor>
+    <contributor>
+      <name>Gregory Block</name>
+    </contributor>
+    <contributor>
+      <name>Thomas Recloux</name>
+    </contributor>
+    <contributor>
+      <name>Trustin Lee</name>
+    </contributor>
+    <contributor>
+      <name>John Wells</name>
+    </contributor>
+    <contributor>
+      <name>Marcel Schutte</name>
+    </contributor>
+    <contributor>
+      <name>David Hawkins</name>
+    </contributor>
+    <contributor>
+      <name>Juan F. Codagnone</name>
+    </contributor>
+    <contributor>
+      <name>ysoonleo</name>
+    </contributor>
+    <contributor>
+      <name>Thomas Champagne</name>
+    </contributor>
+    <contributor>
+      <name>M. van der Plas</name>
+    </contributor>
+    <contributor>
+      <name>Jason Dillon</name>
+    </contributor>
+    <contributor>
+      <name>Jochen Wiedmann</name>
+    </contributor>
+    <contributor>
+      <name>Gilles Scokart</name>
+    </contributor>
+    <contributor>
+      <name>Wolfgang Glas</name>
+    </contributor>
+    <contributor>
+      <name>Kohsuke Kawaguchi</name>
+    </contributor>
+  </contributors>
+  <reporting>
+    <plugins>
+      <plugin>
+        <artifactId>maven-javadoc-plugin</artifactId>
+        <version>2.4</version>
+        <configuration>
+          <links>
+            <link>http://java.sun.com/j2ee/1.4/docs/api</link>
+            <link>http://commons.apache.org/collections/apidocs-COLLECTIONS_3_0/</link>
+            <link>http://commons.apache.org/dbcp/apidocs/</link>
+            <link>http://commons.apache.org/fileupload/apidocs/</link>
+            <link>http://commons.apache.org/httpclient/apidocs/</link>
+            <link>http://commons.apache.org/logging/apidocs/</link>
+            <link>http://commons.apache.org/pool/apidocs/</link>
+            <link>http://junit.sourceforge.net/javadoc/</link>
+            <link>http://logging.apache.org/log4j/1.2/apidocs/</link>
+            <link>http://jakarta.apache.org/regexp/apidocs/</link>
+            <link>http://velocity.apache.org/engine/releases/velocity-1.5/apidocs/</link>
+            <link>http://maven.apache.org/ref/current/maven-artifact/apidocs/</link>
+            <link>http://maven.apache.org/ref/current/maven-artifact-manager/apidocs/</link>
+            <link>http://maven.apache.org/ref/current/maven-model/apidocs/</link>
+            <link>http://maven.apache.org/ref/current/maven-plugin-api/apidocs/</link>
+            <link>http://maven.apache.org/ref/current/maven-project/apidocs/</link>
+            <link>http://maven.apache.org/ref/current/maven-reporting/maven-reporting-api/apidocs/</link>
+            <link>http://maven.apache.org/ref/current/maven-settings/apidocs/</link>
+          </links>
+          <!--
+          <doclet>gr.spinellis.umlgraph.doclet.UmlGraph</doclet>
+          <docletArtifact>
+            <groupId>gr.spinellis</groupId>
+            <artifactId>UmlGraph</artifactId>
+            <version>4.4</version>
+          </docletArtifact>
+          <additionalparam>
+            -inferrel -inferdep -quiet -hide java.* -collpackages java.util.* -qualify
+            -postfixpackage -nodefontsize 9
+            -nodefontpackagesize 7
+          </additionalparam>
+           -->
+        </configuration>
+      </plugin>
+    </plugins>
+  </reporting>
+</project>

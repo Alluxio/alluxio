@@ -1,0 +1,25 @@
+<project>
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>sslext</groupId>
+  <artifactId>sslext</artifactId>
+  <name>sslext</name>
+  <version>1.2-0</version>
+  <licenses>
+    <license>
+      <name>Apache Software License, Version 1.1</name>
+      <url>http://www.apache.org/licenses/LICENSE-1.1</url>
+      <comments></comments>
+    </license>
+  </licenses>
+  <organization>
+    <name>Steve Ditlinger</name>
+    <url>http://sslext.sourceforge.net/</url>
+  </organization>
+  <dependencies>
+    <dependency>
+      <groupId>struts</groupId>
+      <artifactId>struts</artifactId>
+      <version>1.2.7</version>
+    </dependency>
+  </dependencies>
+</project>

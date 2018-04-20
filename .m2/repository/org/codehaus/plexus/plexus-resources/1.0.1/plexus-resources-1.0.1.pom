@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>org.codehaus.plexus</groupId>
+    <artifactId>plexus-components</artifactId>
+    <version>1.3.1</version>
+  </parent>
+
+  <artifactId>plexus-resources</artifactId>
+  <version>1.0.1</version>
+
+  <name>Plexus Resource Component</name>
+  <description>A component to transparently retrieve resources from the filesystem, classpath or internet.</description>
+
+  <scm>
+    <connection>scn:git:git@github.com:codehaus-plexus/plexus-resources.git</connection>
+    <developerConnection>scn:git:git@github.com:codehaus-plexus/plexus-resources.git</developerConnection>
+    <url>http://github.com/codehaus-plexus/plexus-resources</url>
+    <tag>plexus-resources-1.0.1</tag>
+  </scm>
+
+  <dependencies>
+    <dependency>
+      <groupId>org.codehaus.plexus</groupId>
+      <artifactId>plexus-utils</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.codehaus.plexus</groupId>
+      <artifactId>plexus-container-default</artifactId>
+    </dependency>
+  </dependencies>
+</project>
