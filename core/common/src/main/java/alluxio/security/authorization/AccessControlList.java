@@ -17,9 +17,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 /**
  * Access control list for a file or directory.
  */
+@NotThreadSafe
 public final class AccessControlList {
   /**
    * Initial capacity for {@link #mUserActions} and {@link #mGroupActions}.
@@ -155,12 +158,23 @@ public final class AccessControlList {
   /**
    * Checks whether the user has the permission to perform the action.
    *
+   * According to POSIX ACL standard, the permission checking algorithm is:
+   * If the user is the owning user, then the owning user's permission is checked;
+   * Else if a named user entry matches the user, the entry is checked;
+   * Else if groups contain the owning group and the action is permitted by the
+   * owning group, then return true;
+   * Else if a named group entry matches a member of the groups and the entry permits the action,
+   * then return true;
+   * Else if the owning group or any named group entry matches a member of the groups, but no group
+   * permits the action, then return false;
+   * Otherwise, check other's permission.
+   *
    * @param user the user
    * @param groups the groups the user belongs to
    * @param action the action
    * @return whether user has the permission to perform the action
    */
-  public boolean check(String user, List<String> groups, AclAction action) {
+  public boolean checkPermission(String user, List<String> groups, AclAction action) {
     // TODO(cc): Update the logic to take MASK into consideration.
     if (user.equals(mOwningUser)) {
       return getOwningUserActions().contains(action);
@@ -189,6 +203,52 @@ public final class AccessControlList {
     }
 
     return mOtherActions.contains(action);
+  }
+
+  /**
+   * Gets the permitted actions for a user.
+   *
+   * When AccessControlList is not modified after calling getPermission,
+   * for each action returned by this method, checkPermission(user, groups, action) is true,
+   * for other actions, checkPermission(user, groups, action) is false.
+   *
+   * If the user is the owning user, then the owning user's permitted actions are returned;
+   * Else if there exists an ACL entry for the user, the permitted actions in that entry is
+   * returned;
+   * Else for members of the groups having matched group entries in ACL, a combination of the
+   * permitted actions in those entries is returned;
+   * Otherwise, if no member of the groups has a matched group entry in ACL, then the other's
+   * permitted actions are returned;
+   *
+   * @param user the user
+   * @param groups the groups the user belongs to
+   * @return the permitted actions
+   */
+  public AclActions getPermission(String user, List<String> groups) {
+    if (user.equals(mOwningUser)) {
+      return new AclActions(getOwningUserActions());
+    }
+    if (mUserActions.containsKey(user)) {
+      return new AclActions(mUserActions.get(user));
+    }
+
+    boolean isGroupKnown = false;
+    AclActions groupActions = new AclActions();
+    if (groups.contains(mOwningGroup)) {
+      isGroupKnown = true;
+      groupActions.merge(getOwningGroupActions());
+    }
+    for (String group : groups) {
+      if (mGroupActions.containsKey(group)) {
+        isGroupKnown = true;
+        groupActions.merge(mGroupActions.get(group));
+      }
+    }
+    if (isGroupKnown) {
+      return groupActions;
+    }
+
+    return new AclActions(mOtherActions);
   }
 
   private void setOwningUserEntry(AclEntry entry) {
