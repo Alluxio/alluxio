@@ -22,7 +22,6 @@ import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Joiner;
 import org.apache.commons.lang.StringUtils;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -108,7 +107,7 @@ public class ConfigurationDocGeneratorTest {
     //assert file contents
     if (fType == TYPE.CSV) {
       assertEquals(2, target.size());
-      Assert.assertEquals(ConfigurationDocGenerator.CSV_FILE_HEADER, target.get(0));
+      assertEquals(ConfigurationDocGenerator.CSV_FILE_HEADER, target.get(0));
       assertEquals(source, target.get(1));
     } else if (fType == TYPE.YML) {
       assertEquals(StringUtils.countMatches(source, "\n") + 1, target.size());
