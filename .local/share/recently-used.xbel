@@ -63,4 +63,45 @@
       </metadata>
     </info>
   </bookmark>
+  <bookmark href="file:///usr/lib/jvm/java-8-oracle" added="2018-04-20T11:26:30Z" modified="2018-04-20T11:26:30Z" visited="2018-04-20T11:26:30Z">
+    <info>
+      <metadata owner="http://freedesktop.org">
+        <mime:mime-type type="inode/directory"/>
+        <bookmark:applications>
+          <bookmark:application name="nautilus" exec="&apos;nautilus %u&apos;" modified="2018-04-20T11:26:30Z" count="1"/>
+        </bookmark:applications>
+      </metadata>
+    </info>
+  </bookmark>
+  <bookmark href="file:///home/renzr123/apache-maven-3.3.9-bin.tar.gz" added="2018-04-20T11:27:15Z" modified="2018-04-20T11:27:16Z" visited="2018-04-20T11:27:15Z">
+    <info>
+      <metadata owner="http://freedesktop.org">
+        <mime:mime-type type="application/x-compressed-tar"/>
+        <bookmark:applications>
+          <bookmark:application name="nautilus" exec="&apos;file-roller %U&apos;" modified="2018-04-20T11:27:15Z" count="1"/>
+          <bookmark:application name="File Roller" exec="&apos;file-roller&apos;" modified="2018-04-20T11:27:16Z" count="1"/>
+        </bookmark:applications>
+      </metadata>
+    </info>
+  </bookmark>
+  <bookmark href="file:///home/renzr123/12/apache-maven-3.3.9-bin.tar.gz" added="2018-04-20T11:29:15Z" modified="2018-04-20T11:29:15Z" visited="2018-04-20T11:29:16Z">
+    <info>
+      <metadata owner="http://freedesktop.org">
+        <mime:mime-type type="application/x-compressed-tar"/>
+        <bookmark:applications>
+          <bookmark:application name="File Roller" exec="&apos;file-roller&apos;" modified="2018-04-20T11:29:15Z" count="1"/>
+        </bookmark:applications>
+      </metadata>
+    </info>
+  </bookmark>
+  <bookmark href="file:///home/renzr123/12" added="2018-04-20T11:29:19Z" modified="2018-04-20T11:29:19Z" visited="2018-04-20T11:29:20.119713Z">
+    <info>
+      <metadata owner="http://freedesktop.org">
+        <mime:mime-type type="inode/directory"/>
+        <bookmark:applications>
+          <bookmark:application name="Archive Manager" exec="&apos;file-roller %u&apos;" modified="2018-04-20T11:29:19Z" count="1"/>
+        </bookmark:applications>
+      </metadata>
+    </info>
+  </bookmark>
 </xbel>

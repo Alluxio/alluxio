@@ -1,2 +1,4 @@
-Activating service name='org.gtk.vfs.Metadata'
-Successfully activated service 'org.gtk.vfs.Metadata'
+Activating service name='org.gnome.Terminal'
+Successfully activated service 'org.gnome.Terminal'
+Activating service name='org.freedesktop.Notifications'
+Successfully activated service 'org.freedesktop.Notifications'
