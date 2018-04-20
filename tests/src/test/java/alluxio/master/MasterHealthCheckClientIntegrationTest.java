@@ -25,8 +25,7 @@ public class MasterHealthCheckClientIntegrationTest extends BaseIntegrationTest 
 
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
-          new LocalAlluxioClusterResource.Builder()
-                  .setProperty(PropertyKey.USER_RPC_RETRY_MAX_NUM_RETRY, 5).build();
+          new LocalAlluxioClusterResource.Builder().build();
 
   private LocalAlluxioCluster mLocalAlluxioCluster = null;
   private HealthCheckClient mHealthCheckClient;
@@ -44,8 +43,6 @@ public class MasterHealthCheckClientIntegrationTest extends BaseIntegrationTest 
   }
 
   @Test
-  @LocalAlluxioClusterResource.Config(
-      confParams = {PropertyKey.Name.USER_RPC_RETRY_MAX_DURATION, "1s"})
   public void isServingStopFS() throws Exception {
     mLocalAlluxioCluster.stopFS();
     Assert.assertFalse(mHealthCheckClient.isServing());
