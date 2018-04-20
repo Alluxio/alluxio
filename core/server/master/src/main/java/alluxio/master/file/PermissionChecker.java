@@ -282,7 +282,10 @@ public final class PermissionChecker {
     if (inode == null) {
       return;
     }
-    mInodePermissionChecker.checkPermission(user, groups, path, inode, bits);
+    if (!mInodePermissionChecker.checkPermission(user, groups, inode, bits)) {
+      throw new AccessControlException(ExceptionMessage.PERMISSION_DENIED
+          .getMessage(toExceptionMessage(user, bits, path, inode)));
+    }
   }
 
   /**
@@ -319,11 +322,21 @@ public final class PermissionChecker {
       return Mode.Bits.NONE;
     }
 
-    return mInodePermissionChecker.getPermission(user, groups, path, inode);
+    return mInodePermissionChecker.getPermission(user, groups, inode);
   }
 
   private boolean isPrivilegedUser(String user, List<String> groups) {
     return user.equals(mInodeTree.getRootUserName()) || groups.contains(mFileSystemSuperGroup);
   }
 
+  private static String toExceptionMessage(String user, Mode.Bits bits, String path,
+      Inode<?> inode) {
+    StringBuilder sb =
+        new StringBuilder().append("user=").append(user).append(", ").append("access=").append(bits)
+            .append(", ").append("path=").append(path).append(": ").append("failed at ")
+            .append(inode.getName().equals("") ? "/" : inode.getName()).append(", inode owner=")
+            .append(inode.getOwner()).append(", inode group=").append(inode.getGroup())
+            .append(", inode mode=").append(new Mode(inode.getMode()).toString());
+    return sb.toString();
+  }
 }

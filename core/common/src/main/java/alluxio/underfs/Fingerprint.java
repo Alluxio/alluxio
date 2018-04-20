@@ -119,6 +119,26 @@ public final class Fingerprint {
   }
 
   /**
+   * Checks if the fingerprint object was generated from an INVALID_UFS_FINGERPRINT.
+   *
+   * @return returns true if the fingerprint is valid
+   */
+  public boolean isValid() {
+    if (mValues.isEmpty()) {
+      return false;
+    }
+
+    // Check required tags
+    for (Tag tag : REQUIRED_TAGS) {
+      if (!mValues.containsKey(tag)) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  /**
    * @return the serialized string of the fingerprint
    */
   public String serialize() {

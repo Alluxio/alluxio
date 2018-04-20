@@ -34,7 +34,7 @@ public final class MaxFreeAllocator implements Allocator {
    * @param view {@link BlockMetadataManagerView} to pass to the allocator
    */
   public MaxFreeAllocator(BlockMetadataManagerView view) {
-    mManagerView = Preconditions.checkNotNull(view);
+    mManagerView = Preconditions.checkNotNull(view, "view");
   }
 
   @Override
@@ -57,7 +57,7 @@ public final class MaxFreeAllocator implements Allocator {
    */
   private StorageDirView allocateBlock(long sessionId, long blockSize,
       BlockStoreLocation location) {
-    Preconditions.checkNotNull(location);
+    Preconditions.checkNotNull(location, "location");
     StorageDirView candidateDirView = null;
 
     if (location.equals(BlockStoreLocation.anyTier())) {

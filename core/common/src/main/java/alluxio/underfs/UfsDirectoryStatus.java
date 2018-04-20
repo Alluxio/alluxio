@@ -21,7 +21,7 @@ public class UfsDirectoryStatus extends UfsStatus {
   /**
    * Creates new instance of {@link UfsDirectoryStatus} without providing last modified time.
    *
-   * @param name basename of directory
+   * @param name relative path of directory
    * @param owner of the directory
    * @param group of the directory
    * @param mode of the directory
@@ -33,7 +33,7 @@ public class UfsDirectoryStatus extends UfsStatus {
   /**
    * Creates new instance of {@link UfsDirectoryStatus}.
    *
-   * @param name basename of directory
+   * @param name relative path of directory
    * @param owner of the directory
    * @param group of the directory
    * @param mode of the directory

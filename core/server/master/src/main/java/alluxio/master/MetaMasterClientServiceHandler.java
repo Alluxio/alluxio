@@ -11,7 +11,9 @@
 
 package alluxio.master;
 
+import alluxio.Configuration;
 import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.RpcUtils;
 import alluxio.RuntimeConstants;
 import alluxio.metrics.MetricsSystem;
@@ -99,6 +101,12 @@ public final class MetaMasterClientServiceHandler implements MetaMasterClientSer
             break;
           case WEB_PORT:
             info.setWebPort(mMasterProcess.getWebAddress().getPort());
+            break;
+          case ZOOKEEPER_ADDRESSES:
+            if (Configuration.containsKey(PropertyKey.ZOOKEEPER_ADDRESS)) {
+              info.setZookeeperAddresses(Arrays
+                  .asList(Configuration.get(PropertyKey.ZOOKEEPER_ADDRESS).split(",")));
+            }
             break;
           default:
             LOG.warn("Unrecognized meta master info field: " + field);

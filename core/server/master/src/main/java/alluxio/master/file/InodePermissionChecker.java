@@ -11,7 +11,6 @@
 
 package alluxio.master.file;
 
-import alluxio.exception.AccessControlException;
 import alluxio.master.file.meta.Inode;
 import alluxio.security.authorization.Mode;
 
@@ -33,22 +32,19 @@ public interface InodePermissionChecker {
    *
    * @param user the user
    * @param groups the groups that user belongs to
-   * @param path the path
    * @param inode inode of the path
    * @param permission the permissions to check
-   * @throws AccessControlException when user does not have the permission
+   * @return whether the user has the required permission
    */
-  void checkPermission(String user, List<String> groups, String path, Inode<?> inode,
-      Mode.Bits permission) throws AccessControlException;
+  boolean checkPermission(String user, List<String> groups, Inode<?> inode, Mode.Bits permission);
 
   /**
    * Gets the permission the user has for the file or directory at path.
    *
    * @param user the user
    * @param groups the groups that user belongs to
-   * @param path the path
    * @param inode inode of the path
    * @return the permission
    */
-  Mode.Bits getPermission(String user, List<String> groups, String path, Inode<?> inode);
+  Mode.Bits getPermission(String user, List<String> groups, Inode<?> inode);
 }

@@ -210,7 +210,7 @@ path to the first tier
 * `alluxio.worker.tieredstore.level0.dirs.quota=100GB` sets the quota for the ramdisk to be `100GB`
 * `alluxio.worker.tieredstore.level0.watermark.high.ratio=0.9` sets the ratio of high watermark on
 top layer to be 0.9
-* `alluxio.worker.tieredstore.level0.watermark.low.ratio=0.7` sets the ratio of high watermark on
+* `alluxio.worker.tieredstore.level0.watermark.low.ratio=0.7` sets the ratio of low watermark on
 top layer to be 0.7
 * `alluxio.worker.tieredstore.level1.alias=HDD` configures the second tier to be a hard disk tier
 * `alluxio.worker.tieredstore.level1.dirs.path=/mnt/hdd1,/mnt/hdd2,/mnt/hdd3` configures 3 separate
