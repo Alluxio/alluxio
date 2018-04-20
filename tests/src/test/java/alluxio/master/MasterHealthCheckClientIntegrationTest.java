@@ -14,7 +14,6 @@ package alluxio.master;
 import alluxio.BaseIntegrationTest;
 import alluxio.HealthCheckClient;
 import alluxio.LocalAlluxioClusterResource;
-import alluxio.PropertyKey;
 
 import org.junit.Assert;
 import org.junit.Before;
