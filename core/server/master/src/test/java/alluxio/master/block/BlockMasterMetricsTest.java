@@ -31,6 +31,7 @@ import org.mockito.Mockito;
 public final class BlockMasterMetricsTest {
   private static final String MEM = "MEM";
   private static final String HDD = "HDD";
+  
   private BlockMaster mBlockMaster;
 
   @Before
@@ -50,7 +51,6 @@ public final class BlockMasterMetricsTest {
     assertEquals(200L, getGauge(Metrics.CAPACITY_USED));
     assertEquals(800L, getGauge(Metrics.CAPACITY_FREE));
   }
-
 
   @Test
   public void testMetricsTierCapacity() {

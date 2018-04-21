@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.worker.block
+package alluxio.worker.block;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.when;
@@ -21,7 +21,6 @@ import alluxio.worker.block.DefaultBlockWorker.Metrics;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
-
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -56,7 +55,6 @@ public final class BlockWorkerMetricsTest {
     Assert.assertEquals(200L, getGauge(Metrics.CAPACITY_USED));
     Assert.assertEquals(800L, getGauge(Metrics.CAPACITY_FREE));
   }
-
 
   @Test
   public void testMetricsTierCapacity() {
