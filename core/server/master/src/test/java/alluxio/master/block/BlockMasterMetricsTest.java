@@ -31,7 +31,7 @@ import org.mockito.Mockito;
 public final class BlockMasterMetricsTest {
   private static final String MEM = "MEM";
   private static final String HDD = "HDD";
-
+  
   private BlockMaster mBlockMaster;
 
   @Before

@@ -945,6 +945,7 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
      *
      * @param master the block master handle
      */
+
     @VisibleForTesting
     public static void registerGauges(final BlockMaster master) {
       MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMasterMetricName(CAPACITY_TOTAL),
