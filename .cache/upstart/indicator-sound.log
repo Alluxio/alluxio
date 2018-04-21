@@ -1,4 +1,0 @@
-
-(process:1823): indicator-sound-WARNING **: volume-control-pulse.vala:735: unable to get pulse unix socket: GDBus.Error:org.freedesktop.DBus.Error.ServiceUnknown: The name org.PulseAudio1 was not provided by any .service files
-
-(process:1823): indicator-sound-WARNING **: accounts-service-access.vala:218: unable to sync volume 0.707993 to AccountsService: GDBus.Error:org.freedesktop.DBus.Error.InvalidArgs: No such interface 'com.ubuntu.AccountsService.Sound'

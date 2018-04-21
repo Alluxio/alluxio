@@ -1,1 +1,0 @@
-QDBusConnection: name 'org.ayatana.bamf' had owner '' but we thought it was ':1.14'
