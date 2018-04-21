@@ -1,0 +1,80 @@
+compiz (core) - Info: Loading plugin: core
+compiz (core) - Info: Starting plugin: core
+compiz (core) - Info: Loading plugin: ccp
+compiz (core) - Info: Starting plugin: ccp
+compizconfig - Info: Backend     : gsettings
+compizconfig - Info: Integration : true
+compizconfig - Info: Profile     : unity
+compiz (core) - Info: Loading plugin: composite
+compiz (core) - Info: Starting plugin: composite
+compiz (core) - Info: Loading plugin: opengl
+compiz (core) - Info: Unity is not supported by your hardware. Enabling software rendering instead (slow).
+compiz (core) - Info: Unity is not supported by your hardware. Enabling software rendering instead (slow).
+compiz (core) - Info: Starting plugin: opengl
+compiz (core) - Info: Loading plugin: mousepoll
+compiz (core) - Info: Starting plugin: mousepoll
+compiz (core) - Info: Loading plugin: wall
+compiz (core) - Info: Starting plugin: wall
+compiz (core) - Info: Loading plugin: move
+compiz (core) - Info: Starting plugin: move
+compiz (core) - Info: Loading plugin: commands
+compiz (core) - Info: Starting plugin: commands
+compiz (core) - Info: Loading plugin: vpswitch
+compiz (core) - Info: Starting plugin: vpswitch
+compiz (core) - Info: Loading plugin: snap
+compiz (core) - Info: Starting plugin: snap
+compiz (core) - Info: Loading plugin: resize
+compiz (core) - Info: Starting plugin: resize
+compiz (core) - Info: Loading plugin: regex
+compiz (core) - Info: Starting plugin: regex
+compiz (core) - Info: Loading plugin: imgpng
+compiz (core) - Info: Starting plugin: imgpng
+compiz (core) - Info: Loading plugin: grid
+compiz (core) - Info: Starting plugin: grid
+compiz (core) - Info: Loading plugin: copytex
+compiz (core) - Info: Starting plugin: copytex
+compiz (core) - Info: Loading plugin: compiztoolbox
+compiz (core) - Info: Starting plugin: compiztoolbox
+compiz (core) - Info: Loading plugin: animation
+compiz (core) - Info: Starting plugin: animation
+compiz (core) - Info: Loading plugin: place
+compiz (core) - Info: Starting plugin: place
+compiz (core) - Info: Loading plugin: expo
+compiz (core) - Info: Starting plugin: expo
+compiz (core) - Info: Loading plugin: unitymtgrabhandles
+compiz (core) - Info: Starting plugin: unitymtgrabhandles
+compiz (core) - Info: Loading plugin: session
+compiz (core) - Info: Starting plugin: session
+compiz (core) - Info: Loading plugin: workarounds
+compiz (core) - Info: Starting plugin: workarounds
+compiz (core) - Info: Loading plugin: fade
+compiz (core) - Info: Starting plugin: fade
+compiz (core) - Info: Loading plugin: ezoom
+compiz (core) - Info: Starting plugin: ezoom
+compiz (core) - Info: Loading plugin: scale
+compiz (core) - Info: Starting plugin: scale
+compiz (core) - Info: Loading plugin: unityshell
+compiz (core) - Info: Starting plugin: unityshell
+WARN  2018-04-20 22:52:39 unity.glib.dbus.server GLibDBusServer.cpp:593 Can't register object 'org.gnome.Shell' yet as we don't have a connection, waiting for it...
+WARN  2018-04-20 22:52:39 unity.debug.interface DebugDBusInterface.cpp:217 Unable to load entry point in libxpathselect: libxpathselect.so.1.4: cannot open shared object file: No such file or directory -- full D-Bus introspection will not be available
+WARN  2018-04-20 22:52:39 xim.controller XIMController.cpp:103 IBus natively supported.
+WARN  2018-04-20 22:52:40 unity.dash.gsettingsscopereader GSettingsScopes.cpp:108 Error fetching protocol metadata for scope: social.scope : Valid key file could not be found in search dirs
+WARN  2018-04-20 22:52:40 unity.glib.dbus.server GLibDBusServer.cpp:593 Can't register object 'com.canonical.Unity.Launcher' yet as we don't have a connection, waiting for it...
+WARN  2018-04-20 22:52:40 unity.glib.dbus.server GLibDBusServer.cpp:593 Can't register object 'com.canonical.Unity.Dash' yet as we don't have a connection, waiting for it...
+WARN  2018-04-20 22:52:41 unity.glib.dbus.server GLibDBusServer.cpp:593 Can't register object 'org.gnome.SessionManager.EndSessionDialog' yet as we don't have a connection, waiting for it...
+WARN  2018-04-20 22:52:41 unity.glib.dbus.server GLibDBusServer.cpp:593 Can't register object 'com.canonical.Unity.Session' yet as we don't have a connection, waiting for it...
+WARN  2018-04-20 22:52:41 unity.glib.dbus.server GLibDBusServer.cpp:593 Can't register object 'org.gnome.ScreenSaver' yet as we don't have a connection, waiting for it...
+failed to create drawable
+compiz (core) - Warn: glXCreatePixmap failed
+ERROR 2018-04-20 22:52:50 unity.glib.dbus.server GLibDBusServer.cpp:538 DBus name lost 'org.gnome.Shell'
+ERROR 2018-04-20 22:52:50 unity.glib.dbus.server GLibDBusServer.cpp:538 DBus name lost 'com.canonical.Unity'
+WARN  2018-04-20 22:52:51 unity.key.gnome.grabber GnomeKeyGrabber.cpp:94 Trying to grab a disabled action, we skip it
+WARN  2018-04-20 22:52:51 unity.key.gnome.grabber GnomeKeyGrabber.cpp:94 Trying to grab a disabled action, we skip it
+WARN  2018-04-20 22:52:51 unity.key.gnome.grabber GnomeKeyGrabber.cpp:94 Trying to grab a disabled action, we skip it
+WARN  2018-04-20 22:52:51 unity.key.gnome.grabber GnomeKeyGrabber.cpp:94 Trying to grab a disabled action, we skip it
+WARN  2018-04-20 22:52:51 unity.key.gnome.grabber GnomeKeyGrabber.cpp:94 Trying to grab a disabled action, we skip it
+WARN  2018-04-20 22:52:51 unity.key.gnome.grabber GnomeKeyGrabber.cpp:94 Trying to grab a disabled action, we skip it
+WARN  2018-04-20 22:52:51 unity.key.gnome.grabber GnomeKeyGrabber.cpp:94 Trying to grab a disabled action, we skip it
+WARN  2018-04-20 22:52:51 unity.key.gnome.grabber GnomeKeyGrabber.cpp:94 Trying to grab a disabled action, we skip it
+WARN  2018-04-20 22:52:51 unity.key.gnome.grabber GnomeKeyGrabber.cpp:94 Trying to grab a disabled action, we skip it
+WARN  2018-04-20 22:52:51 unity.key.gnome.grabber GnomeKeyGrabber.cpp:94 Trying to grab a disabled action, we skip it

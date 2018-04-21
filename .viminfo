@@ -24,18 +24,19 @@
 	]
 
 # File marks:
-'0  106  0  ~/arp_raw.c
-'1  1  16  ~/raw.c
-'2  1  0  ~/struct.h
-'3  238  0  ~/myping.c
-'4  113  0  ~/lab1/Lab/Code/syntax.y
-'5  7  0  ~/lab1/Lab/Code/tree.h
-'6  38  0  ~/lab1/Lab/Code/Makefile
-'7  15  0  ~/lab1/Lab/Code/tree.c
-'8  190  0  ~/lab1/Lab/Code/syntax.y
-'9  1  0  ~/lab1/Lab/Code/syntax.y
+'0  1  0  ~/.ssh/id_rsa.pub
+'1  106  0  ~/arp_raw.c
+'2  1  16  ~/raw.c
+'3  1  0  ~/struct.h
+'4  238  0  ~/myping.c
+'5  113  0  ~/lab1/Lab/Code/syntax.y
+'6  7  0  ~/lab1/Lab/Code/tree.h
+'7  38  0  ~/lab1/Lab/Code/Makefile
+'8  15  0  ~/lab1/Lab/Code/tree.c
+'9  190  0  ~/lab1/Lab/Code/syntax.y
 
 # Jumplist (newest first):
+-'  1  0  ~/.ssh/id_rsa.pub
 -'  106  0  ~/arp_raw.c
 -'  1  0  ~/arp_raw.c
 -'  1  16  ~/raw.c
@@ -133,10 +134,11 @@
 -'  4  25  ~/lab1/Lab/Code/test1.cmm
 -'  1  0  ~/lab1/Lab/Code/test1.cmm
 -'  116  0  ~/lab1/Lab/Code/lex_printf.l
--'  1  0  ~/lab1/Lab/Code/lex_printf.l
--'  8  41  ~/lab1/Lab/Code/lex_printf.l
 
 # History of marks within files (newest to oldest):
+
+> ~/.ssh/id_rsa.pub
+	"	1	0
 
 > ~/arp_raw.c
 	"	106	0

@@ -12,10 +12,10 @@
 package alluxio.client.keyvalue;
 
 import alluxio.AlluxioURI;
-import alluxio.BaseIntegrationTest;
+import alluxio.testutils.BaseIntegrationTest;
 import alluxio.Configuration;
 import alluxio.Constants;
-import alluxio.LocalAlluxioClusterResource;
+import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.PropertyKey;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
