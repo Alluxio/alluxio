@@ -158,16 +158,17 @@ public final class AccessControlList {
   /**
    * Checks whether the user has the permission to perform the action.
    *
-   * According to POSIX ACL standard, the permission checking algorithm is:
-   * If the user is the owning user, then the owning user's permission is checked;
-   * Else if a named user entry matches the user, the entry is checked;
-   * Else if groups contain the owning group and the action is permitted by the
-   * owning group, then return true;
-   * Else if a named group entry matches a member of the groups and the entry permits the action,
-   * then return true;
-   * Else if the owning group or any named group entry matches a member of the groups, but no group
-   * permits the action, then return false;
-   * Otherwise, check other's permission.
+   * 1. If the user is the owner, then the owner entry determines the permission;
+   * 2. Else if the user matches the name of one of the named user entries, this entry determines
+   *    the permission;
+   * 3. Else if one of the groups is the owning group and the owning group entry contains the
+   *    requested permission, the permission is granted;
+   * 4. Else if one of the groups matches the name of one of the named group entries and this entry
+   *    contains the requested permission, the permission is granted;
+   * 5. Else if one of the groups is the owning group or matches the name of one of the named group
+   *    entries, but neither the owning group entry nor any of the matching named group entries
+   *    contains the requested permission, the permission is denied;
+   * 6. Otherwise, the other entry determines the permission.
    *
    * @param user the user
    * @param groups the groups the user belongs to
@@ -212,13 +213,13 @@ public final class AccessControlList {
    * for each action returned by this method, checkPermission(user, groups, action) is true,
    * for other actions, checkPermission(user, groups, action) is false.
    *
-   * If the user is the owning user, then the owning user's permitted actions are returned;
-   * Else if there exists an ACL entry for the user, the permitted actions in that entry is
-   * returned;
-   * Else for members of the groups having matched group entries in ACL, a combination of the
-   * permitted actions in those entries is returned;
-   * Otherwise, if no member of the groups has a matched group entry in ACL, then the other's
-   * permitted actions are returned;
+   * 1. If the user is the owner, then return the permission in the owner entry;
+   * 2. Else if the user matches the name of one of the named user entries, then return the
+   *    permission in this entry;
+   * 3. Else if at least one of the groups is the owning group or matches the name of one of the
+   *    named group entries, then for the named group entries that match a member of groups, merge
+   *    the permissions in these entries and return the merged permission;
+   * 4. Otherwise, return the permission in the other entry.
    *
    * @param user the user
    * @param groups the groups the user belongs to
