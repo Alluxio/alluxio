@@ -12,6 +12,7 @@
 package alluxio.master.lineage.recompute;
 
 import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito;
 
 import alluxio.job.CommandLineJob;
 import alluxio.job.Job;
@@ -25,7 +26,6 @@ import alluxio.master.lineage.meta.LineageStore;
 import com.google.common.collect.Lists;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Mockito;
 
 import java.util.ArrayList;
 
