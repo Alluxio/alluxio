@@ -13,6 +13,7 @@ package alluxio.master.lineage.recompute;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import alluxio.job.CommandLineJob;
 import alluxio.job.Job;
