@@ -22,9 +22,9 @@ var (
 		Runner: cmdline.RunnerFunc(single),
 	}
 
-	hadoopDistributionFlag  string
-	targetFlag              string
-	mvnArgsFlag             string
+	hadoopDistributionFlag string
+	targetFlag             string
+	mvnArgsFlag            string
 
 	webappDir = "core/server/common/src/main/webapp"
 	webappWar = "assembly/webapp.war"
@@ -95,7 +95,7 @@ func getCommonMvnArgs(hadoopVersion version) []string {
 }
 
 func includeYarnIntegration(hadoopVersion version) bool {
-	return hadoopVersion.major >= 2 && hadoopVersion.minor >= 4;
+	return hadoopVersion.major >= 2 && hadoopVersion.minor >= 4
 }
 
 func getVersion() (string, error) {

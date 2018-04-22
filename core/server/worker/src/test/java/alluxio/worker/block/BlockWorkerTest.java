@@ -12,11 +12,14 @@
 package alluxio.worker.block;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.anyLong;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -26,6 +29,7 @@ import alluxio.ConfigurationRule;
 import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.Sessions;
+import alluxio.WorkerStorageTierAssoc;
 import alluxio.exception.BlockAlreadyExistsException;
 import alluxio.proto.dataserver.Protocol;
 import alluxio.underfs.UfsManager;
@@ -37,12 +41,10 @@ import alluxio.worker.block.meta.TempBlockMeta;
 import alluxio.worker.file.FileSystemMasterClient;
 
 import com.google.common.collect.ImmutableMap;
-
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
@@ -66,6 +68,7 @@ public class BlockWorkerTest {
   private BlockMasterClient mBlockMasterClient;
   private BlockMasterClientPool mBlockMasterClientPool;
   private BlockStore mBlockStore;
+  private BlockStoreMeta mBlockStoreMeta;
   private FileSystemMasterClient mFileSystemMasterClient;
   private Random mRandom;
   private Sessions mSessions;
@@ -94,12 +97,15 @@ public class BlockWorkerTest {
   public void before() throws IOException {
     mRandom = new Random();
     mBlockMasterClient = PowerMockito.mock(BlockMasterClient.class);
-    mBlockMasterClientPool = Mockito.spy(new BlockMasterClientPool());
-    Mockito.when(mBlockMasterClientPool.createNewResource()).thenReturn(mBlockMasterClient);
+    mBlockMasterClientPool = spy(new BlockMasterClientPool());
+    when(mBlockMasterClientPool.createNewResource()).thenReturn(mBlockMasterClient);
     mBlockStore = PowerMockito.mock(BlockStore.class);
+    mBlockStoreMeta = mock(BlockStoreMeta.class);
+    when(mBlockStore.getBlockStoreMeta()).thenReturn(mBlockStoreMeta);
+    when(mBlockStoreMeta.getStorageTierAssoc()).thenReturn(new WorkerStorageTierAssoc());
     mFileSystemMasterClient = PowerMockito.mock(FileSystemMasterClient.class);
     mSessions = PowerMockito.mock(Sessions.class);
-    mUfsManager = Mockito.mock(UfsManager.class);
+    mUfsManager = mock(UfsManager.class);
 
     mBlockWorker = new DefaultBlockWorker(mBlockMasterClientPool, mFileSystemMasterClient,
         mSessions, mBlockStore, mUfsManager);
@@ -169,7 +175,7 @@ public class BlockWorkerTest {
     usedBytesOnTiers.put(tierAlias, usedBytes);
     BlockMeta blockMeta = PowerMockito.mock(BlockMeta.class);
     BlockStoreLocation blockStoreLocation = PowerMockito.mock(BlockStoreLocation.class);
-    BlockStoreMeta blockStoreMeta = Mockito.mock(BlockStoreMeta.class);
+    BlockStoreMeta blockStoreMeta = mock(BlockStoreMeta.class);
 
     when(mBlockStore.lockBlock(sessionId, blockId)).thenReturn(lockId);
     when(mBlockStore.getBlockMeta(sessionId, blockId, lockId)).thenReturn(blockMeta);
@@ -202,7 +208,7 @@ public class BlockWorkerTest {
     usedBytesOnTiers.put(tierAlias, usedBytes);
     BlockMeta blockMeta = PowerMockito.mock(BlockMeta.class);
     BlockStoreLocation blockStoreLocation = PowerMockito.mock(BlockStoreLocation.class);
-    BlockStoreMeta blockStoreMeta = Mockito.mock(BlockStoreMeta.class);
+    BlockStoreMeta blockStoreMeta = mock(BlockStoreMeta.class);
 
     when(mBlockStore.lockBlock(sessionId, blockId)).thenReturn(lockId);
     when(mBlockStore.getBlockMeta(sessionId, blockId, lockId)).thenReturn(blockMeta);
@@ -226,7 +232,7 @@ public class BlockWorkerTest {
     long sessionId = mRandom.nextLong();
     String tierAlias = "MEM";
     BlockStoreLocation location = BlockStoreLocation.anyDirInTier(tierAlias);
-    StorageDir storageDir = Mockito.mock(StorageDir.class);
+    StorageDir storageDir = mock(StorageDir.class);
     TempBlockMeta meta = new TempBlockMeta(sessionId, blockId, initialBytes, storageDir);
 
     when(mBlockStore.createBlock(sessionId, blockId, location, initialBytes)).thenReturn(meta);
@@ -248,7 +254,7 @@ public class BlockWorkerTest {
     long sessionId = mRandom.nextLong();
     String tierAlias = "HDD";
     BlockStoreLocation location = BlockStoreLocation.anyDirInTier(tierAlias);
-    StorageDir storageDir = Mockito.mock(StorageDir.class);
+    StorageDir storageDir = mock(StorageDir.class);
     TempBlockMeta meta = new TempBlockMeta(sessionId, blockId, initialBytes, storageDir);
 
     when(mBlockStore.createBlock(sessionId, blockId, location, initialBytes)).thenReturn(meta);
@@ -269,7 +275,7 @@ public class BlockWorkerTest {
     long sessionId = mRandom.nextLong();
     String tierAlias = "MEM";
     BlockStoreLocation location = BlockStoreLocation.anyDirInTier(tierAlias);
-    StorageDir storageDir = Mockito.mock(StorageDir.class);
+    StorageDir storageDir = mock(StorageDir.class);
     TempBlockMeta meta = new TempBlockMeta(sessionId, blockId, initialBytes, storageDir);
 
     when(mBlockStore.createBlock(sessionId, blockId, location, initialBytes)).thenReturn(meta);
@@ -322,7 +328,7 @@ public class BlockWorkerTest {
   public void getStoreMeta() {
     mBlockWorker.getStoreMeta();
     mBlockWorker.getStoreMetaFull();
-    verify(mBlockStore).getBlockStoreMeta();
+    verify(mBlockStore, times(2)).getBlockStoreMeta(); // 1 is called at metrics registration
     verify(mBlockStore).getBlockStoreMetaFull();
   }
 
@@ -378,11 +384,11 @@ public class BlockWorkerTest {
     long sessionId = mRandom.nextLong();
     String tierAlias = "MEM";
     BlockStoreLocation location = BlockStoreLocation.anyDirInTier(tierAlias);
-    BlockStoreLocation existingLocation = Mockito.mock(BlockStoreLocation.class);
+    BlockStoreLocation existingLocation = mock(BlockStoreLocation.class);
     when(existingLocation.belongsTo(location)).thenReturn(false);
-    BlockMeta meta = Mockito.mock(BlockMeta.class);
+    BlockMeta meta = mock(BlockMeta.class);
     when(meta.getBlockLocation()).thenReturn(existingLocation);
-    when(mBlockStore.getBlockMeta(Mockito.eq(sessionId), Mockito.eq(blockId), Mockito.anyLong()))
+    when(mBlockStore.getBlockMeta(eq(sessionId), eq(blockId), anyLong()))
         .thenReturn(meta);
     mBlockWorker.moveBlock(sessionId, blockId, tierAlias);
     verify(mBlockStore).moveBlock(sessionId, blockId, location);
@@ -398,14 +404,14 @@ public class BlockWorkerTest {
     long sessionId = mRandom.nextLong();
     String tierAlias = "MEM";
     BlockStoreLocation location = BlockStoreLocation.anyDirInTier(tierAlias);
-    BlockStoreLocation existingLocation = Mockito.mock(BlockStoreLocation.class);
+    BlockStoreLocation existingLocation = mock(BlockStoreLocation.class);
     when(existingLocation.belongsTo(location)).thenReturn(true);
-    BlockMeta meta = Mockito.mock(BlockMeta.class);
+    BlockMeta meta = mock(BlockMeta.class);
     when(meta.getBlockLocation()).thenReturn(existingLocation);
-    when(mBlockStore.getBlockMeta(Mockito.eq(sessionId), Mockito.eq(blockId), Mockito.anyLong()))
+    when(mBlockStore.getBlockMeta(eq(sessionId), eq(blockId), anyLong()))
         .thenReturn(meta);
     mBlockWorker.moveBlock(sessionId, blockId, tierAlias);
-    verify(mBlockStore, Mockito.times(0)).moveBlock(sessionId, blockId, location);
+    verify(mBlockStore, times(0)).moveBlock(sessionId, blockId, location);
   }
 
   /**
@@ -417,7 +423,7 @@ public class BlockWorkerTest {
     long sessionId = mRandom.nextLong();
     long lockId = mRandom.nextLong();
     long blockSize = mRandom.nextLong();
-    StorageDir storageDir = Mockito.mock(StorageDir.class);
+    StorageDir storageDir = mock(StorageDir.class);
     when(storageDir.getDirPath()).thenReturn("/tmp");
     BlockMeta meta = new BlockMeta(blockId, blockSize, storageDir);
     when(mBlockStore.getBlockMeta(sessionId, blockId, lockId)).thenReturn(meta);

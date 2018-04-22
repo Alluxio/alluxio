@@ -11,7 +11,6 @@
 
 package alluxio.master.journal.ufs;
 
-import alluxio.BaseIntegrationTest;
 import alluxio.exception.status.UnavailableException;
 import alluxio.master.NoopMaster;
 import alluxio.util.URIUtils;
@@ -28,7 +27,7 @@ import java.net.URI;
 /**
  * Unit tests for {@link UfsJournal}.
  */
-public final class UfsJournalTest extends BaseIntegrationTest {
+public final class UfsJournalTest {
   @Rule
   public TemporaryFolder mFolder = new TemporaryFolder();
 

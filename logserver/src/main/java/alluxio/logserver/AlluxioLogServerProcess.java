@@ -32,7 +32,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.ThreadPoolExecutor;
 
 /**
- * A centralized log server for Alluxio
+ * A centralized log server for Alluxio.
  *
  * Alluxio masters and workers generate logs and store the logs in local storage.
  * {@link AlluxioLogServerProcess} allows masters and workers to "push" their logs to a

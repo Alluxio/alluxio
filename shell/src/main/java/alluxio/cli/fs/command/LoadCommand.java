@@ -38,7 +38,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * Loads a file or directory in Alluxio space, making it resident in Alluxio.
  */
 @ThreadSafe
-public final class LoadCommand extends WithWildCardPathCommand {
+public final class LoadCommand extends AbstractFileSystemCommand {
   private static final Option LOCAL_OPTION =
       Option.builder()
           .longOpt("local")
@@ -68,8 +68,18 @@ public final class LoadCommand extends WithWildCardPathCommand {
   }
 
   @Override
-  protected void runCommand(AlluxioURI path, CommandLine cl) throws AlluxioException, IOException {
-    load(path, cl.hasOption(LOCAL_OPTION.getLongOpt()));
+  protected void runPlainPath(AlluxioURI plainPath, CommandLine cl)
+      throws AlluxioException, IOException {
+    load(plainPath, cl.hasOption(LOCAL_OPTION.getLongOpt()));
+  }
+
+  @Override
+  public int run(CommandLine cl) throws AlluxioException, IOException {
+    String[] args = cl.getArgs();
+    AlluxioURI path = new AlluxioURI(args[0]);
+    runWildCardCmd(path, cl);
+
+    return 0;
   }
 
   /**
