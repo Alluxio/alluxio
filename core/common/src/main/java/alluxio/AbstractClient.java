@@ -57,17 +57,8 @@ public abstract class AbstractClient implements Client {
 
   private final Supplier<RetryPolicy> mRetryPolicySupplier;
 
-<<<<<<< HEAD
-  /** The number of times to retry a particular RPC. */
-  protected static final int RPC_MAX_NUM_RETRY =
-      Configuration.getInt(PropertyKey.USER_RPC_RETRY_MAX_NUM_RETRY);
-
-  @Nullable protected InetSocketAddress mAddress = null;
-  @Nullable protected TProtocol mProtocol = null;
-=======
-  protected InetSocketAddress mAddress;
-  protected TProtocol mProtocol;
->>>>>>> master
+  @Nullable protected InetSocketAddress mAddress;
+  @Nullable protected TProtocol mProtocol;
 
   /** Is true if this client is currently connected. */
   protected boolean mConnected = false;
@@ -94,10 +85,7 @@ public abstract class AbstractClient implements Client {
    * @param subject the parent subject, set to null if not present
    * @param address the address
    */
-<<<<<<< HEAD
   public AbstractClient(Subject subject, @Nullable InetSocketAddress address) {
-=======
-  public AbstractClient(Subject subject, InetSocketAddress address) {
     this(subject, address, defaultRetry());
   }
 
@@ -116,9 +104,8 @@ public abstract class AbstractClient implements Client {
    * @param address the address
    * @param retryPolicySupplier factory for retry policies to be used when performing RPCs
    */
-  public AbstractClient(Subject subject, InetSocketAddress address,
+  public AbstractClient(Subject subject, @Nullable InetSocketAddress address,
       Supplier<RetryPolicy> retryPolicySupplier) {
->>>>>>> master
     mAddress = address;
     mParentSubject = subject;
     mRetryPolicySupplier = retryPolicySupplier;

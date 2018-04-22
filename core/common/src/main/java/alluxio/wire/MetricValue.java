@@ -15,6 +15,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -24,8 +25,8 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public final class MetricValue {
 
-  private Double mDoubleValue;
-  private Long mLongValue;
+  @Nullable private Double mDoubleValue;
+  @Nullable private Long mLongValue;
 
   /**
    * Creates a new instance of {@link MetricValue} from a thrift representation.
@@ -44,8 +45,8 @@ public final class MetricValue {
 
   @JsonCreator
   private MetricValue(
-      @JsonProperty("doubleValue") Double doubleValue,
-      @JsonProperty("longValue") Long longValue) {
+      @Nullable @JsonProperty("doubleValue") Double doubleValue,
+      @Nullable @JsonProperty("longValue") Long longValue) {
     Preconditions.checkState(doubleValue == null || longValue == null,
         "only one of longValue and doubleValue can be set");
     mDoubleValue = doubleValue;
@@ -71,6 +72,7 @@ public final class MetricValue {
   /**
    * @return the Double value
    */
+  @Nullable
   public Double getDoubleValue() {
     return mDoubleValue;
   }
@@ -78,6 +80,7 @@ public final class MetricValue {
   /**
    * @return the Long value
    */
+  @Nullable
   public Long getLongValue() {
     return mLongValue;
   }

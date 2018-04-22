@@ -287,17 +287,15 @@ public final class CommonUtils {
     long start = System.currentTimeMillis();
     int interval = options.getInterval();
     int timeout = options.getTimeoutMs();
-<<<<<<< HEAD
+
     while (true) {
       Boolean predicate = condition.apply(null);
       if (predicate == null || !predicate) {
         break;
-=======
-    while (!condition.apply(null)) {
+      }
       if (Thread.interrupted()) {
         Thread.currentThread().interrupt();
-        return;
->>>>>>> master
+        break;
       }
       if (timeout != WaitForOptions.NEVER && System.currentTimeMillis() - start > timeout) {
         throw new RuntimeException("Timed out waiting for " + description);
