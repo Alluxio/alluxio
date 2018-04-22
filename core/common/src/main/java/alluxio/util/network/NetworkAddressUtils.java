@@ -299,7 +299,6 @@ public final class NetworkAddressUtils {
    * @param service the service name
    * @return the bind hostname
    */
-  @SuppressWarnings("nullness")
   public static String getBindHost(ServiceType service) {
     if (Configuration.containsKey(service.mBindHostKey) && !Configuration.get(service.mBindHostKey)
         .isEmpty()) {
@@ -540,8 +539,9 @@ public final class NetworkAddressUtils {
    * @return the hostname IP address
    * @throws UnknownHostException if the given hostname cannot be resolved
    */
-  public static String resolveIpAddress(String hostname) throws UnknownHostException {
+  public static String resolveIpAddress(@Nullable String hostname) throws UnknownHostException {
     Preconditions.checkNotNull(hostname, "hostname");
+    assert hostname != null : "@AssumeAssertion(nullness)";
     Preconditions.checkArgument(!hostname.isEmpty(),
             "Cannot resolve IP address for empty hostname");
     return InetAddress.getByName(hostname).getHostAddress();

@@ -20,10 +20,9 @@ import alluxio.underfs.options.ListOptions;
 import alluxio.underfs.options.MkdirsOptions;
 import alluxio.underfs.options.OpenOptions;
 
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import javax.annotation.Nullable;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -223,9 +222,11 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
   }
 
   @Override
+  @Nullable
   public List<String> getFileLocations(final String path) throws IOException {
-    return call(new UfsCallable<List<String>>() {
+    return call(new UfsCallable<@Nullable List<String>>() {
       @Override
+      @Nullable
       public List<String> call() throws IOException {
         return mUnderFileSystem.getFileLocations(path);
       }
@@ -238,10 +239,12 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
   }
 
   @Override
+  @Nullable
   public List<String> getFileLocations(final String path, final FileLocationOptions options)
       throws IOException {
-    return call(new UfsCallable<List<String>>() {
+    return call(new UfsCallable<@Nullable List<String>>() {
       @Override
+      @Nullable
       public List<String> call() throws IOException {
         return mUnderFileSystem.getFileLocations(path, options);
       }
@@ -369,10 +372,10 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
   }
 
   @Override
-  public UfsStatus[] listStatus(final String path) throws IOException {
-    return call(new UfsCallable<UfsStatus[]>() {
+  public UfsStatus @Nullable [] listStatus(final String path) throws IOException {
+    return call(new UfsCallable<UfsStatus @Nullable []>() {
       @Override
-      public UfsStatus[] call() throws IOException {
+      public UfsStatus @Nullable [] call() throws IOException {
         return mUnderFileSystem.listStatus(path);
       }
 
@@ -384,11 +387,11 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
   }
 
   @Override
-  public UfsStatus[] listStatus(final String path, final ListOptions options)
+  public UfsStatus @Nullable [] listStatus(final String path, final ListOptions options)
       throws IOException {
-    return call(new UfsCallable<UfsStatus[]>() {
+    return call(new UfsCallable<UfsStatus @Nullable []>() {
       @Override
-      public UfsStatus[] call() throws IOException {
+      public UfsStatus @Nullable [] call() throws IOException {
         return mUnderFileSystem.listStatus(path, options);
       }
 
@@ -400,8 +403,7 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
   }
 
   @Override
-  @SuppressWarnings("nullness")
-  public boolean mkdirs(final String path) throws IOException {
+  public boolean mkdirs(@Nullable final String path) throws IOException {
     return call(new UfsCallable<Boolean>() {
       @Override
       public Boolean call() throws IOException {
@@ -416,8 +418,8 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
   }
 
   @Override
-  @SuppressWarnings("nullness")
-  public boolean mkdirs(final String path, final MkdirsOptions options) throws IOException {
+  public boolean mkdirs(@Nullable final String path, final MkdirsOptions options)
+      throws IOException {
     return call(new UfsCallable<Boolean>() {
       @Override
       public Boolean call() throws IOException {

@@ -80,9 +80,7 @@ public abstract class UfsStatus {
    * @param children array of listing statuses
    * @return array of file or directory names, or null if the input is null
    */
-  @SuppressWarnings("nullness")
-  @Nullable
-  public static String[] convertToNames(@Nullable UfsStatus[] children) {
+  public static String @Nullable [] convertToNames(UfsStatus @Nullable [] children) {
     if (children == null) {
       return null;
     }

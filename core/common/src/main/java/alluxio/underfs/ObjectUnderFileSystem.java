@@ -421,7 +421,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
 
   // Not supported
   @Override
-  @SuppressWarnings("nullness")
+  @Nullable
   public List<String> getFileLocations(String path) throws IOException {
     LOG.debug("getFileLocations is not supported when using default ObjectUnderFileSystem.");
     return null;
@@ -429,7 +429,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
 
   // Not supported
   @Override
-  @SuppressWarnings("nullness")
+  @Nullable
   public List<String> getFileLocations(String path, FileLocationOptions options)
       throws IOException {
     LOG.debug("getFileLocations is not supported when using default ObjectUnderFileSystem.");
@@ -496,14 +496,12 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
   }
 
   @Override
-  @SuppressWarnings("nullness")
-  public UfsStatus[] listStatus(String path) throws IOException {
+  public UfsStatus @Nullable [] listStatus(String path) throws IOException {
     return listInternal(path, ListOptions.defaults());
   }
 
   @Override
-  @SuppressWarnings("nullness")
-  public UfsStatus[] listStatus(String path, ListOptions options)
+  public UfsStatus @Nullable [] listStatus(String path, ListOptions options)
       throws IOException {
     return listInternal(path, options);
   }
@@ -577,8 +575,6 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
         stripPrefixIfPresent(convertToFolderName(dst)))) {
       return false;
     }
-
-    assert children != null : "@AssumeAssertion(nullness)";
     // Rename each child in the src folder to destination/child
     for (UfsStatus child : children) {
       String childSrcPath = PathUtils.concatPath(src, child);
@@ -823,8 +819,7 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
    * @param options for listing
    * @return an array of the file and folder names in this directory
    */
-  @SuppressWarnings("nullness")
-  protected UfsStatus[] listInternal(String path, ListOptions options)
+  protected UfsStatus @Nullable [] listInternal(String path, ListOptions options)
       throws IOException {
     ObjectListingChunk chunk = getObjectListingChunkForPath(path, options.isRecursive());
     if (chunk == null) {

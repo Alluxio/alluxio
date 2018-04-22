@@ -220,7 +220,6 @@ public class IndexedSet<T> extends AbstractSet<T> {
     }
 
     @Override
-    @SuppressWarnings("nullness")
     public T next() {
       final T next = mSetIterator.next();
       mObject = next;
@@ -276,6 +275,7 @@ public class IndexedSet<T> extends AbstractSet<T> {
    * @param value the field value
    * @return the object or null if there is no such object
    */
+  @Nullable
   public T getFirstByField(IndexDefinition<T> indexDefinition, Object value) {
     FieldIndex<T> index = mIndices.get(indexDefinition);
     if (index == null) {

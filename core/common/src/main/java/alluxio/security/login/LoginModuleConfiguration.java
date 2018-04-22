@@ -14,6 +14,8 @@ package alluxio.security.login;
 import alluxio.security.User;
 import alluxio.security.authentication.AuthType;
 
+import org.checkerframework.checker.nullness.qual.Nullable;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -70,8 +72,7 @@ public final class LoginModuleConfiguration extends Configuration {
   public LoginModuleConfiguration() {}
 
   @Override
-  @SuppressWarnings("nullness")
-  public AppConfigurationEntry[] getAppConfigurationEntry(String appName) {
+  public AppConfigurationEntry @Nullable [] getAppConfigurationEntry(String appName) {
     if (appName.equalsIgnoreCase(AuthType.SIMPLE.getAuthName())
         || appName.equalsIgnoreCase(AuthType.CUSTOM.getAuthName())) {
       return SIMPLE;

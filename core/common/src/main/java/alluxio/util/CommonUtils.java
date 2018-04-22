@@ -29,6 +29,7 @@ import com.google.common.base.Splitter;
 import com.google.common.base.Throwables;
 import com.google.common.io.Closer;
 import io.netty.channel.Channel;
+import org.checkerframework.checker.nullness.qual.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -54,7 +55,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Supplier;
 
-import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -215,8 +215,8 @@ public final class CommonUtils {
    * @return new class object
    * @throws RuntimeException if the class cannot be instantiated
    */
-  public static <T> T createNewClassInstance(Class<T> cls, Class<?>[] ctorClassArgs,
-      Object[] ctorArgs) {
+  public static <T> T createNewClassInstance(Class<T> cls, Class<?> @Nullable [] ctorClassArgs,
+      Object @Nullable [] ctorArgs) {
     try {
       if (ctorClassArgs == null) {
         return cls.newInstance();
@@ -282,13 +282,16 @@ public final class CommonUtils {
    * @param condition the condition to wait on
    * @param options the options to use
    */
-  @SuppressWarnings("nullness")
   public static void waitFor(String description, Function<Void, Boolean> condition,
       WaitForOptions options) {
     long start = System.currentTimeMillis();
     int interval = options.getInterval();
     int timeout = options.getTimeoutMs();
-    while (!condition.apply(null)) {
+    while (true) {
+      Boolean predicate = condition.apply(null);
+      if (predicate == null || !predicate) {
+        break;
+      }
       if (timeout != WaitForOptions.NEVER && System.currentTimeMillis() - start > timeout) {
         throw new RuntimeException("Timed out waiting for " + description);
       }

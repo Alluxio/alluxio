@@ -14,7 +14,8 @@ package alluxio.security.authentication;
 import alluxio.Configuration;
 import alluxio.util.CommonUtils;
 
-import javax.annotation.Nullable;
+import org.checkerframework.checker.nullness.qual.Nullable;
+
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.security.sasl.AuthenticationException;
 
@@ -35,7 +36,6 @@ public final class CustomAuthenticationProvider implements AuthenticationProvide
    *
    * @param providerName the name of the provider
    */
-  @SuppressWarnings("nullness")
   public CustomAuthenticationProvider(String providerName) {
     Class<?> customProviderClass;
     try {
@@ -44,8 +44,10 @@ public final class CustomAuthenticationProvider implements AuthenticationProvide
       throw new RuntimeException(providerName + " not found");
     }
 
-    mCustomProvider = (AuthenticationProvider) CommonUtils
-        .createNewClassInstance(customProviderClass, null, null);
+    AuthenticationProvider authProvider = (AuthenticationProvider) CommonUtils
+            .createNewClassInstance(customProviderClass, null, null);
+    assert authProvider != null : "@AssumeAssertion(nullness)";
+    mCustomProvider = authProvider;
   }
 
   /**

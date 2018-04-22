@@ -14,20 +14,19 @@ package alluxio.underfs;
 import alluxio.Constants;
 
 import com.google.common.base.Splitter;
+import org.checkerframework.checker.nullness.qual.Nullable;
 
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Pattern;
 
-import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * Fingerprint for a UFS file or directory.
  */
 @NotThreadSafe
-@Nullable
 public final class Fingerprint {
   // TODO(gpang): partition fingerprint for metadata and content, for more efficient updates.
   /** These tags are required in all fingerprints. */

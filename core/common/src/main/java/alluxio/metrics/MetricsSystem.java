@@ -95,7 +95,6 @@ public final class MetricsSystem {
    *
    * @param config the metrics config
    */
-  @SuppressWarnings("nullness")
   public static synchronized void startSinksFromConfig(MetricsConfig config) {
     if (sSinks != null) {
       LOG.info("Sinks have already been started.");
@@ -113,7 +112,9 @@ public final class MetricsSystem {
           Sink sink =
               (Sink) Class.forName(classPath).getConstructor(Properties.class, MetricRegistry.class)
                   .newInstance(entry.getValue(), METRIC_REGISTRY);
+          assert sink != null : "@AssumeAssertion(nullness)";
           sink.start();
+          assert sSinks != null : "@AssumeAssertion(nullness)";
           sSinks.add(sink);
         } catch (Exception e) {
           LOG.error("Sink class {} cannot be instantiated", classPath, e);
@@ -207,13 +208,11 @@ public final class MetricsSystem {
    * @param metricsName the long metrics name with instance and host name
    * @return the metrics name without instance and host name
    */
-  @SuppressWarnings("nullness")
   public static String stripInstanceAndHost(String metricsName) {
-    String[] pieces = metricsName.split("\\.");
+    @Nullable String[] pieces = metricsName.split("\\.");
     Preconditions.checkArgument(pieces.length > 1, "Incorrect metrics name: %s.", metricsName);
-
     // Master metrics doesn't have hostname included.
-    if (!pieces[0].equals(MASTER_INSTANCE)) {
+    if (!MASTER_INSTANCE.equals(pieces[0])) {
       pieces[1] = null;
     }
     pieces[0] = null;

@@ -11,6 +11,8 @@
 
 package alluxio.collections;
 
+import org.checkerframework.checker.nullness.qual.Nullable;
+
 import java.util.Iterator;
 import java.util.Set;
 
@@ -75,6 +77,7 @@ public interface FieldIndex<T> extends Iterable<T> {
    * @param value the field value to be satisfied
    * @return the object or null if there is no such object
    */
+  @Nullable
   T getFirst(Object value);
 
   /**

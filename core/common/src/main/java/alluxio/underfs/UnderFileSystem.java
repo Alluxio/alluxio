@@ -281,6 +281,7 @@ public interface UnderFileSystem extends Closeable {
    * @param path the file name
    * @return The list of locations
    */
+  @Nullable
   List<String> getFileLocations(String path) throws IOException;
 
   /**
@@ -290,6 +291,7 @@ public interface UnderFileSystem extends Closeable {
    * @param options method options
    * @return The list of locations
    */
+  @Nullable
   List<String> getFileLocations(String path, FileLocationOptions options) throws IOException;
 
   /**
@@ -411,7 +413,7 @@ public interface UnderFileSystem extends Closeable {
    *         this abstract pathname. The array will be empty if the directory is empty. Returns
    *         {@code null} if this abstract pathname does not denote a directory.
    */
-  UfsStatus[] listStatus(String path) throws IOException;
+  UfsStatus @Nullable [] listStatus(String path) throws IOException;
 
   /**
    * Returns an array of statuses of the files and directories in the directory denoted by this
@@ -433,7 +435,7 @@ public interface UnderFileSystem extends Closeable {
    *         abstract pathname. The array will be empty if the directory is empty. Returns
    *         {@code null} if this abstract pathname does not denote a directory.
    */
-  UfsStatus[] listStatus(String path, ListOptions options) throws IOException;
+  UfsStatus @Nullable [] listStatus(String path, ListOptions options) throws IOException;
 
   /**
    * Creates the directory named by this abstract pathname. If the folder already exists, the method

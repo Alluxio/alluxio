@@ -59,8 +59,7 @@ public final class PlainSaslServer implements SaslServer {
   }
 
   @Override
-  @SuppressWarnings("nullness")
-  public byte[] evaluateResponse(byte[] response) throws SaslException {
+  public byte @Nullable [] evaluateResponse(byte[] response) throws SaslException {
     Preconditions.checkState(!mCompleted, "PLAIN authentication has completed");
     Preconditions.checkArgument(response != null, "Received null response");
 
@@ -100,6 +99,7 @@ public final class PlainSaslServer implements SaslServer {
       AuthorizeCallback authCallback = new AuthorizeCallback(authenticationId, authorizationId);
 
       Callback[] cbList = {nameCallback, passwordCallback, authCallback};
+      assert mHandler != null : "@AssumeAssertion(nullness)";
       mHandler.handle(cbList);
       if (!authCallback.isAuthorized()) {
         throw new SaslException("AuthorizeCallback authorized failure");

@@ -56,7 +56,6 @@ public interface GroupMappingService {
         synchronized (Factory.class) {
           if (sCachedGroupMapping == null) {
             LOG.debug("Creating new Groups object");
-            @SuppressWarnings("nullness")
             GroupMappingService groupMappingService =
                 CommonUtils.createNewClassInstance(Configuration.<GroupMappingService>getClass(
                     PropertyKey.SECURITY_GROUP_MAPPING_CLASS), null, null);

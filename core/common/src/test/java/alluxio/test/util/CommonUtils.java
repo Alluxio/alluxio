@@ -91,7 +91,6 @@ public final class CommonUtils {
    * @param clazz the class to test the equals and hashCode methods for
    * @param excludedFields names of fields which should not impact equality
    */
-  @SuppressWarnings("nullness")
   public static <T> void testEquals(Class<T> clazz, String... excludedFields) {
     Set<String> excludedFieldsSet = new HashSet<>(Arrays.asList(excludedFields));
     EqualsTester equalsTester = new EqualsTester();

@@ -78,7 +78,6 @@ public abstract class BaseUnderFileSystem implements UnderFileSystem {
   }
 
   @Override
-  @SuppressWarnings("nullness")
   public String getFingerprint(String path) {
     try {
       UfsStatus status = getStatus(path);
@@ -115,8 +114,7 @@ public abstract class BaseUnderFileSystem implements UnderFileSystem {
   }
 
   @Override
-  @SuppressWarnings("nullness")
-  public UfsStatus[] listStatus(String path, ListOptions options) throws IOException {
+  public UfsStatus @Nullable [] listStatus(String path, ListOptions options) throws IOException {
     if (!options.isRecursive()) {
       return listStatus(path);
     }
@@ -137,15 +135,16 @@ public abstract class BaseUnderFileSystem implements UnderFileSystem {
       final Pair<String, UfsStatus> pathToProcessPair = pathsToProcess.remove();
       final String pathToProcess = pathToProcessPair.getFirst();
       UfsStatus pathStatus = pathToProcessPair.getSecond();
-      returnPaths.add(pathStatus.setName(pathToProcess.substring(path.length() + 1)));
-
-      if (pathStatus.isDirectory()) {
-        // Add all of its subpaths
-        UfsStatus[] children = listStatus(pathToProcess);
-        if (children != null) {
-          for (UfsStatus child : children) {
-            pathsToProcess.add(
-                new Pair<>(PathUtils.concatPath(pathToProcess, child.getName()), child));
+      if (pathToProcess != null && pathStatus != null) {
+        returnPaths.add(pathStatus.setName(pathToProcess.substring(path.length() + 1)));
+        if (pathStatus.isDirectory()) {
+          // Add all of its subpaths
+          UfsStatus[] children = listStatus(pathToProcess);
+          if (children != null) {
+            for (UfsStatus child : children) {
+              pathsToProcess.add(
+                      new Pair<>(PathUtils.concatPath(pathToProcess, child.getName()), child));
+            }
           }
         }
       }

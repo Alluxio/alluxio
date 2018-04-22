@@ -198,7 +198,6 @@ public final class TieredIdentity implements Serializable {
      * @param otherTier a wire type locality tier to compare to
      * @return true if the wire type locality tier matches the given tier
      */
-    @SuppressWarnings("nullness")
     public boolean matches(LocalityTier otherTier) {
       String otherTierName = otherTier.getTierName();
       if (!mTierName.equals(otherTierName)) {

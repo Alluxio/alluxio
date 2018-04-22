@@ -116,7 +116,7 @@ public class NonUniqueFieldIndex<T> implements FieldIndex<T> {
   }
 
   @Override
-  @SuppressWarnings("nullness")
+  @Nullable
   public T getFirst(Object value) {
     Set<T> all = mIndexMap.get(value);
     return all == null ? null : Iterables.getFirst(all, null);
