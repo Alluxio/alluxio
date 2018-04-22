@@ -12,6 +12,7 @@
 package alluxio.master.lineage.recompute;
 
 import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.mock;
 
 import alluxio.job.CommandLineJob;
 import alluxio.job.Job;
@@ -25,7 +26,6 @@ import alluxio.master.lineage.meta.LineageStore;
 import com.google.common.collect.Lists;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Mockito;
 
 import java.util.ArrayList;
 
@@ -45,7 +45,7 @@ public final class RecomputePlannerTest {
   public void before() {
     mLineageStore = new LineageStore(new LineageIdGenerator());
     mJob = new CommandLineJob("test", new JobConf("output"));
-    mFileSystemMaster = Mockito.mock(FileSystemMaster.class);
+    mFileSystemMaster = mock(FileSystemMaster.class);
     Mockito.when(mFileSystemMaster.getFileSystemMasterView())
         .thenReturn(new FileSystemMasterView(mFileSystemMaster));
     mPlanner = new RecomputePlanner(mLineageStore, mFileSystemMaster);
