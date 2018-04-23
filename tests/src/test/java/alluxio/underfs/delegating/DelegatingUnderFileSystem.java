@@ -12,6 +12,8 @@
 package alluxio.underfs.delegating;
 
 import alluxio.AlluxioURI;
+import alluxio.exception.status.UnimplementedException;
+import alluxio.security.authorization.AccessControlList;
 import alluxio.underfs.UfsDirectoryStatus;
 import alluxio.underfs.UfsFileStatus;
 import alluxio.underfs.UfsStatus;
@@ -85,6 +87,11 @@ public class DelegatingUnderFileSystem implements UnderFileSystem {
   @Override
   public boolean exists(String path) throws IOException {
     return mUfs.exists(path);
+  }
+
+  @Override
+  public AccessControlList getAcl(String path) throws IOException, UnimplementedException {
+    return mUfs.getAcl(path);
   }
 
   @Override
