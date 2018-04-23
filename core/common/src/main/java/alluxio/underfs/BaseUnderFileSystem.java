@@ -14,6 +14,8 @@ package alluxio.underfs;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.collections.Pair;
+import alluxio.exception.status.UnimplementedException;
+import alluxio.security.authorization.AccessControlList;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.options.DeleteOptions;
 import alluxio.underfs.options.ListOptions;
@@ -75,6 +77,11 @@ public abstract class BaseUnderFileSystem implements UnderFileSystem {
   @Override
   public boolean exists(String path) throws IOException {
     return isFile(path) || isDirectory(path);
+  }
+
+  @Override
+  public AccessControlList getAcl(String path) throws UnimplementedException, IOException {
+    throw new UnimplementedException("ACL is not supported");
   }
 
   @Override
