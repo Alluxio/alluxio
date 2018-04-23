@@ -14,7 +14,6 @@ package alluxio.client.fs;
 import static org.junit.Assert.assertEquals;
 
 import alluxio.AlluxioTestDirectory;
-import alluxio.testutils.BaseIntegrationTest;
 import alluxio.ConfigurationRule;
 import alluxio.ConfigurationTestUtils;
 import alluxio.Process;
@@ -25,6 +24,7 @@ import alluxio.client.file.FileSystemTestUtils;
 import alluxio.master.AlluxioMasterProcess;
 import alluxio.master.MasterProcess;
 import alluxio.network.TieredIdentityFactory;
+import alluxio.testutils.BaseIntegrationTest;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.worker.AlluxioWorkerProcess;
 import alluxio.worker.WorkerProcess;
