@@ -15,9 +15,7 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
 import alluxio.AlluxioURI;
-import alluxio.testutils.BaseIntegrationTest;
 import alluxio.Constants;
-import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.PropertyKey;
 import alluxio.UnderFileSystemFactoryRegistryRule;
 import alluxio.client.WriteType;
@@ -27,9 +25,11 @@ import alluxio.client.file.FileSystemTestUtils;
 import alluxio.client.file.options.FreeOptions;
 import alluxio.exception.AlluxioException;
 import alluxio.master.MasterClientConfig;
-import alluxio.underfs.UnderFileSystem;
+import alluxio.testutils.BaseIntegrationTest;
+import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.testutils.underfs.delegating.DelegatingUnderFileSystem;
 import alluxio.testutils.underfs.delegating.DelegatingUnderFileSystemFactory;
+import alluxio.underfs.UnderFileSystem;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 

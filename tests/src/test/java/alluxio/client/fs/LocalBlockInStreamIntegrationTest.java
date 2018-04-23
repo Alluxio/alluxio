@@ -14,14 +14,14 @@ package alluxio.client.fs;
 import alluxio.AlluxioURI;
 import alluxio.client.ReadType;
 import alluxio.client.WriteType;
-import alluxio.testutils.LocalAlluxioClusterResource;
-import alluxio.testutils.BaseIntegrationTest;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemTestUtils;
 import alluxio.client.file.options.CreateFileOptions;
 import alluxio.client.file.options.OpenFileOptions;
 import alluxio.exception.PreconditionMessage;
+import alluxio.testutils.BaseIntegrationTest;
+import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.util.io.BufferUtils;
 import alluxio.util.io.PathUtils;
 

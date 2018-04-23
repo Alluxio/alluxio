@@ -12,9 +12,7 @@
 package alluxio.server.tieredstore;
 
 import alluxio.AlluxioURI;
-import alluxio.testutils.BaseIntegrationTest;
 import alluxio.Constants;
-import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.PropertyKey;
 import alluxio.client.ReadType;
 import alluxio.client.file.FileInStream;
@@ -24,6 +22,8 @@ import alluxio.client.file.options.OpenFileOptions;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatScheduler;
 import alluxio.heartbeat.ManuallyScheduleHeartbeat;
+import alluxio.testutils.BaseIntegrationTest;
+import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.util.io.BufferUtils;
 import alluxio.util.io.PathUtils;
 
