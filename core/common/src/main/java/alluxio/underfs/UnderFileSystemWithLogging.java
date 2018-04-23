@@ -13,6 +13,8 @@ package alluxio.underfs;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
+import alluxio.exception.status.UnimplementedException;
+import alluxio.security.authorization.AccessControlList;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.options.DeleteOptions;
 import alluxio.underfs.options.FileLocationOptions;
@@ -186,6 +188,21 @@ public class UnderFileSystemWithLogging implements UnderFileSystem {
       @Override
       public String toString() {
         return String.format("Exists: path=%s", path);
+      }
+    });
+  }
+
+  @Override
+  public AccessControlList getAcl(String path) throws IOException, UnimplementedException {
+    return call(new UfsCallable<AccessControlList>() {
+      @Override
+      public AccessControlList call() throws IOException {
+        return mUnderFileSystem.getAcl(path);
+      }
+
+      @Override
+      public String toString() {
+        return String.format("GetAcl: path=%s", path);
       }
     });
   }
