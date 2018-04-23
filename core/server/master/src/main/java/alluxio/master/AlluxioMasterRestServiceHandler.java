@@ -28,7 +28,6 @@ import alluxio.web.MasterWebServer;
 import alluxio.wire.AlluxioMasterInfo;
 import alluxio.wire.Capacity;
 import alluxio.wire.MountPointInfo;
-import alluxio.wire.WorkerInfo;
 
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Gauge;
@@ -427,12 +426,7 @@ public final class AlluxioMasterRestServiceHandler {
   @ReturnType("java.util.List<alluxio.wire.WorkerInfo>")
   @Deprecated
   public Response getWorkerInfoList() {
-    return RestUtils.call(new RestUtils.RestCallable<List<WorkerInfo>>() {
-      @Override
-      public List<WorkerInfo> call() throws Exception {
-        return mBlockMaster.getWorkerInfoList();
-      }
-    });
+    return RestUtils.call(()-> mBlockMaster.getWorkerInfoList());
   }
 
   private Capacity getCapacityInternal() {
