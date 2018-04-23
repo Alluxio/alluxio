@@ -15,7 +15,6 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
 
 import alluxio.AlluxioURI;
-import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemTestUtils;
@@ -24,6 +23,7 @@ import alluxio.exception.BlockInfoException;
 import alluxio.master.LocalAlluxioCluster;
 import alluxio.master.MasterProcess;
 import alluxio.master.block.BlockMaster;
+import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.wire.WorkerNetAddress;
 
 import org.junit.Before;

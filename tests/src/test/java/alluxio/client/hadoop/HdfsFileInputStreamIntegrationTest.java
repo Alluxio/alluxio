@@ -13,9 +13,7 @@ package alluxio.client.hadoop;
 
 import alluxio.AlluxioURI;
 import alluxio.hadoop.HadoopClientTestUtils;
-import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.PropertyKey;
-import alluxio.testutils.BaseIntegrationTest;
 import alluxio.client.ReadType;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileSystem;
@@ -25,6 +23,8 @@ import alluxio.client.file.URIStatus;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.PreconditionMessage;
 import alluxio.hadoop.HdfsFileInputStream;
+import alluxio.testutils.BaseIntegrationTest;
+import alluxio.testutils.LocalAlluxioClusterResource;
 import alluxio.util.io.BufferUtils;
 
 import org.apache.hadoop.fs.Seekable;
