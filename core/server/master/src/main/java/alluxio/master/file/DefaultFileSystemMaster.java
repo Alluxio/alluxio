@@ -2577,7 +2577,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     UfsFileStatus ufsStatus = (UfsFileStatus) options.getUfsStatus();
     long ufsBlockSizeByte;
     long ufsLength;
-    AccessControlList acl;
+    AccessControlList acl = null;
     try (CloseableResource<UnderFileSystem> ufsResource = resolution.acquireUfsResource()) {
       UnderFileSystem ufs = ufsResource.get();
 
@@ -2587,11 +2587,12 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       }
       ufsLength = ufsStatus.getContentLength();
 
-      try {
-        acl = ufs.getAcl(ufsUri.toString());
-      } catch (UnimplementedException e) {
-        // ACL is unsupported or disabled in under file system.
-        acl = null;
+      if (isAclEnabled()) {
+        try {
+          acl = ufs.getAcl(ufsUri.toString());
+        } catch (UnimplementedException e) {
+          // ACL is unsupported or disabled in under file system.
+        }
       }
     }
 
@@ -3869,5 +3870,9 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     boolean shouldSync =
         mUfsSyncPathCache.shouldSyncPath(path.getPath(), options.getSyncIntervalMs());
     return new LockingScheme(path, desiredLockMode, shouldSync);
+  }
+
+  private boolean isAclEnabled() {
+    return Configuration.getBoolean(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED);
   }
 }
