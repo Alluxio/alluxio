@@ -57,7 +57,7 @@ might be stored in an S3 bucket, which is mounted to the Alluxio namespace throu
 In this example, we will showcase the above features. The example assumes that Alluxio source code
 exists in the `${ALLUXIO_HOME}` directory and that there is an instance of Alluxio running locally.
 
-First, let's create a temporary directory in the local file system that will use for the example:
+First, let's create a temporary directory in the local file system that will be used for the example:
 
 {% include Unified-and-Transparent-Namespace/mkdir.md %}
 
