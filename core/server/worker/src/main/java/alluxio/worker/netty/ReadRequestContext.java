@@ -72,6 +72,7 @@ public class ReadRequestContext<T extends ReadRequest> {
   private Error mError;
 
   private Counter mCounter;
+  private Counter mUserCounter;
 
   /** This is set when the SUCCESS or CANCEL response is sent. This is only for sanity check. */
   private volatile boolean mDone;
@@ -162,6 +163,14 @@ public class ReadRequestContext<T extends ReadRequest> {
   }
 
   /**
+   * @return metrics user counter associated with this request
+   */
+  @Nullable
+  public Counter getUserCounter() {
+    return mUserCounter;
+  }
+
+  /**
    * @param packetReaderActive packet reader state to set
    */
   @GuardedBy("AbstractReadHandler#mLock")
@@ -221,5 +230,12 @@ public class ReadRequestContext<T extends ReadRequest> {
    */
   public void setCounter(Counter counter) {
     mCounter = counter;
+  }
+
+  /**
+   * @param counter user counter to set
+   */
+  public void setUserCounter(Counter counter) {
+    mUserCounter = counter;
   }
 }

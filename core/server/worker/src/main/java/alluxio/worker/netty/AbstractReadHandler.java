@@ -250,8 +250,11 @@ abstract class AbstractReadHandler<T extends ReadRequestContext<?>>
    */
   private void incrementMetrics(long bytesRead) {
     Counter counter = mContext.getCounter();
-    Preconditions.checkState(counter != null);
+    Preconditions.checkState(counter != null, "counter");
+    Counter userCounter = mContext.getUserCounter();
+    Preconditions.checkState(userCounter != null, "userCounter");
     counter.inc(bytesRead);
+    userCounter.inc(bytesRead);
   }
 
   /**

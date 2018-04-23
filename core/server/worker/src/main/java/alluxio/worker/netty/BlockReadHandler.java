@@ -29,6 +29,7 @@ import alluxio.proto.dataserver.Protocol;
 import alluxio.retry.RetryPolicy;
 import alluxio.retry.TimeoutRetry;
 import alluxio.util.proto.ProtoMessage;
+import alluxio.worker.AlluxioWorkerMetrics;
 import alluxio.worker.block.BlockLockManager;
 import alluxio.worker.block.BlockWorker;
 import alluxio.worker.block.UnderFileSystemBlockReader;
@@ -157,9 +158,10 @@ public final class BlockReadHandler extends AbstractReadHandler<BlockReadRequest
           try {
             BlockReader reader =
                 mWorker.readBlockRemote(request.getSessionId(), request.getId(), lockId);
-            String metricName = "BytesReadAlluxio";
+            String metricName = AlluxioWorkerMetrics.BYTES_READ_ALLUXIO;
             context.setBlockReader(reader);
             context.setCounter(MetricsSystem.workerCounter(metricName));
+            context.setUserCounter(MetricsSystem.workerUserCounter(request.getUser(), metricName));
             mWorker.accessBlock(request.getSessionId(), request.getId());
             ((FileChannel) reader.getChannel()).position(request.getStart());
             return;

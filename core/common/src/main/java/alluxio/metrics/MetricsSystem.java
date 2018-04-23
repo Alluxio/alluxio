@@ -164,6 +164,18 @@ public final class MetricsSystem {
   }
 
   /**
+   * Builds metric registry name for worker instance of a particular user. The pattern is
+   * instance.uniqueWorkerId.metricName.uniqueUserId .
+   *
+   * @param userName the user name
+   * @param name the metric name
+   * @return the metric registry name
+   */
+  public static String getWorkerUserMetricName(String userName, String name) {
+    return getMetricNameWithUniqueIdAndUser(WORKER_INSTANCE, userName, name);
+  }
+
+  /**
    * Builds metric registry name for client instance. The pattern is instance.uniqueId.metricName.
    *
    * @param name the metric name
@@ -184,6 +196,21 @@ public final class MetricsSystem {
   public static String getMetricNameWithUniqueId(String instance, String name) {
     return Joiner.on(".")
         .join(instance, NetworkAddressUtils.getLocalHostName().replace('.', '_'), name);
+  }
+
+  /**
+   * Builds unique metric registry names with unique ID (set to host name) and user. The pattern is
+   * instance.hostname.metricName.username.
+   *
+   * @param instance the instance name
+   * @param userName the user name
+   * @param name the metric name
+   * @return the metric registry name
+   */
+  public static String getMetricNameWithUniqueIdAndUser(String instance, String userName,
+      String name) {
+    return Joiner.on(".").join(instance, NetworkAddressUtils.getLocalHostName().replace('.', '_'),
+        name, userName);
   }
 
   /**
@@ -252,12 +279,22 @@ public final class MetricsSystem {
   public static Timer workerTimer(String name) {
     return METRIC_REGISTRY.timer(getWorkerMetricName(name));
   }
+
   /**
    * @param name the metric name
    * @return the counter
    */
   public static Counter workerCounter(String name) {
     return METRIC_REGISTRY.counter((getWorkerMetricName(name)));
+  }
+
+  /**
+   * @param userName the user name
+   * @param name the metric name
+   * @return the counter
+   */
+  public static Counter workerUserCounter(String userName, String name) {
+    return METRIC_REGISTRY.counter((getWorkerUserMetricName(userName, name)));
   }
 
   /**
