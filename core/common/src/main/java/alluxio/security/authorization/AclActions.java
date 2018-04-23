@@ -13,6 +13,7 @@ package alluxio.security.authorization;
 
 import alluxio.proto.journal.File;
 
+import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableSet;
 
 import java.util.BitSet;
@@ -112,6 +113,30 @@ public final class AclActions {
    */
   public boolean contains(AclAction action) {
     return mActions.get(action.ordinal());
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof AclActions)) {
+      return false;
+    }
+    AclActions that = (AclActions) o;
+    return Objects.equal(mActions, that.mActions);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hashCode(mActions);
+  }
+
+  @Override
+  public String toString() {
+    return Objects.toStringHelper(this)
+        .add("actions", getActions())
+        .toString();
   }
 
   /**

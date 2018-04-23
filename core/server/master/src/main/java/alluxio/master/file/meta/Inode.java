@@ -16,6 +16,7 @@ import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidPathException;
 import alluxio.master.journal.JournalEntryRepresentable;
 import alluxio.security.authorization.AccessControlList;
+import alluxio.security.authorization.AclEntry;
 import alluxio.wire.FileInfo;
 import alluxio.wire.TtlAction;
 
@@ -23,6 +24,7 @@ import com.google.common.base.Objects;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.List;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -327,6 +329,21 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
    */
   public T setMode(short mode) {
     mAcl.setMode(mode);
+    return getThis();
+  }
+
+  /**
+   * Sets ACL entries into the internal ACL.
+   * If an entry is new, it is added into the internal ACL;
+   * If an entry with the same type and subject already exists, then the old entry is overwritten.
+   *
+   * @param entries the ACL entries
+   * @return the updated object
+   */
+  public T setAcl(List<AclEntry> entries) {
+    for (AclEntry entry : entries) {
+      mAcl.setEntry(entry);
+    }
     return getThis();
   }
 

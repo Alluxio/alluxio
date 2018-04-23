@@ -36,6 +36,7 @@ import alluxio.exception.status.InvalidArgumentException;
 import alluxio.exception.status.NotFoundException;
 import alluxio.exception.status.PermissionDeniedException;
 import alluxio.exception.status.UnavailableException;
+import alluxio.exception.status.UnimplementedException;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatThread;
 import alluxio.master.AbstractMaster;
@@ -103,6 +104,7 @@ import alluxio.retry.CountingRetry;
 import alluxio.retry.RetryPolicy;
 import alluxio.security.authentication.AuthType;
 import alluxio.security.authentication.AuthenticatedClientUser;
+import alluxio.security.authorization.AccessControlList;
 import alluxio.security.authorization.Mode;
 import alluxio.thrift.CommandType;
 import alluxio.thrift.FileSystemCommand;
@@ -2575,6 +2577,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     UfsFileStatus ufsStatus = (UfsFileStatus) options.getUfsStatus();
     long ufsBlockSizeByte;
     long ufsLength;
+    AccessControlList acl;
     try (CloseableResource<UnderFileSystem> ufsResource = resolution.acquireUfsResource()) {
       UnderFileSystem ufs = ufsResource.get();
 
@@ -2583,6 +2586,13 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         ufsStatus = ufs.getFileStatus(ufsUri.toString());
       }
       ufsLength = ufsStatus.getContentLength();
+
+      try {
+        acl = ufs.getAcl(ufsUri.toString());
+      } catch (UnimplementedException e) {
+        // ACL is unsupported or disabled in under file system.
+        acl = null;
+      }
     }
 
     // Metadata loaded from UFS has no TTL set.
@@ -2598,6 +2608,9 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       mode.setOtherBits(mode.getOtherBits().or(mode.getOwnerBits()));
     }
     createFileOptions = createFileOptions.setOwner(ufsOwner).setGroup(ufsGroup).setMode(mode);
+    if (acl != null) {
+      createFileOptions.setAcl(acl.getEntries());
+    }
     if (ufsLastModified != null) {
       createFileOptions.setOperationTimeMs(ufsLastModified);
     }

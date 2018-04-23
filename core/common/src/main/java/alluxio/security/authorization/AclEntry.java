@@ -11,6 +11,8 @@
 
 package alluxio.security.authorization;
 
+import com.google.common.base.Objects;
+
 /**
  * An entry in {@link AccessControlList}.
  */
@@ -54,6 +56,34 @@ public final class AclEntry {
    */
   public AclActions getActions() {
     return new AclActions(mActions);
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof AclEntry)) {
+      return false;
+    }
+    AclEntry that = (AclEntry) o;
+    return Objects.equal(mType, that.mType)
+        && Objects.equal(mSubject, that.mSubject)
+        && Objects.equal(mActions, that.mActions);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hashCode(mType, mSubject, mActions);
+  }
+
+  @Override
+  public String toString() {
+    return Objects.toStringHelper(this)
+        .add("type", mType)
+        .add("subject", mSubject)
+        .add("actions", mActions)
+        .toString();
   }
 
   /**
