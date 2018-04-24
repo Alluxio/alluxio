@@ -176,34 +176,7 @@ public final class AccessControlList {
    * @return whether user has the permission to perform the action
    */
   public boolean checkPermission(String user, List<String> groups, AclAction action) {
-    // TODO(cc): Update the logic to take MASK into consideration.
-    if (user.equals(mOwningUser)) {
-      return getOwningUserActions().contains(action);
-    }
-    if (mUserActions.containsKey(user)) {
-      return mUserActions.get(user).contains(action);
-    }
-
-    boolean isGroupKnown = false;
-    if (groups.contains(mOwningGroup)) {
-      isGroupKnown = true;
-      if (getOwningGroupActions().contains(action)) {
-        return true;
-      }
-    }
-    for (String group : groups) {
-      if (mGroupActions.containsKey(group)) {
-        isGroupKnown = true;
-        if (mGroupActions.get(group).contains(action)) {
-          return true;
-        }
-      }
-    }
-    if (isGroupKnown) {
-      return false;
-    }
-
-    return mOtherActions.contains(action);
+    return getPermission(user, groups).contains(action);
   }
 
   /**
