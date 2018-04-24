@@ -28,7 +28,6 @@ import alluxio.web.MasterWebServer;
 import alluxio.wire.AlluxioMasterInfo;
 import alluxio.wire.Capacity;
 import alluxio.wire.MountPointInfo;
-import alluxio.wire.WorkerInfo;
 
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Gauge;
@@ -239,12 +238,7 @@ public final class AlluxioMasterRestServiceHandler {
   @ReturnType("java.lang.String")
   @Deprecated
   public Response getVersion() {
-    return RestUtils.call(new RestUtils.RestCallable<String>() {
-      @Override
-      public String call() throws Exception {
-        return RuntimeConstants.VERSION;
-      }
-    });
+    return RestUtils.call(() -> RuntimeConstants.VERSION);
   }
 
   /**
@@ -272,12 +266,7 @@ public final class AlluxioMasterRestServiceHandler {
   @ReturnType("java.lang.Long")
   @Deprecated
   public Response getUsedBytes() {
-    return RestUtils.call(new RestUtils.RestCallable<Long>() {
-      @Override
-      public Long call() throws Exception {
-        return mBlockMaster.getUsedBytes();
-      }
-    });
+    return RestUtils.call(() -> mBlockMaster.getUsedBytes());
   }
 
   /**
@@ -319,12 +308,7 @@ public final class AlluxioMasterRestServiceHandler {
   @ReturnType("java.lang.Long")
   @Deprecated
   public Response getUfsUsedBytes() {
-    return RestUtils.call(new RestUtils.RestCallable<Long>() {
-      @Override
-      public Long call() throws Exception {
-        return mUfs.getSpace(mUfsRoot, UnderFileSystem.SpaceType.SPACE_USED);
-      }
-    });
+    return RestUtils.call(() -> mUfs.getSpace(mUfsRoot, UnderFileSystem.SpaceType.SPACE_USED));
   }
 
   /**
@@ -338,12 +322,7 @@ public final class AlluxioMasterRestServiceHandler {
   @ReturnType("java.lang.Long")
   @Deprecated
   public Response getUfsFreeBytes() {
-    return RestUtils.call(new RestUtils.RestCallable<Long>() {
-      @Override
-      public Long call() throws Exception {
-        return mUfs.getSpace(mUfsRoot, UnderFileSystem.SpaceType.SPACE_FREE);
-      }
-    });
+    return RestUtils.call(() -> mUfs.getSpace(mUfsRoot, UnderFileSystem.SpaceType.SPACE_FREE));
   }
 
   private Comparator<String> getTierAliasComparator() {
@@ -418,12 +397,7 @@ public final class AlluxioMasterRestServiceHandler {
   @ReturnType("java.lang.Integer")
   @Deprecated
   public Response getWorkerCount() {
-    return RestUtils.call(new RestUtils.RestCallable<Integer>() {
-      @Override
-      public Integer call() throws Exception {
-        return mBlockMaster.getWorkerCount();
-      }
-    });
+    return RestUtils.call(()->mBlockMaster.getWorkerCount());
   }
 
   /**
@@ -437,12 +411,7 @@ public final class AlluxioMasterRestServiceHandler {
   @ReturnType("java.util.List<alluxio.wire.WorkerInfo>")
   @Deprecated
   public Response getWorkerInfoList() {
-    return RestUtils.call(new RestUtils.RestCallable<List<WorkerInfo>>() {
-      @Override
-      public List<WorkerInfo> call() throws Exception {
-        return mBlockMaster.getWorkerInfoList();
-      }
-    });
+    return RestUtils.call(()-> mBlockMaster.getWorkerInfoList());
   }
 
   private Capacity getCapacityInternal() {

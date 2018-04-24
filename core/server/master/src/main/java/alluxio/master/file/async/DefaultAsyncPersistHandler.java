@@ -58,7 +58,7 @@ public final class DefaultAsyncPersistHandler implements AsyncPersistHandler {
    */
   public DefaultAsyncPersistHandler(FileSystemMasterView view) {
     mWorkerToAsyncPersistFiles = new HashMap<>();
-    mFileSystemMasterView = Preconditions.checkNotNull(view);
+    mFileSystemMasterView = Preconditions.checkNotNull(view, "view");
   }
 
   @Override
