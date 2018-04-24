@@ -94,37 +94,36 @@ public final class AccessControlList {
    * @return an immutable list of ACL entries
    */
   public List<AclEntry> getEntries() {
-    ImmutableList.Builder<AclEntry> builder =
-        new ImmutableList.Builder<>();
-    builder.add(new AclEntry.Builder()
-        .setType(AclEntryType.OWNING_USER)
-        .setSubject(mOwningUser)
-        .setActions(getOwningUserActions())
-        .build());
+    ImmutableList.Builder<AclEntry> builder = new ImmutableList.Builder<>();
     for (Map.Entry<String, AclActions> kv : mUserActions.entrySet()) {
       if (kv.getKey().equals(OWNING_USER_KEY)) {
-        continue;
+        builder.add(new AclEntry.Builder()
+            .setType(AclEntryType.OWNING_USER)
+            .setSubject(mOwningUser)
+            .setActions(getOwningUserActions())
+            .build());
+      } else {
+        builder.add(new AclEntry.Builder()
+            .setType(AclEntryType.NAMED_USER)
+            .setSubject(kv.getKey())
+            .setActions(kv.getValue())
+            .build());
       }
-      builder.add(new AclEntry.Builder()
-          .setType(AclEntryType.NAMED_USER)
-          .setSubject(kv.getKey())
-          .setActions(kv.getValue())
-          .build());
     }
-    builder.add(new AclEntry.Builder()
-        .setType(AclEntryType.OWNING_GROUP)
-        .setSubject(mOwningGroup)
-        .setActions(getOwningGroupActions())
-        .build());
     for (Map.Entry<String, AclActions> kv : mGroupActions.entrySet()) {
       if (kv.getKey().equals(OWNING_GROUP_KEY)) {
-        continue;
+        builder.add(new AclEntry.Builder()
+            .setType(AclEntryType.OWNING_GROUP)
+            .setSubject(mOwningGroup)
+            .setActions(getOwningGroupActions())
+            .build());
+      } else {
+        builder.add(new AclEntry.Builder()
+            .setType(AclEntryType.NAMED_GROUP)
+            .setSubject(kv.getKey())
+            .setActions(kv.getValue())
+            .build());
       }
-      builder.add(new AclEntry.Builder()
-          .setType(AclEntryType.NAMED_GROUP)
-          .setSubject(kv.getKey())
-          .setActions(kv.getValue())
-          .build());
     }
     builder.add(new AclEntry.Builder()
         .setType(AclEntryType.OTHER)

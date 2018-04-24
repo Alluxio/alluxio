@@ -334,8 +334,7 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
 
   /**
    * Sets ACL entries into the internal ACL.
-   * If an entry is new, it is added into the internal ACL;
-   * If an entry with the same type and subject already exists, then the old entry is overwritten.
+   * The entries will overwrite any existing correspondent entries in the internal ACL.
    *
    * @param entries the ACL entries
    * @return the updated object

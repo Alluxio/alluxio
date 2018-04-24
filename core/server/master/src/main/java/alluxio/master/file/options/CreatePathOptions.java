@@ -103,7 +103,7 @@ public abstract class CreatePathOptions<T> {
    * @return an immutable list of ACL entries
    */
   public List<AclEntry> getAcl() {
-    return ImmutableList.copyOf(mAcl);
+    return mAcl;
   }
 
   /**
