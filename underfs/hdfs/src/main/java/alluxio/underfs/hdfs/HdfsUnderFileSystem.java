@@ -14,7 +14,6 @@ package alluxio.underfs.hdfs;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.PropertyKey;
-import alluxio.exception.status.UnimplementedException;
 import alluxio.retry.CountingRetry;
 import alluxio.retry.RetryPolicy;
 import alluxio.security.authorization.AccessControlList;
@@ -227,7 +226,7 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
   }
 
   @Override
-  public AccessControlList getAcl(String path) throws UnimplementedException, IOException {
+  public AccessControlList getAcl(String path) throws IOException {
     FileSystem hdfs = getFs();
     // TODO(chen): for hadoop <= 2.3, ACL is not supported, there is no getAclStatus method.
     AclStatus hdfsAcl;
@@ -235,7 +234,7 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
       hdfsAcl = hdfs.getAclStatus(new Path(path));
     } catch (AclException e) {
       // When dfs.namenode.acls.enabled is false, getAclStatus throws AclException.
-      throw new UnimplementedException("ACL in HDFS is disabled.");
+      return null;
     }
     AccessControlList acl = new AccessControlList();
     acl.setOwningUser(hdfsAcl.getOwner());

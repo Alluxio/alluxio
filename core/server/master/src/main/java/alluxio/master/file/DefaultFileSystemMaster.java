@@ -36,7 +36,6 @@ import alluxio.exception.status.InvalidArgumentException;
 import alluxio.exception.status.NotFoundException;
 import alluxio.exception.status.PermissionDeniedException;
 import alluxio.exception.status.UnavailableException;
-import alluxio.exception.status.UnimplementedException;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatThread;
 import alluxio.master.AbstractMaster;
@@ -2588,11 +2587,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       ufsLength = ufsStatus.getContentLength();
 
       if (isAclEnabled()) {
-        try {
-          acl = ufs.getAcl(ufsUri.toString());
-        } catch (UnimplementedException e) {
-          // ACL is unsupported or disabled in under file system.
-        }
+        acl = ufs.getAcl(ufsUri.toString());
       }
     }
 
