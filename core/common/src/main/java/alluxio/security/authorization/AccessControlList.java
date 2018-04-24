@@ -115,7 +115,7 @@ public final class AccessControlList {
   public List<AclEntry> getEntries() {
     ImmutableList.Builder<AclEntry> builder = new ImmutableList.Builder<>();
     for (Map.Entry<String, AclActions> kv : mUserActions.entrySet()) {
-      if (kv.getKey().equals(AclEntryType.OWNING_USER)) {
+      if (kv.getKey().equals(OWNING_USER_KEY)) {
         if (!mOwningUser.isEmpty()) {
           builder.add(new AclEntry.Builder()
               .setType(AclEntryType.OWNING_USER)
