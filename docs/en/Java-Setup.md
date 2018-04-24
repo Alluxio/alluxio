@@ -18,7 +18,7 @@ title: Java Setup
 
 ## Linux
 
-1.  Download the latest Java JDK from [Oracle](http://www.oracle.com/technetwork/java/javase/downloads/index.html)
+1.  Download the latest Java JDK from [Oracle](http://www.oracle.com/technetwork/java/javase/downloads/index.html).
 2.  Change directory to the location where you would like the JDK to be installed. Move the .tar.gz archive binary to the current directory.
 3.  Unpack the tarball and install the JDK.
 
