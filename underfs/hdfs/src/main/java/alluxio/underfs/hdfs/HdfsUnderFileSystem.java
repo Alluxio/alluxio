@@ -243,7 +243,7 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
       // TODO(chen): handle the case where the entry is for default ACL in a directory.
       alluxio.security.authorization.AclEntry.Builder builder =
           new alluxio.security.authorization.AclEntry.Builder();
-      builder.setType(getType(entry));
+      builder.setType(getAclEntryType(entry));
       builder.setSubject(entry.getName());
       FsAction permission = entry.getPermission();
       if (permission.implies(FsAction.READ)) {
@@ -258,7 +258,7 @@ public class HdfsUnderFileSystem extends BaseUnderFileSystem
     return acl;
   }
 
-  private AclEntryType getType(AclEntry entry) throws IOException {
+  private AclEntryType getAclEntryType(AclEntry entry) throws IOException {
     switch (entry.getType()) {
       case USER:
         return entry.getName().isEmpty() ? AclEntryType.OWNING_USER : AclEntryType.NAMED_USER;
