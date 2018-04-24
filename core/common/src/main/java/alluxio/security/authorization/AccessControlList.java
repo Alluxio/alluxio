@@ -21,6 +21,23 @@ import java.util.Map;
 
 /**
  * Access control list for a file or directory.
+ *
+ * An access control list is conceptually a list of entries, there are different types of entries:
+ * 1. owning user entry which specifies permitted actions for the owning user of a file or
+ *    directory, there is only one owning user entry;
+ * 2. named user entry which specifies permitted actions for any user, there is only one named
+ *    user entry for each user;
+ * 3. owning group entry which specifies permitted actions for the owning group of a file or
+ *    directory, there is only one owning group entry;
+ * 4. named group entry which specifies permitted actions for any group, there is only one named
+ *    group entry for each group;
+ * 5. mask entry which specifies the maximum set of permitted actions for users and groups in all
+ *    the above entries;
+ * 6. other entry which specifies permitted actions for users who are neither the owning user nor
+ *    have a named user entry, and whose belonging groups are neither the owning group nor have a
+ *    named group entry.
+ *
+ * Also, the access control list contains owning user and owning group of a file or directory.
  */
 public final class AccessControlList {
   /**
