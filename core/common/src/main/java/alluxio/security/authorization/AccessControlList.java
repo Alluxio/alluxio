@@ -91,17 +91,21 @@ public final class AccessControlList {
   }
 
   /**
-   * @return an immutable list of ACL entries
+   * @return an immutable list of ACL entries, if owning user or owning group is empty, no owning
+   *    user entry or owning group entry will be returned, named user entry and named group entry
+   *    will be returned if they exist, mask and other entry will always be returned
    */
   public List<AclEntry> getEntries() {
     ImmutableList.Builder<AclEntry> builder = new ImmutableList.Builder<>();
     for (Map.Entry<String, AclActions> kv : mUserActions.entrySet()) {
-      if (kv.getKey().equals(OWNING_USER_KEY)) {
-        builder.add(new AclEntry.Builder()
-            .setType(AclEntryType.OWNING_USER)
-            .setSubject(mOwningUser)
-            .setActions(getOwningUserActions())
-            .build());
+      if (kv.getKey().equals(AclEntryType.OWNING_USER)) {
+        if (!mOwningUser.isEmpty()) {
+          builder.add(new AclEntry.Builder()
+              .setType(AclEntryType.OWNING_USER)
+              .setSubject(mOwningUser)
+              .setActions(getOwningUserActions())
+              .build());
+        }
       } else {
         builder.add(new AclEntry.Builder()
             .setType(AclEntryType.NAMED_USER)
@@ -112,11 +116,13 @@ public final class AccessControlList {
     }
     for (Map.Entry<String, AclActions> kv : mGroupActions.entrySet()) {
       if (kv.getKey().equals(OWNING_GROUP_KEY)) {
-        builder.add(new AclEntry.Builder()
-            .setType(AclEntryType.OWNING_GROUP)
-            .setSubject(mOwningGroup)
-            .setActions(getOwningGroupActions())
-            .build());
+        if (!mOwningGroup.isEmpty()) {
+          builder.add(new AclEntry.Builder()
+              .setType(AclEntryType.OWNING_GROUP)
+              .setSubject(mOwningGroup)
+              .setActions(getOwningGroupActions())
+              .build());
+        }
       } else {
         builder.add(new AclEntry.Builder()
             .setType(AclEntryType.NAMED_GROUP)
