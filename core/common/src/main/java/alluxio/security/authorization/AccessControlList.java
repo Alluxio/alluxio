@@ -17,9 +17,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 /**
  * Access control list for a file or directory.
  */
+@NotThreadSafe
 public final class AccessControlList {
   /**
    * Initial capacity for {@link #mUserActions} and {@link #mGroupActions}.
@@ -155,40 +158,71 @@ public final class AccessControlList {
   /**
    * Checks whether the user has the permission to perform the action.
    *
+   * 1. If the user is the owner, then the owner entry determines the permission;
+   * 2. Else if the user matches the name of one of the named user entries, this entry determines
+   *    the permission;
+   * 3. Else if one of the groups is the owning group and the owning group entry contains the
+   *    requested permission, the permission is granted;
+   * 4. Else if one of the groups matches the name of one of the named group entries and this entry
+   *    contains the requested permission, the permission is granted;
+   * 5. Else if one of the groups is the owning group or matches the name of one of the named group
+   *    entries, but neither the owning group entry nor any of the matching named group entries
+   *    contains the requested permission, the permission is denied;
+   * 6. Otherwise, the other entry determines the permission.
+   *
    * @param user the user
    * @param groups the groups the user belongs to
    * @param action the action
    * @return whether user has the permission to perform the action
    */
-  public boolean check(String user, List<String> groups, AclAction action) {
-    // TODO(cc): Update the logic to take MASK into consideration.
+  public boolean checkPermission(String user, List<String> groups, AclAction action) {
+    return getPermission(user, groups).contains(action);
+  }
+
+  /**
+   * Gets the permitted actions for a user.
+   *
+   * When AccessControlList is not modified after calling getPermission,
+   * for each action returned by this method, checkPermission(user, groups, action) is true,
+   * for other actions, checkPermission(user, groups, action) is false.
+   *
+   * 1. If the user is the owner, then return the permission in the owner entry;
+   * 2. Else if the user matches the name of one of the named user entries, then return the
+   *    permission in this entry;
+   * 3. Else if at least one of the groups is the owning group or matches the name of one of the
+   *    named group entries, then for the named group entries that match a member of groups, merge
+   *    the permissions in these entries and return the merged permission;
+   * 4. Otherwise, return the permission in the other entry.
+   *
+   * @param user the user
+   * @param groups the groups the user belongs to
+   * @return the permitted actions
+   */
+  public AclActions getPermission(String user, List<String> groups) {
     if (user.equals(mOwningUser)) {
-      return getOwningUserActions().contains(action);
+      return new AclActions(getOwningUserActions());
     }
     if (mUserActions.containsKey(user)) {
-      return mUserActions.get(user).contains(action);
+      return new AclActions(mUserActions.get(user));
     }
 
     boolean isGroupKnown = false;
+    AclActions groupActions = new AclActions();
     if (groups.contains(mOwningGroup)) {
       isGroupKnown = true;
-      if (getOwningGroupActions().contains(action)) {
-        return true;
-      }
+      groupActions.merge(getOwningGroupActions());
     }
     for (String group : groups) {
       if (mGroupActions.containsKey(group)) {
         isGroupKnown = true;
-        if (mGroupActions.get(group).contains(action)) {
-          return true;
-        }
+        groupActions.merge(mGroupActions.get(group));
       }
     }
     if (isGroupKnown) {
-      return false;
+      return groupActions;
     }
 
-    return mOtherActions.contains(action);
+    return new AclActions(mOtherActions);
   }
 
   private void setOwningUserEntry(AclEntry entry) {

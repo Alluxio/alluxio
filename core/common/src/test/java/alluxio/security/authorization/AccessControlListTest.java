@@ -26,6 +26,7 @@ public class AccessControlListTest {
   private static final String OWNING_GROUP = "owning_group";
   private static final String NAMED_USER = "named_user";
   private static final String NAMED_GROUP = "named_group";
+  private static final String NAMED_GROUP2 = "named_group2";
   private static final String OTHER_USER = "other_user";
   private static final String OTHER_GROUP = "other_group";
 
@@ -107,7 +108,7 @@ public class AccessControlListTest {
   private boolean checkMode(AccessControlList acl, String user, List<String> groups,
       Mode.Bits mode) {
     for (AclAction action : mode.toAclActions()) {
-      if (!acl.check(user, groups, action)) {
+      if (!acl.checkPermission(user, groups, action)) {
         return false;
       }
     }
@@ -142,17 +143,13 @@ public class AccessControlListTest {
     Assert.assertEquals(mode, acl.getMode());
   }
 
-  /**
-   * Tests {@link AccessControlList#check(String, List, AclAction)}.
-   */
-  @Test
-  public void check() {
+  private void setPermissions(AccessControlList acl) {
     // owning user: rwx
     // owning group: r-x
     // other: --x
     // named user: r-x
     // named group: r--
-    AccessControlList acl = new AccessControlList();
+    // named group 2: -wx
     acl.setEntry(new AclEntry.Builder().setType(AclEntryType.OWNING_USER).setSubject(OWNING_USER)
         .addAction(AclAction.READ).addAction(AclAction.WRITE).addAction(AclAction.EXECUTE).build());
     acl.setEntry(new AclEntry.Builder().setType(AclEntryType.OWNING_GROUP).setSubject(OWNING_GROUP)
@@ -163,6 +160,17 @@ public class AccessControlListTest {
         .addAction(AclAction.READ).addAction(AclAction.EXECUTE).build());
     acl.setEntry(new AclEntry.Builder().setType(AclEntryType.NAMED_GROUP).setSubject(NAMED_GROUP)
         .addAction(AclAction.READ).build());
+    acl.setEntry(new AclEntry.Builder().setType(AclEntryType.NAMED_GROUP).setSubject(NAMED_GROUP2)
+        .addAction(AclAction.WRITE).addAction(AclAction.EXECUTE).build());
+  }
+
+  /**
+   * Tests {@link AccessControlList#checkPermission(String, List, AclAction)}.
+   */
+  @Test
+  public void checkPermission() {
+    AccessControlList acl = new AccessControlList();
+    setPermissions(acl);
 
     Assert.assertTrue(checkMode(acl, OWNING_USER, Collections.emptyList(), Mode.Bits.ALL));
 
@@ -186,5 +194,28 @@ public class AccessControlListTest {
         Mode.Bits.READ));
     Assert.assertFalse(checkMode(acl, OTHER_USER, Lists.newArrayList(OTHER_GROUP),
         Mode.Bits.WRITE));
+  }
+
+  private void assertMode(Mode.Bits expected, AccessControlList acl, String user,
+      List<String> groups) {
+    Assert.assertEquals(expected, acl.getPermission(user, groups).toModeBits());
+  }
+
+  /**
+   * Tests {@link AccessControlList#getPermission(String, List)}.
+   */
+  @Test
+  public void getPermission() {
+    AccessControlList acl = new AccessControlList();
+    setPermissions(acl);
+
+    assertMode(Mode.Bits.ALL, acl, OWNING_USER, Collections.emptyList());
+    assertMode(Mode.Bits.READ_EXECUTE, acl, NAMED_USER, Collections.emptyList());
+    assertMode(Mode.Bits.READ_EXECUTE, acl, OTHER_USER, Lists.newArrayList(OWNING_GROUP));
+    assertMode(Mode.Bits.READ, acl, OTHER_USER, Lists.newArrayList(NAMED_GROUP));
+    assertMode(Mode.Bits.WRITE_EXECUTE, acl, OTHER_USER, Lists.newArrayList(NAMED_GROUP2));
+    assertMode(Mode.Bits.ALL, acl, OTHER_USER, Lists.newArrayList(NAMED_GROUP, NAMED_GROUP2));
+    assertMode(Mode.Bits.EXECUTE, acl, OTHER_USER, Collections.emptyList());
+    assertMode(Mode.Bits.EXECUTE, acl, OTHER_USER, Lists.newArrayList(OTHER_GROUP));
   }
 }
