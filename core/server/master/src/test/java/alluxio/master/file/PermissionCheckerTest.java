@@ -292,6 +292,39 @@ public final class PermissionCheckerTest {
   }
 
   @Test
+  public void checkNoFallThroughFromOwnerToGroup() throws Exception {
+    mThrown.expect(AccessControlException.class);
+    mThrown.expectMessage(ExceptionMessage.PERMISSION_DENIED.getMessage(
+        toExceptionMessage(TEST_USER_1.getUser(), Mode.Bits.READ, TEST_WEIRD_FILE_URI,
+            "testWeirdFile")));
+
+    // user cannot read although group can
+    checkPermission(TEST_USER_1, Mode.Bits.READ, TEST_WEIRD_FILE_URI);
+  }
+
+  @Test
+  public void checkNoFallThroughFromOwnerToOther() throws Exception {
+    mThrown.expect(AccessControlException.class);
+    mThrown.expectMessage(ExceptionMessage.PERMISSION_DENIED.getMessage(
+        toExceptionMessage(TEST_USER_1.getUser(), Mode.Bits.WRITE, TEST_WEIRD_FILE_URI,
+            "testWeirdFile")));
+
+    // user and group cannot write although other can
+    checkPermission(TEST_USER_1, Mode.Bits.WRITE, TEST_WEIRD_FILE_URI);
+  }
+
+  @Test
+  public void checkNoFallThroughFromGroupToOther() throws Exception {
+    mThrown.expect(AccessControlException.class);
+    mThrown.expectMessage(ExceptionMessage.PERMISSION_DENIED.getMessage(
+        toExceptionMessage(TEST_USER_3.getUser(), Mode.Bits.WRITE, TEST_WEIRD_FILE_URI,
+            "testWeirdFile")));
+
+    // group cannot write although other can
+    checkPermission(TEST_USER_3, Mode.Bits.WRITE, TEST_WEIRD_FILE_URI);
+  }
+
+  @Test
   public void selfCheckFailByOtherGroup() throws Exception {
     mThrown.expect(AccessControlException.class);
     mThrown.expectMessage(ExceptionMessage.PERMISSION_DENIED.getMessage(
@@ -311,15 +344,6 @@ public final class PermissionCheckerTest {
 
     // not the owner but in same group
     checkPermission(TEST_USER_3, Mode.Bits.WRITE, TEST_DIR_FILE_URI);
-  }
-
-  @Test
-  public void checkFallThrough() throws Exception {
-    // user can not read, but group can
-    checkPermission(TEST_USER_1, Mode.Bits.READ, TEST_WEIRD_FILE_URI);
-
-    // user and group can not write, but other can
-    checkPermission(TEST_USER_1, Mode.Bits.WRITE, TEST_WEIRD_FILE_URI);
   }
 
   @Test
@@ -358,6 +382,32 @@ public final class PermissionCheckerTest {
     try (LockedInodePath inodePath = sTree
         .lockInodePath(new AlluxioURI(""), InodeTree.LockMode.READ)) {
       mPermissionChecker.checkPermission(Mode.Bits.WRITE, inodePath);
+    }
+  }
+
+  @Test
+  public void getPermission() throws Exception {
+    try (LockedInodePath path =
+             sTree.lockInodePath(new AlluxioURI(TEST_WEIRD_FILE_URI), InodeTree.LockMode.READ)) {
+      // user is admin
+      AuthenticatedClientUser.set(TEST_USER_ADMIN.getUser());
+      Mode.Bits perm = mPermissionChecker.getPermission(path);
+      Assert.assertEquals(Mode.Bits.ALL, perm);
+
+      // user is owner
+      AuthenticatedClientUser.set(TEST_USER_1.getUser());
+      perm = mPermissionChecker.getPermission(path);
+      Assert.assertEquals(TEST_WEIRD_MODE.getOwnerBits(), perm);
+
+      // user is not owner but in group
+      AuthenticatedClientUser.set(TEST_USER_3.getUser());
+      perm = mPermissionChecker.getPermission(path);
+      Assert.assertEquals(TEST_WEIRD_MODE.getGroupBits(), perm);
+
+      // user is other
+      AuthenticatedClientUser.set(TEST_USER_2.getUser());
+      perm = mPermissionChecker.getPermission(path);
+      Assert.assertEquals(TEST_WEIRD_MODE.getOtherBits(), perm);
     }
   }
 

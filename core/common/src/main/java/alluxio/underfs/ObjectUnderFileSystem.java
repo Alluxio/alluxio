@@ -410,8 +410,8 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
   public UfsDirectoryStatus getDirectoryStatus(String path) throws IOException {
     if (isDirectory(path)) {
       ObjectPermissions permissions = getPermissions();
-      return new UfsDirectoryStatus(PathUtils.basename(path), permissions.getOwner(),
-          permissions.getGroup(), permissions.getMode());
+      return new UfsDirectoryStatus(path, permissions.getOwner(), permissions.getGroup(),
+          permissions.getMode());
     }
     LOG.warn("Error fetching directory status, assuming directory {} does not exist", path);
     throw new FileNotFoundException(path);
@@ -445,9 +445,9 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
     ObjectStatus details = getObjectStatus(stripPrefixIfPresent(path));
     if (details != null) {
       ObjectPermissions permissions = getPermissions();
-      return new UfsFileStatus(PathUtils.basename(path), details.getContentHash(),
-          details.getContentLength(), details.getLastModifiedTimeMs(), permissions.getOwner(),
-          permissions.getGroup(), permissions.getMode());
+      return new UfsFileStatus(path, details.getContentHash(), details.getContentLength(),
+          details.getLastModifiedTimeMs(), permissions.getOwner(), permissions.getGroup(),
+          permissions.getMode());
     } else {
       LOG.warn("Error fetching file status, assuming file {} does not exist", path);
       throw new FileNotFoundException(path);
@@ -462,9 +462,9 @@ public abstract class ObjectUnderFileSystem extends BaseUnderFileSystem {
     ObjectStatus details = getObjectStatus(stripPrefixIfPresent(path));
     if (details != null) {
       ObjectPermissions permissions = getPermissions();
-      return new UfsFileStatus(PathUtils.basename(path), details.getContentHash(),
-          details.getContentLength(), details.getLastModifiedTimeMs(), permissions.getOwner(),
-          permissions.getGroup(), permissions.getMode());
+      return new UfsFileStatus(path, details.getContentHash(), details.getContentLength(),
+          details.getLastModifiedTimeMs(), permissions.getOwner(), permissions.getGroup(),
+          permissions.getMode());
     }
     return getDirectoryStatus(path);
   }

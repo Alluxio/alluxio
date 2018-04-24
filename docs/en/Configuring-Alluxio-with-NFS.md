@@ -31,7 +31,10 @@ Assuming the NFS clients are co-located with Alluxio nodes, all the NFS shares a
 directory `/mnt/nfs`, the following environment variable assignment needs to be added to
 `conf/alluxio-site.properties`:
 
-{% include Configuring-Alluxio-with-NFS/underfs-address.md %}
+```
+properties
+alluxio.underfs.address=/mnt/nfs
+```
 
 ## Running Alluxio with NFS
 

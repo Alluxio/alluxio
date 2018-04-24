@@ -48,7 +48,7 @@ public class AlluxioLogServerProcess implements Process {
   private static final long THREAD_KEEP_ALIVE_TIME_MS = 60000;
 
   private final String mBaseLogsDir;
-  private int mPort;
+  private final int mPort;
   private ServerSocket mServerSocket;
   private final int mMinNumberOfThreads;
   private final int mMaxNumberOfThreads;
