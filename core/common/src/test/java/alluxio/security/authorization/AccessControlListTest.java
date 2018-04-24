@@ -121,9 +121,9 @@ public class AccessControlListTest {
   public void getMode() {
     AccessControlList acl = new AccessControlList();
     Assert.assertEquals(0, acl.getMode());
-    acl.setEntry(new AclEntry.Builder().setType(AclEntryType.OWNING_USER)
+    acl.setEntry(new AclEntry.Builder().setType(AclEntryType.OWNING_USER).setSubject(OWNING_USER)
         .addAction(AclAction.READ).build());
-    acl.setEntry(new AclEntry.Builder().setType(AclEntryType.OWNING_GROUP)
+    acl.setEntry(new AclEntry.Builder().setType(AclEntryType.OWNING_GROUP).setSubject(OWNING_GROUP)
         .addAction(AclAction.WRITE).build());
     acl.setEntry(new AclEntry.Builder().setType(AclEntryType.OTHER)
         .addAction(AclAction.EXECUTE).build());

@@ -154,18 +154,16 @@ public final class AclEntry {
 
     /**
      * @return a new {@link AclEntry}
-     * @throws IllegalStateException if type if null, or if type is one of OWNING_USER,
-     *    NAMED_USER, OWNING_GROUP, NAMED_GROUP and subject is empty
+     * @throws IllegalStateException if type if null, or if type is either NAMED_USER or NAMED_GROUP
+     *    while subject is empty
      */
     public AclEntry build() {
       if (mType == null) {
         throw new IllegalStateException("Type cannot be null");
       }
-      boolean isUserOrGroup = mType.equals(AclEntryType.OWNING_USER)
-          || mType.equals(AclEntryType.NAMED_USER)
-          || mType.equals(AclEntryType.OWNING_GROUP)
+      boolean shouldHaveSubject = mType.equals(AclEntryType.NAMED_USER)
           || mType.equals(AclEntryType.NAMED_GROUP);
-      if (isUserOrGroup && mSubject.isEmpty()) {
+      if (shouldHaveSubject && mSubject.isEmpty()) {
         throw new IllegalStateException("Subject for type " + mType + " cannot be empty");
       }
       return new AclEntry(mType, mSubject, mActions);

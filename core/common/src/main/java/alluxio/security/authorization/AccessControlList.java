@@ -13,6 +13,7 @@ package alluxio.security.authorization;
 
 import alluxio.proto.journal.File;
 
+import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 
 import java.util.HashMap;
@@ -116,13 +117,11 @@ public final class AccessControlList {
     ImmutableList.Builder<AclEntry> builder = new ImmutableList.Builder<>();
     for (Map.Entry<String, AclActions> kv : mUserActions.entrySet()) {
       if (kv.getKey().equals(OWNING_USER_KEY)) {
-        if (!mOwningUser.isEmpty()) {
-          builder.add(new AclEntry.Builder()
-              .setType(AclEntryType.OWNING_USER)
-              .setSubject(mOwningUser)
-              .setActions(getOwningUserActions())
-              .build());
-        }
+        builder.add(new AclEntry.Builder()
+            .setType(AclEntryType.OWNING_USER)
+            .setSubject(mOwningUser)
+            .setActions(getOwningUserActions())
+            .build());
       } else {
         builder.add(new AclEntry.Builder()
             .setType(AclEntryType.NAMED_USER)
@@ -133,13 +132,11 @@ public final class AccessControlList {
     }
     for (Map.Entry<String, AclActions> kv : mGroupActions.entrySet()) {
       if (kv.getKey().equals(OWNING_GROUP_KEY)) {
-        if (!mOwningGroup.isEmpty()) {
-          builder.add(new AclEntry.Builder()
-              .setType(AclEntryType.OWNING_GROUP)
-              .setSubject(mOwningGroup)
-              .setActions(getOwningGroupActions())
-              .build());
-        }
+        builder.add(new AclEntry.Builder()
+            .setType(AclEntryType.OWNING_GROUP)
+            .setSubject(mOwningGroup)
+            .setActions(getOwningGroupActions())
+            .build());
       } else {
         builder.add(new AclEntry.Builder()
             .setType(AclEntryType.NAMED_GROUP)
@@ -165,6 +162,7 @@ public final class AccessControlList {
    * @param user the owning user
    */
   public void setOwningUser(String user) {
+    Preconditions.checkNotNull(user);
     mOwningUser = user;
   }
 
@@ -174,6 +172,7 @@ public final class AccessControlList {
    * @param group the owning group
    */
   public void setOwningGroup(String group) {
+    Preconditions.checkNotNull(group);
     mOwningGroup = group;
   }
 
