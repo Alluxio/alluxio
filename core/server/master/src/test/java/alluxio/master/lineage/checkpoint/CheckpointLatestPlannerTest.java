@@ -49,7 +49,6 @@ public final class CheckpointLatestPlannerTest {
   public void before() {
     mLineageStore = new LineageStore(new LineageIdGenerator());
     mJob = new CommandLineJob("test", new JobConf("output"));
-    //mFileSystemMaster = Mockito.mock(FileSystemMaster.class);
     mFileSystemMaster = mock(FileSystemMaster.class);
     mPlanner = new CheckpointLatestPlanner(new LineageStoreView(mLineageStore),
         new FileSystemMasterView(mFileSystemMaster));
@@ -70,7 +69,6 @@ public final class CheckpointLatestPlannerTest {
     long l2 =
         mLineageStore.createLineage(Lists.newArrayList(fileId1), Lists.newArrayList(fileId2), mJob);
 
-    //change Mockito.when to when
     when(mFileSystemMaster.getPersistenceState(fileId1))
         .thenReturn(PersistenceState.NOT_PERSISTED);
     when(mFileSystemMaster.getPersistenceState(fileId2))
