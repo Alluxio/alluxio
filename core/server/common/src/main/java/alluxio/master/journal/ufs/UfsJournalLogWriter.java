@@ -21,6 +21,7 @@ import alluxio.exception.JournalClosedException.IOJournalClosedException;
 import alluxio.master.journal.JournalReader;
 import alluxio.master.journal.JournalWriter;
 import alluxio.proto.journal.Journal.JournalEntry;
+import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.CreateOptions;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -53,7 +54,7 @@ final class UfsJournalLogWriter implements JournalWriter {
   private static final Logger LOG = LoggerFactory.getLogger(UfsJournalLogWriter.class);
 
   private final UfsJournal mJournal;
-  private final JournalUnderFileSystem mUfs;
+  private final UnderFileSystem mUfs;
 
   /** The maximum size in bytes of a log file. */
   private final long mMaxLogSize;
@@ -101,7 +102,7 @@ final class UfsJournalLogWriter implements JournalWriter {
     mRotateLogForNextWrite = true;
     UfsJournalFile currentLog = UfsJournalSnapshot.getCurrentLog(mJournal);
     if (currentLog != null) {
-      completeLog(currentLog, nextSequenceNumber);
+      mJournalOutputStream = new JournalOutputStream(currentLog, NoopOutputStream.INSTANCE);
     }
     mGarbageCollector = new UfsJournalGarbageCollector(mJournal);
     mEntriesToFlush = new ArrayDeque<>();
@@ -247,7 +248,7 @@ final class UfsJournalLogWriter implements JournalWriter {
    * Closes the current journal output stream and creates a new one.
    * The implementation must be idempotent so that it can work when retrying during failures.
    */
-  private void maybeRotateLog() throws IOException, JournalClosedException {
+  private void maybeRotateLog() throws IOException {
     if (!mRotateLogForNextWrite) {
       return;
     }

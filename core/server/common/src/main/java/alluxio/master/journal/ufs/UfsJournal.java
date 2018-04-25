@@ -87,7 +87,7 @@ public class UfsJournal implements Journal {
   /** The state machine managed by this journal. */
   private final JournalEntryStateMachine mMaster;
   /** The UFS where the journal is being written to. */
-  private final JournalUnderFileSystem mUfs;
+  private final UnderFileSystem mUfs;
   /** The amount of time to wait to pass without seeing a new journal entry when gaining primacy. */
   private final long mQuietPeriodMs;
   /** The current log writer. Null when in secondary mode. */
@@ -125,9 +125,7 @@ public class UfsJournal implements Journal {
    */
   public UfsJournal(URI location, JournalEntryStateMachine stateMachine, long quietPeriodMs) {
     this(location, stateMachine,
-        new JournalUnderFileSystem(
-            UnderFileSystem.Factory.create(location.toString(), getJournalUfsConf())),
-        quietPeriodMs);
+        UnderFileSystem.Factory.create(location.toString(), getJournalUfsConf()), quietPeriodMs);
   }
 
   /**
@@ -139,7 +137,7 @@ public class UfsJournal implements Journal {
    * @param quietPeriodMs the amount of time to wait to pass without seeing a new journal entry when
    *        gaining primacy
    */
-  UfsJournal(URI location, JournalEntryStateMachine stateMachine, JournalUnderFileSystem ufs,
+  UfsJournal(URI location, JournalEntryStateMachine stateMachine, UnderFileSystem ufs,
       long quietPeriodMs) {
     mLocation = URIUtils.appendPathOrDie(location, VERSION);
     mMaster = stateMachine;
@@ -211,7 +209,6 @@ public class UfsJournal implements Journal {
     nextSequenceNumber = catchUp(nextSequenceNumber);
     mWriter = new UfsJournalLogWriter(this, nextSequenceNumber);
     mAsyncWriter = new AsyncJournalWriter(mWriter);
-    mUfs.setWritable(true);
     mState = State.PRIMARY;
   }
 
@@ -224,7 +221,6 @@ public class UfsJournal implements Journal {
     Preconditions.checkState(mWriter != null, "writer thread must not be null in primary mode");
     Preconditions.checkState(mTailerThread == null, "tailer thread must be null in primary mode");
     mWriter.close();
-    mUfs.setWritable(false);
     mWriter = null;
     mAsyncWriter = null;
     mMaster.resetState();
@@ -286,7 +282,6 @@ public class UfsJournal implements Journal {
    * Formats the journal.
    */
   public void format() throws IOException {
-    mUfs.setWritable(true);
     URI location = getLocation();
     LOG.info("Formatting {}", location);
     if (mUfs.isDirectory(location.toString())) {
@@ -333,7 +328,7 @@ public class UfsJournal implements Journal {
   /**
    * @return the under file system instance
    */
-  JournalUnderFileSystem getUfs() {
+  UnderFileSystem getUfs() {
     return mUfs;
   }
 

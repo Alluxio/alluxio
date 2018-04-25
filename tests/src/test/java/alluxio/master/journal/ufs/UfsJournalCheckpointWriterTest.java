@@ -35,14 +35,13 @@ public final class UfsJournalCheckpointWriterTest {
   public TemporaryFolder mFolder = new TemporaryFolder();
 
   private UfsJournal mJournal;
-  private JournalUnderFileSystem mUfs;
+  private UnderFileSystem mUfs;
 
   @Before
   public void before() throws Exception {
     URI location = URIUtils
         .appendPathOrDie(new URI(mFolder.newFolder().getAbsolutePath()), "FileSystemMaster");
-    mUfs = Mockito.spy(new JournalUnderFileSystem(UnderFileSystem.Factory.create(location)));
-    mUfs.setWritable(true);
+    mUfs = Mockito.spy(UnderFileSystem.Factory.create(location));
     mJournal = new UfsJournal(location, new NoopMaster(), mUfs, 0);
   }
 
