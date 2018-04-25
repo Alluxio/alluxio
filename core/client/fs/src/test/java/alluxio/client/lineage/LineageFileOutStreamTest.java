@@ -11,6 +11,10 @@
 
 package alluxio.client.lineage;
 
+import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.times;
+
 import alluxio.AlluxioURI;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileSystemContext;
@@ -21,7 +25,6 @@ import alluxio.resource.DummyCloseableResource;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
@@ -39,13 +42,13 @@ public final class LineageFileOutStreamTest {
     FileSystemContext context = PowerMockito.mock(FileSystemContext.class);
     FileSystemMasterClient
         client = PowerMockito.mock(FileSystemMasterClient.class);
-    Mockito.when(context.acquireMasterClientResource())
+    when(context.acquireMasterClientResource())
         .thenReturn(new DummyCloseableResource<>(client));
 
     LineageFileOutStream stream = new LineageFileOutStream(context, new AlluxioURI("/path"),
         OutStreamOptions.defaults().setWriteType(WriteType.ASYNC_THROUGH));
     stream.close();
     // The lineage file out stream doesn't manage asynchronous persistence.
-    Mockito.verify(client, Mockito.times(0)).scheduleAsyncPersist(new AlluxioURI("/path"));
+    verify(client, times(0)).scheduleAsyncPersist(new AlluxioURI("/path"));
   }
 }

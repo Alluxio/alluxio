@@ -62,7 +62,7 @@ public class ConcurrentRenameIntegrationTest extends BaseIntegrationTest {
   private static final String TEST_USER = "test";
   private static final int CONCURRENCY_FACTOR = 50;
   /** Duration to sleep during the rename call to show the benefits of concurrency. */
-  private static final long SLEEP_MS = Constants.SECOND_MS;
+  private static final long SLEEP_MS = Constants.SECOND_MS / 10;
   /** Timeout for the concurrent test after which we will mark the test as failed. */
   private static final long LIMIT_MS = SLEEP_MS * CONCURRENCY_FACTOR / 10;
   /**
