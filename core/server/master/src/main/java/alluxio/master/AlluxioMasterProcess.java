@@ -199,7 +199,7 @@ public class AlluxioMasterProcess implements MasterProcess {
 
   @Override
   public boolean isServing() {
-    return mIsServing;
+    return mThriftServer.isServing();
   }
 
   @Override
