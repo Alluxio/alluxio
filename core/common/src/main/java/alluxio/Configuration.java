@@ -28,6 +28,7 @@ import org.slf4j.LoggerFactory;
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -406,10 +407,17 @@ public final class Configuration {
   }
 
   /**
-   * @return a view of the internal {@link Properties} of as an immutable map
+   * @return a view of the internal {@link Properties} and default properties of as an immutable map
    */
   public static Map<String, String> toMap() {
-    return Collections.unmodifiableMap(PROPERTIES);
+    Map<String, String> includeDefaultProperties = new HashMap<>(PROPERTIES);
+    for (PropertyKey key : PropertyKey.defaultKeys()) {
+      String propName = key.getName();
+      if (!includeDefaultProperties.containsKey(propName)) {
+        includeDefaultProperties.put(propName, key.getDefaultValue());
+      }
+    }
+    return Collections.unmodifiableMap(includeDefaultProperties);
   }
 
   /**
@@ -586,7 +594,7 @@ public final class Configuration {
    * @throws IllegalStateException if invalid configuration is encountered
    */
   public static void validate() {
-    for (Map.Entry<String, String> entry : toMap().entrySet()) {
+    for (Map.Entry<String, String> entry : Collections.unmodifiableMap(PROPERTIES).entrySet()) {
       String propertyName = entry.getKey();
       Preconditions.checkState(PropertyKey.isValid(propertyName), propertyName);
       PropertyKey propertyKey = PropertyKey.fromString(propertyName);
