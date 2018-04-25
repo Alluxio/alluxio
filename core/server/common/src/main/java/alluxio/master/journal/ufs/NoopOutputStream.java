@@ -16,7 +16,7 @@ import java.io.OutputStream;
 
 /** An output stream that outputs to nowhere. */
 public final class NoopOutputStream extends OutputStream {
-  public static NoopOutputStream INSTANCE = new NoopOutputStream();
+  public static final NoopOutputStream INSTANCE = new NoopOutputStream();
 
   private NoopOutputStream() {}
 
