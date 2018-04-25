@@ -363,7 +363,7 @@ final class UfsJournalLogWriter implements JournalWriter {
    * closed, the log file will be completed.
    *
    * Many of the methods in this class might throw {@link IOJournalClosedException} if the journal
-   * writer is closed when they are called. The exception needs extend IOExcepiton because the
+   * writer is closed when they are called. The exception needs to extend IOException because the
    * OutputStream API only throws IOException. Callers of these methods should re-throw the
    * {@link IOJournalClosedException} as a regular {@link JournalClosedException} so that it will be
    * properly handled by callers.
