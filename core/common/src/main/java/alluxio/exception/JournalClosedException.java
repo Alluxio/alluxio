@@ -40,7 +40,7 @@ public class JournalClosedException extends Exception {
    * Same as {@link JournalClosedException}, but extends IOException for situations where only
    * IOException is allowed.
    */
-  public static class IOJournalClosedException extends IOException {
+  public static final class IOJournalClosedException extends IOException {
     /**
      * Constructs an <code>IOJournalClosedException</code> with the specified detail message.
      *

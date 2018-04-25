@@ -81,7 +81,7 @@ final class FaultTolerantAlluxioMasterProcess extends AlluxioMasterProcess {
         try {
           startServing(" (gained leadership)", " (lost leadership)");
         } catch (Throwable t) {
-            Throwable root = ExceptionUtils.getRootCause(t);
+          Throwable root = ExceptionUtils.getRootCause(t);
           if ((root != null && (root instanceof InterruptedException)) || Thread.interrupted()) {
             return;
           }
@@ -99,7 +99,7 @@ final class FaultTolerantAlluxioMasterProcess extends AlluxioMasterProcess {
       if (mServingThread.isAlive()) {
         LOG.error(
             "Failed to stop serving thread after {}ms. Printing serving thread stack trace "
-                  + "and exiting.\n{}",
+                + "and exiting.\n{}",
             mServingThreadTimeoutMs, ThreadUtils.formatStackTrace(mServingThread));
         System.exit(-1);
       }

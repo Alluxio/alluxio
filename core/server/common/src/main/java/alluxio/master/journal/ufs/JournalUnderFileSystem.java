@@ -143,7 +143,8 @@ public class JournalUnderFileSystem implements UnderFileSystem {
   }
 
   @Override
-  public List<String> getFileLocations(String path, FileLocationOptions options) throws IOException {
+  public List<String> getFileLocations(String path, FileLocationOptions options)
+      throws IOException {
     return mUfs.getFileLocations(path, options);
   }
 
