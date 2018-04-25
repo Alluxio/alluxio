@@ -26,6 +26,7 @@ import alluxio.underfs.options.CreateOptions;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
+import com.google.common.io.ByteStreams;
 import com.google.common.io.Closer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -102,7 +103,7 @@ final class UfsJournalLogWriter implements JournalWriter {
     mRotateLogForNextWrite = true;
     UfsJournalFile currentLog = UfsJournalSnapshot.getCurrentLog(mJournal);
     if (currentLog != null) {
-      mJournalOutputStream = new JournalOutputStream(currentLog, NoopOutputStream.INSTANCE);
+      mJournalOutputStream = new JournalOutputStream(currentLog, ByteStreams.nullOutputStream());
     }
     mGarbageCollector = new UfsJournalGarbageCollector(mJournal);
     mEntriesToFlush = new ArrayDeque<>();
@@ -409,8 +410,7 @@ final class UfsJournalLogWriter implements JournalWriter {
     }
 
     @Override
-    public void write(byte[] b, int off, int len)
-        throws IOException {
+    public void write(byte[] b, int off, int len) throws IOException {
       checkJournalWriterOpen();
       mOutputStream.write(b, off, len);
     }

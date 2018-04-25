@@ -49,13 +49,12 @@ public abstract class AbstractJournalSystem implements JournalSystem {
     if (mMode.equals(mode)) {
       return;
     }
+    LOG.info("Transitioning from {} to {}", mMode, mode);
     switch (mode) {
       case PRIMARY:
-        LOG.info("Transitioning from secondary to primary");
         gainPrimacy();
         break;
       case SECONDARY:
-        LOG.info("Transitioning from primary to secondary");
         losePrimacy();
         break;
       default:
