@@ -21,6 +21,7 @@ import alluxio.master.file.meta.Inode;
 import alluxio.master.file.meta.InodeTree;
 import alluxio.master.file.meta.LockedInodePath;
 import alluxio.security.authentication.AuthenticatedClientUser;
+import alluxio.security.authorization.AclAction;
 import alluxio.security.authorization.Mode;
 import alluxio.util.CommonUtils;
 import alluxio.util.io.PathUtils;
@@ -47,8 +48,6 @@ public final class PermissionChecker {
   /** The super group of Alluxio file system. All users in this group have super permission. */
   private final String mFileSystemSuperGroup;
 
-  private final InodePermissionChecker mInodePermissionChecker;
-
   /**
    * Constructs a {@link PermissionChecker} instance for Alluxio file system.
    *
@@ -60,7 +59,6 @@ public final class PermissionChecker {
         Configuration.getBoolean(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED);
     mFileSystemSuperGroup =
         Configuration.get(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_SUPERGROUP);
-    mInodePermissionChecker = InodePermissionChecker.create();
   }
 
   /**
@@ -282,9 +280,11 @@ public final class PermissionChecker {
     if (inode == null) {
       return;
     }
-    if (!mInodePermissionChecker.checkPermission(user, groups, inode, bits)) {
-      throw new AccessControlException(ExceptionMessage.PERMISSION_DENIED
-          .getMessage(toExceptionMessage(user, bits, path, inode)));
+    for (AclAction action : bits.toAclActions()) {
+      if (!inode.checkPermission(user, groups, action)) {
+        throw new AccessControlException(ExceptionMessage.PERMISSION_DENIED
+            .getMessage(toExceptionMessage(user, bits, path, inode)));
+      }
     }
   }
 
@@ -321,8 +321,7 @@ public final class PermissionChecker {
     if (inode == null) {
       return Mode.Bits.NONE;
     }
-
-    return mInodePermissionChecker.getPermission(user, groups, inode);
+    return inode.getPermission(user, groups).toModeBits();
   }
 
   private boolean isPrivilegedUser(String user, List<String> groups) {

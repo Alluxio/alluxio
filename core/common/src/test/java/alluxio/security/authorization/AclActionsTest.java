@@ -129,4 +129,30 @@ public class AclActionsTest {
     actions.add(AclAction.EXECUTE);
     Assert.assertTrue(actions.contains(AclAction.EXECUTE));
   }
+
+  /**
+   * Tests {@link AclActions#merge(AclActions)}.
+   */
+  @Test
+  public void merge() {
+    AclActions actions = new AclActions();
+    Assert.assertEquals(Mode.Bits.NONE, actions.toModeBits());
+
+    // Merge empty actions.
+    actions.merge(new AclActions());
+    Assert.assertEquals(Mode.Bits.NONE, actions.toModeBits());
+
+    // Merge read and write actions.
+    AclActions readWrite = new AclActions();
+    readWrite.add(AclAction.READ);
+    readWrite.add(AclAction.WRITE);
+    actions.merge(readWrite);
+    Assert.assertEquals(Mode.Bits.READ_WRITE, actions.toModeBits());
+
+    // Merge execute action.
+    AclActions execute = new AclActions();
+    execute.add(AclAction.EXECUTE);
+    actions.merge(execute);
+    Assert.assertEquals(Mode.Bits.ALL, actions.toModeBits());
+  }
 }

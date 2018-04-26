@@ -16,6 +16,8 @@ import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidPathException;
 import alluxio.master.journal.JournalEntryRepresentable;
 import alluxio.security.authorization.AccessControlList;
+import alluxio.security.authorization.AclAction;
+import alluxio.security.authorization.AclActions;
 import alluxio.security.authorization.AclEntry;
 import alluxio.wire.FileInfo;
 import alluxio.wire.TtlAction;
@@ -495,6 +497,32 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
    */
   public boolean isReadLocked() {
     return mLock.getReadHoldCount() > 0;
+  }
+
+  /**
+   * Checks whether the user or one of the groups has the permission to take the action.
+   *
+   *
+   * @param user the user checking permission
+   * @param groups the groups the user belongs to
+   * @param action the action to take
+   * @return whether permitted to take the action
+   * @see AccessControlList#checkPermission(String, List, AclAction)
+   */
+  public boolean checkPermission(String user, List<String> groups, AclAction action) {
+    return mAcl.checkPermission(user, groups, action);
+  }
+
+  /**
+   * Gets the permitted actions for a user.
+   *
+   * @param user the user
+   * @param groups the groups the user belongs to
+   * @return the permitted actions
+   * @see AccessControlList#getPermission(String, List)
+   */
+  public AclActions getPermission(String user, List<String> groups) {
+    return mAcl.getPermission(user, groups);
   }
 
   @Override

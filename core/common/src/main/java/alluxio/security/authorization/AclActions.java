@@ -19,9 +19,12 @@ import com.google.common.collect.ImmutableSet;
 import java.util.BitSet;
 import java.util.Set;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 /**
  * Permitted actions of an entry in {@link AccessControlList}.
  */
+@NotThreadSafe
 public final class AclActions {
   // TODO(ohboring): have a static default AclActions object, and then copy on write.
   /**
@@ -105,6 +108,15 @@ public final class AclActions {
    */
   public void add(AclAction action) {
     mActions.set(action.ordinal());
+  }
+
+  /**
+   * Merges the actions.
+   *
+   * @param actions the actions to be merged from
+   */
+  public void merge(AclActions actions) {
+    mActions.or(actions.mActions);
   }
 
   /**
