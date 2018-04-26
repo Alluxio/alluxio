@@ -15,6 +15,8 @@ import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.RuntimeConstants;
+import alluxio.master.file.FileSystemMaster;
+import alluxio.master.file.FileSystemMasterClientServiceHandlerNew;
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.JournalSystem.Mode;
 import alluxio.metrics.MetricsSystem;
@@ -32,6 +34,8 @@ import alluxio.web.WebServer;
 import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
+import io.grpc.Server;
+import io.grpc.netty.NettyServerBuilder;
 import org.apache.thrift.TMultiplexedProcessor;
 import org.apache.thrift.TProcessor;
 import org.apache.thrift.protocol.TBinaryProtocol;
@@ -47,6 +51,8 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
@@ -89,6 +95,7 @@ public class AlluxioMasterProcess implements MasterProcess {
 
   /** The RPC server. */
   private TServer mThriftServer;
+  private Server mGrpcServer;
 
   /** is true if the master is serving the RPC server. */
   private boolean mIsServing;
@@ -320,7 +327,18 @@ public class AlluxioMasterProcess implements MasterProcess {
    * {@link Master}s and meta services.
    */
   protected void startServingRPCServerNew() {
-
+    int port = 50051;
+    ExecutorService executorService = Executors.newFixedThreadPool(4);
+    try {
+      mGrpcServer = NettyServerBuilder.forPort(port)
+          .addService(new FileSystemMasterClientServiceHandlerNew(getMaster(FileSystemMaster.class)))
+          .executor(executorService)
+          .build()
+          .start();
+      LOG.info("Server started, listening on port {}", port);
+    } catch (IOException e) {
+      LOG.error("Exception starting gRPC server on port {}, exception: ", port, e);
+    }
   }
 
   /**

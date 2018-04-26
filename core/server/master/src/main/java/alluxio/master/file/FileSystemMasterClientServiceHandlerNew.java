@@ -41,7 +41,7 @@ public final class FileSystemMasterClientServiceHandlerNew
    *
    * @param fileSystemMaster the {@link FileSystemMaster} the handler uses internally
    */
-  FileSystemMasterClientServiceHandlerNew(FileSystemMaster fileSystemMaster) {
+  public FileSystemMasterClientServiceHandlerNew(FileSystemMaster fileSystemMaster) {
     Preconditions.checkNotNull(fileSystemMaster, "fileSystemMaster");
     mFileSystemMaster = fileSystemMaster;
   }
