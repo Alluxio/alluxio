@@ -236,6 +236,7 @@ public class BaseFileSystem implements FileSystem {
   @Override
   public URIStatus getStatus(AlluxioURI path, GetStatusOptions options)
       throws FileDoesNotExistException, IOException, AlluxioException {
+    if (options.isInvalidateCache()) path.setURIStatus(null);  //qiniu
     URIStatus s = path.getURIStatus(); // qiniu
     if (s != null && s.getLength() > 0) return s;
 
