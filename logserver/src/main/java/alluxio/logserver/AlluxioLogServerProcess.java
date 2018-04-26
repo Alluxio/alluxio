@@ -17,19 +17,21 @@ import alluxio.PropertyKey;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 
+import com.google.common.base.Function;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.google.common.base.Function;
 
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.SynchronousQueue;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 /**
  * A centralized log server for Alluxio.
@@ -52,6 +54,7 @@ public class AlluxioLogServerProcess implements Process {
   private ServerSocket mServerSocket;
   private final int mMinNumberOfThreads;
   private final int mMaxNumberOfThreads;
+  private final Set<Socket> mClientSockets = new HashSet<>();
   private ExecutorService mThreadPool;
   private volatile boolean mStopped;
 
@@ -98,9 +101,12 @@ public class AlluxioLogServerProcess implements Process {
         }
       }
       String clientAddress = client.getInetAddress().getHostAddress();
+      LOG.info("Starting thread to read logs from {}", clientAddress);
       AlluxioLog4jSocketNode clientSocketNode = new AlluxioLog4jSocketNode(mBaseLogsDir, client);
+      mClientSockets.add(client);
       try {
-        mThreadPool.execute(clientSocketNode);
+        CompletableFuture.runAsync(clientSocketNode, mThreadPool)
+            .whenCompleteAsync((r, e) -> mClientSockets.remove(client));
       } catch (RejectedExecutionException e) {
         // Alluxio log clients (master, secondary master, proxy and workers establish
         // long-living connections with the log server. Therefore, if the log server cannot
@@ -135,8 +141,11 @@ public class AlluxioLogServerProcess implements Process {
         LOG.warn("Exception in closing server socket.", e);
       }
     }
-
-    mThreadPool.shutdown();
+    // Close all client sockets so that their serving threads can stop.
+    for (Socket socket : mClientSockets) {
+      socket.close();
+    }
+    mThreadPool.shutdownNow();
     boolean ret = mThreadPool.awaitTermination(THREAD_KEEP_ALIVE_TIME_MS, TimeUnit.MILLISECONDS);
     if (ret) {
       LOG.info("All worker threads have terminated.");
