@@ -317,6 +317,7 @@ public final class InodeFile extends Inode<InodeFile> {
         .setOwner(options.getOwner())
         .setGroup(options.getGroup())
         .setMode(options.getMode().toShort())
+        .setAcl(options.getAcl())
         .setPersistenceState(options.isPersisted() ? PersistenceState.PERSISTED
             : PersistenceState.NOT_PERSISTED);
 

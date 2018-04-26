@@ -103,6 +103,7 @@ import alluxio.retry.CountingRetry;
 import alluxio.retry.RetryPolicy;
 import alluxio.security.authentication.AuthType;
 import alluxio.security.authentication.AuthenticatedClientUser;
+import alluxio.security.authorization.AccessControlList;
 import alluxio.security.authorization.Mode;
 import alluxio.thrift.CommandType;
 import alluxio.thrift.FileSystemCommand;
@@ -2575,6 +2576,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     UfsFileStatus ufsStatus = (UfsFileStatus) options.getUfsStatus();
     long ufsBlockSizeByte;
     long ufsLength;
+    AccessControlList acl = null;
     try (CloseableResource<UnderFileSystem> ufsResource = resolution.acquireUfsResource()) {
       UnderFileSystem ufs = ufsResource.get();
 
@@ -2583,6 +2585,10 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         ufsStatus = ufs.getFileStatus(ufsUri.toString());
       }
       ufsLength = ufsStatus.getContentLength();
+
+      if (isAclEnabled()) {
+        acl = ufs.getAcl(ufsUri.toString());
+      }
     }
 
     // Metadata loaded from UFS has no TTL set.
@@ -2598,6 +2604,9 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
       mode.setOtherBits(mode.getOtherBits().or(mode.getOwnerBits()));
     }
     createFileOptions = createFileOptions.setOwner(ufsOwner).setGroup(ufsGroup).setMode(mode);
+    if (acl != null) {
+      createFileOptions.setAcl(acl.getEntries());
+    }
     if (ufsLastModified != null) {
       createFileOptions.setOperationTimeMs(ufsLastModified);
     }
@@ -3856,5 +3865,9 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     boolean shouldSync =
         mUfsSyncPathCache.shouldSyncPath(path.getPath(), options.getSyncIntervalMs());
     return new LockingScheme(path, desiredLockMode, shouldSync);
+  }
+
+  private boolean isAclEnabled() {
+    return Configuration.getBoolean(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED);
   }
 }

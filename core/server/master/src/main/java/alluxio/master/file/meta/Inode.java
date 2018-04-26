@@ -18,6 +18,7 @@ import alluxio.master.journal.JournalEntryRepresentable;
 import alluxio.security.authorization.AccessControlList;
 import alluxio.security.authorization.AclAction;
 import alluxio.security.authorization.AclActions;
+import alluxio.security.authorization.AclEntry;
 import alluxio.wire.FileInfo;
 import alluxio.wire.TtlAction;
 
@@ -330,6 +331,20 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
    */
   public T setMode(short mode) {
     mAcl.setMode(mode);
+    return getThis();
+  }
+
+  /**
+   * Sets ACL entries into the internal ACL.
+   * The entries will overwrite any existing correspondent entries in the internal ACL.
+   *
+   * @param entries the ACL entries
+   * @return the updated object
+   */
+  public T setAcl(List<AclEntry> entries) {
+    for (AclEntry entry : entries) {
+      mAcl.setEntry(entry);
+    }
     return getThis();
   }
 

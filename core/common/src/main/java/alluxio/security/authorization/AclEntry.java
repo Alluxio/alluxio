@@ -11,6 +11,8 @@
 
 package alluxio.security.authorization;
 
+import com.google.common.base.Objects;
+
 /**
  * An entry in {@link AccessControlList}.
  */
@@ -54,6 +56,34 @@ public final class AclEntry {
    */
   public AclActions getActions() {
     return new AclActions(mActions);
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof AclEntry)) {
+      return false;
+    }
+    AclEntry that = (AclEntry) o;
+    return Objects.equal(mType, that.mType)
+        && Objects.equal(mSubject, that.mSubject)
+        && Objects.equal(mActions, that.mActions);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hashCode(mType, mSubject, mActions);
+  }
+
+  @Override
+  public String toString() {
+    return Objects.toStringHelper(this)
+        .add("type", mType)
+        .add("subject", mSubject)
+        .add("actions", mActions)
+        .toString();
   }
 
   /**
@@ -124,8 +154,18 @@ public final class AclEntry {
 
     /**
      * @return a new {@link AclEntry}
+     * @throws IllegalStateException if type if null, or if type is either NAMED_USER or NAMED_GROUP
+     *    while subject is empty
      */
     public AclEntry build() {
+      if (mType == null) {
+        throw new IllegalStateException("Type cannot be null");
+      }
+      boolean subjectRequired = mType.equals(AclEntryType.NAMED_USER)
+          || mType.equals(AclEntryType.NAMED_GROUP);
+      if (subjectRequired && mSubject.isEmpty()) {
+        throw new IllegalStateException("Subject for type " + mType + " cannot be empty");
+      }
       return new AclEntry(mType, mSubject, mActions);
     }
   }

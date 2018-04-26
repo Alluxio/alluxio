@@ -13,6 +13,9 @@ package alluxio.security.authorization;
 
 import alluxio.proto.journal.File;
 
+import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableList;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -21,6 +24,23 @@ import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * Access control list for a file or directory.
+ *
+ * An access control list is conceptually a list of entries, there are different types of entries:
+ * 1. owning user entry which specifies permitted actions for the owning user of a file or
+ *    directory, there is only one owning user entry;
+ * 2. named user entry which specifies permitted actions for any user, there is only one named
+ *    user entry for each user;
+ * 3. owning group entry which specifies permitted actions for the owning group of a file or
+ *    directory, there is only one owning group entry;
+ * 4. named group entry which specifies permitted actions for any group, there is only one named
+ *    group entry for each group;
+ * 5. mask entry which specifies the maximum set of permitted actions for users and groups in all
+ *    the above entries;
+ * 6. other entry which specifies permitted actions for users who are neither the owning user nor
+ *    have a named user entry, and whose belonging groups are neither the owning group nor have a
+ *    named group entry.
+ *
+ * Also, the access control list contains owning user and owning group of a file or directory.
  */
 @NotThreadSafe
 public final class AccessControlList {
@@ -92,11 +112,60 @@ public final class AccessControlList {
   }
 
   /**
+   * @return an immutable list of ACL entries, if owning user or owning group is empty, no owning
+   *    user entry or owning group entry will be returned, named user entry and named group entry
+   *    will be returned if they exist, mask and other entry will always be returned
+   */
+  public List<AclEntry> getEntries() {
+    ImmutableList.Builder<AclEntry> builder = new ImmutableList.Builder<>();
+    for (Map.Entry<String, AclActions> kv : mUserActions.entrySet()) {
+      if (kv.getKey().equals(OWNING_USER_KEY)) {
+        builder.add(new AclEntry.Builder()
+            .setType(AclEntryType.OWNING_USER)
+            .setSubject(mOwningUser)
+            .setActions(getOwningUserActions())
+            .build());
+      } else {
+        builder.add(new AclEntry.Builder()
+            .setType(AclEntryType.NAMED_USER)
+            .setSubject(kv.getKey())
+            .setActions(kv.getValue())
+            .build());
+      }
+    }
+    for (Map.Entry<String, AclActions> kv : mGroupActions.entrySet()) {
+      if (kv.getKey().equals(OWNING_GROUP_KEY)) {
+        builder.add(new AclEntry.Builder()
+            .setType(AclEntryType.OWNING_GROUP)
+            .setSubject(mOwningGroup)
+            .setActions(getOwningGroupActions())
+            .build());
+      } else {
+        builder.add(new AclEntry.Builder()
+            .setType(AclEntryType.NAMED_GROUP)
+            .setSubject(kv.getKey())
+            .setActions(kv.getValue())
+            .build());
+      }
+    }
+    builder.add(new AclEntry.Builder()
+        .setType(AclEntryType.OTHER)
+        .setActions(mOtherActions)
+        .build());
+    builder.add(new AclEntry.Builder()
+        .setType(AclEntryType.MASK)
+        .setActions(mMaskActions)
+        .build());
+    return builder.build();
+  }
+
+  /**
    * Sets owning user.
    *
    * @param user the owning user
    */
   public void setOwningUser(String user) {
+    Preconditions.checkNotNull(user);
     mOwningUser = user;
   }
 
@@ -106,6 +175,7 @@ public final class AccessControlList {
    * @param group the owning group
    */
   public void setOwningGroup(String group) {
+    Preconditions.checkNotNull(group);
     mOwningGroup = group;
   }
 

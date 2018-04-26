@@ -14,6 +14,7 @@ package alluxio.underfs;
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
+import alluxio.security.authorization.AccessControlList;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.options.DeleteOptions;
 import alluxio.underfs.options.FileLocationOptions;
@@ -256,6 +257,15 @@ public interface UnderFileSystem extends Closeable {
    * @return true if the path exists, false otherwise
    */
   boolean exists(String path) throws IOException;
+
+  /**
+   * Gets the access control list of a file or directory in under file system.
+   *
+   * @param path the path to the file or directory
+   * @return the access control list, or null if ACL is unsupported or disabled
+   * @throws IOException if ACL is supported and enabled but cannot be retrieved
+   */
+  AccessControlList getAcl(String path) throws IOException;
 
   /**
    * Gets the block size of a file in under file system, in bytes.
