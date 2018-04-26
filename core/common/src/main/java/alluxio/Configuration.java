@@ -407,17 +407,18 @@ public final class Configuration {
   }
 
   /**
-   * @return a view of the internal {@link Properties} and default properties of as an immutable map
+   * @return a view of the properties(include default properties) of as an immutable map
    */
   public static Map<String, String> toMap() {
-    Map<String, String> includeDefaultProperties = new HashMap<>(PROPERTIES);
+    Map<String, String> map = new HashMap<>(PROPERTIES);
     for (PropertyKey key : PropertyKey.defaultKeys()) {
       String propName = key.getName();
-      if (!includeDefaultProperties.containsKey(propName)) {
-        includeDefaultProperties.put(propName, key.getDefaultValue());
+      String defaultValue = key.getDefaultValue();
+      if (!map.containsKey(propName) && defaultValue != null) {
+        map.put(propName, defaultValue);
       }
     }
-    return Collections.unmodifiableMap(includeDefaultProperties);
+    return Collections.unmodifiableMap(map);
   }
 
   /**

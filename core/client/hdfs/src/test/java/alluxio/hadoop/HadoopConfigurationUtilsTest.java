@@ -40,7 +40,6 @@ public final class HadoopConfigurationUtilsTest {
   @Test
   public void mergeEmptyHadoopConfiguration() {
     org.apache.hadoop.conf.Configuration hadoopConfig = new org.apache.hadoop.conf.Configuration();
-
     long beforeSize = Configuration.toMap().size();
     HadoopConfigurationUtils.mergeHadoopConfiguration(hadoopConfig);
     long afterSize = Configuration.toMap().size();
@@ -59,7 +58,6 @@ public final class HadoopConfigurationUtilsTest {
 
     // This hadoop config will not be loaded into Alluxio configuration.
     hadoopConfig.set("hadoop.config.parameter", "hadoop config value");
-
     long beforeSize = Configuration.toMap().size();
     HadoopConfigurationUtils.mergeHadoopConfiguration(hadoopConfig);
     long afterSize = Configuration.toMap().size();
