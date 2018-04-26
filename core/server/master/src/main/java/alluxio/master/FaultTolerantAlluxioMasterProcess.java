@@ -93,6 +93,7 @@ final class FaultTolerantAlluxioMasterProcess extends AlluxioMasterProcess {
       waitForReady();
       LOG.info("Primary started");
       mLeaderSelector.waitForState(State.SECONDARY);
+      // Put the journal in secondary mode ASAP to avoid interfering with the new primary.
       mJournalSystem.setMode(Mode.SECONDARY);
       stopServing();
       mServingThread.join(mServingThreadTimeoutMs);
