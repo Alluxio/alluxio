@@ -161,9 +161,9 @@ public final class AclEntry {
       if (mType == null) {
         throw new IllegalStateException("Type cannot be null");
       }
-      boolean shouldHaveSubject = mType.equals(AclEntryType.NAMED_USER)
+      boolean subjectRequired = mType.equals(AclEntryType.NAMED_USER)
           || mType.equals(AclEntryType.NAMED_GROUP);
-      if (shouldHaveSubject && mSubject.isEmpty()) {
+      if (subjectRequired && mSubject.isEmpty()) {
         throw new IllegalStateException("Subject for type " + mType + " cannot be empty");
       }
       return new AclEntry(mType, mSubject, mActions);

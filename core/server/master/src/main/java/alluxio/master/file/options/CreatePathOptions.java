@@ -17,8 +17,8 @@ import alluxio.wire.CommonOptions;
 
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
 
+import java.util.Collections;
 import java.util.List;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -49,7 +49,7 @@ public abstract class CreatePathOptions<T> {
     mOwner = "";
     mGroup = "";
     mMode = Mode.defaults();
-    mAcl = Lists.newArrayList();
+    mAcl = Collections.emptyList();
     mPersisted = false;
     mRecursive = false;
     mMetadataLoad = false;
