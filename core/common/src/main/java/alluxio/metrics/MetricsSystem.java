@@ -31,6 +31,7 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 
@@ -52,6 +53,7 @@ public final class MetricsSystem {
   public static final String MASTER_INSTANCE = "master";
   public static final String WORKER_INSTANCE = "worker";
   public static final String CLIENT_INSTANCE = "client";
+  public static final String CLUSTER = "cluster";
 
   public static final MetricRegistry METRIC_REGISTRY;
 
@@ -171,6 +173,16 @@ public final class MetricsSystem {
    */
   public static String getClientMetricName(String name) {
     return getMetricNameWithUniqueId(CLIENT_INSTANCE, name);
+  }
+
+  /**
+   * Builds metric registry names for cluster. The pattern is cluster.metricName.
+   *
+   * @param name the metric name
+   * @return the metric registry name
+   */
+  public static String getClusterMetricName(String name) {
+    return Joiner.on(".").join(CLUSTER, name);
   }
 
   /**
@@ -295,6 +307,34 @@ public final class MetricsSystem {
     for (Map.Entry<String, Counter> entry : METRIC_REGISTRY.getCounters().entrySet()) {
       entry.getValue().dec(entry.getValue().getCount());
     }
+  }
+
+  /**
+   * @return all the worker's gauges and counters in the format of {@link Metric}.
+   */
+  public static List<Metric> allWorkerMetrics() {
+    return allMetrics(WORKER_INSTANCE);
+  }
+
+  /**
+   * @return all the client's gauges and counters in the format of {@link Metric}.
+   */
+  public static List<Metric> allClientMetrics() {
+    return allMetrics(CLIENT_INSTANCE);
+  }
+
+  private static List<Metric> allMetrics(String instanceType) {
+    List<Metric> metrics = new ArrayList<>();
+    for (@SuppressWarnings("rawtypes")
+    Entry<String, Gauge> entry : METRIC_REGISTRY.getGauges().entrySet()) {
+      if (entry.getKey().startsWith(instanceType)) {
+        metrics.add(Metric.from(entry.getKey(), entry.getValue()));
+      }
+    }
+    for (Entry<String, Counter> entry : METRIC_REGISTRY.getCounters().entrySet()) {
+      metrics.add(Metric.from(entry.getKey(), entry.getValue()));
+    }
+    return metrics;
   }
 
   /**

@@ -36,11 +36,14 @@ import alluxio.master.block.meta.MasterBlockInfo;
 import alluxio.master.block.meta.MasterBlockLocation;
 import alluxio.master.block.meta.MasterWorkerInfo;
 import alluxio.master.journal.JournalContext;
+import alluxio.metrics.Metric;
+import alluxio.metrics.MetricsStore;
 import alluxio.metrics.MetricsSystem;
 import alluxio.proto.journal.Block.BlockContainerIdGeneratorEntry;
 import alluxio.proto.journal.Block.BlockInfoEntry;
 import alluxio.proto.journal.Block.DeleteBlockEntry;
 import alluxio.proto.journal.Journal.JournalEntry;
+import alluxio.thrift.BlockHeartbeatTOptions;
 import alluxio.thrift.BlockMasterClientService;
 import alluxio.thrift.BlockMasterWorkerService;
 import alluxio.thrift.Command;
@@ -161,6 +164,8 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
   /** Keeps track of workers which are no longer in communication with the master. */
   private final IndexedSet<MasterWorkerInfo> mLostWorkers =
       new IndexedSet<>(ID_INDEX, ADDRESS_INDEX);
+  /** Stores the cluster metrics */
+  private final MetricsStore mMetricsStore;
 
   /**
    * The service that detects lost worker nodes, and tries to restart the failed workers.
@@ -195,6 +200,7 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
       ExecutorServiceFactory executorServiceFactory) {
     super(masterContext, clock, executorServiceFactory);
     mGlobalStorageTierAssoc = new MasterStorageTierAssoc();
+    mMetricsStore = masterContext.getMetricsStore();
     Metrics.registerGauges(this);
   }
 
@@ -716,7 +722,8 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
 
   @Override
   public Command workerHeartbeat(long workerId, Map<String, Long> usedBytesOnTiers,
-      List<Long> removedBlockIds, Map<String, List<Long>> addedBlocksOnTiers) {
+      List<Long> removedBlockIds, Map<String, List<Long>> addedBlocksOnTiers,
+      BlockHeartbeatTOptions options) {
     MasterWorkerInfo worker = mWorkers.getFirstByField(ID_INDEX, workerId);
     if (worker == null) {
       LOG.warn("Could not find worker id: {} for heartbeat.", workerId);
@@ -729,6 +736,7 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
       // will just re-register regardless.
       processWorkerRemovedBlocks(worker, removedBlockIds);
       processWorkerAddedBlocks(worker, addedBlocksOnTiers);
+      processWorkerMetrics(worker.getWorkerAddress().getHost(), options);
 
       worker.updateUsedBytes(usedBytesOnTiers);
       worker.updateLastUpdatedTimeMs();
@@ -739,6 +747,15 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
       }
       return new Command(CommandType.Free, toRemoveBlocks);
     }
+  }
+
+  private void processWorkerMetrics(String hostname, BlockHeartbeatTOptions options){
+    if(options.getMetrics()==null||options.getMetricsSize()==0) return;
+    List<Metric> metrics=new ArrayList<>();
+    for(alluxio.thrift.Metric metric:options.getMetrics()){
+      metrics.add(Metric.from(metric));
+    }
+    mMetricsStore.putWorkerMetrics(MetricsSystem.WORKER_INSTANCE, hostname, metrics);
   }
 
   /**

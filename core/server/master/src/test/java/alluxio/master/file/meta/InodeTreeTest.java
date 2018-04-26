@@ -38,6 +38,7 @@ import alluxio.master.file.options.CreatePathOptions;
 import alluxio.master.file.options.DeleteOptions;
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.noop.NoopJournalSystem;
+import alluxio.metrics.MetricsStore;
 import alluxio.security.authorization.Mode;
 import alluxio.underfs.UfsManager;
 import alluxio.util.CommonUtils;
@@ -79,6 +80,7 @@ public final class InodeTreeTest {
   private InodeTree mTree;
   private MasterRegistry mRegistry;
   private SafeModeManager mSafeModeManager;
+  private MetricsStore mMetricsStore;
 
   /** Rule to create a new temporary folder during each test. */
   @Rule
@@ -102,9 +104,10 @@ public final class InodeTreeTest {
   public void before() throws Exception {
     mRegistry = new MasterRegistry();
     mSafeModeManager = new DefaultSafeModeManager();
+    mMetricsStore = new MetricsStore();
     JournalSystem journalSystem = new NoopJournalSystem();
-    BlockMaster blockMaster = new BlockMasterFactory().create(mRegistry, journalSystem,
-        mSafeModeManager);
+    BlockMaster blockMaster =
+        new BlockMasterFactory().create(mRegistry, journalSystem, mSafeModeManager, mMetricsStore);
     InodeDirectoryIdGenerator directoryIdGenerator = new InodeDirectoryIdGenerator(blockMaster);
     UfsManager ufsManager = mock(UfsManager.class);
     MountTable mountTable = new MountTable(ufsManager);

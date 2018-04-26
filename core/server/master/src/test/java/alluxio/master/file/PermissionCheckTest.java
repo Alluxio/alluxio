@@ -51,6 +51,7 @@ import alluxio.master.file.options.RenameOptions;
 import alluxio.master.file.options.SetAttributeOptions;
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.noop.NoopJournalSystem;
+import alluxio.metrics.MetricsStore;
 import alluxio.security.GroupMappingServiceTestUtils;
 import alluxio.security.authorization.Mode;
 import alluxio.security.group.GroupMappingService;
@@ -114,6 +115,7 @@ public final class PermissionCheckTest {
 
   private MasterRegistry mRegistry;
   private SafeModeManager mSafeModeManager;
+  private MetricsStore mMetricsStore;
   private FileSystemMaster mFileSystemMaster;
   private BlockMaster mBlockMaster;
 
@@ -192,9 +194,11 @@ public final class PermissionCheckTest {
     mRegistry = new MasterRegistry();
     JournalSystem journalSystem = new NoopJournalSystem();
     mSafeModeManager = new DefaultSafeModeManager();
-    mBlockMaster = new BlockMasterFactory().create(mRegistry, journalSystem, mSafeModeManager);
+    mMetricsStore = new MetricsStore();
+    mBlockMaster =
+        new BlockMasterFactory().create(mRegistry, journalSystem, mSafeModeManager, mMetricsStore);
     mFileSystemMaster = new FileSystemMasterFactory().create(mRegistry, journalSystem,
-        mSafeModeManager);
+        mSafeModeManager, mMetricsStore);
     mRegistry.start(true);
 
     createDirAndFileForTest();

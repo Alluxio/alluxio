@@ -38,6 +38,7 @@ import org.slf4j.LoggerFactory;
 public class BlockHeartbeatTOptions implements org.apache.thrift.TBase<BlockHeartbeatTOptions, BlockHeartbeatTOptions._Fields>, java.io.Serializable, Cloneable, Comparable<BlockHeartbeatTOptions> {
   private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("BlockHeartbeatTOptions");
 
+  private static final org.apache.thrift.protocol.TField METRICS_FIELD_DESC = new org.apache.thrift.protocol.TField("metrics", org.apache.thrift.protocol.TType.LIST, (short)1);
 
   private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
   static {
@@ -45,10 +46,11 @@ public class BlockHeartbeatTOptions implements org.apache.thrift.TBase<BlockHear
     schemes.put(TupleScheme.class, new BlockHeartbeatTOptionsTupleSchemeFactory());
   }
 
+  private List<alluxio.thrift.Metric> metrics; // required
 
   /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
   public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-;
+    METRICS((short)1, "metrics");
 
     private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -63,6 +65,8 @@ public class BlockHeartbeatTOptions implements org.apache.thrift.TBase<BlockHear
      */
     public static _Fields findByThriftId(int fieldId) {
       switch(fieldId) {
+        case 1: // METRICS
+          return METRICS;
         default:
           return null;
       }
@@ -101,9 +105,14 @@ public class BlockHeartbeatTOptions implements org.apache.thrift.TBase<BlockHear
       return _fieldName;
     }
   }
+
+  // isset id assignments
   public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
   static {
     Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
+    tmpMap.put(_Fields.METRICS, new org.apache.thrift.meta_data.FieldMetaData("metrics", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+        new org.apache.thrift.meta_data.ListMetaData(org.apache.thrift.protocol.TType.LIST, 
+            new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, alluxio.thrift.Metric.class))));
     metaDataMap = Collections.unmodifiableMap(tmpMap);
     org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(BlockHeartbeatTOptions.class, metaDataMap);
   }
@@ -111,10 +120,24 @@ public class BlockHeartbeatTOptions implements org.apache.thrift.TBase<BlockHear
   public BlockHeartbeatTOptions() {
   }
 
+  public BlockHeartbeatTOptions(
+    List<alluxio.thrift.Metric> metrics)
+  {
+    this();
+    this.metrics = metrics;
+  }
+
   /**
    * Performs a deep copy on <i>other</i>.
    */
   public BlockHeartbeatTOptions(BlockHeartbeatTOptions other) {
+    if (other.isSetMetrics()) {
+      List<alluxio.thrift.Metric> __this__metrics = new ArrayList<alluxio.thrift.Metric>(other.metrics.size());
+      for (alluxio.thrift.Metric other_element : other.metrics) {
+        __this__metrics.add(new alluxio.thrift.Metric(other_element));
+      }
+      this.metrics = __this__metrics;
+    }
   }
 
   public BlockHeartbeatTOptions deepCopy() {
@@ -123,15 +146,66 @@ public class BlockHeartbeatTOptions implements org.apache.thrift.TBase<BlockHear
 
   @Override
   public void clear() {
+    this.metrics = null;
+  }
+
+  public int getMetricsSize() {
+    return (this.metrics == null) ? 0 : this.metrics.size();
+  }
+
+  public java.util.Iterator<alluxio.thrift.Metric> getMetricsIterator() {
+    return (this.metrics == null) ? null : this.metrics.iterator();
+  }
+
+  public void addToMetrics(alluxio.thrift.Metric elem) {
+    if (this.metrics == null) {
+      this.metrics = new ArrayList<alluxio.thrift.Metric>();
+    }
+    this.metrics.add(elem);
+  }
+
+  public List<alluxio.thrift.Metric> getMetrics() {
+    return this.metrics;
+  }
+
+  public BlockHeartbeatTOptions setMetrics(List<alluxio.thrift.Metric> metrics) {
+    this.metrics = metrics;
+    return this;
+  }
+
+  public void unsetMetrics() {
+    this.metrics = null;
+  }
+
+  /** Returns true if field metrics is set (has been assigned a value) and false otherwise */
+  public boolean isSetMetrics() {
+    return this.metrics != null;
+  }
+
+  public void setMetricsIsSet(boolean value) {
+    if (!value) {
+      this.metrics = null;
+    }
   }
 
   public void setFieldValue(_Fields field, Object value) {
     switch (field) {
+    case METRICS:
+      if (value == null) {
+        unsetMetrics();
+      } else {
+        setMetrics((List<alluxio.thrift.Metric>)value);
+      }
+      break;
+
     }
   }
 
   public Object getFieldValue(_Fields field) {
     switch (field) {
+    case METRICS:
+      return getMetrics();
+
     }
     throw new IllegalStateException();
   }
@@ -143,6 +217,8 @@ public class BlockHeartbeatTOptions implements org.apache.thrift.TBase<BlockHear
     }
 
     switch (field) {
+    case METRICS:
+      return isSetMetrics();
     }
     throw new IllegalStateException();
   }
@@ -160,12 +236,26 @@ public class BlockHeartbeatTOptions implements org.apache.thrift.TBase<BlockHear
     if (that == null)
       return false;
 
+    boolean this_present_metrics = true && this.isSetMetrics();
+    boolean that_present_metrics = true && that.isSetMetrics();
+    if (this_present_metrics || that_present_metrics) {
+      if (!(this_present_metrics && that_present_metrics))
+        return false;
+      if (!this.metrics.equals(that.metrics))
+        return false;
+    }
+
     return true;
   }
 
   @Override
   public int hashCode() {
     List<Object> list = new ArrayList<Object>();
+
+    boolean present_metrics = true && (isSetMetrics());
+    list.add(present_metrics);
+    if (present_metrics)
+      list.add(metrics);
 
     return list.hashCode();
   }
@@ -178,6 +268,16 @@ public class BlockHeartbeatTOptions implements org.apache.thrift.TBase<BlockHear
 
     int lastComparison = 0;
 
+    lastComparison = Boolean.valueOf(isSetMetrics()).compareTo(other.isSetMetrics());
+    if (lastComparison != 0) {
+      return lastComparison;
+    }
+    if (isSetMetrics()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.metrics, other.metrics);
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+    }
     return 0;
   }
 
@@ -198,6 +298,13 @@ public class BlockHeartbeatTOptions implements org.apache.thrift.TBase<BlockHear
     StringBuilder sb = new StringBuilder("BlockHeartbeatTOptions(");
     boolean first = true;
 
+    sb.append("metrics:");
+    if (this.metrics == null) {
+      sb.append("null");
+    } else {
+      sb.append(this.metrics);
+    }
+    first = false;
     sb.append(")");
     return sb.toString();
   }
@@ -241,6 +348,25 @@ public class BlockHeartbeatTOptions implements org.apache.thrift.TBase<BlockHear
           break;
         }
         switch (schemeField.id) {
+          case 1: // METRICS
+            if (schemeField.type == org.apache.thrift.protocol.TType.LIST) {
+              {
+                org.apache.thrift.protocol.TList _list72 = iprot.readListBegin();
+                struct.metrics = new ArrayList<alluxio.thrift.Metric>(_list72.size);
+                alluxio.thrift.Metric _elem73;
+                for (int _i74 = 0; _i74 < _list72.size; ++_i74)
+                {
+                  _elem73 = new alluxio.thrift.Metric();
+                  _elem73.read(iprot);
+                  struct.metrics.add(_elem73);
+                }
+                iprot.readListEnd();
+              }
+              struct.setMetricsIsSet(true);
+            } else { 
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+            }
+            break;
           default:
             org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
         }
@@ -256,6 +382,18 @@ public class BlockHeartbeatTOptions implements org.apache.thrift.TBase<BlockHear
       struct.validate();
 
       oprot.writeStructBegin(STRUCT_DESC);
+      if (struct.metrics != null) {
+        oprot.writeFieldBegin(METRICS_FIELD_DESC);
+        {
+          oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, struct.metrics.size()));
+          for (alluxio.thrift.Metric _iter75 : struct.metrics)
+          {
+            _iter75.write(oprot);
+          }
+          oprot.writeListEnd();
+        }
+        oprot.writeFieldEnd();
+      }
       oprot.writeFieldStop();
       oprot.writeStructEnd();
     }
@@ -273,11 +411,40 @@ public class BlockHeartbeatTOptions implements org.apache.thrift.TBase<BlockHear
     @Override
     public void write(org.apache.thrift.protocol.TProtocol prot, BlockHeartbeatTOptions struct) throws org.apache.thrift.TException {
       TTupleProtocol oprot = (TTupleProtocol) prot;
+      BitSet optionals = new BitSet();
+      if (struct.isSetMetrics()) {
+        optionals.set(0);
+      }
+      oprot.writeBitSet(optionals, 1);
+      if (struct.isSetMetrics()) {
+        {
+          oprot.writeI32(struct.metrics.size());
+          for (alluxio.thrift.Metric _iter76 : struct.metrics)
+          {
+            _iter76.write(oprot);
+          }
+        }
+      }
     }
 
     @Override
     public void read(org.apache.thrift.protocol.TProtocol prot, BlockHeartbeatTOptions struct) throws org.apache.thrift.TException {
       TTupleProtocol iprot = (TTupleProtocol) prot;
+      BitSet incoming = iprot.readBitSet(1);
+      if (incoming.get(0)) {
+        {
+          org.apache.thrift.protocol.TList _list77 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
+          struct.metrics = new ArrayList<alluxio.thrift.Metric>(_list77.size);
+          alluxio.thrift.Metric _elem78;
+          for (int _i79 = 0; _i79 < _list77.size; ++_i79)
+          {
+            _elem78 = new alluxio.thrift.Metric();
+            _elem78.read(iprot);
+            struct.metrics.add(_elem78);
+          }
+        }
+        struct.setMetricsIsSet(true);
+      }
     }
   }
 

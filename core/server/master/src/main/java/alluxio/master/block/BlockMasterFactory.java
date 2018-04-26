@@ -17,6 +17,7 @@ import alluxio.master.MasterFactory;
 import alluxio.master.MasterRegistry;
 import alluxio.master.SafeModeManager;
 import alluxio.master.journal.JournalSystem;
+import alluxio.metrics.MetricsStore;
 
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
@@ -48,10 +49,11 @@ public final class BlockMasterFactory implements MasterFactory {
 
   @Override
   public BlockMaster create(MasterRegistry registry, JournalSystem journalFactory,
-      SafeModeManager safeModeManager) {
+      SafeModeManager safeModeManager, MetricsStore metricsStore) {
     Preconditions.checkArgument(journalFactory != null, "journal");
     LOG.info("Creating {} ", BlockMaster.class.getName());
-    BlockMaster master = new DefaultBlockMaster(new MasterContext(journalFactory, safeModeManager));
+    BlockMaster master =
+        new DefaultBlockMaster(new MasterContext(journalFactory, safeModeManager, metricsStore));
     registry.add(BlockMaster.class, master);
     return master;
   }

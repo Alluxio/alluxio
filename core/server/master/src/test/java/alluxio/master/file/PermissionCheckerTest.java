@@ -35,6 +35,7 @@ import alluxio.master.file.meta.MountTable;
 import alluxio.master.file.options.CreateFileOptions;
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.noop.NoopJournalSystem;
+import alluxio.metrics.MetricsStore;
 import alluxio.security.GroupMappingServiceTestUtils;
 import alluxio.security.authentication.AuthType;
 import alluxio.security.authentication.AuthenticatedClientUser;
@@ -103,6 +104,7 @@ public final class PermissionCheckerTest {
   private static InodeTree sTree;
   private static MasterRegistry sRegistry;
   private static SafeModeManager sSafeModeManager;
+  private static MetricsStore sMetricsStore;
 
   private PermissionChecker mPermissionChecker;
 
@@ -175,9 +177,10 @@ public final class PermissionCheckerTest {
     // setup an InodeTree
     sRegistry = new MasterRegistry();
     sSafeModeManager = new DefaultSafeModeManager();
+    sMetricsStore=new MetricsStore();
     JournalSystem journalSystem = new NoopJournalSystem();
-    BlockMaster blockMaster = new BlockMasterFactory().create(sRegistry, journalSystem,
-        sSafeModeManager);
+    BlockMaster blockMaster =
+        new BlockMasterFactory().create(sRegistry, journalSystem, sSafeModeManager, sMetricsStore);
     InodeDirectoryIdGenerator directoryIdGenerator = new InodeDirectoryIdGenerator(blockMaster);
     UfsManager ufsManager = mock(UfsManager.class);
     MountTable mountTable = new MountTable(ufsManager);

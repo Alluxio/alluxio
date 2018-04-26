@@ -21,6 +21,7 @@ import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.UnavailableException;
 import alluxio.metrics.MetricsSystem;
+import alluxio.metrics.WorkerMetrics;
 import alluxio.network.protocol.RPCProtoMessage;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.network.protocol.databuffer.DataFileChannel;
@@ -157,7 +158,7 @@ public final class BlockReadHandler extends AbstractReadHandler<BlockReadRequest
           try {
             BlockReader reader =
                 mWorker.readBlockRemote(request.getSessionId(), request.getId(), lockId);
-            String metricName = "BytesReadAlluxio";
+            String metricName = WorkerMetrics.BYTES_READ_ALLUXIO;
             context.setBlockReader(reader);
             context.setCounter(MetricsSystem.workerCounter(metricName));
             mWorker.accessBlock(request.getSessionId(), request.getId());

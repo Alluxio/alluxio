@@ -9,17 +9,18 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.worker;
+package alluxio.metrics;
 
 /**
  * Metrics of an Alluxio worker.
  */
-public final class AlluxioWorkerMetrics {
+public final class WorkerMetrics {
+
   /**
    * Total number of bytes read from Alluxio storage through this worker. This does not include UFS
    * reads.
    */
   public static final String BYTES_READ_ALLUXIO = "BytesReadAlluxio";
 
-  private AlluxioWorkerMetrics() {} // prevent unintentional instantiation
+  private WorkerMetrics() {} // prevent instantiation
 }

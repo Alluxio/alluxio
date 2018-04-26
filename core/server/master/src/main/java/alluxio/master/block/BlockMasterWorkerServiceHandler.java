@@ -71,8 +71,8 @@ public final class BlockMasterWorkerServiceHandler implements BlockMasterWorkerS
     return RpcUtils.call(LOG, new RpcUtils.RpcCallable<BlockHeartbeatTResponse>() {
       @Override
       public BlockHeartbeatTResponse call() throws AlluxioException {
-        return new BlockHeartbeatTResponse(mBlockMaster
-            .workerHeartbeat(workerId, usedBytesOnTiers, removedBlockIds, addedBlocksOnTiers));
+        return new BlockHeartbeatTResponse(mBlockMaster.workerHeartbeat(workerId, usedBytesOnTiers,
+            removedBlockIds, addedBlocksOnTiers, options));
       }
 
       @Override

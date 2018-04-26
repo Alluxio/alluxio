@@ -29,6 +29,7 @@ import alluxio.master.block.BlockMasterFactory;
 import alluxio.master.file.DefaultFileSystemMaster;
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.JournalTestUtils;
+import alluxio.metrics.MetricsStore;
 import alluxio.metrics.MetricsSystem;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
@@ -91,6 +92,7 @@ public final class AlluxioMasterRestServiceHandlerTest {
   private MasterRegistry mRegistry;
   private AlluxioMasterRestServiceHandler mHandler;
   private SafeModeManager mSafeModeManager;
+  private MetricsStore mMetricsStore;
 
   @Rule
   public TemporaryFolder mTestFolder = new TemporaryFolder();
@@ -115,8 +117,10 @@ public final class AlluxioMasterRestServiceHandlerTest {
     ServletContext context = mock(ServletContext.class);
     mRegistry = new MasterRegistry();
     mSafeModeManager = new TestSafeModeManager();
+    mMetricsStore = new MetricsStore();
     JournalSystem journalSystem = JournalTestUtils.createJournalSystem(mTestFolder);
-    mBlockMaster = new BlockMasterFactory().create(mRegistry, journalSystem, mSafeModeManager);
+    mBlockMaster =
+        new BlockMasterFactory().create(mRegistry, journalSystem, mSafeModeManager, mMetricsStore);
     mRegistry.start(true);
     when(mMasterProcess.getMaster(BlockMaster.class)).thenReturn(mBlockMaster);
     when(context.getAttribute(MasterWebServer.ALLUXIO_MASTER_SERVLET_RESOURCE_KEY)).thenReturn(
