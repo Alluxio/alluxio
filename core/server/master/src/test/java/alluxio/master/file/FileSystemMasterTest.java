@@ -1101,9 +1101,9 @@ public final class FileSystemMasterTest {
     options.setTtl(0);
     options.setTtlAction(TtlAction.FREE);
     mFileSystemMaster.setAttribute(NESTED_FILE_URI, options);
-    Command heartbeat =
-        mBlockMaster.workerHeartbeat(mWorkerId1, ImmutableMap.of("MEM", (long) Constants.KB),
-            ImmutableList.of(blockId), ImmutableMap.<String, List<Long>>of(), mBlockHeartbeatTOptions);
+    Command heartbeat = mBlockMaster.workerHeartbeat(mWorkerId1,
+        ImmutableMap.of("MEM", (long) Constants.KB), ImmutableList.of(blockId),
+        ImmutableMap.<String, List<Long>>of(), mBlockHeartbeatTOptions);
     // Verify the muted Free command on worker1.
     assertEquals(new Command(CommandType.Nothing, ImmutableList.<Long>of()), heartbeat);
     assertEquals(0, mBlockMaster.getBlockInfo(blockId).getLocations().size());
@@ -1998,7 +1998,8 @@ public final class FileSystemMasterTest {
     mJournalSystem = JournalTestUtils.createJournalSystem(mJournalFolder);
     mMetricsStore = new MetricsStore();
     mBlockHeartbeatTOptions = new BlockHeartbeatTOptions();
-    mBlockMaster = new BlockMasterFactory().create(mRegistry, mJournalSystem, mSafeModeManager, mMetricsStore);
+    mBlockMaster =
+        new BlockMasterFactory().create(mRegistry, mJournalSystem, mSafeModeManager, mMetricsStore);
     mExecutorService = Executors
         .newFixedThreadPool(4, ThreadFactoryUtils.build("DefaultFileSystemMasterTest-%d", true));
     mFileSystemMaster = new DefaultFileSystemMaster(mBlockMaster,

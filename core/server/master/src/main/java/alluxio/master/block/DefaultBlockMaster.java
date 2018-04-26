@@ -164,7 +164,7 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
   /** Keeps track of workers which are no longer in communication with the master. */
   private final IndexedSet<MasterWorkerInfo> mLostWorkers =
       new IndexedSet<>(ID_INDEX, ADDRESS_INDEX);
-  /** Stores the cluster metrics */
+  /** Stores the cluster metrics. */
   private final MetricsStore mMetricsStore;
 
   /**
@@ -749,10 +749,12 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
     }
   }
 
-  private void processWorkerMetrics(String hostname, BlockHeartbeatTOptions options){
-    if(options.getMetrics()==null||options.getMetricsSize()==0) return;
-    List<Metric> metrics=new ArrayList<>();
-    for(alluxio.thrift.Metric metric:options.getMetrics()){
+  private void processWorkerMetrics(String hostname, BlockHeartbeatTOptions options) {
+    if (options.getMetrics() == null || options.getMetricsSize() == 0) {
+      return;
+    }
+    List<Metric> metrics = new ArrayList<>();
+    for (alluxio.thrift.Metric metric : options.getMetrics()) {
       metrics.add(Metric.from(metric));
     }
     mMetricsStore.putWorkerMetrics(MetricsSystem.WORKER_INSTANCE, hostname, metrics);

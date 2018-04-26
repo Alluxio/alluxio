@@ -1,39 +1,89 @@
+/*
+ * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
+ * (the "License"). You may not use this work except in compliance with the License, which is
+ * available at www.apache.org/licenses/LICENSE-2.0
+ *
+ * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+ * either express or implied, as more fully set forth in the License.
+ *
+ * See the NOTICE file distributed with this work for information regarding copyright ownership.
+ */
+
 package alluxio.metrics;
 
+import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Sets;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
+import java.util.Set;
 
+/**
+ * A metric of a given instance. The instance can be master, worker, or client.
+ */
 public final class Metric implements Serializable {
   private static final long serialVersionUID = -2236393414222298333L;
+
+  private static final Set<String> SUPPORTED_INSTANCES = Sets.newHashSet(
+      MetricsSystem.MASTER_INSTANCE, MetricsSystem.WORKER_INSTANCE, MetricsSystem.CLIENT_INSTANCE);
+  private static final Logger LOG = LoggerFactory.getLogger(Metric.class);
   private final String mInstance;
   private final String mHostname;
   private final String mName;
   private final Object mValue;
 
-  public Metric(String instance, String host, String name, Object value) {
+  /**
+   * Constructs a {@link Metric} instance.
+   *
+   * @param instance the instance
+   * @param hostname the hostname
+   * @param name the metric name
+   * @param value the value
+   */
+  public Metric(String instance, String hostname, String name, Object value) {
+    Preconditions.checkArgument(SUPPORTED_INSTANCES.contains(instance),
+        "The instance type %s is not supported. The type must be one of %s", instance,
+        SUPPORTED_INSTANCES);
+    Preconditions.checkNotNull(name);
     mInstance = instance;
-    mHostname = host;
+    mHostname = hostname;
     mName = name;
     mValue = value;
   }
 
+  /**
+   * @return the instance type
+   */
   public String getInstance() {
     return mInstance;
   }
 
+  /**
+   * @return the hostname
+   */
   public String getHostname() {
     return mHostname;
   }
 
+  /**
+   * @return the metric name
+   */
   public String getName() {
     return mName;
   }
 
+  /**
+   * @return the metric value
+   */
   public Object getValue() {
     return mValue;
   }
 
+  /**
+   * @return the fully qualified metric name, which is of pattern instance.[hostname.].value
+   */
   public String getFullMetricName() {
     StringBuilder sb = new StringBuilder();
     sb.append(mInstance).append('.');
@@ -44,19 +94,28 @@ public final class Metric implements Serializable {
     return sb.toString();
   }
 
+  /**
+   * @return the thrift object it converts to. Note the value must be either integer or long
+   */
   public alluxio.thrift.Metric toThrift() {
-    alluxio.thrift.Metric metric=new alluxio.thrift.Metric();
+    alluxio.thrift.Metric metric = new alluxio.thrift.Metric();
     metric.setInstance(mInstance);
     metric.setHostname(mHostname);
     metric.setName(mName);
     if (!(mValue instanceof Integer) && !(mValue instanceof Long)) {
-      throw new UnsupportedOperationException(
-          "The value " + mValue + " is not integer, neither long");
+      LOG.error("The value of metric %s is neither integer nor long", this);
     }
-    metric.setValue((Long) mValue);
+    metric.setValue(((Number) mValue).longValue());
     return metric;
   }
 
+  /**
+   * Creates the metric from the fully name and the value.
+   *
+   * @param fullName the full name
+   * @param value the value
+   * @return the created metric
+   */
   public static Metric from(String fullName, Object value) {
     String[] pieces = fullName.split("\\.");
     Preconditions.checkArgument(pieces.length > 1, "Incorrect metrics name: %s.", fullName);
@@ -72,10 +131,20 @@ public final class Metric implements Serializable {
     return new Metric(instance, hostname, name, value);
   }
 
+  /**
+   * Constructs the metric object from the thrift format.
+   *
+   * @param metric the metric in thrift format
+   * @return the constructed metric
+   */
   public static Metric from(alluxio.thrift.Metric metric) {
     return new Metric(metric.getInstance(), metric.getHostname(), metric.getName(),
         metric.getValue());
   }
 
-
+  @Override
+  public String toString() {
+    return Objects.toStringHelper(this).add("instance", mInstance).add("hostname", mHostname)
+        .add("name", mName).add("value", mValue).toString();
+  }
 }

@@ -132,8 +132,8 @@ public final class BlockMasterSync implements HeartbeatExecutor {
 
     // Send the heartbeat and execute the response
     Command cmdFromMaster = null;
-    List<alluxio.thrift.Metric> metrics=new ArrayList<>();
-    for(Metric metric:MetricsSystem.allWorkerMetrics()) {
+    List<alluxio.thrift.Metric> metrics = new ArrayList<>();
+    for (Metric metric : MetricsSystem.allWorkerMetrics()) {
       metrics.add(metric.toThrift());
     }
     try {

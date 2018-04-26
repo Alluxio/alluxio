@@ -42,8 +42,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * A MetricsSystem is created by a specific instance(master, worker). It polls the metrics sources
  * periodically and pass the data to the sinks.
  *
- * The syntax of the metrics configuration file is:
- * sink.[name].[options]=[value]
+ * The syntax of the metrics configuration file is: sink.[name].[options]=[value]
  */
 @ThreadSafe
 public final class MetricsSystem {
@@ -72,8 +71,7 @@ public final class MetricsSystem {
 
   /**
    * Starts sinks specified in the configuration. This is an no-op if the sinks have already been
-   * started.
-   * Note: This has to be called after Alluxio configuration is initialized.
+   * started. Note: This has to be called after Alluxio configuration is initialized.
    */
   public static void startSinks() {
     synchronized (MetricsSystem.class) {
@@ -194,8 +192,8 @@ public final class MetricsSystem {
    * @return the metric registry name
    */
   public static String getMetricNameWithUniqueId(String instance, String name) {
-    return Joiner.on(".")
-        .join(instance, NetworkAddressUtils.getLocalHostName().replace('.', '_'), name);
+    return Joiner.on(".").join(instance, NetworkAddressUtils.getLocalHostName().replace('.', '_'),
+        name);
   }
 
   /**
@@ -214,6 +212,7 @@ public final class MetricsSystem {
 
   /**
    * Util function to remove get the metrics name without instance and host.
+   *
    * @param metricsName the long metrics name with instance and host name
    * @return the metrics name without instance and host name
    */
@@ -249,6 +248,7 @@ public final class MetricsSystem {
   public static Timer masterTimer(String name) {
     return METRIC_REGISTRY.timer(getMasterMetricName(name));
   }
+
   /**
    * @param name the metric name
    * @return the counter
@@ -264,6 +264,7 @@ public final class MetricsSystem {
   public static Timer workerTimer(String name) {
     return METRIC_REGISTRY.timer(getWorkerMetricName(name));
   }
+
   /**
    * @param name the metric name
    * @return the counter
@@ -279,6 +280,7 @@ public final class MetricsSystem {
   public static Timer clientTimer(String name) {
     return METRIC_REGISTRY.timer(getClientMetricName(name));
   }
+
   /**
    * @param name the metric name
    * @return the counter
@@ -310,14 +312,14 @@ public final class MetricsSystem {
   }
 
   /**
-   * @return all the worker's gauges and counters in the format of {@link Metric}.
+   * @return all the worker's gauges and counters in the format of {@link Metric}
    */
   public static List<Metric> allWorkerMetrics() {
     return allMetrics(WORKER_INSTANCE);
   }
 
   /**
-   * @return all the client's gauges and counters in the format of {@link Metric}.
+   * @return all the client's gauges and counters in the format of {@link Metric}
    */
   public static List<Metric> allClientMetrics() {
     return allMetrics(CLIENT_INSTANCE);
@@ -325,14 +327,13 @@ public final class MetricsSystem {
 
   private static List<Metric> allMetrics(String instanceType) {
     List<Metric> metrics = new ArrayList<>();
-    for (@SuppressWarnings("rawtypes")
-    Entry<String, Gauge> entry : METRIC_REGISTRY.getGauges().entrySet()) {
+    for (Entry<String, Gauge> entry : METRIC_REGISTRY.getGauges().entrySet()) {
       if (entry.getKey().startsWith(instanceType)) {
-        metrics.add(Metric.from(entry.getKey(), entry.getValue()));
+        metrics.add(Metric.from(entry.getKey(), entry.getValue().getValue()));
       }
     }
     for (Entry<String, Counter> entry : METRIC_REGISTRY.getCounters().entrySet()) {
-      metrics.add(Metric.from(entry.getKey(), entry.getValue()));
+      metrics.add(Metric.from(entry.getKey(), entry.getValue().getCount()));
     }
     return metrics;
   }

@@ -17,9 +17,12 @@ import alluxio.collections.IndexedSet;
 import java.util.List;
 import java.util.Set;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 /**
  * A store of metrics collecting metrics from workers and clients.
  */
+@ThreadSafe
 public class MetricsStore {
   private static final IndexDefinition<Metric> NAME_INDEX = new IndexDefinition<Metric>(true) {
     @Override
@@ -27,6 +30,7 @@ public class MetricsStore {
       return o.getName();
     }
   };
+
   private static final IndexDefinition<Metric> HOSTNAME_INDEX = new IndexDefinition<Metric>(true) {
     @Override
     public Object getFieldValue(Metric o) {
@@ -42,7 +46,7 @@ public class MetricsStore {
    * @param instanceType the instance type
    * @return the metrics stored in {@link IndexedSet};
    */
-  public IndexedSet<Metric> getMetricsByInstanceType(String instanceType) {
+  private IndexedSet<Metric> getMetricsByInstanceType(String instanceType) {
     if (instanceType.equals(MetricsSystem.WORKER_INSTANCE)) {
       return mWorkerMetrics;
     } else {
@@ -55,10 +59,11 @@ public class MetricsStore {
    * instance will be removed and then replaced by the latest.
    *
    * @param instance the instance type
-   * @param the hostname of the instance
+   * @param hostname the hostname of the instance
    * @param metrics the new worker metrics
    */
-  public void putWorkerMetrics(String instance, String hostname, List<Metric> metrics) {
+  public synchronized void putWorkerMetrics(String instance, String hostname,
+      List<Metric> metrics) {
     IndexedSet<Metric> set = getMetricsByInstanceType(instance);
     set.removeByField(HOSTNAME_INDEX, hostname);
     mWorkerMetrics.addAll(metrics);
@@ -72,7 +77,8 @@ public class MetricsStore {
    * @param name the metric name
    * @return the set of matched metrics
    */
-  public Set<Metric> getMetricsByInstanceTypeAndName(String instanceType, String name) {
+  public synchronized Set<Metric> getMetricsByInstanceTypeAndName(String instanceType,
+      String name) {
     return getMetricsByInstanceType(instanceType).getByField(NAME_INDEX, name);
   }
 }

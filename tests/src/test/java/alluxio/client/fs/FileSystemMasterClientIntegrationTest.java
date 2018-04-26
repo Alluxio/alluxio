@@ -71,6 +71,8 @@ public final class FileSystemMasterClientIntegrationTest extends BaseIntegration
   }
 
   @Test(timeout = 300000)
+  @LocalAlluxioClusterResource.Config(
+      confParams = {PropertyKey.Name.USER_RPC_RETRY_MAX_DURATION, "10s"})
   public void masterUnavailable() throws Exception {
     FileSystem fileSystem = mLocalAlluxioClusterResource.get().getClient();
     mLocalAlluxioClusterResource.get().getLocalAlluxioMaster().stop();

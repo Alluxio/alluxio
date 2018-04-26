@@ -177,7 +177,7 @@ public final class PermissionCheckerTest {
     // setup an InodeTree
     sRegistry = new MasterRegistry();
     sSafeModeManager = new DefaultSafeModeManager();
-    sMetricsStore=new MetricsStore();
+    sMetricsStore = new MetricsStore();
     JournalSystem journalSystem = new NoopJournalSystem();
     BlockMaster blockMaster =
         new BlockMasterFactory().create(sRegistry, journalSystem, sSafeModeManager, sMetricsStore);
