@@ -17,7 +17,7 @@ import alluxio.RuntimeConstants;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidJournalEntryException;
 import alluxio.exception.JournalClosedException;
-import alluxio.master.journal.AbstractJournalSystem;
+import alluxio.exception.JournalClosedException.IOJournalClosedException;
 import alluxio.master.journal.JournalReader;
 import alluxio.master.journal.JournalWriter;
 import alluxio.proto.journal.Journal.JournalEntry;
@@ -26,11 +26,11 @@ import alluxio.underfs.options.CreateOptions;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
+import com.google.common.io.ByteStreams;
 import com.google.common.io.Closer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.Closeable;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -89,61 +89,6 @@ final class UfsJournalLogWriter implements JournalWriter {
   private Queue<JournalEntry> mEntriesToFlush;
 
   /**
-   * A simple wrapper that wraps a output stream to the current log file.
-   */
-  private class JournalOutputStream implements Closeable {
-    final DataOutputStream mOutputStream;
-    final UfsJournalFile mCurrentLog;
-
-    JournalOutputStream(UfsJournalFile currentLog, OutputStream stream) {
-      if (stream != null) {
-        if (stream instanceof DataOutputStream) {
-          mOutputStream = (DataOutputStream) stream;
-        } else {
-          mOutputStream = new DataOutputStream(stream);
-        }
-      } else {
-        mOutputStream = null;
-      }
-      mCurrentLog = currentLog;
-    }
-
-    /**
-     * @return the number of bytes written to this stream
-     */
-    long bytesWritten() {
-      if (mOutputStream == null) {
-        return 0;
-      }
-      return mOutputStream.size();
-    }
-
-    /**
-     * Closes the stream by committing the log. The implementation must be idempotent as this
-     * close can fail and be retried.
-     */
-    @Override
-    public void close() throws IOException {
-      if (mOutputStream != null) {
-        mOutputStream.close();
-      }
-      LOG.info("Marking {} as complete with log entries within [{}, {}).",
-          mCurrentLog.getLocation(), mCurrentLog.getStart(), mNextSequenceNumber);
-
-      String src = mCurrentLog.getLocation().toString();
-      if (!mUfs.exists(src) && mNextSequenceNumber == mCurrentLog.getStart()) {
-        // This can happen when there is any failures before creating a new log file after
-        // committing last log file.
-        return;
-      }
-
-      if (AbstractJournalSystem.ALLOW_JOURNAL_MODIFY.get()) {
-        completeLog(mCurrentLog, mNextSequenceNumber);
-      }
-    }
-  }
-
-  /**
    * Creates a new instance of {@link UfsJournalLogWriter}.
    *
    * @param journal the handle to the journal
@@ -158,37 +103,37 @@ final class UfsJournalLogWriter implements JournalWriter {
     mRotateLogForNextWrite = true;
     UfsJournalFile currentLog = UfsJournalSnapshot.getCurrentLog(mJournal);
     if (currentLog != null) {
-      mJournalOutputStream = new JournalOutputStream(currentLog, null);
+      mJournalOutputStream = new JournalOutputStream(currentLog, ByteStreams.nullOutputStream());
     }
     mGarbageCollector = new UfsJournalGarbageCollector(mJournal);
     mEntriesToFlush = new ArrayDeque<>();
   }
 
   public synchronized void write(JournalEntry entry) throws IOException, JournalClosedException {
-    if (mClosed) {
-      throw new IOException(ExceptionMessage.JOURNAL_WRITE_AFTER_CLOSE.getMessage());
+    try {
+      maybeRecoverFromUfsFailures();
+      maybeRotateLog();
+    } catch (IOJournalClosedException e) {
+      throw e.toJournalClosedException();
     }
-    if (!AbstractJournalSystem.ALLOW_JOURNAL_MODIFY.get()) {
-      throw new JournalClosedException("Master lost leadership. Cannot write to journal");
-    }
-    maybeRecoverFromUfsFailures();
-    maybeRotateLog();
 
     try {
       JournalEntry entryToWrite =
           entry.toBuilder().setSequenceNumber(mNextSequenceNumber).build();
-      entryToWrite.writeDelimitedTo(mJournalOutputStream.mOutputStream);
+      entryToWrite.writeDelimitedTo(mJournalOutputStream);
       LOG.debug("Adding journal entry (seq={}) to retryList with {} entries.",
           entryToWrite.getSequenceNumber(), mEntriesToFlush.size());
       mEntriesToFlush.add(entryToWrite);
       mNextSequenceNumber++;
+    } catch (IOJournalClosedException e) {
+      throw e.toJournalClosedException();
     } catch (IOException e) {
       // Set mNeedsRecovery to true so that {@code maybeRecoverFromUfsFailures}
       // can know a UFS failure has occurred.
       mNeedsRecovery = true;
       throw new IOException(ExceptionMessage.JOURNAL_WRITE_FAILURE
           .getMessageWithUrl(RuntimeConstants.ALLUXIO_DEBUG_DOCS_URL,
-              mJournalOutputStream.mCurrentLog, e.getMessage()), e);
+              mJournalOutputStream.currentLog(), e.getMessage()), e);
     }
   }
 
@@ -208,7 +153,7 @@ final class UfsJournalLogWriter implements JournalWriter {
    *    {@link #mEntriesToFlush}, if its sequence number is larger than or equal to Y, retry
    *    writing it to UFS by calling the {@code UfsJournalLogWriter#write} method.
    */
-  private void maybeRecoverFromUfsFailures() throws IOException {
+  private void maybeRecoverFromUfsFailures() throws IOException, JournalClosedException {
     if (!mNeedsRecovery) {
       return;
     }
@@ -228,13 +173,14 @@ final class UfsJournalLogWriter implements JournalWriter {
       for (JournalEntry entry : mEntriesToFlush) {
         if (entry.getSequenceNumber() > lastPersistSeq) {
           try {
-            entry.toBuilder().build()
-                .writeDelimitedTo(mJournalOutputStream.mOutputStream);
+            entry.toBuilder().build().writeDelimitedTo(mJournalOutputStream);
             retryEndSeq = entry.getSequenceNumber();
+          } catch (IOJournalClosedException e) {
+            throw e.toJournalClosedException();
           } catch (IOException e) {
             throw new IOException(ExceptionMessage.JOURNAL_WRITE_FAILURE
                 .getMessageWithUrl(RuntimeConstants.ALLUXIO_DEBUG_DOCS_URL,
-                    mJournalOutputStream.mCurrentLog, e.getMessage()), e);
+                    mJournalOutputStream.currentLog(), e.getMessage()), e);
           }
         }
       }
@@ -369,24 +315,22 @@ final class UfsJournalLogWriter implements JournalWriter {
   }
 
   public synchronized void flush() throws IOException, JournalClosedException {
-    if (!AbstractJournalSystem.ALLOW_JOURNAL_MODIFY.get()) {
-      throw new JournalClosedException("Master lost leadership. Cannot write to journal");
-    }
     maybeRecoverFromUfsFailures();
 
-    if (mClosed || mJournalOutputStream == null || mJournalOutputStream.bytesWritten() == 0) {
+    if (mJournalOutputStream == null || mJournalOutputStream.bytesWritten() == 0) {
       // There is nothing to flush.
       return;
     }
-    DataOutputStream outputStream = mJournalOutputStream.mOutputStream;
     try {
-      outputStream.flush();
+      mJournalOutputStream.flush();
       // Since flush has succeeded, it's safe to clear the mEntriesToFlush queue
       // because they are considered "persisted" in UFS.
       mEntriesToFlush.clear();
+    } catch (IOJournalClosedException e) {
+      throw e.toJournalClosedException();
     } catch (IOException e) {
       mRotateLogForNextWrite = true;
-      UfsJournalFile currentLog = mJournalOutputStream.mCurrentLog;
+      UfsJournalFile currentLog = mJournalOutputStream.currentLog();
       mJournalOutputStream = null;
       throw new IOException(ExceptionMessage.JOURNAL_FLUSH_FAILURE
           .getMessageWithUrl(RuntimeConstants.ALLUXIO_DEBUG_DOCS_URL,
@@ -413,6 +357,96 @@ final class UfsJournalLogWriter implements JournalWriter {
     closer.register(mGarbageCollector);
     closer.close();
     mClosed = true;
+  }
+
+  /**
+   * A simple wrapper that wraps a output stream to the current log file. When this stream is
+   * closed, the log file will be completed.
+   *
+   * Many of the methods in this class might throw {@link IOJournalClosedException} if the journal
+   * writer is closed when they are called. The exception needs to extend IOException because the
+   * OutputStream API only throws IOException. Callers of these methods should re-throw the
+   * {@link IOJournalClosedException} as a regular {@link JournalClosedException} so that it will be
+   * properly handled by callers.
+   */
+  private class JournalOutputStream extends OutputStream {
+    // Not intended for use outside this inner class.
+    private final DataOutputStream mOutputStream;
+    private final UfsJournalFile mCurrentLog;
+
+    JournalOutputStream(UfsJournalFile currentLog, OutputStream stream) throws IOException {
+      Preconditions.checkState(mUfs.exists(currentLog.getLocation().getPath()));
+      mOutputStream = wrapDataOutputStream(stream);
+      mCurrentLog = currentLog;
+    }
+
+    /**
+     * @return the number of bytes written to this stream
+     */
+    long bytesWritten() {
+      if (mOutputStream == null) {
+        return 0;
+      }
+      return mOutputStream.size();
+    }
+
+    /**
+     * @return the log file being written to by this stream
+     */
+    UfsJournalFile currentLog() {
+      return mCurrentLog;
+    }
+
+    @Override
+    public void write(int b) throws IOException {
+      checkJournalWriterOpen();
+      mOutputStream.write(b);
+    }
+
+    @Override
+    public void write(byte[] b) throws IOException {
+      checkJournalWriterOpen();
+      mOutputStream.write(b);
+    }
+
+    @Override
+    public void write(byte[] b, int off, int len) throws IOException {
+      checkJournalWriterOpen();
+      mOutputStream.write(b, off, len);
+    }
+
+    @Override
+    public void flush() throws IOException {
+      checkJournalWriterOpen();
+      mOutputStream.flush();
+    }
+
+    /**
+     * Closes the stream by committing the log. The implementation must be idempotent as this
+     * close can fail and be retried.
+     */
+    @Override
+    public void close() throws IOException {
+      checkJournalWriterOpen();
+      mOutputStream.close();
+      LOG.info("Marking {} as complete with log entries within [{}, {}).",
+          mCurrentLog.getLocation(), mCurrentLog.getStart(), mNextSequenceNumber);
+      completeLog(mCurrentLog, mNextSequenceNumber);
+    }
+
+    private void checkJournalWriterOpen() throws IOJournalClosedException {
+      if (mClosed) {
+        throw new JournalClosedException("Journal writer is closed").toIOException();
+      }
+    }
+  }
+
+  private static DataOutputStream wrapDataOutputStream(OutputStream stream) {
+    if (stream instanceof DataOutputStream) {
+      return (DataOutputStream) stream;
+    } else {
+      return new DataOutputStream(stream);
+    }
   }
 
   @VisibleForTesting
