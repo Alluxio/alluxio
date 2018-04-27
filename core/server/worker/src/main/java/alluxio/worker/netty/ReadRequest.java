@@ -25,13 +25,15 @@ class ReadRequest {
   private final long mEnd;
   private final long mPacketSize;
   private final long mSessionId;
+  private final String mUser;
 
-  ReadRequest(long id, long start, long end, long packetSize) {
+  ReadRequest(long id, long start, long end, long packetSize, String user) {
     mId = id;
     mStart = start;
     mEnd = end;
     mPacketSize = packetSize;
     mSessionId = IdUtils.createSessionId();
+    mUser = user;
   }
 
   /**
@@ -67,5 +69,12 @@ class ReadRequest {
    */
   public long getPacketSize() {
     return mPacketSize;
+  }
+
+  /**
+   * @return the user of this request
+   */
+  public String getUser() {
+    return mUser;
   }
 }
