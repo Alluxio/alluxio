@@ -285,9 +285,9 @@ public class AlluxioMasterProcess implements MasterProcess {
         NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC),
         NetworkAddressUtils.getPort(ServiceType.MASTER_RPC),
         NetworkAddressUtils.getPort(ServiceType.MASTER_WEB));
-    startServingRPCServer();
     // TODO(adit): This should replace the thrift server
     startServingRPCServerNew();
+    startServingRPCServer();
     LOG.info("Alluxio master ended{}", stopMessage);
   }
 
@@ -330,14 +330,14 @@ public class AlluxioMasterProcess implements MasterProcess {
     int port = 50051;
     ExecutorService executorService = Executors.newFixedThreadPool(4);
     try {
+      LOG.info("Starting gRPC server on port {}", port);
       mGrpcServer = NettyServerBuilder.forPort(port)
           .addService(new FileSystemMasterClientServiceHandlerNew(getMaster(FileSystemMaster.class)))
           .executor(executorService)
           .build()
           .start();
-      LOG.info("Server started, listening on port {}", port);
     } catch (IOException e) {
-      LOG.error("Exception starting gRPC server on port {}, exception: ", port, e);
+      throw new RuntimeException(e);
     }
   }
 
