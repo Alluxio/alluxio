@@ -1141,6 +1141,8 @@
             <exclude>**/src/proto/**</exclude>
             <exclude>**/src/deb/**/*</exclude>
             <exclude>**/src/test/resources/**</exclude>
+            <exclude>**/dev/scripts/vendor/**</exclude>
+            <exclude>**/dev/scripts/src/vendor/**</exclude>
             <exclude>**/vagrant/**/*</exclude>
 
             <!-- Build and Packaging Exclusions -->
@@ -1168,6 +1170,7 @@
           </excludes>
           <mapping>
             <alluxio>SCRIPT_STYLE</alluxio>
+            <go>SLASHSTAR_STYLE</go>
             <java>SLASHSTAR_STYLE</java>
             <properties.template>SCRIPT_STYLE</properties.template>
             <sh.template>SCRIPT_STYLE</sh.template>
