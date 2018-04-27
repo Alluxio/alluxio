@@ -14,6 +14,7 @@ package alluxio.master.block;
 import alluxio.Constants;
 import alluxio.RpcUtils;
 import alluxio.exception.AlluxioException;
+import alluxio.master.meta.ServerConfigurationReport;
 import alluxio.thrift.AlluxioTException;
 import alluxio.thrift.BlockHeartbeatTOptions;
 import alluxio.thrift.BlockHeartbeatTResponse;
@@ -36,6 +37,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -134,6 +136,13 @@ public final class BlockMasterWorkerServiceHandler implements BlockMasterWorkerS
       public RegisterWorkerTResponse call() throws AlluxioException {
         mBlockMaster.workerRegister(workerId, storageTiers, totalBytesOnTiers, usedBytesOnTiers,
             currentBlocksOnTiers);
+        if (options.isSetConfigList()) {
+          List<alluxio.wire.ConfigProperty> wireConfigList = options.getConfigList()
+              .stream().map(alluxio.wire.ConfigProperty::fromThrift)
+              .collect(Collectors.toList());
+
+          ServerConfigurationReport.registerNewConf(workerId, wireConfigList, false);
+        }
         return new RegisterWorkerTResponse();
       }
 

@@ -22,6 +22,7 @@ import alluxio.exception.InvalidWorkerStateException;
 import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.thrift.Command;
 import alluxio.util.ThreadFactoryUtils;
+import alluxio.wire.ConfigProperty;
 import alluxio.wire.WorkerNetAddress;
 
 import org.slf4j.Logger;
@@ -113,9 +114,10 @@ public final class BlockMasterSync implements HeartbeatExecutor {
   private void registerWithMaster() throws IOException {
     BlockStoreMeta storeMeta = mBlockWorker.getStoreMetaFull();
     StorageTierAssoc storageTierAssoc = new WorkerStorageTierAssoc();
+    List<ConfigProperty> configList = getWorkerConfiguration();
     mMasterClient.register(mWorkerId.get(),
         storageTierAssoc.getOrderedStorageAliases(), storeMeta.getCapacityBytesOnTiers(),
-        storeMeta.getUsedBytesOnTiers(), storeMeta.getBlockList());
+        storeMeta.getUsedBytesOnTiers(), storeMeta.getBlockList(), configList);
   }
 
   /**
@@ -256,5 +258,35 @@ public final class BlockMasterSync implements HeartbeatExecutor {
         }
       }
     }
+  }
+
+  /**
+   * @return a list of worker-related configurations
+   */
+  private List<ConfigProperty> getWorkerConfiguration() {
+    List<ConfigProperty> configInfoList = new ArrayList<>();
+    String alluxioConfPrefix = "alluxio";
+    for (Map.Entry<String, String> entry : Configuration.toMap().entrySet()) {
+      String key = entry.getKey();
+      PropertyKey propertyKey = PropertyKey.fromString(key);
+      if ((key.startsWith(alluxioConfPrefix)
+          && propertyKey.getScope().equals(PropertyKey.Scope.WORKER)
+          && propertyKey.getScope().equals(PropertyKey.Scope.SERVER)
+          && propertyKey.getScope().equals(PropertyKey.Scope.ALL))
+          || key.startsWith("fs") || key.startsWith("aws")) {
+        Configuration.Source source = Configuration.getSource(propertyKey);
+        String sourceStr;
+        if (source == Configuration.Source.SITE_PROPERTY) {
+          sourceStr =
+              String.format("%s (%s)", source.name(), Configuration.getSitePropertiesFile());
+        } else {
+          sourceStr = source.name();
+        }
+        configInfoList.add(new ConfigProperty()
+            .setName(key).setValue(entry.getValue()).setSource(sourceStr));
+      }
+    }
+    // TODO(lu) delete those needed to be deleted
+    return configInfoList;
   }
 }
