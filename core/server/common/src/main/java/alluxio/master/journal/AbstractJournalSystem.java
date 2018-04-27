@@ -12,9 +12,10 @@
 package alluxio.master.journal;
 
 import com.google.common.base.Preconditions;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -23,10 +24,10 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public abstract class AbstractJournalSystem implements JournalSystem {
+  private static final Logger LOG = LoggerFactory.getLogger(AbstractJournalSystem.class);
+
   private Mode mMode = Mode.SECONDARY;
   private boolean mRunning = false;
-
-  public static final AtomicBoolean ALLOW_JOURNAL_MODIFY = new AtomicBoolean(true);
 
   @Override
   public synchronized void start() throws InterruptedException, IOException {
@@ -48,6 +49,7 @@ public abstract class AbstractJournalSystem implements JournalSystem {
     if (mMode.equals(mode)) {
       return;
     }
+    LOG.info("Transitioning from {} to {}", mMode, mode);
     switch (mode) {
       case PRIMARY:
         gainPrimacy();
