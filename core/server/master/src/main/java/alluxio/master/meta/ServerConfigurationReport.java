@@ -25,8 +25,6 @@ public final class ServerConfigurationReport {
   private static Map<Long, List<ConfigProperty>> sLostWorkerConfMap;
   private static Map<Long, List<ConfigProperty>> sMasterConfMap;
   private static Map<Long, List<ConfigProperty>> sLostMasterConfMap;
-  private static Map<String, Map<String, List<String>>> sConfValuesMap;
-  private static Map<String, Map<String, List<String>>> sConfErrorsMap;
 
   /**
    * Inits when this master start Alluxio master process or get leadership.
@@ -36,8 +34,6 @@ public final class ServerConfigurationReport {
     sLostWorkerConfMap = new HashMap<>();
     sMasterConfMap = new HashMap<>();
     sLostMasterConfMap = new HashMap<>();
-    sConfValuesMap = new HashMap<>();
-    sConfErrorsMap = new HashMap<>();
   }
 
   /**

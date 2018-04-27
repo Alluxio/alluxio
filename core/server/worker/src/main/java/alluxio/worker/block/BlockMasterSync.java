@@ -31,9 +31,11 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicReference;
@@ -265,16 +267,10 @@ public final class BlockMasterSync implements HeartbeatExecutor {
    */
   private List<ConfigProperty> getWorkerConfiguration() {
     List<ConfigProperty> configInfoList = new ArrayList<>();
-    String alluxioConfPrefix = "alluxio";
     for (Map.Entry<String, String> entry : Configuration.toMap().entrySet()) {
-      String key = entry.getKey();
-      PropertyKey propertyKey = PropertyKey.fromString(key);
-      if ((key.startsWith(alluxioConfPrefix)
-          && propertyKey.getScope().equals(PropertyKey.Scope.WORKER)
-          && propertyKey.getScope().equals(PropertyKey.Scope.SERVER)
-          && propertyKey.getScope().equals(PropertyKey.Scope.ALL))
-          || key.startsWith("fs") || key.startsWith("aws")) {
-        Configuration.Source source = Configuration.getSource(propertyKey);
+      String keyName = entry.getKey();
+      if (Configuration.isWorkerRelated(keyName)) {
+        Configuration.Source source = Configuration.getSource(PropertyKey.fromString(keyName));
         String sourceStr;
         if (source == Configuration.Source.SITE_PROPERTY) {
           sourceStr =
@@ -283,7 +279,7 @@ public final class BlockMasterSync implements HeartbeatExecutor {
           sourceStr = source.name();
         }
         configInfoList.add(new ConfigProperty()
-            .setName(key).setValue(entry.getValue()).setSource(sourceStr));
+            .setName(keyName).setValue(entry.getValue()).setSource(sourceStr));
       }
     }
     // TODO(lu) delete those needed to be deleted
