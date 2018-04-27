@@ -408,25 +408,32 @@ public final class Configuration {
   }
 
   /**
-   * @return a view of the properties(include default properties) of as an immutable map
+   * @return a map of the resolved properties(include default properties)
    */
   public static Map<String, String> toMap() {
-    Map<String, String> map = new HashMap<>(PROPERTIES);
-    for (PropertyKey key : PropertyKey.defaultKeys()) {
-      String propName = key.getName();
-      String defaultValue = key.getDefaultValue();
-      if (!map.containsKey(propName) && defaultValue != null) {
-        map.put(propName, defaultValue);
-      }
-    }
-
     // Resolve values with ${VALUE} format
+    Map<String, String> map = toRawMap();
     String nestedPropIdentifier = "$";
     for (Map.Entry<String, String> entry : map.entrySet()) {
       String value = entry.getValue();
       if (value.contains(nestedPropIdentifier)) {
         value = StrSubstitutor.replace(value, map);
         map.put(entry.getKey(), value);
+      }
+    }
+    return map;
+  }
+
+  /**
+   * @return a map of the raw properties(include default properties)
+   */
+  public static Map<String, String> toRawMap() {
+    Map<String, String> map = new HashMap<>(PROPERTIES);
+    for (PropertyKey key : PropertyKey.defaultKeys()) {
+      String propName = key.getName();
+      String defaultValue = key.getDefaultValue();
+      if (!map.containsKey(propName) && defaultValue != null) {
+        map.put(propName, defaultValue);
       }
     }
     return map;
