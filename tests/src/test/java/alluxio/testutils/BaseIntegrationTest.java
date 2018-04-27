@@ -13,12 +13,15 @@ package alluxio.testutils;
 
 import alluxio.Constants;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.junit.Rule;
 import org.junit.rules.RuleChain;
 import org.junit.rules.TestRule;
 import org.junit.rules.TestWatcher;
 import org.junit.rules.Timeout;
 import org.junit.runner.Description;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.FileWriter;
 import java.io.IOException;
@@ -32,6 +35,10 @@ import java.util.List;
  * Base class used for specifying the maximum time a test should run for.
  */
 public abstract class BaseIntegrationTest {
+  /** Logger is required so the log file is initialized, otherwise truncate can fail. */
+  @SuppressFBWarnings("UUF_UNUSED_FIELD")
+  private static final Logger LOG = LoggerFactory.getLogger(BaseIntegrationTest.class);
+
   @Rule
   public RuleChain mRules = createRuleChain();
 

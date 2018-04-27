@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.master.journal.ufs;
+package alluxio.master;
 
 import alluxio.Server;
 import alluxio.master.Master;
