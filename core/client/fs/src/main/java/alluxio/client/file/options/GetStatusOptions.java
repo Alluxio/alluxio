@@ -14,6 +14,7 @@ package alluxio.client.file.options;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.annotation.PublicApi;
+import alluxio.grpc.GetStatusPOptions;
 import alluxio.thrift.GetStatusTOptions;
 import alluxio.wire.CommonOptions;
 import alluxio.wire.LoadMetadataType;
@@ -113,5 +114,15 @@ public final class GetStatusOptions {
     options.setLoadMetadataType(LoadMetadataType.toThrift(mLoadMetadataType));
     options.setCommonOptions(mCommonOptions.toThrift());
     return options;
+  }
+
+  /**
+   * @return thrift representation of the options
+   */
+  public GetStatusPOptions toProto() {
+    return GetStatusPOptions.newBuilder()
+        .setLoadMetadataType(LoadMetadataType.toProto(mLoadMetadataType))
+        .setCommonOptions(mCommonOptions.toProto())
+        .build();
   }
 }

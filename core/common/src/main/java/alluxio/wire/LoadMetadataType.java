@@ -60,6 +60,14 @@ public enum LoadMetadataType {
   }
 
   /**
+   * @param loadMetadataType the {@link LoadMetadataType}
+   * @return the proto representation of this enum
+   */
+  public static LoadMetadataPType toProto(LoadMetadataType loadMetadataType) {
+    return LoadMetadataPType.forNumber(loadMetadataType.getValue());
+  }
+
+  /**
    * @param loadMetadataTType the thrift representation of loadMetadataType
    * @return the {@link LoadMetadataType}
    */

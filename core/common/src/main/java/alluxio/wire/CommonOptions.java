@@ -132,4 +132,13 @@ public final class CommonOptions implements Serializable {
     options.setSyncIntervalMs(mSyncIntervalMs);
     return options;
   }
+
+  /**
+   * @return proto representation of common options
+   */
+  public FileSystemMasterCommonPOptions toProto() {
+    return  FileSystemMasterCommonPOptions.newBuilder()
+        .setSyncIntervalMs(mSyncIntervalMs)
+        .build();
+  }
 }

@@ -28,6 +28,7 @@ import alluxio.client.file.options.RenameOptions;
 import alluxio.client.file.options.SetAttributeOptions;
 import alluxio.client.file.options.UpdateUfsModeOptions;
 import alluxio.exception.status.AlluxioStatusException;
+import alluxio.grpc.GetStatusPRequest;
 import alluxio.master.MasterClientConfig;
 import alluxio.thrift.AlluxioService;
 import alluxio.thrift.FileSystemMasterClientService;
@@ -36,6 +37,7 @@ import alluxio.thrift.GetNewBlockIdForFileTOptions;
 import alluxio.thrift.LoadMetadataTOptions;
 import alluxio.thrift.ScheduleAsyncPersistenceTOptions;
 import alluxio.thrift.UnmountTOptions;
+import alluxio.wire.ProtoUtils;
 import alluxio.wire.ThriftUtils;
 
 import org.apache.thrift.TException;
@@ -85,6 +87,10 @@ public final class RetryHandlingFileSystemMasterClient extends AbstractMasterCli
   @Override
   protected void afterConnect() {
     mClient = new FileSystemMasterClientService.Client(mProtocol);
+    mBlockingStub.getStatus(GetStatusPRequest.newBuilder()
+        .setPath("/")
+        .setOptions(GetStatusOptions.defaults().toProto())
+        .build());
   }
 
   @Override

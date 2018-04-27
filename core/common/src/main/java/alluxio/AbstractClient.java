@@ -18,6 +18,7 @@ import alluxio.exception.status.FailedPreconditionException;
 import alluxio.exception.status.Status;
 import alluxio.exception.status.UnavailableException;
 import alluxio.exception.status.UnimplementedException;
+import alluxio.grpc.FileSystemMasterServiceGrpc;
 import alluxio.retry.RetryPolicy;
 import alluxio.retry.ExponentialTimeBoundedRetry;
 import alluxio.security.authentication.TProtocols;
@@ -27,6 +28,8 @@ import alluxio.thrift.AlluxioTException;
 import alluxio.thrift.GetServiceVersionTOptions;
 
 import com.google.common.base.Preconditions;
+import io.grpc.ManagedChannel;
+import io.grpc.netty.NettyChannelBuilder;
 import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TProtocol;
 import org.apache.thrift.transport.TTransportException;
@@ -67,6 +70,9 @@ public abstract class AbstractClient implements Client {
   protected InetSocketAddress mAddress = null;
   protected TProtocol mProtocol = null;
 
+  protected FileSystemMasterServiceGrpc.FileSystemMasterServiceBlockingStub mBlockingStub;
+  protected ManagedChannel mChannel;
+
   /** Is true if this client is currently connected. */
   protected boolean mConnected = false;
 
@@ -97,6 +103,11 @@ public abstract class AbstractClient implements Client {
     mServiceVersion = Constants.UNKNOWN_SERVICE_VERSION;
     mTransportProvider = TransportProvider.Factory.create();
     mParentSubject = subject;
+    mChannel = NettyChannelBuilder
+        .forAddress("localhost", 50051)
+        .usePlaintext(true)
+        .build();
+    mBlockingStub = FileSystemMasterServiceGrpc.newBlockingStub(mChannel);
   }
 
   /**
