@@ -78,6 +78,7 @@ import java.util.function.Function;
 
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.NotThreadSafe;
+import alluxio.thrift.PersistFile;
 
 /**
  * This block master manages the metadata for all the blocks and block workers in Alluxio.
@@ -165,6 +166,47 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
   /** The value of the 'next container id' last journaled. */
   @GuardedBy("mBlockContainerIdGenerator")
   private long mJournaledNextContainerId = 0;
+
+  //qiniu worker -> array of files
+  static public int PST_TO_PERSIST = 0;
+  static public int PST_PERSISTING = 1;
+  static public int PST_TO_FREE = 2;
+  static private Map <Long, List<PersistFile> > mPstToPersist = new HashMap<>();
+  static private Map <Long, List<PersistFile> > mPstPersisting = new HashMap<>();
+  static private Map <Long, List<PersistFile> > mPstToFree = new HashMap<>();
+
+  static public List<PersistFile> getEvictFileList(int type, long worker) {
+      Map <Long, List<PersistFile> > m = (PST_TO_PERSIST  == type) ? mPstToPersist : 
+                                        ((PST_PERSISTING  == type) ? mPstPersisting : mPstToFree);
+      List<PersistFile> l = m.get(worker);
+      if (l == null) {
+          l = new ArrayList<PersistFile>();
+          m.put(worker, l);
+      }
+      return l;
+  }
+
+  static public PersistFile addEvictFile(int type, long worker, long file) {
+      List<PersistFile> l = getEvictFileList(type, worker);
+      for (PersistFile f: l) {
+          if (f.getFileId() == file) return f;
+      }
+      PersistFile f = new PersistFile(file, new ArrayList<>());
+      l.add(f);
+      return f;
+  }
+
+  static public void delEvictFile(int type, long worker, long file) {
+      List<PersistFile> l = getEvictFileList(type, worker);
+      Iterator<PersistFile> it = l.iterator();
+      while (it.hasNext()) {
+          PersistFile f = it.next();
+          if (f.getFileId() == file) {
+              it.remove();
+              return;
+          }
+      }
+  }
 
   /**
    * Creates a new instance of {@link DefaultBlockMaster}.
@@ -659,13 +701,39 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
       // Technically, 'worker' should be confirmed to still be in the data structure. Lost worker
       // detection can remove it. However, we are intentionally ignoring this race, since the worker
       // will just re-register regardless.
-      processWorkerRemovedBlocks(worker, removedBlockIds);
+
+      //processWorkerRemovedBlocks(worker, removedBlockIds);
       processWorkerAddedBlocks(worker, addedBlocksOnTiers);
 
       worker.updateUsedBytes(usedBytesOnTiers);
       worker.updateLastUpdatedTimeMs();
 
+      // _qiniu preceding 0 signal that this is special request from worker when evicting
+      if (removedBlockIds.size() > 0 && removedBlockIds.get(0) == 0) {
+          removedBlockIds.remove(0);
+          for (long id: removedBlockIds) {
+              MasterBlockInfo block = mBlocks.get(id);
+              long containerId = BlockId.getContainerId(id);
+              long fileId = IdUtils.createFileId(containerId);
+              DefaultBlockMaster.addEvictFile(DefaultBlockMaster.PST_TO_PERSIST, workerId, fileId);
+              LOG.info("===== To persist: worker " + workerId + ":" + id);
+          }
+      }
+
       List<Long> toRemoveBlocks = worker.getToRemoveBlocks();
+
+      // _qiniu
+      ArrayList<Long> ids = new ArrayList<Long>();
+      List<PersistFile> frees = DefaultBlockMaster.getEvictFileList(DefaultBlockMaster.PST_TO_FREE, workerId);
+      Iterator<PersistFile> it = frees.iterator();
+      while (it.hasNext()) {
+          PersistFile f = it.next();
+          LOG.info("===== To free: worker " + workerId + ":" + f.getFileId());
+          ids.addAll(f.getBlockIds());
+      }
+      frees.clear();
+      processWorkerRemovedBlocks(worker, ids);
+
       if (toRemoveBlocks.isEmpty()) {
         return new Command(CommandType.Nothing, new ArrayList<Long>());
       }

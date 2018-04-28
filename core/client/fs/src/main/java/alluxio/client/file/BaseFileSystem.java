@@ -186,7 +186,7 @@ public class BaseFileSystem implements FileSystem {
     try {
       // TODO(calvin): Make this more efficient
       /*URIStatus*/ s = masterClient.getStatus(path, options.toGetStatusOptions());
-      path.setURIStatus(s);  // qiniu
+      if (s.getLength() > 0) path.setURIStatus(s);  // qiniu
       return true;
     } catch (NotFoundException e) {
       return false;
@@ -236,13 +236,14 @@ public class BaseFileSystem implements FileSystem {
   @Override
   public URIStatus getStatus(AlluxioURI path, GetStatusOptions options)
       throws FileDoesNotExistException, IOException, AlluxioException {
+    if (options.isInvalidateCache()) path.setURIStatus(null);  //qiniu
     URIStatus s = path.getURIStatus(); // qiniu
     if (s != null && s.getLength() > 0) return s;
 
     FileSystemMasterClient masterClient = mFileSystemContext.acquireMasterClient();
     try {
       /*URIStatus*/ s = masterClient.getStatus(path, options);  // qiniu
-      path.setURIStatus(s);
+      if (s.getLength() > 0) path.setURIStatus(s);
       return s;
     } catch (NotFoundException e) {
       throw new FileDoesNotExistException(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(path));

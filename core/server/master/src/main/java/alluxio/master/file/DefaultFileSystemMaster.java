@@ -44,6 +44,8 @@ import alluxio.master.audit.AsyncUserAccessAuditLogWriter;
 import alluxio.master.audit.AuditContext;
 import alluxio.master.block.BlockId;
 import alluxio.master.block.BlockMaster;
+import alluxio.master.block.DefaultBlockMaster;
+import alluxio.master.block.meta.MasterWorkerInfo;
 import alluxio.master.file.async.AsyncPersistHandler;
 import alluxio.master.file.meta.FileSystemMasterView;
 import alluxio.master.file.meta.Inode;
@@ -3336,6 +3338,39 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
 
     // get the files for the given worker to persist
     List<PersistFile> filesToPersist = mAsyncPersistHandler.pollFilesToPersist(workerId);
+    // _qiniu: when persisted completed, move to free
+    List<PersistFile> fs_persisting = DefaultBlockMaster.getEvictFileList(DefaultBlockMaster.PST_PERSISTING, workerId);
+    Iterator<PersistFile> it = fs_persisting.iterator();
+    while (it.hasNext()) {
+        PersistFile f = it.next();
+        FileInfo info = getFileInfo(f.getFileId());
+        if (info.isPersisted()) {
+            LOG.info("==== persisting -> free file:" + f.getFileId());
+            PersistFile f4free = DefaultBlockMaster.addEvictFile(DefaultBlockMaster.PST_TO_FREE, workerId, f.getFileId());
+            f4free.setBlockIds(f.getBlockIds());
+            it.remove();
+        }
+    }
+
+    // move to wait for persisted
+    List<PersistFile> f4persist = DefaultBlockMaster.getEvictFileList(0, workerId);
+    it = f4persist.iterator();
+    while (it.hasNext()) {
+        PersistFile f = it.next();
+        long file = f.getFileId();
+        List<Long> blockIds = new ArrayList<>();
+        for (FileBlockInfo fileBlockInfo : getFileBlockInfoList(getPath(file))) {
+            blockIds.add(fileBlockInfo.getBlockInfo().getBlockId());
+        }
+        LOG.warn("==== send " + file + " to persist, wait for persisted.");
+        filesToPersist.add(new PersistFile(file, blockIds));
+
+        f = DefaultBlockMaster.addEvictFile(1, workerId, file);
+        f.setBlockIds(blockIds);
+
+        it.remove();
+    }
+
     if (!filesToPersist.isEmpty()) {
       LOG.debug("Sent files {} to worker {} to persist", filesToPersist, workerId);
     }
