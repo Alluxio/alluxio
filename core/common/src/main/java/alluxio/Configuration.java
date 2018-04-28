@@ -22,7 +22,6 @@ import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import org.apache.commons.lang3.text.StrSubstitutor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -411,14 +410,13 @@ public final class Configuration {
    * @return a map of the resolved properties(include default properties)
    */
   public static Map<String, String> toMap() {
-    // Resolve values with ${VALUE} format
     Map<String, String> map = toRawMap();
+    // Resolve values with ${VALUE} format
     String nestedPropIdentifier = "$";
     for (Map.Entry<String, String> entry : map.entrySet()) {
       String value = entry.getValue();
       if (value.contains(nestedPropIdentifier)) {
-        value = StrSubstitutor.replace(value, map);
-        map.put(entry.getKey(), value);
+        map.put(entry.getKey(), lookup(value));
       }
     }
     return map;

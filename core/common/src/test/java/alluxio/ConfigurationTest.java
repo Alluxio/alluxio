@@ -675,4 +675,45 @@ public class ConfigurationTest {
     x.set(20);
     assertEquals(20, Configuration.getInt(key));
   }
+
+  @Test
+  public void toMap() throws Exception {
+    // Create a nested property to test
+    String extensionsDirKeyName = "alluxio.extensions.dir";
+    String testValue = String.format("${%s}.test", extensionsDirKeyName);
+    PropertyKey testKey = PropertyKey.SECURITY_LOGIN_USERNAME;
+    Configuration.set(testKey, testValue);
+
+    Map<String, String> resolvedMap = Configuration.toMap();
+    Map<String, String> rawMap = Configuration.toRawMap();
+
+    // Test if the value of the created nested property is correct in both maps
+    String testKeyName = testKey.toString();
+    assertEquals(resolvedMap.get(testKeyName),
+        resolvedMap.get(extensionsDirKeyName) + ".test");
+    assertEquals(rawMap.get(testKeyName), testValue);
+
+    // Test if the values in the resolvedMap is resolved
+    assertEquals(resolvedMap.get(extensionsDirKeyName),
+        String.format("%s/extensions", resolvedMap.get("alluxio.home")));
+    assertEquals(resolvedMap.get("alluxio.logs.dir"),
+        String.format("%s/logs", resolvedMap.get("alluxio.work.dir")));
+    assertEquals(resolvedMap.get(extensionsDirKeyName),
+        Configuration.get(PropertyKey.fromString(extensionsDirKeyName)));
+
+    // Test if some values in raw map is of ${VALUE} format
+    String nestedPropertyIdentifier = "$";
+    assertTrue(rawMap.get("alluxio.locality.script").contains(nestedPropertyIdentifier));
+    assertTrue(rawMap.get("alluxio.logs.dir").contains(nestedPropertyIdentifier));
+
+    // Test if the resolvedMap include all kinds of properties
+    assertTrue(resolvedMap.containsKey("alluxio.debug"));
+    assertTrue(resolvedMap.containsKey("alluxio.fuse.fs.name"));
+    assertTrue(resolvedMap.containsKey("alluxio.logserver.logs.dir"));
+    assertTrue(resolvedMap.containsKey("alluxio.master.journal.folder"));
+    assertTrue(resolvedMap.containsKey("alluxio.proxy.web.port"));
+    assertTrue(resolvedMap.containsKey("alluxio.security.authentication.type"));
+    assertTrue(resolvedMap.containsKey("alluxio.user.block.master.client.threads"));
+    assertTrue(resolvedMap.containsKey("alluxio.worker.bind.host"));
+  }
 }
