@@ -13,6 +13,7 @@ package alluxio.client.file;
 
 import alluxio.AlluxioURI;
 import alluxio.annotation.PublicApi;
+import alluxio.client.block.AlluxioBlockCache;
 import alluxio.client.file.options.CreateDirectoryOptions;
 import alluxio.client.file.options.CreateFileOptions;
 import alluxio.client.file.options.DeleteOptions;
@@ -40,7 +41,9 @@ import alluxio.exception.status.FailedPreconditionException;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.exception.status.NotFoundException;
 import alluxio.exception.status.UnavailableException;
+import alluxio.wire.BlockInfo;
 import alluxio.wire.CommonOptions;
+import alluxio.wire.FileBlockInfo;
 import alluxio.wire.LoadMetadataType;
 import alluxio.wire.MountPointInfo;
 
@@ -122,10 +125,10 @@ public class BaseFileSystem implements FileSystem {
     try {
       masterClient.createFile(path, options);
       // Do not sync before this getStatus, since the UFS file is expected to not exist.
-      status = masterClient.getStatus(path,
+      //status = masterClient.getStatus(path,
+      status = getStatus(path,
           GetStatusOptions.defaults().setLoadMetadataType(LoadMetadataType.Never)
               .setCommonOptions(CommonOptions.defaults().setSyncIntervalMs(-1)));
-      path.setURIStatus(status);  // qiniu
       LOG.debug("Created file {}, options: {}", path.getPath(), options);
     } catch (AlreadyExistsException e) {
       throw new FileAlreadyExistsException(e.getMessage());
@@ -180,12 +183,15 @@ public class BaseFileSystem implements FileSystem {
   @Override
   public boolean exists(AlluxioURI path, ExistsOptions options)
       throws InvalidPathException, IOException, AlluxioException {
-    if (null != path.getURIStatus()) return true; //qiniu
+    URIStatus s = path.getURIStatus();
+    if (s != null && s.getLength() > 0) return true;  // qiniu
+
     FileSystemMasterClient masterClient = mFileSystemContext.acquireMasterClient();
     try {
       // TODO(calvin): Make this more efficient
-      URIStatus s = masterClient.getStatus(path, options.toGetStatusOptions());
-      path.setURIStatus(s);  // qiniu
+      //URIStatus s = masterClient.getStatus(path, options.toGetStatusOptions());
+      s = getStatus(path, options.toGetStatusOptions());
+      if (s.getLength() > 0) path.setURIStatus(s);  // qiniu
       return true;
     } catch (NotFoundException e) {
       return false;
@@ -235,13 +241,20 @@ public class BaseFileSystem implements FileSystem {
   @Override
   public URIStatus getStatus(AlluxioURI path, GetStatusOptions options)
       throws FileDoesNotExistException, IOException, AlluxioException {
+    if (options.isInvalidateCache()) path.setURIStatus(null);  //qiniu
     URIStatus s = path.getURIStatus(); // qiniu
-    if (s != null) return s;
+    if (s != null && s.getLength() > 0) return s;
 
     FileSystemMasterClient masterClient = mFileSystemContext.acquireMasterClient();
     try {
-      s = masterClient.getStatus(path, options);  // qiniu
-      path.setURIStatus(s);
+      /*URIStatus*/ s = masterClient.getStatus(path, options);  // qiniu
+      if (s.getLength() > 0) {
+          path.setURIStatus(s);
+          for (FileBlockInfo f: s.getFileBlockInfos()) {
+              BlockInfo b = f.getBlockInfo();
+              AlluxioBlockCache.addBlockInfoCache(b.getBlockId(), b);
+          }
+      }
       return s;
     } catch (NotFoundException e) {
       throw new FileDoesNotExistException(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(path));

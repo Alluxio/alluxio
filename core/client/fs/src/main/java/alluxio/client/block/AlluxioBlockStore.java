@@ -51,6 +51,7 @@ import java.util.Optional;
 import java.util.Set;
 
 import javax.annotation.concurrent.ThreadSafe;
+import alluxio.client.block.AlluxioBlockCache;
 
 /**
  * Alluxio Block Store client. This is an internal client for all block level operations in Alluxio.
@@ -103,7 +104,10 @@ public final class AlluxioBlockStore {
   public BlockInfo getInfo(long blockId) throws IOException {
     try (CloseableResource<BlockMasterClient> masterClientResource =
         mContext.acquireBlockMasterClientResource()) {
-      return masterClientResource.get().getBlockInfo(blockId);
+      //return masterClientResource.get().getBlockInfo(blockId); -- qiniu2
+      BlockInfo info = masterClientResource.get().getBlockInfo(blockId);
+      if (info != null) AlluxioBlockCache.addBlockInfoCache(blockId, info); //qiniu2
+      return info;
     }
   }
 
@@ -153,10 +157,18 @@ public final class AlluxioBlockStore {
   public BlockInStream getInStream(long blockId, InStreamOptions options,
       Map<WorkerNetAddress, Long> failedWorkers) throws IOException {
     // Get the latest block info from master
-    BlockInfo info;
-    try (CloseableResource<BlockMasterClient> masterClientResource =
-             mContext.acquireBlockMasterClientResource()) {
-      info = masterClientResource.get().getBlockInfo(blockId);
+    BlockInfo info = AlluxioBlockCache.getBlockInfoCache(blockId); //qiniu2
+    if (info == null) {
+        /*try (CloseableResource<BlockMasterClient> masterClientResource =
+                 mContext.acquireBlockMasterClientResource()) {
+          info = masterClientResource.get().getBlockInfo(blockId);
+          
+        }*/
+        try {
+            info = getInfo(blockId);
+        } catch (Exception e)  {
+            LOG.info("==== fail to get block info for " + blockId);
+        }
     }
     List<BlockLocation> locations = info.getLocations();
     List<BlockWorkerInfo> blockWorkerInfo = Collections.EMPTY_LIST;
@@ -169,6 +181,7 @@ public final class AlluxioBlockStore {
       workerPool = locations.stream().map(BlockLocation::getWorkerAddress).collect(toSet());
     }
     if (workerPool.isEmpty()) {
+      LOG.info("==== info:" + info);
       throw new NotFoundException(ExceptionMessage.BLOCK_UNAVAILABLE.getMessage(info.getBlockId()));
     }
     // Workers to read the block, after considering failed workers.
@@ -244,9 +257,15 @@ public final class AlluxioBlockStore {
   public BlockOutStream getOutStream(long blockId, long blockSize, WorkerNetAddress address,
       OutStreamOptions options) throws IOException {
     if (blockSize == -1) {
+      /*
       try (CloseableResource<BlockMasterClient> blockMasterClientResource =
           mContext.acquireBlockMasterClientResource()) {
         blockSize = blockMasterClientResource.get().getBlockInfo(blockId).getLength();
+      }*/
+      try {
+          blockSize = getInfo(blockId).getLength();
+      } catch (Exception e) {
+          LOG.info("==== in getOutStream fail to get block info for " + blockId);
       }
     }
     // No specified location to write to.

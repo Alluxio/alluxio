@@ -44,6 +44,8 @@ import alluxio.master.audit.AsyncUserAccessAuditLogWriter;
 import alluxio.master.audit.AuditContext;
 import alluxio.master.block.BlockId;
 import alluxio.master.block.BlockMaster;
+import alluxio.master.block.DefaultBlockMaster;
+import alluxio.master.block.meta.MasterWorkerInfo;
 import alluxio.master.file.async.AsyncPersistHandler;
 import alluxio.master.file.meta.FileSystemMasterView;
 import alluxio.master.file.meta.Inode;
@@ -138,7 +140,9 @@ import com.codahale.metrics.Gauge;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterators;
+
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.thrift.TProcessor;
 import org.slf4j.Logger;
@@ -156,6 +160,7 @@ import java.util.Set;
 import java.util.SortedMap;
 import java.util.Stack;
 import java.util.TreeMap;
+import java.util.Vector;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
@@ -3336,6 +3341,45 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
 
     // get the files for the given worker to persist
     List<PersistFile> filesToPersist = mAsyncPersistHandler.pollFilesToPersist(workerId);
+
+    // qiniu
+    // EVICT -> PERSIST or FREE
+    Map<Long, PersistFile> evict = DefaultBlockMaster.getEvictFileMap(DefaultBlockMaster.EVICT_EVICT, workerId);
+    Iterator<Map.Entry<Long, PersistFile>> it = evict.entrySet().iterator();
+    while (it.hasNext()) {
+        FileInfo info = getFileInfo(it.next().getValue().getFileId());
+        if (info == null) {
+            LOG.error("==== EVICT[ERROR] file:" + it.next().getValue().getFileId() + " not existed");
+        } else if (info.isPersisted()) {
+            DefaultBlockMaster.addEvictFile(DefaultBlockMaster.EVICT_FREE, workerId,  // ready for free
+                                            new PersistFile(info.getFileId(), 
+                                            new ArrayList<Long>(info.getBlockIds())));
+        } else {
+            if (DefaultBlockMaster.addEvictFile(DefaultBlockMaster.EVICT_PERSIST, workerId,  // ready for persist 
+                                            new PersistFile(info.getFileId(), 
+                                            new ArrayList<Long>(info.getBlockIds())))) {
+                filesToPersist.add(new PersistFile(info.getFileId(), info.getBlockIds()));
+                LOG.info("===== EVICT[PERSIST] worker:" + workerId + " file:" + info.getFileId()
+                        + " blocks:" + info.getBlockIds());
+            }
+        }
+        it.remove();
+    }
+
+    // PERSIST -> FREE
+    Map<Long, PersistFile> persist = DefaultBlockMaster.getEvictFileMap(DefaultBlockMaster.EVICT_PERSIST, workerId);
+    it = evict.entrySet().iterator();
+    while (it.hasNext()) {
+        FileInfo info = getFileInfo(it.next().getValue().getFileId());
+        if (info == null) {
+            LOG.error("==== EVICT[ERROR] file:" + info.getFileId() + " not existed");
+        } else if (info.isPersisted()) {
+            DefaultBlockMaster.addEvictFile(DefaultBlockMaster.EVICT_FREE, workerId,  // ready for free
+                                            new PersistFile(info.getFileId(), info.getBlockIds()));
+        }
+        it.remove();
+    }
+
     if (!filesToPersist.isEmpty()) {
       LOG.debug("Sent files {} to worker {} to persist", filesToPersist, workerId);
     }
