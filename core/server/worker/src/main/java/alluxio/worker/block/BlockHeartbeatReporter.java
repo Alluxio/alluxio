@@ -35,6 +35,8 @@ public final class BlockHeartbeatReporter extends AbstractBlockStoreEventListene
   /** List of blocks that were removed in the last heartbeat period. */
   private final List<Long> mRemovedBlocks;
 
+  private final List<Long> mEvictBlocks;  //qiniu
+
   /** Map of storage tier alias to a list of blocks that were added in the last heartbeat period. */
   private final Map<String, List<Long>> mAddedBlocks;
 
@@ -44,6 +46,7 @@ public final class BlockHeartbeatReporter extends AbstractBlockStoreEventListene
   public BlockHeartbeatReporter() {
     mLock = new Object();
     mRemovedBlocks = new ArrayList<>(100);
+    mEvictBlocks = new ArrayList<>(); //qiniu
     mAddedBlocks = new HashMap<>(20);
   }
 
@@ -57,10 +60,17 @@ public final class BlockHeartbeatReporter extends AbstractBlockStoreEventListene
     synchronized (mLock) {
       // Copy added and removed blocks
       Map<String, List<Long>> addedBlocks = new HashMap<>(mAddedBlocks);
-      List<Long> removedBlocks = new ArrayList<>(mRemovedBlocks);
+      //List<Long> removedBlocks = new ArrayList<>(mRemovedBlocks);
+      List<Long> removedBlocks = new ArrayList<>(mEvictBlocks);     //qiniu
+      if (removedBlocks.size() > 0) {
+          removedBlocks.add((long)0);   // 0 as delimiter
+      }
+      removedBlocks.addAll(mRemovedBlocks);
+
       // Clear added and removed blocks
       mAddedBlocks.clear();
       mRemovedBlocks.clear();
+      mEvictBlocks.clear();
       return new BlockHeartbeatReport(addedBlocks, removedBlocks);
     }
   }
@@ -100,6 +110,16 @@ public final class BlockHeartbeatReporter extends AbstractBlockStoreEventListene
       }
     }
   }
+
+  @Override
+  public void onEvictBlockByWorker(long sessionId, long blockId) { //qiniu
+    synchronized (mLock) {
+      if (!mEvictBlocks.contains(blockId)) {
+        mEvictBlocks.add(blockId);
+      }
+    }
+  }
+
 
   @Override
   public void onMoveBlockByWorker(long sessionId, long blockId, BlockStoreLocation oldLocation,

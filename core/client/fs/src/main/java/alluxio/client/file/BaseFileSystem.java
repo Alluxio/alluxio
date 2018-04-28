@@ -13,6 +13,7 @@ package alluxio.client.file;
 
 import alluxio.AlluxioURI;
 import alluxio.annotation.PublicApi;
+import alluxio.client.block.AlluxioBlockCache;
 import alluxio.client.file.options.CreateDirectoryOptions;
 import alluxio.client.file.options.CreateFileOptions;
 import alluxio.client.file.options.DeleteOptions;
@@ -40,7 +41,9 @@ import alluxio.exception.status.FailedPreconditionException;
 import alluxio.exception.status.InvalidArgumentException;
 import alluxio.exception.status.NotFoundException;
 import alluxio.exception.status.UnavailableException;
+import alluxio.wire.BlockInfo;
 import alluxio.wire.CommonOptions;
+import alluxio.wire.FileBlockInfo;
 import alluxio.wire.LoadMetadataType;
 import alluxio.wire.MountPointInfo;
 
@@ -122,7 +125,8 @@ public class BaseFileSystem implements FileSystem {
     try {
       masterClient.createFile(path, options);
       // Do not sync before this getStatus, since the UFS file is expected to not exist.
-      status = masterClient.getStatus(path,
+      //status = masterClient.getStatus(path,
+      status = getStatus(path,
           GetStatusOptions.defaults().setLoadMetadataType(LoadMetadataType.Never)
               .setCommonOptions(CommonOptions.defaults().setSyncIntervalMs(-1)));
       LOG.debug("Created file {}, options: {}", path.getPath(), options);
@@ -185,7 +189,8 @@ public class BaseFileSystem implements FileSystem {
     FileSystemMasterClient masterClient = mFileSystemContext.acquireMasterClient();
     try {
       // TODO(calvin): Make this more efficient
-      /*URIStatus*/ s = masterClient.getStatus(path, options.toGetStatusOptions());
+      //URIStatus s = masterClient.getStatus(path, options.toGetStatusOptions());
+      s = getStatus(path, options.toGetStatusOptions());
       if (s.getLength() > 0) path.setURIStatus(s);  // qiniu
       return true;
     } catch (NotFoundException e) {
@@ -243,7 +248,13 @@ public class BaseFileSystem implements FileSystem {
     FileSystemMasterClient masterClient = mFileSystemContext.acquireMasterClient();
     try {
       /*URIStatus*/ s = masterClient.getStatus(path, options);  // qiniu
-      if (s.getLength() > 0) path.setURIStatus(s);
+      if (s.getLength() > 0) {
+          path.setURIStatus(s);
+          for (FileBlockInfo f: s.getFileBlockInfos()) {
+              BlockInfo b = f.getBlockInfo();
+              AlluxioBlockCache.addBlockInfoCache(b.getBlockId(), b);
+          }
+      }
       return s;
     } catch (NotFoundException e) {
       throw new FileDoesNotExistException(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(path));

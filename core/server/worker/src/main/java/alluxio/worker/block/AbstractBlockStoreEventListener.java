@@ -43,4 +43,7 @@ public abstract class AbstractBlockStoreEventListener implements BlockStoreEvent
   @Override
   public void onRemoveBlockByWorker(long sessionId, long blockId) {}
 
+  @Override
+  public void onEvictBlockByWorker(long sessionId, long blockId) {} //qiniu
+
 }

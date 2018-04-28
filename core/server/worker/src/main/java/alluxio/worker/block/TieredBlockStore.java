@@ -731,14 +731,14 @@ public class TieredBlockStore implements BlockStore {
       }
       */
       synchronized (mBlockStoreEventListeners) {
-        for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
-          //_qiniu
-          if (blockInfo == plan.toEvict().get(0)) {
-              listener.onRemoveBlockByWorker(sessionId, 0);
-          }
-          LOG.info(" ===== add evict block " + blockInfo.getFirst());
+        try {
+            BlockMeta blockMeta = mMetaManager.getBlockMeta(blockInfo.getFirst());
+            LOG.info(" ===== EVICT add block:" + blockMeta.getBlockId() + " file:" + blockMeta.getPath());
+        } catch (Exception e) {}
 
-          listener.onRemoveBlockByWorker(sessionId, blockInfo.getFirst());
+        for (BlockStoreEventListener listener : mBlockStoreEventListeners) {
+          //listener.onRemoveBlockByWorker(sessionId, blockInfo.getFirst());
+          listener.onEvictBlockByWorker(sessionId, blockInfo.getFirst());
         }
       }
     }

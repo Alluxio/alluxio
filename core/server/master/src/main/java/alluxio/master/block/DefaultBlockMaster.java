@@ -54,7 +54,9 @@ import alluxio.wire.WorkerNetAddress;
 import com.codahale.metrics.Gauge;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterators;
+
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+
 import org.apache.thrift.TProcessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -72,12 +74,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Set;
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
 import java.util.function.Function;
 
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.NotThreadSafe;
+
 import alluxio.thrift.PersistFile;
 
 /**
@@ -168,44 +172,35 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
   private long mJournaledNextContainerId = 0;
 
   //qiniu worker -> array of files
-  static public int PST_TO_PERSIST = 0;
-  static public int PST_PERSISTING = 1;
-  static public int PST_TO_FREE = 2;
-  static private Map <Long, List<PersistFile> > mPstToPersist = new HashMap<>();
-  static private Map <Long, List<PersistFile> > mPstPersisting = new HashMap<>();
-  static private Map <Long, List<PersistFile> > mPstToFree = new HashMap<>();
+  final static public int EVICT_EVICT = 0;
+  final static public int EVICT_PERSIST = 1;
+  final static public int EVICT_FREE = 2;
+  static private Map <Long, Map<Long, PersistFile> > mEvictEvict = new ConcurrentHashMap<>();
+  static private Map <Long, Map<Long, PersistFile> > mEvictPersist = new ConcurrentHashMap<>();
+  static private Map <Long, Map<Long, PersistFile> > mEvictFree = new ConcurrentHashMap<>();
 
-  static public List<PersistFile> getEvictFileList(int type, long worker) {
-      Map <Long, List<PersistFile> > m = (PST_TO_PERSIST  == type) ? mPstToPersist : 
-                                        ((PST_PERSISTING  == type) ? mPstPersisting : mPstToFree);
-      List<PersistFile> l = m.get(worker);
+  // need to synchronized
+  static public Map<Long, PersistFile> getEvictFileMap(int type, long worker) {
+      Map <Long, Map<Long, PersistFile> > m = (EVICT_EVICT == type) ? mEvictEvict : 
+                            (( EVICT_PERSIST == type) ? mEvictPersist : mEvictFree);
+      Map<Long, PersistFile> l = m.get(worker);
       if (l == null) {
-          l = new ArrayList<PersistFile>();
+          l = new ConcurrentHashMap<Long, PersistFile>();
           m.put(worker, l);
       }
       return l;
   }
 
-  static public PersistFile addEvictFile(int type, long worker, long file) {
-      List<PersistFile> l = getEvictFileList(type, worker);
-      for (PersistFile f: l) {
-          if (f.getFileId() == file) return f;
+  // add a place-hold PersistFile first, add blocks later
+  static public boolean addEvictFile(int type, long worker, PersistFile file) {
+      Map<Long, PersistFile> m = getEvictFileMap(type, worker);
+      if (m.get(file.getFileId()) != null) {
+          LOG.debug("===== EVICT[INFO] file already added:" + file.getFileId());
+          return false;
       }
-      PersistFile f = new PersistFile(file, new ArrayList<>());
-      l.add(f);
-      return f;
-  }
 
-  static public void delEvictFile(int type, long worker, long file) {
-      List<PersistFile> l = getEvictFileList(type, worker);
-      Iterator<PersistFile> it = l.iterator();
-      while (it.hasNext()) {
-          PersistFile f = it.next();
-          if (f.getFileId() == file) {
-              it.remove();
-              return;
-          }
-      }
+      m.put(file.getFileId(), file);
+      return true;
   }
 
   /**
@@ -701,38 +696,49 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
       // Technically, 'worker' should be confirmed to still be in the data structure. Lost worker
       // detection can remove it. However, we are intentionally ignoring this race, since the worker
       // will just re-register regardless.
+     
+      // qiniu: don't want to change thrift (see its warning), so use '0' to delimit the
+      // to_be_remove and already_removed block ids
+      List<Long> evictingBlockIds = new ArrayList<Long>();
+      for (int i = 0; i < removedBlockIds.size(); i++) {
+          if (removedBlockIds.get(i) == 0) {
+              for (int j = 0; j < i; j++) {
+                  evictingBlockIds.add(removedBlockIds.get(0));
+                  removedBlockIds.remove(0);
+              }
+              removedBlockIds.remove(0);
+              break;
+          }
+      }
+      for (long id: evictingBlockIds) {
+          MasterBlockInfo block = mBlocks.get(id);
+          long containerId = BlockId.getContainerId(id);
+          long fileId = IdUtils.createFileId(containerId);
+          DefaultBlockMaster.addEvictFile(DefaultBlockMaster.EVICT_EVICT, workerId, 
+                  new PersistFile(fileId, new ArrayList<Long>()));  // no block ids yet
+      }
 
-      //processWorkerRemovedBlocks(worker, removedBlockIds);
+      processWorkerRemovedBlocks(worker, removedBlockIds);
       processWorkerAddedBlocks(worker, addedBlocksOnTiers);
 
       worker.updateUsedBytes(usedBytesOnTiers);
       worker.updateLastUpdatedTimeMs();
 
-      // _qiniu preceding 0 signal that this is special request from worker when evicting
-      if (removedBlockIds.size() > 0 && removedBlockIds.get(0) == 0) {
-          removedBlockIds.remove(0);
-          for (long id: removedBlockIds) {
-              MasterBlockInfo block = mBlocks.get(id);
-              long containerId = BlockId.getContainerId(id);
-              long fileId = IdUtils.createFileId(containerId);
-              DefaultBlockMaster.addEvictFile(DefaultBlockMaster.PST_TO_PERSIST, workerId, fileId);
-              LOG.info("===== To persist: worker " + workerId + ":" + id);
-          }
-      }
-
       List<Long> toRemoveBlocks = worker.getToRemoveBlocks();
 
       // _qiniu
       ArrayList<Long> ids = new ArrayList<Long>();
-      List<PersistFile> frees = DefaultBlockMaster.getEvictFileList(DefaultBlockMaster.PST_TO_FREE, workerId);
-      Iterator<PersistFile> it = frees.iterator();
+      Map<Long, PersistFile> frees = DefaultBlockMaster.getEvictFileMap(DefaultBlockMaster.EVICT_FREE, workerId);
+      Iterator<Map.Entry<Long, PersistFile>> it = frees.entrySet().iterator();
       while (it.hasNext()) {
-          PersistFile f = it.next();
-          LOG.info("===== To free: worker " + workerId + ":" + f.getFileId());
+          PersistFile f = it.next().getValue();
+          LOG.info("===== EVICT[FREE] worker:" + workerId + " file:" + f.getFileId() + " blocks:" + f.getBlockIds());
           ids.addAll(f.getBlockIds());
       }
       frees.clear();
-      processWorkerRemovedBlocks(worker, ids);
+
+      toRemoveBlocks.addAll(ids);
+      //processWorkerRemovedBlocks(worker, ids);
 
       if (toRemoveBlocks.isEmpty()) {
         return new Command(CommandType.Nothing, new ArrayList<Long>());

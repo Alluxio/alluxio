@@ -17,6 +17,7 @@ import alluxio.Seekable;
 import alluxio.annotation.PublicApi;
 import alluxio.client.BoundedStream;
 import alluxio.client.PositionedReadable;
+import alluxio.client.block.AlluxioBlockCache;
 import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.block.stream.BlockInStream;
 import alluxio.client.file.options.InStreamOptions;
@@ -31,7 +32,9 @@ import alluxio.util.proto.ProtoMessage;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.base.Preconditions;
+
 import io.netty.channel.Channel;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -222,6 +225,10 @@ public class FileInStream extends InputStream implements BoundedStream, Position
         len -= bytesRead;
         retry.reset();
       } catch (UnavailableException | DeadlineExceededException | ConnectException e) {
+        //qiniu2 - block may be evicted
+        LOG.info("==== file " + mStatus.getPath() + " block " + blockId + " may be evicted, clear local cache");
+        AlluxioBlockCache.invalidaeBlockInfoCache(blockId);
+
         if (!retry.attemptRetry()) {
           throw e;
         }

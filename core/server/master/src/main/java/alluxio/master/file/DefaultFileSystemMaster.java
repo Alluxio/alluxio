@@ -140,7 +140,9 @@ import com.codahale.metrics.Gauge;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterators;
+
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.thrift.TProcessor;
 import org.slf4j.Logger;
@@ -158,6 +160,7 @@ import java.util.Set;
 import java.util.SortedMap;
 import java.util.Stack;
 import java.util.TreeMap;
+import java.util.Vector;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
@@ -3338,36 +3341,42 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
 
     // get the files for the given worker to persist
     List<PersistFile> filesToPersist = mAsyncPersistHandler.pollFilesToPersist(workerId);
-    // _qiniu: when persisted completed, move to free
-    List<PersistFile> fs_persisting = DefaultBlockMaster.getEvictFileList(DefaultBlockMaster.PST_PERSISTING, workerId);
-    Iterator<PersistFile> it = fs_persisting.iterator();
+
+    // qiniu
+    // EVICT -> PERSIST or FREE
+    Map<Long, PersistFile> evict = DefaultBlockMaster.getEvictFileMap(DefaultBlockMaster.EVICT_EVICT, workerId);
+    Iterator<Map.Entry<Long, PersistFile>> it = evict.entrySet().iterator();
     while (it.hasNext()) {
-        PersistFile f = it.next();
-        FileInfo info = getFileInfo(f.getFileId());
-        if (info.isPersisted()) {
-            LOG.info("==== persisting -> free file:" + f.getFileId());
-            PersistFile f4free = DefaultBlockMaster.addEvictFile(DefaultBlockMaster.PST_TO_FREE, workerId, f.getFileId());
-            f4free.setBlockIds(f.getBlockIds());
-            it.remove();
+        FileInfo info = getFileInfo(it.next().getValue().getFileId());
+        if (info == null) {
+            LOG.error("==== EVICT[ERROR] file:" + it.next().getValue().getFileId() + " not existed");
+        } else if (info.isPersisted()) {
+            DefaultBlockMaster.addEvictFile(DefaultBlockMaster.EVICT_FREE, workerId,  // ready for free
+                                            new PersistFile(info.getFileId(), 
+                                            new ArrayList<Long>(info.getBlockIds())));
+        } else {
+            if (DefaultBlockMaster.addEvictFile(DefaultBlockMaster.EVICT_PERSIST, workerId,  // ready for persist 
+                                            new PersistFile(info.getFileId(), 
+                                            new ArrayList<Long>(info.getBlockIds())))) {
+                filesToPersist.add(new PersistFile(info.getFileId(), info.getBlockIds()));
+                LOG.info("===== EVICT[PERSIST] worker:" + workerId + " file:" + info.getFileId()
+                        + " blocks:" + info.getBlockIds());
+            }
         }
+        it.remove();
     }
 
-    // move to wait for persisted
-    List<PersistFile> f4persist = DefaultBlockMaster.getEvictFileList(0, workerId);
-    it = f4persist.iterator();
+    // PERSIST -> FREE
+    Map<Long, PersistFile> persist = DefaultBlockMaster.getEvictFileMap(DefaultBlockMaster.EVICT_PERSIST, workerId);
+    it = evict.entrySet().iterator();
     while (it.hasNext()) {
-        PersistFile f = it.next();
-        long file = f.getFileId();
-        List<Long> blockIds = new ArrayList<>();
-        for (FileBlockInfo fileBlockInfo : getFileBlockInfoList(getPath(file))) {
-            blockIds.add(fileBlockInfo.getBlockInfo().getBlockId());
+        FileInfo info = getFileInfo(it.next().getValue().getFileId());
+        if (info == null) {
+            LOG.error("==== EVICT[ERROR] file:" + info.getFileId() + " not existed");
+        } else if (info.isPersisted()) {
+            DefaultBlockMaster.addEvictFile(DefaultBlockMaster.EVICT_FREE, workerId,  // ready for free
+                                            new PersistFile(info.getFileId(), info.getBlockIds()));
         }
-        LOG.warn("==== send " + file + " to persist, wait for persisted.");
-        filesToPersist.add(new PersistFile(file, blockIds));
-
-        f = DefaultBlockMaster.addEvictFile(1, workerId, file);
-        f.setBlockIds(blockIds);
-
         it.remove();
     }
 
