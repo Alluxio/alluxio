@@ -31,11 +31,9 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicReference;
@@ -282,7 +280,6 @@ public final class BlockMasterSync implements HeartbeatExecutor {
             .setName(keyName).setValue(entry.getValue()).setSource(sourceStr));
       }
     }
-    // TODO(lu) delete those needed to be deleted
     return configInfoList;
   }
 }
