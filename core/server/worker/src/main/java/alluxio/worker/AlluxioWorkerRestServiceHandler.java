@@ -154,19 +154,14 @@ public final class AlluxioWorkerRestServiceHandler {
   @ReturnType("java.lang.String")
   @Deprecated
   public Response getRpcAddress() {
-    return RestUtils.call(new RestUtils.RestCallable<String>() {
-      @Override
-      public String call() throws Exception {
-        return mWorkerProcess.getRpcAddress().toString();
-      }
-    });
+    return RestUtils.call(() -> mWorkerProcess.getRpcAddress().toString()); 
   }
 
   /**
    * @summary get the total capacity of the worker in bytes
    * @return the response object
    * @deprecated since version 1.4 and will be removed in version 2.0
-   * @see #getInfo(Boolean)
+   * @see #getInfo(Boolean)11111
    */
   @GET
   @Path(GET_CAPACITY_BYTES)
