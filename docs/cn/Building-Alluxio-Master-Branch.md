@@ -1,7 +1,7 @@
 ---
 layout: global
-title: 构建Alluxio主分支
-nickname: 构建主分支
+title: 编译Alluxio代码主分支
+nickname: 编译主分支
 group: Resources
 ---
 
