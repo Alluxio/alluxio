@@ -97,7 +97,7 @@ alluxio.user.short.circuit.enabled:
 alluxio.user.ufs.block.read.concurrency.max:
   'The maximum concurrent readers for one UFS block on one Block Worker.'
 alluxio.user.ufs.block.read.location.policy:
-  'The policy block workers follow for reading UFS blocks.'
+  'When an Alluxio client reads a file from the UFS, it delegates the read to an Alluxio worker. The client uses this policy to choose which worker to read through. Builtin choices: [<a href="https://www.alluxio.org/javadoc/master/alluxio/client/block/policy/DeterministicHashPolicy.html">alluxio.client.block.policy.DeterministicHashPolicy</a>, <a href="https://www.alluxio.org/javadoc/master/alluxio/client/file/policy/LocalFirstAvoidEvictionPolicy.html">alluxio.client.file.policy.LocalFirstAvoidEvictionPolicy</a>, <a href="https://www.alluxio.org/javadoc/master/alluxio/client/file/policy/LocalFirstPolicy.html">alluxio.client.file.policy.LocalFirstPolicy</a>, <a href="https://www.alluxio.org/javadoc/master/alluxio/client/file/policy/MostAvailableFirstPolicy.html">alluxio.client.file.policy.MostAvailableFirstPolicy</a>, <a href="https://www.alluxio.org/javadoc/master/alluxio/client/file/policy/RoundRobinPolicy.html">alluxio.client.file.policy.RoundRobinPolicy</a>, <a href="https://www.alluxio.org/javadoc/master/alluxio/client/file/policy/SpecificHostPolicy.html">alluxio.client.file.policy.SpecificHostPolicy</a>].'
 alluxio.user.ufs.block.read.location.policy.deterministic.hash.shards:
   'When alluxio.user.ufs.block.read.location.policy is set to alluxio.client.block.policy.DeterministicHashPolicy, this specifies the number of hash shards.'
 alluxio.user.ufs.delegation.read.buffer.size.bytes:
