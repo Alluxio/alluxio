@@ -1,3 +1,0 @@
-```bash
-$ ssh AlluxioWorker1
-```
