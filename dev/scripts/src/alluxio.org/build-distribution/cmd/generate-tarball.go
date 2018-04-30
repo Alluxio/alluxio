@@ -141,6 +141,8 @@ func addAdditionalFiles(srcPath, dstPath string, hadoopVersion version, version 
 		"integration/docker/bin/alluxio-master.sh",
 		"integration/docker/bin/alluxio-proxy.sh",
 		"integration/docker/bin/alluxio-worker.sh",
+		"integration/docker/conf/alluxio-site.properties.template",
+		"integration/docker/conf/alluxio-env.sh.template",
 		"integration/fuse/bin/alluxio-fuse",
 		"integration/kubernetes/alluxio-journal-volume.yaml.template",
 		"integration/kubernetes/alluxio-master.yaml.template",
@@ -173,7 +175,7 @@ func addAdditionalFiles(srcPath, dstPath string, hadoopVersion version, version 
 	}
 	for _, path := range pathsToCopy {
 		mkdir(filepath.Join(dstPath, filepath.Dir(path)))
-		run(fmt.Sprintf("adding %v", path), "mv", path, filepath.Join(dstPath, path))
+		run(fmt.Sprintf("adding %v", path), "cp", path, filepath.Join(dstPath, path))
 	}
 
 	// Create empty directories for default UFS and Docker integration.
