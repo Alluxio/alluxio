@@ -407,7 +407,8 @@ public final class Configuration {
   }
 
   /**
-   * @return a map of the resolved properties(include default properties)
+   * @return a map of the resolved properties represented by this configuration,
+   * including all default properties
    */
   public static Map<String, String> toMap() {
     Map<String, String> map = toRawMap();
@@ -423,7 +424,8 @@ public final class Configuration {
   }
 
   /**
-   * @return a map of the raw properties(include default properties)
+   * @return a map of the raw properties represented by this configuration,
+   * including all default properties
    */
   public static Map<String, String> toRawMap() {
     Map<String, String> map = new HashMap<>(PROPERTIES);

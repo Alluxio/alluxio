@@ -24,7 +24,7 @@ import java.util.List;
  * Prints runtime configuration information.
  */
 public class ConfigurationCommand {
-  private static final String CONFIG_INFO_FORMAT = "%s (value = %s, source = %s)%n";
+  private static final String CONFIG_INFO_FORMAT = "%s = %s (source = %s)%n";
   private MetaMasterClient mMetaMasterClient;
   private PrintStream mPrintStream;
 
