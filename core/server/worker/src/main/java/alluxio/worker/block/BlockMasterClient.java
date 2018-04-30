@@ -147,7 +147,6 @@ public final class BlockMasterClient extends AbstractMasterClient {
       final Map<String, List<Long>> currentBlocksOnTiers,
       final List<ConfigProperty> configList) throws IOException {
     retryRPC(() -> {
-      // TODO(lu) should I make configList optional
       RegisterWorkerTOptions options = new RegisterWorkerTOptions();
       options.setConfigList(configList.stream()
           .map(ConfigProperty :: toThrift).collect(Collectors.toList()));

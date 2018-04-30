@@ -27,7 +27,7 @@ public final class ServerConfigurationReport {
   private static Map<Long, List<ConfigProperty>> sLostMasterConfMap;
 
   /**
-   * Inits when this master start Alluxio master process or get leadership.
+   * Inits when this master starts Alluxio master process or gets leadership.
    */
   public static void init() {
     sWorkerConfMap = new HashMap<>();
@@ -60,12 +60,19 @@ public final class ServerConfigurationReport {
    * @param isMaster whether this node is a master
    */
   public static void removeConf(long id, boolean isMaster) {
+    List<ConfigProperty> configList;
     if (isMaster) {
-      sLostMasterConfMap.put(id, sMasterConfMap.get(id));
-      sMasterConfMap.remove(id);
+      configList = sMasterConfMap.get(id);
+      if (configList != null) {
+        sLostMasterConfMap.put(id, configList);
+        sMasterConfMap.remove(id);
+      }
     } else {
-      sLostWorkerConfMap.put(id, sWorkerConfMap.get(id));
-      sWorkerConfMap.remove(id);
+      configList = sWorkerConfMap.get(id);
+      if (configList != null) {
+        sLostWorkerConfMap.put(id, configList);
+        sWorkerConfMap.remove(id);
+      }
     }
   }
 
@@ -76,12 +83,19 @@ public final class ServerConfigurationReport {
    * @param isMaster whether this node is a master
    */
   public static void addConf(long id, boolean isMaster) {
+    List<ConfigProperty> configList;
     if (isMaster) {
-      sMasterConfMap.put(id, sLostMasterConfMap.get(id));
-      sLostMasterConfMap.remove(id);
+      configList = sLostMasterConfMap.get(id);
+      if (configList != null) {
+        sMasterConfMap.put(id, configList);
+        sLostMasterConfMap.remove(id);
+      }
     } else {
-      sWorkerConfMap.put(id, sLostWorkerConfMap.get(id));
-      sLostWorkerConfMap.remove(id);
+      configList = sLostWorkerConfMap.get(id);
+      if (configList != null) {
+        sWorkerConfMap.put(id, configList);
+        sLostWorkerConfMap.remove(id);
+      }
     }
   }
 

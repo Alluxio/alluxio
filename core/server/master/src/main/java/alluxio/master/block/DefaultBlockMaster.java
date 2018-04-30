@@ -36,6 +36,7 @@ import alluxio.master.block.meta.MasterBlockInfo;
 import alluxio.master.block.meta.MasterBlockLocation;
 import alluxio.master.block.meta.MasterWorkerInfo;
 import alluxio.master.journal.JournalContext;
+import alluxio.master.meta.ServerConfigurationReport;
 import alluxio.metrics.MetricsSystem;
 import alluxio.proto.journal.Block.BlockContainerIdGeneratorEntry;
 import alluxio.proto.journal.Block.BlockInfoEntry;
@@ -672,6 +673,7 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
         lostWorker.updateLastUpdatedTimeMs();
         mWorkers.add(lostWorker);
         mLostWorkers.remove(lostWorker);
+        ServerConfigurationReport.addConf(lostWorkerId, false);
         return lostWorkerId;
       }
     }
@@ -881,6 +883,7 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
                 worker.getWorkerAddress(), lastUpdate);
             mLostWorkers.add(worker);
             mWorkers.remove(worker);
+            ServerConfigurationReport.removeConf(worker.getId(), false);
             processWorkerRemovedBlocks(worker, worker.getBlocks());
           }
         }

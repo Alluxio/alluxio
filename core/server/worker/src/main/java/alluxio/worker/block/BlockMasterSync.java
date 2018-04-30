@@ -114,7 +114,7 @@ public final class BlockMasterSync implements HeartbeatExecutor {
   private void registerWithMaster() throws IOException {
     BlockStoreMeta storeMeta = mBlockWorker.getStoreMetaFull();
     StorageTierAssoc storageTierAssoc = new WorkerStorageTierAssoc();
-    List<ConfigProperty> configList = getWorkerConfiguration();
+    List<ConfigProperty> configList = Configuration.getWorkerConfiguration();
     mMasterClient.register(mWorkerId.get(),
         storageTierAssoc.getOrderedStorageAliases(), storeMeta.getCapacityBytesOnTiers(),
         storeMeta.getUsedBytesOnTiers(), storeMeta.getBlockList(), configList);
@@ -258,28 +258,5 @@ public final class BlockMasterSync implements HeartbeatExecutor {
         }
       }
     }
-  }
-
-  /**
-   * @return a list of worker-related configurations
-   */
-  private List<ConfigProperty> getWorkerConfiguration() {
-    List<ConfigProperty> configInfoList = new ArrayList<>();
-    for (Map.Entry<String, String> entry : Configuration.toMap().entrySet()) {
-      String keyName = entry.getKey();
-      if (Configuration.isWorkerRelated(keyName)) {
-        Configuration.Source source = Configuration.getSource(PropertyKey.fromString(keyName));
-        String sourceStr;
-        if (source == Configuration.Source.SITE_PROPERTY) {
-          sourceStr =
-              String.format("%s (%s)", source.name(), Configuration.getSitePropertiesFile());
-        } else {
-          sourceStr = source.name();
-        }
-        configInfoList.add(new ConfigProperty()
-            .setName(keyName).setValue(entry.getValue()).setSource(sourceStr));
-      }
-    }
-    return configInfoList;
   }
 }

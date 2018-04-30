@@ -17,6 +17,7 @@ import alluxio.exception.ExceptionMessage;
 import alluxio.exception.PreconditionMessage;
 import alluxio.util.ConfigurationUtils;
 import alluxio.util.FormatUtils;
+import alluxio.wire.ConfigProperty;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Splitter;
@@ -28,6 +29,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
@@ -75,16 +77,16 @@ public final class Configuration {
     UNKNOWN,
   }
 
-  /** Uses to filter property keys that start with alluxio.*/
+  /** Use to filter property keys that start with alluxio.*/
   private static final String ALLUXIO_CONF_PREFIX = "alluxio";
-  /** Uses to filter property keys that start with aws.*/
+  /** Use to filter property keys that start with aws.*/
   private static final String AWS_CONF_PREFIX = "aws";
-  /** Uses to filter property keys that start with fs.*/
+  /** Use to filter property keys that start with fs.*/
   private static final String FS_CONF_PREFIX = "fs";
   /** Prefixes that are not related to workers but exists in worker-related scope.*/
   private static final String[] WORKER_NOT_RELATED_PREFIX = {"alluxio.fuse", "alluxio.proxy",
       "alluxio.integration.master", "alluxio.integration.mesos.master"};
-  /** Properties that are not related to workers but exists in worker-related scope.*/
+  /** Properties that are not related to workers but exist in worker-related scope.*/
   private static final Set<String> WORKER_NOT_RELATED_SET = new HashSet<>(Arrays.asList(
       "alluxio.integration.mesos.jdk.path", "alluxio.integration.mesos.jdk.url",
       "alluxio.integration.mesos.principal", "alluxio.integration.mesos.role",
@@ -622,12 +624,35 @@ public final class Configuration {
   }
 
   /**
+   * @return a list of worker-related configurations
+   */
+  public static List<ConfigProperty> getWorkerConfiguration() {
+    List<ConfigProperty> configInfoList = new ArrayList<>();
+    for (Map.Entry<String, String> entry : toMap().entrySet()) {
+      String keyName = entry.getKey();
+      if (isWorkerRelated(keyName)) {
+        Source source = getSource(PropertyKey.fromString(keyName));
+        String sourceStr;
+        if (source == Source.SITE_PROPERTY) {
+          sourceStr =
+              String.format("%s (%s)", source.name(), getSitePropertiesFile());
+        } else {
+          sourceStr = source.name();
+        }
+        configInfoList.add(new ConfigProperty()
+            .setName(keyName).setValue(entry.getValue()).setSource(sourceStr));
+      }
+    }
+    return configInfoList;
+  }
+
+  /**
    * Checks if a PropertyKey is related to worker.
    *
    * @param keyName the name of the PropertyKey to check
    * @return if the PropertyKey is worker related
    */
-  public static boolean isWorkerRelated(String keyName) {
+  private static boolean isWorkerRelated(String keyName) {
     PropertyKey key = PropertyKey.fromString(keyName);
     Scope scope = key.getScope();
     return (keyName.startsWith(FS_CONF_PREFIX) || keyName.startsWith(AWS_CONF_PREFIX)
