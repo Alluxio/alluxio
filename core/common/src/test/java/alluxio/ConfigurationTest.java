@@ -679,21 +679,22 @@ public class ConfigurationTest {
   @Test
   public void toMap() throws Exception {
     // Create a nested property to test
-    String testKey = "alluxio.extensions.dir";
+    String testKeyName = "alluxio.extensions.dir";
     PropertyKey nestedKey = PropertyKey.SECURITY_LOGIN_USERNAME;
-    String nestedValue = String.format("${%s}.test", testKey);
+    String nestedValue = String.format("${%s}.test", testKeyName);
     Configuration.set(nestedKey, nestedValue);
 
     Map<String, String> resolvedMap = Configuration.toMap();
 
     // Test if the value of the created nested property is correct
-    assertEquals(Configuration.get(PropertyKey.fromString(testKey)), resolvedMap.get(testKey));
-    String nestedResolvedValue = String.format("${%s}.test", resolvedMap.get(testKey));
-    assertEquals(nestedResolvedValue, resolvedMap.get(nestedKey));
+    assertEquals(Configuration.get(PropertyKey.fromString(testKeyName)),
+        resolvedMap.get(testKeyName));
+    String nestedResolvedValue = String.format("%s.test", resolvedMap.get(testKeyName));
+    assertEquals(nestedResolvedValue, resolvedMap.get(nestedKey.toString()));
 
     // Test if the values in the resolvedMap is resolved
     String resolvedValue1 = String.format("%s/extensions", resolvedMap.get("alluxio.home"));
-    assertEquals(resolvedValue1, resolvedMap.get(testKey));
+    assertEquals(resolvedValue1, resolvedMap.get(testKeyName));
 
     String resolvedValue2 =  String.format("%s/logs", resolvedMap.get("alluxio.work.dir"));
     assertEquals(resolvedValue2, resolvedMap.get("alluxio.logs.dir"));
