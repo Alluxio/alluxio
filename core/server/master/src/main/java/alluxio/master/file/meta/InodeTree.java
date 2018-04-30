@@ -97,6 +97,8 @@ public class InodeTree implements JournalEntryIterable {
     WRITE,
     /** Read lock the entire path, but write lock the target inode and the parent of the target. */
     WRITE_PARENT,
+    /** No lock */
+    NOLOCK,
   }
 
   /** Only the root inode should have the empty string as its name. */
@@ -209,6 +211,21 @@ public class InodeTree implements JournalEntryIterable {
     }
   }
 
+  private Inode<?> getInode(AlluxioURI uri) {
+    try {
+      TraversalResult traversalResult =
+          traverseToInode(PathUtils.getPathComponents(uri.getPath()), LockMode.NOLOCK, null);
+      List<Inode<?>> inodes =  traversalResult.getInodes();
+      traversalResult.getInodeLockList().close();
+      if (traversalResult.isFound()) {
+        return inodes.get(inodes.size() - 1);
+      } else {
+        return null;
+      }
+    } catch (InvalidPathException e) {
+      return null;
+    }
+  }
   /**
    * Locks existing inodes on the specified path, in the specified {@link LockMode}. The target
    * inode is not required to exist.
@@ -736,6 +753,43 @@ public class InodeTree implements JournalEntryIterable {
   }
 
   /**
+   * Locks a specific descendant of a particular {@link LockedInodePath}.
+   * @param inodePath the root to start locking
+   * @param lockMode the lock type to use
+   * @param childUri the path to the descendant that we are locking
+   * @return  an {@link InodeLockList} representing the list of descendants that got locked as
+   * a result of this call.
+   * @throws FileDoesNotExistException if inode does not exist
+   */
+  public InodeLockList lockDescendant(LockedInodePath inodePath, LockMode lockMode,
+                                AlluxioURI childUri)
+      throws FileDoesNotExistException {
+    InodeLockList inodeGroup = new InodeLockList();
+    // Check if the descendant is really the descendant of inodePath
+    try {
+      if (!PathUtils.hasPrefix(childUri.getPath(), inodePath.getUri().getPath())) {
+        return inodeGroup;
+      }
+    } catch (InvalidPathException e) {
+      return inodeGroup;
+    }
+    // Traverse the inode tree to get an inode
+    Inode<?> child = getInode(childUri);
+
+    // return the empty locklist if the descendant has an invalid uri
+    if (child == null) return inodeGroup;
+
+    // Lock the descendant
+    if (lockMode == LockMode.READ) {
+        inodeGroup.lockRead(child);
+    } else if (lockMode == LockMode.WRITE){
+        inodeGroup.lockWrite(child);
+    }
+
+    return inodeGroup;
+  }
+
+  /**
    * Locks all descendants of a particular {@link LockedInodePath}. Any directory inode
    * precedes its descendants in the list.
    *
@@ -1114,7 +1168,8 @@ public class InodeTree implements JournalEntryIterable {
           if (getLockModeForComponent(0, pathComponents.length, lockMode, lockHints)
               == LockMode.READ) {
             lockList.lockRead(mRoot);
-          } else {
+          } else if (getLockModeForComponent(0, pathComponents.length, lockMode, lockHints)
+              == LockMode.WRITE) {
             lockList.lockWrite(mRoot);
           }
           inodes.add(mRoot);
@@ -1128,7 +1183,7 @@ public class InodeTree implements JournalEntryIterable {
 
       if (getLockModeForComponent(0, pathComponents.length, lockMode, lockHints) == LockMode.READ) {
         lockList.lockRead(mRoot);
-      } else {
+      } else if (getLockModeForComponent(0, pathComponents.length, lockMode, lockHints) == LockMode.WRITE) {
         lockList.lockWrite(mRoot);
       }
       inodes.add(mRoot);
@@ -1190,7 +1245,8 @@ public class InodeTree implements JournalEntryIterable {
       if (getLockModeForComponent(i, pathComponents.length, lockMode, lockHints)
           == LockMode.READ) {
         lockList.lockReadAndCheckNameAndParent(next, current, pathComponents[i]);
-      } else {
+      } else if (getLockModeForComponent(i, pathComponents.length, lockMode, lockHints)
+          == LockMode.WRITE) {
         lockList.lockWriteAndCheckNameAndParent(next, current, pathComponents[i]);
       }
       if (next.isFile()) {

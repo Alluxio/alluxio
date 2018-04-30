@@ -34,12 +34,7 @@ import alluxio.util.io.PathUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.NoSuchElementException;
+import java.util.*;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
@@ -278,6 +273,27 @@ public final class MountTable implements JournalEntryIterable {
     }
     return false;
   }
+
+  /**
+   * @param uri the Alluxio uri to list
+   * @return a set of mount points which are descendants of the specified uri
+   */
+  public Set<String> listContainedMountPoint(AlluxioURI uri) throws InvalidPathException {
+    String path = uri.getPath();
+    Set<String> result = new HashSet<>();
+
+    try (LockResource r = new LockResource(mReadLock)) {
+      for (Map.Entry<String, MountInfo> entry : mMountTable.entrySet()) {
+        String mountPath = entry.getKey();
+        if (PathUtils.hasPrefix(mountPath, path)) {
+          result.add(mountPath);
+        }
+      }
+    }
+
+    return result;
+  }
+
 
   /**
    * @param uri an Alluxio path URI

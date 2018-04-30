@@ -3189,6 +3189,8 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         // The requested path does not exist in Alluxio, so just load metadata.
         loadMetadata = true;
       } else {
+        //TODO: (yuzhu) need to find the mount points under inodePath and call syncInodeMetadata.
+
         SyncResult result =
             syncInodeMetadata(rpcContext, inodePath, syncDescendantType);
         deletedInode = result.getDeletedInode();
@@ -3209,8 +3211,29 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
 
     if (loadMetadata) {
       try {
+        Set<String> mountPoints = mMountTable.listContainedMountPoint(inodePath.getUri());
         loadMetadataAndJournal(rpcContext, inodePath, LoadMetadataOptions.defaults()
             .setCreateAncestors(true).setLoadDescendantType(syncDescendantType));
+
+        for (String mountPoint : mountPoints) {
+          AlluxioURI mountPointUri = new AlluxioURI(mountPoint);
+          // locking from the mountPoint down
+          InodeLockList mountPointLockList =
+              mInodeTree.lockDescendant(inodePath, lockingScheme.getMode(), mountPointUri);
+          // Get the first inode which is an inode corresponding to the mountPoint
+          Inode<?> mountPointInode = mountPointLockList.getInodes().get(0);
+
+          // Construct an locked inodepath using TempInodePathForDescendant
+          TempInodePathForDescendant tempInodePath = new TempInodePathForDescendant(inodePath);
+          tempInodePath.setDescendant(mountPointInode, mountPointUri);
+
+          try {
+            loadMetadataAndJournal(rpcContext, tempInodePath, LoadMetadataOptions.defaults()
+                .setCreateAncestors(true).setLoadDescendantType(syncDescendantType));
+          } finally {
+            mountPointLockList.unlockLast();
+          }
+        }
       } catch (Exception e) {
         // This may be expected. For example, when creating a new file, the UFS file is not
         // expected to exist.
