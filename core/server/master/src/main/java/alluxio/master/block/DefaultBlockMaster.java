@@ -43,7 +43,6 @@ import alluxio.proto.journal.Block.BlockContainerIdGeneratorEntry;
 import alluxio.proto.journal.Block.BlockInfoEntry;
 import alluxio.proto.journal.Block.DeleteBlockEntry;
 import alluxio.proto.journal.Journal.JournalEntry;
-import alluxio.thrift.BlockHeartbeatTOptions;
 import alluxio.thrift.BlockMasterClientService;
 import alluxio.thrift.BlockMasterWorkerService;
 import alluxio.thrift.Command;
@@ -723,7 +722,7 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
   @Override
   public Command workerHeartbeat(long workerId, Map<String, Long> usedBytesOnTiers,
       List<Long> removedBlockIds, Map<String, List<Long>> addedBlocksOnTiers,
-      BlockHeartbeatTOptions options) {
+      List<Metric> metrics) {
     MasterWorkerInfo worker = mWorkers.getFirstByField(ID_INDEX, workerId);
     if (worker == null) {
       LOG.warn("Could not find worker id: {} for heartbeat.", workerId);
@@ -736,7 +735,7 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
       // will just re-register regardless.
       processWorkerRemovedBlocks(worker, removedBlockIds);
       processWorkerAddedBlocks(worker, addedBlocksOnTiers);
-      processWorkerMetrics(worker.getWorkerAddress().getHost(), options);
+      processWorkerMetrics(worker.getWorkerAddress().getHost(), metrics);
 
       worker.updateUsedBytes(usedBytesOnTiers);
       worker.updateLastUpdatedTimeMs();
@@ -749,13 +748,9 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
     }
   }
 
-  private void processWorkerMetrics(String hostname, BlockHeartbeatTOptions options) {
-    if (options.getMetrics() == null || options.getMetricsSize() == 0) {
+  private void processWorkerMetrics(String hostname, List<Metric> metrics) {
+    if (metrics.isEmpty()) {
       return;
-    }
-    List<Metric> metrics = new ArrayList<>();
-    for (alluxio.thrift.Metric metric : options.getMetrics()) {
-      metrics.add(Metric.from(metric));
     }
     mMetricsStore.putWorkerMetrics(MetricsSystem.WORKER_INSTANCE, hostname, metrics);
   }

@@ -14,8 +14,6 @@ package alluxio.metrics;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Sets;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
 import java.util.Set;
@@ -26,13 +24,12 @@ import java.util.Set;
 public final class Metric implements Serializable {
   private static final long serialVersionUID = -2236393414222298333L;
 
-  private static final Set<String> SUPPORTED_INSTANCES = Sets.newHashSet(
+  public static final Set<String> SUPPORTED_INSTANCES = Sets.newHashSet(
       MetricsSystem.MASTER_INSTANCE, MetricsSystem.WORKER_INSTANCE, MetricsSystem.CLIENT_INSTANCE);
-  private static final Logger LOG = LoggerFactory.getLogger(Metric.class);
   private final String mInstance;
   private final String mHostname;
   private final String mName;
-  private final Object mValue;
+  private final Long mValue;
 
   /**
    * Constructs a {@link Metric} instance.
@@ -42,7 +39,7 @@ public final class Metric implements Serializable {
    * @param name the metric name
    * @param value the value
    */
-  public Metric(String instance, String hostname, String name, Object value) {
+  public Metric(String instance, String hostname, String name, Long value) {
     Preconditions.checkArgument(SUPPORTED_INSTANCES.contains(instance),
         "The instance type %s is not supported. The type must be one of %s", instance,
         SUPPORTED_INSTANCES);
@@ -81,6 +78,24 @@ public final class Metric implements Serializable {
     return mValue;
   }
 
+  @Override
+  public boolean equals(Object other) {
+    if (other == null) {
+      return false;
+    }
+    if (!(other instanceof Metric)) {
+      return false;
+    }
+    Metric metric = (Metric) other;
+    return Objects.equal(mHostname, metric.mHostname) && Objects.equal(mInstance, metric.mInstance)
+        && Objects.equal(mName, metric.mName) && Objects.equal(mValue, metric.mValue);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hashCode(mHostname, mInstance, mValue, mName);
+  }
+
   /**
    * @return the fully qualified metric name, which is of pattern instance.[hostname.].value
    */
@@ -102,28 +117,24 @@ public final class Metric implements Serializable {
     metric.setInstance(mInstance);
     metric.setHostname(mHostname);
     metric.setName(mName);
-    if (!(mValue instanceof Integer) && !(mValue instanceof Long)) {
-      LOG.error("The value of metric %s is neither integer nor long", this);
-    }
-    metric.setValue(((Number) mValue).longValue());
+    metric.setValue(mValue);
     return metric;
   }
 
   /**
-   * Creates the metric from the fully name and the value.
+   * Creates the metric from the full name and the value.
    *
    * @param fullName the full name
    * @param value the value
    * @return the created metric
    */
-  public static Metric from(String fullName, Object value) {
+  public static Metric from(String fullName, long value) {
     String[] pieces = fullName.split("\\.");
     Preconditions.checkArgument(pieces.length > 1, "Incorrect metrics name: %s.", fullName);
 
     String hostname = null;
     // Master or cluster metrics don't have hostname included.
-    if (!pieces[0].equals(MetricsSystem.MASTER_INSTANCE)
-        && !pieces[0].equals(MetricsSystem.CLUSTER)) {
+    if (!pieces[0].equals(MetricsSystem.MASTER_INSTANCE)) {
       hostname = pieces[1];
     }
     String instance = pieces[0];

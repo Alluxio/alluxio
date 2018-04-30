@@ -24,21 +24,29 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public class MetricsStore {
-  private static final IndexDefinition<Metric> NAME_INDEX = new IndexDefinition<Metric>(true) {
+  private static final IndexDefinition<Metric> FULL_NAME_INDEX = new IndexDefinition<Metric>(true) {
+    @Override
+    public Object getFieldValue(Metric o) {
+      return o.getFullMetricName();
+    }
+  };
+
+  private static final IndexDefinition<Metric> NAME_INDEX = new IndexDefinition<Metric>(false) {
     @Override
     public Object getFieldValue(Metric o) {
       return o.getName();
     }
   };
 
-  private static final IndexDefinition<Metric> HOSTNAME_INDEX = new IndexDefinition<Metric>(true) {
+  private static final IndexDefinition<Metric> HOSTNAME_INDEX = new IndexDefinition<Metric>(false) {
     @Override
     public Object getFieldValue(Metric o) {
       return o.getHostname();
     }
   };
 
-  private final IndexedSet<Metric> mWorkerMetrics = new IndexedSet<>(NAME_INDEX, HOSTNAME_INDEX);
+  private final IndexedSet<Metric> mWorkerMetrics =
+      new IndexedSet<>(FULL_NAME_INDEX, NAME_INDEX, HOSTNAME_INDEX);
 
   /**
    * Gets all the metrics by instance type. The supported instance types are worker and client.
@@ -66,7 +74,9 @@ public class MetricsStore {
       List<Metric> metrics) {
     IndexedSet<Metric> set = getMetricsByInstanceType(instance);
     set.removeByField(HOSTNAME_INDEX, hostname);
-    mWorkerMetrics.addAll(metrics);
+    for (Metric metric : metrics) {
+      set.add(metric);
+    }
   }
 
   /**
@@ -80,5 +90,12 @@ public class MetricsStore {
   public synchronized Set<Metric> getMetricsByInstanceTypeAndName(String instanceType,
       String name) {
     return getMetricsByInstanceType(instanceType).getByField(NAME_INDEX, name);
+  }
+
+  /**
+   * Clears all the metrics.
+   */
+  public synchronized void clear() {
+    mWorkerMetrics.clear();
   }
 }

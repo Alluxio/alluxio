@@ -14,6 +14,7 @@ package alluxio.master.block;
 import alluxio.Constants;
 import alluxio.RpcUtils;
 import alluxio.exception.AlluxioException;
+import alluxio.metrics.Metric;
 import alluxio.thrift.AlluxioTException;
 import alluxio.thrift.BlockHeartbeatTOptions;
 import alluxio.thrift.BlockHeartbeatTResponse;
@@ -30,6 +31,7 @@ import alluxio.thrift.WorkerNetAddress;
 import alluxio.wire.ThriftUtils;
 
 import com.google.common.base.Preconditions;
+import jersey.repackaged.com.google.common.collect.Lists;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -71,8 +73,12 @@ public final class BlockMasterWorkerServiceHandler implements BlockMasterWorkerS
     return RpcUtils.call(LOG, new RpcUtils.RpcCallable<BlockHeartbeatTResponse>() {
       @Override
       public BlockHeartbeatTResponse call() throws AlluxioException {
+        List<Metric> metrics = Lists.newArrayList();
+        for (alluxio.thrift.Metric metric : options.getMetrics()) {
+          metrics.add(Metric.from(metric));
+        }
         return new BlockHeartbeatTResponse(mBlockMaster.workerHeartbeat(workerId, usedBytesOnTiers,
-            removedBlockIds, addedBlocksOnTiers, options));
+            removedBlockIds, addedBlocksOnTiers, metrics));
       }
 
       @Override

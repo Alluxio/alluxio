@@ -20,17 +20,20 @@ import alluxio.metrics.MetricsAggregator;
 import alluxio.metrics.MetricsFilter;
 import alluxio.metrics.MetricsStore;
 import alluxio.metrics.MetricsSystem;
-import alluxio.metrics.aggregator.BytesReadAlluxio;
+import alluxio.metrics.WorkerMetrics;
+import alluxio.metrics.aggregator.SumInstancesAggregator;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.util.executor.ExecutorServiceFactory;
 
 import com.codahale.metrics.Gauge;
+import com.google.common.annotations.VisibleForTesting;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.apache.thrift.TProcessor;
 
 import java.io.IOException;
 import java.time.Clock;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -75,29 +78,26 @@ public class DefaultMetricsMaster extends AbstractMaster implements MetricsMaste
     registerAggregators();
   }
 
-  private void addAggregator(MetricsAggregator aggregator) {
+  @VisibleForTesting
+  protected void addAggregator(MetricsAggregator aggregator) {
     mMetricsAggregatorRegistry.put(aggregator.getName(), aggregator);
+    MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getClusterMetricName(aggregator.getName()),
+        new Gauge<Object>() {
+          @Override
+          public Object getValue() {
+            Map<MetricsFilter, Set<Metric>> metrics = new HashMap<>();
+            for (MetricsFilter filter : aggregator.getFilters()) {
+              metrics.put(filter, mMetricsStore
+                  .getMetricsByInstanceTypeAndName(filter.getInstanceType(), filter.getName()));
+            }
+            return aggregator.getValue(metrics);
+          }
+        });
   }
 
   private void registerAggregators() {
-    addAggregator(new BytesReadAlluxio());
-
-    // register gauges
-    for (String name : mMetricsAggregatorRegistry.keySet()) {
-      final MetricsAggregator aggregator = mMetricsAggregatorRegistry.get(name);
-      MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getClusterMetricName(name),
-          new Gauge<Object>() {
-            @Override
-            public Object getValue() {
-              Map<MetricsFilter, Set<Metric>> metrics = new HashMap<>();
-              for (MetricsFilter filter : aggregator.getFilters()) {
-                metrics.put(filter, mMetricsStore
-                    .getMetricsByInstanceTypeAndName(filter.getInstanceType(), filter.getName()));
-              }
-              return aggregator.getValue(metrics);
-            }
-          });
-    }
+    addAggregator(new SumInstancesAggregator(MetricsSystem.WORKER_INSTANCE,
+        WorkerMetrics.BYTES_READ_ALLUXIO));
   }
 
   @Override
@@ -112,12 +112,12 @@ public class DefaultMetricsMaster extends AbstractMaster implements MetricsMaste
 
   @Override
   public void resetState() {
-
+    mMetricsStore.clear();
   }
 
   @Override
   public Iterator<JournalEntry> getJournalEntryIterator() {
-    return null;
+    return Collections.emptyIterator();
   }
 
   @Override

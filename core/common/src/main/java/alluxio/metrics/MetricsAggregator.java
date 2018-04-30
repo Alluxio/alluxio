@@ -33,7 +33,7 @@ public interface MetricsAggregator {
   /**
    * Gets the aggregated value from the filtered metrics.
    *
-   * @param map a map of {@link MetricsFilter} to a map of a set of {@link MetricsSystem.Metric}
+   * @param map a map of {@link MetricsFilter} to the set of metrics that it filter to
    * @return the aggregated value
    */
   Object getValue(Map<MetricsFilter, Set<Metric>> map);

@@ -329,7 +329,12 @@ public final class MetricsSystem {
     List<Metric> metrics = new ArrayList<>();
     for (Entry<String, Gauge> entry : METRIC_REGISTRY.getGauges().entrySet()) {
       if (entry.getKey().startsWith(instanceType)) {
-        metrics.add(Metric.from(entry.getKey(), entry.getValue().getValue()));
+        Object value = entry.getValue().getValue();
+        if (!(value instanceof Integer) && !(value instanceof Long)) {
+          // skip the metrics not of integer/long types
+          continue;
+        }
+        metrics.add(Metric.from(entry.getKey(), ((Number) value).longValue()));
       }
     }
     for (Entry<String, Counter> entry : METRIC_REGISTRY.getCounters().entrySet()) {

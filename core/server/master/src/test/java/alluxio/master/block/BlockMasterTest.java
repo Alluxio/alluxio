@@ -25,8 +25,8 @@ import alluxio.master.SafeModeManager;
 import alluxio.master.TestSafeModeManager;
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.noop.NoopJournalSystem;
+import alluxio.metrics.Metric;
 import alluxio.metrics.MetricsStore;
-import alluxio.thrift.BlockHeartbeatTOptions;
 import alluxio.thrift.Command;
 import alluxio.thrift.CommandType;
 import alluxio.util.ThreadFactoryUtils;
@@ -39,6 +39,7 @@ import alluxio.wire.WorkerNetAddress;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.ClassRule;
@@ -71,7 +72,7 @@ public class BlockMasterTest {
   private ExecutorService mExecutorService;
   private SafeModeManager mSafeModeManager;
   private MetricsStore mMetricsStore;
-  private BlockHeartbeatTOptions mBlockHeartbeatTOptions;
+  private List<Metric> mMetrics;
 
   /** Rule to create a new temporary folder during each test. */
   @Rule
@@ -93,7 +94,7 @@ public class BlockMasterTest {
     mRegistry = new MasterRegistry();
     mSafeModeManager = new TestSafeModeManager();
     mMetricsStore = new MetricsStore();
-    mBlockHeartbeatTOptions = new BlockHeartbeatTOptions();
+    mMetrics = Lists.newArrayList();
     JournalSystem journalSystem = new NoopJournalSystem();
     mClock = new ManualClock();
     mExecutorService =
@@ -202,7 +203,7 @@ public class BlockMasterTest {
     // Check that the worker heartbeat tells the worker to remove the block.
     Map<String, Long> memUsage = ImmutableMap.of("MEM", 0L);
     Command heartBeat = mBlockMaster.workerHeartbeat(worker1, memUsage, NO_BLOCKS,
-        NO_BLOCKS_ON_TIERS, mBlockHeartbeatTOptions);
+        NO_BLOCKS_ON_TIERS, mMetrics);
     assertEquals(ImmutableList.of(1L), heartBeat.getData());
   }
 
@@ -217,7 +218,7 @@ public class BlockMasterTest {
 
     // Check that the worker heartbeat tells the worker to remove the blocks.
     Command heartBeat = mBlockMaster.workerHeartbeat(worker, memUsage, NO_BLOCKS,
-        NO_BLOCKS_ON_TIERS, mBlockHeartbeatTOptions);
+        NO_BLOCKS_ON_TIERS, mMetrics);
     assertEquals(orphanedBlocks, heartBeat.getData());
   }
 
@@ -232,7 +233,7 @@ public class BlockMasterTest {
     // Update used bytes with a worker heartbeat.
     Map<String, Long> newUsedBytesOnTiers = ImmutableMap.of("MEM", 50L);
     mBlockMaster.workerHeartbeat(worker, newUsedBytesOnTiers, NO_BLOCKS, NO_BLOCKS_ON_TIERS,
-        mBlockHeartbeatTOptions);
+        mMetrics);
 
     WorkerInfo workerInfo = Iterables.getOnlyElement(mBlockMaster.getWorkerInfoList());
     assertEquals(50, workerInfo.getUsedBytes());
@@ -249,7 +250,7 @@ public class BlockMasterTest {
 
     // Indicate that blockId is removed on the worker.
     mBlockMaster.workerHeartbeat(worker, ImmutableMap.of("MEM", 0L), ImmutableList.of(blockId),
-        NO_BLOCKS_ON_TIERS, mBlockHeartbeatTOptions);
+        NO_BLOCKS_ON_TIERS, mMetrics);
     assertTrue(mBlockMaster.getBlockInfo(blockId).getLocations().isEmpty());
   }
 
@@ -270,7 +271,7 @@ public class BlockMasterTest {
     // Send a heartbeat from worker2 saying that it's added blockId.
     List<Long> addedBlocks = ImmutableList.of(blockId);
     mBlockMaster.workerHeartbeat(worker2, ImmutableMap.of("MEM", 0L), NO_BLOCKS,
-        ImmutableMap.of("MEM", addedBlocks), mBlockHeartbeatTOptions);
+        ImmutableMap.of("MEM", addedBlocks), mMetrics);
 
     // The block now has two locations.
     assertEquals(2, mBlockMaster.getBlockInfo(blockId).getLocations().size());
@@ -278,7 +279,7 @@ public class BlockMasterTest {
 
   @Test
   public void unknownWorkerHeartbeatTriggersRegisterRequest() {
-    Command heartBeat = mBlockMaster.workerHeartbeat(0, null, null, null, mBlockHeartbeatTOptions);
+    Command heartBeat = mBlockMaster.workerHeartbeat(0, null, null, null, mMetrics);
     assertEquals(new Command(CommandType.Register, ImmutableList.<Long>of()), heartBeat);
   }
 
