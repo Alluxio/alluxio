@@ -46,6 +46,7 @@ import alluxio.thrift.BlockMasterClientService;
 import alluxio.thrift.BlockMasterWorkerService;
 import alluxio.thrift.Command;
 import alluxio.thrift.CommandType;
+import alluxio.thrift.RegisterWorkerTOptions;
 import alluxio.util.CommonUtils;
 import alluxio.util.IdUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
@@ -691,7 +692,9 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
   @Override
   public void workerRegister(long workerId, List<String> storageTiers,
       Map<String, Long> totalBytesOnTiers, Map<String, Long> usedBytesOnTiers,
-      Map<String, List<Long>> currentBlocksOnTiers) throws NoWorkerException {
+      Map<String, List<Long>> currentBlocksOnTiers,
+      RegisterWorkerTOptions options) throws NoWorkerException {
+
     MasterWorkerInfo worker = mWorkers.getFirstByField(ID_INDEX, workerId);
     if (worker == null) {
       throw new NoWorkerException(ExceptionMessage.NO_WORKER_FOUND.getMessage(workerId));
@@ -711,6 +714,14 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
       processWorkerRemovedBlocks(worker, removedBlocks);
       processWorkerAddedBlocks(worker, currentBlocksOnTiers);
       processWorkerOrphanedBlocks(worker);
+    }
+
+    if (options.isSetConfigList()) {
+      List<alluxio.wire.ConfigProperty> wireConfigList = options.getConfigList()
+          .stream().map(alluxio.wire.ConfigProperty::fromThrift)
+          .collect(Collectors.toList());
+
+      ServerConfigurationReport.registerNewConf(workerId, wireConfigList, false);
     }
 
     LOG.info("registerWorker(): {}", worker);

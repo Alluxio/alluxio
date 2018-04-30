@@ -135,14 +135,7 @@ public final class BlockMasterWorkerServiceHandler implements BlockMasterWorkerS
       @Override
       public RegisterWorkerTResponse call() throws AlluxioException {
         mBlockMaster.workerRegister(workerId, storageTiers, totalBytesOnTiers, usedBytesOnTiers,
-            currentBlocksOnTiers);
-        if (options.isSetConfigList()) {
-          List<alluxio.wire.ConfigProperty> wireConfigList = options.getConfigList()
-              .stream().map(alluxio.wire.ConfigProperty::fromThrift)
-              .collect(Collectors.toList());
-
-          ServerConfigurationReport.registerNewConf(workerId, wireConfigList, false);
-        }
+            currentBlocksOnTiers, options);
         return new RegisterWorkerTResponse();
       }
 

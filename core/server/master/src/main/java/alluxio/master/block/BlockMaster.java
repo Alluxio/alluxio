@@ -19,6 +19,7 @@ import alluxio.exception.status.InvalidArgumentException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.master.Master;
 import alluxio.thrift.Command;
+import alluxio.thrift.RegisterWorkerTOptions;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
@@ -165,7 +166,8 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
    */
   void workerRegister(long workerId, List<String> storageTiers,
       Map<String, Long> totalBytesOnTiers, Map<String, Long> usedBytesOnTiers,
-      Map<String, List<Long>> currentBlocksOnTiers) throws NoWorkerException;
+      Map<String, List<Long>> currentBlocksOnTiers,
+      RegisterWorkerTOptions options) throws NoWorkerException;
 
   /**
    * Updates metadata when a worker periodically heartbeats with the master.
