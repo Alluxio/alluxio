@@ -95,12 +95,16 @@ public final class Configuration {
    * default property values.
    */
   static void init() {
+    // Load default
+    Properties defaultProps = createDefaultProps();
+
     // Load system properties
     Properties systemProps = new Properties();
     systemProps.putAll(System.getProperties());
 
     // Now lets combine, order matters here
     PROPERTIES.clear();
+    merge(defaultProps, Source.DEFAULT);
     merge(systemProps, Source.SYSTEM_PROPERTY);
 
     // Load site specific properties file if not in test mode. Note that we decide whether in test
@@ -126,6 +130,21 @@ public final class Configuration {
     }
 
     validate();
+  }
+
+  /**
+   * @return default properties
+   */
+  private static Properties createDefaultProps() {
+    Properties defaultProps = new Properties();
+    // Load compile-time default
+    for (PropertyKey key : PropertyKey.defaultKeys()) {
+      String value = key.getDefaultValue();
+      if (value != null) {
+        defaultProps.setProperty(key.toString(), value);
+      }
+    }
+    return defaultProps;
   }
 
   /**
@@ -407,11 +426,10 @@ public final class Configuration {
   }
 
   /**
-   * @return a map of the resolved properties represented by this configuration,
-   * including all default properties
+   * @return a map of the resolved properties represented by this configuration
    */
   public static Map<String, String> toMap() {
-    Map<String, String> map = toRawMap();
+    Map<String, String> map =  new HashMap<>(PROPERTIES);
     // Resolve values with ${VALUE} format
     String nestedPropIdentifier = "$";
     for (Map.Entry<String, String> entry : map.entrySet()) {
@@ -420,23 +438,14 @@ public final class Configuration {
         map.put(entry.getKey(), lookup(value));
       }
     }
-    return map;
+    return Collections.unmodifiableMap(map);
   }
 
   /**
-   * @return a map of the raw properties represented by this configuration,
-   * including all default properties
+   * @return a map of the raw properties represented by this configuration
    */
   public static Map<String, String> toRawMap() {
-    Map<String, String> map = new HashMap<>(PROPERTIES);
-    for (PropertyKey key : PropertyKey.defaultKeys()) {
-      String propName = key.getName();
-      String defaultValue = key.getDefaultValue();
-      if (!map.containsKey(propName) && defaultValue != null) {
-        map.put(propName, defaultValue);
-      }
-    }
-    return map;
+    return Collections.unmodifiableMap(PROPERTIES);
   }
 
   /**
@@ -613,7 +622,7 @@ public final class Configuration {
    * @throws IllegalStateException if invalid configuration is encountered
    */
   public static void validate() {
-    for (Map.Entry<String, String> entry : Collections.unmodifiableMap(PROPERTIES).entrySet()) {
+    for (Map.Entry<String, String> entry : toRawMap().entrySet()) {
       String propertyName = entry.getKey();
       Preconditions.checkState(PropertyKey.isValid(propertyName), propertyName);
       PropertyKey propertyKey = PropertyKey.fromString(propertyName);
