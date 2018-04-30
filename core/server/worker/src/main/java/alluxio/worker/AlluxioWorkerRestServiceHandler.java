@@ -161,7 +161,7 @@ public final class AlluxioWorkerRestServiceHandler {
    * @summary get the total capacity of the worker in bytes
    * @return the response object
    * @deprecated since version 1.4 and will be removed in version 2.0
-   * @see #getInfo(Boolean)11111
+   * @see #getInfo(Boolean)
    */
   @GET
   @Path(GET_CAPACITY_BYTES)
