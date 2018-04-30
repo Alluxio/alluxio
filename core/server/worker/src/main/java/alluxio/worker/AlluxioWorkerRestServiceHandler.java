@@ -154,12 +154,7 @@ public final class AlluxioWorkerRestServiceHandler {
   @ReturnType("java.lang.String")
   @Deprecated
   public Response getRpcAddress() {
-    return RestUtils.call(new RestUtils.RestCallable<String>() {
-      @Override
-      public String call() throws Exception {
-        return mWorkerProcess.getRpcAddress().toString();
-      }
-    });
+    return RestUtils.call(() -> mWorkerProcess.getRpcAddress().toString());
   }
 
   /**
