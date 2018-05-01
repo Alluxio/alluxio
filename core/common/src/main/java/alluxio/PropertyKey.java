@@ -2824,9 +2824,9 @@ public final class PropertyKey implements Comparable<PropertyKey> {
    * @return html linking the text of the classname to the alluxio javadoc for the class
    */
   private static String javadocLink(String fullyQualifiedClassname) {
-    String javadocPath = fullyQualifiedClassname.replace(".", "/");
+    String javadocPath = fullyQualifiedClassname.replace(".", "/") + ".html";
     return String.format("<a href=\"%s\">%s</a>",
-        PathUtils.concatPath(RuntimeConstants.ALLUXIO_JAVADOC_URL, javadocPath) + ".html",
+        PathUtils.concatPath(RuntimeConstants.ALLUXIO_JAVADOC_URL, javadocPath),
         fullyQualifiedClassname);
   }
 
