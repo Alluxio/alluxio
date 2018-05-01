@@ -1,7 +1,7 @@
 ---
 layout: global
-title: 构建Alluxio主分支
-nickname: 构建主分支
+title: 编译Alluxio主分支
+nickname: 编译主分支
 group: Resources
 ---
 
@@ -12,7 +12,7 @@ group: Resources
 
 这部分内容的前提条件是你已安装[Java JDK 8或以上](Java-Setup.html)、[Maven 3.3.9或以上](Maven.html)以及[Thrift 0.9.3](Thrift.html) (可选)。
 
-从Github上获取主分支：
+从Github上获取主分支并编译：
 
 {% include Building-Alluxio-Master-Branch/checkout.md %}
 
@@ -24,7 +24,7 @@ group: Resources
 
 Maven编译环境将自动获取依赖，编译源码，运行单元测试，并进行打包。如果你是第一次编译该项目，下载依赖包可能需要一段时间，但以后的编译过程将会快很多。
 
-一旦构建完成，执行以下命令启动Alluxio：
+一旦编译完成，执行以下命令启动Alluxio：
 
 {% include Common-Commands/start-alluxio.md %}
 
