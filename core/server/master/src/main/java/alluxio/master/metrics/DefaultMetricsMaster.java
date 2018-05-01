@@ -28,7 +28,6 @@ import alluxio.util.executor.ExecutorServiceFactory;
 
 import com.codahale.metrics.Gauge;
 import com.google.common.annotations.VisibleForTesting;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.apache.thrift.TProcessor;
 
 import java.io.IOException;
@@ -38,7 +37,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.Future;
 
 /**
  * Default implementation of the metrics master.
@@ -46,12 +44,6 @@ import java.util.concurrent.Future;
 public class DefaultMetricsMaster extends AbstractMaster implements MetricsMaster {
   private final Map<String, MetricsAggregator> mMetricsAggregatorRegistry = new HashMap<>();
   private final MetricsStore mMetricsStore;
-
-  /**
-   * The service that pulls and aggregates the metrics.
-   */
-  @SuppressFBWarnings("URF_UNREAD_FIELD")
-  private Future<?> mMetricsAggregationService;
 
   /**
    * Creates a new instance of {@link MetricsMaster}.
