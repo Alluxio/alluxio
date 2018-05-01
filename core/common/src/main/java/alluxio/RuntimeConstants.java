@@ -16,6 +16,8 @@ import javax.annotation.concurrent.ThreadSafe;
 /**
  * System constants that are determined during runtime.
  */
+// Note: PropertyKey depends on this class, so this class shouldn't depend on any classes that have
+// a dependency on PropertyKey.
 @ThreadSafe
 public final class RuntimeConstants {
   /** The version of this Alluxio instance. */
