@@ -10,9 +10,9 @@ group: Resources
 
 该指南介绍如何从头编译Alluxio。
 
-这部分内容的前提条件是你已安装[Java 7 (或以上)](Java-Setup.html)、[Maven](Maven.html)以及[Thrift 0.9.3](Thrift.html) (可选)。
+这部分内容的前提条件是你已安装[Java JDK 8或以上](Java-Setup.html)、[Maven 3.3.9或以上](Maven.html)以及[Thrift 0.9.3](Thrift.html) (可选)。
 
-从Github上获取主分支并打包：
+从Github上获取主分支并编译：
 
 {% include Building-Alluxio-Master-Branch/checkout.md %}
 
@@ -20,11 +20,11 @@ group: Resources
 
 {% include Building-Alluxio-Master-Branch/OutOfMemoryError.md %}
 
-若需要构建一个特定的版本Alluxio，例如{{site.ALLUXIO_RELEASED_VERSION}}，先执行`cd alluxio`，接着执行`git checkout v{{site.ALLUXIO_RELEASED_VERSION}}`。
+若需要编译一个特定的版本Alluxio，例如{{site.ALLUXIO_RELEASED_VERSION}}，先执行`cd alluxio`，接着执行`git checkout v{{site.ALLUXIO_RELEASED_VERSION}}`。
 
-Maven构建环境将自动获取依赖，编译源码，运行单元测试，并进行打包。如果你是第一次构建该项目，下载依赖包可能需要一段时间，但以后的构建过程将会快很多。
+Maven编译环境将自动获取依赖，编译源码，运行单元测试，并进行打包。如果你是第一次编译该项目，下载依赖包可能需要一段时间，但以后的编译过程将会快很多。
 
-一旦构建完成，执行以下命令启动Alluxio：
+一旦编译完成，执行以下命令启动Alluxio：
 
 {% include Common-Commands/start-alluxio.md %}
 
@@ -59,7 +59,7 @@ Maven构建环境将自动获取依赖，编译源码，运行单元测试，并
 {% include Building-Alluxio-Master-Branch/STDOUT.md %}
 
 ## 计算框架支持
-针对不同的计算框架构建Alluxio，可以使用不同的计算配置文件运行Maven构建。 生成的Alluxio客户端位于`{{site.ALLUXIO_CLIENT_JAR_PATH}}`。
+针对不同的计算框架编译Alluxio，可以使用不同的计算配置文件运行Maven。 生成的Alluxio客户端位于`{{site.ALLUXIO_CLIENT_JAR_PATH}}`。
 
 ### Hadoop
 
@@ -71,8 +71,6 @@ $ mvn install -P<HADOOP_PROFILE> -DskipTests
 
 对于不同的Hadoop发行版，可用的Hadoop配置文件包括`hadoop-1`, `hadoop-2.2`, `hadoop-2.3` ... `hadoop-2.8`。通过查看[这节](#发行版支持)，你可以进一步设置特定的Hadoop发行版来编译。
 
-
-
 ### Spark/Flink/Presto和其他框架
 
 你可以运行以下命令编译不同计算框架的Alluxio服务器和客户端Jar包。
@@ -83,7 +81,7 @@ $ mvn install -DskipTests
 
 ## 发行版支持
 
-要针对不同hadoop发行版构建Alluxio，只需修改  
+要针对不同hadoop发行版编译Alluxio，只需修改
 `hadoop.version`。你可以运行以下命令：
 
 ```bash
