@@ -14,7 +14,7 @@ package alluxio.metrics;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Sets;
+import com.google.common.collect.ImmutableSet;
 
 import java.io.Serializable;
 import java.util.Set;
@@ -26,8 +26,8 @@ public final class Metric implements Serializable {
   private static final long serialVersionUID = -2236393414222298333L;
 
   @VisibleForTesting
-  protected static final Set<String> SUPPORTED_INSTANCES = Sets.newHashSet(
-      MetricsSystem.MASTER_INSTANCE, MetricsSystem.WORKER_INSTANCE, MetricsSystem.CLIENT_INSTANCE);
+  static final Set<String> SUPPORTED_INSTANCES = ImmutableSet.of(MetricsSystem.MASTER_INSTANCE,
+      MetricsSystem.WORKER_INSTANCE, MetricsSystem.CLIENT_INSTANCE);
   private final String mInstance;
   private final String mHostname;
   private final String mName;
