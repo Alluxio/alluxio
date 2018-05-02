@@ -24,7 +24,6 @@ import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -77,21 +76,6 @@ public final class Configuration {
     UNKNOWN,
   }
 
-  /** Use to filter property keys that start with alluxio.*/
-  private static final String ALLUXIO_CONF_PREFIX = "alluxio";
-  /** Use to filter property keys that start with aws.*/
-  private static final String AWS_CONF_PREFIX = "aws";
-  /** Use to filter property keys that start with fs.*/
-  private static final String FS_CONF_PREFIX = "fs";
-  /** Prefixes that are not related to workers but exists in worker-related scope.*/
-  private static final String[] WORKER_NOT_RELATED_PREFIX = {"alluxio.fuse", "alluxio.proxy",
-      "alluxio.integration.master", "alluxio.integration.mesos.master"};
-  /** Properties that are not related to workers but exist in worker-related scope.*/
-  private static final Set<String> WORKER_NOT_RELATED_SET = new HashSet<>(Arrays.asList(
-      "alluxio.integration.mesos.jdk.path", "alluxio.integration.mesos.jdk.url",
-      "alluxio.integration.mesos.principal", "alluxio.integration.mesos.role",
-      "alluxio.master.journal.retry.interval", "alluxio.master.serving.thread.timeout",
-      "alluxio.master.startup.block.integrity.check.enabled", "alluxio.master.web.port"));
   /** Regex string to find "${key}" for variable substitution. */
   private static final String REGEX_STRING = "(\\$\\{([^{}]*)\\})";
   /** Regex to find ${key} for variable substitution. */
@@ -646,29 +630,14 @@ public final class Configuration {
     List<ConfigProperty> configInfoList = new ArrayList<>();
     for (Map.Entry<String, String> entry : toMap().entrySet()) {
       String keyName = entry.getKey();
-      if (isWorkerRelated(keyName)) {
-        String source = getFormattedSource(PropertyKey.fromString(keyName));
+      PropertyKey key = PropertyKey.fromString(keyName);
+      if (key.getScope().contains(Scope.WORKER)) {
+        String source = getFormattedSource(key);
         configInfoList.add(new ConfigProperty()
             .setName(keyName).setValue(entry.getValue()).setSource(source));
       }
     }
     return configInfoList;
-  }
-
-  /**
-   * Checks if a PropertyKey is related to worker.
-   *
-   * @param keyName the name of the PropertyKey to check
-   * @return if the PropertyKey is worker related
-   */
-  private static boolean isWorkerRelated(String keyName) {
-    PropertyKey key = PropertyKey.fromString(keyName);
-    Scope scope = key.getScope();
-    return (keyName.startsWith(FS_CONF_PREFIX) || keyName.startsWith(AWS_CONF_PREFIX)
-        || (keyName.startsWith(ALLUXIO_CONF_PREFIX) && (scope.equals(Scope.WORKER)
-        || scope.equals(Scope.SERVER) || scope.equals(Scope.ALL))
-        && !StringUtils.startsWithAny(keyName, WORKER_NOT_RELATED_PREFIX)
-        && !WORKER_NOT_RELATED_SET.contains(keyName)));
   }
 
   private Configuration() {} // prevent instantiation

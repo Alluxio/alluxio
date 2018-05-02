@@ -16,20 +16,24 @@ import alluxio.wire.ConfigProperty;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * This class is responsible for containing server-side configurations.
  */
 public class ConfigRecorder {
-  /** Store the configuration of a master/worker with Long id. */
+  /** Map from ids to Object lockers. */
+  private ConcurrentHashMap<Long, Object> mLockers;
+  /** Stores the configuration of a master/worker with Long id. */
   private Map<Long, List<ConfigProperty>> mConfMap;
-  /** Store the configuration of a lost master/worker with Long id. */
+  /** Stores the configuration of a lost master/worker with Long id. */
   private Map<Long, List<ConfigProperty>> mLostConfMap;
 
   /**
    * Constructs a new {@link ConfigRecorder}.
    */
   public ConfigRecorder() {
+    mLockers = new ConcurrentHashMap<>();
     mConfMap = new HashMap<>();
     mLostConfMap = new HashMap<>();
   }
@@ -41,7 +45,8 @@ public class ConfigRecorder {
    * @param configList the configuration of this master/worker
    */
   public void registerNewConf(Long id, List<ConfigProperty> configList) {
-    synchronized (id) {
+    mLockers.putIfAbsent(id, new Object());
+    synchronized (mLockers.get(id)) {
       mConfMap.put(id, configList);
       mLostConfMap.remove(id);
     }
@@ -55,7 +60,8 @@ public class ConfigRecorder {
   public void removeConf(Long id) {
     List<ConfigProperty> configList = mConfMap.get(id);
     if (configList != null) {
-      synchronized (id) {
+      mLockers.putIfAbsent(id, new Object());
+      synchronized (mLockers.get(id)) {
         mLostConfMap.put(id, configList);
         mConfMap.remove(id);
       }
@@ -70,7 +76,8 @@ public class ConfigRecorder {
   public void addConf(Long id) {
     List<ConfigProperty> configList = mLostConfMap.get(id);
     if (configList != null) {
-      synchronized (id) {
+      mLockers.putIfAbsent(id, new Object());
+      synchronized (mLockers.get(id)) {
         mConfMap.put(id, configList);
         mLostConfMap.remove(id);
       }
