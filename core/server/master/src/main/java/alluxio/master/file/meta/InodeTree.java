@@ -762,22 +762,23 @@ public class InodeTree implements JournalEntryIterable {
    * @throws FileDoesNotExistException if inode does not exist
    */
   public InodeLockList lockDescendant(LockedInodePath inodePath, LockMode lockMode,
-                                AlluxioURI childUri)
+        AlluxioURI childUri)
       throws FileDoesNotExistException {
-    InodeLockList inodeGroup = new InodeLockList();
-    // Check if the descendant is really the descendant of inodePath
-    try {
-      if (!PathUtils.hasPrefix(childUri.getPath(), inodePath.getUri().getPath())) {
+      InodeLockList inodeGroup = new InodeLockList();
+      // Check if the descendant is really the descendant of inodePath
+      try {
+        if (!PathUtils.hasPrefix(childUri.getPath(), inodePath.getUri().getPath())
+            || childUri.getPath().equals(inodePath.getUri().getPath())) {
+          return inodeGroup;
+        }
+      } catch (InvalidPathException e) {
         return inodeGroup;
       }
-    } catch (InvalidPathException e) {
-      return inodeGroup;
-    }
-    // Traverse the inode tree to get an inode
-    Inode<?> child = getInode(childUri);
+      // Traverse the inode tree to get an inode
+      Inode<?> child = getInode(childUri);
 
-    // return the empty locklist if the descendant has an invalid uri
-    if (child == null) return inodeGroup;
+      // return the empty locklist if the descendant has an invalid uri
+      if (child == null) return inodeGroup;
 
     // Lock the descendant
     if (lockMode == LockMode.READ) {

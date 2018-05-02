@@ -32,15 +32,6 @@ public final class InodeLockList implements AutoCloseable {
   }
 
   /**
-   * Combines two InodeLockLists into one
-   * @param listb another InodeLockList
-   */
-  public synchronized void merge(InodeLockList listb) {
-    mInodes.addAll(listb.mInodes);
-    mLockModes.addAll(listb.mLockModes);
-  }
-
-  /**
    * Locks the given inode in read mode, and adds it to this lock list. This call should only be
    * used when locking the root or an inode by id and not path or parent.
    *
