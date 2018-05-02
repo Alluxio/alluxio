@@ -22,6 +22,9 @@ import org.hamcrest.CoreMatchers;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 /**
  * Tests for report command.
  */
@@ -55,8 +58,10 @@ public final class ReportCommandIntegrationTest extends AbstractFsAdminShellTest
         CoreMatchers.containsString("Alluxio configuration information:"));
 
     // Output should not contain raw values with ${VALUE} format
-    Assert.assertFalse(output.contains("$")
-        || output.contains("{") || output.contains("}"));
+    String regexString = "(\\$\\{([^{}]*)\\})";
+    Pattern confRegex = Pattern.compile(regexString);
+    Matcher matcher = confRegex.matcher(output);
+    Assert.assertFalse(matcher.find());
 
     // Output should contain all kinds of properties.
     Assert.assertTrue(output.contains("alluxio.debug"));

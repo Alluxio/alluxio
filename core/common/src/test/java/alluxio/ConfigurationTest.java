@@ -35,6 +35,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.regex.Pattern;
 
 /**
  * Unit tests for the {@link Configuration} class.
@@ -723,8 +724,9 @@ public class ConfigurationTest {
     assertEquals(testValue, rawMap.get(testKey.toString()));
 
     // Test if some values in raw map is of ${VALUE} format
-    String nestedPropertyIdentifier = "$";
-    assertTrue(rawMap.get("alluxio.locality.script").contains(nestedPropertyIdentifier));
-    assertTrue(rawMap.get("alluxio.logs.dir").contains(nestedPropertyIdentifier));
+    String regexString = "(\\$\\{([^{}]*)\\})";
+    Pattern confRegex = Pattern.compile(regexString);
+    assertTrue(confRegex.matcher(rawMap.get("alluxio.locality.script")).find());
+    assertTrue(confRegex.matcher(rawMap.get("alluxio.logs.dir")).find());
   }
 }

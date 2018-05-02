@@ -61,7 +61,7 @@ public final class HadoopConfigurationUtilsTest {
     long beforeSize = Configuration.toMap().size();
     HadoopConfigurationUtils.mergeHadoopConfiguration(hadoopConfig);
     long afterSize = Configuration.toMap().size();
-    Assert.assertEquals(beforeSize, afterSize);
+    Assert.assertEquals(beforeSize + 2, afterSize);
     Assert.assertEquals(TEST_S3_ACCCES_KEY, Configuration.get(PropertyKey.S3A_ACCESS_KEY));
     Assert.assertEquals(TEST_S3_SECRET_KEY, Configuration.get(PropertyKey.S3A_SECRET_KEY));
   }

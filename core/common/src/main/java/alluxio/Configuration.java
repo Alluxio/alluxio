@@ -407,16 +407,14 @@ public final class Configuration {
   }
 
   /**
-   * @return a map of the resolved properties represented by this configuration,
+   * @return a view of the resolved properties represented by this configuration,
    * including all default properties
    */
   public static Map<String, String> toMap() {
     Map<String, String> map = toRawMap();
-    // Resolve values with ${VALUE} format
-    String nestedPropIdentifier = "$";
     for (Map.Entry<String, String> entry : map.entrySet()) {
       String value = entry.getValue();
-      if (value != null && value.contains(nestedPropIdentifier)) {
+      if (value != null) {
         map.put(entry.getKey(), lookup(value));
       }
     }
@@ -430,10 +428,10 @@ public final class Configuration {
   public static Map<String, String> toRawMap() {
     Map<String, String> map = new HashMap<>(PROPERTIES);
     for (PropertyKey key : PropertyKey.defaultKeys()) {
-      String propName = key.getName();
+      String keyName = key.getName();
       String defaultValue = key.getDefaultValue();
-      if (!map.containsKey(propName) && defaultValue != null) {
-        map.put(propName, defaultValue);
+      if (!map.containsKey(keyName) && defaultValue != null) {
+        map.put(keyName, defaultValue);
       }
     }
     return map;
