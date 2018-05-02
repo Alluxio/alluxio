@@ -14,6 +14,7 @@ package alluxio;
 import alluxio.exception.ExceptionMessage;
 import alluxio.network.ChannelType;
 import alluxio.util.OSUtils;
+import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
@@ -2536,7 +2537,15 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey USER_UFS_BLOCK_READ_LOCATION_POLICY =
       new Builder(Name.USER_UFS_BLOCK_READ_LOCATION_POLICY)
           .setDefaultValue("alluxio.client.file.policy.LocalFirstPolicy")
-          .setDescription("The policy block workers follow for reading UFS blocks.")
+          .setDescription(String.format("When an Alluxio client reads a file from the UFS, it "
+              + "delegates the read to an Alluxio worker. The client uses this policy to choose "
+              + "which worker to read through. Builtin choices: %s.", Arrays.asList(
+              javadocLink("alluxio.client.block.policy.DeterministicHashPolicy"),
+              javadocLink("alluxio.client.file.policy.LocalFirstAvoidEvictionPolicy"),
+              javadocLink("alluxio.client.file.policy.LocalFirstPolicy"),
+              javadocLink("alluxio.client.file.policy.MostAvailableFirstPolicy"),
+              javadocLink("alluxio.client.file.policy.RoundRobinPolicy"),
+              javadocLink("alluxio.client.file.policy.SpecificHostPolicy"))))
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
@@ -2809,6 +2818,17 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.WORKER)
           .build();
+
+  /**
+   * @param fullyQualifiedClassname a fully qualified classname
+   * @return html linking the text of the classname to the alluxio javadoc for the class
+   */
+  private static String javadocLink(String fullyQualifiedClassname) {
+    String javadocPath = fullyQualifiedClassname.replace(".", "/") + ".html";
+    return String.format("<a href=\"%s\">%s</a>",
+        PathUtils.concatPath(RuntimeConstants.ALLUXIO_JAVADOC_URL, javadocPath),
+        fullyQualifiedClassname);
+  }
 
   /**
    * A nested class to hold named string constants for their corresponding properties.
