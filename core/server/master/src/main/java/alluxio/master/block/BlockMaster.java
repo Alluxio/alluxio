@@ -21,12 +21,15 @@ import alluxio.master.Master;
 import alluxio.thrift.Command;
 import alluxio.thrift.RegisterWorkerTOptions;
 import alluxio.wire.BlockInfo;
+import alluxio.wire.ConfigProperty;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
 
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 /**
@@ -162,6 +165,7 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
    * @param totalBytesOnTiers a mapping from storage tier alias to total bytes
    * @param usedBytesOnTiers a mapping from storage tier alias to the used byes
    * @param currentBlocksOnTiers a mapping from storage tier alias to a list of blocks
+   * @param options the options that may contain worker configuration
    * @throws NoWorkerException if workerId cannot be found
    */
   void workerRegister(long workerId, List<String> storageTiers,
@@ -192,4 +196,25 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
    * @param blockIds the ids of the lost blocks
    */
   void reportLostBlocks(List<Long> blockIds);
+
+  /**
+   * Saves the callback function to use when lost workers become alive.
+   *
+   * @param function the function to save to corresponding callback list
+   */
+  void workerAddConfListener(Consumer<Long> function);
+
+  /**
+   * Saves the callback function to use when detecting lost workers.
+   *
+   * @param function the function to save to corresponding callback list
+   */
+  void workerRemoveConfListener(Consumer<Long> function);
+
+  /**
+   * Saves the callback function to use when worker registers with configuration.
+   *
+   * @param function the function to save to corresponding callback list
+   */
+  void workerRegisterConfListener(BiConsumer<Long, List<ConfigProperty>> function);
 }

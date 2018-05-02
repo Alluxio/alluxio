@@ -36,7 +36,6 @@ import alluxio.master.block.meta.MasterBlockInfo;
 import alluxio.master.block.meta.MasterBlockLocation;
 import alluxio.master.block.meta.MasterWorkerInfo;
 import alluxio.master.journal.JournalContext;
-import alluxio.master.meta.ServerConfigurationReport;
 import alluxio.metrics.MetricsSystem;
 import alluxio.proto.journal.Block.BlockContainerIdGeneratorEntry;
 import alluxio.proto.journal.Block.BlockInfoEntry;
@@ -54,6 +53,7 @@ import alluxio.util.executor.ExecutorServiceFactory;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.BlockLocation;
+import alluxio.wire.ConfigProperty;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
 
@@ -82,6 +82,8 @@ import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -163,6 +165,16 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
   /** Keeps track of workers which are no longer in communication with the master. */
   private final IndexedSet<MasterWorkerInfo> mLostWorkers =
       new IndexedSet<>(ID_INDEX, ADDRESS_INDEX);
+
+  /** Saves the add configuration call back functions. */
+  private final List<Consumer<Long>> mAddConfCallbacks = new ArrayList<>();
+
+  /** Saves the remove configuration call back functions. */
+  private final List<Consumer<Long>> mRemoveConfCallbacks = new ArrayList<>();
+
+  /** Saves the register new configuration call back functions. */
+  private final List<BiConsumer<Long, List<ConfigProperty>>> mRegisterConfCallbacks
+      = new ArrayList<>();
 
   /**
    * The service that detects lost worker nodes, and tries to restart the failed workers.
@@ -674,7 +686,9 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
         lostWorker.updateLastUpdatedTimeMs();
         mWorkers.add(lostWorker);
         mLostWorkers.remove(lostWorker);
-        ServerConfigurationReport.addConf(lostWorkerId, false);
+        for (Consumer<Long> function : mAddConfCallbacks) {
+          function.accept(lostWorker.getId());
+        }
         return lostWorkerId;
       }
     }
@@ -714,14 +728,14 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
       processWorkerRemovedBlocks(worker, removedBlocks);
       processWorkerAddedBlocks(worker, currentBlocksOnTiers);
       processWorkerOrphanedBlocks(worker);
-    }
-
-    if (options.isSetConfigList()) {
-      List<alluxio.wire.ConfigProperty> wireConfigList = options.getConfigList()
-          .stream().map(alluxio.wire.ConfigProperty::fromThrift)
-          .collect(Collectors.toList());
-
-      ServerConfigurationReport.registerNewConf(workerId, wireConfigList, false);
+      if (options.isSetConfigList()) {
+        List<alluxio.wire.ConfigProperty> wireConfigList = options.getConfigList()
+            .stream().map(alluxio.wire.ConfigProperty::fromThrift)
+            .collect(Collectors.toList());
+        for (BiConsumer<Long, List<ConfigProperty>> function : mRegisterConfCallbacks) {
+          function.accept(workerId, wireConfigList);
+        }
+      }
     }
 
     LOG.info("registerWorker(): {}", worker);
@@ -894,7 +908,9 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
                 worker.getWorkerAddress(), lastUpdate);
             mLostWorkers.add(worker);
             mWorkers.remove(worker);
-            ServerConfigurationReport.removeConf(worker.getId(), false);
+            for (Consumer<Long> function : mRemoveConfCallbacks) {
+              function.accept(worker.getId());
+            }
             processWorkerRemovedBlocks(worker, worker.getBlocks());
           }
         }
@@ -942,6 +958,21 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
       }
       return false;
     }).collect(Collectors.toSet());
+  }
+
+  @Override
+  public void workerAddConfListener(Consumer<Long> function) {
+    mAddConfCallbacks.add(function);
+  }
+
+  @Override
+  public void workerRemoveConfListener(Consumer<Long> function) {
+    mRemoveConfCallbacks.add(function);
+  }
+
+  @Override
+  public void workerRegisterConfListener(BiConsumer<Long, List<ConfigProperty>> function) {
+    mRegisterConfCallbacks.add(function);
   }
 
   /**

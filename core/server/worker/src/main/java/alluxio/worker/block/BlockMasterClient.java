@@ -149,7 +149,7 @@ public final class BlockMasterClient extends AbstractMasterClient {
     retryRPC(() -> {
       RegisterWorkerTOptions options = new RegisterWorkerTOptions();
       options.setConfigList(configList.stream()
-          .map(ConfigProperty :: toThrift).collect(Collectors.toList()));
+          .map(ConfigProperty::toThrift).collect(Collectors.toList()));
       mClient.registerWorker(workerId, storageTierAliases, totalBytesOnTiers, usedBytesOnTiers,
           currentBlocksOnTiers, options);
       return null;

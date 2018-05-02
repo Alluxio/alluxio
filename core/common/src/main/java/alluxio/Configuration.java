@@ -499,6 +499,22 @@ public final class Configuration {
   }
 
   /**
+   * @param key the property key
+   * @return the formatted source for the given key
+   */
+  public static String getFormattedSource(PropertyKey key) {
+    Source source = getSource(key);
+    String sourceStr;
+    if (source == Source.SITE_PROPERTY) {
+      sourceStr =
+          String.format("%s (%s)", source.name(), getSitePropertiesFile());
+    } else {
+      sourceStr = source.name();
+    }
+    return sourceStr;
+  }
+
+  /**
    * @return the path of the site property file
    */
   @Nullable
@@ -631,16 +647,9 @@ public final class Configuration {
     for (Map.Entry<String, String> entry : toMap().entrySet()) {
       String keyName = entry.getKey();
       if (isWorkerRelated(keyName)) {
-        Source source = getSource(PropertyKey.fromString(keyName));
-        String sourceStr;
-        if (source == Source.SITE_PROPERTY) {
-          sourceStr =
-              String.format("%s (%s)", source.name(), getSitePropertiesFile());
-        } else {
-          sourceStr = source.name();
-        }
+        String source = getFormattedSource(PropertyKey.fromString(keyName));
         configInfoList.add(new ConfigProperty()
-            .setName(keyName).setValue(entry.getValue()).setSource(sourceStr));
+            .setName(keyName).setValue(entry.getValue()).setSource(source));
       }
     }
     return configInfoList;

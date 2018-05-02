@@ -33,6 +33,7 @@ import alluxio.master.MultiMasterLocalAlluxioCluster;
 import alluxio.master.block.BlockMaster;
 import alluxio.testutils.BaseIntegrationTest;
 import alluxio.thrift.CommandType;
+import alluxio.thrift.RegisterWorkerTOptions;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 import alluxio.util.io.PathUtils;
@@ -275,13 +276,13 @@ public class MasterFaultToleranceIntegrationTest extends BaseIntegrationTest {
       long workerId1a =
           blockMaster1.getWorkerId(new alluxio.wire.WorkerNetAddress().setHost("host1"));
       blockMaster1.workerRegister(workerId1a, Collections.EMPTY_LIST, Collections.EMPTY_MAP,
-          Collections.EMPTY_MAP, Collections.EMPTY_MAP);
+          Collections.EMPTY_MAP, Collections.EMPTY_MAP, new RegisterWorkerTOptions());
 
       // Register worker 2
       long workerId2a =
           blockMaster1.getWorkerId(new alluxio.wire.WorkerNetAddress().setHost("host2"));
       blockMaster1.workerRegister(workerId2a, Collections.EMPTY_LIST, Collections.EMPTY_MAP,
-          Collections.EMPTY_MAP, Collections.EMPTY_MAP);
+          Collections.EMPTY_MAP, Collections.EMPTY_MAP, new RegisterWorkerTOptions());
 
       assertEquals(2, blockMaster1.getWorkerCount());
       // Worker heartbeats should return "Nothing"
@@ -308,7 +309,7 @@ public class MasterFaultToleranceIntegrationTest extends BaseIntegrationTest {
       long workerId2b =
           blockMaster2.getWorkerId(new alluxio.wire.WorkerNetAddress().setHost("host2"));
       blockMaster2.workerRegister(workerId2b, Collections.EMPTY_LIST, Collections.EMPTY_MAP,
-          Collections.EMPTY_MAP, Collections.EMPTY_MAP);
+          Collections.EMPTY_MAP, Collections.EMPTY_MAP, new RegisterWorkerTOptions());
 
       // Worker 1 tries to heartbeat (with original id), and should get "Register" in response.
       assertEquals(CommandType.Register, blockMaster2
@@ -319,7 +320,7 @@ public class MasterFaultToleranceIntegrationTest extends BaseIntegrationTest {
       long workerId1b =
           blockMaster2.getWorkerId(new alluxio.wire.WorkerNetAddress().setHost("host1"));
       blockMaster2.workerRegister(workerId1b, Collections.EMPTY_LIST, Collections.EMPTY_MAP,
-          Collections.EMPTY_MAP, Collections.EMPTY_MAP);
+          Collections.EMPTY_MAP, Collections.EMPTY_MAP, new RegisterWorkerTOptions());
 
     } finally {
       cluster.stop();

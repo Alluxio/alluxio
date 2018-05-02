@@ -15,9 +15,10 @@ import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.RuntimeConstants;
+import alluxio.master.block.BlockMaster;
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.JournalSystem.Mode;
-import alluxio.master.meta.ServerConfigurationReport;
+import alluxio.master.meta.ServerConfigurationChecker;
 import alluxio.metrics.MetricsSystem;
 import alluxio.metrics.sink.MetricsServlet;
 import alluxio.metrics.sink.PrometheusMetricsServlet;
@@ -91,6 +92,9 @@ public class AlluxioMasterProcess implements MasterProcess {
   /** The master registry. */
   private final MasterRegistry mRegistry;
 
+  /** The block master. */
+  private final BlockMaster mBlockMaster;
+
   /** The web ui server. */
   private WebServer mWebServer;
 
@@ -111,6 +115,9 @@ public class AlluxioMasterProcess implements MasterProcess {
 
   /** The manager of safe mode state. */
   protected final SafeModeManager mSafeModeManager;
+
+  /** The server-side configuration checker. */
+  private ServerConfigurationChecker mConfigChecker;
 
   /**
    * Creates a new {@link AlluxioMasterProcess}.
@@ -160,7 +167,14 @@ public class AlluxioMasterProcess implements MasterProcess {
       mSafeModeManager = new DefaultSafeModeManager();
       MasterUtils.createMasters(mJournalSystem, mRegistry, mSafeModeManager);
 
-      ServerConfigurationReport.init();
+      // Create config checker
+      mBlockMaster = mRegistry.get(BlockMaster.class);
+      mConfigChecker = new ServerConfigurationChecker();
+
+      // Register listeners for BlockMaster to interact with server config checker
+      mBlockMaster.workerAddConfListener(this::workerAddConfHandler);
+      mBlockMaster.workerRemoveConfListener(this::workerRemoveConfHandler);
+      mBlockMaster.workerRegisterConfListener(this::workerRegisterConfHandler);
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
@@ -213,16 +227,9 @@ public class AlluxioMasterProcess implements MasterProcess {
       String key = entry.getKey();
       if (key.startsWith(alluxioConfPrefix)) {
         PropertyKey propertyKey = PropertyKey.fromString(key);
-        Configuration.Source source = Configuration.getSource(propertyKey);
-        String sourceStr;
-        if (source == Configuration.Source.SITE_PROPERTY) {
-          sourceStr =
-              String.format("%s (%s)", source.name(), Configuration.getSitePropertiesFile());
-        } else {
-          sourceStr = source.name();
-        }
+        String source = Configuration.getFormattedSource(propertyKey);
         configInfoList.add(new ConfigProperty()
-            .setName(key).setValue(entry.getValue()).setSource(sourceStr));
+            .setName(key).setValue(entry.getValue()).setSource(source));
       }
     }
     return configInfoList;
@@ -423,5 +430,34 @@ public class AlluxioMasterProcess implements MasterProcess {
   @Override
   public String toString() {
     return "Alluxio master @" + mRpcConnectAddress;
+  }
+
+  /**
+   * Callback function for BlockMaster to add configuration to ConfMap in Server Config Checker.
+   *
+   * @param id the id of the worker to use
+   */
+  private void workerAddConfHandler(long id) {
+    mConfigChecker.addConf(id, false);
+  }
+
+  /**
+   * Callback function for BlockMaster to remove configuration from ConfMap
+   * in Server Config Checker.
+   *
+   * @param id the id of the worker to use
+   */
+  private void workerRemoveConfHandler(long id) {
+    mConfigChecker.removeConf(id, false);
+  }
+
+  /**
+   * Callback function for BlockMaster to register new configuration to ConfMap
+   * in Server Config Checker.
+   *
+   * @param id the id of the worker to use
+   */
+  private void workerRegisterConfHandler(long id, List<ConfigProperty> configList) {
+    mConfigChecker.registerNewConf(id, configList, false);
   }
 }
