@@ -202,19 +202,19 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
    *
    * @param function the function to save to corresponding callback list
    */
-  void workerAddConfCallback(Consumer<Long> function);
+  void registerLostWorkerFoundListener(Consumer<Long> function);
 
   /**
    * Saves the callback function to use when detecting lost workers.
    *
    * @param function the function to save to corresponding callback list
    */
-  void workerRemoveConfCallback(Consumer<Long> function);
+  void registerWorkerLostListener(Consumer<Long> function);
 
   /**
    * Saves the callback function to use when worker registers with configuration.
    *
    * @param function the function to save to corresponding callback list
    */
-  void workerRegisterConfCallback(BiConsumer<Long, List<ConfigProperty>> function);
+  void registerNewWorkerConfListener(BiConsumer<Long, List<ConfigProperty>> function);
 }

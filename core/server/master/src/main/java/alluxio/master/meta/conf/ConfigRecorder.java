@@ -16,14 +16,13 @@ import alluxio.wire.ConfigProperty;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * This class is responsible for containing server-side configurations.
  */
 public class ConfigRecorder {
   /** Map from ids to lockers. */
-  private ConcurrentHashMap<Long, Object> mLockers;
+  private Object mLocker;
   /** Stores the configuration of a master/worker with Long id. */
   private Map<Long, List<ConfigProperty>> mConfMap;
   /** Stores the configuration of a lost master/worker with Long id. */
@@ -33,7 +32,7 @@ public class ConfigRecorder {
    * Constructs a new {@link ConfigRecorder}.
    */
   public ConfigRecorder() {
-    mLockers = new ConcurrentHashMap<>();
+    mLocker = new Object();
     mConfMap = new HashMap<>();
     mLostConfMap = new HashMap<>();
   }
@@ -45,23 +44,22 @@ public class ConfigRecorder {
    * @param configList the configuration of this master/worker
    */
   public void registerNewConf(Long id, List<ConfigProperty> configList) {
-    mLockers.putIfAbsent(id, new Object());
-    synchronized (mLockers.get(id)) {
+    synchronized (mLocker) {
       mConfMap.put(id, configList);
       mLostConfMap.remove(id);
     }
   }
 
   /**
-   * Removes the configuration of a master/worker from ConfMap to LostConfMap.
+   * Removes the configuration of a master/worker from ConfMap to LostConfMap
+   * when detecting a live node becomes lost.
    *
    * @param id the master/worker id
    */
-  public void removeConf(Long id) {
+  public void detectNodeLost(Long id) {
     List<ConfigProperty> configList = mConfMap.get(id);
     if (configList != null) {
-      mLockers.putIfAbsent(id, new Object());
-      synchronized (mLockers.get(id)) {
+      synchronized (mLocker) {
         mLostConfMap.put(id, configList);
         mConfMap.remove(id);
       }
@@ -69,15 +67,15 @@ public class ConfigRecorder {
   }
 
   /**
-   * Adds the configuration of a master/worker from LostConfMap to ConfMap.
+   * Adds the configuration of a master/worker from LostConfMap to ConfMap
+   * when a lost node is found.
    *
    * @param id the master/worker id
    */
-  public void addConf(Long id) {
+  public void lostNodeFound(Long id) {
     List<ConfigProperty> configList = mLostConfMap.get(id);
     if (configList != null) {
-      mLockers.putIfAbsent(id, new Object());
-      synchronized (mLockers.get(id)) {
+      synchronized (mLocker) {
         mConfMap.put(id, configList);
         mLostConfMap.remove(id);
       }

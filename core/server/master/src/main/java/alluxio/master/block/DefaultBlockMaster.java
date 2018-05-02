@@ -80,8 +80,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Set;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -167,14 +169,14 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
       new IndexedSet<>(ID_INDEX, ADDRESS_INDEX);
 
   /** Saves the add configuration call back functions. */
-  private final List<Consumer<Long>> mAddConfCallbacks = new ArrayList<>();
+  private final BlockingQueue<Consumer<Long>> mAddConfCallbacks = new LinkedBlockingQueue<>();
 
   /** Saves the remove configuration call back functions. */
-  private final List<Consumer<Long>> mRemoveConfCallbacks = new ArrayList<>();
+  private final BlockingQueue<Consumer<Long>> mRemoveConfCallbacks = new LinkedBlockingQueue<>();
 
   /** Saves the register new configuration call back functions. */
-  private final List<BiConsumer<Long, List<ConfigProperty>>> mRegisterConfCallbacks
-      = new ArrayList<>();
+  private final BlockingQueue<BiConsumer<Long, List<ConfigProperty>>> mRegisterConfCallbacks
+      = new LinkedBlockingQueue<>();
 
   /**
    * The service that detects lost worker nodes, and tries to restart the failed workers.
@@ -961,17 +963,17 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
   }
 
   @Override
-  public void workerAddConfCallback(Consumer<Long> function) {
+  public void registerLostWorkerFoundListener(Consumer<Long> function) {
     mAddConfCallbacks.add(function);
   }
 
   @Override
-  public void workerRemoveConfCallback(Consumer<Long> function) {
+  public void registerWorkerLostListener(Consumer<Long> function) {
     mRemoveConfCallbacks.add(function);
   }
 
   @Override
-  public void workerRegisterConfCallback(BiConsumer<Long, List<ConfigProperty>> function) {
+  public void registerNewWorkerConfListener(BiConsumer<Long, List<ConfigProperty>> function) {
     mRegisterConfCallbacks.add(function);
   }
 

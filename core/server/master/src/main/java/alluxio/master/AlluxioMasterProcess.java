@@ -117,7 +117,7 @@ public class AlluxioMasterProcess implements MasterProcess {
   protected final SafeModeManager mSafeModeManager;
 
   /** The server-side configuration checker. */
-  private ServerConfigurationChecker mConfigChecker;
+  private final ServerConfigurationChecker mConfigChecker;
 
   /**
    * Creates a new {@link AlluxioMasterProcess}.
@@ -172,9 +172,9 @@ public class AlluxioMasterProcess implements MasterProcess {
 
       // Register listeners for BlockMaster to interact with config checker
       mBlockMaster = mRegistry.get(BlockMaster.class);
-      mBlockMaster.workerAddConfCallback(this::workerAddConfHandler);
-      mBlockMaster.workerRemoveConfCallback(this::workerRemoveConfHandler);
-      mBlockMaster.workerRegisterConfCallback(this::workerRegisterConfHandler);
+      mBlockMaster.registerLostWorkerFoundListener(this::lostWorkerFoundHandler);
+      mBlockMaster.registerWorkerLostListener(this::detectWorkerLostHandler);
+      mBlockMaster.registerNewWorkerConfListener(this::registerNewWorkerConfHandler);
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
@@ -433,29 +433,29 @@ public class AlluxioMasterProcess implements MasterProcess {
   }
 
   /**
-   * Callback function for BlockMaster to add configuration to ConfMap in Server Config Checker.
+   * Updates config checker when a lost worker become alive.
    *
    * @param id the id of the worker to use
    */
-  private void workerAddConfHandler(long id) {
-    mConfigChecker.addConf(id, false);
+  private void lostWorkerFoundHandler(long id) {
+    mConfigChecker.lostNodeFound(id, false);
   }
 
   /**
-   * Callback function for BlockMaster to remove configuration from ConfMap in Config Checker.
+   * Updates config checker when a live worker become lost.
    *
    * @param id the id of the worker to use
    */
-  private void workerRemoveConfHandler(long id) {
-    mConfigChecker.removeConf(id, false);
+  private void detectWorkerLostHandler(long id) {
+    mConfigChecker.detectNodeLost(id, false);
   }
 
   /**
-   * Callback function for BlockMaster to register new configuration to ConfMap in Config Checker.
+   * Updates config checker when a worker register with configuration.
    *
    * @param id the id of the worker to use
    */
-  private void workerRegisterConfHandler(long id, List<ConfigProperty> configList) {
+  private void registerNewWorkerConfHandler(long id, List<ConfigProperty> configList) {
     mConfigChecker.registerNewConf(id, configList, false);
   }
 }

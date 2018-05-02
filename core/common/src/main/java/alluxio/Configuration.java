@@ -28,7 +28,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.time.Duration;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
@@ -627,17 +626,11 @@ public final class Configuration {
    * @return a list of worker-related configurations
    */
   public static List<ConfigProperty> getWorkerConfiguration() {
-    List<ConfigProperty> configInfoList = new ArrayList<>();
-    for (Map.Entry<String, String> entry : toMap().entrySet()) {
-      String keyName = entry.getKey();
-      PropertyKey key = PropertyKey.fromString(keyName);
-      if (key.getScope().contains(Scope.WORKER)) {
-        String source = getFormattedSource(key);
-        configInfoList.add(new ConfigProperty()
-            .setName(keyName).setValue(entry.getValue()).setSource(source));
-      }
-    }
-    return configInfoList;
+    return toMap().keySet().stream().map(PropertyKey::fromString)
+        .filter(key -> key.getScope().contains(Scope.WORKER))
+        .map(key -> new ConfigProperty().setName(key.getName())
+            .setValue(get(key)).setSource(getFormattedSource(key)))
+        .collect(Collectors.toList());
   }
 
   private Configuration() {} // prevent instantiation

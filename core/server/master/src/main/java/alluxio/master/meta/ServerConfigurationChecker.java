@@ -47,30 +47,30 @@ public final class ServerConfigurationChecker {
   }
 
   /**
-   * Removes the configuration of a master/worker from ConfMap to LostConfMap.
+   * Updates the ConfigRecorder when a live node becomes lost.
    *
    * @param id the master/worker id
    * @param isMaster whether this node is a master
    */
-  public void removeConf(Long id, boolean isMaster) {
+  public void detectNodeLost(Long id, boolean isMaster) {
     if (isMaster) {
-      mMasterConfigRecorder.removeConf(id);
+      mMasterConfigRecorder.detectNodeLost(id);
     } else {
-      mWorkerConfigRecorder.removeConf(id);
+      mWorkerConfigRecorder.detectNodeLost(id);
     }
   }
 
   /**
-   * Adds the configuration of a master/worker from LostConfMap to ConfMap.
+   * Updates the ConfigRecorder when a lost node is found.
    *
    * @param id the master/worker id
    * @param isMaster whether this node is a master
    */
-  public void addConf(Long id, boolean isMaster) {
+  public void lostNodeFound(Long id, boolean isMaster) {
     if (isMaster) {
-      mMasterConfigRecorder.addConf(id);
+      mMasterConfigRecorder.lostNodeFound(id);
     } else {
-      mWorkerConfigRecorder.addConf(id);
+      mWorkerConfigRecorder.lostNodeFound(id);
     }
   }
 }
