@@ -212,20 +212,34 @@ public class InodeTree implements JournalEntryIterable {
   }
 
   private Inode<?> getInode(AlluxioURI uri) {
+    String[] pathComp;
     try {
-      TraversalResult traversalResult =
-          traverseToInode(PathUtils.getPathComponents(uri.getPath()), LockMode.NOLOCK, null);
-      List<Inode<?>> inodes =  traversalResult.getInodes();
-      traversalResult.getInodeLockList().close();
-      if (traversalResult.isFound()) {
-        return inodes.get(inodes.size() - 1);
-      } else {
-        return null;
-      }
+       pathComp = PathUtils.getPathComponents(uri.getPath());
     } catch (InvalidPathException e) {
       return null;
     }
+
+    if ((pathComp == null) || (pathComp.length == 0)) {
+      return null;
+    }
+    if (pathComp.length == 1 && pathComp[0].equals("")) {
+      // root
+      return mRoot;
+    }
+    Inode<?> current = mRoot;
+    for (int i =1; i < pathComp.length; i++) {
+      if (current.isFile()) {
+        // we still have path components, should not be a file
+        return null;
+      }
+      current = ((InodeDirectory) current).getChild(pathComp[i]);
+      if (current == null) {
+        return null;
+      }
+    }
+    return current;
   }
+
   /**
    * Locks existing inodes on the specified path, in the specified {@link LockMode}. The target
    * inode is not required to exist.

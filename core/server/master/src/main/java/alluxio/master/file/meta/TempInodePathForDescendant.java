@@ -125,6 +125,11 @@ public final class TempInodePathForDescendant extends LockedInodePath {
   }
 
   @Override
+  public synchronized void downgradeLast() {
+    // nothing to downgrade
+  }
+
+  @Override
   public synchronized void close() {
     // nothing to close
   }
