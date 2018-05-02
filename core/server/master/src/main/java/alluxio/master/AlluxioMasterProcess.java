@@ -168,13 +168,13 @@ public class AlluxioMasterProcess implements MasterProcess {
       MasterUtils.createMasters(mJournalSystem, mRegistry, mSafeModeManager);
 
       // Create config checker
-      mBlockMaster = mRegistry.get(BlockMaster.class);
       mConfigChecker = new ServerConfigurationChecker();
 
-      // Register listeners for BlockMaster to interact with server config checker
-      mBlockMaster.workerAddConfListener(this::workerAddConfHandler);
-      mBlockMaster.workerRemoveConfListener(this::workerRemoveConfHandler);
-      mBlockMaster.workerRegisterConfListener(this::workerRegisterConfHandler);
+      // Register listeners for BlockMaster to interact with config checker
+      mBlockMaster = mRegistry.get(BlockMaster.class);
+      mBlockMaster.workerAddConfCallback(this::workerAddConfHandler);
+      mBlockMaster.workerRemoveConfCallback(this::workerRemoveConfHandler);
+      mBlockMaster.workerRegisterConfCallback(this::workerRegisterConfHandler);
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
@@ -442,8 +442,7 @@ public class AlluxioMasterProcess implements MasterProcess {
   }
 
   /**
-   * Callback function for BlockMaster to remove configuration from ConfMap
-   * in Server Config Checker.
+   * Callback function for BlockMaster to remove configuration from ConfMap in Config Checker.
    *
    * @param id the id of the worker to use
    */
@@ -452,8 +451,7 @@ public class AlluxioMasterProcess implements MasterProcess {
   }
 
   /**
-   * Callback function for BlockMaster to register new configuration to ConfMap
-   * in Server Config Checker.
+   * Callback function for BlockMaster to register new configuration to ConfMap in Config Checker.
    *
    * @param id the id of the worker to use
    */

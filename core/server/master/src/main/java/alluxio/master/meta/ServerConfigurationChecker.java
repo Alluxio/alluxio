@@ -27,13 +27,6 @@ public final class ServerConfigurationChecker {
    * Constructs a new {@link ServerConfigurationChecker}.
    */
   public ServerConfigurationChecker() {
-    init();
-  }
-
-  /**
-   * Inits when this master starts Alluxio master process or gets leadership.
-   */
-  public void init() {
     mMasterConfigRecorder = new ConfigRecorder();
     mWorkerConfigRecorder = new ConfigRecorder();
   }

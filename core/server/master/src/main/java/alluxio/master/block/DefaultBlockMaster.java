@@ -961,17 +961,17 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
   }
 
   @Override
-  public void workerAddConfListener(Consumer<Long> function) {
+  public void workerAddConfCallback(Consumer<Long> function) {
     mAddConfCallbacks.add(function);
   }
 
   @Override
-  public void workerRemoveConfListener(Consumer<Long> function) {
+  public void workerRemoveConfCallback(Consumer<Long> function) {
     mRemoveConfCallbacks.add(function);
   }
 
   @Override
-  public void workerRegisterConfListener(BiConsumer<Long, List<ConfigProperty>> function) {
+  public void workerRegisterConfCallback(BiConsumer<Long, List<ConfigProperty>> function) {
     mRegisterConfCallbacks.add(function);
   }
 

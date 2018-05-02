@@ -22,7 +22,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * This class is responsible for containing server-side configurations.
  */
 public class ConfigRecorder {
-  /** Map from ids to Object lockers. */
+  /** Map from ids to lockers. */
   private ConcurrentHashMap<Long, Object> mLockers;
   /** Stores the configuration of a master/worker with Long id. */
   private Map<Long, List<ConfigProperty>> mConfMap;
