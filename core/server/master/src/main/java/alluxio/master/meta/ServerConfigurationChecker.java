@@ -11,7 +11,6 @@
 
 package alluxio.master.meta;
 
-import alluxio.master.meta.conf.ConfigRecorder;
 import alluxio.wire.ConfigProperty;
 
 import java.util.List;
@@ -52,7 +51,7 @@ public final class ServerConfigurationChecker {
    * @param id the master/worker id
    * @param isMaster whether this node is a master
    */
-  public void detectNodeLost(Long id, boolean isMaster) {
+  public void detectNodeLost(long id, boolean isMaster) {
     if (isMaster) {
       mMasterConfigRecorder.detectNodeLost(id);
     } else {
@@ -66,7 +65,7 @@ public final class ServerConfigurationChecker {
    * @param id the master/worker id
    * @param isMaster whether this node is a master
    */
-  public void lostNodeFound(Long id, boolean isMaster) {
+  public void lostNodeFound(long id, boolean isMaster) {
     if (isMaster) {
       mMasterConfigRecorder.lostNodeFound(id);
     } else {

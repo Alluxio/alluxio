@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.master.meta.conf;
+package alluxio.master.meta;
 
 import alluxio.wire.ConfigProperty;
 
@@ -21,8 +21,6 @@ import java.util.Map;
  * This class is responsible for containing server-side configurations.
  */
 public class ConfigRecorder {
-  /** Map from ids to lockers. */
-  private Object mLocker;
   /** Stores the configuration of a master/worker with Long id. */
   private Map<Long, List<ConfigProperty>> mConfMap;
   /** Stores the configuration of a lost master/worker with Long id. */
@@ -32,7 +30,6 @@ public class ConfigRecorder {
    * Constructs a new {@link ConfigRecorder}.
    */
   public ConfigRecorder() {
-    mLocker = new Object();
     mConfMap = new HashMap<>();
     mLostConfMap = new HashMap<>();
   }
@@ -43,7 +40,7 @@ public class ConfigRecorder {
    * @param id the master/worker id
    * @param configList the configuration of this master/worker
    */
-  public synchronized void registerNewConf(Long id, List<ConfigProperty> configList) {
+  public synchronized void registerNewConf(long id, List<ConfigProperty> configList) {
     mConfMap.put(id, configList);
     mLostConfMap.remove(id);
   }
@@ -54,7 +51,7 @@ public class ConfigRecorder {
    *
    * @param id the master/worker id
    */
-  public synchronized void detectNodeLost(Long id) {
+  public synchronized void detectNodeLost(long id) {
     List<ConfigProperty> configList = mConfMap.get(id);
     if (configList != null) {
       mLostConfMap.put(id, configList);
@@ -68,11 +65,18 @@ public class ConfigRecorder {
    *
    * @param id the master/worker id
    */
-  public synchronized void lostNodeFound(Long id) {
+  public synchronized void lostNodeFound(long id) {
     List<ConfigProperty> configList = mLostConfMap.get(id);
     if (configList != null) {
       mConfMap.put(id, configList);
       mLostConfMap.remove(id);
     }
+  }
+
+  /**
+   * @return the configuration map of live masters or workers
+   */
+  public synchronized Map<Long, List<ConfigProperty>> getConfMap() {
+    return mConfMap;
   }
 }
