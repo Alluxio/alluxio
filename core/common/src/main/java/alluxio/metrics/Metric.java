@@ -28,26 +28,43 @@ public final class Metric implements Serializable {
   @VisibleForTesting
   static final Set<String> SUPPORTED_INSTANCES = ImmutableSet.of(MetricsSystem.MASTER_INSTANCE,
       MetricsSystem.WORKER_INSTANCE, MetricsSystem.CLIENT_INSTANCE);
-  private final String mInstance;
+  private final static String ID_SEPARATOR = "-id:";
+  private final String mInstanceType;
   private final String mHostname;
   private final String mName;
   private final Long mValue;
+  private final String mInstanceId;
 
   /**
    * Constructs a {@link Metric} instance.
    *
-   * @param instance the instance
+   * @param instanceType the instance type
    * @param hostname the hostname
    * @param name the metric name
    * @param value the value
    */
-  public Metric(String instance, String hostname, String name, Long value) {
-    Preconditions.checkArgument(SUPPORTED_INSTANCES.contains(instance),
-        "The instance type %s is not supported. The type must be one of %s", instance,
+  public Metric(String instanceType, String hostname, String name, Long value) {
+    this(instanceType, hostname, null, name, value);
+  }
+
+
+  /**
+   * Constructs a {@link Metric} instance.
+   *
+   * @param instanceType the instance type
+   * @param hostname the hostname
+   * @param id the instance id
+   * @param name the metric name
+   * @param value the value
+   */
+  public Metric(String instanceType, String hostname, String id, String name, Long value) {
+    Preconditions.checkArgument(SUPPORTED_INSTANCES.contains(instanceType),
+        "The instance type %s is not supported. The type must be one of %s", instanceType,
         SUPPORTED_INSTANCES);
     Preconditions.checkNotNull(name);
-    mInstance = instance;
+    mInstanceType = instanceType;
     mHostname = hostname;
+    mInstanceId = id;
     mName = name;
     mValue = value;
   }
@@ -55,8 +72,8 @@ public final class Metric implements Serializable {
   /**
    * @return the instance type
    */
-  public String getInstance() {
-    return mInstance;
+  public String getInstanceType() {
+    return mInstanceType;
   }
 
   /**
@@ -80,6 +97,13 @@ public final class Metric implements Serializable {
     return mValue;
   }
 
+  /**
+   * @return the instance id
+   */
+  public String getInstanceId() {
+      return mInstanceId;
+  }
+
   @Override
   public boolean equals(Object other) {
     if (other == null) {
@@ -89,24 +113,30 @@ public final class Metric implements Serializable {
       return false;
     }
     Metric metric = (Metric) other;
-    return Objects.equal(mHostname, metric.mHostname) && Objects.equal(mInstance, metric.mInstance)
-        && Objects.equal(mName, metric.mName) && Objects.equal(mValue, metric.mValue);
+    return Objects.equal(mHostname, metric.mHostname) && Objects.equal(mInstanceType, metric.mInstanceType)
+        && Objects.equal(mInstanceId, metric.mInstanceId) && Objects.equal(mName, metric.mName)
+        && Objects.equal(mValue, metric.mValue);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mHostname, mInstance, mValue, mName);
+    return Objects.hashCode(mHostname, mInstanceType, mInstanceId, mValue, mName);
   }
 
   /**
-   * @return the fully qualified metric name, which is of pattern instance.[hostname.].value
+   * @return the fully qualified metric name, which is of pattern instance.[hostname-id:instanceId.]value
    */
   public String getFullMetricName() {
     StringBuilder sb = new StringBuilder();
-    sb.append(mInstance).append('.');
+    sb.append(mInstanceType).append('.');
     if (mHostname != null) {
-      sb.append(mHostname).append('.');
+      sb.append(mHostname);
+      if (mInstanceId != null) {
+        sb.append(ID_SEPARATOR).append(mInstanceId);
+      }
+      sb.append('.');
     }
+
     sb.append(mName);
     return sb.toString();
   }
@@ -116,9 +146,10 @@ public final class Metric implements Serializable {
    */
   public alluxio.thrift.Metric toThrift() {
     alluxio.thrift.Metric metric = new alluxio.thrift.Metric();
-    metric.setInstance(mInstance);
+    metric.setInstance(mInstanceType);
     metric.setHostname(mHostname);
     metric.setName(mName);
+    metric.setInstanceId(mInstanceId);
     metric.setValue(mValue);
     return metric;
   }
@@ -135,13 +166,20 @@ public final class Metric implements Serializable {
     Preconditions.checkArgument(pieces.length > 1, "Incorrect metrics name: %s.", fullName);
 
     String hostname = null;
+    String id = null;
     // Master or cluster metrics don't have hostname included.
     if (!pieces[0].equals(MetricsSystem.MASTER_INSTANCE)) {
-      hostname = pieces[1];
+      if (pieces[1].contains(ID_SEPARATOR)) {
+        String[] ids = pieces[1].split(ID_SEPARATOR);
+        hostname = ids[0];
+        id = ids[1];
+      } else {
+        hostname = pieces[1];
+      }
     }
     String instance = pieces[0];
     String name = MetricsSystem.stripInstanceAndHost(fullName);
-    return new Metric(instance, hostname, name, value);
+    return new Metric(instance, hostname, id, name, value);
   }
 
   /**
@@ -151,13 +189,14 @@ public final class Metric implements Serializable {
    * @return the constructed metric
    */
   public static Metric from(alluxio.thrift.Metric metric) {
-    return new Metric(metric.getInstance(), metric.getHostname(), metric.getName(),
-        metric.getValue());
+    return new Metric(metric.getInstance(), metric.getHostname(), metric.getInstanceId(),
+        metric.getName(), metric.getValue());
   }
 
   @Override
   public String toString() {
-    return Objects.toStringHelper(this).add("instance", mInstance).add("hostname", mHostname)
-        .add("name", mName).add("value", mValue).toString();
+    return Objects.toStringHelper(this).add("instanceType", mInstanceType)
+        .add("hostname", mHostname).add("instanceId", mInstanceId).add("name", mName)
+        .add("value", mValue).toString();
   }
 }

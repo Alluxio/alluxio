@@ -928,6 +928,14 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
+  public static final PropertyKey MASTER_METRICS_HEARTBEAT_TIMEOUT_MS =
+      new Builder(Name.MASTER_METRICS_HEARTBEAT_TIMEOUT_MS)
+          .setAlias(new String[]{"alluxio.master.metrics.heartbeat.timeout.ms"})
+          .setDefaultValue("5min")
+          .setDescription("The timeout value of metrics master's heartbeats.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.WORKER)
+          .build();
   public static final PropertyKey MASTER_HOSTNAME =
       new Builder(Name.MASTER_HOSTNAME)
           .setDescription("The hostname of Alluxio master.")
@@ -2356,6 +2364,22 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.CLIENT)
           .build();
+  public static final PropertyKey USER_METRICS_COLLECTION_ENABLED =
+      new Builder(Name.USER_METRICS_COLLECTION_ENABLED)
+          .setDefaultValue(true)
+          .setDescription("Enable collecting the client-side metrics and hearbeat them to master")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .build();
+  public static final PropertyKey USER_METRICS_HEARTBEAT_INTERVAL_MS =
+      new Builder(Name.USER_METRICS_HEARTBEAT_INTERVAL_MS)
+          .setAlias(new String[]{"alluxio.user.heartbeat.interval.ms"})
+          .setDefaultValue("3sec")
+          .setDescription("The time period of client master hearbeat to "
+              + "send the client-side metrics.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.CLIENT)
+          .build();
   public static final PropertyKey USER_NETWORK_NETTY_CHANNEL =
       new Builder(Name.USER_NETWORK_NETTY_CHANNEL)
           .setDescription("Type of netty channels.")
@@ -2995,6 +3019,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.master.lineage.recompute.interval";
     public static final String MASTER_LINEAGE_RECOMPUTE_LOG_PATH =
         "alluxio.master.lineage.recompute.log.path";
+    public static final String MASTER_METRICS_HEARTBEAT_TIMEOUT_MS =
+        "alluxio.mater.metrics.heartbeat.timeout";
     public static final String MASTER_PERIODIC_BLOCK_INTEGRITY_CHECK_REPAIR =
         "alluxio.master.periodic.block.integrity.check.repair";
     public static final String MASTER_PERIODIC_BLOCK_INTEGRITY_CHECK_INTERVAL =
@@ -3239,6 +3265,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
         "alluxio.user.local.reader.packet.size.bytes";
     public static final String USER_LOCAL_WRITER_PACKET_SIZE_BYTES =
         "alluxio.user.local.writer.packet.size.bytes";
+    public static final String USER_METRICS_COLLECTION_ENABLED =
+        "alluxio.user.metrics.collection.enabled";
+    public static final String USER_METRICS_HEARTBEAT_INTERVAL_MS =
+        "alluxio.user.metrics.heartbeat.interval";
     public static final String USER_NETWORK_NETTY_CHANNEL = "alluxio.user.network.netty.channel";
     public static final String USER_NETWORK_NETTY_TIMEOUT_MS =
         "alluxio.user.network.netty.timeout";

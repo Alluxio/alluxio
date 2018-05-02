@@ -15,14 +15,20 @@ import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.client.block.BlockMasterClient;
 import alluxio.client.block.BlockMasterClientPool;
+import alluxio.client.metrics.ClientMasterSync;
+import alluxio.client.metrics.MetricsMasterClient;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.status.UnavailableException;
+import alluxio.heartbeat.HeartbeatContext;
+import alluxio.heartbeat.HeartbeatThread;
+import alluxio.master.MasterClientConfig;
 import alluxio.master.MasterInquireClient;
 import alluxio.metrics.MetricsSystem;
 import alluxio.network.netty.NettyChannelPool;
 import alluxio.network.netty.NettyClient;
 import alluxio.resource.CloseableResource;
 import alluxio.util.CommonUtils;
+import alluxio.util.ThreadFactoryUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
@@ -39,7 +45,10 @@ import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.annotation.concurrent.GuardedBy;
@@ -74,6 +83,13 @@ public final class FileSystemContext implements Closeable {
 
   // Closed flag for debugging information.
   private final AtomicBoolean mClosed;
+
+  private final ExecutorService mExecutorService;
+  private MetricsMasterClient mMetricsMasterClient;
+  private ClientMasterSync mClientMasterSync;
+
+  /** a UUID without hyphens */
+  private final String mId;
 
   // The netty data server channel pools.
   private final ConcurrentHashMap<SocketAddress, NettyChannelPool>
@@ -133,6 +149,9 @@ public final class FileSystemContext implements Closeable {
    */
   private FileSystemContext(Subject subject) {
     mParentSubject = subject;
+    mExecutorService = Executors.newFixedThreadPool(1,
+        ThreadFactoryUtils.build("metrics-master-heartbeat-%d", true));
+    mId = UUID.randomUUID().toString().replace("-", "");
     mClosed = new AtomicBoolean(false);
   }
 
@@ -147,6 +166,14 @@ public final class FileSystemContext implements Closeable {
         new FileSystemMasterClientPool(mParentSubject, mMasterInquireClient);
     mBlockMasterClientPool = new BlockMasterClientPool(mParentSubject, mMasterInquireClient);
     mClosed.set(false);
+    // setup metrics master client sync
+    mMetricsMasterClient = new MetricsMasterClient(MasterClientConfig.defaults());
+    mClientMasterSync = new ClientMasterSync(mMetricsMasterClient);
+    if (Configuration.getBoolean(PropertyKey.USER_METRICS_COLLECTION_ENABLED)) {
+      mExecutorService
+          .submit(new HeartbeatThread(HeartbeatContext.METRICS_MASTER_SYNC, mClientMasterSync,
+              (int) Configuration.getMs(PropertyKey.USER_METRICS_HEARTBEAT_INTERVAL_MS)));
+    }
   }
 
   /**
@@ -161,6 +188,8 @@ public final class FileSystemContext implements Closeable {
     mFileSystemMasterClientPool = null;
     mBlockMasterClientPool.close();
     mBlockMasterClientPool = null;
+    mMetricsMasterClient.close();
+    mMetricsMasterClient = null;
     mMasterInquireClient = null;
 
     for (NettyChannelPool pool : mNettyChannelPools.values()) {
@@ -169,6 +198,7 @@ public final class FileSystemContext implements Closeable {
     mNettyChannelPools.clear();
 
     synchronized (this) {
+      mExecutorService.shutdown();
       mLocalWorkerInitialized = false;
       mLocalWorker = null;
       mClosed.set(true);
@@ -182,6 +212,13 @@ public final class FileSystemContext implements Closeable {
   public synchronized void reset() throws IOException {
     close();
     init(MasterInquireClient.Factory.create());
+  }
+
+  /**
+   * @return the unique id of the context
+   */
+  public String getId() {
+    return mId;
   }
 
   /**

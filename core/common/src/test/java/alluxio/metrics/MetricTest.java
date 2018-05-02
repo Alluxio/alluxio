@@ -33,7 +33,7 @@ public class MetricTest {
 
   public void checkEquality(Metric a, Metric b) {
     assertEquals(a.getName(), b.getName());
-    assertEquals(a.getInstance(), b.getInstance());
+    assertEquals(a.getInstanceType(), b.getInstanceType());
     assertEquals(a.getValue(), b.getValue());
     assertEquals(a.getHostname(), b.getHostname());
     assertEquals(a.getFullMetricName(), b.getFullMetricName());

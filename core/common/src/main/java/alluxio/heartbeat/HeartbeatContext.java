@@ -40,6 +40,7 @@ public final class HeartbeatContext {
   public static final String WORKER_FILESYSTEM_MASTER_SYNC = "Worker FileSystemMaster Sync";
   public static final String WORKER_PIN_LIST_SYNC = "Worker Pin List Sync";
   public static final String WORKER_SPACE_RESERVER = "Worker Space Reserver";
+  public static final String METRICS_MASTER_SYNC="Metrics Master Sync";
 
   static {
     sTimerClasses = new HashMap<>();

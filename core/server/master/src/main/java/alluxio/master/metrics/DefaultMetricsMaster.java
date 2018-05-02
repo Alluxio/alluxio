@@ -15,6 +15,7 @@ import alluxio.Constants;
 import alluxio.clock.SystemClock;
 import alluxio.master.AbstractMaster;
 import alluxio.master.MasterContext;
+import alluxio.metrics.ClientMetrics;
 import alluxio.metrics.Metric;
 import alluxio.metrics.MetricsAggregator;
 import alluxio.metrics.MetricsFilter;
@@ -23,6 +24,7 @@ import alluxio.metrics.MetricsSystem;
 import alluxio.metrics.WorkerMetrics;
 import alluxio.metrics.aggregator.SumInstancesAggregator;
 import alluxio.proto.journal.Journal.JournalEntry;
+import alluxio.thrift.MetricsMasterClientService;
 import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.util.executor.ExecutorServiceFactory;
 
@@ -36,6 +38,7 @@ import java.time.Clock;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Future;
@@ -96,8 +99,12 @@ public class DefaultMetricsMaster extends AbstractMaster implements MetricsMaste
   }
 
   private void registerAggregators() {
+    // worker metrics
     addAggregator(new SumInstancesAggregator(MetricsSystem.WORKER_INSTANCE,
         WorkerMetrics.BYTES_READ_ALLUXIO));
+    // client metrics
+    addAggregator(new SumInstancesAggregator(MetricsSystem.CLIENT_INSTANCE,
+        ClientMetrics.BYTES_READ_LOCAL));
   }
 
   @Override
@@ -123,11 +130,26 @@ public class DefaultMetricsMaster extends AbstractMaster implements MetricsMaste
   @Override
   public Map<String, TProcessor> getServices() {
     Map<String, TProcessor> services = new HashMap<>();
+    services.put(Constants.METRICS_MASTER_CLIENT_SERVICE_NAME,
+        new MetricsMasterClientService.Processor<>(getMasterServiceHandler()));
     return services;
   }
 
   @Override
   public void start(Boolean isLeader) throws IOException {
     super.start(isLeader);
+  }
+
+  @Override
+  public void clientHeartbeat(String clientId, String hostname, List<Metric> metrics) {
+    if(metrics.isEmpty()) {
+      return;
+    }
+    mMetricsStore.putClientMetrics(hostname, clientId, metrics);
+  }
+
+  @Override
+  public MetricsMasterClientServiceHandler getMasterServiceHandler() {
+    return new MetricsMasterClientServiceHandler(this);
   }
 }

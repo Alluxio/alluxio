@@ -38,15 +38,22 @@ public class MetricsStore {
     }
   };
 
-  private static final IndexDefinition<Metric> HOSTNAME_INDEX = new IndexDefinition<Metric>(false) {
-    @Override
-    public Object getFieldValue(Metric o) {
-      return o.getHostname();
-    }
-  };
+  private static final IndexDefinition<Metric> HOSTNAME_ID_INDEX =
+      new IndexDefinition<Metric>(false) {
+        @Override
+        public Object getFieldValue(Metric o) {
+          return getHostnameAndId(o.getHostname(), o.getInstanceId());
+        }
+      };
+
+  private static String getHostnameAndId(String hostname, String id) {
+    String str = hostname == null ? "" : hostname;
+    str += id == null ? "" : ":" + id;
+    return str;
+  }
 
   private final IndexedSet<Metric> mWorkerMetrics =
-      new IndexedSet<>(FULL_NAME_INDEX, NAME_INDEX, HOSTNAME_INDEX);
+      new IndexedSet<>(FULL_NAME_INDEX, NAME_INDEX, HOSTNAME_ID_INDEX);
 
   /**
    * Gets all the metrics by instance type. The supported instance types are worker and client.
@@ -63,19 +70,24 @@ public class MetricsStore {
   }
 
   /**
-   * Put the metrics from an instance with a hostname. If all the old metrics associated with this
+   * Put the metrics from a worker with a hostname. If all the old metrics associated with this
    * instance will be removed and then replaced by the latest.
    *
-   * @param instance the instance type
    * @param hostname the hostname of the instance
    * @param metrics the new worker metrics
    */
-  public synchronized void putWorkerMetrics(String instance, String hostname,
-      List<Metric> metrics) {
-    IndexedSet<Metric> set = getMetricsByInstanceType(instance);
-    set.removeByField(HOSTNAME_INDEX, hostname);
+  public synchronized void putWorkerMetrics(String hostname, List<Metric> metrics) {
+    mWorkerMetrics.removeByField(HOSTNAME_ID_INDEX, hostname);
     for (Metric metric : metrics) {
-      set.add(metric);
+      mWorkerMetrics.add(metric);
+    }
+  }
+
+  public synchronized void putClientMetrics(String hostname, String clientId,
+      List<Metric> metrics) {
+    mWorkerMetrics.removeByField(HOSTNAME_ID_INDEX, getHostnameAndId(hostname, clientId));
+    for (Metric metric : metrics) {
+      mWorkerMetrics.add(metric);
     }
   }
 
