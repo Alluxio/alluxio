@@ -433,7 +433,7 @@ public class AlluxioMasterProcess implements MasterProcess {
   }
 
   /**
-   * Updates config checker when a lost worker become alive.
+   * Updates config checker when a lost worker becomes alive.
    *
    * @param id the id of the worker to use
    */
@@ -442,7 +442,7 @@ public class AlluxioMasterProcess implements MasterProcess {
   }
 
   /**
-   * Updates config checker when a live worker become lost.
+   * Updates config checker when a live worker becomes lost.
    *
    * @param id the id of the worker to use
    */
@@ -451,7 +451,7 @@ public class AlluxioMasterProcess implements MasterProcess {
   }
 
   /**
-   * Updates config checker when a worker register with configuration.
+   * Updates config checker when a worker registers with configuration.
    *
    * @param id the id of the worker to use
    */
