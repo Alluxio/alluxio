@@ -43,11 +43,9 @@ public class ConfigRecorder {
    * @param id the master/worker id
    * @param configList the configuration of this master/worker
    */
-  public void registerNewConf(Long id, List<ConfigProperty> configList) {
-    synchronized (mLocker) {
-      mConfMap.put(id, configList);
-      mLostConfMap.remove(id);
-    }
+  public synchronized void registerNewConf(Long id, List<ConfigProperty> configList) {
+    mConfMap.put(id, configList);
+    mLostConfMap.remove(id);
   }
 
   /**
@@ -56,13 +54,11 @@ public class ConfigRecorder {
    *
    * @param id the master/worker id
    */
-  public void detectNodeLost(Long id) {
+  public synchronized void detectNodeLost(Long id) {
     List<ConfigProperty> configList = mConfMap.get(id);
     if (configList != null) {
-      synchronized (mLocker) {
-        mLostConfMap.put(id, configList);
-        mConfMap.remove(id);
-      }
+      mLostConfMap.put(id, configList);
+      mConfMap.remove(id);
     }
   }
 
@@ -72,13 +68,11 @@ public class ConfigRecorder {
    *
    * @param id the master/worker id
    */
-  public void lostNodeFound(Long id) {
+  public synchronized void lostNodeFound(Long id) {
     List<ConfigProperty> configList = mLostConfMap.get(id);
     if (configList != null) {
-      synchronized (mLocker) {
-        mConfMap.put(id, configList);
-        mLostConfMap.remove(id);
-      }
+      mConfMap.put(id, configList);
+      mLostConfMap.remove(id);
     }
   }
 }
