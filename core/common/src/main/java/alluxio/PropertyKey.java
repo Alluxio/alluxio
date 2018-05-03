@@ -339,6 +339,10 @@ public final class PropertyKey implements Comparable<PropertyKey> {
               + "should be the same on the clients and server.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.ENFORCE)
           .build();
+  /**
+   * @deprecated since 1.8.0 and will be removed in 2.0.
+   */
+  @Deprecated
   public static final PropertyKey NETWORK_THRIFT_FRAME_SIZE_BYTES_MAX =
       new Builder(Name.NETWORK_THRIFT_FRAME_SIZE_BYTES_MAX)
           .setDefaultValue("16MB")
