@@ -64,7 +64,7 @@ public final class RetryHandlingMetaMasterClient extends AbstractMasterClient
 
   @Override
   protected String getServiceName() {
-    return Constants.META_MASTER_SERVICE_NAME;
+    return Constants.META_MASTER_CLIENT_SERVICE_NAME;
   }
 
   @Override

@@ -36,6 +36,12 @@ struct MasterInfo {
  8: list<string> zookeeperAddresses // Null means zookeeper is not enabled
 }
 
+struct GetMasterIdTOptions {}
+
+struct GetMasterIdTResponse {
+  1: i64 masterId
+}
+
 struct GetMasterInfoTOptions {
   1: set<MasterInfoField> filter
 }
@@ -81,4 +87,19 @@ service MetaMasterClientService extends common.AlluxioService {
     /** the method options */ 1: GetMetricsTOptions options,
     )
     throws (1: exception.AlluxioTException e)
+}
+
+/**
+  * This interface contains meta master service endpoints for Alluxio masters.
+  */
+service MetaMasterMasterService extends common.AlluxioService {
+  /**
+   * Returns a master id for the given master hostname.
+   */
+  GetMasterIdTResponse getMasterId(
+    /** the master hostname */ 1: string hostname,
+    /** the method options */ 2: GetMasterIdTOptions options,
+    )
+    throws (1: exception.AlluxioTException e)
+
 }

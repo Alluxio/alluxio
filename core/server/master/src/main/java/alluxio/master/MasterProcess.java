@@ -92,4 +92,12 @@ public interface MasterProcess extends Process {
    * @return configuration information list
    */
   List<ConfigProperty> getConfiguration();
+
+  /**
+   * Returns a master id for the given master, creating one if the master is new.
+   *
+   * @param hostname the master hostname
+   * @return the master id for this master
+   */
+  long getMasterId(String hostname);
 }

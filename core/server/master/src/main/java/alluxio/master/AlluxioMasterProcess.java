@@ -15,14 +15,19 @@ import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.RuntimeConstants;
+import alluxio.collections.IndexDefinition;
+import alluxio.collections.IndexedSet;
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.JournalSystem.Mode;
+import alluxio.master.meta.MetaMasterClientServiceHandler;
+import alluxio.master.meta.MetaMasterInfo;
 import alluxio.metrics.MetricsSystem;
 import alluxio.metrics.sink.MetricsServlet;
 import alluxio.metrics.sink.PrometheusMetricsServlet;
 import alluxio.security.authentication.TransportProvider;
 import alluxio.thrift.MetaMasterClientService;
 import alluxio.util.CommonUtils;
+import alluxio.util.IdUtils;
 import alluxio.util.JvmPauseMonitor;
 import alluxio.util.WaitForOptions;
 import alluxio.util.network.NetworkAddressUtils;
@@ -61,6 +66,23 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public class AlluxioMasterProcess implements MasterProcess {
   private static final Logger LOG = LoggerFactory.getLogger(AlluxioMasterProcess.class);
+
+  // Master metadata management.
+  private static final IndexDefinition<MetaMasterInfo> ID_INDEX =
+      new IndexDefinition<MetaMasterInfo>(true) {
+        @Override
+        public Object getFieldValue(MetaMasterInfo o) {
+          return o.getId();
+        }
+      };
+
+  private static final IndexDefinition<MetaMasterInfo> HOSTNAME_INDEX =
+      new IndexDefinition<MetaMasterInfo>(true) {
+        @Override
+        public Object getFieldValue(MetaMasterInfo o) {
+          return o.getHostname();
+        }
+      };
 
   /** Maximum number of threads to serve the rpc server. */
   private final int mMaxWorkerThreads;
@@ -110,6 +132,13 @@ public class AlluxioMasterProcess implements MasterProcess {
 
   /** The manager of safe mode state. */
   protected final SafeModeManager mSafeModeManager;
+
+  /** Keeps track of standby masters which are in communication with the leader master. */
+  private final IndexedSet<MetaMasterInfo> mMasters =
+      new IndexedSet<>(ID_INDEX, HOSTNAME_INDEX);
+  /** Keeps track of standby masters which are no longer in communication with the leader master. */
+  private final IndexedSet<MetaMasterInfo> mLostMasters =
+      new IndexedSet<>(ID_INDEX, HOSTNAME_INDEX);
 
   /**
    * Creates a new {@link AlluxioMasterProcess}.
@@ -223,6 +252,41 @@ public class AlluxioMasterProcess implements MasterProcess {
       }
     }
     return configInfoList;
+  }
+
+  @Override
+  public long getMasterId(String hostname) {
+    MetaMasterInfo existingMaster = mMasters.getFirstByField(HOSTNAME_INDEX, hostname);
+    if (existingMaster != null) {
+      // This master hostname is already mapped to a master id.
+      long oldMasterId = existingMaster.getId();
+      LOG.warn("The master {} already exists as id {}.", hostname, oldMasterId);
+      return oldMasterId;
+    }
+
+    MetaMasterInfo lostMaster = mLostMasters.getFirstByField(HOSTNAME_INDEX, hostname);
+    if (lostMaster != null) {
+      // This is one of the lost masters
+      synchronized (lostMaster) {
+        final long lostMasterId = lostMaster.getId();
+        LOG.warn("A lost master {} has requested its old id {}.", hostname, lostMasterId);
+
+        // Update the timestamp of the master before it is considered an active master.
+        lostMaster.updateLastUpdatedTimeMs();
+        mMasters.add(lostMaster);
+        mLostMasters.remove(lostMaster);
+        return lostMasterId;
+      }
+    }
+
+    // Generate a new master id.
+    long masterId = IdUtils.getRandomNonNegativeLong();
+    while (!mMasters.add(new MetaMasterInfo(masterId, hostname))) {
+      masterId = IdUtils.getRandomNonNegativeLong();
+    }
+
+    LOG.info("getMasterId(): Hostname: {} id: {}", hostname, masterId);
+    return masterId;
   }
 
   @Override
@@ -357,7 +421,7 @@ public class AlluxioMasterProcess implements MasterProcess {
       registerServices(processor, master.getServices());
     }
     // register meta services
-    processor.registerProcessor(Constants.META_MASTER_SERVICE_NAME,
+    processor.registerProcessor(Constants.META_MASTER_CLIENT_SERVICE_NAME,
         new MetaMasterClientService.Processor<>(new MetaMasterClientServiceHandler(this)));
 
     // Return a TTransportFactory based on the authentication type
