@@ -29,6 +29,8 @@ import java.util.Iterator;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
+import javax.annotation.concurrent.GuardedBy;
+
 /**
  * Extension of TServerSocket which tracks all accepted sockets and closes them when the server
  * socket is closed.
@@ -39,7 +41,8 @@ public class SocketTrackingTServerSocket extends TServerSocket {
       Configuration.getMs(PropertyKey.MASTER_CLIENT_SOCKET_CLEANUP_INTERVAL);
 
   private final Set<Socket> mSockets = ConcurrentHashMap.newKeySet();
-  private final Thread mCleanupThread;
+  @GuardedBy("this")
+  private Thread mCleanupThread;
 
   /**
    * @param bindAddr bind address for the socket
@@ -48,14 +51,19 @@ public class SocketTrackingTServerSocket extends TServerSocket {
   public SocketTrackingTServerSocket(InetSocketAddress bindAddr, int clientTimeout)
       throws TTransportException {
     super(bindAddr, clientTimeout);
-    mCleanupThread = new Thread(this::removeClosedSockets);
-    mCleanupThread.start();
   }
 
   @Override
   public TSocket acceptImpl() throws TTransportException {
     TSocket socket = super.acceptImpl();
     mSockets.add(socket.getSocket());
+    synchronized (this) {
+      // Start cleanup thread lazily.
+      if (mCleanupThread == null) {
+        mCleanupThread = new Thread(this::removeClosedSockets, "socket-closer-thread");
+        mCleanupThread.start();
+      }
+    }
     return socket;
   }
 
@@ -67,15 +75,19 @@ public class SocketTrackingTServerSocket extends TServerSocket {
     } catch (IOException e) {
       LOG.error("Could not close client sockets", e);
     }
-    mCleanupThread.interrupt();
-    try {
-      mCleanupThread.join(Constants.SECOND_MS);
-    } catch (InterruptedException e) {
-      Thread.currentThread().interrupt();
-      return;
-    }
-    if (mCleanupThread.isAlive()) {
-      LOG.warn("Failed to stop socket cleanup thread.");
+    synchronized (this) {
+      if (mCleanupThread != null) {
+        mCleanupThread.interrupt();
+        try {
+          mCleanupThread.join(Constants.SECOND_MS);
+        } catch (InterruptedException e) {
+          Thread.currentThread().interrupt();
+          return;
+        }
+        if (mCleanupThread.isAlive()) {
+          LOG.warn("Failed to stop socket cleanup thread.");
+        }
+      }
     }
   }
 
