@@ -130,7 +130,7 @@ public final class Metric implements Serializable {
     if (!pieces[0].equals(MetricsSystem.InstanceType.MASTER.toString())) {
       hostname = pieces[1];
     }
-    MetricsSystem.InstanceType instance = MetricsSystem.InstanceType.valueOf(pieces[0]);
+    MetricsSystem.InstanceType instance = MetricsSystem.InstanceType.fromString(pieces[0]);
     String name = MetricsSystem.stripInstanceAndHost(fullName);
     return new Metric(instance, hostname, name, value);
   }
@@ -142,7 +142,7 @@ public final class Metric implements Serializable {
    * @return the constructed metric
    */
   public static Metric from(alluxio.thrift.Metric metric) {
-    return new Metric(MetricsSystem.InstanceType.valueOf(metric.getInstance()),
+    return new Metric(MetricsSystem.InstanceType.fromString(metric.getInstance()),
         metric.getHostname(), metric.getName(), metric.getValue());
   }
 

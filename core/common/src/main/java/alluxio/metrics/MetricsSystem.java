@@ -69,6 +69,21 @@ public final class MetricsSystem {
     public String toString() {
       return mValue;
     }
+
+    /**
+     * Creates an instance type from the string. This method is case insensitive.
+     *
+     * @param text the instance type in string
+     * @return the created instance
+     */
+    public static InstanceType fromString(String text) {
+      for (InstanceType type : InstanceType.values()) {
+        if (type.toString().equalsIgnoreCase(text)) {
+          return type;
+        }
+      }
+      throw new IllegalArgumentException("No constant with text " + text + " found");
+    }
   }
 
   // Supported special instance names.
