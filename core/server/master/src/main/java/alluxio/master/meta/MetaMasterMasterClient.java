@@ -17,9 +17,14 @@ import alluxio.master.MasterClientConfig;
 import alluxio.thrift.AlluxioService;
 import alluxio.thrift.GetMasterIdTOptions;
 import alluxio.thrift.MetaMasterMasterService;
+import alluxio.thrift.RegisterMasterTOptions;
+import alluxio.wire.ConfigProperty;
+
+import java.io.IOException;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import javax.annotation.concurrent.ThreadSafe;
-import java.io.IOException;
 
 /**
  * A wrapper for the thrift client to interact with the primary meta master,
@@ -70,5 +75,20 @@ public final class MetaMasterMasterClient extends AbstractMasterClient {
   public synchronized long getId(final String hostname) throws IOException {
     return retryRPC(() -> mClient.getMasterId(hostname, new GetMasterIdTOptions())
         .getMasterId());
+  }
+
+  /**
+   * The method the standby master should execute to register with the leader master.
+   *
+   * @param masterId the master id of the standby master registering
+   * @param configList the configuration of this master
+   */
+  public synchronized void register(final long masterId,
+      final List<ConfigProperty> configList) throws IOException {
+    retryRPC(() -> {
+      mClient.registerMaster(masterId, new RegisterMasterTOptions(configList
+          .stream().map(ConfigProperty::toThrift).collect(Collectors.toList())));
+      return null;
+    });
   }
 }

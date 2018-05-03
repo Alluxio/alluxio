@@ -17,6 +17,8 @@ import alluxio.PropertyKey;
 import alluxio.RuntimeConstants;
 import alluxio.collections.IndexDefinition;
 import alluxio.collections.IndexedSet;
+import alluxio.exception.ExceptionMessage;
+import alluxio.exception.NoMasterException;
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.JournalSystem.Mode;
 import alluxio.master.meta.MetaMasterClientServiceHandler;
@@ -26,6 +28,7 @@ import alluxio.metrics.sink.MetricsServlet;
 import alluxio.metrics.sink.PrometheusMetricsServlet;
 import alluxio.security.authentication.TransportProvider;
 import alluxio.thrift.MetaMasterClientService;
+import alluxio.thrift.RegisterMasterTOptions;
 import alluxio.util.CommonUtils;
 import alluxio.util.IdUtils;
 import alluxio.util.JvmPauseMonitor;
@@ -287,6 +290,27 @@ public class AlluxioMasterProcess implements MasterProcess {
 
     LOG.info("getMasterId(): Hostname: {} id: {}", hostname, masterId);
     return masterId;
+  }
+
+  @Override
+  public void masterRegister(long masterId, RegisterMasterTOptions options)
+      throws NoMasterException {
+    MetaMasterInfo master = mMasters.getFirstByField(ID_INDEX, masterId);
+    if (master == null) {
+      throw new NoMasterException(ExceptionMessage.NO_MASTER_FOUND.getMessage(masterId));
+    }
+
+    synchronized (master) {
+      master.updateLastUpdatedTimeMs();
+      if (options.isSetConfigList()) {
+        // TODO(lu) master config checker registerNewConf
+        /**List<alluxio.wire.ConfigProperty> wireConfigList = options.getConfigList()
+            .stream().map(alluxio.wire.ConfigProperty::fromThrift)
+            .collect(Collectors.toList()); */
+      }
+    }
+
+    LOG.info("registerMaster(): {}", master);
   }
 
   @Override

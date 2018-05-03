@@ -21,6 +21,8 @@ import alluxio.thrift.GetMasterIdTResponse;
 import alluxio.thrift.GetServiceVersionTOptions;
 import alluxio.thrift.GetServiceVersionTResponse;
 import alluxio.thrift.MetaMasterMasterService;
+import alluxio.thrift.RegisterMasterTOptions;
+import alluxio.thrift.RegisterMasterTResponse;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -63,6 +65,23 @@ public final class MetaMasterMasterServiceHandler implements MetaMasterMasterSer
       public String toString() {
         return String
             .format("getMasterId:masterHostname=%s, options=%s", masterHostname, options);
+      }
+    });
+  }
+
+  @Override
+  public RegisterMasterTResponse registerMaster(final long masterId,
+      RegisterMasterTOptions options) throws AlluxioTException {
+    return RpcUtils.call(LOG, new RpcUtils.RpcCallable<RegisterMasterTResponse>() {
+      @Override
+      public RegisterMasterTResponse call() throws AlluxioException {
+        mMasterProcess.masterRegister(masterId, options);
+        return new RegisterMasterTResponse();
+      }
+
+      @Override
+      public String toString() {
+        return String.format("registerMaster: masterId=%s, options=%s", masterId, options);
       }
     });
   }

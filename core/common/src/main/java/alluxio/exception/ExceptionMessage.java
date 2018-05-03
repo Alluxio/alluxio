@@ -65,6 +65,9 @@ public enum ExceptionMessage {
   INSTREAM_CANNOT_SKIP("The underlying BlockInStream could not skip {0}"),
   READ_CLOSED_STREAM("Cannot read from a closed stream"),
 
+  // meta master
+  NO_MASTER_FOUND("No master with masterId {0,number,#} is found"),
+
   // netty
   BLOCK_WRITE_ERROR(
       "Error writing blockId: {0,number,#}, sessionId: {1,number,#}, address: {2}, message: {3}"),

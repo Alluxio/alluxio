@@ -14,8 +14,10 @@ package alluxio.master;
 import alluxio.Configuration;
 import alluxio.Process;
 import alluxio.PropertyKey;
+import alluxio.exception.NoMasterException;
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.JournalUtils;
+import alluxio.thrift.RegisterMasterTOptions;
 import alluxio.wire.ConfigProperty;
 
 import java.net.InetSocketAddress;
@@ -100,4 +102,13 @@ public interface MasterProcess extends Process {
    * @return the master id for this master
    */
   long getMasterId(String hostname);
+
+  /**
+   * Updates metadata when a standby master registers with the leader master.
+   *
+   * @param masterId the master id of the standby master registering
+   * @param options the options that contains master configuration
+   * @throws NoMasterException if masterId cannot be found
+   */
+  void masterRegister(long masterId, RegisterMasterTOptions options) throws NoMasterException;
 }

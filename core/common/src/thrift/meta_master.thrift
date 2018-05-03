@@ -61,6 +61,11 @@ struct MetricValue {
   2: optional i64 longValue;
 }
 
+struct RegisterMasterTOptions {
+  1: list<ConfigProperty> configList
+}
+struct RegisterMasterTResponse {}
+
 /**
   * This interface contains meta master service endpoints for Alluxio clients.
   */
@@ -102,4 +107,12 @@ service MetaMasterMasterService extends common.AlluxioService {
     )
     throws (1: exception.AlluxioTException e)
 
+  /**
+   * Registers a master.
+   */
+  RegisterMasterTResponse registerMaster(
+    /** the id of the master */  1: i64 masterId,
+    /** the method options */ 2: RegisterMasterTOptions options,
+    )
+    throws (1: exception.AlluxioTException e)
 }
