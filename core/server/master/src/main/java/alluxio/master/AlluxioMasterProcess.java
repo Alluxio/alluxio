@@ -285,7 +285,7 @@ public class AlluxioMasterProcess implements MasterProcess {
    */
   protected void stopMasters() {
     try {
-      mWorkerConfigChecker.init();
+      mWorkerConfigChecker.reset();
       mRegistry.stop();
     } catch (IOException e) {
       throw Throwables.propagate(e);

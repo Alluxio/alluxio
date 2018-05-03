@@ -24,23 +24,24 @@ import java.util.Set;
  */
 public class ServerConfigurationChecker {
   /** Map from a node id to its configuration. */
-  private Map<Long, List<ConfigProperty>> mConfMap;
+  private final Map<Long, List<ConfigProperty>> mConfMap;
   /** Set that contains the ids of lost nodes. */
-  private Set<Long> mLostNodes;
+  private final Set<Long> mLostNodes;
 
   /**
    * Constructs a new {@link ServerConfigurationChecker}.
    */
   public ServerConfigurationChecker() {
-    init();
+    mConfMap = new HashMap<>();
+    mLostNodes = new HashSet<>();
   }
 
   /**
-   * Initializes the default {@link ServerConfigurationChecker}.
+   * Resets the default {@link ServerConfigurationChecker}.
    */
-  public synchronized void init() {
-    mConfMap = new HashMap<>();
-    mLostNodes = new HashSet<>();
+  public synchronized void reset() {
+    mConfMap.clear();
+    mLostNodes.clear();
   }
 
   /**
