@@ -51,7 +51,7 @@ public final class MetricsMasterFactory implements MasterFactory {
   public MetricsMaster create(MasterRegistry registry, JournalSystem journalSystem,
       SafeModeManager safeModeManager, MetricsStore metricsStore) {
     Preconditions.checkNotNull(journalSystem, "journal");
-    Preconditions.checkNotNull(metricsStore, "metrics store");
+    Preconditions.checkNotNull(metricsStore, "metricsStore");
     LOG.info("Creating {} ", MetricsMaster.class.getName());
     MetricsMaster master =
         new DefaultMetricsMaster(new MasterContext(journalSystem, safeModeManager, metricsStore));

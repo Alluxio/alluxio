@@ -88,7 +88,7 @@ public class DefaultMetricsMaster extends AbstractMaster implements MetricsMaste
   }
 
   private void registerAggregators() {
-    addAggregator(new SumInstancesAggregator(MetricsSystem.WORKER_INSTANCE,
+    addAggregator(new SumInstancesAggregator(MetricsSystem.InstanceType.WORKER,
         WorkerMetrics.BYTES_READ_ALLUXIO));
   }
 

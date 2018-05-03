@@ -11,13 +11,10 @@
 
 package alluxio.metrics;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
-import com.google.common.collect.ImmutableSet;
 
 import java.io.Serializable;
-import java.util.Set;
 
 /**
  * A metric of a given instance. The instance can be master, worker, or client.
@@ -25,10 +22,7 @@ import java.util.Set;
 public final class Metric implements Serializable {
   private static final long serialVersionUID = -2236393414222298333L;
 
-  @VisibleForTesting
-  static final Set<String> SUPPORTED_INSTANCES = ImmutableSet.of(MetricsSystem.MASTER_INSTANCE,
-      MetricsSystem.WORKER_INSTANCE, MetricsSystem.CLIENT_INSTANCE);
-  private final String mInstance;
+  private final MetricsSystem.InstanceType mInstance;
   private final String mHostname;
   private final String mName;
   private final Long mValue;
@@ -41,10 +35,7 @@ public final class Metric implements Serializable {
    * @param name the metric name
    * @param value the value
    */
-  public Metric(String instance, String hostname, String name, Long value) {
-    Preconditions.checkArgument(SUPPORTED_INSTANCES.contains(instance),
-        "The instance type %s is not supported. The type must be one of %s", instance,
-        SUPPORTED_INSTANCES);
+  public Metric(MetricsSystem.InstanceType instance, String hostname, String name, Long value) {
     Preconditions.checkNotNull(name);
     mInstance = instance;
     mHostname = hostname;
@@ -55,7 +46,7 @@ public final class Metric implements Serializable {
   /**
    * @return the instance type
    */
-  public String getInstance() {
+  public MetricsSystem.InstanceType getInstance() {
     return mInstance;
   }
 
@@ -116,7 +107,7 @@ public final class Metric implements Serializable {
    */
   public alluxio.thrift.Metric toThrift() {
     alluxio.thrift.Metric metric = new alluxio.thrift.Metric();
-    metric.setInstance(mInstance);
+    metric.setInstance(mInstance.toString());
     metric.setHostname(mHostname);
     metric.setName(mName);
     metric.setValue(mValue);
@@ -136,10 +127,10 @@ public final class Metric implements Serializable {
 
     String hostname = null;
     // Master or cluster metrics don't have hostname included.
-    if (!pieces[0].equals(MetricsSystem.MASTER_INSTANCE)) {
+    if (!pieces[0].equals(MetricsSystem.InstanceType.MASTER)) {
       hostname = pieces[1];
     }
-    String instance = pieces[0];
+    MetricsSystem.InstanceType instance = MetricsSystem.InstanceType.valueOf(pieces[0]);
     String name = MetricsSystem.stripInstanceAndHost(fullName);
     return new Metric(instance, hostname, name, value);
   }
@@ -151,8 +142,8 @@ public final class Metric implements Serializable {
    * @return the constructed metric
    */
   public static Metric from(alluxio.thrift.Metric metric) {
-    return new Metric(metric.getInstance(), metric.getHostname(), metric.getName(),
-        metric.getValue());
+    return new Metric(MetricsSystem.InstanceType.valueOf(metric.getInstance()),
+        metric.getHostname(), metric.getName(), metric.getValue());
   }
 
   @Override

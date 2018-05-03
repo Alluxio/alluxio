@@ -13,6 +13,7 @@ package alluxio.metrics;
 
 import alluxio.collections.IndexDefinition;
 import alluxio.collections.IndexedSet;
+import alluxio.metrics.MetricsSystem.InstanceType;
 
 import java.util.List;
 import java.util.Set;
@@ -54,8 +55,8 @@ public class MetricsStore {
    * @param instanceType the instance type
    * @return the metrics stored in {@link IndexedSet};
    */
-  private IndexedSet<Metric> getMetricsByInstanceType(String instanceType) {
-    if (instanceType.equals(MetricsSystem.WORKER_INSTANCE)) {
+  private IndexedSet<Metric> getMetricsByInstanceType(MetricsSystem.InstanceType instanceType) {
+    if (instanceType == InstanceType.WORKER) {
       return mWorkerMetrics;
     } else {
       throw new IllegalArgumentException("Unsupported instance type " + instanceType);
@@ -70,7 +71,7 @@ public class MetricsStore {
    * @param hostname the hostname of the instance
    * @param metrics the new worker metrics
    */
-  public synchronized void putWorkerMetrics(String instance, String hostname,
+  public synchronized void putWorkerMetrics(MetricsSystem.InstanceType instance, String hostname,
       List<Metric> metrics) {
     IndexedSet<Metric> set = getMetricsByInstanceType(instance);
     set.removeByField(HOSTNAME_INDEX, hostname);
@@ -87,8 +88,8 @@ public class MetricsStore {
    * @param name the metric name
    * @return the set of matched metrics
    */
-  public synchronized Set<Metric> getMetricsByInstanceTypeAndName(String instanceType,
-      String name) {
+  public synchronized Set<Metric> getMetricsByInstanceTypeAndName(
+      MetricsSystem.InstanceType instanceType, String name) {
     return getMetricsByInstanceType(instanceType).getByField(NAME_INDEX, name);
   }
 

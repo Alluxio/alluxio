@@ -31,10 +31,11 @@ public interface MetricsAggregator {
   List<MetricsFilter> getFilters();
 
   /**
-   * Gets the aggregated value from the filtered metrics.
+   * Gets the aggregated value from the filtered metrics. The values of map will be the filtered
+   * metrics using the {@link MetricsFilter} defined in {@link #getFilters()}.
    *
    * @param map a map of {@link MetricsFilter} to the set of metrics that it filter to
    * @return the aggregated value
    */
-  Object getValue(Map<MetricsFilter, Set<Metric>> map);
+  long getValue(Map<MetricsFilter, Set<Metric>> map);
 }

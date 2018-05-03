@@ -752,7 +752,7 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
     if (metrics.isEmpty()) {
       return;
     }
-    mMetricsStore.putWorkerMetrics(MetricsSystem.WORKER_INSTANCE, hostname, metrics);
+    mMetricsStore.putWorkerMetrics(MetricsSystem.InstanceType.WORKER, hostname, metrics);
   }
 
   /**
