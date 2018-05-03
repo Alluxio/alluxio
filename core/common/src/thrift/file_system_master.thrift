@@ -73,6 +73,8 @@ struct GetNewBlockIdForFileTResponse {
 struct GetStatusTOptions {
   1: optional LoadMetadataTType loadMetadataType
   2: optional FileSystemMasterCommonTOptions commonOptions
+  3: optional i64 ttl
+  4: optional common.TTtlAction ttlAction
 }
 struct GetStatusTResponse {
   1: FileInfo fileInfo
@@ -83,6 +85,8 @@ struct ListStatusTOptions {
   1: optional bool loadDirectChildren
   2: optional LoadMetadataTType loadMetadataType
   3: optional FileSystemMasterCommonTOptions commonOptions
+  4: optional i64 ttl
+  5: optional common.TTtlAction ttlAction
 }
 struct ListStatusTResponse {
   1: list<FileInfo> fileInfoList

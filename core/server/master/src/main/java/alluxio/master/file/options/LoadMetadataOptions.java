@@ -11,10 +11,12 @@
 
 package alluxio.master.file.options;
 
+import alluxio.Constants;
 import alluxio.thrift.LoadMetadataTOptions;
 import alluxio.underfs.UfsStatus;
 import alluxio.wire.CommonOptions;
 
+import alluxio.wire.TtlAction;
 import com.google.common.base.Objects;
 
 import javax.annotation.Nullable;
@@ -29,6 +31,8 @@ public final class LoadMetadataOptions {
   private boolean mCreateAncestors;
   private DescendantType mLoadDescendantType;
   private UfsStatus mUfsStatus;
+  private long mTtl;
+  private TtlAction mTtlAction;
 
   /**
    * @return the default {@link LoadMetadataOptions}
@@ -43,6 +47,8 @@ public final class LoadMetadataOptions {
     mCreateAncestors = false;
     mUfsStatus = null;
     mLoadDescendantType = DescendantType.NONE;
+    mTtl = Constants.NO_TTL;
+    mTtlAction = TtlAction.DELETE;
   }
 
   /**
@@ -88,6 +94,20 @@ public final class LoadMetadataOptions {
   }
 
   /**
+   * @return the time to live of an inode
+   */
+  public long getTtl() {
+    return mTtl;
+  }
+
+  /**
+   * @return the action after ttl is expired
+   */
+  public TtlAction getTtlAction() {
+    return mTtlAction;
+  }
+
+  /**
    * @param options the common options
    * @return the updated options object
    */
@@ -128,6 +148,28 @@ public final class LoadMetadataOptions {
     return this;
   }
 
+  /**
+   * Sets the ttl of a path
+   *
+   * @param ttl
+   * @return the updated object
+   */
+  public LoadMetadataOptions setTtl(long ttl) {
+    mTtl = ttl;
+    return this;
+  }
+
+  /**
+   * Sets the action after ttl expired
+   *
+   * @param ttlAction
+   * @return the updated object
+   */
+  public LoadMetadataOptions setTtlAction(TtlAction ttlAction) {
+    mTtlAction = ttlAction;
+    return this;
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) {
@@ -140,12 +182,15 @@ public final class LoadMetadataOptions {
     return Objects.equal(mCreateAncestors, that.mCreateAncestors)
         && Objects.equal(mCommonOptions, that.mCommonOptions)
         && Objects.equal(mLoadDescendantType, that.mLoadDescendantType)
-        && Objects.equal(mUfsStatus, that.mUfsStatus);
+        && Objects.equal(mUfsStatus, that.mUfsStatus)
+        && Objects.equal(mTtl, that.mTtl)
+        && Objects.equal(mTtlAction, that.mTtlAction);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mCreateAncestors, mLoadDescendantType, mUfsStatus, mCommonOptions);
+    return Objects.hashCode(mCreateAncestors, mLoadDescendantType, mUfsStatus, mCommonOptions,
+        mTtl, mTtlAction);
   }
 
   @Override
@@ -154,6 +199,9 @@ public final class LoadMetadataOptions {
         .add("commonOptions", mCommonOptions)
         .add("createAncestors", mCreateAncestors)
         .add("loadDescendantLevels", mLoadDescendantType)
-        .add("ufsStatus", mUfsStatus).toString();
+        .add("ufsStatus", mUfsStatus)
+        .add("ttl", mTtl)
+        .add("ttlAction", mTtlAction)
+        .toString();
   }
 }
