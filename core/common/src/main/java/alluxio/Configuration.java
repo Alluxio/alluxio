@@ -27,7 +27,6 @@ import org.slf4j.LoggerFactory;
 
 import java.time.Duration;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -101,6 +100,7 @@ public final class Configuration {
 
     // Now lets combine, order matters here
     PROPERTIES.clear();
+    SOURCES.clear();
     merge(systemProps, Source.SYSTEM_PROPERTY);
 
     // Load site specific properties file if not in test mode. Note that we decide whether in test
@@ -611,7 +611,7 @@ public final class Configuration {
    * @throws IllegalStateException if invalid configuration is encountered
    */
   public static void validate() {
-    for (Map.Entry<String, String> entry : Collections.unmodifiableMap(PROPERTIES).entrySet()) {
+    for (Map.Entry<String, String> entry : toMap().entrySet()) {
       String propertyName = entry.getKey();
       Preconditions.checkState(PropertyKey.isValid(propertyName), propertyName);
       PropertyKey propertyKey = PropertyKey.fromString(propertyName);
