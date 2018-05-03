@@ -13,63 +13,69 @@ package alluxio.master.meta;
 
 import alluxio.wire.ConfigProperty;
 
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * This class is responsible for checking server-side configuration.
  */
-public final class ServerConfigurationChecker {
-  private ConfigRecorder mMasterConfigRecorder;
-  private ConfigRecorder mWorkerConfigRecorder;
+public class ServerConfigurationChecker {
+  /** Map from a node id to its configuration. */
+  private Map<Long, List<ConfigProperty>> mConfMap;
+  /** Map from a lost node id to its configuration. */
+  private Map<Long, List<ConfigProperty>> mLostConfMap;
 
   /**
    * Constructs a new {@link ServerConfigurationChecker}.
    */
   public ServerConfigurationChecker() {
-    mMasterConfigRecorder = new ConfigRecorder();
-    mWorkerConfigRecorder = new ConfigRecorder();
+    mConfMap = new HashMap<>();
+    mLostConfMap = new HashMap<>();
   }
 
   /**
    * Registers new configuration information.
    *
-   * @param id the master/worker id
-   * @param configList the configuration of this master/worker
-   * @param isMaster whether this node is a master
+   * @param id the node id
+   * @param configList the configuration of this node
    */
-  public void registerNewConf(long id, List<ConfigProperty> configList, boolean isMaster) {
-    if (isMaster) {
-      mMasterConfigRecorder.registerNewConf(id, configList);
-    } else {
-      mWorkerConfigRecorder.registerNewConf(id, configList);
+  public synchronized void registerNewConf(long id, List<ConfigProperty> configList) {
+    mConfMap.put(id, configList);
+    mLostConfMap.remove(id);
+  }
+
+  /**
+   * Updates configuration when a live node becomes lost.
+   *
+   * @param id the node id
+   */
+  public synchronized void handleNodeLost(long id) {
+    List<ConfigProperty> configList = mConfMap.get(id);
+    if (configList != null) {
+      mLostConfMap.put(id, configList);
+      mConfMap.remove(id);
     }
   }
 
   /**
-   * Updates the ConfigRecorder when a live node becomes lost.
+   * Updates configuration when a lost node is found.
    *
-   * @param id the master/worker id
-   * @param isMaster whether this node is a master
+   * @param id the node id
    */
-  public void detectNodeLost(long id, boolean isMaster) {
-    if (isMaster) {
-      mMasterConfigRecorder.detectNodeLost(id);
-    } else {
-      mWorkerConfigRecorder.detectNodeLost(id);
+  public synchronized void lostNodeFound(long id) {
+    List<ConfigProperty> configList = mLostConfMap.get(id);
+    if (configList != null) {
+      mConfMap.put(id, configList);
+      mLostConfMap.remove(id);
     }
   }
 
   /**
-   * Updates the ConfigRecorder when a lost node is found.
-   *
-   * @param id the master/worker id
-   * @param isMaster whether this node is a master
+   * @return the configuration map of live nodes
    */
-  public void lostNodeFound(long id, boolean isMaster) {
-    if (isMaster) {
-      mMasterConfigRecorder.lostNodeFound(id);
-    } else {
-      mWorkerConfigRecorder.lostNodeFound(id);
-    }
+  public synchronized Map<Long, List<ConfigProperty>> getConfMap() {
+    return Collections.unmodifiableMap(mConfMap);
   }
 }

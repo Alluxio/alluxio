@@ -169,13 +169,14 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
       new IndexedSet<>(ID_INDEX, ADDRESS_INDEX);
 
   /** Saves the add configuration call back functions. */
-  private final BlockingQueue<Consumer<Long>> mAddConfCallbacks = new LinkedBlockingQueue<>();
+  private final BlockingQueue<Consumer<Long>> mLostWorkerFoundListeners
+      = new LinkedBlockingQueue<>();
 
   /** Saves the remove configuration call back functions. */
-  private final BlockingQueue<Consumer<Long>> mRemoveConfCallbacks = new LinkedBlockingQueue<>();
+  private final BlockingQueue<Consumer<Long>> mWorkerLostListeners = new LinkedBlockingQueue<>();
 
   /** Saves the register new configuration call back functions. */
-  private final BlockingQueue<BiConsumer<Long, List<ConfigProperty>>> mRegisterConfCallbacks
+  private final BlockingQueue<BiConsumer<Long, List<ConfigProperty>>> mWorkerRegisteredListeners
       = new LinkedBlockingQueue<>();
 
   /**
@@ -688,7 +689,7 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
         lostWorker.updateLastUpdatedTimeMs();
         mWorkers.add(lostWorker);
         mLostWorkers.remove(lostWorker);
-        for (Consumer<Long> function : mAddConfCallbacks) {
+        for (Consumer<Long> function : mLostWorkerFoundListeners) {
           function.accept(lostWorker.getId());
         }
         return lostWorkerId;
@@ -734,7 +735,7 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
         List<alluxio.wire.ConfigProperty> wireConfigList = options.getConfigList()
             .stream().map(alluxio.wire.ConfigProperty::fromThrift)
             .collect(Collectors.toList());
-        for (BiConsumer<Long, List<ConfigProperty>> function : mRegisterConfCallbacks) {
+        for (BiConsumer<Long, List<ConfigProperty>> function : mWorkerRegisteredListeners) {
           function.accept(workerId, wireConfigList);
         }
       }
@@ -910,7 +911,7 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
                 worker.getWorkerAddress(), lastUpdate);
             mLostWorkers.add(worker);
             mWorkers.remove(worker);
-            for (Consumer<Long> function : mRemoveConfCallbacks) {
+            for (Consumer<Long> function : mWorkerLostListeners) {
               function.accept(worker.getId());
             }
             processWorkerRemovedBlocks(worker, worker.getBlocks());
@@ -964,17 +965,17 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
 
   @Override
   public void registerLostWorkerFoundListener(Consumer<Long> function) {
-    mAddConfCallbacks.add(function);
+    mLostWorkerFoundListeners.add(function);
   }
 
   @Override
   public void registerWorkerLostListener(Consumer<Long> function) {
-    mRemoveConfCallbacks.add(function);
+    mWorkerLostListeners.add(function);
   }
 
   @Override
   public void registerNewWorkerConfListener(BiConsumer<Long, List<ConfigProperty>> function) {
-    mRegisterConfCallbacks.add(function);
+    mWorkerRegisteredListeners.add(function);
   }
 
   /**

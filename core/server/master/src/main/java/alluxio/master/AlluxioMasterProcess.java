@@ -116,8 +116,8 @@ public class AlluxioMasterProcess implements MasterProcess {
   /** The manager of safe mode state. */
   protected final SafeModeManager mSafeModeManager;
 
-  /** The server-side configuration checker. */
-  private final ServerConfigurationChecker mConfigChecker;
+  /** The worker configuration checker. */
+  private final ServerConfigurationChecker mWorkerConfigChecker;
 
   /**
    * Creates a new {@link AlluxioMasterProcess}.
@@ -168,12 +168,12 @@ public class AlluxioMasterProcess implements MasterProcess {
       MasterUtils.createMasters(mJournalSystem, mRegistry, mSafeModeManager);
 
       // Create config checker
-      mConfigChecker = new ServerConfigurationChecker();
+      mWorkerConfigChecker = new ServerConfigurationChecker();
 
       // Register listeners for BlockMaster to interact with config checker
       mBlockMaster = mRegistry.get(BlockMaster.class);
       mBlockMaster.registerLostWorkerFoundListener(this::lostWorkerFoundHandler);
-      mBlockMaster.registerWorkerLostListener(this::detectWorkerLostHandler);
+      mBlockMaster.registerWorkerLostListener(this::workerLostHandler);
       mBlockMaster.registerNewWorkerConfListener(this::registerNewWorkerConfHandler);
     } catch (Exception e) {
       throw new RuntimeException(e);
@@ -433,29 +433,29 @@ public class AlluxioMasterProcess implements MasterProcess {
   }
 
   /**
-   * Updates config checker when a lost worker becomes alive.
+   * Updates the config checker when a lost worker becomes alive.
    *
    * @param id the id of the worker to use
    */
   private void lostWorkerFoundHandler(long id) {
-    mConfigChecker.lostNodeFound(id, false);
+    mWorkerConfigChecker.lostNodeFound(id);
   }
 
   /**
-   * Updates config checker when a live worker becomes lost.
+   * Updates the config checker when a live worker becomes lost.
    *
    * @param id the id of the worker to use
    */
-  private void detectWorkerLostHandler(long id) {
-    mConfigChecker.detectNodeLost(id, false);
+  private void workerLostHandler(long id) {
+    mWorkerConfigChecker.handleNodeLost(id);
   }
 
   /**
-   * Updates config checker when a worker registers with configuration.
+   * Updates the config checker when a worker registers with configuration.
    *
    * @param id the id of the worker to use
    */
   private void registerNewWorkerConfHandler(long id, List<ConfigProperty> configList) {
-    mConfigChecker.registerNewConf(id, configList, false);
+    mWorkerConfigChecker.registerNewConf(id, configList);
   }
 }
