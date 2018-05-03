@@ -123,14 +123,4 @@ public final class TempInodePathForDescendant extends LockedInodePath {
     }
     return true;
   }
-
-  @Override
-  public synchronized void downgradeLast() {
-    // nothing to downgrade
-  }
-
-  @Override
-  public synchronized void close() {
-    // nothing to close
-  }
 }

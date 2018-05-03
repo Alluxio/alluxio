@@ -547,8 +547,8 @@ public class InodeTree implements JournalEntryIterable {
     LOG.debug("createPath {}", path);
 
     TraversalResult traversalResult = traverseToInode(inodePath, inodePath.getLockMode());
-    // Put this in a try block? so it gets unlocked?
-    try (InodeLockList lockList = traversalResult.getInodeLockList()) {
+
+      InodeLockList lockList = traversalResult.getInodeLockList();
       MutableLockedInodePath extensibleInodePath = (MutableLockedInodePath) inodePath;
       String[] pathComponents = extensibleInodePath.getPathComponents();
       String name = path.getName();
@@ -746,7 +746,6 @@ public class InodeTree implements JournalEntryIterable {
 
       LOG.debug("createFile: File Created: {} parent: {}", lastInode, currentInodeDirectory);
       return new CreatePathResult(modifiedInodes, createdInodes);
-    }
   }
 
   /**
