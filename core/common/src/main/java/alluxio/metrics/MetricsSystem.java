@@ -241,7 +241,7 @@ public final class MetricsSystem {
     Preconditions.checkArgument(pieces.length > 1, "Incorrect metrics name: %s.", metricsName);
 
     // Master metrics doesn't have hostname included.
-    if (!pieces[0].equals(MetricsSystem.InstanceType.MASTER)) {
+    if (!pieces[0].equals(MetricsSystem.InstanceType.MASTER.toString())) {
       pieces[1] = null;
     }
     pieces[0] = null;

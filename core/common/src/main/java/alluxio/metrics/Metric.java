@@ -127,7 +127,7 @@ public final class Metric implements Serializable {
 
     String hostname = null;
     // Master or cluster metrics don't have hostname included.
-    if (!pieces[0].equals(MetricsSystem.InstanceType.MASTER)) {
+    if (!pieces[0].equals(MetricsSystem.InstanceType.MASTER.toString())) {
       hostname = pieces[1];
     }
     MetricsSystem.InstanceType instance = MetricsSystem.InstanceType.valueOf(pieces[0]);
