@@ -168,14 +168,14 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
   private final IndexedSet<MasterWorkerInfo> mLostWorkers =
       new IndexedSet<>(ID_INDEX, ADDRESS_INDEX);
 
-  /** Saves the add configuration call back functions. */
+  /** Listeners to call when lost workers are found. */
   private final BlockingQueue<Consumer<Long>> mLostWorkerFoundListeners
       = new LinkedBlockingQueue<>();
 
-  /** Saves the remove configuration call back functions. */
+  /** Listeners to call when workers are lost. */
   private final BlockingQueue<Consumer<Long>> mWorkerLostListeners = new LinkedBlockingQueue<>();
 
-  /** Saves the register new configuration call back functions. */
+  /** Listeners to call when a new worker registers. */
   private final BlockingQueue<BiConsumer<Long, List<ConfigProperty>>> mWorkerRegisteredListeners
       = new LinkedBlockingQueue<>();
 

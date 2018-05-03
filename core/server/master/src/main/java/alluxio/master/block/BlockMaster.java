@@ -198,23 +198,23 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
   void reportLostBlocks(List<Long> blockIds);
 
   /**
-   * Registers a callback function to use when lost workers become alive.
+   * Registers callback functions to use when lost workers become alive.
    *
-   * @param function the function to save to corresponding callback list
+   * @param function the function to register
    */
   void registerLostWorkerFoundListener(Consumer<Long> function);
 
   /**
-   * Registers the callback function to use when detecting lost workers.
+   * Registers callback functions to use when detecting lost workers.
    *
-   * @param function the function to save to corresponding callback list
+   * @param function the function to register
    */
   void registerWorkerLostListener(Consumer<Long> function);
 
   /**
-   * Registers a callback function to use when worker registers with configuration.
+   * Registers callback functions to use when workers register with configuration.
    *
-   * @param function the function to save to corresponding callback list
+   * @param function the function to register
    */
   void registerNewWorkerConfListener(BiConsumer<Long, List<ConfigProperty>> function);
 }

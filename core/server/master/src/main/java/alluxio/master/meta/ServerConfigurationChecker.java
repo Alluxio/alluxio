@@ -13,10 +13,11 @@ package alluxio.master.meta;
 
 import alluxio.wire.ConfigProperty;
 
-import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * This class is responsible for checking server-side configuration.
@@ -24,15 +25,22 @@ import java.util.Map;
 public class ServerConfigurationChecker {
   /** Map from a node id to its configuration. */
   private Map<Long, List<ConfigProperty>> mConfMap;
-  /** Map from a lost node id to its configuration. */
-  private Map<Long, List<ConfigProperty>> mLostConfMap;
+  /** Set that contains the ids of lost nodes. */
+  private Set<Long> mLostNodes;
 
   /**
    * Constructs a new {@link ServerConfigurationChecker}.
    */
   public ServerConfigurationChecker() {
+    init();
+  }
+
+  /**
+   * Initializes the default {@link ServerConfigurationChecker}.
+   */
+  public synchronized void init() {
     mConfMap = new HashMap<>();
-    mLostConfMap = new HashMap<>();
+    mLostNodes = new HashSet<>();
   }
 
   /**
@@ -43,7 +51,7 @@ public class ServerConfigurationChecker {
    */
   public synchronized void registerNewConf(long id, List<ConfigProperty> configList) {
     mConfMap.put(id, configList);
-    mLostConfMap.remove(id);
+    mLostNodes.remove(id);
   }
 
   /**
@@ -52,11 +60,7 @@ public class ServerConfigurationChecker {
    * @param id the node id
    */
   public synchronized void handleNodeLost(long id) {
-    List<ConfigProperty> configList = mConfMap.get(id);
-    if (configList != null) {
-      mLostConfMap.put(id, configList);
-      mConfMap.remove(id);
-    }
+    mLostNodes.add(id);
   }
 
   /**
@@ -65,17 +69,20 @@ public class ServerConfigurationChecker {
    * @param id the node id
    */
   public synchronized void lostNodeFound(long id) {
-    List<ConfigProperty> configList = mLostConfMap.get(id);
-    if (configList != null) {
-      mConfMap.put(id, configList);
-      mLostConfMap.remove(id);
-    }
+    mLostNodes.remove(id);
   }
 
   /**
    * @return the configuration map of live nodes
    */
   public synchronized Map<Long, List<ConfigProperty>> getConfMap() {
-    return Collections.unmodifiableMap(mConfMap);
+    Map<Long, List<ConfigProperty>> map = new HashMap<>();
+    for (Map.Entry<Long, List<ConfigProperty>> entry : mConfMap.entrySet()) {
+      Long id = entry.getKey();
+      if (!mLostNodes.contains(id)) {
+        map.put(id, entry.getValue());
+      }
+    }
+    return map;
   }
 }

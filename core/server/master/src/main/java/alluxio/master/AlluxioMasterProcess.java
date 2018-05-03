@@ -92,9 +92,6 @@ public class AlluxioMasterProcess implements MasterProcess {
   /** The master registry. */
   private final MasterRegistry mRegistry;
 
-  /** The block master. */
-  private final BlockMaster mBlockMaster;
-
   /** The web ui server. */
   private WebServer mWebServer;
 
@@ -171,10 +168,10 @@ public class AlluxioMasterProcess implements MasterProcess {
       mWorkerConfigChecker = new ServerConfigurationChecker();
 
       // Register listeners for BlockMaster to interact with config checker
-      mBlockMaster = mRegistry.get(BlockMaster.class);
-      mBlockMaster.registerLostWorkerFoundListener(this::lostWorkerFoundHandler);
-      mBlockMaster.registerWorkerLostListener(this::workerLostHandler);
-      mBlockMaster.registerNewWorkerConfListener(this::registerNewWorkerConfHandler);
+      BlockMaster blockMaster = mRegistry.get(BlockMaster.class);
+      blockMaster.registerLostWorkerFoundListener(this::lostWorkerFoundHandler);
+      blockMaster.registerWorkerLostListener(this::workerLostHandler);
+      blockMaster.registerNewWorkerConfListener(this::registerNewWorkerConfHandler);
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
@@ -288,6 +285,7 @@ public class AlluxioMasterProcess implements MasterProcess {
    */
   protected void stopMasters() {
     try {
+      mWorkerConfigChecker.init();
       mRegistry.stop();
     } catch (IOException e) {
       throw Throwables.propagate(e);
@@ -435,7 +433,7 @@ public class AlluxioMasterProcess implements MasterProcess {
   /**
    * Updates the config checker when a lost worker becomes alive.
    *
-   * @param id the id of the worker to use
+   * @param id the id of the worker
    */
   private void lostWorkerFoundHandler(long id) {
     mWorkerConfigChecker.lostNodeFound(id);
@@ -444,7 +442,7 @@ public class AlluxioMasterProcess implements MasterProcess {
   /**
    * Updates the config checker when a live worker becomes lost.
    *
-   * @param id the id of the worker to use
+   * @param id the id of the worker
    */
   private void workerLostHandler(long id) {
     mWorkerConfigChecker.handleNodeLost(id);
@@ -453,7 +451,8 @@ public class AlluxioMasterProcess implements MasterProcess {
   /**
    * Updates the config checker when a worker registers with configuration.
    *
-   * @param id the id of the worker to use
+   * @param id the id of the worker
+   * @param configList the configuration of this worker
    */
   private void registerNewWorkerConfHandler(long id, List<ConfigProperty> configList) {
     mWorkerConfigChecker.registerNewConf(id, configList);
