@@ -269,6 +269,7 @@ public class AlluxioMasterProcess implements MasterProcess {
    */
   protected void startMasters(boolean isLeader) {
     try {
+      mWorkerConfigChecker.reset();
       if (isLeader) {
         mSafeModeManager.notifyPrimaryMasterStarted();
       }
@@ -285,7 +286,6 @@ public class AlluxioMasterProcess implements MasterProcess {
    */
   protected void stopMasters() {
     try {
-      mWorkerConfigChecker.reset();
       mRegistry.stop();
     } catch (IOException e) {
       throw Throwables.propagate(e);
