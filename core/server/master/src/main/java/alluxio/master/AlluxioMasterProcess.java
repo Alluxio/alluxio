@@ -205,7 +205,8 @@ public class AlluxioMasterProcess implements MasterProcess {
     String alluxioConfPrefix = "alluxio";
     for (Map.Entry<String, String> entry : Configuration.toMap().entrySet()) {
       String key = entry.getKey();
-      if (key.startsWith(alluxioConfPrefix)) {
+      String value = entry.getValue();
+      if (key.startsWith(alluxioConfPrefix) && value != null) {
         PropertyKey propertyKey = PropertyKey.fromString(key);
         Configuration.Source source = Configuration.getSource(propertyKey);
         String sourceStr;
