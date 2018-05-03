@@ -3191,8 +3191,6 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         // The requested path does not exist in Alluxio, so just load metadata.
         loadMetadata = true;
       } else {
-        //TODO: (yuzhu) need to find the mount points under inodePath and call syncInodeMetadata.
-
         SyncResult result =
             syncInodeMetadata(rpcContext, inodePath, syncDescendantType, pathsToLoad);
         deletedInode = result.getDeletedInode();

@@ -410,8 +410,6 @@ public class UfsSyncIntegrationTest extends BaseIntegrationTest {
     listing = mFileSystem.listStatus(new AlluxioURI("/nested/mnt/ufs"), options);
     Assert.assertEquals(1, listing.size());
     Assert.assertEquals("nestedufs", listing.get(0).getName());
-
-
   }
 
   @Test

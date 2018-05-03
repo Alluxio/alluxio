@@ -212,7 +212,7 @@ public class InodeTree implements JournalEntryIterable {
   private Inode<?> getInode(AlluxioURI uri) {
     String[] pathComp;
     try {
-       pathComp = PathUtils.getPathComponents(uri.getPath());
+      pathComp = PathUtils.getPathComponents(uri.getPath());
     } catch (InvalidPathException e) {
       return null;
     }
@@ -225,7 +225,7 @@ public class InodeTree implements JournalEntryIterable {
       return mRoot;
     }
     Inode<?> current = mRoot;
-    for (int i =1; i < pathComp.length; i++) {
+    for (int i = 1; i < pathComp.length; i++) {
       if (current.isFile()) {
         // we still have path components, should not be a file
         return null;
@@ -549,12 +549,12 @@ public class InodeTree implements JournalEntryIterable {
     TraversalResult traversalResult = traverseToInode(inodePath, inodePath.getLockMode());
     // Put this in a try block? so it gets unlocked?
     try (InodeLockList lockList = traversalResult.getInodeLockList()) {
-
       MutableLockedInodePath extensibleInodePath = (MutableLockedInodePath) inodePath;
       String[] pathComponents = extensibleInodePath.getPathComponents();
       String name = path.getName();
 
-      // pathIndex is the index into pathComponents where we start filling in the path from the inode.
+      // pathIndex is the index into pathComponents where we start filling in the path from the
+      // inode.
       int pathIndex = extensibleInodePath.getInodes().size();
       if (pathIndex < pathComponents.length - 1) {
         // The immediate parent was not found. If it's not recursive, we throw an exception here.
@@ -590,8 +590,8 @@ public class InodeTree implements JournalEntryIterable {
           && options.getOperationTimeMs() > currentInodeDirectory.getLastModificationTimeMs()) {
         // (1) There are components in parent paths that need to be created. Or
         // (2) The last component of the path needs to be created.
-        // In these two cases, the last traversed Inode will be modified if the new timestamp is after
-        // the existing last modified time.
+        // In these two cases, the last traversed Inode will be modified if the new timestamp is
+        // after the existing last modified time.
         currentInodeDirectory.setLastModificationTimeMs(options.getOperationTimeMs());
         modifiedInodes.add(currentInodeDirectory);
 
@@ -618,7 +618,8 @@ public class InodeTree implements JournalEntryIterable {
           dir = InodeDirectory.create(
               mDirectoryIdGenerator.getNewDirectoryId(rpcContext.getJournalContext()),
               currentInodeDirectory.getId(), pathComponents[k], missingDirOptions);
-          // Lock the newly created inode before subsequent operations, and add it to the lock group.
+          // Lock the newly created inode before subsequent operations, and add it to the lock
+          // group.
           lockList.lockWriteAndCheckNameAndParent(dir, currentInodeDirectory, pathComponents[k]);
 
           if (!currentInodeDirectory.addChild(dir)) {
@@ -626,7 +627,8 @@ public class InodeTree implements JournalEntryIterable {
             lockList.unlockLast();
 
             dir =
-                (InodeDirectory) currentInodeDirectory.getChildReadLock(pathComponents[k], lockList);
+                (InodeDirectory) currentInodeDirectory.getChildReadLock(pathComponents[k],
+                    lockList);
             if (dir == null) {
               // Could not get the child inode. Continue and try again.
               continue;
@@ -636,7 +638,8 @@ public class InodeTree implements JournalEntryIterable {
               // Successfully added the child, while holding the write lock.
               dir.setPinned(currentInodeDirectory.isPinned());
               if (options.isPersisted()) {
-                // Do not journal the persist entry, since a creation entry will be journaled instead.
+                // Do not journal the persist entry, since a creation entry will be journaled
+                // instead.
                 syncPersistDirectory(RpcContext.NOOP, dir);
               }
             } catch (Exception e) {
@@ -776,29 +779,30 @@ public class InodeTree implements JournalEntryIterable {
    * @throws FileDoesNotExistException if inode does not exist
    */
   public InodeLockList lockDescendant(LockedInodePath inodePath, LockMode lockMode,
-        AlluxioURI childUri)
-      throws FileDoesNotExistException {
-      InodeLockList inodeGroup = new InodeLockList();
-      // Check if the descendant is really the descendant of inodePath
-      try {
-        if (!PathUtils.hasPrefix(childUri.getPath(), inodePath.getUri().getPath())
-            || childUri.getPath().equals(inodePath.getUri().getPath())) {
-          return inodeGroup;
-        }
-      } catch (InvalidPathException e) {
+      AlluxioURI childUri) throws FileDoesNotExistException {
+    InodeLockList inodeGroup = new InodeLockList();
+    // Check if the descendant is really the descendant of inodePath
+    try {
+      if (!PathUtils.hasPrefix(childUri.getPath(), inodePath.getUri().getPath())
+          || childUri.getPath().equals(inodePath.getUri().getPath())) {
         return inodeGroup;
       }
-      // Traverse the inode tree to get an inode
-      Inode<?> child = getInode(childUri);
+    } catch (InvalidPathException e) {
+      return inodeGroup;
+    }
+    // Traverse the inode tree to get an inode
+    Inode<?> child = getInode(childUri);
 
-      // return the empty locklist if the descendant has an invalid uri
-      if (child == null) return inodeGroup;
+    // return the empty locklist if the descendant has an invalid uri
+    if (child == null) {
+      return inodeGroup;
+    }
 
     // Lock the descendant
     if (lockMode == LockMode.READ) {
-        inodeGroup.lockRead(child);
-    } else if (lockMode == LockMode.WRITE){
-        inodeGroup.lockWrite(child);
+      inodeGroup.lockRead(child);
+    } else if (lockMode == LockMode.WRITE) {
+      inodeGroup.lockWrite(child);
     }
 
     return inodeGroup;
@@ -1196,9 +1200,11 @@ public class InodeTree implements JournalEntryIterable {
         }
       }
 
-      if (getLockModeForComponent(0, pathComponents.length, lockMode, lockHints) == LockMode.READ) {
+      if (getLockModeForComponent(0, pathComponents.length, lockMode, lockHints)
+          == LockMode.READ) {
         lockList.lockRead(mRoot);
-      } else if (getLockModeForComponent(0, pathComponents.length, lockMode, lockHints) == LockMode.WRITE) {
+      } else if (getLockModeForComponent(0, pathComponents.length, lockMode, lockHints)
+          == LockMode.WRITE) {
         lockList.lockWrite(mRoot);
       }
       inodes.add(mRoot);

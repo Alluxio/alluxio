@@ -11,7 +11,6 @@
 
 package alluxio.master.file.meta;
 
-import alluxio.AlluxioURI;
 import alluxio.exception.InvalidPathException;
 
 import javax.annotation.concurrent.ThreadSafe;
