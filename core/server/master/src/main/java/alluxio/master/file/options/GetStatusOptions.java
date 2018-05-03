@@ -15,8 +15,8 @@ import alluxio.Constants;
 import alluxio.thrift.GetStatusTOptions;
 import alluxio.wire.CommonOptions;
 import alluxio.wire.LoadMetadataType;
-
 import alluxio.wire.TtlAction;
+
 import com.google.common.base.Objects;
 
 import javax.annotation.concurrent.NotThreadSafe;

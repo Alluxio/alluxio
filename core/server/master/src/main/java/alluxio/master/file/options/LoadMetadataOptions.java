@@ -15,8 +15,8 @@ import alluxio.Constants;
 import alluxio.thrift.LoadMetadataTOptions;
 import alluxio.underfs.UfsStatus;
 import alluxio.wire.CommonOptions;
-
 import alluxio.wire.TtlAction;
+
 import com.google.common.base.Objects;
 
 import javax.annotation.Nullable;
@@ -149,9 +149,9 @@ public final class LoadMetadataOptions {
   }
 
   /**
-   * Sets the ttl of a path
+   * Sets the ttl of a path.
    *
-   * @param ttl
+   * @param ttl time to live
    * @return the updated object
    */
   public LoadMetadataOptions setTtl(long ttl) {
@@ -160,9 +160,9 @@ public final class LoadMetadataOptions {
   }
 
   /**
-   * Sets the action after ttl expired
+   * Sets the action after ttl expired.
    *
-   * @param ttlAction
+   * @param ttlAction action after ttl expired
    * @return the updated object
    */
   public LoadMetadataOptions setTtlAction(TtlAction ttlAction) {

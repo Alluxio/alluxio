@@ -12,7 +12,6 @@
 package alluxio.master.file.options;
 
 import alluxio.Configuration;
-import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.security.authorization.Mode;
 import alluxio.thrift.CreateFileTOptions;
