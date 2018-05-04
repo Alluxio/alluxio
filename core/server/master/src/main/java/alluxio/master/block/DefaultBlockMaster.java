@@ -15,6 +15,7 @@ import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.MasterStorageTierAssoc;
 import alluxio.PropertyKey;
+import alluxio.Server;
 import alluxio.StorageTierAssoc;
 import alluxio.client.block.options.GetWorkerReportOptions;
 import alluxio.client.block.options.GetWorkerReportOptions.WorkerRange;
@@ -95,6 +96,8 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe // TODO(jiri): make thread-safe (c.f. ALLUXIO-1664)
 public final class DefaultBlockMaster extends AbstractMaster implements BlockMaster {
   private static final Logger LOG = LoggerFactory.getLogger(DefaultBlockMaster.class);
+  private static final Set<Class<? extends Server>> DEPS =
+      ImmutableSet.<Class<? extends Server>>of(MetricsMaster.class);
 
   /**
    * The number of container ids to 'reserve' before having to journal container id state. This
@@ -877,6 +880,11 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
   @Override
   public void reportLostBlocks(List<Long> blockIds) {
     mLostBlocks.addAll(blockIds);
+  }
+
+  @Override
+  public Set<Class<? extends Server>> getDependencies() {
+    return DEPS;
   }
 
   /**
