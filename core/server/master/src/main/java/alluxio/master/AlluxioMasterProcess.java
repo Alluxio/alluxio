@@ -74,6 +74,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
@@ -231,8 +232,8 @@ public class AlluxioMasterProcess implements MasterProcess {
       MasterUtils.createMasters(mJournalSystem, mRegistry, mSafeModeManager);
 
       // Create config checker
-      mWorkerConfigChecker = new ServerConfigurationChecker();
       mMasterConfigChecker = new ServerConfigurationChecker();
+      mWorkerConfigChecker = new ServerConfigurationChecker();
       mClock = new SystemClock();
       mExecutorService = ExecutorServiceFactories
           .fixedThreadPoolExecutorServiceFactory(Constants.META_MASTER_NAME, 2).create();
@@ -316,7 +317,6 @@ public class AlluxioMasterProcess implements MasterProcess {
 
     MetaMasterInfo lostMaster = mLostMasters.getFirstByField(HOSTNAME_INDEX, hostname);
     if (lostMaster != null) {
-      // TODO(lu) call ServerConfigurationChecker.lostNodeFound()
       // This is one of the lost masters
       synchronized (lostMaster) {
         final long lostMasterId = lostMaster.getId();
@@ -326,6 +326,7 @@ public class AlluxioMasterProcess implements MasterProcess {
         lostMaster.updateLastUpdatedTimeMs();
         mMasters.add(lostMaster);
         mLostMasters.remove(lostMaster);
+        mMasterConfigChecker.lostNodeFound(lostMaster.getId());
         return lostMasterId;
       }
     }
@@ -347,12 +348,15 @@ public class AlluxioMasterProcess implements MasterProcess {
     if (master == null) {
       throw new NoMasterException(ExceptionMessage.NO_MASTER_FOUND.getMessage(masterId));
     }
-    // TODO(lu) master config checker registerNewConf
     synchronized (master) {
       master.updateLastUpdatedTimeMs();
     }
 
-    LOG.info("registerMaster(): {}", master);
+    List<ConfigProperty> configList = options.getConfigList().stream()
+        .map(ConfigProperty::fromThrift).collect(Collectors.toList());
+    mMasterConfigChecker.registerNewConf(masterId, configList);
+
+    LOG.info("registerMaster(): master: {} options: {}", master, options);
   }
 
   @Override
@@ -600,7 +604,7 @@ public class AlluxioMasterProcess implements MasterProcess {
                 master.getHostname(), lastUpdate);
             mLostMasters.add(master);
             mMasters.remove(master);
-            // TODO(lu) call ServerConfigurationChecker.detectNodeLost()
+            mMasterConfigChecker.handleNodeLost(master.getId());
           }
         }
       }
@@ -645,7 +649,6 @@ public class AlluxioMasterProcess implements MasterProcess {
    */
   private void setMasterIdAndHostname() {
     mMasterHostname = Configuration.get(PropertyKey.MASTER_HOSTNAME);
-
     try {
       RetryUtils.retry("get master id",
           () -> mMasterId.set(mMetaMasterClient.getId(mMasterHostname)),

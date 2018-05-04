@@ -31,7 +31,6 @@ struct MasterInfo {
 }
 
 struct GetMasterIdTOptions {}
-
 struct GetMasterIdTResponse {
   1: i64 masterId
 }
