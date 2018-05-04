@@ -3265,8 +3265,7 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
   /**
    * This class represents the result for a sync. The following are returned:
    * - deleted: if true, the inode was already deleted as part of the syncing process
-   * - loadMetadata: if true, load metadata must be called (the last step of the full sync process)
-   * - pathsToLoad: a set of mount points that need to be resynced.
+   * - pathsToLoad: a set of paths that need to be resynced.
    */
   private static class SyncResult {
     private boolean mDeletedInode;
