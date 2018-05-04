@@ -15,8 +15,10 @@ import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.RuntimeConstants;
+import alluxio.master.block.BlockMaster;
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.JournalSystem.Mode;
+import alluxio.master.meta.ServerConfigurationChecker;
 import alluxio.metrics.MetricsSystem;
 import alluxio.metrics.sink.MetricsServlet;
 import alluxio.metrics.sink.PrometheusMetricsServlet;
@@ -111,6 +113,9 @@ public class AlluxioMasterProcess implements MasterProcess {
   /** The manager of safe mode state. */
   protected final SafeModeManager mSafeModeManager;
 
+  /** The worker configuration checker. */
+  private final ServerConfigurationChecker mWorkerConfigChecker;
+
   /**
    * Creates a new {@link AlluxioMasterProcess}.
    */
@@ -158,6 +163,15 @@ public class AlluxioMasterProcess implements MasterProcess {
       mRegistry = new MasterRegistry();
       mSafeModeManager = new DefaultSafeModeManager();
       MasterUtils.createMasters(mJournalSystem, mRegistry, mSafeModeManager);
+
+      // Create config checker
+      mWorkerConfigChecker = new ServerConfigurationChecker();
+
+      // Register listeners for BlockMaster to interact with config checker
+      BlockMaster blockMaster = mRegistry.get(BlockMaster.class);
+      blockMaster.registerLostWorkerFoundListener(this::lostWorkerFoundHandler);
+      blockMaster.registerWorkerLostListener(this::workerLostHandler);
+      blockMaster.registerNewWorkerConfListener(this::registerNewWorkerConfHandler);
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
@@ -210,16 +224,9 @@ public class AlluxioMasterProcess implements MasterProcess {
       String key = entry.getKey();
       if (key.startsWith(alluxioConfPrefix)) {
         PropertyKey propertyKey = PropertyKey.fromString(key);
-        Configuration.Source source = Configuration.getSource(propertyKey);
-        String sourceStr;
-        if (source == Configuration.Source.SITE_PROPERTY) {
-          sourceStr =
-              String.format("%s (%s)", source.name(), Configuration.getSitePropertiesFile());
-        } else {
-          sourceStr = source.name();
-        }
+        String source = Configuration.getFormattedSource(propertyKey);
         configInfoList.add(new ConfigProperty()
-            .setName(key).setValue(entry.getValue()).setSource(sourceStr));
+            .setName(key).setValue(entry.getValue()).setSource(source));
       }
     }
     return configInfoList;
@@ -262,6 +269,7 @@ public class AlluxioMasterProcess implements MasterProcess {
    */
   protected void startMasters(boolean isLeader) {
     try {
+      mWorkerConfigChecker.reset();
       if (isLeader) {
         mSafeModeManager.notifyPrimaryMasterStarted();
       }
@@ -420,5 +428,33 @@ public class AlluxioMasterProcess implements MasterProcess {
   @Override
   public String toString() {
     return "Alluxio master @" + mRpcConnectAddress;
+  }
+
+  /**
+   * Updates the config checker when a lost worker becomes alive.
+   *
+   * @param id the id of the worker
+   */
+  private void lostWorkerFoundHandler(long id) {
+    mWorkerConfigChecker.lostNodeFound(id);
+  }
+
+  /**
+   * Updates the config checker when a live worker becomes lost.
+   *
+   * @param id the id of the worker
+   */
+  private void workerLostHandler(long id) {
+    mWorkerConfigChecker.handleNodeLost(id);
+  }
+
+  /**
+   * Updates the config checker when a worker registers with configuration.
+   *
+   * @param id the id of the worker
+   * @param configList the configuration of this worker
+   */
+  private void registerNewWorkerConfHandler(long id, List<ConfigProperty> configList) {
+    mWorkerConfigChecker.registerNewConf(id, configList);
   }
 }

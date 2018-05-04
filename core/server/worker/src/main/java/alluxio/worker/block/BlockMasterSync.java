@@ -22,6 +22,7 @@ import alluxio.exception.InvalidWorkerStateException;
 import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.thrift.Command;
 import alluxio.util.ThreadFactoryUtils;
+import alluxio.wire.ConfigProperty;
 import alluxio.wire.WorkerNetAddress;
 
 import org.slf4j.Logger;
@@ -113,9 +114,10 @@ public final class BlockMasterSync implements HeartbeatExecutor {
   private void registerWithMaster() throws IOException {
     BlockStoreMeta storeMeta = mBlockWorker.getStoreMetaFull();
     StorageTierAssoc storageTierAssoc = new WorkerStorageTierAssoc();
+    List<ConfigProperty> configList = Configuration.getWorkerConfiguration();
     mMasterClient.register(mWorkerId.get(),
         storageTierAssoc.getOrderedStorageAliases(), storeMeta.getCapacityBytesOnTiers(),
-        storeMeta.getUsedBytesOnTiers(), storeMeta.getBlockList());
+        storeMeta.getUsedBytesOnTiers(), storeMeta.getBlockList(), configList);
   }
 
   /**

@@ -3,15 +3,9 @@ namespace java alluxio.thrift
 include "common.thrift"
 include "exception.thrift"
 
-struct ConfigProperty {
-  1: string name
-  2: string source
-  3: string value
-}
-
 struct GetConfigurationTOptions{}
 struct GetConfigurationTResponse{
-  1: list<ConfigProperty> configList
+  1: list<common.ConfigProperty> configList
 }
 
 enum MasterInfoField {
