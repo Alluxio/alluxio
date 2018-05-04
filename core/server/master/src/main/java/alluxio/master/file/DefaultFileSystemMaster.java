@@ -3186,20 +3186,18 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
 
     Set<String> pathsToLoad = new HashSet<>();
 
-    // Set to true if ufs metadata must be loaded.
-    boolean loadMetadata = false;
     // Set to true if the given inode was deleted.
     boolean deletedInode = false;
 
     try {
       if (!inodePath.fullPathExists()) {
         // The requested path does not exist in Alluxio, so just load metadata.
-        loadMetadata = true;
+        pathsToLoad.add(inodePath.getUri().getPath());
       } else {
         SyncResult result =
-            syncInodeMetadata(rpcContext, inodePath, syncDescendantType, pathsToLoad);
+            syncInodeMetadata(rpcContext, inodePath, syncDescendantType, inodePath);
         deletedInode = result.getDeletedInode();
-        loadMetadata = result.getLoadMetadata();
+        pathsToLoad = result.getPathsToLoad();
       }
     } catch (Exception e) {
       LOG.error("Failed to remove out-of-sync metadata for path: {}", inodePath.getUri(), e);
@@ -3217,40 +3215,46 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
     // Update metadata for all the mount points
     for (String mountPoint : pathsToLoad) {
       AlluxioURI mountPointUri = new AlluxioURI(mountPoint);
-      try (InodeLockList mountPointLockList =
-          mInodeTree.lockDescendant(inodePath, lockingScheme.getMode(), mountPointUri)) {
-        if (!mountPointLockList.getInodes().isEmpty()) {
-          // Get the first inode which is an inode corresponding to the mountPoint
-          Inode<?> mountPointInode = mountPointLockList.getInodes().get(0);
-
-          // Construct an locked inodepath using TempInodePathForDescendant
-          try (TempInodePathForDescendant tempInodePath =
-              new TempInodePathForDescendant(inodePath)) {
-            tempInodePath.setDescendant(mountPointInode, mountPointUri);
-
-            try {
-              loadMetadataAndJournal(rpcContext, tempInodePath, LoadMetadataOptions.defaults()
-                  .setCreateAncestors(true).setLoadDescendantType(syncDescendantType));
-            } catch (Exception e) {
-              LOG.debug("Failed to load metadata for path: {}", mountPointUri, e);
-            }
-            mUfsSyncPathCache.notifySyncedPath(mountPoint);
-          }
+      if (mountPoint.equals(inodePath.getUri().getPath())) {
+        // already locked and we already have an inodePath.
+        try {
+          loadMetadataAndJournal(rpcContext, inodePath, LoadMetadataOptions.defaults()
+              .setCreateAncestors(true).setLoadDescendantType(syncDescendantType));
+        } catch (Exception e) {
+          // This may be expected. For example, when creating a new file, the UFS file is not
+          // expected to exist.
+          LOG.debug("Failed to load metadata for path: {}", inodePath.getUri(), e);
+          return false;
         }
-      } catch (FileDoesNotExistException e) {
-        LOG.warn("Tried to update Meta data from an invalid path: {}", mountPointUri.getPath(), e);
-      }
-    }
+      } else {
+        try (InodeLockList mountPointLockList =
+                 mInodeTree.lockDescendant(inodePath, lockingScheme.getMode(), mountPointUri)) {
+          if (!mountPointLockList.getInodes().isEmpty()) {
+            // Get the first inode which is an inode corresponding to the mountPoint
+            Inode<?> mountPointInode = mountPointLockList.getInodes().get(0);
 
-    if (loadMetadata) {
-      try {
-        loadMetadataAndJournal(rpcContext, inodePath, LoadMetadataOptions.defaults()
-            .setCreateAncestors(true).setLoadDescendantType(syncDescendantType));
-      } catch (Exception e) {
-        // This may be expected. For example, when creating a new file, the UFS file is not
-        // expected to exist.
-        LOG.debug("Failed to load metadata for path: {}", inodePath.getUri(), e);
-        return false;
+            // Construct an locked inodepath using TempInodePathForDescendant
+            try (TempInodePathForDescendant tempInodePath =
+                     new TempInodePathForDescendant(inodePath)) {
+              tempInodePath.setDescendant(mountPointInode, mountPointUri);
+
+              try {
+                loadMetadataAndJournal(rpcContext, tempInodePath, LoadMetadataOptions.defaults()
+                    .setCreateAncestors(true).setLoadDescendantType(syncDescendantType));
+              } catch (Exception e) {
+                LOG.debug("Failed to load metadata for path: {}", mountPointUri, e);
+              }
+              mUfsSyncPathCache.notifySyncedPath(mountPoint);
+            } catch (InvalidPathException e) {
+              LOG.debug("Failed to load metadata for path: {}", mountPointUri, e);
+              return false;
+            }
+          }
+        } catch (FileDoesNotExistException e) {
+          LOG.warn("Tried to update Meta data from an invalid path: {}",
+              mountPointUri.getPath(), e);
+          return false;
+        }
       }
     }
 
@@ -3262,26 +3266,27 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    * This class represents the result for a sync. The following are returned:
    * - deleted: if true, the inode was already deleted as part of the syncing process
    * - loadMetadata: if true, load metadata must be called (the last step of the full sync process)
+   * - pathsToLoad: a set of mount points that need to be resynced.
    */
   private static class SyncResult {
-    private boolean mLoadMetadata;
     private boolean mDeletedInode;
+    private Set<String> mPathsToLoad;
 
     static SyncResult defaults() {
-      return new SyncResult(false, false);
+      return new SyncResult(false, new HashSet<>());
     }
 
-    SyncResult(boolean loadMetadata, boolean deletedInode) {
-      mLoadMetadata = loadMetadata;
+    SyncResult(boolean deletedInode, Set<String> pathsToLoad) {
       mDeletedInode = deletedInode;
-    }
-
-    boolean getLoadMetadata() {
-      return mLoadMetadata;
+      mPathsToLoad = new HashSet<>(pathsToLoad);
     }
 
     boolean getDeletedInode() {
       return mDeletedInode;
+    }
+
+    Set<String> getPathsToLoad() {
+      return mPathsToLoad;
     }
   }
 
@@ -3295,12 +3300,13 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
    *         metadata is required
    */
   private SyncResult syncInodeMetadata(RpcContext rpcContext, LockedInodePath inodePath,
-      DescendantType syncDescendantType, Set<String> pathsToLoad)
+      DescendantType syncDescendantType, LockedInodePath originalPath)
       throws FileDoesNotExistException, InvalidPathException, IOException, AccessControlException {
-    // Set to true if ufs metadata must be loaded.
-    boolean loadMetadata = false;
     // Set to true if the given inode was deleted.
     boolean deletedInode = false;
+    // Set of paths to sync
+    Set<String> pathsToLoad = new HashSet<>();
+
     // The options for deleting.
     DeleteOptions syncDeleteOptions =
         DeleteOptions.defaults().setRecursive(true).setAlluxioOnly(true).setUnchecked(true);
@@ -3357,8 +3363,13 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
         }
       }
       if (syncPlan.toLoadMetadata()) {
-        loadMetadata = true;
-        pathsToLoad.add(mMountTable.getMountPoint(inodePath.getUri()));
+        AlluxioURI mountUri = new AlluxioURI(mMountTable.getMountPoint(inodePath.getUri()));
+        // We only sync up to the mount point or the originalPath, whichever is lower in the tree
+        if (PathUtils.hasPrefix(originalPath.getUri().getPath(), mountUri.getPath())) {
+          pathsToLoad.add(originalPath.getUri().getPath());
+        } else {
+          pathsToLoad.add(mountUri.getPath());
+        }
       }
       if (syncPlan.toSyncChildren() && inode instanceof InodeDirectory
           && syncDescendantType != DescendantType.NONE) {
@@ -3377,9 +3388,13 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
               if (!inodeChildren.containsKey(ufsChildStatus.getName()) && !PathUtils
                   .isTemporaryFileName(ufsChildStatus.getName())) {
                 // Ufs child exists, but Alluxio child does not. Must load metadata.
-                loadMetadata = true;
-                // Also find the mountpoint which contains the parent to sync
-                pathsToLoad.add(mMountTable.getMountPoint(inodePath.getUri()));
+                AlluxioURI mountUri = new AlluxioURI(mMountTable.getMountPoint(inodePath.getUri()));
+                // We only sync up to the mount point or the originalPath
+                if (PathUtils.hasPrefix(originalPath.getUri().getPath(), mountUri.getPath())) {
+                  pathsToLoad.add(originalPath.getUri().getPath());
+                } else {
+                  pathsToLoad.add(mountUri.getPath());
+                }
                 break;
               }
             }
@@ -3400,15 +3415,15 @@ public final class DefaultFileSystemMaster extends AbstractMaster implements Fil
               if (syncDescendantType != DescendantType.ALL) {
                 syncDescendantType = DescendantType.NONE;
               }
-              loadMetadata |=
-                  syncInodeMetadata(rpcContext, tempInodePath, syncDescendantType, pathsToLoad)
-                      .getLoadMetadata();
+              SyncResult syncResult =
+                  syncInodeMetadata(rpcContext, tempInodePath, syncDescendantType, inodePath);
+              pathsToLoad.addAll(syncResult.getPathsToLoad());
             }
           }
         }
       }
     }
-    return new SyncResult(loadMetadata, deletedInode);
+    return new SyncResult(deletedInode, pathsToLoad);
   }
 
   @Override

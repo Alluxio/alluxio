@@ -17,7 +17,8 @@ import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * This class represents a temporary {@link LockedInodePath}, with a child component joined to the
- * existing path. This {@link LockedInodePath} will not unlock the inodes on close.
+ * existing path. This {@link LockedInodePath} has its own lock list and will only unlock its own
+ * lock list when closed.
  *
  * This is useful for being able to pass in a new child path based on an existing
  * {@link LockedInodePath}, without having to re-traverse the inode tree, and re-acquire locks.

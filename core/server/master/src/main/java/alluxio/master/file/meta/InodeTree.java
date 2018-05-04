@@ -549,6 +549,7 @@ public class InodeTree implements JournalEntryIterable {
     TraversalResult traversalResult = traverseToInode(inodePath, inodePath.getLockMode());
 
     InodeLockList lockList = traversalResult.getInodeLockList();
+
     MutableLockedInodePath extensibleInodePath = (MutableLockedInodePath) inodePath;
     String[] pathComponents = extensibleInodePath.getPathComponents();
     String name = path.getName();
@@ -764,28 +765,30 @@ public class InodeTree implements JournalEntryIterable {
   }
 
   /**
-   * Locks a specific descendant of a particular {@link LockedInodePath}.
+   * Locks a specific descendant of a particular {@link LockedInodePath}. It does not extend the
+   * {@link LockedInodePath}, it only locks the descendant.
+   *
    * @param inodePath the root to start locking
    * @param lockMode the lock type to use
-   * @param childUri the path to the descendant that we are locking
+   * @param descendantUri the path to the descendant that we are locking
    * @return  an {@link InodeLockList} representing the list of descendants that got locked as
    * a result of this call.
    * @throws FileDoesNotExistException if inode does not exist
    */
   public InodeLockList lockDescendant(LockedInodePath inodePath, LockMode lockMode,
-      AlluxioURI childUri) throws FileDoesNotExistException {
+      AlluxioURI descendantUri) throws FileDoesNotExistException {
     InodeLockList inodeGroup = new InodeLockList();
     // Check if the descendant is really the descendant of inodePath
     try {
-      if (!PathUtils.hasPrefix(childUri.getPath(), inodePath.getUri().getPath())
-          || childUri.getPath().equals(inodePath.getUri().getPath())) {
+      if (!PathUtils.hasPrefix(descendantUri.getPath(), inodePath.getUri().getPath())
+          || descendantUri.getPath().equals(inodePath.getUri().getPath())) {
         return inodeGroup;
       }
     } catch (InvalidPathException e) {
       return inodeGroup;
     }
     // Traverse the inode tree to get an inode
-    Inode<?> child = getInode(childUri);
+    Inode<?> child = getInode(descendantUri);
 
     // return the empty locklist if the descendant has an invalid uri
     if (child == null) {
@@ -925,6 +928,8 @@ public class InodeTree implements JournalEntryIterable {
             child.unlockWrite();
           }
         }
+      } catch (InvalidPathException e) {
+        LOG.warn("setPinned encountered an invalid path {}", inodePath.mUri.getPath());
       }
     }
   }
@@ -1182,8 +1187,7 @@ public class InodeTree implements JournalEntryIterable {
           if (getLockModeForComponent(0, pathComponents.length, lockMode, lockHints)
               == LockMode.READ) {
             lockList.lockRead(mRoot);
-          } else if (getLockModeForComponent(0, pathComponents.length, lockMode, lockHints)
-              == LockMode.WRITE) {
+          } else {
             lockList.lockWrite(mRoot);
           }
           inodes.add(mRoot);
@@ -1198,8 +1202,7 @@ public class InodeTree implements JournalEntryIterable {
       if (getLockModeForComponent(0, pathComponents.length, lockMode, lockHints)
           == LockMode.READ) {
         lockList.lockRead(mRoot);
-      } else if (getLockModeForComponent(0, pathComponents.length, lockMode, lockHints)
-          == LockMode.WRITE) {
+      } else {
         lockList.lockWrite(mRoot);
       }
       inodes.add(mRoot);
@@ -1261,8 +1264,7 @@ public class InodeTree implements JournalEntryIterable {
       if (getLockModeForComponent(i, pathComponents.length, lockMode, lockHints)
           == LockMode.READ) {
         lockList.lockReadAndCheckNameAndParent(next, current, pathComponents[i]);
-      } else if (getLockModeForComponent(i, pathComponents.length, lockMode, lockHints)
-          == LockMode.WRITE) {
+      } else {
         lockList.lockWriteAndCheckNameAndParent(next, current, pathComponents[i]);
       }
       if (next.isFile()) {
