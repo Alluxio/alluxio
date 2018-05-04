@@ -23,8 +23,8 @@ import alluxio.master.file.FileSystemMasterFactory;
 import alluxio.master.file.StartupConsistencyCheck.Status;
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.JournalSystem.Mode;
+import alluxio.master.metrics.MetricsStore;
 import alluxio.master.journal.JournalTestUtils;
-import alluxio.metrics.MetricsStore;
 import alluxio.util.CommonUtils;
 import alluxio.util.WaitForOptions;
 

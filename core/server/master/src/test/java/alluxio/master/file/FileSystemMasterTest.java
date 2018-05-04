@@ -59,8 +59,9 @@ import alluxio.master.file.options.WorkerHeartbeatOptions;
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.JournalSystem.Mode;
 import alluxio.master.journal.JournalTestUtils;
+import alluxio.master.metrics.MetricsMaster;
+import alluxio.master.metrics.MetricsMasterFactory;
 import alluxio.metrics.Metric;
-import alluxio.metrics.MetricsStore;
 import alluxio.security.GroupMappingServiceTestUtils;
 import alluxio.thrift.Command;
 import alluxio.thrift.CommandType;
@@ -134,7 +135,7 @@ public final class FileSystemMasterTest {
   private ExecutorService mExecutorService;
   private FileSystemMaster mFileSystemMaster;
   private SafeModeManager mSafeModeManager;
-  private MetricsStore mMetricsStore;
+  private MetricsMaster mMetricsMaster;
   private List<Metric> mMetrics;
   private long mWorkerId1;
   private long mWorkerId2;
@@ -1996,14 +1997,15 @@ public final class FileSystemMasterTest {
     mRegistry = new MasterRegistry();
     mSafeModeManager = new TestSafeModeManager();
     mJournalSystem = JournalTestUtils.createJournalSystem(mJournalFolder);
-    mMetricsStore = new MetricsStore();
+    mMetricsMaster = new MetricsMasterFactory().create(mRegistry, mJournalSystem, mSafeModeManager);
+    mRegistry.add(MetricsMaster.class, mMetricsMaster);
     mMetrics = Lists.newArrayList();
     mBlockMaster =
-        new BlockMasterFactory().create(mRegistry, mJournalSystem, mSafeModeManager, mMetricsStore);
+        new BlockMasterFactory().create(mRegistry, mJournalSystem, mSafeModeManager);
     mExecutorService = Executors
         .newFixedThreadPool(4, ThreadFactoryUtils.build("DefaultFileSystemMasterTest-%d", true));
     mFileSystemMaster = new DefaultFileSystemMaster(mBlockMaster,
-        new MasterContext(mJournalSystem, mSafeModeManager, mMetricsStore),
+        new MasterContext(mJournalSystem, mSafeModeManager),
         ExecutorServiceFactories.constantExecutorServiceFactory(mExecutorService));
     mRegistry.add(FileSystemMaster.class, mFileSystemMaster);
     mJournalSystem.start();

@@ -36,8 +36,8 @@ import alluxio.master.block.meta.MasterBlockInfo;
 import alluxio.master.block.meta.MasterBlockLocation;
 import alluxio.master.block.meta.MasterWorkerInfo;
 import alluxio.master.journal.JournalContext;
+import alluxio.master.metrics.MetricsMaster;
 import alluxio.metrics.Metric;
-import alluxio.metrics.MetricsStore;
 import alluxio.metrics.MetricsSystem;
 import alluxio.proto.journal.Block.BlockContainerIdGeneratorEntry;
 import alluxio.proto.journal.Block.BlockInfoEntry;
@@ -62,6 +62,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterators;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import jersey.repackaged.com.google.common.base.Preconditions;
 import org.apache.thrift.TProcessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -163,8 +164,9 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
   /** Keeps track of workers which are no longer in communication with the master. */
   private final IndexedSet<MasterWorkerInfo> mLostWorkers =
       new IndexedSet<>(ID_INDEX, ADDRESS_INDEX);
-  /** Stores the cluster metrics. */
-  private final MetricsStore mMetricsStore;
+
+  /** Handle to the metrics master. */
+  private final MetricsMaster mMetricsMaster;
 
   /**
    * The service that detects lost worker nodes, and tries to restart the failed workers.
@@ -180,26 +182,29 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
   /**
    * Creates a new instance of {@link DefaultBlockMaster}.
    *
+   * @param metricsMaster the metrics master
    * @param masterContext the context for Alluxio master
    */
-  DefaultBlockMaster(MasterContext masterContext) {
-    this(masterContext, new SystemClock(), ExecutorServiceFactories
+  DefaultBlockMaster(MetricsMaster metricsMaster, MasterContext masterContext) {
+    this(metricsMaster, masterContext, new SystemClock(), ExecutorServiceFactories
         .fixedThreadPoolExecutorServiceFactory(Constants.BLOCK_MASTER_NAME, 2));
   }
 
   /**
    * Creates a new instance of {@link DefaultBlockMaster}.
    *
+   * @param metricsMaster the metrics master
    * @param masterContext the context for Alluxio master
    * @param clock the clock to use for determining the time
    * @param executorServiceFactory a factory for creating the executor service to use for running
    *        maintenance threads
    */
-  DefaultBlockMaster(MasterContext masterContext, Clock clock,
+  DefaultBlockMaster(MetricsMaster metricsMaster, MasterContext masterContext, Clock clock,
       ExecutorServiceFactory executorServiceFactory) {
     super(masterContext, clock, executorServiceFactory);
+    Preconditions.checkNotNull(metricsMaster, "metricsMaster");
     mGlobalStorageTierAssoc = new MasterStorageTierAssoc();
-    mMetricsStore = masterContext.getMetricsStore();
+    mMetricsMaster = metricsMaster;
     Metrics.registerGauges(this);
   }
 
@@ -752,7 +757,7 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
     if (metrics.isEmpty()) {
       return;
     }
-    mMetricsStore.putWorkerMetrics(MetricsSystem.InstanceType.WORKER, hostname, metrics);
+    mMetricsMaster.putWorkerMetrics(MetricsSystem.InstanceType.WORKER, hostname, metrics);
   }
 
   /**

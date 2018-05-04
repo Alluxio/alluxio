@@ -18,7 +18,6 @@ import alluxio.master.MasterRegistry;
 import alluxio.master.SafeModeManager;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.journal.JournalSystem;
-import alluxio.metrics.MetricsStore;
 
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
@@ -50,12 +49,12 @@ public final class FileSystemMasterFactory implements MasterFactory {
 
   @Override
   public FileSystemMaster create(MasterRegistry registry, JournalSystem journalFactory,
-      SafeModeManager safeModeManager, MetricsStore metricsStore) {
+      SafeModeManager safeModeManager) {
     Preconditions.checkArgument(journalFactory != null, "journal factory may not be null");
     LOG.info("Creating {} ", FileSystemMaster.class.getName());
     BlockMaster blockMaster = registry.get(BlockMaster.class);
     FileSystemMaster fileSystemMaster = new DefaultFileSystemMaster(blockMaster,
-        new MasterContext(journalFactory, safeModeManager, metricsStore));
+        new MasterContext(journalFactory, safeModeManager));
     registry.add(FileSystemMaster.class, fileSystemMaster);
     return fileSystemMaster;
   }

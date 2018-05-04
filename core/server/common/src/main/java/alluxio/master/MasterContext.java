@@ -12,7 +12,6 @@
 package alluxio.master;
 
 import alluxio.master.journal.JournalSystem;
-import alluxio.metrics.MetricsStore;
 
 import com.google.common.base.Preconditions;
 
@@ -22,18 +21,14 @@ import com.google.common.base.Preconditions;
 public final class MasterContext {
   private final JournalSystem mJournalSystem;
   private final SafeModeManager mSafeModeManager;
-  private final MetricsStore mMetricsStore;
 
   /**
    * @param journalSystem the journal system to use for tracking master operations
    * @param safeModeManager the manager for master safe mode
-   * @param metricsStore the metrics store for tracking cluster-level metrics
    */
-  public MasterContext(JournalSystem journalSystem, SafeModeManager safeModeManager,
-      MetricsStore metricsStore) {
+  public MasterContext(JournalSystem journalSystem, SafeModeManager safeModeManager) {
     mJournalSystem = Preconditions.checkNotNull(journalSystem, "journalSystem");
     mSafeModeManager = Preconditions.checkNotNull(safeModeManager, "safeModeManager");
-    mMetricsStore = Preconditions.checkNotNull(metricsStore);
   }
 
   /**
@@ -48,12 +43,5 @@ public final class MasterContext {
    */
   public SafeModeManager getSafeModeManager() {
     return mSafeModeManager;
-  }
-
-  /**
-   * @return the metrics store to use for tracking the cluster metrics
-   */
-  public MetricsStore getMetricsStore() {
-    return mMetricsStore;
   }
 }

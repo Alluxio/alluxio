@@ -17,7 +17,6 @@ import alluxio.master.MasterFactory;
 import alluxio.master.MasterRegistry;
 import alluxio.master.SafeModeManager;
 import alluxio.master.journal.JournalSystem;
-import alluxio.metrics.MetricsStore;
 
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
@@ -49,12 +48,11 @@ public final class MetricsMasterFactory implements MasterFactory {
 
   @Override
   public MetricsMaster create(MasterRegistry registry, JournalSystem journalSystem,
-      SafeModeManager safeModeManager, MetricsStore metricsStore) {
+      SafeModeManager safeModeManager) {
     Preconditions.checkNotNull(journalSystem, "journal");
-    Preconditions.checkNotNull(metricsStore, "metricsStore");
     LOG.info("Creating {} ", MetricsMaster.class.getName());
     MetricsMaster master =
-        new DefaultMetricsMaster(new MasterContext(journalSystem, safeModeManager, metricsStore));
+        new DefaultMetricsMaster(new MasterContext(journalSystem, safeModeManager));
     registry.add(MetricsMaster.class, master);
     return master;
   }

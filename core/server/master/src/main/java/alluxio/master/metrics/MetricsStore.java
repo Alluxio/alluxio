@@ -9,10 +9,12 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.metrics;
+package alluxio.master.metrics;
 
 import alluxio.collections.IndexDefinition;
 import alluxio.collections.IndexedSet;
+import alluxio.metrics.Metric;
+import alluxio.metrics.MetricsSystem;
 import alluxio.metrics.MetricsSystem.InstanceType;
 
 import java.util.List;
@@ -21,7 +23,7 @@ import java.util.Set;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * A store of metrics collecting metrics from workers and clients.
+ * A store of metrics containing the metrics collected from workers and clients.
  */
 @ThreadSafe
 public class MetricsStore {

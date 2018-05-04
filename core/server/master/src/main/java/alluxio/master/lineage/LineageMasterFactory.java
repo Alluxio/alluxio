@@ -20,7 +20,6 @@ import alluxio.master.MasterRegistry;
 import alluxio.master.SafeModeManager;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.journal.JournalSystem;
-import alluxio.metrics.MetricsStore;
 
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
@@ -52,12 +51,12 @@ public final class LineageMasterFactory implements MasterFactory {
 
   @Override
   public LineageMaster create(MasterRegistry registry, JournalSystem journalSystem,
-      SafeModeManager safeModeManager, MetricsStore metricsStore) {
+      SafeModeManager safeModeManager) {
     Preconditions.checkArgument(journalSystem != null, "journal system may not be null");
     LOG.info("Creating {} ", LineageMaster.class.getName());
     FileSystemMaster fileSystemMaster = registry.get(FileSystemMaster.class);
     LineageMaster lineageMaster = new DefaultLineageMaster(fileSystemMaster,
-        new MasterContext(journalSystem, safeModeManager, metricsStore));
+        new MasterContext(journalSystem, safeModeManager));
     registry.add(LineageMaster.class, lineageMaster);
     return lineageMaster;
   }

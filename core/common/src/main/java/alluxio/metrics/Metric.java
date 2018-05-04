@@ -67,7 +67,7 @@ public final class Metric implements Serializable {
   /**
    * @return the metric value
    */
-  public Object getValue() {
+  public long getValue() {
     return mValue;
   }
 

@@ -16,7 +16,6 @@ import alluxio.ProcessUtils;
 import alluxio.RuntimeConstants;
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.JournalUtils;
-import alluxio.metrics.MetricsStore;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,7 +36,6 @@ public final class AlluxioSecondaryMaster implements Process {
   private final JournalSystem mJournalSystem;
   private final CountDownLatch mLatch;
   private final SafeModeManager mSafeModeManager;
-  private final MetricsStore mMetricsStore;
 
   /**
    * Creates a {@link AlluxioSecondaryMaster}.
@@ -48,9 +46,8 @@ public final class AlluxioSecondaryMaster implements Process {
       mJournalSystem = new JournalSystem.Builder().setLocation(journalLocation).build();
       mRegistry = new MasterRegistry();
       mSafeModeManager = new DefaultSafeModeManager();
-      mMetricsStore = new MetricsStore();
       // Create masters.
-      MasterUtils.createMasters(mJournalSystem, mRegistry, mSafeModeManager, mMetricsStore);
+      MasterUtils.createMasters(mJournalSystem, mRegistry, mSafeModeManager);
       // Check that journals of each service have been formatted.
       if (!mJournalSystem.isFormatted()) {
         throw new RuntimeException(

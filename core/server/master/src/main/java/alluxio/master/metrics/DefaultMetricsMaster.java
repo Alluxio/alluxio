@@ -18,8 +18,8 @@ import alluxio.master.MasterContext;
 import alluxio.metrics.Metric;
 import alluxio.metrics.MetricsAggregator;
 import alluxio.metrics.MetricsFilter;
-import alluxio.metrics.MetricsStore;
 import alluxio.metrics.MetricsSystem;
+import alluxio.metrics.MetricsSystem.InstanceType;
 import alluxio.metrics.WorkerMetrics;
 import alluxio.metrics.aggregator.SumInstancesAggregator;
 import alluxio.proto.journal.Journal.JournalEntry;
@@ -35,6 +35,7 @@ import java.time.Clock;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -50,7 +51,7 @@ public class DefaultMetricsMaster extends AbstractMaster implements MetricsMaste
    *
    * @param masterContext the context for metrics master
    */
-  protected DefaultMetricsMaster(MasterContext masterContext) {
+  DefaultMetricsMaster(MasterContext masterContext) {
     this(masterContext, new SystemClock(), ExecutorServiceFactories
         .fixedThreadPoolExecutorServiceFactory(Constants.METRICS_MASTER_NAME, 2));
   }
@@ -63,10 +64,10 @@ public class DefaultMetricsMaster extends AbstractMaster implements MetricsMaste
    * @param executorServiceFactory a factory for creating the executor service to use for running
    *        maintenance threads
    */
-  protected DefaultMetricsMaster(MasterContext masterContext, Clock clock,
+  DefaultMetricsMaster(MasterContext masterContext, Clock clock,
       ExecutorServiceFactory executorServiceFactory) {
     super(masterContext, clock, executorServiceFactory);
-    mMetricsStore = masterContext.getMetricsStore();
+    mMetricsStore = new MetricsStore();
     registerAggregators();
   }
 
@@ -121,5 +122,10 @@ public class DefaultMetricsMaster extends AbstractMaster implements MetricsMaste
   @Override
   public void start(Boolean isLeader) throws IOException {
     super.start(isLeader);
+  }
+
+  @Override
+  public void putWorkerMetrics(InstanceType instance, String hostname, List<Metric> metrics) {
+    mMetricsStore.putWorkerMetrics(instance, hostname, metrics);
   }
 }

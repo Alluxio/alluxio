@@ -67,7 +67,7 @@ public class SumInstancesAggregator implements MetricsAggregator {
   public long getValue(Map<MetricsFilter, Set<Metric>> map) {
     long value = 0;
     for (Metric metric : map.get(mFilter)) {
-      value += (long) metric.getValue();
+      value += metric.getValue();
     }
     return value;
   }

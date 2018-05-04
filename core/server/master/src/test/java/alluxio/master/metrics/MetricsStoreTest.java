@@ -9,12 +9,12 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package metrics;
+package alluxio.master.metrics;
 
 import static org.junit.Assert.assertEquals;
 
+import alluxio.master.metrics.MetricsStore;
 import alluxio.metrics.Metric;
-import alluxio.metrics.MetricsStore;
 import alluxio.metrics.MetricsSystem;
 
 import com.google.common.collect.Lists;

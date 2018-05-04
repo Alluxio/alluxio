@@ -17,7 +17,6 @@ import alluxio.PropertyKey;
 import alluxio.RuntimeConstants;
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.JournalSystem.Mode;
-import alluxio.metrics.MetricsStore;
 import alluxio.metrics.MetricsSystem;
 import alluxio.metrics.sink.MetricsServlet;
 import alluxio.metrics.sink.PrometheusMetricsServlet;
@@ -112,9 +111,6 @@ public class AlluxioMasterProcess implements MasterProcess {
   /** The manager of safe mode state. */
   protected final SafeModeManager mSafeModeManager;
 
-  /** The store of the cluster metrics. */
-  protected final MetricsStore mMetricsStore;
-
   /**
    * Creates a new {@link AlluxioMasterProcess}.
    */
@@ -161,8 +157,7 @@ public class AlluxioMasterProcess implements MasterProcess {
       // Create masters.
       mRegistry = new MasterRegistry();
       mSafeModeManager = new DefaultSafeModeManager();
-      mMetricsStore = new MetricsStore();
-      MasterUtils.createMasters(mJournalSystem, mRegistry, mSafeModeManager, mMetricsStore);
+      MasterUtils.createMasters(mJournalSystem, mRegistry, mSafeModeManager);
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
