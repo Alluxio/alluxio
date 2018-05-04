@@ -12,8 +12,8 @@
 package alluxio.master.thrift;
 
 import alluxio.Configuration;
-import alluxio.Constants;
 import alluxio.PropertyKey;
+import alluxio.util.ThreadFactoryUtils;
 
 import com.google.common.io.Closer;
 import org.apache.thrift.transport.TServerSocket;
@@ -28,8 +28,9 @@ import java.net.Socket;
 import java.util.Iterator;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-
-import javax.annotation.concurrent.GuardedBy;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Extension of TServerSocket which tracks all accepted sockets and closes them when the server
@@ -41,8 +42,7 @@ public class SocketTrackingTServerSocket extends TServerSocket {
       Configuration.getMs(PropertyKey.MASTER_CLIENT_SOCKET_CLEANUP_INTERVAL);
 
   private final Set<Socket> mSockets = ConcurrentHashMap.newKeySet();
-  @GuardedBy("this")
-  private Thread mCleanupThread;
+  private final ScheduledExecutorService mExecutor;
 
   /**
    * @param bindAddr bind address for the socket
@@ -51,19 +51,16 @@ public class SocketTrackingTServerSocket extends TServerSocket {
   public SocketTrackingTServerSocket(InetSocketAddress bindAddr, int clientTimeout)
       throws TTransportException {
     super(bindAddr, clientTimeout);
+    mExecutor = Executors
+        .newSingleThreadScheduledExecutor(ThreadFactoryUtils.build("socket-closer-thread", true));
+    mExecutor.scheduleAtFixedRate(this::removeClosedSockets, CLEANUP_INTERVAL_MS,
+        CLEANUP_INTERVAL_MS, TimeUnit.MILLISECONDS);
   }
 
   @Override
   public TSocket acceptImpl() throws TTransportException {
     TSocket socket = super.acceptImpl();
     mSockets.add(socket.getSocket());
-    synchronized (this) {
-      // Start cleanup thread lazily.
-      if (mCleanupThread == null) {
-        mCleanupThread = new Thread(this::removeClosedSockets, "socket-closer-thread");
-        mCleanupThread.start();
-      }
-    }
     return socket;
   }
 
@@ -75,19 +72,14 @@ public class SocketTrackingTServerSocket extends TServerSocket {
     } catch (IOException e) {
       LOG.error("Could not close client sockets", e);
     }
-    synchronized (this) {
-      if (mCleanupThread != null) {
-        mCleanupThread.interrupt();
-        try {
-          mCleanupThread.join(Constants.SECOND_MS);
-        } catch (InterruptedException e) {
-          Thread.currentThread().interrupt();
-          return;
-        }
-        if (mCleanupThread.isAlive()) {
-          LOG.warn("Failed to stop socket cleanup thread.");
-        }
+    mExecutor.shutdownNow();
+    try {
+      if (!mExecutor.awaitTermination(1, TimeUnit.SECONDS)) {
+        LOG.warn("Failed to stop socket cleanup thread.");
       }
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      return;
     }
   }
 
@@ -111,19 +103,12 @@ public class SocketTrackingTServerSocket extends TServerSocket {
    * Periodically clean up any closed sockets.
    */
   private void removeClosedSockets() {
-    while (!Thread.interrupted()) {
-      try {
-        Thread.sleep(CLEANUP_INTERVAL_MS);
-      } catch (InterruptedException e) {
-        return;
-      }
-      // This is best-effort, and may not remove sockets added to the mSockets set after the
-      // iterator was created. Those sockets will be checked on the next sweep.
-      for (Iterator<Socket> it = mSockets.iterator(); it.hasNext();) {
-        Socket s = it.next();
-        if (s.isClosed()) {
-          it.remove();
-        }
+    // This is best-effort, and may not remove sockets added to the mSockets set after the
+    // iterator was created. Those sockets will be checked on the next sweep.
+    for (Iterator<Socket> it = mSockets.iterator(); it.hasNext();) {
+      Socket s = it.next();
+      if (s.isClosed()) {
+        it.remove();
       }
     }
   }
