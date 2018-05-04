@@ -133,7 +133,7 @@ public final class BlockMasterWorkerServiceHandler implements BlockMasterWorkerS
       @Override
       public RegisterWorkerTResponse call() throws AlluxioException {
         mBlockMaster.workerRegister(workerId, storageTiers, totalBytesOnTiers, usedBytesOnTiers,
-            currentBlocksOnTiers);
+            currentBlocksOnTiers, options);
         return new RegisterWorkerTResponse();
       }
 

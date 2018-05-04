@@ -19,13 +19,17 @@ import alluxio.exception.status.InvalidArgumentException;
 import alluxio.exception.status.UnavailableException;
 import alluxio.master.Master;
 import alluxio.thrift.Command;
+import alluxio.thrift.RegisterWorkerTOptions;
 import alluxio.wire.BlockInfo;
+import alluxio.wire.ConfigProperty;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
 
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 /**
@@ -161,11 +165,13 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
    * @param totalBytesOnTiers a mapping from storage tier alias to total bytes
    * @param usedBytesOnTiers a mapping from storage tier alias to the used byes
    * @param currentBlocksOnTiers a mapping from storage tier alias to a list of blocks
+   * @param options the options that may contain worker configuration
    * @throws NoWorkerException if workerId cannot be found
    */
   void workerRegister(long workerId, List<String> storageTiers,
       Map<String, Long> totalBytesOnTiers, Map<String, Long> usedBytesOnTiers,
-      Map<String, List<Long>> currentBlocksOnTiers) throws NoWorkerException;
+      Map<String, List<Long>> currentBlocksOnTiers,
+      RegisterWorkerTOptions options) throws NoWorkerException;
 
   /**
    * Updates metadata when a worker periodically heartbeats with the master.
@@ -190,4 +196,25 @@ public interface BlockMaster extends Master, ContainerIdGenerable {
    * @param blockIds the ids of the lost blocks
    */
   void reportLostBlocks(List<Long> blockIds);
+
+  /**
+   * Registers callback functions to use when lost workers become alive.
+   *
+   * @param function the function to register
+   */
+  void registerLostWorkerFoundListener(Consumer<Long> function);
+
+  /**
+   * Registers callback functions to use when detecting lost workers.
+   *
+   * @param function the function to register
+   */
+  void registerWorkerLostListener(Consumer<Long> function);
+
+  /**
+   * Registers callback functions to use when workers register with configuration.
+   *
+   * @param function the function to register
+   */
+  void registerNewWorkerConfListener(BiConsumer<Long, List<ConfigProperty>> function);
 }

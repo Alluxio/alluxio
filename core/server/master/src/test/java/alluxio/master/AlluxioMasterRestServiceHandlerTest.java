@@ -31,6 +31,7 @@ import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.JournalTestUtils;
 import alluxio.master.meta.AlluxioMasterRestServiceHandler;
 import alluxio.metrics.MetricsSystem;
+import alluxio.thrift.RegisterWorkerTOptions;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemConfiguration;
 import alluxio.underfs.UnderFileSystemFactory;
@@ -130,9 +131,9 @@ public final class AlluxioMasterRestServiceHandlerTest {
     List<String> tiers = Arrays.asList("MEM", "SSD");
 
     mBlockMaster.workerRegister(worker1, tiers, WORKER1_TOTAL_BYTES_ON_TIERS,
-        WORKER1_USED_BYTES_ON_TIERS, NO_BLOCKS_ON_TIERS);
+        WORKER1_USED_BYTES_ON_TIERS, NO_BLOCKS_ON_TIERS, new RegisterWorkerTOptions());
     mBlockMaster.workerRegister(worker2, tiers, WORKER2_TOTAL_BYTES_ON_TIERS,
-        WORKER2_USED_BYTES_ON_TIERS, NO_BLOCKS_ON_TIERS);
+        WORKER2_USED_BYTES_ON_TIERS, NO_BLOCKS_ON_TIERS, new RegisterWorkerTOptions());
   }
 
   private void registerFileSystemMock() throws IOException {

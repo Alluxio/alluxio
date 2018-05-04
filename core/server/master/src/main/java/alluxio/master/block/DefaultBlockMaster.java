@@ -45,6 +45,7 @@ import alluxio.thrift.BlockMasterClientService;
 import alluxio.thrift.BlockMasterWorkerService;
 import alluxio.thrift.Command;
 import alluxio.thrift.CommandType;
+import alluxio.thrift.RegisterWorkerTOptions;
 import alluxio.util.CommonUtils;
 import alluxio.util.IdUtils;
 import alluxio.util.executor.ExecutorServiceFactories;
@@ -52,6 +53,7 @@ import alluxio.util.executor.ExecutorServiceFactory;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.BlockLocation;
+import alluxio.wire.ConfigProperty;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
 
@@ -78,8 +80,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Set;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -161,6 +167,17 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
   /** Keeps track of workers which are no longer in communication with the master. */
   private final IndexedSet<MasterWorkerInfo> mLostWorkers =
       new IndexedSet<>(ID_INDEX, ADDRESS_INDEX);
+
+  /** Listeners to call when lost workers are found. */
+  private final BlockingQueue<Consumer<Long>> mLostWorkerFoundListeners
+      = new LinkedBlockingQueue<>();
+
+  /** Listeners to call when workers are lost. */
+  private final BlockingQueue<Consumer<Long>> mWorkerLostListeners = new LinkedBlockingQueue<>();
+
+  /** Listeners to call when a new worker registers. */
+  private final BlockingQueue<BiConsumer<Long, List<ConfigProperty>>> mWorkerRegisteredListeners
+      = new LinkedBlockingQueue<>();
 
   /**
    * The service that detects lost worker nodes, and tries to restart the failed workers.
@@ -672,6 +689,9 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
         lostWorker.updateLastUpdatedTimeMs();
         mWorkers.add(lostWorker);
         mLostWorkers.remove(lostWorker);
+        for (Consumer<Long> function : mLostWorkerFoundListeners) {
+          function.accept(lostWorker.getId());
+        }
         return lostWorkerId;
       }
     }
@@ -689,7 +709,9 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
   @Override
   public void workerRegister(long workerId, List<String> storageTiers,
       Map<String, Long> totalBytesOnTiers, Map<String, Long> usedBytesOnTiers,
-      Map<String, List<Long>> currentBlocksOnTiers) throws NoWorkerException {
+      Map<String, List<Long>> currentBlocksOnTiers,
+      RegisterWorkerTOptions options) throws NoWorkerException {
+
     MasterWorkerInfo worker = mWorkers.getFirstByField(ID_INDEX, workerId);
     if (worker == null) {
       throw new NoWorkerException(ExceptionMessage.NO_WORKER_FOUND.getMessage(workerId));
@@ -709,6 +731,14 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
       processWorkerRemovedBlocks(worker, removedBlocks);
       processWorkerAddedBlocks(worker, currentBlocksOnTiers);
       processWorkerOrphanedBlocks(worker);
+      if (options.isSetConfigList()) {
+        List<alluxio.wire.ConfigProperty> wireConfigList = options.getConfigList()
+            .stream().map(alluxio.wire.ConfigProperty::fromThrift)
+            .collect(Collectors.toList());
+        for (BiConsumer<Long, List<ConfigProperty>> function : mWorkerRegisteredListeners) {
+          function.accept(workerId, wireConfigList);
+        }
+      }
     }
 
     LOG.info("registerWorker(): {}", worker);
@@ -881,6 +911,9 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
                 worker.getWorkerAddress(), lastUpdate);
             mLostWorkers.add(worker);
             mWorkers.remove(worker);
+            for (Consumer<Long> function : mWorkerLostListeners) {
+              function.accept(worker.getId());
+            }
             processWorkerRemovedBlocks(worker, worker.getBlocks());
           }
         }
@@ -928,6 +961,21 @@ public final class DefaultBlockMaster extends AbstractMaster implements BlockMas
       }
       return false;
     }).collect(Collectors.toSet());
+  }
+
+  @Override
+  public void registerLostWorkerFoundListener(Consumer<Long> function) {
+    mLostWorkerFoundListeners.add(function);
+  }
+
+  @Override
+  public void registerWorkerLostListener(Consumer<Long> function) {
+    mWorkerLostListeners.add(function);
+  }
+
+  @Override
+  public void registerNewWorkerConfListener(BiConsumer<Long, List<ConfigProperty>> function) {
+    mWorkerRegisteredListeners.add(function);
   }
 
   /**

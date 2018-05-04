@@ -38,6 +38,7 @@ import org.slf4j.LoggerFactory;
 public class RegisterWorkerTOptions implements org.apache.thrift.TBase<RegisterWorkerTOptions, RegisterWorkerTOptions._Fields>, java.io.Serializable, Cloneable, Comparable<RegisterWorkerTOptions> {
   private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("RegisterWorkerTOptions");
 
+  private static final org.apache.thrift.protocol.TField CONFIG_LIST_FIELD_DESC = new org.apache.thrift.protocol.TField("configList", org.apache.thrift.protocol.TType.LIST, (short)1);
 
   private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
   static {
@@ -45,10 +46,11 @@ public class RegisterWorkerTOptions implements org.apache.thrift.TBase<RegisterW
     schemes.put(TupleScheme.class, new RegisterWorkerTOptionsTupleSchemeFactory());
   }
 
+  private List<alluxio.thrift.ConfigProperty> configList; // optional
 
   /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
   public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-;
+    CONFIG_LIST((short)1, "configList");
 
     private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -63,6 +65,8 @@ public class RegisterWorkerTOptions implements org.apache.thrift.TBase<RegisterW
      */
     public static _Fields findByThriftId(int fieldId) {
       switch(fieldId) {
+        case 1: // CONFIG_LIST
+          return CONFIG_LIST;
         default:
           return null;
       }
@@ -101,9 +105,15 @@ public class RegisterWorkerTOptions implements org.apache.thrift.TBase<RegisterW
       return _fieldName;
     }
   }
+
+  // isset id assignments
+  private static final _Fields optionals[] = {_Fields.CONFIG_LIST};
   public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
   static {
     Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
+    tmpMap.put(_Fields.CONFIG_LIST, new org.apache.thrift.meta_data.FieldMetaData("configList", org.apache.thrift.TFieldRequirementType.OPTIONAL, 
+        new org.apache.thrift.meta_data.ListMetaData(org.apache.thrift.protocol.TType.LIST, 
+            new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, alluxio.thrift.ConfigProperty.class))));
     metaDataMap = Collections.unmodifiableMap(tmpMap);
     org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(RegisterWorkerTOptions.class, metaDataMap);
   }
@@ -115,6 +125,13 @@ public class RegisterWorkerTOptions implements org.apache.thrift.TBase<RegisterW
    * Performs a deep copy on <i>other</i>.
    */
   public RegisterWorkerTOptions(RegisterWorkerTOptions other) {
+    if (other.isSetConfigList()) {
+      List<alluxio.thrift.ConfigProperty> __this__configList = new ArrayList<alluxio.thrift.ConfigProperty>(other.configList.size());
+      for (alluxio.thrift.ConfigProperty other_element : other.configList) {
+        __this__configList.add(new alluxio.thrift.ConfigProperty(other_element));
+      }
+      this.configList = __this__configList;
+    }
   }
 
   public RegisterWorkerTOptions deepCopy() {
@@ -123,15 +140,66 @@ public class RegisterWorkerTOptions implements org.apache.thrift.TBase<RegisterW
 
   @Override
   public void clear() {
+    this.configList = null;
+  }
+
+  public int getConfigListSize() {
+    return (this.configList == null) ? 0 : this.configList.size();
+  }
+
+  public java.util.Iterator<alluxio.thrift.ConfigProperty> getConfigListIterator() {
+    return (this.configList == null) ? null : this.configList.iterator();
+  }
+
+  public void addToConfigList(alluxio.thrift.ConfigProperty elem) {
+    if (this.configList == null) {
+      this.configList = new ArrayList<alluxio.thrift.ConfigProperty>();
+    }
+    this.configList.add(elem);
+  }
+
+  public List<alluxio.thrift.ConfigProperty> getConfigList() {
+    return this.configList;
+  }
+
+  public RegisterWorkerTOptions setConfigList(List<alluxio.thrift.ConfigProperty> configList) {
+    this.configList = configList;
+    return this;
+  }
+
+  public void unsetConfigList() {
+    this.configList = null;
+  }
+
+  /** Returns true if field configList is set (has been assigned a value) and false otherwise */
+  public boolean isSetConfigList() {
+    return this.configList != null;
+  }
+
+  public void setConfigListIsSet(boolean value) {
+    if (!value) {
+      this.configList = null;
+    }
   }
 
   public void setFieldValue(_Fields field, Object value) {
     switch (field) {
+    case CONFIG_LIST:
+      if (value == null) {
+        unsetConfigList();
+      } else {
+        setConfigList((List<alluxio.thrift.ConfigProperty>)value);
+      }
+      break;
+
     }
   }
 
   public Object getFieldValue(_Fields field) {
     switch (field) {
+    case CONFIG_LIST:
+      return getConfigList();
+
     }
     throw new IllegalStateException();
   }
@@ -143,6 +211,8 @@ public class RegisterWorkerTOptions implements org.apache.thrift.TBase<RegisterW
     }
 
     switch (field) {
+    case CONFIG_LIST:
+      return isSetConfigList();
     }
     throw new IllegalStateException();
   }
@@ -160,12 +230,26 @@ public class RegisterWorkerTOptions implements org.apache.thrift.TBase<RegisterW
     if (that == null)
       return false;
 
+    boolean this_present_configList = true && this.isSetConfigList();
+    boolean that_present_configList = true && that.isSetConfigList();
+    if (this_present_configList || that_present_configList) {
+      if (!(this_present_configList && that_present_configList))
+        return false;
+      if (!this.configList.equals(that.configList))
+        return false;
+    }
+
     return true;
   }
 
   @Override
   public int hashCode() {
     List<Object> list = new ArrayList<Object>();
+
+    boolean present_configList = true && (isSetConfigList());
+    list.add(present_configList);
+    if (present_configList)
+      list.add(configList);
 
     return list.hashCode();
   }
@@ -178,6 +262,16 @@ public class RegisterWorkerTOptions implements org.apache.thrift.TBase<RegisterW
 
     int lastComparison = 0;
 
+    lastComparison = Boolean.valueOf(isSetConfigList()).compareTo(other.isSetConfigList());
+    if (lastComparison != 0) {
+      return lastComparison;
+    }
+    if (isSetConfigList()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.configList, other.configList);
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+    }
     return 0;
   }
 
@@ -198,6 +292,15 @@ public class RegisterWorkerTOptions implements org.apache.thrift.TBase<RegisterW
     StringBuilder sb = new StringBuilder("RegisterWorkerTOptions(");
     boolean first = true;
 
+    if (isSetConfigList()) {
+      sb.append("configList:");
+      if (this.configList == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.configList);
+      }
+      first = false;
+    }
     sb.append(")");
     return sb.toString();
   }
@@ -241,6 +344,25 @@ public class RegisterWorkerTOptions implements org.apache.thrift.TBase<RegisterW
           break;
         }
         switch (schemeField.id) {
+          case 1: // CONFIG_LIST
+            if (schemeField.type == org.apache.thrift.protocol.TType.LIST) {
+              {
+                org.apache.thrift.protocol.TList _list72 = iprot.readListBegin();
+                struct.configList = new ArrayList<alluxio.thrift.ConfigProperty>(_list72.size);
+                alluxio.thrift.ConfigProperty _elem73;
+                for (int _i74 = 0; _i74 < _list72.size; ++_i74)
+                {
+                  _elem73 = new alluxio.thrift.ConfigProperty();
+                  _elem73.read(iprot);
+                  struct.configList.add(_elem73);
+                }
+                iprot.readListEnd();
+              }
+              struct.setConfigListIsSet(true);
+            } else { 
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+            }
+            break;
           default:
             org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
         }
@@ -256,6 +378,20 @@ public class RegisterWorkerTOptions implements org.apache.thrift.TBase<RegisterW
       struct.validate();
 
       oprot.writeStructBegin(STRUCT_DESC);
+      if (struct.configList != null) {
+        if (struct.isSetConfigList()) {
+          oprot.writeFieldBegin(CONFIG_LIST_FIELD_DESC);
+          {
+            oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, struct.configList.size()));
+            for (alluxio.thrift.ConfigProperty _iter75 : struct.configList)
+            {
+              _iter75.write(oprot);
+            }
+            oprot.writeListEnd();
+          }
+          oprot.writeFieldEnd();
+        }
+      }
       oprot.writeFieldStop();
       oprot.writeStructEnd();
     }
@@ -273,11 +409,40 @@ public class RegisterWorkerTOptions implements org.apache.thrift.TBase<RegisterW
     @Override
     public void write(org.apache.thrift.protocol.TProtocol prot, RegisterWorkerTOptions struct) throws org.apache.thrift.TException {
       TTupleProtocol oprot = (TTupleProtocol) prot;
+      BitSet optionals = new BitSet();
+      if (struct.isSetConfigList()) {
+        optionals.set(0);
+      }
+      oprot.writeBitSet(optionals, 1);
+      if (struct.isSetConfigList()) {
+        {
+          oprot.writeI32(struct.configList.size());
+          for (alluxio.thrift.ConfigProperty _iter76 : struct.configList)
+          {
+            _iter76.write(oprot);
+          }
+        }
+      }
     }
 
     @Override
     public void read(org.apache.thrift.protocol.TProtocol prot, RegisterWorkerTOptions struct) throws org.apache.thrift.TException {
       TTupleProtocol iprot = (TTupleProtocol) prot;
+      BitSet incoming = iprot.readBitSet(1);
+      if (incoming.get(0)) {
+        {
+          org.apache.thrift.protocol.TList _list77 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
+          struct.configList = new ArrayList<alluxio.thrift.ConfigProperty>(_list77.size);
+          alluxio.thrift.ConfigProperty _elem78;
+          for (int _i79 = 0; _i79 < _list77.size; ++_i79)
+          {
+            _elem78 = new alluxio.thrift.ConfigProperty();
+            _elem78.read(iprot);
+            struct.configList.add(_elem78);
+          }
+        }
+        struct.setConfigListIsSet(true);
+      }
     }
   }
 
