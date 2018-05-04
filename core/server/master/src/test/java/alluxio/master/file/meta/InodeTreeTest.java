@@ -696,8 +696,8 @@ public final class InodeTreeTest {
 
     for (Inode<?> inode : createResult.getCreated()) {
       long id = inode.getId();
-      try (LockedInodePath inodePath = mTree.lockFullInodePath(id, InodeTree.LockMode.READ)) {
-        TempInodePathForDescendant tempInodePath = new TempInodePathForDescendant(inodePath);
+      try (LockedInodePath inodePath = mTree.lockFullInodePath(id, InodeTree.LockMode.READ);
+           TempInodePathForDescendant tempInodePath = new TempInodePathForDescendant(inodePath)) {
         assertEquals(inodePath.getInode(), tempInodePath.getInode());
         assertEquals(inodePath.getUri(), tempInodePath.getUri());
         assertEquals(inodePath.getParentInodeDirectory(),
@@ -726,8 +726,8 @@ public final class InodeTreeTest {
       childUri = lockedChildPath.getUri();
       childInodeList = lockedChildPath.getInodeList();
     }
-    try (LockedInodePath locked = mTree.lockFullInodePath(parentId, InodeTree.LockMode.READ)) {
-      TempInodePathForDescendant tempInodePath = new TempInodePathForDescendant(locked);
+    try (LockedInodePath locked = mTree.lockFullInodePath(parentId, InodeTree.LockMode.READ);
+         TempInodePathForDescendant tempInodePath = new TempInodePathForDescendant(locked)) {
       tempInodePath.setDescendant(childInode, childUri);
       assertEquals(childInode, tempInodePath.getInode());
       assertEquals(childUri, tempInodePath.getUri());
@@ -759,8 +759,8 @@ public final class InodeTreeTest {
       fileUri = lockedFilePath.getUri();
       fileInodeList = lockedFilePath.getInodeList();
     }
-    try (LockedInodePath locked = mTree.lockFullInodePath(dirId, InodeTree.LockMode.READ)) {
-      TempInodePathForDescendant tempInodePath = new TempInodePathForDescendant(locked);
+    try (LockedInodePath locked = mTree.lockFullInodePath(dirId, InodeTree.LockMode.READ);
+         TempInodePathForDescendant tempInodePath = new TempInodePathForDescendant(locked)) {
       tempInodePath.setDescendant(fileInode, fileUri);
       assertEquals(fileInode, tempInodePath.getInode());
       assertEquals(fileUri, tempInodePath.getUri());

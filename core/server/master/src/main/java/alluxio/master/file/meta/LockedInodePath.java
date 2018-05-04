@@ -53,7 +53,8 @@ public abstract class LockedInodePath implements AutoCloseable {
     mUri = inodePath.mUri;
     mPathComponents = inodePath.mPathComponents;
     mInodes = inodePath.mInodes;
-    mLockList = inodePath.mLockList;
+    // Always use a new lock list, lock list should not be shared by default.
+    mLockList = new InodeLockList();
     mLockMode = inodePath.mLockMode;
   }
 

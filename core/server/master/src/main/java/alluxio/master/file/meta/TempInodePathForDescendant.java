@@ -43,7 +43,7 @@ public final class TempInodePathForDescendant extends LockedInodePath {
    */
   public TempInodePathForDescendant(LockedInodePath inodePath) {
     super(inodePath);
-    mDescendantUri = new AlluxioURI(inodePath.mUri.toString());
+    mDescendantUri = new AlluxioURI(inodePath.getUri().toString());
     mDescendantInode = null;
   }
 
