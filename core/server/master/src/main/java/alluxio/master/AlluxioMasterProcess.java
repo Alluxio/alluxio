@@ -15,7 +15,6 @@ import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.RuntimeConstants;
-<<<<<<< HEAD
 import alluxio.clock.SystemClock;
 import alluxio.collections.IndexDefinition;
 import alluxio.collections.IndexedSet;
@@ -24,20 +23,19 @@ import alluxio.exception.NoMasterException;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.heartbeat.HeartbeatThread;
+import alluxio.master.block.BlockMaster;
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.JournalSystem.Mode;
 import alluxio.master.meta.MetaMasterClientServiceHandler;
 import alluxio.master.meta.MetaMasterInfo;
+import alluxio.master.meta.MetaMasterMasterClient;
 import alluxio.master.meta.MetaMasterSync;
-=======
-import alluxio.master.block.BlockMaster;
-import alluxio.master.journal.JournalSystem;
-import alluxio.master.journal.JournalSystem.Mode;
 import alluxio.master.meta.ServerConfigurationChecker;
->>>>>>> 6caae6e58cf1680d53867b5ab04e6f87241e8cbd
 import alluxio.metrics.MetricsSystem;
 import alluxio.metrics.sink.MetricsServlet;
 import alluxio.metrics.sink.PrometheusMetricsServlet;
+import alluxio.retry.ExponentialTimeBoundedRetry;
+import alluxio.retry.RetryUtils;
 import alluxio.security.authentication.TransportProvider;
 import alluxio.thrift.MetaMasterClientService;
 import alluxio.thrift.RegisterMasterTOptions;
@@ -55,7 +53,6 @@ import alluxio.wire.ConfigProperty;
 import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.apache.thrift.TMultiplexedProcessor;
 import org.apache.thrift.TProcessor;
 import org.apache.thrift.protocol.TBinaryProtocol;
@@ -71,11 +68,12 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.time.Clock;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Future;
+import java.util.concurrent.atomic.AtomicReference;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
@@ -154,7 +152,28 @@ public class AlluxioMasterProcess implements MasterProcess {
   protected final SafeModeManager mSafeModeManager;
 
   /** The clock to use for determining the time. */
-  protected final Clock mClock;
+  private final Clock mClock;
+
+  /** The executor used for running maintenance threads for the meta master. */
+  private final ExecutorService mExecutorService;
+
+  /** The master configuration checker. */
+  private final ServerConfigurationChecker mMasterConfigChecker;
+
+  /** The worker configuration checker. */
+  private final ServerConfigurationChecker mWorkerConfigChecker;
+
+  /** The hostname of this master. */
+  private String mMasterHostname;
+
+  /** The master ID for this master. */
+  private AtomicReference<Long> mMasterId;
+
+  /** Client for all meta master communication. */
+  private final MetaMasterMasterClient mMetaMasterClient;
+
+  /** Runnable responsible for heartbeating and registration with leader master. */
+  private MetaMasterSync mMetaMasterSync;
 
   /** Keeps track of standby masters which are in communication with the leader master. */
   private final IndexedSet<MetaMasterInfo> mMasters =
@@ -162,18 +181,6 @@ public class AlluxioMasterProcess implements MasterProcess {
   /** Keeps track of standby masters which are no longer in communication with the leader master. */
   private final IndexedSet<MetaMasterInfo> mLostMasters =
       new IndexedSet<>(ID_INDEX, HOSTNAME_INDEX);
-
-  /**
-   * The service that detects lost master nodes.
-   */
-  @SuppressFBWarnings("URF_UNREAD_FIELD")
-  private Future<?> mLostMasterDetectionService;
-
-  /** The executor used for running maintenance threads for the meta master. */
-  private ExecutorService mExecutorService;
-
-  /** The worker configuration checker. */
-  private final ServerConfigurationChecker mWorkerConfigChecker;
 
   /**
    * Creates a new {@link AlluxioMasterProcess}.
@@ -223,12 +230,14 @@ public class AlluxioMasterProcess implements MasterProcess {
       mSafeModeManager = new DefaultSafeModeManager();
       MasterUtils.createMasters(mJournalSystem, mRegistry, mSafeModeManager);
 
+      // Create config checker
+      mWorkerConfigChecker = new ServerConfigurationChecker();
+      mMasterConfigChecker = new ServerConfigurationChecker();
       mClock = new SystemClock();
       mExecutorService = ExecutorServiceFactories
           .fixedThreadPoolExecutorServiceFactory(Constants.META_MASTER_NAME, 2).create();
-
-      // Create config checker
-      mWorkerConfigChecker = new ServerConfigurationChecker();
+      mMetaMasterClient = new MetaMasterMasterClient(MasterClientConfig.defaults());
+      setMasterIdAndHostname();
 
       // Register listeners for BlockMaster to interact with config checker
       BlockMaster blockMaster = mRegistry.get(BlockMaster.class);
@@ -347,16 +356,17 @@ public class AlluxioMasterProcess implements MasterProcess {
   }
 
   @Override
-  public void masterHeartbeat(long masterId) {
+  public boolean masterHeartbeat(long masterId) {
     MetaMasterInfo master = mMasters.getFirstByField(ID_INDEX, masterId);
     if (master == null) {
       LOG.warn("Could not find master id: {} for heartbeat.", masterId);
-      return;
+      return true;
     }
 
     synchronized (master) {
       master.updateLastUpdatedTimeMs();
     }
+    return false;
   }
 
   @Override
@@ -400,13 +410,16 @@ public class AlluxioMasterProcess implements MasterProcess {
       if (isLeader) {
         mSafeModeManager.notifyPrimaryMasterStarted();
 
-        mLostMasterDetectionService = mExecutorService.submit(new HeartbeatThread(
+        //  The service that detects lost standby master nodes
+        mExecutorService.submit(new HeartbeatThread(
             HeartbeatContext.MASTER_LOST_MASTER_DETECTION,
             new LostMasterDetectionHeartbeatExecutor(),
             (int) Configuration.getMs(PropertyKey.MASTER_HEARTBEAT_INTERVAL_MS)));
       } else {
         // Standby master should setup MetaMasterSync to communicate with the leader master
-        mMetaMasterSync = new MetaMasterSync(this, mMasterId, mHostname, mMetaMasterMasterClient);
+        mMetaMasterSync = new MetaMasterSync(mMasterId, mMasterHostname, mMetaMasterClient);
+        mExecutorService.submit(new HeartbeatThread(HeartbeatContext.MASTER_SYNC, mMetaMasterSync,
+                (int) Configuration.getMs(PropertyKey.MASTER_HEARTBEAT_INTERVAL_MS)));
       }
       mRegistry.start(isLeader);
       LOG.info("All masters started");
@@ -625,5 +638,28 @@ public class AlluxioMasterProcess implements MasterProcess {
    */
   private void registerNewWorkerConfHandler(long id, List<ConfigProperty> configList) {
     mWorkerConfigChecker.registerNewConf(id, configList);
+  }
+
+  /**
+   * Sets the master id and hostname.
+   */
+  private void setMasterIdAndHostname() {
+    mMasterHostname = Configuration.get(PropertyKey.MASTER_HOSTNAME);
+
+    try {
+      RetryUtils.retry("get master id",
+          () -> mMasterId.set(mMetaMasterClient.getId(mMasterHostname)),
+          ExponentialTimeBoundedRetry.builder()
+              .withMaxDuration(Duration
+                  .ofMillis(Configuration.getMs(PropertyKey.USER_RPC_RETRY_MAX_NUM_RETRY)))
+              .withInitialSleep(Duration.ofMillis(100))
+              .withMaxSleep(Duration.ofSeconds(5))
+              .build());
+    } catch (Exception e) {
+      throw new RuntimeException("Failed to get a master id from leader master: " + e.getMessage());
+    }
+
+    Preconditions.checkNotNull(mMasterId, "mMasterId");
+    Preconditions.checkNotNull(mMasterHostname, "mMasterHostname");
   }
 }

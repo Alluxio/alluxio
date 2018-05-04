@@ -107,8 +107,9 @@ public interface MasterProcess extends Process {
    * Updates metadata when a standby master periodically heartbeats with the leader master.
    *
    * @param masterId the master id
+   * @return whether the master should re-register
    */
-  void masterHeartbeat(long masterId);
+  boolean masterHeartbeat(long masterId);
 
   /**
    * Updates metadata when a standby master registers with the leader master.

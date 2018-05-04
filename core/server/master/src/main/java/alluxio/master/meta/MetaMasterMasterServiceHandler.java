@@ -78,8 +78,7 @@ public final class MetaMasterMasterServiceHandler implements MetaMasterMasterSer
     return RpcUtils.call(LOG, new RpcUtils.RpcCallable<MasterHeartbeatTResponse>() {
       @Override
       public MasterHeartbeatTResponse call() throws AlluxioException {
-        mMasterProcess.masterHeartbeat(masterId);
-        return new MasterHeartbeatTResponse();
+        return new MasterHeartbeatTResponse(mMasterProcess.masterHeartbeat(masterId));
       }
 
       @Override

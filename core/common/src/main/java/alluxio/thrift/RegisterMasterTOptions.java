@@ -46,7 +46,7 @@ public class RegisterMasterTOptions implements org.apache.thrift.TBase<RegisterM
     schemes.put(TupleScheme.class, new RegisterMasterTOptionsTupleSchemeFactory());
   }
 
-  private List<ConfigProperty> configList; // required
+  private List<alluxio.thrift.ConfigProperty> configList; // required
 
   /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
   public enum _Fields implements org.apache.thrift.TFieldIdEnum {
@@ -112,7 +112,7 @@ public class RegisterMasterTOptions implements org.apache.thrift.TBase<RegisterM
     Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
     tmpMap.put(_Fields.CONFIG_LIST, new org.apache.thrift.meta_data.FieldMetaData("configList", org.apache.thrift.TFieldRequirementType.DEFAULT, 
         new org.apache.thrift.meta_data.ListMetaData(org.apache.thrift.protocol.TType.LIST, 
-            new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, ConfigProperty.class))));
+            new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, alluxio.thrift.ConfigProperty.class))));
     metaDataMap = Collections.unmodifiableMap(tmpMap);
     org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(RegisterMasterTOptions.class, metaDataMap);
   }
@@ -121,7 +121,7 @@ public class RegisterMasterTOptions implements org.apache.thrift.TBase<RegisterM
   }
 
   public RegisterMasterTOptions(
-    List<ConfigProperty> configList)
+    List<alluxio.thrift.ConfigProperty> configList)
   {
     this();
     this.configList = configList;
@@ -132,9 +132,9 @@ public class RegisterMasterTOptions implements org.apache.thrift.TBase<RegisterM
    */
   public RegisterMasterTOptions(RegisterMasterTOptions other) {
     if (other.isSetConfigList()) {
-      List<ConfigProperty> __this__configList = new ArrayList<ConfigProperty>(other.configList.size());
-      for (ConfigProperty other_element : other.configList) {
-        __this__configList.add(new ConfigProperty(other_element));
+      List<alluxio.thrift.ConfigProperty> __this__configList = new ArrayList<alluxio.thrift.ConfigProperty>(other.configList.size());
+      for (alluxio.thrift.ConfigProperty other_element : other.configList) {
+        __this__configList.add(new alluxio.thrift.ConfigProperty(other_element));
       }
       this.configList = __this__configList;
     }
@@ -153,22 +153,22 @@ public class RegisterMasterTOptions implements org.apache.thrift.TBase<RegisterM
     return (this.configList == null) ? 0 : this.configList.size();
   }
 
-  public java.util.Iterator<ConfigProperty> getConfigListIterator() {
+  public java.util.Iterator<alluxio.thrift.ConfigProperty> getConfigListIterator() {
     return (this.configList == null) ? null : this.configList.iterator();
   }
 
-  public void addToConfigList(ConfigProperty elem) {
+  public void addToConfigList(alluxio.thrift.ConfigProperty elem) {
     if (this.configList == null) {
-      this.configList = new ArrayList<ConfigProperty>();
+      this.configList = new ArrayList<alluxio.thrift.ConfigProperty>();
     }
     this.configList.add(elem);
   }
 
-  public List<ConfigProperty> getConfigList() {
+  public List<alluxio.thrift.ConfigProperty> getConfigList() {
     return this.configList;
   }
 
-  public RegisterMasterTOptions setConfigList(List<ConfigProperty> configList) {
+  public RegisterMasterTOptions setConfigList(List<alluxio.thrift.ConfigProperty> configList) {
     this.configList = configList;
     return this;
   }
@@ -194,7 +194,7 @@ public class RegisterMasterTOptions implements org.apache.thrift.TBase<RegisterM
       if (value == null) {
         unsetConfigList();
       } else {
-        setConfigList((List<ConfigProperty>)value);
+        setConfigList((List<alluxio.thrift.ConfigProperty>)value);
       }
       break;
 
@@ -352,11 +352,11 @@ public class RegisterMasterTOptions implements org.apache.thrift.TBase<RegisterM
             if (schemeField.type == org.apache.thrift.protocol.TType.LIST) {
               {
                 org.apache.thrift.protocol.TList _list34 = iprot.readListBegin();
-                struct.configList = new ArrayList<ConfigProperty>(_list34.size);
-                ConfigProperty _elem35;
+                struct.configList = new ArrayList<alluxio.thrift.ConfigProperty>(_list34.size);
+                alluxio.thrift.ConfigProperty _elem35;
                 for (int _i36 = 0; _i36 < _list34.size; ++_i36)
                 {
-                  _elem35 = new ConfigProperty();
+                  _elem35 = new alluxio.thrift.ConfigProperty();
                   _elem35.read(iprot);
                   struct.configList.add(_elem35);
                 }
@@ -386,7 +386,7 @@ public class RegisterMasterTOptions implements org.apache.thrift.TBase<RegisterM
         oprot.writeFieldBegin(CONFIG_LIST_FIELD_DESC);
         {
           oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, struct.configList.size()));
-          for (ConfigProperty _iter37 : struct.configList)
+          for (alluxio.thrift.ConfigProperty _iter37 : struct.configList)
           {
             _iter37.write(oprot);
           }
@@ -419,7 +419,7 @@ public class RegisterMasterTOptions implements org.apache.thrift.TBase<RegisterM
       if (struct.isSetConfigList()) {
         {
           oprot.writeI32(struct.configList.size());
-          for (ConfigProperty _iter38 : struct.configList)
+          for (alluxio.thrift.ConfigProperty _iter38 : struct.configList)
           {
             _iter38.write(oprot);
           }
@@ -434,11 +434,11 @@ public class RegisterMasterTOptions implements org.apache.thrift.TBase<RegisterM
       if (incoming.get(0)) {
         {
           org.apache.thrift.protocol.TList _list39 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
-          struct.configList = new ArrayList<ConfigProperty>(_list39.size);
-          ConfigProperty _elem40;
+          struct.configList = new ArrayList<alluxio.thrift.ConfigProperty>(_list39.size);
+          alluxio.thrift.ConfigProperty _elem40;
           for (int _i41 = 0; _i41 < _list39.size; ++_i41)
           {
-            _elem40 = new ConfigProperty();
+            _elem40 = new alluxio.thrift.ConfigProperty();
             _elem40.read(iprot);
             struct.configList.add(_elem40);
           }

@@ -623,11 +623,14 @@ public final class Configuration {
   }
 
   /**
-   * @return a list of worker-related configurations
+   * Gets the configuration of a given scope.
+   *
+   * @param scope the property key scope
+   * @return a list of configurations inside the property scope
    */
-  public static List<ConfigProperty> getWorkerConfiguration() {
+  public static List<ConfigProperty> getConfiguration(Scope scope) {
     return toMap().keySet().stream().map(PropertyKey::fromString)
-        .filter(key -> key.getScope().contains(Scope.WORKER))
+        .filter(key -> key.getScope().contains(scope))
         .map(key -> new ConfigProperty().setName(key.getName())
             .setValue(get(key)).setSource(getFormattedSource(key)))
         .collect(Collectors.toList());

@@ -50,7 +50,9 @@ struct GetMetricsTResponse {
 }
 
 struct MasterHeartbeatTOptions {}
-struct MasterHeartbeatTResponse {}
+struct MasterHeartbeatTResponse {
+  1: bool shouldReRegister
+}
 
 // This type is used as a union, only one of doubleValue or longValue should be set
 struct MetricValue {
@@ -59,7 +61,7 @@ struct MetricValue {
 }
 
 struct RegisterMasterTOptions {
-  1: list<ConfigProperty> configList
+  1: list<common.ConfigProperty> configList
 }
 struct RegisterMasterTResponse {}
 

@@ -932,7 +932,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
       new Builder(Name.MASTER_HEARTBEAT_TIMEOUT_MS)
           .setAlias(new String[]{"alluxio.master.heartbeat.timeout.ms"})
           .setDefaultValue("5min")
-          .setDescription("Timeout between leader master and standby worker"
+          .setDescription("Timeout between leader master and standby master"
               + " indicating a lost master.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)

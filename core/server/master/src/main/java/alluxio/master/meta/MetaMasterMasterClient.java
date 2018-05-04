@@ -16,6 +16,7 @@ import alluxio.Constants;
 import alluxio.master.MasterClientConfig;
 import alluxio.thrift.AlluxioService;
 import alluxio.thrift.GetMasterIdTOptions;
+import alluxio.thrift.MasterHeartbeatTOptions;
 import alluxio.thrift.MetaMasterMasterService;
 import alluxio.thrift.RegisterMasterTOptions;
 import alluxio.wire.ConfigProperty;
@@ -75,6 +76,18 @@ public final class MetaMasterMasterClient extends AbstractMasterClient {
   public synchronized long getId(final String hostname) throws IOException {
     return retryRPC(() -> mClient.getMasterId(hostname, new GetMasterIdTOptions())
         .getMasterId());
+  }
+
+  /**
+   * The method the standby master should periodically execute
+   * to heartbeat back to the leader master.
+   *
+   * @param masterId the master id
+   * @return whether this master should re-register
+   */
+  public synchronized boolean heartbeat(final long masterId) throws IOException {
+    return retryRPC(() -> mClient.masterHeartbeat(masterId, new MasterHeartbeatTOptions())
+        .isShouldReRegister());
   }
 
   /**
