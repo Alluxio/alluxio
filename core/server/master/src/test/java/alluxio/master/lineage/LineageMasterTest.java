@@ -80,11 +80,10 @@ public final class LineageMasterTest {
   public void before() throws Exception {
     mRegistry = new MasterRegistry();
     JournalSystem journalSystem = new NoopJournalSystem();
+    mSafeModeManager = new DefaultSafeModeManager();
     mMetricsMaster = new MetricsMasterFactory().create(mRegistry, journalSystem, mSafeModeManager);
     mRegistry.add(MetricsMaster.class, mMetricsMaster);
     mFileSystemMaster = mock(FileSystemMaster.class);
-    mRegistry.add(FileSystemMaster.class, mFileSystemMaster);
-    mSafeModeManager = new DefaultSafeModeManager();
     ThreadFactory threadPool = ThreadFactoryUtils.build("LineageMasterTest-%d", true);
     mExecutorService = Executors.newFixedThreadPool(2, threadPool);
     mLineageMaster = new DefaultLineageMaster(mFileSystemMaster,
