@@ -15,10 +15,14 @@ import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.RuntimeConstants;
+import alluxio.clock.SystemClock;
 import alluxio.collections.IndexDefinition;
 import alluxio.collections.IndexedSet;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.NoMasterException;
+import alluxio.heartbeat.HeartbeatContext;
+import alluxio.heartbeat.HeartbeatExecutor;
+import alluxio.heartbeat.HeartbeatThread;
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.JournalSystem.Mode;
 import alluxio.master.meta.MetaMasterClientServiceHandler;
@@ -33,6 +37,7 @@ import alluxio.util.CommonUtils;
 import alluxio.util.IdUtils;
 import alluxio.util.JvmPauseMonitor;
 import alluxio.util.WaitForOptions;
+import alluxio.util.executor.ExecutorServiceFactories;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 import alluxio.web.MasterWebServer;
@@ -42,6 +47,7 @@ import alluxio.wire.ConfigProperty;
 import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.apache.thrift.TMultiplexedProcessor;
 import org.apache.thrift.TProcessor;
 import org.apache.thrift.protocol.TBinaryProtocol;
@@ -56,9 +62,12 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.time.Clock;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
@@ -136,12 +145,24 @@ public class AlluxioMasterProcess implements MasterProcess {
   /** The manager of safe mode state. */
   protected final SafeModeManager mSafeModeManager;
 
+  /** The clock to use for determining the time. */
+  protected final Clock mClock;
+
   /** Keeps track of standby masters which are in communication with the leader master. */
   private final IndexedSet<MetaMasterInfo> mMasters =
       new IndexedSet<>(ID_INDEX, HOSTNAME_INDEX);
   /** Keeps track of standby masters which are no longer in communication with the leader master. */
   private final IndexedSet<MetaMasterInfo> mLostMasters =
       new IndexedSet<>(ID_INDEX, HOSTNAME_INDEX);
+
+  /**
+   * The service that detects lost master nodes.
+   */
+  @SuppressFBWarnings("URF_UNREAD_FIELD")
+  private Future<?> mLostMasterDetectionService;
+
+  /** The executor used for running maintenance threads for the meta master. */
+  private ExecutorService mExecutorService;
 
   /**
    * Creates a new {@link AlluxioMasterProcess}.
@@ -190,6 +211,10 @@ public class AlluxioMasterProcess implements MasterProcess {
       mRegistry = new MasterRegistry();
       mSafeModeManager = new DefaultSafeModeManager();
       MasterUtils.createMasters(mJournalSystem, mRegistry, mSafeModeManager);
+
+      mClock = new SystemClock();
+      mExecutorService = ExecutorServiceFactories
+          .fixedThreadPoolExecutorServiceFactory(Constants.META_MASTER_NAME, 2).create();
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
@@ -269,6 +294,7 @@ public class AlluxioMasterProcess implements MasterProcess {
 
     MetaMasterInfo lostMaster = mLostMasters.getFirstByField(HOSTNAME_INDEX, hostname);
     if (lostMaster != null) {
+      // TODO(lu) call ServerConfigurationChecker.lostNodeFound()
       // This is one of the lost masters
       synchronized (lostMaster) {
         final long lostMasterId = lostMaster.getId();
@@ -299,18 +325,25 @@ public class AlluxioMasterProcess implements MasterProcess {
     if (master == null) {
       throw new NoMasterException(ExceptionMessage.NO_MASTER_FOUND.getMessage(masterId));
     }
-
+    // TODO(lu) master config checker registerNewConf
     synchronized (master) {
       master.updateLastUpdatedTimeMs();
-      if (options.isSetConfigList()) {
-        // TODO(lu) master config checker registerNewConf
-        /**List<alluxio.wire.ConfigProperty> wireConfigList = options.getConfigList()
-            .stream().map(alluxio.wire.ConfigProperty::fromThrift)
-            .collect(Collectors.toList()); */
-      }
     }
 
     LOG.info("registerMaster(): {}", master);
+  }
+
+  @Override
+  public void masterHeartbeat(long masterId) {
+    MetaMasterInfo master = mMasters.getFirstByField(ID_INDEX, masterId);
+    if (master == null) {
+      LOG.warn("Could not find master id: {} for heartbeat.", masterId);
+      return;
+    }
+
+    synchronized (master) {
+      master.updateLastUpdatedTimeMs();
+    }
   }
 
   @Override
@@ -352,6 +385,10 @@ public class AlluxioMasterProcess implements MasterProcess {
     try {
       if (isLeader) {
         mSafeModeManager.notifyPrimaryMasterStarted();
+        mLostMasterDetectionService = mExecutorService.submit(new HeartbeatThread(
+            HeartbeatContext.MASTER_LOST_MASTER_DETECTION,
+            new LostMasterDetectionHeartbeatExecutor(),
+            (int) Configuration.getMs(PropertyKey.MASTER_HEARTBEAT_INTERVAL_MS)));
       }
       mRegistry.start(isLeader);
       LOG.info("All masters started");
@@ -508,5 +545,38 @@ public class AlluxioMasterProcess implements MasterProcess {
   @Override
   public String toString() {
     return "Alluxio master @" + mRpcConnectAddress;
+  }
+
+  /**
+   * Lost master periodic check.
+   */
+  private final class LostMasterDetectionHeartbeatExecutor implements HeartbeatExecutor {
+
+    /**
+     * Constructs a new {@link LostMasterDetectionHeartbeatExecutor}.
+     */
+    public LostMasterDetectionHeartbeatExecutor() {}
+
+    @Override
+    public void heartbeat() {
+      int masterTimeoutMs = (int) Configuration.getMs(PropertyKey.MASTER_HEARTBEAT_TIMEOUT_MS);
+      for (MetaMasterInfo master : mMasters) {
+        synchronized (master) {
+          final long lastUpdate = mClock.millis() - master.getLastUpdatedTimeMs();
+          if (lastUpdate > masterTimeoutMs) {
+            LOG.error("The master {}({}) timed out after {}ms without a heartbeat!", master.getId(),
+                master.getHostname(), lastUpdate);
+            mLostMasters.add(master);
+            mMasters.remove(master);
+            // TODO(lu) call ServerConfigurationChecker.detectNodeLost()
+          }
+        }
+      }
+    }
+
+    @Override
+    public void close() {
+      // Nothing to clean up
+    }
   }
 }

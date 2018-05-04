@@ -20,6 +20,8 @@ import alluxio.thrift.GetMasterIdTOptions;
 import alluxio.thrift.GetMasterIdTResponse;
 import alluxio.thrift.GetServiceVersionTOptions;
 import alluxio.thrift.GetServiceVersionTResponse;
+import alluxio.thrift.MasterHeartbeatTOptions;
+import alluxio.thrift.MasterHeartbeatTResponse;
 import alluxio.thrift.MetaMasterMasterService;
 import alluxio.thrift.RegisterMasterTOptions;
 import alluxio.thrift.RegisterMasterTResponse;
@@ -65,6 +67,24 @@ public final class MetaMasterMasterServiceHandler implements MetaMasterMasterSer
       public String toString() {
         return String
             .format("getMasterId:masterHostname=%s, options=%s", masterHostname, options);
+      }
+    });
+  }
+
+  @Override
+  public MasterHeartbeatTResponse masterHeartbeat(final long masterId,
+       final MasterHeartbeatTOptions options)
+      throws AlluxioTException {
+    return RpcUtils.call(LOG, new RpcUtils.RpcCallable<MasterHeartbeatTResponse>() {
+      @Override
+      public MasterHeartbeatTResponse call() throws AlluxioException {
+        mMasterProcess.masterHeartbeat(masterId);
+        return new MasterHeartbeatTResponse();
+      }
+
+      @Override
+      public String toString() {
+        return String.format("masterHeartbeat: masterId=%s, options=%s", masterId, options);
       }
     });
   }

@@ -104,6 +104,13 @@ public interface MasterProcess extends Process {
   long getMasterId(String hostname);
 
   /**
+   * Updates metadata when a standby master periodically heartbeats with the leader master.
+   *
+   * @param masterId the master id
+   */
+  void masterHeartbeat(long masterId);
+
+  /**
    * Updates metadata when a standby master registers with the leader master.
    *
    * @param masterId the master id of the standby master registering

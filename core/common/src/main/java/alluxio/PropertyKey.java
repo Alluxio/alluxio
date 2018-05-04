@@ -928,6 +928,15 @@ public final class PropertyKey implements Comparable<PropertyKey> {
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
           .build();
+  public static final PropertyKey MASTER_HEARTBEAT_TIMEOUT_MS =
+      new Builder(Name.MASTER_HEARTBEAT_TIMEOUT_MS)
+          .setAlias(new String[]{"alluxio.master.heartbeat.timeout.ms"})
+          .setDefaultValue("5min")
+          .setDescription("Timeout between leader master and standby worker"
+              + " indicating a lost master.")
+          .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
+          .setScope(Scope.MASTER)
+          .build();
   public static final PropertyKey MASTER_HOSTNAME =
       new Builder(Name.MASTER_HOSTNAME)
           .setDescription("The hostname of Alluxio master.")
@@ -2969,6 +2978,8 @@ public final class PropertyKey implements Comparable<PropertyKey> {
     public static final String MASTER_FORMAT_FILE_PREFIX = "alluxio.master.format.file_prefix";
     public static final String MASTER_HEARTBEAT_INTERVAL_MS =
         "alluxio.master.heartbeat.interval";
+    public static final String MASTER_HEARTBEAT_TIMEOUT_MS =
+        "alluxio.master.heartbeat.timeout";
     public static final String MASTER_HOSTNAME = "alluxio.master.hostname";
     public static final String MASTER_JOURNAL_FLUSH_BATCH_TIME_MS =
         "alluxio.master.journal.flush.batch.time";
