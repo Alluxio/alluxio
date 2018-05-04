@@ -27,6 +27,7 @@ import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.JournalSystem.Mode;
 import alluxio.master.meta.MetaMasterClientServiceHandler;
 import alluxio.master.meta.MetaMasterInfo;
+import alluxio.master.meta.MetaMasterSync;
 import alluxio.metrics.MetricsSystem;
 import alluxio.metrics.sink.MetricsServlet;
 import alluxio.metrics.sink.PrometheusMetricsServlet;
@@ -385,10 +386,14 @@ public class AlluxioMasterProcess implements MasterProcess {
     try {
       if (isLeader) {
         mSafeModeManager.notifyPrimaryMasterStarted();
+
         mLostMasterDetectionService = mExecutorService.submit(new HeartbeatThread(
             HeartbeatContext.MASTER_LOST_MASTER_DETECTION,
             new LostMasterDetectionHeartbeatExecutor(),
             (int) Configuration.getMs(PropertyKey.MASTER_HEARTBEAT_INTERVAL_MS)));
+      } else {
+        // Standby master should setup MetaMasterSync to communicate with the leader master
+        mMetaMasterSync = new MetaMasterSync(this, mMasterId, mHostname, mMetaMasterMasterClient);
       }
       mRegistry.start(isLeader);
       LOG.info("All masters started");
