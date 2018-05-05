@@ -126,4 +126,3 @@ ALLUXIO_LOGSERVER_JAVA_OPTS+=" -Dalluxio.logserver.logger.type=LOGSERVER_LOGGER"
 # Client specific parameters based on ALLUXIO_JAVA_OPTS.
 ALLUXIO_USER_JAVA_OPTS+=${ALLUXIO_JAVA_OPTS}
 ALLUXIO_USER_JAVA_OPTS+=" -Dalluxio.logger.type=USER_LOGGER"
-

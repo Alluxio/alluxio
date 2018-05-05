@@ -65,4 +65,3 @@
 # Additional classpath entries for Alluxio processes. (Default: "")
 # E.g. "/path/to/library1/:/path/to/library2/"
 # ALLUXIO_CLASSPATH
-
