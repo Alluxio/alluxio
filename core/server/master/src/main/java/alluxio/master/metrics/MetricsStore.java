@@ -78,6 +78,9 @@ public class MetricsStore {
     IndexedSet<Metric> set = getMetricsByInstanceType(instance);
     set.removeByField(HOSTNAME_INDEX, hostname);
     for (Metric metric : metrics) {
+      if (metric.getHostname() == null) {
+        continue; // ignore metrics who hostname is null
+      }
       set.add(metric);
     }
   }
