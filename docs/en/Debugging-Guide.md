@@ -197,7 +197,6 @@ or [other approaches](https://stackoverflow.com/questions/880557/socket-accept-t
 value in `conf/alluxio-site.properties`. Note that, reducing the value of these two properties may
 potentially add latency for master to serve requests.
 
-
 ## Performance FAQ
 
 #### Q: I tested Alluxio/Spark against HDFS/Spark (running simple word count of GBs of files). There is no discernible performance difference. Why?
