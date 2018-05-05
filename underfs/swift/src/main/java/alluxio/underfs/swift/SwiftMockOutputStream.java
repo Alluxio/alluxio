@@ -100,7 +100,7 @@ public class SwiftMockOutputStream extends OutputStream {
     } catch (Exception e) {
       throw new IOException(e);
     }
-    // Close successful
+    // Close successfully.
     mClosed = true;
   }
 
