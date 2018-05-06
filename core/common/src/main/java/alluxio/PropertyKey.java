@@ -33,6 +33,7 @@ import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -3646,8 +3647,9 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   }
 
   /**
-   * @return the default value of a property key
+   * @return the default value of a property key or null if value not set
    */
+  @Nullable
   public String getDefaultValue() {
     Object defaultValue = mDefaultSupplier.get();
     return defaultValue == null ? null : defaultValue.toString();

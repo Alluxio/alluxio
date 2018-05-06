@@ -31,6 +31,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -78,7 +79,7 @@ public final class Configuration {
   /** Regex to find ${key} for variable substitution. */
   private static final Pattern CONF_REGEX = Pattern.compile(REGEX_STRING);
   /** Map of properties. */
-  private static final ConcurrentHashMap<String, String> PROPERTIES = new ConcurrentHashMap<>();
+  private static final ConcurrentHashMap<String, Optional<String>> PROPERTIES = new ConcurrentHashMap<>();
   /** Map of property sources. */
   private static final ConcurrentHashMap<PropertyKey, Source> SOURCES = new ConcurrentHashMap<>();
   private static String sSitePropertyFile;
@@ -94,6 +95,13 @@ public final class Configuration {
    * default property values.
    */
   static void init() {
+    // Load compile-time default
+    Map<String, String> defaultProps = new HashMap<>();
+    for (PropertyKey key : PropertyKey.defaultKeys()) {
+       String value = key.getDefaultValue();
+       defaultProps.put(key.toString(), value);
+    }
+
     // Load system properties
     Properties systemProps = new Properties();
     systemProps.putAll(System.getProperties());
@@ -101,6 +109,7 @@ public final class Configuration {
     // Now lets combine, order matters here
     PROPERTIES.clear();
     SOURCES.clear();
+    merge(defaultProps, Source.DEFAULT);
     merge(systemProps, Source.SYSTEM_PROPERTY);
 
     // Load site specific properties file if not in test mode. Note that we decide whether in test
@@ -140,19 +149,19 @@ public final class Configuration {
       // merge the properties
       for (Map.Entry<?, ?> entry : properties.entrySet()) {
         String key = entry.getKey().toString().trim();
-        String value = entry.getValue().toString().trim();
+        String value = entry.getValue() == null ? null : entry.getValue().toString().trim();
         if (PropertyKey.isValid(key)) {
           PropertyKey propertyKey = PropertyKey.fromString(key);
           // Get the true name for the property key in case it is an alias.
-          PROPERTIES.put(propertyKey.getName(), value);
+          PROPERTIES.put(propertyKey.getName(), Optional.ofNullable(value));
           SOURCES.put(propertyKey, source);
         } else {
           // Add unrecognized properties
           LOG.debug("Property {} from source {} is unrecognized", key, source);
           // Workaround for issue https://alluxio.atlassian.net/browse/ALLUXIO-3108
-          // TODO(adit): Do not add properties unrecognized by Ufs extensions when Configuraton
+          // TODO(adit): Do not add properties unrecognized by Ufs extensions when Configuration
           // is made dynamic
-          PROPERTIES.put(key, value);
+          PROPERTIES.put(key, Optional.ofNullable(value));
           SOURCES.put(new PropertyKey.Builder(key).build(), source);
         }
       }
@@ -169,7 +178,7 @@ public final class Configuration {
   public static void set(PropertyKey key, Object value) {
     Preconditions.checkArgument(key != null && value != null,
         String.format("the key value pair (%s, %s) cannot have null", key, value));
-    PROPERTIES.put(key.toString(), value.toString());
+    PROPERTIES.put(key.toString(), Optional.of(value.toString()));
   }
 
   /**
@@ -190,22 +199,22 @@ public final class Configuration {
    * @return the value for the given key
    */
   public static String get(PropertyKey key) {
-    String rawValue = lookupNonRecursively(key.toString());
-    if (rawValue == null) {
+    Optional<String> rawValue = PROPERTIES.get(key.toString());
+    if (!rawValue.isPresent()) {
       // if key is not found among the default properties
       throw new RuntimeException(ExceptionMessage.UNDEFINED_CONFIGURATION_KEY.getMessage(key));
     }
-    return lookup(rawValue);
+    return lookup(rawValue.get());
   }
 
   /**
-   * Checks if the configuration contains the given key.
+   * Checks if the configuration contains value for the given key.
    *
    * @param key the key to check
-   * @return true if the key is in the {@link Properties}, false otherwise
+   * @return true if there is value for the key, false otherwise
    */
   public static boolean containsKey(PropertyKey key) {
-    return PROPERTIES.containsKey(key.toString()) || key.getDefaultValue() != null;
+    return PROPERTIES.containsKey(key.toString()) && PROPERTIES.get(key.toString()).isPresent();
   }
 
   /**
@@ -396,11 +405,11 @@ public final class Configuration {
    */
   public static Map<String, String> getNestedProperties(PropertyKey prefixKey) {
     Map<String, String> ret = Maps.newHashMap();
-    for (Map.Entry<String, String> entry: PROPERTIES.entrySet()) {
+    for (Map.Entry<String, Optional<String>> entry: PROPERTIES.entrySet()) {
       String key = entry.getKey();
       if (prefixKey.isNested(key)) {
         String suffixKey = key.substring(prefixKey.length() + 1);
-        ret.put(suffixKey, entry.getValue());
+        ret.put(suffixKey, entry.getValue().orElse(null));
       }
     }
     return ret;
@@ -416,6 +425,8 @@ public final class Configuration {
       String value = entry.getValue();
       if (value != null) {
         map.put(entry.getKey(), lookup(value));
+      } else {
+        map.put(entry.getKey(), value);
       }
     }
     return map;
@@ -426,15 +437,11 @@ public final class Configuration {
    *         including all default properties
    */
   public static Map<String, String> toRawMap() {
-    Map<String, String> map = new HashMap<>(PROPERTIES);
-    for (PropertyKey key : PropertyKey.defaultKeys()) {
-      String keyName = key.getName();
-      String defaultValue = key.getDefaultValue();
-      if (!map.containsKey(keyName) && defaultValue != null) {
-        map.put(keyName, defaultValue);
-      }
-    }
-    return map;
+    Map<String, String> rawMap = new HashMap<>();
+    PROPERTIES.forEach((key, value)-> {
+      rawMap.put(key, value.orElse(null));
+    });
+    return rawMap;
   }
 
   /**
@@ -454,6 +461,7 @@ public final class Configuration {
    * @param seen strings already seen during this lookup, used to prevent unbound recursion
    * @return the resolved string
    */
+  @Nullable
   private static String lookupRecursively(String base, Set<String> seen) {
     // check argument
     if (base == null) {
@@ -469,7 +477,7 @@ public final class Configuration {
       if (!seen.add(match)) {
         throw new RuntimeException("Circular dependency found while resolving " + match);
       }
-      String value = lookupRecursively(lookupNonRecursively(match), seen);
+      String value = lookupRecursively(PROPERTIES.get(match).orElse(null), seen);
       seen.remove(match);
       if (value == null) {
         throw new RuntimeException("No value specified for configuration property " + match);
@@ -478,21 +486,6 @@ public final class Configuration {
       resolved = resolved.replaceFirst(REGEX_STRING, Matcher.quoteReplacement(value));
     }
     return resolved;
-  }
-
-  /**
-   * Looks up a property without resolving ${key} stuff.
-   *
-   * @param property the property name
-   */
-  private static String lookupNonRecursively(String property) {
-    if (PROPERTIES.containsKey(property)) {
-      return PROPERTIES.get(property);
-    }
-    if (!PropertyKey.isValid(property)) {
-      throw new RuntimeException("Invalid key encountered: " + property);
-    }
-    return PropertyKey.fromString(property).getDefaultValue();
   }
 
   /**
