@@ -14,7 +14,7 @@ package alluxio.metrics;
 /**
  * Metrics of an Alluxio client.
  */
-public class ClientMetrics {
+public final class ClientMetrics {
   /**
    * Total number of bytes short-circuit read from local storage.
    */

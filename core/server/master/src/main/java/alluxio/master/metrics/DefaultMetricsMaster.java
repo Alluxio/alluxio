@@ -133,7 +133,7 @@ public class DefaultMetricsMaster extends AbstractMaster implements MetricsMaste
 
   @Override
   public void clientHeartbeat(String clientId, String hostname, List<Metric> metrics) {
-    if(metrics.isEmpty()) {
+    if (metrics.isEmpty()) {
       return;
     }
     mMetricsStore.putClientMetrics(hostname, clientId, metrics);

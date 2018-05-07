@@ -88,7 +88,7 @@ public final class FileSystemContext implements Closeable {
   private MetricsMasterClient mMetricsMasterClient;
   private ClientMasterSync mClientMasterSync;
 
-  /** a UUID without hyphens */
+  /** a UUID without hyphens. */
   private final String mId;
 
   // The netty data server channel pools.

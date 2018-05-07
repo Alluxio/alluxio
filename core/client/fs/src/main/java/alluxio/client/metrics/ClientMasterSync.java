@@ -47,6 +47,11 @@ public final class ClientMasterSync implements HeartbeatExecutor {
   /** Last System.currentTimeMillis() timestamp when a heartbeat successfully completed. */
   private long mLastSuccessfulHeartbeatMs;
 
+  /**
+   * Constructs a new {@link ClientMasterSync}.
+   *
+   * @param masterClient the master client
+   */
   public ClientMasterSync(MetricsMasterClient masterClient) {
     mMasterClient = Preconditions.checkNotNull(masterClient, "masterClient");
     mHeartbeatTimeoutMs = (int) Configuration.getMs(PropertyKey.WORKER_BLOCK_HEARTBEAT_TIMEOUT_MS);
@@ -62,9 +67,9 @@ public final class ClientMasterSync implements HeartbeatExecutor {
     try {
       mMasterClient.heartbeat(metrics);
       mLastSuccessfulHeartbeatMs = System.currentTimeMillis();
-    }catch (IOException e) {
+    } catch (IOException e) {
       // An error occurred, log and ignore it or error if heartbeat timeout is reached
-        LOG.error("Failed to receive or execute master heartbeat command: {}",e);
+      LOG.error("Failed to receive or execute master heartbeat command: {}", e);
       mMasterClient.disconnect();
       if (mHeartbeatTimeoutMs > 0) {
         if (System.currentTimeMillis() - mLastSuccessfulHeartbeatMs >= mHeartbeatTimeoutMs) {
@@ -72,7 +77,6 @@ public final class ClientMasterSync implements HeartbeatExecutor {
             throw new RuntimeException("Master heartbeat timeout exceeded: " + mHeartbeatTimeoutMs);
           }
           LOG.error("Master heartbeat timeout exceeded: " + mHeartbeatTimeoutMs);
-          // TODO(andrew): Propagate the exception to the main thread and exit there.
           System.exit(-1);
         }
       }

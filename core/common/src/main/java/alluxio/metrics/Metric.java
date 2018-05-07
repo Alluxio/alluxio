@@ -22,7 +22,7 @@ import java.io.Serializable;
 public final class Metric implements Serializable {
   private static final long serialVersionUID = -2236393414222298333L;
 
-  private final static String ID_SEPARATOR = "-id:";
+  private static final String ID_SEPARATOR = "-id:";
   private final MetricsSystem.InstanceType mInstanceType;
   private final String mHostname;
   private final String mName;
@@ -40,7 +40,6 @@ public final class Metric implements Serializable {
   public Metric(MetricsSystem.InstanceType instanceType, String hostname, String name, Long value) {
     this(instanceType, hostname, null, name, value);
   }
-
 
   /**
    * Constructs a {@link Metric} instance.
@@ -93,7 +92,7 @@ public final class Metric implements Serializable {
    * @return the instance id
    */
   public String getInstanceId() {
-      return mInstanceId;
+    return mInstanceId;
   }
 
   @Override
@@ -105,7 +104,8 @@ public final class Metric implements Serializable {
       return false;
     }
     Metric metric = (Metric) other;
-    return Objects.equal(mHostname, metric.mHostname) && Objects.equal(mInstanceType, metric.mInstanceType)
+    return Objects.equal(mHostname, metric.mHostname)
+        && Objects.equal(mInstanceType, metric.mInstanceType)
         && Objects.equal(mInstanceId, metric.mInstanceId) && Objects.equal(mName, metric.mName)
         && Objects.equal(mValue, metric.mValue);
   }
@@ -116,7 +116,8 @@ public final class Metric implements Serializable {
   }
 
   /**
-   * @return the fully qualified metric name, which is of pattern instance.[hostname-id:instanceId.]value
+   * @return the fully qualified metric name, which is of pattern
+   *         instance.[hostname-id:instanceId.]value
    */
   public String getFullMetricName() {
     StringBuilder sb = new StringBuilder();

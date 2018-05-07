@@ -88,6 +88,14 @@ public class MetricsStore {
     }
   }
 
+  /**
+   * Put the metrics from a client with a hostname and a client id. If all the old metrics
+   * associated with this instance will be removed and then replaced by the latest.
+   *
+   * @param hostname the hostname of the client
+   * @param clientId the id of the client
+   * @param metrics the new metrics
+   */
   public synchronized void putClientMetrics(String hostname, String clientId,
       List<Metric> metrics) {
     mClientMetrics.removeByField(HOSTNAME_ID_INDEX, getHostnameAndId(hostname, clientId));
