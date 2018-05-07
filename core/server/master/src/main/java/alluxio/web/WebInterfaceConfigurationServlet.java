@@ -14,6 +14,7 @@ package alluxio.web;
 import alluxio.PropertyKey;
 import alluxio.master.MasterProcess;
 import alluxio.master.file.FileSystemMaster;
+import alluxio.util.ConfigurationUtils;
 import alluxio.wire.ConfigProperty;
 
 import com.google.common.base.Preconditions;
@@ -77,7 +78,8 @@ public final class WebInterfaceConfigurationServlet extends HttpServlet {
       String confName = configProperty.getName();
       if (!alluxioConfExcludes.contains(confName)) {
         rtn.add(new ImmutableTriple<>(confName,
-            configProperty.getValue(), configProperty.getSource()));
+            ConfigurationUtils.valueAsString(configProperty.getValue()),
+            configProperty.getSource()));
       }
     }
     return rtn;

@@ -13,6 +13,7 @@ package alluxio.cli;
 
 import alluxio.Configuration;
 import alluxio.PropertyKey;
+import alluxio.util.ConfigurationUtils;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -138,7 +139,7 @@ public final class GetConf {
         TreeMap<String, String> keyValueSet = new TreeMap<>(Configuration.toMap());
         for (Entry<String, String> entry : keyValueSet.entrySet()) {
           String key = entry.getKey();
-          String value = entry.getValue();
+          String value = ConfigurationUtils.valueAsString(entry.getValue());
           output.append(String.format("%s=%s", key, value));
           if (cmd.hasOption(SOURCE_OPTION_NAME)) {
             Configuration.Source source = Configuration.getSource(PropertyKey.fromString(key));

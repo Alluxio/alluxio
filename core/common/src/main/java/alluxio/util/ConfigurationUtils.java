@@ -115,4 +115,12 @@ public final class ConfigurationUtils {
         && Configuration.containsKey(PropertyKey.ZOOKEEPER_ADDRESS);
     return Configuration.containsKey(PropertyKey.MASTER_HOSTNAME) || usingZk;
   }
+
+  /**
+   * @param value the value or null (value is not set)
+   * @return the value or "(no value set)" when the value is not set
+   */
+  public static String valueAsString(String value) {
+    return value == null ? "(no value set)" : value;
+  }
 }

@@ -206,7 +206,7 @@ public class AlluxioMasterProcess implements MasterProcess {
     for (Map.Entry<String, String> entry : Configuration.toMap().entrySet()) {
       String key = entry.getKey();
       String value = entry.getValue();
-      if (key.startsWith(alluxioConfPrefix) && value != null) {
+      if (key.startsWith(alluxioConfPrefix)) {
         PropertyKey propertyKey = PropertyKey.fromString(key);
         Configuration.Source source = Configuration.getSource(propertyKey);
         String sourceStr;
@@ -217,7 +217,7 @@ public class AlluxioMasterProcess implements MasterProcess {
           sourceStr = source.name();
         }
         configInfoList.add(new ConfigProperty()
-            .setName(key).setValue(entry.getValue()).setSource(sourceStr));
+            .setName(key).setValue(value).setSource(sourceStr));
       }
     }
     return configInfoList;
