@@ -23,8 +23,8 @@ import javax.annotation.concurrent.NotThreadSafe;
  * This class is not thread safe, so external locking is required.
  */
 @NotThreadSafe
-public final class MetaMasterInfo {
-  private static final Logger LOG = LoggerFactory.getLogger(MetaMasterInfo.class);
+public final class MasterInfo {
+  private static final Logger LOG = LoggerFactory.getLogger(MasterInfo.class);
 
   /**
    * Master's hostname.
@@ -35,41 +35,20 @@ public final class MetaMasterInfo {
    */
   private final long mId;
   /**
-   * Start time of the master in ms.
-   */
-  private final long mStartTimeMs;
-  /**
    * Master's last updated time in ms.
    */
   private long mLastUpdatedTimeMs;
-  /**
-   * If true, the master is considered registered.
-   */
-  private boolean mIsRegistered;
 
   /**
-   * Creates a new instance of {@link MetaMasterInfo}.
+   * Creates a new instance of {@link MasterInfo}.
    *
    * @param id       the master id to use
    * @param hostname the master hostname to use
    */
-  public MetaMasterInfo(long id, String hostname) {
+  public MasterInfo(long id, String hostname) {
     mHostname = Preconditions.checkNotNull(hostname, "hostname");
     mId = id;
-    mStartTimeMs = System.currentTimeMillis();
     mLastUpdatedTimeMs = System.currentTimeMillis();
-    mIsRegistered = false;
-  }
-
-  /**
-   * Marks the master as registered, while updating all of its metadata.
-   */
-  public void register() {
-    if (mIsRegistered) {
-      // This is a re-register of an existing master.
-      LOG.info("re-registering an existing masterId: {}", mId);
-    }
-    mIsRegistered = true;
   }
 
   /**
@@ -80,7 +59,7 @@ public final class MetaMasterInfo {
   }
 
   /**
-   * @return the id of the wmaster
+   * @return the id of the master
    */
   public long getId() {
     return mId;
@@ -93,20 +72,6 @@ public final class MetaMasterInfo {
     return mLastUpdatedTimeMs;
   }
 
-  /**
-   * @return the start time in milliseconds
-   */
-  public long getStartTime() {
-    return mStartTimeMs;
-  }
-
-  /**
-   * @return whether this standby master has been registered yet
-   */
-  public boolean isRegistered() {
-    return mIsRegistered;
-  }
-
   @Override
   public String toString() {
     return Objects.toStringHelper(this).add("id", mId).add("hostname", mHostname)
@@ -114,7 +79,7 @@ public final class MetaMasterInfo {
   }
 
   /**
-   * Updates the last updated time of the worker in ms.
+   * Updates the last updated time of the master in ms.
    */
   public void updateLastUpdatedTimeMs() {
     mLastUpdatedTimeMs = System.currentTimeMillis();

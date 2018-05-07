@@ -17,6 +17,7 @@ import alluxio.master.MasterClientConfig;
 import alluxio.thrift.AlluxioService;
 import alluxio.thrift.GetMasterIdTOptions;
 import alluxio.thrift.MasterHeartbeatTOptions;
+import alluxio.thrift.MetaCommand;
 import alluxio.thrift.MetaMasterMasterService;
 import alluxio.thrift.RegisterMasterTOptions;
 import alluxio.wire.ConfigProperty;
@@ -79,19 +80,19 @@ public final class MetaMasterMasterClient extends AbstractMasterClient {
   }
 
   /**
-   * The method the standby master should periodically execute
-   * to heartbeat back to the leader master.
+   * Sends a heartbeat to the leader master. Standby masters periodically execute this method
+   * so that the leader master knows they are still running.
    *
    * @param masterId the master id
    * @return whether this master should re-register
    */
-  public synchronized boolean heartbeat(final long masterId) throws IOException {
-    return retryRPC(() -> mClient.masterHeartbeat(masterId, new MasterHeartbeatTOptions())
-        .isShouldReRegister());
+  public synchronized MetaCommand heartbeat(final long masterId) throws IOException {
+    return retryRPC(() ->
+        mClient.masterHeartbeat(masterId, new MasterHeartbeatTOptions()).getCommand());
   }
 
   /**
-   * The method the standby master should execute to register with the leader master.
+   * Registers with the leader master.
    *
    * @param masterId the master id of the standby master registering
    * @param configList the configuration of this master

@@ -66,7 +66,7 @@ public final class MetaMasterMasterServiceHandler implements MetaMasterMasterSer
       @Override
       public String toString() {
         return String
-            .format("getMasterId:masterHostname=%s, options=%s", masterHostname, options);
+            .format("getMasterId: masterHostname=%s, options=%s", masterHostname, options);
       }
     });
   }

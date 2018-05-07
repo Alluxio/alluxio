@@ -27,7 +27,7 @@ import alluxio.master.block.BlockMaster;
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.JournalSystem.Mode;
 import alluxio.master.meta.MetaMasterClientServiceHandler;
-import alluxio.master.meta.MetaMasterInfo;
+import alluxio.master.meta.MasterInfo;
 import alluxio.master.meta.MetaMasterMasterClient;
 import alluxio.master.meta.MetaMasterSync;
 import alluxio.master.meta.ServerConfigurationChecker;
@@ -37,6 +37,7 @@ import alluxio.metrics.sink.PrometheusMetricsServlet;
 import alluxio.retry.ExponentialTimeBoundedRetry;
 import alluxio.retry.RetryUtils;
 import alluxio.security.authentication.TransportProvider;
+import alluxio.thrift.MetaCommand;
 import alluxio.thrift.MetaMasterClientService;
 import alluxio.thrift.RegisterMasterTOptions;
 import alluxio.util.CommonUtils;
@@ -87,18 +88,18 @@ public class AlluxioMasterProcess implements MasterProcess {
   private static final Logger LOG = LoggerFactory.getLogger(AlluxioMasterProcess.class);
 
   // Master metadata management.
-  private static final IndexDefinition<MetaMasterInfo> ID_INDEX =
-      new IndexDefinition<MetaMasterInfo>(true) {
+  private static final IndexDefinition<MasterInfo> ID_INDEX =
+      new IndexDefinition<MasterInfo>(true) {
         @Override
-        public Object getFieldValue(MetaMasterInfo o) {
+        public Object getFieldValue(MasterInfo o) {
           return o.getId();
         }
       };
 
-  private static final IndexDefinition<MetaMasterInfo> HOSTNAME_INDEX =
-      new IndexDefinition<MetaMasterInfo>(true) {
+  private static final IndexDefinition<MasterInfo> HOSTNAME_INDEX =
+      new IndexDefinition<MasterInfo>(true) {
         @Override
-        public Object getFieldValue(MetaMasterInfo o) {
+        public Object getFieldValue(MasterInfo o) {
           return o.getHostname();
         }
       };
@@ -177,10 +178,10 @@ public class AlluxioMasterProcess implements MasterProcess {
   private MetaMasterSync mMetaMasterSync;
 
   /** Keeps track of standby masters which are in communication with the leader master. */
-  private final IndexedSet<MetaMasterInfo> mMasters =
+  private final IndexedSet<MasterInfo> mMasters =
       new IndexedSet<>(ID_INDEX, HOSTNAME_INDEX);
   /** Keeps track of standby masters which are no longer in communication with the leader master. */
-  private final IndexedSet<MetaMasterInfo> mLostMasters =
+  private final IndexedSet<MasterInfo> mLostMasters =
       new IndexedSet<>(ID_INDEX, HOSTNAME_INDEX);
 
   /**
@@ -307,7 +308,7 @@ public class AlluxioMasterProcess implements MasterProcess {
 
   @Override
   public long getMasterId(String hostname) {
-    MetaMasterInfo existingMaster = mMasters.getFirstByField(HOSTNAME_INDEX, hostname);
+    MasterInfo existingMaster = mMasters.getFirstByField(HOSTNAME_INDEX, hostname);
     if (existingMaster != null) {
       // This master hostname is already mapped to a master id.
       long oldMasterId = existingMaster.getId();
@@ -315,9 +316,10 @@ public class AlluxioMasterProcess implements MasterProcess {
       return oldMasterId;
     }
 
-    MetaMasterInfo lostMaster = mLostMasters.getFirstByField(HOSTNAME_INDEX, hostname);
+    MasterInfo lostMaster = mLostMasters.getFirstByField(HOSTNAME_INDEX, hostname);
     if (lostMaster != null) {
       // This is one of the lost masters
+      mMasterConfigChecker.lostNodeFound(lostMaster.getId());
       synchronized (lostMaster) {
         final long lostMasterId = lostMaster.getId();
         LOG.warn("A lost master {} has requested its old id {}.", hostname, lostMasterId);
@@ -326,14 +328,13 @@ public class AlluxioMasterProcess implements MasterProcess {
         lostMaster.updateLastUpdatedTimeMs();
         mMasters.add(lostMaster);
         mLostMasters.remove(lostMaster);
-        mMasterConfigChecker.lostNodeFound(lostMaster.getId());
         return lostMasterId;
       }
     }
 
     // Generate a new master id.
     long masterId = IdUtils.getRandomNonNegativeLong();
-    while (!mMasters.add(new MetaMasterInfo(masterId, hostname))) {
+    while (!mMasters.add(new MasterInfo(masterId, hostname))) {
       masterId = IdUtils.getRandomNonNegativeLong();
     }
 
@@ -344,10 +345,11 @@ public class AlluxioMasterProcess implements MasterProcess {
   @Override
   public void masterRegister(long masterId, RegisterMasterTOptions options)
       throws NoMasterException {
-    MetaMasterInfo master = mMasters.getFirstByField(ID_INDEX, masterId);
+    MasterInfo master = mMasters.getFirstByField(ID_INDEX, masterId);
     if (master == null) {
       throw new NoMasterException(ExceptionMessage.NO_MASTER_FOUND.getMessage(masterId));
     }
+
     synchronized (master) {
       master.updateLastUpdatedTimeMs();
     }
@@ -360,17 +362,17 @@ public class AlluxioMasterProcess implements MasterProcess {
   }
 
   @Override
-  public boolean masterHeartbeat(long masterId) {
-    MetaMasterInfo master = mMasters.getFirstByField(ID_INDEX, masterId);
+  public MetaCommand masterHeartbeat(long masterId) {
+    MasterInfo master = mMasters.getFirstByField(ID_INDEX, masterId);
     if (master == null) {
       LOG.warn("Could not find master id: {} for heartbeat.", masterId);
-      return true;
+      return MetaCommand.Register;
     }
 
     synchronized (master) {
       master.updateLastUpdatedTimeMs();
     }
-    return false;
+    return MetaCommand.Nothing;
   }
 
   @Override
@@ -423,7 +425,7 @@ public class AlluxioMasterProcess implements MasterProcess {
         // Standby master should setup MetaMasterSync to communicate with the leader master
         mMetaMasterSync = new MetaMasterSync(mMasterId, mMasterHostname, mMetaMasterClient);
         mExecutorService.submit(new HeartbeatThread(HeartbeatContext.MASTER_SYNC, mMetaMasterSync,
-                (int) Configuration.getMs(PropertyKey.MASTER_HEARTBEAT_INTERVAL_MS)));
+            (int) Configuration.getMs(PropertyKey.MASTER_HEARTBEAT_INTERVAL_MS)));
       }
       mRegistry.start(isLeader);
       LOG.info("All masters started");
@@ -596,7 +598,7 @@ public class AlluxioMasterProcess implements MasterProcess {
     @Override
     public void heartbeat() {
       int masterTimeoutMs = (int) Configuration.getMs(PropertyKey.MASTER_HEARTBEAT_TIMEOUT_MS);
-      for (MetaMasterInfo master : mMasters) {
+      for (MasterInfo master : mMasters) {
         synchronized (master) {
           final long lastUpdate = mClock.millis() - master.getLastUpdatedTimeMs();
           if (lastUpdate > masterTimeoutMs) {

@@ -38,7 +38,7 @@ import org.slf4j.LoggerFactory;
 public class MasterHeartbeatTResponse implements org.apache.thrift.TBase<MasterHeartbeatTResponse, MasterHeartbeatTResponse._Fields>, java.io.Serializable, Cloneable, Comparable<MasterHeartbeatTResponse> {
   private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("MasterHeartbeatTResponse");
 
-  private static final org.apache.thrift.protocol.TField SHOULD_RE_REGISTER_FIELD_DESC = new org.apache.thrift.protocol.TField("shouldReRegister", org.apache.thrift.protocol.TType.BOOL, (short)1);
+  private static final org.apache.thrift.protocol.TField COMMAND_FIELD_DESC = new org.apache.thrift.protocol.TField("command", org.apache.thrift.protocol.TType.I32, (short)1);
 
   private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
   static {
@@ -46,11 +46,15 @@ public class MasterHeartbeatTResponse implements org.apache.thrift.TBase<MasterH
     schemes.put(TupleScheme.class, new MasterHeartbeatTResponseTupleSchemeFactory());
   }
 
-  private boolean shouldReRegister; // required
+  private MetaCommand command; // required
 
   /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
   public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-    SHOULD_RE_REGISTER((short)1, "shouldReRegister");
+    /**
+     * 
+     * @see MetaCommand
+     */
+    COMMAND((short)1, "command");
 
     private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -65,8 +69,8 @@ public class MasterHeartbeatTResponse implements org.apache.thrift.TBase<MasterH
      */
     public static _Fields findByThriftId(int fieldId) {
       switch(fieldId) {
-        case 1: // SHOULD_RE_REGISTER
-          return SHOULD_RE_REGISTER;
+        case 1: // COMMAND
+          return COMMAND;
         default:
           return null;
       }
@@ -107,13 +111,11 @@ public class MasterHeartbeatTResponse implements org.apache.thrift.TBase<MasterH
   }
 
   // isset id assignments
-  private static final int __SHOULDREREGISTER_ISSET_ID = 0;
-  private byte __isset_bitfield = 0;
   public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
   static {
     Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
-    tmpMap.put(_Fields.SHOULD_RE_REGISTER, new org.apache.thrift.meta_data.FieldMetaData("shouldReRegister", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.BOOL)));
+    tmpMap.put(_Fields.COMMAND, new org.apache.thrift.meta_data.FieldMetaData("command", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+        new org.apache.thrift.meta_data.EnumMetaData(org.apache.thrift.protocol.TType.ENUM, MetaCommand.class)));
     metaDataMap = Collections.unmodifiableMap(tmpMap);
     org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(MasterHeartbeatTResponse.class, metaDataMap);
   }
@@ -122,19 +124,19 @@ public class MasterHeartbeatTResponse implements org.apache.thrift.TBase<MasterH
   }
 
   public MasterHeartbeatTResponse(
-    boolean shouldReRegister)
+    MetaCommand command)
   {
     this();
-    this.shouldReRegister = shouldReRegister;
-    setShouldReRegisterIsSet(true);
+    this.command = command;
   }
 
   /**
    * Performs a deep copy on <i>other</i>.
    */
   public MasterHeartbeatTResponse(MasterHeartbeatTResponse other) {
-    __isset_bitfield = other.__isset_bitfield;
-    this.shouldReRegister = other.shouldReRegister;
+    if (other.isSetCommand()) {
+      this.command = other.command;
+    }
   }
 
   public MasterHeartbeatTResponse deepCopy() {
@@ -143,40 +145,48 @@ public class MasterHeartbeatTResponse implements org.apache.thrift.TBase<MasterH
 
   @Override
   public void clear() {
-    setShouldReRegisterIsSet(false);
-    this.shouldReRegister = false;
+    this.command = null;
   }
 
-  public boolean isShouldReRegister() {
-    return this.shouldReRegister;
+  /**
+   * 
+   * @see MetaCommand
+   */
+  public MetaCommand getCommand() {
+    return this.command;
   }
 
-  public MasterHeartbeatTResponse setShouldReRegister(boolean shouldReRegister) {
-    this.shouldReRegister = shouldReRegister;
-    setShouldReRegisterIsSet(true);
+  /**
+   * 
+   * @see MetaCommand
+   */
+  public MasterHeartbeatTResponse setCommand(MetaCommand command) {
+    this.command = command;
     return this;
   }
 
-  public void unsetShouldReRegister() {
-    __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __SHOULDREREGISTER_ISSET_ID);
+  public void unsetCommand() {
+    this.command = null;
   }
 
-  /** Returns true if field shouldReRegister is set (has been assigned a value) and false otherwise */
-  public boolean isSetShouldReRegister() {
-    return EncodingUtils.testBit(__isset_bitfield, __SHOULDREREGISTER_ISSET_ID);
+  /** Returns true if field command is set (has been assigned a value) and false otherwise */
+  public boolean isSetCommand() {
+    return this.command != null;
   }
 
-  public void setShouldReRegisterIsSet(boolean value) {
-    __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __SHOULDREREGISTER_ISSET_ID, value);
+  public void setCommandIsSet(boolean value) {
+    if (!value) {
+      this.command = null;
+    }
   }
 
   public void setFieldValue(_Fields field, Object value) {
     switch (field) {
-    case SHOULD_RE_REGISTER:
+    case COMMAND:
       if (value == null) {
-        unsetShouldReRegister();
+        unsetCommand();
       } else {
-        setShouldReRegister((Boolean)value);
+        setCommand((MetaCommand)value);
       }
       break;
 
@@ -185,8 +195,8 @@ public class MasterHeartbeatTResponse implements org.apache.thrift.TBase<MasterH
 
   public Object getFieldValue(_Fields field) {
     switch (field) {
-    case SHOULD_RE_REGISTER:
-      return isShouldReRegister();
+    case COMMAND:
+      return getCommand();
 
     }
     throw new IllegalStateException();
@@ -199,8 +209,8 @@ public class MasterHeartbeatTResponse implements org.apache.thrift.TBase<MasterH
     }
 
     switch (field) {
-    case SHOULD_RE_REGISTER:
-      return isSetShouldReRegister();
+    case COMMAND:
+      return isSetCommand();
     }
     throw new IllegalStateException();
   }
@@ -218,12 +228,12 @@ public class MasterHeartbeatTResponse implements org.apache.thrift.TBase<MasterH
     if (that == null)
       return false;
 
-    boolean this_present_shouldReRegister = true;
-    boolean that_present_shouldReRegister = true;
-    if (this_present_shouldReRegister || that_present_shouldReRegister) {
-      if (!(this_present_shouldReRegister && that_present_shouldReRegister))
+    boolean this_present_command = true && this.isSetCommand();
+    boolean that_present_command = true && that.isSetCommand();
+    if (this_present_command || that_present_command) {
+      if (!(this_present_command && that_present_command))
         return false;
-      if (this.shouldReRegister != that.shouldReRegister)
+      if (!this.command.equals(that.command))
         return false;
     }
 
@@ -234,10 +244,10 @@ public class MasterHeartbeatTResponse implements org.apache.thrift.TBase<MasterH
   public int hashCode() {
     List<Object> list = new ArrayList<Object>();
 
-    boolean present_shouldReRegister = true;
-    list.add(present_shouldReRegister);
-    if (present_shouldReRegister)
-      list.add(shouldReRegister);
+    boolean present_command = true && (isSetCommand());
+    list.add(present_command);
+    if (present_command)
+      list.add(command.getValue());
 
     return list.hashCode();
   }
@@ -250,12 +260,12 @@ public class MasterHeartbeatTResponse implements org.apache.thrift.TBase<MasterH
 
     int lastComparison = 0;
 
-    lastComparison = Boolean.valueOf(isSetShouldReRegister()).compareTo(other.isSetShouldReRegister());
+    lastComparison = Boolean.valueOf(isSetCommand()).compareTo(other.isSetCommand());
     if (lastComparison != 0) {
       return lastComparison;
     }
-    if (isSetShouldReRegister()) {
-      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.shouldReRegister, other.shouldReRegister);
+    if (isSetCommand()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.command, other.command);
       if (lastComparison != 0) {
         return lastComparison;
       }
@@ -280,8 +290,12 @@ public class MasterHeartbeatTResponse implements org.apache.thrift.TBase<MasterH
     StringBuilder sb = new StringBuilder("MasterHeartbeatTResponse(");
     boolean first = true;
 
-    sb.append("shouldReRegister:");
-    sb.append(this.shouldReRegister);
+    sb.append("command:");
+    if (this.command == null) {
+      sb.append("null");
+    } else {
+      sb.append(this.command);
+    }
     first = false;
     sb.append(")");
     return sb.toString();
@@ -302,8 +316,6 @@ public class MasterHeartbeatTResponse implements org.apache.thrift.TBase<MasterH
 
   private void readObject(java.io.ObjectInputStream in) throws java.io.IOException, ClassNotFoundException {
     try {
-      // it doesn't seem like you should have to do this, but java serialization is wacky, and doesn't call the default constructor.
-      __isset_bitfield = 0;
       read(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(in)));
     } catch (org.apache.thrift.TException te) {
       throw new java.io.IOException(te);
@@ -328,10 +340,10 @@ public class MasterHeartbeatTResponse implements org.apache.thrift.TBase<MasterH
           break;
         }
         switch (schemeField.id) {
-          case 1: // SHOULD_RE_REGISTER
-            if (schemeField.type == org.apache.thrift.protocol.TType.BOOL) {
-              struct.shouldReRegister = iprot.readBool();
-              struct.setShouldReRegisterIsSet(true);
+          case 1: // COMMAND
+            if (schemeField.type == org.apache.thrift.protocol.TType.I32) {
+              struct.command = alluxio.thrift.MetaCommand.findByValue(iprot.readI32());
+              struct.setCommandIsSet(true);
             } else { 
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
@@ -351,9 +363,11 @@ public class MasterHeartbeatTResponse implements org.apache.thrift.TBase<MasterH
       struct.validate();
 
       oprot.writeStructBegin(STRUCT_DESC);
-      oprot.writeFieldBegin(SHOULD_RE_REGISTER_FIELD_DESC);
-      oprot.writeBool(struct.shouldReRegister);
-      oprot.writeFieldEnd();
+      if (struct.command != null) {
+        oprot.writeFieldBegin(COMMAND_FIELD_DESC);
+        oprot.writeI32(struct.command.getValue());
+        oprot.writeFieldEnd();
+      }
       oprot.writeFieldStop();
       oprot.writeStructEnd();
     }
@@ -372,12 +386,12 @@ public class MasterHeartbeatTResponse implements org.apache.thrift.TBase<MasterH
     public void write(org.apache.thrift.protocol.TProtocol prot, MasterHeartbeatTResponse struct) throws org.apache.thrift.TException {
       TTupleProtocol oprot = (TTupleProtocol) prot;
       BitSet optionals = new BitSet();
-      if (struct.isSetShouldReRegister()) {
+      if (struct.isSetCommand()) {
         optionals.set(0);
       }
       oprot.writeBitSet(optionals, 1);
-      if (struct.isSetShouldReRegister()) {
-        oprot.writeBool(struct.shouldReRegister);
+      if (struct.isSetCommand()) {
+        oprot.writeI32(struct.command.getValue());
       }
     }
 
@@ -386,8 +400,8 @@ public class MasterHeartbeatTResponse implements org.apache.thrift.TBase<MasterH
       TTupleProtocol iprot = (TTupleProtocol) prot;
       BitSet incoming = iprot.readBitSet(1);
       if (incoming.get(0)) {
-        struct.shouldReRegister = iprot.readBool();
-        struct.setShouldReRegisterIsSet(true);
+        struct.command = alluxio.thrift.MetaCommand.findByValue(iprot.readI32());
+        struct.setCommandIsSet(true);
       }
     }
   }

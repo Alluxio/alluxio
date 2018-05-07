@@ -17,6 +17,7 @@ import alluxio.PropertyKey;
 import alluxio.exception.NoMasterException;
 import alluxio.master.journal.JournalSystem;
 import alluxio.master.journal.JournalUtils;
+import alluxio.thrift.MetaCommand;
 import alluxio.thrift.RegisterMasterTOptions;
 import alluxio.wire.ConfigProperty;
 
@@ -104,15 +105,15 @@ public interface MasterProcess extends Process {
   long getMasterId(String hostname);
 
   /**
-   * Updates metadata when a standby master periodically heartbeats with the leader master.
+   * A standby master periodically heartbeats with the leader master.
    *
    * @param masterId the master id
-   * @return whether the master should re-register
+   * @return an optional command for the standby master to execute
    */
-  boolean masterHeartbeat(long masterId);
+  MetaCommand masterHeartbeat(long masterId);
 
   /**
-   * Updates metadata when a standby master registers with the leader master.
+   * A standby master registers with the leader master.
    *
    * @param masterId the master id of the standby master registering
    * @param options the options that contains master configuration

@@ -14,42 +14,41 @@ package alluxio.master.meta;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.heartbeat.HeartbeatExecutor;
+import alluxio.thrift.MetaCommand;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.concurrent.NotThreadSafe;
 import java.io.IOException;
 import java.util.concurrent.atomic.AtomicReference;
 
+import javax.annotation.concurrent.NotThreadSafe;
 /**
- * Task that carries out the necessary standby master to leader master communications, including
- * register and heartbeat. This class manages its own {@link MetaMasterMasterClient}.
+ * If a master is detected as a standby master. It will set up its MetaMasterSync and manage
+ * its own {@link MetaMasterMasterClient} which helps communicate with the leader master.
  *
- * When running, this task first requests master configuration from the standby master,
- * then sends it to the leader master. After which, the task will wait for the elapsed time
- * since its last heartbeat has reached the heartbeat interval. Then the cycle will continue.
- *
- * If the task fails to heartbeat to the leader master, it will destroy its old master client
- * and recreate it before retrying.
+ * When running, the standby master will send its heartbeat to the leader master.
+ * The leader master may respond to the heartbeat with a command which will be executed.
+ * After which, the task will wait for the elapsed time since its last heartbeat
+ * has reached the heartbeat interval. Then the cycle will continue.
  */
 @NotThreadSafe
 public final class MetaMasterSync implements HeartbeatExecutor {
   private static final Logger LOG = LoggerFactory.getLogger(MetaMasterSync.class);
 
   /**
-   * The master ID for the master.
+   * The ID of this standby master.
    * This may change if the leader master asks the standby master to re-register.
    */
   private final AtomicReference<Long> mMasterId;
 
-  /** The hostname of the master. */
+  /** The hostname of this standby master. */
   private final String mMasterHostname;
 
   /** Milliseconds between heartbeats before a timeout. */
   private final int mHeartbeatTimeoutMs;
 
-  /** Client for all master communication. */
+  /** Client for communication with the leader master. */
   private final MetaMasterMasterClient mMasterClient;
 
   /** Last System.currentTimeMillis() timestamp when a heartbeat successfully completed. */
@@ -58,9 +57,9 @@ public final class MetaMasterSync implements HeartbeatExecutor {
   /**
    * Creates a new instance of {@link MetaMasterSync}.
    *
-   * @param masterId the master id of the master, assigned by the meta master
-   * @param masterHostname the hostname of the master
-   * @param masterClient the Alluxio master client
+   * @param masterId the master id
+   * @param masterHostname the master hostname
+   * @param masterClient the meta master client
    */
   public MetaMasterSync(AtomicReference<Long>  masterId,
       String masterHostname, MetaMasterMasterClient masterClient) throws IOException {
@@ -87,24 +86,58 @@ public final class MetaMasterSync implements HeartbeatExecutor {
    */
   @Override
   public void heartbeat() {
+    MetaCommand command = null;
     try {
-      boolean shouldReRegister = mMasterClient.heartbeat(mMasterId.get());
-      if (shouldReRegister) {
-        mMasterId.set(mMasterClient.getId(mMasterHostname));
-        registerWithMaster();
-      }
+      command = mMasterClient.heartbeat(mMasterId.get());
+      handleCommand(command);
       mLastSuccessfulHeartbeatMs = System.currentTimeMillis();
     } catch (IOException e) {
+      // An error occurred, log and ignore it or error if heartbeat timeout is reached
+      if (command == null) {
+        LOG.error("Failed to receive leader master heartbeat command.", e);
+      } else {
+        LOG.error("Failed to receive or execute leader master heartbeat command: {}",
+            command.toString(), e);
+      }
       mMasterClient.disconnect();
       if (mHeartbeatTimeoutMs > 0) {
         if (System.currentTimeMillis() - mLastSuccessfulHeartbeatMs >= mHeartbeatTimeoutMs) {
           if (Configuration.getBoolean(PropertyKey.TEST_MODE)) {
-            throw new RuntimeException("Master heartbeat timeout exceeded: " + mHeartbeatTimeoutMs);
+            throw new RuntimeException("Leader Master heartbeat timeout exceeded: "
+                + mHeartbeatTimeoutMs);
           }
-          LOG.error("Master heartbeat timeout exceeded: " + mHeartbeatTimeoutMs);
+          LOG.error("Leader Master heartbeat timeout exceeded: " + mHeartbeatTimeoutMs);
           System.exit(-1);
         }
       }
+    }
+  }
+
+  /**
+   * Handles a leader master command. The command is one of Unknown, Nothing, Register.
+   * This call will block until the command is complete.
+   *
+   * @param cmd the command to execute
+   * @throws IOException if I/O errors occur
+   */
+  private void handleCommand(MetaCommand cmd) throws IOException {
+    if (cmd == null) {
+      return;
+    }
+    switch (cmd) {
+      case Nothing:
+        break;
+      // Leader master requests re-registration
+      case Register:
+        mMasterId.set(mMasterClient.getId(mMasterHostname));
+        registerWithMaster();
+        break;
+      // Unknown request
+      case Unknown:
+        LOG.error("Master heartbeat sends unknown command {}", cmd);
+        break;
+      default:
+        throw new RuntimeException("Un-recognized command from leader master " + cmd);
     }
   }
 

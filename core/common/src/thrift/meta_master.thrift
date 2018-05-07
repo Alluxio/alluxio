@@ -30,6 +30,12 @@ struct MasterInfo {
  8: list<string> zookeeperAddresses // Null means zookeeper is not enabled
 }
 
+enum MetaCommand {
+  Unknown = 0,
+  Nothing = 1,
+  Register = 2, // Ask the standby master to re-register.
+}
+
 struct GetMasterIdTOptions {}
 struct GetMasterIdTResponse {
   1: i64 masterId
@@ -50,7 +56,7 @@ struct GetMetricsTResponse {
 
 struct MasterHeartbeatTOptions {}
 struct MasterHeartbeatTResponse {
-  1: bool shouldReRegister
+  1: MetaCommand command
 }
 
 // This type is used as a union, only one of doubleValue or longValue should be set

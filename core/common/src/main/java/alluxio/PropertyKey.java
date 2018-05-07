@@ -923,7 +923,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey MASTER_HEARTBEAT_INTERVAL_MS =
       new Builder(Name.MASTER_HEARTBEAT_INTERVAL_MS)
           .setAlias(new String[]{"alluxio.master.heartbeat.interval.ms"})
-          .setDefaultValue("1sec")
+          .setDefaultValue("1min")
           .setDescription("The interval between Alluxio masters' heartbeats.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
           .setScope(Scope.MASTER)
@@ -931,7 +931,7 @@ public final class PropertyKey implements Comparable<PropertyKey> {
   public static final PropertyKey MASTER_HEARTBEAT_TIMEOUT_MS =
       new Builder(Name.MASTER_HEARTBEAT_TIMEOUT_MS)
           .setAlias(new String[]{"alluxio.master.heartbeat.timeout.ms"})
-          .setDefaultValue("5min")
+          .setDefaultValue("15min")
           .setDescription("Timeout between leader master and standby master"
               + " indicating a lost master.")
           .setConsistencyCheckLevel(ConsistencyCheckLevel.WARN)
